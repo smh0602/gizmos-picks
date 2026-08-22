@@ -10,6 +10,10 @@ day of line-movement and closing-line data that is gone permanently.
 So this script is deliberately boring: it fails soft, never crashes the
 workflow, and always records what it actually spent.
 
+All snapshots are gzipped. Measured 2026-08-22: an uncompressed gamelines
+pull is ~85KB and a schedule pull ~61KB, which at 28 pulls a day is ~1.5GB
+a year -- past what a git repo should carry. Gzipped it is ~180MB a year.
+
 Usage:  python collect.py gamelines
         python collect.py props-pitcher
         python collect.py props-batter
@@ -149,7 +153,7 @@ def collect_gamelines():
             "books": books,
         })
 
-    write(f"{daydir('gamelines')}/{filename()}", {
+    write(f"{daydir('gamelines')}/{filename()}.gz", {
         "pulled_at": stamp(),
         "endpoint": "bulk",
         "regions": REGIONS_FULL,
@@ -158,7 +162,7 @@ def collect_gamelines():
         "credits_remaining": left,
         "n_games": len(games),
         "games": games,
-    })
+    }, compress=True)
     log(f"gamelines: {len(games)} games, spent {used}, {left} left")
     return left
 
@@ -229,11 +233,11 @@ def collect_schedule():
         f"{STATS}/schedule?sportId=1&date={d}"
         "&hydrate=probablePitcher,linescore,team"
     )
-    write(f"{daydir('schedule')}/{filename()}", {
+    write(f"{daydir('schedule')}/{filename()}.gz", {
         "pulled_at": stamp(),
         "date": d,
         "schedule": body,
-    })
+    }, compress=True)
     games = (body.get("dates") or [{}])[0].get("games", [])
     log(f"schedule: {len(games)} games")
     return None
@@ -263,10 +267,11 @@ def main():
             log(f"WARNING: {left} credits remaining, below reserve of {RESERVE}.")
 
     except Exception as e:
-        # Fail soft. A missed pull is bad; a red workflow that stops the
-        # cron because nobody noticed the email is worse.
+        # Fail LOUD. A missed pull is data that cannot be bought back at
+        # any sane price, so a broken run has to be visible. Failed runs
+        # do NOT disable a cron schedule, so there is no downside to this.
         log(f"ERROR in {mode}: {type(e).__name__}: {e}")
-        sys.exit(0)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
