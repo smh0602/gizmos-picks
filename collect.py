@@ -18,6 +18,7 @@ Usage:  python collect.py gamelines
         python collect.py props-pitcher
         python collect.py props-batter
         python collect.py schedule
+        python collect.py results
 """
 
 import gzip
@@ -243,6 +244,140 @@ def collect_schedule():
     return None
 
 
+# ----------------------------------------------------------------------
+# Final results — the grading feed. Free (statsapi) and the most important
+# thing this collector does after the odds themselves.
+#
+# Grading is what makes the pick ledger worth anything, and a session
+# cannot be relied on to reach statsapi itself: a direct probe from a
+# Claude container on 2026-08-22 returned 403 for statsapi AND for the
+# odds API. GitHub reachability is not in doubt. So results are pulled
+# here, on a runner that definitely has network, and the grading session
+# reads them out of the repo instead of fetching anything.
+#
+# Stored as a compact extract. The raw live feed is 1-3MB per game; what
+# grading actually needs is a few dozen numbers.
+#
+# Includes each starter's SEASON line alongside his game line, because
+# ledger rule 10's strong control is to sum a pitcher's whole game log
+# against his season total -- that is what caught a fabricated "1.3 IP"
+# on 2026-08-21. Storing both makes the control runnable offline.
+# ----------------------------------------------------------------------
+def outs_of(ip):
+    """IP -> outs. Fractions are THIRDS: only .0, .1, .2 exist (rule 40)."""
+    if ip is None:
+        return None
+    whole, _, frac = str(ip).partition(".")
+    f = int(frac) if frac else 0
+    if f not in (0, 1, 2):
+        raise ValueError(f"impossible innings-pitched value: {ip!r}")
+    return int(whole) * 3 + f
+
+
+def et_slate_date(back=0):
+    """The ET date of the slate that has finished.
+
+    Run at 08:00Z that is 04:00 ET; the night's last games ended around
+    02:00 ET, so stepping back 6 more hours lands on the right ET date.
+    """
+    from datetime import timedelta
+    et = now() - timedelta(hours=4)
+    return (et - timedelta(hours=6 + 24 * back)).strftime("%Y-%m-%d")
+
+
+def collect_results():
+    from datetime import timedelta
+
+    # Pull the finished slate and the one before it. Free, and it catches
+    # suspended or resumed games that finalised late.
+    for back in (0, 1):
+        d = et_slate_date(back)
+        sched, _ = get(
+            f"{STATS}/schedule?sportId=1&date={d}&hydrate=linescore,team"
+        )
+        games = (sched.get("dates") or [{}])[0].get("games", []) if sched.get("dates") else []
+        if not games:
+            log(f"results {d}: no games")
+            continue
+
+        out, bad = [], 0
+        for g in games:
+            pk = g.get("gamePk")
+            try:
+                box, _ = get(f"{STATS}/game/{pk}/boxscore")
+            except Exception as e:
+                log(f"  gamePk {pk}: {type(e).__name__}")
+                continue
+
+            pitchers = []
+            for side in ("away", "home"):
+                team = box["teams"][side]
+                for key, p in team.get("players", {}).items():
+                    st = (p.get("stats") or {}).get("pitching") or {}
+                    if not st:
+                        continue
+                    season = (p.get("seasonStats") or {}).get("pitching") or {}
+                    try:
+                        game_outs = outs_of(st.get("inningsPitched"))
+                        season_outs = outs_of(season.get("inningsPitched"))
+                    except ValueError as e:
+                        # Domain violation = fabricated value until proven
+                        # otherwise (ledger rule 40). Record it, do not drop it.
+                        log(f"  DOMAIN VIOLATION gamePk {pk}: {e}")
+                        bad += 1
+                        game_outs = season_outs = None
+                    pitchers.append({
+                        "id": p["person"]["id"],
+                        "name": p["person"]["fullName"],
+                        "side": side,
+                        "team": team["team"]["name"],
+                        "started": (st.get("gamesStarted") or 0) > 0,
+                        "ip": st.get("inningsPitched"),
+                        "outs": game_outs,
+                        "k": st.get("strikeOuts"),
+                        "bb": st.get("baseOnBalls"),
+                        "er": st.get("earnedRuns"),
+                        "h": st.get("hits"),
+                        "bf": st.get("battersFaced"),
+                        "pitches": st.get("numberOfPitches") or st.get("pitchesThrown"),
+                        # season line as of AFTER this game -- the rule-10 control
+                        "season": {
+                            "gs": season.get("gamesStarted"),
+                            "ip": season.get("inningsPitched"),
+                            "outs": season_outs,
+                            "k": season.get("strikeOuts"),
+                        },
+                    })
+
+            ls = g.get("linescore") or {}
+            out.append({
+                "gamePk": pk,
+                "state": (g.get("status") or {}).get("detailedState"),
+                "away": g["teams"]["away"]["team"]["name"],
+                "home": g["teams"]["home"]["team"]["name"],
+                "score": {
+                    "away": (ls.get("teams", {}).get("away") or {}).get("runs"),
+                    "home": (ls.get("teams", {}).get("home") or {}).get("runs"),
+                },
+                "innings": ls.get("currentInning"),
+                "pitchers": pitchers,
+            })
+
+        final = sum(1 for g in out if g["state"] == "Final")
+        write(f"data/{d}/results/final.json.gz", {
+            "pulled_at": stamp(),
+            "slate_date": d,
+            "n_games": len(out),
+            "n_final": final,
+            "domain_violations": bad,
+            "games": out,
+        }, compress=True)
+        log(f"results {d}: {len(out)} games, {final} final, "
+            f"{bad} domain violations")
+
+    return None
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
 
@@ -259,6 +394,8 @@ def main():
             left = collect_props("batter")
         elif mode == "schedule":
             left = collect_schedule()
+        elif mode == "results":
+            left = collect_results()
         else:
             log(f"unknown mode: {mode}")
             sys.exit(1)
