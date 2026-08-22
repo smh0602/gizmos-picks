@@ -399,11 +399,13 @@ async function renderPicks(){
   const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
   const d = todayET();
   let P;
-  try { P = await jget(`data/picks/${d}.json`); }
+  // Picks live at picks/<date>.json, deliberately outside data/ --
+  // data/ is what the collector writes, picks/ is what we publish.
+  try { P = await jget(`picks/${d}.json`); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>Gizmo's Picks <span class="kind k-model">Model</span></h2>
       <div class="note"><b>No card published for ${d} yet.</b> Cards are written to
-      <code>data/picks/&lt;date&gt;.json</code>; this tab renders whatever is there.</div></div>`;
+      <code>picks/&lt;date&gt;.json</code>; this tab renders whatever is there.</div></div>`;
     return;
   }
 
