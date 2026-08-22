@@ -14,7 +14,8 @@ All snapshots are gzipped. Measured 2026-08-22: an uncompressed gamelines
 pull is ~85KB and a schedule pull ~61KB, which at 28 pulls a day is ~1.5GB
 a year -- past what a git repo should carry. Gzipped it is ~180MB a year.
 
-Usage:  python collect.py hitters
+Usage:  python collect.py news
+        python collect.py hitters
         python collect.py gamelines
         python collect.py props-pitcher
         python collect.py props-batter
@@ -338,6 +339,78 @@ def collect_schedule():
 
 
 # ----------------------------------------------------------------------
+# News.
+#
+# Fetched here rather than in the page because RSS hosts do not send CORS
+# headers, so a browser cannot read them directly. Pulled on the runner,
+# normalised, and committed as plain JSON the page can load same-origin.
+#
+# ⚠️ Headlines and links only, with attribution to the source. No article
+# text is copied.
+# ----------------------------------------------------------------------
+NEWS_FEEDS = [
+    ("MLB.com", "https://www.mlb.com/feeds/news/rss.xml"),
+    ("ESPN MLB", "https://www.espn.com/espn/rss/mlb/news"),
+    ("CBS Sports", "https://www.cbssports.com/rss/headlines/mlb/"),
+]
+
+
+def collect_news():
+    import re as _re
+    import xml.etree.ElementTree as ET
+    from email.utils import parsedate_to_datetime
+
+    items = []
+    for source, url in NEWS_FEEDS:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "gizmos-picks/0.1"})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                raw = r.read()
+            root = ET.fromstring(raw)
+        except Exception as e:
+            log(f"  {source}: {type(e).__name__}")
+            continue
+
+        n = 0
+        for it in root.iter("item"):
+            def txt(tag):
+                e = it.find(tag)
+                return (e.text or "").strip() if e is not None and e.text else ""
+            title, link = txt("title"), txt("link")
+            if not title or not link:
+                continue
+            when = txt("pubDate")
+            iso = None
+            if when:
+                try:
+                    iso = parsedate_to_datetime(when).astimezone(timezone.utc)\
+                        .strftime("%Y-%m-%dT%H:%M:%SZ")
+                except Exception:
+                    iso = None
+            desc = _re.sub(r"<[^>]+>", "", txt("description"))[:220]
+            items.append({"source": source, "title": title, "link": link,
+                          "published": iso, "summary": desc})
+            n += 1
+            if n >= 25:
+                break
+        log(f"  {source}: {n} items")
+
+    # Newest first; undated entries sink to the bottom rather than the top.
+    items.sort(key=lambda x: x["published"] or "", reverse=True)
+    if not items:
+        raise RuntimeError("every news feed failed — nothing written")
+
+    write("data/latest/news.json", {
+        "pulled_at": stamp(),
+        "kind": "DESCRIPTIVE",
+        "n": len(items),
+        "items": items[:60],
+    })
+    log(f"news: {len(items)} items from {len({i['source'] for i in items})} sources")
+    return None
+
+
+# ----------------------------------------------------------------------
 # Hitter game logs — the foundation for hitter props.
 #
 # Free (statsapi) and pulled here rather than in a session because a
@@ -572,7 +645,7 @@ def collect_results():
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
 
-    if mode != "schedule" and not ODDS_KEY:
+    if mode not in ("schedule", "results", "hitters", "news") and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
 
@@ -589,6 +662,8 @@ def main():
             left = collect_results()
         elif mode == "hitters":
             left = collect_hitters()
+        elif mode == "news":
+            left = collect_news()
         else:
             log(f"unknown mode: {mode}")
             sys.exit(1)
