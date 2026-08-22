@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gizmo's Picks — MLB</title>
+<style>
+:root{
+  --bg:#f4f5f7; --card:#fff; --ink:#14181f; --mut:#697586; --line:#dfe3e8;
+  --accent:#0b6b3a; --accent2:#0f8f4d; --live:#c62828; --warn:#b26a00;
+  --chip:#eef1f4; --shadow:0 1px 2px rgba(20,24,31,.06),0 1px 8px rgba(20,24,31,.04);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+/* ---- masthead ---- */
+header{background:var(--ink);color:#fff}
+.mast{display:flex;align-items:center;gap:14px;height:56px}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.02em}
+.logo span{color:#5fd18b}
+.tagline{color:#9aa6b5;font-size:12px;border-left:1px solid #333c48;padding-left:14px}
+.subnav{background:#1d232c;border-top:1px solid #2a323d;overflow-x:auto}
+.subnav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0;white-space:nowrap}
+.subnav a{display:block;padding:11px 14px;color:#b6c0cc;font-size:13px;font-weight:600;cursor:pointer}
+.subnav a:hover{color:#fff;background:#242c37}
+.subnav a.on{color:#fff;box-shadow:inset 0 -3px 0 var(--accent2)}
+.subnav a.off{color:#5c6673;cursor:default}
+.subnav a.off:hover{background:none;color:#5c6673}
+
+/* ---- toolbar ---- */
+.tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 0 6px}
+.tools h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+.tools .sp{flex:1}
+input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line);
+  border-radius:7px;background:#fff;color:var(--ink)}
+.stamp{font-size:12px;color:var(--mut)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent2);
+  margin-right:5px;vertical-align:1px}
+
+/* ---- game cards ---- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;padding:8px 0 28px}
+.g{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
+  overflow:hidden;display:flex;flex-direction:column}
+.g-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;gap:8px}
+.tm{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tm.r{align-items:flex-end;text-align:right}
+.abbr{font-weight:800;font-size:16px;letter-spacing:-.01em}
+.rec{font-size:11px;color:var(--mut)}
+.mid{text-align:center;flex:0 0 auto;min-width:96px}
+.time{font-size:12px;color:var(--mut);font-weight:600}
+.date{font-size:11px;color:var(--mut)}
+.livebadge{display:inline-block;background:var(--live);color:#fff;font-size:10px;font-weight:800;
+  letter-spacing:.06em;padding:2px 7px;border-radius:4px}
+.sc{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.inn{font-size:11px;color:var(--mut);font-weight:600;margin-top:2px}
+.win{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.ml{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:7px 12px;background:#fafbfc;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  font-size:12px;color:var(--mut)}
+.bar b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+.sp2{padding:9px 12px;font-size:12px}
+.sp2 .row{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.sp2 .lab{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.sp2 .v{font-variant-numeric:tabular-nums}
+.pit{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-top:1px solid var(--line);
+  font-size:12px}
+.pit .p{min-width:0}
+.pit .p.r{text-align:right}
+.pname{font-weight:700}
+.pera{color:var(--mut);font-size:11px}
+
+.count{display:flex;gap:10px;justify-content:center;padding:6px 12px;border-top:1px solid var(--line);
+  font-size:11px;color:var(--mut)}
+.pips{display:inline-flex;gap:3px;align-items:center}
+.pip{width:8px;height:8px;border-radius:50%;border:1px solid #c3cad3;background:#fff}
+.pip.on{background:var(--live);border-color:var(--live)}
+.pip.b.on{background:#2e7d32;border-color:#2e7d32}
+
+.rhe{width:100%;border-collapse:collapse;font-size:11px}
+.rhe th,.rhe td{padding:3px 12px;text-align:right;font-variant-numeric:tabular-nums}
+.rhe th:first-child,.rhe td:first-child{text-align:left;font-weight:700}
+.rhe thead th{color:var(--mut);font-weight:600;border-bottom:1px solid var(--line)}
+
+.tt{padding:8px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--mut);
+  display:flex;justify-content:space-between;gap:8px}
+.tt b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---- kind badges (ledger rule 55) ---- */
+.kind{font-size:9px;font-weight:800;letter-spacing:.07em;padding:2px 5px;border-radius:3px;
+  text-transform:uppercase;vertical-align:2px}
+.k-model{background:#e3f4e9;color:#0b6b3a}
+.k-market{background:#e6eefc;color:#1a4b9c}
+.k-desc{background:var(--chip);color:var(--mut)}
+
+/* ---- panels ---- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;
+  box-shadow:var(--shadow);margin:8px 0 20px}
+.panel h2{margin:0 0 4px;font-size:16px}
+.panel p{color:var(--mut);margin:6px 0}
+.note{background:#fff9ec;border:1px solid #f0dfb8;border-radius:8px;padding:12px 14px;
+  font-size:13px;color:#6b5320;margin:12px 0}
+.msg{padding:40px 0;text-align:center;color:var(--mut)}
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th,table.data td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+table.data th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
+.pk{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
+  margin:10px 0;overflow:hidden}
+.pk-h{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.conf{flex:0 0 auto;width:62px;height:62px;border-radius:10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-weight:800;line-height:1}
+.conf .n{font-size:21px;font-variant-numeric:tabular-nums}
+.conf .l{font-size:8px;letter-spacing:.08em;font-weight:700;margin-top:3px;opacity:.85}
+.c-hi{background:#e3f4e9;color:#0b6b3a}
+.c-mid{background:#fff4e0;color:#8a5a00}
+.c-lo{background:#fdeaea;color:#a02020}
+.pk-t{flex:1;min-width:0}
+.pk-t .play{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.pk-t .meta{font-size:12px;color:var(--mut);margin-top:2px}
+.pk-px{text-align:right;flex:0 0 auto}
+.pk-px .px{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+.pk-px .bk{font-size:11px;color:var(--mut)}
+.pk-b{padding:12px 14px}
+.pk-b ul{margin:0;padding-left:18px}
+.pk-b li{margin:4px 0}
+.ev{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#fafbfc;border-top:1px solid var(--line);
+  font-size:11px;color:var(--mut)}
+.ev span b{color:var(--ink);font-variant-numeric:tabular-nums}
+.fl{margin:8px 14px 12px;padding:9px 11px;border-radius:7px;font-size:12.5px;line-height:1.45}
+.fl-warn{background:#fff9ec;border:1px solid #f0dfb8;color:#6b5320}
+.fl-danger{background:#fdeeee;border:1px solid #f0c4c4;color:#8a2020}
+.fl-info{background:#eef3fb;border:1px solid #cfdcf0;color:#2a4a76}
+.pairs{width:100%;border-collapse:collapse;font-size:13px}
+.pairs th,.pairs td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
+.pairs th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.pairs td.n{text-align:right;font-variant-numeric:tabular-nums}
+footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid var(--line)}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap mast">
+    <div class="logo">Gizmo's<span>Picks</span></div>
+    <div class="tagline">MLB model &amp; live board</div>
+  </div>
+  <nav class="subnav"><div class="wrap"><ul>
+    <li><a data-tab="scores" class="on">Scores &amp; Matchups</a></li>
+    <li><a data-tab="picks">Gizmo's Picks</a></li>
+    <li><a data-tab="odds">Odds</a></li>
+    <li><a data-tab="record">Track Record</a></li>
+    <li><a class="off" title="Needs a run-scoring model — not built yet">Game Projections</a></li>
+    <li><a class="off" title="Needs a hitter model — not built yet">Player Props</a></li>
+    <li><a class="off" title="Not built yet">Trends</a></li>
+  </ul></div></nav>
+</header>
+
+<main class="wrap">
+  <div class="tools">
+    <h1 id="ttl">Scores &amp; Matchups</h1>
+    <input type="date" id="dt">
+    <select id="filt">
+      <option value="all">All games</option>
+      <option value="live">Live only</option>
+      <option value="pre">Upcoming only</option>
+      <option value="fin">Final only</option>
+    </select>
+    <span class="sp"></span>
+    <span class="stamp" id="stamp"></span>
+  </div>
+  <div id="view"></div>
+</main>
+
+<footer class="wrap">
+  <p><b>How to read the badges.</b>
+    <span class="kind k-model">Model</span> is ours — fitted, backtested, and carrying a confidence number.
+    <span class="kind k-market">Market</span> is the sportsbooks' opinion, de-vigged. It is not our projection.
+    <span class="kind k-desc">Live</span> is plain fact from the MLB feed.</p>
+  <p>We model two markets: starting-pitcher strikeouts and outs. Everything else is market data or unbuilt, and is labelled as such.</p>
+</footer>
+
+<script>
+const S = 'https://statsapi.mlb.com/api/v1';
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const ABBR = {"Arizona Diamondbacks":"ARI","Atlanta Braves":"ATL","Baltimore Orioles":"BAL","Boston Red Sox":"BOS","Chicago Cubs":"CHC","Chicago White Sox":"CWS","Cincinnati Reds":"CIN","Cleveland Guardians":"CLE","Colorado Rockies":"COL","Detroit Tigers":"DET","Houston Astros":"HOU","Kansas City Royals":"KC","Los Angeles Angels":"LAA","Los Angeles Dodgers":"LAD","Miami Marlins":"MIA","Milwaukee Brewers":"MIL","Minnesota Twins":"MIN","New York Mets":"NYM","New York Yankees":"NYY","Athletics":"ATH","Oakland Athletics":"ATH","Philadelphia Phillies":"PHI","Pittsburgh Pirates":"PIT","San Diego Padres":"SD","San Francisco Giants":"SF","Seattle Mariners":"SEA","St. Louis Cardinals":"STL","Tampa Bay Rays":"TB","Texas Rangers":"TEX","Toronto Blue Jays":"TOR","Washington Nationals":"WSH"};
+const ab = n => ABBR[n] || (n||'').split(' ').pop().slice(0,3).toUpperCase();
+const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
+
+let BOARD = null, SPLITS = {}, TAB = 'scores';
+
+const todayET = () => {
+  const d = new Date(Date.now() - 4*3600*1000);
+  return d.toISOString().slice(0,10);
+};
+
+async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
+
+/* Market board written by the collector. One known URL because GitHub
+   Pages has no directory listing. Absent on a fresh clone — that is fine,
+   the page degrades to live data only. */
+async function loadBoard(){
+  try { BOARD = await jget('data/latest/board.json'); }
+  catch(e){ BOARD = null; }
+}
+
+/* Home/road splits and last-10 come from standings, not the schedule. */
+async function loadSplits(){
+  try{
+    const d = await jget(`${S}/standings?leagueId=103,104&season=${new Date().getFullYear()}&standingsTypes=regularSeason&hydrate=team`);
+    (d.records||[]).forEach(r => (r.teamRecords||[]).forEach(t => {
+      const s = {};
+      ((t.records||{}).splitRecords||[]).forEach(x => s[x.type] = `${x.wins}-${x.losses}`);
+      SPLITS[t.team.name] = { home:s.home, away:s.away, last10:((t.records||{}).splitRecords||[]).length ? s.lastTen : null,
+                              w:t.wins, l:t.losses, streak:(t.streak||{}).streakCode };
+    }));
+  }catch(e){}
+}
+
+/* Match on team names AND date. The odds endpoint returns a rolling
+   window covering today and tomorrow, so a name-only match can hand a
+   game today the line posted for the same matchup tomorrow. Same class
+   of bug as treating two opposing starters as two different games. */
+const boardFor = (away, home, isoDate) =>
+  BOARD && (BOARD.games||[]).find(g =>
+    g.away === away && g.home === home &&
+    (!isoDate || g.commence.slice(0,10) === isoDate)) || null;
+
+function gameCard(g){
+  const away = g.teams.away.team.name, home = g.teams.home.team.name;
+  const st = g.status || {}, abs = st.abstractGameState;
+  const live = abs === 'Live', fin = abs === 'Final';
+  const ls = g.linescore || {};
+  const b = boardFor(away, home, (g.gameDate||'').slice(0,10));
+  const c = el('div','g');
+
+  const rec = t => { const s = SPLITS[t]; return s ? `${s.w}-${s.l}` : ''; };
+  const sub = (t,side) => { const s = SPLITS[t]; if(!s) return '';
+    const v = side==='home' ? s.home : s.away; return v ? `${v} ${side==='home'?'home':'road'}` : ''; };
+
+  // ---- header row
+  const top = el('div','g-top');
+  const L = el('div','tm');
+  L.append(el('div','abbr', ab(away)), el('div','rec', rec(away)), el('div','rec', sub(away,'away')));
+  const R = el('div','tm r');
+  R.append(el('div','abbr', ab(home)), el('div','rec', rec(home)), el('div','rec', sub(home,'home')));
+  const M = el('div','mid');
+
+  if (live || fin){
+    const a = (ls.teams?.away||{}).runs ?? 0, h = (ls.teams?.home||{}).runs ?? 0;
+    M.append(el('div', live?'livebadge':'time', live ? 'LIVE' : 'FINAL'));
+    M.append(el('div','sc', `${a} – ${h}`));
+    M.append(el('div','inn', live
+      ? `${ls.inningState||''} ${ls.currentInning||''}`.trim()
+      : `F${(ls.currentInning>9)?'/'+ls.currentInning:''}`));
+    L.prepend(el('div','win', String(a))); R.prepend(el('div','win', String(h)));
+  } else {
+    const t = new Date(g.gameDate);
+    M.append(el('div','date', t.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'})));
+    M.append(el('div','time', t.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})));
+    if (b){
+      const wa = b.win_pct[away], wh = b.win_pct[home];
+      if (wa != null){
+        L.prepend(el('div','win', wa + '%'));
+        R.prepend(el('div','win', wh + '%'));
+      }
+      const ma = (b.best_ml||{})[away], mh = (b.best_ml||{})[home];
+      if (ma) L.append(el('div','ml', sgn(ma.price)));
+      if (mh) R.append(el('div','ml', sgn(mh.price)));
+    }
+  }
+  top.append(L, M, R); c.append(top);
+
+  // ---- market strip
+  if (b && (b.total != null || b.run_line != null)){
+    const bar = el('div','bar');
+    bar.append(el('span', null, `<span class="kind k-market">Market</span>`));
+    bar.append(el('span', null, `O/U <b>${b.total ?? '—'}</b> &nbsp; RL <b>${sgn(b.run_line)}</b>`));
+    bar.append(el('span', null, `<b>${b.n_books}</b> books`));
+    c.append(bar);
+  }
+
+  // ---- live detail: pitcher, batter, count, R/H/E
+  if (live){
+    const box = el('div');
+    const o = ls.outs ?? 0, balls = ls.balls ?? 0, str = ls.strikes ?? 0;
+    const pips = (n, max, cls) => `<span class="pips">` +
+      Array.from({length:max}, (_,i) => `<span class="pip ${cls} ${i<n?'on':''}"></span>`).join('') + `</span>`;
+    const cd = el('div','count',
+      `<span>B ${pips(balls,3,'b')}</span><span>S ${pips(str,2,'')}</span><span>O ${pips(o,2,'')}</span>`);
+    box.append(cd);
+
+    const off = ls.offense || {}, def = ls.defense || {};
+    if (def.pitcher || off.batter){
+      const p = el('div','pit');
+      const pl = el('div','p');
+      pl.append(el('div','lab','Pitching'), el('div','pname', (def.pitcher||{}).fullName || '—'));
+      const pr = el('div','p r');
+      pr.append(el('div','lab','At bat'), el('div','pname', (off.batter||{}).fullName || '—'));
+      p.append(pl, pr); box.append(p);
+    }
+    const rhe = el('table','rhe');
+    rhe.innerHTML = `<thead><tr><th></th><th>R</th><th>H</th><th>E</th></tr></thead><tbody>
+      <tr><td>${ab(away)}</td><td>${(ls.teams?.away||{}).runs??0}</td><td>${(ls.teams?.away||{}).hits??0}</td><td>${(ls.teams?.away||{}).errors??0}</td></tr>
+      <tr><td>${ab(home)}</td><td>${(ls.teams?.home||{}).runs??0}</td><td>${(ls.teams?.home||{}).hits??0}</td><td>${(ls.teams?.home||{}).errors??0}</td></tr>
+      </tbody>`;
+    box.append(rhe);
+    c.append(box);
+  }
+
+  // ---- probables
+  const pa = g.teams.away.probablePitcher, ph = g.teams.home.probablePitcher;
+  if (!live && (pa || ph)){
+    const p = el('div','pit');
+    const one = (pp, right) => {
+      const d = el('div', 'p' + (right?' r':''));
+      d.append(el('div','pname', pp ? pp.fullName : 'TBA'));
+      return d;
+    };
+    p.append(one(pa,false), one(ph,true)); c.append(p);
+  }
+
+  // ---- implied team totals (the T25 input)
+  if (b && b.team_total && b.team_total[away] != null){
+    c.append(el('div','tt',
+      `<span>Implied runs <span class="kind k-market">Market</span></span>
+       <span>${ab(away)} <b>${b.team_total[away]}</b> &nbsp; ${ab(home)} <b>${b.team_total[home]}</b></span>`));
+  }
+  return c;
+}
+
+async function renderScores(){
+  const d = $('#dt').value || todayET();
+  const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
+  let data;
+  try{
+    data = await jget(`${S}/schedule?sportId=1&date=${d}&hydrate=probablePitcher,linescore,team`);
+  }catch(e){
+    v.innerHTML = `<div class="note"><b>Couldn't reach the MLB feed.</b> ${e.message}</div>`; return;
+  }
+  let games = (data.dates||[]).flatMap(x => x.games||[]);
+  const f = $('#filt').value;
+  if (f !== 'all') games = games.filter(g => {
+    const a = (g.status||{}).abstractGameState;
+    return f==='live' ? a==='Live' : f==='pre' ? a==='Preview' : a==='Final';
+  });
+  games.sort((a,b) => new Date(a.gameDate) - new Date(b.gameDate));
+
+  v.innerHTML = '';
+  if (!games.length){ v.innerHTML = '<div class="msg">No games.</div>'; return; }
+  const grid = el('div','grid');
+  games.forEach(g => grid.append(gameCard(g)));
+  v.append(grid);
+
+  const n = games.length, liveN = games.filter(g => (g.status||{}).abstractGameState==='Live').length;
+  $('#stamp').innerHTML = (liveN ? `<span class="dot"></span>${liveN} live · ` : '') +
+    `${n} games` + (BOARD ? ` · odds ${BOARD.pulled_at.slice(11,16)}Z` : ' · no odds file yet');
+}
+
+const confClass = c => c >= 70 ? 'c-hi' : c >= 60 ? 'c-mid' : 'c-lo';
+const playName = p => {
+  const s = p.side === 'over' ? 'Over' : 'Under';
+  const m = p.market === 'strikeouts' ? 'K' : 'Outs';
+  return `${p.pitcher} — ${s} ${p.line} ${m}`;
+};
+
+function pickCard(p){
+  const c = el('div','pk');
+  const h = el('div','pk-h');
+  h.append(el('div', 'conf ' + confClass(p.confidence),
+    `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
+  const t = el('div','pk-t');
+  t.append(el('div','play', playName(p)));
+  t.append(el('div','meta', `${p.game} &nbsp;·&nbsp; ${p.first_pitch} ET`));
+  h.append(t);
+  h.append(el('div','pk-px', `<div class="px">${sgn(p.price)}</div><div class="bk">${p.book}</div>`));
+  c.append(h);
+
+  if (p.why && p.why.length)
+    c.append(el('div','pk-b', '<ul>' + p.why.map(w => `<li>${w}</li>`).join('') + '</ul>'));
+
+  (p.flags||[]).forEach(f => c.append(el('div', 'fl fl-' + f.kind, f.text)));
+
+  const bits = [`Own record <b>${p.raw}</b>`];
+  if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`);
+  if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
+  c.append(el('div','ev', bits.map(b => `<span>${b}</span>`).join('')));
+  return c;
+}
+
+async function renderPicks(){
+  const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
+  const d = todayET();
+  let P;
+  try { P = await jget(`data/picks/${d}.json`); }
+  catch(e){
+    v.innerHTML = `<div class="panel"><h2>Gizmo's Picks <span class="kind k-model">Model</span></h2>
+      <div class="note"><b>No card published for ${d} yet.</b> Cards are written to
+      <code>data/picks/&lt;date&gt;.json</code>; this tab renders whatever is there.</div></div>`;
+    return;
+  }
+
+  v.innerHTML = '';
+  const head = el('div','panel');
+  head.innerHTML = `<h2>Gizmo's Picks <span class="kind k-model">Model</span> &mdash; ${d}</h2>
+    <p>${P.coverage}</p>
+    <div class="note"><b>Read the confidence number honestly.</b> ${P.calibration_warning}</div>`;
+  v.append(head);
+
+  // Rank by confidence -- what a reader expects from a picks page, and it
+  // keeps the badge column monotonic instead of jumping around.
+  P.picks.sort((a,b) => b.confidence - a.confidence).forEach(p => v.append(pickCard(p)));
+
+  if (P.pairs && P.pairs.length){
+    const pn = el('div','panel');
+    pn.innerHTML = `<h2>Pairs</h2>
+      <p>Two legs, different games, ranked by the chance both land. Nothing below 1.8x is shown.</p>
+      <div style="overflow-x:auto"><table class="pairs">
+      <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th><th class="n">Both hit</th></tr></thead>
+      <tbody>${P.pairs.map(x => `<tr>
+        <td><b>${x.legs.join('</b> + <b>')}</b></td>
+        <td class="rec">${x.games.join(' · ')}</td>
+        <td class="n">${x.multiplier.toFixed(2)}x</td>
+        <td class="n"><b>${x.joint}%</b></td></tr>`).join('')}</tbody></table></div>`;
+    v.append(pn);
+  }
+}
+
+function renderOdds(){
+  const v = $('#view');
+  if (!BOARD){ v.innerHTML = '<div class="note"><b>No odds file yet.</b> The collector writes <code>data/latest/board.json</code> on its next run.</div>'; return; }
+  const byDate = {};
+  (BOARD.games||[]).forEach(g => (byDate[g.commence.slice(0,10)] ||= []).push(g));
+  const dates = Object.keys(byDate).sort();
+
+  const rowsFor = list => list.sort((x,y)=>x.commence<y.commence?-1:1).map(g => {
+    const a = g.away, h = g.home, ma = (g.best_ml||{})[a], mh = (g.best_ml||{})[h];
+    return `<tr>
+      <td>${new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</td>
+      <td><b>${ab(a)}</b> @ <b>${ab(h)}</b></td>
+      <td class="n">${g.win_pct[a] ?? '—'}%</td>
+      <td class="n">${g.win_pct[h] ?? '—'}%</td>
+      <td class="n">${ma ? sgn(ma.price) : '—'}<br><span class="rec">${ma ? ma.book : ''}</span></td>
+      <td class="n">${mh ? sgn(mh.price) : '—'}<br><span class="rec">${mh ? mh.book : ''}</span></td>
+      <td class="n">${g.total ?? '—'}</td>
+      <td class="n">${sgn(g.run_line)}</td>
+      <td class="n">${g.team_total[a] ?? '—'} / ${g.team_total[h] ?? '—'}</td>
+      <td class="n">${g.vig_pct ?? '—'}%</td>
+    </tr>`;
+  }).join('');
+
+  const blocks = dates.map(d => {
+    const dd = new Date(d + 'T12:00:00Z');
+    const label = dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
+    return `<h3 style="margin:18px 0 6px;font-size:14px">${label}
+      <span class="rec">${byDate[d].length} games</span></h3>
+      <div style="overflow-x:auto"><table class="data">
+      <thead><tr><th>Time</th><th>Matchup</th><th>Away</th><th>Home</th>
+        <th>Best away</th><th>Best home</th><th>Total</th><th>RL</th><th>Implied runs</th><th>Vig</th></tr></thead>
+      <tbody>${rowsFor(byDate[d])}</tbody></table></div>`;
+  }).join('');
+
+  v.innerHTML = `<div class="panel">
+    <h2>Odds <span class="kind k-market">Market</span></h2>
+    <p>De-vigged consensus across ${BOARD.n_books_seen} books. Best price shown with the book offering it.
+       Pulled ${BOARD.pulled_at.slice(11,16)}Z. The feed returns a rolling window, so tomorrow's board
+       appears here too &mdash; grouped by date, never mixed.</p>
+    ${blocks}
+    <div class="note">These are the <b>books'</b> numbers, not ours. A win % here is what the market thinks after
+      removing the house margin — useful, and hard to beat, but it is not a Gizmo's projection and never carries
+      a Gizmo's confidence rating.</div>
+  </div>`;
+}
+
+function renderRecord(){
+  $('#view').innerHTML = `
+    <div class="panel">
+      <h2>Track Record</h2>
+      <p>Every pick this model has made, graded, with nothing removed after the fact.</p>
+      <table class="data">
+        <thead><tr><th>Confidence band</th><th class="n">Picks</th><th class="n">We said</th><th class="n">Actually hit</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>80%+</td><td class="n">6</td><td class="n">84.7%</td><td class="n">66.7%</td><td>Running hot — do not trust yet</td></tr>
+          <tr><td>70–80%</td><td class="n">20</td><td class="n">75.2%</td><td class="n">80.0%</td><td><b>Reliable</b></td></tr>
+          <tr><td>60–70%</td><td class="n">13</td><td class="n">64.4%</td><td class="n">38.5%</td><td>Broken — do not bet these</td></tr>
+          <tr><td>50–60%</td><td class="n">1</td><td class="n">55.0%</td><td class="n">—</td><td>No sample</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><b>Read this before anything else on the site.</b>
+        Only the 70–80% band is currently worth acting on. When we say 60–70% we have been badly wrong —
+        those picks hit 38% of the time, not 64%. That is published here rather than buried because a
+        picks record you can't check is worth nothing.<br><br>
+        Overall: <b>25 of 38</b> carded picks, against an average estimate of 72.6%.
+        Forty graded plays total. This is a small sample and every number here will move.</div>
+      <p class="stamp">Figures as of 2026-08-22, from the project ledger. This tab will read the ledger directly once it is published as data.</p>
+    </div>`;
+}
+
+function show(tab){
+  TAB = tab;
+  document.querySelectorAll('.subnav a[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
+  const names = {scores:'Scores & Matchups', picks:"Gizmo's Picks", odds:'Odds', record:'Track Record'};
+  $('#ttl').textContent = names[tab];
+  const showTools = tab === 'scores';
+  $('#dt').style.display = $('#filt').style.display = showTools ? '' : 'none';
+  if (!showTools) $('#stamp').textContent = '';
+  ({scores:renderScores, picks:renderPicks, odds:renderOdds, record:renderRecord})[tab]();
+}
+
+document.querySelectorAll('.subnav a[data-tab]').forEach(a =>
+  a.addEventListener('click', () => show(a.dataset.tab)));
+$('#dt').addEventListener('change', renderScores);
+$('#filt').addEventListener('change', renderScores);
+
+(async () => {
+  $('#dt').value = todayET();
+  await Promise.all([loadBoard(), loadSplits()]);
+  show('scores');
+  setInterval(() => { if (TAB === 'scores') renderScores(); }, 45000);
+})();
+</script>
+</body>
+</html>
