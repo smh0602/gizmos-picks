@@ -25,10 +25,17 @@ on:
     # Hitter props: once. Banked for a model that does not exist yet.
     - cron: "20 14 * * *"
 
+    # Final results: 08:00Z = 4am ET, after the last game ends and well
+    # before the 11:31Z grading run. Free (statsapi). This is the feed the
+    # pick ledger is graded from -- a Claude session cannot be relied on to
+    # reach statsapi itself, so results are fetched here and read out of
+    # the repo instead.
+    - cron: "0 8 * * *"
+
   workflow_dispatch:
     inputs:
       mode:
-        description: "gamelines | props-pitcher | props-batter | schedule"
+        description: "gamelines | props-pitcher | props-batter | schedule | results"
         required: true
         default: gamelines
 
@@ -59,6 +66,7 @@ jobs:
               "10 14 * * *") echo "mode=props-pitcher" >> "$GITHUB_OUTPUT" ;;
               "40 21 * * *") echo "mode=props-pitcher" >> "$GITHUB_OUTPUT" ;;
               "20 14 * * *") echo "mode=props-batter"  >> "$GITHUB_OUTPUT" ;;
+              "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
               *)             echo "mode=gamelines"     >> "$GITHUB_OUTPUT" ;;
             esac
           fi
