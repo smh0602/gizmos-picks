@@ -1,0 +1,467 @@
+{
+ "date": "2026-08-22",
+ "generated_at": "2026-08-22T16:25:00Z",
+ "kind": "MODEL",
+ "model_version": "v4.0",
+ "coverage": "Starting-pitcher strikeouts and outs only. No hitter or team-run model exists.",
+ "calibration_warning": "Only the 70-80% band is currently well calibrated. Treat anything below 70 with suspicion \u2014 see Track Record.",
+ "picks": [
+  {
+   "rank": 1,
+   "pitcher": "Jared Jones",
+   "market": "strikeouts",
+   "side": "over",
+   "line": 2.5,
+   "game": "PIT @ LAD",
+   "first_pitch": "19:15",
+   "book": "hardrockbet",
+   "price": -1000,
+   "model": 89.9,
+   "raw": "14/14",
+   "blend": 94.9,
+   "confidence": 90,
+   "class": {
+    "all": "40/45",
+    "four_plus": "36/38"
+   },
+   "h2h": "1 start vs LAD \u2014 4 K in 12 outs, cleared",
+   "why": [
+    "Has cleared 3+ strikeouts in all 14 starts this season. Not one miss.",
+    "Comparable arms facing this Dodgers lineup went 40 of 45 \u2014 and 36 of 38 when they got through four innings.",
+    "The Dodgers are middle of the pack at striking out, so this isn't a soft matchup \u2014 it's just a low bar for a pitcher averaging 5.9 K a start."
+   ],
+   "flags": [
+    {
+     "kind": "warn",
+     "text": "14-for-14 is not 100%. A perfect record over 9+ starts delivers about 89% going forward, which is why this is carried at 90 and not 95."
+    }
+   ]
+  },
+  {
+   "rank": 2,
+   "pitcher": "Ryan Weathers",
+   "market": "strikeouts",
+   "side": "over",
+   "line": 3.5,
+   "game": "TOR @ NYY",
+   "first_pitch": "13:35",
+   "book": "hardrockbet",
+   "price": -425,
+   "model": 74.3,
+   "raw": "22/24",
+   "blend": 83.0,
+   "confidence": 81,
+   "class": {
+    "all": "54/70",
+    "four_plus": "53/67"
+   },
+   "h2h": "3 starts vs TOR \u2014 7 K, 2 K, 4 K (2 of 3 cleared)",
+   "why": [
+    "22 of 24 starts with 4+ strikeouts.",
+    "Last five: 7, 4, 6, 4, 4. He hasn't gone under 4 since June.",
+    "Similar arms against Toronto: 54 of 70, and 53 of 67 on starts lasting four innings."
+   ],
+   "flags": [
+    {
+     "kind": "warn",
+     "text": "Toronto is the 5th-hardest lineup in baseball to strike out. That's the one real argument against, and why this is 81 rather than 88."
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "pitcher": "Christian Scott",
+   "market": "strikeouts",
+   "side": "over",
+   "line": 4.5,
+   "game": "NYM @ CWS",
+   "first_pitch": "19:10",
+   "book": "hardrockbet",
+   "price": -350,
+   "model": 71.0,
+   "raw": "16/18",
+   "blend": 80.0,
+   "confidence": 80,
+   "class": {
+    "all": "19/22",
+    "four_plus": "19/20"
+   },
+   "h2h": "None \u2014 has never faced the White Sox",
+   "why": [
+    "16 of 18 starts with 5+ strikeouts. Last five: 6, 7, 7, 6, 7 \u2014 extremely steady.",
+    "Right-handers of his calibre have gone 13 for 13 against the White Sox this season, and 6 for 6 on the road at Chicago with a minimum of 7 strikeouts.",
+    "Chicago is the 23rd-hardest lineup to strike out, meaning they whiff a lot."
+   ],
+   "flags": [
+    {
+     "kind": "warn",
+     "text": "The right-hander split was found after the fact, not registered in advance, and 13-for-13 on thirteen observations is really about 89%, not 100%."
+    },
+    {
+     "kind": "info",
+     "text": "He has never struck out exactly four batters \u2014 his 4+ and 5+ records are identical at 16 of 18."
+    }
+   ]
+  },
+  {
+   "rank": 4,
+   "pitcher": "Jared Jones",
+   "market": "strikeouts",
+   "side": "over",
+   "line": 3.5,
+   "game": "PIT @ LAD",
+   "first_pitch": "19:15",
+   "book": "hardrockbet",
+   "price": -325,
+   "model": 77.5,
+   "raw": "12/14",
+   "blend": 81.6,
+   "confidence": 82,
+   "class": {
+    "all": "39/45",
+    "four_plus": "35/38"
+   },
+   "h2h": "1 start vs LAD \u2014 4 K, cleared",
+   "why": [
+    "Same pitcher one rung up. 12 of 14 starts with 4+ strikeouts.",
+    "Same-calibre arms vs the Dodgers: 39 of 45, and 35 of 38 on four-plus-inning starts."
+   ],
+   "flags": []
+  },
+  {
+   "rank": 5,
+   "pitcher": "Tarik Skubal",
+   "market": "outs",
+   "side": "under",
+   "line": 18.5,
+   "game": "PIT @ LAD",
+   "first_pitch": "19:15",
+   "book": "hardrockbet",
+   "price": -150,
+   "model": 64.4,
+   "raw": "13/19",
+   "blend": 66.4,
+   "confidence": 69,
+   "class": {
+    "all": "32/39",
+    "four_plus": "22/29"
+   },
+   "h2h": "1 start vs PIT \u2014 17 outs, cleared",
+   "why": [
+    "Detroit has been pulling him around six innings. Last five: 22, 20, 18, 15, 18 outs \u2014 four of five stay under.",
+    "He threw 109 pitches last time out, a season high by 13. High pitch counts historically shorten the next start.",
+    "Matched on durability rather than strikeout rate, comparable arms vs Pittsburgh went 31 of 40."
+   ],
+   "flags": []
+  },
+  {
+   "rank": 6,
+   "pitcher": "Dylan Cease",
+   "market": "strikeouts",
+   "side": "over",
+   "line": 6.5,
+   "game": "TOR @ NYY",
+   "first_pitch": "13:35",
+   "book": "hardrockbet",
+   "price": -400,
+   "model": 68.3,
+   "raw": "20/23",
+   "blend": 77.6,
+   "confidence": 78,
+   "class": {
+    "all": "1/4",
+    "four_plus": "1/3"
+   },
+   "h2h": "3 starts vs NYY \u2014 9 K, 9 K, 10 K. All three cleared.",
+   "why": [
+    "The Yankees are the 28th-hardest team in baseball to strike out \u2014 they whiff constantly.",
+    "He has taken 9, 9 and 10 strikeouts off this exact lineup across this season and last.",
+    "Averaging 9.1 K a start; last five were 12, 7, 10, 7, 10."
+   ],
+   "flags": [
+    {
+     "kind": "warn",
+     "text": "The price. At -400 this needs to hit 80% of the time and our number says 78 \u2014 the history says take it, the maths says you're paying a hair too much."
+    },
+    {
+     "kind": "info",
+     "text": "The comparable-pitcher sample is only 4 starts, too small to mean anything. The head-to-head is the only real evidence here."
+    }
+   ]
+  },
+  {
+   "rank": 7,
+   "pitcher": "Tarik Skubal",
+   "market": "strikeouts",
+   "side": "under",
+   "line": 8.5,
+   "game": "PIT @ LAD",
+   "first_pitch": "19:15",
+   "book": "hardrockbet",
+   "price": -135,
+   "model": 70.9,
+   "raw": "13/19",
+   "blend": 69.7,
+   "confidence": 67,
+   "class": {
+    "all": "28/39",
+    "four_plus": "18/29"
+   },
+   "h2h": "1 start vs PIT \u2014 6 K, cleared",
+   "why": [
+    "Pittsburgh strikes out a lot, but Skubal's leash is the binding constraint, not their bats.",
+    "13 of 19 starts have finished under 9 strikeouts."
+   ],
+   "flags": [
+    {
+     "kind": "warn",
+     "text": "Elite arm against a high-strikeout lineup is a genuine contradiction. The head-to-head broke the tie in favour of the under, on a single start."
+    }
+   ]
+  },
+  {
+   "rank": 8,
+   "pitcher": "Rhett Lowder",
+   "market": "strikeouts",
+   "side": "over",
+   "line": 2.5,
+   "game": "CIN @ ARI",
+   "first_pitch": "20:10",
+   "book": "hardrockbet",
+   "price": -300,
+   "model": 78.9,
+   "raw": "15/19",
+   "blend": 78.9,
+   "confidence": 68,
+   "class": {
+    "all": "60/79",
+    "four_plus": "56/65"
+   },
+   "h2h": "None \u2014 has never faced Arizona",
+   "why": [
+    "15 of 19 starts with 3+ strikeouts.",
+    "Comparable arms vs Arizona went 60 of 79."
+   ],
+   "flags": [
+    {
+     "kind": "danger",
+     "text": "Two problems. He has been shuttled between the bullpen and rotation (3 relief appearances) \u2014 a pattern we measured at roughly 14 points. And Arizona is the 2nd-hardest lineup in baseball to strike out. He averages 4.6 K a start."
+    }
+   ]
+  },
+  {
+   "rank": 9,
+   "pitcher": "Jake Irvin",
+   "market": "outs",
+   "side": "under",
+   "line": 15.5,
+   "game": "WSH @ MIA",
+   "first_pitch": "16:10",
+   "book": "hardrockbet",
+   "price": -115,
+   "model": 61.8,
+   "raw": "12/15",
+   "blend": 70.9,
+   "confidence": 66,
+   "class": {
+    "all": "32/58",
+    "four_plus": "23/49"
+   },
+   "h2h": "1 start vs MIA \u2014 15 outs, cleared",
+   "why": [
+    "12 of his last 15 starts finished at 15 outs or fewer. Last five: 15, 15, 16, 10, 18.",
+    "He went exactly 15 outs against Miami last September.",
+    "Matched on durability rather than strikeout rate, comparable arms went 18 of 27 \u2014 which agrees with the model instead of fighting it."
+   ],
+   "flags": [
+    {
+     "kind": "info",
+     "text": "Matched the old way (by strikeout rate) this looked like 47%. That number was wrong twice over \u2014 wrong comparison group, read through a filter that can only subtract from an unders bet."
+    }
+   ]
+  },
+  {
+   "rank": 10,
+   "pitcher": "Hunter Brown",
+   "market": "outs",
+   "side": "under",
+   "line": 17.5,
+   "game": "ATH @ HOU",
+   "first_pitch": "19:10",
+   "book": "hardrockbet",
+   "price": -105,
+   "model": 62.8,
+   "raw": "8/13",
+   "blend": 62.2,
+   "confidence": 62,
+   "class": {
+    "all": null,
+    "four_plus": null
+   },
+   "h2h": "3 starts vs ATH \u2014 18, 15, 15 outs (2 of 3 cleared)",
+   "why": [
+    "Averaging 16.3 outs over his last eight starts.",
+    "Head-to-head vs the A's: 18, 15, 15 outs."
+   ],
+   "flags": []
+  },
+  {
+   "rank": 11,
+   "pitcher": "Mart\u00edn P\u00e9rez",
+   "market": "outs",
+   "side": "over",
+   "line": 14.5,
+   "game": "ATL @ MIL",
+   "first_pitch": "14:10",
+   "book": "hardrockbet",
+   "price": -180,
+   "model": 54.7,
+   "raw": "16/20",
+   "blend": 67.3,
+   "confidence": 58,
+   "class": {
+    "all": "45/63",
+    "four_plus": "45/54"
+   },
+   "h2h": "1 start vs MIL \u2014 18 outs, cleared",
+   "why": [
+    "16 of 20 starts have cleared.",
+    "Comparable arms vs Milwaukee: 45 of 63."
+   ],
+   "flags": [
+    {
+     "kind": "danger",
+     "text": "Shuttled arm (4 relief appearances), and his last five outings read 15, 21, 9, 18, 15. That 9 is the whole risk."
+    }
+   ]
+  },
+  {
+   "rank": 12,
+   "pitcher": "Hunter Brown",
+   "market": "strikeouts",
+   "side": "under",
+   "line": 5.5,
+   "game": "ATH @ HOU",
+   "first_pitch": "19:10",
+   "book": "hardrockbet",
+   "price": 120,
+   "model": 56.9,
+   "raw": "8/13",
+   "blend": 59.2,
+   "confidence": 59,
+   "class": {
+    "all": null,
+    "four_plus": null
+   },
+   "h2h": "3 starts vs ATH \u2014 8 K, 5 K, 5 K (2 of 3 cleared)",
+   "why": [
+    "Averaging 5.0 strikeouts a start; 8 of 13 have gone under 6.",
+    "Plus money on a bet our number says is a shade under 60%."
+   ],
+   "flags": []
+  },
+  {
+   "rank": 13,
+   "pitcher": "Dylan Cease",
+   "market": "outs",
+   "side": "under",
+   "line": 17.5,
+   "game": "TOR @ NYY",
+   "first_pitch": "13:35",
+   "book": "hardrockbet",
+   "price": 135,
+   "model": 46.9,
+   "raw": "11/23",
+   "blend": 47.4,
+   "confidence": 47,
+   "class": {
+    "all": null,
+    "four_plus": null
+   },
+   "h2h": "3 starts vs NYY \u2014 20, 15, 19 outs (1 of 3 cleared)",
+   "why": [
+    "Priced at plus money."
+   ],
+   "flags": [
+    {
+     "kind": "danger",
+     "text": "Below a coin flip. This is a payout play, not a probability play. Shown because a pick that fails a check gets shown with its number attached, not deleted."
+    }
+   ]
+  }
+ ],
+ "pairs": [
+  {
+   "legs": [
+    "Jared Jones o2.5 K",
+    "Christian Scott u15.5 outs"
+   ],
+   "games": [
+    "PIT @ LAD",
+    "NYM @ CWS"
+   ],
+   "multiplier": 1.946,
+   "joint": 56.7
+  },
+  {
+   "legs": [
+    "Jared Jones o2.5 K",
+    "Logan Henderson u17.5 outs"
+   ],
+   "games": [
+    "PIT @ LAD",
+    "ATL @ MIL"
+   ],
+   "multiplier": 2.057,
+   "joint": 56.5
+  },
+  {
+   "legs": [
+    "Tarik Skubal u18.5 outs",
+    "Ryan Weathers o3.5 K"
+   ],
+   "games": [
+    "PIT @ LAD",
+    "TOR @ NYY"
+   ],
+   "multiplier": 2.059,
+   "joint": 55.9
+  },
+  {
+   "legs": [
+    "Jared Jones o2.5 K",
+    "Jake Irvin u15.5 outs"
+   ],
+   "games": [
+    "PIT @ LAD",
+    "WSH @ MIA"
+   ],
+   "multiplier": 2.057,
+   "joint": 55.8
+  },
+  {
+   "legs": [
+    "Jared Jones o2.5 K",
+    "Hunter Brown u17.5 outs"
+   ],
+   "games": [
+    "PIT @ LAD",
+    "ATH @ HOU"
+   ],
+   "multiplier": 2.148,
+   "joint": 55.8
+  },
+  {
+   "legs": [
+    "Tarik Skubal u18.5 outs",
+    "Christian Scott o4.5 K"
+   ],
+   "games": [
+    "PIT @ LAD",
+    "NYM @ CWS"
+   ],
+   "multiplier": 2.143,
+   "joint": 55.2
+  }
+ ]
+}
