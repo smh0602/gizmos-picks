@@ -72,6 +72,7 @@ input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line
   font-size:12px}
 .pit .p{min-width:0}
 .pit .p.r{text-align:right}
+.pit .lab{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:700;margin-bottom:2px}
 .pname{font-weight:700}
 .pera{color:var(--mut);font-size:11px}
 
@@ -147,24 +148,31 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
   color:#46525f;font-size:10.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
 .hs{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--chip);flex:0 0 auto}
 
-/* odds board, Covers-style: game on the left, one column per book */
-.ob{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-.ob th{position:sticky;top:0;background:#fafbfc;z-index:2;padding:9px 8px;text-align:center;
-  font-size:10.5px;font-weight:700;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap}
-.ob th.gm{text-align:left;min-width:250px;background:#fafbfc}
-.ob td{padding:0;border-bottom:1px solid var(--line);vertical-align:middle}
-.ob td.gm{padding:11px 10px 11px 4px}
-.ob .side{display:flex;align-items:center;gap:9px;padding:4px 0}
-.ob .side .nm{font-weight:800;width:38px;flex:0 0 auto}
-.ob .side .sp{font-size:11.5px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ob .gt{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-  margin-bottom:5px}
-.ob .px{display:flex;flex-direction:column;gap:4px;align-items:stretch;padding:9px 6px;min-width:74px}
-.ob .px b{display:block;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;
-  padding:5px 4px;border-radius:6px;background:#f7f8fa;font-size:13px}
-.ob .px b.best{background:#e3f4e9;color:#0b6b3a;box-shadow:inset 0 0 0 1px #b6e0c6}
-.ob tbody tr:hover td{background:#fcfdfe}
-.obwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+/* Odds board.
+   NOTE: never put display:flex on a <td>. It removes the cell from the
+   table's column model and every column collapses into one. Stack inside
+   a div instead. */
+.ob{width:100%;border-collapse:collapse;font-size:13px;background:var(--card)}
+.ob th{position:sticky;top:0;background:#f7f8fa;z-index:2;padding:10px 10px;text-align:center;
+  font-size:10.5px;font-weight:700;color:var(--mut);letter-spacing:.03em;text-transform:uppercase;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+.ob th.gm{text-align:left;min-width:300px}
+.side .st{font-size:11.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ob td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:center}
+.ob td.gm{text-align:left;padding-left:14px}
+.ob tbody tr:hover{background:#fbfcfd}
+.stack{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.side{display:flex;align-items:center;gap:9px;white-space:nowrap}
+.side .nm{font-weight:800;font-size:13.5px}
+.gt{font-size:11px;color:var(--mut);font-weight:700;letter-spacing:.05em;margin-bottom:7px}
+.cell{display:block;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;
+  padding:6px 8px;border-radius:6px;background:#f5f6f8;font-size:13px;white-space:nowrap}
+.cell.best{background:#e6f5ec;color:#0b6b3a;box-shadow:inset 0 0 0 1px #b6e0c6}
+.cell.plain{background:none;padding:0;font-weight:600;font-size:11.5px;color:var(--mut)}
+.big{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.sub{font-size:10.5px;color:var(--mut);font-weight:600;margin-top:3px;
+  text-transform:uppercase;letter-spacing:.04em}
+.obwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
 
 /* track record */
 .tr-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 18px}
@@ -300,6 +308,76 @@ const ab = n => ABBR[n] || (n||'').split(' ').pop().slice(0,3).toUpperCase();
 const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
 
 let BOARD = null, SPLITS = {}, TAB = 'scores';
+let PROB = {};   // "date|Away|Home" -> {away, home} probable pitchers
+let PITCH = {};  // pitcherId -> {hand, era, whip, w, l}
+let FINAL = {};  // gamePk -> {away, home} starter lines for finished games
+
+/* The odds feed knows nothing about who is pitching, so starters are joined
+   in from the MLB schedule. Handedness and the season line come from two
+   league-wide calls rather than one call per pitcher. */
+async function loadProbables(dates){
+  const ids = new Set();
+  await Promise.all(dates.map(async d => {
+    try{
+      const j = await jget(`${S}/schedule?sportId=1&date=${d}&hydrate=probablePitcher,team`);
+      (j.dates||[]).forEach(x => (x.games||[]).forEach(g => {
+        const a = g.teams.away, h = g.teams.home;
+        PROB[`${d}|${a.team.name}|${h.team.name}`] =
+          { away: a.probablePitcher || null, home: h.probablePitcher || null };
+        [a.probablePitcher, h.probablePitcher].forEach(p => p && p.id && ids.add(p.id));
+      }));
+    }catch(e){}
+  }));
+  if (!ids.size) return;
+  const list = [...ids].join(','), yr = new Date().getFullYear();
+  await Promise.all([
+    jget(`${S}/people?personIds=${list}&fields=people,id,pitchHand,code`)
+      .then(d => (d.people||[]).forEach(p => {
+        PITCH[p.id] = Object.assign(PITCH[p.id]||{}, {hand:(p.pitchHand||{}).code}); }))
+      .catch(()=>{}),
+    jget(`${S}/stats?stats=season&group=pitching&season=${yr}&gameType=R&limit=800&sortStat=inningsPitched`)
+      .then(d => ((d.stats||[{}])[0].splits||[]).forEach(sp => {
+        const id = (sp.player||{}).id, st = sp.stat||{};
+        if (id && ids.has(id)) PITCH[id] = Object.assign(PITCH[id]||{},
+          {era:st.era, whip:st.whip, w:st.wins, l:st.losses}); }))
+      .catch(()=>{}),
+  ]);
+}
+
+/* Finished games: the two starters' actual lines. Only fetched for finals,
+   so a normal slate costs a handful of calls. */
+async function loadFinals(games){
+  const need = games.filter(g => (g.status||{}).abstractGameState === 'Final' && !(g.gamePk in FINAL));
+  await Promise.all(need.map(async g => {
+    try{
+      const bx = await jget(`${S}/game/${g.gamePk}/boxscore`);
+      const out = {};
+      ['away','home'].forEach(sd => {
+        const t = bx.teams[sd];
+        for (const k in (t.players||{})){
+          const p = t.players[k], st = (p.stats||{}).pitching || {};
+          if ((st.gamesStarted||0) > 0){
+            out[sd] = {name:p.person.fullName, id:p.person.id, ip:st.inningsPitched,
+              h:st.hits, er:st.earnedRuns, bb:st.baseOnBalls, k:st.strikeOuts,
+              p:st.numberOfPitches ?? st.pitchesThrown};
+            break;
+          }
+        }
+      });
+      FINAL[g.gamePk] = out;
+    }catch(e){ FINAL[g.gamePk] = {}; }
+  }));
+}
+
+/* "Q. Mathews (L, 3.00)" -- the Covers shorthand. */
+function starterLabel(p){
+  if (!p) return '';
+  const i = PITCH[p.id] || {};
+  const nm = (p.fullName||'').split(' ');
+  const short = nm.length > 1 ? `${nm[0][0]}. ${nm.slice(1).join(' ')}` : (p.fullName||'');
+  const bits = [i.hand, i.era].filter(v => v != null && v !== '' && v !== '-');
+  return `${short}${bits.length ? ` <span style="opacity:.7">(${bits.join(', ')})</span>` : ''}`;
+}
 
 const todayET = () => {
   const d = new Date(Date.now() - 4*3600*1000);
@@ -405,14 +483,41 @@ function gameCard(g){
       `<span>B ${pips(balls,3,'b')}</span><span>S ${pips(str,2,'')}</span><span>O ${pips(o,2,'')}</span>`);
     box.append(cd);
 
+    /* Put each man on his own team's side of the card.
+       In the top of an inning the AWAY team bats and the HOME team pitches;
+       in the bottom it is the other way round. Prefer the team the feed
+       actually reports, and fall back to the inning half if it is absent. */
     const off = ls.offense || {}, def = ls.defense || {};
     if (def.pitcher || off.batter){
+      const isTop = ls.isTopInning !== undefined
+        ? ls.isTopInning
+        : /top/i.test(ls.inningState || '');
+      const pitcherTeam = (def.team || {}).name || (isTop ? home : away);
+      const pitcherIsAway = pitcherTeam === away;
+
+      const blk = (role, person, teamName, right) => {
+        const d = el('div', 'p' + (right ? ' r' : ''));
+        d.style.display = 'flex';
+        d.style.alignItems = 'center';
+        d.style.gap = '8px';
+        if (right) d.style.flexDirection = 'row-reverse';
+        if (person && person.id) d.insertAdjacentHTML('beforeend',
+          `<img class="hs" style="width:30px;height:30px" src="${headUrl(person.id)}" alt=""
+            loading="lazy" onerror="this.style.visibility='hidden'">`);
+        d.insertAdjacentHTML('beforeend',
+          `<span><span class="lab">${role} · ${ab(teamName)}</span>
+           <span class="pname" style="display:block">${(person||{}).fullName || '—'}</span></span>`);
+        return d;
+      };
+
+      const pitchBlk = blk('Pitching', def.pitcher, pitcherTeam, !pitcherIsAway);
+      const batTeam  = (off.team || {}).name || (isTop ? away : home);
+      const batBlk   = blk('At bat', off.batter, batTeam, pitcherIsAway);
+
       const p = el('div','pit');
-      const pl = el('div','p');
-      pl.append(el('div','lab','Pitching'), el('div','pname', (def.pitcher||{}).fullName || '—'));
-      const pr = el('div','p r');
-      pr.append(el('div','lab','At bat'), el('div','pname', (off.batter||{}).fullName || '—'));
-      p.append(pl, pr); box.append(p);
+      // left-hand slot always belongs to the away team
+      p.append(pitcherIsAway ? pitchBlk : batBlk, pitcherIsAway ? batBlk : pitchBlk);
+      box.append(p);
     }
     const rhe = el('table','rhe');
     rhe.innerHTML = `<thead><tr><th></th><th>R</th><th>H</th><th>E</th></tr></thead><tbody>
@@ -432,12 +537,39 @@ function gameCard(g){
       d.style.display='flex'; d.style.alignItems='center'; d.style.gap='8px';
       if (right) d.style.flexDirection='row-reverse';
       if (pp && pp.id) d.insertAdjacentHTML('beforeend',
-        `<img class="hs" style="width:30px;height:30px" src="${headUrl(pp.id)}" alt=""
+        `<img class="hs" style="width:32px;height:32px" src="${headUrl(pp.id)}" alt=""
           loading="lazy" onerror="this.style.visibility='hidden'">`);
-      d.insertAdjacentHTML('beforeend', `<span class="pname">${pp ? pp.fullName : 'TBA'}</span>`);
+      const i = (pp && PITCH[pp.id]) || {};
+      const bits = [];
+      if (i.w != null && i.l != null) bits.push(`${i.w}-${i.l}`);
+      if (i.era != null) bits.push(`${i.era} ERA`);
+      if (i.whip != null) bits.push(`${i.whip} WHIP`);
+      d.insertAdjacentHTML('beforeend',
+        `<span><span class="pname">${pp ? pp.fullName : 'TBA'}${
+          i.hand ? ` <span class="pera">(${i.hand})</span>` : ''}</span>` +
+        (bits.length ? `<span class="pera" style="display:block">${bits.join(' · ')}</span>` : '') +
+        `</span>`);
       return d;
     };
     p.append(one(pa,false), one(ph,true)); c.append(p);
+  }
+
+  // ---- finished games: the starters' actual lines
+  if (fin){
+    const f = FINAL[g.gamePk];
+    if (f && (f.away || f.home)){
+      const line = o => o ? `<b>${o.ip}</b> IP · <b>${o.k}</b> K · ${o.h} H · ${o.er} ER · ${o.bb} BB${o.p ? ` · ${o.p} P` : ''}` : '';
+      const box = el('div','pit');
+      const one = (o, right) => {
+        const d = el('div','p' + (right ? ' r' : ''));
+        d.append(el('div','lab', right ? ab(home) : ab(away)));
+        d.append(el('div','pname', o ? o.name : 'TBA'));
+        d.append(el('div','pera', line(o)));
+        return d;
+      };
+      box.append(one(f.away, false), one(f.home, true));
+      c.append(box);
+    }
   }
 
   // ---- implied team totals (the T25 input)
@@ -465,6 +597,11 @@ async function renderScores(){
     return f==='live' ? a==='Live' : f==='pre' ? a==='Preview' : a==='Final';
   });
   games.sort((a,b) => new Date(a.gameDate) - new Date(b.gameDate));
+
+  await Promise.all([
+    Object.keys(PITCH).length ? null : loadProbables([d]),
+    loadFinals(games),
+  ].filter(Boolean));
 
   v.innerHTML = '';
   if (!games.length){ v.innerHTML = '<div class="msg">No games.</div>'; return; }
@@ -559,29 +696,21 @@ async function renderPicks(){
   }
 }
 
-function renderOdds(){
+async function renderOdds(){
   const v = $('#view');
   if (!BOARD){ v.innerHTML = '<div class="note"><b>No odds file yet.</b> The collector writes <code>data/latest/board.json</code> on its next run.</div>'; return; }
-
-  /* Books as columns, ordered by how many games each one actually priced,
-     so the widest coverage sits nearest the game and the page reads
-     left-to-right in usefulness order. */
-  const count = {};
-  (BOARD.games||[]).forEach(g => Object.keys(g.best_ml||{}).forEach(() => {}));
-  (BOARD.games||[]).forEach(g => (g.books_seen||[]).forEach(b => count[b] = (count[b]||0)+1));
-  let books = Object.keys(count);
-  if (!books.length){
-    // board.json carries only the best price per side, not every book.
-    // Fall back to showing best-available, which is the useful column anyway.
-    books = null;
-  }
 
   const byDate = {};
   (BOARD.games||[]).forEach(g => (byDate[g.commence.slice(0,10)] ||= []).push(g));
 
+  if (!Object.keys(PROB).length){
+    v.innerHTML = '<div class="msg">Loading…</div>';
+    await loadProbables(Object.keys(byDate).sort());
+  }
+
   const side = (team, id, starter) =>
-    `<div class="side">${mark(team, id, 22)}<span class="nm">${ab(team)}</span>
-     <span class="sp">${starter || ''}</span></div>`;
+    `<div class="side">${mark(team, id, 24)}<span class="nm">${ab(team)}</span>
+      <span class="st">${starter || ''}</span></div>`;
 
   const block = d => {
     const list = byDate[d].slice().sort((a,b) => a.commence < b.commence ? -1 : 1);
@@ -590,36 +719,35 @@ function renderOdds(){
       const a = g.away, h = g.home;
       const ma = (g.best_ml||{})[a], mh = (g.best_ml||{})[h];
       const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
-      const pc = (val, sub) => `<td class="px"><b>${val}</b>${sub}</td>`;
+      const pr = PROB[`${g.commence.slice(0,10)}|${a}|${h}`] || {};
       return `<tr>
         <td class="gm">
           <div class="gt">${t}</div>
-          ${side(a, null, '')}
-          ${side(h, null, '')}
+          <div class="stack">${side(a, null, starterLabel(pr.away))}${side(h, null, starterLabel(pr.home))}</div>
         </td>
-        <td class="px">
-          <b>${g.win_pct[a] != null ? g.win_pct[a] + '%' : '—'}</b>
-          <b>${g.win_pct[h] != null ? g.win_pct[h] + '%' : '—'}</b>
-        </td>
-        <td class="px">
-          <b class="best">${ma ? sgn(ma.price) : '—'}</b>
-          <b class="best">${mh ? sgn(mh.price) : '—'}</b>
-        </td>
-        <td class="px" style="min-width:96px">
-          <b style="background:none;font-weight:600;font-size:11px;color:var(--mut)">${ma ? bookName(ma.book) : ''}</b>
-          <b style="background:none;font-weight:600;font-size:11px;color:var(--mut)">${mh ? bookName(mh.book) : ''}</b>
-        </td>
-        <td class="px"><b>${g.total ?? '—'}</b><b style="background:none;font-size:11px;color:var(--mut)">total</b></td>
-        <td class="px"><b>${sgn(g.run_line)}</b><b style="background:none;font-size:11px;color:var(--mut)">run line</b></td>
-        <td class="px">
-          <b>${g.team_total[a] ?? '—'}</b>
-          <b>${g.team_total[h] ?? '—'}</b>
-        </td>
-        <td class="px"><b style="background:none;color:var(--mut);font-size:12px">${g.vig_pct ?? '—'}%</b>
-          <b style="background:none;font-size:11px;color:var(--mut)">${g.n_books} books</b></td>
+        <td><div class="stack">
+          <span class="cell">${g.win_pct[a] != null ? g.win_pct[a] + '%' : '—'}</span>
+          <span class="cell">${g.win_pct[h] != null ? g.win_pct[h] + '%' : '—'}</span>
+        </div></td>
+        <td><div class="stack">
+          <span class="cell best">${ma ? sgn(ma.price) : '—'}</span>
+          <span class="cell best">${mh ? sgn(mh.price) : '—'}</span>
+        </div></td>
+        <td><div class="stack">
+          <span class="cell plain">${ma ? bookName(ma.book) : ''}</span>
+          <span class="cell plain">${mh ? bookName(mh.book) : ''}</span>
+        </div></td>
+        <td><div class="big">${g.total ?? '—'}</div></td>
+        <td><div class="big">${sgn(g.run_line)}</div></td>
+        <td><div class="stack">
+          <span class="cell">${g.team_total[a] ?? '—'}</span>
+          <span class="cell">${g.team_total[h] ?? '—'}</span>
+        </div></td>
+        <td><div class="big" style="font-size:13px;color:var(--mut)">${g.vig_pct ?? '—'}%</div>
+            <div class="sub">${g.n_books} books</div></td>
       </tr>`;
     }).join('');
-    return `<h3 style="margin:22px 0 8px;font-size:14px">
+    return `<h3 style="margin:24px 0 9px;font-size:14px">
         ${dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'})}
         <span class="rec">${list.length} games</span></h3>
       <div class="obwrap"><table class="ob">
