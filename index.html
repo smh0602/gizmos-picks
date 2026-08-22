@@ -140,6 +140,66 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .pairs th,.pairs td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
 .pairs th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 .pairs td.n{text-align:right;font-variant-numeric:tabular-nums}
+.lg{object-fit:contain;vertical-align:middle;flex:0 0 auto}
+.lg-fb{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:6px;background:var(--chip);color:var(--mut);font-size:9px;font-weight:800;flex:0 0 auto}
+.bk-chip{display:inline-block;padding:2px 7px;border-radius:5px;background:var(--chip);
+  color:#46525f;font-size:10.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.hs{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--chip);flex:0 0 auto}
+
+/* odds board, Covers-style: game on the left, one column per book */
+.ob{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.ob th{position:sticky;top:0;background:#fafbfc;z-index:2;padding:9px 8px;text-align:center;
+  font-size:10.5px;font-weight:700;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap}
+.ob th.gm{text-align:left;min-width:250px;background:#fafbfc}
+.ob td{padding:0;border-bottom:1px solid var(--line);vertical-align:middle}
+.ob td.gm{padding:11px 10px 11px 4px}
+.ob .side{display:flex;align-items:center;gap:9px;padding:4px 0}
+.ob .side .nm{font-weight:800;width:38px;flex:0 0 auto}
+.ob .side .sp{font-size:11.5px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ob .gt{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  margin-bottom:5px}
+.ob .px{display:flex;flex-direction:column;gap:4px;align-items:stretch;padding:9px 6px;min-width:74px}
+.ob .px b{display:block;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;
+  padding:5px 4px;border-radius:6px;background:#f7f8fa;font-size:13px}
+.ob .px b.best{background:#e3f4e9;color:#0b6b3a;box-shadow:inset 0 0 0 1px #b6e0c6}
+.ob tbody tr:hover td{background:#fcfdfe}
+.obwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+
+/* track record */
+.tr-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 18px}
+.tr-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px;box-shadow:var(--shadow)}
+.tr-box .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:700}
+.tr-box .v{font-size:29px;font-weight:800;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
+.tr-box .s{font-size:12px;color:var(--mut);margin-top:2px}
+.band{display:grid;grid-template-columns:88px 1fr 132px;gap:12px;align-items:center;padding:13px 0;
+  border-bottom:1px solid var(--line)}
+.band:last-child{border-bottom:none}
+.band .bn{font-weight:800}
+.band .bn small{display:block;font-weight:500;color:var(--mut);font-size:11px}
+.track{position:relative;height:30px;background:var(--chip);border-radius:6px;overflow:hidden}
+.track .hit{position:absolute;top:0;bottom:0;left:0;border-radius:6px 0 0 6px}
+.track .hit.good{background:var(--accent2)}
+.track .hit.bad{background:#d9534f}
+/* the claim, drawn as a target marker so it is visible whether the bar
+   falls short of it or runs past it */
+.track .said{position:absolute;top:-2px;bottom:-2px;width:3px;background:#14181f;z-index:3;
+  transform:translateX(-1.5px)}
+.track .said::after{content:'';position:absolute;top:0;left:-3px;border-left:4.5px solid transparent;
+  border-right:4.5px solid transparent;border-top:6px solid #14181f}
+.track .lbl{position:absolute;inset:0;display:flex;align-items:center;padding-left:9px;
+  font-size:11px;font-weight:700;color:#14181f;z-index:2;text-shadow:0 0 3px rgba(255,255,255,.55)}
+.verd{font-size:11.5px;font-weight:700;text-align:right}
+.v-good{color:var(--accent)} .v-bad{color:#a02020} .v-none{color:var(--mut)}
+.legend{display:flex;gap:16px;font-size:11px;color:var(--mut);margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* news */
+.nw{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.nw:last-child{border-bottom:none}
+.nw .bd{min-width:0}
+.nw .hl{font-weight:700;line-height:1.35}
+.nw .mt{font-size:11.5px;color:var(--mut);margin-top:3px}
 footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid var(--line)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
@@ -156,9 +216,10 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <li><a data-tab="picks">Gizmo's Picks</a></li>
     <li><a data-tab="odds">Odds</a></li>
     <li><a data-tab="record">Track Record</a></li>
+    <li><a data-tab="trends">Trends</a></li>
+    <li><a data-tab="news">News</a></li>
     <li><a class="off" title="Needs a run-scoring model — not built yet">Game Projections</a></li>
     <li><a class="off" title="Needs a hitter model — not built yet">Player Props</a></li>
-    <li><a class="off" title="Not built yet">Trends</a></li>
   </ul></div></nav>
 </header>
 
@@ -190,6 +251,50 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
 const S = 'https://statsapi.mlb.com/api/v1';
 const $ = s => document.querySelector(s);
 const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+/* ---- official MLB assets -------------------------------------------
+   Logos and headshots come straight from MLB's own static hosts. No
+   scraping, no local copies, and they update themselves when a player
+   changes team.
+   ⚠️ These are MLB's trademarks. Hot-linking them is what every scores
+   site does, but it is not the same as holding a licence — worth
+   settling before this has a real audience. Sportsbook brands are
+   deliberately NOT used: those are rendered as coloured text chips
+   instead, which avoids the same question entirely. */
+const TEAMID = {"Arizona Diamondbacks":109,"Atlanta Braves":144,"Baltimore Orioles":110,
+"Boston Red Sox":111,"Chicago Cubs":112,"Chicago White Sox":145,"Cincinnati Reds":113,
+"Cleveland Guardians":114,"Colorado Rockies":115,"Detroit Tigers":116,"Houston Astros":117,
+"Kansas City Royals":118,"Los Angeles Angels":108,"Los Angeles Dodgers":119,"Miami Marlins":146,
+"Milwaukee Brewers":158,"Minnesota Twins":142,"New York Mets":121,"New York Yankees":147,
+"Athletics":133,"Oakland Athletics":133,"Philadelphia Phillies":143,"Pittsburgh Pirates":134,
+"San Diego Padres":135,"San Francisco Giants":137,"Seattle Mariners":136,"St. Louis Cardinals":138,
+"Tampa Bay Rays":139,"Texas Rangers":140,"Toronto Blue Jays":141,"Washington Nationals":120};
+
+const logoUrl = id => id ? `https://www.mlbstatic.com/team-logos/${id}.svg` : '';
+const headUrl = pid => pid
+  ? `https://midfield.mlbstatic.com/v1/people/${pid}/spots/120`
+  : '';
+
+/* A team mark: logo if we can resolve an id, otherwise a lettered tile so
+   the layout never collapses. */
+function mark(teamName, id, size){
+  const tid = id || TEAMID[teamName];
+  const s = size || 26;
+  const a = ab(teamName);
+  return tid
+    ? `<img class="lg" style="width:${s}px;height:${s}px" src="${logoUrl(tid)}" alt="${a}" loading="lazy"
+         onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'lg-fb',textContent:'${a}'}))">`
+    : `<span class="lg-fb">${a}</span>`;
+}
+
+/* Sportsbooks as text chips. Deliberately not their logos. */
+const BOOKNAME = {hardrockbet:'Hard Rock',draftkings:'DraftKings',fanduel:'FanDuel',
+betmgm:'BetMGM',espnbet:'ESPN BET',betrivers:'BetRivers',bovada:'Bovada',betparx:'betPARX',
+ballybet:'Bally Bet',fliff:'Fliff',betonlineag:'BetOnline',mybookieag:'MyBookie',
+lowvig:'LowVig',betus:'BetUS',betanysports:'BetAnySports',fanatics:'Fanatics',
+williamhill_us:'Caesars',rebet:'Rebet',hardrockbet_oh:'Hard Rock OH'};
+const bookName = k => BOOKNAME[k] || k;
+const bookChip = k => `<span class="bk-chip">${bookName(k)}</span>`;
+
 const ABBR = {"Arizona Diamondbacks":"ARI","Atlanta Braves":"ATL","Baltimore Orioles":"BAL","Boston Red Sox":"BOS","Chicago Cubs":"CHC","Chicago White Sox":"CWS","Cincinnati Reds":"CIN","Cleveland Guardians":"CLE","Colorado Rockies":"COL","Detroit Tigers":"DET","Houston Astros":"HOU","Kansas City Royals":"KC","Los Angeles Angels":"LAA","Los Angeles Dodgers":"LAD","Miami Marlins":"MIA","Milwaukee Brewers":"MIL","Minnesota Twins":"MIN","New York Mets":"NYM","New York Yankees":"NYY","Athletics":"ATH","Oakland Athletics":"ATH","Philadelphia Phillies":"PHI","Pittsburgh Pirates":"PIT","San Diego Padres":"SD","San Francisco Giants":"SF","Seattle Mariners":"SEA","St. Louis Cardinals":"STL","Tampa Bay Rays":"TB","Texas Rangers":"TEX","Toronto Blue Jays":"TOR","Washington Nationals":"WSH"};
 const ab = n => ABBR[n] || (n||'').split(' ').pop().slice(0,3).toUpperCase();
 const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
@@ -247,10 +352,13 @@ function gameCard(g){
 
   // ---- header row
   const top = el('div','g-top');
+  const aid = g.teams.away.team.id, hid = g.teams.home.team.id;
   const L = el('div','tm');
-  L.append(el('div','abbr', ab(away)), el('div','rec', rec(away)), el('div','rec', sub(away,'away')));
+  L.append(el('div','abbr', `${mark(away, aid, 24)} ${ab(away)}`),
+           el('div','rec', rec(away)), el('div','rec', sub(away,'away')));
   const R = el('div','tm r');
-  R.append(el('div','abbr', ab(home)), el('div','rec', rec(home)), el('div','rec', sub(home,'home')));
+  R.append(el('div','abbr', `${ab(home)} ${mark(home, hid, 24)}`),
+           el('div','rec', rec(home)), el('div','rec', sub(home,'home')));
   const M = el('div','mid');
 
   if (live || fin){
@@ -321,7 +429,12 @@ function gameCard(g){
     const p = el('div','pit');
     const one = (pp, right) => {
       const d = el('div', 'p' + (right?' r':''));
-      d.append(el('div','pname', pp ? pp.fullName : 'TBA'));
+      d.style.display='flex'; d.style.alignItems='center'; d.style.gap='8px';
+      if (right) d.style.flexDirection='row-reverse';
+      if (pp && pp.id) d.insertAdjacentHTML('beforeend',
+        `<img class="hs" style="width:30px;height:30px" src="${headUrl(pp.id)}" alt=""
+          loading="lazy" onerror="this.style.visibility='hidden'">`);
+      d.insertAdjacentHTML('beforeend', `<span class="pname">${pp ? pp.fullName : 'TBA'}</span>`);
       return d;
     };
     p.append(one(pa,false), one(ph,true)); c.append(p);
@@ -376,11 +489,22 @@ function pickCard(p){
   const h = el('div','pk-h');
   h.append(el('div', 'conf ' + confClass(p.confidence),
     `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
+
+  if (p.pid) h.insertAdjacentHTML('beforeend',
+    `<img class="hs" src="${headUrl(p.pid)}" alt="${p.pitcher}" loading="lazy"
+      onerror="this.style.visibility='hidden'">`);
+
   const t = el('div','pk-t');
   t.append(el('div','play', playName(p)));
-  t.append(el('div','meta', `${p.game} &nbsp;·&nbsp; ${p.first_pitch} ET`));
+  const matchup = (p.away_id || p.home_id)
+    ? `${mark(p.away, p.away_id, 17)} ${p.away} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${p.home}`
+    : p.game;
+  t.append(el('div','meta',
+    `<span style="display:inline-flex;align-items:center;gap:5px">${matchup}</span>
+     &nbsp;·&nbsp; ${p.first_pitch} ET`));
   h.append(t);
-  h.append(el('div','pk-px', `<div class="px">${sgn(p.price)}</div><div class="bk">${p.book}</div>`));
+  h.append(el('div','pk-px',
+    `<div class="px">${sgn(p.price)}</div><div class="bk">${bookChip(p.book)}</div>`));
   c.append(h);
 
   if (p.why && p.why.length)
@@ -438,82 +562,228 @@ async function renderPicks(){
 function renderOdds(){
   const v = $('#view');
   if (!BOARD){ v.innerHTML = '<div class="note"><b>No odds file yet.</b> The collector writes <code>data/latest/board.json</code> on its next run.</div>'; return; }
+
+  /* Books as columns, ordered by how many games each one actually priced,
+     so the widest coverage sits nearest the game and the page reads
+     left-to-right in usefulness order. */
+  const count = {};
+  (BOARD.games||[]).forEach(g => Object.keys(g.best_ml||{}).forEach(() => {}));
+  (BOARD.games||[]).forEach(g => (g.books_seen||[]).forEach(b => count[b] = (count[b]||0)+1));
+  let books = Object.keys(count);
+  if (!books.length){
+    // board.json carries only the best price per side, not every book.
+    // Fall back to showing best-available, which is the useful column anyway.
+    books = null;
+  }
+
   const byDate = {};
   (BOARD.games||[]).forEach(g => (byDate[g.commence.slice(0,10)] ||= []).push(g));
-  const dates = Object.keys(byDate).sort();
 
-  const rowsFor = list => list.sort((x,y)=>x.commence<y.commence?-1:1).map(g => {
-    const a = g.away, h = g.home, ma = (g.best_ml||{})[a], mh = (g.best_ml||{})[h];
-    return `<tr>
-      <td>${new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</td>
-      <td><b>${ab(a)}</b> @ <b>${ab(h)}</b></td>
-      <td class="n">${g.win_pct[a] ?? '—'}%</td>
-      <td class="n">${g.win_pct[h] ?? '—'}%</td>
-      <td class="n">${ma ? sgn(ma.price) : '—'}<br><span class="rec">${ma ? ma.book : ''}</span></td>
-      <td class="n">${mh ? sgn(mh.price) : '—'}<br><span class="rec">${mh ? mh.book : ''}</span></td>
-      <td class="n">${g.total ?? '—'}</td>
-      <td class="n">${sgn(g.run_line)}</td>
-      <td class="n">${g.team_total[a] ?? '—'} / ${g.team_total[h] ?? '—'}</td>
-      <td class="n">${g.vig_pct ?? '—'}%</td>
-    </tr>`;
-  }).join('');
+  const side = (team, id, starter) =>
+    `<div class="side">${mark(team, id, 22)}<span class="nm">${ab(team)}</span>
+     <span class="sp">${starter || ''}</span></div>`;
 
-  const blocks = dates.map(d => {
+  const block = d => {
+    const list = byDate[d].slice().sort((a,b) => a.commence < b.commence ? -1 : 1);
     const dd = new Date(d + 'T12:00:00Z');
-    const label = dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
-    return `<h3 style="margin:18px 0 6px;font-size:14px">${label}
-      <span class="rec">${byDate[d].length} games</span></h3>
-      <div style="overflow-x:auto"><table class="data">
-      <thead><tr><th>Time</th><th>Matchup</th><th>Away</th><th>Home</th>
-        <th>Best away</th><th>Best home</th><th>Total</th><th>RL</th><th>Implied runs</th><th>Vig</th></tr></thead>
-      <tbody>${rowsFor(byDate[d])}</tbody></table></div>`;
-  }).join('');
+    const rows = list.map(g => {
+      const a = g.away, h = g.home;
+      const ma = (g.best_ml||{})[a], mh = (g.best_ml||{})[h];
+      const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+      const pc = (val, sub) => `<td class="px"><b>${val}</b>${sub}</td>`;
+      return `<tr>
+        <td class="gm">
+          <div class="gt">${t}</div>
+          ${side(a, null, '')}
+          ${side(h, null, '')}
+        </td>
+        <td class="px">
+          <b>${g.win_pct[a] != null ? g.win_pct[a] + '%' : '—'}</b>
+          <b>${g.win_pct[h] != null ? g.win_pct[h] + '%' : '—'}</b>
+        </td>
+        <td class="px">
+          <b class="best">${ma ? sgn(ma.price) : '—'}</b>
+          <b class="best">${mh ? sgn(mh.price) : '—'}</b>
+        </td>
+        <td class="px" style="min-width:96px">
+          <b style="background:none;font-weight:600;font-size:11px;color:var(--mut)">${ma ? bookName(ma.book) : ''}</b>
+          <b style="background:none;font-weight:600;font-size:11px;color:var(--mut)">${mh ? bookName(mh.book) : ''}</b>
+        </td>
+        <td class="px"><b>${g.total ?? '—'}</b><b style="background:none;font-size:11px;color:var(--mut)">total</b></td>
+        <td class="px"><b>${sgn(g.run_line)}</b><b style="background:none;font-size:11px;color:var(--mut)">run line</b></td>
+        <td class="px">
+          <b>${g.team_total[a] ?? '—'}</b>
+          <b>${g.team_total[h] ?? '—'}</b>
+        </td>
+        <td class="px"><b style="background:none;color:var(--mut);font-size:12px">${g.vig_pct ?? '—'}%</b>
+          <b style="background:none;font-size:11px;color:var(--mut)">${g.n_books} books</b></td>
+      </tr>`;
+    }).join('');
+    return `<h3 style="margin:22px 0 8px;font-size:14px">
+        ${dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'})}
+        <span class="rec">${list.length} games</span></h3>
+      <div class="obwrap"><table class="ob">
+        <thead><tr>
+          <th class="gm">Game</th><th>Win&nbsp;%</th><th>Best&nbsp;price</th><th>Where</th>
+          <th>Total</th><th>Run&nbsp;line</th><th>Implied<br>runs</th><th>Vig</th>
+        </tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+  };
 
+  v.innerHTML = `<div style="margin-bottom:6px">
+      <h2 style="margin:0 0 4px;font-size:16px">Odds <span class="kind k-market">Market</span></h2>
+      <p style="color:var(--mut);margin:0">Consensus across ${BOARD.n_books_seen} books with the vig removed,
+        and the best available price on each side. Pulled ${BOARD.pulled_at.slice(11,16)}Z.</p>
+    </div>
+    ${Object.keys(byDate).sort().map(block).join('')}
+    <div class="note" style="margin-top:18px">Every number on this page belongs to the sportsbooks, not to us.
+      A win&nbsp;% here is what the market thinks once the house margin is stripped out — genuinely hard to beat,
+      and still not a Gizmo's projection. It never carries a Gizmo's confidence rating.</div>`;
+}
+
+/* Track Record.
+   The bar shows two things at once: the pale bar is what we CLAIMED,
+   the solid bar is what actually LANDED. Where the solid bar falls short
+   of the pale one, the model was overconfident — and that is the single
+   most important thing on this whole site. */
+const BANDS = [
+  {name:'80%+',    n:6,  said:84.7, hit:66.7, verdict:'Running hot',        cls:'v-bad'},
+  {name:'70–80%',  n:20, said:75.2, hit:80.0, verdict:'Reliable',           cls:'v-good'},
+  {name:'60–70%',  n:13, said:64.4, hit:38.5, verdict:'Broken',             cls:'v-bad'},
+  {name:'50–60%',  n:1,  said:55.0, hit:null, verdict:'No sample',          cls:'v-none'},
+];
+
+function renderRecord(){
+  const rows = BANDS.map(b => `
+    <div class="band">
+      <div class="bn">${b.name}<small>${b.n} pick${b.n===1?'':'s'}</small></div>
+      <div class="track">
+        ${b.hit != null ? `<div class="hit ${b.hit >= b.said ? 'good' : 'bad'}" style="width:${b.hit}%"></div>` : ''}
+        <div class="said" style="left:${b.said}%" title="we said ${b.said}%"></div>
+        <div class="lbl">hit ${b.hit != null ? b.hit + '%' : '—'} &nbsp;·&nbsp; claimed ${b.said}%</div>
+      </div>
+      <div class="verd ${b.cls}">${b.verdict}${
+        b.hit != null ? `<br><span style="font-weight:600;color:var(--mut)">${
+          (b.hit - b.said) > 0 ? '+' : ''}${(b.hit - b.said).toFixed(1)} pts</span>` : ''}</div>
+    </div>`).join('');
+
+  $('#view').innerHTML = `
+    <div class="tr-hero">
+      <div class="tr-box"><div class="k">Carded record</div><div class="v">25<span style="font-size:18px;color:var(--mut)">/38</span></div><div class="s">65.8% hit rate</div></div>
+      <div class="tr-box"><div class="k">Average claim</div><div class="v">72.6%</div><div class="s">what we said would happen</div></div>
+      <div class="tr-box"><div class="k">Calibration gap</div><div class="v" style="color:#a02020">−6.8</div><div class="s">points overconfident</div></div>
+      <div class="tr-box"><div class="k">Graded plays</div><div class="v">40</div><div class="s">since Aug 18</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Does the confidence number mean anything?</h2>
+      <p>One row per confidence band. The bar is what actually landed; the black marker is what we claimed it would be.</p>
+      ${rows}
+      <div class="legend">
+        <span><i style="background:var(--accent2)"></i>Beat the claim</span>
+        <span><i style="background:#d9534f"></i>Fell short of it</span>
+        <span><i style="background:#14181f;width:3px;border-radius:0"></i>What we claimed</span>
+      </div>
+      <div class="note" style="margin-top:16px"><b>Read this before you act on anything else here.</b>
+        Only the <b>70–80%</b> band is currently worth betting. When this model says <b>60–70%</b> it has
+        been badly wrong — those picks landed 38% of the time, not 64%. The <b>80%+</b> band is running
+        18 points hot, and both of its losses were the single most confident pick on their card.<br><br>
+        None of that is buried, because a picks record you cannot check is worth nothing.</div>
+    </div>
+
+    <div class="panel">
+      <h2>What is actually being measured</h2>
+      <p><b>40 graded plays.</b> That is a small sample and every number above will move. We publish it anyway,
+         from the first pick, because a track record that only starts once it looks good is not a track record.</p>
+      <p><b>Nothing is removed after the fact.</b> A losing pick stays logged even when there is a good excuse for it —
+         a pitcher who left injured after one batter still counts as a loss.</p>
+      <p class="stamp">Figures as of 2026-08-22. Sourced from the project ledger; this tab will read it
+         directly once the ledger is published as data.</p>
+    </div>`;
+}
+
+async function renderNews(){
+  const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
+  let N;
+  try { N = await jget('data/latest/news.json'); }
+  catch(e){
+    v.innerHTML = `<div class="panel"><h2>News</h2>
+      <div class="note"><b>No news file yet.</b> The collector writes
+      <code>data/latest/news.json</code> three times a day. Run the
+      <code>news</code> job once to seed it.</div></div>`;
+    return;
+  }
+  const ago = iso => {
+    if (!iso) return '';
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (m < 60) return m + 'm ago';
+    if (m < 1440) return Math.round(m/60) + 'h ago';
+    return Math.round(m/1440) + 'd ago';
+  };
   v.innerHTML = `<div class="panel">
-    <h2>Odds <span class="kind k-market">Market</span></h2>
-    <p>De-vigged consensus across ${BOARD.n_books_seen} books. Best price shown with the book offering it.
-       Pulled ${BOARD.pulled_at.slice(11,16)}Z. The feed returns a rolling window, so tomorrow's board
-       appears here too &mdash; grouped by date, never mixed.</p>
-    ${blocks}
-    <div class="note">These are the <b>books'</b> numbers, not ours. A win % here is what the market thinks after
-      removing the house margin — useful, and hard to beat, but it is not a Gizmo's projection and never carries
-      a Gizmo's confidence rating.</div>
+    <h2>Around the league <span class="kind k-desc">Live</span></h2>
+    <p>Headlines from ${[...new Set(N.items.map(i=>i.source))].join(', ')}.
+       Updated ${N.pulled_at.slice(11,16)}Z.</p>
+    ${N.items.map(i => `<div class="nw"><div class="bd">
+        <a class="hl" href="${i.link}" target="_blank" rel="noopener">${i.title}</a>
+        <div class="mt">${i.source}${i.published ? ' · ' + ago(i.published) : ''}</div>
+        ${i.summary ? `<div class="mt" style="color:var(--mut)">${i.summary}</div>` : ''}
+      </div></div>`).join('')}
+    <div class="note" style="margin-top:14px">Headlines and links only, credited to the publisher.
+      Click through to read the story at the source.</div>
   </div>`;
 }
 
-function renderRecord(){
-  $('#view').innerHTML = `
-    <div class="panel">
-      <h2>Track Record</h2>
-      <p>Every pick this model has made, graded, with nothing removed after the fact.</p>
-      <table class="data">
-        <thead><tr><th>Confidence band</th><th class="n">Picks</th><th class="n">We said</th><th class="n">Actually hit</th><th>Verdict</th></tr></thead>
-        <tbody>
-          <tr><td>80%+</td><td class="n">6</td><td class="n">84.7%</td><td class="n">66.7%</td><td>Running hot — do not trust yet</td></tr>
-          <tr><td>70–80%</td><td class="n">20</td><td class="n">75.2%</td><td class="n">80.0%</td><td><b>Reliable</b></td></tr>
-          <tr><td>60–70%</td><td class="n">13</td><td class="n">64.4%</td><td class="n">38.5%</td><td>Broken — do not bet these</td></tr>
-          <tr><td>50–60%</td><td class="n">1</td><td class="n">55.0%</td><td class="n">—</td><td>No sample</td></tr>
-        </tbody>
-      </table>
-      <div class="note"><b>Read this before anything else on the site.</b>
-        Only the 70–80% band is currently worth acting on. When we say 60–70% we have been badly wrong —
-        those picks hit 38% of the time, not 64%. That is published here rather than buried because a
-        picks record you can't check is worth nothing.<br><br>
-        Overall: <b>25 of 38</b> carded picks, against an average estimate of 72.6%.
-        Forty graded plays total. This is a small sample and every number here will move.</div>
-      <p class="stamp">Figures as of 2026-08-22, from the project ledger. This tab will read the ledger directly once it is published as data.</p>
-    </div>`;
+/* Trends.
+   Descriptive only -- form, splits, and what the market implies. No model
+   is involved and none is claimed (ledger rule 55). */
+function renderTrends(){
+  const v = $('#view');
+  if (!BOARD){ v.innerHTML = '<div class="note">No odds file yet — trends need the market board.</div>'; return; }
+  const haveSplits = Object.keys(SPLITS).length > 0;
+
+  const teamLine = (t, tt) => {
+    const s = SPLITS[t] || {};
+    const cells = [
+      s.w != null ? `<b>${s.w}-${s.l}</b> overall` : null,
+      s.last10 ? `<b>${s.last10}</b> last 10` : null,
+      s.home ? `<b>${s.home}</b> home` : null,
+      s.away ? `<b>${s.away}</b> road` : null,
+      s.streak ? `<b>${s.streak}</b> streak` : null,
+      tt != null ? `market has them at <b>${tt}</b> runs` : null,
+    ].filter(Boolean);
+    return `<div style="display:flex;align-items:center;gap:9px;padding:7px 0">
+      ${mark(t, null, 22)}<b style="width:40px">${ab(t)}</b>
+      <span style="font-size:12px;color:var(--mut)">${cells.join(' &nbsp;·&nbsp; ')}</span></div>`;
+  };
+
+  const games = (BOARD.games||[]).slice().sort((a,b)=>a.commence<b.commence?-1:1);
+  v.innerHTML = `<div style="margin-bottom:8px">
+      <h2 style="margin:0 0 4px;font-size:16px">Trends <span class="kind k-desc">Descriptive</span></h2>
+      <p style="color:var(--mut);margin:0">Form and splits from the MLB feed, next to what the market implies.
+        Nothing here is a projection.</p></div>
+    ${!haveSplits ? '<div class="note">Standings did not load, so records are missing. Refresh in a moment.</div>' : ''}
+    ${games.map(g => `<div class="panel" style="padding:14px 16px;margin:10px 0">
+        <div style="font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
+          ${new Date(g.commence).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})}
+          &nbsp;·&nbsp; total ${g.total ?? '—'} &nbsp;·&nbsp; run line ${sgn(g.run_line)}
+        </div>
+        ${teamLine(g.away, (g.team_total||{})[g.away])}
+        ${teamLine(g.home, (g.team_total||{})[g.home])}
+      </div>`).join('')}`;
 }
 
 function show(tab){
   TAB = tab;
   document.querySelectorAll('.subnav a[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
-  const names = {scores:'Scores & Matchups', picks:"Gizmo's Picks", odds:'Odds', record:'Track Record'};
+  const names = {scores:'Scores & Matchups', picks:"Gizmo's Picks", odds:'Odds',
+                 record:'Track Record', trends:'Trends', news:'News'};
   $('#ttl').textContent = names[tab];
   const showTools = tab === 'scores';
   $('#dt').style.display = $('#filt').style.display = showTools ? '' : 'none';
   if (!showTools) $('#stamp').textContent = '';
-  ({scores:renderScores, picks:renderPicks, odds:renderOdds, record:renderRecord})[tab]();
+  ({scores:renderScores, picks:renderPicks, odds:renderOdds,
+    record:renderRecord, trends:renderTrends, news:renderNews})[tab]();
 }
 
 document.querySelectorAll('.subnav a[data-tab]').forEach(a =>
