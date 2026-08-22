@@ -30,6 +30,11 @@ on:
     # attach to each line.
     - cron: "0 14 * * *"
 
+    # News: three times a day. Free, no CORS-safe way to do it in the page.
+    - cron: "5 13 * * *"
+    - cron: "5 19 * * *"
+    - cron: "5 1 * * *"
+
     # Final results: 08:00Z = 4am ET, after the last game ends and well
     # before the 11:31Z grading run. Free (statsapi). This is the feed the
     # pick ledger is graded from -- a Claude session cannot be relied on to
@@ -40,7 +45,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "gamelines | props-pitcher | props-batter | schedule | results | hitters"
+        description: "gamelines | props-pitcher | props-batter | schedule | results | hitters | news"
         required: true
         default: gamelines
 
@@ -73,6 +78,9 @@ jobs:
               "20 14 * * *") echo "mode=props-batter"  >> "$GITHUB_OUTPUT" ;;
               "0 14 * * *")  echo "mode=hitters"       >> "$GITHUB_OUTPUT" ;;
               "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
+              "5 13 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
+              "5 19 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
+              "5 1 * * *")   echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
               *)             echo "mode=gamelines"     >> "$GITHUB_OUTPUT" ;;
             esac
           fi
