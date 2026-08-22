@@ -208,6 +208,29 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .nw .bd{min-width:0}
 .nw .hl{font-weight:700;line-height:1.35}
 .nw .mt{font-size:11.5px;color:var(--mut);margin-top:3px}
+
+/* player props */
+.pfilt{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:4px 0 14px}
+.prow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:none}
+.prow:hover{background:#fbfcfd}
+.prow .ph{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--chip);flex:0 0 auto}
+.prow .who{min-width:150px;flex:0 0 auto}
+.prow .who .nm2{font-weight:700;font-size:13.5px}
+.prow .who .tm2{font-size:11px;color:var(--mut);display:flex;align-items:center;gap:5px;margin-top:2px}
+.prow .bet{min-width:132px;flex:0 0 auto}
+.prow .bet .ln{font-weight:800;font-size:13.5px}
+.prow .bet .mk{font-size:11px;color:var(--mut)}
+.prow .pr2{min-width:104px;flex:0 0 auto;text-align:center}
+.prow .pr2 .v2{font-weight:800;font-variant-numeric:tabular-nums;font-size:14px}
+.prow .ev2{flex:1;min-width:0;font-size:11.5px;color:var(--mut);line-height:1.5}
+.prow .ev2 b{color:var(--ink);font-variant-numeric:tabular-nums}
+.prow .why2{margin-top:4px;color:#46525f;font-size:11.5px}
+.prow .imp{min-width:70px;text-align:right;flex:0 0 auto;font-size:12px;color:var(--mut)}
+.prow .imp b{display:block;color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums}
+.ghead{display:flex;align-items:center;gap:9px;padding:12px 14px;background:#f7f8fa;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
+.ghead .tt2{margin-left:auto;font-weight:600;font-size:11.5px;color:var(--mut)}
 footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid var(--line)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
@@ -227,7 +250,7 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <li><a data-tab="trends">Trends</a></li>
     <li><a data-tab="news">News</a></li>
     <li><a class="off" title="Needs a run-scoring model — not built yet">Game Projections</a></li>
-    <li><a class="off" title="Needs a hitter model — not built yet">Player Props</a></li>
+    <li><a data-tab="props">Player Props</a></li>
   </ul></div></nav>
 </header>
 
@@ -385,6 +408,19 @@ const todayET = () => {
 };
 
 async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
+
+/* Gzipped JSON. A full props board is ~2.5MB raw and ~90KB compressed,
+   which is the difference between a page that loads and one that doesn't.
+   DecompressionStream is native in every current browser; if it is missing
+   we say so rather than showing an empty tab. */
+async function jgetGz(u){
+  if (typeof DecompressionStream === 'undefined')
+    throw new Error('This browser cannot decompress the props file.');
+  const r = await fetch(u);
+  if (!r.ok) throw new Error(u + ' -> ' + r.status);
+  const ds = new DecompressionStream('gzip');
+  return new Response(r.body.pipeThrough(ds)).json();
+}
 
 /* Market board written by the collector. One known URL because GitHub
    Pages has no directory listing. Absent on a fresh clone — that is fine,
@@ -901,17 +937,131 @@ function renderTrends(){
       </div>`).join('')}`;
 }
 
+let PROPS = null;
+const PMARKETS = [['batter_hits','Hits'],['batter_total_bases','Total bases'],
+  ['batter_home_runs','Home runs'],['batter_rbis','RBIs'],['batter_hits_runs_rbis','Hits+Runs+RBIs']];
+const MKLABEL = Object.fromEntries(PMARKETS);
+
+/* The "why", assembled here from the numbers rather than shipped as prose.
+   One implementation, and the sentence can never drift from the figures
+   sitting next to it. */
+function propWhy(p){
+  const e = p.evidence || {};
+  if (!e.season) return '';
+  const [h, n] = e.season.split('/').map(Number);
+  const word = p.side === 'over' ? 'cleared this' : 'stayed under';
+  const out = [`Has ${word} in <b>${h} of ${n}</b> games this season.`];
+  if (e.vs_opp){
+    const [vh, vn] = e.vs_opp.split('/').map(Number);
+    if (vn >= 3) out.push(`Against ${ab(e.opp||'')}: <b>${vh} of ${vn}</b>.`);
+  }
+  if (p.implied != null && n >= 40){
+    const own = 100 * h / n, gap = own - p.implied;
+    if (Math.abs(gap) >= 8)
+      out.push(`His own record says <b>${own.toFixed(0)}%</b>; the market prices it near <b>${p.implied}%</b>.`);
+  }
+  return out.join(' ');
+}
+let pFilter = {game:'all', market:'batter_hits', side:'over'};
+
+async function renderProps(){
+  const v = $('#view');
+  if (!PROPS){
+    v.innerHTML = '<div class="msg">Loading…</div>';
+    try { PROPS = await jgetGz('data/latest/props.json.gz'); }
+    catch(e){
+      v.innerHTML = `<div class="panel"><h2>Player Props</h2>
+        <div class="note"><b>No props board yet.</b> It is built by joining the batter odds to the
+        hitter game logs. Run the <code>hitters</code> job, then <code>props-batter</code>, then
+        <code>props-board</code> — after that this tab fills itself every morning.</div></div>`;
+      return;
+    }
+  }
+
+  const games = PROPS.games || [];
+  const opts = [`<option value="all">All games</option>`].concat(
+    games.map(g => `<option value="${g.id}">${ab(g.away)} @ ${ab(g.home)} — ${
+      new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</option>`)).join('');
+
+  const shown = games.filter(g => pFilter.game === 'all' || g.id === pFilter.game);
+
+  const rowHtml = (p, g) => {
+    const e = p.evidence || {};
+    const bits = [];
+    if (e.season) bits.push(`<b>${e.season}</b> this season`);
+    if (e.last15) bits.push(`<b>${e.last15}</b> last 15`);
+    if (e.vs_opp) bits.push(`<b>${e.vs_opp}</b> vs ${ab(e.opp||'')}`);
+    if (e.home && e.road) bits.push(`<b>${e.home}</b> home / <b>${e.road}</b> road`);
+    const teamName = p.team || '';
+    return `<div class="prow">
+      ${p.pid ? `<img class="ph" src="${headUrl(p.pid)}" alt="" loading="lazy"
+                  onerror="this.style.visibility='hidden'">` : '<span class="ph"></span>'}
+      <div class="who">
+        <div class="nm2">${p.player}</div>
+        <div class="tm2">${teamName ? mark(teamName, null, 15) : ''}${ab(teamName)}</div>
+      </div>
+      <div class="bet">
+        <div class="ln">${p.side === 'over' ? 'Over' : 'Under'} ${p.line}</div>
+        <div class="mk">${MKLABEL[p.market] || p.market}</div>
+      </div>
+      <div class="pr2"><div class="v2">${sgn(p.price)}</div>${bookChip(p.book)}</div>
+      <div class="ev2">${bits.join(' &nbsp;·&nbsp; ') || '<span style="opacity:.6">no game log matched</span>'}
+        ${(() => { const w = propWhy(p); return w ? `<div class="why2">${w}</div>` : ''; })()}</div>
+      <div class="imp">${p.implied != null ? `<b>${p.implied}%</b>market` : ''}</div>
+    </div>`;
+  };
+
+  let body = '', total = 0;
+  shown.forEach(g => {
+    const list = (g.props||[]).filter(p => p.market === pFilter.market && p.side === pFilter.side)
+      .sort((a,b) => (b.implied ?? 0) - (a.implied ?? 0));
+    if (!list.length) return;
+    total += list.length;
+    body += `<div class="ghead">
+        ${mark(g.away, null, 20)} ${ab(g.away)} <span style="color:var(--line)">@</span>
+        ${mark(g.home, null, 20)} ${ab(g.home)}
+        <span class="tt2">${new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}
+          · ${list.length} props</span>
+      </div>${list.map(p => rowHtml(p, g)).join('')}`;
+  });
+
+  v.innerHTML = `
+    <div class="pfilt">
+      <select id="pf-game">${opts}</select>
+      <select id="pf-mkt">${PMARKETS.map(([k,l]) =>
+        `<option value="${k}" ${k===pFilter.market?'selected':''}>${l}</option>`).join('')}</select>
+      <select id="pf-side">
+        <option value="over" ${pFilter.side==='over'?'selected':''}>Over</option>
+        <option value="under" ${pFilter.side==='under'?'selected':''}>Under</option>
+      </select>
+      <span class="stamp">${total} props · odds ${(PROPS.odds_pulled_at||'').slice(11,16)}Z</span>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>
+    <div class="note"><b>These are the books' prices and each player's own record — nothing more.</b>
+      There is no hitter model in this project yet, so no pick here carries a Gizmo's confidence rating.
+      The percentages on the right are the market's, with the house margin removed.</div>`;
+
+  $('#pf-game').value = pFilter.game;
+  ['game','mkt','side'].forEach(k => {
+    const id = {game:'pf-game', mkt:'pf-mkt', side:'pf-side'}[k];
+    $('#'+id).addEventListener('change', e => {
+      pFilter[k === 'mkt' ? 'market' : k] = e.target.value;
+      renderProps();
+    });
+  });
+}
+
 function show(tab){
   TAB = tab;
   document.querySelectorAll('.subnav a[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
   const names = {scores:'Scores & Matchups', picks:"Gizmo's Picks", odds:'Odds',
-                 record:'Track Record', trends:'Trends', news:'News'};
+                 record:'Track Record', trends:'Trends', news:'News', props:'Player Props'};
   $('#ttl').textContent = names[tab];
   const showTools = tab === 'scores';
   $('#dt').style.display = $('#filt').style.display = showTools ? '' : 'none';
   if (!showTools) $('#stamp').textContent = '';
-  ({scores:renderScores, picks:renderPicks, odds:renderOdds,
-    record:renderRecord, trends:renderTrends, news:renderNews})[tab]();
+  ({scores:renderScores, picks:renderPicks, odds:renderOdds, record:renderRecord,
+    trends:renderTrends, news:renderNews, props:renderProps})[tab]();
 }
 
 document.querySelectorAll('.subnav a[data-tab]').forEach(a =>
