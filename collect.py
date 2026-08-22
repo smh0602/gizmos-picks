@@ -14,7 +14,8 @@ All snapshots are gzipped. Measured 2026-08-22: an uncompressed gamelines
 pull is ~85KB and a schedule pull ~61KB, which at 28 pulls a day is ~1.5GB
 a year -- past what a git repo should carry. Gzipped it is ~180MB a year.
 
-Usage:  python collect.py news
+Usage:  python collect.py props-board
+        python collect.py news
         python collect.py hitters
         python collect.py gamelines
         python collect.py props-pitcher
@@ -339,6 +340,194 @@ def collect_schedule():
 
 
 # ----------------------------------------------------------------------
+# The player-props board.
+#
+# Joins three things the page cannot join for itself:
+#   * batter prop odds (which name players in a free-text field)
+#   * hitter game logs (keyed by MLB player id)
+#   * the schedule (for who is playing whom, and when)
+#
+# ⛔ WHAT THIS IS NOT: a model. Every number it emits is either the
+# market's (de-vigged price) or the player's own record. There is no
+# fitted hitter model in this project, so nothing here carries a Gizmo's
+# confidence rating (ledger rule 55). The "why" is assembled from the
+# player's actual game log and says only what that log says.
+# ----------------------------------------------------------------------
+import unicodedata
+
+# market key -> (label, function of a game row -> the stat being bet)
+PROP_STATS = {
+    "batter_hits":            ("Hits",            lambda r: r.get("H")),
+    "batter_total_bases":     ("Total bases",     lambda r: r.get("tb")),
+    "batter_home_runs":       ("Home runs",       lambda r: r.get("hr")),
+    "batter_rbis":            ("RBIs",            lambda r: r.get("rbi")),
+    "batter_hits_runs_rbis":  ("Hits+Runs+RBIs",  lambda r: None if r.get("H") is None
+                                                   else (r.get("H") or 0) + (r.get("r") or 0) + (r.get("rbi") or 0)),
+}
+
+
+def norm_name(n):
+    """Fold accents and punctuation so 'Eury Pérez' matches 'Eury Perez'."""
+    if not n:
+        return ""
+    n = unicodedata.normalize("NFKD", n)
+    n = "".join(c for c in n if not unicodedata.combining(c))
+    n = n.lower().replace(".", "").replace("'", "").replace("-", " ")
+    n = n.replace(" jr", "").replace(" sr", "").replace(" iii", "").replace(" ii", "")
+    return " ".join(n.split())
+
+
+def _rate(rows, fn, line, side):
+    """How often this player has landed this exact bet. Returns (hits, n)."""
+    vals = [fn(r) for r in rows]
+    vals = [v for v in vals if v is not None]
+    if not vals:
+        return (0, 0)
+    if side == "over":
+        return (sum(1 for v in vals if v > line), len(vals))
+    return (sum(1 for v in vals if v < line), len(vals))
+
+
+def _fmt(h, n):
+    return f"{h}/{n}" if n else None
+
+
+def collect_props_board():
+    import glob
+
+    # --- hitter game logs
+    hp = "data/latest/hitters.json.gz"
+    if not os.path.exists(hp):
+        raise RuntimeError("data/latest/hitters.json.gz missing — run the hitters job first")
+    H = json.load(gzip.open(hp, "rt"))
+    players = H["players"]
+    # A normalised name is NOT a unique key. In 2026 there are two players
+    # called Max Muncy -- a Dodgers lefty and an Athletics righty, both with
+    # enough plate appearances to qualify. A setdefault here would silently
+    # attach one man's props to the other man's game log, which is exactly
+    # the kind of wrong-but-plausible number this project exists to catch.
+    # So names map to a LIST, and the game's own teams break the tie.
+    by_name = {}
+    for pid, v in players.items():
+        by_name.setdefault(norm_name(v["name"]), []).append((pid, v))
+    dupes = {k: [x[1]["name"] + " (" + str(x[1]["team"]) + ")" for x in v]
+             for k, v in by_name.items() if len(v) > 1}
+    log(f"hitter logs: {len(players)} players (pulled {H['pulled_at']})")
+    if dupes:
+        log(f"  {len(dupes)} shared name(s), resolved by team: {dupes}")
+
+
+    def resolve(who, away, home):
+        """Return (pid, record) or (None, None). Never guesses."""
+        cands = by_name.get(norm_name(who))
+        if not cands:
+            return (None, None)
+        if len(cands) == 1:
+            return cands[0]
+        inplay = [c for c in cands if c[1].get("team") in (away, home)]
+        return inplay[0] if len(inplay) == 1 else (None, None)
+
+    # --- newest batter-prop snapshot
+    d = now().strftime("%Y-%m-%d")
+    snaps = sorted(glob.glob(f"data/{d}/props-batter/*.json.gz"))
+    if not snaps:
+        raise RuntimeError(f"no batter props stored for {d} — run props-batter first")
+    B = json.load(gzip.open(snaps[-1], "rt"))
+    log(f"batter props: {B['n_events']} events (pulled {B['pulled_at']})")
+
+    games, unmatched = [], set()
+    for ev in B.get("events", []):
+        away, home = ev.get("away_team"), ev.get("home_team")
+
+        # collapse every book into one row per (player, market, line, side),
+        # keeping the best price and remembering who offered it
+        best = {}
+        for bk in ev.get("bookmakers", []):
+            for m in bk.get("markets", []):
+                if m.get("key") not in PROP_STATS:
+                    continue
+                for o in m.get("outcomes", []):
+                    who, pt, px = o.get("description"), o.get("point"), o.get("price")
+                    side = (o.get("name") or "").lower()
+                    if not who or pt is None or px is None or side not in ("over", "under"):
+                        continue
+                    k = (who, m["key"], pt, side)
+                    if k not in best or px > best[k]["price"]:
+                        best[k] = {"price": px, "book": bk["key"]}
+
+        # de-vig each line using the pair of sides where both exist
+        pair = {}
+        for (who, mk, pt, side), v in best.items():
+            pair.setdefault((who, mk, pt), {})[side] = v["price"]
+
+        props = []
+        for (who, mk, pt, side), v in sorted(best.items()):
+            _label, fn = PROP_STATS[mk]
+            pid, rec = resolve(who, away, home)
+            if rec is None:
+                unmatched.add(who)
+
+            implied = None
+            two = pair.get((who, mk, pt), {})
+            if "over" in two and "under" in two:
+                ro, ru = implied_p(two["over"]), implied_p(two["under"])
+                if ro and ru and (ro + ru) > 0:
+                    implied = round(100 * (ro if side == "over" else ru) / (ro + ru), 1)
+
+            ev_block = {}
+            if rec:
+                rows = rec["g"]
+                opp = away if rec.get("team") == home else home
+                season = _rate(rows, fn, pt, side)
+                last15 = _rate(rows[-15:], fn, pt, side)
+                homes = _rate([r for r in rows if r.get("h")], fn, pt, side)
+                roads = _rate([r for r in rows if not r.get("h")], fn, pt, side)
+                vsopp = _rate([r for r in rows if r.get("o") == opp], fn, pt, side)
+                ev_block = {"season": _fmt(*season), "last15": _fmt(*last15),
+                            "home": _fmt(*homes), "road": _fmt(*roads),
+                            "vs_opp": _fmt(*vsopp), "opp": opp, "bats": rec.get("bats")}
+                # The prose lives in the page, not here. Writing it twice --
+                # once as sentences, once as the numbers behind them -- made
+                # the payload a third larger for nothing, and left two copies
+                # of the same claim that could drift apart.
+
+            props.append({
+                "player": who, "pid": int(pid) if pid else None,
+                "team": (rec or {}).get("team"), "market": mk,
+                "line": pt, "side": side, "price": v["price"], "book": v["book"],
+                "implied": implied, "evidence": ev_block,
+            })
+
+        if props:
+            games.append({"id": ev.get("id"), "commence": ev.get("commence_time"),
+                          "away": away, "home": home, "props": props})
+
+    games.sort(key=lambda g: g["commence"])
+    total = sum(len(g["props"]) for g in games)
+    # Gzipped: a full slate is ~2.5MB of JSON and roughly 250KB compressed,
+    # and every viewer pays that on load. Browsers gunzip it natively.
+    write("data/latest/props.json.gz", {
+        "pulled_at": stamp(),
+        "odds_pulled_at": B["pulled_at"],
+        "hitters_pulled_at": H["pulled_at"],
+        "kind": "MARKET + DESCRIPTIVE",
+        "note": "Market prices and each player's own record. No hitter model exists; "
+                "nothing here carries a Gizmo's confidence rating (ledger rule 55).",
+        "n_games": len(games), "n_props": total,
+        "unmatched": sorted(unmatched)[:40],
+        "games": games,
+    }, compress=True)
+    log(f"props board: {len(games)} games, {total} props, {len(unmatched)} unmatched names")
+    if unmatched:
+        log(f"  unmatched sample: {sorted(unmatched)[:6]}")
+    return None
+
+
+def implied_p(american):
+    return implied(american)
+
+
+# ----------------------------------------------------------------------
 # News.
 #
 # Fetched here rather than in the page because RSS hosts do not send CORS
@@ -645,7 +834,7 @@ def collect_results():
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
 
-    if mode not in ("schedule", "results", "hitters", "news") and not ODDS_KEY:
+    if mode not in ("schedule", "results", "hitters", "news", "props-board") and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
 
@@ -664,6 +853,8 @@ def main():
             left = collect_hitters()
         elif mode == "news":
             left = collect_news()
+        elif mode == "props-board":
+            left = collect_props_board()
         else:
             log(f"unknown mode: {mode}")
             sys.exit(1)
