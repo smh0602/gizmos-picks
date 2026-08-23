@@ -231,6 +231,36 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .ghead{display:flex;align-items:center;gap:9px;padding:12px 14px;background:#f7f8fa;
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
 .ghead .tt2{margin-left:auto;font-weight:600;font-size:11.5px;color:var(--mut)}
+/* box score */
+.ovl{position:fixed;inset:0;background:rgba(16,20,26,.55);z-index:50;display:flex;
+  align-items:flex-start;justify-content:center;padding:26px 14px;overflow-y:auto}
+.modal{background:var(--card);border-radius:12px;width:100%;max-width:940px;
+  box-shadow:0 12px 40px rgba(0,0,0,.28);overflow:hidden}
+.modal-h{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--card);z-index:2}
+.modal-h .sc2{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.modal-h .x{margin-left:auto;border:none;background:var(--chip);width:30px;height:30px;border-radius:8px;
+  cursor:pointer;font-size:17px;line-height:1;color:var(--mut)}
+.modal-b{padding:6px 18px 20px}
+.bs-h{font-weight:800;font-size:13px;margin:18px 0 7px;display:flex;align-items:center;gap:8px}
+table.bs{width:100%;border-collapse:collapse;font-size:12.5px}
+table.bs th,table.bs td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+table.bs th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);font-weight:700}
+table.bs th:first-child,table.bs td:first-child{text-align:left;white-space:normal}
+table.bs tr.tot td{font-weight:800;border-top:2px solid var(--line);border-bottom:none}
+.pos{color:var(--mut);font-size:10.5px;margin-left:4px}
+.fresh{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--mut)}
+.fresh i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.f-ok i{background:var(--accent2)} .f-mid i{background:#e0a100} .f-old i{background:#c0392b}
+.f-old{color:#c0392b;font-weight:700}
+.betbtn{display:inline-block;margin-top:4px;padding:4px 9px;border-radius:6px;background:var(--accent);
+  color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap}
+.betbtn:hover{background:var(--accent2)}
+a.cell.best:hover{background:#d4ecdd}
+.g.clickable{cursor:pointer}
+.g.clickable:hover{border-color:#c4ccd6;box-shadow:0 2px 10px rgba(20,24,31,.09)}
+.tapme{font-size:10.5px;color:var(--mut);text-align:center;padding:7px 0 9px;letter-spacing:.02em}
 footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid var(--line)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
@@ -276,6 +306,11 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <span class="kind k-market">Market</span> is the sportsbooks' opinion, de-vigged. It is not our projection.
     <span class="kind k-desc">Live</span> is plain fact from the MLB feed.</p>
   <p>We model two markets: starting-pitcher strikeouts and outs. Everything else is market data or unbuilt, and is labelled as such.</p>
+  <p><b>About the odds.</b> Every price here is exactly what the sportsbook feed returned, stamped with the
+     minute it was pulled — and lines move constantly, so a price is only ever right <i>as of that minute</i>.
+     Check the age shown beside it and confirm at the book before placing anything. Where a fair probability
+     appears it is de-vigged inside each book and then averaged across books; a one-sided quote gets no fair
+     price at all rather than a guessed one.</p>
 </footer>
 
 <script>
@@ -329,6 +364,22 @@ const bookChip = k => `<span class="bk-chip">${bookName(k)}</span>`;
 const ABBR = {"Arizona Diamondbacks":"ARI","Atlanta Braves":"ATL","Baltimore Orioles":"BAL","Boston Red Sox":"BOS","Chicago Cubs":"CHC","Chicago White Sox":"CWS","Cincinnati Reds":"CIN","Cleveland Guardians":"CLE","Colorado Rockies":"COL","Detroit Tigers":"DET","Houston Astros":"HOU","Kansas City Royals":"KC","Los Angeles Angels":"LAA","Los Angeles Dodgers":"LAD","Miami Marlins":"MIA","Milwaukee Brewers":"MIL","Minnesota Twins":"MIN","New York Mets":"NYM","New York Yankees":"NYY","Athletics":"ATH","Oakland Athletics":"ATH","Philadelphia Phillies":"PHI","Pittsburgh Pirates":"PIT","San Diego Padres":"SD","San Francisco Giants":"SF","Seattle Mariners":"SEA","St. Louis Cardinals":"STL","Tampa Bay Rays":"TB","Texas Rangers":"TEX","Toronto Blue Jays":"TOR","Washington Nationals":"WSH"};
 const ab = n => ABBR[n] || (n||'').split(' ').pop().slice(0,3).toUpperCase();
 const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
+
+/* How old is a price?
+   A stale quote is not a wrong quote — but shown without its age it
+   becomes one. Every price on this site is exactly what the feed returned
+   at a moment in time, and lines move constantly, so the moment is part
+   of the number. Green under ten minutes, amber under thirty-five, red
+   and loud after that. */
+function freshness(iso){
+  if (!iso) return '';
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
+  const cls = mins <= 10 ? 'f-ok' : mins <= 35 ? 'f-mid' : 'f-old';
+  const txt = mins < 1 ? 'just pulled'
+            : mins < 60 ? `${mins} min old`
+            : `${(mins/60).toFixed(1)} hr old`;
+  return `<span class="fresh ${cls}"><i></i>${txt}</span>`;
+}
 
 let BOARD = null, SPLITS = {}, TAB = 'scores';
 let PROB = {};   // "date|Away|Home" -> {away, home} probable pitchers
@@ -458,7 +509,11 @@ function gameCard(g){
   const live = abs === 'Live', fin = abs === 'Final';
   const ls = g.linescore || {};
   const b = boardFor(away, home, (g.gameDate||'').slice(0,10));
-  const c = el('div','g');
+  const c = el('div','g clickable');
+  c.addEventListener('click', ev => {
+    if (ev.target.closest('a')) return;   // never hijack a real link
+    openBox(g.gamePk);
+  });
 
   const rec = t => { const s = SPLITS[t]; return s ? `${s.w}-${s.l}` : ''; };
   const sub = (t,side) => { const s = SPLITS[t]; if(!s) return '';
@@ -614,7 +669,83 @@ function gameCard(g){
       `<span>Implied runs <span class="kind k-market">Market</span></span>
        <span>${ab(away)} <b>${b.team_total[away]}</b> &nbsp; ${ab(home)} <b>${b.team_total[home]}</b></span>`));
   }
+  c.append(el('div','tapme','Click for the full box score'));
   return c;
+}
+
+/* Box score, fetched on demand -- one call, only when a card is clicked. */
+async function openBox(pk){
+  const ovl = el('div','ovl');
+  ovl.innerHTML = `<div class="modal"><div class="modal-b"><div class="msg">Loading box score…</div></div></div>`;
+  document.body.append(ovl);
+  const close = () => { ovl.remove(); document.removeEventListener('keydown', esc); };
+  const esc = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', esc);
+  ovl.addEventListener('click', e => { if (e.target === ovl) close(); });
+
+  let bx;
+  try { bx = await jget(`${S}/game/${pk}/boxscore`); }
+  catch(e){
+    ovl.querySelector('.modal-b').innerHTML =
+      `<div class="note">Couldn't load the box score. ${e.message}</div>`;
+    return;
+  }
+
+  const n = v => (v === undefined || v === null) ? '' : v;
+  const block = sd => {
+    const t = bx.teams[sd], nm = t.team.name, P = t.players || {};
+    const has = (p, kind) => p && (p.stats||{})[kind] && Object.keys(p.stats[kind]).length;
+    const bat = (t.batters || []).map(i => P['ID'+i]).filter(p => has(p,'batting'));
+    const pit = (t.pitchers || []).map(i => P['ID'+i]).filter(p => has(p,'pitching'));
+    const tb = (t.teamStats||{}).batting || {}, tp = (t.teamStats||{}).pitching || {};
+
+    const bRows = bat.map(p => {
+      const b = p.stats.batting, s = (p.seasonStats||{}).batting || {};
+      // a battingOrder ending in 00 is a starter; anything else is a sub
+      const sub = p.battingOrder && p.battingOrder % 100 !== 0;
+      return `<tr><td>${sub ? '&nbsp;&nbsp;' : ''}${p.person.fullName}<span class="pos">${
+        (p.position||{}).abbreviation||''}</span></td>
+        <td>${n(b.atBats)}</td><td>${n(b.runs)}</td><td>${n(b.hits)}</td><td>${n(b.rbi)}</td>
+        <td>${n(b.baseOnBalls)}</td><td>${n(b.strikeOuts)}</td><td>${n(b.homeRuns)}</td>
+        <td>${n(b.totalBases)}</td><td>${n(s.avg)}</td></tr>`;
+    }).join('');
+
+    const pRows = pit.map(p => {
+      const q = p.stats.pitching, s = (p.seasonStats||{}).pitching || {};
+      return `<tr><td>${p.person.fullName}${(q.gamesStarted||0)>0?'<span class="pos">SP</span>':''}</td>
+        <td>${n(q.inningsPitched)}</td><td>${n(q.hits)}</td><td>${n(q.runs)}</td><td>${n(q.earnedRuns)}</td>
+        <td>${n(q.baseOnBalls)}</td><td>${n(q.strikeOuts)}</td><td>${n(q.homeRuns)}</td>
+        <td>${n(q.numberOfPitches ?? q.pitchesThrown)}</td><td>${n(s.era)}</td></tr>`;
+    }).join('');
+
+    return `<div class="bs-h">${mark(nm, t.team.id, 22)} ${nm} — Batting</div>
+      <div style="overflow-x:auto"><table class="bs">
+        <thead><tr><th>Batter</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>BB</th><th>K</th>
+          <th>HR</th><th>TB</th><th>AVG</th></tr></thead>
+        <tbody>${bRows}<tr class="tot"><td>Team</td><td>${n(tb.atBats)}</td><td>${n(tb.runs)}</td>
+          <td>${n(tb.hits)}</td><td>${n(tb.rbi)}</td><td>${n(tb.baseOnBalls)}</td><td>${n(tb.strikeOuts)}</td>
+          <td>${n(tb.homeRuns)}</td><td>${n(tb.totalBases)}</td><td></td></tr></tbody></table></div>
+      <div class="bs-h">${mark(nm, t.team.id, 22)} ${nm} — Pitching</div>
+      <div style="overflow-x:auto"><table class="bs">
+        <thead><tr><th>Pitcher</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th>
+          <th>HR</th><th>P</th><th>ERA</th></tr></thead>
+        <tbody>${pRows}<tr class="tot"><td>Team</td><td>${n(tp.inningsPitched)}</td><td>${n(tp.hits)}</td>
+          <td>${n(tp.runs)}</td><td>${n(tp.earnedRuns)}</td><td>${n(tp.baseOnBalls)}</td>
+          <td>${n(tp.strikeOuts)}</td><td>${n(tp.homeRuns)}</td><td></td><td></td></tr></tbody></table></div>`;
+  };
+
+  const ta = bx.teams.away.team, th = bx.teams.home.team;
+  const ra = ((bx.teams.away.teamStats||{}).batting||{}).runs;
+  const rh = ((bx.teams.home.teamStats||{}).batting||{}).runs;
+  ovl.querySelector('.modal').innerHTML = `
+    <div class="modal-h">
+      ${mark(ta.name, ta.id, 26)} <b>${ab(ta.name)}</b>
+      <span class="sc2">${n(ra)} – ${n(rh)}</span>
+      <b>${ab(th.name)}</b> ${mark(th.name, th.id, 26)}
+      <button class="x" title="Close">×</button>
+    </div>
+    <div class="modal-b">${block('away')}${block('home')}</div>`;
+  ovl.querySelector('.x').addEventListener('click', close);
 }
 
 async function renderScores(){
@@ -647,7 +778,7 @@ async function renderScores(){
 
   const n = games.length, liveN = games.filter(g => (g.status||{}).abstractGameState==='Live').length;
   $('#stamp').innerHTML = (liveN ? `<span class="dot"></span>${liveN} live · ` : '') +
-    `${n} games` + (BOARD ? ` · odds ${BOARD.pulled_at.slice(11,16)}Z` : ' · no odds file yet');
+    `${n} games` + (BOARD ? ` · odds ${freshness(BOARD.pulled_at)}` : ' · no odds file yet');
 }
 
 const confClass = c => c >= 70 ? 'c-hi' : c >= 60 ? 'c-mid' : 'c-lo';
@@ -766,8 +897,10 @@ async function renderOdds(){
           <span class="cell">${g.win_pct[h] != null ? g.win_pct[h] + '%' : '—'}</span>
         </div></td>
         <td><div class="stack">
-          <span class="cell best">${ma ? sgn(ma.price) : '—'}</span>
-          <span class="cell best">${mh ? sgn(mh.price) : '—'}</span>
+          ${ma && ma.link ? `<a class="cell best" href="${ma.link}" target="_blank" rel="noopener nofollow">${sgn(ma.price)} →</a>`
+                          : `<span class="cell best">${ma ? sgn(ma.price) : '—'}</span>`}
+          ${mh && mh.link ? `<a class="cell best" href="${mh.link}" target="_blank" rel="noopener nofollow">${sgn(mh.price)} →</a>`
+                          : `<span class="cell best">${mh ? sgn(mh.price) : '—'}</span>`}
         </div></td>
         <td><div class="stack">
           <span class="cell plain">${ma ? bookName(ma.book) : ''}</span>
@@ -797,7 +930,7 @@ async function renderOdds(){
   v.innerHTML = `<div style="margin-bottom:6px">
       <h2 style="margin:0 0 4px;font-size:16px">Odds <span class="kind k-market">Market</span></h2>
       <p style="color:var(--mut);margin:0">Consensus across ${BOARD.n_books_seen} books with the vig removed,
-        and the best available price on each side. Pulled ${BOARD.pulled_at.slice(11,16)}Z.</p>
+        and the best available price on each side. ${freshness(BOARD.pulled_at)}</p>
     </div>
     ${Object.keys(byDate).sort().map(block).join('')}
     <div class="note" style="margin-top:18px">Every number on this page belongs to the sportsbooks, not to us.
@@ -938,8 +1071,12 @@ function renderTrends(){
 }
 
 let PROPS = null;
-const PMARKETS = [['batter_hits','Hits'],['batter_total_bases','Total bases'],
-  ['batter_home_runs','Home runs'],['batter_rbis','RBIs'],['batter_hits_runs_rbis','Hits+Runs+RBIs']];
+const PMARKETS = [
+  ['batter_hits','Hits'],['batter_total_bases','Total bases'],
+  ['batter_home_runs','Home runs'],['batter_rbis','RBIs'],
+  ['batter_hits_runs_rbis','Hits+Runs+RBIs'],
+  ['pitcher_strikeouts','Strikeouts (P)'],['pitcher_outs','Outs recorded (P)'],
+];
 const MKLABEL = Object.fromEntries(PMARKETS);
 
 /* The "why", assembled here from the numbers rather than shipped as prose.
@@ -988,7 +1125,7 @@ async function renderProps(){
   const rowHtml = (p, g) => {
     const e = p.evidence || {};
     const bits = [];
-    if (e.season) bits.push(`<b>${e.season}</b> this season`);
+    if (e.season) bits.push(`<b>${e.season}</b> ${p.kind === 'pitcher' ? 'starts' : 'games'} this season`);
     if (e.last15) bits.push(`<b>${e.last15}</b> last 15`);
     if (e.vs_opp) bits.push(`<b>${e.vs_opp}</b> vs ${ab(e.opp||'')}`);
     if (e.home && e.road) bits.push(`<b>${e.home}</b> home / <b>${e.road}</b> road`);
@@ -1004,10 +1141,13 @@ async function renderProps(){
         <div class="ln">${p.side === 'over' ? 'Over' : 'Under'} ${p.line}</div>
         <div class="mk">${MKLABEL[p.market] || p.market}</div>
       </div>
-      <div class="pr2"><div class="v2">${sgn(p.price)}</div>${bookChip(p.book)}</div>
+      <div class="pr2"><div class="v2">${sgn(p.price)}</div>${bookChip(p.book)}
+        ${p.link ? `<a class="betbtn" href="${p.link}" target="_blank" rel="noopener nofollow">Bet →</a>` : ''}</div>
       <div class="ev2">${bits.join(' &nbsp;·&nbsp; ') || '<span style="opacity:.6">no game log matched</span>'}
         ${(() => { const w = propWhy(p); return w ? `<div class="why2">${w}</div>` : ''; })()}</div>
-      <div class="imp">${p.implied != null ? `<b>${p.implied}%</b>market` : ''}</div>
+      <div class="imp">${p.implied != null
+        ? `<b>${p.implied}%</b>market${p.n_books ? `<br><span style="font-size:10px">${p.n_books} book${p.n_books>1?'s':''}</span>` : ''}`
+        : '<span style="font-size:10px;opacity:.6">one-sided<br>no fair price</span>'}</div>
     </div>`;
   };
 
@@ -1034,7 +1174,8 @@ async function renderProps(){
         <option value="over" ${pFilter.side==='over'?'selected':''}>Over</option>
         <option value="under" ${pFilter.side==='under'?'selected':''}>Under</option>
       </select>
-      <span class="stamp">${total} props · odds ${(PROPS.odds_pulled_at||'').slice(11,16)}Z</span>
+      <span class="stamp">${total} props ·
+        ${freshness(pFilter.market.startsWith('pitcher') ? PROPS.pitcher_odds_at : PROPS.batter_odds_at)}</span>
     </div>
     <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>
     <div class="note"><b>These are the books' prices and each player's own record — nothing more.</b>
