@@ -846,15 +846,36 @@ async function renderPicks(){
 
   // Rank by confidence -- what a reader expects from a picks page, and it
   // keeps the badge column monotonic instead of jumping around.
-  P.picks.sort((a,b) => b.confidence - a.confidence).forEach(p => v.append(pickCard(p)));
+  /* A pick on a game that has started is history, not a recommendation.
+     Filter on the ISO kickoff where the card carries one; a card without
+     that field is shown whole rather than silently half-hidden. */
+  const dated = P.picks.filter(p => p.commence);
+  const live = showStarted ? P.picks
+             : (dated.length === P.picks.length
+                ? P.picks.filter(p => new Date(p.commence) > new Date())
+                : P.picks);
+  const hidden = P.picks.length - live.length;
+  if (hidden) v.append(el('div', null, startedToggle(hidden, 'pk-started')));
+  if (!dated.length && P.picks.length)
+    v.append(el('div','note','This card has no kickoff times on it, so nothing can be retired '
+      + 'automatically. Cards written from here on carry them.'));
 
-  if (P.pairs && P.pairs.length){
+  live.sort((a,b) => b.confidence - a.confidence).forEach(p => v.append(pickCard(p)));
+  if (!live.length) v.append(el('div','msg','Every game on this card has started.'));
+  setTimeout(() => {
+    const t = $('#pk-started');
+    if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderPicks(); });
+  }, 0);
+
+  const liveGames = new Set(live.map(p => p.game));
+  const pairs = (P.pairs || []).filter(x => !x.games || x.games.every(g => liveGames.has(g)));
+  if (pairs.length){
     const pn = el('div','panel');
     pn.innerHTML = `<h2>Pairs</h2>
       <p>Two legs, different games, ranked by the chance both land. Nothing below 1.8x is shown.</p>
       <div style="overflow-x:auto"><table class="pairs">
       <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th><th class="n">Both hit</th></tr></thead>
-      <tbody>${P.pairs.map(x => `<tr>
+      <tbody>${pairs.map(x => `<tr>
         <td><b>${x.legs.join('</b> + <b>')}</b></td>
         <td class="rec">${x.games.join(' · ')}</td>
         <td class="n">${x.multiplier.toFixed(2)}x</td>
@@ -865,10 +886,17 @@ async function renderPicks(){
 
 async function renderOdds(){
   const v = $('#view');
+  setTimeout(() => {
+    const t = $('#ob-started');
+    if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderOdds(); });
+  }, 0);
   if (!BOARD){ v.innerHTML = '<div class="note"><b>No odds file yet.</b> The collector writes <code>data/latest/board.json</code> on its next run.</div>'; return; }
 
+  const allG = BOARD.games || [];
+  const nStarted = allG.filter(hasStarted).length;
   const byDate = {};
-  (BOARD.games||[]).forEach(g => (byDate[g.commence.slice(0,10)] ||= []).push(g));
+  (showStarted ? allG : allG.filter(g => !hasStarted(g)))
+    .forEach(g => (byDate[g.commence.slice(0,10)] ||= []).push(g));
 
   if (!Object.keys(PROB).length){
     v.innerHTML = '<div class="msg">Loading…</div>';
@@ -932,7 +960,8 @@ async function renderOdds(){
       <p style="color:var(--mut);margin:0">Consensus across ${BOARD.n_books_seen} books with the vig removed,
         and the best available price on each side. ${freshness(BOARD.pulled_at)}</p>
     </div>
-    ${Object.keys(byDate).sort().map(block).join('')}
+    ${startedToggle(nStarted, 'ob-started')}
+    ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">Every game on the board has started.</div>'}
     <div class="note" style="margin-top:18px">Every number on this page belongs to the sportsbooks, not to us.
       A win&nbsp;% here is what the market thinks once the house margin is stripped out — genuinely hard to beat,
       and still not a Gizmo's projection. It never carries a Gizmo's confidence rating.</div>`;
@@ -1036,6 +1065,10 @@ async function renderNews(){
    is involved and none is claimed (ledger rule 55). */
 function renderTrends(){
   const v = $('#view');
+  setTimeout(() => {
+    const t = $('#tr-started');
+    if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderTrends(); });
+  }, 0);
   if (!BOARD){ v.innerHTML = '<div class="note">No odds file yet — trends need the market board.</div>'; return; }
   const haveSplits = Object.keys(SPLITS).length > 0;
 
@@ -1054,12 +1087,17 @@ function renderTrends(){
       <span style="font-size:12px;color:var(--mut)">${cells.join(' &nbsp;·&nbsp; ')}</span></div>`;
   };
 
-  const games = (BOARD.games||[]).slice().sort((a,b)=>a.commence<b.commence?-1:1);
+  const allT = BOARD.games || [];
+  const nStarted = allT.filter(hasStarted).length;
+  const games = (showStarted ? allT : allT.filter(g => !hasStarted(g)))
+    .slice().sort((a,b) => a.commence < b.commence ? -1 : 1);
   v.innerHTML = `<div style="margin-bottom:8px">
       <h2 style="margin:0 0 4px;font-size:16px">Trends <span class="kind k-desc">Descriptive</span></h2>
       <p style="color:var(--mut);margin:0">Form and splits from the MLB feed, next to what the market implies.
         Nothing here is a projection.</p></div>
     ${!haveSplits ? '<div class="note">Standings did not load, so records are missing. Refresh in a moment.</div>' : ''}
+    ${startedToggle(nStarted, 'tr-started')}
+    ${games.length ? '' : '<div class="msg">Every game on the board has started. Tomorrow\'s lines appear as the books post them.</div>'}
     ${games.map(g => `<div class="panel" style="padding:14px 16px;margin:10px 0">
         <div style="font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
           ${new Date(g.commence).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})}
@@ -1071,6 +1109,24 @@ function renderTrends(){
 }
 
 let PROPS = null;
+
+/* A game that has started is not a betting board any more.
+   The collector keeps everything -- the stored snapshot is a record, and
+   records do not get edited. The PAGE decides what is still actionable,
+   and by default that is games that have not thrown a pitch. Measured on
+   a live board: 11 of 20 games had already started, which is 1,762 dead
+   props sitting in front of 416 live ones. */
+let showStarted = false;
+const hasStarted = g => new Date(g.commence) <= new Date();
+
+function startedToggle(n, id){
+  if (!n) return '';
+  return `<div class="note" style="margin:10px 0;padding:9px 12px">
+    <b>${n} game${n>1?'s':''} already underway</b> — ${showStarted ? 'shown below' : 'hidden'},
+    because those lines are off the board.
+    <a id="${id}" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:6px">
+      ${showStarted ? 'Hide them' : 'Show anyway'}</a></div>`;
+}
 const PMARKETS = [
   ['batter_hits','Hits'],['batter_total_bases','Total bases'],
   ['batter_home_runs','Home runs'],['batter_rbis','RBIs'],
@@ -1115,7 +1171,10 @@ async function renderProps(){
     }
   }
 
-  const games = PROPS.games || [];
+  const all = PROPS.games || [];
+  const nStarted = all.filter(hasStarted).length;
+  const games = showStarted ? all : all.filter(g => !hasStarted(g));
+
   const opts = [`<option value="all">All games</option>`].concat(
     games.map(g => `<option value="${g.id}">${ab(g.away)} @ ${ab(g.home)} — ${
       new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</option>`)).join('');
@@ -1177,12 +1236,20 @@ async function renderProps(){
       <span class="stamp">${total} props ·
         ${freshness(pFilter.market.startsWith('pitcher') ? PROPS.pitcher_odds_at : PROPS.batter_odds_at)}</span>
     </div>
+    ${startedToggle(nStarted, 'pf-started')}
     <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>
     <div class="note"><b>These are the books' prices and each player's own record — nothing more.</b>
       There is no hitter model in this project yet, so no pick here carries a Gizmo's confidence rating.
       The percentages on the right are the market's, with the house margin removed.</div>`;
 
-  $('#pf-game').value = pFilter.game;
+  const tg = $('#pf-started');
+  if (tg) tg.addEventListener('click', () => {
+    showStarted = !showStarted;
+    pFilter.game = 'all';       // the old selection may no longer exist
+    renderProps();
+  });
+  if ($('#pf-game').querySelector(`option[value="${pFilter.game}"]`)) $('#pf-game').value = pFilter.game;
+  else pFilter.game = 'all';
   ['game','mkt','side'].forEach(k => {
     const id = {game:'pf-game', mkt:'pf-mkt', side:'pf-side'}[k];
     $('#'+id).addEventListener('change', e => {
@@ -1214,7 +1281,27 @@ $('#filt').addEventListener('change', renderScores);
   $('#dt').value = todayET();
   await Promise.all([loadBoard(), loadSplits()]);
   show('scores');
+  /* Keep the board honest without a reload.
+     The scoreboard is cheap and refreshes often. The odds and props files
+     are re-fetched less often -- the collector only rewrites them every
+     half hour, so polling harder just burns bandwidth. Re-rendering the
+     ACTIVE tab is what retires a game the moment its first pitch passes. */
   setInterval(() => { if (TAB === 'scores') renderScores(); }, 45000);
+
+  setInterval(async () => {
+    await loadBoard();
+    PROPS = null;                    // force a re-read on next props render
+    const again = {scores: renderScores, odds: renderOdds, trends: renderTrends,
+                   props: renderProps, picks: renderPicks};
+    if (again[TAB]) again[TAB]();
+  }, 180000);
+
+  /* Even with no new data, a game crossing its first pitch has to drop off.
+     Cheap re-render of whichever board tab is open. */
+  setInterval(() => {
+    const boards = {odds: renderOdds, trends: renderTrends, props: renderProps, picks: renderPicks};
+    if (boards[TAB]) boards[TAB]();
+  }, 60000);
 })();
 </script>
 </body>
