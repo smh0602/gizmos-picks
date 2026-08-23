@@ -1,0 +1,51 @@
+# Lets Claude change this repository's CODE without a human uploading files.
+#
+# HOW IT WORKS: comment "@claude <what you want>" on any issue or pull
+# request in this repo. This workflow wakes up, Claude reads the repo,
+# makes the change, and pushes it. From a phone, from anywhere.
+#
+# WHAT IT DOES NOT CHANGE: the collector. collect.py, card.py and the
+# schedules in collect.yml already run unattended and are untouched by
+# this file. This exists only so the CODE can be edited without a laptop.
+#
+# ⚠️ Only users with WRITE access to this repo can trigger it, and bot
+# accounts are rejected outright. That check is the action's own, and it
+# is what stops a stranger commenting "@claude delete everything".
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  claude:
+    # Don't start a runner for every comment in the repo -- only ones that
+    # actually mention @claude.
+    if: |
+      contains(github.event.comment.body, '@claude') ||
+      contains(github.event.issue.body, '@claude')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write         # so Claude can change files
+      pull-requests: write    # so Claude can open a PR instead, when asked
+      issues: write           # so Claude can reply in the thread
+      id-token: write         # required for the action's GitHub App auth
+      actions: read           # so Claude can read CI results
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          # Uses Sam's Claude subscription, not API billing.
+          # Generate with `claude setup-token` on a computer, once, then
+          # save it as the repository secret CLAUDE_CODE_OAUTH_TOKEN.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --max-turns 40
