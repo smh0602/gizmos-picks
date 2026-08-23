@@ -30,6 +30,10 @@ on:
     # attach to each line.
     - cron: "0 14 * * *"
 
+    # Pitcher game logs: free, mirrors the hitter pull, feeds the
+    # strikeout and outs markets on the props tab.
+    - cron: "50 13 * * *"
+
     # Props board: joins the batter odds to the hitter logs. Runs after
     # both, costs nothing, and is what the Player Props tab reads.
     - cron: "35 14 * * *"
@@ -49,7 +53,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board"
+        description: "gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
         required: true
         default: gamelines
 
@@ -82,6 +86,7 @@ jobs:
               "20 14 * * *") echo "mode=props-batter"  >> "$GITHUB_OUTPUT" ;;
               "0 14 * * *")  echo "mode=hitters"       >> "$GITHUB_OUTPUT" ;;
               "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
+              "50 13 * * *") echo "mode=pitchers"      >> "$GITHUB_OUTPUT" ;;
               "35 14 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
               "5 13 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
               "5 19 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
