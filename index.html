@@ -288,6 +288,10 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
   <div class="tools">
     <h1 id="ttl">Scores &amp; Matchups</h1>
     <input type="date" id="dt">
+    <select id="st" title="Some sportsbooks run a separate site per state. Set yours and their bet links start working.">
+      <option value="">Bet links: pick your state</option>
+      ${''}
+    </select>
     <select id="filt">
       <option value="all">All games</option>
       <option value="live">Live only</option>
@@ -364,6 +368,29 @@ const bookChip = k => `<span class="bk-chip">${bookName(k)}</span>`;
 const ABBR = {"Arizona Diamondbacks":"ARI","Atlanta Braves":"ATL","Baltimore Orioles":"BAL","Boston Red Sox":"BOS","Chicago Cubs":"CHC","Chicago White Sox":"CWS","Cincinnati Reds":"CIN","Cleveland Guardians":"CLE","Colorado Rockies":"COL","Detroit Tigers":"DET","Houston Astros":"HOU","Kansas City Royals":"KC","Los Angeles Angels":"LAA","Los Angeles Dodgers":"LAD","Miami Marlins":"MIA","Milwaukee Brewers":"MIL","Minnesota Twins":"MIN","New York Mets":"NYM","New York Yankees":"NYY","Athletics":"ATH","Oakland Athletics":"ATH","Philadelphia Phillies":"PHI","Pittsburgh Pirates":"PIT","San Diego Padres":"SD","San Francisco Giants":"SF","Seattle Mariners":"SEA","St. Louis Cardinals":"STL","Tampa Bay Rays":"TB","Texas Rangers":"TEX","Toronto Blue Jays":"TOR","Washington Nationals":"WSH"};
 const ab = n => ABBR[n] || (n||'').split(' ').pop().slice(0,3).toUpperCase();
 const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
+
+/* Bet-slip links.
+   The feed hands back real URLs, but roughly half of them carry a literal
+   {state} placeholder -- every Caesars link, plus BetMGM and betPARX --
+   because those books run a separate site per state. Substituted blind
+   they 404, so the state is asked for ONCE and kept in this browser's
+   localStorage. It is never sent anywhere: the page is static and there
+   is nothing to send it to. */
+const STATES = ['AZ','CO','CT','DC','IA','IL','IN','KS','KY','LA','MA','MD','ME','MI','MO',
+                'NC','NH','NJ','NV','NY','OH','OR','PA','RI','TN','VA','VT','WV','WY'];
+function betState(){
+  try { return localStorage.getItem('gp_state') || ''; } catch(e){ return ''; }
+}
+function setBetState(v){
+  try { v ? localStorage.setItem('gp_state', v) : localStorage.removeItem('gp_state'); } catch(e){}
+}
+/* Returns a usable URL, or null when we cannot make one. Never guesses. */
+function betLink(url){
+  if (!url) return null;
+  if (!url.includes('{state}')) return url;
+  const st = betState();
+  return st ? url.replace(/\{state\}/g, st.toLowerCase()) : null;
+}
 
 /* How old is a price?
    A stale quote is not a wrong quote — but shown without its age it
@@ -925,10 +952,12 @@ async function renderOdds(){
           <span class="cell">${g.win_pct[h] != null ? g.win_pct[h] + '%' : '—'}</span>
         </div></td>
         <td><div class="stack">
-          ${ma && ma.link ? `<a class="cell best" href="${ma.link}" target="_blank" rel="noopener nofollow">${sgn(ma.price)} →</a>`
-                          : `<span class="cell best">${ma ? sgn(ma.price) : '—'}</span>`}
-          ${mh && mh.link ? `<a class="cell best" href="${mh.link}" target="_blank" rel="noopener nofollow">${sgn(mh.price)} →</a>`
-                          : `<span class="cell best">${mh ? sgn(mh.price) : '—'}</span>`}
+          ${(() => { const u = betLink(ma && ma.link); return u
+            ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${sgn(ma.price)} →</a>`
+            : `<span class="cell best">${ma ? sgn(ma.price) : '—'}</span>`; })()}
+          ${(() => { const u = betLink(mh && mh.link); return u
+            ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${sgn(mh.price)} →</a>`
+            : `<span class="cell best">${mh ? sgn(mh.price) : '—'}</span>`; })()}
         </div></td>
         <td><div class="stack">
           <span class="cell plain">${ma ? bookName(ma.book) : ''}</span>
@@ -1201,7 +1230,8 @@ async function renderProps(){
         <div class="mk">${MKLABEL[p.market] || p.market}</div>
       </div>
       <div class="pr2"><div class="v2">${sgn(p.price)}</div>${bookChip(p.book)}
-        ${p.link ? `<a class="betbtn" href="${p.link}" target="_blank" rel="noopener nofollow">Bet →</a>` : ''}</div>
+        ${(() => { const u = betLink(p.link); return u
+          ? `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">Bet →</a>` : ''; })()}</div>
       <div class="ev2">${bits.join(' &nbsp;·&nbsp; ') || '<span style="opacity:.6">no game log matched</span>'}
         ${(() => { const w = propWhy(p); return w ? `<div class="why2">${w}</div>` : ''; })()}</div>
       <div class="imp">${p.implied != null
@@ -1267,6 +1297,7 @@ function show(tab){
   $('#ttl').textContent = names[tab];
   const showTools = tab === 'scores';
   $('#dt').style.display = $('#filt').style.display = showTools ? '' : 'none';
+  $('#st').style.display = (tab === 'odds' || tab === 'props') ? '' : 'none';
   if (!showTools) $('#stamp').textContent = '';
   ({scores:renderScores, picks:renderPicks, odds:renderOdds, record:renderRecord,
     trends:renderTrends, news:renderNews, props:renderProps})[tab]();
@@ -1278,6 +1309,16 @@ $('#dt').addEventListener('change', renderScores);
 $('#filt').addEventListener('change', renderScores);
 
 (async () => {
+  const stSel = $('#st');
+  stSel.innerHTML = '<option value="">Bet links: set state</option>' +
+    STATES.map(x => `<option value="${x}">${x}</option>`).join('');
+  stSel.value = betState();
+  stSel.addEventListener('change', e => {
+    setBetState(e.target.value);
+    const again = {odds: renderOdds, props: renderProps};
+    if (again[TAB]) again[TAB]();
+  });
+
   $('#dt').value = todayET();
   await Promise.all([loadBoard(), loadSplits()]);
   show('scores');
