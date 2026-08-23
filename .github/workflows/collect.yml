@@ -43,6 +43,19 @@ on:
     # both, costs nothing, and is what the Player Props tab reads.
     - cron: "35 14 * * *"
 
+    # The card. Free -- it spends no credits and calls nothing; it reads
+    # the game logs and the prop board this workflow already stores and
+    # runs the v4.0 model over them, writing picks/<date>.json.
+    #
+    # Two runs. The morning one publishes the board off the 14:10Z prop
+    # pull. The evening one re-prices it against the 21:40Z pull, because
+    # a card built at 10am may not assert a 6pm price (ledger rule 49).
+    # The 21:45 props-board rebuild exists so the evening card is joined to
+    # the fresh odds rather than to the morning's.
+    - cron: "45 14 * * *"
+    - cron: "45 21 * * *"
+    - cron: "50 21 * * *"
+
     # News: three times a day. Free, no CORS-safe way to do it in the page.
     - cron: "5 13 * * *"
     - cron: "5 19 * * *"
@@ -58,7 +71,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
+        description: "card | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
         required: true
         default: gamelines
 
@@ -98,6 +111,9 @@ jobs:
               "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
               "50 13 * * *") echo "mode=pitchers"      >> "$GITHUB_OUTPUT" ;;
               "35 14 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "45 21 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "45 14 * * *") echo "mode=card"          >> "$GITHUB_OUTPUT" ;;
+              "50 21 * * *") echo "mode=card"          >> "$GITHUB_OUTPUT" ;;
               "5 13 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
               "5 19 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
               "5 1 * * *")   echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
@@ -114,11 +130,20 @@ jobs:
         if: steps.mode.outputs.mode == 'gamelines'
         run: python collect.py schedule
 
+      # 🔴 A card that fails its own checks is not published. verify_card.py
+      # recomputes every probability a second, independent way, re-counts
+      # every raw rate off the game log, and re-derives every multiplier
+      # from the prices. It exits non-zero on any failure, which fails the
+      # job BEFORE the commit step -- so a bad card never reaches the page.
+      - name: Verify the card
+        if: steps.mode.outputs.mode == 'card'
+        run: python verify_card.py
+
       - name: Commit snapshots
         run: |
           git config user.name  "gizmos-collector"
           git config user.email "collector@users.noreply.github.com"
-          git add data/
+          git add data/ picks/
           if git diff --staged --quiet; then
             echo "nothing new to commit"
           else
