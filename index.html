@@ -134,6 +134,20 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
   font-size:11px;color:var(--mut)}
 .ev span b{color:var(--ink);font-variant-numeric:tabular-nums}
 .fl{margin:8px 14px 12px;padding:9px 11px;border-radius:7px;font-size:12.5px;line-height:1.45}
+.lad{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid var(--line)}
+.lad .lb{font-size:11px;color:var(--mut);width:100%;margin-bottom:2px;letter-spacing:.03em}
+.rung{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:5px 9px;
+      border:1px solid var(--line);border-radius:7px;font-size:11.5px;text-decoration:none;color:inherit;
+      background:#fff;min-width:64px}
+.rung:hover{border-color:#9db4cc}
+.rung b{font-size:12.5px;font-variant-numeric:tabular-nums}
+.rung .pc{color:var(--mut);font-variant-numeric:tabular-nums}
+.rung.star{border-color:#1f7a4d;box-shadow:inset 0 0 0 1px #1f7a4d}
+.rung.dim{opacity:.45}
+.bandchip{display:inline-block;padding:1px 6px;border-radius:20px;font-size:10.5px;font-weight:700;
+          letter-spacing:.03em;border:1px solid var(--line);color:var(--mut);margin-left:6px}
+.bandchip.ok{color:#1f7a4d;border-color:#bfe0cd;background:#f2fbf6}
+.bandchip.bad{color:#9a5b12;border-color:#f0dcb8;background:#fdf7ec}
 .fl-warn{background:#fff9ec;border:1px solid #f0dfb8;color:#6b5320}
 .fl-danger{background:#fdeeee;border:1px solid #f0c4c4;color:#8a2020}
 .fl-info{background:#eef3fb;border:1px solid #cfdcf0;color:#2a4a76}
@@ -376,8 +390,17 @@ const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
    they 404, so the state is asked for ONCE and kept in this browser's
    localStorage. It is never sent anywhere: the page is static and there
    is nothing to send it to. */
-const STATES = ['AZ','CO','CT','DC','IA','IL','IN','KS','KY','LA','MA','MD','ME','MI','MO',
-                'NC','NH','NJ','NV','NY','OH','OR','PA','RI','TN','VA','VT','WV','WY'];
+/* ALL 51 jurisdictions. The first group is where a US sportsbook is known to
+   run a state site, so a {state} link should resolve; the second group is
+   every remaining state, offered because the book -- not this page -- is the
+   authority on where it operates, and a missing option is a dead link with no
+   way out. A state where the book has no site returns the book's own error. */
+const STATES_LIVE = ['AZ','CO','CT','DC','IA','IL','IN','KS','KY','LA','MA','MD','ME','MI','MO',
+                     'MS','MT','NC','NH','NJ','NM','NV','NY','OH','OR','PA','RI','SD','TN','VA',
+                     'VT','WV','WY'];
+const STATES_OTHER = ['AK','AL','AR','CA','DE','FL','GA','HI','ID','MN','ND','NE','OK','SC','TX',
+                      'UT','WA','WI'];
+const STATES = STATES_LIVE.concat(STATES_OTHER).sort();
 function betState(){
   try { return localStorage.getItem('gp_state') || ''; } catch(e){ return ''; }
 }
@@ -826,7 +849,12 @@ function pickCard(p){
       onerror="this.style.visibility='hidden'">`);
 
   const t = el('div','pk-t');
-  t.append(el('div','play', playName(p)));
+  /* The band is the record this number actually has behind it. It is a
+     label on the row, not a filter -- the 70-80% band is the only one
+     whose history supports its own claim. */
+  const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
+  t.append(el('div','play', playName(p)
+    + (p.band ? `<span class="bandchip ${bc}" title="${p.band_note||''}">${p.band}</span>` : '')));
   const matchup = (p.away_id || p.home_id)
     ? `${mark(p.away, p.away_id, 17)} ${p.away} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${p.home}`
     : p.game;
@@ -841,11 +869,47 @@ function pickCard(p){
   if (p.why && p.why.length)
     c.append(el('div','pk-b', '<ul>' + p.why.map(w => `<li>${w}</li>`).join('') + '</ul>'));
 
-  (p.flags||[]).forEach(f => c.append(el('div', 'fl fl-' + f.kind, f.text)));
+  (p.flags||[]).forEach(f => c.append(el('div', 'fl fl-' + f.kind,
+    (f.test ? `<b>${f.test}</b> &middot; ` : '') + f.text)));
+
+  /* The alt ladder. Every rung is priced through the same model, so this
+     is where a pair gets walked into the 1.8x band. ★ is the rung this
+     card would take: the safest one still clearing Sam's -700 floor.
+     A rung dimmed is one the floor rules out -- shown, never hidden. */
+  if (p.ladder && p.ladder.length){
+    const L = el('div','lad');
+    L.append(el('div','lb', `HARD ROCK ALT LADDER &mdash; ${p.market === 'strikeouts'
+      ? 'the app labels these "To Record N+"' : 'outs'}`));
+    p.ladder.forEach(r => {
+      const star = p.ladder_pick && r.line === p.ladder_pick.line && r.side === p.ladder_pick.side;
+      const cls = 'rung' + (star ? ' star' : '') + (r.clears_price_floor ? '' : ' dim');
+      const inner = `<b>${r.side === 'over' ? 'o' : 'u'}${r.line}</b>
+                     <span class="pc">${sgn(r.price)}</span>
+                     <span class="pc">${r.blend.toFixed(0)}%</span>`;
+      const href = betLink(r.link);
+      const node = href ? el('a', cls, inner) : el('span', cls, inner);
+      if (href){ node.href = href; node.target = '_blank'; node.rel = 'noopener'; }
+      node.title = (r.app_label ? r.app_label + ' — ' : '')
+                 + `model ${r.model}% · own record ${r.raw} · blend ${r.blend}%`
+                 + (r.clears_price_floor ? '' : ' · shorter than the -700 floor');
+      L.append(node);
+    });
+    c.append(L);
+  }
 
   const bits = [`Own record <b>${p.raw}</b>`];
-  if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`);
+  if (p.model != null) bits.push(`Model <b>${p.model}%</b>`);
+  if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`
+    + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
   if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
+  /* `carried` is the blend after the T21/T22 flags. Those tests are
+     PRE-REGISTERED AND NOT ADOPTED, so `blend` is what enters calibration
+     and this is a shadow number -- shown, and labelled as one. */
+  if (p.carried != null && Math.abs(p.carried - p.blend) >= 0.5)
+    bits.push(`Flagged estimate <b>${p.carried}%</b> (shadow &mdash; not the carded number)`);
+  if (p.other_side)
+    bits.push(`Other side: ${p.other_side.side} ${p.line} at ${sgn(p.other_side.price)}, `
+      + `<b>${p.other_side.blend}%</b>`);
   c.append(el('div','ev', bits.map(b => `<span>${b}</span>`).join('')));
   return c;
 }
@@ -1310,8 +1374,10 @@ $('#filt').addEventListener('change', renderScores);
 
 (async () => {
   const stSel = $('#st');
+  const optz = a => a.map(x => `<option value="${x}">${x}</option>`).join('');
   stSel.innerHTML = '<option value="">Bet links: set state</option>' +
-    STATES.map(x => `<option value="${x}">${x}</option>`).join('');
+    `<optgroup label="Sportsbooks operate here">${optz(STATES_LIVE)}</optgroup>` +
+    `<optgroup label="Other states">${optz(STATES_OTHER)}</optgroup>`;
   stSel.value = betState();
   stSel.addEventListener('change', e => {
     setBetState(e.target.value);

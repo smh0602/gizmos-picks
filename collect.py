@@ -14,7 +14,8 @@ All snapshots are gzipped. Measured 2026-08-22: an uncompressed gamelines
 pull is ~85KB and a schedule pull ~61KB, which at 28 pulls a day is ~1.5GB
 a year -- past what a git repo should carry. Gzipped it is ~180MB a year.
 
-Usage:  python collect.py pitchers
+Usage:  python collect.py card
+        python collect.py pitchers
         python collect.py props-board
         python collect.py news
         python collect.py hitters
@@ -46,6 +47,11 @@ RESERVE = 750
 # --- market definitions -----------------------------------------------
 GAME_MARKETS = ["h2h", "spreads", "totals"]
 PITCHER_MARKETS = ["pitcher_strikeouts", "pitcher_outs", "pitcher_strikeouts_alternate"]
+# Alternate rungs, kept as a ladder the card can walk. Hard Rock posts NO
+# alternate OUTS market at all -- Sam-confirmed at the book, not a feed
+# artifact -- so pitcher_outs_alternate is not requested and its absence
+# here is a finding, never a gap to fill from somewhere else.
+ALT_MARKETS = {"pitcher_strikeouts_alternate": "strikeouts"}
 BATTER_MARKETS = [
     "batter_hits",
     "batter_total_bases",
@@ -292,7 +298,13 @@ def build_board(games):
 # ----------------------------------------------------------------------
 def collect_props(kind):
     if kind == "pitcher":
-        markets, regions = PITCHER_MARKETS, REGIONS_FULL
+        # 🔴 Hard Rock ONLY. Sam, 2026-08-22: "i onlt want to see hardrock
+        # odds from now on for all props". Enforced at the REQUEST, not at
+        # the write-up -- a price that never enters the working set cannot
+        # reach a card. us2 still returns espnbet, fliff, betparx, ballybet
+        # and hardrockbet_oh in the same response, so the distinct-price
+        # check (ledger rule 47) keeps its comparison set for free.
+        markets, regions = PITCHER_MARKETS, REGIONS_CHEAP
     else:
         # Hitter props are banked for a model we have not built yet.
         # One book is enough to backtest against; fifteen is paying for
@@ -470,9 +482,30 @@ def collect_props_board():
 
             # Best price is a shopping question. Fair probability is a
             # pricing question and may only be asked of one book at a time.
-            best, per_book = {}, {}
+            best, per_book, hr, ladder = {}, {}, {}, {}
             for bk in ev.get("bookmakers", []):
                 for m in bk.get("markets", []):
+                    # 🔴 STEP 5: alt ladders are mandatory on every card. They
+                    # were being pulled and then dropped here, which is what a
+                    # rung-walk into the 1.8x band needs and could not find.
+                    # Hard Rock only -- it is the book that multiplies, and the
+                    # feed carries only the OVER side of its ladder (the book
+                    # itself offers both; ask Sam for an under rung's price).
+                    if m.get("key") in ALT_MARKETS and bk["key"] in ("hardrockbet", "hardrockbet_oh"):
+                        for o in m.get("outcomes", []):
+                            who, pt, px = o.get("description"), o.get("point"), o.get("price")
+                            sd_ = (o.get("name") or "").lower()
+                            if not who or pt is None or px is None:
+                                continue
+                            ladder.setdefault(norm_name(who), []).append({
+                                "market": ALT_MARKETS[m["key"]], "line": pt, "side": sd_,
+                                "price": px, "book": bk["key"],
+                                "app_label": (f"To Record {int(pt + 0.5)}+"
+                                              if sd_ == "over" and ALT_MARKETS[m["key"]] == "strikeouts"
+                                              else None),
+                                **({"link": o.get("link") or m.get("link") or bk.get("link")}
+                                   if (o.get("link") or m.get("link") or bk.get("link")) else {}),
+                            })
                     if m.get("key") not in stat_map:
                         continue
                     for o in m.get("outcomes", []):
@@ -489,6 +522,18 @@ def collect_props_board():
                                 links_seen += 1
                         per_book.setdefault((who, m["key"], pt), {})\
                                 .setdefault(bk["key"], {})[side] = px
+                        # Hard Rock's own number, kept separately. The card
+                        # may only quote the book Sam bets at, and "best
+                        # across books" is a different question from "what
+                        # does his book say".
+                        if bk["key"] in ("hardrockbet", "hardrockbet_oh"):
+                            e = hr.setdefault(k, {})
+                            if "price" not in e or bk["key"] == "hardrockbet":
+                                e["price"] = px
+                                e["book"] = bk["key"]
+                                lk2 = o.get("link") or m.get("link") or bk.get("link")
+                                if lk2:
+                                    e["link"] = lk2
 
             fair = {}
             for key, books_here in per_book.items():
@@ -538,6 +583,7 @@ def collect_props_board():
                     "line": pt, "side": side, "price": v["price"], "book": v["book"],
                     "implied": imp_pct, "n_books": n_books, "evidence": ev_block,
                     **({"link": v["link"]} if v.get("link") else {}),
+                    **({"hr": hr[(who, mk, pt, side)]} if (who, mk, pt, side) in hr else {}),
                 })
 
             if props:
@@ -545,6 +591,18 @@ def collect_props_board():
                     "id": ev.get("id"), "commence": ev.get("commence_time"),
                     "away": away, "home": home, "props": []})
                 g["props"].extend(props)
+                if ladder:
+                    for kk, v2 in ladder.items():
+                        # hardrockbet and hardrockbet_oh post the same rung.
+                        # One rung, one row -- a duplicate here becomes a
+                        # duplicate play on the card.
+                        seen_r = {}
+                        for r in v2:
+                            kx = (r["market"], r["line"], r["side"])
+                            if kx not in seen_r or r["book"] == "hardrockbet":
+                                seen_r[kx] = r
+                        v2[:] = sorted(seen_r.values(), key=lambda r: (r["market"], r["line"]))
+                    g.setdefault("ladders", {}).update(ladder)
         return B["pulled_at"]
 
     bat_at = ingest("batter", PROP_STATS, by_hit, starts_only=False) if H else None
@@ -967,7 +1025,11 @@ def collect_results():
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
 
-    if mode not in ("schedule", "results", "hitters", "news", "props-board", "pitchers") and not ODDS_KEY:
+    # The free modes touch statsapi or the repo only. `card` calls nothing
+    # at all -- it reads what is already on disk -- so it must not be gated
+    # on a key it does not use.
+    FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers", "card")
+    if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
 
@@ -988,6 +1050,10 @@ def main():
             left = collect_news()
         elif mode == "pitchers":
             left = collect_pitchers()
+        elif mode == "card":
+            import card as _card
+            _card.main()
+            left = None
         elif mode == "props-board":
             left = collect_props_board()
         else:

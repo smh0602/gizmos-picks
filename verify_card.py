@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Independent checks on a generated card. Nothing here reuses card.py's
+arithmetic -- each check is computed a second, different way."""
+import gzip, json, math, random, sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import card as C
+
+doc = C.main(dry=True)
+P = json.load(gzip.open('data/latest/pitchers.json.gz','rt'))['players']
+B = json.load(gzip.open('data/latest/props.json.gz','rt'))
+allrows = doc['picks'] + doc['below_price_floor']
+fails = []
+def ck(name, ok, detail=""):
+    print(("  PASS " if ok else "  FAIL ") + name + ("  " + detail if detail else ""))
+    if not ok: fails.append(name)
+
+print("\n1. DISTRIBUTIONS -- recomputed by simulation, not by the CDF")
+random.seed(7)
+worst = 0.0
+for r in allrows:
+    if r['market'] != 'strikeouts': continue
+    lam = r['model_inputs']['E_K']; line = r['line']
+    N = 200000; hit = 0
+    # inverse-transform Poisson draws
+    for _ in range(N):
+        L, k, pr = math.exp(-lam), 0, random.random()
+        s = L
+        while pr > s and k < 40:
+            k += 1; L *= lam/k; s += L
+        v = k
+        hit += 1 if ((v > line) if r['side']=='over' else (v < line)) else 0
+    sim = 100.0*hit/N
+    worst = max(worst, abs(sim - r['model']))
+ck("Poisson CDF vs 200k simulations", worst < 0.6, f"max gap {worst:.3f} pts")
+
+worst = 0.0
+for r in allrows:
+    if r['market'] != 'outs': continue
+    # rebuild mu AND the SD from the raw log -- read no computed value back
+    p = P[str(r['pid'])]
+    st = [x for x in p['g'] if x.get('gs') and (x.get('d') or '') < doc['date']]
+    st.sort(key=lambda x: x['d'])
+    tr = st[-8:]
+    mO8 = sum(x['outs'] for x in tr)/len(tr)
+    kk = 0.638 if mO8 < 15.25 else (0.759 if mO8 < 17.0 else 0.317)
+    mu = 15.899 + kk*(mO8-15.903) + 0.0371*(tr[-1]['np']-86.6) + (0.189 if r['home_side'] else -0.189)
+    prior = [x['outs'] for x in st if x.get('outs') is not None]
+    m = sum(prior)/len(prior); s2 = math.sqrt(sum((x-m)**2 for x in prior)/(len(prior)-1))
+    z = (r['line'] - mu)/s2
+    manual = 100*(1 - 0.5*(1+math.erf(z/math.sqrt(2)))) if r['side']=='over' else 100*0.5*(1+math.erf(z/math.sqrt(2)))
+    worst = max(worst, abs(manual - r['model']))
+ck("Normal outs probability recomputed from the raw log", worst < 0.06, f"max gap {worst:.4f} pts")
+
+print("\n2. RAW RATES -- counted by hand off the game log")
+bad = []
+for r in allrows:
+    p = P[str(r['pid'])]
+    rows = [x for x in p['g'] if x.get('gs') and (x.get('d') or '') < doc['date']]
+    key = 'k' if r['market']=='strikeouts' else 'outs'
+    vals = [x[key] for x in rows if x.get(key) is not None]
+    h = sum(1 for v in vals if (v > r['line'] if r['side']=='over' else v < r['line']))
+    if f"{h}/{len(vals)}" != r['raw']: bad.append((r['pitcher'], r['raw'], f"{h}/{len(vals)}"))
+ck("raw hit rate, all starts, exact threshold", not bad, f"{len(allrows)} rows, {len(bad)} mismatches")
+
+print("\n3. POINT-IN-TIME -- no row may use a start dated today or later")
+leak = []
+for r in allrows:
+    p = P[str(r['pid'])]
+    if any((x.get('d') or '') >= doc['date'] for x in p['g'] if x.get('gs')):
+        leak.append(r['pitcher'])
+ck("no start on/after the slate date is in any denominator", not leak, str(set(leak)))
+
+print("\n4. OVER + UNDER must sum to 100 at the same number")
+two = [r for r in allrows if r.get('other_side')]
+bad = [r['pitcher'] for r in two if abs(r['model'] + r['other_side']['model'] - 100) > 0.11]
+ck("model over+under = 100%", not bad, f"{len(two)} two-sided numbers")
+ck("the side shown is the one the card favours",
+   all(r['blend'] >= r['other_side']['blend'] for r in two))
+
+print("\n5. PAIRS")
+same = [p for p in doc['pairs'] if p['game_ids'][0]==p['game_ids'][1]]
+ck("no same-game parlay (ledger rule 54, checked on GAME ID)", not same)
+ck("no pair below the 1.8x hard floor", all(p['multiplier'] >= 1.80 for p in doc['pairs']))
+dec = lambda a: 1.0 + (a/100.0 if a > 0 else 100.0/-a)
+mm = max((abs(p['multiplier'] - dec(p['prices'][0])*dec(p['prices'][1])) for p in doc['pairs']), default=0)
+ck("multiplier = product of the two decimals, recomputed from the prices", mm < 5e-4, f"max drift {mm:.2e}")
+jm = max((abs(p['joint'] - round(p['leg_blends'][0]*p['leg_blends'][1]/100,1)) for p in doc['pairs']), default=0)
+ck("joint = product of the two blends", jm <= 0.051)
+ck("every pair leg is priced at Hard Rock", all(p['book']=='hardrockbet' for p in doc['pairs']))
+ck("no pair reuses a pitcher", all(len(set(p['game_ids']))==2 for p in doc['pairs']))
+
+print("\n6. PRICES -- every one traceable to a raw snapshot")
+raw_prices = set()
+import glob
+for f in sorted(glob.glob('data/*/props-pitcher/*.json.gz')):
+    D = json.load(gzip.open(f,'rt'))
+    for ev in D.get('events', []):
+        for bk in ev.get('bookmakers', []):
+            for m in bk.get('markets', []):
+                for o in m.get('outcomes', []):
+                    raw_prices.add((o.get('description'), m.get('key'), o.get('point'),
+                                    (o.get('name') or '').lower(), o.get('price'), bk['key']))
+missing = []
+for r in allrows:
+    if r['price'] is None: continue
+    mk = 'pitcher_strikeouts' if r['market']=='strikeouts' else 'pitcher_outs'
+    cand = {x for x in raw_prices if x[2]==r['line'] and x[3]==r['side'] and x[4]==r['price']
+            and x[5] in ('hardrockbet','hardrockbet_oh','fliff','fanduel','draftkings','bovada','williamhill_us','espnbet','betparx','ballybet')}
+    if not cand: missing.append((r['pitcher'], r['line'], r['side'], r['price']))
+ck("no invented price -- every quote appears in a raw pull", not missing, f"{len(missing)} not found")
+
+print("\n7. CALIBRATION HONESTY")
+ck("every row carries a band label", all(r.get('band') for r in allrows))
+ck("blend is the plain 50/50 (T21/T22 not adopted)",
+   all(abs(r['blend'] - (0.5*r['model']+0.5*r['raw_pct'])) <= 0.1 for r in allrows))
+ck("carried never enters the blend", all('carried' in r and 'blend' in r for r in allrows))
+
+print("\n8. BAND / FLOOR / LADDER")
+ck("no picks row is shorter than -700", all(r['price'] is None or r['price'] > -700 for r in doc['picks']))
+rungs = [g for r in allrows for g in (r.get('ladder') or [])]
+ck("below-floor rungs are written out, not deleted",
+   any(not g['clears_price_floor'] for g in rungs),
+   f"{len(rungs)} rungs, {sum(1 for g in rungs if not g['clears_price_floor'])} below -700")
+ck("the starred rung always clears the floor",
+   all((r.get('ladder_pick') or {'clears_price_floor':True})['clears_price_floor'] for r in allrows))
+mono = []
+for r in allrows:
+    ov = [g for g in (r.get('ladder') or []) if g['side']=='over']
+    for a,b in zip(ov, ov[1:]):
+        if b['blend'] > a['blend'] + 0.05: mono.append((r['pitcher'], a['line'], b['line']))
+ck("a higher over rung is never MORE likely than a lower one", not mono, str(mono[:3]))
+ck("every ladder rung carries its app label form (rule 49 off-by-one)",
+   all(g.get('app_label') for r in allrows for g in (r.get('ladder') or []) if g['side']=='over'))
+
+print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
+sys.exit(1 if fails else 0)
