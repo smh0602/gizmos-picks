@@ -118,9 +118,30 @@ ck("carried never enters the blend", all('carried' in r and 'blend' in r for r i
 print("\n8. BAND / FLOOR / LADDER")
 ck("no picks row is shorter than -700", all(r['price'] is None or r['price'] > -700 for r in doc['picks']))
 rungs = [g for r in allrows for g in (r.get('ladder') or [])]
-ck("below-floor rungs are written out, not deleted",
-   any(not g['clears_price_floor'] for g in rungs),
-   f"{len(rungs)} rungs, {sum(1 for g in rungs if not g['clears_price_floor'])} below -700")
+# 🔴 The question is whether a rung the BOARD holds went MISSING from the
+# card -- not whether any rung exists. An earlier version of this check
+# asserted `any(below floor)` and failed a perfectly correct card on a
+# board that simply had no Hard Rock ladder stored yet. A verifier must
+# fail on wrongness, never on an empty input.
+board_rungs = set()
+for g in B['games']:
+    for who, rows in (g.get('ladders') or {}).items():
+        for r in rows:
+            board_rungs.add((who, r['market'], r['line'], r['side']))
+# A play's OWN line is covered by the play itself -- the ladder holds the
+# other rungs, never a duplicate of the row it hangs under.
+card_rungs = {(C.norm_name(r['pitcher']), r['market'], g['line'], g['side'])
+              for r in allrows for g in (r.get('ladder') or [])}
+card_rungs |= {(C.norm_name(r['pitcher']), r['market'], r['line'], r['side'])
+               for r in allrows}
+card_rungs |= {(C.norm_name(r['pitcher']), r['market'], r['line'], r['other_side']['side'])
+               for r in allrows if r.get('other_side')}
+lost = {x for x in board_rungs if x not in card_rungs}
+ck("no rung the board holds is missing from the card", not lost,
+   f"{len(board_rungs)} on the board, {len(card_rungs)} on the card, {len(lost)} lost")
+below = sum(1 for g in rungs if not g['clears_price_floor'])
+print(f"  NOTE  {len(rungs)} rungs carried, {below} of them below the -700 floor"
+      + ("" if rungs else "  <- no Hard Rock ladder in this board"))
 ck("the starred rung always clears the floor",
    all((r.get('ladder_pick') or {'clears_price_floor':True})['clears_price_floor'] for r in allrows))
 mono = []

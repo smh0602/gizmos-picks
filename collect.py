@@ -1051,6 +1051,13 @@ def main():
         elif mode == "pitchers":
             left = collect_pitchers()
         elif mode == "card":
+            # Rebuild the board FIRST, from the snapshots already on disk.
+            # Free -- no API call. The card is only ever as current as the
+            # join it reads, and the committed board may have been built by
+            # an older revision of this file. Making the card mode
+            # self-sufficient means it can never silently price off a stale
+            # or differently-shaped join.
+            collect_props_board()
             import card as _card
             _card.main()
             left = None
