@@ -15,8 +15,13 @@ on:
     # Game lines: every 30 minutes, 15:00Z - 04:30Z.
     # 6 credits per run for the whole slate. Feeds line movement,
     # best-odds shopping, and the implied team totals owed-test T25 needs.
-    - cron: "0,30 15-23 * * *"
-    - cron: "0,30 0-4 * * *"
+    # ⚠️ Minutes deliberately OFF the hour and half-hour. GitHub runs
+    # scheduled workflows on a best-effort queue and drops them under load,
+    # and :00 / :30 are the most congested slots on the platform. Measured
+    # 2026-08-23: six consecutive runs at 0,30 were skipped, leaving a
+    # three-hour hole in the board.
+    - cron: "7,37 15-23 * * *"
+    - cron: "7,37 0-4 * * *"
 
     # Pitcher props: morning board, then a pregame refresh.
     - cron: "10 14 * * *"
@@ -57,8 +62,13 @@ on:
         required: true
         default: gamelines
 
+# One queue PER MODE, not one queue for everything.
+# ⚠️ GitHub keeps a single pending run per concurrency group and CANCELS
+# older pending ones. With a shared group, running three jobs by hand
+# silently killed whatever scheduled pull was waiting behind them --
+# which is the other half of why the board went stale.
 concurrency:
-  group: collect
+  group: collect-${{ github.event.schedule || github.event.inputs.mode || 'manual' }}
   cancel-in-progress: false
 
 jobs:
