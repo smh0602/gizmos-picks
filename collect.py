@@ -65,6 +65,21 @@ BATTER_MARKETS = [
 REGIONS_FULL = "us,us2"
 REGIONS_CHEAP = "us2"
 
+# 🔴 THE FIVE BOOKS, AND ONLY THESE FIVE.
+# Sam, 2026-08-23: "lets just only use the top 5 sportsbooks in the USA,
+# hardrock, draftkings, fanduel, ceasars, and bet MGM".
+# ⚠️ THIS SUPERSEDES the 2026-08-22 "Hard Rock only / regions=us2"
+# instruction for PROPS. Four of the five live in `us`, so props go back
+# to a two-region pull -- which DOUBLES the per-game cost, and the pull
+# schedule below was cut from three a day to two to pay for it.
+# ⚠️ Caesars trades as `williamhill_us` in this feed. `hardrockbet_oh` is
+# Hard Rock's Ohio skin and is the same book.
+BOOKS = {
+    "hardrockbet": "Hard Rock", "hardrockbet_oh": "Hard Rock",
+    "draftkings": "DraftKings", "fanduel": "FanDuel",
+    "williamhill_us": "Caesars", "betmgm": "BetMGM",
+}
+
 
 def now():
     return datetime.now(timezone.utc)
@@ -229,6 +244,10 @@ def build_board(games):
     board = []
     for g in games:
         away, home = g["away"], g["home"]
+        # Same five-book rule as the props board. The raw snapshot keeps
+        # every book -- that is the historical record and it is not
+        # touched -- but the DASHBOARD only shows books Sam can bet at.
+        g = dict(g, books={k: v for k, v in g["books"].items() if k in BOOKS})
 
         # Best price for each side across every book, and the book offering it.
         best = {}
@@ -347,12 +366,12 @@ def collect_props(kind):
         # reach a card. us2 still returns espnbet, fliff, betparx, ballybet
         # and hardrockbet_oh in the same response, so the distinct-price
         # check (ledger rule 47) keeps its comparison set for free.
-        markets, regions = PITCHER_MARKETS, REGIONS_CHEAP
+        markets, regions = PITCHER_MARKETS, REGIONS_FULL
     else:
         # Hitter props are banked for a model we have not built yet.
         # One book is enough to backtest against; fifteen is paying for
         # precision we cannot currently interpret.
-        markets, regions = BATTER_MARKETS, REGIONS_CHEAP
+        markets, regions = BATTER_MARKETS, REGIONS_FULL
 
     events, used, left = odds_get(f"/sports/{SPORT}/events", {})
     log(f"{len(events)} events on the board; {left} credits before props")
@@ -534,7 +553,16 @@ def collect_props_board():
             # Best price is a shopping question. Fair probability is a
             # pricing question and may only be asked of one book at a time.
             best, per_book, hr, ladder = {}, {}, {}, {}
+            dropped = set()
             for bk in ev.get("bookmakers", []):
+                # ⛔ Anything outside the five is not shown at all. A price
+                # Sam cannot bet is not a better price -- and it was
+                # winning the "best price" comparison and taking the bet
+                # link with it, which is why links kept landing on books
+                # he has never heard of.
+                if bk.get("key") not in BOOKS:
+                    dropped.add(bk.get("key"))
+                    continue
                 for m in bk.get("markets", []):
                     # 🔴 STEP 5: alt ladders are mandatory on every card. They
                     # were being pulled and then dropped here, which is what a
@@ -844,16 +872,30 @@ def collect_news():
             desc = _re.sub(r"&[a-z]+;|&#\d+;", " ", desc)
             desc = " ".join(desc.split())[:240]
 
+            # 🔴 SWEEP EVERY DESCENDANT rather than guessing the tag.
+            # Measured 2026-08-24: CBS returned an image on 25/25 items and
+            # MLB.com on 0/25, because MLB nests its art somewhere the
+            # fixed find() list did not look. Feeds disagree about where an
+            # image lives and they are entitled to; the parser is what has
+            # to be flexible. Any element whose tag mentions thumbnail,
+            # image, content or enclosure is a candidate, and the first one
+            # that looks like an image URL wins.
             img = None
-            for tag, attr in ((MRSS + "thumbnail", "url"), (MRSS + "content", "url"),
-                              ("enclosure", "url"), ("image", "url")):
-                e = it.find(tag)
-                if e is not None:
-                    cand = e.get(attr) or (e.text or "").strip()
-                    typ = (e.get("type") or e.get("medium") or "").lower()
-                    if cand and ("image" in typ or not typ or tag.endswith("thumbnail")):
+            for e in it.iter():
+                tag = e.tag.rsplit("}", 1)[-1].lower()
+                if not any(k in tag for k in ("thumbnail", "image", "content", "enclosure")):
+                    continue
+                typ = (e.get("type") or e.get("medium") or "").lower()
+                if typ and "image" not in typ and tag != "thumbnail":
+                    continue          # audio/video enclosure -- not art
+                for cand in (e.get("url"), e.get("href"), e.get("src"),
+                             (e.text or "").strip()):
+                    if cand and _re.match(r"https?://", cand) \
+                       and _re.search(r"\.(jpe?g|png|webp|avif)(\?|$)", cand, _re.I):
                         img = cand
                         break
+                if img:
+                    break
             if not img:
                 # last resort: the first <img src> inside the body html
                 m = _re.search(r'<img[^>]+src=["\']([^"\']+)', body)

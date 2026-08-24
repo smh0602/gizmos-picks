@@ -42,7 +42,7 @@ old one, not easier.**
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
-| **Hard Rock only for props** (`regions=us2`) | Sam bets Hard Rock and PrizePicks. A price from a book he cannot bet is not actionable. |
+| **Five books only** (`BOOKS` in collect.py) | Hard Rock, DraftKings, FanDuel, Caesars (`williamhill_us`), BetMGM. Sam's instruction, 2026-08-23. ⚠️ This SUPERSEDED the earlier "Hard Rock only / `regions=us2`" rule for props — four of the five live in `us`, so props pull `us,us2` and cost double. A price from a book he cannot bet is not a better price. |
 | **`picks/<date>.json` already written** | Published estimates are a permanent record. ⛔ Never edit or delete one after its games have started. |
 
 ## Things that are true and easy to get wrong
@@ -117,7 +117,7 @@ old one, not easier.**
 ```
 collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
-                  props-board, card
+                  props-board, card, record
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
 verify_card.py    26 checks, pitcher AND hitter. Runs before commit.
 index.html        the dashboard, single file, no build step

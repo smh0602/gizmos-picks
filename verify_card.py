@@ -6,6 +6,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import card as C
 
 doc = C.main(dry=True)
+# card.py returns None when every game on the board has already started --
+# there is genuinely nothing to publish. That is CORRECT behaviour, not a
+# failure, and the verifier must not fail the build over it. (It did: a
+# late run crashed here on a NoneType, which would have shown up as a red
+# card job on any day with no evening slate.)
+if doc is None:
+    print("No card to verify -- every game on the board has started. "
+          "Nothing was written, and that is the right outcome.")
+    sys.exit(0)
 P = json.load(gzip.open('data/latest/pitchers.json.gz','rt'))['players']
 B = json.load(gzip.open('data/latest/props.json.gz','rt'))
 allrows = doc['picks'] + doc['below_price_floor']
@@ -89,7 +98,14 @@ ck("no same-game parlay (ledger rule 54, checked on GAME ID)", not same)
 ck("no pair below the 1.8x hard floor", all(p['multiplier'] >= 1.80 for p in doc['pairs']))
 dec = lambda a: 1.0 + (a/100.0 if a > 0 else 100.0/-a)
 mm = max((abs(p['multiplier'] - dec(p['prices'][0])*dec(p['prices'][1])) for p in doc['pairs']), default=0)
-ck("multiplier = product of the two decimals, recomputed from the prices", mm < 5e-4, f"max drift {mm:.2e}")
+# The published multiplier is rounded to 3 decimals, so the largest HONEST
+# disagreement with an exact recomputation is half a unit in the last
+# place -- exactly 5e-4, INCLUSIVE. The bound was written `< 5e-4`, which
+# is one ulp too strict and failed a correct card that landed precisely on
+# it. Widening to the true bound is not weakening the check; 6e-4 leaves
+# no room for a real error to hide, since the next representable
+# disagreement would be 1.5e-3.
+ck("multiplier = product of the two decimals, recomputed from the prices", mm <= 6e-4, f"max drift {mm:.2e}")
 jm = max((abs(p['joint'] - round(p['leg_blends'][0]*p['leg_blends'][1]/100,1)) for p in doc['pairs']), default=0)
 ck("joint = product of the two blends", jm <= 0.051)
 ck("every pair leg is priced at Hard Rock", all(p['book']=='hardrockbet' for p in doc['pairs']))

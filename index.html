@@ -154,7 +154,10 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .nwc:hover{border-color:#9db4cc}
 .nwimg{aspect-ratio:16/9;background:#eef2f6;overflow:hidden}
 .nwimg img{width:100%;height:100%;object-fit:cover;display:block}
-.nwimg.noimg{background:linear-gradient(135deg,#e9eef4,#dde5ee)}
+.nwimg.noimg{background:linear-gradient(135deg,#1d2a3a,#33465e);position:relative}
+.nwimg.noimg::after{content:attr(data-src);position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:#8fa6bd;font-size:12px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase}
 .nwc .bd{padding:10px 12px 12px}
 .nwc .hl{font-weight:700;font-size:13.5px;line-height:1.35}
 .nwc .mt{font-size:11px;color:var(--mut);margin-top:5px}
@@ -166,7 +169,7 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 #tick .tag{flex:0 0 auto;padding:0 12px;height:100%;display:flex;align-items:center;
       background:var(--accent2,#1f7a4d);font-weight:800;letter-spacing:.06em;font-size:11px}
 #tick .rail{flex:1;overflow:hidden;white-space:nowrap;position:relative}
-#tick .run{display:inline-block;padding-left:100%;animation:tickmove 80s linear infinite}
+#tick .run{display:inline-block;padding-left:100%;animation:tickmove 180s linear infinite}
 #tick a{color:#e8eef6;text-decoration:none;margin:0 26px}
 #tick a:hover{text-decoration:underline}
 #tick .src{color:#8fa6bd}
@@ -554,12 +557,117 @@ async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' 
    DecompressionStream is native in every current browser; if it is missing
    we say so rather than showing an empty tab. */
 async function jgetGz(u){
-  if (typeof DecompressionStream === 'undefined')
-    throw new Error('This browser cannot decompress the props file.');
   const r = await fetch(u);
   if (!r.ok) throw new Error(u + ' -> ' + r.status);
-  const ds = new DecompressionStream('gzip');
-  return new Response(r.body.pipeThrough(ds)).json();
+  const buf = new Uint8Array(await r.arrayBuffer());
+  /* Prefer the native path where it exists. DecompressionStream landed in
+     Safari 16.4; on anything older -- which is a lot of phones still in
+     use -- it is simply absent, and this tab used to report "No props
+     board yet", blaming the DATA for a BROWSER limitation. The inflate
+     below is the fallback so the page works everywhere. */
+  if (typeof DecompressionStream !== 'undefined'){
+    const ds = new DecompressionStream('gzip');
+    return new Response(new Blob([buf]).stream().pipeThrough(ds)).json();
+  }
+  return JSON.parse(new TextDecoder().decode(gunzip(buf)));
+}
+
+/* Minimal DEFLATE/gzip decoder (RFC 1951/1952). Only what a gzip stream
+   from Python's gzip module can contain: stored, fixed-Huffman and
+   dynamic-Huffman blocks. No compression side, no options. */
+function gunzip(src){
+  if (src[0] !== 0x1f || src[1] !== 0x8b) throw new Error('not a gzip file');
+  const flg = src[3];
+  let p = 10;
+  if (flg & 4) p += 2 + (src[p] | (src[p+1] << 8));   // FEXTRA
+  if (flg & 8) { while (src[p]) p++; p++; }            // FNAME
+  if (flg & 16){ while (src[p]) p++; p++; }            // FCOMMENT
+  if (flg & 2) p += 2;                                 // FHCRC
+  return inflate(src, p);
+}
+
+function inflate(src, pos){
+  let bitbuf = 0, bitcnt = 0, bp = pos;
+  const out = []; let o = 0;
+  let dst = new Uint8Array(1 << 20);
+  const push = b => {
+    if (o === dst.length){ const n = new Uint8Array(dst.length * 2); n.set(dst); dst = n; }
+    dst[o++] = b;
+  };
+  const bits = n => {
+    while (bitcnt < n){ bitbuf |= src[bp++] << bitcnt; bitcnt += 8; }
+    const v = bitbuf & ((1 << n) - 1);
+    bitbuf >>>= n; bitcnt -= n; return v;
+  };
+  const build = lens => {
+    const max = Math.max(...lens), bl = new Int32Array(max + 1);
+    for (const l of lens) if (l) bl[l]++;
+    const next = new Int32Array(max + 2); let code = 0;
+    for (let i = 1; i <= max; i++){ code = (code + bl[i-1]) << 1; next[i] = code; }
+    const codes = new Int32Array(lens.length);
+    for (let i = 0; i < lens.length; i++) if (lens[i]) codes[i] = next[lens[i]]++;
+    return {lens, codes, max};
+  };
+  const decode = t => {
+    let code = 0, len = 0;
+    for(;;){
+      code = (code << 1) | bits(1); len++;
+      if (len > t.max) throw new Error('bad huffman code');
+      for (let i = 0; i < t.lens.length; i++)
+        if (t.lens[i] === len && t.codes[i] === code) return i;
+    }
+  };
+  const LB=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+  const LE=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+  const DB=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+  const DE=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+  const ORD=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+  let fixedL = null, fixedD = null;
+  for(;;){
+    const last = bits(1), type = bits(2);
+    if (type === 0){
+      bitbuf = 0; bitcnt = 0;
+      const len = src[bp] | (src[bp+1] << 8); bp += 4;
+      for (let i = 0; i < len; i++) push(src[bp++]);
+    } else {
+      let LT, DT;
+      if (type === 1){
+        if (!fixedL){
+          const l = new Uint8Array(288);
+          l.fill(8,0,144); l.fill(9,144,256); l.fill(7,256,280); l.fill(8,280,288);
+          fixedL = build(l); fixedD = build(new Uint8Array(30).fill(5));
+        }
+        LT = fixedL; DT = fixedD;
+      } else if (type === 2){
+        const hlit = bits(5) + 257, hdist = bits(5) + 1, hclen = bits(4) + 4;
+        const cl = new Uint8Array(19);
+        for (let i = 0; i < hclen; i++) cl[ORD[i]] = bits(3);
+        const CT = build(cl);
+        const lens = new Uint8Array(hlit + hdist);
+        for (let i = 0; i < lens.length;){
+          const sym = decode(CT);
+          if (sym < 16) lens[i++] = sym;
+          else if (sym === 16){ const prev = lens[i-1], n = 3 + bits(2); for (let j=0;j<n;j++) lens[i++] = prev; }
+          else if (sym === 17){ const n = 3 + bits(3); i += n; }
+          else { const n = 11 + bits(7); i += n; }
+        }
+        LT = build(lens.subarray(0, hlit));
+        DT = build(lens.subarray(hlit));
+      } else throw new Error('bad block type');
+      for(;;){
+        const sym = decode(LT);
+        if (sym === 256) break;
+        if (sym < 256) push(sym);
+        else {
+          const li = sym - 257, len = LB[li] + bits(LE[li]);
+          const ds2 = decode(DT), dist = DB[ds2] + bits(DE[ds2]);
+          for (let i = 0; i < len; i++) push(dst[o - dist]);
+        }
+      }
+    }
+    if (last) break;
+  }
+  return dst.subarray(0, o);
 }
 
 /* Market board written by the collector. One known URL because GitHub
@@ -1050,7 +1158,14 @@ async function renderPicks(){
    when it did not. ⛔ Never a guessed URL -- an unlinked price is shown
    unlinked rather than pointed at a page that may not exist. */
 function priceCell(v, label){
-  if (!v || v.price == null) return `<span class="cell plain">—</span>`;
+  /* 🔴 The NUMBER always shows. An earlier version returned a bare dash
+     when no price was attached, so a board built before best_total /
+     best_spread existed rendered the totals and run lines as empty
+     columns -- the line itself vanished along with the price it was
+     missing. The line is a fact about the game; the price is a fact
+     about a book. Losing the second must never lose the first. */
+  if (!v || v.price == null)
+    return `<span class="cell plain">${label && label !== 'undefined' ? label : '—'}</span>`;
   const u = betLink(v.link);
   const body = `<b>${label}</b> ${sgn(v.price)}`;
   return u
@@ -1112,12 +1227,14 @@ async function renderOdds(){
           <span class="cell plain">${mh ? bookName(mh.book) : ''}</span>
         </div></td>
         <td><div class="stack">
-          ${priceCell((g.best_total||{}).Over,  'O' + (g.total ?? ''))}
-          ${priceCell((g.best_total||{}).Under, 'U' + (g.total ?? ''))}
+          ${priceCell((g.best_total||{}).Over,  g.total != null ? 'O' + g.total : '')}
+          ${priceCell((g.best_total||{}).Under, g.total != null ? 'U' + g.total : '')}
         </div></td>
         <td><div class="stack">
-          ${priceCell((g.best_spread||{})[a], sgn(((g.best_spread||{})[a]||{}).pt))}
-          ${priceCell((g.best_spread||{})[h], sgn(((g.best_spread||{})[h]||{}).pt))}
+          ${priceCell((g.best_spread||{})[a], ((g.best_spread||{})[a]||{}).pt != null
+              ? sgn((g.best_spread)[a].pt) : (g.run_line != null ? '+' + g.run_line : ''))}
+          ${priceCell((g.best_spread||{})[h], ((g.best_spread||{})[h]||{}).pt != null
+              ? sgn((g.best_spread)[h].pt) : (g.run_line != null ? sgn(-g.run_line) : ''))}
         </div></td>
         <td><div class="stack">
           <span class="cell">${g.team_total[a] ?? '—'}</span>
@@ -1284,8 +1401,10 @@ async function renderNews(){
     ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener">
         ${i.image
           ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
-               onerror="this.closest('.nwimg').classList.add('noimg');this.remove()"></div>`
-          : `<div class="nwimg noimg"></div>`}
+               onerror="this.closest('.nwimg').classList.add('noimg');
+                        this.closest('.nwimg').dataset.src='${(i.source||'').replace(/'/g,'')}';
+                        this.remove()"></div>`
+          : `<div class="nwimg noimg" data-src="${i.source||''}"></div>`}
         <div class="bd">
           <div class="hl">${i.title}</div>
           <div class="mt">${i.source}${i.published ? ' · ' + ago(i.published) : ''}</div>
@@ -1590,7 +1709,16 @@ $('#filt').addEventListener('change', renderScores);
         `<a href="${i.link}" target="_blank" rel="noopener">${i.title}
           <span class="src">— ${i.source}</span></a>`).join('');
       // Duplicated so the loop has no visible gap when it wraps.
-      $('#tickrun').innerHTML = html + html;
+      const run = $('#tickrun');
+      run.innerHTML = html + html;
+      /* 🔴 Pace it so it is READABLE. A fixed 80s made a 30-headline rail
+         sprint past. Roughly 55 pixels a second -- about walking pace for
+         the eye -- measured off the real rendered width rather than
+         guessed from the item count. */
+      requestAnimationFrame(() => {
+        const px = run.scrollWidth || 6000;
+        run.style.animationDuration = Math.round(px / 55) + 's';
+      });
       $('#tick').hidden = false;
     } catch(e){ /* no news file yet -- leave the bar hidden */ }
   }
