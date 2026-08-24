@@ -25,10 +25,19 @@ on:
 
     # Pitcher props: morning board, then a pregame refresh.
     - cron: "10 14 * * *"
+    - cron: "10 18 * * *"
     - cron: "40 21 * * *"
 
-    # Hitter props: once. Banked for a model that does not exist yet.
+    # Hitter props: THREE times a day, not once.
+    # Sam, 2026-08-23: "player props tab needs to be consistently updating
+    # as well, i see its 10.5 hours old." It was: one pull at 14:20Z and
+    # nothing else all day. 💰 75 credits a pull, measured -- three pulls
+    # is 225/day. Total daily burn lands near 530, ~15,900 a month against
+    # a 20,000 allowance, so this is affordable and was never a budget
+    # decision in the first place.
     - cron: "20 14 * * *"
+    - cron: "20 18 * * *"
+    - cron: "20 22 * * *"
 
     # Hitter game logs: free (statsapi), ~500 players, a couple of minutes.
     # Runs before the batter-props pull so the props tab has evidence to
@@ -42,6 +51,8 @@ on:
     # Props board: joins the batter odds to the hitter logs. Runs after
     # both, costs nothing, and is what the Player Props tab reads.
     - cron: "35 14 * * *"
+    - cron: "35 18 * * *"
+    - cron: "35 22 * * *"
 
     # The card. Free -- it spends no credits and calls nothing; it reads
     # the game logs and the prop board this workflow already stores and
@@ -68,10 +79,14 @@ on:
     # the repo instead.
     - cron: "0 8 * * *"
 
+    # The track record. Free, no API call. Runs after results land so the
+    # Track Record tab grades itself instead of being hardcoded.
+    - cron: "20 8 * * *"
+
   workflow_dispatch:
     inputs:
       mode:
-        description: "card | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
+        description: "card | record | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
         required: true
         default: gamelines
 
@@ -111,6 +126,12 @@ jobs:
               "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
               "50 13 * * *") echo "mode=pitchers"      >> "$GITHUB_OUTPUT" ;;
               "35 14 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "20 8 * * *") echo "mode=record"   >> "$GITHUB_OUTPUT" ;;
+              "35 22 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "35 18 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "10 18 * * *") echo "mode=props-pitcher"   >> "$GITHUB_OUTPUT" ;;
+              "20 22 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
+              "20 18 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
               "45 21 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
               "45 14 * * *") echo "mode=card"          >> "$GITHUB_OUTPUT" ;;
               "50 21 * * *") echo "mode=card"          >> "$GITHUB_OUTPUT" ;;
