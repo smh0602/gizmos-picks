@@ -33,6 +33,20 @@ old one, not easier.**
 
 ---
 
+## How changes reach this repo
+
+- Page, UI, styling, news and collector-plumbing changes may be pushed straight
+  to main.
+- Changes to `card.py`, `verify_card.py`, or anything that touches a probability, a
+  model coefficient, or a price MUST be opened as a pull request, never pushed
+  to main, even if the request does not say so.
+- `.github/workflows/` cannot be edited by this app at all — GitHub forbids it.
+  Say so plainly rather than attempting it.
+- Always run `python verify_card.py` before pushing or opening a PR. If it does
+  not pass, do not push.
+
+---
+
 ## What must never change without Sam saying so
 
 | | |
