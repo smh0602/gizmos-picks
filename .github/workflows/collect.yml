@@ -100,6 +100,11 @@ on:
     # Track Record tab grades itself instead of being hardcoded.
     - cron: "20 8 * * *"
 
+    # Lineup slot. Free (statsapi), resumable, and it only fetches dates it
+    # has not already stored -- so after the first backfill this is a
+    # few seconds a day. It is the input the hitter model needs.
+    - cron: "40 8 * * *"
+
   # 🆕 Rebuild the free artefacts whenever the CODE changes, so a fix is
   # visible on the site immediately instead of waiting for the next
   # scheduled run. Costs nothing: the `refresh` mode calls no API.
@@ -116,7 +121,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "card | record | refresh | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
+        description: "card | record | refresh | lineups | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
         required: true
         default: gamelines
 
@@ -163,6 +168,7 @@ jobs:
               "10 20 * * *") echo "mode=props-pitcher"   >> "$GITHUB_OUTPUT" ;;
               "20 20 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
               "20 8 * * *") echo "mode=record"   >> "$GITHUB_OUTPUT" ;;
+              "40 8 * * *") echo "mode=lineups"  >> "$GITHUB_OUTPUT" ;;
               "35 22 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
               "35 18 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
               "10 18 * * *") echo "mode=props-pitcher"   >> "$GITHUB_OUTPUT" ;;
