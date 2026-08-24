@@ -38,6 +38,10 @@ from datetime import datetime, timedelta, timezone
 
 MODEL_VERSION = "v4.0"
 
+# Sam's board size, in his words: "i would like to see 25-50 players
+# everytime, including hitters props as well as pitchers."
+BOARD_MIN, BOARD_MAX = 25, 50
+
 # ---------------------------------------------------------------- model
 # claude/mlb-projection-model.md. Do not edit a coefficient here without
 # editing it there, and do not edit it there without a re-fit.
@@ -501,6 +505,131 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
     return w
 
 
+# -------------------------------------------------------------- hitters
+# 🔴 THERE IS NO HITTER MODEL. Ledger rule 55: a MARKET number never
+# carries a Gizmo's confidence %. So a hitter row carries NO `blend`, NO
+# `confidence` and NO band -- it carries the player's own record and the
+# market's own de-vigged price, and says which is which.
+#
+# The estimate is his season rate at that exact line with a JEFFREYS
+# PRIOR -- (hits + 0.5) / (games + 1). That is smoothing, not modelling:
+# without it a 3-for-4 sample tops the board on noise every night. It is
+# labelled DESCRIPTIVE and it is not a projection.
+#
+# ⛔ Do not add a confidence number here until a hitter model exists,
+# has been backtested, and has beaten the raw rate on a pre-registered
+# test. That is the next build, not this one.
+HITTER_LABEL = {
+    "batter_hits": "Hits", "batter_total_bases": "Total bases",
+    "batter_home_runs": "Home runs", "batter_rbis": "RBIs",
+    "batter_hits_runs_rbis": "Hits+Runs+RBIs",
+}
+MIN_HITTER_GAMES = 25
+
+
+def parse_rate(s):
+    """'38/125' -> (38, 125). Returns (None, None) on anything else."""
+    try:
+        h, n = str(s).split("/")
+        return int(h), int(n)
+    except Exception:
+        return (None, None)
+
+
+def hitter_play(prop, game, ids, team_games):
+    ev = prop.get("evidence") or {}
+    h, n = parse_rate(ev.get("season"))
+    if h is None or n is None or n < MIN_HITTER_GAMES:
+        return None
+
+    # 🔴 LINEUP RISK. `n` counts games he actually BATTED. A player who has
+    # batted in 41 of his team's 128 games is a bench bat, and his rate --
+    # however true -- is conditional on him being in the lineup at all. If
+    # he is not, the bet is usually VOID, not a win. The rate cannot see
+    # that, so it is stated on the row instead of being folded into it.
+    tg = team_games.get(prop.get("team")) or 0
+    share = (n / tg) if tg else None
+    risk = bool(share is not None and share < 0.70)
+
+    hrq = prop.get("hr") or {}
+    on_hr = hrq.get("price") is not None
+    price = hrq["price"] if on_hr else prop.get("price")
+    book = hrq.get("book", "hardrockbet") if on_hr else prop.get("book")
+    link = hrq.get("link") if on_hr else prop.get("link")
+    if price is None:
+        return None
+
+    rate = 100.0 * (h + 0.5) / (n + 1)          # Jeffreys, not a projection
+    be = 100.0 * implied(price)
+    mkt = prop.get("implied")                    # de-vigged, from the board
+
+    def r(k):
+        a, b = parse_rate(ev.get(k))
+        return None if a is None or not b else round(100.0 * a / b, 1)
+
+    return {
+        "kind": "hitter",
+        "basis": "MARKET + DESCRIPTIVE — no model, no confidence rating (rule 55)",
+        "player": prop.get("player"), "pid": prop.get("pid"),
+        "team": prop.get("team"), "bats": ev.get("bats"),
+        "market": prop.get("market"),
+        "market_label": HITTER_LABEL.get(prop.get("market"), prop.get("market")),
+        "side": prop.get("side"), "line": prop.get("line"),
+        "game": f"{ab(game['away'])} @ {ab(game['home'])}",
+        "game_id": game["id"], "away": game["away"], "home": game["home"],
+        "away_id": ids.get(game["away"]), "home_id": ids.get(game["home"]),
+        "commence": game["commence"], "first_pitch": et(game["commence"]),
+        "opponent": ev.get("opp"),
+        "book": book, "price": price, "link": link, "on_hardrock": bool(on_hr),
+        "rate": round(rate, 1), "raw": f"{h}/{n}",
+        "break_even": round(be, 1),
+        "market_implied": mkt,
+        "edge": round(rate - be, 1),
+        "edge_vs_market": None if mkt is None else round(rate - mkt, 1),
+        "games_batted": n, "team_games": tg or None,
+        "lineup_share": None if share is None else round(100 * share, 1),
+        "lineup_risk": risk,
+        "splits": {"season": ev.get("season"), "last15": ev.get("last15"),
+                   "home": ev.get("home"), "road": ev.get("road"),
+                   "vs_opp": ev.get("vs_opp"),
+                   "last15_pct": r("last15"), "home_pct": r("home"),
+                   "road_pct": r("road")},
+        "why": hitter_why(prop, ev, h, n, rate, be, price, book, share, risk),
+    }
+
+
+def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
+    lbl = HITTER_LABEL.get(prop.get("market"), prop.get("market"))
+    verb = "cleared" if prop.get("side") == "over" else "stayed under"
+    w = [f"{verb.capitalize()} {prop.get('line')} {lbl.lower()} in {h} of {n} games "
+         f"({100.0*h/n:.0f}%). Smoothed to {rate:.0f}% so a short hot streak cannot "
+         f"top the board on noise."]
+    l15h, l15n = parse_rate(ev.get("last15"))
+    if l15n:
+        w.append(f"Last 15 games: {l15h}/{l15n}.")
+    hh, hn = parse_rate(ev.get("home"))
+    rh, rn = parse_rate(ev.get("road"))
+    if hn and rn:
+        w.append(f"Home {hh}/{hn}, road {rh}/{rn}. ⚠️ Home/road is DESCRIPTIVE here "
+                 f"— it has never been tested on hitters in this project.")
+    vh, vn = parse_rate(ev.get("vs_opp"))
+    if vn:
+        w.append(f"Against {ev.get('opp')} this season: {vh}/{vn}."
+                 + (" ⚠️ Too few to mean anything." if vn < 8 else ""))
+    else:
+        w.append(f"Has not faced {ev.get('opp')} this season.")
+    if risk:
+        w.append(f"🔴 LINEUP RISK: he has batted in only {100*share:.0f}% of his team's "
+                 f"games. This rate is conditional on him being in the lineup — if he "
+                 f"is not, the bet is usually VOIDED, not won. Check the lineup card.")
+    elif share is not None:
+        w.append(f"In the lineup for {100*share:.0f}% of his team's games.")
+    w.append(f"{price:+d} at {book} breaks even at {be:.1f}%. "
+             f"🔴 This row has NO model behind it — the number is his own record, "
+             f"not a projection, and it carries no confidence rating.")
+    return w
+
+
 # --------------------------------------------------------------- pairs
 FLOOR, TARGET = 1.80, 2.10
 
@@ -644,7 +773,18 @@ def main(dry=False):
         return None
     today = min(et_date(g["commence"]) for g in upcoming)
 
-    plays, skipped = [], {}
+    # A team's games played, approximated by the most games any of its
+    # hitters has batted in. Used only to size lineup risk, never to price.
+    team_games = {}
+    for g0 in B["games"]:
+        for pr in g0["props"]:
+            if pr.get("kind") != "batter":
+                continue
+            _h, _n = parse_rate((pr.get("evidence") or {}).get("season"))
+            if _n and pr.get("team"):
+                team_games[pr["team"]] = max(team_games.get(pr["team"], 0), _n)
+
+    plays, hitters, skipped = [], [], {}
     for g in B["games"]:
         # A started game is off the board. Every tab does this; the card must too.
         try:
@@ -678,6 +818,16 @@ def main(dry=False):
                                   _alt=True, _ladder=mine))
             prop["_ladder"] = mine
 
+        for prop in g["props"]:
+            if prop.get("kind") != "batter" or prop["market"] not in HITTER_LABEL:
+                continue
+            hp = hitter_play(prop, g, ids, team_games)
+            if hp is None:
+                skipped["hitter: too few games or no price"] = \
+                    skipped.get("hitter: too few games or no price", 0) + 1
+                continue
+            hitters.append(hp)
+
         for prop in list(g["props"]) + rungs:
             if prop["market"] not in ("pitcher_strikeouts", "pitcher_outs"):
                 continue
@@ -694,6 +844,7 @@ def main(dry=False):
                 continue
             row["away_id"] = ids.get(g["away"])
             row["home_id"] = ids.get(g["home"])
+            row["kind"] = "pitcher"
             plays.append(row)
 
     # 🔴 An alt rung is a RUNG, not a separate pick. Printing all of them as
@@ -742,14 +893,50 @@ def main(dry=False):
 
     plays_all = plays
     plays = standard
-    plays.sort(key=lambda x: -x["blend"])
-    board = [x for x in plays if x["clears_price_floor"]]
-    below = [x for x in plays if not x["clears_price_floor"]]
+    pairs = build_pairs(plays_all)
+
+    # ---- THE BOARD -------------------------------------------------
+    # 🔴 THIS IS A FILTERED BOARD, AND THE FILTER IS SAM'S, NOT CLAUDE'S.
+    # Sam, 2026-08-23: "gizmos picks should only include the picks the
+    # model likes, i would like to see 25-50 players everytime, including
+    # hitters props as well as pitchers." Asked what "likes" means, he
+    # chose BIGGEST EDGE VS THE PRICE and THE CALIBRATED BAND, together.
+    # ⚠️ Ledger rule 53 says a play is never absent because CLAUDE did not
+    # like it. This exclusion is Sam's own instruction, the same authority
+    # as the 1.8x pair floor -- and every count that was excluded is
+    # printed below so the size of what is hidden stays visible.
+    for x in plays:
+        x["in_band"] = (x.get("band") == "70-80")
+        x["clears_price_floor"] = x.get("clears_price_floor", True)
+    for x in hitters:
+        x["in_band"] = False          # no model, so no calibration band
+
+    liked = [x for x in plays + hitters
+             if (x.get("edge") is not None and x["edge"] > 0)
+             and x.get("clears_price_floor", True)]
+    # Band-qualifying plays lead, then everything by edge.
+    # Band first, then solid-lineup plays, then by edge. A lineup-risk row
+    # is SHOWN with its flag — it is just not allowed to crowd out the top
+    # of the board on a rate that assumes he plays.
+    liked.sort(key=lambda x: (not x["in_band"], bool(x.get("lineup_risk")),
+                              -(x.get("edge") or 0)))
+
+    board = liked[:BOARD_MAX]
+    if len(board) < BOARD_MIN:
+        # Not enough positive-edge plays. Top up by edge, and SAY SO on the
+        # row rather than quietly padding the board with plays that lose to
+        # their own price.
+        rest = sorted([x for x in plays + hitters if x not in liked],
+                      key=lambda x: -(x.get("edge") if x.get("edge") is not None else -999))
+        for x in rest[:BOARD_MIN - len(board)]:
+            x["below_price"] = True
+            board.append(x)
+
     for i, x in enumerate(board, 1):
         x["rank"] = i
-    for i, x in enumerate(below, 1):
+    below = [x for x in plays if not x.get("clears_price_floor", True)]
+    for x in below:
         x["rank"] = None
-    pairs = build_pairs(plays_all)
 
     doc = {
         "date": today,
@@ -769,6 +956,17 @@ def main(dry=False):
                      "time; this one rebuilds nightly. Measured 2026-08-23 the two "
                      "agree to a mean |dE[K]| of 0.021 K, max 0.064 K."),
         },
+        "board_rule": (
+            "Sam's filter, not Claude's: plays whose estimate beats the price's "
+            "break-even, calibrated-band plays first, then by edge. "
+            f"{len(plays)} pitcher and {len(hitters)} hitter rows were priced; "
+            f"{len(board)} are shown."),
+        "hitter_note": (
+            "Hitter rows carry NO confidence rating and NO band. There is no hitter "
+            "model in this project, and ledger rule 55 forbids a MARKET number from "
+            "carrying a Gizmo's confidence %. Their number is the player's own season "
+            "rate at that exact line with a Jeffreys prior — DESCRIPTIVE, not a "
+            "projection. A real hitter model is the next build."),
         "coverage": (f"{len(board)} plays across {len({x['game_id'] for x in board})} games, "
                      f"ranked by blend. {len(pairs)} pairs clear the 1.8x floor. "
                      f"Generated unattended from the collector's own data -- no human "
@@ -800,12 +998,19 @@ def main(dry=False):
     if dry:
         print(json.dumps({k: v for k, v in doc.items()
                           if k not in ("picks", "pairs", "below_price_floor")}, indent=1))
-        for x in board[:12]:
-            print(f"  {x['rank']:2}. {x['pitcher']:22} {x['side'][0]}{x['line']:<5} "
-                  f"{'K' if x['market']=='strikeouts' else 'outs':4} {x['game']:11} "
-                  f"{str(x['price']):>6}  model {x['model']:5.1f}  raw {x['raw']:>7}  "
-                  f"blend {x['blend']:5.1f}  carried {x['carried']:5.1f}  "
-                  f"class {str(x['class']['all']):>7}  [{x['band']}] {len(x['flags'])}f")
+        for x in board[:16]:
+            who = x.get("pitcher") or x.get("player")
+            unit = ("K" if x["market"] == "strikeouts"
+                    else "outs" if x["market"] == "outs"
+                    else x.get("market_label", x["market"])[:12])
+            if x["kind"] == "pitcher":
+                extra = (f"model {x['model']:5.1f}  blend {x['blend']:5.1f}  "
+                         f"carried {x['carried']:5.1f}  [{x['band']}]")
+            else:
+                extra = f"rate  {x['rate']:5.1f}  NO MODEL           lineup {x.get('lineup_share')}%"
+            print(f"  {x['rank']:2}. {x['kind'][:3]} {who[:20]:21} "
+                  f"{x['side'][0]}{x['line']:<5} {unit:12} {x['game']:11} "
+                  f"{str(x['price']):>6}  raw {x['raw']:>7}  edge {x['edge']:+6.1f}  {extra}")
         print(f"\n  {len(pairs)} pairs")
         for p in pairs[:6]:
             print(f"   {p['multiplier']:.2f}x {p['label']:10} joint {p['joint']:5.1f}%  "

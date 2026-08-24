@@ -58,6 +58,21 @@ old one, not easier.**
 - 🔴 **Pitcher rates are computed over STARTS ONLY.** A reliever's two-out
   appearance is not evidence about a starter's line. Mixing them in once
   turned a true 2/3 into a false 48/49.
+- 🔴 **A hitter is rated only over games he BATTED (`pa > 0`).** The hitter
+  analogue of starts-only, and the same bug. A defensive sub or a pinch-run
+  is not an under that won -- at the book it is usually a VOID. Measured
+  2026-08-23: Tyler Tolbert's "under 0.5 total bases" read 41/58 (71%) over
+  every logged game and 24/41 (59%) over games he actually batted in.
+- 🔴 **Shop a price only at the EXACT SIGNED number.** Measured 2026-08-23
+  on ATL@MIL: eleven books posted ATL -1.5 / MIL +1.5 while two posted the
+  same game inverted. Matching on |point| paired "Milwaukee -1.5 at +130"
+  against a market whose real price is "+1.5 at -182" -- opposite bets, and
+  the page would have advertised a bargain that does not exist. ⛔ Never
+  compare two prices without first confirming they are the same wager.
+- 🔴 **A hitter row carries NO confidence rating and NO band.** There is no
+  hitter model. Ledger rule 55 forbids a MARKET number from wearing a
+  Gizmo's %. ⛔ Do not add one until a hitter model exists, is backtested,
+  and has beaten the raw rate on a pre-registered test.
 - 🔴 **Players share names.** `resolve()` refuses to guess and returns
   `(None, None)` when a name is ambiguous and the game's own teams do not
   break the tie. ⛔ Do not make it pick the first match.
@@ -104,7 +119,7 @@ collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
-verify_card.py    21 independent checks. Runs before the commit step.
+verify_card.py    26 checks, pitcher AND hitter. Runs before commit.
 index.html        the dashboard, single file, no build step
 .github/workflows/collect.yml   every schedule
 data/             timestamped snapshots. append-only.

@@ -269,6 +269,47 @@ def build_board(games):
         total = ((ref.get("totals") or {}).get("Over") or {}).get("pt")
         rl = ((ref.get("spreads") or {}).get(home) or {}).get("pt")
 
+        # 🔴 The spread and total were being stored as bare NUMBERS while the
+        # prices and bet links sat in the same pull, unused. A line you cannot
+        # click is a line you cannot bet. Same shopping rule as the moneyline:
+        # best price wins, and the link comes from the book offering it.
+        # 🔴 SHOP ONLY AT THE EXACT SIGNED NUMBER, PER OUTCOME.
+        # Measured 2026-08-23 on ATL@MIL: eleven books posted ATL -1.5 /
+        # MIL +1.5, while mybookieag and williamhill_us posted the SAME game
+        # inverted -- ATL +1.5 / MIL -1.5. Matching on |point| paired
+        # "Milwaukee -1.5 at +130" against a market whose real price is
+        # "Milwaukee +1.5 at -182". Those are OPPOSITE BETS, and the page
+        # would have advertised a 300-point bargain that does not exist.
+        # betrivers posts a 1.0 line in the same pull, which is a different
+        # bet again. ⛔ Same failure family as the phantom alt rungs: never
+        # compare a price without first confirming it is the same wager.
+        def ref_points(market):
+            return {name: v.get("pt") for name, v in (ref.get(market) or {}).items()}
+
+        def shop(market):
+            """Best price per outcome, only among books quoting the SAME
+            signed number the reference book posts for that outcome."""
+            want = ref_points(market)
+            out, rejected = {}, 0
+            for bk, mk in g["books"].items():
+                for name, v in (mk.get(market) or {}).items():
+                    if v.get("px") is None:
+                        continue
+                    tgt = want.get(name)
+                    if tgt is None or v.get("pt") is None or abs(v["pt"] - tgt) > 1e-9:
+                        rejected += 1
+                        continue
+                    cur = out.get(name)
+                    if cur is None or v["px"] > cur["price"]:
+                        out[name] = {"price": v["px"], "book": bk, "pt": v["pt"]}
+                        lk = (g["books"].get(bk) or {}).get("link")
+                        if lk:
+                            out[name]["link"] = lk
+            return out, rejected
+
+        best_total, rej_t = shop("totals")
+        best_spread, rej_s = shop("spreads")
+
         # Implied team totals: split the total by the run line. This is the
         # input owed-test T25 needs -- the market's read on each starter,
         # bullpen, park and lineup compressed into one number.
@@ -283,6 +324,8 @@ def build_board(games):
             "n_books": len(vigs),
             "best_ml": best,
             "total": total, "run_line": rl,
+            "best_total": best_total,     # {"Over": {...}, "Under": {...}}
+            "best_spread": best_spread,   # {"<team>": {...}, "<team>": {...}}
             "team_total": {away: tt_away, home: tt_home},
         })
     return board
@@ -470,10 +513,18 @@ def collect_props_board():
 
     def ingest(kind, stat_map, table, starts_only):
         nonlocal links_seen
+        # ⚠️ Fall back to the most recent day that HAS a snapshot. The
+        # UTC date rolls at 8pm ET, mid-slate, so a run just after
+        # midnight UTC would otherwise find nothing and report an empty
+        # board as though no props existed. Report which day was used.
         snaps = sorted(glob.glob(f"data/{d}/props-{kind}/*.json.gz"))
         if not snaps:
-            log(f"  props-{kind}: nothing stored for {d}")
-            return None
+            older = sorted(glob.glob(f"data/*/props-{kind}/*.json.gz"))
+            if not older:
+                log(f"  props-{kind}: nothing stored for {d} and no older snapshot")
+                return None
+            snaps = [older[-1]]
+            log(f"  props-{kind}: nothing for {d}, falling back to {snaps[-1]}")
         B = json.load(gzip.open(snaps[-1], "rt"))
         log(f"  props-{kind}: {B['n_events']} events (pulled {B['pulled_at']})")
 
@@ -565,6 +616,18 @@ def collect_props_board():
                     rows = rec["g"]
                     if starts_only:
                         rows = [r for r in rows if r.get("gs")]
+                    else:
+                        # 🔴 THE HITTER ANALOGUE OF STARTS-ONLY, and it is
+                        # the same bug. A game with NO plate appearance --
+                        # a defensive sub, a pinch-run -- is not an under
+                        # that won. At the book it is usually a VOID.
+                        # Measured 2026-08-23: Tyler Tolbert's "under 0.5
+                        # total bases" reads 41/58 = 71% over every logged
+                        # game and 23/40 = 58% over games he actually
+                        # batted. Eighteen zero-PA appearances were being
+                        # counted as wins. ⛔ Never rate a hitter on a game
+                        # he did not bat in.
+                        rows = [r for r in rows if (r.get("pa") or 0) > 0]
                     opp = away if rec.get("team") == home else home
                     season = _rate(rows, fn, pt, side)
                     ev_block = {
@@ -767,9 +830,41 @@ def collect_news():
                         .strftime("%Y-%m-%dT%H:%M:%SZ")
                 except Exception:
                     iso = None
-            desc = _re.sub(r"<[^>]+>", "", txt("description"))[:220]
+            # 🔴 Summary AND image. Feeds disagree on where both live, so
+            # try every shape in turn rather than assuming one. Measured
+            # 2026-08-23: the previous parser read only <description> and
+            # every stored item came back with an EMPTY summary and no
+            # image at all. A missing image is fine -- the page falls back
+            # to a plain tile -- but silently producing nothing is not.
+            MRSS = "{http://search.yahoo.com/mrss/}"
+            CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
+
+            body = txt("description") or txt(CONTENT + "encoded") or txt("summary")
+            desc = _re.sub(r"<[^>]+>", " ", body)
+            desc = _re.sub(r"&[a-z]+;|&#\d+;", " ", desc)
+            desc = " ".join(desc.split())[:240]
+
+            img = None
+            for tag, attr in ((MRSS + "thumbnail", "url"), (MRSS + "content", "url"),
+                              ("enclosure", "url"), ("image", "url")):
+                e = it.find(tag)
+                if e is not None:
+                    cand = e.get(attr) or (e.text or "").strip()
+                    typ = (e.get("type") or e.get("medium") or "").lower()
+                    if cand and ("image" in typ or not typ or tag.endswith("thumbnail")):
+                        img = cand
+                        break
+            if not img:
+                # last resort: the first <img src> inside the body html
+                m = _re.search(r'<img[^>]+src=["\']([^"\']+)', body)
+                if m:
+                    img = m.group(1)
+            if img and img.startswith("http://"):
+                img = "https://" + img[7:]      # the page is https; http images are blocked
+
             items.append({"source": source, "title": title, "link": link,
-                          "published": iso, "summary": desc})
+                          "published": iso, "summary": desc,
+                          **({"image": img} if img else {})})
             n += 1
             if n >= 25:
                 break
@@ -993,6 +1088,32 @@ def collect_results():
                         },
                     })
 
+            # Batters, from the SAME boxscore call -- free, and it is what
+            # lets a hitter play be graded and a hitter model be backtested
+            # later. Stored as the raw line; nothing here is derived.
+            batters = []
+            for side in ("away", "home"):
+                team = box["teams"][side]
+                for key, p in team.get("players", {}).items():
+                    st = (p.get("stats") or {}).get("batting") or {}
+                    if not st or st.get("atBats") is None:
+                        continue
+                    h = st.get("hits")
+                    d2, t3, hr = st.get("doubles"), st.get("triples"), st.get("homeRuns")
+                    tb = None
+                    if None not in (h, d2, t3, hr):
+                        tb = (h - d2 - t3 - hr) + 2 * d2 + 3 * t3 + 4 * hr
+                    batters.append({
+                        "id": p["person"]["id"],
+                        "name": p["person"]["fullName"],
+                        "side": side,
+                        "team": team["team"]["name"],
+                        "ab": st.get("atBats"), "H": h, "r": st.get("runs"),
+                        "rbi": st.get("rbi"), "hr": hr, "d": d2, "t": t3,
+                        "bb": st.get("baseOnBalls"), "k": st.get("strikeOuts"),
+                        "tb": tb, "sb": st.get("stolenBases"),
+                    })
+
             ls = g.get("linescore") or {}
             out.append({
                 "gamePk": pk,
@@ -1005,6 +1126,7 @@ def collect_results():
                 },
                 "innings": ls.get("currentInning"),
                 "pitchers": pitchers,
+                "batters": batters,
             })
 
         final = sum(1 for g in out if g["state"] == "Final")
@@ -1022,13 +1144,191 @@ def collect_results():
     return None
 
 
+# ----------------------------------------------------------------------
+# The track record.
+#
+# Grades every published card against the stored results and writes one
+# file the page reads. Free, no API call, and it runs nightly -- which is
+# the whole point: the Track Record tab was hardcoded and went stale the
+# day it shipped.
+#
+# 🔴 ONLY MACHINE CARDS ARE COUNTED. `picks/2026-08-22.json` is a JSON
+# republication of that day's HAND-BUILT card, which is already graded in
+# the ledger as TABLE A. Counting it here would double-count all 13 plays
+# and mix a curated board in with an uncurated one -- two different
+# populations that must never share a denominator. The machine card is
+# identified by `kind == "gizmos-card"`, and TABLE M begins with 8/23.
+# ----------------------------------------------------------------------
+BATTER_RESULT = {
+    "batter_hits":           lambda b: b.get("H"),
+    "batter_total_bases":    lambda b: b.get("tb"),
+    "batter_home_runs":      lambda b: b.get("hr"),
+    "batter_rbis":           lambda b: b.get("rbi"),
+    "batter_hits_runs_rbis": lambda b: None if b.get("H") is None else
+                                       (b.get("H") or 0) + (b.get("r") or 0) + (b.get("rbi") or 0),
+}
+
+
+def _won(val, line, side):
+    if val is None:
+        return None
+    return (val > line) if side == "over" else (val < line)
+
+
+def collect_record():
+    import glob
+
+    days, skipped = [], []
+    for f in sorted(glob.glob("picks/*.json")):
+        try:
+            card = json.load(open(f))
+        except Exception as e:
+            skipped.append((os.path.basename(f), f"unreadable: {type(e).__name__}"))
+            continue
+        date = card.get("date") or os.path.basename(f)[:-5]
+        if card.get("kind") != "gizmos-card":
+            skipped.append((date, "hand-built card, graded in the ledger as TABLE A"))
+            continue
+        rf = f"data/{date}/results/final.json.gz"
+        if not os.path.exists(rf):
+            skipped.append((date, "no results stored yet"))
+            continue
+        R = json.load(gzip.open(rf, "rt"))
+        if R.get("n_final", 0) < R.get("n_games", 1):
+            skipped.append((date, f"{R.get('n_final')}/{R.get('n_games')} games final -- not settled"))
+            continue
+
+        pit, bat = {}, {}
+        for g in R["games"]:
+            for p in g.get("pitchers") or []:
+                if p.get("started"):
+                    pit[p["id"]] = p
+            for b in g.get("batters") or []:
+                bat[b["id"]] = b
+
+        rows = []
+        for p in card.get("picks", []):
+            mk, side, line = p.get("market"), p.get("side"), p.get("line")
+            if mk in ("strikeouts", "outs"):
+                a = pit.get(p.get("pid"))
+                val = None if not a else (a["k"] if mk == "strikeouts" else a["outs"])
+                kind = "pitcher"
+            elif mk in BATTER_RESULT:
+                a = bat.get(p.get("pid"))
+                val = None if not a else BATTER_RESULT[mk](a)
+                kind = "hitter"
+            else:
+                continue
+            w = _won(val, line, side)
+            if w is None:
+                continue
+            rows.append({"kind": kind, "market": mk, "side": side,
+                         "blend": p.get("blend"), "band": p.get("band"),
+                         "implied": p.get("break_even") or p.get("implied"),
+                         "edge": p.get("edge"), "won": bool(w), "actual": val,
+                         "player": p.get("pitcher") or p.get("player")})
+
+        pairs = []
+        for q in card.get("pairs", []):
+            legs = []
+            for nm, ln in zip(q.get("legs", []), q.get("leg_keys", []) or []):
+                legs.append(None)
+            pairs.append(q)
+
+        days.append({"date": date, "rows": rows,
+                     "n": len(rows), "w": sum(1 for r in rows if r["won"])})
+
+    def tally(rows):
+        n = len(rows)
+        return {"w": sum(1 for r in rows if r["won"]), "n": n,
+                "pct": round(100 * sum(1 for r in rows if r["won"]) / n, 1) if n else None}
+
+    allrows = [r for d in days for r in d["rows"]]
+    buckets = {}
+    for r in allrows:
+        if r["kind"] != "pitcher" or r["blend"] is None:
+            continue
+        b = int(r["blend"] // 10) * 10
+        buckets.setdefault(b, []).append(r)
+
+    # 🔴 THE HAND-BUILT RECORD IS A DATED SNAPSHOT, NOT A LIVE FIGURE.
+    # It lives in claude/pick-ledger.md, which this runner cannot read, so
+    # it is copied here with the date it was true. ⛔ The page MUST print
+    # that date beside it. A copied number that looks live is this
+    # project's most repeated failure -- if it is stale, it should be
+    # visibly stale rather than quietly wrong.
+    # ⚠️ Different population from the machine card: CURATED, chosen by a
+    # session. Never add the two together.
+    hand = {
+        "as_of": "2026-08-23",
+        "source": "claude/pick-ledger.md, updated by the 7:30am ET grading run",
+        "record": {"w": 35, "n": 56, "pct": 62.5},
+        "by_market": {"strikeouts": {"w": 26, "n": 38},
+                      "outs": {"w": 8, "n": 17},
+                      "earned_runs": {"w": 1, "n": 1}},
+        "by_day": [{"date": "2026-08-18", "w": 7, "n": 11},
+                   {"date": "2026-08-19", "w": 7, "n": 12},
+                   {"date": "2026-08-20", "w": 9, "n": 12},
+                   {"date": "2026-08-21", "w": 6, "n": 8},
+                   {"date": "2026-08-22", "w": 6, "n": 13}],
+        "sam": {"slips": {"w": 5, "n": 9}, "staked": 214.00,
+                "returned": 203.50, "profit": -10.50, "roi_pct": -4.9},
+        # ⚠️ The band table lags the headline record: these are the last
+        # figures published in claude/calibration-accumulators.md, and the
+        # 8/22 card is NOT yet folded into them. Two different as_of dates
+        # on one page is ugly, and it is far less ugly than pretending one
+        # of them is current.
+        "calibration": {
+            "as_of": "2026-08-22",
+            "note": ("Last published band table. The 8/22 card is graded in the "
+                     "headline record above but is NOT yet in these bands."),
+            "bands": [
+                {"name": "80%+",   "n": 6,  "said": 84.7, "hit": 66.7},
+                {"name": "70-80%", "n": 20, "said": 75.2, "hit": 80.0},
+                {"name": "60-70%", "n": 13, "said": 64.4, "hit": 38.5},
+                {"name": "50-60%", "n": 1,  "said": 55.0, "hit": None},
+            ],
+        },
+    }
+
+    doc = {
+        "built_at": stamp(),
+        "kind": "DESCRIPTIVE",
+        "hand_built": hand,
+        "note": ("Graded from stored results, not from anyone's memory. Machine cards "
+                 "only -- the hand-built cards live in the ledger and are a different, "
+                 "CURATED population that must never share a denominator with this one."),
+        "overall": tally(allrows),
+        "by_kind": {k: tally([r for r in allrows if r["kind"] == k])
+                    for k in ("pitcher", "hitter")},
+        "by_market": {m: tally([r for r in allrows if r["market"] == m])
+                      for m in sorted({r["market"] for r in allrows})},
+        "by_side": {sd: tally([r for r in allrows if r["side"] == sd])
+                    for sd in ("over", "under")},
+        "by_band": {b: tally([r for r in allrows if r["band"] == b])
+                    for b in sorted({r["band"] for r in allrows if r.get("band")})},
+        "calibration": [{"bucket": f"{b}-{b+10}%",
+                         "predicted": round(sum(r["blend"] for r in v) / len(v), 1),
+                         **tally(v)} for b, v in sorted(buckets.items())],
+        "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"]} for d in days],
+        "days_graded": len(days),
+        "skipped": [{"date": a, "why": b} for a, b in skipped],
+    }
+    write("data/latest/record.json", doc)
+    log(f"record: {len(days)} card(s) graded, {doc['overall']['w']}/{doc['overall']['n']} plays")
+    for a, b in skipped:
+        log(f"  skipped {a}: {b}")
+    return None
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
 
     # The free modes touch statsapi or the repo only. `card` calls nothing
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
-    FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers", "card")
+    FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
+            "card", "record")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -1050,6 +1350,9 @@ def main():
             left = collect_news()
         elif mode == "pitchers":
             left = collect_pitchers()
+        elif mode == "record":
+            collect_record()
+            left = None
         elif mode == "card":
             # Rebuild the board FIRST, from the snapshots already on disk.
             # Free -- no API call. The card is only ever as current as the

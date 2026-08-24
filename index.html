@@ -144,6 +144,36 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .rung .pc{color:var(--mut);font-variant-numeric:tabular-nums}
 .rung.star{border-color:#1f7a4d;box-shadow:inset 0 0 0 1px #1f7a4d}
 .rung.dim{opacity:.45}
+.conf.edge-badge{background:#eef4fb;color:#1a4b9c;border:1px solid #cfe0f4}
+.betbtn{display:inline-block;margin-top:6px;padding:4px 9px;border-radius:6px;background:#14181f;
+        color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none}
+.betbtn:hover{background:#2a323d}
+.nwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
+.nwc{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+     text-decoration:none;color:inherit;background:#fff;transition:border-color .12s}
+.nwc:hover{border-color:#9db4cc}
+.nwimg{aspect-ratio:16/9;background:#eef2f6;overflow:hidden}
+.nwimg img{width:100%;height:100%;object-fit:cover;display:block}
+.nwimg.noimg{background:linear-gradient(135deg,#e9eef4,#dde5ee)}
+.nwc .bd{padding:10px 12px 12px}
+.nwc .hl{font-weight:700;font-size:13.5px;line-height:1.35}
+.nwc .mt{font-size:11px;color:var(--mut);margin-top:5px}
+.nwc .sm{font-size:12px;color:#46525f;margin-top:6px;line-height:1.45}
+
+/* Headline ticker, pinned to the bottom of every tab. */
+#tick{position:fixed;left:0;right:0;bottom:0;height:34px;background:#14181f;color:#e8eef6;
+      display:flex;align-items:center;overflow:hidden;z-index:40;font-size:12.5px}
+#tick .tag{flex:0 0 auto;padding:0 12px;height:100%;display:flex;align-items:center;
+      background:var(--accent2,#1f7a4d);font-weight:800;letter-spacing:.06em;font-size:11px}
+#tick .rail{flex:1;overflow:hidden;white-space:nowrap;position:relative}
+#tick .run{display:inline-block;padding-left:100%;animation:tickmove 80s linear infinite}
+#tick a{color:#e8eef6;text-decoration:none;margin:0 26px}
+#tick a:hover{text-decoration:underline}
+#tick .src{color:#8fa6bd}
+#tick:hover .run{animation-play-state:paused}
+@keyframes tickmove{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+body{padding-bottom:44px}
+@media (prefers-reduced-motion:reduce){#tick .run{animation:none;padding-left:0}}
 .bandchip{display:inline-block;padding:1px 6px;border-radius:20px;font-size:10.5px;font-weight:700;
           letter-spacing:.03em;border:1px solid var(--line);color:var(--mut);margin-left:6px}
 .bandchip.ok{color:#1f7a4d;border-color:#bfe0cd;background:#f2fbf6}
@@ -316,6 +346,15 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <span class="stamp" id="stamp"></span>
   </div>
   <div id="view"></div>
+
+  <!-- Headline ticker. Lives OUTSIDE #view so it survives every tab
+       switch, and is filled once from the same news.json the News tab
+       reads. Pauses on hover, and stops entirely for anyone who has
+       asked their system for reduced motion. -->
+  <div id="tick" hidden>
+    <div class="tag">MLB</div>
+    <div class="rail"><div class="run" id="tickrun"></div></div>
+  </div>
 </main>
 
 <footer class="wrap">
@@ -839,31 +878,49 @@ const playName = p => {
 };
 
 function pickCard(p){
+  const isH = p.kind === 'hitter';
   const c = el('div','pk');
   const h = el('div','pk-h');
-  h.append(el('div', 'conf ' + confClass(p.confidence),
-    `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
+
+  /* 🔴 A HITTER ROW CARRIES NO CONFIDENCE NUMBER. There is no hitter model
+     in this project and ledger rule 55 forbids a MARKET number from
+     wearing a Gizmo's rating. It shows its EDGE over the price instead,
+     and says on the card that the figure is his own record. */
+  if (isH){
+    h.append(el('div','conf edge-badge',
+      `<div class="n">${p.edge > 0 ? '+' : ''}${p.edge}</div><div class="l">EDGE</div>`));
+  } else {
+    h.append(el('div', 'conf ' + confClass(p.confidence),
+      `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
+  }
 
   if (p.pid) h.insertAdjacentHTML('beforeend',
-    `<img class="hs" src="${headUrl(p.pid)}" alt="${p.pitcher}" loading="lazy"
+    `<img class="hs" src="${headUrl(p.pid)}" alt="" loading="lazy"
       onerror="this.style.visibility='hidden'">`);
 
   const t = el('div','pk-t');
-  /* The band is the record this number actually has behind it. It is a
-     label on the row, not a filter -- the 70-80% band is the only one
-     whose history supports its own claim. */
+  const who = p.pitcher || p.player;
+  const sideWord = p.side === 'over' ? 'Over' : 'Under';
+  const unit = isH ? p.market_label
+             : (p.market === 'strikeouts' ? 'K' : 'Outs');
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
-  t.append(el('div','play', playName(p)
-    + (p.band ? `<span class="bandchip ${bc}" title="${p.band_note||''}">${p.band}</span>` : '')));
+  t.append(el('div','play', `${who} — ${sideWord} ${p.line} ${unit}`
+    + (p.band ? `<span class="bandchip ${bc}" title="${p.band_note||''}">${p.band}</span>` : '')
+    + (isH ? `<span class="bandchip" title="No hitter model exists yet — this is his own record, not a projection.">NO MODEL</span>` : '')));
+
   const matchup = (p.away_id || p.home_id)
-    ? `${mark(p.away, p.away_id, 17)} ${p.away} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${p.home}`
+    ? `${mark(p.away, p.away_id, 17)} ${ab(p.away)} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${ab(p.home)}`
     : p.game;
   t.append(el('div','meta',
     `<span style="display:inline-flex;align-items:center;gap:5px">${matchup}</span>
-     &nbsp;·&nbsp; ${p.first_pitch} ET`));
+     ${p.first_pitch ? '&nbsp;·&nbsp; ' + p.first_pitch : ''}`));
   h.append(t);
+
+  const u = betLink(p.link);
   h.append(el('div','pk-px',
-    `<div class="px">${sgn(p.price)}</div><div class="bk">${bookChip(p.book)}</div>`));
+    `<div class="px">${sgn(p.price)}</div>
+     <div class="bk">${bookChip(p.book)}</div>
+     ${u ? `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">BET →</a>` : ''}`));
   c.append(h);
 
   if (p.why && p.why.length)
@@ -872,14 +929,19 @@ function pickCard(p){
   (p.flags||[]).forEach(f => c.append(el('div', 'fl fl-' + f.kind,
     (f.test ? `<b>${f.test}</b> &middot; ` : '') + f.text)));
 
-  /* The alt ladder. Every rung is priced through the same model, so this
-     is where a pair gets walked into the 1.8x band. ★ is the rung this
-     card would take: the safest one still clearing Sam's -700 floor.
-     A rung dimmed is one the floor rules out -- shown, never hidden. */
+  if (p.lineup_risk)
+    c.append(el('div','fl fl-flag',
+      `<b>Lineup risk</b> &middot; batted in only ${p.lineup_share}% of his team's games. If he is not in
+       today's lineup this is usually a VOID, not a win. Check the card before you bet it.`));
+  if (p.below_price)
+    c.append(el('div','fl fl-note',
+      `<b>Below the price</b> &middot; shown to fill the board out to 25 plays. The estimate does not beat
+       this number's break-even.`));
+
+  /* Alt ladder — pitchers only; hitters have no rungs in the feed. */
   if (p.ladder && p.ladder.length){
     const L = el('div','lad');
-    L.append(el('div','lb', `HARD ROCK ALT LADDER &mdash; ${p.market === 'strikeouts'
-      ? 'the app labels these "To Record N+"' : 'outs'}`));
+    L.append(el('div','lb', 'HARD ROCK ALT LADDER &mdash; the app labels these "To Record N+"'));
     p.ladder.forEach(r => {
       const star = p.ladder_pick && r.line === p.ladder_pick.line && r.side === p.ladder_pick.side;
       const cls = 'rung' + (star ? ' star' : '') + (r.clears_price_floor ? '' : ' dim');
@@ -897,19 +959,25 @@ function pickCard(p){
     c.append(L);
   }
 
-  const bits = [`Own record <b>${p.raw}</b>`];
-  if (p.model != null) bits.push(`Model <b>${p.model}%</b>`);
-  if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`
-    + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
-  if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
-  /* `carried` is the blend after the T21/T22 flags. Those tests are
-     PRE-REGISTERED AND NOT ADOPTED, so `blend` is what enters calibration
-     and this is a shadow number -- shown, and labelled as one. */
-  if (p.carried != null && Math.abs(p.carried - p.blend) >= 0.5)
-    bits.push(`Flagged estimate <b>${p.carried}%</b> (shadow &mdash; not the carded number)`);
+  const bits = [];
+  if (isH){
+    bits.push(`Own record <b>${p.raw}</b> (${p.rate}% smoothed)`);
+    if (p.splits && p.splits.last15) bits.push(`Last 15 <b>${p.splits.last15}</b>`);
+    if (p.splits && p.splits.home) bits.push(`Home <b>${p.splits.home}</b> · Road <b>${p.splits.road}</b>`);
+    if (p.splits && p.splits.vs_opp) bits.push(`vs ${p.opponent ? ab(p.opponent) : 'opp'} <b>${p.splits.vs_opp}</b>`);
+    if (p.market_implied != null) bits.push(`Market has it at <b>${p.market_implied}%</b>`);
+  } else {
+    bits.push(`Own record <b>${p.raw}</b>`);
+    if (p.model != null) bits.push(`Model <b>${p.model}%</b>`);
+    if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`
+      + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
+    if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
+    if (p.carried != null && Math.abs(p.carried - p.blend) >= 0.5)
+      bits.push(`Flagged estimate <b>${p.carried}%</b> (shadow — not the carded number)`);
+  }
+  bits.push(`Break-even <b>${p.break_even}%</b>`);
   if (p.other_side)
-    bits.push(`Other side: ${p.other_side.side} ${p.line} at ${sgn(p.other_side.price)}, `
-      + `<b>${p.other_side.blend}%</b>`);
+    bits.push(`Other side: ${p.other_side.side} ${p.line} at ${sgn(p.other_side.price)}, <b>${p.other_side.blend}%</b>`);
   c.append(el('div','ev', bits.map(b => `<span>${b}</span>`).join('')));
   return c;
 }
@@ -951,7 +1019,10 @@ async function renderPicks(){
     v.append(el('div','note','This card has no kickoff times on it, so nothing can be retired '
       + 'automatically. Cards written from here on carry them.'));
 
-  live.sort((a,b) => b.confidence - a.confidence).forEach(p => v.append(pickCard(p)));
+  /* The card already ranked itself -- band first, then edge. Re-sorting on
+     `confidence` here would drop every hitter to the bottom, because a
+     hitter row deliberately has no confidence number. */
+  live.sort((a,b) => (a.rank||999) - (b.rank||999)).forEach(p => v.append(pickCard(p)));
   if (!live.length) v.append(el('div','msg','Every game on this card has started.'));
   setTimeout(() => {
     const t = $('#pk-started');
@@ -973,6 +1044,19 @@ async function renderPicks(){
         <td class="n"><b>${x.joint}%</b></td></tr>`).join('')}</tbody></table></div>`;
     v.append(pn);
   }
+}
+
+/* One price cell: a bet button when the book gave us a link, plain text
+   when it did not. ⛔ Never a guessed URL -- an unlinked price is shown
+   unlinked rather than pointed at a page that may not exist. */
+function priceCell(v, label){
+  if (!v || v.price == null) return `<span class="cell plain">—</span>`;
+  const u = betLink(v.link);
+  const body = `<b>${label}</b> ${sgn(v.price)}`;
+  return u
+    ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow"
+         title="${bookName(v.book)}">${body} →</a>`
+    : `<span class="cell best" title="${bookName(v.book)}">${body}</span>`;
 }
 
 async function renderOdds(){
@@ -1027,8 +1111,14 @@ async function renderOdds(){
           <span class="cell plain">${ma ? bookName(ma.book) : ''}</span>
           <span class="cell plain">${mh ? bookName(mh.book) : ''}</span>
         </div></td>
-        <td><div class="big">${g.total ?? '—'}</div></td>
-        <td><div class="big">${sgn(g.run_line)}</div></td>
+        <td><div class="stack">
+          ${priceCell((g.best_total||{}).Over,  'O' + (g.total ?? ''))}
+          ${priceCell((g.best_total||{}).Under, 'U' + (g.total ?? ''))}
+        </div></td>
+        <td><div class="stack">
+          ${priceCell((g.best_spread||{})[a], sgn(((g.best_spread||{})[a]||{}).pt))}
+          ${priceCell((g.best_spread||{})[h], sgn(((g.best_spread||{})[h]||{}).pt))}
+        </div></td>
         <td><div class="stack">
           <span class="cell">${g.team_total[a] ?? '—'}</span>
           <span class="cell">${g.team_total[h] ?? '—'}</span>
@@ -1055,69 +1145,116 @@ async function renderOdds(){
     </div>
     ${startedToggle(nStarted, 'ob-started')}
     ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">Every game on the board has started.</div>'}
-    <div class="note" style="margin-top:18px">Every number on this page belongs to the sportsbooks, not to us.
+    <div class="note" style="margin-top:18px"><b>Every price with an arrow is clickable</b> and opens that
+      book's bet slip — moneyline, total and run line alike. Prices without one are real, but the book did not
+      hand back a link, so nothing is guessed. Set your state at the top right or half the links will not resolve.
+      <br><br>Every number on this page belongs to the sportsbooks, not to us.
       A win&nbsp;% here is what the market thinks once the house margin is stripped out — genuinely hard to beat,
       and still not a Gizmo's projection. It never carries a Gizmo's confidence rating.</div>`;
 }
 
-/* Track Record.
-   The bar shows two things at once: the pale bar is what we CLAIMED,
-   the solid bar is what actually LANDED. Where the solid bar falls short
-   of the pale one, the model was overconfident — and that is the single
-   most important thing on this whole site. */
-const BANDS = [
-  {name:'80%+',    n:6,  said:84.7, hit:66.7, verdict:'Running hot',        cls:'v-bad'},
-  {name:'70–80%',  n:20, said:75.2, hit:80.0, verdict:'Reliable',           cls:'v-good'},
-  {name:'60–70%',  n:13, said:64.4, hit:38.5, verdict:'Broken',             cls:'v-bad'},
-  {name:'50–60%',  n:1,  said:55.0, hit:null, verdict:'No sample',          cls:'v-none'},
-];
+/* Track Record — read from data/latest/record.json, not hardcoded.
+   Two records live here and they are NEVER added together:
+     * the MACHINE card, graded automatically from stored results
+     * the HAND-BUILT cards, a dated snapshot from the project ledger
+   One is uncurated and one was chosen by a session. Mixing them would
+   measure neither. Both carry the date they were last true. */
+let RECORD = null;
 
-function renderRecord(){
-  const rows = BANDS.map(b => `
-    <div class="band">
-      <div class="bn">${b.name}<small>${b.n} pick${b.n===1?'':'s'}</small></div>
-      <div class="track">
-        ${b.hit != null ? `<div class="hit ${b.hit >= b.said ? 'good' : 'bad'}" style="width:${b.hit}%"></div>` : ''}
-        <div class="said" style="left:${b.said}%" title="we said ${b.said}%"></div>
-        <div class="lbl">hit ${b.hit != null ? b.hit + '%' : '—'} &nbsp;·&nbsp; claimed ${b.said}%</div>
+function bandRow(b){
+  const gap = b.hit == null ? null : b.hit - b.said;
+  const cls = gap == null ? 'v-none' : (gap >= 0 ? 'v-good' : 'v-bad');
+  const verdict = gap == null ? 'No sample'
+                : gap >= 0 ? 'Beat the claim'
+                : gap > -10 ? 'Slightly hot' : 'Overconfident';
+  return `<div class="band">
+    <div class="bn">${b.name}<small>${b.n} pick${b.n===1?'':'s'}</small></div>
+    <div class="track">
+      ${b.hit != null ? `<div class="hit ${gap >= 0 ? 'good' : 'bad'}" style="width:${b.hit}%"></div>` : ''}
+      <div class="said" style="left:${b.said}%" title="we said ${b.said}%"></div>
+      <div class="lbl">hit ${b.hit != null ? b.hit + '%' : '—'} &nbsp;·&nbsp; claimed ${b.said}%</div>
+    </div>
+    <div class="verd ${cls}">${verdict}${gap != null ? `<br><span style="font-weight:600;color:var(--mut)">${
+      gap > 0 ? '+' : ''}${gap.toFixed(1)} pts</span>` : ''}</div>
+  </div>`;
+}
+
+async function renderRecord(){
+  const v = $('#view');
+  if (!RECORD){
+    v.innerHTML = '<div class="msg">Loading…</div>';
+    try { RECORD = await jget('data/latest/record.json'); }
+    catch(e){
+      v.innerHTML = `<div class="panel"><h2>Track Record</h2>
+        <div class="note"><b>No record file yet.</b> The collector writes
+        <code>data/latest/record.json</code> on its next nightly run.</div></div>`;
+      return;
+    }
+  }
+  const R = RECORD, H = R.hand_built || {}, M = R.overall || {};
+  const cal = (H.calibration || {});
+  const bands = (cal.bands || []).map(bandRow).join('');
+
+  const machine = M.n
+    ? `<div class="tr-hero">
+        <div class="tr-box"><div class="k">Auto card</div><div class="v">${M.w}<span style="font-size:18px;color:var(--mut)">/${M.n}</span></div><div class="s">${M.pct}% hit rate</div></div>
+        <div class="tr-box"><div class="k">Pitchers</div><div class="v">${(R.by_kind.pitcher.pct ?? '—')}%</div><div class="s">${R.by_kind.pitcher.w}/${R.by_kind.pitcher.n}</div></div>
+        <div class="tr-box"><div class="k">Hitters</div><div class="v">${(R.by_kind.hitter.pct ?? '—')}%</div><div class="s">${R.by_kind.hitter.w}/${R.by_kind.hitter.n}</div></div>
+        <div class="tr-box"><div class="k">Cards graded</div><div class="v">${R.days_graded}</div><div class="s">machine cards only</div></div>
+       </div>`
+    : `<div class="note"><b>The automatic card has not been graded yet.</b>
+        ${(R.skipped||[]).map(x => `<br><code>${x.date}</code> — ${x.why}`).join('')}
+        <br><br>The first machine card grades the morning after its games finish. Until then this
+        section is empty on purpose rather than showing a number it has not earned.</div>`;
+
+  const dayRows = (H.by_day || []).map(d =>
+    `<tr><td>${d.date}</td><td><b>${d.w}/${d.n}</b></td>
+      <td>${(100*d.w/d.n).toFixed(0)}%</td></tr>`).join('');
+
+  const mk = R.by_market || {};
+  const mkRows = Object.keys(mk).map(k =>
+    `<tr><td>${k.replace(/_/g,' ')}</td><td><b>${mk[k].w}/${mk[k].n}</b></td>
+      <td>${mk[k].pct ?? '—'}%</td></tr>`).join('');
+
+  v.innerHTML = `
+    <div class="panel">
+      <h2>Automatic card <span class="kind k-model">Model</span></h2>
+      <p>Every play the model published, graded from stored box scores — not from anyone's memory.
+         Updates itself nightly. <span class="rec">built ${R.built_at}</span></p>
+      ${machine}
+      ${mkRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${mkRows}</tbody></table>` : ''}
+    </div>
+
+    <div class="panel">
+      <h2>Hand-built cards <span class="kind k-desc">Descriptive</span></h2>
+      <p class="stamp">Snapshot as of <b>${H.as_of || '—'}</b>. Source: ${H.source || 'the project ledger'}.
+         ⚠️ This does not update itself — if the date above is old, the number is old.</p>
+      <div class="tr-hero">
+        <div class="tr-box"><div class="k">Carded record</div><div class="v">${(H.record||{}).w}<span style="font-size:18px;color:var(--mut)">/${(H.record||{}).n}</span></div><div class="s">${(H.record||{}).pct}% hit rate</div></div>
+        <div class="tr-box"><div class="k">Strikeouts</div><div class="v">${((H.by_market||{}).strikeouts||{}).w}<span style="font-size:18px;color:var(--mut)">/${((H.by_market||{}).strikeouts||{}).n}</span></div><div class="s">the model's best market</div></div>
+        <div class="tr-box"><div class="k">Outs</div><div class="v">${((H.by_market||{}).outs||{}).w}<span style="font-size:18px;color:var(--mut)">/${((H.by_market||{}).outs||{}).n}</span></div><div class="s">the weak one</div></div>
+        <div class="tr-box"><div class="k">Sam's slips</div><div class="v">${((H.sam||{}).slips||{}).w}<span style="font-size:18px;color:var(--mut)">/${((H.sam||{}).slips||{}).n}</span></div><div class="s">ROI ${(H.sam||{}).roi_pct}%</div></div>
       </div>
-      <div class="verd ${b.cls}">${b.verdict}${
-        b.hit != null ? `<br><span style="font-weight:600;color:var(--mut)">${
-          (b.hit - b.said) > 0 ? '+' : ''}${(b.hit - b.said).toFixed(1)} pts</span>` : ''}</div>
-    </div>`).join('');
-
-  $('#view').innerHTML = `
-    <div class="tr-hero">
-      <div class="tr-box"><div class="k">Carded record</div><div class="v">25<span style="font-size:18px;color:var(--mut)">/38</span></div><div class="s">65.8% hit rate</div></div>
-      <div class="tr-box"><div class="k">Average claim</div><div class="v">72.6%</div><div class="s">what we said would happen</div></div>
-      <div class="tr-box"><div class="k">Calibration gap</div><div class="v" style="color:#a02020">−6.8</div><div class="s">points overconfident</div></div>
-      <div class="tr-box"><div class="k">Graded plays</div><div class="v">40</div><div class="s">since Aug 18</div></div>
+      ${dayRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${dayRows}</tbody></table>` : ''}
+      <div class="note" style="margin-top:14px"><b>These two records are never added together.</b>
+        The hand-built cards were CURATED — a session chose which arms to look at. The automatic card is
+        UNCURATED and prints everything that clears the filter. An uncurated board will score worse, and
+        that is not the model getting worse. It is a different question being asked.</div>
     </div>
 
     <div class="panel">
       <h2>Does the confidence number mean anything?</h2>
-      <p>One row per confidence band. The bar is what actually landed; the black marker is what we claimed it would be.</p>
-      ${rows}
+      <p class="stamp">Band table as of <b>${cal.as_of || '—'}</b>. ${cal.note || ''}</p>
+      ${bands}
       <div class="legend">
         <span><i style="background:var(--accent2)"></i>Beat the claim</span>
         <span><i style="background:#d9534f"></i>Fell short of it</span>
         <span><i style="background:#14181f;width:3px;border-radius:0"></i>What we claimed</span>
       </div>
       <div class="note" style="margin-top:16px"><b>Read this before you act on anything else here.</b>
-        Only the <b>70–80%</b> band is currently worth betting. When this model says <b>60–70%</b> it has
-        been badly wrong — those picks landed 38% of the time, not 64%. The <b>80%+</b> band is running
-        18 points hot, and both of its losses were the single most confident pick on their card.<br><br>
-        None of that is buried, because a picks record you cannot check is worth nothing.</div>
-    </div>
-
-    <div class="panel">
-      <h2>What is actually being measured</h2>
-      <p><b>40 graded plays.</b> That is a small sample and every number above will move. We publish it anyway,
-         from the first pick, because a track record that only starts once it looks good is not a track record.</p>
-      <p><b>Nothing is removed after the fact.</b> A losing pick stays logged even when there is a good excuse for it —
-         a pitcher who left injured after one batter still counts as a loss.</p>
-      <p class="stamp">Figures as of 2026-08-22. Sourced from the project ledger; this tab will read it
-         directly once the ledger is published as data.</p>
+        Only the <b>70–80%</b> band has a record that supports its own number. At <b>60–70%</b> the model has
+        been badly wrong, and <b>80%+</b> is running hot. Small samples throughout — every figure here will move.<br><br>
+        Nothing is removed after the fact. A losing pick stays logged even when there is a good excuse for it.</div>
     </div>`;
 }
 
@@ -1143,11 +1280,18 @@ async function renderNews(){
     <h2>Around the league <span class="kind k-desc">Live</span></h2>
     <p>Headlines from ${[...new Set(N.items.map(i=>i.source))].join(', ')}.
        Updated ${N.pulled_at.slice(11,16)}Z.</p>
-    ${N.items.map(i => `<div class="nw"><div class="bd">
-        <a class="hl" href="${i.link}" target="_blank" rel="noopener">${i.title}</a>
-        <div class="mt">${i.source}${i.published ? ' · ' + ago(i.published) : ''}</div>
-        ${i.summary ? `<div class="mt" style="color:var(--mut)">${i.summary}</div>` : ''}
-      </div></div>`).join('')}
+    <div class="nwgrid">
+    ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener">
+        ${i.image
+          ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
+               onerror="this.closest('.nwimg').classList.add('noimg');this.remove()"></div>`
+          : `<div class="nwimg noimg"></div>`}
+        <div class="bd">
+          <div class="hl">${i.title}</div>
+          <div class="mt">${i.source}${i.published ? ' · ' + ago(i.published) : ''}</div>
+          ${i.summary ? `<div class="sm">${i.summary}</div>` : ''}
+        </div></a>`).join('')}
+    </div>
     <div class="note" style="margin-top:14px">Headlines and links only, credited to the publisher.
       Click through to read the story at the source.</div>
   </div>`;
@@ -1180,6 +1324,50 @@ function renderTrends(){
       <span style="font-size:12px;color:var(--mut)">${cells.join(' &nbsp;·&nbsp; ')}</span></div>`;
   };
 
+  /* The "why" under each matchup. Built ONLY from numbers already on the
+     card -- records, streaks, and the market's own implied team totals.
+     ⛔ Nothing here is a projection and nothing is invented: where a
+     figure is missing the sentence about it is simply not written. */
+  const trendWhy = g => {
+    const a = g.away, h = g.home;
+    const sa = SPLITS[a] || {}, sh = SPLITS[h] || {};
+    const ta = (g.team_total||{})[a], th = (g.team_total||{})[h];
+    const bits = [];
+
+    if (ta != null && th != null){
+      const fav = ta > th ? a : h, gap = Math.abs(ta - th);
+      bits.push(gap < 0.35
+        ? `The market splits this almost evenly — ${ta} runs to ${th}, a gap of ${gap.toFixed(2)}. It is pricing a coin-flip.`
+        : `The market leans <b>${ab(fav)}</b>, giving them ${Math.max(ta,th)} runs against ${Math.min(ta,th)} — ${gap.toFixed(2)} of separation.`);
+    }
+    if (g.total != null){
+      bits.push(g.total >= 9.5 ? `At ${g.total} this is one of the higher totals on the board — the books expect runs.`
+              : g.total <= 7.5 ? `At ${g.total} the books expect a low-scoring game.`
+              : `A total of ${g.total} is right around the league's middle.`);
+    }
+    const form = t => {
+      const s2 = SPLITS[t] || {};
+      if (!s2.last10) return null;
+      const [w] = String(s2.last10).split('-').map(Number);
+      if (isNaN(w)) return null;
+      return w >= 7 ? `${ab(t)} come in hot at ${s2.last10} over their last ten`
+           : w <= 3 ? `${ab(t)} are cold at ${s2.last10} over their last ten`
+           : null;
+    };
+    const f = [form(a), form(h)].filter(Boolean);
+    if (f.length) bits.push(f.join(', and ') + '.');
+
+    const split = (t, s2) => (s2.home && s2.away)
+      ? `${ab(t)} are ${t === h ? s2.home : s2.away} ${t === h ? 'at home' : 'on the road'}` : null;
+    const sp = [split(a, sa), split(h, sh)].filter(Boolean);
+    if (sp.length === 2) bits.push(sp.join(' while ') + '.');
+
+    if (!bits.length) return '';
+    return `<div class="why2" style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line);
+              font-size:12.5px;line-height:1.55;color:#46525f">${bits.join(' ')}
+            <br><span style="color:var(--mut)">Descriptive only — none of this is in the model.</span></div>`;
+  };
+
   const allT = BOARD.games || [];
   const nStarted = allT.filter(hasStarted).length;
   const games = (showStarted ? allT : allT.filter(g => !hasStarted(g)))
@@ -1198,6 +1386,7 @@ function renderTrends(){
         </div>
         ${teamLine(g.away, (g.team_total||{})[g.away])}
         ${teamLine(g.home, (g.team_total||{})[g.home])}
+        ${trendWhy(g)}
       </div>`).join('')}`;
 }
 
@@ -1388,6 +1577,25 @@ $('#filt').addEventListener('change', renderScores);
   $('#dt').value = todayET();
   await Promise.all([loadBoard(), loadSplits()]);
   show('scores');
+
+  /* Fill the ticker once, then refresh it with the news file every 10
+     minutes. Failure is silent and the bar simply stays hidden -- a
+     broken ticker must never take the rest of the page with it. */
+  async function loadTicker(){
+    try {
+      const N = await jget('data/latest/news.json');
+      const items = (N.items || []).slice(0, 30);
+      if (!items.length) return;
+      const html = items.map(i =>
+        `<a href="${i.link}" target="_blank" rel="noopener">${i.title}
+          <span class="src">— ${i.source}</span></a>`).join('');
+      // Duplicated so the loop has no visible gap when it wraps.
+      $('#tickrun').innerHTML = html + html;
+      $('#tick').hidden = false;
+    } catch(e){ /* no news file yet -- leave the bar hidden */ }
+  }
+  loadTicker();
+  setInterval(loadTicker, 600000);
   /* Keep the board honest without a reload.
      The scoreboard is cheap and refreshes often. The odds and props files
      are re-fetched less often -- the collector only rewrites them every
