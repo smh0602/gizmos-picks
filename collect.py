@@ -888,10 +888,16 @@ def collect_news():
                 typ = (e.get("type") or e.get("medium") or "").lower()
                 if typ and "image" not in typ and tag != "thumbnail":
                     continue          # audio/video enclosure -- not art
+                # 🔴 DO NOT REQUIRE A FILE EXTENSION. Measured 2026-08-24:
+                # CBS returned an image on 25/25 items and MLB.com on 0/25,
+                # because MLB serves Cloudinary-style URLs with NO
+                # extension at all (".../image/upload/t_16x9/w_1024/mlb/xy").
+                # The extension test was the bug, not the feed. A media
+                # element that hands back a url IS the image -- trust the
+                # element, not the filename.
                 for cand in (e.get("url"), e.get("href"), e.get("src"),
                              (e.text or "").strip()):
-                    if cand and _re.match(r"https?://", cand) \
-                       and _re.search(r"\.(jpe?g|png|webp|avif)(\?|$)", cand, _re.I):
+                    if cand and _re.match(r"https?://", cand):
                         img = cand
                         break
                 if img:
@@ -1145,11 +1151,26 @@ def collect_results():
                     tb = None
                     if None not in (h, d2, t3, hr):
                         tb = (h - d2 - t3 - hr) + 2 * d2 + 3 * t3 + 4 * hr
+                    # 🔴 BATTING ORDER -- the input T29 named as the ONLY
+                    # condition for reopening hitter modelling. statsapi
+                    # gives it as "100", "200" ... for slots 1-9, with a
+                    # trailing digit for substitutes who inherited the spot.
+                    # Slot determines plate appearances, and plate
+                    # appearances were the dominant, unforecastable term in
+                    # every one of T27/T28/T29.
+                    bo = p.get("battingOrder")
+                    slot = sub = None
+                    if bo:
+                        try:
+                            slot, sub = int(str(bo)[0]), int(str(bo)[1:] or 0)
+                        except ValueError:
+                            slot = sub = None
                     batters.append({
                         "id": p["person"]["id"],
                         "name": p["person"]["fullName"],
                         "side": side,
                         "team": team["team"]["name"],
+                        "slot": slot, "sub": sub, "started": sub == 0,
                         "ab": st.get("atBats"), "H": h, "r": st.get("runs"),
                         "rbi": st.get("rbi"), "hr": hr, "d": d2, "t": t3,
                         "bb": st.get("baseOnBalls"), "k": st.get("strikeOuts"),
@@ -1293,50 +1314,16 @@ def collect_record():
         b = int(r["blend"] // 10) * 10
         buckets.setdefault(b, []).append(r)
 
-    # 🔴 THE HAND-BUILT RECORD IS A DATED SNAPSHOT, NOT A LIVE FIGURE.
-    # It lives in claude/pick-ledger.md, which this runner cannot read, so
-    # it is copied here with the date it was true. ⛔ The page MUST print
-    # that date beside it. A copied number that looks live is this
-    # project's most repeated failure -- if it is stale, it should be
-    # visibly stale rather than quietly wrong.
-    # ⚠️ Different population from the machine card: CURATED, chosen by a
-    # session. Never add the two together.
-    hand = {
-        "as_of": "2026-08-23",
-        "source": "claude/pick-ledger.md, updated by the 7:30am ET grading run",
-        "record": {"w": 35, "n": 56, "pct": 62.5},
-        "by_market": {"strikeouts": {"w": 26, "n": 38},
-                      "outs": {"w": 8, "n": 17},
-                      "earned_runs": {"w": 1, "n": 1}},
-        "by_day": [{"date": "2026-08-18", "w": 7, "n": 11},
-                   {"date": "2026-08-19", "w": 7, "n": 12},
-                   {"date": "2026-08-20", "w": 9, "n": 12},
-                   {"date": "2026-08-21", "w": 6, "n": 8},
-                   {"date": "2026-08-22", "w": 6, "n": 13}],
-        "sam": {"slips": {"w": 5, "n": 9}, "staked": 214.00,
-                "returned": 203.50, "profit": -10.50, "roi_pct": -4.9},
-        # ⚠️ The band table lags the headline record: these are the last
-        # figures published in claude/calibration-accumulators.md, and the
-        # 8/22 card is NOT yet folded into them. Two different as_of dates
-        # on one page is ugly, and it is far less ugly than pretending one
-        # of them is current.
-        "calibration": {
-            "as_of": "2026-08-22",
-            "note": ("Last published band table. The 8/22 card is graded in the "
-                     "headline record above but is NOT yet in these bands."),
-            "bands": [
-                {"name": "80%+",   "n": 6,  "said": 84.7, "hit": 66.7},
-                {"name": "70-80%", "n": 20, "said": 75.2, "hit": 80.0},
-                {"name": "60-70%", "n": 13, "said": 64.4, "hit": 38.5},
-                {"name": "50-60%", "n": 1,  "said": 55.0, "hit": None},
-            ],
-        },
-    }
+    # 🔴 THE HAND-BUILT RECORD AND SAM'S BANKROLL WERE REMOVED FROM THE
+    # DASHBOARD ON 2026-08-24, at Sam's instruction: the site tracks the
+    # MODEL's record and nothing else.
+    # ⚠️ THIS IS A DISPLAY CHANGE, NOT A DELETION. Both still live in
+    # claude/pick-ledger.md and the 7:30am grading run still maintains
+    # them. ⛔ Do not read this as permission to stop grading them.
 
     doc = {
         "built_at": stamp(),
         "kind": "DESCRIPTIVE",
-        "hand_built": hand,
         "note": ("Graded from stored results, not from anyone's memory. Machine cards "
                  "only -- the hand-built cards live in the ledger and are a different, "
                  "CURATED population that must never share a denominator with this one."),
@@ -1363,6 +1350,88 @@ def collect_record():
     return None
 
 
+# ----------------------------------------------------------------------
+# LINEUP SLOT — the backfill.
+#
+# 🔴 This exists for one reason: T27, T28 and T29 all failed, and all three
+# said the same thing — PLATE APPEARANCES dominate every hitter target and
+# are themselves barely forecastable. Batting order is what determines
+# plate appearances. T29's pre-registration named a NEW INPUT as the only
+# condition for reopening hitter modelling, and this is that input.
+#
+# Free (statsapi), and RESUMABLE: it records which dates it has already
+# done and skips them, so a run that times out loses nothing. The daily
+# `results` job captures slot going forward; this recovers the season
+# already played.
+# ----------------------------------------------------------------------
+def collect_lineups():
+    from datetime import date, timedelta
+    path = "data/latest/lineups.json.gz"
+    store = {"season": now().year, "days": {}}
+    if os.path.exists(path):
+        store = json.load(gzip.open(path, "rt"))
+    days = store["days"]
+
+    yr = now().year
+    start = date(yr, 3, 1)
+    end = (now() - timedelta(hours=4)).date() - timedelta(days=1)
+    todo = []
+    d = start
+    while d <= end:
+        k = d.isoformat()
+        if k not in days:
+            todo.append(k)
+        d += timedelta(days=1)
+    log(f"lineups: {len(days)} dates already stored, {len(todo)} to fetch")
+
+    done = fetched = 0
+    for k in todo:
+        try:
+            sched, _ = get(f"{STATS}/schedule?sportId=1&date={k}"
+                           "&fields=dates,games,gamePk,status,detailedState,teams,away,home,team,name")
+        except Exception as e:
+            log(f"  {k}: schedule {type(e).__name__}"); break
+        games = (sched.get("dates") or [{}])[0].get("games", []) if sched.get("dates") else []
+        rows = []
+        for g in games:
+            if (g.get("status") or {}).get("detailedState") != "Final":
+                continue
+            try:
+                box, _ = get(f"{STATS}/game/{g['gamePk']}/boxscore")
+            except Exception as e:
+                log(f"  gamePk {g['gamePk']}: {type(e).__name__}")
+                continue
+            fetched += 1
+            for side in ("away", "home"):
+                t = box["teams"][side]
+                opp = box["teams"]["home" if side == "away" else "away"]["team"]["name"]
+                for _pk, pl in t.get("players", {}).items():
+                    bo = pl.get("battingOrder")
+                    if not bo:
+                        continue
+                    try:
+                        slot, sub = int(str(bo)[0]), int(str(bo)[1:] or 0)
+                    except ValueError:
+                        continue
+                    rows.append({"pid": pl["person"]["id"], "team": t["team"]["name"],
+                                 "opp": opp, "slot": slot, "sub": sub,
+                                 "started": 1 if sub == 0 else 0})
+        days[k] = rows
+        done += 1
+        if done % 15 == 0:
+            write(path, store, compress=True)
+            log(f"  ...{done}/{len(todo)} dates, {fetched} boxscores")
+
+    write(path, store, compress=True)
+    n = sum(len(v) for v in days.values())
+    withslot = sum(1 for v in days.values() for r in v if r["slot"])
+    log(f"lineups: {len(days)} dates, {n} batter-games, {withslot} with a slot")
+    if n == 0:
+        raise RuntimeError("no batting orders recovered -- statsapi may not expose "
+                           "battingOrder on this endpoint; do NOT proceed to a model")
+    return None
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
 
@@ -1370,7 +1439,7 @@ def main():
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
-            "card", "record", "refresh")
+            "card", "record", "refresh", "lineups")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -1404,6 +1473,9 @@ def main():
             import card as _card
             _card.main()
             collect_record()
+            left = None
+        elif mode == "lineups":
+            collect_lineups()
             left = None
         elif mode == "record":
             collect_record()

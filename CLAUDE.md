@@ -69,10 +69,22 @@ old one, not easier.**
   against a market whose real price is "+1.5 at -182" -- opposite bets, and
   the page would have advertised a bargain that does not exist. ⛔ Never
   compare two prices without first confirming they are the same wager.
-- 🔴 **A hitter row carries NO confidence rating and NO band.** There is no
-  hitter model. Ledger rule 55 forbids a MARKET number from wearing a
-  Gizmo's %. ⛔ Do not add one until a hitter model exists, is backtested,
-  and has beaten the raw rate on a pre-registered test.
+- 🔴 **A hitter row shows a confidence NUMBER but must never claim MODEL
+  provenance.** ~~"carries NO confidence rating"~~ — **changed 2026-08-24**:
+  a board with two different headline numbers is unreadable, so both kinds
+  of row show one CONF number and the board sorts strictly by it. What
+  rule 55 requires is that the number be **labelled**, not hidden. So:
+  every row carries `confidence_basis`, which is `MODEL` for pitchers and
+  **`RECORD`** for hitters, and a hitter row must never carry a `blend` or
+  a calibration `band`. ⛔ Do not relabel a hitter row `MODEL` until a
+  hitter model exists and has passed a pre-registered test. **T27, T28 and
+  T29 all FAILED — hitter modelling is CLOSED pending lineup slot, which
+  the `lineups` collector mode now gathers.**
+- 🔴 **The board sorts strictly by confidence, descending.** Sam's
+  instruction. ⚠️ Edge still decides which plays make the board at all; it
+  just no longer decides the order. ⛔ Do not reintroduce band-first or
+  edge-first ordering — it made the page look broken to anyone reading
+  down the numbers.
 - 🔴 **Players share names.** `resolve()` refuses to guess and returns
   `(None, None)` when a name is ambiguous and the game's own teams do not
   break the tie. ⛔ Do not make it pick the first match.
@@ -117,9 +129,10 @@ old one, not easier.**
 ```
 collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
-                  props-board, card, record
+                  props-board, card, record, refresh, lineups
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
-verify_card.py    26 checks, pitcher AND hitter. Runs before commit.
+verify_card.py    30 checks, pitcher AND hitter, including the
+                  descending-order invariant. Runs before commit.
 index.html        the dashboard, single file, no build step
 .github/workflows/collect.yml   every schedule
 data/             timestamped snapshots. append-only.

@@ -437,6 +437,8 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today):
         "model": round(model, 1), "raw_pct": round(raw, 1), "raw": f"{h}/{n}",
         "blend": round(blend, 1), "carried": round(carried, 1),
         "confidence": round(blend),
+        "confidence_basis": "MODEL",
+        "confidence_note": "v4.0 model blended 50/50 with his own rate at this line.",
         "band": bnd, "band_note": bnd_note, "clears_price_floor": floor_ok,
         "class": {"axis": axis, "all": f"{ah}/{an}" if an else None,
                   "all_pct": round(cls_all, 1) if cls_all is not None else None,
@@ -581,6 +583,25 @@ def hitter_play(prop, game, ids, team_games):
         "commence": game["commence"], "first_pitch": et(game["commence"]),
         "opponent": ev.get("opp"),
         "book": book, "price": price, "link": link, "on_hardrock": bool(on_hr),
+        # 🔴 ONE NUMBER, SORTABLE, WITH ITS PROVENANCE ATTACHED.
+        # Sam, 2026-08-24: "lets keep it at confidence score so its easier
+        # for people to understand". Ledger rule 55 requires every number
+        # to be labelled MODEL / MARKET / DESCRIPTIVE -- so the number is
+        # shown, and `confidence_basis` says where it came from. It is NOT
+        # a model output: T27, T28 and T29 all failed and hitter modelling
+        # is CLOSED pending lineup slot. ⛔ Do not relabel this MODEL until
+        # a hitter model exists and has passed a pre-registered test.
+        "confidence": round(rate),
+        # 🔴 Sam's -700 floor applies to HITTERS TOO. It was set on pitcher
+        # rows only, so a hitter row simply defaulted to "clears" and the
+        # floor was never enforced on half the board. No live slate had
+        # violated it yet -- which is exactly the kind of gap that gets
+        # found by the slate that does.
+        "clears_price_floor": price > -700,
+        "confidence_basis": "RECORD",
+        "confidence_note": ("His own rate at this exact line, smoothed. There is no "
+                            "hitter model in this project yet, so this is DESCRIPTIVE "
+                            "— not a projection."),
         "rate": round(rate, 1), "raw": f"{h}/{n}",
         "break_even": round(be, 1),
         "market_implied": mkt,
@@ -915,11 +936,16 @@ def main(dry=False):
              if (x.get("edge") is not None and x["edge"] > 0)
              and x.get("clears_price_floor", True)]
     # Band-qualifying plays lead, then everything by edge.
-    # Band first, then solid-lineup plays, then by edge. A lineup-risk row
-    # is SHOWN with its flag — it is just not allowed to crowd out the top
-    # of the board on a rate that assumes he plays.
-    liked.sort(key=lambda x: (not x["in_band"], bool(x.get("lineup_risk")),
-                              -(x.get("edge") or 0)))
+    # 🔴 STRICTLY BY CONFIDENCE, DESCENDING.
+    # Sam, 2026-08-24: "i notice that your highest confidence score is not
+    # at the top, it need to all be in order". It was sorting by band, then
+    # lineup risk, then edge — defensible, and it made the board look
+    # broken to anyone reading down the numbers.
+    # ⚠️ THE TRADE, STATED: ordering by probability floats short-priced
+    # favourites to the top, and EDGE is what actually pays. Edge is still
+    # on every row and still drives which plays make the board at all —
+    # it just no longer decides the order.
+    liked.sort(key=lambda x: -(x.get("confidence") or 0))
 
     board = liked[:BOARD_MAX]
     if len(board) < BOARD_MIN:

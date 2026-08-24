@@ -162,10 +162,21 @@ for r in hit:
         if r['raw'].split('/')[1] != str(n_played):
             zero_pa.append(r['player'])
 ck("no zero-plate-appearance game is in any hitter denominator", not zero_pa, str(zero_pa[:3]))
-ck("no hitter row carries a confidence rating (ledger rule 55)",
-   all('confidence' not in r and 'blend' not in r and not r.get('band') for r in hit))
-ck("every hitter row says it has no model",
-   all('MARKET' in (r.get('basis') or '') for r in hit))
+# 🔴 The question changed on 2026-08-24 and the check had to change with
+# it. Hitter rows now DO show a confidence number, because a board with two
+# different headline numbers is unreadable. What rule 55 actually requires
+# is that the number be LABELLED -- so the check is now that a hitter row
+# never claims MODEL provenance, and never carries a blend or a calibration
+# band it has not earned. That is a stricter question than the old one.
+ck("no hitter row claims MODEL provenance (ledger rule 55)",
+   all(r.get('confidence_basis') == 'RECORD' for r in hit))
+ck("no hitter row carries a blend or a calibration band",
+   all('blend' not in r and not r.get('band') for r in hit))
+ck("every pitcher row claims MODEL provenance",
+   all(r.get('confidence_basis') == 'MODEL' for r in pit_rows))
+ck("every hitter row says on its face that it has no model",
+   all('MARKET' in (r.get('basis') or '') and 'no hitter model' in (r.get('confidence_note') or '')
+       for r in hit))
 ck("lineup share is a real percentage where present",
    all(r.get('lineup_share') is None or 0 < r['lineup_share'] <= 100 for r in hit))
 
@@ -175,8 +186,19 @@ ck("blend is the plain 50/50 (T21/T22 not adopted)",
    all(abs(r['blend'] - (0.5*r['model']+0.5*r['raw_pct'])) <= 0.1 for r in pit_rows))
 ck("carried never enters the blend", all('carried' in r and 'blend' in r for r in pit_rows))
 
+print("\n7b. ORDERING")
+picks = doc['picks']
+desc = all(picks[i]['confidence'] >= picks[i+1]['confidence'] for i in range(len(picks)-1))
+ck("the board is in descending confidence order, no exceptions", desc,
+   f"{len(picks)} rows, top {picks[0]['confidence'] if picks else '-'}%")
+ck("rank matches position", all(p.get('rank') == i+1 for i, p in enumerate(picks)))
+
 print("\n8. BAND / FLOOR / LADDER")
-ck("no picks row is shorter than -700", all(r['price'] is None or r['price'] > -700 for r in doc['picks'] if r.get('kind') != 'hitter'))
+# The floor is Sam's and it applies to EVERY row, not just pitchers. It
+# used to be checked on pitcher rows only, which is how it came to be
+# unenforced on hitters without anything going red.
+ck("no picks row of ANY kind is shorter than -700",
+   all(r['price'] is None or r['price'] > -700 for r in doc['picks']))
 rungs = [g for r in pit_rows for g in (r.get('ladder') or [])]
 # 🔴 The question is whether a rung the BOARD holds went MISSING from the
 # card -- not whether any rung exists. An earlier version of this check

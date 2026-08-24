@@ -144,16 +144,24 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .rung .pc{color:var(--mut);font-variant-numeric:tabular-nums}
 .rung.star{border-color:#1f7a4d;box-shadow:inset 0 0 0 1px #1f7a4d}
 .rung.dim{opacity:.45}
-.conf.edge-badge{background:#eef4fb;color:#1a4b9c;border:1px solid #cfe0f4}
+.conf.rec{background:#f2f4f7;color:#3d4854;border:1px solid var(--line)}
+.bandchip.mdl{color:#0b6b3a;border-color:#bfe0cd;background:#eef7f2}
+.bandchip.rec{color:#3d4854;border-color:var(--line);background:#f2f4f7}
 .betbtn{display:inline-block;margin-top:6px;padding:4px 9px;border-radius:6px;background:#14181f;
         color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none}
 .betbtn:hover{background:#2a323d}
+.betbtn.needs{background:#8a5a12;border:0;cursor:pointer;font-family:inherit}
+.betbtn.needs:hover{background:#a86c16}
+.cell.best.needs{cursor:pointer;color:#8a5a12}
+#st.pulse{outline:3px solid #e0a72a;outline-offset:2px;border-radius:6px}
 .nwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
 .nwc{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;
      text-decoration:none;color:inherit;background:#fff;transition:border-color .12s}
 .nwc:hover{border-color:#9db4cc}
 .nwimg{aspect-ratio:16/9;background:#eef2f6;overflow:hidden}
 .nwimg img{width:100%;height:100%;object-fit:cover;display:block}
+.nwimg.crest{background:linear-gradient(135deg,#eef2f6,#dde5ee);display:flex;align-items:center;justify-content:center}
+.nwimg.crest img{width:auto;height:62%;object-fit:contain}
 .nwimg.noimg{background:linear-gradient(135deg,#1d2a3a,#33465e);position:relative}
 .nwimg.noimg::after{content:attr(data-src);position:absolute;inset:0;display:flex;align-items:center;
   justify-content:center;color:#8fa6bd;font-size:12px;font-weight:800;letter-spacing:.08em;
@@ -455,6 +463,34 @@ function betLink(url){
   if (!url.includes('{state}')) return url;
   const st = betState();
   return st ? url.replace(/\{state\}/g, st.toLowerCase()) : null;
+}
+/* 🔴 A LINK THAT NEEDS A STATE IS NOT A MISSING LINK.
+   Measured 2026-08-24: all 2,112 props on the board carry a bet link, but
+   1,087 of them -- every BetMGM and every Caesars -- contain a {state}
+   placeholder, and betLink() returned null for all of them when no state
+   was set. HALF THE BUTTONS SILENTLY DISAPPEARED, and the page blamed
+   nothing. Now the button is rendered either way: without a state it
+   prompts for one instead of vanishing. */
+function needsState(url){ return !!url && url.includes('{state}') && !betState(); }
+
+function focusState(){
+  const el = document.getElementById('st');
+  if (!el) return;
+  el.scrollIntoView({block:'center', behavior:'smooth'});
+  el.focus();
+  el.classList.add('pulse');
+  setTimeout(() => el.classList.remove('pulse'), 2200);
+}
+window.focusState = focusState;
+
+/* One bet control: a real link, a "set your state" prompt, or nothing at
+   all when the book genuinely gave us no URL. */
+function betControl(url, label){
+  const u = betLink(url);
+  if (u) return `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">${label || 'BET'} →</a>`;
+  if (needsState(url)) return `<button class="betbtn needs" onclick="focusState()"
+      title="This book runs a separate site per state. Set yours once and the link works.">SET STATE</button>`;
+  return '';
 }
 
 /* How old is a price?
@@ -994,13 +1030,12 @@ function pickCard(p){
      in this project and ledger rule 55 forbids a MARKET number from
      wearing a Gizmo's rating. It shows its EDGE over the price instead,
      and says on the card that the figure is his own record. */
-  if (isH){
-    h.append(el('div','conf edge-badge',
-      `<div class="n">${p.edge > 0 ? '+' : ''}${p.edge}</div><div class="l">EDGE</div>`));
-  } else {
-    h.append(el('div', 'conf ' + confClass(p.confidence),
-      `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
-  }
+  /* 🔴 ONE NUMBER IN ONE PLACE, so the board reads top to bottom. What
+     differs is where the number CAME FROM, and that is on the row as a
+     chip rather than hidden in two different badge labels. Ledger rule 55
+     wants every number labelled, not every number hidden. */
+  h.append(el('div', 'conf ' + confClass(p.confidence) + (isH ? ' rec' : ''),
+    `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
 
   if (p.pid) h.insertAdjacentHTML('beforeend',
     `<img class="hs" src="${headUrl(p.pid)}" alt="" loading="lazy"
@@ -1014,7 +1049,9 @@ function pickCard(p){
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
   t.append(el('div','play', `${who} — ${sideWord} ${p.line} ${unit}`
     + (p.band ? `<span class="bandchip ${bc}" title="${p.band_note||''}">${p.band}</span>` : '')
-    + (isH ? `<span class="bandchip" title="No hitter model exists yet — this is his own record, not a projection.">NO MODEL</span>` : '')));
+    + (isH
+        ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">RECORD &mdash; no model</span>`
+        : `<span class="bandchip mdl" title="${(p.confidence_note||'').replace(/"/g,'')}">MODEL</span>`)));
 
   const matchup = (p.away_id || p.home_id)
     ? `${mark(p.away, p.away_id, 17)} ${ab(p.away)} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${ab(p.home)}`
@@ -1024,11 +1061,10 @@ function pickCard(p){
      ${p.first_pitch ? '&nbsp;·&nbsp; ' + p.first_pitch : ''}`));
   h.append(t);
 
-  const u = betLink(p.link);
   h.append(el('div','pk-px',
     `<div class="px">${sgn(p.price)}</div>
      <div class="bk">${bookChip(p.book)}</div>
-     ${u ? `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">BET →</a>` : ''}`));
+     ${betControl(p.link)}`));
   c.append(h);
 
   if (p.why && p.why.length)
@@ -1168,10 +1204,11 @@ function priceCell(v, label){
     return `<span class="cell plain">${label && label !== 'undefined' ? label : '—'}</span>`;
   const u = betLink(v.link);
   const body = `<b>${label}</b> ${sgn(v.price)}`;
-  return u
-    ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow"
-         title="${bookName(v.book)}">${body} →</a>`
-    : `<span class="cell best" title="${bookName(v.book)}">${body}</span>`;
+  if (u) return `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow"
+         title="${bookName(v.book)}">${body} →</a>`;
+  if (needsState(v.link)) return `<span class="cell best needs" onclick="focusState()"
+         title="${bookName(v.book)} runs a separate site per state — set yours to enable this link">${body} ⚑</span>`;
+  return `<span class="cell best" title="${bookName(v.book)}">${body}</span>`;
 }
 
 async function renderOdds(){
@@ -1308,9 +1345,13 @@ async function renderRecord(){
       return;
     }
   }
-  const R = RECORD, H = R.hand_built || {}, M = R.overall || {};
-  const cal = (H.calibration || {});
-  const bands = (cal.bands || []).map(bandRow).join('');
+  const R = RECORD, M = R.overall || {};
+  const cal = R.calibration_meta || {};
+  /* Bands now come from the MODEL's own graded rows, not from a copied
+     ledger snapshot. Empty until enough cards are graded, and that is the
+     honest state rather than a borrowed number. */
+  const bands = (R.calibration || []).map(c => bandRow({
+      name: c.bucket, n: c.n, said: c.predicted, hit: c.pct })).join('');
 
   const machine = M.n
     ? `<div class="tr-hero">
@@ -1324,7 +1365,7 @@ async function renderRecord(){
         <br><br>The first machine card grades the morning after its games finish. Until then this
         section is empty on purpose rather than showing a number it has not earned.</div>`;
 
-  const dayRows = (H.by_day || []).map(d =>
+  const dayRows = (R.by_day || []).map(d =>
     `<tr><td>${d.date}</td><td><b>${d.w}/${d.n}</b></td>
       <td>${(100*d.w/d.n).toFixed(0)}%</td></tr>`).join('');
 
@@ -1340,28 +1381,18 @@ async function renderRecord(){
          Updates itself nightly. <span class="rec">built ${R.built_at}</span></p>
       ${machine}
       ${mkRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${mkRows}</tbody></table>` : ''}
-    </div>
-
-    <div class="panel">
-      <h2>Hand-built cards <span class="kind k-desc">Descriptive</span></h2>
-      <p class="stamp">Snapshot as of <b>${H.as_of || '—'}</b>. Source: ${H.source || 'the project ledger'}.
-         ⚠️ This does not update itself — if the date above is old, the number is old.</p>
-      <div class="tr-hero">
-        <div class="tr-box"><div class="k">Carded record</div><div class="v">${(H.record||{}).w}<span style="font-size:18px;color:var(--mut)">/${(H.record||{}).n}</span></div><div class="s">${(H.record||{}).pct}% hit rate</div></div>
-        <div class="tr-box"><div class="k">Strikeouts</div><div class="v">${((H.by_market||{}).strikeouts||{}).w}<span style="font-size:18px;color:var(--mut)">/${((H.by_market||{}).strikeouts||{}).n}</span></div><div class="s">the model's best market</div></div>
-        <div class="tr-box"><div class="k">Outs</div><div class="v">${((H.by_market||{}).outs||{}).w}<span style="font-size:18px;color:var(--mut)">/${((H.by_market||{}).outs||{}).n}</span></div><div class="s">the weak one</div></div>
-        <div class="tr-box"><div class="k">Sam's slips</div><div class="v">${((H.sam||{}).slips||{}).w}<span style="font-size:18px;color:var(--mut)">/${((H.sam||{}).slips||{}).n}</span></div><div class="s">ROI ${(H.sam||{}).roi_pct}%</div></div>
-      </div>
-      ${dayRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${dayRows}</tbody></table>` : ''}
-      <div class="note" style="margin-top:14px"><b>These two records are never added together.</b>
-        The hand-built cards were CURATED — a session chose which arms to look at. The automatic card is
-        UNCURATED and prints everything that clears the filter. An uncurated board will score worse, and
-        that is not the model getting worse. It is a different question being asked.</div>
+      ${dayRows ? `<h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
+        <table class="ob"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${dayRows}</tbody></table>` : ''}
+      <div class="note" style="margin-top:14px"><b>This is the model's record and nothing else.</b>
+        Every play it published, graded from stored box scores. Uncurated — it prints everything that
+        clears the filter, so it will score worse than a board someone picked over by hand. That is a
+        different question, not a worse model.</div>
     </div>
 
     <div class="panel">
       <h2>Does the confidence number mean anything?</h2>
-      <p class="stamp">Band table as of <b>${cal.as_of || '—'}</b>. ${cal.note || ''}</p>
+      <p class="stamp">Built from the model's own graded plays. ${M.n ? `${M.n} plays so far —
+         every figure here will move.` : 'Nothing graded yet.'}</p>
       ${bands}
       <div class="legend">
         <span><i style="background:var(--accent2)"></i>Beat the claim</span>
@@ -1373,6 +1404,26 @@ async function renderRecord(){
         been badly wrong, and <b>80%+</b> is running hot. Small samples throughout — every figure here will move.<br><br>
         Nothing is removed after the fact. A losing pick stays logged even when there is a good excuse for it.</div>
     </div>`;
+}
+
+/* 🔴 A HEADLINE WITHOUT ART STILL HAS A SUBJECT.
+   Measured 2026-08-24: CBS supplied an image on 25 of 25 items and MLB.com
+   on 0 of 25. Rather than show half the grid as blank tiles, look for a
+   club in the headline and use that club's own crest. It is topical, it
+   comes from MLB's own asset host, and where no club is named the tile
+   falls back to the source name. ⛔ Never invent an image that implies
+   something the story does not say. */
+const CLUBS = {
+  'Diamondbacks':109,'Braves':144,'Orioles':110,'Red Sox':111,'Cubs':112,'White Sox':145,
+  'Reds':113,'Guardians':114,'Rockies':115,'Tigers':116,'Astros':117,'Royals':118,
+  'Angels':108,'Dodgers':119,'Marlins':146,'Brewers':158,'Twins':142,'Yankees':147,
+  'Mets':121,'Athletics':133,'Phillies':143,'Pirates':134,'Padres':135,'Giants':137,
+  'Mariners':136,'Cardinals':138,'Rays':139,'Rangers':140,'Blue Jays':141,'Nationals':120
+};
+function newsLogo(title){
+  if (!title) return null;
+  for (const name in CLUBS) if (title.includes(name)) return logoUrl(CLUBS[name]);
+  return null;
 }
 
 async function renderNews(){
@@ -1399,8 +1450,8 @@ async function renderNews(){
        Updated ${N.pulled_at.slice(11,16)}Z.</p>
     <div class="nwgrid">
     ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener">
-        ${i.image
-          ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
+        ${(i.image || newsLogo(i.title))
+          ? `<div class="nwimg${i.image ? '' : ' crest'}"><img src="${i.image || newsLogo(i.title)}" alt="" loading="lazy"
                onerror="this.closest('.nwimg').classList.add('noimg');
                         this.closest('.nwimg').dataset.src='${(i.source||'').replace(/'/g,'')}';
                         this.remove()"></div>`
