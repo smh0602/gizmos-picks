@@ -144,7 +144,18 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .rung .pc{color:var(--mut);font-variant-numeric:tabular-nums}
 .rung.star{border-color:#1f7a4d;box-shadow:inset 0 0 0 1px #1f7a4d}
 .rung.dim{opacity:.45}
-.conf.rec{background:#f2f4f7;color:#3d4854;border:1px solid var(--line)}
+/* 🔴 The batter badge keeps the SAME colour scale as the pitcher one.
+   An earlier version greyed it out, which read as "this number is worth
+   less" when what actually differs is where it came from -- and that is
+   what the chip beside the play name is for. */
+.conf.rec{box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.kindbar{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
+.kchip{padding:6px 13px;border-radius:20px;border:1px solid var(--line);background:#fff;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#46525f}
+.kchip span{color:var(--mut);font-weight:600;margin-left:4px}
+.kchip:hover{border-color:#9db4cc}
+.kchip.on{background:#14181f;color:#fff;border-color:#14181f}
+.kchip.on span{color:#9fb2c6}
 .bandchip.mdl{color:#0b6b3a;border-color:#bfe0cd;background:#eef7f2}
 .bandchip.rec{color:#3d4854;border-color:var(--line);background:#f2f4f7}
 .betbtn{display:inline-block;margin-top:6px;padding:4px 9px;border-radius:6px;background:#14181f;
@@ -1166,7 +1177,29 @@ async function renderPicks(){
   /* The card already ranked itself -- band first, then edge. Re-sorting on
      `confidence` here would drop every hitter to the bottom, because a
      hitter row deliberately has no confidence number. */
-  live.sort((a,b) => (a.rank||999) - (b.rank||999)).forEach(p => v.append(pickCard(p)));
+  /* Kind filter. The board is deliberately balanced now (about half and
+     half), but the highest NUMBERS are almost always short hitter unders,
+     so a pure descending list buries the pitchers. This lets you read
+     either side on its own without changing the order within it. */
+  const counts = {all: live.length,
+                  pitcher: live.filter(p => p.kind !== 'hitter').length,
+                  hitter:  live.filter(p => p.kind === 'hitter').length};
+  const chips = el('div','kindbar',
+    ['all','pitcher','hitter'].map(k =>
+      `<button class="kchip${PICKKIND===k?' on':''}" data-kind="${k}">${
+        k==='all'?'All':k==='pitcher'?'Pitchers':'Batters'} <span>${counts[k]}</span></button>`).join(''));
+  v.append(chips);
+  chips.addEventListener('click', e => {
+    const b = e.target.closest('.kchip');
+    if (!b) return;
+    PICKKIND = b.dataset.kind;
+    renderPicks();
+  });
+
+  const shown = PICKKIND === 'all' ? live
+              : live.filter(p => (PICKKIND === 'hitter') === (p.kind === 'hitter'));
+  shown.sort((a,b) => (a.rank||999) - (b.rank||999)).forEach(p => v.append(pickCard(p)));
+  if (!shown.length) v.append(el('div','msg','No plays of that kind on this card.'));
   if (!live.length) v.append(el('div','msg','Every game on this card has started.'));
   setTimeout(() => {
     const t = $('#pk-started');
@@ -1569,6 +1602,7 @@ let PROPS = null;
    a live board: 11 of 20 games had already started, which is 1,762 dead
    props sitting in front of 416 live ones. */
 let showStarted = false;
+let PICKKIND = 'all';
 const hasStarted = g => new Date(g.commence) <= new Date();
 
 function startedToggle(n, id){

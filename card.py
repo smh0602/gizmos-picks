@@ -639,15 +639,17 @@ def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
                  + (" ⚠️ Too few to mean anything." if vn < 8 else ""))
     else:
         w.append(f"Has not faced {ev.get('opp')} this season.")
-    if risk:
-        w.append(f"🔴 LINEUP RISK: he has batted in only {100*share:.0f}% of his team's "
-                 f"games. This rate is conditional on him being in the lineup — if he "
-                 f"is not, the bet is usually VOIDED, not won. Check the lineup card.")
-    elif share is not None:
+    # ⛔ The lineup-risk warning lives in the FLAG BOX, not here. It was
+    # appearing in both, with different rounding in each (27% vs 26.9%),
+    # which reads as two different facts rather than one repeated.
+    if not risk and share is not None:
         w.append(f"In the lineup for {100*share:.0f}% of his team's games.")
+    # ⚠️ This sentence used to end "...and it carries no confidence rating"
+    # while the very same card displayed a 93 CONF badge. A card that
+    # contradicts itself on its face is worse than one that says nothing.
     w.append(f"{price:+d} at {book} breaks even at {be:.1f}%. "
-             f"🔴 This row has NO model behind it — the number is his own record, "
-             f"not a projection, and it carries no confidence rating.")
+             f"🔴 The confidence number on this row is his own record at this line, "
+             f"not a model projection — there is no hitter model in this project yet.")
     return w
 
 
@@ -947,7 +949,19 @@ def main(dry=False):
     # it just no longer decides the order.
     liked.sort(key=lambda x: -(x.get("confidence") or 0))
 
-    board = liked[:BOARD_MAX]
+    # 🔴 BOTH KINDS GET A SEAT.
+    # Sam, 2026-08-24: "there is a lot of hitters in that tab, maybe a bit
+    # too much ... lets mix it in with some more pitching props." There are
+    # far more hitter props on any board than pitcher props, so a straight
+    # top-50 was coming back 49 hitters to 1. Each kind is allotted half
+    # the board and the unused half spills to the other, so a thin pitcher
+    # slate still fills 50 rows. ⚠️ The UNION is then re-sorted descending,
+    # so the strict order Sam asked for still holds top to bottom.
+    half = BOARD_MAX // 2
+    pit_liked = [x for x in liked if x["kind"] == "pitcher"]
+    hit_liked = [x for x in liked if x["kind"] == "hitter"]
+    board = pit_liked[:half] + hit_liked[:BOARD_MAX - len(pit_liked[:half])]
+    board.sort(key=lambda x: -(x.get("confidence") or 0))
     if len(board) < BOARD_MIN:
         # Not enough positive-edge plays. Top up by edge, and SAY SO on the
         # row rather than quietly padding the board with plays that lose to

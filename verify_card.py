@@ -133,6 +133,17 @@ ck("no invented price -- every quote appears in a raw pull", not missing, f"{len
 
 print("\n6b. HITTER ROWS")
 H = json.load(gzip.open('data/latest/hitters.json.gz','rt'))['players']
+# Independent reimplementation of "did he start", so the collector is
+# checked rather than trusted.
+LU = {}
+if os.path.exists('data/latest/lineups.json.gz'):
+    _L = json.load(gzip.open('data/latest/lineups.json.gz','rt'))
+    for _d, _rows in (_L.get('days') or {}).items():
+        for _r in _rows:
+            LU[(int(_r['pid']), _d)] = bool(_r.get('started'))
+def started(pid, g):
+    hit_ = LU.get((pid, g.get('d')))
+    return hit_ if hit_ is not None else (g.get('pa') or 0) >= 3
 hit = hit_rows
 STAT = {'batter_hits': lambda r: r.get('H'),
         'batter_total_bases': lambda r: r.get('tb'),
@@ -145,8 +156,12 @@ for r in hit:
     v = H.get(str(r['pid']))
     if not v:
         bad.append((r['player'], 'not in the hitter pool')); continue
-    # 🔴 Recount with the pa>0 filter, independently of the collector.
-    rows = [g for g in v['g'] if (g.get('pa') or 0) > 0]
+    # 🔴 Recount over games he STARTED, reimplemented here rather than
+    # imported, so this stays an independent check on the collector.
+    # Definition changed 2026-08-24: pa>0 let 1-2 PA cameos in, and those
+    # inflate every under (+37 points on hits, measured). Real batting
+    # order wins where we have it; PA >= 3 is the documented fallback.
+    rows = [g for g in v['g'] if started(int(r['pid']), g)]
     vals = [STAT[r['market']](g) for g in rows]
     vals = [x for x in vals if x is not None]
     h = sum(1 for x in vals if (x > r['line'] if r['side'] == 'over' else x < r['line']))
@@ -154,14 +169,19 @@ for r in hit:
         bad.append((r['player'], r['raw'], f"{h}/{len(vals)}"))
 ck("hitter rate recounted from the log, games he BATTED only", not bad,
    f"{len(hit)} hitter rows, {len(bad)} mismatches")
-zero_pa = []
+cameo = []
 for r in hit:
     v = H.get(str(r['pid']))
-    if v and any((g.get('pa') or 0) == 0 for g in v['g']):
-        n_played = sum(1 for g in v['g'] if (g.get('pa') or 0) > 0)
-        if r['raw'].split('/')[1] != str(n_played):
-            zero_pa.append(r['player'])
-ck("no zero-plate-appearance game is in any hitter denominator", not zero_pa, str(zero_pa[:3]))
+    if not v: continue
+    n_started = sum(1 for g in v['g'] if started(int(r['pid']), g))
+    if r['raw'].split('/')[1] != str(n_started):
+        cameo.append(r['player'])
+ck("no cameo or zero-PA game is in any hitter denominator", not cameo, str(cameo[:3]))
+short = [r['player'] for r in hit
+         if any((g.get('pa') or 0) in (1, 2) and started(int(r['pid']), g)
+                for g in (H.get(str(r['pid'])) or {'g': []})['g'])
+         and not LU]
+ck("with no lineup file, no 1-2 PA game counts as a start", not short, str(short[:3]))
 # 🔴 The question changed on 2026-08-24 and the check had to change with
 # it. Hitter rows now DO show a confidence number, because a board with two
 # different headline numbers is unreadable. What rule 55 actually requires

@@ -493,6 +493,37 @@ def _fmt(h, n):
     return f"{h}/{n}" if n else None
 
 
+_LINEUPS = None
+
+
+def _lineup_index():
+    """(pid, date) -> started?  Built once from data/latest/lineups.json.gz."""
+    global _LINEUPS
+    if _LINEUPS is None:
+        _LINEUPS = {}
+        p = "data/latest/lineups.json.gz"
+        if os.path.exists(p):
+            try:
+                D = json.load(gzip.open(p, "rt"))
+                for d, rws in (D.get("days") or {}).items():
+                    for r in rws:
+                        _LINEUPS[(int(r["pid"]), d)] = bool(r.get("started"))
+                log(f"  lineups: {len(_LINEUPS)} batter-games with a real batting order")
+            except Exception as e:
+                log(f"  lineups: unreadable ({type(e).__name__}) -- using the PA proxy")
+    return _LINEUPS
+
+
+def started_game(rec, row):
+    """Did he START? Real batting order wins; PA >= 3 is the fallback."""
+    pid = rec.get("_pid")
+    if pid is not None:
+        hit = _lineup_index().get((int(pid), row.get("d")))
+        if hit is not None:
+            return hit
+    return (row.get("pa") or 0) >= 3
+
+
 def collect_props_board():
     """Join prop odds to game logs. Batters and pitchers, one board."""
     import glob
@@ -504,6 +535,7 @@ def collect_props_board():
         D = json.load(gzip.open(path, "rt"))
         by = {}
         for pid, v in D["players"].items():
+            v["_pid"] = pid
             by.setdefault(norm_name(v["name"]), []).append((pid, v))
         dupes = {k: [x[1]["name"] + " (" + str(x[1]["team"]) + ")" for x in v]
                  for k, v in by.items() if len(v) > 1}
@@ -645,17 +677,28 @@ def collect_props_board():
                     if starts_only:
                         rows = [r for r in rows if r.get("gs")]
                     else:
-                        # 🔴 THE HITTER ANALOGUE OF STARTS-ONLY, and it is
-                        # the same bug. A game with NO plate appearance --
-                        # a defensive sub, a pinch-run -- is not an under
-                        # that won. At the book it is usually a VOID.
-                        # Measured 2026-08-23: Tyler Tolbert's "under 0.5
-                        # total bases" reads 41/58 = 71% over every logged
-                        # game and 23/40 = 58% over games he actually
-                        # batted. Eighteen zero-PA appearances were being
-                        # counted as wins. ⛔ Never rate a hitter on a game
-                        # he did not bat in.
-                        rows = [r for r in rows if (r.get("pa") or 0) > 0]
+                        # 🔴 THE HITTER ANALOGUE OF STARTS-ONLY -- and the
+                        # first version of it did not go far enough.
+                        #
+                        # A game with NO plate appearance is obviously not
+                        # an under that won; at the book it is a VOID. But
+                        # a ONE- OR TWO-PLATE-APPEARANCE CAMEO is not a
+                        # start either, and counting it as one biases every
+                        # hitter UNDER upward. Measured 2026-08-24 across
+                        # 37,829 played games:
+                        #
+                        #   under 0.5 hits : cameo 74.8%  start 37.4%  +37.4
+                        #   under 1.5 TB   : cameo 90.4%  start 63.5%  +27.0
+                        #   under 0.5 RBI  : cameo 87.8%  start 69.4%  +18.4
+                        #
+                        # Cameos are 13.7% of played games and land hardest
+                        # on bench bats -- exactly who was topping the board.
+                        #
+                        # ⚠️ PA >= 3 IS A PROXY FOR "HE STARTED" and it is a
+                        # stopgap. The `lineups` collector recovers real
+                        # batting order; `started` (sub == 0) SUPERSEDES this
+                        # the moment that file exists.
+                        rows = [r for r in rows if started_game(rec, r)]
                     opp = away if rec.get("team") == home else home
                     season = _rate(rows, fn, pt, side)
                     ev_block = {

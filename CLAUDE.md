@@ -58,7 +58,17 @@ old one, not easier.**
 - 🔴 **Pitcher rates are computed over STARTS ONLY.** A reliever's two-out
   appearance is not evidence about a starter's line. Mixing them in once
   turned a true 2/3 into a false 48/49.
-- 🔴 **A hitter is rated only over games he BATTED (`pa > 0`).** The hitter
+- 🔴 **A hitter is rated only over games he STARTED.** ~~`pa > 0`~~ —
+  **tightened 2026-08-24.** Excluding zero-PA games was right but did not
+  go far enough: a **1–2 plate-appearance cameo is not a start**, and
+  counting it as one inflates every hitter UNDER. Measured across 37,829
+  played games — under 0.5 hits: cameo **74.8%** vs start **37.4%**
+  (+37.4 points); under 1.5 TB: 90.4% vs 63.5%; under 0.5 RBI: 87.8% vs
+  69.4%. Cameos are 13.7% of played games and hit bench bats hardest —
+  which is exactly who was topping the picks board. **Use real batting
+  order from `data/latest/lineups.json.gz` where it exists; `pa >= 3` is
+  the documented fallback and nothing else.**
+- 🔴 **A hitter was previously rated over games he BATTED (`pa > 0`).** The hitter
   analogue of starts-only, and the same bug. A defensive sub or a pinch-run
   is not an under that won -- at the book it is usually a VOID. Measured
   2026-08-23: Tyler Tolbert's "under 0.5 total bases" read 41/58 (71%) over
