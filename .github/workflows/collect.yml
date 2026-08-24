@@ -100,10 +100,23 @@ on:
     # Track Record tab grades itself instead of being hardcoded.
     - cron: "20 8 * * *"
 
+  # 🆕 Rebuild the free artefacts whenever the CODE changes, so a fix is
+  # visible on the site immediately instead of waiting for the next
+  # scheduled run. Costs nothing: the `refresh` mode calls no API.
+  # ⛔ Deliberately scoped to the three source files. The collector's own
+  # commits only ever touch data/ and picks/, so this cannot re-trigger
+  # itself -- there is no loop.
+  push:
+    branches: [main]
+    paths:
+      - "collect.py"
+      - "card.py"
+      - "verify_card.py"
+
   workflow_dispatch:
     inputs:
       mode:
-        description: "card | record | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
+        description: "card | record | refresh | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
         required: true
         default: gamelines
 
@@ -113,7 +126,7 @@ on:
 # silently killed whatever scheduled pull was waiting behind them --
 # which is the other half of why the board went stale.
 concurrency:
-  group: collect-${{ github.event.schedule || github.event.inputs.mode || 'manual' }}
+  group: collect-${{ github.event.schedule || github.event.inputs.mode || github.event_name }}
   cancel-in-progress: false
 
 jobs:
@@ -132,7 +145,9 @@ jobs:
       - name: Decide what this run collects
         id: mode
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "mode=refresh" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
           else
             case "${{ github.event.schedule }}" in
@@ -178,7 +193,7 @@ jobs:
       # from the prices. It exits non-zero on any failure, which fails the
       # job BEFORE the commit step -- so a bad card never reaches the page.
       - name: Verify the card
-        if: steps.mode.outputs.mode == 'card'
+        if: steps.mode.outputs.mode == 'card' || steps.mode.outputs.mode == 'refresh'
         run: python verify_card.py
 
       - name: Commit snapshots
