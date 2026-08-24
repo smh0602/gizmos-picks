@@ -1370,7 +1370,7 @@ def main():
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
-            "card", "record")
+            "card", "record", "refresh")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -1392,6 +1392,19 @@ def main():
             left = collect_news()
         elif mode == "pitchers":
             left = collect_pitchers()
+        elif mode == "refresh":
+            # Fired automatically after any push that changes the code.
+            # 🔴 FREE MODES ONLY -- no API call, no credits. A push must
+            # never be able to spend money, or a busy evening of small
+            # fixes could quietly drain the month's allowance.
+            # ⛔ It cannot loop: the push trigger is filtered to the three
+            # source files, and this job only ever commits data/ and
+            # picks/, which are not in that filter.
+            collect_props_board()
+            import card as _card
+            _card.main()
+            collect_record()
+            left = None
         elif mode == "record":
             collect_record()
             left = None
