@@ -25,19 +25,38 @@ on:
 
     # Pitcher props: morning board, then a pregame refresh.
     - cron: "10 14 * * *"
-    - cron: "10 18 * * *"
-    - cron: "40 21 * * *"
+    - cron: "10 20 * * *"
 
-    # Hitter props: THREE times a day, not once.
+    # 💰 THE BUDGET, RE-DONE 2026-08-24 AFTER THE FIVE-BOOK CHANGE.
+    # Props now pull `us,us2` instead of `us2` -- four of Sam's five books
+    # live in `us` -- and the Odds API bills markets x regions PER GAME,
+    # so every props pull DOUBLED in price. Measured: a batter pull was 75
+    # credits at one region and is 150 at two; a pitcher pull is 90.
+    #   gamelines   6 x 28 =  168/day
+    #   batter    150 x  2 =  300/day
+    #   pitcher    90 x  2 =  180/day
+    #                        ---------
+    #                         648/day  ~= 19,400 of a 20,000 monthly plan
+    # ⚠️ That is TIGHT and it is a deliberate trade: Sam asked for more
+    # books AND fresher props, and at this plan you cannot have both. Three
+    # pulls a day at two regions is ~26,600 a month and would run out.
+    # ✅ The two pulls are TIMED rather than merely spaced -- 10:20am ET
+    # before the afternoon games and 4:20pm ET before the evening ones --
+    # so nothing on the board is more than about three hours old at first
+    # pitch, which is what actually matters.
+    # 🛟 RESERVE (750) still guards the tail of the month: props stop and
+    # gamelines keep running, rather than the whole month zeroing out.
+
+    # Hitter props: twice a day, timed to the two waves of first pitches.
     # Sam, 2026-08-23: "player props tab needs to be consistently updating
-    # as well, i see its 10.5 hours old." It was: one pull at 14:20Z and
-    # nothing else all day. 💰 75 credits a pull, measured -- three pulls
-    # is 225/day. Total daily burn lands near 530, ~15,900 a month against
-    # a 20,000 allowance, so this is affordable and was never a budget
-    # decision in the first place.
+    # as well, i see its 10.5 hours old." It was one pull at 14:20Z and
+    # nothing else all day.
+    # ⚠️ ~~"three pulls is 225/day ... never a budget decision"~~ STRUCK the
+    # same night: that was costed at ONE region, before the five-book
+    # change put props back on `us,us2` and doubled the per-pull price.
+    # See the budget block above -- at two regions it IS a budget decision.
     - cron: "20 14 * * *"
-    - cron: "20 18 * * *"
-    - cron: "20 22 * * *"
+    - cron: "20 20 * * *"
 
     # Hitter game logs: free (statsapi), ~500 players, a couple of minutes.
     # Runs before the batter-props pull so the props tab has evidence to
@@ -51,8 +70,7 @@ on:
     # Props board: joins the batter odds to the hitter logs. Runs after
     # both, costs nothing, and is what the Player Props tab reads.
     - cron: "35 14 * * *"
-    - cron: "35 18 * * *"
-    - cron: "35 22 * * *"
+    - cron: "35 20 * * *"
 
     # The card. Free -- it spends no credits and calls nothing; it reads
     # the game logs and the prop board this workflow already stores and
@@ -64,8 +82,7 @@ on:
     # The 21:45 props-board rebuild exists so the evening card is joined to
     # the fresh odds rather than to the morning's.
     - cron: "45 14 * * *"
-    - cron: "45 21 * * *"
-    - cron: "50 21 * * *"
+    - cron: "50 20 * * *"
 
     # News: three times a day. Free, no CORS-safe way to do it in the page.
     - cron: "5 13 * * *"
@@ -126,6 +143,10 @@ jobs:
               "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
               "50 13 * * *") echo "mode=pitchers"      >> "$GITHUB_OUTPUT" ;;
               "35 14 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "50 20 * * *") echo "mode=card"   >> "$GITHUB_OUTPUT" ;;
+              "35 20 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
+              "10 20 * * *") echo "mode=props-pitcher"   >> "$GITHUB_OUTPUT" ;;
+              "20 20 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
               "20 8 * * *") echo "mode=record"   >> "$GITHUB_OUTPUT" ;;
               "35 22 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
               "35 18 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
