@@ -11,10 +11,6 @@
 # Only users with WRITE access to this repo can trigger it, and bot
 # accounts are rejected outright. That check is the action's own, and it
 # is what stops a stranger commenting "@claude delete everything".
-#
-# TEMPORARY: show_full_output is on so a failing run prints the real
-# error instead of hiding it. REMOVE THAT LINE once this works -- this is
-# a public repo and Claude's full output should not be permanently visible.
 name: Claude
 
 on:
@@ -48,6 +44,5 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          show_full_output: true
           claude_args: |
             --max-turns 40
