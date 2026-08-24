@@ -123,11 +123,29 @@ rungs = [g for r in allrows for g in (r.get('ladder') or [])]
 # asserted `any(below floor)` and failed a perfectly correct card on a
 # board that simply had no Hard Rock ladder stored yet. A verifier must
 # fail on wrongness, never on an empty input.
-board_rungs = set()
+# 🔴 SCOPE THE QUESTION TO THE PITCHERS THE CARD ACTUALLY PRICED.
+# An earlier version compared against EVERY ladder on the board, which
+# silently included games that had already started and pitchers with too
+# few prior starts to price. Those rungs are legitimately absent, so the
+# check failed every evening on a correct card -- and on 2026-08-23 it
+# blocked BOTH scheduled card runs, which is why no card published that
+# day. That is the same defect as the "at least one rung below -700"
+# version: a check whose answer depends on the time of day rather than on
+# whether the card is right.
+#
+# The regression this actually guards against is a CARDED pitcher losing
+# rungs. So: for every pitcher with a play, every Hard Rock rung the board
+# holds for him must appear. Rungs belonging to pitchers with no play are
+# COUNTED AND REPORTED, never silently dropped.
+carded = {(C.norm_name(r['pitcher']), r['market']) for r in allrows}
+board_rungs, orphan = set(), 0
 for g in B['games']:
     for who, rows in (g.get('ladders') or {}).items():
         for r in rows:
-            board_rungs.add((who, r['market'], r['line'], r['side']))
+            if (who, r['market']) in carded:
+                board_rungs.add((who, r['market'], r['line'], r['side']))
+            else:
+                orphan += 1
 # A play's OWN line is covered by the play itself -- the ladder holds the
 # other rungs, never a duplicate of the row it hangs under.
 card_rungs = {(C.norm_name(r['pitcher']), r['market'], g['line'], g['side'])
@@ -137,8 +155,10 @@ card_rungs |= {(C.norm_name(r['pitcher']), r['market'], r['line'], r['side'])
 card_rungs |= {(C.norm_name(r['pitcher']), r['market'], r['line'], r['other_side']['side'])
                for r in allrows if r.get('other_side')}
 lost = {x for x in board_rungs if x not in card_rungs}
-ck("no rung the board holds is missing from the card", not lost,
-   f"{len(board_rungs)} on the board, {len(card_rungs)} on the card, {len(lost)} lost")
+ck("no rung is missing for a pitcher the card priced", not lost,
+   f"{len(board_rungs)} rungs on carded pitchers, {len(lost)} missing")
+print(f"  NOTE  {orphan} rung(s) belong to pitchers with no play on this card "
+      f"(game already started, or too few prior starts to price)")
 below = sum(1 for g in rungs if not g['clears_price_floor'])
 print(f"  NOTE  {len(rungs)} rungs carried, {below} of them below the -700 floor"
       + ("" if rungs else "  <- no Hard Rock ladder in this board"))
