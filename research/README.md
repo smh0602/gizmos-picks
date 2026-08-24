@@ -8,6 +8,30 @@ Every test in here has a specification and a pass bar that were fixed
 BEFORE it was run. **A script that is edited after seeing its own result
 is no longer the test that was registered.**
 
+## Phase 2 — hitter modelling. **CLOSED, 2026-08-24.**
+
+**Three pre-registered specifications across two targets. All three lost to a
+smoothed season average.**
+
+| Test | Target | Brier gain vs the shipped estimator | Bar |
+|---|---|---|---|
+| T27 | P(1+ hit), flat logistic | +0.00236 | +0.00500 |
+| T28 | P(1+ hit), two-stage PA x rate | +0.00127 | +0.00500 |
+| T29 | P(TB >= 2), flat logistic | +0.00119 | +0.00500 |
+
+⛔ **Do not open a fourth specification.** T29's pre-registration committed, in
+advance, that failure closes hitter modelling on this data. **The reopening
+condition is a NEW INPUT — lineup slot above all — not a new model.**
+
+🔴 **The through-line: plate appearances are the dominant term in every hitter
+target tried (β 0.258 and 0.250 per SD, z 14.2 and 12.6) and are themselves
+barely forecastable (RMSE 0.985 against sd 1.13).** The biggest driver of a
+hitter's night is the thing this data can least predict. That is a ceiling on
+hitter props, not a failure of any one specification.
+
+Hitter rows on the Picks tab stay DESCRIPTIVE: the player's own smoothed rate,
+no confidence number, no band.
+
 ## T27 — the first hitter model (P(1+ hit))
 
 **RESULT 2026-08-24: FAILED.** Brier improvement over the shipped estimator
@@ -29,3 +53,32 @@ roughly **3.5x** the weight of hitting rate (β 0.258 vs 0.073 per SD), and
 the shipped estimator ignores them entirely. Home/road is **null for
 hitters** (z = −1.47) despite being significant for pitchers. T28 is
 registered to follow up on the first of those.
+
+## T28 — two-stage: expected PA, then hits per PA
+
+**RESULT 2026-08-24: FAILED, and worse than T27** — `-0.00108` against T27 and
+`+0.00127` against the incumbent. The better-motivated structure lost: stage 1
+predicted plate appearances at RMSE 0.985 against sd 1.13, and the combination
+form assumed PAs are independent trials at a constant rate. **The flat logistic
+was free to learn what the two-stage model was told.**
+
+```
+python research/t28_fit.py
+```
+
+## T29 — total bases, P(TB >= 2)
+
+**RESULT 2026-08-24: FAILED** — `+0.00119` against a `+0.00500` bar. Well
+calibrated (predicted 30-35% landed at 31.2% on 1,840 rows) and honest; simply
+not better by the margin fixed in advance.
+
+The market posts over/under **1.5** on 236 of 240 total-bases quotes, which is
+why that is the threshold modelled.
+
+**Finding kept:** for total bases the opposing starter's **strikeout rate**
+matters (z = -3.44) and his hits-allowed rate does not (z = 1.64). A ball never
+put in play cannot become a total base.
+
+```
+python research/t29_fit.py
+```
