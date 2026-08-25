@@ -8,20 +8,26 @@ Every test in here has a specification and a pass bar that were fixed
 BEFORE it was run. **A script that is edited after seeing its own result
 is no longer the test that was registered.**
 
-## Phase 2 — hitter modelling. **CLOSED, 2026-08-24.**
+## Phase 2 — hitter modelling. **CLOSED 2026-08-24. REOPENED AND CLOSED AGAIN 2026-08-25.**
 
-**Three pre-registered specifications across two targets. All three lost to a
-smoothed season average.**
+**Four pre-registered specifications across two targets and two samples. Every
+one of them lost to a smoothed season average.**
 
-| Test | Target | Brier gain vs the shipped estimator | Bar |
-|---|---|---|---|
-| T27 | P(1+ hit), flat logistic | +0.00236 | +0.00500 |
-| T28 | P(1+ hit), two-stage PA x rate | +0.00127 | +0.00500 |
-| T29 | P(TB >= 2), flat logistic | +0.00119 | +0.00500 |
+| Test | Target | Sample | Brier gain vs the shipped estimator | Bar |
+|---|---|---|---|---|
+| T27 | P(1+ hit), flat logistic | `pa > 0` | +0.00236 | +0.00500 |
+| T28 | P(1+ hit), two-stage PA x rate | `pa > 0` | +0.00127 | +0.00500 |
+| T29 | P(TB >= 2), flat logistic | `pa > 0` | +0.00119 | +0.00500 |
+| T30 A | P(1+ hit) + trailing slot | **STARTED** | +0.00266 | +0.00500 |
+| T30 B | P(1+ hit) + actual slot | **STARTED** | +0.00295 | +0.00500 |
 
-⛔ **Do not open a fourth specification.** T29's pre-registration committed, in
-advance, that failure closes hitter modelling on this data. **The reopening
-condition is a NEW INPUT — lineup slot above all — not a new model.**
+⛔ **Do not open a fifth specification.** T29's pre-registration committed, in
+advance, that failure closes hitter modelling on this data, and named the one
+reopening condition: **a NEW INPUT — lineup slot above all.** T30 spent that
+condition on exactly that input. The backfill was built, joined, verified and
+fitted, and slot did not clear. **Another cut of slot — a change flag, an
+interaction, a nine-way dummy, a different window — is a new specification on a
+spent input.**
 
 🔴 **The through-line: plate appearances are the dominant term in every hitter
 target tried (β 0.258 and 0.250 per SD, z 14.2 and 12.6) and are themselves
@@ -82,3 +88,47 @@ put in play cannot become a total base.
 ```
 python research/t29_fit.py
 ```
+
+## T30 — batting order. The input the other three named.
+
+**RESULT 2026-08-25: BOTH ARMS FAILED.** The pass bar had two Brier legs and
+both arms missed both.
+
+| | vs INCUMBENT (bar +0.00500) | vs T27-refitted (bar +0.00200) |
+|---|---|---|
+| **Arm A** — his trailing-20 mean slot (shippable) | +0.00266 | **+0.00003** |
+| **Arm B** — today's actual slot (upper bound only) | +0.00295 | **+0.00033** |
+
+```
+python research/t30_data.py     # started-games sample, real batting order
+python research/t30_fit.py      # three estimators, two arms, one sample
+python research/t30_verify.py   # checks run BEFORE the failure was recorded
+```
+
+🔴 **The two-margin bar is what made the result readable.** Arm A's entire gain
+over the incumbent is T27's four features, worth +0.00262 alone on this sample.
+**Slot is worth +0.00003.** A single-margin criterion would have reported a
+0.0027 gain and invited a shipping decision it had not earned — it would have
+been measuring the sample change, which is exactly what the second margin was
+pre-registered to catch.
+
+✅ **The variable is not broken.** Raw `P(1+ hit)` by today's actual slot runs
+66.2% down to 55.0% across slots 1-9 on this sample, monotonic, and a slot-only
+model beats the base rate by +0.00155. **It carries real information — almost
+none of it new.** corr(today's slot, trailing-20 PA) is −0.675 and corr(today's
+slot, the incumbent rate) is −0.455; the trailing-PA coefficient collapses from
+z 7.59 to z 3.59 the moment slot enters.
+
+⛔ **The late-card branch is NOT open.** T30 pre-registered that Arm B passing
+while Arm A failed would be a product finding pointing at a card generated after
+lineups post. **Arm B failed too.** Build a late card for other reasons if you
+like — scratches, rest days, a bat out of the lineup — but T30 is not evidence
+for one.
+
+⚠️ **Second result, recorded because it cuts against the shipped estimator:** on
+the started-games sample the incumbent is **worse than the league base rate**
+(0.23819 against 0.23717), where on T27's `pa > 0` sample it was better. Most of
+what the smoothed rate was buying was starter-versus-cameo, not one starter
+versus another. **A reading, not a finding.** It does not license changing the
+shipped estimator — but it is the question to pre-register if that estimator is
+ever revisited.
