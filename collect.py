@@ -1426,18 +1426,31 @@ def collect_weather():
       venue coordinates  statsapi /venues?hydrate=location
       historical weather Open-Meteo archive (archive-api.open-meteo.com)
 
-    ⚠️ Open-Meteo has never been reached from this project. If it is not
-    reachable from the runner this mode FAILS LOUD rather than writing a
-    partial file, because a half-populated weather column is worse than an
-    absent one -- it would silently fit on whichever games happened to
-    resolve.
+    🔴 THE PARTIAL-FILE CONTRACT, CORRECTED 2026-08-25 AFTER THE FIRST REAL
+    RUN. This mode originally claimed it would "write NO partial file" on
+    failure -- and then its own periodic checkpoint wrote one anyway, 8,288
+    bytes, immediately before raising an error that said not to. The claim
+    and the code disagreed, which is the exact failure this project has
+    rules about.
+
+    The contract is now the honest one: a partial file IS written, because
+    it is RESUMABLE and the 8 venues already fetched are perfectly good.
+    What must never happen is a MODEL silently fitting on incomplete
+    weather. So the file carries `complete: true|false`, and any consumer
+    MUST refuse to fit while it reads false. The guard moved from collect
+    time to model time, which is where it always belonged.
+
+    ⚠️ AND THE FIRST RUN DID NOT SHOW "UNREACHABLE". It showed 8 calls
+    SUCCEEDING and then an SSL handshake timing out -- that is rate
+    limiting, not a block. Retries with backoff and a polite delay between
+    venues are therefore the fix, not a different data source.
 
     ⚠️ GAME TIME IS APPROXIMATED. The scores feed carries dayNight, not a
     first-pitch timestamp, so night games are read at 19:00 and day games
     at 13:00 LOCAL. That is an approximation and every consumer must be
     told so; it is recorded on the row as `hour_local` and `approx: true`.
     """
-    import urllib.request, urllib.parse, collections
+    import urllib.request, urllib.parse, collections, time
 
     spath = "data/latest/scores.json.gz"
     if not os.path.exists(spath):
@@ -1472,8 +1485,12 @@ def collect_weather():
         log(f"weather: NO COORDINATES for {missing[:6]}")
 
     path = "data/latest/weather.json.gz"
-    store = {"schema": 1, "note": "hour is APPROXIMATE -- 19:00 local night, "
-                                  "13:00 local day; no first-pitch time in the feed",
+    store = {"schema": 1, "complete": False,
+             "note": "hour is APPROXIMATE -- 19:00 local night, "
+                     "13:00 local day; no first-pitch time in the feed",
+             "consumer_contract": "REFUSE TO FIT A MODEL WHILE complete IS false. "
+                                  "A half-populated weather column silently fits on "
+                                  "whichever games happened to resolve.",
              "venues": {}}
     if os.path.exists(path):
         store = json.load(gzip.open(path, "rt"))
@@ -1494,14 +1511,32 @@ def collect_weather():
             "temperature_unit": "fahrenheit", "wind_speed_unit": "mph",
             "timezone": "auto"})
         url = f"https://archive-api.open-meteo.com/v1/archive?{q}"
-        try:
-            with urllib.request.urlopen(url, timeout=60) as resp:
-                w = json.loads(resp.read().decode())
-        except Exception as e:
+        # RETRY WITH BACKOFF. The first real run made 8 calls successfully and
+        # then timed out on the SSL handshake -- the signature of rate
+        # limiting, not of an unreachable host. A single-attempt fetch turned
+        # a throttle into a fatal error and a wrong diagnosis.
+        w = None
+        for attempt, wait in enumerate((0, 3, 10, 30), start=1):
+            if wait:
+                log(f"  retry {attempt-1} for venue {vid} after {wait}s")
+                time.sleep(wait)
+            try:
+                with urllib.request.urlopen(url, timeout=30) as resp:
+                    w = json.loads(resp.read().decode())
+                break
+            except Exception as e:
+                last = e
+        if w is None:
+            write(path, store, compress=True)     # keep what DID resolve -- it resumes
             raise RuntimeError(
-                f"Open-Meteo unreachable from this runner ({type(e).__name__}: {e}). "
-                "T13b stays blocked. Do NOT write a partial weather file.") from e
+                f"Open-Meteo failed for venue {vid} after 4 attempts "
+                f"({type(last).__name__}: {last}). "
+                f"{fetched} venue(s) DID fetch successfully this run, so the host is "
+                f"reachable and this is most likely RATE LIMITING -- do not conclude "
+                f"the source is unusable. The partial file is RESUMABLE and is marked "
+                f"complete:false; re-run this mode to continue from where it stopped.")
         fetched += 1
+        time.sleep(1.5)          # be a good citizen; the archive is free
         H = w.get("hourly") or {}
         times = H.get("time") or []
         idx = {t: i for i, t in enumerate(times)}
@@ -1519,9 +1554,14 @@ def collect_weather():
             write(path, store, compress=True)
             log(f"  ... {done} venues, {fetched} calls")
 
+    outstanding = sum(1 for vid, dates in need.items() if vid in coords
+                      for d in dates if d not in store["venues"].get(str(vid), {}))
+    store["complete"] = (outstanding == 0)
     write(path, store, compress=True)
     nd = sum(len(v) for v in store["venues"].values())
     log(f"weather: {len(store['venues'])} venues, {nd} venue-days, {fetched} API calls")
+    log(f"weather: complete={store['complete']}"
+        + ("" if store["complete"] else f" -- {outstanding} venue-days still missing, RE-RUN this mode"))
     if nd == 0:
         raise RuntimeError("no weather rows written -- do NOT proceed to a model")
     temps = [h["temp_f"] for v in store["venues"].values() for d in v.values()
