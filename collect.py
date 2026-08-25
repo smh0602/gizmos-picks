@@ -1537,6 +1537,8 @@ def collect_weather():
                 f"complete:false; re-run this mode to continue from where it stopped.")
         fetched += 1
         time.sleep(1.5)          # be a good citizen; the archive is free
+        if w.get("elevation") is not None:
+            store.setdefault("elevations", {})[str(vid)] = w["elevation"]
         H = w.get("hourly") or {}
         times = H.get("time") or []
         idx = {t: i for i, t in enumerate(times)}
@@ -1554,8 +1556,53 @@ def collect_weather():
             write(path, store, compress=True)
             log(f"  ... {done} venues, {fetched} calls")
 
+    # ---- ELEVATION TOP-UP.
+    # Elevation is the PUREST air-density variable there is -- Coors sits a
+    # mile up, and that is why the Rockies keep game balls in a humidor. It
+    # comes back on every Open-Meteo response and the first version of this
+    # mode simply did not store it. Venues whose weather is already complete
+    # never re-enter the loop above, so they are topped up here with a
+    # minimal one-day query rather than by refetching a season of hours.
+    store.setdefault("elevations", {})
+    todo_el = [v for v in coords if str(v) not in store["elevations"]]
+    if todo_el:
+        log(f"weather: {len(todo_el)} venue(s) need an elevation top-up")
+    for vid in todo_el:
+        lat, lon = coords[vid]
+        d0 = sorted(need[vid])[0]
+        q = urllib.parse.urlencode({"latitude": lat, "longitude": lon,
+                                    "start_date": d0, "end_date": d0,
+                                    "daily": "temperature_2m_max", "timezone": "auto"})
+        got = None
+        for attempt, wait in enumerate((0, 3, 10, 30), start=1):
+            if wait:
+                log(f"  elevation retry {attempt-1} for venue {vid} after {wait}s")
+                time.sleep(wait)
+            try:
+                with urllib.request.urlopen(
+                        f"https://archive-api.open-meteo.com/v1/archive?{q}", timeout=30) as r:
+                    got = json.loads(r.read().decode())
+                break
+            except Exception as e:
+                last = e
+        if got is None:
+            write(path, store, compress=True)
+            raise RuntimeError(
+                f"Open-Meteo failed on the elevation top-up for venue {vid} "
+                f"({type(last).__name__}: {last}). The weather HISTORY is unaffected "
+                f"and still stored; re-run this mode to finish the elevations.")
+        if got.get("elevation") is not None:
+            store["elevations"][str(vid)] = got["elevation"]
+        time.sleep(1.5)
+    if store["elevations"]:
+        els = list(store["elevations"].values())
+        log(f"weather: elevations for {len(els)} venues, "
+            f"{min(els):.0f}m to {max(els):.0f}m "
+            f"(Coors Field should be the high one, ~1580m)")
+
     outstanding = sum(1 for vid, dates in need.items() if vid in coords
                       for d in dates if d not in store["venues"].get(str(vid), {}))
+    outstanding += sum(1 for v in coords if str(v) not in store["elevations"])
     store["complete"] = (outstanding == 0)
     write(path, store, compress=True)
     nd = sum(len(v) for v in store["venues"].values())
