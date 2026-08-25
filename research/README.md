@@ -248,3 +248,55 @@ starter requirement and paid 639 games for it (1,027 rows against 1,667), and
 park and temperature need no starter join at all. Registering that spec now,
 having seen which two inputs survived, would be shopping. It goes in the
 register first.
+
+### T33 — elevation and a non-linear temperature term. **Phase 3 CLOSES.**
+
+Prompted by published sources Sam supplied: the pathway is air density, a game
+18°F above average has ~20% more home runs, a cold ball has lower COR, and fly
+balls travel 16 ft less at ≤50°F than ≥90°F. Two new inputs followed —
+**elevation** (never stored) and a **non-linear cold term** (both prior arms
+fitted temperature as a straight line).
+
+| Margin | Result | Bar |
+|---|---|---|
+| vs the better naive baseline | 🔴 **−0.0363** | +0.10 |
+| vs T31a on the same rows | 🔴 **−0.0322** | +0.05 |
+
+```
+python research/t33_data.py
+python research/t33_fit.py
+python research/t33_verify.py
+```
+
+🔴 **My pre-registered prediction was wrong, and that is the most useful line
+here.** The entry said elevation would be collinear with the park factor and
+therefore small, and instructed that a large coefficient meant suspecting
+collinearity. It came back at **+0.501 per sd** — and there is **no
+collinearity**: corr(park, elevation) +0.2414, **VIF 1.12**.
+
+🔴 **The real collinearity is elsewhere: corr(home runs ALLOWED, park factor) =
++0.4773.** Half a club's games are in its own park, so its runs-allowed average
+and an explicit park factor are largely the same fact counted twice. Home runs
+allowed was T31's **largest** term (+0.445/sd) and collapses to **+0.015** in
+T33, while home runs scored flips to **−0.278** — a nonsense sign. The park
+term redistributed information rather than adding any.
+
+⛔ **The cold term was never actually tested.** Cold games are 165 of 1,136 in
+train and **2 of 529** held out — a mid-July chronological split puts nearly
+every cold game in training, because cold baseball is an April phenomenon. It
+was fitted on 165 games and evaluated on two. T33 says nothing about the
+cold-ball mechanism either way. The split was **not** moved; testing this
+properly needs cold games on both sides, which is a new pre-registration.
+
+**PHASE 3 IS CLOSED FOR THE SEASON** on the pre-commitment written before the
+result. Five arms, three specifications, not one clearing a bar against a
+*naive baseline* — never mind a sportsbook. Totals stay MARKET-only. Reopening
+needs a genuinely new input: a **numeric** park-orientation table, or captured
+market history reaching T31c's 400 games.
+
+**What the failures bought:** a game total is mostly noise (best correlation
++0.1559, ~2% of variance, against games running 1–27 runs); park and
+temperature are real, wind speed alone and day/night are not; park factor
+double-counts with team runs-allowed; elevation does not; a mid-season split
+cannot test a seasonal variable; and 1,973 clean games, 4,578 weather readings
+and 57 venue elevations now exist regardless.
