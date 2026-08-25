@@ -1407,6 +1407,131 @@ def collect_record():
 # `results` job captures slot going forward; this recovers the season
 # already played.
 # ----------------------------------------------------------------------
+def collect_weather():
+    """Per-game TEMPERATURE and WIND -- the input T13b calls permanently blocked.
+
+    🔴 T13b IN `claude/owed-tests.md` STATES: "NO HISTORICAL WEATHER SOURCE
+    EXISTS IN THIS PROJECT'S STACK. Temperature and wind have never been
+    tested, on any sample." It names exactly what would unblock it: "a
+    per-game historical temperature and wind source joinable to the start
+    table by (date, venue)." THIS IS AN ATTEMPT AT THAT SOURCE.
+
+    ⛔ IT DOES NOT UNBLOCK T13b BY ITSELF. T13b requires a specification to
+    be registered BEFORE anything is run, and it explicitly forbids
+    substituting the roof/dome proxy and calling the result a weather
+    finding. This mode only makes the DATA exist. The test stays blocked
+    until a spec is written against it.
+
+    Two sources, both free and keyless:
+      venue coordinates  statsapi /venues?hydrate=location
+      historical weather Open-Meteo archive (archive-api.open-meteo.com)
+
+    ⚠️ Open-Meteo has never been reached from this project. If it is not
+    reachable from the runner this mode FAILS LOUD rather than writing a
+    partial file, because a half-populated weather column is worse than an
+    absent one -- it would silently fit on whichever games happened to
+    resolve.
+
+    ⚠️ GAME TIME IS APPROXIMATED. The scores feed carries dayNight, not a
+    first-pitch timestamp, so night games are read at 19:00 and day games
+    at 13:00 LOCAL. That is an approximation and every consumer must be
+    told so; it is recorded on the row as `hour_local` and `approx: true`.
+    """
+    import urllib.request, urllib.parse, collections
+
+    spath = "data/latest/scores.json.gz"
+    if not os.path.exists(spath):
+        raise RuntimeError("run `scores` before `weather` -- it names the venues and dates")
+    S = json.load(gzip.open(spath, "rt"))
+    if S.get("schema", 1) < 2:
+        raise RuntimeError("scores.json.gz is schema 1 and carries no venue -- "
+                           "re-run `scores` first")
+    need = collections.defaultdict(set)          # venue_id -> {dates}
+    vname = {}
+    for d, rows in S["days"].items():
+        for r in rows:
+            if r.get("venue_id"):
+                need[r["venue_id"]].add(d)
+                vname[r["venue_id"]] = r.get("venue")
+    if not need:
+        raise RuntimeError("no venue ids in scores.json.gz -- nothing to fetch")
+    log(f"weather: {len(need)} venues, "
+        f"{sum(len(v) for v in need.values())} venue-days needed")
+
+    # ---- venue coordinates, one batched call
+    ids = ",".join(str(i) for i in sorted(need))
+    coords = {}
+    v, _ = get(f"{STATS}/venues?venueIds={ids}&hydrate=location")
+    for x in v.get("venues", []):
+        c = ((x.get("location") or {}).get("defaultCoordinates") or {})
+        if c.get("latitude") is not None and c.get("longitude") is not None:
+            coords[x["id"]] = (c["latitude"], c["longitude"])
+    log(f"weather: {len(coords)}/{len(need)} venues have coordinates")
+    missing = [vname.get(i, i) for i in need if i not in coords]
+    if missing:
+        log(f"weather: NO COORDINATES for {missing[:6]}")
+
+    path = "data/latest/weather.json.gz"
+    store = {"schema": 1, "note": "hour is APPROXIMATE -- 19:00 local night, "
+                                  "13:00 local day; no first-pitch time in the feed",
+             "venues": {}}
+    if os.path.exists(path):
+        store = json.load(gzip.open(path, "rt"))
+    done = fetched = 0
+    for vid, dates in sorted(need.items()):
+        if vid not in coords:
+            continue
+        key = str(vid)
+        have = store["venues"].setdefault(key, {})
+        want = sorted(d for d in dates if d not in have)
+        if not want:
+            continue
+        lat, lon = coords[vid]
+        q = urllib.parse.urlencode({
+            "latitude": lat, "longitude": lon,
+            "start_date": want[0], "end_date": want[-1],
+            "hourly": "temperature_2m,wind_speed_10m,wind_direction_10m",
+            "temperature_unit": "fahrenheit", "wind_speed_unit": "mph",
+            "timezone": "auto"})
+        url = f"https://archive-api.open-meteo.com/v1/archive?{q}"
+        try:
+            with urllib.request.urlopen(url, timeout=60) as resp:
+                w = json.loads(resp.read().decode())
+        except Exception as e:
+            raise RuntimeError(
+                f"Open-Meteo unreachable from this runner ({type(e).__name__}: {e}). "
+                "T13b stays blocked. Do NOT write a partial weather file.") from e
+        fetched += 1
+        H = w.get("hourly") or {}
+        times = H.get("time") or []
+        idx = {t: i for i, t in enumerate(times)}
+        for d in want:
+            for hh in ("19:00", "13:00"):
+                i = idx.get(f"{d}T{hh}")
+                if i is None:
+                    continue
+                have.setdefault(d, {})[hh[:2]] = {
+                    "temp_f": (H.get("temperature_2m") or [None])[i],
+                    "wind_mph": (H.get("wind_speed_10m") or [None])[i],
+                    "wind_dir": (H.get("wind_direction_10m") or [None])[i]}
+        done += 1
+        if done % 8 == 0:
+            write(path, store, compress=True)
+            log(f"  ... {done} venues, {fetched} calls")
+
+    write(path, store, compress=True)
+    nd = sum(len(v) for v in store["venues"].values())
+    log(f"weather: {len(store['venues'])} venues, {nd} venue-days, {fetched} API calls")
+    if nd == 0:
+        raise RuntimeError("no weather rows written -- do NOT proceed to a model")
+    temps = [h["temp_f"] for v in store["venues"].values() for d in v.values()
+             for h in d.values() if h.get("temp_f") is not None]
+    if temps:
+        log(f"weather: mean temperature {sum(temps)/len(temps):.1f}F "
+            f"(a sane MLB season reads roughly 65-80F)")
+    return None
+
+
 def collect_scores():
     """Season-long per-game TEAM RUNS -- the foundation Phase 3 needs.
 
@@ -1425,9 +1550,21 @@ def collect_scores():
     """
     from datetime import date, timedelta
     path = "data/latest/scores.json.gz"
-    store = {"season": now().year, "days": {}}
+    # SCHEMA VERSION. v1 stored scores only. v2 adds venue, gameType and
+    # dayNight -- park is the biggest single input a total model can have and
+    # it was in the same response all along. A cache written by an older
+    # schema is DISCARDED and refetched, because a resumable collector that
+    # skips stored dates would otherwise keep the thin rows forever and the
+    # gap would be discovered later as "why is venue null before August".
+    SCHEMA = 2
+    store = {"season": now().year, "schema": SCHEMA, "days": {}}
     if os.path.exists(path):
-        store = json.load(gzip.open(path, "rt"))
+        old = json.load(gzip.open(path, "rt"))
+        if old.get("schema") == SCHEMA:
+            store = old
+        else:
+            log(f"scores: cache is schema {old.get('schema', 1)}, need {SCHEMA}"
+                f" -- refetching all {len(old.get('days', {}))} dates")
     days = store["days"]
 
     yr = now().year
@@ -1447,7 +1584,8 @@ def collect_scores():
         try:
             sched, _ = get(f"{STATS}/schedule?sportId=1&date={k}"
                            "&fields=dates,games,gamePk,status,detailedState,"
-                           "teams,away,home,team,name,score,isTie,doubleHeader")
+                           "teams,away,home,team,name,score,isTie,doubleHeader,"
+                           "venue,id,gameType,dayNight,officialDate")
         except Exception as e:
             log(f"  {k}: schedule {type(e).__name__} -- stopping, will resume")
             break
@@ -1470,8 +1608,20 @@ def collect_scores():
                     and ar >= 0 and hr >= 0 and an and hn):
                 viol += 1
                 continue
+            v = g.get("venue") or {}
             rows.append({"gamePk": g.get("gamePk"), "away": an, "home": hn,
-                         "away_r": ar, "home_r": hr})
+                         "away_r": ar, "home_r": hr,
+                         # PARK is the single largest cheap input a total
+                         # model can have -- Coors against Petco is worth
+                         # about two runs -- and it was sitting in this same
+                         # response all along. gameType filters spring
+                         # training ('S') from the regular season ('R')
+                         # DIRECTLY, which is stronger than deriving opening
+                         # day from another file. dayNight is a real run
+                         # environment split.
+                         "venue_id": v.get("id"), "venue": v.get("name"),
+                         "gameType": g.get("gameType"),
+                         "dayNight": g.get("dayNight")})
         days[k] = rows
         done += 1
         if done % 15 == 0:
@@ -1571,7 +1721,7 @@ def main():
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
-            "card", "record", "refresh", "lineups", "scores")
+            "card", "record", "refresh", "lineups", "scores", "weather")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -1611,6 +1761,9 @@ def main():
             left = None
         elif mode == "scores":
             collect_scores()
+            left = None
+        elif mode == "weather":
+            collect_weather()
             left = None
         elif mode == "record":
             collect_record()
