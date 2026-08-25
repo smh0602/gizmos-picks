@@ -132,3 +132,119 @@ what the smoothed rate was buying was starter-versus-cameo, not one starter
 versus another. **A reading, not a finding.** It does not license changing the
 shipped estimator — but it is the question to pre-register if that estimator is
 ever revisited.
+
+---
+
+## Phase 3 — game-level modelling. T31, opened and half-closed 2026-08-25.
+
+The first tests in this project that are not about a player. Sam chose the
+target: the **game total**, over/under combined runs.
+
+**Unblocked by `collect.py mode=scores`**, backfilled the same day — 177 dates,
+2,314 games, validated **90/90 exact** against every final already on disk.
+
+⚠️ **The raw backfill is not the sample.** `sportId=1` also returns 14 World
+Baseball Classic sides, 4 minor-league/Mexican clubs, 2 All-Star squads, and
+311 spring-training games — and spring training scores **5.02** runs per
+team-game against the regular season's **4.47**. Pooled, the run environment
+reads +0.070 too high and 15% of games are not regular-season baseball. The
+filter is part of the specification, and neither the club list nor opening day
+is hand-typed: both are derived from the hitter DB.
+
+| Arm | What it asks | Bar | Result |
+|---|---|---|---|
+| **T31a** | four team-form features vs a naive baseline | +0.10 MAE | 🔴 **FAIL, −0.0054** |
+| **T31b** | plus both starters, same rows | +0.05 MAE | 🔴 **FAIL, +0.0403** |
+| **T31c** | vs the BOOK's posted total | +0.010 Brier, 400 games | ⏳ **55 / 400** |
+
+```
+python research/t31_data.py     # clean point-in-time game sample
+python research/t31_fit.py      # both arms, one specification each
+python research/t31_verify.py   # checks run BEFORE recording the failure
+```
+
+🔴 **The headline is the ceiling, not the failure.** The model's predictions
+span **7.79 to 10.80** while real games range **1 to 27** at sd 4.51, and
+`corr(predicted, actual) = +0.0799` — under 1% of variance. A game's run total
+is overwhelmingly same-day noise that season-long team form cannot see. That
+is the Phase 3 analogue of Phase 2's ceiling.
+
+**T31a is plainly overfitting** — in-sample gain +0.1211, out-of-sample −0.0054.
+T31b shrinks too but survives (+0.1494 in, +0.0441 out).
+
+**The coefficient reading, labelled as one and not promoted:** per standard
+deviation, home runs **allowed** +0.511 and the away **starter** +0.313
+dominate, while away runs **scored** is +0.028. The two offence terms together
+are worth less than the weakest pitching term. Runs allowed proxies a pitching
+staff, which persists; offence is noisier.
+
+⛔ **T31a and T31b were always sanity gates, never shipping gates.** Beating a
+naive baseline means nothing at a sportsbook. And a model that cannot beat
+"add the two clubs' trailing runs scored" has no realistic prospect of beating
+a book — so the pre-registered expectation that T31c fails is now stronger than
+when it was written.
+
+➡️ **A direction, explicitly NOT a specification:** the terms that carried
+weight were *pitching* terms, and this project has a fitted pitcher model that
+T31b never used — it reached for a crude trailing-8 earned-run average instead.
+Any successor must be pre-registered **before** fitting and must beat T31b's
+3.5309 on the same rows. Writing that spec now, having seen these coefficients,
+would be shopping.
+
+## T32 — park, weather and day/night. **Both arms FAILED 2026-08-25.**
+
+Pre-registered before fitting. Unblocked by two things built the same day:
+`venue` (which the scores backfill had been dropping) and a new `weather`
+collector — venue coordinates from statsapi, history from Open-Meteo.
+
+| Arm | vs | Bar | Result |
+|---|---|---|---|
+| **T32a** + park, temp, wind, night | T31b 3.5269 | +0.05 MAE | 🔴 **−0.0618** |
+| **T32b** + starter outs and K | T32a | +0.05 MAE | 🔴 **+0.0302** |
+
+**T32a is worse than the model it was meant to improve.**
+
+✅ **The result worth keeping — two of four new inputs are real, two are nothing:**
+
+| Input | corr with combined runs | |
+|---|---|---|
+| **Park factor** (point-in-time) | **+0.1363** | real, and the largest term in the fit |
+| **Temperature** | **+0.0913** | real |
+| Wind speed | −0.0010 | nothing |
+| Day / night | −0.0113 | nothing |
+
+Park (+0.597 runs/sd) and temperature (+0.455) are the two biggest terms —
+larger than any pitching or team-form variable. **Adding two pure-noise
+features to a 647-row fit cost more than the two real ones gained.** That is
+the whole failure in one sentence.
+
+⚠️ **Wind's null is "wind SPEED alone is null", never "wind is null."**
+Direction was deliberately excluded — there is no park-orientation table in
+this project — so a 15 mph wind blowing out and one blowing in are the same
+number here and physically opposite.
+
+The model **sees** more than T31 did while scoring worse: `corr(predicted,
+actual)` nearly doubled, **+0.0799 → +0.1559**, and the predicted range
+widened from 7.79–10.80 to 7.33–12.51. A bolder, imperfectly calibrated model
+is punished by an error metric even while tracking the outcome better.
+
+**Checked before recording:** T32a overfits (in-sample 3.5813, *better* than
+T31b's 3.6296, while out-of-sample is worse) on 10 features and 647 rows; and
+`h_rs` reads −0.2497 — a home club scoring more lately predicting *fewer*
+total runs, which is physically impossible and the classic signature of
+collinearity in a thin fit. The park factor was verified point-in-time **by
+hand**: one row's stored +0.524796 re-derived from the raw score file,
+matching to six decimals.
+
+```
+python research/t32_data.py
+python research/t32_fit.py
+python research/t32_verify.py
+```
+
+➡️ **A direction, explicitly not a specification:** park and temperature only,
+dropping wind and night, on the **larger sample** — T32 inherited T31b's
+starter requirement and paid 639 games for it (1,027 rows against 1,667), and
+park and temperature need no starter join at all. Registering that spec now,
+having seen which two inputs survived, would be shopping. It goes in the
+register first.
