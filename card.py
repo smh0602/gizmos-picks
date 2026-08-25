@@ -50,17 +50,22 @@ K_OPP_B, K_HOME = 0.575, 0.151
 O_INTERCEPT, O_TRAIL_C = 15.899, 15.903
 O_NP_B, O_NP_C = 0.0371, 86.6
 O_HOME = 0.189
+# The trailing-outs slope is TIERED on his own level. These are shipped
+# coefficients and they move at the re-fit like any other -- they live here,
+# not buried as literals inside outs_k(), so there is ONE place to edit.
+O_TIER_CUT_LO, O_TIER_CUT_HI = 15.25, 17.0
+O_TIER_B_LO, O_TIER_B_MID, O_TIER_B_HI = 0.638, 0.759, 0.317
 TRAIL_N = 8
 
 
 def outs_k(trailing_outs):
     """The trailing-outs slope is TIERED on his own level. Pooled 0.525 is
     a reference figure for the v3.4 comparison and is NOT shipped."""
-    if trailing_outs < 15.25:
-        return 0.638
-    if trailing_outs < 17.0:
-        return 0.759
-    return 0.317
+    if trailing_outs < O_TIER_CUT_LO:
+        return O_TIER_B_LO
+    if trailing_outs < O_TIER_CUT_HI:
+        return O_TIER_B_MID
+    return O_TIER_B_HI
 
 
 # T21's measured grid (claude/owed-tests.md). NOT ADOPTED -- used only for
@@ -478,7 +483,7 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
         w.append(f"Only {an} comparable start(s) against {ab(opp_team)} exist, so the "
                  f"matched-class check cannot speak here. That is a finding, not a blank.")
     if market == "strikeouts":
-        d = 0.575 * (oppK - centerC)
+        d = K_OPP_B * (oppK - centerC)
         where = ("an easy lineup to strike out" if d > 0.15 else
                  "a hard lineup to strike out" if d < -0.15 else
                  "a mid-pack lineup, so this term contributes almost nothing")
@@ -968,9 +973,32 @@ def main(dry=False):
         # their own price.
         rest = sorted([x for x in plays + hitters if x not in liked],
                       key=lambda x: -(x.get("edge") if x.get("edge") is not None else -999))
-        for x in rest[:BOARD_MIN - len(board)]:
+
+        # Never put BOTH sides of one prop on the board. Above the edge
+        # filter this cannot happen -- a positive-edge over implies a
+        # negative-edge under -- so it only ever bites HERE, in the top-up,
+        # which deliberately reaches into negative edge. Measured on a thin
+        # pre-dawn board: all 16 rows were 8 mirror pairs, every pair summing
+        # to 100 (Turang under 0.5 hits at 59 AND over 0.5 hits at 41). That
+        # is not a board.
+        def _propkey(x):
+            return ((x.get("pid") or x.get("player") or x.get("pitcher")),
+                    x.get("market"), x.get("line"))
+        _on = {_propkey(x) for x in board}
+        for x in rest:
+            if len(board) >= BOARD_MIN:
+                break
+            if _propkey(x) in _on:
+                continue
             x["below_price"] = True
+            _on.add(_propkey(x))
             board.append(x)
+
+        # RE-SORT. The top-up appends in EDGE order onto a list already
+        # sorted by CONFIDENCE, which left the board out of order from the
+        # first topped-up row down. Sam's instruction is that it reads
+        # strictly descending; verify_card.py enforces it and caught this.
+        board.sort(key=lambda x: -(x.get("confidence") or 0))
 
     for i, x in enumerate(board, 1):
         x["rank"] = i

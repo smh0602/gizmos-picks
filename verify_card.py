@@ -275,5 +275,33 @@ ck("a higher over rung is never MORE likely than a lower one", not mono, str(mon
 ck("every ladder rung carries its app label form (rule 49 off-by-one)",
    all(g.get('app_label') for r in pit_rows for g in (r.get('ladder') or []) if g['side']=='over'))
 
+print("\n31. MODEL COEFFICIENTS -- one definition each, no stray copies")
+# WHY THIS EXISTS. card.py once carried the opponent coefficient TWICE: once
+# as the named K_OPP_B used for the projection, and once as a bare 0.575 in
+# the code that PRINTS the explanation. They agreed, so nothing was wrong --
+# until a re-fit. Then the projection would move and the printed reasoning
+# would keep quoting the retired number, and the card would state a
+# coefficient it did not use. That is this project's oldest documented bug
+# shape: a constant copied out of one place that later moved.
+# The check is a SOURCE lint, not a card check, because the re-fit is a
+# source edit and this is the moment it gets caught.
+import re as _re
+_src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'card.py')).read()
+_src = "\n".join(l.split('#')[0] if l.lstrip().startswith('#') else l
+                 for l in _src.split("\n"))
+_named = [n for n in dir(C)
+          if _re.fullmatch(r'[KO]_[A-Z_]+', n) and isinstance(getattr(C, n), float)]
+_bad = []
+for _n in sorted(_named):
+    _lit = repr(getattr(C, _n))
+    # Two constants may legitimately share a value; each is allowed exactly
+    # one definition, so the budget is however many names hold that value.
+    _allowed = sum(1 for m in _named if repr(getattr(C, m)) == _lit)
+    _found = len(_re.findall(r'(?<![\w.])' + _re.escape(_lit) + r'(?![\w.])', _src))
+    if _found > _allowed:
+        _bad.append(f"{_n}={_lit} written {_found}x, only {_allowed} definition(s) expected")
+ck(f"no coefficient is also a bare literal ({len(_named)} checked)",
+   not _bad, "; ".join(_bad))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)
