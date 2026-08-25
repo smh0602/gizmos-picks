@@ -1407,6 +1407,95 @@ def collect_record():
 # `results` job captures slot going forward; this recovers the season
 # already played.
 # ----------------------------------------------------------------------
+def collect_scores():
+    """Season-long per-game TEAM RUNS -- the foundation Phase 3 needs.
+
+    WHY THIS EXISTS. Team runs were reconstructable from the hitter logs by
+    summing each player's `r`, and it looked usable. Measured against 90
+    team-games with a real final: it captures 91.0% of runs, mean error
+    -0.378 per team-game, and IT NEVER OVERCOUNTS. That is the signature of
+    a hitter pool that does not contain every batter who scored -- bench
+    bats and callups fall out. A run model fitted on it would sit low, and
+    the bias tracks how much a team uses its bench, which is a slope you
+    would mistake for a finding. So the real scores are pulled instead.
+
+    One call per DATE, not per game: the schedule endpoint carries the score
+    already. That makes this far cheaper than the lineups backfill was.
+    Resumable, like lineups -- a stored date is never re-fetched.
+    """
+    from datetime import date, timedelta
+    path = "data/latest/scores.json.gz"
+    store = {"season": now().year, "days": {}}
+    if os.path.exists(path):
+        store = json.load(gzip.open(path, "rt"))
+    days = store["days"]
+
+    yr = now().year
+    start = date(yr, 3, 1)
+    end = (now() - timedelta(hours=4)).date() - timedelta(days=1)
+    todo = []
+    d = start
+    while d <= end:
+        k = d.isoformat()
+        if k not in days:
+            todo.append(k)
+        d += timedelta(days=1)
+    log(f"scores: {len(days)} dates already stored, {len(todo)} to fetch")
+
+    done = viol = 0
+    for k in todo:
+        try:
+            sched, _ = get(f"{STATS}/schedule?sportId=1&date={k}"
+                           "&fields=dates,games,gamePk,status,detailedState,"
+                           "teams,away,home,team,name,score,isTie,doubleHeader")
+        except Exception as e:
+            log(f"  {k}: schedule {type(e).__name__} -- stopping, will resume")
+            break
+        blocks = sched.get("dates") or []
+        games = blocks[0].get("games", []) if blocks else []
+        rows = []
+        for g in games:
+            if (g.get("status") or {}).get("detailedState") != "Final":
+                continue
+            t = g.get("teams") or {}
+            a, h = t.get("away") or {}, t.get("home") or {}
+            ar, hr = a.get("score"), h.get("score")
+            an = ((a.get("team") or {}).get("name"))
+            hn = ((h.get("team") or {}).get("name"))
+            # DOMAIN CHECK. A Final game has two integer scores, both >= 0.
+            # Anything else is fabricated data and is DROPPED, not coerced.
+            # (`1.3 innings pitched` taught this project that a plausible
+            # shape is not the same thing as a valid value.)
+            if not (isinstance(ar, int) and isinstance(hr, int)
+                    and ar >= 0 and hr >= 0 and an and hn):
+                viol += 1
+                continue
+            rows.append({"gamePk": g.get("gamePk"), "away": an, "home": hn,
+                         "away_r": ar, "home_r": hr})
+        days[k] = rows
+        done += 1
+        if done % 15 == 0:
+            write(path, store, compress=True)
+            log(f"  ... {done}/{len(todo)} dates")
+
+    write(path, store, compress=True)
+    tot = sum(len(v) for v in days.values())
+    runs = sum(r["away_r"] + r["home_r"] for v in days.values() for r in v)
+    log(f"scores: {len(days)} dates, {tot} games, {runs} total runs stored")
+    if viol:
+        log(f"scores: {viol} Final game(s) DROPPED for failing the domain check")
+    if tot:
+        log(f"scores: mean {runs/tot/2:.2f} runs per team-game")
+    # Fail LOUD if the backfill recovered nothing, exactly as lineups does.
+    # A silent empty file would be discovered later as "Phase 3 has no data",
+    # which is the expensive way to learn it.
+    if len(days) > 5 and tot == 0:
+        raise RuntimeError("no finals recovered across many dates -- the schedule "
+                           "endpoint may not expose `score` in this field set; "
+                           "do NOT proceed to a model")
+    return None
+
+
 def collect_lineups():
     from datetime import date, timedelta
     path = "data/latest/lineups.json.gz"
@@ -1482,7 +1571,7 @@ def main():
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
-            "card", "record", "refresh", "lineups")
+            "card", "record", "refresh", "lineups", "scores")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -1519,6 +1608,9 @@ def main():
             left = None
         elif mode == "lineups":
             collect_lineups()
+            left = None
+        elif mode == "scores":
+            collect_scores()
             left = None
         elif mode == "record":
             collect_record()
