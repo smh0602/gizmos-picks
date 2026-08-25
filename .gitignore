@@ -4,3 +4,8 @@ research/*_rows.json
 
 # Local scratch for project-doc merges. Never part of the repo.
 .scratch/
+
+# Python bytecode. Created whenever card.py is imported -- by verify_card.py
+# on the Actions runner, and by any local run. Never repo content.
+__pycache__/
+*.pyc
