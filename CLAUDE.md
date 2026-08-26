@@ -107,7 +107,20 @@ old one, not easier.**
   against a market whose real price is "+1.5 at -182" -- opposite bets, and
   the page would have advertised a bargain that does not exist. ⛔ Never
   compare two prices without first confirming they are the same wager.
-- 🔴 **Total bases and Hits+Runs+RBIs carry NO PROJECTION, deliberately.**
+- 🔴 **TOTAL BASES and H+R+RBI project the player's OWN PER-GAME MEAN,
+  not an inversion.** ~~"carry NO PROJECTION, deliberately"~~ — **changed
+  2026-08-26** on Sam's instruction that every player have one. The bar was
+  not lowered: T34/T35 asked whether an INVERTED projection could reproduce
+  a player's own per-game mean to 0.25, and nothing could. Using the mean
+  itself makes that question moot — it reproduces the mean exactly. What
+  inversion bought was agreement with the confidence beside it, and that
+  was **measured, not assumed**: across 948 real props the mean sits on the
+  losing side of the line in **0.0%** of rows at 80%+ confidence and 1.9%
+  at 70%+, and the board's lowest hitter is 78%. ⚠️ Below ~60% it disagrees
+  often, and that is CORRECT — it is what a bad number looks like.
+  `verify_card.py` RECOMPUTES the mean from the log rather than checking
+  the field exists.
+- ~~🔴 **Total bases and Hits+Runs+RBIs carry NO PROJECTION, deliberately.**~~
   Not an oversight and not a missing feature. T34/T34b/T35, 2026-08-26, bar
   fixed at |mean| < 0.10 and p90 < 0.25 units BEFORE any fit: plain Poisson
   missed by **0.673** at the tail on total bases, a negative binomial by

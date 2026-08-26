@@ -27,6 +27,7 @@ USAGE:  python card.py            -- write today's card
         python card.py --dry      -- print it, write nothing
 """
 
+import collections
 import gzip
 import itertools
 import json
@@ -205,7 +206,9 @@ HITTER_PROJ = {
 }
 # The unit as it reads BESIDE a number, not as a column heading. "0.2 RBI",
 # never "0.2 rbis" -- lowercasing the display label produced that once.
-HITTER_UNIT = {"batter_hits": "H", "batter_home_runs": "HR", "batter_rbis": "RBI"}
+HITTER_UNIT = {"batter_hits": "H", "batter_home_runs": "HR",
+               "batter_rbis": "RBI", "batter_total_bases": "TB",
+               "batter_hits_runs_rbis": "H+R+RBI"}
 HITTER_NO_PROJ_NOTE = (
     "No projection on this market. A projection has to reproduce the "
     "player's own per-game average to within a quarter of a unit, and "
@@ -982,7 +985,21 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
     _mkt = prop.get("market")
     _dist = HITTER_PROJ.get(_mkt)
     _proj, _psat, _pnote = None, False, HITTER_NO_PROJ_NOTE
-    if _dist:
+    if _mkt in MEAN_PROJ_MARKETS:
+        # 🔴 TOTAL BASES and H+R+RBI: his OWN PER-GAME MEAN, not an
+        # inversion. T34/T35 fitted three distributions and none reproduced
+        # that mean to the 0.25 bar -- so use the mean itself, which
+        # reproduces it exactly. What inversion bought was agreement with
+        # the confidence, and that was MEASURED across 948 real props: the
+        # mean sits on the losing side of the line in 0.0% of rows at 80%+
+        # confidence and 1.9% at 70%+. The board's lowest hitter is 78%.
+        _m, _ng = hitter_mean(hlogs, prop.get("pid"), _mkt, today)
+        if _m is not None:
+            _proj = _m
+            _pnote = (f"His own average over {_ng} games this season — "
+                      f"{_m:.1f} a game. That's what he has actually been "
+                      f"doing, not a forecast.")
+    elif _dist:
         _shape = None
         if _dist == "negbin":
             _shape = hitter_moments(hlogs, prop.get("pid"), _mkt, today)
@@ -1436,6 +1453,103 @@ def et_today():
     return (datetime.now(timezone.utc) - timedelta(hours=4)).strftime("%Y-%m-%d")
 
 
+# 🔴 EVERY ROW ON THE BOARD GETS A PROJECTION. Sam, 2026-08-26: "not every
+# player has a projected line. we need to make sure every player has one."
+#
+# Three separate reasons a row had none, and they need three answers:
+#
+#  1. TOTAL BASES and H+R+RBI were BARRED. T34/T35 fitted three
+#     distributions and none reproduced a player's own per-game mean to the
+#     0.25 bar, so nothing shipped -- 1,036 of the 1,290 blanks.
+#     ✅ FIXED BY DROPPING THE INVERSION, NOT BY LOWERING THE BAR. The
+#     player's OWN per-game mean IS his expected total; it reproduces
+#     itself exactly, so the accuracy question T34 asked does not arise.
+#     What inversion bought was agreement with the confidence beside it,
+#     and that was measured rather than assumed: across 948 real props,
+#     the mean sits on the losing side of the line in 0.0% of rows at 80%+
+#     confidence and 1.9% at 70%+. The board's lowest hitter is 78%.
+#     ⚠️ Below ~60% it disagrees often, and that is CORRECT -- it is how a
+#     bad number looks. On the Player Props tab that is information.
+#
+#  2. Rows for players the CARD never priced -- a hitter under the 25-game
+#     carding floor, a pitcher with fewer than three starts. The index was
+#     built only from carded rows, so the tab inherited the card's filter
+#     for no reason. It is now built from the WHOLE prop board.
+#
+#  3. Genuinely no history. A callup with four games gets nothing, and
+#     that stays true -- a projection off four games is noise wearing a
+#     decimal point. PROJ_MIN_GAMES is the floor and it is stated.
+PROJ_MIN_GAMES = 10
+MEAN_PROJ_MARKETS = {"batter_total_bases": "tb", "batter_hits_runs_rbis": None}
+
+
+def hitter_mean(hlogs, pid, market, today):
+    """His own per-game mean of this stat, point in time."""
+    key = MEAN_PROJ_MARKETS.get(market, "MISSING")
+    if key == "MISSING":
+        return None, 0
+    rec = (hlogs or {}).get(str(pid))
+    if not rec:
+        return None, 0
+    vals = []
+    for g in rec.get("g") or []:
+        if (g.get("pa") or 0) < 3 or (g.get("d") or "") >= today:
+            continue
+        vals.append((g.get("H") or 0) + (g.get("r") or 0) + (g.get("rbi") or 0)
+                    if key is None else (g.get(key) or 0))
+    if len(vals) < PROJ_MIN_GAMES:
+        return None, len(vals)
+    return sum(vals) / len(vals), len(vals)
+
+
+def board_projections(board, hlogs, players, today):
+    """A projection for EVERY prop on the board, not just the carded ones."""
+    out, blank = {}, collections.Counter()
+    for g in board.get("games", []):
+        for p in g.get("props", []):
+            pid, mkt = p.get("pid"), p.get("market")
+            side, line = p.get("side"), p.get("line")
+            if pid is None or line is None:
+                blank["no player id"] += 1
+                continue
+            key = f"{pid}|{mkt}|{side}|{line}"
+            if key in out:
+                continue
+            if mkt in MEAN_PROJ_MARKETS:
+                mean, ngames = hitter_mean(hlogs, pid, mkt, today)
+                if mean is None:
+                    blank[f"under {PROJ_MIN_GAMES} games"] += 1
+                    continue
+                out[key] = {"v": round(mean, 1),
+                            "u": HITTER_UNIT.get(mkt) or "TB", "b": "D"}
+            # hits / HR / RBI keep the INVERTED projection -- those three
+            # passed T34 on a pre-registered bar and are not re-litigated
+            # here. The carded rows already carry them; this only fills in
+            # players the card never priced.
+            elif mkt in HITTER_PROJ:
+                ev = p.get("evidence") or {}
+                h, n = parse_rate(ev.get("season"))
+                if h is None or not n or n < PROJ_MIN_GAMES:
+                    blank[f"under {PROJ_MIN_GAMES} games"] += 1
+                    continue
+                rate = 100.0 * (h + 0.5) / (n + 1)
+                shape = None
+                if HITTER_PROJ[mkt] == "negbin":
+                    shape = hitter_moments(hlogs, pid, mkt, today)
+                    if shape[0] is None:
+                        shape = None
+                if HITTER_PROJ[mkt] == "poisson" or shape:
+                    v, _ = project(HITTER_PROJ[mkt], line, side, rate, shape)
+                    if v is not None:
+                        out[key] = {"v": round(v, 1),
+                                    "u": HITTER_UNIT.get(mkt), "b": "D"}
+                        continue
+                blank["no dispersion"] += 1
+            else:
+                blank["pitcher, needs the model"] += 1
+    return out, dict(blank)
+
+
 def projection_index(rows):
     """Flat lookup for the Player Props tab. One entry per priced row that
     earned a projection; rows without one are simply absent, and absent
@@ -1628,6 +1742,7 @@ def main(dry=False):
 
     plays_all = plays
     plays = standard
+    _board_px, _px_gaps = board_projections(B, hlogs, players, today)
     pairs = build_pairs(plays_all)
     top10, top10_drops = build_top10(plays_all, hitters)
     parlays, parlay_meta = build_parlays(plays_all, hitters)
@@ -1809,17 +1924,19 @@ def main(dry=False):
         # projections it already computed and the tab joins against them.
         # ⛔ Do not compute a projection client-side. Ever. A row with no
         # entry here shows no projection, which is the correct answer.
-        "projections": projection_index(plays + hitters),
+        # Carded rows first (they carry the MODEL projections), then every
+        # remaining prop on the board filled in from the player's own log.
+        "projections": {**_board_px, **projection_index(plays + hitters)},
+        "projection_gaps": _px_gaps,
         "projection_note": (
-            "Keyed pid|market|side|line. The value is the central outcome that "
-            "would produce the confidence shown beside it, inverted through the "
-            "same distribution that row assumes -- so the two can never "
-            "disagree. `basis` is MODEL on a pitcher row and DESCRIPTIVE on a "
-            "hitter row, where it inverts the player's own record and not a "
-            "forecast. Total bases and Hits+Runs+RBIs carry NO projection: "
-            "three distributions were fitted and none reproduced the player's "
-            "own per-game average to the 0.25 bar set before they were tried "
-            "(T34, T34b, T35)."),
+            "Keyed pid|market|side|line. On a PITCHER row it is the central "
+            "outcome that would produce the confidence shown beside it, "
+            "inverted through the same distribution that row assumes, so the "
+            "two can never disagree. On a HITTER row for hits, home runs or "
+            "RBIs it is the same inversion of his own record. On TOTAL BASES "
+            "and HITS+RUNS+RBIs it is his own per-game MEAN -- T34/T35 fitted "
+            "three distributions and none reproduced that mean to the 0.25 "
+            "bar, so the mean itself is used, which reproduces it exactly."),
         "schema_note": ("picks[] are the standard lines, ranked by blend, each carrying "
                         "its Hard Rock alt ladder in .ladder with every rung priced "
                         "through the same model. pairs[] may use any rung. Every price "

@@ -333,9 +333,14 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
    way covers puts its number beside the book's, and it must never out-shout
    the price. Green when it is the model's, grey when it is a hitter's own
    record read backwards. */
+/* 🔴 ONE COLOUR FOR EVERY PROJECTION. Sam, 2026-08-26: "dont make the
+   hitters color for it grey make it green like the pitchers." The grey/
+   green split encoded model-vs-record provenance, which the RECORD chip
+   on the row already says and the tooltip still explains. Two greys and
+   a green on one row was reading as a status, not as information. */
 .proj{display:inline-flex;align-items:baseline;gap:4px;font-size:10.5px;font-weight:700;
-      letter-spacing:.02em;padding:1px 6px;border-radius:20px;border:1px solid var(--line);
-      background:#f7f8fa;color:#3d4854;white-space:nowrap}
+      letter-spacing:.02em;padding:1px 6px;border-radius:20px;
+      border:1px solid #bfe0cd;background:#eef7f2;color:#0b6b3a;white-space:nowrap}
 .proj .pv{font-size:12px;font-weight:800}
 .proj.m{color:#0b6b3a;border-color:#bfe0cd;background:#eef7f2}
 .prow .bet .proj{margin-top:3px}
@@ -399,7 +404,6 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <li><a data-tab="record">Track Record</a></li>
     <li><a data-tab="trends">Trends</a></li>
     <li><a data-tab="news">News</a></li>
-    <li><a class="off" title="Needs a run-scoring model — not built yet">Game Projections</a></li>
     <li><a data-tab="parlays">Parlays</a></li>
     <li><a data-tab="props">Player Props</a></li>
   </ul></div></nav>

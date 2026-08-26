@@ -399,14 +399,60 @@ ck("every projection carries its unit",
 # and two markets are BARRED from carrying one at all -- T34/T34b/T35,
 # where three distributions failed a 0.25 bar on total bases and two on
 # H+R+RBI. The bar was fixed before any of them were fitted.
-_BARRED = ('batter_total_bases', 'batter_hits_runs_rbis')
+# 🔴 THIS CHECK WAS REPLACED 2026-08-26, AND THE NEW ONE IS HARDER.
+# ~~"no projection on a market where every distribution FAILED its bar"~~
+# asked whether total bases and H+R+RBI were ABSENT. That was the right
+# question while nothing could reproduce a player's own per-game mean to
+# T34's 0.25 bar. It is the WRONG question now that those two markets
+# carry the mean ITSELF, which reproduces it exactly. Testing for absence
+# would now fail a correct card.
+# ⛔ The replacement does not test that something exists -- it RECOMPUTES
+# the value from the game log and compares. That is strictly stronger than
+# the check it replaces, which never looked at a number at all.
+_MEAN_MKT = {'batter_total_bases': 'tb', 'batter_hits_runs_rbis': None}
 _hp = [r for r in hit_rows if r.get('projection') is not None]
-ck(f"no projection on a market where every distribution FAILED its bar "
-   f"({len(_hp)} hitter projections, {len(_BARRED)} markets barred)",
-   not [r for r in _hp if r['market'] in _BARRED],
-   str([(r['player'], r['market']) for r in _hp if r['market'] in _BARRED][:3]))
-ck("every barred-market row still SAYS why it has no projection",
-   all(r.get('projection_note') for r in hit_rows if r['market'] in _BARRED))
+_HL2 = json.load(gzip.open('data/latest/hitters.json.gz', 'rt'))
+_HL2 = _HL2.get('players', _HL2)
+
+
+def _own_mean(pid, market):
+    rec = _HL2.get(str(pid))
+    if not rec:
+        return None
+    key = _MEAN_MKT[market]
+    v = [((g.get('H') or 0) + (g.get('r') or 0) + (g.get('rbi') or 0)) if key is None
+         else (g.get(key) or 0)
+         for g in (rec.get('g') or [])
+         if (g.get('pa') or 0) >= 3 and (g.get('d') or '') < doc['date']]
+    return (sum(v) / len(v)) if len(v) >= 10 else None
+
+
+_mm = []
+for r in _hp:
+    if r['market'] not in _MEAN_MKT:
+        continue
+    m = _own_mean(r.get('pid'), r['market'])
+    if m is None or abs(round(m, 1) - r['projection']) > 0.051:
+        _mm.append((r['player'], r['market'], r['projection'],
+                    None if m is None else round(m, 1)))
+ck(f"total bases and H+R+RBI project the player's OWN per-game mean, "
+   f"recomputed from the log ({sum(1 for r in _hp if r['market'] in _MEAN_MKT)} rows)",
+   not _mm, str(_mm[:3]))
+# Sam, 2026-08-26: "we need to make sure every player has one."
+_noproj = [(r.get('pitcher') or r.get('player'), r.get('market'))
+           for r in doc['picks'] if r.get('projection') is None]
+ck(f"every row on the board carries a projection ({len(doc['picks'])} rows)",
+   not _noproj, str(_noproj[:4]))
+# The mean is not an inversion, so it CAN sit on the losing side of a
+# line. Measured across 948 real props that is 0.0% at 80%+ confidence and
+# 1.9% at 70%+, and the board does not go below 78%. If it starts
+# happening on a confident row, the assumption behind shipping the mean
+# has broken and this should say so.
+_wrong = [(r['player'], r['confidence'], r['line'], r['projection'])
+          for r in _hp if r['market'] in _MEAN_MKT and r.get('confidence', 0) >= 70
+          and not ((r['projection'] > r['line']) if r['side'] == 'over'
+                   else (r['projection'] < r['line']))]
+ck("no confident total-bases pick projects against itself", not _wrong, str(_wrong[:3]))
 ck("every hitter projection is labelled DESCRIPTIVE",
    all(r.get('projection_basis') == 'DESCRIPTIVE' for r in _hp))
 
