@@ -31,6 +31,7 @@ import gzip
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -400,7 +401,48 @@ def build_board(games):
 # 28, and we cannot yet model most of these markets — so we store
 # everything and decide what mattered later.
 # ----------------------------------------------------------------------
-def collect_props(kind):
+# 🔴 THE FRESHNESS GUARD, AND WHY A BACKUP CRON IS FREE.
+# GitHub drops scheduled runs under load -- measured 2026-08-26 across the
+# archive, only 29 of 70 scheduled gamelines hour-slots produced a file.
+# Gamelines survives that: losing some of 21 hourly pulls costs resolution,
+# not the board. PROPS DO NOT: there are three pulls a day, so one dropped
+# run is a third of the day's freshness.
+#
+# So every props pull is scheduled TWICE, fifteen minutes apart, and this
+# guard makes the second one free. If a pull for the same STORAGE DIR
+# already landed inside the window, the backup exits without spending a
+# credit. It only costs anything on the days the primary was dropped --
+# which is the only day you wanted it.
+#
+# ⛔ The guard keys on the storage directory, NOT on the region. A cheap
+# `us2` backup must see a full `us,us2` primary and stand down; otherwise
+# the backup would re-buy a board we already have.
+PROPS_FRESH_MIN = 45
+
+
+def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
+    """True when a pull for this kind already landed inside the window."""
+    d = daydir("props-" + kind)
+    if not os.path.isdir(d):
+        return False
+    newest = 0.0
+    for f in os.listdir(d):
+        p = os.path.join(d, f)
+        try:
+            newest = max(newest, os.path.getmtime(p))
+        except OSError:
+            continue
+    if not newest:
+        return False
+    age = (time.time() - newest) / 60.0
+    if age <= minutes:
+        log(f"props-{kind}: a pull landed {age:.0f} min ago (window "
+            f"{minutes} min). Standing down, NOTHING SPENT.")
+        return True
+    return False
+
+
+def collect_props(kind, regions=None):
     if kind == "pitcher":
         # 🔴 Hard Rock ONLY. Sam, 2026-08-22: "i onlt want to see hardrock
         # odds from now on for all props". Enforced at the REQUEST, not at
@@ -408,12 +450,23 @@ def collect_props(kind):
         # reach a card. us2 still returns espnbet, fliff, betparx, ballybet
         # and hardrockbet_oh in the same response, so the distinct-price
         # check (ledger rule 47) keeps its comparison set for free.
-        markets, regions = PITCHER_MARKETS, REGIONS_FULL
+        markets = PITCHER_MARKETS
     else:
         # Hitter props are banked for a model we have not built yet.
         # One book is enough to backtest against; fifteen is paying for
         # precision we cannot currently interpret.
-        markets, regions = BATTER_MARKETS, REGIONS_FULL
+        markets = BATTER_MARKETS
+
+    # 🔴 THE REGION IS THE PRICE. Cost is markets x REGIONS x games, and
+    # BOOKS ARE FREE INSIDE A REGION -- one `us,us2` pull returned 18 books
+    # for 6 credits (measured 2026-08-26). So narrowing the BOOK list saves
+    # nothing; only dropping a region does. `us2` is Hard Rock's region and
+    # halves the pull; `us,us2` adds DraftKings, FanDuel, BetMGM and
+    # Caesars, which is what best-price shopping needs.
+    regions = regions or REGIONS_FULL
+
+    if props_is_fresh(kind):
+        return None
 
     events, used, left = odds_get(f"/sports/{SPORT}/events", {})
     log(f"{len(events)} events on the board; {left} credits before props")
@@ -1859,9 +1912,16 @@ def main():
         if mode == "gamelines":
             left = collect_gamelines()
         elif mode == "props-pitcher":
-            left = collect_props("pitcher")
+            left = collect_props("pitcher", REGIONS_FULL)
         elif mode == "props-batter":
-            left = collect_props("batter")
+            left = collect_props("batter", REGIONS_FULL)
+        # The cheap refreshes. Hard Rock's region only, half the price.
+        # Same storage directory as the full pull -- the stored file
+        # records which regions it used, so the two never get confused.
+        elif mode == "props-pitcher-hr":
+            left = collect_props("pitcher", REGIONS_CHEAP)
+        elif mode == "props-batter-hr":
+            left = collect_props("batter", REGIONS_CHEAP)
         elif mode == "schedule":
             left = collect_schedule()
         elif mode == "results":

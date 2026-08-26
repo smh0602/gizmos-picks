@@ -2084,21 +2084,47 @@ $('#filt').addEventListener('change', renderScores);
      are re-fetched less often -- the collector only rewrites them every
      half hour, so polling harder just burns bandwidth. Re-rendering the
      ACTIVE tab is what retires a game the moment its first pitch passes. */
-  setInterval(() => { if (TAB === 'scores') renderScores(); }, 45000);
+  /* 🔴 A TIMER MUST NEVER MOVE THE PAGE UNDER SOMEONE'S HANDS.
+     Every one of these intervals re-renders the open tab by replacing
+     #view wholesale, which resets the scroll to the top. Sam, 2026-08-26:
+     "when i am in certain tabs scrolling down a page every minute or so
+     im sent back to the top of the page ... this is annoying as hell".
+     He is right, and on a 3,000-row props board it makes the tab unusable.
+
+     Two rules now hold for every timed re-render:
+       1. NEVER while a box score is open -- ripping the page out from
+          under a modal is worse than being one minute stale.
+       2. The scroll position is restored afterwards, clamped to the new
+          height in case the board got shorter (a game started and its
+          rows retired). */
+  function tick(fn){
+    if (document.querySelector('.ovl')) return;      // modal open, leave it alone
+    const y = window.scrollY;
+    fn();
+    requestAnimationFrame(() => {
+      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      if (y > 0) window.scrollTo(0, Math.min(y, max));
+    });
+  }
+
+  setInterval(() => { if (TAB === 'scores') tick(renderScores); }, 45000);
 
   setInterval(async () => {
+    if (document.querySelector('.ovl')) return;
     await loadBoard();
     PROPS = null;                    // force a re-read on next props render
+    PROJ = null;                     // and the projection index with it
     const again = {scores: renderScores, odds: renderOdds, trends: renderTrends,
-                   props: renderProps, picks: renderPicks};
-    if (again[TAB]) again[TAB]();
+                   props: renderProps, picks: renderPicks, parlays: renderParlays};
+    if (again[TAB]) tick(again[TAB]);
   }, 180000);
 
   /* Even with no new data, a game crossing its first pitch has to drop off.
      Cheap re-render of whichever board tab is open. */
   setInterval(() => {
-    const boards = {odds: renderOdds, trends: renderTrends, props: renderProps, picks: renderPicks};
-    if (boards[TAB]) boards[TAB]();
+    const boards = {odds: renderOdds, trends: renderTrends, props: renderProps,
+                    picks: renderPicks, parlays: renderParlays};
+    if (boards[TAB]) tick(boards[TAB]);
   }, 60000);
 })();
 </script>
