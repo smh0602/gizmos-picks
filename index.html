@@ -54,6 +54,7 @@ input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line
 .date{font-size:11px;color:var(--mut)}
 .livebadge{display:inline-block;background:var(--live);color:#fff;font-size:10px;font-weight:800;
   letter-spacing:.06em;padding:2px 7px;border-radius:4px}
+.warmbadge{display:inline-block;background:#8a6d1f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 7px;border-radius:999px;text-transform:uppercase;margin-bottom:2px}
 .sc{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
 .inn{font-size:11px;color:var(--mut);font-weight:600;margin-top:2px}
 .win{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -285,6 +286,16 @@ body{padding-bottom:44px}
 .prow .who .nm2{font-weight:700;font-size:13.5px}
 .prow .who .tm2{font-size:11px;color:var(--mut);display:flex;align-items:center;gap:5px;margin-top:2px}
 .prow .bet{min-width:132px;flex:0 0 auto}
+/* PROJECTION. Deliberately small and grey -- it sits BESIDE the line, the
+   way covers puts its number beside the book's, and it must never out-shout
+   the price. Green when it is the model's, grey when it is a hitter's own
+   record read backwards. */
+.proj{display:inline-flex;align-items:baseline;gap:4px;font-size:10.5px;font-weight:700;
+      letter-spacing:.02em;padding:1px 6px;border-radius:20px;border:1px solid var(--line);
+      background:#f7f8fa;color:#3d4854;white-space:nowrap}
+.proj .pv{font-size:12px;font-weight:800}
+.proj.m{color:#0b6b3a;border-color:#bfe0cd;background:#eef7f2}
+.prow .bet .proj{margin-top:3px}
 .prow .bet .ln{font-weight:800;font-size:13.5px}
 .prow .bet .mk{font-size:11px;color:var(--mut)}
 .prow .pr2{min-width:104px;flex:0 0 auto;text-align:center}
@@ -747,10 +758,35 @@ const boardFor = (away, home, isoDate) =>
     g.away === away && g.home === home &&
     (!isoDate || g.commence.slice(0,10) === isoDate)) || null;
 
+/* 🔴 A GAME IS NOT LIVE JUST BECAUSE MLB SAYS `abstractGameState === "Live"`.
+   MLB flips that flag at WARMUP -- roughly 20 minutes before first pitch --
+   and during warmup the linescore ALSO reads `currentInning: 1, inningState:
+   "Top"`, so the score block looks live too. Measured 2026-08-25 across the
+   stored schedule snapshots: 19 ('Live','In Progress') against 4
+   ('Live','Warmup'). The page was showing all 23 as LIVE.
+   `detailedState` is the only field that separates them. */
+/* ⚠️ ENUMERATE THE *NOT-LIVE* STATES, NOT THE LIVE ONES.
+   The first version of this fix whitelisted the in-game states and got it
+   wrong immediately: `Player challenge` is a mid-game replay review and was
+   being mislabelled as warmup. MLB has many in-game strings (challenges,
+   reviews, equipment delays) and any whitelist will keep missing one, so a
+   miss must fail toward LIVE -- which is the truth for everything except a
+   short, well-known list of pre-game states. */
+const NOT_LIVE = /^(Warmup|Pre-Game|Pregame|Scheduled|Delayed Start|Postponed|Cancelled|Canceled)/i;
+function gameState(g){
+  const st = g.status || {}, abs = st.abstractGameState, dt = st.detailedState || '';
+  if (abs === 'Final') return 'final';
+  if (abs !== 'Live')  return 'pre';
+  if (/^(Delayed Start|Postponed|Cancelled|Canceled)/i.test(dt)) return 'pre';
+  if (NOT_LIVE.test(dt)) return 'warmup';
+  return 'live';       // In Progress, challenges, reviews, in-game delays
+}
+
 function gameCard(g){
   const away = g.teams.away.team.name, home = g.teams.home.team.name;
-  const st = g.status || {}, abs = st.abstractGameState;
-  const live = abs === 'Live', fin = abs === 'Final';
+  const st = g.status || {};
+  const gs = gameState(g);
+  const live = gs === 'live', fin = gs === 'final', warm = gs === 'warmup';
   const ls = g.linescore || {};
   const b = boardFor(away, home, (g.gameDate||'').slice(0,10));
   const c = el('div','g clickable');
@@ -784,6 +820,7 @@ function gameCard(g){
     L.prepend(el('div','win', String(a))); R.prepend(el('div','win', String(h)));
   } else {
     const t = new Date(g.gameDate);
+    if (warm) M.append(el('div','warmbadge', st.detailedState || 'WARMUP'));
     M.append(el('div','date', t.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'})));
     M.append(el('div','time', t.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})));
     if (b){
@@ -1004,8 +1041,8 @@ async function renderScores(){
   let games = (data.dates||[]).flatMap(x => x.games||[]);
   const f = $('#filt').value;
   if (f !== 'all') games = games.filter(g => {
-    const a = (g.status||{}).abstractGameState;
-    return f==='live' ? a==='Live' : f==='pre' ? a==='Preview' : a==='Final';
+    const gs = gameState(g);          // warmup counts as PRE, not LIVE
+    return f==='live' ? gs==='live' : f==='pre' ? (gs==='pre'||gs==='warmup') : gs==='final';
   });
   games.sort((a,b) => new Date(a.gameDate) - new Date(b.gameDate));
 
@@ -1020,12 +1057,47 @@ async function renderScores(){
   games.forEach(g => grid.append(gameCard(g)));
   v.append(grid);
 
-  const n = games.length, liveN = games.filter(g => (g.status||{}).abstractGameState==='Live').length;
+  const n = games.length, liveN = games.filter(g => gameState(g)==='live').length;
   $('#stamp').innerHTML = (liveN ? `<span class="dot"></span>${liveN} live · ` : '') +
     `${n} games` + (BOARD ? ` · odds ${freshness(BOARD.pulled_at)}` : ' · no odds file yet');
 }
 
 const confClass = c => c >= 70 ? 'c-hi' : c >= 60 ? 'c-mid' : 'c-lo';
+
+/* 🔴 THE PROJECTION IS NEVER COMPUTED HERE. It is inverted from the row's
+   own confidence inside card.py, using the same distribution that row
+   assumes, so the two can never disagree. Reimplementing that inversion in
+   JavaScript would create a second copy of the model, and this project has
+   a documented history of two copies of one number drifting apart. This
+   function FORMATS a number card.py already produced. Nothing more.
+   ⛔ If there is no projection, render nothing. An absent projection means
+   no distribution earned the right to give one -- it does not mean guess. */
+function projChip(v, unit, basis, title){
+  if (v == null) return '';
+  const model = basis === 'MODEL' || basis === 'M';
+  const t = title || (model
+    ? 'Gizmo\u2019s projection \u2014 the outcome that would produce the confidence '
+      + 'shown beside it, under the same distribution the model already assumes.'
+    : 'DESCRIPTIVE \u2014 this inverts the player\u2019s own record, not a forecast. '
+      + 'There is no hitter model in this project.');
+  /* ALWAYS one decimal. JSON turns 1.0 into 1, and "PROJ 1 H" next to a
+     line of 1.5 reads like a different kind of number than "PROJ 1.0 H". */
+  const shown = (typeof v === 'number') ? v.toFixed(1) : v;
+  return `<span class="proj ${model ? 'm' : ''}" title="${t.replace(/"/g,'&quot;')}">`
+       + `PROJ <span class="pv">${shown}</span>${unit ? ' ' + unit : ''}</span>`;
+}
+
+/* The Player Props tab renders from props.json.gz, which has no model in
+   it. The projections live on the published card, so the tab joins against
+   them. Loaded once, and a miss is not an error -- it just means no card
+   has been published for today yet, and no projections are shown. */
+let PROJ = null;
+async function loadProjections(){
+  if (PROJ) return PROJ;
+  try { PROJ = (await jget(`picks/${todayET()}.json`)).projections || {}; }
+  catch(e){ PROJ = {}; }
+  return PROJ;
+}
 const playName = p => {
   const s = p.side === 'over' ? 'Over' : 'Under';
   const m = p.market === 'strikeouts' ? 'K' : 'Outs';
@@ -1059,6 +1131,8 @@ function pickCard(p){
              : (p.market === 'strikeouts' ? 'K' : 'Outs');
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
   t.append(el('div','play', `${who} — ${sideWord} ${p.line} ${unit}`
+    + '&nbsp;' + projChip(p.projection, p.projection_unit, p.projection_basis,
+                          p.projection_note)
     + (p.band ? `<span class="bandchip ${bc}" title="${p.band_note||''}">${p.band}</span>` : '')
     + (isH
         ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">RECORD &mdash; no model</span>`
@@ -1657,6 +1731,8 @@ async function renderProps(){
     }
   }
 
+  await loadProjections();
+
   const all = PROPS.games || [];
   const nStarted = all.filter(hasStarted).length;
   const games = showStarted ? all : all.filter(g => !hasStarted(g));
@@ -1685,6 +1761,8 @@ async function renderProps(){
       <div class="bet">
         <div class="ln">${p.side === 'over' ? 'Over' : 'Under'} ${p.line}</div>
         <div class="mk">${MKLABEL[p.market] || p.market}</div>
+        ${(() => { const j = (PROJ||{})[`${p.pid}|${p.market}|${p.side}|${p.line}`];
+                   return j ? projChip(j.v, j.u, j.b) : ''; })()}
       </div>
       <div class="pr2"><div class="v2">${sgn(p.price)}</div>${bookChip(p.book)}
         ${(() => { const u = betLink(p.link); return u
@@ -1727,7 +1805,15 @@ async function renderProps(){
     <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>
     <div class="note"><b>These are the books' prices and each player's own record — nothing more.</b>
       There is no hitter model in this project yet, so no pick here carries a Gizmo's confidence rating.
-      The percentages on the right are the market's, with the house margin removed.</div>`;
+      The percentages on the right are the market's, with the house margin removed.
+      <br><br><b>About the PROJ number.</b> It is the outcome that would produce the confidence
+      on that row, read back through the same distribution the row assumes — so a projection can
+      never argue with the pick beside it. Green means it came from the model (pitchers).
+      Grey means it inverts the player's own record and is <b>descriptive, not a forecast</b>.
+      <b>Total bases and Hits+Runs+RBIs carry no projection at all.</b> Three distributions were
+      fitted and none of them reproduced a player's real per-game average to the quarter-unit bar
+      set before any were tried — a Poisson misses by 0.67 bases at the tail. A precise-looking
+      number that wrong is worse than no number, so there is no number.</div>`;
 
   const tg = $('#pf-started');
   if (tg) tg.addEventListener('click', () => {

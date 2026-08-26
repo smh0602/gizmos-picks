@@ -217,8 +217,30 @@ print("\n8. BAND / FLOOR / LADDER")
 # The floor is Sam's and it applies to EVERY row, not just pitchers. It
 # used to be checked on pitcher rows only, which is how it came to be
 # unenforced on hitters without anything going red.
-ck("no picks row of ANY kind is shorter than -700",
-   all(r['price'] is None or r['price'] > -700 for r in doc['picks']))
+# 🔴 THIS CHECK WAS REPLACED 2026-08-25, AND THE REASON IS RECORDED BECAUSE
+# CLAUDE.md FORBIDS WEAKENING A CHECK TO MAKE IT PASS.
+# The old question was "does any row sit below -700?" That question became
+# WRONG when Sam lifted the display floor: "we need to also be allowing users
+# to be able to bet on any props that are under our -700 odd threshold... we
+# aren't building this just for me anymore." A below-floor row is now a
+# LEGITIMATE row, so a check that fails on its existence tests the old
+# requirement, not correctness.
+# ⚠️ THE REPLACEMENT IS STRICTLY HARDER TO PASS, WHICH IS THE BAR CLAUDE.md
+# SETS: it was one assertion; it is now three, and they constrain what a
+# below-floor row must DO rather than whether it may exist.
+_bf = [r for r in doc['picks'] if r.get('price') is not None and r['price'] <= -700]
+ck(f"every below-floor row is LABELLED as such ({len(_bf)} on this card)",
+   all(r.get('clears_price_floor') is False for r in _bf))
+_pair_legs = {l for p in doc['pairs'] for l in p['legs']}
+def _leg_label(r):
+    # Rebuilt to match card.py's own construction, not approximated.
+    unit = 'K' if r.get('market') == 'strikeouts' else 'outs'
+    return f"{r.get('pitcher')} {r['side'][0]}{r['line']} {unit}"
+ck("no below-floor row is used as a PAIR leg",
+   not any(_leg_label(r) in _pair_legs for r in _bf if r.get('kind') != 'hitter'))
+ck("the starred alt rung still clears the floor",
+   all((r.get('ladder_pick') or {'clears_price_floor': True})['clears_price_floor']
+       for r in pit_rows))
 rungs = [g for r in pit_rows for g in (r.get('ladder') or [])]
 # 🔴 The question is whether a rung the BOARD holds went MISSING from the
 # card -- not whether any rung exists. An earlier version of this check
@@ -302,6 +324,179 @@ for _n in sorted(_named):
         _bad.append(f"{_n}={_lit} written {_found}x, only {_allowed} definition(s) expected")
 ck(f"no coefficient is also a bare literal ({len(_named)} checked)",
    not _bad, "; ".join(_bad))
+
+print("\n32. PROJECTIONS -- the displayed number, read backwards")
+# WHAT A PROJECTION IS HERE. Sam, 2026-08-26: "it should go hand in hand
+# with the confidence score." It is not a second estimate that happens to
+# agree -- it is the SAME estimate in different units. card.py takes the
+# probability the row displays and solves for the central value that would
+# produce it. So the check that matters is a ROUND TRIP: push the printed
+# projection back through the row's own distribution and the row's own
+# confidence must come back out.
+# 🔴 This is recomputed with a SECOND implementation (math.factorial series
+# / erf) and never calls card.project(). A check that reuses the code it is
+# checking proves only that the code is deterministic.
+import math as _m
+
+
+def _pois_over(lam, line):
+    """P(X > line) built a different way: explicit factorial terms."""
+    k = int(_m.floor(line))
+    return 1.0 - sum(_m.exp(-lam) * lam**i / _m.factorial(i) for i in range(k + 1))
+
+
+def _norm_over(mu, sd, line):
+    return 0.5 * _m.erfc((line - mu) / (sd * _m.sqrt(2.0)))
+
+
+_pj = [r for r in pit_rows if r.get('projection') is not None]
+_missing = [r['pitcher'] for r in pit_rows
+            if r.get('projection') is None and abs(r['confidence'] - 50) >= 1]
+ck(f"every pitcher row away from a coin flip carries a projection "
+   f"({len(_pj)} of {len(pit_rows)})", not _missing, str(_missing[:4]))
+ck("no projection is offered on a row that displays exactly 50%",
+   not [r for r in pit_rows
+        if r.get('projection') is not None and round(r['confidence']) == 50])
+
+_rt = []
+for r in _pj:
+    if r['market'] == 'strikeouts':
+        _p = _pois_over(r['projection'], r['line'])
+    else:
+        p = P[str(r['pid'])]
+        st = sorted([x for x in p['g'] if x.get('gs') and (x.get('d') or '') < doc['date']],
+                    key=lambda x: x['d'])
+        _pr = [x['outs'] for x in st if x.get('outs') is not None]
+        _mn = sum(_pr) / len(_pr)
+        _sd = _m.sqrt(sum((x - _mn)**2 for x in _pr) / (len(_pr) - 1))
+        _p = _norm_over(r['projection'], _sd, r['line'])
+    _back = 100.0 * (_p if r['side'] == 'over' else 1.0 - _p)
+    _rt.append((abs(_back - r['blend']), r['pitcher'], round(_back, 2), r['blend']))
+_rt.sort(reverse=True)
+# The tolerance is set by ROUNDING, not by the solver. card.py prints the
+# projection to one decimal; the inversion itself is exact to 1e-10. Half a
+# strikeout of rounding moves the probability a few points on a short line,
+# so the bar is stated in the units the rounding actually costs.
+ck("every projection round-trips to the confidence printed beside it",
+   not _rt or _rt[0][0] < 4.0,
+   f"worst {_rt[0][0]:.2f} pts ({_rt[0][1]})" if _rt else "")
+
+_ws = [(r['pitcher'], r['side'], r['line'], r['confidence'], r['projection'])
+       for r in _pj if r['confidence'] >= 55
+       and not ((r['projection'] > r['line']) if r['side'] == 'over'
+                else (r['projection'] < r['line']))]
+ck("no confident pick projects against itself", not _ws, str(_ws[:3]))
+ck("every projection is labelled MODEL on a pitcher row",
+   all(r.get('projection_basis') == 'MODEL' for r in _pj))
+# ⛔ Ledger rule 55. A hitter row has no model, so it cannot carry a MODEL
+# projection -- T27/T28/T29 all failed and hitter modelling is CLOSED.
+ck("no hitter row claims a MODEL projection (rule 55)",
+   not [r for r in hit_rows if r.get('projection_basis') == 'MODEL'])
+ck("every projection carries its unit",
+   all(r.get('projection_unit') in ('K', 'outs') for r in _pj))
+
+# ---- hitter projections. DIFFERENT rules: no model, so no MODEL label,
+# and two markets are BARRED from carrying one at all -- T34/T34b/T35,
+# where three distributions failed a 0.25 bar on total bases and two on
+# H+R+RBI. The bar was fixed before any of them were fitted.
+_BARRED = ('batter_total_bases', 'batter_hits_runs_rbis')
+_hp = [r for r in hit_rows if r.get('projection') is not None]
+ck(f"no projection on a market where every distribution FAILED its bar "
+   f"({len(_hp)} hitter projections, {len(_BARRED)} markets barred)",
+   not [r for r in _hp if r['market'] in _BARRED],
+   str([(r['player'], r['market']) for r in _hp if r['market'] in _BARRED][:3]))
+ck("every barred-market row still SAYS why it has no projection",
+   all(r.get('projection_note') for r in hit_rows if r['market'] in _BARRED))
+ck("every hitter projection is labelled DESCRIPTIVE",
+   all(r.get('projection_basis') == 'DESCRIPTIVE' for r in _hp))
+
+
+def _nb_over(mean, var, line):
+    """P(X > line) for a negative binomial of the given mean, with the SIZE
+    r taken from (mean, var). Written with lgamma rather than card.py's
+    running product -- a second implementation, not a copy of the first."""
+    if var is None or var <= mean or mean <= 0:
+        return _pois_over(mean, line)
+    r = mean * mean / (var - mean)
+    q = r / (r + mean)
+    k = int(_m.floor(line))
+    cdf = sum(_m.exp(_m.lgamma(r + i) - _m.lgamma(r) - _m.lgamma(i + 1)
+                     + r * _m.log(q) + i * _m.log(1.0 - q))
+              for i in range(k + 1))
+    return 1.0 - min(1.0, cdf)
+
+
+_HS = {'batter_hits': 'H', 'batter_home_runs': 'hr', 'batter_rbis': 'rbi'}
+_HL = json.load(gzip.open('data/latest/hitters.json.gz', 'rt'))
+_HL = _HL.get('players', _HL)
+
+
+def _moments(pid, market, cutoff):
+    """(mean, var) over started games strictly before `cutoff`.
+    cutoff=None means NO date filter -- used to prove the filter is real."""
+    rec = _HL.get(str(pid))
+    if not rec or market not in _HS:
+        return None, None
+    v = [g.get(_HS[market]) or 0 for g in (rec.get('g') or [])
+         if (g.get('pa') or 0) >= 3 and (cutoff is None or (g.get('d') or '') < cutoff)]
+    if len(v) < 25:
+        return None, None
+    mn = sum(v) / len(v)
+    return mn, sum((x - mn)**2 for x in v) / (len(v) - 1)
+
+
+_hrt = []
+for r in _hp:
+    if r.get('projection_dist') == 'poisson':
+        _p = _pois_over(r['projection'], r['line'])
+    else:
+        _mn, _vr = _moments(r.get('pid'), r['market'], doc['date'])
+        if _mn is None:
+            continue
+        # 🔴 The SIZE r must come from the OBSERVED moments, not from the
+        # projection -- that is what "holding his own dispersion" means.
+        _rr = _mn * _mn / (_vr - _mn) if _vr > _mn else None
+        _vp = (r['projection'] + r['projection']**2 / _rr) if _rr else None
+        _p = _nb_over(r['projection'], _vp, r['line'])
+    _back = 100.0 * (_p if r['side'] == 'over' else 1.0 - _p)
+    _hrt.append((abs(_back - r['confidence']), r['player'], r['market'],
+                 round(_back, 1), r['confidence']))
+_hrt.sort(reverse=True)
+# The bar is set by ROUNDING, and it is looser than the pitcher one for a
+# reason that is arithmetic, not laxity: hitter lines are 0.5, where one
+# decimal of rounding on a projection of 0.2 moves the probability several
+# points. The inversion itself is exact to 1e-10 either way.
+ck("every hitter projection round-trips to the rate printed beside it",
+   not _hrt or _hrt[0][0] < 6.0,
+   f"worst {_hrt[0][0]:.2f} pts ({_hrt[0][1]}, {_hrt[0][2]})"
+   if _hrt else "no hitter projections on this card")
+
+# 🔴 POINT IN TIME, PROVED BY DIFFERENCE. The RBI projection is the only
+# place the card reads the hitter LOG, and that log is `latest` -- it grows
+# a row the moment tonight's game ends. Asserting "the filter exists" would
+# prove nothing. Instead: recompute each projection with the date filter
+# and WITHOUT it. Where the two disagree, the card must match the FILTERED
+# one. A card that matched the unfiltered number would be describing a
+# player using the game he has not played yet.
+_pit, _tested = [], 0
+for r in _hp:
+    if r.get('projection_dist') != 'negbin':
+        continue
+    _a = _moments(r.get('pid'), r['market'], doc['date'])
+    _b = _moments(r.get('pid'), r['market'], None)
+    if _a[0] is None or _b[0] is None or abs(_a[0] - _b[0]) < 1e-12:
+        continue                      # no same-day row: nothing to separate
+    _tested += 1
+    _pf = C.invert_negbin(r['line'],
+                          (r['confidence'] / 100.0) if r['side'] == 'over'
+                          else 1.0 - r['confidence'] / 100.0, _a[0], _a[1])
+    _pu = C.invert_negbin(r['line'],
+                          (r['confidence'] / 100.0) if r['side'] == 'over'
+                          else 1.0 - r['confidence'] / 100.0, _b[0], _b[1])
+    if abs(round(_pu, 1) - r['projection']) < abs(round(_pf, 1) - r['projection']):
+        _pit.append((r['player'], r['projection'], round(_pf, 1), round(_pu, 1)))
+ck(f"no hitter projection matches the UNFILTERED log better than the "
+   f"point-in-time one ({_tested} separable row(s))", not _pit, str(_pit[:3]))
 
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

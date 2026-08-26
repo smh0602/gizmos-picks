@@ -104,6 +104,153 @@ def norm_cdf(x, mu, sd):
     return 0.5 * (1.0 + math.erf((x - mu) / (sd * math.sqrt(2.0))))
 
 
+# ------------------------------------------------------------- projection
+# 🔴 A PROJECTION IS AN INVERSION OF THE DISPLAYED NUMBER, NOT A SECOND
+# ESTIMATE. Sam, 2026-08-26: "it should go hand in hand with the confidence
+# score." If a projection were computed independently it could contradict
+# the row it sits next to -- an 85% OVER 5.5 printed beside a 5.2 K
+# projection, which reads as a bug to anyone who can subtract. So it is not
+# computed independently: take the probability the card ALREADY displays and
+# solve for the central value that WOULD produce it, under the SAME
+# distribution the row already assumed. One number in, one number out,
+# consistent by construction.
+#
+# ⛔ Do not "improve" this by printing E[K] (`central`) instead. `central`
+# is the MODEL half of a 50/50 blend; `blend` is what the card shows, and
+# the two disagree BY DESIGN. Measured 2026-08-26 on the published cards:
+# mean gap between the inverted projection and the model's own E[K] was
+# +0.06 K, 0 of 43 plays diverged by 2 or more -- so the choice costs
+# almost nothing in accuracy and buys the consistency guarantee outright.
+PROJ_P_MIN, PROJ_P_MAX = 0.001, 0.999
+
+
+def invert_poisson(line, p_over, lo=0.01, hi=40.0, tol=1e-10):
+    """The lam whose P(X > line) equals p_over. Monotone in lam, so bisect."""
+    k = int(math.floor(line))
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if (1.0 - pois_cdf(mid, k)) < p_over:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < tol:
+            break
+    return 0.5 * (lo + hi)
+
+
+def invert_normal(line, sd, p_over, lo=-10.0, hi=60.0, tol=1e-10):
+    """The mu whose P(X > line) equals p_over, at fixed sd."""
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if (1.0 - norm_cdf(line, mid, sd)) < p_over:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < tol:
+            break
+    return 0.5 * (lo + hi)
+
+
+def invert_negbin(line, p_over, mean_obs, var_obs, lo=1e-4, hi=40.0):
+    """The NB mean whose P(X > line) equals p_over, holding the DISPERSION
+    the player actually showed. Falls back to Poisson only when the sample
+    is not overdispersed, which is the case Poisson already fits.
+
+    ⚠️ RBIs need this and hits do not. T34, 2026-08-26: RBI failed Poisson
+    at p90 0.299 and passed NB at 0.117. A three-run homer is one swing,
+    so RBI is lumpier than its mean suggests."""
+    if not var_obs or not mean_obs or var_obs <= mean_obs or mean_obs <= 0:
+        return invert_poisson(line, p_over)
+    r = mean_obs * mean_obs / (var_obs - mean_obs)      # NB size, held fixed
+    k = int(math.floor(line))
+
+    def sf(m):
+        q = r / (r + m)
+        term = q ** r
+        cdf = term
+        for i in range(1, k + 1):
+            term *= (r + i - 1) / i * (1 - q)
+            cdf += term
+        return 1.0 - min(1.0, cdf)
+
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if sf(mid) < p_over:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 1e-10:
+            break
+    return 0.5 * (lo + hi)
+
+
+# 🔴 WHICH HITTER MARKETS MAY CARRY A PROJECTION -- and which may not.
+# T34/T34b/T35, 2026-08-26, bar fixed before any fit: the implied central
+# value must reproduce the player's observed per-game mean to within 0.10
+# on the mean AND 0.25 at the 90th percentile, in the market's own units.
+#   hits        Poisson   p90 0.202  PASS
+#   home runs   Poisson   p90 0.022  PASS
+#   RBIs        NegBin    p90 0.117  PASS   (Poisson failed at 0.299)
+#   total bases  --  Poisson 0.673, NegBin 0.350, compound Poisson 0.287
+#                    ALL FAIL. No projection.
+#   H+R+RBI      --  Poisson 0.696, NegBin 0.356, own mean 96.95% on-side
+#                    ALL FAIL. No projection.
+# ⛔ Three attempts have failed on total bases. A fourth does not get an
+# easier bar. Do not add one without a NEW pre-registered test at 0.25.
+HITTER_PROJ = {
+    "batter_hits": "poisson",
+    "batter_home_runs": "poisson",
+    "batter_rbis": "negbin",
+}
+# The unit as it reads BESIDE a number, not as a column heading. "0.2 RBI",
+# never "0.2 rbis" -- lowercasing the display label produced that once.
+HITTER_UNIT = {"batter_hits": "H", "batter_home_runs": "HR", "batter_rbis": "RBI"}
+HITTER_NO_PROJ_NOTE = (
+    "No projection on this market. A projection has to reproduce the "
+    "player's own per-game average to within a quarter of a unit, and "
+    "nothing does here — plain Poisson misses by 0.67, a negative binomial "
+    "by 0.35, a compound Poisson by 0.29, against a 0.25 bar fixed before "
+    "any of them were fitted. The confidence number beside it is his real "
+    "record and stands on its own; a precise-looking projection that is "
+    "wrong two-thirds of a base at the tail would not.")
+
+
+def project(dist, line, side, conf_pct, sd=None):
+    """`conf_pct` is the probability THE ROW DISPLAYS, for the side it picked.
+
+    Returns (value, saturated). `saturated` is True when the confidence had
+    to be clamped to invert at all -- at that point the projection is a
+    floor or a ceiling, not a point estimate, and the row must say so."""
+    if conf_pct is None or line is None:
+        return None, False
+    # 🔴 NO PROJECTION ON A COIN FLIP. At a displayed 50% there is no
+    # direction to project, and the Poisson's discreteness makes the answer
+    # actively misleading: P(X > 2.5) = 0.5 needs lam = 2.67, so an UNDER
+    # 2.5 at 50% would print a projection ABOVE its own line. That is the
+    # only case in 2,500 tested where the projection and the pick disagreed.
+    # A row this close to even has nothing to say; it says nothing.
+    # ⚠️ Rows BELOW 50% still project, and still project onto the losing
+    # side of the line -- that is correct, not a bug. It is what "we like
+    # the over at +180 even though we project under the line" looks like,
+    # and hiding it would flatter the card.
+    if abs(conf_pct - 50.0) < 0.5:
+        return None, False
+    p = conf_pct / 100.0
+    p_over = p if side == "over" else 1.0 - p
+    sat = not (PROJ_P_MIN < p_over < PROJ_P_MAX)
+    p_over = max(PROJ_P_MIN, min(PROJ_P_MAX, p_over))
+    if dist == "poisson":
+        return invert_poisson(line, p_over), sat
+    if dist == "negbin":
+        # sd carries (observed mean, observed variance) for this shape.
+        if not sd or len(sd) != 2 or not sd[0]:
+            return None, False
+        return invert_negbin(line, p_over, sd[0], sd[1]), sat
+    if sd is None or sd <= 0:
+        return None, False
+    return invert_normal(line, sd, p_over), sat
+
+
 def implied(american):
     a = float(american)
     return 100.0 / (a + 100.0) if a > 0 else (-a) / (-a + 100.0)
@@ -298,6 +445,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today):
         cdf = pois_cdf(lam, int(math.floor(line)))
         model = (1.0 - cdf) if side == "over" else cdf
         central = round(lam, 2)
+        spread = None                    # Poisson has no free scale parameter
         inputs = {"trailing8_K": round(mK8, 2), "opp_meanK": round(oppK, 3),
                   "centering_constant": round(centerC, 4), "home": bool(home),
                   "E_K": central}
@@ -334,6 +482,12 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today):
         return None
 
     blend = 0.5 * model + 0.5 * raw
+
+    # ---- projection, by INVERTING the number the row displays. See project().
+    # ⛔ `blend` goes in, not `model` -- the projection must match what is
+    # printed beside it, and `model` is only half of that.
+    proj, proj_sat = project("poisson" if market == "strikeouts" else "normal",
+                             line, side, blend, spread)
 
     # ---- matched class
     opp_team = game["home"] if home == 0 else game["away"]
@@ -444,6 +598,20 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today):
         "confidence": round(blend),
         "confidence_basis": "MODEL",
         "confidence_note": "v4.0 model blended 50/50 with his own rate at this line.",
+        # The single number Sam asked for beside the line, covers-style. It is
+        # the blend read backwards, so it can never argue with the confidence.
+        "projection": None if proj is None else round(proj, 1),
+        "projection_unit": "K" if market == "strikeouts" else "outs",
+        "projection_basis": "MODEL",
+        "projection_saturated": proj_sat,
+        "projection_note": (
+            ("Inverted from the " + f"{blend:.0f}" + "% shown: the "
+             + ("strikeout total" if market == "strikeouts" else "outs total")
+             + " that would produce exactly that probability, under the same "
+             + ("Poisson" if market == "strikeouts" else "Normal")
+             + " the row already assumes.")
+            + (" ⚠️ The confidence saturated the distribution, so this is a "
+               "bound, not a point estimate." if proj_sat else "")),
         "band": bnd, "band_note": bnd_note, "clears_price_floor": floor_ok,
         "class": {"axis": axis, "all": f"{ah}/{an}" if an else None,
                   "all_pct": round(cls_all, 1) if cls_all is not None else None,
@@ -543,7 +711,29 @@ def parse_rate(s):
         return (None, None)
 
 
-def hitter_play(prop, game, ids, team_games):
+HITTER_STAT = {"batter_hits": "H", "batter_home_runs": "hr", "batter_rbis": "rbi"}
+
+
+def hitter_moments(hlogs, pid, market, today):
+    """(mean, variance) of this stat over games he STARTED, POINT IN TIME.
+
+    🔴 The log on disk is `latest` and contains tonight's games once they
+    finish. Filtering on `today` is not tidiness -- without it the card
+    would quietly describe a player using the game he is about to play."""
+    key = HITTER_STAT.get(market)
+    p = (hlogs or {}).get(str(pid))
+    if not key or not p:
+        return None, None
+    vals = [g.get(key) or 0 for g in (p.get("g") or [])
+            if (g.get("pa") or 0) >= 3 and (g.get("d") or "") < today]
+    if len(vals) < 25:
+        return None, None
+    m = sum(vals) / len(vals)
+    v = sum((x - m) ** 2 for x in vals) / (len(vals) - 1)
+    return m, v
+
+
+def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
     ev = prop.get("evidence") or {}
     h, n = parse_rate(ev.get("season"))
     if h is None or n is None or n < MIN_HITTER_GAMES:
@@ -568,6 +758,31 @@ def hitter_play(prop, game, ids, team_games):
 
     rate = 100.0 * (h + 0.5) / (n + 1)          # Jeffreys, not a projection
     be = 100.0 * implied(price)
+
+    # ---- projection, where a distribution earned the right to give one.
+    _mkt = prop.get("market")
+    _dist = HITTER_PROJ.get(_mkt)
+    _proj, _psat, _pnote = None, False, HITTER_NO_PROJ_NOTE
+    if _dist:
+        _shape = None
+        if _dist == "negbin":
+            _shape = hitter_moments(hlogs, prop.get("pid"), _mkt, today)
+            if _shape[0] is None:
+                _shape = None
+        if _dist == "poisson" or _shape:
+            _proj, _psat = project(_dist, prop.get("line"), prop.get("side"),
+                                   rate, _shape)
+        if _proj is not None:
+            _pnote = (
+                f"Inverted from the {rate:.0f}% shown: the "
+                f"{HITTER_LABEL.get(_mkt, _mkt).lower()} total that would produce "
+                f"exactly that rate, under a "
+                + ("Poisson" if _dist == "poisson"
+                   else "negative binomial holding his own game-to-game spread")
+                + ". ⚠️ DESCRIPTIVE — it inverts his record, not a forecast. "
+                  "There is no hitter model in this project.")
+            if _psat:
+                _pnote += " ⚠️ The rate saturated the distribution; this is a bound."
     mkt = prop.get("implied")                    # de-vigged, from the board
 
     def r(k):
@@ -604,6 +819,16 @@ def hitter_play(prop, game, ids, team_games):
         # found by the slate that does.
         "clears_price_floor": price > -700,
         "confidence_basis": "RECORD",
+        # 🔴 NEVER "MODEL". Rule 55 binds here hardest: this number is an
+        # inversion of the player's own RECORD, so it is DESCRIPTIVE no
+        # matter which distribution produced it. T27/T28/T29 all failed and
+        # hitter modelling is CLOSED.
+        "projection": None if _proj is None else round(_proj, 1),
+        "projection_unit": HITTER_UNIT.get(_mkt),
+        "projection_basis": "DESCRIPTIVE",
+        "projection_dist": _dist,
+        "projection_saturated": _psat,
+        "projection_note": _pnote,
         "confidence_note": ("His own rate at this exact line, smoothed. There is no "
                             "hitter model in this project yet, so this is DESCRIPTIVE "
                             "— not a projection."),
@@ -776,12 +1001,50 @@ def et_today():
     return (datetime.now(timezone.utc) - timedelta(hours=4)).strftime("%Y-%m-%d")
 
 
+def projection_index(rows):
+    """Flat lookup for the Player Props tab. One entry per priced row that
+    earned a projection; rows without one are simply absent, and absent
+    means "no projection", never "look it up somewhere else"."""
+    out = {}
+    for r in rows:
+        if r is None or r.get("projection") is None:
+            continue
+        pid = r.get("pid")
+        if pid is None:
+            continue
+        mkt = r.get("market")
+        # Pitcher rows carry the model's short name; the props feed uses the
+        # book's. Key on the FEED's name so the join needs no translation.
+        if mkt == "strikeouts":
+            mkt = "pitcher_strikeouts"
+        elif mkt == "outs":
+            mkt = "pitcher_outs"
+        # ⛔ NO per-entry note. There are ~1,400 of these and the note is
+        # ~200 bytes of near-identical prose, which is a quarter-megabyte
+        # added to a file the PAGE DOWNLOADS. The full note stays on the
+        # board rows in picks[]; the tab builds its tooltip from `basis`.
+        out[f"{pid}|{mkt}|{r.get('side')}|{r.get('line')}"] = {
+            "v": r["projection"],
+            "u": r.get("projection_unit"),
+            "b": "M" if r.get("projection_basis") == "MODEL" else "D",
+        }
+    return out
+
+
 def main(dry=False):
     root = os.path.dirname(os.path.abspath(__file__))
     os.chdir(root)
     P = load("data/latest/pitchers.json.gz", gz=True)
     B = load("data/latest/props.json.gz", gz=True)
     players = P["players"]
+    # Hitter game logs. Used ONLY for the RBI projection's dispersion --
+    # never for a rate, never for a price. Its absence costs the RBI
+    # projection and nothing else, so it is not fatal.
+    try:
+        hlogs = (load("data/latest/hitters.json.gz", gz=True) or {}).get("players") or {}
+    except Exception as e:
+        print(f"[card] no hitter log ({e}) -- RBI projections will be omitted")
+        hlogs = {}
 
     means, ns, centerC, npop = opponent_table(players)
     by_pid = {int(k): v for k, v in players.items()}
@@ -849,7 +1112,7 @@ def main(dry=False):
         for prop in g["props"]:
             if prop.get("kind") != "batter" or prop["market"] not in HITTER_LABEL:
                 continue
-            hp = hitter_play(prop, g, ids, team_games)
+            hp = hitter_play(prop, g, ids, team_games, hlogs, today)
             if hp is None:
                 skipped["hitter: too few games or no price"] = \
                     skipped.get("hitter: too few games or no price", 0) + 1
@@ -939,9 +1202,20 @@ def main(dry=False):
     for x in hitters:
         x["in_band"] = False          # no model, so no calibration band
 
+    # 🔴 THE -700 FLOOR NO LONGER GATES THE BOARD.
+    # Sam, 2026-08-25: "we need to also be allowing users to be able to bet
+    # on any props that are under our -700 odd threshold in the gizmos picks
+    # tab, we aren't building this just for me anymore."
+    # ⚠️ THE FLOOR IS NOT DELETED -- ITS SCOPE NARROWED. It was doing two
+    # different jobs under one name:
+    #   (a) DISPLAY   -- keep short prices off Sam's personal board.  ← LIFTED
+    #   (b) PAIRING   -- a -700 leg cannot reach 1.8x without a partner
+    #                    doing all the work, so it is a donation.     ← KEPT
+    # `build_pairs` still requires clears_price_floor, and the starred alt
+    # rung still requires it. Only the board gate is gone, and every
+    # below-floor row is LABELLED so a user sees what they are taking.
     liked = [x for x in plays + hitters
-             if (x.get("edge") is not None and x["edge"] > 0)
-             and x.get("clears_price_floor", True)]
+             if (x.get("edge") is not None and x["edge"] > 0)]
     # Band-qualifying plays lead, then everything by edge.
     # 🔴 STRICTLY BY CONFIDENCE, DESCENDING.
     # Sam, 2026-08-24: "i notice that your highest confidence score is not
@@ -1002,9 +1276,9 @@ def main(dry=False):
 
     for i, x in enumerate(board, 1):
         x["rank"] = i
-    below = [x for x in plays if not x.get("clears_price_floor", True)]
-    for x in below:
-        x["rank"] = None
+    # Kept for the doc's own accounting and for anything still reading it,
+    # but these rows are now ON the board rather than exiled to it.
+    below = [x for x in plays + hitters if not x.get("clears_price_floor", True)]
 
     doc = {
         "date": today,
@@ -1058,6 +1332,25 @@ def main(dry=False):
         "picks": board,
         "below_price_floor": below,
         "pairs": pairs,
+        # 🔴 WHY THIS INDEX EXISTS. The Player Props tab renders from
+        # props.json.gz, which has no model in it -- the model lives here.
+        # Recomputing a projection in the browser would mean a SECOND
+        # implementation of the model in JavaScript, which is how two
+        # numbers that must agree stop agreeing. So the card publishes the
+        # projections it already computed and the tab joins against them.
+        # ⛔ Do not compute a projection client-side. Ever. A row with no
+        # entry here shows no projection, which is the correct answer.
+        "projections": projection_index(plays + hitters),
+        "projection_note": (
+            "Keyed pid|market|side|line. The value is the central outcome that "
+            "would produce the confidence shown beside it, inverted through the "
+            "same distribution that row assumes -- so the two can never "
+            "disagree. `basis` is MODEL on a pitcher row and DESCRIPTIVE on a "
+            "hitter row, where it inverts the player's own record and not a "
+            "forecast. Total bases and Hits+Runs+RBIs carry NO projection: "
+            "three distributions were fitted and none reproduced the player's "
+            "own per-game average to the 0.25 bar set before they were tried "
+            "(T34, T34b, T35)."),
         "schema_note": ("picks[] are the standard lines, ranked by blend, each carrying "
                         "its Hard Rock alt ladder in .ladder with every rung priced "
                         "through the same model. pairs[] may use any rung. Every price "

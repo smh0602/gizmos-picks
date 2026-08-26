@@ -42,6 +42,7 @@ old one, not easier.**
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
+| **A projection is an INVERSION of the displayed confidence** | Never a second estimate. `card.py` solves for the central value that reproduces the number already printed, under that row's own distribution, so the two can never disagree. ⛔ Do not print `central` (E[K]) instead — it is the MODEL half of a 50/50 blend and differs from the blend by design. ⛔ Do not compute one in JavaScript; that is a second copy of the model. |
 | **Five books only** (`BOOKS` in collect.py) | Hard Rock, DraftKings, FanDuel, Caesars (`williamhill_us`), BetMGM. Sam's instruction, 2026-08-23. ⚠️ This SUPERSEDED the earlier "Hard Rock only / `regions=us2`" rule for props — four of the five live in `us`, so props pull `us,us2` and cost double. A price from a book he cannot bet is not a better price. |
 | **`picks/<date>.json` already written** | Published estimates are a permanent record. ⛔ Never edit or delete one after its games have started. |
 
@@ -79,6 +80,16 @@ old one, not easier.**
   against a market whose real price is "+1.5 at -182" -- opposite bets, and
   the page would have advertised a bargain that does not exist. ⛔ Never
   compare two prices without first confirming they are the same wager.
+- 🔴 **Total bases and Hits+Runs+RBIs carry NO PROJECTION, deliberately.**
+  Not an oversight and not a missing feature. T34/T34b/T35, 2026-08-26, bar
+  fixed at |mean| < 0.10 and p90 < 0.25 units BEFORE any fit: plain Poisson
+  missed by **0.673** at the tail on total bases, a negative binomial by
+  **0.350**, a compound Poisson (hits × the player's own extra-base mix) by
+  **0.287**. Projecting the observed mean directly put it on the losing side
+  of the line in 5% of rows, all unders. Hits (Poisson, 0.202), home runs
+  (Poisson, 0.022) and RBIs (**negative binomial**, 0.117 — Poisson failed
+  at 0.299) passed and ship. ⛔ Three attempts have failed. A fourth does
+  not get an easier bar; it gets a new pre-registered test at 0.25.
 - 🔴 **A hitter row shows a confidence NUMBER but must never claim MODEL
   provenance.** ~~"carries NO confidence rating"~~ — **changed 2026-08-24**:
   a board with two different headline numbers is unreadable, so both kinds
@@ -141,8 +152,9 @@ collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card, record, refresh, lineups
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
-verify_card.py    30 checks, pitcher AND hitter, including the
-                  descending-order invariant. Runs before commit.
+verify_card.py    46 checks, pitcher AND hitter, including the
+                  descending-order invariant and the projection
+                  round-trip. Runs before commit.
 index.html        the dashboard, single file, no build step
 .github/workflows/collect.yml   every schedule
 data/             timestamped snapshots. append-only.
