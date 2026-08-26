@@ -54,6 +54,18 @@ old one, not easier.**
 
 ## Things that are true and easy to get wrong
 
+- 🔴 **THE PAGE RENDERS ONLY FLAGS MARKED `actionable`.** Sam,
+  2026-08-26: *"we have to advertise a clean look to the website that
+  doesnt include nonsense users dont need to read and cant understand."*
+  T21, T22, rule 15 and STEP 4B are notes the model writes to ITSELF.
+  ⛔ **They are still computed and still stored in `picks/<date>.json`** —
+  the calibration record depends on every one of them, and a clean page
+  must never become a card that stopped writing its diagnostics.
+  `verify_card.py` checks both halves: nothing internal is marked for
+  display, and the diagnostics are still being written. A flag only earns
+  `actionable` if it changes what the reader can DO — today the only one
+  is "Hard Rock didn't post this", because the price on screen is then
+  one they cannot bet.
 - 🔴 **THE "WHY" IS WRITTEN FOR A READER, NOT FOR THE LEDGER.** Sam,
   2026-08-26: *"lose the technical wording ... all of these things that a
   casual fine wont know about has to go."* ⛔ No test IDs (T23, T24, STEP

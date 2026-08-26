@@ -1249,8 +1249,20 @@ function pickCard(p){
   if (p.why && p.why.length)
     c.append(el('div','pk-b', '<ul>' + p.why.map(w => `<li>${w}</li>`).join('') + '</ul>'));
 
-  (p.flags||[]).forEach(f => c.append(el('div', 'fl fl-' + f.kind,
-    (f.test ? `<b>${f.test}</b> &middot; ` : '') + f.text)));
+  /* 🔴 THE MODEL'S OWN DIAGNOSTICS ARE NOT RENDERED. Sam, 2026-08-26:
+     "we have to advertise a clean look to the website that doesnt include
+     nonsense users dont need to read and cant understand."
+     T21, T22, rule 15 and STEP 4B are notes the model writes to ITSELF --
+     "a shuttled arm reads 14.4 points worse point-in-time (z=6.97)" is a
+     sentence for the ledger, not for somebody deciding a bet.
+     ⛔ THEY ARE STILL COMPUTED AND STILL STORED in picks/<date>.json.
+     This hides them from the PAGE; it does not stop recording them, and
+     the calibration record still depends on every one of them.
+     ✅ The exception is a flag that changes what the reader can DO --
+     right now that is only "Hard Rock didn't post this", because the
+     price on screen is then one they cannot actually bet. */
+  (p.flags||[]).filter(f => f.actionable).forEach(f =>
+    c.append(el('div', 'fl fl-warn', f.text)));
 
   if (p.lineup_risk)
     c.append(el('div','fl fl-flag',
@@ -1258,8 +1270,7 @@ function pickCard(p){
        today's lineup this is usually a VOID, not a win. Check the card before you bet it.`));
   if (p.below_price)
     c.append(el('div','fl fl-note',
-      `<b>Below the price</b> &middot; shown to fill the board out to 25 plays. The estimate does not beat
-       this number's break-even.`));
+      `This one doesn't have an edge at the price shown — it's here to fill the board out.`));
 
   /* 🔴 WHAT THIS OPPONENT HAS DONE TO STARTERS LATELY.
      Sam's idea, 2026-08-26. Built from our OWN pitcher logs -- every one of

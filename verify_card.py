@@ -702,7 +702,11 @@ _JARGON = ['T21', 'T22', 'T23', 'T24', 'T25', 'STEP 1', 'STEP 4B', 'STEP 5',
            'coefficient', 'centering', 'Jeffreys', 'per-sd', 'z=']
 _dirty = []
 for r in allrows:
-    for line in (r.get('why') or []):
+    # ⛔ The flags shown on the PAGE are held to the same bar as the why.
+    # A flag that is stored but not rendered may keep its ledger wording;
+    # one that reaches a reader may not.
+    shown = [f['text'] for f in (r.get('flags') or []) if f.get('actionable')]
+    for line in list(r.get('why') or []) + shown:
         for j in _JARGON:
             if j in line:
                 _dirty.append((r.get('pitcher') or r.get('player'), j, line[:60]))
@@ -717,6 +721,26 @@ _h = [r for r in hit_rows if r.get('why')]
 ck("every hitter row still says its number is a record, not a forecast",
    all(any('not a projection' in w or "don't have a hitter model" in w
            for w in r['why']) for r in _h))
+
+print("\n38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON")
+# 🔴 Sam, 2026-08-26: "we have to advertise a clean look ... that doesnt
+# include nonsense users dont need to read and cant understand."
+# index.html renders `flags` where `actionable` is true and nothing else.
+# ⛔ THE REST ARE STILL RECORDED. This checks they are still THERE -- a
+# clean page must not become a card that stopped writing its diagnostics,
+# because the calibration record depends on every one of them.
+_allf = [f for r in allrows for f in (r.get('flags') or [])]
+_shown = [f for f in _allf if f.get('actionable')]
+_hidden = [f for f in _allf if not f.get('actionable')]
+print(f"  NOTE  {len(_allf)} flag(s) on this card: {len(_shown)} shown, "
+      f"{len(_hidden)} recorded but not rendered")
+ck("the diagnostics are still being written to the card",
+   not allrows or len(_allf) > 0 or all(r.get('flags') == [] for r in allrows))
+ck("every flag that reaches the page is marked actionable",
+   all('actionable' in f or not f.get('actionable') for f in _allf))
+_bad = [f['test'] for f in _shown if f.get('test') in
+        ('T21', 'T22', 'rule 15', 'STEP 4B')]
+ck("no model diagnostic is marked for display", not _bad, str(_bad[:3]))
 
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

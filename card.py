@@ -674,11 +674,14 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         flags.append({"kind": "note", "test": "STEP 4B", "text":
                       f"matched class n={an} -- UNINFORMATIVE, do not use it."})
     if not on_hr:
-        flags.append({"kind": "note", "test": "STEP 5", "text":
-                      f"Hard Rock did not post this market in the pull. The price shown is "
-                      f"{prop.get('book')}'s, which is a number Sam cannot bet -- and the "
-                      f"absence is evidence about the FEED, never about the book. Ask for "
-                      f"the app price. Barred from pairs."})
+        # ✅ THE ONE FLAG THAT REACHES THE PAGE. It changes what the
+        # reader can do: the price on screen is not one they can bet.
+        # `actionable` is what index.html filters on -- every other flag
+        # is a note the model writes to itself and is stored, not shown.
+        flags.append({"kind": "note", "test": "STEP 5", "actionable": True,
+                      "text": (f"Hard Rock didn't post this one when we pulled the odds. "
+                               f"The price above is {bookName(prop.get('book'))}'s — you "
+                               f"can't get that number at Hard Rock.")})
 
     splits = pitcher_splits(prior, market, line, side, opp_team)
     opp_recent = opponent_starters(players, opp_team, today)
