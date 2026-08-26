@@ -1008,7 +1008,14 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
         if _dist == "poisson" or _shape:
             _proj, _psat = project(_dist, prop.get("line"), prop.get("side"),
                                    rate, _shape)
-        if _proj is not None:
+        if _proj is None:
+            # Same fallback as the board pass -- his own mean beats a blank.
+            _m2, _n2 = hitter_mean(hlogs, prop.get("pid"), _mkt, today)
+            if _m2 is not None:
+                _proj = _m2
+                _pnote = (f"His own average over {_n2} games this season — "
+                          f"{_m2:.1f} a game.")
+        if _proj is not None and _dist:
             _pnote = (
                 f"Inverted from the {rate:.0f}% shown: the "
                 f"{HITTER_LABEL.get(_mkt, _mkt).lower()} total that would produce "
@@ -1481,13 +1488,17 @@ def et_today():
 #     decimal point. PROJ_MIN_GAMES is the floor and it is stated.
 PROJ_MIN_GAMES = 10
 MEAN_PROJ_MARKETS = {"batter_total_bases": "tb", "batter_hits_runs_rbis": None}
+# Every hitter market's key in the game log, for the MEAN fallback below.
+HITTER_STAT_KEY = {"batter_total_bases": "tb", "batter_hits_runs_rbis": None,
+                   "batter_hits": "H", "batter_home_runs": "hr",
+                   "batter_rbis": "rbi"}
 
 
 def hitter_mean(hlogs, pid, market, today):
     """His own per-game mean of this stat, point in time."""
-    key = MEAN_PROJ_MARKETS.get(market, "MISSING")
-    if key == "MISSING":
+    if market not in HITTER_STAT_KEY:
         return None, 0
+    key = HITTER_STAT_KEY[market]
     rec = (hlogs or {}).get(str(pid))
     if not rec:
         return None, 0
@@ -1544,7 +1555,20 @@ def board_projections(board, hlogs, players, today):
                         out[key] = {"v": round(v, 1),
                                     "u": HITTER_UNIT.get(mkt), "b": "D"}
                         continue
-                blank["no dispersion"] += 1
+                # 🔴 FALL BACK TO HIS OWN MEAN rather than printing
+                # nothing. This fires when the validated inversion cannot
+                # be computed -- an RBI row needs the player's own
+                # game-to-game variance and a short log does not give one.
+                # The mean is exact on the mean, which is the same reason
+                # total bases uses it. ⛔ It is NOT used where the
+                # inversion works: those three markets passed T34 on a
+                # pre-registered bar and are not re-litigated here.
+                _m, _n = hitter_mean(hlogs, pid, mkt, today)
+                if _m is not None:
+                    out[key] = {"v": round(_m, 1),
+                                "u": HITTER_UNIT.get(mkt), "b": "D"}
+                else:
+                    blank["no usable log"] += 1
             else:
                 blank["pitcher, needs the model"] += 1
     return out, dict(blank)
@@ -1742,7 +1766,42 @@ def main(dry=False):
 
     plays_all = plays
     plays = standard
+    # 🔴 PITCHERS ON GAMES THAT HAVE ALREADY STARTED STILL NEED A
+    # PROJECTION. Sam, 2026-08-26: "there are still players that have game
+    # logs that dont have projections, most of the pitchers."
+    #
+    # He is right and the cause is upstream of the index: the play loop
+    # SKIPS a game the moment it commences (correct -- a started game is
+    # off the board), so no play is built, so nothing reaches the index.
+    # Measured on this board: 31 of 54 pitcher_outs props had none, and 54
+    # of the 62 missing rows were pitchers we have a full game log for.
+    #
+    # ⛔ THIS DOES NOT PUT STARTED GAMES BACK ON THE BOARD. It runs
+    # build_play a second time, over every game, and keeps ONLY the
+    # projection. `plays` is untouched, so the card, the pairs, the top 10
+    # and the parlays all still stop at first pitch.
+    # ✅ It reuses build_play rather than reimplementing the model, so the
+    # number here cannot drift from the number on a carded row.
+    _late = []
+    for g in B["games"]:
+        for prop in g["props"]:
+            if prop["market"] not in ("pitcher_strikeouts", "pitcher_outs"):
+                continue
+            p = by_pid.get(prop.get("pid"))
+            if not p or p.get("team") not in (g["home"], g["away"]):
+                continue
+            opp_team = g["home"] if p["team"] == g["away"] else g["away"]
+            try:
+                row = build_play(prop, p, players, means.get(opp_team), centerC,
+                                 ns.get(opp_team, 0), g, today, oppRank)
+            except Exception:
+                continue
+            if row is not None:
+                row["kind"] = "pitcher"
+                _late.append(row)
+
     _board_px, _px_gaps = board_projections(B, hlogs, players, today)
+    _board_px.update(projection_index(_late))
     pairs = build_pairs(plays_all)
     top10, top10_drops = build_top10(plays_all, hitters)
     parlays, parlay_meta = build_parlays(plays_all, hitters)

@@ -443,6 +443,35 @@ _noproj = [(r.get('pitcher') or r.get('player'), r.get('market'))
            for r in doc['picks'] if r.get('projection') is None]
 ck(f"every row on the board carries a projection ({len(doc['picks'])} rows)",
    not _noproj, str(_noproj[:4]))
+
+# 🔴 THE REAL INVARIANT, not a percentage. Sam, 2026-08-26: "there are
+# still players that have game logs that dont have projections."
+# A row is allowed no projection ONLY when there is genuinely nothing to
+# project from -- no player id, or a player the collector has never logged.
+# ⛔ A row with an id AND a log must have one. A percentage target would
+# have let this pass at 93% while the specific complaint stayed true.
+_PX = doc.get('projections') or {}
+_HLOG = json.load(gzip.open('data/latest/hitters.json.gz', 'rt'))
+_HLOG = _HLOG.get('players', _HLOG)
+_orphans = []
+for _g in B.get('games', []):
+    for _p in _g.get('props', []):
+        _pid, _mk = _p.get('pid'), _p.get('market')
+        if _pid is None:
+            continue                       # nothing to join to
+        if f"{_pid}|{_mk}|{_p.get('side')}|{_p.get('line')}" in _PX:
+            continue
+        _log = P.get(str(_pid)) if str(_mk).startswith('pitcher') else _HLOG.get(str(_pid))
+        if not _log:
+            continue                       # never logged; a blank is honest
+        _n = len([x for x in (_log.get('g') or [])
+                  if (x.get('gs') if str(_mk).startswith('pitcher')
+                      else (x.get('pa') or 0) >= 3)])
+        if _n >= 10:
+            _orphans.append((_p.get('player'), _mk, _p.get('line'), f"{_n} games logged"))
+ck(f"no prop with a player id and a real game log is left without a "
+   f"projection ({len(_PX)} projections published)",
+   not _orphans, str(_orphans[:4]))
 # The mean is not an inversion, so it CAN sit on the losing side of a
 # line. Measured across 948 real props that is 0.0% at 80%+ confidence and
 # 1.9% at 70%+, and the board does not go below 78%. If it starts
