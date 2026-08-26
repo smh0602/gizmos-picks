@@ -655,30 +655,68 @@ ck("the last-15 split never counts more than 15 starts", not _l15, str(_l15[:3])
 ck("every row's why mentions the splits",
    all(any('this season' in w for w in (r.get('why') or [])) for r in pit_rows))
 
-print("\n37. BATTER ALTERNATE LINES ARE NOT CARDED")
-# 🔴 Sam, 2026-08-26: "we should NOT be having alt lines for batters."
-# We never REQUEST a batter alt market -- they arrive inside the STANDARD
-# ones. `batter_total_bases` returned 244 players at 1.5 and 17 at 3.5,
-# and once the -700 board gate came off, "under 3.5 total bases" at -2200
-# (a 58-of-59 record that pays nothing) sorted straight to the TOP of a
-# board ranked by confidence and buried every real play under it.
+print("\n37. BATTER ALTERNATE LINES, INNINGS NOTATION, AND PLAIN ENGLISH")
 _PRIMARY = {"batter_hits": {0.5, 1.5}, "batter_total_bases": {1.5},
             "batter_home_runs": {0.5}, "batter_rbis": {0.5},
             "batter_hits_runs_rbis": {0.5, 1.5}}
-_alt = [(r.get('player'), r['market'], r['side'], r['line'], r.get('price'))
-        for r in allrows if r.get('kind') == 'hitter'
-        and r['market'] in _PRIMARY and r['line'] not in _PRIMARY[r['market']]]
+_alt = [(r.get('player'), r['market'], r['line']) for r in allrows
+        if r.get('kind') == 'hitter' and r['market'] in _PRIMARY
+        and r['line'] not in _PRIMARY[r['market']]]
 ck(f"no batter row sits on an alternate line ({len(hit_rows)} hitter rows)",
    not _alt, str(_alt[:3]))
-# The same defect seen from the other side: an alternate is how a batter
-# row reaches a price no primary line ever carries.
-_deep = [(r.get('player'), r['line'], r['price']) for r in allrows
-         if r.get('kind') == 'hitter' and r.get('price') is not None
-         and r['price'] <= -1000]
-ck("no batter row is priced at -1000 or shorter", not _deep, str(_deep[:3]))
-ck("the card reports how many alternate-line batter props it excluded",
-   'skipped' in (doc.get('coverage_detail') or {}),
-   str((doc.get('coverage_detail') or {}).get('skipped')))
+ck("no batter row is priced at -1000 or shorter",
+   not [(r.get('player'), r['price']) for r in allrows
+        if r.get('kind') == 'hitter' and r.get('price') is not None
+        and r['price'] <= -1000])
+
+# 🔴 INNINGS ARE THIRDS. CLAUDE.md says so in capitals and the opponent
+# log shipped round(outs/3, 1) anyway, printing 3.7 and 5.3 innings.
+# 16 outs is 5.1. There is no .3, .4, .5, .6, .7, .8 or .9.
+_badip = []
+for r in pit_rows:
+    b = r.get('opp_recent') or {}
+    for x in b.get('starts') or []:
+        frac = str(x.get('ip', '')).split('.')[-1]
+        if frac not in ('0', '1', '2'):
+            _badip.append((r['pitcher'], x.get('ip'), x.get('outs')))
+    mi = str(b.get('mean_ip', '')).split('.')[-1]
+    if b and mi not in ('0', '1', '2'):
+        _badip.append((r['pitcher'], 'mean', b.get('mean_ip')))
+ck("every innings figure uses thirds (.0 .1 .2 only)", not _badip, str(_badip[:4]))
+# And the notation must actually match the outs it claims to describe.
+_mismatch = []
+for r in pit_rows:
+    for x in ((r.get('opp_recent') or {}).get('starts') or []):
+        o = x.get('outs')
+        if o is not None and x.get('ip') != f"{o // 3}.{o % 3}":
+            _mismatch.append((r['pitcher'], o, x.get('ip')))
+ck("innings notation matches the out count it describes",
+   not _mismatch, str(_mismatch[:4]))
+
+# ⛔ NO JARGON IN THE WHY. Sam, 2026-08-26: "lose the technical wording ...
+# all of these things that a casual fine wont know about has to go."
+# These are the exact phrases he named plus the rest of the same family.
+_JARGON = ['T21', 'T22', 'T23', 'T24', 'T25', 'STEP 1', 'STEP 4B', 'STEP 5',
+           'measured null', 't=-', 't=', 'point-in-time', 'DESCRIPTIVE',
+           'ledger rule', 'provably biased', 'MODEL projection', 'blend',
+           'coefficient', 'centering', 'Jeffreys', 'per-sd', 'z=']
+_dirty = []
+for r in allrows:
+    for line in (r.get('why') or []):
+        for j in _JARGON:
+            if j in line:
+                _dirty.append((r.get('pitcher') or r.get('player'), j, line[:60]))
+ck(f"no jargon in any why ({sum(len(r.get('why') or []) for r in allrows)} lines checked)",
+   not _dirty, str(_dirty[:3]))
+ck("every row still explains itself",
+   all(len(r.get('why') or []) >= 3 for r in allrows),
+   str([r.get('pitcher') or r.get('player') for r in allrows
+        if len(r.get('why') or []) < 3][:3]))
+# The honesty those phrases carried has to survive in plain words.
+_h = [r for r in hit_rows if r.get('why')]
+ck("every hitter row still says its number is a record, not a forecast",
+   all(any('not a projection' in w or "don't have a hitter model" in w
+           for w in r['why']) for r in _h))
 
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

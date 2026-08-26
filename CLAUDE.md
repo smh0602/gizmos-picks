@@ -42,7 +42,6 @@ old one, not easier.**
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
-| **Batter ALTERNATE lines are never carded** | Sam's instruction, 2026-08-26. ⚠️ We never *request* a batter alt market — they arrive **inside the standard ones**: `batter_total_bases` returned 244 players at 1.5 and **17 at 3.5**. Once the −700 board gate came off, "under 3.5 total bases" at **−2200** (a 58-of-59 record that pays nothing) sorted straight to the TOP of a confidence-ranked board and buried every real play. `HITTER_PRIMARY_LINES` in `card.py` is the allowed set per market. ⛔ It is a LINE rule, not a price rule — a −300 alternate is still an alternate — and the price-floor lift is not a licence to card one. |
 | **The parlay candidate pool is STRATIFIED BY PRICE** | ⛔ Do not "simplify" it to the N highest-confidence legs. Confidence and price move together, so a confidence-ranked pool of 100 legs had decimal odds of 1.154–1.571 — all short favourites — and the three-leg search returned **zero** parlays on a slate with 2,396 priced legs. Measured 2026-08-26. The pool takes the best legs from each price band for exactly this reason. |
 | **The top-10 price gate (−400)** | Sam's own instruction, 2026-08-26: "likely AND payable". Without it the list fills with −2000 alt rungs that always win and pay nothing. It is a floor like the other two, not a judgment call per slate. |
 | **A projection is an INVERSION of the displayed confidence** | Never a second estimate. `card.py` solves for the central value that reproduces the number already printed, under that row's own distribution, so the two can never disagree. ⛔ Do not print `central` (E[K]) instead — it is the MODEL half of a 50/50 blend and differs from the blend by design. ⛔ Do not compute one in JavaScript; that is a second copy of the model. |
@@ -55,6 +54,15 @@ old one, not easier.**
 
 ## Things that are true and easy to get wrong
 
+- 🔴 **THE "WHY" IS WRITTEN FOR A READER, NOT FOR THE LEDGER.** Sam,
+  2026-08-26: *"lose the technical wording ... all of these things that a
+  casual fine wont know about has to go."* ⛔ No test IDs (T23, T24, STEP
+  4B), no "measured null", no t-statistics, no "edge of N points", no
+  coefficients, no "DESCRIPTIVE". The honesty those phrases carried is
+  KEPT — said in English: a thin sample is "too small to read much into",
+  and a number outside the model says "that isn't part of the model's
+  math". ✅ **Every sentence should carry a number** — the stats are the
+  argument. `verify_card.py` fails the build on a jargon list.
 - 🔴 **`inningsPitched` fractions are THIRDS.** Only `.0`, `.1`, `.2` exist.
   There is no `.3`. A value outside that domain is fabricated data —
   `outs_of()` raises on it deliberately. Do not "fix" it by rounding.
@@ -215,7 +223,7 @@ verify_board.py   checks data/latest/board.json -- implied runs vs the
                   that gap is how the wrong-game bug shipped.
 test_board_match.js  regression test for boardFor(), run with node
                   against the real board.json.
-verify_card.py    75 checks, pitcher AND hitter, including the
+verify_card.py    82 checks, pitcher AND hitter, including the
                   descending-order invariant, the projection
                   round-trip, the top-10 price gate and every
                   parlay recomputed leg by leg. Runs before commit.

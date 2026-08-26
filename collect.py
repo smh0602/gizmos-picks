@@ -123,13 +123,42 @@ def odds_get(path, params):
 
 
 def write(path, obj, compress=False):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    if compress:
-        with gzip.open(path, "wt", encoding="utf-8") as f:
-            json.dump(obj, f, separators=(",", ":"))
-    else:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(obj, f, separators=(",", ":"))
+    """Write JSON so a reader NEVER sees a half-written file.
+
+    🔴 WHY THIS IS ATOMIC. `open(path, "w")` TRUNCATES TO ZERO the instant
+    it is called, and everything between that and the final flush is a
+    window in which any other process reading the path gets an empty file.
+    On 2026-08-26 a run died with `JSONDecodeError: Expecting value: line 1
+    column 1 (char 0)` on data/latest/record.json -- exactly that window.
+
+    ⚠️ AND IT IS NOT RARE, BECAUSE THE JOBS OVERLAP BY DESIGN. The
+    workflow's concurrency group is per-MODE, so a push-triggered
+    `refresh` (group `collect-push`) and a scheduled `record` (group
+    `collect-2 6 * * *`) are in DIFFERENT groups and run at the same time.
+    Both call collect_record() and both write this one path. GitHub also
+    delays scheduled runs by hours -- measured 2026-08-26, an 08:05Z job
+    landed at 10:06Z -- so "they are hours apart in the cron" guarantees
+    nothing about when they actually execute.
+
+    os.replace() is atomic on POSIX: a reader sees the OLD file or the NEW
+    one, never a torn one. ⛔ Do not "simplify" this back to a direct open.
+    """
+    d = os.path.dirname(path)
+    os.makedirs(d, exist_ok=True)
+    tmp = f"{path}.tmp.{os.getpid()}"
+    try:
+        if compress:
+            with gzip.open(tmp, "wt", encoding="utf-8") as f:
+                json.dump(obj, f, separators=(",", ":"))
+        else:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(obj, f, separators=(",", ":"))
+                f.flush()
+                os.fsync(f.fileno())
+        os.replace(tmp, path)              # atomic
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
     log(f"wrote {path} ({os.path.getsize(path)} bytes)")
 
 

@@ -241,7 +241,11 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
 .oppl table{width:100%;border-collapse:collapse;font-size:12px}
 .oppl th,.oppl td{padding:5px 8px;border-top:1px solid var(--line);text-align:left}
 .oppl th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
-.oppl td.n{text-align:right;font-variant-numeric:tabular-nums}
+/* 🔴 THE HEADER MUST FOLLOW ITS COLUMN. This rule was `td.n` only, so
+   every numeric COLUMN was right-aligned while its HEADER stayed left --
+   IP, K, H, ER, BB and P all read as if the numbers belonged to the
+   column beside them. Sam: "they arent aligne with the IP, K, etc." */
+.oppl td.n,.oppl th.n{text-align:right;font-variant-numeric:tabular-nums}
 .oppl tr.beat td{background:#f2fbf6}
 .altchip{display:inline-block;padding:0 5px;border-radius:20px;font-size:9.5px;font-weight:800;
          border:1px solid #d9c9a8;background:#fdf7ec;color:#8a5f14;margin-left:5px;vertical-align:1px}

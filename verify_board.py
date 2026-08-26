@@ -18,6 +18,31 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
+def _read_json(path, what):
+    """json.load(open(path)) that says WHICH FILE when it fails.
+
+    🔴 A run on 2026-08-26 died with `JSONDecodeError: Expecting value:
+    line 1 column 1 (char 0)` -- an empty file -- and the traceback named
+    only Python's decoder. Nothing in the repo was empty by the time it
+    could be inspected, so the file could never be identified. An error
+    that cannot be diagnosed after the fact is barely an error message.
+    """
+    import json as _json
+    try:
+        with open(path) as fh:
+            raw = fh.read()
+    except FileNotFoundError:
+        raise SystemExit(f"MISSING: {what} at {path} does not exist.")
+    if not raw.strip():
+        raise SystemExit(f"EMPTY: {what} at {path} is zero bytes. "
+                         f"Nothing was verified. Re-run the job that writes it.")
+    try:
+        return _json.loads(raw)
+    except Exception as e:
+        raise SystemExit(f"UNREADABLE: {what} at {path} is not valid JSON "
+                         f"({type(e).__name__}: {e}). First 120 chars: {raw[:120]!r}")
+
+
 fails = []
 
 
@@ -31,7 +56,7 @@ path = os.path.join(ROOT, "data/latest/board.json")
 if not os.path.exists(path):
     print("No board.json yet -- the collector has not written one. Nothing to check.")
     sys.exit(0)
-B = json.load(open(path))
+B = _read_json(path, "the odds board")
 games = B.get("games") or []
 print(f"\nBOARD -- {len(games)} games, pulled {B.get('pulled_at')}")
 

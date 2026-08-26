@@ -21,6 +21,31 @@ import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
+def _read_json(path, what):
+    """json.load(open(path)) that says WHICH FILE when it fails.
+
+    🔴 A run on 2026-08-26 died with `JSONDecodeError: Expecting value:
+    line 1 column 1 (char 0)` -- an empty file -- and the traceback named
+    only Python's decoder. Nothing in the repo was empty by the time it
+    could be inspected, so the file could never be identified. An error
+    that cannot be diagnosed after the fact is barely an error message.
+    """
+    import json as _json
+    try:
+        with open(path) as fh:
+            raw = fh.read()
+    except FileNotFoundError:
+        raise SystemExit(f"MISSING: {what} at {path} does not exist.")
+    if not raw.strip():
+        raise SystemExit(f"EMPTY: {what} at {path} is zero bytes. "
+                         f"Nothing was verified. Re-run the job that writes it.")
+    try:
+        return _json.loads(raw)
+    except Exception as e:
+        raise SystemExit(f"UNREADABLE: {what} at {path} is not valid JSON "
+                         f"({type(e).__name__}: {e}). First 120 chars: {raw[:120]!r}")
+
+
 fails = []
 
 
@@ -33,7 +58,7 @@ def ck(name, ok, detail=""):
 if not os.path.exists("data/latest/record.json"):
     print("No record.json yet -- nothing to verify.")
     sys.exit(0)
-REC = json.load(open("data/latest/record.json"))
+REC = _read_json("data/latest/record.json", "the track record")
 
 # Results are filed under the RUN date and name their slate inside.
 BY_SLATE = {}
@@ -73,7 +98,7 @@ for f in sorted(glob.glob("picks/*.json")):
     date = os.path.basename(f)[:-5]
     if date in skipped_dates or date not in BY_SLATE:
         continue
-    doc = json.load(open(f))
+    doc = _read_json(f, "a published card")
     if doc.get("kind") != "gizmos-card":
         continue
     day = byday.setdefault(date, {"w": 0, "n": 0})

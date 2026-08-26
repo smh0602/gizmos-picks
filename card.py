@@ -404,6 +404,28 @@ def matched_class_outs(players, opp_team, line, side, trail_bucket, today):
     return allh, alln, fh, fn, notable
 
 
+def ip_str(outs):
+    """Outs -> baseball innings notation. 16 outs is 5.1, NEVER 5.3.
+
+    🔴 CLAUDE.md line 57 says this in capitals -- "inningsPitched fractions
+    are THIRDS. Only .0, .1, .2 exist. There is no .3" -- and the opponent
+    log shipped `round(outs/3, 1)` anyway, printing 3.7 and 5.3 IP. Sam
+    caught it: "there is no such thing as 5.3 outs."
+    ⛔ Never divide outs by three to display them. The fraction is a COUNT
+    of outs, not a decimal.
+    """
+    if outs is None:
+        return None
+    return f"{int(outs) // 3}.{int(outs) % 3}"
+
+
+def ip_float_str(outs):
+    """Same, for a fractional projection: 14.43 outs -> '4.2'."""
+    if outs is None:
+        return None
+    return ip_str(int(round(float(outs))))
+
+
 def outs_bucket(m):
     if m < 14:
         return "<14"
@@ -481,7 +503,7 @@ def opponent_starters(players, opp_team, today, n=OPP_RECENT_N):
                          "throws": pl.get("throws"), "outs": r["outs"], "k": r["k"],
                          "er": r.get("er"), "hit": r.get("hit"), "bb": r.get("bb"),
                          "np": r.get("np"),
-                         "ip": round(r["outs"] / 3.0, 1)})
+                         "ip": ip_str(r["outs"])})
     rows.sort(key=lambda x: x["d"], reverse=True)
     rows = rows[:n]
     if not rows:
@@ -492,7 +514,7 @@ def opponent_starters(players, opp_team, today, n=OPP_RECENT_N):
         "opponent": opp_team, "n": len(rows), "starts": rows,
         "mean_k": round(sum(ks) / len(ks), 2),
         "mean_outs": round(sum(os_) / len(os_), 2),
-        "mean_ip": round(sum(os_) / len(os_) / 3.0, 1),
+        "mean_ip": ip_float_str(sum(os_) / len(os_)),
         "basis": "DESCRIPTIVE",
         "note": ("The last {} starts any pitcher has made against {} , newest first. "
                  "⚠️ DESCRIPTIVE — it is NOT in the model. The model already carries a "
@@ -502,7 +524,7 @@ def opponent_starters(players, opp_team, today, n=OPP_RECENT_N):
 
 
 # ------------------------------------------------------------- one play
-def build_play(prop, p, players, oppK, centerC, oppn, game, today):
+def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None):
     """Every number on one row. Returns None only when the inputs to the
     model are genuinely absent -- never because the answer was unflattering."""
     market = "strikeouts" if prop["market"] == "pitcher_strikeouts" else "outs"
@@ -721,118 +743,152 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today):
         "first_pitch": et(game["commence"]),
         "why": why_lines(p, market, side, line, h, n, model, raw, blend,
                          ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
-                         price, be, k9, era, grp, book, splits, opp_recent),
+                         price, be, k9, era, grp, book, splits, opp_recent,
+                         oppRank, central),
         "flags": flags,
     }
 
 
 def why_lines(p, market, side, line, h, n, model, raw, blend,
               ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
-              price, be, k9, era, grp, book, splits=None, opp_recent=None):
-    """The reasoning, assembled from the row's own numbers. Nothing here is
-    an adjective the data did not earn."""
+              price, be, k9, era, grp, book, splits=None, opp_recent=None,
+              oppRank=None, central=None):
+    """Why the card likes this, in words a person reads once and gets.
+
+    🔴 REWRITTEN 2026-08-26. Sam: "this is too confusing to read, the user
+    wont understand it ... lose the technical wording, using t=.34, (t23),
+    measured null, edge of 36 points, all of these things that a casual
+    fine wont know about has to go."
+
+    He is right, and the old version was written for the ledger rather than
+    for a reader. ⛔ NO test IDs (T23, T24, STEP 4B), no "measured null",
+    no t-statistics, no "edge of N points", no coefficients. The honesty
+    those phrases carried is KEPT -- it is just said in English: a small
+    sample is "too small to read anything into", and a number that is not
+    a model output says "that isn't part of the model's math".
+
+    ✅ STATS ARE THE ARGUMENT. Sam: "use as many stats as you can to back
+    up your picks ... incorporate it in a casual way." Every sentence
+    should carry a number.
+    """
     w = []
+    who = p["name"].split()[-1] if p.get("name") else "He"
     unit = "strikeouts" if market == "strikeouts" else "outs"
-    verb = "cleared" if side == "over" else "stayed under"
-    # 🔴 THE SPLIT LINE LEADS. Sam, 2026-08-26: the Player Props tab shows
-    # season / last 15 / home / road / vs-opponent and the picks board did
-    # not. Every count is at THIS line and side.
+    verb = "stayed under" if side == "under" else "cleared"
+    Verb = "Stayed under" if side == "under" else "Cleared"
+
+    # ---- 1. his own record at this exact number
     if splits:
         def sp(k):
             a, m = splits[k]
-            return f"{a}/{m}" if m else None
-        bits = [f"<b>{sp('season')}</b> this season"]
-        for key, lbl in (("last15", "last 15"), ("home", "home"),
-                         ("road", "road")):
-            if sp(key):
-                bits.append(f"<b>{sp(key)}</b> {lbl}")
-        # ⛔ A ZERO IS PRINTED, NOT HIDDEN (ledger rule 50). "Never faced
-        # them" is a fact about the matchup; a missing bullet is not.
-        bits.append(f"<b>{sp('vs_opp')}</b> vs {ab(opp_team)}" if sp("vs_opp")
-                    else f"<b>never faced {ab(opp_team)}</b>")
-        w.append(f"{verb.capitalize()} {line} {unit} ({raw:.0f}%): "
-                 + " · ".join(bits) + ".")
-        w.append("All starts, no minimum-innings filter — that filter is provably "
-                 "biased on this kind of line (T23).")
+            return (a, m) if m else None
+        se = sp("season")
+        bits = []
+        for key, lbl in (("last15", "his last 15"), ("home", "at home"), ("road", "on the road")):
+            v = sp(key)
+            if not v:
+                continue
+            # ⛔ "6 of 6 his last 15" when he has made 6 starts all year is
+            # the season line said twice. Drop it rather than pad.
+            if key == "last15" and se and v[1] >= se[1]:
+                continue
+            bits.append(f"{v[0]} of {v[1]} {lbl}" if key != "last15"
+                        else f"{v[0]} of his last {v[1]}")
+        vs = sp("vs_opp")
+        line1 = (f"{p['name']} has {verb} {line} {unit} in "
+                 f"<b>{se[0]} of his {se[1]} starts</b> this season"
+                 if se else f"{p['name']} is on {line} {unit} tonight")
+        if bits:
+            line1 += " — " + ", ".join(bits)
+        line1 += "."
+        if vs:
+            line1 += (f" He has faced {ab(opp_team)} {vs[1]} time"
+                      f"{'s' if vs[1] > 1 else ''} and {verb} it {vs[0]}."
+                      + (" That's too small a sample to read much into."
+                         if vs[1] < 4 else ""))
+        else:
+            line1 += f" He has never faced {ab(opp_team)}."
+        w.append(line1)
     else:
-        w.append(f"{verb.capitalize()} {line} {unit} in {h} of {n} starts this season "
-                 f"({raw:.0f}%). All starts, no minimum-innings filter -- that filter is "
-                 f"provably biased on this kind of line (T23).")
-    if an >= 8:
-        w.append(f"Comparable arms ({axis}) facing {ab(opp_team)} this season went "
-                 f"{ah} of {an} ({100.0*ah/an:.0f}%)"
-                 + (f", and {fh} of {fn} on starts that reached four innings."
-                    if fn >= 8 else "."))
-    else:
-        w.append(f"Only {an} comparable start(s) against {ab(opp_team)} exist, so the "
-                 f"matched-class check cannot speak here. That is a finding, not a blank.")
+        w.append(f"{p['name']} has {verb} {line} {unit} in <b>{h} of {n} starts</b> "
+                 f"this season ({raw:.0f}%).")
+
+    # ---- 2. recent form, and what we expect tonight
     if market == "strikeouts":
-        d = K_OPP_B * (oppK - centerC)
-        where = ("an easy lineup to strike out" if d > 0.15 else
-                 "a hard lineup to strike out" if d < -0.15 else
-                 "a mid-pack lineup, so this term contributes almost nothing")
-        w.append(f"{ab(opp_team)} allow {oppK:.2f} K per start against a league "
-                 f"{centerC:.2f} -- {where} ({d:+.2f} K on the projection). "
-                 f"He is at {inputs['trailing8_K']:.1f} K over his last eight, "
-                 f"{'home' if inputs['home'] else 'on the road'}, "
-                 f"which lands E[K] at {inputs['E_K']}.")
+        w.append(f"He's averaged <b>{inputs['trailing8_K']:.1f} strikeouts</b> a start "
+                 f"over his last eight. Tonight we have him around "
+                 f"<b>{central:.0f} strikeouts</b>.")
     else:
-        w.append(f"{inputs['trailing8_outs']:.1f} outs over his last eight and "
-                 f"{inputs['prev_start_pitches']} pitches last time out -- persistence, "
-                 f"not fatigue: a high previous pitch count predicts MORE outs, not fewer. "
-                 f"That puts the projection at {inputs['mu']} outs "
-                 f"({'home' if inputs['home'] else 'road'}). "
-                 f"There is no opponent term on an outs line; it measured null.")
-    w.append(f"{grp} arm by the STEP 1 split: {k9:.2f} K/9"
-             + (f", {era} ERA." if era is not None else "."))
+        t8, mu = inputs["trailing8_outs"], inputs["mu"]
+        w.append(f"He's averaged <b>{ip_float_str(t8)} innings</b> a start over his last "
+                 f"eight ({t8:.1f} outs), and threw {inputs['prev_start_pitches']} pitches "
+                 f"last time out. Tonight we have him around "
+                 f"<b>{ip_float_str(mu)} innings</b> ({mu:.0f} outs).")
+
+    # ---- 3. the matchup, ranked rather than coefficient-ed
+    if market == "strikeouts" and oppRank and opp_team in oppRank:
+        r = oppRank[opp_team]
+        tone = ("one of the easiest lineups in baseball to strike out" if r <= 6 else
+                "a lineup that strikes out more than most" if r <= 12 else
+                "a tough lineup to strike out" if r >= 24 else
+                "a lineup that puts the bat on the ball more than most" if r >= 19 else
+                "a middle-of-the-pack lineup for strikeouts")
+        w.append(f"{ab(opp_team)} are <b>{tone}</b> — {oppK:.1f} strikeouts a start, "
+                 f"{_ordinal(r)} of 30, against a league average of {centerC:.1f}.")
+
+    # ---- 4. comparable arms
+    if an >= 8:
+        w.append(f"Pitchers with a similar profile have {verb} this number in "
+                 f"<b>{ah} of {an} starts</b> against {ab(opp_team)} this season "
+                 f"({100.0 * ah / an:.0f}%).")
+    else:
+        w.append(f"Only {an} comparable start{'s' if an != 1 else ''} against "
+                 f"{ab(opp_team)} exist this season, so there's nothing to read there "
+                 f"either way.")
+
+    # ---- 5. what this lineup has actually done to starters lately
+    if opp_recent:
+        r = opp_recent
+        if market == "strikeouts":
+            same = sum(1 for x in r["starts"]
+                       if (x["k"] > line if side == "over" else x["k"] < line))
+            w.append(f"The last {r['n']} starters to face {ab(opp_team)} averaged "
+                     f"<b>{r['mean_k']:.1f} strikeouts</b> over {r['mean_ip']} innings, "
+                     f"and <b>{same} of {r['n']}</b> landed on this side of {line}. "
+                     f"That's recent history, not part of the model's math.")
+        else:
+            same = sum(1 for x in r["starts"]
+                       if (x["outs"] > line if side == "over" else x["outs"] < line))
+            w.append(f"Starters haven't been going deep against {ab(opp_team)}: the last "
+                     f"{r['n']} to face them averaged <b>{r['mean_ip']} innings</b>, and "
+                     f"<b>{same} of {r['n']}</b> finished on this side of {line} outs. "
+                     f"That's recent history, not part of the model's math.")
+
+    # ---- 6. what kind of arm he is
+    kind = ("a strikeout arm" if k9 >= 9.5 else
+            "a solid strikeout arm" if k9 >= 8.0 else
+            "not a big strikeout pitcher" if k9 < 7.0 else "an average arm for whiffs")
+    w.append(f"He's {kind} — <b>{k9:.1f} strikeouts per nine</b>"
+             + (f" with a <b>{era} ERA</b>." if era is not None else "."))
+
+    # ---- 7. the price, in plain terms
     if price is not None and be is not None:
-        gap = blend - be
-        w.append(f"{price:+d} at {book} breaks even at {be:.1f}%. This card has it at "
-                 f"{blend:.1f}% -- {'an edge of' if gap >= 0 else 'a shortfall of'} "
-                 f"{abs(gap):.1f} points."
+        w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the time "
+                 f"just to break even. We make it <b>{blend:.0f}%</b>."
                  + ("" if book in ("hardrockbet", "hardrockbet_oh") else
-                    " That is not a book Sam bets, so the edge is not actionable as "
-                    "quoted -- it is here to show where the market sits."))
-    # 🔴 WHAT THIS OPPONENT HAS ACTUALLY DONE TO STARTERS LATELY.
-    # ⚠️ DESCRIPTIVE. Not in the model, and the row says so -- the model's
-    # opponent term is the SEASON mean, and whether this recent window
-    # beats it is owed-test T36, unrun.
-    if opp_recent and market == "strikeouts":
-        r = opp_recent
-        # ⛔ COUNT THE SIDE THIS ROW PICKED, not always the over. The card
-        # header shows "N on this side of the line"; a why that counted
-        # overs while the pick was an under printed 6 and 4 for the same
-        # ten starts, which reads as two different facts.
-        same = sum(1 for x in r["starts"]
-                   if (x["k"] > line if side == "over" else x["k"] < line))
-        w.append(f"The last {r['n']} starting pitchers to face {ab(opp_team)} averaged "
-                 f"<b>{r['mean_k']} K</b> in <b>{r['mean_ip']} innings</b>, and "
-                 f"<b>{same} of {r['n']}</b> landed on this side of {line}. "
-                 f"⚠️ DESCRIPTIVE — recent form against this lineup, NOT a model input. "
-                 f"The model's opponent term is the season-long rate ({oppK:.2f} K).")
-    elif opp_recent:
-        r = opp_recent
-        w.append(f"The last {r['n']} starting pitchers to face {ab(opp_team)} averaged "
-                 f"<b>{r['mean_ip']} innings</b> ({r['mean_outs']} outs). "
-                 f"⚠️ DESCRIPTIVE — there is no opponent term on an outs line at all; "
-                 f"it measured null (t=-0.34).")
+                    f" That price is {bookName(book)}'s, not Hard Rock's."))
     return w
 
 
-# -------------------------------------------------------------- hitters
-# 🔴 THERE IS NO HITTER MODEL. Ledger rule 55: a MARKET number never
-# carries a Gizmo's confidence %. So a hitter row carries NO `blend`, NO
-# `confidence` and NO band -- it carries the player's own record and the
-# market's own de-vigged price, and says which is which.
-#
-# The estimate is his season rate at that exact line with a JEFFREYS
-# PRIOR -- (hits + 0.5) / (games + 1). That is smoothing, not modelling:
-# without it a 3-for-4 sample tops the board on noise every night. It is
-# labelled DESCRIPTIVE and it is not a projection.
-#
-# ⛔ Do not add a confidence number here until a hitter model exists,
-# has been backtested, and has beaten the raw rate on a pre-registered
-# test. That is the next build, not this one.
+def _ordinal(i):
+    return f"{i}{'th' if 11 <= i % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(i % 10, 'th')}"
+
+
+def bookName(k):
+    return {"hardrockbet": "Hard Rock", "hardrockbet_oh": "Hard Rock",
+            "draftkings": "DraftKings", "fanduel": "FanDuel",
+            "williamhill_us": "Caesars", "betmgm": "BetMGM"}.get(k, k)
+
 HITTER_LABEL = {
     "batter_hits": "Hits", "batter_total_bases": "Total bases",
     "batter_home_runs": "Home runs", "batter_rbis": "RBIs",
@@ -840,24 +896,16 @@ HITTER_LABEL = {
 }
 MIN_HITTER_GAMES = 25
 
-# 🔴 BATTER ALTERNATE LINES ARE NOT CARDED. Sam, 2026-08-26: "we should
-# NOT be having alt lines for batters."
-#
+# 🔴 BATTER ALTERNATE LINES ARE NOT CARDED. Sam, 2026-08-26.
 # We never REQUEST a batter alt market -- ALT_MARKETS holds only
-# pitcher_strikeouts_alternate. The alternates arrive INSIDE the standard
-# markets: `batter_total_bases` came back with 244 players at 1.5 and 17
-# at 3.5, and `batter_hits_runs_rbis` with 214 at 1.5 and 4 at 2.5.
-#
-# ⚠️ WHY IT MATTERED THE MOMENT THE -700 GATE CAME OFF. "Under 3.5 total
-# bases" is a 58-of-59 record priced at -2200. The board sorts strictly by
-# confidence, so a line that is nearly impossible to lose and pays almost
-# nothing goes straight to the TOP and buries every real play beneath it.
-# Sam's floor lift stays -- he asked for props under -700 to be bettable --
-# but a lift on PRICE was never a licence to card ALTERNATE LINES.
-#
-# ⛔ These are per-market ALLOWED sets, not a price rule. Do not "fix" a
-# future alt by widening the price floor instead; a -300 alternate is
-# still an alternate.
+# pitcher_strikeouts_alternate. They arrive INSIDE the standard markets:
+# batter_total_bases came back with 244 players at 1.5 and 17 at 3.5.
+# "Under 3.5 total bases" is a 58-of-59 record priced at -2200, and once
+# the -700 board gate came off it sorted straight to the TOP of a board
+# ranked by confidence, burying every real play. The floor lift stays --
+# Sam asked for props under -700 to be bettable -- but a lift on PRICE was
+# never a licence to card an ALTERNATE LINE.
+# ⛔ A LINE rule, not a price rule: a -300 alternate is still an alternate.
 HITTER_PRIMARY_LINES = {
     "batter_hits": {0.5, 1.5},
     "batter_total_bases": {1.5},
@@ -900,11 +948,9 @@ def hitter_moments(hlogs, pid, market, today):
 
 def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
     ev = prop.get("evidence") or {}
-    # ⛔ ALTERNATE LINE -- see HITTER_PRIMARY_LINES. Not a judgment about
-    # the play; Sam's instruction, like the 1.8x and -700 floors.
     _ok = HITTER_PRIMARY_LINES.get(prop.get("market"))
     if _ok is not None and prop.get("line") not in _ok:
-        return "alt"
+        return "alt"                      # see HITTER_PRIMARY_LINES
     h, n = parse_rate(ev.get("season"))
     if h is None or n is None or n < MIN_HITTER_GAMES:
         return None
@@ -1020,52 +1066,57 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
 
 
 def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
-    lbl = HITTER_LABEL.get(prop.get("market"), prop.get("market"))
-    verb = "cleared" if prop.get("side") == "over" else "stayed under"
-    # 🔴 ONE SPLIT LINE, THE SAME SHAPE THE PLAYER PROPS TAB USES.
-    # Sam, 2026-08-26: "for the hitters in gizmos picks simply use the
-    # player props tab stats that sit on the right side of each player
-    # prop, and convert that into the why." Five splits, one sentence,
-    # every count at THIS line -- not spread over four bullets that each
-    # repeat the setup.
+    """Same plain-English rule as the pitcher rows. Sam, 2026-08-26:
+    "for the hitters in gizmos picks simply use the player props tab stats
+    ... and convert that into the why."
+    ⛔ No rule numbers, no "DESCRIPTIVE", no jargon. The honesty stays,
+    said in English."""
+    # ⛔ Not `.lower()` -- that printed "stayed under 0.5 rbis". These are
+    # written the way a person says them out loud.
+    lbl = {"batter_hits": "hits", "batter_total_bases": "total bases",
+           "batter_home_runs": "home runs", "batter_rbis": "RBIs",
+           "batter_hits_runs_rbis": "hits + runs + RBIs"}.get(
+        prop.get("market"), HITTER_LABEL.get(prop.get("market"), prop.get("market")))
+    who = prop.get("player") or "He"
+    verb = "gone over" if prop.get("side") == "over" else "stayed under"
+    line = prop.get("line")
+    opp = ab(ev.get("opp") or "")
     l15h, l15n = parse_rate(ev.get("last15"))
     hh, hn = parse_rate(ev.get("home"))
     rh, rn = parse_rate(ev.get("road"))
     vh, vn = parse_rate(ev.get("vs_opp"))
-    bits = [f"<b>{h}/{n}</b> this season"]
-    if l15n:
-        bits.append(f"<b>{l15h}/{l15n}</b> last 15")
-    if hn:
-        bits.append(f"<b>{hh}/{hn}</b> home")
-    if rn:
-        bits.append(f"<b>{rh}/{rn}</b> road")
-    if vn:
-        bits.append(f"<b>{vh}/{vn}</b> vs {ab(ev.get('opp') or '')}")
-    w = [f"{verb.capitalize()} {prop.get('line')} {lbl.lower()}: " + " · ".join(bits)
-         + f". Smoothed to {rate:.0f}% so a short hot streak cannot top the board "
-           f"on noise."]
-    if not vn:
-        w.append(f"Has not faced {ev.get('opp')} this season — that zero is printed "
-                 f"rather than hidden (ledger rule 50).")
-    elif vn < 8:
-        w.append(f"⚠️ Only {vn} game(s) against {ab(ev.get('opp') or '')} — too few to "
-                 f"mean anything, and it is shown so you can see that for yourself.")
-    if hn and rn:
-        w.append("⚠️ Home/road is DESCRIPTIVE here — it has never been tested on "
-                 "hitters in this project.")
-    # ⛔ The lineup-risk warning lives in the FLAG BOX, not here. It was
-    # appearing in both, with different rounding in each (27% vs 26.9%),
-    # which reads as two different facts rather than one repeated.
-    if not risk and share is not None:
-        w.append(f"In the lineup for {100*share:.0f}% of his team's games.")
-    # ⚠️ This sentence used to end "...and it carries no confidence rating"
-    # while the very same card displayed a 93 CONF badge. A card that
-    # contradicts itself on its face is worse than one that says nothing.
-    w.append(f"{price:+d} at {book} breaks even at {be:.1f}%. "
-             f"🔴 The confidence number on this row is his own record at this line, "
-             f"not a model projection — there is no hitter model in this project yet.")
-    return w
 
+    bits = []
+    if l15n and l15n < n:
+        bits.append(f"{l15h} of his last {l15n}")
+    if hn:
+        bits.append(f"{hh} of {hn} at home")
+    if rn:
+        bits.append(f"{rh} of {rn} on the road")
+    first = (f"{who} has {verb} {line} {lbl} in <b>{h} of {n} games</b> this season "
+             f"({100.0*h/n:.0f}%)")
+    if bits:
+        first += " — " + ", ".join(bits)
+    w = [first + "."]
+
+    if vn:
+        w.append(f"Against {opp} he's {vh} for {vn} on this line"
+                 + (". Too small a sample to read much into." if vn < 8 else "."))
+    else:
+        w.append(f"He hasn't faced {opp} this season.")
+
+    if share is not None:
+        w.append(f"He's been in the lineup for <b>{100*share:.0f}%</b> of his team's "
+                 f"games" + (", so there's a real chance he doesn't play tonight — "
+                             "that usually voids the bet rather than losing it."
+                             if risk else "."))
+    if price is not None and be is not None:
+        w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the "
+                 f"time just to break even. His own record puts it at <b>{rate:.0f}%</b>.")
+    w.append("One thing to know: that number is his own track record at this exact "
+             "line, not a projection — we don't have a hitter model yet, so this is "
+             "history rather than a forecast.")
+    return w
 
 # --------------------------------------------------------------- pairs
 FLOOR, TARGET = 1.80, 2.10
@@ -1428,6 +1479,11 @@ def main(dry=False):
         hlogs = {}
 
     means, ns, centerC, npop = opponent_table(players)
+    # Where each lineup sits among the 30 for strikeouts -- 1 = whiffs the
+    # most. Used only to say "8th easiest lineup in baseball to strike
+    # out" instead of quoting a coefficient at a reader.
+    _order = sorted(means, key=lambda t: -means[t])
+    oppRank = {t: i + 1 for i, t in enumerate(_order)}
     by_pid = {int(k): v for k, v in players.items()}
 
     now = datetime.now(timezone.utc)
@@ -1514,7 +1570,7 @@ def main(dry=False):
                 continue
             opp_team = g["home"] if p["team"] == g["away"] else g["away"]
             row = build_play(prop, p, players, means.get(opp_team), centerC,
-                             ns.get(opp_team, 0), g, today)
+                             ns.get(opp_team, 0), g, today, oppRank)
             if row is None:
                 skipped["insufficient inputs"] = skipped.get("insufficient inputs", 0) + 1
                 continue
