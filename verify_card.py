@@ -655,5 +655,30 @@ ck("the last-15 split never counts more than 15 starts", not _l15, str(_l15[:3])
 ck("every row's why mentions the splits",
    all(any('this season' in w for w in (r.get('why') or [])) for r in pit_rows))
 
+print("\n37. BATTER ALTERNATE LINES ARE NOT CARDED")
+# 🔴 Sam, 2026-08-26: "we should NOT be having alt lines for batters."
+# We never REQUEST a batter alt market -- they arrive inside the STANDARD
+# ones. `batter_total_bases` returned 244 players at 1.5 and 17 at 3.5,
+# and once the -700 board gate came off, "under 3.5 total bases" at -2200
+# (a 58-of-59 record that pays nothing) sorted straight to the TOP of a
+# board ranked by confidence and buried every real play under it.
+_PRIMARY = {"batter_hits": {0.5, 1.5}, "batter_total_bases": {1.5},
+            "batter_home_runs": {0.5}, "batter_rbis": {0.5},
+            "batter_hits_runs_rbis": {0.5, 1.5}}
+_alt = [(r.get('player'), r['market'], r['side'], r['line'], r.get('price'))
+        for r in allrows if r.get('kind') == 'hitter'
+        and r['market'] in _PRIMARY and r['line'] not in _PRIMARY[r['market']]]
+ck(f"no batter row sits on an alternate line ({len(hit_rows)} hitter rows)",
+   not _alt, str(_alt[:3]))
+# The same defect seen from the other side: an alternate is how a batter
+# row reaches a price no primary line ever carries.
+_deep = [(r.get('player'), r['line'], r['price']) for r in allrows
+         if r.get('kind') == 'hitter' and r.get('price') is not None
+         and r['price'] <= -1000]
+ck("no batter row is priced at -1000 or shorter", not _deep, str(_deep[:3]))
+ck("the card reports how many alternate-line batter props it excluded",
+   'skipped' in (doc.get('coverage_detail') or {}),
+   str((doc.get('coverage_detail') or {}).get('skipped')))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

@@ -840,6 +840,32 @@ HITTER_LABEL = {
 }
 MIN_HITTER_GAMES = 25
 
+# 🔴 BATTER ALTERNATE LINES ARE NOT CARDED. Sam, 2026-08-26: "we should
+# NOT be having alt lines for batters."
+#
+# We never REQUEST a batter alt market -- ALT_MARKETS holds only
+# pitcher_strikeouts_alternate. The alternates arrive INSIDE the standard
+# markets: `batter_total_bases` came back with 244 players at 1.5 and 17
+# at 3.5, and `batter_hits_runs_rbis` with 214 at 1.5 and 4 at 2.5.
+#
+# ⚠️ WHY IT MATTERED THE MOMENT THE -700 GATE CAME OFF. "Under 3.5 total
+# bases" is a 58-of-59 record priced at -2200. The board sorts strictly by
+# confidence, so a line that is nearly impossible to lose and pays almost
+# nothing goes straight to the TOP and buries every real play beneath it.
+# Sam's floor lift stays -- he asked for props under -700 to be bettable --
+# but a lift on PRICE was never a licence to card ALTERNATE LINES.
+#
+# ⛔ These are per-market ALLOWED sets, not a price rule. Do not "fix" a
+# future alt by widening the price floor instead; a -300 alternate is
+# still an alternate.
+HITTER_PRIMARY_LINES = {
+    "batter_hits": {0.5, 1.5},
+    "batter_total_bases": {1.5},
+    "batter_home_runs": {0.5},
+    "batter_rbis": {0.5},
+    "batter_hits_runs_rbis": {0.5, 1.5},
+}
+
 
 def parse_rate(s):
     """'38/125' -> (38, 125). Returns (None, None) on anything else."""
@@ -874,6 +900,11 @@ def hitter_moments(hlogs, pid, market, today):
 
 def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
     ev = prop.get("evidence") or {}
+    # ⛔ ALTERNATE LINE -- see HITTER_PRIMARY_LINES. Not a judgment about
+    # the play; Sam's instruction, like the 1.8x and -700 floors.
+    _ok = HITTER_PRIMARY_LINES.get(prop.get("market"))
+    if _ok is not None and prop.get("line") not in _ok:
+        return "alt"
     h, n = parse_rate(ev.get("season"))
     if h is None or n is None or n < MIN_HITTER_GAMES:
         return None
@@ -1463,6 +1494,10 @@ def main(dry=False):
             if prop.get("kind") != "batter" or prop["market"] not in HITTER_LABEL:
                 continue
             hp = hitter_play(prop, g, ids, team_games, hlogs, today)
+            if hp == "alt":
+                skipped["hitter: alternate line, not carded"] = \
+                    skipped.get("hitter: alternate line, not carded", 0) + 1
+                continue
             if hp is None:
                 skipped["hitter: too few games or no price"] = \
                     skipped.get("hitter: too few games or no price", 0) + 1
