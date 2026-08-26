@@ -28,6 +28,7 @@ USAGE:  python card.py            -- write today's card
 """
 
 import gzip
+import itertools
 import json
 import math
 import os
@@ -887,6 +888,203 @@ def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
 FLOOR, TARGET = 1.80, 2.10
 
 
+# ------------------------------------------------------- top 10 of the day
+# 🔴 THIS IS A DIFFERENT LIST FROM THE BOARD AND THAT IS THE WHOLE POINT.
+# Sam, 2026-08-26: "top 10 plays of the day, most likely to hit, not
+# confidence-ranked, may include alt lines with good value." The board is
+# ranked by confidence and capped at 50, so its top ten is just its first
+# ten rows. This pool is WIDER (every priced row PLUS every alt ladder
+# rung, which never reach the board at all) and NARROWER (nothing priced
+# worse than the payable floor), and it is deduped to one row per player.
+#
+# ⛔ The price gate is what stops this becoming a list of -2000 rungs that
+# all win and pay nothing. Sam chose "likely AND payable" over "safest,
+# full stop" explicitly. It is HIS number, like the -700 and 1.8x floors,
+# and it is not a judgment Claude re-litigates per slate.
+TOP10_PRICE_FLOOR = -400
+TOP10_N = 10
+
+
+def build_top10(plays, hitters, n=TOP10_N):
+    """Most likely to hit, among rows a person would actually be paid on."""
+    pool, dropped_price, dropped_dupe = [], 0, 0
+    for x in plays + hitters:
+        if x is None or x.get("price") is None or x.get("confidence") is None:
+            continue
+        if x["price"] <= TOP10_PRICE_FLOOR:
+            dropped_price += 1
+            continue
+        pool.append(x)
+    pool.sort(key=lambda x: -x["confidence"])
+
+    seen, out = set(), []
+    for x in pool:
+        key = x.get("pid") or x.get("pitcher") or x.get("player")
+        if key in seen:
+            dropped_dupe += 1
+            continue
+        seen.add(key)
+        out.append(x)
+        if len(out) >= n:
+            break
+    return out, {"below_payable_floor": dropped_price,
+                 "same_player_already_listed": dropped_dupe,
+                 "price_floor": TOP10_PRICE_FLOOR,
+                 "pool_after_price_gate": len(pool)}
+
+
+# ------------------------------------------------------------- parlays
+# Sam, 2026-08-26: two-mans in 1.8x-2.2x, three- and four-mans in 3x-6x.
+# ⛔ THE 1.80 FLOOR IS UNCHANGED AND IS STILL NEVER CROSSED. What is new
+# is an UPPER bound on the two-leg list, which is also his instruction --
+# a 4x two-man is not a better two-man, it is a different bet.
+PARLAY_BANDS = {2: (1.80, 2.20), 3: (3.00, 6.00), 4: (3.00, 6.00)}
+# 🔴 A HARD CAP ON THE CANDIDATE POOL, STATED RATHER THAN HIDDEN.
+# C(n,4) is 91,390 at n=40 and 3.9 million at n=120.
+#
+# ⛔ THE POOL IS STRATIFIED BY PRICE, AND IT HAS TO BE. Taking the N
+# highest-confidence legs looks obviously right and is structurally broken:
+# confidence and price move together, so the 100 most confident legs on a
+# real slate had decimal odds of 1.154 to 1.571 -- every one a short
+# favourite. A three-leg parlay paying 3x needs legs averaging 1.442, so
+# the search returned ZERO three-mans on a slate with 2,396 priced legs.
+# Measured 2026-08-26; the fix is to take the best legs FROM EACH PRICE
+# BAND so the pool spans what the bands actually need.
+PARLAY_STRATA = [(1.00, 1.30), (1.30, 1.60), (1.60, 2.00),
+                 (2.00, 3.00), (3.00, 99.0)]
+PARLAY_PER_STRATUM = 12
+PARLAY_POOL = PARLAY_PER_STRATUM * len(PARLAY_STRATA)
+
+
+def build_parlays(plays, hitters, per_size=8):
+    """Combinations of 2, 3 and 4 legs. Different games, checked on GAME ID.
+
+    🔴 THE DIFFERENT-GAMES TEST IS ON GAME IDENTITY, NEVER ON OPPONENT NAME
+    (ledger rule 54). In every game both starters have DIFFERENT opponents
+    and the SAME game, so a name comparison passes on precisely the pairs
+    it exists to catch. A live card shipped four impossible parlays that
+    way, including its top recommendation.
+    """
+    priced = [p for p in plays + hitters
+              if p is not None and p.get("price") is not None
+              and p.get("on_hardrock") and p.get("clears_price_floor")
+              and p.get("confidence") is not None]
+    priced.sort(key=lambda p: -p["confidence"])
+    # Best legs from EACH price band -- see PARLAY_STRATA for why.
+    pool, strata_counts = [], []
+    for lo_d, hi_d in PARLAY_STRATA:
+        band = [p for p in priced if lo_d <= decimal(p["price"]) < hi_d]
+        pool.extend(band[:PARLAY_PER_STRATUM])
+        strata_counts.append({"decimal": f"{lo_d:g}-{hi_d:g}",
+                              "available": len(band),
+                              "taken": len(band[:PARLAY_PER_STRATUM])})
+    truncated = len(priced) - len(pool)
+
+    def leg(p):
+        unit = ("K" if p.get("market") == "strikeouts"
+                else "outs" if p.get("market") == "outs"
+                else HITTER_UNIT.get(p.get("market"))
+                or HITTER_LABEL.get(p.get("market"), p.get("market")))
+        who = p.get("pitcher") or p.get("player")
+        return f"{who} {p['side'][0]}{p['line']} {unit}"
+
+    out = {}
+    for size, (lo, hi) in PARLAY_BANDS.items():
+        found = []
+        for combo in itertools.combinations(pool, size):
+            gids = {c["game_id"] for c in combo}
+            if len(gids) != size:                 # rule 54, on GAME ID
+                continue
+            pids = {c.get("pid") for c in combo}
+            if len(pids) != size:
+                continue
+            mult = 1.0
+            for c in combo:
+                mult *= decimal(c["price"])
+            if not (lo <= mult <= hi):
+                continue
+            joint = 1.0
+            for c in combo:
+                joint *= c["confidence"] / 100.0
+            be = 100.0 / mult
+            # 🔴 PROVENANCE OF THE JOINT NUMBER (ledger rule 55). A pitcher
+            # leg's confidence is MODEL; a hitter leg's is his own RECORD.
+            # A parlay that mixes them produces a joint that is neither, so
+            # it says so rather than inheriting the flattering label.
+            bases = {c.get("confidence_basis") for c in combo}
+            basis = bases.pop() if len(bases) == 1 else "MIXED"
+            found.append({
+                "legs": [leg(c) for c in combo],
+                "games": [c["game"] for c in combo],
+                "game_ids": [c["game_id"] for c in combo],
+                "kinds": [("hitter" if c.get("kind") == "hitter" else "pitcher")
+                          for c in combo],
+                "book": "hardrockbet",
+                "prices": [c["price"] for c in combo],
+                "decimals": [round(decimal(c["price"]), 3) for c in combo],
+                "multiplier": round(mult, 3),
+                "n_legs": size,
+                "band": f"{lo:g}x-{hi:g}x",
+                "in_band": (size != 2) or (mult <= TARGET),
+                "label": ("IN BAND" if (size == 2 and mult <= TARGET)
+                          else "ABOVE BAND" if size == 2 else f"{size}-LEG"),
+                "joint": round(100 * joint, 1),
+                "joint_basis": basis,
+                "joint_note": (
+                    "Product of the legs' own numbers. "
+                    + {"MODEL": "Every leg is a v4.0 model estimate.",
+                       "RECORD": "Every leg is the player's own record — "
+                                 "DESCRIPTIVE, not a model output.",
+                       "MIXED": "⚠️ MIXED PROVENANCE — some legs are model "
+                                "estimates and some are a player's own record. "
+                                "The joint is neither and is labelled MIXED."}[basis]
+                    + " Legs are in different games, so they are treated as "
+                      "independent; that assumption is not free and has never "
+                      "been tested in this project."),
+                "leg_confidences": [c["confidence"] for c in combo],
+                "leg_bases": [c.get("confidence_basis") for c in combo],
+                "break_even": round(be, 1),
+                "edge": round(100 * joint - be, 1),
+                "ev_30": round(30 * (joint * mult - 1), 2),
+            })
+        found.sort(key=lambda x: -x["joint"])
+        out[str(size)] = found[:per_size]
+
+    # 🔴 A LONGER PARLAY THAT PAYS NO MORE IS STRICTLY WORSE, AND THE CARD
+    # SAYS SO RATHER THAN LETTING IT LOOK LIKE A BIGGER BET.
+    # Sam set ONE band (3x-6x) for both three- and four-leg parlays, and
+    # ranking by joint probability inside a band always finds the BOTTOM of
+    # it. So a four-man lands at 3.05x next to a three-man at 3.06x: more
+    # ways to lose, the same payout. That is a fact about the bands, not a
+    # reason to hide the four-man (ledger rule 53) -- it is labelled.
+    for size in sorted(out, key=int, reverse=True):
+        for p in out[size]:
+            better = [q for k in out if int(k) < int(size) for q in out[k]
+                      if q["multiplier"] >= p["multiplier"] and q["joint"] > p["joint"]]
+            if better:
+                q = max(better, key=lambda q: q["joint"])
+                p["dominated_by"] = {
+                    "n_legs": q["n_legs"], "multiplier": q["multiplier"],
+                    "joint": q["joint"],
+                    "text": (f"A {q['n_legs']}-leg on this card pays "
+                             f"{q['multiplier']:.2f}x at {q['joint']}% — at least as "
+                             f"much, more likely to land. This one is strictly worse.")}
+
+    return out, {"pool": len(pool), "priced": len(priced),
+                 "truncated_from_pool": truncated,
+                 "pool_cap": PARLAY_POOL,
+                 "strata": strata_counts,
+                 "note": (f"{truncated} priced leg(s) never entered a combination. "
+                          f"The pool takes the {PARLAY_PER_STRATUM} highest-confidence "
+                          f"legs from each of {len(PARLAY_STRATA)} PRICE BANDS rather "
+                          f"than the top {PARLAY_POOL} overall, because confidence and "
+                          f"price move together and a confidence-ranked pool contains "
+                          f"only short favourites — which cannot multiply to 3x in "
+                          f"three legs at all. Stated rather than hidden.")
+                         if truncated else
+                         "Every priced leg entered the combination search."}
+
+
 def build_pairs(plays, limit=8):
     """STEP 6. Two legs, ONE book, TWO DIFFERENT GAMES, product >= 1.80.
 
@@ -1185,6 +1383,8 @@ def main(dry=False):
     plays_all = plays
     plays = standard
     pairs = build_pairs(plays_all)
+    top10, top10_drops = build_top10(plays_all, hitters)
+    parlays, parlay_meta = build_parlays(plays_all, hitters)
 
     # ---- THE BOARD -------------------------------------------------
     # 🔴 THIS IS A FILTERED BOARD, AND THE FILTER IS SAM'S, NOT CLAUDE'S.
@@ -1332,6 +1532,29 @@ def main(dry=False):
         "picks": board,
         "below_price_floor": below,
         "pairs": pairs,
+        # 🔴 A DIFFERENT LIST FROM picks[], DELIBERATELY. See build_top10().
+        "top10": top10,
+        "top10_rule": (
+            f"Most likely to hit, among rows priced better than "
+            f"{TOP10_PRICE_FLOOR}. Sam's instruction, 2026-08-26: likely AND "
+            f"payable. The pool is EVERY priced row plus EVERY alt ladder "
+            f"rung -- rungs never reach picks[] at all -- deduped to one row "
+            f"per player, then ranked by the confidence that row already "
+            f"carries. ⛔ This is NOT picks[:10]: different pool, different "
+            f"gate, different dedup."),
+        "top10_excluded": top10_drops,
+        "parlays": parlays,
+        "parlay_meta": parlay_meta,
+        "parlay_rule": (
+            "Two-leg combinations pay 1.8x-2.2x and three- and four-leg "
+            "combinations pay 3x-6x -- Sam's bands, 2026-08-26. The 1.80 "
+            "floor is unchanged and is still never crossed; the UPPER bound "
+            "on two-mans is new and is also his instruction. Legs are Hard "
+            "Rock only (the only book of the five that multiplies), never "
+            "below the -700 price floor, and always in DIFFERENT GAMES "
+            "checked on GAME ID rather than on opponent name (ledger rule "
+            "54). ⛔ No same-game parlays: legs inside one game are "
+            "correlated and books reprice them."),
         # 🔴 WHY THIS INDEX EXISTS. The Player Props tab renders from
         # props.json.gz, which has no model in it -- the model lives here.
         # Recomputing a projection in the browser would mean a SECOND

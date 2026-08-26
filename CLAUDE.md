@@ -42,6 +42,8 @@ old one, not easier.**
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
+| **The parlay candidate pool is STRATIFIED BY PRICE** | ⛔ Do not "simplify" it to the N highest-confidence legs. Confidence and price move together, so a confidence-ranked pool of 100 legs had decimal odds of 1.154–1.571 — all short favourites — and the three-leg search returned **zero** parlays on a slate with 2,396 priced legs. Measured 2026-08-26. The pool takes the best legs from each price band for exactly this reason. |
+| **The top-10 price gate (−400)** | Sam's own instruction, 2026-08-26: "likely AND payable". Without it the list fills with −2000 alt rungs that always win and pay nothing. It is a floor like the other two, not a judgment call per slate. |
 | **A projection is an INVERSION of the displayed confidence** | Never a second estimate. `card.py` solves for the central value that reproduces the number already printed, under that row's own distribution, so the two can never disagree. ⛔ Do not print `central` (E[K]) instead — it is the MODEL half of a 50/50 blend and differs from the blend by design. ⛔ Do not compute one in JavaScript; that is a second copy of the model. |
 | **Five books only** (`BOOKS` in collect.py) | Hard Rock, DraftKings, FanDuel, Caesars (`williamhill_us`), BetMGM. Sam's instruction, 2026-08-23. ⚠️ This SUPERSEDED the earlier "Hard Rock only / `regions=us2`" rule for props — four of the five live in `us`, so props pull `us,us2` and cost double. A price from a book he cannot bet is not a better price. |
 | **`picks/<date>.json` already written** | Published estimates are a permanent record. ⛔ Never edit or delete one after its games have started. |
@@ -152,9 +154,10 @@ collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card, record, refresh, lineups
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
-verify_card.py    46 checks, pitcher AND hitter, including the
-                  descending-order invariant and the projection
-                  round-trip. Runs before commit.
+verify_card.py    62 checks, pitcher AND hitter, including the
+                  descending-order invariant, the projection
+                  round-trip, the top-10 price gate and every
+                  parlay recomputed leg by leg. Runs before commit.
 index.html        the dashboard, single file, no build step
 .github/workflows/collect.yml   every schedule
 data/             timestamped snapshots. append-only.

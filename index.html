@@ -208,6 +208,21 @@ body{padding-bottom:44px}
 .pairs th,.pairs td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
 .pairs th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 .pairs td.n{text-align:right;font-variant-numeric:tabular-nums}
+/* TOP 10 -- a compact ranked strip, visually distinct from the pick cards
+   so nobody reads it as "the first ten of the board". It is a different
+   list built from a different pool. */
+.t10{display:grid;grid-template-columns:28px 1fr auto auto;gap:0;align-items:center}
+.t10 .r{font-weight:800;color:var(--mut);font-size:12px;text-align:center}
+.t10 .w{padding:7px 8px;font-size:13.5px}
+.t10 .w b{font-weight:700}
+.t10 .c{font-weight:800;font-size:13px;padding:0 10px}
+.t10 .p{font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;padding-right:8px}
+.t10 > div{border-bottom:1px solid var(--line)}
+.t10 > div:nth-last-child(-n+4){border-bottom:0}
+.altchip{display:inline-block;padding:0 5px;border-radius:20px;font-size:9.5px;font-weight:800;
+         border:1px solid #d9c9a8;background:#fdf7ec;color:#8a5f14;margin-left:5px;vertical-align:1px}
+.domrow{background:#fdf7ec}
+.domnote{font-size:11px;color:#8a5f14;padding:2px 10px 8px}
 .lg{object-fit:contain;vertical-align:middle;flex:0 0 auto}
 .lg-fb{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
   border-radius:6px;background:var(--chip);color:var(--mut);font-size:9px;font-weight:800;flex:0 0 auto}
@@ -357,6 +372,7 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <li><a data-tab="trends">Trends</a></li>
     <li><a data-tab="news">News</a></li>
     <li><a class="off" title="Needs a run-scoring model — not built yet">Game Projections</a></li>
+    <li><a data-tab="parlays">Parlays</a></li>
     <li><a data-tab="props">Player Props</a></li>
   </ul></div></nav>
 </header>
@@ -1280,7 +1296,43 @@ async function renderPicks(){
     if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderPicks(); });
   }, 0);
 
+  /* TOP 10 OF THE DAY.
+     🔴 NOT picks[:10]. card.py builds this from a WIDER pool (every priced
+     row plus every alt ladder rung, and rungs never reach the board) and a
+     NARROWER price gate, deduped to one row per player. Rendering it from
+     P.top10 rather than re-deriving it here is deliberate: a second
+     implementation of the selection rule is a second thing to drift. */
   const liveGames = new Set(live.map(p => p.game));
+  const t10 = (P.top10 || []).filter(x => !x.game || liveGames.has(x.game));
+  if (t10.length){
+    const tn = el('div','panel');
+    const unitOf = x => x.market === 'strikeouts' ? 'K'
+                      : x.market === 'outs' ? 'Outs'
+                      : (x.market_label || x.market);
+    tn.innerHTML = `<h2>Top 10 plays of the day</h2>
+      <p>${P.top10_rule || ''}</p>
+      <div class="t10">${t10.map((x,i) => {
+        const who = x.pitcher || x.player;
+        const side = x.side === 'over' ? 'Over' : 'Under';
+        return `<div class="r">${i+1}</div>
+          <div class="w"><b>${who}</b> — ${side} ${x.line} ${unitOf(x)}
+            ${x.alt_rung ? '<span class="altchip">ALT RUNG</span>' : ''}
+            ${projChip(x.projection, x.projection_unit, x.projection_basis, x.projection_note)}
+            <div class="rec" style="font-size:11px">${x.game || ''}${x.first_pitch ? ' · ' + x.first_pitch : ''}</div></div>
+          <div class="c ${confClass(x.confidence)}">${x.confidence}%</div>
+          <div class="p">${sgn(x.price)}</div>`;
+      }).join('')}</div>
+      <div class="note" style="margin-top:10px"><b>This is not the top of the board.</b>
+        The board is ranked by confidence and capped at 50, so its first ten rows are just
+        its first ten rows. This list is drawn from every priced row <i>and</i> every alt
+        ladder rung — which never appear on the board at all — then gated at
+        ${P.top10_excluded ? P.top10_excluded.price_floor : -400} so nothing lands here
+        that wins reliably and pays nothing.
+        ${P.top10_excluded ? `<b>${P.top10_excluded.below_payable_floor}</b> row(s) were
+        excluded by that price gate.` : ''}</div>`;
+    v.append(tn);
+  }
+
   const pairs = (P.pairs || []).filter(x => !x.games || x.games.every(g => liveGames.has(g)));
   if (pairs.length){
     const pn = el('div','panel');
@@ -1777,7 +1829,14 @@ async function renderProps(){
 
   let body = '', total = 0;
   shown.forEach(g => {
-    const list = (g.props||[]).filter(p => p.market === pFilter.market && p.side === pFilter.side)
+    /* 🔴 "All" IS A REAL OPTION, NOT A CONVENIENCE. Sam, 2026-08-26:
+       "player props should have every prop on the board". The tab already
+       held every priced row, but only one market and one side at a time --
+       ten dropdown changes to see the board. An absent option is the same
+       as absent data to whoever is looking. */
+    const list = (g.props||[]).filter(p =>
+        (pFilter.market === 'all' || p.market === pFilter.market) &&
+        (pFilter.side === 'all' || p.side === pFilter.side))
       .sort((a,b) => (b.implied ?? 0) - (a.implied ?? 0));
     if (!list.length) return;
     total += list.length;
@@ -1792,9 +1851,10 @@ async function renderProps(){
   v.innerHTML = `
     <div class="pfilt">
       <select id="pf-game">${opts}</select>
-      <select id="pf-mkt">${PMARKETS.map(([k,l]) =>
+      <select id="pf-mkt">${[['all','All markets']].concat(PMARKETS).map(([k,l]) =>
         `<option value="${k}" ${k===pFilter.market?'selected':''}>${l}</option>`).join('')}</select>
       <select id="pf-side">
+        <option value="all" ${pFilter.side==='all'?'selected':''}>Both sides</option>
         <option value="over" ${pFilter.side==='over'?'selected':''}>Over</option>
         <option value="under" ${pFilter.side==='under'?'selected':''}>Under</option>
       </select>
@@ -1832,18 +1892,89 @@ async function renderProps(){
   });
 }
 
+async function renderParlays(){
+  const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
+  const d = todayET();
+  let P;
+  try { P = await jget(`picks/${d}.json`); }
+  catch(e){
+    v.innerHTML = `<div class="panel"><h2>Parlays</h2>
+      <div class="note"><b>No card published for ${d} yet.</b> Parlays are built by
+      <code>card.py</code> alongside the daily card.</div></div>`;
+    return;
+  }
+  v.innerHTML = '';
+  const PL = P.parlays || {};
+  const head = el('div','panel');
+  head.innerHTML = `<h2>Parlays &mdash; ${d}</h2><p>${P.parlay_rule || ''}</p>`;
+  v.append(head);
+
+  const live = new Set((P.picks || [])
+    .filter(p => showStarted || !p.commence || new Date(p.commence) > new Date())
+    .map(p => p.game));
+
+  const TITLES = {'2': 'Two-leg &mdash; pays 1.8x to 2.2x',
+                  '3': 'Three-leg &mdash; pays 3x to 6x',
+                  '4': 'Four-leg &mdash; pays 3x to 6x'};
+  let any = 0;
+  ['2','3','4'].forEach(size => {
+    const rows = (PL[size] || []).filter(x => !x.games || x.games.every(g => live.has(g)));
+    if (!rows.length) return;
+    any += rows.length;
+    const pn = el('div','panel');
+    pn.innerHTML = `<h2>${TITLES[size]}</h2>
+      <div style="overflow-x:auto"><table class="pairs">
+      <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th>
+        <th class="n">All hit</th><th class="n">$30 EV</th></tr></thead>
+      <tbody>${rows.map(x => `
+        <tr class="${x.dominated_by ? 'domrow' : ''}">
+          <td><b>${x.legs.join('</b> + <b>')}</b>
+            <span class="bandchip ${x.joint_basis === 'MODEL' ? 'mdl' : 'rec'}"
+                  title="${(x.joint_note||'').replace(/"/g,'&quot;')}">${x.joint_basis}</span></td>
+          <td class="rec">${x.games.join(' · ')}</td>
+          <td class="n">${x.multiplier.toFixed(2)}x</td>
+          <td class="n"><b>${x.joint}%</b></td>
+          <td class="n">${x.ev_30 > 0 ? '+' : ''}${x.ev_30}</td>
+        </tr>
+        ${x.dominated_by ? `<tr class="domrow"><td colspan="5" class="domnote">
+           ⚠️ ${x.dominated_by.text}</td></tr>` : ''}`).join('')}
+      </tbody></table></div>`;
+    v.append(pn);
+  });
+
+  if (!any) v.append(el('div','msg','No parlay in those bands on this card.'));
+
+  const m = P.parlay_meta || {};
+  const foot = el('div','panel');
+  foot.innerHTML = `<div class="note">
+    <b>How these are built.</b> Every leg is priced at Hard Rock, the only one of the five
+    books that multiplies. No leg is shorter than the −700 floor. Legs are always in
+    <b>different games, checked on game ID</b> — never on opponent name, because in every
+    game the two starters have different opponents and the same game, so a name check
+    passes on exactly the parlays it exists to catch.
+    <br><br><b>The joint number is a product, and its label matters.</b> A pitcher leg
+    carries a model estimate; a hitter leg carries that player's own record. A parlay
+    mixing them is labelled <b>MIXED</b>, because the joint is neither.
+    Legs in different games are treated as independent — that assumption is not free and
+    has never been tested in this project.
+    ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}</div>`;
+  v.append(foot);
+}
+
 function show(tab){
   TAB = tab;
   document.querySelectorAll('.subnav a[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
   const names = {scores:'Scores & Matchups', picks:"Gizmo's Picks", odds:'Odds',
-                 record:'Track Record', trends:'Trends', news:'News', props:'Player Props'};
+                 record:'Track Record', trends:'Trends', news:'News', props:'Player Props',
+                 parlays:'Parlays'};
   $('#ttl').textContent = names[tab];
   const showTools = tab === 'scores';
   $('#dt').style.display = $('#filt').style.display = showTools ? '' : 'none';
   $('#st').style.display = (tab === 'odds' || tab === 'props') ? '' : 'none';
   if (!showTools) $('#stamp').textContent = '';
   ({scores:renderScores, picks:renderPicks, odds:renderOdds, record:renderRecord,
-    trends:renderTrends, news:renderNews, props:renderProps})[tab]();
+    trends:renderTrends, news:renderNews, props:renderProps,
+    parlays:renderParlays})[tab]();
 }
 
 document.querySelectorAll('.subnav a[data-tab]').forEach(a =>

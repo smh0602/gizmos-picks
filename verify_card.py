@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent checks on a generated card. Nothing here reuses card.py's
 arithmetic -- each check is computed a second, different way."""
-import gzip, json, math, random, sys, os
+import collections, gzip, json, math, random, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import card as C
 
@@ -497,6 +497,102 @@ for r in _hp:
         _pit.append((r['player'], r['projection'], round(_pf, 1), round(_pu, 1)))
 ck(f"no hitter projection matches the UNFILTERED log better than the "
    f"point-in-time one ({_tested} separable row(s))", not _pit, str(_pit[:3]))
+
+print("\n33. TOP 10 OF THE DAY -- a different list, held to its own rules")
+_t10 = doc.get('top10') or []
+_tx = doc.get('top10_excluded') or {}
+_gate = _tx.get('price_floor', -400)
+ck(f"the top 10 is at most 10 rows ({len(_t10)})", len(_t10) <= 10)
+ck(f"every row is priced better than the payable floor ({_gate})",
+   all(r.get('price') is not None and r['price'] > _gate for r in _t10),
+   str([(r.get('pitcher') or r.get('player'), r.get('price'))
+        for r in _t10 if r.get('price') is None or r['price'] <= _gate][:3]))
+_who = [r.get('pid') or r.get('pitcher') or r.get('player') for r in _t10]
+ck("no player appears twice", len(_who) == len(set(_who)),
+   str([w for w, n in collections.Counter(_who).items() if n > 1][:3]))
+ck("it is ordered by confidence, descending",
+   all(_t10[i]['confidence'] >= _t10[i+1]['confidence'] for i in range(len(_t10)-1)))
+# 🔴 THE CHECK THAT MATTERS. This list is built from a pool the board does
+# not contain -- alt ladder rungs -- so "is it on the board?" is the WRONG
+# question and would fail every honest card. The right one: does every row
+# correspond to a row card.py actually priced, at the same line and side?
+_priced = {}
+for r in allrows:
+    _priced[(r.get('pid'), r.get('market'), r.get('side'), r.get('line'))] = r
+    for g in (r.get('ladder') or []):
+        _priced[(r.get('pid'), r.get('market'), g.get('side'), g.get('line'))] = g
+_orphan = [(r.get('pitcher') or r.get('player'), r.get('market'), r.get('side'), r.get('line'))
+           for r in _t10
+           if (r.get('pid'), r.get('market'), r.get('side'), r.get('line')) not in _priced]
+ck(f"every top-10 row traces to a row the card priced ({len(_priced)} priced keys)",
+   not _orphan, str(_orphan[:3]))
+ck("the price gate actually excluded something, and the card says how much",
+   'below_payable_floor' in _tx,
+   f"{_tx.get('below_payable_floor')} row(s) excluded")
+
+print("\n34. PARLAYS -- recomputed leg by leg")
+_PL = doc.get('parlays') or {}
+_all_p = [p for k in _PL for p in _PL[k]]
+_BANDS = {'2': (1.80, 2.20), '3': (3.00, 6.00), '4': (3.00, 6.00)}
+
+
+def _dec(a):
+    a = float(a)
+    return 1.0 + (a / 100.0 if a > 0 else 100.0 / -a)
+
+
+ck(f"every parlay's leg count matches its own n_legs ({len(_all_p)} parlays)",
+   all(len(p['legs']) == p['n_legs'] == len(p['prices']) == len(p['game_ids'])
+       for p in _all_p))
+_band_bad = [(k, p['multiplier']) for k in _PL for p in _PL[k]
+             if not (_BANDS[k][0] <= p['multiplier'] <= _BANDS[k][1])]
+ck("every parlay pays inside the band its section advertises",
+   not _band_bad, str(_band_bad[:3]))
+# 🔴 RECOMPUTED FROM THE AMERICAN PRICES, not read back from `decimals`.
+_mult_bad = []
+for p in _all_p:
+    m = 1.0
+    for a in p['prices']:
+        m *= _dec(a)
+    if abs(m - p['multiplier']) > 0.005:
+        _mult_bad.append((p['legs'][0], round(m, 3), p['multiplier']))
+ck("multiplier re-derived from the American prices", not _mult_bad, str(_mult_bad[:3]))
+_j_bad = []
+for p in _all_p:
+    j = 1.0
+    for c in p['leg_confidences']:
+        j *= c / 100.0
+    if abs(100 * j - p['joint']) > 0.11:
+        _j_bad.append((p['legs'][0], round(100 * j, 2), p['joint']))
+ck("joint is the product of the legs' own numbers", not _j_bad, str(_j_bad[:3]))
+# ⛔ LEDGER RULE 54. Different games, on GAME ID. Never on opponent name.
+_same = [p['legs'] for p in _all_p if len(set(p['game_ids'])) != p['n_legs']]
+ck("no parlay puts two legs in the same GAME ID", not _same, str(_same[:2]))
+ck("no parlay reuses a player",
+   not [p for p in _all_p if len(set(p['legs'])) != p['n_legs']])
+ck("no parlay leg is shorter than the -700 floor",
+   not [p for p in _all_p if any(a <= -700 for a in p['prices'])])
+ck("every joint number is labelled MODEL, RECORD or MIXED (rule 55)",
+   all(p.get('joint_basis') in ('MODEL', 'RECORD', 'MIXED') for p in _all_p))
+# A MIXED label must be earned: it means the legs really do disagree.
+_mis = [p['legs'] for p in _all_p
+        if (p['joint_basis'] == 'MIXED') != (len(set(p.get('leg_bases') or [])) > 1)]
+ck("the MIXED label appears exactly when the legs' provenance differs",
+   not _mis, str(_mis[:2]))
+# The dominance warning is a claim about another row on this card. Check it.
+_dom_bad = []
+for k in _PL:
+    for p in _PL[k]:
+        d = p.get('dominated_by')
+        if not d:
+            continue
+        if not [q for kk in _PL for q in _PL[kk]
+                if q['n_legs'] == d['n_legs'] and q['multiplier'] >= p['multiplier']
+                and q['joint'] > p['joint']]:
+            _dom_bad.append(p['legs'][0])
+ck(f"every 'strictly worse' warning names a parlay that really is on this card "
+   f"({sum(1 for p in _all_p if p.get('dominated_by'))} warned)",
+   not _dom_bad, str(_dom_bad[:3]))
 
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)
