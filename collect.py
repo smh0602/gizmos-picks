@@ -1421,12 +1421,25 @@ def collect_record():
             else:
                 continue
             w = _won(val, line, side)
-            if w is None:
-                continue
+            # 🔴 A VOID IS NOT A LOSS AND IT IS NOT NOTHING.
+            # ~~`if w is None: continue`~~ -- a player who never took the
+            # field was dropped from the file entirely, so a reader
+            # comparing the card to the record found a pick that had simply
+            # vanished. At the book that is a VOID (usually a refund), and
+            # on 2026-08-24 Ke'Bryan Hayes was exactly this. It is now
+            # RECORDED with won=None and EXCLUDED FROM EVERY TALLY, so the
+            # published percentages do not move by a hundredth.
             rows.append({"kind": kind, "market": mk, "side": side,
+                         "line": line, "price": p.get("price"),
                          "blend": p.get("blend"), "band": p.get("band"),
+                         "confidence": p.get("confidence"),
+                         "confidence_basis": p.get("confidence_basis"),
                          "implied": p.get("break_even") or p.get("implied"),
-                         "edge": p.get("edge"), "won": bool(w), "actual": val,
+                         "edge": p.get("edge"),
+                         "won": None if w is None else bool(w),
+                         "void": w is None,
+                         "actual": val, "game": p.get("game"),
+                         "market_label": p.get("market_label"),
                          "player": p.get("pitcher") or p.get("player")})
 
         pairs = []
@@ -1436,15 +1449,18 @@ def collect_record():
                 legs.append(None)
             pairs.append(q)
 
-        days.append({"date": date, "rows": rows,
-                     "n": len(rows), "w": sum(1 for r in rows if r["won"])})
+        graded = [r for r in rows if r["won"] is not None]
+        days.append({"date": date, "rows": rows, "graded": graded,
+                     "n": len(graded), "w": sum(1 for r in graded if r["won"]),
+                     "voids": sum(1 for r in rows if r["won"] is None)})
 
     def tally(rows):
         n = len(rows)
         return {"w": sum(1 for r in rows if r["won"]), "n": n,
                 "pct": round(100 * sum(1 for r in rows if r["won"]) / n, 1) if n else None}
 
-    allrows = [r for d in days for r in d["rows"]]
+    # ⛔ TALLIES SEE GRADED ROWS ONLY. `rows` now carries voids too.
+    allrows = [r for d in days for r in d["graded"]]
     buckets = {}
     for r in allrows:
         if r["kind"] != "pitcher" or r["blend"] is None:
@@ -1477,11 +1493,27 @@ def collect_record():
         "calibration": [{"bucket": f"{b}-{b+10}%",
                          "predicted": round(sum(r["blend"] for r in v) / len(v), 1),
                          **tally(v)} for b, v in sorted(buckets.items())],
-        "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"]} for d in days],
+        "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
+                     "voids": d["voids"]} for d in days],
+        # 🔴 THE PER-PICK DETAIL LIVES IN ITS OWN GZIPPED FILE.
+        # Sam, 2026-08-26: he wants to click a day and see what hit and what
+        # missed. Inlining ~50 rows a day here would push record.json past
+        # 400KB by season's end, UNCOMPRESSED, on a tab that only needs the
+        # totals to draw. So the totals stay here and the page fetches the
+        # detail once, on demand, the first time somebody expands a day.
+        "detail_file": "data/latest/record-detail.json.gz",
         "days_graded": len(days),
         "skipped": [{"date": a, "why": b} for a, b in skipped],
     }
     write("data/latest/record.json", doc)
+    write("data/latest/record-detail.json.gz",
+          {"built_at": doc["built_at"], "kind": "DESCRIPTIVE",
+           "note": ("Every published pick, graded from the stored box score. "
+                    "`won` is null on a VOID -- a player who never took the "
+                    "field -- and those are excluded from every percentage in "
+                    "record.json."),
+           "days": {d["date"]: d["rows"] for d in days}},
+          compress=True)
     log(f"record: {len(days)} card(s) graded, {doc['overall']['w']}/{doc['overall']['n']} plays")
     for a, b in skipped:
         log(f"  skipped {a}: {b}")

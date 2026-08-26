@@ -201,6 +201,11 @@ card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
 budget.py         projected Odds API spend, derived from the deployed
                   cron schedule and market lists. Run it after ANY change
                   to the schedule or the markets.
+verify_record.py  re-grades EVERY published pick from the stored box
+                  scores a second way and reconciles record.json against
+                  it -- totals, per day, per kind, the internal sums, and
+                  the drill-down detail. ⛔ Voids stay out of every
+                  denominator. Runs on the record and refresh jobs.
 verify_board.py   checks data/latest/board.json -- implied runs vs the
                   moneyline, run-line attribution, and whether the PAGE
                   can tell two records for one matchup apart. ⛔ Runs on

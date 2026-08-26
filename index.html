@@ -208,6 +208,18 @@ body{padding-bottom:44px}
 .pairs th,.pairs td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
 .pairs th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 .pairs td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.dayrow{cursor:pointer}
+tr.dayrow:hover td{background:#f2f4f7}
+tr.dayrow .caret{color:var(--mut);font-size:10px;display:inline-block;transition:transform .12s}
+tr.dayrow.open .caret{transform:rotate(90deg)}
+.ddtab{width:100%;border-collapse:collapse;font-size:12px;margin:2px 0 6px}
+.ddtab th,.ddtab td{padding:5px 8px;border-top:1px solid var(--line);text-align:left}
+.ddtab th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.ddtab td.n{text-align:right;font-variant-numeric:tabular-nums}
+.res{font-weight:800;font-size:11px;padding:1px 7px;border-radius:20px;border:1px solid}
+.res.w{color:#1f7a4d;border-color:#bfe0cd;background:#f2fbf6}
+.res.l{color:#9a2c2c;border-color:#e8c4c4;background:#fdf3f3}
+.res.v{color:#8a5f14;border-color:#f0dcb8;background:#fdf7ec}
 /* TOP 10 -- a compact ranked strip, visually distinct from the pick cards
    so nobody reads it as "the first ten of the board". It is a different
    list built from a different pool. */
@@ -1594,6 +1606,43 @@ function bandRow(b){
   </div>`;
 }
 
+/* The per-pick detail, fetched once and cached for the session. */
+let RECDETAIL = null;
+async function loadRecordDetail(){
+  if (RECDETAIL) return RECDETAIL;
+  RECDETAIL = await jgetGz('data/latest/record-detail.json.gz');
+  return RECDETAIL;
+}
+
+function dayDetailHtml(rows, date){
+  if (!rows || !rows.length) return '<div class="msg">No picks stored for that card.</div>';
+  const label = r => r.market === 'strikeouts' ? 'K'
+                   : r.market === 'outs' ? 'Outs'
+                   : (r.market_label || r.market);
+  /* Losers first is tempting and wrong -- the card was published in
+     confidence order, so that is the order it is reviewed in. */
+  const body = rows.map(r => {
+    const res = r.void ? ['v','VOID'] : r.won ? ['w','HIT'] : ['l','MISS'];
+    return `<tr>
+      <td><b>${r.player}</b> <span class="rec">${r.game || ''}</span></td>
+      <td>${r.side === 'over' ? 'Over' : 'Under'} ${r.line} ${label(r)}</td>
+      <td class="n">${r.confidence != null ? r.confidence + '%' : '—'}</td>
+      <td class="n">${r.price != null ? sgn(r.price) : '—'}</td>
+      <td class="n">${r.actual == null ? '—' : r.actual}</td>
+      <td><span class="res ${res[0]}">${res[1]}</span></td></tr>`;
+  }).join('');
+  const nv = rows.filter(r => r.void).length;
+  return `<div style="overflow-x:auto"><table class="ddtab">
+      <thead><tr><th>Player</th><th>Pick</th><th class="n">Conf</th>
+        <th class="n">Price</th><th class="n">Actual</th><th>Result</th></tr></thead>
+      <tbody>${body}</tbody></table></div>
+    <div class="note" style="margin:0 0 8px;padding:7px 10px;font-size:11.5px">
+      <b>Actual</b> is what the player really did, read off the stored box score.
+      ${nv ? `<b>${nv} void</b> — the player never took the field, which is usually a refund
+       at the book, not a loss. Voids are shown here and excluded from every percentage.`
+       : 'Every pick on this card was settled.'}</div>`;
+}
+
 async function renderRecord(){
   const v = $('#view');
   if (!RECORD){
@@ -1626,9 +1675,44 @@ async function renderRecord(){
         <br><br>The first machine card grades the morning after its games finish. Until then this
         section is empty on purpose rather than showing a number it has not earned.</div>`;
 
+  /* 🔴 EVERY DAY IS CLICKABLE. Sam, 2026-08-26: he wants to open a date
+     and see which props hit and which missed. The per-pick detail is a
+     SEPARATE gzipped file, fetched once the first time a row is opened --
+     inlining it would push the record file past 400KB uncompressed by the
+     end of the season on a tab that only needs totals to draw. */
   const dayRows = (R.by_day || []).map(d =>
-    `<tr><td>${d.date}</td><td><b>${d.w}/${d.n}</b></td>
-      <td>${(100*d.w/d.n).toFixed(0)}%</td></tr>`).join('');
+    `<tr class="dayrow" data-date="${d.date}" title="Click to see every pick from this card">
+       <td>${d.date} <span class="caret">▸</span></td>
+       <td><b>${d.w}/${d.n}</b>${d.voids ? ` <span class="rec" style="font-size:11px">+${d.voids} void</span>` : ''}</td>
+       <td>${(100*d.w/d.n).toFixed(0)}%</td></tr>
+     <tr class="daydetail" id="dd-${d.date}" hidden><td colspan="3"></td></tr>`).join('');
+
+  /* Wire the day rows after the table is in the DOM. */
+  setTimeout(() => {
+    document.querySelectorAll('tr.dayrow').forEach(tr => {
+      tr.addEventListener('click', async () => {
+        const date = tr.dataset.date;
+        const box = document.querySelector('#dd-' + date);
+        if (!box) return;
+        if (!box.hidden){ box.hidden = true; tr.classList.remove('open'); return; }
+        tr.classList.add('open');
+        box.hidden = false;
+        const cell = box.querySelector('td');
+        if (!cell.dataset.loaded){
+          cell.innerHTML = '<div class="msg">Loading…</div>';
+          try {
+            const D = await loadRecordDetail();
+            cell.innerHTML = dayDetailHtml((D.days || {})[date], date);
+            cell.dataset.loaded = '1';
+          } catch(e){
+            cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The collector
+              writes <code>data/latest/record-detail.json.gz</code> on its next
+              <code>record</code> run.</div>`;
+          }
+        }
+      });
+    });
+  }, 0);
 
   const mk = R.by_market || {};
   const mkRows = Object.keys(mk).map(k =>
