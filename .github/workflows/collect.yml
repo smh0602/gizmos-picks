@@ -233,3 +233,12 @@ jobs:
       - name: Verify the board
         if: steps.mode.outputs.mode == 'gamelines'
         run: python verify_board.py
+
+      # 🔴 THE TRACK RECORD IS AUDITED EVERY TIME IT IS BUILT.
+      # It re-grades every published pick from the stored box scores a
+      # SECOND way and compares. ⛔ Like the board check, this runs AFTER
+      # the commit: the record is derived and can be rebuilt, but a run
+      # that fails must not discard the data it was built from.
+      - name: Verify the track record
+        if: steps.mode.outputs.mode == 'record' || steps.mode.outputs.mode == 'refresh'
+        run: python verify_record.py
