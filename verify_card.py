@@ -594,5 +594,66 @@ ck(f"every 'strictly worse' warning names a parlay that really is on this card "
    f"({sum(1 for p in _all_p if p.get('dominated_by'))} warned)",
    not _dom_bad, str(_dom_bad[:3]))
 
+print("\n35. OPPONENT RECENT STARTERS -- descriptive, point-in-time, and NOT in the model")
+_orr = [r for r in pit_rows if r.get('opp_recent')]
+ck(f"every pitcher row carries the opponent block ({len(_orr)} of {len(pit_rows)})",
+   len(_orr) == len(pit_rows),
+   str([r['pitcher'] for r in pit_rows if not r.get('opp_recent')][:3]))
+# 🔴 POINT IN TIME. The pitcher log is `latest` and grows the moment a game
+# ends. A block that could see tonight's start would be describing the
+# matchup using the game it is trying to predict.
+_leak = [(r['pitcher'], x['d']) for r in _orr
+         for x in r['opp_recent']['starts'] if x['d'] >= doc['date']]
+ck("no listed start is dated on or after the slate", not _leak, str(_leak[:3]))
+_wrongopp = [(r['pitcher'], r['opponent'], r['opp_recent']['opponent'])
+             for r in _orr if r['opp_recent']['opponent'] != r['opponent']]
+ck("every block is about the opponent the row actually faces",
+   not _wrongopp, str(_wrongopp[:3]))
+_unsorted = [r['pitcher'] for r in _orr
+             if [x['d'] for x in r['opp_recent']['starts']]
+             != sorted([x['d'] for x in r['opp_recent']['starts']], reverse=True)]
+ck("each block is newest-first", not _unsorted, str(_unsorted[:3]))
+ck("no block lists more than 10 starts",
+   all(len(r['opp_recent']['starts']) <= 10 for r in _orr))
+# Recount the aggregate off the rows shown, a second way.
+_agg = []
+for r in _orr:
+    b = r['opp_recent']
+    mk = sum(x['k'] for x in b['starts']) / len(b['starts'])
+    if abs(mk - b['mean_k']) > 0.011:
+        _agg.append((r['pitcher'], round(mk, 3), b['mean_k']))
+ck("the average recomputes from the rows shown", not _agg, str(_agg[:3]))
+# ⛔ LEDGER RULE 55 AND OWED-TEST T36. Sam asked for this to feed the
+# confidence score. It must not until T36 passes. There is no way to prove
+# a negative from the card alone, so this checks the two things that ARE
+# observable: it is labelled DESCRIPTIVE, and the row says so in words.
+ck("every block is labelled DESCRIPTIVE (rule 55)",
+   all(r['opp_recent'].get('basis') == 'DESCRIPTIVE' for r in _orr))
+ck("every block states in words that it is not a model input",
+   all('DESCRIPTIVE' in (r['opp_recent'].get('note') or '') for r in _orr))
+
+print("\n36. THE WHY -- the splits Sam asked for, counted at the row's own line")
+ck(f"every pitcher row carries the five splits ({len(pit_rows)} rows)",
+   all(isinstance(r.get('splits'), dict) and 'season' in r['splits'] for r in pit_rows))
+# The season split must equal the raw record the row already publishes.
+_mis = [(r['pitcher'], r['splits'].get('season'), r['raw'])
+        for r in pit_rows if r['splits'].get('season') != r['raw']]
+ck("the season split agrees with the row's own raw record", not _mis, str(_mis[:3]))
+# home + road must account for every start in the season split.
+_hr = []
+for r in pit_rows:
+    sp = r['splits']
+    def den(x):
+        return int(x.split('/')[1]) if x else 0
+    if den(sp.get('home')) + den(sp.get('road')) != den(sp.get('season')):
+        _hr.append((r['pitcher'], sp.get('home'), sp.get('road'), sp.get('season')))
+ck("home + road accounts for every start in the season split",
+   not _hr, str(_hr[:3]))
+_l15 = [(r['pitcher'], r['splits'].get('last15')) for r in pit_rows
+        if r['splits'].get('last15') and int(r['splits']['last15'].split('/')[1]) > 15]
+ck("the last-15 split never counts more than 15 starts", not _l15, str(_l15[:3]))
+ck("every row's why mentions the splits",
+   all(any('this season' in w for w in (r.get('why') or [])) for r in pit_rows))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

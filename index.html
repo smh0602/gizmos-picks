@@ -219,6 +219,18 @@ body{padding-bottom:44px}
 .t10 .p{font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;padding-right:8px}
 .t10 > div{border-bottom:1px solid var(--line)}
 .t10 > div:nth-last-child(-n+4){border-bottom:0}
+/* The opponent's recent starting-pitcher log. Plain, and collapsed by
+   default -- it is DESCRIPTIVE colour, not the pick. */
+.oppl{margin:8px 12px 12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.oppl > summary{cursor:pointer;padding:8px 11px;font-size:12px;font-weight:700;
+                background:#f7f8fa;list-style:none}
+.oppl > summary::-webkit-details-marker{display:none}
+.oppl > summary .k{font-weight:800}
+.oppl table{width:100%;border-collapse:collapse;font-size:12px}
+.oppl th,.oppl td{padding:5px 8px;border-top:1px solid var(--line);text-align:left}
+.oppl th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.oppl td.n{text-align:right;font-variant-numeric:tabular-nums}
+.oppl tr.beat td{background:#f2fbf6}
 .altchip{display:inline-block;padding:0 5px;border-radius:20px;font-size:9.5px;font-weight:800;
          border:1px solid #d9c9a8;background:#fdf7ec;color:#8a5f14;margin-left:5px;vertical-align:1px}
 .domrow{background:#fdf7ec}
@@ -1233,6 +1245,39 @@ function pickCard(p){
       `<b>Below the price</b> &middot; shown to fill the board out to 25 plays. The estimate does not beat
        this number's break-even.`));
 
+  /* 🔴 WHAT THIS OPPONENT HAS DONE TO STARTERS LATELY.
+     Sam's idea, 2026-08-26. Built from our OWN pitcher logs -- every one of
+     3,852 starts names its opponent -- so it costs nothing and is
+     point-in-time by construction, which a scraped table never is.
+     ⚠️ Rows on this side of the line are tinted. That is a READING AID on
+     descriptive data, not a model output: the model's opponent term is the
+     SEASON rate, and whether this recent window beats it is owed-test T36. */
+  if (p.opp_recent && p.opp_recent.starts && p.opp_recent.starts.length){
+    const r = p.opp_recent;
+    const isK = p.market === 'strikeouts';
+    const beat = x => p.side === 'over'
+      ? (isK ? x.k > p.line : x.outs > p.line)
+      : (isK ? x.k < p.line : x.outs < p.line);
+    const nBeat = r.starts.filter(beat).length;
+    const d = el('details','oppl');
+    d.innerHTML = `<summary>Last ${r.n} starting pitchers to face ${ab(r.opponent)}
+        &nbsp;&middot;&nbsp; <span class="k">${r.mean_k} K</span> / ${r.mean_ip} IP average
+        &nbsp;&middot;&nbsp; <span class="k">${nBeat}/${r.n}</span> on this side of ${p.line}
+        <span class="bandchip rec" title="${(r.note||'').replace(/"/g,'&quot;')}">DESCRIPTIVE</span></summary>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Date</th><th>Pitcher</th><th class="n">IP</th><th class="n">K</th>
+          <th class="n">H</th><th class="n">ER</th><th class="n">BB</th><th class="n">P</th></tr></thead>
+        <tbody>${r.starts.map(x => `<tr class="${beat(x) ? 'beat' : ''}">
+          <td>${x.d}</td><td>${x.pitcher}${x.throws ? ' <span class="rec">('+x.throws+')</span>' : ''}</td>
+          <td class="n">${x.ip}</td><td class="n"><b>${x.k}</b></td>
+          <td class="n">${x.hit == null ? '&mdash;' : x.hit}</td>
+          <td class="n">${x.er == null ? '&mdash;' : x.er}</td>
+          <td class="n">${x.bb == null ? '&mdash;' : x.bb}</td>
+          <td class="n">${x.np == null ? '&mdash;' : x.np}</td></tr>`).join('')}
+        </tbody></table></div>`;
+    c.append(d);
+  }
+
   /* Alt ladder — pitchers only; hitters have no rungs in the feed. */
   if (p.ladder && p.ladder.length){
     const L = el('div','lad');
@@ -1304,12 +1349,16 @@ async function renderPicks(){
      Filter on the ISO kickoff where the card carries one; a card without
      that field is shown whole rather than silently half-hidden. */
   const dated = P.picks.filter(p => p.commence);
-  const live = showStarted ? P.picks
+  let live = showStarted ? P.picks
              : (dated.length === P.picks.length
                 ? P.picks.filter(p => new Date(p.commence) > new Date())
                 : P.picks);
   const hidden = P.picks.length - live.length;
-  if (hidden) v.append(el('div', null, startedToggle(hidden, 'pk-started')));
+  // Same rule: if every pick on the card is on a started game, hiding them
+  // all leaves an empty board, so show them and say why.
+  const pkAllDone = hidden > 0 && live.length === 0;
+  if (pkAllDone) { live = P.picks; }
+  if (hidden) v.append(el('div', null, startedToggle(hidden, 'pk-started', pkAllDone)));
   if (!dated.length && P.picks.length)
     v.append(el('div','note','This card has no kickoff times on it, so nothing can be retired '
       + 'automatically. Cards written from here on carry them.'));
@@ -1429,9 +1478,9 @@ async function renderOdds(){
   if (!BOARD){ v.innerHTML = '<div class="note"><b>No odds file yet.</b> The collector writes <code>data/latest/board.json</code> on its next run.</div>'; return; }
 
   const allG = BOARD.games || [];
-  const nStarted = allG.filter(hasStarted).length;
+  const {list: _oddsList, nStarted, allDone} = splitStarted(allG);
   const byDate = {};
-  (showStarted ? allG : allG.filter(g => !hasStarted(g)))
+  _oddsList
     /* 🔴 GROUP BY THE ET DATE, NOT THE UTC ONE. Same root cause as the
        boardFor bug above: a 10pm ET game is 02:00Z tomorrow, and slicing
        the UTC string files it under the wrong day's heading. */
@@ -1509,7 +1558,7 @@ async function renderOdds(){
       <p style="color:var(--mut);margin:0">Consensus across ${BOARD.n_books_seen} books with the vig removed,
         and the best available price on each side. ${freshness(BOARD.pulled_at)}</p>
     </div>
-    ${startedToggle(nStarted, 'ob-started')}
+    ${startedToggle(nStarted, 'ob-started', allDone)}
     ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">Every game on the board has started.</div>'}
     <div class="note" style="margin-top:18px"><b>Every price with an arrow is clickable</b> and opens that
       book's bet slip — moneyline, total and run line alike. Prices without one are real, but the book did not
@@ -1751,15 +1800,15 @@ function renderTrends(){
   };
 
   const allT = BOARD.games || [];
-  const nStarted = allT.filter(hasStarted).length;
-  const games = (showStarted ? allT : allT.filter(g => !hasStarted(g)))
+  const {list: _trList, nStarted, allDone} = splitStarted(allT);
+  const games = _trList
     .slice().sort((a,b) => a.commence < b.commence ? -1 : 1);
   v.innerHTML = `<div style="margin-bottom:8px">
       <h2 style="margin:0 0 4px;font-size:16px">Trends <span class="kind k-desc">Descriptive</span></h2>
       <p style="color:var(--mut);margin:0">Form and splits from the MLB feed, next to what the market implies.
         Nothing here is a projection.</p></div>
     ${!haveSplits ? '<div class="note">Standings did not load, so records are missing. Refresh in a moment.</div>' : ''}
-    ${startedToggle(nStarted, 'tr-started')}
+    ${startedToggle(nStarted, 'tr-started', allDone)}
     ${games.length ? '' : '<div class="msg">Every game on the board has started. Tomorrow\'s lines appear as the books post them.</div>'}
     ${games.map(g => `<div class="panel" style="padding:14px 16px;margin:10px 0">
         <div style="font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
@@ -1784,8 +1833,25 @@ let showStarted = false;
 let PICKKIND = 'all';
 const hasStarted = g => new Date(g.commence) <= new Date();
 
-function startedToggle(n, id){
+/* The started/upcoming split, decided once. `allDone` means filtering
+   would leave nothing, so the filter is not applied at all. */
+function splitStarted(all){
+  const nStarted = all.filter(hasStarted).length;
+  const allDone = all.length > 0 && nStarted === all.length;
+  return {list: (showStarted || allDone) ? all : all.filter(g => !hasStarted(g)),
+          nStarted, allDone};
+}
+
+/* 🔴 A CHOICE THAT ISN'T ONE IS NOT A CHOICE. Sam, 2026-08-26: "if the
+   games are all concluded this shouldnt even be an option." He is right --
+   when EVERY game has started, hiding them empties the tab, so the toggle
+   stops being a filter and becomes the only way to see anything. In that
+   state the games are shown and the box just says why the lines are stale. */
+function startedToggle(n, id, allDone){
   if (!n) return '';
+  if (allDone) return `<div class="note" style="margin:10px 0;padding:9px 12px">
+    <b>Every game on this slate has started.</b> These lines are off the board and
+    are shown for reference — tomorrow's board replaces them as soon as it posts.</div>`;
   return `<div class="note" style="margin:10px 0;padding:9px 12px">
     <b>${n} game${n>1?'s':''} already underway</b> — ${showStarted ? 'shown below' : 'hidden'},
     because those lines are off the board.
@@ -1839,8 +1905,7 @@ async function renderProps(){
   await loadProjections();
 
   const all = PROPS.games || [];
-  const nStarted = all.filter(hasStarted).length;
-  const games = showStarted ? all : all.filter(g => !hasStarted(g));
+  const {list: games, nStarted, allDone} = splitStarted(all);
 
   const opts = [`<option value="all">All games</option>`].concat(
     games.map(g => `<option value="${g.id}">${ab(g.away)} @ ${ab(g.home)} — ${
@@ -1914,7 +1979,7 @@ async function renderProps(){
       <span class="stamp">${total} props ·
         ${freshness(pFilter.market.startsWith('pitcher') ? PROPS.pitcher_odds_at : PROPS.batter_odds_at)}</span>
     </div>
-    ${startedToggle(nStarted, 'pf-started')}
+    ${startedToggle(nStarted, 'pf-started', allDone)}
     <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>
     <div class="note"><b>These are the books' prices and each player's own record — nothing more.</b>
       There is no hitter model in this project yet, so no pick here carries a Gizmo's confidence rating.
@@ -2097,14 +2162,24 @@ $('#filt').addEventListener('change', renderScores);
        2. The scroll position is restored afterwards, clamped to the new
           height in case the board got shorter (a game started and its
           rows retired). */
-  function tick(fn){
+  /* 🔴 THIS MUST AWAIT. My first version called fn() and restored the
+     scroll on the next animation frame -- but renderProps, renderPicks and
+     renderParlays are ALL `async`: they await a fetch, so #view is still
+     the OLD content when the frame fires. The restore landed against the
+     old height and the real render then reset the page to the top a
+     moment later. It looked fixed in a quick test because a warm cache
+     resolves fast enough to win the race, and it kept failing for Sam on
+     the two heaviest tabs, which is exactly where the awaits are.
+     ⛔ Do not "simplify" this back to a synchronous call. */
+  async function tick(fn){
     if (document.querySelector('.ovl')) return;      // modal open, leave it alone
     const y = window.scrollY;
-    fn();
-    requestAnimationFrame(() => {
-      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-      if (y > 0) window.scrollTo(0, Math.min(y, max));
-    });
+    if (y === 0) { await fn(); return; }             // nothing to preserve
+    await fn();                                      // <- the render, finished
+    // Two frames: one for the DOM, one for layout to settle its height.
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo(0, Math.min(y, max));
   }
 
   setInterval(() => { if (TAB === 'scores') tick(renderScores); }, 45000);

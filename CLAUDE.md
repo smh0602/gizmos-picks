@@ -136,6 +136,22 @@ old one, not easier.**
   carries `run_line_conflicted_with_moneyline` and says so on the page.
   ⚠️ **`team_total` is owed-test T25's predictor**, so an inverted row is a
   corrupted observation in a test that has not been run yet.
+- 🔴 **THE OPPONENT'S RECENT STARTER LOG IS DESCRIPTIVE AND MUST STAY THAT
+  WAY UNTIL T36 PASSES.** Sam asked for it to feed the confidence score.
+  It cannot yet: the v4.0 K model **already carries an opponent term**
+  (`oppK`, the season-long mean), and a ten-start window is a competing
+  estimator of that same quantity, not new information. Adopting it is a
+  model change and this project does not make those without a
+  pre-registered test. ⛔ It must never touch `confidence`, `blend`,
+  `carried`, a band or a pair before T36. `verify_card.py` checks it is
+  labelled DESCRIPTIVE and says so in words.
+- 🔴 **IT DOES NOT NEED STATMUSE, AND MUST NOT USE IT.** Sam asked for this
+  from StatMuse. **All 3,852 starts in `pitchers.json.gz` already name their
+  opponent** (verified 2026-08-26), so it is a query over data the collector
+  already stores: zero credits, no scraping, nothing third-party to break,
+  and **point-in-time by construction** — which a scraped "last 20 games"
+  table can never be. `claude/mlb-data-stack.md` also forbids letting a
+  summarising fetch touch a number the card computes with.
 - 🔴 **Players share names.** `resolve()` refuses to guess and returns
   `(None, None)` when a name is ambiguous and the game's own teams do not
   break the tie. ⛔ Do not make it pick the first match.
@@ -193,7 +209,7 @@ verify_board.py   checks data/latest/board.json -- implied runs vs the
                   that gap is how the wrong-game bug shipped.
 test_board_match.js  regression test for boardFor(), run with node
                   against the real board.json.
-verify_card.py    62 checks, pitcher AND hitter, including the
+verify_card.py    75 checks, pitcher AND hitter, including the
                   descending-order invariant, the projection
                   round-trip, the top-10 price gate and every
                   parlay recomputed leg by leg. Runs before commit.
