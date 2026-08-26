@@ -26,6 +26,7 @@ Usage:  python collect.py card
         python collect.py results
 """
 
+import collections
 import gzip
 import json
 import os
@@ -286,7 +287,43 @@ def build_board(games):
         # Hard Rock is the reference book for the posted line (ledger rule 48).
         ref = g["books"].get("hardrockbet") or next(iter(g["books"].values()), {})
         total = ((ref.get("totals") or {}).get("Over") or {}).get("pt")
-        rl = ((ref.get("spreads") or {}).get(home) or {}).get("pt")
+
+        # 🔴 THE RUN LINE IS THE HOME TEAM'S POINT, BY MAJORITY, AND THEN
+        # CROSS-CHECKED AGAINST THE MONEYLINE.
+        #
+        # ~~rl = ref.spreads[home].pt~~ -- ONE book's label, and it shipped
+        # the implied runs to the WRONG TEAM. Measured 2026-08-26 on the
+        # live board: 3 of 19 games had the moneyline FAVOURITE credited
+        # with FEWER implied runs than the underdog. On TB @ DET the books
+        # split 11-6 on which side they show laying the 1.5, Hard Rock was
+        # in the group that labels the AWAY team as laying it, and the card
+        # published "Implied runs TB 4.5, DET 3.0" -- with Detroit the
+        # -115 favourite.
+        #
+        # ⛔ This is not cosmetic. `team_total` is the predictor owed-test
+        # T25 was pre-registered on, so an inverted row is a corrupted
+        # observation in a test that has not been run yet.
+        #
+        # The moneyline is the authority: it is a single unambiguous market
+        # and all 17 books agreed on it in the case above. The favourite is
+        # the side LAYING runs. Where the majority spread label contradicts
+        # that, the moneyline wins and the row is FLAGGED rather than
+        # silently corrected.
+        _pts = [(bk.get("spreads") or {}).get(home, {}).get("pt")
+                for bk in g["books"].values()]
+        _pts = [x for x in _pts if x is not None]
+        rl, rl_basis, rl_conflict = None, None, False
+        if _pts:
+            rl, _agree = collections.Counter(_pts).most_common(1)[0]
+            rl_basis = f"home team's point, majority of {len(_pts)} books ({_agree} agree)"
+            _pa, _ph = avg(probs[away]), avg(probs[home])
+            if _pa is not None and _ph is not None and abs(_ph - _pa) >= 2.0:
+                _home_fav = _ph > _pa
+                if (rl < 0) != _home_fav:
+                    rl_conflict = True
+                    rl = -abs(rl) if _home_fav else abs(rl)
+                    rl_basis += (" -- INVERTED relative to the moneyline and "
+                                 "re-oriented to it; the favourite lays the runs")
 
         # 🔴 The spread and total were being stored as bare NUMBERS while the
         # prices and bet links sat in the same pull, unused. A line you cannot
@@ -343,6 +380,11 @@ def build_board(games):
             "n_books": len(vigs),
             "best_ml": best,
             "total": total, "run_line": rl,
+            # `run_line` is the HOME team's point. Stated, because a bare
+            # signed float with no team attached is what caused the bug.
+            "run_line_team": home,
+            "run_line_basis": rl_basis,
+            "run_line_conflicted_with_moneyline": rl_conflict,
             "best_total": best_total,     # {"Over": {...}, "Under": {...}}
             "best_spread": best_spread,   # {"<team>": {...}, "<team>": {...}}
             "team_total": {away: tt_away, home: tt_home},

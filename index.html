@@ -619,6 +619,14 @@ function starterLabel(p){
   return `${short}${bits.length ? ` <span style="opacity:.7">(${bits.join(', ')})</span>` : ''}`;
 }
 
+/* The ET calendar date of an instant. Uses the IANA zone rather than a
+   fixed -4, so it stays right through the November DST change. */
+const etDate = iso => {
+  const d = new Date(iso);
+  if (!isFinite(d.getTime())) return '';
+  return d.toLocaleDateString('en-CA', {timeZone: 'America/New_York'});
+};
+
 const todayET = () => {
   const d = new Date(Date.now() - 4*3600*1000);
   return d.toISOString().slice(0,10);
@@ -765,14 +773,49 @@ async function loadSplits(){
   }catch(e){}
 }
 
-/* Match on team names AND date. The odds endpoint returns a rolling
-   window covering today and tomorrow, so a name-only match can hand a
-   game today the line posted for the same matchup tomorrow. Same class
-   of bug as treating two opposing starters as two different games. */
-const boardFor = (away, home, isoDate) =>
-  BOARD && (BOARD.games||[]).find(g =>
-    g.away === away && g.home === home &&
-    (!isoDate || g.commence.slice(0,10) === isoDate)) || null;
+/* 🔴 MATCH ON FIRST PITCH, NOT ON DATE. THIS SHIPPED WRONG AND PUT SIX
+   GAMES' LIVE IN-PROGRESS ODDS ONTO THE NEXT DAY'S CARDS.
+
+   The previous version matched team names AND `commence.slice(0,10)`, and
+   its own comment said it existed to stop exactly this. It compared a UTC
+   date against a UTC date, and A UTC DATE IS NOT A GAME'S DATE: a 9:40pm
+   ET first pitch is 01:40Z THE NEXT DAY. So every night game is filed
+   under tomorrow, `.find()` returns the first match, and the next
+   afternoon's card inherits last night's game. Measured 2026-08-26 --
+   6 of 21 board records were the previous night's game, and the cards
+   showed CHC at -4000 with a 4.5 total and Pittsburgh implied for 0 runs.
+
+   ⛔ SWITCHING TO ET DATES IS NOT ENOUGH EITHER. A doubleheader is two
+   games with the same teams on the same ET date, and no date comparison
+   can separate them.
+
+   So: match on the nearest FIRST PITCH, and only inside a window. This
+   separates last night's game (18h away), a doubleheader's two halves
+   (3-5h apart, each nearest its own record), and a board with no record
+   for this game at all.
+
+   🔴 IT FAILS CLOSED. No candidate inside the window returns null, and
+   the card renders WITH NO ODDS. A card missing its line is a card
+   missing its line; a card showing another game's line is misinformation,
+   and Sam's instruction on this is that it cannot happen again. */
+const BOARD_MATCH_WINDOW_MS = 4 * 3600 * 1000;
+function boardFor(away, home, firstPitchISO){
+  if (!BOARD) return null;
+  const cand = (BOARD.games || []).filter(g => g.away === away && g.home === home);
+  if (!cand.length) return null;
+  const t = Date.parse(firstPitchISO || '');
+  if (!isFinite(t)){
+    /* No first pitch to compare against. One candidate is unambiguous;
+       more than one is not, and a guess is what caused this bug. */
+    return cand.length === 1 ? cand[0] : null;
+  }
+  let best = null, bestGap = Infinity;
+  for (const g of cand){
+    const gap = Math.abs(Date.parse(g.commence) - t);
+    if (gap < bestGap){ bestGap = gap; best = g; }
+  }
+  return bestGap <= BOARD_MATCH_WINDOW_MS ? best : null;
+}
 
 /* 🔴 A GAME IS NOT LIVE JUST BECAUSE MLB SAYS `abstractGameState === "Live"`.
    MLB flips that flag at WARMUP -- roughly 20 minutes before first pitch --
@@ -804,7 +847,8 @@ function gameCard(g){
   const gs = gameState(g);
   const live = gs === 'live', fin = gs === 'final', warm = gs === 'warmup';
   const ls = g.linescore || {};
-  const b = boardFor(away, home, (g.gameDate||'').slice(0,10));
+  /* Pass the FULL first-pitch timestamp, never a date slice. */
+  const b = boardFor(away, home, g.gameDate);
   const c = el('div','g clickable');
   c.addEventListener('click', ev => {
     if (ev.target.closest('a')) return;   // never hijack a real link
@@ -856,7 +900,13 @@ function gameCard(g){
   if (b && (b.total != null || b.run_line != null)){
     const bar = el('div','bar');
     bar.append(el('span', null, `<span class="kind k-market">Market</span>`));
-    bar.append(el('span', null, `O/U <b>${b.total ?? '—'}</b> &nbsp; RL <b>${sgn(b.run_line)}</b>`));
+    /* 🔴 NAME THE TEAM. "RL +1.5" beside two team names tells the reader
+       nothing about WHOSE line it is, and an inverted one is invisible.
+       `run_line` is the HOME team's point and now says so on its face. */
+    const rlTeam = b.run_line_team ? ab(b.run_line_team) + ' ' : '';
+    bar.append(el('span', null, `O/U <b>${b.total ?? '—'}</b> &nbsp; RL <b>${rlTeam}${sgn(b.run_line)}</b>`
+      + (b.run_line_conflicted_with_moneyline
+         ? ` <span class="bandchip bad" title="The books split on which side they show laying the runs. This one was re-oriented to agree with the moneyline, which is unambiguous.">RE-ORIENTED</span>` : '')));
     bar.append(el('span', null, `<b>${b.n_books}</b> books`));
     c.append(bar);
   }
@@ -1382,7 +1432,10 @@ async function renderOdds(){
   const nStarted = allG.filter(hasStarted).length;
   const byDate = {};
   (showStarted ? allG : allG.filter(g => !hasStarted(g)))
-    .forEach(g => (byDate[g.commence.slice(0,10)] ||= []).push(g));
+    /* 🔴 GROUP BY THE ET DATE, NOT THE UTC ONE. Same root cause as the
+       boardFor bug above: a 10pm ET game is 02:00Z tomorrow, and slicing
+       the UTC string files it under the wrong day's heading. */
+    .forEach(g => (byDate[etDate(g.commence)] ||= []).push(g));
 
   if (!Object.keys(PROB).length){
     v.innerHTML = '<div class="msg">Loading…</div>';
@@ -1711,7 +1764,7 @@ function renderTrends(){
     ${games.map(g => `<div class="panel" style="padding:14px 16px;margin:10px 0">
         <div style="font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
           ${new Date(g.commence).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})}
-          &nbsp;·&nbsp; total ${g.total ?? '—'} &nbsp;·&nbsp; run line ${sgn(g.run_line)}
+          &nbsp;·&nbsp; total ${g.total ?? '—'} &nbsp;·&nbsp; run line ${g.run_line_team ? ab(g.run_line_team) + ' ' : ''}${sgn(g.run_line)}
         </div>
         ${teamLine(g.away, (g.team_total||{})[g.away])}
         ${teamLine(g.home, (g.team_total||{})[g.home])}

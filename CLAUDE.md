@@ -108,6 +108,30 @@ old one, not easier.**
   just no longer decides the order. ⛔ Do not reintroduce band-first or
   edge-first ordering — it made the page look broken to anyone reading
   down the numbers.
+- 🔴 **A CARD IS MATCHED TO A BOARD RECORD ON NEAREST FIRST PITCH, NEVER
+  ON A DATE.** ⛔ Do not "simplify" `boardFor()` back to a date comparison.
+  **A UTC date is not a game's date**: a 9:40pm ET first pitch is `01:40Z
+  THE NEXT DAY`, so every night game files under tomorrow and the next
+  afternoon's card inherits it. That shipped on 2026-08-26 and put six
+  games' LIVE IN-PROGRESS odds onto the following day's cards — CHC at
+  −4000 with a 4.5 total, Pittsburgh implied for 0 runs. ⚠️ **ET dates are
+  not sufficient either**: a doubleheader is two games with the same teams
+  on the same ET date. Nearest first pitch inside `BOARD_MATCH_WINDOW_MS`
+  separates all three cases, and **it fails closed** — no candidate in the
+  window returns null and the card renders with no odds. A card missing a
+  line is a card missing a line; a card showing another game's line is
+  misinformation. `test_board_match.js` is the regression test and runs
+  against the real board.
+- 🔴 **`run_line` is the HOME team's point, by MAJORITY across books, then
+  cross-checked against the MONEYLINE.** ⛔ Never take it from one book.
+  Books split on which side they show laying the runs — 11 to 6 on TB@DET,
+  2026-08-26 — and `team_total` is derived from it, so one book's label
+  shipped the implied runs to the wrong team on 3 of 19 games. The
+  moneyline is the authority: it is a single unambiguous market and the
+  favourite lays the runs. A row re-oriented against its spread label
+  carries `run_line_conflicted_with_moneyline` and says so on the page.
+  ⚠️ **`team_total` is owed-test T25's predictor**, so an inverted row is a
+  corrupted observation in a test that has not been run yet.
 - 🔴 **Players share names.** `resolve()` refuses to guess and returns
   `(None, None)` when a name is ambiguous and the game's own teams do not
   break the tie. ⛔ Do not make it pick the first match.
@@ -154,6 +178,14 @@ collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card, record, refresh, lineups
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
+verify_board.py   checks data/latest/board.json -- implied runs vs the
+                  moneyline, run-line attribution, and whether the PAGE
+                  can tell two records for one matchup apart. ⛔ Runs on
+                  the GAMELINES job, which is the job that writes the
+                  file. verify_card.py only runs on card/refresh, and
+                  that gap is how the wrong-game bug shipped.
+test_board_match.js  regression test for boardFor(), run with node
+                  against the real board.json.
 verify_card.py    62 checks, pitcher AND hitter, including the
                   descending-order invariant, the projection
                   round-trip, the top-10 price gate and every
