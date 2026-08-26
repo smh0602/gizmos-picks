@@ -1328,7 +1328,7 @@ async function renderPicks(){
   let P;
   // Picks live at picks/<date>.json, deliberately outside data/ --
   // data/ is what the collector writes, picks/ is what we publish.
-  try { P = await jget(`picks/${d}.json`); }
+  try { P = await loadCard(); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>Gizmo's Picks <span class="kind k-model">Model</span></h2>
       <div class="note"><b>No card published for ${d} yet.</b> Cards are written to
@@ -1822,6 +1822,19 @@ function renderTrends(){
 }
 
 let PROPS = null;
+/* The published card, cached. renderPicks and renderParlays were each
+   re-fetching picks/<date>.json on EVERY render -- which the 60-second
+   timer meant was every minute, per tab. Caching it is a bandwidth win and,
+   more importantly, it lets the change-detector below see whether anything
+   on the card has actually moved. */
+let CARD = null, CARD_DATE = null;
+async function loadCard(){
+  const d = todayET();
+  if (CARD && CARD_DATE === d) return CARD;
+  CARD = await jget(`picks/${d}.json`);
+  CARD_DATE = d;
+  return CARD;
+}
 
 /* A game that has started is not a betting board any more.
    The collector keeps everything -- the stored snapshot is a record, and
@@ -2014,7 +2027,7 @@ async function renderParlays(){
   const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
   const d = todayET();
   let P;
-  try { P = await jget(`picks/${d}.json`); }
+  try { P = await loadCard(); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>Parlays</h2>
       <div class="note"><b>No card published for ${d} yet.</b> Parlays are built by
@@ -2171,27 +2184,73 @@ $('#filt').addEventListener('change', renderScores);
      resolves fast enough to win the race, and it kept failing for Sam on
      the two heaviest tabs, which is exactly where the awaits are.
      ⛔ Do not "simplify" this back to a synchronous call. */
-  async function tick(fn){
-    if (document.querySelector('.ovl')) return;      // modal open, leave it alone
-    const y = window.scrollY;
-    if (y === 0) { await fn(); return; }             // nothing to preserve
-    await fn();                                      // <- the render, finished
-    // Two frames: one for the DOM, one for layout to settle its height.
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    window.scrollTo(0, Math.min(y, max));
+  /* 🔴 AWAITING THE RENDER WAS NOT ENOUGH, AND HERE IS WHY IT KEPT
+     HAPPENING. Two more causes, both worse than the first:
+
+     1. NOTHING GUARDED RE-ENTRY. The 60-second and 180-second timers both
+        fire at t=180, 360, 540... so two renders ran at once. One restored
+        the scroll while the other was still replacing #view, and the
+        position was lost. That is the "every minute or so, but worse
+        sometimes" Sam kept seeing.
+
+     2. IT RE-RENDERED WHETHER OR NOT ANYTHING HAD CHANGED. The 60-second
+        timer exists to retire a game the moment its first pitch passes.
+        It was rebuilding all 3,000 rows of the props board every minute
+        to check. The right move is not to restore the scroll faster --
+        it is NOT TO REBUILD THE PAGE when there is nothing new to show.
+
+     So: one tick at a time, and only when the inputs actually moved. */
+  let ticking = false, lastSig = '';
+
+  function renderSig(){
+    const nStartedIn = a => (a || []).filter(hasStarted).length;
+    return [
+      TAB, showStarted, PICKKIND,
+      (BOARD && BOARD.pulled_at) || '', nStartedIn(BOARD && BOARD.games),
+      (PROPS && PROPS.batter_odds_at) || '', nStartedIn(PROPS && PROPS.games),
+      CARD_DATE || '',
+      ((CARD && CARD.picks) || []).filter(p => p.commence && new Date(p.commence) <= new Date()).length,
+    ].join('|');
   }
+
+  async function tick(fn, force){
+    if (ticking) return;                             // one at a time
+    if (document.querySelector('.ovl')) return;      // modal open, leave it alone
+    if (!force && renderSig() === lastSig) return;   // nothing moved
+    ticking = true;
+    try {
+      const y = window.scrollY;
+      await fn();                                    // <- the render, finished
+      lastSig = renderSig();
+      if (y > 0) {
+        // Two frames: one for the DOM, one for layout to settle its height.
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        window.scrollTo(0, Math.min(y, max));
+      }
+    } finally { ticking = false; }
+  }
+  window.__tickSig = renderSig;                      // for the headless test
 
   setInterval(() => { if (TAB === 'scores') tick(renderScores); }, 45000);
 
+  /* ⛔ This used to throw away the props cache and re-render every three
+     minutes unconditionally. The collector writes board.json hourly now,
+     so that was 19 pointless full rebuilds an hour, each one a chance to
+     lose the reader's place. It now checks whether the file it just
+     fetched is actually new before touching anything. */
+  let lastPulled = null;
   setInterval(async () => {
     if (document.querySelector('.ovl')) return;
-    await loadBoard();
-    PROPS = null;                    // force a re-read on next props render
-    PROJ = null;                     // and the projection index with it
+    try { await loadBoard(); } catch(e){ return; }
+    const pulled = (BOARD && BOARD.pulled_at) || '';
+    if (lastPulled === null) { lastPulled = pulled; return; }
+    if (pulled === lastPulled) return;               // same file; leave the page alone
+    lastPulled = pulled;
+    PROPS = null; PROJ = null; CARD = null;          // genuinely new data
     const again = {scores: renderScores, odds: renderOdds, trends: renderTrends,
                    props: renderProps, picks: renderPicks, parlays: renderParlays};
-    if (again[TAB]) tick(again[TAB]);
+    if (again[TAB]) tick(again[TAB], true);
   }, 180000);
 
   /* Even with no new data, a game crossing its first pitch has to drop off.
