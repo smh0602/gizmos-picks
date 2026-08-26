@@ -198,6 +198,9 @@ jobs:
       # every raw rate off the game log, and re-derives every multiplier
       # from the prices. It exits non-zero on any failure, which fails the
       # job BEFORE the commit step -- so a bad card never reaches the page.
+      - name: Verify the board
+        if: steps.mode.outputs.mode == 'gamelines'
+        run: python verify_board.py
       - name: Verify the card
         if: steps.mode.outputs.mode == 'card' || steps.mode.outputs.mode == 'refresh'
         run: python verify_card.py
