@@ -73,6 +73,17 @@ on:
     # here is never a budget question.
     # 🔴 Results and the game logs run BEFORE the 4am props pull so the
     # early board carries last night's games rather than yesterday's.
+    # 🔴 THE TRACK RECORD GRADES AT 2am ET. Sam, 2026-08-26.
+    # Results must land BEFORE it, so results runs first at 01:40am ET.
+    # ⚠️ Measured from the archive: the latest first pitch is 9:06pm ET and
+    # a typical game ends by 12:16am ET, so 1:40am clears almost every
+    # night. A long extra-innings West Coast game could still be live --
+    # which is why the ORIGINAL later pass is KEPT below as a backstop.
+    # Both modes are statsapi and cost nothing, so running twice is free
+    # and a game missed at 2am is graded by breakfast either way.
+    - cron: "40 5 * * *"
+    - cron: "2 6 * * *"
+    # -- the backstop pass, unchanged
     - cron: "34 7 * * *"
     - cron: "44 7 * * *"
     - cron: "54 7 * * *"
@@ -157,6 +168,8 @@ jobs:
               "36 20 * * *")    echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
               "48 20 * * *")    echo "mode=card"             >> "$GITHUB_OUTPUT" ;;
               # -- free
+              "40 5 * * *")     echo "mode=results"          >> "$GITHUB_OUTPUT" ;;
+              "2 6 * * *")      echo "mode=record"           >> "$GITHUB_OUTPUT" ;;
               "34 7 * * *")     echo "mode=results"          >> "$GITHUB_OUTPUT" ;;
               "44 7 * * *")     echo "mode=pitchers"         >> "$GITHUB_OUTPUT" ;;
               "54 7 * * *")     echo "mode=hitters"          >> "$GITHUB_OUTPUT" ;;
