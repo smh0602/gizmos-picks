@@ -12,98 +12,75 @@ name: collect
 
 on:
   schedule:
-    # Game lines: every 30 minutes, 15:00Z - 04:30Z.
-    # 6 credits per run for the whole slate. Feeds line movement,
-    # best-odds shopping, and the implied team totals owed-test T25 needs.
-    # ⚠️ Minutes deliberately OFF the hour and half-hour. GitHub runs
-    # scheduled workflows on a best-effort queue and drops them under load,
-    # and :00 / :30 are the most congested slots on the platform. Measured
-    # 2026-08-23: six consecutive runs at 0,30 were skipped, leaving a
-    # three-hour hole in the board.
-    - cron: "7,37 15-23 * * *"
-    - cron: "7,37 0-4 * * *"
+    # ══ GAME LINES ══ hourly, 08:00Z (4am ET) through 04:00Z.
+    # 6 credits per run for the WHOLE slate -- the bulk endpoint bills per
+    # call, not per game. 21 runs = 126/day.
+    # ⚠️ This is CHEAPER than the 28-run half-hourly schedule it replaces
+    # (168/day) and starts six hours earlier. Sam, 2026-08-26: "i want the
+    # lines to start being posted at around 4am".
+    # ⚠️ Minute deliberately off :00 and :30 -- those are the most congested
+    # slots on GitHub's scheduler and runs get dropped there.
+    - cron: "13 8-23 * * *"
+    - cron: "13 0-4 * * *"
 
-    # Pitcher props: morning board, then a pregame refresh.
-    - cron: "10 14 * * *"
-    - cron: "10 20 * * *"
-
-    # 💰 THE BUDGET, RE-DONE 2026-08-24 AFTER THE FIVE-BOOK CHANGE.
-    # Props now pull `us,us2` instead of `us2` -- four of Sam's five books
-    # live in `us` -- and the Odds API bills markets x regions PER GAME,
-    # so every props pull DOUBLED in price. Measured: a batter pull was 75
-    # credits at one region and is 150 at two; a pitcher pull is 90.
-    #   gamelines   6 x 28 =  168/day
-    #   batter    150 x  2 =  300/day
-    #   pitcher    90 x  2 =  180/day
-    #                        ---------
-    #                         648/day  ~= 19,400 of a 20,000 monthly plan
-    # ⚠️ That is TIGHT and it is a deliberate trade: Sam asked for more
-    # books AND fresher props, and at this plan you cannot have both. Three
-    # pulls a day at two regions is ~26,600 a month and would run out.
-    # ✅ The two pulls are TIMED rather than merely spaced -- 10:20am ET
-    # before the afternoon games and 4:20pm ET before the evening ones --
-    # so nothing on the board is more than about three hours old at first
-    # pitch, which is what actually matters.
-    # 🛟 RESERVE (750) still guards the tail of the month: props stop and
-    # gamelines keep running, rather than the whole month zeroing out.
-
-    # Hitter props: twice a day, timed to the two waves of first pitches.
-    # Sam, 2026-08-23: "player props tab needs to be consistently updating
-    # as well, i see its 10.5 hours old." It was one pull at 14:20Z and
-    # nothing else all day.
-    # ⚠️ ~~"three pulls is 225/day ... never a budget decision"~~ STRUCK the
-    # same night: that was costed at ONE region, before the five-book
-    # change put props back on `us,us2` and doubled the per-pull price.
-    # See the budget block above -- at two regions it IS a budget decision.
-    - cron: "20 14 * * *"
-    - cron: "20 20 * * *"
-
-    # Hitter game logs: free (statsapi), ~500 players, a couple of minutes.
-    # Runs before the batter-props pull so the props tab has evidence to
-    # attach to each line.
-    - cron: "0 14 * * *"
-
-    # Pitcher game logs: free, mirrors the hitter pull, feeds the
-    # strikeout and outs markets on the props tab.
-    - cron: "50 13 * * *"
-
-    # Props board: joins the batter odds to the hitter logs. Runs after
-    # both, costs nothing, and is what the Player Props tab reads.
-    - cron: "35 14 * * *"
-    - cron: "35 20 * * *"
-
-    # The card. Free -- it spends no credits and calls nothing; it reads
-    # the game logs and the prop board this workflow already stores and
-    # runs the v4.0 model over them, writing picks/<date>.json.
+    # ══ PROPS ══ three pulls a day. THE REGION IS THE PRICE.
+    # Cost is markets x REGIONS x games, and books are FREE inside a
+    # region -- one two-region pull returned 18 books for 6 credits
+    # (measured 2026-08-26). Narrowing the BOOK list saves nothing.
+    #   both regions (us,us2): batter 150 + pitcher 90 = 240
+    #   us2 only (Hard Rock) : batter  75 + pitcher 45 = 120
     #
-    # Two runs. The morning one publishes the board off the 14:10Z prop
-    # pull. The evening one re-prices it against the 21:40Z pull, because
-    # a card built at 10am may not assert a 6pm price (ledger rule 49).
-    # The 21:45 props-board rebuild exists so the evening card is joined to
-    # the fresh odds rather than to the morning's.
-    - cron: "45 14 * * *"
-    - cron: "50 20 * * *"
+    #   04:00am ET  Hard Rock only   120   board goes up
+    #   10:10am ET  BOTH regions     240   feeds the 10:45am card
+    #   04:10pm ET  Hard Rock only   120   feeds the 4:50pm card
+    #                                ---
+    #                                480/day + 126 gamelines = 606/day
+    #                                ~= 18,786 of a 20,000 monthly plan
+    #
+    # 🔴 THE FULL PULL SITS BEFORE THE MORNING CARD ON PURPOSE. A pull at
+    # noon would land AFTER the 10:45am card, which would then fall back to
+    # the 4am prices -- 6 3/4 hours stale. Anchor paid pulls to the cards.
+    # ⚠️ The trade, stated: the EVENING card carries Hard Rock prices only
+    # and loses cross-book comparison. Early lines are softer and disagree
+    # more, so the full pull is worth more in the morning.
 
-    # News: three times a day. Free, no CORS-safe way to do it in the page.
+    # -- 4am block: Hard Rock only. Each pull has a BACKUP 15 min later,
+    #    which costs NOTHING when the first one worked (see the freshness
+    #    guard in collect.py). GitHub drops runs; props cannot absorb it.
+    - cron: "5 8 * * *"
+    - cron: "12 8 * * *"
+    - cron: "22 8 * * *"
+    - cron: "27 8 * * *"
+    - cron: "37 8 * * *"
+
+    # -- 10am block: BOTH regions, feeding the morning card.
+    - cron: "8 14 * * *"
+    - cron: "18 14 * * *"
+    - cron: "23 14 * * *"
+    - cron: "28 14 * * *"
+    - cron: "36 14 * * *"
+    - cron: "46 14 * * *"
+
+    # -- 4pm block: Hard Rock only, feeding the evening card.
+    - cron: "8 20 * * *"
+    - cron: "18 20 * * *"
+    - cron: "23 20 * * *"
+    - cron: "28 20 * * *"
+    - cron: "36 20 * * *"
+    - cron: "48 20 * * *"
+
+    # ══ FREE (statsapi or local compute) ══ zero credits, so frequency
+    # here is never a budget question.
+    # 🔴 Results and the game logs run BEFORE the 4am props pull so the
+    # early board carries last night's games rather than yesterday's.
+    - cron: "34 7 * * *"
+    - cron: "44 7 * * *"
+    - cron: "54 7 * * *"
+    - cron: "47 8 * * *"
+    - cron: "52 8 * * *"
     - cron: "5 13 * * *"
     - cron: "5 19 * * *"
     - cron: "5 1 * * *"
-
-    # Final results: 08:00Z = 4am ET, after the last game ends and well
-    # before the 11:31Z grading run. Free (statsapi). This is the feed the
-    # pick ledger is graded from -- a Claude session cannot be relied on to
-    # reach statsapi itself, so results are fetched here and read out of
-    # the repo instead.
-    - cron: "0 8 * * *"
-
-    # The track record. Free, no API call. Runs after results land so the
-    # Track Record tab grades itself instead of being hardcoded.
-    - cron: "20 8 * * *"
-
-    # Lineup slot. Free (statsapi), resumable, and it only fetches dates it
-    # has not already stored -- so after the first backfill this is a
-    # few seconds a day. It is the input the hitter model needs.
-    - cron: "40 8 * * *"
 
   # 🆕 Rebuild the free artefacts whenever the CODE changes, so a fix is
   # visible on the site immediately instead of waiting for the next
@@ -156,31 +133,46 @@ jobs:
             echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
           else
             case "${{ github.event.schedule }}" in
-              "10 14 * * *") echo "mode=props-pitcher" >> "$GITHUB_OUTPUT" ;;
-              "40 21 * * *") echo "mode=props-pitcher" >> "$GITHUB_OUTPUT" ;;
-              "20 14 * * *") echo "mode=props-batter"  >> "$GITHUB_OUTPUT" ;;
-              "0 14 * * *")  echo "mode=hitters"       >> "$GITHUB_OUTPUT" ;;
-              "0 8 * * *")   echo "mode=results"       >> "$GITHUB_OUTPUT" ;;
-              "50 13 * * *") echo "mode=pitchers"      >> "$GITHUB_OUTPUT" ;;
-              "35 14 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
-              "50 20 * * *") echo "mode=card"   >> "$GITHUB_OUTPUT" ;;
-              "35 20 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
-              "10 20 * * *") echo "mode=props-pitcher"   >> "$GITHUB_OUTPUT" ;;
-              "20 20 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
-              "20 8 * * *") echo "mode=record"   >> "$GITHUB_OUTPUT" ;;
-              "40 8 * * *") echo "mode=lineups"  >> "$GITHUB_OUTPUT" ;;
-              "35 22 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
-              "35 18 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
-              "10 18 * * *") echo "mode=props-pitcher"   >> "$GITHUB_OUTPUT" ;;
-              "20 22 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
-              "20 18 * * *") echo "mode=props-batter"   >> "$GITHUB_OUTPUT" ;;
-              "45 21 * * *") echo "mode=props-board"   >> "$GITHUB_OUTPUT" ;;
-              "45 14 * * *") echo "mode=card"          >> "$GITHUB_OUTPUT" ;;
-              "50 21 * * *") echo "mode=card"          >> "$GITHUB_OUTPUT" ;;
-              "5 13 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
-              "5 19 * * *")  echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
-              "5 1 * * *")   echo "mode=news"          >> "$GITHUB_OUTPUT" ;;
-              *)             echo "mode=gamelines"     >> "$GITHUB_OUTPUT" ;;
+              # -- game lines, hourly
+              "13 8-23 * * *")  echo "mode=gamelines"        >> "$GITHUB_OUTPUT" ;;
+              "13 0-4 * * *")   echo "mode=gamelines"        >> "$GITHUB_OUTPUT" ;;
+              # -- 4am block, Hard Rock only (+ backups)
+              "5 8 * * *")      echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
+              "12 8 * * *")     echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
+              "22 8 * * *")     echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
+              "27 8 * * *")     echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
+              "37 8 * * *")     echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
+              # -- 10am block, BOTH regions (+ backups), then the card
+              "8 14 * * *")     echo "mode=props-pitcher"    >> "$GITHUB_OUTPUT" ;;
+              "18 14 * * *")    echo "mode=props-batter"     >> "$GITHUB_OUTPUT" ;;
+              "23 14 * * *")    echo "mode=props-pitcher"    >> "$GITHUB_OUTPUT" ;;
+              "28 14 * * *")    echo "mode=props-batter"     >> "$GITHUB_OUTPUT" ;;
+              "36 14 * * *")    echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
+              "46 14 * * *")    echo "mode=card"             >> "$GITHUB_OUTPUT" ;;
+              # -- 4pm block, Hard Rock only (+ backups), then the card
+              "8 20 * * *")     echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
+              "18 20 * * *")    echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
+              "23 20 * * *")    echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
+              "28 20 * * *")    echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
+              "36 20 * * *")    echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
+              "48 20 * * *")    echo "mode=card"             >> "$GITHUB_OUTPUT" ;;
+              # -- free
+              "34 7 * * *")     echo "mode=results"          >> "$GITHUB_OUTPUT" ;;
+              "44 7 * * *")     echo "mode=pitchers"         >> "$GITHUB_OUTPUT" ;;
+              "54 7 * * *")     echo "mode=hitters"          >> "$GITHUB_OUTPUT" ;;
+              "47 8 * * *")     echo "mode=record"           >> "$GITHUB_OUTPUT" ;;
+              "52 8 * * *")     echo "mode=lineups"          >> "$GITHUB_OUTPUT" ;;
+              "5 13 * * *")     echo "mode=news"             >> "$GITHUB_OUTPUT" ;;
+              "5 19 * * *")     echo "mode=news"             >> "$GITHUB_OUTPUT" ;;
+              "5 1 * * *")      echo "mode=news"             >> "$GITHUB_OUTPUT" ;;
+              # 🔴 NO DEFAULT MODE. This used to be `*) mode=gamelines`,
+              # which meant any cron somebody added and forgot to map here
+              # SILENTLY became a 6-credit gamelines pull writing the wrong
+              # file. An unmapped schedule is a bug, and it now says so.
+              *)
+                echo "::error::Unmapped schedule '${{ github.event.schedule }}' -- refusing to guess a mode."
+                exit 1
+                ;;
             esac
           fi
 
