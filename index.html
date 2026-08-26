@@ -1227,7 +1227,12 @@ function pickCard(p){
   t.append(el('div','play', `${who} — ${sideWord} ${p.line} ${unit}`
     + '&nbsp;' + projChip(p.projection, p.projection_unit, p.projection_basis,
                           p.projection_note)
-    + (p.band ? `<span class="bandchip ${bc}" title="${p.band_note||''}">${p.band}</span>` : '')
+    /* ⛔ The calibration BAND chip ("70-80", "60-70") is gone from the row.
+       Sam, 2026-08-26. It is a bucket label from the calibration table and
+       means nothing to a reader; the confidence number beside it already
+       says the same thing more precisely. ✅ The band is STILL on the row
+       in the data and the Track Record tab still reports by band -- this
+       removes a chip, not a measurement. */
     + (isH
         ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">RECORD &mdash; no model</span>`
         : `<span class="bandchip mdl" title="${(p.confidence_note||'').replace(/"/g,'')}">MODEL</span>`)));
@@ -1290,7 +1295,7 @@ function pickCard(p){
     d.innerHTML = `<summary>Last ${r.n} starting pitchers to face ${ab(r.opponent)}
         &nbsp;&middot;&nbsp; <span class="k">${r.mean_k} K</span> / ${r.mean_ip} IP average
         &nbsp;&middot;&nbsp; <span class="k">${nBeat}/${r.n}</span> on this side of ${p.line}
-        <span class="bandchip rec" title="${(r.note||'').replace(/"/g,'&quot;')}">DESCRIPTIVE</span></summary>
+        </summary>
       <div style="overflow-x:auto"><table>
         <thead><tr><th>Date</th><th>Pitcher</th><th class="n">IP</th><th class="n">K</th>
           <th class="n">H</th><th class="n">ER</th><th class="n">BB</th><th class="n">P</th></tr></thead>
@@ -2158,9 +2163,7 @@ async function renderParlays(){
         <th class="n">All hit</th><th class="n">$30 EV</th></tr></thead>
       <tbody>${rows.map(x => `
         <tr class="${x.dominated_by ? 'domrow' : ''}">
-          <td><b>${x.legs.join('</b> + <b>')}</b>
-            <span class="bandchip ${x.joint_basis === 'MODEL' ? 'mdl' : 'rec'}"
-                  title="${(x.joint_note||'').replace(/"/g,'&quot;')}">${x.joint_basis}</span></td>
+          <td><b>${x.legs.join('</b> + <b>')}</b></td>
           <td class="rec">${x.games.join(' · ')}</td>
           <td class="n">${x.multiplier.toFixed(2)}x</td>
           <td class="n"><b>${x.joint}%</b></td>
@@ -2177,16 +2180,13 @@ async function renderParlays(){
   const m = P.parlay_meta || {};
   const foot = el('div','panel');
   foot.innerHTML = `<div class="note">
-    <b>How these are built.</b> Every leg is priced at Hard Rock, the only one of the five
-    books that multiplies. No leg is shorter than the −700 floor. Legs are always in
-    <b>different games, checked on game ID</b> — never on opponent name, because in every
-    game the two starters have different opponents and the same game, so a name check
-    passes on exactly the parlays it exists to catch.
-    <br><br><b>The joint number is a product, and its label matters.</b> A pitcher leg
-    carries a model estimate; a hitter leg carries that player's own record. A parlay
-    mixing them is labelled <b>MIXED</b>, because the joint is neither.
-    Legs in different games are treated as independent — that assumption is not free and
-    has never been tested in this project.
+    <b>How these are built.</b> Every leg is priced at Hard Rock — the only one of the
+    five books that lets you combine props. No leg is shorter than −700, and the two legs
+    are always in <b>different games</b>.
+    <br><br><b>About the "all hit" number.</b> It's the two chances multiplied together.
+    Pitcher legs come from the model; hitter legs come from that player's own record, so a
+    parlay with a hitter in it leans more on history than on the model. We also treat the
+    two games as unrelated, which is close to true but not exactly true.
     ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}</div>`;
   v.append(foot);
 }
