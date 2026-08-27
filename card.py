@@ -219,7 +219,7 @@ HITTER_NO_PROJ_NOTE = (
     "wrong two-thirds of a base at the tail would not.")
 
 
-def project(dist, line, side, conf_pct, sd=None):
+def project(dist, line, side, conf_pct, sd=None, central=None):
     """`conf_pct` is the probability THE ROW DISPLAYS, for the side it picked.
 
     Returns (value, saturated). `saturated` is True when the confidence had
@@ -237,8 +237,18 @@ def project(dist, line, side, conf_pct, sd=None):
     # side of the line -- that is correct, not a bug. It is what "we like
     # the over at +180 even though we project under the line" looks like,
     # and hiding it would flatter the card.
-    if abs(conf_pct - 50.0) < 0.5:
-        return None, False
+    # ⛔ THE GUARD IS FOR THE DISCRETE DISTRIBUTIONS ONLY. The artifact
+    # described above is a property of the Poisson's lumpiness. The NORMAL
+    # is continuous: inverting it at a displayed 50% returns the line
+    # itself, which contradicts nothing and is the honest answer. Suppress-
+    # ing it there cost every near-even outs row its projection -- 52 of
+    # them on the 2026-08-27 board, Landen Roupp's 16.5 among them, at a
+    # blend of 49.6/50.4. Sam, 2026-08-26: "we need to make sure every
+    # player has one."
+    if abs(conf_pct - 50.0) < 0.5 and dist in ("poisson", "negbin"):
+        # The model's own expected value is not an inversion and so carries
+        # none of the artifact. Where the caller has one, it is the answer.
+        return (central, False) if central is not None else (None, False)
     p = conf_pct / 100.0
     p_over = p if side == "over" else 1.0 - p
     sat = not (PROJ_P_MIN < p_over < PROJ_P_MAX)
@@ -253,6 +263,24 @@ def project(dist, line, side, conf_pct, sd=None):
     if sd is None or sd <= 0:
         return None, False
     return invert_normal(line, sd, p_over), sat
+
+
+def proj_round(value, line):
+    """One decimal -- EXCEPT when one decimal lands exactly on the line.
+
+    A projection printed as "1.5" beside "under 1.5" reads as a
+    contradiction even when the underlying number (1.469) agrees with the
+    pick perfectly well. That is a rounding artifact, not a disagreement,
+    and the fix is to show the reader the digit that resolves it."""
+    if value is None:
+        return None
+    v = round(float(value), 1)
+    if line is None:
+        return v
+    L = float(line)
+    if abs(v - L) < 1e-9 and abs(round(float(value), 2) - L) > 1e-9:
+        return round(float(value), 2)
+    return v
 
 
 def implied(american):
@@ -600,7 +628,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
     # ⛔ `blend` goes in, not `model` -- the projection must match what is
     # printed beside it, and `model` is only half of that.
     proj, proj_sat = project("poisson" if market == "strikeouts" else "normal",
-                             line, side, blend, spread)
+                             line, side, blend, spread, central)
 
     # ---- matched class
     opp_team = game["home"] if home == 0 else game["away"]
@@ -719,7 +747,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         "confidence_note": "v4.0 model blended 50/50 with his own rate at this line.",
         # The single number Sam asked for beside the line, covers-style. It is
         # the blend read backwards, so it can never argue with the confidence.
-        "projection": None if proj is None else round(proj, 1),
+        "projection": proj_round(proj, line),
         "projection_unit": "K" if market == "strikeouts" else "outs",
         "projection_basis": "MODEL",
         "projection_saturated": proj_sat,
@@ -1066,7 +1094,7 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
         # inversion of the player's own RECORD, so it is DESCRIPTIVE no
         # matter which distribution produced it. T27/T28/T29 all failed and
         # hitter modelling is CLOSED.
-        "projection": None if _proj is None else round(_proj, 1),
+        "projection": proj_round(_proj, prop.get("line")),
         "projection_unit": HITTER_UNIT.get(_mkt),
         "projection_basis": "DESCRIPTIVE",
         "projection_dist": _dist,
@@ -1531,7 +1559,7 @@ def board_projections(board, hlogs, players, today):
                 if mean is None:
                     blank[f"under {PROJ_MIN_GAMES} games"] += 1
                     continue
-                out[key] = {"v": round(mean, 1),
+                out[key] = {"v": proj_round(mean, line),
                             "u": HITTER_UNIT.get(mkt) or "TB", "b": "D"}
             # hits / HR / RBI keep the INVERTED projection -- those three
             # passed T34 on a pre-registered bar and are not re-litigated
@@ -1552,7 +1580,7 @@ def board_projections(board, hlogs, players, today):
                 if HITTER_PROJ[mkt] == "poisson" or shape:
                     v, _ = project(HITTER_PROJ[mkt], line, side, rate, shape)
                     if v is not None:
-                        out[key] = {"v": round(v, 1),
+                        out[key] = {"v": proj_round(v, line),
                                     "u": HITTER_UNIT.get(mkt), "b": "D"}
                         continue
                 # 🔴 FALL BACK TO HIS OWN MEAN rather than printing
@@ -1565,7 +1593,7 @@ def board_projections(board, hlogs, players, today):
                 # pre-registered bar and are not re-litigated here.
                 _m, _n = hitter_mean(hlogs, pid, mkt, today)
                 if _m is not None:
-                    out[key] = {"v": round(_m, 1),
+                    out[key] = {"v": proj_round(_m, line),
                                 "u": HITTER_UNIT.get(mkt), "b": "D"}
                 else:
                     blank["no usable log"] += 1
@@ -1574,7 +1602,7 @@ def board_projections(board, hlogs, players, today):
     return out, dict(blank)
 
 
-def projection_index(rows):
+def projection_index(rows, priced=False):
     """Flat lookup for the Player Props tab. One entry per priced row that
     earned a projection; rows without one are simply absent, and absent
     means "no projection", never "look it up somewhere else"."""
@@ -1596,11 +1624,18 @@ def projection_index(rows):
         # ~200 bytes of near-identical prose, which is a quarter-megabyte
         # added to a file the PAGE DOWNLOADS. The full note stays on the
         # board rows in picks[]; the tab builds its tooltip from `basis`.
-        out[f"{pid}|{mkt}|{r.get('side')}|{r.get('line')}"] = {
+        e = {
             "v": r["projection"],
             "u": r.get("projection_unit"),
             "b": "M" if r.get("projection_basis") == "MODEL" else "D",
         }
+        # 🔴 "p" MEANS card.py PRICED THIS EXACT ROW -- same pid, market,
+        # side and line. It is one byte and it is what lets verify_card.py
+        # prove every top-10 row came from the priced pool without the card
+        # carrying a 48KB second copy of that pool's keys.
+        if priced:
+            e["p"] = 1
+        out[f"{pid}|{mkt}|{r.get('side')}|{r.get('line')}"] = e
     return out
 
 
@@ -1801,7 +1836,11 @@ def main(dry=False):
                 _late.append(row)
 
     _board_px, _px_gaps = board_projections(B, hlogs, players, today)
-    _board_px.update(projection_index(_late))
+    # ⛔ ORDER IS LOAD-BEARING. The descriptive board pass goes down first;
+    # anything card.py actually priced then overwrites it, so a row that
+    # has a model number never displays the fallback.
+    _board_px.update(projection_index(plays_all + hitters, priced=True))
+    _board_px.update(projection_index(_late, priced=True))
     pairs = build_pairs(plays_all)
     top10, top10_drops = build_top10(plays_all, hitters)
     parlays, parlay_meta = build_parlays(plays_all, hitters)
@@ -1985,7 +2024,11 @@ def main(dry=False):
         # entry here shows no projection, which is the correct answer.
         # Carded rows first (they carry the MODEL projections), then every
         # remaining prop on the board filled in from the player's own log.
-        "projections": {**_board_px, **projection_index(plays + hitters)},
+        # ⛔ priced=True HERE TOO. This merge runs last, so leaving it off
+        # silently stripped the flag back off every carded row -- the index
+        # said 107 priced when the pool was 1,194.
+        "projections": {**_board_px,
+                        **projection_index(plays + hitters, priced=True)},
         "projection_gaps": _px_gaps,
         "projection_note": (
             "Keyed pid|market|side|line. On a PITCHER row it is the central "

@@ -591,16 +591,38 @@ ck("it is ordered by confidence, descending",
 # not contain -- alt ladder rungs -- so "is it on the board?" is the WRONG
 # question and would fail every honest card. The right one: does every row
 # correspond to a row card.py actually priced, at the same line and side?
-_priced = {}
-for r in allrows:
-    _priced[(r.get('pid'), r.get('market'), r.get('side'), r.get('line'))] = r
-    for g in (r.get('ladder') or []):
-        _priced[(r.get('pid'), r.get('market'), g.get('side'), g.get('line'))] = g
+# 🔴 REPLACES the old "is it in picks[] + below_price_floor?" test. That
+# test was wrong, and wrong in the direction that wastes a morning: those
+# two lists are the FILTERED board -- BOARD_MAX truncates them -- so a
+# top-10 row drawn from a play card.py priced but did not card failed a
+# check it should have passed. It fired twice on 2026-08-27 (Sean Manaea
+# strikeouts over 3.5, Ryan Waldschmidt RBI under 0.5) and both were fine.
+# The question is not "did it reach the board" but "did card.py price this
+# exact row", and the projection index answers it directly: an entry
+# carrying "p" was priced, at that pid, market, side and line.
+_MKT_FEED = {'strikeouts': 'pitcher_strikeouts', 'outs': 'pitcher_outs'}
+_pxall = doc.get('projections') or {}
+_pkeys = {k for k, v in _pxall.items() if v.get('p')}
+
+
+def _pxkey(r):
+    return (f"{r.get('pid')}|{_MKT_FEED.get(r.get('market'), r.get('market'))}"
+            f"|{r.get('side')}|{r.get('line')}")
+
+
 _orphan = [(r.get('pitcher') or r.get('player'), r.get('market'), r.get('side'), r.get('line'))
-           for r in _t10
-           if (r.get('pid'), r.get('market'), r.get('side'), r.get('line')) not in _priced]
-ck(f"every top-10 row traces to a row the card priced ({len(_priced)} priced keys)",
+           for r in _t10 if _pxkey(r) not in _pkeys]
+ck(f"every top-10 row traces to a row the card priced ({len(_pkeys)} priced keys)",
    not _orphan, str(_orphan[:3]))
+# ⛔ AND THE FLAG IS NOT SELF-SERVING. If "p" were stamped on everything it
+# would make the check above vacuous, so pin it from the other end: every
+# carded row must carry it, and it must not cover the whole index.
+_unflagged = [(r.get('pitcher') or r.get('player'), r.get('market'))
+              for r in allrows if _pxkey(r) in _pxall and _pxkey(r) not in _pkeys]
+ck("every carded row is flagged priced in the index", not _unflagged,
+   str(_unflagged[:3]))
+ck(f"the priced flag is a subset, not a rubber stamp "
+   f"({len(_pkeys)} of {len(_pxall)})", 0 < len(_pkeys) < len(_pxall))
 ck("the price gate actually excluded something, and the card says how much",
    'below_payable_floor' in _tx,
    f"{_tx.get('below_payable_floor')} row(s) excluded")
