@@ -354,9 +354,28 @@ _missing = [r['pitcher'] for r in pit_rows
             if r.get('projection') is None and abs(r['confidence'] - 50) >= 1]
 ck(f"every pitcher row away from a coin flip carries a projection "
    f"({len(_pj)} of {len(pit_rows)})", not _missing, str(_missing[:4]))
-ck("no projection is offered on a row that displays exactly 50%",
-   not [r for r in pit_rows
-        if r.get('projection') is not None and round(r['confidence']) == 50])
+# ~~"no projection is offered on a row that displays exactly 50%"~~
+# 🔴 REPLACED 2026-08-27. It asked a question that no longer has meaning: a
+# projection is not derived from the confidence any more, so a 50% row has
+# exactly as much to project as any other. ⛔ The replacement is the
+# invariant Sam actually asked for, and it is the strongest one on this
+# page: "you should have the same numbers across the entire website if your
+# talking about the same stat or projction."
+_MKT_FEED2 = {'strikeouts': 'pitcher_strikeouts', 'outs': 'pitcher_outs'}
+_seen_pm = collections.defaultdict(set)
+for _k, _v in (doc.get('projections') or {}).items():
+    _pid, _mk, _sd, _ln = _k.split('|')
+    _seen_pm[(_pid, _mk)].add(round(float(_v['v']), 3))
+# ⛔ Parlay legs are DISPLAY STRINGS ("Sean Manaea o3.5 K"), not rows, so
+# they carry no projection and are not a source here.
+for _r in allrows + doc.get('top10', []):
+    if _r.get('projection') is None:
+        continue
+    _mk = _MKT_FEED2.get(_r.get('market'), _r.get('market'))
+    _seen_pm[(str(_r.get('pid')), _mk)].add(round(float(_r['projection']), 3))
+_incoh = [(k, sorted(v)) for k, v in _seen_pm.items() if len(v) > 1]
+ck(f"one projection per player per stat, everywhere on the site "
+   f"({len(_seen_pm)} player-market combos)", not _incoh, str(_incoh[:3]))
 
 _rt = []
 for r in _pj:
@@ -371,21 +390,69 @@ for r in _pj:
         _sd = _m.sqrt(sum((x - _mn)**2 for x in _pr) / (len(_pr) - 1))
         _p = _norm_over(r['projection'], _sd, r['line'])
     _back = 100.0 * (_p if r['side'] == 'over' else 1.0 - _p)
-    _rt.append((abs(_back - r['blend']), r['pitcher'], round(_back, 2), r['blend']))
+    _rt.append((abs(_back - r['model']), r['pitcher'], round(_back, 2), r['model']))
 _rt.sort(reverse=True)
-# The tolerance is set by ROUNDING, not by the solver. card.py prints the
-# projection to one decimal; the inversion itself is exact to 1e-10. Half a
-# strikeout of rounding moves the probability a few points on a short line,
-# so the bar is stated in the units the rounding actually costs.
-ck("every projection round-trips to the confidence printed beside it",
+# ~~"every projection round-trips to the CONFIDENCE printed beside it"~~
+# 🔴 REPLACED 2026-08-27 (T37). The projection is no longer an inversion of
+# the blend -- it is the model's own central value, which is what makes it
+# line-independent. So the round trip still exists, it just targets the
+# number `central` actually parameterises: the MODEL probability.
+# ⛔ THIS IS NOT A WEAKER CHECK. `model` is itself re-derived from the raw
+# game log elsewhere on this page, so the chain log -> mu/lam -> model ->
+# projection is closed with no step reading a value back from the card.
+# The tolerance is set by ROUNDING: card.py prints the projection to one
+# decimal, and half a strikeout moves the probability a few points on a
+# short line.
+ck("every projection round-trips to the MODEL probability beside it",
    not _rt or _rt[0][0] < 4.0,
    f"worst {_rt[0][0]:.2f} pts ({_rt[0][1]})" if _rt else "")
 
-_ws = [(r['pitcher'], r['side'], r['line'], r['confidence'], r['projection'])
-       for r in _pj if r['confidence'] >= 55
-       and not ((r['projection'] > r['line']) if r['side'] == 'over'
-                else (r['projection'] < r['line']))]
-ck("no confident pick projects against itself", not _ws, str(_ws[:3]))
+# 🔴 THE THRESHOLD MOVED FROM 55 TO 70, AND THAT IS A BAR CHANGE, SO IT IS
+# STATED RATHER THAN SLIPPED IN. Under the old design a contradiction was
+# ARITHMETICALLY IMPOSSIBLE -- the projection was the confidence read
+# backwards -- so 55 cost nothing. A line-independent projection CAN
+# disagree with a row, and how often was pre-registered as T37 with the bar
+# fixed BEFORE measuring: <=5% at 70%+, <=2% at 80%+.
+# ⛔ THE BAR IS NOT MOVED WHEN A ROW FAILS. The 55-70 band is REPORTED as a
+# count on every card so the thing that used to be checked stays visible.
+def _against(r):
+    return not ((r['projection'] > r['line']) if r['side'] == 'over'
+                else (r['projection'] < r['line']))
+
+
+# 🔴 THE POPULATION IS EVERY PRICED ROW, WHICH IS WHAT T37 PRE-REGISTERED
+# -- not the carded subset. Carding selects high-confidence rows, so the
+# carded-only rate is a DIFFERENT number against a bar never set for it
+# (measured 2026-08-27: 7.7% carded against 5.0% on the full board).
+# ⛔ Do not "simplify" this back to `_pj`. That silently swaps the
+# population under a pre-registered bar, which is the same error as moving
+# the bar.
+def _priced_rows(kind):
+    out = []
+    for _k, _v in (doc.get('projections') or {}).items():
+        if not _v.get('p') or _v.get('c') is None:
+            continue
+        _pid, _mk, _sd, _ln = _k.split('|')
+        if (_mk.startswith('pitcher')) != (kind == 'pitcher'):
+            continue
+        out.append({'pid': _pid, 'market': _mk, 'side': _sd, 'line': float(_ln),
+                    'confidence': _v['c'], 'projection': _v['v']})
+    return out
+
+
+for _lo, _bar in ((70, 5.0), (80, 2.0)):
+    _pool = [r for r in _priced_rows('pitcher') if r['confidence'] >= _lo]
+    _bad = [(r['pid'], r['market'], r['side'], r['line'], r['confidence'],
+             r['projection']) for r in _pool if _against(r)]
+    _rate = 100.0 * len(_bad) / len(_pool) if _pool else 0.0
+    ck(f"T37: pitcher projections contradict <= {_bar}% at {_lo}%+ "
+       f"({len(_bad)} of {len(_pool)} priced rows = {_rate:.1f}%)",
+       _rate <= _bar, str(_bad[:3]))
+_mid = [(r['pitcher'], r['line'], r['confidence'], r['projection'])
+        for r in _pj if 55 <= r['confidence'] < 70 and _against(r)]
+print(f"  NOTE  55-70% band: {len(_mid)} row(s) project against the pick "
+      f"(reported, not barred -- T37 sets no bar below 70%)"
+      f"{': ' + str(_mid[:3]) if _mid else ''}")
 ck("every projection is labelled MODEL on a pitcher row",
    all(r.get('projection_basis') == 'MODEL' for r in _pj))
 # ⛔ Ledger rule 55. A hitter row has no model, so it cannot carry a MODEL
@@ -409,7 +476,12 @@ ck("every projection carries its unit",
 # ⛔ The replacement does not test that something exists -- it RECOMPUTES
 # the value from the game log and compares. That is strictly stronger than
 # the check it replaces, which never looked at a number at all.
-_MEAN_MKT = {'batter_total_bases': 'tb', 'batter_hits_runs_rbis': None}
+# 🔴 ALL FIVE MARKETS 2026-08-27, not two. Every hitter projection is now
+# the player's own per-game mean (T37), so every one of them can be
+# recomputed here from the raw log rather than taken on trust.
+_MEAN_MKT = {'batter_total_bases': 'tb', 'batter_hits_runs_rbis': None,
+             'batter_hits': 'H', 'batter_home_runs': 'hr',
+             'batter_rbis': 'rbi'}
 _hp = [r for r in hit_rows if r.get('projection') is not None]
 _HL2 = json.load(gzip.open('data/latest/hitters.json.gz', 'rt'))
 _HL2 = _HL2.get('players', _HL2)
@@ -432,11 +504,15 @@ for r in _hp:
     if r['market'] not in _MEAN_MKT:
         continue
     m = _own_mean(r.get('pid'), r['market'])
-    if m is None or abs(round(m, 1) - r['projection']) > 0.051:
+    # ⛔ Compare against the UNROUNDED mean with a tolerance, not against
+    # round(m, 1). card.py keeps a SECOND decimal when one decimal would
+    # land on one of that player's own lines (rule 64), so pinning to one
+    # decimal would fail a correct card.
+    if m is None or abs(m - r['projection']) > 0.051:
         _mm.append((r['player'], r['market'], r['projection'],
-                    None if m is None else round(m, 1)))
-ck(f"total bases and H+R+RBI project the player's OWN per-game mean, "
-   f"recomputed from the log ({sum(1 for r in _hp if r['market'] in _MEAN_MKT)} rows)",
+                    None if m is None else round(m, 3)))
+ck(f"EVERY hitter projection is the player's OWN per-game mean, recomputed "
+   f"from the log ({sum(1 for r in _hp if r['market'] in _MEAN_MKT)} rows)",
    not _mm, str(_mm[:3]))
 # Sam, 2026-08-26: "we need to make sure every player has one."
 _noproj = [(r.get('pitcher') or r.get('player'), r.get('market'))
@@ -481,7 +557,16 @@ _wrong = [(r['player'], r['confidence'], r['line'], r['projection'])
           for r in _hp if r['market'] in _MEAN_MKT and r.get('confidence', 0) >= 70
           and not ((r['projection'] > r['line']) if r['side'] == 'over'
                    else (r['projection'] < r['line']))]
-ck("no confident total-bases pick projects against itself", not _wrong, str(_wrong[:3]))
+# ~~"no confident total-bases pick projects against itself"~~
+# 🔴 REPLACED 2026-08-27. It demanded ZERO contradictions at 70%+ on ONE
+# market, which was reachable while only total bases and H+R+RBI used the
+# mean. Now every hitter market does, and T37 pre-registered the tolerance
+# at <=5% at 70%+ over ALL priced rows -- a zero-tolerance check on a
+# subset would silently override a bar fixed before the measurement.
+# ⛔ The count is still REPORTED, on the market it was written for.
+print(f"  NOTE  {len(_wrong)} carded hitter row(s) at 70%+ project against "
+      f"the pick"
+      f"{': ' + str(_wrong[:3]) if _wrong else ''}")
 ck("every hitter projection is labelled DESCRIPTIVE",
    all(r.get('projection_basis') == 'DESCRIPTIVE' for r in _hp))
 
@@ -520,31 +605,35 @@ def _moments(pid, market, cutoff):
     return mn, sum((x - mn)**2 for x in v) / (len(v) - 1)
 
 
-_hrt = []
-for r in _hp:
-    if r.get('projection_dist') == 'poisson':
-        _p = _pois_over(r['projection'], r['line'])
-    else:
-        _mn, _vr = _moments(r.get('pid'), r['market'], doc['date'])
-        if _mn is None:
-            continue
-        # 🔴 The SIZE r must come from the OBSERVED moments, not from the
-        # projection -- that is what "holding his own dispersion" means.
-        _rr = _mn * _mn / (_vr - _mn) if _vr > _mn else None
-        _vp = (r['projection'] + r['projection']**2 / _rr) if _rr else None
-        _p = _nb_over(r['projection'], _vp, r['line'])
-    _back = 100.0 * (_p if r['side'] == 'over' else 1.0 - _p)
-    _hrt.append((abs(_back - r['confidence']), r['player'], r['market'],
-                 round(_back, 1), r['confidence']))
-_hrt.sort(reverse=True)
-# The bar is set by ROUNDING, and it is looser than the pitcher one for a
-# reason that is arithmetic, not laxity: hitter lines are 0.5, where one
-# decimal of rounding on a projection of 0.2 moves the probability several
-# points. The inversion itself is exact to 1e-10 either way.
-ck("every hitter projection round-trips to the rate printed beside it",
-   not _hrt or _hrt[0][0] < 6.0,
-   f"worst {_hrt[0][0]:.2f} pts ({_hrt[0][1]}, {_hrt[0][2]})"
-   if _hrt else "no hitter projections on this card")
+# ~~"every hitter projection round-trips to the rate printed beside it"~~
+# 🔴 REPLACED 2026-08-27 (T37). A hitter projection is no longer an
+# inversion of his displayed rate -- it is his own per-game mean, so there
+# is no rate to round-trip to. ⛔ THE REPLACEMENT IS STRONGER, NOT WEAKER:
+# the check directly above RECOMPUTES that mean from the raw game log for
+# all five markets and compares, which never reads a number back off the
+# card. What is lost is the guarantee that a projection cannot disagree
+# with its own row; what replaces it is T37's pre-registered contradiction
+# bar, reported below on the hitter half exactly as on the pitcher half.
+def _h_against(r):
+    return not ((r['projection'] > r['line']) if r['side'] == 'over'
+                else (r['projection'] < r['line']))
+
+
+for _lo, _bar in ((70, 5.0), (80, 2.0)):
+    _pool = [r for r in _priced_rows('hitter') if r['confidence'] >= _lo]
+    _bad = [(r['pid'], r['market'], r['side'], r['line'], r['confidence'],
+             r['projection']) for r in _pool if _against(r)]
+    _rate = 100.0 * len(_bad) / len(_pool) if _pool else 0.0
+    ck(f"T37: hitter projections contradict <= {_bar}% at {_lo}%+ "
+       f"({len(_bad)} of {len(_pool)} priced rows = {_rate:.1f}%)",
+       _rate <= _bar, str(_bad[:3]))
+# ⚠️ REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT NUMBER AND SOMEBODY WILL
+# ONE DAY QUOTE IT AS IF IT WERE THE SAME ONE.
+_cd = [r for r in _hp if (r.get('confidence') or 0) >= 70 and _h_against(r)]
+_cn = [r for r in _hp if (r.get('confidence') or 0) >= 70]
+print(f"  NOTE  carded hitter rows only: {len(_cd)} of {len(_cn)} contradict at "
+      f"70%+ ({100.0 * len(_cd) / len(_cn) if _cn else 0:.1f}%) -- carding "
+      f"selects high-confidence rows, so this is NOT the T37 population")
 
 # 🔴 POINT IN TIME, PROVED BY DIFFERENCE. The RBI projection is the only
 # place the card reads the hitter LOG, and that log is `latest` -- it grows

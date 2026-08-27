@@ -265,20 +265,22 @@ def project(dist, line, side, conf_pct, sd=None, central=None):
     return invert_normal(line, sd, p_over), sat
 
 
-def proj_round(value, line):
-    """One decimal -- EXCEPT when one decimal lands exactly on the line.
+def proj_round(value, lines):
+    """One decimal -- EXCEPT when that lands exactly on one of HIS lines.
 
     A projection printed as "1.5" beside "under 1.5" reads as a
     contradiction even when the underlying number (1.469) agrees with the
-    pick perfectly well. That is a rounding artifact, not a disagreement,
-    and the fix is to show the reader the digit that resolves it."""
+    pick perfectly well. That is a rounding artifact, not a disagreement.
+
+    🔴 `lines` IS EVERY LINE THAT PLAYER HAS IN THAT MARKET, NOT THE ONE
+    ROW'S LINE. Rounding against a single row made the SAME projection
+    print as 1.5 on his 0.5 rung and 1.51 on his 1.5 rung -- which is the
+    exact incoherence this whole pass exists to remove. The decision has to
+    be made ONCE per player per market or it reintroduces the bug."""
     if value is None:
         return None
     v = round(float(value), 1)
-    if line is None:
-        return v
-    L = float(line)
-    if abs(v - L) < 1e-9 and abs(round(float(value), 2) - L) > 1e-9:
+    if any(abs(v - float(L)) < 1e-9 for L in (lines or ())):
         return round(float(value), 2)
     return v
 
@@ -747,7 +749,10 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         "confidence_note": "v4.0 model blended 50/50 with his own rate at this line.",
         # The single number Sam asked for beside the line, covers-style. It is
         # the blend read backwards, so it can never argue with the confidence.
-        "projection": proj_round(proj, line),
+        # ⛔ SET TO None ON PURPOSE. apply_projections() is the ONLY writer
+        # of this field (rule 66). Leaving a per-row inversion here is what
+        # gave one pitcher several projections.
+        "projection": None,
         "projection_unit": "K" if market == "strikeouts" else "outs",
         "projection_basis": "MODEL",
         "projection_saturated": proj_sat,
@@ -1094,7 +1099,8 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
         # inversion of the player's own RECORD, so it is DESCRIPTIVE no
         # matter which distribution produced it. T27/T28/T29 all failed and
         # hitter modelling is CLOSED.
-        "projection": proj_round(_proj, prop.get("line")),
+        # ⛔ SET TO None ON PURPOSE -- see the pitcher row. One writer.
+        "projection": None,
         "projection_unit": HITTER_UNIT.get(_mkt),
         "projection_basis": "DESCRIPTIVE",
         "projection_dist": _dist,
@@ -1541,8 +1547,124 @@ def hitter_mean(hlogs, pid, market, today):
     return sum(vals) / len(vals), len(vals)
 
 
-def board_projections(board, hlogs, players, today):
-    """A projection for EVERY prop on the board, not just the carded ones."""
+FEED_MKT = {"strikeouts": "pitcher_strikeouts", "outs": "pitcher_outs"}
+
+
+def coherent_projections(board, late_rows, hlogs, today):
+    """ONE projected number per (player, market). The same everywhere.
+
+    🔴 SAM, 2026-08-27: "you should have the same numbers across the entire
+    website if your talking about the same stat or projction." He is right
+    and the old design could not do it. A projection used to be an
+    INVERSION of the row's own confidence, and confidence is `50% model +
+    50% his raw hit rate AT THAT LINE` -- so every rung of the same ladder
+    implied a different central value. Measured on the 2026-08-27 board: 51
+    of 608 (player, market) combos carried more than one number, worst
+    pitcher_strikeouts at 9 of 11 pitchers and a 2.1 K spread. Sean Manaea
+    read 6.3 K on the Top-10 row and 5.3 K on his carded row.
+
+    ✅ WHAT REPLACES IT IS LINE-INDEPENDENT BY CONSTRUCTION:
+      - PITCHERS -- the model's own central value, E[K] or mu. 🟢 MODEL.
+      - HITTERS  -- his own per-game mean. ⚪ DESCRIPTIVE (rule 55: there
+                    is no hitter model and inverting a RECORD is still a
+                    record).
+    ⚠️ WHAT THIS COSTS is the property inversion was bought for -- that a
+    confident pick can never project against itself -- so it was NOT
+    assumed, it was PRE-REGISTERED AND MEASURED as T37, bar fixed first at
+    <=5% contradictions at 70%+ and <=2% at 80%+. Result on the live board:
+    pitchers 0.00% (n=31) and 0.00% (n=25); hitters 5.00% (n=80) and 0.00%
+    (n=5); across all six published cards hitters 2.59% (n=116) and 0.00%
+    (n=50). ⛔ MY PRE-REGISTERED PREDICTION WAS WRONG: I predicted pitchers
+    would contradict 3-8% and they contradicted not at all.
+    ⚠️ HITTERS LANDED ON THE BAR, NOT COMFORTABLY INSIDE IT (5.00% against
+    5%). Do not read that as slack. If a later slate pushes it over, the
+    pre-registered fallback is written in `research/t37_spec.md` -- invert
+    ONCE at the primary line and reuse that -- and the bar does not move.
+    """
+    val, unit, basis, ngames = {}, {}, {}, {}
+    # -- pitchers. `central` is lam / mu: it depends on the pitcher, the
+    #    opponent and home/away, and on NOTHING about the line. `late_rows`
+    #    is used because it runs build_play over EVERY game, started or not.
+    for r in late_rows or ():
+        pid, c = r.get("pid"), r.get("central")
+        if pid is None or c is None:
+            continue
+        mkt = FEED_MKT.get(r.get("market"), r.get("market"))
+        if (pid, mkt) in val:
+            continue
+        val[(pid, mkt)] = float(c)
+        unit[(pid, mkt)] = "K" if r.get("market") == "strikeouts" else "outs"
+        basis[(pid, mkt)] = "MODEL"
+
+    # -- hitters, and the full set of lines each player has in each market,
+    #    which the rounding rule needs.
+    lines = collections.defaultdict(set)
+    for g in board.get("games", []):
+        for p in g.get("props", []):
+            pid, mkt = p.get("pid"), p.get("market")
+            if pid is None or p.get("line") is None:
+                continue
+            lines[(pid, mkt)].add(float(p["line"]))
+            if mkt not in HITTER_UNIT or (pid, mkt) in val:
+                continue
+            m, n = hitter_mean(hlogs, pid, mkt, today)
+            if m is None:
+                continue
+            val[(pid, mkt)] = m
+            unit[(pid, mkt)] = HITTER_UNIT.get(mkt)
+            basis[(pid, mkt)] = "DESCRIPTIVE"
+            ngames[(pid, mkt)] = n
+
+    out = {}
+    for k, v in val.items():
+        out[k] = {"v": proj_round(v, lines.get(k)), "u": unit.get(k),
+                  "b": basis.get(k), "n": ngames.get(k)}
+    return out
+
+
+def apply_projections(rows, PROJ):
+    """Stamp the ONE number onto every row that shows it.
+
+    ⛔ THIS IS THE ONLY PLACE A ROW'S `projection` IS SET. build_play and
+    hitter_play still compute a per-row inversion on their way to other
+    things; whatever they left here is OVERWRITTEN. Two writers is how the
+    site ended up quoting two numbers for one pitcher."""
+    for r in rows or ():
+        if r is None:
+            continue
+        mkt = FEED_MKT.get(r.get("market"), r.get("market"))
+        e = PROJ.get((r.get("pid"), mkt))
+        if e is None or e["v"] is None:
+            r["projection"] = None
+            r["projection_note"] = ("No projection: there is no game log to "
+                                    "build one from.")
+            continue
+        r["projection"] = e["v"]
+        r["projection_unit"] = e["u"]
+        r["projection_basis"] = e["b"]
+        r["projection_saturated"] = False
+        if e["b"] == "MODEL":
+            what = "strikeouts" if r.get("market") == "strikeouts" else "outs"
+            r["projection_note"] = (
+                f"What the model expects him to record today — {e['v']} "
+                f"{what}. It is the same number wherever he appears on this "
+                f"site, at every line.")
+        else:
+            g = e.get("n")
+            r["projection_note"] = (
+                f"His own average over {g} games this season — {e['v']} a "
+                f"game. That's what he has actually been doing, not a "
+                f"forecast, and it is the same number at every line."
+                if g else
+                f"His own per-game average this season — {e['v']}.")
+
+
+def board_projections(board, PROJ):
+    """Every prop on the board, keyed the way the Player Props tab joins.
+
+    ⛔ THIS NO LONGER COMPUTES ANYTHING. It formats `PROJ`, which is the one
+    source of truth (see coherent_projections). It used to derive a value
+    per PROP, which is precisely how one player ended up with several."""
     out, blank = {}, collections.Counter()
     for g in board.get("games", []):
         for p in g.get("props", []):
@@ -1551,54 +1673,12 @@ def board_projections(board, hlogs, players, today):
             if pid is None or line is None:
                 blank["no player id"] += 1
                 continue
-            key = f"{pid}|{mkt}|{side}|{line}"
-            if key in out:
+            e = PROJ.get((pid, mkt))
+            if e is None or e["v"] is None:
+                blank["no usable game log"] += 1
                 continue
-            if mkt in MEAN_PROJ_MARKETS:
-                mean, ngames = hitter_mean(hlogs, pid, mkt, today)
-                if mean is None:
-                    blank[f"under {PROJ_MIN_GAMES} games"] += 1
-                    continue
-                out[key] = {"v": proj_round(mean, line),
-                            "u": HITTER_UNIT.get(mkt) or "TB", "b": "D"}
-            # hits / HR / RBI keep the INVERTED projection -- those three
-            # passed T34 on a pre-registered bar and are not re-litigated
-            # here. The carded rows already carry them; this only fills in
-            # players the card never priced.
-            elif mkt in HITTER_PROJ:
-                ev = p.get("evidence") or {}
-                h, n = parse_rate(ev.get("season"))
-                if h is None or not n or n < PROJ_MIN_GAMES:
-                    blank[f"under {PROJ_MIN_GAMES} games"] += 1
-                    continue
-                rate = 100.0 * (h + 0.5) / (n + 1)
-                shape = None
-                if HITTER_PROJ[mkt] == "negbin":
-                    shape = hitter_moments(hlogs, pid, mkt, today)
-                    if shape[0] is None:
-                        shape = None
-                if HITTER_PROJ[mkt] == "poisson" or shape:
-                    v, _ = project(HITTER_PROJ[mkt], line, side, rate, shape)
-                    if v is not None:
-                        out[key] = {"v": proj_round(v, line),
-                                    "u": HITTER_UNIT.get(mkt), "b": "D"}
-                        continue
-                # 🔴 FALL BACK TO HIS OWN MEAN rather than printing
-                # nothing. This fires when the validated inversion cannot
-                # be computed -- an RBI row needs the player's own
-                # game-to-game variance and a short log does not give one.
-                # The mean is exact on the mean, which is the same reason
-                # total bases uses it. ⛔ It is NOT used where the
-                # inversion works: those three markets passed T34 on a
-                # pre-registered bar and are not re-litigated here.
-                _m, _n = hitter_mean(hlogs, pid, mkt, today)
-                if _m is not None:
-                    out[key] = {"v": proj_round(_m, line),
-                                "u": HITTER_UNIT.get(mkt), "b": "D"}
-                else:
-                    blank["no usable log"] += 1
-            else:
-                blank["pitcher, needs the model"] += 1
+            out[f"{pid}|{mkt}|{side}|{line}"] = {"v": e["v"], "u": e["u"],
+                                                 "b": e["b"][0]}
     return out, dict(blank)
 
 
@@ -1635,6 +1715,13 @@ def projection_index(rows, priced=False):
         # carrying a 48KB second copy of that pool's keys.
         if priced:
             e["p"] = 1
+            # 🔴 AND ITS CONFIDENCE, so T37's contradiction rate can be
+            # recomputed by verify_card.py over the population T37 actually
+            # pre-registered -- EVERY priced row, not the carded subset.
+            # Carding selects high-confidence rows, so the carded-only rate
+            # is a different number against a bar that was never set for it.
+            if r.get("confidence") is not None:
+                e["c"] = round(r["confidence"])
         out[f"{pid}|{mkt}|{r.get('side')}|{r.get('line')}"] = e
     return out
 
@@ -1835,7 +1922,16 @@ def main(dry=False):
                 row["kind"] = "pitcher"
                 _late.append(row)
 
-    _board_px, _px_gaps = board_projections(B, hlogs, players, today)
+    # 🔴 ONE NUMBER PER PLAYER PER MARKET, DECIDED ONCE, USED EVERYWHERE.
+    # Sam, 2026-08-27. See coherent_projections() and research/t37_spec.md.
+    # ⛔ apply_projections runs BEFORE the top 10, the pairs and the parlays
+    # are built. Those hold REFERENCES to these same row objects, so the
+    # stamp reaches them -- but do not reorder this on that assumption.
+    PROJ = coherent_projections(B, _late, hlogs, today)
+    apply_projections(plays_all, PROJ)
+    apply_projections(hitters, PROJ)
+    apply_projections(_late, PROJ)
+    _board_px, _px_gaps = board_projections(B, PROJ)
     # ⛔ ORDER IS LOAD-BEARING. The descriptive board pass goes down first;
     # anything card.py actually priced then overwrites it, so a row that
     # has a model number never displays the fallback.

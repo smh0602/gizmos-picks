@@ -331,8 +331,7 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
 .prow .bet{min-width:132px;flex:0 0 auto}
 /* PROJECTION. Deliberately small and grey -- it sits BESIDE the line, the
    way covers puts its number beside the book's, and it must never out-shout
-   the price. Green when it is the model's, grey when it is a hitter's own
-   record read backwards. */
+   the price. */
 /* 🔴 ONE COLOUR FOR EVERY PROJECTION. Sam, 2026-08-26: "dont make the
    hitters color for it grey make it green like the pitchers." The grey/
    green split encoded model-vs-record provenance, which the RECORD chip
@@ -1162,25 +1161,32 @@ async function renderScores(){
 
 const confClass = c => c >= 70 ? 'c-hi' : c >= 60 ? 'c-mid' : 'c-lo';
 
-/* 🔴 THE PROJECTION IS NEVER COMPUTED HERE. It is inverted from the row's
-   own confidence inside card.py, using the same distribution that row
-   assumes, so the two can never disagree. Reimplementing that inversion in
-   JavaScript would create a second copy of the model, and this project has
-   a documented history of two copies of one number drifting apart. This
-   function FORMATS a number card.py already produced. Nothing more.
+/* 🔴 THE PROJECTION IS NEVER COMPUTED HERE. card.py decides it ONCE per
+   player per market and every surface shows that same number -- Sam,
+   2026-08-27: "you should have the same numbers across the entire website
+   if your talking about the same stat or projction." Reimplementing it in
+   JavaScript would create a second copy, and this project has a documented
+   history of two copies of one number drifting apart. This function
+   FORMATS a number card.py already produced. Nothing more.
    ⛔ If there is no projection, render nothing. An absent projection means
-   no distribution earned the right to give one -- it does not mean guess. */
+   there was no game log to build one from -- it does not mean guess. */
 function projChip(v, unit, basis, title){
   if (v == null) return '';
   const model = basis === 'MODEL' || basis === 'M';
   const t = title || (model
-    ? 'Gizmo\u2019s projection \u2014 the outcome that would produce the confidence '
-      + 'shown beside it, under the same distribution the model already assumes.'
-    : 'DESCRIPTIVE \u2014 this inverts the player\u2019s own record, not a forecast. '
-      + 'There is no hitter model in this project.');
-  /* ALWAYS one decimal. JSON turns 1.0 into 1, and "PROJ 1 H" next to a
-     line of 1.5 reads like a different kind of number than "PROJ 1.0 H". */
-  const shown = (typeof v === 'number') ? v.toFixed(1) : v;
+    ? 'Gizmo\u2019s projection \u2014 what the model expects him to record '
+      + 'today. The same number at every line on this site.'
+    : 'DESCRIPTIVE \u2014 his own per-game average this season, not a '
+      + 'forecast. There is no hitter model in this project.');
+  /* ONE DECIMAL. JSON turns 1.0 into 1, and "PROJ 1 H" next to a line of
+     1.5 reads like a different kind of number than "PROJ 1.0 H".
+     🔴 EXCEPT WHEN card.py DELIBERATELY KEPT A SECOND ONE. It does that
+     when one decimal would land exactly on one of that player's own lines
+     -- 1.47 beside "under 1.5" is honest, "1.5" beside "under 1.5" reads
+     as the card arguing with itself. ⛔ toFixed(1) here threw that digit
+     away and put the contradiction straight back on the page. */
+  const shown = (typeof v !== 'number') ? v
+    : (Math.abs(v - Number(v.toFixed(1))) > 1e-9 ? v.toFixed(2) : v.toFixed(1));
   return `<span class="proj ${model ? 'm' : ''}" title="${t.replace(/"/g,'&quot;')}">`
        + `PROJ <span class="pv">${shown}</span>${unit ? ' ' + unit : ''}</span>`;
 }
