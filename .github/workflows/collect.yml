@@ -3,8 +3,13 @@ name: collect
 # Times are UTC. The MLB slate runs roughly 16:00Z (noon ET) to 05:00Z.
 #
 # GitHub bills each job rounded UP to the nearest minute, so pull count
-# matters as much as pull cost. At 31 runs a day this uses ~930 of the
-# 2,000 free minutes a private repo gets each month.
+# matters as much as pull cost. The repo is public, so Actions minutes are
+# free -- but the SCHEDULE is not unlimited in practice. This file ran 29
+# cron entries and GitHub stopped firing every one of them for 21 hours on
+# 2026-08-26/27 while manual dispatch kept working. Cause never confirmed
+# from the repo side; the response was to stop asking the scheduler for so
+# much. A mode is now a LIST, one cron does a whole time block, and the
+# count is 16.
 #
 # Scheduled workflows on GitHub can be delayed several minutes under load.
 # That is fine at 30-minute granularity; do not tighten this without
@@ -44,29 +49,22 @@ on:
     # and loses cross-book comparison. Early lines are softer and disagree
     # more, so the full pull is worth more in the morning.
 
-    # -- 4am block: Hard Rock only. Each pull has a BACKUP 15 min later,
-    #    which costs NOTHING when the first one worked (see the freshness
-    #    guard in collect.py). GitHub drops runs; props cannot absorb it.
+    # -- 4am block. ONE cron does the whole pull; the backup 30 min later
+    #    re-runs the same list and costs NOTHING when the first one worked
+    #    (freshness guard in collect.py). The card is its OWN cron so a
+    #    verifier failure can never discard the props pull that paid for it.
     - cron: "5 8 * * *"
-    - cron: "12 8 * * *"
-    - cron: "22 8 * * *"
-    - cron: "27 8 * * *"
-    - cron: "37 8 * * *"
+    - cron: "35 8 * * *"
+    - cron: "42 8 * * *"
 
     # -- 10am block: BOTH regions, feeding the morning card.
     - cron: "8 14 * * *"
-    - cron: "18 14 * * *"
-    - cron: "23 14 * * *"
-    - cron: "28 14 * * *"
-    - cron: "36 14 * * *"
+    - cron: "38 14 * * *"
     - cron: "46 14 * * *"
 
     # -- 4pm block: Hard Rock only, feeding the evening card.
     - cron: "8 20 * * *"
-    - cron: "18 20 * * *"
-    - cron: "23 20 * * *"
-    - cron: "28 20 * * *"
-    - cron: "36 20 * * *"
+    - cron: "38 20 * * *"
     - cron: "48 20 * * *"
 
     # ══ FREE (statsapi or local compute) ══ zero credits, so frequency
@@ -83,15 +81,12 @@ on:
     # and a game missed at 2am is graded by breakfast either way.
     - cron: "40 5 * * *"
     - cron: "2 6 * * *"
-    # -- the backstop pass, unchanged
+    # -- the backstop pass: results, both game logs and a re-grade in ONE
+    #    run at 3:34am ET -- before the 4:05am props pull, so the early
+    #    board carries last night's games.
     - cron: "34 7 * * *"
-    - cron: "44 7 * * *"
-    - cron: "54 7 * * *"
-    - cron: "47 8 * * *"
     - cron: "52 8 * * *"
-    - cron: "5 13 * * *"
-    - cron: "5 19 * * *"
-    - cron: "5 1 * * *"
+    - cron: "5 1,13,19 * * *"
 
   # 🆕 Rebuild the free artefacts whenever the CODE changes, so a fix is
   # visible on the site immediately instead of waiting for the next
@@ -109,7 +104,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "card | record | refresh | lineups | gamelines | props-pitcher | props-batter | schedule | results | hitters | news | props-board | pitchers"
+        description: "one mode, or several separated by spaces: card | record | refresh | lineups | gamelines | props-pitcher | props-batter | props-pitcher-hr | props-batter-hr | schedule | results | hitters | news | props-board | pitchers"
         required: true
         default: gamelines
 
@@ -144,40 +139,33 @@ jobs:
             echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
           else
             case "${{ github.event.schedule }}" in
+              # 🔴 A MODE CAN BE A LIST. The Collect step loops over it, so
+              # one cron does a whole time block. This cut the schedule from
+              # 29 entries to 16: GitHub drops individual scheduled runs, and
+              # a block that fires either does all of its work or none of it,
+              # instead of landing four of five pulls and building a card on
+              # the gap.
               # -- game lines, hourly
-              "13 8-23 * * *")  echo "mode=gamelines"        >> "$GITHUB_OUTPUT" ;;
-              "13 0-4 * * *")   echo "mode=gamelines"        >> "$GITHUB_OUTPUT" ;;
-              # -- 4am block, Hard Rock only (+ backups)
-              "5 8 * * *")      echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
-              "12 8 * * *")     echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
-              "22 8 * * *")     echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
-              "27 8 * * *")     echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
-              "37 8 * * *")     echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
-              # -- 10am block, BOTH regions (+ backups), then the card
-              "8 14 * * *")     echo "mode=props-pitcher"    >> "$GITHUB_OUTPUT" ;;
-              "18 14 * * *")    echo "mode=props-batter"     >> "$GITHUB_OUTPUT" ;;
-              "23 14 * * *")    echo "mode=props-pitcher"    >> "$GITHUB_OUTPUT" ;;
-              "28 14 * * *")    echo "mode=props-batter"     >> "$GITHUB_OUTPUT" ;;
-              "36 14 * * *")    echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
-              "46 14 * * *")    echo "mode=card"             >> "$GITHUB_OUTPUT" ;;
-              # -- 4pm block, Hard Rock only (+ backups), then the card
-              "8 20 * * *")     echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
-              "18 20 * * *")    echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
-              "23 20 * * *")    echo "mode=props-pitcher-hr" >> "$GITHUB_OUTPUT" ;;
-              "28 20 * * *")    echo "mode=props-batter-hr"  >> "$GITHUB_OUTPUT" ;;
-              "36 20 * * *")    echo "mode=props-board"      >> "$GITHUB_OUTPUT" ;;
-              "48 20 * * *")    echo "mode=card"             >> "$GITHUB_OUTPUT" ;;
+              "13 8-23 * * *")  echo "mode=gamelines" >> "$GITHUB_OUTPUT" ;;
+              "13 0-4 * * *")   echo "mode=gamelines" >> "$GITHUB_OUTPUT" ;;
+              # -- 4am block, Hard Rock only, then the card on its own run
+              "5 8 * * *")      echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
+              "35 8 * * *")     echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
+              "42 8 * * *")     echo "mode=card" >> "$GITHUB_OUTPUT" ;;
+              # -- 10am block, BOTH regions, then the card
+              "8 14 * * *")     echo "mode=props-pitcher props-batter props-board" >> "$GITHUB_OUTPUT" ;;
+              "38 14 * * *")    echo "mode=props-pitcher props-batter props-board" >> "$GITHUB_OUTPUT" ;;
+              "46 14 * * *")    echo "mode=card" >> "$GITHUB_OUTPUT" ;;
+              # -- 4pm block, Hard Rock only, then the card
+              "8 20 * * *")     echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
+              "38 20 * * *")    echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
+              "48 20 * * *")    echo "mode=card" >> "$GITHUB_OUTPUT" ;;
               # -- free
-              "40 5 * * *")     echo "mode=results"          >> "$GITHUB_OUTPUT" ;;
-              "2 6 * * *")      echo "mode=record"           >> "$GITHUB_OUTPUT" ;;
-              "34 7 * * *")     echo "mode=results"          >> "$GITHUB_OUTPUT" ;;
-              "44 7 * * *")     echo "mode=pitchers"         >> "$GITHUB_OUTPUT" ;;
-              "54 7 * * *")     echo "mode=hitters"          >> "$GITHUB_OUTPUT" ;;
-              "47 8 * * *")     echo "mode=record"           >> "$GITHUB_OUTPUT" ;;
-              "52 8 * * *")     echo "mode=lineups"          >> "$GITHUB_OUTPUT" ;;
-              "5 13 * * *")     echo "mode=news"             >> "$GITHUB_OUTPUT" ;;
-              "5 19 * * *")     echo "mode=news"             >> "$GITHUB_OUTPUT" ;;
-              "5 1 * * *")      echo "mode=news"             >> "$GITHUB_OUTPUT" ;;
+              "40 5 * * *")     echo "mode=results" >> "$GITHUB_OUTPUT" ;;
+              "2 6 * * *")      echo "mode=record" >> "$GITHUB_OUTPUT" ;;
+              "34 7 * * *")     echo "mode=results pitchers hitters record" >> "$GITHUB_OUTPUT" ;;
+              "52 8 * * *")     echo "mode=lineups" >> "$GITHUB_OUTPUT" ;;
+              "5 1,13,19 * * *") echo "mode=news" >> "$GITHUB_OUTPUT" ;;
               # 🔴 NO DEFAULT MODE. This used to be `*) mode=gamelines`,
               # which meant any cron somebody added and forgot to map here
               # SILENTLY became a 6-credit gamelines pull writing the wrong
@@ -189,13 +177,35 @@ jobs:
             esac
           fi
 
+      # 🔴 THE MODE IS A LIST AND A FAILURE IS DEFERRED, NOT FATAL HERE.
+      # A block runs several pulls. If the third one dies, the two that
+      # already cost credits must still reach the repo -- so the loop
+      # records the failure and the job is failed AFTER the commit step.
+      # ⛔ Do not turn this back into a bare `python collect.py`. That
+      # aborts the step, skips `Commit snapshots`, and throws away paid
+      # data to report an error the run would have reported anyway.
       - name: Collect
+        id: collect
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: python collect.py "${{ steps.mode.outputs.mode }}"
+          # ⛔ VIA env, NOT interpolated into the script body. The dispatch
+          # input reaches this string, and `${{ }}` inside `run:` is pasted
+          # as raw shell before bash ever sees it.
+          MODES: ${{ steps.mode.outputs.mode }}
+        run: |
+          rc=0
+          for m in $MODES; do
+            echo "::group::collect $m"
+            if ! python collect.py "$m"; then
+              rc=1
+              echo "::error::mode '$m' failed"
+            fi
+            echo "::endgroup::"
+          done
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
 
       - name: Collect schedule (free, statsapi)
-        if: steps.mode.outputs.mode == 'gamelines'
+        if: contains(steps.mode.outputs.mode, 'gamelines')
         run: python collect.py schedule
 
       # 🔴 A card that fails its own checks is not published. verify_card.py
@@ -204,7 +214,7 @@ jobs:
       # from the prices. It exits non-zero on any failure, which fails the
       # job BEFORE the commit step -- so a bad card never reaches the page.
       - name: Verify the card
-        if: steps.mode.outputs.mode == 'card' || steps.mode.outputs.mode == 'refresh'
+        if: contains(steps.mode.outputs.mode, 'card') || contains(steps.mode.outputs.mode, 'refresh')
         run: python verify_card.py
 
       - name: Commit snapshots
@@ -231,7 +241,7 @@ jobs:
       # price. A failure here turns the job red -- visible -- with the
       # snapshot already safely committed.
       - name: Verify the board
-        if: steps.mode.outputs.mode == 'gamelines'
+        if: contains(steps.mode.outputs.mode, 'gamelines')
         run: python verify_board.py
 
       # 🔴 THE TRACK RECORD IS AUDITED EVERY TIME IT IS BUILT.
@@ -240,5 +250,14 @@ jobs:
       # the commit: the record is derived and can be rebuilt, but a run
       # that fails must not discard the data it was built from.
       - name: Verify the track record
-        if: steps.mode.outputs.mode == 'record' || steps.mode.outputs.mode == 'refresh'
+        if: contains(steps.mode.outputs.mode, 'record') || contains(steps.mode.outputs.mode, 'refresh')
         run: python verify_record.py
+
+      # 🔴 THE DEFERRED FAILURE. Everything the run collected is committed
+      # and every verifier has spoken; only now does a failed pull turn the
+      # job red. ⛔ Keep this LAST.
+      - name: Fail if any collect mode failed
+        if: steps.collect.outputs.rc != '0'
+        run: |
+          echo "::error::at least one collect mode failed -- see the Collect step"
+          exit 1
