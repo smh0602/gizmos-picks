@@ -33,7 +33,14 @@ def listlen(name):
 BAT, PIT, GAME_M = listlen("BATTER_MARKETS"), listlen("PITCHER_MARKETS"), listlen("GAME_MARKETS")
 wf = open(os.path.join(ROOT, ".github/workflows/collect.yml"), encoding="utf-8").read()
 crons = re.findall(r'- cron: "([^"]+)"', wf)
-modes = dict(re.findall(r'"([\d ,*-]+)"\)\s*echo "mode=([a-z-]+)"', wf))
+# 🔴 A MODE IS A LIST (ledger rule 63). The old pattern was `[a-z-]+`,
+# which cannot match "props-pitcher-hr props-batter-hr props-board" -- so
+# every batched cron read as UNMAPPED, the props vanished from the total,
+# and this script reported 126/day against a true 606. ⛔ A budget tool
+# that silently under-reports is worse than no budget tool: it says ✅ fits.
+modes = dict(re.findall(r'"([\d ,*-]+)"\)\s*echo "mode=([a-z0-9 -]+)"', wf))
+modes = {c: v.split() for c, v in modes.items()}
+ALL_MODES = sorted({m for v in modes.values() for m in v})
 
 
 def fires(cron):
@@ -66,27 +73,28 @@ print(f"{'mode':20} {'runs/day':>9} {'per run':>9} {'per day':>9}")
 per_day, unmapped, backups = 0, [], 0
 seen = {}
 for c in crons:
-    m = modes.get(c)
-    if m is None:
+    ms = modes.get(c)
+    if ms is None:
         unmapped.append(c)
         continue
-    if m not in COST:
+    cost = sum(COST.get(m, 0) for m in ms)
+    if not cost:
         continue
     r = fires(c)
-    # A second cron for a mode inside the same hour is a BACKUP and the
-    # freshness guard makes it free when the primary lands.
-    key = (m, c.split()[1])
+    # A second cron for the SAME MODE LIST inside the same hour is a BACKUP
+    # and the freshness guard makes it free when the primary lands.
+    key = (" ".join(ms), c.split()[1])
     if key in seen:
         backups += r
         continue
     seen[key] = True
-    per_day += COST[m] * r
-for m in sorted(set(modes.values()) & set(COST)):
-    rs = sum(fires(c) for c in crons if modes.get(c) == m)
+    per_day += cost * r
+for m in [x for x in ALL_MODES if x in COST]:
+    rs = sum(fires(c) for c in crons if m in modes.get(c, []))
     print(f"{m:20} {rs:>9} {COST[m]:>9} {'—':>9}")
 print(f"\n{'PAID TOTAL':20} {'':>9} {'':>9} {per_day:>9}/day")
 print(f"{backups} backup run(s)/day cost 0 while the primary lands (freshness guard)")
-free = sorted(set(modes.values()) - set(COST))
+free = [m for m in ALL_MODES if m not in COST]
 print(f"free modes (statsapi or local compute): {', '.join(free)}")
 for days in (30, 31):
     tot = per_day * days
