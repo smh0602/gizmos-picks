@@ -225,6 +225,11 @@ STAT_COLS = {
 # below is enforced ON THESE ONLY -- an unbridged offensive lineman is
 # irrelevant, an unbridged WR1 is a hole.
 PROP_POS = {"QB", "RB", "WR", "TE", "FB"}
+# 🔴 INJURY STATUS IS THE ONE INPUT A SEASON AVERAGE CANNOT CONTAIN, which
+# is the entire premise of T41. See research/t41_spec.md.
+# ⛔ Graded, not boolean: "Questionable" plays most weeks, "Out" never does.
+INJ_RANK = {"": 0, "questionable": 1, "doubtful": 2, "out": 2,
+            "injured reserve": 2, "reserve/injured": 2}
 BRIDGE_MIN = 95.0          # % of prop-position snap rows that must bridge
 
 
@@ -299,6 +304,20 @@ def build_logs(season, log=print):
         # the model, and a silent hole looks like a modelling result.
         raise RuntimeError(f"bridge below {BRIDGE_MIN}% on: {', '.join(thin)}")
 
+    # -- injury report, per (gsis, week). ⚠️ A player ABSENT from the report
+    # is healthy: the file lists only players with a designation, so a
+    # missing row is information, not a gap.
+    inj = {}
+    try:
+        for r in _rows(seen, "injuries", FILES["injuries"].format(y=season), log):
+            st = (r.get("report_status") or "").strip().lower()
+            inj[(r.get("gsis_id"), str(r.get("week")))] = INJ_RANK.get(st, 1 if st else 0)
+        log(f"  injuries: {len(inj):,} player-weeks carry a designation")
+    except Exception as e:
+        # ⛔ FAIL LOUD. Silently modelling without the input the test exists
+        # to measure would produce a null result about the wrong thing.
+        raise RuntimeError(f"injuries unavailable: {e}")
+
     players = {}
     for r in stats:
         pid = r.get("player_id")
@@ -316,12 +335,41 @@ def build_logs(season, log=print):
         if sn:
             row["snaps"] = int(_num(sn.get("offense_snaps")))
             row["snap_pct"] = round(_num(sn.get("offense_pct")), 3)
+        row["inj"] = inj.get((pid, wk), 0)
         for src, dst in STAT_COLS.items():
             row[dst] = _num(r.get(src))
         p["g"].append(row)
 
     for p in players.values():
         p["g"].sort(key=lambda x: (x["d"] or "", x["week"]))
+
+    # -- ahead_out: how many same-team, same-position players with a HIGHER
+    # TRAILING snap share are OUT this week.
+    # 🔴 DEPTH IS DERIVED FROM WHAT ACTUALLY HAPPENED, not the published
+    # depth chart. Declared in t41_spec.md before any fit: the depth-chart
+    # file is 554k timestamped snapshots (a large surface for a silent
+    # point-in-time bug) and teams game it, whereas snap share is fact.
+    # ⛔ STRICTLY POINT-IN-TIME: the ranking uses games BEFORE this one.
+    by_tw = collections.defaultdict(list)
+    for pid, p in players.items():
+        for i, g in enumerate(p["g"]):
+            by_tw[(g["team"], g["week"], p["pos"])].append((pid, i))
+    for (team, week, pos), members in by_tw.items():
+        if pos not in PROP_POS or len(members) < 2:
+            continue
+        share = {}
+        for pid, i in members:
+            prior = players[pid]["g"][:i][-8:]
+            vals = [x.get("snap_pct", 0.0) for x in prior]
+            share[pid] = (sum(vals) / len(vals)) if vals else 0.0
+        for pid, i in members:
+            mine = share[pid]
+            players[pid]["g"][i]["ahead_out"] = sum(
+                1 for q, j in members
+                if q != pid and share[q] > mine
+                and players[q]["g"][j].get("inj", 0) >= 2)
+    n_ao = sum(1 for p in players.values() for g in p["g"] if g.get("ahead_out"))
+    log(f"  ahead_out: {n_ao:,} player-weeks have a higher-usage teammate OUT")
 
     undated = sum(1 for p in players.values() for x in p["g"] if not x["d"])
     withsnap = sum(1 for p in players.values() for x in p["g"] if "snaps" in x)
