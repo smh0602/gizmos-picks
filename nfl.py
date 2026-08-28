@@ -265,6 +265,8 @@ SNAP_FLOOR = {"QB": 0.60, "RB": 0.30, "WR": 0.50, "TE": 0.40, "FB": 0.30}
 INJ_RANK = {"": 0, "questionable": 1, "doubtful": 2, "out": 2,
             "injured reserve": 2, "reserve/injured": 2}
 BRIDGE_MIN = 95.0          # % of prop-position snap rows that must bridge
+# Which nflverse asset each requested filename actually resolved to.
+USED = {}
 
 
 def _rows(seen, tag, fname, log):
@@ -295,12 +297,22 @@ def _rows(seen, tag, fname, log):
     if not hit:
         m = re.search(r"(\d{4})", fname)
         year = m.group(1) if m else None
+        # 🔴 EVERY WORD MUST MATCH, NOT ANY. `[measured 2026-08-28,
+        # run #206]` `any()` let `rosters_2021.csv.gz` (a SEASON roster,
+        # one row per player) stand in for `roster_weekly_2021.csv.gz`
+        # (one row per player PER WEEK). The build "succeeded" and the
+        # bridge collapsed -- 2022 came out at **RB 75.0%, TE 70.8%,
+        # WR 77.2%** against 2025's 99.6%.
+        # ⛔ THAT IS EXACTLY THE SUBSTITUTION THIS FUNCTION'S OWN COMMENT
+        # PROMISED IT WOULD NOT MAKE, and it made it on the first run.
+        # ✅ `all()` means `roster_weekly_*` can only ever be satisfied by
+        # an asset carrying BOTH "roster" AND "weekly".
         words = [w for w in re.split(r"[_.]", fname.lower())
                  if w and not w.isdigit() and w not in ("csv", "gz")]
         cand = [a for a in assets
                 if year and year in a[0]
                 and a[0].endswith((".csv", ".csv.gz"))
-                and any(w in a[0].lower() for w in words)]
+                and all(w in a[0].lower() for w in words)]
         if len(cand) == 1:
             log(f"  NOTE: '{fname}' not published; using '{cand[0][0]}' "
                 f"from the same release (same year, matching name)")
@@ -322,6 +334,11 @@ def _rows(seen, tag, fname, log):
     blob = _raw(hit[0][2]).decode("utf-8", "replace")
     out = list(csv.DictReader(io.StringIO(blob)))
     log(f"  {hit[0][0]}: {len(out):,} rows")
+    # 🔴 REMEMBER WHICH FILE THIS ACTUALLY WAS. A season built from a
+    # substituted asset must be able to SAY SO on its own face -- the
+    # bridge collapse above was invisible in the output and only showed
+    # up as a coverage number nobody would have questioned.
+    USED[fname] = hit[0][0]
     return out
 
 
@@ -363,6 +380,7 @@ def build_logs(season, log=print):
             "Target share and snap share are the fallback, and that is a "
             "decision to make from this list, not an assumption.")
 
+    USED.clear()
     sched = _rows(seen, "schedules", SCHEDULE_FILE, log)
     stats = _rows(seen, "stats_player", FILES["stats_player"].format(y=season), log)
     snaps = _rows(seen, "snap_counts", FILES["snap_counts"].format(y=season), log)
@@ -552,10 +570,17 @@ def build_logs(season, log=print):
         # ⚠️ What it CANNOT do: distinguish a receiver who ran a route and
         # was not thrown to from one who stayed in to block. **A true
         # route rate would. This is a proxy and is labelled one.**
-        if row.get("snaps"):
-            row["tgt_per_snap"] = round(row.get("tgt", 0.0) / row["snaps"], 4)
         for src, dst in STAT_COLS.items():
             row[dst] = _num(r.get(src))
+        # ⛔ COMPUTED HERE AND NOT ONE LINE EARLIER. The first version of
+        # this sat ABOVE the STAT_COLS loop and divided a `tgt` that did
+        # not exist yet, so it was **0.0 on all 94,738 player-weeks across
+        # five seasons** -- and every run was green. `verify_nfl.py`'s
+        # constant-feature check caught it, which is the fourth football
+        # column to ship as zeroes and the first one caught before Sam saw
+        # it. 🔴 A DERIVED FIELD MUST BE COMPUTED AFTER ITS INPUTS.
+        if row.get("snaps"):
+            row["tgt_per_snap"] = round(row.get("tgt", 0.0) / row["snaps"], 4)
         p["g"].append(row)
 
     for p in players.values():
@@ -635,6 +660,8 @@ def build_logs(season, log=print):
         # it can never be used safely. Refuse rather than silently include.
         raise RuntimeError(f"{undated} player-weeks have no kickoff date")
     return {"season": season, "source": "nflverse", "players": players,
+            "source_assets": dict(USED),
+            "substituted": {k: v for k, v in USED.items() if k != v},
             "bridge_ok": bridge_ok, "bridge_coverage": bridge_cov,
             "bridge_min": BRIDGE_MIN,
             "consumer_contract": (

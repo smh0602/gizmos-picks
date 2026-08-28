@@ -42,6 +42,19 @@ def check_logs(path):
     # 🔴 THE BRIDGE, AND WHY IT IS THE FIRST THING REPORTED.
     # A season can pass every other check and still be quietly missing 9%
     # of its wide receivers — and those are not a random 9%.
+    # 🔴 A SEASON BUILT FROM A SUBSTITUTED ASSET MUST SAY SO.
+    # `[measured run #206]` `rosters_2021.csv.gz` silently stood in for
+    # `roster_weekly_2021.csv.gz` and the bridge collapsed to 75% on RBs.
+    # The output looked normal; only the coverage number gave it away, and
+    # nobody would have questioned it.
+    sub = doc.get("substituted") or {}
+    if sub:
+        bad(f"season {season} was built from SUBSTITUTED assets",
+            f"{sub} — a different KIND of file may have stood in for the "
+            f"one requested")
+    elif doc.get("source_assets"):
+        ok(f"season {season} used the exact assets requested")
+
     if doc.get("bridge_ok") is False:
         warn(f"season {season} has bridge_ok=FALSE",
              f"{doc.get('bridge_coverage')} — unbridged players carry no "
