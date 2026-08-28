@@ -387,9 +387,28 @@ a.cell.best:hover{background:#d4ecdd}
 .tapme{font-size:10.5px;color:var(--mut);text-align:center;padding:7px 0 9px;letter-spacing:.02em}
 footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid var(--line)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
+
+/* ── the staleness banner ─────────────────────────────────────────
+   Deliberately loud and at the very top. It is not decoration: it is
+   the page admitting what it does not know. */
+.stalebar{ display:none; }
+.stalebar.warn{
+  display:block; background:#7a2012; color:#ffe9e4;
+  border-bottom:2px solid #c0392b;
+  padding:10px 18px; font-size:13px; line-height:1.5;
+}
+.stalebar.warn b{ color:#fff; }
+.stalebar .sb-item{
+  display:inline-block; margin:2px 10px 0 0; padding:1px 7px;
+  background:rgba(0,0,0,.28); border-radius:3px; white-space:nowrap;
+}
 </style>
 </head>
 <body>
+
+<!-- 🔴 Filled by renderStaleBanner() from data/latest/freshness.json.
+     Empty and invisible when everything is inside contract. -->
+<div id="stalebar" class="stalebar"></div>
 
 <header>
   <div class="wrap mast">
@@ -568,6 +587,71 @@ function betControl(url, label){
    at a moment in time, and lines move constantly, so the moment is part
    of the number. Green under ten minutes, amber under thirty-five, red
    and loud after that. */
+/* ══════════════════════════════════════════════════════════════════
+   THE STALENESS BANNER
+   ══════════════════════════════════════════════════════════════════
+   🔴 ON 2026-08-28 THIS PAGE SERVED 15-HOUR-OLD PROPS, A CARD PRICED
+   OFF THE PREVIOUS NIGHT'S ODDS AND A TRACK RECORD MISSING THREE
+   SLATES -- AND LOOKED EXACTLY AS IT DOES WHEN EVERYTHING IS CURRENT.
+   Sam had to notice and ask. ⛔ A stale page that looks fresh is worse
+   than an outage, because a reader acts on it.
+
+   The contract lives in freshness.py and is PUBLISHED to
+   data/latest/freshness.json by the converge pass. This function only
+   renders it. ⛔ Do not hard-code a max age here -- two copies of one
+   number is the drift this project has been bitten by repeatedly. */
+let FRESH = null;
+
+function ageText(m){
+  if (m === null || m === undefined) return 'unknown';
+  if (m < 1)  return 'just now';
+  if (m < 60) return Math.round(m) + ' min old';
+  const h = m / 60;
+  return (h < 24 ? h.toFixed(1) + ' hr old'
+                 : (h / 24).toFixed(1) + ' days old');
+}
+
+function renderStaleBanner(){
+  const bar = document.getElementById('stalebar');
+  if (!bar) return;
+  if (!FRESH || !Array.isArray(FRESH.artifacts)){
+    bar.className = 'stalebar warn';
+    bar.innerHTML = "<b>Freshness unknown.</b> This page could not read " +
+      "its own update report, so it cannot promise anything below is " +
+      "current. Treat every number as possibly stale.";
+    return;
+  }
+  const bad = FRESH.artifacts.filter(a => a.stale);
+  if (!bad.length){ bar.className = 'stalebar'; bar.innerHTML = ''; return; }
+  /* 🔴 NAMED BY TAB, NOT BY MODE. A reader does not know what
+     "props-batter" is; they know which tab they are looking at. */
+  const TAB_OF = {
+    scores:'Track Record', results:'Track Record', record:'Track Record',
+    pitchers:'Trends', hitters:'Trends',
+    gamelines:'Odds', 'props-pitcher':'Player Props',
+    'props-batter':'Player Props', 'props-board':'Player Props',
+    card:"Gizmo's Picks", lineups:"Gizmo's Picks", weather:"Gizmo's Picks",
+    news:'News'
+  };
+  const tabs = {};
+  bad.forEach(a => {
+    const t = TAB_OF[a.mode] || a.mode;
+    const late = a.missing ? Infinity : (a.late_min || 0);
+    if (!tabs[t] || late > tabs[t].late) tabs[t] = {late, due: a.due_et, missing: a.missing};
+  });
+  const list = Object.keys(tabs).sort().map(t => {
+    const v = tabs[t];
+    const how = v.missing ? 'never built'
+              : v.late >= 60 ? `${(v.late/60).toFixed(1)} hr late`
+              : `${Math.round(v.late)} min late`;
+    return `<span class="sb-item"><b>${t}</b> ${how} (due ${v.due} ET)</span>`;
+  }).join('');
+  bar.className = 'stalebar warn';
+  bar.innerHTML = `<b>Some of this has not updated on schedule.</b> ` +
+    `These tabs have missed their scheduled build, so the numbers on them ` +
+    `may not reflect the current board: ${list}`;
+}
+
 function freshness(iso){
   if (!iso) return '';
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
@@ -789,6 +873,12 @@ function inflate(src, pos){
 async function loadBoard(){
   try { BOARD = await jget('data/latest/board.json'); }
   catch(e){ BOARD = null; }
+  /* 🔴 ALWAYS ATTEMPTED, AND A FAILURE IS ITSELF REPORTED. If the page
+     cannot read its own freshness report it says so rather than
+     rendering silently, which is the exact failure of 2026-08-28. */
+  try { FRESH = await jget('data/latest/freshness.json'); }
+  catch(e){ FRESH = null; }
+  renderStaleBanner();
 }
 
 /* Home/road splits and last-10 come from standings, not the schedule. */
@@ -2348,14 +2438,23 @@ $('#filt').addEventListener('change', renderScores);
      so that was 19 pointless full rebuilds an hour, each one a chance to
      lose the reader's place. It now checks whether the file it just
      fetched is actually new before touching anything. */
-  let lastPulled = null;
+  /* 🔴 THE CHANGE SIGNAL IS THE BOARD *OR* THE FRESHNESS REPORT.
+     Watching board.pulled_at alone was not enough: under converge a pass
+     can rebuild the CARD without the board moving (the card's contract is
+     90 min, gamelines' is 90 min, and they do not have to expire on the
+     same pass). A reader with the Picks tab open would then sit on the
+     old card until something unrelated happened to the odds.
+     freshness.json is rewritten by EVERY converge pass, so its built_at
+     is the one stamp that moves whenever anything at all moved. */
+  let lastPulled = null, lastFresh = null;
   setInterval(async () => {
     if (document.querySelector('.ovl')) return;
     try { await loadBoard(); } catch(e){ return; }
     const pulled = (BOARD && BOARD.pulled_at) || '';
-    if (lastPulled === null) { lastPulled = pulled; return; }
-    if (pulled === lastPulled) return;               // same file; leave the page alone
-    lastPulled = pulled;
+    const built  = (FRESH && FRESH.built_at) || '';
+    if (lastPulled === null) { lastPulled = pulled; lastFresh = built; return; }
+    if (pulled === lastPulled && built === lastFresh) return;   // nothing moved
+    lastPulled = pulled; lastFresh = built;
     PROPS = null; PROJ = null; CARD = null;          // genuinely new data
     const again = {scores: renderScores, odds: renderOdds, trends: renderTrends,
                    props: renderProps, picks: renderPicks, parlays: renderParlays};

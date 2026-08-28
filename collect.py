@@ -148,6 +148,9 @@ def now():
     return datetime.now(timezone.utc)
 
 
+import freshness as _fresh
+
+
 def stamp():
     return now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -184,7 +187,16 @@ def odds_get(path, params):
 
 
 def write(path, obj, compress=False):
-    """Write JSON so a reader NEVER sees a half-written file.
+    """Write JSON so a reader NEVER sees a half-written file — and STAMP IT.
+
+    🔴 EVERY ARTIFACT IS STAMPED HERE, NOT AT THE CALL SITE. `freshness.py`
+    can only age an artifact that carries its own timestamp, and three of
+    them (`scores`, `lineups`, `weather`) carried none — so the contract
+    could not tell a fresh one from a four-day-old one. Stamping at the
+    single choke point means a NEW artifact added later cannot be born
+    un-ageable, which is the whole failure this rewrite exists to end.
+    ⚠️ An explicit `pulled_at` / `built_at` / `generated_at` still wins:
+    `written_at` is last in `freshness.STAMP_FIELDS`.
 
     🔴 WHY THIS IS ATOMIC. `open(path, "w")` TRUNCATES TO ZERO the instant
     it is called, and everything between that and the final flush is a
@@ -207,6 +219,10 @@ def write(path, obj, compress=False):
     d = os.path.dirname(path)
     os.makedirs(d, exist_ok=True)
     tmp = f"{path}.tmp.{os.getpid()}"
+    if isinstance(obj, dict) and not any(
+            obj.get(k) for k in _fresh.STAMP_FIELDS):
+        obj = dict(obj, written_at=stamp())
+
     try:
         if compress:
             with gzip.open(tmp, "wt", encoding="utf-8") as f:
@@ -507,24 +523,121 @@ def build_board(games):
 # ⛔ The guard keys on the storage directory, NOT on the region. A cheap
 # `us2` backup must see a full `us,us2` primary and stand down; otherwise
 # the backup would re-buy a board we already have.
+# ======================================================================
+# THE DAILY CREDIT CAP — the guard converge cannot run without
+# ======================================================================
+# 🔴 CONVERGE CHANGED THE COST MODEL AND THE FIRST DRAFT DID NOT PRICE IT.
+# The old schedule spent a FIXED amount: three props pulls a day at named
+# times, ~606 credits/day, ~18,800/month against a 20,000 plan. Converge
+# spends whatever the CONTRACT implies, and a contract is not a budget:
+# at a 240-minute props contract on a 15-game slate it would have spent
+# **1,512/day = ~46,000/month.** ⛔ That is 2.3x the plan, and it would
+# have drained the month in under two weeks.
+#
+# ✅ So freshness is now bounded by MONEY as well as by time, and the two
+# are allowed to disagree. On a small slate the cap never binds and props
+# stay as fresh as the contract says. On a big slate the cap throttles the
+# pulls and the artifacts go out of contract -- which the freshness banner
+# then says out loud on the page.
+#
+# 🔴 THAT DEGRADATION IS THE POINT. The alternative is a silent overrun
+# that ends with a dead API key mid-month and a board with no prices at
+# all. ⛔ Visibly late beats invisibly broken.
+#
+# ⚠️ MEASURED, not assumed (from the repo's own stored `credits_used`):
+#   gamelines  6 credits per CALL, flat -- the bulk endpoint does not
+#              bill per game
+#   pitcher    3 markets x regions x games
+#   batter     5 markets x regions x games
+#   regions    us2 = 1, "us,us2" = 2
+MONTHLY_PLAN = int(os.environ.get("ODDS_MONTHLY_PLAN", "20000"))
+# 31 days, with ~7% held back for hand-dispatched pulls and month-end
+# slates. ⛔ Do not raise this to make a stale artifact go green.
+DAILY_CAP = int(os.environ.get("ODDS_DAILY_CAP", str(int(MONTHLY_PLAN / 31 * 0.93))))
+
+
+def daily_spend():
+    """Credits spent TODAY, summed from the snapshots' own credits_used.
+
+    🔴 DERIVED, NEVER WRITTEN DOWN -- the project's own rule. The stored
+    files record what the API actually billed, so this is a measurement
+    and not a model that can drift away from the invoice.
+    """
+    total = 0
+    root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
+    if not os.path.isdir(root):
+        return 0
+    for kind in os.listdir(root):
+        d = os.path.join(root, kind)
+        if not os.path.isdir(d):
+            continue
+        for f in os.listdir(d):
+            p = os.path.join(d, f)
+            try:
+                op = gzip.open if p.endswith(".gz") else open
+                with op(p, "rt") as fh:
+                    total += int(json.load(fh).get("credits_used") or 0)
+            except Exception:
+                continue
+    return total
+
+
+def props_regions():
+    """Hard Rock only, EXCEPT one full cross-book pull a day.
+
+    ⚠️ The five-book set (ledger rule 48) doubles the per-game price, so
+    it cannot be what every routine pull uses. It runs ONCE, in the
+    morning window, before the day's first real card -- which is where
+    cross-book comparison is worth most, because early lines are softer
+    and the books disagree more. Sam, 2026-08-23: the five books stand;
+    this is about WHEN they are pulled, not WHETHER.
+    """
+    # 🔴 THE 7:00am ET PULL IS THE FULL ONE (11:00Z), because it is the
+    # pull the 10:00am card is priced from -- cross-book comparison is
+    # worth most before the day's card, and early lines disagree more.
+    # The 4:00pm pull is Hard Rock only. ⚠️ Window is generous so a run
+    # that lands late still gets the full pull rather than silently
+    # downgrading the card's prices to one book.
+    hh = int(now().strftime("%H"))
+    if not (10 <= hh < 14):            # 6am-10am ET
+        return REGIONS_CHEAP
+    root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
+    for kind in ("props-pitcher", "props-batter"):
+        d = os.path.join(root, kind)
+        if not os.path.isdir(d):
+            continue
+        for f in os.listdir(d):
+            try:
+                with gzip.open(os.path.join(d, f), "rt") as fh:
+                    if "," in (json.load(fh).get("regions") or ""):
+                        return REGIONS_CHEAP      # already had the full pull
+            except Exception:
+                continue
+    return REGIONS_FULL
+
+
 PROPS_FRESH_MIN = 45
 
 
 def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
-    """True when a pull for this kind already landed inside the window."""
-    d = daydir("props-" + kind)
-    if not os.path.isdir(d):
+    """True when a pull for this kind already landed inside the window.
+
+    🔴 THIS FUNCTION USED `os.path.getmtime` AND WAS THEREFORE A PERMANENT
+    LOCK, NOT A GUARD. Every CI run is a fresh `git checkout`, which sets
+    every file's mtime to the checkout time -- so the second props pull of
+    any day measured an age of ~0 minutes, declared the morning's file
+    fresh, and stood down "NOTHING SPENT" for the rest of the day.
+    `[measured 2026-08-28]` `props-pitcher/0220.json.gz` was written at
+    02:20Z and carried an mtime of 16:47Z in a clean clone; the props on
+    the live board were 15 hours old and half the slate had no line at all.
+
+    ⛔ AGE NOW COMES FROM THE SNAPSHOT'S OWN FILENAME (`HHMM.json.gz`),
+    which a checkout cannot alter. `getmtime` is banned for freshness
+    anywhere in this project -- see `freshness.py`.
+    """
+    age = _fresh.newest_age_minutes(daydir("props-" + kind))
+    if age >= _fresh.MISSING:
         return False
-    newest = 0.0
-    for f in os.listdir(d):
-        p = os.path.join(d, f)
-        try:
-            newest = max(newest, os.path.getmtime(p))
-        except OSError:
-            continue
-    if not newest:
-        return False
-    age = (time.time() - newest) / 60.0
     if age <= minutes:
         log(f"props-{kind}: a pull landed {age:.0f} min ago (window "
             f"{minutes} min). Standing down, NOTHING SPENT.")
@@ -1305,10 +1418,30 @@ def et_slate_date(back=0):
 def collect_results():
     from datetime import timedelta
 
-    # Pull the finished slate and the one before it. Free, and it catches
-    # suspended or resumed games that finalised late.
-    for back in (0, 1):
-        d = et_slate_date(back)
+    # 🔴 THIS USED TO BE `for back in (0, 1)` — A FIXED TWO-DAY LOOKBACK,
+    # AND IT MADE EVERY OUTAGE PERMANENT. When the scheduler dropped this
+    # mode for three days (8/25–8/27, measured), those slates fell out of
+    # the window and could never be graded by any later run: the track
+    # record was not merely stale, it had a hole that would not close.
+    #
+    # ✅ It now walks FORWARD FROM THE LAST SLATE ON DISK, so any gap —
+    # from a dropped cron, a failed run, or a week the repo sat idle —
+    # heals itself on the next run. The 0/1 slates are always re-pulled on
+    # top of that, because finals arrive late and suspended games resume.
+    # ⚠️ Capped so a cold start cannot walk the whole season in one job.
+    from datetime import datetime as _dt
+    GAP_CAP = 14
+    want, d0 = [], _dt.strptime(et_slate_date(0), "%Y-%m-%d")
+    for back in range(GAP_CAP, -1, -1):
+        day = et_slate_date(back)
+        if back <= 1 or not os.path.exists(f"data/{day}/results/final.json.gz"):
+            want.append(day)
+    want = sorted(set(want))
+    missing = [x for x in want if not os.path.exists(f"data/{x}/results/final.json.gz")]
+    if missing:
+        log(f"results: BACK-FILLING {len(missing)} missing slate(s): "
+            f"{' '.join(missing)}")
+    for d in want:
         sched, _ = get(
             f"{STATS}/schedule?sportId=1&date={d}&hydrate=linescore,team"
         )
@@ -2020,8 +2153,8 @@ def collect_lineups():
     return None
 
 
-def main():
-    mode = sys.argv[1] if len(sys.argv) > 1 else "gamelines"
+def run_mode(mode):
+    """Run ONE mode. Raises on failure; `main` decides what that means."""
 
     # The free modes touch statsapi or the repo only. `card` calls nothing
     # at all -- it reads what is already on disk -- so it must not be gated
@@ -2037,9 +2170,11 @@ def main():
         if mode == "gamelines":
             left = collect_gamelines()
         elif mode == "props-pitcher":
-            left = collect_props("pitcher", REGIONS_FULL)
+            # ⚠️ NOT REGIONS_FULL unconditionally any more -- see
+            # props_regions(). Both regions once a day, Hard Rock the rest.
+            left = collect_props("pitcher", props_regions())
         elif mode == "props-batter":
-            left = collect_props("batter", REGIONS_FULL)
+            left = collect_props("batter", props_regions())
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.
@@ -2153,11 +2288,140 @@ def main():
             log(f"WARNING: {left} credits remaining, below reserve of {RESERVE}.")
 
     except Exception as e:
-        # Fail LOUD. A missed pull is data that cannot be bought back at
-        # any sane price, so a broken run has to be visible. Failed runs
-        # do NOT disable a cron schedule, so there is no downside to this.
         log(f"ERROR in {mode}: {type(e).__name__}: {e}")
-        sys.exit(1)
+        raise
+
+
+# ======================================================================
+# CONVERGE — the thing that replaced "one cron owns one artifact"
+# ======================================================================
+# 🔴 READ `freshness.py` FIRST. The short version: GitHub drops most
+# scheduled runs, so a design where a dropped cron means a missing
+# artifact will keep producing a stale site forever. Under converge, a
+# dropped cron costs LATENCY AND NOTHING ELSE, because the NEXT run of
+# ANY kind rebuilds whatever is late.
+#
+# ⛔ THIS IS WHY EVERY MODE NOW CONVERGES FIRST. A `gamelines` run that
+# also rebuilds the card is not a bug, it is the entire mechanism.
+
+def converge(explicit=(), allow_paid=True):
+    """Bring every artifact back inside its contract. Returns exit code."""
+    modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
+
+    log("=" * 66)
+    log("FRESHNESS SURVEY")
+    for r in rows:
+        age = "MISSING" if r["missing"] else f"{r['age_min']:.0f}m"
+        mark = "STALE" if r["stale"] else "  ok "
+        log(f"  {mark}  {r['mode']:<14} age {age:>9}  "
+            f"contract {r['max_age_min']:>4}m  {'PAID' if r['paid'] else 'free'}")
+
+    for m in explicit:
+        if m not in modes:
+            modes.append(m)
+    if not modes:
+        log("everything inside contract — nothing to do")
+        log("=" * 66)
+        return 0
+
+    log(f"PLAN: {' '.join(modes)}")
+    log("=" * 66)
+
+    # 🔴 ONE FAILING MODE MUST NOT ABORT THE REST. That is the same
+    # deferred-failure rule the workflow already applies to paid pulls:
+    # a run that dies on `news` must still rebuild the card. Failures are
+    # collected and reported at the end, and the exit code is non-zero so
+    # the run goes red -- but everything that CAN land, lands.
+    paid = {r["mode"] for r in rows if r["paid"]}
+    spent = daily_spend()
+    log(f"credits spent today: {spent} of a {DAILY_CAP} daily cap "
+        f"({MONTHLY_PLAN}/month)")
+
+    failed, skipped = [], []
+    for m in modes:
+        # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
+        # A single props cycle on a 15-game slate is ~120-240 credits, so
+        # a check made only at the top of the pass could overshoot by a
+        # whole cycle. Re-measuring each time costs a directory walk.
+        if m in paid:
+            spent = daily_spend()
+            if spent >= DAILY_CAP:
+                # ⛔ REPORTED, NEVER SILENT. A skipped paid pull leaves an
+                # artifact out of contract, the freshness banner says so
+                # on the page, and the run goes red. That is the intended
+                # behaviour, not a failure to hide.
+                log(f"SKIPPING {m}: {spent} credits spent today, cap is "
+                    f"{DAILY_CAP}. NOTHING SPENT. It will stay out of "
+                    f"contract and the page will say so.")
+                skipped.append(m)
+                continue
+        try:
+            log(f"--- converge: {m}")
+            run_mode(m)
+        except SystemExit as e:
+            if e.code:
+                failed.append((m, f"exit {e.code}"))
+        except Exception as e:
+            failed.append((m, f"{type(e).__name__}: {e}"))
+
+    rows2 = _fresh.survey(data=DATA, picks=PICKS)
+    after = {r["mode"]: r for r in rows2}
+    still = [m for m, r in after.items() if r["stale"]]
+
+    # 🔴 THE PAGE MUST BE ABLE TO SAY HOW OLD IT IS. Sam had to ask why
+    # the board looked wrong; the site itself said nothing, because
+    # nothing on it knew. This publishes the SAME survey the gate uses --
+    # ⛔ the contract is defined in freshness.py and NOWHERE ELSE, so the
+    # page cannot drift out of agreement with the checker the way two
+    # copies of a number in this project always have.
+    write(f"{LATEST}/freshness.json", {
+        "built_at": stamp(),
+        "kind": "DESCRIPTIVE",
+        "note": "How old every artifact on this site is, and how old it is "
+                "allowed to be. Published by the converge pass.",
+        "ok": not still,
+        "artifacts": rows2,
+    })
+    log("=" * 66)
+    if skipped:
+        log(f"SKIPPED ON BUDGET: {' '.join(skipped)} "
+            f"(spent {daily_spend()} of {DAILY_CAP})")
+    if failed:
+        for m, why in failed:
+            log(f"FAILED: {m} — {why}")
+    if still:
+        log(f"STILL OUT OF CONTRACT: {' '.join(sorted(still))}")
+    else:
+        log("every artifact is inside contract")
+    log("=" * 66)
+    return 1 if failed else 0
+
+
+def main():
+    args = [a for a in sys.argv[1:] if a]
+    # ⛔ NO SILENT DEFAULT MODE. An unnamed run converges, which is always
+    # a safe and useful thing to do, and never a wrong-file write.
+    if not args or args == ["converge"]:
+        sys.exit(converge())
+
+    # 🔴 EVERY EXPLICIT MODE STILL CONVERGES. The mode is a HINT about
+    # what the caller cared about, not a licence to leave the rest of the
+    # site stale. `converge-off` is the escape hatch for a one-shot job
+    # (an NFL back-fill, a probe) that must not touch MLB at all.
+    if "converge-off" in args or LEAGUE != "mlb":
+        code = 0
+        for m in args:
+            if m == "converge-off":
+                continue
+            try:
+                run_mode(m)
+            except SystemExit as e:
+                code = code or (e.code or 0)
+            except Exception:
+                code = 1
+        sys.exit(code)
+
+    sys.exit(converge(explicit=args))
 
 
 if __name__ == "__main__":
