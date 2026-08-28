@@ -117,53 +117,67 @@ def probe(log=print):
             log(f"    🔴 NO CSV FORM — stdlib cannot read this tag's format.")
             ok = False
 
-    log("\n=== schema check: EVERY file, and the join key ===")
-    # 🔴 THE JOIN KEY IS THE THING THAT SILENTLY BREAKS. MLB's worst bugs
-    # were joins -- shared names, cameo appearances, the wrong game. So the
-    # probe does not just prove the files parse; it reports which candidate
-    # ID columns each file carries, and how well they actually overlap.
-    keysets, samples = {}, {}
-    for tag in ("stats_player", "snap_counts", "depth_charts", "injuries",
-                "weekly_rosters"):
-        want = FILES[tag].format(y=2025)
-        hit = [a for a in seen.get(tag, []) if a[0] == want]
-        if not hit:
-            log(f"🔴 {tag}: expected asset '{want}' NOT FOUND")
-            ok = False
-            continue
-        name, size, url = hit[0]
-        try:
-            rows = list(csv.DictReader(
-                io.StringIO(_raw(url).decode("utf-8", "replace"))))
-        except Exception as e:
-            log(f"🔴 {tag}: COULD NOT PARSE — {type(e).__name__}: {e}")
-            ok = False
-            continue
-        cols = sorted(rows[0]) if rows else []
-        ids = [c for c in cols if "id" in c.lower() or c in ("player", "full_name")]
-        log(f"\n  {name}  {size:,}B  {len(rows):,} rows  {len(cols)} cols")
-        log(f"    id-ish columns: {ids}")
-        log(f"    all columns: {', '.join(cols)}")
-        if rows:
-            samples[tag] = rows[0]
-            log(f"    sample: { {k: rows[0][k] for k in cols[:10]} }")
-        for c in ("gsis_id", "player_id", "pfr_player_id", "player_display_name",
-                  "player_name", "player", "full_name"):
-            if c in cols:
-                keysets.setdefault(c, {})[tag] = {r.get(c) for r in rows if r.get(c)}
+    # 🔴 TWO THINGS RUN #188 EXPOSED, BOTH FATAL IF UNCHECKED:
+    #   1. `stats_player_reg_2025` is 2,020 rows. A season has ~18 weeks x
+    #      ~1,700 active players ~= 30,000 player-WEEKS, and the file
+    #      carries a `games` column -- so it is SEASON TOTALS, not weekly.
+    #      Building trailing form off it would have silently used a single
+    #      season aggregate as every week's input.
+    #   2. `player_name` joins depth_charts to stats_player 0 of 1,848
+    #      times. ZERO. The name formats differ, and a name join would have
+    #      produced an empty model that looked like a modelling failure
+    #      rather than a plumbing one. This is MLB's shared-name bug with a
+    #      new face.
+    log("\n=== 1. is there a WEEKLY stats file? ===")
+    allsp = sorted(a[0] for a in seen.get("stats_player", [])
+                   if a[0].endswith(".csv.gz"))
+    log(f"  {len(allsp)} gz assets under stats_player")
+    for pat in ("week", "reg", "post", "2025", "2026"):
+        hit = [n for n in allsp if pat in n]
+        log(f"    contains '{pat}': {len(hit)} -> {hit[:8]}")
 
-    log("\n=== which key actually joins? ===")
-    for c, per in sorted(keysets.items()):
-        if len(per) < 2:
-            log(f"  {c:22s} present in only {list(per)} — cannot join on it")
+    log("\n=== 2. is stats_player.player_id the same namespace as gsis_id? ===")
+    ids = {}
+    for tag, fname, col in (("stats_player", None, "player_id"),
+                            ("weekly_rosters", FILES["weekly_rosters"].format(y=2025), "gsis_id")):
+        if fname is None:
+            cand = [n for n in allsp if "week" in n and "2025" in n] or \
+                   [n for n in allsp if "reg_2025" in n]
+            fname = cand[0] if cand else None
+        hit = [a for a in seen.get(tag, []) if a[0] == fname]
+        if not hit:
+            log(f"  🔴 {tag}: '{fname}' not found")
             continue
-        tags = sorted(per)
-        base = per[tags[0]]
-        line = f"  {c:22s} in {len(per)} files:"
-        for t in tags[1:]:
-            inter = len(base & per[t])
-            line += f" {tags[0]}∩{t}={inter}/{min(len(base), len(per[t]))}"
-        log(line)
+        rows = list(csv.DictReader(
+            io.StringIO(_raw(hit[0][2]).decode("utf-8", "replace"))))
+        vals = [r[col] for r in rows if r.get(col)]
+        ids[tag] = set(vals)
+        log(f"  {fname}: {len(rows):,} rows, {col} sample {vals[:3]}")
+    if len(ids) == 2:
+        a, b = ids["stats_player"], ids["weekly_rosters"]
+        log(f"  OVERLAP stats_player.player_id n weekly_rosters.gsis_id = "
+            f"{len(a & b):,} / {min(len(a), len(b)):,}")
+
+    log("\n=== 3. does weekly_rosters bridge pfr -> gsis? ===")
+    hit = [a for a in seen["weekly_rosters"]
+           if a[0] == FILES["weekly_rosters"].format(y=2025)]
+    rows = list(csv.DictReader(
+        io.StringIO(_raw(hit[0][2]).decode("utf-8", "replace"))))
+    both = [r for r in rows if r.get("gsis_id") and r.get("pfr_id")]
+    log(f"  {len(rows):,} roster rows; {len(both):,} carry BOTH gsis_id and pfr_id")
+    snap = [a for a in seen["snap_counts"]
+            if a[0] == FILES["snap_counts"].format(y=2025)]
+    srows = list(csv.DictReader(
+        io.StringIO(_raw(snap[0][2]).decode("utf-8", "replace"))))
+    spfr = {r["pfr_player_id"] for r in srows if r.get("pfr_player_id")}
+    bridge = {r["pfr_id"] for r in both}
+    log(f"  snap_counts has {len(spfr):,} distinct pfr ids; "
+        f"{len(spfr & bridge):,} of them bridge to a gsis_id "
+        f"({100.0 * len(spfr & bridge) / max(1, len(spfr)):.1f}%)")
+
+    log("\n=== 4. what is actually under `schedules`? ===")
+    for n, sz, _ in seen.get("schedules", []):
+        log(f"  {n}  {sz:,}B")
 
     log("\n✅ PROBE COMPLETE — nothing was written.")
     return ok
