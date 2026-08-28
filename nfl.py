@@ -326,12 +326,26 @@ def build_logs(season, log=print):
     # -- injury report, per (gsis, week). ⚠️ A player ABSENT from the report
     # is healthy: the file lists only players with a designation, so a
     # missing row is information, not a gap.
-    inj = {}
+    # 🔴 THE OUT SET IS KEPT SEPARATE FROM THE JOINED ROWS, AND THAT IS THE
+    # WHOLE FIX. Run #194 built ahead_out as constant zero. The mapping was
+    # right and the file was right -- `report_status` really does contain
+    # Out (1,396), Questionable (1,281), Doubtful (106).
+    # ⛔ THE BUG: A PLAYER WHO IS *OUT* HAS NO STAT ROW THAT WEEK. He did not
+    # play, so `stats_player_week` never lists him, so his inj=2 had nothing
+    # to attach to -- and `ahead_out`, which read teammates' inj off the
+    # JOINED rows, could never see a single one. The absence of a row IS the
+    # signal, and it was being looked for in the one place it cannot appear.
+    inj, out_set = {}, set()
     try:
         for r in _rows(seen, "injuries", FILES["injuries"].format(y=season), log):
             st = (r.get("report_status") or "").strip().lower()
-            inj[(r.get("gsis_id"), str(r.get("week")))] = INJ_RANK.get(st, 1 if st else 0)
-        log(f"  injuries: {len(inj):,} player-weeks carry a designation")
+            rank = INJ_RANK.get(st, 1 if st else 0)
+            key = (r.get("gsis_id"), str(r.get("week")))
+            inj[key] = max(inj.get(key, 0), rank)
+            if rank >= 2:
+                out_set.add(key)
+        log(f"  injuries: {len(inj):,} player-weeks designated, "
+            f"{len(out_set):,} of them OUT/DOUBTFUL")
     except Exception as e:
         # ⛔ FAIL LOUD. Silently modelling without the input the test exists
         # to measure would produce a null result about the wrong thing.
@@ -369,24 +383,39 @@ def build_logs(season, log=print):
     # file is 554k timestamped snapshots (a large surface for a silent
     # point-in-time bug) and teams game it, whereas snap share is fact.
     # ⛔ STRICTLY POINT-IN-TIME: the ranking uses games BEFORE this one.
-    by_tw = collections.defaultdict(list)
+    # -- squad membership: who belongs to a (team, position) at all, and
+    # what their snap share was BEFORE a given week. ⚠️ Built across the
+    # whole season because a teammate who is OUT has no row in the week we
+    # are asking about -- that is precisely the case being detected.
+    squad = collections.defaultdict(set)
+    weeks_of = {}
     for pid, p in players.items():
-        for i, g in enumerate(p["g"]):
-            by_tw[(g["team"], g["week"], p["pos"])].append((pid, i))
-    for (team, week, pos), members in by_tw.items():
-        if pos not in PROP_POS or len(members) < 2:
+        if p["pos"] not in PROP_POS:
             continue
-        share = {}
-        for pid, i in members:
-            prior = players[pid]["g"][:i][-8:]
-            vals = [x.get("snap_pct", 0.0) for x in prior]
-            share[pid] = (sum(vals) / len(vals)) if vals else 0.0
-        for pid, i in members:
-            mine = share[pid]
-            players[pid]["g"][i]["ahead_out"] = sum(
-                1 for q, j in members
-                if q != pid and share[q] > mine
-                and players[q]["g"][j].get("inj", 0) >= 2)
+        for g in p["g"]:
+            squad[(g["team"], p["pos"])].add(pid)
+        weeks_of[pid] = {g["week"]: i for i, g in enumerate(p["g"])}
+
+    def share_before(pid, week):
+        gs = players[pid]["g"]
+        prior = [g for g in gs if g["week"] < week][-8:]
+        vals = [g.get("snap_pct", 0.0) for g in prior]
+        return (sum(vals) / len(vals)) if vals else 0.0
+
+    for pid, p in players.items():
+        if p["pos"] not in PROP_POS:
+            continue
+        for i, g in enumerate(p["g"]):
+            mine = share_before(pid, g["week"])
+            n = 0
+            for q in squad[(g["team"], p["pos"])]:
+                if q == pid:
+                    continue
+                if (q, str(g["week"])) not in out_set:
+                    continue
+                if share_before(q, g["week"]) > mine:
+                    n += 1
+            g["ahead_out"] = n
     n_ao = sum(1 for p in players.values() for g in p["g"] if g.get("ahead_out"))
     n_inj = sum(1 for p in players.values() for g in p["g"] if g.get("inj", 0) >= 2)
     log(f"  ahead_out: {n_ao:,} player-weeks have a higher-usage teammate OUT")
