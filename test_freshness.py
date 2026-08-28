@@ -193,6 +193,18 @@ def check_workflow():
         got = f'"{f}"' in paths
         ok &= got
         print(f"  [{'OK  ' if got else 'GONE'}] an upload of {f} triggers a run")
+    # 🔴 MLB-ONLY STEPS MUST STAY BEHIND THE LEAGUE GUARD. Football
+    # writes to data/nfl and picks/nfl; grading it against the MLB
+    # contract is a bug in both directions -- a red football run for a
+    # baseball reason, or a green one hiding real football staleness.
+    for cmd in ("verify_card.py", "verify_board.py", "verify_record.py",
+                "verify_freshness.py"):
+        i = text.find("python " + cmd)
+        seg = text[:i] if i > 0 else ""
+        guarded = seg.rfind('LEAGUE_NAME" = "mlb"') > seg.rfind("\n            fi")
+        print(f"  [{'OK  ' if guarded else 'LOOSE'}] {cmd} runs only for MLB")
+        ok &= guarded
+
     # every cron must map to something the runner understands
     crons = re.findall(r'- cron: "([^"]+)"', on)
     print(f"  [{'OK  ' if crons else 'GONE'}] {len(crons)} cron entries present")
