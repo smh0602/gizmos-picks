@@ -1987,7 +1987,7 @@ def main():
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
-            "nfl-probe")
+            "nfl-probe", "nfl-logs")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2054,6 +2054,17 @@ def main():
             left = None
         elif mode == "props-board":
             left = collect_props_board()
+        elif mode == "nfl-logs":
+            # 🔴 FREE. nflverse publishes flat files on GitHub; no key, no
+            # credits. ⚠️ 2026 stat files appear only once week 1 is played,
+            # so a season with nothing yet is NOT an error -- it is skipped
+            # and said out loud.
+            import nfl as _nfl
+            season = int(os.environ.get("SEASON", "2025"))
+            doc = _nfl.build_logs(season, log)
+            doc["pulled_at"] = stamp()
+            write(f"{LATEST}/players-{season}.json.gz", doc, compress=True)
+            left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
             # The Claude container may not fetch URLs, so every nflverse
