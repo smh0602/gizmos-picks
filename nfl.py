@@ -24,6 +24,34 @@ import urllib.error
 import urllib.request
 
 GH_API = "https://api.github.com/repos/nflverse/nflverse-data/releases"
+
+
+def _releases(log=print, max_pages=10):
+    """EVERY nflverse release, not just the first page.
+
+    🔴 `?per_page=100` RETURNS ONE PAGE. `[found 2026-08-28]` both the
+    probe and the builder asked for a single page and then concluded, from
+    that partial list, that **route participation is not published**. That
+    conclusion was drawn from a TRUNCATED QUERY.
+    ⛔ THIS PROJECT'S OLDEST AND MOST REPEATED FAILURE IS A FACT ABOUT A
+    QUERY WRITTEN DOWN AS A FACT ABOUT THE WORLD -- five recorded
+    instances before this one. **An absence in page one is not an absence
+    in the world.**
+    ➡️ Sam found `sumersports.com` publishing Routes Run, Targets/Route
+    Run and YPRR -- proof the metric EXISTS. Before paying for it or
+    scraping it, the free source has to be asked properly.
+    """
+    out, page = [], 1
+    while page <= max_pages:
+        got = _json(f"{GH_API}?per_page=100&page={page}")
+        if not got:
+            break
+        out.extend(got)
+        if len(got) < 100:
+            break
+        page += 1
+    log(f"  nflverse releases: {len(out)} across {page} page(s)")
+    return out
 UA = {"User-Agent": "gizmos-picks/0.1"}
 
 # What the model needs, and why. See claude/multi-league-spec.md.
@@ -106,7 +134,7 @@ def probe(log=print):
     """
     log("=== nflverse: what is actually published ===")
     try:
-        rels = _json(GH_API + "?per_page=100")
+        rels = _releases(log)
     except Exception as e:
         log(f"🔴 CANNOT REACH THE RELEASES API: {type(e).__name__}: {e}")
         log("   If this fails on the RUNNER, the whole NFL plan changes shape.")
@@ -331,14 +359,24 @@ def _rows(seen, tag, fname, log):
             f"{len(assets)} assets; those mentioning {year or 'any year'}: "
             f"{avail or 'NONE'}")
 
-    blob = _raw(hit[0][2]).decode("utf-8", "replace")
-    out = list(csv.DictReader(io.StringIO(blob)))
-    log(f"  {hit[0][0]}: {len(out):,} rows")
+    # 🔴 RECORDED BEFORE THE DOWNLOAD, NOT AFTER. Which asset we RESOLVED
+    # to is worth knowing even when fetching it then fails.
     # 🔴 REMEMBER WHICH FILE THIS ACTUALLY WAS. A season built from a
     # substituted asset must be able to SAY SO on its own face -- the
     # bridge collapse above was invisible in the output and only showed
     # up as a coverage number nobody would have questioned.
-    USED[fname] = hit[0][0]
+    # ⚠️ COMPRESSION IS NOT A SUBSTITUTION. nflverse publishes older
+    # seasons UNCOMPRESSED (`roster_weekly_2021.csv`) and newer ones gzipped
+    # (`roster_weekly_2025.csv.gz`). `[measured run #207]` that difference
+    # alone made three good seasons fail the substitution check. ⛔ Record
+    # it only when the STEM differs -- that is the case that can swap one
+    # KIND of file for another.
+    if hit[0][0].replace(".gz", "") != fname.replace(".gz", ""):
+        USED[fname] = hit[0][0]
+
+    blob = _raw(hit[0][2]).decode("utf-8", "replace")
+    out = list(csv.DictReader(io.StringIO(blob)))
+    log(f"  {hit[0][0]}: {len(out):,} rows")
     return out
 
 
@@ -354,7 +392,7 @@ def _num(v):
 def build_logs(season, log=print):
     """Per-player point-in-time game logs for one season."""
     log(f"=== nfl: building {season} player logs ===")
-    rels = _json(GH_API + "?per_page=100")
+    rels = _releases(log)
     seen = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
                             for a in (r.get("assets") or [])] for r in rels}
 
@@ -370,15 +408,19 @@ def build_logs(season, log=print):
         for _name, _size, _u in _assets:
             _low = (_tag + "/" + _name).lower()
             if any(k in _low for k in ("particip", "advstat", "route",
-                                       "pfr_", "ngs")):
+                                       "pfr", "ngs", "snap", "ftn",
+                                       "charting", "pbp_particip")):
                 _cand.append(f"{_tag}/{_name} ({_size/1e6:.1f}MB)")
-    log("  ROUTE-DATA CANDIDATES in the nflverse releases:")
-    for c in sorted(_cand)[:25]:
+    log(f"  ROUTE-DATA CANDIDATES across {len(seen)} releases:")
+    for c in sorted(_cand)[:40]:
         log(f"    {c}")
+    log(f"    ({len(_cand)} candidate assets total)")
+    # ⚠️ Say what the query covered, so the next reader knows what the
+    # absence does and does not prove.
+    log(f"    release tags searched: {sorted(seen)[:40]}")
     if not _cand:
-        log("    NONE FOUND — route participation may not be published. "
-            "Target share and snap share are the fallback, and that is a "
-            "decision to make from this list, not an assumption.")
+        log("    NONE FOUND in the releases listed above. ⛔ That is a "
+            "fact about THIS query, not about the world.")
 
     USED.clear()
     sched = _rows(seen, "schedules", SCHEDULE_FILE, log)
