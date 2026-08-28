@@ -255,10 +255,30 @@ jobs:
               # This is the one verifier that blocks the commit: a bad
               # card must never reach the page. If it fails, the card
               # file is reverted and everything else still commits.
-              if ! python verify_card.py; then
+              # 🔴 THE REASON IS WRITTEN INTO THE REPO, NOT JUST THE LOG.
+              # On 2026-08-28 verify_card blocked the card and the only
+              # record of WHY was inside an Actions log -- which nobody
+              # outside the runner can read, and which GitHub eventually
+              # deletes. ⛔ A diagnosis you cannot retrieve is a diagnosis
+              # you do not have. The failing checks now land in a file
+              # that gets committed with everything else.
+              if ! python verify_card.py > /tmp/vc.txt 2>&1; then
                 rc=1
                 echo "::error::verify_card failed on pass $PASS -- reverting the card only"
+                cat /tmp/vc.txt
+                mkdir -p data/latest
+                {
+                  echo "verify_card FAILED at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                  echo "pass $PASS of run ${GITHUB_RUN_NUMBER:-?}"
+                  echo "--- the failing checks ---"
+                  grep -E "FAIL|Traceback|Error|error:" /tmp/vc.txt | head -40
+                  echo "--- last 60 lines ---"
+                  tail -60 /tmp/vc.txt
+                } > data/latest/card-verify-failure.txt
                 git checkout -- picks/ 2>/dev/null || true
+              else
+                cat /tmp/vc.txt | tail -5
+                rm -f data/latest/card-verify-failure.txt
               fi
             fi
 
