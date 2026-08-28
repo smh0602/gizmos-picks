@@ -417,20 +417,28 @@ def build_logs(season, log=print):
                     n += 1
             g["ahead_out"] = n
     n_ao = sum(1 for p in players.values() for g in p["g"] if g.get("ahead_out"))
-    n_inj = sum(1 for p in players.values() for g in p["g"] if g.get("inj", 0) >= 2)
+    n_rows = sum(len(p["g"]) for p in players.values())
     log(f"  ahead_out: {n_ao:,} player-weeks have a higher-usage teammate OUT")
-    log(f"  inj>=2 (out/doubtful): {n_inj:,} player-weeks")
-    # 🔴 A CONSTANT FEATURE IS A BROKEN JOIN, NOT A FINDING.
-    # ⛔ Run #194 emitted ahead_out = 0 on all 19,400 rows and went GREEN.
-    # Fitting on that would have produced "the mechanism is dead" when the
-    # truth was "the column was never populated" -- the most expensive kind
-    # of wrong answer, because it looks like science.
-    for name, n in (("inj>=2", n_inj), ("ahead_out", n_ao)):
-        if n == 0:
-            raise RuntimeError(
-                f"{name} is CONSTANT ZERO across {total:,} player-weeks. "
-                f"That is a join failure, not a result. Run nfl-probe and "
-                f"read section 3b before fitting anything on it.")
+    # 🔴 A CONSTANT FEATURE IS A BROKEN JOIN, NOT A FINDING. Run #194 emitted
+    # ahead_out = 0 on all 19,400 rows and went GREEN; fitting on that would
+    # have produced "the mechanism is dead" when the column was never
+    # populated -- the most expensive kind of wrong answer, because it looks
+    # like science.
+    # ⛔ THE GUARD CHECKS `ahead_out` AND THE UPSTREAM `out_set`. IT MUST NOT
+    # CHECK `inj>=2` ON THE JOINED ROWS. Run #196 proved why: that count is
+    # CORRECTLY ZERO on every joined row, because a player who is OUT has no
+    # stat line that week -- which is the entire insight behind the fix. The
+    # first version of this guard failed a run whose data was perfectly good.
+    if not out_set:
+        raise RuntimeError(
+            "the injury file yielded NO OUT/DOUBTFUL players -- a parse or "
+            "mapping failure. Run nfl-probe and read section 3b.")
+    if n_ao == 0:
+        raise RuntimeError(
+            f"ahead_out is CONSTANT ZERO across {n_rows:,} player-weeks. "
+            f"That is a join failure, not a result. Run nfl-probe and read "
+            f"section 3b before fitting anything on it.")
+
 
     undated = sum(1 for p in players.values() for x in p["g"] if not x["d"])
     withsnap = sum(1 for p in players.values() for x in p["g"] if "snaps" in x)
