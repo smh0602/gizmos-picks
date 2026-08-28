@@ -37,9 +37,31 @@ import urllib.request
 from datetime import datetime, timezone
 
 ODDS_KEY = os.environ.get("ODDS_API_KEY", "").strip()
-SPORT = "baseball_mlb"
 API = "https://api.the-odds-api.com/v4"
 STATS = "https://statsapi.mlb.com/api/v1"
+
+# ---------------------------------------------------------------- LEAGUES
+# 🔴 MLB'S PATHS DO NOT MOVE. `data/` and `picks/` stay exactly where they
+# are, because every published card, every stored snapshot and every
+# verifier already points at them -- and `picks/<date>.json` is an
+# append-only permanent record that must never be relocated.
+# ⛔ NEW LEAGUES NEST UNDERNEATH. A future league is a new row here and
+# nothing else; if you find yourself editing a path string somewhere else
+# in this file, the refactor has leaked and should be fixed here instead.
+LEAGUES = {
+    "mlb":   {"sport": "baseball_mlb",            "data": "data",       "picks": "picks"},
+    "nfl":   {"sport": "americanfootball_nfl",    "data": "data/nfl",   "picks": "picks/nfl"},
+    "ncaaf": {"sport": "americanfootball_ncaaf",  "data": "data/ncaaf", "picks": "picks/ncaaf"},
+}
+LEAGUE = os.environ.get("LEAGUE", "mlb").strip().lower() or "mlb"
+if LEAGUE not in LEAGUES:
+    print(f"FATAL: unknown LEAGUE '{LEAGUE}'. Known: {sorted(LEAGUES)}")
+    sys.exit(1)
+_L = LEAGUES[LEAGUE]
+SPORT = _L["sport"]
+DATA = _L["data"]
+PICKS = _L["picks"]
+LATEST = f"{DATA}/latest"
 
 # --- budget guard -----------------------------------------------------
 # Stop spending when the month's allowance runs low, so a runaway loop or
@@ -164,7 +186,7 @@ def write(path, obj, compress=False):
 
 def daydir(kind):
     d = now().strftime("%Y-%m-%d")
-    return f"data/{d}/{kind}"
+    return f"{DATA}/{d}/{kind}"
 
 
 def filename():
@@ -233,7 +255,7 @@ def collect_gamelines():
         "games": games,
     }, compress=True)
     # One known URL for the dashboard, overwritten every run.
-    write("data/latest/board.json", {
+    write(f"{LATEST}/board.json", {
         "pulled_at": stamp(),
         "kind": "MARKET",
         "note": "De-vigged sportsbook consensus. NOT a Gizmo's projection (ledger rule 55).",
@@ -625,7 +647,7 @@ def _lineup_index():
     global _LINEUPS
     if _LINEUPS is None:
         _LINEUPS = {}
-        p = "data/latest/lineups.json.gz"
+        p = f"{LATEST}/lineups.json.gz"
         if os.path.exists(p):
             try:
                 D = json.load(gzip.open(p, "rt"))
@@ -668,8 +690,8 @@ def collect_props_board():
             log(f"    shared name(s), resolved by team: {dupes}")
         return D, by
 
-    H, by_hit = load_pool("data/latest/hitters.json.gz", "hitter logs")
-    PI, by_pit = load_pool("data/latest/pitchers.json.gz", "pitcher logs")
+    H, by_hit = load_pool(f"{LATEST}/hitters.json.gz", "hitter logs")
+    PI, by_pit = load_pool(f"{LATEST}/pitchers.json.gz", "pitcher logs")
     if H is None and PI is None:
         raise RuntimeError("no game logs at all — run the hitters and pitchers jobs first")
 
@@ -870,7 +892,7 @@ def collect_props_board():
 
     games = sorted(merged.values(), key=lambda g: g["commence"])
     total = sum(len(g["props"]) for g in games)
-    write("data/latest/props.json.gz", {
+    write(f"{LATEST}/props.json.gz", {
         "pulled_at": stamp(),
         "batter_odds_at": bat_at, "pitcher_odds_at": pit_at,
         "hitters_pulled_at": (H or {}).get("pulled_at"),
@@ -967,7 +989,7 @@ def collect_pitchers():
                              "era": p["era"], "whip": p["whip"], "w": p["w"], "l": p["l"],
                              "gs": p["gs"], "g": rows}
 
-    write("data/latest/pitchers.json.gz", {
+    write(f"{LATEST}/pitchers.json.gz", {
         "pulled_at": stamp(), "season": yr, "min_ip": PITCHER_MIN_IP,
         "n_players": len(logs), "n_failed": bad, "domain_violations": viol,
         "players": logs}, compress=True)
@@ -1090,7 +1112,7 @@ def collect_news():
     if not items:
         raise RuntimeError("every news feed failed — nothing written")
 
-    write("data/latest/news.json", {
+    write(f"{LATEST}/news.json", {
         "pulled_at": stamp(),
         "kind": "DESCRIPTIVE",
         "n": len(items),
@@ -1184,7 +1206,7 @@ def collect_hitters():
         logs[p["id"]] = {"name": p["name"], "team": p["team"],
                          "bats": hand.get(p["id"]), "pa": p["pa"], "g": rows}
 
-    write(f"data/latest/hitters.json.gz", {
+    write(f"{LATEST}/hitters.json.gz", {
         "pulled_at": stamp(),
         "season": yr,
         "min_pa": HITTER_MIN_PA,
@@ -1409,7 +1431,7 @@ def collect_record():
     import glob
 
     days, skipped = [], []
-    for f in sorted(glob.glob("picks/*.json")):
+    for f in sorted(glob.glob(f"{PICKS}/*.json")):
         try:
             card = json.load(open(f))
         except Exception as e:
@@ -1530,12 +1552,12 @@ def collect_record():
         # 400KB by season's end, UNCOMPRESSED, on a tab that only needs the
         # totals to draw. So the totals stay here and the page fetches the
         # detail once, on demand, the first time somebody expands a day.
-        "detail_file": "data/latest/record-detail.json.gz",
+        "detail_file": f"{LATEST}/record-detail.json.gz",
         "days_graded": len(days),
         "skipped": [{"date": a, "why": b} for a, b in skipped],
     }
-    write("data/latest/record.json", doc)
-    write("data/latest/record-detail.json.gz",
+    write(f"{LATEST}/record.json", doc)
+    write(f"{LATEST}/record-detail.json.gz",
           {"built_at": doc["built_at"], "kind": "DESCRIPTIVE",
            "note": ("Every published pick, graded from the stored box score. "
                     "`won` is null on a VOID -- a player who never took the "
@@ -1608,7 +1630,7 @@ def collect_weather():
     """
     import urllib.request, urllib.parse, collections, time
 
-    spath = "data/latest/scores.json.gz"
+    spath = f"{LATEST}/scores.json.gz"
     if not os.path.exists(spath):
         raise RuntimeError("run `scores` before `weather` -- it names the venues and dates")
     S = json.load(gzip.open(spath, "rt"))
@@ -1640,7 +1662,7 @@ def collect_weather():
     if missing:
         log(f"weather: NO COORDINATES for {missing[:6]}")
 
-    path = "data/latest/weather.json.gz"
+    path = f"{LATEST}/weather.json.gz"
     store = {"schema": 1, "complete": False,
              "note": "hour is APPROXIMATE -- 19:00 local night, "
                      "13:00 local day; no first-pitch time in the feed",
@@ -1792,7 +1814,7 @@ def collect_scores():
     Resumable, like lineups -- a stored date is never re-fetched.
     """
     from datetime import date, timedelta
-    path = "data/latest/scores.json.gz"
+    path = f"{LATEST}/scores.json.gz"
     # SCHEMA VERSION. v1 stored scores only. v2 adds venue, gameType and
     # dayNight -- park is the biggest single input a total model can have and
     # it was in the same response all along. A cache written by an older
@@ -1891,7 +1913,7 @@ def collect_scores():
 
 def collect_lineups():
     from datetime import date, timedelta
-    path = "data/latest/lineups.json.gz"
+    path = f"{LATEST}/lineups.json.gz"
     store = {"season": now().year, "days": {}}
     if os.path.exists(path):
         store = json.load(gzip.open(path, "rt"))

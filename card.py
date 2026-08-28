@@ -1729,14 +1729,19 @@ def projection_index(rows, priced=False):
 def main(dry=False):
     root = os.path.dirname(os.path.abspath(__file__))
     os.chdir(root)
-    P = load("data/latest/pitchers.json.gz", gz=True)
-    B = load("data/latest/props.json.gz", gz=True)
+    # 🔴 THE PATHS COME FROM collect.py, NOT A SECOND COPY HERE. A league's
+    # directories are defined in exactly one place; two copies of a path is
+    # the same defect as two copies of a coefficient.
+    import collect as _c
+    LATEST, PICKS = _c.LATEST, _c.PICKS
+    P = load(f"{LATEST}/pitchers.json.gz", gz=True)
+    B = load(f"{LATEST}/props.json.gz", gz=True)
     players = P["players"]
     # Hitter game logs. Used ONLY for the RBI projection's dispersion --
     # never for a rate, never for a price. Its absence costs the RBI
     # projection and nothing else, so it is not fatal.
     try:
-        hlogs = (load("data/latest/hitters.json.gz", gz=True) or {}).get("players") or {}
+        hlogs = (load(f"{LATEST}/hitters.json.gz", gz=True) or {}).get("players") or {}
     except Exception as e:
         print(f"[card] no hitter log ({e}) -- RBI projections will be omitted")
         hlogs = {}
@@ -2161,8 +2166,8 @@ def main(dry=False):
             print(f"   {p['multiplier']:.2f}x {p['label']:10} joint {p['joint']:5.1f}%  "
                   f"EV${p['ev_30']:>7}  {p['legs'][0]} + {p['legs'][1]}")
         return doc
-    os.makedirs("picks", exist_ok=True)
-    with open(f"picks/{today}.json", "w") as f:
+    os.makedirs(PICKS, exist_ok=True)
+    with open(f"{PICKS}/{today}.json", "w") as f:
         json.dump(doc, f, separators=(",", ":"))
     print(f"[card] wrote picks/{today}.json -- {len(plays)} plays, {len(pairs)} pairs")
     return doc
