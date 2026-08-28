@@ -16,6 +16,7 @@ and been wrong.
 """
 import collections
 import csv
+import re
 import gzip
 import io
 import json
@@ -267,12 +268,60 @@ BRIDGE_MIN = 95.0          # % of prop-position snap rows that must bridge
 
 
 def _rows(seen, tag, fname, log):
-    hit = [a for a in seen.get(tag, []) if a[0] == fname]
+    """Fetch one nflverse asset, by exact name and then by pattern.
+
+    🔴 WHY THE FALLBACK EXISTS. `[measured 2026-08-28, run #205]` seasons
+    2021, 2022 and 2023 all died on
+    `weekly_rosters: asset 'roster_weekly_2021.csv.gz' not published`
+    while 2024 and 2025 worked with the identical template. **nflverse's
+    file naming is not stable across years** — the template is right for
+    recent seasons and wrong for older ones.
+    ⛔ AND THE OLD ERROR TOLD US NOTHING ABOUT WHAT *WAS* THERE, which is
+    the only fact that could fix it. An error that does not name the
+    alternatives is a dead end.
+
+    ✅ So: try the exact name; then try any asset in the same release
+    carrying the same year and a shared word; and either way **SAY WHICH
+    NAME WAS USED** and, on failure, **LIST WHAT THE RELEASE ACTUALLY
+    HOLDS** for that year.
+    ⚠️ The fallback is deliberately narrow — same release, same year, and
+    a word from the requested name. It will not silently substitute a
+    different KIND of file, which is how `stats_player_reg` (season
+    totals) nearly got fitted as if it were weekly.
+    """
+    assets = seen.get(tag, [])
+    hit = [a for a in assets if a[0] == fname]
+
     if not hit:
-        raise RuntimeError(f"{tag}: asset '{fname}' not published")
+        m = re.search(r"(\d{4})", fname)
+        year = m.group(1) if m else None
+        words = [w for w in re.split(r"[_.]", fname.lower())
+                 if w and not w.isdigit() and w not in ("csv", "gz")]
+        cand = [a for a in assets
+                if year and year in a[0]
+                and a[0].endswith((".csv", ".csv.gz"))
+                and any(w in a[0].lower() for w in words)]
+        if len(cand) == 1:
+            log(f"  NOTE: '{fname}' not published; using '{cand[0][0]}' "
+                f"from the same release (same year, matching name)")
+            hit = cand
+        elif cand:
+            raise RuntimeError(
+                f"{tag}: asset '{fname}' not published, and {len(cand)} "
+                f"candidates match — refusing to guess between "
+                f"{[c[0] for c in cand]}")
+
+    if not hit:
+        avail = sorted(a[0] for a in assets
+                       if not year or year in a[0])[:20]
+        raise RuntimeError(
+            f"{tag}: asset '{fname}' not published. That release holds "
+            f"{len(assets)} assets; those mentioning {year or 'any year'}: "
+            f"{avail or 'NONE'}")
+
     blob = _raw(hit[0][2]).decode("utf-8", "replace")
     out = list(csv.DictReader(io.StringIO(blob)))
-    log(f"  {fname}: {len(out):,} rows")
+    log(f"  {hit[0][0]}: {len(out):,} rows")
     return out
 
 
@@ -364,10 +413,30 @@ def build_logs(season, log=print):
         log(f"  bridge coverage {pos:3s}: {h:>6,} of {h + m:>6,}  {pct:5.1f}%")
         if (h + m) and pct < BRIDGE_MIN:
             thin.append(f"{pos} {pct:.1f}%")
+    # 🔴 A THIN BRIDGE IS A HOLE IN THE MODEL, BUT REFUSING TO WRITE THE
+    # SEASON IS NOT THE FIX — IT IS JUST A DIFFERENT HOLE.
+    # `[measured 2026-08-28, run #205]` 2024 was REJECTED ENTIRELY on
+    # FB 63.0%, RB 93.4%, TE 90.7%, WR 91.3% — so a season that is ~92%
+    # usable produced NOTHING, and the season simply did not exist.
+    # ⚠️ AND THE 9% THAT DOES NOT BRIDGE IS NOT RANDOM: it is players whose
+    # PFR id changed, which skews toward mid-season signings and team
+    # changes. **That is a real bias and it must travel WITH the data.**
+    # ✅ So the season is written, the coverage is stored on the document,
+    # and a consumer contract states the rule. ⛔ The bar has not moved —
+    # what changed is that falling short now DEGRADES the season instead
+    # of DELETING it, and says so on the file rather than in a lost log.
+    bridge_ok = not thin
+    bridge_cov = {pos: round(100.0 * have[pos] / (have[pos] + miss[pos]), 1)
+                  for pos in sorted(PROP_POS)
+                  if (have[pos] + miss[pos])}
     if thin:
-        # 🔴 FAIL LOUD. A thin bridge on a prop position is a silent hole in
-        # the model, and a silent hole looks like a modelling result.
-        raise RuntimeError(f"bridge below {BRIDGE_MIN}% on: {', '.join(thin)}")
+        log(f"  ⚠️ BRIDGE BELOW {BRIDGE_MIN}% on: {', '.join(thin)}")
+        log(f"     The season IS written and marked bridge_ok=false. "
+            f"Unbridged players have NO snap data, so they fall below the "
+            f"snap floor and never reach vs-position.")
+        log(f"     ⛔ DO NOT FIT A MODEL on a season with bridge_ok=false "
+            f"without saying so — the missing players are not a random "
+            f"sample.")
 
     # -- injury report, per (gsis, week). ⚠️ A player ABSENT from the report
     # is healthy: the file lists only players with a designation, so a
@@ -468,6 +537,23 @@ def build_logs(season, log=print):
             row["snaps"] = int(_num(sn.get("offense_snaps")))
             row["snap_pct"] = round(_num(sn.get("offense_pct")), 3)
         row["inj"] = inj.get((pid, wk), 0)
+        # 🔴 ROUTE PARTICIPATION IS NOT PUBLISHED. `[measured 2026-08-28,
+        # run #205]` the nflverse releases carry only `pfr_rosters` and
+        # `nextgen_stats` (passing/receiving/rushing) — **there is no
+        # participation file and no routes-run column anywhere in them.**
+        # ⛔ SO THIS IS NOT ROUTE PARTICIPATION AND MUST NEVER BE CALLED
+        # THAT. It is TARGETS PER OFFENSIVE SNAP, which answers the
+        # question Sam actually asked — *"whats his route run%, how often
+        # is he utilized in the passing game"* — from data we have.
+        # ✅ What it separates: a tight end on the field to BLOCK carries a
+        # high snap count and almost no targets; one on the field to CATCH
+        # carries the same snaps and a real target rate. That gap is the
+        # thing worth seeing, and it does not need a routes column.
+        # ⚠️ What it CANNOT do: distinguish a receiver who ran a route and
+        # was not thrown to from one who stayed in to block. **A true
+        # route rate would. This is a proxy and is labelled one.**
+        if row.get("snaps"):
+            row["tgt_per_snap"] = round(row.get("tgt", 0.0) / row["snaps"], 4)
         for src, dst in STAT_COLS.items():
             row[dst] = _num(r.get(src))
         p["g"].append(row)
@@ -548,7 +634,15 @@ def build_logs(season, log=print):
         # ⛔ A row with no kickoff date cannot be filtered point-in-time, so
         # it can never be used safely. Refuse rather than silently include.
         raise RuntimeError(f"{undated} player-weeks have no kickoff date")
-    return {"season": season, "source": "nflverse", "players": players}
+    return {"season": season, "source": "nflverse", "players": players,
+            "bridge_ok": bridge_ok, "bridge_coverage": bridge_cov,
+            "bridge_min": BRIDGE_MIN,
+            "consumer_contract": (
+                "REFUSE TO FIT A MODEL WHILE bridge_ok IS false, or say so "
+                "explicitly. Unbridged players carry no snap counts, so "
+                "they never clear the snap floor and never appear in "
+                "vs-position -- and they are not a random sample of "
+                "players.")}
 
 
 # ======================================================================

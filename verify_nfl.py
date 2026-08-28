@@ -39,6 +39,18 @@ def check_logs(path):
     if not rows:
         bad(f"{season}: no player-weeks at all"); return None
 
+    # 🔴 THE BRIDGE, AND WHY IT IS THE FIRST THING REPORTED.
+    # A season can pass every other check and still be quietly missing 9%
+    # of its wide receivers — and those are not a random 9%.
+    if doc.get("bridge_ok") is False:
+        warn(f"season {season} has bridge_ok=FALSE",
+             f"{doc.get('bridge_coverage')} — unbridged players carry no "
+             f"snap data, never clear the snap floor, and never reach "
+             f"vs-position. ⛔ Say so before fitting anything on it.")
+    elif doc.get("bridge_ok") is True:
+        ok(f"season {season} bridge coverage clears "
+           f"{doc.get('bridge_min')}%", f"{doc.get('bridge_coverage')}")
+
     undated = [g for _, _, g in rows if not g.get("d")]
     (ok if not undated else bad)("every player-week carries a date",
                                  f"[{len(undated)} undated]")
