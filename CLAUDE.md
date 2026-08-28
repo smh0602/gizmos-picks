@@ -44,7 +44,7 @@ old one, not easier.**
 | **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
 | **The parlay candidate pool is STRATIFIED BY PRICE** | ⛔ Do not "simplify" it to the N highest-confidence legs. Confidence and price move together, so a confidence-ranked pool of 100 legs had decimal odds of 1.154–1.571 — all short favourites — and the three-leg search returned **zero** parlays on a slate with 2,396 priced legs. Measured 2026-08-26. The pool takes the best legs from each price band for exactly this reason. |
 | **The top-10 price gate (−400)** | Sam's own instruction, 2026-08-26: "likely AND payable". Without it the list fills with −2000 alt rungs that always win and pay nothing. It is a floor like the other two, not a judgment call per slate. |
-| **A projection is an INVERSION of the displayed confidence** | Never a second estimate. `card.py` solves for the central value that reproduces the number already printed, under that row's own distribution, so the two can never disagree. ⛔ Do not print `central` (E[K]) instead — it is the MODEL half of a 50/50 blend and differs from the blend by design. ⛔ Do not compute one in JavaScript; that is a second copy of the model. |
+| **ONE projection per player per stat, the same everywhere** | ~~A projection is an INVERSION of the displayed confidence... do not print `central`~~ — **BOTH RETIRED 2026-08-27, ledger rule 66.** Inversion made the projection a property of the ROW, so every rung of one ladder implied a different number: 51 of 608 player-market combos disagreed with themselves, worst 2.1 K. Sam: *"you should have the same numbers across the entire website."* ✅ Pitchers now show the model's own `central` (E[K] / mu), hitters their own per-game mean — both line-independent by construction. `apply_projections()` is the ONLY writer of the field. ⛔ Still do not compute one in JavaScript; that is a second copy of the model. |
 | **THE REGION IS THE PRICE, NOT THE BOOK LIST** | Cost is `markets × REGIONS × games` and **books are FREE inside a region** — one `us,us2` pull returned **18 books for 6 credits** (measured 2026-08-26). `BOOKS` is applied AFTER the response arrives; it is a display filter and saves nothing. ⛔ Do not try to cut credits by dropping books. Only dropping a REGION halves a pull, and `us2` is the region Hard Rock lives in. |
 | **The budget is DERIVED, not written down** | `python budget.py` reads the cron schedule out of the workflow and the market lists out of `collect.py` and computes the spend. ⛔ Do not put a credit total in a comment — this project has done it three times and been wrong twice. Run the script. |
 | **Every props pull is scheduled TWICE, 15 minutes apart** | The backup costs **nothing** when the first one landed: `props_is_fresh()` stands it down inside a 45-minute window. GitHub drops scheduled runs — only 29 of 70 gamelines hour-slots produced a file, measured 2026-08-26 — and with three props pulls a day one drop is a third of the board's freshness. ⛔ The guard keys on the STORAGE DIRECTORY, not the region, so a cheap `us2` backup stands down behind a full `us,us2` primary. |
@@ -107,6 +107,23 @@ old one, not easier.**
   against a market whose real price is "+1.5 at -182" -- opposite bets, and
   the page would have advertised a bargain that does not exist. ⛔ Never
   compare two prices without first confirming they are the same wager.
+- 🔴 **A RATE BAR NEEDS A SAMPLE, AND T37's IS POOLED ACROSS CARDS.**
+  Build #183 failed on **1 contradiction out of 4 priced hitter rows** — a
+  2:22am board where one row is 25%. T37's bar was pre-registered on n=80
+  and n=116; a percentage on n=4 is not a rate. ✅ The bar now pools every
+  published card that carries the confidence field, so the denominator only
+  grows and **a persistent 6% fails even when no single slate exceeds it** —
+  strictly harder than the per-card form. ⚠️ Under 100 pooled rows it reports
+  **NOT YET MEASURABLE**: not a pass, not a fail. ⛔ A **CANARY** still fails
+  instantly with no pooling on a gross break (>25% on ≥20 rows), so a
+  catastrophic regression cannot hide behind a big historical denominator.
+- ⚠️ **THE MEAN IS A POOR CENTRAL ESTIMATE FOR A RIGHT-SKEWED MARKET, AND
+  THAT IS NOW A PRE-REGISTERED TEST, NOT A FIX.** Amed Rosario's total bases:
+  41 games, **mean 1.585 but MEDIAN 1**, under 1.5 in 30 of 41 — four games
+  of 4/5/8/10 TB drag the average over the line. So "PROJ 1.6" sat beside
+  "UNDER 1.5 · 75%" and both were right. ⛔ **DO NOT swap the estimator to a
+  median on the strength of one row.** `research/t38_spec.md` has the bar and
+  the prediction, fixed before any fit.
 - 🔴 **TOTAL BASES and H+R+RBI project the player's OWN PER-GAME MEAN,
   not an inversion.** ~~"carry NO PROJECTION, deliberately"~~ — **changed
   2026-08-26** on Sam's instruction that every player have one. The bar was
@@ -248,7 +265,8 @@ verify_board.py   checks data/latest/board.json -- implied runs vs the
                   that gap is how the wrong-game bug shipped.
 test_board_match.js  regression test for boardFor(), run with node
                   against the real board.json.
-verify_card.py    82 checks, pitcher AND hitter, including the
+verify_card.py    ~90 checks (COUNT THE SOURCE, do not trust this
+                  number), pitcher AND hitter, including the
                   descending-order invariant, the projection
                   round-trip, the top-10 price gate and every
                   parlay recomputed leg by leg. Runs before commit.

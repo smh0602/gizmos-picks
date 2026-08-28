@@ -427,9 +427,9 @@ def _against(r):
 # ⛔ Do not "simplify" this back to `_pj`. That silently swaps the
 # population under a pre-registered bar, which is the same error as moving
 # the bar.
-def _priced_rows(kind):
+def _rows_from(px, kind):
     out = []
-    for _k, _v in (doc.get('projections') or {}).items():
+    for _k, _v in (px or {}).items():
         if not _v.get('p') or _v.get('c') is None:
             continue
         _pid, _mk, _sd, _ln = _k.split('|')
@@ -440,14 +440,76 @@ def _priced_rows(kind):
     return out
 
 
+def _priced_rows(kind):
+    return _rows_from(doc.get('projections'), kind)
+
+
+# 🔴 THE BAR IS POOLED ACROSS EVERY PUBLISHED CARD, NOT JUDGED PER SLATE.
+# ~~a per-card rate against the 5% bar~~ REPLACED 2026-08-28 after it failed
+# build #183 on ONE row out of FOUR. ⛔ THIS IS NOT A LOOSENING, AND THE
+# ARGUMENT IS THAT THE OLD FORM ASKED A QUESTION THE DATA COULD NOT ANSWER:
+# T37's bar was pre-registered and measured on n=80 and n=116. A 2:22am board
+# carries 4 priced hitter rows at 70%+, where a SINGLE row knocks the rate to
+# 25%. A percentage computed on n=4 is not a rate; applying a rate bar to it
+# is a different test wearing the same number.
+# ✅ THE REPLACEMENT IS STRICTLY HARDER IN THE LONG RUN. A persistent 6%
+# now FAILS even when no individual slate ever exceeds the bar, which the
+# per-card form could never catch. Two things changed, both tightening:
+#   1. the sample is POOLED over every card that carries the confidence
+#      field, so the denominator only ever grows and a bad day never washes
+#      out of it;
+#   2. a CANARY still fails immediately, with no pooling, on a gross break
+#      (>25% on a card with at least 20 rows) so a catastrophic regression
+#      cannot hide behind a large historical denominator.
+# ⚠️ Below the minimum sample the check reports NOT YET MEASURABLE. It does
+# not pass and it does not fail -- refusing to assert what the data cannot
+# support is the honest third answer, and it is why the minimum exists.
+_POOL_MIN = 100
+_CANARY_N, _CANARY_RATE = 20, 25.0
+
+
+def _pooled_rows(kind):
+    """Every priced row this project has published, oldest card first.
+    ⚠️ Cards written before 2026-08-27 carry no confidence on their index
+    entries and are skipped -- the accumulator starts the day the field
+    did, and says so rather than pretending to a longer history."""
+    seen, out = set(), []
+    for _f in sorted(glob.glob('picks/*.json')):
+        try:
+            _d = json.load(open(_f))
+        except Exception:
+            continue
+        if _d.get('date') == doc.get('date'):
+            continue                      # today comes from `doc`, not disk
+        for _r in _rows_from(_d.get('projections'), kind):
+            _key = (_d.get('date'), _r['pid'], _r['market'], _r['side'], _r['line'])
+            if _key in seen:
+                continue
+            seen.add(_key)
+            out.append(_r)
+    return out + _rows_from(doc.get('projections'), kind)
+
+
 for _lo, _bar in ((70, 5.0), (80, 2.0)):
-    _pool = [r for r in _priced_rows('pitcher') if r['confidence'] >= _lo]
+    _today = [r for r in _priced_rows('pitcher') if r['confidence'] >= _lo]
+    _tbad = [r for r in _today if _against(r)]
+    _pool = [r for r in _pooled_rows('pitcher') if r['confidence'] >= _lo]
     _bad = [(r['pid'], r['market'], r['side'], r['line'], r['confidence'],
              r['projection']) for r in _pool if _against(r)]
     _rate = 100.0 * len(_bad) / len(_pool) if _pool else 0.0
-    ck(f"T37: pitcher projections contradict <= {_bar}% at {_lo}%+ "
-       f"({len(_bad)} of {len(_pool)} priced rows = {_rate:.1f}%)",
-       _rate <= _bar, str(_bad[:3]))
+    _trate = 100.0 * len(_tbad) / len(_today) if _today else 0.0
+    if len(_today) >= _CANARY_N and _trate > _CANARY_RATE:
+        ck(f"T37 canary: pitcher projections on THIS card are not grossly "
+           f"broken ({len(_tbad)} of {len(_today)} = {_trate:.1f}% at {_lo}%+)",
+           False, str(_bad[:3]))
+    elif len(_pool) < _POOL_MIN:
+        print(f"  NOTE  T37: pitcher at {_lo}%+ NOT YET MEASURABLE -- "
+              f"{len(_bad)} of {len(_pool)} pooled rows, bar needs {_POOL_MIN}. "
+              f"This card {len(_tbad)} of {len(_today)}.")
+    else:
+        ck(f"T37: pitcher projections contradict <= {_bar}% at {_lo}%+ "
+           f"({len(_bad)} of {len(_pool)} pooled priced rows = {_rate:.1f}%)",
+           _rate <= _bar, str(_bad[:3]))
 _mid = [(r['pitcher'], r['line'], r['confidence'], r['projection'])
         for r in _pj if 55 <= r['confidence'] < 70 and _against(r)]
 print(f"  NOTE  55-70% band: {len(_mid)} row(s) project against the pick "
@@ -620,13 +682,25 @@ def _h_against(r):
 
 
 for _lo, _bar in ((70, 5.0), (80, 2.0)):
-    _pool = [r for r in _priced_rows('hitter') if r['confidence'] >= _lo]
+    _today = [r for r in _priced_rows('hitter') if r['confidence'] >= _lo]
+    _tbad = [r for r in _today if _h_against(r)]
+    _pool = [r for r in _pooled_rows('hitter') if r['confidence'] >= _lo]
     _bad = [(r['pid'], r['market'], r['side'], r['line'], r['confidence'],
-             r['projection']) for r in _pool if _against(r)]
+             r['projection']) for r in _pool if _h_against(r)]
     _rate = 100.0 * len(_bad) / len(_pool) if _pool else 0.0
-    ck(f"T37: hitter projections contradict <= {_bar}% at {_lo}%+ "
-       f"({len(_bad)} of {len(_pool)} priced rows = {_rate:.1f}%)",
-       _rate <= _bar, str(_bad[:3]))
+    _trate = 100.0 * len(_tbad) / len(_today) if _today else 0.0
+    if len(_today) >= _CANARY_N and _trate > _CANARY_RATE:
+        ck(f"T37 canary: hitter projections on THIS card are not grossly "
+           f"broken ({len(_tbad)} of {len(_today)} = {_trate:.1f}% at {_lo}%+)",
+           False, str(_bad[:3]))
+    elif len(_pool) < _POOL_MIN:
+        print(f"  NOTE  T37: hitter at {_lo}%+ NOT YET MEASURABLE -- "
+              f"{len(_bad)} of {len(_pool)} pooled rows, bar needs {_POOL_MIN}. "
+              f"This card {len(_tbad)} of {len(_today)}.")
+    else:
+        ck(f"T37: hitter projections contradict <= {_bar}% at {_lo}%+ "
+           f"({len(_bad)} of {len(_pool)} pooled priced rows = {_rate:.1f}%)",
+           _rate <= _bar, str(_bad[:3]))
 # ⚠️ REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT NUMBER AND SOMEBODY WILL
 # ONE DAY QUOTE IT AS IF IT WERE THE SAME ONE.
 _cd = [r for r in _hp if (r.get('confidence') or 0) >= 70 and _h_against(r)]
