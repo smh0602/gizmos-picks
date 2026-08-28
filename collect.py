@@ -53,7 +53,27 @@ LEAGUES = {
     "nfl":   {"sport": "americanfootball_nfl",    "data": "data/nfl",   "picks": "picks/nfl"},
     "ncaaf": {"sport": "americanfootball_ncaaf",  "data": "data/ncaaf", "picks": "picks/ncaaf"},
 }
+# 🔴 A MODE THAT IS INHERENTLY ONE LEAGUE'S PINS THAT LEAGUE ITSELF.
+# ⛔ It must NOT depend on the operator remembering the dropdown. Run #191
+# built a perfectly good 2025 NFL back-fill and wrote it to
+# `data/latest/players-2025.json.gz` -- MLB's directory -- because the
+# league input defaulted to `mlb`. The run went GREEN. Nothing detected it.
+# ✅ Forcing is chosen over failing loud on purpose: a fail-loud check is
+# still a thing a tired operator has to read at 4am, whereas a forced path
+# CANNOT be wrong.
+MODE_LEAGUE = {"nfl-probe": "nfl", "nfl-logs": "nfl"}
 LEAGUE = os.environ.get("LEAGUE", "mlb").strip().lower() or "mlb"
+_forced = {MODE_LEAGUE[m] for m in MODE_LEAGUE
+           if m in " ".join(sys.argv[1:]).split()}
+if len(_forced) > 1:
+    print(f"FATAL: modes from more than one league in one run: {_forced}")
+    sys.exit(1)
+if _forced:
+    _want = _forced.pop()
+    if _want != LEAGUE:
+        print(f"NOTE: league forced to '{_want}' by the mode "
+              f"(input said '{LEAGUE}'). League-specific modes own their paths.")
+    LEAGUE = _want
 if LEAGUE not in LEAGUES:
     print(f"FATAL: unknown LEAGUE '{LEAGUE}'. Known: {sorted(LEAGUES)}")
     sys.exit(1)
@@ -2063,7 +2083,11 @@ def main():
             season = int(os.environ.get("SEASON", "2025"))
             doc = _nfl.build_logs(season, log)
             doc["pulled_at"] = stamp()
-            write(f"{LATEST}/players-{season}.json.gz", doc, compress=True)
+            # ⛔ LEAGUES["nfl"] EXPLICITLY, not the ambient LATEST. Belt and
+            # braces with the MODE_LEAGUE forcing above: this path is NFL's
+            # whatever anyone typed in the dropdown.
+            write(f'{LEAGUES["nfl"]["data"]}/latest/players-{season}.json.gz',
+                  doc, compress=True)
             left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
