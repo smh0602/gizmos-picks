@@ -244,6 +244,20 @@ STAT_COLS = {
 # below is enforced ON THESE ONLY -- an unbridged offensive lineman is
 # irrelevant, an unbridged WR1 is a hole.
 PROP_POS = {"QB", "RB", "WR", "TE", "FB"}
+# 🔴 THE TRENCHES MOVE THE SKILL POSITIONS. Sam, 2026-08-28: "injuries to
+# offensive lineman and/or defensive lineman on opposing teams can effect
+# how a qb, rb, wr outcome will be." A quarterback behind two backup
+# tackles is a different quarterback. ⚠️ These are COUNTS OF ABSENT
+# STARTERS, not a line-quality rating -- we have no such rating and will
+# not invent one.
+OL_POS = {"T", "G", "C", "OT", "OG", "OL"}
+DL_POS = {"DE", "DT", "NT", "DL", "EDGE"}
+# 🔴 SNAP FLOORS. MLB counts STARTS ONLY -- a reliever's two-out cameo is
+# not evidence about a starter. Measured 2026-08-28: Joe Flacco played 17%
+# of snaps against ARI and threw for 24 yards; counted as "a QB1 vs
+# Arizona" it moved that defence's mean by 16 yards. ⛔ Do not lower these
+# to grow a sample. A cameo is not a start in any sport.
+SNAP_FLOOR = {"QB": 0.60, "RB": 0.30, "WR": 0.50, "TE": 0.40, "FB": 0.30}
 # 🔴 INJURY STATUS IS THE ONE INPUT A SEASON AVERAGE CANNOT CONTAIN, which
 # is the entire premise of T41. See research/t41_spec.md.
 # ⛔ Graded, not boolean: "Questionable" plays most weeks, "Out" never does.
@@ -289,7 +303,7 @@ def build_logs(season, log=print):
     log(f"  bridge: {len(bridge):,} pfr->gsis pairs")
 
     # -- kickoff date and home/away, per (season, week, team).
-    when = {}
+    when, wx = {}, {}
     for g in sched:
         if str(g.get("season")) != str(season):
             continue
@@ -298,7 +312,17 @@ def build_logs(season, log=print):
                                 ("away_team", "home_team", 0)):
             if g.get(side):
                 when[(str(wk), g[side])] = (day, g.get(opp), home, gid)
+                # 🔴 WEATHER. Sam, 2026-08-28: snow and rain change games.
+                # ⚠️ Read defensively -- these columns are logged, never
+                # assumed. MLB found PARK and TEMPERATURE real and WIND
+                # SPEED ALONE a null (T31-T33); football will differ and
+                # must be measured separately, not inherited.
+                wx[(str(wk), g[side])] = {
+                    k: g.get(k) for k in ("roof", "surface", "temp", "wind")
+                    if g.get(k) not in (None, "")}
     log(f"  schedule: {len(when):,} team-weeks in {season}")
+    _wxk = collections.Counter(k for v in wx.values() for k in v)
+    log(f"  weather columns present: {dict(_wxk) or 'NONE — schedule carries no weather'}")
 
     # -- snap counts, bridged onto gsis, keyed by (gsis, week).
     snap_by = {}
@@ -351,6 +375,27 @@ def build_logs(season, log=print):
         # to measure would produce a null result about the wrong thing.
         raise RuntimeError(f"injuries unavailable: {e}")
 
+    # -- absent linemen, per (team, week). ⚠️ Position comes from the
+    # ROSTER, because the injury file's own position field is sparser.
+    pos_of, team_of = {}, {}
+    for r in rost:
+        g = r.get("gsis_id")
+        if not g:
+            continue
+        pos_of[g] = (r.get("position") or "").upper()
+        team_of[(g, str(r.get("week")))] = r.get("team")
+    ol_out, dl_out = collections.Counter(), collections.Counter()
+    for gid, wk in out_set:
+        pos, tm = pos_of.get(gid), team_of.get((gid, wk))
+        if not tm:
+            continue
+        if pos in OL_POS:
+            ol_out[(tm, wk)] += 1
+        elif pos in DL_POS:
+            dl_out[(tm, wk)] += 1
+    log(f"  trench absences: {sum(ol_out.values()):,} OL, "
+        f"{sum(dl_out.values()):,} DL across the season")
+
     players = {}
     for r in stats:
         pid = r.get("player_id")
@@ -364,6 +409,12 @@ def build_logs(season, log=print):
         })
         row = {"d": day, "week": int(wk) if str(wk).isdigit() else wk,
                "team": team, "o": opp, "home": home, "game_id": gid}
+        # 🔴 HIS OWN LINE, AND THE LINE HE IS PLAYING AGAINST.
+        row["ol_out"] = ol_out.get((team, wk), 0)        # his blockers missing
+        row["opp_dl_out"] = dl_out.get((opp, wk), 0)     # their rushers missing
+        w = wx.get((wk, team))
+        if w:
+            row["wx"] = w
         sn = snap_by.get((pid, wk))
         if sn:
             row["snaps"] = int(_num(sn.get("offense_snaps")))
@@ -450,3 +501,93 @@ def build_logs(season, log=print):
         # it can never be used safely. Refuse rather than silently include.
         raise RuntimeError(f"{undated} player-weeks have no kickoff date")
     return {"season": season, "source": "nflverse", "players": players}
+
+
+# ======================================================================
+# DEFENCE VERSUS POSITION — the football version of MLB's opponent block
+# ======================================================================
+# 🔴 DESCRIPTIVE. Sam, 2026-08-28: "i look up cardinals vs starting qbs
+# game log, id view the other qbs throughout the season vs the cardinals."
+# That is this, for every defence and every depth slot.
+# ⛔ NO MODEL AND NO CONFIDENCE NUMBER. These are the games that happened,
+# which is exactly why they can ship without a pre-registered test — the
+# same footing as the opponent block on the MLB pitcher rows.
+VS_DEPTH = {"QB": 1, "RB": 2, "WR": 3, "TE": 2}   # how many slots to keep
+VS_STATS = ("pass_yds", "rush_yds", "rec_yds", "rec", "tgt", "tgt_share",
+            "pass_td", "rush_td", "rec_td", "snap_pct")
+
+
+def build_vs_position(doc, log=print):
+    """defence -> position -> depth slot -> the opposing performances.
+
+    🔴 DEPTH RANK IS TRAILING SNAP SHARE, POINT-IN-TIME — what the coach
+    actually did before this game, not a published depth chart teams game.
+    ⛔ Ranking on the season would let a week-3 row know about week 14.
+    """
+    P = doc["players"]
+    share = collections.defaultdict(lambda: collections.defaultdict(list))
+    for pid, p in P.items():
+        if p["pos"] not in VS_DEPTH:
+            continue
+        for g in p["g"]:
+            share[(g["team"], p["pos"], g["week"])]  # touch so key exists
+    # trailing snap share for every (team,pos) as of each week
+    hist = collections.defaultdict(lambda: collections.defaultdict(list))
+    for pid, p in P.items():
+        if p["pos"] not in VS_DEPTH:
+            continue
+        for g in p["g"]:
+            hist[(g["team"], p["pos"])][pid].append((g["week"], g.get("snap_pct", 0.0)))
+
+    def rank_of(pid, team, pos, week):
+        d = hist.get((team, pos)) or {}
+        avg = {}
+        for q, rows in d.items():
+            v = [s for w, s in rows if w < week]
+            if v:
+                avg[q] = sum(v) / len(v)
+        order = [q for q, _ in sorted(avg.items(), key=lambda kv: -kv[1])]
+        return order.index(pid) + 1 if pid in order else None
+
+    out, kept, dropped = {}, 0, collections.Counter()
+    for pid, p in P.items():
+        pos = p["pos"]
+        if pos not in VS_DEPTH:
+            continue
+        for g in p["g"]:
+            if not g["o"]:
+                continue
+            sp = g.get("snap_pct")
+            if sp is None or sp < SNAP_FLOOR.get(pos, 0.0):
+                dropped["below the snap floor"] += 1
+                continue
+            r = rank_of(pid, g["team"], pos, g["week"])
+            if r is None or r > VS_DEPTH[pos]:
+                dropped["no rank yet, or deeper than we keep"] += 1
+                continue
+            row = {"pid": pid, "name": p["name"], "team": g["team"],
+                   "week": g["week"], "d": g["d"],
+                   "ol_out": g.get("ol_out", 0), "opp_dl_out": g.get("opp_dl_out", 0)}
+            if g.get("wx"):
+                row["wx"] = g["wx"]
+            for k in VS_STATS:
+                if g.get(k) is not None:
+                    row[k] = g[k]
+            out.setdefault(g["o"], {}).setdefault(pos, {}).setdefault(str(r), []).append(row)
+            kept += 1
+    for d in out.values():
+        for pos in d:
+            for r in d[pos]:
+                d[pos][r].sort(key=lambda x: x["week"])
+    log(f"  vs-position: {kept:,} performances kept across {len(out)} defences")
+    for k, v in dropped.items():
+        log(f"    dropped {v:,} — {k}")
+    if kept == 0:
+        raise RuntimeError("vs-position is EMPTY. That is a rank or snap-floor "
+                           "failure, not a finding.")
+    return {"season": doc["season"], "kind": "DESCRIPTIVE",
+            "note": ("Every performance a defence has allowed, by depth slot. "
+                     "Depth rank is trailing snap share, point-in-time. Rows "
+                     "below the position's snap floor are excluded so a cameo "
+                     "never counts as a start. No model, no confidence rating."),
+            "snap_floor": SNAP_FLOOR, "defences": out}

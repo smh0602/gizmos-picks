@@ -104,6 +104,25 @@ BATTER_MARKETS = [
     "batter_hits_runs_rbis",
 ]
 
+# ---------------------------------------------------------------- PROPS
+# 🔴 MLB SPLITS ITS PROPS IN TWO because pitchers and batters are different
+# populations on different schedules. FOOTBALL HAS NO SUCH SPLIT -- every
+# prop is a player prop -- so football uses ONE `player` kind. ⛔ Do not
+# invent a fake pitcher/batter split for a sport that lacks one just to
+# reuse the mode names.
+# ✅ Market keys CONFIRMED against the Odds API's published list 2026-08-27.
+# ⚠️ COST IS `markets x REGIONS x GAMES`. Run `python budget.py` after any
+# edit here -- never estimate.
+PROP_MARKETS = {
+    "nfl": ["player_pass_yds", "player_pass_tds", "player_rush_yds",
+            "player_reception_yds", "player_receptions", "player_anytime_td"],
+    # ⚠️ CFB is a THINNER board -- deep markets on marquee games, little
+    # else. Five markets: pass TDs are sparse outside the top games and
+    # would mostly buy empty responses.
+    "ncaaf": ["player_pass_yds", "player_rush_yds", "player_reception_yds",
+              "player_receptions", "player_anytime_td"],
+}
+
 # Two regions gives us best-odds shopping across ~15 books.
 # One region (us2) is Hard Rock only and costs half.
 REGIONS_FULL = "us,us2"
@@ -514,7 +533,9 @@ def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
 
 
 def collect_props(kind, regions=None):
-    if kind == "pitcher":
+    if kind == "player":
+        markets = PROP_MARKETS[LEAGUE]          # 🔴 the football pull
+    elif kind == "pitcher":
         # 🔴 Hard Rock ONLY. Sam, 2026-08-22: "i onlt want to see hardrock
         # odds from now on for all props". Enforced at the REQUEST, not at
         # the write-up -- a price that never enters the working set cannot
@@ -2072,6 +2093,14 @@ def main():
             import card as _card
             _card.main()
             left = None
+        elif mode == "props":
+            # 🔴 THE FOOTBALL PROPS PULL. ⛔ MLB must not use this -- it has
+            # its own two-mode split and a props-board join that assumes it.
+            if LEAGUE not in PROP_MARKETS:
+                log(f"FATAL: no prop market list for league '{LEAGUE}'. "
+                    f"Known: {sorted(PROP_MARKETS)}")
+                sys.exit(1)
+            left = collect_props("player")
         elif mode == "props-board":
             left = collect_props_board()
         elif mode == "nfl-logs":
@@ -2080,14 +2109,31 @@ def main():
             # so a season with nothing yet is NOT an error -- it is skipped
             # and said out loud.
             import nfl as _nfl
-            season = int(os.environ.get("SEASON", "2025"))
-            doc = _nfl.build_logs(season, log)
-            doc["pulled_at"] = stamp()
+            # 🔴 SEASON TAKES A RANGE OR A LIST. The point of this mode is a
+            # HISTORY, and dispatching once per year by hand is how a
+            # back-fill ends up missing a season nobody notices.
+            #   SEASON=2025  ·  SEASON=2021-2025  ·  SEASON=2019,2021
+            raw = os.environ.get("SEASON", "2025").strip()
+            if "-" in raw:
+                _a, _b = raw.split("-", 1)
+                seasons = list(range(int(_a), int(_b) + 1))
+            else:
+                seasons = [int(x) for x in raw.replace(" ", "").split(",") if x]
+            log(f"back-filling seasons: {seasons}")
             # ⛔ LEAGUES["nfl"] EXPLICITLY, not the ambient LATEST. Belt and
-            # braces with the MODE_LEAGUE forcing above: this path is NFL's
-            # whatever anyone typed in the dropdown.
-            write(f'{LEAGUES["nfl"]["data"]}/latest/players-{season}.json.gz',
-                  doc, compress=True)
+            # braces with the MODE_LEAGUE forcing above.
+            base = LEAGUES["nfl"]["data"] + "/latest"
+            for season in seasons:
+                doc = _nfl.build_logs(season, log)
+                doc["pulled_at"] = stamp()
+                write(f"{base}/players-{season}.json.gz", doc, compress=True)
+                # 🔴 THE MATCHUP TABLES COME FROM THE SAME PULL that made the
+                # logs, so the two can never disagree about a depth slot.
+                # ⛔ Do not split this into a second mode that reads the file
+                # back -- that is how two copies of one number drift apart.
+                vs = _nfl.build_vs_position(doc, log)
+                vs["pulled_at"] = stamp()
+                write(f"{base}/vs-position-{season}.json.gz", vs, compress=True)
             left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
