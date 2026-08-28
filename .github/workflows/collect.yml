@@ -103,12 +103,16 @@ on:
 
   workflow_dispatch:
     inputs:
+      season:
+        description: "season year, for nfl-logs"
+        required: false
+        default: "2025"
       league:
         description: "mlb | nfl | ncaaf"
         required: false
         default: mlb
       mode:
-        description: "one mode, or several separated by spaces: card | record | refresh | lineups | gamelines | props-pitcher | props-batter | props-pitcher-hr | props-batter-hr | schedule | results | hitters | news | props-board | pitchers | nfl-probe"
+        description: "one mode, or several separated by spaces: card | record | refresh | lineups | gamelines | props-pitcher | props-batter | props-pitcher-hr | props-batter-hr | schedule | results | hitters | news | props-board | pitchers | nfl-probe | nfl-logs"
         required: true
         default: gamelines
 
@@ -198,6 +202,7 @@ jobs:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
           LEAGUE: ${{ steps.mode.outputs.league }}
+          SEASON: ${{ github.event.inputs.season || '2025' }}
           # ⛔ VIA env, NOT interpolated into the script body. The dispatch
           # input reaches this string, and `${{ }}` inside `run:` is pasted
           # as raw shell before bash ever sees it.
