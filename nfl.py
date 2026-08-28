@@ -194,6 +194,25 @@ def probe(log=print):
         f"{len(spfr & bridge):,} of them bridge to a gsis_id "
         f"({100.0 * len(spfr & bridge) / max(1, len(spfr)):.1f}%)")
 
+    log("\n=== 3b. WHAT DOES THE INJURY FILE ACTUALLY SAY? ===")
+    # 🔴 RUN #194 BUILT `ahead_out` AS CONSTANT ZERO ON ALL 19,400 ROWS AND
+    # WENT GREEN. The mapping assumed report_status values like "Out" and
+    # "Doubtful"; only 620 of 19,400 rows got ANY designation. A constant
+    # feature is not a null result about football -- it is a broken join
+    # wearing one. Ask the file instead of assuming.
+    ih = [a for a in seen.get("injuries", []) if a[0] == FILES["injuries"].format(y=2025)]
+    if ih:
+        irows = list(csv.DictReader(
+            io.StringIO(_raw(ih[0][2]).decode("utf-8", "replace"))))
+        log(f"  {len(irows):,} injury rows")
+        for col in ("report_status", "practice_status", "game_type"):
+            c = collections.Counter((r.get(col) or "<empty>") for r in irows)
+            log(f"  {col}: {dict(c.most_common(8))}")
+        wk = collections.Counter(str(r.get("week")) for r in irows)
+        log(f"  weeks: {sorted(wk, key=lambda x: (len(x), x))[:8]}")
+        gid = {r.get("gsis_id") for r in irows if r.get("gsis_id")}
+        log(f"  distinct gsis_id in injuries: {len(gid):,}")
+
     log("\n=== 4. what is actually under `schedules`? ===")
     for n, sz, _ in seen.get("schedules", []):
         log(f"  {n}  {sz:,}B")
@@ -369,7 +388,20 @@ def build_logs(season, log=print):
                 if q != pid and share[q] > mine
                 and players[q]["g"][j].get("inj", 0) >= 2)
     n_ao = sum(1 for p in players.values() for g in p["g"] if g.get("ahead_out"))
+    n_inj = sum(1 for p in players.values() for g in p["g"] if g.get("inj", 0) >= 2)
     log(f"  ahead_out: {n_ao:,} player-weeks have a higher-usage teammate OUT")
+    log(f"  inj>=2 (out/doubtful): {n_inj:,} player-weeks")
+    # 🔴 A CONSTANT FEATURE IS A BROKEN JOIN, NOT A FINDING.
+    # ⛔ Run #194 emitted ahead_out = 0 on all 19,400 rows and went GREEN.
+    # Fitting on that would have produced "the mechanism is dead" when the
+    # truth was "the column was never populated" -- the most expensive kind
+    # of wrong answer, because it looks like science.
+    for name, n in (("inj>=2", n_inj), ("ahead_out", n_ao)):
+        if n == 0:
+            raise RuntimeError(
+                f"{name} is CONSTANT ZERO across {total:,} player-weeks. "
+                f"That is a join failure, not a result. Run nfl-probe and "
+                f"read section 3b before fitting anything on it.")
 
     undated = sum(1 for p in players.values() for x in p["g"] if not x["d"])
     withsnap = sum(1 for p in players.values() for x in p["g"] if "snaps" in x)
