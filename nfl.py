@@ -39,6 +39,30 @@ WANT = {
 }
 
 
+# ✅ CONFIRMED ON THE RUNNER 2026-08-28, collect run #187 — these are the
+# real asset names, not a pattern anyone inferred. ⛔ Do not "tidy" them
+# into an f-string template: nflverse names are irregular on purpose
+# (`stats_player_reg_YYYY` but `roster_weekly_YYYY`), and a template is how
+# a collector silently fetches nothing.
+FILES = {
+    "stats_player":   "stats_player_reg_{y}.csv.gz",     # + _post_, _regpost_
+    "snap_counts":    "snap_counts_{y}.csv.gz",
+    "depth_charts":   "depth_charts_{y}.csv.gz",
+    "injuries":       "injuries_{y}.csv.gz",
+    "weekly_rosters": "roster_weekly_{y}.csv.gz",
+    "pbp":            "play_by_play_{y}.csv.gz",
+}
+# ⚠️ `schedules` is NOT year-partitioned — it publishes 2 assets covering
+# every season at once. The probe's year filter reported "NONE" for it,
+# which was the FILTER being wrong, not the data being absent.
+#
+# ⚠️ 2026 FILES ALREADY EXIST for depth_charts and weekly_rosters; the
+# stat and snap files appear once week 1 has been played.
+#
+# 🔴 `player_stats` (1,822 assets) IS A DIFFERENT, OLDER TAG from
+# `stats_player` (542). nflverse migrated. Use `stats_player`.
+
+
 def _raw(url, timeout=60):
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -93,25 +117,53 @@ def probe(log=print):
             log(f"    🔴 NO CSV FORM — stdlib cannot read this tag's format.")
             ok = False
 
-    log("\n=== schema check: read one file end to end ===")
-    tag = "snap_counts"
-    cands = [a for a in seen.get(tag, [])
-             if a[0].endswith((".csv", ".csv.gz")) and "2025" in a[0]]
-    if not cands:
-        log(f"🔴 no 2025 csv under '{tag}' to test with")
-        return False
-    name, size, url = cands[0]
-    log(f"  {name}  ({size:,} bytes)")
-    try:
-        rows = list(csv.DictReader(io.StringIO(_raw(url).decode("utf-8", "replace"))))
-    except Exception as e:
-        log(f"🔴 COULD NOT PARSE: {type(e).__name__}: {e}")
-        return False
-    log(f"  parsed {len(rows):,} rows, {len(rows[0]) if rows else 0} columns")
-    if rows:
-        log(f"  columns: {', '.join(sorted(rows[0])[:24])}")
-        wk = collections.Counter(r.get("week") for r in rows)
-        log(f"  weeks present: {sorted(k for k in wk if k)[:20]}")
-        log(f"  sample row: { {k: rows[0][k] for k in list(rows[0])[:8]} }")
+    log("\n=== schema check: EVERY file, and the join key ===")
+    # 🔴 THE JOIN KEY IS THE THING THAT SILENTLY BREAKS. MLB's worst bugs
+    # were joins -- shared names, cameo appearances, the wrong game. So the
+    # probe does not just prove the files parse; it reports which candidate
+    # ID columns each file carries, and how well they actually overlap.
+    keysets, samples = {}, {}
+    for tag in ("stats_player", "snap_counts", "depth_charts", "injuries",
+                "weekly_rosters"):
+        want = FILES[tag].format(y=2025)
+        hit = [a for a in seen.get(tag, []) if a[0] == want]
+        if not hit:
+            log(f"🔴 {tag}: expected asset '{want}' NOT FOUND")
+            ok = False
+            continue
+        name, size, url = hit[0]
+        try:
+            rows = list(csv.DictReader(
+                io.StringIO(_raw(url).decode("utf-8", "replace"))))
+        except Exception as e:
+            log(f"🔴 {tag}: COULD NOT PARSE — {type(e).__name__}: {e}")
+            ok = False
+            continue
+        cols = sorted(rows[0]) if rows else []
+        ids = [c for c in cols if "id" in c.lower() or c in ("player", "full_name")]
+        log(f"\n  {name}  {size:,}B  {len(rows):,} rows  {len(cols)} cols")
+        log(f"    id-ish columns: {ids}")
+        log(f"    all columns: {', '.join(cols)}")
+        if rows:
+            samples[tag] = rows[0]
+            log(f"    sample: { {k: rows[0][k] for k in cols[:10]} }")
+        for c in ("gsis_id", "player_id", "pfr_player_id", "player_display_name",
+                  "player_name", "player", "full_name"):
+            if c in cols:
+                keysets.setdefault(c, {})[tag] = {r.get(c) for r in rows if r.get(c)}
+
+    log("\n=== which key actually joins? ===")
+    for c, per in sorted(keysets.items()):
+        if len(per) < 2:
+            log(f"  {c:22s} present in only {list(per)} — cannot join on it")
+            continue
+        tags = sorted(per)
+        base = per[tags[0]]
+        line = f"  {c:22s} in {len(per)} files:"
+        for t in tags[1:]:
+            inter = len(base & per[t])
+            line += f" {tags[0]}∩{t}={inter}/{min(len(base), len(per[t]))}"
+        log(line)
+
     log("\n✅ PROBE COMPLETE — nothing was written.")
     return ok
