@@ -1986,7 +1986,8 @@ def main():
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
-            "card", "record", "refresh", "lineups", "scores", "weather")
+            "card", "record", "refresh", "lineups", "scores", "weather",
+            "nfl-probe")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2053,6 +2054,16 @@ def main():
             left = None
         elif mode == "props-board":
             left = collect_props_board()
+        elif mode == "nfl-probe":
+            # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
+            # The Claude container may not fetch URLs, so every nflverse
+            # path was written from documentation. This confirms them on
+            # the runner BEFORE a collector is scheduled against a guess.
+            import nfl as _nfl
+            if not _nfl.probe(log):
+                log("PROBE FOUND PROBLEMS -- see above. Nothing scheduled yet.")
+                sys.exit(1)
+            left = None
         else:
             log(f"unknown mode: {mode}")
             sys.exit(1)
