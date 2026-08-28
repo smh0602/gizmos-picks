@@ -292,6 +292,28 @@ def build_logs(season, log=print):
     seen = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
                             for a in (r.get("assets") or [])] for r in rels}
 
+    # 🔴 ROUTE PARTICIPATION — Sam's point 4, the one item of his framework
+    # still missing. ⛔ NO COLLECTOR IS WRITTEN HERE, ON PURPOSE. nflverse
+    # has carried route data in more than one place over the years (a
+    # `participation` set that was discontinued, and PFR advanced stats),
+    # and writing a parser against a remembered column name is exactly the
+    # mistake that produced the `stats_player_reg` season-totals trap and a
+    # name join that matched 0 of 1,848. **ASK THE SOURCE.**
+    _cand = []
+    for _tag, _assets in seen.items():
+        for _name, _size, _u in _assets:
+            _low = (_tag + "/" + _name).lower()
+            if any(k in _low for k in ("particip", "advstat", "route",
+                                       "pfr_", "ngs")):
+                _cand.append(f"{_tag}/{_name} ({_size/1e6:.1f}MB)")
+    log("  ROUTE-DATA CANDIDATES in the nflverse releases:")
+    for c in sorted(_cand)[:25]:
+        log(f"    {c}")
+    if not _cand:
+        log("    NONE FOUND — route participation may not be published. "
+            "Target share and snap share are the fallback, and that is a "
+            "decision to make from this list, not an assumption.")
+
     sched = _rows(seen, "schedules", SCHEDULE_FILE, log)
     stats = _rows(seen, "stats_player", FILES["stats_player"].format(y=season), log)
     snaps = _rows(seen, "snap_counts", FILES["snap_counts"].format(y=season), log)
@@ -395,6 +417,32 @@ def build_logs(season, log=print):
             dl_out[(tm, wk)] += 1
     log(f"  trench absences: {sum(ol_out.values()):,} OL, "
         f"{sum(dl_out.values()):,} DL across the season")
+
+    # 🔴 DIAGNOSTICS, ADDED 2026-08-28 BECAUSE `verify_nfl.py` FOUND BOTH
+    # TRENCH COLUMNS CONSTANT-ZERO ON ALL 19,400 ROWS OF THE 2025 BUILD.
+    # ⛔ THAT IS THE THIRD FOOTBALL COLUMN TO SHIP AS ZEROES ON A GREEN RUN.
+    # The cause cannot be read off the OUTPUT -- a zero looks identical
+    # whether nobody was hurt, the position codes did not match, or the
+    # team lookup missed. So the run now SAYS WHICH.
+    # ⚠️ This is logging, not a guessed fix: nothing here changes
+    # behaviour, it only makes the next run answer the question.
+    _no_pos = sum(1 for _g, _w in out_set if not pos_of.get(_g))
+    _no_team = sum(1 for _g, _w in out_set if not team_of.get((_g, _w)))
+    _pos_seen = collections.Counter(
+        pos_of.get(_g) or "(no position on roster)" for _g, _w in out_set)
+    _none = "NONE — the position codes do not match"
+    log(f"  TRENCH DIAGNOSTIC — out_set has {len(out_set):,} player-weeks")
+    log(f"    unresolved POSITION : {_no_pos:,}")
+    log(f"    unresolved TEAM     : {_no_team:,}   <- these are skipped")
+    log(f"    positions among OUT players: {dict(_pos_seen.most_common(18))}")
+    log(f"    OL_POS this code looks for: {sorted(OL_POS)}")
+    log(f"    DL_POS this code looks for: {sorted(DL_POS)}")
+    log(f"    MATCHED OL codes: {sorted({p for p in _pos_seen if p in OL_POS}) or _none}")
+    log(f"    MATCHED DL codes: {sorted({p for p in _pos_seen if p in DL_POS}) or _none}")
+    if not ol_out and not dl_out:
+        log("    BOTH TRENCH COLUMNS WILL BE CONSTANT ZERO. The lines above "
+            "say whether the position codes are wrong, the team lookup "
+            "missed, or nobody was actually out.")
 
     players = {}
     for r in stats:

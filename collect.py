@@ -2258,17 +2258,65 @@ def run_mode(mode):
             # ⛔ LEAGUES["nfl"] EXPLICITLY, not the ambient LATEST. Belt and
             # braces with the MODE_LEAGUE forcing above.
             base = LEAGUES["nfl"]["data"] + "/latest"
+            # 🔴 ONE BAD SEASON MUST NOT DESTROY THE WHOLE BACK-FILL.
+            # `[measured 2026-08-28, run #204]` `SEASON=2021-2025` failed and
+            # wrote NOTHING AT ALL -- not even the seasons that had already
+            # succeeded -- because this loop had no error handling.
+            # ⛔ nflverse's file naming is irregular across years, so an
+            # older season failing while a recent one works is the EXPECTED
+            # case, not a surprise.
+            # ✅ Same deferred-failure rule as the paid props pull:
+            # everything that CAN land, lands; the failures are named; the
+            # run still goes red at the end.
+            done, failed = [], []
             for season in seasons:
-                doc = _nfl.build_logs(season, log)
-                doc["pulled_at"] = stamp()
-                write(f"{base}/players-{season}.json.gz", doc, compress=True)
-                # 🔴 THE MATCHUP TABLES COME FROM THE SAME PULL that made the
-                # logs, so the two can never disagree about a depth slot.
-                # ⛔ Do not split this into a second mode that reads the file
-                # back -- that is how two copies of one number drift apart.
-                vs = _nfl.build_vs_position(doc, log)
-                vs["pulled_at"] = stamp()
-                write(f"{base}/vs-position-{season}.json.gz", vs, compress=True)
+                try:
+                    doc = _nfl.build_logs(season, log)
+                    doc["pulled_at"] = stamp()
+                    write(f"{base}/players-{season}.json.gz", doc,
+                          compress=True)
+                    # 🔴 THE MATCHUP TABLES COME FROM THE SAME PULL that made
+                    # the logs, so the two can never disagree about a depth
+                    # slot. ⛔ Do not split this into a second mode that
+                    # reads the file back -- that is how two copies of one
+                    # number drift apart.
+                    vs = _nfl.build_vs_position(doc, log)
+                    vs["pulled_at"] = stamp()
+                    write(f"{base}/vs-position-{season}.json.gz", vs,
+                          compress=True)
+                    done.append(season)
+                except Exception as _e:
+                    failed.append((season, f"{type(_e).__name__}: {_e}"))
+                    log(f"SEASON {season} FAILED: {type(_e).__name__}: {_e}")
+                    log("  continuing with the remaining seasons")
+
+            log("=" * 60)
+            log(f"BACK-FILL RESULT: {len(done)} season(s) written "
+                f"{done or '(none)'}")
+            for _yr, _why in failed:
+                log(f"  FAILED {_yr}: {_why}")
+            log("=" * 60)
+
+            # 🔴 THE REASON LANDS IN THE REPO, NOT ONLY IN A LOG.
+            # An Actions log cannot be read from outside the runner and
+            # GitHub deletes it. A diagnosis you cannot retrieve is a
+            # diagnosis you do not have -- same rule as
+            # card-verify-failure.txt.
+            os.makedirs(base, exist_ok=True)
+            _rp = f"{base}/backfill-report.txt"
+            with open(_rp, "w", encoding="utf-8") as _fh:
+                _fh.write(f"nfl-logs back-fill at {stamp()}\n")
+                _fh.write(f"requested: {seasons}\n")
+                _fh.write(f"written  : {done}\n")
+                _fh.write(f"failed   : {[y for y, _ in failed]}\n\n")
+                for _yr, _why in failed:
+                    _fh.write(f"--- {_yr} ---\n{_why}\n\n")
+            log(f"wrote {_rp}")
+
+            if failed:
+                raise RuntimeError(
+                    f"{len(failed)} season(s) failed: "
+                    f"{[y for y, _ in failed]} -- see {_rp}")
             left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
