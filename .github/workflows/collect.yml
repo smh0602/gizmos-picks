@@ -103,6 +103,10 @@ on:
 
   workflow_dispatch:
     inputs:
+      league:
+        description: "mlb | nfl | ncaaf"
+        required: false
+        default: mlb
       mode:
         description: "one mode, or several separated by spaces: card | record | refresh | lineups | gamelines | props-pitcher | props-batter | props-pitcher-hr | props-batter-hr | schedule | results | hitters | news | props-board | pitchers"
         required: true
@@ -114,7 +118,7 @@ on:
 # silently killed whatever scheduled pull was waiting behind them --
 # which is the other half of why the board went stale.
 concurrency:
-  group: collect-${{ github.event.schedule || github.event.inputs.mode || github.event_name }}
+  group: collect-${{ github.event.inputs.league || 'mlb' }}-${{ github.event.schedule || github.event.inputs.mode || github.event_name }}
   cancel-in-progress: false
 
 jobs:
@@ -133,6 +137,10 @@ jobs:
       - name: Decide what this run collects
         id: mode
         run: |
+          # 🔴 EVERY RUN IS ONE LEAGUE. A cron that does not name one is
+          # MLB, so every existing schedule keeps its exact behaviour and
+          # every existing path is untouched.
+          echo "league=${{ github.event.inputs.league || 'mlb' }}" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "mode=refresh" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -188,6 +196,8 @@ jobs:
         id: collect
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+          LEAGUE: ${{ steps.mode.outputs.league }}
           # ⛔ VIA env, NOT interpolated into the script body. The dispatch
           # input reaches this string, and `${{ }}` inside `run:` is pasted
           # as raw shell before bash ever sees it.
@@ -204,8 +214,11 @@ jobs:
           done
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
 
+      # ⛔ MLB-ONLY STEPS. statsapi and all three verifiers are baseball.
+      # A football run must not invoke them, and the guard is the LEAGUE,
+      # not the mode -- `gamelines` exists in every league.
       - name: Collect schedule (free, statsapi)
-        if: contains(steps.mode.outputs.mode, 'gamelines')
+        if: steps.mode.outputs.league == 'mlb' && contains(steps.mode.outputs.mode, 'gamelines')
         run: python collect.py schedule
 
       # 🔴 A card that fails its own checks is not published. verify_card.py
@@ -214,7 +227,7 @@ jobs:
       # from the prices. It exits non-zero on any failure, which fails the
       # job BEFORE the commit step -- so a bad card never reaches the page.
       - name: Verify the card
-        if: contains(steps.mode.outputs.mode, 'card') || contains(steps.mode.outputs.mode, 'refresh')
+        if: steps.mode.outputs.league == 'mlb' && (contains(steps.mode.outputs.mode, 'card') || contains(steps.mode.outputs.mode, 'refresh'))
         run: python verify_card.py
 
       - name: Commit snapshots
@@ -225,7 +238,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "nothing new to commit"
           else
-            git commit -m "collect: ${{ steps.mode.outputs.mode }} $(date -u +%Y-%m-%dT%H:%MZ)"
+            git commit -m "collect[${{ steps.mode.outputs.league }}]: ${{ steps.mode.outputs.mode }} $(date -u +%Y-%m-%dT%H:%MZ)"
             # Another run may have landed while this one was working.
             for i in 1 2 3; do
               git pull --rebase --autostash && git push && break
@@ -241,7 +254,7 @@ jobs:
       # price. A failure here turns the job red -- visible -- with the
       # snapshot already safely committed.
       - name: Verify the board
-        if: contains(steps.mode.outputs.mode, 'gamelines')
+        if: steps.mode.outputs.league == 'mlb' && contains(steps.mode.outputs.mode, 'gamelines')
         run: python verify_board.py
 
       # 🔴 THE TRACK RECORD IS AUDITED EVERY TIME IT IS BUILT.
@@ -250,7 +263,7 @@ jobs:
       # the commit: the record is derived and can be rebuilt, but a run
       # that fails must not discard the data it was built from.
       - name: Verify the track record
-        if: contains(steps.mode.outputs.mode, 'record') || contains(steps.mode.outputs.mode, 'refresh')
+        if: steps.mode.outputs.league == 'mlb' && (contains(steps.mode.outputs.mode, 'record') || contains(steps.mode.outputs.mode, 'refresh'))
         run: python verify_record.py
 
       # 🔴 THE DEFERRED FAILURE. Everything the run collected is committed
