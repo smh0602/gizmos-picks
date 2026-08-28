@@ -307,7 +307,21 @@ jobs:
             # 🔴 THE FRESHNESS GATE IS THE JOB'S REAL OUTPUT. If anything
             # is still out of contract after a pass, that is the thing
             # worth seeing on the Actions page -- not which mode ran.
-            python verify_freshness.py || { rc=1; echo "::error::out of contract"; }
+            # ⛔ MLB-ONLY, AND IT WAS NOT — CAUGHT 2026-08-28 BEFORE ANY
+            # FOOTBALL RUN EXISTED. `freshness.py`'s contract describes
+            # MLB's artifacts under `data/` and `picks/`. Football writes
+            # to `data/nfl/` and `picks/nfl/`, so an NFL or CFB job would
+            # have been graded against BASEBALL's deadlines -- failing for
+            # reasons that have nothing to do with football, or passing
+            # while football is silently stale. Both are the same bug.
+            # ➡️ Football gets a gate when it gets contract rows. Until
+            # then it has none, and the run SAYS SO rather than faking it.
+            if [ "$LEAGUE_NAME" = "mlb" ]; then
+              python verify_freshness.py || { rc=1; echo "::error::out of contract"; }
+            else
+              echo "::warning::$LEAGUE_NAME has no freshness contract yet —"
+              echo "::warning::this run is NOT checked for staleness."
+            fi
 
             NOW=$(date +%s)
             if [ "$NOW" -ge "$DEADLINE" ]; then
