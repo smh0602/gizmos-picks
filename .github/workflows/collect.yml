@@ -17,89 +17,44 @@ name: collect
 
 on:
   schedule:
-    # ══ GAME LINES ══ hourly, 08:00Z (4am ET) through 04:00Z.
-    # 6 credits per run for the WHOLE slate -- the bulk endpoint bills per
-    # call, not per game. 21 runs = 126/day.
-    # ⚠️ This is CHEAPER than the 28-run half-hourly schedule it replaces
-    # (168/day) and starts six hours earlier. Sam, 2026-08-26: "i want the
-    # lines to start being posted at around 4am".
-    # ⚠️ Minute deliberately off :00 and :30 -- those are the most congested
-    # slots on GitHub's scheduler and runs get dropped there.
-    - cron: "13 8-23 * * *"
-    - cron: "13 0-4 * * *"
-
-    # ══ PROPS ══ three pulls a day. THE REGION IS THE PRICE.
-    # Cost is markets x REGIONS x games, and books are FREE inside a
-    # region -- one two-region pull returned 18 books for 6 credits
-    # (measured 2026-08-26). Narrowing the BOOK list saves nothing.
-    #   both regions (us,us2): batter 150 + pitcher 90 = 240
-    #   us2 only (Hard Rock) : batter  75 + pitcher 45 = 120
+    # ══════════════════════════════════════════════════════════════════
+    # SAM'S SCHEDULE — 2026-08-28. Times below are UTC; ET is UTC-4.
+    # ══════════════════════════════════════════════════════════════════
+    #   6:00am ET   Trends + Track Record   (grade last night's slate)
+    #   7:00am ET   Odds + Player Props
+    #  10:00am ET   Gizmo's Picks + Parlays
+    #   4:00pm ET   Odds + Player Props
+    #   News        unchanged, 3x daily
+    #   Scores      live in the browser, 45s, free
     #
-    #   04:00am ET  Hard Rock only   120   board goes up
-    #   10:10am ET  BOTH regions     240   feeds the 10:45am card
-    #   04:10pm ET  Hard Rock only   120   feeds the 4:50pm card
-    #                                ---
-    #                                480/day + 126 gamelines = 606/day
-    #                                ~= 18,786 of a 20,000 monthly plan
+    # 🔴 THESE CRONS ARE NOT WHAT MAKES THOSE TIMES HAPPEN, AND THAT IS
+    # THE POINT. `[measured 2026-08-28 from this repo's commit log]`
+    # GitHub dropped 19 of 21 daily runs on 8/27 and 17 of 21 on 8/26. A
+    # cron AT 7am is a cron that sometimes does not fire, which is the
+    # failure this whole design replaces.
     #
-    # 🔴 THE FULL PULL SITS BEFORE THE MORNING CARD ON PURPOSE. A pull at
-    # noon would land AFTER the 10:45am card, which would then fall back to
-    # the 4am prices -- 6 3/4 hours stale. Anchor paid pulls to the cards.
-    # ⚠️ The trade, stated: the EVENING card carries Hard Rock prices only
-    # and loses cross-book comparison. Early lines are softer and disagree
-    # more, so the full pull is worth more in the morning.
+    # ✅ What makes the times happen: each artifact declares a DUE TIME
+    # in `freshness.py`, and every run -- whichever cron fired, or a push
+    # -- builds whatever is past due. The crons below are just chances to
+    # land. Miss one and the next run catches up; the page says it was
+    # late; nothing is ever skipped.
+    #
+    # ⚠️ Minutes off :00 -- the most congested slot on GitHub's scheduler.
+    # Each fires a few minutes AFTER its deadline so the deadline has
+    # actually passed when the run surveys.
+    - cron: "4 10 * * *"     #  6:04am ET — grading
+    - cron: "4 11 * * *"     #  7:04am ET — odds + props (full, both regions)
+    - cron: "4 14 * * *"     # 10:04am ET — the card
+    - cron: "4 20 * * *"     #  4:04pm ET — odds + props (Hard Rock)
+    - cron: "5 13,19,1 * * *" # news, unchanged
 
-    # -- 4am block. ONE cron does the whole pull; the backup 30 min later
-    #    re-runs the same list and costs NOTHING when the first one worked
-    #    (freshness guard in collect.py). The card is its OWN cron so a
-    #    verifier failure can never discard the props pull that paid for it.
-    - cron: "5 8 * * *"
-    - cron: "35 8 * * *"
-    - cron: "42 8 * * *"
-
-    # -- 10am block: BOTH regions, feeding the morning card.
-    - cron: "8 14 * * *"
-    - cron: "38 14 * * *"
-    - cron: "46 14 * * *"
-
-    # -- 4pm block: Hard Rock only, feeding the evening card.
-    - cron: "8 20 * * *"
-    - cron: "38 20 * * *"
-    - cron: "48 20 * * *"
-
-    # ══ FREE (statsapi or local compute) ══ zero credits, so frequency
-    # here is never a budget question.
-    # 🔴 Results and the game logs run BEFORE the 4am props pull so the
-    # early board carries last night's games rather than yesterday's.
-    # 🔴 THE TRACK RECORD GRADES AT 2am ET. Sam, 2026-08-26.
-    # Results must land BEFORE it, so results runs first at 01:40am ET.
-    # ⚠️ Measured from the archive: the latest first pitch is 9:06pm ET and
-    # a typical game ends by 12:16am ET, so 1:40am clears almost every
-    # night. A long extra-innings West Coast game could still be live --
-    # which is why the ORIGINAL later pass is KEPT below as a backstop.
-    # Both modes are statsapi and cost nothing, so running twice is free
-    # and a game missed at 2am is graded by breakfast either way.
-    - cron: "40 5 * * *"
-    - cron: "2 6 * * *"
-    # -- the backstop pass: results, both game logs and a re-grade in ONE
-    #    run at 3:34am ET -- before the 4:05am props pull, so the early
-    #    board carries last night's games.
-    - cron: "34 7 * * *"
-    - cron: "52 8 * * *"
-    - cron: "5 1,13,19 * * *"
-
-  # 🆕 Rebuild the free artefacts whenever the CODE changes, so a fix is
-  # visible on the site immediately instead of waiting for the next
-  # scheduled run. Costs nothing: the `refresh` mode calls no API.
-  # ⛔ Deliberately scoped to the three source files. The collector's own
-  # commits only ever touch data/ and picks/, so this cannot re-trigger
-  # itself -- there is no loop.
-  push:
-    branches: [main]
-    paths:
-      - "collect.py"
-      - "card.py"
-      - "verify_card.py"
+    # ══ THE BACKSTOP ══
+    # Every 3 hours. If one of the four above is dropped, this lands and
+    # builds whatever is overdue. Combined with the heartbeat loop (a
+    # landed run converges every 15 min for ~5 hours), the schedule has
+    # to fail repeatedly and consecutively before a deadline is missed by
+    # more than an hour.
+    - cron: "9 */3 * * *"
 
   workflow_dispatch:
     inputs:
@@ -121,13 +76,22 @@ on:
 # older pending ones. With a shared group, running three jobs by hand
 # silently killed whatever scheduled pull was waiting behind them --
 # which is the other half of why the board went stale.
+# 🔴 ONE GROUP PER LEAGUE, AND THE NEWEST RUN WINS.
+# The heartbeat loop holds a job open for hours, so the old per-schedule
+# group would queue every later cron behind it and GitHub would cancel
+# the pending ones anyway. cancel-in-progress means a freshly landed run
+# REPLACES the loop that is already holding the line -- which is exactly
+# what you want, because the new one starts by converging too.
 concurrency:
-  group: collect-${{ github.event.inputs.league || 'mlb' }}-${{ github.event.schedule || github.event.inputs.mode || github.event_name }}
-  cancel-in-progress: false
+  group: collect-${{ github.event.inputs.league || 'mlb' }}
+  cancel-in-progress: true
 
 jobs:
   collect:
     runs-on: ubuntu-latest
+    # ⚠️ Under GitHub's 6-hour ceiling with room to spare. The loop stops
+    # itself at LOOP_MINUTES; this is the backstop if it ever does not.
+    timeout-minutes: 350
     permissions:
       contents: write
 
@@ -141,52 +105,25 @@ jobs:
       - name: Decide what this run collects
         id: mode
         run: |
-          # 🔴 EVERY RUN IS ONE LEAGUE. A cron that does not name one is
-          # MLB, so every existing schedule keeps its exact behaviour and
-          # every existing path is untouched.
+          # 🔴 THERE IS NO LONGER A SCHEDULE-TO-MODE TABLE, AND ITS
+          # ABSENCE IS THE FIX. That table was the cron-owns-artifact
+          # design: every entry claimed one job, so a dropped entry meant
+          # a permanently missing file. `converge` asks the CONTRACT what
+          # is late instead of asking the clock what it is time for.
           echo "league=${{ github.event.inputs.league || 'mlb' }}" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "push" ]; then
-            echo "mode=refresh" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ github.event.inputs.mode || 'converge' }}" >> "$GITHUB_OUTPUT"
+            # A hand-dispatched job is a one-shot: no heartbeat loop, so
+            # a person debugging is not left with a 6-hour job running.
+            echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
           else
-            case "${{ github.event.schedule }}" in
-              # 🔴 A MODE CAN BE A LIST. The Collect step loops over it, so
-              # one cron does a whole time block. This cut the schedule from
-              # 29 entries to 16: GitHub drops individual scheduled runs, and
-              # a block that fires either does all of its work or none of it,
-              # instead of landing four of five pulls and building a card on
-              # the gap.
-              # -- game lines, hourly
-              "13 8-23 * * *")  echo "mode=gamelines" >> "$GITHUB_OUTPUT" ;;
-              "13 0-4 * * *")   echo "mode=gamelines" >> "$GITHUB_OUTPUT" ;;
-              # -- 4am block, Hard Rock only, then the card on its own run
-              "5 8 * * *")      echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
-              "35 8 * * *")     echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
-              "42 8 * * *")     echo "mode=card" >> "$GITHUB_OUTPUT" ;;
-              # -- 10am block, BOTH regions, then the card
-              "8 14 * * *")     echo "mode=props-pitcher props-batter props-board" >> "$GITHUB_OUTPUT" ;;
-              "38 14 * * *")    echo "mode=props-pitcher props-batter props-board" >> "$GITHUB_OUTPUT" ;;
-              "46 14 * * *")    echo "mode=card" >> "$GITHUB_OUTPUT" ;;
-              # -- 4pm block, Hard Rock only, then the card
-              "8 20 * * *")     echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
-              "38 20 * * *")    echo "mode=props-pitcher-hr props-batter-hr props-board" >> "$GITHUB_OUTPUT" ;;
-              "48 20 * * *")    echo "mode=card" >> "$GITHUB_OUTPUT" ;;
-              # -- free
-              "40 5 * * *")     echo "mode=results" >> "$GITHUB_OUTPUT" ;;
-              "2 6 * * *")      echo "mode=record" >> "$GITHUB_OUTPUT" ;;
-              "34 7 * * *")     echo "mode=results pitchers hitters record" >> "$GITHUB_OUTPUT" ;;
-              "52 8 * * *")     echo "mode=lineups" >> "$GITHUB_OUTPUT" ;;
-              "5 1,13,19 * * *") echo "mode=news" >> "$GITHUB_OUTPUT" ;;
-              # 🔴 NO DEFAULT MODE. This used to be `*) mode=gamelines`,
-              # which meant any cron somebody added and forgot to map here
-              # SILENTLY became a 6-credit gamelines pull writing the wrong
-              # file. An unmapped schedule is a bug, and it now says so.
-              *)
-                echo "::error::Unmapped schedule '${{ github.event.schedule }}' -- refusing to guess a mode."
-                exit 1
-                ;;
-            esac
+            echo "mode=converge" >> "$GITHUB_OUTPUT"
+            # push -> one pass; schedule -> hold the line for 5.5 hours.
+            if [ "${{ github.event_name }}" = "push" ]; then
+              echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
+            else
+              echo "loop_minutes=320" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       # 🔴 THE MODE IS A LIST AND A FAILURE IS DEFERRED, NOT FATAL HERE.
@@ -196,86 +133,120 @@ jobs:
       # ⛔ Do not turn this back into a bare `python collect.py`. That
       # aborts the step, skips `Commit snapshots`, and throws away paid
       # data to report an error the run would have reported anyway.
-      - name: Collect
+      # ══════════════════════════════════════════════════════════════
+      # THE HEARTBEAT LOOP
+      # ══════════════════════════════════════════════════════════════
+      # 🔴 ONE LANDED RUN NOW COVERS MOST OF A DAY. A scheduled job may
+      # run for six hours, so instead of exiting after one pass it
+      # converges, verifies, commits, sleeps, and converges again until
+      # it nears the limit. That is what makes a dropped cron survivable:
+      # the schedule has to drop ELEVEN OF TWELVE entries before the site
+      # goes out of contract.
+      #
+      # ⛔ THE COMMIT IS INSIDE THE LOOP, NOT A LATER STEP. A six-hour job
+      # that committed only at the end would publish nothing for six
+      # hours and lose everything if the runner died.
+      #
+      # ⚠️ Concurrency (above) uses cancel-in-progress: the next cron that
+      # lands REPLACES the loop still running rather than queueing behind
+      # it. Newest run wins; no pile-up.
+      - name: Converge and hold
         id: collect
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
           LEAGUE: ${{ steps.mode.outputs.league }}
           SEASON: ${{ github.event.inputs.season || '2025' }}
-          # ⛔ VIA env, NOT interpolated into the script body. The dispatch
-          # input reaches this string, and `${{ }}` inside `run:` is pasted
-          # as raw shell before bash ever sees it.
           MODES: ${{ steps.mode.outputs.mode }}
+          LOOP_MINUTES: ${{ steps.mode.outputs.loop_minutes }}
+          LEAGUE_NAME: ${{ steps.mode.outputs.league }}
         run: |
-          rc=0
-          for m in $MODES; do
-            echo "::group::collect $m"
-            if ! python collect.py "$m"; then
-              rc=1
-              echo "::error::mode '$m' failed"
-            fi
-            echo "::endgroup::"
-          done
-          echo "rc=$rc" >> "$GITHUB_OUTPUT"
-
-      # ⛔ MLB-ONLY STEPS. statsapi and all three verifiers are baseball.
-      # A football run must not invoke them, and the guard is the LEAGUE,
-      # not the mode -- `gamelines` exists in every league.
-      - name: Collect schedule (free, statsapi)
-        if: steps.mode.outputs.league == 'mlb' && contains(steps.mode.outputs.mode, 'gamelines')
-        run: python collect.py schedule
-
-      # 🔴 A card that fails its own checks is not published. verify_card.py
-      # recomputes every probability a second, independent way, re-counts
-      # every raw rate off the game log, and re-derives every multiplier
-      # from the prices. It exits non-zero on any failure, which fails the
-      # job BEFORE the commit step -- so a bad card never reaches the page.
-      - name: Verify the card
-        if: steps.mode.outputs.league == 'mlb' && (contains(steps.mode.outputs.mode, 'card') || contains(steps.mode.outputs.mode, 'refresh'))
-        run: python verify_card.py
-
-      - name: Commit snapshots
-        run: |
+          set -o pipefail
           git config user.name  "gizmos-collector"
           git config user.email "collector@users.noreply.github.com"
-          git add data/ picks/
-          if git diff --staged --quiet; then
-            echo "nothing new to commit"
-          else
-            git commit -m "collect[${{ steps.mode.outputs.league }}]: ${{ steps.mode.outputs.mode }} $(date -u +%Y-%m-%dT%H:%MZ)"
-            # Another run may have landed while this one was working.
-            for i in 1 2 3; do
-              git pull --rebase --autostash && git push && break
-              echo "push attempt $i failed, retrying"
-              sleep 5
+
+          DEADLINE=$(( $(date +%s) + LOOP_MINUTES * 60 ))
+          PASS=0
+          rc=0
+
+          while : ; do
+            PASS=$((PASS + 1))
+            echo "::group::converge pass $PASS"
+
+            pass_rc=0
+            for m in $MODES; do
+              # ⛔ NOT `python collect.py "$m" || exit`. A failing mode must
+              # never abort the pass -- paid data already on disk has to
+              # reach the repo. The failure is recorded and reported.
+              if ! python collect.py "$m"; then
+                pass_rc=1
+                rc=1
+                echo "::error::mode '$m' failed on pass $PASS"
+              fi
             done
-          fi
 
-      # 🔴 THIS RUNS *AFTER* THE COMMIT, AND THAT IS THE WHOLE POINT.
-      # verify_card.py blocks its commit because a bad card must never
-      # publish. The board check must NOT block, because the raw pull it
-      # is checking cost credits and cannot be bought back at any sane
-      # price. A failure here turns the job red -- visible -- with the
-      # snapshot already safely committed.
-      - name: Verify the board
-        if: steps.mode.outputs.league == 'mlb' && contains(steps.mode.outputs.mode, 'gamelines')
-        run: python verify_board.py
+            # 🔴 MLB-ONLY, AND GUARDED ON THE LEAGUE, NOT THE MODE.
+            # statsapi and all three verifiers are baseball.
+            if [ "$LEAGUE_NAME" = "mlb" ]; then
+              python collect.py schedule converge-off || true
 
-      # 🔴 THE TRACK RECORD IS AUDITED EVERY TIME IT IS BUILT.
-      # It re-grades every published pick from the stored box scores a
-      # SECOND way and compares. ⛔ Like the board check, this runs AFTER
-      # the commit: the record is derived and can be rebuilt, but a run
-      # that fails must not discard the data it was built from.
-      - name: Verify the track record
-        if: steps.mode.outputs.league == 'mlb' && (contains(steps.mode.outputs.mode, 'record') || contains(steps.mode.outputs.mode, 'refresh'))
-        run: python verify_record.py
+              # 🔴 A CARD THAT FAILS ITS OWN CHECKS IS NOT PUBLISHED.
+              # This is the one verifier that blocks the commit: a bad
+              # card must never reach the page. If it fails, the card
+              # file is reverted and everything else still commits.
+              if ! python verify_card.py; then
+                rc=1
+                echo "::error::verify_card failed on pass $PASS -- reverting the card only"
+                git checkout -- picks/ 2>/dev/null || true
+              fi
+            fi
 
-      # 🔴 THE DEFERRED FAILURE. Everything the run collected is committed
-      # and every verifier has spoken; only now does a failed pull turn the
-      # job red. ⛔ Keep this LAST.
-      - name: Fail if any collect mode failed
+            # --- publish this pass ---
+            git add data/ picks/
+            if git diff --staged --quiet; then
+              echo "pass $PASS: nothing new to commit"
+            else
+              git commit -q -m "collect[$LEAGUE_NAME]: converge pass $PASS $(date -u +%Y-%m-%dT%H:%MZ)"
+              for i in 1 2 3; do
+                git pull --rebase --autostash -q && git push -q && break
+                echo "push attempt $i failed, retrying"
+                sleep 5
+              done
+            fi
+
+            # 🔴 THESE RUN AFTER THE COMMIT, DELIBERATELY. The data they
+            # check cost credits and cannot be re-bought; a failure must
+            # turn the run red WITHOUT discarding the snapshot.
+            if [ "$LEAGUE_NAME" = "mlb" ]; then
+              python verify_board.py  || { rc=1; echo "::error::verify_board failed"; }
+              python verify_record.py || { rc=1; echo "::error::verify_record failed"; }
+            fi
+            echo "::endgroup::"
+
+            # 🔴 THE FRESHNESS GATE IS THE JOB'S REAL OUTPUT. If anything
+            # is still out of contract after a pass, that is the thing
+            # worth seeing on the Actions page -- not which mode ran.
+            python verify_freshness.py || { rc=1; echo "::error::out of contract"; }
+
+            NOW=$(date +%s)
+            if [ "$NOW" -ge "$DEADLINE" ]; then
+              echo "loop finished after $PASS pass(es)"
+              break
+            fi
+            SLEEP=900
+            LEFT=$(( DEADLINE - NOW ))
+            [ "$LEFT" -lt "$SLEEP" ] && SLEEP="$LEFT"
+            echo "sleeping ${SLEEP}s before the next pass"
+            sleep "$SLEEP"
+          done
+
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+
+      # 🔴 THE DEFERRED FAILURE. Everything is committed and every
+      # verifier has spoken; only now does a failure turn the job red.
+      # ⛔ Keep this LAST.
+      - name: Fail if any pass failed
         if: steps.collect.outputs.rc != '0'
         run: |
-          echo "::error::at least one collect mode failed -- see the Collect step"
+          echo "::error::at least one converge pass failed -- see the log"
           exit 1
