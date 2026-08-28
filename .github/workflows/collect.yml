@@ -56,6 +56,29 @@ on:
     # more than an hour.
     - cron: "9 */3 * * *"
 
+  # 🔴 RESTORED 2026-08-28 AFTER I DELETED IT BY ACCIDENT. The schedule
+  # rewrite replaced everything between `schedule:` and
+  # `workflow_dispatch:`, and this block was sitting in the middle of it.
+  # ⛔ Losing it would have broken exactly what Sam asked for: "when i
+  # submit our files you also update all of these tabs now as well." An
+  # upload would have been silent.
+  #
+  # ⚠️ A push now runs a FULL CONVERGE, not the old free-only `refresh`.
+  # That means an upload CAN spend credits -- deliberately, because the
+  # point is that submitting files brings the site current. The daily cap
+  # and the 45-minute props guard bound it; a second upload minutes later
+  # costs nothing.
+  push:
+    branches: [main]
+    paths:
+      - "collect.py"
+      - "card.py"
+      - "verify_card.py"
+      - "freshness.py"
+      - "verify_freshness.py"
+      - "index.html"
+      - ".github/workflows/collect.yml"
+
   workflow_dispatch:
     inputs:
       season:
@@ -67,9 +90,14 @@ on:
         required: false
         default: mlb
       mode:
-        description: "one mode, or several separated by spaces: card | record | refresh | lineups | gamelines | props-pitcher | props-batter | props-pitcher-hr | props-batter-hr | schedule | results | hitters | news | props-board | pitchers | nfl-probe | nfl-logs"
+        # ⚠️ LEAVE THIS AS `converge` unless you know why you are changing
+        # it. `converge` builds everything past its deadline, which is
+        # almost always what a hand-run is for. Naming a single mode still
+        # converges the rest as well -- add `converge-off` after it to run
+        # that one mode ALONE (used for nfl-logs).
+        description: "converge (default — build everything overdue) | or: card | record | gamelines | props-pitcher | props-batter | results | pitchers | hitters | lineups | news | nfl-logs converge-off"
         required: true
-        default: gamelines
+        default: converge
 
 # One queue PER MODE, not one queue for everything.
 # ⚠️ GitHub keeps a single pending run per concurrency group and CANCELS
@@ -102,6 +130,36 @@ jobs:
         with:
           python-version: "3.12"
 
+      # ══════════════════════════════════════════════════════════════
+      # THE TESTS RUN HERE, BEFORE ANY CREDIT IS SPENT
+      # ══════════════════════════════════════════════════════════════
+      # 🔴 A TEST SUITE THAT LIVES ON SAM'S LAPTOP IS A TEST SUITE THAT
+      # NEVER RUNS. Both of these have already caught real defects --
+      # the nightly phantom props pull at the UTC day boundary, and a
+      # deleted `push:` trigger that would have made every upload silent.
+      # Neither would have been caught by a human reading the diff.
+      #
+      # ⛔ ON A PUSH THIS BLOCKS. Someone just changed code; if the
+      # freshness logic is broken, the plan it produces is not to be
+      # trusted with money, so nothing is collected.
+      # ✅ ON A SCHEDULE IT DOES NOT BLOCK. The data still needs to
+      # arrive, and a failing test must not take the site down with it --
+      # the failure is recorded and turns the run red at the end.
+      - name: Tests
+        id: tests
+        continue-on-error: ${{ github.event_name != 'push' }}
+        run: |
+          rc=0
+          python test_freshness.py || rc=1
+          if [ -f test_banner.js ]; then
+            node test_banner.js || rc=1
+          else
+            echo "::warning::test_banner.js not in the repo — the page's own"
+            echo "::warning::staleness banner is going untested"
+          fi
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit $rc
+
       - name: Decide what this run collects
         id: mode
         run: |
@@ -120,6 +178,9 @@ jobs:
             echo "mode=converge" >> "$GITHUB_OUTPUT"
             # push -> one pass; schedule -> hold the line for 5.5 hours.
             if [ "${{ github.event_name }}" = "push" ]; then
+              # One pass, no heartbeat: an upload brings the site current
+              # immediately and then gets out of the way. The scheduled
+              # runs hold the line afterwards.
               echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
             else
               echo "loop_minutes=320" >> "$GITHUB_OUTPUT"
@@ -245,6 +306,12 @@ jobs:
       # 🔴 THE DEFERRED FAILURE. Everything is committed and every
       # verifier has spoken; only now does a failure turn the job red.
       # ⛔ Keep this LAST.
+      - name: Fail if the tests failed
+        if: steps.tests.outputs.rc != '0' && steps.tests.outputs.rc != ''
+        run: |
+          echo "::error::the test suite failed — see the Tests step"
+          exit 1
+
       - name: Fail if any pass failed
         if: steps.collect.outputs.rc != '0'
         run: |
