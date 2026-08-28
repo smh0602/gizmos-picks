@@ -275,6 +275,16 @@ def contract(data="data", picks="picks", now=None):
     ]
 
 
+# 🔴 SOFT ARTIFACTS — late, or failing, must not take the site down.
+# ⛔ Converge made every mode's failure everyone's failure: before this,
+# one dead news RSS feed turned the whole run red and, under the old
+# workflow, could stop the commit. These three are things a reader can
+# lose without being misled -- headlines, conditions, lineups. Odds, the
+# card and the track record are NOT here and never should be: those are
+# numbers someone bets on.
+SOFT = {"news", "weather", "lineups"}
+
+
 # 🔴 CASCADES. Refreshing an input INVALIDATES what was derived from it.
 # Without this a pass could pull brand-new props and still serve a card
 # priced off the old ones -- ledger rule 66 arriving by a different door.

@@ -2304,6 +2304,17 @@ def run_mode(mode):
 # ⛔ THIS IS WHY EVERY MODE NOW CONVERGES FIRST. A `gamelines` run that
 # also rebuilds the card is not a bug, it is the entire mechanism.
 
+def _record_failure(failed, soft_failed, mode, why):
+    """A SOFT mode's failure is reported and survived; everything else
+    turns the run red. ⛔ See freshness.SOFT for what may be lost."""
+    if mode in _fresh.SOFT:
+        log(f"WARNING: {mode} failed ({why}). It is a SOFT artifact — the "
+            f"run continues and the page will show it as late.")
+        soft_failed.append((mode, why))
+    else:
+        failed.append((mode, why))
+
+
 def converge(explicit=(), allow_paid=True):
     """Bring every artifact back inside its contract. Returns exit code."""
     modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
@@ -2311,10 +2322,11 @@ def converge(explicit=(), allow_paid=True):
     log("=" * 66)
     log("FRESHNESS SURVEY")
     for r in rows:
-        age = "MISSING" if r["missing"] else f"{r['age_min']:.0f}m"
-        mark = "STALE" if r["stale"] else "  ok "
-        log(f"  {mark}  {r['mode']:<14} age {age:>9}  "
-            f"contract {r['max_age_min']:>4}m  {'PAID' if r['paid'] else 'free'}")
+        age = "never built" if r["missing"] else f"{r['age_min']:.0f}m ago"
+        mark = "DUE  " if r["stale"] else " ok  "
+        late = f"  {r['late_min']:.0f}m LATE" if r["late_min"] else ""
+        log(f"  {mark}  {r['mode']:<14} built {age:>12}  "
+            f"due {r['due_et']:<20} {'PAID' if r['paid'] else 'free'}{late}")
 
     for m in explicit:
         if m not in modes:
@@ -2337,7 +2349,7 @@ def converge(explicit=(), allow_paid=True):
     log(f"credits spent today: {spent} of a {DAILY_CAP} daily cap "
         f"({MONTHLY_PLAN}/month)")
 
-    failed, skipped = [], []
+    failed, soft_failed, skipped = [], [], []
     for m in modes:
         # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
         # A single props cycle on a 15-game slate is ~120-240 credits, so
@@ -2360,9 +2372,9 @@ def converge(explicit=(), allow_paid=True):
             run_mode(m)
         except SystemExit as e:
             if e.code:
-                failed.append((m, f"exit {e.code}"))
+                _record_failure(failed, soft_failed, m, f"exit {e.code}")
         except Exception as e:
-            failed.append((m, f"{type(e).__name__}: {e}"))
+            _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}")
 
     rows2 = _fresh.survey(data=DATA, picks=PICKS)
     after = {r["mode"]: r for r in rows2}
@@ -2386,6 +2398,8 @@ def converge(explicit=(), allow_paid=True):
     if skipped:
         log(f"SKIPPED ON BUDGET: {' '.join(skipped)} "
             f"(spent {daily_spend()} of {DAILY_CAP})")
+    for m, why in soft_failed:
+        log(f"SOFT FAILURE (run stays green): {m} — {why}")
     if failed:
         for m, why in failed:
             log(f"FAILED: {m} — {why}")

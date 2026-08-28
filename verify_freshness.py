@@ -26,10 +26,9 @@ snapshot in place.
 import sys
 import freshness as F
 
-# Modes whose absence is expected outside the season / off a game day.
-# ⛔ Keep this list SHORT and justified. Every entry here is a way for the
-# site to be stale without anyone finding out.
-SOFT = {"news", "weather", "lineups"}
+# ⛔ ONE DEFINITION, in freshness.py — the gate and the collector must
+# never disagree about what may be lost.
+from freshness import SOFT
 
 
 def main():
