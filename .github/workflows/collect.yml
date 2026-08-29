@@ -263,8 +263,19 @@ jobs:
               # you do not have. The failing checks now land in a file
               # that gets committed with everything else.
               if ! python verify_card.py > /tmp/vc.txt 2>&1; then
-                rc=1
+                # 🔴 THE CARD IS REVERTED EITHER WAY. What `card_gate`
+                # decides is only whether this turns the RUN red.
+                # `[measured 2026-08-29]` Sam looked at T37, chose to leave
+                # the bar alone, and every run afterwards went red for a
+                # decision already made. ⛔ An alarm that fires every
+                # fifteen minutes gets ignored, and ignoring red is how the
+                # original staleness survived a whole day.
+                # ✅ A failure listed in `card-accepted.txt` — by Sam, in
+                # writing — warns. ANYTHING ELSE still fails the run.
                 echo "::error::verify_card failed on pass $PASS -- reverting the card only"
+                if ! python card_gate.py /tmp/vc.txt; then
+                  rc=1
+                fi
                 cat /tmp/vc.txt
                 mkdir -p data/latest
                 {
