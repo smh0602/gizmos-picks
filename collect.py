@@ -219,8 +219,23 @@ def write(path, obj, compress=False):
     d = os.path.dirname(path)
     os.makedirs(d, exist_ok=True)
     tmp = f"{path}.tmp.{os.getpid()}"
-    if isinstance(obj, dict) and not any(
-            obj.get(k) for k in _fresh.STAMP_FIELDS):
+    # 🔴 `written_at` IS ALWAYS REFRESHED. IT MEANS "WHEN THIS FILE WAS
+    # WRITTEN", SO IT CHANGES ON EVERY WRITE, BY DEFINITION.
+    # ⛔ THE BUG THIS FIXES, AND IT IS THE MTIME BUG'S COUSIN. The first
+    # version only stamped when NO stamp field was present. `scores`,
+    # `lineups` and `weather` are RESUMABLE CACHES -- they load the old
+    # document and write it back -- so the old `written_at` came along for
+    # the ride and the condition was never true again.
+    # `[measured 2026-08-29]` `scores.json.gz` was rewritten every 15
+    # minutes for 22 hours while reporting a `written_at` of
+    # **2026-08-28T18:07:43Z**. The freshness gate called it 1,333 minutes
+    # stale and the page showed a red bar, on a file that was being
+    # rebuilt constantly.
+    # ➡️ SAME CLASS AS THE MTIME BUG: the freshness signal did not track
+    # the actual write. ⚠️ An explicit `pulled_at` / `built_at` /
+    # `generated_at` still WINS AT READ TIME -- they mean "when the DATA
+    # is from", which is a different question and must not be overwritten.
+    if isinstance(obj, dict):
         obj = dict(obj, written_at=stamp())
 
     try:
@@ -2434,9 +2449,30 @@ def converge(explicit=(), allow_paid=True):
     # ⛔ the contract is defined in freshness.py and NOWHERE ELSE, so the
     # page cannot drift out of agreement with the checker the way two
     # copies of a number in this project always have.
+    # 🔴 "LATE" AND "REFUSED TO PUBLISH" ARE DIFFERENT THINGS AND THE PAGE
+    # MUST NOT CONFLATE THEM. `[measured 2026-08-29]` the card sat 140
+    # minutes past its 10:00 deadline because `verify_card` was FAILING it
+    # every pass -- and the banner said only "has not updated on
+    # schedule", which reads like slowness. ⛔ A reader who is told the
+    # machine is slow behaves differently from one told the card did not
+    # pass its own checks. The second is the more important fact.
+    _blocked = None
+    _bp = f"{LATEST}/card-verify-failure.txt"
+    if os.path.exists(_bp):
+        try:
+            with open(_bp, encoding="utf-8") as _fh:
+                _txt = _fh.read()
+            _fails = [l.strip() for l in _txt.splitlines()
+                      if l.strip().startswith("FAILURES:")]
+            _blocked = (_fails[0][9:].strip() if _fails
+                        else _txt.splitlines()[0])
+        except Exception:
+            _blocked = "the card did not pass its own checks"
+
     write(f"{LATEST}/freshness.json", {
         "built_at": stamp(),
         "kind": "DESCRIPTIVE",
+        "card_blocked": _blocked,
         "note": "How old every artifact on this site is, and how old it is "
                 "allowed to be. Published by the converge pass.",
         "ok": not still,

@@ -646,8 +646,23 @@ function renderStaleBanner(){
               : `${Math.round(v.late)} min late`;
     return `<span class="sb-item"><b>${t}</b> ${how} (due ${v.due} ET)</span>`;
   }).join('');
+  /* 🔴 A BLOCKED CARD IS NOT A LATE CARD, AND SAYING "late" WHEN THE
+     REAL ANSWER IS "it failed its own checks" MISLEADS THE READER.
+     `[measured 2026-08-29]` Gizmo's Picks sat 140 minutes past its
+     deadline because verify_card was REFUSING it every pass, and the
+     banner reported only slowness. ⛔ The reader deserves the difference:
+     one means wait, the other means the number was not trustworthy and
+     we declined to show it. */
+  const blocked = FRESH.card_blocked;
   bar.className = 'stalebar warn';
-  bar.innerHTML = `<b>Some of this has not updated on schedule.</b> ` +
+  bar.innerHTML =
+    (blocked
+      ? `<b>Gizmo's Picks is showing an earlier version.</b> Today's card ` +
+        `did not pass its own checks, so it was not published — you are ` +
+        `looking at the last one that did. ` +
+        `<span class="sb-item">${blocked}</span> `
+      : '') +
+    `<b>Some of this has not updated on schedule.</b> ` +
     `These tabs have missed their scheduled build, so the numbers on them ` +
     `may not reflect the current board: ${list}`;
 }
