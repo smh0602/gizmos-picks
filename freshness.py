@@ -201,6 +201,28 @@ def et_date(now=None):
 ET_OFFSET = datetime.timedelta(hours=4)
 
 
+def slate_date(now=None):
+    """The ET date of the slate `collect_results` last wrote.
+
+    🔴 NOT `et_date`. `collect_results` writes to `data/<et_slate_date>/`,
+    stepping back **ten** hours -- four for ET, six more so a 1am ET
+    finish still belongs to the previous night's slate. The contract was
+    probing `et_date`, four hours back, so between **04:00Z and 10:00Z**
+    the two disagreed and the contract looked in a directory the writer
+    had never used.
+    ⛔ MEASURED CONSEQUENCE: `results` read as MISSING for six hours every
+    night. Every converge pass in that window re-ran it and the freshness
+    gate reported the site out of contract. It is a free mode, so it cost
+    no credits -- it cost a NIGHTLY FALSE ALARM, which is worse, because
+    an alarm that fires every night gets ignored.
+    ⚠️ Found 2026-08-29 by `test_freshness.py`, but ONLY because the clock
+    had crossed midnight UTC. **The same suite passed all day.** A date
+    bug is invisible until you are standing inside its window.
+    """
+    now = now or datetime.datetime.now(UTC)
+    return (now - datetime.timedelta(hours=10)).strftime("%Y-%m-%d")
+
+
 def last_due(times_et, now=None):
     """The most recent scheduled build time that has already passed.
 
@@ -245,7 +267,7 @@ def contract(data="data", picks="picks", now=None):
         # ── 6:00am — grade last night, then rebuild what grading feeds
         ("scores",   ("file", f"{latest}/scores.json.gz"),         GRADING, False,
          "Track Record — last night's finals; self-healing, walks every missing date"),
-        ("results",  ("file", f"{data}/{day}/results/final.json.gz"), GRADING, False,
+        ("results",  ("file", f"{data}/{slate_date(now)}/results/final.json.gz"), GRADING, False,
          "Track Record — the finished slate the grader reads"),
         ("pitchers", ("file", f"{latest}/pitchers.json.gz"),       GRADING, False,
          "Trends — pitcher game logs, every model input"),

@@ -22,7 +22,8 @@ def build(root, ages_min, no_stamp=(), corrupt=()):
     day, uday = F.et_date(now), now.strftime("%Y-%m-%d")
     os.makedirs(f"{root}/data/latest", exist_ok=True)
     os.makedirs(f"{root}/picks", exist_ok=True)
-    os.makedirs(f"{root}/data/{uday}/results", exist_ok=True)
+    # 🔴 THE SLATE DATE, NOT THE UTC DATE — see freshness.slate_date.
+    os.makedirs(f"{root}/data/{F.slate_date(now)}/results", exist_ok=True)
 
     def ts(mode):
         return (now - datetime.timedelta(minutes=ages_min.get(mode, 0))
@@ -44,7 +45,7 @@ def build(root, ages_min, no_stamp=(), corrupt=()):
     put(f"{L}/weather.json.gz", "weather")
     put(f"{L}/news.json", "news")
     put(f"{L}/record.json", "record")
-    put(f"{root}/data/{uday}/results/final.json.gz", "results")
+    put(f"{root}/data/{F.slate_date(now)}/results/final.json.gz", "results")
     put(f"{root}/picks/{day}.json", "card")
 
     for kind in ("props-pitcher", "props-batter"):
@@ -226,6 +227,18 @@ def check_workflow():
 def check_converge():
     import importlib
     os.environ.setdefault("ODDS_API_KEY", "test")
+    # 🔴 PINNED TO MLB, AND THE REASON MATTERS. `converge` is an MLB-only
+    # concept -- `collect.main()` sends every other league down the
+    # `converge-off` path -- but this test imports `collect`, which reads
+    # LEAGUE from the environment AT IMPORT. On a football dispatch the
+    # runner has LEAGUE=nfl, so `collect` pointed at `data/nfl/latest`
+    # while this test looked for the report under `data/latest`, and the
+    # whole suite failed with FileNotFoundError.
+    # ⛔ THAT WAS THE TEST BEING WRONG, NOT THE COLLECTOR: `write()`
+    # creates its own directories and production never calls converge for
+    # a non-MLB league. **A suite that fails on a correct run is worse
+    # than no suite — it teaches you to ignore red.**
+    os.environ["LEAGUE"] = "mlb"
     root = tempfile.mkdtemp()
     build(f"{root}/x", {"props-pitcher": 900, "card": 24 * 60})
     cwd = os.getcwd()
