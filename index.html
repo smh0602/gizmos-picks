@@ -622,7 +622,14 @@ function renderStaleBanner(){
     return;
   }
   const bad = FRESH.artifacts.filter(a => a.stale);
-  if (!bad.length){ bar.className = 'stalebar'; bar.innerHTML = ''; return; }
+  /* 🔴 A BLOCKED CARD MUST SHOW EVEN WHEN NOTHING READS AS STALE.
+     `[measured 2026-08-29]` `card_blocked` was set and the banner still
+     went hidden, because this early return only looked at `stale`. The
+     page served a five-hour-old card and said nothing. ⛔ Being refused
+     is its own condition and does not depend on any age. */
+  if (!bad.length && !FRESH.card_blocked){
+    bar.className = 'stalebar'; bar.innerHTML = ''; return;
+  }
   /* 🔴 NAMED BY TAB, NOT BY MODE. A reader does not know what
      "props-batter" is; they know which tab they are looking at. */
   const TAB_OF = {
@@ -662,9 +669,11 @@ function renderStaleBanner(){
         `looking at the last one that did. ` +
         `<span class="sb-item">${blocked}</span> `
       : '') +
-    `<b>Some of this has not updated on schedule.</b> ` +
-    `These tabs have missed their scheduled build, so the numbers on them ` +
-    `may not reflect the current board: ${list}`;
+    (bad.length
+      ? `<b>Some of this has not updated on schedule.</b> ` +
+        `These tabs have missed their scheduled build, so the numbers on ` +
+        `them may not reflect the current board: ${list}`
+      : '');
 }
 
 function freshness(iso){

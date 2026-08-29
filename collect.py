@@ -2176,7 +2176,7 @@ def run_mode(mode):
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
-            "nfl-probe", "nfl-logs")
+            "nfl-probe", "nfl-logs", "freshness")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2251,6 +2251,12 @@ def run_mode(mode):
                     f"Known: {sorted(PROP_MARKETS)}")
                 sys.exit(1)
             left = collect_props("player")
+        elif mode == "freshness":
+            # 🔴 REPUBLISH THE REPORT AGAINST WHAT IS ON DISK RIGHT NOW.
+            # Called by the workflow AFTER verify_card has had its say, so
+            # a reverted card is described as reverted.
+            write_freshness()
+            left = None
         elif mode == "props-board":
             left = collect_props_board()
         elif mode == "nfl-logs":
@@ -2378,6 +2384,57 @@ def _record_failure(failed, soft_failed, mode, why):
         failed.append((mode, why))
 
 
+def write_freshness(rows=None, still=None):
+    """Publish the freshness report the PAGE reads.
+
+    🔴 THIS MUST RUN AFTER THE CARD REVERT, NOT BEFORE, AND THAT IS THE
+    WHOLE REASON IT IS A SEPARATE FUNCTION.
+    `[measured 2026-08-29]` converge wrote this report while the freshly
+    built card was still on disk, and only afterwards did `verify_card`
+    fail and `git checkout -- picks/` throw that card away. So the report
+    said **card age 0.0m, stale=false** while the PUBLISHED card was five
+    hours old.
+    ⛔ THAT IS THE SILENT-STALENESS FAILURE THIS ENTIRE SYSTEM EXISTS TO
+    PREVENT, REINTRODUCED BY MY OWN REVERT MECHANISM. The page looked
+    perfectly healthy while serving a card nobody had published.
+    ➡️ The workflow now calls this again after the revert, so the report
+    describes what is ACTUALLY on disk rather than what was there a
+    moment earlier.
+    """
+    rows = rows if rows is not None else _fresh.survey(data=DATA, picks=PICKS)
+    still = still if still is not None else [r["mode"] for r in rows
+                                             if r["stale"]]
+    # 🔴 "LATE" AND "REFUSED TO PUBLISH" ARE DIFFERENT THINGS AND THE PAGE
+    # MUST NOT CONFLATE THEM. `[measured 2026-08-29]` the card sat 140
+    # minutes past its 10:00 deadline because `verify_card` was FAILING it
+    # every pass -- and the banner said only "has not updated on
+    # schedule", which reads like slowness. ⛔ A reader who is told the
+    # machine is slow behaves differently from one told the card did not
+    # pass its own checks. The second is the more important fact.
+    _blocked = None
+    _bp = f"{LATEST}/card-verify-failure.txt"
+    if os.path.exists(_bp):
+        try:
+            with open(_bp, encoding="utf-8") as _fh:
+                _txt = _fh.read()
+            _fails = [l.strip() for l in _txt.splitlines()
+                      if l.strip().startswith("FAILURES:")]
+            _blocked = (_fails[0][9:].strip() if _fails
+                        else _txt.splitlines()[0])
+        except Exception:
+            _blocked = "the card did not pass its own checks"
+
+    write(f"{LATEST}/freshness.json", {
+        "built_at": stamp(),
+        "kind": "DESCRIPTIVE",
+        "card_blocked": _blocked,
+        "note": "How old every artifact on this site is, and how old it is "
+                "allowed to be. Published by the converge pass.",
+        "ok": not still,
+        "artifacts": rows,
+    })
+
+
 def converge(explicit=(), allow_paid=True):
     """Bring every artifact back inside its contract. Returns exit code."""
     modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
@@ -2442,6 +2499,7 @@ def converge(explicit=(), allow_paid=True):
     rows2 = _fresh.survey(data=DATA, picks=PICKS)
     after = {r["mode"]: r for r in rows2}
     still = [m for m, r in after.items() if r["stale"]]
+    write_freshness(rows2, still)
 
     # 🔴 THE PAGE MUST BE ABLE TO SAY HOW OLD IT IS. Sam had to ask why
     # the board looked wrong; the site itself said nothing, because
@@ -2449,35 +2507,7 @@ def converge(explicit=(), allow_paid=True):
     # ⛔ the contract is defined in freshness.py and NOWHERE ELSE, so the
     # page cannot drift out of agreement with the checker the way two
     # copies of a number in this project always have.
-    # 🔴 "LATE" AND "REFUSED TO PUBLISH" ARE DIFFERENT THINGS AND THE PAGE
-    # MUST NOT CONFLATE THEM. `[measured 2026-08-29]` the card sat 140
-    # minutes past its 10:00 deadline because `verify_card` was FAILING it
-    # every pass -- and the banner said only "has not updated on
-    # schedule", which reads like slowness. ⛔ A reader who is told the
-    # machine is slow behaves differently from one told the card did not
-    # pass its own checks. The second is the more important fact.
-    _blocked = None
-    _bp = f"{LATEST}/card-verify-failure.txt"
-    if os.path.exists(_bp):
-        try:
-            with open(_bp, encoding="utf-8") as _fh:
-                _txt = _fh.read()
-            _fails = [l.strip() for l in _txt.splitlines()
-                      if l.strip().startswith("FAILURES:")]
-            _blocked = (_fails[0][9:].strip() if _fails
-                        else _txt.splitlines()[0])
-        except Exception:
-            _blocked = "the card did not pass its own checks"
 
-    write(f"{LATEST}/freshness.json", {
-        "built_at": stamp(),
-        "kind": "DESCRIPTIVE",
-        "card_blocked": _blocked,
-        "note": "How old every artifact on this site is, and how old it is "
-                "allowed to be. Published by the converge pass.",
-        "ok": not still,
-        "artifacts": rows2,
-    })
     log("=" * 66)
     if skipped:
         log(f"SKIPPED ON BUDGET: {' '.join(skipped)} "

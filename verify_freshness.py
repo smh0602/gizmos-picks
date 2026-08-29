@@ -23,6 +23,7 @@ should show. This turns the run red so it is visible, and leaves the
 snapshot in place.
 """
 
+import os
 import sys
 import freshness as F
 
@@ -33,9 +34,29 @@ from freshness import SOFT
 
 def main():
     rows = F.survey()
+
+    # 🔴 A REFUSED CARD IS A KNOWN STATE, NOT AN UNKNOWN FAILURE.
+    # `[measured 2026-08-29]` `verify_card` blocked the card on T37 and
+    # every converge pass afterwards went red — **22 consecutive red runs
+    # for a decision that had already been made and recorded.**
+    # ⛔ AN ALARM THAT FIRES EVERY FIFTEEN MINUTES GETS IGNORED, AND
+    # IGNORING RED IS EXACTLY HOW THE ORIGINAL STALENESS SURVIVED A WHOLE
+    # DAY. Sam had to notice the site was wrong and ask.
+    # ✅ THE GATE'S JOB IS TO CATCH STALENESS NOBODY KNOWS ABOUT. When the
+    # card is late *because it was refused*, the reason is written to
+    # `card-verify-failure.txt`, published in `freshness.json`, and shown
+    # on the page in plain words. That is the opposite of unknown.
+    # ⚠️ NARROW ON PURPOSE — it downgrades ONLY the card, ONLY while the
+    # failure file exists. A card late for ANY OTHER reason still fails,
+    # and so does every other artifact.
+    refused = os.path.exists("data/latest/card-verify-failure.txt")
+
     hard, soft = [], []
     for r in rows:
         if not r["stale"]:
+            continue
+        if r["mode"] == "card" and refused:
+            soft.append(r)
             continue
         (soft if r["mode"] in SOFT else hard).append(r)
 
@@ -48,6 +69,18 @@ def main():
         print(f"  {mark}  {r['mode']:<14} {age:>9}  due {r['due_et']:<14}"
               f"{late}   {r['why']}")
     print("=" * 70)
+
+    if refused and any(r["mode"] == "card" for r in soft):
+        try:
+            with open("data/latest/card-verify-failure.txt",
+                      encoding="utf-8") as fh:
+                why = [l for l in fh if l.startswith("FAILURES:")]
+            why = why[0][9:].strip() if why else "see card-verify-failure.txt"
+        except Exception:
+            why = "see card-verify-failure.txt"
+        print(f"::warning::the card was REFUSED, not merely late — {why}")
+        print( "::warning::the page says so on its face; this is a known "
+               "state and does not fail the run")
 
     for r in soft:
         print(f"::warning::{r['mode']} has missed its {r['due_et']} build "
