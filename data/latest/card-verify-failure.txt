@@ -1,11 +1,11 @@
-verify_card FAILED at 2026-08-29T13:58:01Z
-pass 4 of run 222
+verify_card FAILED at 2026-08-29T14:08:00Z
+pass 1 of run 223
 --- the failing checks ---
-  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (20 of 349 pooled priced rows = 5.7%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (20 of 349 pooled priced rows = 5.7%)
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (20 of 348 pooled priced rows = 5.7%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (20 of 348 pooled priced rows = 5.7%)
 --- last 60 lines ---
-  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (20 of 349 pooled priced rows = 5.7%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
-  NOTE  T37: hitter at 80%+ NOT YET MEASURABLE -- 0 of 34 pooled rows, bar needs 100. This card 0 of 15.
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (20 of 348 pooled priced rows = 5.7%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+  NOTE  T37: hitter at 80%+ NOT YET MEASURABLE -- 0 of 35 pooled rows, bar needs 100. This card 0 of 16.
   NOTE  carded hitter rows only: 2 of 25 contradict at 70%+ (8.0%) -- carding selects high-confidence rows, so this is NOT the T37 population
   PASS no hitter projection matches the UNFILTERED log better than the point-in-time one (0 separable row(s))  []
 
@@ -63,4 +63,4 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (20 of 349 pooled p
   PASS every flag that reaches the page is marked actionable
   PASS no model diagnostic is marked for display  []
 
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (20 of 349 pooled priced rows = 5.7%)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (20 of 348 pooled priced rows = 5.7%)
