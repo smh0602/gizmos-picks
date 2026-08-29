@@ -206,6 +206,20 @@ def check_workflow():
         print(f"  [{'OK  ' if guarded else 'LOOSE'}] {cmd} runs only for MLB")
         ok &= guarded
 
+    # 🔴 THE ACCEPTED-FAILURE GATE MUST STAY WIRED IN AND HONEST.
+    # If `card_gate.py` stops being called, every card failure turns the
+    # run red again; if `card-accepted.txt` goes missing, an accepted
+    # failure silently becomes unaccepted. Neither shows up as an error.
+    for need, why in (("card_gate.py", "the accepted-failure gate is called"),
+                      ("verify_card.py", "the card is still verified")):
+        got = need in text
+        print(f"  [{'OK  ' if got else 'GONE'}] {why}")
+        ok &= got
+    import os as _os
+    got = _os.path.exists("card-accepted.txt")
+    print(f"  [{'OK  ' if got else 'GONE'}] card-accepted.txt exists")
+    ok &= got
+
     # every cron must map to something the runner understands
     crons = re.findall(r'- cron: "([^"]+)"', on)
     print(f"  [{'OK  ' if crons else 'GONE'}] {len(crons)} cron entries present")
