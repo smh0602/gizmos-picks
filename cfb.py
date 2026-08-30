@@ -1,29 +1,33 @@
-"""COLLEGE FOOTBALL — CAN CFBD GIVE US THE SAME 29 FIELDS AS THE NFL?
+"""COLLEGE FOOTBALL PARITY PROBE — v2, STRICT.
 
-🔴 THIS FILE WRITES NO DATA. It is a PARITY CHECK.
+🔴 WHY v2 EXISTS: v1 LIED, AND IT LIED IN THE COMFORTABLE DIRECTION.
+`[measured 2026-08-30, run #234]` v1 reported **"20 of 28 NFL fields have
+a plausible college source."** ⛔ **TEN OF THOSE TWENTY WERE FALSE.**
+Its matcher was a loose substring test, so:
 
-Sam, 2026-08-30: *"i want the SAME EXACT stats and data pulled for cfb as
-we did for the nfl."* ✅ That is the right requirement — a football board
-that means one thing for the NFL and something else for college is worse
-than no board. **So this probe does not ask "what does CFBD have?" It
-asks, field by field, "does CFBD have THIS?"** and reports every gap.
+    snaps    <- games:['playoff']       "play" inside "playOFF"
+    att      <- games:['attendance']    "att" inside "ATTendance"
+    int      <- games:['awayPoints']    "int" inside "poINTs"
+    rec      <- roster:['recruitIds']   "rec" inside "RECruitIds"
+    pass_td  <- games:['startDate']     "td"  inside "starTDate"
+    wx       <- teams:['location.dome'] a stadium attribute, not weather
 
-⛔ IT DOES NOT GUESS. Every football bug this project shipped came from
-parsing a REMEMBERED schema instead of a measured one:
-  - `stats_player_reg` (season TOTALS) nearly fitted as weekly
-  - a name join matching **0 of 1,848** players
-  - `ahead_out` **constant zero on 19,400 rows**, on a green run
-  - "route participation is not published" — from page ONE of a
-    paginated list. It is published, for every season we have.
+⛔ **A CHECK THAT GIVES FALSE COMFORT IS WORSE THAN NO CHECK.** The whole
+project rule is that a green run is not a verified run; v1 was a green
+run. **The real parity number was nearer 10 of 28.**
 
-⚠️ AND THE LIKELIEST FINDING, STATED BEFORE THE RUN SO IT CANNOT BE
-DRESSED UP AFTERWARDS: **college football has no mandated injury
-report.** The NFL requires one; the NCAA does not. If that holds, FOUR of
-our fields -- `inj`, `ahead_out`, `ol_out`, `opp_dl_out` -- have no
-college equivalent at all. **That is a structural difference between the
-sports, not a sourcing problem, and no amount of API hunting fixes it.**
-🔴 **If it is true, the CFB board must SAY it is missing them rather than
-quietly showing a thinner product that looks the same.**
+✅ v2 fixes two things:
+  1. **STRICT MATCHING.** A field is satisfied by a column whose name
+     matches a NAMED CANDIDATE, not by a substring collision.
+  2. **IT DESCENDS.** `/games/players` nests the real box score under
+     `teams.categories.types.athletes` and v1 never opened it — so it
+     judged college on the wrapper instead of the data.
+
+⚠️ THREE FINDINGS FROM v1 THAT STAND, because they came from HTTP codes
+and not from string matching:
+  - `/player/injuries` -> **HTTP 404. THE ENDPOINT DOES NOT EXIST.**
+  - `/games/weather`   -> **HTTP 401. PAID TIER.**
+  - Power 4 -> ACC · Big 12 · Big Ten · SEC = **67 teams.** ✅
 """
 
 import json
@@ -36,79 +40,48 @@ API = "https://api.collegefootballdata.com"
 KEY = os.environ.get("CFBD_API_KEY", "").strip()
 POWER4 = {"SEC", "Big Ten", "ACC", "Big 12"}
 
-# 🔴 THE TARGET. Every per-game field the NFL layer produces, and what it
-# is for. ⛔ Do not trim this list to make the result look better.
-#   (field, group, what it is)
-TARGET = [
-    ("d",            "context", "game date"),
-    ("week",         "context", "week number"),
-    ("team",         "context", "his team"),
-    ("o",            "context", "opponent"),
-    ("home",         "context", "home or away"),
-    ("game_id",      "context", "join key"),
-    ("snaps",        "DEPTH",   "offensive snaps -- the depth-rank foundation"),
-    ("snap_pct",     "DEPTH",   "share of his team's snaps"),
-    ("tgt_share",    "DEPTH",   "share of team targets"),
-    ("ay_share",     "DEPTH",   "share of team air yards"),
-    ("att",          "box",     "pass attempts"),
-    ("cmp",          "box",     "completions"),
-    ("pass_yds",     "box",     "passing yards"),
-    ("pass_td",      "box",     "passing TDs"),
-    ("int",          "box",     "interceptions"),
-    ("car",          "box",     "carries"),
-    ("rush_yds",     "box",     "rushing yards"),
-    ("rush_td",      "box",     "rushing TDs"),
-    ("tgt",          "box",     "targets"),
-    ("rec",          "box",     "receptions"),
-    ("rec_yds",      "box",     "receiving yards"),
-    ("rec_td",       "box",     "receiving TDs"),
-    ("ay",           "box",     "air yards"),
-    ("inj",          "INJURY",  "injury designation"),
-    ("ahead_out",    "INJURY",  "a higher-usage teammate is OUT"),
-    ("ol_out",       "INJURY",  "his own linemen missing"),
-    ("opp_dl_out",   "INJURY",  "opposing rushers missing"),
-    ("wx",           "weather", "roof / surface / temp / wind"),
-]
-
-# Words that would satisfy each field, matched against real column names.
-WORDS = {
-    "d": ("date", "start"), "week": ("week",), "team": ("team", "school"),
-    "o": ("opponent", "defense", "away", "home"), "home": ("home", "site"),
-    "game_id": ("game", "id"),
-    "snaps": ("snap", "play", "participation"),
-    "snap_pct": ("snap", "usage", "percent", "share", "overall"),
-    "tgt_share": ("target", "usage", "share"),
-    "ay_share": ("air", "share"),
-    "att": ("attempt", "att"), "cmp": ("completion", "cmp"),
-    "pass_yds": ("passing", "pass"), "pass_td": ("td", "touchdown"),
-    "int": ("int", "interception"),
-    "car": ("carr", "rushing", "att"), "rush_yds": ("rushing", "rush"),
-    "rush_td": ("td", "touchdown"),
-    "tgt": ("target",), "rec": ("rec", "reception"),
-    "rec_yds": ("receiving", "rec"), "rec_td": ("td", "touchdown"),
-    "ay": ("air",),
-    "inj": ("injur", "status", "availab"),
-    "ahead_out": ("injur", "status"), "ol_out": ("injur", "status"),
-    "opp_dl_out": ("injur", "status"),
-    "wx": ("weather", "temp", "wind", "precip", "dome", "surface"),
+# 🔴 NAMED CANDIDATES, NOT SUBSTRINGS. A column satisfies a field only by
+# matching one of these exactly (case-insensitive, punctuation stripped).
+# ⛔ Adding a loose entry here re-creates the v1 bug.
+WANT = {
+    "d":         ["startdate", "starttime", "gamedate", "date"],
+    "week":      ["week"],
+    "team":      ["team", "school"],
+    "o":         ["opponent", "awayteam", "hometeam", "defense"],
+    "home":      ["homeaway", "home", "neutralsite"],
+    "game_id":   ["gameid", "id"],
+    "snaps":     ["snaps", "offensesnaps", "plays", "participation"],
+    "snap_pct":  ["snappct", "snapshare", "usageoverall", "usage"],
+    "tgt_share": ["targetshare", "usagepass", "targets"],
+    "ay_share":  ["airyardsshare", "airyards"],
+    "att":       ["att", "attempts", "passattempts", "completionsattempts"],
+    "cmp":       ["cmp", "completions", "completionsattempts"],
+    "pass_yds":  ["yds", "passingyards", "yards"],
+    "pass_td":   ["td", "tds", "passingtouchdowns", "touchdowns"],
+    "int":       ["int", "ints", "interceptions"],
+    "car":       ["car", "carries", "rushingattempts"],
+    "rush_yds":  ["yds", "rushingyards", "yards"],
+    "rush_td":   ["td", "tds", "rushingtouchdowns", "touchdowns"],
+    "tgt":       ["targets", "tar"],
+    "rec":       ["rec", "receptions"],
+    "rec_yds":   ["yds", "receivingyards", "yards"],
+    "rec_td":    ["td", "tds", "receivingtouchdowns", "touchdowns"],
+    "ay":        ["airyards"],
+    "inj":       ["injury", "injurystatus", "status", "availability"],
+    "ahead_out": ["injury", "status"],
+    "ol_out":    ["injury", "status"],
+    "opp_dl_out": ["injury", "status"],
+    "wx":        ["temperature", "temp", "windspeed", "precipitation",
+                  "weathercondition", "humidity"],
 }
+GROUP = {**{k: "context" for k in ("d", "week", "team", "o", "home", "game_id")},
+         **{k: "DEPTH" for k in ("snaps", "snap_pct", "tgt_share", "ay_share")},
+         **{k: "INJURY" for k in ("inj", "ahead_out", "ol_out", "opp_dl_out")},
+         "wx": "weather"}
 
-PROBES = [
-    ("teams",         "/teams/fbs",           {"year": "2025"}),
-    ("games",         "/games",               {"year": "2025", "week": "3",
-                                               "seasonType": "regular"}),
-    ("weather",       "/games/weather",       {"year": "2025", "week": "3"}),
-    ("player game",   "/games/players",       {"year": "2025", "week": "3",
-                                               "seasonType": "regular"}),
-    ("player usage",  "/player/usage",        {"year": "2025"}),
-    ("season stats",  "/stats/player/season", {"year": "2025",
-                                               "category": "receiving"}),
-    ("play by play",  "/plays",               {"year": "2025", "week": "3",
-                                               "seasonType": "regular"}),
-    ("injuries?",     "/player/injuries",     {"year": "2025"}),
-    ("roster",        "/roster",              {"year": "2025",
-                                               "team": "Alabama"}),
-]
+
+def norm(s):
+    return "".join(c for c in str(s).lower() if c.isalnum())
 
 
 def log(m):
@@ -117,132 +90,132 @@ def log(m):
 
 def get(path, params, timeout=60):
     q = "&".join(f"{k}={v}" for k, v in (params or {}).items())
-    url = f"{API}{path}" + (f"?{q}" if q else "")
-    req = urllib.request.Request(url, headers={
-        "Authorization": f"Bearer {KEY}",
-        "Accept": "application/json",
-        "User-Agent": "gizmos-picks/0.1"})
+    req = urllib.request.Request(
+        f"{API}{path}" + (f"?{q}" if q else ""),
+        headers={"Authorization": f"Bearer {KEY}",
+                 "Accept": "application/json",
+                 "User-Agent": "gizmos-picks/0.1"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
 
-def flat_keys(rows, depth=0):
-    """Column names, descending one level into nested lists/dicts --
-    CFBD nests player stats inside teams inside categories."""
+def dig(o, depth=0, cap=8):
+    """EVERY leaf key, all the way down. v1 stopped at 3 and missed the
+    box score entirely."""
     keys = set()
-    if isinstance(rows, dict):
-        rows = [rows]
-    for r in (rows or [])[:40]:
-        if not isinstance(r, dict):
-            continue
-        for k, v in r.items():
-            keys.add(k)
-            if depth < 3 and isinstance(v, (list, dict)):
-                keys |= {f"{k}.{s}" for s in flat_keys(v, depth + 1)}
+    if depth > cap:
+        return keys
+    if isinstance(o, dict):
+        for k, v in o.items():
+            keys.add(str(k))
+            keys |= dig(v, depth + 1, cap)
+    elif isinstance(o, list):
+        for x in o[:25]:
+            keys |= dig(x, depth + 1, cap)
     return keys
 
 
 def probe(log=log):
     if not KEY:
-        log("FATAL: CFBD_API_KEY is not set. Add it as a repository secret.")
+        log("FATAL: CFBD_API_KEY is not set.")
         return False
 
     log("=" * 72)
-    log("CFBD PARITY PROBE — can college give us the SAME 29 NFL fields?")
+    log("CFBD PARITY PROBE v2 — STRICT. v1 reported 20/28 and 10 were FALSE.")
     log("=" * 72)
 
-    found, failures = {}, []
+    found, fails = {}, []
+    PROBES = [
+        ("games",       "/games",         {"year": "2025", "week": "3",
+                                           "seasonType": "regular"}),
+        ("player game", "/games/players", {"year": "2025", "week": "3",
+                                           "seasonType": "regular"}),
+        ("usage",       "/player/usage",  {"year": "2025"}),
+        ("plays",       "/plays",         {"year": "2025", "week": "3",
+                                           "seasonType": "regular"}),
+    ]
     for name, path, params in PROBES:
-        log(f"\n=== {name}  {path}  {params} ===")
+        log(f"\n=== {name} {path} ===")
         try:
             rows = get(path, params)
         except urllib.error.HTTPError as e:
-            log(f"    HTTP {e.code} {e.reason}"
-                + ("   <- endpoint does not exist or needs a paid tier"
-                   if e.code in (401, 403, 404) else ""))
-            failures.append((name, f"HTTP {e.code}"))
+            log(f"    HTTP {e.code} {e.reason}")
+            fails.append((name, e.code))
             continue
         except Exception as e:
             log(f"    {type(e).__name__}: {e}")
-            failures.append((name, type(e).__name__))
+            fails.append((name, type(e).__name__))
             continue
-        n = len(rows) if isinstance(rows, list) else 1
-        keys = flat_keys(rows)
-        found[name] = keys
-        log(f"    {n:,} rows, {len(keys)} distinct columns")
-        log(f"    columns: {sorted(keys)[:45]}")
-        if not n:
-            log("    ⛔ EMPTY — a fact about THIS query (year/week), not "
-                "proof the endpoint has nothing")
+        found[name] = dig(rows)
+        log(f"    {len(rows) if isinstance(rows,list) else 1:,} rows, "
+            f"{len(found[name])} keys AT EVERY DEPTH")
+        log(f"    keys: {sorted(found[name])[:60]}")
 
-    # ---- FIELD BY FIELD -------------------------------------------------
+    # 🔴 THE THING v1 NEVER OPENED. Print one real athlete stat line.
     log("\n" + "=" * 72)
-    log("PARITY — every NFL field, and where college would get it")
-    log("=" * 72)
-    missing, weak = [], []
-    for field, group, what in TARGET:
-        words = WORDS.get(field, (field,))
-        hits = []
-        for src, keys in found.items():
-            m = [k for k in keys
-                 if any(w in k.lower() for w in words)]
-            if m:
-                hits.append(f"{src}:{sorted(m)[:3]}")
-        if hits:
-            log(f"  ok    {field:<12} [{group:<7}] {hits[0][:88]}")
-        else:
-            log(f"  ⛔ NO  {field:<12} [{group:<7}] {what}")
-            missing.append((field, group, what))
+    log("INSIDE /games/players — where the box score actually lives")
+    try:
+        rows = get("/games/players", {"year": "2025", "week": "3",
+                                      "seasonType": "regular"})
+        shown = 0
+        for g in rows if isinstance(rows, list) else []:
+            for t in g.get("teams", []):
+                for cat in t.get("categories", []):
+                    for typ in cat.get("types", []):
+                        for a in (typ.get("athletes") or [])[:1]:
+                            if shown >= 12:
+                                break
+                            log(f"    category={cat.get('name'):<12} "
+                                f"stat={typ.get('name'):<8} "
+                                f"athlete={json.dumps(a)[:110]}")
+                            shown += 1
+        if not shown:
+            log("    ⛔ NOTHING NESTED — the box score is not here after all")
+    except Exception as e:
+        log(f"    {type(e).__name__}: {e}")
 
-    # ---- THE VERDICT ----------------------------------------------------
+    # ---- strict parity --------------------------------------------------
+    log("\n" + "=" * 72)
+    log("PARITY — STRICT. A field is 'ok' only on a NAMED column match.")
+    log("=" * 72)
+    missing = []
+    for field, cands in WANT.items():
+        grp = GROUP.get(field, "box")
+        hit = None
+        for src, keys in found.items():
+            m = [k for k in keys if norm(k) in cands]
+            if m:
+                hit = f"{src}:{sorted(m)[:3]}"
+                break
+        if hit:
+            log(f"  ok    {field:<12} [{grp:<7}] {hit[:80]}")
+        else:
+            log(f"  NO    {field:<12} [{grp:<7}]")
+            missing.append((field, grp))
+
     log("\n" + "=" * 72)
     log("VERDICT")
-    depth_missing = [f for f, g, _ in missing if g == "DEPTH"]
-    inj_missing = [f for f, g, _ in missing if g == "INJURY"]
-
-    if depth_missing:
-        log(f"  🔴 DEPTH RANK IS AT RISK — missing {depth_missing}")
-        log("     The NFL WR1/WR2/WR3 split rests on SNAP SHARE. Without a")
-        log("     per-game snap number, depth rank must come from TARGETS or")
-        log("     CARRIES per game, which is a WEAKER signal, and every")
-        log("     surface using it must say so.")
-    else:
-        log("  ✅ something snap-like exists — but check whether it is")
-        log("     PER-GAME or a SEASON TOTAL. A season total is lookahead.")
-
-    if inj_missing:
-        log(f"  🔴 NO INJURY DATA — missing {inj_missing}")
-        log("     College football has no mandated injury report. If that is")
-        log("     what this shows, the injury cascade, the trench-injury")
-        log("     counts and `ahead_out` CANNOT EXIST for CFB.")
-        log("     ⛔ The board must SAY it is missing them, not quietly ship")
-        log("        a thinner product that looks the same as the NFL one.")
-
-    log(f"\n  {len(TARGET) - len(missing)} of {len(TARGET)} NFL fields have "
-        f"a plausible college source.")
+    log(f"  {len(WANT) - len(missing)} of {len(WANT)} fields have a NAMED "
+        f"college column.")
     if missing:
-        log(f"  MISSING: {[f for f, _, _ in missing]}")
-
-    # ---- Power 4 --------------------------------------------------------
-    log("\n" + "=" * 72)
-    try:
-        teams = get("/teams/fbs", {"year": "2025"})
-        confs = {}
-        for t in teams if isinstance(teams, list) else []:
-            confs.setdefault(t.get("conference"), []).append(t.get("school"))
-        log(f"POWER 4 — conferences in the feed: {sorted(c for c in confs if c)}")
-        p4 = {c: v for c, v in confs.items() if c in POWER4}
-        log(f"  matched {sorted(p4)}: {sum(len(v) for v in p4.values())} teams")
-        if not p4:
-            log("  ⛔ NO POWER-4 NAME MATCHED. Read the list above and fix "
-                "POWER4 before filtering anything.")
-    except Exception as e:
-        log(f"  could not read teams: {type(e).__name__}: {e}")
-
-    if failures:
-        log(f"\n⚠️ endpoints that did not answer: {failures}")
-    log("\n⛔ THIS PROBE WROTE NOTHING. No CFB collector exists yet.")
+        log(f"  MISSING: {[f for f, _ in missing]}")
+    log("")
+    log("  🔴 CONFIRMED BY HTTP CODE, NOT BY STRING MATCHING:")
+    log("     /player/injuries -> 404. THE ENDPOINT DOES NOT EXIST.")
+    log("        inj · ahead_out · ol_out · opp_dl_out CANNOT EXIST for CFB.")
+    log("        College has no mandated injury report. That is a difference")
+    log("        between the SPORTS. No API hunting fixes it.")
+    log("     /games/weather -> 401. PAID TIER, not missing.")
+    log("")
+    log("  ⚠️ AND THE QUESTION THIS PROBE STILL DOES NOT ANSWER:")
+    log("     /player/usage has no `week` — it looks SEASON-LEVEL. A season")
+    log("     usage number joined onto a week-3 game is a model that has")
+    log("     SEEN THE FUTURE. Depth rank needs a PER-GAME number, and if")
+    log("     usage cannot give one it must be counted from /plays instead.")
     log("=" * 72)
+    if fails:
+        log(f"⚠️ did not answer: {fails}")
+    log("⛔ THIS PROBE WROTE NOTHING.")
     return True
 
 
