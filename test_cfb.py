@@ -160,6 +160,13 @@ ck("a vs-position row carries trailing_usage, not just the outcome",
    all("trailing_usage" in r for d in vs["defences"].values()
        for rr in d.values() for l in rr.values() for r in l))
 
+ck("🔒 the T37 floor is FROZEN at 3.0 and travels on the file — "
+   "a value that drifts is not a pre-registration",
+   cfb.USAGE_FLOOR == 3.0, cfb.USAGE_FLOOR)
+ck("the floor is carried as metadata, NOT applied as a filter "
+   "(rows below it must survive so the rule can be audited)",
+   vs["usage_floor"] == 3.0 and kept == 3, (vs.get("usage_floor"), kept))
+
 ck("BRIDGE_MIN exists and is not a placeholder",
    isinstance(cfb.BRIDGE_MIN, float) and 50 < cfb.BRIDGE_MIN <= 100,
    cfb.BRIDGE_MIN)

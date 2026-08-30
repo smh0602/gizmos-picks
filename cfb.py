@@ -78,6 +78,12 @@ VS_DEPTH = {"QB": 1, "RB": 2, "WR": 3, "TE": 2}
 # % of Power 4 box rows that must bridge to a roster position before a
 # season is considered safe to model. Mirrors nfl.py.
 BRIDGE_MIN = 95.0
+# 🔒 T37-CFB, FROZEN 2026-08-30 05:27Z. Trailing TOUCHES per game, p25 of
+# post-depth-rank rows on the FITTING SEASONS 2021-2023 ONLY (n = 11,380).
+# ⛔ It may never be re-derived, re-tuned, or argued against model
+# performance. Pooling all five seasons would have let the held-out
+# seasons set their own admission bar.
+USAGE_FLOOR = 3.0
 VS_STATS = ("pass_yds", "rush_yds", "rec_yds", "rec", "tgt",
             "pass_td", "rush_td", "rec_td", "car", "att", "cmp", "int",
             "usage")
@@ -298,6 +304,7 @@ def build_season(season, log=log):
     pos_of = positions(season, log)
     rows = collections.defaultdict(dict)   # (pid, gameid) -> row
     names, unmapped = {}, collections.Counter()
+    team_rows = [0]   # team-aggregate pseudo-athletes, excluded at source
 
     plan = [("regular", w) for w in sorted(weeks_seen)] + [("postseason", 1)]
     for st, wk in plan:
@@ -329,6 +336,20 @@ def build_season(season, log=log):
                             continue
                         for a in typ.get("athletes") or []:
                             pid = str(a.get("id"))
+                            # 🔴 NOT A PLAYER. `[measured 2026-08-30]` the
+                            # college box score files TEAM AGGREGATES as a
+                            # pseudo-athlete named " Team" with a NEGATIVE
+                            # id -- ~300 rows a season, mostly team rushing
+                            # for sack yardage and kneel-downs.
+                            # ⛔ v6 counted these in the coverage
+                            # DENOMINATOR, so it reported 95.6-97.4% when
+                            # real coverage was 99.9-100%. A metric that
+                            # cries wolf by three points is a metric nobody
+                            # will believe on the day it is right.
+                            if pid.startswith("-") or not (
+                                    a.get("name") or "").strip():
+                                team_rows[0] += 1
+                                continue
                             names[pid] = a.get("name")
                             r = rows[(pid, gid)]
                             r.setdefault("pid", pid)
@@ -412,6 +433,14 @@ def build_season(season, log=log):
         "built_at": datetime.datetime.now(datetime.timezone.utc)
                     .strftime("%Y-%m-%dT%H:%M:%SZ"),
         "scope": "Power 4 only (ACC, Big 12, Big Ten, SEC)",
+        # 🔒 T37-CFB, frozen 2026-08-30: p25 of trailing_usage among
+        # post-depth-rank rows, fitting seasons 2021-2023 only, n=11,380.
+        # ⛔ METADATA, NOT A DELETION. Rows below it are KEPT so that
+        # anyone can check the rule was followed. A build that silently
+        # dropped them would make the bar unauditable.
+        "usage_floor": USAGE_FLOOR,
+        "usage_floor_note": ("T37-CFB, FROZEN. Applied by the consumer, "
+                             "not by this build. Rows below it are kept."),
         "consumer_contract": [
             "NO SNAP DATA EXISTS FOR COLLEGE FOOTBALL. depth_rank and "
             "trailing_usage are built from TOUCHES, not snaps, and are not "
@@ -434,6 +463,7 @@ def build_season(season, log=log):
     cov["bridge_ok"] = pct >= BRIDGE_MIN
     cov["unbridged_examples"] = [[k, v] for k, v in unbridged.most_common(15)]
     cov["unbridged_players"] = len(unbridged)
+    cov["team_aggregate_rows_excluded"] = team_rows[0]
     log(f"    {len(players):,} players, {n:,} player-weeks kept")
     log(f"    🔴 COVERAGE: {cov['pos_known']:,} of {cov['p4_rows']:,} "
         f"Power 4 box rows bridged to a position = {pct:.2f}%")
@@ -542,6 +572,7 @@ def build_vs_position(doc, log=log):
         f"— require a minimum before reading any of them")
     return {"season": doc["season"], "kind": "DESCRIPTIVE",
             "built_at": doc["built_at"], "depth_kept": VS_DEPTH,
+            "usage_floor": USAGE_FLOOR,
             "games_seen": {k: len(v) for k, v in seen.items()},
             "note": ("Every performance a defence allowed, by DEPTH SLOT. "
                      "⛔ Depth is TOUCH-based, not snap-based — college "
