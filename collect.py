@@ -2411,9 +2411,20 @@ def write_freshness(rows=None, still=None):
     # schedule", which reads like slowness. ⛔ A reader who is told the
     # machine is slow behaves differently from one told the card did not
     # pass its own checks. The second is the more important fact.
+    # 🔴 A CARD THAT IS CURRENT WAS NOT BLOCKED, WHATEVER THE FILE SAYS.
+    # `[measured 2026-08-29 23:27Z]` verify_card started PASSING again, the
+    # card published, and `freshness.json` still carried a `card_blocked`
+    # message read a moment earlier — so the page told readers it was
+    # "showing an earlier version" while showing the current one.
+    # ⛔ A FALSE ALARM IS THE ONE THING THIS BANNER CANNOT AFFORD. It is
+    # the only channel the site has for admitting it is wrong; if it cries
+    # wolf it stops being read, and then a REAL stale card goes unnoticed.
+    # ✅ The failure file is now evidence, not proof: it only counts when
+    # the card is ALSO actually past due.
+    _card_stale = any(r["mode"] == "card" and r["stale"] for r in rows)
     _blocked = None
     _bp = f"{LATEST}/card-verify-failure.txt"
-    if os.path.exists(_bp):
+    if _card_stale and os.path.exists(_bp):
         try:
             with open(_bp, encoding="utf-8") as _fh:
                 _txt = _fh.read()
