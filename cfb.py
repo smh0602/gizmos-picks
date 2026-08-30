@@ -30,6 +30,7 @@ and not from string matching:
   - Power 4 -> ACC · Big 12 · Big Ten · SEC = **67 teams.** ✅
 """
 
+import datetime
 import json
 import os
 import sys
@@ -154,6 +155,7 @@ def probe(log=log):
     # 🔴 THE THING v1 NEVER OPENED. Print one real athlete stat line.
     log("\n" + "=" * 72)
     log("INSIDE /games/players — where the box score actually lives")
+    SAMPLES = []
     try:
         rows = get("/games/players", {"year": "2025", "week": "3",
                                       "seasonType": "regular"})
@@ -165,6 +167,11 @@ def probe(log=log):
                         for a in (typ.get("athletes") or [])[:1]:
                             if shown >= 12:
                                 break
+                            SAMPLES.append({
+                                "category": cat.get("name"),
+                                "stat": typ.get("name"),
+                                "athlete_keys": sorted(a) if isinstance(a, dict) else None,
+                                "athlete": a})
                             log(f"    category={cat.get('name'):<12} "
                                 f"stat={typ.get('name'):<8} "
                                 f"athlete={json.dumps(a)[:110]}")
@@ -173,7 +180,6 @@ def probe(log=log):
             log("    ⛔ NOTHING NESTED — the box score is not here after all")
     except Exception as e:
         log(f"    {type(e).__name__}: {e}")
-
     # ---- strict parity --------------------------------------------------
     log("\n" + "=" * 72)
     log("PARITY — STRICT. A field is 'ok' only on a NAMED column match.")
@@ -215,7 +221,36 @@ def probe(log=log):
     log("=" * 72)
     if fails:
         log(f"⚠️ did not answer: {fails}")
-    log("⛔ THIS PROBE WROTE NOTHING.")
+
+    # 🔴 THE FINDINGS LAND IN THE REPO, NOT ONLY IN AN ACTIONS LOG.
+    # `[measured 2026-08-30]` the log for run #238 could not be read from
+    # outside the runner at all: the API refuses job logs without ADMIN
+    # rights, and the web viewer does not expose the lines to extraction.
+    # ⛔ A DIAGNOSIS YOU CANNOT RETRIEVE IS A DIAGNOSIS YOU DO NOT HAVE --
+    # the same rule that put card-verify-failure.txt and
+    # backfill-report.txt in the repo. Asking Sam to screenshot a log is
+    # not a process, it is a bottleneck.
+    try:
+        os.makedirs("data/ncaaf/latest", exist_ok=True)
+        with open("data/ncaaf/latest/probe-report.json", "w",
+                  encoding="utf-8") as fh:
+            json.dump({
+                "probed_at": datetime.datetime.now(
+                    datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "kind": "DESCRIPTIVE — a probe, nothing was collected",
+                "endpoints_failed": [[n, str(c)] for n, c in fails],
+                "columns_by_endpoint": {k: sorted(v)
+                                        for k, v in found.items()},
+                "parity_missing": [f for f, _ in missing],
+                "parity_ok": [f for f in WANT
+                              if f not in [m for m, _ in missing]],
+                "athlete_samples": SAMPLES,
+            }, fh, indent=1)
+        log("wrote data/ncaaf/latest/probe-report.json")
+    except Exception as e:
+        log(f"could not write the probe report: {type(e).__name__}: {e}")
+
+    log("⛔ THIS PROBE COLLECTED NOTHING. Only the report was written.")
     return True
 
 
