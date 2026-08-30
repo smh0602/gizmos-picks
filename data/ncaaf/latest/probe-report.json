@@ -1,6 +1,5 @@
 {
- "probed_at": "2026-08-30T04:47:39Z",
- "kind": "DESCRIPTIVE \u2014 a probe, nothing was collected",
+ "probe_version": 5,
  "endpoints_failed": [],
  "columns_by_endpoint": {
   "games": [
@@ -51,23 +50,6 @@
    "teams",
    "types"
   ],
-  "usage": [
-   "conference",
-   "firstDown",
-   "id",
-   "name",
-   "overall",
-   "pass",
-   "passingDowns",
-   "position",
-   "rush",
-   "season",
-   "secondDown",
-   "standardDowns",
-   "team",
-   "thirdDown",
-   "usage"
-  ],
   "plays": [
    "away",
    "clock",
@@ -98,78 +80,262 @@
    "yardline",
    "yardsGained",
    "yardsToGoal"
+  ],
+  "roster": [
+   "firstName",
+   "height",
+   "homeCity",
+   "homeCountry",
+   "homeCountyFIPS",
+   "homeLatitude",
+   "homeLongitude",
+   "homeState",
+   "id",
+   "jersey",
+   "lastName",
+   "position",
+   "recruitIds",
+   "team",
+   "weight",
+   "year"
   ]
  },
- "parity_missing": [
-  "snaps",
-  "tgt_share",
-  "ay_share",
-  "att",
-  "cmp",
-  "pass_yds",
-  "pass_td",
-  "int",
-  "car",
-  "rush_yds",
-  "rush_td",
-  "tgt",
-  "rec",
-  "rec_yds",
-  "rec_td",
-  "ay",
-  "inj",
-  "ahead_out",
-  "ol_out",
-  "opp_dl_out",
-  "wx"
- ],
- "parity_ok": [
-  "d",
-  "week",
-  "team",
-  "o",
-  "home",
-  "game_id",
-  "snap_pct"
- ],
- "athlete_samples": [
+ "box_pairs": [
   {
-   "category": "passing",
-   "stat": "C/ATT",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
-    "id": "5079369",
-    "name": "C.J. Carr",
-    "stat": "20/32"
+   "category": "defensive",
+   "stat": "PD",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "0"
    }
   },
   {
-   "category": "passing",
+   "category": "defensive",
+   "stat": "QB HUR",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "defensive",
+   "stat": "SACKS",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "defensive",
+   "stat": "SOLO",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "3"
+   }
+  },
+  {
+   "category": "defensive",
+   "stat": "TD",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "defensive",
+   "stat": "TFL",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "defensive",
+   "stat": "TOT",
+   "athlete_rows": 3116,
+   "example": {
+    "id": "4880937",
+    "name": "Adon Shuler",
+    "stat": "7"
+   }
+  },
+  {
+   "category": "fumbles",
+   "stat": "FUM",
+   "athlete_rows": 333,
+   "example": {
+    "id": "-6965",
+    "name": " Team",
+    "stat": "1"
+   }
+  },
+  {
+   "category": "fumbles",
+   "stat": "LOST",
+   "athlete_rows": 333,
+   "example": {
+    "id": "-6965",
+    "name": " Team",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "fumbles",
+   "stat": "REC",
+   "athlete_rows": 333,
+   "example": {
+    "id": "-6965",
+    "name": " Team",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "interceptions",
+   "stat": "INT",
+   "athlete_rows": 200,
+   "example": {
+    "id": "5079629",
+    "name": "Leonard Moore",
+    "stat": "1"
+   }
+  },
+  {
+   "category": "interceptions",
+   "stat": "TD",
+   "athlete_rows": 200,
+   "example": {
+    "id": "5079629",
+    "name": "Leonard Moore",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "interceptions",
    "stat": "YDS",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
-    "id": "5079369",
-    "name": "C.J. Carr",
-    "stat": "293"
+   "athlete_rows": 200,
+   "example": {
+    "id": "5079629",
+    "name": "Leonard Moore",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "kickReturns",
+   "stat": "AVG",
+   "athlete_rows": 308,
+   "example": {
+    "id": "4685512",
+    "name": "Jadarian Price",
+    "stat": "31.0"
+   }
+  },
+  {
+   "category": "kickReturns",
+   "stat": "LONG",
+   "athlete_rows": 308,
+   "example": {
+    "id": "4685512",
+    "name": "Jadarian Price",
+    "stat": "31"
+   }
+  },
+  {
+   "category": "kickReturns",
+   "stat": "NO",
+   "athlete_rows": 308,
+   "example": {
+    "id": "4685512",
+    "name": "Jadarian Price",
+    "stat": "1"
+   }
+  },
+  {
+   "category": "kickReturns",
+   "stat": "TD",
+   "athlete_rows": 308,
+   "example": {
+    "id": "4685512",
+    "name": "Jadarian Price",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "kickReturns",
+   "stat": "YDS",
+   "athlete_rows": 308,
+   "example": {
+    "id": "4685512",
+    "name": "Jadarian Price",
+    "stat": "31"
+   }
+  },
+  {
+   "category": "kicking",
+   "stat": "FG",
+   "athlete_rows": 268,
+   "example": {
+    "id": "4688828",
+    "name": "Noah Burnette",
+    "stat": "2/2"
+   }
+  },
+  {
+   "category": "kicking",
+   "stat": "LONG",
+   "athlete_rows": 268,
+   "example": {
+    "id": "4688828",
+    "name": "Noah Burnette",
+    "stat": "39"
+   }
+  },
+  {
+   "category": "kicking",
+   "stat": "PCT",
+   "athlete_rows": 268,
+   "example": {
+    "id": "4688828",
+    "name": "Noah Burnette",
+    "stat": "100.0"
+   }
+  },
+  {
+   "category": "kicking",
+   "stat": "PTS",
+   "athlete_rows": 268,
+   "example": {
+    "id": "4688828",
+    "name": "Noah Burnette",
+    "stat": "10"
+   }
+  },
+  {
+   "category": "kicking",
+   "stat": "XP",
+   "athlete_rows": 268,
+   "example": {
+    "id": "4688828",
+    "name": "Noah Burnette",
+    "stat": "4/4"
    }
   },
   {
    "category": "passing",
    "stat": "AVG",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "athlete_rows": 427,
+   "example": {
     "id": "5079369",
     "name": "C.J. Carr",
     "stat": "9.2"
@@ -177,27 +343,19 @@
   },
   {
    "category": "passing",
-   "stat": "TD",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "stat": "C/ATT",
+   "athlete_rows": 427,
+   "example": {
     "id": "5079369",
     "name": "C.J. Carr",
-    "stat": "1"
+    "stat": "20/32"
    }
   },
   {
    "category": "passing",
    "stat": "INT",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "athlete_rows": 427,
+   "example": {
     "id": "5079369",
     "name": "C.J. Carr",
     "stat": "1"
@@ -206,54 +364,198 @@
   {
    "category": "passing",
    "stat": "QBR",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "athlete_rows": 239,
+   "example": {
     "id": "5079369",
     "name": "C.J. Carr",
     "stat": "81.0"
    }
   },
   {
-   "category": "rushing",
-   "stat": "CAR",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
-    "id": "4870808",
-    "name": "Jeremiyah Love",
-    "stat": "23"
+   "category": "passing",
+   "stat": "TD",
+   "athlete_rows": 427,
+   "example": {
+    "id": "5079369",
+    "name": "C.J. Carr",
+    "stat": "1"
    }
   },
   {
-   "category": "rushing",
+   "category": "passing",
    "stat": "YDS",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
-    "id": "4870808",
-    "name": "Jeremiyah Love",
-    "stat": "94"
+   "athlete_rows": 427,
+   "example": {
+    "id": "5079369",
+    "name": "C.J. Carr",
+    "stat": "293"
+   }
+  },
+  {
+   "category": "puntReturns",
+   "stat": "AVG",
+   "athlete_rows": 224,
+   "example": {
+    "id": "5218506",
+    "name": "Tae Johnson",
+    "stat": "20.0"
+   }
+  },
+  {
+   "category": "puntReturns",
+   "stat": "LONG",
+   "athlete_rows": 224,
+   "example": {
+    "id": "5218506",
+    "name": "Tae Johnson",
+    "stat": "20"
+   }
+  },
+  {
+   "category": "puntReturns",
+   "stat": "NO",
+   "athlete_rows": 224,
+   "example": {
+    "id": "5218506",
+    "name": "Tae Johnson",
+    "stat": "1"
+   }
+  },
+  {
+   "category": "puntReturns",
+   "stat": "TD",
+   "athlete_rows": 224,
+   "example": {
+    "id": "5218506",
+    "name": "Tae Johnson",
+    "stat": "1"
+   }
+  },
+  {
+   "category": "puntReturns",
+   "stat": "YDS",
+   "athlete_rows": 224,
+   "example": {
+    "id": "5218506",
+    "name": "Tae Johnson",
+    "stat": "20"
+   }
+  },
+  {
+   "category": "punting",
+   "stat": "AVG",
+   "athlete_rows": 265,
+   "example": {
+    "id": "5218505",
+    "name": "James Rendell",
+    "stat": "46.0"
+   }
+  },
+  {
+   "category": "punting",
+   "stat": "In 20",
+   "athlete_rows": 265,
+   "example": {
+    "id": "5218505",
+    "name": "James Rendell",
+    "stat": "2"
+   }
+  },
+  {
+   "category": "punting",
+   "stat": "LONG",
+   "athlete_rows": 265,
+   "example": {
+    "id": "5218505",
+    "name": "James Rendell",
+    "stat": "47"
+   }
+  },
+  {
+   "category": "punting",
+   "stat": "NO",
+   "athlete_rows": 265,
+   "example": {
+    "id": "5218505",
+    "name": "James Rendell",
+    "stat": "2"
+   }
+  },
+  {
+   "category": "punting",
+   "stat": "TB",
+   "athlete_rows": 265,
+   "example": {
+    "id": "5218505",
+    "name": "James Rendell",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "punting",
+   "stat": "YDS",
+   "athlete_rows": 265,
+   "example": {
+    "id": "5218505",
+    "name": "James Rendell",
+    "stat": "92"
+   }
+  },
+  {
+   "category": "receiving",
+   "stat": "AVG",
+   "athlete_rows": 1883,
+   "example": {
+    "id": "4831959",
+    "name": "Eli Raridon",
+    "stat": "21.3"
+   }
+  },
+  {
+   "category": "receiving",
+   "stat": "LONG",
+   "athlete_rows": 1883,
+   "example": {
+    "id": "4831959",
+    "name": "Eli Raridon",
+    "stat": "43"
+   }
+  },
+  {
+   "category": "receiving",
+   "stat": "REC",
+   "athlete_rows": 1883,
+   "example": {
+    "id": "4831959",
+    "name": "Eli Raridon",
+    "stat": "4"
+   }
+  },
+  {
+   "category": "receiving",
+   "stat": "TD",
+   "athlete_rows": 1883,
+   "example": {
+    "id": "4831959",
+    "name": "Eli Raridon",
+    "stat": "0"
+   }
+  },
+  {
+   "category": "receiving",
+   "stat": "YDS",
+   "athlete_rows": 1883,
+   "example": {
+    "id": "4831959",
+    "name": "Eli Raridon",
+    "stat": "85"
    }
   },
   {
    "category": "rushing",
    "stat": "AVG",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "athlete_rows": 1525,
+   "example": {
     "id": "4870808",
     "name": "Jeremiyah Love",
     "stat": "4.1"
@@ -261,13 +563,29 @@
   },
   {
    "category": "rushing",
+   "stat": "CAR",
+   "athlete_rows": 1525,
+   "example": {
+    "id": "4870808",
+    "name": "Jeremiyah Love",
+    "stat": "23"
+   }
+  },
+  {
+   "category": "rushing",
+   "stat": "LONG",
+   "athlete_rows": 1525,
+   "example": {
+    "id": "4870808",
+    "name": "Jeremiyah Love",
+    "stat": "16"
+   }
+  },
+  {
+   "category": "rushing",
    "stat": "TD",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "athlete_rows": 1525,
+   "example": {
     "id": "4870808",
     "name": "Jeremiyah Love",
     "stat": "1"
@@ -275,31 +593,1128 @@
   },
   {
    "category": "rushing",
-   "stat": "LONG",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
+   "stat": "YDS",
+   "athlete_rows": 1525,
+   "example": {
     "id": "4870808",
     "name": "Jeremiyah Love",
-    "stat": "16"
-   }
-  },
-  {
-   "category": "receiving",
-   "stat": "REC",
-   "athlete_keys": [
-    "id",
-    "name",
-    "stat"
-   ],
-   "athlete": {
-    "id": "4831959",
-    "name": "Eli Raridon",
-    "stat": "4"
+    "stat": "94"
    }
   }
- ]
+ ],
+ "unmapped_stats": [
+  [
+   "fumbles",
+   "FUM",
+   333
+  ],
+  [
+   "fumbles",
+   "LOST",
+   333
+  ],
+  [
+   "fumbles",
+   "REC",
+   333
+  ],
+  [
+   "defensive",
+   "TOT",
+   3116
+  ],
+  [
+   "defensive",
+   "SOLO",
+   3116
+  ],
+  [
+   "defensive",
+   "SACKS",
+   3116
+  ],
+  [
+   "defensive",
+   "TFL",
+   3116
+  ],
+  [
+   "defensive",
+   "PD",
+   3116
+  ],
+  [
+   "defensive",
+   "QB HUR",
+   3116
+  ],
+  [
+   "defensive",
+   "TD",
+   3116
+  ],
+  [
+   "interceptions",
+   "INT",
+   200
+  ],
+  [
+   "interceptions",
+   "YDS",
+   200
+  ],
+  [
+   "interceptions",
+   "TD",
+   200
+  ],
+  [
+   "kickReturns",
+   "NO",
+   308
+  ],
+  [
+   "kickReturns",
+   "YDS",
+   308
+  ],
+  [
+   "kickReturns",
+   "AVG",
+   308
+  ],
+  [
+   "kickReturns",
+   "LONG",
+   308
+  ],
+  [
+   "kickReturns",
+   "TD",
+   308
+  ],
+  [
+   "puntReturns",
+   "NO",
+   224
+  ],
+  [
+   "puntReturns",
+   "YDS",
+   224
+  ],
+  [
+   "puntReturns",
+   "AVG",
+   224
+  ],
+  [
+   "puntReturns",
+   "LONG",
+   224
+  ],
+  [
+   "puntReturns",
+   "TD",
+   224
+  ],
+  [
+   "kicking",
+   "FG",
+   268
+  ],
+  [
+   "kicking",
+   "PCT",
+   268
+  ],
+  [
+   "kicking",
+   "LONG",
+   268
+  ],
+  [
+   "kicking",
+   "XP",
+   268
+  ],
+  [
+   "kicking",
+   "PTS",
+   268
+  ],
+  [
+   "punting",
+   "NO",
+   265
+  ],
+  [
+   "punting",
+   "YDS",
+   265
+  ],
+  [
+   "punting",
+   "AVG",
+   265
+  ],
+  [
+   "punting",
+   "TB",
+   265
+  ],
+  [
+   "punting",
+   "In 20",
+   265
+  ],
+  [
+   "punting",
+   "LONG",
+   265
+  ]
+ ],
+ "targets_present": false,
+ "plays_player_keys": [],
+ "seasons_written": [
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "seasons_failed": [],
+ "per_season": [
+  {
+   "season": 2021,
+   "player_weeks": 6980,
+   "vs_position_rows": 3657,
+   "usage_quantiles": {
+    "n": 6980,
+    "p10": 1,
+    "p25": 2,
+    "p50": 4,
+    "p75": 9,
+    "p90": 24,
+    "max": 76
+   },
+   "unmapped": [
+    [
+     "fumbles",
+     "fum",
+     5018
+    ],
+    [
+     "fumbles",
+     "lost",
+     5018
+    ],
+    [
+     "fumbles",
+     "rec",
+     5018
+    ],
+    [
+     "defensive",
+     "solo",
+     37106
+    ],
+    [
+     "defensive",
+     "sacks",
+     37106
+    ],
+    [
+     "defensive",
+     "tfl",
+     37106
+    ],
+    [
+     "defensive",
+     "pd",
+     37106
+    ],
+    [
+     "defensive",
+     "qb hur",
+     37106
+    ],
+    [
+     "defensive",
+     "td",
+     37106
+    ],
+    [
+     "defensive",
+     "tot",
+     37106
+    ],
+    [
+     "interceptions",
+     "int",
+     1369
+    ],
+    [
+     "interceptions",
+     "yds",
+     1369
+    ],
+    [
+     "interceptions",
+     "td",
+     1369
+    ],
+    [
+     "kickreturns",
+     "no",
+     2228
+    ],
+    [
+     "kickreturns",
+     "yds",
+     2228
+    ],
+    [
+     "kickreturns",
+     "avg",
+     2228
+    ],
+    [
+     "kickreturns",
+     "long",
+     2228
+    ],
+    [
+     "kickreturns",
+     "td",
+     2228
+    ],
+    [
+     "puntreturns",
+     "no",
+     1467
+    ],
+    [
+     "puntreturns",
+     "yds",
+     1467
+    ],
+    [
+     "puntreturns",
+     "avg",
+     1467
+    ],
+    [
+     "puntreturns",
+     "long",
+     1467
+    ],
+    [
+     "puntreturns",
+     "td",
+     1467
+    ],
+    [
+     "kicking",
+     "fg",
+     1874
+    ],
+    [
+     "kicking",
+     "pct",
+     1874
+    ],
+    [
+     "kicking",
+     "long",
+     1874
+    ],
+    [
+     "kicking",
+     "xp",
+     1874
+    ],
+    [
+     "kicking",
+     "pts",
+     1874
+    ],
+    [
+     "punting",
+     "no",
+     1890
+    ],
+    [
+     "punting",
+     "yds",
+     1890
+    ],
+    [
+     "punting",
+     "avg",
+     1890
+    ],
+    [
+     "punting",
+     "tb",
+     1890
+    ],
+    [
+     "punting",
+     "in 20",
+     1890
+    ],
+    [
+     "punting",
+     "long",
+     1890
+    ]
+   ]
+  },
+  {
+   "season": 2022,
+   "player_weeks": 6980,
+   "vs_position_rows": 3743,
+   "usage_quantiles": {
+    "n": 6980,
+    "p10": 1,
+    "p25": 2,
+    "p50": 4,
+    "p75": 9,
+    "p90": 25,
+    "max": 84
+   },
+   "unmapped": [
+    [
+     "fumbles",
+     "fum",
+     5225
+    ],
+    [
+     "fumbles",
+     "lost",
+     5225
+    ],
+    [
+     "fumbles",
+     "rec",
+     5225
+    ],
+    [
+     "defensive",
+     "tot",
+     35990
+    ],
+    [
+     "defensive",
+     "solo",
+     35990
+    ],
+    [
+     "defensive",
+     "sacks",
+     35990
+    ],
+    [
+     "defensive",
+     "tfl",
+     35990
+    ],
+    [
+     "defensive",
+     "pd",
+     35990
+    ],
+    [
+     "defensive",
+     "qb hur",
+     35990
+    ],
+    [
+     "defensive",
+     "td",
+     35990
+    ],
+    [
+     "puntreturns",
+     "no",
+     2573
+    ],
+    [
+     "puntreturns",
+     "yds",
+     2573
+    ],
+    [
+     "puntreturns",
+     "avg",
+     2573
+    ],
+    [
+     "puntreturns",
+     "long",
+     2573
+    ],
+    [
+     "puntreturns",
+     "td",
+     2573
+    ],
+    [
+     "kicking",
+     "fg",
+     3413
+    ],
+    [
+     "kicking",
+     "pct",
+     3413
+    ],
+    [
+     "kicking",
+     "long",
+     3413
+    ],
+    [
+     "kicking",
+     "xp",
+     3413
+    ],
+    [
+     "kicking",
+     "pts",
+     3413
+    ],
+    [
+     "punting",
+     "no",
+     3522
+    ],
+    [
+     "punting",
+     "yds",
+     3522
+    ],
+    [
+     "punting",
+     "avg",
+     3522
+    ],
+    [
+     "punting",
+     "tb",
+     3522
+    ],
+    [
+     "punting",
+     "in 20",
+     3522
+    ],
+    [
+     "punting",
+     "long",
+     3522
+    ],
+    [
+     "interceptions",
+     "int",
+     2504
+    ],
+    [
+     "interceptions",
+     "yds",
+     2504
+    ],
+    [
+     "interceptions",
+     "td",
+     2504
+    ],
+    [
+     "kickreturns",
+     "no",
+     4323
+    ],
+    [
+     "kickreturns",
+     "yds",
+     4323
+    ],
+    [
+     "kickreturns",
+     "avg",
+     4323
+    ],
+    [
+     "kickreturns",
+     "long",
+     4323
+    ],
+    [
+     "kickreturns",
+     "td",
+     4323
+    ]
+   ]
+  },
+  {
+   "season": 2023,
+   "player_weeks": 7335,
+   "vs_position_rows": 3980,
+   "usage_quantiles": {
+    "n": 7335,
+    "p10": 1,
+    "p25": 2,
+    "p50": 4,
+    "p75": 9,
+    "p90": 24,
+    "max": 62
+   },
+   "unmapped": [
+    [
+     "fumbles",
+     "fum",
+     4820
+    ],
+    [
+     "fumbles",
+     "lost",
+     4820
+    ],
+    [
+     "fumbles",
+     "rec",
+     4820
+    ],
+    [
+     "interceptions",
+     "int",
+     2399
+    ],
+    [
+     "interceptions",
+     "yds",
+     2399
+    ],
+    [
+     "interceptions",
+     "td",
+     2399
+    ],
+    [
+     "kickreturns",
+     "no",
+     3910
+    ],
+    [
+     "kickreturns",
+     "yds",
+     3910
+    ],
+    [
+     "kickreturns",
+     "avg",
+     3910
+    ],
+    [
+     "kickreturns",
+     "long",
+     3910
+    ],
+    [
+     "kickreturns",
+     "td",
+     3910
+    ],
+    [
+     "puntreturns",
+     "no",
+     2383
+    ],
+    [
+     "puntreturns",
+     "yds",
+     2383
+    ],
+    [
+     "puntreturns",
+     "avg",
+     2383
+    ],
+    [
+     "puntreturns",
+     "long",
+     2383
+    ],
+    [
+     "puntreturns",
+     "td",
+     2383
+    ],
+    [
+     "kicking",
+     "fg",
+     3332
+    ],
+    [
+     "kicking",
+     "pct",
+     3332
+    ],
+    [
+     "kicking",
+     "long",
+     3332
+    ],
+    [
+     "kicking",
+     "xp",
+     3332
+    ],
+    [
+     "kicking",
+     "pts",
+     3332
+    ],
+    [
+     "punting",
+     "no",
+     3386
+    ],
+    [
+     "punting",
+     "yds",
+     3386
+    ],
+    [
+     "punting",
+     "avg",
+     3386
+    ],
+    [
+     "punting",
+     "tb",
+     3386
+    ],
+    [
+     "punting",
+     "in 20",
+     3386
+    ],
+    [
+     "punting",
+     "long",
+     3386
+    ],
+    [
+     "defensive",
+     "tot",
+     37325
+    ],
+    [
+     "defensive",
+     "solo",
+     37325
+    ],
+    [
+     "defensive",
+     "sacks",
+     37325
+    ],
+    [
+     "defensive",
+     "tfl",
+     37325
+    ],
+    [
+     "defensive",
+     "pd",
+     37325
+    ],
+    [
+     "defensive",
+     "qb hur",
+     37325
+    ],
+    [
+     "defensive",
+     "td",
+     37325
+    ]
+   ]
+  },
+  {
+   "season": 2024,
+   "player_weeks": 8975,
+   "vs_position_rows": 4985,
+   "usage_quantiles": {
+    "n": 8975,
+    "p10": 1,
+    "p25": 2,
+    "p50": 4,
+    "p75": 9,
+    "p90": 24,
+    "max": 73
+   },
+   "unmapped": [
+    [
+     "interceptions",
+     "int",
+     2577
+    ],
+    [
+     "interceptions",
+     "yds",
+     2577
+    ],
+    [
+     "interceptions",
+     "td",
+     2577
+    ],
+    [
+     "kickreturns",
+     "no",
+     4158
+    ],
+    [
+     "kickreturns",
+     "yds",
+     4158
+    ],
+    [
+     "kickreturns",
+     "avg",
+     4158
+    ],
+    [
+     "kickreturns",
+     "long",
+     4158
+    ],
+    [
+     "kickreturns",
+     "td",
+     4158
+    ],
+    [
+     "puntreturns",
+     "no",
+     2662
+    ],
+    [
+     "puntreturns",
+     "yds",
+     2662
+    ],
+    [
+     "puntreturns",
+     "avg",
+     2662
+    ],
+    [
+     "puntreturns",
+     "long",
+     2662
+    ],
+    [
+     "puntreturns",
+     "td",
+     2662
+    ],
+    [
+     "kicking",
+     "fg",
+     3513
+    ],
+    [
+     "kicking",
+     "pct",
+     3513
+    ],
+    [
+     "kicking",
+     "long",
+     3513
+    ],
+    [
+     "kicking",
+     "xp",
+     3513
+    ],
+    [
+     "kicking",
+     "pts",
+     3513
+    ],
+    [
+     "punting",
+     "no",
+     3632
+    ],
+    [
+     "punting",
+     "yds",
+     3632
+    ],
+    [
+     "punting",
+     "avg",
+     3632
+    ],
+    [
+     "punting",
+     "tb",
+     3632
+    ],
+    [
+     "punting",
+     "in 20",
+     3632
+    ],
+    [
+     "punting",
+     "long",
+     3632
+    ],
+    [
+     "fumbles",
+     "fum",
+     5083
+    ],
+    [
+     "fumbles",
+     "lost",
+     5083
+    ],
+    [
+     "fumbles",
+     "rec",
+     5083
+    ],
+    [
+     "defensive",
+     "tot",
+     38506
+    ],
+    [
+     "defensive",
+     "solo",
+     38506
+    ],
+    [
+     "defensive",
+     "sacks",
+     38506
+    ],
+    [
+     "defensive",
+     "tfl",
+     38506
+    ],
+    [
+     "defensive",
+     "pd",
+     38506
+    ],
+    [
+     "defensive",
+     "qb hur",
+     38506
+    ],
+    [
+     "defensive",
+     "td",
+     38506
+    ]
+   ]
+  },
+  {
+   "season": 2025,
+   "player_weeks": 9028,
+   "vs_position_rows": 5079,
+   "usage_quantiles": {
+    "n": 9028,
+    "p10": 1,
+    "p25": 2,
+    "p50": 4,
+    "p75": 8,
+    "p90": 24,
+    "max": 69
+   },
+   "unmapped": [
+    [
+     "fumbles",
+     "fum",
+     4973
+    ],
+    [
+     "fumbles",
+     "lost",
+     4973
+    ],
+    [
+     "fumbles",
+     "rec",
+     4973
+    ],
+    [
+     "interceptions",
+     "int",
+     2481
+    ],
+    [
+     "interceptions",
+     "yds",
+     2481
+    ],
+    [
+     "interceptions",
+     "td",
+     2481
+    ],
+    [
+     "kickreturns",
+     "no",
+     4084
+    ],
+    [
+     "kickreturns",
+     "yds",
+     4084
+    ],
+    [
+     "kickreturns",
+     "avg",
+     4084
+    ],
+    [
+     "kickreturns",
+     "long",
+     4084
+    ],
+    [
+     "kickreturns",
+     "td",
+     4084
+    ],
+    [
+     "puntreturns",
+     "no",
+     2727
+    ],
+    [
+     "puntreturns",
+     "yds",
+     2727
+    ],
+    [
+     "puntreturns",
+     "avg",
+     2727
+    ],
+    [
+     "puntreturns",
+     "long",
+     2727
+    ],
+    [
+     "puntreturns",
+     "td",
+     2727
+    ],
+    [
+     "kicking",
+     "fg",
+     3609
+    ],
+    [
+     "kicking",
+     "pct",
+     3609
+    ],
+    [
+     "kicking",
+     "long",
+     3609
+    ],
+    [
+     "kicking",
+     "xp",
+     3609
+    ],
+    [
+     "kicking",
+     "pts",
+     3609
+    ],
+    [
+     "punting",
+     "no",
+     3650
+    ],
+    [
+     "punting",
+     "yds",
+     3650
+    ],
+    [
+     "punting",
+     "avg",
+     3650
+    ],
+    [
+     "punting",
+     "tb",
+     3650
+    ],
+    [
+     "punting",
+     "in 20",
+     3650
+    ],
+    [
+     "punting",
+     "long",
+     3650
+    ],
+    [
+     "defensive",
+     "tot",
+     40023
+    ],
+    [
+     "defensive",
+     "solo",
+     40023
+    ],
+    [
+     "defensive",
+     "sacks",
+     40023
+    ],
+    [
+     "defensive",
+     "tfl",
+     40023
+    ],
+    [
+     "defensive",
+     "pd",
+     40023
+    ],
+    [
+     "defensive",
+     "qb hur",
+     40023
+    ],
+    [
+     "defensive",
+     "td",
+     40023
+    ]
+   ]
+  }
+ ],
+ "probed_at": "2026-08-30T05:04:33Z"
 }
