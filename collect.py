@@ -2306,6 +2306,15 @@ def run_mode(mode):
                     vs["pulled_at"] = stamp()
                     write(f"{base}/vs-position-{season}.json.gz", vs,
                           compress=True)
+                    # 🔴 SAME PULL AGAIN, SAME REASON. The defensive
+                    # tracking table Sam asked for on 2026-08-30 is built
+                    # from the doc already in memory, never by reading a
+                    # file back -- that is how two copies of one number
+                    # drift apart.
+                    al = _nfl.build_allowed(doc, log)
+                    al["pulled_at"] = stamp()
+                    write(f"{base}/allowed-by-position-{season}.json.gz", al,
+                          compress=True)
                     done.append(season)
                 except Exception as _e:
                     failed.append((season, f"{type(_e).__name__}: {_e}"))
