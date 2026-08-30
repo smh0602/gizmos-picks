@@ -22,6 +22,7 @@ def mk(pid, pos, team, rows):
     return {"pos": pos, "name": pid,
             "g": [dict(r, team=team, pos=pos, o="OPP", conf="SEC",
                        seasonType="regular", d="2025-09-06",
+                       opp_elo=1500, opp_class="fbs",
                        game_id=f"g{r['wk_i']}") for r in rows]}
 
 
@@ -132,6 +133,24 @@ nonp4["players"]["a"]["g"][0]["conf"] = "Sun Belt"
 cfb.rank_and_cascade(nonp4["players"])
 bad = cfb.verify(nonp4, log=lambda *_: None)
 ck("a non-Power-4 row is caught", any("Power-4" in b for b in bad), bad)
+
+# 🔴 A missing Elo we can NAME is a feature; one we cannot name is a defect.
+unex = {"season": 2025, "players": {"a": mk("a", "RB", "A", [
+    {"week": 2, "wk_i": 2, "usage": 5}, {"week": 3, "wk_i": 3, "usage": 7}])}}
+for g in unex["players"]["a"]["g"]:
+    g["opp_elo"] = None; g["opp_class"] = None
+cfb.rank_and_cascade(unex["players"])
+bad = cfb.verify(unex, log=lambda *_: None)
+ck("🔴 a missing opp_elo with NO opp_class is caught as unexplained",
+   any("unexplained" in b for b in bad), bad)
+
+fcs = {"season": 2025, "players": {"a": mk("a", "RB", "A", [
+    {"week": 2, "wk_i": 2, "usage": 5}, {"week": 3, "wk_i": 3, "usage": 7}])}}
+for g in fcs["players"]["a"]["g"]:
+    g["opp_elo"] = None; g["opp_class"] = "fcs"
+cfb.rank_and_cascade(fcs["players"])
+ck("an FCS opponent with a null Elo is FINE — the gap is explained",
+   not any("unexplained" in b for b in cfb.verify(fcs, log=lambda *_: None)))
 
 print("── vs-position carries its own sample size ──")
 # ⚠️ week 1 has no depth rank yet, so it never reaches this table — the

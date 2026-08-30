@@ -294,6 +294,21 @@ def build_season(season, log=log):
                 # 🟢 PREGAME. Point-in-time legal. ⛔ postgame* is banned.
                 "homeElo": g.get("homePregameElo"),
                 "awayElo": g.get("awayPregameElo"),
+                # 🔴 WHY THE ELO IS MISSING, CARRIED EXPLICITLY.
+                # `[measured 2026-08-30]` 513 of 2021's 6,980 rows had no
+                # Elo. Every single one is an FCS opponent -- CAA,
+                # Southern, OVC, MVFC, MEAC, NEC, Patriot, SWAC -- in
+                # weeks 1-4. CFBD rates no FCS team, so both pregame Elos
+                # come back null for those games.
+                # ⛔ IMPUTING WOULD BE A LIE: the mean Elo would make the
+                # WEAKEST opponent on the schedule look average.
+                # ⛔ DROPPING WOULD BE WORSE: those are the blowouts where
+                # starters feast early and sit, so removing them biases
+                # the sample toward hard games and the model would
+                # under-predict exactly the spots we might bet.
+                # ✅ CARRY THE CLASSIFICATION AND LET THE MODEL SEE IT.
+                "homeClass": g.get("homeClassification"),
+                "awayClass": g.get("awayClassification"),
             }
             if st == "regular" and g.get("week"):
                 weeks_seen.add(g["week"])
@@ -375,6 +390,9 @@ def build_season(season, log=log):
                                 "conf", m["homeConf"] if is_home else m["awayConf"])
                             r.setdefault(
                                 "opp_conf", m["awayConf"] if is_home else m["homeConf"])
+                            r.setdefault(
+                                "opp_class",
+                                m["awayClass"] if is_home else m["homeClass"])
                             v = a.get("stat")
                             if pair:
                                 bits = str(v).split("/")
@@ -449,6 +467,11 @@ def build_season(season, log=log):
             "was absent from one who played and did not touch the ball.",
             "elo/opp_elo are PREGAME and point-in-time legal. No postgame "
             "field from /games is carried here.",
+            "A NULL opp_elo MEANS THE OPPONENT IS FCS -- CFBD rates no "
+            "FCS team. opp_class names it. DO NOT IMPUTE (the mean would "
+            "make the weakest opponent look average) and DO NOT DROP "
+            "(those are the blowouts, so dropping biases the sample "
+            "toward hard games). Carry an indicator.",
             "NO usage floor has been applied. T37-CFB sets it once, from "
             "the distribution emitted in the probe report.",
             "tgt_share, ay_share, snaps, snap_pct, inj, ol_out and "
@@ -577,7 +600,17 @@ def build_vs_position(doc, log=log):
             "note": ("Every performance a defence allowed, by DEPTH SLOT. "
                      "⛔ Depth is TOUCH-based, not snap-based — college "
                      "publishes no snap data. NO usage floor applied; see "
-                     "T37-CFB."),
+                     "T37-CFB. "
+                     "🔴 T38/T39, 2026-08-30: A RAW ROW IN THIS TABLE HAS "
+                     "NO PER-DEFENCE RELIABILITY. Split-half r of WR1 "
+                     "rec_yds allowed is ~0 at EVERY game count, in CFB "
+                     "(0.03/0.06/0.05/-0.02/-0.07) AND in the NFL "
+                     "(0.0004/0.11/0.09/0.10/-0.005). The same instrument "
+                     "finds r=0.80 on NFL snap share, so the ruler is "
+                     "sound. A raw total allowed is dominated by WHICH "
+                     "OFFENCE TURNED UP. DO NOT read a row here as a "
+                     "property of the defence. No minimum-games rule "
+                     "fixes this -- that question is moot."),
             "defences": {k: {p: dict(v) for p, v in d.items()}
                          for k, d in out.items()}}, kept
 
@@ -647,6 +680,19 @@ def verify(doc, log=log):
         if any(f in g for g in gs):
             bad.append(f"{f} is present on CFB rows — it cannot exist for "
                        f"college and must be ABSENT, not null")
+
+    # 🔴 MISSING ELO MUST BE EXPLAINED, NOT TOLERATED. If a row has no
+    # opponent Elo AND no opponent classification, we cannot say WHY it is
+    # missing -- and an unexplained gap is the kind of thing a model
+    # silently drops. ⛔ Missingness we can name is a feature; missingness
+    # we cannot name is a defect.
+    unexplained = [g for g in gs
+                   if g.get("opp_elo") is None and not g.get("opp_class")]
+    if unexplained:
+        bad.append(f"{len(unexplained):,} rows have no opp_elo AND no "
+                   f"opp_class — the missingness is unexplained, which "
+                   f"means a consumer cannot tell an FCS opponent from a "
+                   f"data hole")
 
     # Scope.
     if any(g.get("conf") not in POWER4 for g in gs):
