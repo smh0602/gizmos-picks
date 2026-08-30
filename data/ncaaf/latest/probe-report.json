@@ -789,6 +789,30 @@
    "season": 2021,
    "player_weeks": 6980,
    "vs_position_rows": 3657,
+   "coverage": {
+    "p4_rows": 7402,
+    "pos_known": 7108,
+    "prop_pos": 6980,
+    "coverage_pct": 96.03,
+    "bridge_ok": true,
+    "unbridged_examples": [
+     [
+      " Team",
+      292
+     ],
+     [
+      "Nakeie Montgomery",
+      1
+     ],
+     [
+      "Grant Carlson",
+      1
+     ]
+    ],
+    "unbridged_players": 3
+   },
+   "elo_missing_rows": 513,
+   "elo_missing_pct": 7.35,
    "usage_quantiles": {
     "n": 6980,
     "p10": 1,
@@ -975,6 +999,30 @@
    "season": 2022,
    "player_weeks": 6980,
    "vs_position_rows": 3743,
+   "coverage": {
+    "p4_rows": 7402,
+    "pos_known": 7077,
+    "prop_pos": 6980,
+    "coverage_pct": 95.61,
+    "bridge_ok": true,
+    "unbridged_examples": [
+     [
+      " Team",
+      323
+     ],
+     [
+      "Lucious Stanley",
+      1
+     ],
+     [
+      "Tyrone Tracy Jr.",
+      1
+     ]
+    ],
+    "unbridged_players": 3
+   },
+   "elo_missing_rows": 17,
+   "elo_missing_pct": 0.24,
    "usage_quantiles": {
     "n": 6980,
     "p10": 1,
@@ -1161,6 +1209,34 @@
    "season": 2023,
    "player_weeks": 7335,
    "vs_position_rows": 3980,
+   "coverage": {
+    "p4_rows": 7759,
+    "pos_known": 7433,
+    "prop_pos": 7335,
+    "coverage_pct": 95.8,
+    "bridge_ok": true,
+    "unbridged_examples": [
+     [
+      " Team",
+      323
+     ],
+     [
+      "Stephon Johnson Jr.",
+      1
+     ],
+     [
+      "Eric Singleton, Jr.",
+      1
+     ],
+     [
+      "Kevin Coleman Jr.",
+      1
+     ]
+    ],
+    "unbridged_players": 4
+   },
+   "elo_missing_rows": 0,
+   "elo_missing_pct": 0.0,
    "usage_quantiles": {
     "n": 7335,
     "p10": 1,
@@ -1347,6 +1423,46 @@
    "season": 2024,
    "player_weeks": 8975,
    "vs_position_rows": 4985,
+   "coverage": {
+    "p4_rows": 9315,
+    "pos_known": 9069,
+    "prop_pos": 8975,
+    "coverage_pct": 97.36,
+    "bridge_ok": true,
+    "unbridged_examples": [
+     [
+      " Team",
+      239
+     ],
+     [
+      "Jalin Conyers",
+      2
+     ],
+     [
+      "Andre Davis",
+      1
+     ],
+     [
+      "Ahmari Huggins-Bruce",
+      1
+     ],
+     [
+      "Kevin Coleman Jr.",
+      1
+     ],
+     [
+      "Jakobi Jackson",
+      1
+     ],
+     [
+      "Deamonte Trayanum",
+      1
+     ]
+    ],
+    "unbridged_players": 7
+   },
+   "elo_missing_rows": 0,
+   "elo_missing_pct": 0.0,
    "usage_quantiles": {
     "n": 8975,
     "p10": 1,
@@ -1533,6 +1649,22 @@
    "season": 2025,
    "player_weeks": 9028,
    "vs_position_rows": 5079,
+   "coverage": {
+    "p4_rows": 9460,
+    "pos_known": 9157,
+    "prop_pos": 9028,
+    "coverage_pct": 96.8,
+    "bridge_ok": true,
+    "unbridged_examples": [
+     [
+      " Team",
+      303
+     ]
+    ],
+    "unbridged_players": 1
+   },
+   "elo_missing_rows": 0,
+   "elo_missing_pct": 0.0,
    "usage_quantiles": {
     "n": 9028,
     "p10": 1,
@@ -1716,5 +1848,25 @@
    ]
   }
  ],
- "probed_at": "2026-08-30T05:04:33Z"
+ "t37_floor": {
+  "status": "CANDIDATE \u2014 computed, NOT applied, NOT yet frozen",
+  "spec": "p25 of trailing_usage among rows that already pass the depth-rank cap, fitting seasons 2021-2023 only",
+  "fit_seasons": [
+   2021,
+   2022,
+   2023
+  ],
+  "n": 11380,
+  "distribution": {
+   "n": 11380,
+   "p10": 2.0,
+   "p25": 3.0,
+   "p50": 5.0,
+   "p75": 13.545,
+   "p90": 32.25,
+   "max": 62.0
+  },
+  "p25_candidate": 3.0
+ },
+ "probed_at": "2026-08-30T05:27:13Z"
 }
