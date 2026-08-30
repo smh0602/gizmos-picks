@@ -75,6 +75,9 @@ POWER4 = {"ACC", "Big 12", "Big Ten", "SEC"}
 REG_WEEKS = range(1, 16)
 PROP_POS = {"QB", "RB", "WR", "TE", "FB"}
 VS_DEPTH = {"QB": 1, "RB": 2, "WR": 3, "TE": 2}
+# % of Power 4 box rows that must bridge to a roster position before a
+# season is considered safe to model. Mirrors nfl.py.
+BRIDGE_MIN = 95.0
 VS_STATS = ("pass_yds", "rush_yds", "rec_yds", "rec", "tgt",
             "pass_td", "rush_td", "rec_td", "car", "att", "cmp", "int",
             "usage")
@@ -364,13 +367,33 @@ def build_season(season, log=log):
         time.sleep(0.35)
 
     # ── Power 4 only, and the position must be known ──────────────────
+    # 🔴 COVERAGE IS MEASURED HERE, NOT ASSUMED. `[recorded 2026-08-30]`
+    # the first five-season build shipped with NO coverage number at all:
+    # the position ratios looked right and Alabama spot-checked clean, and
+    # "looks right" was allowed to stand in for a measurement. ⛔ That is
+    # the same mistake as a green run standing in for a verified one.
+    # `nfl.py` has carried `bridge_coverage` since its own back-fill;
+    # this is that metric, ported.
     players = collections.defaultdict(lambda: {"g": []})
     dropped = collections.Counter()
+    cov = {"p4_rows": 0, "pos_known": 0, "prop_pos": 0}
+    unbridged = collections.Counter()
     for (pid, gid), r in rows.items():
         if r.get("conf") not in POWER4:
             dropped["not Power 4"] += 1
             continue
+        cov["p4_rows"] += 1
         p = pos_of.get(pid)
+        if p:
+            cov["pos_known"] += 1
+        else:
+            # ⚠️ NAME THE PLAYERS WE LOSE. A coverage number with no
+            # examples cannot be diagnosed -- a roster that is simply
+            # missing walk-ons is a different problem from one that is
+            # missing every player on four teams.
+            unbridged[names.get(pid) or pid] += 1
+        if p in PROP_POS:
+            cov["prop_pos"] += 1
         if p not in PROP_POS:
             dropped["position unknown or not a prop position"] += 1
             continue
@@ -406,12 +429,29 @@ def build_season(season, log=log):
                     for pid, p in players.items()},
     }
     n = sum(len(p["g"]) for p in players.values())
+    pct = 100.0 * cov["pos_known"] / max(1, cov["p4_rows"])
+    cov["coverage_pct"] = round(pct, 2)
+    cov["bridge_ok"] = pct >= BRIDGE_MIN
+    cov["unbridged_examples"] = [[k, v] for k, v in unbridged.most_common(15)]
+    cov["unbridged_players"] = len(unbridged)
     log(f"    {len(players):,} players, {n:,} player-weeks kept")
+    log(f"    🔴 COVERAGE: {cov['pos_known']:,} of {cov['p4_rows']:,} "
+        f"Power 4 box rows bridged to a position = {pct:.2f}%")
+    if not cov["bridge_ok"]:
+        # ⛔ REPORTED, NOT FATAL -- the same choice `nfl.py` makes for
+        # 2022. A thin bridge is a REAL LIMIT OF THE SOURCE, not a bug,
+        # and the honest response is a contract on the file rather than
+        # a build that refuses to exist.
+        log(f"    ⛔ BELOW {BRIDGE_MIN}% — this season carries "
+            f"bridge_ok: false and MUST NOT be modelled without saying so")
+        log(f"       {len(unbridged):,} distinct players never bridged, "
+            f"e.g. {[k for k, _ in unbridged.most_common(5)]}")
     for k, v in dropped.items():
         log(f"      dropped {v:,} — {k}")
     if unmapped:
         for (c, s), v in unmapped.most_common():
             log(f"      🔴 UNMAPPED STAT {c}/{s}: {v:,} rows NOT collected")
+    doc["coverage"] = cov
     return doc, dict(unmapped), n
 
 
@@ -469,6 +509,14 @@ def build_vs_position(doc, log=log):
     out = collections.defaultdict(
         lambda: collections.defaultdict(lambda: collections.defaultdict(list)))
     kept = 0
+    # 🔴 HOW MANY GAMES EACH DEFENCE IS JUDGED ON. `[measured 2026-08-30]`
+    # vs-position-2025 held 159 defences for a 67-team scope, because
+    # Power 4 offences play G5 and FCS opponents. ⛔ EVERY ROW IN THIS
+    # TABLE IS A POWER 4 OFFENCE'S PERFORMANCE, so a non-P4 defence may be
+    # described by ONE GAME -- and "what Sun Belt team X allowed to a WR1"
+    # built from one night against Alabama is a fact about ALABAMA.
+    # ➡️ The count travels WITH the data so no consumer can miss it.
+    seen = collections.defaultdict(set)
     for pid, p in doc["players"].items():
         pos = p["pos"]
         if pos not in VS_DEPTH:
@@ -484,11 +532,17 @@ def build_vs_position(doc, log=log):
             for k in VS_STATS:
                 if g.get(k) is not None:
                     row[k] = g[k]
+            row["trailing_usage"] = g.get("trailing_usage")
             out[g["o"]][pos][str(r)].append(row)
+            seen[g["o"]].add(g["game_id"])
             kept += 1
     log(f"    vs-position: {kept:,} performances across {len(out)} defences")
+    thin = sorted((len(v), k) for k, v in seen.items())[:5]
+    log(f"    ⚠️ thinnest defences: {[(k, n) for n, k in thin]} "
+        f"— require a minimum before reading any of them")
     return {"season": doc["season"], "kind": "DESCRIPTIVE",
             "built_at": doc["built_at"], "depth_kept": VS_DEPTH,
+            "games_seen": {k: len(v) for k, v in seen.items()},
             "note": ("Every performance a defence allowed, by DEPTH SLOT. "
                      "⛔ Depth is TOUCH-based, not snap-based — college "
                      "publishes no snap data. NO usage floor applied; see "
@@ -612,6 +666,12 @@ def probe(log=log):
 
     os.makedirs(OUT, exist_ok=True)
     done, failed, dist = [], [], []
+    # 🔴 T37-CFB. The floor is taken from the FITTING SEASONS ONLY.
+    # ⛔ Pooling all five would let 2024 and 2025 -- the held-out seasons
+    # -- set their own admission bar. That is leakage, and it is quiet
+    # enough to survive a code review.
+    T37_FIT_SEASONS = (2021, 2022, 2023)
+    t37_pool = []
     for season in seasons:
         log(f"\n=== {season} ===")
         try:
@@ -630,8 +690,21 @@ def probe(log=log):
                     json.dump(o, fh)
                 log(f"    wrote {OUT}/{f}")
             done.append(season)
+            if season in T37_FIT_SEASONS:
+                t37_pool += [g["trailing_usage"]
+                             for p in doc["players"].values()
+                             for g in p["g"]
+                             if g.get("trailing_usage") is not None
+                             and g.get("depth_rank") is not None
+                             and g["depth_rank"] <= VS_DEPTH.get(p["pos"], 0)]
+            elo_missing = sum(1 for p in doc["players"].values()
+                              for g in p["g"] if g.get("elo") is None)
             dist.append({"season": season, "player_weeks": n,
                          "vs_position_rows": kept,
+                         "coverage": doc["coverage"],
+                         "elo_missing_rows": elo_missing,
+                         "elo_missing_pct": round(
+                             100.0 * elo_missing / max(1, n), 2),
                          "usage_quantiles": _q([g["usage"] for p in
                                                 doc["players"].values()
                                                 for g in p["g"]]),
@@ -652,6 +725,24 @@ def probe(log=log):
     report["seasons_written"] = done
     report["seasons_failed"] = [[y, w] for y, w in failed]
     report["per_season"] = dist
+    # 🔴 T37-CFB: COMPUTED AND REPORTED, DELIBERATELY **NOT APPLIED**.
+    # The pre-registration says the floor is set ONCE, from the
+    # distribution, and then frozen. ⛔ A run that both derived the bar
+    # and enforced it in the same pass would make the bar unauditable --
+    # nobody could see what it was before it started filtering. So this
+    # emits the candidate and filters nothing.
+    report["t37_floor"] = {
+        "status": "CANDIDATE — computed, NOT applied, NOT yet frozen",
+        "spec": ("p25 of trailing_usage among rows that already pass the "
+                 "depth-rank cap, fitting seasons 2021-2023 only"),
+        "fit_seasons": list(T37_FIT_SEASONS),
+        "n": len(t37_pool),
+        "distribution": _q(t37_pool),
+        "p25_candidate": _q(t37_pool).get("p25"),
+    }
+    log(f"\n🔴 T37-CFB floor candidate (NOT applied): "
+        f"p25 = {report['t37_floor']['p25_candidate']} "
+        f"from {len(t37_pool):,} rows in {list(T37_FIT_SEASONS)}")
     report["probed_at"] = (datetime.datetime.now(datetime.timezone.utc)
                            .strftime("%Y-%m-%dT%H:%M:%SZ"))
     with open(f"{OUT}/probe-report.json", "w", encoding="utf-8") as fh:

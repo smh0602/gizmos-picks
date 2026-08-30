@@ -133,6 +133,37 @@ cfb.rank_and_cascade(nonp4["players"])
 bad = cfb.verify(nonp4, log=lambda *_: None)
 ck("a non-Power-4 row is caught", any("Power-4" in b for b in bad), bad)
 
+print("── vs-position carries its own sample size ──")
+# ⚠️ week 1 has no depth rank yet, so it never reaches this table — the
+# fixture has to put the thin defence in a LATER week or it tests nothing.
+V = {"star": mk("star", "WR", "A", [
+        {"week": 1, "wk_i": 1, "usage": 9, "rec": 9},
+        {"week": 2, "wk_i": 2, "usage": 8, "rec": 8},
+        {"week": 3, "wk_i": 3, "usage": 7, "rec": 7},
+        {"week": 4, "wk_i": 4, "usage": 6, "rec": 6}])}
+V["star"]["g"][0]["o"] = "WEEK1"; V["star"]["g"][0]["game_id"] = "x1"
+V["star"]["g"][1]["o"] = "DEEP";  V["star"]["g"][1]["game_id"] = "x2"
+V["star"]["g"][2]["o"] = "DEEP";  V["star"]["g"][2]["game_id"] = "x3"
+V["star"]["g"][3]["o"] = "THIN";  V["star"]["g"][3]["game_id"] = "x4"
+cfb.rank_and_cascade(V)
+vs, kept = cfb.build_vs_position(
+    {"season": 2025, "built_at": "z",
+     "players": {k: {"name": v["name"], "pos": v["pos"], "g": v["g"]}
+                 for k, v in V.items()}}, log=lambda *_: None)
+ck("🔴 games_seen travels WITH the table — a one-game defence is "
+   "visible without a second lookup",
+   vs["games_seen"].get("DEEP") == 2 and vs["games_seen"].get("THIN") == 1,
+   vs.get("games_seen"))
+ck("week-1 rows are excluded (no depth rank yet, nothing to normalise to)",
+   kept == 3 and "WEEK1" not in vs["games_seen"], (kept, vs["games_seen"]))
+ck("a vs-position row carries trailing_usage, not just the outcome",
+   all("trailing_usage" in r for d in vs["defences"].values()
+       for rr in d.values() for l in rr.values() for r in l))
+
+ck("BRIDGE_MIN exists and is not a placeholder",
+   isinstance(cfb.BRIDGE_MIN, float) and 50 < cfb.BRIDGE_MIN <= 100,
+   cfb.BRIDGE_MIN)
+
 print("── helpers ──")
 ck("usage_of(QB) = att + car", cfb.usage_of({"att": 30, "car": 4}, "QB") == 34)
 ck("usage_of(WR) prefers targets over receptions",
