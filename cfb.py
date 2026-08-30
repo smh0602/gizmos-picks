@@ -774,14 +774,33 @@ def probe(log=log):
                              if g.get("trailing_usage") is not None
                              and g.get("depth_rank") is not None
                              and g["depth_rank"] <= VS_DEPTH.get(p["pos"], 0)]
+            # 🔴 REPORT THE COLUMN THE MODEL ACTUALLY USES.
+            # `[recorded 2026-08-30]` v6-v8 reported `elo` -- the
+            # player's OWN team rating -- and I told Sam "2021 is 7.35%
+            # missing, every other season 0.0%". ⛔ THAT WAS THE WRONG
+            # COLUMN. `opp_elo` is the opponent-strength control, the one
+            # that goes in the model, and it is missing on 7.8-10.0% of
+            # rows in EVERY season, rising to 10.0% in 2025. Same failure
+            # family as the parity probes: I measured something adjacent
+            # and reported it as the answer.
             elo_missing = sum(1 for p in doc["players"].values()
                               for g in p["g"] if g.get("elo") is None)
+            opp_elo_missing = sum(1 for p in doc["players"].values()
+                                  for g in p["g"]
+                                  if g.get("opp_elo") is None)
+            fcs_rows = sum(1 for p in doc["players"].values()
+                           for g in p["g"]
+                           if (g.get("opp_class") or "").lower() == "fcs")
             dist.append({"season": season, "player_weeks": n,
                          "vs_position_rows": kept,
                          "coverage": doc["coverage"],
-                         "elo_missing_rows": elo_missing,
-                         "elo_missing_pct": round(
+                         "own_elo_missing_rows": elo_missing,
+                         "own_elo_missing_pct": round(
                              100.0 * elo_missing / max(1, n), 2),
+                         "OPP_elo_missing_rows": opp_elo_missing,
+                         "OPP_elo_missing_pct": round(
+                             100.0 * opp_elo_missing / max(1, n), 2),
+                         "fcs_opponent_rows": fcs_rows,
                          "usage_quantiles": _q([g["usage"] for p in
                                                 doc["players"].values()
                                                 for g in p["g"]]),
