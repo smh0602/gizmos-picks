@@ -61,7 +61,8 @@ LEAGUES = {
 # ✅ Forcing is chosen over failing loud on purpose: a fail-loud check is
 # still a thing a tired operator has to read at 4am, whereas a forced path
 # CANNOT be wrong.
-MODE_LEAGUE = {"nfl-probe": "nfl", "nfl-logs": "nfl"}
+MODE_LEAGUE = {"nfl-probe": "nfl", "nfl-logs": "nfl",
+               "cfb-probe": "ncaaf"}
 LEAGUE = os.environ.get("LEAGUE", "mlb").strip().lower() or "mlb"
 _forced = {MODE_LEAGUE[m] for m in MODE_LEAGUE
            if m in " ".join(sys.argv[1:]).split()}
@@ -2176,7 +2177,7 @@ def run_mode(mode):
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
-            "nfl-probe", "nfl-logs", "freshness")
+            "nfl-probe", "nfl-logs", "freshness", "cfb-probe")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2338,6 +2339,16 @@ def run_mode(mode):
                 raise RuntimeError(
                     f"{len(failed)} season(s) failed: "
                     f"{[y for y, _ in failed]} -- see {_rp}")
+            left = None
+        elif mode == "cfb-probe":
+            # 🔴 A PARITY CHECK, NOT A SURVEY. Sam, 2026-08-30: "i want the
+            # SAME EXACT stats and data pulled for cfb as we did for the
+            # nfl." So it asks, field by field, whether CFBD can supply
+            # each of the 29 the NFL layer produces -- and NAMES THE GAPS.
+            # ⛔ Writes nothing. No CFB collector exists yet, on purpose.
+            import cfb as _cfb
+            if not _cfb.probe(log):
+                sys.exit(1)
             left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
