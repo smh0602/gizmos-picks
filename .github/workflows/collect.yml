@@ -56,6 +56,22 @@ on:
     # more than an hour.
     - cron: "9 */3 * * *"
 
+    # ══ FOOTBALL ══
+    # 🔴 ZERO football odds have ever been collected. These are the first.
+    # ⚠️ Props bill PER GAME, so CFB runs the Power 4 gate in collect.py --
+    # an unfiltered NCAAF Saturday is ~70 events and ~700 credits.
+    # 💰 Priced before shipping, at ~25 P4 games and 16 NFL games:
+    #    CFB Sat props  5 x 2 x 25 = 250   ·  NFL Sun props 6 x 2 x 16 = 192
+    #    gamelines 6 per call, flat -- 4 calls a day is 24.
+    #    MLB currently runs 240-317/day against a 600 cap.
+    # ⛔ ONE props pull per game day to start. A second would put a
+    # Saturday at ~740 and over the cap.
+    - cron: "20 15 * * 6"       # Sat 11:20am ET — CFB props + lines
+    - cron: "20 */6 * * 4,5,6"  # Thu/Fri/Sat — CFB line movement
+    - cron: "25 15 * * 0"       # Sun 11:25am ET — NFL props + lines
+    - cron: "25 22 * * 4"       # Thu 6:25pm ET — TNF
+    - cron: "25 */6 * * 0,1,4"  # Thu/Sun/Mon — NFL line movement
+
   # 🔴 RESTORED 2026-08-28 AFTER I DELETED IT BY ACCIDENT. The schedule
   # rewrite replaced everything between `schedule:` and
   # `workflow_dispatch:`, and this block was sitting in the middle of it.
@@ -168,8 +184,44 @@ jobs:
           # design: every entry claimed one job, so a dropped entry meant
           # a permanently missing file. `converge` asks the CONTRACT what
           # is late instead of asking the clock what it is time for.
-          echo "league=${{ github.event.inputs.league || 'mlb' }}" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          # ══════════════════════════════════════════════════════════
+          # 🔴 FOOTBALL RUNS ON ITS OWN CRONS. Until now every scheduled
+          # run hardcoded `mlb`, so NOTHING has ever collected football.
+          # ⛔ ZERO football odds have ever been pulled -- and odds
+          # history cannot be bought back at any price (the T25 lesson),
+          # so every weekend missed is gone permanently.
+          #
+          # ⚠️ THE DEFAULT IS `mlb` AND EVERY UNRECOGNISED SCHEDULE FALLS
+          # THROUGH TO IT. That is deliberate and it is the safety
+          # property: if this case block is wrong, or a cron string is
+          # edited and no longer matches, the run behaves EXACTLY as it
+          # does today. ⛔ A football routing bug must never be able to
+          # stop MLB collecting.
+          # ══════════════════════════════════════════════════════════
+          LEAGUE="${{ github.event.inputs.league }}"
+          MODES="${{ github.event.inputs.mode }}"
+          if [ -z "$LEAGUE" ]; then
+            case "${{ github.event.schedule }}" in
+              # ── COLLEGE FOOTBALL — Thu/Fri/Sat ──────────────────────
+              "20 15 * * 6")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
+              "20 */6 * * 4,5,6") LEAGUE=ncaaf; MODES="gamelines" ;;
+              # ── NFL — Thu/Sun/Mon ──────────────────────────────────
+              "25 15 * * 0")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
+              "25 22 * * 4")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
+              "25 */6 * * 0,1,4") LEAGUE=nfl;   MODES="gamelines" ;;
+              *)                  LEAGUE=mlb ;;
+            esac
+          fi
+          echo "league=${LEAGUE:-mlb}" >> "$GITHUB_OUTPUT"
+          if [ "$LEAGUE" != "mlb" ] && [ -n "$MODES" ] \
+             && [ "${{ github.event_name }}" = "schedule" ]; then
+            # 🔴 FOOTBALL IS ONE-SHOT, NOT A HEARTBEAT. The loop exists to
+            # survive dropped runs on a DAILY contract; football has no
+            # freshness contract yet, and holding a job open for 5 hours
+            # would let `cancel-in-progress` kill the MLB loop.
+            echo "mode=$MODES converge-off" >> "$GITHUB_OUTPUT"
+            echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ github.event.inputs.mode || 'converge' }}" >> "$GITHUB_OUTPUT"
             # A hand-dispatched job is a one-shot: no heartbeat loop, so
             # a person debugging is not left with a 6-hour job running.
