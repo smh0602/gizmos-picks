@@ -46,7 +46,12 @@ def build(root, ages_min, no_stamp=(), corrupt=()):
     put(f"{L}/news.json", "news")
     put(f"{L}/record.json", "record")
     put(f"{root}/data/{F.slate_date(now)}/results/final.json.gz", "results")
-    put(f"{root}/picks/{day}.json", "card")
+    # 🔴 THE CARD IS DATED BY ITS DEADLINE, NOT BY THE WALL CLOCK.
+    # ⛔ This harness wrote `picks/<et_date>.json` and therefore ENCODED
+    # THE BUG IT WAS SUPPOSED TO CATCH -- inside the midnight-to-10am
+    # window it built the file the broken contract asked for, so the
+    # control case passed while production went red every night.
+    put(f"{root}/picks/{F.due_date(F.CARD, now)}.json", "card")
 
     for kind in ("props-pitcher", "props-batter"):
         # 🔴 A snapshot lands in the directory for the UTC DAY IT WAS
@@ -314,5 +319,54 @@ print("\nWORKFLOW TRIGGERS")
 if not check_workflow():
     print("  ⛔ a trigger is missing — uploads or schedules would be silent")
     FAIL.append("workflow triggers")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE DATE-ROLL WINDOW. A date bug is invisible unless you are standing
+# inside its window, so this test STANDS INSIDE IT ON PURPOSE rather than
+# trusting the wall clock to be in the right place when CI happens to run.
+# `[measured 2026-08-30 06:58Z]` the card row built its FILENAME from
+# et_date and its DEADLINE from last_due. Between midnight and 10am ET
+# those disagree, so the contract demanded a card that was not due for
+# another seven hours and reported the site out of contract. THE RUN WENT
+# RED EVERY NIGHT. The identical bug had already been found and fixed for
+# `results` on 2026-08-29 and the fix was never carried to `card`.
+# ══════════════════════════════════════════════════════════════════════
+print("\nTHE MIDNIGHT-TO-10AM WINDOW")
+_UTC = datetime.timezone.utc
+_win = [
+    ("2026-08-30T03:00:00", "2026-08-29", "11pm ET — still last night's slate"),
+    ("2026-08-30T06:58:00", "2026-08-29", "2:58am ET — the hour it actually failed"),
+    ("2026-08-30T13:00:00", "2026-08-29", "9am ET — today's card is not due yet"),
+    ("2026-08-30T15:00:00", "2026-08-30", "11am ET — now today's card IS due"),
+]
+_bad = 0
+for _t, _want, _why in _win:
+    _n = datetime.datetime.fromisoformat(_t).replace(tzinfo=_UTC)
+    _row = [r for r in F.contract(now=_n) if r[0] == "card"][0]
+    _got = _row[1][1].rsplit("/", 1)[-1].replace(".json", "")
+    _ok = _got == _want
+    print(f"  [{'OK  ' if _ok else 'FAIL'}] {_why}: card -> {_got}")
+    if not _ok:
+        _bad += 1
+        print(f"         expected {_want}; a card is dated by its DEADLINE, "
+              f"never by the wall clock")
+if _bad:
+    FAIL.append("card date rolls with the clock instead of the deadline")
+
+# ⛔ AND THE GENERAL RULE, ENFORCED RATHER THAN TRUSTED: no date-stamped
+# path in the contract may move while its own deadline has not.
+_a = F.contract(now=datetime.datetime.fromisoformat(
+    "2026-08-30T06:58:00").replace(tzinfo=_UTC))
+_b = F.contract(now=datetime.datetime.fromisoformat(
+    "2026-08-30T13:00:00").replace(tzinfo=_UTC))
+_moved = [x[0] for x, y in zip(_a, _b)
+          if x[1][1] != y[1][1] and F.last_due(x[2], datetime.datetime
+          .fromisoformat("2026-08-30T06:58:00").replace(tzinfo=_UTC))
+          == F.last_due(y[2], datetime.datetime
+          .fromisoformat("2026-08-30T13:00:00").replace(tzinfo=_UTC))]
+print(f"  [{'OK  ' if not _moved else 'FAIL'}] no artifact path moves while "
+      f"its deadline has not{'' if not _moved else ': ' + str(_moved)}")
+if _moved:
+    FAIL.append(f"paths move without their deadline: {_moved}")
 
 sys.exit(1 if FAIL else 0)

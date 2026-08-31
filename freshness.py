@@ -223,6 +223,32 @@ def slate_date(now=None):
     return (now - datetime.timedelta(hours=10)).strftime("%Y-%m-%d")
 
 
+def due_date(times_et, now=None):
+    """The ET date of the SLATE WHOSE DEADLINE CURRENTLY GOVERNS.
+
+    🔴 THE SECOND HALF OF THE `slate_date` BUG, AND IT SURVIVED THE FIRST
+    FIX. `results` was corrected on 2026-08-29; the `card` row was not,
+    and it had the same shape: its FILENAME came from the wall clock
+    (`et_date`) while its DEADLINE came from the schedule (`last_due`).
+    ⛔ MEASURED 2026-08-30 06:58Z: `et_date` had already rolled to 08-30
+    while the governing deadline was still 08-29's 10:00 ET. The contract
+    demanded `picks/2026-08-30.json` -- a card NOT DUE FOR ANOTHER SEVEN
+    HOURS -- and reported it MISSING. `picks/2026-08-29.json` existed and
+    was correct.
+    ⛔ CONSEQUENCE: the site reported itself out of contract and the run
+    went RED EVERY NIGHT between midnight and 10am ET. An alarm that
+    fires every night is an alarm that gets ignored, which is exactly how
+    the original staleness survived a whole day.
+    ✅ THE RULE, STATED SO IT IS NOT RE-DERIVED A THIRD TIME:
+    **AN ARTIFACT WHOSE PATH CARRIES A DATE MUST TAKE THAT DATE FROM ITS
+    OWN DEADLINE, NEVER FROM THE WALL CLOCK.**
+    """
+    d = last_due(times_et, now)
+    if d is None:
+        return et_date(now)
+    return (d - ET_OFFSET).strftime("%Y-%m-%d")
+
+
 def last_due(times_et, now=None):
     """The most recent scheduled build time that has already passed.
 
@@ -289,7 +315,9 @@ def contract(data="data", picks="picks", now=None):
          "Gizmo's Picks — confirmed lineups the card needs"),
         ("weather",  ("file", f"{latest}/weather.json.gz"),        CARD, False,
          "Gizmo's Picks — game-time conditions"),
-        ("card",     ("file", f"{picks}/{day}.json"),              CARD, False,
+        # 🔴 `due_date(CARD)`, NOT `day`. See due_date's docstring: the
+        # wall clock rolls at midnight ET, the 10:00 deadline does not.
+        ("card",     ("file", f"{picks}/{due_date(CARD, now)}.json"), CARD, False,
          "Gizmo's Picks + Parlays"),
         # ── unchanged
         ("news",     ("file", f"{latest}/news.json"),              NEWS, False,
