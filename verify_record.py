@@ -61,10 +61,34 @@ if not os.path.exists("data/latest/record.json"):
 REC = _read_json("data/latest/record.json", "the track record")
 
 # Results are filed under the RUN date and name their slate inside.
-BY_SLATE = {}
+BY_SLATE, UNSETTLED = {}, {}
 for p in glob.glob("data/*/results/final.json.gz"):
     r = json.load(gzip.open(p, "rt"))
-    BY_SLATE.setdefault(r["slate_date"], r)
+    # 🔴 A SLATE THAT HAS NOT FINISHED CANNOT BE GRADED, AND ITS PICKS ARE
+    # NOT VOIDS. `[measured 2026-08-31 23:09Z]` the 8/31 results file held
+    # 12 games, ALL `Scheduled`, `n_final: 0` -- not one pitch thrown --
+    # and this verifier graded that night's card against it, produced
+    # 0/0, called all FIFTY picks VOIDS, and failed the run.
+    # ⛔ VOID MEANS "THE GAME WAS PLAYED AND HE NEVER TOOK THE FIELD."
+    # UNGRADED MEANS "IT HAS NOT HAPPENED YET." Conflating them turns
+    # every evening into a red run, between the 10am card and the next
+    # morning's grading.
+    # 🔴 AND THE RULE ALREADY EXISTED: `collect_record()` has skipped
+    # unsettled slates since it was written. THE BUILDER AND ITS OWN
+    # VERIFIER DISAGREED ABOUT WHICH SLATES COUNT.
+    # ⛔ THIS FILE DERIVES SETTLEDNESS ITSELF RATHER THAN TRUSTING
+    # record.json's `skipped` LIST, because this file's own docstring
+    # forbids reusing the number it is checking -- and if the builder has
+    # not run since the card was written, that list does not mention the
+    # slate at all. THAT IS EXACTLY WHAT HAPPENED ON 8/31.
+    n_g, n_f = r.get("n_games", 0), r.get("n_final", 0)
+    if n_g and n_f >= n_g:
+        BY_SLATE.setdefault(r["slate_date"], r)
+    else:
+        UNSETTLED[r["slate_date"]] = f"{n_f}/{n_g} final"
+if UNSETTLED:
+    print("  NOT GRADED — the slate has not finished: "
+          + ", ".join(f"{d} ({w})" for d, w in sorted(UNSETTLED.items())))
 
 BAT = {"batter_hits": lambda b: b["H"],
        "batter_total_bases": lambda b: b["tb"],
