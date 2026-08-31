@@ -598,8 +598,26 @@ def daily_spend():
     return total
 
 
-def props_regions():
+def props_regions(kind):
     """Hard Rock only, EXCEPT one full cross-book pull a day.
+
+    🔴 `kind` IS NOT OPTIONAL, AND THAT IS THE WHOLE FIX. This function
+    took no argument and scanned BOTH prop directories. Converge builds
+    pitcher first; it writes a snapshot stamped `us,us2`; the batter side
+    asked ONE SECOND LATER, saw the PITCHER's full pull, and downgraded
+    itself to Hard Rock alone.
+    ⛔ NOT A FLAKY MISS -- THE BATTER SIDE COULD NEVER TAKE THE FIVE-BOOK
+    PULL ON ANY DAY, BY CONSTRUCTION.
+    `[measured 2026-08-31 from the stored snapshots]`
+        11:07:56Z  props-pitcher  us,us2  72 credits  = 3 x 2 x 12
+        11:07:57Z  props-batter   us2     60 credits  = 5 x 1 x 12
+    A full 12-game batter pull is 120. **60 is exactly half.**
+    ➡️ FIVE CONSECUTIVE CARDS -- 8/27 through 8/31 -- priced every hitter
+    row off ONE BOOK while `claude/update-schedule.md` said the card is
+    priced from the five-book pull.
+    ⚠️ IT WAS WRITTEN UP AS FIXED ON 8/29 AND WAS NEVER ON MAIN. The
+    acceptance test for a fix to a PAID pull is the NEXT SNAPSHOT'S OWN
+    `regions` AND `credits_used` -- never the diff, never the write-up.
 
     ⚠️ The five-book set (ledger rule 48) doubles the per-game price, so
     it cannot be what every routine pull uses. It runs ONCE, in the
@@ -618,10 +636,11 @@ def props_regions():
     if not (10 <= hh < 14):            # 6am-10am ET
         return REGIONS_CHEAP
     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
-    for kind in ("props-pitcher", "props-batter"):
-        d = os.path.join(root, kind)
-        if not os.path.isdir(d):
-            continue
+    # ⛔ THIS KIND'S DIRECTORY ONLY. Reading the sibling's is what made
+    # the pitcher pull answer a question the batter side had asked.
+    sub = kind if kind.startswith("props-") else f"props-{kind}"
+    d = os.path.join(root, sub)
+    if os.path.isdir(d):
         for f in os.listdir(d):
             try:
                 with gzip.open(os.path.join(d, f), "rt") as fh:
@@ -2187,10 +2206,11 @@ def run_mode(mode):
             left = collect_gamelines()
         elif mode == "props-pitcher":
             # ⚠️ NOT REGIONS_FULL unconditionally any more -- see
-            # props_regions(). Both regions once a day, Hard Rock the rest.
-            left = collect_props("pitcher", props_regions())
+            # props_regions(kind). Both regions once a day, Hard Rock the
+            # rest. ⛔ THE ARGUMENT IS LOAD-BEARING -- see the docstring.
+            left = collect_props("pitcher", props_regions("pitcher"))
         elif mode == "props-batter":
-            left = collect_props("batter", props_regions())
+            left = collect_props("batter", props_regions("batter"))
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.
