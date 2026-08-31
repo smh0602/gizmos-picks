@@ -680,6 +680,104 @@ def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
     return False
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE POWER 4 GATE — THE ONE THING THAT MAKES CFB AFFORDABLE
+# Props bill `markets x regions x GAMES`, PER GAME. A Saturday NCAAF board
+# is ~70 events, so an unfiltered pull is 5 x 2 x 70 = 700 CREDITS FOR ONE
+# PULL, against roughly 390/day of headroom on the whole plan.
+# ✅ Sam's scope has always been POWER 4 ONLY -- "G5 games carry almost no
+# player props, so a wider board means paying to collect empty boards".
+# This is that rule enforced at the REQUEST, where it saves money, rather
+# than at the write-up, where it saves nothing.
+#
+# ⚠️ THE TEAM NAMES COME FROM TWO DIFFERENT SOURCES AND I HAVE NOT SEEN
+# THE ODDS API'S SPELLING OF THEM. `[unverified 2026-08-31]` Our list is
+# CFBD's ("Ohio State"); the Odds API may say "Ohio State Buckeyes". ⛔ A
+# NAME JOIN I HAVE NOT MEASURED IS EXACTLY THIS PROJECT'S OLDEST FAILURE.
+# ➡️ SO THE GATE FAILS CLOSED AND CHEAP: `/events` is free, the match is
+# reported team by team, and if too few events match, THE RUN SPENDS
+# NOTHING and writes the unmatched names into the repo to be read.
+# ⛔ Better a first run that collects nothing and tells us the names than
+# one that quietly pulls 70 events or quietly pulls none.
+# ══════════════════════════════════════════════════════════════════════
+def _norm_team(x):
+    # ⚠️ ALPHANUMERIC ONLY, AND DELIBERATELY NOTHING CLEVERER. Stripping
+    # mascots ("Buckeyes") or expanding abbreviations would be me guessing
+    # at names I have not seen. If the join fails, the gate reports both
+    # name lists and spends nothing -- which is the honest outcome.
+    return "".join(c for c in str(x or "").lower() if c.isalnum())
+
+
+def power4_teams():
+    """The Power 4 set, READ FROM OUR OWN COLLECTED DATA, not hardcoded.
+    ⛔ Hardcoding 67 names guarantees they go stale at the next
+    realignment -- the set was 52 teams in 2021 and is 67 now."""
+    import glob as _glob
+    best, teams = None, set()
+    for p in sorted(_glob.glob(f"{LEAGUES['ncaaf']['data']}/latest/players-*.json.gz")):
+        best = p
+    if not best:
+        return teams
+    try:
+        with gzip.open(best, "rt", encoding="utf-8") as fh:
+            doc = json.load(fh)
+        for pl in doc.get("players", {}).values():
+            for g in pl.get("g", []):
+                if g.get("conf") in ("ACC", "Big 12", "Big Ten", "SEC"):
+                    teams.add(g["team"])
+    except Exception as e:
+        log(f"  could not read the Power 4 list: {type(e).__name__}: {e}")
+    return teams
+
+
+P4_MIN_MATCH = 8          # below this, assume the name join is broken
+
+
+def filter_power4(events, log=log):
+    """Keep only events where BOTH sides are Power 4. Report everything."""
+    p4 = power4_teams()
+    if not p4:
+        log("  ⛔ no Power 4 list on disk -- run the cfb back-fill first. "
+            "NOTHING SPENT.")
+        return [], "no Power 4 team list on disk"
+    norm = {_norm_team(t): t for t in p4}
+    kept, dropped = [], []
+    for ev in events:
+        h, a_ = ev.get("home_team"), ev.get("away_team")
+        hm, am = norm.get(_norm_team(h)), norm.get(_norm_team(a_))
+        if hm and am:
+            kept.append(ev)
+        else:
+            dropped.append((a_, h))
+    log(f"  Power 4 gate: {len(kept)} of {len(events)} events kept")
+    for a_, h in dropped[:12]:
+        log(f"    dropped  {a_} @ {h}")
+    if len(events) and len(kept) < P4_MIN_MATCH:
+        # 🔴 FAIL CLOSED. Either it really is a light slate, or the names
+        # do not join -- and those look identical from here. ⛔ Spending
+        # on the second case is how a silent join failure becomes a bill.
+        names = sorted({n for ev in events
+                        for n in (ev.get("home_team"), ev.get("away_team"))})
+        try:
+            os.makedirs(f"{LEAGUES['ncaaf']['data']}/latest", exist_ok=True)
+            with open(f"{LEAGUES['ncaaf']['data']}/latest/event-names.txt",
+                      "w", encoding="utf-8") as fh:
+                fh.write(f"{stamp()}\nEvents on the board: {len(events)}\n"
+                         f"Matched as Power 4: {len(kept)}\n\n"
+                         "--- the Odds API's own team names ---\n"
+                         + "\n".join(names)
+                         + "\n\n--- our Power 4 list (from CFBD) ---\n"
+                         + "\n".join(sorted(p4)))
+            log("  wrote data/ncaaf/latest/event-names.txt -- compare the "
+                "two name lists before spending anything")
+        except Exception:
+            pass
+        return [], (f"only {len(kept)} of {len(events)} events matched the "
+                    f"Power 4 list; the name join is unproven, so nothing "
+                    f"was spent")
+    return kept, None
+
+
 def collect_props(kind, regions=None):
     if kind == "player":
         markets = PROP_MARKETS[LEAGUE]          # 🔴 the football pull
@@ -710,6 +808,13 @@ def collect_props(kind, regions=None):
 
     events, used, left = odds_get(f"/sports/{SPORT}/events", {})
     log(f"{len(events)} events on the board; {left} credits before props")
+
+    # ⛔ CFB ONLY. MLB and NFL are untouched by this branch.
+    if LEAGUE == "ncaaf":
+        events, why = filter_power4(events, log)
+        if why:
+            log(f"SKIPPING {kind} props: {why}")
+            return left
 
     per_game = len(markets) * len(regions.split(","))
     need = per_game * len(events)
@@ -2211,6 +2316,14 @@ def run_mode(mode):
             left = collect_props("pitcher", props_regions("pitcher"))
         elif mode == "props-batter":
             left = collect_props("batter", props_regions("batter"))
+        elif mode == "props-player":
+            # 🔴 FOOTBALL. One `player` kind -- football has no
+            # pitcher/batter split and inventing one would be a fake
+            # distinction for the sake of reusing a mode name.
+            if LEAGUE == "mlb":
+                log("FATAL: props-player is a FOOTBALL mode. Set LEAGUE.")
+                sys.exit(1)
+            left = collect_props("player", props_regions("player"))
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.
