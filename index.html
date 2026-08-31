@@ -398,6 +398,37 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
   padding:10px 18px; font-size:13px; line-height:1.5;
 }
 .stalebar.warn b{ color:#fff; }
+/* ══ THE LEAGUE DIMENSION ══════════════════════════════════════════
+   🔴 ADDITIVE ONLY. When MLB is selected nothing below is displayed and
+   the page behaves EXACTLY as it did before this block existed. That is
+   deliberate: the MLB board is live and Sam's instruction was to leave
+   it alone unless a change is certain. */
+.lgnav{ background:#0d1b2a; border-bottom:1px solid rgba(255,255,255,.10); }
+.lgnav ul{ list-style:none; margin:0; padding:0; display:flex; gap:2px; }
+.lgnav a{
+  display:block; padding:7px 16px; color:#9fb3c8; cursor:pointer;
+  font:600 12px/1 system-ui,sans-serif; letter-spacing:.08em;
+  text-transform:uppercase; border-bottom:2px solid transparent;
+}
+.lgnav a:hover{ color:#fff; }
+.lgnav a.on{ color:#fff; border-bottom-color:#f0a500; }
+.fbctl{ display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; margin:0 0 14px; }
+.fbctl label{ display:flex; flex-direction:column; gap:4px;
+  font:600 10px/1 system-ui,sans-serif; letter-spacing:.1em;
+  text-transform:uppercase; color:#6b7683; }
+.fbctl select{ font:14px system-ui,sans-serif; padding:6px 9px;
+  border:1px solid #cfd6de; border-radius:3px; background:#fff; min-width:170px; }
+table.fbt{ border-collapse:collapse; width:100%; }
+table.fbt th{ font:600 10px/1 system-ui,sans-serif; letter-spacing:.1em;
+  text-transform:uppercase; color:#6b7683; text-align:left;
+  padding:9px 10px; border-bottom:1px solid #dfe4ea; white-space:nowrap; }
+table.fbt td{ padding:7px 10px; border-bottom:1px solid #eef1f4; }
+table.fbt tr:hover td{ background:#f7f9fb; }
+.fbt .n{ font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+.fbt .rk{ font-variant-numeric:tabular-nums; color:#8a95a1; width:38px; }
+.fbbar{ height:8px; border-radius:2px; background:#e7edf3; min-width:120px; }
+.fbbar i{ display:block; height:100%; border-radius:2px; }
+.fbthin td{ color:#a4adb8; }
 .stalebar .sb-item{
   display:inline-block; margin:2px 10px 0 0; padding:1px 7px;
   background:rgba(0,0,0,.28); border-radius:3px; white-space:nowrap;
@@ -413,8 +444,13 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
 <header>
   <div class="wrap mast">
     <div class="logo">Gizmo's<span>Picks</span></div>
-    <div class="tagline">MLB model &amp; live board</div>
+    <div class="tagline" id="tagline">MLB model &amp; live board</div>
   </div>
+  <nav class="lgnav"><div class="wrap"><ul>
+    <li><a data-lg="mlb" class="on">MLB</a></li>
+    <li><a data-lg="nfl">NFL</a></li>
+    <li><a data-lg="ncaaf">College Football</a></li>
+  </ul></div></nav>
   <nav class="subnav"><div class="wrap"><ul>
     <li><a data-tab="scores" class="on">Scores &amp; Matchups</a></li>
     <li><a data-tab="picks">Gizmo's Picks</a></li>
@@ -445,6 +481,9 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
     <span class="stamp" id="stamp"></span>
   </div>
   <div id="view"></div>
+  <!-- 🔴 The football surface. Hidden while MLB is selected, and nothing
+       in it runs until a league button is clicked. -->
+  <div id="fbview" style="display:none"></div>
 
   <!-- Headline ticker. Lives OUTSIDE #view so it survives every tab
        switch, and is filled once from the same news.json the News tab
@@ -2330,6 +2369,198 @@ function show(tab){
     trends:renderTrends, news:renderNews, props:renderProps,
     parlays:renderParlays})[tab]();
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   THE LEAGUE DIMENSION
+   🔴 MLB IS THE DEFAULT AND ITS PATH IS UNCHANGED. Selecting MLB restores
+   exactly the page that existed before this block. Everything football
+   lives in #fbview and touches no MLB state.
+   ⛔ WHAT FOOTBALL HONESTLY HAS TODAY IS TRENDS AND NOTHING ELSE. Zero
+   football odds had ever been collected before 2026-08-31, so there is no
+   board, no card, no model and no record. The page SAYS SO on each tab
+   rather than showing an empty shell that looks broken.
+   ══════════════════════════════════════════════════════════════════════ */
+const LG_DATA  = { mlb:'data', nfl:'data/nfl', ncaaf:'data/ncaaf' };
+const LG_NAME  = { mlb:'MLB', nfl:'NFL', ncaaf:'College Football' };
+const LG_TAG   = { mlb:'MLB model &amp; live board',
+                   nfl:'NFL &mdash; defensive trends',
+                   ncaaf:'Power 4 &mdash; defensive trends' };
+let LEAGUE = 'mlb';
+let FBTAB  = 'trends';
+let FBDATA = {};          // league -> season -> parsed allowed-by-position
+const FB_SEASONS = [2025, 2024, 2023, 2022, 2021];
+let fbSeason = 2025, fbPos = 'WR', fbMetric = 'rec_yds';
+
+/* Rank 1 ALLOWS THE MOST. The question asked of this table is "how soft
+   is this defence", not "how good", so the ranking reads in the direction
+   it will actually be used. */
+const FB_METRICS = [
+  { k:'rec_yds',  l:'Receiving yards',      pos:['WR','TE','RB','QB'] },
+  { k:'rec',      l:'Receptions',           pos:['WR','TE','RB','QB'] },
+  { k:'rec_td',   l:'Receiving touchdowns', pos:['WR','TE','RB','QB'] },
+  { k:'rush_yds', l:'Rushing yards',        pos:['RB','QB','WR','TE'] },
+  { k:'car',      l:'Carries',              pos:['RB','QB','WR','TE'] },
+  { k:'rush_td',  l:'Rushing touchdowns',   pos:['RB','QB','WR','TE'] },
+  { k:'pass_yds', l:'Passing yards',        pos:['QB'] },
+  { k:'pass_td',  l:'Passing touchdowns',   pos:['QB'] },
+  { k:'int',      l:'Interceptions thrown', pos:['QB'] },
+];
+const FB_MIN_GAMES = 8;
+
+/* ⛔ Each of these states a REASON. "Coming soon" tells a reader nothing
+   and quietly implies the data exists. */
+const FB_EMPTY = {
+  scores:  ['Scores &amp; Matchups', 'No football schedule feed is collected yet. MLB uses statsapi, which is baseball-only; football needs its own source and it has not been wired up.'],
+  picks:   ["Gizmo's Picks", 'There is no football model. The first one &mdash; NFL receiving yards &mdash; was pre-registered and <b>failed its bar</b> (Brier +0.0010 against +0.0050, and worse than a season average on MAE). A pick with no tested model behind it would be exactly the thing this site exists not to be.'],
+  odds:    ['Odds', 'Football odds collection started <b>2026-08-31</b>. Nothing has been stored yet &mdash; the first pull is this weekend. Odds history cannot be backfilled, which is why collection was stood up before the page.'],
+  props:   ['Player Props', 'Same as Odds: the collector is live as of 2026-08-31, the board is empty until the first weekend pull lands.'],
+  parlays: ['Parlays', 'Parlays are built from carded plays. There are no football picks yet, so there is nothing to pair.'],
+  record:  ['Track Record', 'Nothing has been carded, so nothing has been graded. An empty record is the honest state, not a bug.'],
+  news:    ['News', 'The news feed is MLB-only today.'],
+};
+
+function fbPath(season){
+  return `${LG_DATA[LEAGUE]}/latest/allowed-by-position-${season}.json.gz`;
+}
+
+async function fbLoad(season){
+  FBDATA[LEAGUE] = FBDATA[LEAGUE] || {};
+  if (FBDATA[LEAGUE][season] !== undefined) return FBDATA[LEAGUE][season];
+  try { FBDATA[LEAGUE][season] = await jgetGz(fbPath(season)); }
+  catch(e){ FBDATA[LEAGUE][season] = null; }
+  return FBDATA[LEAGUE][season];
+}
+
+function fbMetricsFor(pos){
+  return FB_METRICS.filter(m => m.pos.indexOf(pos) > -1)
+                   .sort((a,b) => a.pos.indexOf(pos) - b.pos.indexOf(pos));
+}
+
+function fbShell(inner){
+  const tabs = ['trends','scores','picks','odds','props','parlays','record','news'];
+  const nm = { trends:'Trends', scores:'Scores', picks:"Gizmo's Picks", odds:'Odds',
+               props:'Player Props', parlays:'Parlays', record:'Track Record', news:'News' };
+  return `<nav class="subnav" style="background:transparent;border-bottom:1px solid #dfe4ea;margin:-4px 0 16px">
+      <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:2px">
+      ${tabs.map(t => `<li><a data-fbtab="${t}" class="${t===FBTAB?'on':''}"
+         style="display:block;padding:8px 13px;cursor:pointer;font:600 12px/1 system-ui;
+         letter-spacing:.05em;text-transform:uppercase;color:${t===FBTAB?'#0d1b2a':'#7c8794'};
+         border-bottom:2px solid ${t===FBTAB?'#f0a500':'transparent'}">${nm[t]}</a></li>`).join('')}
+      </ul></nav>${inner}`;
+}
+
+async function renderFootball(){
+  const v = $('#fbview');
+  if (FBTAB !== 'trends'){
+    const [title, why] = FB_EMPTY[FBTAB];
+    v.innerHTML = fbShell(
+      `<div class="note"><b>${title} &mdash; not built for ${LG_NAME[LEAGUE]} yet.</b><br>${why}</div>`);
+    fbWire(); return;
+  }
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const doc = await fbLoad(fbSeason);
+  const body = $('#fbbody');
+  if (!doc){
+    v.innerHTML = fbShell(
+      `<div class="note"><b>No ${fbSeason} table for ${LG_NAME[LEAGUE]} yet.</b><br>
+       The collector writes <code>${fbPath(fbSeason)}</code> on its next back-fill run.
+       ${LEAGUE === 'ncaaf' ? 'College has not been re-run since the table was added &mdash; dispatch <code>cfb-probe</code> once and it appears.' : ''}</div>`);
+    fbWire(); return;
+  }
+
+  const mets = fbMetricsFor(fbPos);
+  if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
+  const D = doc.defences || {};
+  const rows = [];
+  for (const team in D){
+    const e = D[team][fbPos];
+    if (!e) continue;
+    rows.push({ team, games:e.games, v:e[fbMetric] });
+  }
+  const ranked = rows.filter(r => r.games >= FB_MIN_GAMES).sort((a,b) => b.v - a.v);
+  const thin   = rows.filter(r => r.games <  FB_MIN_GAMES).sort((a,b) => b.v - a.v);
+  const hi = ranked.length ? ranked[0].v : 1;
+  const lo = ranked.length ? ranked[ranked.length-1].v : 0;
+  const rng = (hi - lo) || 1;
+  const col = t => t > .5 ? '#b9482a' : (t < .5 ? '#1a7060' : '#3b6ea5');
+
+  const qbRush = (LEAGUE === 'ncaaf' && fbPos === 'QB' &&
+                  (fbMetric === 'rush_yds' || fbMetric === 'car'));
+
+  v.innerHTML = fbShell(`
+    <div class="fbctl">
+      <label>Season<select id="fb-season">${FB_SEASONS.map(y =>
+        `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
+      <label>Position faced<select id="fb-pos">${['WR','TE','RB','QB'].map(p =>
+        `<option value="${p}"${p===fbPos?' selected':''}>${p}</option>`).join('')}</select></label>
+      <label>Allowed<select id="fb-metric">${mets.map(m =>
+        `<option value="${m.k}"${m.k===fbMetric?' selected':''}>${m.l}</option>`).join('')}</select></label>
+    </div>
+    ${qbRush ? `<div class="note"><b>College charges sack yardage to rushing.</b>
+       CFB quarterback rushing reaches &minus;73 with 23.5% of rows negative; the NFL
+       bottoms out at &minus;10 with 11.6%. So this column is largely a
+       <b>pass-rush</b> measure &mdash; a low or negative figure means the defense sacks
+       people &mdash; and it is <b>not comparable to the NFL column</b>.</div>` : ''}
+    ${LEAGUE === 'ncaaf' ? `<div class="note"><b>Power 4 offenses only.</b> A defense's row
+       describes what ACC, Big&nbsp;12, Big&nbsp;Ten and SEC offenses did to it, so a
+       non-Power-4 defense may be described by one or two games. Ranks are withheld
+       below ${FB_MIN_GAMES} games.</div>` : ''}
+    <table class="fbt"><thead><tr>
+      <th class="rk">Rk</th><th>Defense</th><th class="n">Per gm</th>
+      <th style="width:32%">Vs. league range</th><th class="n">Gm</th>
+    </tr></thead><tbody>
+    ${ranked.map((r,i) => { const t = (r.v-lo)/rng; return `<tr>
+        <td class="rk">${i+1}</td><td><b>${r.team}</b></td>
+        <td class="n" style="color:${col(t)}"><b>${r.v.toFixed(1)}</b></td>
+        <td><div class="fbbar"><i style="width:${(6+t*94).toFixed(1)}%;background:${col(t)}"></i></div></td>
+        <td class="n">${r.games}</td></tr>`; }).join('')}
+    ${thin.map(r => `<tr class="fbthin"><td class="rk">&mdash;</td>
+        <td>${r.team}</td><td class="n">${r.v.toFixed(1)}</td>
+        <td></td><td class="n">${r.games}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="note" style="margin-top:14px">
+      <b>${ranked.length}</b> ranked defenses${thin.length ? ` &middot; <b>${thin.length}</b> below the ${FB_MIN_GAMES}-game threshold, listed unranked` : ''}
+      &middot; <b>rank 1 allows the most</b>.
+      <br>&#9898; <b>Descriptive.</b> These are measured facts, not projections, and nothing here
+      carries a confidence number. A wide spread is <b>not</b> evidence that it predicts &mdash;
+      strength-of-schedule adjustment was tested on this data and made player projections
+      <b>worse</b> in both sports, both positions, both held-out seasons.
+    </div>`);
+  fbWire();
+}
+
+function fbWire(){
+  document.querySelectorAll('#fbview a[data-fbtab]').forEach(a =>
+    a.addEventListener('click', () => { FBTAB = a.dataset.fbtab; renderFootball(); }));
+  const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
+  sel('fb-season', e => { fbSeason = +e.target.value; renderFootball(); });
+  sel('fb-pos',    e => { fbPos = e.target.value; renderFootball(); });
+  sel('fb-metric', e => { fbMetric = e.target.value; renderFootball(); });
+}
+
+function setLeague(lg){
+  LEAGUE = lg;
+  document.querySelectorAll('.lgnav a[data-lg]').forEach(a =>
+    a.classList.toggle('on', a.dataset.lg === lg));
+  $('#tagline').innerHTML = LG_TAG[lg];
+  const mlb = lg === 'mlb';
+  document.querySelector('.subnav').style.display = mlb ? '' : 'none';
+  document.querySelector('.tools').style.display  = mlb ? '' : 'none';
+  $('#view').style.display   = mlb ? '' : 'none';
+  $('#fbview').style.display = mlb ? 'none' : '';
+  /* ⛔ The stale banner reads MLB's freshness contract. Football has no
+     contract yet, so showing it under a football league would be an
+     alarm about a different sport. */
+  const sb = $('#stalebar'); if (sb) sb.style.display = mlb ? '' : 'none';
+  const tk = document.querySelector('#ticker'); if (tk) tk.style.display = mlb ? '' : 'none';
+  if (mlb) show(TAB); else renderFootball();
+  if (history.replaceState) history.replaceState(null, '', mlb ? '#' : '#' + lg);
+}
+
+document.querySelectorAll('.lgnav a[data-lg]').forEach(a =>
+  a.addEventListener('click', () => setLeague(a.dataset.lg)));
 
 document.querySelectorAll('.subnav a[data-tab]').forEach(a =>
   a.addEventListener('click', () => show(a.dataset.tab)));
