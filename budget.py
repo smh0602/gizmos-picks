@@ -56,22 +56,44 @@ for _c, _lg, _ms in re.findall(
 ALL_MODES = sorted({m for v in modes.values() for m in v})
 
 
-def fires(cron):
-    """Runs per day for a 5-field cron, ranges and lists included."""
-    mins, hours = cron.split()[0], cron.split()[1]
+def _slots(field, hi):
+    """How many values a cron field selects, out of a range of size `hi`.
 
-    def n(f):
-        if f == "*":
-            return 24
-        t = 0
-        for part in f.split(","):
-            if "-" in part:
-                a, b = part.split("-")
-                t += int(b) - int(a) + 1
-            else:
-                t += 1
-        return t
-    return n(mins) * n(hours)
+    🔴 STEPS WERE COUNTED AS ONE. `[measured 2026-09-01]` the old version
+    tested for "*" and for "-" and fell through to `t += 1` on anything
+    else -- so `*/6` read as ONE fire a day instead of FOUR. Both football
+    line-movement crons use `*/6`, and the budget under-reported them by
+    108 credits a week.
+    ⛔ THIS IS THE SECOND TIME THIS FILE HAS SILENTLY UNDER-REPORTED, and
+    its own header says why that is the worst failure available to it: a
+    budget tool that under-counts still prints ✅ fits.
+    ⚠️ So parse the real grammar -- "*", "a-b", "a/n", "*/n", lists of
+    those -- rather than the two cases someone happened to think of.
+    """
+    if field == "*":
+        return hi
+    total = 0
+    for part in field.split(","):
+        rng, _, step = part.partition("/")
+        step = int(step) if step else 1
+        if rng == "*":
+            a, b = 0, hi - 1
+        elif "-" in rng:
+            a, b = (int(x) for x in rng.split("-"))
+        else:
+            a = b = int(rng)
+            # ⚠️ A bare value WITH a step means "from here to the end":
+            # `9/3` is 9,12,15,18,21. Cron's grammar, not an edge case.
+            if step > 1:
+                b = hi - 1
+        total += (b - a) // step + 1
+    return total
+
+
+def fires(cron):
+    """Runs per day for a 5-field cron: lists, ranges AND steps."""
+    mins, hours = cron.split()[0], cron.split()[1]
+    return _slots(mins, 60) * _slots(hours, 24)
 
 
 # ⚠️ SLATE SIZES ARE MEASURED, NOT ASSUMED.
@@ -168,7 +190,7 @@ for c, lg in sorted(LEAGUE_OF.items(), key=lambda kv: kv[1]):
                else (GAME_M * 2) if m == "gamelines" else 0 for m in ms)
     if not cost:
         continue
-    days = len(c.split()[4].split(",")) if c.split()[4] != "*" else 7
+    days = _slots(c.split()[4], 7)   # ⚠️ same parser: a step here would have lied too
     wk = cost * fires(c) * days
     fb_week += wk
     print(f"  {lg:<6} {c:<20} {' '.join(ms):<26} {cost:>5}/run  {wk:>6}/wk")
