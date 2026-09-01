@@ -62,6 +62,7 @@ import datetime
 import gzip
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -575,6 +576,136 @@ DEF_FIELDS = ("rec", "rec_yds", "rec_td", "car", "rush_yds", "rush_td",
 DEF_MIN_GAMES = 8
 
 
+# ══════════════════════════════════════════════════════════════════════
+# PACE, AND THE TARGET QUESTION — both out of `/plays`, both free
+# 📌 Sam, 2026-09-01: build pace, and find out whether `playText` names
+# the intended receiver.
+#
+# 🔴 PACE IS THE INPUT COLLEGE HAS AND THE NFL BARELY NEEDS. Tempo drives
+# ALL volume: a tempo offence and a huddle offence differ by roughly 25
+# plays a game, and every per-game number on the board is a rate over an
+# unstated denominator until pace is one of the columns.
+#
+# ⛔ TARGETS ARE PROBED, NOT ASSUMED. The box score has no target column,
+# so the only possible source is free text — and I have never read a
+# CFBD `playText`. This writes a COVERAGE REPORT and sample lines; it
+# does NOT write a target into any player row. ⚠️ A parser I have not
+# seen output from is a guess, and a guess that silently half-works is
+# worse than no parser: it would produce a usage number that is right
+# for some receivers and empty for others, which no consumer could tell
+# apart from a genuinely quiet game.
+# ══════════════════════════════════════════════════════════════════════
+# ⚠️ THE CASE-INSENSITIVE FLAG MUST NOT REACH THE NAME. A first draft
+# wrapped the whole pattern in re.I, which made `[A-Z]` match lowercase
+# too -- so "pass complete to Malik Nabers for 12 yards" captured
+# "Malik Nabers for". ⛔ The capital is the only thing separating a name
+# from the sentence that follows it.
+PASS_RX = re.compile(
+    r"(?i:pass\s+(?:complete|incomplete)\s+to)\s+"
+    r"([A-Z][\w'\-]*(?:\s+[A-Z][\w'\-]*){0,2})")
+
+
+def build_pace(season, log=log):
+    """Offensive plays per team-game, plus a targets-from-text report."""
+    per = collections.defaultdict(lambda: {"plays": 0, "pass": 0, "rush": 0})
+    named = collections.Counter()          # pass plays where a name parsed
+    ptypes = collections.Counter()
+    samples, tgt = [], collections.Counter()
+    weeks_seen, fails = 0, []
+    for st in ("regular", "postseason"):
+        for wk in range(1, 17):
+            try:
+                rows = get("/plays", {"year": str(season), "week": str(wk),
+                                      "seasonType": st})
+            except Exception as e:
+                fails.append((st, wk, type(e).__name__))
+                continue
+            if not rows:
+                continue
+            weeks_seen += 1
+            for p in rows:
+                off, gid = p.get("offense"), p.get("gameId")
+                pt = (p.get("playType") or "").strip()
+                ptypes[pt] += 1
+                if off and gid:
+                    k = (off, gid)
+                    per[k]["plays"] += 1
+                    low = pt.lower()
+                    if "pass" in low:
+                        per[k]["pass"] += 1
+                    elif "rush" in low or "run" in low:
+                        per[k]["rush"] += 1
+                txt = p.get("playText") or ""
+                if "pass" in txt.lower():
+                    m = PASS_RX.search(txt)
+                    if m:
+                        named["hit"] += 1
+                        tgt[(off, gid, m.group(1).strip(" .,"))] += 1
+                    else:
+                        named["miss"] += 1
+                        if len(samples) < 25:
+                            samples.append(txt[:160])
+            time.sleep(0.25)
+    if not per:
+        raise RuntimeError(f"no plays returned for {season}")
+
+    # ── pace, per team ────────────────────────────────────────────────
+    team = collections.defaultdict(lambda: {"games": 0, "plays": 0,
+                                            "pass": 0, "rush": 0})
+    for (off, gid), v in per.items():
+        t = team[off]
+        t["games"] += 1
+        for f in ("plays", "pass", "rush"):
+            t[f] += v[f]
+    out = {}
+    for t, v in team.items():
+        g = v["games"]
+        out[t] = {"games": g,
+                  "plays_per_game": round(v["plays"] / g, 2),
+                  "pass_per_game": round(v["pass"] / g, 2),
+                  "rush_per_game": round(v["rush"] / g, 2),
+                  "pass_rate": round(v["pass"] / max(1, v["pass"] + v["rush"]), 4)}
+    # ⛔ RANK 1 IS THE FASTEST. Pace is not good or bad, it is a volume
+    # multiplier -- so the rank names SPEED, and the file says so.
+    ranked = sorted((v["plays_per_game"], t) for t, v in out.items()
+                    if v["games"] >= 4)
+    for i, (_, t) in enumerate(reversed(ranked)):
+        out[t]["plays_per_game_rank"] = i + 1
+
+    hit, miss = named["hit"], named["miss"]
+    cov = round(100.0 * hit / max(1, hit + miss), 2)
+    log(f"    pace: {len(out)} teams over {weeks_seen} weeks")
+    log(f"    🔴 TARGET PARSE COVERAGE: {cov}% of pass plays named a "
+        f"receiver ({hit:,} parsed, {miss:,} not)")
+    if cov < 80:
+        log("    ⛔ BELOW 80% -- NOT usable as a usage number. The report "
+            "carries the lines it could not parse; read them before "
+            "trusting any target count.")
+
+    return {"season": season, "kind": "DESCRIPTIVE",
+            "built_at": datetime.datetime.now(datetime.timezone.utc)
+                        .strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "rank_note": "plays_per_game_rank 1 = FASTEST",
+            "note": ("Offensive plays per team-game. ⚠️ Pace is a VOLUME "
+                     "MULTIPLIER, not a quality: every per-game number on "
+                     "the trends board is a rate over this denominator."),
+            "weeks_seen": weeks_seen,
+            "fetch_failures": [[a, b, c] for a, b, c in fails],
+            "teams": out}, {
+            "season": season,
+            "kind": "DIAGNOSTIC — nothing was written into any player row",
+            "pass_plays_seen": hit + miss,
+            "receiver_named": hit,
+            "receiver_not_named": miss,
+            "coverage_pct": cov,
+            "usable_as_targets": cov >= 80,
+            "play_types": dict(ptypes.most_common(30)),
+            "unparsed_samples": samples,
+            "top_targets_if_usable": [
+                [t[2], t[0], n] for t, n in tgt.most_common(15)],
+            }
+
+
 def build_allowed(doc, log=None):
     """⚠️ BACK-COMPAT. `build_side(doc, "def")` is the real entry point.
     Kept so any existing caller or test keeps working."""
@@ -875,12 +1006,32 @@ def probe(log=log):
             vs, kept = build_vs_position(doc, log)
             allowed = build_side(doc, "def", log)
             offense = build_side(doc, "off", log)
+            # 🔴 PACE COMES FROM /plays, NOT FROM THE BOX SCORE, so it is
+            # built beside the others rather than inside build_side.
+            # ⚠️ A pace failure must NOT lose the box-score boards that
+            # already succeeded -- they are the ones on the page.
+            pace, tgtprobe = None, None
+            try:
+                pace, tgtprobe = build_pace(season, log)
+            except Exception as _pe:
+                log(f"    pace/{season} FAILED: {type(_pe).__name__}: {_pe}")
+                log("    ⚠️ the box-score boards are unaffected and still write")
             for f, o in ((f"players-{season}.json.gz", doc),
                          (f"vs-position-{season}.json.gz", vs),
                          (f"allowed-by-position-{season}.json.gz", allowed),
-                         (f"offense-by-position-{season}.json.gz", offense)):
-                with gzip.open(f"{OUT}/{f}", "wt", encoding="utf-8") as fh:
-                    json.dump(o, fh)
+                         (f"offense-by-position-{season}.json.gz", offense)) + (
+                         ((f"pace-{season}.json.gz", pace),
+                          (f"targets-probe-{season}.json", tgtprobe))
+                         if pace else ()):
+                # ⚠️ the probe is plain JSON on purpose -- it exists to
+                # be READ, and a gzipped diagnostic is a diagnostic
+                # nobody opens.
+                if f.endswith(".gz"):
+                    with gzip.open(f"{OUT}/{f}", "wt", encoding="utf-8") as fh:
+                        json.dump(o, fh)
+                else:
+                    with open(f"{OUT}/{f}", "w", encoding="utf-8") as fh:
+                        json.dump(o, fh, indent=1)
                 log(f"    wrote {OUT}/{f}")
             done.append(season)
             if season in T37_FIT_SEASONS:

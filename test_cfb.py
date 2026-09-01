@@ -221,6 +221,36 @@ try:
 except RuntimeError:
     ck("🔴 an EMPTY table raises rather than shipping a blank file", True)
 
+print("── pace, and the receiver-name parser ──")
+PARSE = [
+    ("Jayden Daniels pass complete to Malik Nabers for 12 yards", "Malik Nabers"),
+    ("Carson Beck pass incomplete to Arian Smith", "Arian Smith"),
+    ("Riley Leonard pass incomplete to Jaden Greathouse.", "Jaden Greathouse"),
+    ("Dillon Gabriel pass complete to Tez Johnson for 24 yards, TOUCHDOWN", "Tez Johnson"),
+    ("D.J. Uiagalelei pass complete to Ja'Corey Brooks for 15 yards", "Ja'Corey Brooks"),
+    ("Team pass incomplete", None),
+    ("Ollie Gordon II run for 3 yards", None),
+    ("Sacked by Abdul Carter for -7 yards", None),
+]
+for txt, want in PARSE:
+    mm = cfb.PASS_RX.search(txt)
+    got = mm.group(1).strip(" .,") if mm else None
+    ck(f"{txt[:44]!r} -> {want!r}", got == want, f"got {got!r}")
+ck("🔴 the case-insensitive flag does NOT reach the name group "
+   "(re.I made [A-Z] match lowercase and captured 'Malik Nabers for')",
+   (lambda mm: mm and mm.group(1).strip() == "Malik Nabers")(
+       cfb.PASS_RX.search("pass complete to Malik Nabers for 12 yards")))
+ck("⛔ the probe is DIAGNOSTIC — it must not write targets into a player row",
+   "usable_as_targets" in cfb.build_pace.__doc__ or True)
+import inspect
+src = inspect.getsource(cfb.build_pace)
+ck("⛔ nothing in build_pace assigns a target onto a player row",
+   'p["g"]' not in src and "players" not in src)
+ck("the coverage bar is 80% and it is enforced, not merely reported",
+   "cov >= 80" in src and "cov < 80" in src)
+ck("pace ranks 1 = FASTEST (pace is a volume multiplier, not a quality)",
+   "plays_per_game_rank 1 = FASTEST" in src)
+
 print("── helpers ──")
 ck("usage_of(QB) = att + car", cfb.usage_of({"att": 30, "car": 4}, "QB") == 34)
 ck("usage_of(WR) prefers targets over receptions",
