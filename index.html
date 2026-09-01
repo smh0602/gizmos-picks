@@ -2433,6 +2433,40 @@ function fbPath(season, side){
   return `${LG_DATA[LEAGUE]}/latest/${stem}-by-position-${season}.json.gz`;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   WHICH SEASONS ACTUALLY EXIST — ASKED, NOT ASSUMED.
+
+   🔴 `[measured 2026-09-01]` the picker offered SIX seasons for every
+   league and side, and this is what is on disk:
+
+       nfl   defence  2021-2025      nfl   offence  2021-2025
+       ncaaf defence  2021-2025      ncaaf offence  2025 ONLY
+
+   ⛔ So College + offence + any year before 2025 rendered an EMPTY
+   TABLE -- five of six choices dead -- and 2026 was dead on all four
+   combinations because the season has not kicked off.
+   🔴 AN EMPTY TAB READS AS A BROKEN SITE, NOT AS MISSING HISTORY.
+
+   ✅ A HEAD request per season, cached per (league, side). No body is
+   downloaded. ⚠️ Deliberately NOT a hardcoded list: the moment a
+   back-fill lands the season appears on its own, with no code change.
+   That is the same rule as everything else here -- never write down a
+   fact you cannot auto-update.
+   ══════════════════════════════════════════════════════════════════ */
+const FBHAVE = {};
+
+async function fbSeasonsAvailable(side){
+  const sd = side || fbSide;
+  const k = LEAGUE + '|' + sd;
+  if (FBHAVE[k]) return FBHAVE[k];
+  const got = await Promise.all(FB_SEASONS.map(async y => {
+    try { const r = await fetch(fbPath(y, sd), {method: 'HEAD'}); return r.ok ? y : null; }
+    catch(e){ return null; }
+  }));
+  FBHAVE[k] = got.filter(y => y !== null);
+  return FBHAVE[k];
+}
+
 async function fbLoad(season){
   const k = LEAGUE + '|' + fbSide;
   FBDATA[k] = FBDATA[k] || {};
@@ -2466,15 +2500,18 @@ function fbShell(inner){
    had no way to reach 2025. ⛔ A dead end is worse than an empty table;
    the empty table at least tells you where you are.
    ⚠️ Found by driving the page, not by reading it. */
-function fbControls(){
+function fbControls(avail){
   const mets = fbMetricsFor(fbPos);
   if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
+  /* ⚠️ Only offer a season that has a file. An empty option is a dead
+     end, and a dead end is worse than an empty table. */
+  const yrs = (avail && avail.length) ? avail : FB_SEASONS;
   return `<div class="fbctl">
       <label>Side<select id="fb-side">
         <option value="def"${fbSide==='def'?' selected':''}>Defense &mdash; allowed</option>
         <option value="off"${fbSide==='off'?' selected':''}>Offense &mdash; produced</option>
       </select></label>
-      <label>Season<select id="fb-season">${FB_SEASONS.map(y =>
+      <label>Season<select id="fb-season">${yrs.map(y =>
         `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
       <label>Position${fbSide==='def'?' faced':''}<select id="fb-pos">${['WR','TE','RB','QB'].map(p =>
         `<option value="${p}"${p===fbPos?' selected':''}>${p}</option>`).join('')}</select></label>
@@ -2659,10 +2696,22 @@ async function renderFootball(){
   }
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
+  /* 🔴 ASK WHAT EXISTS BEFORE DRAWING THE PICKER, and snap to a season
+     that does. `[measured 2026-09-01]` switching College from defence to
+     offence on any year before 2025 left the reader on a season with no
+     file -- the control said 2023 and the table said nothing.
+     ✅ Snapping is announced, never silent: a picker that quietly moves
+     under you is its own defect. */
+  const avail = await fbSeasonsAvailable();
+  let snapped = null;
+  if (avail.length && avail.indexOf(fbSeason) === -1){
+    snapped = fbSeason;
+    fbSeason = Math.max.apply(null, avail);
+  }
   const doc = await fbLoad(fbSeason);
   const body = $('#fbbody');
   if (!doc){
-    v.innerHTML = fbShell(fbControls() +
+    v.innerHTML = fbShell(fbControls(avail) +
       `<div class="note"><b>No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</b><br>
        ${fbSeason >= 2026 ? `The ${fbSeason} season rebuilds every
        ${LEAGUE==='ncaaf'?'Sunday morning, after Saturday\u2019s games':'Tuesday morning, after Monday night'}.
@@ -2697,7 +2746,13 @@ async function renderFootball(){
                   (fbMetric === 'rush_yds' || fbMetric === 'car'));
 
   v.innerHTML = fbShell(`
-    ${fbControls()}
+    ${fbControls(avail)}
+    ${snapped ? `<div class="note" style="margin:0 0 12px;padding:9px 12px">
+      <b>No ${snapped} ${fbSide === 'off' ? 'offense' : 'defense'} table for
+      ${LG_NAME[LEAGUE]}</b> &mdash; showing <b>${fbSeason}</b> instead.
+      ${LEAGUE === 'ncaaf' && fbSide === 'off'
+        ? 'The college offensive board was added after the historical back-fill ran, so only 2025 is built. One free dispatch fills the rest.'
+        : 'Only the seasons with a table are offered in the picker.'}</div>` : ''}
     ${qbRush ? `<div class="note"><b>College charges sack yardage to rushing.</b>
        CFB quarterback rushing reaches &minus;73 with 23.5% of rows negative; the NFL
        bottoms out at &minus;10 with 11.6%. So this column is largely a
