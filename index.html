@@ -2483,8 +2483,174 @@ function fbControls(){
     </div>`;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL ODDS. Reuses the MLB board's SHAPE, not its renderer.
+
+   ✅ `[verified 2026-09-01]` data/ncaaf/latest/board.json is
+   SCHEMA-IDENTICAL to data/latest/board.json -- same 16 per-game keys,
+   same 6 top-level keys, nothing in either direction. So the collector
+   needed no change and the de-vig, the best-price pick and the vig
+   figure all mean exactly what they mean on the baseball board.
+
+   ⛔ BUT THE MLB RENDERER CANNOT BE REUSED, and that was checked rather
+   than assumed. It loads PROBABLE STARTING PITCHERS (football has no
+   equivalent), it labels the spread column "Run line" and the team
+   totals "Implied runs", and it draws MLB team logos.
+
+   🔴 AND THE SHARED ABBREVIATOR IS ACTIVELY WRONG FOR FOOTBALL.
+   `ab()` falls back to the LAST WORD of a team name, so
+   "Wake Forest Demon Deacons" renders as "DEA" and
+   "Rutgers Scarlet Knights" as "KNI" -- the MASCOT, not the school. And
+   mascots COLLIDE: a dozen FBS teams are Bulldogs or Tigers.
+   ✅ So football prints the FULL TEAM NAME. Unambiguous, no invented
+   mapping, and nothing to go quietly wrong for the teams nobody checks.
+   ⚠️ An NFL abbreviation table is easy and stable at 32 teams -- but the
+   NFL board does not exist yet, so the exact name strings are unknown
+   and writing them now would be guessing. Add it once a board lands.
+
+   ⚪ EVERY NUMBER HERE IS MARKET (ledger rule 55). It never carries a
+   Gizmo's %, and on football that is not a temporary state: three
+   pre-registered models (T46, T47, T50) lost to a player's own season
+   average, so there is no football MODEL number to show anywhere.
+   ══════════════════════════════════════════════════════════════════ */
+const FBBOARD = {};
+
+async function fbBoardLoad(){
+  if (FBBOARD[LEAGUE] !== undefined) return FBBOARD[LEAGUE];
+  try { FBBOARD[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/board.json`); }
+  catch(e){ FBBOARD[LEAGUE] = null; }
+  return FBBOARD[LEAGUE];
+}
+
+function fbOddsTable(list){
+  const row = g => {
+    const a = g.away, h = g.home;
+    const ma = (g.best_ml||{})[a], mh = (g.best_ml||{})[h];
+    const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    const nm = x => `<span class="nm" style="font-weight:600">${x}</span>`;
+    const price = m => { const u = betLink(m && m.link); return u
+      ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${sgn(m.price)} &rarr;</a>`
+      : `<span class="cell best">${m ? sgn(m.price) : '&mdash;'}</span>`; };
+    /* ⚠️ `run_line` is the BASEBALL field name and it carries the
+       spread. The field is not renamed -- the collector writes one
+       schema for both sports -- but the LABEL must be the football
+       word, or the page is quoting a run line on a football game. */
+    const sprA = ((g.best_spread||{})[a]||{}).pt != null ? sgn(g.best_spread[a].pt)
+               : (g.run_line != null ? sgn(g.run_line) : '');
+    const sprH = ((g.best_spread||{})[h]||{}).pt != null ? sgn(g.best_spread[h].pt)
+               : (g.run_line != null ? sgn(-g.run_line) : '');
+    return `<tr>
+      <td class="gm"><div class="gt">${t}</div>
+        <div class="stack">${nm(a)}${nm(h)}</div></td>
+      <td><div class="stack">
+        <span class="cell">${g.win_pct[a] != null ? g.win_pct[a] + '%' : '&mdash;'}</span>
+        <span class="cell">${g.win_pct[h] != null ? g.win_pct[h] + '%' : '&mdash;'}</span>
+      </div></td>
+      <td><div class="stack">${price(ma)}${price(mh)}</div></td>
+      <td><div class="stack">
+        <span class="cell plain">${ma ? bookName(ma.book) : ''}</span>
+        <span class="cell plain">${mh ? bookName(mh.book) : ''}</span>
+      </div></td>
+      <td><div class="stack">
+        ${priceCell((g.best_total||{}).Over,  g.total != null ? 'O' + g.total : '')}
+        ${priceCell((g.best_total||{}).Under, g.total != null ? 'U' + g.total : '')}
+      </div></td>
+      <td><div class="stack">
+        ${priceCell((g.best_spread||{})[a], sprA)}
+        ${priceCell((g.best_spread||{})[h], sprH)}
+      </div></td>
+      <td><div class="stack">
+        <span class="cell">${g.team_total[a] ?? '&mdash;'}</span>
+        <span class="cell">${g.team_total[h] ?? '&mdash;'}</span>
+      </div></td>
+      <td>${(() => {
+        /* 🔴 `n_books` COUNTS MONEYLINE BOOKS, NOT BOOKS. `[measured
+           2026-09-01]` 22 of 103 college games have NO moneyline at all
+           -- no book takes a -50000 favourite -- while still carrying a
+           DraftKings spread and total. Printing "0 books" beside live
+           prices reads as "no book has this game", which is false.
+           ⛔ MLB never exposed this because every MLB game gets a
+           moneyline, so the label was never wrong there. It is wrong on
+           a FIFTH of a college slate. */
+        if (g.n_books) return `<div class="big" style="font-size:13px;color:var(--mut)">${
+          g.vig_pct ?? '&mdash;'}%</div><div class="sub">${g.n_books} books</div>`;
+        const other = (g.best_total && Object.keys(g.best_total).length)
+                   || (g.best_spread && Object.keys(g.best_spread).length);
+        return other
+          ? `<div class="sub" style="line-height:1.35">no moneyline<br>posted</div>`
+          : `<div class="big" style="font-size:13px;color:var(--mut)">&mdash;</div>`;
+      })()}</td>
+    </tr>`;
+  };
+  return `<div class="obwrap"><table class="ob">
+      <thead><tr>
+        <th class="gm">Game</th><th>Win&nbsp;%</th><th>Best&nbsp;price</th><th>Where</th>
+        <th>Total</th><th>Spread</th><th>Implied<br>points</th><th>Vig</th>
+      </tr></thead><tbody>${list.map(row).join('')}</tbody></table></div>`;
+}
+
+async function fbOdds(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const B = await fbBoardLoad();
+  if (!B || !(B.games||[]).length){
+    /* ⛔ AN EMPTY BOARD IS NOT AN ERROR. Each league's first pull is on
+       its own cron, and odds history cannot be back-filled -- which is
+       why collection was stood up before this page existed. Say WHEN. */
+    v.innerHTML = fbShell(`<div class="note">
+      <b>No ${LG_NAME[LEAGUE]} odds stored yet.</b><br>
+      ${LEAGUE === 'nfl'
+        ? 'The first NFL pull runs Thursday evening, and again Sunday morning.'
+        : 'The first college pull runs Thursday evening, then Friday and Saturday.'}
+      Nothing is missing &mdash; the season has not reached its first game day.
+    </div>`);
+    fbWire(); return;
+  }
+  const {list, nStarted, allDone} = splitStarted(B.games);
+  const byDate = {};
+  /* 🔴 GROUP BY ET DATE, NOT UTC. A Saturday 8pm ET kickoff is 00:00Z
+     Sunday, and slicing the UTC string files it under the wrong day --
+     which on a college Saturday would split the slate in half. */
+  list.forEach(g => (byDate[etDate(g.commence)] ||= []).push(g));
+  const blocks = Object.keys(byDate).sort().map(d => {
+    const games = byDate[d].slice().sort((x,y) => x.commence < y.commence ? -1 : 1);
+    const dd = new Date(d + 'T12:00:00Z');
+    return `<h3 style="margin:24px 0 9px;font-size:14px">
+        ${dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'})}
+        <span class="rec">${games.length} game${games.length===1?'':'s'}</span></h3>
+      ${fbOddsTable(games)}`;
+  }).join('');
+  v.innerHTML = fbShell(`<div style="margin-bottom:6px">
+      <h2 style="margin:0 0 4px;font-size:16px">Odds
+        <span class="kind k-market">Market</span></h2>
+      <p style="color:var(--mut);margin:0">Consensus across ${B.n_books_seen} books with the
+        vig removed, and the best available price on each side. ${freshness(B.pulled_at)}</p>
+    </div>
+    ${startedToggle(nStarted, 'fb-ob-started', allDone)}
+    ${blocks || '<div class="msg">Every game on the board has kicked off.</div>'}
+    <div class="note" style="margin-top:18px">
+      <b>Every price with an arrow is clickable</b> and opens that book's bet slip.
+      Prices without one are real, but the book did not hand back a link, so nothing
+      is guessed. Set your state at the top right or half the links will not resolve.
+      <br><br>&#128309; <b>Every number on this page belongs to the sportsbooks, not to us.</b>
+      A win&nbsp;% here is what the market thinks once the house margin is stripped out.
+      <br><br>&#9888; <b>A row with no win&nbsp;% has no moneyline posted</b> &mdash; on a big
+      mismatch no book will take the favourite, so there is no price to de-vig. The
+      spread and total on those games are real and clickable.
+      <br>&#9940; <b>It is not a Gizmo's projection and never will be on this tab.</b>
+      There is no football model &mdash; three pre-registered specifications were tested
+      and every one lost to a player's own season average &mdash; so nothing on the
+      football side of this site carries a confidence rating.
+    </div>`);
+  fbWire();
+  const t = $('#fb-ob-started');
+  if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbOdds(); });
+}
+
 async function renderFootball(){
   const v = $('#fbview');
+  if (FBTAB === 'odds') return fbOdds();
   if (FBTAB !== 'trends'){
     const [title, why] = FB_EMPTY[FBTAB];
     v.innerHTML = fbShell(
