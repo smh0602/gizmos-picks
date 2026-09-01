@@ -119,6 +119,55 @@ eq(resolve("pbp_participation_2023.csv.gz",
             "pbp_participation_2023.rds", P23]), P23,
    "parquet and rds present, csv still chosen")
 
+# ══════════════════════════════════════════════════════════════════════
+print("\n6. 🔴 A SEASON THAT HAS NOT STARTED IS NOT A FAILURE")
+# `[run #307, 2026-09-01]` the Tuesday NFL rebuild fired with SEASON=CUR
+# -> 2026, nflverse held 542 assets and NONE mentioned 2026, and the job
+# went red. ⛔ Nothing was broken; the season had not kicked off. It
+# would have gone red every Tuesday until mid-September.
+# ⚠️ THE RULE IS NARROW AND BOTH HALVES ARE TESTED: only the CURRENT
+# season may be forgiven. A missing 2019 must still be fatal.
+import freshness
+
+r = resolve("stats_player_week_2026.csv.gz",
+            ["stats_player_week_2024.csv.gz", "stats_player_week_2025.csv.gz"])
+eq(isinstance(r, nfl.SeasonNotStarted), True,
+   "no asset mentions the year -> SeasonNotStarted")
+eq("NONE" in str(r), True, "  ...and it still says what it DID see")
+
+# ⛔ A WRONG NAME IS NOT A MISSING SEASON. The year IS published here,
+# so this must stay an ordinary failure that turns a run red.
+r = resolve("stats_player_week_2025.csv.gz",
+            ["rosters_2025.csv.gz", "snap_counts_2025.csv.gz"])
+eq(isinstance(r, Exception) and not isinstance(r, nfl.SeasonNotStarted),
+   True, "🔴 year present, name wrong -> ORDINARY failure, still red")
+
+print("\n7. the current-season rule, and it matches the workflow")
+import datetime as _dt
+_UTC = _dt.timezone.utc
+for _d, _want in (("2026-09-01", 2026), ("2026-08-01", 2026),
+                  ("2026-07-31", 2025), ("2026-01-15", 2025),
+                  ("2025-12-31", 2025)):
+    _y, _m, _dd = map(int, _d.split("-"))
+    eq(freshness.current_football_season(_dt.datetime(_y, _m, _dd, tzinfo=_UTC)),
+       _want, f"{_d} -> season {_want}")
+
+# 🔴 THE SAME RULE LIVES IN THE WORKFLOW, IN BASH. TWO COPIES DRIFT.
+# ⛔ So parse the workflow and check they agree, rather than trusting a
+# comment that says they do.
+import os as _os
+import re as _re
+_wf = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                    ".github/workflows/collect.yml")
+if _os.path.exists(_wf):
+    _txt = open(_wf, encoding="utf-8").read()
+    _has = ('Y=$(date -u +%Y)' in _txt
+            and '[ "$M" -lt 8 ] && Y=$((Y - 1))' in _txt)
+    eq(_has, True,
+       "workflow still resolves CUR as year, minus 1 before August")
+else:
+    print("  ⚠️  workflow not found beside this test — pairing UNCHECKED")
+
 print()
 if fails:
     print(f"🔴 {len(fails)} FAILED:")

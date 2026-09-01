@@ -1030,7 +1030,7 @@ def probe(log=log):
     log(f"\nBACK-FILL: {seasons}")
 
     os.makedirs(OUT, exist_ok=True)
-    done, failed, dist = [], [], []
+    done, failed, dist, not_yet = [], [], [], []
     # 🔴 T37-CFB. The floor is taken from the FITTING SEASONS ONLY.
     # ⛔ Pooling all five would let 2024 and 2025 -- the held-out seasons
     # -- set their own admission bar. That is leakage, and it is quiet
@@ -1118,6 +1118,21 @@ def probe(log=log):
                                                 for g in p["g"]]),
                          "unmapped": [[c, s, v] for (c, s), v
                                       in unmapped.items()]})
+        except SeasonNotStarted as e:
+            # 🔴 CFBD HAS NO GAMES FOR THIS SEASON. If it is the CURRENT
+            # season it simply has not been played yet -- a STATUS, not a
+            # failure. ⛔ Any other year is still fatal: somebody asked
+            # for a season that should exist.
+            # ⚠️ REPORTED, NOT SUPPRESSED — see the back-fill report.
+            import freshness as _fr
+            if season == _fr.current_football_season():
+                not_yet.append((season, str(e)))
+                log(f"    {season} NOT YET PUBLISHED — the season has not "
+                    f"started. Not a failure.")
+            else:
+                failed.append((season, f"SeasonNotStarted: {e}"))
+                log(f"    SEASON {season} FAILED: no games for a season "
+                    f"that is NOT current")
         except Exception as e:
             # 🔴 ONE BAD SEASON MUST NOT DESTROY THE WHOLE BACK-FILL.
             log(f"    SEASON {season} FAILED: {type(e).__name__}: {e}")
@@ -1126,7 +1141,13 @@ def probe(log=log):
     with open(f"{OUT}/backfill-report.txt", "w", encoding="utf-8") as fh:
         fh.write(f"cfb back-fill at {datetime.datetime.now(datetime.timezone.utc)}\n")
         fh.write(f"requested: {seasons}\nwritten  : {done}\n")
-        fh.write(f"failed   : {[y for y, _ in failed]}\n\n")
+        fh.write(f"failed   : {[y for y, _ in failed]}\n")
+        # ⚠️ REPORTED, NOT SUPPRESSED. Its own status line, so the report
+        # says WHY a season is absent rather than just omitting it.
+        fh.write(f"not yet  : {[y for y, _ in not_yet]}"
+                 f"   (season not started — not a failure)\n\n")
+        for y, why in not_yet:
+            fh.write(f"--- {y} NOT YET PUBLISHED ---\n{why}\n\n")
         for y, why in failed:
             fh.write(f"--- {y} ---\n{why}\n\n")
 

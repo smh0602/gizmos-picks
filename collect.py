@@ -2500,7 +2500,7 @@ def run_mode(mode):
             # ✅ Same deferred-failure rule as the paid props pull:
             # everything that CAN land, lands; the failures are named; the
             # run still goes red at the end.
-            done, failed = [], []
+            done, failed, not_yet = [], [], []
             for season in seasons:
                 try:
                     doc = _nfl.build_logs(season, log)
@@ -2580,6 +2580,22 @@ def run_mode(mode):
                         write(f"{base}/def-epa-{season}.json.gz", _ep,
                               compress=True)
                     done.append(season)
+                except _nfl.SeasonNotStarted as _e:
+                    # 🔴 THE SOURCE HAS NOTHING FOR THIS YEAR. If it is the
+                    # CURRENT season, the season simply has not happened
+                    # yet and there is nothing to collect -- that is a
+                    # STATUS, not a failure. ⛔ Any OTHER year is still
+                    # fatal: somebody asked for a season that should
+                    # exist, and forgiving that would hide a real break.
+                    if season == _fresh.current_football_season():
+                        not_yet.append((season, f"{_e}"))
+                        log(f"SEASON {season} NOT YET PUBLISHED — the "
+                            f"season has not started. Not a failure.")
+                    else:
+                        failed.append((season, f"SeasonNotStarted: {_e}"))
+                        log(f"SEASON {season} FAILED: the source has "
+                            f"nothing for a season that is NOT current")
+                    log("  continuing with the remaining seasons")
                 except Exception as _e:
                     failed.append((season, f"{type(_e).__name__}: {_e}"))
                     log(f"SEASON {season} FAILED: {type(_e).__name__}: {_e}")
@@ -2588,6 +2604,8 @@ def run_mode(mode):
             log("=" * 60)
             log(f"BACK-FILL RESULT: {len(done)} season(s) written "
                 f"{done or '(none)'}")
+            for _yr, _why in not_yet:
+                log(f"  NOT YET PUBLISHED {_yr}: {_why}")
             for _yr, _why in failed:
                 log(f"  FAILED {_yr}: {_why}")
             log("=" * 60)
@@ -2603,7 +2621,14 @@ def run_mode(mode):
                 _fh.write(f"nfl-logs back-fill at {stamp()}\n")
                 _fh.write(f"requested: {seasons}\n")
                 _fh.write(f"written  : {done}\n")
-                _fh.write(f"failed   : {[y for y, _ in failed]}\n\n")
+                _fh.write(f"failed   : {[y for y, _ in failed]}\n")
+                # ⚠️ REPORTED, NOT SUPPRESSED. A season the source has no
+                # data for yet gets its own STATUS line, so the artifact
+                # says why it is empty instead of just being empty.
+                _fh.write(f"not yet  : {[y for y, _ in not_yet]}"
+                          f"   (season not started — not a failure)\n\n")
+                for _yr, _why in not_yet:
+                    _fh.write(f"--- {_yr} NOT YET PUBLISHED ---\n{_why}\n\n")
                 for _yr, _why in failed:
                     _fh.write(f"--- {_yr} ---\n{_why}\n\n")
             log(f"wrote {_rp}")
@@ -2618,7 +2643,16 @@ def run_mode(mode):
             # SAME EXACT stats and data pulled for cfb as we did for the
             # nfl." So it asks, field by field, whether CFBD can supply
             # each of the 29 the NFL layer produces -- and NAMES THE GAPS.
-            # ⛔ Writes nothing. No CFB collector exists yet, on purpose.
+            # 🔴 THE NAME IS STALE AND THE COMMENT WAS FALSE.
+            # `[corrected 2026-09-01]` this said "Writes nothing. No CFB
+            # collector exists yet, on purpose." ⛔ `cfb.probe()` HAS
+            # back-filled and written the whole CFB board set since
+            # 2026-08-30 — probe, back-fill and verify in one dispatch,
+            # reading SEASON from the environment.
+            # ⚠️ A comment claiming behaviour the code does not have is
+            # the same defect that let `_rows` promise it would never
+            # take the `old` participation file. Fixed in place rather
+            # than renamed, because the mode name is in the workflow.
             import cfb as _cfb
             if not _cfb.probe(log):
                 sys.exit(1)

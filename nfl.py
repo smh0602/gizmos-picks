@@ -73,6 +73,16 @@ WANT = {
 # into an f-string template: nflverse names are irregular on purpose
 # (`stats_player_reg_YYYY` but `roster_weekly_YYYY`), and a template is how
 # a collector silently fetches nothing.
+class SeasonNotStarted(RuntimeError):
+    """The source publishes NOTHING for the requested year.
+
+    🔴 Raised only when the release holds no asset mentioning that year
+    at all -- not when a name is merely wrong. ⛔ It is a FACT ABOUT THE
+    SOURCE, not a verdict: the caller decides whether it is forgivable,
+    because only the caller knows whether this is the current season.
+    """
+
+
 FILES = {
     # ✅ WEEKLY, CONFIRMED run #189: 19,422 rows for 2025. ⛔ NOT
     # `stats_player_reg_{y}` -- that is 2,020 rows of SEASON TOTALS and
@@ -410,7 +420,18 @@ def _rows(seen, tag, fname, log):
     if not hit:
         avail = sorted(a[0] for a in assets
                        if not year or year in a[0])[:20]
-        raise RuntimeError(
+        # 🔴 DISTINGUISH "THE SOURCE HAS NOTHING FOR THIS YEAR AT ALL"
+        # FROM "THE NAME IS WRONG". `[run #307, 2026-09-01]` the Tuesday
+        # rebuild died on `stats_player_week_2026` before the 2026 season
+        # had kicked off. ⛔ Nothing was broken; the season had not
+        # happened. A red run every Tuesday until mid-September is noise,
+        # and noise is how this project has lost real defects.
+        # ⚠️ THE EXCEPTION ONLY CARRIES THE FACT. Whether it is FORGIVEN
+        # is decided by the CALLER, which alone knows if this is the
+        # current season -- see `freshness.current_football_season`.
+        # ⛔ A missing 2019 raises the SAME class and is still fatal there.
+        exc = SeasonNotStarted if (year and not avail) else RuntimeError
+        raise exc(
             f"{tag}: asset '{fname}' not published. That release holds "
             f"{len(assets)} assets; those mentioning {year or 'any year'}: "
             f"{avail or 'NONE'}")

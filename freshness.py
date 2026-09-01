@@ -387,3 +387,41 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
                 if dst not in need:
                     need.add(dst); changed = True
     return [m for m in order if m in need], rows
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A SEASON THAT HAS NOT STARTED IS NOT LATE.
+# `[measured 2026-09-01, run #307]` the Tuesday NFL rebuild fired with
+# SEASON=CUR, which resolved to 2026, and died:
+#     RuntimeError: stats_player: asset 'stats_player_week_2026.csv.gz'
+#     not published. That release holds 542 assets; those mentioning
+#     2026: NONE
+# ⛔ NOTHING WAS BROKEN. The 2026 NFL season had not kicked off, so the
+# source had nothing to give. The job went red anyway, and would have
+# gone red EVERY TUESDAY until mid-September.
+# 🔴 THAT IS THE `budget.py` LESSON IN A DIFFERENT COSTUME: a tool that
+# cries wolf is a tool nobody reads, and this project has already lost
+# real defects to days of ignored noise.
+#
+# ⚠️ THE RULE IS NARROW ON PURPOSE. Only the CURRENT season may be
+# "not started". ⛔ A missing 2019 is still a hard failure -- somebody
+# asked for a season that should exist, and silence there would hide a
+# real break. Both halves matter.
+#
+# ⚠️ AND IT IS NEVER SILENT. The season is reported as NOT YET PUBLISHED
+# in the back-fill report and warned in the log. It is a different
+# STATUS, not a suppressed error.
+# ══════════════════════════════════════════════════════════════════════
+def current_football_season(now=None):
+    """The football season currently in progress or most recently played.
+
+    ⚠️ A football season is NAMED FOR THE YEAR IT STARTS, so anything
+    before August belongs to the previous year.
+    🔴 THIS RULE ALSO LIVES IN `.github/workflows/collect.yml`, which
+    resolves SEASON=CUR on the runner in bash. ⛔ TWO COPIES OF ONE RULE
+    DRIFT -- `test_freshness.py` pins them to each other by parsing the
+    workflow, so a change to either side fails the suite.
+    """
+    import datetime as _dt
+    n = now or _dt.datetime.now(_dt.timezone.utc)
+    return n.year - 1 if n.month < 8 else n.year
