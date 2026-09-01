@@ -71,6 +71,36 @@ for nm, want in CASES:
     got = m(nm)
     ck(f"{nm!r} -> {want!r}", got == want, f"got {got!r}")
 
+print("\n-- 🔴 CASES TAKEN FROM THE REAL 103-GAME BOARD, 2026-09-01 --")
+# ⛔ These are not invented. They are the actual strings the Odds API
+# returned, pulled for 6 credits precisely so this test could stop
+# guessing. Two of them were LIVE FALSE POSITIVES before the guards:
+#   'Arkansas Pine Bluff Golden Lions' matched our 'Arkansas'
+#   'North Carolina A&T Aggies'        would have matched 'North Carolina'
+REAL = [
+    ("Arkansas Pine Bluff Golden Lions", None),          # FCS SWAC
+    ("North Carolina A&T Aggies",        None),          # FCS CAA
+    ("Miami (OH) RedHawks",              None),          # MAC
+    ("Arkansas State Red Wolves",        None),          # Sun Belt
+    ("Georgia Southern Eagles",          None),
+    ("Florida International Panthers",   None),
+    ("Ohio Bobcats",                     None),
+    ("Arkansas Razorbacks",     "Arkansas"),
+    ("Georgia Tech Yellow Jackets", "Georgia Tech"),
+    ("Texas Tech Red Raiders",   "Texas Tech"),
+    ("Arizona State Sun Devils", "Arizona State"),
+    ("California Golden Bears",  "California"),
+    ("Illinois Fighting Illini", "Illinois"),
+    ("Ole Miss Rebels",          "Ole Miss"),
+    ("USC Trojans",              "USC"),
+    ("Stanford Cardinal",        "Stanford"),
+    ("Ohio State Buckeyes",      "Ohio State"),
+    ("Texas A&M Aggies",         "Texas A&M"),
+]
+for nm, want in REAL:
+    got = m(nm)
+    ck(f"{nm!r} -> {want!r}", got == want, f"got {got!r}")
+
 print("\n-- the gate end to end --")
 board = [ev("Alabama Crimson Tide", "Georgia Bulldogs"),
          ev("Ohio State Buckeyes", "Michigan Wolverines"),

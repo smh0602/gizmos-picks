@@ -758,6 +758,23 @@ def _match_team(feed_name, by_norm):
         rest = words[taken:]
         if not rest:
             return by_norm[cand]
+        # ⛔ GUARD A -- a leftover this long is a DIFFERENT SCHOOL, not a
+        # mascot. `[measured 2026-09-01 on the real 103-game board]` our
+        # "Arkansas" matched inside "Arkansas Pine Bluff Golden Lions",
+        # an FCS SWAC school, and would have put it on the Power 4 board
+        # and paid for it. Every legitimate mascot on that board is ONE
+        # or TWO words -- "Buckeyes", "Yellow Jackets", "Demon Deacons".
+        # ⚠️ Measured, not guessed: 51 one-word and 35 two-word leftovers
+        # were legitimate; every 3+ was a different school.
+        if len(rest) > 2:
+            continue
+        # ⛔ GUARD B -- a mascot never carries an ampersand; a school
+        # qualifier does. "North Carolina A&T Aggies" would otherwise
+        # match our "North Carolina" on a two-word leftover.
+        # ⚠️ "Texas A&M Aggies" is unaffected: longest-match consumes the
+        # A&M into the school name and the leftover is just "Aggies".
+        if any("&" in w for w in rest):
+            continue
         if _norm_team(rest[0]) in {_norm_team(x) for x in _CONTINUES}:
             continue                       # "Washington" + "State ..."
         need = _AMBIGUOUS.get(cand)
