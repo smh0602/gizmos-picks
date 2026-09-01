@@ -331,6 +331,36 @@ def _rows(seen, tag, fname, log):
     hit = [a for a in assets if a[0] == fname]
 
     if not hit:
+        # 🔴 COMPRESSION IS NOT A SUBSTITUTION, AND THE LOOKUP MUST SAY SO
+        # BEFORE THE WORD FALLBACK RUNS -- this function already applies
+        # that rule when RECORDING a match, and did not apply it when
+        # FINDING one.
+        # `[measured 2026-09-01]` routes 2023 died on
+        #   "asset 'pbp_participation_2023.csv.gz' not published, and 2
+        #    candidates match -- refusing to guess between
+        #    ['pbp_participation_2023.csv',
+        #     'pbp_participation_old_2023.csv']"
+        # ⛔ AND A COMMENT IN THIS FILE ASSERTED THAT COULD NOT HAPPEN:
+        # "will not silently take the `old` one, because 'old' is a word
+        # the requested name does not carry." **THAT REASONING WAS
+        # BACKWARDS.** The fallback requires every word of the REQUESTED
+        # name to appear in the CANDIDATE; an EXTRA word in the candidate
+        # does not disqualify it. `pbp_participation_old_2023.csv`
+        # carries every requested word plus one, so it matched too.
+        # ✅ The ambiguity guard saved us -- ⚠️ but a comment claiming a
+        # safety the code did not have is the more dangerous half.
+        # ✅ THE FIX: an exact stem match, ignoring only `.gz`, is not a
+        # guess. It also retires the routes debt where 2024/2025 were
+        # resolving through the WORD FALLBACK rather than by name.
+        _stem = fname[:-3] if fname.endswith(".gz") else fname
+        exact = [a for a in assets
+                 if (a[0][:-3] if a[0].endswith(".gz") else a[0]) == _stem]
+        if len(exact) == 1:
+            hit = exact
+            log(f"  NOTE: '{fname}' published uncompressed as "
+                f"'{exact[0][0]}' — same file, different packaging")
+
+    if not hit:
         m = re.search(r"(\d{4})", fname)
         year = m.group(1) if m else None
         # 🔴 EVERY WORD MUST MATCH, NOT ANY. `[measured 2026-08-28,
@@ -343,12 +373,30 @@ def _rows(seen, tag, fname, log):
         # PROMISED IT WOULD NOT MAKE, and it made it on the first run.
         # ✅ `all()` means `roster_weekly_*` can only ever be satisfied by
         # an asset carrying BOTH "roster" AND "weekly".
-        words = [w for w in re.split(r"[_.]", fname.lower())
-                 if w and not w.isdigit() and w not in ("csv", "gz")]
+        # 🔴 THE WORD MATCH MUST BE SYMMETRIC. `all(w in candidate)` asks
+        # only that the candidate carries every REQUESTED word -- an
+        # EXTRA word in the candidate does not disqualify it.
+        # `[measured 2026-09-01, by test_assets.py]` with only
+        # `pbp_participation_old_2023.csv` published, that rule resolves
+        # `pbp_participation_2023.csv.gz` TO IT, silently, because one
+        # candidate is not an ambiguity. ⛔ THE `old` FILE HAS A
+        # DIFFERENT SCHEMA. That is precisely the substitution this
+        # function's own comment promised it would never make -- the
+        # same promise it already broke once, on `rosters_2021` standing
+        # in for `roster_weekly_2021`.
+        # ✅ SO COMPARE THE WORD SETS BOTH WAYS. A candidate with a word
+        # the request does not carry is a DIFFERENT FILE.
+        # ⚠️ The failure mode of being strict is a loud refusal that
+        # names what it saw. The failure mode of being loose is a season
+        # built from the wrong schema and nobody knowing.
+        def _wordset(n):
+            return {w for w in re.split(r"[_.]", n.lower())
+                    if w and not w.isdigit() and w not in ("csv", "gz")}
+        words = _wordset(fname)
         cand = [a for a in assets
                 if year and year in a[0]
                 and a[0].endswith((".csv", ".csv.gz"))
-                and all(w in a[0].lower() for w in words)]
+                and _wordset(a[0]) == words]
         if len(cand) == 1:
             log(f"  NOTE: '{fname}' not published; using '{cand[0][0]}' "
                 f"from the same release (same year, matching name)")
