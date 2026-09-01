@@ -2388,9 +2388,14 @@ const LG_TAG   = { mlb:'MLB model &amp; live board',
                    ncaaf:'Power 4 &mdash; defensive trends' };
 let LEAGUE = 'mlb';
 let FBTAB  = 'trends';
-let FBDATA = {};          // league -> season -> parsed allowed-by-position
-const FB_SEASONS = [2025, 2024, 2023, 2022, 2021];
-let fbSeason = 2025, fbPos = 'WR', fbMetric = 'rec_yds';
+let FBDATA = {};          // league -> side -> season -> parsed table
+/* 🔴 NEWEST FIRST, AND THE CURRENT SEASON LEADS. Sam, 2026-09-01: "i
+   dont really want a trends tab from each year, i just wanted the data
+   ... i want to keep this tab, but have it for this year". 2025 stays
+   because it is far more relevant than the years before it; the rest are
+   still reachable but never the default. */
+const FB_SEASONS = [2026, 2025, 2024, 2023, 2022, 2021];
+let fbSeason = 2026, fbPos = 'WR', fbMetric = 'rec_yds', fbSide = 'def';
 
 /* Rank 1 ALLOWS THE MOST. The question asked of this table is "how soft
    is this defence", not "how good", so the ranking reads in the direction
@@ -2420,16 +2425,21 @@ const FB_EMPTY = {
   news:    ['News', 'The news feed is MLB-only today.'],
 };
 
-function fbPath(season){
-  return `${LG_DATA[LEAGUE]}/latest/allowed-by-position-${season}.json.gz`;
+/* ⛔ ONE FILE PER SIDE, BUILT BY ONE FUNCTION ON THE COLLECTOR. The
+   offensive board is the same aggregation grouped by team instead of by
+   opponent -- never a second calculation. */
+function fbPath(season, side){
+  const stem = (side || fbSide) === 'off' ? 'offense' : 'allowed';
+  return `${LG_DATA[LEAGUE]}/latest/${stem}-by-position-${season}.json.gz`;
 }
 
 async function fbLoad(season){
-  FBDATA[LEAGUE] = FBDATA[LEAGUE] || {};
-  if (FBDATA[LEAGUE][season] !== undefined) return FBDATA[LEAGUE][season];
-  try { FBDATA[LEAGUE][season] = await jgetGz(fbPath(season)); }
-  catch(e){ FBDATA[LEAGUE][season] = null; }
-  return FBDATA[LEAGUE][season];
+  const k = LEAGUE + '|' + fbSide;
+  FBDATA[k] = FBDATA[k] || {};
+  if (FBDATA[k][season] !== undefined) return FBDATA[k][season];
+  try { FBDATA[k][season] = await jgetGz(fbPath(season)); }
+  catch(e){ FBDATA[k][season] = null; }
+  return FBDATA[k][season];
 }
 
 function fbMetricsFor(pos){
@@ -2450,6 +2460,29 @@ function fbShell(inner){
       </ul></nav>${inner}`;
 }
 
+/* 🔴 THE CONTROLS RENDER EVEN WHEN THERE IS NO DATA. 2026 is empty until
+   the first slate is final, and the first build shipped that empty state
+   WITHOUT the season picker -- so a reader landing on the default year
+   had no way to reach 2025. ⛔ A dead end is worse than an empty table;
+   the empty table at least tells you where you are.
+   ⚠️ Found by driving the page, not by reading it. */
+function fbControls(){
+  const mets = fbMetricsFor(fbPos);
+  if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
+  return `<div class="fbctl">
+      <label>Side<select id="fb-side">
+        <option value="def"${fbSide==='def'?' selected':''}>Defense &mdash; allowed</option>
+        <option value="off"${fbSide==='off'?' selected':''}>Offense &mdash; produced</option>
+      </select></label>
+      <label>Season<select id="fb-season">${FB_SEASONS.map(y =>
+        `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
+      <label>Position${fbSide==='def'?' faced':''}<select id="fb-pos">${['WR','TE','RB','QB'].map(p =>
+        `<option value="${p}"${p===fbPos?' selected':''}>${p}</option>`).join('')}</select></label>
+      <label>${fbSide==='off'?'Produced':'Allowed'}<select id="fb-metric">${mets.map(m =>
+        `<option value="${m.k}"${m.k===fbMetric?' selected':''}>${m.l}</option>`).join('')}</select></label>
+    </div>`;
+}
+
 async function renderFootball(){
   const v = $('#fbview');
   if (FBTAB !== 'trends'){
@@ -2463,8 +2496,11 @@ async function renderFootball(){
   const doc = await fbLoad(fbSeason);
   const body = $('#fbbody');
   if (!doc){
-    v.innerHTML = fbShell(
-      `<div class="note"><b>No ${fbSeason} table for ${LG_NAME[LEAGUE]} yet.</b><br>
+    v.innerHTML = fbShell(fbControls() +
+      `<div class="note"><b>No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</b><br>
+       ${fbSeason >= 2026 ? `The ${fbSeason} season rebuilds every
+       ${LEAGUE==='ncaaf'?'Sunday morning, after Saturday\u2019s games':'Tuesday morning, after Monday night'}.
+       Until the first slate is final there is nothing to show.<br>` : ''}
        The collector writes <code>${fbPath(fbSeason)}</code> on its next back-fill run.
        ${LEAGUE === 'ncaaf' ? 'College has not been re-run since the table was added &mdash; dispatch <code>cfb-probe</code> once and it appears.' : ''}</div>`);
     fbWire(); return;
@@ -2472,15 +2508,20 @@ async function renderFootball(){
 
   const mets = fbMetricsFor(fbPos);
   if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
-  const D = doc.defences || {};
+  const D = doc.defences || doc.offences || {};
+  /* 🔴 THE FLOOR COMES FROM THE FILE, NEVER FROM A CONSTANT HERE. It
+     moves as the season fills up, and a page that hardcoded 8 would
+     silently disagree with the data it is drawing. */
+  const floor = doc.min_games_for_rank || FB_MIN_GAMES;
+  const floorFull = doc.rank_floor_is_full !== false;
   const rows = [];
   for (const team in D){
     const e = D[team][fbPos];
     if (!e) continue;
     rows.push({ team, games:e.games, v:e[fbMetric] });
   }
-  const ranked = rows.filter(r => r.games >= FB_MIN_GAMES).sort((a,b) => b.v - a.v);
-  const thin   = rows.filter(r => r.games <  FB_MIN_GAMES).sort((a,b) => b.v - a.v);
+  const ranked = rows.filter(r => r.games >= floor).sort((a,b) => b.v - a.v);
+  const thin   = rows.filter(r => r.games <  floor).sort((a,b) => b.v - a.v);
   const hi = ranked.length ? ranked[0].v : 1;
   const lo = ranked.length ? ranked[ranked.length-1].v : 0;
   const rng = (hi - lo) || 1;
@@ -2490,14 +2531,7 @@ async function renderFootball(){
                   (fbMetric === 'rush_yds' || fbMetric === 'car'));
 
   v.innerHTML = fbShell(`
-    <div class="fbctl">
-      <label>Season<select id="fb-season">${FB_SEASONS.map(y =>
-        `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
-      <label>Position faced<select id="fb-pos">${['WR','TE','RB','QB'].map(p =>
-        `<option value="${p}"${p===fbPos?' selected':''}>${p}</option>`).join('')}</select></label>
-      <label>Allowed<select id="fb-metric">${mets.map(m =>
-        `<option value="${m.k}"${m.k===fbMetric?' selected':''}>${m.l}</option>`).join('')}</select></label>
-    </div>
+    ${fbControls()}
     ${qbRush ? `<div class="note"><b>College charges sack yardage to rushing.</b>
        CFB quarterback rushing reaches &minus;73 with 23.5% of rows negative; the NFL
        bottoms out at &minus;10 with 11.6%. So this column is largely a
@@ -2508,7 +2542,7 @@ async function renderFootball(){
        non-Power-4 defense may be described by one or two games. Ranks are withheld
        below ${FB_MIN_GAMES} games.</div>` : ''}
     <table class="fbt"><thead><tr>
-      <th class="rk">Rk</th><th>Defense</th><th class="n">Per gm</th>
+      <th class="rk">Rk</th><th>${fbSide==='off'?'Offense':'Defense'}</th><th class="n">Per gm</th>
       <th style="width:32%">Vs. league range</th><th class="n">Gm</th>
     </tr></thead><tbody>
     ${ranked.map((r,i) => { const t = (r.v-lo)/rng; return `<tr>
@@ -2521,8 +2555,11 @@ async function renderFootball(){
         <td></td><td class="n">${r.games}</td></tr>`).join('')}
     </tbody></table>
     <div class="note" style="margin-top:14px">
-      <b>${ranked.length}</b> ranked defenses${thin.length ? ` &middot; <b>${thin.length}</b> below the ${FB_MIN_GAMES}-game threshold, listed unranked` : ''}
-      &middot; <b>rank 1 allows the most</b>.
+      <b>${ranked.length}</b> ranked teams${thin.length ? ` &middot; <b>${thin.length}</b> below the ${floor}-game threshold, listed unranked` : ''}
+      &middot; <b>rank 1 ${fbSide==='off'?'produces':'allows'} the most</b>.
+      ${floorFull ? '' : `<br>&#9888; <b>Early season.</b> Ranks are standing on as few as
+      <b>${floor}</b> game${floor===1?'':'s'}. The threshold rises on its own as the season
+      fills up &mdash; a rank off one game is honest only if you can see it is one game.`}
       <br>&#9898; <b>Descriptive.</b> These are measured facts, not projections, and nothing here
       carries a confidence number. A wide spread is <b>not</b> evidence that it predicts &mdash;
       strength-of-schedule adjustment was tested on this data and made player projections
@@ -2535,6 +2572,7 @@ function fbWire(){
   document.querySelectorAll('#fbview a[data-fbtab]').forEach(a =>
     a.addEventListener('click', () => { FBTAB = a.dataset.fbtab; renderFootball(); }));
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
+  sel('fb-side',   e => { fbSide = e.target.value; renderFootball(); });
   sel('fb-season', e => { fbSeason = +e.target.value; renderFootball(); });
   sel('fb-pos',    e => { fbPos = e.target.value; renderFootball(); });
   sel('fb-metric', e => { fbMetric = e.target.value; renderFootball(); });

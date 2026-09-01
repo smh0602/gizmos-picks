@@ -2521,9 +2521,18 @@ def run_mode(mode):
                     # from the doc already in memory, never by reading a
                     # file back -- that is how two copies of one number
                     # drift apart.
-                    al = _nfl.build_allowed(doc, log)
+                    al = _nfl.build_side(doc, "def", log)
                     al["pulled_at"] = stamp()
                     write(f"{base}/allowed-by-position-{season}.json.gz", al,
+                          compress=True)
+                    # 🔴 THE OFFENSIVE BOARD, FROM THE SAME DOC. Sam,
+                    # 2026-09-01: "an offensive side of trends ... is a
+                    # necessity just like the defensive one we have".
+                    # ⛔ Same function, different grouping key -- never a
+                    # second aggregator.
+                    off = _nfl.build_side(doc, "off", log)
+                    off["pulled_at"] = stamp()
+                    write(f"{base}/offense-by-position-{season}.json.gz", off,
                           compress=True)
                     done.append(season)
                 except Exception as _e:

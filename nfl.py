@@ -749,7 +749,26 @@ DEF_POS = ("QB", "RB", "WR", "TE")
 DEF_MIN_GAMES = 8
 
 
-def build_allowed(doc, log=print):
+def build_allowed(doc, log=None):
+    """⚠️ BACK-COMPAT. `build_side(doc, "def")` is the real entry point.
+    Kept so any existing caller or test keeps working."""
+    return build_side(doc, "def", log) if log else build_side(doc, "def")
+
+
+def build_side(doc, side, log=print):
+    """`side='def'` groups by the OPPONENT -- what a defence ALLOWED.
+    `side='off'` groups by the TEAM -- what an offence PRODUCED.
+
+    🔴 ONE FUNCTION, TWO SIDES, ON PURPOSE. Sam asked for an offensive
+    trends board alongside the defensive one. ⛔ Writing a second
+    aggregator would be two copies of one calculation, and this project
+    has a documented history of two copies of a number drifting apart.
+    The ONLY difference between the two boards is which key the rows are
+    grouped under.
+    ⚠️ RANK MEANS THE OPPOSITE THING ON EACH SIDE and the file says so:
+    on DEFENCE rank 1 allows the most (softest); on OFFENCE rank 1
+    produces the most (best). Same direction of sort, opposite meaning.
+    """
     acc = collections.defaultdict(lambda: collections.defaultdict(float))
     games = collections.defaultdict(set)
     for pid, p in doc["players"].items():
@@ -757,7 +776,7 @@ def build_allowed(doc, log=print):
         if pos not in DEF_POS:
             continue
         for g in p["g"]:
-            o = g.get("o")
+            o = g.get("o") if side == "def" else g.get("team")
             if not o:
                 continue
             games[o].add(g.get("game_id") or f'{g.get("week")}-{o}')
@@ -772,10 +791,29 @@ def build_allowed(doc, log=print):
         if n:
             tbl.setdefault(o, {})[pos] = {
                 "games": n, **{f: round(a[f] / n, 3) for f in DEF_FIELDS}}
+    # 🔴 THE RANK FLOOR TRACKS SEASON PROGRESS. Sam, 2026-09-01: the
+    # board has to be useful "week by week, day by day", and a fixed
+    # 8-game floor ranks NOBODY until November.
+    # ⚠️ THREE STATISTICS WERE TRIED AND THE FIRST TWO WERE WRONG IN
+    # OPPOSITE DIRECTIONS `[measured across a simulated 2025 season]`:
+    #   max()    -- dragged UP by the few teams who played twice in week
+    #               one; at week 1 it ranked 1 defence of 69.
+    #   median() -- dragged DOWN by the long tail of G5/FCS defences a
+    #               Power 4 offence faces exactly once; at full season it
+    #               sat at 2 and ranked 102 of 186, letting one-game
+    #               samples in beside a full schedule.
+    #   p75      -- ✅ week 1 ranks 69/69; FULL SEASON lands on 8 and
+    #               ranks exactly 68 -- the Power 4 set itself.
+    # ⛔ The floor is written into the file so the page can SAY what a
+    # rank is standing on. A rank off one game is honest only if the
+    # reader can see it is one game.
+    _played = sorted(v["games"] for t_ in tbl.values() for v in t_.values())
+    _p75 = _played[int(0.75 * len(_played))] if _played else DEF_MIN_GAMES
+    min_games = max(1, min(DEF_MIN_GAMES, _p75))
     for pos in DEF_POS:
         for f in DEF_FIELDS:
             rows = sorted(((o, t[pos][f]) for o, t in tbl.items()
-                           if pos in t and t[pos]["games"] >= DEF_MIN_GAMES),
+                           if pos in t and t[pos]["games"] >= min_games),
                           key=lambda x: -x[1])
             for i, (o, _) in enumerate(rows):
                 tbl[o][pos][f + "_rank"] = i + 1
@@ -784,16 +822,20 @@ def build_allowed(doc, log=print):
     if not tbl:
         raise RuntimeError("allowed-by-position is EMPTY -- an opponent join "
                            "failure, not a finding")
-    log(f"  allowed-by-position: {len(tbl)} defences")
+    log(f"  {side}-by-position: {len(tbl)} teams")
     return {"season": doc["season"], "kind": "DESCRIPTIVE",
-            "rank_note": "rank 1 = ALLOWS THE MOST; pct 100 = softest",
-            "min_games_for_rank": DEF_MIN_GAMES,
+            "side": side,
+            "rank_note": ("rank 1 = ALLOWS THE MOST; pct 100 = softest"
+                          if side == "def" else
+                          "rank 1 = PRODUCES THE MOST; pct 100 = best"),
+            "min_games_for_rank": min_games,
+            "rank_floor_is_full": min_games >= DEF_MIN_GAMES,
             "caveat_qb_rush": (
                 "⛔ NOT COMPARABLE TO THE CFB COLUMN OF THE SAME NAME. The "
                 "NFL charges sack yardage to PASSING; college charges it to "
                 "RUSHING. CFB QB rushing allowed is therefore largely a "
                 "pass-rush measure and this one is not."),
-            "defences": tbl}
+            ("defences" if side == "def" else "offences"): tbl}
 
 
 def build_vs_position(doc, log=print):
