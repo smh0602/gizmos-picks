@@ -428,6 +428,35 @@ def build_routes(season, seen=None, log=print):
         # runner, so nobody has ever seen them.
         rep["release_tags_matching_participation"] = sorted(
             t for t in seen if "particip" in t.lower())
+    # 🔴 THE LIST ENDPOINT EMBEDS ASSETS AND CAN COME BACK EMPTY.
+    # `[measured 2026-09-01]` the `pbp_participation` release listed
+    # ZERO assets through `/releases`, while other releases in the same
+    # response listed theirs fine -- so the builder reported "not
+    # published" for a release it had never actually opened.
+    # ⛔ THAT IS THE SAME MISTAKE AS PAGE ONE OF A PAGINATED LIST, one
+    # level down: I paginated the RELEASES and then trusted the ASSETS
+    # embedded in them. On 2026-08-30 I told Sam this file publishes
+    # 2016-2025. **THAT CLAIM CAME FROM THE SAME EMBEDDED LIST AND IS NOT
+    # SAFE.**
+    # ✅ So when a release looks empty, ASK IT DIRECTLY by tag and record
+    # what it really holds -- including the YEARS, which is the fact that
+    # decides whether this feature can exist at all.
+    if not seen.get("participation"):
+        try:
+            one = _json(f"{GH_API}/tags/pbp_participation")
+            assets = [(a_["name"], a_["size"], a_["browser_download_url"])
+                      for a_ in (one.get("assets") or [])]
+            seen["participation"] = assets
+            rep["assets_via_tag_lookup"] = len(assets)
+            yrs = sorted({m.group(1) for n, _, _ in assets
+                          for m in [re.search(r"(\d{4})", n)] if m})
+            rep["years_actually_published"] = yrs
+            rep["asset_names"] = sorted(n for n, _, _ in assets)[:40]
+            log(f"  direct tag lookup: {len(assets)} assets, years {yrs}")
+        except Exception as e:
+            rep["tag_lookup_error"] = f"{type(e).__name__}: {e}"
+            log(f"  direct tag lookup failed: {rep['tag_lookup_error']}")
+
     try:
         part = _rows(seen, "participation",
                      FILES["participation"].format(y=season), log)
