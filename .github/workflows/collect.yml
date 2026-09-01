@@ -190,13 +190,38 @@ jobs:
         id: tests
         continue-on-error: ${{ github.event_name != 'push' }}
         run: |
+          # 🔴 THIS STEP NAMED ONE TEST FILE AND THE REPO HELD SIX.
+          # `[measured 2026-09-01]` test_cfb.py, test_p4.py,
+          # test_regions.py and test_board_match.js were all in the repo,
+          # all passing, and NONE of them had ever gated anything. They
+          # were written to protect the Power 4 name matcher, the props
+          # region pricing and the CFB parsers -- three of the places
+          # this project has actually been burned.
+          # ⛔ A TEST THAT NEVER RUNS IS WORSE THAN NO TEST: it is a
+          # false sense of cover, and it rots silently.
+          # ✅ So DISCOVER them. Same rule as budget.py -- never put a
+          # list anywhere you cannot auto-update. A new test_*.py is
+          # picked up by existing here, with no workflow edit.
           rc=0
-          python test_freshness.py || rc=1
-          if [ -f test_banner.js ]; then
-            node test_banner.js || rc=1
-          else
-            echo "::warning::test_banner.js not in the repo — the page's own"
-            echo "::warning::staleness banner is going untested"
+          found=0
+          for t in test_*.py; do
+            [ -e "$t" ] || continue
+            found=$((found+1))
+            echo "── $t"
+            python "$t" || { rc=1; echo "::error::$t FAILED"; }
+          done
+          for t in test_*.js; do
+            [ -e "$t" ] || continue
+            found=$((found+1))
+            echo "── $t"
+            node "$t" || { rc=1; echo "::error::$t FAILED"; }
+          done
+          echo "ran $found test file(s)"
+          # ⚠️ ZERO TEST FILES IS A FAILURE, NOT A PASS. A glob that
+          # matches nothing is exactly how a suite disappears unnoticed.
+          if [ "$found" -lt 4 ]; then
+            echo "::error::only $found test file(s) found — the suite has shrunk"
+            rc=1
           fi
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
           exit $rc
