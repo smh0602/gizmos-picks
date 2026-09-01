@@ -72,6 +72,18 @@ on:
     - cron: "25 22 * * 4"       # Thu 6:25pm ET — TNF
     - cron: "25 */6 * * 0,1,4"  # Thu/Sun/Mon — NFL line movement
 
+    # ══ THE WEEK-BY-WEEK TRENDS REFRESH ══
+    # 🔴 NOTHING REBUILT THE CURRENT SEASON. The back-fill only ever ran
+    # by hand, so the trends board would have frozen on 2025 while 2026
+    # was being played. Sam, 2026-09-01: "when these games start week by
+    # week, day by day we need to be updating the trends tab showing
+    # accurate stats on a week by week basis."
+    # ⚠️ TIMED AFTER THE SLATE IS FINAL, not during it -- college plays
+    # into Saturday night, the NFL into Monday night.
+    # 💰 FREE. Both back-fills read published stat files, not the odds API.
+    - cron: "35 14 * * 0"       # Sun 10:35am ET — rebuild CFB, after Saturday
+    - cron: "35 15 * * 2"       # Tue 11:35am ET — rebuild NFL, after MNF
+
   # 🔴 RESTORED 2026-08-28 AFTER I DELETED IT BY ACCIDENT. The schedule
   # rewrite replaced everything between `schedule:` and
   # `workflow_dispatch:`, and this block was sitting in the middle of it.
@@ -200,6 +212,7 @@ jobs:
           # ══════════════════════════════════════════════════════════
           LEAGUE="${{ github.event.inputs.league }}"
           MODES="${{ github.event.inputs.mode }}"
+          SEASON="${{ github.event.inputs.season }}"
           if [ -z "$LEAGUE" ]; then
             case "${{ github.event.schedule }}" in
               # ── COLLEGE FOOTBALL — Thu/Fri/Sat ──────────────────────
@@ -209,9 +222,23 @@ jobs:
               "25 15 * * 0")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
               "25 22 * * 4")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
               "25 */6 * * 0,1,4") LEAGUE=nfl;   MODES="gamelines" ;;
+              # ── the current-season trends rebuild ──────────────────
+              "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+              "35 15 * * 2")      LEAGUE=nfl;   MODES="nfl-logs";   SEASON=CUR ;;
               *)                  LEAGUE=mlb ;;
             esac
           fi
+          # 🔴 `CUR` RESOLVES ON THE RUNNER, NOT IN A CRON STRING. A
+          # season written into the schedule is a season that goes stale
+          # in January and nothing announces it.
+          # ⚠️ A football season is named for the year it STARTS, so
+          # anything before August belongs to the previous year.
+          if [ "$SEASON" = "CUR" ]; then
+            Y=$(date -u +%Y); M=$(date -u +%m)
+            [ "$M" -lt 8 ] && Y=$((Y - 1))
+            SEASON="$Y"
+          fi
+          echo "season=${SEASON:-2025}" >> "$GITHUB_OUTPUT"
           echo "league=${LEAGUE:-mlb}" >> "$GITHUB_OUTPUT"
           if [ "$LEAGUE" != "mlb" ] && [ -n "$MODES" ] \
              && [ "${{ github.event_name }}" = "schedule" ]; then
@@ -269,7 +296,7 @@ jobs:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
           LEAGUE: ${{ steps.mode.outputs.league }}
-          SEASON: ${{ github.event.inputs.season || '2025' }}
+          SEASON: ${{ steps.mode.outputs.season }}
           MODES: ${{ steps.mode.outputs.mode }}
           LOOP_MINUTES: ${{ steps.mode.outputs.loop_minutes }}
           LEAGUE_NAME: ${{ steps.mode.outputs.league }}
