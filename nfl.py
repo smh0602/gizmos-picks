@@ -84,6 +84,14 @@ FILES = {
     "injuries":       "injuries_{y}.csv.gz",
     "weekly_rosters": "roster_weekly_{y}.csv.gz",
     "pbp":            "play_by_play_{y}.csv.gz",
+    # 🔴 ROUTE PARTICIPATION. `[verified 2026-08-30 against the release
+    # list itself]` `pbp_participation` publishes 2016-2025, csv/parquet,
+    # 2025 refreshed 2026-02-10. ⚠️ ~47MB of csv a season.
+    # ⛔ A `pbp_participation_old_2023` exists alongside the 2023 file --
+    # the schema CHANGED. `_rows`' same-year-plus-shared-word fallback
+    # will not silently take the `old` one, because "old" is a word the
+    # requested name does not carry.
+    "participation":  "pbp_participation_{y}.csv.gz",
 }
 # ✅ `schedules` is NOT year-partitioned: one `games.csv.gz` (512KB) covers
 # every season. The probe's "NONE" was the FILTER being wrong, not the data
@@ -387,6 +395,138 @@ def _num(v):
         return float(v)
     except ValueError:
         return 0.0
+
+
+def build_routes(season, seen=None, log=print):
+    """Pass snaps per receiver, from `pbp_participation`.
+
+    🔴 WHY THIS IS NOT "ROUTES RUN", AND THE NAME SAYS SO. The file gives
+    `offense_players` -- WHO WAS ON THE FIELD for each play. Joined to
+    play-by-play's pass flag that is PASS SNAPS, which is the honest
+    basis for a route rate. ⛔ A tight end who stayed in to block was on
+    the field for that pass play. **Much closer than `tgt_per_snap`; not
+    a charted route. Never label it one.**
+
+    ⛔ PROBE-FIRST, LIKE THE CFB TARGET PARSE. I have not read a row of
+    this file. So it reports its own columns and a coverage number, and
+    writes NOTHING unless the join actually works. ⚠️ Tonight's CFB
+    targets probe scored 53% against an 80% bar and was killed by a
+    format nobody had looked at -- the identical risk lives here.
+    """
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False}
+    if seen is None:
+        # ⚠️ One extra release listing rather than threading state through
+        # build_logs. ⛔ A caller that has to remember to pass the right
+        # object is a caller that will eventually pass the wrong one.
+        rels = _releases(log)
+        seen = {r["tag_name"]: [(a_["name"], a_["size"],
+                                a_["browser_download_url"])
+                               for a_ in (r.get("assets") or [])]
+                for r in rels}
+        # 🔴 WRITE THE CANDIDATE LIST DOWN. build_logs has logged these
+        # for days and an Actions log cannot be read from outside the
+        # runner, so nobody has ever seen them.
+        rep["release_tags_matching_participation"] = sorted(
+            t for t in seen if "particip" in t.lower())
+    try:
+        part = _rows(seen, "participation",
+                     FILES["participation"].format(y=season), log)
+    except Exception as e:
+        rep["error"] = f"{type(e).__name__}: {e}"
+        log(f"  participation {season}: {rep['error']}")
+        return None, rep
+    if not part:
+        rep["error"] = "no rows"
+        return None, rep
+
+    cols = sorted(part[0].keys())
+    rep["columns"] = cols
+    rep["rows"] = len(part)
+    log(f"  participation {season}: {len(part):,} rows, {len(cols)} columns")
+    # ⛔ NAME THE COLUMNS RATHER THAN ASSUMING THEM.
+    idc = next((c for c in ("nflverse_game_id", "game_id", "old_game_id")
+                if c in cols), None)
+    plc = next((c for c in ("play_id", "nflverse_play_id") if c in cols), None)
+    offc = next((c for c in ("offense_players", "offense_player_ids")
+                 if c in cols), None)
+    rep["id_columns"] = {"game": idc, "play": plc, "offense": offc}
+    if not (idc and plc and offc):
+        rep["error"] = ("the expected columns are absent; see `columns` "
+                        "and map them before trying again")
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+
+    filled = sum(1 for r in part if (r.get(offc) or "").strip())
+    cov = round(100.0 * filled / max(1, len(part)), 2)
+    rep["offense_players_filled_pct"] = cov
+    log(f"  offense_players populated on {cov}% of plays")
+    if cov < 80:
+        rep["error"] = f"only {cov}% of plays list personnel"
+        log(f"  ⛔ {rep['error']} -- nothing written")
+        return None, rep
+
+    # ── the pass flag comes from play-by-play, keyed on the same ids ──
+    pbp = _rows(seen, "pbp", FILES["pbp"].format(y=season), log)
+    pcols = set(pbp[0].keys()) if pbp else set()
+    pidc = next((c for c in ("game_id", "nflverse_game_id", "old_game_id")
+                 if c in pcols), None)
+    ppc = next((c for c in ("play_id",) if c in pcols), None)
+    passc = next((c for c in ("pass", "pass_attempt") if c in pcols), None)
+    rep["pbp_columns_used"] = {"game": pidc, "play": ppc, "pass": passc}
+    if not (pidc and ppc and passc):
+        rep["error"] = "play-by-play lacks a usable pass flag"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    ispass = {}
+    for r in pbp:
+        try:
+            ispass[(r[pidc], str(int(float(r[ppc]))))] = \
+                str(r.get(passc)).strip() in ("1", "1.0", "True", "true")
+        except Exception:
+            continue
+
+    snaps = collections.defaultdict(lambda: {"snaps": 0, "pass_snaps": 0})
+    joined = 0
+    for r in part:
+        try:
+            k = (r[idc], str(int(float(r[plc]))))
+        except Exception:
+            continue
+        p_ = ispass.get(k)
+        if p_ is None:
+            continue
+        joined += 1
+        for pid in (r.get(offc) or "").split(";"):
+            pid = pid.strip()
+            if not pid:
+                continue
+            s_ = snaps[(r[idc], pid)]
+            s_["snaps"] += 1
+            if p_:
+                s_["pass_snaps"] += 1
+    jcov = round(100.0 * joined / max(1, len(part)), 2)
+    rep["play_join_pct"] = jcov
+    log(f"  joined {jcov}% of participation rows to a pbp pass flag")
+    if jcov < 80:
+        rep["error"] = f"the play join only reached {jcov}%"
+        log(f"  ⛔ {rep['error']} -- nothing written")
+        return None, rep
+
+    out = collections.defaultdict(dict)
+    for (gid, pid), v in snaps.items():
+        out[pid][gid] = [v["snaps"], v["pass_snaps"]]
+    rep["usable"] = True
+    rep["players"] = len(out)
+    log(f"  ✅ pass snaps for {len(out):,} players")
+    return {"season": season, "kind": "DESCRIPTIVE",
+            "note": ("Per player per game: [snaps, pass_snaps] from "
+                     "nflverse pbp_participation joined to the pbp pass "
+                     "flag. ⛔ THIS IS NOT ROUTES RUN -- a tight end who "
+                     "stayed in to block was on the field for that pass "
+                     "play. It is much closer than tgt_per_snap and it "
+                     "is not a charted route."),
+            "join_coverage_pct": jcov,
+            "by_player": {k: v for k, v in out.items()}}, rep
 
 
 def build_logs(season, log=print):

@@ -2534,6 +2534,27 @@ def run_mode(mode):
                     off["pulled_at"] = stamp()
                     write(f"{base}/offense-by-position-{season}.json.gz", off,
                           compress=True)
+                    # 🔴 ROUTE PARTICIPATION — Sam's item 2. PROBE-FIRST:
+                    # it writes the table ONLY if the columns are what we
+                    # expect AND the join clears 80%. ⚠️ Tonight's CFB
+                    # target parse scored 53% against the same style of
+                    # bar and was killed by a format nobody had read; the
+                    # identical risk lives here.
+                    # ⛔ THE REPORT IS ALWAYS WRITTEN, pass or fail --
+                    # a diagnosis that only exists in an Actions log is a
+                    # diagnosis you do not have.
+                    try:
+                        _rt, _rrep = _nfl.build_routes(season, None, log)
+                    except Exception as _re_:
+                        _rt, _rrep = None, {"season": season,
+                                            "kind": "DIAGNOSTIC",
+                                            "usable": False,
+                                            "error": f"{type(_re_).__name__}: {_re_}"}
+                    write(f"{base}/routes-probe-{season}.json", _rrep)
+                    if _rt:
+                        _rt["pulled_at"] = stamp()
+                        write(f"{base}/routes-{season}.json.gz", _rt,
+                              compress=True)
                     done.append(season)
                 except Exception as _e:
                     failed.append((season, f"{type(_e).__name__}: {_e}"))
