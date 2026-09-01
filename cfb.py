@@ -111,6 +111,15 @@ IGNORE = {("passing", "avg"), ("passing", "qbr"), ("rushing", "avg"),
           ("rushing", "long"), ("receiving", "avg"), ("receiving", "long")}
 
 
+class SeasonNotStarted(RuntimeError):
+    """CFBD returned NO GAMES for the requested season.
+
+    🔴 Same shape as `nfl.SeasonNotStarted`. ⛔ A FACT ABOUT THE SOURCE,
+    not a verdict -- the caller decides whether it is forgivable, because
+    only the caller knows whether this is the current season.
+    """
+
+
 def log(m):
     print(m, flush=True)
 
@@ -314,7 +323,10 @@ def build_season(season, log=log):
             if st == "regular" and g.get("week"):
                 weeks_seen.add(g["week"])
     if not meta:
-        raise RuntimeError(f"no games returned for {season}")
+        # 🔴 TYPED, so the caller can tell "this season has not been
+        # played" from "the fetch broke". ⛔ The exception carries only
+        # the FACT; the back-fill loop decides whether to forgive it.
+        raise SeasonNotStarted(f"no games returned for {season}")
     log(f"    {len(meta):,} games, regular weeks {min(weeks_seen)}–{max(weeks_seen)}")
 
     pos_of = positions(season, log)
