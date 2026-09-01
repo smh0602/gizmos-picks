@@ -701,11 +701,70 @@ def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
 # one that quietly pulls 70 events or quietly pulls none.
 # ══════════════════════════════════════════════════════════════════════
 def _norm_team(x):
-    # ⚠️ ALPHANUMERIC ONLY, AND DELIBERATELY NOTHING CLEVERER. Stripping
-    # mascots ("Buckeyes") or expanding abbreviations would be me guessing
-    # at names I have not seen. If the join fails, the gate reports both
-    # name lists and spends nothing -- which is the honest outcome.
     return "".join(c for c in str(x or "").lower() if c.isalnum())
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE MAX MUNCY RULE, APPLIED TO TEAM NAMES.
+# Sam, 2026-09-01: *"just make sure your talking about the right team,
+# just like the max muncy situation for the batters"* -- MLB has TWO Max
+# Muncys, and a name-only join silently credits one with the other's
+# line.
+# ⛔ COLLEGE FOOTBALL HAS THE SAME TRAP AND IT IS WORSE, because the
+# collisions are PREFIXES, not duplicates:
+#     "Washington State Cougars"  starts with  "Washington"  (Big Ten)
+#     "Miami RedHawks" (MAC)      starts with  "Miami"       (ACC)
+#     "Michigan State Spartans"   starts with  "Michigan"    (Big Ten)
+# ➡️ Tolerating a mascot suffix is what makes the join WORK; the two
+# guards below are what stop it pulling a Group of 5 game onto a Power 4
+# board and paying per game for it.
+# ══════════════════════════════════════════════════════════════════════
+
+# ⛔ A WORD THAT CONTINUES A SCHOOL NAME. If the leftover after our name
+# begins with one of these, the feed is naming a DIFFERENT school.
+_CONTINUES = {"state", "a&m", "am", "tech", "southern", "northern",
+              "eastern", "western", "central", "international",
+              "atlantic", "christian", "poly", "dominion", "carolina",
+              "illinois", "michigan", "florida", "texas", "kentucky",
+              "methodist", "chicago", "st", "saint"}
+
+# ⛔ STEMS THAT NAME TWO REAL SCHOOLS. For these the mascot is REQUIRED --
+# exactly the disambiguation the Max Muncy case needs. ⚠️ Keep this list
+# SHORT and only for genuine collisions; it is a pin, not a mapping.
+_AMBIGUOUS = {"miami": "hurricanes"}
+
+
+def _match_team(feed_name, by_norm):
+    """Our Power 4 team, or None. ⛔ REFUSES rather than guessing."""
+    if not feed_name:
+        return None
+    n = _norm_team(feed_name)
+    if n in by_norm:                       # exact -- the common case
+        return by_norm[n]
+    words = str(feed_name).replace("(", " ").replace(")", " ").split()
+    # longest candidate first, so "Ohio State" is tried before "Ohio"
+    for cand in sorted(by_norm, key=len, reverse=True):
+        acc, taken = "", 0
+        for i, w in enumerate(words):
+            acc += _norm_team(w)
+            taken = i + 1
+            if acc == cand:
+                break
+            if len(acc) > len(cand):
+                taken = 0
+                break
+        if not taken or acc != cand:
+            continue
+        rest = words[taken:]
+        if not rest:
+            return by_norm[cand]
+        if _norm_team(rest[0]) in {_norm_team(x) for x in _CONTINUES}:
+            continue                       # "Washington" + "State ..."
+        need = _AMBIGUOUS.get(cand)
+        if need and not any(_norm_team(w) == _norm_team(need) for w in rest):
+            continue                       # "Miami" without "Hurricanes"
+        return by_norm[cand]
+    return None
 
 
 def power4_teams():
@@ -714,7 +773,8 @@ def power4_teams():
     realignment -- the set was 52 teams in 2021 and is 67 now."""
     import glob as _glob
     best, teams = None, set()
-    for p in sorted(_glob.glob(f"{LEAGUES['ncaaf']['data']}/latest/players-*.json.gz")):
+    for p in sorted(_glob.glob(
+            f"{LEAGUES['ncaaf']['data']}/latest/players-*.json.gz")):
         best = p
     if not best:
         return teams
@@ -744,7 +804,7 @@ def filter_power4(events, log=log):
     kept, dropped = [], []
     for ev in events:
         h, a_ = ev.get("home_team"), ev.get("away_team")
-        hm, am = norm.get(_norm_team(h)), norm.get(_norm_team(a_))
+        hm, am = _match_team(h, norm), _match_team(a_, norm)
         if hm and am:
             kept.append(ev)
         else:
