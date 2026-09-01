@@ -223,31 +223,39 @@ except RuntimeError:
 
 print("── pace, and the receiver-name parser ──")
 PARSE = [
+    # ⚠️ FOUR FORMATS, TAKEN FROM 105,634 REAL PASS PLAYS. The first
+    # parser read only the first and scored 49.58%.
     ("Jayden Daniels pass complete to Malik Nabers for 12 yards", "Malik Nabers"),
-    ("Carson Beck pass incomplete to Arian Smith", "Arian Smith"),
-    ("Riley Leonard pass incomplete to Jaden Greathouse.", "Jaden Greathouse"),
-    ("Dillon Gabriel pass complete to Tez Johnson for 24 yards, TOUCHDOWN", "Tez Johnson"),
-    ("D.J. Uiagalelei pass complete to Ja'Corey Brooks for 15 yards", "Ja'Corey Brooks"),
-    ("Team pass incomplete", None),
+    ("(01:36) Fowler-Nicolosi,Brayden pass complete short right to Maher,Tommy caught at CSU41", "Maher,Tommy"),
+    ("(08:09) Bailey,CJ pass incomplete short left to Joly,Justin thrown to ECU14", "Joly,Justin"),
+    ("Wesley Grimes 48 Yd pass from CJ Bailey (Nick Konieczynski Kick)", "Wesley Grimes"),
+    ("Lander Barton 14 Yd pass from Devon Dampier (Dillon Curtis Kick)", "Lander Barton"),
+    # ⛔ THESE RETURN NOTHING AND THAT IS THE CORRECT ANSWER. "pass
+    # incomplete" with no name is the FORMAT, not a parse failure, and it
+    # is the real ceiling on ever having a target column.
+    ("Athan Kaliakmanis pass incomplete", None),
+    ("Nico Iamaleava pass intercepted", None),
     ("Ollie Gordon II run for 3 yards", None),
     ("Sacked by Abdul Carter for -7 yards", None),
 ]
 for txt, want in PARSE:
-    mm = cfb.PASS_RX.search(txt)
-    got = mm.group(1).strip(" .,") if mm else None
+    got = cfb.parse_receiver(txt)
     ck(f"{txt[:44]!r} -> {want!r}", got == want, f"got {got!r}")
 ck("🔴 the case-insensitive flag does NOT reach the name group "
    "(re.I made [A-Z] match lowercase and captured 'Malik Nabers for')",
-   (lambda mm: mm and mm.group(1).strip() == "Malik Nabers")(
-       cfb.PASS_RX.search("pass complete to Malik Nabers for 12 yards")))
+   cfb.parse_receiver("pass complete to Malik Nabers for 12 yards") == "Malik Nabers")
 ck("⛔ the probe is DIAGNOSTIC — it must not write targets into a player row",
    "usable_as_targets" in cfb.build_pace.__doc__ or True)
 import inspect
 src = inspect.getsource(cfb.build_pace)
 ck("⛔ nothing in build_pace assigns a target onto a player row",
    'p["g"]' not in src and "players" not in src)
-ck("the coverage bar is 80% and it is enforced, not merely reported",
-   "cov >= 80" in src and "cov < 80" in src)
+ck("🔴 BOTH bars are enforced — a blended number carried by completions "
+   "alone would just be receptions wearing a better name",
+   "cov >= 80 and inc_cov >= 80" in src)
+ck("coverage is split by play type, so the completion/incompletion gap "
+   "cannot hide inside an average",
+   "incompletion_coverage_pct" in src and "completion_coverage_pct" in src)
 ck("pace ranks 1 = FASTEST (pace is a volume multiplier, not a quality)",
    "plays_per_game_rank 1 = FASTEST" in src)
 

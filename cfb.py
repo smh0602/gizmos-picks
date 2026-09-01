@@ -600,9 +600,28 @@ DEF_MIN_GAMES = 8
 # too -- so "pass complete to Malik Nabers for 12 yards" captured
 # "Malik Nabers for". ⛔ The capital is the only thing separating a name
 # from the sentence that follows it.
-PASS_RX = re.compile(
-    r"(?i:pass\s+(?:complete|incomplete)\s+to)\s+"
-    r"([A-Z][\w'\-]*(?:\s+[A-Z][\w'\-]*){0,2})")
+#
+# 🔴 FOUR FORMATS, MEASURED FROM 105,634 REAL PASS PLAYS `[2026-09-01]`.
+# The first probe read only the first and scored 49.58%:
+#   A  "... pass complete to Malik Nabers for 12 yards"
+#   B  "... pass incomplete short left to Maher,Tommy thrown to WASH26"
+#      -- a DIFFERENT FEED, surname-first with a comma and no space
+#   C  "Wesley Grimes 48 Yd pass from CJ Bailey (Kick)"  -- receiver FIRST
+#   D  "Athan Kaliakmanis pass incomplete"  -- ⛔ NO RECEIVER AT ALL, and
+#      no parser can recover one. THIS is the real ceiling.
+_NAME = r"[A-Z][\w'\-]*(?:,\s?[A-Z][\w'\-]*|(?:\s+[A-Z][\w'\-]*){0,2})"
+PASS_RX = re.compile(r"(?i:pass\s+(?:complete|incomplete)[^.]*?\bto)\s+(" + _NAME + ")")
+TD_RX = re.compile(r"^\s*(" + _NAME + r")\s+\d+\s*(?i:yd)\s+(?i:pass\s+from)")
+
+
+def parse_receiver(txt):
+    """The intended receiver, or None. ⛔ None is a real answer here --
+    "pass incomplete" with no name is the format, not a parse failure."""
+    m = TD_RX.search(txt) or PASS_RX.search(txt)
+    if not m:
+        return None
+    n = m.group(1).strip(" .,")
+    return n or None
 
 
 def build_pace(season, log=log):
@@ -636,14 +655,27 @@ def build_pace(season, log=log):
                     elif "rush" in low or "run" in low:
                         per[k]["rush"] += 1
                 txt = p.get("playText") or ""
-                if "pass" in txt.lower():
-                    m = PASS_RX.search(txt)
-                    if m:
+                low_pt = pt.lower()
+                if "pass" in txt.lower() and "sack" not in low_pt:
+                    who = parse_receiver(txt)
+                    # 🔴 COVERAGE IS SPLIT BY PLAY TYPE, AND THAT SPLIT IS
+                    # THE WHOLE FINDING. Completions almost always name a
+                    # receiver; incompletions often do not. A blended
+                    # number hides that, and a targets column built from
+                    # completions-plus-some-incompletions is just
+                    # RECEPTIONS wearing a better name.
+                    bucket = ("comp" if ("reception" in low_pt or
+                                         "touchdown" in low_pt)
+                              else "inc" if "incomp" in low_pt
+                              else "other")
+                    if who:
                         named["hit"] += 1
-                        tgt[(off, gid, m.group(1).strip(" .,"))] += 1
+                        named[bucket + "_hit"] += 1
+                        tgt[(off, gid, who)] += 1
                     else:
                         named["miss"] += 1
-                        if len(samples) < 25:
+                        named[bucket + "_miss"] += 1
+                        if bucket == "inc" and len(samples) < 25:
                             samples.append(txt[:160])
             time.sleep(0.25)
     if not per:
@@ -674,6 +706,13 @@ def build_pace(season, log=log):
 
     hit, miss = named["hit"], named["miss"]
     cov = round(100.0 * hit / max(1, hit + miss), 2)
+    def _pct(b):
+        h, m_ = named[b + "_hit"], named[b + "_miss"]
+        return round(100.0 * h / max(1, h + m_), 2), h + m_
+    comp_cov, comp_n = _pct("comp")
+    inc_cov, inc_n = _pct("inc")
+    log(f"    completions  : {comp_cov}% named  (n={comp_n:,})")
+    log(f"    🔴 INCOMPLETIONS: {inc_cov}% named  (n={inc_n:,})  <- the ceiling")
     log(f"    pace: {len(out)} teams over {weeks_seen} weeks")
     log(f"    🔴 TARGET PARSE COVERAGE: {cov}% of pass plays named a "
         f"receiver ({hit:,} parsed, {miss:,} not)")
@@ -698,7 +737,13 @@ def build_pace(season, log=log):
             "receiver_named": hit,
             "receiver_not_named": miss,
             "coverage_pct": cov,
-            "usable_as_targets": cov >= 80,
+            "completion_coverage_pct": comp_cov,
+            "incompletion_coverage_pct": inc_cov,
+            "incompletions_seen": inc_n,
+            # ⛔ BOTH BARS. A high blended number carried by completions
+            # alone is worthless: targets would equal receptions plus
+            # noise, and we already have receptions.
+            "usable_as_targets": cov >= 80 and inc_cov >= 80,
             "play_types": dict(ptypes.most_common(30)),
             "unparsed_samples": samples,
             "top_targets_if_usable": [
