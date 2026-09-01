@@ -2555,6 +2555,30 @@ def run_mode(mode):
                         _rt["pulled_at"] = stamp()
                         write(f"{base}/routes-{season}.json.gz", _rt,
                               compress=True)
+
+                    # ── T48: DEFENSIVE EPA PER PLAY ──────────────────
+                    # 🔴 THIS IS THE MEASURE T42 NAMED, NOT A SIXTH
+                    # BOX-SCORE CONSTRUCT. T42 and T43 between them put
+                    # five NFL defensive measures below the 0.35 bar and
+                    # pre-committed the consequence: the NFL layer needs
+                    # an EPA- or DVOA-style rating, "not another
+                    # aggregate of the data we already hold."
+                    # ✅ It is FREE and it is already downloaded -- the
+                    # same `play_by_play_{y}` build_routes just used for
+                    # its pass flag. ⚠️ No new source, no new cost.
+                    # ⛔ THE REPORT IS ALWAYS WRITTEN, pass or fail.
+                    try:
+                        _ep, _erep = _nfl.build_def_epa(season, None, log)
+                    except Exception as _ee_:
+                        _ep, _erep = None, {"season": season,
+                                            "kind": "DIAGNOSTIC",
+                                            "usable": False, "test": "T48",
+                                            "error": f"{type(_ee_).__name__}: {_ee_}"}
+                    write(f"{base}/def-epa-probe-{season}.json", _erep)
+                    if _ep:
+                        _ep["pulled_at"] = stamp()
+                        write(f"{base}/def-epa-{season}.json.gz", _ep,
+                              compress=True)
                     done.append(season)
                 except Exception as _e:
                     failed.append((season, f"{type(_e).__name__}: {_e}"))

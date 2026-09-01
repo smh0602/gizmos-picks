@@ -558,6 +558,176 @@ def build_routes(season, seen=None, log=print):
             "by_player": {k: v for k, v in out.items()}}, rep
 
 
+def build_def_epa(season, seen=None, log=print):
+    """Defensive EPA per play allowed, per defence per game. **T48.**
+
+    🔴 WHY THIS EXISTS AND WHY IT IS NOT A SIXTH BOX-SCORE CONSTRUCT.
+    T42's pre-committed consequence, written before its result was seen:
+    *"the NFL layer needs an EXTERNAL rating (an EPA- or DVOA-style
+    measure), not another aggregate of the data we already hold."* T43
+    repeated it -- four constructs, five measures, every one below the
+    0.35 bar. ⛔ Another yards-allowed variant is the exact move the owed
+    -tests register was created to forbid.
+
+    ✅ EPA IS THE MEASURE T42 NAMED, and it is already inside a file this
+    collector already downloads: nflverse `play_by_play_{y}`, which
+    `build_routes` fetches for its pass flag. ⚠️ No new source, no new
+    cost, no new vendor.
+
+    ⚠️ WHY IT IS GENUINELY DIFFERENT. Yards allowed is a raw count. EPA
+    conditions every play on down, distance, field position and game
+    state -- a 4-yard gain on 3rd-and-3 and on 3rd-and-8 are opposite
+    outcomes and yardage cannot tell them apart. ⛔ A reason to TEST it,
+    not a reason to expect it to pass.
+
+    🔴 SIGN CONVENTION, STATED HERE SO IT CANNOT BE FLIPPED LATER TO SUIT
+    A RESULT: `epa` is signed from the OFFENCE's perspective, so for the
+    defence **LOWER IS BETTER.**
+
+    ⚠️ A PER-PLAY RATE BY CONSTRUCTION. T42 flagged that a team total is
+    partly a measure of PACE -- a team whose own offence plays fast puts
+    its defence on the field more. ✅ Dividing by plays is the fix T42
+    demanded of any value test, built into the measure rather than bolted
+    on afterwards.
+
+    ⛔ FAIL-CLOSED. Columns are NAMED, not assumed, and nothing is written
+    if the defence id, the epa or the play type is absent or thin. A
+    probe report is written either way. ⚠️ This is the same discipline
+    that made `routes` trustworthy -- and the reason the two seasons of
+    routes could be believed was that the bars were declared first.
+    """
+    log(f"=== nfl: defensive EPA per play, {season} (T48) ===")
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False,
+           "test": "T48", "bar": "columns present on >= 80% of rows"}
+    if seen is None:
+        seen = {r["tag_name"]: [(a["name"], a["size"],
+                                 a["browser_download_url"])
+                                for a in (r.get("assets") or [])]
+                for r in _releases(log)}
+    try:
+        pbp = _rows(seen, "pbp", FILES["pbp"].format(y=season), log)
+    except Exception as e:
+        rep["error"] = f"{type(e).__name__}: {e}"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    if not pbp:
+        rep["error"] = "no play-by-play rows"
+        return None, rep
+    cols = set(pbp[0].keys())
+    rep["rows"] = len(pbp)
+
+    # ⛔ NAME THE COLUMNS. The `stats_player_reg` season-totals trap and a
+    # name join that matched 0 of 1,848 both came from assuming a schema.
+    defc = next((c for c in ("defteam", "defensive_team") if c in cols), None)
+    epac = "epa" if "epa" in cols else None
+    gidc = next((c for c in ("game_id", "nflverse_game_id") if c in cols), None)
+    wkc = next((c for c in ("week",) if c in cols), None)
+    posc = "posteam" if "posteam" in cols else None
+    passc = next((c for c in ("pass", "pass_attempt") if c in cols), None)
+    rushc = next((c for c in ("rush", "rush_attempt") if c in cols), None)
+    rep["columns_used"] = {"defence": defc, "epa": epac, "game": gidc,
+                           "week": wkc, "offence": posc,
+                           "pass": passc, "rush": rushc}
+    missing = [k for k, v in rep["columns_used"].items() if not v]
+    if missing:
+        rep["error"] = f"play-by-play lacks: {missing}"
+        rep["columns_available"] = sorted(cols)[:80]
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+
+    def _f(v):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    def _flag(v):
+        return str(v).strip() in ("1", "1.0", "True", "true")
+
+    # ── measure ───────────────────────────────────────────────────────
+    tbl = collections.defaultdict(lambda: {
+        "week": None, "opp": None,
+        "plays": 0, "epa": 0.0,
+        "pass_plays": 0, "pass_epa": 0.0,
+        "rush_plays": 0, "rush_epa": 0.0})
+    kept = with_epa = 0
+    for r in pbp:
+        d_, g_ = (r.get(defc) or "").strip(), (r.get(gidc) or "").strip()
+        if not d_ or not g_ or d_ in ("NA", "None"):
+            continue
+        p_, u_ = _flag(r.get(passc)), _flag(r.get(rushc))
+        # ⚠️ Plays that are neither a pass nor a rush -- kicks, punts,
+        # penalties with no play, timeouts, kneels flagged as neither --
+        # are EXCLUDED. ⛔ Not a filter chosen after seeing a result: the
+        # spec says "plays where the play is a pass or a rush", fixed
+        # before any of this was written.
+        if not (p_ or u_):
+            continue
+        kept += 1
+        e_ = _f(r.get(epac))
+        if e_ is None:
+            continue
+        with_epa += 1
+        c_ = tbl[(d_, g_)]
+        if c_["week"] is None:
+            c_["week"] = _f(r.get(wkc))
+            c_["opp"] = (r.get(posc) or "").strip()
+        c_["plays"] += 1
+        c_["epa"] += e_
+        if p_:
+            c_["pass_plays"] += 1
+            c_["pass_epa"] += e_
+        else:
+            c_["rush_plays"] += 1
+            c_["rush_epa"] += e_
+
+    cov = round(100.0 * with_epa / max(1, kept), 2)
+    rep["pass_or_rush_plays"] = kept
+    rep["epa_populated_pct"] = cov
+    rep["defences"] = len({d for d, _ in tbl})
+    rep["team_games"] = len(tbl)
+    log(f"  {kept:,} pass/rush plays, epa populated on {cov}%, "
+        f"{rep['defences']} defences, {rep['team_games']} team-games")
+    # ⛔ THE BAR, DECLARED IN T48 BEFORE THIS FUNCTION EXISTED.
+    if cov < 80:
+        rep["error"] = f"epa populated on only {cov}% of pass/rush plays"
+        log(f"  ⛔ {rep['error']} -- writing NOTHING")
+        return None, rep
+
+    out = collections.defaultdict(dict)
+    for (d_, g_), c_ in tbl.items():
+        if not c_["plays"]:
+            continue
+        out[d_][g_] = {
+            "week": c_["week"], "opp": c_["opp"], "plays": c_["plays"],
+            "epa_per_play": round(c_["epa"] / c_["plays"], 5),
+            "pass_plays": c_["pass_plays"],
+            "pass_epa_per_play": (round(c_["pass_epa"] / c_["pass_plays"], 5)
+                                  if c_["pass_plays"] else None),
+            "rush_plays": c_["rush_plays"],
+            "rush_epa_per_play": (round(c_["rush_epa"] / c_["rush_plays"], 5)
+                                  if c_["rush_plays"] else None)}
+    rep["usable"] = True
+    # ⚠️ NO TIMESTAMP IS SET HERE. `collect.py`'s `write()` stamps
+    # `written_at` on every artifact it writes and `pulled_at` at the call
+    # site, exactly as it does for routes. ⛔ A second writer of the same
+    # field is how the site ended up quoting two projections for one
+    # pitcher (rule 66).
+    return {"season": season,
+            # ⚠️ DESCRIPTIVE until T48 passes reliability AND a value test
+            # clears its pre-declared +0.005 Brier bar. ⛔ Rule 55: this
+            # number never wears a Gizmo's confidence % on that basis
+            # alone.
+            "kind": "DESCRIPTIVE",
+            "test": "T48",
+            "note": ("Mean nflverse EPA allowed per pass-or-rush play, per "
+                     "defence per game. EPA is signed from the OFFENCE's "
+                     "perspective: LOWER IS BETTER FOR THE DEFENCE. A "
+                     "per-play rate, so it is not a measure of pace."),
+            "epa_populated_pct": cov,
+            "by_team": dict(out)}, rep
+
+
 def build_logs(season, log=print):
     """Per-player point-in-time game logs for one season."""
     log(f"=== nfl: building {season} player logs ===")
