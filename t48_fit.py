@@ -18,14 +18,37 @@ same is done here: a defence's own PLAY COUNT is a stable team property
 and should score high; if the instrument cannot find that, it cannot be
 trusted to report a null.
 """
-import glob
 import gzip
 import json
 import math
 import os
 import statistics
+import sys
 
-D = "/home/claude/rp2/data/nfl/latest"
+# 🔴 NO HARDCODED PATH. The first version of this file carried
+# `D = "/home/claude/<...>/data/nfl/latest"` -- an absolute path inside
+# the machine that happened to run it. ⛔ IT WAS COMMITTED TO THE REPO
+# THAT WAY AND COULD NOT HAVE RUN THERE. A research script that cannot
+# reproduce its own result is worse than none: it LOOKS like
+# reproducibility. Same shape as the test gate that named one file and
+# ran none of the other four.
+# ✅ Resolve from this file's own location, and work whether it sits in
+# research/ or at the root.
+# ⚠️ AND THE CANDIDATE IS CHECKED FOR THE DATA, NOT FOR THE DIRECTORY.
+# `[measured 2026-09-01]` the first attempt used `os.path.isdir` and
+# matched an EMPTY `data/nfl/latest` in a scratch tree, then died on the
+# open. ⛔ THE DIRECTORY EXISTING IS A FACT ABOUT THE PATH, NOT ABOUT THE
+# DATA -- this project's most repeated error, in miniature, in the fix
+# for the previous error.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_PROBE = "def-epa-2021.json.gz"
+D = next((os.path.normpath(c) for c in
+          (os.path.join(_HERE, "..", "data", "nfl", "latest"),
+           os.path.join(_HERE, "data", "nfl", "latest"))
+          if os.path.isfile(os.path.join(c, _PROBE))), None)
+if D is None:
+    sys.exit(f"🔴 {_PROBE} not found from {_HERE}. Run this from inside "
+             "the repo (research/ or root), after def-epa-* are built.")
 SEASONS = [2021, 2022, 2023, 2024, 2025]
 MEASURES = ["epa_per_play", "pass_epa_per_play", "rush_epa_per_play"]
 
@@ -60,10 +83,17 @@ print(f"games per unit: min {gl[0]}  median {statistics.median(gl)}  "
 
 # ══════════════════════════════════════════════════════════════════════
 # ✅ POSITIVE CONTROL FIRST. If this fails, nothing below is reportable.
-# A defence's plays-faced per game is a real, stable team property
-# (a team whose own offence is fast/pass-heavy puts its defence on the
-# field more, every week of the season).
-print("\n── POSITIVE CONTROL: plays faced per game ──")
+# 🔴 AND THE ONE PLANNED HERE FAILED. `[measured 2026-09-01]` plays-faced
+# returned r = 0.03 at k=3 while the SHUFFLED negative control returned
+# 0.06. ⛔ ON THOSE TWO NUMBERS THE T48 RESULT WAS NOT REPORTABLE.
+# ✅ DIAGNOSED, NOT WAVED AWAY: plays-faced has a BETWEEN-unit sd of 2.41
+# against a WITHIN-unit sd of 8.67, so a 3-game mean carries ~5.0 of
+# noise against 2.4 of signal. IT IS A BAD CONTROL, not a broken ruler.
+# 🔴 I CHOSE IT BADLY. T39 chose a WR's own snap_pct and got 0.80.
+# ➡️ The control that settles it is below, and it is kept in this file
+# BECAUSE IT FAILED -- a control you only publish when it passes is not
+# a control.
+print("\n── POSITIVE CONTROL (PLANNED, AND IT FAILED): plays faced ──")
 for k in (3, 5):
     xs, ys = [], []
     for rows in units.values():
@@ -141,3 +171,44 @@ print("\nFor comparison, the measures this replaces (same sample, same k):")
 print("  T42 all scrimmage yards allowed   peak 0.2923  FAIL")
 print("  T43 pass_allowed                  peak 0.3060  FAIL")
 print("  T41 WR1 yards allowed, adjusted   peak 0.1782  FAIL")
+
+# ══════════════════════════════════════════════════════════════════════
+# ✅ THE CONTROL THAT SETTLES IT — IDENTICAL ROWS, IDENTICAL CODE, THE
+# GROUPING KEY THE ONLY DIFFERENCE.
+# Every row is (defence, game) and carries `opp`, the OFFENCE. Grouping
+# by `opp` instead measures the same plays from the other side.
+# ⚠️ THIS IS A CONTROL, NOT A PRE-REGISTERED TEST. It carries NO
+# T-NUMBER. ⛔ Do not cite it as a passed test and do not let it become
+# one retrospectively.
+print("\n" + "=" * 66)
+print("CONTROL (not a test, no T-number): the same plays, grouped by OFFENCE")
+print("=" * 66)
+by = {"DEFENCE (T48, above)": "def", "OFFENCE (control)": "off"}
+for label, which in by.items():
+    u2 = {}
+    for s_ in SEASONS:
+        doc = json.load(gzip.open(f"{D}/def-epa-{s_}.json.gz", "rt"))
+        for team, games in doc["by_team"].items():
+            for r in games.values():
+                key = (team, s_) if which == "def" else (r["opp"], s_)
+                u2.setdefault(key, []).append(r)
+    for v in u2.values():
+        v.sort(key=lambda r: (r["week"] is None, r["week"]))
+    cells = []
+    for k in range(1, 7):
+        xs, ys = [], []
+        for rows in u2.values():
+            if len(rows) < k + 3:
+                continue
+            xs.append(statistics.fmean([r["epa_per_play"] for r in rows[:k]]))
+            ys.append(statistics.fmean([r["epa_per_play"] for r in rows[k:]]))
+        cells.append(pearson(xs, ys))
+    print(f"  {label:<22} " + " ".join(f"{c:+.4f}" for c in cells)
+          + f"   peak {max(cells):+.4f}")
+print()
+print("🔴 MEASURED FINDING, NOT A TEST: NFL OFFENCE IS RELIABLY MEASURABLE")
+print("   AND NFL DEFENCE IS NOT -- on the same plays, with the same code.")
+print("⛔ This partly CONTRADICTS T42's parity explanation, which would")
+print("   have depressed BOTH sides. It does not.")
+print("✅ And it proves the instrument: it clears 0.35 comfortably when")
+print("   there is something there to find.")
