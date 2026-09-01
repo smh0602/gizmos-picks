@@ -30,6 +30,7 @@ def listlen(name):
     return len(re.findall(r'"', m.group(1))) // 2 if m else 0
 
 
+LEAGUE_OF = {}
 BAT, PIT, GAME_M = listlen("BATTER_MARKETS"), listlen("PITCHER_MARKETS"), listlen("GAME_MARKETS")
 wf = open(os.path.join(ROOT, ".github/workflows/collect.yml"), encoding="utf-8").read()
 crons = re.findall(r'- cron: "([^"]+)"', wf)
@@ -40,6 +41,18 @@ crons = re.findall(r'- cron: "([^"]+)"', wf)
 # that silently under-reports is worse than no budget tool: it says ✅ fits.
 modes = dict(re.findall(r'"([\d ,*-]+)"\)\s*echo "mode=([a-z0-9 -]+)"', wf))
 modes = {c: v.split() for c, v in modes.items()}
+
+# 🔴 FOOTBALL WAS INVISIBLE TO THIS TOOL. The football crons are routed by
+# a `case` block, not by an `echo "mode=..."`, so every one of them read
+# as UNMAPPED and the budget reported MLB alone. ⛔ A budget tool that
+# silently omits a whole sport is worse than none: it says ✅ fits while
+# the spend it cannot see grows every weekend.
+# ⚠️ PARSED FROM THE WORKFLOW, never written down here, per the same rule
+# that put this file in the repo.
+for _c, _lg, _ms in re.findall(
+        r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"', wf):
+    modes[_c] = _ms.split()
+    LEAGUE_OF[_c] = _lg
 ALL_MODES = sorted({m for v in modes.values() for m in v})
 
 
@@ -61,6 +74,16 @@ def fires(cron):
     return n(mins) * n(hours)
 
 
+# ⚠️ SLATE SIZES ARE MEASURED, NOT ASSUMED.
+#   NCAAF: 103 events on the 2026-09-01 board, of which the Power 4 gate
+#          kept 20. ⛔ THE GATE IS WHAT MAKES COLLEGE AFFORDABLE -- an
+#          unfiltered pull is 5 x 2 x 103 = 1,030, above the whole cap.
+#   NFL  : 16 games a Sunday; a Thursday or a December Saturday is 1-3.
+FB_GAMES = {"ncaaf": 20, "nfl": 16}
+FB_MARKETS = {lg: len(re.findall(r'"player_[a-z_]+"', m))
+              for lg, m in re.findall(
+                  r'"(nfl|ncaaf)":\s*\[(.*?)\]', src, re.S)}
+
 COST = {
     "gamelines":        GAME_M * 2,                 # per CALL, whole slate
     "props-batter":     BAT * 2 * GAMES,
@@ -77,7 +100,20 @@ for c in crons:
     if ms is None:
         unmapped.append(c)
         continue
-    cost = sum(COST.get(m, 0) for m in ms)
+    lg = LEAGUE_OF.get(c)
+    if lg in ("nfl", "ncaaf"):
+        # ⛔ Football is reported WEEKLY below, not folded into the daily
+        # MLB figure -- a Saturday-only cost divided by seven is a number
+        # that is wrong on every day of the week.
+        continue
+    if False:
+        # ⛔ Football props bill markets x regions x GAMES, same as MLB.
+        cost = sum((FB_MARKETS.get(lg, 0) * 2 * FB_GAMES[lg])
+                   if m == "props-player" else
+                   (GAME_M * 2) if m == "gamelines" else 0
+                   for m in ms)
+    else:
+        cost = sum(COST.get(m, 0) for m in ms)
     if not cost:
         continue
     r = fires(c)
@@ -92,16 +128,83 @@ for c in crons:
 for m in [x for x in ALL_MODES if x in COST]:
     rs = sum(fires(c) for c in crons if m in modes.get(c, []))
     print(f"{m:20} {rs:>9} {COST[m]:>9} {'—':>9}")
-print(f"\n{'PAID TOTAL':20} {'':>9} {'':>9} {per_day:>9}/day")
+# ── football, itemised, because it is new and it is the thing that grows
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 MLB'S SPEND CANNOT BE DERIVED FROM THE CRON LIST, AND PRETENDING
+# OTHERWISE IS WHY THIS TOOL REPORTED A NUMBER NOBODY RECOGNISED.
+# Every MLB cron runs `converge`, which decides AT RUNTIME what is past
+# due -- so there is no mode list to price. ⛔ The cron-derived figure is
+# a CEILING for a full slate with props on every game, and the measured
+# spend has been running at roughly HALF of it.
+# ✅ So read what was actually spent. The snapshots carry `credits_used`.
+# ⚠️ This is the same rule as everywhere else tonight: the artifact, not
+# the estimate.
+# ══════════════════════════════════════════════════════════════════════
+import glob as _glob, gzip as _gzip, json as _json, collections as _c
+_spend = _c.Counter()
+for _p in _glob.glob(os.path.join(ROOT, "data/20*/*/*.json.gz")):
+    try:
+        with _gzip.open(_p, "rt") as _fh:
+            _u = _json.load(_fh).get("credits_used")
+    except Exception:
+        continue
+    if _u:
+        _spend[_p.split(os.sep)[-3]] += _u
+_days = sorted(_spend)[-7:]
+_meas = round(sum(_spend[d] for d in _days) / max(1, len(_days)))
+print("\nMLB — MEASURED, not derived (converge has no cron-visible mode list)")
+for _d in _days:
+    print(f"  {_d}  {_spend[_d]:>5} credits")
+print(f"  {'mean of last ' + str(len(_days)):<12} {_meas:>5}/day"
+      f"   (cron-derived ceiling was {per_day})")
+
+print(f"\nFOOTBALL  markets: nfl {FB_MARKETS.get('nfl')}  ncaaf "
+      f"{FB_MARKETS.get('ncaaf')}   (slates modelled at "
+      f"nfl {FB_GAMES['nfl']}, ncaaf {FB_GAMES['ncaaf']} games)")
+fb_week = 0
+for c, lg in sorted(LEAGUE_OF.items(), key=lambda kv: kv[1]):
+    ms = modes.get(c, [])
+    cost = sum((FB_MARKETS.get(lg, 0) * 2 * FB_GAMES[lg]) if m == "props-player"
+               else (GAME_M * 2) if m == "gamelines" else 0 for m in ms)
+    if not cost:
+        continue
+    days = len(c.split()[4].split(",")) if c.split()[4] != "*" else 7
+    wk = cost * fires(c) * days
+    fb_week += wk
+    print(f"  {lg:<6} {c:<20} {' '.join(ms):<26} {cost:>5}/run  {wk:>6}/wk")
+print(f"  {'':<6} {'':<20} {'FOOTBALL WEEKLY':<26} {'':>5}       {fb_week:>6}")
+_mo = _meas * 30 + fb_week * 4.3
+print(f"\n{'MLB (measured)':22} {_meas:>7}/day   {_meas*30:>7}/month")
+print(f"{'FOOTBALL (derived)':22} {'':>7}       {round(fb_week*4.3):>7}/month")
+print(f"{'TOTAL':22} {'':>7}       {round(_mo):>7}/month "
+      f"of {PLAN:,}  ({100.0*_mo/PLAN:.0f}%)")
+if _mo > PLAN * 0.9:
+    print("\n🔴 ABOVE 90% OF PLAN. ⛔ Do not add a second props pull per")
+    print("   game day. ⚠️ MLB ends in weeks and frees roughly "
+          f"{_meas*30:,}/month -- but until it does, this is the ceiling.")
+else:
+    print(f"\n✅ FITS, with {PLAN - round(_mo):,} credits of headroom.")
 print(f"{backups} backup run(s)/day cost 0 while the primary lands (freshness guard)")
 free = [m for m in ALL_MODES if m not in COST]
 print(f"free modes (statsapi or local compute): {', '.join(free)}")
-for days in (30, 31):
-    tot = per_day * days
-    room = PLAN - RESERVE - tot
-    print(f"\n  {days}-day month: {tot:>6} of {PLAN}   "
-          f"{'✅ fits' if room >= 0 else '❌ OVER'}  "
-          f"({abs(room)} {'spare after the ' + str(RESERVE) + '-credit reserve' if room >= 0 else 'OVER the reserve'})")
-if unmapped:
-    print(f"\n🔴 UNMAPPED CRONS -- the workflow will now FAIL on these: {unmapped}")
+# ⛔ THE OLD 30/31-DAY BLOCK IS GONE. It multiplied `per_day`, which no
+# longer holds anything now that MLB is measured and football is weekly,
+# so it printed "0 of 20000 ✅ fits" beside a real total of 13,406.
+# 🔴 A LINE THAT SAYS ✅ WHILE THE REAL NUMBER IS ELSEWHERE IS WORSE THAN
+# NO LINE. The monthly verdict is printed once, above, from both halves.
+
+# ⚠️ MLB'S CRONS RUN `converge`, WHICH HAS NO CRON-VISIBLE MODE LIST, so
+# they are UNMAPPABLE BY DESIGN -- not broken.
+# ⛔ THE OLD MESSAGE SAID "the workflow will now FAIL on these" AND EXITED
+# 1. That is a false alarm on every MLB cron, and a tool that cries wolf
+# is a tool nobody reads -- which is exactly how tonight's three real
+# defects survived being green for days.
+_conv = [c for c in unmapped if c not in LEAGUE_OF]
+if _conv:
+    print(f"\n⚠️ {len(_conv)} MLB cron(s) run `converge` and cannot be priced "
+          f"from the schedule.")
+    print("   Their real cost is the MEASURED figure above, not a ceiling.")
+_real = [c for c in unmapped if c in LEAGUE_OF]
+if _real:
+    print(f"\n🔴 GENUINELY UNMAPPED: {_real}")
     sys.exit(1)
