@@ -190,6 +190,37 @@ ck("BRIDGE_MIN exists and is not a placeholder",
    isinstance(cfb.BRIDGE_MIN, float) and 50 < cfb.BRIDGE_MIN <= 100,
    cfb.BRIDGE_MIN)
 
+print("── allowed-by-position (the defensive tracking table) ──")
+A = {}
+for i in range(12):
+    A[f"w{i}"] = mk(f"w{i}", "WR", f"OFF{i}", [
+        {"week": w, "wk_i": w, "usage": 5, "rec": 5,
+         "rec_yds": 100 if i < 6 else 20, "rec_td": 1 if i < 6 else 0}
+        for w in range(1, 11)])
+    for j, g in enumerate(A[f"w{i}"]["g"]):
+        g["o"] = "SOFT" if i < 6 else "STINGY"
+        g["game_id"] = f"gg{i}-{j}"
+al = cfb.build_allowed({"season": 2025, "built_at": "z", "players": A},
+                       log=lambda *_: None)
+D = al["defences"]
+ck("both defences appear", set(D) == {"SOFT", "STINGY"}, list(D))
+ck("the soft defence allows more receiving yards to WRs",
+   D["SOFT"]["WR"]["rec_yds"] > D["STINGY"]["WR"]["rec_yds"])
+ck("🔴 RANK 1 = ALLOWS THE MOST (the question is 'who is soft')",
+   D["SOFT"]["WR"]["rec_yds_rank"] == 1 and D["STINGY"]["WR"]["rec_yds_rank"] == 2)
+ck("touchdowns allowed by position are tracked, not just yards",
+   D["SOFT"]["WR"]["rec_td"] > D["STINGY"]["WR"]["rec_td"])
+ck("games faced is carried so a 1-game sample cannot read as a rate",
+   D["SOFT"]["WR"]["games"] == 60, D["SOFT"]["WR"]["games"])
+ck("labelled DESCRIPTIVE and warns about CFB sack accounting",
+   al["kind"] == "DESCRIPTIVE" and "SACK" in al["caveat_qb_rush"])
+try:
+    cfb.build_allowed({"season": 2025, "built_at": "z", "players": {}},
+                      log=lambda *_: None)
+    ck("🔴 an EMPTY table raises rather than shipping a blank file", False)
+except RuntimeError:
+    ck("🔴 an EMPTY table raises rather than shipping a blank file", True)
+
 print("── helpers ──")
 ck("usage_of(QB) = att + car", cfb.usage_of({"att": 30, "car": 4}, "QB") == 34)
 ck("usage_of(WR) prefers targets over receptions",

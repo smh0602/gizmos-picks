@@ -558,6 +558,76 @@ def rank_and_cascade(players):
     return players
 
 
+# ══════════════════════════════════════════════════════════════════════
+# ALLOWED-BY-POSITION — the defensive tracking table
+# 🔴 DESCRIPTIVE (ledger rule 55). What a defence HAS ALLOWED per game,
+# by position. NO confidence number, not a model output.
+# 📌 Sam, 2026-08-30: "i want you to track this data ... touchdowns
+# allowed vs certain positions, yards allowed vs certain positions".
+# ⛔ RANK 1 = ALLOWS THE MOST -- the question asked of it is "how soft is
+# this defence", not "how good".
+# ⚠️ TWIN OF `nfl.py`'s `build_allowed`; one page reads both, so the two
+# must stay the same shape. ⛔ The ONE column that is NOT comparable
+# across the leagues is QB rushing -- see `caveat_qb_rush`.
+# ══════════════════════════════════════════════════════════════════════
+DEF_FIELDS = ("rec", "rec_yds", "rec_td", "car", "rush_yds", "rush_td",
+              "att", "cmp", "pass_yds", "pass_td", "int")
+DEF_MIN_GAMES = 8
+
+
+def build_allowed(doc, log=log):
+    acc = collections.defaultdict(lambda: collections.defaultdict(float))
+    games = collections.defaultdict(set)
+    for pl in doc["players"].values():
+        pos = pl["pos"]
+        if pos not in ("QB", "RB", "WR", "TE"):
+            continue
+        for g in pl["g"]:
+            o = g.get("o")
+            if not o:
+                continue
+            games[o].add(g["game_id"])
+            a = acc[(o, pos)]
+            for f in DEF_FIELDS:
+                v = g.get(f)
+                if v is not None:
+                    a[f] += float(v)
+    tbl = {}
+    for (o, pos), a in acc.items():
+        n = len(games[o])
+        if n:
+            tbl.setdefault(o, {})[pos] = {
+                "games": n, **{f: round(a[f] / n, 3) for f in DEF_FIELDS}}
+    for pos in ("QB", "RB", "WR", "TE"):
+        for f in DEF_FIELDS:
+            rows = sorted(((o, t[pos][f]) for o, t in tbl.items()
+                           if pos in t and t[pos]["games"] >= DEF_MIN_GAMES),
+                          key=lambda x: -x[1])
+            for i, (o, _) in enumerate(rows):
+                tbl[o][pos][f + "_rank"] = i + 1
+                tbl[o][pos][f + "_pct"] = round(
+                    100.0 * (len(rows) - i) / len(rows), 1)
+    if not tbl:
+        raise RuntimeError("allowed-by-position is EMPTY -- an opponent "
+                           "join failure, not a finding")
+    log(f"    allowed-by-position: {len(tbl)} defences")
+    return {"season": doc["season"], "kind": "DESCRIPTIVE",
+            "built_at": doc["built_at"],
+            "rank_note": "rank 1 = ALLOWS THE MOST; pct 100 = softest",
+            "min_games_for_rank": DEF_MIN_GAMES,
+            "caveat_qb_rush": (
+                "⛔ COLLEGE CHARGES SACK YARDAGE TO RUSHING. `[measured "
+                "2026-08-30]` CFB QB rushing reaches -73 with 23.5% of "
+                "rows negative; the NFL bottoms at -10 with 11.6%. So CFB "
+                "rushing yards allowed to QBs is largely a PASS-RUSH "
+                "measure and is NOT comparable to the NFL column."),
+            "scope": ("Power 4 offences only -- a defence's numbers here "
+                      "describe what POWER 4 OFFENCES did to it, which for "
+                      "a non-P4 defence may be one or two games. Read "
+                      "`games` before reading anything else."),
+            "defences": tbl}
+
+
 def build_vs_position(doc, log=log):
     out = collections.defaultdict(
         lambda: collections.defaultdict(lambda: collections.defaultdict(list)))
@@ -761,8 +831,10 @@ def probe(log=log):
                     log(f"    ⛔ VERIFY: {b}")
                 raise RuntimeError("; ".join(bad)[:800])
             vs, kept = build_vs_position(doc, log)
+            allowed = build_allowed(doc, log)
             for f, o in ((f"players-{season}.json.gz", doc),
-                         (f"vs-position-{season}.json.gz", vs)):
+                         (f"vs-position-{season}.json.gz", vs),
+                         (f"allowed-by-position-{season}.json.gz", allowed)):
                 with gzip.open(f"{OUT}/{f}", "wt", encoding="utf-8") as fh:
                     json.dump(o, fh)
                 log(f"    wrote {OUT}/{f}")
