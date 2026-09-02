@@ -1,11 +1,11 @@
-verify_card FAILED at 2026-09-02T19:33:51Z
-pass 2 of run 331
+verify_card FAILED at 2026-09-02T19:48:59Z
+pass 3 of run 331
 --- the failing checks ---
-  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (45 of 884 pooled priced rows = 5.1%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (45 of 884 pooled priced rows = 5.1%)
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (44 of 873 pooled priced rows = 5.0%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (44 of 873 pooled priced rows = 5.0%)
 --- last 60 lines ---
-  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (45 of 884 pooled priced rows = 5.1%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
-  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 113 pooled priced rows = 0.0%)  []
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (44 of 873 pooled priced rows = 5.0%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 112 pooled priced rows = 0.0%)  []
   NOTE  carded hitter rows only: 0 of 25 contradict at 70%+ (0.0%) -- carding selects high-confidence rows, so this is NOT the T37 population
   PASS no hitter projection matches the UNFILTERED log better than the point-in-time one (0 separable row(s))  []
 
@@ -14,10 +14,10 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (45 of 884 pooled p
   PASS every row is priced better than the payable floor (-400)  []
   PASS no player appears twice  []
   PASS it is ordered by confidence, descending
-  PASS every top-10 row traces to a row the card priced (1899 priced keys)  []
+  PASS every top-10 row traces to a row the card priced (1747 priced keys)  []
   PASS every carded row is flagged priced in the index  []
-  PASS the priced flag is a subset, not a rubber stamp (1899 of 2940)
-  PASS the price gate actually excluded something, and the card says how much  77 row(s) excluded
+  PASS the priced flag is a subset, not a rubber stamp (1747 of 2934)
+  PASS the price gate actually excluded something, and the card says how much  76 row(s) excluded
 
 34. PARLAYS -- recomputed leg by leg
   PASS every parlay's leg count matches its own n_legs (24 parlays)
@@ -53,14 +53,14 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (45 of 884 pooled p
   PASS no batter row is priced at -1000 or shorter
   PASS every innings figure uses thirds (.0 .1 .2 only)  []
   PASS innings notation matches the out count it describes  []
-  PASS no jargon in any why (288 lines checked)  []
+  PASS no jargon in any why (287 lines checked)  []
   PASS every row still explains itself  []
   PASS every hitter row still says its number is a record, not a forecast
 
 38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
-  NOTE  35 flag(s) on this card: 4 shown, 31 recorded but not rendered
+  NOTE  36 flag(s) on this card: 4 shown, 32 recorded but not rendered
   PASS the diagnostics are still being written to the card
   PASS every flag that reaches the page is marked actionable
   PASS no model diagnostic is marked for display  []
 
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (45 of 884 pooled priced rows = 5.1%)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (44 of 873 pooled priced rows = 5.0%)
