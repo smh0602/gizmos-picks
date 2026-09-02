@@ -636,6 +636,97 @@ def parse_receiver(txt):
     return n or None
 
 
+def build_schedule(season, log=log):
+    """Schedule and final scores for one season. **Feeds the Scores tab.**
+
+    🔴 THE SCORE FIELDS ARE PROBED, NOT ASSUMED. `cfb.py` already reads a
+    dozen `/games` fields -- id, week, startDate, homeTeam, awayTeam,
+    conferences, neutralSite, pregame Elo, classification -- and NOT ONE
+    of them is a score. ⛔ So `homePoints`/`awayPoints`/`completed` are a
+    guess from documentation until this function has seen them, which is
+    the same rule that caught the participation filename and the
+    `stats_player_reg` season-totals trap.
+
+    ⚠️ A SEASON WITH NO SCORES YET IS THE NORMAL STATE, NOT A FAILURE.
+    2026 has a published schedule and no results until week 1 is played.
+    ⛔ Do not confuse that with SeasonNotStarted, which is CFBD having no
+    games for the year at all.
+
+    ✅ Returns a shape IDENTICAL to nfl.build_schedule so ONE renderer
+    serves both leagues. ⛔ Two renderers for one table is how the odds
+    tab nearly acquired a second copy of the de-vig.
+    """
+    log(f"\n=== cfb: schedule {season} ===")
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False}
+    rows = []
+    for st in ("regular", "postseason"):
+        try:
+            got = get("/games", {"year": str(season), "seasonType": st})
+        except Exception as e:
+            log(f"    /games {season} {st}: {type(e).__name__}: {e}")
+            rep.setdefault("errors", []).append(f"{st}: {type(e).__name__}")
+            continue
+        rows.extend([(st, g) for g in (got or [])])
+    rep["rows"] = len(rows)
+    if not rows:
+        # ⛔ NOT a failure to the caller -- the season may not be
+        # published yet. It is REPORTED and the file is not written.
+        rep["error"] = f"CFBD returned no games for {season}"
+        log(f"    {rep['error']}")
+        return None, rep
+
+    # ⛔ NAME THE COLUMNS. Never assume a score field exists.
+    keys = set()
+    for _st, g in rows[:200]:
+        keys |= set(g.keys())
+    hp = next((k for k in ("homePoints", "home_points", "homeScore") if k in keys), None)
+    ap = next((k for k in ("awayPoints", "away_points", "awayScore") if k in keys), None)
+    cp = next((k for k in ("completed",) if k in keys), None)
+    rep["columns_used"] = {"home_score": hp, "away_score": ap, "completed": cp}
+    rep["columns_available"] = sorted(keys)[:60]
+    if not (hp and ap):
+        # ⚠️ The SCHEDULE still ships. A schedule with no scores is a
+        # real product; a made-up score is not.
+        log(f"    ⚠️ no score columns found -- schedule only. saw: {sorted(keys)[:20]}")
+
+    out, finals = [], 0
+    for st, g in rows:
+        h = _f(g.get(hp)) if hp else None
+        a = _f(g.get(ap)) if ap else None
+        done = bool(g.get(cp)) if cp else (h is not None and a is not None)
+        if done:
+            finals += 1
+        out.append({
+            "id": str(g.get("id")),
+            "week": g.get("week"),
+            "season_type": st,
+            "start": g.get("startDate"),
+            "home": g.get("homeTeam"), "away": g.get("awayTeam"),
+            "home_conf": g.get("homeConference"), "away_conf": g.get("awayConference"),
+            "neutral": bool(g.get("neutralSite")),
+            "home_score": h, "away_score": a,
+            "final": done,
+        })
+    out.sort(key=lambda r: (r["start"] or "", r["home"] or ""))
+    rep["games"] = len(out)
+    rep["final"] = finals
+    rep["usable"] = True
+    log(f"    {len(out):,} games, {finals:,} final")
+    return {"season": season, "kind": "DESCRIPTIVE",
+            "note": ("Schedule and final scores from CFBD /games. "
+                     "DESCRIPTIVE -- these are results, not projections."),
+            "columns_used": rep["columns_used"],
+            "games": out}, rep
+
+
+def _f(v):
+    """Numeric or None. ⚠️ A score of 0 is a REAL score, not a missing one."""
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return None
+
+
 def build_pace(season, log=log):
     """Offensive plays per team-game, plus a targets-from-text report."""
     per = collections.defaultdict(lambda: {"plays": 0, "pass": 0, "rush": 0})
@@ -1073,13 +1164,30 @@ def probe(log=log):
             except Exception as _pe:
                 log(f"    pace/{season} FAILED: {type(_pe).__name__}: {_pe}")
                 log("    ⚠️ the box-score boards are unaffected and still write")
+            # ── SCHEDULE + SCORES, for the Scores tab ────────────
+            # ✅ NO NEW CRON — rides the Sunday rebuild that already runs.
+            # ⚠️ A schedule failure must NOT lose the box-score boards
+            # that already succeeded, same rule as pace above.
+            sched, schedrep = None, None
+            try:
+                sched, schedrep = build_schedule(season, log)
+            except Exception as _se:
+                log(f"    schedule/{season} FAILED: {type(_se).__name__}: {_se}")
+                log("    ⚠️ the box-score boards are unaffected and still write")
             for f, o in ((f"players-{season}.json.gz", doc),
                          (f"vs-position-{season}.json.gz", vs),
                          (f"allowed-by-position-{season}.json.gz", allowed),
                          (f"offense-by-position-{season}.json.gz", offense)) + (
                          ((f"pace-{season}.json.gz", pace),
                           (f"targets-probe-{season}.json", tgtprobe))
-                         if pace else ()):
+                         if pace else ()) + (
+                         ((f"schedule-{season}.json.gz", sched),)
+                         if sched else ()) + (
+                         # ⛔ THE PROBE IS WRITTEN EITHER WAY. A
+                         # diagnosis that exists only in an Actions log
+                         # is a diagnosis you do not have.
+                         ((f"schedule-probe-{season}.json", schedrep),)
+                         if schedrep else ()):
                 # ⚠️ the probe is plain JSON on purpose -- it exists to
                 # be READ, and a gzipped diagnostic is a diagnostic
                 # nobody opens.

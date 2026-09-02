@@ -797,6 +797,107 @@ def build_def_epa(season, seen=None, log=print):
             "by_team": dict(out)}, rep
 
 
+def build_schedule(season, seen=None, log=print):
+    """Schedule and final scores for one season. **Feeds the Scores tab.**
+
+    ✅ FREE AND ALREADY DOWNLOADED. `games.csv.gz` is the same file
+    `build_logs` reads for kickoff dates, and `[per this file's own
+    note]` it is NOT year-partitioned -- one 512KB file covers every
+    season, which is why a 2026 schedule can exist before a single 2026
+    game has been played.
+
+    🔴 THE SCORE COLUMNS ARE PROBED, NOT ASSUMED. `build_logs` reads
+    season, week, gameday, game_id, home_team, away_team, roof, surface,
+    temp and wind from this file -- and NO SCORE COLUMN. ⛔ So
+    `home_score`/`away_score` are documentation until this function has
+    seen them.
+
+    ⚠️ A SEASON WITH A SCHEDULE AND NO SCORES IS THE NORMAL STATE in
+    September. ⛔ It is not SeasonNotStarted, which is the source having
+    nothing for the year at all.
+
+    ✅ Returns a shape IDENTICAL to cfb.build_schedule so ONE renderer
+    serves both leagues.
+    """
+    log(f"=== nfl: schedule {season} ===")
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False}
+    if seen is None:
+        seen = {r["tag_name"]: [(a["name"], a["size"],
+                                 a["browser_download_url"])
+                                for a in (r.get("assets") or [])]
+                for r in _releases(log)}
+    try:
+        sched = _rows(seen, "schedules", SCHEDULE_FILE, log)
+    except Exception as e:
+        rep["error"] = f"{type(e).__name__}: {e}"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    if not sched:
+        rep["error"] = "schedule file is empty"
+        return None, rep
+
+    cols = set(sched[0].keys())
+    rep["columns_available"] = sorted(cols)[:80]
+    hs = next((c for c in ("home_score", "home_points") if c in cols), None)
+    aws = next((c for c in ("away_score", "away_points") if c in cols), None)
+    gd = next((c for c in ("gameday", "game_date") if c in cols), None)
+    gt = next((c for c in ("gametime",) if c in cols), None)
+    rep["columns_used"] = {"home_score": hs, "away_score": aws,
+                           "date": gd, "time": gt}
+    if not (hs and aws):
+        log(f"  ⚠️ no score columns -- schedule only. saw: {sorted(cols)[:20]}")
+
+    def _i(v):
+        # ⚠️ 0 is a REAL score. Never coerce it to missing.
+        try:
+            return int(float(v))
+        except (TypeError, ValueError):
+            return None
+
+    out, finals = [], 0
+    for g in sched:
+        if str(g.get("season")) != str(season):
+            continue
+        h = _i(g.get(hs)) if hs else None
+        a = _i(g.get(aws)) if aws else None
+        done = h is not None and a is not None
+        if done:
+            finals += 1
+        day = (g.get(gd) or "") if gd else ""
+        tm = (g.get(gt) or "") if gt else ""
+        out.append({
+            "id": g.get("game_id"),
+            "week": _i(g.get("week")),
+            "season_type": g.get("game_type") or g.get("season_type") or "",
+            # ⚠️ nflverse gives a LOCAL date and a LOCAL time in separate
+            # columns and no timezone. ⛔ They are carried as-is and NOT
+            # stitched into a fake UTC stamp -- an invented offset would
+            # put a Sunday 1pm game on the wrong day for half the world.
+            "start": (day + ("T" + tm if tm else "")) or None,
+            "home": g.get("home_team"), "away": g.get("away_team"),
+            "home_conf": None, "away_conf": None,
+            "neutral": str(g.get("location") or "").lower() == "neutral",
+            "home_score": h, "away_score": a,
+            "final": done,
+        })
+    out.sort(key=lambda r: (r["start"] or "", r["home"] or ""))
+    rep["games"] = len(out)
+    rep["final"] = finals
+    if not out:
+        rep["error"] = f"no {season} rows in the schedule file"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    rep["usable"] = True
+    log(f"  {len(out):,} games, {finals:,} final")
+    return {"season": season, "kind": "DESCRIPTIVE",
+            "note": ("Schedule and final scores from nflverse `games.csv.gz`. "
+                     "DESCRIPTIVE -- these are results, not projections. "
+                     "Kickoff is the LOCAL date/time the feed publishes; no "
+                     "timezone is invented."),
+            "columns_used": rep["columns_used"],
+            "games": out}, rep
+
+
 def build_logs(season, log=print):
     """Per-player point-in-time game logs for one season."""
     log(f"=== nfl: building {season} player logs ===")

@@ -2579,6 +2579,26 @@ def run_mode(mode):
                         _ep["pulled_at"] = stamp()
                         write(f"{base}/def-epa-{season}.json.gz", _ep,
                               compress=True)
+
+                    # ── SCHEDULE + SCORES, for the Scores tab ────────
+                    # ✅ NO NEW CRON. It rides the weekly rebuild that
+                    # already runs Tuesday, from a file this pass has
+                    # already downloaded. ⚠️ Football scores settle once
+                    # a week; a schedule that refreshes weekly is the
+                    # right contract, not a compromise.
+                    # ⛔ REPORT ALWAYS WRITTEN, pass or fail.
+                    try:
+                        _sc, _srep = _nfl.build_schedule(season, None, log)
+                    except Exception as _se_:
+                        _sc, _srep = None, {"season": season,
+                                            "kind": "DIAGNOSTIC",
+                                            "usable": False,
+                                            "error": f"{type(_se_).__name__}: {_se_}"}
+                    write(f"{base}/schedule-probe-{season}.json", _srep)
+                    if _sc:
+                        _sc["pulled_at"] = stamp()
+                        write(f"{base}/schedule-{season}.json.gz", _sc,
+                              compress=True)
                     done.append(season)
                 except _nfl.SeasonNotStarted as _e:
                     # 🔴 THE SOURCE HAS NOTHING FOR THIS YEAR. If it is the
