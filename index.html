@@ -2685,9 +2685,239 @@ async function fbOdds(){
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbOdds(); });
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL SCORES & MATCHUPS.
+
+   ⚠️ WHAT THIS IS AND IS NOT. It is the SCHEDULE plus FINAL SCORES from
+   CFBD `/games` and nflverse `games.csv.gz`. ⛔ It is NOT the live
+   in-game state MLB has from statsapi -- no drive, no clock, no score
+   that moves while you watch. Saying "live" would be a claim neither
+   source backs.
+
+   🔴 TWO TIME FORMATS, AND GETTING THIS WRONG PUTS GAMES ON THE WRONG
+   DAY. `[measured 2026-09-02]` CFBD returns ISO-with-Z
+   ("2026-08-27T22:00:00.000Z"); nflverse returns a LOCAL date and time
+   with NO ZONE ("2026-09-09T20:20"). ⛔ Parsing the second as UTC would
+   shift every Sunday 1pm kickoff into Monday for anyone east of London,
+   and treating the first as local would do the reverse.
+   ✅ So a zoned stamp is converted to ET; an unzoned one is taken AS
+   WRITTEN, because that is what the feed means.
+
+   🔴 AND COLLEGE IS NOT ONE DIVISION. `/games` returns 3,679 games for
+   2026 across 73 conferences -- down to Division II. ⛔ Filtering by a
+   conference list would go stale at the next realignment, which is the
+   same reason the Power 4 set is read from data. ✅ The feed's own
+   `classification` decides, and the control says what it is showing.
+   ══════════════════════════════════════════════════════════════════ */
+const FBSCHED = {};
+let fbDiv = 'fbs';     // college only: 'fbs' | 'all'
+let fbWeek = null;
+
+async function fbSchedLoad(season){
+  const k = LEAGUE + '|' + season;
+  if (FBSCHED[k] !== undefined) return FBSCHED[k];
+  try { FBSCHED[k] = await jgetGz(`${LG_DATA[LEAGUE]}/latest/schedule-${season}.json.gz`); }
+  catch(e){ FBSCHED[k] = null; }
+  return FBSCHED[k];
+}
+
+/* ET date for a kickoff, honouring whether the feed gave a zone.
+   ⛔ Never invents an offset. */
+function fbKickDate(s){
+  if (!s) return '';
+  return /[Zz]|[+\-]\d\d:?\d\d$/.test(s) ? etDate(s) : s.slice(0, 10);
+}
+function fbKickTime(s){
+  if (!s) return '';
+  /* 🔴 EVERY TIME ON THIS TAB IS EASTERN, AND THAT IS A DECISION.
+     The date heading is grouped on the ET date, so rendering the time in
+     the VIEWER's zone would let the two disagree for anyone outside ET --
+     a 7:30pm ET Thursday game reading "11:30 PM" under a Thursday
+     heading. ⛔ Internally inconsistent is worse than either choice.
+     ⚠️ AND THE TWO FEEDS ALREADY AGREE ONCE THIS IS DONE: nflverse
+     `gametime` is measured to be Eastern already -- `[2026-09-02]` its
+     three most common values across 272 games are 13:00 (149), 16:25
+     (37) and 20:15 (33), which are the classic ET early, late and
+     primetime slots and nothing else. So converting CFBD's zoned stamp
+     to ET puts both leagues on one clock. */
+  if (/[Zz]|[+\-]\d\d:?\d\d$/.test(s))
+    return new Date(s).toLocaleTimeString([], {hour:'numeric', minute:'2-digit',
+                                               timeZone: 'America/New_York'});
+  const t = s.slice(11, 16);
+  if (!t) return '';
+  /* ⚠️ Unzoned = nflverse, already Eastern. Rendered as written. */
+  const [h, m] = t.split(':').map(Number);
+  const ap = h >= 12 ? 'PM' : 'AM';
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2,'0')} ${ap}`;
+}
+
+async function fbScores(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const avail = await fbSeasonsAvailableSched();
+  if (avail.length && avail.indexOf(fbSeason) === -1) fbSeason = Math.max.apply(null, avail);
+  const doc = await fbSchedLoad(fbSeason);
+  if (!doc || !(doc.games || []).length){
+    v.innerHTML = fbShell(`<div class="note">
+      <b>No ${LG_NAME[LEAGUE]} schedule stored for ${fbSeason}.</b><br>
+      It is built by the weekly rebuild &mdash;
+      ${LEAGUE === 'ncaaf' ? 'Sunday morning' : 'Tuesday morning'} &mdash;
+      from a free source. Nothing is missing if the season has not been
+      collected yet.</div>`);
+    fbWire(); return;
+  }
+
+  let games = doc.games.slice();
+  const hasClass = games.some(g => g.home_class);
+  if (LEAGUE === 'ncaaf' && hasClass){
+    /* 🔴 DIVISION II AND III NEVER APPEAR. Sam, 2026-09-02: "no we are
+       not doing d2 only d1." CFBD returns every level it covers -- 3,679
+       games across 73 conferences for 2026 -- and the lower divisions
+       are noise on this product.
+
+       🔴 AND "BOTH SIDES FBS" WAS WRONG, WHICH HE CAUGHT. An FBS team
+       playing an FCS opponent is an FBS GAME -- Ohio State's week-1
+       opponent is very often FCS, and requiring both sides would have
+       HIDDEN IT. ⛔ The reader looking for that game would have found
+       nothing and concluded the tab was broken.
+       ✅ So the FBS view keeps a game if EITHER side is FBS. */
+    /* ✅ THE RULE IS "AT LEAST ONE SIDE", NOT "BOTH". Sam, 2026-09-02:
+       "if a d1 school is playing a d2 school thats fine ... but i dont
+       want d2 vs d2 or d2 v d3 matchups, were only focusing on d1
+       matchups."
+       ⛔ A "both sides" test drops the very games a reader is looking
+       for -- an FBS team's early-season FCS opponent under the FBS view,
+       and an FCS team's D2 opponent under the Division I view. What gets
+       dropped is a game with NO qualifying team on either side. */
+    const D1 = new Set(['fbs', 'fcs']);
+    games = games.filter(g => {
+      const h = (g.home_class || '').toLowerCase();
+      const a = (g.away_class || '').toLowerCase();
+      return fbDiv === 'fbs' ? (h === 'fbs' || a === 'fbs')
+                             : (D1.has(h) || D1.has(a));
+    });
+  }
+
+  /* Weeks present, so the picker offers only weeks that exist. */
+  const weeks = [...new Set(games.map(g => g.week).filter(w => w != null))]
+                  .sort((a,b) => a-b);
+  if (weeks.length && weeks.indexOf(fbWeek) === -1) fbWeek = fbCurrentWeek(games, weeks);
+  const shown = games.filter(g => g.week === fbWeek);
+
+  const byDate = {};
+  shown.forEach(g => (byDate[fbKickDate(g.start)] ||= []).push(g));
+
+  const row = g => {
+    const done = g.final;
+    const hw = done && g.home_score > g.away_score;
+    const aw = done && g.away_score > g.home_score;
+    const side = (nm, sc, win, conf) => `<div class="side" style="display:flex;
+        align-items:baseline;gap:8px;padding:2px 0">
+        <span class="nm" style="font-weight:${win?700:600};
+          color:${done && !win ? 'var(--mut)' : 'inherit'}">${nm}</span>
+        ${conf ? `<span class="sub" style="font-size:11px">${conf}</span>` : ''}
+        <span style="margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;
+          color:${done && !win ? 'var(--mut)' : 'inherit'}">${sc == null ? '' : sc}</span>
+      </div>`;
+    return `<tr>
+      <td class="gm" style="min-width:260px">
+        ${side(g.away, g.away_score, aw, g.away_conf)}
+        ${side(g.home, g.home_score, hw, g.home_conf)}
+      </td>
+      <td style="white-space:nowrap">${done
+        ? '<span class="kind" style="background:#eef4ee;color:#2f6b3f">FINAL</span>'
+        : `<span class="sub">${fbKickTime(g.start) || 'TBD'}</span>`}</td>
+      <td class="sub">${g.neutral ? 'neutral site' : ''}</td>
+    </tr>`;
+  };
+
+  const blocks = Object.keys(byDate).sort().map(d => {
+    const list = byDate[d].slice().sort((a,b) => (a.start||'') < (b.start||'') ? -1 : 1);
+    const dd = new Date(d + 'T12:00:00Z');
+    return `<h3 style="margin:22px 0 8px;font-size:14px">
+        ${dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'})}
+        <span class="rec">${list.length} game${list.length===1?'':'s'}</span></h3>
+      <div class="obwrap"><table class="ob"><tbody>
+        ${list.map(row).join('')}</tbody></table></div>`;
+  }).join('');
+
+  const nFinal = shown.filter(g => g.final).length;
+  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups
+        <span class="kind k-desc">Descriptive</span></h2>
+      <p style="color:var(--mut);margin:0">${doc.games.length.toLocaleString()} games
+        in ${fbSeason}${LEAGUE==='ncaaf' && hasClass
+          ? (fbDiv==='fbs' ? `, showing games involving an FBS team`
+                           : `, showing Division I`) : ''} &mdash; ${nFinal} final in this week.
+        ${freshness(doc.pulled_at)}</p>
+    </div>
+    <div class="fbctl">
+      <label>Season<select id="fb-sc-season">${
+        (avail.length ? avail : [fbSeason]).map(y =>
+        `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
+      <label>Week<select id="fb-sc-week">${weeks.map(w =>
+        `<option value="${w}"${w===fbWeek?' selected':''}>Week ${w}</option>`).join('')}</select></label>
+      ${LEAGUE==='ncaaf' && hasClass ? `<label>Division<select id="fb-sc-div">
+        <option value="fbs"${fbDiv==='fbs'?' selected':''}>FBS games</option>
+        <option value="d1"${fbDiv==='d1'?' selected':''}>All Division I</option>
+      </select></label>` : ''}
+    </div>
+    ${blocks || '<div class="msg">No games in this week.</div>'}
+    <div class="note" style="margin-top:18px">
+      &#128337; <b>All times Eastern</b>, and the days are grouped on the ET
+      date, so the two always agree.
+      <br><br>&#9898; <b>Descriptive.</b> These are the published schedule and final
+      scores &mdash; measured facts, no projection, no confidence number.
+      <br><br>&#9888; <b>Not a live scoreboard.</b> Unlike the MLB tab, neither
+      football source carries in-game state, so a score appears when the game
+      is over rather than while it is being played. Saying otherwise would be a
+      claim the feed does not support.
+      ${LEAGUE==='ncaaf' ? `<br><br>&#9888; <b>Every game here has a Division&nbsp;I team in it.</b>
+      CFBD returns every level it covers &mdash; ${doc.games.length.toLocaleString()}
+      games across dozens of conferences this season. <b>FBS games</b> keeps a game
+      if <b>either</b> side is FBS, so an FBS team's opponent still appears whatever
+      division it is from; <b>All Division I</b> widens that to FCS as well.
+      &#9940; <b>A game with no Division&nbsp;I team on either side &mdash; D2 against
+      D2, D2 against D3 &mdash; never appears under either option.</b> The filter uses
+      the feed's own classification rather than a list of conference names, so it
+      survives realignment.` : ''}
+    </div>`);
+  fbWire();
+  const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
+  sel('fb-sc-season', e => { fbSeason = +e.target.value; fbWeek = null; fbScores(); });
+  sel('fb-sc-week',   e => { fbWeek = +e.target.value; fbScores(); });
+  sel('fb-sc-div',    e => { fbDiv = e.target.value; fbScores(); });
+}
+
+/* Which seasons have a SCHEDULE file. ⚠️ Separate from the trends
+   probe: a season can have a schedule and no box-score tables, which is
+   exactly what September looks like. */
+const FBSCHEDHAVE = {};
+async function fbSeasonsAvailableSched(){
+  if (FBSCHEDHAVE[LEAGUE]) return FBSCHEDHAVE[LEAGUE];
+  const got = await Promise.all(FB_SEASONS.map(async y => {
+    try {
+      const r = await fetch(`${LG_DATA[LEAGUE]}/latest/schedule-${y}.json.gz`,
+                            {method: 'HEAD'});
+      return r.ok ? y : null;
+    } catch(e){ return null; }
+  }));
+  FBSCHEDHAVE[LEAGUE] = got.filter(y => y !== null);
+  return FBSCHEDHAVE[LEAGUE];
+}
+
+/* 🔴 LAND ON THE WEEK A READER WANTS, not week 1 in December. The first
+   week that still has an unplayed game; failing that, the last week. */
+function fbCurrentWeek(games, weeks){
+  for (const w of weeks) if (games.some(g => g.week === w && !g.final)) return w;
+  return weeks[weeks.length - 1];
+}
+
 async function renderFootball(){
   const v = $('#fbview');
   if (FBTAB === 'odds') return fbOdds();
+  if (FBTAB === 'scores') return fbScores();
   if (FBTAB !== 'trends'){
     const [title, why] = FB_EMPTY[FBTAB];
     v.innerHTML = fbShell(

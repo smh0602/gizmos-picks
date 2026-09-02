@@ -875,7 +875,12 @@ def build_schedule(season, seen=None, log=print):
             # put a Sunday 1pm game on the wrong day for half the world.
             "start": (day + ("T" + tm if tm else "")) or None,
             "home": g.get("home_team"), "away": g.get("away_team"),
+            # ⚠️ NULL ON PURPOSE, so both leagues emit the SAME KEYS.
+            # The NFL has one division of 32 teams; there is nothing to
+            # classify and nothing to filter out. ⛔ Omitting the keys
+            # instead would break the one-renderer-serves-both contract.
             "home_conf": None, "away_conf": None,
+            "home_class": None, "away_class": None,
             "neutral": str(g.get("location") or "").lower() == "neutral",
             "home_score": h, "away_score": a,
             "final": done,

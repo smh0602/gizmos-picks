@@ -703,6 +703,17 @@ def build_schedule(season, log=log):
             "start": g.get("startDate"),
             "home": g.get("homeTeam"), "away": g.get("awayTeam"),
             "home_conf": g.get("homeConference"), "away_conf": g.get("awayConference"),
+            # 🔴 CLASSIFICATION, NOT CONFERENCE, IS THE DIVISION KEY.
+            # `[measured 2026-09-02]` /games returns 3,679 games for 2026
+            # across 73 conferences -- everything down to Division II
+            # ("Charleston (WV) vs Grand Valley State"). ⛔ A Scores tab
+            # showing D-II is noise.
+            # ⚠️ AND FILTERING BY A CONFERENCE LIST WOULD GO STALE AT THE
+            # NEXT REALIGNMENT -- the same reason the Power 4 set is read
+            # from data rather than hardcoded. `classification` is the
+            # feed's own answer and it is free.
+            "home_class": g.get("homeClassification"),
+            "away_class": g.get("awayClassification"),
             "neutral": bool(g.get("neutralSite")),
             "home_score": h, "away_score": a,
             "final": done,
