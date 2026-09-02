@@ -138,6 +138,43 @@ eq(sorted(c["games"][0]), sorted(n2["games"][0]),
 eq(c["kind"] == n2["kind"] == "DESCRIPTIVE", True,
    "both stamped DESCRIPTIVE (rule 55)")
 
+# ══════════════════════════════════════════════════════════════════════
+print("\n7. 🔴 THE SCHEDULE MUST BUILD EVEN WHEN THE PLAYER LOGS DO NOT")
+# `[measured 2026-09-02]` build_schedule was first called INSIDE the
+# per-season try that begins with build_logs. For 2026 build_logs raises
+# SeasonNotStarted on its first line, so the schedule was never attempted
+# and the NFL run produced no schedule for the ONE season we need it for.
+# ⛔ The college run succeeded and the NFL run did not, for no reason
+# other than where the call sat.
+# ✅ The schedule has NO dependency on player logs -- different file, not
+# year-partitioned. This pins the two apart STRUCTURALLY, because a unit
+# test on the collectors could never have caught it: both functions were
+# correct in isolation.
+import ast
+import os
+
+_src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "collect.py"), encoding="utf-8").read()
+_tree = ast.parse(_src)
+
+
+def _calls(node):
+    return {n.func.attr for n in ast.walk(node)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+
+
+# ⚠️ THE INVARIANT IS THE LOOP, NOT THE TRY. `run_mode` wraps every mode
+# in one outer try, so "same try" flags that harmless wrapper too. What
+# actually matters is that each build gets ITS OWN season loop, so one
+# raising cannot skip the other.
+_loops = [n for n in ast.walk(_tree) if isinstance(n, ast.For)]
+_sched = [n.lineno for n in _loops if "build_schedule" in _calls(n)]
+_both = [n.lineno for n in _loops
+         if "build_schedule" in _calls(n) and "build_logs" in _calls(n)]
+eq(len(_sched) > 0, True, "build_schedule runs in its own season loop")
+eq(_both, [],
+   "🔴 no loop contains BOTH build_logs and build_schedule")
+
 print()
 if fails:
     print(f"🔴 {len(fails)} FAILED:")

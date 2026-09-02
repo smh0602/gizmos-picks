@@ -788,22 +788,48 @@ def power4_teams():
     """The Power 4 set, READ FROM OUR OWN COLLECTED DATA, not hardcoded.
     ⛔ Hardcoding 67 names guarantees they go stale at the next
     realignment -- the set was 52 teams in 2021 and is 67 now."""
+    # 🔴 THE NEWEST FILE IS NOT THE RIGHT FILE IN SEPTEMBER.
+    # `[measured 2026-09-02]` a 2026 back-fill wrote a LEGITIMATE
+    # `players-2026.json.gz` holding 74 players across SEVEN teams --
+    # correct, because only Week 0 had been played. This function took
+    # the newest file, so the Power 4 set became SEVEN TEAMS.
+    # ⛔ AND THE GATE FAILS CLOSED AT `P4_MIN_MATCH = 8`, so the next
+    # college props pull would have MATCHED NOTHING AND COLLECTED
+    # NOTHING. Odds history cannot be re-bought: a missed Thursday is
+    # missed permanently.
+    # ✅ SO WALK NEWEST-FIRST AND TAKE THE FIRST SEASON THAT LOOKS LIKE A
+    # REAL CONFERENCE MAP. ⚠️ The floor is 40, comfortably under the 52
+    # of 2021 and far above a part-played season -- it asks "is this a
+    # season?", not "is this the current season?".
+    # ⛔ AND IT SAYS WHICH FILE IT USED. A silently-chosen input is how
+    # this went wrong in the first place.
     import glob as _glob
-    best, teams = None, set()
-    for p in sorted(_glob.glob(
-            f"{LEAGUES['ncaaf']['data']}/latest/players-*.json.gz")):
-        best = p
-    if not best:
-        return teams
-    try:
-        with gzip.open(best, "rt", encoding="utf-8") as fh:
-            doc = json.load(fh)
-        for pl in doc.get("players", {}).values():
-            for g in pl.get("g", []):
-                if g.get("conf") in ("ACC", "Big 12", "Big Ten", "SEC"):
-                    teams.add(g["team"])
-    except Exception as e:
-        log(f"  could not read the Power 4 list: {type(e).__name__}: {e}")
+    P4_MIN_TEAMS = 40
+    teams = set()
+    files = sorted(_glob.glob(
+        f"{LEAGUES['ncaaf']['data']}/latest/players-*.json.gz"), reverse=True)
+    for p in files:
+        got = set()
+        try:
+            with gzip.open(p, "rt", encoding="utf-8") as fh:
+                doc = json.load(fh)
+            for pl in doc.get("players", {}).values():
+                for g in pl.get("g", []):
+                    if g.get("conf") in ("ACC", "Big 12", "Big Ten", "SEC"):
+                        got.add(g["team"])
+        except Exception as e:
+            log(f"  could not read {p}: {type(e).__name__}: {e}")
+            continue
+        if len(got) >= P4_MIN_TEAMS:
+            log(f"  Power 4 list: {len(got)} teams from {p.split('/')[-1]}")
+            return got
+        log(f"  skipping {p.split('/')[-1]} -- only {len(got)} Power 4 "
+            f"teams, below the {P4_MIN_TEAMS} floor (part-played season)")
+        teams = got if len(got) > len(teams) else teams
+    # ⛔ NOTHING CLEARED THE FLOOR. Return what was found so the caller's
+    # own fail-closed gate reports it, rather than pretending to a set.
+    log(f"  ⛔ no players file has {P4_MIN_TEAMS}+ Power 4 teams "
+        f"(best was {len(teams)}) -- the name gate will refuse to spend")
     return teams
 
 
@@ -2580,25 +2606,6 @@ def run_mode(mode):
                         write(f"{base}/def-epa-{season}.json.gz", _ep,
                               compress=True)
 
-                    # ── SCHEDULE + SCORES, for the Scores tab ────────
-                    # ✅ NO NEW CRON. It rides the weekly rebuild that
-                    # already runs Tuesday, from a file this pass has
-                    # already downloaded. ⚠️ Football scores settle once
-                    # a week; a schedule that refreshes weekly is the
-                    # right contract, not a compromise.
-                    # ⛔ REPORT ALWAYS WRITTEN, pass or fail.
-                    try:
-                        _sc, _srep = _nfl.build_schedule(season, None, log)
-                    except Exception as _se_:
-                        _sc, _srep = None, {"season": season,
-                                            "kind": "DIAGNOSTIC",
-                                            "usable": False,
-                                            "error": f"{type(_se_).__name__}: {_se_}"}
-                    write(f"{base}/schedule-probe-{season}.json", _srep)
-                    if _sc:
-                        _sc["pulled_at"] = stamp()
-                        write(f"{base}/schedule-{season}.json.gz", _sc,
-                              compress=True)
                     done.append(season)
                 except _nfl.SeasonNotStarted as _e:
                     # 🔴 THE SOURCE HAS NOTHING FOR THIS YEAR. If it is the
@@ -2620,6 +2627,39 @@ def run_mode(mode):
                     failed.append((season, f"{type(_e).__name__}: {_e}"))
                     log(f"SEASON {season} FAILED: {type(_e).__name__}: {_e}")
                     log("  continuing with the remaining seasons")
+
+            # ══════════════════════════════════════════════════════
+            # 🔴 THE SCHEDULE IS BUILT SEPARATELY, AND THAT IS THE WHOLE
+            # POINT. `[measured 2026-09-02]` it was first written INSIDE
+            # the per-season try above -- the one that begins with
+            # `build_logs`. For 2026 `build_logs` raises SeasonNotStarted
+            # on its FIRST LINE, so the schedule was never attempted, and
+            # the run produced NO schedule for the one season we need it
+            # for. ⛔ THE COLLEGE RUN SUCCEEDED AND THE NFL RUN DID NOT,
+            # for no reason other than where the call sat.
+            # ✅ THE SCHEDULE HAS NO DEPENDENCY ON PLAYER LOGS. It comes
+            # from `games.csv.gz`, a DIFFERENT file that is not
+            # year-partitioned -- which is exactly why a 2026 schedule
+            # can exist months before a 2026 stat line does.
+            # ⚠️ Coupling two independent things because they happened to
+            # want the same loop is the defect; the fix is the loop.
+            # ══════════════════════════════════════════════════════
+            for season in seasons:
+                try:
+                    _sc, _srep = _nfl.build_schedule(season, None, log)
+                except Exception as _se_:
+                    _sc, _srep = None, {"season": season,
+                                        "kind": "DIAGNOSTIC",
+                                        "usable": False,
+                                        "error": f"{type(_se_).__name__}: {_se_}"}
+                # ⛔ REPORT ALWAYS WRITTEN, pass or fail.
+                write(f"{base}/schedule-probe-{season}.json", _srep)
+                if _sc:
+                    _sc["pulled_at"] = stamp()
+                    write(f"{base}/schedule-{season}.json.gz", _sc,
+                          compress=True)
+                    log(f"  schedule {season}: {_srep.get('games')} games, "
+                        f"{_srep.get('final')} final")
 
             log("=" * 60)
             log(f"BACK-FILL RESULT: {len(done)} season(s) written "
