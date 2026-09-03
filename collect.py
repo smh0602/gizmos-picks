@@ -735,6 +735,7 @@ FEED_ALIASES = {
     "appalachianstate": "App State",
     "southernmississippi": "Southern Miss",
     "samhoustonstate": "Sam Houston",
+    "umass": "Massachusetts",
 }
 
 

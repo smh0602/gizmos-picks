@@ -2405,6 +2405,7 @@ function show(tab){
                  record:'Track Record', trends:'Trends', news:'News', props:'Player Props',
                  parlays:'Parlays'};
   $('#ttl').textContent = names[tab];
+  setTagline();
   const showTools = tab === 'scores';
   $('#dt').style.display = $('#filt').style.display = showTools ? '' : 'none';
   $('#st').style.display = (tab === 'odds' || tab === 'props') ? '' : 'none';
@@ -2427,9 +2428,41 @@ function show(tab){
    ══════════════════════════════════════════════════════════════════════ */
 const LG_DATA  = { mlb:'data', nfl:'data/nfl', ncaaf:'data/ncaaf' };
 const LG_NAME  = { mlb:'MLB', nfl:'NFL', ncaaf:'College Football' };
-const LG_TAG   = { mlb:'MLB model &amp; live board',
-                   nfl:'NFL &mdash; defensive trends',
-                   ncaaf:'Power 4 &mdash; defensive trends' };
+/* 🔴 THE TAGLINE FOLLOWS THE TAB, NOT JUST THE LEAGUE.
+   Sam, 2026-09-03: *"it should change what it says when i naviaget in
+   each tab ... the same problem happens for mlb actually it says mlb
+   model and live board no matter what tab im on"*.
+   ⛔ It was a per-LEAGUE constant set once in setLeague(), so the strap
+   line contradicted the page under it: "Power 4 — defensive trends" sat
+   above the Gizmo's Picks board, and the college one still said POWER 4
+   after the collection had been widened to all of FBS.
+   ⚠️ Football taglines never say "model" -- there is no football model,
+   and the header is not the place to imply one. */
+const LG_TAG = { mlb:'MLB model &amp; live board',
+                 nfl:'NFL &mdash; live board',
+                 ncaaf:'College football &mdash; live board' };
+
+const TAB_TAG = {
+  mlb: {
+    scores:'Live scores &amp; matchups', picks:'Model picks, graded daily',
+    odds:'Live board, vig removed', record:'Every published pick, graded',
+    trends:'Team form &amp; splits', news:'Around the league',
+    parlays:'Model parlays', props:'Player props &mdash; best price'
+  },
+  fb: {
+    scores:'Schedule, scores &amp; box scores', picks:'Market board &mdash; no model',
+    odds:'Live board, vig removed', record:'Every published row, graded',
+    trends:'Defensive &amp; offensive trends', news:'Around the league',
+    parlays:'Market only &mdash; no model', props:'Player props &mdash; best price'
+  }
+};
+
+/* One writer for the strap line, so the two halves cannot drift. */
+function setTagline(){
+  const el = $('#tagline'); if (!el) return;
+  const t = LEAGUE === 'mlb' ? (TAB_TAG.mlb[TAB] || '') : (TAB_TAG.fb[FBTAB] || '');
+  el.innerHTML = t || LG_TAG[LEAGUE];
+}
 let LEAGUE = 'mlb';
 let FBTAB  = 'trends';
 let FBDATA = {};          // league -> side -> season -> parsed table
@@ -3426,10 +3459,107 @@ async function fbTeamsLoad(){
   return FBTEAMS[LEAGUE];
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   RESOLVE AN ODDS-BOARD TEAM NAME TO OUR TEAM DIRECTORY.
+
+   🔴 WHY THIS EXISTS. `teams.json` is keyed by CFBD's SCHOOL name
+   ("Akron", "App State"); the odds board carries the sportsbook's name
+   WITH THE MASCOT ("Akron Zips", "Appalachian State Mountaineers").
+   ⛔ MEASURED 2026-09-03 ON THE LIVE BOARD: a direct dictionary lookup
+   hit **0 of 322** team names. That is exactly why college logos showed
+   on Scores and Trends -- which use SCHEDULE names and match exactly --
+   and were missing on Odds.
+
+   ✅ This is the same rule `_match_team` uses in the collector, ported:
+   exact hit first, then longest-candidate-first prefix walk, with the
+   guards that stop a prefix eating a different school.
+   ⚠️ Memoised, because Odds re-resolves the same names on every render.
+   ══════════════════════════════════════════════════════════════════ */
+const FB_TNORM = {};   // league -> {normalisedSchoolName: entry}
+const FB_TCACHE = {};  // league -> {feedName: entry|null}
+
+function fbNorm(x){
+  return String(x || '')
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')   // fold accents
+    .toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/* ⛔ A WORD THAT CONTINUES A SCHOOL NAME. If the leftover after our
+   name starts with one of these, the feed is naming a DIFFERENT school:
+   "Washington" + "State Cougars" is not Washington. */
+const FB_CONTINUES = new Set(['state','am','tech','southern','northern',
+  'eastern','western','central','international','atlantic','christian',
+  'poly','dominion','carolina','illinois','michigan','florida','texas',
+  'kentucky','methodist','chicago','st','saint','a']);
+
+/* ⛔ CFBD AND THE ODDS FEED DISAGREE ON THREE SCHOOL NAMES, and the
+   difference is not a mascot so prefix matching cannot bridge it. The
+   SAME three the collector pins in FEED_ALIASES -- derived by listing
+   every unmatched name on a real board and checking each against the
+   schedule's own classification. ⚠️ Keep this in step with collect.py;
+   two copies of a fact is two things to drift. */
+const FB_ALIASES = {
+  appalachianstate: 'App State',
+  southernmississippi: 'Southern Miss',
+  samhoustonstate: 'Sam Houston',
+  // CFBD says "Massachusetts"; the odds feed says "UMass Minutemen".
+  umass: 'Massachusetts'
+};
+
+function fbResolve(name){
+  if (!name) return null;
+  const lg = LEAGUE;
+  FB_TCACHE[lg] = FB_TCACHE[lg] || {};
+  if (name in FB_TCACHE[lg]) return FB_TCACHE[lg][name];
+  const dir = FBTEAMS[lg] || {};
+  let idx = FB_TNORM[lg];
+  if (!idx){
+    idx = FB_TNORM[lg] = {};
+    Object.keys(dir).forEach(k => { idx[fbNorm(k)] = dir[k]; });
+  }
+  const n = fbNorm(name);
+  let hit = idx[n] || null;
+  if (!hit){
+    // a known feed disagreement, checked BEFORE the prefix walk so an
+    // alias can never be beaten by a coincidental prefix
+    for (const k in FB_ALIASES){
+      if (n === k || n.indexOf(k) === 0){
+        const e = idx[fbNorm(FB_ALIASES[k])];
+        if (e){ hit = e; break; }
+      }
+    }
+  }
+  if (!hit){
+    const words = String(name).split(/\s+/).filter(Boolean);
+    // longest candidate first, so "Ohio State" is tried before "Ohio"
+    const cands = Object.keys(idx).sort((a, b) => b.length - a.length);
+    for (const cand of cands){
+      let acc = '', taken = 0;
+      for (let i = 0; i < words.length; i++){
+        acc += fbNorm(words[i]); taken = i + 1;
+        if (acc === cand) break;
+        if (acc.length > cand.length){ taken = 0; break; }
+      }
+      if (!taken || acc !== cand) continue;
+      const rest = words.slice(taken);
+      if (!rest.length){ hit = idx[cand]; break; }
+      // ⛔ 3+ leftover words is a different school, not a mascot.
+      if (rest.length > 2) continue;
+      // ⛔ a mascot never carries an ampersand; a school qualifier does.
+      if (rest.some(w => w.indexOf('&') > -1)) continue;
+      if (FB_CONTINUES.has(fbNorm(rest[0]))) continue;
+      hit = idx[cand]; break;
+    }
+  }
+  FB_TCACHE[lg][name] = hit;
+  return hit;
+}
+
 /* A short label for a football team. ⛔ NOT `ab()` -- that renders
    mascots, so "Wake Forest Demon Deacons" became "DEA". */
 function fbAb(name){
-  const t = (FBTEAMS[LEAGUE] || {})[name];
+  const t = fbResolve(name);
   if (t && t.abbr) return t.abbr;
   const w = String(name || '').trim().split(/\s+/);
   return (w[0] || '').slice(0, 4).toUpperCase();
@@ -3444,7 +3574,7 @@ function fbAb(name){
    ⚠️ The final fallback is still the abbreviation, so the worst case is
    the same as having no logo -- never a broken image icon. */
 function fbMark(name, size){
-  const t = (FBTEAMS[LEAGUE] || {})[name];
+  const t = fbResolve(name);
   const s = size || 22;
   const a = fbAb(name);
   if (!(t && t.logo)) return `<span class="lg-fb">${a}</span>`;
@@ -3511,8 +3641,7 @@ function fbBoardFor(g){
   const nm = x => String(x || '').toLowerCase();
   // ⚠️ The schedule says "SEA"; the board says "Seattle Seahawks". The
   // team directory bridges them, so match on BOTH shapes.
-  const dir = FBTEAMS[LEAGUE] || {};
-  const full = x => (dir[x] && dir[x].name) ? dir[x].name : x;
+  const full = x => { const t = fbResolve(x); return (t && t.name) ? t.name : x; };
   const h = nm(full(g.home)), a = nm(full(g.away));
   return B.find(x => nm(x.home) === h && nm(x.away) === a) || null;
 }
@@ -3525,8 +3654,7 @@ function fbGameCard(g){
     fbOpenBox(g);
   });
   const b = fbBoardFor(g);
-  const dir = FBTEAMS[LEAGUE] || {};
-  const nameOf = x => (dir[x] && dir[x].name) ? dir[x].name : x;
+  const nameOf = x => { const t = fbResolve(x); return (t && t.name) ? t.name : x; };
 
   const side = (t, score, right) => {
     const d = el('div', 'tm' + (right ? ' r' : ''));
@@ -3574,8 +3702,7 @@ function fbGameCard(g){
 /* The modal. ⛔ No network call -- everything is already on the row. */
 function fbOpenBox(g){
   const ovl = el('div', 'ovl');
-  const dir = FBTEAMS[LEAGUE] || {};
-  const nameOf = x => (dir[x] && dir[x].name) ? dir[x].name : x;
+  const nameOf = x => { const t = fbResolve(x); return (t && t.name) ? t.name : x; };
   const b = fbBoardFor(g);
   const hl = g.home_line, al = g.away_line;
 
@@ -3734,6 +3861,7 @@ async function renderFootball(){
   /* ⚠️ The SAME <h1> MLB uses, so the two sections share one page
      header rather than each inventing their own. */
   const t = $('#ttl'); if (t) t.textContent = FB_TITLE[FBTAB] || 'Football';
+  setTagline();
   /* 🔴 LOAD THE LOGO DIRECTORY AND THE ODDS BOARD FIRST, once per league.
      ⛔ Loading them inside each tab would make the first paint logo-less
      and then reflow -- and the SCORES cards need the board too, for the
@@ -3867,7 +3995,9 @@ function setLeague(lg){
   LEAGUE = lg;
   document.querySelectorAll('.lgnav a[data-lg]').forEach(a =>
     a.classList.toggle('on', a.dataset.lg === lg));
-  $('#tagline').innerHTML = LG_TAG[lg];
+  /* ⚠️ setTagline() runs again inside show()/renderFootball() with the
+     tab known; this is just the first paint. */
+  setTagline();
   const mlb = lg === 'mlb';
   document.querySelector('.subnav').style.display = mlb ? '' : 'none';
   /* 🔴 THE TOOLS BAR STAYS UP FOR FOOTBALL. Hiding it was why the
