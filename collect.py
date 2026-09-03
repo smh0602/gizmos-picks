@@ -1765,6 +1765,31 @@ def _news_items(source, url):
     return out
 
 
+def build_card_fb():
+    """Run `card_fb.py` for this league.
+
+    🔴 A SUBPROCESS, NOT AN IMPORT. `card_fb` reads LEAGUE at import time
+    and the collector may already have imported it for a different league
+    in the same process. ⛔ Re-importing a module to change a constant is
+    how a college board would get NFL rates attached to it.
+
+    ⚠️ Football only. MLB has `card.py` and this must never touch it.
+    """
+    if LEAGUE == "mlb":
+        log("card-fb is a FOOTBALL mode; MLB uses card.py. Nothing done.")
+        return None
+    import subprocess
+    env = dict(os.environ, LEAGUE=LEAGUE)
+    r = subprocess.run([sys.executable, "card_fb.py"], env=env,
+                       capture_output=True, text=True)
+    for line in (r.stdout or "").splitlines():
+        log(f"  {line}")
+    if r.returncode != 0:
+        raise RuntimeError(f"card_fb.py exited {r.returncode}: "
+                           f"{(r.stderr or '')[-400:]}")
+    return None
+
+
 def collect_news():
     # 🔴 THE LEAGUE PICKS THE LIST. ⛔ An empty list is NOT an error and
     # must NOT write an empty news.json over a good one -- football has no
@@ -2685,7 +2710,8 @@ def run_mode(mode):
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
-            "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe")
+            "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
+            "card-fb")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2717,6 +2743,14 @@ def run_mode(mode):
             except Exception as _pe:
                 log(f"  props board FAILED: {type(_pe).__name__}: {_pe}")
                 log("  ⚠️ the snapshot is safe on disk; the board can be rebuilt")
+            # 🔴 AND CARD IT, in its own try for the same reason. ⛔ A card
+            # failure must not lose the paid snapshot OR the board built
+            # from it -- both are already on disk by this point.
+            try:
+                build_card_fb()
+            except Exception as _ce:
+                log(f"  football card FAILED: {type(_ce).__name__}: {_ce}")
+                log("  ⚠️ the board is safe; the card can be rebuilt")
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.
@@ -2732,6 +2766,9 @@ def run_mode(mode):
             left = collect_hitters()
         elif mode == "news":
             left = collect_news()
+        elif mode == "card-fb":
+            # ⛔ FREE -- it reads the board already on disk and computes.
+            left = build_card_fb()
         elif mode == "news-probe":
             # 🔴 FREE, and it WRITES NO news.json. It writes a report for a
             # human to read. ⛔ Do not chain it into `news`.

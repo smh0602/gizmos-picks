@@ -282,6 +282,7 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
 .big{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
 .sub{font-size:10.5px;color:var(--mut);font-weight:600;margin-top:3px;
   text-transform:uppercase;letter-spacing:.04em}
+.conf.norate{background:#e9edf1;color:#7c8794}
 .obwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
 
 /* track record */
@@ -1362,7 +1363,22 @@ const playName = p => {
 };
 
 function pickCard(p){
-  const isH = p.kind === 'hitter';
+  /* 🔴 `isH` MEANS "THIS NUMBER IS THE PLAYER'S OWN RECORD, NOT A MODEL",
+     which is what it has always meant -- MLB has no hitter model. Reading
+     confidence_basis directly lets FOOTBALL rows render through this exact
+     component, which is the point: same board, same columns, same sort.
+     ⚠️ PROVEN A NO-OP ON MLB: across 533 published picks in 12 cards,
+     kind==='hitter' and confidence_basis==='RECORD' never disagree once. */
+  /* THREE PROVENANCES, NOT TWO:
+       MODEL   an MLB pitcher -- the only rows with a model behind them
+       RECORD  an MLB hitter, or an NFL row -- the player's OWN rate
+       MARKET  a college row -- a price and no rate at all (see fbPicks)
+     🔴 `isH` HAS ALWAYS MEANT "not a model number", so everything that is
+     not MODEL takes that branch. ⛔ Before this, a MARKET row fell to the
+     pitcher branch and rendered the chip "MODEL" -- a rule 55 violation
+     printed on the page, found by driving it. */
+  const basis = p.confidence_basis || (p.kind === 'hitter' ? 'RECORD' : 'MODEL');
+  const isH = basis !== 'MODEL';
   const c = el('div','pk');
   const h = el('div','pk-h');
 
@@ -1374,8 +1390,13 @@ function pickCard(p){
      differs is where the number CAME FROM, and that is on the row as a
      chip rather than hidden in two different badge labels. Ledger rule 55
      wants every number labelled, not every number hidden. */
-  h.append(el('div', 'conf ' + confClass(p.confidence) + (isH ? ' rec' : ''),
-    `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
+  /* ⚠️ A ROW CAN HAVE NO NUMBER. A college football row carries a price
+     and no rate on purpose -- printing "undefined" where a confidence
+     goes is exactly the kind of thing a reader reads as a broken site. */
+  h.append(p.confidence == null
+    ? el('div', 'conf norate', '<div class="n">&mdash;</div><div class="l">NO RATE</div>')
+    : el('div', 'conf ' + confClass(p.confidence) + (isH ? ' rec' : ''),
+        `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
 
   if (p.pid) h.insertAdjacentHTML('beforeend',
     `<img class="hs" src="${headUrl(p.pid)}" alt="" loading="lazy"
@@ -1383,11 +1404,19 @@ function pickCard(p){
 
   const t = el('div','pk-t');
   const who = p.pitcher || p.player;
-  const sideWord = p.side === 'over' ? 'Over' : 'Under';
+  /* ⚠️ THREE SIDES, NOT TWO. A one-sided market (Anytime TD) has side
+     'yes' and no line -- it rendered as "Under Anytime TD", which states
+     the opposite of the bet. */
+  const sideWord = p.side === 'over' ? 'Over'
+                 : p.side === 'yes'  ? 'Yes'
+                 : 'Under';
   const unit = isH ? p.market_label
              : (p.market === 'strikeouts' ? 'K' : 'Outs');
+  /* ⚠️ A one-sided market (Anytime TD) has NO LINE. "Under null Outs" was
+     on screen before this guard. */
+  const lineTxt = p.line == null ? '' : ` ${p.line}`;
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
-  t.append(el('div','play', `${who} — ${sideWord} ${p.line} ${unit}`
+  t.append(el('div','play', `${who} — ${sideWord}${lineTxt} ${unit}`
     + '&nbsp;' + projChip(p.projection, p.projection_unit, p.projection_basis,
                           p.projection_note)
     /* ⛔ The calibration BAND chip ("70-80", "60-70") is gone from the row.
@@ -1396,7 +1425,9 @@ function pickCard(p){
        says the same thing more precisely. ✅ The band is STILL on the row
        in the data and the Track Record tab still reports by band -- this
        removes a chip, not a measurement. */
-    + (isH
+    + (basis === 'MARKET'
+        ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">MARKET &mdash; price only</span>`
+        : basis === 'RECORD'
         ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">RECORD &mdash; no model</span>`
         : `<span class="bandchip mdl" title="${(p.confidence_note||'').replace(/"/g,'')}">MODEL</span>`)));
 
@@ -1494,15 +1525,20 @@ function pickCard(p){
     c.append(L);
   }
 
+  /* ⚠️ EVERY BIT IS GUARDED ON ITS OWN FIELD. MLB rows carry all of
+     them, so this is a no-op there; a college row carries none and used
+     to print "Own record undefined (undefined% smoothed)". */
   const bits = [];
   if (isH){
-    bits.push(`Own record <b>${p.raw}</b> (${p.rate}% smoothed)`);
+    if (p.raw != null)
+      bits.push(`Own record <b>${p.raw}</b>`
+        + (p.rate != null ? ` (${p.rate}% smoothed)` : ''));
     if (p.splits && p.splits.last15) bits.push(`Last 15 <b>${p.splits.last15}</b>`);
     if (p.splits && p.splits.home) bits.push(`Home <b>${p.splits.home}</b> · Road <b>${p.splits.road}</b>`);
     if (p.splits && p.splits.vs_opp) bits.push(`vs ${p.opponent ? ab(p.opponent) : 'opp'} <b>${p.splits.vs_opp}</b>`);
     if (p.market_implied != null) bits.push(`Market has it at <b>${p.market_implied}%</b>`);
   } else {
-    bits.push(`Own record <b>${p.raw}</b>`);
+    if (p.raw != null) bits.push(`Own record <b>${p.raw}</b>`);
     if (p.model != null) bits.push(`Model <b>${p.model}%</b>`);
     if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`
       + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
@@ -1510,7 +1546,7 @@ function pickCard(p){
     if (p.carried != null && Math.abs(p.carried - p.blend) >= 0.5)
       bits.push(`Flagged estimate <b>${p.carried}%</b> (shadow — not the carded number)`);
   }
-  bits.push(`Break-even <b>${p.break_even}%</b>`);
+  if (p.break_even != null) bits.push(`Break-even <b>${p.break_even}%</b>`);
   if (p.other_side)
     bits.push(`Other side: ${p.other_side.side} ${p.line} at ${sgn(p.other_side.price)}, <b>${p.other_side.blend}%</b>`);
   c.append(el('div','ev', bits.map(b => `<span>${b}</span>`).join('')));
@@ -3113,12 +3149,183 @@ async function fbNews(){
 }
 
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL PICKS · PARLAYS · TRACK RECORD.
+
+   🔴 THE SAME LAYOUT AS MLB, BECAUSE THAT IS WHAT WAS ASKED FOR -- and
+   it renders through the SAME `pickCard` component, not a copy of it.
+   ⛔ A second copy of the card is a second thing to drift.
+
+   🔴 WHAT CANNOT BE THE SAME, AND WHY. MLB pitcher rows carry a MODEL
+   confidence. Football has no model: T46, T47 and T50 were all
+   pre-registered and all three LOST to a player's own season average.
+   ⛔ Ledger rule 55 forbids a market number wearing a Gizmo's %. So a
+   football row carries `RECORD` -- his own rate at that exact line --
+   exactly as an MLB HITTER row does, and the chip on the row says so.
+
+   ⚠️ COLLEGE ROWS CARRY NO RATE AT ALL, and that is a measured result,
+   not an omission. CFBD publishes no snap data, so a college player
+   appears in the log only in games where he TOUCHED THE BALL: the median
+   receiver is missing six of his team's thirteen games and the missing
+   ones are the quiet ones. A rate over that denominator reads too high on
+   every over. The NFL log carries snap counts and does not have this
+   problem. ⛔ A number wrong in a known direction is worse than none.
+   ══════════════════════════════════════════════════════════════════ */
+const FBCARD = {};
+
+async function fbCardLoad(){
+  if (FBCARD[LEAGUE] !== undefined) return FBCARD[LEAGUE];
+  /* 🔴 A POINTER, NOT A DATE. Football is weekly -- most days have no
+     games, so asking for "today's card" finds nothing on a Tuesday and
+     the tab reads as broken. The writer publishes fb-<lg>-latest.json
+     alongside the permanent dated file. ⛔ Do not reintroduce date
+     arithmetic here: split across two languages it is how the MLB
+     wrong-game bug shipped. */
+  try { FBCARD[LEAGUE] = await jget(`picks/fb-${LEAGUE}-latest.json`); }
+  catch(e){ FBCARD[LEAGUE] = null; }
+  return FBCARD[LEAGUE];
+}
+
+/* The empty state every football card tab shares, so the three of them
+   cannot drift into saying different things about the same absence. */
+function fbNoCard(what){
+  return `<div class="note">
+    <b>No ${LG_NAME[LEAGUE]} ${what} published yet.</b><br>
+    The board is built from the player-prop pull &mdash;
+    ${LEAGUE === 'nfl' ? 'Thursday evening, then Sunday morning'
+                       : 'Thursday, Friday and Saturday'}.
+    Nothing is missing; the slate has not been priced yet.
+  </div>`;
+}
+
+/* 🔴 THE ONE HEADER ALL THREE TABS USE. It states the provenance ONCE,
+   in English, and every tab shows it -- so a reader cannot land on
+   Parlays and miss what they were told on Picks. */
+function fbNoModelNote(C){
+  return `<div class="note" style="margin-top:16px">
+    &#9940; <b>No row here carries a Gizmo's confidence rating, and none
+    ever will on today's evidence.</b> Three football models were tested
+    against held-out weeks and every one lost to a player's own season
+    average, so there is nothing of ours to put beside these lines.
+    ${C && C.rates_available
+      ? `What each number IS: <b>his own record at that exact line</b> over
+         ${C.logs_season}, counting only games he played at least half his
+         team's snaps. That is history, not a forecast &mdash; and rosters
+         and roles change between seasons.`
+      : `<b>College rows carry a price and no rate, deliberately.</b>
+         College box scores list a player only in games where he touched
+         the ball &mdash; the median receiver is missing six of his team's
+         thirteen games, and the missing ones are the quiet ones. A rate
+         built on that would read too high on every over, so none is
+         shown. The NFL board has snap counts and does not have this
+         problem.`}
+  </div>`;
+}
+
+async function fbPicks(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const C = await fbCardLoad();
+  if (!C || !(C.picks || []).length){
+    v.innerHTML = fbShell(fbNoCard('picks')); fbWire(); return;
+  }
+  const {list, nStarted, allDone} = splitStarted(C.picks);
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks
+        <span class="kind ${C.rates_available ? 'k-desc' : 'k-market'}">${
+          C.rates_available ? 'Record' : 'Market'}</span></h2>
+      <p style="color:var(--mut);margin:0">${C.coverage}
+         ${freshness(C.odds_pulled_at)}</p>
+    </div>
+    ${startedToggle(nStarted, 'fb-pk-started', allDone)}`;
+  const host = document.createElement('div');
+  (allDone ? C.picks : list).forEach(p => host.append(pickCard(p)));
+  v.innerHTML = fbShell('');
+  v.append(wrap, host);
+  v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
+  fbWire();
+  const t = $('#fb-pk-started');
+  if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbPicks(); });
+}
+
+/* 🔴 PARLAYS. ⛔ THIS TAB DOES NOT BUILD PARLAYS, AND THAT IS THE POINT.
+   MLB's parlays multiply MODEL probabilities to get a combined number and
+   check it against Sam's price bands. Football has no model probability to
+   multiply -- multiplying two RECORD rates would assert they are
+   independent, which two players in the same game are not, and the result
+   would be a Gizmo's number on a market row. ⚠️ It also needs a book that
+   MULTIPLIES football props, and whether Hard Rock does is UNVERIFIED.
+   ✅ So the tab shows the same board, says what is missing, and stops. */
+async function fbParlays(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const C = await fbCardLoad();
+  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">Parlays
+        <span class="kind k-market">Market</span></h2>
+    </div>
+    <div class="note">
+      <b>No football parlays are built, and that is deliberate.</b><br><br>
+      A parlay number is a combined probability. MLB's comes from the
+      model, and the site checks it against your price bands before it
+      shows anything. Football has no model &mdash; and multiplying two
+      players' own records together would quietly assume they are
+      independent, which two players in the same game are not. The number
+      would look like ours and mean nothing.
+      <br><br>&#9888;&#65039; There is a second blocker, and it is a fact
+      about the books rather than about us: a football parlay needs a
+      sportsbook that <b>combines player props</b>. Hard Rock does that for
+      MLB. <b>Whether it does for football is unverified</b>, and this tab
+      will not promise something that may not be placeable.
+      ${C && C.picks && C.picks.length
+        ? `<br><br>The priced board is on the <b>Gizmo's Picks</b> tab
+           &mdash; ${C.picks.length} rows, best price on each.`
+        : ''}
+    </div>
+    ${fbNoModelNote(C)}`);
+  fbWire();
+}
+
+/* 🔴 TRACK RECORD. The empty state is CORRECT and stays until football
+   picks have been published AND graded. ⛔ An empty record table is not a
+   defect; a record table with nothing in it that implies a result is. */
+async function fbRecord(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const C = await fbCardLoad();
+  const n = C && C.picks ? C.picks.length : 0;
+  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">Track Record
+        <span class="kind k-desc">Descriptive</span></h2>
+    </div>
+    <div class="note">
+      <b>Nothing has been graded yet.</b><br><br>
+      This table fills in once football rows have been published and their
+      games have finished. ${n ? `Today's board carries <b>${n}</b> rows;
+      they can be graded after kickoff.` : ''}
+      <br><br>&#128309; <b>It will be kept the same way the MLB record is:
+      every published row graded from the final box score, wins and losses
+      both, with nothing removed after the fact.</b> A record that only
+      counts the good days is not a record.
+    </div>
+    ${fbNoModelNote(C)}`);
+  fbWire();
+}
+
+
 async function renderFootball(){
   const v = $('#fbview');
   if (FBTAB === 'odds') return fbOdds();
   if (FBTAB === 'scores') return fbScores();
   if (FBTAB === 'props') return fbProps();
   if (FBTAB === 'news') return fbNews();
+  if (FBTAB === 'picks') return fbPicks();
+  if (FBTAB === 'parlays') return fbParlays();
+  if (FBTAB === 'record') return fbRecord();
   if (FBTAB !== 'trends'){
     const [title, why] = FB_EMPTY[FBTAB];
     v.innerHTML = fbShell(
