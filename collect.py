@@ -1545,104 +1545,245 @@ def collect_pitchers():
 # ⚠️ Headlines and links only, with attribution to the source. No article
 # text is copied.
 # ----------------------------------------------------------------------
-NEWS_FEEDS = [
-    ("MLB.com", "https://www.mlb.com/feeds/news/rss.xml"),
-    ("ESPN MLB", "https://www.espn.com/espn/rss/mlb/news"),
-    ("CBS Sports", "https://www.cbssports.com/rss/headlines/mlb/"),
-]
+# 🔴 KEYED BY LEAGUE, AND `mlb`'s LIST IS THE ONE THAT HAS ALWAYS SHIPPED.
+# ⛔ Do not reorder or edit the mlb entry -- it is a live feed on a live
+# page and it works.
+#
+# ⚠️ THE FOOTBALL LISTS ARE EMPTY ON PURPOSE. They are filled from the
+# PROBE REPORT, not from a guess. `news-probe` fetches NEWS_CANDIDATES,
+# parses each one exactly the way `collect_news` will, and writes what it
+# found. A feed URL that looks obviously right is still a guess: ESPN's
+# college path is `ncf`, not `ncaaf` or `college-football`, and there is
+# no way to know that from the outside. ⛔ Ship nothing here until a probe
+# report says the feed parsed and the headlines are the right sport.
+NEWS_FEEDS = {
+    "mlb": [
+        ("MLB.com", "https://www.mlb.com/feeds/news/rss.xml"),
+        ("ESPN MLB", "https://www.espn.com/espn/rss/mlb/news"),
+        ("CBS Sports", "https://www.cbssports.com/rss/headlines/mlb/"),
+    ],
+    "nfl": [],
+    "ncaaf": [],
+}
+
+# ⚠️ CANDIDATES ARE NOT FEEDS. Nothing here is believed until probed --
+# every one of these URLs is my guess at a pattern, and the point of the
+# probe is that a guess and a fact are different things.
+NEWS_CANDIDATES = {
+    "nfl": [
+        ("ESPN NFL", "https://www.espn.com/espn/rss/nfl/news"),
+        ("CBS Sports", "https://www.cbssports.com/rss/headlines/nfl/"),
+        ("NFL.com", "https://www.nfl.com/feeds/rss/news"),
+        ("Yahoo NFL", "https://sports.yahoo.com/nfl/rss.xml"),
+        ("ProFootballTalk", "https://profootballtalk.nbcsports.com/feed/"),
+    ],
+    "ncaaf": [
+        # ⚠️ ESPN's college-football path is `ncf`. Both spellings are
+        # probed BECAUSE I am not certain which one answers.
+        ("ESPN CFB", "https://www.espn.com/espn/rss/ncf/news"),
+        ("ESPN CFB alt", "https://www.espn.com/espn/rss/ncaaf/news"),
+        ("CBS Sports", "https://www.cbssports.com/rss/headlines/college-football/"),
+        ("Yahoo CFB", "https://sports.yahoo.com/college-football/rss.xml"),
+    ],
+}
+
+# 🔴 THE BARS, FIXED BEFORE THE PROBE RUNS. A feed that misses one is
+# reported and NOT adopted. ⛔ Do not relax one after seeing the report --
+# that is the whole reason they are written down here first.
+NEWS_MIN_ITEMS = 8      # fewer than this is not a news feed
+NEWS_MIN_DATED = 0.90   # undated items sink to the bottom and read as stale
+NEWS_MIN_LINKED = 1.00  # a headline with no link is not usable at all
 
 
-def collect_news():
+def probe_news(league):
+    """Fetch every candidate, parse it the way collect_news would, report.
+
+    🔴 WRITES NO news.json. ⛔ A probe that ships its own findings is not a
+    probe -- it is an unreviewed deploy. This writes a report and stops,
+    and a human reads the sample headlines to confirm the feed is the
+    RIGHT SPORT. A feed can parse perfectly and still be the wrong thing:
+    a 404 page is valid XML, and a network's general sports feed returns
+    real, dated, linked headlines about basketball.
+    """
+    cands = NEWS_CANDIDATES.get(league, [])
+    if not cands:
+        log(f"news-probe: no candidates for {league}")
+        return None
+
+    report = []
+    for source, url in cands:
+        row = {"source": source, "url": url}
+        try:
+            items = _news_items(source, url)
+        except Exception as e:
+            row.update(ok=False, error=f"{type(e).__name__}: {e}")
+            report.append(row)
+            log(f"  🔴 {source}: {row['error']}")
+            continue
+
+        n = len(items)
+        dated = sum(1 for i in items if i.get("published"))
+        linked = sum(1 for i in items if i.get("link"))
+        imaged = sum(1 for i in items if i.get("image"))
+        summed = sum(1 for i in items if i.get("summary"))
+        row.update(
+            n=n,
+            dated=dated, linked=linked, imaged=imaged, summarised=summed,
+            pct_dated=round(dated / n, 3) if n else 0.0,
+            pct_linked=round(linked / n, 3) if n else 0.0,
+            # 🔴 THE SAMPLE IS THE POINT. Every number above can pass on a
+            # feed about the wrong sport. A human reads these.
+            sample=[i["title"] for i in items[:5]],
+        )
+        row["ok"] = bool(
+            n >= NEWS_MIN_ITEMS
+            and row["pct_dated"] >= NEWS_MIN_DATED
+            and row["pct_linked"] >= NEWS_MIN_LINKED
+        )
+        report.append(row)
+        log(f"  {'✅' if row['ok'] else '🔴'} {source}: {n} items, "
+            f"{dated} dated, {linked} linked, {imaged} with art")
+        for t in row["sample"][:3]:
+            log(f"       · {t[:90]}")
+
+    passed = [r for r in report if r.get("ok")]
+    write(f"{LATEST}/news-probe.json", {
+        "pulled_at": stamp(),
+        "league": league,
+        "kind": "DESCRIPTIVE",
+        "bars": {"min_items": NEWS_MIN_ITEMS,
+                 "min_pct_dated": NEWS_MIN_DATED,
+                 "min_pct_linked": NEWS_MIN_LINKED},
+        "n_candidates": len(cands),
+        "n_passed": len(passed),
+        # ⚠️ NOT a recommendation to ship. The headlines still have to be
+        # read by a person to confirm the sport.
+        "passed": [r["source"] for r in passed],
+        "candidates": report,
+    })
+    log(f"news-probe[{league}]: {len(passed)}/{len(cands)} candidates cleared the bars")
+    log("  ⚠️ READ THE SAMPLE HEADLINES before adding any of these to NEWS_FEEDS.")
+    return None
+
+
+def _news_items(source, url):
+    """Fetch ONE feed and return its normalised items.
+
+    🔴 THIS IS THE ONE PARSER. `collect_news` and `probe_news` both call
+    it, so the probe measures the code that will actually run. ⛔ A probe
+    with its own copy of the parser is a check that cannot fail on the
+    defect it exists to catch -- it would pass on a feed the real
+    collector chokes on, and vice versa.
+
+    ⚠️ Raises on a fetch or XML failure. The CALLER decides whether that
+    is fatal: the collector skips the source, the probe records it.
+    """
     import re as _re
     import xml.etree.ElementTree as ET
     from email.utils import parsedate_to_datetime
 
+    req = urllib.request.Request(url, headers={"User-Agent": "gizmos-picks/0.1"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        raw = r.read()
+    root = ET.fromstring(raw)
+
+    out = []
+    n = 0
+    for it in root.iter("item"):
+        def txt(tag):
+            e = it.find(tag)
+            return (e.text or "").strip() if e is not None and e.text else ""
+        title, link = txt("title"), txt("link")
+        if not title or not link:
+            continue
+        when = txt("pubDate")
+        iso = None
+        if when:
+            try:
+                iso = parsedate_to_datetime(when).astimezone(timezone.utc)\
+                    .strftime("%Y-%m-%dT%H:%M:%SZ")
+            except Exception:
+                iso = None
+        # 🔴 Summary AND image. Feeds disagree on where both live, so
+        # try every shape in turn rather than assuming one. Measured
+        # 2026-08-23: the previous parser read only <description> and
+        # every stored item came back with an EMPTY summary and no
+        # image at all. A missing image is fine -- the page falls back
+        # to a plain tile -- but silently producing nothing is not.
+        MRSS = "{http://search.yahoo.com/mrss/}"
+        CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
+
+        body = txt("description") or txt(CONTENT + "encoded") or txt("summary")
+        desc = _re.sub(r"<[^>]+>", " ", body)
+        desc = _re.sub(r"&[a-z]+;|&#\d+;", " ", desc)
+        desc = " ".join(desc.split())[:240]
+
+        # 🔴 SWEEP EVERY DESCENDANT rather than guessing the tag.
+        # Measured 2026-08-24: CBS returned an image on 25/25 items and
+        # MLB.com on 0/25, because MLB nests its art somewhere the
+        # fixed find() list did not look. Feeds disagree about where an
+        # image lives and they are entitled to; the parser is what has
+        # to be flexible. Any element whose tag mentions thumbnail,
+        # image, content or enclosure is a candidate, and the first one
+        # that looks like an image URL wins.
+        img = None
+        for e in it.iter():
+            tag = e.tag.rsplit("}", 1)[-1].lower()
+            if not any(k in tag for k in ("thumbnail", "image", "content", "enclosure")):
+                continue
+            typ = (e.get("type") or e.get("medium") or "").lower()
+            if typ and "image" not in typ and tag != "thumbnail":
+                continue          # audio/video enclosure -- not art
+            # 🔴 DO NOT REQUIRE A FILE EXTENSION. Measured 2026-08-24:
+            # CBS returned an image on 25/25 items and MLB.com on 0/25,
+            # because MLB serves Cloudinary-style URLs with NO
+            # extension at all (".../image/upload/t_16x9/w_1024/mlb/xy").
+            # The extension test was the bug, not the feed. A media
+            # element that hands back a url IS the image -- trust the
+            # element, not the filename.
+            for cand in (e.get("url"), e.get("href"), e.get("src"),
+                         (e.text or "").strip()):
+                if cand and _re.match(r"https?://", cand):
+                    img = cand
+                    break
+            if img:
+                break
+        if not img:
+            # last resort: the first <img src> inside the body html
+            m = _re.search(r'<img[^>]+src=["\']([^"\']+)', body)
+            if m:
+                img = m.group(1)
+        if img and img.startswith("http://"):
+            img = "https://" + img[7:]      # the page is https; http images are blocked
+
+        out.append({"source": source, "title": title, "link": link,
+                    "published": iso, "summary": desc,
+                    **({"image": img} if img else {})})
+        n += 1
+        if n >= 25:
+            break
+    return out
+
+
+def collect_news():
+    # 🔴 THE LEAGUE PICKS THE LIST. ⛔ An empty list is NOT an error and
+    # must NOT write an empty news.json over a good one -- football has no
+    # adopted feed until a probe report is read. It is a clean no-op.
+    feeds = NEWS_FEEDS.get(LEAGUE, [])
+    if not feeds:
+        log(f"news: no feeds adopted for {LEAGUE} yet — run `news-probe` "
+            f"and read the sample headlines. Nothing written.")
+        return None
+
     items = []
-    for source, url in NEWS_FEEDS:
+    for source, url in feeds:
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "gizmos-picks/0.1"})
-            with urllib.request.urlopen(req, timeout=20) as r:
-                raw = r.read()
-            root = ET.fromstring(raw)
+            got = _news_items(source, url)
         except Exception as e:
             log(f"  {source}: {type(e).__name__}")
             continue
-
-        n = 0
-        for it in root.iter("item"):
-            def txt(tag):
-                e = it.find(tag)
-                return (e.text or "").strip() if e is not None and e.text else ""
-            title, link = txt("title"), txt("link")
-            if not title or not link:
-                continue
-            when = txt("pubDate")
-            iso = None
-            if when:
-                try:
-                    iso = parsedate_to_datetime(when).astimezone(timezone.utc)\
-                        .strftime("%Y-%m-%dT%H:%M:%SZ")
-                except Exception:
-                    iso = None
-            # 🔴 Summary AND image. Feeds disagree on where both live, so
-            # try every shape in turn rather than assuming one. Measured
-            # 2026-08-23: the previous parser read only <description> and
-            # every stored item came back with an EMPTY summary and no
-            # image at all. A missing image is fine -- the page falls back
-            # to a plain tile -- but silently producing nothing is not.
-            MRSS = "{http://search.yahoo.com/mrss/}"
-            CONTENT = "{http://purl.org/rss/1.0/modules/content/}"
-
-            body = txt("description") or txt(CONTENT + "encoded") or txt("summary")
-            desc = _re.sub(r"<[^>]+>", " ", body)
-            desc = _re.sub(r"&[a-z]+;|&#\d+;", " ", desc)
-            desc = " ".join(desc.split())[:240]
-
-            # 🔴 SWEEP EVERY DESCENDANT rather than guessing the tag.
-            # Measured 2026-08-24: CBS returned an image on 25/25 items and
-            # MLB.com on 0/25, because MLB nests its art somewhere the
-            # fixed find() list did not look. Feeds disagree about where an
-            # image lives and they are entitled to; the parser is what has
-            # to be flexible. Any element whose tag mentions thumbnail,
-            # image, content or enclosure is a candidate, and the first one
-            # that looks like an image URL wins.
-            img = None
-            for e in it.iter():
-                tag = e.tag.rsplit("}", 1)[-1].lower()
-                if not any(k in tag for k in ("thumbnail", "image", "content", "enclosure")):
-                    continue
-                typ = (e.get("type") or e.get("medium") or "").lower()
-                if typ and "image" not in typ and tag != "thumbnail":
-                    continue          # audio/video enclosure -- not art
-                # 🔴 DO NOT REQUIRE A FILE EXTENSION. Measured 2026-08-24:
-                # CBS returned an image on 25/25 items and MLB.com on 0/25,
-                # because MLB serves Cloudinary-style URLs with NO
-                # extension at all (".../image/upload/t_16x9/w_1024/mlb/xy").
-                # The extension test was the bug, not the feed. A media
-                # element that hands back a url IS the image -- trust the
-                # element, not the filename.
-                for cand in (e.get("url"), e.get("href"), e.get("src"),
-                             (e.text or "").strip()):
-                    if cand and _re.match(r"https?://", cand):
-                        img = cand
-                        break
-                if img:
-                    break
-            if not img:
-                # last resort: the first <img src> inside the body html
-                m = _re.search(r'<img[^>]+src=["\']([^"\']+)', body)
-                if m:
-                    img = m.group(1)
-            if img and img.startswith("http://"):
-                img = "https://" + img[7:]      # the page is https; http images are blocked
-
-            items.append({"source": source, "title": title, "link": link,
-                          "published": iso, "summary": desc,
-                          **({"image": img} if img else {})})
-            n += 1
-            if n >= 25:
-                break
-        log(f"  {source}: {n} items")
+        items.extend(got)
+        log(f"  {source}: {len(got)} items")
 
     # Newest first; undated entries sink to the bottom rather than the top.
     items.sort(key=lambda x: x["published"] or "", reverse=True)
@@ -2544,7 +2685,7 @@ def run_mode(mode):
     # on a key it does not use.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
-            "nfl-probe", "nfl-logs", "freshness", "cfb-probe")
+            "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2591,6 +2732,10 @@ def run_mode(mode):
             left = collect_hitters()
         elif mode == "news":
             left = collect_news()
+        elif mode == "news-probe":
+            # 🔴 FREE, and it WRITES NO news.json. It writes a report for a
+            # human to read. ⛔ Do not chain it into `news`.
+            left = probe_news(LEAGUE)
         elif mode == "pitchers":
             left = collect_pitchers()
         elif mode == "refresh":

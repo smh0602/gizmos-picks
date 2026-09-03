@@ -3041,11 +3041,84 @@ async function fbProps(){
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbProps(); });
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL NEWS.
+   ⚪ DESCRIPTIVE. Headlines and links only, credited to the publisher.
+   No article text is copied and no number here feeds anything.
+
+   🔴 THE FEED LIST IS EMPTY UNTIL A PROBE REPORT HAS BEEN READ. The
+   collector's `news-probe` mode fetches candidate feeds, parses them with
+   the SAME parser the collector uses, and writes a report with SAMPLE
+   HEADLINES -- because a feed can parse perfectly and still be the wrong
+   sport. ⛔ Until a feed is adopted this tab says so plainly rather than
+   pretending to be broken.
+   ══════════════════════════════════════════════════════════════════ */
+const FBNEWS = {};
+
+async function fbNewsLoad(){
+  if (FBNEWS[LEAGUE] !== undefined) return FBNEWS[LEAGUE];
+  try { FBNEWS[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/news.json`); }
+  catch(e){ FBNEWS[LEAGUE] = null; }
+  return FBNEWS[LEAGUE];
+}
+
+async function fbNews(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const N = await fbNewsLoad();
+  if (!N || !(N.items || []).length){
+    v.innerHTML = fbShell(`<div class="note">
+      <b>No ${LG_NAME[LEAGUE]} headlines yet.</b><br>
+      A news feed is only added here once it has been fetched, parsed and
+      its headlines read to confirm they are the right sport &mdash; a feed
+      can parse perfectly and still be about something else. Until then
+      this tab stays empty rather than showing you a guess.
+    </div>`);
+    fbWire(); return;
+  }
+  const ago = iso => {
+    if (!iso) return '';
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (m < 60) return m + 'm ago';
+    if (m < 1440) return Math.round(m/60) + 'h ago';
+    return Math.round(m/1440) + 'd ago';
+  };
+  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">Around the league
+        <span class="kind k-desc">Live</span></h2>
+      <p style="color:var(--mut);margin:0">Headlines from
+        ${[...new Set(N.items.map(i => i.source))].join(', ')}.
+        ${freshness(N.pulled_at)}</p>
+    </div>
+    <div class="nwgrid">
+    ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener nofollow">
+        ${i.image
+          ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
+               onerror="this.closest('.nwimg').classList.add('noimg'); this.remove()"></div>`
+          : `<div class="nwimg noimg" data-src="${i.source || ''}"></div>`}
+        <div class="bd">
+          <div class="hl">${i.title}</div>
+          <div class="mt">${i.source}${i.published ? ' &middot; ' + ago(i.published) : ''}</div>
+          ${i.summary ? `<div class="sm">${i.summary}</div>` : ''}
+        </div></a>`).join('')}
+    </div>
+    <div class="note" style="margin-top:14px">
+      Headlines and links only, credited to the publisher. Click through to
+      read the story at the source.
+      <br><br>&#9940; <b>Nothing on this tab feeds a number anywhere on the
+      site.</b> It is here to read, not to bet from.
+    </div>`);
+  fbWire();
+}
+
+
 async function renderFootball(){
   const v = $('#fbview');
   if (FBTAB === 'odds') return fbOdds();
   if (FBTAB === 'scores') return fbScores();
   if (FBTAB === 'props') return fbProps();
+  if (FBTAB === 'news') return fbNews();
   if (FBTAB !== 'trends'){
     const [title, why] = FB_EMPTY[FBTAB];
     v.innerHTML = fbShell(
