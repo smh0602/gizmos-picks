@@ -2599,7 +2599,15 @@ function fbOddsTable(list){
   const row = g => {
     const a = g.away, h = g.home;
     const ma = (g.best_ml||{})[a], mh = (g.best_ml||{})[h];
-    const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    /* 🔴 ET, EXPLICITLY -- the same as fbKickTime (Scores) and fbProps.
+       Without the timeZone this renders in the VIEWER'S local zone while
+       the other two football tabs force ET, so the SAME KICKOFF read
+       6:00 PM on Odds and 7:00 PM on Scores for a Central-time reader.
+       Rule 66: one number per fact, the same everywhere on the site.
+       MLB is left alone -- all three of its tabs use local time, so it is
+       internally consistent; changing it is a separate decision. */
+    const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric',
+      minute:'2-digit', timeZone:'America/New_York'});
     const nm = x => `<span class="nm" style="font-weight:600">${x}</span>`;
     const price = m => { const u = betLink(m && m.link); return u
       ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${sgn(m.price)} &rarr;</a>`

@@ -89,6 +89,17 @@ LATEST = f"{DATA}/latest"
 # a doubleheader-heavy week can never zero us out mid-month.
 RESERVE = 750
 
+# 🔴 FOOTBALL PROPS ONLY PRICE THE SLATE ABOUT TO BE PLAYED. See the gate
+# in `collect_props`. ⛔ Every football props cron fires within two days of
+# its slate, so this keeps that slate and nothing else. Widening it costs
+# `markets x regions` PER EXTRA GAME -- 12 credits a game for the NFL.
+# ⚠️ 36h, not 48h. 36 is the smallest window that still catches MONDAY
+# NIGHT FOOTBALL from the Sunday 11:25am pull (kickoff is ~32h later);
+# 24h and 30h both miss it. Dropping 48 -> 36 also removes the overlap
+# where Thursday's pull bought Saturday's games only for Saturday's pull
+# to buy them again. Measured on the real 2026 schedules.
+FB_PROPS_WINDOW_H = 36
+
 # --- market definitions -----------------------------------------------
 GAME_MARKETS = ["h2h", "spreads", "totals"]
 PITCHER_MARKETS = ["pitcher_strikeouts", "pitcher_outs", "pitcher_strikeouts_alternate"]
@@ -701,7 +712,30 @@ def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
 # one that quietly pulls 70 events or quietly pulls none.
 # ══════════════════════════════════════════════════════════════════════
 def _norm_team(x):
-    return "".join(c for c in str(x or "").lower() if c.isalnum())
+    # 🔴 STRIP ACCENTS FIRST. ⛔ CFBD writes "San José State"; the Odds API
+    # writes "San Jose State Spartans". Dropping non-alphanumerics without
+    # folding the accent turns the first into "sanjosstate" and the second
+    # into "sanjosestate", so they never match and an FBS school is
+    # silently dropped from the board. Measured 2026-09-03.
+    import unicodedata as _ud
+    x = _ud.normalize("NFKD", str(x or ""))
+    x = "".join(c for c in x if not _ud.combining(c))
+    return "".join(c for c in x.lower() if c.isalnum())
+
+
+# ⛔ CFBD AND THE ODDS API DISAGREE ON SOME SCHOOL NAMES, and the
+# difference is not a mascot suffix so prefix-matching cannot bridge it.
+# ⚠️ THESE WERE MEASURED, NOT GUESSED: every unmatched name on a real
+# 155-game board was listed and checked against the schedule's own
+# classification. Only these needed an alias.
+# 🔴 KEEP THIS LIST SHORT AND EVIDENCE-BASED. It is a pin for known feed
+# disagreements, NOT a general mapping -- a long list here means the
+# matcher is wrong and should be fixed instead.
+FEED_ALIASES = {
+    "appalachianstate": "App State",
+    "southernmississippi": "Southern Miss",
+    "samhoustonstate": "Sam Houston",
+}
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -741,6 +775,14 @@ def _match_team(feed_name, by_norm):
     n = _norm_team(feed_name)
     if n in by_norm:                       # exact -- the common case
         return by_norm[n]
+    # ⚠️ A KNOWN FEED DISAGREEMENT, applied to the name AND to the name
+    # with its mascot stripped. ⛔ Checked BEFORE the prefix walk so an
+    # alias can never be beaten by a coincidental prefix.
+    for k, v in FEED_ALIASES.items():
+        if n == k or n.startswith(k):
+            cand = _norm_team(v)
+            if cand in by_norm:
+                return by_norm[cand]
     words = str(feed_name).replace("(", " ").replace(")", " ").split()
     # longest candidate first, so "Ohio State" is tried before "Ohio"
     for cand in sorted(by_norm, key=len, reverse=True):
@@ -836,6 +878,83 @@ def power4_teams():
 P4_MIN_MATCH = 8          # below this, assume the name join is broken
 
 
+# 🔴 EVERY FBS SCHOOL, READ FROM OUR OWN SCHEDULE -- NOT HARDCODED and not
+# a conference list. Sam, 2026-09-03: *"if a fbs team is playing a fcs team
+# i woudl want that included, for example usf, ucf vs a fcs team."*
+# ⛔ USF is American Athletic and UCF is Big 12 -- a Power 4 conference
+# list gets one and not the other, which is exactly the wrong answer.
+# FBS is a DIVISION, so it covers both and survives realignment.
+FBS_MIN_TEAMS = 100      # there are ~138; a part-built file must not gate
+FBS_MIN_MATCH_PCT = 0.30  # on a real board ~97% of games have an FBS side
+
+
+def fbs_teams():
+    """The FBS set, from the schedule we already collect."""
+    import glob as _glob
+    files = sorted(_glob.glob(
+        f"{LEAGUES['ncaaf']['data']}/latest/schedule-*.json.gz"), reverse=True)
+    for p in files:
+        got = set()
+        try:
+            with gzip.open(p, "rt", encoding="utf-8") as fh:
+                doc = json.load(fh)
+            for g in doc.get("games", []):
+                for side, klass in (("home", "home_class"), ("away", "away_class")):
+                    if g.get(klass) == "fbs" and g.get(side):
+                        got.add(g[side])
+        except Exception as e:
+            log(f"  could not read {p}: {type(e).__name__}: {e}")
+            continue
+        if len(got) >= FBS_MIN_TEAMS:
+            log(f"  FBS list: {len(got)} schools from {p.split('/')[-1]}")
+            return got
+        log(f"  skipping {p.split('/')[-1]} -- only {len(got)} FBS schools, "
+            f"below the {FBS_MIN_TEAMS} floor")
+    return set()
+
+
+def filter_fbs(events, log=log):
+    """Keep an event if AT LEAST ONE side is FBS.
+
+    🔴 *AT LEAST ONE*, NOT BOTH. ⛔ THE BOTH-SIDES VERSION THREW AWAY 122
+    OF THE 189 POWER 4 GAMES IN SEPTEMBER -- Alabama, USC, Oklahoma,
+    Michigan State, Utah, and tonight's Rutgers, UCF and Wake Forest --
+    because each was playing a smaller school. Sam caught this same
+    both-sides mistake twice before on the Scores division filter. **It is
+    the third instance, so it now has a test that fails on the both-sides
+    form by name.**
+
+    ⚠️ What is deliberately EXCLUDED is FCS-vs-FCS, which is what Sam
+    asked for and what the books barely price anyway.
+    """
+    fbs = fbs_teams()
+    if not fbs:
+        log("  ⛔ no FBS list on disk -- run the schedule build first. "
+            "NOTHING SPENT.")
+        return [], "no FBS team list on disk"
+    norm = {_norm_team(t): t for t in fbs}
+    kept, dropped = [], []
+    for ev in events:
+        h, a_ = ev.get("home_team"), ev.get("away_team")
+        # ⛔ ONE SIDE IS ENOUGH.
+        if _match_team(h, norm) or _match_team(a_, norm):
+            kept.append(ev)
+        else:
+            dropped.append((a_, h))
+    log(f"  FBS gate: {len(kept)} of {len(events)} events kept "
+        f"({len(dropped)} with no FBS side)")
+    for a_, h in dropped[:8]:
+        log(f"    dropped  {a_} @ {h}")
+    # 🔴 FAIL CLOSED ON A BROKEN JOIN. On a real college board ~97% of
+    # games have an FBS side, so matching under 30% means the NAMES are
+    # not joining, not that the slate is small. ⛔ Spending on that case
+    # is how a silent join failure becomes a bill.
+    if events and (len(kept) / len(events)) < FBS_MIN_MATCH_PCT:
+        return [], (f"only {len(kept)} of {len(events)} events matched an "
+                    f"FBS school -- the name join looks broken, not the slate")
+    return kept, None
+
+
 def filter_power4(events, log=log):
     """Keep only events where BOTH sides are Power 4. Report everything."""
     p4 = power4_teams()
@@ -912,9 +1031,48 @@ def collect_props(kind, regions=None):
     events, used, left = odds_get(f"/sports/{SPORT}/events", {})
     log(f"{len(events)} events on the board; {left} credits before props")
 
+    # 🔴 FOOTBALL: ONLY THE SLATE ABOUT TO BE PLAYED.
+    # ⛔ THE ODDS API POSTS THE WHOLE SEASON. The 2026-09-03 gamelines pull
+    # returned **272 NFL games** and **155 college games** -- the full
+    # schedule, not this week's. Props are charged PER GAME, so an
+    # unbounded NFL pull is 6 markets x 2 regions x 272 = **3,264 credits
+    # in one call**, against a 20,000 monthly cap and a budget that models
+    # it at 16 games (192). Three NFL pulls a week would be 9,792/wk.
+    # ⚠️ THE EXISTING RESERVE GUARD WOULD NOT HAVE STOPPED IT: 19,250
+    # available minus 3,264 is far above RESERVE, so it would have spent.
+    # ✅ The window is what makes the budget's game counts TRUE rather than
+    # hoped-for. Every football props cron fires within two days of the
+    # slate it is meant to price, so 48h keeps exactly that slate.
+    # ⛔ The Power 4 filter is a TEAM filter, not a time filter -- it does
+    # not bound this on its own.
+    if LEAGUE in ("nfl", "ncaaf"):
+        before = len(events)
+        cutoff = now() + timedelta(hours=FB_PROPS_WINDOW_H)
+        kept = []
+        for e in events:
+            t = e.get("commence_time")
+            if not t:
+                continue          # ⚠️ no kickoff time -> cannot bound it -> drop
+            try:
+                when = datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ").replace(
+                    tzinfo=timezone.utc)
+            except Exception:
+                continue
+            if when <= cutoff:
+                kept.append(e)
+        events = kept
+        log(f"  slate window: {before} events on the board -> {len(events)} "
+            f"within {FB_PROPS_WINDOW_H}h. Saved "
+            f"{(before - len(events)) * len(markets) * len(regions.split(','))} "
+            f"credits.")
+        if not events:
+            log(f"SKIPPING {kind} props: no game kicks off within "
+                f"{FB_PROPS_WINDOW_H}h. Nothing spent.")
+            return left
+
     # ⛔ CFB ONLY. MLB and NFL are untouched by this branch.
     if LEAGUE == "ncaaf":
-        events, why = filter_power4(events, log)
+        events, why = filter_fbs(events, log)
         if why:
             log(f"SKIPPING {kind} props: {why}")
             return left

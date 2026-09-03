@@ -101,10 +101,33 @@ def fires(cron):
 #          kept 20. ⛔ THE GATE IS WHAT MAKES COLLEGE AFFORDABLE -- an
 #          unfiltered pull is 5 x 2 x 103 = 1,030, above the whole cap.
 #   NFL  : 16 games a Sunday; a Thursday or a December Saturday is 1-3.
-FB_GAMES = {"ncaaf": 20, "nfl": 16}
+# 🔴 MEASURED OFF THE REAL 2026 SCHEDULES, 2026-09-03, at the deployed
+# 36h window with the AT-LEAST-ONE-SIDE-FBS gate.
+#   ncaaf: the old value of 20 was the BOTH-sides-Power-4 slate. That gate
+#          threw away 122 of September's 189 Power 4 games -- Alabama, USC,
+#          Oklahoma -- for playing smaller schools. FBS-wide averages ~41
+#          games per pull across the three weekly crons.
+#   nfl  : ~12 per pull (1 Thursday, ~14 Sunday, plus the Saturday backup).
+# ⛔ Do not lower these to make the total look better. Run the script.
+FB_GAMES = {"ncaaf": 41, "nfl": 12}
+# 🔴 READ *ONLY* THE PROP_MARKETS BLOCK, NOT EVERY `"nfl": [...]` IN THE
+# FILE. ⛔ THIS UNDER-REPORTED TO ZERO ON 2026-09-03: `collect.py` gained
+# `NEWS_FEEDS = {"nfl": [], "ncaaf": []}`, the old whole-file regex matched
+# it too, and a dict comprehension keeps the LAST match -- so an empty news
+# list silently overwrote the real market list and football props priced at
+# 0 while the tool still printed "✅ FITS".
+# ⚠️ THAT IS LEDGER RULE 68 FOR THE THIRD TIME. Scope the search to the
+# block that actually defines the pull, and FAIL LOUD if it is not found.
+_pm = re.search(r'^PROP_MARKETS\s*=\s*\{(.*?)^\}', src, re.S | re.M)
+if not _pm:
+    sys.exit("FATAL: cannot find PROP_MARKETS in collect.py — refusing to "
+             "price football at zero. Fix this parser, do not guess.")
 FB_MARKETS = {lg: len(re.findall(r'"player_[a-z_]+"', m))
               for lg, m in re.findall(
-                  r'"(nfl|ncaaf)":\s*\[(.*?)\]', src, re.S)}
+                  r'"(nfl|ncaaf)":\s*\[(.*?)\]', _pm.group(1), re.S)}
+if sorted(FB_MARKETS) != ["ncaaf", "nfl"] or not all(FB_MARKETS.values()):
+    sys.exit(f"FATAL: football markets parsed as {FB_MARKETS} — a zero or a "
+             f"missing league means the cost is WRONG, not cheap.")
 
 COST = {
     "gamelines":        GAME_M * 2,                 # per CALL, whole slate
@@ -207,7 +230,13 @@ if _mo > PLAN * 0.9:
 else:
     print(f"\n✅ FITS, with {PLAN - round(_mo):,} credits of headroom.")
 print(f"{backups} backup run(s)/day cost 0 while the primary lands (freshness guard)")
-free = [m for m in ALL_MODES if m not in COST]
+# ⛔ `props-player` IS NOT FREE. It is priced in the FOOTBALL block above,
+# not in COST, so a bare "not in COST" test listed the single most
+# expensive football pull as free -- directly contradicting the 198/run
+# printed six lines earlier. ⚠️ A cost tool that contradicts itself is the
+# same class of failure as one that under-counts (ledger rule 68).
+PAID_ELSEWHERE = {"props-player"}
+free = [m for m in ALL_MODES if m not in COST and m not in PAID_ELSEWHERE]
 print(f"free modes (statsapi or local compute): {', '.join(free)}")
 # ⛔ THE OLD 30/31-DAY BLOCK IS GONE. It multiplied `per_day`, which no
 # longer holds anything now that MLB is measured and football is weekly,
