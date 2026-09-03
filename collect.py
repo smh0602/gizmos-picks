@@ -2993,7 +2993,7 @@ def run_mode(mode):
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
-            "card-fb", "nfl-teams")
+            "card-fb", "nfl-teams", "cfb-teams")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -3050,7 +3050,18 @@ def run_mode(mode):
             left = collect_news()
         elif mode == "nfl-teams":
             # ⛔ FREE -- no API call at all, it writes a static directory.
+            # ⚠️ The PAGE no longer depends on this file (the NFL map is
+            # embedded in index.html), so this is a convenience artifact
+            # only. Kept so the data is inspectable on disk.
             left = build_nfl_teams()
+        elif mode == "cfb-teams":
+            # 🔴 FREE (CFBD), and it is what puts college logos on the
+            # page. ⛔ It used to run ONLY inside a full season rebuild,
+            # so the file never existed and every college logo fell back
+            # to text. It is its own mode now, and converge calls it.
+            import cfb as _cfb
+            _cfb.fbs_conferences(_fresh.current_football_season(), log)
+            left = None
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.
             left = build_card_fb()

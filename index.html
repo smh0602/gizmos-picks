@@ -3368,8 +3368,50 @@ async function fbRecord(){
    ══════════════════════════════════════════════════════════════════ */
 const FBTEAMS = {};
 
+/* 🔴 THE NFL DIRECTORY IS EMBEDDED, NOT FETCHED, AND THAT IS THE FIX FOR
+   A REAL BUG I SHIPPED. The first version fetched `teams.json` for both
+   leagues -- but nothing ever GENERATED those files, so every request
+   404'd, every lookup missed and every logo fell back to text. Sam saw a
+   page with no logos on it.
+   ⛔ THE PROJECT'S OWN RULE: a fix is not done until the artifact exists.
+   A renderer that depends on a file nobody creates is not a feature.
+   ✅ The NFL is 32 teams whose abbreviations do not change, so embedding
+   removes the dependency entirely -- it cannot 404, and it needs no
+   collector run to start working.
+   ⚠️ COLLEGE IS DIFFERENT and still fetched: 138 schools, realignment
+   every year, and CFBD ships the real logo URLs. Guessing 138 URLs would
+   be worse than fetching them. */
+const NFL_LOGOS = {
+  ARI:'Arizona Cardinals', ATL:'Atlanta Falcons', BAL:'Baltimore Ravens',
+  BUF:'Buffalo Bills', CAR:'Carolina Panthers', CHI:'Chicago Bears',
+  CIN:'Cincinnati Bengals', CLE:'Cleveland Browns', DAL:'Dallas Cowboys',
+  DEN:'Denver Broncos', DET:'Detroit Lions', GB:'Green Bay Packers',
+  HOU:'Houston Texans', IND:'Indianapolis Colts', JAX:'Jacksonville Jaguars',
+  KC:'Kansas City Chiefs', LV:'Las Vegas Raiders', LAC:'Los Angeles Chargers',
+  LA:'Los Angeles Rams', MIA:'Miami Dolphins', MIN:'Minnesota Vikings',
+  NE:'New England Patriots', NO:'New Orleans Saints', NYG:'New York Giants',
+  NYJ:'New York Jets', PHI:'Philadelphia Eagles', PIT:'Pittsburgh Steelers',
+  SF:'San Francisco 49ers', SEA:'Seattle Seahawks', TB:'Tampa Bay Buccaneers',
+  TEN:'Tennessee Titans', WAS:'Washington Commanders'
+};
+function nflDirectory(){
+  const d = {};
+  Object.entries(NFL_LOGOS).forEach(([ab_, full]) => {
+    const lo = ab_.toLowerCase();
+    const e = {abbr: ab_, name: full,
+               logo: `https://a.espncdn.com/i/teamlogos/nfl/500/${lo}.png`,
+               // ⚠️ ESPN serves the same marks under a second path. If the
+               // first 404s the image retries here before falling back to
+               // text -- see fbMark.
+               logo_alt: `https://a.espncdn.com/i/teamlogos/nfl/500-dark/${lo}.png`};
+    d[ab_] = e; d[full] = e;      // schedule says "SEA", the board says the full name
+  });
+  return d;
+}
+
 async function fbTeamsLoad(){
   if (FBTEAMS[LEAGUE] !== undefined) return FBTEAMS[LEAGUE];
+  if (LEAGUE === 'nfl'){ FBTEAMS[LEAGUE] = nflDirectory(); return FBTEAMS[LEAGUE]; }
   try {
     const d = await jget(`${LG_DATA[LEAGUE]}/latest/teams.json`);
     FBTEAMS[LEAGUE] = d.teams || {};
@@ -3386,16 +3428,45 @@ function fbAb(name){
   return (w[0] || '').slice(0, 4).toUpperCase();
 }
 
+/* 🔴 TRY A SECOND URL BEFORE GIVING UP. I cannot verify from this
+   sandbox that a logo URL resolves -- outbound image requests are
+   blocked here, MLB's own logos included -- so a single guessed pattern
+   that turns out wrong means a page with no logos on it, which is
+   exactly what shipped. ⛔ Chaining a fallback makes a wrong guess
+   self-correct instead of going blank.
+   ⚠️ The final fallback is still the abbreviation, so the worst case is
+   the same as having no logo -- never a broken image icon. */
 function fbMark(name, size){
   const t = (FBTEAMS[LEAGUE] || {})[name];
   const s = size || 22;
   const a = fbAb(name);
-  return (t && t.logo)
-    ? `<img class="lg" style="width:${s}px;height:${s}px;object-fit:contain"
-         src="${t.logo}" alt="${a}" loading="lazy"
-         onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'lg-fb',textContent:'${a}'}))">`
-    : `<span class="lg-fb">${a}</span>`;
+  if (!(t && t.logo)) return `<span class="lg-fb">${a}</span>`;
+  /* ⚠️ The retry URL and the text fallback travel on DATA ATTRIBUTES and
+     the handler is a NAMED FUNCTION. ⛔ Building the handler by nesting
+     template literals produced invalid JavaScript and took every football
+     tab down -- caught by driving the page, not by reading the diff. */
+  return `<img class="lg" style="width:${s}px;height:${s}px;object-fit:contain"
+       src="${t.logo}" alt="${a}" loading="lazy"
+       data-alt="${t.logo_alt || ''}" data-ab="${a}"
+       onerror="fbLogoFail(this)">`;
 }
+
+/* 🔴 TRY A SECOND URL BEFORE GIVING UP, THEN FALL BACK TO TEXT.
+   I cannot verify from this sandbox that a logo URL resolves -- outbound
+   image requests are blocked here, MLB's own logos included -- so a
+   single guessed pattern that turns out wrong means a page with no logos
+   on it, which is exactly what shipped. Chaining makes a wrong guess
+   self-correct; the worst case is still just the abbreviation, never a
+   broken-image icon. */
+function fbLogoFail(img){
+  const alt = img.dataset.alt;
+  if (alt && !img.dataset.tried){ img.dataset.tried = '1'; img.src = alt; return; }
+  const sp = document.createElement('span');
+  sp.className = 'lg-fb';
+  sp.textContent = img.dataset.ab || '';
+  img.replaceWith(sp);
+}
+
 
 /* Name with its logo, the way an MLB row reads. */
 function fbTeam(name, size){
