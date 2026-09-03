@@ -2525,6 +2525,16 @@ function fbMetricsFor(pos){
                    .sort((a,b) => a.pos.indexOf(pos) - b.pos.indexOf(pos));
 }
 
+/* 🔴 MLB WRAPS EVERY TAB'S BODY IN `.panel` -- the white rounded card
+   the whole site is built out of. Football rendered bare into #fbview,
+   which is why the two halves looked like different products even with
+   the same tables inside. ⚠️ Scores is the exception on BOTH sides: MLB's
+   game cards sit directly on the page background, and so do football's. */
+const FB_BARE = new Set(['scores']);
+function fbPanel(inner){
+  return FB_BARE.has(FBTAB) ? inner : `<div class="panel">${inner}</div>`;
+}
+
 function fbShell(inner){
   const tabs = ['trends','scores','picks','odds','props','parlays','record','news'];
   const nm = { trends:'Trends', scores:'Scores', picks:"Gizmo's Picks", odds:'Odds',
@@ -2535,7 +2545,7 @@ function fbShell(inner){
          style="display:block;padding:8px 13px;cursor:pointer;font:600 12px/1 system-ui;
          letter-spacing:.05em;text-transform:uppercase;color:${t===FBTAB?'#0d1b2a':'#7c8794'};
          border-bottom:2px solid ${t===FBTAB?'#f0a500':'transparent'}">${nm[t]}</a></li>`).join('')}
-      </ul></nav>${inner}`;
+      </ul></nav>${fbPanel(inner)}`;
 }
 
 /* 🔴 THE CONTROLS RENDER EVEN WHEN THERE IS NO DATA. 2026 is empty until
@@ -3003,6 +3013,8 @@ function fbCurrentWeek(games, weeks){
    ══════════════════════════════════════════════════════════════════ */
 const FBPROPS = {};
 let fbMkt = 'all';
+/* MLB keeps game/market/side in one object; football now does too. */
+const fbPf = {game:'all', market:'all', side:'all'};
 
 async function fbPropsLoad(){
   if (FBPROPS[LEAGUE] !== undefined) return FBPROPS[LEAGUE];
@@ -3027,160 +3039,117 @@ async function fbProps(){
     fbWire(); return;
   }
 
-  /* Markets actually present, so the filter offers nothing empty. */
+  /* 🔴 THE SAME LAYOUT AS THE MLB PROPS TAB, not a table.
+     Sam, 2026-09-03: "i literallt want eveyrhtug to look exaclty the
+     same the only difference is that its filled with nfl data".
+     Three filters, a game header per matchup, then one `.prow` per line
+     with the player, the bet, the price + book + Bet button, the
+     evidence, and the market number on the right -- MLB's own classes,
+     so both sports go through one stylesheet.
+     ⛔ NO HEADSHOT COLUMN: MLB has player ids and a photo host; football
+     has neither, and a permanently blank circle on every row is worse
+     than not having the column. */
+  const {list: games, nStarted, allDone} = splitStarted(
+    B.games.map(g => ({...g, commence: g.commence})));
+  const shown = games.filter(g => fbPf.game === 'all' || g.id === fbPf.game);
+
   const mkts = [...new Set(B.games.flatMap(g => g.props.map(p => p.market)))];
   const label = {};
   B.games.forEach(g => g.props.forEach(p => { label[p.market] = p.label; }));
-  if (fbMkt !== 'all' && mkts.indexOf(fbMkt) === -1) fbMkt = 'all';
+  if (fbPf.market !== 'all' && mkts.indexOf(fbPf.market) === -1) fbPf.market = 'all';
 
-  const {list, nStarted, allDone} = splitStarted(
-    B.games.map(g => ({...g, commence: g.commence})));
+  const gopts = ['<option value="all">All games</option>'].concat(
+    games.map(g => `<option value="${g.id}"${g.id===fbPf.game?' selected':''}>${
+      fbAb(g.away)} @ ${fbAb(g.home)} — ${fbKickTime(g.commence) || ''}</option>`)).join('');
 
-  const priceCellFb = (sd) => {
-    if (!sd || sd.price == null) return '<span class="cell">&mdash;</span>';
+  const priceCell = sd => {
+    if (!sd || sd.price == null) return '';
     const u = betLink(sd.link);
-    const inner = `${sgn(sd.price)}${u ? ' &rarr;' : ''}`;
-    return u
-      ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${inner}</a>`
-      : `<span class="cell best">${inner}</span>`;
+    return `<div class="v2">${sgn(sd.price)}</div>${bookChip(sd.book)}
+      ${u ? `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">Bet &rarr;</a>` : ''}`;
   };
 
-  const blocks = list.map(g => {
-    const props = g.props.filter(p => fbMkt === 'all' || p.market === fbMkt);
-    if (!props.length) return '';
-    const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric',
-      minute:'2-digit', timeZone:'America/New_York'});
-    const rows = props.map(p => {
-      const o = (p.sides || {}).over, u = (p.sides || {}).under;
-      const yes = (p.sides || {}).yes;
-      /* ⚠️ Anytime TD is a ONE-SIDED market -- it has no Under. Rendering
-         a blank Under column for it would imply a price that does not
-         exist, so the row says so. */
-      const oneSided = !o && !u && yes;
-      return `<tr>
-        <td class="gm" style="min-width:190px"><b>${p.player}</b></td>
-        <td class="sub" style="white-space:nowrap">${p.label}</td>
-        <td style="white-space:nowrap;font-variant-numeric:tabular-nums">${
-          p.line == null ? '&mdash;' : p.line}</td>
-        <td>${oneSided ? priceCellFb(yes) : priceCellFb(o)}</td>
-        <td>${oneSided
-          ? '<span class="sub">one-sided market</span>'
-          : priceCellFb(u)}</td>
-        <td class="sub" style="white-space:nowrap">${
-          [(o||yes||{}).book, (u||{}).book].filter(Boolean)
-            .map(bookName).filter((x,i,a) => a.indexOf(x)===i).join(' · ') || ''}</td>
-        <td class="sub">${Math.max((o||yes||{}).n_books||0, (u||{}).n_books||0)}</td>
-      </tr>`;
-    }).join('');
-    return `<h3 style="margin:22px 0 8px;font-size:14px">${g.away} @ ${g.home}
-        <span class="rec">${t} &middot; ${props.length} prop${props.length===1?'':'s'}</span></h3>
-      <div class="obwrap"><table class="ob">
-        <thead><tr><th class="gm">Player</th><th>Market</th><th>Line</th>
-          <th>Over</th><th>Under</th><th>Where</th><th>Books</th></tr></thead>
-        <tbody>${rows}</tbody></table></div>`;
-  }).join('');
+  /* One row per SIDE, exactly as MLB does -- an Over and an Under are two
+     different bets at two different prices and each needs its own button. */
+  const rowHtml = (p, side, sd) => {
+    const word = side === 'over' ? 'Over' : side === 'under' ? 'Under' : 'Yes';
+    const ln = p.line == null ? '' : ' ' + p.line;
+    /* ⛔ NO HEADSHOT SLOT. MLB has player ids and a photo host; football
+       has neither, and an empty grey circle on every row is worse than
+       not having the column -- it reads as an image that failed. */
+    return `<div class="prow fbprow">
+      <div class="who">
+        <div class="nm2">${p.player}</div>
+        <div class="tm2">${p.label || ''}</div>
+      </div>
+      <div class="bet">
+        <div class="ln">${word}${ln}</div>
+        <div class="mk">${p.unit || p.label || ''}</div>
+      </div>
+      <div class="pr2">${priceCell(sd)}</div>
+      <div class="ev2">${
+        LEAGUE === 'nfl'
+          ? '<span style="opacity:.6">market price &mdash; his own record is on the Gizmo&rsquo;s Picks tab</span>'
+          : '<span style="opacity:.6">market price &mdash; college rows carry no rate, see the note below</span>'}</div>
+      <div class="imp">${sd && sd.n_books
+        ? `<b>${sd.n_books}</b>book${sd.n_books > 1 ? 's' : ''}`
+        : '<span style="font-size:10px;opacity:.6">one-sided<br>no fair price</span>'}</div>
+    </div>`;
+  };
 
-  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Player Props
-        <span class="kind k-market">Market</span></h2>
-      <p style="color:var(--mut);margin:0">${B.n_props.toLocaleString()} lines across
-        ${B.n_games} game${B.n_games===1?'':'s'}, best price of
-        ${B.books_seen.filter(b => BOOKNAME[b]).length} books. ${freshness(B.pulled_at)}</p>
-    </div>
-    <div class="fbctl">
-      <label>Market<select id="fb-pr-mkt">
-        <option value="all"${fbMkt==='all'?' selected':''}>All markets</option>
-        ${mkts.map(m => `<option value="${m}"${m===fbMkt?' selected':''}>${label[m]}</option>`).join('')}
-      </select></label>
+  let body = '', total = 0;
+  (allDone ? games : shown).forEach(g => {
+    const list = (g.props || []).filter(p =>
+      fbPf.market === 'all' || p.market === fbPf.market);
+    if (!list.length) return;
+    let rows = '';
+    list.forEach(p => {
+      const sides = p.sides || {};
+      ['over', 'under', 'yes'].forEach(k => {
+        if (!sides[k]) return;
+        if (fbPf.side !== 'all' && k !== 'yes' && k !== fbPf.side) return;
+        rows += rowHtml(p, k, sides[k]); total++;
+      });
+    });
+    if (!rows) return;
+    body += `<div class="ghead">
+        ${fbMark(g.away, 20)} ${fbAb(g.away)} <span style="color:var(--line)">@</span>
+        ${fbMark(g.home, 20)} ${fbAb(g.home)}
+        <span class="tt2">${fbKickTime(g.commence) || ''} &middot; ${list.length} props</span>
+      </div>${rows}`;
+  });
+
+  v.innerHTML = fbShell(`
+    <div class="pfilt">
+      <select id="fb-pf-game">${gopts}</select>
+      <select id="fb-pf-mkt">
+        <option value="all"${fbPf.market==='all'?' selected':''}>All markets</option>
+        ${mkts.map(m => `<option value="${m}"${m===fbPf.market?' selected':''}>${label[m]}</option>`).join('')}
+      </select>
+      <select id="fb-pf-side">
+        <option value="all"${fbPf.side==='all'?' selected':''}>Both sides</option>
+        <option value="over"${fbPf.side==='over'?' selected':''}>Over</option>
+        <option value="under"${fbPf.side==='under'?' selected':''}>Under</option>
+      </select>
+      <span class="stamp">${total.toLocaleString()} props &middot; ${freshness(B.pulled_at)}</span>
     </div>
     ${startedToggle(nStarted, 'fb-pr-started', allDone)}
-    ${blocks || '<div class="msg">No lines in this market.</div>'}
+    ${body || '<div class="msg">No lines in this market.</div>'}
     <div class="note" style="margin-top:18px">
-      <b>Every price with an arrow is clickable</b> and opens that book's bet slip.
-      Set your state at the top right or half the links will not resolve.
+      <b>Every price with a Bet button is clickable</b> and opens that book's
+      bet slip. Set your state at the top or half the links will not resolve.
       <br><br>&#128309; <b>These are the sportsbooks' numbers, not ours.</b>
       <br>&#9940; <b>No row carries a Gizmo's confidence rating, and none ever
-      will on this tab.</b> Three pre-registered football models were tested and
-      every one lost to a player's own season average, so there is nothing of
-      ours to put beside these lines. A line and the best price is what we
-      honestly have.
+      will on this tab.</b> Three pre-registered football models were tested
+      and every one lost to a player's own season average.
     </div>`);
   fbWire();
-  const el = $('#fb-pr-mkt');
-  if (el) el.addEventListener('change', e => { fbMkt = e.target.value; fbProps(); });
+  const on = (id, fn) => { const e = $('#' + id); if (e) e.addEventListener('change', fn); };
+  on('fb-pf-game', e => { fbPf.game = e.target.value; fbProps(); });
+  on('fb-pf-mkt',  e => { fbPf.market = e.target.value; fbProps(); });
+  on('fb-pf-side', e => { fbPf.side = e.target.value; fbProps(); });
   const t = $('#fb-pr-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbProps(); });
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   FOOTBALL NEWS.
-   ⚪ DESCRIPTIVE. Headlines and links only, credited to the publisher.
-   No article text is copied and no number here feeds anything.
-
-   🔴 THE FEED LIST IS EMPTY UNTIL A PROBE REPORT HAS BEEN READ. The
-   collector's `news-probe` mode fetches candidate feeds, parses them with
-   the SAME parser the collector uses, and writes a report with SAMPLE
-   HEADLINES -- because a feed can parse perfectly and still be the wrong
-   sport. ⛔ Until a feed is adopted this tab says so plainly rather than
-   pretending to be broken.
-   ══════════════════════════════════════════════════════════════════ */
-const FBNEWS = {};
-
-async function fbNewsLoad(){
-  if (FBNEWS[LEAGUE] !== undefined) return FBNEWS[LEAGUE];
-  try { FBNEWS[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/news.json`); }
-  catch(e){ FBNEWS[LEAGUE] = null; }
-  return FBNEWS[LEAGUE];
-}
-
-async function fbNews(){
-  const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
-  fbWire();
-  const N = await fbNewsLoad();
-  if (!N || !(N.items || []).length){
-    v.innerHTML = fbShell(`<div class="note">
-      <b>No ${LG_NAME[LEAGUE]} headlines yet.</b><br>
-      A news feed is only added here once it has been fetched, parsed and
-      its headlines read to confirm they are the right sport &mdash; a feed
-      can parse perfectly and still be about something else. Until then
-      this tab stays empty rather than showing you a guess.
-    </div>`);
-    fbWire(); return;
-  }
-  const ago = iso => {
-    if (!iso) return '';
-    const m = Math.round((Date.now() - new Date(iso)) / 60000);
-    if (m < 60) return m + 'm ago';
-    if (m < 1440) return Math.round(m/60) + 'h ago';
-    return Math.round(m/1440) + 'd ago';
-  };
-  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Around the league
-        <span class="kind k-desc">Live</span></h2>
-      <p style="color:var(--mut);margin:0">Headlines from
-        ${[...new Set(N.items.map(i => i.source))].join(', ')}.
-        ${freshness(N.pulled_at)}</p>
-    </div>
-    <div class="nwgrid">
-    ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener nofollow">
-        ${i.image
-          ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
-               onerror="this.closest('.nwimg').classList.add('noimg'); this.remove()"></div>`
-          : `<div class="nwimg noimg" data-src="${i.source || ''}"></div>`}
-        <div class="bd">
-          <div class="hl">${i.title}</div>
-          <div class="mt">${i.source}${i.published ? ' &middot; ' + ago(i.published) : ''}</div>
-          ${i.summary ? `<div class="sm">${i.summary}</div>` : ''}
-        </div></a>`).join('')}
-    </div>
-    <div class="note" style="margin-top:14px">
-      Headlines and links only, credited to the publisher. Click through to
-      read the story at the source.
-      <br><br>&#9940; <b>Nothing on this tab feeds a number anywhere on the
-      site.</b> It is here to read, not to bet from.
-    </div>`);
-  fbWire();
 }
 
 
@@ -3333,19 +3302,57 @@ async function fbRecord(){
   fbWire();
   const C = await fbCardLoad();
   const n = C && C.picks ? C.picks.length : 0;
-  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Track Record
-        <span class="kind k-desc">Descriptive</span></h2>
-    </div>
-    <div class="note">
-      <b>Nothing has been graded yet.</b><br><br>
-      This table fills in once football rows have been published and their
-      games have finished. ${n ? `Today's board carries <b>${n}</b> rows;
-      they can be graded after kickoff.` : ''}
-      <br><br>&#128309; <b>It will be kept the same way the MLB record is:
-      every published row graded from the final box score, wins and losses
-      both, with nothing removed after the fact.</b> A record that only
-      counts the good days is not a record.
+
+  /* 🔴 THE SAME FOUR STAT BOXES MLB SHOWS, and the same two tables --
+     drawn EMPTY rather than replaced by a paragraph. Sam, 2026-09-03:
+     "i literallt want eveyrhtug to look exaclty the same the only
+     difference is that its filled with nfl data".
+     ⛔ An empty table that matches is better than a different-looking
+     note, because the reader learns the layout once and it holds
+     everywhere. ⚠️ Every figure reads em-dash, never 0% -- "nothing
+     graded" and "graded 0%" are different facts. */
+  const hero = `<div class="tr-hero">
+      <div class="tr-box"><div class="k">Board</div>
+        <div class="v">&mdash;<span style="font-size:18px;color:var(--mut)">/0</span></div>
+        <div class="s">nothing graded yet</div></div>
+      <div class="tr-box"><div class="k">${LEAGUE === 'nfl' ? 'NFL rows' : 'College rows'}</div>
+        <div class="v">&mdash;</div><div class="s">0/0</div></div>
+      <div class="tr-box"><div class="k">On the board today</div>
+        <div class="v">${n}</div><div class="s">${n ? 'gradeable after kickoff' : 'no card yet'}</div></div>
+      <div class="tr-box"><div class="k">Cards graded</div>
+        <div class="v">0</div><div class="s">football only</div></div>
+    </div>`;
+
+  const MK = LEAGUE === 'nfl'
+    ? ['Passing yards', 'Passing TDs', 'Rushing yards', 'Receiving yards',
+       'Receptions', 'Anytime TD']
+    : ['Passing yards', 'Rushing yards', 'Receiving yards', 'Receptions',
+       'Anytime TD'];
+  const mkRows = MK.map(m =>
+    `<tr><td>${m}</td><td class="n">&mdash;</td><td class="n">&mdash;</td></tr>`).join('');
+
+  v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record
+      <span class="kind ${C && C.rates_available ? 'k-desc' : 'k-market'}">${
+        C && C.rates_available ? 'Record' : 'Market'}</span></h2>
+    <p>Every row the board publishes, graded from the final score &mdash; not
+       from anyone's memory. ${C ? `<span class="rec">board built ${C.generated_at}</span>` : ''}</p>
+    ${hero}
+    <table class="ob" style="margin-top:14px">
+      <thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead>
+      <tbody>${mkRows}</tbody></table>
+    <h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
+    <table class="ob">
+      <thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead>
+      <tbody><tr><td colspan="3" class="sub" style="text-align:center;padding:14px">
+        No football day has been graded yet.</td></tr></tbody></table>
+    <div class="note" style="margin-top:14px">
+      <b>This will be the board's record and nothing else.</b> Every row it
+      published, graded from the final score. Uncurated &mdash; it prints
+      everything that clears the filter, so it will score worse than a board
+      someone picked over by hand. That is a different question, not a worse
+      board.
+      <br><br>Nothing is removed after the fact. A losing row stays logged
+      even when there is a good excuse for it.
     </div>
     ${fbNoModelNote(C)}`);
   fbWire();
@@ -3658,8 +3665,75 @@ function fbOpenBox(g){
 }
 
 
+const FB_TITLE = {trends:'Trends', scores:'Scores & Matchups',
+  picks:"Gizmo's Picks", odds:'Odds', props:'Player Props',
+  parlays:'Parlays', record:'Track Record', news:'News'};
+
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL NEWS. ⚪ DESCRIPTIVE. Headlines and links only, credited to
+   the publisher. Same card grid as the MLB News tab.
+   ══════════════════════════════════════════════════════════════════ */
+const FBNEWS = {};
+
+async function fbNewsLoad(){
+  if (FBNEWS[LEAGUE] !== undefined) return FBNEWS[LEAGUE];
+  try { FBNEWS[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/news.json`); }
+  catch(e){ FBNEWS[LEAGUE] = null; }
+  return FBNEWS[LEAGUE];
+}
+
+async function fbNews(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const N = await fbNewsLoad();
+  if (!N || !(N.items || []).length){
+    v.innerHTML = fbShell(`<div class="note">
+      <b>No ${LG_NAME[LEAGUE]} headlines yet.</b><br>
+      A news feed is only added here once it has been fetched, parsed and
+      its headlines read to confirm they are the right sport &mdash; a feed
+      can parse perfectly and still be about something else. Until then
+      this tab stays empty rather than showing you a guess.
+    </div>`);
+    fbWire(); return;
+  }
+  const ago = iso => {
+    if (!iso) return '';
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (m < 60) return m + 'm ago';
+    if (m < 1440) return Math.round(m/60) + 'h ago';
+    return Math.round(m/1440) + 'd ago';
+  };
+  v.innerHTML = fbShell(`<h2>Around the league <span class="kind k-desc">Live</span></h2>
+    <p>Headlines from ${[...new Set(N.items.map(i => i.source))].join(', ')}.
+       ${freshness(N.pulled_at)}</p>
+    <div class="nwgrid">
+    ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener nofollow">
+        ${i.image
+          ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
+               onerror="this.closest('.nwimg').classList.add('noimg'); this.remove()"></div>`
+          : `<div class="nwimg noimg" data-src="${i.source || ''}"></div>`}
+        <div class="bd">
+          <div class="hl">${i.title}</div>
+          <div class="mt">${i.source}${i.published ? ' &middot; ' + ago(i.published) : ''}</div>
+          ${i.summary ? `<div class="sm">${i.summary}</div>` : ''}
+        </div></a>`).join('')}
+    </div>
+    <div class="note" style="margin-top:14px">
+      Headlines and links only, credited to the publisher. Click through to
+      read the story at the source.
+      <br><br>&#9940; <b>Nothing on this tab feeds a number anywhere on the
+      site.</b> It is here to read, not to bet from.
+    </div>`);
+  fbWire();
+}
+
+
 async function renderFootball(){
   const v = $('#fbview');
+  /* ⚠️ The SAME <h1> MLB uses, so the two sections share one page
+     header rather than each inventing their own. */
+  const t = $('#ttl'); if (t) t.textContent = FB_TITLE[FBTAB] || 'Football';
   /* 🔴 LOAD THE LOGO DIRECTORY AND THE ODDS BOARD FIRST, once per league.
      ⛔ Loading them inside each tab would make the first paint logo-less
      and then reflow -- and the SCORES cards need the board too, for the
@@ -3796,7 +3870,21 @@ function setLeague(lg){
   $('#tagline').innerHTML = LG_TAG[lg];
   const mlb = lg === 'mlb';
   document.querySelector('.subnav').style.display = mlb ? '' : 'none';
-  document.querySelector('.tools').style.display  = mlb ? '' : 'none';
+  /* 🔴 THE TOOLS BAR STAYS UP FOR FOOTBALL. Hiding it was why the
+     football section had no page title and no bet-link state picker,
+     and it is a large part of why the two halves of the site did not
+     look like the same product.
+     ⛔ Only the MLB-SPECIFIC controls are hidden -- the date picker
+     (football is weekly, not daily) and the live/final filter (neither
+     football feed carries in-game state). The title and the state
+     picker are shared, because a bet link needs a state whatever the
+     sport. */
+  document.querySelector('.tools').style.display = '';
+  ['#dt', '#filt'].forEach(sel => {
+    const e = document.querySelector(sel);
+    if (e) e.style.display = mlb ? '' : 'none';
+  });
+  const stmp = $('#stamp'); if (stmp) stmp.style.display = mlb ? '' : 'none';
   $('#view').style.display   = mlb ? '' : 'none';
   $('#fbview').style.display = mlb ? 'none' : '';
   /* ⛔ The stale banner reads MLB's freshness contract. Football has no
