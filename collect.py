@@ -1950,6 +1950,65 @@ def _news_items(source, url):
     return out
 
 
+# ══════════════════════════════════════════════════════════════════════
+# NFL TEAM DIRECTORY — name, abbreviation, logo.
+#
+# 🔴 WHY THIS IS A LIST AND THE COLLEGE ONE IS NOT. CFBD ships logos with
+# `/teams/fbs`, so college is read live and survives realignment. The NFL
+# has no equivalent free endpoint we already call, and it is **32 teams
+# whose abbreviations have not changed in years** -- a relocation is rare
+# and newsworthy, not silent drift.
+# ⚠️ THE ABBREVIATIONS ARE NOT INVENTED: they are the ones nflverse
+# already uses in `schedule-<yr>.json.gz`, so the schedule tab and the
+# odds tab resolve to the SAME logo. ⛔ If you edit one side, edit both.
+# ⚠️ Logos come from ESPN's public CDN by abbreviation. A URL that 404s
+# degrades to the text abbreviation on the page -- `fbMark` has an
+# onerror fallback -- so a bad entry is cosmetic, never a broken tab.
+# ══════════════════════════════════════════════════════════════════════
+NFL_TEAMS = {
+    "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL",
+    "Baltimore Ravens": "BAL", "Buffalo Bills": "BUF",
+    "Carolina Panthers": "CAR", "Chicago Bears": "CHI",
+    "Cincinnati Bengals": "CIN", "Cleveland Browns": "CLE",
+    "Dallas Cowboys": "DAL", "Denver Broncos": "DEN",
+    "Detroit Lions": "DET", "Green Bay Packers": "GB",
+    "Houston Texans": "HOU", "Indianapolis Colts": "IND",
+    "Jacksonville Jaguars": "JAX", "Kansas City Chiefs": "KC",
+    "Las Vegas Raiders": "LV", "Los Angeles Chargers": "LAC",
+    "Los Angeles Rams": "LA", "Miami Dolphins": "MIA",
+    "Minnesota Vikings": "MIN", "New England Patriots": "NE",
+    "New Orleans Saints": "NO", "New York Giants": "NYG",
+    "New York Jets": "NYJ", "Philadelphia Eagles": "PHI",
+    "Pittsburgh Steelers": "PIT", "San Francisco 49ers": "SF",
+    "Seattle Seahawks": "SEA", "Tampa Bay Buccaneers": "TB",
+    "Tennessee Titans": "TEN", "Washington Commanders": "WAS",
+}
+NFL_LOGO = "https://a.espncdn.com/i/teamlogos/nfl/500/{}.png"
+
+
+def build_nfl_teams():
+    """Write the NFL team directory the page reads for logos.
+
+    ⚠️ Keyed BOTH ways -- by full name (what the odds board uses) and by
+    abbreviation (what the schedule uses) -- so one lookup serves every
+    tab. ⛔ Two lookup paths would be two things to drift.
+    """
+    directory = {}
+    for full, ab_ in NFL_TEAMS.items():
+        entry = {"abbr": ab_, "logo": NFL_LOGO.format(ab_.lower()),
+                 "name": full}
+        directory[full] = entry
+        directory[ab_] = entry
+    write(f"{LEAGUES['nfl']['data']}/latest/teams.json", {
+        "kind": "DESCRIPTIVE",
+        "built_at": stamp(),
+        "n": len(NFL_TEAMS),
+        "source": "static name/abbr map + ESPN CDN logos",
+        "teams": directory})
+    log(f"nfl teams: {len(NFL_TEAMS)} teams written")
+    return None
+
+
 def build_card_fb():
     """Run `card_fb.py` for this league.
 
@@ -2934,7 +2993,7 @@ def run_mode(mode):
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
-            "card-fb")
+            "card-fb", "nfl-teams")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -2989,6 +3048,9 @@ def run_mode(mode):
             left = collect_hitters()
         elif mode == "news":
             left = collect_news()
+        elif mode == "nfl-teams":
+            # ⛔ FREE -- no API call at all, it writes a static directory.
+            left = build_nfl_teams()
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.
             left = build_card_fb()

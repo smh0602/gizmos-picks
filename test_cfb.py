@@ -81,13 +81,15 @@ ck("the bowl row's trailing number is the regular season (10.0)",
    r[101]["trailing_usage"] == 10.0, f'got {r[101]["trailing_usage"]}')
 
 print("── verify() must catch what a green run hides ──")
-good = {"season": 2025, "players": P}
+SCOPE = ["ACC", "Big 12", "Big Ten", "SEC", "Sun Belt"]
+good = {"season": 2025, "players": P, "scope_conferences": SCOPE}
 ck("a clean season passes", cfb.verify(good, log=lambda *_: None) == [],
    cfb.verify(good, log=lambda *_: None))
 ck("🔴 the constant-feature check is SKIPPED on a tiny fixture, not "
    "silently passed — and it still FIRES on a real-sized one",
    any("CONSTANT" in b for b in cfb.verify(
-       {"season": 2025, "players": {f"p{i}": mk(f"p{i}", "RB", "A", [
+       {"season": 2025, "scope_conferences": SCOPE,
+        "players": {f"p{i}": mk(f"p{i}", "RB", "A", [
            {"week": 2, "wk_i": 2, "usage": 5}, {"week": 3, "wk_i": 3, "usage": 5}])
         for i in range(300)}}, log=lambda *_: None)))
 
@@ -127,12 +129,27 @@ bad = cfb.verify(ghost, log=lambda *_: None)
 ck("🔴 a snap_pct column on a CFB row is caught — it cannot exist",
    any("snap_pct" in b for b in bad), bad)
 
-nonp4 = {"season": 2025, "players": {"a": mk("a", "RB", "A", [
-    {"week": 2, "wk_i": 2, "usage": 5}, {"week": 3, "wk_i": 3, "usage": 7}])}}
-nonp4["players"]["a"]["g"][0]["conf"] = "Sun Belt"
-cfb.rank_and_cascade(nonp4["players"])
-bad = cfb.verify(nonp4, log=lambda *_: None)
-ck("a non-Power-4 row is caught", any("Power-4" in b for b in bad), bad)
+# 🔴 A ROW OUTSIDE THE FILE'S OWN DECLARED SCOPE IS CAUGHT.
+# ⚠️ Changed 2026-09-03: verify() no longer asserts a hardcoded POWER4
+# set -- the collection is FBS-wide now, and a check pinned to a stale
+# constant is the kind that gets deleted rather than fixed. It asks the
+# STRONGER question instead: does the data match what the file SAYS it is?
+oos = {"season": 2025, "scope_conferences": ["ACC", "Big Ten"],
+       "players": {"a": mk("a", "RB", "A", [
+           {"week": 2, "wk_i": 2, "usage": 5},
+           {"week": 3, "wk_i": 3, "usage": 7}])}}
+oos["players"]["a"]["g"][0]["conf"] = "Sun Belt"     # ⛔ not in the declared scope
+cfb.rank_and_cascade(oos["players"])
+bad = cfb.verify(oos, log=lambda *_: None)
+ck("a row outside the DECLARED scope is caught",
+   any("declared scope" in b for b in bad), bad)
+
+# ⛔ AND A FILE THAT DECLARES NO SCOPE AT ALL IS ITSELF A FAILURE --
+# otherwise omitting the field would be a way to silence the check.
+noscope = {"season": 2025, "players": P}
+ck("🔴 a file with NO declared scope fails rather than passing quietly",
+   any("cannot be verified" in b for b in cfb.verify(noscope, log=lambda *_: None)),
+   cfb.verify(noscope, log=lambda *_: None))
 
 # 🔴 A missing Elo we can NAME is a feature; one we cannot name is a defect.
 unex = {"season": 2025, "players": {"a": mk("a", "RB", "A", [

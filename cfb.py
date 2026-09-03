@@ -73,10 +73,27 @@ KEY = os.environ.get("CFBD_API_KEY", "").strip()
 OUT = "data/ncaaf/latest"
 
 POWER4 = {"ACC", "Big 12", "Big Ten", "SEC"}
+
+# 🔴 THE COLLECTION SCOPE IS NOW **ALL OF FBS**, NOT POWER 4.
+# Sam, 2026-09-03: *"all the teams and matchups that will be in player
+# props and odds tabs also need to be in trends, scores, gizmos picks
+# ... track record"*.
+# ⛔ THE MISMATCH WAS REAL AND MEASURED: the odds board carries **180
+# distinct college teams** and the FBS schedule holds **138 schools**,
+# while `offense-by-position-2025` held exactly **67** -- the Power 4 set.
+# So a reader could price USF or Fresno State on the Odds tab and then
+# find the team simply absent from Trends. `players-<yr>.json.gz` even
+# said so in its own scope field: *"Power 4 only (ACC, Big 12, Big Ten,
+# SEC)"*.
+# ⚠️ CFBD IS FREE -- this costs runner time and file size, not credits.
+# ✅ The FBS set is READ FROM CFBD'S OWN `/teams/fbs`, per season, so it
+# survives realignment. ⛔ Do not hardcode a conference list here: the
+# Power 4 set was 52 teams in 2021 and 67 in 2026, and FBS conferences
+# change names and members constantly.
 REG_WEEKS = range(1, 16)
 PROP_POS = {"QB", "RB", "WR", "TE", "FB"}
 VS_DEPTH = {"QB": 1, "RB": 2, "WR": 3, "TE": 2}
-# % of Power 4 box rows that must bridge to a roster position before a
+# % of in-scope box rows that must bridge to a roster position before a
 # season is considered safe to model. Mirrors nfl.py.
 BRIDGE_MIN = 95.0
 # 🔒 T37-CFB, FROZEN 2026-08-30 05:27Z. Trailing TOUCHES per game, p25 of
@@ -151,6 +168,70 @@ def get(path, params, timeout=90, tries=4):
             last = e
             time.sleep(2 * (i + 1))
     raise last
+
+
+FBS_MIN_TEAMS = 100      # ~134-138 in practice; below this the fetch failed
+
+
+def fbs_conferences(season, log=log):
+    """Every conference that fields an FBS team, from CFBD, for a season.
+
+    ⚠️ Returns a SET OF CONFERENCE NAMES because that is what the box-score
+    rows carry (`r["conf"]`). ⛔ FAILS CLOSED to an empty set, and the
+    caller must treat that as "do not narrow" rather than "collect
+    nothing" -- see build_season.
+    """
+    try:
+        rows = get("/teams/fbs", {"year": season})
+    except Exception as e:
+        log(f"  ⛔ /teams/fbs failed for {season}: {type(e).__name__}: {e}")
+        return set(), set()
+    confs = {r.get("conference") for r in rows if r.get("conference")}
+    teams = {r.get("school") for r in rows if r.get("school")}
+    if len(teams) < FBS_MIN_TEAMS:
+        log(f"  ⛔ /teams/fbs returned only {len(teams)} schools for "
+            f"{season}, below the {FBS_MIN_TEAMS} floor -- NOT narrowing.")
+        return set(), set()
+    log(f"  FBS scope {season}: {len(teams)} schools across "
+        f"{len(confs)} conferences")
+
+    # 🔴 WRITE THE TEAM DIRECTORY WHILE WE HAVE IT -- logo, abbreviation
+    # and conference, keyed by the school name the rest of our data uses.
+    # ⛔ CFBD SHIPS THE LOGOS, so the page never has to guess a URL or
+    # carry a hardcoded 138-entry map that goes stale at realignment.
+    # ⚠️ Prefer the non-dark logo; CFBD lists a dark variant second.
+    try:
+        directory = {}
+        for r in rows:
+            school = r.get("school")
+            if not school:
+                continue
+            logos = [u for u in (r.get("logos") or []) if u]
+            light = next((u for u in logos if "-dark" not in u), None)
+            directory[school] = {
+                "abbr": r.get("abbreviation") or "",
+                "conference": r.get("conference") or "",
+                # ⚠️ https only -- the page is https and a http image is
+                # blocked by the browser, which looks like a broken logo.
+                "logo": (light or (logos[0] if logos else None) or "").replace(
+                    "http://", "https://") or None,
+                "color": r.get("color"),
+            }
+        n_logo = sum(1 for v in directory.values() if v["logo"])
+        os.makedirs(OUT, exist_ok=True)
+        with open(f"{OUT}/teams.json", "w", encoding="utf-8") as fh:
+            json.dump({
+                "season": season, "kind": "DESCRIPTIVE",
+                "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "n": len(directory), "n_with_logo": n_logo,
+                "source": "CFBD /teams/fbs",
+                "teams": directory}, fh, indent=1)
+        log(f"  team directory: {len(directory)} schools, {n_logo} with a logo")
+    except Exception as e:
+        # ⚠️ A missing directory costs LOGOS, not data. It must never stop
+        # the season build.
+        log(f"  ⚠️ team directory not written: {type(e).__name__}: {e}")
+    return confs, teams
 
 
 def dig(o, depth=0, cap=8):
@@ -418,7 +499,7 @@ def build_season(season, log=log):
                                     r[dest] = n
         time.sleep(0.35)
 
-    # ── Power 4 only, and the position must be known ──────────────────
+    # ── FBS-wide, and the position must be known ──────────────────────
     # 🔴 COVERAGE IS MEASURED HERE, NOT ASSUMED. `[recorded 2026-08-30]`
     # the first five-season build shipped with NO coverage number at all:
     # the position ratios looked right and Alabama spot-checked clean, and
@@ -430,9 +511,15 @@ def build_season(season, log=log):
     dropped = collections.Counter()
     cov = {"p4_rows": 0, "pos_known": 0, "prop_pos": 0}
     unbridged = collections.Counter()
+    # 🔴 FBS-WIDE, NOT POWER 4. See fbs_conferences() for why.
+    # ⛔ FAIL OPEN, NOT CLOSED: if CFBD's /teams/fbs call failed we keep
+    # EVERY row rather than silently narrowing to nothing. A too-wide
+    # table is a cosmetic problem; a table missing 71 schools is the bug
+    # Sam reported.
+    scope_confs, _scope_teams = fbs_conferences(season, log)
     for (pid, gid), r in rows.items():
-        if r.get("conf") not in POWER4:
-            dropped["not Power 4"] += 1
+        if scope_confs and r.get("conf") not in scope_confs:
+            dropped["not FBS"] += 1
             continue
         cov["p4_rows"] += 1
         p = pos_of.get(pid)
@@ -463,7 +550,13 @@ def build_season(season, log=log):
         "season": season, "kind": "DESCRIPTIVE",
         "built_at": datetime.datetime.now(datetime.timezone.utc)
                     .strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "scope": "Power 4 only (ACC, Big 12, Big Ten, SEC)",
+        # ⚠️ THIS FIELD IS READ BY HUMANS AND BY LATER CODE. It said
+        # "Power 4 only" while the odds board carried 180 teams, which is
+        # exactly how the gap survived unnoticed.
+        "scope": ("all FBS conferences, from CFBD /teams/fbs"
+                  if scope_confs else
+                  "UNFILTERED -- /teams/fbs failed, every conference kept"),
+        "scope_conferences": sorted(scope_confs) if scope_confs else None,
         # 🔒 T37-CFB, frozen 2026-08-30: p25 of trailing_usage among
         # post-depth-rank rows, fitting seasons 2021-2023 only, n=11,380.
         # ⛔ METADATA, NOT A DELETION. Rows below it are KEPT so that
@@ -502,7 +595,7 @@ def build_season(season, log=log):
     cov["team_aggregate_rows_excluded"] = team_rows[0]
     log(f"    {len(players):,} players, {n:,} player-weeks kept")
     log(f"    🔴 COVERAGE: {cov['pos_known']:,} of {cov['p4_rows']:,} "
-        f"Power 4 box rows bridged to a position = {pct:.2f}%")
+        f"in-scope box rows bridged to a position = {pct:.2f}%")
     if not cov["bridge_ok"]:
         # ⛔ REPORTED, NOT FATAL -- the same choice `nfl.py` makes for
         # 2022. A thin bridge is a REAL LIMIT OF THE SOURCE, not a bug,
@@ -953,9 +1046,9 @@ def build_side(doc, side, log=log):
                 "rows negative; the NFL bottoms at -10 with 11.6%. So CFB "
                 "rushing yards allowed to QBs is largely a PASS-RUSH "
                 "measure and is NOT comparable to the NFL column."),
-            "scope": ("Power 4 offences only -- a defence's numbers here "
-                      "describe what POWER 4 OFFENCES did to it, which for "
-                      "a non-P4 defence may be one or two games. Read "
+            "scope": ("FBS offences (CFBD /teams/fbs) -- a defence's "
+                      "numbers here describe what FBS OFFENCES did to it, "
+                      "so an FCS defence may be one or two games. Read "
                       "`games` before reading anything else."),
             ("defences" if side == "def" else "offences"): tbl}
 
@@ -1096,9 +1189,22 @@ def verify(doc, log=log):
                    f"means a consumer cannot tell an FCS opponent from a "
                    f"data hole")
 
-    # Scope.
-    if any(g.get("conf") not in POWER4 for g in gs):
-        bad.append("non-Power-4 rows leaked past the scope filter")
+    # Scope. 🔴 CHECKED AGAINST THE DOC'S OWN DECLARED SCOPE, not against
+    # a hardcoded conference set. ⛔ The old form asserted POWER4 and would
+    # now fail every FBS-wide build -- and "the check is stale" is exactly
+    # the argument that gets a real check deleted. This version asks the
+    # stronger question: does the data match what the file SAYS it is?
+    scope = set(doc.get("scope_conferences") or [])
+    if scope:
+        leaked = {g.get("conf") for g in gs if g.get("conf") not in scope}
+        if leaked:
+            bad.append(f"rows leaked past the declared scope: "
+                       f"{sorted(c for c in leaked if c)[:6]}")
+    elif doc.get("scope", "").startswith("UNFILTERED"):
+        pass          # ⚠️ declared unfiltered, so nothing to enforce
+    else:
+        bad.append("the file declares no scope_conferences and is not "
+                   "marked UNFILTERED — its scope cannot be verified")
     return bad
 
 

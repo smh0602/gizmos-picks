@@ -1431,8 +1431,16 @@ function pickCard(p){
         ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">RECORD &mdash; no model</span>`
         : `<span class="bandchip mdl" title="${(p.confidence_note||'').replace(/"/g,'')}">MODEL</span>`)));
 
+  /* 🔴 THREE CASES, NOT TWO.
+       MLB  -- team ids, so mark() by id.
+       FOOTBALL -- no ids, but a logo directory keyed by name (fbMark).
+       neither -- the plain matchup string.
+     ⛔ Before this, every football row fell to the bare text and the
+     picks board was the only tab with no logos on it. */
   const matchup = (p.away_id || p.home_id)
     ? `${mark(p.away, p.away_id, 17)} ${ab(p.away)} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${ab(p.home)}`
+    : (p.away && p.home && typeof fbMark === 'function' && FBTEAMS[LEAGUE])
+    ? `${fbMark(p.away, 17)} ${fbAb(p.away)} <span style="color:var(--line)">@</span> ${fbMark(p.home, 17)} ${fbAb(p.home)}`
     : p.game;
   t.append(el('div','meta',
     `<span style="display:inline-flex;align-items:center;gap:5px">${matchup}</span>
@@ -2608,7 +2616,11 @@ function fbOddsTable(list){
        internally consistent; changing it is a separate decision. */
     const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric',
       minute:'2-digit', timeZone:'America/New_York'});
-    const nm = x => `<span class="nm" style="font-weight:600">${x}</span>`;
+    /* 🔴 LOGO + NAME, the way an MLB odds row reads. The logo falls back
+       to the team's abbreviation if the image 404s, so a bad URL is
+       cosmetic and never leaves a hole in the table. */
+    const nm = x => `<span class="nm" style="font-weight:600;display:inline-flex;
+      align-items:center;gap:6px">${fbMark(x, 20)}<span>${x}</span></span>`;
     const price = m => { const u = betLink(m && m.link); return u
       ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${sgn(m.price)} &rarr;</a>`
       : `<span class="cell best">${m ? sgn(m.price) : '&mdash;'}</span>`; };
@@ -2856,8 +2868,12 @@ async function fbScores(){
     const done = g.final;
     const hw = done && g.home_score > g.away_score;
     const aw = done && g.away_score > g.home_score;
+    /* 🔴 LOGO BESIDE EVERY TEAM, the way an MLB matchup row reads.
+       ⚠️ align-items moves from `baseline` to `center` -- a 22px image on
+       a baseline-aligned row sits low and drags the score out of line. */
     const side = (nm, sc, win, conf) => `<div class="side" style="display:flex;
-        align-items:baseline;gap:8px;padding:2px 0">
+        align-items:center;gap:8px;padding:3px 0">
+        ${fbMark(nm, 22)}
         <span class="nm" style="font-weight:${win?700:600};
           color:${done && !win ? 'var(--mut)' : 'inherit'}">${nm}</span>
         ${conf ? `<span class="sub" style="font-size:11px">${conf}</span>` : ''}
@@ -3325,8 +3341,63 @@ async function fbRecord(){
 }
 
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL TEAM LOGOS — the MLB `mark()` treatment, for football.
+
+   Sam, 2026-09-03: *"including team logos in the scores and matchups
+   page, team logos for odds, same for trends tab ... basically the same
+   exact layout for all tabs that the mlb ones have"*.
+
+   🔴 SAME FALLBACK CONTRACT AS `mark()`: if the image 404s it is replaced
+   with the text abbreviation, so a bad logo URL is cosmetic and can never
+   leave a hole in a table. ⛔ Do not "simplify" that away.
+   ⚠️ The directory is keyed by BOTH full name and abbreviation, because
+   the odds board says "Seattle Seahawks" and the schedule says "SEA" --
+   one lookup has to serve both tabs or they drift apart.
+   ══════════════════════════════════════════════════════════════════ */
+const FBTEAMS = {};
+
+async function fbTeamsLoad(){
+  if (FBTEAMS[LEAGUE] !== undefined) return FBTEAMS[LEAGUE];
+  try {
+    const d = await jget(`${LG_DATA[LEAGUE]}/latest/teams.json`);
+    FBTEAMS[LEAGUE] = d.teams || {};
+  } catch(e){ FBTEAMS[LEAGUE] = {}; }
+  return FBTEAMS[LEAGUE];
+}
+
+/* A short label for a football team. ⛔ NOT `ab()` -- that renders
+   mascots, so "Wake Forest Demon Deacons" became "DEA". */
+function fbAb(name){
+  const t = (FBTEAMS[LEAGUE] || {})[name];
+  if (t && t.abbr) return t.abbr;
+  const w = String(name || '').trim().split(/\s+/);
+  return (w[0] || '').slice(0, 4).toUpperCase();
+}
+
+function fbMark(name, size){
+  const t = (FBTEAMS[LEAGUE] || {})[name];
+  const s = size || 22;
+  const a = fbAb(name);
+  return (t && t.logo)
+    ? `<img class="lg" style="width:${s}px;height:${s}px;object-fit:contain"
+         src="${t.logo}" alt="${a}" loading="lazy"
+         onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'lg-fb',textContent:'${a}'}))">`
+    : `<span class="lg-fb">${a}</span>`;
+}
+
+/* Name with its logo, the way an MLB row reads. */
+function fbTeam(name, size){
+  return `<span style="display:inline-flex;align-items:center;gap:6px">
+    ${fbMark(name, size)}<span>${name || ''}</span></span>`;
+}
+
+
 async function renderFootball(){
   const v = $('#fbview');
+  /* 🔴 LOAD THE LOGO DIRECTORY FIRST, once per league. ⛔ Loading it
+     inside each tab would make the first paint logo-less and then reflow. */
+  await fbTeamsLoad();
   if (FBTAB === 'odds') return fbOdds();
   if (FBTAB === 'scores') return fbScores();
   if (FBTAB === 'props') return fbProps();
@@ -3413,12 +3484,16 @@ async function renderFootball(){
       <th style="width:32%">Vs. league range</th><th class="n">Gm</th>
     </tr></thead><tbody>
     ${ranked.map((r,i) => { const t = (r.v-lo)/rng; return `<tr>
-        <td class="rk">${i+1}</td><td><b>${r.team}</b></td>
+        <td class="rk">${i+1}</td>
+        <td><span style="display:inline-flex;align-items:center;gap:7px">
+          ${fbMark(r.team, 20)}<b>${r.team}</b></span></td>
         <td class="n" style="color:${col(t)}"><b>${r.v.toFixed(1)}</b></td>
         <td><div class="fbbar"><i style="width:${(6+t*94).toFixed(1)}%;background:${col(t)}"></i></div></td>
         <td class="n">${r.games}</td></tr>`; }).join('')}
     ${thin.map(r => `<tr class="fbthin"><td class="rk">&mdash;</td>
-        <td>${r.team}</td><td class="n">${r.v.toFixed(1)}</td>
+        <td><span style="display:inline-flex;align-items:center;gap:6px">
+          ${fbMark(r.team, 18)}<span>${r.team}</span></span></td>
+        <td class="n">${r.v.toFixed(1)}</td>
         <td></td><td class="n">${r.games}</td></tr>`).join('')}
     </tbody></table>
     <div class="note" style="margin-top:14px">
