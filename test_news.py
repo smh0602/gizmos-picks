@@ -51,18 +51,34 @@ eq(C.NEWS_FEEDS["mlb"], [
     ("CBS Sports", "https://www.cbssports.com/rss/headlines/mlb/"),
 ], "the three MLB feeds, same order")
 
-print("\n2. ⛔ A LEAGUE WITH NO ADOPTED FEED WRITES NOTHING")
-for lg in ("nfl", "ncaaf"):
-    eq(C.NEWS_FEEDS.get(lg), [], f"{lg} ships no feed until a probe is read")
+print("\n2. THE ADOPTED FOOTBALL FEEDS ARE THE ONES THE PROBE PASSED")
+# ⛔ ADOPTED FROM THE REPORT, NOT FROM A GUESS. 2026-09-03: every ESPN
+# feed returned an EMPTY BODY (college and NFL), NFL.com returned 404.
+eq([n for n, _ in C.NEWS_FEEDS["nfl"]], ["CBS Sports", "ProFootballTalk"],
+   "nfl: the two that passed AND are distinct sources")
+eq([n for n, _ in C.NEWS_FEEDS["ncaaf"]], ["CBS Sports", "Yahoo CFB"],
+   "ncaaf: the two that passed")
+# ⛔ Yahoo NFL PASSED THE BARS AND IS STILL NOT ADOPTED -- it republishes
+# ProFootballTalk verbatim. A bar-passing feed is not automatically a
+# feed worth having.
+eq(any("sports.yahoo.com/nfl" in u for _, u in C.NEWS_FEEDS["nfl"]), False,
+   "🔴 Yahoo NFL excluded as a PFT duplicate")
+# ⚠️ MLB's ESPN entry is kept ON PURPOSE (dead, but it self-heals if ESPN
+# restores RSS). What must never happen is adopting a NEW football one.
+eq(any("espn" in u for lg in ("nfl", "ncaaf") for _, u in C.NEWS_FEEDS[lg]),
+   False, "⛔ no ESPN feed adopted for football -- all three were empty")
+
+print("\n2b. ⛔ A LEAGUE WITH NO ADOPTED FEED STILL WRITES NOTHING")
 wrote = []
-old_write, old_league = C.write, C.LEAGUE
+old_write, old_league, old_feeds = C.write, C.LEAGUE, C.NEWS_FEEDS
 C.write = lambda *a, **k: wrote.append(a)
 try:
-    C.LEAGUE = "nfl"
+    C.NEWS_FEEDS = dict(C.NEWS_FEEDS, xfl=[])
+    C.LEAGUE = "xfl"
     eq(C.collect_news(), None, "returns None on an empty list")
     eq(wrote, [], "🔴 and wrote NO file at all")
 finally:
-    C.write, C.LEAGUE = old_write, old_league
+    C.write, C.LEAGUE, C.NEWS_FEEDS = old_write, old_league, old_feeds
 
 print("\n3. the one parser, on the shapes the real feeds use")
 RSS = """<?xml version="1.0"?>
@@ -133,6 +149,34 @@ if probe:
     consts = {n.value for n in ast.walk(probe)
               if isinstance(n, ast.Constant) and isinstance(n.value, str)}
     eq("sample" in consts, True, "🔴 the report carries sample headlines")
+
+print("\n8. 🔴 SYNDICATED DUPLICATES ARE REMOVED (measured, not imagined)")
+# ⚠️ The probe found Yahoo NFL republishing ProFootballTalk VERBATIM.
+# Two feeds on the same wire must not print the same story twice.
+SHARED = "Mike Hall moves past training camp incident with Quinshon Judkins"
+def feed(title, when):
+    return ("""<?xml version="1.0"?><rss><channel>
+      <item><title>%s</title><link>https://x.test/%s</link>
+      <pubDate>%s</pubDate><description>d</description></item>
+      </channel></rss>""" % (title, abs(hash(title)) % 999, when))
+bodies = [feed(SHARED, "Wed, 02 Sep 2026 18:00:00 GMT"),
+          feed(SHARED, "Wed, 02 Sep 2026 17:00:00 GMT")]
+calls = {"i": 0}
+def fake(req, timeout=None):
+    i = calls["i"]; calls["i"] += 1
+    return _Resp(bodies[min(i, len(bodies) - 1)].encode())
+got = {}
+old_open2, old_write2, old_league2 = C.urllib.request.urlopen, C.write, C.LEAGUE
+C.urllib.request.urlopen = fake
+C.write = lambda path, obj, compress=False: got.update(obj=obj)
+C.LEAGUE = "nfl"
+try:
+    C.collect_news()
+finally:
+    C.urllib.request.urlopen, C.write, C.LEAGUE = old_open2, old_write2, old_league2
+eq(got["obj"]["n"], 1, "🔴 the same headline from two feeds is stored ONCE")
+eq(got["obj"]["items"][0]["published"], "2026-09-02T18:00:00Z",
+   "  ...and the copy kept is the NEWER one")
 
 print()
 if fails:

@@ -1717,11 +1717,38 @@ def collect_pitchers():
 NEWS_FEEDS = {
     "mlb": [
         ("MLB.com", "https://www.mlb.com/feeds/news/rss.xml"),
+        # 🔴 DEAD AS OF 2026-09-03 and kept deliberately. It returns an
+        # EMPTY BODY, exactly as ESPN's college and NFL feeds do, so it
+        # contributes nothing -- the live news.json that day held 25
+        # MLB.com and 25 CBS items and ZERO from ESPN. ⛔ Left in place so
+        # it resumes automatically if ESPN restores RSS, and the new
+        # per-feed health block makes its silence visible instead of
+        # invisible. ⚠️ Removing it would hide the fact that it broke.
         ("ESPN MLB", "https://www.espn.com/espn/rss/mlb/news"),
         ("CBS Sports", "https://www.cbssports.com/rss/headlines/mlb/"),
     ],
-    "nfl": [],
-    "ncaaf": [],
+    # ✅ ADOPTED 2026-09-03 FROM THE PROBE REPORT, after reading the
+    # sample headlines. ⛔ Not from a guess -- see NEWS_CANDIDATES below
+    # and `data/<lg>/latest/news-probe.json` for what was rejected.
+    #
+    # 🔴 EVERY ESPN FEED IS DEAD. All three ESPN URLs returned an EMPTY
+    # BODY ("no element found: line 1, column 0"), college and NFL alike.
+    # ⚠️ That is a fact about ESPN, not about our parser -- the same
+    # parser read 25 clean items from every other feed in the same run.
+    # NFL.com returned a hard 404.
+    #
+    # ⛔ YAHOO NFL IS PROFOOTBALLTALK SYNDICATED and is deliberately NOT
+    # adopted: "Mike Hall moves past training camp incident with Quinshon
+    # Judkins" appeared VERBATIM in both samples. PFT is the original and
+    # carries images on all 25 items; Yahoo carried none.
+    "nfl": [
+        ("CBS Sports", "https://www.cbssports.com/rss/headlines/nfl/"),
+        ("ProFootballTalk", "https://profootballtalk.nbcsports.com/feed/"),
+    ],
+    "ncaaf": [
+        ("CBS Sports", "https://www.cbssports.com/rss/headlines/college-football/"),
+        ("Yahoo CFB", "https://sports.yahoo.com/college-football/rss.xml"),
+    ],
 }
 
 # ⚠️ CANDIDATES ARE NOT FEEDS. Nothing here is believed until probed --
@@ -1958,18 +1985,51 @@ def collect_news():
             f"and read the sample headlines. Nothing written.")
         return None
 
-    items = []
+    items, health = [], []
     for source, url in feeds:
         try:
             got = _news_items(source, url)
         except Exception as e:
-            log(f"  {source}: {type(e).__name__}")
+            log(f"  🔴 {source}: {type(e).__name__}: {e}")
+            health.append({"source": source, "n": 0,
+                           "error": f"{type(e).__name__}: {e}"})
             continue
         items.extend(got)
-        log(f"  {source}: {len(got)} items")
+        health.append({"source": source, "n": len(got)})
+        # 🔴 A FEED THAT RETURNS NOTHING MUST SAY SO. ⛔ MEASURED
+        # 2026-09-03: ESPN's RSS is dead across every sport, and MLB's
+        # news tab had been running on TWO of its THREE feeds for an
+        # unknown length of time WITHOUT ANYONE KNOWING -- because
+        # `collect_news` only raises when EVERY feed fails, and a feed
+        # that parses cleanly to zero items looked like a quiet day.
+        # ⚠️ This is the project's own rule: a stale page that looks
+        # fresh is worse than an outage.
+        if not got:
+            log(f"  🔴 {source}: PARSED BUT RETURNED ZERO ITEMS -- "
+                f"the feed is probably dead. It is NOT being counted.")
+        else:
+            log(f"  {source}: {len(got)} items")
 
     # Newest first; undated entries sink to the bottom rather than the top.
     items.sort(key=lambda x: x["published"] or "", reverse=True)
+
+    # 🔴 DEDUPE BY HEADLINE ACROSS FEEDS. ⛔ SYNDICATION IS REAL AND WAS
+    # MEASURED, NOT IMAGINED: the 2026-09-03 probe found Yahoo NFL
+    # republishing ProFootballTalk verbatim. Two feeds that share a wire
+    # would otherwise print the same story twice on the page, which reads
+    # as a broken site. ⚠️ Sorted newest-first already, so the FIRST copy
+    # kept is the freshest; ties keep whichever feed was listed first.
+    seen, deduped = set(), []
+    for it in items:
+        k = "".join(c for c in (it["title"] or "").lower() if c.isalnum())
+        if k and k in seen:
+            continue
+        seen.add(k)
+        deduped.append(it)
+    if len(deduped) != len(items):
+        log(f"  deduped {len(items) - len(deduped)} syndicated duplicate(s)")
+    items = deduped
+
     if not items:
         raise RuntimeError("every news feed failed — nothing written")
 
@@ -1977,6 +2037,11 @@ def collect_news():
         "pulled_at": stamp(),
         "kind": "DESCRIPTIVE",
         "n": len(items),
+        # ⚠️ PER-FEED HEALTH, so a dead source is visible in the artifact
+        # rather than only in a log nobody reads. Additive -- the page
+        # ignores it.
+        "feeds": health,
+        "n_dead": sum(1 for h in health if not h["n"]),
         "items": items[:60],
     })
     log(f"news: {len(items)} items from {len({i['source'] for i in items})} sources")
