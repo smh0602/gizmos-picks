@@ -34,7 +34,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 ODDS_KEY = os.environ.get("ODDS_API_KEY", "").strip()
 API = "https://api.the-odds-api.com/v4"
@@ -1065,6 +1065,146 @@ def started_game(rec, row):
         if hit is not None:
             return hit
     return (row.get("pa") or 0) >= 3
+
+
+FB_MARKET_LABEL = {
+    "player_pass_yds":      ("Passing yards",   "pass yds"),
+    "player_pass_tds":      ("Passing TDs",     "pass TD"),
+    "player_rush_yds":      ("Rushing yards",   "rush yds"),
+    "player_reception_yds": ("Receiving yards", "rec yds"),
+    "player_receptions":    ("Receptions",      "rec"),
+    "player_anytime_td":    ("Anytime TD",      "TD"),
+}
+
+
+def collect_props_board_fb(league=None):
+    """Join the day's football prop snapshot into a board the page reads.
+
+    🔴 WHY THIS EXISTS SEPARATELY FROM `collect_props_board`. That
+    function is MLB to the bone: it loads `pitchers.json.gz` and
+    `hitters.json.gz` and RAISES without them. `[measured 2026-09-02]`
+    Thursday's football pull would have stored raw snapshots that
+    NOTHING joined, so the Player Props tab would have stayed empty on a
+    day the data actually arrived. ⛔ Odds history cannot be re-bought;
+    a board that is never built is a pull that was wasted.
+
+    ⚠️ EVERY NUMBER HERE IS 🔵 MARKET AND CARRIES NO PROJECTION.
+    ⛔ AND THAT IS NOT A TEMPORARY STATE ON FOOTBALL: three
+    pre-registered specifications (T46, T47, T50) each lost to a
+    player's own season average, so there is no football MODEL number to
+    attach. A line, a price and where to get it is the honest product.
+
+    ⛔ NO PLAYER GAME-LOG JOIN, ON PURPOSE. Attaching a player's own
+    trailing numbers means matching a sportsbook's spelling to our
+    database -- the Max Muncy problem, and worse in college where a
+    roster turns over 45% a year. ⚠️ And 2026 logs do not exist yet.
+    ➡️ It is added when there are logs to join AND the match is proven
+    by a gate, not before.
+    """
+    import glob as _g
+    lg = league or LEAGUE
+    base = LEAGUES[lg]["data"] + "/latest"
+    # 🔴 THE SAME DATE CONVENTION AS THE WRITER, NOT A SECOND ONE.
+    # `daydir()` files a snapshot under the UTC date; a first draft of
+    # this read `et_date()` instead. ⛔ Between 00:00 and 05:00 UTC those
+    # differ, so a Thursday-night college pull -- 22:30 ET, which is
+    # 02:30 UTC Friday -- would have been looked for under the wrong day
+    # and the board would have come back empty on a night the data
+    # arrived. ⚠️ Two date conventions for one path is the same class of
+    # defect as two copies of a coefficient.
+    day = now().strftime("%Y-%m-%d")
+    src = sorted(_g.glob(f"{DATA}/{day}/props-player/*.json.gz"))
+    if not src:
+        # ⚠️ A pull just before midnight UTC lands under yesterday.
+        # Looking back one day is cheap and cannot pick up a stale board:
+        # the file records its own `pulled_at` and the page shows the age.
+        prev = (now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        src = sorted(_g.glob(f"{DATA}/{prev}/props-player/*.json.gz"))
+        if src:
+            day = prev
+            log(f"  using the {prev} snapshot (pull landed before midnight UTC)")
+    if not src:
+        log(f"  no props-player snapshot for {day} -- nothing to join")
+        return None
+    # ⚠️ NEWEST SNAPSHOT WINS. Several pulls a day land in the same
+    # directory; the board describes the most recent one and says when.
+    doc = None
+    for f in src:
+        try:
+            with gzip.open(f, "rt", encoding="utf-8") as fh:
+                d = json.load(fh)
+            if doc is None or (d.get("pulled_at") or "") > (doc.get("pulled_at") or ""):
+                doc = d
+        except Exception as e:
+            log(f"  skipping {f}: {type(e).__name__}: {e}")
+    if not doc:
+        return None
+
+    books_seen, games = set(), []
+    for ev in doc.get("events") or []:
+        # rung -> the best price on each side, plus how many books have it
+        rungs = {}
+        for bk in ev.get("bookmakers") or []:
+            key = bk.get("key")
+            books_seen.add(key)
+            # ⛔ Sam's five books only, same filter as every other pull.
+            if key not in BOOKS:
+                continue
+            for mk in bk.get("markets") or []:
+                m = mk.get("key")
+                if m not in FB_MARKET_LABEL:
+                    continue
+                for o in mk.get("outcomes") or []:
+                    who = o.get("description")
+                    side = (o.get("name") or "").lower()
+                    pt = o.get("point")
+                    price = o.get("price")
+                    if not who or price is None:
+                        continue
+                    k = (who, m, pt)
+                    r = rungs.setdefault(k, {
+                        "player": who, "market": m,
+                        "label": FB_MARKET_LABEL[m][0],
+                        "unit": FB_MARKET_LABEL[m][1],
+                        "line": pt, "sides": {}})
+                    sd = r["sides"].setdefault(side, {"n_books": 0, "price": None,
+                                                      "book": None, "link": None})
+                    sd["n_books"] += 1
+                    # ⚠️ BEST = LEAST NEGATIVE / MOST POSITIVE. American
+                    # odds do not order numerically for a bettor.
+                    if sd["price"] is None or price > sd["price"]:
+                        sd["price"] = price
+                        sd["book"] = key
+                        sd["link"] = o.get("link") or mk.get("link") or bk.get("link")
+        props = sorted(rungs.values(),
+                       key=lambda r: (r["market"], r["player"], r["line"] or 0))
+        if not props:
+            continue
+        games.append({
+            "id": ev.get("id"),
+            "home": ev.get("home_team"), "away": ev.get("away_team"),
+            "commence": ev.get("commence_time"),
+            "n_props": len(props),
+            "props": props,
+        })
+    games.sort(key=lambda g: g["commence"] or "")
+    out = {
+        "kind": "MARKET",
+        "note": ("Player prop lines and the best available price across "
+                 "Sam's five books. NOT a Gizmo's projection (rule 55) -- "
+                 "football has no model, so no row carries a confidence %."),
+        "league": lg,
+        "pulled_at": doc.get("pulled_at"),
+        "regions": doc.get("regions"),
+        "books_seen": sorted(books_seen),
+        "n_games": len(games),
+        "n_props": sum(g["n_props"] for g in games),
+        "games": games,
+    }
+    write(f"{base}/props.json.gz", out, compress=True)
+    log(f"  props board: {out['n_games']} games, {out['n_props']} rungs, "
+        f"books {sorted(b for b in books_seen if b in BOOKS)}")
+    return out
 
 
 def collect_props_board():
@@ -2427,6 +2567,15 @@ def run_mode(mode):
                 log("FATAL: props-player is a FOOTBALL mode. Set LEAGUE.")
                 sys.exit(1)
             left = collect_props("player", props_regions("player"))
+            # 🔴 JOIN IT IMMEDIATELY. A pull that is never joined is a
+            # pull that was wasted, and odds history cannot be re-bought.
+            # ⛔ A join failure must NOT lose the snapshot that was just
+            # paid for -- it is already on disk and committed.
+            try:
+                collect_props_board_fb()
+            except Exception as _pe:
+                log(f"  props board FAILED: {type(_pe).__name__}: {_pe}")
+                log("  ⚠️ the snapshot is safe on disk; the board can be rebuilt")
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.

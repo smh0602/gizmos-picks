@@ -2914,10 +2914,138 @@ function fbCurrentWeek(games, weeks){
   return weeks[weeks.length - 1];
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL PLAYER PROPS.
+
+   🔵 EVERY NUMBER HERE IS MARKET. ⛔ AND ON FOOTBALL THAT IS NOT A
+   TEMPORARY STATE: three pre-registered specifications -- T46, T47,
+   T50 -- each lost to a player's own season average on held-out weeks,
+   and every input we hold has been tested. So there is no football
+   MODEL number to attach to a row, and this tab shows a line, a price
+   and where to get it. That is the honest product.
+
+   ⛔ NO PLAYER GAME-LOG COLUMN, ON PURPOSE. Attaching a player's own
+   trailing numbers means matching a sportsbook's spelling to our
+   database -- the Max Muncy problem, worse in college where a roster
+   turns over 45% a year -- and 2026 logs do not exist yet. It is added
+   when there are logs to join AND the match is proven by a gate.
+   ══════════════════════════════════════════════════════════════════ */
+const FBPROPS = {};
+let fbMkt = 'all';
+
+async function fbPropsLoad(){
+  if (FBPROPS[LEAGUE] !== undefined) return FBPROPS[LEAGUE];
+  try { FBPROPS[LEAGUE] = await jgetGz(`${LG_DATA[LEAGUE]}/latest/props.json.gz`); }
+  catch(e){ FBPROPS[LEAGUE] = null; }
+  return FBPROPS[LEAGUE];
+}
+
+async function fbProps(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  fbWire();
+  const B = await fbPropsLoad();
+  if (!B || !(B.games || []).length){
+    v.innerHTML = fbShell(`<div class="note">
+      <b>No ${LG_NAME[LEAGUE]} player props stored yet.</b><br>
+      ${LEAGUE === 'nfl'
+        ? 'The first NFL pull runs Thursday evening, then Sunday morning.'
+        : 'The first college pull runs Thursday evening, then Friday and Saturday.'}
+      Nothing is missing &mdash; the season has not reached its first game day.
+    </div>`);
+    fbWire(); return;
+  }
+
+  /* Markets actually present, so the filter offers nothing empty. */
+  const mkts = [...new Set(B.games.flatMap(g => g.props.map(p => p.market)))];
+  const label = {};
+  B.games.forEach(g => g.props.forEach(p => { label[p.market] = p.label; }));
+  if (fbMkt !== 'all' && mkts.indexOf(fbMkt) === -1) fbMkt = 'all';
+
+  const {list, nStarted, allDone} = splitStarted(
+    B.games.map(g => ({...g, commence: g.commence})));
+
+  const priceCellFb = (sd) => {
+    if (!sd || sd.price == null) return '<span class="cell">&mdash;</span>';
+    const u = betLink(sd.link);
+    const inner = `${sgn(sd.price)}${u ? ' &rarr;' : ''}`;
+    return u
+      ? `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow">${inner}</a>`
+      : `<span class="cell best">${inner}</span>`;
+  };
+
+  const blocks = list.map(g => {
+    const props = g.props.filter(p => fbMkt === 'all' || p.market === fbMkt);
+    if (!props.length) return '';
+    const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric',
+      minute:'2-digit', timeZone:'America/New_York'});
+    const rows = props.map(p => {
+      const o = (p.sides || {}).over, u = (p.sides || {}).under;
+      const yes = (p.sides || {}).yes;
+      /* ⚠️ Anytime TD is a ONE-SIDED market -- it has no Under. Rendering
+         a blank Under column for it would imply a price that does not
+         exist, so the row says so. */
+      const oneSided = !o && !u && yes;
+      return `<tr>
+        <td class="gm" style="min-width:190px"><b>${p.player}</b></td>
+        <td class="sub" style="white-space:nowrap">${p.label}</td>
+        <td style="white-space:nowrap;font-variant-numeric:tabular-nums">${
+          p.line == null ? '&mdash;' : p.line}</td>
+        <td>${oneSided ? priceCellFb(yes) : priceCellFb(o)}</td>
+        <td>${oneSided
+          ? '<span class="sub">one-sided market</span>'
+          : priceCellFb(u)}</td>
+        <td class="sub" style="white-space:nowrap">${
+          [(o||yes||{}).book, (u||{}).book].filter(Boolean)
+            .map(bookName).filter((x,i,a) => a.indexOf(x)===i).join(' · ') || ''}</td>
+        <td class="sub">${Math.max((o||yes||{}).n_books||0, (u||{}).n_books||0)}</td>
+      </tr>`;
+    }).join('');
+    return `<h3 style="margin:22px 0 8px;font-size:14px">${g.away} @ ${g.home}
+        <span class="rec">${t} &middot; ${props.length} prop${props.length===1?'':'s'}</span></h3>
+      <div class="obwrap"><table class="ob">
+        <thead><tr><th class="gm">Player</th><th>Market</th><th>Line</th>
+          <th>Over</th><th>Under</th><th>Where</th><th>Books</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+  }).join('');
+
+  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">Player Props
+        <span class="kind k-market">Market</span></h2>
+      <p style="color:var(--mut);margin:0">${B.n_props.toLocaleString()} lines across
+        ${B.n_games} game${B.n_games===1?'':'s'}, best price of
+        ${B.books_seen.filter(b => BOOKNAME[b]).length} books. ${freshness(B.pulled_at)}</p>
+    </div>
+    <div class="fbctl">
+      <label>Market<select id="fb-pr-mkt">
+        <option value="all"${fbMkt==='all'?' selected':''}>All markets</option>
+        ${mkts.map(m => `<option value="${m}"${m===fbMkt?' selected':''}>${label[m]}</option>`).join('')}
+      </select></label>
+    </div>
+    ${startedToggle(nStarted, 'fb-pr-started', allDone)}
+    ${blocks || '<div class="msg">No lines in this market.</div>'}
+    <div class="note" style="margin-top:18px">
+      <b>Every price with an arrow is clickable</b> and opens that book's bet slip.
+      Set your state at the top right or half the links will not resolve.
+      <br><br>&#128309; <b>These are the sportsbooks' numbers, not ours.</b>
+      <br>&#9940; <b>No row carries a Gizmo's confidence rating, and none ever
+      will on this tab.</b> Three pre-registered football models were tested and
+      every one lost to a player's own season average, so there is nothing of
+      ours to put beside these lines. A line and the best price is what we
+      honestly have.
+    </div>`);
+  fbWire();
+  const el = $('#fb-pr-mkt');
+  if (el) el.addEventListener('change', e => { fbMkt = e.target.value; fbProps(); });
+  const t = $('#fb-pr-started');
+  if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbProps(); });
+}
+
 async function renderFootball(){
   const v = $('#fbview');
   if (FBTAB === 'odds') return fbOdds();
   if (FBTAB === 'scores') return fbScores();
+  if (FBTAB === 'props') return fbProps();
   if (FBTAB !== 'trends'){
     const [title, why] = FB_EMPTY[FBTAB];
     v.innerHTML = fbShell(
