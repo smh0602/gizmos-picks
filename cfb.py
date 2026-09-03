@@ -789,6 +789,8 @@ def build_schedule(season, log=log):
         done = bool(g.get(cp)) if cp else (h is not None and a is not None)
         if done:
             finals += 1
+        hl = g.get("homeLineScores") or None
+        al = g.get("awayLineScores") or None
         out.append({
             "id": str(g.get("id")),
             "week": g.get("week"),
@@ -809,6 +811,31 @@ def build_schedule(season, log=log):
             "away_class": g.get("awayClassification"),
             "neutral": bool(g.get("neutralSite")),
             "home_score": h, "away_score": a,
+            # 🔴 SCORE BY QUARTER. `homeLineScores`/`awayLineScores` come
+            # back on the SAME /games call we already make -- they were
+            # simply never stored. ⚠️ A list of per-quarter points; an
+            # overtime game carries MORE than four entries, so the page
+            # must render whatever length it gets rather than assuming 4.
+            # ⛔ Empty list -> None, so "no line score" and "0-0-0-0" are
+            # never confused.
+            "home_line": hl, "away_line": al,
+            "venue": g.get("venue"),
+            # ⚠️ SAME KEYS AS THE NFL ROW, filled where CFBD has the data
+            # and None where it genuinely does not. ⛔ Emitting a
+            # different key set would break the one-renderer-serves-both
+            # contract that test_schedule.py pins -- and Sam's rule that
+            # whatever we do for one league we do for the other.
+            # CFBD /games carries no weather at all.
+            "roof": None, "surface": None, "temp": None, "wind": None,
+            # ✅ DERIVED, NOT FABRICATED: more than four quarters on the
+            # line score IS overtime. None when we have no line score,
+            # because "no data" and "no overtime" are different facts.
+            "overtime": (len(hl) > 4 if hl else None),
+            "div_game": (bool(g.get("conferenceGame"))
+                         if g.get("conferenceGame") is not None else None),
+            # ⛔ CFBD's /games carries no closing prices. None, not zero.
+            "closing_ml_home": None, "closing_ml_away": None,
+            "closing_spread": None, "closing_total": None,
             "final": done,
         })
     out.sort(key=lambda r: (r["start"] or "", r["home"] or ""))

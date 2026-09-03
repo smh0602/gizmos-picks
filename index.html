@@ -2898,8 +2898,7 @@ async function fbScores(){
     return `<h3 style="margin:22px 0 8px;font-size:14px">
         ${dd.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'})}
         <span class="rec">${list.length} game${list.length===1?'':'s'}</span></h3>
-      <div class="obwrap"><table class="ob"><tbody>
-        ${list.map(row).join('')}</tbody></table></div>`;
+      <div class="fbcards" data-day="${d}"></div>`;
   }).join('');
 
   const nFinal = shown.filter(g => g.final).length;
@@ -2944,6 +2943,18 @@ async function fbScores(){
       survives realignment.` : ''}
     </div>`);
   fbWire();
+
+  /* 🔴 THE CARDS ARE APPENDED AS NODES, NOT INTERPOLATED AS HTML, because
+     each one carries a CLICK HANDLER. ⛔ Building them into the template
+     string would render them dead -- the MLB tab has the same
+     constraint, which is why gameCard() returns an element too. */
+  Object.keys(byDate).forEach(d => {
+    const host = v.querySelector(`.fbcards[data-day="${CSS.escape(d)}"]`);
+    if (!host) return;
+    byDate[d].slice()
+      .sort((a, b) => (a.start || '') < (b.start || '') ? -1 : 1)
+      .forEach(g => host.append(fbGameCard(g)));
+  });
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
   sel('fb-sc-season', e => { fbSeason = +e.target.value; fbWeek = null; fbScores(); });
   sel('fb-sc-week',   e => { fbWeek = +e.target.value; fbScores(); });
@@ -3393,11 +3404,198 @@ function fbTeam(name, size){
 }
 
 
+/* ══════════════════════════════════════════════════════════════════
+   FOOTBALL GAME CARD + BOX SCORE — MLB's Scores tab, for football.
+
+   Sam, 2026-09-03: *"the score by quarter, show the betting lines, the
+   odds under each team, home and away teams, the date, etc. i dont want
+   to include player lines tho"*.
+
+   🔴 SAME INTERACTION AS MLB: a clickable card, a modal on click, Escape
+   and backdrop to close. It reuses MLB's own `.g`, `.g-top`, `.tm`,
+   `.mid`, `.bar`, `.ovl` and `.modal` classes, so the two sports render
+   through the SAME stylesheet rather than a lookalike.
+   ⛔ NO PLAYER LINES, deliberately. MLB shows starting pitchers because
+   they are the single biggest input to a baseball game; football has no
+   equivalent, and inventing one would be filler.
+
+   ⚠️ QUARTER SCORES EXIST FOR COLLEGE AND NOT FOR THE NFL. CFBD returns
+   `homeLineScores`/`awayLineScores` on the same call we already make;
+   nflverse's schedule has no per-quarter column at all. The modal says
+   so in words rather than drawing an empty grid. ⛔ Do not fabricate
+   quarters from the final score.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* The market row for one football game, from the live odds board. */
+function fbBoardFor(g){
+  const B = (FBBOARD[LEAGUE] || {}).games || [];
+  if (!B.length) return null;
+  const nm = x => String(x || '').toLowerCase();
+  // ⚠️ The schedule says "SEA"; the board says "Seattle Seahawks". The
+  // team directory bridges them, so match on BOTH shapes.
+  const dir = FBTEAMS[LEAGUE] || {};
+  const full = x => (dir[x] && dir[x].name) ? dir[x].name : x;
+  const h = nm(full(g.home)), a = nm(full(g.away));
+  return B.find(x => nm(x.home) === h && nm(x.away) === a) || null;
+}
+
+function fbGameCard(g){
+  const done = g.final;
+  const c = el('div', 'g clickable');
+  c.addEventListener('click', ev => {
+    if (ev.target.closest('a')) return;
+    fbOpenBox(g);
+  });
+  const b = fbBoardFor(g);
+  const dir = FBTEAMS[LEAGUE] || {};
+  const nameOf = x => (dir[x] && dir[x].name) ? dir[x].name : x;
+
+  const side = (t, score, right) => {
+    const d = el('div', 'tm' + (right ? ' r' : ''));
+    if (done) d.append(el('div', 'win', String(score == null ? '' : score)));
+    else if (b && b.win_pct && b.win_pct[nameOf(t)] != null)
+      d.append(el('div', 'win', b.win_pct[nameOf(t)] + '%'));
+    d.append(el('div', 'abbr', right
+      ? `${fbAb(t)} ${fbMark(t, 24)}` : `${fbMark(t, 24)} ${fbAb(t)}`));
+    d.append(el('div', 'rec', nameOf(t) || ''));
+    // 🔵 THE MONEYLINE UNDER EACH TEAM, exactly as MLB does it.
+    const ml = b && (b.best_ml || {})[nameOf(t)];
+    if (ml) d.append(el('div', 'ml', sgn(ml.price)));
+    return d;
+  };
+
+  const M = el('div', 'mid');
+  if (done){
+    M.append(el('div', 'time', g.overtime ? 'FINAL / OT' : 'FINAL'));
+    M.append(el('div', 'sc', `${g.away_score} – ${g.home_score}`));
+  } else {
+    M.append(el('div', 'date', fbKickDate(g.start) || ''));
+    M.append(el('div', 'time', fbKickTime(g.start) || 'TBD'));
+  }
+  const top = el('div', 'g-top');
+  top.append(side(g.away, g.away_score, false), M, side(g.home, g.home_score, true));
+  c.append(top);
+
+  // ---- market strip, same component as MLB's
+  if (b && (b.total != null || b.run_line != null)){
+    const bar = el('div', 'bar');
+    bar.append(el('span', null, '<span class="kind k-market">Market</span>'));
+    // 🔴 NAME THE TEAM the spread belongs to. "-3.5" between two names
+    // says nothing about whose line it is.
+    const sp = b.run_line_team ? fbAb(b.run_line_team) + ' ' : '';
+    bar.append(el('span', null,
+      `O/U <b>${b.total ?? '&mdash;'}</b> &nbsp; Spread <b>${sp}${
+        b.run_line != null ? sgn(b.run_line) : '&mdash;'}</b>`));
+    bar.append(el('span', null, b.n_books
+      ? `<b>${b.n_books}</b> books` : '<span class="sub">no moneyline posted</span>'));
+    c.append(bar);
+  }
+  return c;
+}
+
+/* The modal. ⛔ No network call -- everything is already on the row. */
+function fbOpenBox(g){
+  const ovl = el('div', 'ovl');
+  const dir = FBTEAMS[LEAGUE] || {};
+  const nameOf = x => (dir[x] && dir[x].name) ? dir[x].name : x;
+  const b = fbBoardFor(g);
+  const hl = g.home_line, al = g.away_line;
+
+  /* Score by quarter. ⚠️ Render WHATEVER LENGTH comes back -- an
+     overtime game has more than four columns, and assuming 4 would hide
+     the overtime period that decided the game. */
+  const n = Math.max(hl ? hl.length : 0, al ? al.length : 0);
+  const head = Array.from({length: n}, (_, i) =>
+    `<th class="n">${i < 4 ? (i + 1) : (n === 5 ? 'OT' : 'OT' + (i - 3))}</th>`).join('');
+  const row = (t, line, total) => `<tr>
+      <td style="white-space:nowrap">${fbMark(t, 20)} <b>${fbAb(t)}</b></td>
+      ${Array.from({length: n}, (_, i) =>
+        `<td class="n">${(line && line[i] != null) ? line[i] : ''}</td>`).join('')}
+      <td class="n"><b>${total == null ? '' : total}</b></td>
+    </tr>`;
+
+  const quarters = n
+    ? `<table class="bs" style="width:100%">
+         <thead><tr><th>Team</th>${head}<th class="n">T</th></tr></thead>
+         <tbody>${row(g.away, al, g.away_score)}${row(g.home, hl, g.home_score)}</tbody>
+       </table>`
+    : `<div class="note">${g.final
+        ? (LEAGUE === 'nfl'
+           ? '<b>Quarter-by-quarter scoring is not in the NFL schedule feed.</b> '
+             + 'The source we use carries only the final score. Nothing is '
+             + 'missing from the game &mdash; the data simply is not published '
+             + 'in that file, and a made-up quarter split would be worse than none.'
+           : '<b>No quarter scores stored for this game yet.</b> They arrive '
+             + 'with the next schedule rebuild.')
+        : '<b>This game has not kicked off.</b> Quarter scores appear once it is final.'}
+      </div>`;
+
+  const line = (label, val) => val == null || val === ''
+    ? '' : `<div><span class="lab">${label}</span> <b>${val}</b></div>`;
+
+  const market = b
+    ? `<div class="sp2" style="display:flex;flex-wrap:wrap;gap:18px;margin-top:4px">
+         ${line('O/U', b.total)}
+         ${line('Spread', (b.run_line_team ? fbAb(b.run_line_team) + ' ' : '')
+                          + (b.run_line != null ? sgn(b.run_line) : ''))}
+         ${line(fbAb(g.away), (b.best_ml || {})[nameOf(g.away)]
+                ? sgn(b.best_ml[nameOf(g.away)].price) : '')}
+         ${line(fbAb(g.home), (b.best_ml || {})[nameOf(g.home)]
+                ? sgn(b.best_ml[nameOf(g.home)].price) : '')}
+         ${line('Books', b.n_books)}
+       </div>`
+    : '<div class="note" style="margin-top:4px">No live odds stored for this game.</div>';
+
+  const venue = [g.venue, g.roof, g.surface].filter(Boolean).join(' &middot; ');
+  const wx = [g.temp != null ? g.temp + '&deg;F' : '',
+              g.wind != null ? g.wind + ' mph wind' : ''].filter(Boolean).join(' &middot; ');
+
+  ovl.innerHTML = `<div class="modal">
+    <div class="modal-h">
+      <div>
+        <div style="font-weight:800;font-size:15px">${nameOf(g.away)} @ ${nameOf(g.home)}</div>
+        <div class="sub" style="margin-top:3px">
+          ${fbKickDate(g.start) || ''} ${fbKickTime(g.start) ? '&middot; ' + fbKickTime(g.start) : ''}
+          ${g.week ? '&middot; Week ' + g.week : ''}
+          ${g.neutral ? '&middot; neutral site' : ''}
+          ${g.div_game ? '&middot; conference game' : ''}
+        </div>
+      </div>
+      <button class="x" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-b">
+      <h3 style="margin:0 0 8px;font-size:13px">Score by quarter</h3>
+      ${quarters}
+      <h3 style="margin:18px 0 4px;font-size:13px">Betting lines
+        <span class="kind k-market">Market</span></h3>
+      ${market}
+      ${venue || wx ? `<div class="note" style="margin-top:16px">
+        ${venue}${venue && wx ? '<br>' : ''}${wx}</div>` : ''}
+      <div class="note" style="margin-top:16px">
+        &#9940; <b>No player lines here, on purpose.</b> The MLB card shows
+        starting pitchers because they are the biggest single input to a
+        baseball game. Football has no equivalent, so this space shows the
+        scoring and the market instead.
+      </div>
+    </div></div>`;
+  document.body.append(ovl);
+  const close = () => { ovl.remove(); document.removeEventListener('keydown', esc); };
+  const esc = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', esc);
+  ovl.addEventListener('click', e => { if (e.target === ovl) close(); });
+  ovl.querySelector('.x').addEventListener('click', close);
+}
+
+
 async function renderFootball(){
   const v = $('#fbview');
-  /* 🔴 LOAD THE LOGO DIRECTORY FIRST, once per league. ⛔ Loading it
-     inside each tab would make the first paint logo-less and then reflow. */
-  await fbTeamsLoad();
+  /* 🔴 LOAD THE LOGO DIRECTORY AND THE ODDS BOARD FIRST, once per league.
+     ⛔ Loading them inside each tab would make the first paint logo-less
+     and then reflow -- and the SCORES cards need the board too, for the
+     moneyline under each team. Driving the page caught that: every card
+     read "no live odds stored" because the board had only ever been
+     fetched by the Odds tab. */
+  await Promise.all([fbTeamsLoad(), fbBoardLoad()]);
   if (FBTAB === 'odds') return fbOdds();
   if (FBTAB === 'scores') return fbScores();
   if (FBTAB === 'props') return fbProps();

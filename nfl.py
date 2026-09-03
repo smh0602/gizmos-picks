@@ -883,6 +883,28 @@ def build_schedule(season, seen=None, log=print):
             "home_class": None, "away_class": None,
             "neutral": str(g.get("location") or "").lower() == "neutral",
             "home_score": h, "away_score": a,
+            # 🔴 NO LINE SCORES EXIST IN nflverse SCHEDULES. The probe
+            # lists every column and there is no per-quarter field --
+            # CFBD gives them free, nflverse does not. ⛔ The key is
+            # emitted as None so BOTH leagues carry the same shape and the
+            # one renderer can say "not available" instead of crashing.
+            # ⚠️ Do not fabricate quarters from `result`.
+            "home_line": None, "away_line": None,
+            # ⚠️ nflverse ALREADY CARRIES these and we were dropping them.
+            # They cost nothing extra -- same file, same call.
+            "venue": g.get("stadium"),
+            "roof": g.get("roof"), "surface": g.get("surface"),
+            "temp": _i(g.get("temp")), "wind": _i(g.get("wind")),
+            "overtime": bool(_i(g.get("overtime")) or 0),
+            "div_game": bool(_i(g.get("div_game")) or 0),
+            # 🔵 MARKET, from the schedule file itself. ⛔ These are
+            # nflverse's CLOSING numbers, NOT our live board -- they are
+            # labelled market_closing so nothing confuses them with the
+            # prices on the Odds tab.
+            "closing_ml_home": _i(g.get("home_moneyline")),
+            "closing_ml_away": _i(g.get("away_moneyline")),
+            "closing_spread": g.get("spread_line"),
+            "closing_total": g.get("total_line"),
             "final": done,
         })
     out.sort(key=lambda r: (r["start"] or "", r["home"] or ""))
