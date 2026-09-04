@@ -393,7 +393,8 @@ def rate_for(games, market, line, side):
         hits = sum(1 for v in vals if v > line)
     else:
         hits = sum(1 for v in vals if v < line)
-    return round(100 * jeffreys(hits, len(vals))), hits, len(vals)
+    mean = (sum(vals) / len(vals)) if vals else None
+    return round(100 * jeffreys(hits, len(vals))), hits, len(vals), mean
 
 
 def american_break_even(price):
@@ -577,8 +578,11 @@ def main():
                         f"nudges an over slightly high. There is no football "
                         f"model in this project, so this is DESCRIPTIVE — not "
                         f"a projection.")
+                    row["own_mean"] = (None if r[3] is None
+                                       else round(r[3], 2))
                     row["why"] = build_why(who, mk, pr.get("line"), sideword,
-                                           hits, n, season, unit)
+                                           hits, n, season, unit,
+                                           mean=r[3])
                 else:
                     row["why"] = [gate_why] if (plog is not None
                                                  and not gate_ok) else [
@@ -780,11 +784,28 @@ def no_rate_reason(rates_ok, plog, who):
             f"from. Fewer than {MIN_GAMES} is not a rate.")
 
 
-def build_why(who, mk, line, side, hits, n, season, unit):
+def build_why(who, mk, line, side, hits, n, season, unit, mean=None):
     """Plain English, with the numbers in it. ⛔ No test IDs, no jargon.
 
     Sam, 2026-08-26: "lose the technical wording ... all of these things
     that a casual [fan] wont know about has to go."
+
+    🔴 THE ROW NOW STATES THE PLAYER'S OWN PER-GAME AVERAGE BESIDE THE
+    LINE, AND THAT IS NOT COSMETIC. `[measured 2026-09-04 on the first
+    rated college board]` the number two row was **Alberto Mendoza,
+    passing UNDER 204.5, "8 of 8", 94%** -- and his 2025 average was
+    **35.8 yards a game.** He was a backup; the book has priced him as a
+    starter. **The record is factually correct and tells you nothing
+    about this line.**
+    ⛔ NOTHING HERE FILTERS A ROW. A cutoff at which a row is SUPPRESSED
+    would be picking a number to make a board look better, and this
+    project does not do that -- that question is pre-registered as T54 in
+    `claude/owed-tests.md` instead of being decided at the keyboard.
+    ✅ **ADDING INFORMATION IS ALWAYS SAFE. REMOVING ROWS IS NOT.** The
+    reader sees "he averaged 35.8 a game" next to "under 204.5" and can
+    judge the gap themselves.
+    ⚠️ Mean over the SAME games the rate was computed over, so the two
+    numbers can never describe different samples.
     """
     pct = round(100 * hits / n) if n else 0
     # ⚠️ THE SENTENCE MUST DESCRIBE THE DENOMINATOR THAT WAS ACTUALLY
@@ -810,6 +831,27 @@ def build_why(who, mk, line, side, hits, n, season, unit):
         out.append("College box scores list a player only when he did "
                    "something, so a game he played quietly can be missing "
                    "from that count — which nudges an over slightly high.")
+    # 🔴 HIS OWN AVERAGE, BESIDE THE LINE. ⛔ Over the same games the
+    # rate used -- two numbers from one sample, never two samples.
+    if mean is not None and mk != "player_anytime_td" and line is not None:
+        out.append(f"He averaged <b>{mean:.1f} {unit} a game</b> over those "
+                   f"{n} games, against a line of {line}.")
+        # ⚠️ THIS IS A THRESHOLD AND CALLING IT ANYTHING ELSE WOULD BE
+        # DISHONEST -- but it is a threshold for SHOWING A SENTENCE, never
+        # for removing a row, and those carry very different risk.
+        # ⛔ 2x IS A BRIGHT LINE -- "double, or half" -- chosen because it
+        # is the point at which a line stops being a variation on what the
+        # player did and becomes a different question. It was NOT found by
+        # trying values until the right number of rows lit up.
+        # 📊 On the first rated college board it marks 3 of 43 rows.
+        # ⚠️ IF IT IS WRONG IT GETS A TEST, NOT AN ADJUSTMENT -- and the
+        # real question, whether such a row should be RANKED at all, is
+        # pre-registered as T54 rather than decided here.
+        if mean > 0 and (line / mean >= 2.0 or mean / max(line, 0.5) >= 2.0):
+            out.append("⚠️ That line is a long way from what he actually "
+                       "did last season, which usually means his role has "
+                       "changed. His record is history; it is not evidence "
+                       "about a line he never faced.")
     if n < 10:
         out.append("That is a small sample — too few games to read much "
                    "into on its own.")

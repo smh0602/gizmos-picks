@@ -43,6 +43,12 @@ def eq(got, want, label):
         fails.append(f"{label} (got {got!r} want {want!r})")
 
 
+def ck(cond, label, detail=""):
+    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<54} {detail}")
+    if not cond:
+        fails.append(label)
+
+
 def load(league):
     os.environ["LEAGUE"] = league
     for m in list(sys.modules):
@@ -363,6 +369,89 @@ try:
     C = load("ncaaf")
     season, _ = C.load_logs()
     eq(season, 2026, "⚠️ with nothing deep enough it uses the best it has")
+finally:
+    os.chdir(cwd)
+    import shutil
+    shutil.rmtree(tmp, ignore_errors=True)
+
+
+print("\n14. 🔴 THE ROW STATES THE PLAYER'S OWN AVERAGE BESIDE THE LINE")
+print("    `[measured 2026-09-04 on the first rated college board]` the")
+print("    number-two row was Alberto Mendoza, passing UNDER 204.5,")
+print("    '8 of 8', 94% -- and his 2025 average was 35.8 yards a game.")
+print("    The record is factually correct and tells you nothing about")
+print("    this line. ⛔ The answer is MORE INFORMATION, not a filter.")
+C = load("ncaaf")
+
+
+def cg2(**kw):
+    g = {"rec": 0, "rec_yds": 0, "rush_yds": 0, "car": 0,
+         "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0}
+    g.update(kw)
+    return g
+
+
+# eight games at 15 rushing yards, against a line of 34.5 -> under 8 of 8
+gs = [cg2(rush_yds=15, car=4) for _ in range(8)]
+r = C.rate_for(gs, "player_rush_yds", 34.5, "under")
+eq(len(r), 4, "rate_for now returns the mean it computed too")
+eq(r[3], 15.0, "  and it is the mean over the SAME games as the rate")
+eq((r[1], r[2]), (8, 8), "  record unchanged: 8 of 8")
+
+why = C.build_why("KD", "player_rush_yds", 34.5, "under", 8, 8, 2025,
+                  "rush yds", mean=r[3])
+joined = " ".join(why)
+ck("averaged" in joined and "15.0" in joined,
+   "🔴 the average is stated on the row", "15.0 rush yds a game")
+ck("34.5" in joined, "  next to the line it is being judged against")
+ck("role has changed" in joined,
+   "⛔ and a 2.3x gap says so plainly", "line/mean = 2.3")
+
+# ⚠️ 2x IS A BRIGHT LINE AND IT IS PINNED, so it cannot drift to suit a board
+w19 = " ".join(C.build_why("X", "player_rush_yds", 28.5, "under", 8, 8,
+                           2025, "rush yds", mean=15.0))
+ck("role has changed" not in w19,
+   "   1.9x does NOT trip it -- the line is 2x, not 'looks far'")
+w20 = " ".join(C.build_why("X", "player_rush_yds", 30.0, "under", 8, 8,
+                           2025, "rush yds", mean=15.0))
+ck("role has changed" in w20, "   exactly 2.0x DOES")
+# the other direction too: a line far BELOW his record
+wlow = " ".join(C.build_why("X", "player_rush_yds", 30.0, "over", 8, 8,
+                            2025, "rush yds", mean=120.0))
+ck("role has changed" in wlow, "   and 4x the other way trips it as well")
+
+# ⛔ AND IT MUST NEVER REMOVE A ROW.
+print("   ⛔ IT IS A SENTENCE, NOT A FILTER — the row still ships:")
+tmp = tempfile.mkdtemp()
+cwd = os.getcwd()
+try:
+    os.chdir(tmp)
+    os.makedirs("data/ncaaf/latest", exist_ok=True)
+    import gzip as _gz
+    board = {"pulled_at": "2026-09-03T22:31:00Z", "n_games": 1,
+             "books_seen": ["fd"],
+             "games": [{"id": "g1", "away": "A", "home": "H",
+                        "commence": "2026-09-06T17:00:00Z",
+                        "props": [{"player": "KD", "market": "player_rush_yds",
+                                   "line": 34.5, "sides": {"under": {
+                                       "price": -115, "book": "fd",
+                                       "n_books": 3, "link": "x"}}}]}]}
+    with _gz.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
+        json.dump(board, fh)
+    logs = {"season": 2025, "scope": "all FBS conferences",
+            "players": {"1": {"name": "KD", "pos": "RB",
+                              "g": [dict(g, team="T", game_id=str(i))
+                                    for i, g in enumerate(gs)]}}}
+    with _gz.open("data/ncaaf/latest/players-2025.json.gz", "wt") as fh:
+        json.dump(logs, fh)
+    C = load("ncaaf")
+    C.main()
+    out = json.load(open("picks/fb-ncaaf-latest.json"))
+    eq(len(out["picks"]), 1, "   the stretched row is STILL on the board")
+    eq(out["picks"][0]["own_mean"], 15.0, "   carrying its own mean")
+    eq(out["picks"][0]["confidence_basis"], "RECORD", "   still a RECORD row")
+    ck(any("role has changed" in w for w in out["picks"][0]["why"]),
+       "   with the warning attached, not instead of the row")
 finally:
     os.chdir(cwd)
     import shutil
