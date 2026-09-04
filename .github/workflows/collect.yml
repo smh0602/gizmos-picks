@@ -84,6 +84,20 @@ on:
     - cron: "35 14 * * 0"       # Sun 10:35am ET — rebuild CFB, after Saturday
     - cron: "35 15 * * 2"       # Tue 11:35am ET — rebuild NFL, after MNF
 
+    # ══ THE FOOTBALL CARD REBUILD ══
+    # 🔴 `card-fb` RAN ONLY CHAINED INSIDE THE PAID `props-player` PULL,
+    # SO A CODE FIX DID NOT REACH THE PAGE UNTIL THE NEXT PAID PULL.
+    # `[measured 2026-09-04]` the live college board was still **50 of 50
+    # Anytime TD with +5000 on top** -- the exact board Sam complained
+    # about -- while THREE shipped fixes sat on `main` unused: the +400
+    # ceiling, the market mix, and college rates. The card was last
+    # written 2026-09-03T22:36Z, when the props pull last ran.
+    # ⛔ AND `refresh` CANNOT COVER IT: the push trigger is MLB-only.
+    # ✅ `card-fb` is FREE -- it reads the board already on disk and
+    # computes -- and it is a clean no-op when there is no board yet, so
+    # it is safe to hang off every football cron. It is now attached to
+    # the line-movement crons AND the daily news crons, which means the
+    # board rebuilds at least once a day whatever else happens.
     # ══ FOOTBALL NEWS ══
     # 🔴 THE FEEDS WERE ADOPTED ON 2026-09-03 AND NO CRON EVER RAN THEM.
     # `[measured 2026-09-04]` NEWS_FEEDS carries CBS Sports +
@@ -269,11 +283,11 @@ jobs:
             case "${{ github.event.schedule }}" in
               # ── COLLEGE FOOTBALL — Thu/Fri/Sat ──────────────────────
               "20 15 * * 6")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
-              "20 */6 * * 4,5,6") LEAGUE=ncaaf; MODES="gamelines" ;;
+              "20 */6 * * 4,5,6") LEAGUE=ncaaf; MODES="gamelines card-fb" ;;
               # ── NFL — Thu/Sun/Mon ──────────────────────────────────
               "25 15 * * 0")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
               "25 22 * * 4")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
-              "25 */6 * * 0,1,4") LEAGUE=nfl;   MODES="gamelines" ;;
+              "25 */6 * * 0,1,4") LEAGUE=nfl;   MODES="gamelines card-fb" ;;
               # ── the current-season trends rebuild ──────────────────
               # ⚠️ `cfb-teams` REBUILDS THE LOGO DIRECTORY AND IS FREE
               # (CFBD, not the Odds API). ⛔ It was in NO cron at all --
@@ -283,8 +297,8 @@ jobs:
               # the directory on demand whenever it is missing or names
               # the wrong season.
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;              # ── football news, daily and free ─────────────────────
-              "40 12 * * *")      LEAGUE=ncaaf; MODES="news" ;;
-              "45 12 * * *")      LEAGUE=nfl;   MODES="news" ;;
+              "40 12 * * *")      LEAGUE=ncaaf; MODES="news card-fb" ;;
+              "45 12 * * *")      LEAGUE=nfl;   MODES="news card-fb" ;;
               "35 15 * * 2")      LEAGUE=nfl;   MODES="nfl-logs";   SEASON=CUR ;;
               # ── the game days the first pass missed ───────────────
               "30 22 * * 4")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
