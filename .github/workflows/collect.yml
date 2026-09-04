@@ -105,13 +105,23 @@ on:
     # ── NFL ──────────────────────────────────────────────────────────
     - cron: "6 12 * * *"        # NFL  8:00am ET  Odds   (shared minute is fine:
     - cron: "6 18 * * *"        # NFL  2:00pm ET  Odds    one cron, one league)
-    # 🔴 THE LONDON GAMES. `[found 2026-09-04 by test_props_window 3b]`
-    # Six 2026 NFL games kick off at **5:30am ET on a Sunday** -- the
-    # international series -- which is BEFORE the first pull of the day,
-    # and Saturday's 11:00am pull plus a 14h window reaches only 1:00am.
-    # ⛔ Without this they are never priced at all. ⚠️ Cheap: one pull, on
-    # Sundays only.
-    - cron: "8 8 * * 0"         # NFL  4:08am ET  Player Props (Sun, London)
+    # 🔴 ~~THE LONDON GAMES. Six 2026 NFL games kick off at 5:30am ET on a
+    # Sunday, before the first pull of the day, so they are never priced.
+    # the entry was `8 8 * * 0`, NFL 4:08am ET Player Props, Sundays~~
+    # ⚠️ Written WITHOUT the `- cron:` prefix on purpose: every tool
+    # here finds crons by regex, and a struck one that still matches
+    # is counted as live. It was, for one run, and read 33 of 32.
+    # ⛔ **STRUCK 2026-09-04, THE SAME DAY IT WAS ADDED. THE GAP WAS MINE,
+    # NOT THE SCHEDULE'S.** `test_props_window.py` stamped `tzinfo=utc` on
+    # both leagues' kickoffs -- right for college, whose CFBD `startDate`
+    # really is UTC, and **four hours wrong for the NFL**, whose nflverse
+    # `start` is a LOCAL EASTERN wall clock with no zone.
+    # ⚠️ THE LONDON GAMES KICK AT 9:30am ET, NOT 5:30am, and the ordinary
+    # Sunday 7:08am pull reaches them with 2.4 hours to spare. Re-measured
+    # with the times parsed correctly: **272/272 = 100% WITHOUT this
+    # cron.** It bought nothing and cost a pull every Sunday.
+    # ✅ The parsing now lives in `freshness.kickoffs_utc`, one function
+    # for the contract and the check, so they cannot disagree again.
     - cron: "8 11 * * *"        # NFL  7:00am ET  Player Props
     - cron: "8 15 * * *"        # NFL 11:00am ET  Player Props
     - cron: "34 11 * * *"       # NFL  7:30am ET  Gizmo's Picks
@@ -277,7 +287,6 @@ jobs:
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
               # ── NFL ────────────────────────────────────────────────
               "6 18 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
-              "8 8 * * 0")        LEAGUE=nfl;   MODES="props-player" ;;
               "8 11 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
               "8 15 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
               "34 11 * * *")      LEAGUE=nfl;   MODES="card-fb" ;;
@@ -302,11 +311,23 @@ jobs:
           echo "league=${LEAGUE:-mlb}" >> "$GITHUB_OUTPUT"
           if [ "$LEAGUE" != "mlb" ] && [ -n "$MODES" ] \
              && [ "${{ github.event_name }}" = "schedule" ]; then
-            # 🔴 FOOTBALL IS ONE-SHOT, NOT A HEARTBEAT. The loop exists to
-            # survive dropped runs on a DAILY contract; football has no
-            # freshness contract yet, and holding a job open for 5 hours
-            # would let `cancel-in-progress` kill the MLB loop.
-            echo "mode=$MODES converge-off" >> "$GITHUB_OUTPUT"
+            # 🔴 FOOTBALL CONVERGES NOW. ~~`converge-off`~~ REMOVED
+            # 2026-09-04: it was right while football had no freshness
+            # contract, and it outlived that by one day.
+            # ⛔ WHAT IT COST, MEASURED THE DAY IT WAS FOUND: the college
+            # card was built at 8:51am against a 9:00am deadline, GitHub
+            # dropped BOTH 9am card crons, and nothing rebuilt it for the
+            # rest of the day -- while the contract sat there correctly
+            # reporting it 6.5 hours late. A contract nothing acts on is
+            # a comment.
+            # ⚠️ STILL NOT A HEARTBEAT: `loop_minutes=0`, so the job runs
+            # ONE pass and exits. Holding a football job open for five
+            # hours would let `cancel-in-progress` kill the MLB loop.
+            # ✅ NO `converge` WORD IS APPENDED, because it would be a
+            # second converge: `collect.py` already routes every explicit
+            # mode through `converge(explicit=...)`, which runs the mode
+            # the cron asked for AND repairs whatever else is past due.
+            echo "mode=$MODES" >> "$GITHUB_OUTPUT"
             echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ github.event.inputs.mode || 'converge' }}" >> "$GITHUB_OUTPUT"
@@ -466,12 +487,14 @@ jobs:
             # while football is silently stale. Both are the same bug.
             # ➡️ Football gets a gate when it gets contract rows. Until
             # then it has none, and the run SAYS SO rather than faking it.
-            if [ "$LEAGUE_NAME" = "mlb" ]; then
-              python verify_freshness.py || { rc=1; echo "::error::out of contract"; }
-            else
-              echo "::warning::$LEAGUE_NAME has no freshness contract yet —"
-              echo "::warning::this run is NOT checked for staleness."
-            fi
+            # 🔴 THE GATE RUNS FOR FOOTBALL TOO NOW. ~~"$LEAGUE_NAME has
+            # no freshness contract yet"~~ STRUCK 2026-09-04 -- it does,
+            # and a gate that never fires is the same as no gate.
+            # ⚠️ `verify_freshness.py` reads the league from `LEAGUE`, the
+            # same way every other tool in this file does, so there is no
+            # baseball-deadlines-applied-to-football hazard: that was the
+            # 2026-08-28 concern and the path-based dispatch removed it.
+            python verify_freshness.py || { rc=1; echo "::error::out of contract"; }
 
             NOW=$(date +%s)
             if [ "$NOW" -ge "$DEADLINE" ]; then
