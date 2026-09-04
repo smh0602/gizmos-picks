@@ -1,9 +1,8 @@
-verify_card FAILED at 2026-09-04T19:46:00Z
-pass 3 of run 420
+verify_card FAILED at 2026-09-04T19:58:48Z
+pass 1 of run 421
 --- the failing checks ---
   FAIL T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
-  FAIL the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)  missing=[('Edwin Arroyo', 'batter_rbis'), ('Bryan Torres', 'batter_hits'), ('David Hamilton', 'batter_rbis')] false=[]
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%), the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%)
 --- last 60 lines ---
   PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 160 pooled priced rows = 0.0%)  []
   NOTE  carded hitter rows only: 0 of 25 contradict at 70%+ (0.0%) -- carding selects high-confidence rows, so this is NOT the T37 population
@@ -58,10 +57,10 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled 
   PASS every hitter row still says its number is a record, not a forecast
 
 38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
-  NOTE  36 flag(s) on this card: 8 shown, 28 recorded but not rendered
-  FAIL the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)  missing=[('Edwin Arroyo', 'batter_rbis'), ('Bryan Torres', 'batter_hits'), ('David Hamilton', 'batter_rbis')] false=[]
+  NOTE  39 flag(s) on this card: 11 shown, 28 recorded but not rendered
+  PASS the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)  missing=[] false=[]
   PASS every row's on_hardrock agrees with the stored board  []
   PASS every flag that reaches the page is marked actionable
   PASS no model diagnostic is marked for display  []
 
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%), the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%)
