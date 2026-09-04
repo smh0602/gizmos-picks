@@ -84,6 +84,20 @@ on:
     - cron: "35 14 * * 0"       # Sun 10:35am ET — rebuild CFB, after Saturday
     - cron: "35 15 * * 2"       # Tue 11:35am ET — rebuild NFL, after MNF
 
+    # ══ FOOTBALL NEWS ══
+    # 🔴 THE FEEDS WERE ADOPTED ON 2026-09-03 AND NO CRON EVER RAN THEM.
+    # `[measured 2026-09-04]` NEWS_FEEDS carries CBS Sports +
+    # ProFootballTalk for the NFL and CBS Sports + Yahoo for college, and
+    # `data/nfl/latest/news.json` and `data/ncaaf/latest/news.json` DO NOT
+    # EXIST -- both News tabs have been rendering an empty state since the
+    # day they were built. ⛔ Same defect as the college logo directory:
+    # a writer built, wired to a mode, and named by no schedule.
+    # ⚠️ DAILY, NOT GAME-DAY. News does not stop on a Tuesday, and the
+    # football odds crons only fire Thu-Sun -- so hanging news off them
+    # would leave the tab four days stale every week.
+    # 💰 FREE. RSS, not the Odds API. It cannot spend a credit.
+    - cron: "40 12 * * *"       # 8:40am ET — CFB headlines
+    - cron: "45 12 * * *"       # 8:45am ET — NFL headlines
     # ══ THE GAME DAYS THE FIRST PASS MISSED ══
     # 🔴 A PROPS CRON THAT ONLY FIRES ON THE MAIN DAY IS A PROPS CRON
     # THAT LOSES EVERY OTHER GAME. College plays THURSDAY AND FRIDAY all
@@ -268,7 +282,9 @@ jobs:
               # project loses scheduled runs, so collect.py ALSO rebuilds
               # the directory on demand whenever it is missing or names
               # the wrong season.
-              "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
+              "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;              # ── football news, daily and free ─────────────────────
+              "40 12 * * *")      LEAGUE=ncaaf; MODES="news" ;;
+              "45 12 * * *")      LEAGUE=nfl;   MODES="news" ;;
               "35 15 * * 2")      LEAGUE=nfl;   MODES="nfl-logs";   SEASON=CUR ;;
               # ── the game days the first pass missed ───────────────
               "30 22 * * 4")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
