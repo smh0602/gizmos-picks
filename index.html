@@ -3068,6 +3068,10 @@ function fbCurrentWeek(games, weeks){
    turns over 45% a year -- and 2026 logs do not exist yet. It is added
    when there are logs to join AND the match is proven by a gate.
    ══════════════════════════════════════════════════════════════════ */
+/* The projections map from the published football card, so the Player
+   Props tab can show the same number the Gizmo's Picks tab shows.
+   ⛔ ONE WRITER: card_fb.py computes it, this only formats it. */
+let FBPROJ = null;
 const FBPROPS = {};
 let fbMkt = 'all';
 /* MLB keeps game/market/side in one object; football now does too. */
@@ -3085,6 +3089,11 @@ async function fbProps(){
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
   const B = await fbPropsLoad();
+  /* ⚠️ LOADED BEFORE THE ROWS ARE BUILT, and a failure is not an error:
+     on a day with no published card there are simply no projections, and
+     the tab renders exactly as it did before. */
+  try { FBPROJ = ((await fbCardLoad()) || {}).projections || {}; }
+  catch(e){ FBPROJ = {}; }
   if (!B || !(B.games || []).length){
     v.innerHTML = fbShell(`<div class="note">
       <b>No ${LG_NAME[LEAGUE]} player props stored yet.</b><br>
@@ -3142,6 +3151,19 @@ async function fbProps(){
       <div class="bet">
         <div class="ln">${word}${ln}</div>
         <div class="mk">${p.unit || p.label || ''}</div>
+        <!-- 🔴 THE PROJECTION, JOINED FROM THE PUBLISHED CARD.
+             Exactly how the MLB props tab does it: the number lives on
+             the card so there is ONE writer, and this tab formats it
+             through the SAME projChip. A miss renders nothing -- an
+             absent projection means the market was never measured or he
+             has too few games, and it never means guess.
+             ⚠️ Keyed by NAME because football has no player ids. That is
+             safe only because both files are built by this repo from the
+             same snapshot, so the strings are identical by construction
+             (50 of 50 on the live board) rather than by name matching. -->
+        ${(() => { const j = (FBPROJ || {})[
+             `${p.player}|${p.market}|${side}|${p.line}`];
+           return j ? projChip(j.v, j.u, j.b, j.n) : ''; })()}
       </div>
       <div class="pr2">${priceCell(sd)}</div>
       <!-- ⚠️ ONE SENTENCE FOR BOTH LEAGUES. It stopped being

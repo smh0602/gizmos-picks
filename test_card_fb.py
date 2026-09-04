@@ -465,3 +465,102 @@ if fails:
     sys.exit(1)
 print("✅ card_fb OK — the measured college gate bites, the snap floor bites, "
       "nothing claims MODEL")
+
+print("\n15. 🔴 THE PROJECTION — Sam, 2026-09-04: \"thats what the model is")
+print("    supposed to do... you predict what the outcome is which is")
+print("    the projection.\" He was right, and the reason there was no")
+print("    number was a misreading of our own findings: T46/T47/T50")
+print("    losing to a player's own average is a LICENCE TO USE THE")
+print("    AVERAGE, not a reason to show nothing. T56 then measured that")
+print("    it is worth printing: +3.25 points over the constant predictor.")
+import gzip as _gz2
+_tmp = tempfile.mkdtemp()
+_cwd = os.getcwd()
+try:
+    os.chdir(_tmp)
+    os.makedirs("data/ncaaf/latest", exist_ok=True)
+
+    def _cg(rush):
+        return {"rec": 0, "rec_yds": 0, "rush_yds": rush, "car": 4,
+                "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0,
+                "team": "T", "game_id": "x"}
+
+    # ⚠️ TWO LINES ON ONE MARKET, so the same-number rule can be tested,
+    # plus a receptions line the measured gate refuses.
+    _props = [
+        {"player": "Runner One", "market": "player_rush_yds", "line": 9.5,
+         "sides": {"over": {"price": -140, "book": "fd", "n_books": 3,
+                            "link": "x"}}},
+        {"player": "Runner One", "market": "player_rush_yds", "line": 24.5,
+         "sides": {"under": {"price": -180, "book": "fd", "n_books": 3,
+                             "link": "x"}}},
+        {"player": "Catcher One", "market": "player_receptions", "line": 2.5,
+         "sides": {"over": {"price": -150, "book": "fd", "n_books": 3,
+                            "link": "x"}}},
+    ]
+    with _gz2.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
+        json.dump({"pulled_at": "2026-09-03T22:31:00Z", "n_games": 1,
+                   "books_seen": ["fd"],
+                   "games": [{"id": "g1", "away": "A", "home": "H",
+                              "commence": "2026-09-06T17:00:00Z",
+                              "props": _props}]}, fh)
+    _runs = [10, 20, 15, 12, 18, 14, 16, 15]            # mean exactly 15.0
+    _catches = [{"rec": c, "rec_yds": c * 11, "rush_yds": 0, "car": 0,
+                 "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0,
+                 "team": "T", "game_id": "x"} for c in [2, 3, 4, 2, 3, 5, 3, 4]]
+    with _gz2.open("data/ncaaf/latest/players-2025.json.gz", "wt") as fh:
+        json.dump({"season": 2025, "scope": "all FBS conferences",
+                   "players": {"1": {"name": "Runner One", "pos": "RB",
+                                     "g": [_cg(v) for v in _runs]},
+                               "2": {"name": "Catcher One", "pos": "WR",
+                                     "g": _catches}}}, fh)
+    _C = load("ncaaf")
+    _C.main()
+    _doc = json.load(open("picks/fb-ncaaf-latest.json"))
+finally:
+    os.chdir(_cwd)
+    shutil.rmtree(_tmp, ignore_errors=True)
+
+_rows = _doc["picks"]
+_p = [r for r in _rows if r.get("projection") is not None]
+ck(bool(_p), "a rated row carries a projection", f"{len(_p)} of {len(_rows)}")
+if _p:
+    eq(_p[0]["projection_basis"], "DESCRIPTIVE",
+       "  ⛔ DESCRIPTIVE, and rule 55 forbids anything else here")
+    eq(_p[0]["projection_unit"], "rush yds",
+       "  it carries the market's own unit")
+    ck("not a forecast" in (_p[0].get("projection_note") or ""),
+       "  and the note says plainly it is not a forecast")
+ck(not any(r.get("projection_basis") == "MODEL" for r in _rows),
+   "⛔ NOTHING on the board claims MODEL")
+
+print("\n15b. ⛔ ONE NUMBER PER (PLAYER, MARKET), AT EVERY LINE")
+print("     MLB learned this the hard way: 51 of 608 combos once carried")
+print("     more than one number for the same stat.")
+_vals = {r["projection"] for r in _rows
+         if r["market"] == "player_rush_yds" and r.get("projection") is not None}
+eq(len(_vals), 1, "   both lines report the SAME average")
+eq(_vals, {15.0}, "   and it is his actual per-game mean")
+
+print("\n15c. 🔴 THE MAP THE PLAYER PROPS TAB JOINS AGAINST")
+_m = _doc.get("projections") or {}
+ck(bool(_m), "the card publishes a projections map", f"{len(_m)} keys")
+for _k, _v in list(_m.items())[:1]:
+    eq(_k.count("|"), 3, "   keyed player|market|side|line")
+    eq(_v["b"], "DESCRIPTIVE", "   every entry is DESCRIPTIVE")
+_keys = {f"{r['player']}|{r['market']}|{r['side']}|{r['line']}"
+         for r in _rows if r.get("projection") is not None}
+ck(_keys <= set(_m), "   ⛔ every projected row is reachable from the map",
+   str(sorted(_keys - set(_m))[:2]))
+
+print("\n15d. ⛔ A GATED CELL GETS NO PROJECTION EITHER")
+print("     A mean is a different statistic from a rate — but a cell we")
+print("     have declared unmeasurable does not get a number by the back door.")
+_g = [r for r in _rows if r["market"] == "player_receptions"]
+ck(bool(_g), "   the gated row is on the board", f"{len(_g)}")
+if _g:
+    eq(_g[0].get("confidence_basis"), "MARKET", "   it carries no rate")
+    ck(_g[0].get("projection") is None,
+       "   🔴 and no projection either", str(_g[0].get("projection")))
+    ck(not [k for k in _m if k.startswith("Catcher One|")],
+       "   ⛔ and nothing for it in the map")

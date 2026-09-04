@@ -580,6 +580,43 @@ def main():
                         f"a projection.")
                     row["own_mean"] = (None if r[3] is None
                                        else round(r[3], 2))
+                    # ══════════════════════════════════════════════════
+                    # 🔴 THE PROJECTION. Sam, 2026-09-04: *"thats what the
+                    # model is supposed to do... you predict what the
+                    # outcome is which is the projection."* He is right,
+                    # and the reason there was no number here was a
+                    # misreading of our own findings.
+                    # ⛔ T46 (+0.0010), T47 (-0.0041) and T50 (-0.0036) all
+                    # LOST to a player's own season average. **That is a
+                    # licence to use the average, not a reason to show
+                    # nothing** -- a test saying "nothing beats the simple
+                    # thing" is a test saying ship the simple thing.
+                    # ✅ AND T56 MEASURED WHETHER IT IS WORTH PRINTING, on
+                    # a metric neither candidate minimises by construction:
+                    # the mean's sign predicts the side of the line 64.13%
+                    # against a 60.88% majority-class baseline -- **+3.25
+                    # points, both predicted classes above 50%.** The
+                    # number carries signal.
+                    # ⛔ IT IS DESCRIPTIVE AND NEVER MODEL. Rule 55 governs
+                    # the LABEL, not whether a number appears. This is his
+                    # own per-game average over the same games the rate
+                    # used -- it is not opponent-adjusted and it is not
+                    # role-adjusted, because every attempt at that lost.
+                    # ⚠️ AND IT FOLLOWS THE RATE'S GATE. `rate_for` returns
+                    # None for a market/line the measurement never cleared,
+                    # so a gated cell gets no projection either. A mean is
+                    # a different statistic from a rate, but a cell we have
+                    # declared unmeasurable does not get a number by the
+                    # back door.
+                    if r[3] is not None:
+                        row["projection"] = round(r[3], 1)
+                        row["projection_unit"] = unit
+                        row["projection_basis"] = "DESCRIPTIVE"
+                        row["projection_note"] = (
+                            f"His own average over the {r[2]} games this "
+                            f"record is built from — {r[3]:.1f} {unit} a "
+                            f"game. That is what he has actually been doing, "
+                            f"not a forecast.")
                     row["why"] = build_why(who, mk, pr.get("line"), sideword,
                                            hits, n, season, unit,
                                            mean=r[3])
@@ -592,6 +629,19 @@ def main():
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.
     # ⛔ If the join is unproven, ship the board with NO rates rather than a
     # board whose rates belong to the wrong people.
+    # ⛔ EVERY PRICED ROW, NOT JUST THE 50 THAT MADE THE BOARD. The Player
+    # Props tab renders the whole slate and joins against this map; a map
+    # built from the card alone would light up 50 rows and leave the rest
+    # blank for no reason a reader could see.
+    projections = {}
+    for _r in rows:
+        _v = _r.get("projection")
+        if _v is None:
+            continue
+        projections[f"{_r['player']}|{_r['market']}|{_r['side']}|{_r['line']}"] = {
+            "v": _v, "u": _r.get("projection_unit"),
+            "b": "DESCRIPTIVE", "n": _r.get("projection_note")}
+
     match_rate = None
     if RATES_OK and seen_players:
         matched = len(seen_players) - len(unmatched) - len(ambiguous)
@@ -704,6 +754,24 @@ def main():
                     "largest at short reception lines, so those carry no "
                     "rate, and a market that was never measured carries "
                     "none either.")}),
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 ONE NUMBER PER (PLAYER, MARKET), REPEATED AT EVERY LINE.
+        # Sam, 2026-08-27: *"you should have the same numbers across the
+        # entire website if your talking about the same stat or
+        # projction."* MLB learned this the hard way -- 51 of 608 combos
+        # once carried more than one number and Sean Manaea read 6.3 K on
+        # one row and 5.3 K on another.
+        # ✅ THE MEAN IS LINE-INDEPENDENT BY CONSTRUCTION: `rate_for`
+        # averages over `qualifying(games)`, which does not depend on the
+        # line or the side. So one value is computed and written at every
+        # key it belongs to.
+        # ⚠️ KEYED BY NAME, AND THAT IS SAFE HERE ONLY BECAUSE BOTH SIDES
+        # ARE OURS. The card and `props.json.gz` are built by this repo
+        # from the SAME snapshot, so the strings are identical by
+        # construction rather than by matching -- measured 50 of 50 on the
+        # live board. ⛔ Football has no player ids; if a third source is
+        # ever joined here it needs its own gate.
+        "projections": projections,
         "name_match_rate": round(match_rate, 3) if match_rate is not None else None,
         "n_priced": len(rows),
         "coverage": (
