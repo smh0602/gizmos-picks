@@ -152,14 +152,31 @@ on:
 
   push:
     branches: [main]
-    paths:
-      - "collect.py"
-      - "card.py"
-      - "verify_card.py"
-      - "freshness.py"
-      - "verify_freshness.py"
-      - "index.html"
-      - ".github/workflows/collect.yml"
+    # 🔴 ~~AN ALLOW-LIST OF SEVEN FILES~~ REPLACED 2026-09-04 WITH AN
+    # IGNORE-LIST, BECAUSE THE ALLOW-LIST WAS SILENTLY WRONG FOR MOST OF
+    # THE REPO. `[measured]` **30 of the 35 code and test files at the
+    # root triggered NOTHING** -- among them `card_fb.py` (the entire
+    # football board), `cfb.py`, `nfl.py`, `verify_board.py`,
+    # `verify_record.py`, `card_gate.py`, and **every single test file.**
+    # ⛔ SO A TEST-ONLY UPLOAD GOT NO CI AT ALL. `test_cron_wiring.py` was
+    # pushed and no run started -- not green, not red, nothing -- which is
+    # rule 67 in a new costume: a test that never runs is worse than no
+    # test, and here it was the CI trigger rather than the test list that
+    # skipped it. A `card_fb.py` fix landed the same way and the live
+    # college board did not rebuild.
+    # ⚠️ AN ALLOW-LIST HAS TO BE EDITED EVERY TIME A FILE IS ADDED, AND
+    # NOBODY EVER DOES. An ignore-list is right by default and only has to
+    # name the things that must NOT trigger.
+    # ⛔ `data/**` AND `picks/**` ARE THE LOOP GUARD: the collector commits
+    # to exactly those two directories and nothing else, so its own
+    # commits cannot retrigger the workflow. Do not remove them.
+    # ✅ A side benefit that matters: editing `card-accepted.txt` now
+    # starts a run immediately, so a decision recorded there takes effect
+    # at once instead of waiting for the next cron.
+    paths-ignore:
+      - "data/**"
+      - "picks/**"
+      - "**.md"
 
   workflow_dispatch:
     inputs:
