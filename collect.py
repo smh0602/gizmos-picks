@@ -2985,6 +2985,56 @@ def collect_lineups():
     return None
 
 
+def cfb_team_directory_state():
+    """(needs_rebuild, why). ⛔ Reads the file's OWN declared season.
+
+    🔴 A directory built for last season is not a smaller problem than a
+    missing one -- realignment moves schools between conferences every
+    August and the logos silently belong to the wrong year. The file
+    stamps `season`, so it can be asked rather than guessed at.
+    ⚠️ Any unreadable or malformed file counts as needing a rebuild. A
+    file this code cannot parse is not evidence that the data is fine.
+    """
+    path = f"{LEAGUES['ncaaf']['data']}/latest/teams.json"
+    want = _fresh.current_football_season()
+    if not os.path.exists(path):
+        return True, f"{path} does not exist"
+    try:
+        with open(path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    except Exception as e:
+        return True, f"{path} unreadable: {type(e).__name__}: {e}"
+    got = doc.get("season")
+    if got != want:
+        return True, f"{path} declares season {got!r}, current is {want}"
+    if not (doc.get("teams") or {}):
+        return True, f"{path} carries no teams"
+    return False, f"{path}: {doc.get('n')} schools, season {got}"
+
+
+def _ensure_cfb_team_directory():
+    """Rebuild the college logo directory if it is missing or stale."""
+    try:
+        need, why = cfb_team_directory_state()
+    except Exception as e:
+        log(f"  ⚠️ could not check the college team directory: "
+            f"{type(e).__name__}: {e}")
+        return
+    if not need:
+        return
+    log(f"  college team directory needs a rebuild — {why}")
+    try:
+        import cfb as _cfb
+        _cfb.fbs_conferences(_fresh.current_football_season(), log)
+        _, why2 = cfb_team_directory_state()
+        log(f"  college team directory rebuilt — {why2}")
+    except Exception as e:
+        # ⛔ NEVER FATAL. Logos are cosmetic; the odds pull behind this
+        # is not, and odds history cannot be re-bought.
+        log(f"  ⚠️ college team directory NOT rebuilt: "
+            f"{type(e).__name__}: {e} — logos will fall back to text")
+
+
 def run_mode(mode):
     """Run ONE mode. Raises on failure; `main` decides what that means."""
 
@@ -2998,6 +3048,23 @@ def run_mode(mode):
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
+
+    # 🔴 THE COLLEGE LOGO DIRECTORY SELF-HEALS. `teams.json` exists today
+    # only because ONE ad-hoc run happened to write it, and NO cron ever
+    # named `cfb-teams` -- so a deleted file, a fresh checkout or an
+    # August season rollover would have taken every college logo back to
+    # a text fallback with nothing to notice or repair it.
+    # ⛔ It is NOT enough to add a weekly cron (that is also done): a
+    # weekly rebuild means up to seven days of a broken page, and this
+    # project's own history is that a scheduled run gets DROPPED.
+    # ✅ FREE -- CFBD, not the Odds API, so it can never spend a credit.
+    # ⚠️ IT FIRES ONLY ON A REAL DEFECT: the file is missing, unreadable,
+    # or declares a season that is not the current football season.
+    # ⛔ SOFT-FAILS BY DESIGN. A missing directory costs LOGOS, not data
+    # -- the same rule cfb.py already applies -- so it must never take
+    # down the odds pull it is standing in front of.
+    if LEAGUE == "ncaaf" and mode != "cfb-teams":
+        _ensure_cfb_team_directory()
 
     try:
         if mode == "gamelines":
