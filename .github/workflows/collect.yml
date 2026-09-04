@@ -66,11 +66,18 @@ on:
     #    MLB currently runs 240-317/day against a 600 cap.
     # ⛔ ONE props pull per game day to start. A second would put a
     # Saturday at ~740 and over the cap.
-    - cron: "20 15 * * 6"       # Sat 11:20am ET — CFB props + lines
-    - cron: "20 */6 * * 4,5,6"  # Thu/Fri/Sat — CFB line movement
-    - cron: "25 15 * * 0"       # Sun 11:25am ET — NFL props + lines
-    - cron: "25 22 * * 4"       # Thu 6:25pm ET — TNF
-    - cron: "25 */6 * * 0,1,4"  # Thu/Sun/Mon — NFL line movement
+    # ⛔ ~~THE FIVE ENTRIES THAT USED TO LIVE HERE~~ REMOVED 2026-09-04.
+    # `20 15 * * 6` CFB props+lines · `20 */6 * * 4,5,6` CFB line movement
+    # `25 15 * * 0` NFL props+lines · `25 22 * * 4` TNF
+    # `25 */6 * * 0,1,4` NFL line movement
+    # 🔴 NOT ONE OF THEM HAD A ROUTING ARM, so every one fell through to
+    # `*) LEAGUE=mlb` and **collected BASEBALL under a football comment.**
+    # The two `*/6` entries alone fired four times a day on three days
+    # each -- roughly 24 MLB runs a week that nobody asked for, each one
+    # cancelling the heartbeat loop it landed on top of.
+    # ✅ Every job they claimed to do is in Sam's schedule below, routed:
+    # college props Tue-Sat twice daily, NFL props twice daily, and odds
+    # twice a day for both leagues.
 
     # ══ THE WEEK-BY-WEEK TRENDS REFRESH ══
     # 🔴 NOTHING REBUILT THE CURRENT SEASON. The back-fill only ever ran
@@ -82,7 +89,9 @@ on:
     # into Saturday night, the NFL into Monday night.
     # 💰 FREE. Both back-fills read published stat files, not the odds API.
     - cron: "35 14 * * 0"       # Sun 10:35am ET — rebuild CFB, after Saturday
-    - cron: "35 15 * * 2"       # Tue 11:35am ET — rebuild NFL, after MNF
+    # ⛔ ~~`35 15 * * 2` Tue 11:35am ET rebuild NFL~~ REMOVED 2026-09-04:
+    # unrouted, so it ran MLB. The NFL rebuild is `6 16 * * 2` below,
+    # which IS routed and carries SEASON=CUR.
 
     # ══ FOOTBALL — SAM'S SCHEDULE, 2026-09-04. HIS TIMES ARE ET. ══
     # ⚠️ Minutes are nudged off :00/:30 -- the most congested slots on
@@ -92,7 +101,13 @@ on:
     # can clear, and a banner nobody can fix is a banner everybody
     # ignores. ⛔ Change one, change the other.
     # ── COLLEGE ──────────────────────────────────────────────────────
-    - cron: "4 11 * * *"        # CFB  7:00am ET  Odds
+    # 🔴 `4 11 * * *` WAS ALSO MLB's 7:04am ODDS+PROPS CRON. GitHub fires
+    # one event per cron STRING, and the case block below matches the
+    # FIRST arm -- so the college arm won and **MLB's 7am paid pull simply
+    # stopped happening.** Only converge and the 3-hourly backstop were
+    # repairing it. Moved to :02. ⛔ NEVER REUSE A CRON STRING ACROSS
+    # LEAGUES; `test_cron_wiring.py` now refuses one.
+    - cron: "2 11 * * *"        # CFB  7:02am ET  Odds
     - cron: "4 19 * * *"        # CFB  3:00pm ET  Odds
     - cron: "34 12 * * 2-6"     # CFB  8:30am ET  Player Props (Tue-Sat)
     - cron: "6 19 * * 2-6"      # CFB  3:00pm ET  Player Props (Tue-Sat)
@@ -101,10 +116,15 @@ on:
     - cron: "4 12 * * 2"        # CFB  8:00am ET  Track Record  (Tue)
     - cron: "4 16 * * 1"        # CFB 12:00pm ET  Trends        (Mon)
     - cron: "6 12 * * *"        # CFB  8:00am ET  News
-    - cron: "35 14 * * 0"       # CFB 10:35am ET  season rebuild + logos
+    # (the Sunday rebuild is the `35 14 * * 0` entry in the block above --
+    #  it was listed twice, which is one event and one wasted line)
     # ── NFL ──────────────────────────────────────────────────────────
-    - cron: "6 12 * * *"        # NFL  8:00am ET  Odds   (shared minute is fine:
-    - cron: "6 18 * * *"        # NFL  2:00pm ET  Odds    one cron, one league)
+    # 🔴 ~~"shared minute is fine: one cron, one league"~~ THAT COMMENT WAS
+    # WRONG AND IT WAS MINE. `6 12 * * *` was ALSO the CFB 8am news cron,
+    # and the college arm matched first, so **the NFL 8am odds pull never
+    # ran once.** One cron string is one event, whatever the comments say.
+    - cron: "7 12 * * *"        # NFL  8:07am ET  Odds
+    - cron: "6 18 * * *"        # NFL  2:00pm ET  Odds
     # 🔴 ~~THE LONDON GAMES. Six 2026 NFL games kick off at 5:30am ET on a
     # Sunday, before the first pull of the day, so they are never priced.
     # the entry was `8 8 * * 0`, NFL 4:08am ET Player Props, Sundays~~
@@ -172,8 +192,25 @@ on:
 # the pending ones anyway. cancel-in-progress means a freshly landed run
 # REPLACES the loop that is already holding the line -- which is exactly
 # what you want, because the new one starts by converging too.
+# 🔴 ~~`group: collect-${{ github.event.inputs.league || 'mlb' }}`~~ STRUCK
+# 2026-09-04. **`github.event.inputs` EXISTS ONLY ON `workflow_dispatch`.**
+# On every SCHEDULED run it is empty, so the group was `collect-mlb` for
+# ALL of them -- MLB and football alike -- and `cancel-in-progress` meant
+# **any cron could kill a football pull mid-flight.** The comment above
+# said "ONE GROUP PER LEAGUE"; the expression could not deliver it,
+# because the league is decided in a later STEP from
+# `github.event.schedule`, not from an input.
+# ⛔ THAT ONLY BECAME EXPENSIVE TODAY: football runs now converge, so they
+# SPEND, and a cancelled run can lose a pull that was already paid for.
+# ✅ THE RULE NOW: MLB's own crons and every push share `collect-mlb`, so
+# the heartbeat loop is still replaced by the newest run. **Every other
+# scheduled run -- all of football -- gets a group of its own and is
+# never cancelled by anything.**
+# ⚠️ THE LIST BELOW IS MLB'S CRONS, WHICH ARE EXACTLY THE ONES WITH NO
+# ROUTING ARM (they fall through to `*) LEAGUE=mlb`). `test_cron_wiring.py`
+# asserts the two sets are identical, so this cannot drift.
 concurrency:
-  group: collect-${{ github.event.inputs.league || 'mlb' }}
+  group: collect-${{ github.event.inputs.league || (github.event.schedule && !contains(fromJSON('["4 10 * * *","4 11 * * *","4 14 * * *","4 20 * * *","5 13,19,1 * * *","9 */3 * * *"]'), github.event.schedule) && github.event.schedule) || 'mlb' }}
   cancel-in-progress: true
 
 jobs:
@@ -275,7 +312,7 @@ jobs:
           if [ -z "$LEAGUE" ]; then
             case "${{ github.event.schedule }}" in
               # ── CFB ────────────────────────────────────────────────
-              "4 11 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
+              "2 11 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
               "4 19 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
               "34 12 * * 2-6")    LEAGUE=ncaaf; MODES="props-player" ;;
               "6 19 * * 2-6")     LEAGUE=ncaaf; MODES="props-player" ;;
@@ -286,6 +323,7 @@ jobs:
               "6 12 * * *")       LEAGUE=ncaaf; MODES="news card-fb" ;;
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
               # ── NFL ────────────────────────────────────────────────
+              "7 12 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
               "6 18 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
               "8 11 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
               "8 15 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
