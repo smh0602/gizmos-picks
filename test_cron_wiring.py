@@ -31,6 +31,7 @@ and the collector rather than a list someone has to remember to update:
 
 ⚠️ No network, no credits. It reads two files off disk.
 """
+import json
 import os
 import re
 import sys
@@ -153,6 +154,46 @@ for lg in ("nfl", "ncaaf"):
             if l == lg and "card-fb" in ms.split()
             and not (set(ms.split()) & PAID)]
     ck(bool(solo), f"   {lg}: reachable WITHOUT a paid pull", solo)
+
+
+print("\n🔴 ONE CRON STRING IS ONE EVENT — NO STRING MAY APPEAR TWICE")
+print("   `[measured 2026-09-04]` `4 11 * * *` was BOTH MLB's 7:04am")
+print("   odds+props AND CFB's 7:00am odds. GitHub fires ONE event and the")
+print("   case block matches the FIRST arm, so the college arm won and")
+print("   MLB's 7am paid pull silently stopped happening. `6 12 * * *`")
+print("   was CFB news AND NFL odds — the NFL 8am pull never ran once.")
+import collections as _c
+_dups = sorted(k for k, v in _c.Counter(crons).items() if v > 1)
+ck(not _dups, "no cron string is listed twice", str(_dups))
+
+print("\n⛔ AND NO ROUTING ARM IS UNREACHABLE")
+_seen, _dead = set(), []
+for _c2, _l, _m in routes:
+    if _c2 in _seen:
+        _dead.append(f"{_c2} -> {_l} {_m}")
+    _seen.add(_c2)
+ck(not _dead, "every routing arm can be reached", str(_dead))
+_ghost = [c for c, _l, _m in routes if c not in crons]
+ck(not _ghost, "every routing arm has a cron that fires it", str(_ghost))
+
+print("\n🔴 THE CONCURRENCY GROUP AND THE ROUTING TABLE AGREE")
+print("   `github.event.inputs` is EMPTY on a scheduled run, so the old")
+print("   group was `collect-mlb` for EVERY cron and cancel-in-progress")
+print("   let any MLB cron kill a football pull mid-flight. Football now")
+print("   converges, so a cancelled run can lose data already PAID FOR.")
+_routed = {c for c, _l, _m in routes}
+_unrouted = {c for c in crons if c not in _routed}      # these fall to *) mlb
+_m = re.search(r"group: collect-\$\{\{.*?fromJSON\('(\[[^']*\])'\)", wf, re.S)
+if not _m:
+    ck(False, "the concurrency group names MLB's crons")
+else:
+    _listed = set(json.loads(_m.group(1)))
+    ck(_listed == _unrouted,
+       "   the group's MLB list IS the set of unrouted crons",
+       f"only-in-group={sorted(_listed - _unrouted)} "
+       f"only-unrouted={sorted(_unrouted - _listed)}")
+    ck("cancel-in-progress: true" in wf,
+       "   and the newest MLB run still replaces the heartbeat loop")
 
 print()
 if fails:
