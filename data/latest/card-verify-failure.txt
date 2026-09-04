@@ -1,10 +1,11 @@
-verify_card FAILED at 2026-09-04T18:06:36Z
-pass 1 of run 414
+verify_card FAILED at 2026-09-04T18:20:54Z
+pass 1 of run 415
 --- the failing checks ---
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
   FAIL the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)  missing=[('Edwin Arroyo', 'batter_rbis'), ('Bryan Torres', 'batter_hits'), ('David Hamilton', 'batter_rbis')] false=[]
-FAILURES: the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%), the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)
 --- last 60 lines ---
-  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 161 pooled priced rows = 0.0%)  []
+  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 160 pooled priced rows = 0.0%)  []
   NOTE  carded hitter rows only: 0 of 25 contradict at 70%+ (0.0%) -- carding selects high-confidence rows, so this is NOT the T37 population
   PASS no hitter projection matches the UNFILTERED log better than the point-in-time one (0 separable row(s))  []
 
@@ -13,10 +14,10 @@ FAILURES: the Hard Rock flag is written on EVERY row that needs it and no row th
   PASS every row is priced better than the payable floor (-400)  []
   PASS no player appears twice  []
   PASS it is ordered by confidence, descending
-  PASS every top-10 row traces to a row the card priced (2521 priced keys)  []
+  PASS every top-10 row traces to a row the card priced (2372 priced keys)  []
   PASS every carded row is flagged priced in the index  []
-  PASS the priced flag is a subset, not a rubber stamp (2521 of 3007)
-  PASS the price gate actually excluded something, and the card says how much  96 row(s) excluded
+  PASS the priced flag is a subset, not a rubber stamp (2372 of 3002)
+  PASS the price gate actually excluded something, and the card says how much  93 row(s) excluded
 
 34. PARLAYS -- recomputed leg by leg
   PASS every parlay's leg count matches its own n_legs (24 parlays)
@@ -52,15 +53,15 @@ FAILURES: the Hard Rock flag is written on EVERY row that needs it and no row th
   PASS no batter row is priced at -1000 or shorter
   PASS every innings figure uses thirds (.0 .1 .2 only)  []
   PASS innings notation matches the out count it describes  []
-  PASS no jargon in any why (289 lines checked)  []
+  PASS no jargon in any why (288 lines checked)  []
   PASS every row still explains itself  []
   PASS every hitter row still says its number is a record, not a forecast
 
 38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
-  NOTE  39 flag(s) on this card: 8 shown, 31 recorded but not rendered
+  NOTE  36 flag(s) on this card: 8 shown, 28 recorded but not rendered
   FAIL the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)  missing=[('Edwin Arroyo', 'batter_rbis'), ('Bryan Torres', 'batter_hits'), ('David Hamilton', 'batter_rbis')] false=[]
   PASS every row's on_hardrock agrees with the stored board  []
   PASS every flag that reaches the page is marked actionable
   PASS no model diagnostic is marked for display  []
 
-FAILURES: the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1252 pooled priced rows = 5.0%), the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)
