@@ -98,7 +98,28 @@ RESERVE = 750
 # 24h and 30h both miss it. Dropping 48 -> 36 also removes the overlap
 # where Thursday's pull bought Saturday's games only for Saturday's pull
 # to buy them again. Measured on the real 2026 schedules.
-FB_PROPS_WINDOW_H = 36
+# 🔴 THE PROPS SLATE WINDOW. ~~36~~ **14 HOURS, CHANGED 2026-09-04.**
+# ⛔ WHY IT CAME DOWN. Sam moved props to TWICE A DAY. With a 36h window
+# two pulls a day buy **the same games two to four times over** -- and
+# `[measured across twelve weeks of the real 2026 slates]` every window
+# from 36h down to 10h prices the **identical 224 distinct college
+# games.** The extra hours bought nothing but repeat purchases:
+#
+#     window   CFB/mo   NFL/mo   football   +MLB     days over the 600 cap
+#       36h     9,220    2,627     12,569   21,269        18 / 84
+#       24h     5,640    1,531      7,893   16,593        12 / 84
+#       14h     3,899    1,088      5,709   14,409         2 / 84   <- this
+#
+# 🔴 THE DAILY CAP WAS THE REAL PROBLEM, NOT THE MONTHLY TOTAL. At 36h,
+# **every Friday and Saturday blew `DAILY_CAP`** (worst day 1,766 against
+# 600), and a pull that needs more than the cap allows is **SKIPPED
+# ENTIRELY** -- so the second college pull would silently not happen on
+# exactly the days college football is played.
+# ⚠️ THE TRADE-OFF, STATED: a long window is redundant -- if GitHub drops
+# a run, the next one still catches those games. **Two pulls a day is
+# what replaces that redundancy.** ⛔ If this ever goes back to ONE pull
+# a day, THIS NUMBER MUST GO BACK UP.
+FB_PROPS_WINDOW_H = 14
 
 # --- market definitions -----------------------------------------------
 GAME_MARKETS = ["h2h", "spreads", "totals"]

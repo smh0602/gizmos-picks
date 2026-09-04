@@ -41,6 +41,12 @@ import collect as C
 fails = []
 
 
+def ck(cond, label, detail=""):
+    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<56} {detail}")
+    if not cond:
+        fails.append(label)
+
+
 def eq(got, want, label):
     ok = got == want
     print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<56} {got!r}")
@@ -89,16 +95,92 @@ print(f"       (unbounded this would have been {272 * 12:,} credits)")
 
 print("\n2. the games actually about to kick off ARE priced")
 eq(run("nfl", board(1, hours_out=2)), 1, "Thursday night game, 2h out")
-eq(run("nfl", board(13, hours_out=30)), 13, "Sunday slate, 30h out")
+# ~~`board(13, hours_out=30)` -> 13 priced~~ ⛔ STRUCK 2026-09-04 with
+# the 36h window it assumed. ⚠️ At 14h a game 30 hours out is CORRECTLY
+# outside, and it is priced by the NEXT day's pull instead -- which
+# section 3b proves end to end, against the real schedule, for every
+# game rather than for one constructed board.
+eq(run("nfl", board(13, hours_out=12)), 13, "Sunday slate, 12h out")
 
-print("\n3. the window boundary is 36h and comes from the constant")
-# ⚠️ 36h is the SMALLEST window that still catches Monday Night Football
-# from the Sunday 11:25am pull -- kickoff is ~32h later. 24h and 30h miss
-# it. Measured on the real 2026 NFL schedule.
-eq(C.FB_PROPS_WINDOW_H, 36, "the constant is 36h")
-eq(run("nfl", board(5, hours_out=35)), 5, "35h out -> inside")
-eq(run("nfl", board(5, hours_out=37)), 0, "37h out -> outside, not priced")
-eq(run("nfl", board(1, hours_out=32)), 1, "🔴 Monday Night Football (32h) is caught")
+print("\n3. THE WINDOW BOUNDARY COMES FROM THE CONSTANT, AND THE")
+print("   CONSTANT IS NO LONGER THE THING BEING TESTED")
+# 🔴 THIS CHECK CHANGED ON 2026-09-04 AND THE ARGUMENT IS MADE HERE.
+# ~~`eq(C.FB_PROPS_WINDOW_H, 36)` and "Monday Night Football (32h) is
+# caught" from the SUNDAY pull.~~ ⛔ Both were right for the schedule
+# that existed when they were written: props ran THREE TIMES A WEEK, so
+# one pull had to reach 36 hours ahead or MNF was never priced at all.
+# ⚠️ Sam moved props to TWICE A DAY on 2026-09-04. Monday Night Football
+# is now priced by MONDAY's own 7:00am and 11:00am pulls -- roughly 9 and
+# 13 hours out -- and a 36h window would simply buy Monday's games four
+# extra times from Sunday.
+# ✅ SO THE CONSTANT IS NO LONGER THE QUESTION. **The question is whether
+# every game is caught by SOME pull before it kicks off**, which is what
+# the old assertion was really a proxy for -- and section 3b now tests
+# that DIRECTLY, against the real schedule and the deployed crons.
+# ⛔ That is strictly harder: the old form could pass with a correct
+# constant and a broken schedule.
+eq(run("nfl", board(5, hours_out=C.FB_PROPS_WINDOW_H - 1)), 5,
+   "just inside the window -> priced")
+eq(run("nfl", board(5, hours_out=C.FB_PROPS_WINDOW_H + 1)), 0,
+   "just outside -> not priced")
+ck(C.FB_PROPS_WINDOW_H <= 24,
+   "⚠️ a window over 24h means two daily pulls buy the same games twice",
+   f"{C.FB_PROPS_WINDOW_H}h")
+
+print("\n3b. 🔴 EVERY REAL GAME IS CAUGHT BY SOME DEPLOYED PULL")
+print("    The question the constant was only ever a proxy for.")
+import re as _re, gzip as _gz, json as _json, datetime as _dt, os as _os
+_wf = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                    ".github/workflows/collect.yml")
+_routes = _re.findall(r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"',
+                      open(_wf, encoding="utf-8").read())
+for _lg in ("nfl", "ncaaf"):
+    _times = [c for c, l, m in _routes if l == _lg and "props-player" in m.split()]
+    if not _times:
+        ck(False, f"   {_lg}: a cron runs props-player"); continue
+    _path = f"data/{_lg}/latest/schedule-2026.json.gz"
+    if not _os.path.exists(_path):
+        print(f"    — {_lg}: no stored schedule, skipped"); continue
+    _d = _json.load(_gz.open(_path, "rt"))
+    _games = []
+    for _g in _d["games"]:
+        _s = (_g.get("start") or "").replace("Z", "").split(".")[0]
+        if not _s: continue
+        if _lg == "ncaaf" and _g.get("home_class") != "fbs" \
+                and _g.get("away_class") != "fbs":
+            continue
+        try:
+            _games.append(_dt.datetime.fromisoformat(_s).replace(
+                tzinfo=_dt.timezone.utc))
+        except Exception:
+            pass
+    def _fires(cron, t):
+        mm, hh, _dom, _mon, dw = cron.split()
+        def _ok(f, v):
+            if f == "*": return True
+            if f.startswith("*/"): return v % int(f[2:]) == 0
+            for part in f.split(","):
+                if "-" in part:
+                    a, b = part.split("-")
+                    if int(a) <= v <= int(b): return True
+                elif int(part) == v: return True
+            return False
+        return _ok(mm, t.minute) and _ok(hh, t.hour) and _ok(dw, (t.weekday()+1) % 7)
+    _miss = 0
+    for _g in _games:
+        _covered = False
+        for _c in _times:
+            # walk back over the window looking for a firing that covers it
+            for _back in range(0, C.FB_PROPS_WINDOW_H * 60 + 1, 1):
+                _t = _g - _dt.timedelta(minutes=_back)
+                if _fires(_c, _t.replace(second=0, microsecond=0)):
+                    _covered = True; break
+            if _covered: break
+        if not _covered: _miss += 1
+    _pct = 100.0 * (len(_games) - _miss) / max(len(_games), 1)
+    ck(_pct >= 99.0,
+       f"   🔴 {_lg}: every game reached by a pull before kickoff",
+       f"{len(_games)-_miss}/{len(_games)} = {_pct:.1f}%")
 
 print("\n4. ⛔ AN EVENT WITH NO KICKOFF TIME IS DROPPED, NEVER KEPT")
 eq(run("nfl", [{"id": "x", "away_team": "A", "home_team": "H"}]), 0,

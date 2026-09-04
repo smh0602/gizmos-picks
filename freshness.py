@@ -60,6 +60,7 @@ _SNAP = re.compile(r"/(\d{4}-\d{2}-\d{2})/[^/]+/(\d{4})\.json(\.gz)?$")
 # ⛔ It must be larger than any max_age in the contract, and it must never
 # be silently replaced by an mtime.
 MISSING = 10 ** 9
+_DOW = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
 
 def _load(path):
@@ -255,13 +256,31 @@ def last_due(times_et, now=None):
     An artifact is stale when it was last written BEFORE this moment.
     Handles the wrap: at 3am ET the governing deadline is yesterday's
     last one, not today's first.
+
+    🔴 A DEADLINE MAY NAME THE DAYS IT APPLIES ON, ADDED 2026-09-04 FOR
+    FOOTBALL. `(hh, mm)` is unchanged and means EVERY DAY; `(hh, mm,
+    {weekdays})` restricts it, using Python's Monday=0.
+    ⛔ WHY IT WAS NEEDED: football is weekly. College props run Tue-Sat
+    and the trends table rebuilds on one morning a week. Without days, a
+    weekly artifact reads as **stale six days out of seven** and the
+    staleness banner becomes noise that everyone learns to ignore --
+    which is the exact failure this whole file exists to prevent.
+    ⚠️ MLB's four constants carry no day set and are therefore untouched;
+    `test_freshness.py` pins that.
+    ⛔ LOOK BACK FAR ENOUGH TO FIND ONE. A weekly deadline can be six days
+    behind, so the 2-day window that served daily MLB artifacts would
+    return None and mark a perfectly fresh weekly file as never-due.
     """
     now = now or datetime.datetime.now(UTC)
     et = now - ET_OFFSET
     best = None
-    for back in (0, 1):
+    for back in range(0, 8):
         d = (et - datetime.timedelta(days=back)).date()
-        for hh, mm in times_et:
+        for t in times_et:
+            hh, mm = t[0], t[1]
+            days = t[2] if len(t) > 2 else None
+            if days is not None and d.weekday() not in days:
+                continue
             cand = datetime.datetime.combine(
                 d, datetime.time(hh, mm), tzinfo=UTC)
             if cand <= et and (best is None or cand > best):
@@ -284,7 +303,111 @@ CARD     = [(10, 0)]                   # Gizmo's Picks + Parlays
 NEWS     = [(9, 5), (15, 5), (21, 5)]  # unchanged
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 FOOTBALL'S CONTRACT — ADDED 2026-09-04. UNTIL NOW THERE WAS NONE.
+# `[measured 2026-09-04]` `survey()` returned **13 rows, every one MLB.**
+# ⛔ So a football artifact could rot indefinitely and NOTHING noticed,
+# nothing said so, and no run repaired it. **Three separate bugs got
+# through that hole in four days** -- `cfb-teams` (a logo directory that
+# existed only because one ad-hoc run wrote it), football `news` (feeds
+# adopted, never collected) and `card-fb` (a board that only rebuilt
+# inside a PAID pull, so the live college card was four days stale and
+# still showed a +5000 top row).
+# ✅ EVERY ONE OF THEM WOULD HAVE BEEN A LATE ROW HERE.
+#
+# ⚠️ THESE DEADLINES ARE SAM'S OWN SCHEDULE, 2026-09-04, AND THEY MUST
+# TRACK THE CRONS. ⛔ A contract that disagrees with the workflow reports
+# lateness that no run can clear, and a banner nobody can fix is a banner
+# everybody ignores.
+#
+# 🔴 ONE ARTIFACT, ONE ROW (rule 66). Gizmo's Picks, Parlays and Track
+# Record are all THE SAME FILE -- `picks/fb-<lg>-latest.json`. They get a
+# single row whose deadlines are the UNION of the three, not three rows
+# that could disagree about one file.
+FB_TIMES = {
+    "ncaaf": {
+        "odds":   [(7, 0), (15, 0)],                     # 7am, 3pm daily
+        "props":  [(8, 30, {1, 2, 3, 4, 5}),             # 8:30am Tue-Sat
+                   (15, 0, {1, 2, 3, 4, 5})],            # 3pm   Tue-Sat
+        # picks 9:00 + parlays 9:30 (Tue-Sat) + track record Tue 8:00
+        "card":   [(9, 0, {1, 2, 3, 4, 5}),
+                   (9, 30, {1, 2, 3, 4, 5}),
+                   (8, 0, {1})],
+        "trends": [(12, 0, {0})],                        # Mon noon
+        "news":   [(8, 0)],                              # 8am daily
+        "teams":  [(10, 35, {6})],                       # Sun, with the rebuild
+    },
+    "nfl": {
+        "odds":   [(8, 0), (14, 0)],                     # 8am, 2pm daily
+        "props":  [(7, 0), (11, 0)],                     # 7am, 11am daily
+        # picks 7:30 + 11:30 daily, parlays 9:00 daily, record Tue noon
+        "card":   [(7, 30), (9, 0), (11, 30), (12, 0, {1})],
+        "trends": [(12, 0, {1})],                        # Tue noon
+        "news":   [(8, 0)],
+        "teams":  [],                                    # embedded in the page
+    },
+}
+
+
+def _football_contract(league, data, picks, now):
+    """The same shape as MLB's, for one football league."""
+    latest = f"{data}/latest"
+    utc_day = (now or datetime.datetime.now(UTC)).strftime("%Y-%m-%d")
+    T = FB_TIMES[league]
+    season = current_football_season(now)
+    rows = [
+        ("gamelines", ("file", f"{latest}/board.json"), T["odds"], True,
+         "Odds + Scores & Matchups — the football board"),
+        ("props-player", ("dir", f"{data}/{utc_day}/props-player"), T["props"], True,
+         "Player Props — the paid pull"),
+        ("props-board", ("file", f"{latest}/props.json.gz"), T["props"], False,
+         "Player Props — the join that puts props on the board"),
+        # ⛔ ONE ROW FOR THE CARD FILE. Picks, Parlays and Track Record all
+        # read it; three rows would be three chances to disagree.
+        ("card-fb", ("file", f"{picks}/fb-{league}-latest.json"), T["card"], False,
+         "Gizmo's Picks + Parlays + Track Record"),
+        ("news", ("file", f"{latest}/news.json"), T["news"], False, "News"),
+    ]
+    # ⚠️ TRENDS IS SEASON-STAMPED, so the probe names the season rather
+    # than a generic file -- a 2025 table sitting where 2026 belongs is
+    # exactly the drift this contract is for.
+    # 🔴 BUT A SEASON THAT HAS NOT STARTED IS NOT LATE. `[the rule this
+    # file already applies to the NFL back-fill]` The 2026 table cannot
+    # exist until games have been played, and marking it stale every day
+    # until then produces a banner NOBODY CAN CLEAR -- which is how a
+    # staleness warning becomes noise everyone learns to ignore, the
+    # exact failure this whole file exists to prevent.
+    # ✅ So the probe falls back to the season the page is ACTUALLY
+    # SERVING, and asks whether THAT is fresh.
+    tpath = f"{latest}/allowed-by-position-{season}.json.gz"
+    if not os.path.exists(tpath):
+        prev = f"{latest}/allowed-by-position-{season - 1}.json.gz"
+        if os.path.exists(prev):
+            tpath = prev
+    rows.append(
+        (("cfb-probe" if league == "ncaaf" else "nfl-logs"),
+         ("file", tpath), T["trends"], False,
+         "Trends — defence-vs-position"))
+    # ⛔ AND AN ARTIFACT THAT CANNOT EXIST YET IS NOT LATE EITHER. Before
+    # a league's first paid pull there is no props board, so there is no
+    # card either -- neither is a defect and neither is repairable by any
+    # run. ⚠️ They rejoin the contract the moment the first board lands.
+    if not os.path.exists(f"{latest}/props.json.gz"):
+        rows = [r for r in rows if r[0] not in ("props-board", "card-fb")]
+    if T["teams"]:
+        rows.append(("cfb-teams", ("file", f"{latest}/teams.json"),
+                     T["teams"], False, "team logos across every tab"))
+    return rows
+
+
 def contract(data="data", picks="picks", now=None):
+    # 🔴 THE LEAGUE COMES FROM THE PATH, so no caller changes. `collect.py`
+    # already passes its league-scoped DATA (`data`, `data/nfl`,
+    # `data/ncaaf`), which means converge, the freshness report and
+    # verify_freshness all become league-aware for free.
+    _lg = data.rstrip("/").split("/")[-1]
+    if _lg in FB_TIMES:
+        return _football_contract(_lg, data, picks, now)
     latest = f"{data}/latest"
     day = et_date(now)
     utc_day = (now or datetime.datetime.now(UTC)).strftime("%Y-%m-%d")
@@ -332,7 +455,7 @@ def contract(data="data", picks="picks", now=None):
 # lose without being misled -- headlines, conditions, lineups. Odds, the
 # card and the track record are NOT here and never should be: those are
 # numbers someone bets on.
-SOFT = {"news", "weather", "lineups"}
+SOFT = {"news", "weather", "lineups", "cfb-teams"}
 
 
 # 🔴 CASCADES. Refreshing an input INVALIDATES what was derived from it.
@@ -364,7 +487,13 @@ def survey(data="data", picks="picks", now=None):
             "mode": mode, "path": path, "kind": kind, "why": why,
             "age_min": None if age >= MISSING else round(age, 1),
             "due_at": None if due is None else due.strftime("%Y-%m-%dT%H:%MZ"),
-            "due_et": "/".join(f"{h}:{m:02d}" for h, m in times),
+            # ⚠️ A deadline may carry the days it applies on. The label
+            # says so, because "12:00" and "Mon 12:00" are different
+            # promises and a reader is entitled to know which.
+            "due_et": "/".join(
+                (f"{t[0]}:{t[1]:02d}" if len(t) < 3 else
+                 f"{'/'.join(_DOW[d] for d in sorted(t[2]))} {t[0]}:{t[1]:02d}")
+                for t in times),
             "late_min": (None if (built is None or due is None or not stale)
                          else round((now - due).total_seconds() / 60.0, 1)),
             "paid": paid, "stale": stale, "missing": age >= MISSING,

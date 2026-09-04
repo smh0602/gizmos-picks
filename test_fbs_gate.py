@@ -122,8 +122,16 @@ for t in ("Alabama", "Ohio State", "UCF", "South Florida", "Florida State"):
     eq(t in real, True, f"  {t} is in the list")
 eq("Merrimack" in real, False, "  an FCS school is NOT in the list")
 
-print("\n7. the props window is 36h — the smallest that catches Monday night")
-eq(C.FB_PROPS_WINDOW_H, 36, "window constant")
+print("\n7. the props window is a SPEND GUARD, and its size is owned by")
+print("   test_props_window.py, not duplicated here")
+# ~~`eq(C.FB_PROPS_WINDOW_H, 36)`~~ ⛔ STRUCK 2026-09-04. Two files
+# asserting one constant is two places to update and one to forget --
+# rule 66 in test form. ⚠️ The number changed to 14 when Sam moved props
+# to twice a day, and THIS file's job is the FBS gate, not the window.
+# ✅ What matters here is only that the guard EXISTS and is bounded.
+eq(C.FB_PROPS_WINDOW_H > 0, True, "a window is set at all")
+eq(C.FB_PROPS_WINDOW_H <= 24, True,
+   "and it is short enough that two daily pulls do not re-buy a slate")
 
 print()
 if fails:
