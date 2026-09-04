@@ -3631,11 +3631,14 @@ function fbTeam(name, size){
    they are the single biggest input to a baseball game; football has no
    equivalent, and inventing one would be filler.
 
-   ⚠️ QUARTER SCORES EXIST FOR COLLEGE AND NOT FOR THE NFL. CFBD returns
-   `homeLineScores`/`awayLineScores` on the same call we already make;
-   nflverse's schedule has no per-quarter column at all. The modal says
-   so in words rather than drawing an empty grid. ⛔ Do not fabricate
-   quarters from the final score.
+   ⚠️ QUARTER SCORES REACH THE TWO LEAGUES BY DIFFERENT ROUTES, AND THIS
+   FILE DOES NOT CARE WHICH. CFBD returns `homeLineScores`/`awayLineScores`
+   on the same call we already make; nflverse's schedule has no
+   per-quarter column at all, so the NFL's are DERIVED from play-by-play
+   (T53) and joined into the same `home_line`/`away_line` keys. ⛔ THE
+   PAGE MUST NEVER LEARN THE DIFFERENCE -- one renderer, one shape, and a
+   game with no line score says so in words rather than drawing an empty
+   grid. ⛔ Do not fabricate quarters from the final score.
    ══════════════════════════════════════════════════════════════════ */
 
 /* The market row for one football game, from the live odds board. */
@@ -3730,10 +3733,12 @@ function fbOpenBox(g){
        </table>`
     : `<div class="note">${g.final
         ? (LEAGUE === 'nfl'
-           ? '<b>Quarter-by-quarter scoring is not in the NFL schedule feed.</b> '
-             + 'The source we use carries only the final score. Nothing is '
-             + 'missing from the game &mdash; the data simply is not published '
-             + 'in that file, and a made-up quarter split would be worse than none.'
+           ? '<b>No quarter scores stored for this game.</b> The NFL schedule '
+             + 'feed carries only the final, so quarters are rebuilt from the '
+             + 'play-by-play each week &mdash; they appear after the next '
+             + 'rebuild. A game is also left blank on purpose when its '
+             + 'quarters do not add up to its own final score, because a '
+             + 'split that does not reconcile would be worse than none.'
            : '<b>No quarter scores stored for this game yet.</b> They arrive '
              + 'with the next schedule rebuild.')
         : '<b>This game has not kicked off.</b> Quarter scores appear once it is final.'}

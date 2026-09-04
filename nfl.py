@@ -797,7 +797,249 @@ def build_def_epa(season, seen=None, log=print):
             "by_team": dict(out)}, rep
 
 
-def build_schedule(season, seen=None, log=print):
+def build_line_scores(season, seen=None, log=print):
+    """T53 — score by quarter for the NFL, DERIVED from play-by-play.
+
+    🔴 WHY THIS EXISTS. The box-score modal shows quarter scores for
+    college and not for the NFL, because CFBD returns
+    `homeLineScores`/`awayLineScores` free on a call we already make and
+    **nflverse's `games.csv.gz` has no per-quarter column at all** --
+    measured by this file's own probe, which lists every column.
+
+    ✅ NO NEW SOURCE, NO NEW VENDOR, NO NEW CREDIT. The quarters are
+    recoverable from `play_by_play_{y}`, the SAME file `build_routes` and
+    `build_def_epa` already download. ⚠️ It is a third download of a
+    large file on a WEEKLY job; that is bandwidth, not money, and a cache
+    was deliberately not added -- a shared mutable copy of 200MB of rows
+    across three builders is a worse risk than a repeated download.
+
+    ⛔ CURRENT SEASON ONLY, ON PURPOSE. Nobody can click into a 2021 box
+    score -- the Scores tab renders the current season -- so deriving six
+    seasons of quarters would download six large files to produce data no
+    surface reads.
+
+    ══════════════════════════════════════════════════════════════════
+    🔴 THE BARS, FIXED HERE BEFORE ANY OF THIS DATA WAS SEEN (T53).
+    ⛔ I cannot run this myself -- the build container has no outbound
+    network -- so the bars live in the code and the report is written
+    whether they pass or fail. **Nothing ships unless all three hold.**
+
+      1. COLUMNS PRESENT. A quarter column, a cumulative home score, a
+         cumulative away score and a game id. Absent -> write nothing.
+      2. THE QUARTERS MUST SUM TO THE FINAL, per game, exactly.
+         ⚠️ THIS IS THE CHECK THAT TESTS THE ONE ASSUMPTION I CANNOT
+         VERIFY FROM HERE: whether `total_home_score` is the score AFTER
+         the play or BEFORE it. If it is BEFORE, the last score of the
+         game is missing and the sum comes up short -- so a wrong
+         assumption FAILS LOUDLY instead of shipping quarters that are
+         each off by a touchdown. A game that fails is DROPPED, never
+         shown, and counted in the report.
+      3. COVERAGE >= 95% of the games the schedule marks final, and
+         OVERTIME AGREEMENT >= 99%.
+         ⚠️ THE OVERTIME CHECK IS GENUINELY INDEPENDENT: `overtime` comes
+         from `games.csv.gz` and the period count comes from the
+         play-by-play. Two different files agreeing is evidence; one file
+         agreeing with itself is not.
+    ══════════════════════════════════════════════════════════════════
+
+    ⚠️ QUARTER TOTALS ARE TAKEN AS THE MAX CUMULATIVE SCORE WITHIN THE
+    QUARTER, NOT THE LAST ROW. A cumulative score is monotone, so the max
+    is order-independent -- ⛔ relying on file order would make the result
+    depend on how the vendor happened to sort the file.
+    """
+    log(f"=== nfl: score by quarter, {season} (T53) ===")
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False,
+           "test": "T53",
+           "bars": ["columns present",
+                    "quarters sum to the final, per game, exactly",
+                    "coverage >= 95% of final games",
+                    "overtime agreement >= 99%"]}
+    if seen is None:
+        seen = {r["tag_name"]: [(a["name"], a["size"],
+                                 a["browser_download_url"])
+                                for a in (r.get("assets") or [])]
+                for r in _releases(log)}
+
+    # ── the schedule, for the finals to check against ─────────────────
+    try:
+        sched = _rows(seen, "schedules", SCHEDULE_FILE, log)
+    except Exception as e:
+        rep["error"] = f"schedule: {type(e).__name__}: {e}"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+
+    def _i(v):
+        try:
+            return int(float(v))
+        except (TypeError, ValueError):
+            return None
+
+    scols = set(sched[0].keys()) if sched else set()
+    shs = next((c for c in ("home_score", "home_points") if c in scols), None)
+    saw = next((c for c in ("away_score", "away_points") if c in scols), None)
+    if not (shs and saw):
+        rep["error"] = "the schedule carries no score columns to check against"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+
+    finals = {}
+    for g in sched:
+        if str(g.get("season")) != str(season):
+            continue
+        h, a = _i(g.get(shs)), _i(g.get(saw))
+        if h is None or a is None:
+            continue
+        finals[str(g.get("game_id"))] = {
+            "home": h, "away": a,
+            "home_team": (g.get("home_team") or "").strip(),
+            "away_team": (g.get("away_team") or "").strip(),
+            # ⚠️ May be absent in some years; None means "no opinion",
+            # and a game with no opinion is excluded from the OT check
+            # rather than counted as agreeing.
+            "ot": (None if g.get("overtime") in (None, "", "NA")
+                   else bool(_i(g.get("overtime")) or 0))}
+    rep["games_final_in_schedule"] = len(finals)
+    if not finals:
+        rep["error"] = f"no completed {season} games in the schedule yet"
+        log(f"  — {rep['error']} (not a failure; nothing to derive)")
+        return None, rep
+
+    # ── the play-by-play ──────────────────────────────────────────────
+    try:
+        pbp = _rows(seen, "pbp", FILES["pbp"].format(y=season), log)
+    except Exception as e:
+        rep["error"] = f"play-by-play: {type(e).__name__}: {e}"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    if not pbp:
+        rep["error"] = "play-by-play has no rows"
+        return None, rep
+
+    # ⛔ NAME THE COLUMNS. This file has already produced two silent
+    # substitutions in this project (`stats_player_reg`, `rosters_2021`),
+    # and a schema assumed is a schema that changes.
+    cols = set(pbp[0].keys())
+    qc = next((c for c in ("qtr", "quarter", "game_quarter") if c in cols), None)
+    thc = next((c for c in ("total_home_score",) if c in cols), None)
+    tac = next((c for c in ("total_away_score",) if c in cols), None)
+    gic = next((c for c in ("game_id", "nflverse_game_id") if c in cols), None)
+    htc = next((c for c in ("home_team",) if c in cols), None)
+    rep["rows"] = len(pbp)
+    rep["columns_used"] = {"quarter": qc, "total_home": thc,
+                           "total_away": tac, "game": gic, "home_team": htc}
+    missing = [k for k, v in rep["columns_used"].items() if not v]
+    if missing:
+        rep["error"] = f"play-by-play lacks: {missing}"
+        rep["columns_available"] = sorted(cols)[:80]
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+
+    # ── the running maximum, per game per quarter ─────────────────────
+    peak = collections.defaultdict(dict)      # gid -> {q: [maxH, maxA]}
+    homes = {}
+    for r in pbp:
+        gid = str(r.get(gic) or "").strip()
+        if not gid or gid not in finals:
+            continue
+        q = _i(r.get(qc))
+        h, a = _i(r.get(thc)), _i(r.get(tac))
+        if q is None or q < 1 or h is None or a is None:
+            continue
+        homes.setdefault(gid, (r.get(htc) or "").strip())
+        cell = peak[gid].get(q)
+        if cell is None:
+            peak[gid][q] = [h, a]
+        else:
+            if h > cell[0]:
+                cell[0] = h
+            if a > cell[1]:
+                cell[1] = a
+
+    out = {}
+    dropped_sum, dropped_side, ot_ok, ot_bad, ot_seen = [], [], 0, [], 0
+    for gid, qs in peak.items():
+        fin = finals[gid]
+        # 🔴 THE PBP's HOME TEAM MUST BE THE SCHEDULE's HOME TEAM. Two
+        # files, one claim -- and if they disagree the quarters would be
+        # attached to the wrong side, which is the run-line attribution
+        # bug in a different sport.
+        if homes.get(gid) and fin["home_team"] and \
+                homes[gid] != fin["home_team"]:
+            dropped_side.append((gid, homes.get(gid), fin["home_team"]))
+            continue
+        order = sorted(qs)
+        # ⚠️ Quarters must be 1..N with nothing missing. A hole means the
+        # difference either side of it is not one period's scoring.
+        if order != list(range(1, len(order) + 1)):
+            dropped_sum.append((gid, f"non-contiguous periods {order}"))
+            continue
+        hl, al, ph, pa = [], [], 0, 0
+        for q in order:
+            ch, ca = qs[q]
+            hl.append(ch - ph)
+            al.append(ca - pa)
+            ph, pa = ch, ca
+        # ⛔ BAR 2. Exact, because this is arithmetic and not estimation.
+        if ph != fin["home"] or pa != fin["away"]:
+            dropped_sum.append((gid, f"sum {ph}-{pa} vs final "
+                                     f"{fin['home']}-{fin['away']}"))
+            continue
+        # ⛔ A negative period is impossible and means the columns do not
+        # mean what they were read to mean.
+        if any(v < 0 for v in hl + al):
+            dropped_sum.append((gid, f"negative period {hl}/{al}"))
+            continue
+        if fin["ot"] is not None:
+            ot_seen += 1
+            if (len(order) > 4) == fin["ot"]:
+                ot_ok += 1
+            else:
+                ot_bad.append((gid, len(order), fin["ot"]))
+        out[gid] = {"home_line": hl, "away_line": al}
+
+    cov = round(100.0 * len(out) / max(1, len(finals)), 2)
+    otp = round(100.0 * ot_ok / max(1, ot_seen), 2) if ot_seen else None
+    rep["games_derived"] = len(out)
+    rep["coverage_pct"] = cov
+    rep["dropped_sum_mismatch"] = len(dropped_sum)
+    rep["dropped_sum_examples"] = dropped_sum[:8]
+    rep["dropped_home_side_mismatch"] = len(dropped_side)
+    rep["dropped_home_side_examples"] = dropped_side[:5]
+    rep["overtime_checked"] = ot_seen
+    rep["overtime_agreement_pct"] = otp
+    rep["overtime_disagreements"] = ot_bad[:8]
+    log(f"  {len(out)} of {len(finals)} final games -> {cov}% coverage; "
+        f"{len(dropped_sum)} dropped on the sum check, "
+        f"{len(dropped_side)} on home-side; overtime agreement {otp}% "
+        f"on {ot_seen} games")
+
+    if cov < 95:
+        rep["error"] = (f"coverage {cov}% is below the pre-registered 95% "
+                        f"bar -- writing NOTHING")
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    if otp is not None and otp < 99:
+        rep["error"] = (f"overtime agreement {otp}% is below the "
+                        f"pre-registered 99% bar -- writing NOTHING")
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+
+    rep["usable"] = True
+    return {"season": season,
+            # ⚠️ DESCRIPTIVE (rule 55). It is an observed box score, not a
+            # model output, and it never carries a confidence.
+            "kind": "DESCRIPTIVE",
+            "test": "T53",
+            "note": ("Score by quarter, derived from nflverse "
+                     "play_by_play as the per-quarter increase in the "
+                     "cumulative score. Every game shown here has been "
+                     "checked to sum EXACTLY to its own final score; any "
+                     "game that did not is excluded rather than shown."),
+            "coverage_pct": cov,
+            "by_game": out}, rep
+
+
+def build_schedule(season, seen=None, log=print, lines=None):
     """Schedule and final scores for one season. **Feeds the Scores tab.**
 
     ✅ FREE AND ALREADY DOWNLOADED. `games.csv.gz` is the same file
@@ -883,13 +1125,20 @@ def build_schedule(season, seen=None, log=print):
             "home_class": None, "away_class": None,
             "neutral": str(g.get("location") or "").lower() == "neutral",
             "home_score": h, "away_score": a,
-            # 🔴 NO LINE SCORES EXIST IN nflverse SCHEDULES. The probe
-            # lists every column and there is no per-quarter field --
-            # CFBD gives them free, nflverse does not. ⛔ The key is
-            # emitted as None so BOTH leagues carry the same shape and the
-            # one renderer can say "not available" instead of crashing.
+            # 🔴 NO LINE SCORES EXIST IN nflverse SCHEDULES -- the probe
+            # lists every column and there is no per-quarter field. CFBD
+            # gives them free, nflverse does not.
+            # ✅ SINCE 2026-09-04 THEY ARE DERIVED INSTEAD, from
+            # `play_by_play` (T53, `build_line_scores`), and joined in
+            # here by game id. ⛔ STILL None WHEN THE DERIVATION DID NOT
+            # RUN OR DID NOT CLEAR ITS BARS -- that is the whole point of
+            # a fail-closed join: both leagues keep the same shape and the
+            # one renderer says "not available" instead of crashing.
             # ⚠️ Do not fabricate quarters from `result`.
-            "home_line": None, "away_line": None,
+            "home_line": (lines or {}).get(str(g.get("game_id")),
+                                           {}).get("home_line"),
+            "away_line": (lines or {}).get(str(g.get("game_id")),
+                                           {}).get("away_line"),
             # ⚠️ nflverse ALREADY CARRIES these and we were dropping them.
             # They cost nothing extra -- same file, same call.
             "venue": g.get("stadium"),
@@ -915,12 +1164,21 @@ def build_schedule(season, seen=None, log=print):
         log(f"  ⛔ {rep['error']}")
         return None, rep
     rep["usable"] = True
-    log(f"  {len(out):,} games, {finals:,} final")
+    # ⚠️ REPORT THE JOIN, don't assume it landed. A line-score dict that
+    # was passed in but matched nothing is a silent hole, and the only
+    # way to see it is to count what actually attached.
+    rep["line_scores_offered"] = len(lines or {})
+    rep["line_scores_joined"] = sum(1 for r in out if r["home_line"])
+    log(f"  {len(out):,} games, {finals:,} final, "
+        f"{rep['line_scores_joined']} with quarter scores "
+        f"(of {rep['line_scores_offered']} offered)")
     return {"season": season, "kind": "DESCRIPTIVE",
             "note": ("Schedule and final scores from nflverse `games.csv.gz`. "
                      "DESCRIPTIVE -- these are results, not projections. "
                      "Kickoff is the LOCAL date/time the feed publishes; no "
-                     "timezone is invented."),
+                     "timezone is invented. Quarter scores, where present, "
+                     "are derived from nflverse play-by-play and every one "
+                     "sums exactly to its own final score."),
             "columns_used": rep["columns_used"],
             "games": out}, rep
 

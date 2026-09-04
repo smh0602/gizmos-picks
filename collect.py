@@ -3340,8 +3340,49 @@ def run_mode(mode):
             # want the same loop is the defect; the fix is the loop.
             # ══════════════════════════════════════════════════════
             for season in seasons:
+                # ── T53: SCORE BY QUARTER, DERIVED FROM PLAY-BY-PLAY ──
+                # 🔴 IT LIVES IN THE *SCHEDULE* LOOP, NOT THE LOGS LOOP,
+                # AND THAT IS THE WHOLE POINT -- exactly the lesson
+                # written above. `build_logs` raises SeasonNotStarted on
+                # its first line for the current season, so anything
+                # placed in that loop never runs for the ONE season the
+                # Scores tab renders. ⛔ Putting the quarter scores there
+                # would have reproduced the bug this comment block
+                # exists to prevent.
+                # ⚠️ NOT EVERY SEASON, BECAUSE EACH ONE IS A LARGE
+                # DOWNLOAD. The rule is: the CURRENT season always (it is
+                # the only one the Scores tab renders), plus any season
+                # when the run asked for exactly ONE -- so
+                # `SEASON=2025` derives 2025 and a `SEASON=2021-2025`
+                # back-fill does not pull five play-by-play files to
+                # produce quarters nobody can click into.
+                # 🔴 THAT SINGLE-SEASON CLAUSE IS NOT A CONVENIENCE. As of
+                # 2026-09-04 the 2026 season has 272 scheduled games and
+                # ZERO finals, so the current-season path can derive
+                # nothing until week 1 is played. `SEASON=2025` is how
+                # this gets measured against real data BEFORE it matters.
+                # ⛔ FAIL-CLOSED AND NON-FATAL: no lines -> the schedule
+                # still builds and every `home_line` stays None, which is
+                # exactly today's behaviour.
+                _lines, _lrep = None, None
+                if (season == _fresh.current_football_season()
+                        or len(seasons) == 1):
+                    try:
+                        _ln, _lrep = _nfl.build_line_scores(season, None, log)
+                        _lines = (_ln or {}).get("by_game") or None
+                    except Exception as _le_:
+                        _lrep = {"season": season, "kind": "DIAGNOSTIC",
+                                 "usable": False, "test": "T53",
+                                 "error": f"{type(_le_).__name__}: {_le_}"}
+                        log(f"  ⚠️ quarter scores not derived: "
+                            f"{_lrep['error']} — the schedule still builds")
+                    # ⛔ REPORT ALWAYS WRITTEN, pass or fail. A diagnosis
+                    # that only exists in an Actions log is a diagnosis
+                    # you do not have.
+                    write(f"{base}/linescore-probe-{season}.json", _lrep)
                 try:
-                    _sc, _srep = _nfl.build_schedule(season, None, log)
+                    _sc, _srep = _nfl.build_schedule(season, None, log,
+                                                     lines=_lines)
                 except Exception as _se_:
                     _sc, _srep = None, {"season": season,
                                         "kind": "DIAGNOSTIC",
