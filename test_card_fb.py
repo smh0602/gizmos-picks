@@ -5,13 +5,15 @@
 PERCENTAGE next to a price on a page Sam bets from. Every failure below
 produces a board that renders perfectly and is wrong:
 
-  1. ⛔ A COLLEGE ROW MUST NEVER CARRY A RATE. Measured 2026-09-03: CFBD
-     publishes no snap data, so a college player appears in the log only
-     in games where he TOUCHED THE BALL — 3.5% of college receiver games
-     have zero catches against 25.8% in the NFL, and the median college
-     receiver is missing SIX of his team's THIRTEEN games. A rate over
-     that denominator reads too high on every over. ⚠️ Nothing about the
-     resulting number would look wrong.
+  1. ~~⛔ A COLLEGE ROW MUST NEVER CARRY A RATE.~~ ⛔ **STRUCK
+     2026-09-04, ledger rule 75** — the 25.8%-vs-3.5% comparison behind
+     it put a SNAP-logged file beside a STAT-logged one and could never
+     have supported the conclusion. ✅ **REPLACED BY A STRICTLY LARGER
+     CONTRACT:** college carries a rate over a UNION denominator, and
+     section 1 pins the MEASURED gate instead of a blanket ban — the
+     receptions floor, the unmeasured-market rule, the union
+     denominator, the page copy, and that the NFL path is untouched.
+     ⚠️ Nothing about a wrong number here would look wrong.
   2. 🔴 THE SNAP FLOOR MUST BITE. Without it a WR3 on 16% of snaps who
      catches nothing counts as evidence about a WR1's line — worth 23.9
      points on under 2.5 receptions. This is MLB's cameo bug, and it put
@@ -55,11 +57,47 @@ def game(snap, rec=0, rec_yds=0, rush_yds=0, td=0):
             "pass_yds": 0, "pass_td": 0}
 
 
-print("1. ⛔ COLLEGE CARRIES NO RATE — the finding this file exists for")
+print("1. 🔴 COLLEGE RATES — THE CHECK CHANGED ON 2026-09-04, AND THE")
+print("   ARGUMENT IS MADE HERE RATHER THAN LEFT IMPLICIT.")
+print("   ~~`eq(C.RATES_OK, False)` — college carries no rate at all.~~")
+print("   ⛔ STRUCK. That assertion encoded a CONCLUSION drawn from an")
+print("   invalid comparison (ledger rule 75): NFL 25.8% vs college 3.5%")
+print("   zero-catch games compared a SNAP-logged file with a STAT-logged")
+print("   one. Asked the same way — share of the player's team's games —")
+print("   college WR is 0.750 and NFL WR is 0.706.")
+print("   ✅ THE REPLACEMENT IS STRICTLY MORE CHECKING, NOT LESS: one")
+print("   boolean became four properties, each tied to a measured bar.")
 C = load("ncaaf")
-eq(C.RATES_OK, False, "🔴 rates are OFF for college")
 eq(C.LEAGUE, "ncaaf", "league read from env")
-eq("touched the ball" in C.COLLEGE_NOTE, True, "and the page is told why")
+eq(C.RATES_OK, True, "college may carry a rate at all")
+# (a) the gate is on the MARKET and the LINE, not on the league
+eq(C.market_rateable("player_receptions", 2.5)[0], False,
+   "🔴 receptions o2.5 is GATED — the one cell that failed T52b")
+eq(C.market_rateable("player_receptions", 3.5)[0], True,
+   "   receptions o3.5 passed its bar, so it is allowed")
+eq(C.RATE_MIN_REC_LINE, 3.5,
+   "⛔ the floor is pinned — do not tune it to add board rows")
+# (b) a market nobody measured inherits nothing
+eq(C.market_rateable("player_pass_tds", 1.5)[0], False,
+   "⛔ an UNMEASURED market gets no rate, however similar it looks")
+eq("player_pass_yds" in C.RATE_MEASURED, True, "   passing yards WAS measured")
+eq("player_pass_tds" in C.RATE_MEASURED, False, "   passing TDs was NOT")
+# (c) the gate reason reaches the reader in English
+ok, why = C.market_rateable("player_receptions", 2.5)
+eq("quiet games" in why or "quiet" in why, True,
+   "   and the row says why, in English")
+# (d) the denominator really is the union, and the NFL's really is not
+eq(len(C.qualifying([{"rec": 1}, {"rec": 0}, {"rec": 0}])), 3,
+   "🔴 college counts EVERY game he appears in (union denominator)")
+eq("quiet" in C.COLLEGE_NOTE, True, "and the page is told the known limit")
+eq("touched the ball" in C.COLLEGE_NOTE, False,
+   "⛔ the struck claim is gone from the page copy")
+# (e) ⛔ THE NFL IS UNTOUCHED BY ANY OF IT
+_N = load("nfl")
+eq(_N.market_rateable("player_receptions", 0.5)[0], True,
+   "⛔ nothing is gated in the NFL — it has the TRUE denominator")
+eq(len(_N.qualifying([{"rec": 1}, {"rec": 0}])), 0,
+   "   and the NFL still drops games with no snap field")
 
 print("\n2. 🔴 THE SNAP FLOOR BITES (MLB's cameo bug, in football)")
 N = load("nfl")
@@ -214,11 +252,127 @@ rated_rows.sort(key=lambda r: -r["confidence"])
 eq([r["confidence"] for r in rated_rows[:5]], [91, 88, 85, 70, 68],
    "🔴 confidence order is preserved, even though one market leads")
 
+
+print("\n12. 🔴 END TO END: A COLLEGE BOARD THAT ACTUALLY CARRIES RATES,")
+print("    AND THE GATE BITING ON THE SAME CARD")
+tmp = tempfile.mkdtemp()
+cwd = os.getcwd()
+try:
+    os.chdir(tmp)
+    os.makedirs("data/ncaaf/latest", exist_ok=True)
+    import gzip as _gz
+
+    def cg(rec=0, rush=0, car=0):
+        # ⚠️ NO snap field -- college has none, and that is the point.
+        return {"rec": rec, "rec_yds": rec * 12, "rush_yds": rush,
+                "car": car, "rec_td": 0, "rush_td": 0,
+                "pass_yds": 0, "pass_td": 0, "team": "T", "game_id": "x"}
+
+    props = []
+    for line, mk in ((4.5, "player_receptions"), (2.5, "player_receptions")):
+        props.append({"player": "Cee Bee", "market": mk, "line": line,
+                      "sides": {"over": {"price": -110, "book": "fd",
+                                         "n_books": 3, "link": "x"}}})
+    props.append({"player": "Cee Bee", "market": "player_pass_tds",
+                  "line": 1.5, "sides": {"over": {"price": -110,
+                                                  "book": "fd", "n_books": 3,
+                                                  "link": "x"}}})
+    board = {"pulled_at": "2026-09-03T22:31:00Z", "n_games": 1,
+             "books_seen": ["fd"],
+             "games": [{"id": "g1", "away": "A", "home": "H",
+                        "commence": "2026-09-06T17:00:00Z", "props": props}]}
+    with _gz.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
+        json.dump(board, fh)
+    # 10 games: 6 with catches, 4 appearing ONLY via a carry. ⛔ Those four
+    # are the union denominator's whole contribution -- under the old
+    # receiving-only denominator they would not exist.
+    gs = [cg(rec=5) for _ in range(6)] + [cg(rec=0, car=3) for _ in range(4)]
+    logs = {"season": 2025, "scope": "all FBS conferences",
+            "players": {"1": {"name": "Cee Bee", "pos": "WR", "g": gs}}}
+    with _gz.open("data/ncaaf/latest/players-2025.json.gz", "wt") as fh:
+        json.dump(logs, fh)
+    C = load("ncaaf")
+    C.main()
+    out = json.load(open("picks/fb-ncaaf-latest.json"))
+    by = {(p["market"], p.get("line")): p for p in out["picks"]}
+
+    r45 = by[("player_receptions", 4.5)]
+    eq(r45["confidence_basis"], "RECORD",
+       "🔴 receptions o4.5 CARRIES A RATE — this is the change")
+    eq(r45["record"], "6 of 10",
+       "⛔ 10 games, not 6 — the union denominator is what is counted")
+    eq(r45["confidence"], round(100 * 6.5 / 11),
+       "   Jeffreys-smoothed exactly as an MLB hitter row")
+
+    r25 = by[("player_receptions", 2.5)]
+    eq(r25["confidence_basis"], "MARKET",
+       "🔴 receptions o2.5 is GATED on the SAME card, same player")
+    eq("confidence" in r25, False, "   and carries no number at all")
+    eq("quiet" in " ".join(r25["why"]), True, "   the row says why in English")
+
+    ptd = by[("player_pass_tds", 1.5)]
+    eq(ptd["confidence_basis"], "MARKET",
+       "⛔ an unmeasured market is MARKET-only even with a full log")
+
+    eq(out["denominator"], "every game he appears in (union denominator)",
+       "the card states which denominator it used")
+    eq(out["snap_floor"], None,
+       "⛔ and does NOT advertise a snap floor college cannot have")
+    eq(out["n_gated_by_measurement"], 2, "gated rows are counted separately")
+finally:
+    os.chdir(cwd)
+    import shutil
+    shutil.rmtree(tmp, ignore_errors=True)
+
+print("\n13. 🔴 A SEASON TOO YOUNG TO RATE MUST NOT BE PICKED")
+print("    `[measured 2026-09-04]` the live college run chose")
+print("    players-2026.json.gz — 74 players, ONE game each — because a")
+print("    week had been played, and MIN_GAMES then refused every rate.")
+print("    ⛔ The board shipped 0 of 50 rows with a record and said nothing.")
+tmp = tempfile.mkdtemp()
+cwd = os.getcwd()
+try:
+    os.chdir(tmp)
+    os.makedirs("data/ncaaf/latest", exist_ok=True)
+    import gzip as _gz
+
+    def wr(season, n_games, n_players=5):
+        d = {"season": season, "players": {
+            str(i): {"name": f"P{i}", "pos": "WR",
+                     "g": [{"rec": 1} for _ in range(n_games)]}
+            for i in range(n_players)}}
+        with _gz.open(f"data/ncaaf/latest/players-{season}.json.gz", "wt") as fh:
+            json.dump(d, fh)
+
+    wr(2025, 10)
+    wr(2026, 1)
+    C = load("ncaaf")
+    season, P = C.load_logs()
+    eq(season, 2025, "🔴 falls back to the season that CAN answer the question")
+    eq(len(P), 5, "   and it is the real log, not an empty one")
+
+    # once the young season matures, it takes over -- no manual switch
+    wr(2026, 8)
+    C = load("ncaaf")
+    season, _ = C.load_logs()
+    eq(season, 2026, "✅ and it switches back on its own once the season is old enough")
+
+    # ⛔ and if NOTHING is deep enough, it still returns the best available
+    os.remove("data/ncaaf/latest/players-2025.json.gz")
+    wr(2026, 2)
+    C = load("ncaaf")
+    season, _ = C.load_logs()
+    eq(season, 2026, "⚠️ with nothing deep enough it uses the best it has")
+finally:
+    os.chdir(cwd)
+    import shutil
+    shutil.rmtree(tmp, ignore_errors=True)
+
 print()
 if fails:
     print(f"🔴 {len(fails)} FAILED:")
     for f in fails:
         print("   " + f)
     sys.exit(1)
-print("✅ card_fb OK — college carries no rate, the snap floor bites, "
+print("✅ card_fb OK — the measured college gate bites, the snap floor bites, "
       "nothing claims MODEL")

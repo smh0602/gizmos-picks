@@ -19,40 +19,60 @@ same columns, the same sort — with the number's PROVENANCE labelled
 honestly on the row.
 
 ════════════════════════════════════════════════════════════════════════
-🔴 THE FINDING THAT SHAPES THIS WHOLE FILE — measured 2026-09-03
+~~🔴 THE FINDING THAT SHAPES THIS WHOLE FILE — measured 2026-09-03~~
+⛔ **STRUCK 2026-09-04. THE COMPARISON WAS NOT VALID.** Ledger rule 75.
 ════════════════════════════════════════════════════════════════════════
-**NFL AND COLLEGE LOGS ANSWER DIFFERENT QUESTIONS, AND ONLY ONE OF THEM
-SUPPORTS A HIT RATE.**
+~~**NFL AND COLLEGE LOGS ANSWER DIFFERENT QUESTIONS, AND ONLY ONE OF THEM
+SUPPORTS A HIT RATE.** Measured on 2025: NFL WR games with ZERO receptions
+25.8%, CFB WR 3.5% — so blank games are MISSING from college. The median
+CFB receiver is missing 6 of his team's 13 games. **THEREFORE: NFL rows
+carry a RECORD confidence. COLLEGE ROWS DO NOT.**~~
 
-A rate needs a DENOMINATOR: the games he played. Measured on 2025:
+🔴 **WHY THAT WAS WRONG, AND IT WAS WRONG IN THE PREMISE, NOT THE
+ARITHMETIC.** Both percentages are correct. They are not comparable:
+**nflverse logs a game when a player took a SNAP; CFBD logs a game when he
+RECORDED A STAT.** A file that logs snap-only games *necessarily* shows
+more zero-catch games. ⛔ **The 25.8-vs-3.5 gap is produced by the two
+file formats, and says nothing about how much college data is missing.**
 
-    NFL WR games with ZERO receptions   25.8%   <- blank games ARE logged
-    CFB WR games with ZERO receptions    3.5%   <- blank games are MISSING
+✅ **ASKED THE SAME WAY — share of the player's TEAM's games, one filter,
+both leagues** `[measured 2026-09-04]`:
 
-⚠️ THE MECHANISM, CONFIRMED NOT ASSUMED: nflverse carries SNAP COUNTS, so
-a receiver appears in the log for every game he was **on the field** —
-79.1% of his zero-catch games have snaps > 0. CFBD has **no snap data at
-all**, and `players-<yr>.json.gz` says so in its own consumer_contract:
-*"NO SNAP DATA EXISTS FOR COLLEGE FOOTBALL."* A college player therefore
-appears only in games where he **touched the ball**.
+    games with ANY of rec/car/att     college    NFL    NFL TRUTH (snaps)
+      WR                                0.750   0.706        0.842
+      TE                                0.615   0.657        0.756
+      RB                                0.857   0.882        0.941
 
-⛔ SO A COLLEGE HIT RATE IS COMPUTED OVER HIS PRODUCTIVE GAMES ONLY. The
-median CFB receiver is missing **6 of his team's 13 games** and 69.6% are
-missing three or more — roughly half the denominator is absent, and the
-absent half is systematically the low-production half. **The rate would be
-inflated on every OVER by an unknown margin.**
+**College is not meaningfully worse than the NFL — on receivers it is
+better.**
 
-⚠️ AND THE TWO CAUSES CANNOT BE SEPARATED. A missing college game is
-either "played and did not touch the ball" or "did not play" — the file's
-own contract warns of exactly this. **Assuming the first inflates unders;
-assuming the second inflates overs.** There is no third option in this
-data.
+════════════════════════════════════════════════════════════════════════
+✅ SO COLLEGE ROWS NOW CARRY A RATE, OVER A **UNION** DENOMINATOR
+════════════════════════════════════════════════════════════════════════
+The denominator is **every game he appears in for any reason** — a carry,
+a catch, an attempt — not only the games he recorded the stat the market
+is about. ⚠️ Worth **+35.7 points** for a college RB and a rounding error
+for a WR, **replicated in the NFL (+29.4 / +0.0)**.
 
-➡️ **THEREFORE: NFL rows carry a RECORD confidence. COLLEGE ROWS DO NOT.**
-College still gets the identical board, the identical columns and the
-identical sort — sorted by price — with the confidence column reading
-"no rate" and the page saying why in one sentence. ⛔ A number that is
-wrong in a known direction is worse than no number, because it gets bet.
+🔴 **THE RESIDUAL ERROR IS REAL, KNOWN, AND ONE-DIRECTIONAL** — a game he
+played and did nothing in is still missing, so an OVER reads high. **T52b
+measured exactly that, in the NFL, where the true denominator exists:**
+the same Jeffreys-smoothed rate computed both ways and differenced.
+
+    BAR, fixed before the numbers printed:  median |bias| <= 3.0 points
+                                            AND p90 <= 8.0
+    (the card buckets confidence in 10-point calibration bands; an error
+     that can move a row ACROSS a band changes what the page says)
+
+    RESULT   pooled n=2,142   median 0.21   p90 3.79      PASS
+
+⛔ **ONE CELL FAILED AND IS GATED, NOT ROUNDED AWAY:** WR receptions
+over 2.5 — p90 **8.58**, max 19.44. See `RATE_MIN_REC_LINE`.
+⚠️ **THE TRANSFER IS AN ASSUMPTION AND IS NAMED AS ONE.** The bias was
+measured in the NFL and applied to college; the support is that the union
+ratios above sit within 2.5 points across both leagues. **Support, not
+proof.** T52b/T52c in `claude/owed-tests.md` carry the bars, and ⛔ **they
+do not move now that the numbers have been seen.**
 
 ════════════════════════════════════════════════════════════════════════
 🔴 THE SNAP FLOOR IS LOAD-BEARING AND IS PRE-REGISTERED, NOT FITTED
@@ -92,12 +112,54 @@ if LEAGUE not in ("nfl", "ncaaf"):
 DATA = f"data/{LEAGUE}"
 LG_NAME = {"nfl": "NFL", "ncaaf": "College Football"}[LEAGUE]
 
-# 🔴 NFL ONLY. See the module docstring -- the college denominator is
-# contaminated and no amount of care here fixes it.
-RATES_OK = LEAGUE == "nfl"
+# ~~🔴 NFL ONLY. the college denominator is contaminated and no amount of
+# care here fixes it.~~ ⛔ **STRUCK 2026-09-04. THE COMPARISON THAT
+# JUSTIFIED IT WAS NOT VALID** -- see the docstring and ledger rule 75.
+# ✅ BOTH LEAGUES MAY CARRY A RATE. Which MARKETS may is a separate
+# question, answered by `market_rateable()` from a measured bias.
+RATES_OK = True
 
 SNAP_FLOOR = 0.50        # pre-registered, see docstring. ⛔ do not tune
 MIN_GAMES = 6            # a rate on fewer games is not a rate
+
+# 🔴 THE ONE CELL THAT FAILED T52b, AND THE ONLY THING GATED BECAUSE OF IT.
+# `[measured 2026-09-04 in the NFL, where the true denominator EXISTS]`
+# Using a union denominator instead of the true one biases an OVER rate
+# upward, and the bias grows as the line falls, because a missing game is
+# always a quiet one:
+#
+#     WR receptions o2.5    median +2.19   p90 8.58 🔴   max 19.44
+#     WR receptions o3.5    median +1.32   p90 5.00      max 12.50
+#     WR receptions o4.5    median +0.82   p90 3.21      max  6.94
+#
+# ⛔ THE BAR WAS FIXED BEFORE THOSE NUMBERS PRINTED: median <= 3.0 and
+# p90 <= 8.0, derived from the card's own 10-point calibration bands --
+# an error that can move a row ACROSS a band changes what the page says
+# about a bet. o2.5 breaches it; o3.5 does not.
+# ⚠️ APPLIED TO ALL POSITIONS, not just WR. Lines below 2.5 were never
+# tested and the MECHANISM says they are worse, so the floor is set at
+# the lowest line that passed rather than at the lowest that failed.
+# ⛔ Do not lower it to put more rows on the board. If it is wrong it
+# gets a test, not an adjustment.
+RATE_MIN_REC_LINE = 3.5
+
+# ⚠️ EVERY OTHER CARDED MARKET WAS MEASURED AGAINST THE SAME BAR, and a
+# market that was never measured does NOT inherit a pass from one that
+# was (T52c, 2026-09-04, pooled median 0.00 / p90 2.24 over 1,058
+# player-lines):
+#   passing yards  o199.5/o249.5   median +0.00  p90 0.00
+#   rushing yards  o29.5/49.5/69.5 median +0.00  p90 <= 2.11
+#   receiving yds  o39.5/o49.5     median +1.92  p90 <= 7.93  (marginal)
+#   carries        o8.5/o12.5      median +0.00  p90 <= 1.61
+#   anytime TD                     median +1.14  p90 <= 6.25  max 25.00
+# ⛔ `player_pass_tds` IS DELIBERATELY ABSENT. It was not in either test,
+# so on college it carries a price and no rate -- exactly the treatment
+# every college market had yesterday. Adding it needs a measurement, not
+# an assumption that it resembles passing yards.
+RATE_MEASURED = frozenset({
+    "player_pass_yds", "player_rush_yds", "player_reception_yds",
+    "player_receptions", "player_anytime_td",
+})
 PRICE_FLOOR = -700       # Sam's standing floor, same as MLB
 
 # 🔴 A CEILING, BECAUSE "LIKELY AND PAYABLE" HAS TWO ENDS.
@@ -160,25 +222,69 @@ def norm(n):
     return " ".join(n.split())
 
 
+SCOPES = {}
+LOG_SCOPE = None
+
+
 def load_logs():
-    """Newest season that actually has games. Returns (season, {pid: player})."""
-    best = None
+    """Newest season with enough games to READ A RATE. (season, {pid: player}).
+
+    🔴 ~~"Newest season that actually has games."~~ ⛔ **THAT WAS WRONG AND
+    IT WOULD HAVE EMPTIED THE BOARD FOR THE FIRST SIX WEEKS OF EVERY
+    SEASON, SILENTLY.** `[measured 2026-09-04]` the live college run picked
+    `players-2026.json.gz` — **74 players, one game each** — because one
+    week had been played, and `MIN_GAMES = 6` then refused every rate. The
+    board shipped 0 of 50 rows with a record and nothing said why. ⚠️ The
+    NFL would have done the same thing on the Tuesday after week 1.
+
+    ✅ **A SEASON IS USABLE WHEN A TYPICAL PLAYER IN IT COULD CLEAR THE
+    FLOOR** — median games per player >= `MIN_GAMES`. Below that the file
+    exists but cannot answer the question being asked of it.
+    ⚠️ Falling back to last season is the DESIGNED behaviour, not a
+    workaround: every row already says "this is his own record from last
+    season", and roster churn is a stated, accepted limit.
+    ⛔ ONE SEASON, NEVER A BLEND. Mixing two seasons' games into one
+    denominator would make the rate a property of the file mix rather than
+    of the player.
+    """
+    usable, thinner = None, None
     for f in sorted(glob.glob(f"{DATA}/latest/players-*.json.gz"), reverse=True):
         try:
             d = json.load(gzip.open(f, "rt"))
         except Exception:
             continue
         P = d.get("players") or {}
-        if sum(len(p.get("g") or []) for p in P.values()) == 0:
+        SCOPES[os.path.basename(f)] = d.get("scope")
+        counts = sorted(len(p.get("g") or []) for p in P.values())
+        if not counts or counts[-1] == 0:
             log(f"  {os.path.basename(f)}: no games yet, skipping")
             continue
-        best = (d.get("season"), P, os.path.basename(f))
-        break
+        med = counts[len(counts) // 2]
+        row = (d.get("season"), P, os.path.basename(f), med)
+        if thinner is None:
+            thinner = row
+        if med >= MIN_GAMES:
+            usable = row
+            break
+        log(f"  {os.path.basename(f)}: median {med} game(s) per player, "
+            f"under the {MIN_GAMES} needed for a rate — looking further back")
+    best = usable or thinner
     if not best:
         log("FATAL: no player log with any games")
         sys.exit(1)
-    season, P, fn = best
-    log(f"logs: {fn} — {len(P)} players, season {season}")
+    season, P, fn, med = best
+    global LOG_SCOPE
+    LOG_SCOPE = SCOPES.get(fn)
+    log(f"logs: {fn} — {len(P)} players, season {season}, "
+        f"median {med} games/player"
+        + (f", scope: {LOG_SCOPE}" if LOG_SCOPE else ""))
+    if usable is None:
+        # ⛔ SAID OUT LOUD. A board with no rates because the season is
+        # young is a legitimate state; a board with no rates and no
+        # explanation is the failure.
+        log(f"  ⚠️ NO season has a median of {MIN_GAMES}+ games yet — this "
+            f"board will carry prices and few or no records, and the card "
+            f"says so.")
     return season, P
 
 
@@ -203,7 +309,25 @@ def qualifying(games):
     is overstated by up to 23.9 points.
     ⚠️ Rows with no snap field at all are DROPPED rather than assumed to
     qualify. An absence is evidence about the feed, not about the player.
+
+    🔴 COLLEGE: EVERY GAME IN HIS LOG -- the UNION denominator, added
+    2026-09-04. ⛔ CFBD publishes no snap counts, so there is no floor to
+    apply and pretending otherwise would be inventing a field. What the
+    union buys is the games he appears in for ANY reason -- a carry, a
+    catch, an attempt -- rather than only the games he recorded the stat
+    the market is about.
+    📊 THE SIZE OF THAT, MEASURED IN BOTH LEAGUES: it is worth **+35.7
+    points** for a college RB (+29.4 in the NFL) and a rounding error for
+    a WR (+1.7 / +0.0). ⚠️ Replicated across two leagues, so it is a
+    property of how backs and receivers are used, not a season artifact.
+    ⚠️ THE RESIDUAL ERROR IS REAL, KNOWN AND ONE-DIRECTIONAL: a game he
+    played and did nothing in is still missing, so an OVER rate reads
+    high. T52b measured that against the truth in the NFL -- pooled
+    median 0.21 points, p90 3.79, against a 3.0/8.0 bar -- and
+    `market_rateable()` gates the one cell that failed.
     """
+    if LEAGUE != "nfl":
+        return list(games)
     out = []
     for g in games:
         sp = g.get("snap_pct")
@@ -212,6 +336,34 @@ def qualifying(games):
         if float(sp) >= SNAP_FLOOR:
             out.append(g)
     return out
+
+
+def market_rateable(market, line):
+    """May THIS market at THIS line carry a rate? (ok, reason-if-not)
+
+    🔴 THE GATE IS ON THE MARKET AND THE LINE, NOT ON THE LEAGUE. The NFL
+    has the true denominator (snaps), so nothing is gated there. College
+    has the union denominator, whose error was measured in the NFL and is
+    acceptable everywhere except the low receptions lines.
+    ⛔ A market nobody measured gets no rate on college. It does not
+    inherit a pass from a market that resembles it.
+    """
+    if LEAGUE == "nfl":
+        return True, None
+    if market not in RATE_MEASURED:
+        return False, (
+            "This market has not been checked for how much college box "
+            "scores understate a player's games played, so it shows the "
+            "price and no record.")
+    if market == "player_receptions" and (line is None
+                                          or float(line) < RATE_MIN_REC_LINE):
+        return False, (
+            f"Reception lines under {RATE_MIN_REC_LINE:g} are left without a "
+            f"record on purpose. College box scores list a player only when "
+            f"he did something, so his quiet games go missing — and at a "
+            f"short line a missing quiet game is exactly the difference "
+            f"between a hit and a miss.")
+    return True, None
 
 
 def jeffreys(hits, n):
@@ -223,6 +375,11 @@ def rate_for(games, market, line, side):
     """(confidence 0-100, hits, n) over his qualifying games, or None."""
     getter = MARKETS.get(market)
     if not getter:
+        return None
+    # ⛔ THE MEASURED GATE COMES FIRST. A row that is not allowed a rate
+    # must not get one by any other route.
+    ok, _why = market_rateable(market, line)
+    if not ok:
         return None
     read = getter[0]
     q = qualifying(games)
@@ -330,7 +487,7 @@ def main():
     season, P = load_logs()
     idx = index_by_name(P)
 
-    rows, unmatched, ambiguous, thin = [], set(), set(), 0
+    rows, unmatched, ambiguous, thin, gated = [], set(), set(), 0, 0
     seen_players = set()
 
     for g in B.get("games", []):
@@ -355,10 +512,16 @@ def main():
                 if price is None:
                     continue
                 r = None
-                if plog is not None:
+                gate_ok, gate_why = market_rateable(mk, pr.get("line"))
+                if plog is not None and gate_ok:
                     r = rate_for(plog.get("g") or [], mk, pr.get("line"), side)
                     if r is None:
                         thin += 1
+                elif plog is not None and not gate_ok:
+                    # ⛔ COUNTED SEPARATELY. "gated by a measurement" and
+                    # "too few games" are different facts and a report that
+                    # merges them cannot tell you which one is happening.
+                    gated += 1
                 conf = r[0] if r else None
                 unit = MARKETS[mk][1]
                 sideword = {"over": "over", "under": "under", "yes": "yes"}[side]
@@ -397,15 +560,29 @@ def main():
                     row["break_even"] = round(100 * american_break_even(price), 1)
                     row["edge"] = round(
                         100 * (conf / 100.0 - american_break_even(price)), 1)
+                    # ⚠️ THE NOTE MUST DESCRIBE THE DENOMINATOR THAT WAS
+                    # ACTUALLY USED. ⛔ Claiming a snap floor on a league
+                    # that publishes no snap counts would be stating
+                    # something the data cannot support.
                     row["confidence_note"] = (
                         f"His own rate at this exact line over {n} games in "
                         f"{season} where he played at least half his team's "
                         f"snaps, smoothed. There is no football model in this "
-                        f"project, so this is DESCRIPTIVE — not a projection.")
+                        f"project, so this is DESCRIPTIVE — not a projection."
+                        if LEAGUE == "nfl" else
+                        f"His own rate at this exact line over the {n} games "
+                        f"in {season} he appears in, smoothed. College box "
+                        f"scores list a player only when he did something, so "
+                        f"a game he played quietly can be missing — which "
+                        f"nudges an over slightly high. There is no football "
+                        f"model in this project, so this is DESCRIPTIVE — not "
+                        f"a projection.")
                     row["why"] = build_why(who, mk, pr.get("line"), sideword,
                                            hits, n, season, unit)
                 else:
-                    row["why"] = [no_rate_reason(RATES_OK, plog, who)]
+                    row["why"] = [gate_why] if (plog is not None
+                                                 and not gate_ok) else [
+                        no_rate_reason(RATES_OK, plog, who)]
                 rows.append(row)
 
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.
@@ -420,6 +597,31 @@ def main():
         if match_rate < 0.60:
             log(f"🔴 JOIN TOO WEAK ({match_rate:.1%} < 60%) — stripping every "
                 f"rate and shipping a MARKET-only board.")
+            # 🔴 SAY *WHY* IT IS WEAK, NOT JUST THAT IT IS.
+            # `[measured 2026-09-04]` the college join read 58.2% and the
+            # matcher was fine: `players-2025.json.gz` still declares
+            # "Power 4 only (ACC, Big 12, Big Ten, SEC)" and covers 67
+            # teams, while the odds board is ALL FBS. Every unmatched name
+            # was a Group of Five player who has no log to match against.
+            # ⛔ A gate that fails without naming its cause invites the
+            # wrong fix -- and the wrong fix here is lowering the gate.
+            covered = {gg.get("team") for pl in P.values()
+                       for gg in (pl.get("g") or []) if gg.get("team")}
+            log(f"  the log covers {len(covered)} team(s); "
+                f"{len(unmatched)} board name(s) matched nothing")
+            scope_note = None
+            try:
+                scope_note = LOG_SCOPE
+            except NameError:
+                pass
+            if scope_note:
+                log(f"  the log declares its scope as: {scope_note}")
+                if "power 4" in str(scope_note).lower():
+                    log("  ⚠️ THE STORED LOG IS POWER-4 AND THE BOARD IS "
+                        "ALL FBS. This is a SCOPE gap, not a broken "
+                        "matcher. Re-run the college back-fill (free) to "
+                        "rebuild the logs at FBS scope; ⛔ do NOT lower "
+                        "the gate.")
             for r in rows:
                 r.pop("confidence", None)
                 r.pop("edge", None)
@@ -480,8 +682,24 @@ def main():
         "odds_pulled_at": B.get("pulled_at"),
         "logs_season": season,
         "rates_available": RATES_OK,
-        "snap_floor": SNAP_FLOOR if RATES_OK else None,
+        # ⚠️ THE SNAP FLOOR IS AN NFL FACT. ⛔ Reporting it on a college
+        # card would advertise a filter that cannot exist there.
+        "snap_floor": SNAP_FLOOR if LEAGUE == "nfl" else None,
+        "denominator": ("games at >= 50% of team snaps"
+                        if LEAGUE == "nfl" else
+                        "every game he appears in (union denominator)"),
         "min_games": MIN_GAMES,
+        "n_gated_by_measurement": gated,
+        "rate_gates": (None if LEAGUE == "nfl" else {
+            "min_reception_line": RATE_MIN_REC_LINE,
+            "measured_markets": sorted(RATE_MEASURED),
+            "why": ("A college rate is computed over the games he appears "
+                    "in, which can miss a game he played quietly. That error "
+                    "was measured in the NFL, where the true figure is "
+                    "known: median 0.2 points, 90th percentile 3.8. It is "
+                    "largest at short reception lines, so those carry no "
+                    "rate, and a market that was never measured carries "
+                    "none either.")}),
         "name_match_rate": round(match_rate, 3) if match_rate is not None else None,
         "n_priced": len(rows),
         "coverage": (
@@ -499,7 +717,7 @@ def main():
             "football models were tested and every one lost to a player's "
             "own season average. What is shown is his OWN RECORD and the "
             "market's price — both labelled."),
-        "college_note": None if RATES_OK else COLLEGE_NOTE,
+        "college_note": None if LEAGUE == "nfl" else COLLEGE_NOTE,
         "picks": board,
         "n_longshots_excluded": len(longshots),
         "price_ceiling": PRICE_CEIL,
@@ -536,13 +754,16 @@ def main():
     return 0
 
 
+# ~~"College rows carry a price and no rate, on purpose..."~~
+# ⛔ STRUCK 2026-09-04 — the comparison behind it was not valid. Rule 75.
 COLLEGE_NOTE = (
-    "College rows carry a price and no rate, on purpose. A hit rate needs "
-    "the games a player actually played, and college box-score data lists "
-    "him only in games where he touched the ball — the median receiver is "
-    "missing six of his team's thirteen games, and the missing ones are the "
-    "quiet ones. A rate built on that would read too high on every over. "
-    "The NFL board has snap counts, so it does not have this problem.")
+    "College records are counted over the games a player appears in. "
+    "College box scores list him only when he did something, so a game he "
+    "played quietly can be missing — which nudges an over slightly high. "
+    "That gap was measured against the NFL, where the true figure is "
+    "known: a median of 0.2 percentage points and 3.8 at the 90th "
+    "percentile. Short reception lines, where the gap is biggest, carry no "
+    "record at all.")
 
 
 def no_rate_reason(rates_ok, plog, who):
@@ -552,8 +773,11 @@ def no_rate_reason(rates_ok, plog, who):
         return (f"No 2025 game log matched {who} — he is new, changed his "
                 f"listed name, or shares one. No record is shown rather than "
                 f"a guess.")
-    return (f"{who} has too few games at a starter's snap share to read a "
-            f"rate from. Fewer than {MIN_GAMES} is not a rate.")
+    if LEAGUE == "nfl":
+        return (f"{who} has too few games at a starter's snap share to read "
+                f"a rate from. Fewer than {MIN_GAMES} is not a rate.")
+    return (f"{who} appears in too few games last season to read a rate "
+            f"from. Fewer than {MIN_GAMES} is not a rate.")
 
 
 def build_why(who, mk, line, side, hits, n, season, unit):
@@ -563,15 +787,29 @@ def build_why(who, mk, line, side, hits, n, season, unit):
     that a casual [fan] wont know about has to go."
     """
     pct = round(100 * hits / n) if n else 0
+    # ⚠️ THE SENTENCE MUST DESCRIBE THE DENOMINATOR THAT WAS ACTUALLY
+    # USED. ⛔ The snap-share clause is TRUE OF THE NFL ONLY -- CFBD
+    # publishes no snap counts, and saying it anyway would put a claim on
+    # the page the data cannot support (rule 55's plain-English half).
+    when = ("when he played at least half the snaps" if LEAGUE == "nfl"
+            else "across the games he appears in")
     if mk == "player_anytime_td":
         head = (f"<b>{who}</b> scored in <b>{hits} of {n} games</b> in "
-                f"{season} ({pct}%) when he played at least half the snaps.")
+                f"{season} ({pct}%) {when}.")
     else:
         word = "over" if side == "over" else "under"
         head = (f"<b>{who}</b> went {word} {line} {unit} in "
-                f"<b>{hits} of {n} games</b> in {season} ({pct}%) when he "
-                f"played at least half the snaps.")
+                f"<b>{hits} of {n} games</b> in {season} ({pct}%) {when}.")
     out = [head]
+    # 🔴 THE KNOWN LIMIT, SAID ON THE ROW, IN ENGLISH, EVERY TIME.
+    # ⚠️ It is one-directional and the reader is entitled to know which
+    # way: college box scores drop a player's quiet games, so an OVER
+    # reads slightly high. Measured at a median of 0.2 points and a 90th
+    # percentile of 3.8 -- small, but never hidden.
+    if LEAGUE != "nfl":
+        out.append("College box scores list a player only when he did "
+                   "something, so a game he played quietly can be missing "
+                   "from that count — which nudges an over slightly high.")
     if n < 10:
         out.append("That is a small sample — too few games to read much "
                    "into on its own.")

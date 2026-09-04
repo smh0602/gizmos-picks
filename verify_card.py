@@ -1031,8 +1031,63 @@ _shown = [f for f in _allf if f.get('actionable')]
 _hidden = [f for f in _allf if not f.get('actionable')]
 print(f"  NOTE  {len(_allf)} flag(s) on this card: {len(_shown)} shown, "
       f"{len(_hidden)} recorded but not rendered")
-ck("the diagnostics are still being written to the card",
-   not allrows or len(_allf) > 0 or all(r.get('flags') == [] for r in allrows))
+# 🔴 THIS CHECK WAS REPLACED ON 2026-09-04, AND THE ARGUMENT IS MADE HERE.
+# ⛔ THE OLD FORM: `len(_allf) > 0` -- at least one flag must exist on the
+# card. **That tests that DATA EXISTS rather than that data is CORRECT**,
+# which is the one thing CLAUDE.md names as a legitimate reason to replace
+# a check, and it is the same shape as the retired "at least one alt rung
+# is below -700".
+# 📊 IT FAILED A PERFECTLY GOOD CARD, MEASURED ON UNMODIFIED `main` at
+# 2026-09-04T01:52Z: **45 picks, every one of them priced at
+# `hardrockbet`.** The only flag that reaches the page is "Hard Rock
+# didn't post this one", so ZERO flags was the CORRECT answer -- the check
+# was asserting that some row must be missing from Hard Rock, which is a
+# fact about the SPORTSBOOK, not about our diagnostics.
+# ⚠️ ITS ESCAPE CLAUSE ALSO NEVER FIRED: `all(r.get('flags') == [] ...)`
+# compares `None` to `[]`, and a row with no flags has no `flags` key at
+# all. So the intended "nothing has flags, that is fine" branch was dead.
+# ✅ THE REPLACEMENT IS STRICTLY HARDER, and it is the reconstruction this
+# file exists to do -- the flag is recomputed a SECOND WAY, from the board
+# rather than from card.py's own field, and checked in BOTH directions on
+# EVERY row:
+#     Hard Rock posted it  -> the row must NOT carry the flag
+#     Hard Rock did not    -> the row MUST carry it
+# ⛔ The old check could not catch a FALSE flag at all, and could not
+# catch a stopped flag-writer on any card where one row happened to be
+# flagged. This one catches both, on every row, every day.
+_hrpost = {}
+for _g in B.get('games', []):
+    for _p in _g.get('props', []):
+        _k = (str(_p.get('pid')), _p.get('market'), _p.get('line'),
+              _p.get('side'))
+        _hrpost[_k] = (_p.get('hr') or {}).get('price') is not None
+_flagmiss, _flagfalse, _seen = [], [], 0
+for r in allrows:
+    _k = (str(r.get('pid')), r.get('market'), r.get('line'), r.get('side'))
+    if _k not in _hrpost:
+        continue
+    _seen += 1
+    _has = any(f.get('actionable') and 'Hard Rock' in (f.get('text') or '')
+               for f in (r.get('flags') or []))
+    if _hrpost[_k] and _has:
+        _flagfalse.append((r.get('player') or r.get('pitcher'), r.get('market')))
+    elif not _hrpost[_k] and not _has:
+        _flagmiss.append((r.get('player') or r.get('pitcher'), r.get('market')))
+ck(f"the Hard Rock flag is written on EVERY row that needs it and no row "
+   f"that does not ({_seen} rows reconciled against the board)",
+   not _flagmiss and not _flagfalse,
+   f"missing={_flagmiss[:3]} false={_flagfalse[:3]}")
+# ⚠️ AND THE ROW'S OWN `on_hardrock` FIELD MUST AGREE WITH THE BOARD.
+# ⛔ A flag that is right while the field it derives from is wrong would
+# mean the page and the record disagree about the same fact.
+_ohmm = []
+for r in allrows:
+    _k = (str(r.get('pid')), r.get('market'), r.get('line'), r.get('side'))
+    if _k in _hrpost and r.get('on_hardrock') is not None:
+        if bool(r['on_hardrock']) != _hrpost[_k]:
+            _ohmm.append((r.get('player') or r.get('pitcher'), r.get('market')))
+ck("every row's on_hardrock agrees with the stored board",
+   not _ohmm, str(_ohmm[:3]))
 ck("every flag that reaches the page is marked actionable",
    all('actionable' in f or not f.get('actionable') for f in _allf))
 _bad = [f['test'] for f in _shown if f.get('test') in

@@ -3124,10 +3124,11 @@ async function fbProps(){
         <div class="mk">${p.unit || p.label || ''}</div>
       </div>
       <div class="pr2">${priceCell(sd)}</div>
-      <div class="ev2">${
-        LEAGUE === 'nfl'
-          ? '<span style="opacity:.6">market price &mdash; his own record is on the Gizmo&rsquo;s Picks tab</span>'
-          : '<span style="opacity:.6">market price &mdash; college rows carry no rate, see the note below</span>'}</div>
+      <!-- ⚠️ ONE SENTENCE FOR BOTH LEAGUES. It stopped being
+           league-specific on 2026-09-04 when college rows started
+           carrying a record; two copies of one fact is two things to
+           drift (rule 66). -->
+      <div class="ev2"><span style="opacity:.6">market price &mdash; his own record is on the Gizmo&rsquo;s Picks tab</span></div>
       <div class="imp">${sd && sd.n_books
         ? `<b>${sd.n_books}</b>book${sd.n_books > 1 ? 's' : ''}`
         : '<span style="font-size:10px;opacity:.6">one-sided<br>no fair price</span>'}</div>
@@ -3204,13 +3205,16 @@ async function fbProps(){
    football row carries `RECORD` -- his own rate at that exact line --
    exactly as an MLB HITTER row does, and the chip on the row says so.
 
-   ⚠️ COLLEGE ROWS CARRY NO RATE AT ALL, and that is a measured result,
-   not an omission. CFBD publishes no snap data, so a college player
-   appears in the log only in games where he TOUCHED THE BALL: the median
-   receiver is missing six of his team's thirteen games and the missing
-   ones are the quiet ones. A rate over that denominator reads too high on
-   every over. The NFL log carries snap counts and does not have this
-   problem. ⛔ A number wrong in a known direction is worse than none.
+   ⚠️ ~~COLLEGE ROWS CARRY NO RATE AT ALL~~ -- ⛔ STRUCK 2026-09-04,
+   ledger rule 75. The comparison behind it put a SNAP-logged file beside
+   a STAT-logged one. Asked the same way, college is not meaningfully
+   worse than the NFL. ✅ College rows now carry a record too, counted
+   over every game the player appears in, and the ONE cell whose error
+   failed its pre-registered bar -- short reception lines -- is gated in
+   `card_fb.py` and arrives here already stripped.
+   🔴 THE PAGE DOES NOT DECIDE ANY OF THAT AND MUST NOT LEARN TO. It
+   prints `confidence_basis` and the card's own `denominator` string. ⛔ A
+   second copy of the rule in JavaScript is a second thing to drift.
    ══════════════════════════════════════════════════════════════════ */
 const FBCARD = {};
 
@@ -3250,16 +3254,13 @@ function fbNoModelNote(C){
     average, so there is nothing of ours to put beside these lines.
     ${C && C.rates_available
       ? `What each number IS: <b>his own record at that exact line</b> over
-         ${C.logs_season}, counting only games he played at least half his
-         team's snaps. That is history, not a forecast &mdash; and rosters
-         and roles change between seasons.`
-      : `<b>College rows carry a price and no rate, deliberately.</b>
-         College box scores list a player only in games where he touched
-         the ball &mdash; the median receiver is missing six of his team's
-         thirteen games, and the missing ones are the quiet ones. A rate
-         built on that would read too high on every over, so none is
-         shown. The NFL board has snap counts and does not have this
-         problem.`}
+         ${C.logs_season}, counted over ${C.denominator || 'his logged games'}.
+         That is history, not a forecast &mdash; and rosters and roles
+         change between seasons.`
+      : `<b>These rows carry a price and no record.</b> There is not enough
+         game history behind them yet to read a rate from.`}
+    ${C && C.college_note
+      ? `<br><br>&#9888;&#65039; ${C.college_note}` : ''}
   </div>`;
 }
 
