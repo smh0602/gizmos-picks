@@ -2563,7 +2563,11 @@ function fbMetricsFor(pos){
    which is why the two halves looked like different products even with
    the same tables inside. ⚠️ Scores is the exception on BOTH sides: MLB's
    game cards sit directly on the page background, and so do football's. */
-const FB_BARE = new Set(['scores']);
+/* ⚠️ MEASURED AGAINST THE LIVE MLB TABS, not assumed: MLB renders
+   Scores and Odds bare on the page background and panels the other six.
+   ⛔ Football had Odds in a panel, which is why the two Odds tabs did
+   not line up even with identical table headers. */
+const FB_BARE = new Set(['scores', 'odds']);
 function fbPanel(inner){
   return FB_BARE.has(FBTAB) ? inner : `<div class="panel">${inner}</div>`;
 }
@@ -3809,6 +3813,39 @@ async function fbNewsLoad(){
   return FBNEWS[LEAGUE];
 }
 
+/* 🔴 A HEADLINE WITHOUT ART STILL HAS A SUBJECT — the football version of
+   MLB's `newsLogo`. Yahoo CFB supplied an image on 0 of 25 items in the
+   probe, so without this a third of the grid is blank tiles.
+   ⛔ CONSERVATIVE ON PURPOSE. It matches the LONGEST school name that
+   appears as a whole phrase in the headline, and refuses anything under
+   five characters. A short school name inside an unrelated word is
+   exactly how a story about a person ends up wearing a team's crest, and
+   a wrong crest states something the story does not say.
+   ⚠️ Falls back to nothing, which renders the same plain tile MLB uses. */
+let FB_NEWSIDX = null;
+function fbNewsLogo(title){
+  const t = ' ' + String(title || '').toLowerCase() + ' ';
+  if (!FB_NEWSIDX || FB_NEWSIDX.lg !== LEAGUE){
+    const dir = FBTEAMS[LEAGUE] || {};
+    const seen = new Set();
+    const names = [];
+    Object.keys(dir).forEach(k => {
+      if (k.length < 5) return;                 // ⛔ too short to be safe
+      const e = dir[k];
+      if (!e || !e.logo) return;
+      const key = k.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key); names.push([key, e.logo]);
+    });
+    names.sort((a, b) => b[0].length - a[0].length);   // longest first
+    FB_NEWSIDX = {lg: LEAGUE, names};
+  }
+  for (const [nm, logo] of FB_NEWSIDX.names){
+    if (t.indexOf(' ' + nm + ' ') > -1 || t.indexOf(' ' + nm + "'") > -1) return logo;
+  }
+  return '';
+}
+
 async function fbNews(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
@@ -3836,10 +3873,12 @@ async function fbNews(){
        ${freshness(N.pulled_at)}</p>
     <div class="nwgrid">
     ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener nofollow">
-        ${i.image
-          ? `<div class="nwimg"><img src="${i.image}" alt="" loading="lazy"
-               onerror="this.closest('.nwimg').classList.add('noimg'); this.remove()"></div>`
-          : `<div class="nwimg noimg" data-src="${i.source || ''}"></div>`}
+        ${(() => { const art = i.image || fbNewsLogo(i.title); return art
+          ? `<div class="nwimg${i.image ? '' : ' crest'}"><img src="${art}" alt="" loading="lazy"
+               onerror="this.closest('.nwimg').classList.add('noimg');
+                        this.closest('.nwimg').dataset.src='${(i.source||'').replace(/'/g,'')}';
+                        this.remove()"></div>`
+          : `<div class="nwimg noimg" data-src="${i.source || ''}"></div>`; })()}
         <div class="bd">
           <div class="hl">${i.title}</div>
           <div class="mt">${i.source}${i.published ? ' &middot; ' + ago(i.published) : ''}</div>
