@@ -152,6 +152,68 @@ finally:
     import shutil
     shutil.rmtree(tmp, ignore_errors=True)
 
+print("\n9. 🔴 THE BOARD SAM SAW: 100% ANYTIME TD WITH +5000 ON TOP")
+# ⛔ MEASURED ON THE LIVE 2026-09-03 COLLEGE CARD. With no rate to sort
+# by, the fallback sorted on price DESCENDING, so the longest longshot on
+# the slate led a picks board. Sam: "touchdown bets are basically long
+# shots ... not every single td prop on the board should be in gizmos
+# picks that makes no sense."
+C = load("ncaaf")
+
+
+def mkrow(market, price, conf=None):
+    r = {"market": market, "price": price, "clears_price_floor": price >= -700}
+    if conf is not None:
+        r["confidence"] = conf
+    return r
+
+
+# a slate shaped like the real one: a pile of plus-money TDs and plenty
+# of ordinary -110 lines in four other markets
+slate = [mkrow("player_anytime_td", p) for p in
+         (5000, 4000, 4000, 1500, 1500, 1300, 1100, 900, 600, 450, 300, 250, 180, 145)]
+for m in ("player_receptions", "player_reception_yds",
+          "player_rush_yds", "player_pass_yds"):
+    slate += [mkrow(m, p) for p in (-110, -115, -120, 105, -105)]
+
+kept = [r for r in slate if (r["price"] or 0) <= C.PRICE_CEIL]
+eq(C.PRICE_CEIL, 400, "the ceiling is Sam's -400 gate, mirrored")
+eq(any(r["price"] > 400 for r in kept), False,
+   "🔴 nothing longer than +400 survives the ceiling")
+eq(len(slate) - len(kept), 10, "  ...10 longshots dropped from this slate")
+
+kept.sort(key=lambda r: (r.get("confidence") is None,
+                         -(r.get("confidence") or 0),
+                         -(r.get("price") or -10000)))
+board = C.fill_board(kept, 12)
+import collections as _c
+mix = _c.Counter(r["market"] for r in board)
+eq(len(board), 12, "the board fills to its cap")
+eq(len(mix) >= 4, True, f"🔴 at least four markets represented, not one ({dict(mix)})")
+top = max(mix.values()) / len(board)
+eq(top <= 0.34 + 0.01, True,
+   f"⛔ no market exceeds a third of the board (worst {top:.0%})")
+eq(board[0]["price"] <= 400, True, "and the top row is not a longshot")
+
+print("\n10. ⚠️ ROUND-ROBIN NEVER REORDERS WITHIN A MARKET")
+one = [mkrow("player_receptions", p) for p in (-105, -110, -120)]
+eq([r["price"] for r in C.fill_board(one, 3)], [-105, -110, -120],
+   "a single market keeps its own order")
+eq(len(C.fill_board(one, 10)), 3,
+   "⛔ and a cap it cannot fill returns what exists, not padding")
+
+print("\n11. 🔴 A RATED BOARD KEEPS STRICT CONFIDENCE ORDER (Sam's standing rule)")
+# ⛔ Variety must never reshuffle a board that has something real to rank
+# by. Round-robin applies ONLY where every row is unrated.
+N2 = load("nfl")
+eq(N2.RATES_OK, True, "the NFL board is rated")
+rated_rows = [dict(mkrow("player_anytime_td", 145, conf=c)) for c in (91, 88, 85)] + \
+             [dict(mkrow("player_receptions", -110, conf=c)) for c in (70, 68)]
+rated_rows.sort(key=lambda r: -r["confidence"])
+# the production path takes rows[:cap] when ANY row is rated
+eq([r["confidence"] for r in rated_rows[:5]], [91, 88, 85, 70, 68],
+   "🔴 confidence order is preserved, even though one market leads")
+
 print()
 if fails:
     print(f"🔴 {len(fails)} FAILED:")

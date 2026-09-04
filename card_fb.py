@@ -99,6 +99,25 @@ RATES_OK = LEAGUE == "nfl"
 SNAP_FLOOR = 0.50        # pre-registered, see docstring. ⛔ do not tune
 MIN_GAMES = 6            # a rate on fewer games is not a rate
 PRICE_FLOOR = -700       # Sam's standing floor, same as MLB
+
+# 🔴 A CEILING, BECAUSE "LIKELY AND PAYABLE" HAS TWO ENDS.
+# ⛔ MEASURED ON THE LIVE 2026-09-03 COLLEGE BOARD: the card was 100%
+# Anytime TD and its TOP ROW WAS +5000 -- a ~2% shot leading a picks
+# board. With no rate to sort by, the fallback sorted on price DESCENDING,
+# so the longest longshot on the slate won every time.
+# ⚠️ Sam's own MLB gate is -400: "likely AND payable". -400 is ~80%
+# implied; +400 is its MIRROR at ~20%. ⛔ This is Sam's number reflected,
+# NOT a value picked by looking at which cutoff produced a nicer board.
+PRICE_CEIL = 400
+
+# 🔴 NO SINGLE MARKET MAY OWN THE BOARD. Sam, 2026-09-04: *"touchdown bets
+# are basically long shots, td props the model likes are good to bet on
+# but not every single td prop on the board should be in gizmos picks."*
+# ⚠️ The board is built ROUND-ROBIN across markets, so receptions, rushing,
+# receiving and passing all appear rather than one market crowding out the
+# rest. ⛔ Within a market the order is unchanged -- this decides the MIX,
+# never the ranking inside a market.
+MARKET_MAX_SHARE = 0.34   # no market may exceed a third of the board
 BOARD_MAX = 50           # same as MLB's board
 
 # market -> (how to read it out of a game row, unit, higher-is-a-hit)
@@ -222,6 +241,56 @@ def rate_for(games, market, line, side):
 
 def american_break_even(price):
     return (-price) / ((-price) + 100) if price < 0 else 100 / (price + 100)
+
+
+def fill_board(rows, cap):
+    """Take the best rows, ROUND-ROBIN ACROSS MARKETS.
+
+    🔴 WHY THIS EXISTS. `[measured on the live 2026-09-03 college board]`
+    the card came out **100% Anytime TD with a +5000 row on top**. Sam:
+    *"not every single td prop on the board should be in gizmos picks
+    that makes no sense."*
+    ⛔ Sorting alone cannot fix that. Whatever the sort key, one market
+    whose prices happen to sit where the key looks will crowd out every
+    other market. The MIX has to be decided separately from the RANKING --
+    the same reason the MLB parlay pool is stratified by price rather than
+    taking the N highest-confidence legs.
+
+    ✅ Rows arrive already sorted. This walks the markets in turn, taking
+    each one's next-best row, so the board reflects the whole slate.
+    ⚠️ ORDER INSIDE A MARKET IS NEVER CHANGED, and if only one market has
+    rows the cap cannot be met -- in that case it fills from what exists
+    rather than returning a short board.
+    """
+    if not rows:
+        return []
+    buckets = {}
+    for r in rows:
+        buckets.setdefault(r.get("market"), []).append(r)
+    # ⚠️ Start with the market holding the single best row, so the board's
+    # top pick is still the best available row overall.
+    order = sorted(buckets, key=lambda m: rows.index(buckets[m][0]))
+    per_market_cap = max(1, int(cap * MARKET_MAX_SHARE))
+    out, taken = [], {m: 0 for m in order}
+    while len(out) < cap:
+        progressed = False
+        for m in order:
+            if len(out) >= cap:
+                break
+            if taken[m] >= per_market_cap or taken[m] >= len(buckets[m]):
+                continue
+            out.append(buckets[m][taken[m]])
+            taken[m] += 1
+            progressed = True
+        if not progressed:
+            break
+    # ⛔ If the caps left the board short -- a slate with only one or two
+    # markets priced -- fill from what is left rather than shipping a
+    # half-empty board.
+    if len(out) < cap:
+        seen = {id(r) for r in out}
+        out += [r for r in rows if id(r) not in seen][:cap - len(out)]
+    return out
 
 
 def slate_date(B):
@@ -367,13 +436,32 @@ def main():
     below = [r for r in rows if not r["clears_price_floor"]]
     rows = [r for r in rows if r["clears_price_floor"]]
 
+    # ⛔ AND THE CEILING. A price longer than +400 is a longshot, not a
+    # pick, whatever else is true about it.
+    longshots = [r for r in rows if (r.get("price") or 0) > PRICE_CEIL]
+    rows = [r for r in rows if (r.get("price") or 0) <= PRICE_CEIL]
+    for r in longshots:
+        r["excluded"] = f"longer than +{PRICE_CEIL}"
+
     # Sort: rated rows by confidence descending (Sam's standing rule), then
     # the unrated ones by price. ⛔ An unrated row must never outrank a
     # rated one just because its price is short.
     rows.sort(key=lambda r: (r.get("confidence") is None,
                              -(r.get("confidence") or 0),
                              -(r.get("price") or -10000)))
-    board = rows[:BOARD_MAX]
+
+    # 🔴 ROUND-ROBIN ONLY WHEN THERE IS NOTHING TO RANK BY.
+    # ⚠️ Sam's standing rule is that the board sorts STRICTLY by
+    # confidence, descending. Where rows carry a rate that order is
+    # meaningful and must not be reshuffled for the sake of variety.
+    # ⛔ Where they do NOT -- the college board -- price ordering is
+    # meaningless in both directions, and leaving it alone is what put
+    # fifty Anytime TDs and a +5000 top row on the card. Diversity is the
+    # only honest arrangement of an unranked board.
+    # ➡️ If a RATED board ever comes out market-heavy, that is a finding
+    # to measure, not a reason to override the ranking here.
+    rated = any(r.get("confidence") is not None for r in rows)
+    board = rows[:BOARD_MAX] if rated else fill_board(rows, BOARD_MAX)
     for i, r in enumerate(board, 1):
         r["rank"] = i
 
@@ -413,6 +501,10 @@ def main():
             "market's price — both labelled."),
         "college_note": None if RATES_OK else COLLEGE_NOTE,
         "picks": board,
+        "n_longshots_excluded": len(longshots),
+        "price_ceiling": PRICE_CEIL,
+        "market_max_share": MARKET_MAX_SHARE if not rated else None,
+        "board_mixed": not rated,
         "below_price_floor": [
             {k: r[k] for k in ("player", "market_label", "side", "line",
                                "price", "book") if k in r} for r in below],
