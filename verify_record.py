@@ -117,13 +117,30 @@ def actual(slate, pid, market):
 mine, byday, bykind = {"w": 0, "n": 0}, {}, {"pitcher": {"w": 0, "n": 0},
                                             "hitter": {"w": 0, "n": 0}}
 voids = {}
-skipped_dates = {x["date"] for x in REC.get("skipped", [])}
+# 🔴 THIS FILE NO LONGER READS `record.json`'s OWN `skipped` LIST, AND
+# THAT IS THE POINT OF THIS FILE. `[measured 2026-09-04]` the builder wrote
+# 2026-09-03 into `skipped` twice -- because two COLLEGE FOOTBALL cards in
+# `picks/` carry `"date": "2026-09-03"` -- and this verifier believed it,
+# dropped a legitimately graded MLB day, reconstructed 300/499 against a
+# published 333/549, and failed EVERY RUN. ⛔ A verifier that takes its
+# exclusions from the artifact under test cannot catch a wrong exclusion;
+# it can only be misled by one.
+# ✅ SO EVERY REASON TO SKIP IS DERIVED HERE, INDEPENDENTLY, and each one
+# is strictly narrower than "the file said so":
+#     not this sport      -> the card names a league that is not mlb
+#     not a machine card  -> kind != "gizmos-card"  (8/22 is TABLE A)
+#     not settled         -> the slate is not in BY_SLATE, derived above
+#                            from the stored box scores, not from a list
+# ⚠️ The date comes from the CARD, not the filename: `fb-ncaaf-latest.json`
+# has no date in its name and every football card has one inside it.
 for f in sorted(glob.glob("picks/*.json")):
-    date = os.path.basename(f)[:-5]
-    if date in skipped_dates or date not in BY_SLATE:
-        continue
     doc = _read_json(f, "a published card")
+    if (doc.get("league") or "mlb").lower() != "mlb":
+        continue
     if doc.get("kind") != "gizmos-card":
+        continue
+    date = doc.get("date") or os.path.basename(f)[:-5]
+    if date not in BY_SLATE:
         continue
     day = byday.setdefault(date, {"w": 0, "n": 0})
     for row in doc.get("picks", []):

@@ -1177,12 +1177,32 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
                 _pnote += " ⚠️ The rate saturated the distribution; this is a bound."
     mkt = prop.get("implied")                    # de-vigged, from the board
 
+    # 🔴 THE ONE FLAG THAT REACHES THE PAGE — AND HITTER ROWS NEVER
+    # CARRIED IT. `[measured 2026-09-04]` this card had 25 pitcher rows and
+    # 25 hitter rows. All 8 pitcher rows Hard Rock had not posted said so.
+    # All 3 hitter rows Hard Rock had not posted said NOTHING: the hitter
+    # dict had no `flags` key at all, so the branch could not exist.
+    # ⛔ THE READER SAW A DRAFTKINGS PRICE ON A HARD ROCK BOARD with no
+    # warning, on the book Sam actually bets. `on_hardrock` was correct the
+    # whole time -- the field was right and the sentence was missing, which
+    # is why only a check that reconciles the flag AGAINST THE BOARD found
+    # it. A check on the field alone would still be green today.
+    # ✅ Same shape, same text, same `actionable` key as the pitcher row --
+    # index.html filters on `actionable` and needs no change.
+    flags = []
+    if not on_hr:
+        flags.append({"kind": "note", "test": "STEP 5", "actionable": True,
+                      "text": (f"Hard Rock didn't post this one when we pulled the odds. "
+                               f"The price above is {bookName(prop.get('book'))}'s — you "
+                               f"can't get that number at Hard Rock.")})
+
     def r(k):
         a, b = parse_rate(ev.get(k))
         return None if a is None or not b else round(100.0 * a / b, 1)
 
     return {
         "kind": "hitter",
+        "flags": flags,
         "basis": "MARKET + DESCRIPTIVE — no model, no confidence rating (rule 55)",
         "player": prop.get("player"), "pid": prop.get("pid"),
         "team": prop.get("team"), "bats": ev.get("bats"),

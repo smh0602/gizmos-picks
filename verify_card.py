@@ -479,6 +479,13 @@ def _pooled_rows(kind):
             _d = json.load(open(_f))
         except Exception:
             continue
+        # ⛔ FOOTBALL CARDS SHARE THIS DIRECTORY AND MUST NEVER ENTER MLB'S
+        # CALIBRATION POOL. They carry no `projections` key today, so this
+        # guard changes nothing NOW -- and that is exactly why it goes in
+        # now. `[measured 2026-09-04]` the same shared directory already
+        # broke the Track Record grader, which also "couldn't happen".
+        if (_d.get('league') or 'mlb').lower() != 'mlb':
+            continue
         if _d.get('date') == doc.get('date'):
             continue                      # today comes from `doc`, not disk
         for _r in _rows_from(_d.get('projections'), kind):

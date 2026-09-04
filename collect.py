@@ -2465,6 +2465,24 @@ def collect_record():
             skipped.append((os.path.basename(f), f"unreadable: {type(e).__name__}"))
             continue
         date = card.get("date") or os.path.basename(f)[:-5]
+        # 🔴 FOOTBALL CARDS LIVE IN THIS DIRECTORY TOO, AND THIS IS
+        # BASEBALL'S RECORD. `[measured 2026-09-04]` picks/ held
+        # `fb-ncaaf-2026-09-03.json` and `fb-ncaaf-latest.json`, both
+        # stamped `"date": "2026-09-03"` -- a COLLEGE FOOTBALL date that
+        # collides with a real MLB slate. Falling through to the check
+        # below wrote 2026-09-03 into `skipped` TWICE, described as "a
+        # hand-built card", and `verify_record` then dropped a legitimately
+        # graded MLB day from its reconstruction: record.json said 333/549
+        # and the verifier could only reach 300/499. EVERY RUN WENT RED.
+        # ⛔ A FOOTBALL CARD IS NOT A SKIPPED BASEBALL CARD. It is not this
+        # function's sport at all, so it is not mentioned -- a `skipped`
+        # entry is a claim about MLB grading and must stay one.
+        # ⚠️ Keyed on the card's OWN `league`, not the filename. A rename
+        # must not silently re-open this hole; a card that does not say
+        # which league it is defaults to mlb, as every MLB card written
+        # before football existed does.
+        if (card.get("league") or "mlb").lower() != "mlb":
+            continue
         if card.get("kind") != "gizmos-card":
             skipped.append((date, "hand-built card, graded in the ledger as TABLE A"))
             continue
@@ -2581,7 +2599,13 @@ def collect_record():
         # detail once, on demand, the first time somebody expands a day.
         "detail_file": f"{LATEST}/record-detail.json.gz",
         "days_graded": len(days),
-        "skipped": [{"date": a, "why": b} for a, b in skipped],
+        # ⚠️ DEDUPED. One date can only have one reason for not being
+        # graded, and `[measured 2026-09-04]` 2026-09-03 appeared twice
+        # because two football cards carried the same date. The league
+        # guard above is the fix; this is the second lock, so a future
+        # duplicate is impossible rather than merely unlikely.
+        "skipped": [{"date": a, "why": b}
+                    for a, b in dict.fromkeys(skipped)],
     }
     write(f"{LATEST}/record.json", doc)
     write(f"{LATEST}/record-detail.json.gz",
