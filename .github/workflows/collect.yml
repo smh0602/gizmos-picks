@@ -84,59 +84,42 @@ on:
     - cron: "35 14 * * 0"       # Sun 10:35am ET — rebuild CFB, after Saturday
     - cron: "35 15 * * 2"       # Tue 11:35am ET — rebuild NFL, after MNF
 
-    # ══ THE FOOTBALL CARD REBUILD ══
-    # 🔴 `card-fb` RAN ONLY CHAINED INSIDE THE PAID `props-player` PULL,
-    # SO A CODE FIX DID NOT REACH THE PAGE UNTIL THE NEXT PAID PULL.
-    # `[measured 2026-09-04]` the live college board was still **50 of 50
-    # Anytime TD with +5000 on top** -- the exact board Sam complained
-    # about -- while THREE shipped fixes sat on `main` unused: the +400
-    # ceiling, the market mix, and college rates. The card was last
-    # written 2026-09-03T22:36Z, when the props pull last ran.
-    # ⛔ AND `refresh` CANNOT COVER IT: the push trigger is MLB-only.
-    # ✅ `card-fb` is FREE -- it reads the board already on disk and
-    # computes -- and it is a clean no-op when there is no board yet, so
-    # it is safe to hang off every football cron. It is now attached to
-    # the line-movement crons AND the daily news crons, which means the
-    # board rebuilds at least once a day whatever else happens.
-    # ══ FOOTBALL NEWS ══
-    # 🔴 THE FEEDS WERE ADOPTED ON 2026-09-03 AND NO CRON EVER RAN THEM.
-    # `[measured 2026-09-04]` NEWS_FEEDS carries CBS Sports +
-    # ProFootballTalk for the NFL and CBS Sports + Yahoo for college, and
-    # `data/nfl/latest/news.json` and `data/ncaaf/latest/news.json` DO NOT
-    # EXIST -- both News tabs have been rendering an empty state since the
-    # day they were built. ⛔ Same defect as the college logo directory:
-    # a writer built, wired to a mode, and named by no schedule.
-    # ⚠️ DAILY, NOT GAME-DAY. News does not stop on a Tuesday, and the
-    # football odds crons only fire Thu-Sun -- so hanging news off them
-    # would leave the tab four days stale every week.
-    # 💰 FREE. RSS, not the Odds API. It cannot spend a credit.
-    - cron: "40 12 * * *"       # 8:40am ET — CFB headlines
-    - cron: "45 12 * * *"       # 8:45am ET — NFL headlines
-    # ══ THE GAME DAYS THE FIRST PASS MISSED ══
-    # 🔴 A PROPS CRON THAT ONLY FIRES ON THE MAIN DAY IS A PROPS CRON
-    # THAT LOSES EVERY OTHER GAME. College plays THURSDAY AND FRIDAY all
-    # season, and the NFL adds SATURDAY from mid-December through the
-    # playoffs. ⛔ Those boards are small, but odds history cannot be
-    # bought back at any price, and a missed Thursday is missed forever.
-    # 💰 Small slates are cheap: a 3-game CFB Thursday is 5 x 2 x 3 = 30
-    # credits. ⚠️ On a day with no games the events list is empty and the
-    # pull costs nothing at all.
-    - cron: "30 22 * * 4"       # Thu 6:30pm ET — CFB props
-    - cron: "30 21 * * 5"       # Fri 5:30pm ET — CFB props
-    - cron: "30 16 * * 6"       # Sat 12:30pm ET — NFL props (Dec/Jan)
+    # ══ FOOTBALL — SAM'S SCHEDULE, 2026-09-04. HIS TIMES ARE ET. ══
+    # ⚠️ Minutes are nudged off :00/:30 -- the most congested slots on
+    # GitHub's scheduler, where runs get dropped. THE HOUR IS HIS.
+    # 🔴 THESE MUST STAY IN STEP WITH `FB_TIMES` IN `freshness.py`.
+    # A contract that disagrees with the schedule reports lateness no run
+    # can clear, and a banner nobody can fix is a banner everybody
+    # ignores. ⛔ Change one, change the other.
+    # ── COLLEGE ──────────────────────────────────────────────────────
+    - cron: "4 11 * * *"        # CFB  7:00am ET  Odds
+    - cron: "4 19 * * *"        # CFB  3:00pm ET  Odds
+    - cron: "34 12 * * 2-6"     # CFB  8:30am ET  Player Props (Tue-Sat)
+    - cron: "6 19 * * 2-6"      # CFB  3:00pm ET  Player Props (Tue-Sat)
+    - cron: "4 13 * * 2-6"      # CFB  9:00am ET  Gizmo's Picks (Tue-Sat)
+    - cron: "34 13 * * 2-6"     # CFB  9:30am ET  Parlays       (Tue-Sat)
+    - cron: "4 12 * * 2"        # CFB  8:00am ET  Track Record  (Tue)
+    - cron: "4 16 * * 1"        # CFB 12:00pm ET  Trends        (Mon)
+    - cron: "6 12 * * *"        # CFB  8:00am ET  News
+    - cron: "35 14 * * 0"       # CFB 10:35am ET  season rebuild + logos
+    # ── NFL ──────────────────────────────────────────────────────────
+    - cron: "6 12 * * *"        # NFL  8:00am ET  Odds   (shared minute is fine:
+    - cron: "6 18 * * *"        # NFL  2:00pm ET  Odds    one cron, one league)
+    # 🔴 THE LONDON GAMES. `[found 2026-09-04 by test_props_window 3b]`
+    # Six 2026 NFL games kick off at **5:30am ET on a Sunday** -- the
+    # international series -- which is BEFORE the first pull of the day,
+    # and Saturday's 11:00am pull plus a 14h window reaches only 1:00am.
+    # ⛔ Without this they are never priced at all. ⚠️ Cheap: one pull, on
+    # Sundays only.
+    - cron: "8 8 * * 0"         # NFL  4:08am ET  Player Props (Sun, London)
+    - cron: "8 11 * * *"        # NFL  7:00am ET  Player Props
+    - cron: "8 15 * * *"        # NFL 11:00am ET  Player Props
+    - cron: "34 11 * * *"       # NFL  7:30am ET  Gizmo's Picks
+    - cron: "34 15 * * *"       # NFL 11:30am ET  Gizmo's Picks
+    - cron: "6 13 * * *"        # NFL  9:00am ET  Parlays
+    - cron: "6 16 * * 2"        # NFL 12:00pm ET  Trends + Track Record (Tue)
+    - cron: "8 12 * * *"        # NFL  8:00am ET  News
 
-  # 🔴 RESTORED 2026-08-28 AFTER I DELETED IT BY ACCIDENT. The schedule
-  # rewrite replaced everything between `schedule:` and
-  # `workflow_dispatch:`, and this block was sitting in the middle of it.
-  # ⛔ Losing it would have broken exactly what Sam asked for: "when i
-  # submit our files you also update all of these tabs now as well." An
-  # upload would have been silent.
-  #
-  # ⚠️ A push now runs a FULL CONVERGE, not the old free-only `refresh`.
-  # That means an upload CAN spend credits -- deliberately, because the
-  # point is that submitting files brings the site current. The daily cap
-  # and the 45-minute props guard bound it; a second upload minutes later
-  # costs nothing.
   push:
     branches: [main]
     paths:
@@ -281,29 +264,27 @@ jobs:
           SEASON="${{ github.event.inputs.season }}"
           if [ -z "$LEAGUE" ]; then
             case "${{ github.event.schedule }}" in
-              # ── COLLEGE FOOTBALL — Thu/Fri/Sat ──────────────────────
-              "20 15 * * 6")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
-              "20 */6 * * 4,5,6") LEAGUE=ncaaf; MODES="gamelines card-fb" ;;
-              # ── NFL — Thu/Sun/Mon ──────────────────────────────────
-              "25 15 * * 0")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
-              "25 22 * * 4")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
-              "25 */6 * * 0,1,4") LEAGUE=nfl;   MODES="gamelines card-fb" ;;
-              # ── the current-season trends rebuild ──────────────────
-              # ⚠️ `cfb-teams` REBUILDS THE LOGO DIRECTORY AND IS FREE
-              # (CFBD, not the Odds API). ⛔ It was in NO cron at all --
-              # teams.json existed only because one ad-hoc run wrote it.
-              # 🔴 THE WEEKLY REBUILD IS THE BACKSTOP, NOT THE FIX: this
-              # project loses scheduled runs, so collect.py ALSO rebuilds
-              # the directory on demand whenever it is missing or names
-              # the wrong season.
-              "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;              # ── football news, daily and free ─────────────────────
-              "40 12 * * *")      LEAGUE=ncaaf; MODES="news card-fb" ;;
-              "45 12 * * *")      LEAGUE=nfl;   MODES="news card-fb" ;;
-              "35 15 * * 2")      LEAGUE=nfl;   MODES="nfl-logs";   SEASON=CUR ;;
-              # ── the game days the first pass missed ───────────────
-              "30 22 * * 4")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
-              "30 21 * * 5")      LEAGUE=ncaaf; MODES="gamelines props-player" ;;
-              "30 16 * * 6")      LEAGUE=nfl;   MODES="gamelines props-player" ;;
+              # ── CFB ────────────────────────────────────────────────
+              "4 11 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
+              "4 19 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
+              "34 12 * * 2-6")    LEAGUE=ncaaf; MODES="props-player" ;;
+              "6 19 * * 2-6")     LEAGUE=ncaaf; MODES="props-player" ;;
+              "4 13 * * 2-6")     LEAGUE=ncaaf; MODES="card-fb" ;;
+              "34 13 * * 2-6")    LEAGUE=ncaaf; MODES="card-fb" ;;
+              "4 12 * * 2")       LEAGUE=ncaaf; MODES="card-fb" ;;
+              "4 16 * * 1")       LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+              "6 12 * * *")       LEAGUE=ncaaf; MODES="news card-fb" ;;
+              "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
+              # ── NFL ────────────────────────────────────────────────
+              "6 18 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
+              "8 8 * * 0")        LEAGUE=nfl;   MODES="props-player" ;;
+              "8 11 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
+              "8 15 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
+              "34 11 * * *")      LEAGUE=nfl;   MODES="card-fb" ;;
+              "34 15 * * *")      LEAGUE=nfl;   MODES="card-fb" ;;
+              "6 13 * * *")       LEAGUE=nfl;   MODES="card-fb" ;;
+              "6 16 * * 2")       LEAGUE=nfl;   MODES="nfl-logs";  SEASON=CUR ;;
+              "8 12 * * *")       LEAGUE=nfl;   MODES="news card-fb" ;;
               *)                  LEAGUE=mlb ;;
             esac
           fi
