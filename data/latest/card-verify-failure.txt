@@ -1,11 +1,11 @@
-verify_card FAILED at 2026-09-04T22:35:45Z
-pass 1 of run 428
+verify_card FAILED at 2026-09-04T22:45:08Z
+pass 1 of run 429
 --- the failing checks ---
-  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1229 pooled priced rows = 5.1%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1229 pooled priced rows = 5.1%)
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1215 pooled priced rows = 5.2%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1215 pooled priced rows = 5.2%)
 --- last 60 lines ---
-  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 159 pooled priced rows = 0.0%)  []
-  NOTE  carded hitter rows only: 0 of 25 contradict at 70%+ (0.0%) -- carding selects high-confidence rows, so this is NOT the T37 population
+  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 156 pooled priced rows = 0.0%)  []
+  NOTE  carded hitter rows only: 0 of 26 contradict at 70%+ (0.0%) -- carding selects high-confidence rows, so this is NOT the T37 population
   PASS no hitter projection matches the UNFILTERED log better than the point-in-time one (0 separable row(s))  []
 
 33. TOP 10 OF THE DAY -- a different list, held to its own rules
@@ -13,10 +13,10 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1229 pooled 
   PASS every row is priced better than the payable floor (-400)  []
   PASS no player appears twice  []
   PASS it is ordered by confidence, descending
-  PASS every top-10 row traces to a row the card priced (2186 priced keys)  []
+  PASS every top-10 row traces to a row the card priced (2016 priced keys)  []
   PASS every carded row is flagged priced in the index  []
-  PASS the priced flag is a subset, not a rubber stamp (2186 of 2503)
-  PASS the price gate actually excluded something, and the card says how much  90 row(s) excluded
+  PASS the priced flag is a subset, not a rubber stamp (2016 of 2486)
+  PASS the price gate actually excluded something, and the card says how much  78 row(s) excluded
 
 34. PARLAYS -- recomputed leg by leg
   PASS every parlay's leg count matches its own n_legs (24 parlays)
@@ -31,7 +31,7 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1229 pooled 
   PASS every 'strictly worse' warning names a parlay that really is on this card (8 warned)  []
 
 35. OPPONENT RECENT STARTERS -- descriptive, point-in-time, and NOT in the model
-  PASS every pitcher row carries the opponent block (25 of 25)  []
+  PASS every pitcher row carries the opponent block (24 of 24)  []
   PASS no listed start is dated on or after the slate  []
   PASS every block is about the opponent the row actually faces  []
   PASS each block is newest-first  []
@@ -41,26 +41,26 @@ FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1229 pooled 
   PASS every block states in words that it is not a model input
 
 36. THE WHY -- the splits Sam asked for, counted at the row's own line
-  PASS every pitcher row carries the five splits (25 rows)
+  PASS every pitcher row carries the five splits (24 rows)
   PASS the season split agrees with the row's own raw record  []
   PASS home + road accounts for every start in the season split  []
   PASS the last-15 split never counts more than 15 starts  []
   PASS every row's why mentions the splits
 
 37. BATTER ALTERNATE LINES, INNINGS NOTATION, AND PLAIN ENGLISH
-  PASS no batter row sits on an alternate line (25 hitter rows)  []
+  PASS no batter row sits on an alternate line (26 hitter rows)  []
   PASS no batter row is priced at -1000 or shorter
   PASS every innings figure uses thirds (.0 .1 .2 only)  []
   PASS innings notation matches the out count it describes  []
-  PASS no jargon in any why (288 lines checked)  []
+  PASS no jargon in any why (285 lines checked)  []
   PASS every row still explains itself  []
   PASS every hitter row still says its number is a record, not a forecast
 
 38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
   NOTE  29 flag(s) on this card: 0 shown, 29 recorded but not rendered
-  PASS the Hard Rock flag is written on EVERY row that needs it and no row that does not (25 rows reconciled against the board)  missing=[] false=[]
+  PASS the Hard Rock flag is written on EVERY row that needs it and no row that does not (26 rows reconciled against the board)  missing=[] false=[]
   PASS every row's on_hardrock agrees with the stored board  []
   PASS every flag that reaches the page is marked actionable
   PASS no model diagnostic is marked for display  []
 
-FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1229 pooled priced rows = 5.1%)
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (63 of 1215 pooled priced rows = 5.2%)
