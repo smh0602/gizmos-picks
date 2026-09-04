@@ -62,6 +62,44 @@ ok.push(run('several tabs late -> named by TAB, not by mode', {
 ok.push(run('a tab never built at all', {
   artifacts: [{ mode: 'results', stale: true, late_min: null, due_et: '6:00', missing: true }] }, true));
 
+/* 🔴 THE THREE CARD STATES MUST READ AS THREE DIFFERENT THINGS.
+   `[2026-09-04]` An accepted failure used to still revert the card, so
+   the board froze for days behind a green build. The card now PUBLISHES
+   when every failing check has been signed off -- and this banner is the
+   entire justification for letting it. ⛔ A caveated card the reader can
+   see the caveat on is honest; a silently-published failing card is not. */
+ok.push(run('🔴 the card was REFUSED -> the reader is told it is older', {
+  artifacts: [{ mode: 'card', stale: true, late_min: 300, due_et: '10:00',
+                missing: false }],
+  card_blocked: 'T37: hitter projections contradict <= 5.0%' }, true));
+
+ok.push(run('🔴 the card is PUBLISHED WITH A CAVEAT -> different sentence', {
+  artifacts: [{ mode: 'card', stale: false }],
+  card_caveat: 'T37: a mean-vs-frequency artifact, both numbers correct' },
+  true));
+
+/* ⛔ AND THE TWO MUST NOT READ THE SAME. "showing an earlier version" and
+   "today's card, with a known caveat" are opposite claims about what the
+   reader is looking at. */
+{
+  __set({ artifacts: [{ mode: 'card', stale: false }],
+          card_caveat: 'T37: the artifact' });
+  bar.className = ''; bar.innerHTML = ''; renderStaleBanner();
+  const cav = bar.innerHTML;
+  __set({ artifacts: [{ mode: 'card', stale: true, late_min: 300,
+                        due_et: '10:00', missing: false }],
+          card_blocked: 'T37: the artifact' });
+  bar.className = ''; bar.innerHTML = ''; renderStaleBanner();
+  const blk = bar.innerHTML;
+  const distinct = !cav.includes('earlier version')
+                && blk.includes('earlier version')
+                && cav.includes('known caveat')
+                && !blk.includes('known caveat');
+  console.log(`  [${distinct ? 'OK  ' : 'WRONG'}] ⛔ refused and caveated are `
+              + `DIFFERENT sentences, not one message reused`);
+  ok.push(distinct);
+}
+
 ok.push(run('the freshness report failed to load', null, true));
 ok.push(run('the freshness report is malformed', { artifacts: 'oops' }, true));
 

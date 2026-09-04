@@ -132,3 +132,48 @@ if fails:
         print(f"   - {f}")
     sys.exit(1)
 print("✅ card_gate: accepts what was signed off, and nothing else")
+
+print("\n8. 🔴 AN ACCEPTED FAILURE NOW PUBLISHES THE CARD")
+print("   ⛔ Until 2026-09-04 it did not, and that made acceptance")
+print("   WORTHLESS: the run went green and the board froze for days.")
+print("   Either acceptance publishes, or acceptance should not exist.")
+_wf = open(os.path.join(REPO, ".github/workflows/collect.yml"),
+           encoding="utf-8").read()
+import re as _re
+
+# ⛔ THE ONE LINE THAT MUST NEVER COME BACK: a revert that runs whatever
+# the gate decided. Counted, not eyeballed.
+_lines = [l for l in _wf.splitlines() if "git checkout -- picks/" in l
+          and not l.strip().startswith("#")]
+ck(not _lines,
+   "⛔ no unconditional `git checkout -- picks/` survives", str(_lines[:1]))
+
+# the revert must live INSIDE the branch taken when card_gate FAILS
+_i = _wf.find("if python card_gate.py")
+ck(_i > 0, "the workflow branches on card_gate's exit code")
+_after = _wf[_i:_i + 2500]
+_else = _after.find("else")
+_rev = _after.find("git checkout --")
+ck(_else > 0 and _rev > _else,
+   "🔴 the revert is in the NOT-ACCEPTED branch, never the accepted one",
+   f"else@{_else} revert@{_rev}")
+ck("card-accepted-now.txt" in _after,
+   "  and the accepted path leaves a marker the page can read")
+
+print("\n9. ⛔ AND THE PAGE MUST SAY WHAT THE CARD IS CARRYING")
+print("   That sentence is the ENTIRE justification for publishing a")
+print("   card that failed one of its own checks. A caveated card the")
+print("   reader can see the caveat on is honest; a silent one is not.")
+_col = open(os.path.join(REPO, "collect.py"), encoding="utf-8").read()
+ck('"card_caveat"' in _col,
+   "collect.py publishes `card_caveat` into freshness.json")
+ck("card-accepted-now.txt" in _col,
+   "  derived from the marker the workflow leaves")
+_idx = open(os.path.join(REPO, "index.html"), encoding="utf-8").read()
+ck("FRESH.card_caveat" in _idx, "index.html reads it")
+ck(_idx.count("card_caveat") >= 2,
+   "  and uses it in more than one place (guard + message)",
+   str(_idx.count("card_caveat")))
+# ⛔ REFUSED AND CAVEATED MUST BE DIFFERENT SENTENCES, NOT ONE REUSED.
+ck("known caveat" in _idx and "earlier version" in _idx,
+   "🔴 refused and caveated read as two different things")

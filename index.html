@@ -667,7 +667,7 @@ function renderStaleBanner(){
      went hidden, because this early return only looked at `stale`. The
      page served a five-hour-old card and said nothing. ⛔ Being refused
      is its own condition and does not depend on any age. */
-  if (!bad.length && !FRESH.card_blocked){
+  if (!bad.length && !FRESH.card_blocked && !FRESH.card_caveat){
     bar.className = 'stalebar'; bar.innerHTML = ''; return;
   }
   /* 🔴 NAMED BY TAB, NOT BY MODE. A reader does not know what
@@ -701,6 +701,20 @@ function renderStaleBanner(){
      one means wait, the other means the number was not trustworthy and
      we declined to show it. */
   const blocked = FRESH.card_blocked;
+  /* 🔴 A CAVEATED CARD IS A THIRD STATE AND IT IS NOT THE SAME AS EITHER
+     OF THE OTHER TWO.
+       card_blocked  the card failed a check NOBODY accepted -> reverted,
+                     and you are looking at an older one.
+       card_caveat   the card failed a check SAM HAS SIGNED OFF -> it IS
+                     today's card, published deliberately, with the reason
+                     stated.
+     ⛔ Before 2026-09-04 an accepted failure still reverted the card,
+     which made acceptance worthless and froze the board for days. **The
+     card now publishes, and THIS SENTENCE is the entire justification for
+     letting it.** A caveated card the reader can see the caveat on is
+     honest; a silently-published failing card is not. ⚠️ Do not remove
+     this branch without also restoring the revert. */
+  const caveat = FRESH.card_caveat;
   bar.className = 'stalebar warn';
   bar.innerHTML =
     (blocked
@@ -708,6 +722,13 @@ function renderStaleBanner(){
         `did not pass its own checks, so it was not published — you are ` +
         `looking at the last one that did. ` +
         `<span class="sb-item">${blocked}</span> `
+      : '') +
+    (caveat
+      ? `<b>Today's card is published with a known caveat.</b> It did not ` +
+        `pass one of its own checks, and that failure has been reviewed ` +
+        `and accepted rather than fixed — so this is today's board, and ` +
+        `here is what it is carrying. ` +
+        `<span class="sb-item">${caveat}</span> `
       : '') +
     (bad.length
       ? `<b>Some of this has not updated on schedule.</b> ` +

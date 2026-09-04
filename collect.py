@@ -3592,23 +3592,39 @@ def write_freshness(rows=None, still=None):
     # ✅ The failure file is now evidence, not proof: it only counts when
     # the card is ALSO actually past due.
     _card_stale = any(r["mode"] == "card" and r["stale"] for r in rows)
-    _blocked = None
+    # 🔴 TWO DIFFERENT STATES, AND THE PAGE MUST NOT CONFLATE THEM.
+    #   card_blocked  the card FAILED a check nobody accepted, so it was
+    #                 reverted and what you are looking at is older.
+    #   card_caveat   the card FAILED a check SAM HAS SIGNED OFF, so it
+    #                 IS published and the page says what it carries.
+    # ⛔ Before 2026-09-04 only the first existed, because an accepted
+    # failure still reverted the card -- which made acceptance worthless
+    # and froze the board. **A caveated card is honest; a silently-wrong
+    # one is not, and this field is the whole justification for
+    # publishing one at all.**
+    _blocked = _caveat = None
     _bp = f"{LATEST}/card-verify-failure.txt"
-    if _card_stale and os.path.exists(_bp):
+    _ap = f"{LATEST}/card-accepted-now.txt"
+    if os.path.exists(_bp):
         try:
             with open(_bp, encoding="utf-8") as _fh:
                 _txt = _fh.read()
             _fails = [l.strip() for l in _txt.splitlines()
                       if l.strip().startswith("FAILURES:")]
-            _blocked = (_fails[0][9:].strip() if _fails
-                        else _txt.splitlines()[0])
+            _why = (_fails[0][9:].strip() if _fails
+                    else _txt.splitlines()[0])
         except Exception:
-            _blocked = "the card did not pass its own checks"
+            _why = "the card did not pass its own checks"
+        if os.path.exists(_ap):
+            _caveat = _why
+        elif _card_stale:
+            _blocked = _why
 
     write(f"{LATEST}/freshness.json", {
         "built_at": stamp(),
         "kind": "DESCRIPTIVE",
         "card_blocked": _blocked,
+        "card_caveat": _caveat,
         "note": "How old every artifact on this site is, and how old it is "
                 "allowed to be. Published by the converge pass.",
         "ok": not still,
