@@ -2854,16 +2854,36 @@ function fbKickTime(s){
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2,'0')} ${ap}`;
 }
 
+/* 🔴 SCORES OWNS ITS OWN SEASON. ⛔ IT USED TO SHARE `fbSeason` WITH
+   TRENDS, AND THE TWO TABS DO NOT HAVE THE SAME SEASONS.
+   `[measured 2026-09-04 by driving the page]` Trends renders first when
+   you pick a league, and its newest NFL table is **2025** because 2026
+   has no box scores yet -- so it set `fbSeason = 2025`, and Scores
+   inherited it. `fbCurrentWeek` then picks the last week of an all-final
+   season, which is the **Super Bowl**.
+   ⛔ SO, FIVE DAYS BEFORE KICKOFF, NFL -> SCORES OPENED ON LAST
+   FEBRUARY'S SUPER BOWL. College was worse: mid-season, with games this
+   weekend, it opened on a **2025 bowl game (week 16)**.
+   ⚠️ ONE VARIABLE CANNOT SERVE TWO TABS WHOSE DATA ARRIVES ON DIFFERENT
+   SCHEDULES. A schedule exists months before a box-score table does --
+   that is the whole reason `fbSeasonsAvailableSched` is separate from
+   `fbSeasonsAvailable`, and the season variable had not been split to
+   match. */
+let fbScSeason = null;
+
 async function fbScores(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
   const avail = await fbSeasonsAvailableSched();
-  if (avail.length && avail.indexOf(fbSeason) === -1) fbSeason = Math.max.apply(null, avail);
-  const doc = await fbSchedLoad(fbSeason);
+  /* ⚠️ Default to the newest season that has a SCHEDULE, and only on
+     first use -- once the reader picks a season it is theirs to keep. */
+  if (fbScSeason === null || (avail.length && avail.indexOf(fbScSeason) === -1))
+    fbScSeason = avail.length ? Math.max.apply(null, avail) : fbSeason;
+  const doc = await fbSchedLoad(fbScSeason);
   if (!doc || !(doc.games || []).length){
     v.innerHTML = fbShell(`<div class="note">
-      <b>No ${LG_NAME[LEAGUE]} schedule stored for ${fbSeason}.</b><br>
+      <b>No ${LG_NAME[LEAGUE]} schedule stored for ${fbScSeason}.</b><br>
       It is built by the weekly rebuild &mdash;
       ${LEAGUE === 'ncaaf' ? 'Sunday morning' : 'Tuesday morning'} &mdash;
       from a free source. Nothing is missing if the season has not been
@@ -2953,15 +2973,15 @@ async function fbScores(){
       <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups
         <span class="kind k-desc">Descriptive</span></h2>
       <p style="color:var(--mut);margin:0">${doc.games.length.toLocaleString()} games
-        in ${fbSeason}${LEAGUE==='ncaaf' && hasClass
+        in ${fbScSeason}${LEAGUE==='ncaaf' && hasClass
           ? (fbDiv==='fbs' ? `, showing games involving an FBS team`
                            : `, showing Division I`) : ''} &mdash; ${nFinal} final in this week.
         ${freshness(doc.pulled_at)}</p>
     </div>
     <div class="fbctl">
       <label>Season<select id="fb-sc-season">${
-        (avail.length ? avail : [fbSeason]).map(y =>
-        `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
+        (avail.length ? avail : [fbScSeason]).map(y =>
+        `<option value="${y}"${y===fbScSeason?' selected':''}>${y}</option>`).join('')}</select></label>
       <label>Week<select id="fb-sc-week">${weeks.map(w =>
         `<option value="${w}"${w===fbWeek?' selected':''}>Week ${w}</option>`).join('')}</select></label>
       ${LEAGUE==='ncaaf' && hasClass ? `<label>Division<select id="fb-sc-div">
@@ -3003,7 +3023,7 @@ async function fbScores(){
       .forEach(g => host.append(fbGameCard(g)));
   });
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
-  sel('fb-sc-season', e => { fbSeason = +e.target.value; fbWeek = null; fbScores(); });
+  sel('fb-sc-season', e => { fbScSeason = +e.target.value; fbWeek = null; fbScores(); });
   sel('fb-sc-week',   e => { fbWeek = +e.target.value; fbScores(); });
   sel('fb-sc-div',    e => { fbDiv = e.target.value; fbScores(); });
 }
