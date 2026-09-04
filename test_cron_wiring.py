@@ -131,6 +131,29 @@ for lg in ("nfl", "ncaaf"):
     daily = [c for c in news_crons if c.split()[-1] == "*"]
     ck(bool(daily), f"   {lg}: at least one runs EVERY day", daily)
 
+print("\n6. 🔴 EVERY TAB-FEEDING BUILDER IS REACHABLE BY A SCHEDULE,")
+print("   NOT ONLY BY BEING CHAINED TO SOMETHING EXPENSIVE.")
+print("   `[measured 2026-09-04]` `card-fb` ran ONLY inside the paid")
+print("   `props-player` pull, so three shipped fixes -- the +400")
+print("   ceiling, the market mix and college rates -- never reached the")
+print("   page. The live college board was still 50 of 50 Anytime TD")
+print("   with +5000 on top, days after the fix was on main.")
+print("   ⛔ AND `refresh` CANNOT COVER IT: the push trigger is MLB-only.")
+for lg in ("nfl", "ncaaf"):
+    got = by_league.get(lg, set())
+    ck("card-fb" in got,
+       f"   {lg}: a cron runs `card-fb` on its own", sorted(got))
+    # ⚠️ and at least one of them must be a DAILY cron, so a code change
+    # cannot wait on a weekly game-day pull to become visible.
+    daily = [c for c, l, ms in routes
+             if l == lg and "card-fb" in ms.split() and c.split()[-1] == "*"]
+    ck(bool(daily), f"   {lg}: at least one runs EVERY day", daily)
+    # ⛔ and it must NOT be reachable only via a paid mode
+    solo = [c for c, l, ms in routes
+            if l == lg and "card-fb" in ms.split()
+            and not (set(ms.split()) & PAID)]
+    ck(bool(solo), f"   {lg}: reachable WITHOUT a paid pull", solo)
+
 print()
 if fails:
     print(f"🔴 {len(fails)} FAILURE(S)")
