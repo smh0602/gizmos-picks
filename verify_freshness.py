@@ -29,7 +29,7 @@ import freshness as F
 
 # ⛔ ONE DEFINITION, in freshness.py — the gate and the collector must
 # never disagree about what may be lost.
-from freshness import SOFT
+from freshness import SOFT, CARD_REFUSED_GRACE_MIN
 
 
 # 🔴 THE GATE READS THE LEAGUE, AND UNTIL 2026-09-04 IT DID NOT.
@@ -70,6 +70,18 @@ def main():
         if not r["stale"]:
             continue
         if r["mode"] == "card" and refused:
+            # 🔴 BOUNDED. A refusal is a KNOWN state for as long as somebody
+            # is still acting on it. Past the grace it is a FROZEN BOARD,
+            # and a frozen board with a green build is the worst state this
+            # project has ever shipped. ⚠️ The card's own age is the signal:
+            # `card-verify-failure.txt` is rewritten every pass and can only
+            # say when the LAST refusal was, never the first.
+            _age = r["age_min"]
+            if r["missing"] or (_age is not None
+                                and _age > CARD_REFUSED_GRACE_MIN):
+                r = dict(r, _frozen=True)
+                hard.append(r)
+                continue
             soft.append(r)
             continue
         (soft if r["mode"] in SOFT else hard).append(r)
@@ -97,6 +109,11 @@ def main():
                "state and does not fail the run")
 
     for r in soft:
+        if r["mode"] == "card" and refused and r["age_min"] is not None:
+            _left = (CARD_REFUSED_GRACE_MIN - r["age_min"]) / 60
+            print(f"::warning::the card has been REFUSED for "
+                  f"{r['age_min']/60:.1f}h — {_left:.1f}h of grace left before "
+                  f"a frozen board fails the run")
         print(f"::warning::{r['mode']} has missed its {r['due_et']} build "
               f"({'never built' if r['missing'] else 'last built ' + str(int(r['age_min'])) + 'm ago'})"
               f" — soft, not failing the run")
@@ -106,6 +123,17 @@ def main():
         return 0
 
     for r in hard:
+        if r.get("_frozen"):
+            _h = "never" if r["missing"] else f"{r['age_min']/60:.1f} hours ago"
+            print(f"::error::THE CARD IS FROZEN. It has been REFUSED past the "
+                  f"{CARD_REFUSED_GRACE_MIN/60:.0f}-hour grace — the page last "
+                  f"published a card {_h}, and every rebuild since has been "
+                  f"reverted.")
+            print( "::error::An accepted failure buys quiet for a DECISION, "
+                   "not permanent silence about a board that has stopped "
+                   "moving. Fix the check the card is failing, or withdraw "
+                   "the acceptance.")
+            continue
         age = "never built" if r["missing"] else f"last built {int(r['age_min'])}m ago"
         late = f", {int(r['late_min'])}m past due" if r["late_min"] else ""
         print(f"::error::{r['mode']} MISSED its {r['due_et']} ET build: "

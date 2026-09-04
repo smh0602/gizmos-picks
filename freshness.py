@@ -366,6 +366,29 @@ FB_TIMES = {
 FB_PROPS_WINDOW_H = 14
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 HOW LONG A REFUSED CARD MAY STAY QUIET.
+# `card_gate` lets an ACCEPTED failure keep the run green, and that is
+# right for a decision already taken -- an alarm firing every fifteen
+# minutes for a settled question gets ignored, and ignoring red is how
+# the original staleness survived a whole day.
+# ⛔ BUT IT IS NOT RIGHT FOREVER. `[the state on 2026-09-04]` Sam accepted
+# T37, the run went green, and **the card is still refused every rebuild,
+# so Gizmo's Picks does not update at all.** Green build, frozen product,
+# no alarm -- the same failure this repo keeps learning about, pointing
+# the other way.
+# ✅ SO THE DOWNGRADE IS BOUNDED. An accepted failure buys quiet for a
+# DECISION, not permanent silence about a board that has stopped moving.
+# ⚠️ THE SIGNAL IS THE CARD'S OWN AGE, not the failure file's: that file
+# is rewritten every pass, so it says when the LAST refusal happened and
+# never when the FIRST one did. The card's age is exactly "how long since
+# a card published", which is the thing that matters.
+# 🔒 48 HOURS = TWO CONSECUTIVE MISSED CARD DEADLINES. Chosen with Sam,
+# 2026-09-04, before it had ever fired. ⛔ Do not raise it to make a run
+# go green -- that is the move this constant exists to prevent.
+CARD_REFUSED_GRACE_MIN = 48 * 60
+
+
 def _et_zone():
     """Real Eastern, when the platform has tzdata; None when it does not."""
     try:
