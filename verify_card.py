@@ -561,9 +561,24 @@ def _own_mean(pid, market):
     return (sum(v) / len(v)) if len(v) >= 10 else None
 
 
+# 🔴 THE POPULATION OF THIS CHECK NARROWED ON 2026-09-04, AND THE ROWS IT
+# GAVE UP ARE HELD TO A STRICTLY HARDER BAR IMMEDIATELY BELOW.
+# ⛔ WHY IT HAD TO CHANGE: this check asserted that EVERY hitter
+# projection is the player's own per-game mean. T37's PRE-REGISTERED
+# FALLBACK -- written before any data was seen, and triggered when the
+# hitter contradiction rate failed at 5.43% against a 5.00% bar -- says
+# the projection for a market with a passing distribution is an INVERSION
+# at the primary line, not the mean. The two are incompatible BY DESIGN,
+# so the old form now asks the wrong question.
+# ✅ THE MEAN CHECK IS UNCHANGED for the markets that still use a mean --
+# total bases and H+R+RBI, where T34/T35 rejected all three distributions.
+# ✅ AND THE MARKETS THAT MOVED ARE NOT UNCHECKED: an inverted projection
+# can never contradict the row it was inverted from, so they are held to
+# ZERO contradictions rather than T37's 5% allowance. That is a HARDER
+# bar than the one they left, not a softer one.
 _mm = []
 for r in _hp:
-    if r['market'] not in _MEAN_MKT:
+    if r['market'] not in _MEAN_MKT or r['market'] in C.HITTER_PROJ:
         continue
     m = _own_mean(r.get('pid'), r['market'])
     # ⛔ Compare against the UNROUNDED mean with a tolerance, not against
@@ -573,9 +588,31 @@ for r in _hp:
     if m is None or abs(m - r['projection']) > 0.051:
         _mm.append((r['player'], r['market'], r['projection'],
                     None if m is None else round(m, 3)))
-ck(f"EVERY hitter projection is the player's OWN per-game mean, recomputed "
-   f"from the log ({sum(1 for r in _hp if r['market'] in _MEAN_MKT)} rows)",
+ck(f"every MEAN-market hitter projection is the player's OWN per-game "
+   f"mean, recomputed from the log "
+   f"({sum(1 for r in _hp if r['market'] in _MEAN_MKT and r['market'] not in C.HITTER_PROJ)} rows)",
    not _mm, str(_mm[:3]))
+
+# 🔴 ZERO TOLERANCE, NOT T37's FIVE PERCENT. An inverted projection is the
+# confidence read backwards, so it CANNOT sit on the losing side of the
+# line it was inverted at. If one does, the inversion is broken -- there
+# is no acceptable rate of this, unlike a mean, which can honestly
+# disagree with a skewed market.
+_inv = []
+for r in _hp:
+    if r['market'] not in C.HITTER_PROJ or r.get('line') is None:
+        continue
+    if r.get('confidence') is None or r['confidence'] < 70:
+        continue
+    against = ((r['projection'] <= r['line']) if r.get('side') == 'over'
+               else (r['projection'] >= r['line']))
+    if against:
+        _inv.append((r.get('player'), r['market'], r.get('side'),
+                     r['line'], r['confidence'], r['projection']))
+ck(f"⛔ NO inverted hitter projection contradicts its own row "
+   f"({sum(1 for r in _hp if r['market'] in C.HITTER_PROJ)} rows, zero "
+   f"tolerance -- stricter than T37's 5%)",
+   not _inv, str(_inv[:3]))
 # Sam, 2026-08-26: "we need to make sure every player has one."
 _noproj = [(r.get('pitcher') or r.get('player'), r.get('market'))
            for r in doc['picks'] if r.get('projection') is None]

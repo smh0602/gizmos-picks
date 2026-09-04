@@ -1754,6 +1754,43 @@ def coherent_projections(board, late_rows, hlogs, today):
             lines[(pid, mkt)].add(float(p["line"]))
             if mkt not in HITTER_UNIT or (pid, mkt) in val:
                 continue
+
+            # 🔴 T37's PRE-REGISTERED FALLBACK, TRIGGERED 2026-09-04.
+            # `research/t37_spec.md`: *"IF IT FAILS ... Fall back to:
+            # invert ONCE at the PRIMARY (non-alt) line and reuse that
+            # single value on every rung of that market."*
+            # ⛔ THE BAR WAS NOT MOVED. It failed at 5.43% against 5.00%
+            # over 1,049 pooled hitter rows at 70%+, and this is the
+            # remedy that was written down BEFORE the data was seen.
+            #
+            # ⚠️ WHERE IT APPLIES IS DECIDED BY PRIOR PRE-REGISTERED
+            # RESULTS, NOT BY TODAY'S NUMBERS. A market may use the
+            # inversion only where a distribution has already cleared its
+            # own bar -- `HITTER_PROJ`, from T34/T35: hits and home runs
+            # (Poisson), RBIs (negative binomial). ⛔ TOTAL BASES and
+            # H+R+RBI KEEP THE MEAN, because all three distributions
+            # tried for them FAILED the 0.25 bar and inverting through a
+            # rejected distribution would be worse than the artifact it
+            # replaces.
+            #
+            # 📊 THE DEFECT THIS FIXES, measured across every published
+            # card: 49 of the 57 contradictions were `batter_rbis` at the
+            # 0.5 line -- 8.0% of that market against 0.0% for hits and
+            # 3.5% for total bases. A player averaging 0.51 RBI a game is
+            # genuinely under 0.5 in most of them, because RBI is heavily
+            # right-skewed. The mean and the record were BOTH right; the
+            # mean is simply the wrong statistic for a lumpy count.
+            _pdist = HITTER_PROJ.get(mkt)
+            _pv = None
+            if _pdist:
+                _pv = hitter_primary_projection(board, hlogs, pid, mkt, today)
+            if _pv is not None:
+                val[(pid, mkt)] = _pv
+                unit[(pid, mkt)] = HITTER_UNIT.get(mkt)
+                basis[(pid, mkt)] = "DESCRIPTIVE"
+                ngames[(pid, mkt)] = None
+                continue
+
             m, n = hitter_mean(hlogs, pid, mkt, today)
             if m is None:
                 continue
@@ -1767,6 +1804,55 @@ def coherent_projections(board, late_rows, hlogs, today):
         out[k] = {"v": proj_round(v, lines.get(k)), "u": unit.get(k),
                   "b": basis.get(k), "n": ngames.get(k)}
     return out
+
+
+def hitter_primary_projection(board, hlogs, pid, market, today):
+    """Invert this player's record ONCE, at his PRIMARY line, and return it.
+
+    🔴 T37's pre-registered fallback. ⛔ ONE value per (player, market),
+    reused on every rung -- so rule 66 still holds: the site quotes one
+    number per player per stat.
+
+    ⚠️ "PRIMARY (non-alt) line" is the STANDARD line the books post for
+    everyone, not this player's cheapest rung. It is taken as the MODAL
+    line for the market across the whole board -- measured 2026-09-04,
+    `batter_rbis` is 0.5 on 227 of 239 posted props -- falling back to the
+    player's own lowest line if he has no prop at the modal one.
+    ⛔ Returns None rather than guessing when there is no usable row; the
+    caller then keeps the mean, which is the previous behaviour.
+    """
+    modal = collections.Counter()
+    mine = {}
+    for g in board.get("games", []):
+        for p in g.get("props", []):
+            if p.get("market") != market or p.get("line") is None:
+                continue
+            modal[float(p["line"])] += 1
+            if p.get("pid") == pid:
+                mine.setdefault(float(p["line"]), p)
+    if not mine:
+        return None
+    want = modal.most_common(1)[0][0] if modal else None
+    prop = mine.get(want) or mine[min(mine)]
+
+    ev = prop.get("evidence") or {}
+    h, n = parse_rate(ev.get("season"))
+    if h is None or not n:
+        return None
+    # ⚠️ The SAME Jeffreys-smoothed rate the row displays. ⛔ Not a
+    # different estimator -- inverting anything else would break the tie
+    # between the projection and the confidence beside it, which is the
+    # entire property this fallback exists to restore.
+    rate = 100.0 * (h + 0.5) / (n + 1)
+    side = prop.get("side") or "over"
+    shape = None
+    if HITTER_PROJ.get(market) == "negbin":
+        shape = hitter_moments(hlogs, pid, market, today)
+        if shape[0] is None:
+            return None
+    v, _sat = project(HITTER_PROJ[market], float(prop["line"]), side, rate,
+                      sd=shape)
+    return v
 
 
 def apply_projections(rows, PROJ):
