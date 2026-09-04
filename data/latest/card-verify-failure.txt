@@ -1,0 +1,66 @@
+verify_card FAILED at 2026-09-04T00:05:13Z
+pass 1 of run 385
+--- the failing checks ---
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (49 of 967 pooled priced rows = 5.1%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (49 of 967 pooled priced rows = 5.1%)
+--- last 60 lines ---
+  FAIL T37: hitter projections contradict <= 5.0% at 70%+ (49 of 967 pooled priced rows = 5.1%)  [('608348', 'batter_rbis', 'under', 0.5, 70, 0.51), ('624424', 'batter_rbis', 'under', 0.5, 72, 0.5), ('669242', 'batter_rbis', 'under', 0.5, 75, 0.52)]
+  PASS T37: hitter projections contradict <= 2.0% at 80%+ (0 of 128 pooled priced rows = 0.0%)  []
+  NOTE  carded hitter rows only: 1 of 9 contradict at 70%+ (11.1%) -- carding selects high-confidence rows, so this is NOT the T37 population
+  PASS no hitter projection matches the UNFILTERED log better than the point-in-time one (0 separable row(s))  []
+
+33. TOP 10 OF THE DAY -- a different list, held to its own rules
+  PASS the top 10 is at most 10 rows (10)
+  PASS every row is priced better than the payable floor (-400)  []
+  PASS no player appears twice  []
+  PASS it is ordered by confidence, descending
+  PASS every top-10 row traces to a row the card priced (302 priced keys)  []
+  PASS every carded row is flagged priced in the index  []
+  PASS the priced flag is a subset, not a rubber stamp (302 of 1067)
+  PASS the price gate actually excluded something, and the card says how much  18 row(s) excluded
+
+34. PARLAYS -- recomputed leg by leg
+  PASS every parlay's leg count matches its own n_legs (8 parlays)
+  PASS every parlay pays inside the band its section advertises  []
+  PASS multiplier re-derived from the American prices  []
+  PASS joint is the product of the legs' own numbers  []
+  PASS no parlay puts two legs in the same GAME ID  []
+  PASS no parlay reuses a player
+  PASS no parlay leg is shorter than the -700 floor
+  PASS every joint number is labelled MODEL, RECORD or MIXED (rule 55)
+  PASS the MIXED label appears exactly when the legs' provenance differs  []
+  PASS every 'strictly worse' warning names a parlay that really is on this card (0 warned)  []
+
+35. OPPONENT RECENT STARTERS -- descriptive, point-in-time, and NOT in the model
+  PASS every pitcher row carries the opponent block (4 of 4)  []
+  PASS no listed start is dated on or after the slate  []
+  PASS every block is about the opponent the row actually faces  []
+  PASS each block is newest-first  []
+  PASS no block lists more than 10 starts
+  PASS the average recomputes from the rows shown  []
+  PASS every block is labelled DESCRIPTIVE (rule 55)
+  PASS every block states in words that it is not a model input
+
+36. THE WHY -- the splits Sam asked for, counted at the row's own line
+  PASS every pitcher row carries the five splits (4 rows)
+  PASS the season split agrees with the row's own raw record  []
+  PASS home + road accounts for every start in the season split  []
+  PASS the last-15 split never counts more than 15 starts  []
+  PASS every row's why mentions the splits
+
+37. BATTER ALTERNATE LINES, INNINGS NOTATION, AND PLAIN ENGLISH
+  PASS no batter row sits on an alternate line (46 hitter rows)  []
+  PASS no batter row is priced at -1000 or shorter
+  PASS every innings figure uses thirds (.0 .1 .2 only)  []
+  PASS innings notation matches the out count it describes  []
+  PASS no jargon in any why (256 lines checked)  []
+  PASS every row still explains itself  []
+  PASS every hitter row still says its number is a record, not a forecast
+
+38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
+  NOTE  4 flag(s) on this card: 0 shown, 4 recorded but not rendered
+  PASS the diagnostics are still being written to the card
+  PASS every flag that reaches the page is marked actionable
+  PASS no model diagnostic is marked for display  []
+
+FAILURES: T37: hitter projections contradict <= 5.0% at 70%+ (49 of 967 pooled priced rows = 5.1%)
