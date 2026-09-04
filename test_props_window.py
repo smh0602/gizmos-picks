@@ -129,7 +129,8 @@ ck(C.FB_PROPS_WINDOW_H <= 24,
 
 print("\n3b. 🔴 EVERY REAL GAME IS CAUGHT BY SOME DEPLOYED PULL")
 print("    The question the constant was only ever a proxy for.")
-import re as _re, gzip as _gz, json as _json, datetime as _dt, os as _os
+import re as _re, datetime as _dt, os as _os
+import freshness as _F
 _wf = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
                     ".github/workflows/collect.yml")
 _routes = _re.findall(r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"',
@@ -141,19 +142,18 @@ for _lg in ("nfl", "ncaaf"):
     _path = f"data/{_lg}/latest/schedule-2026.json.gz"
     if not _os.path.exists(_path):
         print(f"    — {_lg}: no stored schedule, skipped"); continue
-    _d = _json.load(_gz.open(_path, "rt"))
-    _games = []
-    for _g in _d["games"]:
-        _s = (_g.get("start") or "").replace("Z", "").split(".")[0]
-        if not _s: continue
-        if _lg == "ncaaf" and _g.get("home_class") != "fbs" \
-                and _g.get("away_class") != "fbs":
-            continue
-        try:
-            _games.append(_dt.datetime.fromisoformat(_s).replace(
-                tzinfo=_dt.timezone.utc))
-        except Exception:
-            pass
+    # 🔴 THE KICKOFF TIMES COME FROM `freshness.kickoffs_utc`, NOT FROM A
+    # SECOND PARSER HERE. ~~this file stamped `tzinfo=utc` on both
+    # leagues~~ STRUCK 2026-09-04: that is right for college, whose CFBD
+    # `startDate` really is UTC, and **FOUR HOURS WRONG for the NFL**,
+    # whose nflverse `start` is a LOCAL EASTERN wall-clock time with no
+    # zone. ⛔ It is what produced "six London games at 5:30am ET" -- they
+    # kick at 9:30am ET. The error was PESSIMISTIC, so it invented a gap
+    # rather than hiding one, but a four-hour error on a fourteen-hour
+    # window is not a rounding difference.
+    # ✅ One parser, in the contract, used by the contract and by this
+    # check, so the two can never disagree about when a game starts.
+    _games = _F.kickoffs_utc(_lg, _path) or []
     def _fires(cron, t):
         mm, hh, _dom, _mon, dw = cron.split()
         def _ok(f, v):

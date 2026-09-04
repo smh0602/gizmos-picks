@@ -20,7 +20,11 @@ they agree.**
 ⚠️ No network. Everything is read off disk or constructed.
 """
 import datetime
+import gzip
+import json
 import os
+import shutil
+import tempfile
 import sys
 
 import freshness as F
@@ -126,10 +130,27 @@ finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
 print("\n7. THE PAID ROWS ARE MARKED PAID")
+# ⚠️ ASSERTED AS A SUBSET, NOT AN EQUALITY. ~~`eq(paid, {"gamelines",
+# "props-player"})`~~ STRUCK 2026-09-04: `props-player` is now DROPPED
+# from the contract on a day when no game falls inside the pull window,
+# so the exact set depends on the real schedule and the wall clock. **A
+# test whose answer changes with the hour is a test that will fail on a
+# Tuesday for no reason.**
+# ✅ What is actually invariant, and is what this check is for: the odds
+# board always costs money, and NOTHING ELSE MAY EVER BE MARKED PAID
+# WITHOUT BEING ONE OF THESE TWO. A free row silently marked paid would
+# be skipped by `plan(allow_paid=False)` and never built.
 for lg in ("nfl", "ncaaf"):
-    paid = {m for m, _p, _t, pd, _w in F.contract(data=f"data/{lg}",
-                                                  picks="picks") if pd}
-    eq(paid, {"gamelines", "props-player"}, f"   {lg} paid rows")
+    rows = F.contract(data=f"data/{lg}", picks="picks")
+    paid = {m for m, _p, _t, pd, _w in rows if pd}
+    free = {m for m, _p, _t, pd, _w in rows if not pd}
+    ck("gamelines" in paid, f"   {lg}: the odds board is paid", str(sorted(paid)))
+    ck(not (paid - {"gamelines", "props-player"}),
+       f"   🔴 {lg}: nothing else is ever marked paid",
+       str(sorted(paid - {"gamelines", "props-player"})))
+    ck(not (free & {"gamelines", "props-player"}),
+       f"   ⛔ {lg}: and neither paid row is ever marked free",
+       str(sorted(free & {"gamelines", "props-player"})))
 
 print()
 if fails:
@@ -138,3 +159,111 @@ if fails:
         print(f"   - {f}")
     sys.exit(1)
 print("✅ football freshness contract: all checks passed")
+
+print("\n8. 🔴 THE CARD PROBE IS IMMUNE TO THE CALLER'S `picks` ARGUMENT")
+print("   ⛔ THE BUG THIS WOULD HAVE SHIPPED: `card_fb.py` writes to a")
+print("   HARDCODED `picks/`, but `collect.py` passes PICKS, which for")
+print("   football is `picks/ncaaf` — A DIRECTORY THAT DOES NOT EXIST.")
+print("   A hand-run survey passing `picks` read FINE; production would")
+print("   have reported the card MISSING FOREVER.")
+for lg in ("nfl", "ncaaf"):
+    got = set()
+    for arg in ("picks", f"picks/{lg}", "picks/"):
+        for m, (_k, p), _t, _pd, _w in F.contract(data=f"data/{lg}", picks=arg):
+            if m == "card-fb":
+                got.add(p)
+    if not got:
+        print(f"  note {lg}: no card row right now (no board yet)")
+        continue
+    eq(len(got), 1, f"   {lg}: one path whatever the caller passes")
+    eq(got.pop(), f"picks/fb-{lg}-latest.json", f"   {lg}: and it is the "
+       f"path card_fb.py writes")
+
+print("\n9. 🔴 A PULL THAT CORRECTLY BUYS NOTHING IS NOT A LATE PULL")
+print("   With a 14h window a Friday buys no Saturday college games.")
+print("   ⛔ Calling that late asks for a repair no run can make.")
+_sat = datetime.datetime(2026, 9, 5, 23, 0, tzinfo=UTC)     # Sat 7pm ET
+_fri = datetime.datetime(2026, 9, 4, 18, 0, tzinfo=UTC)     # Fri 2pm ET
+tmp = tempfile.mkdtemp()
+cwd = os.getcwd()
+try:
+    os.chdir(tmp)
+    os.makedirs("data/ncaaf/latest", exist_ok=True)
+    os.makedirs("picks", exist_ok=True)
+    open("data/ncaaf/latest/props.json.gz", "wb").close()
+    open("picks/fb-ncaaf-latest.json", "wb").close()
+    season = F.current_football_season(_fri)
+
+    def write_sched(games):
+        with gzip.open(f"data/ncaaf/latest/schedule-{season}.json.gz",
+                       "wt") as fh:
+            json.dump({"season": season, "games": games}, fh)
+
+    # a slate 29 hours out -- outside any 14h window from Friday
+    write_sched([{"start": "2026-09-05T23:00:00.000Z", "home_class": "fbs",
+                  "away_class": "fbs", "home": "H", "away": "A"}])
+    modes = {m for m, _p, _t, _pd, _w in
+             F.contract(data="data/ncaaf", picks="picks", now=_fri)}
+    ck("props-player" not in modes,
+       "   nothing in window -> the paid pull is NOT governed", sorted(modes))
+    ck("props-board" not in modes,
+       "   nor the join that has nothing new to join")
+    ck("card-fb" in modes,
+       "   ⚠️ but the CARD still is — it is free and rebuilds either way")
+
+    # the same slate, asked on Saturday afternoon: now it IS in window
+    modes2 = {m for m, _p, _t, _pd, _w in
+              F.contract(data="data/ncaaf", picks="picks",
+                         now=_sat - datetime.timedelta(hours=4))}
+    ck("props-player" in modes2,
+       "   🔴 and on game day it is governed again", sorted(modes2))
+
+    # ⛔ THE FAIL-SAFE POINTS AT GOVERNING, NOT AT SILENCE
+    os.remove(f"data/ncaaf/latest/schedule-{season}.json.gz")
+    modes3 = {m for m, _p, _t, _pd, _w in
+              F.contract(data="data/ncaaf", picks="picks", now=_fri)}
+    ck("props-player" in modes3,
+       "   ⛔ no readable schedule = CANNOT TELL = still governed",
+       "absence of evidence must never be what silences a check")
+finally:
+    os.chdir(cwd)
+    shutil.rmtree(tmp, ignore_errors=True)
+
+print("\n10. 🔴 THE TWO LEAGUES DISAGREE ABOUT WHAT `start` MEANS")
+print("    A four-hour error on a fourteen-hour window. It invented a")
+print("    London-games gap that was never there.")
+tmp = tempfile.mkdtemp()
+try:
+    os.chdir(tmp)
+    os.makedirs("d", exist_ok=True)
+    with gzip.open("d/nfl.json.gz", "wt") as fh:
+        json.dump({"games": [{"start": "2026-09-13T13:00", "home": "H",
+                              "away": "A"}]}, fh)
+    with gzip.open("d/cfb.json.gz", "wt") as fh:
+        json.dump({"games": [{"start": "2026-08-27T22:00:00.000Z",
+                              "home_class": "fbs", "away_class": "fcs"},
+                             {"start": "2026-08-27T22:00:00.000Z",
+                              "home_class": "ii", "away_class": "iii"}]}, fh)
+    n = F.kickoffs_utc("nfl", "d/nfl.json.gz")
+    eq(len(n), 1, "    the NFL game is read")
+    eq(n[0].strftime("%H:%MZ"), "17:00Z",
+       "    🔴 1:00pm ET Sunday -> 17:00Z, NOT 13:00Z")
+    c = F.kickoffs_utc("ncaaf", "d/cfb.json.gz")
+    eq(len(c), 1, "    ⛔ and college keeps only the FBS game")
+    eq(c[0].strftime("%H:%MZ"), "22:00Z",
+       "    whose stamp really IS UTC and is left alone")
+    ck(F.kickoffs_utc("nfl", "d/nope.json.gz") is None,
+       "    a missing schedule returns None — 'cannot tell', not 'empty'")
+finally:
+    os.chdir(cwd)
+    shutil.rmtree(tmp, ignore_errors=True)
+
+print("\n11. ⛔ ONE WINDOW, ONE DEFINITION, AND EVERY LEAGUE CONVERGES")
+import collect as _C
+ck(_C.FB_PROPS_WINDOW_H is F.FB_PROPS_WINDOW_H,
+   "   collect.py reads the window from the contract (rule 66)",
+   f"{_C.FB_PROPS_WINDOW_H}h")
+for lg in ("mlb", "nfl", "ncaaf"):
+    ck(F.has_contract(lg), f"   {lg} has a contract, so it converges")
+ck(not F.has_contract("nhl"),
+   "   ⛔ and a league with no rows still does not")

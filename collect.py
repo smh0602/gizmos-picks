@@ -119,7 +119,14 @@ RESERVE = 750
 # a run, the next one still catches those games. **Two pulls a day is
 # what replaces that redundancy.** ⛔ If this ever goes back to ONE pull
 # a day, THIS NUMBER MUST GO BACK UP.
-FB_PROPS_WINDOW_H = 14
+# 🔴 THE VALUE NOW LIVES IN `freshness.py`, AND IS BOUND HERE AS
+# `FB_PROPS_WINDOW_H` DIRECTLY BELOW THAT IMPORT (this file imports
+# freshness further down, so the binding cannot happen at this line).
+# The collector uses the number to decide what to BUY; the contract uses
+# the same number to decide what may be called LATE. ⛔ Two copies is two
+# things to update and one to forget (rule 66) -- and on the day they
+# disagreed, the contract called a Friday pull late for correctly buying
+# nothing, which is a repair no run can make.
 
 # --- market definitions -----------------------------------------------
 GAME_MARKETS = ["h2h", "spreads", "totals"]
@@ -182,6 +189,10 @@ def now():
 
 
 import freshness as _fresh
+
+# See the block above the market definitions: ONE number, defined in the
+# contract, read by the collector.
+FB_PROPS_WINDOW_H = _fresh.FB_PROPS_WINDOW_H
 
 
 def stamp():
@@ -3706,7 +3717,17 @@ def main():
     # what the caller cared about, not a licence to leave the rest of the
     # site stale. `converge-off` is the escape hatch for a one-shot job
     # (an NFL back-fill, a probe) that must not touch MLB at all.
-    if "converge-off" in args or LEAGUE != "mlb":
+    # 🔴 THE GUARD USED TO READ `LEAGUE != "mlb"`, AND IT OUTLIVED ITS
+    # REASON. It was correct while football had no freshness contract:
+    # converging against baseball's deadlines would have been nonsense.
+    # ⛔ FOOTBALL GOT A CONTRACT ON 2026-09-04 AND THIS LINE DID NOT
+    # NOTICE, so every football run stayed one-shot and **a dropped cron
+    # was never repaired.** `[measured the same day]` the college card was
+    # built at 8:51am against a 9:00am deadline, GitHub dropped both 9am
+    # card crons, and nothing rebuilt it for the rest of the day -- while
+    # the contract sat there correctly reporting it 6.5 hours late.
+    # ✅ A league converges exactly when it has rows to converge against.
+    if "converge-off" in args or not _fresh.has_contract(LEAGUE):
         code = 0
         for m in args:
             if m == "converge-off":

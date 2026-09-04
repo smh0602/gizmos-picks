@@ -32,8 +32,22 @@ import freshness as F
 from freshness import SOFT
 
 
+# 🔴 THE GATE READS THE LEAGUE, AND UNTIL 2026-09-04 IT DID NOT.
+# `F.survey()` with no arguments is MLB, always. While the workflow ran
+# this for MLB only that was harmless; **switching the gate on for
+# football without this line would have graded college artifacts against
+# BASEBALL's deadlines** -- the exact hazard the workflow warned about on
+# 2026-08-28, arriving by the other door.
+# ⛔ ONE MAPPING, and it is the same shape `collect.py`'s LEAGUES table
+# uses: MLB at the root, every other league in its own subtree.
+# ⚠️ `picks` stays at the ROOT for every league, because `card_fb.py`
+# writes the football card to `picks/fb-<league>-latest.json`.
+_LEAGUE = (os.environ.get("LEAGUE") or "mlb").strip().lower() or "mlb"
+_DATA = "data" if _LEAGUE == "mlb" else f"data/{_LEAGUE}"
+
+
 def main():
-    rows = F.survey()
+    rows = F.survey(data=_DATA, picks="picks")
 
     # 🔴 A REFUSED CARD IS A KNOWN STATE, NOT AN UNKNOWN FAILURE.
     # `[measured 2026-08-29]` `verify_card` blocked the card on T37 and
@@ -49,7 +63,7 @@ def main():
     # ⚠️ NARROW ON PURPOSE — it downgrades ONLY the card, ONLY while the
     # failure file exists. A card late for ANY OTHER reason still fails,
     # and so does every other artifact.
-    refused = os.path.exists("data/latest/card-verify-failure.txt")
+    refused = os.path.exists(f"{_DATA}/latest/card-verify-failure.txt")
 
     hard, soft = [], []
     for r in rows:
@@ -72,7 +86,7 @@ def main():
 
     if refused and any(r["mode"] == "card" for r in soft):
         try:
-            with open("data/latest/card-verify-failure.txt",
+            with open(f"{_DATA}/latest/card-verify-failure.txt",
                       encoding="utf-8") as fh:
                 why = [l for l in fh if l.startswith("FAILURES:")]
             why = why[0][9:].strip() if why else "see card-verify-failure.txt"

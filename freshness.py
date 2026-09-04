@@ -349,6 +349,127 @@ FB_TIMES = {
 }
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE PAID PROPS WINDOW LIVES HERE, NOT IN `collect.py`, BECAUSE THE
+# CONTRACT AND THE COLLECTOR MUST AGREE ABOUT IT.
+# `collect.py` reads it back as `FB_PROPS_WINDOW_H = _fresh.FB_PROPS_WINDOW_H`
+# so there is still exactly ONE number (rule 66).
+# ⛔ WHY IT MOVED. `[measured 2026-09-04]` the collector buys props only
+# for games kicking off inside this window -- correct, and it makes a
+# Friday afternoon buy NOTHING, because Saturday's college slate is 20+
+# hours away. The contract knew nothing about the window, so it called
+# that day's pull LATE. **A run cannot clear that, and a banner nobody
+# can clear is a banner everybody ignores** -- the exact failure this
+# file exists to prevent.
+# ⚠️ IF THE PULL EVER GOES BACK TO ONCE A DAY THIS NUMBER MUST GO BACK UP;
+# the argument is written out in full at its old home in `collect.py`.
+FB_PROPS_WINDOW_H = 14
+
+
+def _et_zone():
+    """Real Eastern, when the platform has tzdata; None when it does not."""
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo("America/New_York")
+    except Exception:
+        return None
+
+
+def kickoffs_utc(league, path):
+    """Every kickoff in a stored football schedule, as REAL UTC.
+
+    🔴 THE TWO LEAGUES DO NOT AGREE ABOUT WHAT `start` MEANS, AND READING
+    THEM THE SAME WAY IS A FOUR-HOUR ERROR ON A FOURTEEN-HOUR WINDOW.
+        ncaaf   CFBD `startDate`   "2026-08-27T22:00:00.000Z"  -> real UTC
+        nfl     nflverse gameday + gametime  "2026-09-13T13:00"
+                -> LOCAL EASTERN, NO TIMEZONE. `nfl.py` carries it as-is
+                   ON PURPOSE: *"an invented offset would put a Sunday 1pm
+                   game on the wrong day for half the world."*
+    ⛔ `[measured 2026-09-04]` `test_props_window.py` stamped BOTH with
+    `tzinfo=utc`, which reads every NFL kickoff as FOUR HOURS EARLIER than
+    it is. That is what produced "six London games at 5:30am ET" -- they
+    kick at **9:30am ET**. The test was pessimistic, so it invented a gap
+    rather than hiding one, **but a four-hour error is a four-hour error
+    and it is fixed here, in one place, for every caller.**
+    ⚠️ Winter matters: ET is UTC-5 from November, and the NFL plays into
+    January. Real `zoneinfo` is used where it exists and the file's fixed
+    -4 is the fallback, which is an hour off in the winter and SAID SO
+    rather than assumed away.
+
+    Returns aware UTC datetimes, or **None if the schedule cannot be read**
+    -- and None means *cannot tell*, never *nothing to do*.
+    """
+    if not os.path.exists(path):
+        return None
+    try:
+        with gzip.open(path, "rt") as fh:
+            doc = json.load(fh)
+    except Exception:
+        return None
+    zone = _et_zone() if league == "nfl" else None
+    out = []
+    for g in doc.get("games") or []:
+        s = (g.get("start") or "").strip()
+        if not s:
+            continue
+        # ⚠️ COLLEGE PRICES FBS ONLY, so a D-II kickoff is not a reason to
+        # buy anything. ⛔ Keep the game when EITHER side is FBS -- an
+        # `!= "fcs"` test misses D-II and D-III entirely, which once put
+        # 188 games in a cost model that should have held 46.
+        if league == "ncaaf" and "fbs" not in (str(g.get("home_class")),
+                                               str(g.get("away_class"))):
+            continue
+        utc = s.endswith("Z")
+        try:
+            t = datetime.datetime.fromisoformat(
+                s.replace("Z", "").split(".")[0])
+        except Exception:
+            continue
+        if utc:
+            out.append(t.replace(tzinfo=UTC))
+        elif zone is not None:
+            out.append(t.replace(tzinfo=zone).astimezone(UTC))
+        else:
+            out.append(t.replace(tzinfo=UTC) + ET_OFFSET)
+    return out
+
+
+def _props_warranted(league, latest, now):
+    """Was a paid props pull worth making at the deadline that just passed?
+
+    🔴 A PULL THAT CORRECTLY BUYS NOTHING IS NOT A LATE PULL. On a Friday
+    the whole college slate is Saturday, 20+ hours out, so nothing is
+    inside `FB_PROPS_WINDOW_H` and the collector spends nothing. ⛔ Marking
+    that late asks for a repair no run can make.
+    ⚠️ AND THE FAIL-SAFE POINTS THE OTHER WAY: **no readable schedule means
+    CANNOT TELL, and cannot-tell keeps the row governed.** Absence of
+    evidence must never be the thing that silences a check.
+    """
+    due = last_due(FB_TIMES[league]["props"], now)
+    if due is None:
+        return False
+    ks = kickoffs_utc(league,
+                      f"{latest}/schedule-{current_football_season(now)}.json.gz")
+    if ks is None:
+        return True
+    end = due + datetime.timedelta(hours=FB_PROPS_WINDOW_H)
+    return any(due <= k <= end for k in ks)
+
+
+def has_contract(league):
+    """Does this league have freshness rows, and therefore a converge?
+
+    ⛔ `collect.py` REFUSED TO CONVERGE ANY LEAGUE BUT MLB — the guard read
+    `LEAGUE != "mlb"` and it was right when football had no contract.
+    🔴 IT OUTLIVED THAT. Football runs were one-shot, so **a missed cron
+    was never repaired**: the college card was built at 8:51am against a
+    9:00am deadline, both 9am card crons were dropped by GitHub, and
+    nothing rebuilt it for the rest of the day. The whole point of a
+    contract is that the next run catches up.
+    """
+    return league == "mlb" or league in FB_TIMES
+
+
 def _football_contract(league, data, picks, now):
     """The same shape as MLB's, for one football league."""
     latest = f"{data}/latest"
@@ -364,7 +485,20 @@ def _football_contract(league, data, picks, now):
          "Player Props — the join that puts props on the board"),
         # ⛔ ONE ROW FOR THE CARD FILE. Picks, Parlays and Track Record all
         # read it; three rows would be three chances to disagree.
-        ("card-fb", ("file", f"{picks}/fb-{league}-latest.json"), T["card"], False,
+        # 🔴 THE CARD PATH IS NOT `{picks}` AND MUST NOT BE. `card_fb.py`
+        # writes to a HARDCODED `picks/fb-<league>-latest.json`, while
+        # `collect.py` hands this function `PICKS`, which for football is
+        # `picks/ncaaf` -- **a directory that does not exist.**
+        # ⛔ `[caught 2026-09-04, before the gate was switched on]` probing
+        # `{picks}/fb-...` reported the card MISSING FOREVER in production,
+        # while reading FINE in a hand-run survey that passed `picks`.
+        # ⚠️ A FACT ABOUT A QUERY IS NOT A FACT ABOUT THE WORLD: the
+        # earlier survey was right about the argument it was given and
+        # wrong about the argument the collector actually passes.
+        # ✅ THE CONTRACT FOLLOWS THE WRITER. If `card_fb.py` ever moves
+        # the file, this line moves with it -- `test_fb_freshness.py` pins
+        # that this row is immune to the caller's `picks` argument.
+        ("card-fb", ("file", f"picks/fb-{league}-latest.json"), T["card"], False,
          "Gizmo's Picks + Parlays + Track Record"),
         ("news", ("file", f"{latest}/news.json"), T["news"], False, "News"),
     ]
@@ -394,6 +528,14 @@ def _football_contract(league, data, picks, now):
     # run. ⚠️ They rejoin the contract the moment the first board lands.
     if not os.path.exists(f"{latest}/props.json.gz"):
         rows = [r for r in rows if r[0] not in ("props-board", "card-fb")]
+    # ⛔ AND THE SAME RULE FOR A PULL THAT CORRECTLY BOUGHT NOTHING. If no
+    # game kicked off inside the window of the deadline that just passed,
+    # the collector spent nothing and there is no newer board to join --
+    # so neither the pull nor the join is late. ⚠️ THE CARD STAYS
+    # GOVERNED: it is free, it rebuilds from whatever board exists, and a
+    # dropped card cron is exactly what converge is now here to repair.
+    if not _props_warranted(league, latest, now):
+        rows = [r for r in rows if r[0] not in ("props-player", "props-board")]
     if T["teams"]:
         rows.append(("cfb-teams", ("file", f"{latest}/teams.json"),
                      T["teams"], False, "team logos across every tab"))

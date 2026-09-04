@@ -203,13 +203,42 @@ def check_workflow():
     # writes to data/nfl and picks/nfl; grading it against the MLB
     # contract is a bug in both directions -- a red football run for a
     # baseball reason, or a green one hiding real football staleness.
-    for cmd in ("verify_card.py", "verify_board.py", "verify_record.py",
-                "verify_freshness.py"):
+    # ~~verify_freshness.py was in this list~~ REMOVED 2026-09-04, AND
+    # THE REPLACEMENT IS STRICTLY HARDER. The guard was a PROXY for
+    # "football is never graded against baseball's deadlines". It bought
+    # that by never running the gate for football at all -- which also
+    # meant **football staleness was never checked by anything**, and a
+    # gate that cannot fire is not a gate.
+    # ✅ Football now has its own contract rows, so the gate runs for
+    # every league and gets its league from `LEAGUE`, exactly as every
+    # other tool here does. ⛔ The proxy is replaced by a check on the
+    # THING IT WAS A PROXY FOR: that the gate actually surveys the league
+    # it was asked about. A workflow guard could never prove that; this
+    # can, and it would catch a `survey()` call that silently defaulted
+    # back to MLB -- which the old check could not.
+    for cmd in ("verify_card.py", "verify_board.py", "verify_record.py"):
         i = text.find("python " + cmd)
         seg = text[:i] if i > 0 else ""
         guarded = seg.rfind('LEAGUE_NAME" = "mlb"') > seg.rfind("\n            fi")
         print(f"  [{'OK  ' if guarded else 'LOOSE'}] {cmd} runs only for MLB")
         ok &= guarded
+    import importlib as _il, os as _oe
+    _prev = _oe.environ.get("LEAGUE")
+    try:
+        import verify_freshness as _vf
+        for _lg, _want in (("ncaaf", "data/ncaaf"), ("nfl", "data/nfl"),
+                           ("mlb", "data")):
+            _oe.environ["LEAGUE"] = _lg
+            _il.reload(_vf)
+            _got = _vf._DATA == _want
+            print(f"  [{'OK  ' if _got else 'WRONG'}] the gate surveys "
+                  f"{_lg} at {_vf._DATA!r}")
+            ok &= _got
+    finally:
+        if _prev is None:
+            _oe.environ.pop("LEAGUE", None)
+        else:
+            _oe.environ["LEAGUE"] = _prev
 
     # 🔴 THE ACCEPTED-FAILURE GATE MUST STAY WIRED IN AND HONEST.
     # If `card_gate.py` stops being called, every card failure turns the
