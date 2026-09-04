@@ -54,6 +54,36 @@ def load_accepted():
     return out
 
 
+def commented_out():
+    """{check id: the commented line}. 🔴 AN ACCEPTANCE THAT LOOKS WRITTEN
+    BUT IS COMMENTED OUT IS THE WORST OF BOTH WORLDS.
+
+    `[measured 2026-09-04]` Sam accepted T37 and typed the entry onto the
+    end of the file's last line -- which is a bare `#` separator. The
+    result was `#T37 | ...`: a perfectly formed entry, in the file, in the
+    commit, **and invisible to `load_accepted`.** The run stayed red and
+    said only *"NOT an accepted failure -- this is new, look at it"*, which
+    is the one thing it was NOT.
+    ⛔ THE ENTRY IS STILL NOT HONOURED -- a commented line means disabled,
+    and guessing otherwise would let a stray `#` accept a card failure
+    nobody signed off. ✅ But the gate now SAYS the entry is sitting there
+    commented out, at the exact moment the operator is looking at the
+    failure.
+    """
+    out = {}
+    if not os.path.exists(ACCEPTED_FILE):
+        return out
+    with open(ACCEPTED_FILE, encoding="utf-8") as fh:
+        for line in fh:
+            body = line.strip().lstrip("#").strip()
+            if not line.strip().startswith("#") or "|" not in body:
+                continue
+            cid = body.partition("|")[0].strip()
+            if re.fullmatch(r"T\d+[a-z]?", cid):
+                out[cid] = line.strip()
+    return out
+
+
 def failing_checks(path):
     """The check IDs verify_card reported as failing."""
     try:
@@ -91,8 +121,22 @@ def main():
     print(f"card_gate: accepted      {sorted(accepted) or '(none)'}")
 
     if unaccepted:
+        # ⚠️ BEFORE CALLING IT NEW, CHECK WHETHER SOMEBODY ALREADY WROTE IT
+        # AND IT IS COMMENTED OUT. Saying "this is new, look at it" about a
+        # decision already taken and typed into the file is the most
+        # misleading thing this tool can do.
+        _hidden = commented_out()
+        for i in unaccepted:
+            if i in _hidden:
+                print(f"::error::{i} IS in {ACCEPTED_FILE} but the line is "
+                      f"COMMENTED OUT, so it is not in force. Remove the "
+                      f"leading '#' to accept it.")
+                print(f"::error::  the line reads: {_hidden[i][:120]}")
         print(f"::error::the card failed on {unaccepted}, which is NOT an "
-              f"accepted failure — this is new, look at it")
+              f"accepted failure — "
+              + ("see the commented-out entr(y/ies) above"
+                 if any(i in _hidden for i in unaccepted)
+                 else "this is new, look at it"))
         return 1
 
     for i in ids:
