@@ -13,6 +13,7 @@ crediting the moneyline favourite with FEWER implied runs than the dog.
 job, which is the job that writes the file.
 """
 import json
+import glob
 import os
 import re
 import sys
@@ -103,20 +104,119 @@ if m:
     from datetime import datetime
     def ts(x):
         return datetime.fromisoformat(x.replace("Z", "+00:00")).timestamp() * 1000
-    pairs = {}
-    for g in games:
-        pairs.setdefault((g["away"], g["home"]), []).append(g)
-    clash = []
-    for (a, h), v in pairs.items():
-        if len(v) < 2:
+    def _match(away, home, when):
+        """index.html's rule, reimplemented: nearest commence, in window."""
+        cand = [g for g in games if g["away"] == away and g["home"] == home]
+        if not cand:
+            return None
+        if not when:
+            return cand[0] if len(cand) == 1 else None
+        t = ts(when)
+        best, bg = None, float("inf")
+        for g in cand:
+            gap = abs(ts(g["commence"]) - t)
+            if gap < bg:
+                bg, best = gap, g
+        return best if bg <= win_ms else None
+
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 ~~"no two records for one matchup sit inside the page's window"~~
+    # STRUCK 2026-09-04, AND THE ARGUMENT IS MADE HERE.
+    # ⛔ IT WAS A PROXY, AND THE PROXY WAS WRONG IN BOTH DIRECTIONS.
+    # ⚠️ IT FIRED ON A CORRECT BOARD. `[measured 2026-09-04]` a Detroit /
+    # Cleveland DOUBLEHEADER put two records exactly 4.00 hours apart
+    # against a 4-hour window, and the run went red. But the window is a
+    # MAXIMUM DISTANCE, not a resolution limit: nearest-match still picks
+    # the right one. `test_board_match.js` passed 28 assertions on that
+    # very board, including that pair -- **two checks disagreeing about
+    # the same data, and the proximity one was the wrong question.**
+    # 🔴 AND IT COULD NOT CATCH THE BUG IT WAS WRITTEN FOR. On 2026-08-26
+    # six board records were the PREVIOUS NIGHT'S GAME -- one record per
+    # matchup, no duplicates at all -- and cards showed CHC at -4000 with
+    # a 4.5 total. **A proximity rule passes that without a murmur.**
+    # ✅ THE REPLACEMENT ASKS THE REAL QUESTION, AND IT HAS GROUND TRUTH.
+    # Every carded row stores the `game_id` of the record it was priced
+    # from. So: run the PAGE'S OWN matcher on the row's first pitch, and
+    # assert it returns THAT id. ⛔ Strictly harder -- it catches a wrong
+    # match whether or not a duplicate exists, which is the whole class.
+    # ══════════════════════════════════════════════════════════════════
+    _ids = {str(g.get("id")) for g in games}
+    _rows, _wrong, _lost, _nomatch = 0, [], 0, []
+    # ⛔ `picks/` HOLDS TWO SPORTS AND A PLAIN `[-1:]` PICKS THE WRONG
+    # ONE. `fb-ncaaf-latest.json` sorts AFTER every `2026-..-...json`, so
+    # the naive form selected a FOOTBALL card, skipped it on `kind`, and
+    # reconciled ZERO rows -- a vacuous pass, which is the same trap as
+    # rule 76. Choose the newest MLB card explicitly.
+    _cards = []
+    for _f in glob.glob(os.path.join(ROOT, "picks", "*.json")):
+        try:
+            _d = json.load(open(_f, encoding="utf-8"))
+        except Exception:
             continue
-        v = sorted(v, key=lambda x: x["commence"])
-        for x, y in zip(v, v[1:]):
-            if abs(ts(y["commence"]) - ts(x["commence"])) <= win_ms:
-                clash.append(f"{a} @ {h}: {x['commence']} and {y['commence']}")
-    ck(f"no two records for one matchup sit inside the page's window "
-       f"({sum(1 for v in pairs.values() if len(v) > 1)} matchup(s) appear twice)",
-       not clash, "; ".join(clash[:3]))
+        if (_d.get("league") or "mlb").lower() != "mlb":
+            continue
+        if _d.get("kind") != "gizmos-card":
+            continue
+        _cards.append((_d.get("date") or "", _d))
+    for _dt, _doc in sorted(_cards)[-1:]:
+        _seen = set()
+        for _r in _doc.get("picks", []):
+            _key = (_r.get("away"), _r.get("home"), _r.get("commence"))
+            if None in _key or _key in _seen:
+                continue
+            _seen.add(_key)
+            _want = str(_r.get("game_id") or "")
+            _got = _match(_r["away"], _r["home"], _r["commence"])
+            if _want not in _ids:
+                # 🔴 THE RECORD THIS ROW WAS PRICED FROM IS GONE. That is
+                # only harmless if the page ALSO finds nothing -- the row
+                # then renders with no odds, which is fail-closed.
+                # ⛔ IF THE MATCHER STILL RETURNS SOMETHING, THE PAGE WILL
+                # SHOW A PRICE FROM A RECORD THIS ROW WAS NEVER PRICED
+                # FROM. That is the 2026-08-26 bug exactly -- and an
+                # earlier draft of this check let it through, because
+                # "rolled off" was treated as nothing-to-see rather than
+                # as the dangerous half of the question.
+                if _got is not None:
+                    _wrong.append(
+                        f"{_r['away']} @ {_r['home']} @{_r['commence']}: priced "
+                        f"from {_want[:8]}, which is NOT on this board, yet the "
+                        f"page would show {_got['commence']} "
+                        f"({str(_got.get('id'))[:8]})")
+                else:
+                    _lost += 1      # rolled off, and the page shows no odds
+                continue
+            _rows += 1
+            if _got is None:
+                _nomatch.append(f"{_r['away']} @ {_r['home']}")
+            elif str(_got.get("id")) != _want:
+                _wrong.append(f"{_r['away']} @ {_r['home']} @{_r['commence']}: "
+                              f"matched {_got['commence']} ({str(_got.get('id'))[:8]}) "
+                              f"not {_want[:8]}")
+    _dupes = sum(1 for v in
+                 [[g for g in games if (g['away'], g['home']) == k]
+                  for k in {(g['away'], g['home']) for g in games}] if len(v) > 1)
+    print(f"  NOTE  {_dupes} matchup(s) appear twice on this board "
+          f"(doubleheaders and next-day games -- not a defect by itself)")
+    if _lost:
+        print(f"  NOTE  {_lost} carded row(s) rolled off the board and the "
+              f"page shows no odds for them — fail-closed, nothing to reconcile")
+    # 🔴 ZERO ROWS IS NOT A PASS. A reconciliation that reconciled
+    # nothing has asserted nothing, and this verifier's whole job is to
+    # refuse a board it cannot vouch for. ⚠️ It is allowed to be zero for
+    # ONE honest reason -- every carded record has rolled off the board --
+    # and that reason is reported rather than assumed.
+    ck(f"🔴 every carded row still matches the record it was PRICED from "
+       f"({_rows} row(s) reconciled by game id)",
+       not _wrong and (_rows > 0 or _lost > 0),
+       "; ".join(_wrong[:3]) or
+       ("" if (_rows or _lost) else "nothing reconciled and nothing rolled "
+        "off — the card and the board share no rows at all"))
+    # ⚠️ A row the matcher cannot resolve renders WITH NO ODDS. That is
+    # fail-closed and correct, but it must be VISIBLE rather than silent.
+    if _nomatch:
+        print(f"  NOTE  {len(_nomatch)} row(s) resolve to no record and will "
+              f"render without odds: {_nomatch[:3]}")
 
 print(f"\n{'ALL BOARD CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)
