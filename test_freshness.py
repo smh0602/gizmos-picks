@@ -192,13 +192,51 @@ def check_workflow():
         got = re.search(r"^  " + want + r":", on, re.M) is not None
         ok &= got
         print(f"  [{'OK  ' if got else 'GONE'}] workflow reacts to {want}")
+    # 🔴 ~~five named files must appear in the push `paths:` allow-list~~
+    # REPLACED 2026-09-04 AND THE REPLACEMENT IS STRICTLY HARDER. The old
+    # check asked whether FIVE files were listed. `[measured]` **30 of the
+    # 35 root code and test files were NOT** -- card_fb.py, cfb.py,
+    # nfl.py, verify_board.py, verify_record.py, card_gate.py and EVERY
+    # test file -- and the old check was green the whole time, because it
+    # only ever asked about the five that were there.
+    # ⛔ A CHECK THAT ENUMERATES WHAT IS PRESENT CANNOT SEE WHAT IS
+    # MISSING. The new form enumerates the REPO instead of the list, so a
+    # file added tomorrow is covered without anyone editing this test.
     pm = re.search(r"^  push:\n(.*?)(?=^  \S)", on, re.M | re.S)
-    paths = pm.group(1) if pm else ""
-    for f in ("collect.py", "freshness.py", "index.html",
-              "verify_freshness.py", "card.py"):
-        got = f'"{f}"' in paths
-        ok &= got
-        print(f"  [{'OK  ' if got else 'GONE'}] an upload of {f} triggers a run")
+    pushblk = pm.group(1) if pm else ""
+    ign = re.findall(r'-\s*"([^"]+)"', pushblk)
+    ck_has = "paths-ignore:" in pushblk
+    print(f"  [{'OK  ' if ck_has else 'GONE'}] push uses an ignore-list, not an allow-list")
+    ok &= ck_has
+
+    def _ignored(path):
+        """GitHub path-filter semantics for the shapes used here."""
+        for g in ign:
+            if g.endswith("/**") and path.startswith(g[:-2]):
+                return True
+            if g.startswith("**") and path.endswith(g[2:]):
+                return True
+            if g == path:
+                return True
+        return False
+
+    import glob as _g
+    _root = sorted(_g.glob("*.py") + _g.glob("*.js") + _g.glob("*.html"))
+    _dead = [f for f in _root if _ignored(f)]
+    print(f"  [{'OK  ' if not _dead else 'GONE'}] all {len(_root)} root code/test "
+          f"files trigger a run", _dead[:4] if _dead else "")
+    ok &= not _dead
+    _wf = ".github/workflows/collect.yml"
+    ok &= not _ignored(_wf)
+    print(f"  [{'OK  ' if not _ignored(_wf) else 'GONE'}] and so does the workflow itself")
+    # ⛔ AND THE LOOP GUARD MUST HOLD: the collector commits to data/ and
+    # picks/ and nothing else. If those ever start triggering, every
+    # converge commit starts another run.
+    for _p in ("data/latest/board.json", "picks/2026-09-04.json"):
+        _q = _ignored(_p)
+        print(f"  [{'OK  ' if _q else 'LOOP!'}] a collector commit to {_p.split('/')[0]}/ "
+              f"does NOT retrigger")
+        ok &= _q
     # 🔴 MLB-ONLY STEPS MUST STAY BEHIND THE LEAGUE GUARD. Football
     # writes to data/nfl and picks/nfl; grading it against the MLB
     # contract is a bug in both directions -- a red football run for a
