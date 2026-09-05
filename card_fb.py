@@ -183,6 +183,35 @@ PRICE_CEIL = 400
 MARKET_MAX_SHARE = 0.34   # no market may exceed a third of the board
 BOARD_MAX = 50           # same as MLB's board
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE BOARD IS ONE DAY. Sam, 2026-09-04: *"only games on the day the
+# run happens. minimum 5 picks, maximum 50. a day with no games means an
+# EMPTY tab, and that is correct."*
+#
+# ⛔ THIS IS NOT A HYPOTHETICAL. `[measured 2026-09-05 across all 18
+# published cards with picks]` exactly one card mixes days --
+# `picks/fb-ncaaf-2026-09-03.json` is HEADED `2026-09-03` and **19 of its
+# 50 picks are 09-04 games**. The header said Wednesday and 38% of the
+# board was Thursday. Every other card is clean, so this reads as rare
+# rather than harmless: it is what a 14-hour props window does whenever
+# it happens to straddle midnight ET.
+#
+# 🔴 WHICH DAY, AND WHY IT IS NOT THE WALL CLOCK. Sam's words are "the day
+# the run happens", and read literally off the clock that is DANGEROUS at
+# the boundary: a converge pass at 01:00 ET Sunday would decide the day is
+# Sunday, find no Sunday games, and OVERWRITE a good Saturday card with an
+# empty one. ✅ So the day is `slate_date(B)` -- the ET date of the
+# earliest game on the board, which is ALREADY the card's own `date` field
+# under ledger rule 60. The change is that the date now describes every
+# row on the card, which today it does not. That is rule 66: one number
+# per fact.
+#
+# ⚠️ FIVE IS A FLOOR TO REACH FOR, NOT A GATE THAT EMPTIES THE BOARD. The
+# only way to force a minimum is to lower a bar, and every other rule here
+# forbids that. ➡️ So a short day ships what it has AND SAYS SO on the
+# page, with the count. ⛔ Never padded, never hidden.
+BOARD_MIN = 5
+
 # market -> (how to read it out of a game row, unit, higher-is-a-hit)
 def _td(g):
     return (float(g.get("rec_td") or 0) + float(g.get("rush_td") or 0)
@@ -469,6 +498,25 @@ def slate_date(B):
     return et(datetime.now(timezone.utc)).strftime("%Y-%m-%d")
 
 
+def et_date(commence):
+    """The ET calendar date a kickoff belongs to, or None.
+
+    🔴 ET, NEVER UTC, AND THE REASON IS THE WHOLE POINT OF THIS FILTER. A
+    Saturday 8pm ET kickoff is 00:00Z SUNDAY. Slicing the UTC string files
+    it under the wrong day and would put half a college Saturday on
+    Sunday's card -- the same defect ledger rule 60 exists for, arriving
+    through a different door.
+    """
+    if not commence:
+        return None
+    try:
+        t = datetime.strptime(commence, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc)
+    except Exception:
+        return None
+    return et(t).strftime("%Y-%m-%d")
+
+
 def et(dt):
     """UTC -> US Eastern. ⚠️ zoneinfo, not a hardcoded offset -- a fixed -5
     is wrong for seven months of a football season."""
@@ -634,8 +682,17 @@ def main():
     # Props tab renders the whole slate and joins against this map; a map
     # built from the card alone would light up 50 rows and leave the rest
     # blank for no reason a reader could see.
-    parlays, parlay_meta = build_parlays_fb(rows)
-
+    #
+    # 🔴 THE PARLAYS ARE NOT BUILT HERE ANY MORE, AND THAT WAS A REAL BUG.
+    # `build_parlays_fb(rows)` used to run at THIS point -- ABOVE the name
+    # gate below, which strips every `confidence` when the join is too
+    # weak. ⛔ So a board that correctly shipped MARKET-ONLY could still
+    # ship parlays whose joint probability was built from the RECORD
+    # numbers the same run had just decided it did not trust. That is
+    # ledger rule 55 defeated by ordering rather than by argument.
+    # ✅ Parlays are now built AFTER the gate, AFTER the price floor, AFTER
+    # the price ceiling and AFTER the single-day filter -- from the same
+    # rows the board is drawn from, which is the only defensible pool.
     projections = {}
     for _r in rows:
         _v = _r.get("projection")
@@ -688,6 +745,25 @@ def main():
                             "this slate, so no record is shown rather than a "
                             "record that might belong to someone else."]
 
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 THE SINGLE-DAY FILTER, AND IT COMES FIRST. See BOARD_MIN above for
+    # the measurement and for why the day is the SLATE's, not the clock's.
+    # ⛔ It runs BEFORE the price rules and BEFORE the parlays so that one
+    # filter governs every surface. Applying it at the board alone is how
+    # the parlays would keep pairing a Saturday leg with a Sunday one.
+    # ⚠️ `projections` above is deliberately built from EVERY priced row,
+    # day filter or not -- the Player Props tab renders the whole slate and
+    # joins against that map, so filtering it would blank tomorrow's rows
+    # for no reason a reader could see. The BOARD is one day; the
+    # PROJECTIONS are the slate. Different questions, different scopes.
+    slate = slate_date(B)
+    off_day = [r for r in rows if et_date(r.get("commence")) not in (slate, None)]
+    rows = [r for r in rows if et_date(r.get("commence")) in (slate, None)]
+    off_dates = sorted({d for d in (et_date(r.get("commence")) for r in off_day) if d})
+    if off_day:
+        log(f"  single-day board: {len(off_day)} priced row(s) dropped for "
+            f"{', '.join(off_dates)} — this card is {slate} only")
+
     # 🔴 THE -700 FLOOR IS SAM'S STANDING INSTRUCTION AND IT APPLIES HERE
     # TOO. Rows below it are kept and reported, but they are NOT the board.
     # ⛔ Without this the board fills with prices that always win and pay
@@ -724,6 +800,25 @@ def main():
     for i, r in enumerate(board, 1):
         r["rank"] = i
 
+    # 🔴 PARLAYS FROM THE SAME POOL THE BOARD IS DRAWN FROM -- one day, past
+    # the floor, under the ceiling, and past the name gate. ⛔ Built any
+    # earlier and they inherit rows the board itself refused; see the note
+    # where this call used to sit.
+    parlays, parlay_meta = build_parlays_fb(rows)
+
+    # ⚠️ A SHORT BOARD IS REPORTED, NEVER PADDED AND NEVER SUPPRESSED. Five
+    # is Sam's floor; the only way to hit it on a thin day is to lower a
+    # bar, which every other rule here forbids.
+    short_of_min = 0 < len(board) < BOARD_MIN
+    if short_of_min:
+        log(f"  ⚠️ {len(board)} pick(s) on the {slate} board, below the "
+            f"minimum of {BOARD_MIN} — shipped as-is and stated on the "
+            f"page. ⛔ NOT padded.")
+    if not board:
+        log(f"  no picks for {slate}: {len(rows)} priced rows survived the "
+            f"day filter, {len(below)} below the floor, {len(off_day)} on "
+            f"another day. An empty board on a gameless day is CORRECT.")
+
     # 🔴 LEDGER RULE 60: THE CARD IS DATED BY THE SLATE, NOT THE WALL
     # CLOCK -- the ET date of the earliest game that has not kicked off.
     # ⛔ A UTC date is not a game's date. Written UTC and read ET, a card
@@ -731,7 +826,7 @@ def main():
     # This is the same defect that put six games' live odds on the wrong
     # MLB cards on 2026-08-26.
     out = {
-        "date": slate_date(B),
+        "date": slate,
         "league": LEAGUE,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generated_by": "card_fb.py",
@@ -788,9 +883,50 @@ def main():
         "projections": projections,
         "name_match_rate": round(match_rate, 3) if match_rate is not None else None,
         "n_priced": len(rows),
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 THE SINGLE-DAY CONTRACT, WRITTEN ON THE CARD SO THE PAGE DOES
+        # NOT HAVE TO RE-DERIVE IT. ⛔ A second copy of the rule in
+        # JavaScript is a second thing to drift (the same reason the page
+        # prints `confidence_basis` rather than deciding it).
+        "single_day": True,
+        "slate_date": slate,
+        "board_min": BOARD_MIN,
+        "board_max": BOARD_MAX,
+        "n_on_slate_day": len(rows),
+        "n_off_slate_day": len(off_day),
+        "off_slate_dates": off_dates,
+        "short_of_min": short_of_min,
+        "single_day_rule": (
+            f"This board is {slate} only. Priced rows for another day are "
+            f"not shown here and neither are parlays that would cross days "
+            f"— a card dated one day and half-filled with the next is two "
+            f"facts under one label. "
+            + (f"{len(off_day)} row(s) were held back for "
+               f"{', '.join(off_dates)}. " if off_day else "")
+            + f"Minimum {BOARD_MIN}, maximum {BOARD_MAX}; a day with no "
+              f"games is an empty board, and that is correct."),
+        "empty_reason": (None if board else (
+            f"No {LG_NAME} picks for {slate}. "
+            + (f"{len(below)} priced row(s) sat below the {PRICE_FLOOR} "
+               f"floor and {len(longshots)} above +{PRICE_CEIL}. "
+               if (below or longshots) else "")
+            + (f"The board's own games are on {', '.join(off_dates)}, "
+               f"which is a different day's card. "
+               if off_day else
+               "Nothing is priced for this day yet. ")
+            + "An empty board on a day with no games is the correct "
+              "result, not a failure — the card was built and it found "
+              "nothing to show.")),
+        "short_reason": (None if not short_of_min else (
+            f"Only {len(board)} pick(s) cleared for {slate}, below the "
+            f"minimum of {BOARD_MIN}. ⛔ The board is NOT padded to reach "
+            f"the minimum — the only way to do that is to lower a bar. "
+            f"What is here is everything that qualified.")),
         "coverage": (
-            f"{len(rows):,} priced football rows across {B.get('n_games', 0)} "
-            f"games; {len(board)} shown."),
+            f"{len(rows):,} priced football rows for {slate} across "
+            f"{B.get('n_games', 0)} board games; {len(board)} shown"
+            + (f" — {len(off_day)} row(s) on another day are not on this "
+               f"card." if off_day else ".")),
         "board_rule": (
             "Sorted by the player's own record at that exact line, highest "
             "first — the same order the MLB board uses. Rows with no record "

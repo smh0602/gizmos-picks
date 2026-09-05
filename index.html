@@ -3356,6 +3356,67 @@ function fbNoCard(what){
   </div>`;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   THE SINGLE-DAY BOARD, ON THE PAGE.
+
+   Sam, 2026-09-04: *"only games on the day the run happens. minimum 5
+   picks, maximum 50. a day with no games means an EMPTY tab, and that is
+   correct."*
+
+   ⛔ THE PAGE DECIDES NOTHING HERE. The builder writes `slate_date`,
+   `single_day_rule`, `short_reason` and `empty_reason`; these functions
+   print them. A reader must never be told a different story by the page
+   than the card tells, and the way that happens is the page re-deriving
+   a rule the builder already applied.
+
+   ⚠️ `date` IS ALREADY AN ET DATE. Parsing it as a Date and formatting
+   it would re-open the wrong-day bug from the other end -- `new
+   Date('2026-09-05')` is midnight UTC, which is the 4th in every US
+   zone. So noon is pinned before formatting, exactly as the Scores tab
+   does with its day headings.
+   ══════════════════════════════════════════════════════════════════ */
+function fbDayName(d){
+  if (!d) return 'this slate';
+  try {
+    return new Date(d + 'T12:00:00Z').toLocaleDateString([],
+      {weekday: 'long', month: 'long', day: 'numeric'});
+  } catch(e){ return d; }
+}
+
+/* The one-line "which day is this" under a tab's coverage sentence. */
+function fbDayLine(C){
+  if (!C || !C.single_day) return '';
+  return `<p style="color:var(--mut);margin:4px 0 0;font-size:12px">
+      &#128197; <b>${fbDayName(C.date)} only.</b>
+      ${C.n_off_slate_day ? `<b>${C.n_off_slate_day}</b> priced row${
+        C.n_off_slate_day === 1 ? '' : 's'} for ${
+        (C.off_slate_dates || []).map(fbDayName).join(' and ')}
+        ${C.n_off_slate_day === 1 ? 'is' : 'are'} not on this card &mdash;
+        a board dated one day and half-filled with the next is two facts
+        under one label.` : `Every row here is a game on that day.`}</p>`;
+}
+
+/* A heading for the tabs that have nothing to draw under it. */
+function fbDayHead(C, title){
+  return `<div style="margin-bottom:10px">
+      <h2 style="margin:0 0 4px;font-size:16px">${title}
+        <span class="kind k-desc">Descriptive</span></h2>
+      ${fbDayLine(C)}
+    </div>`;
+}
+
+/* ⚠️ A SHORT BOARD IS STATED, NOT QUIETLY SHIPPED. Five is Sam's floor,
+   and the only way to force it is to lower a bar -- so the page says the
+   board is short and says it was not padded. ⛔ Never a silent thin card
+   that reads as a broken one. */
+function fbShortNote(C){
+  if (!C || !C.short_of_min || !C.short_reason) return '';
+  return `<div class="note" style="margin:0 0 12px">
+      &#9888;&#65039; <b>Only ${(C.picks || []).length} pick${
+        (C.picks || []).length === 1 ? '' : 's'} for ${fbDayName(C.date)}</b>
+      &mdash; below the minimum of <b>${C.board_min}</b>. ${C.short_reason}</div>`;
+}
+
 /* 🔴 THE ONE HEADER ALL THREE TABS USE. It states the provenance ONCE,
    in English, and every tab shows it -- so a reader cannot land on
    Parlays and miss what they were told on Picks. */
@@ -3382,6 +3443,19 @@ async function fbPicks(){
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
   const C = await fbCardLoad();
+  /* 🔴 AN EMPTY CARD AND A MISSING CARD ARE DIFFERENT FACTS, AND SAYING
+     "not published yet" ABOUT AN EMPTY ONE IS A LIE. Sam's rule is that a
+     day with no games shows an EMPTY board and that is CORRECT — so the
+     builder writes the card anyway, with `empty_reason` in it, and the
+     page prints the builder's own sentence rather than deciding for
+     itself why the board is bare. ⛔ A second copy of that reasoning in
+     JavaScript is a second thing to drift. */
+  if (C && !(C.picks || []).length && C.empty_reason){
+    v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") +
+      `<div class="note"><b>No picks for ${fbDayName(C.date)}.</b><br>
+       ${C.empty_reason}</div>` + fbNoModelNote(C));
+    fbWire(); return;
+  }
   if (!C || !(C.picks || []).length){
     v.innerHTML = fbShell(fbNoCard('picks')); fbWire(); return;
   }
@@ -3393,7 +3467,9 @@ async function fbPicks(){
           C.rates_available ? 'Record' : 'Market'}</span></h2>
       <p style="color:var(--mut);margin:0">${C.coverage}
          ${freshness(C.odds_pulled_at)}</p>
+      ${fbDayLine(C)}
     </div>
+    ${fbShortNote(C)}
     ${fbConfBar()}
     ${startedToggle(nStarted, 'fb-pk-started', allDone)}`;
   const host = document.createElement('div');
@@ -3446,6 +3522,7 @@ async function fbParlays(){
       <h2 style="margin:0 0 4px;font-size:16px">Parlays
         <span class="kind k-record">Record</span></h2>
       <div class="sub">${(C && C.parlay_rule) || ''}</div>
+      ${fbDayLine(C)}
     </div>`;
   let body = '', any = 0;
   ['2','3','4'].forEach(size => {
@@ -3466,11 +3543,23 @@ async function fbParlays(){
       close to true and not exactly true, and that assumption has never
       been tested in this project.
       ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}</div>`;
-  v.innerHTML = fbShell(head + (any ? body :
-      `<div class="note"><b>No parlay on this card lands inside the
-       bands.</b> The board is priced and rated &mdash; it is the payout
-       bands that nothing fits today, which is a fact about the prices
-       rather than a failure. ${m.note || ''}</div>`) + foot
+  /* ⛔ THREE DIFFERENT EMPTINESSES AND THEY MUST NOT SHARE A SENTENCE.
+     NO CARD  — nothing has been published for this league yet.
+     NO BOARD — a card exists and its day has no games. Correct, not broken.
+     NO FIT   — a full board whose prices land in none of Sam's bands.
+     Reading the third sentence under the first two is how a working
+     product reads as a failing one. */
+  const emptyMsg = !C
+    ? fbNoCard('parlays')
+    : (!(C.picks || []).length && C.empty_reason)
+      ? `<div class="note"><b>No parlays for ${fbDayName(C.date)}
+         &mdash; there is no board to build them from.</b><br>
+         ${C.empty_reason}</div>`
+      : `<div class="note"><b>No parlay on this card lands inside the
+         bands.</b> The board is priced and rated &mdash; it is the payout
+         bands that nothing fits today, which is a fact about the prices
+         rather than a failure. ${m.note || ''}</div>`;
+  v.innerHTML = fbShell(head + (any ? body : emptyMsg) + foot
       + fbNoModelNote(C));
   fbWire();
 }
