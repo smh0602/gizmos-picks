@@ -212,6 +212,44 @@ BOARD_MAX = 50           # same as MLB's board
 # page, with the count. ⛔ Never padded, never hidden.
 BOARD_MIN = 5
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 TOP PLAYS OF THE DAY. Sam: *"top plays of the day, at the bottom of
+# Gizmo's Picks, same single-day rule, capped at 20."*
+#
+# ⛔ AND THE HONEST FINDING FIRST, BECAUSE IT CHANGES WHAT THIS LIST IS.
+# MLB's `build_top10` is a genuinely DIFFERENT list from its board: its
+# pool is wider (every alt ladder rung, which never reaches the board) and
+# its gate is narrower (nothing priced worse than -400). ⛔ **NEITHER OF
+# THOSE BITES ON FOOTBALL**, and it was measured rather than assumed:
+#
+#   `[measured 2026-09-05 on the live college board]`
+#     alternate markets in the football props feed            NONE
+#       (player_anytime_td, pass_yds, rush_yds, reception_yds,
+#        receptions -- no `_alternate` key exists at all)
+#     rows dropped by a -400 payable gate                     0 of 50
+#       (football props price near even; the SHORTEST on the
+#        whole board is -160)
+#     players shared between a payable/deduped top-20 and
+#       the board's first 20 rows                             18 of 20
+#
+# ➡️ **SO ON FOOTBALL THIS IS A HIGHLIGHTS LIST, NOT A SECOND OPINION**, and
+# the card says so in `top_plays_rule` and the page prints it. ⛔ It must
+# never be quoted as independent evidence about a play -- it is drawn from
+# the same rows, ranked by the same number.
+#
+# ✅ WHAT IT DOES ADD, AND THE ONLY THING IT ADDS TODAY: **one row per
+# player.** `[measured]` the 50-row board carries only **39 distinct
+# players**, so eleven of its rows are a second line on somebody already
+# listed. A top-20 that repeats a player is a top-13 wearing a bigger
+# number.
+#
+# ⚠️ THE PRICE FLOOR IS SAM'S AND IT IS SHARED WITH `card.py`, NOT RETYPED
+# AS A COINCIDENCE. `test_top_plays.py` asserts the two files agree, the
+# same way the parlay bands are cross-checked -- restating a number in two
+# files is the rule 66 hazard, whether or not it currently matches.
+TOP_N = 20
+TOP_PRICE_FLOOR = -400
+
 # market -> (how to read it out of a game row, unit, higher-is-a-hit)
 def _td(g):
     return (float(g.get("rec_td") or 0) + float(g.get("rush_td") or 0)
@@ -479,6 +517,61 @@ def fill_board(rows, cap):
         seen = {id(r) for r in out}
         out += [r for r in rows if id(r) not in seen][:cap - len(out)]
     return out
+
+
+def build_top_plays(rows, board, n=TOP_N):
+    """Most likely to hit, among rows a person is actually paid on.
+
+    ⛔ CONFIDENCE IS REQUIRED, NOT PREFERRED. On a board whose player-name
+    join failed its gate, no row carries a record at all -- and ranking
+    THOSE by price would be ranking by which bet pays worst while calling
+    it "most likely to hit". ✅ The correct output there is an EMPTY list
+    with a stated reason, which is what the caller gets.
+
+    ⚠️ DEDUP IS BY PLAYER NAME, because football has no player ids. Both
+    sides of this comparison are ours -- the card and `props.json.gz` come
+    from the same snapshot -- so the strings match by construction rather
+    than by matching. ⛔ If a third source is ever joined here it needs its
+    own gate, exactly as the projections map does.
+    """
+    pool, dropped_price, dropped_dupe = [], 0, 0
+    for x in rows:
+        if x.get("price") is None or x.get("confidence") is None:
+            continue
+        if x["price"] <= TOP_PRICE_FLOOR:
+            dropped_price += 1
+            continue
+        pool.append(x)
+    pool.sort(key=lambda x: -x["confidence"])
+
+    seen, out = set(), []
+    for x in pool:
+        who = x.get("player")
+        if who in seen:
+            dropped_dupe += 1
+            continue
+        seen.add(who)
+        out.append(x)
+        if len(out) >= n:
+            break
+
+    # 🔴 THE OVERLAP IS MEASURED AND PUBLISHED, NOT ASSUMED EITHER WAY.
+    # This list is only worth reading as a HIGHLIGHT of the board unless
+    # the numbers say otherwise, and the numbers are on the card so a
+    # reader -- or a future session -- can check rather than trust.
+    head = {r.get("player") for r in board[:n]}
+    shared = len({r.get("player") for r in out} & head)
+    meta = {
+        "below_payable_floor": dropped_price,
+        "same_player_already_listed": dropped_dupe,
+        "price_floor": TOP_PRICE_FLOOR,
+        "pool_after_price_gate": len(pool),
+        "cap": n,
+        "distinct_games": len({r.get("game_id") for r in out}),
+        "shared_with_board_head": shared,
+        "board_head_size": min(n, len(board)),
+    }
+    return out, meta
 
 
 def slate_date(B):
@@ -806,6 +899,20 @@ def main():
     # where this call used to sit.
     parlays, parlay_meta = build_parlays_fb(rows)
 
+    # 🔴 SAME POOL AS THE BOARD AND THE PARLAYS -- one day, past the floor,
+    # under the ceiling, past the name gate. ⛔ Built any earlier and it
+    # inherits rows the board itself refused (ledger rule 102).
+    top_plays, top_meta = build_top_plays(rows, board)
+    if top_plays:
+        log(f"  top plays: {len(top_plays)} of {top_meta['pool_after_price_gate']} "
+            f"payable rows across {top_meta['distinct_games']} game(s); "
+            f"{top_meta['same_player_already_listed']} row(s) skipped as a "
+            f"repeat player; {top_meta['shared_with_board_head']} of "
+            f"{top_meta['board_head_size']} players shared with the board's head")
+    else:
+        log("  top plays: none — no row on this board carries a record, and "
+            "ranking by price would rank by which bet pays worst.")
+
     # ⚠️ A SHORT BOARD IS REPORTED, NEVER PADDED AND NEVER SUPPRESSED. Five
     # is Sam's floor; the only way to hit it on a thin day is to lower a
     # bar, which every other rule here forbids.
@@ -873,6 +980,35 @@ def main():
         # correlation blocker is handled by MLB's own rule -- no two legs
         # in the same GAME ID -- and football adds one MLB does not need:
         # every leg at the SAME BOOK, because a parlay is one slip.
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 TOP PLAYS OF THE DAY, AND THE SENTENCE THAT KEEPS IT HONEST.
+        # See `build_top_plays` for the measurement: on football this is a
+        # HIGHLIGHTS list, not a second opinion, because the two things
+        # that make MLB's version an independent list -- alt ladder rungs
+        # and a biting price gate -- do not exist here.
+        "top_plays": top_plays,
+        "top_plays_excluded": top_meta,
+        "top_plays_rule": (
+            f"The {len(top_plays)} most likely to hit for {slate}, one row "
+            f"per player, among rows priced better than {TOP_PRICE_FLOOR} "
+            f"— Sam's rule for the MLB list: likely AND payable. "
+            f"⚠️ On football this is a HIGHLIGHT of the board, not a second "
+            f"opinion: it is drawn from the same rows and ranked by the "
+            f"same number. {top_meta['shared_with_board_head']} of its "
+            f"{top_meta['board_head_size']} players are already in the "
+            f"board's first {top_meta['board_head_size']} rows. "
+            f"What it adds is one row per player — the board carries "
+            f"repeats, this does not — and "
+            + (f"{top_meta['below_payable_floor']} row(s) were dropped by "
+               f"the price gate."
+               if top_meta["below_payable_floor"] else
+               f"the price gate dropped nothing, because football props "
+               f"price near even.")
+            if top_plays else
+            f"No top plays for {slate}. ⛔ Not because the board is empty — "
+            f"because no row on it carries a record, and ranking those by "
+            f"price would be ranking by which bet pays worst while calling "
+            f"it 'most likely to hit'."),
         "parlays": parlays,
         "parlay_meta": parlay_meta,
         "parlay_rule": (

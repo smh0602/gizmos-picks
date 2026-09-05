@@ -3417,6 +3417,61 @@ function fbShortNote(C){
       &mdash; below the minimum of <b>${C.board_min}</b>. ${C.short_reason}</div>`;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   TOP PLAYS OF THE DAY, at the bottom of Gizmo's Picks.
+
+   ✅ THE SAME `.t10` GRID MLB DRAWS — rank · play · confidence · price —
+   because Sam's standing goal is that the two halves of the site are the
+   same product. ⛔ Not a second stylesheet and not a second component.
+
+   🔴 IT SAYS WHAT IT IS, AND ON FOOTBALL THAT IS A HIGHLIGHT RATHER THAN
+   A SECOND OPINION. `card_fb.py` measures the overlap with the board's
+   head and writes it into `top_plays_rule`; the page PRINTS that rather
+   than composing its own claim. ⛔ A page that describes a selection rule
+   in its own words is a second copy of the rule.
+
+   ⚠️ IT FOLLOWS THE SAME TWO FILTERS THE BOARD DOES. A top play whose
+   game has kicked off, or whose conference is filtered out, would
+   otherwise sit under a board that correctly hid it — the list and the
+   board must never disagree about what is on screen.
+   ══════════════════════════════════════════════════════════════════ */
+function fbTopPlays(C, shownPicks){
+  const all = (C && C.top_plays) || [];
+  if (!all.length) return '';
+  /* ⛔ Keyed on game_id, which is what the board rows carry — never on a
+     team name. Ledger rule 54: two opponent strings that differ are not
+     two games that differ. */
+  const live = new Set((shownPicks || []).map(p => p.game_id));
+  const t = all.filter(x => !x.game_id || live.has(x.game_id));
+  if (!t.length) return '';
+  const m = C.top_plays_excluded || {};
+  const sideWord = s => s === 'over' ? 'Over' : s === 'under' ? 'Under' : 'Yes';
+  return `<div class="panel" style="margin-top:18px">
+      <h2>Top ${t.length} play${t.length === 1 ? '' : 's'} of the day</h2>
+      <p>${C.top_plays_rule || ''}</p>
+      <div class="t10">${t.map((x, i) => `
+        <div class="r">${i + 1}</div>
+        <div class="w"><b>${x.player}</b> &mdash; ${sideWord(x.side)}
+          ${x.line == null ? '' : x.line} ${x.market_label || ''}
+          ${projChip(x.projection, x.projection_unit, x.projection_basis,
+                     x.projection_note)}
+          <div class="rec" style="font-size:11px">${x.game || ''}</div></div>
+        <div class="c ${confClass(x.confidence)}">${x.confidence}%</div>
+        <div class="p">${sgn(x.price)}</div>`).join('')}</div>
+      <div class="note" style="margin-top:10px">
+        &#9898; <b>Every number here is the player's own record</b>, exactly
+        as on the board above &mdash; not a projection and not a model
+        output. ${m.distinct_games ? `These ${t.length} plays come from
+        <b>${m.distinct_games}</b> game${m.distinct_games === 1 ? '' : 's'};
+        that is concentration worth seeing before you treat the list as
+        twenty independent bets.` : ''}
+        ${m.same_player_already_listed ? `<br><b>${m.same_player_already_listed}</b>
+        row(s) were skipped because that player was already listed &mdash; a
+        top-${m.cap} that repeats a player is a shorter list wearing a bigger
+        number.` : ''}
+      </div></div>`;
+}
+
 /* 🔴 THE ONE HEADER ALL THREE TABS USE. It states the provenance ONCE,
    in English, and every tab shows it -- so a reader cannot land on
    Parlays and miss what they were told on Picks. */
@@ -3485,6 +3540,7 @@ async function fbPicks(){
       clear the conference filter to see it.</div>`;
   v.innerHTML = fbShell('');
   v.append(wrap, host);
+  v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
   v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
   fbWire();
   const t = $('#fb-pk-started');
