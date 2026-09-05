@@ -115,6 +115,11 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .pk{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
   margin:10px 0;overflow:hidden}
 .pk-h{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.cchip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;
+  font-weight:600;text-decoration:none;border:1px solid var(--line);
+  color:var(--ink);opacity:.72;white-space:nowrap}
+.cchip:hover{opacity:1}
+.cchip.on{background:var(--ink);color:var(--bg);border-color:var(--ink);opacity:1}
 .conf{flex:0 0 auto;width:62px;height:62px;border-radius:10px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;font-weight:800;line-height:1}
 .conf .n{font-size:21px;font-variant-numeric:tabular-nums}
@@ -2784,7 +2789,12 @@ async function fbOdds(){
     </div>`);
     fbWire(); return;
   }
-  const {list, nStarted, allDone} = splitStarted(B.games);
+  const {list: _oList, nStarted, allDone} = splitStarted(B.games);
+  /* ⛔ THE CONFERENCE FILTER IS APPLIED HERE, ON THE GAME LIST, so every
+     count and every date block below already reflects it. Filtering at
+     render time instead would leave the headers claiming games the reader
+     cannot see. */
+  const list = _oList.filter(g => fbConfPass(g.away, g.home));
   const byDate = {};
   /* 🔴 GROUP BY ET DATE, NOT UTC. A Saturday 8pm ET kickoff is 00:00Z
      Sunday, and slicing the UTC string files it under the wrong day --
@@ -2804,8 +2814,12 @@ async function fbOdds(){
       <p style="color:var(--mut);margin:0">Consensus across ${B.n_books_seen} books with the
         vig removed, and the best available price on each side. ${freshness(B.pulled_at)}</p>
     </div>
+    ${fbConfBar()}
     ${startedToggle(nStarted, 'fb-ob-started', allDone)}
-    ${blocks || '<div class="msg">Every game on the board has kicked off.</div>'}
+    ${blocks || `<div class="msg">${fbConf.size && _oList.length
+      ? `No board game involves ${[...fbConf].join(', ')}. Clear the conference
+         filter to see the other <b>${_oList.length}</b>.`
+      : 'Every game on the board has kicked off.'}</div>`}
     <div class="note" style="margin-top:18px">
       <b>Every price with an arrow is clickable</b> and opens that book's bet slip.
       Prices without one are real, but the book did not hand back a link, so nothing
@@ -2963,7 +2977,15 @@ async function fbScores(){
   const weeks = [...new Set(games.map(g => g.week).filter(w => w != null))]
                   .sort((a,b) => a-b);
   if (weeks.length && weeks.indexOf(fbWeek) === -1) fbWeek = fbCurrentWeek(games, weeks);
-  const shown = games.filter(g => g.week === fbWeek);
+  /* 🔴 THE CONFERENCE FILTER IS APPLIED **AFTER** THE WEEK PICKER IS
+     BUILT, and that ordering is the whole point. ⛔ Filtering first would
+     mean the weeks a conference happens not to play in vanish from the
+     picker -- so clicking "MAC" on a week the MAC is idle would silently
+     move the reader to a different week and show them games they did not
+     ask to see. The week you are on is yours; the chips only change which
+     rows in it you see. */
+  const nWeek = games.filter(g => g.week === fbWeek).length;
+  const shown = games.filter(g => g.week === fbWeek && fbConfPass(g.away, g.home));
 
   const byDate = {};
   shown.forEach(g => (byDate[fbKickDate(g.start)] ||= []).push(g));
@@ -3013,6 +3035,8 @@ async function fbScores(){
         in ${fbScSeason}${LEAGUE==='ncaaf' && hasClass
           ? (fbDiv==='fbs' ? `, showing games involving an FBS team`
                            : `, showing Division I`) : ''} &mdash; ${nFinal} final in this week.
+        ${fbConf.size ? `<br><b>${shown.length}</b> of the <b>${nWeek}</b> games in
+          week ${fbWeek} shown &mdash; conference filter on.` : ''}
         ${freshness(doc.pulled_at)}</p>
     </div>
     <div class="fbctl">
@@ -3026,7 +3050,12 @@ async function fbScores(){
         <option value="d1"${fbDiv==='d1'?' selected':''}>All Division I</option>
       </select></label>` : ''}
     </div>
-    ${blocks || '<div class="msg">No games in this week.</div>'}
+    ${fbConfBar()}
+    ${blocks || `<div class="msg">${fbConf.size && nWeek
+      ? `None of the <b>${nWeek}</b> games in week ${fbWeek} involve
+         ${[...fbConf].join(', ')}. The week has not changed &mdash; clear the
+         conference filter to see the rest of it.`
+      : 'No games in this week.'}</div>`}
     <div class="note" style="margin-top:18px">
       &#128337; <b>All times Eastern</b>, and the days are grouped on the ET
       date, so the two always agree.
@@ -3154,7 +3183,8 @@ async function fbProps(){
      than not having the column. */
   const {list: games, nStarted, allDone} = splitStarted(
     B.games.map(g => ({...g, commence: g.commence})));
-  const shown = games.filter(g => fbPf.game === 'all' || g.id === fbPf.game);
+  const shown = games.filter(g => (fbPf.game === 'all' || g.id === fbPf.game)
+                                  && fbConfPass(g.away, g.home));
 
   const mkts = [...new Set(B.games.flatMap(g => g.props.map(p => p.market)))];
   const label = {};
@@ -3237,6 +3267,7 @@ async function fbProps(){
   });
 
   v.innerHTML = fbShell(`
+    ${fbConfBar()}
     <div class="pfilt">
       <select id="fb-pf-game">${gopts}</select>
       <select id="fb-pf-mkt">
@@ -3251,7 +3282,10 @@ async function fbProps(){
       <span class="stamp">${total.toLocaleString()} props &middot; ${freshness(B.pulled_at)}</span>
     </div>
     ${startedToggle(nStarted, 'fb-pr-started', allDone)}
-    ${body || '<div class="msg">No lines in this market.</div>'}
+    ${body || `<div class="msg">${fbConf.size && !shown.length && games.length
+      ? `None of the <b>${games.length}</b> games with props involve
+         ${[...fbConf].join(', ')}. Clear the conference filter to see them.`
+      : 'No lines in this market.'}</div>`}
     <div class="note" style="margin-top:18px">
       <b>Every price with a Bet button is clickable</b> and opens that book's
       bet slip. Set your state at the top or half the links will not resolve.
@@ -3360,9 +3394,19 @@ async function fbPicks(){
       <p style="color:var(--mut);margin:0">${C.coverage}
          ${freshness(C.odds_pulled_at)}</p>
     </div>
+    ${fbConfBar()}
     ${startedToggle(nStarted, 'fb-pk-started', allDone)}`;
   const host = document.createElement('div');
-  (allDone ? C.picks : list).forEach(p => host.append(pickCard(p)));
+  const pool = allDone ? C.picks : list;
+  const kept = pool.filter(p => fbConfPass(p.away, p.home));
+  kept.forEach(p => host.append(pickCard(p)));
+  /* ⛔ AN EMPTY BOARD AND AN EMPTY FILTER LOOK IDENTICAL unless the page
+     says which one happened. A reader who clicks a conference with no
+     picks on it must not be left reading "no card". */
+  if (!kept.length && pool.length)
+    host.innerHTML = `<div class="msg">None of the <b>${pool.length}</b> picks
+      on this card involve ${[...fbConf].join(', ')}. The card is there &mdash;
+      clear the conference filter to see it.</div>`;
   v.innerHTML = fbShell('');
   v.append(wrap, host);
   v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
@@ -3663,6 +3707,98 @@ function fbResolve(name){
 
 /* A short label for a football team. ⛔ NOT `ab()` -- that renders
    mascots, so "Wake Forest Demon Deacons" became "DEA". */
+/* ══════════════════════════════════════════════════════════════════
+   THE CONFERENCE FILTER — COLLEGE ONLY, MULTI-SELECT.
+   Sam, 2026-09-04: a conference filter, CFB only, multi-select, across
+   Scores, Trends, Player Props, Gizmo's Picks and Odds.
+
+   🔴 IT RESOLVES NAMES THROUGH `fbResolve`, THE SAME FUNCTION THE LOGOS
+   USE, AND NEVER ITS OWN MATCHER. `teams.json` is keyed by CFBD's school
+   name ("Akron"); the odds board carries the sportsbook's name with the
+   mascot ("Akron Zips"). ⛔ A direct lookup hit **0 of 322** on the live
+   board — that is exactly why the logos needed a resolver, and a second
+   matcher here would reproduce the bug in a new place (rule 66).
+
+   ⚠️ EMPTY MEANS ALL. A filter that starts with nothing selected and
+   therefore shows nothing reads as a broken page, and the user has no way
+   to know they did it to themselves.
+
+   ⛔ A ROW SURVIVES IF **EITHER** SIDE IS IN A SELECTED CONFERENCE. A
+   game is between two teams; asking for the SEC should show SEC teams
+   playing anybody, which is what a person means by "filter to the SEC".
+   ══════════════════════════════════════════════════════════════════ */
+let fbConf = new Set();
+
+function fbConfOf(name){
+  const e = fbResolve(name);
+  return (e && e.conference) || null;
+}
+
+/* Every conference present in the directory, alphabetical. ⚠️ ASKED, NOT
+   HARDCODED — realignment moves schools every August and a typed list
+   would go stale in a way nobody notices until a tab is empty. */
+function fbConfList(){
+  const dir = FBTEAMS[LEAGUE] || {};
+  const seen = new Set();
+  Object.keys(dir).forEach(k => {
+    const c = dir[k] && dir[k].conference;
+    if (c) seen.add(c);
+  });
+  return [...seen].sort();
+}
+
+/* ⛔ ONE SELECTION PREDICATE, USED BY BOTH SHAPES OF ROW. Trends rows are
+   a single team; every other tab's row is a game. ⚠️ Writing a second
+   matcher for the team case is how the two would drift apart -- so the
+   game case is DEFINED as "either side passes the team test", and there
+   is exactly one place a conference is compared. */
+function fbConfTeamPass(name){
+  if (LEAGUE !== 'ncaaf' || !fbConf.size) return true;
+  const c = fbConfOf(name);
+  return !!(c && fbConf.has(c));
+}
+
+/* ⛔ TRUE when the row should be SHOWN. Nothing selected -> everything. */
+function fbConfPass(away, home){
+  if (LEAGUE !== 'ncaaf' || !fbConf.size) return true;
+  return fbConfTeamPass(away) || fbConfTeamPass(home);
+}
+
+/* The chip row. ⚠️ Chips rather than a <select multiple>: a multi-select
+   on a phone is a system dialog most people cannot work out, and this has
+   to be usable on the device Sam actually checks the site on. */
+function fbConfBar(){
+  if (LEAGUE !== 'ncaaf') return '';
+  const list = fbConfList();
+  if (!list.length) return '';
+  return `<div class="confbar" style="display:flex;flex-wrap:wrap;gap:6px;
+            align-items:center;margin:0 0 10px">
+      <span style="font-size:11px;opacity:.6;margin-right:2px">Conference</span>
+      <a href="#" data-conf="*" class="cchip${fbConf.size ? '' : ' on'}">All</a>
+      ${list.map(c => `<a href="#" data-conf="${c.replace(/"/g,'&quot;')}"
+          class="cchip${fbConf.has(c) ? ' on' : ''}">${c}</a>`).join('')}
+    </div>${fbConf.size ? `<div style="font-size:11px;color:var(--mut);margin:-4px 0 10px">
+      &#9888; <b>The list is FBS only</b> &mdash; the team directory has no FCS in
+      it, so an FCS school cannot be selected. A game against one still shows
+      when its <b>FBS</b> side is in your selection.</div>` : ''}`;
+}
+
+/* ⛔ WIRED ONCE, BY THE SAME `fbWire` EVERY TAB ALREADY CALLS. A tab that
+   renders the bar and forgets to wire it is a filter that silently does
+   nothing — the failure mode this project keeps meeting. */
+function fbConfWire(rerender){
+  document.querySelectorAll('#fbview .cchip').forEach(a => {
+    a.addEventListener('click', ev => {
+      ev.preventDefault();
+      const c = a.dataset.conf;
+      if (c === '*') fbConf.clear();
+      else if (fbConf.has(c)) fbConf.delete(c);
+      else fbConf.add(c);
+      rerender();
+    });
+  });
+}
+
 function fbAb(name){
   const t = fbResolve(name);
   if (t && t.abbr) return t.abbr;
@@ -4068,10 +4204,19 @@ async function renderFootball(){
     if (!e) continue;
     rows.push({ team, games:e.games, v:e[fbMetric] });
   }
-  const ranked = rows.filter(r => r.games >= floor).sort((a,b) => b.v - a.v);
-  const thin   = rows.filter(r => r.games <  floor).sort((a,b) => b.v - a.v);
-  const hi = ranked.length ? ranked[0].v : 1;
-  const lo = ranked.length ? ranked[ranked.length-1].v : 0;
+  /* 🔴 RANK AND SCALE ARE COMPUTED OVER EVERY TEAM, AND ONLY THE DISPLAY
+     IS FILTERED. ⛔ Ranking within the selection would make "Rk 1" mean
+     something different depending on which chips are lit, and the bar
+     column says "Vs. league range" -- rescaling it to the SEC while the
+     header still says league is exactly the kind of silent relabelling
+     rule 66 is about. A filtered SEC row keeps its NATIONAL rank. */
+  const rankedAll = rows.filter(r => r.games >= floor).sort((a,b) => b.v - a.v);
+  const rankOf = new Map(rankedAll.map((r, i) => [r.team, i + 1]));
+  const hi = rankedAll.length ? rankedAll[0].v : 1;
+  const lo = rankedAll.length ? rankedAll[rankedAll.length-1].v : 0;
+  const ranked = rankedAll.filter(r => fbConfTeamPass(r.team));
+  const thin   = rows.filter(r => r.games <  floor && fbConfTeamPass(r.team))
+                     .sort((a,b) => b.v - a.v);
   const rng = (hi - lo) || 1;
   const col = t => t > .5 ? '#b9482a' : (t < .5 ? '#1a7060' : '#3b6ea5');
 
@@ -4106,12 +4251,13 @@ async function renderFootball(){
        describes what ACC, Big&nbsp;12, Big&nbsp;Ten and SEC offenses did to it, so a
        non-Power-4 defense may be described by one or two games. Ranks are withheld
        below ${FB_MIN_GAMES} games.</div>` : ''}
+    ${fbConfBar()}
     <table class="fbt"><thead><tr>
       <th class="rk">Rk</th><th>${fbSide==='off'?'Offense':'Defense'}</th><th class="n">Per gm</th>
       <th style="width:32%">Vs. league range</th><th class="n">Gm</th>
     </tr></thead><tbody>
-    ${ranked.map((r,i) => { const t = (r.v-lo)/rng; return `<tr>
-        <td class="rk">${i+1}</td>
+    ${ranked.map(r => { const t = (r.v-lo)/rng; return `<tr>
+        <td class="rk">${rankOf.get(r.team)}</td>
         <td><span style="display:inline-flex;align-items:center;gap:7px">
           ${fbMark(r.team, 20)}<b>${r.team}</b></span></td>
         <td class="n" style="color:${col(t)}"><b>${r.v.toFixed(1)}</b></td>
@@ -4122,10 +4268,21 @@ async function renderFootball(){
           ${fbMark(r.team, 18)}<span>${r.team}</span></span></td>
         <td class="n">${r.v.toFixed(1)}</td>
         <td></td><td class="n">${r.games}</td></tr>`).join('')}
+    ${(!ranked.length && !thin.length && fbConf.size) ? `<tr><td colspan="5"
+        style="padding:16px;color:var(--mut)">No team in
+        ${[...fbConf].join(', ')} has a ${fbSeason} ${fbPos} row in this table
+        yet. The data is there for the other conferences &mdash; clear the
+        filter to see it.</td></tr>` : ''}
     </tbody></table>
     <div class="note" style="margin-top:14px">
-      <b>${ranked.length}</b> ranked teams${thin.length ? ` &middot; <b>${thin.length}</b> below the ${floor}-game threshold, listed unranked` : ''}
+      <b>${ranked.length}</b> ranked teams${fbConf.size ? ` of <b>${rankedAll.length}</b>` : ''}${thin.length ? ` &middot; <b>${thin.length}</b> below the ${floor}-game threshold, listed unranked` : ''}
       &middot; <b>rank 1 ${fbSide==='off'?'produces':'allows'} the most</b>.
+      ${fbConf.size ? `<br>&#9888; <b>The rank and the bar are national, not
+      within ${[...fbConf].join(', ')}.</b> The filter changes which rows you
+      see and nothing else &mdash; a team ranked 41st still reads 41st here, and
+      the bar is still measured against all <b>${rankedAll.length}</b> ranked
+      teams. A rank that changed meaning when you clicked a chip would be a
+      different number wearing the same label.` : ''}
       ${floorFull ? '' : `<br>&#9888; <b>Early season.</b> Ranks are standing on as few as
       <b>${floor}</b> game${floor===1?'':'s'}. The threshold rises on its own as the season
       fills up &mdash; a rank off one game is honest only if you can see it is one game.`}
@@ -4145,6 +4302,12 @@ function fbWire(){
   sel('fb-season', e => { fbSeason = +e.target.value; renderFootball(); });
   sel('fb-pos',    e => { fbPos = e.target.value; renderFootball(); });
   sel('fb-metric', e => { fbMetric = e.target.value; renderFootball(); });
+  /* 🔴 THE CONFERENCE CHIPS ARE WIRED HERE, NOT IN THE TABS THAT DRAW
+     THEM. Every football tab already ends in fbWire(), so a tab that
+     renders the bar cannot forget to wire it -- and a bar that renders
+     but does nothing is the exact failure this project keeps finding.
+     ⚠️ Harmless where no bar exists: the selector matches nothing. */
+  fbConfWire(renderFootball);
 }
 
 function setLeague(lg){
