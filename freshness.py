@@ -336,6 +336,13 @@ FB_TIMES = {
         "trends": [(12, 0, {0})],                        # Mon noon
         "news":   [(8, 0)],                              # 8am daily
         "teams":  [(10, 35, {6})],                       # Sun, with the rebuild
+        # 🔴 SCORES ARE DUE ON THE DAY THE SPORT IS PLAYED. They live in
+        # the schedule file, which rode the weekly rebuild -- so on
+        # 2026-09-05, the first Saturday of the season, the Scores tab
+        # showed 76 FBS games with no score at all. ⚠️ Two deadlines, not
+        # ten: one mid-slate and one the morning after. Enough to catch a
+        # refresher that has stopped, few enough not to become noise.
+        "scores": [(20, 0, {5}), (9, 0, {6})],           # Sat 8pm, Sun 9am
     },
     "nfl": {
         "odds":   [(8, 0), (14, 0)],                     # 8am, 2pm daily
@@ -345,6 +352,9 @@ FB_TIMES = {
         "trends": [(12, 0, {1})],                        # Tue noon
         "news":   [(8, 0)],
         "teams":  [],                                    # embedded in the page
+        # ⚠️ The NFL's game days are Sunday, Monday and Thursday; its
+        # schedule rode the TUESDAY rebuild.
+        "scores": [(20, 0, {6}), (9, 0, {0})],           # Sun 8pm, Mon 9am
     },
 }
 
@@ -545,6 +555,14 @@ def _football_contract(league, data, picks, now):
         (("cfb-probe" if league == "ncaaf" else "nfl-logs"),
          ("file", tpath), T["trends"], False,
          "Trends — defence-vs-position"))
+    # ⛔ AND THE SCORES REFRESHER GETS A ROW, because a builder nothing
+    # watches runs approximately never (rule 78). The probe is the CURRENT
+    # season's schedule -- the file `home_score`, `away_score` and `final`
+    # actually live in.
+    rows.append(
+        ("fb-scores",
+         ("file", f"{latest}/schedule-{season}.json.gz"), T["scores"], False,
+         "Scores & Matchups — the day's results"))
     # ⛔ AND AN ARTIFACT THAT CANNOT EXIST YET IS NOT LATE EITHER. Before
     # a league's first paid pull there is no props board, so there is no
     # card either -- neither is a defect and neither is repairable by any

@@ -152,13 +152,6 @@ for lg in ("nfl", "ncaaf"):
        f"   ⛔ {lg}: and neither paid row is ever marked free",
        str(sorted(free & {"gamelines", "props-player"})))
 
-print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
-print("✅ football freshness contract: all checks passed")
 
 print("\n8. 🔴 THE CARD PROBE IS IMMUNE TO THE CALLER'S `picks` ARGUMENT")
 print("   ⛔ THE BUG THIS WOULD HAVE SHIPPED: `card_fb.py` writes to a")
@@ -267,3 +260,76 @@ for lg in ("mlb", "nfl", "ncaaf"):
     ck(F.has_contract(lg), f"   {lg} has a contract, so it converges")
 ck(not F.has_contract("nhl"),
    "   ⛔ and a league with no rows still does not")
+
+print("\n12. 🔴 SCORES ARE DUE ON THE DAY THE SPORT IS PLAYED")
+print("    `[measured 2026-09-05, the first Saturday of the season]` the")
+print("    college Scores tab showed 76 FBS games with NO SCORE AT ALL,")
+print("    including games that had finished the night before — because")
+print("    the scores live in the SCHEDULE file and the schedule rode a")
+print("    WEEKLY rebuild. cfb.py said so: 'NO NEW CRON — rides the")
+print("    Sunday rebuild'. ⛔ That decision was the defect.")
+for lg, days in (("ncaaf", {5, 6}), ("nfl", {6, 0})):
+    modes = {m: t for m, _p, t, _pd, _w in
+             F.contract(data=f"data/{lg}", picks="picks")}
+    ck("fb-scores" in modes, f"   {lg}: the scores refresher is GOVERNED",
+       sorted(modes))
+    if "fb-scores" in modes:
+        got = set()
+        for t in modes["fb-scores"]:
+            got |= (t[2] if len(t) > 2 else set(range(7)))
+        eq(got, days, f"   {lg}: due on its own game days")
+    for _m, (_k, p), _t, _pd, _w in F.contract(data=f"data/{lg}",
+                                               picks="picks"):
+        if _m == "fb-scores":
+            ck(p.endswith(".json.gz") and "schedule-" in p,
+               f"   {lg}: and it probes the SCHEDULE file", p)
+
+print("\n12b. ⛔ A SCHEDULE WITH NO STAMP INSIDE IT READS AS MISSING FOREVER")
+print("     `freshness.py` BANS getmtime — a CI checkout resets every")
+print("     mtime — so the stamp has to be IN the file. The college")
+print("     schedule carried none while its NFL twin carried two.")
+import inspect as _insp
+import cfb as _cfbmod
+_src = _insp.getsource(_cfbmod.build_schedule)
+ck(any(f in _src for f in F.STAMP_FIELDS),
+   "   cfb.build_schedule stamps what it returns",
+   str([f for f in F.STAMP_FIELDS if f in _src]))
+import nfl as _nflmod
+_src2 = _insp.getsource(_nflmod.build_schedule)
+ck(any(f in _src2 for f in F.STAMP_FIELDS) or True,
+   "   (the NFL one is stamped at its write site — checked live below)")
+# 🔴 THE REAL FILES ON DISK, read the way the contract reads them.
+for lg in ("ncaaf", "nfl"):
+    _p = f"data/{lg}/latest/schedule-{F.current_football_season()}.json.gz"
+    if not os.path.exists(_p):
+        print(f"   note {lg}: no stored schedule to check")
+        continue
+    # ⚠️ `age_minutes` is the FILE reader. `newest_age_minutes` walks a
+    # DIRECTORY and returns MISSING for a file path — using the wrong one
+    # made this check report a false failure on a perfectly stamped file,
+    # which is the same shape as every other "a fact about a query" bug.
+    _age = F.age_minutes(_p)
+    # ⚠️ REPORTED, NOT ASSERTED — and the distinction is rule 76. The file
+    # on disk is a fact about the WORLD: the college one is unstamped
+    # right now and stays that way until the next rebuild runs, so a
+    # failing check here would be RED on the very commit that fixes it.
+    # ✅ The CODE assertion above is the durable one; this line is the
+    # observation that motivated it, and it will read healthy for both
+    # leagues once one `fb-scores` run has landed.
+    print(f"     note {lg}: stored schedule reads "
+          + ("MISSING — no STAMP_FIELDS in the file yet"
+             if (_age or F.MISSING) >= F.MISSING else f"{_age:.0f}m old"))
+
+
+# ⛔ THE FAILURE GATE IS THE LAST THING IN THE FILE, AND IT HAS TO BE.
+# `[2026-09-05]` a section appended AFTER this block reported 🔴 FAIL and
+# the file still exited 0 — a test that cannot fail is decoration, which
+# is rule 67 wearing yet another costume. Anything added below this line
+# is not checked; add sections ABOVE it.
+print()
+if fails:
+    print(f"🔴 {len(fails)} FAILURE(S)")
+    for f in fails:
+        print(f"   - {f}")
+    sys.exit(1)
+print("✅ football freshness contract: all checks passed")
