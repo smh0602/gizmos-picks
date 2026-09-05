@@ -89,6 +89,28 @@ on:
     # into Saturday night, the NFL into Monday night.
     # 💰 FREE. Both back-fills read published stat files, not the odds API.
     - cron: "35 14 * * 0"       # Sun 10:35am ET — rebuild CFB, after Saturday
+    # 🔴 SCORES, ON THE DAY THE SPORT IS PLAYED.
+    # `[measured 2026-09-05, the first Saturday of the season]` the college
+    # Scores tab showed 76 FBS games with NO SCORE AT ALL, including games
+    # that finished the night before -- because the scores live in the
+    # schedule file and the schedule rode this SUNDAY rebuild. `cfb.py`
+    # said so in as many words: "NO NEW CRON -- rides the Sunday rebuild
+    # that already runs." ⛔ That decision is the defect: a weekly refresh
+    # means the Scores tab is wrong for the whole day college football
+    # actually happens.
+    # 💰 FREE -- CFBD, never the Odds API -- and `fb-scores` rebuilds ONLY
+    # the current season's schedule, never the back-fill.
+    # ⚠️ Saturday's late games run past midnight UTC, so Sunday morning is
+    # covered too. The weekly rebuild above is unchanged.
+    - cron: "40 */2 * * 6"      # CFB every 2h Saturday   — scores
+    - cron: "40 1,3,5,13 * * 0" # CFB Sat night + Sun am  — scores
+    # 🔴 THE SAME GAP IN THE NFL, arriving on Sunday: its schedule rides
+    # the TUESDAY rebuild, so a Sunday slate would sit scoreless for two
+    # days. ⚠️ NFL plays Thu, Sun and Mon.
+    - cron: "45 */2 * * 0"      # NFL every 2h Sunday     — scores
+    - cron: "45 1,3,5 * * 1"    # NFL Sun night           — scores
+    - cron: "45 1,3,23 * * 2"   # NFL Mon night + MNF     — scores
+    - cron: "45 1,3,23 * * 5"   # NFL Thu night           — scores
     # ⛔ ~~`35 15 * * 2` Tue 11:35am ET rebuild NFL~~ REMOVED 2026-09-04:
     # unrouted, so it ran MLB. The NFL rebuild is `6 16 * * 2` below,
     # which IS routed and carries SEASON=CUR.
@@ -339,6 +361,12 @@ jobs:
               "4 16 * * 1")       LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
               "6 12 * * *")       LEAGUE=ncaaf; MODES="news card-fb" ;;
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
+              "40 */2 * * 6")     LEAGUE=ncaaf; MODES="fb-scores" ;;
+              "40 1,3,5,13 * * 0") LEAGUE=ncaaf; MODES="fb-scores" ;;
+              "45 */2 * * 0")     LEAGUE=nfl;   MODES="fb-scores" ;;
+              "45 1,3,5 * * 1")   LEAGUE=nfl;   MODES="fb-scores" ;;
+              "45 1,3,23 * * 2")  LEAGUE=nfl;   MODES="fb-scores" ;;
+              "45 1,3,23 * * 5")  LEAGUE=nfl;   MODES="fb-scores" ;;
               # ── NFL ────────────────────────────────────────────────
               "7 12 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
               "6 18 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
