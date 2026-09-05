@@ -31,6 +31,7 @@ import importlib
 import json
 import os
 import sys
+import re as _re2
 import tempfile
 
 fails = []
@@ -564,3 +565,92 @@ if _g:
        "   🔴 and no projection either", str(_g[0].get("projection")))
     ck(not [k for k in _m if k.startswith("Catcher One|")],
        "   ⛔ and nothing for it in the map")
+
+print("\n16. 🔴 PARLAYS — both blockers gone, and neither went quietly")
+print("    Sam settled the books question at the sportsbook. The")
+print("    correlation question was never policy, it was arithmetic,")
+print("    and MLB had already solved it: NO TWO LEGS IN ONE GAME ID.")
+_C = load("ncaaf")
+
+
+def _leg(who, gid, price, conf, book="hardrockbet", mk="player_rush_yds",
+         line=40.5, player=None):
+    return {"player": player or who, "market": mk, "side": "under",
+            "line": line, "price": price, "book": book,
+            "confidence": conf, "clears_price_floor": True,
+            "game_id": gid, "game": f"{gid} game"}
+
+
+# ⚠️ -250 is decimal 1.40, so a PAIR pays 1.96x -- inside Sam's 1.8-2.2
+# two-leg band. -110 pairs pay 3.65x and land in no two-leg band at all,
+# which is a fact about his bands and not a bug: the first draft of this
+# test used -110 and correctly produced nothing.
+_rows = [_leg("A", "g1", -250, 80), _leg("B", "g2", -250, 78),
+         _leg("C", "g3", -200, 76), _leg("D", "g4", -200, 74)]
+_pl, _meta = _C.build_parlays_fb(_rows)
+ck(bool(_pl["2"]), "two-leg parlays are built", f"{len(_pl['2'])}")
+for _size in ("2", "3", "4"):
+    for _x in _pl[_size]:
+        eq(len(set(_x["game_ids"])), int(_size),
+           f"   🔴 every {_size}-leg parlay is in {_size} DIFFERENT games")
+        eq(_x["joint_basis"], "RECORD",
+           f"   ⛔ the {_size}-leg joint is RECORD, never MODEL")
+        break
+
+print("\n16b. ⛔ TWO LEGS IN THE SAME GAME ARE NEVER COMBINED")
+print("     This is the whole reason parlays were blocked. A QB and his")
+print("     own receiver are not independent, and the product of their")
+print("     records would be a number that means nothing.")
+_same = [_leg("QB", "g1", -250, 80), _leg("WR", "g1", -250, 78),
+         _leg("RB", "g1", -250, 76)]
+_pl2, _m2 = _C.build_parlays_fb(_same)
+eq(sum(len(v) for v in _pl2.values()), 0,
+   "   🔴 one game, three players -> ZERO parlays")
+ck(_m2["rejected"]["same_game"] > 0,
+   "   and the rejection is COUNTED, not silent",
+   str(_m2["rejected"]["same_game"]))
+
+print("\n16c. 🔴 EVERY LEG AT THE SAME BOOK — a parlay is ONE SLIP")
+print("     MLB gets this free by requiring Hard Rock. Football carries")
+print("     the best price across five books, so two legs can be best at")
+print("     two different books and the multiplier would be unbettable.")
+_mix = [_leg("A", "g1", -250, 80, book="fanduel"),
+        _leg("B", "g2", -250, 78, book="draftkings")]
+_pl3, _m3 = _C.build_parlays_fb(_mix)
+eq(sum(len(v) for v in _pl3.values()), 0, "   two books -> no parlay")
+ck(_m3["rejected"]["mixed_book"] > 0, "   counted as such",
+   str(_m3["rejected"]["mixed_book"]))
+_pl4, _ = _C.build_parlays_fb(
+    [_leg("A", "g1", -250, 80, book="fanduel"),
+     _leg("B", "g2", -250, 78, book="fanduel")])
+ck(bool(_pl4["2"]), "   ⛔ and the SAME book is fine", f"{len(_pl4['2'])}")
+if _pl4["2"]:
+    eq(_pl4["2"][0]["book"], "fanduel", "   the slip names its book")
+
+print("\n16d. ⛔ ONE PLAYER CANNOT APPEAR TWICE")
+_dup = [_leg("A", "g1", -250, 80, mk="player_rush_yds"),
+        _leg("A", "g2", -250, 78, mk="player_reception_yds")]
+_pl5, _m5 = _C.build_parlays_fb(_dup)
+eq(sum(len(v) for v in _pl5.values()), 0, "   same name, two games -> none")
+ck(_m5["rejected"]["same_player"] > 0, "   and it says why")
+
+print("\n16e. 🔒 SAM'S BANDS, AND THE TWO FILES MUST AGREE ON THEM")
+print("     ⛔ Restating a number is a rule 66 hazard, so the restatement")
+print("     is CHECKED rather than trusted.")
+_mlb_src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "card.py"), encoding="utf-8").read()
+_m_bands = _re2.search(r"^PARLAY_BANDS = (\{[^}]*\})", _mlb_src, _re2.M)
+ck(bool(_m_bands), "card.py declares PARLAY_BANDS")
+if _m_bands:
+    eq(eval(_m_bands.group(1)), _C.PARLAY_BANDS,
+       "   🔴 card_fb.py's bands are IDENTICAL to card.py's")
+_m_str = _re2.search(r"^PARLAY_STRATA = (\[[^\]]*\][^\n]*)", _mlb_src, _re2.M)
+ck(_C.PARLAY_BANDS[2] == (1.80, 2.20),
+   "   ⛔ the 1.8x-2.2x two-leg band is Sam's and is not tuned",
+   str(_C.PARLAY_BANDS[2]))
+
+print("\n16f. ⚠️ A BAND NOTHING FITS PRODUCES NOTHING, NOT A STRETCH")
+_short = [_leg("A", "g1", -900, 95), _leg("B", "g2", -900, 94)]
+_pl6, _m6 = _C.build_parlays_fb(_short)
+eq(len(_pl6["2"]), 0, "   two -900 legs pay 1.22x -> outside the band")
+ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")

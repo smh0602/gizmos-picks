@@ -2355,6 +2355,32 @@ async function renderProps(){
   });
 }
 
+/* 🔴 ONE PARLAY TABLE, TWO SPORTS. Extracted 2026-09-04 when football
+   parlays shipped. ⛔ A second copy of this markup would be a second
+   place for the same number to be formatted differently -- the exact
+   hazard rule 66 names, and the reason `pickCard` and `projChip` are
+   shared too. This function FORMATS what card.py / card_fb.py produced
+   and computes nothing. */
+function parlayTable(title, rows){
+  const pn = el('div','panel');
+  pn.innerHTML = `<h2>${title}</h2>
+      <div style="overflow-x:auto"><table class="pairs">
+      <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th>
+        <th class="n">All hit</th><th class="n">$30 EV</th></tr></thead>
+      <tbody>${rows.map(x => `
+        <tr class="${x.dominated_by ? 'domrow' : ''}">
+          <td><b>${x.legs.join('</b> + <b>')}</b></td>
+          <td class="rec">${x.games.join(' · ')}</td>
+          <td class="n">${x.multiplier.toFixed(2)}x</td>
+          <td class="n"><b>${x.joint}%</b></td>
+          <td class="n">${x.ev_30 > 0 ? '+' : ''}${x.ev_30}</td>
+        </tr>
+        ${x.dominated_by ? `<tr class="domrow"><td colspan="5" class="domnote">
+           ⚠️ ${x.dominated_by.text}</td></tr>` : ''}`).join('')}
+      </tbody></table></div>`;
+  return pn;
+}
+
 async function renderParlays(){
   const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
   const d = todayET();
@@ -2384,23 +2410,7 @@ async function renderParlays(){
     const rows = (PL[size] || []).filter(x => !x.games || x.games.every(g => live.has(g)));
     if (!rows.length) return;
     any += rows.length;
-    const pn = el('div','panel');
-    pn.innerHTML = `<h2>${TITLES[size]}</h2>
-      <div style="overflow-x:auto"><table class="pairs">
-      <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th>
-        <th class="n">All hit</th><th class="n">$30 EV</th></tr></thead>
-      <tbody>${rows.map(x => `
-        <tr class="${x.dominated_by ? 'domrow' : ''}">
-          <td><b>${x.legs.join('</b> + <b>')}</b></td>
-          <td class="rec">${x.games.join(' · ')}</td>
-          <td class="n">${x.multiplier.toFixed(2)}x</td>
-          <td class="n"><b>${x.joint}%</b></td>
-          <td class="n">${x.ev_30 > 0 ? '+' : ''}${x.ev_30}</td>
-        </tr>
-        ${x.dominated_by ? `<tr class="domrow"><td colspan="5" class="domnote">
-           ⚠️ ${x.dominated_by.text}</td></tr>` : ''}`).join('')}
-      </tbody></table></div>`;
-    v.append(pn);
+    v.append(parlayTable(TITLES[size], rows));
   });
 
   if (!any) v.append(el('div','msg','No parlay in those bands on this card.'));
@@ -3368,29 +3378,50 @@ async function fbParlays(){
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
   const C = await fbCardLoad();
-  v.innerHTML = fbShell(`<div style="margin-bottom:10px">
+  /* 🔴 ~~"No football parlays are built, and that is deliberate."~~
+     STRUCK 2026-09-04. Both blockers are gone and neither went quietly.
+       THE BOOKS QUESTION was settled by Sam at the sportsbook, not by us:
+       "you can combine player props ill verify that for you right now.
+       you can. there done."
+       THE CORRELATION QUESTION was never policy, it was arithmetic, and
+       MLB had already solved it: NO TWO LEGS IN THE SAME GAME ID.
+     ⛔ WHAT HAS NOT CHANGED: there is still no football model, so every
+     number here is the player's OWN RECORD and the combined figure is
+     those records multiplied. It is labelled RECORD, never MODEL. */
+  const PL = (C && C.parlays) || {};
+  const TITLES = {'2': 'Two-leg &mdash; pays 1.8x to 2.2x',
+                  '3': 'Three-leg &mdash; pays 3x to 6x',
+                  '4': 'Four-leg &mdash; pays 3x to 6x'};
+  const head = `<div style="margin-bottom:10px">
       <h2 style="margin:0 0 4px;font-size:16px">Parlays
-        <span class="kind k-market">Market</span></h2>
-    </div>
-    <div class="note">
-      <b>No football parlays are built, and that is deliberate.</b><br><br>
-      A parlay number is a combined probability. MLB's comes from the
-      model, and the site checks it against your price bands before it
-      shows anything. Football has no model &mdash; and multiplying two
-      players' own records together would quietly assume they are
-      independent, which two players in the same game are not. The number
-      would look like ours and mean nothing.
-      <br><br>&#9888;&#65039; There is a second blocker, and it is a fact
-      about the books rather than about us: a football parlay needs a
-      sportsbook that <b>combines player props</b>. Hard Rock does that for
-      MLB. <b>Whether it does for football is unverified</b>, and this tab
-      will not promise something that may not be placeable.
-      ${C && C.picks && C.picks.length
-        ? `<br><br>The priced board is on the <b>Gizmo's Picks</b> tab
-           &mdash; ${C.picks.length} rows, best price on each.`
-        : ''}
-    </div>
-    ${fbNoModelNote(C)}`);
+        <span class="kind k-record">Record</span></h2>
+      <div class="sub">${(C && C.parlay_rule) || ''}</div>
+    </div>`;
+  let body = '', any = 0;
+  ['2','3','4'].forEach(size => {
+    const rows = PL[size] || [];
+    if (!rows.length) return;
+    any += rows.length;
+    body += parlayTable(TITLES[size], rows).outerHTML;
+  });
+  const m = (C && C.parlay_meta) || {};
+  const foot = `<div class="note">
+      <b>How these are built.</b> Every leg is the player&rsquo;s own rate at
+      that exact line &mdash; <b>not a projection and not a model output</b>.
+      The legs are always in <b>different games</b>, which is what makes
+      multiplying them defensible at all, and always at the
+      <b>same sportsbook</b>, because a parlay is one slip.
+      <br><br>&#9888;&#65039; <b>About the &ldquo;all hit&rdquo; number.</b>
+      It is those records multiplied. Treating two games as unrelated is
+      close to true and not exactly true, and that assumption has never
+      been tested in this project.
+      ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}</div>`;
+  v.innerHTML = fbShell(head + (any ? body :
+      `<div class="note"><b>No parlay on this card lands inside the
+       bands.</b> The board is priced and rated &mdash; it is the payout
+       bands that nothing fits today, which is a fact about the prices
+       rather than a failure. ${m.note || ''}</div>`) + foot
+      + fbNoModelNote(C));
   fbWire();
 }
 

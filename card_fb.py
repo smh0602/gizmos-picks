@@ -98,6 +98,7 @@ will check it against real outcomes** once 2026 games accumulate.
 """
 import glob
 import gzip
+import itertools
 import json
 import os
 import re
@@ -633,6 +634,8 @@ def main():
     # Props tab renders the whole slate and joins against this map; a map
     # built from the card alone would light up 50 rows and leave the rest
     # blank for no reason a reader could see.
+    parlays, parlay_meta = build_parlays_fb(rows)
+
     projections = {}
     for _r in rows:
         _v = _r.get("projection")
@@ -771,6 +774,17 @@ def main():
         # construction rather than by matching -- measured 50 of 50 on the
         # live board. ⛔ Football has no player ids; if a third source is
         # ever joined here it needs its own gate.
+        # 🔴 PARLAYS. Sam settled the books question on 2026-09-04; the
+        # correlation blocker is handled by MLB's own rule -- no two legs
+        # in the same GAME ID -- and football adds one MLB does not need:
+        # every leg at the SAME BOOK, because a parlay is one slip.
+        "parlays": parlays,
+        "parlay_meta": parlay_meta,
+        "parlay_rule": (
+            "Legs are in DIFFERENT GAMES and at the SAME BOOK. ⛔ Every "
+            "number is the player's own record — nothing here is a model "
+            "output, and the combined figure is those records multiplied, "
+            "which assumes the games are unrelated."),
         "projections": projections,
         "name_match_rate": round(match_rate, 3) if match_rate is not None else None,
         "n_priced": len(rows),
@@ -850,6 +864,131 @@ def no_rate_reason(rates_ok, plog, who):
                 f"a rate from. Fewer than {MIN_GAMES} is not a rate.")
     return (f"{who} appears in too few games last season to read a rate "
             f"from. Fewer than {MIN_GAMES} is not a rate.")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# PARLAYS. Sam unblocked this on 2026-09-04: *"you can combine player
+# props ill verify that for you right now. you can. there done."*
+#
+# 🔴 THE OTHER BLOCKER WAS NEVER POLICY, IT WAS ARITHMETIC: multiplying
+# two players' own records asserts they are INDEPENDENT, and two players
+# in the same game are not. ✅ MLB already solved it -- **no parlay puts
+# two legs in the same GAME ID** (ledger rule 54) -- and that rule is
+# reused here verbatim. ⛔ It is checked on game IDENTITY, never on
+# opponent name: in one game both sides have different opponents and the
+# same game, so a name test passes on exactly the pairs it exists to
+# catch. A live MLB card once shipped four impossible parlays that way.
+#
+# 🔴 AND ONE CONSTRAINT FOOTBALL HAS THAT MLB DOES NOT: **EVERY LEG MUST
+# BE AT THE SAME BOOK.** A parlay is one slip at one sportsbook. The
+# football board carries the BEST price across five books, so two legs
+# can easily be best at two different books -- and a multiplier built
+# from those is a number nobody can actually bet. MLB sidesteps this by
+# requiring `on_hardrock`, because Hard Rock is the only one of the five
+# that combines props. Here it is enforced directly and the rejects are
+# COUNTED, so a thin parlay list is explained rather than mysterious.
+#
+# ⚠️ THE BANDS ARE SAM'S AND THEY ARE THE SAME NUMBERS AS `card.py`'s.
+# ⛔ Restating them is a rule 66 hazard, so `test_card_fb.py` asserts the
+# two files agree rather than trusting that they do.
+PARLAY_BANDS = {2: (1.80, 2.20), 3: (3.00, 6.00), 4: (3.00, 6.00)}
+PARLAY_STRATA = [(1.00, 1.30), (1.30, 1.60), (1.60, 2.00),
+                 (2.00, 3.00), (3.00, 99.0)]
+PARLAY_PER_STRATUM = 12
+PARLAY_PER_SIZE = 8
+
+
+def decimal_odds(american):
+    return 1 + (100.0 / -american if american < 0 else american / 100.0)
+
+
+def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
+    """Combinations of 2, 3 and 4 legs from RATED football rows.
+
+    ⛔ EVERY NUMBER HERE IS DESCRIPTIVE. A leg's confidence is the
+    player's own record, so their product is a product of records --
+    never a model output, and the note says so on the card.
+    """
+    legs = [r for r in rows
+            if r.get("confidence") is not None
+            and r.get("price") is not None
+            and r.get("clears_price_floor")
+            and r.get("game_id") and r.get("book")]
+    legs.sort(key=lambda r: -r["confidence"])
+
+    # ⛔ STRATIFIED BY PRICE, for MLB's reason: confidence and price move
+    # together, so the N most confident legs are all short favourites and
+    # no combination of them ever reaches a 3x band.
+    pool, strata = [], []
+    for lo_d, hi_d in PARLAY_STRATA:
+        band = [r for r in legs if lo_d <= decimal_odds(r["price"]) < hi_d]
+        pool.extend(band[:PARLAY_PER_STRATUM])
+        strata.append({"decimal": f"{lo_d:g}-{hi_d:g}",
+                       "available": len(band),
+                       "taken": len(band[:PARLAY_PER_STRATUM])})
+
+    def leg_text(r):
+        side = {"over": "o", "under": "u", "yes": ""}.get(r["side"], r["side"])
+        ln = "" if r.get("line") is None else f"{side}{r['line']}"
+        return f"{r['player']} {ln} {MARKETS[r['market']][1]}".replace("  ", " ")
+
+    out, rejects = {}, {"same_game": 0, "same_player": 0, "mixed_book": 0,
+                        "out_of_band": 0}
+    for size, (lo, hi) in PARLAY_BANDS.items():
+        found = []
+        for combo in itertools.combinations(pool, size):
+            if len({c["game_id"] for c in combo}) != size:
+                rejects["same_game"] += 1
+                continue
+            if len({c["player"] for c in combo}) != size:
+                rejects["same_player"] += 1
+                continue
+            if len({c["book"] for c in combo}) != 1:
+                rejects["mixed_book"] += 1
+                continue
+            mult = 1.0
+            for c in combo:
+                mult *= decimal_odds(c["price"])
+            if not (lo <= mult <= hi):
+                rejects["out_of_band"] += 1
+                continue
+            joint = 1.0
+            for c in combo:
+                joint *= c["confidence"] / 100.0
+            be = 100.0 / mult
+            found.append({
+                "legs": [leg_text(c) for c in combo],
+                "games": [c["game"] for c in combo],
+                "game_ids": [c["game_id"] for c in combo],
+                "book": combo[0]["book"],
+                "prices": [c["price"] for c in combo],
+                "multiplier": round(mult, 3),
+                "n_legs": size,
+                "band": f"{lo:g}x-{hi:g}x",
+                "joint": round(100 * joint, 1),
+                "joint_basis": "RECORD",
+                "joint_note": (
+                    "The legs' own records multiplied together. ⛔ Every leg "
+                    "is the player's OWN RATE at that exact line — "
+                    "DESCRIPTIVE, never a model output, because this project "
+                    "has no football model. Legs are in different games, so "
+                    "they are treated as independent; that assumption is not "
+                    "free and has never been tested here."),
+                "leg_confidences": [c["confidence"] for c in combo],
+                "break_even": round(be, 1),
+                "edge": round(100 * joint - be, 1),
+                "ev_30": round(30 * (joint * mult - 1), 2),
+            })
+        found.sort(key=lambda x: -x["joint"])
+        out[str(size)] = found[:per_size]
+    return out, {"pool": len(pool), "rated_legs": len(legs),
+                 "strata": strata, "rejected": rejects,
+                 "note": (f"{len(legs)} rated legs, {len(pool)} in the "
+                          f"stratified pool. Rejected: "
+                          f"{rejects['same_game']} same game, "
+                          f"{rejects['same_player']} same player, "
+                          f"{rejects['mixed_book']} would need two books, "
+                          f"{rejects['out_of_band']} outside Sam's bands.")}
 
 
 def build_why(who, mk, line, side, hits, n, season, unit, mean=None):
