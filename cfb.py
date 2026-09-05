@@ -843,7 +843,17 @@ def build_schedule(season, log=log):
     rep["final"] = finals
     rep["usable"] = True
     log(f"    {len(out):,} games, {finals:,} final")
+    # 🔴 STAMPED HERE, NOT AT THE CALL SITE. `[measured 2026-09-05]` this
+    # file carried NO stamp at all -- not `pulled_at`, not `built_at` --
+    # while its NFL twin carried two, because the NFL write site added one
+    # and this one did not. ⛔ `freshness.py` BANS `os.path.getmtime` (a CI
+    # checkout resets every mtime), so a file with no stamp inside it reads
+    # as MISSING FOREVER, whatever its real age.
+    # ✅ One writer, every caller stamped: the weekly rebuild and the
+    # game-day `fb-scores` refresh both get it without remembering to.
     return {"season": season, "kind": "DESCRIPTIVE",
+            "built_at": datetime.datetime.now(datetime.timezone.utc)
+                        .strftime("%Y-%m-%dT%H:%M:%SZ"),
             "note": ("Schedule and final scores from CFBD /games. "
                      "DESCRIPTIVE -- these are results, not projections."),
             "columns_used": rep["columns_used"],

@@ -3100,6 +3100,7 @@ def run_mode(mode):
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
+            "fb-scores",
             "card-fb", "nfl-teams", "cfb-teams")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
@@ -3489,6 +3490,52 @@ def run_mode(mode):
                 raise RuntimeError(
                     f"{len(failed)} season(s) failed: "
                     f"{[y for y, _ in failed]} -- see {_rp}")
+            left = None
+        elif mode == "fb-scores":
+            # ══════════════════════════════════════════════════════════
+            # 🔴 THE SCORES TAB'S SCORES LIVE IN THE SCHEDULE FILE, AND
+            # THAT FILE RODE A WEEKLY REBUILD.
+            # ⛔ `cfb.py` said it in as many words: *"NO NEW CRON -- rides
+            # the Sunday rebuild that already runs."* **That decision is
+            # the defect.** `[measured 2026-09-05, the first Saturday of
+            # the season]` the college Scores tab showed **76 FBS games
+            # with no score at all** -- `final=False`, `None-None` --
+            # including games that had finished the night before, because
+            # the next schedule rebuild was Sunday 10:35am.
+            # ⚠️ COLLEGE PLAYS ON SATURDAY. A weekly refresh means the
+            # Scores tab is wrong for the whole day the sport happens.
+            # ✅ THIS MODE REBUILDS **ONLY** THE CURRENT SEASON'S
+            # SCHEDULE, which is where `home_score`, `away_score` and
+            # `final` live. ⛔ It does NOT touch players, pace,
+            # allowed-by-position or any back-fill -- those are expensive
+            # and yearly; this is cheap and hourly.
+            # 💰 FREE. CFBD and nflverse, never the Odds API.
+            # ⚠️ IT IS NOT LIVE SCORING. It refreshes FINALS and whatever
+            # the source has posted; an in-progress score still needs a
+            # live feed, which is what `live-probe` is for.
+            # ══════════════════════════════════════════════════════════
+            _season = _fresh.current_football_season()
+            if LEAGUE == "ncaaf":
+                import cfb as _cfbs
+                _sc, _srep = _cfbs.build_schedule(_season, log)
+            elif LEAGUE == "nfl":
+                import nfl as _nfls
+                _sc, _srep = _nfls.build_schedule(_season, None, log)
+            else:
+                log(f"fb-scores: {LEAGUE} has no football schedule")
+                sys.exit(1)
+            # ⛔ REPORT ALWAYS, pass or fail -- the same rule the
+            # back-fill uses. A silent failure here is a Scores tab that
+            # quietly stops moving.
+            write(f"{LATEST}/schedule-probe-{_season}.json", _srep)
+            if not _sc:
+                log(f"fb-scores: NOTHING WRITTEN -- "
+                    f"{_srep.get('error') or 'the source returned no games'}")
+                sys.exit(1)
+            _sc["pulled_at"] = stamp()
+            write(f"{LATEST}/schedule-{_season}.json.gz", _sc, compress=True)
+            log(f"fb-scores[{LEAGUE}] {_season}: {_srep.get('games')} games, "
+                f"{_srep.get('final')} final")
             left = None
         elif mode == "cfb-probe":
             # 🔴 A PARITY CHECK, NOT A SURVEY. Sam, 2026-08-30: "i want the
