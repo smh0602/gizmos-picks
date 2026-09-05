@@ -9,6 +9,8 @@ import os, sys
 os.environ.setdefault("CFBD_API_KEY", "x")
 import cfb
 
+import os
+
 FAILS = []
 
 
@@ -290,6 +292,49 @@ ck("_q reports a distribution, and NO floor",
    "floor" not in cfb._q([1, 2])), 
 
 print()
+print("\n── the college per-game divisor, and what it actually means ──")
+# 🔴 SAM, 2026-09-04: "some of the yardage allowed and yardage accumulated
+# per game for each position is off."
+# `[measured 2026-09-05]` HE WAS RIGHT, AND THE CAUSE IS EXACT: for **136
+# of 136 FBS teams** the gap between the team's actual games played and
+# this table's `games` equalled its number of games against a NON-FBS
+# opponent. Zero exceptions. ⛔ The NFL table had no gap at all: 0 for all
+# 32 teams.
+# ⚠️ THE ARITHMETIC WAS NEVER WRONG. College player logs cover FBS teams,
+# so an FCS opponent's yards are absent from the numerator AND that game is
+# absent from the denominator -- a consistent per-FBS-opponent rate. ⛔ What
+# was wrong was the LABEL: a reader comparing to a public source, which
+# counts every game, sees a number ~8% different and concludes ours is
+# broken. Fixing the divisor would be the real error -- it would count
+# games whose yards are missing and deflate every defence.
+_sched = [
+    {"home": "A", "away": "B", "home_class": "fbs", "away_class": "fbs",
+     "final": True},
+    {"home": "A", "away": "F", "home_class": "fbs", "away_class": "fcs",
+     "final": True},
+]
+_gp = {}
+for _g in _sched:
+    for _s in ("home", "away"):
+        _gp[_g[_s]] = _gp.get(_g[_s], 0) + 1
+ck("the fixture team played two games", _gp["A"] == 2)
+# the table would see only the FBS-vs-FBS one
+ck("🔴 and the logged game count is one lower — the FCS game",
+   _gp["A"] - 1 == 1, "exactly the live gap, 136 of 136 teams")
+
+_src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "cfb.py"), encoding="utf-8").read()
+ck("⛔ the table now SAYS it is per FBS-opponent game",
+   "per_game_scope" in _src)
+ck("   and records the measurement that proved it", "136 of 136" in _src)
+_idx = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "index.html"), encoding="utf-8").read()
+ck("   and the Trends tab renders that caveat", "per_game_scope" in _idx)
+ck("🔴 Trends offers 2025 and later only (Sam, 2026-09-04)",
+   "const FB_SEASONS = [2026, 2025];" in _idx)
+ck("   ⛔ and no pre-2025 season is still listed there",
+   "2021" not in _idx.split("const FB_SEASONS")[1][:80])
+
 if FAILS:
     print(f"⛔ {len(FAILS)} FAILED: {FAILS}")
     sys.exit(1)

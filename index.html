@@ -2502,7 +2502,13 @@ let FBDATA = {};          // league -> side -> season -> parsed table
    ... i want to keep this tab, but have it for this year". 2025 stays
    because it is far more relevant than the years before it; the rest are
    still reachable but never the default. */
-const FB_SEASONS = [2026, 2025, 2024, 2023, 2022, 2021];
+/* 🔴 2025 AND LATER ONLY. Sam, 2026-09-04: *"remove all years before
+   2025 from Trends, both leagues — those years are basically
+   irrelevant."* ⛔ The back-fill files for 2021-2024 stay on disk and
+   are NOT deleted — a season that stops being OFFERED is a product
+   decision; deleting the data would be an irreversible one, and the
+   tests still read those files. */
+const FB_SEASONS = [2026, 2025];
 let fbSeason = 2026, fbPos = 'WR', fbMetric = 'rec_yds', fbSide = 'def';
 
 /* Rank 1 ALLOWS THE MOST. The question asked of this table is "how soft
@@ -4085,6 +4091,17 @@ async function renderFootball(){
        bottoms out at &minus;10 with 11.6%. So this column is largely a
        <b>pass-rush</b> measure &mdash; a low or negative figure means the defense sacks
        people &mdash; and it is <b>not comparable to the NFL column</b>.</div>` : ''}
+    ${LEAGUE === 'ncaaf' && doc.per_game_scope ? `<div class="note">
+       <b>These are per game against an FBS opponent, not per game of the
+       season.</b> College player logs cover FBS teams, so a game against an
+       FCS opponent contributes neither yards nor a game to these averages.
+       <b>Most FBS teams play exactly one such game a year</b> &mdash; measured
+       2026-09-05, the gap was exactly that, for 136 of 136 teams &mdash; so the
+       <b>Gm</b> column reads one lower than the team's record, and these
+       numbers run slightly higher than a source that counts every game.
+       <br><br>&#9888;&#65039; The arithmetic is consistent: the missing games
+       are absent from the top and the bottom of the fraction alike. It was
+       the <b>label</b> that was wrong, and this is it.</div>` : ''}
     ${LEAGUE === 'ncaaf' ? `<div class="note"><b>Power 4 offenses only.</b> A defense's row
        describes what ACC, Big&nbsp;12, Big&nbsp;Ten and SEC offenses did to it, so a
        non-Power-4 defense may be described by one or two games. Ranks are withheld

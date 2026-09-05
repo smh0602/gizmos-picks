@@ -1076,6 +1076,35 @@ def build_side(doc, side, log=log):
                           if side == "def" else
                           "rank 1 = PRODUCES THE MOST; pct 100 = best"),
             "min_games_for_rank": min_games,
+            # ══════════════════════════════════════════════════════════
+            # 🔴 THESE ARE PER GAME AGAINST AN **FBS** OPPONENT, NOT PER
+            # GAME OF THE SEASON — AND THE TABLE DID NOT SAY SO.
+            # `[measured 2026-09-05, after Sam reported the yardage
+            # numbers looked off]` for **136 of 136 FBS teams**, the gap
+            # between a team's actual games played and this table's
+            # `games` is EXACTLY its number of games against a non-FBS
+            # opponent. Zero exceptions. ⛔ The NFL table has no such gap:
+            # 0 for all 32 teams.
+            # ⚠️ THE ARITHMETIC IS CORRECT AND CONSISTENT — the college
+            # player logs cover FBS teams, so an FCS opponent's yards are
+            # not in the numerator and that game is not in the
+            # denominator either. **What was wrong was the LABEL.** A
+            # reader comparing to any public source, which counts every
+            # game, sees a number ~8% different and reasonably concludes
+            # ours is broken.
+            # ⛔ THE FIX IS NOT TO DIVIDE BY ALL GAMES. That would count
+            # games whose yards are missing from the numerator and deflate
+            # every defence. Including FCS games properly would mean
+            # logging all of FCS, which is a different pull and a
+            # different decision.
+            "per_game_scope": (
+                "PER GAME AGAINST AN FBS OPPONENT. College player logs "
+                "cover FBS teams, so a game against an FCS opponent "
+                "contributes neither yards nor a game to these averages. "
+                "Most FBS teams play exactly one such game a season, so "
+                "`games` here is usually one less than the team's record "
+                "shows — and these averages run slightly higher than a "
+                "source that includes those games."),
             "rank_floor_is_full": min_games >= DEF_MIN_GAMES,
             "caveat_qb_rush": (
                 "⛔ COLLEGE CHARGES SACK YARDAGE TO RUSHING. `[measured "
