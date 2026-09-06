@@ -148,13 +148,32 @@ on:
     # LEAGUES; `test_cron_wiring.py` now refuses one.
     - cron: "2 11 * * *"        # CFB  7:02am ET  Odds
     - cron: "4 19 * * *"        # CFB  3:00pm ET  Odds
-    - cron: "34 12 * * 2-6"     # CFB  8:30am ET  Player Props (Tue-Sat)
-    - cron: "6 19 * * 2-6"      # CFB  3:00pm ET  Player Props (Tue-Sat)
-    - cron: "4 13 * * 2-6"      # CFB  9:00am ET  Gizmo's Picks (Tue-Sat)
-    - cron: "34 13 * * 2-6"     # CFB  9:30am ET  Parlays       (Tue-Sat)
+    # 🔴 EVERY DAY, NOT Tue-Sat. `[2026-09-06]` The old `2-6` set left
+    # SUNDAY AND MONDAY with no props pull and no card build — so on a
+    # Sunday with a real slate the board went 22 hours old, the card still
+    # showed Saturday's games, and NOTHING WENT RED, because the contract
+    # had no Sunday deadline to miss.
+    # 💰 The cost scales with the slate (markets x regions x GAMES), and a
+    # day with no game inside the window buys nothing at all.
+    - cron: "34 12 * * *"       # CFB  8:30am ET  Player Props (daily)
+    - cron: "6 19 * * *"        # CFB  3:00pm ET  Player Props (daily)
+    - cron: "4 13 * * *"        # CFB  9:00am ET  Gizmo's Picks (daily)
+    - cron: "34 13 * * *"       # CFB  9:30am ET  Parlays       (daily)
     - cron: "4 12 * * 2"        # CFB  8:00am ET  Track Record  (Tue)
-    - cron: "4 16 * * 1"        # CFB 12:00pm ET  Trends        (Mon)
-    - cron: "6 12 * * *"        # CFB  8:00am ET  News
+    # ⚠️ TRENDS DAILY FOR COLLEGE. It was Monday-only by Sam's own
+    # schedule and it was not broken — but CFBD publishes daily and the
+    # rebuild is free, so there is no reason for the tab to be six days
+    # stale. ⛔ NFL stays weekly: nflverse publishes weekly, so a daily
+    # NFL deadline would be one nothing could satisfy (rule 112).
+    - cron: "4 16 * * *"        # CFB 12:00pm ET  Trends        (daily)
+    # 🔴 NEWS EVERY HOUR. `[Sam: "news should be updating every hour i see
+    # that it is 5 hours old, unacceptable"]` ⛔ With one 8am deadline a
+    # five-hour-old file was INSIDE contract, so nothing was wrong
+    # anywhere and the tab was still stale. It is free.
+    # ⚠️ ONE CRON, BOTH LEAGUES — the dual-league routing means this is a
+    # single run an hour, not two.
+    - cron: "20 * * * *"        # BOTH  news, hourly
+    - cron: "6 12 * * *"        # CFB  8:00am ET  News + card
     # (the Sunday rebuild is the `35 14 * * 0` entry in the block above --
     #  it was listed twice, which is one event and one wasted line)
     # ── NFL ──────────────────────────────────────────────────────────
@@ -382,12 +401,16 @@ jobs:
               # ── CFB ────────────────────────────────────────────────
               "2 11 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
               "4 19 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
-              "34 12 * * 2-6")    LEAGUE=ncaaf; MODES="props-player" ;;
-              "6 19 * * 2-6")     LEAGUE=ncaaf; MODES="props-player" ;;
-              "4 13 * * 2-6")     LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
-              "34 13 * * 2-6")    LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
+              "34 12 * * *")      LEAGUE=ncaaf; MODES="props-player" ;;
+              "6 19 * * *")       LEAGUE=ncaaf; MODES="props-player" ;;
+              "4 13 * * *")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
+              "34 13 * * *")      LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "4 12 * * 2")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
-              "4 16 * * 1")       LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+              "4 16 * * *")       LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+              # ⏱️ THE HOURLY NEWS RUN, BOTH LEAGUES IN ONE JOB.
+              # ⚠️ `news` only; it must not drag a card build into every
+              # hour of the day. The card has its own deadlines.
+              "20 * * * *")       LEAGUE="ncaaf nfl"; MODES="news" ;;
               "6 12 * * *")       LEAGUE="ncaaf nfl"; MODES="news card-fb" ;;
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
               "40 */2 * * 6")     LEAGUE="ncaaf nfl"; MODES="fb-scores" ;;
