@@ -1749,6 +1749,10 @@ def coherent_projections(board, late_rows, hlogs, today):
     ONCE at the primary line and reuse that -- and the bar does not move.
     """
     val, unit, basis, ngames = {}, {}, {}, {}
+    # 🔴 WHICH METHOD PRODUCED EACH NUMBER. Without this, a projection that
+    # fell back from T37's inversion to the mean it replaced is
+    # indistinguishable from one that never had a distribution at all.
+    _proj_method = {}
     # -- pitchers. `central` is lam / mu: it depends on the pitcher, the
     #    opponent and home/away, and on NOTHING about the line. `late_rows`
     #    is used because it runs build_play over EVERY game, started or not.
@@ -1809,8 +1813,32 @@ def coherent_projections(board, late_rows, hlogs, today):
                 unit[(pid, mkt)] = HITTER_UNIT.get(mkt)
                 basis[(pid, mkt)] = "DESCRIPTIVE"
                 ngames[(pid, mkt)] = None
+                _proj_method[(pid, mkt)] = "inversion"
                 continue
 
+            # 🔴🔴 THE FALL-THROUGH BELOW IS T37'S REJECTED STATISTIC, AND
+            # IT USED TO HAPPEN SILENTLY. `[found 2026-09-06]` For a market
+            # in `HITTER_PROJ` the pre-registered fallback says the
+            # projection is an INVERSION at the primary line; when
+            # `hitter_primary_projection` cannot produce one, this drops
+            # to `hitter_mean` — **the very statistic T37 measured at
+            # 5.43% against a 5.00% bar and replaced.** Nothing said so.
+            # ⛔ THE CONSEQUENCE WAS A RED RUN NOBODY COULD DIAGNOSE: the
+            # mean legitimately sits on the far side of a skewed line, the
+            # zero-tolerance gate correctly refused it, and the row said
+            # only "his own per-game average" — true of the value, silent
+            # about the method having failed.
+            # ⚠️ MEASURED: Andrés Chaparro carried 0.6 on `under 0.5` at
+            # 76% while his log reads 75.4% zero-RBI games and a mean of
+            # 0.493 — so the published 0.6 is NEITHER a valid inversion
+            # (which must land under the line) NOR the point-in-time mean.
+            # ✅ THIS DOES NOT RE-DECIDE T37 and does not move its bar. It
+            # RECORDS which method produced the number, so the gate and the
+            # card can both say what actually happened.
+            if _pdist:
+                _proj_method[(pid, mkt)] = "mean_fallback"
+            else:
+                _proj_method[(pid, mkt)] = "mean"
             m, n = hitter_mean(hlogs, pid, mkt, today)
             if m is None:
                 continue
@@ -1822,7 +1850,8 @@ def coherent_projections(board, late_rows, hlogs, today):
     out = {}
     for k, v in val.items():
         out[k] = {"v": proj_round(v, lines.get(k)), "u": unit.get(k),
-                  "b": basis.get(k), "n": ngames.get(k)}
+                  "b": basis.get(k), "n": ngames.get(k),
+                  "m": _proj_method.get(k)}
     return out
 
 
@@ -1904,12 +1933,24 @@ def apply_projections(rows, PROJ):
                 f"site, at every line.")
         else:
             g = e.get("n")
+            r["projection_method"] = e.get("m")
             r["projection_note"] = (
                 f"His own average over {g} games this season — {e['v']} a "
                 f"game. That's what he has actually been doing, not a "
                 f"forecast, and it is the same number at every line."
                 if g else
                 f"His own per-game average this season — {e['v']}.")
+            # ⛔ SAY IT ON THE ROW WHEN THE INTENDED METHOD FAILED. T37
+            # replaced the mean with an inversion for this market; if the
+            # inversion could not be built, the reader is looking at the
+            # statistic T37 rejected and deserves to know.
+            if e.get("m") == "mean_fallback":
+                r["projection_note"] += (
+                    " ⚠️ This is his plain average because the usual "
+                    "method for this market — reading his own record "
+                    "backwards at the standard line — could not be built "
+                    "for him today. An average is a poor guide on a lumpy "
+                    "count like this one, so weigh it accordingly.")
 
 
 def board_projections(board, PROJ):
