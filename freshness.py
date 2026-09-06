@@ -43,6 +43,7 @@ at 10:20 PM ET the night before, half the books had not posted a line.
 longer owners; they are hints.
 """
 
+import glob
 import json
 import gzip
 import os
@@ -343,6 +344,12 @@ FB_TIMES = {
         # ten: one mid-slate and one the morning after. Enough to catch a
         # refresher that has stopped, few enough not to become noise.
         "scores": [(20, 0, {5}), (9, 0, {6})],           # Sat 8pm, Sun 9am
+        # 🔴 GRADING FOLLOWS THE LOGS, NOT THE GAMES. The grader reads
+        # `players-<season>.json.gz`, which `cfb-probe` rebuilds on MONDAY
+        # NOON -- so a Saturday card CANNOT be graded on Sunday, whatever
+        # anyone wants. ⛔ A deadline before its own input is a deadline
+        # that fires every week on a correct system.
+        "grade":  [(14, 0, {0}), (9, 0, {1})],           # Mon 2pm, Tue 9am
     },
     "nfl": {
         "odds":   [(8, 0), (14, 0)],                     # 8am, 2pm daily
@@ -355,6 +362,8 @@ FB_TIMES = {
         # ⚠️ The NFL's game days are Sunday, Monday and Thursday; its
         # schedule rode the TUESDAY rebuild.
         "scores": [(20, 0, {6}), (9, 0, {0})],           # Sun 8pm, Mon 9am
+        # ⚠️ Same rule, one day later: `nfl-logs` rebuilds Tuesday noon.
+        "grade":  [(14, 0, {1}), (9, 0, {2})],           # Tue 2pm, Wed 9am
     },
 }
 
@@ -563,6 +572,15 @@ def _football_contract(league, data, picks, now):
         ("fb-scores",
          ("file", f"{latest}/schedule-{season}.json.gz"), T["scores"], False,
          "Scores & Matchups — the day's results"))
+    # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
+    # probe is `record.json` -- the file the Track Record tab reads.
+    # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card
+    # there is nothing for it to produce, and "cannot exist yet is not
+    # late" (rule 86) governs here exactly as it does for the card.
+    if T.get("grade") and glob.glob(f"{picks}/fb-{league}-2*.json"):
+        rows.append(
+            ("fb-record", ("file", f"{latest}/record.json"), T["grade"], False,
+             "Track Record — the board's own graded record"))
     # ⛔ AND AN ARTIFACT THAT CANNOT EXIST YET IS NOT LATE EITHER. Before
     # a league's first paid pull there is no props board, so there is no
     # card either -- neither is a defect and neither is repairable by any
