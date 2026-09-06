@@ -2067,6 +2067,34 @@ def build_card_fb():
     return None
 
 
+def build_record_fb():
+    """Run `record_fb.py` for this league — the football grader.
+
+    🔴 A SUBPROCESS FOR THE SAME REASON `build_card_fb` IS ONE: the module
+    reads LEAGUE at import time, and the collector may already hold it for
+    another league in this process.
+
+    ⛔ FREE. It reads the published cards and the stored player logs and
+    computes. No API call, no credit, nothing to budget.
+
+    ⚠️ Football only. MLB grades inside `collect_record()` against its own
+    per-date box scores, which football has no equivalent of.
+    """
+    if LEAGUE == "mlb":
+        log("fb-record is a FOOTBALL mode; MLB grades in `record`. Nothing done.")
+        return None
+    import subprocess
+    env = dict(os.environ, LEAGUE=LEAGUE)
+    r = subprocess.run([sys.executable, "record_fb.py"], env=env,
+                       capture_output=True, text=True)
+    for line in (r.stdout or "").splitlines():
+        log(f"  {line}")
+    if r.returncode != 0:
+        raise RuntimeError(f"record_fb.py exited {r.returncode}: "
+                           f"{(r.stderr or '')[-400:]}")
+    return None
+
+
 def collect_news():
     # 🔴 THE LEAGUE PICKS THE LIST. ⛔ An empty list is NOT an error and
     # must NOT write an empty news.json over a good one -- football has no
@@ -3100,7 +3128,7 @@ def run_mode(mode):
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
-            "fb-scores",
+            "fb-scores", "fb-record",
             "card-fb", "nfl-teams", "cfb-teams")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
@@ -3190,6 +3218,21 @@ def run_mode(mode):
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.
             left = build_card_fb()
+        elif mode == "fb-record":
+            # ══════════════════════════════════════════════════════════
+            # 🔴 THE FOOTBALL GRADER. The Track Record tab has existed
+            # since 2026-09-03 with an em-dash in every box, because
+            # nothing graded football picks -- `claude/football-todo.md`
+            # said so: *"it will not do what the name implies until
+            # football picks are being GRADED, and nothing grades them
+            # yet."*
+            # ⛔ FREE: it reads published cards and stored player logs.
+            # ⚠️ IT IS INHERENTLY LAGGED AND THAT IS NOT A FAULT. College
+            # player logs rebuild on Sunday, so Saturday's card cannot be
+            # graded until then; the file says which rows are waiting and
+            # why, rather than pretending they lost.
+            # ══════════════════════════════════════════════════════════
+            left = build_record_fb()
         elif mode == "news-probe":
             # 🔴 FREE, and it WRITES NO news.json. It writes a report for a
             # human to read. ⛔ Do not chain it into `news`.

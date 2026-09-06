@@ -3623,63 +3623,143 @@ async function fbParlays(){
 /* 🔴 TRACK RECORD. The empty state is CORRECT and stays until football
    picks have been published AND graded. ⛔ An empty record table is not a
    defect; a record table with nothing in it that implies a result is. */
+/* 🔴 THE FOOTBALL RECORD LOADER. One file per league, written by
+   `record_fb.py`. ⛔ It may not exist -- before the first graded card
+   there is nothing to write, and that is not an error. */
+const FBREC = {};
+async function fbRecordLoad(){
+  if (FBREC[LEAGUE] !== undefined) return FBREC[LEAGUE];
+  try { FBREC[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/record.json`); }
+  catch(e){ FBREC[LEAGUE] = null; }
+  return FBREC[LEAGUE];
+}
+
+const fbPct = t => (t && t.n) ? `${t.pct.toFixed(1)}%` : '&mdash;';
+const fbWL  = t => (t && t.n) ? `${t.w}/${t.n}` : '0/0';
+
 async function fbRecord(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
-  const C = await fbCardLoad();
+  const [C, R] = await Promise.all([fbCardLoad(), fbRecordLoad()]);
   const n = C && C.picks ? C.picks.length : 0;
+  const O = (R && R.overall) || null;
+  const graded = O && O.n;
 
   /* 🔴 THE SAME FOUR STAT BOXES MLB SHOWS, and the same two tables --
      drawn EMPTY rather than replaced by a paragraph. Sam, 2026-09-03:
      "i literallt want eveyrhtug to look exaclty the same the only
      difference is that its filled with nfl data".
-     ⛔ An empty table that matches is better than a different-looking
-     note, because the reader learns the layout once and it holds
-     everywhere. ⚠️ Every figure reads em-dash, never 0% -- "nothing
-     graded" and "graded 0%" are different facts. */
+     ⚠️ Every figure reads em-dash, never 0% -- "nothing graded" and
+     "graded 0%" are different facts, and that distinction is the reason
+     this tab could sit empty for two days without lying. */
   const hero = `<div class="tr-hero">
       <div class="tr-box"><div class="k">Board</div>
-        <div class="v">&mdash;<span style="font-size:18px;color:var(--mut)">/0</span></div>
-        <div class="s">nothing graded yet</div></div>
+        <div class="v">${graded ? O.pct.toFixed(1) + '%' : '&mdash;'}<span
+          style="font-size:18px;color:var(--mut)">${graded ? '' : '/0'}</span></div>
+        <div class="s">${graded ? `${O.w} of ${O.n} graded`
+                                : 'nothing graded yet'}</div></div>
       <div class="tr-box"><div class="k">${LEAGUE === 'nfl' ? 'NFL rows' : 'College rows'}</div>
-        <div class="v">&mdash;</div><div class="s">0/0</div></div>
+        <div class="v">${graded ? O.w : '&mdash;'}</div>
+        <div class="s">${fbWL(O)}</div></div>
       <div class="tr-box"><div class="k">On the board today</div>
         <div class="v">${n}</div><div class="s">${n ? 'gradeable after kickoff' : 'no card yet'}</div></div>
       <div class="tr-box"><div class="k">Cards graded</div>
-        <div class="v">0</div><div class="s">football only</div></div>
+        <div class="v">${R ? (R.days_graded || 0) : 0}</div>
+        <div class="s">football only</div></div>
     </div>`;
 
-  const MK = LEAGUE === 'nfl'
-    ? ['Passing yards', 'Passing TDs', 'Rushing yards', 'Receiving yards',
-       'Receptions', 'Anytime TD']
-    : ['Passing yards', 'Rushing yards', 'Receiving yards', 'Receptions',
-       'Anytime TD'];
-  const mkRows = MK.map(m =>
-    `<tr><td>${m}</td><td class="n">&mdash;</td><td class="n">&mdash;</td></tr>`).join('');
+  /* ⚠️ THE MARKET LIST COMES FROM THE RECORD WHEN THERE IS ONE, and from
+     a fixed list only when there is not. ⛔ A hardcoded list would hide a
+     market the board started carrying, which is exactly how a table goes
+     quietly wrong. */
+  const NAMES = {player_pass_yds:'Passing yards', player_pass_tds:'Passing TDs',
+                 player_rush_yds:'Rushing yards', player_reception_yds:'Receiving yards',
+                 player_receptions:'Receptions', player_anytime_td:'Anytime TD'};
+  const MKfallback = LEAGUE === 'nfl'
+    ? ['player_pass_yds','player_pass_tds','player_rush_yds',
+       'player_reception_yds','player_receptions','player_anytime_td']
+    : ['player_pass_yds','player_rush_yds','player_reception_yds',
+       'player_receptions','player_anytime_td'];
+  const BM = (R && R.by_market) || {};
+  const mkKeys = Object.keys(BM).length ? Object.keys(BM).sort() : MKfallback;
+  const mkRows = mkKeys.map(k => {
+    const t = BM[k];
+    return `<tr><td>${NAMES[k] || k}</td>
+      <td class="n">${t ? fbWL(t) : '&mdash;'}</td>
+      <td class="n">${t ? fbPct(t) : '&mdash;'}</td></tr>`;
+  }).join('');
+
+  const days = (R && R.by_day) || [];
+  const dayRows = days.length ? days.slice().reverse().map(d => `<tr>
+      <td>${d.date}</td>
+      <td class="n">${d.n ? `${d.w}/${d.n}` : '&mdash;'}</td>
+      <td class="n">${d.n ? `${(100*d.w/d.n).toFixed(1)}%` : '&mdash;'}</td>
+      <td class="n sub">${d.carded}</td>
+      <td class="n sub">${(d.voids || 0) + (d.unresolved || 0)}</td></tr>`).join('')
+    : `<tr><td colspan="5" class="sub" style="text-align:center;padding:14px">
+         No football day has been graded yet.</td></tr>`;
+
+  /* 🔴 CALIBRATION, AND THE WORD "MODEL" APPEARS NOWHERE IN IT. The
+     bucket is the player's OWN RECORD at that line -- ledger rule 55 --
+     so the column is headed "stated", not "predicted". */
+  const cal = (R && R.calibration) || [];
+  const calBlock = cal.length ? `
+    <h3 style="margin:18px 0 8px;font-size:14px">Was the record right?</h3>
+    <table class="ob">
+      <thead><tr><th>Stated</th><th class="n">Said</th><th class="n">Actual</th>
+        <th class="n">Rows</th><th class="n">Gap</th></tr></thead>
+      <tbody>${cal.map(c => {
+        const gap = c.n ? (c.pct - c.stated) : null;
+        return `<tr><td>${c.bucket}</td>
+          <td class="n">${c.stated.toFixed(1)}%</td>
+          <td class="n">${c.n ? c.pct.toFixed(1) + '%' : '&mdash;'}</td>
+          <td class="n">${c.n}</td>
+          <td class="n" style="color:${gap == null ? 'inherit'
+            : gap < -5 ? '#b9482a' : gap > 5 ? '#1a7060' : 'inherit'}">${
+            gap == null ? '&mdash;' : (gap > 0 ? '+' : '') + gap.toFixed(1)}</td></tr>`;
+      }).join('')}</tbody></table>` : '';
 
   v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record
-      <span class="kind ${C && C.rates_available ? 'k-desc' : 'k-market'}">${
-        C && C.rates_available ? 'Record' : 'Market'}</span></h2>
-    <p>Every row the board publishes, graded from the final score &mdash; not
-       from anyone's memory. ${C ? `<span class="rec">board built ${C.generated_at}</span>` : ''}</p>
+      <span class="kind k-desc">Descriptive</span></h2>
+    <p>Every row the board publishes, graded from the stored player game
+       log &mdash; not from anyone's memory.
+       ${R ? `<span class="rec">graded ${freshness(R.built_at)}</span>` : ''}</p>
     ${hero}
+    ${graded && R.distinct_players ? `<div class="note" style="margin:0 0 14px">
+      &#9888;&#65039; <b>${O.n} graded row${O.n === 1 ? '' : 's'} came from
+      <b>${R.distinct_players}</b> player${R.distinct_players === 1 ? '' : 's'}
+      across ${R.distinct_games} game${R.distinct_games === 1 ? '' : 's'}.</b>
+      Rows are not independent observations when the same player is carded
+      twice &mdash; read the sample as its players, not its rows.</div>` : ''}
     <table class="ob" style="margin-top:14px">
-      <thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead>
+      <thead><tr><th>Market</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th></tr></thead>
       <tbody>${mkRows}</tbody></table>
+    ${calBlock}
     <h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
     <table class="ob">
-      <thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead>
-      <tbody><tr><td colspan="3" class="sub" style="text-align:center;padding:14px">
-        No football day has been graded yet.</td></tr></tbody></table>
+      <thead><tr><th>Date</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th>
+        <th class="n">Carded</th><th class="n">Unsettled</th></tr></thead>
+      <tbody>${dayRows}</tbody></table>
+    ${R && R.coverage_note ? `<div class="note" style="margin-top:14px">
+      <b>What is and is not counted.</b> ${R.coverage_note}
+      <br><br>${R.over_bias_note || ''}
+      ${R.join_note ? `<br><br><b>How a pick finds its result.</b> ${R.join_note}` : ''}
+      ${(R.skipped || []).length ? `<br><br><b>Waiting:</b> ${
+        R.skipped.map(x => `${x.date} &mdash; ${x.why}`).join(' · ')}` : ''}
+    </div>` : ''}
     <div class="note" style="margin-top:14px">
-      <b>This will be the board's record and nothing else.</b> Every row it
-      published, graded from the final score. Uncurated &mdash; it prints
+      <b>This is the board's record and nothing else.</b> Every row it
+      published, graded from the final box score. Uncurated &mdash; it prints
       everything that clears the filter, so it will score worse than a board
       someone picked over by hand. That is a different question, not a worse
       board.
       <br><br>Nothing is removed after the fact. A losing row stays logged
       even when there is a good excuse for it.
+      ${!R ? `<br><br>&#9888;&#65039; <b>No graded record yet.</b> The grader runs
+      after the weekly player-log rebuild &mdash;
+      ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} &mdash; so a slate is graded
+      the week after it is played.` : ''}
     </div>
     ${fbNoModelNote(C)}`);
   fbWire();
