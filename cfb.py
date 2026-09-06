@@ -128,6 +128,31 @@ IGNORE = {("passing", "avg"), ("passing", "qbr"), ("rushing", "avg"),
           ("rushing", "long"), ("receiving", "avg"), ("receiving", "long")}
 
 
+class SourceUnavailable(RuntimeError):
+    """The fetch FAILED. ⛔ NOT the same fact as an empty season.
+
+    🔴🔴 THIS CLASS EXISTS BECAUSE THE TWO WERE MERGED AND THE MERGE
+    LIED. `[found 2026-09-06, and it is this project's founding lesson in
+    the place it does the most damage]` `build_season` caught every fetch
+    exception, logged it, continued, and ended with an empty `meta` — at
+    which point it raised `SeasonNotStarted`, and the back-fill forgave
+    that as *"the season has not started, not a failure"*.
+
+    ⛔ THE SEASON HAD STARTED. Our own stored schedule held **448 finals**
+    for 2026, and the probe report written by the same run said what was
+    actually happening:
+
+        endpoints_failed: [["games","429"], ["player game","429"],
+                           ["plays","429"], ["roster","429"]]
+
+    **CFBD was RATE LIMITING us on every endpoint.** The run reported a
+    status, repaired nothing, and went red on `verify_freshness` every
+    hour — a permanently unrepairable artifact wearing the costume of a
+    legitimate absence. A FACT ABOUT A QUERY IS NOT A FACT ABOUT THE
+    WORLD.
+    """
+
+
 class SeasonNotStarted(RuntimeError):
     """CFBD returned NO GAMES for the requested season.
 
@@ -365,13 +390,45 @@ def usage_of(row, pos):
                else (row.get("rec") or 0)))
 
 
+def _stored_finals(season):
+    """How many FINAL games our own schedule holds for `season`.
+
+    🔴 THE REFUTATION FOR "THE SEASON HAS NOT STARTED". This project
+    already downloads and commits the schedule; if it carries finals, the
+    season has demonstrably been played and any source claiming otherwise
+    is describing its own failure, not the world.
+    ⚠️ Returns 0 when the file is absent or unreadable — an unknown must
+    never masquerade as a refutation.
+    """
+    import glob as _g
+    import gzip as _gz
+    import json as _js
+    for p in _g.glob(f"data/ncaaf/latest/schedule-{season}.json.gz"):
+        try:
+            with _gz.open(p, "rt") as fh:
+                return sum(1 for x in (_js.load(fh).get("games") or [])
+                           if x.get("final"))
+        except Exception:
+            return 0
+    return 0
+
+
 def build_season(season, log=log):
     meta, weeks_seen = {}, set()
+    # 🔴 REMEMBER WHY meta MIGHT BE EMPTY. Swallowing the exception and
+    # carrying on is right — one season type failing must not lose the
+    # other — but FORGETTING it turns "the source refused" into "the
+    # season has not been played", which is a different fact entirely.
+    fetch_errors = []
     for st in ("regular", "postseason"):
         try:
             games = get("/games", {"year": str(season), "seasonType": st})
         except Exception as e:
-            log(f"    /games {season} {st}: {type(e).__name__}")
+            code = getattr(e, "code", None)
+            fetch_errors.append(f"{st}: {type(e).__name__}"
+                                + (f" {code}" if code else ""))
+            log(f"    /games {season} {st}: {type(e).__name__}"
+                + (f" {code}" if code else ""))
             continue
         for g in games or []:
             meta[str(g.get("id"))] = {
@@ -407,6 +464,14 @@ def build_season(season, log=log):
         # 🔴 TYPED, so the caller can tell "this season has not been
         # played" from "the fetch broke". ⛔ The exception carries only
         # the FACT; the back-fill loop decides whether to forgive it.
+        # ⛔ AND THE TWO ARE NO LONGER MERGED. If any fetch raised, the
+        # emptiness is a fact about the REQUEST and must never be
+        # forgiven as a fact about the SEASON.
+        if fetch_errors:
+            raise SourceUnavailable(
+                f"CFBD returned nothing for {season} because the request "
+                f"failed — {'; '.join(fetch_errors)}. ⛔ This is NOT "
+                f"'the season has not started'.")
         raise SeasonNotStarted(f"no games returned for {season}")
     log(f"    {len(meta):,} games, regular weeks {min(weeks_seen)}–{max(weeks_seen)}")
 
@@ -1434,14 +1499,34 @@ def probe(log=log):
                                                 for g in p["g"]]),
                          "unmapped": [[c, s, v] for (c, s), v
                                       in unmapped.items()]})
+        except SourceUnavailable as e:
+            # ⛔ NEVER FORGIVEN. The source refused; nothing about the
+            # season is known from that.
+            failed.append((season, f"SourceUnavailable: {e}"))
+            log(f"    SEASON {season} FAILED: {e}")
         except SeasonNotStarted as e:
             # 🔴 CFBD HAS NO GAMES FOR THIS SEASON. If it is the CURRENT
             # season it simply has not been played yet -- a STATUS, not a
             # failure. ⛔ Any other year is still fatal: somebody asked
             # for a season that should exist.
             # ⚠️ REPORTED, NOT SUPPRESSED — see the back-fill report.
+            # 🔴 CROSS-CHECKED AGAINST DATA WE ALREADY HOLD. "The season
+            # has not started" is refutable: if our own stored schedule
+            # carries FINALS for that season, it plainly has. ⛔ On
+            # 2026-09-06 this branch forgave 2026 while the shipped
+            # schedule held 448 finals, so the artifact could never be
+            # repaired and the run went red every hour saying nothing was
+            # wrong.
             import freshness as _fr
-            if season == _fr.current_football_season():
+            _finals = _stored_finals(season)
+            if _finals:
+                failed.append((season, f"SeasonNotStarted claimed for a "
+                                       f"season we hold {_finals} finals for"))
+                log(f"    SEASON {season} FAILED: the source returned no "
+                    f"games, but our stored schedule holds {_finals} FINAL "
+                    f"games for {season}. ⛔ That is a contradiction, not a "
+                    f"season that has not started.")
+            elif season == _fr.current_football_season():
                 not_yet.append((season, str(e)))
                 log(f"    {season} NOT YET PUBLISHED — the season has not "
                     f"started. Not a failure.")

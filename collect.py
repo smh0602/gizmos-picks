@@ -30,6 +30,7 @@ import collections
 import gzip
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -677,6 +678,49 @@ def _dated_roots(day):
         if cfg["data"] != base:
             roots.append(os.path.join(cfg["data"], day))
     return roots
+
+
+# 🔴 HOW LONG TO LEAVE A REFUSING SOURCE ALONE. Three hours is chosen
+# against the deadline it has to meet, not picked for feel: college Trends
+# is due DAILY at noon ET, so a three-hour back-off still allows two
+# repair attempts before the day is out, while cutting the hourly retry
+# storm that produced the 429s from ~24 attempts a day to ~8.
+CFB_BACKOFF_MIN = int(os.environ.get("CFB_BACKOFF_MIN", "180"))
+
+
+def _cfb_backoff_left(path="data/ncaaf/latest/backfill-report.txt"):
+    """Minutes of back-off remaining after a FAILED back-fill. 0 = go.
+
+    ⛔ READ FROM THE REPORT THE BACK-FILL ITSELF WRITES, so there is no
+    second piece of state to drift. A report whose `failed` and `not yet`
+    lines are both empty means the last attempt worked, and there is
+    nothing to back off from.
+    ⚠️ Unreadable or absent -> 0. An unknown must not block a repair.
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            txt = fh.read()
+    except Exception:
+        return 0
+    m = re.search(r"back-fill at ([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9:.]+)", txt)
+    if not m:
+        return 0
+    ok = True
+    for line in txt.splitlines():
+        s = line.strip()
+        if s.startswith("failed") or s.startswith("not yet"):
+            if not re.search(r":\s*\[\s*\]", s):
+                ok = False
+    if ok:
+        return 0
+    try:
+        when = datetime.fromisoformat(m.group(1).replace(" ", "T"))
+    except Exception:
+        return 0
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    age = (now() - when).total_seconds() / 60.0
+    return max(0.0, CFB_BACKOFF_MIN - age)
 
 
 def daily_spend(day=None):
@@ -3763,6 +3807,26 @@ def run_mode(mode):
             # take the `old` participation file. Fixed in place rather
             # than renamed, because the mode name is in the workflow.
             import cfb as _cfb
+            # 🔴 DO NOT HAMMER A SOURCE THAT JUST REFUSED. `[found
+            # 2026-09-06]` Making news hourly means converge retries this
+            # mode EVERY HOUR while it is stale — and a full CFBD
+            # back-fill is several endpoints over many calls. The probe
+            # report for 20:33Z reads
+            #   endpoints_failed: [["games","429"], ["player game","429"],
+            #                      ["plays","429"], ["roster","429"]]
+            # ⛔ WE RATE-LIMITED OURSELVES, and then read the resulting
+            # empty answer as "the season has not started".
+            # ⚠️ SKIPPING IS NOT HIDING: the artifact stays out of
+            # contract, the banner says so and the run still goes red.
+            # What changes is that we stop guaranteeing the next attempt
+            # fails too.
+            _wait = _cfb_backoff_left()
+            if _wait > 0:
+                log(f"SKIPPING cfb-probe: the last back-fill FAILED "
+                    f"{CFB_BACKOFF_MIN - _wait:.0f} min ago and CFBD needs "
+                    f"room. {_wait:.0f} min of back-off left. NOTHING "
+                    f"FETCHED. The artifact stays out of contract.")
+                sys.exit(1)
             if not _cfb.probe(log):
                 sys.exit(1)
             left = None
