@@ -35,6 +35,7 @@ import os
 import shutil
 import sys
 import tempfile
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "ncaaf")
 import collect as C
@@ -43,17 +44,6 @@ import freshness as _fresh
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<62} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
-
-
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<62} {detail}")
-    if not cond:
-        fails.append(label)
 
 
 def write_dir(root, doc):
@@ -175,9 +165,4 @@ finally:
     shutil.rmtree(root, ignore_errors=True)
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ team directory: all checks passed")

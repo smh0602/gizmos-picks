@@ -28,20 +28,10 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FAIL = []
-
-
-def ck(name, cond, extra=""):
-    print(("  ✅ " if cond else "  ❌ ") + name + (("  — " + extra) if extra else ""))
-    if not cond:
-        FAIL.append(name)
-    return cond
-
-
-def note(s):
-    print("  ⚪ " + s)
 
 
 sys.path.insert(0, ROOT)
@@ -287,9 +277,4 @@ finally:
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE. Rule 97: anything
 #    written below it reports red and the file still exits 0.
 print()
-if FAIL:
-    print("❌ %d FAILED" % len(FAIL))
-    for f in FAIL:
-        print("   - " + f)
-    sys.exit(1)
 print("✅ all single-day board tests passed")

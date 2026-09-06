@@ -30,6 +30,7 @@ import io
 import json
 import os
 import sys
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "mlb")
 import collect as C
@@ -37,11 +38,6 @@ import collect as C
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<52} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
 
 
 print("1. 🔴 MLB's LIVE FEED LIST IS UNTOUCHED BY THE REFACTOR")
@@ -179,9 +175,4 @@ eq(got["obj"]["items"][0]["published"], "2026-09-02T18:00:00Z",
    "  ...and the copy kept is the NEWER one")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ news collector OK — MLB untouched, football fails closed")

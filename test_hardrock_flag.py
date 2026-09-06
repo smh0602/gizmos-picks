@@ -20,6 +20,7 @@ commit has not rebuilt yet, and would fail on the commit that fixes it.
 """
 import os
 import sys
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "mlb")
 import card as K
@@ -27,16 +28,6 @@ import card as K
 fails = []
 
 
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
-
-
-def eq(got, want, label):
-    ck(got == want, label, f"{got!r}")
-    if got != want and fails and fails[-1] == label:
-        fails[-1] = f"{label} (got {got!r} want {want!r})"
 
 
 GAME = {"id": "g1", "away": "Cincinnati Reds", "home": "Chicago Cubs",
@@ -100,9 +91,4 @@ for _k, _v in (("kind", "note"), ("test", "STEP 5"), ("actionable", True)):
     eq(_f.get(_k), _v, f"   flag.{_k}")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ the Hard Rock flag is written on hitter rows, both directions")

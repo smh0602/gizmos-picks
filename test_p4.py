@@ -13,15 +13,12 @@ pays per game for them.
 is tested here, and the gate still fails closed if too few match.
 """
 import os, sys
+from tcheck import ck, note   # the shared gate — see tcheck.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("LEAGUE", "ncaaf")
 import collect
 
 FAIL = []
-def ck(n, ok, d=""):
-    print(("  [OK  ] " if ok else "  [FAIL] ") + n + (f"  {d}" if d else ""))
-    if not ok: FAIL.append(n)
-
 p4 = collect.power4_teams()
 NORM = {collect._norm_team(t): t for t in p4}
 m = lambda s: collect._match_team(s, NORM)
@@ -132,6 +129,4 @@ k2, w2 = collect.filter_power4(junk, quiet)
 ck("unrecognisable names spend NOTHING", k2 == [] and w2 is not None)
 
 print()
-if FAIL:
-    print(f"⛔ {len(FAIL)} FAILED: {FAIL}"); sys.exit(1)
 print("✅ the gate names the right team, or refuses")

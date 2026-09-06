@@ -36,6 +36,7 @@ import ast
 import builtins
 import os
 import sys
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 BUILTINS = set(dir(builtins))
@@ -124,10 +125,8 @@ BUG = ("def f():\n"
 _t = ast.parse(BUG)
 _caught = [x for x in used_exception_names(_t)
            if x[1] not in module_bindings(_t)]
-print(f"  {'ok  ' if _caught else '🔴 FAIL'} undefined `except` name is "
-      f"caught  ({len(_caught)} finding)")
-if not _caught:
-    fails.append("self-test: the checker does not catch its own case")
+ck("undefined `except` name is caught by the checker", _caught,
+   f"{len(_caught)} finding(s)")
 
 OK = ("class SeasonNotStarted(RuntimeError):\n    pass\n"
       "def f():\n"
@@ -138,13 +137,11 @@ OK = ("class SeasonNotStarted(RuntimeError):\n    pass\n"
 _t2 = ast.parse(OK)
 _fp = [x for x in used_exception_names(_t2)
        if x[1] not in module_bindings(_t2)]
-print(f"  {'ok  ' if not _fp else '🔴 FAIL'} a DEFINED name is not "
-      f"flagged  ({len(_fp)} false positive)")
-if _fp:
-    fails.append("self-test: false positive on a defined name")
+ck("a DEFINED name is not flagged", not _fp,
+   f"{len(_fp)} false positive(s)")
 
-print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED: {', '.join(fails)}")
-    sys.exit(1)
-print(f"✅ exception names OK across {checked} module(s)")
+# 🔴 THE SWEEP'S OWN VERDICT. `fails` was collected across every module and
+# then gated at the bottom of the file; the gate now lives in `tcheck`, so
+# the list has to become a CHECK or it becomes decoration.
+ck(f"no undefined exception name in any of {checked} module(s)", not fails,
+   "; ".join(fails[:5]) if fails else "")

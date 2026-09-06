@@ -6,18 +6,13 @@ trailing weeks, and a point-in-time leak is invisible in a green run.
 was GREEN. ⛔ A green run is not a verified run.
 """
 import os, sys
+from tcheck import ck, note   # the shared gate — see tcheck.py
 os.environ.setdefault("CFBD_API_KEY", "x")
 import cfb
 
 import os
 
 FAILS = []
-
-
-def ck(name, cond, extra=""):
-    print(("  ok   " if cond else "  FAIL ") + name + ("" if cond else f"  {extra}"))
-    if not cond:
-        FAILS.append(name)
 
 
 def mk(pid, pos, team, rows):
@@ -335,7 +330,4 @@ ck("🔴 Trends offers 2025 and later only (Sam, 2026-09-04)",
 ck("   ⛔ and no pre-2025 season is still listed there",
    "2021" not in _idx.split("const FB_SEASONS")[1][:80])
 
-if FAILS:
-    print(f"⛔ {len(FAILS)} FAILED: {FAILS}")
-    sys.exit(1)
 print("✅ all cfb tests passed")

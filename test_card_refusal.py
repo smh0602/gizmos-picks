@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tempfile
 import datetime
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, REPO)
@@ -37,12 +38,6 @@ import freshness as F                                   # noqa: E402
 
 UTC = datetime.timezone.utc
 fails = []
-
-
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
 
 
 def build(tmp, card_age_h, refused, now=None):
@@ -135,9 +130,4 @@ ck(rc6 == 0, "everything current -> green", f"rc={rc6}")
 ck("PASS" in out6, "  and says so")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ a refused card is quiet while somebody is acting, loud once nobody is")

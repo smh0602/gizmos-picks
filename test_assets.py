@@ -30,6 +30,7 @@ never refuses is the bug, not the feature.
 import sys
 
 import nfl
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 fails = []
 LOG = lambda *a, **k: None
@@ -50,12 +51,6 @@ def resolve(fname, names, tag="t"):
     return got.get("u", "").rsplit("/", 1)[-1]
 
 
-def eq(got, want, label):
-    ok = (got == want)
-    shown = f"{type(got).__name__}" if isinstance(got, Exception) else repr(got)
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<46} {shown}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
 
 
 def raises(fname, names, must_contain, label):
@@ -169,9 +164,4 @@ else:
     print("  ⚠️  workflow not found beside this test — pairing UNCHECKED")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ asset resolution OK")

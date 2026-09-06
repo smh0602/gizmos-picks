@@ -32,15 +32,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 fails = []
-
-
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
 
 
 def game(gid, away, home, commence):
@@ -155,9 +150,4 @@ ck(rc5 == 0, "it passes, because nothing could be checked", f"rc={rc5}")
 ck("rolled off" in out5, "  and the reason is printed, not assumed")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ board reconciliation: doubleheaders pass, stale records do not")

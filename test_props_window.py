@@ -34,6 +34,7 @@ so a regression here can never spend a credit to prove itself.
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "nfl")
 import collect as C
@@ -41,17 +42,6 @@ import collect as C
 fails = []
 
 
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<56} {detail}")
-    if not cond:
-        fails.append(label)
-
-
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<56} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
 
 
 NOW = datetime(2026, 9, 3, 22, 25, tzinfo=timezone.utc)   # a Thursday cron
@@ -208,9 +198,4 @@ eq(run("mlb", board(15, hours_out=300), kind="pitcher"), 15,
    "🔴 a far-out MLB board is still priced, exactly as before")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ slate window OK — the 272-game board spends nothing, MLB untouched")

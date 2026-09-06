@@ -34,6 +34,7 @@ and survives realignment.
 """
 import os
 import sys
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "ncaaf")
 import collect as C
@@ -41,11 +42,6 @@ import collect as C
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<58} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
 
 
 def ev(away, home):
@@ -134,10 +130,5 @@ eq(C.FB_PROPS_WINDOW_H <= 24, True,
    "and it is short enough that two daily pulls do not re-buy a slate")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ FBS gate OK — one FBS side is enough, FCS-vs-FCS dropped, "
       "broken join spends nothing")

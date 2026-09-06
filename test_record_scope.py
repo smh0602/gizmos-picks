@@ -34,21 +34,12 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 fails = []
 
 
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
-
-
-def eq(got, want, label):
-    ck(got == want, label, f"{got!r}")
-    if got != want and fails and fails[-1] == label:
-        fails[-1] = f"{label} (got {got!r} want {want!r})"
 
 
 MLB_CARD = {
@@ -190,9 +181,4 @@ rc4, out4 = run_verifier(lambda r: r["by_day"].__setitem__(
 ck(rc4 != 0, "a wrong day is caught", f"rc={rc4}")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ the Track Record is baseball's, and reproduces without trusting itself")

@@ -31,6 +31,7 @@ nflverse.
 import os
 import random
 import sys
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "nfl")
 import nfl as N
@@ -38,17 +39,6 @@ import nfl as N
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<58} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
-
-
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
 
 
 # ── a fake nflverse in one place ──────────────────────────────────────
@@ -222,9 +212,4 @@ eq(r.get("line_scores_offered"), 1, "offered")
 eq(r.get("line_scores_joined"), 0, "joined — the gap is visible")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ T53 line scores: all checks passed")

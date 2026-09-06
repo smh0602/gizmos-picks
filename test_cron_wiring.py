@@ -35,6 +35,7 @@ import json
 import os
 import re
 import sys
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "mlb")
 import collect as C
@@ -43,16 +44,6 @@ WF = ".github/workflows/collect.yml"
 fails = []
 
 
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<60} {detail}")
-    if not cond:
-        fails.append(label)
-
-
-def eq(got, want, label):
-    ck(got == want, label, f"{got!r}")
-    if got != want and fails and fails[-1] == label:
-        fails[-1] = f"{label} (got {got!r} want {want!r})"
 
 
 wf = open(WF, encoding="utf-8").read()
@@ -196,9 +187,4 @@ else:
        "   and the newest MLB run still replaces the heartbeat loop")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ cron wiring: all checks passed")

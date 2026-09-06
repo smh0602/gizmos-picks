@@ -27,15 +27,11 @@ import sys
 
 import cfb
 import nfl
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<52} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
 
 
 QUIET = lambda *a, **k: None
@@ -176,9 +172,4 @@ eq(_both, [],
    "🔴 no loop contains BOTH build_logs and build_schedule")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ schedule collectors OK")

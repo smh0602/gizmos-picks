@@ -10,6 +10,7 @@ Run:  python test_freshness.py        (exit 0 = every case behaved)
 """
 import datetime, gzip, json, os, re, shutil, sys, tempfile, time
 import freshness as F
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 UTC = datetime.timezone.utc
 PASS, FAIL = [], []
@@ -77,11 +78,13 @@ def check(name, root, must_flag, mtime_now=True):
     rows = F.survey(data=f"{root}/data", picks=f"{root}/picks")
     stale = {r["mode"] for r in rows if r["stale"]}
     ok = must_flag <= stale
+    # ⚠️ Routed through the shared harness so the gate is `tcheck`'s, not
+    # this file's. The local PASS/FAIL lists are kept because later
+    # sections still read them for their own reporting.
     (PASS if ok else FAIL).append(name)
-    print(f"  [{'CAUGHT' if ok else 'MISSED'}] {name}")
-    if not ok:
-        print(f"           expected stale: {sorted(must_flag)}")
-        print(f"           actually stale: {sorted(stale)}")
+    ck(name, ok,
+       "" if ok else f"expected stale {sorted(must_flag)}, "
+                     f"actually stale {sorted(stale)}")
     return rows
 
 
@@ -436,4 +439,3 @@ print(f"  [{'OK  ' if not _moved else 'FAIL'}] no artifact path moves while "
 if _moved:
     FAIL.append(f"paths move without their deadline: {_moved}")
 
-sys.exit(1 if FAIL else 0)

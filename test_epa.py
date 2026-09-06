@@ -26,15 +26,11 @@ things that must not happen are asserted:
 import sys
 
 import nfl
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<44} {got!r:>22}  want {want!r}")
-    if not ok:
-        fails.append(label)
 
 
 def run(rows, season=2025):
@@ -147,7 +143,4 @@ eq(doc["test"], "T48", "carries its test number")
 eq("LOWER IS BETTER" in doc["note"], True, "the sign convention travels")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED: {', '.join(fails)}")
-    sys.exit(1)
 print("✅ build_def_epa OK")

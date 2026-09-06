@@ -30,24 +30,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 HTML = os.path.join(ROOT, "index.html")
 
 FAIL = []
 NOTE = []
-
-
-def ck(name, cond, extra=""):
-    print(("  ✅ " if cond else "  ❌ ") + name + (("  — " + extra) if extra else ""))
-    if not cond:
-        FAIL.append(name)
-    return cond
-
-
-def note(s):
-    print("  ⚪ " + s)
-    NOTE.append(s)
 
 
 SRC = open(HTML, encoding="utf-8").read()
@@ -358,9 +347,4 @@ if R:
 #    APPENDED BELOW IT. Rule 97: a section written after the gate reports
 #    red and the file still exits 0, which is a test that cannot fail.
 print()
-if FAIL:
-    print("❌ %d FAILED" % len(FAIL))
-    for f in FAIL:
-        print("   - " + f)
-    sys.exit(1)
 print("✅ all conference-filter tests passed")

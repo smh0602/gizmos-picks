@@ -23,6 +23,7 @@ by hand, from cron's actual grammar -- not from what the code does.
 import os
 import re
 import sys
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = open(os.path.join(ROOT, "budget.py"), encoding="utf-8").read()
@@ -34,9 +35,14 @@ SRC = open(os.path.join(ROOT, "budget.py"), encoding="utf-8").read()
 _m = re.search(r"def _slots.*?return _slots\(mins, 60\) \* _slots\(hours, 24\)",
                SRC, re.S)
 if not _m:
-    print("🔴 FAIL: budget.py no longer defines _slots/fires as expected.")
-    print("   ⛔ The parser moved and this test went blind. Fix the test.")
-    sys.exit(1)
+    # ⛔ NOT A BARE `sys.exit(1)` ANY MORE. This is a "cannot run at all"
+    # bail-out, but it still has to be a RECORDED FAILURE -- the harness
+    # owns the exit code, and a file that stops early with nothing
+    # recorded would be indistinguishable from one that had nothing to
+    # check.
+    ck("budget.py still defines _slots/fires the way this test parses them",
+       False, "the parser moved and this test went blind — fix the TEST")
+    raise SystemExit
 NS = {}
 exec(compile(_m.group(0), "budget-parser", "exec"), NS)
 fires, _slots = NS["fires"], NS["_slots"]
@@ -44,11 +50,6 @@ fires, _slots = NS["fires"], NS["_slots"]
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<34} got {got:<4} want {want}")
-    if not ok:
-        fails.append(label)
 
 
 print("fires() — runs per DAY")
@@ -92,7 +93,4 @@ eq(6 * fires("25 */6 * * 0,1,4") * _slots("0,1,4", 7), 72,
    "NFL line movement, credits/week")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED: {', '.join(fails)}")
-    sys.exit(1)
 print("✅ budget cron arithmetic OK")

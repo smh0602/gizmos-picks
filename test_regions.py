@@ -18,15 +18,10 @@ that made the bug impossible to have: the pitcher's snapshot must not
 change the batter's answer.
 """
 import gzip, json, os, shutil, sys, tempfile
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 FAIL = []
-
-
-def ck(name, ok, detail=""):
-    print(("  [OK  ] " if ok else "  [FAIL] ") + name + (f"  {detail}" if detail else ""))
-    if not ok:
-        FAIL.append(name)
 
 
 def snap(root, day, kind, hhmm, regions):
@@ -106,7 +101,4 @@ finally:
     shutil.rmtree(root, ignore_errors=True)
 
 print()
-if FAIL:
-    print(f"⛔ {len(FAIL)} FAILED: {FAIL}")
-    sys.exit(1)
 print("✅ the batter side can take the five-book pull")

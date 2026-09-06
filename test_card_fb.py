@@ -33,21 +33,11 @@ import os
 import sys
 import re as _re2
 import tempfile
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<54} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
-
-
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<54} {detail}")
-    if not cond:
-        fails.append(label)
 
 
 def load(league):
@@ -459,11 +449,6 @@ finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ card_fb OK — the measured college gate bites, the snap floor bites, "
       "nothing claims MODEL")
 

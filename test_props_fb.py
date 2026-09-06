@@ -27,6 +27,7 @@ import os
 import shutil
 import sys
 import tempfile
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 os.environ.setdefault("LEAGUE", "ncaaf")
 import collect as C
@@ -34,11 +35,6 @@ import collect as C
 fails = []
 
 
-def eq(got, want, label):
-    ok = got == want
-    print(f"  {'ok  ' if ok else '🔴 FAIL'} {label:<50} {got!r}")
-    if not ok:
-        fails.append(f"{label} (got {got!r} want {want!r})")
 
 
 def outcome(who, side, pt, price, link=None):
@@ -156,9 +152,4 @@ eq(w["path"].endswith("data/ncaaf/latest/props.json.gz"), True,
 eq(out["n_props"], 1, "counts its rungs")
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILED:")
-    for f in fails:
-        print("   " + f)
-    sys.exit(1)
 print("✅ football props board OK")

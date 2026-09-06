@@ -28,21 +28,12 @@ import tempfile
 import sys
 
 import freshness as F
+from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 UTC = datetime.timezone.utc
 fails = []
 
 
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
-
-
-def eq(got, want, label):
-    ck(got == want, label, f"{got!r}")
-    if got != want and fails and fails[-1] == label:
-        fails[-1] = f"{label} (got {got!r} want {want!r})"
 
 
 print("\n1. ⛔ MLB IS NOT TOUCHED BY ANY OF THIS")
@@ -417,9 +408,4 @@ for lg in ("ncaaf", "nfl"):
 # is rule 67 wearing yet another costume. Anything added below this line
 # is not checked; add sections ABOVE it.
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ football freshness contract: all checks passed")

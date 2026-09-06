@@ -29,15 +29,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from tcheck import ck, note   # the shared gate — see tcheck.py
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 fails = []
-
-
-def ck(cond, label, detail=""):
-    print(f"  {'ok  ' if cond else '🔴 FAIL'} {label:<58} {detail}")
-    if not cond:
-        fails.append(label)
 
 
 HEADER = (
@@ -126,11 +121,6 @@ ck(all(k.startswith("T") for k in _acc),
    "⚠️ every live entry is a T-number the gate can match", str(sorted(_acc)))
 
 print()
-if fails:
-    print(f"🔴 {len(fails)} FAILURE(S)")
-    for f in fails:
-        print(f"   - {f}")
-    sys.exit(1)
 print("✅ card_gate: accepts what was signed off, and nothing else")
 
 print("\n8. 🔴 AN ACCEPTED FAILURE NOW PUBLISHES THE CARD")
