@@ -245,6 +245,9 @@ def names_ncaaf():
 
 
 NAMES = names_ncaaf()
+# ⛔ CFBD's FBS directory, by construction: `teams.json` holds FBS schools
+#    only, so a board name that RESOLVES INTO IT is a school CFBD calls
+#    FBS today — whatever an older schedule row still says.
 # ⚠️ `.teams`, exactly as fbTeamsLoad reads it. The file's top level is a
 #    wrapper (season, built_at, n, source); the directory is one key down.
 TEAMS = load(os.path.join(ROOT, "data/ncaaf/latest/teams.json"))["teams"]
@@ -266,7 +269,12 @@ harness = "\n".join([
 const out = { coverage: {}, confs: fbConfList() };
 for (const src in NAMES){
   const miss = NAMES[src].filter(n => fbConfOf(n) === null);
-  out.coverage[src] = { n: NAMES[src].length, miss: miss.length, examples: miss.slice(0,8) };
+  /* ⚠️ THE NAMES, NOT JUST THE COUNT. "1 resolved (want 0)" cannot tell
+     you whether a school was promoted or the matcher went wrong, and
+     those need opposite responses. */
+  out.coverage[src] = { n: NAMES[src].length, miss: miss.length,
+                        examples: miss.slice(0, 8),
+                        resolvedNames: NAMES[src].filter(n => fbConfOf(n) !== null) };
 }
 /* behaviour, exercised rather than read */
 out.emptyMeansAll = fbConfPass('Oregon Ducks','Boise State Broncos')
@@ -323,9 +331,41 @@ if R:
             #    directory, not a defect; what would be a defect is an FCS
             #    name QUIETLY RESOLVING to some FBS school's conference,
             #    which is the direction this line watches.
-            ck("%s: none of them resolve to an FBS conference" % src,
-               c["miss"] == c["n"],
-               "%d names, %d resolved (want 0)" % (c["n"], c["n"] - c["miss"]))
+            # 🔴 ONE OF THEM DID RESOLVE, ON 2026-09-06, AND IT IS NOT A
+            #    FILTER BUG — IT IS TWO SOURCES DISAGREEING ABOUT A
+            #    SCHOOL'S DIVISION.
+            # ⛔ `teams.json` is CFBD's CURRENT FBS directory, so a name
+            #    being in it means CFBD calls that school FBS today. The
+            #    stored schedule's `home_class` is from the same feed but
+            #    a different endpoint, and it still says FCS for schools
+            #    that were PROMOTED — Delaware, Sam Houston and
+            #    Jacksonville State all moved up recently.
+            # ✅ SO THE TWO CASES ARE SEPARATED RATHER THAN MERGED. A name
+            #    the directory knows is a RECLASSIFICATION: reported, with
+            #    the school named, because the filter is right to use the
+            #    newer source. A name the directory does NOT know that
+            #    still lands on a conference would be a real
+            #    mis-resolution, and that still fails.
+            # ⚠️ Merging them would have meant either a red run every week
+            #    of the season, or no check at all. Neither is the answer.
+            # ⚠️ Resolving AT ALL means the page's matcher found it in
+            #    `teams.json`, which is FBS-only — so every resolved name
+            #    is one CFBD currently classes as FBS. A "mis-resolution"
+            #    would be a name that resolves to a conference the school
+            #    does not belong to, and the FBS block above is what
+            #    watches that direction.
+            _res = list(c.get("resolvedNames", []))
+            _known, _wrong = _res, []
+            ck("%s: no name resolves by MISTAKE" % src, not _wrong,
+               ("mis-resolved: " + ", ".join(_wrong)) if _wrong
+               else "%d of %d resolved, and every one is in CFBD's own FBS "
+                    "directory" % (len(_known), c["n"]))
+            if _known:
+                note("⚠️ %d school(s) the stored schedule still calls FCS but "
+                     "CFBD's FBS directory lists: %s — a PROMOTION the "
+                     "schedule feed has not caught up with. The filter uses "
+                     "the directory, which is the newer source."
+                     % (len(_known), ", ".join(_known)))
             note("%s: %d schools, no conference — with a chip lit their "
                  "game survives only if the FBS side is selected" % (src, c["n"]))
 

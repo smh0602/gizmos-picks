@@ -328,14 +328,38 @@ NEWS     = [(9, 5), (15, 5), (21, 5)]  # unchanged
 FB_TIMES = {
     "ncaaf": {
         "odds":   [(7, 0), (15, 0)],                     # 7am, 3pm daily
-        "props":  [(8, 30, {1, 2, 3, 4, 5}),             # 8:30am Tue-Sat
-                   (15, 0, {1, 2, 3, 4, 5})],            # 3pm   Tue-Sat
-        # picks 9:00 + parlays 9:30 (Tue-Sat) + track record Tue 8:00
-        "card":   [(9, 0, {1, 2, 3, 4, 5}),
-                   (9, 30, {1, 2, 3, 4, 5}),
-                   (8, 0, {1})],
-        "trends": [(12, 0, {0})],                        # Mon noon
-        "news":   [(8, 0)],                              # 8am daily
+        # 🔴 EVERY DAY, NOT Tue-Sat. `[Sam, 2026-09-06: "gizmos picks/
+        # player props/parlays tabs are all not updated, still has lines
+        # from yesterdays games, it is already 1:30 with games starting in
+        # a few hours. this needs to be an automated tab that updates
+        # everyday consistently."]`
+        # ⛔ THE OLD SET HAD NO SUNDAY AND NO MONDAY, so on a Sunday with
+        # a real slate the contract had NOTHING TO SAY: the last deadline
+        # was Saturday 3pm, the Saturday pull satisfied it, and `plan()`
+        # returned an EMPTY LIST while the board went 22 hours old and the
+        # card still showed Saturday's games. **Nothing failed. Every
+        # verifier was green. The product was stale.**
+        # ⚠️ THAT IS THE REAL LESSON: a contract that does not describe
+        # the days games are PLAYED cannot notice that the product is out
+        # of date, because being out of date is not a deadline it holds.
+        # 💰 AND DAILY IS AFFORDABLE BECAUSE THE COST SCALES WITH THE
+        # SLATE: props bill markets x regions x GAMES, so a three-game
+        # Sunday costs a fraction of a forty-game Saturday. The window
+        # check already spends nothing on a day with no games in range.
+        "props":  [(8, 30), (15, 0)],                    # 8:30am, 3pm DAILY
+        # picks 9:00 + parlays 9:30, daily
+        "card":   [(9, 0), (9, 30)],
+        # 🔴 TRENDS WAS WEEKLY BY SAM'S OWN SCHEDULE (Mon noon) and it was
+        # NOT broken -- its last deadline was Monday and the file is newer
+        # than that. ⚠️ But he asked for it fresher and it is FREE, so it
+        # is daily now. ⛔ The old value is kept here rather than deleted:
+        # ~~[(12, 0, {0})]  Mon noon~~
+        "trends": [(12, 0)],                             # noon DAILY
+        # 🔴 HOURLY. `[Sam: "news should be updating every hour i see that
+        # it is 5 hours old, unacceptable"]` ⛔ One 8am deadline meant a
+        # 5-hour-old file was INSIDE contract and nothing anywhere was
+        # wrong. It is free; there was never a reason for it to be daily.
+        "news":   [(h, 0) for h in range(24)],           # every hour
         "teams":  [(10, 35, {6})],                       # Sun, with the rebuild
         # 🔴 SCORES ARE DUE ON THE DAY THE SPORT IS PLAYED. They live in
         # the schedule file, which rode the weekly rebuild -- so on
@@ -374,8 +398,14 @@ FB_TIMES = {
         # only because the contract drops card-fb until a props board
         # exists.
         "card":   [(7, 30), (9, 0), (11, 30), (11, 30, {1})],
+        # ⚠️ NFL TRENDS STAYS WEEKLY, and that is a data fact rather than
+        # a choice: `nfl-logs` rebuilds from nflverse's weekly stat drop,
+        # so a daily deadline would be a deadline nothing can satisfy
+        # (rule 112). College is daily because CFBD publishes daily.
         "trends": [(12, 0, {1})],                        # Tue noon
-        "news":   [(8, 0)],
+        # 🔴 HOURLY, same as college — Sam's complaint was about the news
+        # tab and both leagues read the same builder.
+        "news":   [(h, 0) for h in range(24)],           # every hour
         "teams":  [],                                    # embedded in the page
         # ⚠️ The NFL's game days are Sunday, Monday and Thursday; its
         # schedule rode the TUESDAY rebuild.

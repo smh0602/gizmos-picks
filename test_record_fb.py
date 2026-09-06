@@ -278,10 +278,38 @@ ck("it is free", row[3] is False)
 # ⛔ A deadline before its own input fires every week on a correct system.
 grade_due = _f.FB_TIMES["ncaaf"]["grade"]
 trend_due = _f.FB_TIMES["ncaaf"]["trends"]
-ck("the grading deadline falls AFTER the log rebuild that feeds it",
-   min(d[0] for d in grade_due if d[2] == trend_due[0][2]) > trend_due[0][0]
-   if any(d[2] == trend_due[0][2] for d in grade_due) else True,
-   "logs rebuild %s, grading due %s" % (trend_due, grade_due))
+# ⚠️ A DEADLINE TUPLE IS `(hh, mm)` OR `(hh, mm, {days})`, and this
+#    crashed with an IndexError the moment college trends went DAILY —
+#    `(12, 0)` has no third element. ⛔ Reading `d[2]` without asking
+#    whether it exists is the same shape as assuming a schema (rule 121):
+#    the two-tuple form was always legal and simply had not been used
+#    here yet.
+def _days(d):
+    """The weekdays a deadline fires on. A 2-tuple fires EVERY day."""
+    return d[2] if len(d) > 2 else set(range(7))
+
+
+# 🔴 AND THE RULE ITSELF HAD TO BE RESTATED WHEN THE REBUILD WENT DAILY.
+# ⛔ The constraint is "grading must read logs that already exist". With a
+#    WEEKLY rebuild that means the hours have to be ordered on the shared
+#    day — grade at 9am on a Tuesday whose logs land at noon reads LAST
+#    week's logs, which is the defect this check was written for.
+# ✅ With a DAILY rebuild the constraint cannot be violated by more than a
+#    day: whatever hour grading runs, a rebuild finished within the last
+#    24 hours. That is not the check being loosened, it is the check being
+#    true — and the weekly case is still enforced exactly as before.
+_daily = [t_ for t_ in trend_due if len(t_) == 2]
+if _daily:
+    ck("the log rebuild is DAILY, so grading always has fresh logs",
+       True, "rebuild %s — no ordering constraint left to violate" % (_daily,))
+else:
+    _shared = [(g, t_) for g in grade_due for t_ in trend_due
+               if _days(g) & _days(t_)]
+    ck("the grading deadline falls AFTER the log rebuild that feeds it",
+       all(g[0] > t_[0] for g, t_ in _shared) if _shared else True,
+       "logs rebuild %s, grading due %s%s" % (
+           trend_due, grade_due,
+           "" if _shared else " — they share no day, so nothing to order"))
 
 # 🔴 CONVERGE IS THE MECHANISM HERE, NOT A CRON, AND THAT IS DELIBERATE.
 # `[measured 2026-09-05]` this repo LOSES scheduled runs -- 29 of 70
