@@ -461,6 +461,26 @@ jobs:
           # in January and nothing announces it.
           # ⚠️ A football season is named for the year it STARTS, so
           # anything before August belongs to the previous year.
+          # 🔴🔴 A FOOTBALL RUN WITH NO EXPLICIT SEASON MEANS *THIS*
+          # SEASON, NOT A LITERAL 2025. `[found in production 2026-09-06,
+          # run 534]` Only the arms that name a season-scoped mode set
+          # `SEASON=CUR`; every other arm left it empty and the default
+          # below handed the collector **2025**. That is fine until
+          # CONVERGE repairs a season-scoped mode on one of those runs —
+          # and that is exactly what happened: GitHub dropped the 16:04
+          # college Trends cron (the one arm that DOES pass CUR), the
+          # 18:20 hourly NEWS run converged `cfb-probe` to repair it, and
+          # the back-fill ran against **2025**, failed its own opp_elo
+          # guard, and left `allowed-by-position-2026.json.gz` untouched
+          # and 153 minutes late. ⛔ THE RUN WOULD HAVE GONE RED EVERY
+          # HOUR AND NEVER REPAIRED THE TAB.
+          # ⚠️ SCOPED TO FOOTBALL ON PURPOSE. The "before August means the
+          # previous year" rule is a FOOTBALL rule; MLB's season is named
+          # for the year it ends in, so this must not silently redefine
+          # MLB's default. MLB keeps exactly the behaviour it has.
+          # ➡️ Ledger rule 112, in the workflow's own default: a date
+          # written into a fallback goes stale and nothing announces it.
+          if [ "$LEAGUE" != "mlb" ] && [ -z "$SEASON" ]; then SEASON=CUR; fi
           if [ "$SEASON" = "CUR" ]; then
             Y=$(date -u +%Y); M=$(date -u +%m)
             [ "$M" -lt 8 ] && Y=$((Y - 1))
