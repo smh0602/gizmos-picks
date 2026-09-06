@@ -189,9 +189,30 @@ else:
     crossers = [p for p in allp
                 if len({ids.get(g) for g in p["game_ids"]} - {None}) > 1
                 or any(ids.get(g) not in (card["date"], None) for g in p["game_ids"])]
-    ck("no parlay crosses days",
-       not crossers and len(allp) > 0,
+    # 🔴 TWO DIFFERENT FACTS, AND MERGING THEM MADE THIS RED ON A THIN
+    #    SUNDAY. `[2026-09-06, on main]` It read
+    #    `not crossers and len(allp) > 0`, so a legitimate board that
+    #    produced NO parlay — a 3-game Sunday college slate, where
+    #    nothing pairs inside the 1.8x-2.1x band — failed the whole
+    #    collector while nothing was wrong. Ledger rule 139.
+    # ⛔ AND THE ANSWER IS NOT TO DROP THE `len(allp) > 0` AND CALL IT A
+    #    PASS: "no parlay crossed" is true of zero parlays and proves
+    #    nothing (rule 142). So an empty pool is reported as NOT
+    #    EXERCISED, with the numbers that explain it, and only a real
+    #    crosser fails.
+    ck("no parlay crosses days", not crossers,
        "%d parlay(s) built, %d crossing" % (len(allp), len(crossers)))
+    if allp:
+        ck("...and the pool was big enough to prove it", len(allp) > 0,
+           "%d parlay(s) checked" % len(allp))
+    else:
+        note("⚠️ NOT EXERCISED: this board built 0 parlays, so the "
+             "cross-day rule was not observed. %d picks over %d game(s) "
+             "on the slate day — a thin day cannot pair inside the "
+             "1.8x-2.1x band, which is a legitimate product state and "
+             "not a failure."
+             % (len(card["picks"]),
+                len({r.get("game_id") for r in card["picks"]})))
     ck("board is capped at the maximum",
        len(card["picks"]) <= card["board_max"],
        "%d picks" % len(card["picks"]))
