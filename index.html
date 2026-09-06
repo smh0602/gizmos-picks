@@ -123,6 +123,12 @@ table.bx tr:hover td{background:#f7f9fb}
 .k-model{background:#e3f4e9;color:#0b6b3a}
 .k-market{background:#e6eefc;color:#1a4b9c}
 .k-desc{background:var(--chip);color:var(--mut)}
+.k-live{background:#c0392b;color:#fff}
+.bxsrc{margin:0 0 10px}
+.bxmore{margin-top:10px}
+.bxmore>summary{cursor:pointer;font-size:11px;font-weight:700;color:var(--mut);
+  padding:4px 0;user-select:none}
+.bxmore[open]>summary{margin-bottom:4px}
 
 /* ---- panels ---- */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;
@@ -2985,6 +2991,27 @@ let fbScSeason = null;
         the day's games it is actually live for.
    ══════════════════════════════════════════════════════════════════════ */
 const FB_LIVE_PATH = { ncaaf: 'football/college-football', nfl: 'football/nfl' };
+/* 🔴 ESPN'S SCOREBOARD SENDS A QUARTER OF THE SLATE UNLESS YOU ASK FOR
+   THE DIVISIONS BY NAME. `[measured live in a browser, 2026-09-06]`
+
+       college  ?limit=400              25 events   <- what shipped
+       college  ?groups=80 (FBS)        99
+       college  ?groups=81 (FCS)       159
+       NFL      ?limit=400              16
+       NFL      ?groups=80               0          ⛔ NEVER send it here
+
+   ⚠️ THE NFL ROW IS WHY THIS IS PER LEAGUE AND NOT A CONSTANT. `groups`
+   is a college concept; sending it to the NFL endpoint returns an empty
+   scoreboard, which would have turned the NFL tab's live layer off while
+   reporting nothing wrong.
+
+   ✅ AND THE UNION IS EXACTLY THE TAB'S OWN VIEW, BOTH DIRECTIONS. For
+   Saturday 2026-09-05: groups 80 ∪ 81 returned 103 events and the
+   Division I view of our stored schedule holds 103 games — 103 in
+   common, 0 ESPN sent that we do not show, 0 we show that ESPN did not
+   send. That is the coverage question the probe left open, answered
+   against the PRODUCT'S denominator rather than ESPN's (rule 122). */
+const FB_LIVE_GROUPS = { ncaaf: ['80', '81'], nfl: [null] };
 const FB_LIVE_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
 /* ⚠️ 45s IS MLB'S OWN INTERVAL, not a new number. One value, one meaning. */
 const FB_LIVE_MS = 45000;
@@ -3003,10 +3030,19 @@ async function fbLiveLoad(){
   const path = FB_LIVE_PATH[LEAGUE];
   if (!path) return null;
   try {
-    const r = await fetch(`${FB_LIVE_BASE}/${path}/scoreboard?limit=400`,
-                          { cache: 'no-store' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
+    /* ⚠️ ONE REQUEST PER DIVISION, IN PARALLEL, MERGED BY EVENT ID. The
+       ids are ESPN's own and cannot collide, so a merge is a union and
+       not a reconciliation. */
+    const qs = (FB_LIVE_GROUPS[LEAGUE] || [null]).map(g =>
+      `${FB_LIVE_BASE}/${path}/scoreboard?limit=400${g ? '&groups=' + g : ''}`);
+    const rs = await Promise.all(qs.map(u => fetch(u, { cache: 'no-store' })));
+    /* ⛔ IF ANY ONE OF THEM IS REFUSED THE BROWSER REFUSED ALL OF THEM —
+       CORS is decided per origin, not per query string. A bad STATUS on
+       one division is different: keep what did arrive. */
+    const oks = rs.filter(r => r.ok);
+    if (!oks.length) throw new Error('HTTP ' + rs.map(r => r.status).join('/'));
+    const ds = await Promise.all(oks.map(r => r.json()));
+    const d = { events: ds.reduce((a, x) => a.concat(x.events || []), []) };
     const byId = {};
     (d.events || []).forEach(e => {
       try {
@@ -4495,6 +4531,210 @@ function fbGameCard(g){
    game (Utah's log exists, its FCS opponent's does not). ⛔ An empty
    table with no explanation reads as a bug; a sentence naming the reason
    does not. */
+/* ══════════════════════════════════════════════════════════════════
+   🔴 THE BOX SCORE COMES FROM ESPN, AND THE STORED LOG IS THE FALLBACK.
+   `[Sam, 2026-09-06: "not all games in the scores tab have a full box
+   score ... needs to allow the user to click into games in real time and
+   see the live boxscore as well as seeing box scores for games that have
+   finished"]`
+
+   ⛔ WHY THE STORED LOG COULD NEVER ANSWER THIS, MEASURED RATHER THAN
+   ARGUED `[2026-09-06, against the shipped files]`:
+
+       Division I games PLAYED so far          202
+       ...carrying a stored player log          17
+       SATURDAY 2026-09-05 alone               103
+       ...carrying a stored player log           0   🔴
+
+   The college logs cover the FBS teams this product tracks and are
+   rebuilt WEEKLY, so on any day before the rebuild the biggest slate of
+   the week has NO box score at all. That is the bug Sam is looking at.
+
+   ✅ ESPN's own summary endpoint answers for every game, live and final.
+   MEASURED IN SAM'S OWN BROWSER, from this page's origin:
+       CORS                       ALLOWED  (Access-Control-Allow-Origin)
+       36 Division I games sampled from 9/5
+         both sides with players  35
+         no player stats at all    1   (an FCS-vs-D2 game ESPN carries
+                                        but publishes no players for)
+   ⛔ NO COLLECTOR, NO STORED FILE, NO COMMIT, NO CREDITS — the same shape
+   as the live score layer and as MLB's statsapi polling.
+
+   🔴 THE COLUMNS ARE READ FROM THE PAYLOAD, NEVER ASSUMED (rule 121), and
+   this is not theoretical — the two leagues genuinely disagree:
+       college passing labels  C/ATT YDS AVG TD INT QBR            (6)
+       NFL     passing labels  C/ATT YDS AVG TD INT SACKS QBR RTG  (8)
+   A positional parser would have printed a college QB's QBR under an NFL
+   "SACKS" heading. So every table is built from `labels[]`, and a block
+   whose labels and stats disagree in length says so rather than shifting
+   the numbers left.
+
+   ⚠️ THE STORED LOG IS STILL THE GRADING AUTHORITY. Track Record grades
+   against `players-<season>.json.gz`, never against this. The panel names
+   which source it is showing so two different numbers can never look like
+   one number changing its mind.
+   ══════════════════════════════════════════════════════════════════ */
+/* 🔴 EVERY ESPN STRING IS ESCAPED. This is the first third-party text
+   this page has ever put into `innerHTML` — our own files are ours, a
+   vendor's are not — and a team nickname carrying a `<` would otherwise
+   be markup. ⛔ There is no global escaper in this file; the two `esc`
+   identifiers in it are Escape-key handlers, which is exactly the kind
+   of near-miss that ships. */
+function fbEsc(v){
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+const FBBOX = {};            /* league|id -> parsed box, or a reason      */
+let FB_BOX_OFF = false;      /* ⛔ set ONLY by a refusal, never by a 404   */
+let FB_BOX_ERR = null;
+
+/* ⚠️ ONE REFUSAL IS A FACT ABOUT THE BROWSER; ONE 404 IS A FACT ABOUT ONE
+   GAME. Merging them would let a single missing event silence the whole
+   feature for the session — so a bad status is returned for that game and
+   only a THROWN fetch (CORS, offline, DNS) turns the layer off. */
+async function fbBoxFetch(id, force){
+  const key = LEAGUE + '|' + id;
+  if (!force && FBBOX[key] !== undefined) return FBBOX[key];
+  if (FB_BOX_OFF) return null;
+  const base = FB_LIVE_PATH[LEAGUE];
+  if (!base || !id) return null;
+  /* 🔴 ASK ONLY WHEN WE HOLD ESPN'S OWN ID. Measured 2026-09-06 against
+     the shipped schedules: NFL 2026 carries it on 272 of 272 games and
+     NFL 2025 on 0 of 285 — that season's key is `2025_01_DAL_PHI`, which
+     is nflverse's, not ESPN's. ⛔ Sending it would be a guaranteed 404
+     dressed up as a question. The stored logs DO cover 2025, so this
+     returns a reason and the panel falls through to them. */
+  if (!/^\d+$/.test(String(id))) { FBBOX[key] = {noid: true}; return FBBOX[key]; }
+  let out;
+  try {
+    const r = await fetch(`${FB_LIVE_BASE}/${base}/summary?event=${encodeURIComponent(id)}`,
+                          {cache: 'no-store'});
+    out = r.ok ? fbBoxParse(await r.json()) : {http: r.status};
+  } catch (e) {
+    FB_BOX_OFF = true;
+    FB_BOX_ERR = String((e && e.message) || e);
+    return null;
+  }
+  FBBOX[key] = out;
+  return out;
+}
+
+/* Read the shape that arrived. Every field is defended, because a field
+   this function invents is a number the page would state on ESPN's
+   behalf. */
+function fbBoxParse(j){
+  const S = v => (v === null || v === undefined) ? '' : String(v);
+  const pl = (j && j.boxscore && j.boxscore.players) || [];
+  const cmp = (j && j.header && j.header.competitions) || [];
+  const st  = (cmp[0] && cmp[0].status) || {};
+  const ty  = st.type || {};
+  const teams = pl.map(t => ({
+    name:  S((t.team || {}).displayName || (t.team || {}).shortDisplayName),
+    abbr:  S((t.team || {}).abbreviation),
+    blocks: ((t.statistics) || []).map(s => ({
+      name:   S(s.name),
+      text:   S(s.text),
+      labels: Array.isArray(s.labels) ? s.labels.map(S) : [],
+      totals: Array.isArray(s.totals) ? s.totals.map(S) : [],
+      rows:   ((s.athletes) || []).map(a => ({
+        name:   S(((a.athlete) || {}).displayName),
+        jersey: S(((a.athlete) || {}).jersey),
+        pos:    S((((a.athlete) || {}).position || {}).abbreviation),
+        stats:  Array.isArray(a.stats) ? a.stats.map(S) : []
+      }))
+    }))
+  }));
+  return {
+    teams,
+    state:  S(ty.state),
+    detail: S(ty.detail || ty.shortDetail),
+    live:   ty.state === 'in',
+    /* ⚠️ COMPUTED, NEVER WRITTEN (rule 132). */
+    players: teams.reduce((n, t) => n + t.blocks.reduce((k, b) => k + b.rows.length, 0), 0),
+    sides:   teams.filter(t => t.blocks.some(b => b.rows.length)).length,
+    at: Date.now()
+  };
+}
+
+/* The three Sam named, in his order, open. Everything else is real and is
+   offered rather than dropped — but folded, so the modal is a box score
+   and not a wall of special teams. */
+const FB_BOX_MAIN = ['passing', 'rushing', 'receiving'];
+
+/* ⚠️ SORTED BY THE COLUMN LABELLED `YDS`, IF THERE IS ONE. Found by its
+   LABEL, so it survives the two leagues carrying different columns — and
+   when no such label exists the feed's own order is kept rather than
+   invented. */
+function fbBoxSort(b){
+  const i = b.labels.indexOf('YDS');
+  if (i < 0) return b.rows;
+  const num = r => { const v = parseFloat(String(r.stats[i]).replace(/[^\d.\-]/g, ''));
+                     return isFinite(v) ? v : -Infinity; };
+  return b.rows.slice().sort((x, y) => num(y) - num(x));
+}
+
+function fbBoxBlock(b){
+  if (!b.rows.length) return '';
+  const rows = fbBoxSort(b);
+  /* 🔴 A ROW WHOSE CELL COUNT DISAGREES WITH THE HEADER IS NOT SHIFTED
+     LEFT TO FIT. Render the columns both sides actually have and say the
+     rest arrived in a shape this table does not know. */
+  const wide = rows.reduce((m, r) => Math.max(m, r.stats.length), 0);
+  const n = Math.min(b.labels.length, wide);
+  const odd = b.labels.length !== wide;
+  const nm = b.name.replace(/([A-Z])/g, ' $1');
+  return `<h4 class="bxh">${nm.charAt(0).toUpperCase() + nm.slice(1)}</h4>
+    <div style="overflow-x:auto"><table class="bs bx" style="width:100%">
+      <thead><tr><th>Player</th>${
+        b.labels.slice(0, n).map(l => `<th class="n">${fbEsc(l)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td style="white-space:nowrap"><b>${fbEsc(r.name)}</b>${
+          r.pos ? ` <span class="sub">${fbEsc(r.pos)}</span>`
+                : r.jersey ? ` <span class="sub">#${fbEsc(r.jersey)}</span>` : ''}</td>
+        ${Array.from({length: n}, (_, i) => `<td class="n">${
+          (r.stats[i] === '' || r.stats[i] === undefined) ? '&mdash;' : fbEsc(r.stats[i])
+        }</td>`).join('')}
+      </tr>`).join('')}</tbody></table></div>${
+    odd ? `<div class="note">⚠️ This block arrived with ${b.labels.length}
+      column heading${b.labels.length === 1 ? '' : 's'} and up to ${wide}
+      value${wide === 1 ? '' : 's'} per player. Only the columns both sides
+      carry are shown &mdash; nothing has been shifted to make them line
+      up.</div>` : ''}`;
+}
+
+function fbBoxSide(t){
+  const main = FB_BOX_MAIN
+      .map(k => t.blocks.find(b => b.name === k)).filter(Boolean)
+      .map(fbBoxBlock).join('');
+  const rest = t.blocks.filter(b => FB_BOX_MAIN.indexOf(b.name) < 0 && b.rows.length);
+  const more = rest.length
+    ? `<details class="bxmore"><summary>${rest.length} more &mdash; ${
+        rest.map(b => fbEsc(b.name.replace(/([A-Z])/g, ' $1').toLowerCase().trim()))
+            .join(', ')}</summary>${rest.map(fbBoxBlock).join('')}</details>`
+    : '';
+  return `<div class="bxteam"><h3 class="bxt">${fbMark(t.name, 20)} ${
+    fbEsc(t.abbr || fbAb(t.name))}</h3>${
+    main || '<div class="note">No passing, rushing or receiving recorded yet.</div>'}${more}</div>`;
+}
+
+/* The ESPN half of the panel. ⛔ Returns null when it has nothing, so the
+   caller falls through to the stored log rather than printing an empty
+   box over a log that exists. */
+function fbBoxEspn(box){
+  if (!box || box.http || !box.teams || !box.teams.length) return null;
+  if (!box.sides) return null;
+  const src = box.live
+    ? `<span class="kind k-live">LIVE</span> ${fbEsc(box.detail || 'in progress')}`
+    : `<span class="kind k-desc">ESPN</span> ${fbEsc(box.detail || 'final')}`;
+  return `<div class="note bxsrc">${src} &mdash; player stats from ESPN's public
+      game summary, read by your browser. ⚠️ <b>The Track Record grades
+      against our own stored logs, not against this.</b></div>
+    ${box.teams.map(fbBoxSide).join('')}${box.sides < 2
+      ? '<div class="note">⚠️ <b>ESPN carries player stats for only one side of'
+        + ' this game.</b></div>' : ''}`;
+}
+
 const FBLOG = {};
 async function fbLogsLoad(season){
   const k = LEAGUE + '|' + season;
@@ -4573,7 +4813,50 @@ function fbKickedOff(g){
   return isFinite(d) && d.getTime() < Date.now();
 }
 
-function fbBoxScore(g, by){
+function fbBoxScore(g, by, box){
+  /* 🔴 ESPN FIRST, THE STORED LOG SECOND, AND A REASON THIRD. Measured
+     2026-09-06: the stored logs hold 17 of 202 Division I games played
+     and ZERO of Saturday's 103, so preferring them would keep the empty
+     panel Sam reported. */
+  const live = fbBoxEspn(box);
+  if (live) return live;
+  const why = FB_BOX_OFF
+    ? `<div class="note">⚠️ <b>Your browser could not reach ESPN's game
+        summary</b>${FB_BOX_ERR ? ' (' + fbEsc(FB_BOX_ERR) + ')' : ''}, so this
+        falls back to our own stored player logs.</div>`
+    : (box && box.noid)
+      ? `<div class="note">⚠️ <b>We do not hold ESPN's id for this
+          season</b>, so the live box score cannot be asked for. Showing our
+          own stored player log instead.</div>`
+      : (box && box.http)
+      ? `<div class="note">⚠️ <b>ESPN returned no summary for this game</b>
+          (HTTP ${box.http}).</div>`
+      /* 🔴 A GAME WITH NO PLAYERS IS THREE DIFFERENT FACTS AND THE FEED
+         SAYS WHICH. Measured against live ESPN 2026-09-06: the 2026 NFL
+         opener came back `state:"pre"` with 0 players and the kickoff
+         time in `detail`, while a Division II final came back `post`
+         with 0 players. ⛔ Calling both "publishes no player stats" would
+         repeat the exact mistake of the modal that told Sam a game had
+         not kicked off three and a half hours after kickoff — rule 134,
+         the page may only assert what its data carries. */
+      : (box && box.state === 'pre')
+        ? `<div class="note"><b>This game has not kicked off.</b>${
+            box.detail ? ' ESPN has it scheduled for ' + fbEsc(box.detail) + '.'
+                       : ''} The box score fills in live once it starts.</div>`
+      : (box && box.live)
+        ? `<div class="note"><b>Under way${box.detail ? ' — ' + fbEsc(box.detail) : ''},
+            and ESPN has not posted any player stats yet.</b> This panel
+            refreshes on its own while the game is on.</div>`
+      : (box && box.teams && box.teams.length && !box.sides)
+        ? `<div class="note">⚠️ <b>ESPN carries this game but publishes no
+            player stats for it.</b> That happens below Division I and on
+            some FCS games. ⛔ <b>An absence, not a zero.</b></div>`
+        : '';
+  const stored = fbBoxStored(g, by);
+  return why + stored;
+}
+
+function fbBoxStored(g, by){
   if (!by) return `<div class="note"><b>No player logs stored for
     ${fbScSeason}.</b> They are built by the weekly rebuild &mdash;
     ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} morning &mdash; from a free
@@ -4707,11 +4990,54 @@ async function fbOpenBox(g){
   (async () => {
     const host = ovl.querySelector('#fbbox');
     if (!host) return;
-    const by = await fbLogsLoad(fbScSeason);
+    /* ⚠️ BOTH SOURCES ARE ASKED FOR AT ONCE. The ESPN summary is one
+       small request and the stored log is up to 520KB gzipped; running
+       them in series would make the fast answer wait for the slow one. */
+    const [by, box] = await Promise.all([
+      fbLogsLoad(fbScSeason),
+      fbBoxFetch(g.espn || g.id, false)
+    ]);
     if (!ovl.isConnected) return;      // they closed it while we fetched
-    host.innerHTML = fbBoxScore(g, by);
+    host.innerHTML = fbBoxScore(g, by, box);
+    window.__fbBoxShown = {id: String(g.espn || g.id), source:
+      (box && box.sides) ? 'espn' : (by && (by[String(g.id)] || []).length) ? 'stored' : 'none',
+      live: !!(box && box.live), players: (box && box.players) || 0};
+
+    /* 🔴 A LIVE GAME REFRESHES ITSELF, AND ONLY THE PANEL MOVES. Rule
+       135: a timer must never move the page under someone's hands. The
+       modal body's scroll position is captured and restored, the timer
+       is cleared when the modal closes, and a game that is not `in`
+       never starts one. */
+    if (box && box.live && !FB_BOX_OFF) {
+      /* 🔴 `.ovl` IS THE SCROLLER, NOT `.modal-b`. Found by a check
+         written to guard this very check: `.ovl` carries
+         `overflow-y:auto` and `.modal-b` carries no overflow at all, so
+         restoring `.modal-b.scrollTop` was a SILENT NO-OP and a live
+         refresh would have thrown the reader back to the top of the
+         modal — the exact annoyance rule 135 exists for, reintroduced
+         inside the fix for it. */
+      const body = ovl;
+      const tick = async () => {
+        if (!ovl.isConnected) return;
+        const nb = await fbBoxFetch(g.espn || g.id, true);
+        if (!ovl.isConnected || !nb) return;
+        const y = body ? body.scrollTop : 0;
+        host.innerHTML = fbBoxScore(g, by, nb);
+        if (body) body.scrollTop = y;   /* same frame: the node is replaced,
+                                           not the document reflowed */
+        if (nb.live) BOXT = setTimeout(tick, FB_LIVE_MS);
+      };
+      var BOXT = setTimeout(tick, FB_LIVE_MS);
+      ovl.addEventListener('fbclose', () => clearTimeout(BOXT));
+    }
   })();
-  const close = () => { ovl.remove(); document.removeEventListener('keydown', esc); };
+  const close = () => {
+    /* ⛔ THE TIMER IS STOPPED BEFORE THE NODE GOES. A poll that outlives
+       its modal is a request nobody reads and a leak that compounds every
+       time a game is opened. */
+    ovl.dispatchEvent(new Event('fbclose'));
+    ovl.remove(); document.removeEventListener('keydown', esc);
+  };
   const esc = e => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', esc);
   ovl.addEventListener('click', e => { if (e.target === ovl) close(); });

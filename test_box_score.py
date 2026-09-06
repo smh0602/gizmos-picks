@@ -69,14 +69,21 @@ for lg, season in (("ncaaf", 2026), ("nfl", 2025)):
        bad == 0, f"{bad} rows name a third team — a name matcher would be "
                  f"needed if this were not 0 (rule 54)")
 
-box = js_block("fbBoxScore", HTML)
-ck("the box score is keyed on the game id, never a name",
+# 🔴 THE STORED-LOG RENDERER MOVED TO `fbBoxStored` ON 2026-09-06, when
+#    ESPN became the first source. ⛔ These checks follow it rather than
+#    being deleted: the stored log is still what the Track Record grades
+#    against, so it must keep working when ESPN is refused.
+box = js_block("fbBoxStored", HTML)
+ck("the stored box score is keyed on the game id, never a name",
    "by[String(g.id)]" in box, "rule 54")
 ck("a game with no stored log says ABSENCE, not zero",
    "That is an absence, not a zero" in box,
    "⛔ an empty table with no reason reads as a bug")
 ck("...and it is reachable from the modal",
    calls("fbBoxScore", HTML) >= 1, "%d call site(s)" % calls("fbBoxScore", HTML))
+ck("...and the stored renderer is called by the one that chooses a source",
+   "fbBoxStored(g, by)" in js_block("fbBoxScore", HTML),
+   "a renderer nobody calls is a decoy (rule 130)")
 
 tbl = js_block("fbBoxTable", HTML)
 ck("passing, rushing and receiving all have columns",
@@ -124,6 +131,11 @@ if _BROWSER:
     pg = br.new_page(viewport={"width": 1400, "height": 1100})
     errs = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
+    # ⚠️ ESPN IS STUBBED EMPTY HERE ON PURPOSE. This file tests the
+    #    STORED-LOG path, which is the fallback; the ESPN path is driven
+    #    against real captured payloads in `test_box_live.py`. An empty
+    #    body makes `fbBoxEspn` return null, which is exactly the
+    #    condition the fallback exists for.
     pg.route("**/site.api.espn.com/**", lambda r: r.fulfill(
         status=200, content_type="application/json", body='{"events":[]}'))
 

@@ -148,6 +148,34 @@ ck("the tab's claim about itself is COMPUTED, not written",
 ck("the football poll reuses MLB's own 45s, not a second number",
    "const FB_LIVE_MS = 45000;" in source(HTML), "one value, one meaning")
 
+
+# ───────────────────────────────────────────────────────────────
+print("\n═══ 0b. 🔴 THE SCOREBOARD MUST BE ASKED FOR BY DIVISION ═══")
+# ⛔ WHAT SHIPPED FIRST ASKED FOR THE DEFAULT SCOREBOARD AND GOT A QUARTER
+#    OF THE SLATE. Measured live in a browser 2026-09-06:
+#        college ?limit=400          25 events
+#        college ?groups=80 (FBS)    99
+#        college ?groups=81 (FCS)   159
+#        NFL     ?limit=400          16
+#        NFL     ?groups=80           0   <- never send it here
+_ll = js_block("fbLiveLoad", HTML)
+_src = source(HTML)
+ck("🔴 college asks for BOTH Division I groups",
+   "FB_LIVE_GROUPS = { ncaaf: ['80', '81']" in _src,
+   "the default scoreboard returned 25 of the 103 games the tab shows")
+ck("⛔ the NFL is NOT sent a `groups` parameter",
+   "nfl: [null]" in _src,
+   "measured: NFL + groups=80 returns 0 events, which would have turned "
+   "the NFL live layer off while reporting nothing wrong")
+ck("...and the parameter is only appended when there is one",
+   "${g ? '&groups=' + g : ''}" in _ll)
+ck("the divisions are fetched in parallel and merged by event id",
+   "Promise.all(qs.map" in _ll and "concat(x.events || [])" in _ll,
+   "ESPN's ids cannot collide, so a merge is a union")
+ck("🔴 one bad STATUS keeps the other division; a REFUSAL still turns it off",
+   "rs.filter(r => r.ok)" in _ll and "if (!oks.length) throw" in _ll,
+   "CORS is decided per origin, not per query string")
+
 srv, PORT = serve()
 try:
     from playwright.sync_api import sync_playwright
