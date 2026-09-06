@@ -407,5 +407,3 @@ for lg in ("ncaaf", "nfl"):
 # the file still exited 0 — a test that cannot fail is decoration, which
 # is rule 67 wearing yet another costume. Anything added below this line
 # is not checked; add sections ABOVE it.
-print()
-print("✅ football freshness contract: all checks passed")

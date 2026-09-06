@@ -330,4 +330,3 @@ ck("🔴 Trends offers 2025 and later only (Sam, 2026-09-04)",
 ck("   ⛔ and no pre-2025 season is still listed there",
    "2021" not in _idx.split("const FB_SEASONS")[1][:80])
 
-print("✅ all cfb tests passed")

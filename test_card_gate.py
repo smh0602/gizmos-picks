@@ -120,8 +120,6 @@ ck(isinstance(_acc, dict), "load_accepted returns a mapping", str(sorted(_acc)))
 ck(all(k.startswith("T") for k in _acc),
    "⚠️ every live entry is a T-number the gate can match", str(sorted(_acc)))
 
-print()
-print("✅ card_gate: accepts what was signed off, and nothing else")
 
 print("\n8. 🔴 AN ACCEPTED FAILURE NOW PUBLISHES THE CARD")
 print("   ⛔ Until 2026-09-04 it did not, and that made acceptance")

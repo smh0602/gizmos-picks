@@ -171,5 +171,3 @@ eq(len(_sched) > 0, True, "build_schedule runs in its own season loop")
 eq(_both, [],
    "🔴 no loop contains BOTH build_logs and build_schedule")
 
-print()
-print("✅ schedule collectors OK")

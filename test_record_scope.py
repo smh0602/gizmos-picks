@@ -180,5 +180,3 @@ rc4, out4 = run_verifier(lambda r: r["by_day"].__setitem__(
     0, {"date": "2026-09-03", "w": 1, "n": 2, "voids": 0}))
 ck(rc4 != 0, "a wrong day is caught", f"rc={rc4}")
 
-print()
-print("✅ the Track Record is baseball's, and reproduces without trusting itself")

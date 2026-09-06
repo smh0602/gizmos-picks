@@ -128,5 +128,3 @@ junk = [ev(f"Team {i} FC", f"Club {i}") for i in range(10)]
 k2, w2 = collect.filter_power4(junk, quiet)
 ck("unrecognisable names spend NOTHING", k2 == [] and w2 is not None)
 
-print()
-print("✅ the gate names the right team, or refuses")

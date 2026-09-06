@@ -90,5 +90,3 @@ _f = (hr_flags(r_off) or [{}])[0]
 for _k, _v in (("kind", "note"), ("test", "STEP 5"), ("actionable", True)):
     eq(_f.get(_k), _v, f"   flag.{_k}")
 
-print()
-print("✅ the Hard Rock flag is written on hitter rows, both directions")

@@ -163,5 +163,3 @@ if _os.path.exists(_wf):
 else:
     print("  ⚠️  workflow not found beside this test — pairing UNCHECKED")
 
-print()
-print("✅ asset resolution OK")

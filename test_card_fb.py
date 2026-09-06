@@ -448,9 +448,6 @@ finally:
     import shutil
     shutil.rmtree(tmp, ignore_errors=True)
 
-print()
-print("✅ card_fb OK — the measured college gate bites, the snap floor bites, "
-      "nothing claims MODEL")
 
 print("\n15. 🔴 THE PROJECTION — Sam, 2026-09-04: \"thats what the model is")
 print("    supposed to do... you predict what the outcome is which is")

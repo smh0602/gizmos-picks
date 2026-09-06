@@ -211,5 +211,3 @@ d, r = build_sched({"NOPE": {"home_line": [1], "away_line": [2]}})
 eq(r.get("line_scores_offered"), 1, "offered")
 eq(r.get("line_scores_joined"), 0, "joined — the gap is visible")
 
-print()
-print("✅ T53 line scores: all checks passed")

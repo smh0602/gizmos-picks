@@ -149,5 +149,3 @@ rc5, out5 = run([game("fff66666", "Team A", "Team B", "2026-09-05T20:00:00Z")],
 ck(rc5 == 0, "it passes, because nothing could be checked", f"rc={rc5}")
 ck("rolled off" in out5, "  and the reason is printed, not assumed")
 
-print()
-print("✅ board reconciliation: doubleheaders pass, stale records do not")

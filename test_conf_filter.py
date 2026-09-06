@@ -346,5 +346,3 @@ if R:
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE AND NOTHING MAY BE
 #    APPENDED BELOW IT. Rule 97: a section written after the gate reports
 #    red and the file still exits 0, which is a test that cannot fail.
-print()
-print("✅ all conference-filter tests passed")

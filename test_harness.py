@@ -60,6 +60,25 @@ ck("every test file imports the shared harness", not no_import,
 ck("no test file defines its own ck / eq / note", not own_ck,
    "still local in: " + ", ".join(own_ck) if own_ck else
    "one signature, one meaning of failure")
+# 🔴 AND NO FILE MAY PRINT ITS OWN SUCCESS BANNER.
+# `[found 2026-09-06, in my own migration]` 25 files ended with
+# `print("✅ all X passed")`. In the OLD shape that line sat AFTER the
+# gate, so it only ran on success. ⛔ Removing the gate made it
+# UNCONDITIONAL — a green line printed on a red run, which is exactly the
+# defect the harness exists to kill, reintroduced by the migration that
+# was killing it. ✅ The harness owns the summary; a file that writes its
+# own is claiming a verdict it cannot know.
+# ⚠️ THE TICK MUST BE THE FIRST CHARACTER OF THE STRING. `test_card_fb.py`
+# prints an INDENTED "   ✅ ..." as part of an explanatory block — that is
+# prose about a decision, not a claim that the run passed, and matching it
+# would be a check firing on the wrong thing.
+own_banner = [t for t in TESTS
+              if re.search(r"^\s*print\((?:f)?[\"']✅",
+                           open(f"{ROOT}/{t}", encoding="utf-8").read(), re.M)]
+ck("no test file prints its own success banner", not own_banner,
+   "still printing in: " + ", ".join(own_banner) if own_banner else
+   "the harness owns the verdict")
+
 ck("no test file carries its own exit gate", not own_gate,
    "still gating in: " + ", ".join(own_gate) if own_gate else
    "rule 97 is unwritable, not merely forbidden")

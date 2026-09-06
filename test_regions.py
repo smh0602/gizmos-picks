@@ -100,5 +100,3 @@ try:
 finally:
     shutil.rmtree(root, ignore_errors=True)
 
-print()
-print("✅ the batter side can take the five-book pull")

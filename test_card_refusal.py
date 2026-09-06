@@ -129,5 +129,3 @@ rc6, out6 = run(2, refused=False)
 ck(rc6 == 0, "everything current -> green", f"rc={rc6}")
 ck("PASS" in out6, "  and says so")
 
-print()
-print("✅ a refused card is quiet while somebody is acting, loud once nobody is")

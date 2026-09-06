@@ -142,5 +142,3 @@ eq(doc["kind"], "DESCRIPTIVE", "kind is DESCRIPTIVE, not MODEL")
 eq(doc["test"], "T48", "carries its test number")
 eq("LOWER IS BETTER" in doc["note"], True, "the sign convention travels")
 
-print()
-print("✅ build_def_epa OK")

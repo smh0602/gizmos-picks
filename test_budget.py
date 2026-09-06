@@ -92,5 +92,3 @@ eq(6 * fires("20 */6 * * 4,5,6") * _slots("4,5,6", 7), 72,
 eq(6 * fires("25 */6 * * 0,1,4") * _slots("0,1,4", 7), 72,
    "NFL line movement, credits/week")
 
-print()
-print("✅ budget cron arithmetic OK")

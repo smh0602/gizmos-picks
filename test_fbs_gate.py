@@ -129,6 +129,3 @@ eq(C.FB_PROPS_WINDOW_H > 0, True, "a window is set at all")
 eq(C.FB_PROPS_WINDOW_H <= 24, True,
    "and it is short enough that two daily pulls do not re-buy a slate")
 
-print()
-print("✅ FBS gate OK — one FBS side is enough, FCS-vs-FCS dropped, "
-      "broken join spends nothing")

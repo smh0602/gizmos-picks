@@ -3461,14 +3461,21 @@ function fbTopPlays(C, shownPicks){
       <div class="note" style="margin-top:10px">
         &#9898; <b>Every number here is the player's own record</b>, exactly
         as on the board above &mdash; not a projection and not a model
-        output. ${m.distinct_games ? `These ${t.length} plays come from
+        output. ${m.one_per_game ? `<b>One play per game</b>, so these
+        ${t.length} come from <b>${t.length}</b> different game${
+          t.length === 1 ? '' : 's'} &mdash; no game appears twice.
+        &#9888;&#65039; That is why the list is <b>${t.length}</b> and not
+        ${m.cap}: with one per game the cap is a ceiling a slate rarely
+        reaches, and <b>nothing is padded to fill it</b>.`
+        : (m.distinct_games ? `These ${t.length} plays come from
         <b>${m.distinct_games}</b> game${m.distinct_games === 1 ? '' : 's'};
         that is concentration worth seeing before you treat the list as
-        twenty independent bets.` : ''}
-        ${m.same_player_already_listed ? `<br><b>${m.same_player_already_listed}</b>
-        row(s) were skipped because that player was already listed &mdash; a
-        top-${m.cap} that repeats a player is a shorter list wearing a bigger
-        number.` : ''}
+        ${m.cap} independent bets.` : '')}
+        ${(m.same_player_already_listed || m.same_game_already_listed)
+          ? `<br><b>${m.same_game_already_listed || 0}</b> row(s) were held
+             back because their game was already on the list, and
+             <b>${m.same_player_already_listed || 0}</b> because the player
+             was.` : ''}
       </div></div>`;
 }
 

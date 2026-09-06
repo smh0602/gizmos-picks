@@ -533,8 +533,20 @@ def build_top_plays(rows, board, n=TOP_N):
     from the same snapshot -- so the strings match by construction rather
     than by matching. ⛔ If a third source is ever joined here it needs its
     own gate, exactly as the projections map does.
+
+    🔴 AND ONE PLAY PER GAME. `[Sam's decision, 2026-09-06]` Asked whether
+    this should be forced to diversify, he chose ONE PER GAME.
+    ⛔ THE MEASUREMENT THAT PUT THE QUESTION TO HIM: a payable, deduped
+    top-20 shared **18 of its 20 players** with the board's own first 20
+    rows -- it was very nearly a second copy of the head of the board.
+    ✅ One per game makes it a genuinely different list. ⚠️ AND IT COSTS
+    ROWS, WHICH IS THE HONEST TRADE: today's 20 came from 12 games, so a
+    one-per-game list is TWELVE plays, not twenty. The cap becomes a
+    ceiling the slate rarely reaches rather than a number always hit.
+    ⛔ Nothing is padded to get back to 20. Fewer, more independent rows
+    is what was chosen.
     """
-    pool, dropped_price, dropped_dupe = [], 0, 0
+    pool, dropped_price, dropped_dupe, dropped_game = [], 0, 0, 0
     for x in rows:
         if x.get("price") is None or x.get("confidence") is None:
             continue
@@ -544,13 +556,23 @@ def build_top_plays(rows, board, n=TOP_N):
         pool.append(x)
     pool.sort(key=lambda x: -x["confidence"])
 
-    seen, out = set(), []
+    seen, seen_games, out = set(), set(), []
     for x in pool:
         who = x.get("player")
+        gid = x.get("game_id")
         if who in seen:
             dropped_dupe += 1
             continue
+        # ⛔ COUNTED SEPARATELY FROM THE PLAYER DEDUP. "his team-mate is
+        # already listed" and "he is already listed" are different facts,
+        # and a report that merges them cannot tell you which rule is
+        # shaping the list.
+        if gid is not None and gid in seen_games:
+            dropped_game += 1
+            continue
         seen.add(who)
+        if gid is not None:
+            seen_games.add(gid)
         out.append(x)
         if len(out) >= n:
             break
@@ -564,6 +586,8 @@ def build_top_plays(rows, board, n=TOP_N):
     meta = {
         "below_payable_floor": dropped_price,
         "same_player_already_listed": dropped_dupe,
+        "same_game_already_listed": dropped_game,
+        "one_per_game": True,
         "price_floor": TOP_PRICE_FLOOR,
         "pool_after_price_gate": len(pool),
         "cap": n,
@@ -905,9 +929,10 @@ def main():
     top_plays, top_meta = build_top_plays(rows, board)
     if top_plays:
         log(f"  top plays: {len(top_plays)} of {top_meta['pool_after_price_gate']} "
-            f"payable rows across {top_meta['distinct_games']} game(s); "
-            f"{top_meta['same_player_already_listed']} row(s) skipped as a "
-            f"repeat player; {top_meta['shared_with_board_head']} of "
+            f"payable rows, ONE PER GAME across {top_meta['distinct_games']} "
+            f"game(s); {top_meta['same_player_already_listed']} skipped as a "
+            f"repeat player and {top_meta['same_game_already_listed']} as a "
+            f"repeat game; {top_meta['shared_with_board_head']} of "
             f"{top_meta['board_head_size']} players shared with the board's head")
     else:
         log("  top plays: none — no row on this board carries a record, and "
@@ -989,21 +1014,24 @@ def main():
         "top_plays": top_plays,
         "top_plays_excluded": top_meta,
         "top_plays_rule": (
-            f"The {len(top_plays)} most likely to hit for {slate}, one row "
-            f"per player, among rows priced better than {TOP_PRICE_FLOOR} "
-            f"— Sam's rule for the MLB list: likely AND payable. "
-            f"⚠️ On football this is a HIGHLIGHT of the board, not a second "
-            f"opinion: it is drawn from the same rows and ranked by the "
-            f"same number. {top_meta['shared_with_board_head']} of its "
-            f"{top_meta['board_head_size']} players are already in the "
-            f"board's first {top_meta['board_head_size']} rows. "
-            f"What it adds is one row per player — the board carries "
-            f"repeats, this does not — and "
-            + (f"{top_meta['below_payable_floor']} row(s) were dropped by "
-               f"the price gate."
-               if top_meta["below_payable_floor"] else
-               f"the price gate dropped nothing, because football props "
-               f"price near even.")
+            f"The {len(top_plays)} most likely to hit for {slate} — "
+            f"ONE PLAY PER GAME and one per player, among rows priced "
+            f"better than {TOP_PRICE_FLOOR}. Sam's rule for the MLB list "
+            f"is likely AND payable; he added one-per-game on 2026-09-06 "
+            f"after the list was measured at 18 of 20 players shared with "
+            f"the board's own first rows. "
+            f"⚠️ It is now {top_meta['shared_with_board_head']} of "
+            f"{top_meta['board_head_size']}, over "
+            f"{top_meta['distinct_games']} game(s). "
+            + (f"{top_meta['same_game_already_listed']} row(s) were held "
+               f"back because their game was already represented"
+               if top_meta["same_game_already_listed"] else
+               "No row was held back for a repeat game")
+            + (f" and {top_meta['same_player_already_listed']} because the "
+               f"player was. " if top_meta["same_player_already_listed"]
+               else ". ")
+            + f"⛔ Nothing is padded back to {TOP_N}: fewer, more "
+              f"independent rows is the point."
             if top_plays else
             f"No top plays for {slate}. ⛔ Not because the board is empty — "
             f"because no row on it carries a record, and ranking those by "

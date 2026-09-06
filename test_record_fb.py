@@ -383,5 +383,3 @@ ck("an em-dash is still used for 'nothing graded'",
 
 # ───────────────────────────────────────────────────────────────
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE. Rule 97.
-print()
-print("✅ all football-grader tests passed")

@@ -174,5 +174,3 @@ eq(got["obj"]["n"], 1, "🔴 the same headline from two feeds is stored ONCE")
 eq(got["obj"]["items"][0]["published"], "2026-09-02T18:00:00Z",
    "  ...and the copy kept is the NEWER one")
 
-print()
-print("✅ news collector OK — MLB untouched, football fails closed")

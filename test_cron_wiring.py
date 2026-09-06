@@ -186,5 +186,3 @@ else:
     ck("cancel-in-progress: true" in wf,
        "   and the newest MLB run still replaces the heartbeat loop")
 
-print()
-print("✅ cron wiring: all checks passed")

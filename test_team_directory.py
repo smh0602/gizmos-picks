@@ -164,5 +164,3 @@ finally:
     os.chdir(cwd)
     shutil.rmtree(root, ignore_errors=True)
 
-print()
-print("✅ team directory: all checks passed")

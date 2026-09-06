@@ -197,5 +197,3 @@ print("\n7. ⛔ MLB IS NOT TOUCHED BY THIS GATE")
 eq(run("mlb", board(15, hours_out=300), kind="pitcher"), 15,
    "🔴 a far-out MLB board is still priced, exactly as before")
 
-print()
-print("✅ slate window OK — the 272-game board spends nothing, MLB untouched")

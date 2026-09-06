@@ -151,5 +151,3 @@ eq(w["path"].endswith("data/ncaaf/latest/props.json.gz"), True,
    "🔴 written to the LEAGUE's directory, not MLB's")
 eq(out["n_props"], 1, "counts its rungs")
 
-print()
-print("✅ football props board OK")

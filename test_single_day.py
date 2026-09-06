@@ -276,5 +276,3 @@ finally:
 # ───────────────────────────────────────────────────────────────
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE. Rule 97: anything
 #    written below it reports red and the file still exits 0.
-print()
-print("✅ all single-day board tests passed")

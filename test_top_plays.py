@@ -113,6 +113,30 @@ if ck("the builder produces a card", C is not None):
     ck("one row per player — no repeats",
        len({x["player"] for x in T}) == len(T),
        "%d distinct of %d" % (len({x['player'] for x in T}), len(T)))
+
+    # 🔴 ONE PLAY PER GAME. `[Sam's decision, 2026-09-06]` The list was
+    # measured at 18 of 20 players shared with the board's own first rows
+    # — very nearly a second copy of it — and he chose to force it apart.
+    # ⛔ THIS IS THE CHECK THAT MAKES IT A DIFFERENT LIST rather than a
+    # relabelled one.
+    gids = [x.get("game_id") for x in T]
+    ck("ONE PLAY PER GAME — no game appears twice",
+       len(set(gids)) == len(gids),
+       "%d distinct game(s) across %d play(s)" % (len(set(gids)), len(gids)))
+    ck("the card declares the one-per-game rule for the page to read",
+       M.get("one_per_game") is True)
+    ck("rows held back for a repeat GAME are counted separately from a "
+       "repeat PLAYER",
+       "same_game_already_listed" in M and "same_player_already_listed" in M,
+       "%s by game, %s by player — different facts, different counts"
+       % (M["same_game_already_listed"], M["same_player_already_listed"]))
+    # ⚠️ AND THE COST IS ASSERTED, NOT GLOSSED. One per game means the cap
+    # is a ceiling the slate rarely reaches; a list still pinned at 20
+    # would mean the rule is not biting.
+    ck("nothing is padded back up to the cap",
+       len(T) <= min(card_fb.TOP_N, len(set(gids))),
+       "%d play(s) from %d game(s), cap %d"
+       % (len(T), len(set(gids)), card_fb.TOP_N))
     ck("nothing is priced at or worse than the payable floor",
        all(x["price"] > card_fb.TOP_PRICE_FLOOR for x in T),
        "shortest price on the list %+d" % min(x["price"] for x in T))
@@ -132,9 +156,12 @@ if ck("the builder produces a card", C is not None):
          "(a row can be top-20 by confidence and still miss a 50-row board "
          "that is itself capped)" % (len(T) - len(strays), len(T), len(strays)))
 
+    # ⚠️ THE SENTENCE MUST CARRY THE *CURRENT* OVERLAP, NOT THE ONE THAT
+    # PROMPTED THE CHANGE. A rule that quotes the number it was built to
+    # fix, forever, is a rule describing a version that no longer exists.
     ck("the rule sentence carries the measured overlap, not a claim",
        str(M["shared_with_board_head"]) in C["top_plays_rule"]
-       and "HIGHLIGHT" in C["top_plays_rule"],
+       and "ONE PLAY PER GAME" in C["top_plays_rule"],
        "%d of %d players shared with the board's head"
        % (M["shared_with_board_head"], M["board_head_size"]))
     note("%d payable rows in the pool, %d game(s) represented, %d repeat "
@@ -185,13 +212,29 @@ if ck("a board whose name join fails still builds", MK is not None):
        MK["top_plays_rule"][:70])
 
 # ⚠️ The cap must hold even when the pool is enormous.
+# ⚠️ ONE GAME PER PLAY MEANS THE FIXTURE NEEDS ENOUGH GAMES. The first
+# version of this gave 500 rows only FOUR game ids and then asserted the
+# cap was reached — which the one-per-game rule correctly refuses. ⛔ The
+# expectation was stale, not the code; both shapes are checked now.
 big = [{"player": "P%d" % i, "price": -110, "confidence": 90 - i % 30,
-        "game_id": "g%d" % (i % 4)} for i in range(500)]
+        "game_id": "g%d" % i} for i in range(500)]
 plays, meta = card_fb.build_top_plays(big, [])
-ck("the cap holds on a 500-row pool", len(plays) == card_fb.TOP_N,
-   "%d" % len(plays))
+ck("the cap holds on a 500-row pool with 500 games",
+   len(plays) == card_fb.TOP_N, "%d" % len(plays))
 ck("dedup holds on a 500-row pool",
    len({x["player"] for x in plays}) == len(plays))
+
+# 🔴 AND THE RULE BITES WHEN THE SLATE IS SMALL, which is the whole cost
+# of Sam's choice: four games can only ever produce four top plays.
+few = [{"player": "Q%d" % i, "price": -110, "confidence": 90 - i % 30,
+        "game_id": "g%d" % (i % 4)} for i in range(500)]
+plays4, meta4 = card_fb.build_top_plays(few, [])
+ck("a four-game slate yields exactly four top plays", len(plays4) == 4,
+   "%d — one per game, not padded toward the cap of %d"
+   % (len(plays4), card_fb.TOP_N))
+ck("and the rows held back for a repeat game are counted",
+   meta4["same_game_already_listed"] > 0,
+   "%d" % meta4["same_game_already_listed"])
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 4. THE HONEST FINDING, RE-MEASURED RATHER THAN TRUSTED ═══")
@@ -211,10 +254,15 @@ else:
          "the board's — the 'highlight, not a second opinion' wording holds")
 
 if C:
-    ck("the card's own wording matches what the gate actually did",
-       (M["below_payable_floor"] > 0) ==
-       ("were dropped by the price gate" in C["top_plays_rule"]),
-       "gate dropped %d" % M["below_payable_floor"])
+    # ⚠️ The sentence now reports the GAME dedup rather than the price
+    # gate, because one-per-game is what actually shapes this list —
+    # the price gate drops ~1 row of 384 on football.
+    ck("the card's own wording reports the rule that actually shaped it",
+       (M["same_game_already_listed"] > 0) ==
+       ("held back because their game was already represented"
+        in C["top_plays_rule"]),
+       "%d row(s) held back for a repeat game"
+       % M["same_game_already_listed"])
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 5. THE PAGE PRINTS IT, AND DOES NOT RE-DERIVE IT ═══")
@@ -240,5 +288,3 @@ ck("Gizmo's Picks calls it, at the bottom",
 
 # ───────────────────────────────────────────────────────────────
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE. Rule 97.
-print()
-print("✅ all top-plays tests passed")
