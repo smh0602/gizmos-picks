@@ -125,6 +125,37 @@ ck("⛔ Washington State is NOT mistaken for Washington",
 
 print("\n-- and it still fails closed on names it cannot resolve --")
 junk = [ev(f"Team {i} FC", f"Club {i}") for i in range(10)]
-k2, w2 = collect.filter_power4(junk, quiet)
+# ⚠️ IN A THROWAWAY DIRECTORY. `[fixed 2026-09-06]` The fail-closed
+# branch WRITES `data/ncaaf/latest/event-names.txt` — a real diagnostic,
+# and the right thing for the collector to do — but the tests run in the
+# same CI job that then does `git add data/`, so this test was committing
+# a file built from ten fake teams called "Team 3 FC".
+# ⛔ `filter_power4` writes to a RELATIVE path, so moving the cwd is
+# enough; nothing about the code under test changes.
+import shutil     # noqa: E402
+import tempfile   # noqa: E402
+_sandbox = tempfile.mkdtemp()
+# ⚠️ THE DATA COMES WITH IT. `filter_power4` re-reads the CFBD player
+# files from a RELATIVE path, so a bare temp directory would send it down
+# a different refusal branch — "no players file has 40+ Power 4 teams"
+# instead of "these names do not resolve" — and the check below would
+# pass for the wrong reason. ⛔ A sandbox that changes which branch runs
+# is not a sandbox, it is a different test.
+shutil.copytree(f"{os.path.dirname(os.path.abspath(__file__))}/data/ncaaf",
+                f"{_sandbox}/data/ncaaf")
+_cwd = os.getcwd()
+try:
+    os.chdir(_sandbox)
+    k2, w2 = collect.filter_power4(junk, quiet)
+finally:
+    os.chdir(_cwd)
 ck("unrecognisable names spend NOTHING", k2 == [] and w2 is not None)
+# ✅ AND THE DIAGNOSTIC IS STILL WRITTEN. Moving the write out of the
+#    repo must not quietly delete the thing that makes a name-join
+#    failure legible — so this asserts it landed in the sandbox.
+_diag = f"{_sandbox}/data/ncaaf/latest/event-names.txt"
+ck("...and the two name lists are still written for comparison",
+   os.path.exists(_diag)
+   and "Team 0 FC" in open(_diag, encoding="utf-8").read(),
+   "in the throwaway tree, where a fake board belongs")
 

@@ -793,6 +793,19 @@ def build_schedule(season, log=log):
         al = g.get("awayLineScores") or None
         out.append({
             "id": str(g.get("id")),
+            # 🔴 THE SHARED JOIN KEY TO ESPN'S LIVE SCOREBOARD, so ONE
+            # renderer can light up either league. `[added 2026-09-06]`
+            # ⚠️ FOR COLLEGE IT IS THE SAME ID RESTATED, not a second
+            # value: the live probe measured ESPN's scoreboard against
+            # this file and **25 of 25 event ids WERE our game ids**.
+            # ⛔ THAT IS ONE EVENING'S SAMPLE, NOT A GUARANTEE — which is
+            # why the probe reports `ids_in_common` against `espn_events`
+            # on every run. If CFBD ever stops mirroring ESPN's id, that
+            # number drops below 100% and says so.
+            # ⚠️ NFL is the case where the two genuinely differ: its id is
+            # nflverse's `2026_01_NE_SEA`, and `nfl.py` fills this key
+            # from nflverse's own `espn` COLUMN instead.
+            "espn": str(g.get("id")) if g.get("id") is not None else None,
             "week": g.get("week"),
             "season_type": st,
             "start": g.get("startDate"),

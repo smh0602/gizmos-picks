@@ -49,6 +49,45 @@ FAILURES = []
 _CHECKS = [0]
 _NOTES = []
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 AND THE THIRD DEFECT, FOUND ON 2026-09-06 AND LIVE IN PRODUCTION:
+#    TWO TEST FILES WERE WRITING THE PRODUCT'S OWN PUBLISHED ARTIFACTS.
+# ══════════════════════════════════════════════════════════════════════
+# `test_record_fb.py` called `record_fb.main()` in the repo root, and
+# `test_p4.py` drove the Power-4 gate into its fail-closed branch, which
+# writes a diagnostic file. ⛔ THE TESTS RUN IN THE SAME CI JOB THAT
+# LATER RUNS `git add data/ picks/` — so `data/ncaaf/latest/record.json`
+# was being rewritten and COMMITTED by every collect run of every league,
+# including MLB's.
+# 🔴 THE REAL DAMAGE IS NOT THE CONTENT, IT IS THE MONITOR. The freshness
+# contract watches that file's age to prove the GRADER ran. A test that
+# rewrites it every hour makes that row permanently green — a check that
+# can no longer fail, which is rule 67 wearing an artifact for a costume.
+# ✅ So the guard lives HERE, where every test file already imports it,
+# rather than in a rule nobody can enforce.
+# ⚠️ (path, size, mtime), not content hashes: 1,066 files in 19ms.
+_WATCH = ("data", "picks")
+
+
+def _snapshot():
+    seen = {}
+    for root in _WATCH:
+        for d, _, fs in os.walk(root):
+            for f in fs:
+                p = os.path.join(d, f)
+                try:
+                    s = os.stat(p)
+                    seen[p] = (s.st_size, s.st_mtime_ns)
+                except OSError:
+                    pass
+    return seen
+
+
+# ⚠️ TAKEN AT IMPORT, from whatever directory the test was started in. A
+# file run from somewhere with no data/ simply watches nothing, which is
+# the correct behaviour for a fixture tree, not a reason to fail.
+_BEFORE = _snapshot()
+
 
 def _order(a, b):
     """(name, cond) from either order. ⛔ Raises rather than guessing."""
@@ -128,6 +167,26 @@ def _gate():
     remaining hooks and buffers, so the flush is done by hand first.
     """
     try:
+        # 🔴 DID THIS FILE WRITE THE PRODUCT? Checked BEFORE the summary,
+        # so a side effect is a failure like any other and cannot hide
+        # behind a green count.
+        after = _snapshot()
+        touched = sorted(p for p in set(_BEFORE) | set(after)
+                         if _BEFORE.get(p) != after.get(p))
+        if touched:
+            _CHECKS[0] += 1
+            name = ("🔴 this test MODIFIED %d file(s) under data/ or picks/ "
+                    "— a test must not write the product" % len(touched))
+            print("  ❌ " + name)
+            for p in touched[:8]:
+                kind = ("added" if p not in _BEFORE else
+                        "deleted" if p not in after else "rewritten")
+                print(f"     - {p}  ({kind})")
+            print("     ⛔ Run it in a temp tree instead. These files are "
+                  "committed by the same CI job that runs the tests, and an "
+                  "artifact a test keeps fresh is a freshness row that can "
+                  "never go red.")
+            FAILURES.append(name)
         if FAILURES:
             print(f"\n❌ {len(FAILURES)} of {_CHECKS[0]} checks FAILED")
             for f in FAILURES:

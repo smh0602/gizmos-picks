@@ -171,3 +171,45 @@ eq(len(_sched) > 0, True, "build_schedule runs in its own season loop")
 eq(_both, [],
    "🔴 no loop contains BOTH build_logs and build_schedule")
 
+
+
+# ══════════════════════════════════════════════════════════════════════
+print("\n8. 🔴 THE `espn` JOIN KEY — WHAT A LIVE SCORES TAB WOULD RIDE ON")
+# `[added 2026-09-06, after the live probe ran for real]`
+# ⛔ THE PROBE MEASURED THE PROBLEM THIS KEY EXISTS TO FIX: ESPN's
+#    scoreboard joined 25 of 25 college events against our `id`, and
+#    0 OF 16 NFL EVENTS, because our NFL id is nflverse's
+#    `2026_01_NE_SEA` and ESPN's is `401872656`.
+# ✅ nflverse publishes the ESPN id as a COLUMN OF THE SAME FILE we
+#    already download. This pins that we carry it, and that a blank
+#    stays None rather than becoming the string "None" or "nan" — a
+#    consumer joining on it must be able to tell "no id" from an id.
+c8, _ = cfb_run([{"id": 401856660, "week": 2,
+                  "startDate": "2026-09-06T01:40:00.000Z",
+                  "homeTeam": "LSU", "awayTeam": "Clemson",
+                  "homePoints": 3, "awayPoints": 3, "completed": False}])
+eq(c8["games"][0]["espn"], "401856660",
+   "🔴 CFB: the ESPN key is the CFBD id — the probe measured them EQUAL")
+eq(c8["games"][0]["espn"], c8["games"][0]["id"],
+   "  ...i.e. the same id restated, NOT a second value")
+
+n8, _ = nfl_run([
+    {"season": "2026", "week": "1", "gameday": "2026-09-09",
+     "gametime": "20:20", "game_id": "2026_01_NE_SEA",
+     "home_team": "SEA", "away_team": "NE", "espn": "401872656"},
+    # ⚠️ A ROW WITH NO ESPN ID IS A REAL STATE, not an error.
+    {"season": "2026", "week": "1", "gameday": "2026-09-13",
+     "gametime": "13:00", "game_id": "2026_01_TB_CIN",
+     "home_team": "CIN", "away_team": "TB", "espn": ""},
+    {"season": "2026", "week": "1", "gameday": "2026-09-13",
+     "gametime": "13:00", "game_id": "2026_01_NO_DET",
+     "home_team": "DET", "away_team": "NO", "espn": "nan"},
+])
+m8 = {x["id"]: x for x in n8["games"]}
+eq(m8["2026_01_NE_SEA"]["espn"], "401872656",
+   "🔴 NFL: nflverse's own espn column is carried through")
+eq(m8["2026_01_NE_SEA"]["espn"] != m8["2026_01_NE_SEA"]["id"], True,
+   "  ...and it is genuinely a DIFFERENT id from ours")
+eq(m8["2026_01_TB_CIN"]["espn"], None, "an empty cell stays None")
+eq(m8["2026_01_NO_DET"]["espn"], None,
+   "⛔ and the string 'nan' is None too — pandas' empty, not an id")

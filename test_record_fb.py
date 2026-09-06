@@ -125,10 +125,31 @@ os.environ["LEAGUE"] = "ncaaf"
 sys.path.insert(0, ROOT)
 import record_fb  # noqa: E402
 
-rc = record_fb.main()
+# 🔴 IN A THROWAWAY COPY, NOT THE REPO. `[fixed 2026-09-06]`
+# ⛔ THIS USED TO RUN THE GRADER IN THE REPO ROOT, so every CI run
+# rewrote `data/ncaaf/latest/record.json` — and the tests run in the SAME
+# JOB that later does `git add data/ picks/`, so the file was being
+# COMMITTED by every collect run of every league, MLB included. Measured
+# on live main: `built_at` 04:16:46Z inside a `collect[mlb]` commit.
+# 🔴 THE CONTENT WAS FINE; THE MONITOR WAS NOT. The freshness contract
+# watches that file's age to prove THE GRADER ran, and a test rewriting
+# it hourly makes that row permanently green — a check that can no longer
+# fail. `tcheck.py` now refuses any test that writes under data/ or
+# picks/, which is the shape fix rather than a rule.
+import shutil      # noqa: E402
+import tempfile    # noqa: E402
+_tmp = tempfile.mkdtemp()
+shutil.copytree(f"{ROOT}/data/ncaaf", f"{_tmp}/data/ncaaf")
+shutil.copytree(f"{ROOT}/picks", f"{_tmp}/picks")
+_cwd = os.getcwd()
+try:
+    os.chdir(_tmp)
+    rc = record_fb.main()
+finally:
+    os.chdir(_cwd)
 ck("record_fb exits clean", rc == 0)
-R = load(f"{ROOT}/data/ncaaf/latest/record.json")
-D = load(f"{ROOT}/data/ncaaf/latest/record-detail.json.gz")
+R = load(f"{_tmp}/data/ncaaf/latest/record.json")
+D = load(f"{_tmp}/data/ncaaf/latest/record-detail.json.gz")
 ck("it writes both the totals and the per-row detail",
    bool(R.get("overall")) and bool(D.get("days")))
 ck("the record is labelled DESCRIPTIVE and RECORD, never MODEL",

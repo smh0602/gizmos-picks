@@ -1109,6 +1109,23 @@ def build_schedule(season, seen=None, log=print, lines=None):
         tm = (g.get(gt) or "") if gt else ""
         out.append({
             "id": g.get("game_id"),
+            # 🔴 ESPN'S OWN EVENT ID, AND IT IS FREE — nflverse already
+            # publishes it as a column of the SAME `games.csv.gz` this
+            # function is already reading. `[added 2026-09-06]`
+            # ⚠️ WHY IT IS HERE: the live probe measured ESPN's scoreboard
+            # joining 0 of 16 NFL events against our `game_id`
+            # (`2026_01_NE_SEA` is nflverse's id space, not ESPN's) while
+            # joining 25 of 25 for college, where CFBD's id IS the ESPN
+            # id. ⛔ The fix is a column we already download, not a
+            # name-and-date matcher.
+            # ✅ MEASURED before adding: 272 of 272 rows of the 2026
+            # season carry it, and 401872656 is NE@SEA in both ESPN's
+            # response and nflverse's file.
+            # ⚠️ None-SAFE ON PURPOSE. A blank cell stays None rather than
+            # becoming the string "None" or "nan", because a consumer
+            # joining on it must be able to tell "no id" from an id.
+            "espn": (str(g.get("espn")).strip() or None
+                     if g.get("espn") not in (None, "", "NA", "nan") else None),
             "week": _i(g.get("week")),
             "season_type": g.get("game_type") or g.get("season_type") or "",
             # ⚠️ nflverse gives a LOCAL date and a LOCAL time in separate
