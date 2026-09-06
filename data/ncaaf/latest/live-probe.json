@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-09-06T17:57:58Z",
+ "written_at": "2026-09-06T20:57:19Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -68,14 +68,14 @@
    "geoBroadcasts",
    "highlights",
    "id",
+   "leaders",
    "neutralSite",
    "notes",
-   "odds",
    "playByPlayAvailable",
    "recent",
+   "situation",
    "startDate",
    "status",
-   "tickets",
    "timeValid",
    "type",
    "uid",
@@ -100,6 +100,7 @@
    "curatedRank",
    "homeAway",
    "id",
+   "linescores",
    "order",
    "records",
    "score",
@@ -136,13 +137,31 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "pre": 4,
+  "in": 1,
+  "pre": 3,
   "post": 95
  },
- "in_progress": 0,
- "live_sample": [],
- "live_state_fields": null,
- "live_state_note": "\u26a0\ufe0f NOTHING WAS IN PROGRESS when this ran, so whether the feed carries a moving clock is NOT ANSWERED. Re-run while games are on. \u26d4 Do not read a full slate of finals as evidence either way.",
+ "in_progress": 1,
+ "live_sample": [
+  {
+   "id": "401858437",
+   "away": "Washington State Cougars",
+   "home": "Washington Huskies",
+   "away_score": "0",
+   "home_score": "3",
+   "state": "in",
+   "detail": "12:52 - 2nd",
+   "clock": "12:52",
+   "period": 2,
+   "start": "2026-09-06T20:00Z"
+  }
+ ],
+ "live_state_fields": {
+  "with a running clock": 1,
+  "with a period": 1,
+  "with both scores": 1,
+  "of": 1
+ },
  "join": {
   "our_schedule_season": 2026,
   "our_games": 3680,
@@ -251,13 +270,22 @@
   "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
  },
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
- "refresh_check": null,
- "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
+ "refresh_check": {
+  "seconds_apart": 45,
+  "live_games_compared": 1,
+  "games_whose_clock_or_period_changed": 1,
+  "example": {
+   "id": "401858437",
+   "was": "12:52 Q2",
+   "now": "12:36 Q2"
+  },
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 1 of 1 live games in 45s, so the feed is live enough for a polling tab"
+ },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=1",
+  "cache_control": "max-age=5",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "99 events via [groups=80 (FBS)], 0 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 10.8% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "99 events via [groups=80 (FBS)], 1 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 10.8% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
