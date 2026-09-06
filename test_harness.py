@@ -135,3 +135,62 @@ ck("...and it printed the failure while doing so",
    "FAIL appended below the gate" in r.stdout.replace("  ", " ")
    or "appended below the gate" in r.stdout,
    "a red line and a green run — indistinguishable from a pass in CI")
+
+
+# ══════════════════════════════════════════════════════════════════════
+print("\n═══ 4. 🔴 NO TEST MAY NEED A PACKAGE THE RUNNER DOES NOT HAVE ═══")
+# ⛔ THIS SHIPPED AND TURNED THE COLLECTOR RED. `[2026-09-06]`
+# `test_live_scores.py` imported Playwright at the top. **The runner
+# installs a bare Python** (`actions/setup-python@v5`, no pip step), so
+# the import failed on every run — and on a PUSH the test step BLOCKS,
+# so nothing was collected either.
+# 🔴 AND THE WARNING WAS ALREADY WRITTEN, ONE FILE EARLIER.
+# `test_multileague.py` refuses to import PyYAML for exactly this reason
+# and says so in its own docstring. **Knowing the rule did not stop me
+# breaking it, which is what makes it a SHAPE problem** (rule 114).
+# ✅ SO IT IS CHECKED. A top-level import of anything that is not stdlib
+# and not a file in this repo fails the suite.
+# ⚠️ AN OPTIONAL IMPORT INSIDE `try: … except ImportError:` IS FINE and
+# is the correct pattern — that is how a browser test runs everywhere:
+# the checks that need no browser always run, the rest run where they
+# can, and the skip is loud.
+import ast as _ast   # noqa: E402
+
+_repo = {os.path.splitext(f)[0] for f in os.listdir(ROOT) if f.endswith(".py")}
+_std = getattr(sys, "stdlib_module_names", set())
+_offenders = []
+for _f in sorted(glob.glob(os.path.join(ROOT, "test_*.py"))):
+    _tree = _ast.parse(open(_f, encoding="utf-8").read())
+    # every import that is NOT inside a try block
+    _guarded = set()
+    for _n in _ast.walk(_tree):
+        if isinstance(_n, _ast.Try):
+            for _c in _ast.walk(_n):
+                if isinstance(_c, (_ast.Import, _ast.ImportFrom)):
+                    _guarded.add(id(_c))
+    for _n in _ast.walk(_tree):
+        if id(_n) in _guarded:
+            continue
+        _names = ([a.name for a in _n.names] if isinstance(_n, _ast.Import)
+                  else [_n.module or ""] if isinstance(_n, _ast.ImportFrom)
+                  else [])
+        for _nm in _names:
+            _top = _nm.split(".")[0]
+            if _top and _top not in _std and _top not in _repo:
+                _offenders.append(f"{os.path.basename(_f)} imports {_top}")
+
+ck("🔴 no test file imports a third-party package at the top level",
+   not _offenders,
+   str(_offenders) + "  ⛔ the runner has stdlib and this repo, nothing "
+   "else — guard it with try/except ImportError and skip LOUDLY")
+
+# ✅ AND THE CHECK IS PROVEN TO BITE, rather than asserted to work.
+_d = tempfile.mkdtemp()
+_p = os.path.join(_d, "test_planted_import.py")
+open(_p, "w").write("import numpy\nfrom tcheck import ck\nck('x', True)\n")
+_tree = _ast.parse(open(_p).read())
+_hit = [n for n in _ast.walk(_tree) if isinstance(n, _ast.Import)
+        and n.names[0].name.split(".")[0] not in _std
+        and n.names[0].name.split(".")[0] not in _repo]
+ck("...and the same rule flags a planted third-party import",
+   len(_hit) == 1, "a check that cannot fail is not a check (rule 67)")
