@@ -1,0 +1,136 @@
+{
+ "built_at": "2026-09-06T00:06:23Z",
+ "league": "ncaaf",
+ "kind": "DESCRIPTIVE",
+ "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
+ "basis": "RECORD",
+ "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
+ "overall": {
+  "w": 8,
+  "n": 17,
+  "pct": 47.1
+ },
+ "by_market": {
+  "player_anytime_td": {
+   "w": 1,
+   "n": 1,
+   "pct": 100.0
+  },
+  "player_pass_yds": {
+   "w": 0,
+   "n": 1,
+   "pct": 0.0
+  },
+  "player_reception_yds": {
+   "w": 3,
+   "n": 5,
+   "pct": 60.0
+  },
+  "player_receptions": {
+   "w": 2,
+   "n": 4,
+   "pct": 50.0
+  },
+  "player_rush_yds": {
+   "w": 2,
+   "n": 6,
+   "pct": 33.3
+  }
+ },
+ "by_side": {
+  "over": {
+   "w": 0,
+   "n": 1,
+   "pct": 0.0
+  },
+  "under": {
+   "w": 7,
+   "n": 15,
+   "pct": 46.7
+  },
+  "yes": {
+   "w": 1,
+   "n": 1,
+   "pct": 100.0
+  }
+ },
+ "by_book": {
+  "hardrockbet": {
+   "w": 8,
+   "n": 17,
+   "pct": 47.1
+  }
+ },
+ "calibration": [
+  {
+   "bucket": "50-60%",
+   "stated": 58.0,
+   "w": 2,
+   "n": 3,
+   "pct": 66.7
+  },
+  {
+   "bucket": "60-70%",
+   "stated": 65.6,
+   "w": 1,
+   "n": 5,
+   "pct": 20.0
+  },
+  {
+   "bucket": "70-80%",
+   "stated": 74.5,
+   "w": 2,
+   "n": 4,
+   "pct": 50.0
+  },
+  {
+   "bucket": "80-90%",
+   "stated": 83.5,
+   "w": 2,
+   "n": 4,
+   "pct": 50.0
+  },
+  {
+   "bucket": "90-100%",
+   "stated": 94.0,
+   "w": 1,
+   "n": 1,
+   "pct": 100.0
+  }
+ ],
+ "by_day": [
+  {
+   "date": "2026-09-03",
+   "w": 8,
+   "n": 17,
+   "carded": 50,
+   "voids": 0,
+   "unresolved": 33
+  },
+  {
+   "date": "2026-09-05",
+   "w": 0,
+   "n": 0,
+   "carded": 50,
+   "voids": 0,
+   "unresolved": 50
+  }
+ ],
+ "days_graded": 1,
+ "cards_seen": 2,
+ "distinct_players": 11,
+ "distinct_games": 2,
+ "carded_rows": 100,
+ "voids": 0,
+ "unresolved": 83,
+ "coverage_note": "17 of 100 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 83 could not be settled at all.",
+ "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
+ "detail_file": "data/ncaaf/latest/record-detail.json.gz",
+ "skipped": [
+  {
+   "date": "2026-09-05",
+   "why": "nothing settled yet \u2014 the log does not reach this slate"
+  }
+ ],
+ "join_note": "A pick is joined to a game log by player name and a \u00b11-day window around kickoff. The window is there because the two leagues date a game differently \u2014 college logs a kickoff on its UTC date, so a Thursday night game lands on Friday, while the NFL logs the Eastern one \u2014 and it is safe because a player has at most one game inside any three-day window."
+}
