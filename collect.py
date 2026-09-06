@@ -2067,6 +2067,38 @@ def build_card_fb():
     return None
 
 
+def build_live_probe():
+    """Run `liveprobe.py` — CAN THE FOOTBALL SCORES TAB BE LIVE?
+
+    🔴 THIS MODE DID NOT EXIST UNTIL 2026-09-06, AND THE DOCS SAID IT DID.
+    `claude/football-todo.md` carried *"the `live-probe` mode is built and
+    waiting on one free run from Sam"* for two days; the string appeared
+    ONCE in this repository, inside a comment. Sam dispatched it and the
+    run failed because there was nothing to dispatch. ⛔ Ledger rules
+    25–27: a claim restated until it sounds measured.
+
+    ⛔ FREE — ESPN's public scoreboard, no key. ⚠️ A PROBE: it writes
+    `data/<league>/latest/live-probe.json` and touches nothing else.
+    """
+    if LEAGUE == "mlb":
+        log("live-probe is a FOOTBALL mode; MLB is already live via "
+            "statsapi. Nothing done.")
+        return None
+    import subprocess
+    env = dict(os.environ, LEAGUE=LEAGUE)
+    r = subprocess.run([sys.executable, "liveprobe.py"], env=env,
+                       capture_output=True, text=True)
+    for line in (r.stdout or "").splitlines():
+        log(f"  {line}")
+    if r.returncode != 0:
+        # ⚠️ The report IS still written on a failure — that is the point
+        # of a probe. The non-zero exit says "do not read this as a green
+        # light", and the file says why.
+        raise RuntimeError(f"liveprobe.py exited {r.returncode}: "
+                           f"{(r.stderr or '')[-400:]}")
+    return None
+
+
 def build_record_fb():
     """Run `record_fb.py` for this league — the football grader.
 
@@ -3128,7 +3160,7 @@ def run_mode(mode):
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
-            "fb-scores", "fb-record",
+            "fb-scores", "fb-record", "live-probe",
             "card-fb", "nfl-teams", "cfb-teams")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
@@ -3245,6 +3277,15 @@ def run_mode(mode):
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back. The contract will report the "
                         f"record late until a later run repairs it.")
+        elif mode == "live-probe":
+            # ⛔ FREE, and it WRITES NO PRODUCT FILE — the same contract as
+            # `news-probe`. It answers whether ESPN can drive a live
+            # Scores tab, and the answer turns on ONE measurement: does
+            # ESPN's event id join to the schedule we already store?
+            # ⚠️ RUN IT WHILE GAMES ARE ON. With nothing in progress it
+            # cannot say whether the feed carries a moving clock, and the
+            # report says so rather than guessing.
+            left = build_live_probe()
         elif mode == "fb-record":
             # ══════════════════════════════════════════════════════════
             # 🔴 THE FOOTBALL GRADER. The Track Record tab has existed

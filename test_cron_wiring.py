@@ -186,3 +186,27 @@ else:
     ck("cancel-in-progress: true" in wf,
        "   and the newest MLB run still replaces the heartbeat loop")
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 EVERY MODE THE DISPATCH FORM OFFERS MUST ACTUALLY EXIST.
+# `[added 2026-09-06, after it cost Sam a failed run]` The docs claimed
+# for two days that a `live-probe` mode was "built and waiting on one free
+# run". IT HAD NEVER EXISTED — the string appeared once in the whole
+# repository, inside a COMMENT. Sam typed it into the dispatch form and
+# the run failed, because there was nothing to dispatch.
+# ⛔ NOTHING IN THIS PROJECT CHECKED THAT A MODE NAME WAS REAL. This does.
+# ⚠️ `converge` and `converge-off` are FLAGS, not modes — they change how
+#    the run treats the contract rather than naming something to build.
+_desc = re.search(r'mode:\n(?:.*\n)*?\s*description: "([^"]+)"', wf)
+ck(bool(_desc), "   the dispatch form still has a mode description to read")
+if _desc:
+    _offered = {m.strip() for m in re.split(r"[|\s]+", _desc.group(1))
+                if re.fullmatch(r"[a-z][a-z0-9-]+", m.strip())}
+    _flags = {"converge", "converge-off", "or", "default", "build",
+              "everything", "overdue"}
+    _offered -= _flags
+    _real = set(re.findall(r'mode == "([a-z0-9-]+)"', open("collect.py").read()))
+    _ghost = sorted(_offered - _real)
+    ck(not _ghost,
+       "   every mode the dispatch form offers exists in collect.py",
+       "GHOST MODES: %s — the form would send a run at nothing" % _ghost
+       if _ghost else "%d offered, all real" % len(_offered))
