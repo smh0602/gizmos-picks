@@ -111,6 +111,23 @@ on:
     - cron: "45 1,3,5 * * 1"    # NFL Sun night           — scores
     - cron: "45 1,3,23 * * 2"   # NFL Mon night + MNF     — scores
     - cron: "45 1,3,23 * * 5"   # NFL Thu night           — scores
+    # ══ THE LIVE PROBE — ON A SCHEDULE, BECAUSE ASKING SAM TO RUN IT WAS
+    #    THE WRONG ANSWER TWICE ══
+    # 🔴 SAM, 2026-09-06: *"i shouldnt have to do manual runs... the only
+    # manual uploads i should be doing is setting up recurring actions."*
+    # ⛔ He is right, and the first two dispatches were mine to schedule.
+    # ⚠️ THE TIMES ARE THE WHOLE POINT: a probe that runs when nothing is
+    # in progress CORRECTLY REFUSES to answer, and answers nothing twice
+    # a week. These fire while the ball is actually in the air.
+    # 💰 FREE. ESPN's public scoreboard, no key, no quota. It writes
+    # `data/<lg>/latest/live-probe.json` and touches nothing else.
+    - cron: "50 16 * * 6"       # CFB Sat 12:50pm ET — the noon window
+    - cron: "50 20 * * 6"       # CFB Sat  4:50pm ET — the biggest slate
+    - cron: "50 0 * * 0"        # CFB Sat  8:50pm ET — the night games
+    - cron: "50 17 * * 0"       # NFL Sun  1:50pm ET — the early window
+    - cron: "50 20 * * 0"       # NFL Sun  4:50pm ET — the late window
+    - cron: "50 1 * * 2"        # NFL Mon  9:50pm ET — MNF
+    - cron: "50 1 * * 5"        # NFL Thu  9:50pm ET — TNF
     # ⛔ ~~`35 15 * * 2` Tue 11:35am ET rebuild NFL~~ REMOVED 2026-09-04:
     # unrouted, so it ran MLB. The NFL rebuild is `6 16 * * 2` below,
     # which IS routed and carries SEASON=CUR.
@@ -203,9 +220,21 @@ on:
   workflow_dispatch:
     inputs:
       season:
-        description: "season year, for nfl-logs"
+        # 🔴 ~~default: "2025"~~ STRUCK 2026-09-06 — A STALE CONSTANT, and
+        # Sam is the one who spotted it ("why would we workflow run for
+        # 2025"). It was right while the 2026 NFL season had 272 games
+        # and ZERO finals, so anything derived from finished games could
+        # only be measured against 2025. ⛔ After week 1 it becomes
+        # SILENTLY WRONG: a hand-run `nfl-logs` left on the default would
+        # rebuild LAST season's logs and succeed.
+        # ✅ `CUR` is resolved on the runner, the same way every routed
+        # cron already does it -- a football season is named for the year
+        # it STARTS, so anything before August belongs to the previous
+        # year. A date written into a form goes stale in January and
+        # nothing announces it.
+        description: "season year, for nfl-logs (CUR = this season)"
         required: false
-        default: "2025"
+        default: "CUR"
       league:
         description: "mlb | nfl | ncaaf"
         required: false
@@ -216,7 +245,7 @@ on:
         # almost always what a hand-run is for. Naming a single mode still
         # converges the rest as well -- add `converge-off` after it to run
         # that one mode ALONE (used for nfl-logs).
-        description: "converge (default — build everything overdue) | or: card | record | gamelines | props-pitcher | props-batter | results | pitchers | hitters | lineups | news | news-probe | card-fb | nfl-logs converge-off"
+        description: "converge (default — build everything overdue) | or: card | record | gamelines | props-pitcher | props-batter | results | pitchers | hitters | lineups | news | news-probe | card-fb | fb-scores | fb-record | live-probe | nfl-logs converge-off"
         required: true
         default: converge
 
@@ -355,28 +384,52 @@ jobs:
               "4 19 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
               "34 12 * * 2-6")    LEAGUE=ncaaf; MODES="props-player" ;;
               "6 19 * * 2-6")     LEAGUE=ncaaf; MODES="props-player" ;;
-              "4 13 * * 2-6")     LEAGUE=ncaaf; MODES="card-fb" ;;
-              "34 13 * * 2-6")    LEAGUE=ncaaf; MODES="card-fb" ;;
-              "4 12 * * 2")       LEAGUE=ncaaf; MODES="card-fb" ;;
+              "4 13 * * 2-6")     LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
+              "34 13 * * 2-6")    LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
+              "4 12 * * 2")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "4 16 * * 1")       LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
-              "6 12 * * *")       LEAGUE=ncaaf; MODES="news card-fb" ;;
+              "6 12 * * *")       LEAGUE="ncaaf nfl"; MODES="news card-fb" ;;
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
-              "40 */2 * * 6")     LEAGUE=ncaaf; MODES="fb-scores" ;;
-              "40 1,3,5,13 * * 0") LEAGUE=ncaaf; MODES="fb-scores" ;;
-              "45 */2 * * 0")     LEAGUE=nfl;   MODES="fb-scores" ;;
-              "45 1,3,5 * * 1")   LEAGUE=nfl;   MODES="fb-scores" ;;
-              "45 1,3,23 * * 2")  LEAGUE=nfl;   MODES="fb-scores" ;;
-              "45 1,3,23 * * 5")  LEAGUE=nfl;   MODES="fb-scores" ;;
+              "40 */2 * * 6")     LEAGUE="ncaaf nfl"; MODES="fb-scores" ;;
+              "40 1,3,5,13 * * 0") LEAGUE="ncaaf nfl"; MODES="fb-scores" ;;
+              "45 */2 * * 0")     LEAGUE="nfl ncaaf"; MODES="fb-scores" ;;
+              "45 1,3,5 * * 1")   LEAGUE="nfl ncaaf"; MODES="fb-scores" ;;
+              "45 1,3,23 * * 2")  LEAGUE="nfl ncaaf"; MODES="fb-scores" ;;
+              "45 1,3,23 * * 5")  LEAGUE="nfl ncaaf"; MODES="fb-scores" ;;
+              # ── THE LIVE PROBE, WHILE GAMES ARE ACTUALLY ON ────────
+              # ⛔ EVERY ONE OF THESE NEEDS ITS ARM. Five football crons
+              # once sat here with NO arm at all and fell through to
+              # `*) LEAGUE=mlb` -- collecting BASEBALL under a football
+              # comment, four times a day.
+              # 🔴 BOTH LEAGUES ON EVERY ONE. Sam, 2026-09-06: *"if any of
+              # these runs can be done for nfl and cfb its expected we do
+              # that so we can kill two birds with one stone."*
+              # ✅ IT IS FREE AND IT IS NOT PADDING: the probe answers
+              # FOUR questions and only ONE of them -- does the feed carry
+              # a moving clock -- needs that league to be playing. The
+              # join and the COVERAGE COUNT are measurable on a slate of
+              # scheduled games, so a Saturday run measures the NFL's join
+              # too, and the probe SAYS "not answered" for live state
+              # rather than pretending.
+              # ⚠️ THE HOUR STILL BELONGS TO THE SPORT IT IS NAMED FOR --
+              # that is which league will have something IN PROGRESS.
+              "50 16 * * 6")      LEAGUE="ncaaf nfl"; MODES="live-probe" ;;
+              "50 20 * * 6")      LEAGUE="ncaaf nfl"; MODES="live-probe" ;;
+              "50 0 * * 0")       LEAGUE="ncaaf nfl"; MODES="live-probe" ;;
+              "50 17 * * 0")      LEAGUE="nfl ncaaf"; MODES="live-probe" ;;
+              "50 20 * * 0")      LEAGUE="nfl ncaaf"; MODES="live-probe" ;;
+              "50 1 * * 2")       LEAGUE="nfl ncaaf"; MODES="live-probe" ;;
+              "50 1 * * 5")       LEAGUE="nfl ncaaf"; MODES="live-probe" ;;
               # ── NFL ────────────────────────────────────────────────
               "7 12 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
               "6 18 * * *")       LEAGUE=nfl;   MODES="gamelines" ;;
               "8 11 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
               "8 15 * * *")       LEAGUE=nfl;   MODES="props-player" ;;
-              "34 11 * * *")      LEAGUE=nfl;   MODES="card-fb" ;;
-              "34 15 * * *")      LEAGUE=nfl;   MODES="card-fb" ;;
-              "6 13 * * *")       LEAGUE=nfl;   MODES="card-fb" ;;
+              "34 11 * * *")      LEAGUE="nfl ncaaf"; MODES="card-fb" ;;
+              "34 15 * * *")      LEAGUE="nfl ncaaf"; MODES="card-fb" ;;
+              "6 13 * * *")       LEAGUE="nfl ncaaf"; MODES="card-fb" ;;
               "6 16 * * 2")       LEAGUE=nfl;   MODES="nfl-logs";  SEASON=CUR ;;
-              "8 12 * * *")       LEAGUE=nfl;   MODES="news card-fb" ;;
+              "8 12 * * *")       LEAGUE="nfl ncaaf"; MODES="news card-fb" ;;
               *)                  LEAGUE=mlb ;;
             esac
           fi
@@ -459,11 +512,17 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
-          LEAGUE: ${{ steps.mode.outputs.league }}
+          # 🔴 `LEAGUES`, PLURAL, SINCE 2026-09-06. Sam: *"if any of these
+          # runs can be done for nfl and cfb its expected we do that so we
+          # can kill two birds with one stone."*
+          # ⚠️ It is a SPACE-SEPARATED LIST and it is usually one word. A
+          # single-league run behaves exactly as it did before this
+          # change -- the loop below runs once and `LEAGUE` ends up
+          # holding the same value it was given directly.
+          LEAGUES: ${{ steps.mode.outputs.league }}
           SEASON: ${{ steps.mode.outputs.season }}
           MODES: ${{ steps.mode.outputs.mode }}
           LOOP_MINUTES: ${{ steps.mode.outputs.loop_minutes }}
-          LEAGUE_NAME: ${{ steps.mode.outputs.league }}
         run: |
           set -o pipefail
           git config user.name  "gizmos-collector"
@@ -478,16 +537,39 @@ jobs:
             echo "::group::converge pass $PASS"
 
             pass_rc=0
-            for m in $MODES; do
-              # ⛔ NOT `python collect.py "$m" || exit`. A failing mode must
-              # never abort the pass -- paid data already on disk has to
-              # reach the repo. The failure is recorded and reported.
-              if ! python collect.py "$m"; then
-                pass_rc=1
-                rc=1
-                echo "::error::mode '$m' failed on pass $PASS"
-              fi
+            # ══════════════════════════════════════════════════════════
+            # 🔴 EVERY LEAGUE THIS RUN WAS ROUTED FOR, IN ONE JOB.
+            # ⚠️ ONE LEAGUE IS THE NORMAL CASE and is unchanged: the loop
+            # runs once, `LEAGUE` is exported with the same value the job
+            # used to receive directly, and every line after this behaves
+            # exactly as it did before.
+            # ⛔ A LEAGUE THAT FAILS MUST NOT SKIP THE NEXT ONE. Same
+            # reason the mode loop does not abort: data already on disk --
+            # possibly already PAID FOR -- has to reach the repo.
+            # ⚠️ `export`, because `collect.py` and `verify_freshness.py`
+            # both read the league from the ENVIRONMENT, not from argv.
+            # ══════════════════════════════════════════════════════════
+            for LG in $LEAGUES; do
+              export LEAGUE="$LG"
+              [ "$LEAGUES" = "$LG" ] || echo "── league: $LG ──"
+              for m in $MODES; do
+                # ⛔ NOT `python collect.py "$m" || exit`. A failing mode
+                # must never abort the pass -- paid data already on disk
+                # has to reach the repo. The failure is recorded and
+                # reported.
+                if ! python collect.py "$m"; then
+                  pass_rc=1
+                  rc=1
+                  echo "::error::mode '$m' failed for $LG on pass $PASS"
+                fi
+              done
             done
+            # ⚠️ THE NAME USED BELOW IS THE WHOLE LIST. The MLB-only block
+            # tests it for EXACTLY `mlb`, so a multi-league football run
+            # can never reach baseball's verifiers -- and MLB is never
+            # routed alongside anything, so the guard is unchanged in
+            # practice as well as in form.
+            LEAGUE_NAME="$LEAGUES"
 
             # 🔴 MLB-ONLY, AND GUARDED ON THE LEAGUE, NOT THE MODE.
             # statsapi and all three verifiers are baseball.
@@ -607,7 +689,14 @@ jobs:
             # same way every other tool in this file does, so there is no
             # baseball-deadlines-applied-to-football hazard: that was the
             # 2026-08-28 concern and the path-based dispatch removed it.
-            python verify_freshness.py || { rc=1; echo "::error::out of contract"; }
+            # ⚠️ ONCE PER LEAGUE. `verify_freshness.py` grades ONE league's
+            # contract, so a two-league run that checked only the last one
+            # would leave the other ungated — and an unchecked league is
+            # exactly the state this gate exists to end.
+            for LG in $LEAGUES; do
+              LEAGUE="$LG" python verify_freshness.py \
+                || { rc=1; echo "::error::$LG is out of contract"; }
+            done
 
             NOW=$(date +%s)
             if [ "$NOW" -ge "$DEADLINE" ]; then
