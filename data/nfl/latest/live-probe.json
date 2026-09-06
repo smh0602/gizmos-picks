@@ -3,9 +3,24 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
- "written_at": "2026-09-06T02:06:44Z",
+ "written_at": "2026-09-06T17:57:58Z",
  "usable": true,
  "http": 200,
+ "variant_sweep": [
+  {
+   "variant": "default (what run 1 used)",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
+   "http": 200,
+   "events": 16
+  },
+  {
+   "variant": "dates=<today ET>",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260906&limit=400",
+   "http": 200,
+   "events": 0
+  }
+ ],
+ "variant_used": "default (what run 1 used)",
  "events": 16,
  "payload_shape": {
   "top_level": [
@@ -72,7 +87,6 @@
    "curatedRank",
    "homeAway",
    "id",
-   "leaders",
    "order",
    "records",
    "score",
@@ -118,72 +132,70 @@
   "our_schedule_season": 2026,
   "our_games": 272,
   "espn_events": 16,
-  "ids_in_common": 0,
-  "pct_of_espn_events_matched": 0.0,
-  "verdict": "NONE \u2014 the two id spaces are unrelated. A live tab would need a name-and-date matcher, which on this project's own measurement is a real piece of work, not a lookup",
-  "unmatched_examples": [
-   {
-    "id": "401872656",
-    "away": "New England Patriots",
-    "home": "Seattle Seahawks",
-    "away_score": "0",
-    "home_score": "0",
-    "state": "pre",
-    "detail": "9/9 - 8:20 PM EDT",
-    "clock": "0:00",
-    "period": 0,
-    "start": "2026-09-10T00:20Z"
-   },
-   {
-    "id": "401872657",
-    "away": "San Francisco 49ers",
-    "home": "Los Angeles Rams",
-    "away_score": "0",
-    "home_score": "0",
-    "state": "pre",
-    "detail": "9/10 - 8:35 PM EDT",
-    "clock": "0:00",
-    "period": 0,
-    "start": "2026-09-11T00:35Z"
-   },
-   {
-    "id": "401872925",
-    "away": "Tampa Bay Buccaneers",
-    "home": "Cincinnati Bengals",
-    "away_score": "0",
-    "home_score": "0",
-    "state": "pre",
-    "detail": "9/13 - 1:00 PM EDT",
-    "clock": "0:00",
-    "period": 0,
-    "start": "2026-09-13T17:00Z"
-   },
-   {
-    "id": "401872923",
-    "away": "New Orleans Saints",
-    "home": "Detroit Lions",
-    "away_score": "0",
-    "home_score": "0",
-    "state": "pre",
-    "detail": "9/13 - 1:00 PM EDT",
-    "clock": "0:00",
-    "period": 0,
-    "start": "2026-09-13T17:00Z"
-   },
-   {
-    "id": "401872924",
-    "away": "New York Jets",
-    "home": "Tennessee Titans",
-    "away_score": "0",
-    "home_score": "0",
-    "state": "pre",
-    "detail": "9/13 - 1:00 PM EDT",
-    "clock": "0:00",
-    "period": 0,
-    "start": "2026-09-13T17:00Z"
-   }
-  ]
+  "join_field": "our `espn` vs ESPN `events[].id`",
+  "matched_on_our_id": 0,
+  "matched_on_our_espn_column": 16,
+  "our_games_carrying_an_espn_column": 272,
+  "ids_in_common": 16,
+  "pct_of_espn_events_matched": 100.0,
+  "verdict": "EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all",
+  "n_unmatched": 0,
+  "unmatched_examples": [],
+  "direction_note": "\u26a0\ufe0f THIS IS 'HOW MANY OF ESPN'S EVENTS ARE OURS'. It is NOT 'how many of our games ESPN sent' \u2014 see `coverage`, which is the direction that decides the feature."
  },
- "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES. To know that, run this twice a few minutes apart while a game is in progress and compare the clocks. This report is one snapshot and does not claim otherwise.",
- "conclusion": "16 events, 0 in progress. NONE \u2014 the two id spaces are unrelated. A live tab would need a name-and-date matcher, which on this project's own measurement is a real piece of work, not a lookup"
+ "coverage": {
+  "measurable": true,
+  "counted_on": "our `espn`, ET slate day",
+  "per_date": [
+   {
+    "et_date": "2026-09-09",
+    "espn_events": 1,
+    "our_games": 1,
+    "ours_that_espn_returned": 1,
+    "ours_MISSING_from_espn": 0,
+    "pct_of_ours_present": 100.0,
+    "missing_examples": []
+   },
+   {
+    "et_date": "2026-09-10",
+    "espn_events": 1,
+    "our_games": 1,
+    "ours_that_espn_returned": 1,
+    "ours_MISSING_from_espn": 0,
+    "pct_of_ours_present": 100.0,
+    "missing_examples": []
+   },
+   {
+    "et_date": "2026-09-13",
+    "espn_events": 13,
+    "our_games": 13,
+    "ours_that_espn_returned": 13,
+    "ours_MISSING_from_espn": 0,
+    "pct_of_ours_present": 100.0,
+    "missing_examples": []
+   },
+   {
+    "et_date": "2026-09-14",
+    "espn_events": 1,
+    "our_games": 1,
+    "ours_that_espn_returned": 1,
+    "ours_MISSING_from_espn": 0,
+    "pct_of_ours_present": 100.0,
+    "missing_examples": []
+   }
+  ],
+  "worst_pct_of_ours_present": 100.0,
+  "verdict": "FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate",
+  "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
+ },
+ "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
+ "refresh_check": null,
+ "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
+ "browser_can_poll_directly": {
+  "access_control_allow_origin": "*",
+  "cache_control": "max-age=11",
+  "age": null,
+  "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
+ },
+ "conclusion": "16 events via [default (what run 1 used)], 0 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
 }
