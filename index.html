@@ -3656,9 +3656,15 @@ async function fbCardLoad(){
 function fbNoCard(what){
   return `<div class="note">
     <b>No ${LG_NAME[LEAGUE]} ${what} published yet.</b><br>
-    The board is built from the player-prop pull &mdash;
-    ${LEAGUE === 'nfl' ? 'Thursday evening, then Sunday morning'
-                       : 'Thursday, Friday and Saturday'}.
+    The board is built from the player-prop pull, which runs on the days
+    this league plays.
+    <!-- 🔴 ~~"Thursday evening, then Sunday morning" / "Thursday, Friday
+         and Saturday"~~ STRUCK 2026-09-06. It was a SCHEDULE WRITTEN INTO
+         A SENTENCE, and it was already wrong: the 2026 NFL season opens
+         on WEDNESDAY 9 September, not Thursday. The page does not hold
+         the freshness contract, so it cannot compute the answer — and a
+         sentence that cannot be computed must not be asserted (rule
+         132). It now says the true, weaker thing. -->
     Nothing is missing; the slate has not been priced yet.
   </div>`;
 }
@@ -3919,12 +3925,44 @@ async function fbParlays(){
      NO FIT   — a full board whose prices land in none of Sam's bands.
      Reading the third sentence under the first two is how a working
      product reads as a failing one. */
+  /* 🔴 A FOURTH EMPTINESS, AND IT WOULD HAVE SHIPPED A FALSE SENTENCE ON
+     NFL OPENING NIGHT. `[found 2026-09-06 by building the NFL card against
+     a rehearsal board]` The 2026 NFL season opens with a SINGLE GAME on
+     2026-09-09. A parlay's legs must be in DIFFERENT games, so on a
+     one-game slate every candidate is rejected by construction —
+     `rejected.same_game` was 12,926 and `out_of_band` was ZERO — and the
+     reader was about to be told *"it is the payout bands that nothing
+     fits today"*, which is a cause the data flatly contradicts (rule
+     132). ⛔ THE REASON IS NOW DERIVED FROM `parlay_meta.rejected` AND THE
+     GAMES ACTUALLY ON THE CARD, never assumed. */
+  const nGames = new Set((C && C.picks || [])
+      .map(p => p.game_id).filter(x => x != null)).size;
+  const rj = m.rejected || {};
+  const outBand = Number(rj.out_of_band || 0);
+  const sameGame = Number(rj.same_game || 0);
   const emptyMsg = !C
     ? fbNoCard('parlays')
     : (!(C.picks || []).length && C.empty_reason)
       ? `<div class="note"><b>No parlays for ${fbDayName(C.date)}
          &mdash; there is no board to build them from.</b><br>
          ${C.empty_reason}</div>`
+    : nGames < 2
+      ? `<div class="note"><b>No parlays for ${fbDayName(C.date)} &mdash;
+         this card's slate is ${nGames === 1 ? 'a single game' : 'empty'}.</b><br>
+         Every leg of a parlay here must come from a <b>different game</b>,
+         which is the only thing that makes multiplying two records
+         defensible at all. ⛔ <b>With ${nGames === 1 ? 'one game' : 'no games'}
+         there is nothing to pair against</b>, so this is arithmetic rather
+         than a thin board${sameGame ? ` &mdash; ${sameGame.toLocaleString()}
+         candidate combinations were rejected for sharing a game and
+         ${outBand.toLocaleString()} for the payout bands` : ''}.</div>`
+    : (outBand === 0 && sameGame > 0)
+      ? `<div class="note"><b>No parlays on this card.</b> ⛔ <b>It is not
+         the payout bands</b> &mdash; not one combination was rejected for
+         being outside them. ${sameGame.toLocaleString()} were rejected for
+         putting two legs in the same game${
+           Number(rj.mixed_book || 0) ? `, and ${Number(rj.mixed_book).toLocaleString()}
+           for needing two different sportsbooks` : ''}. ${m.note || ''}</div>`
       : `<div class="note"><b>No parlay on this card lands inside the
          bands.</b> The board is priced and rated &mdash; it is the payout
          bands that nothing fits today, which is a fact about the prices
