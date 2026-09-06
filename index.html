@@ -63,6 +63,17 @@ input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line
    never swallowed -- two sources disagreeing about a final is a real data
    problem and this tab must not be where it goes unnoticed. */
 .mid .date.confl{color:#b3261e}
+/* ---- box score inside the game modal ---- */
+.bxteam{margin:14px 0 4px}
+.bxt{margin:0 0 6px;font-size:13px;display:flex;align-items:center;gap:7px}
+.bxh{margin:10px 0 3px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.1em;
+  text-transform:uppercase;color:#6b7683}
+table.bx th{font:600 10px/1 system-ui,sans-serif;letter-spacing:.06em;
+  text-transform:uppercase;color:#6b7683;text-align:left;padding:5px 8px;
+  border-bottom:1px solid #dfe4ea;white-space:nowrap}
+table.bx td{padding:5px 8px;border-bottom:1px solid #f0f3f6}
+table.bx .n{font-variant-numeric:tabular-nums;text-align:right}
+table.bx tr:hover td{background:#f7f9fb}
 .time{font-size:12px;color:var(--mut);font-weight:600}
 .date{font-size:11px;color:var(--mut)}
 .livebadge{display:inline-block;background:var(--live);color:#fff;font-size:10px;font-weight:800;
@@ -3030,6 +3041,61 @@ async function fbLiveLoad(){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   ⛔ A TIMER MUST NEVER MOVE THE PAGE UNDER SOMEONE'S HANDS.
+   ══════════════════════════════════════════════════════════════════════
+   🔴 Sam, 2026-09-06: *"some of the tabs in cfb refresh on there own and
+   direct me back to the top of the page, this has to be fixed because
+   its annoying."*
+
+   ⚠️ MLB HAS SOLVED THIS SINCE AUGUST and football never inherited it.
+   `tick()` is single-flight, skips while a modal is open, **re-renders
+   only when something actually MOVED**, and restores the scroll position
+   across two animation frames. ⛔ The football re-render did none of it —
+   not from the live poll I added, and not from the season, week,
+   division or conference controls, every one of which rebuilds
+   `#fbview` from scratch.
+
+   ✅ ONE WRAPPER, USED BY ALL OF THEM. A re-render that cannot hold your
+   place is a re-render that punishes you for reading. */
+let fbTicking = false, fbSig = null;
+
+async function fbKeepScroll(fn){
+  const y = window.scrollY;
+  await fn();
+  if (y > 0){
+    /* Two frames: one for the DOM, one for layout to settle its height —
+       the same reason MLB's tick() waits twice. */
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo(0, Math.min(y, max));
+  }
+}
+
+/* What the feed says RIGHT NOW, as one string. ⛔ If it has not changed
+   there is nothing to redraw, and redrawing anyway is what moves the
+   page under the reader. */
+function fbLiveSig(){
+  if (!FB_LIVE) return 'none';
+  return Object.keys(FB_LIVE.byId).sort().map(k => {
+    const v = FB_LIVE.byId[k];
+    return `${k}:${v.state}:${v.clock}:${v.away}-${v.home}`;
+  }).join('|');
+}
+
+async function fbTick(){
+  if (fbTicking) return;                              // one at a time
+  if (document.querySelector('.ovl')) return;         // a modal is open
+  fbTicking = true;
+  try {
+    await fbLiveLoad();
+    const sig = fbLiveSig();
+    if (sig === fbSig) return;                        // ⛔ nothing moved
+    fbSig = sig;
+    await fbKeepScroll(renderFootball);
+  } finally { fbTicking = false; }
+}
+
 /* The live view of ONE stored game, or null if the feed does not have it.
    ⛔ KEYED ON THE ID, NEVER ON A TEAM NAME (ledger rule 54). */
 function fbLiveOf(g){
@@ -3290,9 +3356,13 @@ async function fbScores(){
       .forEach(g => host.append(fbGameCard(g)));
   });
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
-  sel('fb-sc-season', e => { fbScSeason = +e.target.value; fbWeek = null; fbScores(); });
-  sel('fb-sc-week',   e => { fbWeek = +e.target.value; fbScores(); });
-  sel('fb-sc-div',    e => { fbDiv = e.target.value; fbScores(); });
+  /* ⚠️ EVERY ONE OF THESE REBUILDS `#fbview`, so every one of them has to
+     hold the reader's place. Changing the week and being thrown to the
+     top of the page is the same annoyance as a timer doing it. */
+  sel('fb-sc-season', e => { fbScSeason = +e.target.value; fbWeek = null;
+                             fbKeepScroll(fbScores); });
+  sel('fb-sc-week',   e => { fbWeek = +e.target.value; fbKeepScroll(fbScores); });
+  sel('fb-sc-div',    e => { fbDiv = e.target.value; fbKeepScroll(fbScores); });
 }
 
 /* Which seasons have a SCHEDULE file. ⚠️ Separate from the trends
@@ -4227,7 +4297,10 @@ function fbConfWire(rerender){
       if (c === '*') fbConf.clear();
       else if (fbConf.has(c)) fbConf.delete(c);
       else fbConf.add(c);
-      rerender();
+      /* ⚠️ THROUGH THE SCROLL KEEPER. A conference chip rebuilds the whole
+         view, and being thrown to the top after every click is what made
+         the filter unpleasant to use. */
+      fbKeepScroll(rerender);
     });
   });
 }
@@ -4401,7 +4474,136 @@ function fbGameCard(g){
 }
 
 /* The modal. ⛔ No network call -- everything is already on the row. */
-function fbOpenBox(g){
+/* ══════════════════════════════════════════════════════════════════════
+   🔴 THE BOX SCORE — PASSING, RUSHING AND RECEIVING, PER PLAYER
+   ══════════════════════════════════════════════════════════════════════
+   Sam, 2026-09-06: *"user need to be able to click on a score and see the
+   box score from that game, includes qb passing stats, rb stats, wr
+   stats, etc."*
+
+   ✅ IT COMES FROM DATA WE ALREADY STORE. `players-<season>.json.gz` is
+   the same file the card and the Track Record are built from, so a box
+   score costs no new source, no new credit and no new cron.
+   ✅ AND THE JOIN IS EXACT, MEASURED BEFORE IT WAS BUILT: every
+   `game_id` in the logs matches a schedule id — **17 of 17 for college,
+   285 of 285 for the NFL** — and every team named on a log row is one of
+   that game's two sides. ⛔ No name matcher, keyed on the id (rule 54).
+
+   ⚠️ WHAT IT CANNOT DO, AND THE PANEL SAYS SO RATHER THAN LOOKING BROKEN:
+   the college logs cover the teams this product tracks, not all of FBS —
+   **17 games of that weekend's ~250** — and often only ONE SIDE of a
+   game (Utah's log exists, its FCS opponent's does not). ⛔ An empty
+   table with no explanation reads as a bug; a sentence naming the reason
+   does not. */
+const FBLOG = {};
+async function fbLogsLoad(season){
+  const k = LEAGUE + '|' + season;
+  if (FBLOG[k] !== undefined) return FBLOG[k];
+  try {
+    const d = await jgetGz(`${LG_DATA[LEAGUE]}/latest/players-${season}.json.gz`);
+    /* Index by game once, on load — a modal must not walk every player. */
+    const by = {};
+    Object.values(d.players || {}).forEach(p => (p.g || []).forEach(r => {
+      const gid = String(r.game_id == null ? '' : r.game_id);
+      if (!gid) return;
+      (by[gid] ||= []).push({ name: p.name, pos: p.pos || r.pos || '', r });
+    }));
+    FBLOG[k] = by;
+  } catch (e) { FBLOG[k] = null; }
+  return FBLOG[k];
+}
+
+/* ⚠️ `0` IS A REAL NUMBER AND `null` IS NOT. A blank cell and a zero are
+   different facts — the same distinction the Track Record makes with an
+   em-dash — so this never turns one into the other. */
+function fbNum(v){ return (v === null || v === undefined || v === '') ? null : Number(v); }
+
+function fbStatRows(rows, kind){
+  const has = r => kind === 'pass' ? fbNum(r.att)
+              : kind === 'rush' ? fbNum(r.car)
+              : fbNum(r.rec) !== null ? fbNum(r.rec) : fbNum(r.tgt);
+  return rows
+    .map(x => ({ ...x, k: has(x.r) }))
+    .filter(x => x.k !== null && x.k > 0)
+    .sort((a, b) => {
+      const y = kind === 'pass' ? 'pass_yds' : kind === 'rush' ? 'rush_yds' : 'rec_yds';
+      return (fbNum(b.r[y]) || 0) - (fbNum(a.r[y]) || 0);
+    });
+}
+
+function fbBoxTable(rows, kind, label){
+  const list = fbStatRows(rows, kind);
+  if (!list.length) return '';
+  const cols = kind === 'pass'
+      ? [['C/ATT', r => `${fbNum(r.cmp) ?? '—'}/${fbNum(r.att) ?? '—'}`],
+         ['YDS', r => fbNum(r.pass_yds)], ['TD', r => fbNum(r.pass_td)],
+         ['INT', r => fbNum(r.int)]]
+    : kind === 'rush'
+      ? [['CAR', r => fbNum(r.car)], ['YDS', r => fbNum(r.rush_yds)],
+         ['TD', r => fbNum(r.rush_td)],
+         ['AVG', r => { const c = fbNum(r.car), y = fbNum(r.rush_yds);
+                        return (c && y != null) ? (y / c).toFixed(1) : null; }]]
+      : [['REC', r => fbNum(r.rec)], ['YDS', r => fbNum(r.rec_yds)],
+         ['TD', r => fbNum(r.rec_td)],
+         /* ⚠️ TARGETS ARE NFL-ONLY. College play-by-play does not carry
+            them, so the column is DROPPED rather than filled with a
+            zero that would read as "nobody threw to him". */
+         ...(list.some(x => fbNum(x.r.tgt) !== null)
+             ? [['TGT', r => fbNum(r.tgt)]] : [])];
+  const cell = v => v === null || v === undefined ? '<td class="n">&mdash;</td>'
+                                                  : `<td class="n">${v}</td>`;
+  return `<h4 class="bxh">${label}</h4>
+    <table class="bs bx" style="width:100%">
+      <thead><tr><th>Player</th>${cols.map(c => `<th class="n">${c[0]}</th>`).join('')}</tr></thead>
+      <tbody>${list.map(x => `<tr>
+        <td style="white-space:nowrap"><b>${x.name}</b>${
+          x.pos ? ` <span class="sub">${x.pos}</span>` : ''}</td>
+        ${cols.map(c => cell(c[1](x.r))).join('')}
+      </tr>`).join('')}</tbody></table>`;
+}
+
+/* Has this game started, by the clock? ⛔ Answers ONLY what the kickoff
+   time supports — it does not claim the game is over, because nothing in
+   the stored file knows that until a score lands. */
+function fbKickedOff(g){
+  if (!g.start) return false;
+  const s = String(g.start);
+  const d = /[Zz]|[+\-]\d\d:?\d\d$/.test(s) ? new Date(s)
+          : new Date(s.replace(' ', 'T') + '-04:00');   /* naive stamps are ET */
+  return isFinite(d) && d.getTime() < Date.now();
+}
+
+function fbBoxScore(g, by){
+  if (!by) return `<div class="note"><b>No player logs stored for
+    ${fbScSeason}.</b> They are built by the weekly rebuild &mdash;
+    ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} morning &mdash; from a free
+    source.</div>`;
+  const rows = by[String(g.id)] || [];
+  if (!rows.length) return `<div class="note">
+    <b>No player log for this game.</b> ${LEAGUE === 'ncaaf'
+      ? 'The college logs cover the teams this product tracks rather than '
+        + 'every school playing, so most games have none. '
+      : ''}⛔ <b>That is an absence, not a zero</b> &mdash; nothing here is
+    being reported as having happened.</div>`;
+  const side = nm => {
+    const mine = rows.filter(x => x.r.team === nm);
+    if (!mine.length) return `<div class="bxteam"><h3 class="bxt">${fbMark(nm, 20)}
+      ${fbAb(nm)}</h3><div class="note">No log stored for this side.</div></div>`;
+    const tables = ['pass', 'rush', 'rec'].map(k => fbBoxTable(mine, k,
+      k === 'pass' ? 'Passing' : k === 'rush' ? 'Rushing' : 'Receiving')).join('');
+    return `<div class="bxteam"><h3 class="bxt">${fbMark(nm, 20)} ${fbAb(nm)}</h3>
+      ${tables || '<div class="note">No passing, rushing or receiving recorded.</div>'}</div>`;
+  };
+  const n = new Set(rows.map(x => x.r.team)).size;
+  return side(g.away) + side(g.home) + (n < 2
+    ? `<div class="note">⚠️ <b>Only one side of this game has a stored
+        log.</b> ${LEAGUE === 'ncaaf'
+        ? 'That is normal here: an FBS team playing a school this product '
+          + 'does not track has a log on one side only.' : ''}</div>`
+    : '');
+}
+
+async function fbOpenBox(g){
   const ovl = el('div', 'ovl');
   const nameOf = x => { const t = fbResolve(x); return (t && t.name) ? t.name : x; };
   const b = fbBoardFor(g);
@@ -4435,7 +4637,20 @@ function fbOpenBox(g){
              + 'split that does not reconcile would be worse than none.'
            : '<b>No quarter scores stored for this game yet.</b> They arrive '
              + 'with the next schedule rebuild.')
-        : '<b>This game has not kicked off.</b> Quarter scores appear once it is final.'}
+        : fbKickedOff(g)
+          /* 🔴 IT SAID "THIS GAME HAS NOT KICKED OFF" ABOUT A GAME THAT
+             KICKED OFF THREE AND A HALF HOURS EARLIER. `[Sam's
+             screenshot, UCLA @ California, 2026-09-06]` The sentence
+             asserted A FACT THE STORED DATA DOES NOT CARRY: our file
+             knows only that there is no score yet, which is a different
+             thing from the game not having started. ⛔ Rule 132.
+             ✅ Derived from the kickoff time now. */
+          ? '<b>No score stored for this game yet.</b> It kicked off at '
+            + (fbKickTime(g.start) || 'its scheduled time')
+            + ', and the stored schedule is rebuilt on game days, so the '
+            + 'result appears at the next refresh. Quarter scores follow '
+            + 'once it is final.'
+          : '<b>This game has not kicked off.</b> Quarter scores appear once it is final.'}
       </div>`;
 
   const line = (label, val) => val == null || val === ''
@@ -4479,14 +4694,23 @@ function fbOpenBox(g){
       ${market}
       ${venue || wx ? `<div class="note" style="margin-top:16px">
         ${venue}${venue && wx ? '<br>' : ''}${wx}</div>` : ''}
-      <div class="note" style="margin-top:16px">
-        &#9940; <b>No player lines here, on purpose.</b> The MLB card shows
-        starting pitchers because they are the biggest single input to a
-        baseball game. Football has no equivalent, so this space shows the
-        scoring and the market instead.
-      </div>
+      <h3 style="margin:18px 0 4px;font-size:13px">Box score
+        <span class="kind k-desc">Descriptive</span></h3>
+      <div id="fbbox"><div class="note">Loading the player log&hellip;</div></div>
     </div></div>`;
   document.body.append(ovl);
+  /* ⚠️ THE LOG IS FETCHED AFTER THE MODAL IS ON SCREEN, and that file is
+     13KB to 520KB gzipped. Blocking the modal on it would make every
+     click feel broken on a slow connection; this way the header, the
+     quarters and the market are up instantly and the box score fills in.
+     ✅ Cached per league+season, so the second click is free. */
+  (async () => {
+    const host = ovl.querySelector('#fbbox');
+    if (!host) return;
+    const by = await fbLogsLoad(fbScSeason);
+    if (!ovl.isConnected) return;      // they closed it while we fetched
+    host.innerHTML = fbBoxScore(g, by);
+  })();
   const close = () => { ovl.remove(); document.removeEventListener('keydown', esc); };
   const esc = e => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', esc);
@@ -4523,7 +4747,13 @@ async function fbNewsLoad(){
    ⚠️ Falls back to nothing, which renders the same plain tile MLB uses. */
 let FB_NEWSIDX = null;
 function fbNewsLogo(title){
-  const t = ' ' + String(title || '').toLowerCase() + ' ';
+  /* ⚠️ NORMALISE THE APOSTROPHE FIRST. `[2026-09-06]` "Michigan’s Heisman
+     Sleeper" fell through to a blank tile because the possessive test
+     only knew the STRAIGHT quote and the headline used a TYPOGRAPHIC one
+     (U+2019). ⛔ Every publisher's CMS emits curly quotes; matching only
+     the ASCII one silently loses a whole class of headline. */
+  const raw = String(title || '').replace(/[\u2018\u2019\u02BC]/g, "'");
+  const t = ' ' + raw.toLowerCase() + ' ';
   if (!FB_NEWSIDX || FB_NEWSIDX.lg !== LEAGUE){
     const dir = FBTEAMS[LEAGUE] || {};
     const seen = new Set();
@@ -4537,10 +4767,29 @@ function fbNewsLogo(title){
       seen.add(key); names.push([key, e.logo]);
     });
     names.sort((a, b) => b[0].length - a[0].length);   // longest first
-    FB_NEWSIDX = {lg: LEAGUE, names};
+    /* The short, ALL-CAPS keys the length rule had to exclude. */
+    const caps = [];
+    Object.keys(dir).forEach(k => {
+      if (k.length >= 5 || k.length < 2) return;
+      if (k !== k.toUpperCase()) return;        // ⛔ acronyms only
+      const e = dir[k];
+      if (e && e.logo) caps.push([k, e.logo]);
+    });
+    FB_NEWSIDX = {lg: LEAGUE, names, caps};
   }
   for (const [nm, logo] of FB_NEWSIDX.names){
     if (t.indexOf(' ' + nm + ' ') > -1 || t.indexOf(' ' + nm + "'") > -1) return logo;
+  }
+  /* 🔴 THEN THE ACRONYMS, AND ONLY THEN. `[2026-09-06]` "Tiger Tails: Your
+     daily LSU news" had no art because the safety rule drops any key
+     under five characters — which is right for lowercase matching, and
+     wrong for LSU, TCU, BYU, UCF, SMU and the rest.
+     ⛔ THE GUARD IS CASE: an all-capitals key matched CASE-SENSITIVELY
+     against the original headline, on word boundaries. "USC" cannot
+     collide with a lowercase word, and this pass runs LAST so a full
+     school name always wins. */
+  for (const [nm, logo] of (FB_NEWSIDX.caps || [])){
+    if (new RegExp('\\b' + nm + '\\b').test(raw)) return logo;
   }
   return '';
 }
@@ -4939,8 +5188,10 @@ $('#filt').addEventListener('change', renderScores);
      the whole session rather than one every 45 seconds forever. */
   setInterval(() => {
     if (LEAGUE === 'mlb' || FBTAB !== 'scores' || FB_LIVE_OFF) return;
-    if (document.querySelector('.ovl')) return;   // a modal is open
-    renderFootball();
+    /* ⛔ THROUGH `fbTick`, NEVER `renderFootball` DIRECTLY. It holds the
+       reader's scroll position and skips the redraw entirely when the
+       feed has not moved. */
+    fbTick();
   }, FB_LIVE_MS);
 
   /* ⛔ This used to throw away the props cache and re-render every three
