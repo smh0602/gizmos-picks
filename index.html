@@ -50,6 +50,19 @@ input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line
 .abbr{font-weight:800;font-size:16px;letter-spacing:-.01em}
 .rec{font-size:11px;color:var(--mut)}
 .mid{text-align:center;flex:0 0 auto;min-width:96px}
+/* 🔴 A GAME BEING PLAYED HAS TO LOOK DIFFERENT FROM ONE THAT IS OVER.
+   `[2026-09-06]` The live score sits in the same slot a final sits in, so
+   the eye does not move when a game ends -- the LABEL is what changes,
+   and it carries the same pulse the MLB tab uses. */
+.mid .time.live{color:#b3261e;font-weight:700;letter-spacing:.06em}
+.mid .time.live::before{content:'';display:inline-block;width:7px;height:7px;
+  border-radius:50%;background:#b3261e;margin-right:5px;vertical-align:1px;
+  animation:fblive 1.6s ease-in-out infinite}
+@keyframes fblive{0%,100%{opacity:1}50%{opacity:.25}}
+/* ⚠️ A DISAGREEMENT BETWEEN OUR STORED FINAL AND THE LIVE FEED. Shown,
+   never swallowed -- two sources disagreeing about a final is a real data
+   problem and this tab must not be where it goes unnoticed. */
+.mid .date.confl{color:#b3261e}
 .time{font-size:12px;color:var(--mut);font-weight:600}
 .date{font-size:11px;color:var(--mut)}
 .livebadge{display:inline-block;background:var(--live);color:#fff;font-size:10px;font-weight:800;
@@ -2922,6 +2935,193 @@ function fbKickTime(s){
    match. */
 let fbScSeason = null;
 
+/* ══════════════════════════════════════════════════════════════════════
+   🔴 LIVE FOOTBALL SCORES — FETCHED BY THE BROWSER, EXACTLY LIKE MLB
+   ══════════════════════════════════════════════════════════════════════
+   Sam, 2026-09-06: "we have to make the scores live, we have to find a
+   way to make cfb and nfl scores and matchups live."
+
+   ⚠️ THE MLB TAB HAS ALWAYS DONE THIS. It polls `statsapi.mlb.com`
+   straight from the page every 45 seconds -- no cron, no stored file, no
+   commit. ✅ This is the same shape pointed at ESPN's public scoreboard,
+   which is free and needs no key.
+
+   🔴 WHY THIS IS A PAGE CHANGE AND NOT A COLLECTOR CHANGE. Collecting
+   scores server-side would make "live" mean "however often GitHub runs
+   a job" -- a scheduler that cannot go below five minutes and DROPS most
+   of what it is asked to run (19 of 21 on one measured day). ⛔ A
+   scoreboard that is up to half an hour stale is not a live scoreboard.
+
+   ✅ WHAT IS ALREADY MEASURED, from the probe Sam ran on 2026-09-06:
+     - reachable, free, HTTP 200, no key
+     - every field this code reads was present in both leagues
+     - 5 college games in progress ALL carried a clock, a period and both
+       scores
+     - 🔴 ESPN's event id IS our stored college game id -- 25 of 25 --
+       and for the NFL our schedule now carries nflverse's own `espn`
+       column, which holds exactly those ids (272 of 272 rows of 2026).
+
+   ⛔ WHAT IS *NOT* KNOWN, AND IS HANDLED RATHER THAN ASSUMED:
+     1. WHETHER THE BROWSER IS ALLOWED TO FETCH IT. A server request
+        sends no `Origin`, so the probe could not settle CORS. **This
+        code does not need the answer in advance: it tries once, and if
+        the browser refuses it falls back to exactly today's tab and says
+        so.** The reader gets the truth either way.
+     2. HOW MANY OF OUR GAMES ESPN RETURNS. The first probe saw 25 events
+        on a day our schedule held 206 college games. ⛔ So a game ESPN
+        does NOT return is left EXACTLY as it is today -- never blanked,
+        never marked "not started" -- and the tab publishes how many of
+        the day's games it is actually live for.
+   ══════════════════════════════════════════════════════════════════════ */
+const FB_LIVE_PATH = { ncaaf: 'football/college-football', nfl: 'football/nfl' };
+const FB_LIVE_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
+/* ⚠️ 45s IS MLB'S OWN INTERVAL, not a new number. One value, one meaning. */
+const FB_LIVE_MS = 45000;
+
+let FB_LIVE = null;        /* {byId, events, at} for the current league   */
+let FB_LIVE_ERR = null;    /* the reason, once, if the browser is refused */
+let FB_LIVE_OFF = false;   /* ⛔ set after ONE failure — see below        */
+
+/* 🔴 ONE FAILURE TURNS IT OFF FOR THE SESSION, AND THAT IS DELIBERATE.
+   If the browser is not allowed to reach ESPN, every poll would throw
+   the same error every 45 seconds for as long as the tab is open --
+   console noise that hides real problems, and a request storm aimed at
+   somebody else's server. ⛔ One attempt, one honest sentence, stop. */
+async function fbLiveLoad(){
+  if (FB_LIVE_OFF) return null;
+  const path = FB_LIVE_PATH[LEAGUE];
+  if (!path) return null;
+  try {
+    const r = await fetch(`${FB_LIVE_BASE}/${path}/scoreboard?limit=400`,
+                          { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const byId = {};
+    (d.events || []).forEach(e => {
+      try {
+        const c  = (e.competitions || [])[0] || {};
+        const st = c.status || {};
+        const ty = st.type || {};
+        const cs = c.competitors || [];
+        const side = h => cs.find(x => x.homeAway === (h ? 'home' : 'away')) || {};
+        const H = side(true), A = side(false);
+        const num = v => (v === null || v === undefined || v === '') ? null : Number(v);
+        byId[String(e.id)] = {
+          state:  ty.state || null,          /* pre | in | post           */
+          detail: ty.shortDetail || null,    /* "7:21 - 3rd", "Final"     */
+          clock:  st.displayClock || null,
+          period: st.period == null ? null : Number(st.period),
+          home:   num(H.score),
+          away:   num(A.score),
+        };
+      } catch (_e) { /* one odd event must not lose the rest */ }
+    });
+    FB_LIVE = { byId, events: (d.events || []).length, at: new Date() };
+    FB_LIVE_ERR = null;
+    return FB_LIVE;
+  } catch (e) {
+    /* ⚠️ A BROWSER CORS REFUSAL IS A TypeError WITH NO DETAIL — the
+       message is deliberately uninformative for security reasons, so the
+       page must NOT claim to know which cause it was. */
+    FB_LIVE_OFF = true;
+    FB_LIVE_ERR = (e && e.message) || 'blocked';
+    FB_LIVE = null;
+    return null;
+  }
+}
+
+/* The live view of ONE stored game, or null if the feed does not have it.
+   ⛔ KEYED ON THE ID, NEVER ON A TEAM NAME (ledger rule 54). */
+function fbLiveOf(g){
+  if (!FB_LIVE) return null;
+  const key = g.espn || g.id;
+  return key ? (FB_LIVE.byId[String(key)] || null) : null;
+}
+
+/* 🔴 WHICH NUMBER WINS, AND WHY. One number per fact (rule 66).
+     - IN PROGRESS  -> the feed. Our file has nothing to say yet.
+     - FINAL in our own file -> OURS. It is the score the Track Record
+       grades against, and two surfaces disagreeing about a final is the
+       exact defect rule 66 exists to stop.
+     - FINAL only in the feed -> the feed, so a Saturday-night final shows
+       immediately instead of waiting for the next schedule rebuild.
+   ⚠️ AND A DISAGREEMENT IS SHOWN, NOT SWALLOWED. If both call it final
+   and the scores differ, the stored one renders and the row says the feed
+   disagrees -- silently picking one would hide a real data problem. */
+function fbMerge(g){
+  const L = fbLiveOf(g);
+  const ours = (g.final && g.home_score != null && g.away_score != null);
+  if (!L) return { home: g.home_score, away: g.away_score, final: !!g.final,
+                   live: false, covered: false, conflict: false };
+  if (L.state === 'in')
+    return { home: L.home, away: L.away, final: false, live: true,
+             covered: true, conflict: false,
+             clock: L.clock, period: L.period, detail: L.detail };
+  if (L.state === 'post'){
+    const conflict = ours && L.home != null && L.away != null &&
+                     (L.home !== g.home_score || L.away !== g.away_score);
+    return ours
+      ? { home: g.home_score, away: g.away_score, final: true, live: false,
+          covered: true, conflict: conflict,
+          theirs: conflict ? `${L.away}-${L.home}` : null }
+      : { home: L.home, away: L.away, final: true, live: false,
+          covered: true, conflict: false, fromFeed: true };
+  }
+  /* `pre` — the feed knows the game and it has not kicked off. */
+  return { home: g.home_score, away: g.away_score, final: !!g.final,
+           live: false, covered: true, conflict: false };
+}
+
+
+/* 🔴 WHAT THE TAB IS ALLOWED TO CLAIM, AND IT IS COMPUTED, NOT WRITTEN.
+   ⛔ The old note said flatly "Not a live scoreboard. Neither football
+   source carries in-game state." That was TRUE when it was written and
+   is now FALSE — and a sentence that outlives its measurement is exactly
+   what this project keeps getting caught by. ✅ So the note is derived
+   from what actually happened on THIS render. */
+function fbLiveNote(shown){
+  const nCov  = shown.filter(g => fbLiveOf(g)).length;
+  const nLive = shown.filter(g => { const m = fbMerge(g); return m.live; }).length;
+
+  if (FB_LIVE_OFF)
+    return `<br><br>&#9888; <b>Live scores are not available in this browser.</b>
+      The page asks ESPN's public scoreboard directly &mdash; the same way the
+      MLB tab polls its own free feed &mdash; and the request was refused
+      (<code>${FB_LIVE_ERR || 'blocked'}</code>). &#9940; <b>Everything below is
+      the stored schedule and final scores, exactly as before</b>, refreshed on
+      game days. Nothing here is invented and nothing is missing.`;
+
+  if (!FB_LIVE)
+    return `<br><br>&#9888; <b>Live scores are not being polled for this
+      season.</b> The feed only carries the season being played; you are looking
+      at ${fbScSeason}.`;
+
+  if (!nCov)
+    return `<br><br>&#9888; <b>The live feed reached, and it is not carrying any
+      of these games.</b> It returned ${FB_LIVE.events} game${FB_LIVE.events===1?'':'s'}
+      and none of them are in this week's view. &#9940; <b>The rows below are the
+      stored schedule and final scores</b> &mdash; not a live scoreboard, and not
+      an error either.`;
+
+  return `<br><br>&#128308; <b>Live.</b> ${nLive
+      ? `<b>${nLive}</b> game${nLive===1?' is':'s are'} in progress right now, with the
+         clock and score straight from ESPN's public scoreboard.`
+      : `No game in this view is in progress at the moment.`}
+    The page asks that feed directly every 45 seconds, the same way the MLB tab
+    polls its own &mdash; <b>no collector, no stored file, nothing to go stale.</b>
+    <br><br>&#9888; <b>It is live for ${nCov} of the ${shown.length} game${shown.length===1?'':'s'}
+    shown.</b> ${nCov < shown.length
+      ? `The feed did not return the other ${shown.length - nCov}, so
+         <b>those rows are unchanged</b> &mdash; the stored schedule and final score,
+         never blanked and never marked "not started" on the strength of an
+         absence.`
+      : `Every game in this view is covered.`}
+    <br><br>&#9898; <b>A final score stays OURS once we have it.</b> The stored
+    result is what the Track Record grades against, so it is the one that renders
+    &mdash; and if the live feed disagrees with it, <b>the row says so</b> rather
+    than quietly picking one.`;
+}
+
 async function fbScores(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
@@ -2941,6 +3141,17 @@ async function fbScores(){
       collected yet.</div>`);
     fbWire(); return;
   }
+
+  /* ⏱️ THE LIVE FEED. ⛔ Only for the NEWEST season we hold — polling a
+     live scoreboard while the reader is looking at 2025 is a request
+     that cannot tell them anything.
+     ⚠️ AND THE TEST IS THE DATA, NOT A CALENDAR RULE. "A football season
+     is named for the year it starts" already lives in `freshness.py` and
+     in the workflow's bash, pinned to each other by a test. ⛔ A THIRD
+     copy here would be a third thing to drift; the newest season we have
+     a schedule for answers the same question with no new rule. */
+  const liveSeason = avail.length ? Math.max.apply(null, avail) : fbScSeason;
+  if (fbScSeason === liveSeason) await fbLiveLoad();
 
   let games = doc.games.slice();
   const hasClass = games.some(g => g.home_class);
@@ -2990,33 +3201,19 @@ async function fbScores(){
   const byDate = {};
   shown.forEach(g => (byDate[fbKickDate(g.start)] ||= []).push(g));
 
-  const row = g => {
-    const done = g.final;
-    const hw = done && g.home_score > g.away_score;
-    const aw = done && g.away_score > g.home_score;
-    /* 🔴 LOGO BESIDE EVERY TEAM, the way an MLB matchup row reads.
-       ⚠️ align-items moves from `baseline` to `center` -- a 22px image on
-       a baseline-aligned row sits low and drags the score out of line. */
-    const side = (nm, sc, win, conf) => `<div class="side" style="display:flex;
-        align-items:center;gap:8px;padding:3px 0">
-        ${fbMark(nm, 22)}
-        <span class="nm" style="font-weight:${win?700:600};
-          color:${done && !win ? 'var(--mut)' : 'inherit'}">${nm}</span>
-        ${conf ? `<span class="sub" style="font-size:11px">${conf}</span>` : ''}
-        <span style="margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;
-          color:${done && !win ? 'var(--mut)' : 'inherit'}">${sc == null ? '' : sc}</span>
-      </div>`;
-    return `<tr>
-      <td class="gm" style="min-width:260px">
-        ${side(g.away, g.away_score, aw, g.away_conf)}
-        ${side(g.home, g.home_score, hw, g.home_conf)}
-      </td>
-      <td style="white-space:nowrap">${done
-        ? '<span class="kind" style="background:#eef4ee;color:#2f6b3f">FINAL</span>'
-        : `<span class="sub">${fbKickTime(g.start) || 'TBD'}</span>`}</td>
-      <td class="sub">${g.neutral ? 'neutral site' : ''}</td>
-    </tr>`;
-  };
+  /* ⛔ ~~`const row = g => …`, a full `<tr>` builder~~ DELETED
+     2026-09-06. **It was defined here and NEVER CALLED** — this tab has
+     rendered through `fbGameCard` since the cards landed, because each
+     card carries a click handler and an interpolated string cannot.
+     🔴 IT COST SOMETHING BEFORE IT WENT. The live-score wiring was put
+     into it first, and the browser test showed a tab with no live game
+     on it while the join was working perfectly. ➡️ **Dead code is a
+     decoy that looks exactly like the thing you edited.**
+     🔴 AND DELETING IT COST MORE: the first attempt searched for
+     `const row` from the START OF THE FILE, matched the copy inside
+     `fbOdds`, and deleted EVERYTHING BETWEEN THEM — a whole tab.
+     ➡️ **Bound the search to the function you mean, and diff every
+     top-level declaration afterwards** (rule 110). */
 
   const blocks = Object.keys(byDate).sort().map(d => {
     const list = byDate[d].slice().sort((a,b) => (a.start||'') < (b.start||'') ? -1 : 1);
@@ -3026,6 +3223,13 @@ async function fbScores(){
         <span class="rec">${list.length} game${list.length===1?'':'s'}</span></h3>
       <div class="fbcards" data-day="${d}"></div>`;
   }).join('');
+
+  /* 🔴 A HOOK FOR THE HEADLESS TEST, the same way `window.__tickSig`
+     exists for MLB's. ⛔ The live join is keyed on an ID the reader never
+     sees, so a browser test has no other way to assert that the RIGHT
+     game went live — and "it rendered something" is not that check. */
+  window.__fbShown = shown.map(g => ({ id: g.espn || g.id, home: g.home,
+                                       away: g.away, live: fbMerge(g).live }));
 
   const nFinal = shown.filter(g => g.final).length;
   v.innerHTML = fbShell(`<div style="margin-bottom:10px">
@@ -3061,10 +3265,7 @@ async function fbScores(){
       date, so the two always agree.
       <br><br>&#9898; <b>Descriptive.</b> These are the published schedule and final
       scores &mdash; measured facts, no projection, no confidence number.
-      <br><br>&#9888; <b>Not a live scoreboard.</b> Unlike the MLB tab, neither
-      football source carries in-game state, so a score appears when the game
-      is over rather than while it is being played. Saying otherwise would be a
-      claim the feed does not support.
+      ${fbLiveNote(shown)}
       ${LEAGUE==='ncaaf' ? `<br><br>&#9888; <b>Every game here has a Division&nbsp;I team in it.</b>
       CFBD returns every level it covers &mdash; ${doc.games.length.toLocaleString()}
       games across dozens of conferences this season. <b>FBS games</b> keeps a game
@@ -4123,7 +4324,14 @@ function fbBoardFor(g){
 }
 
 function fbGameCard(g){
-  const done = g.final;
+  /* 🔴 THE LIVE VIEW, AND IT MUST BE READ HERE — this is the function
+     that actually renders a game. `[2026-09-06]` ⛔ `fbScores` also
+     defines a `row` template that has NEVER been called; wiring the live
+     score into it would have shipped a "live" tab that could not show a
+     live game. **A renderer nobody calls is worse than no renderer: it
+     looks like the thing you edited.** */
+  const M = fbMerge(g);
+  const done = M.final;
   const c = el('div', 'g clickable');
   c.addEventListener('click', ev => {
     if (ev.target.closest('a')) return;
@@ -4134,7 +4342,9 @@ function fbGameCard(g){
 
   const side = (t, score, right) => {
     const d = el('div', 'tm' + (right ? ' r' : ''));
-    if (done) d.append(el('div', 'win', String(score == null ? '' : score)));
+    /* ⚠️ A LIVE GAME SHOWS ITS SCORE WHERE A FINAL SHOWS ITS SCORE — the
+       same slot, so the eye does not have to move when a game ends. */
+    if (done || M.live) d.append(el('div', 'win', String(score == null ? '' : score)));
     else if (b && b.win_pct && b.win_pct[nameOf(t)] != null)
       d.append(el('div', 'win', b.win_pct[nameOf(t)] + '%'));
     d.append(el('div', 'abbr', right
@@ -4146,16 +4356,31 @@ function fbGameCard(g){
     return d;
   };
 
-  const M = el('div', 'mid');
-  if (done){
-    M.append(el('div', 'time', g.overtime ? 'FINAL / OT' : 'FINAL'));
-    M.append(el('div', 'sc', `${g.away_score} – ${g.home_score}`));
+  const mid = el('div', 'mid');
+  if (M.live){
+    /* 🔴 IN PROGRESS. The clock and the period come from the feed and
+       nowhere else — our stored file has nothing to say about a game
+       being played. */
+    mid.append(el('div', 'time live', 'LIVE'));
+    mid.append(el('div', 'sc', `${M.away} – ${M.home}`));
+    mid.append(el('div', 'date', M.detail
+      || ((M.clock || '') + (M.period ? ' · Q' + M.period : ''))));
+  } else if (done){
+    mid.append(el('div', 'time', g.overtime ? 'FINAL / OT' : 'FINAL'));
+    mid.append(el('div', 'sc', `${M.away} – ${M.home}`));
+    /* ⚠️ A DISAGREEMENT IS PUBLISHED, NEVER SWALLOWED. The stored score
+       is what the Track Record grades against, so it is the one shown —
+       but two sources disagreeing about a final is a real data problem
+       and hiding it would make this tab the place it goes unnoticed. */
+    if (M.conflict) mid.append(el('div', 'date confl',
+      `live feed says ${M.theirs}`));
+    else if (M.fromFeed) mid.append(el('div', 'date', 'just in'));
   } else {
-    M.append(el('div', 'date', fbKickDate(g.start) || ''));
-    M.append(el('div', 'time', fbKickTime(g.start) || 'TBD'));
+    mid.append(el('div', 'date', fbKickDate(g.start) || ''));
+    mid.append(el('div', 'time', fbKickTime(g.start) || 'TBD'));
   }
   const top = el('div', 'g-top');
-  top.append(side(g.away, g.away_score, false), M, side(g.home, g.home_score, true));
+  top.append(side(g.away, M.away, false), mid, side(g.home, M.home, true));
   c.append(top);
 
   // ---- market strip, same component as MLB's
@@ -4705,6 +4930,18 @@ $('#filt').addEventListener('change', renderScores);
   window.__tickSig = renderSig;                      // for the headless test
 
   setInterval(() => { if (TAB === 'scores') tick(renderScores); }, 45000);
+
+  /* ⏱️ THE SAME HEARTBEAT FOR FOOTBALL. `[2026-09-06]`
+     🔴 Sam: "we have to make the scores live... for cfb and nfl."
+     ⚠️ THE SAME 45s MLB USES, and the same guard: only while the Scores
+     tab is actually open. ⛔ And it stops asking the moment the browser
+     is refused (`FB_LIVE_OFF`), so a blocked feed costs ONE request for
+     the whole session rather than one every 45 seconds forever. */
+  setInterval(() => {
+    if (LEAGUE === 'mlb' || FBTAB !== 'scores' || FB_LIVE_OFF) return;
+    if (document.querySelector('.ovl')) return;   // a modal is open
+    renderFootball();
+  }, FB_LIVE_MS);
 
   /* ⛔ This used to throw away the props cache and re-render every three
      minutes unconditionally. The collector writes board.json hourly now,

@@ -337,7 +337,8 @@ ck("it is never chained to a PAID mode (rule 78 in reverse)",
 # card build → deadline. A same-day check would have been decoration.
 import re as _re
 _wf = open(f"{ROOT}/.github/workflows/collect.yml").read()
-_routes = _re.findall(r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"', _wf)
+from wfroutes import parse_routes as _parse_routes    # noqa: E402
+_routes = _parse_routes(_wf)
 
 
 def _mow_from_cron(c, mode, lg):

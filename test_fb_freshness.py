@@ -62,8 +62,8 @@ print("\n4. 🔴 THE CONTRACT AND THE CRONS AGREE")
 print("   One fact in two files is two things to drift.")
 import re
 wf = open(".github/workflows/collect.yml", encoding="utf-8").read()
-routes = re.findall(
-    r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"', wf)
+from wfroutes import parse_routes    # noqa: E402  — the ONE parser
+routes = parse_routes(wf)
 for lg in ("nfl", "ncaaf"):
     scheduled = {m for _c, l, ms in routes if l == lg for m in ms.split()}
     governed = {m for m, _p, _t, _pd, _w in

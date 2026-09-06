@@ -30,6 +30,8 @@ def listlen(name):
     return len(re.findall(r'"', m.group(1))) // 2 if m else 0
 
 
+from wfroutes import parse_routes   # the ONE routing-table parser
+
 LEAGUE_OF = {}
 BAT, PIT, GAME_M = listlen("BATTER_MARKETS"), listlen("PITCHER_MARKETS"), listlen("GAME_MARKETS")
 wf = open(os.path.join(ROOT, ".github/workflows/collect.yml"), encoding="utf-8").read()
@@ -49,8 +51,18 @@ modes = {c: v.split() for c, v in modes.items()}
 # the spend it cannot see grows every weekend.
 # ⚠️ PARSED FROM THE WORKFLOW, never written down here, per the same rule
 # that put this file in the repo.
-for _c, _lg, _ms in re.findall(
-        r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"', wf):
+# ⚠️ 🔴 THESE TWO DICTS ARE KEYED BY CRON STRING, AND A CRON CAN NOW NAME
+# TWO LEAGUES. `[2026-09-06]` So a two-league arm has its league
+# OVERWRITTEN by the second one here, and its cost would be counted ONCE
+# rather than per league.
+# ⛔ THAT IS SAFE ONLY BECAUSE EVERY TWO-LEAGUE ARM IS FREE — `card-fb`,
+# `fb-scores`, `news`, `live-probe`. The paid modes (`props-player`,
+# `gamelines`) keep the per-league times Sam set.
+# ✅ AND IT IS NOT LEFT AS A COMMENT: `test_multileague.py` FAILS if a
+# paid mode is ever routed to two leagues, so the day someone doubles one
+# up, this under-count is caught before it ships rather than after the
+# bill. **A budget tool that silently under-reports is worse than none.**
+for _c, _lg, _ms in parse_routes(wf):
     modes[_c] = _ms.split()
     LEAGUE_OF[_c] = _lg
 ALL_MODES = sorted({m for v in modes.values() for m in v})

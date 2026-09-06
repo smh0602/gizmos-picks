@@ -56,8 +56,10 @@ print(f"\ncollector dispatches {len(MODES)} modes")
 
 # ── what the schedules ask for ────────────────────────────────────────
 # `"<cron>") LEAGUE=x; MODES="a b"` — the same shape budget.py parses.
-routes = re.findall(
-    r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"', wf)
+# ⛔ ONE PARSER, IMPORTED. This regex used to be copied into FIVE files
+# and a two-league routing arm silently stopped matching in all of them.
+from wfroutes import parse_arms, parse_routes    # noqa: E402
+routes = parse_routes(wf)
 crons = re.findall(r'^\s*- cron:\s*"([^"]+)"', wf, re.M)
 print(f"{len(crons)} cron entries, {len(routes)} routed to a mode list\n")
 
@@ -158,8 +160,14 @@ _dups = sorted(k for k, v in _c.Counter(crons).items() if v > 1)
 ck(not _dups, "no cron string is listed twice", str(_dups))
 
 print("\n⛔ AND NO ROUTING ARM IS UNREACHABLE")
+# ⚠️ ASKED OF THE ARMS, NOT THE ROUTES. `[fixed 2026-09-06]` An arm may
+# now name TWO leagues (`LEAGUE="ncaaf nfl"`), which `parse_routes`
+# expands into two rows sharing one cron string. Reading THAT as a
+# shadowed arm would fail a correct file — the real question is whether
+# the same cron string appears as two separate `case` arms, because
+# shell `case` takes the first match and the second can never run.
 _seen, _dead = set(), []
-for _c2, _l, _m in routes:
+for _c2, _l, _m in parse_arms(wf):
     if _c2 in _seen:
         _dead.append(f"{_c2} -> {_l} {_m}")
     _seen.add(_c2)

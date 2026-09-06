@@ -162,9 +162,28 @@ def variants():
     return v
 
 
+HEADERS_SEEN = {}
+
+
 def fetch(url, timeout=30):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=timeout) as r:
+        # 🔴 THE HEADERS DECIDE THE ARCHITECTURE, so keep them.
+        # ⚠️ If ESPN sends `Access-Control-Allow-Origin: *`, THE BROWSER
+        # CAN POLL IT DIRECTLY and a live tab needs NO cron, no stored
+        # file and no commit — exactly how MLB's live tab already works
+        # off `statsapi.mlb.com`. If it does not, the score has to be
+        # fetched server-side and written to disk, and GitHub's scheduler
+        # (which drops runs and cannot go below 5-minute granularity)
+        # becomes the ceiling on how "live" the tab can be.
+        # ⛔ TWO COMPLETELY DIFFERENT BUILDS. Worth one dict.
+        try:
+            HEADERS_SEEN.update({
+                k: r.headers.get(k) for k in
+                ("Access-Control-Allow-Origin", "Cache-Control", "Age",
+                 "Expires", "Date", "X-Cache") if r.headers.get(k)})
+        except Exception:
+            pass
         return r.status, json.loads(r.read().decode("utf-8"))
 
 
@@ -555,6 +574,30 @@ def main():
             report["refresh_note"] = (
                 "⛔ NOT MEASURED, ON PURPOSE. Nothing was in progress, and "
                 "two identical pulls of a board of finals measure nothing.")
+
+        # 🔴 CAN THE BROWSER POLL IT ITSELF? This decides whether a live
+        # tab is a page change or a whole collection pipeline.
+        _acao = HEADERS_SEEN.get("Access-Control-Allow-Origin")
+        report["browser_can_poll_directly"] = {
+            "access_control_allow_origin": _acao,
+            "cache_control": HEADERS_SEEN.get("Cache-Control"),
+            "age": HEADERS_SEEN.get("Age"),
+            "verdict": (
+                "✅ YES — the header allows any origin, so index.html can "
+                "fetch this the same way the MLB tab already polls "
+                "statsapi. NO cron, NO stored file, NO commit; the page "
+                "is as live as the feed."
+                if _acao == "*" else
+                f"⚠️ RESTRICTED to {_acao!r} — the browser cannot fetch "
+                "this directly, so a live tab must be collected "
+                "server-side and GitHub's scheduler becomes the ceiling "
+                "on how live it can be."
+                if _acao else
+                "⛔ NO CORS HEADER SEEN. That usually means the browser "
+                "will be refused, but this was measured from a SERVER "
+                "request, which does not send an Origin — so it is not "
+                "conclusive. A one-line fetch from the page settles it."),
+        }
 
         report["usable"] = bool(ev)
         _cov = report.get("coverage") or {}

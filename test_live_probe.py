@@ -378,3 +378,23 @@ ck("nothing live → no second pull is taken at all",
    rep10c.get("refresh_check") is None
    and "NOT MEASURED" in (rep10c.get("refresh_note") or ""),
    (rep10c.get("refresh_note") or "")[:60])
+
+
+print("\n═══ 11. 🔴 CAN THE BROWSER POLL ESPN ITSELF? ═══")
+# ⛔ THIS DECIDES WHETHER A LIVE TAB IS A PAGE CHANGE OR A PIPELINE.
+#    MLB's tab is live because the BROWSER polls statsapi directly — no
+#    cron, no stored file, no commit. If ESPN allows the same, college
+#    gets that for free. If it does not, the score must be collected
+#    server-side and GitHub's scheduler (which drops runs and cannot go
+#    below 5-minute granularity) becomes the ceiling on "live".
+r11, rep11, _ = run(good_payload(n_live=1, n_final=1))
+b11 = rep11.get("browser_can_poll_directly") or {}
+ck("the report answers the CORS question at all", bool(b11.get("verdict")))
+# ⚠️ THE STUB SENDS NO HEADERS, so this is the honest-uncertainty branch —
+#    and it must say the measurement was server-side rather than conclude.
+ck("⛔ with no header seen it refuses to conclude, and says why",
+   "not conclusive" in (b11.get("verdict") or ""),
+   "a server request sends no Origin, so a missing header proves nothing")
+ck("...and it names what would settle it",
+   "fetch from the page" in (b11.get("verdict") or ""),
+   (b11.get("verdict") or "")[-60:])

@@ -123,8 +123,8 @@ import re as _re, datetime as _dt, os as _os
 import freshness as _F
 _wf = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
                     ".github/workflows/collect.yml")
-_routes = _re.findall(r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"',
-                      open(_wf, encoding="utf-8").read())
+from wfroutes import parse_routes as _parse_routes    # noqa: E402
+_routes = _parse_routes(open(_wf, encoding="utf-8").read())
 for _lg in ("nfl", "ncaaf"):
     _times = [c for c, l, m in _routes if l == _lg and "props-player" in m.split()]
     if not _times:
