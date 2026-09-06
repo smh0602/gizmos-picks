@@ -1,9 +1,9 @@
-cfb back-fill at 2026-09-06 14:42:48.614946+00:00
-requested: [2026]
+cfb back-fill at 2026-09-06 18:33:06.450004+00:00
+requested: [2025]
 written  : []
-failed   : [2026]
+failed   : [2025]
 not yet  : []   (season not started — not a failure)
 
---- 2026 ---
-RuntimeError: depth_rank is CONSTANT None across 1,774 rows — a join failure, not a result; trailing_usage is CONSTANT None across 1,774 rows — a join failure, not a result; ahead_out_lastwk is CONSTANT 0 across 1,774 rows — a join failure, not a result
+--- 2025 ---
+RuntimeError: 185 rows have no opp_elo AND no opp_class — the missingness is unexplained, which means a consumer cannot tell an FCS opponent from a data hole
 
