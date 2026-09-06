@@ -288,13 +288,99 @@ ck("collect.py has an `fb-record` arm to run", 'mode == "fb-record"' in cy)
 ck("fb-record is registered as a FREE mode",
    "fb-record" in cy.split("FREE = (")[1].split(")")[0],
    "it reads published cards and stored logs — no API call")
-ck("the contract's mode name is one collect.py can actually run",
-   "fb-record" in modes and 'mode == "fb-record"' in cy,
-   "a contract row naming a mode the collector lacks reddens every run")
-ck("the workflow's freshness gate runs AFTER converge, so a missing "
-   "record repairs itself in the same run",
-   open(f"{ROOT}/.github/workflows/collect.yml").read().index("verify_freshness.py")
-   > open(f"{ROOT}/.github/workflows/collect.yml").read().index("python collect.py \"$m\""))
+
+# ══════════════════════════════════════════════════════════════════
+# 🔴 THE CHAIN IS THE THING `test_fb_freshness.py` TRUSTS, SO IT IS
+# ASSERTED HERE. That file's `drivers` map excuses fb-record from needing
+# its own cron on the grounds that `card-fb` builds it. ⛔ If this chain
+# is ever deleted, THIS must fail — otherwise the excuse outlives the
+# thing it was excusing, which is ledger rule 83 exactly.
+# ⚠️ Position matters: the call has to sit INSIDE the card-fb arm, after
+# the card is built, not somewhere else in the file that happens to
+# mention both names.
+arm = cy[cy.index('elif mode == "card-fb":'):]
+arm = arm[:arm.index("\n        elif mode ==")]
+ck("the grader is chained INSIDE the card-fb arm",
+   "build_record_fb()" in arm,
+   "so every card build regrades — card-fb runs daily in both leagues")
+ck("and it runs AFTER the card is built, not before",
+   arm.index("build_card_fb()") < arm.index("build_record_fb()"),
+   "grading a card that does not exist yet would grade the previous one")
+ck("a grading failure cannot lose the card that was just built",
+   "try:" in arm and "except Exception" in arm,
+   "the card is the product; the record is a report on it")
+ck("it is never chained to a PAID mode (rule 78 in reverse)",
+   "build_record_fb()" not in cy[cy.index('elif mode == "props-player"'):
+                                 cy.index('elif mode == "props-player"') + 2000]
+   if 'elif mode == "props-player"' in cy else True)
+
+# ══════════════════════════════════════════════════════════════════
+# 🔴 THE DEADLINE MUST HAVE A BUILDER THAT RAN AFTER ITS INPUT.
+# `[2026-09-06]` The first version was due Mon 2pm ET for college. A
+# naive "is there a builder that day" check PASSES that — `card-fb` runs
+# every morning — and it would still have been wrong, because the Monday
+# card build fires at 8:06am ET and the LOG REBUILD it grades from does
+# not happen until 12:06pm. ⛔ Grading at 8am Monday reads last week's
+# logs; nothing then rebuilds the record before a 2pm deadline.
+# ➡️ SO THE CHECK IS ORDERED, IN MINUTES-OF-WEEK: log rebuild →
+# card build → deadline. A same-day check would have been decoration.
+import re as _re
+_wf = open(f"{ROOT}/.github/workflows/collect.yml").read()
+_routes = _re.findall(r'"([\d ,*/-]+)"\)\s*LEAGUE=(\w+);\s*MODES="([a-z0-9 -]+)"', _wf)
+
+
+def _mow_from_cron(c, mode, lg):
+    """Every (day, minute-of-week) a cron fires, in ET, 0 = Monday 00:00.
+
+    ⚠️ Crons are UTC and this project is on EDT (UTC-4); `FB_TIMES` is ET.
+    Cron day-of-week is 0=Sunday, FB_TIMES is 0=Monday."""
+    out = []
+    mi, hh, _dom, _mon, dow = c.split()
+    days = ({0, 1, 2, 3, 4, 5, 6} if dow == "*" else
+            {d for part in dow.split(",")
+             for d in (range(int(part.split("-")[0]), int(part.split("-")[1]) + 1)
+                       if "-" in part else [int(part)])})
+    for h in ([int(x) for x in hh.split(",")] if hh != "*" else range(24)):
+        for m in ([int(x) for x in mi.split(",")] if mi != "*" else [0]):
+            for d in days:
+                et_h = h - 4                      # EDT
+                d_et, hh_et = d, et_h
+                if et_h < 0:
+                    hh_et += 24
+                    d_et = (d - 1) % 7
+                out.append(((d_et - 1) % 7, ((d_et - 1) % 7) * 1440 + hh_et * 60 + m))
+    return out
+
+
+def _fires(lg, mode):
+    out = []
+    for c, l, ms in _routes:
+        if l == lg and mode in ms.split():
+            out += _mow_from_cron(c, mode, lg)
+    return sorted(out, key=lambda x: x[1])
+
+
+for _lg, _logmode in (("ncaaf", "cfb-probe"), ("nfl", "nfl-logs")):
+    _logs = _fires(_lg, _logmode)
+    _cards = _fires(_lg, "card-fb")
+    _ok, _why = True, []
+    for _t in _f.FB_TIMES[_lg]["grade"]:
+        _h, _m = _t[0], _t[1]
+        _dset = _t[2] if len(_t) > 2 else {0, 1, 2, 3, 4, 5, 6}
+        for _d in _dset:
+            _due = _d * 1440 + _h * 60 + _m
+            # the newest log rebuild strictly before the deadline
+            _lastlog = max([x[1] for x in _logs if x[1] < _due], default=None)
+            # a card build after that rebuild and before the deadline
+            _has = any(_lastlog is not None and _lastlog < x[1] < _due for x in _cards)
+            if not _has:
+                _ok = False
+                _why.append("due %s, last %s rebuild %s, no card build between"
+                            % (_due, _logmode, _lastlog))
+    ck("%s: the grading deadline has a card build between the log rebuild "
+       "and itself" % _lg, _ok,
+       "; ".join(_why) if _why else
+       "%d log rebuild(s), %d card build(s) a week" % (len(_logs), len(_cards)))
 
 h = open(f"{ROOT}/index.html").read()
 ck("the page reads record.json", "latest/record.json" in h)

@@ -106,8 +106,23 @@ mm = max((abs(p['multiplier'] - dec(p['prices'][0])*dec(p['prices'][1])) for p i
 # no room for a real error to hide, since the next representable
 # disagreement would be 1.5e-3.
 ck("multiplier = product of the two decimals, recomputed from the prices", mm <= 6e-4, f"max drift {mm:.2e}")
-jm = max((abs(p['joint'] - round(p['leg_blends'][0]*p['leg_blends'][1]/100,1)) for p in doc['pairs']), default=0)
-ck("joint = product of the two blends", jm <= 0.051)
+# 🔴 COMPARE AGAINST THE EXACT PRODUCT, NOT A RE-ROUNDED ONE. `[2026-09-06]`
+# This is the SAME defect as the multiplier bound eight lines above, in the
+# same file, and it took a live red run to find the second copy.
+# ⛔ The check used to round the product to 1dp and compare TWO ROUNDED
+# NUMBERS, which lets a one-step disagreement fail a correct card. It fired
+# on `Cade Cavalli o3.5 K + George Kirby u5.5 K`: blends 75.0 and 66.2, a
+# product of EXACTLY 49.65 -- sitting precisely on the rounding boundary.
+# `card.py` builds joint from FRACTIONS (`round(100 * p1*p2, 1)`) and
+# published 49.7; this line multiplied two already-rounded PERCENTAGES and
+# `round(49.65, 1)` is 49.6. Both are correct roundings of the same value.
+# ✅ THE CLAIM BEING CHECKED IS "the published joint is a correct 1dp
+# rounding of the true product", so compare to the TRUE product with half a
+# unit in the last place. ⛔ THIS IS NOT A WIDENING: it is STRICTER in every
+# case except the exact-boundary one, because a wrong joint no longer gets
+# to hide behind the verifier's own rounding.
+jm = max((abs(p['joint'] - p['leg_blends'][0]*p['leg_blends'][1]/100) for p in doc['pairs']), default=0)
+ck("joint = product of the two blends", jm <= 0.051, f"max drift {jm:.4f}")
 ck("every pair leg is priced at Hard Rock", all(p['book']=='hardrockbet' for p in doc['pairs']))
 ck("no pair reuses a pitcher", all(len(set(p['game_ids']))==2 for p in doc['pairs']))
 

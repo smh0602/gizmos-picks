@@ -3218,6 +3218,33 @@ def run_mode(mode):
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.
             left = build_card_fb()
+            # ══════════════════════════════════════════════════════════
+            # 🔴 AND THE GRADER RUNS RIGHT BEHIND IT. `[2026-09-06]`
+            # ⛔ THE FIRST ATTEMPT GAVE `fb-record` ITS OWN CRONS AND THE
+            # WORKFLOW EDIT NEVER LANDED -- `.github` is hidden on
+            # Windows, the file went to the repo root instead, and the
+            # contract row sat there with no cron behind it, which is
+            # exactly what `test_fb_freshness.py` refuses. Two runs red.
+            # ✅ CHAINING IT HERE NEEDS NO WORKFLOW EDIT AT ALL, and it is
+            # a BETTER cadence than the crons I wrote: `card-fb` runs
+            # DAILY in both leagues (8:06am ET college, 8:08am NFL) plus
+            # four more times a week, where the crons were weekly.
+            # ⚠️ RULE 78 SAYS A BUILDER CHAINED TO SOMETHING EXPENSIVE
+            # RUNS APPROXIMATELY NEVER -- and that is why this is chained
+            # to `card-fb` and NOT to the paid props pull. `card-fb` is
+            # free, frequent, and already the thing whose output this
+            # grades. ⛔ Never move this onto a paid mode.
+            # 🔴 A FAILURE HERE MUST NOT LOSE THE CARD that was just
+            # built: the card is the product, the record is a report on
+            # it. So it is caught and logged rather than raised.
+            if LEAGUE != "mlb":
+                try:
+                    build_record_fb()
+                except Exception as e:
+                    log(f"  ⚠️ grading failed after the card built "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back. The contract will report the "
+                        f"record late until a later run repairs it.")
         elif mode == "fb-record":
             # ══════════════════════════════════════════════════════════
             # 🔴 THE FOOTBALL GRADER. The Track Record tab has existed

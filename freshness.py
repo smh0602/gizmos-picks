@@ -343,27 +343,50 @@ FB_TIMES = {
         # showed 76 FBS games with no score at all. ⚠️ Two deadlines, not
         # ten: one mid-slate and one the morning after. Enough to catch a
         # refresher that has stopped, few enough not to become noise.
-        "scores": [(20, 0, {5}), (9, 0, {6})],           # Sat 8pm, Sun 9am
+        # ⚠️ THE DEADLINE SITS JUST BEFORE A CRON, NOT JUST AFTER ONE.
+        # `[2026-09-06]` These were Sat 8pm / Sun 9am, and the crons fire
+        # at Sat 21:40 and Sun 09:40 ET -- so the contract went RED FOR
+        # 100 MINUTES EVERY SATURDAY waiting for a builder that was always
+        # going to be late. ⛔ A deadline is satisfied by a build AT OR
+        # AFTER it; having one just BEFORE it proves nothing.
+        "scores": [(21, 30, {5}), (9, 30, {6})],         # Sat 9:30pm, Sun 9:30am
         # 🔴 GRADING FOLLOWS THE LOGS, NOT THE GAMES. The grader reads
         # `players-<season>.json.gz`, which `cfb-probe` rebuilds on MONDAY
         # NOON -- so a Saturday card CANNOT be graded on Sunday, whatever
         # anyone wants. ⛔ A deadline before its own input is a deadline
         # that fires every week on a correct system.
-        "grade":  [(14, 0, {0}), (9, 0, {1})],           # Mon 2pm, Tue 9am
+        # ⚠️ AND IT MUST ALSO FALL AFTER A REAL BUILDER. `[2026-09-06]` the
+        # first version was due Mon 2pm -- but the grader is chained to
+        # `card-fb`, which does not run on a Monday for college, so the
+        # deadline had no builder before it. ⛔ A deadline nothing can
+        # satisfy is an alarm, not a contract. The daily 8:06am ET card
+        # run on Tuesday is the builder; the deadline sits an hour later.
+        "grade":  [(9, 0, {1})],                         # Tue 9am ET
     },
     "nfl": {
         "odds":   [(8, 0), (14, 0)],                     # 8am, 2pm daily
         "props":  [(7, 0), (11, 0)],                     # 7am, 11am daily
         # picks 7:30 + 11:30 daily, parlays 9:00 daily, record Tue noon
-        "card":   [(7, 30), (9, 0), (11, 30), (12, 0, {1})],
+        # ⚠️ 11:30, not 12:00, on the Tuesday. `[2026-09-06]` the Tuesday
+        # entry read 12:00 and the last card cron before the next morning
+        # is 11:34am ET -- so the moment NFL props land this would have
+        # gone red for NINETEEN HOURS every Tuesday. It has not bitten yet
+        # only because the contract drops card-fb until a props board
+        # exists.
+        "card":   [(7, 30), (9, 0), (11, 30), (11, 30, {1})],
         "trends": [(12, 0, {1})],                        # Tue noon
         "news":   [(8, 0)],
         "teams":  [],                                    # embedded in the page
         # ⚠️ The NFL's game days are Sunday, Monday and Thursday; its
         # schedule rode the TUESDAY rebuild.
-        "scores": [(20, 0, {6}), (9, 0, {0})],           # Sun 8pm, Mon 9am
-        # ⚠️ Same rule, one day later: `nfl-logs` rebuilds Tuesday noon.
-        "grade":  [(14, 0, {1}), (9, 0, {2})],           # Tue 2pm, Wed 9am
+        # ⚠️ Same fix, and the Monday one was worse: NO fb-scores cron runs
+        # on a Monday MORNING at all, so a Mon 9am deadline could not be
+        # met until Mon 9:45pm -- nearly 13 hours red, every week. The two
+        # deadlines now sit on the Sunday slate and the Monday-night one.
+        "scores": [(21, 30, {6}), (23, 30, {0})],        # Sun 9:30pm, Mon 11:30pm
+        # ⚠️ Same rule, one day later: `nfl-logs` rebuilds Tuesday noon,
+        # and the next card build after it is Wednesday 8:08am ET.
+        "grade":  [(9, 0, {2})],                         # Wed 9am ET
     },
 }
 

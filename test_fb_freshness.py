@@ -80,13 +80,103 @@ for lg in ("nfl", "ncaaf"):
     # every governed mode must be runnable by SOME cron. props-board is
     # chained inside props-player and card-fb inside the news cron, so
     # those two are satisfied by their driver.
-    drivers = {"props-board": "props-player"}
+    # ⚠️ A `drivers` ENTRY IS A CLAIM THAT ONE MODE BUILDS ANOTHER, and
+    # it is only allowed to be here because the chain is REAL and is
+    # asserted in `test_record_fb.py` against `collect.py`'s source. ⛔ If
+    # the chain is ever removed, that assertion fails rather than this one
+    # quietly excusing an ungoverned artifact.
+    # 🔴 fb-record is chained to card-fb DELIBERATELY (2026-09-06): its own
+    # crons needed a `.github/workflows/` edit that did not land, and
+    # card-fb runs DAILY in both leagues, which is a better cadence than
+    # the weekly crons it replaces.
+    drivers = {"props-board": "props-player", "fb-record": "card-fb"}
     unrunnable = sorted(m for m in governed
                         if m not in scheduled
                         and drivers.get(m) not in scheduled)
     ck(not unrunnable,
        f"   {lg}: every governed artifact has a cron that builds it",
        f"unrunnable: {unrunnable}")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A DEADLINE IS SATISFIED BY A BUILD **AT OR AFTER** IT. HAVING ONE
+#    JUST BEFORE IT PROVES NOTHING.
+# `[found 2026-09-06, after two red runs]` Three deadlines were set to
+# times no cron could meet, and each one reddened the gate on a schedule:
+#     ncaaf scores  Sat 20:00 ET -> next build Sat 21:40   100 min, WEEKLY
+#     nfl   scores  Mon 09:00 ET -> next build Mon 21:45   765 min, WEEKLY
+#     nfl   card    Tue 12:00 ET -> next build Wed 07:34  1174 min, WEEKLY
+# ⛔ The last one had never fired only because the contract drops card-fb
+#    until a props board exists -- it was armed for the day NFL props land.
+# ➡️ THIS CHECK IS THE REASON THAT CLASS CANNOT SHIP AGAIN. It converts
+#    every cron to minutes-of-week in ET and asks, for every deadline in
+#    FB_TIMES, how long it must sit red before any cron can clear it.
+def _expand(f, lo, hi):
+    out = set()
+    for part in f.split(","):
+        if part == "*":
+            out |= set(range(lo, hi + 1))
+        elif part.startswith("*/"):
+            out |= {v for v in range(lo, hi + 1) if v % int(part[2:]) == 0}
+        elif "-" in part:
+            a, b = part.split("-")
+            out |= set(range(int(a), int(b) + 1))
+        else:
+            out.add(int(part))
+    return out
+
+
+def _fires(lg, mode):
+    """Every minute-of-week (ET, 0 = Monday 00:00) a cron runs `mode`."""
+    out = set()
+    for c, l, ms in routes:
+        if l != lg or mode not in ms.split():
+            continue
+        mi, hh, _dom, _mon, dow = c.split()
+        for d in _expand(dow, 0, 6):
+            for h in _expand(hh, 0, 23):
+                for m in _expand(mi, 0, 59):
+                    eh, de = h - 4, d          # crons are UTC, FB_TIMES is ET
+                    if eh < 0:
+                        eh += 24
+                        de = (d - 1) % 7
+                    out.add(((de - 1) % 7) * 1440 + eh * 60 + m)   # cron 0=Sun
+    return sorted(out)
+
+
+# which mode builds each FB_TIMES key
+_BUILDER = {"odds": "gamelines", "props": "props-player", "card": "card-fb",
+            "news": "news", "teams": "cfb-teams", "scores": "fb-scores",
+            "grade": "card-fb"}
+_LOGS = {"ncaaf": "cfb-probe", "nfl": "nfl-logs"}
+# ⚠️ 20 MINUTES. A cron is allowed to sit a few minutes past its deadline --
+#    GitHub itself is not punctual -- but a deadline no cron reaches for
+#    HOURS is a scheduled false alarm, not a contract.
+_GRACE = 20
+for lg in ("ncaaf", "nfl"):
+    worst, why = 0, []
+    for key, times in F.FB_TIMES[lg].items():
+        mode = _BUILDER.get(key) or _LOGS[lg]
+        if key == "trends":
+            mode = _LOGS[lg]
+        f = _fires(lg, mode)
+        if not times:
+            continue
+        if not f:
+            why.append(f"{key}: no cron runs {mode}")
+            worst = 99999
+            continue
+        for t in times:
+            h, m = t[0], t[1]
+            for d in (t[2] if len(t) > 2 else set(range(7))):
+                due = d * 1440 + h * 60 + m
+                nxt = min([x for x in f if x >= due] + [x + 10080 for x in f])
+                if nxt - due > worst:
+                    worst = nxt - due
+                    why = [f"{key} due at minute {due} of the week, "
+                           f"next {mode} build at {nxt} — {nxt - due} min red"]
+    ck(worst <= _GRACE,
+       f"   {lg}: every deadline has a build within {_GRACE} min of it",
+       "; ".join(why) if worst > _GRACE else f"worst lag {worst} min")
 
 print("\n5. A WEEKLY DEADLINE IS NOT LATE SIX DAYS OUT OF SEVEN")
 print("   ⛔ The failure that would make the banner noise.")
