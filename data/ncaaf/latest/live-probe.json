@@ -1,0 +1,196 @@
+{
+ "league": "ncaaf",
+ "kind": "DIAGNOSTIC",
+ "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
+ "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=400",
+ "written_at": "2026-09-06T02:03:45Z",
+ "usable": true,
+ "http": 200,
+ "events": 25,
+ "payload_shape": {
+  "top_level": [
+   "events",
+   "leagues",
+   "provider",
+   "season",
+   "week"
+  ],
+  "event": [
+   "competitions",
+   "date",
+   "id",
+   "links",
+   "name",
+   "season",
+   "shortName",
+   "status",
+   "uid",
+   "weather",
+   "week"
+  ],
+  "competition": [
+   "attendance",
+   "broadcast",
+   "broadcasts",
+   "competitors",
+   "conferenceCompetition",
+   "date",
+   "dateValid",
+   "format",
+   "geoBroadcasts",
+   "highlights",
+   "id",
+   "leaders",
+   "neutralSite",
+   "notes",
+   "playByPlayAvailable",
+   "recent",
+   "situation",
+   "startDate",
+   "status",
+   "timeValid",
+   "type",
+   "uid",
+   "venue"
+  ],
+  "status": [
+   "clock",
+   "displayClock",
+   "period",
+   "type"
+  ],
+  "status_type": [
+   "completed",
+   "description",
+   "detail",
+   "id",
+   "name",
+   "shortDetail",
+   "state"
+  ],
+  "competitor": [
+   "curatedRank",
+   "homeAway",
+   "id",
+   "linescores",
+   "order",
+   "records",
+   "score",
+   "statistics",
+   "team",
+   "type",
+   "uid"
+  ],
+  "team": [
+   "abbreviation",
+   "alternateColor",
+   "color",
+   "conferenceId",
+   "displayName",
+   "id",
+   "isActive",
+   "links",
+   "location",
+   "logo",
+   "name",
+   "shortDisplayName",
+   "uid",
+   "venue"
+  ]
+ },
+ "fields_this_parser_needs": {
+  "events[].id": true,
+  "\u2026competitions[0].status.type.state": true,
+  "\u2026status.displayClock": true,
+  "\u2026status.period": true,
+  "\u2026competitors[].score": true,
+  "\u2026competitors[].homeAway": true,
+  "\u2026competitors[].team.displayName": true
+ },
+ "all_needed_fields_present": true,
+ "by_state": {
+  "in": 5,
+  "post": 16,
+  "pre": 4
+ },
+ "in_progress": 5,
+ "live_sample": [
+  {
+   "id": "401856668",
+   "away": "Missouri State Bears",
+   "home": "Texas A&M Aggies",
+   "away_score": "0",
+   "home_score": "46",
+   "state": "in",
+   "detail": "12:52 - 4th",
+   "clock": "12:52",
+   "period": 4,
+   "start": "2026-09-05T23:00Z"
+  },
+  {
+   "id": "401856770",
+   "away": "Abilene Christian Wildcats",
+   "home": "Texas Tech Red Raiders",
+   "away_score": "3",
+   "home_score": "26",
+   "state": "in",
+   "detail": "6:34 - 4th",
+   "clock": "6:34",
+   "period": 4,
+   "start": "2026-09-05T23:00Z"
+  },
+  {
+   "id": "401858428",
+   "away": "Western Michigan Broncos",
+   "home": "Michigan Wolverines",
+   "away_score": "6",
+   "home_score": "7",
+   "state": "in",
+   "detail": "12:51 - 4th",
+   "clock": "12:51",
+   "period": 4,
+   "start": "2026-09-05T23:30Z"
+  },
+  {
+   "id": "401856775",
+   "away": "Utah Tech Trailblazers",
+   "home": "BYU Cougars",
+   "away_score": "0",
+   "home_score": "49",
+   "state": "in",
+   "detail": "13:43 - 3rd",
+   "clock": "13:43",
+   "period": 3,
+   "start": "2026-09-06T00:00Z"
+  },
+  {
+   "id": "401856660",
+   "away": "Clemson Tigers",
+   "home": "LSU Tigers",
+   "away_score": "3",
+   "home_score": "3",
+   "state": "in",
+   "detail": "7:41 - 1st",
+   "clock": "7:41",
+   "period": 1,
+   "start": "2026-09-06T01:40Z"
+  }
+ ],
+ "live_state_fields": {
+  "with a running clock": 5,
+  "with a period": 5,
+  "with both scores": 5,
+  "of": 5
+ },
+ "join": {
+  "our_schedule_season": 2026,
+  "our_games": 3679,
+  "espn_events": 25,
+  "ids_in_common": 25,
+  "pct_of_espn_events_matched": 100.0,
+  "verdict": "EXACT \u2014 ESPN's event id IS our schedule's game id, so a live tab needs no matcher at all",
+  "unmatched_examples": []
+ },
+ "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES. To know that, run this twice a few minutes apart while a game is in progress and compare the clocks. This report is one snapshot and does not claim otherwise.",
+ "conclusion": "25 events, 5 in progress. EXACT \u2014 ESPN's event id IS our schedule's game id, so a live tab needs no matcher at all"
+}
