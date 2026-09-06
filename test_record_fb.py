@@ -150,8 +150,16 @@ finally:
 ck("record_fb exits clean", rc == 0)
 R = load(f"{_tmp}/data/ncaaf/latest/record.json")
 D = load(f"{_tmp}/data/ncaaf/latest/record-detail.json.gz")
+# ⛔ THE INVARIANT IS THAT BOTH FILES ARE WRITTEN WITH THE RIGHT SHAPE,
+#    not that either has rows in it. `bool(D["days"])` failed the moment
+#    the record was wiped — an empty day map is a legitimate state and an
+#    artifact that correctly did nothing must still exist (rule 86).
 ck("it writes both the totals and the per-row detail",
-   bool(R.get("overall")) and bool(D.get("days")))
+   isinstance(R.get("overall"), dict) and isinstance(D.get("days"), dict),
+   "overall=%s days=%d" % (R.get("overall"), len(D.get("days") or {})))
+if not D.get("days"):
+    note("⚠️ the detail file is EMPTY — expected while the record counts "
+         "from " + str(R.get("record_from", "its start date")))
 ck("the record is labelled DESCRIPTIVE and RECORD, never MODEL",
    R["kind"] == "DESCRIPTIVE" and R["basis"] == "RECORD"
    and "MODEL" not in json.dumps(R["calibration"]).upper(),
@@ -162,11 +170,22 @@ ck("the calibration column is headed `stated`, not `predicted`",
 
 # ⛔ THE POINTER FILE MUST NOT BE GRADED TWICE.
 have = sorted(os.path.basename(f) for f in glob.glob(f"{ROOT}/picks/fb-ncaaf-*.json"))
+# ⚠️ THE RECORD FLOOR CHANGES WHAT "ALL THE CARDS" MEANS. Since
+#    2026-09-06 the grader sets aside cards dated before `RECORD_FROM`
+#    (Sam: "wipe the track record"), so the count to compare against is
+#    the dated files ON OR AFTER that date — not every file on disk.
+_dated = [h for h in have if not h.endswith("-latest.json")]
+import record_fb as _rfb  # noqa: E402
+_eligible = [h for h in _dated if h[len("fb-ncaaf-"):-len(".json")]
+             >= _rfb.RECORD_FROM]
 ck("`-latest.json` exists and is NOT counted as its own card",
-   "fb-ncaaf-latest.json" in have
-   and R["cards_seen"] == len([h for h in have if not h.endswith("-latest.json")]),
-   "%d cards seen, %d dated files on disk"
-   % (R["cards_seen"], len([h for h in have if not h.endswith("-latest.json")])))
+   "fb-ncaaf-latest.json" in have and R["cards_seen"] == len(_eligible),
+   "%d cards seen, %d dated file(s) on disk, %d of them on or after the "
+   "record floor %s"
+   % (R["cards_seen"], len(_dated), len(_eligible), _rfb.RECORD_FROM))
+if len(_eligible) < len(_dated):
+    note(f"⚠️ {len(_dated) - len(_eligible)} card(s) predate the floor and "
+         f"are deliberately not graded — the files are untouched")
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 3. THE CONTROL — EVERY GRADED ROW RE-DERIVED BY HAND ═══")
@@ -226,8 +245,19 @@ for date, rows in D["days"].items():
             mismatch.append((r["player"], r["market"], "grader", r["actual"],
                              r["won"], "hand", v, w))
 
-ck("every graded row re-derives identically by hand",
-   dis == 0 and agree > 0, "%d agree, %d disagree" % (agree, dis))
+# 🔴 THREE OUTCOMES, NOT TWO — the same split the concentration check
+#    needed. A disagreement is a FAILURE; agreement on a real sample is a
+#    PASS; and a record with nothing in it is NOT EXERCISED, which is a
+#    legitimate state since the wipe and must not read as either.
+ck("no graded row disagrees with a hand re-derivation", dis == 0,
+   "%d agree, %d disagree" % (agree, dis))
+if agree:
+    ck("...and the control ran on a real sample", agree > 0,
+       "%d row(s) re-derived" % agree)
+else:
+    note("⚠️ NOT EXERCISED: no graded rows, so the hand control had "
+         "nothing to check. Expected while the record counts from "
+         + str(R.get("record_from", "its start date")))
 for m in mismatch[:6]:
     note("🔴 " + str(m))
 
@@ -260,10 +290,30 @@ ck("the file states which way the unsettled rows bias the number",
    "an exclusion with a direction has to say the direction")
 ck("and it says how many rows it could not settle",
    str(R["unresolved"]) in R["coverage_note"])
-ck("the sample's concentration is published",
-   R["distinct_players"] <= R["overall"]["n"] and R["distinct_players"] > 0,
-   "%d graded rows from %d players across %d games"
-   % (R["overall"]["n"], R["distinct_players"], R["distinct_games"]))
+# 🔴 THREE OUTCOMES, NOT TWO. `[2026-09-06]` This read
+#    `distinct_players <= n AND distinct_players > 0`, so it FAILED the
+#    moment Sam had the football record wiped — on a correct product with
+#    nothing graded yet. That is rule 139's shape, and dropping the
+#    `> 0` would leave a check that is true of an empty file, which is
+#    rule 142's. So: a graded record must publish its concentration, an
+#    empty one is reported NOT EXERCISED, and an impossible one still
+#    fails.
+ck("the concentration never exceeds the row count",
+   R["distinct_players"] <= R["overall"]["n"],
+   "%d players cannot come from %d rows"
+   % (R["distinct_players"], R["overall"]["n"]))
+if R["overall"]["n"]:
+    ck("...and a graded record publishes it",
+       R["distinct_players"] > 0,
+       "%d graded rows from %d players across %d games"
+       % (R["overall"]["n"], R["distinct_players"], R["distinct_games"]))
+else:
+    note("⚠️ NOT EXERCISED: nothing is graded, so concentration was not "
+         "observed" + (
+             f" — the record was RESET and counts from "
+             f"{R.get('record_from')}, with "
+             f"{R.get('cards_before_record_from', 0)} earlier card(s) set "
+             f"aside" if R.get("record_from") else ""))
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 5. IT IS GOVERNED, AND THE PAGE PRINTS IT ═══")

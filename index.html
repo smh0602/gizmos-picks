@@ -4050,7 +4050,9 @@ async function fbRecord(){
       <td class="n sub">${d.carded}</td>
       <td class="n sub">${(d.voids || 0) + (d.unresolved || 0)}</td></tr>`).join('')
     : `<tr><td colspan="5" class="sub" style="text-align:center;padding:14px">
-         No football day has been graded yet.</td></tr>`;
+         ${(R && R.record_from)
+           ? `Nothing graded since ${R.record_from}.`
+           : 'No football day has been graded yet.'}</td></tr>`;
 
   /* 🔴 CALIBRATION, AND THE WORD "MODEL" APPEARS NOWHERE IN IT. The
      bucket is the player's OWN RECORD at that line -- ledger rule 55 --
@@ -4072,8 +4074,24 @@ async function fbRecord(){
             gap == null ? '&mdash;' : (gap > 0 ? '+' : '') + gap.toFixed(1)}</td></tr>`;
       }).join('')}</tbody></table>` : '';
 
+  /* 🔴 A RESET IS NOT THE SAME FACT AS A NEW PRODUCT, AND THE TAB MUST
+     NOT LET A READER CONFUSE THEM. Sam, 2026-09-06: *"wipe the track
+     record, dont get rid of the tab completley"* — so the tab stands, the
+     boxes still draw em-dashes, and this says WHY.
+     ⛔ EVERY WORD COMES OFF `record.json`, which computes the date and the
+     count in `record_fb.py` (rule 132). The page prints those numbers; it
+     does not carry a sentence of its own that could go stale.
+     ⚠️ It appears ONLY when something was actually set aside — a product
+     that has simply never graded anything must not claim a reset. */
+  const resetNote = (R && R.record_from && R.record_from_note
+                     && (R.cards_before_record_from || 0) > 0)
+    ? `<div class="note" style="margin:10px 0"><b>The record was
+         reset.</b> ${R.record_from_note}</div>`
+    : '';
+
   v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record
       <span class="kind k-desc">Descriptive</span></h2>
+    ${resetNote}
     <p>Every row the board publishes, graded from the stored player game
        log &mdash; not from anyone's memory.
        ${R ? `<span class="rec">graded ${freshness(R.built_at)}</span>` : ''}</p>

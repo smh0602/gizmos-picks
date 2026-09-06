@@ -92,6 +92,31 @@ LG_NAME = {"nfl": "NFL", "ncaaf": "College Football"}[LEAGUE]
 # days would start to reach a Thursday game from a Saturday card.
 JOIN_WINDOW_DAYS = 1
 
+# 🔴🔴 THE RECORD STARTS HERE. Sam, 2026-09-06: *"wipe the track record,
+# dont get rid of the tab completley"* — and *"only football"*, so MLB's
+# own record is untouched.
+#
+# ⛔ WHY, AND IT IS NOT TIDINESS. Every football card published before this
+# date was built while the pipeline was still being repaired:
+#   · the freshness contract had NO SUNDAY, so boards were a day stale
+#     and Gizmo's Picks showed the previous day's lines
+#   · a card mixed two slate days -- 31 picks for 09-03 and 19 for 09-04
+#   · every football run without an explicit season handed the collector
+#     a literal 2025, so Trends never rebuilt
+#   · CFBD was rate-limiting us and the code called it "season not started"
+# **A hit rate computed over those cards measures the outage, not the
+# product.** ⛔ Publishing it as "the record" would be the clearest breach
+# of rule 55 this project could commit: a number that looks like evidence
+# and is not.
+#
+# ⚠️ THE CARDS ARE NOT DELETED. They stay in `picks/` exactly as
+# published, so nothing is rewritten and the earlier period can be graded
+# again by moving this one date.
+# ✅ REVERSIBLE, AND THE TAB SAYS SO. `record.json` carries this date and
+# the count of what it excluded, so the page states the reset rather than
+# showing a bare 0-0 that reads as a broken tab.
+RECORD_FROM = os.environ.get("FB_RECORD_FROM", "2026-09-07")
+
 # 🔴 THE SAME READERS `card_fb.py` USES, and they are IMPORTED rather than
 # retyped. The grader must read a stat the exact way the rate that
 # produced the pick read it, or the record measures a different question
@@ -273,6 +298,20 @@ def main():
         log(f"record_fb[{LEAGUE}]: no {LG_NAME} cards published yet — "
             f"nothing to grade, and that is not a failure")
 
+    # ⛔ APPLIED BEFORE ANYTHING IS GRADED, and COUNTED so the page can
+    # say what was set aside rather than implying there was never anything.
+    _before = []
+    _kept = []
+    for f, card in cards:
+        _d = card.get("date") or os.path.basename(f)[:-5]
+        (_kept if str(_d) >= RECORD_FROM else _before).append((f, card))
+    if _before:
+        log(f"record_fb[{LEAGUE}]: {len(_before)} card(s) dated before "
+            f"{RECORD_FROM} are NOT graded — they were built while the "
+            f"automatic updates were still being repaired. The files are "
+            f"untouched in picks/.")
+    cards = _kept
+
     logs, days, skipped = {}, [], []
     for f, card in cards:
         date = card.get("date") or os.path.basename(f)[:-5]
@@ -351,6 +390,20 @@ def main():
                     "unresolved": d["unresolved"]} for d in days],
         "days_graded": sum(1 for d in days if d["n"]),
         "cards_seen": len(days),
+        # 🔴 THE RESET, ON THE FILE, SO THE PAGE DOES NOT HAVE TO GUESS.
+        # ⛔ Both numbers are COMPUTED here (rule 132); the tab prints them
+        # rather than carrying a sentence of its own that could go stale.
+        "record_from": RECORD_FROM,
+        "cards_before_record_from": len(_before),
+        "record_from_note": (
+            f"Counting from {RECORD_FROM}. "
+            + (f"{len(_before)} earlier card(s) were graded against a "
+               f"pipeline that was still being repaired — stale boards, a "
+               f"card that mixed two days, and a season default that "
+               f"pointed at last year — so they are set aside rather than "
+               f"carried forward. The cards themselves are untouched."
+               if _before else
+               "No earlier cards were set aside.")),
         # 🔴 HOW MANY PEOPLE ARE BEHIND THE NUMBER, NOT JUST HOW MANY ROWS.
         # `[measured on the first graded card]` 17 graded rows came from 11
         # players — six of them carded twice. ⛔ Seventeen rows off eleven
