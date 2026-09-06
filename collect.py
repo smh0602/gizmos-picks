@@ -612,18 +612,22 @@ def build_board(games):
 MONTHLY_PLAN = int(os.environ.get("ODDS_MONTHLY_PLAN", "20000"))
 # 31 days, with ~7% held back for hand-dispatched pulls and month-end
 # slates. ⛔ Do not raise this to make a stale artifact go green.
-DAILY_CAP = int(os.environ.get("ODDS_DAILY_CAP", str(int(MONTHLY_PLAN / 31 * 0.93))))
+FLAT_DAILY_CAP = int(os.environ.get("ODDS_DAILY_CAP",
+                                    str(int(MONTHLY_PLAN / 31 * 0.93))))
+# 🔴 A CEILING ON THE BORROWING. The pro-rata cap below can bank a large
+# allowance across quiet days; this stops any single day -- or any looping
+# bug -- from spending it all at once. 2x the flat cap covers the worst
+# real day on the calendar (973 on Sat 12 Sept) with room, and is still an
+# eighth of the monthly plan.
+HARD_DAY_CEIL = int(os.environ.get("ODDS_DAY_CEIL", str(FLAT_DAILY_CAP * 2)))
+# ⚠️ KEPT AS A NAME because five files and several docs refer to it. It is
+# the FLOOR of the allowance now, not the allowance itself.
+DAILY_CAP = FLAT_DAILY_CAP
 
 
-def daily_spend():
-    """Credits spent TODAY, summed from the snapshots' own credits_used.
-
-    🔴 DERIVED, NEVER WRITTEN DOWN -- the project's own rule. The stored
-    files record what the API actually billed, so this is a measurement
-    and not a model that can drift away from the invoice.
-    """
+def _spend_under(root):
+    """Sum every stored `credits_used` under one dated directory."""
     total = 0
-    root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
     if not os.path.isdir(root):
         return 0
     for kind in os.listdir(root):
@@ -631,14 +635,109 @@ def daily_spend():
         if not os.path.isdir(d):
             continue
         for f in os.listdir(d):
-            p = os.path.join(d, f)
+            fp = os.path.join(d, f)
             try:
-                op = gzip.open if p.endswith(".gz") else open
-                with op(p, "rt") as fh:
+                op = gzip.open if fp.endswith(".gz") else open
+                with op(fp, "rt") as fh:
                     total += int(json.load(fh).get("credits_used") or 0)
             except Exception:
                 continue
     return total
+
+
+def _dated_roots(day):
+    """Every league's directory for one day. ⛔ THE WHOLE ACCOUNT.
+
+    🔴🔴 THIS FUNCTION IS THE FIX FOR THE DEFECT THAT MADE THE DAILY CAP
+    UNABLE TO FIRE. `daily_spend()` walked `{DATA}/{day}` and `DATA` is
+    LEAGUE-SCOPED, so MLB's counter never saw college's spend and college's
+    never saw MLB's. ⛔ ONE API KEY BILLS ALL THREE.
+
+    ⚠️ MEASURED, NOT ARGUED `[2026-09-05, reconstructed from the snapshots
+    and cross-checked against the `credits_remaining` balance]`:
+
+        day          TOTAL   mlb  ncaaf   nfl      cap
+        2026-09-05     794   372    404    18      600
+        billed (balance 18541 -> 17678)  869
+
+    **The account was billed 869 against a 600 cap and NO LEAGUE'S OWN
+    COUNTER EVER PASSED 404.** The cap could not have fired late; it was
+    never in a position to fire at all. Ledger: the pre-registered test
+    for this ran on 9/5 and failed arithmetically.
+
+    ⚠️ The layouts differ and both are walked: MLB writes
+    `data/<day>/<kind>/`, football writes `data/<league>/<day>/<kind>/`.
+    """
+    # ⛔ TAKEN FROM THE LEAGUE TABLE, NOT BY SLICING A PATH. `data/nfl`
+    #    and `data` differ by a segment today; a `dirname` would break the
+    #    moment a league's directory moves, and would break SILENTLY.
+    base = LEAGUES["mlb"]["data"]
+    roots = [os.path.join(base, day)]
+    for lg, cfg in LEAGUES.items():
+        if cfg["data"] != base:
+            roots.append(os.path.join(cfg["data"], day))
+    return roots
+
+
+def daily_spend(day=None):
+    """Credits the ACCOUNT spent on `day`, from the snapshots' own totals.
+
+    🔴 DERIVED, NEVER WRITTEN DOWN -- the project's own rule. The stored
+    files record what the API actually billed, so this is a measurement
+    and not a model that can drift away from the invoice.
+    ⚠️ It is still a FLOOR: a paid call that fails to write a snapshot is
+    invisible here. On 2026-09-05 the sweep read 794 against a billed 869,
+    so treat a near-cap reading as already at the cap.
+    """
+    day = day or now().strftime("%Y-%m-%d")
+    return sum(_spend_under(r) for r in _dated_roots(day))
+
+
+def month_spend():
+    """Credits the account has spent this calendar month, day by day.
+
+    ⛔ THE BILLING PERIOD RESETS ON THE CALENDAR MONTH, not on the 22nd --
+    a correction this project has already had to make once.
+    """
+    t = now()
+    out = {}
+    for d in range(1, t.day + 1):
+        day = t.replace(day=d).strftime("%Y-%m-%d")
+        out[day] = sum(_spend_under(r) for r in _dated_roots(day))
+    return out
+
+
+def daily_allowance():
+    """Today's cap: the pro-rata entitlement, BORROWING FROM QUIET DAYS.
+
+    🔴 A FLAT DAILY CAP IS THE WRONG SHAPE FOR THIS SCHEDULE, and the
+    calendar says so. `[measured 2026-09-06 against the Odds API's own
+    game list, which is the billing denominator -- not our schedule]`
+
+        Sun 09-06   368     Thu 09-10   356
+        Mon 09-07   338     Fri 09-11   413
+        Tue 09-08   323     Sat 09-12   973   🔴
+        Wed 09-09   341     Sun 09-13   557
+
+    **Nine days average 446 and ONE day needs 973.** A flat 600 refuses
+    the only day that matters while leaving six days' headroom unused, and
+    the month is nowhere near its limit: 2,705 spent of 20,000 in six
+    days, with 17,295 left for 24.
+
+    ✅ SO THE CAP IS PRO-RATA WITH BORROWING: you may spend up to what the
+    month has entitled you to so far, minus what you have already spent.
+    ⛔ AND IT IS STILL A CAP: `HARD_DAY_CEIL` stops a runaway in a single
+    day no matter how much the month has banked. A loop that starts
+    spending cannot drain the plan before anyone sees it.
+    """
+    t = now()
+    spent_month = sum(month_spend().values())
+    entitled = FLAT_DAILY_CAP * t.day
+    room = entitled - spent_month
+    # ⚠️ NEVER BELOW THE FLAT CAP: a month that has already overspent
+    # must still be able to buy today's slate, or one bad day locks the
+    # product out for the rest of the month.
+    return max(FLAT_DAILY_CAP, min(HARD_DAY_CEIL, room))
 
 
 def props_regions(kind):
@@ -3821,8 +3920,17 @@ def converge(explicit=(), allow_paid=True):
     # the run goes red -- but everything that CAN land, lands.
     paid = {r["mode"] for r in rows if r["paid"]}
     spent = daily_spend()
-    log(f"credits spent today: {spent} of a {DAILY_CAP} daily cap "
-        f"({MONTHLY_PLAN}/month)")
+    # 🔴 THE ACCOUNT'S SPEND, NOT THIS LEAGUE'S, AND THE ALLOWANCE IS
+    #    PRO-RATA. Both halves are new on 2026-09-06 and both were
+    #    measured first: the old sum was league-scoped, so on 2026-09-05
+    #    the account was billed 869 against a 600 cap while NO LEAGUE'S
+    #    own counter passed 404; and the flat cap refuses Saturday 12
+    #    September (973 needed) while six quiet days go unused.
+    cap_today = daily_allowance()
+    _mspent = sum(month_spend().values())
+    log(f"credits spent today: {spent} (ACCOUNT, all leagues) of a "
+        f"{cap_today} allowance — flat cap {FLAT_DAILY_CAP}, ceiling "
+        f"{HARD_DAY_CEIL}, month to date {_mspent} of {MONTHLY_PLAN}")
 
     failed, soft_failed, skipped = [], [], []
     for m in modes:
@@ -3832,13 +3940,13 @@ def converge(explicit=(), allow_paid=True):
         # whole cycle. Re-measuring each time costs a directory walk.
         if m in paid:
             spent = daily_spend()
-            if spent >= DAILY_CAP:
+            if spent >= cap_today:
                 # ⛔ REPORTED, NEVER SILENT. A skipped paid pull leaves an
                 # artifact out of contract, the freshness banner says so
                 # on the page, and the run goes red. That is the intended
                 # behaviour, not a failure to hide.
                 log(f"SKIPPING {m}: {spent} credits spent today, cap is "
-                    f"{DAILY_CAP}. NOTHING SPENT. It will stay out of "
+                    f"{cap_today}. NOTHING SPENT. It will stay out of "
                     f"contract and the page will say so.")
                 skipped.append(m)
                 continue
@@ -3866,7 +3974,7 @@ def converge(explicit=(), allow_paid=True):
     log("=" * 66)
     if skipped:
         log(f"SKIPPED ON BUDGET: {' '.join(skipped)} "
-            f"(spent {daily_spend()} of {DAILY_CAP})")
+            f"(spent {daily_spend()} of {cap_today})")
     for m, why in soft_failed:
         log(f"SOFT FAILURE (run stays green): {m} — {why}")
     if failed:
