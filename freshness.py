@@ -354,7 +354,30 @@ FB_TIMES = {
         # than that. ⚠️ But he asked for it fresher and it is FREE, so it
         # is daily now. ⛔ The old value is kept here rather than deleted:
         # ~~[(12, 0, {0})]  Mon noon~~
-        "trends": [(12, 0)],                             # noon DAILY
+        # 🔴 3AM ET DAILY. Sam, 2026-09-06: *"i want the trends tab to
+        # update everyday for college football at 3am — late enough to
+        # update games from the previous day and early enough to provide
+        # stats for the next day."*
+        # ⛔ ~~noon~~ was mine, not his, and it was the wrong end of the
+        # day: a noon rebuild gives the morning's card yesterday's table.
+        # ⛔ ~~3am ET is 07:00Z, which is after even a west-coast night
+        # game has finished and its box score has settled.~~ **I WROTE
+        # THAT WITHOUT MEASURING IT AND IT IS FALSE.** `[measured
+        # 2026-09-06]` across all 62 slate days on the 2026 schedule, two
+        # finish AFTER their own 3am rebuild: 2026-09-12 and 2026-10-03,
+        # both by 29 minutes, and both for the same reason -- **Hawai'i
+        # kicks off at 5:59pm HST = 11:59pm ET**, so a 3h30m game ends at
+        # 3:29am. That is the Pacific, not a defect, and no clock face
+        # Sam would recognise as "3am" fixes it.
+        # ✅ WHY 3AM STILL HOLDS: the question is not "same night?" but
+        # "is the game in the table before the next board reads it?" Both
+        # land in the NEXT morning's 3am pass and the following college
+        # slate is 4-5 days later, so no card ever reads a table missing
+        # them. `test_trends_schedule.py` asserts that stronger form
+        # against the real schedule, and pins the REASON (a Hawai'i
+        # kickoff) rather than the two dates -- a late slate for any
+        # other reason must go red, not be absorbed.
+        "trends": [(3, 0)],                              # 3am ET DAILY
         # 🔴 HOURLY. `[Sam: "news should be updating every hour i see that
         # it is 5 hours old, unacceptable"]` ⛔ One 8am deadline meant a
         # 5-hour-old file was INSIDE contract and nothing anywhere was
