@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-09-06T20:57:19Z",
+ "written_at": "2026-09-08T01:59:57Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -21,15 +21,15 @@
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20260906&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20260907&limit=400",
    "http": 200,
-   "events": 3
+   "events": 1
   },
   {
    "variant": "groups=80 + dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20260906&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20260907&limit=400",
    "http": 200,
-   "events": 3
+   "events": 1
   }
  ],
  "variant_used": "groups=80 (FBS)",
@@ -66,6 +66,7 @@
    "dateValid",
    "format",
    "geoBroadcasts",
+   "groups",
    "highlights",
    "id",
    "leaders",
@@ -138,22 +139,21 @@
  "all_needed_fields_present": true,
  "by_state": {
   "in": 1,
-  "pre": 3,
-  "post": 95
+  "post": 98
  },
  "in_progress": 1,
  "live_sample": [
   {
-   "id": "401858437",
-   "away": "Washington State Cougars",
-   "home": "Washington Huskies",
-   "away_score": "0",
-   "home_score": "3",
+   "id": "401858212",
+   "away": "SMU Mustangs",
+   "home": "Florida State Seminoles",
+   "away_score": "7",
+   "home_score": "7",
    "state": "in",
-   "detail": "12:52 - 2nd",
-   "clock": "12:52",
+   "detail": "11:45 - 2nd",
+   "clock": "11:45",
    "period": 2,
-   "start": "2026-09-06T20:00Z"
+   "start": "2026-09-07T23:30Z"
   }
  ],
  "live_state_fields": {
@@ -273,17 +273,13 @@
  "refresh_check": {
   "seconds_apart": 45,
   "live_games_compared": 1,
-  "games_whose_clock_or_period_changed": 1,
-  "example": {
-   "id": "401858437",
-   "was": "12:52 Q2",
-   "now": "12:36 Q2"
-  },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 1 of 1 live games in 45s, so the feed is live enough for a polling tab"
+  "games_whose_clock_or_period_changed": 0,
+  "example": null,
+  "verdict": "\u26a0\ufe0f NOTHING CHANGED IN 45s across 1 live games. \u26d4 That is ONE window: it points at a cache in front of the feed, but it is not proof the feed never updates. Re-run before concluding."
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=5",
+  "cache_control": "max-age=3",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },

@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
- "written_at": "2026-09-06T20:57:17Z",
+ "written_at": "2026-09-08T01:59:54Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -15,7 +15,7 @@
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260906&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260907&limit=400",
    "http": 200,
    "events": 0
   }
@@ -193,7 +193,7 @@
  "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=30",
+  "cache_control": "max-age=80",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
