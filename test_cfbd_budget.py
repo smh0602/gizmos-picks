@@ -109,3 +109,45 @@ ck("the pricing figures are marked as read off CFBD's page, not derived",
 ck("⚠️ and the script says which half it owns",
    "WHAT THIS SCRIPT OWNS" in src,
    "it owns the schedule's implied volume; CFBD owns the limit")
+
+
+print("\n═══ 6. 💰 THE KEY'S PLAN IS READ OFF THE RESPONSE, NOT GUESSED ═══")
+# 🔴 "Which tier is this key on?" took a human reading a pricing page and
+#    doing arithmetic. The API response may carry the answer on every
+#    call, and we were discarding the whole header block — on success AND
+#    on the 429s, which are the most informative responses we ever get.
+import cfb   # noqa: E402
+
+ck("🔴 quota-shaped response headers are recorded",
+   hasattr(cfb, "_record_quota") and hasattr(cfb, "quota_report"),
+   "the plan and the remaining allowance, if CFBD sends them")
+
+cfb.QUOTA.update({"seen": False, "headers": {}, "at": None, "note": None})
+cfb._record_quota({"Content-Type": "application/json"})
+r = cfb.quota_report()
+ck("⛔ ...and 'CFBD sent none' is REPORTED, never a silent empty",
+   r["quota_headers_seen"] is False and bool(r["note"]),
+   "an absence with no explanation is the blind spot wearing a hat "
+   "(rule 148)")
+
+cfb._record_quota({"X-RateLimit-Limit": "3000", "X-RateLimit-Remaining": "9"})
+r = cfb.quota_report()
+ck("✅ ...and real ones are kept verbatim",
+   r["quota_headers_seen"] and r["headers"].get("X-RateLimit-Limit") == "3000",
+   str(r["headers"]))
+
+before = dict(cfb.QUOTA)
+cfb._record_quota(None)
+ck("⚠️ a diagnostic must never break a fetch",
+   cfb.QUOTA["seen"] == before["seen"],
+   "garbage in, no exception out — this runs inside get()")
+
+src = open("cfb.py", encoding="utf-8").read()
+ck("🔴 the 429 path records headers BEFORE deciding to retry",
+   src.index("_record_quota(getattr(e") < src.index("if e.code not in (429"),
+   "a 429 is the most informative response we get and was the one we "
+   "read least")
+ck("...and the report reaches disk on every probe, pass or fail",
+   'rep["quota"] = quota_report()' in src,
+   "so 'which tier is this key on' is a file in the repo")
+cfb.QUOTA.update({"seen": False, "headers": {}, "at": None, "note": None})

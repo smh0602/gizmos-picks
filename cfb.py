@@ -170,6 +170,58 @@ def norm(s):
     return str(s).strip().lower()
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 💰 WHAT PLAN ARE WE ON, AND HOW MUCH OF IT IS LEFT?
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 NOBODY COULD ANSWER THAT, AND IT COST FIVE DAYS. `[2026-09-04 ->
+#    2026-09-09]` CFBD answered **429 on every endpoint** while the Trends
+#    table and the stored schedule sat frozen, and the only way anyone
+#    worked out WHY was to read CFBD's pricing page by hand and do the
+#    arithmetic: the free tier is 1,000 calls/month and we were burning
+#    ~8,200.
+# ⚠️ THE RESPONSE KNEW ALL ALONG. Most metered APIs return the plan and
+#    the remaining allowance in headers on EVERY call — and we were
+#    throwing the whole header block away, on success and on failure.
+# ⛔ WHETHER CFBD SENDS THEM IS NOT ASSUMED. This records whatever
+#    headers it finds whose NAME looks like a quota, and when it finds
+#    NONE it says so in as many words. A silent empty would be the same
+#    blind spot wearing a different hat (ledger rule 148).
+# 📌 The values land in the probe artifacts, so the answer to "which tier
+#    is this key on" is a file in the repo rather than a support email.
+_QUOTA_RE = re.compile(r"(rate.?limit|ratelimit|quota|x-plan|tier|"
+                       r"allowance|remaining)", re.I)
+QUOTA = {"seen": False, "headers": {}, "at": None, "note": None}
+
+
+def _record_quota(headers):
+    """Keep any quota-shaped response headers. ⛔ Never raises: this is a
+    diagnostic and must not be able to break a fetch."""
+    try:
+        found = {k: v for k, v in dict(headers).items() if _QUOTA_RE.search(k)}
+        QUOTA["at"] = datetime.datetime.now(
+            datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if found:
+            QUOTA["seen"] = True
+            QUOTA["headers"].update(found)
+            QUOTA["note"] = None
+        elif not QUOTA["seen"]:
+            # ⚠️ SAY IT OUT LOUD. "No quota headers" is a finding about
+            #    CFBD, not an absence of information.
+            QUOTA["note"] = ("CFBD sent no quota-shaped headers on this "
+                             "response — the plan and remaining allowance "
+                             "cannot be read from the API, so the tier has "
+                             "to come from the account page.")
+    except Exception:
+        pass
+
+
+def quota_report():
+    """What we know about the key's plan, for the probe artifacts."""
+    return {"kind": "DIAGNOSTIC", "quota_headers_seen": QUOTA["seen"],
+            "headers": dict(QUOTA["headers"]), "checked_at": QUOTA["at"],
+            "note": QUOTA["note"]}
+
+
 def get(path, params, timeout=90, tries=4):
     q = "&".join(f"{k}={v}" for k, v in (params or {}).items())
     url = f"{API}{path}" + (f"?{q}" if q else "")
@@ -181,9 +233,13 @@ def get(path, params, timeout=90, tries=4):
                           "User-Agent": "gizmos-picks/0.1"})
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
+                _record_quota(r.headers)
                 return json.loads(r.read().decode())
         except urllib.error.HTTPError as e:
             last = e
+            # 🔴 A 429 IS THE MOST INFORMATIVE RESPONSE WE EVER GET, and it
+            #    was the one we read least. Record its headers first.
+            _record_quota(getattr(e, "headers", {}) or {})
             # ⚠️ 429 and 5xx are worth another go. 4xx is not -- retrying a
             # 404 just wastes the runner's time and hides the real answer.
             if e.code not in (429, 500, 502, 503, 504):
@@ -862,7 +918,7 @@ def build_schedule(season, log=log):
                 rep["diagnosis"] = (
                     f"HTTP {code} — CFBD REJECTED OUR KEY. This is not a "
                     "rate limit and waiting will not clear it: check the "
-                    "ODDS_API_KEY-style repo secret CFBD_KEY is present, "
+                    "repo secret CFBD_API_KEY is present, "
                     "unexpired and on a plan that covers /games.")
             elif code == 429:
                 rep["diagnosis"] = (
@@ -875,6 +931,10 @@ def build_schedule(season, log=log):
             continue
         rows.extend([(st, g) for g in (got or [])])
     rep["rows"] = len(rows)
+    # 💰 THE PLAN, ON EVERY REPORT — pass or fail. A quota problem that is
+    #    only visible when someone reads a pricing page by hand is a
+    #    quota problem that takes five days to find.
+    rep["quota"] = quota_report()
     if not rows:
         # ⛔ NOT a failure to the caller -- the season may not be
         # published yet. It is REPORTED and the file is not written.
