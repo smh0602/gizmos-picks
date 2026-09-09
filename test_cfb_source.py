@@ -241,3 +241,67 @@ finally:
 ck("⚠️ the saving is stored, not asserted in a comment",
    '"cfbd_calls": calls' in open("cfb.py", encoding="utf-8").read(),
    "the next real run reports what it actually spent")
+
+
+print("\n═══ 7. 💰 THE BACK-OFF GROWS WITH THE FAILURE STREAK ═══")
+# 🔴 A FLAT 180 MINUTES PERMITS 8 ATTEMPTS A DAY. `[measured 09-06..09]`
+#    that is exactly what it permitted: 11 consecutive back-fill attempts,
+#    every one a 429, zero seasons written. None could have succeeded, and
+#    each spent quota we wanted back when CFBD relented.
+# ⚠️ AND ONE REBUILD COSTS 15 CALLS IN WEEK 3 AND 39 IN WEEK 15, so the
+#    same storm in December is ~12,000 calls against a 3,000/month plan.
+import datetime as _dt
+import tempfile as _tf
+
+_bo = _tf.mkdtemp()
+
+
+def _report(streak, mins_ago, failed=True):
+    when = (_dt.datetime.now(_dt.timezone.utc)
+            - _dt.timedelta(minutes=mins_ago))
+    p = os.path.join(_bo, "r.txt")
+    with open(p, "w", encoding="utf-8") as fh:
+        fh.write(f"cfb back-fill at {when}\nrequested: [2026]\n"
+                 f"written  : []\n"
+                 f"failed   : {'[2026]' if failed else '[]'}\n"
+                 f"consecutive failures: {streak}\nnot yet  : []\n")
+    return p
+
+
+ck("🔴 a first failure still clears in the original 3 hours",
+   collect._cfb_backoff_left(_report(1, 200)) == 0
+   and collect._cfb_backoff_left(_report(1, 10)) > 0,
+   "a blip must not cost a day — 8 attempts/day is fine when the source "
+   "is merely flaky")
+ck("⚠️ a second consecutive failure waits longer",
+   collect._cfb_backoff_left(_report(2, 200)) > 0,
+   "6h — the source is not merely flaky any more")
+ck("🔴 three or more settles to about ONE attempt a day",
+   collect._cfb_backoff_left(_report(3, 200)) > 600
+   and collect._cfb_backoff_left(_report(7, 1300)) == 0,
+   f"{collect.CFB_BACKOFF_LONG_MIN} min — which is the rate "
+   f"cfbd_budget.py actually prices")
+ck("✅ and a SUCCESS resets it instantly, whatever the streak said",
+   collect._cfb_backoff_left(_report(9, 5, failed=False)) == 0,
+   "the streak must never outlive the outage that caused it")
+
+# ⛔ THE DISTINCTION SAM DREW ON 2026-09-06: hold the repair pass, never
+#    the schedule. Every cron still fires; what stops is converge
+#    re-asking a source that just refused.
+src_c = open("collect.py", encoding="utf-8").read()
+ck("⛔ the back-off holds CONVERGE, never the cron schedule",
+   "THIS HOLDS CONVERGE, NEVER THE SCHEDULE" in src_c,
+   "Sam objected to scheduled runs being held and that objection stands")
+ck("⚠️ the streak is written where the back-off reads it",
+   "consecutive failures: " in open("cfb.py", encoding="utf-8").read(),
+   "one file, one source of truth — no second counter to drift")
+
+# 💰 THE ARITHMETIC THE WHOLE THING EXISTS FOR.
+_blip = 1440.0 / collect.CFB_BACKOFF_MIN
+_out = 1440.0 / collect.CFB_BACKOFF_LONG_MIN
+ck("💰 a sustained outage costs about one rebuild a day, not eight",
+   _out < 2.0 < _blip,
+   f"blip {_blip:.1f} attempts/day; sustained outage {_out:.1f}/day")
+note(f"⚠️ at 39 calls/rebuild (week 15) that is {_out * 39 * 30:.0f} "
+     f"calls/month during an outage, against a 3,000 plan — where the "
+     f"flat back-off would have spent {_blip * 39 * 30:.0f}.")

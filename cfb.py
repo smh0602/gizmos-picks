@@ -1684,9 +1684,41 @@ def probe(log=log):
             failed.append((season, f"{type(e).__name__}: {e}"))
 
     with open(f"{OUT}/backfill-report.txt", "w", encoding="utf-8") as fh:
+        # ══════════════════════════════════════════════════════════
+        # 💰 COUNT CONSECUTIVE FAILURES, SO THE BACK-OFF CAN GROW.
+        # 🔴 A FLAT 3-HOUR BACK-OFF STILL PERMITS 8 ATTEMPTS A DAY, and
+        #    during the 2026-09-06..09 outage that is exactly what it
+        #    permitted: **11 consecutive attempts, every one a 429, zero
+        #    seasons written.** Those calls could not succeed — CFBD was
+        #    refusing us — so every one of them spent quota we would want
+        #    back the moment the source recovered.
+        # ⚠️ AND THE COST GROWS WITH THE SEASON. `cfbd_budget.py` prices
+        #    one rebuild at 15 calls in week 3 and **39 in week 15**, so
+        #    the same storm in December is ~12,000 calls/month against a
+        #    3,000 plan. The outage we already survived would be worse
+        #    the second time.
+        # ✅ So the report carries the streak, and `_cfb_backoff_left()`
+        #    lengthens the wait with it: a blip still clears in 3 hours,
+        #    a sustained outage settles to roughly one attempt a day —
+        #    which is exactly the scheduled rate the budget prices.
+        # ⛔ THE SCHEDULED CRONS ARE NOT HELD. This only stops CONVERGE
+        #    re-attempting a source that just refused us; every cron in
+        #    the workflow still fires on time. That distinction is Sam's
+        #    (2026-09-06: he objected to schedule runs being held) and it
+        #    is the whole design.
+        # ══════════════════════════════════════════════════════════
+        prev = 0
+        try:
+            with open(f"{OUT}/backfill-report.txt", encoding="utf-8") as _old:
+                m = re.search(r"consecutive failures: (\d+)", _old.read())
+                prev = int(m.group(1)) if m else 0
+        except Exception:
+            prev = 0
+        streak = (prev + 1) if failed and not done else 0
         fh.write(f"cfb back-fill at {datetime.datetime.now(datetime.timezone.utc)}\n")
         fh.write(f"requested: {seasons}\nwritten  : {done}\n")
         fh.write(f"failed   : {[y for y, _ in failed]}\n")
+        fh.write(f"consecutive failures: {streak}\n")
         # ⚠️ REPORTED, NOT SUPPRESSED. Its own status line, so the report
         # says WHY a season is absent rather than just omitting it.
         fh.write(f"not yet  : {[y for y, _ in not_yet]}"

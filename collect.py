@@ -686,6 +686,11 @@ def _dated_roots(day):
 # repair attempts before the day is out, while cutting the hourly retry
 # storm that produced the 429s from ~24 attempts a day to ~8.
 CFB_BACKOFF_MIN = int(os.environ.get("CFB_BACKOFF_MIN", "180"))
+# 🔴 THE SUSTAINED-OUTAGE WAIT. ~20h leaves room for the daily 3:04am
+# cfb-probe cron to be the ONE attempt a day, which is the rate
+# `cfbd_budget.py` prices. ⛔ Not 24h: that would drift past the cron
+# and skip a day entirely.
+CFB_BACKOFF_LONG_MIN = int(os.environ.get("CFB_BACKOFF_LONG_MIN", "1200"))
 
 
 def _cfb_backoff_left(path="data/ncaaf/latest/backfill-report.txt"):
@@ -720,7 +725,39 @@ def _cfb_backoff_left(path="data/ncaaf/latest/backfill-report.txt"):
     if when.tzinfo is None:
         when = when.replace(tzinfo=timezone.utc)
     age = (now() - when).total_seconds() / 60.0
-    return max(0.0, CFB_BACKOFF_MIN - age)
+    # ══════════════════════════════════════════════════════════════════
+    # 💰 THE BACK-OFF GROWS WITH THE FAILURE STREAK.
+    # 🔴 A FLAT 180 MINUTES PERMITS 8 ATTEMPTS A DAY, and `[measured
+    #    2026-09-06..09]` that is what it permitted: **11 consecutive
+    #    back-fill attempts, every one a 429, zero seasons written.**
+    #    None of them could have succeeded, and each one spent quota that
+    #    we wanted back the moment CFBD let us in again.
+    # ⚠️ IT GETS WORSE LATER IN THE SEASON. `cfbd_budget.py` prices one
+    #    rebuild at 15 calls in week 3 and 39 in week 15, so the same
+    #    storm in December is ~12,000 calls against a 3,000/month plan.
+    # ✅ 1 failure -> 3h (unchanged, a blip clears fast)
+    #    2 failures -> 6h
+    #    3+         -> 20h, i.e. about one attempt a day, which is the
+    #                  rate `cfbd_budget.py` actually prices.
+    # ⛔ THIS HOLDS CONVERGE, NEVER THE SCHEDULE. Every cron still fires
+    #    on time; what stops is a repair pass re-asking a source that
+    #    just refused. Sam's distinction, 2026-09-06.
+    # ⚠️ AND IT RESETS THE INSTANT A BACK-FILL SUCCEEDS — `ok` above
+    #    returns 0 before any of this is reached.
+    # ══════════════════════════════════════════════════════════════════
+    streak = 0
+    sm = re.search(r"consecutive failures: (\d+)", txt)
+    if sm:
+        try:
+            streak = int(sm.group(1))
+        except Exception:
+            streak = 0
+    wait = CFB_BACKOFF_MIN
+    if streak >= 3:
+        wait = max(wait, CFB_BACKOFF_LONG_MIN)
+    elif streak == 2:
+        wait = max(wait, CFB_BACKOFF_MIN * 2)
+    return max(0.0, wait - age)
 
 
 def daily_spend(day=None):
