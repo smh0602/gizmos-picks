@@ -1,5 +1,5 @@
 {
- "built_at": "2026-09-08T15:42:28Z",
+ "built_at": "2026-09-09T11:32:16Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -28,6 +28,11 @@
  "coverage_note": "0 of 0 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 0 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
- "skipped": [],
+ "skipped": [
+  {
+   "date": "2026-09-09",
+   "why": "no 2026 player log stored yet"
+  }
+ ],
  "join_note": "A pick is joined to a game log by player name and a \u00b11-day window around kickoff. The window is there because the two leagues date a game differently \u2014 college logs a kickoff on its UTC date, so a Thursday night game lands on Friday, while the NFL logs the Eastern one \u2014 and it is safe because a player has at most one game inside any three-day window."
 }
