@@ -179,3 +179,65 @@ ck("...and it says nothing was fetched",
 ck("the back-off reads the report the back-fill already writes",
    "backfill-report.txt" in code_only(collect._cfb_backoff_left),
    "no second piece of state to drift out of agreement")
+
+
+print("\n═══ 6. 💰 THE QUOTA — STOP PAYING FOR WEEKS NOBODY PLAYED ═══")
+# ⛔ `build_pace` looped `range(1, 17)` for BOTH season types: a flat 32
+#    CFBD calls per rebuild, whatever the date. On 2026-09-08 — week 2 —
+#    29 of those 32 could only return nothing, and CFBD was answering
+#    429 on every endpoint with the Trends table four days stale.
+# 🔴 THE DANGEROUS HALF IS THE ERROR CASE. If a 429 counted as "empty",
+#    a rate-limited fetch would look like "the season is over" and the
+#    early stop would silently truncate a real season. That is the same
+#    confusion `SourceUnavailable` exists to prevent, one layer down.
+_calls, _mode = [], {"kind": "empty"}
+
+
+def _fake_get(path, params=None):
+    _calls.append((path, dict(params or {})))
+    if _mode["kind"] == "raise":
+        raise urllib.error.HTTPError(path, 429, "Too Many Requests", {}, None)
+    wk = int((params or {}).get("week") or 0)
+    st = (params or {}).get("seasonType")
+    if st == "regular" and wk <= 2:
+        return [{"offense": "Team A", "gameId": f"g{wk}",
+                 "playType": "Pass Reception", "playText": "x"}]
+    return []
+
+
+_real_get = cfb.get
+try:
+    cfb.get = _fake_get
+    _calls.clear(); _mode["kind"] = "empty"
+    try:
+        cfb.build_pace(2026, log=lambda *a, **k: None)
+    except Exception:
+        pass
+    plays = [c for c in _calls if c[0] == "/plays"]
+    ck("🔴 an unplayed season tail is NOT requested",
+       len(plays) < 32,
+       f"{len(plays)} /plays call(s) for a 2-week season, was a flat 32")
+    reg = [int(c[1]["week"]) for c in plays if c[1].get("seasonType") == "regular"]
+    post = [c for c in plays if c[1].get("seasonType") == "postseason"]
+    ck("   it stops shortly after the played weeks, not at week 16",
+       max(reg) <= 5, f"regular weeks requested: {sorted(reg)}")
+    ck("   and the postseason costs 2 calls in September, not 16",
+       len(post) <= 2, f"{len(post)} postseason call(s)")
+
+    # 🔴 THE ONE THAT MATTERS: a 429 must not read as "season over".
+    _calls.clear(); _mode["kind"] = "raise"
+    try:
+        cfb.build_pace(2026, log=lambda *a, **k: None)
+    except Exception:
+        pass
+    plays = [c for c in _calls if c[0] == "/plays"]
+    ck("🔴 a 429 is NOT counted as an empty week",
+       len(plays) >= 32,
+       f"{len(plays)} call(s) when every fetch RAISES — an error tells us "
+       f"nothing about the calendar, so the loop must not stop early")
+finally:
+    cfb.get = _real_get
+
+ck("⚠️ the saving is stored, not asserted in a comment",
+   '"cfbd_calls": calls' in open("cfb.py", encoding="utf-8").read(),
+   "the next real run reports what it actually spent")

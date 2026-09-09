@@ -821,8 +821,57 @@ def build_schedule(season, log=log):
         try:
             got = get("/games", {"year": str(season), "seasonType": st})
         except Exception as e:
-            log(f"    /games {season} {st}: {type(e).__name__}: {e}")
-            rep.setdefault("errors", []).append(f"{st}: {type(e).__name__}")
+            # ══════════════════════════════════════════════════════════
+            # 🔴 RECORD THE STATUS CODE. THE OLD LINE WROTE
+            #    `f"{st}: {type(e).__name__}"` AND THAT IS NOT A CAUSE.
+            # `[measured 2026-09-08]` the stored probe read exactly
+            #    `"errors": ["regular: HTTPError", "postseason: HTTPError"]`
+            #    for two days while the Scores tab sat frozen — and
+            #    "HTTPError" cannot tell **401 (the key is rejected)**
+            #    from **429 (we are over quota)** from **5xx (CFBD is
+            #    down)**. Those are three different problems with three
+            #    different owners, and the artifact named none of them.
+            # ⚠️ THE HOST WAS FINE THE WHOLE TIME — measured from a
+            #    browser: `api.collegefootballdata.com` served 200 at the
+            #    root and a clean 401 with no key. So the failure was
+            #    ours, and the one field that would have said which was
+            #    the field being dropped. Ledger rule 148.
+            # ⛔ The body is TRUNCATED and never logged whole: an error
+            #    body from an authenticated endpoint can echo a request,
+            #    and this file is committed to a PUBLIC repository.
+            # ══════════════════════════════════════════════════════════
+            code = getattr(e, "code", None)
+            body = ""
+            try:
+                if hasattr(e, "read"):
+                    body = e.read().decode("utf-8", "replace")[:160]
+            except Exception:
+                body = ""
+            detail = f"{st}: {type(e).__name__}"
+            if code:
+                detail += f" {code}"
+            log(f"    /games {season} {st}: {type(e).__name__}"
+                + (f" {code}" if code else "") + f": {e}")
+            rep.setdefault("errors", []).append(detail)
+            rep.setdefault("error_codes", []).append(
+                {"season_type": st, "exception": type(e).__name__,
+                 "http_status": code, "body": body})
+            # 🔴 SAY WHAT THE READER SHOULD DO, because these three
+            #    outcomes have three different owners.
+            if code in (401, 403):
+                rep["diagnosis"] = (
+                    f"HTTP {code} — CFBD REJECTED OUR KEY. This is not a "
+                    "rate limit and waiting will not clear it: check the "
+                    "ODDS_API_KEY-style repo secret CFBD_KEY is present, "
+                    "unexpired and on a plan that covers /games.")
+            elif code == 429:
+                rep["diagnosis"] = (
+                    "HTTP 429 — OVER QUOTA. Retrying sooner makes it "
+                    "worse; converge now backs off (see collect.py).")
+            elif code and code >= 500:
+                rep["diagnosis"] = (
+                    f"HTTP {code} — CFBD is erroring. Ours to wait out, "
+                    "not to fix.")
             continue
         rows.extend([(st, g) for g in (got or [])])
     rep["rows"] = len(rows)
@@ -952,17 +1001,44 @@ def build_pace(season, log=log):
     named = collections.Counter()          # pass plays where a name parsed
     ptypes = collections.Counter()
     samples, tgt = [], collections.Counter()
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 STOP ASKING CFBD FOR WEEKS THAT HAVE NOT BEEN PLAYED.
+    # ⛔ THIS LOOPED `range(1, 17)` FOR **BOTH** SEASON TYPES — a flat
+    #    **32 CFBD calls every rebuild**, whatever the date. On 2026-09-08,
+    #    week 2 of the season, **29 of those 32 were guaranteed to return
+    #    nothing**: 14 unplayed regular weeks and all 16 postseason weeks.
+    # 💰 THAT IS THE QUOTA, AND WE WERE SPENDING IT ON EMPTY ANSWERS.
+    #    `[measured 2026-09-08]` CFBD returned **429 on every endpoint**
+    #    — games, player game, plays, roster — and the Trends table had
+    #    not rebuilt since 2026-09-04. The back-off relieves the pressure;
+    #    this removes the waste that created it.
+    # ✅ A SEASON HAS NO GAPS: weeks run consecutively, so two consecutive
+    #    EMPTY weeks means the played part is over. ⛔ An ERROR is not an
+    #    empty — a 429 must never be read as "the season ended", which is
+    #    the same confusion `SourceUnavailable` exists to prevent.
+    # ⚠️ Empty-from-the-start is the normal September state for the
+    #    postseason, and it now costs 2 calls instead of 16.
+    # ══════════════════════════════════════════════════════════════════
     weeks_seen, fails = 0, []
+    calls, skipped = 0, 0
     for st in ("regular", "postseason"):
+        empty_run = 0
         for wk in range(1, 17):
+            if empty_run >= 2:
+                skipped += 17 - wk
+                break
             try:
+                calls += 1
                 rows = get("/plays", {"year": str(season), "week": str(wk),
                                       "seasonType": st})
             except Exception as e:
                 fails.append((st, wk, type(e).__name__))
-                continue
+                continue          # ⛔ an error tells us nothing about the
+                                  #    calendar — do NOT count it as empty
             if not rows:
+                empty_run += 1
                 continue
+            empty_run = 0
             weeks_seen += 1
             for p in rows:
                 off, gid = p.get("offense"), p.get("gameId")
@@ -1035,7 +1111,8 @@ def build_pace(season, log=log):
     inc_cov, inc_n = _pct("inc")
     log(f"    completions  : {comp_cov}% named  (n={comp_n:,})")
     log(f"    🔴 INCOMPLETIONS: {inc_cov}% named  (n={inc_n:,})  <- the ceiling")
-    log(f"    pace: {len(out)} teams over {weeks_seen} weeks")
+    log(f"    pace: {len(out)} teams over {weeks_seen} weeks "
+        f"({calls} CFBD call(s), {skipped} unplayed week(s) not requested)")
     log(f"    🔴 TARGET PARSE COVERAGE: {cov}% of pass plays named a "
         f"receiver ({hit:,} parsed, {miss:,} not)")
     if cov < 80:
@@ -1051,6 +1128,13 @@ def build_pace(season, log=log):
                      "MULTIPLIER, not a quality: every per-game number on "
                      "the trends board is a rate over this denominator."),
             "weeks_seen": weeks_seen,
+            # 💰 THE QUOTA LINE. `calls` is what we actually spent and
+            # `weeks_not_requested` is what the early stop saved. Both are
+            # stored so the saving is MEASURED on the next run rather than
+            # asserted in a comment (the budget rule: never write a number
+            # down where you cannot re-derive it).
+            "cfbd_calls": calls,
+            "weeks_not_requested": skipped,
             "fetch_failures": [[a, b, c] for a, b, c in fails],
             "teams": out}, {
             "season": season,

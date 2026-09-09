@@ -176,9 +176,18 @@ if "4 7 * * *" in arms:
     lg, modes = arms["4 7 * * *"]
     ck("...to college, building Trends", lg == "ncaaf"
        and "cfb-probe" in modes.split(), f"{lg} {modes}")
+# 🔴 ASK THE SCHEDULE, NOT THE FILE. A raw `in` over the whole workflow
+#    reads STRUCK COMMENTS as live crons — this project has already had
+#    six false failures from string-searching source that quotes its own
+#    history. The question is "is it in the schedule block", and the
+#    schedule block is exactly what `parse_routes` returns.
+_deployed = {c_ for c_, _l, _m in ROUTES}
 ck("⛔ the old noon cron is gone from the schedule",
-   '"4 16 * * *"' not in open(WF, encoding="utf-8").read(),
-   "a cron left behind would rebuild Trends a second time at noon")
+   "4 16 * * *" not in _deployed,
+   "a cron left behind would rebuild Trends a second time at noon; "
+   f"{len(_deployed)} cron(s) deployed")
+note("⚠️ this reads the ROUTED crons, so a commented-out or documented "
+     "cron cannot fail it and an unrouted one cannot hide from it")
 ck("the NFL's Tuesday arm is untouched",
    any(c_ == "6 16 * * 2" and lg == "nfl" and "nfl-logs" in m.split()
        for c_, lg, m in ROUTES),

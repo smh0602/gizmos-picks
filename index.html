@@ -3025,6 +3025,100 @@ let FB_LIVE_OFF = false;   /* ⛔ set after ONE failure — see below        */
    the same error every 45 seconds for as long as the tab is open --
    console noise that hides real problems, and a request storm aimed at
    somebody else's server. ⛔ One attempt, one honest sentence, stop. */
+/* ══════════════════════════════════════════════════════════════════════
+   🔴 THE LIVE LAYER ONLY EVER SAW ESPN'S **CURRENT WEEK**, AND I HAD
+   WRITTEN IT DOWN AS "TODAY".
+   ══════════════════════════════════════════════════════════════════════
+   Sam, 2026-09-08: *"the cfb scores arent updating, its not live and they
+   havent even udpated from the games on 9/7."*
+
+   ⛔ BOTH HALVES HAD THE SAME CAUSE AND IT WAS NOT CORS. Measured in a
+   real browser at this origin on 2026-09-08:
+
+       scoreboard?groups=80              -> dates 09-11, 09-12, 09-13
+       scoreboard?groups=80&dates=20260906 -> 6 events, 6 FINAL
+       scoreboard?groups=80&dates=20260907 -> 1 event,  1 FINAL
+
+   **A bare scoreboard request returns the week ESPN is currently on.** On
+   2026-09-05 that WAS the reader's week, which is why the 103-of-103
+   coverage check passed and why nothing looked wrong. Three days later
+   the same code answers for NEXT weekend and has nothing to say about the
+   days the reader is looking at. ⚠️ A verification that can only be run
+   on the day it passes is not a verification (ledger rule).
+
+   ⛔ AND THE STORED FALLBACK WAS ALSO EMPTY, for an unrelated reason:
+   CFBD has been returning **429 on every endpoint** since 09-06, so
+   `schedule-2026.json.gz` had not been rebuilt in two days. Two
+   independent faults presenting as one symptom.
+
+   ✅ SO THE TAB NO LONGER DEPENDS ON CFBD FOR WHAT IT DRAWS. The polled
+   query is UNCHANGED — same URL, same 45s, same proven behaviour — and a
+   SECOND, CACHED layer asks ESPN for the specific ET days the selected
+   week contains. Merged by ESPN's own event id, which is our stored id
+   (measured 25 of 25), so a merge is a union and not a reconciliation.
+
+   ⚠️ PER DAY, NOT PER RANGE — MEASURED. `dates=20260905-20260907`
+   returned only 09-05 and 09-06: ESPN resolves a range to the WEEK the
+   range starts in and silently drops the rest. A single `dates=YYYYMMDD`
+   was exact both times it was checked. ⛔ Do not "simplify" this into one
+   range request; it will look like it works and lose the last day.
+   ══════════════════════════════════════════════════════════════════════ */
+function fbLiveParse(events){
+  const byId = {};
+  (events || []).forEach(e => {
+    try {
+      const c  = (e.competitions || [])[0] || {};
+      const st = c.status || {};
+      const ty = st.type || {};
+      const cs = c.competitors || [];
+      const side = h => cs.find(x => x.homeAway === (h ? 'home' : 'away')) || {};
+      const H = side(true), A = side(false);
+      const num = v => (v === null || v === undefined || v === '') ? null : Number(v);
+      byId[String(e.id)] = {
+        state:  ty.state || null,
+        detail: ty.shortDetail || null,
+        clock:  st.displayClock || null,
+        period: st.period == null ? null : Number(st.period),
+        home:   num(H.score),
+        away:   num(A.score),
+      };
+    } catch (_e) { /* one odd event must not lose the rest */ }
+  });
+  return byId;
+}
+
+/* The per-day layer. Keyed by "season|week" so it is fetched ONCE per
+   selection and never by the 45s poll — past days do not change, and
+   polling them would be a request storm aimed at somebody else's
+   server for no new information. */
+let FB_DAY = null, FB_DAY_KEY = null;
+
+async function fbDayLoad(days, key){
+  if (FB_LIVE_OFF) return;               /* already refused once */
+  if (key === FB_DAY_KEY) return;        /* same selection, already have it */
+  const path = FB_LIVE_PATH[LEAGUE];
+  if (!path || !days || !days.length) { FB_DAY = null; FB_DAY_KEY = key; return; }
+  /* ⛔ A CAP, because a season picker could otherwise ask for 100 days. */
+  const use = days.slice(0, 8);
+  try {
+    const qs = [];
+    use.forEach(d => (FB_LIVE_GROUPS[LEAGUE] || [null]).forEach(g =>
+      qs.push(`${FB_LIVE_BASE}/${path}/scoreboard?limit=400&dates=${d}`
+              + (g ? '&groups=' + g : ''))));
+    const rs = await Promise.all(qs.map(u => fetch(u, { cache: 'no-store' })));
+    const oks = rs.filter(r => r.ok);
+    if (!oks.length) { FB_DAY = null; FB_DAY_KEY = key; return; }
+    const ds = await Promise.all(oks.map(r => r.json()));
+    FB_DAY = fbLiveParse(ds.reduce((a, x) => a.concat(x.events || []), []));
+    FB_DAY_KEY = key;
+  } catch (_e) {
+    /* ⚠️ NOT a reason to turn the whole live layer off — the polled
+       query may still be working. One quiet miss, the stored file
+       still renders. */
+    FB_DAY = null; FB_DAY_KEY = key;
+  }
+}
+
 async function fbLiveLoad(){
   if (FB_LIVE_OFF) return null;
   const path = FB_LIVE_PATH[LEAGUE];
@@ -3043,26 +3137,7 @@ async function fbLiveLoad(){
     if (!oks.length) throw new Error('HTTP ' + rs.map(r => r.status).join('/'));
     const ds = await Promise.all(oks.map(r => r.json()));
     const d = { events: ds.reduce((a, x) => a.concat(x.events || []), []) };
-    const byId = {};
-    (d.events || []).forEach(e => {
-      try {
-        const c  = (e.competitions || [])[0] || {};
-        const st = c.status || {};
-        const ty = st.type || {};
-        const cs = c.competitors || [];
-        const side = h => cs.find(x => x.homeAway === (h ? 'home' : 'away')) || {};
-        const H = side(true), A = side(false);
-        const num = v => (v === null || v === undefined || v === '') ? null : Number(v);
-        byId[String(e.id)] = {
-          state:  ty.state || null,          /* pre | in | post           */
-          detail: ty.shortDetail || null,    /* "7:21 - 3rd", "Final"     */
-          clock:  st.displayClock || null,
-          period: st.period == null ? null : Number(st.period),
-          home:   num(H.score),
-          away:   num(A.score),
-        };
-      } catch (_e) { /* one odd event must not lose the rest */ }
-    });
+    const byId = fbLiveParse(d.events);
     FB_LIVE = { byId, events: (d.events || []).length, at: new Date() };
     FB_LIVE_ERR = null;
     return FB_LIVE;
@@ -3135,9 +3210,15 @@ async function fbTick(){
 /* The live view of ONE stored game, or null if the feed does not have it.
    ⛔ KEYED ON THE ID, NEVER ON A TEAM NAME (ledger rule 54). */
 function fbLiveOf(g){
-  if (!FB_LIVE) return null;
   const key = g.espn || g.id;
-  return key ? (FB_LIVE.byId[String(key)] || null) : null;
+  if (!key) return null;
+  const k = String(key);
+  /* ⛔ PRECEDENCE: the POLLED layer wins. It is seconds old; the day
+     cache is a snapshot taken when the week was selected. For a game in
+     progress those two disagree, and the fresher one is right. */
+  if (FB_LIVE && FB_LIVE.byId[k]) return FB_LIVE.byId[k];
+  if (FB_DAY && FB_DAY[k]) return FB_DAY[k];
+  return null;
 }
 
 /* 🔴 WHICH NUMBER WINS, AND WHY. One number per fact (rule 66).
@@ -3290,6 +3371,27 @@ async function fbScores(){
   const weeks = [...new Set(games.map(g => g.week).filter(w => w != null))]
                   .sort((a,b) => a-b);
   if (weeks.length && weeks.indexOf(fbWeek) === -1) fbWeek = fbCurrentWeek(games, weeks);
+
+  /* 🔴 NOW THAT THE WEEK IS SETTLED, ASK ESPN FOR **ITS** DAYS. The
+     polled query above only ever covers the week ESPN is currently on,
+     so without this the reader looking at any earlier week sees whatever
+     the stored file holds — which, while CFBD is throttled, is nothing.
+     ⚠️ The ET date, not the UTC one: a 7:30pm ET kickoff is 23:30Z and a
+     10pm ET kickoff is the NEXT UTC day (ledger rule 149). */
+  if (fbScSeason === liveSeason){
+    const et = iso => {
+      const t = new Date(iso);
+      if (isNaN(t)) return null;
+      const e = new Date(t.getTime() - 4 * 3600 * 1000);
+      return e.getUTCFullYear().toString()
+           + String(e.getUTCMonth() + 1).padStart(2, '0')
+           + String(e.getUTCDate()).padStart(2, '0');
+    };
+    const days = [...new Set(games.filter(g => g.week === fbWeek)
+                                  .map(g => et(g.start))
+                                  .filter(Boolean))].sort();
+    await fbDayLoad(days, `${LEAGUE}|${fbScSeason}|${fbWeek}`);
+  }
   /* 🔴 THE CONFERENCE FILTER IS APPLIED **AFTER** THE WEEK PICKER IS
      BUILT, and that ordering is the whole point. ⛔ Filtering first would
      mean the weeks a conference happens not to play in vanish from the
@@ -5270,12 +5372,39 @@ async function renderFootball(){
   if (!doc){
     v.innerHTML = fbShell(fbControls(avail) +
       `<div class="note"><b>No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</b><br>
-       ${fbSeason >= 2026 ? `The ${fbSeason} season rebuilds every
-       ${LEAGUE==='ncaaf'?'Sunday morning, after Saturday\u2019s games':'Tuesday morning, after Monday night'}.
+       ${fbSeason >= 2026 ? `The ${fbSeason} season rebuilds
+       ${LEAGUE==='ncaaf'?'every morning at 3am ET':'every Tuesday at noon ET'}.
        Until the first slate is final there is nothing to show.<br>` : ''}
-       The collector writes <code>${fbPath(fbSeason)}</code> on its next back-fill run.
-       ${LEAGUE === 'ncaaf' ? 'College has not been re-run since the table was added &mdash; dispatch <code>cfb-probe</code> once and it appears.' : ''}</div>`);
+       The collector writes <code>${fbPath(fbSeason)}</code> on its next scheduled run.</div>`);
     fbWire(); return;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     🔴 SAY HOW OLD THIS TABLE IS. Sam, 2026-09-08: *"the trends tab is
+     still not updated."* ⛔ HE COULD NOT HAVE KNOWN FROM THE PAGE — it
+     drew a full, confident table of numbers built on **2026-09-04** and
+     said nothing about the date. `[measured 2026-09-08]` CFBD had been
+     answering **429 on every endpoint** for four days.
+     ⚠️ A STALE NUMBER THAT ANNOUNCES ITSELF IS A DIFFERENT PRODUCT FROM
+     A STALE NUMBER THAT DOES NOT. The fix for the source is in the
+     collector; the fix for the READER is this line.
+     ⛔ The threshold is the league's own rebuild cadence, not a guess:
+     college rebuilds daily and the NFL weekly, so "late" is 2 days and
+     9 days respectively. */
+  const builtAt = doc.built_at || null;
+  let ageNote = '';
+  if (builtAt){
+    const hrs = (Date.now() - new Date(builtAt).getTime()) / 3600000;
+    const lateAfter = LEAGUE === 'ncaaf' ? 48 : 216;
+    const when = isNaN(hrs) ? '' :
+      hrs < 36 ? `${Math.max(0, Math.round(hrs))}h ago`
+               : `${Math.round(hrs / 24)} days ago`;
+    ageNote = (hrs > lateAfter)
+      ? `<div class="note"><b>This table has not rebuilt since ${builtAt.slice(0, 10)}</b>
+         &mdash; ${when}. It should rebuild ${LEAGUE === 'ncaaf'
+         ? 'every morning at 3am ET' : 'every Tuesday'}. The numbers below
+         are real, and they are that old.</div>`
+      : `<p class="sub"><span class="rec">table built ${when}</span></p>`;
   }
 
   const mets = fbMetricsFor(fbPos);
@@ -5313,11 +5442,12 @@ async function renderFootball(){
 
   v.innerHTML = fbShell(`
     ${fbControls(avail)}
+    ${ageNote}
     ${snapped ? `<div class="note" style="margin:0 0 12px;padding:9px 12px">
       <b>No ${snapped} ${fbSide === 'off' ? 'offense' : 'defense'} table for
       ${LG_NAME[LEAGUE]}</b> &mdash; showing <b>${fbSeason}</b> instead.
       ${LEAGUE === 'ncaaf' && fbSide === 'off'
-        ? 'The college offensive board was added after the historical back-fill ran, so only 2025 is built. One free dispatch fills the rest.'
+        ? 'The college offensive board was added after the historical back-fill ran, so only 2025 is built. The scheduled back-fill fills the rest.'
         : 'Only the seasons with a table are offered in the picker.'}</div>` : ''}
     ${qbRush ? `<div class="note"><b>College charges sack yardage to rushing.</b>
        CFB quarterback rushing reaches &minus;73 with 23.5% of rows negative; the NFL

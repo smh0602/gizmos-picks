@@ -396,7 +396,30 @@ FB_TIMES = {
         # 100 MINUTES EVERY SATURDAY waiting for a builder that was always
         # going to be late. ⛔ A deadline is satisfied by a build AT OR
         # AFTER it; having one just BEFORE it proves nothing.
-        "scores": [(21, 30, {5}), (9, 30, {6})],         # Sat 9:30pm, Sun 9:30am
+        # ══════════════════════════════════════════════════════════
+        # 🔴🔴 DAILY. ~~[(21, 30, {5}), (9, 30, {6})]~~ — **A WEEKEND-SHAPED
+        # DEADLINE ON A SPORT THAT IS NOT WEEKEND-SHAPED**, and it hid a
+        # two-day-stale Scores tab behind a green verifier.
+        # `[measured 2026-09-08]` `schedule-2026.json.gz` had not been
+        # rebuilt since **2026-09-06 16:50Z**. The tab showed **6 games on
+        # 9/6 and 1 on 9/7 with no score at all** — and NOTHING WAS RED,
+        # because the last `scores` deadline that existed had already been
+        # satisfied and the next one was days away. `plan()` saw nothing
+        # stale; converge repaired nothing; every verifier passed.
+        # ⚠️ THE SPORT DISAGREES WITH THE OLD SHAPE. Measured on the 2026
+        # schedules: college plays **304 games off Saturday** (Mon 1 ·
+        # Tue 19 · Wed 15 · Thu 143 · Fri 116 · Sun 10) and the NFL **44
+        # off Sunday** (Mon 17 · Wed 2 · Thu 19 · Fri 4 · Sat 2).
+        # ⛔ THIS IS RULE 137 A SECOND TIME. It was applied to props and
+        # the card on 2026-09-06 and NOT to scores, because scores had
+        # game-day crons and *looked* covered. A cron is not a contract:
+        # a dropped cron with no deadline behind it is never repaired.
+        # ✅ 4:00am ET DAILY, answered by the 3:54am `fb-scores` cron.
+        # ⚠️ WHY 4AM AND NOT 3AM: a Hawai'i home game kicks at 11:59pm ET
+        # and a 3h30m game ends ~3:29am (measured across all 62 college
+        # slate days). 4:00am clears it; 3:00am does not.
+        # ══════════════════════════════════════════════════════════
+        "scores": [(4, 0)],                             # 4:00am ET DAILY
         # 🔴 GRADING FOLLOWS THE LOGS, NOT THE GAMES. The grader reads
         # `players-<season>.json.gz`, which `cfb-probe` rebuilds on MONDAY
         # NOON -- so a Saturday card CANNOT be graded on Sunday, whatever
@@ -436,7 +459,30 @@ FB_TIMES = {
         # on a Monday MORNING at all, so a Mon 9am deadline could not be
         # met until Mon 9:45pm -- nearly 13 hours red, every week. The two
         # deadlines now sit on the Sunday slate and the Monday-night one.
-        "scores": [(21, 30, {6}), (23, 30, {0})],        # Sun 9:30pm, Mon 11:30pm
+        # ══════════════════════════════════════════════════════════
+        # 🔴🔴 DAILY. ~~[(21, 30, {6}), (23, 30, {0})]~~ — **A WEEKEND-SHAPED
+        # DEADLINE ON A SPORT THAT IS NOT WEEKEND-SHAPED**, and it hid a
+        # two-day-stale Scores tab behind a green verifier.
+        # `[measured 2026-09-08]` `schedule-2026.json.gz` had not been
+        # rebuilt since **2026-09-06 16:50Z**. The tab showed **6 games on
+        # 9/6 and 1 on 9/7 with no score at all** — and NOTHING WAS RED,
+        # because the last `scores` deadline that existed had already been
+        # satisfied and the next one was days away. `plan()` saw nothing
+        # stale; converge repaired nothing; every verifier passed.
+        # ⚠️ THE SPORT DISAGREES WITH THE OLD SHAPE. Measured on the 2026
+        # schedules: college plays **304 games off Saturday** (Mon 1 ·
+        # Tue 19 · Wed 15 · Thu 143 · Fri 116 · Sun 10) and the NFL **44
+        # off Sunday** (Mon 17 · Wed 2 · Thu 19 · Fri 4 · Sat 2).
+        # ⛔ THIS IS RULE 137 A SECOND TIME. It was applied to props and
+        # the card on 2026-09-06 and NOT to scores, because scores had
+        # game-day crons and *looked* covered. A cron is not a contract:
+        # a dropped cron with no deadline behind it is never repaired.
+        # ✅ 4:00am ET DAILY, answered by the 3:54am `fb-scores` cron.
+        # ⚠️ WHY 4AM AND NOT 3AM: a Hawai'i home game kicks at 11:59pm ET
+        # and a 3h30m game ends ~3:29am (measured across all 62 college
+        # slate days). 4:00am clears it; 3:00am does not.
+        # ══════════════════════════════════════════════════════════
+        "scores": [(4, 0)],                             # 4:00am ET DAILY
         # ⚠️ Same rule, one day later: `nfl-logs` rebuilds Tuesday noon,
         # and the next card build after it is Wednesday 8:08am ET.
         "grade":  [(9, 0, {2})],                         # Wed 9am ET

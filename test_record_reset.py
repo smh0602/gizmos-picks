@@ -93,9 +93,31 @@ if os.path.exists(rec_p):
     R = json.load(open(rec_p, encoding="utf-8"))
     ck("🔴 the record is wiped to nothing",
        (R.get("overall") or {}).get("n") == 0, str(R.get("overall")))
-    ck("🔴 ...and what it set aside is COUNTED, not silently dropped",
-       (R.get("cards_before_record_from") or 0) == len(dated),
-       f"{R.get('cards_before_record_from')} of {len(dated)} card(s)")
+    # ══════════════════════════════════════════════════════════════
+    # 🔴 THIS ASSERTED "EVERY CARD IS SET ASIDE" AND HAD AN EXPIRY DATE
+    #    OF ONE DAY. `[measured 2026-09-08, red on live main]` it read
+    #    `== len(dated)`, which was true only while every published card
+    #    predated the floor. The moment `fb-ncaaf-2026-09-07.json` was
+    #    published — a card ON the floor, correctly counted — it read
+    #    **3 of 4** and went red, and stayed red on every run after.
+    # ⛔ The product was right. The check was measuring the CALENDAR.
+    # ✅ The question that is true forever, and is strictly harder because
+    #    it tests the BOUNDARY rather than a coincidence: the number set
+    #    aside equals the number of cards dated STRICTLY BEFORE the floor.
+    # ══════════════════════════════════════════════════════════════
+    before = sorted(f for f in dated
+                    if f[len("fb-ncaaf-"):-len(".json")]
+                    < record_fb.RECORD_FROM)
+    ck("🔴 ...and what it set aside is exactly the cards BEFORE the floor",
+       (R.get("cards_before_record_from") or 0) == len(before),
+       f"{R.get('cards_before_record_from')} set aside; "
+       f"{len(before)} of {len(dated)} card(s) predate "
+       f"{record_fb.RECORD_FROM}")
+    ck("⚠️ ...and the floor is a real boundary, not a catch-all",
+       len(before) < len(dated) or not dated,
+       f"{len(dated) - len(before)} card(s) on/after the floor are COUNTED"
+       + ("  ⚠️ none yet — this check is not yet exercised"
+          if len(before) == len(dated) else ""))
     ck("the file carries the date the page will print",
        R.get("record_from") == record_fb.RECORD_FROM, str(R.get("record_from")))
     ck("...and a sentence built from those numbers, not written by hand",

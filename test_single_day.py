@@ -151,7 +151,35 @@ def build(tmp, shift_frac=0.0, keep_frac=1.0):
     for g in gs[len(gs) - n_shift:] if n_shift else []:
         t = datetime.strptime(g["commence"], "%Y-%m-%dT%H:%M:%SZ")
         g["commence"] = (t + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 A ONE-GAME BOARD CANNOT BE SPLIT, AND THE FIXTURE USED TO
+    #    PRETEND IT COULD. `[measured 2026-09-08, red on live main]` the
+    #    college props board held **exactly one game**, so
+    #    `int(round(1 * 0.5))` is **0** — Python rounds a half to even —
+    #    nothing was shifted, the card correctly held back nothing, and
+    #    the end-to-end check failed as though the BUILDER were broken.
+    # ⛔ The builder was fine. The FIXTURE never exercised it.
+    # ✅ So when the split would be degenerate — nothing moved, or
+    #    everything moved — synthesise the other day by CLONING the last
+    #    game forward with its own id and its own player names. That is
+    #    strictly stronger than the old form: the filter is now exercised
+    #    on EVERY board, thin or fat, instead of only on a fat one.
+    # ⚠️ The clone is sandbox-only. `stage()` copies the tree into a
+    #    tempdir and `tcheck` fails any test that leaves data/ or picks/
+    #    changed, so nothing fabricated can reach the product.
+    if shift_frac > 0 and n_shift in (0, len(gs)):
+        import copy
+        clone = copy.deepcopy(gs[-1])
+        clone["id"] = str(clone.get("id", "g")) + "-SYNTHETIC-NEXTDAY"
+        t = datetime.strptime(clone["commence"], "%Y-%m-%dT%H:%M:%SZ")
+        clone["commence"] = (t + timedelta(days=1)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ")
+        for row in clone.get("props") or []:
+            row["player"] = str(row.get("player", "")) + " (nextday)"
+        gs = gs + [clone]
+        n_shift = 1
     B["games"] = gs
+    B["_fixture_shifted"] = n_shift
     B["n_games"] = len(gs)
     with gzip.open(p, "wt") as fh:
         json.dump(B, fh)
@@ -167,6 +195,13 @@ def build(tmp, shift_frac=0.0, keep_frac=1.0):
 
 tmp = tempfile.mkdtemp()
 card, run = build(tmp, shift_frac=0.5)
+n_shifted = 0
+try:
+    with gzip.open(os.path.join(tmp, "data/ncaaf/latest/props.json.gz"),
+                   "rt") as fh:
+        n_shifted = json.load(fh).get("_fixture_shifted", 0)
+except Exception:
+    pass
 
 if not ck("the builder runs on a two-day board", card is not None):
     pass
@@ -175,13 +210,20 @@ else:
     ck("every pick on the board is on the card's own date",
        days == [card["date"]],
        "card date %s, board days %s" % (card["date"], days))
+    # 🔴 GUARD THE PRECONDITION BEFORE ASSERTING ON IT (rule 142). A
+    #    check that fails at "0 rows in, 0 rows held back" is not
+    #    measuring the filter; it is measuring the board.
+    ck("⚠️ the fixture really did put games on a SECOND day",
+       n_shifted > 0, f"{n_shifted} game(s) moved to the next ET day")
     ck("the rows for the other day are counted, not silently vanished",
        card["n_off_slate_day"] > 0 and card["off_slate_dates"],
        "%d row(s) held back for %s"
        % (card["n_off_slate_day"], ", ".join(card["off_slate_dates"])))
     ck("the card says so in a sentence a reader can read",
-       str(card["n_off_slate_day"]) in card["single_day_rule"]
-       and card["off_slate_dates"][0] in card["single_day_rule"])
+       bool(card["off_slate_dates"])
+       and str(card["n_off_slate_day"]) in card["single_day_rule"]
+       and card["off_slate_dates"][0] in card["single_day_rule"],
+       card.get("single_day_rule", "")[:120])
 
     # 🔴 THE PARLAYS, WHICH ARE THE HALF A BOARD-ONLY FILTER WOULD MISS.
     ids = {r["game_id"]: etd(r.get("commence")) for r in card["picks"]}

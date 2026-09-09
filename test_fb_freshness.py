@@ -349,7 +349,47 @@ print("    including games that had finished the night before — because")
 print("    the scores live in the SCHEDULE file and the schedule rode a")
 print("    WEEKLY rebuild. cfb.py said so: 'NO NEW CRON — rides the")
 print("    Sunday rebuild'. ⛔ That decision was the defect.")
-for lg, days in (("ncaaf", {5, 6}), ("nfl", {6, 0})):
+# ══════════════════════════════════════════════════════════════════
+# ⛔ THIS PINNED {5, 6} AND {6, 0} — THE WEEKEND SHAPE — AND THAT IS THE
+#    DEFECT IT WAS WRITTEN TO CATCH, WRITTEN DOWN AS THE EXPECTATION.
+#    `[measured 2026-09-08]` the college schedule file went TWO DAYS
+#    without a rebuild and nothing went red: 6 games on 9/6 and 1 on 9/7
+#    showed no score, while `plan()` saw nothing stale because the last
+#    weekend deadline had been met and the next was days away.
+# 🔴 A HARDCODED DAY SET CANNOT NOTICE THAT THE SPORT MOVED. So the
+#    question is now asked of the SCHEDULE, not of this file: the days a
+#    refresh is DUE must cover every day the league actually plays.
+#    Strictly harder — it caught the old shape, and no hand-written set
+#    can satisfy it by coincidence.
+# ══════════════════════════════════════════════════════════════════
+def _played_days(lg):
+    """ET weekdays the league has games on, from the stored schedule."""
+    import glob
+    import gzip as _gz
+    days = set()
+    for path in sorted(glob.glob(f"data/{lg}/latest/schedule-*.json.gz")):
+        if "probe" in path:
+            continue
+        try:
+            with _gz.open(path, "rt") as fh:
+                gm = (json.load(fh) or {}).get("games") or []
+        except Exception:
+            continue
+        for g in gm:
+            try:
+                t = F.kickoffs_utc([g])[0]
+            except Exception:
+                try:
+                    t = datetime.datetime.fromisoformat(
+                        g["start"].replace("Z", "+00:00"))
+                except Exception:
+                    continue
+            if t.tzinfo is None:
+                t = t.replace(tzinfo=datetime.timezone.utc)
+            days.add((t - datetime.timedelta(hours=4)).weekday())
+    return days
+
+for lg in ("ncaaf", "nfl"):
     modes = {m: t for m, _p, t, _pd, _w in
              F.contract(data=f"data/{lg}", picks="picks")}
     ck("fb-scores" in modes, f"   {lg}: the scores refresher is GOVERNED",
@@ -358,7 +398,17 @@ for lg, days in (("ncaaf", {5, 6}), ("nfl", {6, 0})):
         got = set()
         for t in modes["fb-scores"]:
             got |= (t[2] if len(t) > 2 else set(range(7)))
-        eq(got, days, f"   {lg}: due on its own game days")
+        played = _played_days(lg)
+        DN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        ck(f"   {lg}: a refresh is due on EVERY day the league plays",
+           bool(played) and played <= got,
+           "plays " + ",".join(DN[d] for d in sorted(played))
+           + " | due " + ",".join(DN[d] for d in sorted(got))
+           + ("" if played <= got else
+              "  🔴 UNCOVERED: "
+              + ",".join(DN[d] for d in sorted(played - got))))
+        note(f"   {lg}: {len(played)} game day(s) in the stored schedule; "
+             f"{len(got)} covered by a deadline")
     for _m, (_k, p), _t, _pd, _w in F.contract(data=f"data/{lg}",
                                                picks="picks"):
         if _m == "fb-scores":

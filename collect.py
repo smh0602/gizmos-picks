@@ -3770,6 +3770,36 @@ def run_mode(mode):
             # ══════════════════════════════════════════════════════════
             _season = _fresh.current_football_season()
             if LEAGUE == "ncaaf":
+                # ══════════════════════════════════════════════════════
+                # 🔴 THE SAME SOURCE AS `cfb-probe`, AND IT WAS THE ONLY
+                #    CFBD CALLER NOT BEHIND THE BACK-OFF.
+                # `[measured 2026-09-08]` CFBD returned **429 on every
+                #    endpoint** — `endpoints_failed: [["games","429"],
+                #    ["player game","429"], ["plays","429"],
+                #    ["roster","429"]]` — and the college schedule had not
+                #    been rebuilt for two days. `cfb-probe` was already
+                #    standing down; `fb-scores` kept hammering `/games`
+                #    on all 46 football runs a day, which is exactly the
+                #    pressure the back-off exists to relieve.
+                # ⚠️ ONE SOURCE, ONE BACK-OFF, ONE STATE FILE. Reading
+                #    the same report `cfb-probe` reads means the two can
+                #    never disagree about whether CFBD is available.
+                # ⛔ NFL IS UNAFFECTED — nflverse is a different source
+                #    and was healthy throughout (its schedule rebuilt
+                #    40 minutes before this was written).
+                # ⛔ AND SKIPPING IS NOT HIDING: the run still exits 1,
+                #    the artifact stays out of contract, and the Scores
+                #    tab now reads ESPN directly so the READER sees real
+                #    scores while CFBD is throttled.
+                # ══════════════════════════════════════════════════════
+                _wait = _cfb_backoff_left()
+                if _wait > 0:
+                    log(f"SKIPPING fb-scores[ncaaf]: CFBD failed "
+                        f"{CFB_BACKOFF_MIN - _wait:.0f} min ago and needs "
+                        f"room. {_wait:.0f} min of back-off left. NOTHING "
+                        f"FETCHED — the stored schedule is unchanged and "
+                        f"the tab falls back to ESPN for live scores.")
+                    sys.exit(1)
                 import cfb as _cfbs
                 _sc, _srep = _cfbs.build_schedule(_season, log)
             elif LEAGUE == "nfl":
