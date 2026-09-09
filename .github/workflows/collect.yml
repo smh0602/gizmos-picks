@@ -102,6 +102,20 @@ on:
     # the current season's schedule, never the back-fill.
     # ⚠️ Saturday's late games run past midnight UTC, so Sunday morning is
     # covered too. The weekly rebuild above is unchanged.
+    # 🔴🔴 A DAILY PASS, BECAUSE THE GAME-DAY CRONS BELOW ARE WEEKEND-SHAPED
+    # AND THE SPORT IS NOT. `[measured 2026-09-08]` the college schedule
+    # file had not been rebuilt since 2026-09-06 16:50Z — TWO DAYS — and
+    # the Scores tab showed 6 games on 9/6 and 1 on 9/7 with NO SCORE.
+    # ⛔ Every `fb-scores` cron below is Sat/Sun/Mon/Thu-shaped, and the
+    # `scores` deadline it answers to was Sat 21:30 + Sun 09:30 ONLY — so
+    # a Tuesday or Wednesday slate had no deadline, converge saw nothing
+    # stale, and every verifier went green on a two-day-old tab.
+    # ⚠️ COLLEGE PLAYS 304 GAMES OFF SATURDAY (Mon 1 · Tue 19 · Wed 15 ·
+    # Thu 143 · Fri 116 · Sun 10) and the NFL 44 off Sunday. Rule 137.
+    # ✅ 4:04am ET every day: after even a Hawai'i 11:59pm ET kickoff has
+    # finished (measured — it ends ~3:29am), and before the 7:02am odds
+    # pull, the 8:30am props and the 9:00am card all read it.
+    - cron: "4 8 * * *"         # BOTH  4:04am ET  Scores       (daily)
     - cron: "40 */2 * * 6"      # CFB every 2h Saturday   — scores
     - cron: "40 1,3,5,13 * * 0" # CFB Sat night + Sun am  — scores
     # 🔴 THE SAME GAP IN THE NFL, arriving on Sunday: its schedule rides
@@ -165,7 +179,19 @@ on:
     # rebuild is free, so there is no reason for the tab to be six days
     # stale. ⛔ NFL stays weekly: nflverse publishes weekly, so a daily
     # NFL deadline would be one nothing could satisfy (rule 112).
-    - cron: "4 16 * * *"        # CFB 12:00pm ET  Trends        (daily)
+    # 🔴 3:00am ET, NOT NOON. Sam, 2026-09-06: *"i want the trends tab to
+    # updated everyday for college football at 3am — late enough to
+    # updates games from the previous day and early enough to provide
+    # stats for the next day."*
+    # ⛔ THE OLD NOON CRON (16:04 UTC) IS DELETED, NOT COMMENTED OUT.
+    # ⚠️ Deliberately not quoted here: `test_trends_schedule.py` asserts
+    # the old cron is ABSENT by searching this file, so writing it into a
+    # struck comment would fail a check that is right (rule: strip
+    # comments, or do not write the string).
+    # NOON WAS MINE AND IT WAS THE WRONG END OF THE DAY: it landed AFTER
+    # the 8:30am props pull and the 9:00am card, so the morning board read
+    # a table built the day before.
+    - cron: "4 7 * * *"         # CFB  3:04am ET  Trends        (daily)
     # 🔴 NEWS EVERY HOUR. `[Sam: "news should be updating every hour i see
     # that it is 5 hours old, unacceptable"]` ⛔ With one 8am deadline a
     # five-hour-old file was INSIDE contract, so nothing was wrong
@@ -406,13 +432,14 @@ jobs:
               "4 13 * * *")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "34 13 * * *")      LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "4 12 * * 2")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
-              "4 16 * * *")       LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+              "4 7 * * *")        LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
               # ⏱️ THE HOURLY NEWS RUN, BOTH LEAGUES IN ONE JOB.
               # ⚠️ `news` only; it must not drag a card build into every
               # hour of the day. The card has its own deadlines.
               "20 * * * *")       LEAGUE="ncaaf nfl"; MODES="news" ;;
               "6 12 * * *")       LEAGUE="ncaaf nfl"; MODES="news card-fb" ;;
               "35 14 * * 0")      LEAGUE=ncaaf; MODES="cfb-probe cfb-teams"; SEASON=CUR ;;
+              "4 8 * * *")        LEAGUE="ncaaf nfl"; MODES="fb-scores" ;;
               "40 */2 * * 6")     LEAGUE="ncaaf nfl"; MODES="fb-scores" ;;
               "40 1,3,5,13 * * 0") LEAGUE="ncaaf nfl"; MODES="fb-scores" ;;
               "45 */2 * * 0")     LEAGUE="nfl ncaaf"; MODES="fb-scores" ;;
