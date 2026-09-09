@@ -1,9 +1,10 @@
-cfb back-fill at 2026-09-09 06:40:40.732647+00:00
+cfb back-fill at 2026-09-09 10:33:51.528379+00:00
 requested: [2026]
 written  : []
 failed   : [2026]
+consecutive failures: 1
 not yet  : []   (season not started — not a failure)
 
 --- 2026 ---
-SourceUnavailable: CFBD returned nothing for 2026 because the request failed — regular: HTTPError 429; postseason: HTTPError 429. ⛔ This is NOT 'the season has not started'.
+RuntimeError: depth_rank is CONSTANT None across 1,848 rows — a join failure, not a result; trailing_usage is CONSTANT None across 1,848 rows — a join failure, not a result; ahead_out_lastwk is CONSTANT 0 across 1,848 rows — a join failure, not a result
 
