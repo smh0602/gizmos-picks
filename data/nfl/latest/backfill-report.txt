@@ -1,9 +1,9 @@
-nfl-logs back-fill at 2026-09-10T15:41:41Z
+nfl-logs back-fill at 2026-09-10T16:31:58Z
 requested: [2026]
 written  : []
-failed   : []
-not yet  : [2026]   (season not started — not a failure)
+failed   : [2026]
+not yet  : []   (season not started — not a failure)
 
---- 2026 NOT YET PUBLISHED ---
-snap_counts: asset 'snap_counts_2026.csv.gz' not published. That release holds 73 assets; those mentioning 2026: NONE
+--- 2026 ---
+RuntimeError: ahead_out is CONSTANT ZERO across 66 player-weeks. That is a join failure, not a result. Run nfl-probe and read section 3b before fitting anything on it.
 
