@@ -1318,6 +1318,18 @@ def build_side(doc, side, log=log):
                 tbl[o][pos][f + "_rank"] = i + 1
                 tbl[o][pos][f + "_pct"] = round(
                     100.0 * (len(rows) - i) / len(rows), 1)
+    # ⚠️ LEFT AS A HARD FAILURE, DELIBERATELY, AND THE CHECK WAS MADE.
+    #    `[2026-09-10]` The NFL's `build_vs_position` raises on an empty
+    #    table and that RAISE IS WRONG IN WEEK 1 (see nfl.py). The
+    #    obvious move was to mirror the relaxation here. ⛔ It was
+    #    MEASURED FIRST AND IS NOT NEEDED: `build_side` groups by
+    #    OPPONENT and game id, not by `depth_rank`, so a week-1 log still
+    #    fills it — driven on one-week, three-week and all-ranks-None
+    #    fixtures, and it did not raise on any of them.
+    # 🔴 The college analogue of the NFL bug is `build_vs_position`
+    #    below, and that one NEVER RAISES on empty — so there is nothing
+    #    to relax there either. **Weakening this would have been a
+    #    relaxation with no evidence behind it** (CLAUDE.md's first rule).
     if not tbl:
         raise RuntimeError(f"{side}-by-position is EMPTY -- a grouping "
                            "failure, not a finding")

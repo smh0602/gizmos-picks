@@ -163,6 +163,47 @@ ck("a week that has NOT been played yet is not missing",
    "an unplayed week absent from the log is the correct state, and "
    "failing on it would recreate the bug this file is about")
 
+print("\n═══ 4b. 🔴 vs-position — THE THIRD INSTANCE, FOUND LIVE ═══")
+# ⛔ `[live, 2026-09-10T21:29:52Z]` With `ahead_out` fixed the build got
+#    one guard further and died on *"vs-position is EMPTY. That is a rank
+#    or snap-floor failure, not a finding."* **Same arithmetic again.**
+#    `rank_of()` averages snap share over `w < week` — STRICTLY EARLIER
+#    weeks — so on a week-1-only log it returns None for everyone, every
+#    row is dropped as "no rank yet", and `kept` is necessarily 0.
+# ⚠️ THREE GUARDS, ONE CAUSE, EACH FOUND ONLY AFTER THE ONE BEFORE IT WAS
+#    CLEARED. That is what a fix landing on live data looks like.
+
+
+def vsdoc(weeks, snaps=0.9):
+    P = {}
+    for i in range(40):
+        P[str(i)] = {"name": f"P{i}", "pos": "WR", "g": [
+            {"week": w, "team": "KC", "o": "BUF", "d": "2026-09-0%d" % w,
+             "snap_pct": snaps, "rec_yds": 50, "rec": 4} for w in weeks]}
+    return {"season": 2026, "built_at": "x", "players": P}
+
+
+def vs(doc):
+    try:
+        nfl.build_vs_position(doc, log=lambda m: None)
+        return None
+    except RuntimeError as e:
+        return e
+
+
+ck("🔴 a week-1-only log WRITES vs-position instead of raising",
+   vs(vsdoc([1])) is None,
+   "an artifact that correctly did nothing must still exist (rule 86) — "
+   "otherwise the freshness row can never go green and the run is red "
+   "forever for a state the calendar guarantees")
+ck("✅ a multi-week log with resolvable ranks still writes",
+   vs(vsdoc([1, 2, 3])) is None, "the normal path is untouched")
+_e = vs(vsdoc([1, 2, 3], snaps=0.0))
+ck("🔴 ...but a REAL snap-floor break over 3 weeks STILL raises",
+   _e is not None and "EMPTY across 3 weeks" in str(_e),
+   "⛔ this is the failure the guard exists for and it is not relaxed: %s"
+   % str(_e)[:90])
+
 print("\n═══ 5. ⛔ WHAT WAS NOT RELAXED ═══")
 src = open("nfl.py", encoding="utf-8").read()
 ck("the injury-file guard is untouched and still unconditional",

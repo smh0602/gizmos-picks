@@ -1820,9 +1820,39 @@ def build_vs_position(doc, log=print):
     log(f"  vs-position: {kept:,} performances kept across {len(out)} defences")
     for k, v in dropped.items():
         log(f"    dropped {v:,} — {k}")
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 IN WEEK 1 THIS TABLE IS NECESSARILY EMPTY, AND THE GUARD CALLED
+    #    IT A FAILURE. `[live, 2026-09-10T21:29:52Z]` With the `ahead_out`
+    #    guard fixed, the build got this far and died on
+    #    *"vs-position is EMPTY. That is a rank or snap-floor failure."*
+    #    **It is neither.** `rank_of()` twelve lines up averages snap
+    #    share over `w < week` — STRICTLY EARLIER weeks. On a week-1-only
+    #    log that list is empty for everyone, so `rank_of` returns None
+    #    for every player, every row is dropped as "no rank yet", and
+    #    `kept` is **necessarily** 0.
+    # ⛔ THIRD INSTANCE OF THE SAME ARITHMETIC (rules 175-176): the same
+    #    `w < week` that made `ahead_out` constant and `depth_rank` None.
+    #    Each was found only after the one before it was cleared.
+    # ✅ AN EMPTY TABLE ON A ONE-WEEK LOG IS WRITTEN, NOT RAISED (rule
+    #    86): an artifact that correctly did nothing must still exist, or
+    #    the freshness row can never go green and the run is red forever
+    #    for a state the calendar guarantees.
+    # ⛔ STILL A HARD FAILURE ON A MULTI-WEEK LOG, which is the rank /
+    #    snap-floor break this guard was built for.
+    # ══════════════════════════════════════════════════════════════════
+    _vwks = {g.get("week") for p in P.values() for g in p["g"]
+             if g.get("week") is not None}
+    if kept == 0 and len(_vwks) >= 2:
+        raise RuntimeError(
+            f"vs-position is EMPTY across {len(_vwks)} weeks "
+            f"{sorted(_vwks)}. That is a rank or snap-floor failure, not "
+            f"a finding.")
     if kept == 0:
-        raise RuntimeError("vs-position is EMPTY. That is a rank or snap-floor "
-                           "failure, not a finding.")
+        log(f"    ⚠️ vs-position is EMPTY and that is CORRECT, not a "
+            f"failure: the log holds {len(_vwks)} week(s) {sorted(_vwks)}, "
+            f"and rank_of() reads STRICTLY EARLIER weeks, so nobody can "
+            f"be ranked yet. NOT a pass — the table is written empty so "
+            f"the artifact exists (rule 86) and fills in from week 2.")
     return {"season": doc["season"], "kind": "DESCRIPTIVE",
             "note": ("Every performance a defence has allowed, by depth slot. "
                      "Depth rank is trailing snap share, point-in-time. Rows "
