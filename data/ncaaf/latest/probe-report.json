@@ -776,14 +776,222 @@
  ],
  "targets_present": false,
  "plays_player_keys": [],
- "seasons_written": [],
- "seasons_failed": [
-  [
-   2026,
-   "RuntimeError: depth_rank is CONSTANT None across 1,848 rows \u2014 a join failure, not a result; trailing_usage is CONSTANT None across 1,848 rows \u2014 a join failure, not a result; ahead_out_lastwk is CONSTANT 0 across 1,848 rows \u2014 a join failure, not a result"
-  ]
+ "seasons_written": [
+  2026
  ],
- "per_season": [],
+ "seasons_failed": [],
+ "per_season": [
+  {
+   "season": 2026,
+   "player_weeks": 1848,
+   "vs_position_rows": 0,
+   "coverage": {
+    "p4_rows": 1859,
+    "pos_known": 1857,
+    "prop_pos": 1848,
+    "coverage_pct": 99.89,
+    "bridge_ok": true,
+    "unbridged_examples": [
+     [
+      "Terrence Brown Jr.",
+      1
+     ],
+     [
+      "Howard Fisher IV",
+      1
+     ]
+    ],
+    "unbridged_players": 2,
+    "team_aggregate_rows_excluded": 589
+   },
+   "own_elo_missing_rows": 0,
+   "own_elo_missing_pct": 0.0,
+   "OPP_elo_missing_rows": 701,
+   "OPP_elo_missing_pct": 37.93,
+   "fcs_opponent_rows": 701,
+   "usage_quantiles": {
+    "n": 1848,
+    "p10": 1,
+    "p25": 2,
+    "p50": 3,
+    "p75": 8,
+    "p90": 17,
+    "max": 58
+   },
+   "unmapped": [
+    [
+     "defensive",
+     "qb hur",
+     9365
+    ],
+    [
+     "defensive",
+     "td",
+     9365
+    ],
+    [
+     "defensive",
+     "tot",
+     9365
+    ],
+    [
+     "defensive",
+     "solo",
+     9365
+    ],
+    [
+     "defensive",
+     "sacks",
+     9365
+    ],
+    [
+     "defensive",
+     "tfl",
+     9365
+    ],
+    [
+     "defensive",
+     "pd",
+     9365
+    ],
+    [
+     "interceptions",
+     "int",
+     279
+    ],
+    [
+     "interceptions",
+     "yds",
+     279
+    ],
+    [
+     "interceptions",
+     "td",
+     279
+    ],
+    [
+     "kickreturns",
+     "no",
+     483
+    ],
+    [
+     "kickreturns",
+     "yds",
+     483
+    ],
+    [
+     "kickreturns",
+     "avg",
+     483
+    ],
+    [
+     "kickreturns",
+     "long",
+     483
+    ],
+    [
+     "kickreturns",
+     "td",
+     483
+    ],
+    [
+     "puntreturns",
+     "no",
+     381
+    ],
+    [
+     "puntreturns",
+     "yds",
+     381
+    ],
+    [
+     "puntreturns",
+     "avg",
+     381
+    ],
+    [
+     "puntreturns",
+     "long",
+     381
+    ],
+    [
+     "puntreturns",
+     "td",
+     381
+    ],
+    [
+     "kicking",
+     "fg",
+     436
+    ],
+    [
+     "kicking",
+     "pct",
+     436
+    ],
+    [
+     "kicking",
+     "long",
+     436
+    ],
+    [
+     "kicking",
+     "xp",
+     436
+    ],
+    [
+     "kicking",
+     "pts",
+     436
+    ],
+    [
+     "punting",
+     "no",
+     481
+    ],
+    [
+     "punting",
+     "yds",
+     481
+    ],
+    [
+     "punting",
+     "avg",
+     481
+    ],
+    [
+     "punting",
+     "tb",
+     481
+    ],
+    [
+     "punting",
+     "in 20",
+     481
+    ],
+    [
+     "punting",
+     "long",
+     481
+    ],
+    [
+     "fumbles",
+     "fum",
+     621
+    ],
+    [
+     "fumbles",
+     "lost",
+     621
+    ],
+    [
+     "fumbles",
+     "rec",
+     621
+    ]
+   ]
+  }
+ ],
  "t37_floor": {
   "status": "CANDIDATE \u2014 computed, NOT applied, NOT yet frozen",
   "spec": "p25 of trailing_usage among rows that already pass the depth-rank cap, fitting seasons 2021-2023 only",
@@ -796,5 +1004,5 @@
   "distribution": {},
   "p25_candidate": null
  },
- "probed_at": "2026-09-10T18:34:20Z"
+ "probed_at": "2026-09-10T22:30:48Z"
 }
