@@ -1239,15 +1239,45 @@ def check_ahead_out(players, when, n_ao, n_rows, log=print):
     _played = sorted({int(w) for (w, _t), (day, *_r) in when.items()
                       if w and str(w).isdigit() and day and str(day) < _today})
     _inlog = {int(w) for w in _wks if str(w).isdigit()}
-    _missing = [w for w in _played if w not in _inlog]
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 AN INTERIOR HOLE IS THE DEFECT. A TRAILING GAP IS PUBLISH LAG,
+    #    AND THE FIRST VERSION OF THIS CHECK COULD NOT TELL THEM APART.
+    # ⛔ `[caught 2026-09-10, before it ever ran]` As first written this
+    #    asked "is any played week missing", which goes RED EVERY FRIDAY
+    #    THROUGH MONDAY: an NFL week is Thu/Sun/Mon, so the schedule
+    #    reports week N played the moment the Thursday game ends, while
+    #    nflverse does not publish that week's player stats until its
+    #    weekly drop. **The source is not late and the join is not
+    #    broken — the data does not exist yet.**
+    # 🔴 THAT IS RULES 175-177 REINTRODUCED BY THE COMMIT THAT WROTE
+    #    THEM: a guard firing on a state the calendar guarantees.
+    # ✅ THE HOLE IS THE HONEST QUESTION. A week missing BELOW the
+    #    highest week the log holds cannot be publish lag — the source
+    #    published a LATER week and skipped this one. That is a partial
+    #    season presented as a whole one, and it is what no
+    #    column-constancy test can see.
+    # ⚠️ A log STUCK at week 1 all season is a different fault and is
+    #    NOT this check's job: it is staleness, and `built_at` against
+    #    the freshness contract is what catches it. One question per
+    #    check (rule 161).
+    # ══════════════════════════════════════════════════════════════════
+    _missing = [w for w in _played
+                if w not in _inlog and _inlog and w < max(_inlog)]
+    _trailing = [w for w in _played if w not in _inlog and w not in _missing]
     log(f"    weeks: schedule reports {_played} played; the log holds "
         f"{sorted(_inlog)}")
+    if _trailing:
+        log(f"    ⚠️ week(s) {_trailing} are played but not yet in the log, "
+            f"and NOT flagged: they are at or beyond the log's latest week "
+            f"({max(_inlog) if _inlog else None}), which is publish lag, "
+            f"not a hole. Staleness is the freshness contract's job.")
     if _missing:
         raise RuntimeError(
-            f"THE PLAYER LOG IS MISSING COMPLETED WEEK(S) {_missing}. The "
-            f"schedule reports {_played} as played; the log holds "
-            f"{sorted(_inlog)}. This is NOT a join failure and NOT an "
-            f"empty season — it is a partial season being presented as a "
+            f"THE PLAYER LOG IS MISSING COMPLETED WEEK(S) {_missing} BELOW "
+            f"ITS OWN LATEST WEEK {max(_inlog)}. The schedule reports "
+            f"{_played} as played; the log holds {sorted(_inlog)}. This is "
+            f"NOT publish lag — a later week was published and this one "
+            f"was skipped. It is a partial season being presented as a "
             f"whole one, and every trailing column in it is wrong.")
 
 

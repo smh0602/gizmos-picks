@@ -121,23 +121,42 @@ ck("...and the row bar is stated, not implicit",
    str(nfl.check_ahead_out.__doc__ or "") is not None
    and "NOT EXERCISED" in out, out[-140:])
 
-print("\n═══ 4. 🔴 THE HARDER CHECK THE OLD FORM COULD NOT MAKE ═══")
-# ⛔ A COMPLETED WEEK MISSING FROM THE LOG is what a broken join actually
-#    looks like, and no column-constancy test can see it: every column can
-#    vary perfectly across the weeks that ARE present.
+print("\n═══ 4. 🔴 A HOLE IS THE DEFECT; A TRAILING GAP IS PUBLISH LAG ═══")
+# ⛔ THE FIRST VERSION OF THIS CHECK WOULD HAVE RED-LINED EVERY FRIDAY
+#    THROUGH MONDAY, AND THIS FILE ASSERTED THE WRONG BEHAVIOUR.
+#    `[caught 2026-09-10 by mocktest_fixes.py, before either ever ran]`
+#    An NFL week is Thu/Sun/Mon. The schedule reports week N played the
+#    moment the Thursday game ends; nflverse publishes that week's player
+#    stats on its WEEKLY drop. So "is any played week missing" is red for
+#    four days out of seven — **a guard firing on a state the calendar
+#    guarantees, which is rules 175-177 reintroduced by the very commit
+#    that wrote them.**
+# ✅ The honest question is an INTERIOR HOLE: a played week missing from
+#    BELOW the log's own highest week. That cannot be lag — a later week
+#    was published and this one was skipped.
 err, out = drive(players([1], 600), schedule((1, YDAY), (2, YDAY)), 5, 600)
-ck("🔴 a COMPLETED week missing from the log is its own named failure",
+ck("🔴 a TRAILING week not yet published does NOT raise",
+   err is None,
+   "this is the Friday-after-Thursday case and it is four days a week: "
+   "%s" % err)
+ck("⛔ ...and the lag is REPORTED rather than silently swallowed",
+   "publish lag" in out and "[2]" in out,
+   "an absence with no explanation is the blind spot wearing a hat")
+
+# 🔴 THE HOLE. Log holds weeks 1 and 3; week 2 was played and skipped.
+err, out = drive(players([1, 3], 300), schedule((1, YDAY), (2, YDAY),
+                                                (3, YDAY)), 5, 600)
+ck("🔴 an INTERIOR hole IS its own named failure",
    err is not None and "MISSING COMPLETED WEEK" in str(err),
-   "the schedule says two weeks were played and the log holds one: %s"
-   % err)
+   "a partial season presented as a whole one: %s" % str(err)[:120])
 ck("⛔ ...and it names both sides, so the reader can act",
-   "[2]" in str(err) and "[1]" in str(err),
+   "[2]" in str(err) and "[1, 3]" in str(err),
    "which week is missing, and what the log actually holds")
-ck("⚠️ ...and it is NOT called a join failure or an empty season",
-   "NOT a join failure" in str(err) and "NOT an empty season" in str(err),
+ck("⚠️ ...and it rules OUT the innocent explanation by name",
+   "NOT publish lag" in str(err),
    "naming the wrong cause is what cost five days on the college side")
 
-# 🔴 A FUTURE WEEK IS NOT A MISSING ONE.
+# 🔴 A FUTURE WEEK IS NOT A MISSING ONE EITHER.
 err, out = drive(players([1], 600), schedule((1, YDAY), (2, TOMO)), 5, 600)
 ck("a week that has NOT been played yet is not missing",
    err is None,
@@ -155,8 +174,13 @@ ck("🔴 the guard is a NAMED FUNCTION, so this file drives it",
    "reading the source cannot tell one raise path from the next — that "
    "mistake was made once already this week")
 
-note("⚠️ THIS DOES NOT MAKE THE NFL TRENDS TAB FRESH. It stops the run "
-     "accusing the join of a fault the calendar guarantees. The tab is "
-     "still empty until nflverse publishes week 1, `verify_freshness` "
-     "still reports the artifact's age every run, and the tab prints its "
-     "own `built_at` age to the reader.")
+note("⚠️ WHAT THIS FIXES AND WHAT IT DOES NOT. It stops the run accusing "
+     "the join of a fault the calendar guarantees. ⛔ It does NOT prove "
+     "nflverse serves the assets — `api.github.com` is blocked from the "
+     "build sandbox, so only a real run answers that (the fifth question "
+     "in self-running-audit.md). ✅ But `not yet : []` on the live report "
+     "means the fetch DID work and 66 player-weeks reached the guard, so "
+     "the tab should populate off the 09-09 opener — thin, one game's "
+     "worth, until the Sunday slate. ~~The tab is still empty until "
+     "nflverse publishes week 1~~ — STRUCK 2026-09-10: that claim was "
+     "carried from the 09-09 diagnosis and was already false.")

@@ -386,11 +386,34 @@ ck("⛔ ...but a MULTI-WEEK season with constant trailing columns still is",
 ck("✅ a healthy multi-week season passes",
    not _bad(_mkdoc(3, 2100)),
    "the fix must not make the check vacuous")
-ck("🔴 and a COMPLETED WEEK MISSING FROM THE LOG is its own named failure",
-   any("MISSING COMPLETED" in b
-       for b in _bad(_mkdoc(1, 1848, completed=[1, 2], missing=[2]))),
-   "half a season builds a table that is silently wrong — and this is "
-   "the failure that USED to present as 'a join failure'")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A TRAILING WEEK IS NOT A HOLE, AND THIS CHECK ASSERTED THAT IT WAS.
+# ⛔ `[corrected 2026-09-10, before either form ever ran]` A week counts as
+#    `completed_per_source` the moment ONE of its games finishes, so a
+#    Thursday-night college game marks week N complete while the rest of
+#    week N is still to be played and the log correctly has no rows for
+#    it. Demanding it be present goes RED EVERY THURSDAY — a guard firing
+#    on a state the calendar guarantees, which is rules 175-177
+#    reintroduced by the commit that wrote them.
+# ✅ The honest question is an INTERIOR HOLE: a played week missing from
+#    BELOW the log's own highest week. That cannot be the calendar — a
+#    later week was built and this one was skipped.
+_trail = _mkdoc(1, 1848, completed=[1, 2], missing=[2])
+ck("🔴 a TRAILING completed week is NOT flagged",
+   not [b for b in _bad(_trail) if "MISSING COMPLETED" in b],
+   "week 2's Thursday game has finished and the rest of week 2 has not — "
+   "flagging that would redden every Thursday night")
+
+_hole = _mkdoc(3, 2100, completed=[1, 2, 3], missing=[2])
+_hole["weeks"]["in_player_log"] = {"1": 700, "3": 700}
+ck("🔴 ...while an INTERIOR HOLE is its own named failure",
+   any("MISSING COMPLETED" in b for b in _bad(_hole)),
+   "the log holds weeks 1 and 3 and week 2 was played — half a season "
+   "builds a table that is silently wrong, and this is the failure that "
+   "USED to present as 'a join failure'")
+ck("⛔ ...and it rules out the innocent explanation by name",
+   any("NOT lag" in b for b in _bad(_hole)),
+   "naming the wrong cause is what cost five days on the college side")
 note("⚠️ THE VERIFIER NOW SEES THE CALENDAR. `doc['weeks']` carries what "
      "the SOURCE says was played and what the log actually holds, so "
      "'constant' can be explained instead of guessed at.")

@@ -1500,16 +1500,36 @@ def verify(doc, log=log):
     #    weeks 1 and 2 are completed and the log only covers week 1, the
     #    table would be built on half a season — and every trailing number
     #    in it would be wrong in a way no column-constancy test can see.
+    # ⚠️ AND ONLY AN INTERIOR HOLE COUNTS — THE SAME CORRECTION THE NFL
+    #    SIDE NEEDED. `[caught 2026-09-10, before either ever ran]` A week
+    #    is marked completed the moment ONE of its games finishes, so a
+    #    Thursday-night college game marks week N complete while the rest
+    #    of week N is still to be played. Flagging that would go red every
+    #    Thursday night — a guard firing on a state the calendar
+    #    guarantees, which is rules 175-177 reintroduced.
+    # ✅ A week missing BELOW the log's own highest week cannot be lag:
+    #    a later week was built and this one was skipped.
     _w = (doc.get("weeks") or {})
-    _missing = _w.get("missing_from_log") or []
+    _logw = {int(k) for k in (_w.get("in_player_log") or {})
+             if str(k).isdigit()}
+    _allmiss = [w for w in (_w.get("missing_from_log") or [])
+                if str(w).isdigit() or isinstance(w, int)]
+    _missing = [w for w in _allmiss if _logw and int(w) < max(_logw)]
+    _trailing = [w for w in _allmiss if w not in _missing]
+    if _trailing:
+        log(f"    ⚠️ week(s) {_trailing} have a completed game but no rows "
+            f"yet, and are NOT flagged: they are at or beyond the log's "
+            f"latest week ({max(_logw) if _logw else None}). A week is "
+            f"'completed' as soon as ONE game in it finishes, so this is "
+            f"the calendar, not a hole. Staleness is the contract's job.")
     if _missing:
-        bad.append(f"THE PLAYER LOG IS MISSING COMPLETED WEEK(S) {_missing}. "
-                   f"The source reports {_w.get('completed_per_source')} as "
-                   f"played; the log holds "
+        bad.append(f"THE PLAYER LOG IS MISSING COMPLETED WEEK(S) {_missing} "
+                   f"BELOW ITS OWN LATEST WEEK {max(_logw)}. The source "
+                   f"reports {_w.get('completed_per_source')} as played; "
+                   f"the log holds "
                    f"{list((_w.get('in_player_log') or {}).keys())}. ⛔ This "
-                   f"is NOT a join failure and NOT an empty season — it is "
-                   f"an INCOMPLETE one, and a trends table built on it "
-                   f"would be silently wrong.")
+                   f"is NOT lag — a later week was built and this one was "
+                   f"skipped. The trends table would be silently wrong.")
 
     # ⛔ THE LOOKAHEAD ASSERTION. Every trailing number must be computable
     # from STRICTLY EARLIER weeks. A week-1 row cannot have one.
