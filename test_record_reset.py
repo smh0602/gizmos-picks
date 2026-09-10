@@ -22,6 +22,7 @@ WHAT IS PINNED:
   3. the tab still renders, and says a reset happened rather than 0-0
   4. a product that simply never graded anything must NOT claim a reset
 """
+import gzip
 import json
 import os
 import subprocess
@@ -91,8 +92,32 @@ rec_p = os.path.join(tmp, "data/ncaaf/latest/record.json")
 ck("the grader ran in the sandbox", os.path.exists(rec_p), out[-200:])
 if os.path.exists(rec_p):
     R = json.load(open(rec_p, encoding="utf-8"))
-    ck("🔴 the record is wiped to nothing",
-       (R.get("overall") or {}).get("n") == 0, str(R.get("overall")))
+    # ══════════════════════════════════════════════════════════════
+    # 🔴 ~~"the record is wiped to nothing"~~ — SAME EXPIRY, ONE LINE
+    #    ABOVE THE NOTE THAT DESCRIBES IT. `[2026-09-10]` This read
+    #    `overall.n == 0`, which was true only while NOTHING COULD BE
+    #    GRADED. The college player log rebuilt at 22:30Z, the 09-07 card
+    #    became gradeable, the record correctly read **23/47** — and this
+    #    went red. ⛔ The product was right; the check was measuring the
+    #    calendar, which is exactly what the block below says about its
+    #    own predecessor. **The same lesson, in the same function, missed
+    #    because only the line that had already failed got fixed.**
+    # ✅ THE DURABLE QUESTION — and it is strictly harder than `n == 0`,
+    #    which a grader that simply never ran would also satisfy: every
+    #    day the record counts is ON OR AFTER the floor. That tests the
+    #    WIPE HELD, at any row count, forever.
+    # ══════════════════════════════════════════════════════════════
+    _days = sorted((json.load(gzip.open(
+        os.path.join(tmp, "data/ncaaf/latest/record-detail.json.gz"), "rt"))
+        .get("days") or {}).keys())
+    _leaked = [d for d in _days if d < record_fb.RECORD_FROM]
+    ck("🔴 no day BEFORE the floor contributes to the record",
+       not _leaked,
+       "counts %d day(s) %s against floor %s — leaked: %s"
+       % (len(_days), _days[:3], record_fb.RECORD_FROM, _leaked))
+    if not _days:
+        note("⚠️ NOT EXERCISED: the record counts zero days, so the wipe "
+             "cannot be distinguished from a grader that never ran.")
     # ══════════════════════════════════════════════════════════════
     # 🔴 THIS ASSERTED "EVERY CARD IS SET ASIDE" AND HAD AN EXPIRY DATE
     #    OF ONE DAY. `[measured 2026-09-08, red on live main]` it read

@@ -35,6 +35,8 @@ WHAT IS PINNED HERE:
      exits 1
 """
 import datetime
+import gzip
+import json
 import os
 import shutil
 import subprocess
@@ -129,6 +131,27 @@ def _gate(age_days, state="refused"):
         if os.path.exists(f"{ROOT}/{f}"):
             shutil.copy2(f"{ROOT}/{f}", f"{d}/{f}")
     os.makedirs(f"{d}/picks", exist_ok=True)
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 THE SANDBOX MUST MAKE THE ROW STALE ITSELF, NOT BORROW A LIVE
+    #    OUTAGE. `[2026-09-10]` These four checks went red the hour the
+    #    college Trends table was finally rebuilt: the helper copied the
+    #    live tree and relied on `cfb-probe` being stale THERE, so the
+    #    moment the product was FIXED the downgrade had nothing to
+    #    exercise and the test failed for the best possible reason.
+    # ⛔ A test that only passes while the product is broken is not a
+    #    test — same shape as every other expiry-dated check this repo
+    #    has paid for (rule 166), and the fourth today.
+    # ✅ Backdate the watched artifact's OWN `built_at`. Freshness reads
+    #    the stamp inside the file and never `getmtime`, so this is the
+    #    supported way to age one — and it now holds whether the live
+    #    table is six days old or six minutes.
+    _art = f"{d}/data/ncaaf/latest/allowed-by-position-2026.json.gz"
+    if os.path.exists(_art):
+        _doc = json.load(gzip.open(_art, "rt"))
+        _doc["built_at"] = (NOW - datetime.timedelta(days=7)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ")
+        with gzip.open(_art, "wt") as _fh:
+            json.dump(_doc, _fh)
     when = NOW - datetime.timedelta(minutes=5)
     body = (_report(when, failed=[2026], extra="HTTPError 429")
             if state == "refused"

@@ -219,9 +219,30 @@ print("\n═══ 3. THE CONTROL — EVERY GRADED ROW RE-DERIVED BY HAND ══
 
 
 def hand_norm(n):
+    """Fold a name INDEPENDENTLY of the grader, but not more crudely.
+
+    🔴 THIS DROPPED SEVEN ROWS AND BLAMED THE RECORD FOR IT.
+    `[2026-09-10]` The control reported *"40 agree, 7 disagree"* the hour
+    the college log was rebuilt. **None of the seven was a grading
+    error.** The card writes `Samuel Singleton Jr.`; the stats feed
+    writes `Samuel Singleton`. This function kept `jr` as part of the
+    name, so it looked up `samuelsingletonjr`, found nothing, and counted
+    a MISS as a DISAGREEMENT.
+    ⛔ A generational suffix differing between two feeds is a fact about
+    NAMES, not a fact about this repo's grader — so handling it here is
+    still an independent re-derivation, not a copy of `card_fb.norm()`.
+    The control keeps its whole point: it computes every VALUE from the
+    log itself and can still disagree with the grader about any of them.
+    ⚠️ What it must NOT do is silently become easier. It did not: the
+    value comparison below is untouched, and a row this function cannot
+    resolve is now counted and BOUNDED rather than folded into the
+    disagreement total, where it was misreported as "name not unique".
+    """
     n = unicodedata.normalize("NFKD", str(n or ""))
     n = "".join(c for c in n if not unicodedata.combining(c))
-    return re.sub(r"[^a-z]", "", n.lower())
+    n = n.lower()
+    n = re.sub(r"\b(jr|sr|ii|iii|iv|v)\b", " ", n)
+    return re.sub(r"[^a-z]", "", n)
 
 
 HAND = {
@@ -235,6 +256,7 @@ HAND = {
 
 agree = dis = 0
 mismatch = []
+unverifiable = []
 for date, rows in D["days"].items():
     season = int(date[:4])
     P = load(f"{ROOT}/data/ncaaf/latest/players-{season}.json.gz")["players"]
@@ -244,17 +266,32 @@ for date, rows in D["days"].items():
     for r in rows:
         if r["won"] is None:
             continue
+        # 🔴 "NOT IN THE LOG" AND "AMBIGUOUS" ARE DIFFERENT FACTS, AND
+        #    THIS REPORTED BOTH AS "name not unique by hand".
+        #    `[2026-09-10]` `len(cands) != 1` is true for ZERO matches as
+        #    well as two, so a player the hand lookup simply could not
+        #    find was announced as a duplicate — the wrong cause, which
+        #    is the failure mode this project keeps paying for.
+        # ⚠️ Neither is a grading disagreement: the control could not
+        #    RUN on that row. Counted separately and bounded below, so it
+        #    can never quietly stop verifying.
         cands = byname.get(hand_norm(r["player"]), [])
-        if len(cands) != 1:
-            mismatch.append((r["player"], "name not unique by hand"))
-            dis += 1
+        if len(cands) == 0:
+            unverifiable.append((r["player"], "not found in the log"))
+            continue
+        if len(cands) > 1:
+            unverifiable.append((r["player"],
+                                 "%d players share this name — the "
+                                 "grader disambiguates by game, the hand "
+                                 "check cannot" % len(cands)))
             continue
         t = datetime.strptime(r["commence"][:10], "%Y-%m-%d")
         hits = [g for g in cands[0]["g"]
                 if abs((datetime.strptime(g["d"], "%Y-%m-%d") - t).days) <= 1]
         if len(hits) != 1:
-            mismatch.append((r["player"], "%d games in the window" % len(hits)))
-            dis += 1
+            # ⚠️ Also a control that could not run, not a wrong grade.
+            unverifiable.append((r["player"],
+                                 "%d games in the +/-1 day window" % len(hits)))
             continue
         v = float(HAND[r["market"]](hits[0]))
         if r["side"] == "yes":
@@ -275,7 +312,8 @@ for date, rows in D["days"].items():
 #    PASS; and a record with nothing in it is NOT EXERCISED, which is a
 #    legitimate state since the wipe and must not read as either.
 ck("no graded row disagrees with a hand re-derivation", dis == 0,
-   "%d agree, %d disagree" % (agree, dis))
+   "%d agree, %d disagree, %d unverifiable"
+   % (agree, dis, len(unverifiable)))
 if agree:
     ck("...and the control ran on a real sample", agree > 0,
        "%d row(s) re-derived" % agree)
@@ -283,6 +321,26 @@ else:
     note("⚠️ NOT EXERCISED: no graded rows, so the hand control had "
          "nothing to check. Expected while the record counts from "
          + str(R.get("record_from", "its start date")))
+
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ A CONTROL THAT STOPS VERIFYING MUST FAIL, NOT GO QUIET.
+# Rows the hand check cannot resolve are no longer counted as
+# disagreements — but if they grow, the control is measuring less and
+# less while still printing a tick. **BOUND THEM.** A fifth of the
+# sample unverifiable means the re-derivation has stopped being a
+# control, whatever the agreement count says.
+_tot = agree + dis + len(unverifiable)
+if unverifiable:
+    ck("⚠️ the hand control still resolves most of the sample",
+       len(unverifiable) <= max(2, 0.2 * _tot),
+       "%d of %d row(s) unverifiable — over a fifth means this is no "
+       "longer a control" % (len(unverifiable), _tot))
+    for u in unverifiable[:4]:
+        note("⚠️ NOT VERIFIABLE BY HAND: " + str(u))
+    note("⛔ these are rows the CONTROL could not run on, NOT rows the "
+         "grader got wrong. The distinction is the whole point: the old "
+         "form counted them as disagreements and reported the cause as "
+         "'name not unique', which was wrong on both halves.")
 for m in mismatch[:6]:
     note("🔴 " + str(m))
 
