@@ -3829,17 +3829,63 @@ def run_mode(mode):
                 #    tab now reads ESPN directly so the READER sees real
                 #    scores while CFBD is throttled.
                 # ══════════════════════════════════════════════════════
-                _wait = _cfb_backoff_left()
+                # ══════════════════════════════════════════════════════
+                # 🔴 BACK OFF WHEN CFBD REFUSES US — NOT WHEN *WE* BREAK.
+                # `[2026-09-10]` The stored college schedule sat at
+                # `2026-09-06T16:50Z` for **101 hours** while CFBD was
+                # healthy. `_cfb_backoff_left()` returns a wait whenever
+                # the back-fill report lists ANY failure, and `cfb-probe`
+                # was recording a **RuntimeError in our own verify** —
+                # so a completely fine, 2-call, different-endpoint
+                # schedule fetch stood down behind a bug in a different
+                # builder, every run, for four days.
+                # ⛔ MEASURED: CFBD has answered cleanly since the
+                # Academic key (09-09), and `data/ncaaf` classifies as
+                # *"the back-fill failed, but NOT because the source
+                # refused — this is ours"*.
+                # 💰 AND THERE IS NO BUDGET ARGUMENT. `cfbd_budget.py`
+                # prices `fb-scores` at 2 calls x 44 builds/wk = 88/wk,
+                # the whole college schedule at 906/month against the
+                # Academic tier's 3,000 — **30%**. It was never the
+                # expensive caller, and the figure is DERIVED: re-run the
+                # script rather than trusting this comment (rule 63).
+                # ✅ THE CLASSIFIER IS `freshness.source_block()`, THE ONE
+                # THIS REPO ALREADY HAS. ⛔ A second place to record "is
+                # the source up" is a second thing to drift — the same
+                # argument that put `fb-scores` behind `cfb-probe`'s
+                # report in the first place.
+                # ⚠️ `cfb-probe` KEEPS its unconditional back-off: it is
+                # 15 calls a rebuild, so retrying OUR failure hourly
+                # really would spend the month. Two modes, two costs,
+                # two rules — stated so nobody "consistency-fixes" it.
+                # ══════════════════════════════════════════════════════
+                _blk = _fresh.source_block("data/ncaaf")
+                _refusing = _blk.get("state") == "refused"
+                _wait = _cfb_backoff_left() if _refusing else 0
                 if _wait > 0:
                     # 🔴 SAME REVERSAL as cfb-probe above, same reasons.
                     #    A stand-down is a decision; the freshness gate
                     #    is what reports it, and the Scores tab reads
                     #    ESPN directly so the READER loses nothing.
-                    log(f"SKIPPING fb-scores[ncaaf]: CFBD needs room. "
+                    log(f"SKIPPING fb-scores[ncaaf]: CFBD IS REFUSING US "
+                        f"({_blk.get('detail') or 'no detail'}). "
                         f"{_wait:.0f} min of back-off left. NOTHING "
                         f"FETCHED — the stored schedule is unchanged and "
                         f"the tab falls back to ESPN for live scores.")
                     _sc, _srep = None, None
+                elif _cfb_backoff_left() > 0:
+                    # ⚠️ A BACK-OFF IS ARMED AND DELIBERATELY IGNORED.
+                    #    Say so, with the reason, or the next reader sees
+                    #    a mode that "should" have stood down and did not.
+                    log(f"fb-scores[ncaaf]: a CFBD back-off is armed "
+                        f"({_cfb_backoff_left():.0f} min) but the failure "
+                        f"on the report is OURS, not a refusal — "
+                        f"{_blk.get('detail') or 'no detail'}. Fetching "
+                        f"anyway: 2 calls, a different endpoint, and the "
+                        f"Scores tab has been stale behind someone "
+                        f"else's bug.")
+                    import cfb as _cfbs
+                    _sc, _srep = _cfbs.build_schedule(_season, log)
                 else:
                     import cfb as _cfbs
                     _sc, _srep = _cfbs.build_schedule(_season, log)

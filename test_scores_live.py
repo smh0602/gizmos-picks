@@ -196,10 +196,57 @@ ck("🔴 fb-scores stands down behind the CFBD back-off",
 ck("...reading the same report cfb-probe reads",
    C.count("_cfb_backoff_left()") >= 2,
    "two pieces of state would eventually disagree about one source")
-ck("⚠️ and it still exits non-zero — skipping is not hiding",
-   re.search(r"SKIPPING fb-scores\[ncaaf\][\s\S]{0,700}?sys\.exit\(1\)", C)
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 IT BACKS OFF WHEN CFBD REFUSES US, NOT WHEN *WE* BREAK.
+# `[2026-09-10]` The stored college schedule sat at 2026-09-06T16:50Z for
+# **101 hours** while CFBD was healthy. `_cfb_backoff_left()` returns a
+# wait on ANY recorded failure, and `cfb-probe` was recording a
+# RuntimeError in OUR OWN verify — so a fine, 2-call, different-endpoint
+# fetch stood down behind a bug in a different builder, every run.
+# ⛔ THE CLASSIFIER IS THE ONE THIS REPO ALREADY HAS. A second place to
+# record "is the source up" is a second thing to drift.
+ck("🔴 the fb-scores gate asks whether the SOURCE refused us",
+   "source_block(" in C and 'state") == "refused"' in C,
+   "not merely whether the last back-fill failed — our own RuntimeError "
+   "is not a reason to stop asking CFBD for a 2-call file")
+ck("⛔ ...and an ignored back-off is ANNOUNCED, not silent",
+   "a CFBD back-off is armed" in _raw,
+   "a mode that 'should' have stood down and did not must say why, or "
+   "the next reader calls it a bug")
+ck("⚠️ cfb-probe KEEPS its unconditional back-off",
+   re.search(r"_wait = _cfb_backoff_left\(\)\s*\n\s*if _wait > 0:", C)
    is not None,
-   "a green run that collected nothing is worse than a red one")
+   "15 calls a rebuild against a 3,000/month plan — retrying OUR failure "
+   "hourly really would spend the month. Two modes, two costs, two rules")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 ~~"and it still exits non-zero — skipping is not hiding"~~
+# ⛔ **STRUCK 2026-09-10 — IT ASSERTED THE OPPOSITE OF WHAT THIS REPO
+#    DECIDED, AND PASSED BY ACCIDENT.** It searched for a `sys.exit(1)`
+#    within 700 CHARACTERS of the SKIPPING log — a TEXT-PROXIMITY proxy
+#    for a behaviour — and the `sys.exit(1)` it kept finding belongs to
+#    the "NOTHING WRITTEN" path, a different branch entirely.
+# 🔴 AND LEDGER RULE 172 REVERSED THE THING IT WAS ASSERTING: a
+#    stand-down is a DECISION and exits 0; an attempted fetch that
+#    returns nothing is an EVENT and exits 1. `test_source_block.py`
+#    DRIVES both and asserts `exit == 0` for this exact mode — so two
+#    files in one suite were claiming opposite things, and this one only
+#    stayed green because of where a brace happened to fall.
+# ✅ The behaviour is owned by `test_source_block.py`, which RUNS the
+#    collector instead of reading it. What is checked here is the thing a
+#    source read can actually establish: that the two outcomes are
+#    DISTINCT branches rather than one shared exit.
+# ══════════════════════════════════════════════════════════════════════
+ck("🔴 a stand-down and a failed fetch are DIFFERENT branches",
+   "NOTHING FETCHED" in C and "NOTHING WRITTEN --" in C,
+   "rule 172 — a decision and an event must not share an exit code; "
+   "test_source_block.py drives the exit codes themselves")
+note("⚠️ THE EXIT CODES ARE ASSERTED BY DRIVING, IN test_source_block.py "
+     "(`a back-off stand-down exits 0`). ⛔ Do not re-add a "
+     "character-distance regex here — the one removed today searched 700 "
+     "chars for a `sys.exit(1)` that belonged to another branch, and a "
+     "longer log message was all it took to flip it.")
 ck("⛔ the NFL is not held behind a CFBD back-off",
    "SKIPPING fb-scores[nfl]" not in C,
    "nflverse is a different source and was healthy throughout")

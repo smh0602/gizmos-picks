@@ -218,6 +218,51 @@ for _m in ("cfb-probe", "fb-scores"):
        f"alarm-fatigue failure mode")
     ck(f"   ...and says so in the log rather than going quiet",
        "NOTHING FETCHED" in _o, "silence would be the actual defect")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 AND `fb-scores` STANDS DOWN ONLY WHEN CFBD REFUSES US.
+# `[2026-09-10]` The stored college schedule sat at 2026-09-06T16:50Z for
+# **101 hours** while CFBD was healthy. `_cfb_backoff_left()` returns a
+# wait on ANY recorded failure, and `cfb-probe` was recording a
+# RuntimeError in OUR OWN verify — so a fine, 2-call, different-endpoint
+# fetch stood down behind a bug in a different builder, every run, for
+# four days. ⛔ DRIVEN HERE, both branches, because reading the source
+# cannot tell one gate from the next.
+def _fbs(extra):
+    d = tempfile.mkdtemp()
+    shutil.copytree(f"{ROOT}/data/ncaaf", f"{d}/data/ncaaf")
+    for f in os.listdir(ROOT):
+        if f.endswith(".py"):
+            shutil.copy2(f"{ROOT}/{f}", f"{d}/{f}")
+    os.makedirs(f"{d}/picks", exist_ok=True)
+    with open(f"{d}/data/ncaaf/latest/backfill-report.txt", "w",
+              encoding="utf-8") as fh:
+        fh.write(_report(NOW - datetime.timedelta(minutes=5), failed=[2026],
+                         extra=extra))
+    r = subprocess.run([sys.executable, "collect.py", "fb-scores"], cwd=d,
+                       capture_output=True, text=True,
+                       env=dict(os.environ, LEAGUE="ncaaf",
+                                CFB_BACKOFF_MIN="180"))
+    shutil.rmtree(d, ignore_errors=True)
+    return r.returncode, r.stdout + r.stderr
+
+
+_rc, _o = _fbs("SourceUnavailable: regular: HTTPError 429.")
+ck("🔴 fb-scores STANDS DOWN when CFBD is refusing us",
+   "SKIPPING fb-scores[ncaaf]" in _o and "REFUSING US" in _o,
+   "a 429 on the report is CFBD's own answer and backing off is right")
+ck("   ...and that stand-down is a DECISION, so it exits 0",
+   _rc == 0, f"exit={_rc}")
+
+_rc, _o = _fbs("RuntimeError: depth_rank is CONSTANT None across 1,848 rows")
+ck("🔴 ...but it FETCHES ANYWAY when the failure is OURS",
+   "SKIPPING fb-scores[ncaaf]" not in _o,
+   "⛔ our RuntimeError is not a reason to stop asking a healthy source "
+   "for a 2-call file — this is the bug that cost the Scores tab 101 "
+   "hours")
+ck("   ...and it ANNOUNCES that it ignored an armed back-off",
+   "a CFBD back-off is armed" in _o,
+   "a mode that 'should' have stood down and did not must say why")
+
 ck("⛔ but a fetch that was ATTEMPTED and returned nothing still does",
    "NOTHING WRITTEN --" in C
    and "sys.exit(1)" in C.split("NOTHING WRITTEN --")[1][:400],
