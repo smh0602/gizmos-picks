@@ -69,9 +69,26 @@ have = sorted(os.path.basename(f) for f in
 note("player logs present: " + (", ".join(have) or "none"))
 cur = datetime.datetime.now(datetime.timezone.utc)
 season = cur.year - 1 if cur.month < 8 else cur.year
-ck(f"⚠️ there is still no players-{season} file, so the card MUST fall back",
-   f"players-{season}.json.gz" not in have,
-   "if this flips, the fallback stops being the path under test")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THIS ASSERTED AN ABSENCE, AND THE ABSENCE WAS FILLED BY THE FIX
+#    WORKING. `[2026-09-10]` It read `f"players-{season}.json.gz" not in
+#    have` — *"there is still no players-2026 file"* — and went red the
+#    moment `nfl-logs` succeeded and wrote one. **The success it was
+#    waiting for is what broke it.**
+# ⛔ RULE 166 FOR THE THIRD TIME ON THIS REPO: a check with an expiry
+#    date and nothing to expire it. The comment even said "if this flips,
+#    the fallback stops being the path under test" — a note that the
+#    check would one day be wrong, left in place instead of fixed.
+# ✅ THE DURABLE QUESTION IS WHETHER A USABLE LOG EXISTS FOR THE CARD TO
+#    READ — not which season supplies it. A 2026 file holding ONE game
+#    per player does not replace the fallback; it is thinner than the bar
+#    the card needs, so the fallback is STILL the path under test and the
+#    check now says so with the numbers instead of by assuming.
+# ══════════════════════════════════════════════════════════════════════
+_cur_present = f"players-{season}.json.gz" in have
+note(f"players-{season}.json.gz present: {_cur_present} — "
+     f"the current season's log existing does NOT by itself retire the "
+     f"fallback; what matters is whether it is thick enough to use.")
 usable = []
 for f in glob.glob(f"{ROOT}/data/nfl/latest/players-*.json.gz"):
     try:
@@ -85,6 +102,23 @@ for f in glob.glob(f"{ROOT}/data/nfl/latest/players-*.json.gz"):
 ck("🔴 at least one season has enough games to read a rate from",
    bool(usable), str(sorted(usable, reverse=True)[:2])
    + " — MIN_GAMES is 6; below it the board ships prices and no records")
+# ⛔ AND THE THIN CURRENT SEASON MUST NOT DISPLACE THE FALLBACK. A
+#    `players-2026` holding one game per player is WORSE than useless if
+#    it is preferred over a full 2025 — every rate would be n=1.
+_cur_usable = [s for s, _ in usable if s == season]
+if _cur_present and not _cur_usable:
+    note(f"✅ players-{season} EXISTS but is below the 6-game bar, so the "
+         f"fallback is still the path under test — which is the state "
+         f"the section header describes. This is the correct reading of "
+         f"a season that has just started.")
+elif _cur_usable:
+    note(f"⚠️ players-{season} is now THICK enough to use on its own "
+         f"(median {dict(usable).get(season)} games). The fallback is no "
+         f"longer the live path; this section is measuring history.")
+ck("⛔ a season log is judged on GAMES PER PLAYER, never on existing",
+   all(m >= 6 for _s, m in usable),
+   "the bar is the median game count, so a one-game file can never "
+   "qualify merely by being present: %s" % sorted(usable, reverse=True))
 
 print("\n═══ 3. THE SENTENCE THAT WOULD HAVE BEEN FALSE ═══")
 blk = js_block("fbParlays", HTML)

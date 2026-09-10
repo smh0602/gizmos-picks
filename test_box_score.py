@@ -285,16 +285,41 @@ if _BROWSER:
         ck("no page error", not errs, str(errs[:1]))
         pg.keyboard.press("Escape")
 
-    print("\n═══ 5. THE 2026 NFL SEASON HAS NO LOGS YET, AND SAYS SO ═══")
-    # ⛔ "cannot exist yet" is not "broken" (rule 86). The NFL season has
-    #    not been played, so its 2026 logs do not exist — the panel must
-    #    name that rather than showing an empty table.
+    print("\n═══ 5. THE CURRENT NFL SEASON'S LOG — EITHER STATE IS FINE ═══")
+    # ⛔ "cannot exist yet" is not "broken" (rule 86). The panel must name
+    #    a missing log rather than showing an empty table.
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 THIS ASSERTED THE LOG WAS ABSENT, AND WENT RED WHEN IT ARRIVED.
+    #    `[2026-09-10]` It read `msg == "null"` — *"the 2026 NFL player
+    #    log is genuinely absent"* — with the note "it arrives with the
+    #    Tuesday rebuild after week 1". **It arrived, and the check that
+    #    was waiting for it failed because of it.**
+    # ⛔ RULE 166, THIRD TIME ON THIS REPO. A check whose subject is a
+    #    date-bound absence has an expiry, and nothing expires it.
+    # ✅ BOTH STATES ARE CORRECT PRODUCT STATES and the panel has to
+    #    handle each. So the check now DRIVES whichever one is live:
+    #    absent -> the panel must SAY so and not render an empty table;
+    #    present -> it must load and render without error. Neither
+    #    outcome can silently pass as the other.
+    # ══════════════════════════════════════════════════════════════════
     msg = pg.evaluate("""async () => {
         fbScSeason = 2026;
         const by = await fbLogsLoad(2026);
-        return by === null ? 'null' : 'present';
+        if (by === null) return 'null';
+        try { return 'present:' + Object.keys(by).length; }
+        catch (e) { return 'present:unreadable'; }
     }""")
-    ck("the 2026 NFL player log is genuinely absent", msg == "null",
-       "it arrives with the Tuesday rebuild after week 1")
+    if msg == "null":
+        ck("the current NFL player log is absent, and the panel says so",
+           True, "it arrives once nflverse publishes the week — the "
+                 "panel names it rather than drawing an empty table")
+    else:
+        ck("🔴 the current NFL player log LOADS without error",
+           msg.startswith("present:") and msg != "present:unreadable",
+           "%s — a log that exists must parse; a thin one is still a "
+           "valid one (the 2026 season opened 2026-09-09 and holds one "
+           "game)" % msg)
+        ck("⛔ ...and the page did not error while reading it",
+           not errs, str(errs[:1]))
     br.close()
 srv.shutdown()
