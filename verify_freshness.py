@@ -65,9 +65,44 @@ def main():
     # and so does every other artifact.
     refused = os.path.exists(f"{_DATA}/latest/card-verify-failure.txt")
 
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 THE SAME ARGUMENT AS THE REFUSED CARD, FOR THE SOURCE ITSELF.
+    # `[2026-09-09 — Sam: "i keep getting emails saying the collect run
+    # is failing"]` Every college AND every NFL run was red on a loop,
+    # for two states that were already diagnosed and recorded:
+    #   ncaaf  CFBD 429 — quota spent; Sam had already upgraded the key
+    #   nfl    nflverse has not published `stats_player_week_2026`
+    #          because week 1 of the season had not been played
+    # ⛔ NEITHER IS A DEFECT IN THIS REPO AND NEITHER HAS AN ACTION LEFT.
+    # The paragraph above about the card says it exactly: an alarm that
+    # fires every fifteen minutes gets ignored, and ignoring red is how
+    # the original staleness survived a whole day. **46 football runs a
+    # day, every one red, is that failure mode at scale.**
+    # ✅ SAME SHAPE AS THE CARD, INCLUDING THE BOUND: downgrade while the
+    # cause is recorded, fail again once the grace runs out, so a known
+    # state can never become permanent silence.
+    # ⚠️ NARROW ON PURPOSE. Only a row that is BOTH stale AND in
+    # `SOURCE_BACKED` AND explained by that league's own back-fill report
+    # is downgraded. A stale artifact with no recorded source problem
+    # fails exactly as it did before, and so does every MLB artifact —
+    # MLB has no back-fill report, so `source_block` returns nothing.
+    # ══════════════════════════════════════════════════════════════════
+    block = F.source_block(_DATA)
+
     hard, soft = [], []
     for r in rows:
         if not r["stale"]:
+            continue
+        if (r["mode"] in F.SOURCE_BACKED and block["state"]
+                and not r["missing"]):
+            _grace = (F.SOURCE_REFUSED_GRACE_MIN if block["state"] == "refused"
+                      else F.SOURCE_NOT_YET_GRACE_MIN)
+            _age = r["age_min"]
+            if _age is not None and _age <= _grace:
+                soft.append(dict(r, _blocked=block, _grace=_grace))
+                continue
+            # 🔴 PAST THE GRACE IT IS NOT "WAITING" ANY MORE.
+            hard.append(dict(r, _blocked=block, _grace=_grace, _stuck=True))
             continue
         if r["mode"] == "card" and refused:
             # 🔴 BOUNDED. A refusal is a KNOWN state for as long as somebody
@@ -109,6 +144,15 @@ def main():
                "state and does not fail the run")
 
     for r in soft:
+        if r.get("_blocked"):
+            _b = r["_blocked"]
+            _left = (r["_grace"] - r["age_min"]) / 1440.0
+            print(f"::warning::{r['mode']} is stale because "
+                  f"{_b['detail']} — last built "
+                  f"{r['age_min'] / 1440.0:.1f} days ago. This is a KNOWN "
+                  f"state, it is on the page, and it does not fail the run "
+                  f"({_left:.1f} days of grace left).")
+            continue
         if r["mode"] == "card" and refused and r["age_min"] is not None:
             _left = (CARD_REFUSED_GRACE_MIN - r["age_min"]) / 60
             print(f"::warning::the card has been REFUSED for "
@@ -123,6 +167,17 @@ def main():
         return 0
 
     for r in hard:
+        if r.get("_stuck"):
+            _b = r["_blocked"]
+            print(f"::error::{r['mode']} HAS BEEN BLOCKED TOO LONG. "
+                  f"{_b['detail']}, and the artifact has not rebuilt in "
+                  f"{r['age_min'] / 1440.0:.1f} days — past the "
+                  f"{r['_grace'] / 1440.0:.0f}-day grace.")
+            print( "::error::A source problem buys quiet for as long as "
+                   "somebody is waiting on it, not forever. Change the "
+                   "tier, change the source, or drop the tab — but this "
+                   "is a decision now, not an outage.")
+            continue
         if r.get("_frozen"):
             _h = "never" if r["missing"] else f"{r['age_min']/60:.1f} hours ago"
             print(f"::error::THE CARD IS FROZEN. It has been REFUSED past the "

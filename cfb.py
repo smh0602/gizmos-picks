@@ -471,6 +471,15 @@ def _stored_finals(season):
 
 def build_season(season, log=log):
     meta, weeks_seen = {}, set()
+    # 💡 WHICH WEEKS HAVE ACTUALLY BEEN PLAYED, ACCORDING TO THE SOURCE.
+    #    `[2026-09-10]` The build failed with *"depth_rank is CONSTANT None
+    #    across 1,848 rows — a join failure"* while CFBD was healthy
+    #    (`endpoints_failed: []`). It was not a join failure: **every one
+    #    of those rows was week 1**, so no row had a strictly-earlier week
+    #    to trail from, and all three point-in-time columns were
+    #    legitimately None. ⛔ The verifier could not tell those two apart
+    #    because it never saw the CALENDAR. Now it does.
+    weeks_completed = set()
     # 🔴 REMEMBER WHY meta MIGHT BE EMPTY. Swallowing the exception and
     # carrying on is right — one season type failing must not lose the
     # other — but FORGETTING it turns "the source refused" into "the
@@ -516,6 +525,12 @@ def build_season(season, log=log):
             }
             if st == "regular" and g.get("week"):
                 weeks_seen.add(g["week"])
+                # ⚠️ COMPLETED, not "in the past". A postponed game is not
+                #    a missing week; a finished one that produced no
+                #    player rows IS a gap worth naming.
+                if g.get("completed") or (g.get("homePoints") is not None
+                                          and g.get("awayPoints") is not None):
+                    weeks_completed.add(g["week"])
     if not meta:
         # 🔴 TYPED, so the caller can tell "this season has not been
         # played" from "the fetch broke". ⛔ The exception carries only
@@ -667,8 +682,24 @@ def build_season(season, log=log):
 
     rank_and_cascade(players)
 
+    import collections as _c
+    _log_weeks = _c.Counter(
+        g.get("week") for p in players.values() for g in p["g"]
+        if g.get("seasonType") == "regular")
     doc = {
         "season": season, "kind": "DESCRIPTIVE",
+        # 💡 THE CALENDAR, SO A CONSTANT COLUMN CAN BE EXPLAINED RATHER
+        #    THAN GUESSED AT. `weeks_completed` is what the SOURCE says
+        #    has been played; `weeks_in_log` is what we actually built
+        #    rows for. When they disagree, that gap IS the defect and the
+        #    verifier now names it instead of blaming the join.
+        "weeks": {
+            "completed_per_source": sorted(weeks_completed),
+            "in_player_log": {str(k): v for k, v in sorted(
+                _log_weeks.items(), key=lambda kv: (kv[0] is None, kv[0]))},
+            "missing_from_log": sorted(weeks_completed
+                                       - {w for w in _log_weeks if w}),
+        },
         "built_at": datetime.datetime.now(datetime.timezone.utc)
                     .strftime("%Y-%m-%dT%H:%M:%SZ"),
         # ⚠️ THIS FIELD IS READ BY HUMANS AND BY LATER CODE. It said
@@ -1421,15 +1452,64 @@ def verify(doc, log=log):
     # tens of thousands of player-weeks, so this bar is never near the
     # real path — it exists so a degenerate slice cannot fail a good build.
     CONST_MIN = 500
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 A TRAILING COLUMN NEEDS A PREVIOUS WEEK TO TRAIL FROM.
+    # `[2026-09-10]` This check failed a healthy build with *"depth_rank
+    # is CONSTANT None across 1,848 rows — a join failure"*. **It was not
+    # a join failure.** Every row was week 1: `trailing()` looks at
+    # STRICTLY EARLIER weeks, so on a one-week season it correctly returns
+    # None for everyone, `depth_rank` follows it, and `ahead_out_lastwk`
+    # is 0 by its own `wk > 1` guard. Three columns constant, one cause,
+    # and the message named the wrong one.
+    # ⚠️ `CONST_MIN = 500` was supposed to prevent this — the comment
+    # above says a real season is "tens of thousands of player-weeks" — but
+    # **1,848 rows clears 500 while still being a single week.** The bar
+    # was counting the wrong thing: rows, when the question is WEEKS.
+    # ✅ So the three point-in-time columns are only judged when there are
+    # **at least two distinct regular weeks** in the log. `usage` is not
+    # derived from history and is checked regardless.
+    # ⛔ STRICTLY HARDER, NOT SOFTER: a genuinely broken join on a
+    # multi-week season still fails, and a MISSING WEEK — the thing that
+    # actually looks like this — is now its own named failure below.
+    # ══════════════════════════════════════════════════════════════════
+    TRAILING = ("depth_rank", "trailing_usage", "ahead_out_lastwk")
+    wks = {g.get("week") for g in gs
+           if g.get("seasonType") == "regular" and g.get("week")}
     if len(gs) >= CONST_MIN:
         for f in ("depth_rank", "trailing_usage", "usage", "ahead_out_lastwk"):
             vals = {g.get(f) for g in gs}
-            if len(vals) == 1:
-                bad.append(f"{f} is CONSTANT {vals.pop()!r} across "
-                           f"{len(gs):,} rows — a join failure, not a result")
+            if len(vals) != 1:
+                continue
+            if f in TRAILING and len(wks) < 2:
+                log(f"    ⚠️ {f} is constant {vals.copy().pop()!r}, and that "
+                    f"is CORRECT: the log holds {len(wks)} regular week(s) "
+                    f"({sorted(wks)}), so nothing has an earlier week to "
+                    f"trail from. NOT a join failure, NOT a pass — the "
+                    f"check is not exercised until week 2 exists.")
+                continue
+            bad.append(f"{f} is CONSTANT {vals.pop()!r} across "
+                       f"{len(gs):,} rows spanning {len(wks)} week(s) "
+                       f"{sorted(wks)} — a join failure, not a result")
     else:
         log(f"    ⚠️ only {len(gs):,} rows — the constant-feature check needs "
             f"{CONST_MIN}+ to mean anything and was SKIPPED, not passed")
+
+    # 🔴 AND THE FAILURE THAT ACTUALLY LOOKS LIKE A CONSTANT COLUMN:
+    #    A WEEK THE SOURCE SAYS WAS PLAYED THAT PRODUCED NO ROWS.
+    # ⛔ This is the accurate version of the error above. If CFBD says
+    #    weeks 1 and 2 are completed and the log only covers week 1, the
+    #    table would be built on half a season — and every trailing number
+    #    in it would be wrong in a way no column-constancy test can see.
+    _w = (doc.get("weeks") or {})
+    _missing = _w.get("missing_from_log") or []
+    if _missing:
+        bad.append(f"THE PLAYER LOG IS MISSING COMPLETED WEEK(S) {_missing}. "
+                   f"The source reports {_w.get('completed_per_source')} as "
+                   f"played; the log holds "
+                   f"{list((_w.get('in_player_log') or {}).keys())}. ⛔ This "
+                   f"is NOT a join failure and NOT an empty season — it is "
+                   f"an INCOMPLETE one, and a trends table built on it "
+                   f"would be silently wrong.")
 
     # ⛔ THE LOOKAHEAD ASSERTION. Every trailing number must be computable
     # from STRICTLY EARLIER weeks. A week-1 row cannot have one.
@@ -1683,6 +1763,28 @@ def probe(log=log):
             log(f"    SEASON {season} FAILED: {type(e).__name__}: {e}")
             failed.append((season, f"{type(e).__name__}: {e}"))
 
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 READ THE OLD REPORT BEFORE TRUNCATING IT. THIS WAS A REAL BUG,
+    #    SHIPPED 2026-09-09 AND CAUGHT 2026-09-10.
+    # ⛔ The streak counter below used to read this file from INSIDE the
+    #    `with open(..., "w")` block — and "w" truncates on open, so it
+    #    was reading an empty file every single time. `prev` was always 0,
+    #    the streak was always 1, and **the progressive back-off never
+    #    engaged once**: the live report read `consecutive failures: 1`
+    #    after two solid days of failing, and the attempts sat ~3.5h apart
+    #    exactly as the flat 180-minute wait would put them.
+    # ⚠️ THE TEST DID NOT CATCH IT because it drove `_cfb_backoff_left()`
+    #    with hand-written reports — it verified the READER and never the
+    #    WRITER. A round trip would have caught it in one line.
+    # ══════════════════════════════════════════════════════════════════
+    _prev_streak = 0
+    try:
+        with open(f"{OUT}/backfill-report.txt", encoding="utf-8") as _old:
+            _m = re.search(r"consecutive failures: (\d+)", _old.read())
+            _prev_streak = int(_m.group(1)) if _m else 0
+    except Exception:
+        _prev_streak = 0
+
     with open(f"{OUT}/backfill-report.txt", "w", encoding="utf-8") as fh:
         # ══════════════════════════════════════════════════════════
         # 💰 COUNT CONSECUTIVE FAILURES, SO THE BACK-OFF CAN GROW.
@@ -1707,14 +1809,7 @@ def probe(log=log):
         #    (2026-09-06: he objected to schedule runs being held) and it
         #    is the whole design.
         # ══════════════════════════════════════════════════════════
-        prev = 0
-        try:
-            with open(f"{OUT}/backfill-report.txt", encoding="utf-8") as _old:
-                m = re.search(r"consecutive failures: (\d+)", _old.read())
-                prev = int(m.group(1)) if m else 0
-        except Exception:
-            prev = 0
-        streak = (prev + 1) if failed and not done else 0
+        streak = (_prev_streak + 1) if failed and not done else 0
         fh.write(f"cfb back-fill at {datetime.datetime.now(datetime.timezone.utc)}\n")
         fh.write(f"requested: {seasons}\nwritten  : {done}\n")
         fh.write(f"failed   : {[y for y, _ in failed]}\n")

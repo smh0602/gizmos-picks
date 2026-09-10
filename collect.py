@@ -3831,33 +3831,46 @@ def run_mode(mode):
                 # ══════════════════════════════════════════════════════
                 _wait = _cfb_backoff_left()
                 if _wait > 0:
-                    log(f"SKIPPING fb-scores[ncaaf]: CFBD failed "
-                        f"{CFB_BACKOFF_MIN - _wait:.0f} min ago and needs "
-                        f"room. {_wait:.0f} min of back-off left. NOTHING "
+                    # 🔴 SAME REVERSAL as cfb-probe above, same reasons.
+                    #    A stand-down is a decision; the freshness gate
+                    #    is what reports it, and the Scores tab reads
+                    #    ESPN directly so the READER loses nothing.
+                    log(f"SKIPPING fb-scores[ncaaf]: CFBD needs room. "
+                        f"{_wait:.0f} min of back-off left. NOTHING "
                         f"FETCHED — the stored schedule is unchanged and "
                         f"the tab falls back to ESPN for live scores.")
-                    sys.exit(1)
-                import cfb as _cfbs
-                _sc, _srep = _cfbs.build_schedule(_season, log)
+                    _sc, _srep = None, None
+                else:
+                    import cfb as _cfbs
+                    _sc, _srep = _cfbs.build_schedule(_season, log)
             elif LEAGUE == "nfl":
                 import nfl as _nfls
                 _sc, _srep = _nfls.build_schedule(_season, None, log)
             else:
                 log(f"fb-scores: {LEAGUE} has no football schedule")
                 sys.exit(1)
-            # ⛔ REPORT ALWAYS, pass or fail -- the same rule the
-            # back-fill uses. A silent failure here is a Scores tab that
-            # quietly stops moving.
-            write(f"{LATEST}/schedule-probe-{_season}.json", _srep)
-            if not _sc:
-                log(f"fb-scores: NOTHING WRITTEN -- "
-                    f"{_srep.get('error') or 'the source returned no games'}")
-                sys.exit(1)
-            _sc["pulled_at"] = stamp()
-            write(f"{LATEST}/schedule-{_season}.json.gz", _sc, compress=True)
-            log(f"fb-scores[{LEAGUE}] {_season}: {_srep.get('games')} games, "
-                f"{_srep.get('final')} final")
-            left = None
+            # 🔴 `_srep is None` MEANS WE STOOD DOWN AND NEVER ASKED.
+            # ⛔ Distinct from "we asked and got nothing", which is the
+            #    branch below and still exits 1. Writing a probe report
+            #    here would overwrite a REAL diagnosis (the status code,
+            #    the body, the quota block) with the absence of one.
+            if _srep is None:
+                left = None
+            else:
+                # ⛔ REPORT ALWAYS, pass or fail -- the same rule the
+                # back-fill uses. A silent failure here is a Scores tab
+                # that quietly stops moving.
+                write(f"{LATEST}/schedule-probe-{_season}.json", _srep)
+                if not _sc:
+                    log(f"fb-scores: NOTHING WRITTEN -- "
+                        f"{_srep.get('error') or 'the source returned no games'}")
+                    sys.exit(1)
+                _sc["pulled_at"] = stamp()
+                write(f"{LATEST}/schedule-{_season}.json.gz", _sc,
+                      compress=True)
+                log(f"fb-scores[{LEAGUE}] {_season}: {_srep.get('games')} "
+                    f"games, {_srep.get('final')} final")
+                left = None
         elif mode == "cfb-probe":
             # 🔴 A PARITY CHECK, NOT A SURVEY. Sam, 2026-08-30: "i want the
             # SAME EXACT stats and data pulled for cfb as we did for the
@@ -3889,14 +3902,39 @@ def run_mode(mode):
             # fails too.
             _wait = _cfb_backoff_left()
             if _wait > 0:
+                # ══════════════════════════════════════════════════
+                # 🔴 A DELIBERATE STAND-DOWN IS NOT AN ERROR — REVERSED
+                #    2026-09-09, AND THE OLD DECISION IS QUOTED SO THE
+                #    REVERSAL CAN BE ARGUED WITH.
+                # ⛔ This used to `sys.exit(1)` under the banner
+                #    *"SKIPPING IS NOT HIDING ... the run still goes
+                #    red."* That was right about hiding and wrong about
+                #    the exit code. `[Sam, 2026-09-09: "i keep getting
+                #    emails saying the collect run is failing"]` — **46
+                #    football runs a day, every one red**, for a source
+                #    outage that was already diagnosed and already acted
+                #    on. An alarm that fires every fifteen minutes gets
+                #    ignored; this file's own card-refusal comment says
+                #    exactly that, and it was the failure mode that let
+                #    the original staleness survive a whole day.
+                # ✅ NOTHING IS HIDDEN, AND THREE THINGS STILL SAY SO:
+                #    - the artifact stays OUT OF CONTRACT
+                #    - `verify_freshness.py` prints a ::warning:: every
+                #      run and FAILS the run once the grace expires
+                #    - the Trends tab prints its own table's age
+                # ⚠️ THIS EXIT IS ONLY FOR THE BACK-OFF STAND-DOWN. A
+                #    fetch that is ATTEMPTED and fails still exits 1
+                #    below, because that is an event, not a decision.
+                # ══════════════════════════════════════════════════
                 log(f"SKIPPING cfb-probe: the last back-fill FAILED "
-                    f"{CFB_BACKOFF_MIN - _wait:.0f} min ago and CFBD needs "
-                    f"room. {_wait:.0f} min of back-off left. NOTHING "
-                    f"FETCHED. The artifact stays out of contract.")
+                    f"and CFBD needs room. {_wait:.0f} min of back-off "
+                    f"left. NOTHING FETCHED. The artifact stays out of "
+                    f"contract and verify_freshness reports it.")
+                left = None
+            elif not _cfb.probe(log):
                 sys.exit(1)
-            if not _cfb.probe(log):
-                sys.exit(1)
-            left = None
+            else:
+                left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
             # The Claude container may not fetch URLs, so every nflverse

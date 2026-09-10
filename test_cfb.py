@@ -330,3 +330,67 @@ ck("🔴 Trends offers 2025 and later only (Sam, 2026-09-04)",
 ck("   ⛔ and no pre-2025 season is still listed there",
    "2021" not in _idx.split("const FB_SEASONS")[1][:80])
 
+
+
+print("\n═══ 🔴 A TRAILING COLUMN NEEDS A PREVIOUS WEEK TO TRAIL FROM ═══")
+# `[2026-09-10]` The live build failed with *"depth_rank is CONSTANT None
+# across 1,848 rows — a join failure"* while CFBD was healthy
+# (`endpoints_failed: []`). It was NOT a join failure: every row was
+# week 1. `trailing()` looks at STRICTLY EARLIER weeks, so on a one-week
+# season it correctly returns None for everyone, depth_rank follows, and
+# ahead_out_lastwk is 0 by its own `wk > 1` guard. Three columns constant,
+# ONE cause, and the message named the wrong one.
+# ⚠️ `CONST_MIN = 500` was meant to prevent this, but 1,848 rows clears
+# 500 while still being a single week. The bar counted ROWS when the
+# question is WEEKS.
+_quiet = lambda *a, **k: None
+
+
+def _mkdoc(nweeks, total, break_join=False, completed=None, missing=None):
+    """Shaped like the real builder: week-1 rows NEVER carry trailing data."""
+    players, per = {}, max(1, total // (30 * nweeks))
+    for i in range(30):
+        gs = []
+        for w in range(1, nweeks + 1):
+            first = (w == 1)
+            for k in range(per):
+                gs.append({
+                    "week": w, "seasonType": "regular", "wk_i": w,
+                    "usage": 0.1 * ((i + k + w) % 7),
+                    "depth_rank": None if (first or break_join) else (i % 5) + 1,
+                    "trailing_usage": None if (first or break_join) else 0.2 + (i % 3),
+                    "ahead_out_lastwk": 0 if (first or break_join) else (i % 2),
+                    "rec": 1, "car": 1, "att": 1, "cmp": 1, "pass_yds": 10,
+                    "rush_yds": 10, "rec_yds": 10, "int": 0,
+                    "team": "T", "o": "O"})
+        players[str(i)] = {"pos": "WR", "g": gs}
+    return {"season": 2026, "players": players,
+            "weeks": {"completed_per_source": completed or list(range(1, nweeks + 1)),
+                      "in_player_log": {str(w): per * 30 for w in range(1, nweeks + 1)},
+                      "missing_from_log": missing or []}}
+
+
+_REL = ("depth_rank", "trailing_usage", "ahead_out_lastwk", "MISSING COMPLETED")
+
+
+def _bad(doc):
+    return [b for b in cfb.verify(doc, log=_quiet) if any(t in b for t in _REL)]
+
+
+ck("🔴 a ONE-WEEK season with constant trailing columns is NOT a failure",
+   not _bad(_mkdoc(1, 1848)),
+   "1,848 week-1 rows — exactly the live 2026-09-10 shape")
+ck("⛔ ...but a MULTI-WEEK season with constant trailing columns still is",
+   any("join failure" in b for b in _bad(_mkdoc(3, 2100, break_join=True))),
+   "this is the real defect the check exists for, and it still fires")
+ck("✅ a healthy multi-week season passes",
+   not _bad(_mkdoc(3, 2100)),
+   "the fix must not make the check vacuous")
+ck("🔴 and a COMPLETED WEEK MISSING FROM THE LOG is its own named failure",
+   any("MISSING COMPLETED" in b
+       for b in _bad(_mkdoc(1, 1848, completed=[1, 2], missing=[2]))),
+   "half a season builds a table that is silently wrong — and this is "
+   "the failure that USED to present as 'a join failure'")
+note("⚠️ THE VERIFIER NOW SEES THE CALENDAR. `doc['weeks']` carries what "
+     "the SOURCE says was played and what the log actually holds, so "
+     "'constant' can be explained instead of guessed at.")

@@ -178,11 +178,36 @@ _dated = [h for h in have if not h.endswith("-latest.json")]
 import record_fb as _rfb  # noqa: E402
 _eligible = [h for h in _dated if h[len("fb-ncaaf-"):-len(".json")]
              >= _rfb.RECORD_FROM]
+# 🔴 AND A CARD WITH NO ROWS IS NOT A CARD THE GRADER SEES. `[2026-09-10]`
+#    The college card for that Thursday held **zero picks** — nothing was
+#    priced — and `record_fb` drops it deliberately:
+#    `days = [d for d in days if d["carded"]]`. So `cards_seen` read 1
+#    against 2 eligible files and this check went red on a grader that was
+#    behaving exactly as written.
+# ⛔ THE CHECK'S REAL QUESTION IS UNCHANGED AND STILL SHARP: is the
+#    POINTER FILE being graded as a card of its own? If it were,
+#    `cards_seen` would be one HIGHER than the carded dated files — which
+#    this still catches. What is removed is a second, accidental claim
+#    that every dated file carries rows.
+_carded = []
+for _h in _eligible:
+    try:
+        with open(os.path.join(ROOT, "picks", _h)) as _fh:
+            if json.load(_fh).get("picks"):
+                _carded.append(_h)
+    except Exception:
+        _carded.append(_h)      # unreadable -> count it, never hide it
 ck("`-latest.json` exists and is NOT counted as its own card",
-   "fb-ncaaf-latest.json" in have and R["cards_seen"] == len(_eligible),
-   "%d cards seen, %d dated file(s) on disk, %d of them on or after the "
-   "record floor %s"
-   % (R["cards_seen"], len(_dated), len(_eligible), _rfb.RECORD_FROM))
+   "fb-ncaaf-latest.json" in have and R["cards_seen"] == len(_carded),
+   "%d cards seen, %d dated file(s) on disk, %d on or after the record "
+   "floor %s, %d of those carrying rows"
+   % (R["cards_seen"], len(_dated), len(_eligible), _rfb.RECORD_FROM,
+      len(_carded)))
+if len(_carded) < len(_eligible):
+    note("⚠️ %d eligible card(s) hold ZERO rows and are not graded — a "
+         "day with nothing priced is a legitimate empty (rule 144), and "
+         "the file still exists on disk (rule 86)."
+         % (len(_eligible) - len(_carded)))
 if len(_eligible) < len(_dated):
     note(f"⚠️ {len(_dated) - len(_eligible)} card(s) predate the floor and "
          f"are deliberately not graded — the files are untouched")

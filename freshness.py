@@ -780,6 +780,127 @@ def contract(data="data", picks="picks", now=None):
 # numbers someone bets on.
 SOFT = {"news", "weather", "lineups", "cfb-teams"}
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-09-09 — Sam: "i keep getting emails saying the collect run is
+# failing"]` **Every college run and every NFL run was red, on a loop.**
+# Two causes, neither of them a defect in this repo:
+#
+#   ncaaf   CFBD answered 429 on every endpoint from 09-06. Its quota was
+#           spent. Sam has already upgraded the key — there is nothing
+#           further for anyone to do until the tier takes effect.
+#   nfl     nflverse has **not published `stats_player_week_2026`** —
+#           "that release holds 542 assets; those mentioning 2026: NONE".
+#           The NFL season opened 2026-09-09. There is no week-1 data
+#           because week 1 has not been played.
+#
+# ⛔ THIS FILE ALREADY MADE THIS ARGUMENT ONCE AND WON IT. See
+# `CARD_REFUSED_GRACE_MIN` and `verify_freshness.py`: *"22 consecutive
+# red runs for a decision that had already been made and recorded — AN
+# ALARM THAT FIRES EVERY FIFTEEN MINUTES GETS IGNORED, AND IGNORING RED
+# IS EXACTLY HOW THE ORIGINAL STALENESS SURVIVED A WHOLE DAY."*
+# ✅ So this is not a new policy. It is the SAME policy, applied to the
+# two other states this project can recognise, with the same shape:
+# **downgrade to a warning, and BOUND IT** so a known state can never
+# become permanent silence.
+#
+# ⚠️ THE EVIDENCE IS ALREADY ON DISK AND IS NOT WRITTEN BY THIS CODE —
+# `backfill-report.txt` is produced by the builder itself and already
+# separates the two: `failed   : [2026]` (the source refused) from
+# `not yet  : [2026]   (season not started — not a failure)`.
+# ⛔ Only a row that is BOTH stale AND explained is downgraded. A stale
+# artifact with no recorded source problem still fails the run, exactly
+# as before.
+# ⚠️ SEVEN DAYS, and the number is argued rather than picked. A blown
+# monthly quota can last until the 1st, so a short grace would spend most
+# of an outage screaming at somebody who has already acted. A week is long
+# enough to cover an upgrade taking effect and short enough that "we are
+# waiting" turns back into "decide something" while the season is still on.
+SOURCE_REFUSED_GRACE_MIN = int(
+    os.environ.get("SOURCE_REFUSED_GRACE_MIN", str(7 * 24 * 60)))
+# ⚠️ LONGER, because "the season has not started" resolves on the
+# SPORT'S clock, not ours. nflverse publishes week 1 after week 1 is
+# played. ⛔ But still bounded: if a fortnight of a season has gone by
+# and the source still has nothing, that IS news.
+SOURCE_NOT_YET_GRACE_MIN = int(
+    os.environ.get("SOURCE_NOT_YET_GRACE_MIN", str(14 * 24 * 60)))
+
+# Which artifacts come from a metered/third-party back-fill, and so can
+# legitimately be blocked by it. ⛔ Keep this SMALL and explicit.
+SOURCE_BACKED = {"cfb-probe", "nfl-logs", "fb-scores"}
+
+
+def source_block(data="data", now=None):
+    """What the league's own back-fill report says about its SOURCE.
+
+    Returns `{"state": "refused"|"not_yet"|None, "detail", "age_min"}`.
+    ⛔ READS THE REPORT THE BUILDER ALREADY WRITES. A second place to
+    record "is the source up" would drift out of agreement with the
+    first, which is the same argument that put `fb-scores` behind
+    `cfb-probe`'s back-off rather than giving it its own.
+    ⚠️ Unreadable or absent -> no block. An unknown must never excuse a
+    stale artifact.
+    """
+    try:
+        with open(f"{data}/latest/backfill-report.txt", encoding="utf-8") as fh:
+            txt = fh.read()
+    except Exception:
+        return {"state": None, "detail": None, "age_min": None}
+
+    def _listed(label):
+        m = re.search(label + r"\s*:\s*\[([^\]]*)\]", txt)
+        return bool(m and m.group(1).strip())
+
+    when = None
+    m = re.search(r"back-fill at ([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9:.]+)", txt)
+    if m:
+        try:
+            when = datetime.datetime.fromisoformat(m.group(1).replace(" ", "T"))
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=UTC)
+        except Exception:
+            when = None
+    age = None
+    if when is not None:
+        age = ((now or datetime.datetime.now(UTC)) - when).total_seconds() / 60.0
+
+    # 🔴 ORDER MATTERS. A report can say both; a REFUSAL is the stronger
+    # claim and the one with a status code behind it.
+    if _listed("failed"):
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 "FAILED" IS NOT THE SAME AS "THE SOURCE REFUSED US", AND
+        #    TREATING IT AS SUCH WOULD HAVE HIDDEN A REAL BUG FOR A WEEK.
+        # `[caught 2026-09-10, before this ever shipped]` The very first
+        # report this was pointed at read:
+        #     failed   : [2026]
+        #     RuntimeError: depth_rank is CONSTANT None across 1,848 rows
+        # — **our own build refusing its own output**, with CFBD healthy
+        # and `endpoints_failed: []`. The first draft of this function
+        # called that "the source refused us" and would have downgraded
+        # it to a warning for seven days.
+        # ⛔ SO A REFUSAL NEEDS POSITIVE EVIDENCE FROM THE SOURCE: an HTTP
+        #    status, or the typed `SourceUnavailable` the fetch layer
+        #    raises. Anything else in `failed:` is OURS and stays hard.
+        # ⚠️ This is the whole reason the downgrade is safe. A grace that
+        #    can be claimed by any exception is not a grace, it is a mute
+        #    button.
+        # ══════════════════════════════════════════════════════════════
+        code = re.search(r"HTTPError (\d{3})", txt)
+        if code or "SourceUnavailable" in txt:
+            return {"state": "refused", "age_min": age,
+                    "detail": ("the source refused us"
+                               + (f" (HTTP {code.group(1)})" if code else ""))}
+        return {"state": None, "age_min": age,
+                "detail": ("the back-fill failed, but NOT because the "
+                           "source refused — this is ours and stays red")}
+    if _listed("not yet"):
+        why = re.search(r"not published\.[^\n]*", txt)
+        return {"state": "not_yet", "age_min": age,
+                "detail": ("the source has not published this season yet"
+                           + (f" — {why.group(0)[:120]}" if why else ""))}
+    return {"state": None, "detail": None, "age_min": None}
+
 
 # 🔴 CASCADES. Refreshing an input INVALIDATES what was derived from it.
 # Without this a pass could pull brand-new props and still serve a card

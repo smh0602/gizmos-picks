@@ -1033,10 +1033,26 @@ def main():
             + f"⛔ Nothing is padded back to {TOP_N}: fewer, more "
               f"independent rows is the point."
             if top_plays else
-            f"No top plays for {slate}. ⛔ Not because the board is empty — "
-            f"because no row on it carries a record, and ranking those by "
-            f"price would be ranking by which bet pays worst while calling "
-            f"it 'most likely to hit'."),
+            # 🔴 TWO DIFFERENT REASONS FOR AN EMPTY LIST, AND THE CARD
+            #    USED TO GIVE THE WRONG ONE. `[2026-09-10]` On a Thursday
+            #    college card with `n_priced: 0` this printed "⛔ Not
+            #    because the board is empty" — on a board that WAS empty.
+            #    A reader is told the rows exist and were all rejected for
+            #    carrying no record, when in fact nothing was priced at
+            #    all. ⛔ That is a false sentence on a live page, and the
+            #    honest half of the message ("we did not rank by price")
+            #    is preserved in both branches.
+            (f"No top plays for {slate}. Nothing is priced for this day "
+             f"yet, so there was nothing to rank. ⚠️ When rows do arrive, "
+             f"only those carrying a record are ranked — ranking by price "
+             f"would be ranking by which bet pays worst while calling it "
+             f"'most likely to hit'."
+             if not board else
+             f"No top plays for {slate}. ⛔ Not because the board is "
+             f"empty — {len(board)} row(s) are priced, but none carries a "
+             f"record, and ranking those by price would be ranking by "
+             f"which bet pays worst while calling it 'most likely to "
+             f"hit'.")),
         "parlays": parlays,
         "parlay_meta": parlay_meta,
         "parlay_rule": (

@@ -167,6 +167,27 @@ def build(tmp, shift_frac=0.0, keep_frac=1.0):
     # ⚠️ The clone is sandbox-only. `stage()` copies the tree into a
     #    tempdir and `tcheck` fails any test that leaves data/ or picks/
     #    changed, so nothing fabricated can reach the product.
+    # 🔴 AND A ZERO-GAME BOARD CRASHES THE SYNTHESIS I ADDED ON 09-08.
+    #    `[2026-09-10]` The college props board went to **0 games** on a
+    #    Thursday with nothing priced yet, and `gs[-1]` raised IndexError
+    #    — so the fix for a ONE-game board failed on a NONE-game board.
+    # ⛔ There is nothing to split and nothing to clone. That is a
+    #    legitimate empty (rule 144), not a defect, and it is REPORTED by
+    #    the caller rather than crashed on here.
+    if shift_frac > 0 and not gs:
+        B["games"] = []
+        B["n_games"] = 0
+        B["_fixture_shifted"] = 0
+        with gzip.open(p, "wt") as fh:
+            json.dump(B, fh)
+        env = dict(os.environ, LEAGUE="ncaaf")
+        r = subprocess.run([sys.executable, "card_fb.py"], cwd=tmp, env=env,
+                           capture_output=True, text=True)
+        try:
+            with open(os.path.join(tmp, "picks/fb-ncaaf-latest.json")) as fh:
+                return json.load(fh), r
+        except Exception:
+            return None, r
     if shift_frac > 0 and n_shift in (0, len(gs)):
         import copy
         clone = copy.deepcopy(gs[-1])
@@ -207,20 +228,46 @@ if not ck("the builder runs on a two-day board", card is not None):
     pass
 else:
     days = sorted({etd(r.get("commence")) for r in card["picks"]} - {None})
+    # 🔴 ASK "IS ANY PICK OFF-DATE", NOT "DOES A PICK EXIST".
+    #    `[2026-09-10]` this read `days == [card["date"]]`, which demands
+    #    the board hold at least one pick. On a Thursday with **nothing
+    #    priced** the board is legitimately empty, `days` is `[]`, and the
+    #    check went red while the card was exactly right — the same
+    #    existence-vs-correctness confusion CLAUDE.md records about the
+    #    −700 alt rung.
+    # ⛔ THE NEW FORM IS NOT WEAKER. On every non-empty board it is the
+    #    identical assertion; what it drops is the demand that data exist,
+    #    which this check never owned. Emptiness is REPORTED below, so it
+    #    can never pass silently (rule 144).
+    off = [d for d in days if d != card["date"]]
     ck("every pick on the board is on the card's own date",
-       days == [card["date"]],
-       "card date %s, board days %s" % (card["date"], days))
+       not off,
+       "card date %s, board days %s, OFF-DATE %s"
+       % (card["date"], days, off))
+    if not days:
+        note("⚠️ NOT EXERCISED: the board holds 0 dated picks, so no pick "
+             "could be off-date. Not a pass — see `empty_reason`.")
     # 🔴 GUARD THE PRECONDITION BEFORE ASSERTING ON IT (rule 142). A
     #    check that fails at "0 rows in, 0 rows held back" is not
     #    measuring the filter; it is measuring the board.
+    # ⛔ A BOARD WITH NO GAMES CANNOT EXERCISE A DAY FILTER. Report it,
+    #    do not fail it, and do not pretend it passed (rule 144).
+    if n_shifted == 0:
+        note("⚠️ NOT EXERCISED: the props board holds 0 games, so there was "
+             "nothing to split across two days. A legitimately empty board "
+             "is neither a pass nor a failure — see the card's own "
+             "`empty_reason`.")
     ck("⚠️ the fixture really did put games on a SECOND day",
-       n_shifted > 0, f"{n_shifted} game(s) moved to the next ET day")
+       n_shifted > 0 or not (card.get("n_priced") or 0),
+       f"{n_shifted} game(s) moved to the next ET day; "
+       f"n_priced={card.get('n_priced')}")
     ck("the rows for the other day are counted, not silently vanished",
-       card["n_off_slate_day"] > 0 and card["off_slate_dates"],
+       (card["n_off_slate_day"] > 0 and card["off_slate_dates"])
+       or not (card.get("n_priced") or 0),
        "%d row(s) held back for %s"
        % (card["n_off_slate_day"], ", ".join(card["off_slate_dates"])))
     ck("the card says so in a sentence a reader can read",
-       bool(card["off_slate_dates"])
+       not (card.get("n_priced") or 0) or bool(card["off_slate_dates"])
        and str(card["n_off_slate_day"]) in card["single_day_rule"]
        and card["off_slate_dates"][0] in card["single_day_rule"],
        card.get("single_day_rule", "")[:120])
@@ -310,29 +357,41 @@ try:
     stage(tmp)
     p = os.path.join(tmp, "data/ncaaf/latest/props.json.gz")
     B = json.load(gzip.open(p, "rt"))
-    # one game, and only two priced props in it
-    g = dict(B["games"][0])
-    g["props"] = (g.get("props") or [])[:2]
-    B["games"] = [g]
-    B["n_games"] = 1
-    with gzip.open(p, "wt") as fh:
-        json.dump(B, fh)
-    subprocess.run([sys.executable, "card_fb.py"], cwd=tmp,
-                   env=dict(os.environ, LEAGUE="ncaaf"),
-                   capture_output=True, text=True)
-    s = json.load(open(os.path.join(tmp, "picks/fb-ncaaf-latest.json")))
-    n = len(s["picks"])
-    if n == 0:
-        note("the thin fixture produced 0 picks, so section 4 covers it")
+    # 🔴 A ZERO-GAME BOARD HAS NO GAME TO THIN, AND `B["games"][0]`
+    #    RAISED IndexError ON ONE. `[2026-09-10]` — same day, same cause
+    #    as the synthesis crash above: the college props board went to 0
+    #    games on a Thursday. ⛔ An IndexError is not a red check, it is
+    #    the file dying before its own failure gate runs (rule 97).
+    _gs = B.get("games") or []
+    if not _gs:
+        note("⚠️ NOT EXERCISED: the props board holds 0 games, so there is "
+             "no game to thin down to two props. Section 4 covers the "
+             "empty board directly — this is a report, not a pass.")
     else:
-        ck("a board under the minimum is shipped, not suppressed",
-           0 < n < card_fb.BOARD_MIN, "%d pick(s)" % n)
-        ck("and it is FLAGGED as short", s.get("short_of_min") is True)
-        ck("with a sentence saying it was not padded",
-           bool(s.get("short_reason")) and "NOT padded" in s["short_reason"])
-        ck("nothing was invented to reach the minimum",
-           n <= s["n_on_slate_day"],
-           "%d shown of %d priced" % (n, s["n_on_slate_day"]))
+        # one game, and only two priced props in it
+        g = dict(_gs[0])
+        g["props"] = (g.get("props") or [])[:2]
+        B["games"] = [g]
+        B["n_games"] = 1
+        with gzip.open(p, "wt") as fh:
+            json.dump(B, fh)
+        subprocess.run([sys.executable, "card_fb.py"], cwd=tmp,
+                       env=dict(os.environ, LEAGUE="ncaaf"),
+                       capture_output=True, text=True)
+        s = json.load(open(os.path.join(tmp, "picks/fb-ncaaf-latest.json")))
+        n = len(s["picks"])
+        if n == 0:
+            note("the thin fixture produced 0 picks, so section 4 covers it")
+        else:
+            ck("a board under the minimum is shipped, not suppressed",
+               0 < n < card_fb.BOARD_MIN, "%d pick(s)" % n)
+            ck("and it is FLAGGED as short", s.get("short_of_min") is True)
+            ck("with a sentence saying it was not padded",
+               bool(s.get("short_reason"))
+               and "NOT padded" in s["short_reason"])
+            ck("nothing was invented to reach the minimum",
+               n <= s["n_on_slate_day"],
+               "%d shown of %d priced" % (n, s["n_on_slate_day"]))
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 

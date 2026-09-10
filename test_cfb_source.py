@@ -305,3 +305,66 @@ ck("💰 a sustained outage costs about one rebuild a day, not eight",
 note(f"⚠️ at 39 calls/rebuild (week 15) that is {_out * 39 * 30:.0f} "
      f"calls/month during an outage, against a 3,000 plan — where the "
      f"flat back-off would have spent {_blip * 39 * 30:.0f}.")
+
+
+print("\n═══ 8. 🔴 THE STREAK IS WRITTEN AND READ BACK — A ROUND TRIP ═══")
+# ⛔ SECTION 7 ABOVE VERIFIED THE READER AND NEVER THE WRITER, AND THAT
+#    GAP HID A REAL BUG FOR A DAY. `[shipped 2026-09-09, caught 09-10]`
+#    the writer read the old streak from INSIDE `with open(path, "w")` —
+#    and "w" truncates on open, so it read an empty file every time.
+#    `prev` was always 0, the streak was always 1, and the progressive
+#    back-off NEVER ENGAGED: the live report said `consecutive failures:
+#    1` after two days of failing, with attempts sitting ~3.5h apart
+#    exactly as the flat 180-minute wait would put them.
+# ✅ So this drives WRITE -> READ -> WRITE, which is the only shape that
+#    could have caught it.
+import re as _re
+import tempfile as _tf
+
+_rt = _tf.mkdtemp()
+_rt_path = os.path.join(_rt, "backfill-report.txt")
+
+
+def _write_report(failed, done):
+    """The writer's two statements, in the order cfb.py performs them."""
+    prev = 0
+    try:
+        with open(_rt_path, encoding="utf-8") as o:
+            m = _re.search(r"consecutive failures: (\d+)", o.read())
+            prev = int(m.group(1)) if m else 0
+    except Exception:
+        prev = 0
+    with open(_rt_path, "w", encoding="utf-8") as fh:
+        streak = (prev + 1) if failed and not done else 0
+        fh.write("cfb back-fill at 2026-09-10 12:00:00.000000+00:00\n")
+        fh.write(f"requested: [2026]\nwritten  : {done}\n")
+        fh.write(f"failed   : {failed}\n")
+        fh.write(f"consecutive failures: {streak}\n")
+        fh.write("not yet  : []\n")
+    return streak
+
+
+_climb = [_write_report([2026], []) for _ in range(5)]
+ck("🔴 consecutive failures CLIMB across runs",
+   _climb == [1, 2, 3, 4, 5],
+   f"{_climb} — it read [1,1,1,1,1] while the bug was live, so the "
+   f"20-hour wait could never be reached")
+ck("✅ a success resets the streak to zero",
+   _write_report([], [2026]) == 0,
+   "the streak must never outlive the outage")
+ck("...and it climbs again afterwards",
+   [_write_report([2026], []) for _ in range(2)] == [1, 2],
+   "a reset must not be sticky either")
+
+_src = open("cfb.py", encoding="utf-8").read()
+ck("⛔ the old report is read BEFORE the truncating open",
+   _src.index("_prev_streak = 0")
+   < _src.index('with open(f"{OUT}/backfill-report.txt", "w"'),
+   'reading inside `with open(..., "w")` reads an empty file, always')
+
+# 💰 AND THE COST OF THAT BUG, STATED.
+ck("💰 the long wait is actually reachable now",
+   collect.CFB_BACKOFF_LONG_MIN > collect.CFB_BACKOFF_MIN * 3,
+   f"{collect.CFB_BACKOFF_MIN}min -> {collect.CFB_BACKOFF_LONG_MIN}min; "
+   f"stuck at 1 the wait never left {collect.CFB_BACKOFF_MIN} minutes, "
+   f"which is {1440 // collect.CFB_BACKOFF_MIN} attempts a day")

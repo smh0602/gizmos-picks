@@ -96,15 +96,32 @@ shutil.rmtree(tmp, ignore_errors=True)
 if ck("the builder produces a card", C is not None):
     T = C["top_plays"]
     M = C["top_plays_excluded"]
-    ck("there are top plays and no more than the cap",
-       0 < len(T) <= card_fb.TOP_N, "%d play(s), cap %d" % (len(T), card_fb.TOP_N))
+    # 🔴 THE CAP IS THE RULE. "THERE ARE TOP PLAYS" IS A DEMAND THAT DATA
+    #    EXIST. `[2026-09-10]` this read `0 < len(T) <= TOP_N` and went
+    #    red on a Thursday college card with **nothing priced at all** —
+    #    `n_priced: 0`. An empty list is the CORRECT output of an empty
+    #    pool, and section 3 of this same file asserts exactly that for a
+    #    board with no records. ⛔ So the emptiness is REPORTED, never
+    #    passed over silently, and the cap is still enforced.
+    ck("the top-play list never exceeds the cap",
+       len(T) <= card_fb.TOP_N,
+       "%d play(s), cap %d" % (len(T), card_fb.TOP_N))
+    if not T:
+        note("⚠️ NOT EXERCISED: this card lists 0 top plays. n_priced=%s — "
+             "an empty pool yields an empty list by design; the checks "
+             "below have nothing to read. Not a pass."
+             % C.get("n_priced"))
 
     # 🔴 THE OWED CHECKLIST ITEM.
     ck("EVERY top play carries a confidence",
        all(x.get("confidence") is not None for x in T),
        "the checklist's owed check, now that the list exists")
+    # ⛔ `<= {"RECORD"}` not `== {"RECORD"}`: on any non-empty list these
+    #    are the identical assertion — every basis is RECORD — and on an
+    #    empty one the subset form says the true thing (no row claims
+    #    MODEL) instead of demanding a row exist.
     ck("every confidence is labelled RECORD, never MODEL",
-       {x.get("confidence_basis") for x in T} == {"RECORD"},
+       {x.get("confidence_basis") for x in T} <= {"RECORD"},
        "ledger rule 55 — football has no MODEL: %s"
        % sorted({x.get("confidence_basis") for x in T}))
     ck("every top play carries a price and a book",
@@ -139,14 +156,18 @@ if ck("the builder produces a card", C is not None):
        % (len(T), len(set(gids)), card_fb.TOP_N))
     ck("nothing is priced at or worse than the payable floor",
        all(x["price"] > card_fb.TOP_PRICE_FLOOR for x in T),
-       "shortest price on the list %+d" % min(x["price"] for x in T))
+       ("shortest price on the list %+d" % min(x["price"] for x in T))
+       if T else "no plays listed, so no price to read")
     ck("the list is in descending confidence order",
        all(T[i]["confidence"] >= T[i + 1]["confidence"] for i in range(len(T) - 1)))
 
     # ⛔ SINGLE-DAY, INHERITED FROM THE SAME FILTER THE BOARD USES.
     days = sorted({card_fb.et_date(x.get("commence")) for x in T} - {None})
+    # ⛔ "is any play off-date", not "does a play exist" — same correction
+    #    as the cap check above, and identical on any non-empty list.
+    _off = [d for d in days if d != C["date"]]
     ck("every top play is on the card's own date",
-       days == [C["date"]], "card %s, list %s" % (C["date"], days))
+       not _off, "card %s, list %s, OFF-DATE %s" % (C["date"], days, _off))
 
     # ⛔ AND IT MUST BE DRAWN FROM THE BOARD'S OWN POOL, not a wider one.
     ids = {(x["player"], x["market"], x["side"], x["line"]) for x in C["picks"]}
@@ -159,11 +180,28 @@ if ck("the builder produces a card", C is not None):
     # ⚠️ THE SENTENCE MUST CARRY THE *CURRENT* OVERLAP, NOT THE ONE THAT
     # PROMPTED THE CHANGE. A rule that quotes the number it was built to
     # fix, forever, is a rule describing a version that no longer exists.
-    ck("the rule sentence carries the measured overlap, not a claim",
-       str(M["shared_with_board_head"]) in C["top_plays_rule"]
-       and "ONE PLAY PER GAME" in C["top_plays_rule"],
-       "%d of %d players shared with the board's head"
-       % (M["shared_with_board_head"], M["board_head_size"]))
+    # 🔴 AND WHEN THE LIST IS EMPTY THE SENTENCE MUST GIVE THE RIGHT
+    #    REASON. `[2026-09-10]` the card printed "⛔ Not because the board
+    #    is empty" on a board that held **zero priced rows** — the reader
+    #    was told rows existed and were all rejected. Both branches are
+    #    checked here, so neither can go wrong silently.
+    if T:
+        ck("the rule sentence carries the measured overlap, not a claim",
+           str(M["shared_with_board_head"]) in C["top_plays_rule"]
+           and "ONE PLAY PER GAME" in C["top_plays_rule"],
+           "%d of %d players shared with the board's head"
+           % (M["shared_with_board_head"], M["board_head_size"]))
+    elif not C["picks"]:
+        ck("🔴 an EMPTY board is not blamed on 'no row carries a record'",
+           "Nothing is priced for this day yet" in C["top_plays_rule"]
+           and "Not because the board is empty"
+               not in C["top_plays_rule"],
+           C["top_plays_rule"][:110])
+    else:
+        ck("a board with rows but no records says exactly that",
+           "Not because the board is empty" in C["top_plays_rule"]
+           and "none carries a record" in C["top_plays_rule"],
+           C["top_plays_rule"][:110])
     note("%d payable rows in the pool, %d game(s) represented, %d repeat "
          "player(s) skipped, %d dropped by the price gate"
          % (M["pool_after_price_gate"], M["distinct_games"],
@@ -201,15 +239,30 @@ def _break_names(B):
 MK = run(tmp, mutate=_break_names)
 shutil.rmtree(tmp, ignore_errors=True)
 if ck("a board whose name join fails still builds", MK is not None):
+    # ⛔ `<= {"MARKET"}` is the identical assertion on any non-empty
+    #    board — no row claims a record — and does not demand rows exist.
     ck("that board is MARKET-only",
-       {x.get("confidence_basis") for x in MK["picks"]} == {"MARKET"},
+       {x.get("confidence_basis") for x in MK["picks"]} <= {"MARKET"},
        "%d rows" % len(MK["picks"]))
     ck("and it produces NO top plays at all", MK["top_plays"] == [],
        "not a price-ranked list wearing a 'most likely to hit' heading")
-    ck("the card says why, and does not blame an empty board",
-       "no row on it carries a record" in MK["top_plays_rule"]
-       and "Not because the board is empty" in MK["top_plays_rule"],
-       MK["top_plays_rule"][:70])
+    if not MK["picks"]:
+        # 🔴 THE FIXTURE BREAKS NAMES; IT CANNOT MANUFACTURE GAMES.
+        #    `[2026-09-10]` the real props board held 0 games, so breaking
+        #    every name produced a board with 0 rows — which is an EMPTY
+        #    board, not a market-only one, and the wording check below is
+        #    asking about a state this run never reached.
+        note("⚠️ NOT EXERCISED: the real props board holds 0 games, so the "
+             "name-break fixture yields 0 rows — an empty board, not a "
+             "MARKET-only one. The wording check needs a priced row.")
+    else:
+        ck("the card says why, and does not blame an empty board",
+           "no row on it carries a record" in MK["top_plays_rule"]
+           or "none carries a record" in MK["top_plays_rule"],
+           MK["top_plays_rule"][:70])
+        ck("...and it says the board is NOT the reason",
+           "Not because the board is empty" in MK["top_plays_rule"],
+           MK["top_plays_rule"][:70])
 
 # ⚠️ The cap must hold even when the pool is enormous.
 # ⚠️ ONE GAME PER PLAY MEANS THE FIXTURE NEEDS ENOUGH GAMES. The first

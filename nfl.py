@@ -16,6 +16,7 @@ and been wrong.
 """
 import collections
 import csv
+import datetime
 import re
 import gzip
 import io
@@ -1200,6 +1201,59 @@ def build_schedule(season, seen=None, log=print, lines=None):
             "games": out}, rep
 
 
+def check_ahead_out(players, when, n_ao, n_rows, log=print):
+    """The `ahead_out` constancy guard and the missing-week guard.
+
+    🔴 A NAMED FUNCTION SO THE TEST CAN DRIVE IT, NOT READ IT.
+    `build_logs` needs the network and a season of nflverse assets;
+    a check that can only run on a real build is a check that never
+    runs (ledger rule 163). ⛔ Both raise paths are exercised by
+    `test_nfl_week1.py` against synthetic logs.
+    """
+    _wks = sorted({g["week"] for p in players.values() for g in p["g"]
+                   if g.get("week") is not None})
+    AHEAD_OUT_MIN_ROWS = 500
+    if n_ao == 0 and len(_wks) >= 2 and n_rows >= AHEAD_OUT_MIN_ROWS:
+        raise RuntimeError(
+            f"ahead_out is CONSTANT ZERO across {n_rows:,} player-weeks "
+            f"spanning {len(_wks)} weeks {_wks}. That is a join failure, "
+            f"not a result. Run nfl-probe and read section 3b before "
+            f"fitting anything on it.")
+    if n_ao == 0:
+        log(f"    ⚠️ ahead_out is constant ZERO across {n_rows:,} "
+            f"player-week(s) over {len(_wks)} week(s) {_wks}, and that is "
+            f"CORRECT, not a join failure: share_before() reads STRICTLY "
+            f"EARLIER weeks, so on a log with no week to trail from it "
+            f"returns 0.0 for everyone and nobody can rank ahead of "
+            f"anyone. NOT a pass — the check is NOT EXERCISED until "
+            f"{AHEAD_OUT_MIN_ROWS}+ rows span 2+ weeks.")
+
+    # 🔴 AND THE FAILURE THAT ACTUALLY LOOKS LIKE A CONSTANT COLUMN:
+    #    A WEEK THE SCHEDULE SAYS WAS PLAYED THAT PRODUCED NO ROWS.
+    # ⛔ This is the accurate version of the error above, and it is the
+    #    one that would have caught run #194 on week 1 as well. If the
+    #    schedule says weeks 1 and 2 have been played and the log only
+    #    holds week 1, every trailing number is computed on half the
+    #    history — a fault no column-constancy test can see.
+    _today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    _played = sorted({int(w) for (w, _t), (day, *_r) in when.items()
+                      if w and str(w).isdigit() and day and str(day) < _today})
+    _inlog = {int(w) for w in _wks if str(w).isdigit()}
+    _missing = [w for w in _played if w not in _inlog]
+    log(f"    weeks: schedule reports {_played} played; the log holds "
+        f"{sorted(_inlog)}")
+    if _missing:
+        raise RuntimeError(
+            f"THE PLAYER LOG IS MISSING COMPLETED WEEK(S) {_missing}. The "
+            f"schedule reports {_played} as played; the log holds "
+            f"{sorted(_inlog)}. This is NOT a join failure and NOT an "
+            f"empty season — it is a partial season being presented as a "
+            f"whole one, and every trailing column in it is wrong.")
+
+
+    return _wks
+
+
 def build_logs(season, log=print):
     """Per-player point-in-time game logs for one season."""
     log(f"=== nfl: building {season} player logs ===")
@@ -1496,12 +1550,34 @@ def build_logs(season, log=print):
         raise RuntimeError(
             "the injury file yielded NO OUT/DOUBTFUL players -- a parse or "
             "mapping failure. Run nfl-probe and read section 3b.")
-    if n_ao == 0:
-        raise RuntimeError(
-            f"ahead_out is CONSTANT ZERO across {n_rows:,} player-weeks. "
-            f"That is a join failure, not a result. Run nfl-probe and read "
-            f"section 3b before fitting anything on it.")
-
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 `ahead_out` CANNOT BE NON-ZERO IN WEEK 1, AND THIS GUARD FAILED
+    #    EVERY NFL RUN FOR IT. `[2026-09-10]` Every `nfl-logs` build since
+    #    the season opened on 09-09 died with *"ahead_out is CONSTANT ZERO
+    #    across 66 player-weeks. That is a join failure, not a result."*
+    #    **It was not a join failure.** Read `share_before()` directly
+    #    above: it averages games with `g["week"] < week`. On a week-1-only
+    #    log that list is EMPTY for everybody, so it returns `0.0` for
+    #    every player, `share_before(q, week) > mine` is `0.0 > 0.0`, and
+    #    `n` is **necessarily** 0 on every row. The column is constant by
+    #    ARITHMETIC, and no amount of correct joining can change it until
+    #    a second week exists.
+    # ⛔ SO THE RUN WAS PERMANENTLY RED FOR A CONDITION THE CALENDAR
+    #    GUARANTEED — 46 football runs a day, every one of them an alarm
+    #    about nothing (ledger rule 171).
+    # ⚠️ THIS IS RULE 174 EXACTLY: `cfb.py` carries a `CONST_MIN` bar and
+    #    a two-distinct-weeks guard on precisely this class of column, and
+    #    the NFL side of the same lesson was never written. Sam's standing
+    #    instruction is that everything done for one league is done for
+    #    the other.
+    # ✅ STRICTLY HARDER, NOT SOFTER. A constant `ahead_out` on a
+    #    MULTI-WEEK log still raises — that is the run #194 case this
+    #    guard was built for, and it is untouched. What replaces the
+    #    week-1 false alarm is a REAL check the old form could not make:
+    #    a completed week missing from the log, which is what a broken
+    #    join actually looks like.
+    # ══════════════════════════════════════════════════════════════════
+    check_ahead_out(players, when, n_ao, n_rows, log)
 
     undated = sum(1 for p in players.values() for x in p["g"] if not x["d"])
     withsnap = sum(1 for p in players.values() for x in p["g"] if "snaps" in x)

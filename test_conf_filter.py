@@ -321,10 +321,23 @@ if R:
             # ⛔ A name that does not resolve is a row the filter can only
             #    DROP, so an unresolved FBS name is a school that vanishes
             #    from the tab the moment any chip is lit.
+            # 🔴 "NO NAME FAILS TO RESOLVE" IS THE RULE. "AT LEAST ONE
+            #    NAME EXISTS" IS A DEMAND THAT DATA EXIST, AND IT WENT RED
+            #    ON A CORRECT CARD. `[2026-09-10]` the college card held
+            #    **zero priced rows** — a Thursday with nothing posted —
+            #    so `card · FBS` contributed 0 names and `c["n"] > 0`
+            #    failed while every name it did carry (none) resolved
+            #    perfectly. ⛔ The emptiness is REPORTED below so it can
+            #    never pass silently; the resolution rule is unchanged.
             ck("%s: every name resolves to a conference" % src,
-               c["miss"] == 0 and c["n"] > 0,
+               c["miss"] == 0,
                "%d names, %d unresolved%s" % (c["n"], c["miss"],
                   (" — " + ", ".join(c["examples"])) if c["examples"] else ""))
+            if not c["n"]:
+                note("⚠️ NOT EXERCISED: `%s` contributed 0 names, so the "
+                     "resolver was never asked anything. Not a pass — an "
+                     "empty card is a legitimate state, an empty SCHEDULE "
+                     "would not be." % src)
         else:
             # ⚠️ REPORTED, NOT ASSERTED, AND THE DISTINCTION MATTERS. That
             #    an FCS school has no conference is a property of the
