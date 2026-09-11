@@ -321,17 +321,52 @@ today = NOW.strftime("%Y-%m-%d")
 started = sorted({g.get("week") for g in games
                   if g.get("season_type") == "regular"
                   and (g.get("start") or "")[:10] <= today})
-note(f"stored schedule built_at {S.get('built_at')}; "
-     f"weeks with a FINAL game: {final_weeks}; weeks started by {today}: "
-     f"{started}")
-ck("🔴 only ONE college week has completed games",
-   len(final_weeks) == 1 and final_weeks[0] == 1,
-   f"{final_weeks} — week 2 runs {sorted({(g.get('start') or '')[:10] for g in games if g.get('week') == 2})[:4]}, "
-   f"so a one-week player log is CORRECT, not a hole")
-ck("✅ therefore the constant-column guard will stand down tonight",
-   len(final_weeks) < 2,
-   "the trailing columns cannot vary on a one-week log, and the new "
-   "guard knows that")
+# 🔴🔴 THE TWO CHECKS THAT STOOD HERE PINNED TODAY'S WORLD AND EXPIRED.
+# `[they were: "only ONE college week has completed games" and "therefore
+#   the guard will stand down tonight"; both went red on 2026-09-11 when
+#   week 2's Thursday games finished]`
+# ⛔ THAT IS LEDGER RULE 166 FOR THE SEVENTH TIME, AND I WROTE THIS FILE
+#    THE DAY AFTER RECORDING THE OTHER SIX. A check whose subject is a
+#    transient state has an expiry date and nothing expires it.
+# ⚠️ AND THE CODE WAS NEVER WRONG. Two completed weeks is the guard
+#    ENGAGING, which is what it is for. The test's premise expired; the
+#    thing it was guarding did exactly what it should.
+# ✅ SO ASK A QUESTION THE CALENDAR CANNOT ANSWER FOR US (rule 177): not
+#    "how many weeks have played today", but "does the guard's decision
+#    FOLLOW the week count, whatever the count is" — driven through the
+#    real `cfb.verify()` at the ONE-to-TWO boundary, which is the exact
+#    edge the 09-10 defect lived on and which the old check could never
+#    reach, because it could only observe whatever day it ran on.
+note(f"live schedule (DESCRIPTIVE, never asserted): built_at "
+     f"{S.get('built_at')}; weeks with a FINAL game {final_weeks}; "
+     f"weeks started by {today} {started}")
+
+_one = [b for b in cfb_bad(cfb, cfbdoc([1])) if _const in b]
+ck("🔴 ONE week of log -> the constant-column guard STANDS DOWN",
+   not _one,
+   "⛔ the trailing columns cannot vary on a one-week log — they are "
+   "constant BY ARITHMETIC, not by a broken join (rule 175). Findings: "
+   "%s" % [b[:44] for b in _one])
+
+_two = [b for b in cfb_bad(cfb, cfbdoc([1, 2])) if _const in b]
+ck("🔴 ...and TWO weeks of genuinely constant columns ENGAGES it",
+   len(_two) >= 3,
+   "⛔ THIS IS THE BOUNDARY AND THE OLD CHECK COULD NOT REACH IT. Two "
+   "distinct weeks is the first point at which a constant column is "
+   "evidence of a real defect rather than of week 1. Findings: %s"
+   % [b[:44] for b in _two])
+
+# ⚠️ AND SAY PRECISELY WHAT THIS PREDICTS. The guard keys on distinct
+#    weeks IN THE PLAYER LOG; `final_weeks` comes from the SCHEDULE.
+#    Those are normally the same number and they are not the same fact —
+#    "a fact about a query is not a fact about the world" is this
+#    project's founding lesson and it applies to our own files too.
+_expect = "STAND DOWN" if len(final_weeks) < 2 else "ENGAGE"
+note(f"➡️ the SCHEDULE reports {len(final_weeks)} completed week(s), so "
+     f"tonight's log should carry that many and the guard should "
+     f"{_expect} — DERIVED from the two checks above, not hard-coded. "
+     f"⛔ If the log carries FEWER weeks than the schedule says have "
+     f"finished, that is a collection gap and worth seeing on its own.")
 note("⚠️ THIS PREDICTS THE GUARD, NOT THE FETCH. If CFBD refuses the key "
      "again the run is red for a different reason, and `source_block` "
      "will say so with the status code.")
@@ -339,11 +374,18 @@ note("⚠️ THIS PREDICTS THE GUARD, NOT THE FETCH. If CFBD refuses the key "
 # ══════════════════════════════════════════════════════════════════════
 print("\n═══ 5. 🔴 THE FOUR TEST FILES, ON THE REAL EMPTY CARD ═══")
 CARD = json.load(open("picks/fb-ncaaf-latest.json"))
-ck("the live college card really is empty",
-   (CARD.get("n_priced") or 0) == 0 and not CARD["picks"],
-   "n_priced=%s picks=%d — a Thursday with nothing posted; this is the "
-   "input all four checks used to fail on"
-   % (CARD.get("n_priced"), len(CARD["picks"])))
+# ⛔ ~~ck("the live college card really is empty", ...)~~ — DEMOTED TO A
+#    NOTE 2026-09-11. It passed every day until a college board prices,
+#    and then it would have gone red on a card that was PERFECTLY FINE.
+#    Rule 166 again: an empty board is a FACT ABOUT THURSDAY, not a
+#    property of the code. ✅ What is worth asserting is the four files
+#    below passing — and that does not expire.
+note("live college card (DESCRIPTIVE): n_priced=%s picks=%d%s"
+     % (CARD.get("n_priced"), len(CARD["picks"]),
+        " — empty, which is the input all four checks used to FAIL on"
+        if not CARD["picks"] else
+        " — NOT empty today, so these four run against a live board "
+        "instead; both inputs must pass"))
 
 FOUR = ["test_top_plays.py", "test_conf_filter.py",
         "test_record_fb.py", "test_single_day.py"]
@@ -377,18 +419,40 @@ _r = subprocess.run([sys.executable, "card_fb.py"], cwd=_tmp,
                     capture_output=True, text=True, timeout=600)
 _fresh = json.load(open(os.path.join(_tmp, "picks/fb-ncaaf-latest.json")))
 shutil.rmtree(_tmp, ignore_errors=True)
-ck("the rebuilt card is still the empty one",
-   not _fresh["picks"] and (_fresh.get("n_priced") or 0) == 0,
-   "same input, so the sentence is the only thing that should differ")
+_empty = not _fresh["picks"] and (_fresh.get("n_priced") or 0) == 0
+# ⛔ ~~ck("the rebuilt card is still the empty one", ...)~~ — the same
+#    expiry as §5. The rebuild is the right method (rule 181: read what
+#    the CODE produces, not a stored artifact's age); asserting the
+#    REBUILT board is empty just moves the calendar dependency.
+note("rebuilt board (DESCRIPTIVE): %s"
+     % ("empty — the empty-board sentence below is EXERCISED"
+        if _empty else
+        "NOT empty — the empty-board sentence is NOT EXERCISED today"))
 note("⚠️ the COMMITTED card still carries the old sentence and that is "
      "correct — it was written before drop 16 landed and is rewritten on "
      "the next card-fb run (9:00am ET). What is tested here is the CODE.")
 rule = _fresh.get("top_plays_rule", "")
-ck("🔴 an EMPTY board is no longer told 'Not because the board is empty'",
-   "Not because the board is empty" not in rule,
-   rule[:120])
-ck("✅ ...it says what is actually true instead",
-   "Nothing is priced for this day yet" in rule, rule[:120])
+if _empty:
+    ck("🔴 an EMPTY board is no longer told 'Not because the board is empty'",
+       "Not because the board is empty" not in rule,
+       rule[:120])
+    ck("✅ ...it says what is actually true instead",
+       "Nothing is priced for this day yet" in rule, rule[:120])
+else:
+    # ⚠️ NOT EXERCISED — and said out loud rather than silently skipped.
+    #    A check that quietly stops running is the same false cover as a
+    #    test the runner never discovers (rule 182).
+    # ⛔ I FIRST WROTE "the empty branch is covered by test_card_fb.py's
+    #    synthetic fixture". THAT WAS FALSE — I checked, and that file
+    #    has no such fixture. Saying a gap is covered when it is not is
+    #    worse than the gap (rule 37: a doc asserting a fix is not a fix).
+    note("⚠️ NOT EXERCISED, AND NOTHING ELSE COVERS IT TODAY EITHER. "
+         "⛔ `test_top_plays.py` has the only other copy of this check "
+         "and it branches on the SAME live card (`elif not C[\"picks\"]`), "
+         "so on a day with rows the empty-board sentence is exercised by "
+         "NOTHING. ➡️ THE FIX IS A SYNTHETIC EMPTY-BOARD FIXTURE that "
+         "does not depend on the calendar; it is recorded in "
+         "`claude/tomorrow-checklist.md` and not invented here.")
 ck("⛔ ...and the honest half is KEPT — it still refuses to rank by price",
    "ranking by which bet pays worst" in rule,
    "the reason the list is empty when rows exist but carry no record")
