@@ -2531,6 +2531,18 @@ function setTagline(){
 }
 let LEAGUE = 'mlb';
 let FBTAB  = 'trends';
+/* 🔴 GIZMO'S PICKS HAS TWO BOARDS AND THEY ARE DIFFERENT MARKETS.
+   `[Sam, 2026-09-11]` *"i need the game line props in a seperate tab than
+   the player props, but keeep them both in the gizmo picks tab, similar
+   to how we have pitcher and hitting porps in mlb."*
+   ✅ Same control MLB already uses -- the `.kindbar` chip row with a count
+   on each chip -- so nothing new is invented and the two leagues read the
+   same way.
+   ⚠️ A PLAYER PROP CARRIES A RECORD; A GAME LINE IS PRICE ARITHMETIC AND
+   CARRIES NO FORECAST AT ALL. Splitting them is not cosmetic: mixing a
+   RECORD row and a MARKET row in one list is what rule 55 exists to stop
+   a reader doing by accident. */
+let FBPICKKIND = 'props';
 let FBDATA = {};          // league -> side -> season -> parsed table
 /* 🔴 NEWEST FIRST, AND THE CURRENT SEASON LEADS. Sam, 2026-09-01: "i
    dont really want a trends tab from each year, i just wanted the data
@@ -3984,6 +3996,36 @@ function fbNoModelNote(C){
   </div>`;
 }
 
+/* 🔴 THE CHIP ROW RENDERS IN EVERY BRANCH, INCLUDING THE EMPTY ONES.
+   ⛔ THE BUG THIS AVOIDS IS ONE THIS PAGE ALREADY SHIPPED ONCE: the
+      empty-props branch returned before reaching Game lines, so on a day
+      with no player props the game-line board simply never drew (ledger
+      rule 197). ⚠️ A tab the reader cannot SEE is worse than a tab with
+      nothing in it -- the first hides a board that exists.
+   ✅ So the switch is drawn from the counts, and an empty side is shown
+      with a 0 rather than removed. */
+function fbKindBar(C){
+  const nProps = ((C && C.picks) || []).length;
+  const nLines = ((C && C.game_lines) || []).length;
+  const chip = (k, label, n) =>
+    `<button class="kchip${FBPICKKIND===k?' on':''}" data-fbkind="${k}"
+      >${label} <span>${n}</span></button>`;
+  return `<div class="kindbar">${
+    chip('props', 'Player props', nProps)}${
+    chip('lines', 'Game lines', nLines)}</div>`;
+}
+
+function fbKindWire(){
+  const bar = document.querySelector('#fbview .kindbar');
+  if (!bar) return;
+  bar.addEventListener('click', e => {
+    const b = e.target.closest('.kchip');
+    if (!b) return;
+    FBPICKKIND = b.dataset.fbkind;
+    fbPicks();
+  });
+}
+
 async function fbPicks(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
@@ -4006,16 +4048,32 @@ async function fbPicks(){
           Thursday with no player props priced still has 98 games with
           spreads and totals, and suppressing one because the other is
           empty tells the reader nothing is there when plenty is. */
-    v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") +
-      `<div class="note"><b>No player props for ${fbDayName(C.date)}.</b><br>
-       ${C.empty_reason}</div>` + fbNoModelNote(C));
-    v.insertAdjacentHTML('beforeend', fbGameLines(C));
-    fbWire(); return;
+    v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") + fbKindBar(C) +
+      (FBPICKKIND === 'lines' ? '' :
+       `<div class="note"><b>No player props for ${fbDayName(C.date)}.</b><br>
+        ${C.empty_reason}</div>` + fbNoModelNote(C)));
+    if (FBPICKKIND === 'lines')
+      v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
+        '<div class="note">No game lines on this board yet.</div>');
+    fbWire(); fbKindWire(); return;
   }
   if (!C || !(C.picks || []).length){
-    v.innerHTML = fbShell(fbNoCard('picks'));
-    v.insertAdjacentHTML('beforeend', fbGameLines(C));
-    fbWire(); return;
+    v.innerHTML = fbShell(fbKindBar(C) +
+      (FBPICKKIND === 'lines' ? '' : fbNoCard('picks')));
+    if (FBPICKKIND === 'lines')
+      v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
+        '<div class="note">No game lines on this board yet.</div>');
+    fbWire(); fbKindWire(); return;
+  }
+  /* ⛔ THE GAME-LINE BOARD IS ITS OWN TAB AND RETURNS HERE. It shares
+     nothing with the props board below -- not the conference filter, not
+     the started toggle, not the confidence bar -- because none of those
+     describe a price gap. */
+  if (FBPICKKIND === 'lines'){
+    v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") + fbKindBar(C));
+    v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
+      '<div class="note">No game lines on this board yet.</div>');
+    fbWire(); fbKindWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
   const wrap = document.createElement('div');
@@ -4041,12 +4099,14 @@ async function fbPicks(){
     host.innerHTML = `<div class="msg">None of the <b>${pool.length}</b> picks
       on this card involve ${[...fbConf].join(', ')}. The card is there &mdash;
       clear the conference filter to see it.</div>`;
-  v.innerHTML = fbShell('');
+  v.innerHTML = fbShell(fbKindBar(C));
   v.append(wrap, host);
   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
-  v.insertAdjacentHTML('beforeend', fbGameLines(C));
+  /* ⛔ NO `fbGameLines(C)` HERE ANY MORE — it has its own chip above.
+     Rendering it in both places would put a MARKET board underneath a
+     RECORD board again, which is the mixing Sam asked to end. */
   v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
-  fbWire();
+  fbWire(); fbKindWire();
   const t = $('#fb-pk-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbPicks(); });
 }

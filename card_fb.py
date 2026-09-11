@@ -164,6 +164,66 @@ RATE_MEASURED = frozenset({
 })
 PRICE_FLOOR = -700       # Sam's standing floor, same as MLB
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE MARKET A PLAYER ACTUALLY PARTICIPATED IN. `[Sam, 2026-09-11]`
+# *"isiah marshall, strarting qb for kansas, wont only get 3.5 passing
+#  yards thats blasphemous. the reason he has this projetion is because
+#  he was not starting last year."*
+#
+# ⛔ HE IS RIGHT, AND THE CARD PUBLISHED IT AT 94% CONFIDENCE.
+# `[measured on the live board]` Marshall's 2025 log is EIGHT
+# APPEARANCES AND THREE PASS ATTEMPTS -- seven of the eight games have
+# no `att` at all, because he was a mop-up runner behind the starter:
+#
+#     2025   att 0.38/gm   pass_yds 3.5/gm   usage 2.2 touches/gm
+#     card   projection 3.5 pass yds · under 196.5 · 94% · "8 of 8"
+#     2026   week 1: 19 att, 246 pass yds, 7 car, usage 26
+#
+# ➡️ **HE CLEARED THE LINE TWO WEEKS AGO.** The "8 of 8" is really
+# "in eight games where he was not the quarterback, he never threw for
+# 196.5 yards", and that is not evidence about a 2026 starter.
+#
+# 🔴 THE UNION DENOMINATOR IS NOT THE BUG AND IS NOT REVERTED. It was
+# measured (+35.7 points for a college RB) and it is right for a player
+# doing the SAME JOB: a game he played and got no carries in is real
+# evidence about his rushing. ⛔ What it cannot survive is a ROLE
+# CHANGE, where the games it adds are games he held a different job.
+#
+# ✅ SO THE DENOMINATOR IS NOW GAMES HE PARTICIPATED IN *THIS MARKET*,
+# and `MIN_GAMES` does the rest. **NO NEW CONSTANT IS INTRODUCED.**
+# Marshall's passing participation is 1 of 8, under the 6 already
+# required, so the row keeps its price and loses its rate.
+# ⚠️ THIS IS THE MLB LESSON THIS PROJECT ALREADY LEARNED TWICE AND
+# NEVER APPLIED TO FOOTBALL -- `CLAUDE.md`: *"Pitcher rates are computed
+# over STARTS ONLY"* and *"A hitter is rated only over games he
+# STARTED"*, both written because a different-role appearance was being
+# counted as evidence.
+# ⚠️ Said in words a reader knows. "19 att a game" is a column name.
+PART_WORD = {"att": "pass attempts", "car": "carries", "rec": "rec"}
+PARTICIPATED = {
+    "player_pass_yds":      ("att",),
+    "player_pass_tds":      ("att",),
+    "player_rush_yds":      ("car",),
+    "player_reception_yds": ("rec",),
+    "player_receptions":    ("rec",),
+    # ⚠️ Anytime TD is scored from anywhere, so participation is any
+    #    touch. ⛔ Not `usage`, which is a sum and would count a game he
+    #    was on the field for without the ball.
+    "player_anytime_td":    ("car", "rec"),
+}
+# 🔴 AND THE USAGE FLOOR THE DATA ALREADY SHIPS, WHICH NOTHING READ.
+# `players-*.json.gz` carries `usage_floor: 3.0` with the note *"T37-CFB,
+# FROZEN. Applied by the CONSUMER, not by this build. Rows below it are
+# kept."* -- and the 2026 file's `consumer_contract` says outright *"NO
+# usage floor has been applied."*
+# ⛔ THE CONSUMER IS THIS FILE AND IT NEVER APPLIED IT. `[measured]` 15
+# of the 50 rows on the live board -- **30%** -- sit below a floor the
+# producer computed, froze and handed over.
+# ✅ READ FROM THE FILE, NEVER RESTATED HERE (rule 66). A default of
+# None means "the file did not ship one", and then nothing is gated on
+# it -- an absent floor is not a floor of zero.
+USAGE_FLOOR = None       # set by load_logs() from the log's own metadata
+
 # 🔴 A CEILING, BECAUSE "LIKELY AND PAYABLE" HAS TWO ENDS.
 # ⛔ MEASURED ON THE LIVE 2026-09-03 COLLEGE BOARD: the card was 100%
 # Anytime TD and its TOP ROW WAS +5000 -- a ~2% shot leading a picks
@@ -292,6 +352,9 @@ def norm(n):
 
 
 SCOPES = {}
+FLOORS = {}
+CUR_SEASON, CUR_P = None, None
+_CUR_IDX = None
 LOG_SCOPE = None
 
 
@@ -324,6 +387,7 @@ def load_logs():
             continue
         P = d.get("players") or {}
         SCOPES[os.path.basename(f)] = d.get("scope")
+        FLOORS[os.path.basename(f)] = d.get("usage_floor")
         counts = sorted(len(p.get("g") or []) for p in P.values())
         if not counts or counts[-1] == 0:
             log(f"  {os.path.basename(f)}: no games yet, skipping")
@@ -337,13 +401,32 @@ def load_logs():
             break
         log(f"  {os.path.basename(f)}: median {med} game(s) per player, "
             f"under the {MIN_GAMES} needed for a rate — looking further back")
+    # ⛔ THE NEWEST FILE WITH ANY GAMES IS KEPT FOR ONE PURPOSE ONLY:
+    #    SAYING WHY A RATE IS MISSING. `thinner` is whatever the loop saw
+    #    first, which is the newest season that has started.
+    # 🔴 IT IS NEVER A RATE AND NEVER A PROJECTION. In week 2 it holds one
+    #    or two games; `MIN_GAMES` exists precisely because that cannot
+    #    carry a percentage. ✅ But one game is plenty to say "the season
+    #    this record is built from describes a different job", which is
+    #    the question Sam actually asked.
+    global CUR_SEASON, CUR_P
+    if thinner is not None:
+        CUR_SEASON, CUR_P = thinner[0], thinner[1]
     best = usable or thinner
     if not best:
         log("FATAL: no player log with any games")
         sys.exit(1)
     season, P, fn, med = best
-    global LOG_SCOPE
+    global LOG_SCOPE, USAGE_FLOOR
     LOG_SCOPE = SCOPES.get(fn)
+    # ⛔ THE FLOOR COMES OUT OF THE FILE THE RATE IS BUILT FROM, not out
+    #    of a constant here and not out of whichever file happened to be
+    #    read last. A season with no floor in it gates nothing.
+    USAGE_FLOOR = FLOORS.get(fn)
+    if USAGE_FLOOR is not None:
+        log(f"  usage floor {USAGE_FLOOR} touches/game, read from {fn} "
+            f"(T37-CFB, frozen) — applied by THIS consumer, which is what "
+            f"the file asks for")
     log(f"logs: {fn} — {len(P)} players, season {season}, "
         f"median {med} games/player"
         + (f", scope: {LOG_SCOPE}" if LOG_SCOPE else ""))
@@ -440,6 +523,33 @@ def jeffreys(hits, n):
     return (hits + 0.5) / (n + 1.0)
 
 
+def usage_level(games):
+    """His trailing touches per game — THE VARIABLE THE FLOOR WAS FROZEN ON.
+
+    🔴 T37-CFB SPECIFIED THE FLOOR ON `trailing_usage`, not on a season
+    mean of `usage`: *"The floor applies to `trailing_usage` (trailing
+    TOUCHES per game), the only usage quantity college publishes"*, set
+    at its p25 among rows already passing the depth-rank cap, computed on
+    2021–2023 alone and then **CLOSED**.
+    ⛔ **APPLYING A FROZEN THRESHOLD TO A DIFFERENT VARIABLE IS NOT
+    APPLYING IT.** The first form of this gate used `mean(usage)`, which
+    is a near neighbour and not the same number — it happened to reach
+    the same verdict on all three live cases, which is exactly how a
+    quiet mis-application survives review.
+    ✅ The LAST non-null `trailing_usage` is what a point-in-time reader
+    holds at the end of the rated season.
+    ⚠️ `trailing_usage` is null for a player's first game or two (it needs
+    a trailing window) — 16% of 2025 rows. Falling back to the season
+    mean of `usage` there is a DIFFERENT quantity and is only used when
+    the specified one does not exist at all.
+    """
+    tu = [g.get("trailing_usage") for g in games
+          if g.get("trailing_usage") is not None]
+    if tu:
+        return float(tu[-1])
+    return sum(float(g.get("usage") or 0) for g in games) / max(1, len(games))
+
+
 def rate_for(games, market, line, side):
     """(confidence 0-100, hits, n) over his qualifying games, or None."""
     getter = MARKETS.get(market)
@@ -454,6 +564,32 @@ def rate_for(games, market, line, side):
     q = qualifying(games)
     if len(q) < MIN_GAMES:
         return None
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 THE DENOMINATOR MUST BE GAMES HE DID THIS JOB IN.
+    # ⛔ THE LIVE CASE: Isaiah Marshall, 8 appearances, THREE pass
+    #    attempts all season, rated over all 8 and published at 94% on
+    #    `under 196.5 pass yds` with a projection of 3.5 -- for the 2026
+    #    starter who threw for 246 in week 1.
+    # ⚠️ NO NEW CONSTANT. `MIN_GAMES` was always 6; what changes is that
+    #    the 6 now have to be games he PARTICIPATED in, which is what
+    #    the sentence "his own rate over N games" already claims.
+    # ✅ The union denominator SURVIVES for the games that pass this:
+    #    once he is doing the job, a game he did the job and gained
+    #    nothing in still counts, which is the +35.7 points it was
+    #    measured for.
+    parts = PARTICIPATED.get(market)
+    if LEAGUE != "nfl" and parts:
+        played = [g for g in q
+                  if any(float(g.get(f) or 0) > 0 for f in parts)]
+        if len(played) < MIN_GAMES:
+            return None
+    # ⛔ AND THE FLOOR THE DATA SHIPS, WHICH NOTHING HAD EVER READ.
+    #    `usage_floor` is frozen by T37-CFB and the file says in words
+    #    that the CONSUMER applies it. 15 of 50 live rows sat below it.
+    # ⚠️ A missing floor gates nothing -- absent is not zero.
+    if LEAGUE != "nfl" and USAGE_FLOOR is not None and q:
+        if usage_level(q) < USAGE_FLOOR:
+            return None
     vals = [read(g) for g in q]
     if market == "player_anytime_td":
         # ⚠️ A one-sided market. "Yes" is scoring at all; there is no line.
@@ -965,7 +1101,7 @@ def main():
                 else:
                     row["why"] = [gate_why] if (plog is not None
                                                  and not gate_ok) else [
-                        no_rate_reason(RATES_OK, plog, who)]
+                        no_rate_reason(RATES_OK, plog, who, mk, season)]
                 rows.append(row)
 
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.
@@ -1351,18 +1487,112 @@ COLLEGE_NOTE = (
     "record at all.")
 
 
-def no_rate_reason(rates_ok, plog, who):
+def role_change_note(who, market, rated_season):
+    """What he is doing THIS season, when last season describes another job.
+
+    🔴 THE POINT SAM MADE, ANSWERED WITH NUMBERS RATHER THAN A SHRUG.
+    `[2026-09-11]` *"he was not starting last year"* -- and the current
+    season's log already says so out loud:
+
+        Isaiah Marshall   2025: 0.4 att/gm, 3.5 pass yds/gm, usage 2.2
+                          2026 wk1: 19 att, 246 pass yds, usage 26
+
+    ⛔ ONE GAME IS NOT A RATE and this returns no percentage, no
+    projection and nothing that enters a number on the card. It is a
+    DESCRIPTIVE sentence explaining why the rate is absent.
+    ⚠️ Returns None when there is nothing to say -- no current log, the
+    same season as the rated one, or no usage increase.
+    """
+    if not CUR_P or CUR_SEASON == rated_season:
+        return None
+    global _CUR_IDX
+    if _CUR_IDX is None:
+        _CUR_IDX = index_by_name(CUR_P)
+    pids = _CUR_IDX.get(norm(who)) or []
+    # ⛔ AMBIGUOUS NAMES ARE NOT GUESSED AT. `index_by_name` keeps them as
+    #    a LIST on purpose, for the same reason the MLB collector's
+    #    `resolve()` refuses to pick a first match: attaching one player's
+    #    season to another player's price is the worse error, and this
+    #    sentence is optional.
+    if len(pids) != 1:
+        return None
+    p = CUR_P.get(pids[0]) or {}
+    g = p.get("g") or []
+    if not g:
+        return None
+    parts = PARTICIPATED.get(market) or ()
+    cur_use = sum(float(x.get("usage") or 0) for x in g) / len(g)
+    # ⚠️ Only quoted for a single-field market. Anytime TD participates
+    #    through carries OR catches, and "3 car a game" would describe
+    #    half of it.
+    cur_part = (sum(float(x.get(parts[0]) or 0) for x in g) / len(g)
+                if len(parts) == 1 else 0.0)
+    reader = MARKETS.get(market)
+    cur_val = (sum(reader[0](x) for x in g) / len(g)) if reader else None
+    unit = reader[1] if reader else ""
+    gm = "game" if len(g) == 1 else "games"
+    # ⚠️ THE PARTICIPATION FIGURE AND THE MARKET FIGURE CAN BE THE SAME
+    #    STAT. `player_receptions` counts catches and participates through
+    #    catches, so the first draft read "4 rec a game, 4 rec a game".
+    #    Say it once.
+    bits = [f"{cur_use:.0f} touches a game"]
+    if parts and cur_part > 0 and PART_WORD.get(parts[0]) != unit:
+        bits.append(f"{cur_part:.0f} {PART_WORD.get(parts[0], parts[0])} "
+                    f"a game")
+    if cur_val:
+        bits.append(f"{cur_val:.0f} {unit} a game")
+    return (f"In {CUR_SEASON} so far — {len(g)} {gm} — he is at "
+            + ", ".join(bits)
+            + f". That is a different role from the one his {rated_season} "
+              f"log describes, which is why no record is shown rather than "
+              f"one built on the wrong job.")
+
+
+def no_rate_reason(rates_ok, plog, who, market=None, season=None):
+    """Why this row carries a price and no rate. ⛔ Never a gate — rule 53.
+
+    🔴 ~~ONE SENTENCE FOR EVERY CAUSE.~~ The old form said "appears in too
+    few games" whatever had actually happened, so the row that mattered
+    most -- a starter whose last-season log is a backup's -- read as a
+    thin sample rather than as the wrong sample.
+    """
     if not rates_ok:
         return COLLEGE_NOTE
     if plog is None:
-        return (f"No 2025 game log matched {who} — he is new, changed his "
-                f"listed name, or shares one. No record is shown rather than "
-                f"a guess.")
+        return (f"No {season or 'prior season'} game log matched {who} — he "
+                f"is new, changed his listed name, or shares one. No record "
+                f"is shown rather than a guess.")
     if LEAGUE == "nfl":
         return (f"{who} has too few games at a starter's snap share to read "
                 f"a rate from. Fewer than {MIN_GAMES} is not a rate.")
-    return (f"{who} appears in too few games last season to read a rate "
-            f"from. Fewer than {MIN_GAMES} is not a rate.")
+    g = plog.get("g") or []
+    parts = PARTICIPATED.get(market) or ()
+    role = role_change_note(who, market, season) if market else None
+    # ⛔ NAME THE ACTUAL CAUSE. Participation first, because it is the one
+    #    that produced a 94%-confidence number on a player who had not
+    #    played the position.
+    if parts and g:
+        played = sum(1 for x in g
+                     if any(float(x.get(f) or 0) > 0 for f in parts))
+        if played < MIN_GAMES:
+            base = (f"{who} took part in this market in only {played} of his "
+                    f"{len(g)} {season or 'prior season'} games, and "
+                    f"{MIN_GAMES} is the floor. A record counted over games "
+                    f"he did not play the position is not a record about "
+                    f"this line.")
+            return base + (" " + role if role else "")
+    if USAGE_FLOOR is not None and g:
+        use = usage_level(g)
+        if use < USAGE_FLOOR:
+            base = (f"{who} averaged {use:.1f} touches a game in "
+                    f"{season or 'the rated season'}, under the "
+                    f"{USAGE_FLOOR} this project froze as the least that can "
+                    f"describe a role. The price is shown; the record is "
+                    f"not.")
+            return base + (" " + role if role else "")
+    _sn = season or "the rated season"
+    return (f"{who} appears in too few games in {_sn} to read a rate from. "
+            f"Fewer than {MIN_GAMES} is not a rate.")
 
 
 # ══════════════════════════════════════════════════════════════════════
