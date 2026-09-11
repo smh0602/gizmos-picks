@@ -1515,7 +1515,35 @@ def verify(doc, log=log):
     # multi-week season still fails, and a MISSING WEEK — the thing that
     # actually looks like this — is now its own named failure below.
     # ══════════════════════════════════════════════════════════════════
-    TRAILING = ("depth_rank", "trailing_usage", "ahead_out_lastwk")
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 AND THE FLOOR IS PER COLUMN, BECAUSE ONE OF THE THREE NEEDS A
+    #     THIRD WEEK. `[2026-09-11 — this guard failed a healthy build for
+    #     the SECOND time, in the same shape, one week later]`
+    #     *"ahead_out_lastwk is CONSTANT 0 across 1,870 rows spanning 2
+    #     week(s) [1, 2] — a join failure, not a result"*. **It was not a
+    #     join failure either.**
+    # ⛔ THE ARITHMETIC, PROVED WITH A FIXTURE RATHER THAN ARGUED:
+    #     `ahead_out_lastwk` counts players AHEAD of you who did NOT play
+    #     last week. To be "ahead" you must have a trailing usage, which
+    #     requires having played a STRICTLY EARLIER week. In week 2 the
+    #     only earlier week is week 1 — so anyone ahead of you necessarily
+    #     PLAYED week 1, and therefore cannot have been out last week.
+    #     **The two sets are mutually exclusive, so the column is zero by
+    #     construction until week 3.**
+    # ✅ MEASURED: on a two-week fixture where the player ahead misses
+    #     week 2, `ahead_out_lastwk` is still all-zero; on a three-week
+    #     fixture it reaches 1. `depth_rank` and `trailing_usage` DO vary
+    #     on two weeks ({None, 1, 2} and {None, 5.0, 50.0}), so their
+    #     floor of 2 was right and is unchanged.
+    # ⛔ STRICTLY HARDER THAN A BLANKET BUMP TO 3: raising the floor for
+    #     all three would stop judging depth_rank and trailing_usage for
+    #     an extra week, and those two are the columns a broken join
+    #     actually shows up in first.
+    # ➡️ THE RULE: a point-in-time column is judged only once the log
+    #     holds enough weeks for it to be CAPABLE of varying, and that
+    #     number is a property of the column, not of the check.
+    # ══════════════════════════════════════════════════════════════════
+    TRAILING = {"depth_rank": 2, "trailing_usage": 2, "ahead_out_lastwk": 3}
     wks = {g.get("week") for g in gs
            if g.get("seasonType") == "regular" and g.get("week")}
     if len(gs) >= CONST_MIN:
@@ -1523,12 +1551,13 @@ def verify(doc, log=log):
             vals = {g.get(f) for g in gs}
             if len(vals) != 1:
                 continue
-            if f in TRAILING and len(wks) < 2:
+            need = TRAILING.get(f)
+            if need and len(wks) < need:
                 log(f"    ⚠️ {f} is constant {vals.copy().pop()!r}, and that "
                     f"is CORRECT: the log holds {len(wks)} regular week(s) "
-                    f"({sorted(wks)}), so nothing has an earlier week to "
-                    f"trail from. NOT a join failure, NOT a pass — the "
-                    f"check is not exercised until week 2 exists.")
+                    f"({sorted(wks)}) and this column cannot vary until "
+                    f"there are {need}. NOT a join failure, NOT a pass — "
+                    f"the check is not exercised yet.")
                 continue
             bad.append(f"{f} is CONSTANT {vals.pop()!r} across "
                        f"{len(gs):,} rows spanning {len(wks)} week(s) "

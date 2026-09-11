@@ -348,13 +348,31 @@ ck("🔴 ONE week of log -> the constant-column guard STANDS DOWN",
    "constant BY ARITHMETIC, not by a broken join (rule 175). Findings: "
    "%s" % [b[:44] for b in _one])
 
+# ⚠️ AMENDED 2026-09-11. This asserted THREE findings at two weeks, and
+#    went red when the code got MORE correct: `ahead_out_lastwk` cannot
+#    vary until week 3 (its "ahead" set and its "out last week" set are
+#    mutually exclusive in week 2), so it now correctly stands down there
+#    and only TWO columns are judged.
+# ⛔ THE CHECK WAS RIGHT WHEN WRITTEN AND THE FIX MADE IT WRONG. Rather
+#    than loosen it to `>= 2`, it now names WHICH columns engage at which
+#    week — strictly more precise than the count it replaced, and it is
+#    the knowledge the live 09-11 failure bought.
 _two = [b for b in cfb_bad(cfb, cfbdoc([1, 2])) if _const in b]
-ck("🔴 ...and TWO weeks of genuinely constant columns ENGAGES it",
-   len(_two) >= 3,
-   "⛔ THIS IS THE BOUNDARY AND THE OLD CHECK COULD NOT REACH IT. Two "
-   "distinct weeks is the first point at which a constant column is "
-   "evidence of a real defect rather than of week 1. Findings: %s"
-   % [b[:44] for b in _two])
+_two_cols = {c for c in ("depth_rank", "trailing_usage", "ahead_out_lastwk")
+             if any(b.startswith(c) for b in _two)}
+ck("🔴 ...and TWO weeks engages the columns that CAN vary by then",
+   _two_cols == {"depth_rank", "trailing_usage"},
+   "⛔ THIS IS THE BOUNDARY AND THE OLD CHECK COULD NOT REACH IT. ⚠️ "
+   "`ahead_out_lastwk` is NOT among them: in week 2 anyone ahead of you "
+   "necessarily played week 1, so it is zero by construction until week "
+   "3 (test_ahead_out_weeks.py proves it). Engaged: %s" % sorted(_two_cols))
+_three_cols = {c for c in ("depth_rank", "trailing_usage", "ahead_out_lastwk")
+               if any(b.startswith(c)
+                      for b in cfb_bad(cfb, cfbdoc([1, 2, 3])) if _const in b)}
+ck("⛔ ...and THREE weeks engages all three",
+   _three_cols == {"depth_rank", "trailing_usage", "ahead_out_lastwk"},
+   "the floor is a property of the COLUMN, not of the check: %s"
+   % sorted(_three_cols))
 
 # ⚠️ AND SAY PRECISELY WHAT THIS PREDICTS. The guard keys on distinct
 #    weeks IN THE PLAYER LOG; `final_weeks` comes from the SCHEDULE.
