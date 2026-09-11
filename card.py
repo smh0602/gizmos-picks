@@ -38,7 +38,7 @@ import sys
 import unicodedata
 from datetime import datetime, timedelta, timezone
 
-MODEL_VERSION = "v4.0"
+MODEL_VERSION = "v5.0"
 
 # Sam's board size, in his words: "i would like to see 25-50 players
 # everytime, including hitters props as well as pitchers."
@@ -47,16 +47,16 @@ BOARD_MIN, BOARD_MAX = 25, 50
 # ---------------------------------------------------------------- model
 # claude/mlb-projection-model.md. Do not edit a coefficient here without
 # editing it there, and do not edit it there without a re-fit.
-K_INTERCEPT, K_TRAIL_B, K_TRAIL_C = 4.939, 0.673, 4.949
-K_OPP_B, K_HOME = 0.575, 0.151
-O_INTERCEPT, O_TRAIL_C = 15.899, 15.903
-O_NP_B, O_NP_C = 0.0371, 86.6
-O_HOME = 0.189
+K_INTERCEPT, K_TRAIL_B, K_TRAIL_C = 4.9292, 0.6653, 4.9454
+K_OPP_B, K_HOME = 0.5803, 0.1449
+O_INTERCEPT, O_TRAIL_C = 15.9121, 15.8988
+O_NP_B, O_NP_C = 0.0366, 87.2645
+O_HOME = 0.1994
 # The trailing-outs slope is TIERED on his own level. These are shipped
 # coefficients and they move at the re-fit like any other -- they live here,
 # not buried as literals inside outs_k(), so there is ONE place to edit.
 O_TIER_CUT_LO, O_TIER_CUT_HI = 15.25, 17.0
-O_TIER_B_LO, O_TIER_B_MID, O_TIER_B_HI = 0.638, 0.759, 0.317
+O_TIER_B_LO, O_TIER_B_MID, O_TIER_B_HI = 0.629, 0.647, 0.361
 TRAIL_N = 8
 
 
