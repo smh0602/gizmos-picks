@@ -38,6 +38,7 @@ import datetime
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -202,7 +203,7 @@ print("\n═══ 4. ⛔ NOTHING ELSE IS DOWNGRADED ═══")
 #    by accident.
 r = subprocess.run([sys.executable, "verify_freshness.py"], cwd=ROOT,
                    capture_output=True, text=True,
-                   env=dict(os.environ, LEAGUE="mlb"))
+                   env=dict(os.environ, LEAGUE="mlb", ODDS_API_KEY=""))
 ck("MLB is untouched by any of this",
    "BLOCKED TOO LONG" not in r.stdout and "KNOWN state" not in r.stdout,
    "no report -> no block -> the gate behaves exactly as before")
@@ -226,10 +227,36 @@ def _standdown(mode):
               encoding="utf-8") as fh:
         fh.write(_report(NOW - datetime.timedelta(minutes=1),
                          failed=[2026], extra="HTTPError 429"))
-    r = subprocess.run([sys.executable, "collect.py", mode], cwd=d,
-                       capture_output=True, text=True,
+    # 🔴 ~~collect.py <mode>~~ -> `<mode> converge-off`, 2026-09-11.
+    # ⛔ THE EXIT CODE BEING ASSERTED BELONGS TO THE WHOLE PASS, NOT TO
+    #    THIS MODE. `collect.py <mode>` routes through
+    #    `converge(explicit=<mode>)`, which by design ALSO rebuilds every
+    #    other overdue artifact -- so `gamelines`, `props-player` and
+    #    `props-board` were being attempted too, and their exit landed in
+    #    the number this check reads.
+    # ⚠️ IT PASSED FOR HOURS AND THEN FAILED ON UNCHANGED CODE, purely
+    #    because those three fell out of contract during the day. A check
+    #    that green-to-reds on the clock is rule 166 in its subtlest form:
+    #    nothing was pinned to a DATE, but the SIGNAL was shared.
+    # ✅ `converge-off` runs the named mode ALONE, which is what the
+    #    sentence claims to be about -- STRICTER, not looser: the pass's
+    #    exit can no longer mask or manufacture this one.
+    # 🔴🔴 AND THE KEY IS BLANKED, WHICH IS THE HALF THAT COST REAL MONEY.
+    # ⛔ `env=dict(os.environ, ...)` INHERITS `ODDS_API_KEY` ON THE RUNNER,
+    #    and `collect.py <mode>` converges every overdue artifact — so this
+    #    sandbox was firing REAL PAID PULLS (`gamelines`, `props-player`)
+    #    into a `tempfile.mkdtemp()` that is deleted a few lines later.
+    # ⛔ THE CREDITS WERE SPENT, THE DATA WAS THROWN AWAY, AND BECAUSE NO
+    #    SNAPSHOT SURVIVED, `budget.py`'s measured spend COULD NOT SEE
+    #    THEM — `daily_spend()`'s own docstring calls itself a FLOOR for
+    #    exactly this reason, and this is an instance of it.
+    # ✅ `converge-off` alone already stops it. The blank key is DEFENCE IN
+    #    DEPTH: if a future edit drops `converge-off`, the worst outcome is
+    #    a failed fetch, never a silent bill.
+    r = subprocess.run([sys.executable, "collect.py", mode, "converge-off"],
+                       cwd=d, capture_output=True, text=True,
                        env=dict(os.environ, LEAGUE="ncaaf",
-                                CFB_BACKOFF_MIN="180"))
+                                CFB_BACKOFF_MIN="180", ODDS_API_KEY=""))
     return r.returncode, r.stdout + r.stderr
 
 
@@ -261,10 +288,17 @@ def _fbs(extra):
               encoding="utf-8") as fh:
         fh.write(_report(NOW - datetime.timedelta(minutes=5), failed=[2026],
                          extra=extra))
-    r = subprocess.run([sys.executable, "collect.py", "fb-scores"], cwd=d,
+    # ⛔ `converge-off` for the same reason as `_standdown()` above: the
+    #    exit code asserted below is fb-scores', and a converge pass would
+    #    fold every other overdue ncaaf mode into it.
+    # ⛔ Key blanked here too — see `_standdown()` above. `fb-scores` is a
+    #    CFBD call, not an Odds API one, so this changes nothing it does;
+    #    it only removes any path by which this file can spend.
+    r = subprocess.run([sys.executable, "collect.py", "fb-scores",
+                        "converge-off"], cwd=d,
                        capture_output=True, text=True,
                        env=dict(os.environ, LEAGUE="ncaaf",
-                                CFB_BACKOFF_MIN="180"))
+                                CFB_BACKOFF_MIN="180", ODDS_API_KEY=""))
     shutil.rmtree(d, ignore_errors=True)
     return r.returncode, r.stdout + r.stderr
 
@@ -337,3 +371,41 @@ ck("⛔ anything else in `failed:` stays hard",
    "the default must be 'this is ours', never 'this is theirs'")
 note("⚠️ THIS IS THE WHOLE REASON THE DOWNGRADE IS SAFE. Without it the "
      "grace would have covered every exception this collector can raise.")
+
+
+print("\n═══ 7. 🔴🔴 NO SANDBOX IN THIS FILE CAN SPEND A CREDIT ═══")
+# 🔴 `[2026-09-11]` THIS FILE WAS BILLING THE ACCOUNT. Every sandbox
+#    inherited `ODDS_API_KEY` through `env=dict(os.environ, ...)`, and
+#    `collect.py <mode>` converges every overdue artifact — so a check
+#    about a BACK-OFF was firing real `gamelines` and `props-player`
+#    pulls into a temp directory it then deleted.
+# ⛔ THE CREDITS WERE SPENT AND THE DATA WAS DISCARDED, so no snapshot
+#    survived for `budget.py` to measure. Drop 38's "measured" spend is a
+#    FLOOR, and this is one of the things underneath it.
+# ⛔ IT ALSO TURNED THE RUN RED whenever one of those unrelated pulls
+#    failed — a check about a stand-down, reporting on a props pull.
+# ⛔ COMMENTS ARE EXCLUDED, or this check reads its own explanation of the
+#    bug as an instance of it — the comments above quote
+#    `env=dict(os.environ, ...)` verbatim, which is the point of them.
+_src = open("test_source_block.py", encoding="utf-8").read()
+_live = "\n".join(_l for _l in _src.splitlines()
+                  if not _l.lstrip().startswith("#"))
+_envs = re.findall(r"env=dict\(os\.environ[^)]*\)", _live)
+ck("🔴 every subprocess env in this file blanks ODDS_API_KEY",
+   bool(_envs) and all('ODDS_API_KEY=""' in e for e in _envs),
+   "⛔ %d sandbox env(s); the ones missing it can bill the account: %s"
+   % (len(_envs), [e[:70] for e in _envs if 'ODDS_API_KEY=""' not in e]))
+ck("✅ ...and every collector call names `converge-off`",
+   all("converge-off" in _a for _a in
+       re.findall(r"\[sys\.executable,\s*\"collect\.py\".*?\]",
+                  _live, re.S)),
+   "⛔ without it, `converge(explicit=...)` rebuilds every overdue "
+   "artifact — which is how a stand-down check came to own a props "
+   "pull. ⚠️ MATCHED ON THE WHOLE ARGUMENT LIST, not the line: the "
+   "call spans two lines and a line-based check failed on correct "
+   "code. arg lists=%s" % [" ".join(_a.split())[:60] for _a in
+   re.findall(r"\[sys\.executable,\s*\"collect\.py\".*?\]", _live, re.S)])
+note("➡️ TWO INDEPENDENT GUARDS ON PURPOSE. `converge-off` keeps the "
+     "check measuring the mode its sentence is about; the blank key means "
+     "that if a future edit drops it, the worst case is a failed fetch "
+     "rather than a silent bill. ⛔ A TEST MUST NEVER BE ABLE TO SPEND.")
