@@ -68,6 +68,8 @@ import time
 import urllib.error
 import urllib.request
 
+import ranking as _ranking   # the shared tie-aware ranker
+
 API = "https://api.collegefootballdata.com"
 KEY = os.environ.get("CFBD_API_KEY", "").strip()
 OUT = "data/ncaaf/latest"
@@ -830,6 +832,23 @@ def rank_and_cascade(players):
 # ══════════════════════════════════════════════════════════════════════
 DEF_FIELDS = ("rec", "rec_yds", "rec_td", "car", "rush_yds", "rush_td",
               "att", "cmp", "pass_yds", "pass_td", "int")
+# 🔴 TOTAL YARDS — Sam, 2026-09-11: *"i want the trends tab to have a
+#    total yards produced or allowed ... the user will have the option to
+#    sort by total yards not just rushing, recieving etc."*
+# ⛔ COMPUTED HERE AND STORED, NEVER IN JAVASCRIPT. Rule 66 — one number
+#    per fact, the same everywhere — and the page computing its own total
+#    would be a second copy of the arithmetic that could disagree with
+#    this one.
+# ⚠️ THE DEFINITION, SAID OUT LOUD BECAUSE IT IS A CHOICE: passing +
+#    rushing + receiving. For RB/WR/TE passing is ~0, so it reduces to
+#    rush + rec as you would expect. FOR A QB IT INCLUDES PASSING, which
+#    makes a QB row much larger than the others -- correct, and worth
+#    knowing before reading the column.
+# ⛔ It does NOT double-count: a QB's passing yards and a WR's receiving
+#    yards are the same yards to the OFFENSE, but these rows are never
+#    summed across positions.
+YARD_PARTS = ("pass_yds", "rush_yds", "rec_yds")
+RANK_FIELDS = DEF_FIELDS + ("total_yds",)
 DEF_MIN_GAMES = 8
 
 
@@ -1284,12 +1303,15 @@ def build_side(doc, side, log=log):
                 v = g.get(f)
                 if v is not None:
                     a[f] += float(v)
+            # derived, not read from the log -- see YARD_PARTS above
+            a["total_yds"] += sum(float(g.get(p) or 0) for p in YARD_PARTS)
     tbl = {}
     for (o, pos), a in acc.items():
         n = len(games[o])
         if n:
             tbl.setdefault(o, {})[pos] = {
-                "games": n, **{f: round(a[f] / n, 3) for f in DEF_FIELDS}}
+                "games": n, **{f: round(a[f] / n, 3)
+                               for f in RANK_FIELDS}}
     # 🔴 THE RANK FLOOR TRACKS SEASON PROGRESS. Sam, 2026-09-01: the
     # board has to be useful "week by week, day by day", and a fixed
     # 8-game floor ranks NOBODY until November.
@@ -1309,15 +1331,24 @@ def build_side(doc, side, log=log):
     _played = sorted(v["games"] for t_ in tbl.values() for v in t_.values())
     _p75 = _played[int(0.75 * len(_played))] if _played else DEF_MIN_GAMES
     min_games = max(1, min(DEF_MIN_GAMES, _p75))
-    for pos in ("QB", "RB", "WR", "TE"):
-        for f in DEF_FIELDS:
-            rows = sorted(((o, t[pos][f]) for o, t in tbl.items()
-                           if pos in t and t[pos]["games"] >= min_games),
-                          key=lambda x: -x[1])
-            for i, (o, _) in enumerate(rows):
-                tbl[o][pos][f + "_rank"] = i + 1
-                tbl[o][pos][f + "_pct"] = round(
-                    100.0 * (len(rows) - i) / len(rows), 1)
+    # 🔴 RANKS COME FROM `ranking.py`, AND BOTH LEAGUES READ THE SAME ONE.
+    # ⛔ THE BLOCK THAT STOOD HERE WAS A BARE ORDINAL — `enumerate(rows)`
+    #    -> `i + 1` — so EQUAL VALUES came out of `sorted()` in whatever
+    #    order the dict yielded them and each was handed a DIFFERENT rank.
+    # `[measured 2026-09-11 on the live tables]` **5,613 of 6,116 college
+    #    ranks broke a tie arbitrarily (92%); the offense side was 91%.**
+    #    Whole columns were affected, not edge cases: 142 defences ALL at
+    #    0.0 interceptions allowed to RBs, ranked 1 through 142.
+    # ✅ Ties now share the BEST rank, and a column with no spread at all
+    #    publishes NOTHING so the page can render a dash.
+    # ⚠️ NO STAT VALUE MOVES. All 6,116 cells reproduced the player log
+    #    before this change and must still reproduce it after.
+    _blank = _ranking.apply_ranks(
+        tbl, ("QB", "RB", "WR", "TE"), RANK_FIELDS,
+        lambda cell: cell["games"] >= min_games)
+    if _blank:
+        log(f"    {_blank} column(s) had no spread at all and carry no "
+            f"rank -- a dash on the page, not a rank of 1")
     # ⚠️ LEFT AS A HARD FAILURE, DELIBERATELY, AND THE CHECK WAS MADE.
     #    `[2026-09-10]` The NFL's `build_vs_position` raises on an empty
     #    table and that RAISE IS WRONG IN WEEK 1 (see nfl.py). The

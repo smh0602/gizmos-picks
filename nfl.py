@@ -24,6 +24,8 @@ import json
 import urllib.error
 import urllib.request
 
+import ranking as _ranking   # the shared tie-aware ranker
+
 GH_API = "https://api.github.com/repos/nflverse/nflverse-data/releases"
 
 
@@ -1662,6 +1664,16 @@ VS_STATS = ("pass_yds", "rush_yds", "rec_yds", "rec", "tgt", "tgt_share",
 # ══════════════════════════════════════════════════════════════════════
 DEF_FIELDS = ("rec", "rec_yds", "rec_td", "car", "rush_yds", "rush_td",
               "att", "cmp", "pass_yds", "pass_td", "int")
+# 🔴 TOTAL YARDS — Sam, 2026-09-11, and applied to BOTH leagues because
+#    that is the standing instruction: everything done for CFB is done
+#    for NFL. ⛔ The definition must stay IDENTICAL to cfb.py's or the
+#    two tabs quietly mean different things by the same column name.
+# ⚠️ passing + rushing + receiving. For RB/WR/TE passing is ~0 so it
+#    reduces to rush + rec; FOR A QB IT INCLUDES PASSING, which makes a
+#    QB row much larger than the others. Computed here and stored, never
+#    in JavaScript (rule 66).
+YARD_PARTS = ("pass_yds", "rush_yds", "rec_yds")
+RANK_FIELDS = DEF_FIELDS + ("total_yds",)
 DEF_POS = ("QB", "RB", "WR", "TE")
 DEF_MIN_GAMES = 8
 
@@ -1702,12 +1714,15 @@ def build_side(doc, side, log=print):
                 v = g.get(f)
                 if v is not None:
                     a[f] += float(v)
+            # derived, not read from the log -- see YARD_PARTS above
+            a["total_yds"] += sum(float(g.get(p) or 0) for p in YARD_PARTS)
     tbl = {}
     for (o, pos), a in acc.items():
         n = len(games[o])
         if n:
             tbl.setdefault(o, {})[pos] = {
-                "games": n, **{f: round(a[f] / n, 3) for f in DEF_FIELDS}}
+                "games": n, **{f: round(a[f] / n, 3)
+                               for f in RANK_FIELDS}}
     # 🔴 THE RANK FLOOR TRACKS SEASON PROGRESS. Sam, 2026-09-01: the
     # board has to be useful "week by week, day by day", and a fixed
     # 8-game floor ranks NOBODY until November.
@@ -1727,15 +1742,24 @@ def build_side(doc, side, log=print):
     _played = sorted(v["games"] for t_ in tbl.values() for v in t_.values())
     _p75 = _played[int(0.75 * len(_played))] if _played else DEF_MIN_GAMES
     min_games = max(1, min(DEF_MIN_GAMES, _p75))
-    for pos in DEF_POS:
-        for f in DEF_FIELDS:
-            rows = sorted(((o, t[pos][f]) for o, t in tbl.items()
-                           if pos in t and t[pos]["games"] >= min_games),
-                          key=lambda x: -x[1])
-            for i, (o, _) in enumerate(rows):
-                tbl[o][pos][f + "_rank"] = i + 1
-                tbl[o][pos][f + "_pct"] = round(
-                    100.0 * (len(rows) - i) / len(rows), 1)
+    # 🔴 SAME RANKER AS THE COLLEGE SIDE — `ranking.py` — ON PURPOSE.
+    # ⛔ The block that stood here was BYTE-IDENTICAL to cfb.py's, which
+    #    is exactly how two copies of a rule drift. Sam's standing
+    #    instruction is that everything done for CFB is done for NFL; one
+    #    shared function is that instruction made structural rather than
+    #    remembered.
+    # ⚠️ The bug it fixes was measured on the college board because the
+    #    NFL has played one game — 5,613 of 6,116 ranks breaking a tie
+    #    arbitrarily — but the code here was the same code, so the NFL
+    #    table would have inherited it in full by week 3.
+    # ✅ Ties share the BEST rank; a column with no spread publishes
+    #    nothing. NO STAT VALUE MOVES.
+    _blank = _ranking.apply_ranks(
+        tbl, DEF_POS, RANK_FIELDS,
+        lambda cell: cell["games"] >= min_games)
+    if _blank:
+        log(f"    {_blank} column(s) had no spread at all and carry no "
+            f"rank -- a dash on the page, not a rank of 1")
     if not tbl:
         raise RuntimeError("allowed-by-position is EMPTY -- an opponent join "
                            "failure, not a finding")

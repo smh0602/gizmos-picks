@@ -2545,11 +2545,22 @@ let FBDATA = {};          // league -> side -> season -> parsed table
    tests still read those files. */
 const FB_SEASONS = [2026, 2025];
 let fbSeason = 2026, fbPos = 'WR', fbMetric = 'rec_yds', fbSide = 'def';
+/* 1 = most first (the long-standing default), -1 = least first. */
+let fbSortDir = 1;
 
 /* Rank 1 ALLOWS THE MOST. The question asked of this table is "how soft
    is this defence", not "how good", so the ranking reads in the direction
    it will actually be used. */
 const FB_METRICS = [
+  /* 🔴 TOTAL YARDS FIRST. Sam, 2026-09-11: "i want the trends tab to have
+     a total yards produced or allowed ... sort by total yards not just
+     rushing, recieving etc."
+     ⛔ THE NUMBER IS COMPUTED IN THE BUILDER AND READ FROM THE FILE. It
+     is NOT summed here -- rule 66, one number per fact, and a page that
+     added up its own total could disagree with the one the file ranks.
+     ⚠️ It is passing + rushing + receiving, so a QB row is much larger
+     than the others because it includes his passing yards. */
+  { k:'total_yds', l:'Total yards',         pos:['QB','RB','WR','TE'] },
   { k:'rec_yds',  l:'Receiving yards',      pos:['WR','TE','RB','QB'] },
   { k:'rec',      l:'Receptions',           pos:['WR','TE','RB','QB'] },
   { k:'rec_td',   l:'Receiving touchdowns', pos:['WR','TE','RB','QB'] },
@@ -2676,7 +2687,7 @@ function fbControls(avail){
       </select></label>
       <label>Season<select id="fb-season">${yrs.map(y =>
         `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
-      <label>Position${fbSide==='def'?' faced':''}<select id="fb-pos">${['WR','TE','RB','QB'].map(p =>
+      <label>Position${fbSide==='def'?' faced':''}<select id="fb-pos">${['QB','RB','WR','TE'].map(p =>
         `<option value="${p}"${p===fbPos?' selected':''}>${p}</option>`).join('')}</select></label>
       <label>${fbSide==='off'?'Produced':'Allowed'}<select id="fb-metric">${mets.map(m =>
         `<option value="${m.k}"${m.k===fbMetric?' selected':''}>${m.l}</option>`).join('')}</select></label>
@@ -5407,9 +5418,25 @@ async function renderFootball(){
       : `<p class="sub"><span class="rec">table built ${when}</span></p>`;
   }
 
-  const mets = fbMetricsFor(fbPos);
-  if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
   const D = doc.defences || doc.offences || {};
+  /* 🔴🔴 ONLY OFFER A METRIC THE LOADED FILE ACTUALLY CARRIES.
+     ⛔ `total_yds` was added to the builder and to this page in the same
+        drop, and the two DO NOT ARRIVE TOGETHER: the page ships the
+        moment it is uploaded, the table is only rebuilt on the next
+        scheduled run. So there is a window -- hours for college, up to a
+        week for the NFL -- where the page knows about a column the data
+        does not have yet.
+     ⚠️ THAT WINDOW IS NOT HYPOTHETICAL. `[2026-09-11, ledger rule 191]`
+        A test and the file it asserted on shipped in two commits and the
+        intermediate one was red before it ever ran. Same shape.
+     ✅ So the picker is DERIVED FROM THE DATA rather than from a
+        hard-coded list, and a metric appears the moment the builder
+        starts publishing it -- no second upload, no ordering to get
+        right, and this stays true for every metric added later. */
+  const _probe = Object.values(D).map(t => t[fbPos]).find(Boolean) || {};
+  const mets = fbMetricsFor(fbPos).filter(m => _probe[m.k] !== undefined);
+  if (!mets.length) mets.push(fbMetricsFor(fbPos)[0]);
+  if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
   /* 🔴 THE FLOOR COMES FROM THE FILE, NEVER FROM A CONSTANT HERE. It
      moves as the season fills up, and a page that hardcoded 8 would
      silently disagree with the data it is drawing. */
@@ -5419,7 +5446,8 @@ async function renderFootball(){
   for (const team in D){
     const e = D[team][fbPos];
     if (!e) continue;
-    rows.push({ team, games:e.games, v:e[fbMetric] });
+    rows.push({ team, games:e.games, v:e[fbMetric],
+                rank:e[fbMetric + '_rank'] });
   }
   /* 🔴 RANK AND SCALE ARE COMPUTED OVER EVERY TEAM, AND ONLY THE DISPLAY
      IS FILTERED. ⛔ Ranking within the selection would make "Rk 1" mean
@@ -5427,15 +5455,47 @@ async function renderFootball(){
      column says "Vs. league range" -- rescaling it to the SEC while the
      header still says league is exactly the kind of silent relabelling
      rule 66 is about. A filtered SEC row keeps its NATIONAL rank. */
-  const rankedAll = rows.filter(r => r.games >= floor).sort((a,b) => b.v - a.v);
-  const rankOf = new Map(rankedAll.map((r, i) => [r.team, i + 1]));
+  /* 🔴🔴 THE RANK IS READ FROM THE FILE. IT IS NOT COMPUTED HERE.
+     ⛔ WHAT STOOD HERE WAS A SECOND COPY OF THE RANKING, AND IT CARRIED
+        THE SAME BUG THE BUILDER HAD: `.sort((a,b) => b.v - a.v)` then
+        `i + 1` hands EQUAL VALUES DIFFERENT RANKS, in whatever order the
+        objects happened to arrive.
+     `[measured 2026-09-11]` **5,613 of the college board's 6,116 ranks
+        broke a tie arbitrarily.** 142 defences all allowing 0.0
+        interceptions to running backs were ranked 1 through 142.
+     ✅ `ranking.py` now ranks ONCE, in the builder, with ties sharing the
+        best rank -- and the page reads that. Rule 66: one number per
+        fact, the same everywhere.
+     ⚠️ A MISSING RANK IS MEANINGFUL AND RENDERS AS A DASH. When every
+        team in a column holds the identical value there is nothing to
+        rank, so the builder publishes no rank at all rather than an
+        invented one. */
+  const rankedAll = rows.filter(r => r.games >= floor)
+                        .sort((a,b) => b.v - a.v);
+  const rankOf = new Map(rows.filter(r => r.rank != null)
+                             .map(r => [r.team, r.rank]));
   const hi = rankedAll.length ? rankedAll[0].v : 1;
   const lo = rankedAll.length ? rankedAll[rankedAll.length-1].v : 0;
-  const ranked = rankedAll.filter(r => fbConfTeamPass(r.team));
+  /* 🔴 SORT DIRECTION IS THE READER'S, THE RANK IS NOT. Sam, 2026-09-11:
+     "allow user to sort the yardage stats by most to least ... i just
+     want it to change the order from either the most yards
+     produced/allowed from top to bottom or vice versa."
+     ⛔ Clicking re-orders the ROWS ONLY. A team ranked 41st still reads
+     41st when the table is flipped -- a rank that changed when you
+     clicked a header would be a different number wearing the same
+     label, which is the same objection the conference filter already
+     answers below. */
+  const ranked = rankedAll.filter(r => fbConfTeamPass(r.team))
+                          .sort((a,b) => (b.v - a.v) * fbSortDir);
   const thin   = rows.filter(r => r.games <  floor && fbConfTeamPass(r.team))
-                     .sort((a,b) => b.v - a.v);
+                     .sort((a,b) => (b.v - a.v) * fbSortDir);
   const rng = (hi - lo) || 1;
   const col = t => t > .5 ? '#b9482a' : (t < .5 ? '#1a7060' : '#3b6ea5');
+
+  const metricLabel = (mets.find(m => m.k === fbMetric) || {}).l || 'Value';
+  const sortArrow = fbSortDir === 1
+    ? '<span style="color:#7c8794;font-size:10px">&#9660;</span>'
+    : '<span style="color:#7c8794;font-size:10px">&#9650;</span>';
 
   const qbRush = (LEAGUE === 'ncaaf' && fbPos === 'QB' &&
                   (fbMetric === 'rush_yds' || fbMetric === 'car'));
@@ -5471,11 +5531,23 @@ async function renderFootball(){
        below ${FB_MIN_GAMES} games.</div>` : ''}
     ${fbConfBar()}
     <table class="fbt"><thead><tr>
-      <th class="rk">Rk</th><th>${fbSide==='off'?'Offense':'Defense'}</th><th class="n">Per gm</th>
-      <th style="width:32%">Vs. league range</th><th class="n">Gm</th>
+      <th class="rk">Rk</th><th>${fbSide==='off'?'Offense':'Defense'}</th>
+      <!-- 🔴 BOTH COLUMNS SORT, AND THE HEADER SAYS WHAT IT HOLDS.
+           ⛔ ~~"Vs. league range"~~ told the reader how the BAR was drawn
+           and never what the number WAS. It now names the metric on
+           screen and which side of the ball it describes.
+           ⚠️ It uses the SELECTED metric's own label rather than a fixed
+           "yards", so the header cannot say "yards" while the column
+           shows receptions. -->
+      <th class="n fbsort" data-fbsort="1" title="Click to flip most/least"
+          style="cursor:pointer;user-select:none">Per gm ${sortArrow}</th>
+      <th class="fbsort" data-fbsort="1" title="Click to flip most/least"
+          style="width:32%;cursor:pointer;user-select:none">${metricLabel}
+          ${fbSide==='off'?'produced':'allowed'} ${sortArrow}</th>
+      <th class="n">Gm</th>
     </tr></thead><tbody>
     ${ranked.map(r => { const t = (r.v-lo)/rng; return `<tr>
-        <td class="rk">${rankOf.get(r.team)}</td>
+        <td class="rk">${rankOf.get(r.team) ?? '&mdash;'}</td>
         <td><span style="display:inline-flex;align-items:center;gap:7px">
           ${fbMark(r.team, 20)}<b>${r.team}</b></span></td>
         <td class="n" style="color:${col(t)}"><b>${r.v.toFixed(1)}</b></td>
@@ -5520,6 +5592,12 @@ function fbWire(){
   sel('fb-season', e => { fbSeason = +e.target.value; renderFootball(); });
   sel('fb-pos',    e => { fbPos = e.target.value; renderFootball(); });
   sel('fb-metric', e => { fbMetric = e.target.value; renderFootball(); });
+  /* 🔴 WIRED IN fbWire(), WHERE EVERY OTHER FOOTBALL CONTROL IS WIRED.
+     ⛔ A control that renders but does nothing is a failure this project
+     keeps finding, and the reason the conference chips are wired here
+     rather than in the tab that draws them. */
+  document.querySelectorAll('#fbview .fbsort').forEach(th =>
+    th.addEventListener('click', () => { fbSortDir = -fbSortDir; renderFootball(); }));
   /* 🔴 THE CONFERENCE CHIPS ARE WIRED HERE, NOT IN THE TABS THAT DRAW
      THEM. Every football tab already ends in fbWire(), so a tab that
      renders the bar cannot forget to wire it -- and a bar that renders
