@@ -842,7 +842,14 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
     # Sam's -700 floor: the shortest rung he will take. His rule, not a
     # judgment call of Claude's -- so it sorts the board rather than
     # hiding anything. Every below-floor rung is still written out in full.
-    floor_ok = price is None or price > -700
+    # 🔴 `>=`, NOT `>`. Sam's rule is "-700, nothing shorter" — so -700
+    #    ITSELF is the shortest rung he WILL take, and this line excluded
+    #    exactly it. `[reported by the scheduled grading run for 18 days,
+    #    fixed 2026-09-11]` The comment directly above already said "the
+    #    shortest rung he will take"; the comparison disagreed with it.
+    # ⚠️ Off-by-one on a boundary Sam chose by hand, so it is his number
+    #    that was wrong on the page, not a tolerance of ours to tune.
+    floor_ok = price is None or price >= -700
 
     return {
         "pitcher": p["name"], "pid": prop.get("pid"), "team": p["team"], "throws": p.get("throws"),
@@ -1229,7 +1236,10 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
         # floor was never enforced on half the board. No live slate had
         # violated it yet -- which is exactly the kind of gap that gets
         # found by the slate that does.
-        "clears_price_floor": price > -700,
+        # 🔴 `>=` — the same off-by-one as the pitcher floor, fixed with
+        #    it 2026-09-11. -700 is the shortest rung Sam WILL take, so a
+        #    row priced exactly -700 CLEARS the floor.
+        "clears_price_floor": price >= -700,
         "confidence_basis": "RECORD",
         # 🔴 NEVER "MODEL". Rule 55 binds here hardest: this number is an
         # inversion of the player's own RECORD, so it is DESCRIPTIVE no
@@ -1317,6 +1327,14 @@ def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
 
 # --------------------------------------------------------------- pairs
 FLOOR, TARGET = 1.80, 2.10
+# 🔴 `TARGET` IS THE SOFT TARGET, NOT A BAND EDGE, AND USING IT AS ONE WAS
+#    THE BUG. `[settled 2026-09-11]` 2.10x is the break-even landmark
+#    (47.6%) and the number to WALK THE RUNGS TOWARD — ledger rule 28
+#    calls it a SOFT TARGET and explicitly not a cap. The two-leg BAND is
+#    1.80-2.20, widened by Sam on 2026-08-26.
+# ⛔ Do not reintroduce `mult <= TARGET` as an in-band test. The bands
+#    live in `PARLAY_BANDS` below and nowhere else; `_P2_LO`/`_P2_HI`
+#    exist so the pairs path reads them rather than keeping a third copy.
 
 
 # ------------------------------------------------------- top 10 of the day
@@ -1370,6 +1388,9 @@ def build_top10(plays, hitters, n=TOP10_N):
 # is an UPPER bound on the two-leg list, which is also his instruction --
 # a 4x two-man is not a better two-man, it is a different bet.
 PARLAY_BANDS = {2: (1.80, 2.20), 3: (3.00, 6.00), 4: (3.00, 6.00)}
+# ⛔ The pairs path reads the two-leg band from here rather than
+#    carrying a third copy of the numbers (settled 2026-09-11).
+_P2_LO, _P2_HI = PARLAY_BANDS[2]
 # 🔴 A HARD CAP ON THE CANDIDATE POOL, STATED RATHER THAN HIDDEN.
 # C(n,4) is 91,390 at n=40 and 3.9 million at n=120.
 #
@@ -1456,8 +1477,38 @@ def build_parlays(plays, hitters, per_size=8):
                 "multiplier": round(mult, 3),
                 "n_legs": size,
                 "band": f"{lo:g}x-{hi:g}x",
-                "in_band": (size != 2) or (mult <= TARGET),
-                "label": ("IN BAND" if (size == 2 and mult <= TARGET)
+                # ══════════════════════════════════════════════════════
+                # 🔴 THE FLAG IS COMPUTED FROM THE BAND IT PRINTS. `[the
+                #    contradiction every grading run has re-reported since
+                #    2026-08-26; settled 2026-09-11]` This read
+                #    `mult <= TARGET` with `TARGET = 2.10`, while the
+                #    `band` string one line up prints `lo`-`hi` out of
+                #    `PARLAY_BANDS`, which Sam widened to **2.20 for two
+                #    legs on 2026-08-26**. So a pair at 2.15x was ABOVE
+                #    BAND to the flag and INSIDE BAND to the same card's
+                #    own prose.
+                # ✅ `claude/pick-ledger.md` RULE 28 OWNS THE BANDS and is
+                #    unambiguous: 2 LEGS 1.80-2.20 · 3 LEGS 3.00-6.00 ·
+                #    4 LEGS 3.00-6.00. `PARLAY_BANDS` already matches it;
+                #    only this flag was stale. ⛔ Reading `lo`/`hi` means
+                #    the two can never drift apart again.
+                # ⚠️ AND IT FIXES A SECOND, QUIETER BUG: `(size != 2)`
+                #    made in_band UNCONDITIONALLY TRUE for 3- and 4-leg
+                #    tickets, so a 3-leg at 2.5x — below its own 3.00
+                #    floor — was labelled IN BAND. Now every size is
+                #    judged against its own band.
+                # ⛔ THIS CHANGES A LABEL, NOT WHAT IS SHOWN. The 1.80
+                #    hard floor at `mult < FLOOR` below is untouched, and
+                #    an above-band pair that is a good bet is still shown
+                #    (rule 28: 2.1x is a SOFT TARGET, never a cap).
+                # ⛔ AND IT DOES NOT RE-GRADE HISTORY. Every INSIDE-BAND /
+                #    ABOVE-BAND subtotal already in `pick-ledger.md` was
+                #    computed on the 2.1x flag and STAYS THAT WAY — the
+                #    ledger says so on the rows. This governs cards built
+                #    from today forward.
+                # ══════════════════════════════════════════════════════
+                "in_band": lo <= mult <= hi,
+                "label": ("IN BAND" if (size == 2 and lo <= mult <= hi)
                           else "ABOVE BAND" if size == 2 else f"{size}-LEG"),
                 "joint": round(100 * joint, 1),
                 "joint_basis": basis,
@@ -1586,8 +1637,15 @@ def build_pairs(plays, limit=8):
                 "decimals": [round(decimal(a["price"]), 3), round(decimal(b["price"]), 3)],
                 "prices": [a["price"], b["price"]],
                 "multiplier": round(mult, 3),
-                "in_band": FLOOR <= mult <= TARGET,
-                "label": "IN BAND" if FLOOR <= mult <= TARGET else "ABOVE BAND",
+                # 🔴 THE SECOND COPY OF THE SAME STALE CEILING — this is
+                #    the PAIRS path and it carried `TARGET` (2.10) too.
+                #    Both now read `PARLAY_BANDS[2]`, which is Sam's
+                #    2026-08-26 instruction (1.80-2.20) and what ledger
+                #    rule 28 owns. ⛔ A label, not a filter: `mult < FLOOR`
+                #    above is what suppresses, and it is untouched.
+                "in_band": _P2_LO <= mult <= _P2_HI,
+                "label": ("IN BAND" if _P2_LO <= mult <= _P2_HI
+                          else "ABOVE BAND"),
                 "joint": round(100 * joint, 1),
                 "leg_blends": [a["blend"], b["blend"]],
                 "leg_models": [a["model"], b["model"]],
