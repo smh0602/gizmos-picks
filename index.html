@@ -2674,9 +2674,22 @@ function fbShell(inner){
    had no way to reach 2025. ⛔ A dead end is worse than an empty table;
    the empty table at least tells you where you are.
    ⚠️ Found by driving the page, not by reading it. */
-function fbControls(avail){
-  const mets = fbMetricsFor(fbPos);
-  if (!mets.some(m => m.k === fbMetric)) fbMetric = mets[0].k;
+function fbControls(avail, mets){
+  /* 🔴🔴 THE METRIC LIST IS PASSED IN. IT IS NOT COMPUTED HERE.
+     ⛔ THIS FUNCTION USED TO BUILD ITS OWN `fbMetricsFor(fbPos)`, which
+        made it a SECOND COPY of the list the table below was using — so
+        when the caller started filtering the list to what the loaded
+        data actually carries, THE DROPDOWN KEPT OFFERING EVERYTHING.
+     `[caught 2026-09-11 by rendering the deployed page in a headless
+        browser]` "Total yards" appeared in the picker hours before any
+        table carried the column. The filter was real and this dropdown
+        was not reading it.
+     ⚠️ SAME SHAPE AS THE RANK BUG IN THE SAME DROP: the builder was
+        fixed and the page held its own copy. Rule 66 — one number, one
+        list, one place.
+     ⛔ It also no longer reassigns `fbMetric`; the caller owns that, and
+        two places quietly choosing a default is how they disagree. */
+  mets = mets && mets.length ? mets : fbMetricsFor(fbPos);
   /* ⚠️ Only offer a season that has a file. An empty option is a dead
      end, and a dead end is worse than an empty table. */
   const yrs = (avail && avail.length) ? avail : FB_SEASONS;
@@ -5381,7 +5394,10 @@ async function renderFootball(){
   const doc = await fbLoad(fbSeason);
   const body = $('#fbbody');
   if (!doc){
-    v.innerHTML = fbShell(fbControls(avail) +
+    /* ⚠️ No doc loaded, so there is nothing to filter the metric list
+       against — fbControls falls back to the full list, which is right:
+       the picker should still work on a page that has no table yet. */
+    v.innerHTML = fbShell(fbControls(avail, null) +
       `<div class="note"><b>No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</b><br>
        ${fbSeason >= 2026 ? `The ${fbSeason} season rebuilds
        ${LEAGUE==='ncaaf'?'every morning at 3am ET':'every Tuesday at noon ET'}.
@@ -5501,7 +5517,7 @@ async function renderFootball(){
                   (fbMetric === 'rush_yds' || fbMetric === 'car'));
 
   v.innerHTML = fbShell(`
-    ${fbControls(avail)}
+    ${fbControls(avail, mets)}
     ${ageNote}
     ${snapped ? `<div class="note" style="margin:0 0 12px;padding:9px 12px">
       <b>No ${snapped} ${fbSide === 'off' ? 'offense' : 'defense'} table for

@@ -40,6 +40,7 @@ the RELATIONSHIP between values and ranks, which no date can falsify.
 """
 import collections
 import gzip
+import re
 import json
 import os
 import sys
@@ -193,6 +194,33 @@ ck("🔴 index.html reads the file's rank instead of computing one",
 ck("⛔ ...and the old JavaScript ordinal is gone",
    "rankedAll.map((r, i) => [r.team, i + 1])" not in html,
    "`.sort()` then `i + 1` is the exact defect, in JavaScript")
+# 🔴🔴 AND THE DROPDOWN MUST READ THAT SAME LIST.
+# `[caught 2026-09-11 by rendering the deployed page headless, AFTER this
+#   file was already green]` The filter below was real and correct, and
+#   "Total yards" STILL appeared in the picker hours before any table
+#   carried the column — because `fbControls()` built its OWN
+#   `fbMetricsFor(fbPos)` and never saw the filter.
+# ⛔ A SECOND COPY OF THE LIST, IN THE SAME DROP THAT FIXED A SECOND COPY
+#   OF THE RANKING. Asserting the filter EXISTS is not asserting that
+#   anything USES it — which is the same gap as "is anything there?" vs
+#   "is anything wrong?" (rule 178).
+_ctl = html[html.index("function fbControls("):]
+_ctl = _ctl[:_ctl.index("\nfunction ")]
+ck("🔴 fbControls RECEIVES the metric list instead of building one",
+   "function fbControls(avail, mets)" in html,
+   "⛔ it used to call `fbMetricsFor(fbPos)` itself, so a caller that "
+   "filtered the list changed the TABLE and not the PICKER")
+# ⛔ EXCLUDE THE DEFINITION LINE. The first form of this counted
+#    `fbControls(avail, mets)` across the whole file and found TWO —
+#    because `function fbControls(avail, mets){` contains the same
+#    substring. A bare substring search over source reads the
+#    DECLARATION as if it were a CALL, which is the trap this repo has
+#    three dead comment-strippers to show for.
+_calls = [m for m in re.findall(r"(?<!function )fbControls\(([^)]*)\)", html)]
+ck("⛔ ...and every render call site passes a list, or null on purpose",
+   len(_calls) == 2 and all("," in c for c in _calls),
+   "the no-doc branch passes null DELIBERATELY — there is no table to "
+   "filter against and the picker should still work. Found: %s" % _calls)
 ck("✅ the metric picker is derived from the loaded data",
    "_probe[m.k] !== undefined" in html,
    "⚠️ the builder and the page do NOT arrive together — the page ships "
