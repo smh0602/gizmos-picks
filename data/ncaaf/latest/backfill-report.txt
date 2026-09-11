@@ -1,7 +1,10 @@
-cfb back-fill at 2026-09-10 22:30:48.085786+00:00
+cfb back-fill at 2026-09-11 05:58:38.148168+00:00
 requested: [2026]
-written  : [2026]
-failed   : []
-consecutive failures: 0
+written  : []
+failed   : [2026]
+consecutive failures: 1
 not yet  : []   (season not started — not a failure)
+
+--- 2026 ---
+RuntimeError: ahead_out_lastwk is CONSTANT 0 across 1,870 rows spanning 2 week(s) [1, 2] — a join failure, not a result
 
