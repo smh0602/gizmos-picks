@@ -519,6 +519,47 @@ def fill_board(rows, cap):
     return out
 
 
+def empty_top_plays_sentence(slate, n_board):
+    """The sentence an EMPTY top-plays list shows, and there are TWO.
+
+    🔴 **THE CARD ONCE GAVE THE WRONG ONE ON A LIVE PAGE.**
+    `[2026-09-10]` On a Thursday college card with `n_priced: 0` it
+    printed *"⛔ Not because the board is empty"* — **on a board that WAS
+    empty.** The reader was told the rows existed and had all been
+    rejected for carrying no record, when nothing had been priced at all.
+
+    ⛔ **EXTRACTED TO A NAMED FUNCTION 2026-09-11, AND THAT IS THE POINT
+    OF THIS CHANGE.** Both branches were only reachable by running the
+    whole builder against a real data tree, so the two checks that
+    covered them — `test_drop16_fixes.py` §6 and `test_top_plays.py` —
+    **BOTH BRANCHED ON THE LIVE CARD.** On a day with rows priced, the
+    empty-board sentence was exercised by **nothing at all**, and the
+    only thing standing between that and a repeat of the 09-10 defect
+    was which day of the week it happened to be.
+    ➡️ **A rule the card PRINTS should be a rule a test can DRIVE** — no
+    data tree, no sandbox, no calendar. Same reason `h2h_gap_days()` and
+    `nfl.check_ahead_out()` were pulled out of their builders.
+
+    ✅ **THE HONEST HALF IS KEPT IN BOTH BRANCHES:** we did not rank by
+    price, because ranking by price is ranking by which bet pays worst
+    while calling it *"most likely to hit"*.
+
+    ⚠️ `n_board` is a COUNT, not the board. The sentence needs to know
+    how many rows are priced and nothing else about them.
+    """
+    if not n_board:
+        return (f"No top plays for {slate}. Nothing is priced for this "
+                f"day yet, so there was nothing to rank. ⚠️ When rows do "
+                f"arrive, only those carrying a record are ranked — "
+                f"ranking by price would be ranking by which bet pays "
+                f"worst while calling it 'most likely to hit'.")
+    return (f"No top plays for {slate}. ⛔ Not because the board is "
+            f"empty — {n_board} row(s) are priced, but none carries a "
+            f"record, and ranking those by price would be ranking by "
+            f"which bet pays worst while calling it 'most likely to "
+            f"hit'.")
+
+
 def build_top_plays(rows, board, n=TOP_N):
     """Most likely to hit, among rows a person is actually paid on.
 
@@ -1032,27 +1073,10 @@ def main():
                else ". ")
             + f"⛔ Nothing is padded back to {TOP_N}: fewer, more "
               f"independent rows is the point."
-            if top_plays else
-            # 🔴 TWO DIFFERENT REASONS FOR AN EMPTY LIST, AND THE CARD
-            #    USED TO GIVE THE WRONG ONE. `[2026-09-10]` On a Thursday
-            #    college card with `n_priced: 0` this printed "⛔ Not
-            #    because the board is empty" — on a board that WAS empty.
-            #    A reader is told the rows exist and were all rejected for
-            #    carrying no record, when in fact nothing was priced at
-            #    all. ⛔ That is a false sentence on a live page, and the
-            #    honest half of the message ("we did not rank by price")
-            #    is preserved in both branches.
-            (f"No top plays for {slate}. Nothing is priced for this day "
-             f"yet, so there was nothing to rank. ⚠️ When rows do arrive, "
-             f"only those carrying a record are ranked — ranking by price "
-             f"would be ranking by which bet pays worst while calling it "
-             f"'most likely to hit'."
-             if not board else
-             f"No top plays for {slate}. ⛔ Not because the board is "
-             f"empty — {len(board)} row(s) are priced, but none carries a "
-             f"record, and ranking those by price would be ranking by "
-             f"which bet pays worst while calling it 'most likely to "
-             f"hit'.")),
+            # 🔴 THE TWO EMPTY-LIST SENTENCES LIVE IN A NAMED FUNCTION
+            #    so a test can drive BOTH without a data tree — see
+            #    `empty_top_plays_sentence` for why that matters.
+            if top_plays else empty_top_plays_sentence(slate, len(board))),
         "parlays": parlays,
         "parlay_meta": parlay_meta,
         "parlay_rule": (
