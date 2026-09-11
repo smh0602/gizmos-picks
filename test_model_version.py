@@ -33,7 +33,7 @@ import hashlib
 import os
 import sys
 
-from tcheck import ck, note
+from tcheck import ck, eq, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
@@ -146,6 +146,64 @@ ck("⚠️ ...and verify_card.py really does still rebuild mu itself",
    "make the verifier reuse the arithmetic it exists to check "
    "independently, which is what its own docstring forbids. Importing a "
    "CONSTANT is not importing a CALCULATION")
+
+
+print("\n═══ 4. \U0001f534 AND NO SHIPPED STRING NAMES A VERSION IN PROSE ═══")
+# \U0001f534 THE FINGERPRINT PROVED THE CONSTANTS AND THE STAMP MOVED
+#    TOGETHER, AND THE CARD STILL TOLD THE READER "v4.0". `[2026-09-11]`
+#    Three strings named v4.0 while `MODEL_VERSION` correctly said v5.0,
+#    and TWO OF THEM REACH THE PAGE:
+#      confidence_note   "v4.0 model blended 50/50 with his own rate..."
+#      joint_note        "Every leg is a v4.0 model estimate."
+#      the module docstring
+# ⛔ THAT IS A FALSE PROVENANCE CLAIM ON A PAGE REAL MONEY IS BET
+#    AGAINST — the same class as rule 184, where a stamp and the code
+#    disagreed, except here the STAMP was right and the PROSE was lying.
+# ➡️ A VERSION IS A FACT ABOUT THE CODE. READ IT, NEVER RETYPE IT.
+# ✅ DOCSTRINGS AND COMMENTS ARE EXEMPT ON PURPOSE: they are where the
+#    project records what a number USED to be, and Sam's standing rule is
+#    that superseded content stays visible rather than being deleted.
+#    Only literals that can reach `picks/<date>.json` or the page count,
+#    so this walks the AST rather than grepping lines.
+import ast  # noqa: E402
+import re  # noqa: E402
+
+_src = open("card.py", encoding="utf-8").read()
+_tree = ast.parse(_src)
+_docs = set()
+for _n in ast.walk(_tree):
+    _b = getattr(_n, "body", None)
+    if isinstance(_n, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef,
+                       ast.ClassDef)) and _b \
+            and isinstance(_b[0], ast.Expr) \
+            and isinstance(_b[0].value, ast.Constant) \
+            and isinstance(_b[0].value.value, str):
+        _docs.add(id(_b[0].value))
+_lits = [(_n.lineno, _n.value) for _n in ast.walk(_tree)
+         if isinstance(_n, ast.Constant) and isinstance(_n.value, str)
+         and id(_n) not in _docs
+         and re.search(r"\bv\d+\.\d+\b", _n.value)]
+# ⚠️ THE DEFINITION ITSELF IS THE ONE ALLOWED LITERAL. Everything else
+#    must interpolate it.
+_bad = [(ln, v[:70]) for ln, v in _lits if v.strip() != MODEL_VERSION]
+ck("\U0001f534 no shipped string in card.py names a model version in prose",
+   not _bad,
+   "⛔ %s. These reach the card file and the page. ➡️ Interpolate "
+   "`MODEL_VERSION` instead: the card ran v5.0 from 01:11Z on 2026-09-11 "
+   "while three strings still said v4.0" % (_bad or "none"))
+eq(len(_lits), 1,
+   "✅ exactly one literal version in the whole file — the definition")
+ck("✅ ...and the reader-facing strings really do interpolate it",
+   ("MODEL_VERSION + \" model blended" in _src
+    or "MODEL_VERSION" in _src.split("confidence_note")[1][:200])
+   and "% MODEL_VERSION" in _src,
+   "⛔ `confidence_note` and the MODEL parlay label are the two a reader "
+   "sees; a fix that only touched the docstring would leave the page "
+   "lying and this check passing")
+ck("⚠️ ...and the struck originals are kept, not deleted",
+   "~~\"v4.0 model blended" in _src or '~~"v4.0 model blended' in _src,
+   "Sam's standing rule: superseded content stays visible with a reason, "
+   "so the next reader knows what it used to claim and why it changed")
 
 
 note("⚠️ THIS FILE DOES NOT OWN THE VALUES. "

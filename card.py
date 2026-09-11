@@ -2,9 +2,15 @@
 """
 Gizmo's Picks -- the daily card, generated on the runner.
 
-This is the last manual step in the project, automated. It runs the v4.0
-projection model over the game logs the collector already stores, joins it
-to the Hard Rock prop board, and writes picks/<date>.json.
+This is the last manual step in the project, automated. It runs the
+projection model (see MODEL_VERSION below) over the game logs the collector
+already stores, joins it to the Hard Rock prop board, and writes
+picks/<date>.json.
+
+🔴 ~~"It runs the v4.0 projection model"~~ STRUCK 2026-09-11. The card has
+run v5.0 since 01:11Z that day and this sentence still said v4.0 -- along
+with two strings the READER sees. A version is a fact about the code, so
+it is read from MODEL_VERSION rather than retyped in prose (rule 66).
 
 WHAT IT DOES NOT DO, DELIBERATELY:
 
@@ -926,7 +932,14 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         "blend": round(blend, 1), "carried": round(carried, 1),
         "confidence": round(blend),
         "confidence_basis": "MODEL",
-        "confidence_note": "v4.0 model blended 50/50 with his own rate at this line.",
+        # 🔴 ~~"v4.0 model blended 50/50 ..."~~ STRUCK 2026-09-11. THE READER
+        # SEES THIS STRING, and it named v4.0 while the card ran v5.0 --
+        # a false provenance claim on a page real money is bet against
+        # (the same class as rule 184, where a stamp and the code
+        # disagreed). ⛔ A version is a fact about the code: read it,
+        # never retype it.
+        "confidence_note": (MODEL_VERSION + " model blended 50/50 with his "
+                            "own rate at this line."),
         # The single number Sam asked for beside the line, covers-style. It is
         # the blend read backwards, so it can never argue with the confidence.
         # ⛔ SET TO None ON PURPOSE. apply_projections() is the ONLY writer
@@ -1587,7 +1600,10 @@ def build_parlays(plays, hitters, per_size=8):
                 "joint_basis": basis,
                 "joint_note": (
                     "Product of the legs' own numbers. "
-                    + {"MODEL": "Every leg is a v4.0 model estimate.",
+                    # 🔴 ~~"Every leg is a v4.0 model estimate."~~ STRUCK
+                    # 2026-09-11, same defect as `confidence_note` above.
+                    + {"MODEL": "Every leg is a %s model estimate."
+                                % MODEL_VERSION,
                        "RECORD": "Every leg is the player's own record — "
                                  "DESCRIPTIVE, not a model output.",
                        "MIXED": "⚠️ MIXED PROVENANCE — some legs are model "
