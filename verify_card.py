@@ -55,10 +55,38 @@ for r in pit_rows:
     p = P[str(r['pid'])]
     st = [x for x in p['g'] if x.get('gs') and (x.get('d') or '') < doc['date']]
     st.sort(key=lambda x: x['d'])
-    tr = st[-8:]
+    tr = st[-C.TRAIL_N:]
     mO8 = sum(x['outs'] for x in tr)/len(tr)
-    kk = 0.638 if mO8 < 15.25 else (0.759 if mO8 < 17.0 else 0.317)
-    mu = 15.899 + kk*(mO8-15.903) + 0.0371*(tr[-1]['np']-86.6) + (0.189 if r['home_side'] else -0.189)
+    # 🔴 ~~kk = 0.638 if mO8 < 15.25 else (0.759 if ... else 0.317)~~
+    # ~~mu = 15.899 + kk*(mO8-15.903) + 0.0371*(np-86.6) + 0.189*home~~
+    # STRUCK 2026-09-11. THOSE WERE v4.0's EIGHT OUTS COEFFICIENTS, AND
+    # THEY WENT STALE THE MOMENT card.py SHIPPED v5.0 AT 01:11Z. Every
+    # MLB converge pass from 11:13Z onward wrote card-verify-failure.txt,
+    # blocked the card and turned the run red, hourly -- on a CORRECT
+    # card. Measured on the live board: the struck literals give a max
+    # gap of 1.8258 pts against a 0.06 bar; card.py's own constants give
+    # 0.0424 and PASS. The tier-mid slope alone moved 0.647 -> 0.759.
+    # ⛔ THIS IS NOT WEAKENING THE CHECK, AND THE DISTINCTION IS THE
+    # WHOLE POINT (CLAUDE.md's first rule). The TOLERANCE IS UNCHANGED at
+    # 0.06. What changed is that the COEFFICIENTS are no longer restated
+    # here: they are the model's SPECIFICATION, owned by
+    # claude/mlb-projection-model.md, and a second copy of them is rule
+    # 66 -- the identical defect that put v4.0's numbers into
+    # card-blueprint.md where a builder read them first.
+    # ✅ THE RECOMPUTATION IS STILL INDEPENDENT, which is what this file's
+    # docstring actually promises: mu, the prior SD, the z-score and the
+    # Normal CDF are all still rebuilt here from the RAW LOG, by a second
+    # and different route, reading no computed value back off the card.
+    # ⚠️ AND NO PROTECTION IS LOST. This check never guarded the
+    # coefficients' VALUES -- a wrong coefficient moved the card and the
+    # recomputation together and was always invisible here.
+    # test_model_version.py is what guards the values, by fingerprinting
+    # them beside the stamp.
+    kk = (C.O_TIER_B_LO if mO8 < C.O_TIER_CUT_LO else
+          (C.O_TIER_B_MID if mO8 < C.O_TIER_CUT_HI else C.O_TIER_B_HI))
+    mu = (C.O_INTERCEPT + kk*(mO8 - C.O_TRAIL_C)
+          + C.O_NP_B*(tr[-1]['np'] - C.O_NP_C)
+          + (C.O_HOME if r['home_side'] else -C.O_HOME))
     prior = [x['outs'] for x in st if x.get('outs') is not None]
     m = sum(prior)/len(prior); s2 = math.sqrt(sum((x-m)**2 for x in prior)/(len(prior)-1))
     z = (r['line'] - mu)/s2
