@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-09-08T01:59:57Z",
+ "written_at": "2026-09-11T01:57:58Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -11,29 +11,29 @@
    "variant": "default (what run 1 used)",
    "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=400",
    "http": 200,
-   "events": 25
+   "events": 24
   },
   {
    "variant": "groups=80 (FBS)",
    "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
    "http": 200,
-   "events": 99
+   "events": 86
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20260907&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20260910&limit=400",
    "http": 200,
    "events": 1
   },
   {
    "variant": "groups=80 + dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20260907&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20260910&limit=400",
    "http": 200,
    "events": 1
   }
  ],
  "variant_used": "groups=80 (FBS)",
- "events": 99,
+ "events": 86,
  "payload_shape": {
   "top_level": [
    "events",
@@ -66,7 +66,6 @@
    "dateValid",
    "format",
    "geoBroadcasts",
-   "groups",
    "highlights",
    "id",
    "leaders",
@@ -139,21 +138,21 @@
  "all_needed_fields_present": true,
  "by_state": {
   "in": 1,
-  "post": 98
+  "pre": 85
  },
  "in_progress": 1,
  "live_sample": [
   {
-   "id": "401858212",
-   "away": "SMU Mustangs",
-   "home": "Florida State Seminoles",
-   "away_score": "7",
-   "home_score": "7",
+   "id": "401858213",
+   "away": "Florida A&M Rattlers",
+   "home": "Miami Hurricanes",
+   "away_score": "0",
+   "home_score": "49",
    "state": "in",
-   "detail": "11:45 - 2nd",
-   "clock": "11:45",
-   "period": 2,
-   "start": "2026-09-07T23:30Z"
+   "detail": "13:19 - 3rd",
+   "clock": "13:19",
+   "period": 3,
+   "start": "2026-09-11T00:00Z"
   }
  ],
  "live_state_fields": {
@@ -164,13 +163,13 @@
  },
  "join": {
   "our_schedule_season": 2026,
-  "our_games": 3680,
-  "espn_events": 99,
+  "our_games": 3679,
+  "espn_events": 86,
   "join_field": "our `id` vs ESPN `events[].id`",
-  "matched_on_our_id": 99,
-  "matched_on_our_espn_column": 99,
-  "our_games_carrying_an_espn_column": 3680,
-  "ids_in_common": 99,
+  "matched_on_our_id": 86,
+  "matched_on_our_espn_column": 86,
+  "our_games_carrying_an_espn_column": 3679,
+  "ids_in_common": 86,
   "pct_of_espn_events_matched": 100.0,
   "verdict": "EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all",
   "n_unmatched": 0,
@@ -182,106 +181,70 @@
   "counted_on": "our `id`, ET slate day",
   "per_date": [
    {
-    "et_date": "2026-08-29",
-    "espn_events": 8,
-    "our_games": 74,
-    "ours_that_espn_returned": 8,
-    "ours_MISSING_from_espn": 66,
-    "pct_of_ours_present": 10.8,
-    "missing_examples": [
-     "Gannon @ Davenport",
-     "Fairmont State @ Dayton",
-     "Robert Morris @ Wagner",
-     "Chowan @ West Virginia State",
-     "Thomas More @ Wheeling"
-    ]
-   },
-   {
-    "et_date": "2026-09-03",
-    "espn_events": 11,
-    "our_games": 52,
-    "ours_that_espn_returned": 11,
-    "ours_MISSING_from_espn": 41,
-    "pct_of_ours_present": 21.2,
-    "missing_examples": [
-     "Merchant Marine @ Montclair State",
-     "Kutztown @ Assumption",
-     "Charleston (WV) @ California (PA)",
-     "Thomas @ Carson Newman",
-     "West Virginia Wesleyan @ Clarion"
-    ]
-   },
-   {
-    "et_date": "2026-09-04",
-    "espn_events": 8,
-    "our_games": 29,
-    "ours_that_espn_returned": 8,
-    "ours_MISSING_from_espn": 21,
-    "pct_of_ours_present": 27.6,
-    "missing_examples": [
-     "Gallaudet @ Albright",
-     "Randolph Macon @ Dickinson",
-     "Bentley @ Ferris State",
-     "Shenandoah @ Methodist",
-     "MIT @ Nichols"
-    ]
-   },
-   {
-    "et_date": "2026-09-05",
-    "espn_events": 68,
-    "our_games": 232,
-    "ours_that_espn_returned": 68,
-    "ours_MISSING_from_espn": 164,
-    "pct_of_ours_present": 29.3,
-    "missing_examples": [
-     "Colorado School of Mines @ Washburn",
-     "Hamline @ Crown",
-     "Central College @ Gustavus Adolphus",
-     "Macalester @ Martin Luther",
-     "Concordia Chicago @ Minnesota Morris"
-    ]
-   },
-   {
-    "et_date": "2026-09-06",
-    "espn_events": 3,
-    "our_games": 7,
-    "ours_that_espn_returned": 3,
-    "ours_MISSING_from_espn": 4,
-    "pct_of_ours_present": 42.9,
-    "missing_examples": [
-     "Western Carolina @ Campbell",
-     "Texas Southern @ Prairie View A&M",
-     "South Carolina State @ Florida A&M",
-     "Albany State @ Johnson C. Smith"
-    ]
-   },
-   {
-    "et_date": "2026-09-07",
+    "et_date": "2026-09-10",
     "espn_events": 1,
-    "our_games": 1,
+    "our_games": 6,
     "ours_that_espn_returned": 1,
-    "ours_MISSING_from_espn": 0,
-    "pct_of_ours_present": 100.0,
-    "missing_examples": []
+    "ours_MISSING_from_espn": 5,
+    "pct_of_ours_present": 16.7,
+    "missing_examples": [
+     "Oberlin @ Denison",
+     "Arkansas Tech @ Northwestern (OK)",
+     "Shippensburg @ West Virginia Wesleyan",
+     "Arkansas Monticello @ East Central",
+     "Harding @ Southwestern Oklahoma State"
+    ]
+   },
+   {
+    "et_date": "2026-09-11",
+    "espn_events": 5,
+    "our_games": 8,
+    "ours_that_espn_returned": 5,
+    "ours_MISSING_from_espn": 3,
+    "pct_of_ours_present": 62.5,
+    "missing_examples": [
+     "Stevenson @ King's",
+     "Charleston (WV) @ North Greenville",
+     "St. John Fisher @ St. Lawrence"
+    ]
+   },
+   {
+    "et_date": "2026-09-12",
+    "espn_events": 80,
+    "our_games": 289,
+    "ours_that_espn_returned": 80,
+    "ours_MISSING_from_espn": 209,
+    "pct_of_ours_present": 27.7,
+    "missing_examples": [
+     "Wheaton (IL) @ Albion",
+     "Wisconsin Oshkosh @ Alma",
+     "Gallaudet @ Anderson (IN)",
+     "Carnegie Mellon @ Catholic",
+     "Coast Guard @ Curry"
+    ]
    }
   ],
-  "worst_pct_of_ours_present": 10.8,
-  "verdict": "\ud83d\udd34 PARTIAL \u2014 as low as 10.8% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so",
+  "worst_pct_of_ours_present": 16.7,
+  "verdict": "\ud83d\udd34 PARTIAL \u2014 as low as 16.7% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so",
   "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
  },
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
  "refresh_check": {
   "seconds_apart": 45,
   "live_games_compared": 1,
-  "games_whose_clock_or_period_changed": 0,
-  "example": null,
-  "verdict": "\u26a0\ufe0f NOTHING CHANGED IN 45s across 1 live games. \u26d4 That is ONE window: it points at a cache in front of the feed, but it is not proof the feed never updates. Re-run before concluding."
+  "games_whose_clock_or_period_changed": 1,
+  "example": {
+   "id": "401858213",
+   "was": "13:19 Q3",
+   "now": "12:36 Q3"
+  },
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 1 of 1 live games in 45s, so the feed is live enough for a polling tab"
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=3",
+  "cache_control": "max-age=2",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "99 events via [groups=80 (FBS)], 1 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 10.8% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "86 events via [groups=80 (FBS)], 1 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 16.7% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
