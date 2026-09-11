@@ -8,8 +8,19 @@ name: collect
 # cron entries and GitHub stopped firing every one of them for 21 hours on
 # 2026-08-26/27 while manual dispatch kept working. Cause never confirmed
 # from the repo side; the response was to stop asking the scheduler for so
-# much. A mode is now a LIST, one cron does a whole time block, and the
-# count is 16.
+# much. A mode is now a LIST, and one cron does a whole time block.
+#
+# 🔴 THE COUNT BELOW IS ASSERTED BY `test_cron_wiring.py`, NOT REMEMBERED.
+# ~~the count is 16.~~ STRUCK 2026-09-11 -- IT WAS 16 WHEN IT WAS WRITTEN
+# AND THE FILE GREW TO FORTY WITHOUT IT. The comment justifying the 29 ->
+# 16 reduction was itself a claim about the schedule, and nobody measured
+# it for two weeks (ledger rule 160, which was written about this exact
+# failure shape in a DIFFERENT comment in this same file).
+# ⛔ DO NOT HAND-EDIT THE NUMBER TO SILENCE A RED RUN. Count the entries,
+#    and if forty is too many, cut crons -- that was the whole point of
+#    the 8/26 reduction.
+#
+# CRON COUNT: 40
 #
 # Scheduled workflows on GitHub can be delayed several minutes under load.
 # That is fine at 30-minute granularity; do not tighten this without
