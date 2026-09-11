@@ -218,3 +218,41 @@ if _desc:
        "   every mode the dispatch form offers exists in collect.py",
        "GHOST MODES: %s — the form would send a run at nothing" % _ghost
        if _ghost else "%d offered, all real" % len(_offered))
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A COUNT WRITTEN IN A COMMENT IS A CLAIM ABOUT THE SCHEDULE.
+# `[added 2026-09-11 — the header said 16 against FORTY crons]`
+#
+# The header explains why the schedule was cut from 29 entries to 16:
+# GitHub stopped firing every cron in this file for 21 hours on
+# 2026-08-26/27, and the response was to ask the scheduler for less. **The
+# file then grew back to FORTY and the comment never moved.**
+#
+# ⛔ THAT IS LEDGER RULE 160 — "a comment justifying a deadline is a claim
+#    about the schedule, and it must be measured like one" — which was
+#    written about a DIFFERENT comment in THIS SAME FILE. Writing the rule
+#    did not make the rule fire; only a check does.
+# ⚠️ AND IT IS THE SAME SHAPE AS `CLAUDE.md`'s standing ban on writing a
+#    credit total into a comment: this project has put a number in a
+#    comment three times and been wrong twice.
+#
+# ✅ SO THE NUMBER STAYS — the 8/26 incident is a real reason to know it —
+#    but it is now PINNED. Add or remove a cron without updating the
+#    header and CI is red.
+# ⛔ IF THIS FAILS, DO NOT EDIT THE COMMENT TO MATCH. Ask first whether
+#    forty crons is what was intended; the reduction to 16 was deliberate.
+_crons = re.findall(r'^\s*- cron:', wf, re.M)
+_claim = re.search(r'^#\s*CRON COUNT:\s*(\d+)\s*$', wf, re.M)
+ck(bool(_claim),
+   "🔴 the workflow header states its cron count in a readable form",
+   "expected a line `# CRON COUNT: <n>` — without it this check cannot "
+   "run and the count goes back to being folklore")
+if _claim:
+    eq(int(_claim.group(1)), len(_crons),
+       "🔴 ...and the stated count matches the crons actually scheduled")
+
+note("⚠️ FORTY IS NOT ENDORSED BY THIS CHECK. It pins the comment to the "
+     "file, nothing more. The 2026-08-26/27 outage — every cron in this "
+     "file silently not firing for 21 hours while manual dispatch kept "
+     "working — is the reason the count is worth knowing at all, and "
+     "whether forty is too many is a question for Sam, not for a test.")

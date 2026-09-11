@@ -59,6 +59,44 @@ O_TIER_CUT_LO, O_TIER_CUT_HI = 15.25, 17.0
 O_TIER_B_LO, O_TIER_B_MID, O_TIER_B_HI = 0.629, 0.647, 0.361
 TRAIL_N = 8
 
+# ⛔ NOT A MODEL COEFFICIENT, AND DELIBERATELY BELOW THE BLOCK ABOVE.
+# `test_model_version.py` fingerprints the 16 constants above; this is not
+# one of them and must never be added to that tuple. It is the window
+# ledger rule 51 was MEASURED on -- 296 rematches inside 30 days, mean gap
+# 15.2 days -- and it is a LABEL threshold, nothing more. ⛔ It does not
+# enter `blend`, a probability, a band or a pair: rule 51's pre-registered
+# specification FAILED and the threshold split that survives is
+# exploratory. Changing this number changes what a sentence says, and
+# nothing else.
+REMATCH_DAYS = 30
+
+
+def h2h_gap_days(h2h, today):
+    """Days since this pitcher last faced this lineup, or None.
+
+    ⛔ A NAMED FUNCTION ON PURPOSE. The three week-1 football guards were
+    unreachable from any test because they sat inline inside a builder,
+    and `nfl.py`'s `check_ahead_out()` was pulled out for exactly this
+    reason. A rule the card PRINTS should be a rule a test can DRIVE.
+
+    ⚠️ `None` is a FINDING, not a gap to fill: four of the ten arms
+    checked on 2026-08-21 had never faced that night's opponent. "No
+    head-to-head" is the honest answer and the card says so in words.
+
+    ⛔ Returns a LABEL input and nothing else -- see REMATCH_DAYS above.
+    """
+    last = max((r.get("d") or "") for r in h2h) if h2h else ""
+    if not last:
+        return None
+    try:
+        return (datetime.fromisoformat(today).date()
+                - datetime.fromisoformat(last[:10]).date()).days
+    except ValueError:
+        # ⚠️ A MALFORMED DATE IS NOT A ZERO-DAY REMATCH. Returning None
+        #    makes the card say "never faced" rather than assert a gap it
+        #    cannot compute -- fail to SILENT, never to a wrong number.
+        return None
+
 
 def outs_k(trailing_outs):
     """The trailing-outs slope is TIERED on his own level. Pooled 0.525 is
@@ -765,6 +803,25 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
     h2h_hit = sum(1 for r in h2h if stat(r) is not None
                   and (stat(r) > line if side == "over" else stat(r) < line))
 
+    # 🔴 RULE 51 — THE GAP IN DAYS, WHICH THIS CARD NEVER PRINTED.
+    # `claude/card-blueprint.md` STEP 4C says plainly: "State the gap in
+    # days on the card row." Pre-publish check 36 has reported it missing
+    # for weeks and nothing added it.
+    # ⚠️ WHY IT MATTERS, AND EXACTLY HOW FAR IT GOES: conditional on a
+    #    first meeting of 5+ K, the next start reaches 4+ K 74.6%
+    #    (1363/1826) against ANYONE but only 67.1% (116/173) against the
+    #    SAME lineup inside 30 days -- which is just the league base rate.
+    #    Whatever edge he had, they have seen it.
+    # ⛔ IT IS A LABEL, NOT AN INPUT. It does not touch `blend`, the
+    #    model, a band or a pair -- rule 51's own pre-registered
+    #    specification FAILED (0.30, t=-1.78) and the threshold split is
+    #    EXPLORATORY. Printing the gap lets Sam weigh it; folding it into
+    #    a number would be fitting an exploratory result.
+    # ➡️ AND THE EFFECT IS THRESHOLD-DEPENDENT: ~8 points at a 4+ K bar
+    #    against ~3 at 3+ K. A rematch is a reason to DROP A RUNG, not to
+    #    drop the pitcher.
+    h2h_gap = h2h_gap_days(h2h, today)
+
     # ---- price.
     # 🔴 Hard Rock is the book Sam bets, so Hard Rock's OWN number is the
     # one quoted. "Best price across books" answers a different question.
@@ -895,8 +952,24 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
                   "n": an,
                   "best": [f"{x[1]} {x[2]} -- {x[0]}" for x in notable[:2]],
                   "worst": [f"{x[1]} {x[2]} -- {x[0]}" for x in notable[-1:]]},
-        "h2h": (f"{len(h2h)} start(s) vs {ab(opp_team)} -- cleared {h2h_hit}/{len(h2h)}"
+        # 🔴 The gap in days is APPENDED to the existing sentence rather
+        #    than replacing it -- every published card's `h2h` string keeps
+        #    the same leading clause, so nothing that reads the old prefix
+        #    breaks and no historical row is re-described.
+        "h2h": (f"{len(h2h)} start(s) vs {ab(opp_team)} -- cleared "
+                f"{h2h_hit}/{len(h2h)}"
+                + (f" -- last one {h2h_gap} days ago" if h2h_gap is not None
+                   else "")
+                + (", and they have seen him inside a month"
+                   if h2h_gap is not None and h2h_gap <= REMATCH_DAYS else "")
                 if h2h else f"never faced {ab(opp_team)} this season"),
+        # ⛔ MACHINE-READABLE, SEPARATE FROM THE PROSE. The calibration
+        #    record needs the number itself, not a sentence to re-parse.
+        #    `None` means no prior meeting this season -- which is a
+        #    finding (four of ten arms checked on 8/21 had none), not a
+        #    blank to skip.
+        "h2h_gap_days": h2h_gap,
+        "h2h_rematch": (h2h_gap is not None and h2h_gap <= REMATCH_DAYS),
         "model_inputs": inputs, "central": central,
         # The same five splits the Player Props tab shows for hitters,
         # counted at THIS line and side. Sam, 2026-08-26.
