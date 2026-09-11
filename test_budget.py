@@ -92,3 +92,51 @@ eq(6 * fires("20 */6 * * 4,5,6") * _slots("4,5,6", 7), 72,
 eq(6 * fires("25 */6 * * 0,1,4") * _slots("0,1,4", 7), 72,
    "NFL line movement, credits/week")
 
+
+# ══════════════════════════════════════════════════════════════════════
+print("\n🔴 FOOTBALL IS MEASURED, NOT ONLY CEILINGED")
+# 🔴 `[2026-09-11]` THE MEASURED-SPEND GLOB WAS `data/20*/...`, WHICH IS
+#    MLB ONLY. Football snapshots live at `data/ncaaf/20*/...` and
+#    `data/nfl/20*/...` and carry the SAME `credits_used` field -- 58 of
+#    them this month. So the football half of the report was a CRON
+#    CEILING while the MLB half was a MEASUREMENT, the two were ADDED,
+#    and the sum was compared with the plan as if they were one kind of
+#    number.
+#      football ceiling   34,073/month
+#      football measured   2,970/month     <- FOURTEEN TIMES smaller
+#      printed TOTAL         214% of plan  + "⛔ Do not add a second
+#                                              props pull per game day"
+# ⛔ A RED STOP-INSTRUCTION DERIVED FROM A NUMBER FOUR TIMES THE TRUTH,
+#    in the one tool `CLAUDE.md` names as the budget authority.
+# ⚠️ THE CEILING IS NOT WRONG AS A CEILING -- it prices every props cron
+#    as if it fires on a full slate, and `_props_warranted()` stands most
+#    of them down. ➡️ THE DEFECT WAS PRESENTING IT AS A FORECAST.
+ck("🔴 the measured-spend reader is reusable, not MLB-shaped",
+   "def _measure(" in SRC,
+   "⛔ a second hand-written glob is a second thing to get wrong, and "
+   "the first one was already wrong")
+ck("🔴 ...and it is pointed at BOTH football leagues",
+   'data/%s/20*/*/*.json.gz' in SRC
+   and 'for _lg in ("ncaaf", "nfl")' in SRC,
+   "⛔ the snapshots were always there; nothing was looking at them")
+ck("⛔ the day key is counted from the END of the path",
+   "_lg, -3)" in SRC,
+   "🔴 AN INDEX FROM THE START READS THE ABSOLUTE PATH. The first form "
+   "used `2` and filed every football snapshot under the day 'claude', "
+   "printing 817/day off one bucket. The script RAN and the number was "
+   "nonsense — read the OUTPUT, not the exit code (rule 202)")
+ck("🔴 the verdict is taken from the MEASUREMENT",
+   "FITS ON THE MEASUREMENT" in SRC
+   and "ABOVE 90% OF PLAN, ON THE MEASUREMENT" in SRC,
+   "⛔ a ✅/🔴 computed off a ceiling is a guess wearing a verdict's "
+   "clothes")
+ck("⚠️ ...and the CEILING is still printed, labelled as one",
+   "CEILING, NOT A FORECAST" in SRC,
+   "⛔ THE HEADROOM IS CONDITIONAL and must say so: it depends on "
+   "`_props_warranted()` standing football pulls down on days with no "
+   "kickoff inside the window. Deleting the ceiling would trade one "
+   "misleading number for another")
+ck("➡️ ...and it names what would spend against the ceiling instead",
+   "adds a per-GAME market" in SRC,
+   "a props pull is priced PER GAME and a gamelines pull is not — which "
+   "is the whole difference between a cheap market and an expensive one")

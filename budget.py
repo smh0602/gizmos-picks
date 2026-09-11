@@ -198,15 +198,55 @@ for m in [x for x in ALL_MODES if x in COST]:
 # the estimate.
 # ══════════════════════════════════════════════════════════════════════
 import glob as _glob, gzip as _gzip, json as _json, collections as _c
-_spend = _c.Counter()
-for _p in _glob.glob(os.path.join(ROOT, "data/20*/*/*.json.gz")):
-    try:
-        with _gzip.open(_p, "rt") as _fh:
-            _u = _json.load(_fh).get("credits_used")
-    except Exception:
-        continue
-    if _u:
-        _spend[_p.split(os.sep)[-3]] += _u
+
+
+def _measure(pattern, day_at):
+    """Credits actually billed, per UTC day, from the snapshots themselves."""
+    out = _c.Counter()
+    for _p in _glob.glob(os.path.join(ROOT, pattern)):
+        try:
+            with _gzip.open(_p, "rt") as _fh:
+                _u = _json.load(_fh).get("credits_used")
+        except Exception:
+            continue
+        if _u:
+            out[_p.split(os.sep)[day_at]] += _u
+    return out
+
+
+_spend = _measure("data/20*/*/*.json.gz", -3)
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 FOOTBALL IS MEASURED TOO, AND IT WAS NOT. `[2026-09-11]`
+# ⛔ THE GLOB ABOVE IS `data/20*/...`, WHICH IS MLB ONLY. Football lives
+# at `data/ncaaf/20*/...` and `data/nfl/20*/...`, carrying the SAME
+# `credits_used` field -- 58 snapshots of it this month. So the football
+# half of this report was a CRON CEILING while the MLB half was a
+# MEASUREMENT, and the two were being ADDED TOGETHER and compared with
+# the plan as though they were the same kind of number.
+# ⛔ WHAT THAT PRINTED: 34,073/month of football against a measured
+# 2,451 -- FOURTEEN TIMES the truth -- and a TOTAL of 214% of plan with
+# a red "⛔ Do not add a second props pull per game day" underneath it.
+# ⚠️ THE CEILING IS NOT WRONG AS A CEILING. It prices every props cron
+# as if it fires on a full slate; `freshness._props_warranted()` stands
+# most of them down, because a pull with no kickoff inside the window
+# buys nothing. ➡️ THE DEFECT WAS PRESENTING IT AS A FORECAST.
+# ✅ BOTH NUMBERS ARE NOW PRINTED, LABELLED, AND THE VERDICT IS TAKEN
+# FROM THE MEASUREMENT -- with the ceiling kept on screen so nobody
+# reads the headroom as unconditional.
+# ⛔ THIS IS THE PROJECT'S FOUNDING LESSON IN A COST TOOL: a fact about
+# a QUERY (the cron schedule) written down as a fact about the WORLD
+# (what the account is billed).
+# ══════════════════════════════════════════════════════════════════════
+_fb_spend = _c.Counter()
+for _lg in ("ncaaf", "nfl"):
+    # ⚠️ `-3` COUNTS FROM THE END, like MLB's does. An index from the
+    #    START reads a segment of the ABSOLUTE path -- the first form of
+    #    this line used `2` and grouped every football snapshot under the
+    #    day "claude", which printed `817/day` off a single bucket. The
+    #    script ran, and the number it printed was nonsense (rule 202:
+    #    read the OUTPUT, not the exit code).
+    for _d, _v in _measure("data/%s/20*/*/*.json.gz" % _lg, -3).items():
+        _fb_spend[_d] += _v
 _days = sorted(_spend)[-7:]
 _meas = round(sum(_spend[d] for d in _days) / max(1, len(_days)))
 print("\nMLB — MEASURED, not derived (converge has no cron-visible mode list)")
@@ -230,17 +270,43 @@ for c, lg in sorted(LEAGUE_OF.items(), key=lambda kv: kv[1]):
     fb_week += wk
     print(f"  {lg:<6} {c:<20} {' '.join(ms):<26} {cost:>5}/run  {wk:>6}/wk")
 print(f"  {'':<6} {'':<20} {'FOOTBALL WEEKLY':<26} {'':>5}       {fb_week:>6}")
-_mo = _meas * 30 + fb_week * 4.3
-print(f"\n{'MLB (measured)':22} {_meas:>7}/day   {_meas*30:>7}/month")
-print(f"{'FOOTBALL (derived)':22} {'':>7}       {round(fb_week*4.3):>7}/month")
-print(f"{'TOTAL':22} {'':>7}       {round(_mo):>7}/month "
+_fb_days = sorted(_fb_spend)[-7:]
+_fb_meas = round(sum(_fb_spend[d] for d in _fb_days) / max(1, len(_fb_days)))
+_fb_ceil = round(fb_week * 4.3)
+print("\nFOOTBALL — MEASURED, the same way MLB is (snapshots carry "
+      "`credits_used`)")
+for _d in _fb_days:
+    print(f"  {_d}  {_fb_spend[_d]:>5} credits")
+print(f"  {'mean of last ' + str(len(_fb_days)):<12} {_fb_meas:>5}/day"
+      f"   (cron-derived CEILING was {round(_fb_ceil/30)})")
+
+_mo = _meas * 30 + _fb_meas * 30
+print(f"\n{'MLB (measured)':26} {_meas:>7}/day   {_meas*30:>7}/month")
+print(f"{'FOOTBALL (measured)':26} {_fb_meas:>7}/day   {_fb_meas*30:>7}/month")
+print(f"{'TOTAL (measured)':26} {'':>7}       {round(_mo):>7}/month "
       f"of {PLAN:,}  ({100.0*_mo/PLAN:.0f}%)")
+# ⚠️ THE CEILING STAYS ON SCREEN. It is what a full slate every day would
+# cost if `_props_warranted()` never stood a pull down, and it is the
+# number to reach for before ADDING a cron -- it just is not a forecast.
+_mo_ceil = _meas * 30 + _fb_ceil
+print(f"{'  ...worst case, if every':26} {'':>7}       {round(_mo_ceil):>7}"
+      f"/month  ({100.0*_mo_ceil/PLAN:.0f}%)  ⚠️ CEILING, NOT A FORECAST")
+print(f"{'  football cron fired on a':26}")
+print(f"{'  full slate, every day':26}")
 if _mo > PLAN * 0.9:
-    print("\n🔴 ABOVE 90% OF PLAN. ⛔ Do not add a second props pull per")
-    print("   game day. ⚠️ MLB ends in weeks and frees roughly "
-          f"{_meas*30:,}/month -- but until it does, this is the ceiling.")
+    print("\n🔴 ABOVE 90% OF PLAN, ON THE MEASUREMENT. ⛔ Do not add a "
+          "second props pull per\n   game day. ⚠️ MLB ends in weeks and "
+          f"frees roughly {_meas*30:,}/month.")
 else:
-    print(f"\n✅ FITS, with {PLAN - round(_mo):,} credits of headroom.")
+    print(f"\n✅ FITS ON THE MEASUREMENT, with {PLAN - round(_mo):,} "
+          "credits of headroom.")
+    if _mo_ceil > PLAN:
+        print(f"⚠️ BUT THE CEILING IS {100.0*_mo_ceil/PLAN:.0f}% OF PLAN. "
+              "The headroom depends on `_props_warranted()`\n"
+              "   standing football pulls down on days with no kickoff "
+              "inside the window.\n   ⛔ Anything that widens that window, "
+              "or adds a per-GAME market, spends\n   against the CEILING "
+              "and not against the measurement.")
 print(f"{backups} backup run(s)/day cost 0 while the primary lands (freshness guard)")
 # ⛔ `props-player` IS NOT FREE. It is priced in the FOOTBALL block above,
 # not in COST, so a bare "not in COST" test listed the single most
