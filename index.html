@@ -3724,7 +3724,7 @@ async function fbProps(){
       bet slip. Set your state at the top or half the links will not resolve.
       <br><br>&#128309; <b>These are the sportsbooks' numbers, not ours.</b>
       <br>&#9940; <b>No row carries a Gizmo's confidence rating, and none ever
-      will on this tab.</b> Three pre-registered football models were tested
+      will on this tab.</b> Four pre-registered football models were tested
       and every one lost to a player's own season average.
     </div>`);
   fbWire();
@@ -3874,6 +3874,50 @@ function fbShortNote(C){
    otherwise sit under a board that correctly hid it — the list and the
    board must never disagree about what is on screen.
    ══════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════════
+   GAME LINES — the second section of Gizmo's Picks.
+   🔴 Sam, 2026-09-11: "we should split them up into 2 sections, 1
+      section for player props and one section for the other type of
+      bets." This is the second.
+   ⛔ RANKED BY PRICE, NEVER BY PROBABILITY. There is no football model
+      — T46, T47, T50 and T57 all lost to a player's own season average,
+      and there is no team model at all — so a "best 15 by likelihood"
+      would be invented. What is ranked is the shoppable gap between
+      books, which is arithmetic on quotes we already store.
+   ⛔ THE PAGE PRINTS THE BUILDER'S OWN SENTENCE (rule 132) and does not
+      re-rank, re-filter or re-compute the gap. A second copy of the
+      selection rule is a second thing to drift. */
+function fbGameLines(C){
+  const g = (C && C.game_lines) || [];
+  if (!g.length) return '';
+  const mk = { h2h: 'Moneyline', spreads: 'Spread', totals: 'Total' };
+  const pt = r => r.point == null ? ''
+    : (r.market === 'spreads' && r.point > 0 ? '+' + r.point : '' + r.point);
+  const bookName = b => ({ hardrockbet: 'Hard Rock', hardrockbet_oh: 'Hard Rock',
+    draftkings: 'DraftKings', fanduel: 'FanDuel',
+    williamhill_us: 'Caesars', betmgm: 'BetMGM' }[b] || b);
+  return `<div class="panel" style="margin-top:18px">
+      <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
+      <p>${C.game_lines_rule || ''}</p>
+      <div class="t10">${g.map((r, i) => `
+        <div class="r">${i + 1}</div>
+        <div class="w"><b>${r.side}</b> ${pt(r)}
+          <span class="rec">${mk[r.market] || r.market}</span>
+          <div class="rec" style="font-size:11px">${r.game || ''}</div></div>
+        <div class="c">+${r.gain_pct}%</div>
+        <div class="p">${sgn(r.best_price)}<div class="rec"
+          style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div>
+      <div class="note" style="margin-top:10px">
+        &#9898; <b>Market, not a model.</b> The percentage is how much more
+        the best book pays than a typical one on the identical wager &mdash;
+        it is not a chance of winning and it does not say who wins.
+        <b>Every row is compared at the exact signed number</b>, because
+        books split on which side lays the points and matching on the
+        number alone would pair opposite bets.
+      </div></div>`;
+}
+
 function fbTopPlays(C, shownPicks){
   const all = (C && C.top_plays) || [];
   if (!all.length) return '';
@@ -3924,7 +3968,7 @@ function fbTopPlays(C, shownPicks){
 function fbNoModelNote(C){
   return `<div class="note" style="margin-top:16px">
     &#9940; <b>No row here carries a Gizmo's confidence rating, and none
-    ever will on today's evidence.</b> Three football models were tested
+    ever will on today's evidence.</b> Four football models were tested
     against held-out weeks and every one lost to a player's own season
     average, so there is nothing of ours to put beside these lines.
     ${C && C.rates_available
@@ -3952,13 +3996,25 @@ async function fbPicks(){
      itself why the board is bare. ⛔ A second copy of that reasoning in
      JavaScript is a second thing to drift. */
   if (C && !(C.picks || []).length && C.empty_reason){
+    /* 🔴 GAME LINES STILL RENDER ON AN EMPTY PROPS BOARD.
+       ⛔ THIS BRANCH USED TO RETURN BEFORE REACHING THEM, AND THE BUG WAS
+          INVISIBLE IN THE SOURCE — the section existed, was wired, and
+          simply never drew. Found by loading the page, not by reading it
+          (ledger rule 197, the same day it was written).
+       ⚠️ A props board and a game-line board are DIFFERENT MARKETS. A
+          Thursday with no player props priced still has 98 games with
+          spreads and totals, and suppressing one because the other is
+          empty tells the reader nothing is there when plenty is. */
     v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") +
-      `<div class="note"><b>No picks for ${fbDayName(C.date)}.</b><br>
+      `<div class="note"><b>No player props for ${fbDayName(C.date)}.</b><br>
        ${C.empty_reason}</div>` + fbNoModelNote(C));
+    v.insertAdjacentHTML('beforeend', fbGameLines(C));
     fbWire(); return;
   }
   if (!C || !(C.picks || []).length){
-    v.innerHTML = fbShell(fbNoCard('picks')); fbWire(); return;
+    v.innerHTML = fbShell(fbNoCard('picks'));
+    v.insertAdjacentHTML('beforeend', fbGameLines(C));
+    fbWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
   const wrap = document.createElement('div');
@@ -3987,6 +4043,7 @@ async function fbPicks(){
   v.innerHTML = fbShell('');
   v.append(wrap, host);
   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
+  v.insertAdjacentHTML('beforeend', fbGameLines(C));
   v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
   fbWire();
   const t = $('#fb-pk-started');

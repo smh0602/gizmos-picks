@@ -96,6 +96,7 @@ was built with it, and **T51 in `claude/owed-tests.md` is the test that
 will check it against real outcomes** once 2026 games accumulate.
 ⛔ Do not tune it. If it is wrong, it gets a test, not an adjustment.
 """
+import collections
 import glob
 import gzip
 import itertools
@@ -560,6 +561,140 @@ def empty_top_plays_sentence(slate, n_board):
             f"hit'.")
 
 
+
+# ══════════════════════════════════════════════════════════════════════
+# GAME LINES — moneyline, spread and total, ranked by SHOPPABLE EDGE.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 Sam, 2026-09-11: *"i also would like you to start adding moneyline,
+#    team total, spread ... in football betting all of these categories
+#    may be more popular than player props."* ✅ True — and popularity and
+#    sharpness are the same thing: these are the most liquid markets in
+#    sport, which is exactly why they are the hardest to beat.
+#
+# ⛔ SO THIS RANKS NOTHING BY PROBABILITY, AND IT CANNOT ON TODAY'S
+#    EVIDENCE. There is no football model — T46, T47, T50 and now T57 all
+#    lost to a player's own season average — and there is no team model at
+#    all. A "model's best 15" here would be a number nobody measured.
+#
+# ✅ WHAT IT RANKS INSTEAD IS REAL, CHECKABLE, AND COSTS NOTHING TO KNOW:
+#    how much better the BEST price is than a TYPICAL one, on the SAME
+#    WAGER. `[measured 2026-09-10 on the live college board]` 224 quotes
+#    were comparable across 3+ of Sam's five books; the best gains ran
+#    3-5% over the median and the median gain was 0.93%.
+#    ⚠️ That is not a prediction and it cannot be wrong about a game. It
+#    is arithmetic on quotes already stored.
+#
+# 🔴 THE EXACT SIGNED NUMBER, ALWAYS. `CLAUDE.md`: eleven books posted
+#    ATL -1.5 while two posted the same game inverted, and matching on
+#    |point| paired opposite bets. A comparison group is therefore keyed
+#    on (market, side, SIGNED point) and never on the absolute value.
+# 🔒 SAM'S FIVE BOOKS. ⛔ A RESTATEMENT IS A RULE 66 HAZARD, so it is
+#    CHECKED against `collect.py` by the test rather than trusted.
+GL_BOOKS = {"hardrockbet", "hardrockbet_oh", "draftkings", "fanduel",
+            "williamhill_us", "betmgm"}
+SHOP_MIN_BOOKS = 3
+GAME_LINES_N = 15
+
+
+def _gl_decimal(american):
+    a = float(american)
+    return 1.0 + (a / 100.0 if a > 0 else 100.0 / abs(a))
+
+
+
+def latest_gamelines_snapshot():
+    """The most recent raw `gamelines` pull, or None.
+
+    ⛔ NOT `board.json` — that keeps only the BEST price, and the spread
+    BETWEEN books is the entire subject here.
+    ⚠️ Returns None rather than raising: a slate with no odds pull yet is
+    a legitimate state, and the card says so in `game_lines_rule`.
+    """
+    paths = sorted(glob.glob(f"{DATA}/*/gamelines/*.json.gz"))
+    for p in reversed(paths):
+        try:
+            d = json.load(gzip.open(p, "rt"))
+            if d.get("games"):
+                return d, p
+        except Exception:
+            continue          # a half-written snapshot is not a failure
+    return None, None
+
+
+def build_game_lines(snapshot, n=GAME_LINES_N):
+    """Top `n` shoppable game-line edges, ONE PER GAME, richest first.
+
+    `snapshot` is a raw `gamelines` pull — the file the collector already
+    writes — because `board.json` keeps only the BEST price and the whole
+    point here is the SPREAD BETWEEN books.
+
+    ⛔ Every number returned is MARKET. Nothing is predicted, nothing
+    carries a confidence, and no row can be wrong about a result.
+    """
+    out = []
+    meta = {"games_seen": 0, "comparable_quotes": 0,
+            "games_with_an_edge": 0, "min_books": SHOP_MIN_BOOKS}
+    for g in (snapshot.get("games") or []):
+        meta["games_seen"] += 1
+        groups = collections.defaultdict(list)
+        for bk, bd in (g.get("books") or {}).items():
+            if bk not in GL_BOOKS:
+                continue
+            for market in ("h2h", "spreads", "totals"):
+                for side, o in (bd.get(market) or {}).items():
+                    if not isinstance(o, dict) or o.get("px") is None:
+                        continue
+                    groups[(market, side, o.get("pt"))].append((bk, o["px"], o))
+        best_row = None
+        for (market, side, pt), quotes in groups.items():
+            if len(quotes) < SHOP_MIN_BOOKS:
+                continue
+            meta["comparable_quotes"] += 1
+            prices = sorted(_gl_decimal(p) for _, p, _ in quotes)
+            mid = len(prices) // 2
+            median = (prices[mid] if len(prices) % 2
+                      else (prices[mid - 1] + prices[mid]) / 2.0)
+            bk, px, o = max(quotes, key=lambda q: _gl_decimal(q[1]))
+            gain = (_gl_decimal(px) / median - 1.0) * 100.0
+            if gain <= 0:
+                continue
+            row = {"kind": "MARKET",
+                   "game": "%s @ %s" % (g.get("away"), g.get("home")),
+                   "game_id": g.get("id"), "commence": g.get("commence"),
+                   "market": market, "side": side, "point": pt,
+                   "best_price": px, "best_book": bk, "link": o.get("link"),
+                   "median_price": round(median, 4), "n_books": len(quotes),
+                   "gain_pct": round(gain, 2)}
+            if best_row is None or row["gain_pct"] > best_row["gain_pct"]:
+                best_row = row
+        if best_row:
+            meta["games_with_an_edge"] += 1
+            out.append(best_row)
+    # ⛔ ONE ROW PER GAME, exactly as the top-plays list does. A game
+    #    mispriced in three markets is still one game, and fifteen rows off
+    #    four games is a list about four games.
+    out.sort(key=lambda r: -r["gain_pct"])
+    return out[:n], meta
+
+
+def game_lines_rule(rows, meta):
+    """The sentence the page prints above the list. Computed, never typed."""
+    if not rows:
+        return ("No game lines for this slate yet. %d game(s) are on the "
+                "board and %d quote(s) had %d+ books at the same signed "
+                "number — not enough agreement to compare prices, which is "
+                "a fact about the board and not a view about the games."
+                % (meta["games_seen"], meta["comparable_quotes"],
+                   SHOP_MIN_BOOKS))
+    return ("The %d biggest PRICE differences on the board, one per game, "
+            "richest first — how much more the best book pays than a "
+            "typical one on the SAME wager. ⚠️ This is not a prediction and "
+            "it does not say who wins. It is arithmetic on %d quotes that "
+            "%d+ of the five books priced at the identical signed number. "
+            "Football carries no Gizmo's rating and no row here has one."
+            % (len(rows), meta["comparable_quotes"], SHOP_MIN_BOOKS))
+
+
 def build_top_plays(rows, board, n=TOP_N):
     """Most likely to hit, among rows a person is actually paid on.
 
@@ -982,6 +1117,18 @@ def main():
     # ⚠️ A SHORT BOARD IS REPORTED, NEVER PADDED AND NEVER SUPPRESSED. Five
     # is Sam's floor; the only way to hit it on a thin day is to lower a
     # bar, which every other rule here forbids.
+    # ⚠️ BUILT FROM THE ODDS SNAPSHOT, NOT FROM THE PROPS BOARD — the two
+    #    are different markets and a slate can have one without the other.
+    _gl_snap, _gl_path = latest_gamelines_snapshot()
+    game_lines, gl_meta = (build_game_lines(_gl_snap) if _gl_snap
+                           else ([], {"games_seen": 0, "comparable_quotes": 0,
+                                      "games_with_an_edge": 0,
+                                      "min_books": SHOP_MIN_BOOKS}))
+    gl_meta["snapshot"] = _gl_path
+    log(f"  game lines: {len(game_lines)} row(s) from "
+        f"{gl_meta['games_with_an_edge']} game(s) with a shoppable edge, "
+        f"{gl_meta['comparable_quotes']} comparable quote(s)")
+
     short_of_min = 0 < len(board) < BOARD_MIN
     if short_of_min:
         log(f"  ⚠️ {len(board)} pick(s) on the {slate} board, below the "
@@ -1052,6 +1199,18 @@ def main():
         # HIGHLIGHTS list, not a second opinion, because the two things
         # that make MLB's version an independent list -- alt ladder rungs
         # and a biting price gate -- do not exist here.
+        # ── GAME LINES — the second section Sam asked for ────────────
+        # 🔴 Sam, 2026-09-11: *"we should split them up into 2 sections, 1
+        #    section for player props and one section for the other type of
+        #    bets."* ✅ Both live in Gizmo's Picks; this is the second.
+        # ⛔ RANKED BY PRICE, NOT BY PROBABILITY, AND THAT IS NOT A
+        #    SHORTCUT. There is no football model (T46/T47/T50/T57 all lost
+        #    to a season average) and no team model at all, so a "best 15"
+        #    by likelihood would be invented. What is ranked instead is the
+        #    shoppable gap between books, which is arithmetic.
+        "game_lines": game_lines,
+        "game_lines_meta": gl_meta,
+        "game_lines_rule": game_lines_rule(game_lines, gl_meta),
         "top_plays": top_plays,
         "top_plays_excluded": top_meta,
         "top_plays_rule": (
@@ -1139,7 +1298,7 @@ def main():
             "Sorted by price. No row carries a rate — see the note."),
         "no_model_note": (
             "🔴 No row on this board carries a Gizmo's confidence rating and "
-            "none ever will on today's evidence. Three pre-registered "
+            "none ever will on today's evidence. Four pre-registered "
             "football models were tested and every one lost to a player's "
             "own season average. What is shown is his OWN RECORD and the "
             "market's price — both labelled."),
