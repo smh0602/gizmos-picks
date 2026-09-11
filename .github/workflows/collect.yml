@@ -719,8 +719,41 @@ jobs:
                   # BASEBALL check would silently throw away a college board
                   # built in the same pass. Same shared-directory family as
                   # the Track Record bug.
-                  git checkout -- "picks/$(date -u -d '10 hours ago' +%Y-%m-%d).json" 2>/dev/null || true
-                  git checkout -- "picks/$(date -u +%Y-%m-%d).json" 2>/dev/null || true
+                  # ══════════════════════════════════════════════════
+                  # 🔴🔴 ~~git checkout -- "picks/<date>.json" || true~~
+                  # STRUCK 2026-09-11. **`git checkout` CANNOT REVERT AN
+                  # UNTRACKED FILE**, so on the FIRST card build of any
+                  # day the revert did NOTHING and the unverified card
+                  # was published by the `git add -A` below.
+                  # ⛔ MEASURED, NOT ASSUMED:
+                  #     $ git checkout -- picks/new.json
+                  #     error: pathspec ... did not match any file(s)
+                  #     exit 1, file untouched, then staged as `A`
+                  # ⛔ AND IT HAPPENED. `picks/2026-09-11.json` was ADDED
+                  # at 14:07Z in the SAME COMMIT that wrote
+                  # `card-verify-failure.txt` -- a card that failed its
+                  # own verification, published because the revert was a
+                  # no-op on a brand-new file. `|| true` swallowed the
+                  # error, so nothing anywhere said so.
+                  # ⚠️ TODAY'S CARD WAS NOT WRONG -- the failing check was
+                  # the one running v4.0's coefficients (ledger rule 207)
+                  # -- but that is luck, not a safety property.
+                  # ✅ A NEW CARD IS DELETED; AN EDITED ONE IS RESTORED.
+                  # ⛔ AND A REVERT THAT CANNOT BE DONE IS AN ERROR, NOT A
+                  # `|| true`: the whole point is that the card does not
+                  # reach the page.
+                  for _c in "picks/$(date -u -d '10 hours ago' +%Y-%m-%d).json" \
+                            "picks/$(date -u +%Y-%m-%d).json"; do
+                    [ -e "$_c" ] || continue
+                    if git ls-files --error-unmatch "$_c" >/dev/null 2>&1; then
+                      git checkout -- "$_c" \
+                        || { echo "::error::could not restore $_c"; rc=1; }
+                    else
+                      rm -f "$_c" \
+                        || { echo "::error::could not remove unverified $_c"; rc=1; }
+                      echo "::error::$_c was NEW and failed verify -- deleted, not published"
+                    fi
+                  done
                 fi
               else
                 cat /tmp/vc.txt | tail -5
