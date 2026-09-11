@@ -43,6 +43,7 @@ strings, or no string — RAISES, because guessing is how this started.
 """
 import atexit
 import os
+import subprocess
 import sys
 
 FAILURES = []
@@ -173,6 +174,58 @@ def _gate():
         after = _snapshot()
         touched = sorted(p for p in set(_BEFORE) | set(after)
                          if _BEFORE.get(p) != after.get(p))
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 AN mtime THAT MOVED IS NOT A PRODUCT THAT CHANGED, AND THIS
+        #    REDDENED A RUN FOR ONE. `[2026-09-08, never reproduced]`
+        #    `test_conf_filter.py` was reported as having MODIFIED
+        #    `data/ncaaf/latest/teams.json`. It cannot have: it imports
+        #    nothing but stdlib and `tcheck`, it only READS that file,
+        #    and its one write is a JS harness inside a tempdir. Three
+        #    full sweeps since have never reproduced it.
+        # ⛔ THE SNAPSHOT IS `(size, mtime_ns)` FOR SPEED — 1,066 files in
+        #    19ms — so a file whose mtime moves while its BYTES are
+        #    identical is indistinguishable from one that was rewritten.
+        # ⚠️ AND AN mtime-ONLY TOUCH HARMS NEITHER THING THIS GUARD
+        #    PROTECTS: `git add` stages CONTENT, so nothing would be
+        #    committed; and `freshness.py` BANS `os.path.getmtime`
+        #    outright, reading the `built_at` stamp inside the file — so
+        #    no freshness row can be held green by it either.
+        # ✅ SO ASK GIT, WHICH IS THE AUTHORITY THAT WOULD COMMIT IT, and
+        #    is the exact question rule 123 cares about. The fast stat
+        #    walk stays the DETECTOR; git adjudicates only the handful it
+        #    flags, so this costs nothing on a clean run.
+        # ⛔ NOT WEAKER: every content change is still caught, including
+        #    an ADDED file (git reports it as `??`) and a DELETED one.
+        #    What stops failing is the case where nothing changed at all.
+        #    ⚠️ If git cannot answer — no repo, no binary, an error — the
+        #    old behaviour stands and the run fails. An unverifiable
+        #    change is still a change.
+        # ══════════════════════════════════════════════════════════════
+        if touched:
+            try:
+                _g = subprocess.run(
+                    ["git", "status", "--porcelain", "--"] + list(_WATCH),
+                    capture_output=True, text=True, timeout=60)
+                if _g.returncode == 0:
+                    _dirty = {ln[3:].strip().strip('"')
+                              for ln in _g.stdout.splitlines() if ln[3:].strip()}
+                    _real = [p for p in touched
+                             if any(p == d or p.startswith(d.rstrip("/") + "/")
+                                    or d.startswith(p) for d in _dirty)]
+                    if not _real:
+                        print("  ⚪ ⚠️ %d file(s) under data/ or picks/ changed "
+                              "mtime but NOT content — git reports nothing to "
+                              "commit, so the product is untouched. Reported, "
+                              "not failed." % len(touched))
+                        for _p in touched[:4]:
+                            print(f"     - {_p}  (mtime only)")
+                        touched = []
+                    else:
+                        touched = _real
+            except Exception as _e:
+                print("  ⚠️ could not ask git whether the content changed "
+                      "(%s) — failing on the stat difference, because an "
+                      "unverifiable change is still a change" % type(_e).__name__)
         if touched:
             _CHECKS[0] += 1
             name = ("🔴 this test MODIFIED %d file(s) under data/ or picks/ "
