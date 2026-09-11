@@ -139,31 +139,83 @@ print("\n═══ 5. 🔴 THE NFL ARMS INTO THE SAME CONTRACT COLLEGE HAS ═�
 #    absent today because no NFL game kicks off inside the window — rule
 #    86, an artifact that cannot exist yet is not late. They must appear
 #    the moment one does.
-first = None
+# 🔴 ~~PROBED AT FIXED OFFSETS FROM THE FIRST KICKOFF (−3d and −13h).~~
+#    STRUCK 2026-09-11 — IT WENT RED ON CORRECT CODE, AND THE REASON IS
+#    THE CHECK'S OWN ARITHMETIC. ⛔ The window is anchored to the props
+#    DEADLINE, not to the kickoff: `_props_warranted` asks whether a
+#    kickoff falls inside `[last_due(now), last_due(now) + 14h]`. So an
+#    offset measured from a KICKOFF lands wherever the deadline grid
+#    happens to put it, and it happened to work exactly once.
+#    `[measured 2026-09-11]` −3d from Sunday's 17:00Z kickoff is Thursday
+#    17:00Z, whose 15:00Z deadline has **Thursday Night Football at
+#    00:35Z inside its window** -> warranted, not absent. And −13h is
+#    Sunday 04:00Z, whose last deadline was SATURDAY 15:00Z, 26 hours
+#    before kickoff -> nothing inside 14h -> not armed.
+#    ➡️ **BOTH ASSERTIONS WERE BACKWARDS, AND THE CODE WAS RIGHT.**
+# ✅ SO THE PROBES ARE DERIVED FROM THE DEADLINE GRID AND THE REAL
+#    SCHEDULE. Nothing here is an offset anyone chose, so the season
+#    moving on cannot falsify it (rule 166).
+import json  # noqa: E402
+LAT = "data/nfl/latest"
 try:
-    import json
-    B = json.load(open("data/nfl/latest/board.json", encoding="utf-8"))
-    first = sorted(g["commence"] for g in (B.get("games") or [])
-                   if g.get("commence"))[0]
+    _ks = F.kickoffs_utc("nfl", "%s/schedule-%s.json.gz"
+                         % (LAT, F.current_football_season(None)))
 except Exception:
-    pass
-ck("the NFL board names a first kickoff to reason from", bool(first),
-   str(first))
-if first:
-    k = datetime.datetime.fromisoformat(first.replace("Z", "+00:00"))
-    before = F.contract(data="data/nfl", picks="picks",
-                        now=k - datetime.timedelta(days=3))
-    inside = F.contract(data="data/nfl", picks="picks",
-                        now=k - datetime.timedelta(hours=13))
-    mb, mi = {r[0] for r in before}, {r[0] for r in inside}
-    ck("⛔ three days out, the NFL props row is correctly ABSENT",
-       "props-player" not in mb,
-       "a pull that would buy nothing is not late (rule 86)")
-    ck("🔴 thirteen hours out — inside the window — it ARMS ITSELF",
-       "props-player" in mi, sorted(mi))
-    ck("...and nobody has to do anything for that to happen",
-       "props-player" in SCHED["nfl"],
-       "the crons already exist; only the contract row was waiting")
+    _ks = None
+ck("the NFL schedule names kickoffs to reason from", bool(_ks),
+   "%s kickoff(s)" % (len(_ks) if _ks else 0))
+
+_armed = _quiet = None
+if _ks:
+    _t0 = min(_ks) - datetime.timedelta(days=2)
+    for _d in range(0, 30):
+        for _hh, _mm in F.FB_TIMES["nfl"]["props"][:2]:
+            _probe = (_t0 + datetime.timedelta(days=_d)).replace(
+                hour=0, minute=0, second=0, microsecond=0) \
+                + datetime.timedelta(hours=_hh + 5, minutes=_mm + 1)
+            _due = F.last_due(F.FB_TIMES["nfl"]["props"], _probe)
+            if _due is None:
+                continue
+            _end = _due + datetime.timedelta(hours=F.FB_PROPS_WINDOW_H)
+            _hit = any(_due <= k <= _end for k in _ks)
+            if _hit and _armed is None:
+                _armed = _probe
+            if not _hit and _quiet is None:
+                _quiet = _probe
+        if _armed and _quiet:
+            break
+
+if _armed and _quiet:
+    note("probes DERIVED: armed=%s · quiet=%s (window %sh from the "
+         "deadline that just passed)"
+         % (_armed.isoformat(), _quiet.isoformat(), F.FB_PROPS_WINDOW_H))
+    m_armed = {r[0] for r in F.contract(data="data/nfl", picks="picks",
+                                        now=_armed)}
+    m_quiet = {r[0] for r in F.contract(data="data/nfl", picks="picks",
+                                        now=_quiet)}
+    ck("🔴 a deadline with a kickoff inside its window ARMS the props row",
+       "props-player" in m_armed,
+       "⛔ the contract must govern a pull that WOULD buy something. %s"
+       % sorted(m_armed))
+    ck("⛔ ...and a deadline with NO kickoff inside it does NOT",
+       "props-player" not in m_quiet,
+       "🔴 RULE 86 — a pull that would buy nothing is not a late pull, "
+       "and marking it late asks for a repair no run can make. %s"
+       % sorted(m_quiet))
+    ck("✅ the two probes really are different states, not the same one twice",
+       ("props-player" in m_armed) != ("props-player" in m_quiet),
+       "⛔ RULE 202 — a check that cannot tell its two cases apart is not "
+       "the check it claims to be")
+else:
+    # ⚠️ NOT EXERCISED, AND SAID OUT LOUD. A check that quietly stops
+    #    running is the same false cover as a test the runner never
+    #    discovers (rule 182).
+    note("⚠️ NOT EXERCISED — the stored schedule does not contain both an "
+         "armed and a quiet deadline in the probed range. armed=%s "
+         "quiet=%s" % (_armed, _quiet))
+ck("...and nobody has to do anything for that to happen",
+   "props-player" in SCHED["nfl"],
+   "the crons already exist; only the contract row was waiting")
 
 print("\n═══ 6. THE TAB-BY-TAB ANSWER ═══")
 TABS = [("Scores & Matchups", "fb-scores"), ("Odds", "gamelines"),

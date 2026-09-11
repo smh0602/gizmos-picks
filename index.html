@@ -3898,7 +3898,8 @@ function fbGameLines(C){
     draftkings: 'DraftKings', fanduel: 'FanDuel',
     williamhill_us: 'Caesars', betmgm: 'BetMGM' }[b] || b);
   return `<div class="panel" style="margin-top:18px">
-      <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
+      <h2>Game lines &mdash; the ${g.length} biggest price gaps
+        <span class="kind k-market">Market</span></h2>
       <p>${C.game_lines_rule || ''}</p>
       <div class="t10">${g.map((r, i) => `
         <div class="r">${i + 1}</div>
@@ -3909,7 +3910,7 @@ function fbGameLines(C){
         <div class="p">${sgn(r.best_price)}<div class="rec"
           style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div>
       <div class="note" style="margin-top:10px">
-        &#9898; <b>Market, not a model.</b> The percentage is how much more
+        &#128309; <b>Market, not a model.</b> The percentage is how much more
         the best book pays than a typical one on the identical wager &mdash;
         it is not a chance of winning and it does not say who wins.
         <b>Every row is compared at the exact signed number</b>, because

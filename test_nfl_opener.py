@@ -50,16 +50,59 @@ if os.path.exists(bp):
         # 🔴 THE POINT: the ET DAY is what the card, the crons and the
         #    watching human all key off, and it is one day EARLIER than
         #    the UTC date reads.
-        ck("⚠️ the first NFL slate day is EARLIER in ET than in UTC",
-           et.date() < first.date(),
-           f"UTC {first:%d %b} vs ET {et:%d %b} — reading the UTC date is "
-           f"how 'Thursday' got into two docs")
+        # 🔴 ~~"the first NFL slate day is EARLIER in ET than in UTC"~~
+        #    STRUCK 2026-09-11. ⛔ THAT IS ONLY TRUE OF A NIGHT KICKOFF.
+        #    It held while the board opened on a Thursday nighter (00:20Z
+        #    Friday = Thursday ET) and became FALSE the moment week 1 left
+        #    the board and a Sunday 17:00Z game led it — same UTC day, so
+        #    the check went red on correct code. Rule 166's NINTH instance.
+        # ✅ THE LESSON IT WAS PROTECTING IS KEPT AND MADE PERMANENT: the
+        #    slate day is obtained by CONVERTING, never by slicing the UTC
+        #    string. That is driven on a CONSTRUCTED late kickoff, so no
+        #    calendar can falsify it.
+        _late = datetime.datetime(2026, 9, 11, 1, 40,
+                                  tzinfo=datetime.timezone.utc)
+        # ⛔ DRIVEN THROUGH `freshness.et_date`, THE REPO'S OWN CONVERTER,
+        #    not through arithmetic written on this line. A check that
+        #    asserts its own inline sum proves nothing about the code
+        #    (rule 202 — it cannot fail on the thing it is about).
+        import freshness as _F  # noqa: E402
+        ck("🔴 a 9:40pm ET kickoff files under the PREVIOUS ET day",
+           str(_F.et_date(_late)) == "2026-09-10"
+           and str(_F.et_date(_late)) != str(_late.date()),
+           "⛔ READING THE UTC DATE IS HOW 'Thursday' GOT INTO TWO DOCS. "
+           "01:40Z on the 11th is 9:40pm ET on the 10th; et_date said %s. "
+           "A constructed case, so this runs identically in week 1 and "
+           "week 15" % _F.et_date(_late))
+        ck("✅ ...and a 1pm ET kickoff files under its OWN UTC day",
+           str(_F.et_date(datetime.datetime(
+               2026, 9, 13, 17, 0, tzinfo=datetime.timezone.utc)))
+           == "2026-09-13",
+           "⚠️ BOTH CASES MATTER: the struck check asserted ET is ALWAYS "
+           "earlier than UTC, which is true only of night kickoffs and "
+           "is what made it expire when a Sunday game led the board")
+        note("today's first kickoff on the board: %s = %s ET"
+             % (ks[0], et.strftime("%a %d %b %I:%M%p")))
         n_first = sum(1 for k in ks if
                       (datetime.datetime.fromisoformat(k.replace("Z", "+00:00"))
                        - datetime.timedelta(hours=4)).date() == et.date())
-        ck("🔴 the opening slate is a SINGLE game", n_first == 1,
-           f"{n_first} game(s) on {et:%a %d %b} ET — this is why the "
-           f"parlay pool is empty by construction, not by pricing")
+        # ⚠️ AND THE SLATE SIZE IS REPORTED, NOT PINNED. ~~"the opening
+        #    slate is a SINGLE game"~~ was a fact about WEEK 1's Thursday
+        #    opener, not about whatever leads the board today (13 games on
+        #    Sun 13 Sep, measured 2026-09-11).
+        ck("the first ET slate day on the board holds at least one game",
+           n_first >= 1,
+           "the grouping is done in ET, by conversion — %d game(s) on %s"
+           % (n_first, et.strftime("%a %d %b")))
+        if n_first == 1:
+            note("⚠️ A ONE-GAME SLATE: an empty parlay pool here is empty "
+                 "BY CONSTRUCTION, not by pricing — two legs in different "
+                 "games cannot exist.")
+        else:
+            note("⛔ %d GAMES ON THE FIRST SLATE DAY, so 'the pool is "
+                 "empty by construction' is NO LONGER AN AVAILABLE "
+                 "EXPLANATION. An empty pool today is about PRICING and "
+                 "must be diagnosed, not excused." % n_first)
 else:
     note("no NFL board on disk — section 1 not measured")
 

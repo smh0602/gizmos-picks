@@ -197,6 +197,36 @@ ck("...and so does the builder's own note",
    "Three pre-registered" not in src,
    "the card writes this sentence; the page prints it")
 
+print("\n═══ 10. \U0001f534 THE SECTION LABELS ITSELF THE WAY THE PAGE LABELS ═══")
+# \U0001f534 FOUND 2026-09-11 BY READING THE RENDERED DOM, NOT THE SOURCE —
+#    the THIRD instance of rule 197's shape. §6 above asserts no row
+#    carries a confidence and §8 asserts the section DRAWS. ⛔ Neither
+#    asks whether the drawn section is LABELLED, and it was not:
+#      panel.querySelectorAll('.kind')  ->  []
+#    while every other section on that tab carries a badge. The only
+#    badge on the picks tab read "Record", belonging to the block ABOVE
+#    a numbered list of percentages. ➡️ ASSERTING A WRONG THING IS
+#    ABSENT IS NOT ASSERTING THE RIGHT THING IS PRESENT.
+_gl = html[html.index("function fbGameLines(C){"):]
+_gl = _gl[:_gl.index("\nfunction ", 1)]
+ck("\U0001f534 the panel carries the page's own MARKET badge",
+   'class="kind k-market">Market' in _gl,
+   "⛔ LEDGER RULE 55 — every number on the surface is labelled MODEL, "
+   "MARKET or DESCRIPTIVE. A prose sentence is not the badge the rest "
+   "of the page trained the reader to scan for")
+ck("⛔ ...and the note uses the MARKET glyph, not the DESCRIPTIVE one",
+   "&#128309;" in _gl and "&#9898;" not in _gl,
+   "\U0001f534 THE ORIGINAL SHIPPED `&#9898;` — the glyph this page uses "
+   "FOUR other times to introduce the word 'Descriptive.' — against the "
+   "words 'Market, not a model.' ⚠️ `&#128309;` is what it uses twice "
+   "for 'these are the sportsbooks' numbers, not ours', which is "
+   "exactly this claim. One vocabulary, or it is not a vocabulary")
+ck("✅ the badge classes referenced here are the ones the stylesheet defines",
+   ".k-market{" in html,
+   "rule 66 — a class name invented in one place and styled in none "
+   "renders as unstyled text, which is worse than no badge at all")
+
+
 note("⛔ WHAT THIS LIST IS NOT: a view about who wins. It ranks the gap "
      "between books on the SAME wager, which is why it is allowed a "
      "number at all. ➡️ If a team-bet model is ever wanted, the bar is "

@@ -467,13 +467,39 @@ else:
     note("⚠️ NOT EXERCISED, AND NOTHING ELSE COVERS IT TODAY EITHER. "
          "⛔ `test_top_plays.py` has the only other copy of this check "
          "and it branches on the SAME live card (`elif not C[\"picks\"]`), "
-         "so on a day with rows the empty-board sentence is exercised by "
-         "NOTHING. ➡️ THE FIX IS A SYNTHETIC EMPTY-BOARD FIXTURE that "
-         "does not depend on the calendar; it is recorded in "
-         "`claude/tomorrow-checklist.md` and not invented here.")
-ck("⛔ ...and the honest half is KEPT — it still refuses to rank by price",
-   "ranking by which bet pays worst" in rule,
-   "the reason the list is empty when rows exist but carry no record")
+         "so on a day with rows the empty-board sentence was exercised by "
+         "NOTHING. ✅ ~~THE FIX IS RECORDED IN tomorrow-checklist.md~~ "
+         "\u2014 IT SHIPPED 2026-09-11 (rule 198): "
+         "`empty_top_plays_sentence()` is a named function and "
+         "`test_empty_board.py` drives BOTH branches with no board, no "
+         "data tree and no date. \u26a0\ufe0f This file still tests the "
+         "PLUMBING, which is the half a fixture cannot reach.")
+# 🔴 ~~ASSERTED THE REFUSAL CLAUSE UNCONDITIONALLY.~~ STRUCK 2026-09-11 —
+#    IT WENT RED THE FIRST TIME A COLLEGE BOARD PRICED. ⛔ `top_plays_rule`
+#    is the EMPTY-BOARD sentence only while the board is empty; on a
+#    priced board it is the REAL top-plays rule, which names a count and
+#    a price gate and has no business refusing anything.
+#    `[2026-09-11: 50 picks, 5 top plays, and the needle correctly absent]`
+# ⚠️ IT SAT THREE LINES BELOW THE `if _empty:` GUARD THIS SAME FILE ALREADY
+#    APPLIES — a straggler outside the branch that was written for it, and
+#    rule 166's EIGHTH instance.
+# ✅ THE REFUSAL CLAUSE IS NOW ASSERTED WHERE IT IS TRUE, and
+#    `test_empty_board.py` drives BOTH branches of the sentence with no
+#    board, no data tree and no date (rule 198), so nothing here depends
+#    on which day the runner happens to fire on.
+if _empty:
+    ck("⛔ ...and the honest half is KEPT — it still refuses to rank by price",
+       "ranking by which bet pays worst" in rule,
+       "the reason the list is empty when rows exist but carry no record")
+else:
+    ck("🔴 a PRICED board gets the real rule, not the empty-board sentence",
+       ("Nothing is priced for this day yet" not in rule) and bool(rule),
+       "⛔ ONE MESSAGE REUSED FOR TWO STATES IS THE 09-10 DEFECT (rule "
+       "179). The two sentences must not be interchangeable: %s"
+       % rule[:110])
+    note("⚠️ the refusal clause is NOT EXERCISED here today — the board "
+         "priced. ✅ `test_empty_board.py` asserts it on BOTH branches "
+         "directly, which is why that file exists (rule 198).")
 
 note("⚠️ WHAT THIS FILE CANNOT PROVE, STATED PLAINLY: that CFBD honours "
      "the key and that nflverse serves the assets. Both are blocked from "
