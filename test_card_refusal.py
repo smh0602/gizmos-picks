@@ -125,7 +125,37 @@ ck("FROZEN" not in out5,
    "  and it is reported as ordinary staleness, not as a freeze")
 
 print("\n5. A HEALTHY DAY IS STILL A PASS")
-rc6, out6 = run(2, refused=False)
-ck(rc6 == 0, "everything current -> green", f"rc={rc6}")
+# 🔴🔴 "HEALTHY" IS COMPUTED FROM THE CONTRACT, NOT GUESSED AT 2 HOURS.
+# ⛔ ~~`run(2, refused=False)`~~ STRUCK 2026-09-12. A fixed 2-hour age is
+#    only "current" at some times of day: the card is due 10:00 ET, so
+#    between 10:00 and 12:00 ET a card built two hours ago was built
+#    BEFORE today's deadline and is correctly STALE.
+# `[measured 2026-09-12T14:04Z = 10:04am ET]` the suite was green at
+#    08:04Z and red at 14:04Z on THE SAME COMMIT, with the fixture itself
+#    reporting `card 120m, 4m LATE`. ⛔ **THIS FILE WAS RED FOR TWO HOURS
+#    OF EVERY DAY** and nobody had run the suite in that window.
+# 🔴 RULE 166'S ELEVENTH INSTANCE, and the sharpest yet: not a check
+#    pinned to a date, but a FIXTURE pinned to a time of day — in a file
+#    written to catch a freshness bug.
+# ✅ The card is now stamped just AFTER the most recent deadline that has
+#    passed, which is what "current" means for a daily artifact. The
+#    question the section asks is unchanged; only the fixture stopped
+#    depending on when the suite happens to run.
+_now = datetime.datetime.now(UTC)
+# ⛔ READ THE DEADLINE FROM `freshness.CARD`, the module that OWNS it —
+#    never a `[(10, 0)]` written here, which would be a second copy of
+#    the contract inside the test that exists to police it (rule 66).
+_due = F.last_due(F.CARD, _now)
+# ⚠️ ONE MINUTE AFTER THE DEADLINE, NEVER IN THE FUTURE. A first form
+#    subtracted a flat 0.25h and produced a NEGATIVE age — a card stamped
+#    ahead of now — which happens to pass here and is the kind of fixture
+#    that trips a different guard later. The stamp is now strictly in the
+#    past and strictly after the deadline.
+_gap_h = (_now - _due).total_seconds() / 3600.0 if _due else 2.0
+_age_h = max(0.0, _gap_h - (1.0 / 60.0))
+rc6, out6 = run(max(0.0, _age_h), refused=False)
+ck(rc6 == 0, "everything current -> green",
+   f"rc={rc6} (card stamped {_age_h * 60:.0f}m old, {(_gap_h - _age_h) * 60:.0f}m "
+   f"after the {_due.strftime('%H:%MZ') if _due else '?'} deadline)")
 ck("PASS" in out6, "  and says so")
 

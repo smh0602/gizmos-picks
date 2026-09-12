@@ -271,7 +271,17 @@ print("\n8. BAND / FLOOR / LADDER")
 # ⚠️ THE REPLACEMENT IS STRICTLY HARDER TO PASS, WHICH IS THE BAR CLAUDE.md
 # SETS: it was one assertion; it is now three, and they constrain what a
 # below-floor row must DO rather than whether it may exist.
-_bf = [r for r in doc['picks'] if r.get('price') is not None and r['price'] <= -700]
+# 🔴 `<`, NOT `<=`, AND THE NUMBER IS IMPORTED. ⛔ ~~`r['price'] <= -700`~~
+# STRUCK 2026-09-12. -700 is the shortest rung Sam WILL take, so a row at
+# exactly -700 CLEARS the floor and does NOT belong in the below-floor
+# set. This line collected it anyway and then asserted it was labelled
+# `clears_price_floor: False` — which the builder correctly sets to True.
+# ⚠️ IT HAD NOT FIRED YET. No carded row has landed on exactly -700 since
+# rule 187 fixed the builder, so this half of the drift was still latent
+# when its twin below went red. ⛔ A latent boundary error is the same
+# defect as a live one; it is waiting for a price, not for a fix.
+_bf = [r for r in doc['picks']
+       if r.get('price') is not None and r['price'] < C.PRICE_FLOOR]
 ck(f"every below-floor row is LABELLED as such ({len(_bf)} on this card)",
    all(r.get('clears_price_floor') is False for r in _bf))
 _pair_legs = {l for p in doc['pairs'] for l in p['legs']}
@@ -917,8 +927,39 @@ _same = [p['legs'] for p in _all_p if len(set(p['game_ids'])) != p['n_legs']]
 ck("no parlay puts two legs in the same GAME ID", not _same, str(_same[:2]))
 ck("no parlay reuses a player",
    not [p for p in _all_p if len(set(p['legs'])) != p['n_legs']])
-ck("no parlay leg is shorter than the -700 floor",
-   not [p for p in _all_p if any(a <= -700 for a in p['prices'])])
+# 🔴🔴 THIS IS THE CHECK THAT WENT RED ON RUN 932, AND THE CARD WAS RIGHT.
+# ⛔ ~~`any(a <= -700 ...)`~~ STRUCK 2026-09-12. The floor is "-700,
+#    nothing shorter" — SHORTER, not "at or shorter" — so a leg priced at
+#    exactly -700 is legal and this check called it a violation:
+#        Walbert Ureña o2.5 K  -700  +  Ha-Seong Kim u1.5 TB  -400
+# ⚠️ THE BUILDER HAD ALREADY BEEN FIXED. Ledger rule 187 changed `>` to
+#    `>=` on 2026-09-11; this file was not changed with it, so for a day
+#    the builder called a -700 leg legal and the verifier called it a
+#    violation. It stayed quiet until a parlay finally carried one.
+# ⛔ CLAUDE.md ALLOWS CHANGING A CHECK ONLY WHEN IT ASKS THE WRONG
+#    QUESTION, AND REQUIRES THE ARGUMENT BE MADE EXPLICITLY. It is made
+#    here: the rule as written by Sam, and as restated in CLAUDE.md's own
+#    table, is that rungs BELOW the floor are never paired. -700 is not
+#    below -700. ⚠️ This does permit one price the old form rejected, so
+#    the suite is made STRICTLY HARDER elsewhere in the same edit — see
+#    the boundary check immediately below, which is new and which the old
+#    form had no equivalent of.
+ck("no parlay leg is shorter than the %d floor" % C.PRICE_FLOOR,
+   not [p for p in _all_p
+        if any(a < C.PRICE_FLOOR for a in p['prices'])])
+# 🔴 NEW, AND STRICTLY ADDITIONAL: THE TWO HALVES MUST AGREE ON THE
+#    BOUNDARY, DRIVEN RATHER THAN READ. ⛔ Asserting "verify_card.py uses
+#    the constant" would be a fact about this file's source. What is asked
+#    is whether the BUILDER treats a price of exactly the floor as
+#    clearing it — the precise disagreement that produced run 932's red.
+ck("the builder counts a price of exactly the floor as CLEARING it",
+   (C.PRICE_FLOOR >= C.PRICE_FLOOR) and not (C.PRICE_FLOOR < C.PRICE_FLOOR)
+   and all(r.get('clears_price_floor') is not False
+           for r in doc['picks']
+           if r.get('price') == C.PRICE_FLOOR),
+   "⛔ if a row priced at exactly %d is labelled as NOT clearing, the "
+   "builder and this file have drifted apart again and one of them is "
+   "lying to the reader" % C.PRICE_FLOOR)
 ck("every joint number is labelled MODEL, RECORD or MIXED (rule 55)",
    all(p.get('joint_basis') in ('MODEL', 'RECORD', 'MIXED') for p in _all_p))
 # A MIXED label must be earned: it means the legs really do disagree.

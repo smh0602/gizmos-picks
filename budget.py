@@ -123,9 +123,18 @@ def fires(cron):
 # ⛔ Do not lower these to make the total look better. Run the script.
 FB_GAMES = {"ncaaf": 41, "nfl": 12}
 # 💰 DERIVED FROM `collect.py`, never written down here — the same rule
-# that put this file in the repo. `halftime-probe` asks one region, so a
-# run bills `markets x 1` for the bulk call and, only if that is empty,
-# `markets x 1` again for one event plus 1 for the events list.
+# that put this file in the repo.
+# ⛔ ~~"`halftime-probe` asks one region, so a run bills `markets x 1` for
+#    the bulk call and, only if that is empty, `markets x 1` again for one
+#    event plus 1 for the events list."~~ STRUCK 2026-09-12.
+# ✅ THE TWO ASKS NOW USE DIFFERENT REGION COUNTS and the price has to say
+#    so: the BULK ask is one region (it is a question about an endpoint),
+#    the EVENT ask is two (it is a question about whether Hard Rock — a
+#    `us2` book — posts the market). Worst case per run is therefore
+#    `markets x 1` + 1 for the events list + `markets x 2`.
+# ⚠️ THE OLD FORMULA `HALF_M * 2 + 1` HAPPENED TO EQUAL THE RIGHT ANSWER
+#    for one region, by coincidence of 2 markets. Writing it as two terms
+#    means the next region change cannot pass silently.
 _hm = re.search(r'^HALFTIME_MARKETS\s*=\s*\[(.*?)\]', src, re.S | re.M)
 HALF_M = len(re.findall(r'"', _hm.group(1))) // 2 if _hm else 0
 if not HALF_M:
@@ -165,17 +174,20 @@ if sorted(FB_MARKETS) != ["ncaaf", "nfl"] or not all(FB_MARKETS.values()):
 def _fb_cost(mode, lg):
     """Credits ONE RUN of `mode` costs for league `lg`. 0 means free.
 
-    ⚠️ WORST CASE, NOT BEST, for the probe: one bulk ask (markets x one
+    ⚠️ WORST CASE, NOT BEST, for the probe: one bulk ask (markets x ONE
     region) and, if that comes back empty, an events list plus ONE event
-    ask. Flat per RUN and never per game, because the bulk endpoint bills
+    ask (markets x TWO regions). Flat per RUN and never per game — the
+    probe reads a single event on purpose, and the bulk endpoint bills
     once however many games it covers.
+    ⛔ The event ask is the expensive half and it is the half that answers
+    the question Sam has to decide on, so it is priced, not trimmed.
     """
     if mode == "props-player":
         return FB_MARKETS.get(lg, 0) * 2 * FB_GAMES[lg]
     if mode == "gamelines":
         return GAME_M * 2
     if mode == "halftime-probe":
-        return HALF_M * 2 + 1
+        return HALF_M * 1 + 1 + HALF_M * 2
     return 0
 
 

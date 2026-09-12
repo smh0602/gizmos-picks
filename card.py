@@ -76,6 +76,31 @@ TRAIL_N = 8
 # nothing else.
 REMATCH_DAYS = 30
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SAM'S -700 FLOOR, AS A CONSTANT, BECAUSE TWO FILES READ IT.
+# ⛔ NOT A MODEL COEFFICIENT and never added to `test_model_version.py`'s
+#    fingerprint tuple. It is SAM'S OWN NUMBER, chosen by hand, and
+#    CLAUDE.md lists it beside the 1.8x pair floor as a thing that must
+#    not change without him saying so.
+#
+# 🔴 THE BOUNDARY IS INCLUSIVE: -700 IS THE SHORTEST RUNG HE WILL TAKE,
+#    so a price of exactly -700 CLEARS the floor. "Below it" means
+#    strictly below.
+#
+# ⚠️ THIS CONSTANT EXISTS BECAUSE THE TWO HALVES DISAGREED ABOUT THAT
+#    BOUNDARY FOR A DAY AND A LIVE RUN WENT RED FOR IT.
+#    `[run 932, 2026-09-12T13:49Z]` Ledger rule 187 fixed the BUILDER on
+#    09-11 from `>` to `>=` — and `verify_card.py` was still asking
+#    `<= -700`, in TWO checks. So the builder called a -700 leg legal and
+#    the verifier called it a violation, and nothing noticed until a
+#    parlay finally carried a leg at exactly -700:
+#        Walbert Ureña o2.5 K  -700  +  Ha-Seong Kim u1.5 TB  -400
+#    ⛔ Rule 207 in its purest form: the verifier's whole job is to
+#    disagree with the card, so a SECOND COPY of the rule inside it is
+#    the most expensive place in this repo for a copy to drift.
+# ✅ One constant. Both halves import it. They cannot disagree again.
+PRICE_FLOOR = -700
+
 
 def h2h_gap_days(h2h, today):
     """Days since this pitcher last faced this lineup, or None.
@@ -912,7 +937,14 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
     #    shortest rung he will take"; the comparison disagreed with it.
     # ⚠️ Off-by-one on a boundary Sam chose by hand, so it is his number
     #    that was wrong on the page, not a tolerance of ours to tune.
-    floor_ok = price is None or price >= -700
+    # 🔴🔴 AND IT IS `PRICE_FLOOR`, NOT A LITERAL, SINCE 2026-09-12.
+    #    Fixing THIS line on 09-11 left `verify_card.py` still asking
+    #    `<= -700`, so the builder said a -700 leg CLEARS and the verifier
+    #    said it FAILS. They disagreed for a day and went red the first
+    #    time a parlay actually carried a leg at exactly -700 (run 932).
+    #    ⛔ Rule 207: a verifier that RESTATES a specification is a second
+    #    copy of it, and two copies drift. One constant, both readers.
+    floor_ok = price is None or price >= PRICE_FLOOR
 
     return {
         "pitcher": p["name"], "pid": prop.get("pid"), "team": p["team"], "throws": p.get("throws"),
@@ -1325,7 +1357,7 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
         # 🔴 `>=` — the same off-by-one as the pitcher floor, fixed with
         #    it 2026-09-11. -700 is the shortest rung Sam WILL take, so a
         #    row priced exactly -700 CLEARS the floor.
-        "clears_price_floor": price >= -700,
+        "clears_price_floor": price >= PRICE_FLOOR,
         "confidence_basis": "RECORD",
         # 🔴 NEVER "MODEL". Rule 55 binds here hardest: this number is an
         # inversion of the player's own RECORD, so it is DESCRIPTIVE no

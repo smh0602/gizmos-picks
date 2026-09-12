@@ -2290,11 +2290,17 @@ def probe_halftime():
         log("halftime-probe is a FOOTBALL mode. Nothing done.")
         return None
     out = {"kind": "PROBE", "league": LEAGUE, "asked": HALFTIME_MARKETS,
-           "region": "us", "built_at": stamp(), "bulk": None, "event": None,
+           # ⛔ ~~"region": "us"~~ STRUCK 2026-09-12. The bulk ask still
+           #    uses one region; the EVENT ask now uses both. See the
+           #    block above section 2.
+           "region": "us (bulk) / us,us2 (event)",
+           "built_at": stamp(), "bulk": None, "event": None,
            "verdict": None,
            "note": "Does the halftime market ride the CHEAP bulk pull or "
-                   "the PER-GAME event pull? The two differ by ~11x a "
-                   "month. Nothing here reaches the page."}
+                   "the PER-GAME event pull, and DO SAM'S FIVE BOOKS POST "
+                   "IT? The two endpoints differ by ~11x a month, and a "
+                   "market no book he can bet carries is not a market. "
+                   "Nothing here reaches the page."}
     spent = 0
 
     # ── 1. THE CHEAP ONE FIRST. If it answers, we never pay for the other.
@@ -2315,14 +2321,37 @@ def probe_halftime():
                        #    NOT ABOUT THE BOOKS (rules 45-47). It is
                        #    recorded as "this endpoint did not carry it",
                        #    never as "the books do not post it".
-                       "carried": bool(got)}
+                       "carried": bool(got),
+                       "rejected": False}
         log(f"  bulk: billed {used}, {len(body or [])} event(s), "
             f"markets {got or 'NONE'}")
     except Exception as e:
-        out["bulk"] = {"error": f"{type(e).__name__}: {e}"}
+        # ⚠️ A 422 AND AN EMPTY 200 ARE NOT THE SAME ANSWER, and collapsing
+        #    them loses the stronger one. A 422 is the endpoint REFUSING
+        #    the market key — it cannot serve this market at any price. An
+        #    empty 200 is the endpoint serving the request and no book
+        #    having posted yet, which a later pull may change.
+        out["bulk"] = {"error": f"{type(e).__name__}: {e}",
+                       "rejected": "422" in str(e)}
         log(f"  bulk: {type(e).__name__}: {e}")
 
     # ── 2. ONE EVENT, ONLY IF THE BULK CALL CARRIED NOTHING.
+    #
+    # 🔴 TWO REGIONS HERE, ONE ABOVE, AND THE ASYMMETRY IS DELIBERATE.
+    # `[changed 2026-09-12, after the first probe came back]`
+    #
+    # The bulk ask is a question about an ENDPOINT — does this URL serve
+    # this market at all — and one region answers it. The event ask is a
+    # question about a PRODUCT, and the product question is not "does the
+    # market exist" but **"can Sam bet it"**. ⛔ Hard Rock lives in `us2`
+    # and is the book this project prices against, so a probe that asks
+    # only `us` can return CARRIED on a market Hard Rock never posts and
+    # the answer looks like a green light.
+    #
+    # 💰 IT COSTS 2 MORE CREDITS A RUN — 4 a week across both leagues,
+    # ~17 a month against 8,570 of headroom. ⛔ Ceiling arithmetic on the
+    # PRODUCT is what this probe exists to avoid paying; ceiling
+    # arithmetic on the PROBE is not worth protecting.
     if not (out["bulk"] or {}).get("carried"):
         try:
             evs, used, left = odds_get(f"/sports/{SPORT}/events",
@@ -2332,16 +2361,37 @@ def probe_halftime():
             if ev:
                 body, used, left = odds_get(
                     f"/sports/{SPORT}/events/{ev}/odds",
-                    {"regions": "us", "markets": ",".join(HALFTIME_MARKETS),
+                    {"regions": "us,us2",
+                     "markets": ",".join(HALFTIME_MARKETS),
                      "oddsFormat": "american"})
                 spent += used
-                got = {}
+                got, books = {}, {}
                 for bk in (body or {}).get("bookmakers", []):
                     for mk in bk.get("markets", []):
-                        got[mk.get("key")] = got.get(mk.get("key"), 0) + 1
-                out["event"] = {"billed": used, "event_id": ev,
-                                "markets_seen": got, "carried": bool(got)}
+                        k = mk.get("key")
+                        got[k] = got.get(k, 0) + 1
+                        books.setdefault(k, []).append(bk.get("key"))
+                # 🔴 THE FIELD THE DECISION ACTUALLY TURNS ON. `BOOKS` is
+                #    Sam's five and nothing else; a market posted by four
+                #    books he does not have an account at is a market he
+                #    cannot bet, and counting it would be the same error
+                #    as quoting a PrizePicks price.
+                mine = {k: sorted({BOOKS[b] for b in v if b in BOOKS})
+                        for k, v in books.items()}
+                out["event"] = {
+                    "billed": used, "event_id": ev, "regions": "us,us2",
+                    "markets_seen": got,
+                    "books_seen": {k: sorted(set(v))
+                                   for k, v in books.items()},
+                    "sam_books": mine,
+                    # ⚠️ Hard Rock is the book the card prices against, so
+                    #    it gets its own field rather than being one name
+                    #    inside a list somebody has to read.
+                    "hard_rock": {k: ("Hard Rock" in v)
+                                  for k, v in mine.items()},
+                    "carried": bool(got)}
                 log(f"  event {ev}: billed {used}, markets {got or 'NONE'}")
+                log(f"  Sam's books: {mine or 'NONE OF THEM'}")
         except Exception as e:
             out["event"] = {"error": f"{type(e).__name__}: {e}"}
             log(f"  event: {type(e).__name__}: {e}")
@@ -2354,12 +2404,24 @@ def probe_halftime():
             "GAME_MARKETS is cheap: roughly +480 credits a month at the "
             "deployed gamelines cadence.")
     elif (out["event"] or {}).get("carried"):
+        # 🔴 THE VERDICT NAMES THE BOOKS, because "the market exists" and
+        #    "Sam can bet the market" are different findings and only the
+        #    second one justifies spending against the ceiling.
+        _mine = (out["event"] or {}).get("sam_books") or {}
+        _hr = (out["event"] or {}).get("hard_rock") or {}
+        _bits = ", ".join(
+            "%s: %s%s" % (k, ", ".join(v) if v else "NONE OF HIS FIVE",
+                          " (incl. Hard Rock)" if _hr.get(k) else "")
+            for k, v in sorted(_mine.items())) or "NO BOOK OF HIS"
         out["verdict"] = (
             "EVENT — halftime markets exist but only on the PER-GAME "
             "endpoint, which bills markets x regions PER EVENT. That is "
             "the expensive branch: ~+1,160 credits a month measured, and "
             "+12,720 at the cron ceiling. It fits the measured headroom "
-            "and NOT the ceiling, so it is a decision, not a default.")
+            "and NOT the ceiling, so it is a decision, not a default. "
+            "BOOKS HE CAN ACTUALLY BET IT AT — %s. ⛔ A market his books "
+            "do not post is not a cheaper version of this decision, it "
+            "is a NO." % _bits)
     else:
         out["verdict"] = (
             "NEITHER ENDPOINT CARRIED THEM IN THIS PULL. ⛔ That is "
