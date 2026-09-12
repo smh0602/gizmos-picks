@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
- "written_at": "2026-09-11T01:57:10Z",
+ "written_at": "2026-09-12T16:57:16Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -15,9 +15,9 @@
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260910&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260912&limit=400",
    "http": 200,
-   "events": 1
+   "events": 0
   }
  ],
  "variant_used": "default (what run 1 used)",
@@ -51,6 +51,7 @@
    "date",
    "format",
    "geoBroadcasts",
+   "headlines",
    "highlights",
    "id",
    "leaders",
@@ -58,7 +59,6 @@
    "notes",
    "playByPlayAvailable",
    "recent",
-   "situation",
    "startDate",
    "status",
    "timeValid",
@@ -93,7 +93,8 @@
    "statistics",
    "team",
    "type",
-   "uid"
+   "uid",
+   "winner"
   ],
   "team": [
    "abbreviation",
@@ -122,31 +123,13 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "in": 1,
-  "post": 1,
+  "post": 2,
   "pre": 14
  },
- "in_progress": 1,
- "live_sample": [
-  {
-   "id": "401872657",
-   "away": "San Francisco 49ers",
-   "home": "Los Angeles Rams",
-   "away_score": "10",
-   "home_score": "7",
-   "state": "in",
-   "detail": "Halftime",
-   "clock": "0:00",
-   "period": 2,
-   "start": "2026-09-11T00:35Z"
-  }
- ],
- "live_state_fields": {
-  "with a running clock": 1,
-  "with a period": 1,
-  "with both scores": 1,
-  "of": 1
- },
+ "in_progress": 0,
+ "live_sample": [],
+ "live_state_fields": null,
+ "live_state_note": "\u26a0\ufe0f NOTHING WAS IN PROGRESS when this ran, so whether the feed carries a moving clock is NOT ANSWERED. Re-run while games are on. \u26d4 Do not read a full slate of finals as evidence either way.",
  "join": {
   "our_schedule_season": 2026,
   "our_games": 272,
@@ -208,18 +191,13 @@
   "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
  },
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
- "refresh_check": {
-  "seconds_apart": 45,
-  "live_games_compared": 1,
-  "games_whose_clock_or_period_changed": 0,
-  "example": null,
-  "verdict": "\u26a0\ufe0f NOTHING CHANGED IN 45s across 1 live games. \u26d4 That is ONE window: it points at a cache in front of the feed, but it is not proof the feed never updates. Re-run before concluding."
- },
+ "refresh_check": null,
+ "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=1",
+  "cache_control": "max-age=37",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "16 events via [default (what run 1 used)], 1 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
+ "conclusion": "16 events via [default (what run 1 used)], 0 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
 }
