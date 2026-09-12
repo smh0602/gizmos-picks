@@ -122,6 +122,15 @@ def fires(cron):
 #   nfl  : ~12 per pull (1 Thursday, ~14 Sunday, plus the Saturday backup).
 # ⛔ Do not lower these to make the total look better. Run the script.
 FB_GAMES = {"ncaaf": 41, "nfl": 12}
+# 💰 DERIVED FROM `collect.py`, never written down here — the same rule
+# that put this file in the repo. `halftime-probe` asks one region, so a
+# run bills `markets x 1` for the bulk call and, only if that is empty,
+# `markets x 1` again for one event plus 1 for the events list.
+_hm = re.search(r'^HALFTIME_MARKETS\s*=\s*\[(.*?)\]', src, re.S | re.M)
+HALF_M = len(re.findall(r'"', _hm.group(1))) // 2 if _hm else 0
+if not HALF_M:
+    sys.exit("FATAL: cannot find HALFTIME_MARKETS in collect.py — refusing "
+             "to price a PAID probe at zero.")
 # 🔴 READ *ONLY* THE PROP_MARKETS BLOCK, NOT EVERY `"nfl": [...]` IN THE
 # FILE. ⛔ THIS UNDER-REPORTED TO ZERO ON 2026-09-03: `collect.py` gained
 # `NEWS_FEEDS = {"nfl": [], "ncaaf": []}`, the old whole-file regex matched
@@ -140,6 +149,35 @@ FB_MARKETS = {lg: len(re.findall(r'"player_[a-z_]+"', m))
 if sorted(FB_MARKETS) != ["ncaaf", "nfl"] or not all(FB_MARKETS.values()):
     sys.exit(f"FATAL: football markets parsed as {FB_MARKETS} — a zero or a "
              f"missing league means the cost is WRONG, not cheap.")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 ONE PLACE THAT KNOWS WHAT A FOOTBALL MODE COSTS.
+# ⛔ `PAID_ELSEWHERE` USED TO BE A HAND-WRITTEN SET, and it went stale the
+#    first time a paid mode was added: `halftime-probe` was priced at
+#    5/run in the football table and printed under "free modes" six lines
+#    later, in the same run. ⚠️ A cost tool that contradicts itself on one
+#    page is the same class of failure as one that under-counts (rule 68),
+#    and this file's own header says never to keep a list you cannot
+#    auto-update.
+# ✅ So the free list is DERIVED by asking this function, which is also
+#    the function that prices the table. A new paid football mode is
+#    priced and un-listed as free by the same edit.
+def _fb_cost(mode, lg):
+    """Credits ONE RUN of `mode` costs for league `lg`. 0 means free.
+
+    ⚠️ WORST CASE, NOT BEST, for the probe: one bulk ask (markets x one
+    region) and, if that comes back empty, an events list plus ONE event
+    ask. Flat per RUN and never per game, because the bulk endpoint bills
+    once however many games it covers.
+    """
+    if mode == "props-player":
+        return FB_MARKETS.get(lg, 0) * 2 * FB_GAMES[lg]
+    if mode == "gamelines":
+        return GAME_M * 2
+    if mode == "halftime-probe":
+        return HALF_M * 2 + 1
+    return 0
+
 
 COST = {
     "gamelines":        GAME_M * 2,                 # per CALL, whole slate
@@ -261,8 +299,13 @@ print(f"\nFOOTBALL  markets: nfl {FB_MARKETS.get('nfl')}  ncaaf "
 fb_week = 0
 for c, lg in sorted(LEAGUE_OF.items(), key=lambda kv: kv[1]):
     ms = modes.get(c, [])
-    cost = sum((FB_MARKETS.get(lg, 0) * 2 * FB_GAMES[lg]) if m == "props-player"
-               else (GAME_M * 2) if m == "gamelines" else 0 for m in ms)
+    # 💰 `halftime-probe` IS PAID AND MUST BE PRICED, or this tool
+    # under-reports — the exact failure its own header calls the worst one
+    # available to it, and the one drop 38 was about.
+    # ⛔ WORST CASE, NOT BEST: 1 bulk ask (markets x 1 region), and if that
+    # comes back empty, an events list plus ONE event ask. It is flat per
+    # RUN, never per game, because the bulk endpoint bills once.
+    cost = sum(_fb_cost(m, lg) for m in ms)
     if not cost:
         continue
     days = _slots(c.split()[4], 7)   # ⚠️ same parser: a step here would have lied too
@@ -313,7 +356,14 @@ print(f"{backups} backup run(s)/day cost 0 while the primary lands (freshness gu
 # expensive football pull as free -- directly contradicting the 198/run
 # printed six lines earlier. ⚠️ A cost tool that contradicts itself is the
 # same class of failure as one that under-counts (ledger rule 68).
-PAID_ELSEWHERE = {"props-player"}
+# 🔴 ~~PAID_ELSEWHERE = {"props-player"}~~ STRUCK 2026-09-11. The hand
+#    list went stale on the very next paid mode: `halftime-probe` printed
+#    at 5/run in the football table AND under "free modes" in the same
+#    run. ✅ It is now ASKED of `_fb_cost`, the same function that prices
+#    the table, so the two cannot disagree.
+PAID_ELSEWHERE = {m for m in ALL_MODES
+                  for _lg in ("nfl", "ncaaf")
+                  if _fb_cost(m, _lg) > 0}
 free = [m for m in ALL_MODES if m not in COST and m not in PAID_ELSEWHERE]
 print(f"free modes (statsapi or local compute): {', '.join(free)}")
 # ⛔ THE OLD 30/31-DAY BLOCK IS GONE. It multiplied `per_day`, which no

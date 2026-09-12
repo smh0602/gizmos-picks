@@ -138,6 +138,19 @@ table.bx tr:hover td{background:#f7f9fb}
 .note{background:#fff9ec;border:1px solid #f0dfb8;border-radius:8px;padding:12px 14px;
   font-size:13px;color:#6b5320;margin:12px 0}
 .msg{padding:40px 0;text-align:center;color:var(--mut)}
+/* 🔴 THE UN-BOXED FOOTNOTE. Sam, 2026-09-11: "remove all yellow boxes in
+   the parlays tab" and "remove yellow boxes in track record tab".
+   ⛔ THE BOXES GO, THE PROVENANCE DOES NOT. Ledger rule 55 requires every
+   number on the surface to be LABELLED, not to sit in a cream box, and a
+   record page that stopped saying what it does and does not count would
+   be a worse page rather than a cleaner one. So the sentences survive as
+   small muted type under a hairline, and the .kind chips carry the
+   labelling as they already do everywhere else.
+   ⚠️ If a note here ever needs to SHOUT, it has earned a .note box and
+   Sam should be asked — do not quietly reintroduce one. */
+.fnote{font-size:11.5px;color:var(--mut);line-height:1.55;
+  border-top:1px solid #e8ebef;margin-top:14px;padding-top:10px}
+.fnote b{color:#55606d}
 table.data{width:100%;border-collapse:collapse;font-size:13px}
 table.data th,table.data td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
 table.data th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
@@ -2572,13 +2585,30 @@ const FB_METRICS = [
      added up its own total could disagree with the one the file ranks.
      ⚠️ It is passing + rushing + receiving, so a QB row is much larger
      than the others because it includes his passing yards. */
+  /* 🔴 THIS ARRAY'S ORDER IS THE DROPDOWN'S ORDER. Sam, 2026-09-11:
+     "i want the allowed dropdown to be formatted like this from top to
+     bottom, total yards, rushing yards, recieibing yards, carries,
+     receptions, rushing touchdowns, receiving touchdowns; add a total
+     touchdowns before rushing touchdowns as well."
+     ⛔ IT IS NO LONGER RE-SORTED PER POSITION. `fbMetricsFor` used to
+        sort by where the position sat in each row's `pos` list, so WR
+        saw receiving first and RB saw rushing first — a different order
+        on every position, and none of them the order that was asked
+        for. Filtering by position stays; the ORDER is now fixed.
+     ⚠️ The three QB-only columns sit after the eight Sam named. He did
+        not place them, and putting them anywhere inside his list would
+        be inventing an instruction. */
   { k:'total_yds', l:'Total yards',         pos:['QB','RB','WR','TE'] },
-  { k:'rec_yds',  l:'Receiving yards',      pos:['WR','TE','RB','QB'] },
-  { k:'rec',      l:'Receptions',           pos:['WR','TE','RB','QB'] },
-  { k:'rec_td',   l:'Receiving touchdowns', pos:['WR','TE','RB','QB'] },
   { k:'rush_yds', l:'Rushing yards',        pos:['RB','QB','WR','TE'] },
+  { k:'rec_yds',  l:'Receiving yards',      pos:['WR','TE','RB','QB'] },
   { k:'car',      l:'Carries',              pos:['RB','QB','WR','TE'] },
+  { k:'rec',      l:'Receptions',           pos:['WR','TE','RB','QB'] },
+  /* ⚠️ Passing + rushing + receiving, the same three parts as Total
+     yards — so a QB row counts the touchdowns he THREW. Computed in the
+     builder and read from the file, never summed here. */
+  { k:'total_td', l:'Total touchdowns',     pos:['QB','RB','WR','TE'] },
   { k:'rush_td',  l:'Rushing touchdowns',   pos:['RB','QB','WR','TE'] },
+  { k:'rec_td',   l:'Receiving touchdowns', pos:['WR','TE','RB','QB'] },
   { k:'pass_yds', l:'Passing yards',        pos:['QB'] },
   { k:'pass_td',  l:'Passing touchdowns',   pos:['QB'] },
   { k:'int',      l:'Interceptions thrown', pos:['QB'] },
@@ -2648,9 +2678,13 @@ async function fbLoad(season){
   return FBDATA[k][season];
 }
 
+/* 🔴 FILTER ONLY. ⛔ ~~`.sort((a,b) => a.pos.indexOf(pos) - b.pos.indexOf(pos))`~~
+   STRUCK 2026-09-11. It re-ordered the list for every position, so the
+   order Sam specified could only ever have held for one of them. The
+   position list now decides WHICH metrics appear and nothing else;
+   FB_METRICS' own order decides the order. */
 function fbMetricsFor(pos){
-  return FB_METRICS.filter(m => m.pos.indexOf(pos) > -1)
-                   .sort((a,b) => a.pos.indexOf(pos) - b.pos.indexOf(pos));
+  return FB_METRICS.filter(m => m.pos.indexOf(pos) > -1);
 }
 
 /* 🔴 MLB WRAPS EVERY TAB'S BODY IN `.panel` -- the white rounded card
@@ -2706,9 +2740,18 @@ function fbControls(avail, mets){
      end, and a dead end is worse than an empty table. */
   const yrs = (avail && avail.length) ? avail : FB_SEASONS;
   return `<div class="fbctl">
+      <!-- 🔴 OFFENCE IS LISTED FIRST. Sam, 2026-09-11: "i want the side tab
+           in trends for formatted with offense-produced on top of
+           defense-alllowed yardage tab."
+           ⛔ THE ORDER OF THE LIST IS NOT THE DEFAULT SELECTION. fbSide
+              still defaults to 'def', so a reader who opens Trends sees the
+              same table they saw yesterday — only the order inside the
+              picker changed. Flipping the default would silently change
+              what every existing link and screenshot shows, which is a
+              different request from the one that was made. -->
       <label>Side<select id="fb-side">
-        <option value="def"${fbSide==='def'?' selected':''}>Defense &mdash; allowed</option>
         <option value="off"${fbSide==='off'?' selected':''}>Offense &mdash; produced</option>
+        <option value="def"${fbSide==='def'?' selected':''}>Defense &mdash; allowed</option>
       </select></label>
       <label>Season<select id="fb-season">${yrs.map(y =>
         `<option value="${y}"${y===fbSeason?' selected':''}>${y}</option>`).join('')}</select></label>
@@ -3791,8 +3834,12 @@ async function fbCardLoad(){
 
 /* The empty state every football card tab shares, so the three of them
    cannot drift into saying different things about the same absence. */
-function fbNoCard(what){
-  return `<div class="note">
+function fbNoCard(what, cls){
+  /* ⚠️ `cls` LETS A TAB ASK FOR THE UN-BOXED FORM. Sam, 2026-09-11 asked
+     for no cream boxes on Parlays or Track Record; the SENTENCE is the
+     same one every tab shows, so it stays shared rather than being
+     copied — only its dress changes. ⛔ Do not fork this function. */
+  return `<div class="${cls || 'note'}">
     <b>No ${LG_NAME[LEAGUE]} ${what} published yet.</b><br>
     The board is built from the player-prop pull, which runs on the days
     this league plays.
@@ -3811,8 +3858,12 @@ function fbNoCard(what){
    THE SINGLE-DAY BOARD, ON THE PAGE.
 
    Sam, 2026-09-04: *"only games on the day the run happens. minimum 5
-   picks, maximum 50. a day with no games means an EMPTY tab, and that is
-   correct."*
+   picks, ~~maximum 50~~. a day with no games means an EMPTY tab, and
+   that is correct."*
+   ⚠️ THE CAP IS SUPERSEDED — Sam, 2026-09-11: *"i only want 25 player
+   props in the gizmos picks tab not 50."* ⛔ The page does not hold the
+   number either way; it prints the card's own board_max. This note
+   exists so a reader of the quote does not take 50 as current.
 
    ⛔ THE PAGE DECIDES NOTHING HERE. The builder writes `slate_date`,
    `single_day_rule`, `short_reason` and `empty_reason`; these functions
@@ -4119,9 +4170,53 @@ async function fbPicks(){
    would be a Gizmo's number on a market row. ⚠️ It also needs a book that
    MULTIPLIES football props, and whether Hard Rock does is UNVERIFIED.
    ✅ So the tab shows the same board, says what is missing, and stops. */
+/* ══════════════════════════════════════════════════════════════════
+   SAME-GAME PARLAYS. Sam, 2026-09-11: *"this can include same game
+   parlays with player props/game lines. up to the model to decide which
+   bets are best"*
+
+   🔴 IT IS ITS OWN TABLE BECAUSE IT HOLDS DIFFERENT NUMBERS, not for
+   layout. A cross-game row publishes an "all hit" percentage and a $30
+   EV; a same-game row publishes NEITHER, because multiplying two records
+   from one game asserts the two are independent and they are not.
+   ⛔ PUTTING THEM IN ONE TABLE WOULD MEAN EITHER AN EMPTY COLUMN THAT
+   READS AS A MISSING NUMBER, OR A FILLED ONE THAT IS FALSE.
+
+   ⚠️ "PAYS AT MOST" IS NOT A PRICE AND THE HEADER SAYS SO. A book prices
+   a correlated slip BELOW the product of its legs, and that discount is
+   in no pull this project stores — so the column is an upper bound and
+   is labelled MARKET, never quoted as what you will be paid.
+
+   ⚠️ "WEAKEST LEG" IS NOT A CHANCE THE PARLAY HITS. It is the lowest of
+   the slip's own player records, each measured at that exact line. It is
+   the ordering because there is no football model to rank with — four
+   were tested and all four lost to a player's own season average. */
+function fbSgpTable(title, rows){
+  const pn = el('div','panel');
+  const bookName = b => ({ hardrockbet: 'Hard Rock', hardrockbet_oh: 'Hard Rock',
+    draftkings: 'DraftKings', fanduel: 'FanDuel',
+    williamhill_us: 'Caesars', betmgm: 'BetMGM' }[b] || b);
+  pn.innerHTML = `<h2>${title}
+      <span class="kind k-desc">Record</span></h2>
+      <div style="overflow-x:auto"><table class="pairs">
+      <thead><tr><th>Bet</th><th>Game</th><th class="n">Book</th>
+        <th class="n">Pays at most</th><th class="n">Weakest leg</th></tr></thead>
+      <tbody>${rows.map(x => `
+        <tr>
+          <td><b>${x.legs.join('</b> + <b>')}</b>${
+            x.n_line_legs ? ` <span class="kind k-market">Market leg</span>` : ''}</td>
+          <td class="rec">${x.game || ''}</td>
+          <td class="n rec">${bookName(x.book)}</td>
+          <td class="n">&le;&nbsp;${x.multiplier.toFixed(2)}x</td>
+          <td class="n"><b>${x.weakest_leg}%</b></td>
+        </tr>`).join('')}
+      </tbody></table></div>`;
+  return pn;
+}
+
 async function fbParlays(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const C = await fbCardLoad();
   /* 🔴 ~~"No football parlays are built, and that is deliberate."~~
@@ -4144,25 +4239,62 @@ async function fbParlays(){
       <div class="sub">${(C && C.parlay_rule) || ''}</div>
       ${fbDayLine(C)}
     </div>`;
-  let body = '', any = 0;
+  /* ⛔ THE TWO KINDS ARE COUNTED SEPARATELY, and that is not tidiness.
+     `[caught 2026-09-11 by rendering the page]` the first form added the
+     same-game count into `any`, so on a card with same-game parlays and
+     NO cross-game ones the reader saw the same-game tables and no word
+     about the others — and the sentence explaining WHY there are none
+     (100 combinations outside Sam's bands, the rest in one game) simply
+     never drew. ⚠️ An absent explanation reads as an absent feature. */
+  let body = '', crossAny = 0;
   ['2','3','4'].forEach(size => {
     const rows = PL[size] || [];
     if (!rows.length) return;
-    any += rows.length;
+    crossAny += rows.length;
     body += parlayTable(TITLES[size], rows).outerHTML;
   });
+  /* 🔴 SAME-GAME PARLAYS, AFTER the cross-game ones and in their own
+     tables. ⛔ They are read off `C.sgp`, a SEPARATE key — merging them
+     into `C.parlays` would put two different row shapes under one name,
+     and the shape difference is the whole point: these carry no joint
+     probability and no EV. */
+  let sgpBody = '';
+  const SG = (C && C.sgp) || {};
+  const SGT = {'2': 'Same game, two legs', '3': 'Same game, three legs'};
+  let sgAny = 0;
+  ['2','3'].forEach(size => {
+    const rows = SG[size] || [];
+    if (!rows.length) return;
+    sgAny += rows.length;
+    sgpBody += fbSgpTable(SGT[size], rows).outerHTML;
+  });
   const m = (C && C.parlay_meta) || {};
-  const foot = `<div class="note">
-      <b>How these are built.</b> Every leg is the player&rsquo;s own rate at
-      that exact line &mdash; <b>not a projection and not a model output</b>.
-      The legs are always in <b>different games</b>, which is what makes
-      multiplying them defensible at all, and always at the
-      <b>same sportsbook</b>, because a parlay is one slip.
-      <br><br>&#9888;&#65039; <b>About the &ldquo;all hit&rdquo; number.</b>
-      It is those records multiplied. Treating two games as unrelated is
-      close to true and not exactly true, and that assumption has never
-      been tested in this project.
-      ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}</div>`;
+  /* ⛔ NO `.note` BOX HERE ANY MORE. Sam, 2026-09-11: "remove all yellow
+     boxes in the parlays tab." The sentences stay as a footnote because
+     every one of them says what a number on this screen IS — and a table
+     of parlays whose payout column is an upper bound, with nothing on
+     screen saying so, would be the page asserting a price it does not
+     have. ⚠️ ~~a cream .note box~~ → `.fnote`, small muted type. */
+  const sgm = (C && C.sgp_meta) || {};
+  const foot = `<div class="fnote">
+      <b>Different games.</b> Every leg is the player&rsquo;s own rate at that
+      exact line &mdash; not a projection and not a model output. The legs
+      are in different games, which is what makes multiplying them
+      defensible, and at one sportsbook, because a parlay is one slip. The
+      &ldquo;all hit&rdquo; figure is those records multiplied; treating two
+      games as unrelated is close to true and not exactly true, and that
+      assumption has never been tested here.
+      ${sgAny ? `<br><br><b>Same game.</b> These publish
+      <b>no combined chance and no EV</b> &mdash; two players in one game are
+      not independent, so multiplying their records would state something
+      false. <b>Pays at most</b> is the straight product of the prices: a
+      book prices a correlated slip <b>below</b> that, so the real slip pays
+      less. <b>Weakest leg</b> is the lowest player record on the slip, not
+      the chance it hits. A <b>market leg</b> is that game&rsquo;s line, quoted
+      at the same book as the props rather than at the book with the best
+      price &mdash; a slip priced across two books is one nobody can bet.` : ''}
+      ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}
+      ${sgAny && sgm.note ? `<br><br>${sgm.note}` : ''}</div>`;
   /* ⛔ THREE DIFFERENT EMPTINESSES AND THEY MUST NOT SHARE A SENTENCE.
      NO CARD  — nothing has been published for this league yet.
      NO BOARD — a card exists and its day has no games. Correct, not broken.
@@ -4185,13 +4317,13 @@ async function fbParlays(){
   const outBand = Number(rj.out_of_band || 0);
   const sameGame = Number(rj.same_game || 0);
   const emptyMsg = !C
-    ? fbNoCard('parlays')
+    ? fbNoCard('parlays', 'msg')
     : (!(C.picks || []).length && C.empty_reason)
-      ? `<div class="note"><b>No parlays for ${fbDayName(C.date)}
+      ? `<div class="msg"><b>No parlays for ${fbDayName(C.date)}
          &mdash; there is no board to build them from.</b><br>
          ${C.empty_reason}</div>`
     : nGames < 2
-      ? `<div class="note"><b>No parlays for ${fbDayName(C.date)} &mdash;
+      ? `<div class="msg"><b>No parlays for ${fbDayName(C.date)} &mdash;
          this card's slate is ${nGames === 1 ? 'a single game' : 'empty'}.</b><br>
          Every leg of a parlay here must come from a <b>different game</b>,
          which is the only thing that makes multiplying two records
@@ -4201,18 +4333,36 @@ async function fbParlays(){
          candidate combinations were rejected for sharing a game and
          ${outBand.toLocaleString()} for the payout bands` : ''}.</div>`
     : (outBand === 0 && sameGame > 0)
-      ? `<div class="note"><b>No parlays on this card.</b> ⛔ <b>It is not
+      ? `<div class="msg"><b>No parlays on this card.</b> ⛔ <b>It is not
          the payout bands</b> &mdash; not one combination was rejected for
          being outside them. ${sameGame.toLocaleString()} were rejected for
          putting two legs in the same game${
            Number(rj.mixed_book || 0) ? `, and ${Number(rj.mixed_book).toLocaleString()}
            for needing two different sportsbooks` : ''}. ${m.note || ''}</div>`
-      : `<div class="note"><b>No parlay on this card lands inside the
+      : `<div class="msg"><b>No parlay on this card lands inside the
          bands.</b> The board is priced and rated &mdash; it is the payout
          bands that nothing fits today, which is a fact about the prices
-         rather than a failure. ${m.note || ''}</div>`;
-  v.innerHTML = fbShell(head + (any ? body : emptyMsg) + foot
-      + fbNoModelNote(C));
+         rather than a failure. ${m.note || ''}${sgAny ? `<br><br>⚠️ <b>The
+         ${sgAny.toLocaleString()} same-game slips below are not affected
+         by this.</b> The count above rejects a combination for putting two
+         legs in one game, which is the rule for THESE parlays &mdash; the
+         same-game tables are built under different rules and are shown
+         separately.` : ''}</div>`;
+  /* ⛔ `fbNoModelNote(C)` IS NOT CALLED HERE. It is a cream .note box and
+     Sam asked for none on this tab. ⚠️ What it said that matters — every
+     number is a record, never a model — is carried by the .kind chips on
+     each table heading and restated in the footnote above, so the claim
+     survives and only the box is gone. */
+  /* ⛔ THE CROSS-GAME EXPLANATION DRAWS EVEN WHEN SAME-GAME PARLAYS DO.
+     The two answer different questions and a reader who sees only one
+     kind is owed the reason the other is missing. ⚠️ The "no card" and
+     "no board" states are about the WHOLE tab, so on those nothing else
+     renders at all. */
+  const noBoard = !C || (!(C.picks || []).length && C.empty_reason);
+  v.innerHTML = fbShell(head
+      + (noBoard ? emptyMsg
+                 : (crossAny ? body : emptyMsg) + sgpBody)
+      + (noBoard ? '' : foot));
   fbWire();
 }
 
@@ -4235,7 +4385,7 @@ const fbWL  = t => (t && t.n) ? `${t.w}/${t.n}` : '0/0';
 
 async function fbRecord(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const [C, R] = await Promise.all([fbCardLoad(), fbRecordLoad()]);
   const n = C && C.picks ? C.picks.length : 0;
@@ -4329,7 +4479,7 @@ async function fbRecord(){
      that has simply never graded anything must not claim a reset. */
   const resetNote = (R && R.record_from && R.record_from_note
                      && (R.cards_before_record_from || 0) > 0)
-    ? `<div class="note" style="margin:10px 0"><b>The record was
+    ? `<div class="fnote" style="margin:10px 0 0;border-top:0;padding-top:0"><b>The record was
          reset.</b> ${R.record_from_note}</div>`
     : '';
 
@@ -4340,7 +4490,7 @@ async function fbRecord(){
        log &mdash; not from anyone's memory.
        ${R ? `<span class="rec">graded ${freshness(R.built_at)}</span>` : ''}</p>
     ${hero}
-    ${graded && R.distinct_players ? `<div class="note" style="margin:0 0 14px">
+    ${graded && R.distinct_players ? `<div class="fnote" style="margin:0 0 14px;border-top:0;padding-top:0">
       &#9888;&#65039; <b>${O.n} graded row${O.n === 1 ? '' : 's'} came from
       <b>${R.distinct_players}</b> player${R.distinct_players === 1 ? '' : 's'}
       across ${R.distinct_games} game${R.distinct_games === 1 ? '' : 's'}.</b>
@@ -4355,14 +4505,14 @@ async function fbRecord(){
       <thead><tr><th>Date</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th>
         <th class="n">Carded</th><th class="n">Unsettled</th></tr></thead>
       <tbody>${dayRows}</tbody></table>
-    ${R && R.coverage_note ? `<div class="note" style="margin-top:14px">
+    ${R && R.coverage_note ? `<div class="fnote">
       <b>What is and is not counted.</b> ${R.coverage_note}
       <br><br>${R.over_bias_note || ''}
       ${R.join_note ? `<br><br><b>How a pick finds its result.</b> ${R.join_note}` : ''}
       ${(R.skipped || []).length ? `<br><br><b>Waiting:</b> ${
         R.skipped.map(x => `${x.date} &mdash; ${x.why}`).join(' · ')}` : ''}
     </div>` : ''}
-    <div class="note" style="margin-top:14px">
+    <div class="fnote">
       <b>This is the board's record and nothing else.</b> Every row it
       published, graded from the final box score. Uncurated &mdash; it prints
       everything that clears the filter, so it will score worse than a board
@@ -4374,8 +4524,13 @@ async function fbRecord(){
       after the weekly player-log rebuild &mdash;
       ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} &mdash; so a slate is graded
       the week after it is played.` : ''}
-    </div>
-    ${fbNoModelNote(C)}`);
+    </div>`);
+  /* ⛔ `fbNoModelNote(C)` IS NOT CALLED HERE EITHER — it is a cream box
+     and Sam asked for none on this tab (2026-09-11). ⚠️ Its claim, that
+     no row carries a Gizmo's rating, is already carried by the
+     DESCRIPTIVE chip beside this tab's own heading and by the
+     calibration table being headed "Stated" rather than "Predicted". The
+     box went; the labelling did not. */
   fbWire();
 }
 
@@ -5648,21 +5803,25 @@ async function renderFootball(){
        bottoms out at &minus;10 with 11.6%. So this column is largely a
        <b>pass-rush</b> measure &mdash; a low or negative figure means the defense sacks
        people &mdash; and it is <b>not comparable to the NFL column</b>.</div>` : ''}
-    ${LEAGUE === 'ncaaf' && doc.per_game_scope ? `<div class="note">
-       <b>These are per game against an FBS opponent, not per game of the
-       season.</b> College player logs cover FBS teams, so a game against an
-       FCS opponent contributes neither yards nor a game to these averages.
-       <b>Most FBS teams play exactly one such game a year</b> &mdash; measured
-       2026-09-05, the gap was exactly that, for 136 of 136 teams &mdash; so the
-       <b>Gm</b> column reads one lower than the team's record, and these
-       numbers run slightly higher than a source that counts every game.
-       <br><br>&#9888;&#65039; The arithmetic is consistent: the missing games
-       are absent from the top and the bottom of the fraction alike. It was
-       the <b>label</b> that was wrong, and this is it.</div>` : ''}
-    ${LEAGUE === 'ncaaf' ? `<div class="note"><b>Power 4 offenses only.</b> A defense's row
-       describes what ACC, Big&nbsp;12, Big&nbsp;Ten and SEC offenses did to it, so a
-       non-Power-4 defense may be described by one or two games. Ranks are withheld
-       below ${FB_MIN_GAMES} games.</div>` : ''}
+    <!-- 🔴 ~~TWO CREAM NOTE BOXES STOOD HERE~~ REMOVED 2026-09-11 on Sam's
+         instruction: "the yellow boxes with text in it in the trends tab, i
+         want both of those gone completley." They were the FBS-opponent
+         scope box and the "Power 4 offenses only" box, and they sat between
+         the controls and the table on every college Trends view.
+         ⚠️ THE FACTS THEY CARRIED ARE NOT DELETED, ONLY UN-BOXED:
+           • the FBS-opponent scope now rides the <b>Gm</b> column's own
+             tooltip, sourced from the same doc.per_game_scope flag, so
+             the page still cannot assert it on a table that isn't scoped
+             that way;
+           • "ranks are withheld below N games" was always VISIBLE as the
+             em-dash in the Rk column and is restated by the footer note;
+           • the Power-4 sample restriction is a property of the DATA and
+             is stated in the builder's own doc, which is where a reader
+             who wants it can find it.
+         ⛔ Do not re-add either box without Sam asking. This is the same
+            instruction as CLAUDE.md's "doesnt include nonsense users dont
+            need to read and cant understand" — the third time it has been
+            given about this page. -->
     ${fbConfBar()}
     <table class="fbt"><thead><tr>
       <th class="rk">Rk</th><th>${fbSide==='off'?'Offense':'Defense'}</th>
@@ -5678,7 +5837,15 @@ async function renderFootball(){
       <th class="fbsort" data-fbsort="1" title="Click to flip most/least"
           style="width:32%;cursor:pointer;user-select:none">${metricLabel}
           ${fbSide==='off'?'produced':'allowed'} ${sortArrow}</th>
-      <th class="n">Gm</th>
+      <!-- ⚠️ THE SCOPE SENTENCE LIVES HERE NOW, not in a box above the
+           table. It is still gated on the builder's own per_game_scope
+           flag, so the page cannot claim FBS-only scoping on a table that
+           was not built that way (rule 132). -->
+      <th class="n"${LEAGUE === 'ncaaf' && doc.per_game_scope
+        ? ' title="Games against an FBS opponent. A game against an FCS'
+          + ' opponent contributes neither yards nor a game, so this reads'
+          + ' one lower than the team&#39;s record for most teams."' : ''
+        }>Gm</th>
     </tr></thead><tbody>
     ${ranked.map(r => { const t = (r.v-lo)/rng; return `<tr>
         <td class="rk">${rankOf.get(r.team) ?? '&mdash;'}</td>

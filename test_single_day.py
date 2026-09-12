@@ -83,8 +83,15 @@ ck("the historical defect is still visible, so this test is not vacuous",
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 2. THE RULES ARE IN THE BUILDER, NOT IN THE PAGE ═══")
-ck("BOARD_MIN is 5 and BOARD_MAX is 50 (Sam's numbers)",
-   card_fb.BOARD_MIN == 5 and card_fb.BOARD_MAX == 50,
+# ⚠️ ~~BOARD_MAX == 50~~ SUPERSEDED 2026-09-11. Sam: *"i only want 25
+#    player props in the gizmos picks tab not 50."* The MINIMUM is
+#    untouched — that half of the 09-04 instruction still stands, and the
+#    single-day rule this file exists for is unaffected by either.
+# ⛔ `test_board_cap.py` owns the cap itself, the per-market share it
+#    implies and the live cards. This line only keeps THIS file honest
+#    about which numbers it is exercising.
+ck("BOARD_MIN is 5 and BOARD_MAX is 25 (Sam's numbers)",
+   card_fb.BOARD_MIN == 5 and card_fb.BOARD_MAX == 25,
    "min=%s max=%s" % (card_fb.BOARD_MIN, card_fb.BOARD_MAX))
 
 src = open(os.path.join(ROOT, "card_fb.py")).read()

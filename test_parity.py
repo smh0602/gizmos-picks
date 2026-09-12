@@ -24,6 +24,7 @@ THE TWO ASYMMETRIES ARE NAMED, JUSTIFIED AND CHECKED AGAINST THE DATA:
 import collections
 import datetime
 import os
+import re
 
 import freshness as F
 from jsblock import source
@@ -121,18 +122,74 @@ for lg in ("ncaaf", "nfl"):
 #    artifact — and everything else ungoverned is waiting on a stated
 #    precondition.
 PRECONDITIONED = {"props-player", "props-board", "card-fb", "fb-record"}
+# 🔴 ~~`live-probe` is the ONLY permanently ungoverned mode~~ WIDENED
+#    2026-09-11, and the widening is deliberate rather than a concession.
+#    `halftime-probe` landed on Sam's "probe it" and is the same KIND of
+#    thing: a diagnostic that answers a question and writes no artifact
+#    the page reads. Naming one probe made the check a check about a
+#    STRING; what it was always trying to own is a PROPERTY.
+# ⛔ THE SET IS EXPLICIT ON PURPOSE — this is a TRIPWIRE. A new mode must
+#    not be able to become ungoverned by accident; adding one here is a
+#    deliberate act, and the check below makes it cost something.
+# ⚠️ `cfb-probe` IS NOT ON THIS LIST and must never be: it is named like a
+#    probe and is not one — it BUILDS THE TRENDS TABLES, is governed, and
+#    would be a real gap if it ever went ungoverned. ➡️ Which is exactly
+#    why the set is not derived from the name.
+DIAGNOSTIC = {"live-probe", "halftime-probe"}
 for lg in ("ncaaf", "nfl"):
     _ung = set(SCHED[lg]) - gov[lg]
-    ck(f"⚠️ {lg}: `live-probe` is the only PERMANENTLY ungoverned mode",
-       "live-probe" in _ung and not (_ung - {"live-probe"} - PRECONDITIONED),
+    ck(f"⚠️ {lg}: only DIAGNOSTIC modes are permanently ungoverned",
+       bool(DIAGNOSTIC & _ung) and not (_ung - DIAGNOSTIC - PRECONDITIONED),
        f"ungoverned now: {sorted(_ung)} — "
-       f"{sorted(_ung - {'live-probe'}) or 'nothing'} waiting on a "
+       f"{sorted(_ung - DIAGNOSTIC) or 'nothing'} waiting on a "
        f"precondition (a props board, or a game inside the window)")
-ck("🔴 ...and it is ungoverned for BOTH, not just one",
-   ("live-probe" in set(SCHED["ncaaf"]) - gov["ncaaf"])
-   and ("live-probe" in set(SCHED["nfl"]) - gov["nfl"]),
+ck("🔴 ...and every one of them is ungoverned for BOTH, not just one",
+   all(m in set(SCHED["ncaaf"]) - gov["ncaaf"]
+       and m in set(SCHED["nfl"]) - gov["nfl"]
+       for m in DIAGNOSTIC if m in SCHED["ncaaf"] or m in SCHED["nfl"]),
    "a diagnostic writes no product artifact, so nothing should govern it "
    "— but it must be the same answer for both leagues")
+# 🔴🔴 AND THE PROPERTY, ASSERTED RATHER THAN ASSUMED. Calling a mode a
+#    diagnostic is a claim that it writes no product artifact, and until
+#    now nothing checked it — `cfb-probe` is the standing proof that the
+#    name does not settle the question.
+_cs = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
+for m in sorted(DIAGNOSTIC):
+    # ⛔ THE FUNCTION NAME IS READ OFF THE DISPATCH ARM, NOT GUESSED FROM
+    #    THE MODE NAME. The first form of this check derived `probe_live`
+    #    from "live-probe" and FAILED ON CORRECT CODE — the function is
+    #    actually called `build_live_probe`. A convention is not a fact
+    #    (rule 178); the arm that routes the mode is.
+    _arm = re.search(r'mode == "%s"\s*:\s*\n(.*?)\n\s*(?:elif |else:)' % m,
+                     _cs, re.S)
+    # ⛔ MATCH THE ASSIGNED CALL, not the first word with a bracket after
+    #    it. The arms are heavily commented and a bare identifier search
+    #    reads prose. Every arm ends `left = <fn>()`.
+    _call = (re.search(r"=\s*([a-z_][a-z_0-9]*)\(", _arm.group(1))
+             if _arm else None)
+    _fn = _call.group(1) if _call else ""
+    _i = _cs.find("def %s(" % _fn) if _fn else -1
+    _body = _cs[_i:_cs.find("\ndef ", _i + 1)] if _i >= 0 else ""
+    _writes = re.findall(r'write\(f"\{LATEST\}/([^"]+)"', _body)
+    # ⚠️ FOLLOW THE DELEGATION. `build_live_probe()` writes nothing itself
+    #    — it shells out to `liveprobe.py`, which writes the file. ⛔ "I
+    #    found no write" is not "it writes nothing"; a check that cannot
+    #    tell those apart is asking the wrong question.
+    _script = re.search(r'\[sys\.executable, "([a-z_0-9]+\.py)"', _body)
+    _via = ""
+    if _script and os.path.exists(os.path.join(ROOT, _script.group(1))):
+        _via = _script.group(1)
+        _sub = open(os.path.join(ROOT, _via), encoding="utf-8").read()
+        _writes += re.findall(
+            r"""['"](?:[A-Za-z0-9_./{}-]*/)?([A-Za-z0-9_.-]+\.json(?:\.gz)?)['"]""",
+            _sub)
+    ck("🔴 `%s` writes ONLY a probe artifact, and that is checked" % m,
+       bool(_body) and bool(_writes)
+       and all("probe" in w for w in _writes),
+       "⛔ a mode that writes a file the page reads is NOT a diagnostic "
+       "and must be governed like everything else. %s()%s writes: %s"
+       % (_fn or "?", (" via " + _via) if _via else "",
+          _writes or "nothing found — did the dispatch arm change?"))
 
 print("\n═══ 5. 🔴 THE NFL ARMS INTO THE SAME CONTRACT COLLEGE HAS ═══")
 # ⛔ MEASURED BY MOVING THE CLOCK, not asserted. The NFL's props rows are

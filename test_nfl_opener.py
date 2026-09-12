@@ -177,8 +177,14 @@ ck("⛔ the bands cannot be blamed when nothing was out of band",
 ck("...and the games are COUNTED from the card, not read off a field",
    "new Set((C && C.picks || [])" in blk and "p.game_id" in blk,
    "rule 132 — a sentence stating a cause must be computed")
+# ⚠️ ~~`fbNoCard('parlays')`~~ → `fbNoCard('parlays', 'msg')` 2026-09-11.
+#    Sam asked for no cream boxes on this tab, so the shared no-card
+#    sentence is rendered un-boxed. ⛔ IT IS THE SAME SENTENCE FROM THE
+#    SAME FUNCTION — what the check owns is that the four emptinesses do
+#    not share one, and that is unchanged. Matching on the call with its
+#    old argument list would have been matching the DRESS, not the fact.
 ck("the three older emptinesses are still distinct",
-   blk.count("fbNoCard('parlays')") == 1 and "empty_reason" in blk,
+   blk.count("fbNoCard('parlays'") == 1 and "empty_reason" in blk,
    "no card / no board / no fit must not share a sentence")
 
 print("\n═══ 4. NO LEAGUE SCHEDULE IS WRITTEN INTO THE PAGE ═══")

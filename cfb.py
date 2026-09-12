@@ -848,7 +848,19 @@ DEF_FIELDS = ("rec", "rec_yds", "rec_td", "car", "rush_yds", "rush_td",
 #    yards are the same yards to the OFFENSE, but these rows are never
 #    summed across positions.
 YARD_PARTS = ("pass_yds", "rush_yds", "rec_yds")
-RANK_FIELDS = DEF_FIELDS + ("total_yds",)
+# 🔴 TOTAL TOUCHDOWNS — Sam, 2026-09-11: *"add a total touchdowns before
+#    rushing touchdowns as well"*.
+# ⛔ THE EXACT TWIN OF `total_yds`, DELIBERATELY: same three components,
+#    same place, same storage. A "total" that summed a different set of
+#    parts from the yards column beside it would be two definitions of
+#    the word total on one screen.
+# ⚠️ SO IT INCLUDES PASSING TOUCHDOWNS, which for a QB row are TDs he
+#    THREW rather than scored. That is the same choice `total_yds`
+#    already makes about passing yards, and it is the reason a QB row is
+#    much larger than an RB row in both columns.
+# ⛔ Computed here and stored, never in JavaScript (rule 66).
+TD_PARTS = ("pass_td", "rush_td", "rec_td")
+RANK_FIELDS = DEF_FIELDS + ("total_yds", "total_td")
 DEF_MIN_GAMES = 8
 
 
@@ -1305,6 +1317,7 @@ def build_side(doc, side, log=log):
                     a[f] += float(v)
             # derived, not read from the log -- see YARD_PARTS above
             a["total_yds"] += sum(float(g.get(p) or 0) for p in YARD_PARTS)
+            a["total_td"] += sum(float(g.get(p) or 0) for p in TD_PARTS)
     tbl = {}
     for (o, pos), a in acc.items():
         n = len(games[o])

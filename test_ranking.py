@@ -146,7 +146,7 @@ else:
     old = json.load(gzip.open(
         "data/ncaaf/latest/allowed-by-position-2026.json.gz", "rt"))["defences"]
 
-    eq(arbitrary_ties(new, STATS + ("total_yds",)), 0,
+    eq(arbitrary_ties(new, STATS + ("total_yds", "total_td")), 0,
        "🔴 ZERO published ranks contradict a tie")
     note("⚠️ THE SAME COUNT ON THE DEPLOYED FILE IS THE MEASUREMENT THIS "
          "FIX EXISTS FOR: %d." % arbitrary_ties(old, STATS))
@@ -175,6 +175,28 @@ else:
     note("⛔ total_yds is computed in the BUILDER and stored. The page "
          "must never add it up itself — rule 66, and a page that summed "
          "its own total could disagree with the one the file ranks.")
+
+    # 🔴 THE SAME ARITHMETIC, ASKED OF THE NEW COLUMN. Sam, 2026-09-11:
+    #    "add a total touchdowns before rushing touchdowns as well."
+    # ⛔ IT IS CHECKED AGAINST THE SAME THREE PARTS AS total_yds ON
+    #    PURPOSE. Two columns on one screen both called "Total" must not
+    #    mean two different sums, and the only way to own that is to
+    #    assert the definition rather than describe it in a comment.
+    badtd = [(t, pos) for t, row in new.items() for pos in POS if row.get(pos)
+             for c in [row[pos]]
+             if abs(c["total_td"] - (c["pass_td"] + c["rush_td"]
+                                     + c["rec_td"])) > 0.01]
+    ck("✅ total_td = passing + rushing + receiving, on every row",
+       not badtd,
+       "⚠️ a QB row counts the touchdowns he THREW, exactly as the yards "
+       "column counts the yards he threw for. Bad: %s" % badtd[:3])
+    ck("🔴 cfb.py and nfl.py define total_td from the SAME three parts",
+       (re.search(r'TD_PARTS\s*=\s*\("pass_td",\s*"rush_td",\s*"rec_td"\)',
+                  open("cfb.py", encoding="utf-8").read()) is not None
+        and re.search(r'TD_PARTS\s*=\s*\("pass_td",\s*"rush_td",\s*"rec_td"\)',
+                      open("nfl.py", encoding="utf-8").read()) is not None),
+       "⛔ one page reads both leagues' files, so a column that means "
+       "something different in each is worse than a missing column")
 
 print("\n═══ 6. ⚠️ THE PAGE MUST NOT RANK AGAIN ═══")
 html = open("index.html", encoding="utf-8").read()
@@ -221,6 +243,44 @@ ck("⛔ ...and every render call site passes a list, or null on purpose",
    len(_calls) == 2 and all("," in c for c in _calls),
    "the no-doc branch passes null DELIBERATELY — there is no table to "
    "filter against and the picker should still work. Found: %s" % _calls)
+# 🔴 THE DROPDOWN ORDER IS SAM'S, AND IT IS ASSERTED RATHER THAN
+#    DESCRIBED. 2026-09-11: "i want the allowed dropdown to be formatted
+#    like this from top to bottom, total yards, rushing yards,
+#    recieibing yards, carries, receptions, rushing touchdowns,
+#    receiving touchdowns; add a total touchdowns before rushing
+#    touchdowns as well."
+# ⛔ THE ORDER IS A PROPERTY OF FB_METRICS AND OF NOTHING ELSE. The old
+#    `fbMetricsFor` re-sorted by where the position sat in each row's
+#    `pos` list, which produced a DIFFERENT order for QB, RB, WR and TE —
+#    so any order written into the array could hold for at most one of
+#    them. This checks the array AND that nothing re-sorts it.
+_arr = html[html.index("const FB_METRICS = ["):]
+_arr = _arr[:_arr.index("\n];")]
+_order = re.findall(r"\{\s*k\s*:\s*'([a-z_]+)'", _arr)
+_want = ["total_yds", "rush_yds", "rec_yds", "car", "rec",
+         "total_td", "rush_td", "rec_td"]
+ck("🔴 FB_METRICS opens in exactly the order Sam specified",
+   _order[:len(_want)] == _want,
+   "⛔ the three QB-only columns follow; he did not place them and "
+   "guessing a slot inside his list would be inventing an instruction. "
+   "Got: %s" % _order[:len(_want)])
+# ⛔ ASKED OF THE FUNCTION BODY, NOT OF THE FILE. The first form of this
+#    check searched the whole of index.html for the old sort expression
+#    and FAILED ON CORRECT CODE, because the struck comment directly
+#    above `fbMetricsFor` quotes that expression verbatim so the record
+#    of what was removed survives. A source check that reads its own
+#    documentation as an instance of the bug is the same defect this
+#    file already carries a note about, in the same drop.
+_mf = html[html.index("function fbMetricsFor(pos){"):]
+_mf = _mf[:_mf.index("\n}")]
+ck("⛔ ...and fbMetricsFor no longer re-sorts that order",
+   ".sort(" not in _mf,
+   "a per-position sort makes the specified order unreachable for three "
+   "of the four positions. Body: %s" % _mf.replace("\n", " "))
+ck("✅ Total touchdowns is offered on every position, like Total yards",
+   "{ k:'total_td', l:'Total touchdowns',     pos:['QB','RB','WR','TE'] }"
+   in html,
+   "it is the twin of total_yds and must not be narrower than it")
 ck("✅ the metric picker is derived from the loaded data",
    "_probe[m.k] !== undefined" in html,
    "⚠️ the builder and the page do NOT arrive together — the page ships "

@@ -242,12 +242,36 @@ PRICE_CEIL = 400
 # rest. ⛔ Within a market the order is unchanged -- this decides the MIX,
 # never the ranking inside a market.
 MARKET_MAX_SHARE = 0.34   # no market may exceed a third of the board
-BOARD_MAX = 50           # same as MLB's board
+# 🔴 TWENTY-FIVE, NOT FIFTY. Sam, 2026-09-11: *"i only want 25 player
+#    props in the gizmos picks tab not 50."*
+# ⛔ ~~BOARD_MAX = 50  # same as MLB's board~~ STRUCK 2026-09-11.
+# ⛔ NO THRESHOLD MOVED WITH IT. The price floor, the price ceiling,
+#    MIN_GAMES, the participation gate and the usage floor are all
+#    exactly where they were; this cap decides HOW MANY of the rows that
+#    already qualified get carded, and nothing about which rows qualify.
+# ⚠️ AND IT IS NOT A CLEAN PREFIX ON AN UNRATED BOARD — said out loud
+#    because the obvious assumption is wrong. On a RATED board the 25 are
+#    the top 25 of the 50, because the rows are sorted and sliced. On the
+#    college board, which carries no rates, `fill_board` mixes markets
+#    round-robin under a per-market cap DERIVED FROM THIS NUMBER:
+#    int(50 * 0.34) = 17 becomes int(25 * 0.34) = 8. So with only two or
+#    three markets priced, the 25 are NOT the first 25 the 50 produced —
+#    they are more evenly spread across markets.
+# ➡️ THAT IS THE INTENDED DIRECTION, not a side effect to fix. A short
+#    board crowded by one market is the exact failure the share cap
+#    exists for, and a tighter board makes it tighter. `test_board_cap.py`
+#    asserts the cap, the per-market share at 25, and the prefix property
+#    on the rated path where it does hold.
+BOARD_MAX = 25
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE BOARD IS ONE DAY. Sam, 2026-09-04: *"only games on the day the
-# run happens. minimum 5 picks, maximum 50. a day with no games means an
-# EMPTY tab, and that is correct."*
+# run happens. minimum 5 picks, ~~maximum 50~~. a day with no games means
+# an EMPTY tab, and that is correct."*
+# ⚠️ THE MAXIMUM IN THAT QUOTE IS SUPERSEDED -- Sam, 2026-09-11: *"i only
+# want 25 player props in the gizmos picks tab not 50."* The single-day
+# rule and the minimum of 5 are untouched; only the cap moved. See
+# BOARD_MAX above, which is the one place it is written.
 #
 # ⛔ THIS IS NOT A HYPOTHETICAL. `[measured 2026-09-05 across all 18
 # published cards with picks]` exactly one card mixes days --
@@ -810,7 +834,12 @@ def build_game_lines(snapshot, n=GAME_LINES_N):
     #    mispriced in three markets is still one game, and fifteen rows off
     #    four games is a list about four games.
     out.sort(key=lambda r: -r["gain_pct"])
-    return out[:n], meta
+    # ⚠️ `n=None` RETURNS EVERY GAME'S BEST ROW. The 15 is a DISPLAY cap on
+    #    "the biggest price gaps", not a statement that the other games
+    #    have no line — and the same-game parlays need the full set, or a
+    #    game could only ever contribute a line leg if it happened to be
+    #    one of the fifteen most mispriced on the slate.
+    return (out[:n] if n else out), meta
 
 
 def game_lines_rule(rows, meta):
@@ -1256,14 +1285,38 @@ def main():
     # ⚠️ BUILT FROM THE ODDS SNAPSHOT, NOT FROM THE PROPS BOARD — the two
     #    are different markets and a slate can have one without the other.
     _gl_snap, _gl_path = latest_gamelines_snapshot()
-    game_lines, gl_meta = (build_game_lines(_gl_snap) if _gl_snap
-                           else ([], {"games_seen": 0, "comparable_quotes": 0,
-                                      "games_with_an_edge": 0,
-                                      "min_books": SHOP_MIN_BOOKS}))
+    # ⛔ BUILT ONCE, SLICED FOR DISPLAY. The tab shows the 15 biggest gaps;
+    #    the same-game parlays draw from EVERY game's best row, because a
+    #    game's line is a real quote whether or not it is one of the
+    #    fifteen most mispriced. Building it twice would be two copies of
+    #    the same arithmetic (rule 66).
+    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None) if _gl_snap
+                        else ([], {"games_seen": 0, "comparable_quotes": 0,
+                                   "games_with_an_edge": 0,
+                                   "min_books": SHOP_MIN_BOOKS}))
+    game_lines = _gl_all[:GAME_LINES_N]
     gl_meta["snapshot"] = _gl_path
     log(f"  game lines: {len(game_lines)} row(s) from "
         f"{gl_meta['games_with_an_edge']} game(s) with a shoppable edge, "
         f"{gl_meta['comparable_quotes']} comparable quote(s)")
+
+    # 🔴 SAME-GAME PARLAYS, AND THEY ARE BUILT LAST ON PURPOSE -- they are
+    # the only thing on this card that needs BOTH the prop rows and the
+    # game-line rows, so they cannot be built before the line snapshot has
+    # been read. ⛔ Same pool as the board (rule 102).
+    sgp, sgp_meta = build_sgp_fb(
+        rows, _gl_all,
+        line_quotes=(line_quotes_by_book(_gl_snap) if _gl_snap else {}))
+    _n_sgp = sum(len(v) for v in sgp.values())
+    if _n_sgp:
+        log(f"  same-game parlays: {_n_sgp} across "
+            f"{sgp_meta['games_used']} game(s); "
+            f"{sgp_meta['rejected']['below_floor']} rejected because even "
+            f"their UPPER bound missed the floor. ⛔ No joint probability "
+            f"and no EV is published for any of them.")
+    else:
+        log("  same-game parlays: none — "
+            + sgp_meta["note"][:80] + "...")
 
     short_of_min = 0 < len(board) < BOARD_MIN
     if short_of_min:
@@ -1374,6 +1427,22 @@ def main():
             if top_plays else empty_top_plays_sentence(slate, len(board))),
         "parlays": parlays,
         "parlay_meta": parlay_meta,
+        # 🔴 A SEPARATE KEY, NEVER MERGED INTO `parlays`. Sam, 2026-09-11
+        # asked for same-game parlays; they carry a DIFFERENT SET OF
+        # NUMBERS from the cross-game ones -- no joint probability, no EV,
+        # and a payout that is an upper bound rather than a price. ⛔ Two
+        # row shapes under one key is how a reader ends up reading an
+        # upper bound as a quote.
+        "sgp": sgp,
+        "sgp_meta": sgp_meta,
+        "sgp_rule": (
+            f"Same-game parlays from this card's own rows, ordered by each "
+            f"slip's WEAKEST leg — that leg's own record at its exact "
+            f"line. ⛔ No combined chance is shown and no EV is: the legs "
+            f"are in one game, so multiplying their records would assert "
+            f"they are independent when they are not. The payout is the "
+            f"straight product of the prices, which is the MOST a book "
+            f"pays for a correlated slip."),
         "parlay_rule": (
             "Legs are in DIFFERENT GAMES and at the SAME BOOK. ⛔ Every "
             "number is the player's own record — nothing here is a model "
@@ -1718,6 +1787,273 @@ def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
                           f"{rejects['same_player']} same player, "
                           f"{rejects['mixed_book']} would need two books, "
                           f"{rejects['out_of_band']} outside Sam's bands.")}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# SAME-GAME PARLAYS. Sam, 2026-09-11: *"we also need to start forming
+# parlays in this tab, this can include same game parlays with player
+# props/game lines. up to the model to decide which bets are best"*
+#
+# 🔴 THE FIRST THING TO SAY IS WHAT THIS CANNOT PUBLISH, BECAUSE THE
+# OBVIOUS NUMBER IS THE WRONG ONE. `build_parlays_fb` above multiplies
+# its legs' records into an "all hit" figure, and the ONLY thing that
+# makes that defensible is ledger rule 54: the legs are in DIFFERENT
+# GAMES. Inside one game that justification is gone -- a quarterback's
+# passing yards and his receiver's receiving yards are close to the same
+# event -- so multiplying two records here would assert independence that
+# is FLATLY FALSE, and dress it as a percentage.
+# ⛔ SO A SAME-GAME PARLAY PUBLISHES NO JOINT PROBABILITY AT ALL.
+#    `joint` is None and `joint_basis` is "NOT PUBLISHED". There is no
+#    break-even, no edge and no EV either, because every one of those is
+#    that same number wearing a different unit.
+#
+# 🔴 AND THE PAYOUT IS AN UPPER BOUND, NOT A PRICE. Books price a
+# same-game parlay BELOW the straight product of its legs, precisely
+# because the legs are correlated -- that is what "correlated pricing"
+# means and it is why the product is not a quote. ⛔ This project's rule
+# is that every quoted number is traceable to a stored pull, and the
+# discount is NOT in any pull we hold. ✅ So the product is published as
+# what it provably is: the most this slip can pay, labelled
+# `multiplier_basis: "UPPER BOUND"`, with the real slip paying less.
+#
+# ⚠️ WHICH MAKES SAM'S 1.8x FLOOR A ONE-SIDED TEST HERE, AND ONLY ONE
+# SIDE OF IT IS SOUND. If even the UPPER bound is under the floor, the
+# slip can never reach it -- that combination is dropped and the drop is
+# certain. The CEILING cannot be applied the same way: an upper bound of
+# 6.5x may well be a 5.2x slip once the book discounts it, so excluding
+# it would be excluding on a number we do not have. ➡️ The floor is
+# enforced, the ceiling is NOT, and the card says which.
+#
+# 🔴 "UP TO THE MODEL TO DECIDE WHICH BETS ARE BEST" -- AND THERE IS NO
+# FOOTBALL MODEL. T46, T47, T50 and T57 all lost to a player's own season
+# average. So the ordering is the most conservative real quantity these
+# rows carry: THE WEAKEST LEG'S OWN RECORD. A parlay is only as good as
+# the leg most likely to break it, that number is a rate actually
+# measured on that player at that exact line, and it is DESCRIPTIVE.
+# ⛔ It is NOT a chance the parlay hits, it is not multiplied, and it must
+# never be labelled MODEL.
+#
+# ⚠️ A GAME LINE MAY BE ONE LEG. It carries NO record -- it is price
+# arithmetic (rule 55) -- so it never contributes to the weakest-leg
+# number and a parlay of nothing but game lines could not be ordered at
+# all. ➡️ At least one PLAYER leg with a record is required.
+# ⛔ `build_game_lines` publishes ONE ROW PER GAME, so two game-line legs
+#    in one game is impossible by construction rather than by a rule.
+SGP_SIZES = (2, 3)
+SGP_PER_SIZE = 6
+SGP_PER_GAME = 2          # ⛔ so one big game cannot fill the whole list
+
+
+def _sgp_line_leg_text(r):
+    """A game-line leg in the same words the Game lines tab uses."""
+    mk = {"h2h": "moneyline", "spreads": "spread", "totals": "total"}
+    pt = ("" if r.get("point") is None
+          else (" +%g" % r["point"] if r.get("market") == "spreads"
+                and r["point"] > 0 else " %g" % r["point"]))
+    return "%s%s %s" % (r.get("side"), pt, mk.get(r.get("market"),
+                                                  r.get("market")))
+
+
+def line_quotes_by_book(snapshot):
+    """`{(game_id, market, side, point): {book: price}}` from a raw pull.
+
+    🔴 WHY THIS EXISTS, AND IT IS NOT AN OPTIMISATION. `build_game_lines`
+    returns each game's BEST price across the five books, which is the
+    right answer to "where should I bet this" and the WRONG one for a
+    parlay leg: a parlay is ONE SLIP AT ONE BOOK. `[measured on the live
+    2026-09-11 college card]` the Rutgers spread's best price was BetMGM
+    at -102 while every rated prop in that game was Hard Rock — so every
+    combination pairing them was rejected for needing two books, and NOT
+    ONE same-game parlay could carry a line leg.
+    ⛔ The fix is NOT to quote the best book's price on a Hard Rock slip.
+       That would be advertising a price nobody can bet, which is the
+       same defect as the |point| matching bug in CLAUDE.md. ✅ It is to
+       look up what the PROPS' OWN BOOK quotes on the identical signed
+       wager, which the snapshot already holds.
+    """
+    q = {}
+    for g in (snapshot.get("games") or []):
+        for bk, bd in (g.get("books") or {}).items():
+            if bk not in GL_BOOKS:
+                continue
+            for market in ("h2h", "spreads", "totals"):
+                for side, o in (bd.get(market) or {}).items():
+                    if not isinstance(o, dict) or o.get("px") is None:
+                        continue
+                    q.setdefault((g.get("id"), market, side, o.get("pt")),
+                                 {})[bk] = o["px"]
+    return q
+
+
+def build_sgp_fb(rows, game_lines, line_quotes=None,
+                 per_size=SGP_PER_SIZE):
+    """Same-game parlays: player props, optionally with that game's line.
+
+    ⛔ Returns rows carrying NO joint probability and NO EV. See the block
+    above for why -- the short version is that the number everyone
+    expects here would be asserting independence between two halves of
+    one football game.
+    """
+    # ⚠️ THE SAME POOL THE BOARD AND THE CROSS-GAME PARLAYS USE. A leg the
+    #    board itself refused must not reappear inside a parlay (rule 102).
+    legs = [r for r in rows
+            if r.get("confidence") is not None
+            and r.get("price") is not None
+            and r.get("clears_price_floor")
+            and r.get("game_id") and r.get("book")]
+    legs.sort(key=lambda r: -r["confidence"])
+
+    by_game = collections.defaultdict(list)
+    for r in legs:
+        by_game[r["game_id"]].append(r)
+
+    gl_by_game = {}
+    for g in (game_lines or []):
+        if g.get("game_id") and g.get("best_price") is not None \
+                and g.get("best_book"):
+            gl_by_game[g["game_id"]] = g
+
+    def leg_text(r):
+        side = {"over": "o", "under": "u", "yes": ""}.get(r["side"], r["side"])
+        ln = "" if r.get("line") is None else f"{side}{r['line']}"
+        return f"{r['player']} {ln} {MARKETS[r['market']][1]}".replace("  ", " ")
+
+    out = {}
+    rejects = {"same_player": 0, "mixed_book": 0, "below_floor": 0,
+               "no_rated_leg": 0, "line_not_at_book": 0}
+    games_used = set()
+    for size in SGP_SIZES:
+        lo = PARLAY_BANDS[size][0]
+        found = []
+        for gid, cands in by_game.items():
+            # ⚠️ Cap the per-game candidate set. The combinatorics are
+            #    otherwise quadratic in a game's priced rows for no gain --
+            #    the tail of a game's board is the tail of the board.
+            pool = cands[:10]
+            gl = gl_by_game.get(gid)
+            per_game_found = []
+            # ⛔ Each combination is built from PLAYER legs, then optionally
+            #    has that game's single line row appended. There is no
+            #    second game-line row to choose between.
+            for n_player in (size, size - 1):
+                if n_player < 1:
+                    continue
+                if n_player < size and gl is None:
+                    continue
+                for combo in itertools.combinations(pool, n_player):
+                    if len({c["player"] for c in combo}) != n_player:
+                        rejects["same_player"] += 1
+                        continue
+                    books = {c["book"] for c in combo}
+                    if len(books) != 1:
+                        rejects["mixed_book"] += 1
+                        continue
+                    book = books.pop()
+                    prices = [c["price"] for c in combo]
+                    line_px = None
+                    if n_player < size:
+                        # 🔴 THE LINE LEG IS QUOTED AT THE PROPS' OWN BOOK,
+                        # not at the book with the best price. See
+                        # `line_quotes_by_book` — a parlay is one slip, and
+                        # a slip priced across two books is a number nobody
+                        # can bet.
+                        # ⛔ MATCHED ON THE EXACT SIGNED NUMBER, never on
+                        # |point|: books split on which side lays the
+                        # points, so matching on the number alone pairs
+                        # OPPOSITE wagers (CLAUDE.md, measured on ATL@MIL).
+                        key = (gid, gl.get("market"), gl.get("side"),
+                               gl.get("point"))
+                        line_px = (line_quotes or {}).get(key, {}).get(book)
+                        if line_px is None:
+                            rejects["line_not_at_book"] += 1
+                            continue
+                        prices.append(line_px)
+                    mult = 1.0
+                    for px in prices:
+                        mult *= decimal_odds(px)
+                    # 🔴 ONE-SIDED: only the FLOOR. See the block above.
+                    if mult < lo:
+                        rejects["below_floor"] += 1
+                        continue
+                    rated = [c["confidence"] for c in combo]
+                    if not rated:
+                        rejects["no_rated_leg"] += 1
+                        continue
+                    texts = [leg_text(c) for c in combo]
+                    if n_player < size:
+                        texts.append(_sgp_line_leg_text(gl))
+                    per_game_found.append({
+                        "legs": texts,
+                        "game": combo[0]["game"],
+                        "game_id": gid,
+                        "same_game": True,
+                        "book": book,
+                        "prices": prices,
+                        "line_best_book": (gl.get("best_book")
+                                           if n_player < size else None),
+                        "line_best_price": (gl.get("best_price")
+                                            if n_player < size else None),
+                        "n_legs": size,
+                        "n_line_legs": size - n_player,
+                        "multiplier": round(mult, 3),
+                        "multiplier_basis": "UPPER BOUND",
+                        "multiplier_note": (
+                            "The straight product of the legs' prices. ⚠️ A "
+                            "sportsbook prices a same-game parlay BELOW "
+                            "this, because the legs are correlated — that "
+                            "discount is not in any price we store, so this "
+                            "is the MOST the slip can pay and the real one "
+                            "pays less."),
+                        "joint": None,
+                        "joint_basis": "NOT PUBLISHED",
+                        "joint_note": (
+                            "⛔ No combined chance is shown for a same-game "
+                            "parlay. Multiplying the legs' records would "
+                            "assert they are independent, and two players "
+                            "in one game are not — a quarterback's passing "
+                            "yards and his receiver's receiving yards are "
+                            "close to the same event."),
+                        "weakest_leg": round(min(rated), 1),
+                        "weakest_leg_basis": "RECORD",
+                        "weakest_leg_note": (
+                            "The lowest of this slip's player records — "
+                            "each one that player's own rate at that exact "
+                            "line. ⛔ It is NOT the chance the parlay hits; "
+                            "it is the leg most likely to break it."),
+                        "leg_confidences": rated,
+                        "band_floor": lo,
+                    })
+            per_game_found.sort(key=lambda x: (-x["weakest_leg"],
+                                               -x["multiplier"]))
+            found.extend(per_game_found[:SGP_PER_GAME])
+            if per_game_found:
+                games_used.add(gid)
+        found.sort(key=lambda x: (-x["weakest_leg"], -x["multiplier"]))
+        out[str(size)] = found[:per_size]
+    meta = {
+        "games_with_rated_legs": len(by_game),
+        "games_with_a_line_row": len(gl_by_game),
+        "games_used": len(games_used),
+        "per_game_cap": SGP_PER_GAME,
+        "rejected": rejects,
+        "ceiling_applied": False,
+        "line_leg_priced_at": "the props' own book, not the best book",
+        "note": (
+            "%d game(s) on this card carry a rated leg and %d carry a "
+            "shoppable line row. ⛔ No combined chance is published for a "
+            "same-game slip and no EV is either — the legs are correlated, "
+            "so the product of their records would be a percentage "
+            "asserting something false. The payout shown is the straight "
+            "product of the prices, which is the MOST a book will pay for "
+            "a correlated slip. ⚠️ Sam's %sx floor is applied to that upper "
+            "bound, which is sound in one direction only: a slip whose "
+            "upper bound misses the floor can never reach it. The ceiling "
+            "is deliberately NOT applied, because an upper bound above it "
+            "may be inside it once the book discounts."
+            % (len(by_game), len(gl_by_game),
+               "%g" % PARLAY_BANDS[SGP_SIZES[0]][0])),
+    }
+    return out, meta
 
 
 def build_why(who, mk, line, side, hits, n, season, unit, mean=None):

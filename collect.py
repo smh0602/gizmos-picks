@@ -2247,6 +2247,133 @@ def build_card_fb():
     return None
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 HALFTIME MARKETS — A PROBE, NOT A PRODUCT. `[Sam, 2026-09-11: "probe
+# it"]`
+#
+# He asked for halftime team totals alongside the game lines. ⛔ **THE
+# COST COULD NOT BE ANSWERED FROM THE REPO**, and the two candidate
+# answers differ by ELEVEN TIMES:
+#
+#   bulk  /sports/{sport}/odds          markets x regions, ONCE per pull
+#                                       -> ~+480 credits/month
+#   event /sports/{sport}/events/{id}/odds   markets x regions PER GAME
+#                                       -> ~+1,160 measured, +12,720 at
+#                                          the cron ceiling
+#
+# ⚠️ THE ODDS API DOCUMENTS PERIOD MARKETS AS "ADDITIONAL MARKETS", WHICH
+# USUALLY MEANS THE EVENT ENDPOINT — and this project has written a fact
+# about the DOCUMENTATION down as a fact about the FEED five times and
+# been wrong every time (rules 45–47). ⛔ So it is measured, not inferred.
+#
+# 💰 WHAT IT COSTS TO ASK: one bulk call at 2 markets x 1 region = 2
+# credits, plus — only if the bulk call comes back empty — ONE event call
+# at 2 more. **Four credits a week per league, worst case.**
+# ⛔ THE AUTHORITY ON THE BILL IS `x-requests-last`, THE HEADER, never our
+# own arithmetic. That is the same header that established the billing
+# formula on 2026-08-22.
+#
+# ⚠️ IT WRITES A REPORT AND NOTHING ELSE. No board, no card, no props
+# file. It cannot move a number on the page, and a mode that could would
+# not be a probe.
+HALFTIME_MARKETS = ["totals_h1", "team_totals_h1"]
+
+
+def probe_halftime():
+    """Do halftime markets exist, on WHICH endpoint, and what do they bill?
+
+    ⛔ ONE REGION ON PURPOSE. The question is availability and price, not
+    best-odds shopping, and `us` carries four of Sam's five books. Asking
+    two regions would double the bill of a question one answers.
+    """
+    if LEAGUE == "mlb":
+        log("halftime-probe is a FOOTBALL mode. Nothing done.")
+        return None
+    out = {"kind": "PROBE", "league": LEAGUE, "asked": HALFTIME_MARKETS,
+           "region": "us", "built_at": stamp(), "bulk": None, "event": None,
+           "verdict": None,
+           "note": "Does the halftime market ride the CHEAP bulk pull or "
+                   "the PER-GAME event pull? The two differ by ~11x a "
+                   "month. Nothing here reaches the page."}
+    spent = 0
+
+    # ── 1. THE CHEAP ONE FIRST. If it answers, we never pay for the other.
+    try:
+        body, used, left = odds_get(
+            f"/sports/{SPORT}/odds",
+            {"regions": "us", "markets": ",".join(HALFTIME_MARKETS),
+             "oddsFormat": "american"})
+        spent += used
+        got = {}
+        for g in body or []:
+            for bk in g.get("bookmakers", []):
+                for mk in bk.get("markets", []):
+                    got[mk.get("key")] = got.get(mk.get("key"), 0) + 1
+        out["bulk"] = {"billed": used, "events": len(body or []),
+                       "markets_seen": got,
+                       # ⛔ AN EMPTY ANSWER IS EVIDENCE ABOUT THE REQUEST,
+                       #    NOT ABOUT THE BOOKS (rules 45-47). It is
+                       #    recorded as "this endpoint did not carry it",
+                       #    never as "the books do not post it".
+                       "carried": bool(got)}
+        log(f"  bulk: billed {used}, {len(body or [])} event(s), "
+            f"markets {got or 'NONE'}")
+    except Exception as e:
+        out["bulk"] = {"error": f"{type(e).__name__}: {e}"}
+        log(f"  bulk: {type(e).__name__}: {e}")
+
+    # ── 2. ONE EVENT, ONLY IF THE BULK CALL CARRIED NOTHING.
+    if not (out["bulk"] or {}).get("carried"):
+        try:
+            evs, used, left = odds_get(f"/sports/{SPORT}/events",
+                                       {"dateFormat": "iso"})
+            spent += used
+            ev = (evs or [{}])[0].get("id")
+            if ev:
+                body, used, left = odds_get(
+                    f"/sports/{SPORT}/events/{ev}/odds",
+                    {"regions": "us", "markets": ",".join(HALFTIME_MARKETS),
+                     "oddsFormat": "american"})
+                spent += used
+                got = {}
+                for bk in (body or {}).get("bookmakers", []):
+                    for mk in bk.get("markets", []):
+                        got[mk.get("key")] = got.get(mk.get("key"), 0) + 1
+                out["event"] = {"billed": used, "event_id": ev,
+                                "markets_seen": got, "carried": bool(got)}
+                log(f"  event {ev}: billed {used}, markets {got or 'NONE'}")
+        except Exception as e:
+            out["event"] = {"error": f"{type(e).__name__}: {e}"}
+            log(f"  event: {type(e).__name__}: {e}")
+
+    # ── 3. THE VERDICT, IN THE FILE, IN WORDS.
+    if (out["bulk"] or {}).get("carried"):
+        out["verdict"] = (
+            "BULK — halftime markets come back on /sports/{sport}/odds, "
+            "which bills markets x regions ONCE per pull. Adding them to "
+            "GAME_MARKETS is cheap: roughly +480 credits a month at the "
+            "deployed gamelines cadence.")
+    elif (out["event"] or {}).get("carried"):
+        out["verdict"] = (
+            "EVENT — halftime markets exist but only on the PER-GAME "
+            "endpoint, which bills markets x regions PER EVENT. That is "
+            "the expensive branch: ~+1,160 credits a month measured, and "
+            "+12,720 at the cron ceiling. It fits the measured headroom "
+            "and NOT the ceiling, so it is a decision, not a default.")
+    else:
+        out["verdict"] = (
+            "NEITHER ENDPOINT CARRIED THEM IN THIS PULL. ⛔ That is "
+            "evidence about the REQUEST, not about the sportsbooks — this "
+            "project has made that mistake five times. Re-read next week; "
+            "a market absent on a Friday night may be posted on a "
+            "Saturday morning.")
+    out["billed_total"] = spent
+    log(f"  verdict: {out['verdict'][:80]}")
+    log(f"  TOTAL BILLED THIS PROBE: {spent} credit(s)")
+    write(f"{LATEST}/halftime-probe.json", out)
+    return None
+
+
 def build_live_probe():
     """Run `liveprobe.py` — CAN THE FOOTBALL SCORES TAB BE LIVE?
 
@@ -3457,6 +3584,11 @@ def run_mode(mode):
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back. The contract will report the "
                         f"record late until a later run repairs it.")
+        elif mode == "halftime-probe":
+            # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
+            # digits: 2 credits for the bulk ask, 2 more only if that
+            # comes back empty. ⛔ It writes a REPORT and no product file.
+            left = probe_halftime()
         elif mode == "live-probe":
             # ⛔ FREE, and it WRITES NO PRODUCT FILE — the same contract as
             # `news-probe`. It answers whether ESPN can drive a live

@@ -140,3 +140,55 @@ ck("➡️ ...and it names what would spend against the ceiling instead",
    "adds a per-GAME market" in SRC,
    "a props pull is priced PER GAME and a gamelines pull is not — which "
    "is the whole difference between a cheap market and an expensive one")
+
+# ══════════════════════════════════════════════════════════════════════
+print("\n═══ 8. 🔴 A PAID MODE MUST NEVER BE LISTED AS FREE ═══")
+# 🔴 THE DEFECT, FOUND IN THIS TOOL'S OWN OUTPUT 2026-09-11. `budget.py`
+#    printed:
+#        ncaaf  12 16 * * 6   halftime-probe   5/run   5/wk
+#        free modes (statsapi or local compute): ... halftime-probe ...
+#    SIX LINES APART, IN ONE RUN. The pricing was right and the free list
+#    was a HAND-WRITTEN SET that nobody updated — the same shape as the
+#    stale root `collect.yml` and the second copy of the metric list, and
+#    the thing this file's own header forbids: never keep a list you
+#    cannot auto-update.
+# ⛔ IT IS NOT ENOUGH TO ADD THE MODE TO THE SET. That fixes today's
+#    output and leaves the next paid mode to repeat it. What is asserted
+#    here is that the free list is DERIVED.
+ck("🔴 the free list is derived from the pricing function",
+   "_fb_cost(m, _lg) > 0" in SRC,
+   "⛔ a hand-written PAID_ELSEWHERE went stale on the very next paid "
+   "mode. The same function must price the table and answer 'is this "
+   "free', or the two can disagree — and they did")
+ck("⛔ ...and the old hand-written set is struck, not just edited",
+   '~~PAID_ELSEWHERE = {"props-player"}~~' in SRC,
+   "Sam's standing rule: strike superseded content visibly so the record "
+   "of what changed survives")
+ck("🔴 exactly one place knows what a football mode costs",
+   SRC.count("def _fb_cost(") == 1
+   and SRC.count('if mode == "halftime-probe"') == 1,
+   "⛔ the price was computed inline in the football loop AND implied by "
+   "the free list. Two copies of one fact is rule 66")
+
+# 🔴🔴 AND THE ASSERTION THAT WOULD HAVE CAUGHT IT: RUN THE TOOL AND READ
+#    ITS OUTPUT. A source check cannot see a contradiction between two
+#    printed lines — only the output can, which is the whole lesson of
+#    rule 202 (the script ran, exited 0, and printed nonsense).
+import subprocess  # noqa: E402
+_out = subprocess.run([sys.executable, "budget.py"], cwd=ROOT,
+                      capture_output=True, text=True, timeout=300)
+ck("✅ budget.py still runs clean",
+   _out.returncode == 0,
+   _out.stderr[-400:])
+_priced = set(re.findall(r"^\s+(?:nfl|ncaaf)\s+\S+ \S+ \S+ \S+ \S+\s+(\S+)\s+"
+                         r"\d+/run", _out.stdout, re.M))
+_freeline = [ln for ln in _out.stdout.splitlines() if ln.startswith("free modes")]
+_free = set(_freeline[0].split(":", 1)[1].replace(" ", "").split(",")) \
+    if _freeline else set()
+_both = sorted(m for m in _priced if m in _free)
+ck("🔴 NO MODE IS BOTH PRICED AND LISTED FREE IN ONE RUN",
+   not _both,
+   "⛔ this is the check that would have caught it. Printed with a "
+   "credit cost AND under 'free modes': %s" % _both)
+note("⚠️ priced this run: %s  |  free this run: %s"
+     % (", ".join(sorted(_priced)) or "none", ", ".join(sorted(_free))))

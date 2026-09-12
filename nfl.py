@@ -1673,7 +1673,12 @@ DEF_FIELDS = ("rec", "rec_yds", "rec_td", "car", "rush_yds", "rush_td",
 #    QB row much larger than the others. Computed here and stored, never
 #    in JavaScript (rule 66).
 YARD_PARTS = ("pass_yds", "rush_yds", "rec_yds")
-RANK_FIELDS = DEF_FIELDS + ("total_yds",)
+# 🔴 TOTAL TOUCHDOWNS — Sam, 2026-09-11, and applied to BOTH leagues
+#    because that is the standing instruction. ⛔ The definition must
+#    stay IDENTICAL to cfb.py's, and to `total_yds`'s own: passing +
+#    rushing + receiving. Computed here and stored, never in JavaScript.
+TD_PARTS = ("pass_td", "rush_td", "rec_td")
+RANK_FIELDS = DEF_FIELDS + ("total_yds", "total_td")
 DEF_POS = ("QB", "RB", "WR", "TE")
 DEF_MIN_GAMES = 8
 
@@ -1716,6 +1721,7 @@ def build_side(doc, side, log=print):
                     a[f] += float(v)
             # derived, not read from the log -- see YARD_PARTS above
             a["total_yds"] += sum(float(g.get(p) or 0) for p in YARD_PARTS)
+            a["total_td"] += sum(float(g.get(p) or 0) for p in TD_PARTS)
     tbl = {}
     for (o, pos), a in acc.items():
         n = len(games[o])
