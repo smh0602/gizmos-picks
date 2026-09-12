@@ -20,7 +20,7 @@ name: collect
 #    and if forty is too many, cut crons -- that was the whole point of
 #    the 8/26 reduction.
 #
-# CRON COUNT: 42
+# CRON COUNT: 43
 #
 # Scheduled workflows on GitHub can be delayed several minutes under load.
 # That is fine at 30-minute granularity; do not tighten this without
@@ -258,6 +258,29 @@ on:
     - cron: "34 15 * * *"       # NFL 11:30am ET  Gizmo's Picks
     - cron: "6 13 * * *"        # NFL  9:00am ET  Parlays
     - cron: "6 16 * * 2"        # NFL 12:00pm ET  Trends + Track Record (Tue)
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 AND A DAILY ONE ALONGSIDE IT. `[measured 2026-09-12]` `cfb-probe`
+    # rebuilds the college trends table DAILY at 3:04am ET and `nfl-logs`
+    # rebuilt the NFL one ONCE A WEEK, so IDENTICAL BUILDER CODE reached
+    # the two tables up to SIX DAYS APART. Sam's standing rule is that
+    # everything done for CFB is done for NFL; that had been true of the
+    # code and false of the schedule (ledger rule 224).
+    #   ⛔ The visible cost of the gap: `total_yds` shipped in both
+    #      builders and appeared on the college picker the next morning.
+    #      The NFL picker was still missing it — and `total_td` — four
+    #      days later.
+    # 💰 FREE. nflverse publishes flat files on GitHub: no key, no
+    #    credits. `budget.py` prices `nfl-logs` at zero and still does.
+    # ⛔ THE TUESDAY CRON STAYS. This ADDS chances to land; it does not
+    #    move the one the freshness deadline is anchored to.
+    # ⛔ AND THE CONTRACT IS UNTOUCHED. `freshness.py` keeps the NFL
+    #    trends deadline at Tue 12:00 ET, because nflverse publishes
+    #    weekly and a DAILY DEADLINE would be one nothing could satisfy
+    #    (rule 112). A cron is a chance to land; a deadline is a promise.
+    #    Running more often cannot make anything late.
+    # ⚠️ A run on a day the source has nothing new is not wasted and not
+    #    an error: `nfl-logs` reports `not yet` per season and exits 0.
+    - cron: "14 7 * * *"        # NFL  3:14am ET  Trends (daily)
     - cron: "8 12 * * *"        # NFL  8:00am ET  News
 
   push:
@@ -507,6 +530,7 @@ jobs:
               "34 15 * * *")      LEAGUE="nfl ncaaf"; MODES="card-fb" ;;
               "6 13 * * *")       LEAGUE="nfl ncaaf"; MODES="card-fb" ;;
               "6 16 * * 2")       LEAGUE=nfl;   MODES="nfl-logs";  SEASON=CUR ;;
+              "14 7 * * *")       LEAGUE=nfl;   MODES="nfl-logs";  SEASON=CUR ;;
               "8 12 * * *")       LEAGUE="nfl ncaaf"; MODES="news card-fb" ;;
               *)                  LEAGUE=mlb ;;
             esac
