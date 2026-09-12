@@ -390,3 +390,42 @@ note("⛔ A DIFFERENCE ABOVE IS NOT A DEFECT IN THE CODE — it is the "
      "rebuild lag, and it closes on its own. It is REPORTED rather than "
      "asserted because asserting it would go red for days at a time on "
      "correct code (rule 166).")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 BUT THE CADENCE ITSELF IS ASSERTABLE, AND NOW IS.
+# ⛔ The TABLES differing is a fact about today and cannot be asserted.
+#    The SCHEDULE differing is a fact about the repo and can be — which
+#    is the half of rule 224 that was fixable.
+# ⚠️ `[measured 2026-09-12]` `cfb-probe` ran DAILY and `nfl-logs` ran
+#    ONCE A WEEK, both free, so identical builder code reached the two
+#    tables up to SIX DAYS apart. Sam's standing rule is that everything
+#    done for CFB is done for NFL; that was true of the code and false of
+#    the schedule.
+# ⛔ ASSERTED ON "HAS A DAILY CRON", NOT ON A CRON COUNT. Counting crons
+#    would go red the next time either league gains a backup slot, which
+#    is a change with nothing wrong in it.
+# 🔴🔴 READ THE `- cron:` DECLARATIONS, NOT ONLY THE ROUTING ARMS.
+#    `SCHED` is built from the routing `case` arms, and the first form of
+#    this check asked it alone — so DELETING THE CRON DECLARATION AND
+#    LEAVING THE ARM STILL PASSED. ⛔ An arm with no declaration behind it
+#    is a dead arm: nothing ever fires it, and the schedule is silently
+#    one cron shorter. That is the stale-root-`collect.yml` family of bug
+#    (rule 209) in miniature, and it took deleting the line to find.
+# ✅ A cron now counts only if it is BOTH declared AND routed.
+_decl = set(re.findall(r'^\s*- cron:\s*"([^"]+)"',
+                      open(WF, encoding="utf-8").read(), re.M))
+_daily = {}
+for lg, mode in (("ncaaf", "cfb-probe"), ("nfl", "nfl-logs")):
+    _daily[lg] = [c for c in SCHED[lg].get(mode, [])
+                  if c in _decl
+                  and c.split()[2] == "*" and c.split()[4] == "*"]
+ck("🔴 BOTH trends builders have a DAILY cron, DECLARED and ROUTED",
+   all(_daily.values()),
+   "⛔ a builder change reaches the page only when that builder next "
+   "runs. Both modes are FREE, so a weekly rebuild beside a daily one "
+   "was not a cost decision — it was an oversight. Daily crons found: "
+   "%s" % _daily)
+note("⚠️ THE WEEKLY DEADLINE IS UNTOUCHED AND MUST STAY. nflverse "
+     "publishes weekly, so a DAILY DEADLINE would be one nothing could "
+     "satisfy (rule 112). ⛔ A cron is a chance to land; a deadline is a "
+     "promise. Running more often cannot make anything late.")

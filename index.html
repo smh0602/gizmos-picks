@@ -2569,7 +2569,19 @@ let FBDATA = {};          // league -> side -> season -> parsed table
    decision; deleting the data would be an irreversible one, and the
    tests still read those files. */
 const FB_SEASONS = [2026, 2025];
-let fbSeason = 2026, fbPos = 'WR', fbMetric = 'rec_yds', fbSide = 'def';
+/* 🔴 THE TRENDS TAB OPENS ON OFFENCE. Sam, 2026-09-12, after asking on
+   09-11 for offence to be listed first: the LIST order shipped then and
+   the DEFAULT is this.
+   ⛔ ~~fbSide = 'def'~~ STRUCK. It was left at 'def' deliberately in drop
+   40 — he had asked for the order and not the default, and flipping one
+   while being asked for the other would have changed what every existing
+   link and screenshot shows without being asked. He has now asked.
+   ⚠️ SAFE ON BOTH LEAGUES, CHECKED RATHER THAN ASSUMED: every offensive
+   table exists and is populated — college 52/52/56/67/136/138 rows for
+   2021-2026, NFL 32 for 2021-2025 and 2 for the season in progress. The
+   default position (WR) and metric (rec_yds) are valid on the offensive
+   side too, so the first paint needs no fallback. */
+let fbSeason = 2026, fbPos = 'WR', fbMetric = 'rec_yds', fbSide = 'off';
 /* 1 = most first (the long-standing default), -1 = least first. */
 let fbSortDir = 1;
 
@@ -5824,7 +5836,13 @@ async function renderFootball(){
             given about this page. -->
     ${fbConfBar()}
     <table class="fbt"><thead><tr>
-      <th class="rk">Rk</th><th>${fbSide==='off'?'Offense':'Defense'}</th>
+      <!-- ⚠️ THE DIRECTION IS ON THE HEADER, not only in the footnote
+           below. It is the one fact a reader cannot guess and cannot
+           read off the table: rank 1 is the SOFTEST defence, not the
+           best one. -->
+      <th class="rk" title="Rank 1 ${fbSide==='off'?'produces':'allows'} the most${
+        floor > 1 ? ` — ranks are withheld below ${floor} games` : ''}">Rk</th>
+      <th>${fbSide==='off'?'Offense':'Defense'}</th>
       <!-- 🔴 BOTH COLUMNS SORT, AND THE HEADER SAYS WHAT IT HOLDS.
            ⛔ ~~"Vs. league range"~~ told the reader how the BAR was drawn
            and never what the number WAS. It now names the metric on
@@ -5865,7 +5883,19 @@ async function renderFootball(){
         yet. The data is there for the other conferences &mdash; clear the
         filter to see it.</td></tr>` : ''}
     </tbody></table>
-    <div class="note" style="margin-top:14px">
+    <!-- 🔴 ~~THE THIRD CREAM BOX~~ UN-BOXED 2026-09-12. Sam had already
+         asked for the two ABOVE the table to go; this one sits BELOW a
+         143-row table, which is why he said "both of those" and why it
+         was left alone until he named it.
+         ⛔ THE BOX GOES, THE FACTS DO NOT — same treatment as Parlays and
+         Track Record. Rule 55 wants every number LABELLED, not boxed, and
+         one of these sentences is load-bearing: without "rank 1 allows
+         the most" a reader seeing rank 1 beside the HIGHEST yards allowed
+         would reasonably read it as the BEST defence, which is the exact
+         opposite of what the column means.
+         ✅ So the direction ALSO rides the Rk header's own tooltip, and
+         the rest survives as small muted type under a hairline. -->
+    <div class="fnote">
       <b>${ranked.length}</b> ranked teams${fbConf.size ? ` of <b>${rankedAll.length}</b>` : ''}${thin.length ? ` &middot; <b>${thin.length}</b> below the ${floor}-game threshold, listed unranked` : ''}
       &middot; <b>rank 1 ${fbSide==='off'?'produces':'allows'} the most</b>.
       ${fbConf.size ? `<br>&#9888; <b>The rank and the bar are national, not

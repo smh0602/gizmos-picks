@@ -3613,6 +3613,37 @@ def run_mode(mode):
             # why, rather than pretending they lost.
             # ══════════════════════════════════════════════════════════
             left = build_record_fb()
+            # 🔴 AND THE OWED TEST READS ITSELF, RIGHT HERE, EVERY RUN.
+            # ⚠️ T54 sat OPEN FOR EIGHT DAYS with a sample of ZERO and
+            # nothing said so — because `record_fb.py` was dropping the
+            # `own_mean` the test splits on, and because nothing ever
+            # printed the count. ⛔ A pre-registered test that depends on
+            # somebody REMEMBERING to check it gets checked when it is
+            # convenient, which is the same failure as choosing the
+            # cutoff after seeing the data, one step earlier.
+            # ✅ It runs on the job that writes the thing it reads, so the
+            # count can never be more stale than the record itself.
+            # ⛔ IT IS A MEASUREMENT, NOT A GATE. A FAIL is a finding for
+            # Sam to act on deliberately; it must never redden a collector
+            # run that did its job. Only BLOCKED — the test cannot run at
+            # all — exits non-zero, and that state is a defect in THIS
+            # repo rather than a thin slate.
+            try:
+                import t54 as _t54
+                _rep = _t54.run()
+                log(f"  T54: {_rep['verdict']} — "
+                    f"{_rep['stretched_n']}/{_t54.MIN_STRETCHED} stretched "
+                    f"rows, {_rep['rows_with_own_mean']} of "
+                    f"{_rep['graded_rows']} graded rows carry own_mean")
+                if _rep["verdict"] == "BLOCKED":
+                    log("  ⛔ T54 IS BLOCKED — the graded rows carry no "
+                        "own_mean, so the test cannot accumulate at all. "
+                        "That is a GRADER defect, not a thin slate.")
+                write(f"{LATEST}/t54.json", _rep)
+            except Exception as _e:
+                # ⚠️ AN OWED TEST MUST NEVER TAKE THE GRADER DOWN WITH IT.
+                # The record is the product; this is a note about a test.
+                log(f"  ⚠️ T54 did not run: {type(_e).__name__}: {_e}")
         elif mode == "news-probe":
             # 🔴 FREE, and it WRITES NO news.json. It writes a report for a
             # human to read. ⛔ Do not chain it into `news`.

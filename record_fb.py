@@ -206,6 +206,25 @@ def grade_card(card, P, idx, covers_through):
             "implied": p.get("break_even"), "edge": p.get("edge"),
             "game": p.get("game"), "commence": p.get("commence"),
             "rank": p.get("rank"),
+            # 🔴🔴 `own_mean` IS CARRIED BECAUSE T54 CANNOT BE ANSWERED
+            #    WITHOUT IT, AND IT HAS BEEN OPEN SINCE 2026-09-04
+            #    ACCUMULATING NOTHING.
+            # `[measured 2026-09-12]` The published cards carry `own_mean`
+            # on ALL 339 rated picks. The GRADED rows carried it on ZERO
+            # of 200 — this function built its `base` without the field,
+            # so the predictor T54 splits on was discarded at grading time
+            # and the test's sample was permanently stuck at zero.
+            # ⛔ THAT IS NOT "NOT YET MEASURABLE FOR LACK OF SAMPLE". It is
+            #    a test that could never have become measurable, and it
+            #    would have sat open indefinitely reporting a shortfall
+            #    whose cause was in the grader rather than in the slate.
+            # ✅ CARRIED, NOT COMPUTED. `stretch = line / own_mean` is
+            #    derived by the CONSUMER (`t54.py`) exactly as T54
+            #    specifies; this only stops throwing the input away.
+            # ⚠️ AND THE HISTORY IS RECOVERABLE: every stored card still
+            #    holds the field, so a re-grade replays it. Nothing is
+            #    lost — but nothing would have accumulated either.
+            "own_mean": p.get("own_mean"),
         }
         if mk not in card_fb.MARKETS:
             rows.append({**base, "won": None, "state": "unknown market",
