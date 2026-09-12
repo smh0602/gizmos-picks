@@ -294,3 +294,99 @@ for tab, mode in TABS:
         missing.append((tab, mode, a, b))
 ck("🔴 EVERY TAB IS DRIVEN FOR BOTH LEAGUES, AT THE SAME CADENCE",
    not missing, str(missing) or "8 tabs, both leagues, equal")
+
+# ══════════════════════════════════════════════════════════════════════
+print("\n═══ 7. 🔴 THE TWO BUILDERS MUST MEASURE THE SAME THINGS ═══")
+# 🔴 "EVERYTHING WE DO FOR CFB WE DO FOR NFL" IS A HABIT UNTIL SOMETHING
+#    CHECKS IT. Section 6 above owns the SCHEDULE half — is each tab
+#    driven for both leagues. This owns the CONTENT half: `cfb.py` and
+#    `nfl.py` each build a trends table that ONE PAGE reads, so a column
+#    added to one and forgotten in the other gives a reader two tables
+#    that look alike and are not.
+# ⚠️ IT HAS ALREADY HAPPENED TWICE IN TWO DAYS, and both times the miss
+#    was caught by hand rather than by a check:
+#      2026-09-11  total_yds added to cfb.py, then to nfl.py separately
+#      2026-09-11  total_td   added to both in one edit ONLY because the
+#                  first miss was fresh in mind
+# ⛔ THE FAILURE IS SILENT. Nothing goes red — the NFL table simply has
+#    one fewer column, the picker offers one fewer metric, and the page
+#    renders perfectly.
+_src = {f: open(os.path.join(ROOT, f), encoding="utf-8").read()
+        for f in ("cfb.py", "nfl.py")}
+
+
+def _tuple_after(src, name):
+    """The literal tuple assigned to `name`, as a list of its strings.
+
+    ⛔ READ THE ASSIGNMENT, NOT THE FILE. Both builders quote these field
+    names in prose comments; a bare findall over the source would count
+    the documentation.
+    """
+    m = re.search(r"^%s\s*=\s*\((.*?)\)\s*$" % name, src, re.S | re.M)
+    return re.findall(r'"([a-z_]+)"', m.group(1)) if m else None
+
+
+for name in ("DEF_FIELDS", "YARD_PARTS", "TD_PARTS"):
+    a, b = _tuple_after(_src["cfb.py"], name), _tuple_after(_src["nfl.py"], name)
+    ck("🔴 cfb.py and nfl.py define %s identically" % name,
+       a is not None and a == b,
+       "⛔ one page reads both leagues' files, so a column that means "
+       "something different in each — or exists in only one — is worse "
+       "than a missing column, because nothing looks wrong.\n"
+       "     cfb: %s\n     nfl: %s" % (a, b))
+
+# ⛔ AND THE DERIVED LIST, WHICH IS WHAT ACTUALLY REACHES THE FILE.
+#    Asserting the parts match is not asserting the OUTPUT matches: the
+#    two files could assemble the same parts into different RANK_FIELDS.
+_rf = {f: re.search(r"^RANK_FIELDS\s*=\s*(.+)$", s, re.M) for f, s in _src.items()}
+ck("🔴 ...and RANK_FIELDS is assembled the same way in both",
+   all(_rf.values()) and (_rf["cfb.py"].group(1).strip()
+                          == _rf["nfl.py"].group(1).strip()),
+   "the parts matching does not mean the assembled list does. cfb: %s | "
+   "nfl: %s" % (_rf["cfb.py"] and _rf["cfb.py"].group(1),
+                _rf["nfl.py"] and _rf["nfl.py"].group(1)))
+
+# 🔴🔴 AND THE PAGE'S METRIC LIST MUST NOT OFFER A COLUMN NEITHER BUILDER
+#    WRITES. ⛔ The picker filters to what the LOADED file carries, so a
+#    stray key here is invisible until the day a file happens to have it.
+_html = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
+_arr = _html[_html.index("const FB_METRICS = ["):]
+_arr = _arr[:_arr.index("\n];")]
+_keys = set(re.findall(r"\{\s*k\s*:\s*'([a-z_]+)'", _arr))
+_built = set(_tuple_after(_src["cfb.py"], "DEF_FIELDS") or []) | {
+    "total_yds", "total_td"}
+ck("⛔ every metric the picker offers is one a builder actually writes",
+   _keys <= _built,
+   "a key no builder writes can never appear and is dead weight the "
+   "reader cannot see. Orphans: %s" % sorted(_keys - _built))
+
+# ⚠️ REPORTED, NOT ASSERTED — AND THIS IS THE GAP THE CHECKS ABOVE CANNOT
+#    CLOSE. The builders agreeing is a fact about the CODE. What reaches
+#    the page is the last file each builder WROTE, and the two rebuild on
+#    very different cadences:
+#        cfb-probe   "4 7 * * *"      DAILY, 3:04am ET
+#        nfl-logs    "6 16 * * 2"     WEEKLY, Tue 12:06pm ET
+#    ⛔ So a column added to both builders on a Wednesday is on the
+#    college table the next morning and on the NFL table SIX DAYS LATER.
+#    ➡️ Both modes are FREE. The cadence is not a cost decision.
+for lg, stem in (("ncaaf", "allowed"), ("nfl", "allowed")):
+    p = os.path.join(ROOT, "data", lg, "latest", "%s-by-position-2026.json.gz"
+                     % stem)
+    if not os.path.exists(p):
+        continue
+    import gzip  # noqa: E402
+    d = json.load(gzip.open(p, "rt"))
+    rows = d.get("defences") or d.get("offences") or {}
+    cols = set()
+    for t in rows.values():
+        for pos in t.values():
+            cols |= set(pos)
+            break
+        break
+    note("%-6s table stamped %s — total_yds %s · total_td %s"
+         % (lg, d.get("built_at") or d.get("written_at"),
+            "total_yds" in cols, "total_td" in cols))
+note("⛔ A DIFFERENCE ABOVE IS NOT A DEFECT IN THE CODE — it is the "
+     "rebuild lag, and it closes on its own. It is REPORTED rather than "
+     "asserted because asserting it would go red for days at a time on "
+     "correct code (rule 166).")
