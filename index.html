@@ -5908,6 +5908,38 @@ function fbWire(){
 }
 
 function setLeague(lg){
+  /* 🔴🔴 A WEEK NUMBER DOES NOT MEAN THE SAME THING IN THE TWO LEAGUES,
+     AND `fbWeek` WAS SURVIVING THE SWITCH.
+     `[measured 2026-09-12 by driving the page]` College week 2 is the
+     slate in progress and NFL week 2 is NEXT Sunday, so:
+
+       ncaaf -> nfl   NFL Scores opened on WEEK 2, Thursday 17 September,
+                      skipping the week-1 Sunday slate that is TOMORROW
+       nfl -> ncaaf   College Scores opened on WEEK 1, Saturday 29 AUGUST
+                      -- a board two weeks old with 455 finals on it
+
+     ⛔ NEITHER DIRECTION LOOKED BROKEN. Both rendered a full, correct
+     table of the wrong week, which is why nothing caught it: there was
+     no error, no empty state and no stale banner — just the wrong slate
+     under the right heading.
+     ⚠️ THE ASYMMETRY THAT HID IT: the SEASON picker already resets
+     `fbWeek = null` when it changes, because a season change obviously
+     invalidates a week. A LEAGUE change invalidates it just as
+     completely and nothing did the same thing.
+     ✅ Null means "work it out", and `fbCurrentWeek()` then picks the
+     first week holding an unfinished game — per league, from that
+     league's own schedule.
+     ⛔ Do not "preserve the reader's week across leagues". There is no
+     correspondence to preserve; college week 3 is NFL week 1.
+
+     ⚠️ WHAT DELIBERATELY IS NOT RESET, because it was MEASURED rather
+     than assumed: `fbMetric` survives and is correct — the Trends
+     caller filters the metric list to what the loaded file carries and
+     falls back, so college `total_yds` lands on NFL `rush_yds` with a
+     matching header. The conference filter survives and is also
+     correct — the NFL board ignores college conferences rather than
+     emptying. Both were driven before this comment was written. */
+  fbWeek = null;
   LEAGUE = lg;
   document.querySelectorAll('.lgnav a[data-lg]').forEach(a =>
     a.classList.toggle('on', a.dataset.lg === lg));
