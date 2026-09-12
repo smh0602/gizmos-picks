@@ -20,7 +20,7 @@ name: collect
 #    and if forty is too many, cut crons -- that was the whole point of
 #    the 8/26 reduction.
 #
-# CRON COUNT: 40
+# CRON COUNT: 42
 #
 # Scheduled workflows on GitHub can be delayed several minutes under load.
 # That is fine at 30-minute granularity; do not tighten this without
@@ -203,6 +203,21 @@ on:
     # the 8:30am props pull and the 9:00am card, so the morning board read
     # a table built the day before.
     - cron: "4 7 * * *"         # CFB  3:04am ET  Trends        (daily)
+    # ══════════════════════════════════════════════════════════════════
+    # 💰 THE ONLY PAID PROBE, AND IT IS SINGLE DIGITS. `[Sam, 2026-09-11:
+    # "probe it"]` He asked for halftime team totals; the cost could not
+    # be answered from the repo and the two candidate answers differ by
+    # ELEVEN TIMES (bulk endpoint ~+480/month, per-event ~+1,160 measured
+    # and +12,720 at the ceiling).
+    # ⛔ 2 credits for the bulk ask, 2 more ONLY if that comes back empty.
+    # ⚠️ ONE CRON PER LEAGUE, NEVER A DUAL-LEAGUE ARM: `test_multileague.py`
+    # FAILS on a paid mode routed to two leagues, because the per-league
+    # cost would be counted once. That guard exists and this obeys it.
+    # ⚠️ TIMED WHEN THE BOARD IS LIVE. A halftime market absent at 3am is
+    # evidence about 3am; asked while a slate is up, an empty answer means
+    # something. ⛔ And it is a CRON, never a hand-dispatch (rule 125).
+    - cron: "12 16 * * 6"       # CFB  Sat 12:12pm ET  Halftime probe
+    - cron: "12 16 * * 0"       # NFL  Sun 12:12pm ET  Halftime probe
     # 🔴 NEWS EVERY HOUR. `[Sam: "news should be updating every hour i see
     # that it is 5 hours old, unacceptable"]` ⛔ With one 8am deadline a
     # five-hour-old file was INSIDE contract, so nothing was wrong
@@ -444,6 +459,8 @@ jobs:
               "34 13 * * *")      LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "4 12 * * 2")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "4 7 * * *")        LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+              "12 16 * * 6")      LEAGUE=ncaaf; MODES="halftime-probe" ;;
+              "12 16 * * 0")      LEAGUE=nfl;   MODES="halftime-probe" ;;
               # ⏱️ THE HOURLY NEWS RUN, BOTH LEAGUES IN ONE JOB.
               # ⚠️ `news` only; it must not drag a card build into every
               # hour of the day. The card has its own deadlines.
