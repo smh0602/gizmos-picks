@@ -1,11 +1,21 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-14T11:34:11Z",
+ "checked_at": "2026-09-14T11:44:24Z",
  "et_date": "2026-09-14",
- "healthy": true,
- "broken": 0,
+ "healthy": false,
+ "broken": 1,
  "degraded": 0,
- "findings": [],
- "repairs": [],
+ "findings": [
+  {
+   "key": "day:ncaaf:game_lines",
+   "severity": "BROKEN",
+   "what": "the ncaaf card says 2026-09-12 only and its game lines are on 2026-09-17",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list",
+   "repair": "card-fb"
+  }
+ ],
+ "repairs": [
+  "card-fb"
+ ],
  "unrepairable": []
 }
