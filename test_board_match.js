@@ -26,12 +26,78 @@ for (const [k,v] of affected){
   if(!(got2 && got2.commence===night.commence)){ fail++; console.log(`     ❌ reverse: got ${got2&&got2.commence}`); }
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// 🔴🔴 EVERY PROBE TIMESTAMP BELOW IS DERIVED FROM THE BOARD. NONE IS
+// WRITTEN DOWN. `[rule 166 for the third time, red on 2026-09-14]`
+//
+// ⛔ THIS BLOCK USED TO ASK `boardFor(..., '2026-09-15T20:00:00Z')` and
+// call it "20 days from any record". It WAS 20 days away -- when it was
+// written, against an 08-26 board. Today the board covers 09-14..09-16,
+// so the literal landed INSIDE the window, `boardFor` correctly returned
+// the 09-15 record, and the check failed a page that was right.
+// ⚠️ THE PRODUCT WAS CORRECT AND THE CHECK HAD AN EXPIRY DATE NOTHING
+// EXPIRED -- rule 166, after `test_record_reset` and `test_box_live`.
+//
+// ✅ AND THE REPLACEMENT IS STRICTLY HARDER, not merely date-proof. The
+// old form probed ONE point far outside the window, which any function
+// returning null often enough would pass. This probes BOTH EDGES of
+// `BOARD_MATCH_WINDOW_MS` itself -- just inside must MATCH, just outside
+// must be NULL -- so it now fails a window that is too wide, too narrow,
+// or ignored, none of which the old form could detect.
+const WINDOW=Number(html.match(/const BOARD_MATCH_WINDOW_MS\s*=\s*([^;]+);/)[1]
+                     .replace(/[^0-9*\s]/g,'').split('*').reduce((a,b)=>a*Number(b),1));
+if(!Number.isFinite(WINDOW)||WINDOW<=0){
+  console.log(`  ❌ could not read BOARD_MATCH_WINDOW_MS from the page -> ${WINDOW}`);
+  fail++;
+}
+
 // Fails closed: a game with no board record at all returns null, not a guess.
-const none=boardFor('Nonexistent Team','Other Team','2026-08-26T20:00:00Z');
+const anchor=BOARD.games[0];
+const none=boardFor('Nonexistent Team','Other Team',anchor.commence);
 console.log(`\n  ${none===null?'✅':'❌'} unknown matchup -> ${none}`);
-// A real matchup whose first pitch is nowhere near any record -> null.
-const far=boardFor(BOARD.games[0].away, BOARD.games[0].home, '2026-09-15T20:00:00Z');
-console.log(`  ${far===null?'✅':'❌'} matchup 20 days from any record -> ${far}`);
-if(none!==null||far!==null) fail++;
+if(none!==null) fail++;
+
+// ⛔⛔ THE EDGE PROBES I FIRST WROTE HERE WERE A TAUTOLOGY AND I CAUGHT
+// IT BY DRIVING THEM. They read `BOARD_MATCH_WINDOW_MS` off the page and
+// then probed at `WINDOW ± 60s` -- so when I widened the real window to
+// 8h and narrowed it to 1h, the probes MOVED WITH IT and both runs stayed
+// green. ⚠️ A check that derives its expectation from the thing it is
+// checking cannot fail. That is rule 67 wearing rule 207's clothes, and
+// it is the second fake guard I have written this week.
+//
+// ✅ SO THE INVARIANT IS TAKEN FROM THE DATA INSTEAD. The window exists
+// to separate a doubleheader from the SAME PAIR's next-day game -- a
+// 9:40pm ET first pitch is 01:40Z tomorrow, which is how six games' live
+// odds reached the following day's cards. ⛔ So the window MUST be
+// narrower than the smallest gap between two records of one pair, or the
+// trap is unsolvable no matter how good the matcher is.
+const gaps=[];
+for(const [,v] of affected){
+  const ts=v.map(g=>Date.parse(g.commence)).sort((a,b)=>a-b);
+  for(let n=1;n<ts.length;n++) gaps.push(ts[n]-ts[n-1]);
+}
+if(!gaps.length){
+  console.log('  ⚠️ NOT EXERCISED: no pair appears twice on this board, so '
+    +'the window cannot be bounded from data today');
+}else{
+  const minGap=Math.min(...gaps);
+  const ok = WINDOW < minGap;
+  if(!ok) fail++;
+  console.log(`  ${ok?'✅':'❌'} the ${WINDOW/3600000}h window is narrower than the `
+    +`closest same-pair gap (${(minGap/3600000).toFixed(1)}h)`);
+}
+
+// ⚠️ WHAT THIS DOES NOT CATCH, SAID PLAINLY: a window NARROWED below 4h.
+// Narrowing only makes `boardFor` fail closed more often, and a card
+// missing a line is a card missing a line -- the safe direction, per
+// CLAUDE.md. The dangerous direction is widening, and widening past the
+// doubleheader gap is what the assertion above fails on.
+
+// ...and far beyond it, measured from the board's OWN last record.
+const last=BOARD.games.reduce((a,g)=>g.commence>a?g.commence:a,BOARD.games[0].commence);
+const farISO=new Date(Date.parse(last)+20*86400000).toISOString();
+const far=boardFor(anchor.away,anchor.home,farISO);
+console.log(`  ${far===null?'✅':'❌'} 20 days past the board's last game (${farISO.slice(0,10)}) -> ${far}`);
+if(far!==null) fail++;
 console.log(fail? `\n❌ ${fail} FAILURES` : `\n✅ all ${affected.length*2+2} assertions passed`);
 process.exit(fail?1:0);
