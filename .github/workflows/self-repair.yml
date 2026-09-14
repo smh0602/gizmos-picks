@@ -1,0 +1,216 @@
+# 🔴🔴 TIER 3 SELF-REPAIR — the findings nothing mechanical can fix.
+#
+# `[Sam, 2026-09-14: "are there any extension or other tools we can use to
+#  be able to make tier 3 be able to self repair efficiently that is free
+#  to use?"]`
+#
+# THE THREE TIERS, AND WHY ONLY THIS ONE NEEDED A NEW FILE:
+#   Tier 1  the freshness contract — converge rebuilds anything overdue.
+#           Already automatic. Covers every mode that puts data on a tab.
+#   Tier 2  `watchdog.py` — runs the FREE rebuild modes, re-checks.
+#           Already automatic.
+#   Tier 3  a CODE defect. Nothing mechanical can fix it, because fixing
+#           it means deciding which of two disagreeing halves is right.
+#           ⛔ Until now this stopped at "open an issue and wait for Sam".
+#
+# ══════════════════════════════════════════════════════════════════════
+# ✅ THE FREE TOOL IS ALREADY IN THIS REPO, AND THE SEAM WAS THE TRIGGER
+# ══════════════════════════════════════════════════════════════════════
+#
+# `.github/workflows/claude.yml` has had the Claude Code GitHub Action
+# since before I looked, authenticating with Sam's SUBSCRIPTION token
+# (`CLAUDE_CODE_OAUTH_TOKEN`) rather than a metered API key — so running
+# it costs no extra money, only GitHub Actions minutes.
+#
+# ⛔ WHAT BLOCKED IT WAS THE ACTOR CHECK. The watchdog opens its issue
+# with the default `GITHUB_TOKEN`, so the author is `github-actions[bot]`,
+# and the action rejects bot actors. `allowed_bots` is supposed to permit
+# that, but upstream issue anthropics/claude-code-action#900 reports the
+# bot check calling the users API BEFORE reading `allowed_bots` — a call
+# that 404s for a bot account. **Unreliable, and not worth building on.**
+#
+# ✅ A SCHEDULE IS NOT TRIGGERED BY THE BOT, AND THAT IS THE SEAM.
+#
+# ⚠️⚠️ **CORRECTED 2026-09-14, BEFORE THIS FILE WAS EVER UPLOADED.** The
+# first version of this comment said *"a schedule has no actor at all"*,
+# quoting the action's `docs/security.md`. **Anthropic's own product docs
+# say the opposite, and they are the safer reading:**
+#
+#     "This check also applies to scheduled runs, which GitHub attributes
+#      to a repository user, usually the one who last changed the
+#      workflow's `cron` schedule. If that user is a bot, list it in
+#      `allowed_bots`."
+#     — code.claude.com/docs/en/github-actions, "Who can trigger runs"
+#
+# ⛔ **Two Anthropic sources disagree, so this file must survive EITHER
+# being true.** It does, because the actor on a scheduled run here is
+# **Sam** — he uploads this file through the GitHub web UI, so the commit
+# that last set the `cron:` block is authored by a human with write
+# access. Both checks pass under either reading. ⚠️ The write-access check
+# is exempt for `schedule` under both.
+#
+# 🔴🔴 **AND THAT IS A LIVE FRAGILITY, NOT A SETTLED POINT.** If a
+# self-repair PR is ever merged that EDITS THE CRON BLOCK IN THIS FILE,
+# the "user who last changed the cron schedule" becomes the Claude GitHub
+# App — a bot — and **self-repair stops firing, silently, with no red
+# run.** ➡️ The prompt below forbids the agent from touching this file,
+# and `test_watchdog.py` §13 asserts that it does.
+#
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE GUARDS, AND THEY MATTER MORE THAN THE FEATURE
+# ══════════════════════════════════════════════════════════════════════
+#
+# 1. 🔴 IT OPENS A PULL REQUEST. IT NEVER MERGES. This repo publishes
+#    numbers Sam bets real money against, and CLAUDE.md's first rule is
+#    never weaken a check to make it pass. ⚠️ An agent that can both write
+#    the fix AND merge it is an agent that can make a check green by
+#    deleting it with nobody reading the diff. **Automatic to the PR; a
+#    human presses merge.**
+#
+# 2. 🔴 IT DOES NOT RUN WHEN THERE IS NOTHING TO DO. The first step reads
+#    `data/latest/health.json` and exits before Claude is invoked at all
+#    unless there is an UNREPAIRABLE finding. A healthy day costs a few
+#    seconds of runner time and nothing else.
+#
+# 3. 🔴 ONE PR PER PROBLEM, NOT ONE PER RUN. If an open PR from this
+#    workflow already exists, it skips. ⛔ A workflow that opens a fresh
+#    PR every four hours is a workflow whose PRs get ignored, which is the
+#    same death as a filtered alert.
+#
+# 4. ⛔ MLB IS FROZEN AND THE PROMPT SAYS SO. `CLAUDE.md`'s first section
+#    is the freeze, so the agent reads it either way — but a prompt that
+#    stays silent about the one constraint most likely to be violated is a
+#    prompt inviting the violation. An MLB finding is REPORTED and LEFT.
+name: self-repair
+
+on:
+  # ⛔ Off :00, like every cron in this repo — those slots are the most
+  # congested on GitHub's scheduler and runs get dropped there.
+  # ⚠️ FOUR TIMES A DAY, NOT HOURLY. A code defect is not fixed faster by
+  # asking more often, and each ask spends subscription usage.
+  schedule:
+    - cron: "23 11 * * *"     #  7:23am ET
+    - cron: "23 17 * * *"     #  1:23pm ET
+    - cron: "23 23 * * *"     #  7:23pm ET
+    - cron: "23 5 * * *"      #  1:23am ET
+  workflow_dispatch:
+
+concurrency:
+  group: self-repair
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      go: ${{ steps.decide.outputs.go }}
+      summary: ${{ steps.decide.outputs.summary }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Is there anything only a person could fix?
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          if [ ! -f data/latest/health.json ]; then
+            echo "no health report yet"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # ⛔ THE GATE IS `unrepairable`, NOT `healthy`. A finding the
+          # watchdog is already rebuilding must never summon an agent —
+          # that is an interruption for something that fixes itself, and
+          # it is how the whole channel gets ignored.
+          UNREP=$(python -c "import json;d=json.load(open('data/latest/health.json'));print(len(d.get('unrepairable') or []))")
+          SUMMARY=$(python -c "
+          import json
+          d = json.load(open('data/latest/health.json'))
+          rows = [i for i in d['findings']
+                  if i['severity'] == 'BROKEN' and not i['repair']]
+          print(' | '.join('%s :: %s' % (i['what'], i['why'][:200]) for i in rows)[:900])
+          ")
+          echo "unrepairable findings: $UNREP"
+          if [ "$UNREP" = "0" ]; then
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # ⛔ ONE PR PER PROBLEM. An open PR from this workflow means the
+          # fix is already written and waiting on Sam, not missing.
+          OPEN=$(gh pr list --state open --limit 50 --json headRefName \
+                   --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' 2>/dev/null || echo 0)
+          if [ "$OPEN" != "0" ]; then
+            echo "a self-repair PR is already open — not opening another"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "go=yes" >> "$GITHUB_OUTPUT"
+          echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  fix:
+    needs: triage
+    if: needs.triage.outputs.go == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # ⚠️ `prompt` PUTS THE ACTION IN AUTOMATION MODE — no @claude
+          # mention needed, and on a `schedule` event there is no actor to
+          # reject.
+          prompt: |
+            The site watchdog has reported a defect that cannot be
+            repaired by rebuilding anything. Read `data/latest/health.json`
+            for the full report. The findings with no `repair` are the
+            ones meant for you:
+
+            ${{ needs.triage.outputs.summary }}
+
+            Read CLAUDE.md FIRST and follow it. In particular:
+
+            - MLB IS FROZEN. Do not change card.py, verify_card.py, the
+              MLB model or any MLB doc. If this finding is MLB, make NO
+              code change: comment on the existing watchdog issue saying
+              the freeze is why, and stop. Sam lifts it per incident.
+            - NEVER WEAKEN A CHECK TO MAKE IT PASS. If a check is failing,
+              the thing it checks is wrong, not the check. The only
+              legitimate reason to change a check is that it asks the
+              WRONG QUESTION, and then the argument must be made
+              explicitly and the new check must be HARDER to pass.
+            - Do not touch a model coefficient, a threshold, a payout
+              band, a price floor or a freshness deadline. Those are Sam's
+              numbers.
+            - Add or extend a test that FAILS on the defect before your
+              fix and passes after it. A fix with no failing test is a
+              guess.
+            - Run the full suite (`for t in test_*.py; do python $t; done`)
+              before you finish, and say what you did NOT change.
+            - DO NOT MODIFY `.github/workflows/self-repair.yml`. GitHub
+              attributes a scheduled run to the user who last changed the
+              cron schedule. If that becomes a bot, this workflow's own
+              actor check starts rejecting it and self-repair dies with no
+              red run and no alert. If this file is what is broken, say so
+              in the PR body and change nothing in it.
+
+            Open a PULL REQUEST from a branch named
+            `self-repair/<short-description>`. Do not push to main. Do not
+            merge. Sam reviews and merges.
+          claude_args: |
+            --max-turns 40
