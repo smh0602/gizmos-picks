@@ -878,6 +878,58 @@ def build_game_lines(snapshot, n=GAME_LINES_N, slate=None):
     return (out[:n] if n else out), meta
 
 
+def next_line_slate(snapshot, now=None):
+    """The earliest ET day that still has an UNSTARTED game with lines.
+
+    🔴🔴 COLLEGE DOES NOT HAVE A WEEK, AND THAT IS THE WHOLE REASON THIS
+    EXISTS. `[Sam, 2026-09-14: "for college we should be checking daily
+    for games because cfb has a different schedule than nfl, they may
+    play games on wednesdays, fridays, tuesday, so unlike nfl the games
+    dont fall under the same 3 days every week"]`
+
+    ⚠️ MEASURED AGAINST THE 2026 SCHEDULE, 1,609 Division I games:
+
+        Sat 1422 · Fri 82 · Thu 63 · Tue 18 · Wed 15 · Sun 8 · Mon 1
+
+    **187 games — 12% of the season — are not on a Saturday**, and the
+    next three weeks each carry a Thursday and a Friday. ⛔ So "the
+    football week" is an NFL idea that does not survive contact with the
+    college calendar, and any window defined in weeks is wrong here twice
+    over: it shows games seven days out AND misses a Tuesday.
+
+    ⛔ THE CARD'S OWN SLATE IS THE WRONG ANCHOR FOR THIS ONE LIST. Picks,
+    parlays and top plays describe PLAYERS in a slate that has to have
+    posted props, so they correctly sit on the last built slate. Game
+    lines describe GAMES, the books have already posted the next ones,
+    and the snapshot we ALREADY PAY FOR is holding them: measured on
+    2026-09-14, one Thursday game, two Friday, fifty-four Saturday.
+    ⚠️ Anchoring them to the card's day left the tab EMPTY for the four
+    days between slates while live, bettable lines sat unused.
+
+    ✅ ONE DAY, THE NEXT ONE. Never a mix of Thursday and Saturday, never
+    a week of futures — which is the defect Sam reported on the 14th, and
+    this must not reintroduce it by widening instead of moving.
+    ⛔ AND IT MUST BE UNSTARTED. A slate that kicked off an hour ago is
+    not "next"; its lines are off the board and the page already hides
+    started games everywhere else.
+    """
+    now = now or datetime.now(timezone.utc)
+    days = set()
+    for g in (snapshot.get("games") or []):
+        c = g.get("commence")
+        d = et_date(c)
+        if not d:
+            continue
+        try:
+            t = datetime.strptime(c, "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc)
+        except Exception:
+            continue
+        if t > now:
+            days.add(d)
+    return min(days) if days else None
+
+
 def game_lines_rule(rows, meta):
     """The sentence the page prints above the list. Computed, never typed."""
     if not rows:
@@ -903,7 +955,22 @@ def game_lines_rule(rows, meta):
                 "a fact about the board and not a view about the games."
                 % (meta["games_seen"], meta["comparable_quotes"],
                    SHOP_MIN_BOOKS))
-    return ("The %d biggest PRICE differences on the board, one per game, "
+    # 🔴 WHEN THE LINES ARE FOR A DIFFERENT DAY THAN THE CARD, SAY SO
+    #    FIRST. Sam's 09-14 report was a list silently on another date
+    #    under a header promising one day; moving the window instead of
+    #    widening it fixes the mixing, but the label still has to be
+    #    honest or it is the same complaint with better arithmetic.
+    _lead = ""
+    if meta.get("is_next_slate") and meta.get("slate"):
+        # ⚠️ LEAGUE-NEUTRAL WORDING. The first draft said "College plays
+        #    midweek" and this function is shared, so it printed that
+        #    sentence on the NFL card — a true fact about the wrong sport,
+        #    which is the kind of copy a reader stops believing.
+        _lead = ("📅 %s — the next day with games. This list follows the "
+                 "next slate rather than the card's, so it is never "
+                 "empty between slates. " % meta["slate"])
+    return (_lead +
+            "The %d biggest PRICE differences on the board, one per game, "
             "richest first — how much more the best book pays than a "
             "typical one on the SAME wager. ⚠️ This is not a prediction and "
             "it does not say who wins. It is arithmetic on %d quotes that "
@@ -1345,13 +1412,27 @@ def main():
     # 🔴 `slate=slate` IS THE FIX FOR SAM'S 2026-09-14 REPORT. Rule 101 —
     #    ONE day filter, governing every surface the card publishes —
     #    reached the board and the parlays and never reached here.
-    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=slate)
+    # 🔴 THE GAME LINES FOLLOW THE NEXT SLATE, NOT THE CARD'S.
+    #    `[Sam, 2026-09-14]` — college plays midweek, so between slates
+    #    the card's own day has no open lines at all and the tab sat
+    #    empty for four days while Thursday's were already posted.
+    # ⛔ STILL EXACTLY ONE DAY. This MOVES the window, it does not widen
+    #    it: the defect Sam reported was a card showing Sept 20 under a
+    #    Sept 13 header, and showing Thursday AND Saturday together would
+    #    be the same defect wearing a different date.
+    # ⚠️ AND THE LIST CARRIES ITS OWN DATE, because it is now allowed to
+    #    disagree with the card's. A section on a different day than the
+    #    header MUST say so or it is the contradiction again.
+    _gl_slate = (next_line_slate(_gl_snap) or slate) if _gl_snap else slate
+    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=_gl_slate)
                         if _gl_snap
                         else ([], {"games_seen": 0, "comparable_quotes": 0,
                                    "games_with_an_edge": 0,
                                    "min_books": SHOP_MIN_BOOKS,
                                    "slate": slate, "off_day_games": 0,
                                    "off_day_dates": []}))
+    gl_meta["card_slate"] = slate
+    gl_meta["is_next_slate"] = (_gl_slate != slate)
     game_lines = _gl_all[:GAME_LINES_N]
     gl_meta["snapshot"] = _gl_path
     log(f"  game lines: {len(game_lines)} row(s) from "

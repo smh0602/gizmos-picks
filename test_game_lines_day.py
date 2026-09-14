@@ -29,6 +29,7 @@ one week. That is Sam's call. What is owned here is that the list and the
 LABEL ABOVE IT agree — whatever the window is, the card must not say one
 thing and show another.
 """
+import datetime
 import gzip
 import json
 import os
@@ -169,16 +170,26 @@ for lg in ("ncaaf", "nfl"):
              "`game_lines_meta.slate`), so it is NOT asserted. The next "
              "card-fb run rewrites it. ⛔ Reported, not passed." % lg)
         continue
+    # ⚠️ CHECKED AGAINST THE LIST'S OWN SLATE, NOT THE CARD'S DATE.
+    #    Since 2026-09-14 the game lines deliberately follow the NEXT day
+    #    with games (Sam: college plays midweek), so they are ALLOWED to
+    #    differ from the card — what is never allowed is the list holding
+    #    more than one day, or disagreeing with the label it prints.
+    _ls = meta.get("slate")
     bad = sorted({C.et_date(r.get("commence")) for r in (d.get("game_lines") or [])
-                  if C.et_date(r.get("commence")) not in (slate, None)})
+                  if C.et_date(r.get("commence")) not in (_ls, None)})
     _checked += 1
-    ck("🔴 %s: every published game line is on the card's own day (%s)"
-       % (lg, slate),
+    ck("🔴 %s: every published game line is on the list's own day (%s)"
+       % (lg, _ls),
        not bad,
-       "⛔ the card's header promises ONE day, and this card was built by "
-       "a builder that HAS the filter — so a foreign date here means the "
-       "filter stopped working, not that the card is old. Present: %s"
-       % bad)
+       "⛔ the list prints ONE date and every row must be on it. This "
+       "card was built by a builder that HAS the filter, so a foreign "
+       "date means the filter stopped working. Present: %s" % bad)
+    ck("⛔ %s: ...and the card says so when they differ (card %s)"
+       % (lg, slate),
+       _ls == slate or meta.get("is_next_slate") is True,
+       "a list on a different day than the header MUST be marked, or it "
+       "is the contradiction Sam reported with a different date")
 if not (_checked or _old):
     note("⚠️ NOT EXERCISED: no stored football card in this tree, so "
          "section 5 proved nothing. ⛔ Reported rather than passed.")
@@ -186,7 +197,54 @@ else:
     note("asserted %d card(s); %d predate the filter and were reported "
          "rather than asserted" % (_checked, _old))
 
-note("⛔ WHAT IS NOT DECIDED HERE: whether the window should be a DAY or "
-     "a WEEK. The card says 'only' and names a date, so today the list "
-     "must match that. Widening it is a product change that moves the "
-     "LABEL too, and it is Sam's to make.")
+
+print("\n═══ 6. 🔴🔴 THE LIST FOLLOWS THE NEXT SLATE, NOT THE CARD'S ═══")
+# 🔴 `[Sam, 2026-09-14: "for college we should be checking daily for games
+#    because cfb has a different schedule than nfl, they may play games on
+#    wednesdays, fridays, tuesday"]`
+# ⚠️ MEASURED ACROSS THE 2026 SCHEDULE, 1,609 Division I games:
+#        Sat 1422 · Fri 82 · Thu 63 · Tue 18 · Wed 15 · Sun 8 · Mon 1
+#    **187 games are not on a Saturday.** So anchoring this list to the
+#    card's own slate left the tab EMPTY for the four days between slates
+#    while live Thursday lines sat in a snapshot already paid for.
+# ⛔ AND IT MUST MOVE THE WINDOW, NOT WIDEN IT. Showing Thursday AND
+#    Saturday together is the September-20-under-a-September-13-header
+#    defect wearing a different date.
+_now = datetime.datetime(2026, 9, 14, 18, 0, tzinfo=datetime.timezone.utc)
+snap = _snap([("thu", "2026-09-17T23:00:00Z"),
+               ("fri", "2026-09-19T00:00:00Z"),
+               ("sat", "2026-09-19T17:00:00Z"),
+               ("done", "2026-09-12T23:00:00Z")])   # already played
+nxt = C.next_line_slate(snap, _now)
+ck("🔴 the next slate is the earliest UNSTARTED day",
+   nxt == "2026-09-17",
+   "⛔ a slate that kicked off is not 'next' — its lines are off the "
+   "board. Got %r" % nxt)
+rows, meta = C.build_game_lines(snap, n=None, slate=nxt)
+_days = sorted({C.et_date(r["commence"]) for r in rows})
+ck("🔴 ...and the list is ONE day, not a week of futures",
+   _days == ["2026-09-17"],
+   "⛔ this is the whole reason the window MOVES instead of widening. "
+   "Got %s" % _days)
+meta["is_next_slate"] = True
+_txt = C.game_lines_rule(rows, meta)
+ck("🔴 the list states its OWN date when it differs from the card's",
+   "2026-09-17" in _txt and "next day with games" in _txt,
+   "⛔ a section on a different day than the header MUST say so, or it "
+   "is the contradiction Sam reported, with better arithmetic. Got %r"
+   % _txt[:140])
+ck("⛔ ...and the sentence names no sport",
+   "College" not in _txt and "NFL" not in _txt,
+   "⚠️ `game_lines_rule` is SHARED. The first draft said 'College plays "
+   "midweek' and printed it on the NFL card — a true fact about the "
+   "wrong sport is how a reader learns to skip the copy")
+ck("⚠️ a snapshot with nothing left to play has no next slate",
+   C.next_line_slate(_snap([("old", "2026-09-12T23:00:00Z")]), _now) is None,
+   "and the caller falls back to the card's own slate rather than "
+   "inventing a day")
+
+note("✅ DECIDED 2026-09-14, BY SAM: not a week — the NEXT DAY WITH "
+     "GAMES, checked daily, because the college calendar has no week to "
+     "anchor to. ⛔ The list is still exactly one day; what changed is "
+     "WHICH day, and that it carries its own label when it differs from "
+     "the card's.")
