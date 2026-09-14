@@ -35,6 +35,38 @@ FROZEN**, and neither is `index.html`, `watchdog.py` or the test suite.
 
 ---
 
+## 🔴🔴 EVERY FIX SHIPS WITH A GUARD. A FIX ALONE IS HALF THE WORK.
+
+**Sam, 2026-09-14: *"from now on when you notice a problem not only do we
+need a fix to it now, but we also need a automated fix for said
+problem."***
+
+⛔ **DO NOT CLOSE ANYTHING WITH ONLY THE INSTANCE REPAIRED.** Every defect
+leaves with two things:
+
+1. ✅ **The fix** — the instance, corrected.
+2. ✅ **The guard** — something automated that FAILS if this returns. A
+   test, a check, an assertion, a watchdog question. **It must fail on the
+   defect and pass after the fix**, and you must have watched it do both.
+
+🔴 **PREFER THE GENERIC GUARD OVER THE SPECIFIC ONE.** A check naming the
+one file that broke covers exactly that file — and this repo has shipped
+that mistake twice (rules 246, 130). ➡️ **Ask what CLASS the defect
+belongs to and guard the class** where the class is answerable; guard the
+instance only when it is not, and say which you did.
+
+⚠️ **A GUARD THAT CANNOT FAIL IS NOT A GUARD.** Prove it bites before you
+call it done — an empty match, a stripped comment, a fixture missing the
+file under test, and a check that asserts its own prose have all passed
+green in this repo while proving nothing (rules 67, 244, 249).
+
+⛔ **AND A GUARD THAT FIRES ON CORRECT CODE IS THE OTHER FAILURE, NOT A
+SAFE ONE.** Three of mine did that in one week, each caught only by
+running it. **Drive it against the real artifact, not against your
+expectation of it.**
+
+---
+
 ## THE ONE RULE THAT MATTERS MOST
 
 🔴 **NEVER WEAKEN A CHECK TO MAKE IT PASS.**
