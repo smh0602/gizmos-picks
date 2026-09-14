@@ -1421,7 +1421,14 @@ function projChip(v, unit, basis, title){
 let PROJ = null;
 async function loadProjections(){
   if (PROJ) return PROJ;
-  try { PROJ = (await jget(`picks/${todayET()}.json`)).projections || {}; }
+  /* 🔴 THROUGH `loadCard`, NOT A SECOND FETCH OF ITS OWN. This asked for
+     `picks/${todayET()}.json` directly, so on a morning with no card yet
+     the Player Props tab silently lost EVERY projection — one of the
+     three things Sam reported missing on 2026-09-14 — while the fallback
+     card that has them sat unread. ⛔ Two readers of one file is rule 66;
+     two readers with DIFFERENT fallback behaviour is how one of them goes
+     quiet without anyone noticing. */
+  try { PROJ = (await loadCard()).projections || {}; }
   catch(e){ PROJ = {}; }
   return PROJ;
 }
@@ -1639,14 +1646,19 @@ async function renderPicks(){
   try { P = await loadCard(); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>Gizmo's Picks <span class="kind k-model">Model</span></h2>
-      <div class="note"><b>No card published for ${d} yet.</b> Cards are written to
+      <div class="note"><b>No card published for ${d} yet</b>, and none in the
+      last ${CARD_MAX_BACK} days either. Cards are written to
       <code>picks/&lt;date&gt;.json</code>; this tab renders whatever is there.</div></div>`;
     return;
   }
 
   v.innerHTML = '';
   const head = el('div','panel');
-  head.innerHTML = `<h2>Gizmo's Picks <span class="kind k-model">Model</span> &mdash; ${d}</h2>
+  /* ⛔ THE DATE IN THE HEADING IS THE CARD'S OWN, NEVER `todayET()`. A
+     heading that says today over yesterday's rows is the misinformation
+     this fallback exists to avoid. */
+  head.innerHTML = `<h2>Gizmo's Picks <span class="kind k-model">Model</span> &mdash; ${CARD_DATE}</h2>
+    ${cardStaleNote()}
     <p>${P.coverage}</p>
     <div class="note"><b>Read the confidence number honestly.</b> ${P.calibration_warning}</div>`;
   v.append(head);
@@ -2207,13 +2219,67 @@ let PROPS = null;
    timer meant was every minute, per tab. Caching it is a bandwidth win and,
    more importantly, it lets the change-detector below see whether anything
    on the card has actually moved. */
-let CARD = null, CARD_DATE = null;
+let CARD = null, CARD_DATE = null, CARD_ASKED = null, CARD_BACK = 0;
+
+/* 🔴🔴 THE CARD FALLS BACK TO THE MOST RECENT PUBLISHED ONE, AND THE PAGE
+   SAYS SO. [Sam, 2026-09-14: "gizmos picks did not load today and did not
+   deliver any picks for the mlb slate as well as didnt provide
+   projections, thats one of our main builds"]
+
+   Measured the morning he said it: the tab read "No card published for
+   2026-09-14 yet." The MLB card cron is 10:04am ET. So THE MAIN TAB WAS
+   BLANK FROM MIDNIGHT TO 10AM ET — ten hours, EVERY DAY, by design —
+   while a complete card for the previous day sat one filename away.
+
+   ⛔ AND IT IS THE SAME FAILURE SHAPE AS THE 09-12 OUTAGE: all-or-nothing.
+   One missing file took down the picks, the parlays AND every projection
+   on the Player Props tab, because all three ask for today's date and
+   give up on a 404.
+
+   ➡️ SO THE RULE IS: A MISSING CARD IS A REASON TO SHOW AN OLDER ONE,
+   LABELLED — NEVER A REASON TO SHOW NOTHING.
+
+   ⚠️ AND THE LABEL IS NOT OPTIONAL, IT IS THE WHOLE LICENCE FOR DOING
+   THIS. CLAUDE.md: a card missing a line is a card missing a line; a card
+   showing another game's line is misinformation. Yesterday's card
+   presented as today's would be exactly that — so `CARD_BACK` carries how
+   many days back it came from and every surface that renders it draws the
+   banner. A silent fallback would be worse than the blank page. */
+const CARD_MAX_BACK = 7;
 async function loadCard(){
   const d = todayET();
-  if (CARD && CARD_DATE === d) return CARD;
-  CARD = await jget(`picks/${d}.json`);
-  CARD_DATE = d;
-  return CARD;
+  if (CARD && CARD_ASKED === d) return CARD;
+  CARD_ASKED = d;
+  let err = null;
+  for (let back = 0; back <= CARD_MAX_BACK; back++){
+    /* ⛔ ET, never the browser's local midnight. `todayET` is the one
+       function that decides what day it is here (rule 66), so the walk
+       back counts days off ITS answer rather than off a new Date(). */
+    const t = new Date(d + 'T12:00:00Z');
+    t.setUTCDate(t.getUTCDate() - back);
+    const day = t.toISOString().slice(0, 10);
+    try {
+      const c = await jget(`picks/${day}.json`);
+      CARD = c; CARD_DATE = day; CARD_BACK = back;
+      return CARD;
+    } catch(e){ if (back === 0) err = e; }
+  }
+  CARD = null; CARD_DATE = null; CARD_BACK = 0;
+  throw err || new Error('no card in the last ' + CARD_MAX_BACK + ' days');
+}
+
+/* The banner. ⛔ Returns '' on a current card so it cannot become
+   decoration that a reader learns to skip. */
+function cardStaleNote(){
+  if (!CARD_BACK) return '';
+  const n = CARD_BACK;
+  return `<div class="note" style="border-left:3px solid #f0a500">
+    <b>This is the card for ${CARD_DATE} — ${n} day${n > 1 ? 's' : ''} ago, not today.</b>
+    Today's card has not been published yet; it is built each morning and
+    this tab will switch to it on its own as soon as it lands. Every game
+    below has already been played, so nothing here is a live recommendation
+    — it is shown so the board, the parlays and the projections are still
+    readable rather than blank.</div>`;
 }
 
 /* A game that has started is not a betting board any more.
@@ -2436,14 +2502,16 @@ async function renderParlays(){
   try { P = await loadCard(); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>Parlays</h2>
-      <div class="note"><b>No card published for ${d} yet.</b> Parlays are built by
+      <div class="note"><b>No card published for ${d} yet</b>, and none in the
+      last ${CARD_MAX_BACK} days either. Parlays are built by
       <code>card.py</code> alongside the daily card.</div></div>`;
     return;
   }
   v.innerHTML = '';
   const PL = P.parlays || {};
   const head = el('div','panel');
-  head.innerHTML = `<h2>Parlays &mdash; ${d}</h2><p>${P.parlay_rule || ''}</p>`;
+  head.innerHTML = `<h2>Parlays &mdash; ${CARD_DATE}</h2>${cardStaleNote()}
+    <p>${P.parlay_rule || ''}</p>`;
   v.append(head);
 
   const live = new Set((P.picks || [])

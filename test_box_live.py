@@ -80,9 +80,60 @@ if os.path.exists(sf) and os.path.exists(pf):
           or (g.get("away_class") or "").lower() in D1]
     played = [g for g in d1 if g.get("final")]
     have = sum(1 for g in played if str(g["id"]) in logged)
-    ck("🔴 most Division I games played have NO stored player log",
-       have < len(played) / 2,
-       f"{have} of {len(played)} — this is the bug, stated as a fraction")
+    # ⛔ ~~ck("🔴 most Division I games played have NO stored player log",
+    #        have < len(played) / 2, ...)~~
+    # 🔴🔴 STRUCK 2026-09-14. **THIS CHECK ASSERTED THAT A BUG STILL
+    #    EXISTED, SO IT WENT RED WHEN THE PRODUCT GOT BETTER.**
+    #
+    #    It was written on 2026-09-06 to prove the stored log could never
+    #    answer Sam's box-score question — 17 of 202 games had one. The
+    #    college logs moved to a DAILY rebuild that same night, coverage
+    #    climbed, and on 2026-09-14 it read **185 of 339 (55%)** and the
+    #    assertion failed. ⛔ **Every scheduled run had been going red on
+    #    it**, which is worse than useless: Sam reported *"a bunch of
+    #    failed runs"* and a real failure was by then indistinguishable
+    #    from this one.
+    #
+    # ➡️ **RULE 166 IN ITS PUREST FORM — a check whose subject is a
+    #    TRANSIENT state has an expiry date and nothing expires it — with
+    #    the cruellest twist available: the expiry condition was the fix
+    #    landing.** A check that fails when the thing it describes is
+    #    repaired is not a regression test, it is a snapshot with an
+    #    assertion bolted on.
+    #
+    # ⚠️ CLAUDE.md FORBIDS WEAKENING A CHECK AND REQUIRES THE ARGUMENT BE
+    #    MADE. Here it is: the question *"is the stored log thin?"* was
+    #    only ever evidence for a DECISION that is already taken and
+    #    already asserted elsewhere in this file — *"ESPN is preferred and
+    #    the stored log is the FALLBACK"*, section 2. Re-proving the
+    #    motive every run buys nothing and costs a red tick.
+    # ✅ AND IT IS REPLACED WITH A STRICTLY HARDER ONE, not merely
+    #    deleted. The measurement survives as a `note`; the assertion
+    #    becomes a durable property of the data that CANNOT expire and
+    #    that nothing else in the suite covers.
+    note(f"stored-log coverage today: {have} of {len(played)} Division I "
+         f"games played ({100.0 * have / max(1, len(played)):.0f}%). "
+         f"⚪ MEASURED, NOT ASSERTED — this number is allowed to be "
+         f"anything, including 100%.")
+
+    # 🔴 THE REPLACEMENT, AND IT IS ABOUT A CAPABILITY RATHER THAN A
+    #    DEFECT: every played game the tab can open must carry ESPN's own
+    #    event id, or the reader is stuck with whatever the stored log
+    #    has and has NO ROUTE to the live source at all.
+    # ⛔ THIS IS NOT HYPOTHETICAL. The id is a COLUMN of the weekly
+    #    rebuild, and it has already been absent once — 0 of 285 NFL 2025
+    #    games carry one, which is why that season is refused rather than
+    #    404'd. A rebuild that drops the column again would silently
+    #    disable the live box score for every game, and **the old check
+    #    would have gone GREEN on exactly that failure** — losing the
+    #    live path makes the stored log MORE load-bearing, not less.
+    _noid = [g for g in played if not g.get("espn")]
+    ck("🔴 every played Division I game carries ESPN's own event id",
+       not _noid,
+       "⛔ without it `fbOpenBox` refuses to ask (section 2) and the "
+       "reader is left on the stored log with no way to the live source. "
+       f"{len(_noid)} of {len(played)} game(s) have no id: "
+       f"{[g.get('id') for g in _noid[:5]]}")
     # The single worst day is the one a reader actually clicks on.
     byday = {}
     for g in played:

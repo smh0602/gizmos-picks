@@ -10,6 +10,31 @@ wrong once.** Do not relax one because it looks over-cautious.
 
 ---
 
+## 🔴🔴 MLB IS CLOSED FOR WORK. READ THIS BEFORE THE RULE BELOW.
+
+**Sam, 2026-09-12: *"we have mlb perfected we dont need to touch it."***
+
+⛔ **DO NOT CHANGE `card.py`, `verify_card.py`, the MLB model, the MLB
+card, or any MLB doc.** ⚠️ This lived only in Sam's project docs until
+2026-09-14, which meant **an agent working inside this repository — the
+Claude Code GitHub Action, a fresh Actions session — could not see it at
+all.** It is written here so that it binds whoever is reading.
+
+⚠️ **A LIVE MLB FAILURE IS REPORTED AND LEFT.** Do not fix it, do not open
+a PR for it, do not propose one until Sam asks. ⛔ ***"It was broken so I
+touched it"* is precisely the reasoning this rule exists to refuse** — and
+it is the reasoning that will feel most justified at the moment it
+applies.
+
+✅ **THE DEPLOYED MLB CRONS KEEP RUNNING.** The freeze is on CHANGING MLB,
+not on MLB running. Nothing in the schedule is to be disabled, retimed or
+repriced.
+
+✅ **FOOTBALL (`card_fb.py`, `cfb.py`, `nfl.py`, the football tabs) IS NOT
+FROZEN**, and neither is `index.html`, `watchdog.py` or the test suite.
+
+---
+
 ## THE ONE RULE THAT MATTERS MOST
 
 🔴 **NEVER WEAKEN A CHECK TO MAKE IT PASS.**

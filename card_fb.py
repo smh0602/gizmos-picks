@@ -781,7 +781,7 @@ def latest_gamelines_snapshot():
     return None, None
 
 
-def build_game_lines(snapshot, n=GAME_LINES_N):
+def build_game_lines(snapshot, n=GAME_LINES_N, slate=None):
     """Top `n` shoppable game-line edges, ONE PER GAME, richest first.
 
     `snapshot` is a raw `gamelines` pull — the file the collector already
@@ -790,11 +790,46 @@ def build_game_lines(snapshot, n=GAME_LINES_N):
 
     ⛔ Every number returned is MARKET. Nothing is predicted, nothing
     carries a confidence, and no row can be wrong about a result.
+
+    🔴🔴 `slate` IS THE CARD'S OWN DAY, AND WITHOUT IT THIS LIST SHOWED
+    NEXT WEEK. `[Sam, 2026-09-14: "there is games for next week already in
+    the game lines tab, we should only be providing picks for the current
+    week not the weeks in the future"]` — measured on the live cards the
+    morning he said it:
+
+        NFL card dated 2026-09-13   7 lines on 09-13 · 1 on 09-14
+                                    · 7 on 09-20   ⛔ NEXT WEEK
+        CFB card dated 2026-09-12   ZERO lines from its own slate
+                                    · 8 on 09-18 and 09-19  ⛔ ALL of it
+
+    ⛔ **LEDGER RULE 101 WAS NEVER APPLIED HERE.** The single-day filter
+    governs the board and the parlays, and `game_lines` was added two
+    drops later and never picked it up. So a card whose own header reads
+    *"📅 Sunday, September 13 only. Every row here is a game on that
+    day"* was printing Sept 20 underneath it. ➡️ **The card contradicted
+    its own label, which is worse than either answer on its own.**
+
+    ⚠️ A SLATE WITH NO LINES LEFT RETURNS AN EMPTY LIST AND SAYS SO. On a
+    Monday the college card is still Saturday's, and Saturday's lines are
+    off the board — **an empty list is the honest answer there, and
+    `game_lines_rule` prints the reason** (rule 86: write the empty
+    state, never skip it).
     """
     out = []
     meta = {"games_seen": 0, "comparable_quotes": 0,
-            "games_with_an_edge": 0, "min_books": SHOP_MIN_BOOKS}
+            "games_with_an_edge": 0, "min_books": SHOP_MIN_BOOKS,
+            "slate": slate, "off_day_games": 0, "off_day_dates": []}
+    _off = set()
     for g in (snapshot.get("games") or []):
+        # 🔴 ET, NEVER THE UTC STRING. A Saturday 8pm ET kickoff is 00:00Z
+        #    Sunday, and slicing the raw string files it under the wrong
+        #    day — the same defect `et_date` was written for.
+        if slate is not None:
+            d = et_date(g.get("commence"))
+            if d is not None and d != slate:
+                meta["off_day_games"] += 1
+                _off.add(d)
+                continue
         meta["games_seen"] += 1
         groups = collections.defaultdict(list)
         for bk, bd in (g.get("books") or {}).items():
@@ -839,12 +874,29 @@ def build_game_lines(snapshot, n=GAME_LINES_N):
     #    have no line — and the same-game parlays need the full set, or a
     #    game could only ever contribute a line leg if it happened to be
     #    one of the fifteen most mispriced on the slate.
+    meta["off_day_dates"] = sorted(_off)
     return (out[:n] if n else out), meta
 
 
 def game_lines_rule(rows, meta):
     """The sentence the page prints above the list. Computed, never typed."""
     if not rows:
+        # 🔴 TWO DIFFERENT EMPTY STATES WITH TWO DIFFERENT CAUSES, AND
+        #    COLLAPSING THEM WOULD BE RULE 222 AGAIN. "The books have not
+        #    agreed on a number yet" and "every line on the board belongs
+        #    to a different day" are not the same sentence, and only one
+        #    of them resolves by waiting.
+        if meta.get("off_day_games") and not meta.get("games_seen"):
+            return ("No game lines for %s. Every game the books are "
+                    "currently pricing (%d of them, on %s) belongs to a "
+                    "different day, and this card is %s only — the same "
+                    "rule the picks and the parlays follow. ⚠️ That is a "
+                    "fact about which lines are open right now, not a "
+                    "view about the games."
+                    % (meta.get("slate") or "this slate",
+                       meta["off_day_games"],
+                       ", ".join(meta.get("off_day_dates") or []) or "another date",
+                       meta.get("slate") or "one day"))
         return ("No game lines for this slate yet. %d game(s) are on the "
                 "board and %d quote(s) had %d+ books at the same signed "
                 "number — not enough agreement to compare prices, which is "
@@ -1290,15 +1342,25 @@ def main():
     #    game's line is a real quote whether or not it is one of the
     #    fifteen most mispriced. Building it twice would be two copies of
     #    the same arithmetic (rule 66).
-    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None) if _gl_snap
+    # 🔴 `slate=slate` IS THE FIX FOR SAM'S 2026-09-14 REPORT. Rule 101 —
+    #    ONE day filter, governing every surface the card publishes —
+    #    reached the board and the parlays and never reached here.
+    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=slate)
+                        if _gl_snap
                         else ([], {"games_seen": 0, "comparable_quotes": 0,
                                    "games_with_an_edge": 0,
-                                   "min_books": SHOP_MIN_BOOKS}))
+                                   "min_books": SHOP_MIN_BOOKS,
+                                   "slate": slate, "off_day_games": 0,
+                                   "off_day_dates": []}))
     game_lines = _gl_all[:GAME_LINES_N]
     gl_meta["snapshot"] = _gl_path
     log(f"  game lines: {len(game_lines)} row(s) from "
         f"{gl_meta['games_with_an_edge']} game(s) with a shoppable edge, "
         f"{gl_meta['comparable_quotes']} comparable quote(s)")
+    if gl_meta.get("off_day_games"):
+        log(f"  single-day game lines: {gl_meta['off_day_games']} game(s) "
+            f"dropped for {', '.join(gl_meta['off_day_dates'])} — this "
+            f"card is {slate} only")
 
     # 🔴 SAME-GAME PARLAYS, AND THEY ARE BUILT LAST ON PURPOSE -- they are
     # the only thing on this card that needs BOTH the prop rows and the
