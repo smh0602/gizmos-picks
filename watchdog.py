@@ -93,6 +93,25 @@ GRACE_MIN = 75
 #    watchdog reports it and does not race it.
 SAFE_REPAIRS = ("card", "card-fb", "record")
 
+# 🔴🔴 A REPAIR THAT NEVER WORKS IS A FINDING NOBODY IS COMING TO FIX.
+# `[measured 2026-09-14: 35 pointless rebuilds over 9½ hours]`
+#
+# ⛔ THE HOLE THIS CLOSES IS THE WORST ONE IN THE WHOLE DESIGN. Tier 3
+# (`self-repair.yml`) is gated on the `unrepairable` list. A finding that
+# NAMES a repair is never unrepairable — so if that repair cannot
+# possibly fix it, the loop runs forever, `unrepairable` stays empty, and
+# **the agent that exists for exactly this defect class is never woken.**
+# ⚠️ The louder the system looks (repairs running every cycle!) the more
+# certain it is that nothing is happening.
+#
+# ✅ So a repair gets a FIXED NUMBER OF TRIES against the same finding.
+# After that the repair is withdrawn and the finding escalates. ⛔ Three,
+# not one: the workflow re-checks immediately after repairing, and a
+# rebuild whose effect lands on the next collector cycle would otherwise
+# escalate on a success.
+REPAIR_ATTEMPTS_BEFORE_ESCALATION = 3
+HEALTH = "data/latest/health.json"
+
 LEAGUES = ("mlb", "ncaaf", "nfl")
 DATA = {"mlb": "data", "ncaaf": "data/ncaaf", "nfl": "data/nfl"}
 PICKS = {"mlb": "picks", "ncaaf": "picks", "nfl": "picks"}
@@ -271,13 +290,57 @@ def _dated_lists(doc):
     return out
 
 
+def _declared_slate(doc, field):
+    """The day a list DECLARES it covers, and whether that was deliberate.
+
+    Returns `(slate, is_next, has_meta)`.
+
+    🔴🔴 THE CARD'S DATE IS NOT EVERY LIST'S DATE, AND ASSUMING IT WAS
+    COST 9½ HOURS OF FALSE ALARM. `[measured 2026-09-14 21:19Z]`
+    `card_fb.build_game_lines()` deliberately FALLS FORWARD to the next
+    day that still has unstarted games, so the list is never empty
+    between slates — and it records that in `game_lines_meta`
+    (`slate`, `card_slate`, `is_next_slate`). The card says so in words,
+    and `index.html` renders the sentence.
+    ⛔ This check read `doc["date"]` for every list, so it called a
+    labelled, intended, reader-visible design a rule-101 leak — **on a
+    Saturday card whose next games are Thursday.** Two halves of my own
+    work disagreeing, which is the exact shape of the 09-12 outage.
+    ➡️ **Ledger rule 255.**
+    """
+    meta = (doc or {}).get("%s_meta" % field)
+    if isinstance(meta, dict) and meta.get("slate"):
+        return meta.get("slate"), bool(meta.get("is_next_slate")), True
+    return (doc or {}).get("date"), False, False
+
+
 def check_card_day_agreement(rep, now):
-    """🔴 DOES EVERY ROW ON A CARD BELONG TO THE DAY THE CARD CLAIMS?
+    """🔴 DOES EVERY ROW BELONG TO THE DAY ITS OWN LIST CLAIMS?
 
     ⛔ THE 2026-09-14 DEFECT, AND NOTHING ASKED THIS. A card headed
     *"Sunday, September 13 only"* published game lines for September 20.
     ⚠️ A card that contradicts its own label is worse than either answer
     on its own, because a reader cannot tell which half to believe.
+
+    ══════════════════════════════════════════════════════════════════
+    ⚠️ THE QUESTION CHANGED 2026-09-14, AND IT IS STRICTLY HARDER.
+    ~~"does every row match the CARD's date"~~ — that form fired on a
+    correct card for 9½ hours (rule 255). CLAUDE.md permits changing a
+    check only when it asks the WRONG QUESTION, and only for a harder
+    one. **This asks three things where the old form asked one:**
+
+      1. every row matches the day ITS LIST declares  — the old check,
+         still enforced for any list with no meta of its own;
+      2. a list that declares a DIFFERENT day than the card must say so
+         deliberately (`is_next_slate`) and must look FORWARD, never
+         back — ⛔ the old check could not see this at all, and would
+         have passed a list silently relabelled to yesterday;
+      3. a declared slate must still match its own rows — ⛔ the old
+         check passed any list whose rows happened to sit on the card's
+         date even while its meta claimed another day.
+
+    ➡️ It fails on everything the old form failed on, plus two shapes
+    the old form called clean.
     """
     cards = [("ncaaf", os.path.join(ROOT, "picks", "fb-ncaaf-latest.json"), "card-fb"),
              ("nfl", os.path.join(ROOT, "picks", "fb-nfl-latest.json"), "card-fb")]
@@ -290,19 +353,52 @@ def check_card_day_agreement(rep, now):
         d = _read(path)
         if not d:
             continue
-        slate = d.get("date")
-        if not slate:
+        card_day = d.get("date")
+        if not card_day:
             continue
         for field, rows in sorted(_dated_lists(d).items()):
+            slate, is_next, has_meta = _declared_slate(d, field)
+            if not slate:
+                continue
+            label = field.replace("_", " ")
+
+            # 2. A LIST THAT MOVES OFF THE CARD'S DAY MUST SAY IT MEANT TO.
+            if slate != card_day and not is_next:
+                rep.bad("day:%s:%s" % (lg, field),
+                        "the %s card says %s and its %s claim %s, with "
+                        "nothing saying that was deliberate"
+                        % (lg, card_day, label, slate),
+                        "a list may follow the NEXT slate, but only when "
+                        "it records `is_next_slate` — an unannounced "
+                        "relabel is indistinguishable from rule 101 "
+                        "leaking again",
+                        repair=repair)
+                continue
+            # ...and forward only. A list cannot 'fall forward' to the past.
+            if slate != card_day and slate < card_day:
+                rep.bad("day:%s:%s" % (lg, field),
+                        "the %s card says %s and its %s fell BACKWARD to %s"
+                        % (lg, card_day, label, slate),
+                        "the next slate is always later than the card's; "
+                        "an earlier one means the slate was computed from "
+                        "stale rows",
+                        repair=repair)
+                continue
+
+            # 1 & 3. THE ROWS MUST MATCH WHATEVER DAY WAS DECLARED.
             bad = sorted({_etd(r.get("commence")) for r in rows
                           if isinstance(r, dict)
                           and _etd(r.get("commence")) not in (slate, None)})
             if bad:
                 rep.bad("day:%s:%s" % (lg, field),
-                        "the %s card says %s only and its %s are on %s"
-                        % (lg, slate, field.replace("_", " "), ", ".join(bad)),
+                        "the %s %s say %s and carry rows on %s"
+                        % (lg, label, slate, ", ".join(bad)),
                         "the single-day filter (ledger rule 101) is not "
-                        "reaching this list",
+                        "reaching this list"
+                        if not has_meta else
+                        "this list declares its own slate and then "
+                        "contradicts it — the declaration is what the "
+                        "page shows the reader",
                         repair=repair)
 
 
@@ -603,6 +699,47 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_freshness, check_record_written)
 
 
+def _previous():
+    """The last health report this repo committed, or `{}`.
+
+    ⛔ READ, NEVER WRITTEN, HERE. `watchdog.py` returns a dict; the
+    workflow writes the file. Keeping the write out of this module is
+    what makes rule 243 hold — a bug in this file cannot spend a credit
+    or overwrite a record.
+    """
+    return _read(os.path.join(ROOT, HEALTH)) or {}
+
+
+def _escalate_stuck_repairs(items, prev):
+    """⛔ WITHDRAW A REPAIR THAT HAS ALREADY FAILED ITS ALLOWANCE.
+
+    A finding counts an attempt only when the PREVIOUS report both named
+    it and actually listed its repair for execution. ⚠️ That distinction
+    matters: a finding whose repair was filtered out by `SAFE_REPAIRS`
+    was never tried, and charging it an attempt would escalate something
+    nothing has yet attempted to fix.
+    """
+    was = {i.get("key"): i for i in (prev.get("findings") or [])}
+    ran = set(prev.get("repairs") or [])
+    for it in items:
+        if not it.get("repair"):
+            continue
+        before = was.get(it["key"])
+        tried = bool(before) and before.get("repair") in ran
+        it["repair_attempts"] = (
+            (before.get("repair_attempts") or 0) + 1 if tried else 1)
+        if it["repair_attempts"] >= REPAIR_ATTEMPTS_BEFORE_ESCALATION:
+            it["repair_withdrawn"] = it["repair"]
+            it["repair"] = None
+            it["why"] = (
+                "%s ⛔ `%s` has now been run %d times against this exact "
+                "finding without clearing it, so it is withdrawn: a "
+                "repair that cannot fix something must not keep the "
+                "finding out of the escalation list."
+                % (it["why"], it["repair_withdrawn"], it["repair_attempts"]))
+    return items
+
+
 def run(now=None):
     now = now or datetime.datetime.now(UTC)
     rep = Report()
@@ -616,6 +753,7 @@ def run(now=None):
             rep.bad("watchdog:%s" % fn.__name__,
                     "a watchdog check could not run",
                     "%s raised %s: %s" % (fn.__name__, type(e).__name__, e))
+    _escalate_stuck_repairs(rep.items, _previous())
     out = {
         "kind": "WATCHDOG",
         "checked_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
