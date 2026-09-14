@@ -93,7 +93,22 @@ on:
     - cron: "23 17 * * *"     #  1:23pm ET
     - cron: "23 23 * * *"     #  7:23pm ET
     - cron: "23 5 * * *"      #  1:23am ET
+  # 🔴🔴 THE FIRE DRILL. `[Sam, 2026-09-14: "create a mock tier 3 problem
+  # and test it"]` — because everything up to the agent is now proven and
+  # THE AGENT ITSELF HAS NEVER EXECUTED. A mode whose first run is in
+  # production is a mode nothing drove (ledger rule 235), and this is the
+  # last one left in the architecture.
+  # ⛔ IT DOES NOT FAKE A DEFECT. It asks the agent to do one harmless,
+  # verifiable thing, so what is proven is exactly what is in question:
+  # does the action authenticate, does the actor check pass, can the agent
+  # read the repo, and can it open a PR? ⚠️ It proves NOTHING about
+  # diagnosis, and says so in the prompt.
   workflow_dispatch:
+    inputs:
+      drill:
+        description: "Fire a DRILL: run the agent on a harmless task to prove the path works. Costs one agent run of Sam's subscription."
+        type: boolean
+        default: false
 
 concurrency:
   group: self-repair
@@ -108,6 +123,7 @@ jobs:
       pull-requests: read
     outputs:
       go: ${{ steps.decide.outputs.go }}
+      drill: ${{ steps.decide.outputs.drill }}
       summary: ${{ steps.decide.outputs.summary }}
     steps:
       - uses: actions/checkout@v4
@@ -120,6 +136,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
+          # ⛔ A DRILL IS THE ONLY THING THAT BYPASSES THE GATE, AND IT
+          # IS MANUAL-ONLY — `inputs.drill` does not exist on a schedule,
+          # so a scheduled run can never take this branch.
+          if [ "${{ github.event.inputs.drill }}" = "true" ]; then
+            echo "DRILL requested — bypassing the unrepairable gate"
+            echo "go=yes" >> "$GITHUB_OUTPUT"
+            echo "drill=yes" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [ ! -f data/latest/health.json ]; then
             echo "no health report yet"
             echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
@@ -169,7 +194,45 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: anthropics/claude-code-action@v1
+      # 🔴 THE DRILL PROMPT. Deliberately trivial work, because the
+      # question is whether the PATH works, not whether the agent is
+      # clever. ⛔ It must still obey CLAUDE.md and still open a PR
+      # rather than pushing, so the drill exercises the same guards the
+      # real thing does.
+      - name: DRILL — prove the agent can run and open a PR
+        if: needs.triage.outputs.drill == 'yes'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            This is a FIRE DRILL. Nothing is broken. You are proving that
+            this automation path works at all, because it has never run.
+
+            Read CLAUDE.md first and follow it.
+
+            Do exactly this and nothing else:
+
+            1. Create or append to a file named `self-repair-drill.md` in
+               the repository root. Add one line in this format:
+               `- <UTC timestamp> drill OK — <the model you are running as>`
+            2. In that same file, state in one sentence what CLAUDE.md
+               says about MLB, so the log proves you read it.
+            3. Change NOTHING else. Do not touch any .py file, any
+               workflow, index.html, any card, or any data file.
+            4. Open a PULL REQUEST from a branch named
+               `self-repair/drill`. Do not push to main. Do not merge.
+            5. In the PR body, say what you were able to do and what you
+               could not, plainly.
+
+            ⛔ Do not modify `.github/workflows/self-repair.yml`. GitHub
+            attributes a scheduled run to whoever last changed the cron
+            schedule; if that becomes a bot, this workflow stops firing
+            silently.
+          claude_args: |
+            --max-turns 15
+
+      - if: needs.triage.outputs.drill != 'yes'
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # ⚠️ `prompt` PUTS THE ACTION IN AUTOMATION MODE — no @claude
