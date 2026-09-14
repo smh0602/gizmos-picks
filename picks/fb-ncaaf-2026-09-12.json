@@ -1,7 +1,7 @@
 {
  "date": "2026-09-12",
  "league": "ncaaf",
- "generated_at": "2026-09-14T05:31:09Z",
+ "generated_at": "2026-09-14T11:44:09Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-12T19:15:32Z",
@@ -22,22 +22,39 @@
   ],
   "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
  },
- "game_lines": [],
+ "game_lines": [
+  {
+   "kind": "MARKET",
+   "game": "Syracuse Orange @ Pittsburgh Panthers",
+   "game_id": "f06e90b4212fb514f3564ded9f190107",
+   "commence": "2026-09-17T23:30:00Z",
+   "market": "totals",
+   "side": "Over",
+   "point": 51.5,
+   "best_price": 100,
+   "best_book": "betmgm",
+   "link": null,
+   "median_price": 1.9434,
+   "n_books": 5,
+   "gain_pct": 2.91
+  }
+ ],
  "game_lines_meta": {
-  "games_seen": 0,
-  "comparable_quotes": 0,
-  "games_with_an_edge": 0,
+  "games_seen": 1,
+  "comparable_quotes": 4,
+  "games_with_an_edge": 1,
   "min_books": 3,
-  "slate": "2026-09-12",
-  "off_day_games": 57,
+  "slate": "2026-09-17",
+  "off_day_games": 73,
   "off_day_dates": [
-   "2026-09-17",
    "2026-09-18",
    "2026-09-19"
   ],
-  "snapshot": "data/ncaaf/2026-09-13/gamelines/1915.json.gz"
+  "card_slate": "2026-09-12",
+  "is_next_slate": true,
+  "snapshot": "data/ncaaf/2026-09-14/gamelines/1115.json.gz"
  },
- "game_lines_rule": "No game lines for 2026-09-12. Every game the books are currently pricing (57 of them, on 2026-09-17, 2026-09-18, 2026-09-19) belongs to a different day, and this card is 2026-09-12 only \u2014 the same rule the picks and the parlays follow. \u26a0\ufe0f That is a fact about which lines are open right now, not a view about the games.",
+ "game_lines_rule": "\ud83d\udcc5 2026-09-17 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -2207,7 +2224,7 @@
  },
  "sgp_meta": {
   "games_with_rated_legs": 23,
-  "games_with_a_line_row": 0,
+  "games_with_a_line_row": 1,
   "games_used": 22,
   "per_game_cap": 2,
   "rejected": {
@@ -2219,7 +2236,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "23 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "23 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
