@@ -690,14 +690,19 @@ function betControl(url, label){
    number is the drift this project has been bitten by repeatedly. */
 let FRESH = null;
 
-function ageText(m){
-  if (m === null || m === undefined) return 'unknown';
-  if (m < 1)  return 'just now';
-  if (m < 60) return Math.round(m) + ' min old';
-  const h = m / 60;
-  return (h < 24 ? h.toFixed(1) + ' hr old'
-                 : (h / 24).toFixed(1) + ' days old');
-}
+/* ⛔ ~~function ageText(m){ ... }~~ DELETED 2026-09-14. **A RENDERER
+   NOBODY CALLED** — ledger rule 130. Measured: `ageText` appeared in
+   `index.html` exactly ONCE, at its own definition.
+
+   ⚠️ AND THE CHECK NAMED AFTER RULE 130 WAS PASSING NEXT TO IT.
+   `test_scores_live.py` asserts `"${ageNote}" in H` with the comment
+   *"rule 130 — this repo has shipped a renderer nobody called"* — but
+   `ageNote` is a DIFFERENT, football-side variable. **The guard was
+   green on a live symbol while a dead one sat twenty lines away.**
+   ➡️ A check that names ONE symbol proves nothing about the other 126.
+
+   ✅ The football freshness line uses `fbAge`; MLB's staleness banner
+   reads the contract directly. Nothing lost. */
 
 function renderStaleBanner(){
   const bar = document.getElementById('stalebar');
@@ -1432,11 +1437,12 @@ async function loadProjections(){
   catch(e){ PROJ = {}; }
   return PROJ;
 }
-const playName = p => {
-  const s = p.side === 'over' ? 'Over' : 'Under';
-  const m = p.market === 'strikeouts' ? 'K' : 'Outs';
-  return `${p.pitcher} — ${s} ${p.line} ${m}`;
-};
+/* ⛔ ~~const playName = p => {...}~~ DELETED 2026-09-14. A THIRD dead
+   function (rule 130), and one the hand audit had missed — it was found
+   only by sweeping all 185 definitions rather than the 127 a reviewer
+   enumerated. ⚠️ It formatted a pitcher prop as "Name — Over 5.5 K" and
+   dates from before the board carried its own label; every row builds
+   its own name now. */
 
 function pickCard(p){
   /* 🔴 `isH` MEANS "THIS NUMBER IS THE PLAYER'S OWN RECORD, NOT A MODEL",
@@ -4923,11 +4929,10 @@ function fbLogoFail(img){
 }
 
 
-/* Name with its logo, the way an MLB row reads. */
-function fbTeam(name, size){
-  return `<span style="display:inline-flex;align-items:center;gap:6px">
-    ${fbMark(name, size)}<span>${name || ''}</span></span>`;
-}
+/* ⛔ ~~function fbTeam(name, size){ ... }~~ DELETED 2026-09-14, the second
+   renderer nobody called (rule 130). One token reference in the whole
+   file: its own definition. ✅ Every football row builds its name and
+   logo from `fbMark` directly. */
 
 
 /* ══════════════════════════════════════════════════════════════════

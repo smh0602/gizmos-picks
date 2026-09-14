@@ -325,6 +325,53 @@ for c, lg in sorted(LEAGUE_OF.items(), key=lambda kv: kv[1]):
     fb_week += wk
     print(f"  {lg:<6} {c:<20} {' '.join(ms):<26} {cost:>5}/run  {wk:>6}/wk")
 print(f"  {'':<6} {'':<20} {'FOOTBALL WEEKLY':<26} {'':>5}       {fb_week:>6}")
+
+# ══════════════════════════════════════════════════════════════════════
+# 💰 WHERE THE MONEY ACTUALLY WENT, BY MODE — because the table above is
+#    an ATTRIBUTION and the attribution is wrong.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 MEASURED 2026-09-14 over 7 days: the dedicated CFB props cron
+#    `34 12 * * *` lands 7 of 7 and has bought **ZERO props**. Every
+#    noon-block props snapshot — 1239, 1239, 1238, 1235 — was written by a
+#    `collect[ncaaf nfl]` run, i.e. the FREE hourly news cron at
+#    `20 * * * *`, which lands 5-9 minutes earlier and converges
+#    `props-player` first. By the time the dedicated run arrives the props
+#    are fresh and it writes nothing.
+# ⛔ SO THE TABLE ABOVE CHARGES THE SPEND TO A CRON THAT DID NOT SPEND IT,
+#    and the hourly news arm — whose own comment says it must NOT drag a
+#    card build into every hour — is the thing paying.
+# ⚠️ THE TOTAL IS UNAFFECTED. This is not an under-count: converge means
+#    the pull happens once either way. What is wrong is WHICH LINE it
+#    appears on, and that matters the moment somebody tries to cut cost by
+#    moving or deleting a cron — they would move the one that is free.
+# ✅ SO THE MEASURED PER-MODE SPEND IS PRINTED BESIDE IT. ⛔ Derived from
+#    the snapshots' own `credits_used`, never from the schedule — the
+#    schedule is the thing being checked.
+_by_mode = _c.Counter()
+for _lg in ("ncaaf", "nfl"):
+    for _p in _glob.glob("data/%s/20*/*/*.json.gz" % _lg):
+        _parts = _p.split(os.sep)
+        # ⛔ NARROW. My first version wrote `json.load` where the alias is
+        #    `_json`, and the bare `except Exception` below CAUGHT THE
+        #    NameError on every single file — so the loop skipped
+        #    everything, `_by_mode` came out empty, the section printed
+        #    nothing at all, and `budget.py` exited 0.
+        # 🔴 A BROAD EXCEPT AROUND A BODY THAT CAN CONTAIN A TYPO TURNS A
+        #    CODING ERROR INTO SILENCE. The reason to catch here is a
+        #    half-written snapshot; that is `OSError` and `EOFError` and
+        #    bad JSON, and nothing else belongs in the net.
+        try:
+            _d = _json.load(_gzip.open(_p, "rt"))
+        except (OSError, EOFError, ValueError):
+            continue
+        if _d.get("credits_used"):
+            _by_mode[(_lg, _parts[-2])] += _d["credits_used"]
+if _by_mode:
+    print("\n💰 WHERE IT ACTUALLY WENT — measured per mode, all time")
+    print("   ⛔ converge means the cron that DECLARES a mode is often not "
+          "the run that pays for it")
+    for (_lg, _m), _v in sorted(_by_mode.items(), key=lambda kv: -kv[1]):
+        print(f"  {_lg:<6} {_m:<26} {_v:>6} credits")
 _fb_days = sorted(_fb_spend)[-7:]
 _fb_meas = round(sum(_fb_spend[d] for d in _fb_days) / max(1, len(_fb_days)))
 _fb_ceil = round(fb_week * 4.3)
