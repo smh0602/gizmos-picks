@@ -456,19 +456,28 @@ jobs:
           # picked up by existing here, with no workflow edit.
           rc=0
           found=0
+          # 🔴 THE FAILING NAMES ARE RECORDED, NOT ONLY ANNOTATED.
+          # `::error::` reaches the run page and nowhere else, and the run
+          # page is the thing nobody is watching at 3am. The names go into
+          # an output so "Tell Sam the tests are failing" can put them in
+          # an ISSUE, which emails. `[added after test_board_match.js went
+          # red on 47 consecutive runs and the only alarm was Sam
+          # happening to look — ledger rule 261]`
+          failed=""
           for t in test_*.py; do
             [ -e "$t" ] || continue
             found=$((found+1))
             echo "── $t"
-            python "$t" || { rc=1; echo "::error::$t FAILED"; }
+            python "$t" || { rc=1; failed="$failed $t"; echo "::error::$t FAILED"; }
           done
           for t in test_*.js; do
             [ -e "$t" ] || continue
             found=$((found+1))
             echo "── $t"
-            node "$t" || { rc=1; echo "::error::$t FAILED"; }
+            node "$t" || { rc=1; failed="$failed $t"; echo "::error::$t FAILED"; }
           done
           echo "ran $found test file(s)"
+          echo "failed=$(echo $failed | tr ' ' ',')" >> "$GITHUB_OUTPUT"
           # ⚠️ ZERO TEST FILES IS A FAILURE, NOT A PASS. A glob that
           # matches nothing is exactly how a suite disappears unnoticed.
           if [ "$found" -lt 4 ]; then
@@ -1032,6 +1041,69 @@ jobs:
             # and the notification matters more than the assignment.
             gh issue create --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
               || gh issue create --title "$TITLE" --body-file /tmp/body.md
+          fi
+          exit 0
+
+      # 🔴🔴 A FAILING TEST MUST REACH SAM, NOT JUST THE RUN PAGE.
+      #
+      # ⛔ THE GAP THIS CLOSES, MEASURED 2026-09-14. `test_board_match.js`
+      # went red at 20:08Z when the gamelines pull advanced the board past
+      # a date literal the test had written down. Every collector run for
+      # the next 2h25m was RED. **The only alarm was Sam opening the
+      # Actions tab.** The "Tell Sam" step above reads `health.json` and
+      # nothing else, so a test failure produced a red tick and NO issue,
+      # NO email, and nothing the watchdog could see — it asks product
+      # questions, and a stale test is not a product question.
+      #
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
+      # as the watchdog's, for the same reason: a workflow that opens a
+      # fresh issue every run is one whose notifications get filtered.
+      # ⛔ A SEPARATE TITLE from the watchdog's on purpose. "The site is
+      # wrong" and "a test is failing" are different problems with
+      # different fixes, and merging them would hide whichever arrived
+      # second.
+      - name: Tell Sam the tests are failing
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          TITLE="Gizmo's Picks - the test suite is failing"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          RC='${{ steps.tests.outputs.rc }}'
+          NAMES='${{ steps.tests.outputs.failed }}'
+          if [ "$RC" = "0" ] || [ -z "$RC" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — the suite is green again."
+              gh issue close "$NUM"
+            fi
+            echo "tests green; nothing to report"
+            exit 0
+          fi
+          {
+            echo "**The test suite is failing, and it has been failing on every"
+            echo "collector run since it started.**"
+            echo
+            echo "Failing file(s): \`${NAMES:-see the Tests step}\`"
+            echo
+            echo "A red run does not stop the data — the collector still"
+            echo "commits, and the page keeps updating. What it stops is the"
+            echo "guarantee that the numbers were checked before they shipped."
+            echo
+            echo "⛔ Do not fix this by weakening the check. Read CLAUDE.md."
+            echo "A check may only change when it asks the WRONG QUESTION,"
+            echo "and the replacement must be harder to pass."
+            echo
+            echo "_This issue is updated in place and closes itself when the"
+            echo "suite goes green._"
+          } > /tmp/tests_body.md
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --body-file /tmp/tests_body.md
+          else
+            gh issue create --title "$TITLE" --body-file /tmp/tests_body.md --assignee smh0602 \
+              || gh issue create --title "$TITLE" --body-file /tmp/tests_body.md
           fi
           exit 0
 
