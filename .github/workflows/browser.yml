@@ -1,0 +1,141 @@
+# 🔴🔴 THE RENDER HALF OF THE TEST SUITE, WHICH HAS NEVER ONCE RUN.
+#
+# `[measured 2026-09-14]` **75 of the repo's 1,438 assertions sit behind
+# `if _BROWSER:` and are UNREACHABLE on the collector's runner**, because
+# `collect.yml` installs a bare Python with no pip step. Every one of them
+# guards with `try: from playwright.sync_api import ... except ImportError`
+# and then `note()`s the skip — and `note()` can never fail.
+#
+#     test_box_live.py       51 checks,  27 gated
+#     test_live_scores.py    37 checks,  21 gated
+#     test_box_score.py      33 checks,  19 gated
+#     test_nfl_opener.py     19 checks,   5 gated
+#     test_league_switch.py   5 checks,   3 gated
+#
+# ⛔ THE SKIP IS CORRECT AND THE SILENCE IS NOT. Rule 133 says a test that
+# cannot import blocks every push, so guarding was right. ⚠️ But the
+# result is a suite that LOOKS like it covers the page and does not — and
+# the one recorded rule-55 defect that reached the page (a MARKET row
+# rendering a MODEL chip) is exactly the class only a browser catches.
+# `test_league_switch.py` even labels its source check *"the WEAK half"*
+# and puts the real one behind the gate that never opens.
+#
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ WHY THIS IS A SEPARATE WORKFLOW AND NOT A pip STEP IN collect.yml
+# ══════════════════════════════════════════════════════════════════════
+#
+# 💰 `collect.yml` runs DOZENS of times a day. Installing Playwright and
+# downloading a Chromium build on every collector run would add minutes of
+# billable runner time to each one, to re-answer a question about a file
+# that only changes when somebody edits it. ⛔ The collector's job is to
+# land data on time; making it slower to test the page is the wrong trade.
+#
+# ✅ TWICE A DAY, PLUS ON EVERY PUSH THAT TOUCHES THE PAGE. A render
+# defect is introduced by an EDIT, so the push trigger is the one that
+# actually catches it; the schedule is the backstop for the case where the
+# page is fine and the DATA it renders is not.
+#
+# ⚠️ AND IT IS ALLOWED TO FAIL WITHOUT STOPPING DATA. It commits nothing
+# and collects nothing, so a red run here means "the page has a problem",
+# never "the site stopped updating".
+name: browser
+
+on:
+  # ⛔ Off :00 like every other cron in this repo — those slots are the
+  # most congested on GitHub's scheduler and runs get dropped there.
+  schedule:
+    - cron: "37 13 * * *"      # 9:37am ET — after the morning cards land
+    - cron: "37 1 * * *"       # 9:37pm ET — after the evening slate
+  push:
+    paths:
+      - "index.html"
+      - "test_box_live.py"
+      - "test_box_score.py"
+      - "test_live_scores.py"
+      - "test_nfl_opener.py"
+      - "test_league_switch.py"
+      - ".github/workflows/browser.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: browser
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ⚠️ `--with-deps` PULLS THE SYSTEM LIBRARIES CHROMIUM NEEDS. Without
+      # it the browser installs and then fails to launch, which reads as a
+      # test failure rather than a setup one.
+      - name: Install Playwright
+        run: |
+          python -m pip install --quiet playwright
+          python -m playwright install --with-deps chromium
+
+      # 🔴 THE BROWSER MUST ACTUALLY BE THERE. If the install silently
+      # half-worked, every gated check would `note()` its skip again and
+      # this whole workflow would go green having tested nothing — the
+      # exact failure it exists to end.
+      - name: Prove the browser is available
+        run: |
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              b = p.chromium.launch()
+              pg = b.new_page()
+              pg.set_content("<h1 id=x>ok</h1>")
+              assert pg.inner_text("#x") == "ok"
+              b.close()
+          print("browser OK")
+          PY
+
+      - name: Render tests
+        run: |
+          rc=0
+          ran=0
+          for t in test_box_live.py test_box_score.py test_live_scores.py \
+                   test_nfl_opener.py test_league_switch.py; do
+            [ -e "$t" ] || continue
+            ran=$((ran+1))
+            echo "── $t"
+            python "$t" || { rc=1; echo "::error::$t FAILED"; }
+          done
+          echo "ran $ran render test file(s)"
+          # ⛔ ZERO FILES IS A FAILURE, NOT A PASS — a glob that matches
+          # nothing is how a suite disappears unnoticed. Same rule as the
+          # collector's own Tests step.
+          if [ "$ran" -lt 5 ]; then
+            echo "::error::only $ran render file(s) found — the set has shrunk"
+            rc=1
+          fi
+          exit $rc
+
+      # 🔴 AND THE SKIP ITSELF IS NOW A FAILURE, HERE ONLY. In this
+      # workflow a browser is guaranteed, so a file reporting "NO BROWSER
+      # HERE" means the install broke — and reporting that as a pass is
+      # precisely the silence this file was written to remove.
+      # ⚠️ `collect.yml` keeps the note-and-continue behaviour, because
+      # there the absence is correct (rule 133).
+      - name: A skipped render check is a failure in THIS workflow
+        if: always()
+        run: |
+          out=$(for t in test_box_live.py test_box_score.py \
+                         test_live_scores.py test_nfl_opener.py \
+                         test_league_switch.py; do
+                  [ -e "$t" ] && python "$t" 2>&1
+                done | grep -c "NO BROWSER HERE" || true)
+          if [ "$out" != "0" ]; then
+            echo "::error::$out file(s) reported NO BROWSER — the install did not take"
+            exit 1
+          fi
+          echo "every render file had a browser"

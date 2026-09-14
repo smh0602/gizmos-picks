@@ -181,7 +181,34 @@ on:
     # 💰 The cost scales with the slate (markets x regions x GAMES), and a
     # day with no game inside the window buys nothing at all.
     - cron: "34 12 * * *"       # CFB  8:30am ET  Player Props (daily)
-    - cron: "6 19 * * *"        # CFB  3:00pm ET  Player Props (daily)
+    # 🔴🔴 ~~"6 19 * * *"~~ MOVED TO :26 ON 2026-09-14, AND THE REASON IS
+    #    MEASURED, NOT STYLISTIC. `[7 days, 1,029 collector commits]` This
+    #    cron and the Odds cron at `4 19` are TWO MINUTES APART and the
+    #    18:00-21:00Z band produced **exactly ONE `collect[ncaaf]` run per
+    #    day, 7 days out of 7** — 19:16, 19:19, 19:17, 19:15, 19:16,
+    #    19:15, 19:15. Every run commits `freshness.json`, so one commit
+    #    is one run: **one of the two arms was dropped every single day.**
+    # ⚠️ IT WAS INVISIBLE, AND THAT IS THE WORSE HALF. Converge rebuilds
+    #    whatever is overdue, so whichever arm landed repaired BOTH modes
+    #    and nothing on the page ever revealed it. ⛔ A cron that never
+    #    fires and costs nothing observable is a cron nobody will ever
+    #    find by looking at the product.
+    # ⛔ WHICH OF THE TWO DIED COULD NOT BE DETERMINED from the repo —
+    #    both are `LEAGUE=ncaaf`, both land inside the measured lag band
+    #    (p50 12.3 min, p90 16.6), and at 19:0x both modes are past due.
+    #    **Recorded as unresolved rather than guessed**, and fixed by
+    #    separating them, which works whichever one it was.
+    # ⚠️ 14 MINUTES, AND THE CEILING IS NOT MINE TO CHOOSE. My first
+    #    attempt used :26 — 22 minutes, to clear the measured lag spread
+    #    (7.5 to 22.7 min) — and `test_fb_freshness.py` went red: the
+    #    props deadline is 15:00 ET and rule 112 requires a build within
+    #    TWENTY minutes of every deadline, or it is a deadline nothing
+    #    can meet. ⛔ The contract wins; the separation fits inside it.
+    # ✅ 14 minutes still clears the measured p50 lag of 12.3 min, so the
+    #    two runs arrive distinguishably apart rather than in the same
+    #    minute. 3:18pm ET satisfies Sam's "3pm" props slot, and the
+    #    morning pull (8:30am) is untouched.
+    - cron: "18 19 * * *"       # CFB  3:18pm ET  Player Props (daily)
     - cron: "4 13 * * *"        # CFB  9:00am ET  Gizmo's Picks (daily)
     - cron: "34 13 * * *"       # CFB  9:30am ET  Parlays       (daily)
     - cron: "4 12 * * 2"        # CFB  8:00am ET  Track Record  (Tue)
@@ -482,7 +509,7 @@ jobs:
               "2 11 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
               "4 19 * * *")       LEAGUE=ncaaf; MODES="gamelines" ;;
               "34 12 * * *")      LEAGUE=ncaaf; MODES="props-player" ;;
-              "6 19 * * *")       LEAGUE=ncaaf; MODES="props-player" ;;
+              "18 19 * * *")      LEAGUE=ncaaf; MODES="props-player" ;;
               "4 13 * * *")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "34 13 * * *")      LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
               "4 12 * * 2")       LEAGUE="ncaaf nfl"; MODES="card-fb" ;;
