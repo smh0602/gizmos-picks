@@ -570,6 +570,29 @@ def check_freshness(rep, now):
                  % len(stale))
 
 
+def _published(lg):
+    """How many cards this league has published — the evidence that a
+    Track Record is OWED.
+
+    ⛔ COUNTED FROM THE REPO, NEVER ASSUMED. A league with nothing
+    published has no record to grade and a missing `record.json` is
+    correct; a league with 24 published cards and no record file is a dead
+    tab. **The difference is a fact about the repo, so it is read from the
+    repo.**
+    """
+    # 🔴 DATED CARDS ONLY. `picks/fb-<lg>-latest.json` is the CURRENT card
+    #    pointer, not published history — and my first version globbed
+    #    `fb-<lg>-*.json`, which matched it. ⛔ THAT FALSE-ALARMED ON THREE
+    #    EXISTING CHECKS INSIDE A MINUTE: every fixture writing a `-latest`
+    #    card suddenly owed a Track Record, including the clean-tree test
+    #    whose entire job is to prove the watchdog can be quiet.
+    # ⚠️ Caught only because the suite drove it. **Fifth check of mine this
+    #    week to fire on correct state** (rules 257, 260, 262) — and the
+    #    first one a test caught before Sam did.
+    pat = ("picks/20*.json" if lg == "mlb" else "picks/fb-%s-20*.json" % lg)
+    return len(glob.glob(os.path.join(ROOT, pat)))
+
+
 def check_record_written(rep, now):
     """⚠️ IS THE TRACK RECORD STILL BEING GRADED?
 
@@ -579,6 +602,27 @@ def check_record_written(rep, now):
     for lg, d in DATA.items():
         p = os.path.join(ROOT, d, "latest", "record.json")
         if not os.path.exists(p):
+            # 🔴🔴 A MISSING FILE WAS SILENTLY SKIPPED, AND THAT IS THE
+            #    MOST COMPLETE FORM OF THE FAILURE THIS CHECK EXISTS FOR.
+            # `[found 2026-09-14 by DELETING it and watching nothing
+            #   happen — the watchdog reported healthy: true]`
+            # ⛔ "The Track Record stopped being graded" was checked by
+            #    AGE only, so a record.json that vanished entirely — the
+            #    page's whole Track Record tab — produced no finding at
+            #    all. **An absence read as "nothing to say" is this
+            #    project's oldest recurring error.**
+            # ⚠️ THE `continue` WAS NOT WRONG, IT WAS UNCONDITIONAL. A
+            #    league with nothing published yet has no record to grade
+            #    and must stay silent, which is why it was there. ✅ So the
+            #    question is now "is it missing DESPITE published cards?"
+            #    — measured from the repo, not assumed.
+            if _published(lg):
+                rep.bad("record:%s" % lg,
+                        "the %s Track Record file is gone" % lg,
+                        "record.json does not exist, and %d published "
+                        "card(s) exist to grade — the page has nothing to "
+                        "show on that tab" % _published(lg),
+                        repair="record")
             continue
         age = F.age_minutes(p, now)
         if age is None or age == F.MISSING:
@@ -725,6 +769,29 @@ def _escalate_stuck_repairs(items, prev):
         if not it.get("repair"):
             continue
         before = was.get(it["key"])
+        # 🔴🔴 A WITHDRAWAL IS PERMANENT WHILE THE FINDING PERSISTS, AND
+        #    THE FIRST VERSION OSCILLATED. `[found 2026-09-14 by driving
+        #    four cycles instead of three]`
+        # ⛔ Once the repair is withdrawn the report lists no repair, so on
+        #    the NEXT run `tried` was False, the counter reset to 1 and the
+        #    repair came back. **Escalate, un-escalate, escalate — a
+        #    four-cycle loop in which `unrepairable` is non-empty only one
+        #    run in four**, so Tier 3 sees the finding a quarter of the
+        #    time and the useless repair keeps running forever anyway,
+        #    which is the entire waste this was written to stop.
+        # ⚠️ THREE CYCLES LOOKED CORRECT. The defect only appears on the
+        #    fourth, which is why it survived being tested at all.
+        if before and before.get("repair_withdrawn"):
+            it["repair_attempts"] = before.get("repair_attempts") or \
+                REPAIR_ATTEMPTS_BEFORE_ESCALATION
+            it["repair_withdrawn"] = before["repair_withdrawn"]
+            it["repair"] = None
+            it["why"] = ("%s ⛔ `%s` was withdrawn after %d failed "
+                         "attempt(s) and stays withdrawn while this "
+                         "finding persists."
+                         % (it["why"], it["repair_withdrawn"],
+                            it["repair_attempts"]))
+            continue
         tried = bool(before) and before.get("repair") in ran
         it["repair_attempts"] = (
             (before.get("repair_attempts") or 0) + 1 if tried else 1)
