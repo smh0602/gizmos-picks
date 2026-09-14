@@ -89,6 +89,21 @@ def keys(out):
     return {i["key"] for i in out["findings"]}
 
 
+def flat(text):
+    """Collapse every run of whitespace, and strip markdown emphasis.
+
+    🔴🔴 FOUR OF MY OWN CHECKS HAVE NOW FIRED ON CORRECT CODE BY SEARCHING
+    WRAPPED PROSE RAW. `[2026-09-14, four occurrences in one week]` A
+    sentence in a YAML block scalar, a Markdown paragraph or a comment is
+    broken by a newline and indentation wherever it happens to wrap — so
+    `"Do not merge" in text` is FALSE for a file that says exactly that,
+    and `**It must fail on the\\n   defect**` matches nothing at all.
+    ⛔ EVERY prose assertion in this file goes through here, so the class
+    cannot come back one careless check at a time. ➡️ Ledger rule 257.
+    """
+    return re.sub(r"\s+", " ", (text or "").replace("*", "").replace("`", ""))
+
+
 # ══════════════════════════════════════════════════════════════════════
 print("═══ 1. 🔴 A CLEAN TREE IS SILENT ═══")
 # ⛔ THE FIRST THING TO PROVE, BEFORE ANY DETECTION. A watchdog that
@@ -429,11 +444,35 @@ else:
 # 🔴 AND THE FREEZE HAS TO BE VISIBLE TO AN AGENT INSIDE THE REPO.
 CM = os.path.join(ROOT, "CLAUDE.md")
 ck("🔴 the MLB freeze is in CLAUDE.md, not only in Sam's project docs",
-   "MLB IS CLOSED FOR WORK" in open(CM, encoding="utf-8").read(),
+   "MLB IS CLOSED FOR WORK" in flat(open(CM, encoding="utf-8").read()),
    "⛔ it lived only in the project docs until 2026-09-14, which meant "
    "the Claude Code GitHub Action — an agent working INSIDE this "
    "repository — could not see it at all. A rule the actor cannot read "
    "is not a rule, it is a hope")
+
+# 🔴🔴 AND SO IS THE RULE THAT EVERY FIX SHIPS WITH A GUARD — which this
+#    assertion is itself an instance of. `[Sam, 2026-09-14: "from now on
+#    when you notice a problem not only do we need a fix to it now, but we
+#    also need a automated fix for said problem."]`
+# ⛔ A PROCESS RULE THAT LIVES ONLY IN A CHAT IS THE WEAKEST KIND. The
+#    agent that opens self-repair PRs reads CLAUDE.md and nothing else of
+#    Sam's, so a standing instruction absent from that file binds nobody
+#    at 3am — which is precisely when it is needed.
+_cm = flat(open(CM, encoding="utf-8").read())
+ck("🔴 the every-fix-ships-with-a-guard rule is in CLAUDE.md too",
+   "EVERY FIX SHIPS WITH A GUARD" in _cm,
+   "⛔ the Tier 3 agent reads CLAUDE.md. A rule it cannot read is a rule "
+   "that stops existing the moment nobody is watching")
+ck("⛔ ...and it demands the guard be PROVEN to fail, not merely written",
+   "must fail on the defect and pass after the fix" in _cm.lower(),
+   "🔴 an unproven guard is the failure mode this repo keeps shipping: "
+   "an empty match, a stripped comment, a fixture missing the file under "
+   "test, a check asserting its own prose (rules 67, 244, 249)")
+ck("⛔ ...and `flat()` actually collapses a wrapped sentence",
+   "a b c" == flat("a\n   b\n\tc") and "x" == flat("**x**"),
+   "🔴 IF THIS FAILS THE TWO CHECKS ABOVE ARE VACUOUS — they would pass "
+   "on prose that says nothing, which is rule 67 in the helper rather "
+   "than in the assertion. Got %r" % flat("a\n   b\n\tc"))
 
 
 print("\n═══ 11. 🔴 A MISSING CARD AND A REFUSED CARD ARE ONE FAULT ═══")
@@ -506,6 +545,140 @@ ck("⛔ a NON-MLB finding still carries the plain do-not-touch-MLB rule",
    "the unlock is per-incident and must not leak onto football issues. "
    "Got: %r" % body[-300:])
 
+
+print("\n═══ 14. 🔴🔴 A LIST MAY DECLARE ITS OWN SLATE — AND MUST JUSTIFY IT ═══")
+# 🔴 THE 9½-HOUR FALSE ALARM OF 2026-09-14 (rule 255). `card_fb` falls
+#    forward to the next day with unstarted games so the list is never
+#    empty between slates, records `is_next_slate`, and the page prints
+#    the sentence. ⛔ The old check read the CARD's date for every list
+#    and called that a rule-101 leak — on a correct Saturday card whose
+#    next games were Thursday. 35 pointless rebuilds, and it never
+#    escalated because it always named a repair.
+_CARD = "picks/fb-ncaaf-latest.json"
+_NOW = datetime.datetime(2026, 9, 14, 18, 0, tzinfo=UTC)
+
+
+def _ncaaf(gl_rows, meta=None, card_day="2026-09-12"):
+    """A tree holding one ncaaf card; returns the day:ncaaf:game_lines findings."""
+    t = Tree()
+    t.__enter__()
+    try:
+        t.write("picks/%s.json" % F.et_date(F.last_due(F.CARD, _NOW)),
+                {"date": "x", "picks": []})
+        t.write("picks/fb-nfl-latest.json", {"date": card_day,
+                                             "picks": [], "game_lines": []})
+        doc = {"date": card_day, "picks": [], "game_lines": gl_rows}
+        if meta is not None:
+            doc["game_lines_meta"] = meta
+        t.write(_CARD, doc)
+        out = W.run(_NOW)
+        return [i for i in out["findings"] if i["key"] == "day:ncaaf:game_lines"]
+    finally:
+        t.__exit__()
+
+
+# ✅ THE LIVE SHAPE THAT WAS FALSELY ALARMING — must now be SILENT.
+_ok = _ncaaf([{"commence": "2026-09-17T23:00:00Z"}],
+             {"slate": "2026-09-17", "card_slate": "2026-09-12",
+              "is_next_slate": True})
+ck("✅ a list that DECLARES the next slate and matches it is silent",
+   not _ok,
+   "🔴 this is the exact live card from 2026-09-14 21:19Z: a Saturday "
+   "card whose next games are Thursday, labelled `is_next_slate`, with "
+   "the sentence rendered on the page. It alarmed for 9½ hours. "
+   "Got: %r" % ([i['what'] for i in _ok]))
+
+# ⛔ AND THE CHECK MUST STILL BITE — silence is also what a broken check
+#    returns. Each of these four was either caught before and must stay
+#    caught, or is a shape the OLD form could not see at all.
+_leak = _ncaaf([{"commence": "2026-09-20T17:00:00Z"}])
+ck("🔴 rule 241 STILL FIRES — no meta, rows off the card's day",
+   bool(_leak),
+   "⛔ the original defect: a one-day card publishing next week's lines "
+   "with nothing declaring it. If this is silent the whole check is "
+   "decoration")
+
+_unannounced = _ncaaf([{"commence": "2026-09-17T23:00:00Z"}],
+                      {"slate": "2026-09-17", "card_slate": "2026-09-12"})
+ck("🆕 a list that moves day WITHOUT `is_next_slate` is caught",
+   bool(_unannounced) and "is_next_slate" in _unannounced[0]["why"],
+   "⛔ THE OLD FORM COULD NOT SEE THIS. An unannounced relabel is "
+   "indistinguishable from rule 101 leaking again — the flag is the "
+   "only thing separating design from defect. Got: %r" % (_unannounced or None))
+
+_backward = _ncaaf([{"commence": "2026-09-05T23:00:00Z"}],
+                   {"slate": "2026-09-05", "card_slate": "2026-09-12",
+                    "is_next_slate": True})
+ck("🆕 a list that falls BACKWARD is caught even when it claims to be next",
+   bool(_backward) and "BACKWARD" in _backward[0]["what"],
+   "⛔ THE OLD FORM COULD NOT SEE THIS EITHER. 'The next slate' is "
+   "always later; an earlier one means the slate was computed from "
+   "stale rows, and the flag would have laundered it. Got: %r"
+   % (_backward or None))
+
+_liar = _ncaaf([{"commence": "2026-09-12T23:00:00Z"}],
+               {"slate": "2026-09-17", "card_slate": "2026-09-12",
+                "is_next_slate": True})
+ck("🆕 a list that declares a slate and then contradicts it is caught",
+   bool(_liar),
+   "🔴 THE STRICTLY-HARDER CASE: these rows sit on the CARD's own date, "
+   "so the OLD check called them clean — while the meta the page shows "
+   "the reader says 2026-09-17. The declaration is what is published. "
+   "Got: %r" % (_liar or None))
+
+
+print("\n═══ 15. 🔴🔴 A REPAIR THAT NEVER WORKS MUST ESCALATE ═══")
+# ⛔ THE WORST HOLE IN THE DESIGN, FOUND BY LIVING THROUGH IT. Tier 3 is
+#    gated on `unrepairable`. A finding that NAMES a repair is never
+#    unrepairable — so a repair that cannot possibly fix it loops
+#    forever, the escalation list stays empty, and the agent that exists
+#    for exactly this class is never woken. `[measured: 35 rebuilds, 9½
+#    hours, zero escalations]`
+_STUCK = {"key": "day:ncaaf:game_lines", "severity": "BROKEN",
+          "what": "w", "why": "y", "repair": "card-fb"}
+
+
+def _attempts(prev_attempts, repair_ran=True):
+    it = dict(_STUCK)
+    prev = {"findings": [dict(_STUCK, repair_attempts=prev_attempts)],
+            "repairs": ["card-fb"] if repair_ran else []}
+    W._escalate_stuck_repairs([it], prev)
+    return it
+
+
+ck("🔧 a first failure keeps its repair — one miss is not a stuck loop",
+   _attempts(0)["repair"] == "card-fb" and _attempts(0)["repair_attempts"] == 1,
+   "⛔ the workflow re-checks IMMEDIATELY after repairing, and a rebuild "
+   "whose effect lands next cycle would otherwise escalate on a success")
+ck("🔧 a second failure still keeps it",
+   _attempts(1)["repair"] == "card-fb",
+   "three tries, not one — see above")
+_esc = _attempts(2)
+ck("🔴🔴 the THIRD failure WITHDRAWS the repair",
+   _esc["repair"] is None and _esc["repair_withdrawn"] == "card-fb",
+   "⛔ this is the line that turns an infinite free loop into something "
+   "a human hears about. Got %r" % _esc)
+ck("✅ ...and it says why, naming the repair and the count",
+   "card-fb" in _esc["why"] and "3 times" in _esc["why"],
+   "a withdrawn repair with no explanation reads as the watchdog giving "
+   "up. Got: %r" % _esc["why"])
+ck("🔴 ...so it now reaches the ESCALATION list that wakes Tier 3",
+   _esc["repair"] not in W.SAFE_REPAIRS,
+   "⛔ `unrepairable` is built from findings whose repair is not in "
+   "SAFE_REPAIRS. That is the whole point of withdrawing it")
+ck("⛔ an attempt is NOT charged when the repair was never actually run",
+   _attempts(2, repair_ran=False)["repair"] == "card-fb",
+   "🔴 a finding whose repair was filtered out by SAFE_REPAIRS was never "
+   "tried. Charging it an attempt escalates something nothing has yet "
+   "attempted to fix — a false escalation, which is rule 238 wearing a "
+   "more expensive coat")
+ck("✅ a finding with NO repair is left alone entirely",
+   (lambda i: (W._escalate_stuck_repairs([i], {"findings": [], "repairs": []}),
+               "repair_attempts" not in i)[1])(
+       {"key": "verify:mlb", "severity": "BROKEN", "what": "w", "why": "y",
+        "repair": None}),
+   "⛔ a refused card is already unrepairable; counting attempts against "
+   "it would be counting nothing")
 
 print("\n═══ 13. 🔧 TIER 3 SELF-REPAIR — THE GATE AND ITS GUARDS ═══")
 # 🔴 `[Sam, 2026-09-14: "make tier 3 be able to self repair"]` — the
