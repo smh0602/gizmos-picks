@@ -60,7 +60,9 @@ import glob
 import gzip
 import json
 import os
+import re
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -245,6 +247,30 @@ def check_verify_failure(rep, now):
                 % ("; ".join(fails[:3]) or txt[:200]))
 
 
+def _dated_lists(doc):
+    """Every top-level list on a card whose rows carry a kickoff.
+
+    🔴🔴 DISCOVERED, NEVER NAMED, AND THAT IS THE WHOLE POINT. The first
+    version of this check swept a hardcoded `("picks", "game_lines")` —
+    which is the SAME SHAPE AS THE BUG IT WAS WRITTEN FOR. `game_lines`
+    fell through rule 101 because the day filter named its surfaces
+    instead of finding them, and a check that also names them inherits
+    the defect: it covers exactly the surfaces somebody remembered.
+    ⛔ `top_plays` was already uncovered when this was written, on a card
+    that carries THREE dated lists. The fourth would have been missed
+    too.
+    ➡️ SO THE SURFACE SET IS DERIVED FROM THE CARD ITSELF. A new dated
+    list is covered the day it ships, by nobody doing anything.
+    """
+    out = {}
+    for k, v in (doc or {}).items():
+        if not isinstance(v, list) or not v:
+            continue
+        if any(isinstance(r, dict) and r.get("commence") for r in v):
+            out[k] = v
+    return out
+
+
 def check_card_day_agreement(rep, now):
     """🔴 DOES EVERY ROW ON A CARD BELONG TO THE DAY THE CARD CLAIMS?
 
@@ -253,24 +279,160 @@ def check_card_day_agreement(rep, now):
     ⚠️ A card that contradicts its own label is worse than either answer
     on its own, because a reader cannot tell which half to believe.
     """
-    for lg in ("ncaaf", "nfl"):
-        d = _read(os.path.join(ROOT, "picks", "fb-%s-latest.json" % lg))
+    cards = [("ncaaf", os.path.join(ROOT, "picks", "fb-ncaaf-latest.json"), "card-fb"),
+             ("nfl", os.path.join(ROOT, "picks", "fb-nfl-latest.json"), "card-fb")]
+    for lg in ("mlb",):
+        due = F.last_due(F.CARD, now)
+        if due:
+            cards.append((lg, os.path.join(ROOT, "picks", "%s.json"
+                                           % F.et_date(due)), "card"))
+    for lg, path, repair in cards:
+        d = _read(path)
         if not d:
             continue
         slate = d.get("date")
         if not slate:
             continue
-        for field in ("picks", "game_lines"):
-            bad = sorted({_etd(r.get("commence"))
-                          for r in (d.get(field) or [])
-                          if _etd(r.get("commence")) not in (slate, None)})
+        for field, rows in sorted(_dated_lists(d).items()):
+            bad = sorted({_etd(r.get("commence")) for r in rows
+                          if isinstance(r, dict)
+                          and _etd(r.get("commence")) not in (slate, None)})
             if bad:
                 rep.bad("day:%s:%s" % (lg, field),
                         "the %s card says %s only and its %s are on %s"
                         % (lg, slate, field.replace("_", " "), ", ".join(bad)),
                         "the single-day filter (ledger rule 101) is not "
                         "reaching this list",
-                        repair="card-fb")
+                        repair=repair)
+
+
+def check_page_renders(rep, now):
+    """🔴🔴 DOES THE PAGE RUN AT ALL?
+
+    ⛔ THE WORST FAILURE THIS PRODUCT HAS, AND NOTHING ASKED IT. On
+    2026-09-11 a BACKTICK inside a struck comment, inside a JavaScript
+    template literal, closed the string early and deleted `setLeague()`.
+    **The page rendered blank. Every source check in the repo passed.**
+    That is ledger rule 221, and the only thing that caught it was a
+    human loading the page.
+
+    ⚠️ `index.html` IS THE WHOLE PRODUCT — one file, no build step. A
+    syntax error in it is not a degraded tab, it is every tab on every
+    league, instantly, for everyone.
+
+    ⛔ THE CHECK IS A PARSE, NOT A GREP. A grep for a function name
+    passes on a file that cannot run; only parsing the script answers the
+    question a reader is asking. ✅ `node --check` is a real parser, it
+    reaches no network and spends nothing, and the runner already has
+    node because the suite runs `test_*.js` with it.
+    """
+    p = os.path.join(ROOT, "index.html")
+    if not os.path.exists(p):
+        rep.bad("page:missing", "the site has no index.html at all",
+                "index.html is not in the repo")
+        return
+    try:
+        html = open(p, encoding="utf-8").read()
+    except Exception as e:
+        rep.bad("page:unreadable", "the site's page cannot be read",
+                "%s: %s" % (type(e).__name__, e))
+        return
+    blocks = re.findall(r"<script\b[^>]*>(.*?)</script>", html, re.S)
+    if not blocks:
+        rep.bad("page:noscript", "the site's page has no script at all",
+                "no <script> block in index.html — every tab is inert")
+        return
+    for i, body in enumerate(blocks):
+        if not body.strip():
+            continue
+        ok, err = _js_parses(body)
+        if not ok:
+            rep.bad("page:syntax",
+                    "THE WHOLE SITE IS BLANK — the page does not parse",
+                    "script block %d of %d fails to parse: %s ⛔ One file, "
+                    "no build step, so this is every tab on every league "
+                    "at once. A backtick inside a comment inside a "
+                    "template literal has done exactly this before "
+                    "(ledger rule 221)." % (i + 1, len(blocks), err))
+            return
+
+
+def _js_parses(body):
+    """`node --check` on one script block. (ok, error-or-None).
+
+    ⚠️ NO NODE IS NOT A PASS. If the parser is unavailable the check has
+    not run, and rule 144 says a check that could not run did not pass —
+    so it is reported as a finding rather than silently skipped.
+    """
+    import subprocess
+    fd, path = tempfile.mkstemp(suffix=".js")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(body)
+        r = subprocess.run(["node", "--check", path],
+                           capture_output=True, text=True, timeout=60)
+        if r.returncode == 0:
+            return True, None
+        return False, (r.stderr or r.stdout).strip().splitlines()[-1][:200]
+    except FileNotFoundError:
+        return False, ("node is not installed on this runner, so the page "
+                       "could NOT be parsed — this is 'not checked', not "
+                       "'checked and fine'")
+    except Exception as e:
+        return False, "%s: %s" % (type(e).__name__, e)
+    finally:
+        try:
+            os.unlink(path)
+        except Exception:
+            pass
+
+
+def check_card_readable(rep, now):
+    """🔴 A CARD THAT DOES NOT PARSE, AND A CARD THAT LOST ITS PROJECTIONS.
+
+    ⛔ `check_card_present` asked only whether the FILE EXISTS. A card
+    truncated by a half-finished write exists and blanks the tab exactly
+    as a missing one does — and the page's own fallback walks PAST it to
+    an older card, so the reader sees stale rows and no error at all.
+
+    🔴 THE PROJECTION HALF IS SAM'S OWN REPORT, 2026-09-14: *"did not
+    deliver any picks for the mlb slate as well as didnt provide
+    projections."* A card carrying rows but no projections renders a
+    board with the PROJ chip missing from every row — ⚠️ which looks like
+    a styling problem rather than a data one, and is the reason it went
+    unreported for as long as it did.
+    """
+    due = F.last_due(F.CARD, now)
+    if not due:
+        return
+    day = F.et_date(due)
+    for lg, path, repair in (
+            ("mlb", os.path.join(ROOT, "picks", "%s.json" % day), "card"),
+            ("ncaaf", os.path.join(ROOT, "picks", "fb-ncaaf-latest.json"), "card-fb"),
+            ("nfl", os.path.join(ROOT, "picks", "fb-nfl-latest.json"), "card-fb")):
+        if not os.path.exists(path):
+            continue            # absence is `check_card_present`'s question
+        if _read(path) is None:
+            rep.bad("cardfile:%s" % lg,
+                    "the %s card file is corrupt and the tab cannot load it"
+                    % lg,
+                    "%s exists but is not readable JSON. ⚠️ The page's "
+                    "fallback walks PAST it to an older card, so a reader "
+                    "sees stale rows and no error."
+                    % os.path.relpath(path, ROOT),
+                    repair=repair)
+            continue
+        d = _read(path)
+        # ⚠️ ONLY WHEN THERE ARE ROWS TO PROJECT. An empty board is a
+        #    legitimate state (rule 86) and must not raise an alarm.
+        if lg == "mlb" and (d.get("picks") or []) and not (d.get("projections") or {}):
+            rep.bad("proj:%s" % lg,
+                    "the %s board has rows but NO projections — every "
+                    "PROJ number is missing from Player Props" % lg,
+                    "the card carries %d pick(s) and an empty "
+                    "`projections` map. `apply_projections()` is the only "
+                    "writer of that field." % len(d["picks"]),
+                    repair=repair)
 
 
 def _etd(commence):
@@ -333,7 +495,111 @@ def check_record_written(rep, now):
                      repair="record")
 
 
-CHECKS = (check_card_present, check_verify_failure, check_card_day_agreement,
+def check_board_not_empty(rep, now):
+    """⚠️ THE BUILDER HAD CANDIDATES AND CARDED NONE OF THEM.
+
+    🔴 A BOARD WITH NO ROWS IS NOT AUTOMATICALLY A FAULT — an empty
+    artifact from a correct build is a legitimate state and the page says
+    so (ledger rule 86). A thin Tuesday is not breakage, and alarming on
+    one is how the channel gets muted.
+    ⛔ SO THE QUESTION IS NARROWER AND IT IS NOT "IS IT EMPTY": it is
+    **did the builder have a pool and reject all of it.** `n_priced` on a
+    football card, and `coverage_detail.skipped` on MLB, are the
+    builder's own count of what it looked at — so a zero board beneath a
+    non-zero pool is the card saying it threw everything away.
+    ⚠️ DEGRADED, NOT BROKEN, and deliberately. It is one number's
+    distance from a legitimately quiet day, and the honest report is
+    "this looks wrong", not "this is wrong".
+    """
+    due = F.last_due(F.CARD, now)
+    for lg, path in (("mlb", os.path.join(ROOT, "picks", "%s.json"
+                                          % F.et_date(due)) if due else None),
+                     ("ncaaf", os.path.join(ROOT, "picks", "fb-ncaaf-latest.json")),
+                     ("nfl", os.path.join(ROOT, "picks", "fb-nfl-latest.json"))):
+        if not path:
+            continue
+        d = _read(path)
+        if not d or (d.get("picks") or []):
+            continue
+        # the builder's own count of what it had to choose from
+        pool = d.get("n_priced")
+        if pool is None:
+            cd = d.get("coverage_detail") or {}
+            sk = cd.get("skipped")
+            pool = sum(sk.values()) if isinstance(sk, dict) else None
+        if not pool:
+            continue            # genuinely nothing to card — correct, quiet
+        rep.warn("empty:%s" % lg,
+                 "the %s board is EMPTY on a day the builder had %d row(s) "
+                 "to choose from" % (lg, pool),
+                 "the card carries zero picks beneath a non-zero pool, so "
+                 "every candidate was rejected. ⚠️ That can be legitimate "
+                 "on a bad slate — it is reported, not called broken — but "
+                 "a reader opening the tab sees nothing at all.")
+
+
+def check_record_sane(rep, now):
+    """⚠️ A PERCENTAGE THAT CANNOT BE A PERCENTAGE.
+
+    ⛔ DELIBERATELY SHALLOW, AND THE SHALLOWNESS IS THE DESIGN.
+    `verify_record.py` already re-grades every published pick a second
+    way and reconciles the whole file — that is the real check, and
+    duplicating any part of it here would be a SECOND COPY of the
+    specification, which is ledger rule 207 and the precise defect that
+    took the card down on 09-12.
+    ✅ What this asks instead is a question `verify_record` cannot be
+    asked to answer about itself: **is the file the page is reading
+    internally impossible**, on a run where the record job did not
+    happen to execute. Wins above plays, or a rate outside 0-100, is a
+    corrupt file whatever produced it.
+    """
+    for lg, d_ in DATA.items():
+        r = _read(os.path.join(ROOT, d_, "latest", "record.json"))
+        if not r:
+            continue
+        bad = []
+        ov = r.get("overall") or {}
+        w_, n_, pct = ov.get("w"), ov.get("n"), ov.get("pct")
+        if isinstance(w_, int) and isinstance(n_, int):
+            if n_ < 0 or w_ < 0:
+                bad.append("negative counts (w=%s n=%s)" % (w_, n_))
+            if n_ and w_ > n_:
+                bad.append("more wins than graded rows (%d of %d)" % (w_, n_))
+        if isinstance(pct, (int, float)) and not (0.0 <= pct <= 100.0):
+            bad.append("an overall rate of %.1f%%" % pct)
+        for bucket in (r.get("calibration") or []):
+            p = bucket.get("pct")
+            if isinstance(p, (int, float)) and not (0.0 <= p <= 100.0):
+                bad.append("bucket %s at %.1f%%" % (bucket.get("bucket"), p))
+        if bad:
+            rep.bad("record:%s:sane" % lg,
+                    "the %s Track Record shows a number that cannot be "
+                    "true" % lg,
+                    "; ".join(bad) + ". ⛔ `record.json` is what the tab "
+                    "renders, so this is on the page now.")
+
+
+# 🔴🔴 ONE THING THIS FILE DELIBERATELY DOES NOT CHECK, AND THE REASON
+#    MATTERS MORE THAN THE CHECK WOULD.
+#
+#    A parlay carrying a leg below the -700 price floor is a real way the
+#    page can be wrong, and the coverage matrix records it as a MISS.
+#    ⛔ IT IS NOT ADDED ON PURPOSE. `verify_card.py` already owns that
+#    rule and refuses to publish a card that breaks it, and writing the
+#    floor into this file too would be a THIRD copy of Sam's number.
+#    ⚠️ The second copy is what failed on 2026-09-12: the builder said
+#    `>=` and the verifier said `>`, they disagreed for two days, and the
+#    card stopped publishing. **Adding a third reader of that constant to
+#    catch the failure caused by having two is the wrong direction**, and
+#    a watchdog that quietly re-implements the verifier is a watchdog
+#    that can disagree with it.
+#    ➡️ THE COVER FOR THAT CLASS IS `check_verify_failure`: if the floor
+#    is ever broken, the verifier refuses the card and this file reports
+#    the refusal within one collector run.
+
+CHECKS = (check_page_renders, check_card_present, check_card_readable,
+          check_verify_failure, check_card_day_agreement,
+          check_board_not_empty, check_record_sane,
           check_freshness, check_record_written)
 
 

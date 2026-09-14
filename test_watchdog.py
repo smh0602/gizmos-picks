@@ -32,6 +32,7 @@ itself, and section 2 drives that exact clock.
 import datetime
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -59,6 +60,12 @@ class Tree:
         for p in ("picks", "data/latest", "data/ncaaf/latest",
                   "data/nfl/latest"):
             os.makedirs(os.path.join(self.d, p), exist_ok=True)
+        # 🔴 THE REAL PAGE, OR `page:missing` FIRES ON EVERY FIXTURE —
+        #    including the clean one — and section 1 below stops meaning
+        #    anything. `test_watchdog_coverage.py` made exactly this
+        #    mistake and scored 100%% coverage on it.
+        shutil.copy(os.path.join(ROOT, "index.html"),
+                    os.path.join(self.d, "index.html"))
         self._old = W.ROOT
 
     def __enter__(self):
@@ -214,10 +221,34 @@ ck("🔴 `converge` is NOT in the repair set",
    "watchdog racing the thing that was about to fix it, with a paid pull "
    "as the prize")
 src = open(os.path.join(ROOT, "watchdog.py"), encoding="utf-8").read()
-ck("🔴 the watchdog runs nothing itself",
-   "subprocess" not in src and "os.system" not in src,
-   "⛔ it REPORTS a repair set and the runner executes it. A reporter "
-   "that can also act is a reporter whose own bug can spend money")
+# 🔴 ~~ck("the watchdog runs nothing itself", "subprocess" not in src ...)~~
+#    STRUCK 2026-09-14, and the argument CLAUDE.md requires is this: the
+#    check asked the WRONG QUESTION. Its purpose was never "no
+#    subprocess" — it was **a reporter's own bug must not be able to
+#    spend Sam's money**. `node --check`, which the page-renders check
+#    needs, cannot spend anything; meanwhile the old form would have
+#    passed a file that called the Odds API through `urllib`.
+# ✅ THE REPLACEMENT IS STRICTLY HARDER: it forbids every network
+#    primitive outright, forbids the credential by name, and allows
+#    subprocess ONLY for parsers on a fixed allowlist. The old check
+#    covered one of those three.
+for _net in ("urllib", "requests", "http.client", "socket", "httpx"):
+    ck("🔒 the watchdog cannot reach the network (%s)" % _net,
+       _net not in src,
+       "⛔ a reporter that can fetch is a reporter whose bug can BILL. "
+       "The old form allowed this and forbade `node --check`, which "
+       "bills nothing")
+ck("🔒 ...and never touches the API key",
+   "ODDS_API_KEY" not in src,
+   "⛔ a test must never be able to spend (rule 213); neither must a "
+   "watchdog")
+_cmds = re.findall(r"subprocess\.run\(\s*\[([^\]]*)\]", src)
+_first = [c.split(",")[0].strip().strip('"\'') for c in _cmds]
+ck("🔒 ...and every subprocess it runs is a PARSER on the allowlist",
+   all(c in ("node",) for c in _first),
+   "⛔ the only shelling out permitted here is syntax-checking the page. "
+   "Anything else is the watchdog acting instead of reporting. Found: %s"
+   % _first)
 ck("⛔ ...and the safe list is filtered HERE, not in the workflow",
    "SAFE_REPAIRS" in src and 'i["repair"] in SAFE_REPAIRS' in src,
    "a shell step that decides what is safe to run is a second copy of "

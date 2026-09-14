@@ -65,9 +65,52 @@ ck("✅ the superseded 50 is struck, not deleted",
 print("\n═══ 2. 🔴 THE PAGE HOLDS NO COPY OF THE NUMBER ═══")
 
 html = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
-ck("🔴 index.html prints the card's own board_max",
-   "C.board_max" in html or "board_max" in html,
-   "⛔ rule 66 — the page must never restate a cap the builder owns")
+# 🔴🔴 ~~ck("index.html prints the card's own board_max",
+#          "C.board_max" in html or "board_max" in html, ...)~~
+#    STRUCK 2026-09-14. **THAT CHECK WAS GREEN SOLELY BECAUSE OF A
+#    COMMENT ASSERTING THE THING IT WAS ASSERTING.**
+#
+#    Measured: `C.board_max` appears in `index.html` ZERO times, and
+#    `board_max` appears exactly ONCE — inside a block comment that
+#    reads *"The page does not hold the number either way; it prints the
+#    card's own board_max."* With comments stripped, neither needle is in
+#    the file. ⛔ The `or` made the weak arm decisive, so the check
+#    passed on its own documentation.
+#
+# ⚠️ AND THE TRAP WAS ALREADY KNOWN TO THIS FILE. The very next comment
+#    below says *"ASKED OF THE FUNCTION BODIES, NOT OF THE FILE"* — the
+#    author applied that fix to the following check and not to this one.
+#    Sixth recorded instance of a self-matching check in this repo.
+#
+# 🔴🔴 AND IT WAS NOT MERELY FAKE — IT WAS BACKWARDS. It asserted the
+#    page DOES hold `board_max`. Rule 66 wants the opposite: the cap
+#    belongs to the builder, the page renders whatever array it is
+#    handed, and a `board_max` anywhere in live JavaScript would be the
+#    SECOND COPY the rule exists to forbid.
+# ✅ So the correct question is the inverse of the one that was asked,
+#    and it is strictly harder: a reference appearing in live code now
+#    FAILS, where the old form would have called it a pass.
+# ⚠️ MY OWN FIRST REPLACEMENT WAS ALSO WRONG and running it caught that:
+#    it grepped for `.slice(0, NN)` and flagged six innocent lines —
+#    `toISOString().slice(0,10)` taking a date, and a 30-item news list.
+#    ⛔ A check that fires on correct code is the other way to be useless,
+#    and the board-slicing question is already asked correctly ten lines
+#    below, SCOPED TO THE FUNCTION BODIES.
+_live_html = "\n".join(
+    ln for ln in re.sub(r"/\*.*?\*/", "", html, flags=re.S).splitlines()
+    if not ln.strip().startswith("//"))
+ck("🔴 the page holds NO copy of the cap",
+   "board_max" not in _live_html,
+   "⛔ rule 66 — `BOARD_MAX` is the builder's. The page renders the array "
+   "it is given and must not know the number at all, or the two disagree "
+   "the first time one moves")
+ck("⛔ ...and the comment-stripper actually removed something",
+   len(_live_html) < len(html) and "board_max" in html,
+   "🔴 IF THIS FAILS THE CHECK ABOVE IS VACUOUS. `board_max` occurs in "
+   "index.html exactly once, inside a block comment — so it must be "
+   "present in the RAW file and absent from the stripped one. Both "
+   "halves are asserted, because a stripper that returned an empty "
+   "string would pass the check above for the wrong reason")
 # ⛔ ASKED OF THE FUNCTION BODIES, NOT OF THE FILE. index.html quotes
 #    Sam's 2026-09-04 instruction verbatim in a struck comment, and that
 #    quote contains the words "maximum 50". A check that searched the

@@ -758,7 +758,17 @@ def _moments(pid, market, cutoff):
         return None, None
     v = [g.get(_HS[market]) or 0 for g in (rec.get('g') or [])
          if (g.get('pa') or 0) >= 3 and (cutoff is None or (g.get('d') or '') < cutoff)]
-    if len(v) < 25:
+    # 🔴 ~~if len(v) < 25:~~ STRUCK 2026-09-14. **THAT 25 WAS A SECOND
+    #    COPY OF `card.MIN_HITTER_GAMES`, SITTING IN THE ONE FILE WHOSE
+    #    JOB IS TO DISAGREE WITH THE BUILDER.**
+    # ⛔ It agreed today, which is exactly what the -700 floor did for
+    #    eighteen days before it did not. Ledger rule 207, and rule 230's
+    #    own lesson: a LATENT boundary copy is the same defect as a live
+    #    one — it is waiting for an edit, not for a fix. The moment Sam
+    #    moves `MIN_HITTER_GAMES`, this verifier silently starts checking
+    #    the card against a rule the card no longer follows.
+    # ✅ ONE CONSTANT, BOTH READERS.
+    if len(v) < C.MIN_HITTER_GAMES:
         return None, None
     mn = sum(v) / len(v)
     return mn, sum((x - mn)**2 for x in v) / (len(v) - 1)
@@ -836,8 +846,28 @@ ck(f"no hitter projection matches the UNFILTERED log better than the "
 print("\n33. TOP 10 OF THE DAY -- a different list, held to its own rules")
 _t10 = doc.get('top10') or []
 _tx = doc.get('top10_excluded') or {}
-_gate = _tx.get('price_floor', -400)
-ck(f"the top 10 is at most 10 rows ({len(_t10)})", len(_t10) <= 10)
+# 🔴 ~~_gate = _tx.get('price_floor', -400)~~ and ~~len(_t10) <= 10~~ —
+#    BOTH STRUCK 2026-09-14. Two more second copies of Sam's numbers
+#    (`card.TOP10_PRICE_FLOOR` and `card.TOP10_N`), in the file that must
+#    not hold any. ⚠️ The -400 was only a FALLBACK default, which is the
+#    quietest possible place for a copy to rot: it is used exactly when
+#    the card fails to report its own gate, i.e. on the one card whose
+#    provenance is already in doubt.
+# ⛔ AND THE FALLBACK IS GONE, NOT RE-POINTED. A missing `price_floor` on
+#    the card is now a FAILED CHECK rather than a silently assumed value
+#    — a verifier that supplies its own default for a number the builder
+#    forgot to state is a verifier agreeing with itself.
+_gate = _tx.get('price_floor')
+ck("the card states the top-10 price gate it applied",
+   _gate is not None,
+   "⛔ without it this section would be checking the card against a "
+   "number the verifier made up")
+_gate = C.TOP10_PRICE_FLOOR if _gate is None else _gate
+ck(f"...and it is the builder's own constant ({C.TOP10_PRICE_FLOOR})",
+   _gate == C.TOP10_PRICE_FLOOR,
+   "rule 207 — one constant, both readers. Card said %r" % _gate)
+ck(f"the top 10 is at most {C.TOP10_N} rows ({len(_t10)})",
+   len(_t10) <= C.TOP10_N)
 ck(f"every row is priced better than the payable floor ({_gate})",
    all(r.get('price') is not None and r['price'] > _gate for r in _t10),
    str([(r.get('pitcher') or r.get('player'), r.get('price'))

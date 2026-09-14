@@ -152,6 +152,24 @@ def fail(name, extra=""):
     return ck(name, False, extra)
 
 
+# 🔴 THE CRASH FLAG. `sys.last_value` is only set in interactive mode,
+#    so the only reliable way for an `atexit` hook to know the process is
+#    unwinding from an unhandled exception is to have seen it go past.
+# ⛔ THE ORIGINAL HOOK IS CHAINED, NEVER REPLACED — swallowing the
+#    traceback would trade one blind spot for a worse one.
+_CRASHED = []
+_PREV_HOOK = sys.excepthook
+
+
+def _note_crash(etype, value, tb):
+    if etype is not SystemExit:
+        _CRASHED.append("%s: %s" % (etype.__name__, value))
+    _PREV_HOOK(etype, value, tb)
+
+
+sys.excepthook = _note_crash
+
+
 @atexit.register
 def _gate():
     """🔴 THE GATE. Registered at import, runs at interpreter exit.
@@ -240,7 +258,26 @@ def _gate():
                   "artifact a test keeps fresh is a freshness row that can "
                   "never go red.")
             FAILURES.append(name)
-        if FAILURES:
+        # 🔴🔴 A FILE THAT DIED HALFWAY THROUGH HAS NOT PASSED, AND IT WAS
+        #    PRINTING A GREEN BANNER. `[found 2026-09-14 by crashing one
+        #    on purpose]` A `NameError` on line 244 of a 430-line test
+        #    file produced a traceback followed immediately by
+        #    **`✅ all 21 checks passed`** — for a file whose remaining 22
+        #    checks never ran.
+        # ⚠️ THE EXIT CODE WAS CORRECT (1), so CI caught it. That is
+        #    exactly what makes it dangerous: the log a human reads said
+        #    GREEN, in this repo's own house style, directly under the
+        #    stack trace that says otherwise. ⛔ Rule 144 — a check that
+        #    could not run did not pass — applied to a whole FILE rather
+        #    than to one check.
+        # ✅ `_CRASHED` is set by an excepthook installed at import, so
+        #    the banner can tell "finished and passed" from "stopped".
+        if _CRASHED:
+            print(f"\n❌ this file DIED before finishing — {_CHECKS[0]} "
+                  f"check(s) ran and an unknown number never did. "
+                  f"⛔ NOT A PASS: {_CRASHED[0]}")
+            FAILURES.append("the file raised before completing")
+        elif FAILURES:
             print(f"\n❌ {len(FAILURES)} of {_CHECKS[0]} checks FAILED")
             for f in FAILURES:
                 print("   - " + f)
