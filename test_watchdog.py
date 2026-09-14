@@ -680,6 +680,62 @@ ck("✅ a finding with NO repair is left alone entirely",
    "⛔ a refused card is already unrepairable; counting attempts against "
    "it would be counting nothing")
 
+print("\n═══ 16. 🔴🔴 A FAILING TEST MUST REACH SAM, NOT JUST THE RUN PAGE ═══")
+# ⛔ MEASURED 2026-09-14. `test_board_match.js` went red at 20:08Z when a
+#    gamelines pull advanced the board past a date literal the test had
+#    written down. EVERY collector run for the next 2h25m was red, and
+#    THE ONLY ALARM WAS SAM OPENING THE ACTIONS TAB.
+# 🔴 The "Tell Sam" step reads `health.json` and nothing else, so a test
+#    failure produced a red tick and NO issue, NO email, and nothing the
+#    watchdog could see — it asks PRODUCT questions, and a stale test is
+#    not a product question. ➡️ Ledger rule 261.
+CY = os.path.join(ROOT, ".github", "workflows", "collect.yml")
+if not os.path.exists(CY):
+    note("⚠️ NOT EXERCISED: collect.yml is not in this tree.")
+else:
+    _raw = open(CY, encoding="utf-8").read()
+    cy = flat(_raw)
+    ck("🔴🔴 a failing test opens an issue, not just a red tick",
+       "Tell Sam the tests are failing" in cy,
+       "⛔ a red run page is not an alert. 47 consecutive red runs "
+       "produced zero notifications — the alert channel read health.json "
+       "and a test failure never reaches health.json")
+    ck("🔴 it is gated on the TEST result, not on the watchdog's",
+       "steps.tests.outputs.rc" in cy,
+       "⛔ the watchdog's issue is driven by health.json. If this step "
+       "keyed on the same thing it would be a second copy of that alarm "
+       "and still blind to the suite")
+    ck("⛔ the failing FILE NAMES are recorded, not only annotated",
+       "steps.tests.outputs.failed" in cy and 'echo "failed=' in _raw,
+       "🔴 `::error::` reaches the run page and nowhere else — the exact "
+       "surface nobody is watching. An issue that says 'a test failed' "
+       "without saying WHICH costs the reader the whole investigation")
+    ck("⚠️ it is a DIFFERENT issue from the watchdog's",
+       "the test suite is failing" in cy and "the watchdog says the site is wrong" in cy,
+       "⛔ 'the site is wrong' and 'a test is failing' are different "
+       "problems with different fixes. Merging them hides whichever "
+       "arrived second")
+    ck("✅ ...and it closes itself when the suite goes green",
+       "the suite is green again" in cy and "gh issue close" in cy,
+       "an alert that must be closed by hand is an alert that stays open "
+       "and stops meaning anything (rule 238's cousin)")
+    ck("🔴 it can NEVER take the data down with it",
+       "- name: Tell Sam the tests are failing if: always() continue-on-error: true"
+       in cy.replace("  ", " ").replace("  ", " "),
+       "⛔ the collector's job is to land data on time. An alerting step "
+       "that can fail the job would turn a notification bug into an "
+       "outage — and this repo has already shipped a workflow that "
+       "stopped parsing (rule 242)")
+    ck("⛔ ...and it runs BEFORE the deferred failure, or it never runs at all",
+       cy.index("Tell Sam the tests are failing") < cy.index("Fail if the tests failed"),
+       "🔴 the deferred-failure step exits 1. Anything after it that is "
+       "not `always()` is dead code, and putting the alert there would "
+       "mean the alert fires only when there is nothing to alert about")
+    ck("⚠️ the issue body refuses the weakening fix in advance",
+       "do not fix this by weakening the check" in cy.lower(),
+       "🔴 CLAUDE.md's first rule, said at the moment somebody is most "
+       "tempted: staring at a red tick they want gone")
+
 print("\n═══ 13. 🔧 TIER 3 SELF-REPAIR — THE GATE AND ITS GUARDS ═══")
 # 🔴 `[Sam, 2026-09-14: "make tier 3 be able to self repair"]` — the
 #    findings nothing mechanical can fix. `self-repair.yml` runs the
