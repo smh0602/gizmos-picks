@@ -506,6 +506,98 @@ ck("⛔ a NON-MLB finding still carries the plain do-not-touch-MLB rule",
    "the unlock is per-incident and must not leak onto football issues. "
    "Got: %r" % body[-300:])
 
+
+print("\n═══ 13. 🔧 TIER 3 SELF-REPAIR — THE GATE AND ITS GUARDS ═══")
+# 🔴 `[Sam, 2026-09-14: "make tier 3 be able to self repair"]` — the
+#    findings nothing mechanical can fix. `self-repair.yml` runs the
+#    Claude Code GitHub Action on a SCHEDULE, which is the seam that
+#    makes it work at all: the action rejects bot actors, the watchdog
+#    posts as `github-actions[bot]`, and `allowed_bots` is unreliable
+#    (upstream #900).
+#
+# ⚠️⚠️ **THE STATED REASON WAS WRONG AND IS REPLACED HERE (2026-09-14).**
+#    ~~"a schedule has NO EXTERNAL ACTOR, so both checks are bypassed"~~ —
+#    that is `docs/security.md`, but **Anthropic's product docs say the
+#    bot check DOES apply to scheduled runs**, attributing them to *"the
+#    [user] who last changed the workflow's `cron` schedule"*. ⛔ Two
+#    Anthropic sources disagree, so the QUESTION changes: not *"is the
+#    actor exempt?"* (unanswerable from here) but *"does this workflow
+#    survive the check applying?"* — which is testable, and which the old
+#    assertion never asked. **Strictly harder: it now demands a guard the
+#    old version did not require to exist at all.**
+SR = os.path.join(ROOT, ".github", "workflows", "self-repair.yml")
+if not os.path.exists(SR):
+    note("⚠️ NOT EXERCISED: self-repair.yml is not in this tree.")
+else:
+    sr = open(SR, encoding="utf-8").read()
+    # ⚠️ WHITESPACE NORMALISED BEFORE SEARCHING. The prompt is wrapped
+    #    prose inside a YAML block scalar, so "Do not merge" is split
+    #    across a newline and thirteen spaces of indentation. My first
+    #    version searched the raw text and failed on two assertions that
+    #    were factually TRUE — a check that fails on correct code, which
+    #    is the other way to be useless (rule 249).
+    srn = " ".join(sr.split())
+    ck("🔴 it is triggered by a SCHEDULE, not by the watchdog's bot",
+       "schedule:" in sr and "cron:" in sr,
+       "⛔ triggering off the bot's own issue depends on `allowed_bots`, "
+       "which upstream #900 says may never be consulted. A schedule does "
+       "not need it: the write-access check is exempt for `schedule`, "
+       "and the actor is whoever last committed the cron block")
+    # 🔴🔴 THE CHECK THE OLD ONE SHOULD HAVE BEEN. GitHub attributes a
+    #    scheduled run to the user who last changed the `cron:` block. If
+    #    a merged self-repair PR ever edits this file, that user becomes
+    #    the Claude GitHub App — a BOT — and the action's own actor check
+    #    starts rejecting the run. ⛔ It fails SILENT: no red run, no
+    #    alert, and the only symptom is a repair that stops happening.
+    ck("🔴🔴 the prompt forbids the agent from editing self-repair.yml "
+       "itself",
+       "DO NOT MODIFY `.github/workflows/self-repair.yml`" in srn,
+       "⛔ GitHub attributes a scheduled run to whoever last changed the "
+       "cron schedule. An agent that edits this file makes a BOT that "
+       "user, and the action's actor check then rejects every future "
+       "run — with no red run and no alert. Sam uploads this file by "
+       "hand, which is what keeps the actor human; nothing else does")
+    ck("⛔ ...and the file says WHY, so the next reader cannot delete the "
+       "line as noise",
+       "attributes a scheduled run to the user who last changed" in srn,
+       "🔴 a bare prohibition with no reason is the first thing removed "
+       "in a cleanup. The reason IS the guard")
+    ck("⚠️ the two disagreeing Anthropic sources are both named in the "
+       "file, not silently picked between",
+       "code.claude.com" in sr and "security.md" in sr.replace(
+           "docs/security.md", "security.md"),
+       "⛔ this repo's founding lesson is that a fact about a QUERY is "
+       "not a fact about the world. Two Anthropic docs contradict each "
+       "other here; recording only the convenient one is how the wrong "
+       "one gets trusted later")
+    ck("🔴🔴 it opens a PULL REQUEST and never merges",
+       "PULL REQUEST" in srn and "Do not merge" in srn
+       and "Do not push to main" in srn,
+       "⛔ THIS IS THE LINE THAT MATTERS. An agent that can write the fix "
+       "AND merge it can make a failing check green by deleting it, with "
+       "nobody reading the diff. Automatic to the PR; a human merges")
+    ck("🔴 the prompt repeats the freeze and the never-weaken rule",
+       "MLB IS FROZEN" in sr and "NEVER WEAKEN A CHECK" in sr,
+       "⚠️ CLAUDE.md carries both and the agent reads it — but a prompt "
+       "silent about the constraint most likely to be violated is a "
+       "prompt inviting the violation")
+    ck("⛔ it requires a FAILING TEST before the fix",
+       "FAILS on the defect before your fix" in srn,
+       "a fix with no failing test is a guess (rule 202)")
+    ck("🔴 it does not summon anybody when the system is already repairing",
+       "unrepairable" in sr and "not `healthy`" in sr.replace("NOT `healthy`", "not `healthy`"),
+       "⛔ the gate is the UNREPAIRABLE count, not the healthy flag. A "
+       "finding the watchdog is already rebuilding must never wake an "
+       "agent — that is rule 238's lesson applied to a costlier alarm")
+    ck("⛔ ...and one PR per problem, never one per run",
+       "self-repair/" in sr and "already open" in sr,
+       "a workflow that opens a fresh PR every four hours is one whose "
+       "PRs get ignored — the same death as a filtered alert")
+    ck("⚠️ the triage job cannot write anything",
+       "contents: read" in sr,
+       "🔴 the job that DECIDES whether to wake an agent must not be able "
+       "to change the thing it is deciding about")
+
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the watchdog catches "
      "everything. It catches the four shapes that have actually bitten — "
      "a missing card, a refused card, a card that contradicts its own "
