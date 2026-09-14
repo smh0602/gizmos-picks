@@ -116,6 +116,12 @@ with Tree() as t:
     for lg in ("ncaaf", "nfl"):
         t.write("picks/fb-%s-latest.json" % lg,
                 {"date": "2026-09-13", "picks": [], "game_lines": []})
+    # ⛔ A DATED CARD OWES A TRACK RECORD, so a "clean" tree must carry
+    #    one. The fixture was always incomplete here — it simply did not
+    #    matter until a check asked (section 17). A fixture that omits
+    #    what the product requires is not a clean tree, it is a broken one
+    #    nobody had measured.
+    t.write("data/latest/record.json", {"plays": 10, "wins": 6})
     out = W.run(now)
     ck("🔴 nothing is reported when nothing is wrong",
        out["healthy"],
@@ -672,6 +678,35 @@ ck("⛔ an attempt is NOT charged when the repair was never actually run",
    "tried. Charging it an attempt escalates something nothing has yet "
    "attempted to fix — a false escalation, which is rule 238 wearing a "
    "more expensive coat")
+# 🔴🔴 AND THE WITHDRAWAL MUST BE PERMANENT WHILE THE FINDING PERSISTS.
+#    `[found 2026-09-14 by driving FOUR cycles instead of three]` Once the
+#    repair is withdrawn the report lists no repair, so on the next run
+#    `tried` was False, the counter reset to 1 and the repair came back.
+# ⛔ ESCALATE, UN-ESCALATE, ESCALATE — a four-cycle loop in which
+#    `unrepairable` is non-empty only ONE RUN IN FOUR, so Tier 3 sees the
+#    finding a quarter of the time and the useless repair keeps running
+#    forever anyway, which is the entire waste this exists to stop.
+# ⚠️ THREE CYCLES LOOKED PERFECT. The defect appears only on the fourth.
+_after = dict(_STUCK)
+_prev_withdrawn = {"findings": [dict(_STUCK, repair=None,
+                                     repair_attempts=3,
+                                     repair_withdrawn="card-fb")],
+                   "repairs": []}
+W._escalate_stuck_repairs([_after], _prev_withdrawn)
+ck("🔴🔴 a withdrawn repair STAYS withdrawn on the next cycle",
+   _after["repair"] is None and _after["repair_withdrawn"] == "card-fb",
+   "⛔ THE FIRST VERSION OSCILLATED. A withdrawal that lapses is not an "
+   "escalation, it is a pause — and Tier 3 would see the finding one run "
+   "in four while the dead repair ran on every one. Got %r" % _after)
+ck("✅ ...and the attempt count is carried, not reset",
+   _after["repair_attempts"] >= W.REPAIR_ATTEMPTS_BEFORE_ESCALATION,
+   "🔴 a reset counter is what let the repair come back. Got %r"
+   % _after.get("repair_attempts"))
+ck("⛔ ...and it says the withdrawal is standing, not freshly decided",
+   "stays withdrawn" in _after["why"],
+   "a reader seeing the same finding for the tenth time needs to know "
+   "the system already gave up on repairing it, not that it just did")
+
 ck("✅ a finding with NO repair is left alone entirely",
    (lambda i: (W._escalate_stuck_repairs([i], {"findings": [], "repairs": []}),
                "repair_attempts" not in i)[1])(
@@ -735,6 +770,74 @@ else:
        "do not fix this by weakening the check" in cy.lower(),
        "🔴 CLAUDE.md's first rule, said at the moment somebody is most "
        "tempted: staring at a red tick they want gone")
+
+print("\n═══ 17. 🔴🔴 A MISSING TRACK RECORD WAS SILENTLY SKIPPED ═══")
+# ⛔ FOUND 2026-09-14 BY DELETING IT AND WATCHING NOTHING HAPPEN. The
+#    watchdog reported `healthy: true` with the page's whole Track Record
+#    tab gone. `check_record_written` opened with `if not exists: continue`
+#    — so the check written to notice "the record stopped being graded"
+#    treated THE FILE BEING GONE ENTIRELY, the most complete form of that
+#    failure, as nothing to say. ➡️ An absence read as silence is this
+#    project's oldest recurring error. Ledger rule 265.
+# ⚠️ AND THE `continue` WAS NOT WRONG, IT WAS UNCONDITIONAL — a league
+#    with nothing published has no record to grade and MUST stay quiet.
+with Tree() as t:
+    now = datetime.datetime(2026, 9, 14, 18, 0, tzinfo=UTC)
+    t.write("picks/%s.json" % F.et_date(F.last_due(F.CARD, now)),
+            {"date": "x", "picks": []})
+    for lg in ("ncaaf", "nfl"):
+        t.write("picks/fb-%s-latest.json" % lg,
+                {"date": "2026-09-13", "picks": [], "game_lines": []})
+    t.write("picks/2026-09-13.json", {"date": "2026-09-13", "picks": []})
+    # mlb has a DATED published card; no record.json anywhere in this fixture.
+    out = W.run(now)
+    f = [i for i in out["findings"] if i["key"] == "record:mlb"]
+    ck("🔴🔴 a record.json that is GONE is reported, not skipped",
+       bool(f),
+       "⛔ THE WATCHDOG SAID `healthy: true` WITH THE TAB DEAD. Deleting "
+       "the file was the one case the age check could never see. "
+       "Reported: %s" % sorted(keys(out)))
+    ck("🔧 ...and it offers the `record` repair, which is proven to rebuild it",
+       f and f[0]["repair"] == "record",
+       "⛔ this is not a code defect — the file is regenerated from the "
+       "stored box scores. Driven end to end 2026-09-14: deleted all "
+       "three, `collect.py record` restored all three. Got %r"
+       % (f[0]["repair"] if f else None))
+    ck("✅ ...and it says WHY it is owed, with the card count",
+       f and "published" in f[0]["why"],
+       "a missing file is only wrong if something was owed. The finding "
+       "has to carry that evidence or it reads as a guess. Got: %r"
+       % (f[0]["why"] if f else None))
+    ck("⛔ ...and the football leagues, which have only a `-latest` card, "
+       "stay SILENT in the same tree",
+       not [i for i in out["findings"]
+            if i["key"] in ("record:ncaaf", "record:nfl")],
+       "🔴 `fb-<lg>-latest.json` is the CURRENT card pointer, not "
+       "published history. My first `_published` globbed it and "
+       "false-alarmed on three existing checks inside a minute — "
+       "including the clean-tree test whose whole job is proving the "
+       "watchdog can be quiet. Reported: %s" % sorted(keys(out)))
+
+# ⛔ AND THE QUIET HALF, WHICH IS WHAT THE ORIGINAL `continue` PROTECTED.
+with Tree() as t:
+    now = datetime.datetime(2026, 9, 14, 18, 0, tzinfo=UTC)
+    t.write("picks/%s.json" % F.et_date(F.last_due(F.CARD, now)),
+            {"date": "x", "picks": []})
+    t.write("data/latest/record.json", {"plays": 1, "wins": 1})
+    for lg in ("ncaaf", "nfl"):
+        t.write("picks/fb-%s-latest.json" % lg,
+                {"date": "2026-09-13", "picks": [], "game_lines": []})
+    out = W.run(now)
+    ck("⛔ a league with NOTHING published stays silent about its record",
+       not [i for i in out["findings"] if i["key"] in ("record:ncaaf", "record:nfl")],
+       "🔴 `picks/fb-<lg>-latest.json` is not a dated published card. A "
+       "league with no graded history owes no record, and alarming on it "
+       "would be rule 238 — the false alarm that gets the channel "
+       "filtered. Reported: %s" % sorted(keys(out)))
+    ck("✅ ...and `_published` counts the evidence rather than assuming it",
+       W._published("nfl") >= 0 and isinstance(W._published("mlb"), int),
+       "the difference between 'owed' and 'not owed' is a fact about the "
+       "repo, so it is READ from the repo")
 
 print("\n═══ 13. 🔧 TIER 3 SELF-REPAIR — THE GATE AND ITS GUARDS ═══")
 # 🔴 `[Sam, 2026-09-14: "make tier 3 be able to self repair"]` — the
@@ -822,6 +925,37 @@ else:
        "self-repair/" in sr and "already open" in sr,
        "a workflow that opens a fresh PR every four hours is one whose "
        "PRs get ignored — the same death as a filtered alert")
+    # 🔴🔴 THE FIRE DRILL. `[Sam, 2026-09-14: "create a mock tier 3
+    #    problem and test it"]` — the agent is the ONLY path in this
+    #    architecture that has never executed, and a mode whose first run
+    #    is in production is a mode nothing drove (rule 235).
+    ck("🔴🔴 a manual DRILL can fire the agent without a real defect",
+       "inputs" in srn and "drill" in srn,
+       "⛔ everything up to the agent is now proven by driving it. The "
+       "agent itself cannot be invoked from outside GitHub, so the only "
+       "way to prove that path is a button")
+    ck("⛔ ...and ONLY a manual dispatch can set it",
+       "github.event.inputs.drill" in srn,
+       "🔴 `inputs.drill` does not exist on a `schedule` event, so a "
+       "scheduled run can never take the drill branch. A bypass that a "
+       "cron could trigger is not a bypass, it is a hole")
+    ck("⛔ ...and the drill still may not touch anything real",
+       "Change NOTHING else" in srn and "self-repair/drill" in srn,
+       "🔴 a drill that edits code proves the path by risking the "
+       "product. The task is deliberately trivial because the QUESTION "
+       "is whether the path works, not whether the agent is clever")
+    ck("⚠️ ...and it still opens a PR rather than pushing",
+       srn.count("Do not push to main") >= 2
+       and srn.count("Do not merge") >= 2,
+       "⛔ the drill must exercise the SAME guards as the real thing, or "
+       "it proves a path that does not exist. Got push=%d merge=%d"
+       % (srn.count("Do not push to main"), srn.count("Do not merge")))
+    ck("✅ ...and it makes the agent prove it read CLAUDE.md",
+       "what CLAUDE.md says about MLB" in srn,
+       "🔴 the freeze is the constraint most likely to be violated. A "
+       "drill that does not check the agent can SEE it proves the "
+       "plumbing and nothing about the guardrails")
+
     ck("⚠️ the triage job cannot write anything",
        "contents: read" in sr,
        "🔴 the job that DECIDES whether to wake an agent must not be able "
