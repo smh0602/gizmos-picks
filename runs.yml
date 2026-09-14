@@ -1,0 +1,124 @@
+# 🔴🔴 THE QUESTION NOBODY IN THIS REPO HAS EVER ASKED: DID A RUN FAIL?
+#
+# `[Sam, 2026-09-14: "ive seen a few failed runs in github today, it
+#  didnt do anyhting about those failed runs"]`
+#
+# ⛔ HE IS RIGHT, AND NOTHING COULD HAVE. Measured before writing this:
+# every input `watchdog.py` reads is a FILE IN THE REPO — the cards,
+# `card-verify-failure.txt`, `freshness.json`, `health.json`,
+# `index.html`. **A red tick on the Actions tab is not a file in the repo,
+# so it is invisible to every guard this project has ever had.**
+#
+# ⚠️ AND DROP 52 WAS NOT ENOUGH. Its alert lives INSIDE `collect.yml` and
+# fires only from the test step, so it cannot see:
+#   - a run that failed BEFORE reaching that step (checkout, setup, a
+#     converge pass)
+#   - a run of `browser.yml`, `self-repair.yml` or `claude.yml`
+#   - anything at all, on the three workflows it does not live in
+# `[4 workflows deployed, 1 of them partially covered]`
+#
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ WHY THIS IS ITS OWN WORKFLOW AND NOT A STEP IN collect.yml
+#
+# 🔴 A STEP INSIDE A WORKFLOW CANNOT REPORT THAT WORKFLOW FAILING TO
+# START. That is rule 242 — I broke `collect.yml`'s YAML once and the
+# watchdog living inside it was structurally unable to say so. The whole
+# point of this file is to watch from OUTSIDE, so it must not share a
+# process with the thing it watches.
+#
+# 💰 FREE. `gh run list` is the GitHub API on a public repo, and the job
+# is seconds of runner time. ⛔ No Claude usage, no Odds credits — it
+# reads status and writes an issue, nothing else.
+name: runs
+
+on:
+  # ⛔ Off :00 like every cron here — those slots are the most congested
+  # on GitHub's scheduler and runs get dropped.
+  # ⚠️ HOURLY, because "broken right now" is the thing it reports and a
+  # 24-hour-old answer to that question is worthless.
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: runs
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Ask GitHub whether anything is failing
+        id: look
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL. A shell
+          # step that decides what counts as broken is a second copy of
+          # that judgement (rule 66) — and it is the copy no test can
+          # reach. `runs_report.py` is driven by `test_runs_report.py`.
+          gh run list --limit 100 \
+            --json name,conclusion,createdAt,url > /tmp/runs.json
+          if [ ! -s /tmp/runs.json ]; then
+            echo "::warning::could not list runs"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          python runs_report.py < /tmp/runs.json > /tmp/body.md
+          rc=$?
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::runs_report could not read the run list"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          cat /tmp/body.md
+          exit 0
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
+      # as the watchdog's and the test alert's, for the same reason: a
+      # workflow that opens a fresh issue every hour is one whose
+      # notifications get filtered, and a filtered alert is no alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not
+      # "everything is fine" and must never close an open issue.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - a workflow is failing"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not determine run state — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — every workflow's latest run is green."
+              gh issue close "$NUM"
+            fi
+            echo "all workflows green"
+            exit 0
+          fi
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --body-file /tmp/body.md
+          else
+            gh issue create --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
+              || gh issue create --title "$TITLE" --body-file /tmp/body.md
+          fi
+          exit 0
