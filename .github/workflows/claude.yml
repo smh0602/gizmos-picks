@@ -44,5 +44,26 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 🔬 EXPERIMENTAL, AND IT MAY SIMPLY NOT WORK — STATED RATHER
+          #    THAN ASSUMED.
+          #
+          # The watchdog in `collect.yml` opens its issue with the default
+          # `GITHUB_TOKEN`, so the actor is `github-actions[bot]`. The
+          # action rejects bot actors unless they are named here, which is
+          # the seam that would otherwise stop a detected fault from ever
+          # reaching Claude.
+          #
+          # ⚠️ BUT THERE IS AN OPEN UPSTREAM BUG (anthropics/
+          # claude-code-action#900): `checkHumanActor` calls the users API
+          # BEFORE it consults `allowed_bots`, and that call 404s for a
+          # bot account — so this line may be ignored entirely depending
+          # on the action version. ⛔ It is added because it costs one
+          # line and FAILS CLOSED (Claude simply does not respond), NOT
+          # because it is known to work.
+          #
+          # ✅ THE ROUTE THAT DEFINITELY WORKS IS SAM REPLYING `@claude`
+          #    TO THE WATCHDOG'S ISSUE FROM HIS PHONE. He has write
+          #    access, which is exactly what this check is looking for.
+          allowed_bots: "github-actions[bot]"
           claude_args: |
             --max-turns 40

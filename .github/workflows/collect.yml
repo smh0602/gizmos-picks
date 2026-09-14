@@ -383,6 +383,11 @@ jobs:
     timeout-minutes: 350
     permissions:
       contents: write
+      # 📣 THE WATCHDOG OPENS, UPDATES AND CLOSES ONE ISSUE. ⛔ Without
+      # this the alert half is silently a no-op — `gh issue create` fails
+      # with 403 and `continue-on-error` swallows it, which would be a
+      # watchdog that looks installed and tells nobody anything.
+      issues: write
 
     steps:
       - uses: actions/checkout@v4
@@ -866,6 +871,142 @@ jobs:
           done
 
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
+
+      # ══════════════════════════════════════════════════════════════
+      # 🔴 WATCHDOG — does the PAGE look right, and if not, say so.
+      # `[Sam, 2026-09-14: "we need a way to notice these problems as
+      #  they happen and it needs to fix itself in github when this
+      #  happens"]`
+      #
+      # ⛔ `if: always()` IS THE WHOLE POINT. The run this rides on may
+      # already have failed — that is exactly the run where Sam most
+      # needs to be told what a reader would SEE, and a step that skips
+      # on failure is a smoke alarm wired to the light switch.
+      #
+      # 🔧 TRY, THEN RE-CHECK, THEN ESCALATE WHAT IS LEFT. The repair
+      # modes are FREE local rebuilds chosen by `watchdog.SAFE_REPAIRS`
+      # — nothing here decides what is safe to run, because a shell copy
+      # of that judgement is the copy no test can reach (rule 66).
+      # ══════════════════════════════════════════════════════════════
+      - name: Watchdog — check the product, repair what is repairable
+        id: watchdog
+        if: always()
+        continue-on-error: true
+        run: |
+          set +e
+          # ⛔ THE WORKFLOW LANDS BEFORE `watchdog.py` DOES, BY DESIGN.
+          # A test in the root drop asserts this file, so the workflow has
+          # to go FIRST or that test asserts something not yet present —
+          # rule 229, which this project has already paid for once. The
+          # guard makes the in-between state a clean no-op instead of a
+          # step that half-runs and creates a garbage issue.
+          if [ ! -f watchdog.py ]; then
+            echo "::notice::watchdog.py is not in the repo yet — skipping"
+            echo "healthy=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python watchdog.py | tee /tmp/wd1.txt
+          REPAIRS=$(python -c "import json;print(' '.join(json.load(open('data/latest/health.json'))['repairs']))")
+          if [ -n "$REPAIRS" ]; then
+            echo "::notice::watchdog attempting repair: $REPAIRS"
+            for m in $REPAIRS; do
+              # ⚠️ EACH LEAGUE IN TURN. A football card mode is a no-op
+              #    on mlb and vice versa, and the modes cost nothing, so
+              #    the simple loop is also the correct one.
+              for lg in mlb ncaaf nfl; do
+                LEAGUE=$lg ODDS_API_KEY= timeout 900 python collect.py "$m" || true
+              done
+            done
+            # 🔴 RE-CHECK AFTER REPAIRING. An alarm raised for something
+            #    the system just fixed is the alarm Sam learns to ignore.
+            python watchdog.py | tee /tmp/wd2.txt
+          fi
+          HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
+          echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      # ⚠️ THE REPAIR'S OUTPUT HAS TO LAND OR THE REPAIR DID NOT HAPPEN.
+      # A rebuilt card that is never committed is a card nobody sees —
+      # rule 217 with the subject changed.
+      # ⛔ REBASE BEFORE PUSHING. This runs after the converge loop has
+      # already pushed, and two leagues' jobs can overlap; a plain push
+      # loses to a race and `|| true` would hide it.
+      - name: Commit the repair and the health report
+        if: always()
+        continue-on-error: true
+        run: |
+          git add data picks 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+            exit 0
+          fi
+          git -c user.name=collector -c user.email=collector@local \
+              commit -qm "watchdog: health report $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do
+            git pull --rebase -q && git push -q && exit 0
+            echo "push race, retrying ($i)"
+            sleep 5
+          done
+          echo "::warning::the health report could not be pushed"
+
+      # 📣 ONE ISSUE, UPDATED IN PLACE, CLOSED WHEN HEALTHY.
+      # ⛔ NOT ONE ISSUE PER RUN. A watchdog that opens a new issue every
+      # hour is a watchdog whose notifications get filtered, and a
+      # filtered alert is the same as no alert — which is the state this
+      # whole step exists to leave behind.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          # ⛔ NO HEALTH REPORT, NOTHING TO SAY. This is the window where
+          # the workflow has landed and `watchdog.py` has not, and an
+          # issue opened out of a missing file would make the alert
+          # channel's very first message noise.
+          if [ ! -f data/latest/health.json ]; then
+            echo "no health report — nothing to say"
+            exit 0
+          fi
+          # ⛔ MATCHED ON THE EXACT TITLE IN `jq`, NOT THROUGH GitHub's
+          # SEARCH. `--search "in:title ..."` has to survive shell quoting,
+          # an em dash, an apostrophe and an emoji before it ever reaches
+          # the API, and a search that silently matches nothing would open
+          # a NEW issue every run — the spam failure that gets the whole
+          # alert channel muted.
+          # ⛔ NO HEREDOC IN A YAML BLOCK SCALAR. The terminator has to sit
+          # at column 0 for bash and inside the block for YAML, and it
+          # cannot do both — the first version of this step broke the
+          # workflow file outright. `--jq` does the same job with nothing
+          # to indent.
+          TITLE="Gizmo's Picks - the watchdog says the site is wrong"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" \
+                2>/dev/null | head -1 | tr -dc '0-9')
+          HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
+          python -c "import json,watchdog;open('/tmp/body.md','w').write(watchdog.render(json.load(open('data/latest/health.json'))))"
+          if [ "$HEALTHY" = "True" ]; then
+            # ✅ IT CLOSES ITSELF. An alert channel that needs tidying by
+            # hand becomes a list of stale issues, and then it is ignored.
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — the watchdog now reports the site healthy."
+              gh issue close "$NUM"
+            fi
+            echo "healthy; nothing to report"
+            exit 0
+          fi
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --body-file /tmp/body.md
+            echo "::warning::the watchdog is still reporting the site wrong — issue #$NUM"
+          else
+            # ⚠️ THE ASSIGNEE IS TRIED AND THEN DROPPED. A create that
+            # fails because a username changed would mean NO alert at all,
+            # and the notification matters more than the assignment.
+            gh issue create --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
+              || gh issue create --title "$TITLE" --body-file /tmp/body.md
+          fi
+          exit 0
 
       # 🔴 THE DEFERRED FAILURE. Everything is committed and every
       # verifier has spoken; only now does a failure turn the job red.
