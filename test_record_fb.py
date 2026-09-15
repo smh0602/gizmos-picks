@@ -566,3 +566,153 @@ ck("an em-dash is still used for 'nothing graded'",
 
 # ───────────────────────────────────────────────────────────────
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE. Rule 97.
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE DENOMINATOR REACHES THE RECORD, ON BOTH LEAGUES.
+#
+# `[added 2026-09-15]` `n_games`, `hits` and `logs_season` are CARRIED
+# onto every graded row for exactly the reason `own_mean` is — and the
+# ORDERING is the lesson, not the fields.
+#
+# ⛔ THE DOCS SAID TO ADD THESE "IF T58 PASSES". **That ordering is the
+#    error.** T57 lost an entire pre-registered arm because card-time
+#    lines were never archived: by the time the test needed them, the
+#    history did not exist and no amount of waiting could bring it back.
+# ✅ Recording a field decides nothing and costs nothing. NOT recording
+#    it is the irreversible move.
+#
+# 🔴 AND THE SHAPE OF THE FAILURE IS ALREADY WRITTEN DOWN HERE: `own_mean`
+#    sat at **0 of 200 graded rows while appearing to work**, because the
+#    cards carried it and the grader silently did not. A field absent on
+#    half the rows is worse than no field. ➡️ So this does not ask
+#    "does the key exist" — it asks **how many rows have it, on BOTH
+#    leagues**, and refuses any row that carries a confidence without one.
+# ══════════════════════════════════════════════════════════════════════
+import shutil as _sh          # noqa: E402
+import subprocess as _sp      # noqa: E402
+import tempfile as _tf        # noqa: E402
+
+_RAWRE = re.compile(r"^\s*(\d+)\s+of\s+(\d+)\s*$")
+_HELPERS = ("record_fb.py", "card_fb.py", "cfb.py", "nfl.py", "ranking.py",
+            "freshness.py", "jsblock.py", "wfroutes.py", "tcheck.py")
+
+
+def _regrade(lg):
+    """Grade one league in an ISOLATED tree. -> (rc, detail, cards).
+
+    ⛔ NEVER IN THE REPO ROOT. `tcheck.py` refuses a test that writes
+    under data/ or picks/, and the reason is in its header: this file
+    used to rewrite `data/ncaaf/latest/record.json` on every CI run,
+    which the freshness contract then read as proof the grader had run.
+    ⚠️ `LEAGUE`, not `FB_LEAGUE` — I got that wrong once while measuring
+    this change and read a stale copied file as though it were output
+    (rule 202: read the OUTPUT, not the exit code).
+    """
+    d = _tf.mkdtemp(prefix="recfb-%s-" % lg)
+    _sh.copytree("%s/data/%s" % (ROOT, lg), "%s/data/%s" % (d, lg))
+    _sh.copytree("%s/picks" % ROOT, "%s/picks" % d)
+    for f in _HELPERS:
+        if os.path.exists("%s/%s" % (ROOT, f)):
+            _sh.copy("%s/%s" % (ROOT, f), d)
+    p = _sp.run([sys.executable, "record_fb.py"], cwd=d, timeout=300,
+                env=dict(os.environ, LEAGUE=lg),
+                capture_output=True, text=True)
+    det = load("%s/data/%s/latest/record-detail.json.gz" % (d, lg))
+    cards = {}
+    for f in sorted(glob.glob("%s/picks/fb-%s-*.json" % (ROOT, lg))):
+        if f.endswith("-latest.json"):
+            continue
+        c = json.load(open(f, encoding="utf-8"))
+        cards[str(c.get("date") or os.path.basename(f)[:-5])] = c
+    return p.returncode, det, cards
+
+
+_seen_any = 0
+for _lg in ("ncaaf", "nfl"):
+    _rc, _det, _cards = _regrade(_lg)
+    ck("⚠️ %s regrades clean in an isolated tree" % _lg, _rc == 0,
+       "⛔ every check below reads its output. rc=%s" % _rc)
+    _rows = [r for day in (_det.get("days") or {}).values() for r in day]
+    _rated = [r for r in _rows if r.get("confidence") is not None]
+    _withn = [r for r in _rated if r.get("n_games") is not None]
+    _seen_any += len(_withn)
+    ck("⚠️ %s has graded rows to check at all" % _lg, bool(_rows),
+       "⛔ a check over an empty set passes and proves nothing — rule 67. "
+       "Got %d row(s)" % len(_rows))
+    # 🔴🔴 THE GUARD SAM ASKED FOR.
+    _bad = [(r.get("player"), r.get("market")) for r in _rated
+            if r.get("n_games") is None]
+    ck("🔴🔴 %s: NO graded row carries a confidence without an `n_games`"
+       % _lg,
+       not _bad,
+       "⛔ THIS IS THE `own_mean` FAILURE IN A NEW COSTUME — that field "
+       "sat at 0 of 200 graded rows while the cards carried it on all "
+       "339. A denominator missing from the rows that have a confidence "
+       "is a denominator no test can ever use. Offenders: %s"
+       % _bad[:5])
+    note("%s: %d of %d graded rows carry a denominator (%d rows carry no "
+         "confidence and correctly carry none)"
+         % (_lg, len(_withn), len(_rated), len(_rows) - len(_rated)))
+    # ⛔ AN INTEGER, because the consumer divides by it. A string "8"
+    #    would pass a presence check and fail the first test that used it.
+    ck("⛔ %s: the denominator is an INTEGER, never a string" % _lg,
+       all(isinstance(r["n_games"], int) and not isinstance(r["n_games"], bool)
+           for r in _withn),
+       "🔴 `raw` is prose — '8 of 8'. If the parse leaks the string "
+       "through, every consumer breaks on the first arithmetic. Got %s"
+       % sorted({type(r["n_games"]).__name__ for r in _withn}))
+    ck("⛔ %s: hits never exceeds the denominator" % _lg,
+       all(r["hits"] <= r["n_games"] for r in _withn
+           if r.get("hits") is not None),
+       "🔴 a carried field that is arithmetic nonsense is worse than an "
+       "absent one — it enters the permanent record looking measured")
+    # 🔴🔴 CARRIED, NOT COMPUTED — asserted against the CARD ITSELF, so a
+    #    future 'improvement' that recomputes the denominator from a log
+    #    goes red here rather than silently re-writing history.
+    _drift = []
+    for _day, _rs in (_det.get("days") or {}).items():
+        _card = _cards.get(_day)
+        if not _card:
+            continue
+        _by = {}
+        for _p in _card.get("picks") or []:
+            _by[(_p.get("player"), _p.get("market"), _p.get("side"),
+                 _p.get("line"))] = _p
+        for _r in _rs:
+            _p = _by.get((_r.get("player"), _r.get("market"), _r.get("side"),
+                          _r.get("line")))
+            if not _p:
+                continue
+            _m = _RAWRE.match(str(_p.get("raw") or ""))
+            _want = int(_m.group(2)) if _m else None
+            if _r.get("n_games") != _want:
+                _drift.append((_day, _r.get("player"), _p.get("raw"),
+                               _r.get("n_games")))
+            if _r.get("logs_season") != _card.get("logs_season"):
+                _drift.append((_day, _r.get("player"), "logs_season",
+                               _r.get("logs_season")))
+    ck("🔴🔴 %s: every carried value EQUALS the card's own" % _lg,
+       not _drift,
+       "⛔ CARRIED, NOT COMPUTED — `own_mean`'s shape exactly. The moment "
+       "this is derived rather than copied it stops being what the board "
+       "published, and the record silently disagrees with the cards it "
+       "was built from. Drift: %s" % _drift[:5])
+    ck("⚠️ %s: `logs_season` reached the rows at all" % _lg,
+       any(r.get("logs_season") is not None for r in _rows),
+       "⛔ the check above is vacuously true if the field is absent "
+       "everywhere AND the cards also lack it — this pins that it is "
+       "really being carried")
+
+ck("🔴 the denominator reached BOTH leagues, not just the one this file "
+   "grades by default",
+   _seen_any > 0,
+   "⛔ Sam's standing rule: everything we do for cfb we do for nfl. A "
+   "guard that sweeps one league covers one league. Got %d row(s) total"
+   % _seen_any)
+
+note("⛔ WHAT THIS DOES NOT CLAIM: that `n_games` is right to use, or "
+     "that any test should split on it. It claims the number the board "
+     "PUBLISHED is now in the permanent record instead of being thrown "
+     "away at grading time. ➡️ Recording decides nothing; not recording "
+     "is the irreversible move.")
