@@ -37,7 +37,7 @@ import shutil
 import sys
 import tempfile
 
-from tcheck import ck, note
+from tcheck import ck, eq, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -480,12 +480,41 @@ ck("🔴🔴 the push-era rules are in CLAUDE.md, where a repo-only session sees
    "⛔ a repo-connected session has CLAUDE.md and nothing else of Sam's. "
    "Rule 276 lives here or it binds nobody")
 ck("⛔ ...and the cron-block exception is stated, not implied",
-   "cron:" in _cm and "by hand" in _cm.lower()
-   and "50 crons" in _cm,
+   "cron:" in _cm and "by hand" in _cm.lower(),
    "🔴 RULE 253, THE SUICIDE PATH: GitHub attributes a scheduled run to "
    "whoever last changed the cron block. If that becomes a bot, every "
    "cron stops firing silently and the watchdog cannot report it — "
    "because the watchdog is what summons the agent")
+# 🔴🔴 ~~`"50 crons" in _cm`~~ — **STRUCK. IT PINNED A NUMBER THAT WAS
+#    ALREADY WRONG WHEN I WROTE IT.** The real total was 51 the moment
+#    `calibration.yml` landed, and this assertion would have gone RED on
+#    anyone who corrected the prose — a guard firing on a fix.
+# ⛔ RULE 166: A NUMBER WRITTEN DOWN IS A CLAIM ABOUT THE WORLD, AND IT
+#    GOES STALE. `[caught 2026-09-15 by the repo-connected session, which
+#    noticed the count was 51 and correctly refused to edit the prose
+#    because a test asserted the literal string.]`
+# ✅ DERIVED INSTEAD, copying `test_cron_wiring.py`'s existing pattern for
+#    collect.yml's own header — the count is read from the workflows and
+#    the doc must agree with it.
+_wfdir = os.path.join(ROOT, ".github/workflows")
+_total = 0
+for _f in sorted(os.listdir(_wfdir)):
+    if _f.endswith(".yml"):
+        _total += len(re.findall(r"(?m)^\s*-\s*cron:",
+                                 open(os.path.join(_wfdir, _f),
+                                      encoding="utf-8").read()))
+_claim = re.search(r"<!--\s*CRON TOTAL:\s*(\d+)\s*-->",
+                   open(CM, encoding="utf-8").read())
+ck("🔴 CLAUDE.md states its cron total in a machine-readable form",
+   bool(_claim),
+   "⛔ expected `<!-- CRON TOTAL: <n> -->`. Without it the number goes "
+   "back to being folklore, which is how it was wrong on arrival")
+if _claim:
+    eq(int(_claim.group(1)), _total,
+       "🔴 ...and the stated total matches the crons actually scheduled")
+note("⚠️ %d IS NOT ENDORSED BY THIS CHECK. It pins the doc to the "
+     "workflows, nothing more. ⛔ If it fails, do not edit the number to "
+     "match — ask whether a cron was added or lost on purpose." % _total)
 ck("⚠️ ...and it separates what was measured from what was not",
    "measured" in _cm.lower() and "not measured" in _cm.lower(),
    "⛔ the push and the scope were MEASURED; whether a cron-block change "
