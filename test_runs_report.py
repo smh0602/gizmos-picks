@@ -27,6 +27,9 @@ lands.
 import datetime
 import glob
 import re
+import os
+import shutil
+import tempfile
 import sys
 
 from tcheck import ck, note
@@ -261,3 +264,154 @@ note("⛔ WHAT THIS DOES NOT CLAIM: that a green run means the product is "
      "exactly why `watchdog.py` exists and asks a different question. "
      "➡️ Three watchers, three questions, and none of them replaces "
      "another.")
+
+
+print("\n═══ 8. 🔴🔴 WHICH CRON FIRED THIS RUN? ═══")
+# 🔴🔴 THE QUESTION THAT LEFT `ncaaf` 19:0x OPEN FOR SIX DAYS. Section 6d
+#    asks whether a WORKFLOW produced any runs. That is not enough: a
+#    workflow with 43 crons produces runs all day long while ONE of those
+#    43 silently never lands, and `missing` reads it as healthy because
+#    the workflow is plainly running.
+# ⛔ AND I COULD NOT ANSWER IT BY HAND EITHER. `4 19 * * *` (gamelines)
+#    and `18 19 * * *` (props) both land in the 19:00Z hour, GitHub
+#    delays both, and a commit message names the MODE, not the cron.
+#    **Two measurements disagreed and neither could be resolved.**
+# ✅ `run-name:` stamps `github.event.schedule` into the run's display
+#    name, which `gh run list` returns as `name`. Free, no commit, and
+#    recorded even when the run fails before committing.
+
+_CRONS = R.declared_crons(".")
+ck("🔴 the cron list is READ from the workflow files",
+   _CRONS.get("collect", {}).get("crons") and
+   len(_CRONS["collect"]["crons"]) >= 40 and
+   "4 19 * * *" in _CRONS["collect"]["crons"],
+   "⛔ a remembered list covers exactly the crons somebody remembered. "
+   "Got %d cron(s) for collect" % len(_CRONS.get("collect", {})
+                                      .get("crons", [])))
+ck("🔴🔴 EVERY cron-declaring workflow stamps its schedule",
+   all(d["stamped"] for d in _CRONS.values()) and len(_CRONS) >= 4,
+   "⛔ an unstamped workflow's runs cannot be attributed to a cron, so a "
+   "cron that never fires is INVISIBLE. Unstamped: %s"
+   % [k for k, d in _CRONS.items() if not d["stamped"]])
+
+# ── the cron arithmetic, pinned by hand against cron's own grammar ──
+# ⛔ NOT READ OFF THE CODE. `budget.py` shipped `*/6` counted as ONE fire
+#    a day and printed a plausible number for a week (rule 260 shape).
+ck("⚠️ `*/3` in hours is 8 fires a day, not 1",
+   sorted(R.parse_cron("9 */3 * * *")["hour"]) == [0, 3, 6, 9, 12, 15, 18, 21],
+   "🔴 the exact bug budget.py shipped: a step read as a single value")
+ck("⚠️ a list field expands",
+   sorted(R.parse_cron("40 1,3,5,13 * * 0")["hour"]) == [1, 3, 5, 13],
+   "a comma list is four fires, not one")
+ck("⛔ cron's Sunday is 0 AND 7, and Python's is 6",
+   R.cron_matches(R.parse_cron("0 12 * * 0"),
+                  datetime.datetime(2026, 9, 13, 12, 0, tzinfo=UTC))
+   and not R.cron_matches(R.parse_cron("0 12 * * 0"),
+                          datetime.datetime(2026, 9, 14, 12, 0, tzinfo=UTC)),
+   "🔴 getting this backwards shifts every weekly cron by a day and the "
+   "check alarms on a workflow that ran perfectly. 2026-09-13 is a "
+   "Sunday, 09-14 a Monday")
+ck("⛔ dom and dow both restricted is OR, not AND",
+   R.cron_matches(R.parse_cron("0 12 1 * 1"),
+                  datetime.datetime(2026, 9, 1, 12, 0, tzinfo=UTC)),
+   "🔴 POSIX says `0 0 1 * 1` is 'the 1st OR any Monday'. Treating it as "
+   "AND under-counts fires — the false all-clear shape. 2026-09-01 is a "
+   "Tuesday the 1st, so only the dom half matches")
+ck("⚠️ `5/20` means 'from 5, every 20' — not '5 only'",
+   sorted(R.parse_cron("5/20 * * * *")["min"]) == [5, 25, 45],
+   "🔴 the SAME grammar bug budget.py shipped, in the other spelling. No "
+   "cron in this repo uses `N/M` today, which is exactly why the branch "
+   "would rot unwatched until the day one does")
+ck("⚠️ a malformed cron is reported, never silently skipped",
+   R.parse_cron("4 19 * *") is None and R.parse_cron("") is None,
+   "a cron the parser cannot read is a cron nothing is watching")
+
+# ── the detection itself, driven both ways ──
+def _r(wf, cron, mins_ago, concl="success"):
+    t = NOW - datetime.timedelta(minutes=mins_ago)
+    return {"workflowName": wf, "name": "%s [cron %s]" % (wf, cron),
+            "conclusion": concl, "url": "u",
+            "createdAt": t.strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+# NOW is 2026-09-14 23:00Z. `4 19 * * *` was due 19:04Z — 3h56m ago,
+# well past the 45-minute grace and inside the window the list covers.
+_both = ([_r("collect", "4 19 * * *", 230)]
+         + [_r("collect", "18 19 * * *", 218)]
+         + [_r("collect", "20 * * * *", m) for m in (40, 100, 160, 1300)])
+_missed, _unatt = R.missed_fires(_both, NOW)
+ck("✅ a cron that DID land is not reported",
+   not any(m["cron"] == "4 19 * * *" for m in _missed),
+   "⛔ a guard that fires on correct behaviour is the other failure, not "
+   "a safe one. Got %s" % [m["cron"] for m in _missed])
+
+# ⛔ THE BITE: remove ONLY the 19:04 run and keep 19:18. That is exactly
+#    the live shape — the hour still has a run, the workflow is plainly
+#    healthy, and one cron is missing.
+_one = [x for x in _both if "4 19 * * *" not in x["name"]]
+_missed2, _ = R.missed_fires(_one, NOW)
+ck("🔴🔴 ONE missing cron is caught while its hour-mate lands",
+   any(m["cron"] == "4 19 * * *" for m in _missed2)
+   and not any(m["cron"] == "18 19 * * *" for m in _missed2),
+   "⛔ THIS IS THE `ncaaf` 19:0x FINDING, and nothing in this repo could "
+   "make it before. Got missed=%s" % [m["cron"] for m in _missed2])
+ck("✅ ...and the body names the cron AND the file",
+   "4 19 * * *" in R.render([], [], [], False, (), _missed2)
+   and "collect.yml" in R.render([], [], [], False, (), _missed2),
+   "🔴 'a cron is missing' with no name is not actionable")
+
+# ── the two ways this guard could false-alarm, both closed ──
+# ⛔ DRIVEN, NOT ASSERTED AS A CONSTANT. `R.GRACE_MIN >= 30` would pass
+#    with the grace never consulted — the vacuous shape (rule 67).
+#    `4 19 * * *` is due 19:04Z; NOW is 23:00Z. The only run for it here
+#    landed at 19:19Z, FIFTEEN MINUTES LATE, which is what GitHub
+#    actually does to this repo every single day.
+_fifteen = ([_r("collect", "4 19 * * *", 221)]
+            + [_r("collect", "18 19 * * *", 218)]
+            + [_r("collect", "20 * * * *", m) for m in (40, 100, 1300)])
+_m_late, _ = R.missed_fires(_fifteen, NOW)
+ck("⚠️ a run 15 minutes late still COUNTS as that cron firing",
+   not any(m["cron"] == "4 19 * * *" for m in _m_late) and R.GRACE_MIN >= 30,
+   "🔴 measured on this repo 2026-09-15: the 19:04 and 19:18 crons land "
+   "at ~19:15 and ~19:28 EVERY DAY. A guard that calls that a miss "
+   "alarms daily on correct behaviour. Got missed=%s GRACE_MIN=%d"
+   % ([m["cron"] for m in _m_late], R.GRACE_MIN))
+# ⚠️ AND THE OTHER SIDE: a cron due only MINUTES ago has not been given
+#    its grace yet and must not be judged at all.
+_young, _ = R.missed_fires([_r("collect", "20 * * * *", 70)],
+                           NOW.replace(hour=22, minute=25))
+ck("⛔ ...and a cron due 5 minutes ago is not judged yet",
+   not any(m["cron"] == "20 * * * *" and m["due"].endswith("22:20Z")
+           for m in _young),
+   "🔴 judging a fire before GitHub has had its grace turns every "
+   "scheduler delay into an alert. Got %s" % [m["due"] for m in _young])
+_shallow = [_r("collect", "20 * * * *", 5), _r("collect", "20 * * * *", 65)]
+_m_sh, _ = R.missed_fires(_shallow, NOW)
+ck("⛔ a fire OLDER than the list reaches is NOT reported missing",
+   not any(m["cron"] == "4 19 * * *" for m in _m_sh),
+   "🔴 RULE 270: a count over a window you did not verify is a count you "
+   "invented. The oldest run here is 65 minutes old, so 19:04 is simply "
+   "outside what the list can speak to. Got %s"
+   % [m["cron"] for m in _m_sh])
+
+# ── the honesty half: unstamped means 'cannot tell', not 'fine' ──
+_tmp = tempfile.mkdtemp()
+os.makedirs(os.path.join(_tmp, ".github/workflows"))
+open(os.path.join(_tmp, ".github/workflows/x.yml"), "w",
+     encoding="utf-8").write("name: x\non:\n  schedule:\n"
+                             "    - cron: \"4 19 * * *\"\n")
+_m_u, _u = R.missed_fires(_both, NOW, root=_tmp)
+ck("🔴🔴 a cron workflow with NO run-name stamp is UNATTRIBUTABLE",
+   any(u["name"] == "x" for u in _u) and not _m_u,
+   "⛔ 'I could not tell which cron fired' must be reported as that. "
+   "Reporting it as MISSED would be a false alarm; reporting nothing "
+   "would be a false all-clear. Got unattributable=%s missed=%s"
+   % (_u, _m_u))
+ck("✅ ...and the body says so in words",
+   "cannot be attributed" in R.render([], [], [], False, (), (), _u),
+   "🔴 a reader must not take silence about a cron as evidence about it")
+shutil.rmtree(_tmp, ignore_errors=True)
+
+note("⛔ WHAT THIS DOES NOT CLAIM: that a stamped run means the cron did "
+     "its JOB. It means the cron FIRED. A run that fires and collects "
+     "nothing is green here and caught by the freshness contract "
+     "instead. ➡️ Different question, different watcher.")
