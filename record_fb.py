@@ -77,6 +77,7 @@ import glob
 import gzip
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -192,12 +193,36 @@ def load_log(season):
     return d, d.get("players") or {}
 
 
+# 🔴 THE CARD WRITES ITS DENOMINATOR AS PROSE: `raw` is "8 of 8".
+#    `[measured 2026-09-15 across every stored football card, both
+#     leagues: 364 of 364 rated rows carry a present, parseable `raw` —
+#     ncaaf 239 of 239, nfl 125 of 125, zero absent, zero unparseable.]`
+# ⛔ ANYTHING THAT IS NOT EXACTLY "<int> of <int>" RETURNS (None, None).
+#    A denominator guessed from a string this parser does not recognise
+#    is worse than no denominator: it would enter the permanent record
+#    looking like a measurement.
+_RAW_RECORD = re.compile(r"^\s*(\d+)\s+of\s+(\d+)\s*$")
+
+
+def _raw_record(raw):
+    """`"8 of 8"` -> `(8, 8)`. ⛔ `(None, None)` on anything else."""
+    m = _RAW_RECORD.match(str(raw if raw is not None else ""))
+    if not m:
+        return None, None
+    return int(m.group(1)), int(m.group(2))
+
+
 def grade_card(card, P, idx, covers_through):
     """One card -> a list of graded rows, each carrying its own verdict."""
     rows = []
     for p in card.get("picks", []):
         mk, side, line = p.get("market"), p.get("side"), p.get("line")
         who = p.get("player")
+        # ⚠️ ONE PARSE, TWO NUMBERS. `hits` costs nothing extra once the
+        #    denominator has been read off the same string — and the card
+        #    carries NO separate `hits` field (0 of 364 rows), so this is
+        #    where it comes from or it does not exist.
+        _hits, _n_games = _raw_record(p.get("raw"))
         base = {
             "player": who, "market": mk, "market_label": p.get("market_label"),
             "side": side, "line": line, "price": p.get("price"),
@@ -225,6 +250,32 @@ def grade_card(card, P, idx, covers_through):
             #    holds the field, so a re-grade replays it. Nothing is
             #    lost — but nothing would have accumulated either.
             "own_mean": p.get("own_mean"),
+            # 🔴🔴 `n_games` AND `logs_season` ARE CARRIED FOR EXACTLY THE
+            #    REASON `own_mean` IS, AND THE ORDERING IS THE WHOLE POINT.
+            # ⛔ THE DOCS SAID TO ADD THESE "IF T58 PASSES". **That
+            #    ordering is the error.** T57 lost an entire pre-registered
+            #    arm because card-time lines were never archived — by the
+            #    time the test needed them the history did not exist, and
+            #    no amount of waiting could bring it back.
+            # ✅ RECORDING A FIELD DECIDES NOTHING AND COSTS NOTHING. NOT
+            #    recording it is the irreversible move. A test that later
+            #    turns out not to need `n_games` has lost an integer per
+            #    row; a test that needs it and has no history is dead.
+            # ⚠️ CARRIED, NOT COMPUTED — `own_mean`'s shape exactly. The
+            #    denominator is READ OFF the card's own `raw` string, and
+            #    `logs_season` is copied from the card's top level. ⛔
+            #    Nothing here derives a rate, gates a row, or changes a
+            #    single published number: a rated row that graded W still
+            #    grades W, with two more integers beside it.
+            # ⚠️ `None` WHEN THE CARD DOES NOT SAY, NEVER A GUESS. Measured
+            #    2026-09-15: the only rows without a parseable `raw` are
+            #    the 11 UNRATED picks (no `confidence`), which is exactly
+            #    where a denominator would be meaningless anyway.
+            #    `test_record_fb.py` fails if a row carrying a confidence
+            #    reaches the record without an `n_games`.
+            "hits": _hits,
+            "n_games": _n_games,
+            "logs_season": card.get("logs_season"),
         }
         if mk not in card_fb.MARKETS:
             rows.append({**base, "won": None, "state": "unknown market",
