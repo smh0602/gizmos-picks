@@ -119,8 +119,14 @@ def judge(doc):
     #    wearing a finding's clothes.
     if n < MIN_N:
         out["state"] = "NOT_MEASURABLE"
-        out["why"] = ("not yet measurable — %d graded rows, under the %d "
-                      "needed to read a rate" % (n, MIN_N))
+        # ⛔ THE STATE NAME IS NOT REPEATED HERE. `[fixed 2026-09-15]`
+        #    `render()` already prints "**NOT YET MEASURABLE** — %s", so a
+        #    `why` that opened with the same words produced **"NOT YET
+        #    MEASURABLE — not yet measurable — 88 graded rows"** in the
+        #    live issue body. ⚠️ `why` carries the NUMBERS; the state
+        #    carries the verdict.
+        out["why"] = ("%d graded rows, under the %d needed to read a rate"
+                      % (n, MIN_N))
         return out
     if gap <= -GAP_POINTS and p is not None and p < P_MAX:
         out["state"] = "UNDER"

@@ -64,10 +64,24 @@ ck("🔴🔴 a huge gap on a TINY sample does NOT alarm",
    _thin["state"] == "NOT_MEASURABLE",
    "⛔ stated 90%%, delivered 16.7%%, n=6 — a 73-point gap, and still "
    "not a rate. Got %s" % _thin["state"])
-ck("✅ ...and it says NOT YET MEASURABLE, not OK",
-   "NOT" in _thin["state"] and "measurable" in _thin["why"].lower(),
+# 🔴 ~~`"measurable" in _thin["why"]`~~ REPLACED 2026-09-15 WITH A
+#    STRICTLY HARDER QUESTION. The old form asked only whether the word
+#    appeared SOMEWHERE in `why` — which passed on the live body that
+#    read **"NOT YET MEASURABLE — not yet measurable — 88 graded rows"**,
+#    because `render()` prints the state name and `why` repeated it.
+# ✅ So ask it of the RENDERED BODY, which is the thing Sam reads, and
+#    require the verdict ONCE and the numbers present. ⛔ Not a
+#    relaxation: this fails on the duplicated text the old check allowed,
+#    and it still fails if the thin case is ever reported as OK.
+_thin_body = C.render({"ncaaf": _thin})
+ck("✅ ...and the BODY says NOT YET MEASURABLE exactly once, with its numbers",
+   _thin["state"] == "NOT_MEASURABLE"
+   and _thin_body.lower().count("not yet measurable") == 1
+   and "6 graded rows" in _thin_body,
    "🔴 'not a pass and not a fail' is the honest third answer; calling "
-   "it OK would be a false all-clear")
+   "it OK would be a false all-clear — and saying it twice in one "
+   "sentence is how a careful body starts reading like a generated one. "
+   "Got %d occurrence(s)" % _thin_body.lower().count("not yet measurable"))
 ck("⚠️ the minimum is T37's, not invented here",
    C.MIN_N == 100,
    "⛔ a bar chosen to make today's data behave is not a bar. 100 is the "

@@ -45,12 +45,55 @@ import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 # ⛔ NOT A THRESHOLD FOR THE ALARM — the alarm is "latest run failed".
 #    This is only how many failures make a RECOVERED workflow worth a note.
 FLAP_MIN = 3
 WINDOW_H = 24
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 EXIT CODES ARE THE WHOLE INTERFACE, AND THERE ARE FOUR.
+# `[added 2026-09-15 after issue #6 sat OPEN titled "a workflow is
+#  failing" with NOTHING failing — its entire content was the truncation
+#  warning.]`
+# ⛔ A MISCATEGORISED ALARM IS THE SAME DISEASE AS A FALSE ONE. Sam reads
+#    the TITLE from his phone; a coverage problem filed as an outage
+#    teaches him the title is noise, and the next real outage is the one
+#    he scrolls past (rule 238).
+# ✅ So "I cannot see a full day" gets its own code and its own issue.
+# ⚠️ AND A RED WORKFLOW STILL OUTRANKS IT: a short list that also shows a
+#    failure is still, first and foremost, a failure.
+# ══════════════════════════════════════════════════════════════════════
+EXIT_OK = 0
+EXIT_BROKEN = 1
+EXIT_UNREADABLE = 2
+EXIT_COVERAGE = 3
+
+# ══════════════════════════════════════════════════════════════════════
+# 💰 HOW THE LIST IS COLLECTED. COVER THE WINDOW, DO NOT GUESS A COUNT.
+# 🔴 THIS FILE'S OWN HEADER ALREADY SAID SO AND IT WAS STILL A GUESS.
+#    `[measured 2026-09-15]` ~**351 runs/day** against `--limit 300`, of
+#    which **254 are `pages build and deployment`** — one per commit to
+#    `main`, and the collector commits constantly. The limit was raised
+#    from 100 to 300 nine hours earlier and had ALREADY expired.
+# ⛔ A FIXED LIMIT IS A GUESS WITH AN EXPIRY DATE. Any number chosen
+#    today is wrong the next time the commit rate moves, and the failure
+#    is silent: the list just stops reaching back a full day.
+# ✅ So page until the DATA says the window is covered. The stopping rule
+#    reads the timestamps, not a count.
+# ⚠️ CAPPED, because an unbounded loop against a paginated API is its own
+#    outage. 10 pages x 100 = 1,000 runs, ~3x the measured daily volume —
+#    generous on purpose (a guard that fires on correct code is the other
+#    failure). If the cap is ever reached the coverage finding fires,
+#    which is the honest answer rather than a quiet under-count.
+# ══════════════════════════════════════════════════════════════════════
+REST_PER_PAGE = 100
+MAX_PAGES = 10
+# ⚠️ ONE HOUR OF MARGIN. Reaching EXACTLY to the cutoff proves nothing
+#    about the run that sits a minute the other side of it.
+COVER_MARGIN_H = 1
 
 
 def _dt(s):
@@ -293,6 +336,147 @@ def missed_fires(runs, now=None, root="."):
     return missed, unattributable
 
 
+def workflow_names(root="."):
+    """`.github/workflows/<file>` -> the `name:` that file declares.
+
+    ⚠️ READ FROM THE CHECKOUT, which is the same source `scheduled_workflows()`
+    and `declared_crons()` already use — so the grouping key and the
+    expected-workflow set cannot disagree about what a workflow is called.
+    """
+    out = {}
+    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        try:
+            t = open(p, encoding="utf-8").read()
+        except OSError:
+            continue
+        m = re.search(r"^name:\s*(.+)$", t, re.M)
+        out[".github/workflows/" + os.path.basename(p)] = (
+            m.group(1).strip() if m else os.path.basename(p)[:-4])
+    return out
+
+
+def normalise(run, names=None):
+    """One REST workflow-run object -> the shape `analyse()` reads.
+
+    ══════════════════════════════════════════════════════════════════
+    🔴🔴 THE REST FIELDS ARE NOT THE CLI FIELDS, AND `name` IS THE TRAP
+    IN BOTH — differently. `[MEASURED 2026-09-15 against this repo's own
+    /actions/runs, not read off the docs.]`
+
+      scheduled run, `run-name:` set (6 of our 7 workflows):
+          name          = "collect [cron 9 */3 * * *]"   <- the RUN
+          display_title = "collect [cron 9 */3 * * *]"
+      push run, before `run-name:` existed:
+          name          = "collect"                      <- the WORKFLOW
+          display_title = "Add files via upload"         <- the commit
+
+    ⛔ SO REST `name` IS THE RUN NAME WHENEVER `run-name:` IS SET, AND
+       THE WORKFLOW NAME ONLY WHEN IT IS NOT. Mapping it to
+       `workflowName` would shatter every workflow into one group per
+       run — each its own latest, each green-or-red alone, and the
+       flapping count never reaching 3. **That is the silent false
+       all-clear `analyse()`'s own comment warns about.**
+    ✅ THE WORKFLOW IDENTITY COMES FROM `path`, which is the workflow
+       FILE and cannot be overridden by `run-name:`. It is resolved
+       through the checkout so it lands on the same string
+       `scheduled_workflows()` reports (`claude.yml` declares
+       `name: Claude`, so the file name alone would not match).
+    ⚠️ Runs whose `path` is not a repo workflow file — `pages build and
+       deployment` lives at `dynamic/pages/...` and is 254 of the 351
+       runs a day — keep their own `name`. They are never in the
+       expected set, so they can never read as UNSEEN.
+    ✅ AND `display_title` IS THE RUN TITLE, which is the half that
+       carries the `[cron ...]` stamp `missed_fires()` reads.
+    ══════════════════════════════════════════════════════════════════
+    """
+    r = run or {}
+    names = names if names is not None else {}
+    wf = names.get(r.get("path") or "") or r.get("name")
+    return {"workflowName": wf,
+            # ⚠️ `display_title` first: it is the run title under both
+            #    shapes above. `name` is the fallback for a payload that
+            #    does not carry one.
+            "name": r.get("display_title") or r.get("name"),
+            "conclusion": r.get("conclusion"),
+            "createdAt": r.get("created_at") or r.get("createdAt"),
+            "url": r.get("html_url") or r.get("url")}
+
+
+def collect(fetch_page, now=None, root=".", max_pages=MAX_PAGES,
+            window_h=WINDOW_H):
+    """Page until the window is covered. -> (runs, pages_read, covered).
+
+    `fetch_page(n)` returns the REST `workflow_runs` list for 1-based page
+    `n`. ⛔ INJECTED, so `test_runs_report.py` can drive the stopping rule
+    without a network — a collection loop nothing can test is a collection
+    loop that silently stops early.
+
+    ⚠️ THREE WAYS TO STOP, AND ONLY ONE OF THEM IS A FAILURE:
+      1. the oldest run seen is past the cutoff + margin  -> covered
+      2. the page came back short or empty (end of history) -> covered,
+         because seeing everything there is IS covering the window
+      3. the page cap was reached                          -> NOT covered,
+         and that becomes the coverage finding rather than a quiet
+         under-count
+    """
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    floor = now - datetime.timedelta(hours=window_h + COVER_MARGIN_H)
+    runs, pages, covered = [], 0, False
+    names = workflow_names(root)
+    for page in range(1, max_pages + 1):
+        batch = fetch_page(page) or []
+        pages = page
+        runs.extend(normalise(r, names) for r in batch)
+        if len(batch) < REST_PER_PAGE:
+            covered = True       # end of history — nothing older exists
+            break
+        stamps = [_dt(r.get("createdAt")) for r in runs]
+        stamps = [t for t in stamps if t]
+        if stamps and min(stamps) <= floor:
+            covered = True
+            break
+    return runs, pages, covered
+
+
+def gh_page(page, per_page=REST_PER_PAGE):
+    """One page of `/actions/runs`, via the `gh` CLI already in the runner.
+
+    ⚠️ `gh api` RATHER THAN A RAW REQUEST: it carries `GH_TOKEN`, handles
+    the host, and is already the tool this workflow depends on. ⛔ It
+    raises on a non-zero exit so the caller reports "could not look"
+    rather than judging a short list.
+    """
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not repo:
+        raise RuntimeError("GITHUB_REPOSITORY is not set — refusing to "
+                           "guess which repository to read")
+    out = subprocess.run(
+        ["gh", "api", "-H", "Accept: application/vnd.github+json",
+         "/repos/%s/actions/runs?per_page=%d&page=%d" % (repo, per_page, page),
+         "--jq", ".workflow_runs"],
+        capture_output=True, text=True, timeout=120)
+    if out.returncode != 0:
+        raise RuntimeError("gh api page %d failed: %s"
+                           % (page, (out.stderr or "").strip()[:400]))
+    return json.loads(out.stdout or "[]")
+
+
+def verdict(broken, flapping, missing, truncated, missed, unattributable):
+    """The findings -> the exit code. ⛔ A red workflow outranks coverage.
+
+    🔴 THIS IS THE FIX FOR ISSUE #6. Truncation used to return 1, which
+    filed "I cannot see a full day" under "a workflow is failing" — an
+    outage title on a coverage problem, with nothing failing.
+    ⚠️ ORDER MATTERS AND IS EXPLICIT: any real finding wins, so a short
+    list that ALSO shows a red workflow is still an outage.
+    """
+    if broken or flapping or missing or missed or unattributable:
+        return EXIT_BROKEN
+    if truncated:
+        return EXIT_COVERAGE
+    return EXIT_OK
+
+
 def analyse(runs, now=None, root="."):
     """runs: the JSON `gh run list` emits.
 
@@ -423,10 +607,16 @@ def render(broken, flapping, seen, truncated=False, missing=(),
                "and the replacement must be harder to pass.")
     out.append("")
     if truncated:
-        out.append("⚠️ **The run list did not reach back a full %dh** — it "
-                   "was truncated by volume, so the 24h counts above are "
-                   "UNDERSTATED and a low-frequency workflow may be absent "
-                   "entirely. Raise the `--limit` in `runs.yml`." % WINDOW_H)
+        # ⛔ ~~"Raise the `--limit` in `runs.yml`."~~ STRUCK 2026-09-15.
+        #    There is no limit to raise any more — the list is PAGED until
+        #    the window is covered, so reaching here means the page cap was
+        #    hit and the advice is a different one.
+        out.append("⚠️ **The run list did not reach back a full %dh** — "
+                   "pagination hit its %d-page cap (%d runs), so the %dh "
+                   "counts above are UNDERSTATED and a low-frequency "
+                   "workflow may be absent entirely."
+                   % (WINDOW_H, MAX_PAGES, MAX_PAGES * REST_PER_PAGE,
+                      WINDOW_H))
         out.append("")
     out.append("_Workflows seen: %s. This issue is updated in place and "
                "closes itself when every workflow's latest run is green._"
@@ -434,7 +624,81 @@ def render(broken, flapping, seen, truncated=False, missing=(),
     return "\n".join(out)
 
 
-def main():
+def render_coverage(seen, pages=None, runs=None):
+    """The body for a COVERAGE-ONLY finding. ⛔ Not an outage report.
+
+    🔴 ISSUE #6 WAS THIS TEXT UNDER AN OUTAGE TITLE. Nothing was failing;
+    the whole content was the truncation warning. So this body says what
+    is actually wrong, what it does NOT mean, and what to do — and it
+    never claims a workflow is broken.
+    """
+    out = []
+    out.append("**The run watcher could not see a full %dh of runs, so it "
+               "cannot answer its own question.**\n" % WINDOW_H)
+    out.append("- Paged back %s and still did not reach %dh + %dh of "
+               "margin%s."
+               % (("%d page(s)" % pages) if pages else "as far as it could",
+                  WINDOW_H, COVER_MARGIN_H,
+                  (" (%d runs)" % len(runs)) if runs is not None else ""))
+    out.append("- The %dh failure counts are **UNDERSTATED**, and a "
+               "low-frequency workflow may be absent from the list "
+               "entirely." % WINDOW_H)
+    out.append("")
+    out.append("⛔ **THIS IS NOT AN OUTAGE.** No workflow is reported "
+               "failing, no cron is reported missed. This says only that "
+               "the watcher's own view is short — which is a different "
+               "finding, and it is why it no longer files itself under "
+               "*a workflow is failing*.")
+    out.append("")
+    out.append("⚠️ **An absence in an API response is evidence about the "
+               "API, never about the world** — `CLAUDE.md`. Read nothing "
+               "into what is missing from a list this short.")
+    out.append("")
+    # ⛔ NO FLAG IS NAMED HERE ON PURPOSE. The old body said "raise the
+    #    `--limit` in runs.yml" and there is no longer a limit to raise —
+    #    stale advice in an alert body is how a reader learns to skip the
+    #    body.
+    out.append("➡️ The list is PAGED until the window is covered, so "
+               "reaching here means the run rate grew past `MAX_PAGES` "
+               "(%d) x `REST_PER_PAGE` (%d) = %d runs a day. Raise "
+               "`MAX_PAGES` in `runs_report.py`, or cut the volume — "
+               "`[measured 2026-09-15]` **254 of 351 runs a day were "
+               "`pages build and deployment`**, one per commit to `main`."
+               % (MAX_PAGES, REST_PER_PAGE, MAX_PAGES * REST_PER_PAGE))
+    out.append("")
+    out.append("⛔ Do not fix this by weakening a check. Read `CLAUDE.md`. "
+               "A check may only change when it asks the WRONG QUESTION, "
+               "and the replacement must be harder to pass.")
+    out.append("")
+    out.append("_Workflows seen: %s. This issue is updated in place and "
+               "closes itself when the watcher can see a full day again._"
+               % ", ".join("`%s`" % x for x in seen))
+    return "\n".join(out)
+
+
+def main(argv=None):
+    """stdin -> a verdict, or `--collect` -> the run list on stdout.
+
+    ⚠️ TWO MODES, ONE FILE, because the collection and the judgement are
+    both things a test has to be able to drive. ⛔ Neither belongs in the
+    shell step (rule 66): a shell loop deciding when the window is
+    covered is a second copy of that judgement, and the copy no test
+    reaches.
+    """
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "--collect" in argv:
+        # ⛔ EXIT 2, NOT 1, on a collection failure — "I could not look"
+        #    must never reach the judgement path as a short list.
+        try:
+            runs, pages, covered = collect(gh_page)
+        except Exception as e:          # noqa: BLE001 - reported, not hidden
+            sys.stderr.write("could not collect the run list: %s: %s\n"
+                             % (type(e).__name__, e))
+            return EXIT_UNREADABLE
+        sys.stderr.write("collected %d run(s) over %d page(s); window "
+                         "covered=%s\n" % (len(runs), pages, covered))
+        json.dump(runs, sys.stdout)
+        return EXIT_OK
     try:
         runs = json.load(sys.stdin)
     except (ValueError, OSError) as e:
@@ -444,13 +708,21 @@ def main():
         return 2
     broken, flapping, seen, truncated, missing = analyse(runs)
     missed, unattributable = missed_fires(runs)
-    if not (broken or flapping or missing or truncated
-            or missed or unattributable):
+    rc = verdict(broken, flapping, missing, truncated, missed, unattributable)
+    if rc == EXIT_OK:
         print("OK")
-        return 0
+        return EXIT_OK
+    # 🔴 THE COVERAGE-ONLY CASE GETS ITS OWN BODY AND ITS OWN CODE, so
+    #    `runs.yml` can file it under its own title. Issue #6 is what
+    #    happens without this.
+    if rc == EXIT_COVERAGE:
+        print(render_coverage(sorted(set(
+            (r or {}).get("workflowName") or (r or {}).get("name") or ""
+            for r in (runs or [])) - {""}), runs=runs))
+        return EXIT_COVERAGE
     print(render(broken, flapping, seen, truncated, missing,
                  missed, unattributable))
-    return 1
+    return EXIT_BROKEN
 
 
 if __name__ == "__main__":
