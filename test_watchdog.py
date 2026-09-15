@@ -469,6 +469,33 @@ ck("🔴 the every-fix-ships-with-a-guard rule is in CLAUDE.md too",
    "EVERY FIX SHIPS WITH A GUARD" in _cm,
    "⛔ the Tier 3 agent reads CLAUDE.md. A rule it cannot read is a rule "
    "that stops existing the moment nobody is watching")
+# 🔴🔴 AND NOW THE RULE THAT ONLY STARTED MATTERING ON 2026-09-15, THE
+#    DAY A SESSION COULD PUSH HERE. `[rule 276]` ⛔ The session that built
+#    most of this could NOT push — a human read every file on its way in.
+#    A session that can push has no such reader, and **the project docs
+#    that carry all the reasoning are not in this repo and it cannot read
+#    them.** So the constraint has to live where it CAN read it.
+ck("🔴🔴 the push-era rules are in CLAUDE.md, where a repo-only session sees them",
+   "IF YOU CAN PUSH TO THIS REPO" in _cm,
+   "⛔ a repo-connected session has CLAUDE.md and nothing else of Sam's. "
+   "Rule 276 lives here or it binds nobody")
+ck("⛔ ...and the cron-block exception is stated, not implied",
+   "cron:" in _cm and "by hand" in _cm.lower()
+   and "50 crons" in _cm,
+   "🔴 RULE 253, THE SUICIDE PATH: GitHub attributes a scheduled run to "
+   "whoever last changed the cron block. If that becomes a bot, every "
+   "cron stops firing silently and the watchdog cannot report it — "
+   "because the watchdog is what summons the agent")
+ck("⚠️ ...and it separates what was measured from what was not",
+   "measured" in _cm.lower() and "not measured" in _cm.lower(),
+   "⛔ the push and the scope were MEASURED; whether a cron-block change "
+   "under that author kills scheduled runs was NOT, and the test is "
+   "destructive. Collapsing those two into one confident sentence is "
+   "how this session got three causes wrong in one night")
+ck("⛔ ...and it tells a repo-only session to ASK rather than infer",
+   "do not infer" in _cm.lower(),
+   "🔴 the claude/ docs do not exist in this repo. A session that "
+   "guesses what they said is a session acting on invented context")
 ck("⛔ ...and it demands the guard be PROVEN to fail, not merely written",
    "must fail on the defect and pass after the fix" in _cm.lower(),
    "🔴 an unproven guard is the failure mode this repo keeps shipping: "
