@@ -64,7 +64,21 @@ def analyse(runs, now=None):
 
     by = collections.defaultdict(list)
     for r in runs or []:
-        name = (r or {}).get("name")
+        # 🔴🔴 `workflowName` FIRST, AND `name` IS A TRAP. `gh run list`
+        #    offers BOTH — which is itself the evidence they differ — and
+        #    `name` is the RUN's display name. For a push-triggered run
+        #    GitHub derives that from the commit message, and both
+        #    `collect.yml` and `browser.yml` have push triggers.
+        # ⛔ Grouping by `name` would make every push run its own
+        #    "workflow", so "the most recent completed run of X" would be
+        #    a set of one, every one of them its own latest, and the
+        #    flapping count would never reach 3. **A silent false
+        #    all-clear — the most dangerous output this repo has.**
+        # ⚠️ The CLI docs list the fields and explain neither, so this is
+        #    written to survive either meaning rather than to bet on one
+        #    (rule 252).
+        r = r or {}
+        name = r.get("workflowName") or r.get("name")
         if not name:
             continue
         by[name].append(r)
