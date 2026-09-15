@@ -164,10 +164,13 @@ ck("🔴🔴 the harness leaves NOTHING behind after mutating real files",
    "mutation would be committed by the next collector run. Leaked: %r"
    % _dirt)
 ck("⛔ ...and a leak would make the whole run UNREADABLE, not clean",
-   "EXIT_UNREADABLE" in open(os.path.join(ROOT, "vacuity.py"),
-                             encoding="utf-8").read().split("def main")[1],
+   V.verdict([{"state": "BITES"}], False) == V.EXIT_UNREADABLE,
    "🔴 if the tree is dirty every result above is suspect and none of "
-   "them may be reported as a pass")
+   "them may be reported as a pass. ⚠️ THIS ASKED A SUBSTRING QUESTION "
+   "UNTIL 2026-09-15 — `\"EXIT_UNREADABLE\" in main\'s source` — which is "
+   "rule 249, a check asserting its own prose. It now drives the "
+   "judgement, which is strictly harder. Got %s"
+   % V.verdict([{"state": "BITES"}], False))
 ck("⛔ ...and it fails closed when git cannot be asked",
    V.leaked(None, ROOT)[0] is False,
    "🔴 the harness rewrites source files; an unverifiable restore is not "
@@ -216,6 +219,81 @@ ck("🔴🔴 the issue-in-place mutation turns it red too",
 note("tier 2 currently covers %d declared mutation(s); tier 1 covers %d "
      "name-mapped pair(s); %d test file(s) are unmapped and reported every "
      "run." % (len(_real2), len(V.name_map(ROOT)), len(_um)))
+
+section("5. 🔴🔴 THE EXIT CODE IS THE WHOLE INTERFACE, SO IT IS DRIVEN")
+# ⛔ `main()` USED TO CLASSIFY INLINE AND NOTHING COULD REACH IT.
+#    `[found by Sam, 2026-09-15]` Dropping two of the three bad states from
+#    that tuple left this file GREEN while the harness printed "all bite"
+#    with a planted vacuous guard sitting in the repo.
+# 🔴 SAME SHAPE AS THE STALE-`.pyc` DEFECT IN SECTION 0, one layer up:
+#    that one was the harness not SEEING the fire, this one was the harness
+#    seeing it and reporting OK. Rule 274 twice over.
+# ✅ THE FIX IS ALREADY IN THIS REPO: `runs_report.py` extracts `verdict()`
+#    so `test_runs_report.py` can drive it. This drives the same shape.
+_R = lambda s: {"tier": 2, "test": "planted.py", "state": s, "why": "w"}
+ck("✅ a sweep where everything bites is exit 0",
+   V.verdict([_R("BITES"), _R("BITES")], True) == V.EXIT_OK,
+   "⛔ the other failure: a detector that never clears is one nobody "
+   "reads. Got %s" % V.verdict([_R("BITES"), _R("BITES")], True))
+for _s in ("VACUOUS", "RED_BOTH_WAYS", "MALFORMED"):
+    ck("🔴🔴 one %s finding among passes is exit 1" % _s,
+       V.verdict([_R("BITES"), _R(_s)], True) == V.EXIT_VACUOUS,
+       "⛔ `vacuity.yml` branches on this number and on nothing else. A "
+       "state missing from the tuple is a guard the nightly job will never "
+       "report. Got %s" % V.verdict([_R("BITES"), _R(_s)], True))
+ck("⚠️ a sweep that checked NOTHING is exit 2, not a pass",
+   V.verdict([], True) == V.EXIT_UNREADABLE,
+   "🔴 \"I could not look\" is the third state and CLAUDE.md's watcher "
+   "family never closes an issue on it. Got %s" % V.verdict([], True))
+ck("⛔ a leak OUTRANKS a finding — an unverifiable restore is not a restore",
+   V.verdict([_R("VACUOUS")], False) == V.EXIT_UNREADABLE,
+   "🔴 the harness rewrites source files. If the tree cannot be shown "
+   "clean, every result above it is suspect. Got %s"
+   % V.verdict([_R("VACUOUS")], False))
+
+_VSRC = open(os.path.join(ROOT, "vacuity.py"), encoding="utf-8").read()
+_MAIN = _VSRC.split("def main")[1]
+ck("⛔ ...and main() no longer classifies at all — it returns that number",
+   "verdict(" in _MAIN and 'r["state"]' not in _MAIN,
+   "🔴 a judgement inlined in main() is a judgement no test can drive, "
+   "which is how this hole opened in the first place")
+
+# 📌 EVERY MUTATION NEEDS ITS OWN PROOF THAT IT LANDED AND STILL
+#    COMPILES. Sam's first attempt at mutating a `finally:` here produced a
+#    SyntaxError — which goes red for the WRONG reason and is
+#    indistinguishable from a working guard. ⛔ A guard proven by a
+#    mutation that does not compile is proven by nothing.
+_FIND = '("VACUOUS", "RED_BOTH_WAYS", "MALFORMED")'
+_WITH = '("MALFORMED",)'
+ck("⚠️ the mutation is unambiguous — it matches vacuity.py exactly once",
+   _VSRC.count(_FIND) == 1,
+   "⛔ a `find` matching 0 or many is not a mutation — the harness says "
+   "so about everyone else's declarations (rule 244). Got %d"
+   % _VSRC.count(_FIND))
+_MUT = _VSRC.replace(_FIND, _WITH)
+ck("⚠️ ...and it LANDED", _MUT != _VSRC,
+   "⛔ a no-op edit proves nothing about the check it is meant to break")
+try:
+    _CODE = compile(_MUT, "vacuity[mutated].py", "exec")
+    _SYNTAX = ""
+except SyntaxError as _e:
+    _CODE, _SYNTAX = None, str(_e)
+ck("📌 ...and the mutated file STILL COMPILES",
+   _CODE is not None,
+   "🔴 a SyntaxError turns the test red for the wrong reason and is "
+   "indistinguishable from a working guard. Got: %s" % _SYNTAX)
+_BLIND = {"__name__": "vacuity_mutated",
+          "__file__": os.path.join(ROOT, "vacuity.py")}
+if _CODE is not None:
+    exec(_CODE, _BLIND)
+ck("🔴🔴 UNDER THAT MUTATION THE HARNESS GOES BLIND, and the "
+   "checks above are what stop it",
+   _CODE is not None
+   and _BLIND["verdict"]([_R("VACUOUS")], True) == V.EXIT_OK,
+   "⛔ THIS IS THE HALF THAT MAKES THE REST NON-VACUOUS. If the mutated "
+   "verdict still returns 1, the exit-code checks above would pass either "
+   "way and prove nothing — rule 67. Got %s"
+   % (_CODE is not None and _BLIND["verdict"]([_R("VACUOUS")], True)))
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that a guard the harness calls BITES is "
      "a GOOD guard. It claims only that it is not VACUOUS — that something "

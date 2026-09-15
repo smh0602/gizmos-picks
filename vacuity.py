@@ -383,12 +383,50 @@ def leaked(before, root=ROOT):
     return (not new_dirt, "\n".join(new_dirt))
 
 
+def verdict(results, leak_ok):
+    """The sweep -> the exit code. ⛔ NOTHING ELSE MAY DECIDE IT.
+
+    🔴🔴 EXTRACTED BECAUSE `main()` IS THE WHOLE INTERFACE AND
+    NOTHING COULD REACH IT. `vacuity.yml` branches on this number and on
+    nothing else, so a classification inlined in `main()` is a judgement
+    no test can drive. `[found by Sam, 2026-09-15]` Dropping two of the
+    three bad states from the tuple that used to live there left
+    `test_vacuity.py` GREEN while the harness printed *all bite* with a
+    planted vacuous guard sitting in the repo. It went totally blind and
+    its own self-proof did not notice.
+    ⛔ THAT IS RULE 274 ONE LEVEL UP — the same shape as the stale-`.pyc`
+    defect in `run_test`, in the classification layer instead of the
+    execution one: an alarm that detects the fire and reports OK.
+    ✅ SO IT IS A FUNCTION, exactly like `verdict()` in `runs_report.py`
+    and for exactly that reason: `test_runs_report.py` drives that one,
+    and `test_vacuity.py` drives this one.
+
+    ⚠️ ORDER MATTERS AND IS EXPLICIT. An unverifiable restore outranks
+    every finding: the harness rewrites source files, so if the tree
+    cannot be shown clean, nothing it found may be reported as a pass.
+    """
+    if not leak_ok:
+        return EXIT_UNREADABLE
+    if not results:
+        # ⛔ NOT A PASS. A sweep that checked nothing is "I could not
+        #    look", and CLAUDE.md's watcher family never closes on that.
+        return EXIT_UNREADABLE
+    if any(r["state"] in ("VACUOUS", "RED_BOTH_WAYS", "MALFORMED")
+           for r in results):
+        return EXIT_VACUOUS
+    return EXIT_OK
+
+
 def main():
     before = _porcelain()
     t1 = tier1()
     t2 = tier2()
     ok, dirty = leaked(before)
-    if not ok or dirty:
+    leak_ok = bool(ok) and not dirty
+    # ⛔ EVERY RETURN BELOW IS THIS NUMBER. main() chooses what to SAY;
+    #    it no longer chooses what to REPORT.
+    rc = verdict(t1 + t2, leak_ok)
+    if not leak_ok:
         # 🔴 THE HARNESS MUTATES THE WORKING TREE. If anything is left
         #    behind, every result above is suspect and NOTHING is reported
         #    as clean.
@@ -396,18 +434,14 @@ def main():
         print("⚠️ **COULD NOT LOOK** — the harness left its own mutations in "
               "the working tree, so every result above is suspect:\n\n"
               "```\n%s\n```" % (dirty or "git unavailable"))
-        return EXIT_UNREADABLE
-    bad = [r for r in t1 + t2
-           if r["state"] in ("VACUOUS", "RED_BOTH_WAYS", "MALFORMED")]
-    if not t1 and not t2:
+    elif not t1 and not t2:
         sys.stderr.write("nothing to check\n")
-        return EXIT_UNREADABLE
-    if not bad:
+    elif rc == EXIT_OK:
         print("OK  tier1 %d pair(s), tier2 %d mutation(s), all bite  "
               "(%d unmapped)" % (len(t1), len(t2), len(unmapped())))
-        return EXIT_OK
-    print(render(t1, t2, unmapped()))
-    return EXIT_VACUOUS
+    else:
+        print(render(t1, t2, unmapped()))
+    return rc
 
 
 if __name__ == "__main__":
