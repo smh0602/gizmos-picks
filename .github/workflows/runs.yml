@@ -67,7 +67,15 @@ jobs:
           # step that decides what counts as broken is a second copy of
           # that judgement (rule 66) — and it is the copy no test can
           # reach. `runs_report.py` is driven by `test_runs_report.py`.
-          gh run list --limit 100 \
+          # ⛔ 300, NOT 100. `[measured 2026-09-15: ~96 cron runs/day plus
+          # push runs]` At 100 the list covered barely a day, so
+          # `browser` (2/day) and `self-repair` (4/day) could be flooded
+          # out of it entirely by `collect` — the watcher blind to
+          # exactly the low-frequency workflows it most needs to see.
+          # ⚠️ AND THE NUMBER IS NOT THE FIX. `runs_report.py` now
+          # detects truncation FROM THE DATA, so if the rate grows past
+          # this too, it says so instead of quietly undercounting.
+          gh run list --limit 300 \
             --json name,workflowName,conclusion,createdAt,url > /tmp/runs.json
           if [ ! -s /tmp/runs.json ]; then
             echo "::warning::could not list runs"
