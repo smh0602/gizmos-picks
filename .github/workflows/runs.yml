@@ -68,7 +68,7 @@ jobs:
           # that judgement (rule 66) — and it is the copy no test can
           # reach. `runs_report.py` is driven by `test_runs_report.py`.
           gh run list --limit 100 \
-            --json name,conclusion,createdAt,url > /tmp/runs.json
+            --json name,workflowName,conclusion,createdAt,url > /tmp/runs.json
           if [ ! -s /tmp/runs.json ]; then
             echo "::warning::could not list runs"
             echo "state=unknown" >> "$GITHUB_OUTPUT"; exit 0
