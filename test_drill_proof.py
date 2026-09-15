@@ -109,6 +109,35 @@ print("\n═══ 1b. 🔴🔴 THE AGENT IS ALLOWED TO ACT AT ALL ═══")
 #    wrong set is the vacuous shape**, which is why the count is
 #    asserted before anything is read off it.
 _steps = YML.split("uses: anthropics/claude-code-action@v1")[1:]
+
+# 🔴🔴 AND THE SAME QUESTION ACROSS **EVERY** WORKFLOW, NOT JUST THIS
+#    ONE. `[widened 2026-09-15 immediately after fixing self-repair.yml,
+#    which is when `claude.yml` turned out to have the identical defect]`
+# ⛔ A CHECK NAMING THE ONE FILE THAT BROKE COVERS EXACTLY THAT FILE —
+#    `CLAUDE.md`'s own words, and this repo has shipped that mistake
+#    three times now (rules 246, 130, and this). ➡️ Sam's standing
+#    rule is the same shape: *"everything we do for cfb we do for nfl."*
+# ✅ So the set is DISCOVERED from the workflows directory. A new
+#    workflow that invokes the agent is covered the day it ships.
+_ALL = []
+for _f in sorted(os.listdir(os.path.join(ROOT, ".github/workflows"))):
+    if not _f.endswith(".yml"):
+        continue
+    _txt = open(os.path.join(ROOT, ".github/workflows", _f),
+                encoding="utf-8").read()
+    for _blk in _txt.split("uses: anthropics/claude-code-action@v1")[1:]:
+        _ALL.append((_f, _blk))
+ck("⚠️ every agent invocation in the repo is discovered",
+   len(_ALL) >= 3,
+   "⛔ a check over a set that shrank to nothing passes and proves "
+   "nothing. Found %s" % sorted({f for f, _ in _ALL}))
+_naked = sorted({f for f, b in _ALL if "--allowedTools" not in b})
+ck("🔴🔴 NO agent anywhere runs without an allowlist",
+   not _naked,
+   "⛔ an agent with no allowlist spends Sam's subscription, is denied "
+   "every action, and reports SUCCESS — `permission_denials_count: 3` "
+   "against `is_error: false`, measured in run #8. Files still naked: %s"
+   % _naked)
 ck("⚠️ both agent steps are findable",
    len(_steps) == 2,
    "⛔ a check over the wrong set proves nothing. Found %d" % len(_steps))
