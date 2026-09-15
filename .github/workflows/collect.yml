@@ -1,4 +1,14 @@
 name: collect
+# 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
+# ⛔ WITHOUT THIS, TWO CRONS IN ONE HOUR ARE INDISTINGUISHABLE. The
+# `ncaaf` 19:0x question sat open for six days for exactly this reason:
+# `4 19 * * *` and `18 19 * * *` both land in the 19:00Z hour, GitHub
+# delays both by 11-15 minutes, and NOTHING in the API says which run
+# came from which cron. A commit message names the MODE, not the cron.
+# ✅ `run-name:` is read back as `name` in `gh run list` — free, no
+# commit, and it is recorded even when the run FAILS BEFORE COMMITTING
+# or has nothing to commit, which a git-log trailer never would be.
+run-name: ${{ github.event.schedule && format('collect [cron {0}]', github.event.schedule) || format('collect [{0}]', github.event_name) }}
 
 # Times are UTC. The MLB slate runs roughly 16:00Z (noon ET) to 05:00Z.
 #
@@ -464,17 +474,51 @@ jobs:
           # red on 47 consecutive runs and the only alarm was Sam
           # happening to look — ledger rule 261]`
           failed=""
+          # 🔴🔴 EVERY FILE GETS A CLOCK, AND A TIMEOUT IS ITS OWN VERDICT.
+          # `[added 2026-09-15 — ledger rule 272]`
+          # ⛔ THIS LOOP HAD NO TIMEOUT AND THE JOB'S IS **350 MINUTES**.
+          # One hanging file would have burned nearly six hours of runner
+          # time and been CANCELLED — no `::error::`, no name in
+          # `failed=`, nothing in the issue. The one failure mode that
+          # produces no evidence at all.
+          # ⚠️ AND IT ALREADY MISLED ME. I recorded that two files "hang
+          # because the proxy blocks ESPN and CollegeFootballData" —
+          # **both claims were false.** Measured 2026-09-15: all 71 files
+          # pass in 308s total; `test_box_live.py` simply takes 115s and
+          # I had been killing it at 45. ⛔ A timeout I chose is not a
+          # fact about the code, and "it hung" is not a diagnosis.
+          # ✅ 600s = 5.2x the slowest measured file. Generous on purpose:
+          # CLAUDE.md — a guard that fires on correct code is the other
+          # failure, not a safe one.
+          PER_FILE=600
+          run_one() {   # $1 = runner, $2 = file
+            local s=$(date +%s) trc=0
+            timeout -k 15 "$PER_FILE" "$1" "$2" || trc=$?
+            local d=$(( $(date +%s) - s ))
+            if [ "$trc" = "124" ] || [ "$trc" = "137" ]; then
+              # 🔴 "NEVER ANSWERED" IS NOT "FAILED". A red assertion tells
+              # you what is wrong; a timeout tells you only that nothing
+              # came back, and conflating them sends the reader hunting
+              # for a bug that may not exist.
+              rc=1; failed="$failed $2(TIMEOUT)"
+              echo "::error::$2 TIMED OUT after ${PER_FILE}s — it did not fail, it never answered"
+            elif [ "$trc" != "0" ]; then
+              rc=1; failed="$failed $2"
+              echo "::error::$2 FAILED"
+            fi
+            echo "   ${d}s"
+          }
           for t in test_*.py; do
             [ -e "$t" ] || continue
             found=$((found+1))
             echo "── $t"
-            python "$t" || { rc=1; failed="$failed $t"; echo "::error::$t FAILED"; }
+            run_one python "$t"
           done
           for t in test_*.js; do
             [ -e "$t" ] || continue
             found=$((found+1))
             echo "── $t"
-            node "$t" || { rc=1; failed="$failed $t"; echo "::error::$t FAILED"; }
+            run_one node "$t"
           done
           echo "ran $found test file(s)"
           echo "failed=$(echo $failed | tr ' ' ',')" >> "$GITHUB_OUTPUT"

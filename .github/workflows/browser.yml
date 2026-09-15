@@ -39,6 +39,16 @@
 # and collects nothing, so a red run here means "the page has a problem",
 # never "the site stopped updating".
 name: browser
+# 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
+# ⛔ WITHOUT THIS, TWO CRONS IN ONE HOUR ARE INDISTINGUISHABLE. The
+# `ncaaf` 19:0x question sat open for six days for exactly this reason:
+# `4 19 * * *` and `18 19 * * *` both land in the 19:00Z hour, GitHub
+# delays both by 11-15 minutes, and NOTHING in the API says which run
+# came from which cron. A commit message names the MODE, not the cron.
+# ✅ `run-name:` is read back as `name` in `gh run list` — free, no
+# commit, and it is recorded even when the run FAILS BEFORE COMMITTING
+# or has nothing to commit, which a git-log trailer never would be.
+run-name: ${{ github.event.schedule && format('browser [cron {0}]', github.event.schedule) || format('browser [{0}]', github.event_name) }}
 
 on:
   # ⛔ Off :00 like every other cron in this repo — those slots are the
