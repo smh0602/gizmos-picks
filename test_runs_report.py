@@ -26,17 +26,20 @@ lands.
 """
 import datetime
 import glob
+import json
 import re
 import os
+import subprocess
 import shutil
 import tempfile
 import sys
 
-from tcheck import ck, note
+from tcheck import ck, note, section
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import runs_report as R  # noqa: E402
 
+ROOT = os.path.dirname(os.path.abspath(__file__))
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 9, 14, 23, 0, tzinfo=UTC)
 
@@ -182,10 +185,31 @@ ck("🔴🔴 a list whose OLDEST run is inside the window is flagged truncated",
    "⛔ if the oldest run returned is younger than the window, the list "
    "did not reach back far enough and every 24h count below it is "
    "understated. Got truncated=%s" % trunc)
+# 🔴 ~~`"truncated" in render(...)`~~ REPLACED 2026-09-15. The old form
+#    asked for a WORD, and it broke the moment the body was reworded —
+#    while the behaviour it cared about was untouched. ⛔ A check a
+#    rewrite can break is a check that discourages rewriting.
+# ✅ So ask the EXIT CODE, which is the actual interface `runs.yml`
+#    branches on, and separately that the body says so. Strictly harder:
+#    the old check passed on a body that said "truncated" while main()
+#    returned 0.
 ck("⛔ ...and that alone breaks the silence, so it cannot pass as healthy",
-   "truncated" in R.render(b, f, seen, trunc, miss).lower(),
+   R.verdict(b, f, miss, trunc, [], []) != R.EXIT_OK
+   and "did not reach back a full"
+   in R.render(b, f, seen, trunc, miss),
    "🔴 the whole point is that an undercount must not read as a clean "
-   "bill of health")
+   "bill of health. Got verdict=%s"
+   % R.verdict(b, f, miss, trunc, [], []))
+# ⚠️ AND NOT A COVERAGE VERDICT HERE, WHICH IS CORRECT AND WORTH SAYING:
+#    this fixture holds only `collect` runs, so four scheduled workflows
+#    read as UNSEEN alongside the truncation. That is a real finding, so
+#    the verdict is EXIT_BROKEN. ⛔ "Truncation ALONE exits 3" is a
+#    different fixture and is driven in section D3, in an isolated tree
+#    with one workflow — asserting it here would be asserting it of a
+#    list that has something else wrong with it too.
+note("this fixture is truncated AND has %d unseen workflow(s), so its "
+     "verdict is %s — coverage-alone is D3's fixture, not this one."
+     % (len(miss), R.verdict(b, f, miss, trunc, [], [])))
 _deep = [run("collect", "success", h) for h in (0.5, 5, 12, 26)]
 ck("✅ ...and a list that DOES reach past the window is not flagged",
    not R.analyse(_deep, NOW)[3],
@@ -466,3 +490,390 @@ note("⛔ WHAT THIS DOES NOT CLAIM: that a stamped run means the cron did "
      "its JOB. It means the cron FIRED. A run that fires and collects "
      "nothing is green here and caught by the freshness contract "
      "instead. ➡️ Different question, different watcher.")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 DROP: A MISCATEGORISED ALARM IS THE SAME DISEASE AS A FALSE ONE.
+#
+# `[measured 2026-09-15]` **Issue #6 was OPEN, titled "Gizmo's Picks - a
+# workflow is failing", and NOTHING was failing.** Its entire content was
+# the truncation warning. ~351 runs/day against `gh run list --limit
+# 300`, of which **254 were `pages build and deployment`** — one per
+# commit to `main`.
+#
+# ⛔ SO TWO THINGS WERE WRONG AND ONLY ONE OF THEM IS THE COUNT: the list
+#    was short, AND "I cannot see a full day" was filed under an outage
+#    title. Sam reads the title from his phone; an outage title on a
+#    coverage problem teaches him the title is noise, and the next real
+#    outage is the one he scrolls past (rule 238).
+# ══════════════════════════════════════════════════════════════════════
+section("D1. ⛔ COVER THE WINDOW, DO NOT GUESS A COUNT")
+
+_PER = R.REST_PER_PAGE
+
+
+def _page_maker(total, span_h, per=None):
+    """A fake `/actions/runs` paginator: `total` runs spread over `span_h`."""
+    per = per or _PER
+    now = datetime.datetime.now(UTC)
+    rows = [{"name": "collect [cron 41 * * * *]",
+             "display_title": "collect [cron 41 * * * *]",
+             "path": ".github/workflows/collect.yml",
+             "conclusion": "success",
+             "created_at": (now - datetime.timedelta(
+                 hours=span_h * i / max(1, total - 1))
+             ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+             "html_url": "u"}
+            for i in range(total)]
+    calls = []
+
+    def fetch(page):
+        calls.append(page)
+        return rows[(page - 1) * per:page * per]
+    return fetch, calls
+
+
+# 🔴🔴 THE DEFECT ITSELF: one page of 100 does NOT cover 24h at this
+#    repo's rate, and a collector that stops after one page reports a
+#    count it invented (rule 270).
+_fetch, _calls = _page_maker(351, 24.0)
+_runs, _pages, _covered = R.collect(_fetch, root=".")
+ck("🔴🔴 it keeps paging until the 24h window is COVERED",
+   _covered and _pages > 1,
+   "⛔ 351 runs/day against 100 per page — stopping at page 1 is the "
+   "defect that left issue #6 open. Got pages=%d covered=%s runs=%d"
+   % (_pages, _covered, len(_runs)))
+ck("⚠️ ...and it stops as soon as it IS covered, not at the cap",
+   _pages < R.MAX_PAGES and _calls == list(range(1, _pages + 1)),
+   "⛔ paging past the answer is wasted API calls on every run of an "
+   "hourly workflow. Got pages=%d of a %d cap, calls=%s"
+   % (_pages, R.MAX_PAGES, _calls))
+# ⚠️ THE STOPPING RULE READS TIMESTAMPS, NOT A COUNT — so a repo that
+#    suddenly runs 10x more does not silently under-report.
+_fetch10, _ = _page_maker(3510, 24.0)
+_r10, _p10, _c10 = R.collect(_fetch10, root=".")
+ck("🔴 at 10x the volume it pages further rather than under-reporting",
+   _p10 > _pages,
+   "⛔ a fixed count is a guess with an expiry date; the rule has to "
+   "move with the rate. Got %d page(s) at 10x vs %d at 1x"
+   % (_p10, _pages))
+# ⛔ AND THE CAP IS HONEST ABOUT ITSELF: a rate past the cap reports
+#    NOT covered, which becomes the coverage finding rather than silence.
+_fetchcap, _ = _page_maker(5000, 2.0)
+_rc, _pc, _cc = R.collect(_fetchcap, root=".")
+ck("⛔ past the page cap it reports NOT covered rather than under-counting",
+   _pc == R.MAX_PAGES and not _cc,
+   "🔴 a cap that silently truncates is the old bug with a new number. "
+   "Got pages=%d covered=%s" % (_pc, _cc))
+# ✅ AND END OF HISTORY IS COVERAGE, NOT FAILURE — a young repo has
+#    nothing older, and flagging that would fire on correct behaviour.
+_fetchsmall, _ = _page_maker(12, 1.0)
+_rs, _ps, _cs = R.collect(_fetchsmall, root=".")
+ck("✅ a short page means end of history, which IS covered",
+   _cs and _ps == 1 and len(_rs) == 12,
+   "⛔ CLAUDE.md — a guard that fires on correct code is the other "
+   "failure. Got pages=%d covered=%s runs=%d" % (_ps, _cs, len(_rs)))
+
+section("D2. 🔴🔴 REST `name` IS THE RUN, NOT THE WORKFLOW")
+# ⛔ MEASURED AGAINST THIS REPO'S OWN /actions/runs, 2026-09-15 — not
+#    read off the docs, which explain neither field.
+#      scheduled + run-name:  name = "collect [cron 9 */3 * * *]"
+#      push, pre run-name:    name = "collect"
+#    So `.name` is the RUN name whenever `run-name:` is set, and mapping
+#    it to `workflowName` would shatter one workflow into one group per
+#    run — each its own latest, the flapping count never reaching 3.
+#    **A silent false all-clear, the most dangerous output this repo has.**
+_NAMES = R.workflow_names(".")
+_real = [
+    {"name": "collect [cron 9 */3 * * *]",
+     "display_title": "collect [cron 9 */3 * * *]",
+     "path": ".github/workflows/collect.yml", "conclusion": None,
+     "created_at": "2026-09-15T18:20:45Z", "html_url": "u1"},
+    {"name": "collect", "display_title": "Add files via upload",
+     "path": ".github/workflows/collect.yml", "conclusion": "success",
+     "created_at": "2026-08-27T17:08:27Z", "html_url": "u2"},
+    {"name": ".github/workflows/collect.yml",
+     "display_title": "Fix JSON file path for picks data retrieval",
+     "path": ".github/workflows/collect.yml", "conclusion": "failure",
+     "created_at": "2026-08-22T21:18:22Z", "html_url": "u3"},
+]
+_norm = [R.normalise(r, _NAMES) for r in _real]
+ck("🔴🔴 three real `collect` runs group under ONE workflow name",
+   {n["workflowName"] for n in _norm} == {"collect"},
+   "⛔ mapping REST `.name` to workflowName would give %s — three "
+   "'workflows' from one. Got %s"
+   % (sorted({r["name"] for r in _real}),
+      sorted({n["workflowName"] for n in _norm})))
+ck("✅ ...and the cron stamp is readable off `name`, which is the RUN title",
+   (R.CRON_STAMP.search(_norm[0]["name"] or "") or [None]) and
+   R.CRON_STAMP.search(_norm[0]["name"]).group(1).strip() == "9 */3 * * *",
+   "⛔ `missed_fires()` reads the stamp out of `name`. If the run title "
+   "does not land there, every cron reads as never having fired. Got %r"
+   % _norm[0]["name"])
+ck("⚠️ a run whose path is not a repo workflow keeps its own name",
+   R.normalise({"name": "pages build and deployment",
+                "display_title": "pages build and deployment",
+                "path": "dynamic/pages/pages-build-deployment"},
+               _NAMES)["workflowName"] == "pages build and deployment",
+   "⛔ 254 of 351 runs a day are these. They are never in the expected "
+   "set, so they must never read as UNSEEN — but they must still group")
+ck("⛔ ...and `claude.yml` resolves to its declared name, not its filename",
+   _NAMES.get(".github/workflows/claude.yml") == "Claude",
+   "🔴 `scheduled_workflows()` keys off the `name:` line, so the "
+   "grouping key has to be that same string or the two disagree about "
+   "what a workflow is called. Got %r"
+   % _NAMES.get(".github/workflows/claude.yml"))
+
+section("D3. 🔴🔴 THE EXIT CODE, DRIVEN END TO END")
+# ⚠️ TRAP I HIT WRITING THESE: `main()` reads the WALL clock, so a
+#    fixture dated from the module-level `NOW` above goes stale and every
+#    cron reads as missed. ✅ So these run in an ISOLATED TEMP TREE with
+#    ONE workflow and ONE cron, on timestamps generated relative to
+#    `datetime.now()`.
+
+
+def _tree():
+    """A temp repo with exactly one scheduled, stamped workflow."""
+    d = tempfile.mkdtemp(prefix="runswatch-")
+    os.makedirs(os.path.join(d, ".github/workflows"))
+    open(os.path.join(d, ".github/workflows/only.yml"), "w",
+         encoding="utf-8").write(
+        "name: only\n"
+        "run-name: ${{ github.event.schedule && format('only [cron {0}]',"
+        " github.event.schedule) || format('only [{0}]',"
+        " github.event.event_name) }}\n"
+        "on:\n  schedule:\n    - cron: \"41 * * * *\"\n"
+        "jobs:\n  x:\n    runs-on: ubuntu-latest\n"
+        "    steps:\n      - run: echo hi\n")
+    shutil.copy(os.path.join(ROOT, "runs_report.py"), d)
+    return d
+
+
+def _r_now(concl, minutes_ago, stamped=True):
+    t = datetime.datetime.now(UTC) - datetime.timedelta(minutes=minutes_ago)
+    return {"workflowName": "only",
+            "name": ("only [cron 41 * * * *]" if stamped
+                     else "some commit message"),
+            "conclusion": concl, "url": "u",
+            "createdAt": t.strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+
+def _exit(runs, tree=None):
+    """Run the REAL runs_report.py over `runs`. Returns (rc, stdout)."""
+    d = tree or _tree()
+    p = subprocess.run([sys.executable, os.path.join(d, "runs_report.py")],
+                       input=json.dumps(runs), cwd=d,
+                       capture_output=True, text=True, timeout=120)
+    return p.returncode, p.stdout
+
+
+# ✅ A COMPLETE, HEALTHY LIST IS SILENT. The 30h-old run is what makes
+#    the window covered — and it carries NO cron stamp, so it cannot drag
+#    the missed-fire floor back with it.
+_clean = ([_r_now("success", 20), _r_now("success", 80)]
+          + [_r_now("success", 30 * 60, stamped=False)])
+_rc_clean, _out_clean = _exit(_clean)
+ck("✅ a complete healthy list exits 0 and says nothing",
+   _rc_clean == R.EXIT_OK and _out_clean.strip() == "OK",
+   "⛔ if the clean case is not silent, every check below is measuring "
+   "noise. Got rc=%d out=%r" % (_rc_clean, _out_clean[:300]))
+
+# 🔴🔴 TRUNCATION ALONE IS A COVERAGE FINDING, NOT AN OUTAGE. This is
+#    issue #6, exactly: nothing failing, the list simply too short.
+_trunc = [_r_now("success", 20), _r_now("success", 80)]
+_rc_t, _out_t = _exit(_trunc)
+ck("🔴🔴 truncation ALONE exits 3, not 1",
+   _rc_t == R.EXIT_COVERAGE,
+   "⛔ THIS IS ISSUE #6. Exiting 1 files 'I cannot see a full day' under "
+   "'a workflow is failing', with nothing failing. Got rc=%d" % _rc_t)
+# ⚠️ ASKED AS "does it CLAIM a failure", not "does the word appear" —
+#    the body legitimately contains "No workflow is reported failing",
+#    and my first version of this check failed on that sentence.
+ck("✅ ...and the body says it is NOT an outage",
+   "NOT AN OUTAGE" in _out_t.upper()
+   and "failing right now" not in _out_t
+   and "cannot answer its own question" in _out_t,
+   "🔴 the body is what Sam reads after the title. It must not carry the "
+   "outage headline. Got %r" % _out_t[:400])
+ck("⛔ ...and it no longer tells anyone to raise a `--limit`",
+   "--limit" not in _out_t,
+   "🔴 there is no limit to raise any more — the list is paged. Stale "
+   "advice in an alert body is how a reader learns to skip the body")
+
+# ⛔ A RED WORKFLOW STILL OUTRANKS TRUNCATION. A short list that also
+#    shows a failure is still, first and foremost, a failure.
+_both = [_r_now("failure", 20), _r_now("success", 80)]
+_rc_b, _out_b = _exit(_both)
+ck("🔴🔴 truncation PLUS a red workflow still exits 1",
+   _rc_b == R.EXIT_BROKEN,
+   "⛔ downgrading a real outage to a coverage note because the list was "
+   "also short would be the same bug pointing the other way. Got rc=%d"
+   % _rc_b)
+ck("✅ ...and that body reports the failure first, truncation after",
+   "failing right now" in _out_b
+   and _out_b.index("failing right now") < _out_b.lower().index("truncat")
+   if "truncat" in _out_b.lower() else "failing right now" in _out_b,
+   "🔴 order is the message: the reader must not have to hunt for the "
+   "outage under a coverage note")
+# ⛔ AND "I COULD NOT LOOK" IS STILL ITS OWN ANSWER, UNCHANGED.
+_p_bad = subprocess.run([sys.executable, os.path.join(ROOT, "runs_report.py")],
+                        input="not json", capture_output=True, text=True,
+                        timeout=60)
+ck("⛔ unreadable input still exits 2 — unchanged by this drop",
+   _p_bad.returncode == R.EXIT_UNREADABLE,
+   "🔴 four codes now, and the third state must not have been clobbered "
+   "by adding the fourth. Got rc=%d" % _p_bad.returncode)
+
+section("D4. ⛔ THE COVERAGE FINDING HAS ITS OWN TITLE AND CLEANS UP #6")
+_YML = open(os.path.join(ROOT, ".github/workflows/runs.yml"),
+            encoding="utf-8").read()
+
+
+def _live(text):
+    """Non-comment lines only.
+
+    ⚠️ TRAP I HIT: asserting `"--limit 300" not in _YML` PASSES ONLY IF
+    nobody documents why the limit was wrong — and I had documented it
+    three lines above, so the check failed on my own comment. A guard
+    that a comment can break is a guard that teaches people not to
+    comment.
+    """
+    return "\n".join(l for l in text.splitlines()
+                     if not l.lstrip().startswith("#"))
+
+
+_LIVE = _live(_YML)
+ck("⚠️ the struck-through `--limit 300` survives as a COMMENT",
+   "--limit 300" in _YML,
+   "⛔ the reason a number was wrong is the only thing that stops it "
+   "being chosen again")
+ck("🔴🔴 ...and no LIVE line still asks for a fixed count",
+   "--limit 300" not in _LIVE and "gh run list" not in _LIVE,
+   "⛔ a fixed count is a guess with an expiry date, and 300 had already "
+   "expired nine hours after it was raised from 100")
+ck("✅ the collection is paged, in Python, from the live step",
+   "runs_report.py --collect" in _LIVE,
+   "🔴 rule 66 — a shell loop deciding when the window is covered is a "
+   "second copy of the judgement, and the copy no test reaches")
+_COV_TITLE = "Gizmo's Picks - the run watcher cannot see a full day"
+_FAIL_TITLE = "Gizmo's Picks - a workflow is failing"
+ck("🔴🔴 the workflow files coverage under its OWN title",
+   _COV_TITLE in _LIVE and _FAIL_TITLE in _LIVE
+   and _COV_TITLE != _FAIL_TITLE,
+   "⛔ one title for two questions is what put 'nothing is failing' "
+   "under 'a workflow is failing'. Got coverage title present=%s"
+   % (_COV_TITLE in _LIVE))
+ck("✅ ...and it branches on the new exit code 3",
+   '"$rc" = "3"' in _LIVE and "state=coverage" in _LIVE,
+   "🔴 a Python exit code nothing reads is a Python exit code that does "
+   "not exist")
+
+
+def _drive(state, fail_num="", cov_num=""):
+    """Run the REAL 'Tell Sam' shell with a fake `gh`. -> the argv log.
+
+    ⛔ THE STEP IS EXECUTED, NOT GREPPED. A check that asserts the
+    presence of a sentence passes on a step that prints the sentence and
+    then does the opposite (rule 249).
+    """
+    d = tempfile.mkdtemp(prefix="runstell-")
+    log = os.path.join(d, "gh.log")
+    gh = os.path.join(d, "gh")
+    open(gh, "w", encoding="utf-8").write(
+        '#!/bin/bash\nprintf "%s\\n" "$*" >> "$GH_LOG"\n'
+        'if [ "$1 $2" = "issue list" ]; then\n'
+        '  case "$*" in\n'
+        '    *"cannot see a full day"*) echo "$FAKE_COV" ;;\n'
+        '    *) echo "$FAKE_FAIL" ;;\n'
+        '  esac\nfi\nexit 0\n')
+    os.chmod(gh, os.stat(gh).st_mode | 0o111)
+    body = None
+    for _n, _b in [(n, b) for n, b in _steps(_YML) if "gh issue create" in b]:
+        body = _b
+    src = re.sub(r"\$\{\{\s*steps\.look\.outputs\.state\s*\}\}", state, body)
+    src = re.sub(r"\$\{\{[^}]*\}\}", "x", src)
+    sh = os.path.join(d, "step.sh")
+    open(sh, "w", encoding="utf-8").write(src)
+    open(os.path.join(d, "body.md"), "w").write("x")
+    subprocess.run(["bash", sh], cwd=d, timeout=60, capture_output=True,
+                   text=True,
+                   env=dict(os.environ, PATH=d + os.pathsep + os.environ["PATH"],
+                            GH_LOG=log, FAKE_FAIL=fail_num, FAKE_COV=cov_num))
+    return open(log, encoding="utf-8").read() if os.path.exists(log) else ""
+
+
+def _steps(text):
+    out, lines, name = [], text.splitlines(), "?"
+    for i, ln in enumerate(lines):
+        m = re.match(r"^\s*- name:\s*(.+)$", ln)
+        if m:
+            name = m.group(1).strip()
+        m = re.match(r"^(\s*)run:\s*\|", ln)
+        if not m:
+            continue
+        ind, body = len(m.group(1)), []
+        for nxt in lines[i + 1:]:
+            if nxt.strip() and (len(nxt) - len(nxt.lstrip())) <= ind:
+                break
+            body.append(nxt)
+        out.append((name, "\n".join(body)))
+    return out
+
+
+# 🔴 PROVEN ABLE TO SEE A CLOSE FIRST, so "it did not close" cannot pass
+#    on a step that did nothing at all (rule 67).
+_log_ok = _drive("ok", fail_num="6")
+ck("🔴 the harness CAN observe a close — proven on the ok path",
+   "issue close 6" in _log_ok,
+   "⛔ if the fake `gh` never runs, every assertion below is vacuous. "
+   "Got %r" % _log_ok)
+_log_cov = _drive("coverage", fail_num="6", cov_num="")
+ck("🔴🔴 a COVERAGE finding CLOSES the false 'a workflow is failing' issue",
+   "issue close 6" in _log_cov,
+   "⛔ THIS IS THE LINE THAT CLEANS UP #6. Nothing is failing, so that "
+   "issue is false and must not be left open. Got %r" % _log_cov)
+ck("✅ ...and opens the coverage issue under its own title",
+   "cannot see a full day" in _log_cov and "issue create" in _log_cov,
+   "🔴 closing the wrong issue without filing the right one loses the "
+   "finding entirely. Got %r" % _log_cov)
+ck("⛔ ...and a coverage finding NEVER opens the failing issue",
+   "issue create --title Gizmo's Picks - a workflow is failing"
+   not in _log_cov,
+   "🔴 that is the miscategorisation this whole drop is about")
+# ⛔ A RED WORKFLOW LEAVES THE COVERAGE ISSUE ALONE — outranking it is
+#    not the same as resolving it.
+_log_bad = _drive("bad", fail_num="", cov_num="9")
+ck("⛔ a real outage does not close an open coverage issue",
+   "issue close 9" not in _log_bad,
+   "🔴 a red workflow outranks a short list; it does not make the list "
+   "longer. Got %r" % _log_bad)
+ck("✅ ...and it does open the failing issue",
+   "issue create" in _log_bad and "a workflow is failing" in _log_bad,
+   "⛔ the other half of the contract. Got %r" % _log_bad)
+# ⛔ AND `unknown` STILL TOUCHES NOTHING.
+_log_unk = _drive("unknown", fail_num="6", cov_num="9")
+ck("🔴🔴 `unknown` closes neither issue — 'I could not look' is not 'fine'",
+   "issue close" not in _log_unk and "issue create" not in _log_unk
+   and "issue edit" not in _log_unk,
+   "⛔ closing an alert because the check itself broke is how a real "
+   "problem goes quiet. Got %r" % _log_unk)
+# ✅ AND `ok` CLEARS BOTH, because both questions are answered.
+ck("✅ `ok` closes the coverage issue too",
+   "issue close 9" in _drive("ok", fail_num="6", cov_num="9"),
+   "🔴 a coverage issue that never closes itself is a permanent red dot "
+   "on the repo, which is rule 238 by another route")
+
+note("⛔ WHAT THIS DROP DOES NOT CLAIM: that the run list can never be "
+     "short again. It claims the list is now PAGED until the timestamps "
+     "say the window is covered, that the page cap failing is REPORTED "
+     "rather than silent, and that 'I cannot see a full day' no longer "
+     "wears the title of an outage. ➡️ The truncation detector is kept "
+     "as the backstop precisely because the collection can still fail.")
+note("⚠️ NOT FIXED, REPORTED: when the list IS truncated, `missing` and "
+     "`missed_fires` are computed over a window that was not covered — "
+     "so an UNSEEN workflow could in principle be an artifact of the "
+     "short list rather than a fact about the workflow (`CLAUDE.md`: an "
+     "absence in an API response is evidence about the API). Those "
+     "findings return 1 and would still file as an outage. It is latent, "
+     "not live — #6 had no such finding — and suppressing them is a "
+     "behaviour change beyond this drop. ➡️ Sam's call.")
