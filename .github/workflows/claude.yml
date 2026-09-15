@@ -65,5 +65,20 @@ jobs:
           #    TO THE WATCHDOG'S ISSUE FROM HIS PHONE. He has write
           #    access, which is exactly what this check is looking for.
           allowed_bots: "github-actions[bot]"
+          # 🔴🔴 THE SAME DEFECT THAT MADE TIER 3 INCAPABLE FOR ITS
+          # ENTIRE LIFE. `[found 2026-09-15 by checking the CLASS after
+          # fixing the instance — ledger rule 275]`
+          #
+          # ⛔ Run #8 of `self-repair` logged `permission_denials_count: 3`
+          # against `is_error: false`: the agent asked to do three things,
+          # was denied all three, and reported SUCCESS. **This file had
+          # the identical `claude_args` with no allowlist**, so every
+          # `@claude` mention would have behaved the same way — spend
+          # Sam's subscription, change nothing, look fine.
+          #
+          # ➡️ Sam's standing rule: *"everything we do for cfb we do for
+          # nfl and vice versa."* The same applies to two agent
+          # invocations with one defect between them.
           claude_args: |
             --max-turns 40
+            --allowedTools Read,Glob,Grep,Write,Edit,Bash
