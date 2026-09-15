@@ -67,6 +67,59 @@ expectation of it.**
 
 ---
 
+## 🔴🔴 IF YOU CAN PUSH TO THIS REPO, READ THIS BEFORE YOU DO
+
+`[added 2026-09-15, the day a session could push here for the first
+time — measured on the probe, not inferred]`
+
+⚠️ **MOST OF THIS REPO WAS BUILT BY A SESSION THAT COULD NOT PUSH.** It
+handed a human a folder, he dragged it into the GitHub web UI, and the
+change was then verified byte-for-byte against `main`. If you can push,
+that step is gone — **and so is the human who was reading every file on
+its way in.**
+
+### ⛔ 1. WORKFLOW FILES CONTAINING A `cron:` BLOCK STILL GO THROUGH SAM BY HAND
+
+🔴 **GitHub attributes a scheduled run to the repository user who last
+changed the workflow's `cron:` block.** This repo has **50 crons across 5
+workflows**, and every one depends on that user staying a human with write
+access.
+
+**MEASURED 2026-09-15 on a push probe:** a commit pushed from a
+repo-connected Claude session shows on GitHub as **`claude committed`**,
+**not** as the repository owner.
+
+⚠️ **WHAT IS NOT MEASURED: whether a cron-block change under that author
+actually stops scheduled runs.** ⛔ **And that test is destructive** — if
+it fails, every cron stops firing **silently**: no red run, no failed
+check, and the watchdog cannot report it **because the watchdog is what
+summons the repair agent.** The channel that would carry the alarm is the
+channel that dies.
+
+➡️ **So: change `.github/workflows/*.yml` in a PR or a hand upload, never
+a direct push, until somebody measures it.** The convenience is real and
+the downside is the whole product going dark; those are not comparable
+quantities.
+
+### ⛔ 2. THE REASONING BEHIND THIS PROJECT IS NOT IN THIS REPO, AND YOU CANNOT READ IT
+
+The ledger, the pre-registered tests, the model derivations and the
+architecture notes live in **Sam's Claude project docs** — `claude/...`
+paths that **do not exist in this repository and never have.** A session
+connected only to the repo has `CLAUDE.md` and nothing else of his.
+
+✅ **That is not a bug to route around. Say so and ask**, exactly as the
+bottom of this file already instructs. ⛔ **Do not infer what a missing
+doc said**, and do not treat its absence as permission.
+
+### ✅ 3. "PUSHED" IS NOT "LANDED", AND LOCAL IS NOT REMOTE
+
+Verify against the remote after every push — `git show origin/main:<file>`
+— not against your working tree. **This project has been burned by
+treating "I wrote it" as "it is there"** more than once.
+
+---
+
 ## THE ONE RULE THAT MATTERS MOST
 
 🔴 **NEVER WEAKEN A CHECK TO MAKE IT PASS.**
