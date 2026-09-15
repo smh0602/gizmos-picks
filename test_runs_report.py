@@ -126,6 +126,41 @@ ck("✅ ...and every workflow seen is listed in the body",
    "the reader needs to know what WAS checked, or a missing workflow "
    "looks like a healthy one")
 
+print("\n═══ 6b. 🔴🔴 GROUPED BY THE WORKFLOW, NOT THE RUN'S DISPLAY NAME ═══")
+# ⛔ `gh run list` offers BOTH `name` and `workflowName`, which is itself
+#    the evidence they differ. `name` is the RUN's display name, and for a
+#    PUSH-triggered run GitHub derives it from the commit message — and
+#    both `collect.yml` and `browser.yml` have push triggers.
+# 🔴 GROUPING BY `name` WOULD MAKE EVERY PUSH RUN ITS OWN "WORKFLOW": each
+#    a set of one, each its own latest, and the flapping count could never
+#    reach 3. **A silent false all-clear — the most dangerous output this
+#    repo has.** ➡️ Ledger rule 268.
+_push = [{"name": "watchdog: health report 2026-09-15T00:00Z",
+          "workflowName": "collect", "conclusion": "failure",
+          "url": "u", "createdAt": "2026-09-14T22:00:00Z"},
+         {"name": "collect[mlb]: converge pass 1",
+          "workflowName": "collect", "conclusion": "success",
+          "url": "u", "createdAt": "2026-09-14T21:00:00Z"},
+         {"name": "Merge pull request #7",
+          "workflowName": "collect", "conclusion": "failure",
+          "url": "u", "createdAt": "2026-09-14T20:00:00Z"}]
+broken, flap, seen = R.analyse(_push, NOW)
+ck("🔴🔴 three runs with three different display names are ONE workflow",
+   seen == ["collect"],
+   "⛔ if these group by display name, every push run is its own "
+   "'workflow' — each its own latest, flapping never reaches 3, and a "
+   "broken collector reads as a healthy repo. Got %s" % seen)
+ck("🔴 ...and the latest of them decides, so the failure IS reported",
+   [b["name"] for b in broken] == ["collect"] and broken[0]["fails_24h"] == 2,
+   "the newest completed run failed, and both failures belong to the "
+   "same workflow. Got %s" % broken)
+ck("✅ ...and a run with only `name` still groups, rather than vanishing",
+   R.analyse([{"name": "browser", "conclusion": "failure", "url": "u",
+               "createdAt": "2026-09-14T22:00:00Z"}], NOW)[0][0]["name"]
+   == "browser",
+   "⛔ the fallback matters: if `workflowName` is ever absent, dropping "
+   "the row would be a silent miss, which is worse than a wrong name")
+
 print("\n═══ 7. ⛔ 'I COULD NOT LOOK' IS NOT 'EVERYTHING IS FINE' ═══")
 _rc = R.main.__doc__  # presence check only; main() reads stdin
 ck("🔴 an unreadable run list exits 2, not 0",
