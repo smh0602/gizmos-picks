@@ -1,0 +1,128 @@
+# 🔴🔴 `budget.py` HAS ALWAYS COMPUTED THE SPEND AND NOTHING HAS EVER RUN IT.
+#
+# `[measured 2026-09-15]` **Both mentions of `budget.py` in `collect.yml`
+# are comments.** It is a correct, carefully-maintained tool whose entire
+# output has only ever reached a human who typed its name — which is to
+# say, the spend trajectory has been reported to nobody.
+#
+# ⛔ AND THE CAPS ARE NOT THIS QUESTION'S ANSWER, THOUGH THEY LOOK LIKE IT.
+# `collect.py` rations itself with `FLAT_DAILY_CAP` (600) and
+# `HARD_DAY_CEIL` (1,200), and 13 call sites honour them, so **money
+# cannot run away in a day.** But 1,200/day sustained is **36,000 a month
+# against a 20,000 plan.** ➡️ The caps bound a SPIKE. Nothing bounded the
+# CREEP, and a creep is what ends the month with a dead key and a board
+# carrying no prices at all.
+#
+# ⛔ THE WATCHDOG WOULD HAVE SAID "HEALTHY" THROUGHOUT. It reads repo
+# files and asks whether the product is right; it has never asked what the
+# product COST. Five watchers now, five questions, and none replaces
+# another.
+#
+# 💰 FREE. `budget.py` reads committed snapshots and the workflow file.
+# ⛔ No Odds API call, no Claude usage — seconds of runner time on a
+# public repo.
+name: budget
+# 🔴 THE RUN SAYS WHICH CRON FIRED IT — ledger rule 271, and
+# `runs_report.py` reads this field back to tell a landed cron from a
+# dropped one. A scheduled workflow without it is one the run watcher can
+# see but cannot attribute.
+run-name: ${{ github.event.schedule && format('budget [cron {0}]', github.event.schedule) || format('budget [{0}]', github.event_name) }}
+
+on:
+  # ⚠️ DAILY, NOT HOURLY. `budget.py`'s rate is a mean over the last seven
+  # COMPLETED days, so it can only move once a day — asking hourly would
+  # be 24 identical answers and an issue nobody reads (rule 238).
+  # ⛔ Off :00 and :30 like every cron here; those slots are the most
+  # congested on GitHub's scheduler and runs get dropped.
+  # ⚠️ 13:56Z = 9:56am ET, chosen for two reasons: the 6am ET trends job
+  # has long since committed the previous day's snapshots, and it lands
+  # just after `calibration` (12:52Z) so the two MONEY reports arrive in
+  # the same morning window rather than scattered through the day.
+  schedule:
+    - cron: "56 13 * * *"
+  workflow_dispatch:
+
+# ⚠️ PER-WORKFLOW GROUP. A shared group silently cancels queued scheduled
+# runs when someone triggers a job by hand — CLAUDE.md.
+concurrency:
+  group: budget
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # ⛔ FULL HISTORY IS NOT NEEDED AND IS NOT FREE: `budget.py`
+          # reads the snapshot files in the WORKING TREE, not the log.
+          fetch-depth: 1
+
+      - name: Is the spend on a trajectory to blow the plan?
+        id: look
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.
+          # A shell step that decides what counts as over-budget is a
+          # second copy of that judgement, and it is the copy no test can
+          # reach. `budget_watch.py` is driven by `test_budget_watch.py`.
+          # ⚠️ It RUNS `budget.py` rather than reimplementing it, so there
+          # is exactly one costing in this repo and this file cannot
+          # disagree with it.
+          python budget_watch.py > /tmp/budget.md 2>/tmp/budget.err
+          rc=$?
+          cat /tmp/budget.md
+          cat /tmp/budget.err >&2
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::budget_watch could not read a spend figure"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
+      # as the watchdog's, the run watcher's and the calibration watcher's,
+      # for the same reason: a workflow that opens a fresh issue daily is
+      # one whose notifications get filtered, and a filtered alert is no
+      # alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not "the
+      # spend is fine" and must never close an open issue. That covers
+      # BOTH third states here — a `budget.py` whose output this cannot
+      # parse, and a run-rate averaged over too few days to read.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - Odds API spend is trending past plan"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not read the spend — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — the measured run-rate is back inside plan."
+              gh issue close "$NUM"
+            fi
+            echo "inside plan"
+            exit 0
+          fi
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --body-file /tmp/budget.md
+          else
+            gh issue create --title "$TITLE" --body-file /tmp/budget.md --assignee smh0602 \
+              || gh issue create --title "$TITLE" --body-file /tmp/budget.md
+          fi
+          exit 0
