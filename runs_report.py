@@ -82,10 +82,203 @@ def scheduled_workflows(root="."):
     return out
 
 
+# 🔴🔴 HOW LATE GITHUB IS ALLOWED TO BE BEFORE A FIRE COUNTS AS MISSED.
+#    `[measured 2026-09-15 on this repo: the 19:04 and 19:18 crons landed
+#      at ~19:15-19:19 and ~19:27-19:30 — 11 to 15 minutes late, every
+#      day for 8 days]` GitHub's own docs say a scheduled run "may be
+#      delayed during periods of high load", with no bound.
+# ⛔ 45 MINUTES IS CHOSEN TO NOT FIRE ON CORRECT BEHAVIOUR. `CLAUDE.md`:
+#    *"a guard that fires on correct code is the other failure, not a
+#    safe one."* A cron 20 minutes late is GitHub being GitHub; a cron
+#    45+ minutes late with a later cron of the same workflow already
+#    landed is a cron that did not run.
+GRACE_MIN = 45
+
+# ⚠️ The marker `collect.yml` and friends stamp into `run-name:`. It is
+#    read back out of the run's DISPLAY name — `name` in `gh run list`,
+#    the field rule 268 warns is the display one. **That is exactly why
+#    it is the right field here**: display is what `run-name:` sets.
+CRON_STAMP = re.compile(r"\[cron ([^\]]+)\]")
+
+
+def _field(spec, lo, hi):
+    """One cron field -> the set of values it matches."""
+    out = set()
+    for part in (spec or "").split(","):
+        step = 1
+        if "/" in part:
+            part, s = part.split("/", 1)
+            step = max(1, int(s))
+        if part in ("*", ""):
+            a, b = lo, hi
+        elif "-" in part:
+            x, y = part.split("-", 1)
+            a, b = int(x), int(y)
+        else:
+            a = int(part)
+            # ⚠️ `5/2` means "from 5, every 2" — NOT "5 only". Rule 166's
+            #    shape: budget.py already shipped `*/6` counted as one
+            #    fire a day and under-reported by 108 credits a week.
+            b = hi if step > 1 else a
+        out.update(v for v in range(a, b + 1) if (v - a) % step == 0)
+    return out
+
+
+def parse_cron(expr):
+    """A 5-field cron expression -> a matcher dict, or None."""
+    p = (expr or "").split()
+    if len(p) != 5:
+        return None
+    try:
+        return {"expr": " ".join(p),
+                "min": _field(p[0], 0, 59), "hour": _field(p[1], 0, 23),
+                "dom": _field(p[2], 1, 31), "mon": _field(p[3], 1, 12),
+                # ⚠️ cron's day-of-week is Sun=0 AND Sun=7. Python's
+                #    weekday() is Mon=0..Sun=6. Getting this backwards
+                #    shifts every weekly cron by a day and the check
+                #    would alarm on a workflow that ran perfectly.
+                "dow": set(d % 7 for d in _field(p[4], 0, 7)),
+                "dom_star": p[2] == "*", "dow_star": p[4] == "*"}
+    except ValueError:
+        return None
+
+
+def cron_matches(c, dt):
+    if (dt.minute not in c["min"] or dt.hour not in c["hour"]
+            or dt.month not in c["mon"]):
+        return False
+    d_ok = dt.day in c["dom"]
+    w_ok = ((dt.weekday() + 1) % 7) in c["dow"]
+    # ⛔ POSIX: when BOTH day fields are restricted the match is OR, not
+    #    AND. `0 0 1 * 1` is "the 1st **or** any Monday". Treating it as
+    #    AND would make a cron look like it fired far less often than it
+    #    does — a silent under-count, which is the false all-clear shape.
+    if c["dom_star"] and c["dow_star"]:
+        return True
+    if c["dom_star"]:
+        return w_ok
+    if c["dow_star"]:
+        return d_ok
+    return d_ok or w_ok
+
+
+def last_fire(c, now, floor):
+    """The most recent minute at or before `now` this cron matches."""
+    t = now.replace(second=0, microsecond=0)
+    while t >= floor:
+        if cron_matches(c, t):
+            return t
+        t -= datetime.timedelta(minutes=1)
+    return None
+
+
+def declared_crons(root="."):
+    """{workflow name: {"file", "crons", "stamped"}} for cron workflows.
+
+    ⛔ `stamped` IS THE HONEST HALF. A workflow that declares crons but
+    does not write `github.event.schedule` into its `run-name:` produces
+    runs that CANNOT be attributed to a cron — and "I could not tell"
+    must be reported as that, never as "it fired". `[This is the exact
+    hole that left the ncaaf 19:0x question open for six days: two crons
+    in one hour, two runs in one hour, and no way to say which was
+    which. Ledger rule 251.]`
+    """
+    out = {}
+    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        try:
+            t = open(p, encoding="utf-8").read()
+        except OSError:
+            continue
+        crons = re.findall(r"^\s*-?\s*cron:\s*[\"']?([^\"'#\n]+?)[\"']?\s*(?:#.*)?$",
+                           t, re.M)
+        if not crons:
+            continue
+        m = re.search(r"^name:\s*(.+)$", t, re.M)
+        rn = re.search(r"^run-name:.*$", t, re.M)
+        out[(m.group(1).strip() if m else os.path.basename(p)[:-4])] = {
+            "file": os.path.basename(p),
+            "crons": [c.strip() for c in crons],
+            # ⚠️ Both halves required: a `run-name:` that does not carry
+            #    the schedule stamps nothing useful.
+            "stamped": bool(rn) and "event.schedule" in rn.group(0)
+                       and "[cron " in rn.group(0),
+        }
+    return out
+
+
+def missed_fires(runs, now=None, root="."):
+    """Crons that SHOULD have fired inside the covered window and did not.
+
+    🔴🔴 THIS IS THE QUESTION `missing` COULD NOT ANSWER. `missing` asks
+    whether a WORKFLOW produced any runs at all. A workflow with 43 crons
+    produces runs all day while one of those 43 never lands — and that is
+    the live, six-day-old `ncaaf` 19:0x finding.
+
+    ⛔ IT IS BOUNDED BY WHAT THE LIST ACTUALLY COVERS. An expected fire
+    older than the oldest run returned is NOT reported — the list simply
+    does not reach it, and rule 270 is that a count over a window you did
+    not verify is a count you invented.
+
+    Returns (missed, unattributable).
+    """
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    decl = declared_crons(root)
+
+    seen_at = collections.defaultdict(list)
+    wf_of_run = {}
+    for r in runs or []:
+        r = r or {}
+        m = CRON_STAMP.search(r.get("name") or "")
+        t = _dt(r.get("createdAt"))
+        if m and t:
+            seen_at[m.group(1).strip()].append(t)
+            wf_of_run.setdefault(m.group(1).strip(),
+                                 r.get("workflowName") or r.get("name"))
+
+    stamps = [t for t in (_dt(r.get("createdAt")) for r in (runs or [])) if t]
+    # ⛔ FLOOR = THE OLDEST RUN THE LIST ACTUALLY RETURNED, never a
+    #    nominal 24h. With no runs at all there is nothing to bound
+    #    against and the honest answer is to report nothing here.
+    floor = max(stamps and min(stamps) or now,
+                now - datetime.timedelta(hours=WINDOW_H))
+
+    missed, unattributable = [], []
+    for wf, d in sorted(decl.items()):
+        if not d["stamped"]:
+            unattributable.append({"name": wf, "file": d["file"],
+                                   "crons": len(d["crons"])})
+            continue
+        for expr in d["crons"]:
+            c = parse_cron(expr)
+            if not c:
+                unattributable.append({"name": wf, "file": d["file"],
+                                       "crons": 0, "bad": expr})
+                continue
+            due = last_fire(c, now - datetime.timedelta(minutes=GRACE_MIN),
+                            floor)
+            if due is None:
+                continue          # not expected to have fired in range
+            # ⚠️ A run counts for this fire if it started at or after the
+            #    scheduled minute. GitHub is late, never early.
+            if not any(t >= due for t in seen_at.get(c["expr"], [])):
+                missed.append({"name": wf, "file": d["file"],
+                               "cron": c["expr"],
+                               "due": due.strftime("%Y-%m-%d %H:%M") + "Z",
+                               "late_min": int((now - due).total_seconds()
+                                               // 60)})
+    return missed, unattributable
+
+
 def analyse(runs, now=None, root="."):
     """runs: the JSON `gh run list` emits.
 
     Returns (broken, flapping, seen, truncated, missing).
+
+    ⛔ THE ARITY IS DELIBERATELY UNCHANGED. Drop 58 changed this from 3
+    to 5 and the OLD test on `main` died with `ValueError: too many
+    values to unpack` the moment upload A landed. Rule 269: when a
+    signature changes, NO upload order is safe. The cron work is
+    therefore a SEPARATE function (`missed_fires`), not a sixth return.
     """
     now = now or datetime.datetime.now(datetime.timezone.utc)
     cutoff = now - datetime.timedelta(hours=WINDOW_H)
@@ -153,8 +346,28 @@ def analyse(runs, now=None, root="."):
     return broken, flapping, sorted(by), truncated, missing
 
 
-def render(broken, flapping, seen, truncated=False, missing=()):
+def render(broken, flapping, seen, truncated=False, missing=(),
+           missed=(), unattributable=()):
     out = []
+    # 🔴 FIRST, BECAUSE IT IS THE FINDING NOTHING IN THIS REPO COULD MAKE
+    #    UNTIL NOW. A workflow can be green all day with one of its crons
+    #    silently never landing.
+    if missed:
+        out.append("**These crons were DUE and no run carries their "
+                   "stamp — they did not fire:**\n")
+        for m in missed:
+            out.append("- `%s` in `%s` — due %s, %d minute(s) ago, no run"
+                       % (m["cron"], m["file"], m["due"], m["late_min"]))
+        out.append("")
+    if unattributable:
+        out.append("**These cron workflows cannot be attributed — their "
+                   "`run-name:` does not stamp `github.event.schedule`, "
+                   "so a cron that never fires is invisible:**\n")
+        for u in unattributable:
+            out.append("- `%s` (`%s`)%s" % (u["name"], u["file"],
+                       (" — unparseable cron `%s`" % u["bad"])
+                       if u.get("bad") else ""))
+        out.append("")
     if missing:
         out.append("**These workflows declare a schedule and produced NO "
                    "runs in the window — they are UNSEEN, not healthy:**\n")
@@ -206,10 +419,13 @@ def main():
         sys.stderr.write("could not read run list: %s\n" % e)
         return 2
     broken, flapping, seen, truncated, missing = analyse(runs)
-    if not broken and not flapping and not missing and not truncated:
+    missed, unattributable = missed_fires(runs)
+    if not (broken or flapping or missing or truncated
+            or missed or unattributable):
         print("OK")
         return 0
-    print(render(broken, flapping, seen, truncated, missing))
+    print(render(broken, flapping, seen, truncated, missing,
+                 missed, unattributable))
     return 1
 
 
