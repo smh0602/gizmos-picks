@@ -1,0 +1,1 @@
+- 2026-09-15T06:06:47Z @claude mention path OK — Sonnet 5 (claude-sonnet-5)
