@@ -238,8 +238,43 @@ jobs:
             attributes a scheduled run to whoever last changed the cron
             schedule; if that becomes a bot, this workflow stops firing
             silently.
+          # 🔴🔴 THE AGENT WAS BLOCKED BY ITS OWN PERMISSION GATE, NOT
+          # BY AUTH. `[run #8 log, 2026-09-15 — ledger rule 275]`
+          #
+          #     "permission_denials_count": 3
+          #     "num_turns": 6   "duration_ms": 10701
+          #     "is_error": false   "subtype": "success"
+          #
+          # ⛔ EVERYTHING I SUSPECTED WAS FINE. OIDC exchanged, app token
+          # obtained, `Verified human actor: smh0602`, git configured,
+          # Claude Code 2.1.272 installed, model `claude-sonnet-5`, and it
+          # SPENT $0.105 of Sam's subscription. **The token was never the
+          # problem** — I said so three times and was wrong three times.
+          # ➡️ It asked to do three things, was DENIED all three, and
+          # reported `success` because nothing errored.
+          #
+          # ⚠️ WITHOUT AN ALLOWLIST THE AGENT CAN READ AND THINK AND
+          # NOTHING ELSE. It cannot write the file, cannot branch, cannot
+          # push, cannot open the PR — so **Tier 3 has never been capable
+          # of working, and that is true of the REAL repair step below
+          # too, for the same reason.**
+          #
+          # ⛔ STILL BOUND BY `CLAUDE.md`, WHICH IS THE ACTUAL GUARDRAIL:
+          # it opens a PR and never merges, never touches MLB, never
+          # weakens a check. **The permission gate was never what kept
+          # this safe** — a human pressing merge is.
           claude_args: |
             --max-turns 15
+            --allowedTools Read,Glob,Grep,Write,Edit,Bash
+          # ⚠️ ON THE DRILL ONLY, AND DELIBERATELY NOT ON THE REAL STEP.
+          # The log said the detail was hidden "for security" and told us
+          # to turn this on — which is the only reason the next failure
+          # will name WHICH tool was denied instead of just counting them.
+          # ⛔ The drill's prompt is harmless and fixed; the repair
+          # prompt carries live findings, so full output there could echo
+          # repo state into a public log. Diagnosis where it is safe,
+          # silence where it is not.
+          show_full_output: true
 
       - if: needs.triage.outputs.drill != 'yes'
         uses: anthropics/claude-code-action@v1
@@ -285,8 +320,14 @@ jobs:
             Open a PULL REQUEST from a branch named
             `self-repair/<short-description>`. Do not push to main. Do not
             merge. Sam reviews and merges.
+          # 🔴 THE SAME ALLOWLIST, BECAUSE THE SAME GATE BLOCKED THIS
+          # STEP TOO. Run #8 proved the denial happens in the agent, not
+          # in anything drill-specific — so the real repair path has been
+          # equally incapable since the day it shipped, and nothing would
+          # have revealed that until a genuine outage. `[rule 275]`
           claude_args: |
             --max-turns 40
+            --allowedTools Read,Glob,Grep,Write,Edit,Bash
 
       # 🔴🔴 THE DRILL MUST PROVE ITSELF. `[added 2026-09-15 — ledger rule
       # 274, after run #7 reported SUCCESS having produced nothing]`
