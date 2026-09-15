@@ -86,6 +86,64 @@ ck("⛔ the real repair step is NOT given the same assertion",
    "a safe one. The two paths have different correct outcomes and must "
    "not share one bar")
 
+print("\n═══ 1b. 🔴🔴 THE AGENT IS ALLOWED TO ACT AT ALL ═══")
+# 🔴🔴 RUN #8's LOG, AND IT KILLED MY LEADING SUSPICION:
+#
+#     "permission_denials_count": 3
+#     "num_turns": 6   "duration_ms": 10701   "is_error": false
+#     Verified human actor: smh0602   model: claude-sonnet-5
+#     total_cost_usd: 0.105246
+#
+# ⛔ AUTH WAS NEVER BROKEN. OIDC exchanged, app token obtained, git
+#    configured, Claude Code installed, real money spent. **I blamed the
+#    OAuth secret three times and was wrong three times.** The agent
+#    asked to do three things, was DENIED all three, and reported
+#    `success` because nothing errored.
+# ⚠️ WITHOUT AN ALLOWLIST IT CAN READ AND THINK AND NOTHING ELSE — no
+#    file, no branch, no push, no PR. ➡️ **And that was equally true of
+#    the REAL repair step**, so Tier 3 has never been capable of working
+#    since the day it shipped.
+# ⚠️ SPLIT ON THE `uses:` LINE, NOT THE BARE NAME. The action is also
+#    named in a COMMENT above the job, and my first version split on the
+#    bare string — three "steps", one of them prose. **A check over the
+#    wrong set is the vacuous shape**, which is why the count is
+#    asserted before anything is read off it.
+_steps = YML.split("uses: anthropics/claude-code-action@v1")[1:]
+ck("⚠️ both agent steps are findable",
+   len(_steps) == 2,
+   "⛔ a check over the wrong set proves nothing. Found %d" % len(_steps))
+_missing = [i for i, b in enumerate(_steps) if "--allowedTools" not in b]
+ck("🔴🔴 EVERY agent step grants tools — drill AND real repair",
+   not _missing,
+   "⛔ an agent with no allowlist can read and think and nothing else. "
+   "It cannot write, branch, push or open a PR — it burns Sam's "
+   "subscription and reports success. Steps missing it: %s" % _missing)
+for _need in ("Write", "Edit", "Bash"):
+    ck("⛔ ...including `%s`, without which there is no PR" % _need,
+       all(_need in b.split("--allowedTools")[1][:200]
+           for b in _steps if "--allowedTools" in b),
+       "🔴 the drill must create a file, commit it and push a branch. "
+       "Missing any one of Read/Write/Edit/Bash makes the whole path "
+       "silently impossible")
+
+print("\n═══ 1c. ⚠️ DIAGNOSIS WHERE IT IS SAFE, SILENCE WHERE IT IS NOT ═══")
+# ⛔ The log said the detail was hidden "for security" and named the
+#    switch. Turning it on is the only reason the NEXT failure will say
+#    WHICH tool was denied rather than just counting them.
+# ⚠️ But the repair prompt carries live findings from health.json into
+#    a PUBLIC log, and the drill's prompt is fixed and harmless. So the
+#    switch goes on exactly one of them.
+ck("🔴 the DRILL prints full agent output",
+   "show_full_output: true" in _steps[0],
+   "⛔ run #8 counted three denials and named none. Without this the "
+   "next failure is equally uninformative and we are back to guessing")
+ck("⛔ ...and the REAL repair step does NOT",
+   "show_full_output" not in _steps[1],
+   "🔴 the repair prompt interpolates live findings into a PUBLIC "
+   "run log. A diagnostic switch that is safe on a fixed harmless "
+   "prompt is not safe on a variable one — and `gizmos-picks` is a "
+   "public repo")
+
 print("\n═══ 2. 🔴🔴 THE SHELL, ACTUALLY EXECUTED ═══")
 _run = re.search(r"(?ms)^        run: \|\n(.*?)(?=\n      - name:|\Z)", STEP)
 ck("🔴 the proof shell is extractable to be driven",
