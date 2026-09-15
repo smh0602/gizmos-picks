@@ -81,9 +81,18 @@ its way in.**
 ### ⛔ 1. WORKFLOW FILES CONTAINING A `cron:` BLOCK STILL GO THROUGH SAM BY HAND
 
 🔴 **GitHub attributes a scheduled run to the repository user who last
-changed the workflow's `cron:` block.** This repo has **50 crons across 5
-workflows**, and every one depends on that user staying a human with write
-access.
+changed the workflow's `cron:` block.** Every one of them depends on that
+user staying a human with write access.
+
+<!-- CRON TOTAL: 51 -->
+⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
+counts every `- cron:` line in `.github/workflows/` and fails if this
+comment disagrees. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
+first whether a cron was added or lost on purpose. `[This line exists
+because the prose originally said "50 crons", which was already wrong
+when it was written, and a test asserting that literal string would have
+reddened on anyone who corrected it. Rule 166: a number written down is a
+claim about the world, and it goes stale.]`
 
 **MEASURED 2026-09-15 on a push probe:** a commit pushed from a
 repo-connected Claude session shows on GitHub as **`claude committed`**,
