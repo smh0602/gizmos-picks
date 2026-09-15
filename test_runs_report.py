@@ -328,8 +328,13 @@ ck("⚠️ a malformed cron is reported, never silently skipped",
 
 # ── the detection itself, driven both ways ──
 def _r(wf, cron, mins_ago, concl="success"):
+    """cron=None builds an UNSTAMPED run — what every run looked like
+    before `run-name:` shipped, and what 23 of the first 24 hours of any
+    run list will look like on deploy day."""
     t = NOW - datetime.timedelta(minutes=mins_ago)
-    return {"workflowName": wf, "name": "%s [cron %s]" % (wf, cron),
+    name = ("%s [cron %s]" % (wf, cron) if cron
+            else "%s[mlb]: converge pass 1" % wf)
+    return {"workflowName": wf, "name": name,
             "conclusion": concl, "url": "u",
             "createdAt": t.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
@@ -410,6 +415,52 @@ ck("✅ ...and the body says so in words",
    "cannot be attributed" in R.render([], [], [], False, (), (), _u),
    "🔴 a reader must not take silence about a cron as evidence about it")
 shutil.rmtree(_tmp, ignore_errors=True)
+
+# 🔴🔴 THE DAY THE STAMP SHIPS, 23 OF THE 24 HOURS IN THE LIST
+#    HAVE NO STAMP. ⛔ Measured on that exact shape before it ever fired:
+#    **27 crons reported missing, every one of which had run perfectly.**
+#    They simply ran before the run title carried a cron.
+# ⚠️ That is `CLAUDE.md`'s worse failure — *"a guard that fires on
+#    correct code is the other failure, not a safe one"* — and 27 false
+#    findings in the first issue this check ever opens is how an alert
+#    channel gets muted on day one.
+_fresh_deploy = ([_r("collect", None, m) for m in range(60, 1400, 15)]
+                 + [_r("collect", "20 * * * *", m) for m in (5, 45)])
+_m_deploy, _ = R.missed_fires(_fresh_deploy, NOW)
+ck("🔴🔴 the hour after the stamp ships reports NOTHING missing",
+   not _m_deploy,
+   "⛔ a cron cannot be judged for a period before its runs were being "
+   "stamped — there is no evidence either way, and absence of evidence "
+   "reported as a finding is a false alarm. Got %s"
+   % [m["cron"] for m in _m_deploy])
+# ✅ AND THE FLOOR IS PER WORKFLOW. `browser` runs twice a day, so its
+#    first stamped run can be 12 hours behind `collect`'s. A single shared
+#    floor would judge `browser` over a window it has no evidence for.
+# ⛔ DRIVEN AGAINST A GLOBAL FLOOR, WHICH STAYS GREEN ON THE EASY CASE.
+#    My first version of this check used a `browser` with NO stamped runs
+#    at all — excluded either way, so a single shared floor passed it.
+#    **Vacuous, rule 67.** This shape separates them: `collect` has been
+#    stamping for 22h, `browser` for 40 minutes, and `browser`'s 01:37
+#    cron fired 21h ago — inside `collect`'s window, outside its own.
+_mixed = ([_r("collect", "20 * * * *", m) for m in range(5, 1400, 60)]
+          + [_r("browser", "37 13 * * *", 40)])
+_m_mixed, _ = R.missed_fires(_mixed, NOW)
+ck("✅ ...and the floor is PER WORKFLOW, not one shared clock",
+   not any(m["file"] == "browser.yml" for m in _m_mixed),
+   "⛔ `collect` stamping for 22h says NOTHING about `browser`, which "
+   "fires twice a day and started stamping 40 minutes ago. A shared "
+   "floor judges it over a window it has no evidence for — the same "
+   "mistake one level up. Got %s"
+   % [(m["file"], m["cron"]) for m in _m_mixed])
+# ⛔ AND THE BITE: once a workflow HAS been stamping, a cron of its own
+#    that goes missing inside that window is still caught.
+_live = ([_r("collect", "20 * * * *", m) for m in range(5, 700, 60)]
+         + [_r("collect", "18 19 * * *", 218)])
+_m_live, _ = R.missed_fires(_live, NOW)
+ck("🔴 a cron missing INSIDE the stamped window is still caught",
+   any(m["cron"] == "4 19 * * *" for m in _m_live),
+   "⛔ the floor must bound the check, never disable it. Got %s"
+   % [m["cron"] for m in _m_live])
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that a stamped run means the cron did "
      "its JOB. It means the cron FIRED. A run that fires and collects "
