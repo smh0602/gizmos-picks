@@ -225,15 +225,34 @@ def missed_fires(runs, now=None, root="."):
     decl = declared_crons(root)
 
     seen_at = collections.defaultdict(list)
-    wf_of_run = {}
+    # 🔴🔴 WHEN DID STAMPING START FOR THIS WORKFLOW? `[added 2026-09-15,
+    #    caught 26 minutes before the first hourly run would have fired it]`
+    # ⛔ WITHOUT THIS THE CHECK FALSE-ALARMS ON EVERY CRON FOR A FULL DAY.
+    #    Measured on the real shape one hour after the stamp shipped —
+    #    23h of UNSTAMPED runs plus 1h of stamped ones — it reported
+    #    **27 crons missing.** Every one of them had run perfectly; they
+    #    simply ran before the run title carried a cron.
+    # ⚠️ AND THAT IS THE FAILURE `CLAUDE.md` NAMES AS THE WORSE ONE: *"a
+    #    guard that fires on correct code is the other failure, not a
+    #    safe one."* 27 false findings in the first issue this thing ever
+    #    opened is how an alert channel gets muted on day one.
+    # ✅ PER WORKFLOW, NOT GLOBAL. `browser` runs twice a day, so its
+    #    first stamped run can be 12 hours behind `collect`'s. A single
+    #    shared floor would judge `browser` over a window it has no
+    #    evidence for — the same mistake one level up.
+    # ⛔ A workflow with NO stamped run yet is judged NOT AT ALL. Total
+    #    silence from a workflow is already `missing`'s question (drop
+    #    58); this one only speaks where it has evidence.
+    stamp_floor = {}
     for r in runs or []:
         r = r or {}
         m = CRON_STAMP.search(r.get("name") or "")
         t = _dt(r.get("createdAt"))
         if m and t:
             seen_at[m.group(1).strip()].append(t)
-            wf_of_run.setdefault(m.group(1).strip(),
-                                 r.get("workflowName") or r.get("name"))
+            wf = r.get("workflowName") or r.get("name")
+            if wf and (wf not in stamp_floor or t < stamp_floor[wf]):
+                stamp_floor[wf] = t
 
     stamps = [t for t in (_dt(r.get("createdAt")) for r in (runs or [])) if t]
     # ⛔ FLOOR = THE OLDEST RUN THE LIST ACTUALLY RETURNED, never a
@@ -248,6 +267,11 @@ def missed_fires(runs, now=None, root="."):
             unattributable.append({"name": wf, "file": d["file"],
                                    "crons": len(d["crons"])})
             continue
+        # ⛔ NOTHING STAMPED FROM THIS WORKFLOW YET — no evidence, so no
+        #    verdict. Silent on purpose; see the comment on `stamp_floor`.
+        if wf not in stamp_floor:
+            continue
+        wf_floor = max(floor, stamp_floor[wf])
         for expr in d["crons"]:
             c = parse_cron(expr)
             if not c:
@@ -255,7 +279,7 @@ def missed_fires(runs, now=None, root="."):
                                        "crons": 0, "bad": expr})
                 continue
             due = last_fire(c, now - datetime.timedelta(minutes=GRACE_MIN),
-                            floor)
+                            wf_floor)
             if due is None:
                 continue          # not expected to have fired in range
             # ⚠️ A run counts for this fire if it started at or after the
