@@ -41,7 +41,10 @@ then green the moment the fix landed, with nobody told.
 """
 import collections
 import datetime
+import glob
 import json
+import os
+import re
 import sys
 
 # ⛔ NOT A THRESHOLD FOR THE ALARM — the alarm is "latest run failed".
@@ -57,8 +60,33 @@ def _dt(s):
         return None
 
 
-def analyse(runs, now=None):
-    """runs: the JSON `gh run list` emits. Returns (broken, flapping, seen)."""
+def scheduled_workflows(root="."):
+    """Workflow NAMES that declare a cron — the ones that must show runs.
+
+    ⛔ DECLARED, NOT REMEMBERED. Reading the workflow files means a new
+    scheduled workflow is covered the day it ships (rule 246). ⚠️ A
+    workflow with NO schedule — `claude.yml` is mention-triggered — is
+    correctly absent from a run list and must never be flagged.
+    """
+    out = {}
+    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        try:
+            t = open(p, encoding="utf-8").read()
+        except OSError:
+            continue
+        if not re.search(r"^\s*-?\s*cron:", t, re.M):
+            continue
+        m = re.search(r"^name:\s*(.+)$", t, re.M)
+        out[(m.group(1).strip() if m else
+             os.path.basename(p)[:-4])] = os.path.basename(p)
+    return out
+
+
+def analyse(runs, now=None, root="."):
+    """runs: the JSON `gh run list` emits.
+
+    Returns (broken, flapping, seen, truncated, missing).
+    """
     now = now or datetime.datetime.now(datetime.timezone.utc)
     cutoff = now - datetime.timedelta(hours=WINDOW_H)
 
@@ -83,6 +111,20 @@ def analyse(runs, now=None):
             continue
         by[name].append(r)
 
+    # 🔴🔴 DID THE LIST EVEN COVER THE WINDOW? `[measured 2026-09-15:
+    #    ~96 cron runs/day plus push runs, against a `--limit 100` ask]`
+    # ⛔ If the OLDEST run returned is younger than the window, the list
+    #    was TRUNCATED — the 24h counts below are understated and a
+    #    low-frequency workflow may be missing entirely. **A count from a
+    #    truncated list reported as complete is a false all-clear**, which
+    #    is the most dangerous output this repo has.
+    # ⚠️ Detection comes from the DATA, not from a magic limit: the list
+    #    tells you whether it reached back far enough, so raising the
+    #    limit later cannot silently un-fix this. ➡️ Ledger rule 270.
+    stamps = [_dt(r.get("createdAt")) for r in (runs or [])]
+    stamps = [t for t in stamps if t]
+    truncated = bool(stamps) and min(stamps) > cutoff
+
     broken, flapping = [], []
     for name, rs in sorted(by.items()):
         # ⛔ ONLY COMPLETED RUNS DECIDE. An in-progress run has no
@@ -103,11 +145,22 @@ def analyse(runs, now=None):
         elif len(fails) >= FLAP_MIN:
             flapping.append({"name": name, "fails_24h": len(fails),
                              "url": (fails[0] or {}).get("url")})
-    return broken, flapping, sorted(by)
+    # ⛔ A SCHEDULED WORKFLOW WITH NO RUNS AT ALL IS NOT "HEALTHY", IT IS
+    #    UNSEEN — and that is the `ncaaf` 19:0x class (rule 251): a cron
+    #    that declares a run and never lands, invisible because nothing
+    #    compared the declaration to the reality.
+    missing = [w for w in sorted(scheduled_workflows(root)) if w not in by]
+    return broken, flapping, sorted(by), truncated, missing
 
 
-def render(broken, flapping, seen):
+def render(broken, flapping, seen, truncated=False, missing=()):
     out = []
+    if missing:
+        out.append("**These workflows declare a schedule and produced NO "
+                   "runs in the window — they are UNSEEN, not healthy:**\n")
+        for m in missing:
+            out.append("- `%s` — declares a cron, no run found" % m)
+        out.append("")
     if broken:
         out.append("**These workflows are failing right now — their most "
                    "recent completed run was red.**\n")
@@ -132,6 +185,12 @@ def render(broken, flapping, seen):
                "A check may only change when it asks the WRONG QUESTION, "
                "and the replacement must be harder to pass.")
     out.append("")
+    if truncated:
+        out.append("⚠️ **The run list did not reach back a full %dh** — it "
+                   "was truncated by volume, so the 24h counts above are "
+                   "UNDERSTATED and a low-frequency workflow may be absent "
+                   "entirely. Raise the `--limit` in `runs.yml`." % WINDOW_H)
+        out.append("")
     out.append("_Workflows seen: %s. This issue is updated in place and "
                "closes itself when every workflow's latest run is green._"
                % ", ".join("`%s`" % s for s in seen))
@@ -146,11 +205,11 @@ def main():
         #    workflow can tell "nothing is broken" from "I could not look".
         sys.stderr.write("could not read run list: %s\n" % e)
         return 2
-    broken, flapping, seen = analyse(runs)
-    if not broken and not flapping:
+    broken, flapping, seen, truncated, missing = analyse(runs)
+    if not broken and not flapping and not missing and not truncated:
         print("OK")
         return 0
-    print(render(broken, flapping, seen))
+    print(render(broken, flapping, seen, truncated, missing))
     return 1
 
 
