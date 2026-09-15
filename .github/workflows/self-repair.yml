@@ -287,3 +287,59 @@ jobs:
             merge. Sam reviews and merges.
           claude_args: |
             --max-turns 40
+
+      # 🔴🔴 THE DRILL MUST PROVE ITSELF. `[added 2026-09-15 — ledger rule
+      # 274, after run #7 reported SUCCESS having produced nothing]`
+      #
+      # ⛔ `claude-code-action@v1` EXITS 0 WHETHER OR NOT THE AGENT DID
+      # THE WORK. Run #7: `triage` success, `fix` success in 45 seconds,
+      # and **no `self-repair/drill` branch, no `self-repair-drill.md`,
+      # no PR.** Sam fired it SEVEN times and every run went green.
+      #
+      # 🔴 A DRILL EXISTS TO ANSWER ONE QUESTION — *does this path work?*
+      # — so a drill that cannot fail answers nothing, and a green tick
+      # that proves nothing is worse than a red one because it gets
+      # trusted (`CLAUDE.md`, the one rule that matters most). **I shipped
+      # the fire alarm test that cannot report a fire.**
+      #
+      # ✅ SO THE DRILL NOW ASSERTS ITS OWN ARTIFACT. Exactly one outcome
+      # is correct — a branch named `self-repair/drill`, or a PR from it —
+      # and anything else fails the job loudly. ⚠️ `always()` so it still
+      # runs when the agent step itself errored.
+      #
+      # ⛔ THE REAL REPAIR PATH IS NOT ASSERTED THE SAME WAY, ON PURPOSE.
+      # It has a legitimate empty outcome: `CLAUDE.md` tells the agent
+      # that an MLB finding gets a comment and NO code change. Failing on
+      # "no branch" there would punish the agent for obeying the freeze.
+      - name: Did the drill actually do anything?
+        if: always() && needs.triage.outputs.drill == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          # ⛔ `grep -c .` COUNTS NON-EMPTY LINES, NOT `wc -l`. An empty
+          # answer through a pipe still carries a newline, and `wc -l`
+          # reads that as ONE — a phantom branch, and the guard passes.
+          BR=$(git ls-remote --heads origin 'refs/heads/self-repair/drill' 2>/dev/null | grep -c .)
+          PR=$(gh pr list --state all --limit 50 --json headRefName \
+                 --jq '[.[] | select(.headRefName == "self-repair/drill")] | length' \
+                 2>/dev/null)
+          # 🔴🔴 "I COULD NOT LOOK" IS NOT "IT WORKED". A blank or garbled
+          # answer is coerced to ZERO so the drill FAILS, rather than
+          # sailing past on a lookup that never happened. `[my first
+          # version of this step let a blank `gh` answer pass — caught by
+          # test_drill_proof.py before it shipped, which is the only
+          # reason it is not the SECOND false all-clear in this file]`
+          # ⚠️ ONLY `$PR` NEEDS THIS. `grep -c .` always returns a
+          # clean integer, so the same coercion on `$BR` was unreachable
+          # — **no mutation could make it bite**, which by this repo's own
+          # rule means it is not a guard, it is decoration. Deleted rather
+          # than kept as an untested line.
+          case "$PR" in ''|*[!0-9]*) echo "::warning::could not read the pull request list"; PR=0 ;; esac
+          echo "branch self-repair/drill on origin : $BR"
+          echo "pull request from that branch      : $PR"
+          if [ "$BR" = "0" ] && [ "$PR" = "0" ]; then
+            echo "::error::THE DRILL PRODUCED NOTHING. The agent step exited 0 but there is no self-repair/drill branch and no PR, so the Tier 3 path is NOT proven. Check the agent step's log for an auth or permission failure — claude-code-action exits 0 even when the agent could not act."
+            exit 1
+          fi
+          echo "the drill produced its artifact — the Tier 3 path works"
