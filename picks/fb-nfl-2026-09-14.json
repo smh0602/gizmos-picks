@@ -1,7 +1,7 @@
 {
  "date": "2026-09-14",
  "league": "nfl",
- "generated_at": "2026-09-14T21:44:40Z",
+ "generated_at": "2026-09-15T11:23:45Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-14T15:26:06Z",
@@ -15,37 +15,37 @@
  "game_lines": [
   {
    "kind": "MARKET",
-   "game": "Denver Broncos @ Kansas City Chiefs",
-   "game_id": "5ad8135dc2b5f27de0b777acd317855a",
-   "commence": "2026-09-15T00:15:00Z",
-   "market": "spreads",
-   "side": "Kansas City Chiefs",
-   "point": -2.5,
+   "game": "Detroit Lions @ Buffalo Bills",
+   "game_id": "56e8897681915f7ec92baeee952bb1ae",
+   "commence": "2026-09-18T00:15:00Z",
+   "market": "totals",
+   "side": "Under",
+   "point": 53.5,
    "best_price": -105,
    "best_book": "fanduel",
    "link": null,
-   "median_price": 1.9175,
-   "n_books": 4,
-   "gain_pct": 1.82
+   "median_price": 1.9133,
+   "n_books": 6,
+   "gain_pct": 2.04
   }
  ],
  "game_lines_meta": {
   "games_seen": 1,
-  "comparable_quotes": 4,
+  "comparable_quotes": 6,
   "games_with_an_edge": 1,
   "min_books": 3,
-  "slate": "2026-09-14",
+  "slate": "2026-09-17",
   "off_day_games": 16,
   "off_day_dates": [
-   "2026-09-17",
+   "2026-09-14",
    "2026-09-20",
    "2026-09-21"
   ],
   "card_slate": "2026-09-14",
-  "is_next_slate": false,
+  "is_next_slate": true,
   "snapshot": "data/nfl/2026-09-14/gamelines/1820.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "\ud83d\udcc5 2026-09-17 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 6 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -150,7 +150,7 @@
    {
     "legs": [
      "RJ Harvey o18.5 rush yds",
-     "Kansas City Chiefs -2.5 spread"
+     "Kenneth Walker III u3.5 rec"
     ],
     "game": "Denver Broncos @ Kansas City Chiefs",
     "game_id": "5ad8135dc2b5f27de0b777acd317855a",
@@ -158,79 +158,13 @@
     "book": "hardrockbet",
     "prices": [
      -120,
-     -110
+     -165
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.5,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 94,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     94
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Kenneth Walker III u3.5 rec",
-     "Kansas City Chiefs -2.5 spread"
-    ],
-    "game": "Denver Broncos @ Kansas City Chiefs",
-    "game_id": "5ad8135dc2b5f27de0b777acd317855a",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -165,
-     -110
-    ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.066,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 86,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     86
-    ],
-    "band_floor": 1.8
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "RJ Harvey o18.5 rush yds",
-     "Kenneth Walker III u3.5 rec",
-     "Kansas City Chiefs -2.5 spread"
-    ],
-    "game": "Denver Broncos @ Kansas City Chiefs",
-    "game_id": "5ad8135dc2b5f27de0b777acd317855a",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -120,
-     -165,
-     -110
-    ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 5.621,
+    "n_line_legs": 0,
+    "multiplier": 2.944,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -243,13 +177,12 @@
      94,
      86
     ],
-    "band_floor": 3.0
+    "band_floor": 1.8
    },
    {
     "legs": [
      "RJ Harvey o18.5 rush yds",
-     "Adam Trautman o0.5 rec",
-     "Kansas City Chiefs -2.5 spread"
+     "Adam Trautman o0.5 rec"
     ],
     "game": "Denver Broncos @ Kansas City Chiefs",
     "game_id": "5ad8135dc2b5f27de0b777acd317855a",
@@ -257,14 +190,13 @@
     "book": "hardrockbet",
     "prices": [
      -120,
-     -230,
-     -110
+     -230
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 5.022,
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 2.63,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -277,6 +209,78 @@
      94,
      81
     ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "RJ Harvey o18.5 rush yds",
+     "Kenneth Walker III u3.5 rec",
+     "Adam Trautman o0.5 rec"
+    ],
+    "game": "Denver Broncos @ Kansas City Chiefs",
+    "game_id": "5ad8135dc2b5f27de0b777acd317855a",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -165,
+     -230
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 4.225,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 81,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     94,
+     86,
+     81
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "RJ Harvey o18.5 rush yds",
+     "Kenneth Walker III u3.5 rec",
+     "J.K. Dobbins o50.5 rush yds"
+    ],
+    "game": "Denver Broncos @ Kansas City Chiefs",
+    "game_id": "5ad8135dc2b5f27de0b777acd317855a",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -165,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 5.505,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 79,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     94,
+     86,
+     79
+    ],
     "band_floor": 3.0
    }
   ]
@@ -287,7 +291,7 @@
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 38,
+   "same_player": 34,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
