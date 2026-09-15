@@ -25,6 +25,8 @@ failed — which needs no threshold and clears itself the moment a green run
 lands.
 """
 import datetime
+import glob
+import re
 import sys
 
 from tcheck import ck, note
@@ -45,7 +47,7 @@ def run(name, concl, hours_ago, url="u"):
 print("═══ 1. ✅ A GREEN REPO IS SILENT ═══")
 # ⛔ PROVED FIRST, BEFORE ANY DETECTION. A watcher that cannot be quiet
 #    will be muted, and then it detects nothing at all.
-broken, flap, seen = R.analyse(
+broken, flap, seen, trunc, miss = R.analyse(
     [run("collect", "success", h) for h in range(1, 20)], NOW)
 ck("🔴 nothing is reported when every run is green",
    not broken and not flap,
@@ -53,7 +55,7 @@ ck("🔴 nothing is reported when every run is green",
    "Got broken=%s flapping=%s" % (broken, flap))
 
 print("\n═══ 2. 🔴 A WORKFLOW WHOSE LATEST RUN FAILED IS REPORTED ═══")
-broken, flap, seen = R.analyse(
+broken, flap, seen, trunc, miss = R.analyse(
     [run("collect", "failure", 1)] + [run("collect", "success", h)
                                       for h in range(2, 10)], NOW)
 ck("🔴 the currently-broken workflow is named",
@@ -68,7 +70,7 @@ ck("✅ ...and the issue body names it and links the run",
 print("\n═══ 3. ⛔ ONE FAILURE THAT RECOVERED IS WEATHER, NOT AN ALARM ═══")
 # ⚠️ The collector talks to four external APIs. A single hiccup the next
 #    run recovers from must NOT raise anything, or the channel dies.
-broken, flap, seen = R.analyse(
+broken, flap, seen, trunc, miss = R.analyse(
     [run("collect", "success", 1), run("collect", "failure", 2)]
     + [run("collect", "success", h) for h in range(3, 10)], NOW)
 ck("⛔ a single recovered failure raises NOTHING",
@@ -79,7 +81,7 @@ ck("⛔ a single recovered failure raises NOTHING",
 print("\n═══ 4. ⚠️ BUT REPEATED FAILURE IS REPORTED EVEN AFTER RECOVERY ═══")
 # 🔴 THIS IS THE 09-14 SHAPE: every run red for 2h25m, then green the
 #    moment the fix landed, and nobody was ever told.
-broken, flap, seen = R.analyse(
+broken, flap, seen, trunc, miss = R.analyse(
     [run("collect", "success", 1)]
     + [run("collect", "failure", h) for h in (2, 3, 4)]
     + [run("collect", "success", 9)], NOW)
@@ -96,14 +98,14 @@ ck("✅ ...and it is a NOTE, not an alarm — it is not in `broken`",
 print("\n═══ 5. ⛔ AN IN-PROGRESS RUN HAS NOT ANSWERED YET ═══")
 # A blank conclusion is neither a pass nor a failure, and treating it as
 # either is wrong. ⚠️ The most common case is THIS workflow's own run.
-broken, flap, seen = R.analyse(
+broken, flap, seen, trunc, miss = R.analyse(
     [run("collect", None, 0), run("collect", "failure", 1)]
     + [run("collect", "success", h) for h in range(2, 6)], NOW)
 ck("🔴 an in-progress run does not hide the failure beneath it",
    [b["name"] for b in broken] == ["collect"],
    "⛔ if a running job counted as a pass, every alarm would be silenced "
    "by the next scheduled run starting. Got %s" % broken)
-broken2, _, _ = R.analyse(
+broken2, _, _, _, _ = R.analyse(
     [run("collect", None, 0)] + [run("collect", "success", h)
                                  for h in range(1, 6)], NOW)
 ck("✅ ...and it does not invent a failure either",
@@ -113,7 +115,7 @@ ck("✅ ...and it does not invent a failure either",
 print("\n═══ 6. 🔴 EVERY WORKFLOW IS WATCHED, NOT JUST `collect` ═══")
 # ⛔ DROP 52's ALERT LIVED INSIDE collect.yml AND COULD SEE NOTHING ELSE.
 #    There are four workflows deployed.
-broken, flap, seen = R.analyse(
+broken, flap, seen, trunc, miss = R.analyse(
     [run("collect", "success", 1), run("browser", "failure", 1),
      run("self-repair", "success", 2), run("runs", "success", 1)], NOW)
 ck("🔴 a failure in a NON-collect workflow is caught",
@@ -144,7 +146,7 @@ _push = [{"name": "watchdog: health report 2026-09-15T00:00Z",
          {"name": "Merge pull request #7",
           "workflowName": "collect", "conclusion": "failure",
           "url": "u", "createdAt": "2026-09-14T20:00:00Z"}]
-broken, flap, seen = R.analyse(_push, NOW)
+broken, flap, seen, trunc, miss = R.analyse(_push, NOW)
 ck("🔴🔴 three runs with three different display names are ONE workflow",
    seen == ["collect"],
    "⛔ if these group by display name, every push run is its own "
@@ -160,6 +162,70 @@ ck("✅ ...and a run with only `name` still groups, rather than vanishing",
    == "browser",
    "⛔ the fallback matters: if `workflowName` is ever absent, dropping "
    "the row would be a silent miss, which is worse than a wrong name")
+
+print("\n═══ 6c. 🔴🔴 A TRUNCATED LIST IS NOT A CLEAN BILL OF HEALTH ═══")
+# ⛔ MEASURED 2026-09-15: ~96 cron runs/day plus push runs, against a
+#    `--limit 100` ask. The list covered BARELY A DAY — so `browser`
+#    (2/day) and `self-repair` (4/day) could be flooded out of it
+#    entirely by `collect`, leaving the watcher blind to exactly the
+#    low-frequency workflows it most needs to see.
+# 🔴 AND THE COUNTS WOULD HAVE READ AS COMPLETE. A 24h flapping count
+#    taken from 20h of data, reported without caveat, is a false
+#    all-clear. ➡️ Ledger rule 270.
+_fresh = [run("collect", "success", h / 10.0) for h in range(1, 40)]
+b, f, seen, trunc, miss = R.analyse(_fresh, NOW)
+ck("🔴🔴 a list whose OLDEST run is inside the window is flagged truncated",
+   trunc,
+   "⛔ if the oldest run returned is younger than the window, the list "
+   "did not reach back far enough and every 24h count below it is "
+   "understated. Got truncated=%s" % trunc)
+ck("⛔ ...and that alone breaks the silence, so it cannot pass as healthy",
+   "truncated" in R.render(b, f, seen, trunc, miss).lower(),
+   "🔴 the whole point is that an undercount must not read as a clean "
+   "bill of health")
+_deep = [run("collect", "success", h) for h in (0.5, 5, 12, 26)]
+ck("✅ ...and a list that DOES reach past the window is not flagged",
+   not R.analyse(_deep, NOW)[3],
+   "⛔ flagging every list would be rule 238 — the false alarm that gets "
+   "the channel filtered")
+
+print("\n═══ 6d. 🔴 A SCHEDULED WORKFLOW WITH NO RUNS IS UNSEEN, NOT HEALTHY ═══")
+# 🔴 THE `ncaaf` 19:0x CLASS (rule 251): a cron that declares a run and
+#    never lands, invisible because nothing compared the DECLARATION to
+#    the reality. ⛔ Nothing in this repo had ever made that comparison.
+_sched = R.scheduled_workflows(".")
+ck("🔴 the expected set is READ from the workflow files, not named",
+   "collect" in _sched and "runs" in _sched and len(_sched) >= 3,
+   "⛔ a hardcoded list covers exactly the workflows somebody remembered "
+   "(rule 246). Got %s" % sorted(_sched))
+# ⚠️ THE NAME IS READ FROM THE FILE, NOT GUESSED. My first version of
+#    this check asserted `"claude" not in _sched` — but `claude.yml`
+#    declares `name: Claude`, so the needle never appeared either way and
+#    the check passed with the cron filter DELETED. **Vacuous, rule 67,
+#    seventh time this week.** ✅ Caught by driving it: disabling the
+#    filter left the suite green.
+_claude_name = None
+for _p in glob.glob(".github/workflows/*.yml"):
+    _t = open(_p, encoding="utf-8").read()
+    if not re.search(r"^\s*-?\s*cron:", _t, re.M):
+        _m = re.search(r"^name:\s*(.+)$", _t, re.M)
+        if _m:
+            _claude_name = _m.group(1).strip()
+ck("⛔ ...and a workflow with NO cron is correctly excluded",
+   _claude_name is not None and _claude_name not in _sched,
+   "🔴 a workflow declaring no schedule is correctly absent from a run "
+   "list; flagging it would be a permanent false alarm. Excluded name "
+   "must be REAL — got %r against %s" % (_claude_name, sorted(_sched)))
+_only = [run("collect", "success", h) for h in (0.5, 5, 12, 26)]
+_b, _f, _seen, _t, _miss = R.analyse(_only, NOW)
+ck("🔴🔴 a scheduled workflow that produced NO runs is reported",
+   "browser" in _miss and "self-repair" in _miss,
+   "⛔ 'we saw no runs from it' and 'it is healthy' are different "
+   "findings, and only one of them is true. Got missing=%s" % _miss)
+ck("✅ ...and the body says UNSEEN rather than healthy",
+   "UNSEEN" in R.render(_b, _f, _seen, _t, _miss),
+   "🔴 the wording is the whole value — a reader must not take silence "
+   "about a workflow as evidence about it")
 
 print("\n═══ 7. ⛔ 'I COULD NOT LOOK' IS NOT 'EVERYTHING IS FINE' ═══")
 _rc = R.main.__doc__  # presence check only; main() reads stdin
