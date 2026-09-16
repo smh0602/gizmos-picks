@@ -27,7 +27,9 @@ import re
 import sys
 import unicodedata
 from datetime import datetime, timedelta
-from tcheck import ck, note   # the shared gate — see tcheck.py
+from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+#                                 fixture went red on all four harnesses at once
+#                                 the day card_fb.py gained one import
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FAIL = []
@@ -612,9 +614,13 @@ def _regrade(lg):
     d = _tf.mkdtemp(prefix="recfb-%s-" % lg)
     _sh.copytree("%s/data/%s" % (ROOT, lg), "%s/data/%s" % (d, lg))
     _sh.copytree("%s/picks" % ROOT, "%s/picks" % d)
+    # ⚠️ `_HELPERS` IS NOW A SEED LIST, NOT A DEPENDENCY LIST. Each
+    #    entry arrives WITH the repo-local modules it imports, so the day a
+    #    subject gains an import this tree gets it too. `[2026-09-16: it
+    #    did — card_fb.py imported calibration.py and this list, and three
+    #    more like it, all went stale in the same commit]`
     for f in _HELPERS:
-        if os.path.exists("%s/%s" % (ROOT, f)):
-            _sh.copy("%s/%s" % (ROOT, f), d)
+        copy_module(f, d)
     p = _sp.run([sys.executable, "record_fb.py"], cwd=d, timeout=300,
                 env=dict(os.environ, LEAGUE=lg),
                 capture_output=True, text=True)

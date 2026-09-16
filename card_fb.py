@@ -107,6 +107,17 @@ import sys
 import unicodedata
 from datetime import datetime, timezone
 
+# 🔴🔴 THE BAR BELOW WHICH THIS PROJECT REFUSES TO CALL A PERCENTAGE A
+#    RATE, IMPORTED AND NEVER RE-TYPED. `calibration.py` owns it (T37's
+#    lesson: build #183 failed on 1 contradiction out of 4 rows), and a
+#    second copy of a bar is a second thing to drift — this repo has been
+#    bitten by exactly that (rule 66).
+# ⛔ NO try/except FALLBACK. A fallback constant IS the second copy, and
+#    it would be the copy that runs on the day the import breaks. A
+#    missing calibration.py is a broken repo and the builder should say so
+#    loudly rather than quietly publish a bar nobody chose.
+from calibration import MIN_N
+
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
     print(f"FATAL: card_fb.py is football only, got LEAGUE={LEAGUE!r}")
@@ -252,11 +263,27 @@ def calibration_sentence_fb(cal=None, dropped=0):
     # than the record is the shape of every calibration bug in this repo.
     drop = (f" {dropped} graded play(s) sit in buckets this banner could "
             f"not read and are not counted above." if dropped else "")
+    # 🔴🔴 WHEN THE READABLE SAMPLE IS UNDER THE PROJECT'S OWN BAR, SAY SO
+    #    AND NAME IT. `[measured 2026-09-16]` CFB's readable bands total 71
+    #    graded plays — below the 100 at which `calibration.py` will not
+    #    even call a gap a finding — and the banner still printed
+    #    "80-plus hit 72.4% against a claimed 87%". "Small samples
+    #    throughout" is true and does not say that.
+    # ⛔ THE ANSWER IS NOT TO SUPPRESS THE BANNER. A CFB reader with no
+    #    honesty note at all is the exact defect this banner exists to fix;
+    #    silence is worse than a caveated number. So the figures still
+    #    print, and the caveat names the bar they sit under.
+    weight = (
+        f" {total} graded {LG_NAME} plays behind these figures, under the "
+        f"{MIN_N} this project needs before it will call a percentage a "
+        f"rate — so read them as history rather than a measured rate, and "
+        f"every one of them will move."
+        if total < MIN_N else
+        f" {total} graded {LG_NAME} plays behind these figures and small "
+        "samples throughout -- every one of them will move.")
     return ("; ".join(parts) + "."
             + f" The {best[0]} band is currently the closest to its own claim."
-            + tail + drop
-            + f" {total} graded {LG_NAME} plays behind these figures and "
-              "small samples throughout -- every one of them will move.")
+            + tail + drop + weight)
 
 
 SNAP_FLOOR = 0.50        # pre-registered, see docstring. ⛔ do not tune

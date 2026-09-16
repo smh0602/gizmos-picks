@@ -70,6 +70,57 @@ _NOTES = []
 _WATCH = ("data", "picks")
 
 
+def copy_module(name, dst, root=None):
+    """Copy repo module `name` into `dst` WITH the repo-local modules it
+    imports, transitively. -> the basenames copied, sorted.
+
+    🔴🔴 A FIXTURE MISSING A FILE ITS SUBJECT NEEDS IS RULE 67 WEARING A
+    GREEN TICK — except here it does not even go green, it goes red for a
+    reason that has nothing to do with the thing under test.
+    `[measured 2026-09-16]` FOUR isolated-tree harnesses each hand-listed
+    the files to copy — three spelled `shutil.copy("card_fb.py", tmp)` and
+    one kept a `_HELPERS` tuple. The day `card_fb.py` gained ONE
+    repo-local import, all four went red at once and the builder they
+    exist to test could not start.
+    ⛔ A DEPENDENCY LIST WRITTEN BY HAND IS A LIST NOBODY CAN AUTO-UPDATE
+    — the rule `collect.yml` already follows by DISCOVERING test files
+    instead of naming them, and `budget.py` by deriving the schedule
+    instead of quoting it.
+    ⚠️ REPO-LOCAL ONLY. A name is followed only when `<root>/<name>.py`
+    exists, so stdlib and third-party imports are left alone.
+    """
+    import ast
+    import shutil
+    root = root or os.path.dirname(os.path.abspath(__file__))
+    todo = [name if name.endswith(".py") else name + ".py"]
+    seen, out = set(), []
+    while todo:
+        f = todo.pop()
+        if f in seen:
+            continue
+        seen.add(f)
+        src = os.path.join(root, f)
+        if not os.path.exists(src):
+            continue
+        shutil.copy(src, dst)
+        out.append(f)
+        try:
+            tree = ast.parse(open(src, encoding="utf-8").read())
+        except (OSError, SyntaxError):
+            continue
+        for n in ast.walk(tree):
+            mods = []
+            if isinstance(n, ast.Import):
+                mods = [a.name for a in n.names]
+            elif isinstance(n, ast.ImportFrom) and not n.level and n.module:
+                mods = [n.module]
+            for m in mods:
+                cand = m.split(".")[0] + ".py"
+                if os.path.exists(os.path.join(root, cand)):
+                    todo.append(cand)
+    return sorted(out)
+
+
 def _snapshot():
     seen = {}
     for root in _WATCH:

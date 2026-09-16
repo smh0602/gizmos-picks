@@ -25,7 +25,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from tcheck import ck, note   # the shared gate — see tcheck.py
+from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+#                                 fixture went red on all four harnesses at once
+#                                 the day card_fb.py gained one import
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FAIL = []
@@ -68,7 +70,16 @@ print("\n═══ 2. END-TO-END, ON THE REAL BUILDER ═══")
 def stage(tmp):
     shutil.copytree(os.path.join(ROOT, "data/ncaaf"), os.path.join(tmp, "data/ncaaf"))
     os.makedirs(os.path.join(tmp, "picks"), exist_ok=True)
-    shutil.copy(os.path.join(ROOT, "card_fb.py"), tmp)
+    # @vacuity the isolated tree must carry the subject's OWN imports
+    #   file: tcheck.py
+    #   find: if os.path.exists(os.path.join(root, cand)):
+    #   with: if False:
+    # ⚠️ DECLARED HERE AND NOT IN ALL FOUR: the mutation is one edit to
+    #    `tcheck.py` and this is the fastest of the harnesses that would
+    #    catch it. `[the class the guard protects: a fixture that
+    #    hand-lists its subject's dependencies — 2026-09-16, four of them
+    #    went red in one commit]`
+    copy_module("card_fb", tmp)
 
 
 def run(tmp, mutate=None):
