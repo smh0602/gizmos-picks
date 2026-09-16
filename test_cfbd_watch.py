@@ -189,6 +189,14 @@ ck("⚠️ both of cfbd_budget.py's bars are findable at all",
    "⛔ if this regex stops matching, the check below is vacuous — it "
    "would be comparing WARN_FRAC against an empty list (rule 67). Found "
    "bars=%s warn=%s" % ([n for n, _ in _BARS], _WARN_BARS))
+# @vacuity the bar must be READ from cfbd_budget.py, never hardcoded here
+#   file: cfbd_budget.py
+#   find: if pct >= 80:
+#   with: if pct >= 95:
+# ⚠️ THIS EXACT MUTATION LEFT THE WHOLE SUITE GREEN on 2026-09-15, with
+#    WARN_FRAC still 0.80 and cfbd_budget.py warning at 95 — two bars
+#    silently disagreeing. Sam found it by hand. `vacuity.py` applies it
+#    nightly now so the next one is not found by hand.
 ck("🔴🔴 WARN_FRAC IS cfbd_budget.py's OWN BAR, read out of its source",
    bool(_WARN_BARS) and abs(W.WARN_FRAC * 100 - _WARN_BARS[0]) < 1e-9,
    "⛔ THE TWO MUST NOT DRIFT. cfbd_budget.py warns at `pct >= %s` and "
@@ -372,6 +380,13 @@ ck("🔴 the harness CAN observe a create — proven with no issue open first",
    "⛔ if the fake `gh` never runs, every assertion below is vacuous. "
    "Got %r" % _no_open)
 _with_open = _drive("bad", "42")
+# @vacuity the OVER path must EDIT an open issue, never open a second one
+#   file: .github/workflows/cfbd.yml
+#   find: gh issue edit "$NUM" --body-file /tmp/cfbd.md
+#   with: gh issue create --title "$TITLE" --body-file /tmp/cfbd.md
+# ⚠️ THIS EXACT MUTATION LEFT THE WHOLE SUITE GREEN on 2026-09-15 — a new
+#    quota issue every day, rule 238, on the one channel that would warn
+#    about a quota that has already run out once.
 ck("🔴🔴 with an issue ALREADY OPEN, the OVER path EDITS it",
    "issue edit 42" in _with_open,
    "⛔ THE MUTATION SAM FOUND: swap `gh issue edit` for a fresh `gh issue "
