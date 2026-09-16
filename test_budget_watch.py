@@ -275,13 +275,69 @@ def drive(body, state, open_issue):
 # 🔴 THE HARNESS IS PROVEN ABLE TO SEE A CLOSE BEFORE IT IS TRUSTED TO
 #    REPORT THE ABSENCE OF ONE. ⛔ Otherwise a fake `gh` that never ran at
 #    all would make every "does not close" check below pass (rule 67).
-_can_see = [(f, drive(b, "ok", "77")) for f, _, b in _issue_wf]
-_blind = [f for f, l in _can_see if "issue close 77" not in l]
-ck("🔴🔴 the harness CAN observe a close — proven on the ok path first",
+# ⚠️ ~~`drive(b, "ok")` must close~~ — REPLACED 2026-09-16, and the
+#    replacement is STRICTLY HARDER, not looser. The old form asked "does
+#    the OK path close?", which is a PROXY for "can the harness see a
+#    close at all?" and it is the wrong question for a watcher whose
+#    normal state is a COUNTER: `owed_tests.yml` reports progress for
+#    months and resolves on `answered`. ⛔ The fix is not to exempt it.
+# ✅ EACH WORKFLOW NOW DECLARES THE STATE THAT RESOLVES IT, and the
+#    harness asserts it closes on THAT state **and on no other**. The old
+#    check never asked whether `bad` closes an issue — this one does, for
+#    every workflow, so a close that migrated onto the alarm path is now
+#    caught where before it was invisible.
+# ⛔ THE MAP MUST BE COMPLETE. A workflow missing from it FAILS rather
+#    than being skipped, so a new watcher cannot slip past by omission.
+# ⚠️ EACH VALUE IS THE COMPLETE SET, and every member needs a reason —
+#    an undeclared close is a failure, so the map cannot be padded
+#    quietly.
+# @vacuity a watcher's declared resolving path must really close
+#   file: .github/workflows/owed_tests.yml
+#   find: gh issue close "$NUM"
+#   with: echo "deliberately not closing"
+_RESOLVES_ON = {
+    "budget.yml": {"ok"}, "calibration.yml": {"ok"}, "cfbd.yml": {"ok"},
+    "vacuity.yml": {"ok"},
+    # ⚠️ TWO, AND THE SECOND IS DELIBERATE `[PR #19]`. On `coverage` the
+    #    run watcher CLOSES the false "a workflow is failing" issue while
+    #    opening the coverage one — the whole point of that drop was that
+    #    a truncated run list is not an outage. Found by this check on the
+    #    day it was written, and it is correct behaviour, not an offender.
+    "runs.yml": {"ok", "coverage"},
+    # ⚠️ NOT `ok`. Progress is this watcher's normal state for months and
+    #    must never close the counter; the bar being met is what resolves
+    #    it. See the header of `t58_t59.py`.
+    "owed_tests.yml": {"answered"},
+}
+_STATES = ("ok", "bad", "unknown", "progress", "shrank", "answered",
+           "coverage")
+_unmapped = sorted({f for f, _, _ in _issue_wf} - set(_RESOLVES_ON))
+ck("⛔ every issue-writing workflow declares the state that resolves it",
+   not _unmapped,
+   "🔴 a workflow absent from the map is a workflow this section says "
+   "nothing about — the same silence as an empty sweep. Unmapped: %s"
+   % _unmapped)
+_blind, _wrong = [], []
+for _f, _, _b in _issue_wf:
+    _want = _RESOLVES_ON.get(_f)
+    if _want is None:
+        continue
+    _closes = {st for st in _STATES
+               if "issue close 77" in drive(_b, st, "77")}
+    if not (_want & _closes):
+        _blind.append((_f, sorted(_want), sorted(_closes)))
+    if _closes - _want:
+        _wrong.append((_f, sorted(_closes - _want)))
+ck("🔴🔴 the harness CAN observe a close — proven on each one's own path",
    not _blind,
    "⛔ if the fake `gh` is never invoked, 'it did not close the issue' is "
    "true of a step that did nothing at all, and section 2 proves "
-   "NOTHING. Steps whose ok path closed no issue: %s" % _blind)
+   "NOTHING. Workflows whose declared path closed no issue: %s" % _blind)
+ck("⛔ ...and NOTHING closes an issue on any OTHER state",
+   not _wrong,
+   "🔴 THE OLD CHECK NEVER ASKED THIS. A close that migrated onto the "
+   "alarm path would resolve the issue at the exact moment it fires. "
+   "Offenders: %s" % _wrong)
 _closed = [f for f, _, b in _issue_wf
            if "issue close" in drive(b, "unknown", "77")]
 ck("🔴🔴 NO issue-writing workflow closes an issue on `unknown`",

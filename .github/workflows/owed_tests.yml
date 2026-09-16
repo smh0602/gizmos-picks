@@ -1,0 +1,133 @@
+# 🔴🔴 TWO PRE-REGISTERED TESTS THAT NOBODY HAS TO REMEMBER.
+#
+# `[Sam, 2026-09-16: "Make T58 and T59 resolvable without either of us
+# remembering."]`
+#
+# ⛔ THE FAILURE THIS EXISTS TO PREVENT IS NOT "THE TEST FAILS". It is the
+# test sitting open for months while its sample accumulates in a file
+# nobody opens — which has already happened here once. `t54.py` was
+# written for exactly this reason after T54 sat open for EIGHT DAYS with a
+# sample structurally stuck at zero.
+#
+# ⚠️ AND IT HAPPENED TO T54'S OWN COUNTER. `[measured 2026-09-16]` The
+# hook that runs it lives in `collect.py`'s `fb-record` branch, and
+# **nothing schedules `fb-record`** — the football record is built from
+# the card path instead. `data/*/latest/t54.json` has never been committed
+# once. ➡️ SO THIS WATCHER IS SELF-CONTAINED: its own cron, its own issue,
+# reading only files the collector already commits.
+#
+# ⛔⛔ UNDER THE BAR IT REPORTS PROGRESS ONLY AND NO STATISTIC — not for
+# the NFL rows and not for the college ones. T58's void condition is a
+# statement about college football, which makes college the CONTROL, and
+# reading a control early is the same offence as reading the treatment
+# early. **A pre-registration you have been watching is not a
+# pre-registration.**
+#
+# 💰 FREE. Reads two committed JSON files and writes an issue. No Claude
+# usage, no Odds credits, no CFBD calls, seconds of runner time.
+name: owed-tests
+run-name: ${{ github.event.schedule && format('owed-tests [cron {0}]', github.event.schedule) || format('owed-tests [{0}]', github.event_name) }}
+
+on:
+  # ⚠️ DAILY, NOT HOURLY. The sample moves on NFL slates — Thursday,
+  # Sunday, Monday — so asking hourly is 24 identical answers a day and an
+  # issue nobody reads. ⛔ Off :00 and :30 like every cron here; those
+  # slots are the most congested on GitHub's scheduler and get dropped.
+  schedule:
+    - cron: "38 11 * * *"      # 7:38am ET, after the overnight grading
+  workflow_dispatch:
+
+concurrency:
+  # ⚠️ PER MODE, never shared. A shared group silently cancels queued
+  # scheduled runs when someone triggers a job by hand.
+  group: owed-tests
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: How far along are T58 and T59?
+        id: look
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          TITLE="Gizmo's Picks - T58 and T59 are accumulating"
+          # 🔴 THE PREVIOUS OBSERVATION COMES OUT OF THE ISSUE BODY, in the
+          # marker this job wrote last time — the same idiom as
+          # `<!-- CRON TOTAL: N -->` in CLAUDE.md.
+          # ⛔ NOT a file this job commits: it has `contents: read`, and a
+          # best-effort push that silently fails is a shrink guard that
+          # silently stops guarding.
+          gh issue list --state all --limit 100 --json number,title,body \
+            --jq ".[] | select(.title == \"$TITLE\") | .body" > /tmp/prior.md
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.
+          # A shell step that decides what counts as "the bar is met" is a
+          # second copy of the register, and the copy no test can reach.
+          python t58_t59.py --prior /tmp/prior.md > /tmp/owed.md 2>/tmp/owed.err
+          rc=$?
+          cat /tmp/owed.md
+          cat /tmp/owed.err >&2
+          case "$rc" in
+            0) echo "state=progress"  >> "$GITHUB_OUTPUT" ;;
+            1) echo "::warning::the pre-registered sample SHRANK"
+               echo "state=shrank"    >> "$GITHUB_OUTPUT" ;;
+            3) echo "::warning::T58 and T59 are answered — read the issue"
+               echo "state=answered"  >> "$GITHUB_OUTPUT" ;;
+            *) echo "::warning::owed-tests could not read a record"
+               echo "state=unknown"   >> "$GITHUB_OUTPUT" ;;
+          esac
+          exit 0
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE — same shape as the calibration and
+      # run watchers, for the same reason: a workflow that opens a fresh
+      # issue daily is one whose notifications get filtered, and a filtered
+      # alert is no alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not read the record" is
+      # not "the sample is fine" and must never close an open issue.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - T58 and T59 are accumulating"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not read the record — leaving any open issue alone"
+            exit 0
+          fi
+          if [ -z "$NUM" ] && [ "$STATE" = "answered" ]; then
+            # ⚠️ IDEMPOTENT. Once the verdict has been delivered and the
+            # issue closed, a later run must not reopen it every morning.
+            echo "already answered and closed — nothing to do"
+            exit 0
+          fi
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --body-file /tmp/owed.md
+          else
+            gh issue create --title "$TITLE" --body-file /tmp/owed.md --assignee smh0602 \
+              || gh issue create --title "$TITLE" --body-file /tmp/owed.md
+            NUM=$(gh issue list --state open --limit 100 --json number,title \
+                    --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          fi
+          # ✅ THE ONE CLOSE PATH: the bar is met, both verdicts are in,
+          # and the owed test is no longer owed. ⛔ Progress NEVER closes
+          # it — the counter is the whole point until then.
+          if [ "$STATE" = "answered" ] && [ -n "$NUM" ]; then
+            gh issue comment "$NUM" --body "✅ The bar is met and both verdicts are recorded above. Closing: the owed test is no longer owed. ⛔ The thresholds were fixed before any of these rows existed and are not re-decided now."
+            gh issue close "$NUM"
+          fi
+          exit 0
