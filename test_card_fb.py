@@ -636,3 +636,265 @@ _short = [_leg("A", "g1", -900, 95), _leg("B", "g2", -900, 94)]
 _pl6, _m6 = _C.build_parlays_fb(_short)
 eq(len(_pl6["2"]), 0, "   two -900 legs pay 1.22x -> outside the band")
 ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
+
+# ══════════════════════════════════════════════════════════════════════
+# EVERY GUARD BELOW SHIPS WITH THE MUTATION THAT PROVES IT.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A GUARD NOBODY HAS SEEN FAIL IS A GUARD NOBODY HAS TESTED. CLAUDE.md
+#    says prove it bites before you call it done — these declarations turn
+#    that from something two people do by hand into something `vacuity.py`
+#    tier 2 re-proves every night: apply the edit, assert RED, revert,
+#    assert GREEN.
+# ⚠️ EACH ONE IS A REAL MUTATION THAT WAS DRIVEN, not a plausible-looking
+#    string. Every `find` matches its file EXACTLY ONCE and every mutated
+#    file still COMPILES — a `find` that matches nothing is a no-op
+#    wearing a proof's clothes (rule 244), and a SyntaxError goes red for
+#    the WRONG reason and is indistinguishable from a working guard.
+# ⛔ NO VALUE MAY BEGIN WITH A SPACE. `vacuity.py`'s field regex ends
+#    `:\s*(.*)$`, so leading whitespace is eaten and the mutation would
+#    silently become a different string than the one written here.
+#
+# @vacuity the card must WIRE the banner in, not merely be able to build it
+#   file: card_fb.py
+#   find: "calibration_warning": calibration_sentence_fb(),
+#   with: "cal_warning_unwired": calibration_sentence_fb(),
+#
+# @vacuity the claim is keyed `stated`; MLB's `predicted` finds nothing
+#   file: card_fb.py
+#   find: row.get("stated")
+#   with: row.get("predicted")
+#
+# @vacuity a band under FB_CAL_MIN_N must not be quoted as a rate
+#   file: card_fb.py
+#   find: if b in cal and cal[b]["n"] >= FB_CAL_MIN_N]
+#   with: if b in cal]
+#
+# @vacuity the banner is DERIVED; a hand-written one is stale on night one
+#   file: card_fb.py
+#   find: total = sum(c["n"] for _, c in have)
+#   with: return "Football confidence has run hot; treat it as unproven."
+#
+# @vacuity the MIN_N bar is calibration.py's, never a second copy
+#   file: card_fb.py
+#   find: from calibration import MIN_N
+#   with: MIN_N = 55
+#
+# @vacuity under the bar the banner must SAY the bar
+#   file: card_fb.py
+#   find: if total < MIN_N else
+#   with: if False else
+#
+# @vacuity the page must actually RENDER it
+#   file: index.html
+#   find: ${fbCalNote(C)}
+#   with: ${'' /* not rendered */}
+# ══════════════════════════════════════════════════════════════════════
+print("\n17. 🔴🔴 A BOARD THAT STATES A CONFIDENCE MUST STATE HOW THAT")
+print("    CONFIDENCE HAS PERFORMED.")
+print("    `[the defect, measured 2026-09-16]` MLB published a")
+print("    `calibration_warning` above its rows from 2026-09-01. FOOTBALL")
+print("    PUBLISHED NONE — so the better-calibrated board warned and the")
+print("    worse one did not. NFL overall 46.4%; its 80-90 bucket claimed")
+print("    84.1 and delivered 47.8 over 23 graded plays, and a reader")
+print("    seeing 84 in a CONF cell was told nothing about that.")
+print("    ⚠️ THE LABEL WAS NEVER THE PROBLEM — rule 55 was satisfied.")
+
+# ⛔ GUARDING THE CLASS, NOT THE FILE. CLAUDE.md: ask what CLASS the defect
+#    belongs to and guard the class where the class is answerable. It is
+#    answerable here — the class is "a card builder that publishes a
+#    confidence number", which is discoverable rather than a list I type.
+#    This file broke once by naming one file (rules 246, 130).
+import glob as _g17
+_ROOT17 = os.path.dirname(os.path.abspath(__file__))
+_BUILDERS = sorted(os.path.basename(p)
+                   for p in _g17.glob(os.path.join(_ROOT17, "card*.py")))
+ck(len(_BUILDERS) >= 2,
+   "⚠️ the sweep found the card builders at all",
+   "⛔ AN EMPTY SWEEP PASSES EVERY ASSERTION BELOW AND PROVES NOTHING "
+   "(rule 67). Got %s" % _BUILDERS)
+_STATERS = []
+for _b in _BUILDERS:
+    _src = open(os.path.join(_ROOT17, _b), encoding="utf-8").read()
+    if '"confidence"' not in _src:
+        continue                      # not a board that states a confidence
+    _STATERS.append(_b)
+    ck('"calibration_warning":' in _src,
+       "🔴🔴 %s states a confidence, so it publishes a calibration_warning"
+       % _b,
+       "⛔ THIS IS THE DEFECT. A board that prints 84 in a CONF cell and "
+       "says nothing about how that bucket has gone is advertising a "
+       "number it has never been held to. Every builder that states one "
+       "owes the reader its record.")
+ck(len(_STATERS) >= 2,
+   "⚠️ ...and BOTH boards were actually swept, not just one",
+   "⛔ if only MLB matched, the football half of this check never ran. "
+   "Got %s" % _STATERS)
+
+print("\n17a. ⚠️ DERIVED AT BUILD TIME, NEVER HAND-WRITTEN")
+_C17 = load("nfl")
+
+
+def _rec17(rows, path=None):
+    """Write a record.json with the given calibration buckets."""
+    p = path or os.path.join(tempfile.mkdtemp(prefix="fbcal-"), "record.json")
+    with open(p, "w") as fh:
+        json.dump({"calibration": rows}, fh)
+    return p
+
+
+_HOT = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 11, "n": 23},
+               {"bucket": "60-70%", "stated": 65.1, "w": 14, "n": 32}])
+_COLD = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 22, "n": 23},
+                {"bucket": "60-70%", "stated": 65.1, "w": 30, "n": 32}])
+_s_hot = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_HOT))
+_s_cold = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_COLD))
+ck("47.8" in _s_hot and "84.1" in _s_hot and "n=23" in _s_hot,
+   "🔴 the sentence quotes delivered, claimed and n off the RECORD",
+   "⛔ a banner that does not carry the record's own numbers is a typed "
+   "sentence wearing a derived one's clothes. Got: %s" % _s_hot)
+ck(_s_hot != _s_cold,
+   "🔴🔴 CHANGE THE RECORD AND THE SENTENCE CHANGES",
+   "⛔ THIS IS THE WHOLE CLAIM. A hand-written banner is correct until "
+   "the first night it grades and stale every night after. If these two "
+   "records produce the same sentence, nothing is being derived.")
+ck("95.7" in _s_cold,
+   "✅ ...and the second record's own delivered rate is what it says",
+   "⛔ different is not enough — it has to be RIGHT. 22/23 = 95.7 pct. "
+   "Got: %s" % _s_cold)
+
+print("\n17b. 🔴🔴 `stated` IS NOT `predicted`, AND DEFAULTING IS FABRICATION")
+print("     card.py reads `row.get(\"predicted\") or 0.0`. Copied across")
+print("     verbatim it finds nothing in a football record and publishes")
+print("     'against a claimed 0%' on a board that claimed 84.")
+_MLBKEY = _rec17([{"bucket": "80-90%", "predicted": 84.1, "w": 11, "n": 23}])
+_cal_k, _drop_k = _C17.load_calibration_fb(_MLBKEY)
+eq(_cal_k, {}, "   a bucket with no readable claim is DROPPED")
+eq(_drop_k, 23, "   ...and its rows are COUNTED, not lost in silence")
+ck("claimed 0%" not in _C17.calibration_sentence_fb(_cal_k, _drop_k),
+   "⛔ and nothing is published as 'claimed 0%'",
+   "🔴 a fabricated number is worse than no banner at all — CLAUDE.md, "
+   "never invent a price, and this is the same offence one column over")
+
+print("\n17c. ⚠️ A BAND TOO THIN TO READ IS NAMED, NOT SILENTLY DROPPED")
+_THIN = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 11, "n": 23},
+                {"bucket": "70-80%", "stated": 75.9, "w": 2, "n": 4}])
+_s_thin = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_THIN))
+ck("70-80" in _s_thin and "too few" in _s_thin,
+   "   the 4-play band is named as unreadable",
+   "⛔ a band that vanishes from the banner reads as a band with no "
+   "problem. Got: %s" % _s_thin)
+ck("n=4" not in _s_thin,
+   "   ...and its percentage is NOT quoted",
+   "🔴 a percentage on n=4 is not a rate (the T37 lesson). Got: %s"
+   % _s_thin)
+_NONE = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 2, "n": 3}])
+_s_none = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_NONE))
+ck("not enough graded" in _s_none and "unproven" in _s_none,
+   "   with no band at the bar it says so plainly",
+   "⛔ 'I cannot say yet' is a third state and must not read as a pass. "
+   "Got: %s" % _s_none)
+eq(_C17.load_calibration_fb("/nonexistent/record.json"), ({}, 0),
+   "   ⛔ a missing record fails to SILENCE, never to a stale number")
+
+print("\n17d. ⚠️ FOOTBALL ROWS GO BELOW 50 AND MLB'S TABLE WOULD DROP THEM")
+print("     card.py maps buckets through a literal dict starting at")
+print("     `50-60%` because an MLB row never sits below 50. The graded")
+print("     football record carries buckets down to `0-10%`.")
+for _b, _want in (("0-10%", "under-60"), ("40-50%", "under-60"),
+                  ("50-60%", "under-60"), ("60-70%", "60-70"),
+                  ("70-80%", "70-80"), ("80-90%", "80-plus"),
+                  ("90-100%", "80-plus")):
+    eq(_C17.band_of_bucket(_b), _want, "   %s -> %s" % (_b, _want))
+eq(_C17.band_of_bucket("nonsense"), None,
+   "   ⛔ an unparseable label returns None rather than guessing")
+_LOW = _rec17([{"bucket": "0-10%", "stated": 6.0, "w": 1, "n": 1},
+               {"bucket": "30-40%", "stated": 34.3, "w": 5, "n": 12},
+               {"bucket": "40-50%", "stated": 43.1, "w": 9, "n": 13}])
+_cal_low, _drop_low = _C17.load_calibration_fb(_LOW)
+eq(_drop_low, 0, "   no sub-50 row is dropped")
+# ⚠️ `.get`, NOT `[...]`. A KeyError here KILLS THE FILE and every check
+#    after it never runs — the `stated`->`predicted` mutation empties this
+#    dict and cost 12 later checks their turn. A guard that dies reports
+#    "an unknown number never ran", which is strictly less than a guard
+#    that fails. Same assertion, no crash.
+eq(_cal_low.get("under-60", {}).get("n"), 26,
+   "   all 26 roll into under-60")
+
+print("\n17e. ⛔ THE PAGE SAYS 'Read the confidence number honestly.' ONCE")
+_s_live = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_HOT))
+ck("Read the confidence number honestly" not in _s_live,
+   "   the builder's string does NOT carry the bold prefix",
+   "🔴 index.html renders that phrase in bold immediately before this "
+   "string. MLB's first draft carried it too and the banner said it "
+   "TWICE (caught 2026-09-01 by rendering the page)")
+_IDX = open(os.path.join(_ROOT17, "index.html"), encoding="utf-8").read()
+ck(_IDX.count("${fbCalNote(C)}") == 1,
+   "   the football header renders it, once",
+   "⛔ the props board is the only place a CONF cell appears")
+ck("!C.calibration_warning) return ''" in _IDX,
+   "   ⚠️ ...and a card without the field renders NOTHING, not 'undefined'",
+   "🔴 older dated cards predate the field and this tab renders whatever "
+   "is there")
+ck(_IDX.count("${P.calibration_warning}") == 1,
+   "   ⛔ and the MLB render is untouched — still exactly one",
+   "MLB is frozen. This task copies FROM it and does not edit it.")
+
+print("\n17f. 🔴🔴 UNDER THIS PROJECT'S OWN BAR, THE BANNER NAMES THE BAR")
+print("     `[measured 2026-09-16]` CFB's readable bands total 71 graded")
+print("     plays — below the 100 at which calibration.py will not even")
+print("     call a gap a finding — and the banner still printed")
+print("     \"80-plus hit 72.4% against a claimed 87%\". \"Small samples")
+print("     throughout\" is true and does not say that.")
+print("     ⛔ AND THE ANSWER IS NOT TO SUPPRESS IT: a CFB reader with no")
+print("     honesty note at all is the defect this banner exists to fix.")
+import calibration as _CALMOD
+
+# ⛔ ONE COPY OF THE BAR. A second copy is a second thing to drift, and
+#    this repo has been bitten by exactly that (rule 66). ⚠️ `from X import
+#    Y` binds a VALUE at import time, so no runtime check can catch a
+#    re-typed constant that happens to agree today — the source is where
+#    the single-copy claim has to be made, and it is made explicitly here
+#    rather than left implied.
+_SRC_FB = open(os.path.join(_ROOT17, "card_fb.py"), encoding="utf-8").read()
+eq(_C17.MIN_N, _CALMOD.MIN_N,
+   "   🔴 the bar is calibration.py's own number")
+ck("from calibration import MIN_N" in _SRC_FB,
+   "   ⛔ ...IMPORTED, not re-typed",
+   "🔴 a bar written down twice is a bar that drifts. calibration.py owns "
+   "it; card_fb.py borrows it")
+ck(not _re2.search(r"^MIN_N\s*=", _SRC_FB, _re2.M),
+   "   ⛔ ...and card_fb.py declares no MIN_N of its own",
+   "🔴 a local redefinition would shadow the import and read as "
+   "borrowed while being typed")
+
+# ⚠️ BOTH BRANCHES ARE LIVE ON REAL DATA TODAY — NFL 106 is over the bar
+#    and CFB 71 is under it — so neither is a hypothetical.
+_OVER = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 30, "n": 60},
+                {"bucket": "60-70%", "stated": 65.1, "w": 20, "n": 50}])
+_UNDER = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 11, "n": 23},
+                 {"bucket": "60-70%", "stated": 65.1, "w": 14, "n": 32}])
+_s_over = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_OVER))
+_s_under = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_UNDER))
+ck(str(_CALMOD.MIN_N) in _s_under and "not a measured rate" in _s_under
+   or ("rather than a measured rate" in _s_under
+       and str(_CALMOD.MIN_N) in _s_under),
+   "🔴🔴 a 55-row readable sample is UNDER THE BAR, and it says so",
+   "⛔ a figure quoted below the bar this project refuses to read a rate "
+   "at, with nothing saying so, is the same silence one level quieter. "
+   "Got: %s" % _s_under)
+ck("history" in _s_under,
+   "   ...and calls the figures history, not a rate",
+   "Got: %s" % _s_under)
+ck(str(_CALMOD.MIN_N) not in _s_over and "history rather than" not in _s_over,
+   "✅ ...and a sample OVER the bar does NOT carry the caveat",
+   "⛔ A CAVEAT THAT NEVER CLEARS IS NOT A CAVEAT — it is decoration, and "
+   "CLAUDE.md calls a guard that fires on correct code the other "
+   "failure. Got: %s" % _s_over)
+ck("80-plus hit" in _s_under and "hit" in _s_over,
+   "⛔ NEITHER BRANCH SUPPRESSES THE FIGURES",
+   "🔴 Sam, 2026-09-16: suppressing CFB's banner means a CFB reader sees "
+   "NO honesty note — the exact defect this task exists to fix. Silence "
+   "is worse than a caveated number.")
+note("   the two live boards today: NFL readable total 106 (over %d), "
+     "CFB 71 (under) — both branches on real data, neither hypothetical."
+     % _CALMOD.MIN_N)

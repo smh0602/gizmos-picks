@@ -37,7 +37,9 @@ import os
 import subprocess
 import sys
 
-from tcheck import ck, note
+from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+#                                 fixture went red on all four harnesses at once
+#                                 the day card_fb.py gained one import
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
@@ -431,7 +433,7 @@ import tempfile                                   # noqa: E402
 _tmp = tempfile.mkdtemp()
 shutil.copytree("data/ncaaf", os.path.join(_tmp, "data/ncaaf"))
 os.makedirs(os.path.join(_tmp, "picks"), exist_ok=True)
-shutil.copy("card_fb.py", _tmp)
+copy_module("card_fb", _tmp)
 _r = subprocess.run([sys.executable, "card_fb.py"], cwd=_tmp,
                     env=dict(os.environ, LEAGUE="ncaaf"),
                     capture_output=True, text=True, timeout=600)

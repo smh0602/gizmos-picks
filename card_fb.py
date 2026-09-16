@@ -107,6 +107,17 @@ import sys
 import unicodedata
 from datetime import datetime, timezone
 
+# 🔴🔴 THE BAR BELOW WHICH THIS PROJECT REFUSES TO CALL A PERCENTAGE A
+#    RATE, IMPORTED AND NEVER RE-TYPED. `calibration.py` owns it (T37's
+#    lesson: build #183 failed on 1 contradiction out of 4 rows), and a
+#    second copy of a bar is a second thing to drift — this repo has been
+#    bitten by exactly that (rule 66).
+# ⛔ NO try/except FALLBACK. A fallback constant IS the second copy, and
+#    it would be the copy that runs on the day the import breaks. A
+#    missing calibration.py is a broken repo and the builder should say so
+#    loudly rather than quietly publish a bar nobody chose.
+from calibration import MIN_N
+
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
     print(f"FATAL: card_fb.py is football only, got LEAGUE={LEAGUE!r}")
@@ -120,6 +131,160 @@ LG_NAME = {"nfl": "NFL", "ncaaf": "College Football"}[LEAGUE]
 # ✅ BOTH LEAGUES MAY CARRY A RATE. Which MARKETS may is a separate
 # question, answered by `market_rateable()` from a measured bias.
 RATES_OK = True
+
+# ══════════════════════════════════════════════════════════════════════
+# HOW THAT CONFIDENCE NUMBER HAS ACTUALLY PERFORMED.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE BETTER-CALIBRATED BOARD WARNED AND THE WORSE ONE DID NOT.
+# `[measured 2026-09-16]` The MLB card has published a `calibration_warning`
+# above its rows since 2026-09-01. Football published NONE — and football
+# is the board that needs it:
+#
+#     NFL   overall 46.4% (58/125);  >=60 claimed 75.0, delivered 49.4, n=79
+#           80-90 bucket: claimed 84.1, delivered 47.8, n=23
+#     CFB   overall 56.7% (55/97);   >=60 claimed 80.8, delivered 60.9, n=46
+#
+# ⚠️ THE LABEL WAS NEVER THE PROBLEM. Every row already carries the
+# `RECORD — no model` chip, so rule 55 is satisfied. What was missing is
+# any statement of how that number has PERFORMED: a reader saw 84 in a
+# CONF cell and nothing said that bucket has gone 11 of 23.
+#
+# ⚠️ DERIVED AT BUILD TIME, NEVER HAND-WRITTEN. A typed sentence is
+# correct until the first night it grades and stale every night after.
+FB_BAND_ORDER = ("under-60", "60-70", "70-80", "80-plus")
+
+# ⚠️ A BAND WITH FEWER THAN THIS MANY GRADED PLAYS IS NOT EVIDENCE — the
+# same bar the MLB banner uses, and for the same reason: the old MLB
+# banner quoted "-18.0" off SIX plays.
+FB_CAL_MIN_N = 20
+
+_FB_BUCKET = re.compile(r"^\s*(\d+)\s*-\s*(\d+)%\s*$")
+
+
+def band_of_bucket(label):
+    """`record.json`'s 10-point bucket -> one of the four card bands.
+
+    ⛔ PARSED, NOT TABLE-LOOKED-UP. `card.py` maps the MLB buckets through
+    a literal dict that starts at `50-60%`, because an MLB row never sits
+    below 50. A FOOTBALL row does — the graded record carries buckets down
+    to `0-10%` — so a copied table would silently DROP every one of them
+    and the banner would describe a board narrower than the one on screen.
+    ⚠️ An unparseable label returns None and is COUNTED, never guessed.
+    """
+    m = _FB_BUCKET.match(str(label if label is not None else ""))
+    if not m:
+        return None
+    lo = int(m.group(1))
+    if lo < 60:
+        return "under-60"
+    if lo < 70:
+        return "60-70"
+    if lo < 80:
+        return "70-80"
+    return "80-plus"
+
+
+def load_calibration_fb(path=None):
+    """Per-band (claimed, delivered, n) from THIS league's graded record.
+
+    -> ({band: {...}}, buckets_dropped)
+
+    ⛔ FAILS TO SILENCE, NOT TO A STALE NUMBER. A missing or unreadable
+    record means the banner says it has no record, rather than quoting a
+    figure nobody can reproduce.
+
+    🔴🔴 THE CLAIMED FIGURE IS KEYED `stated`, NOT `predicted`. Football's
+    `record.json` names it `stated`; MLB's names it `predicted`, and
+    `card.py` reads `row.get("predicted") or 0.0`. ⛔ That loader copied
+    across verbatim would find nothing, default every band to zero, and
+    publish **"against a claimed 0%"** on a board where the claim was 84 —
+    a fabricated number, which is worse than no banner at all. So a bucket
+    with no readable claim is DROPPED AND COUNTED, never defaulted.
+    """
+    path = path or f"{DATA}/latest/record.json"
+    try:
+        rec = json.load(open(path))
+    except Exception:
+        return {}, 0
+    agg, dropped = {}, 0
+    for row in rec.get("calibration") or []:
+        band = band_of_bucket(row.get("bucket"))
+        n, w, stated = row.get("n") or 0, row.get("w") or 0, row.get("stated")
+        if not band or not n or not isinstance(stated, (int, float)):
+            dropped += (row.get("n") or 0)
+            continue
+        a = agg.setdefault(band, {"n": 0, "w": 0, "sw": 0.0})
+        a["n"] += n
+        a["w"] += w
+        a["sw"] += float(stated) * n
+    out = {}
+    for band, a in agg.items():
+        delivered = 100.0 * a["w"] / a["n"]
+        claimed = a["sw"] / a["n"]
+        out[band] = {"n": a["n"], "w": a["w"],
+                     "delivered": round(delivered, 1),
+                     "claimed": round(claimed, 1),
+                     "delta": round(delivered - claimed, 1)}
+    return out, dropped
+
+
+def calibration_sentence_fb(cal=None, dropped=0):
+    """The banner above the football rows, built from the record.
+
+    ⚠️ NO "Read the confidence number honestly." PREFIX HERE. The page
+    renders that phrase in bold immediately before this string — the same
+    split MLB uses, and the same trap: the first MLB draft carried the
+    prefix too and the banner said it twice.
+    """
+    if cal is None:
+        cal, dropped = load_calibration_fb()
+    have = [(b, cal[b]) for b in FB_BAND_ORDER
+            if b in cal and cal[b]["n"] >= FB_CAL_MIN_N]
+    if not have:
+        thin_n = sum(c["n"] for c in cal.values())
+        return (f"There are not enough graded {LG_NAME} plays yet to say "
+                f"whether these confidence numbers hold up"
+                + (f" — {thin_n} so far, and no band has reached "
+                   f"{FB_CAL_MIN_N}." if thin_n else ".")
+                + " Treat every one as unproven.")
+    total = sum(c["n"] for _, c in have)
+    best = min(have, key=lambda kv: abs(kv[1]["delta"]))
+    parts = [f"{b} hit {c['delivered']:g}% against a claimed {c['claimed']:g}% "
+             f"({c['delta']:+g} pts, n={c['n']})" for b, c in have]
+    thin = [b for b in FB_BAND_ORDER
+            if b in cal and cal[b]["n"] < FB_CAL_MIN_N]
+    # ⚠️ `have` WHEN PLURAL. The MLB banner says "60-70 and 70-80 has",
+    #    which is the string this was modelled on; copying a typo across
+    #    is not fidelity. ⛔ MLB is frozen, so it is not fixed there.
+    tail = (f" {' and '.join(thin)} {'has' if len(thin) == 1 else 'have'} "
+            f"too few graded plays to read." if thin else "")
+    # ⚠️ A DROPPED BUCKET IS SAID OUT LOUD. Rows the banner could not read
+    # are rows it is not describing, and a denominator quietly smaller
+    # than the record is the shape of every calibration bug in this repo.
+    drop = (f" {dropped} graded play(s) sit in buckets this banner could "
+            f"not read and are not counted above." if dropped else "")
+    # 🔴🔴 WHEN THE READABLE SAMPLE IS UNDER THE PROJECT'S OWN BAR, SAY SO
+    #    AND NAME IT. `[measured 2026-09-16]` CFB's readable bands total 71
+    #    graded plays — below the 100 at which `calibration.py` will not
+    #    even call a gap a finding — and the banner still printed
+    #    "80-plus hit 72.4% against a claimed 87%". "Small samples
+    #    throughout" is true and does not say that.
+    # ⛔ THE ANSWER IS NOT TO SUPPRESS THE BANNER. A CFB reader with no
+    #    honesty note at all is the exact defect this banner exists to fix;
+    #    silence is worse than a caveated number. So the figures still
+    #    print, and the caveat names the bar they sit under.
+    weight = (
+        f" {total} graded {LG_NAME} plays behind these figures, under the "
+        f"{MIN_N} this project needs before it will call a percentage a "
+        f"rate — so read them as history rather than a measured rate, and "
+        f"every one of them will move."
+        if total < MIN_N else
+        f" {total} graded {LG_NAME} plays behind these figures and small "
+        "samples throughout -- every one of them will move.")
+    return ("; ".join(parts) + "."
+            + f" The {best[0]} band is currently the closest to its own claim."
+            + tail + drop + weight)
+
 
 SNAP_FLOOR = 0.50        # pre-registered, see docstring. ⛔ do not tune
 MIN_GAMES = 6            # a rate on fewer games is not a rate
@@ -1638,6 +1803,12 @@ def main():
             f"{B.get('n_games', 0)} board games; {len(board)} shown"
             + (f" — {len(off_day)} row(s) on another day are not on this "
                f"card." if off_day else ".")),
+        # 🔴 HOW THE NUMBER IN THE CONF CELL HAS ACTUALLY PERFORMED.
+        #    Derived from this league's own record.json every build —
+        #    ⛔ never hand-written, because a typed sentence is stale the
+        #    first night it grades. The page renders it under a bold
+        #    "Read the confidence number honestly.", exactly as MLB does.
+        "calibration_warning": calibration_sentence_fb(),
         "board_rule": (
             "Sorted by the player's own record at that exact line, highest "
             "first — the same order the MLB board uses. Rows with no record "
