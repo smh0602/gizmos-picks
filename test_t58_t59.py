@@ -37,6 +37,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   find: if not (day > FRESH_AFTER):
 #   with: if not (day >= FRESH_AFTER):
 #
+# @vacuity the WEEKS bar is a bar of its own — rows never buy it
+#   file: t58_t59.py
+#   find: if len(nfl) < MIN_FRESH or len(weeks) < MIN_WEEKS:
+#   with: if len(nfl) < MIN_FRESH:
+#
 # @vacuity a shrinking sample is a FINDING, never a smaller number
 #   file: t58_t59.py
 #   find: if isinstance(was, int) and len(nfl) < was:
@@ -149,6 +154,11 @@ eq(_ans["fresh_nfl"], 120, "   ...on exactly 120 fresh NFL rows")
 eq(_ans["weeks"], 3, "   ...across exactly 3 distinct NFL weeks")
 eq(_ans["band_low"], 40, "   ...with EXACTLY 40 rows in the thin band")
 eq(_ans["week_unresolved"], 0, "   every row matched a week")
+ck(_ans["weeks"] >= T.MIN_WEEKS and _ans["weeks"] > 0,
+   "   ⛔ ...and a verdict may never be reached on weeks=0",
+   "🔴 WEEKS=0 REACHING A VERDICT IS THE VERSION OF THIS THAT LOOKS LIKE "
+   "ARITHMETIC RATHER THAN A BUG — zero distinct weeks is not a small "
+   "number of weeks, it is no week map at all. Got %s" % _ans["weeks"])
 eq(_ans["t58"]["verdict"], "PASS",
    "🔴 T58: over 12/60 vs under 42/60 is -50 points, past the -15 bar")
 eq(_ans["t59"]["verdict"], "PASS",
@@ -173,7 +183,58 @@ _two = {k: v for k, v in _d_bar.items() if k != "2026-10-01"}
 _r_2w = T.run(mkrepo(_two, {}, _s_bar))
 eq(_r_2w["weeks"], 2, "   2 weeks")
 eq(_r_2w["state"], "PROGRESS",
-   "   🔴 100 rows over 2 weeks is not 3 weeks, whatever the row count")
+   "   100 rows over 2 weeks — ⚠️ BOTH bars are short here, so this one "
+   "says nothing about the weeks bar on its own. Section 4a is the one "
+   "that isolates it.")
+
+section("4a. 🔴🔴 THE WEEKS BAR IS A BAR OF ITS OWN, AND ROWS NEVER BUY IT")
+# ⛔ THIS IS THE MINIMUM THAT MATTERS MOST, AND IT WAS UNGUARDED UNTIL
+#    2026-09-16. The rows bar protects sample SIZE; the weeks bar protects
+#    INDEPENDENCE, and T58's own spec says why: "Not 3 days — the current
+#    sample is 3 days inside 2 weeks, which is far less independent than
+#    it looks."
+# 🔴 THE GAP WAS IN THE FIXTURE, NOT THE LOGIC. Section 4's two-week case
+#    holds 100 rows, so `100 < 120` already forced PROGRESS and the weeks
+#    half of the gate never decided anything. Dropping `or len(weeks) <
+#    MIN_WEEKS` left this file GREEN at 57 of 57, and 130 rows on ONE date
+#    then returned ANSWERED and published both p-values. `[found by Sam,
+#    by mutation; reproduced here before this section was written]`
+# ✅ SO THE ROWS BAR IS CLEARED AND ONLY THE WEEKS BAR IS SHORT.
+
+
+def one_week(n=130, day="2026-09-17"):
+    """`n` fresh rows, all on ONE date — over the rows bar, under weeks."""
+    return {day: [row("over" if i % 2 else "under", 80 if i % 3 else 50,
+                       i % 2 == 0, day) for i in range(n)]}
+
+
+_1w = T.run(mkrepo(one_week(), {}, {"2026-09-17": 2}))
+ck(_1w["fresh_nfl"] >= T.MIN_FRESH,
+   "⚠️ the ROWS bar is cleared — %d of %d" % (_1w["fresh_nfl"], T.MIN_FRESH),
+   "⛔ if the rows bar is also short this section proves nothing about "
+   "weeks, which is exactly how the gap got here")
+eq(_1w["weeks"], 1, "   ...and exactly 1 distinct NFL week")
+eq(_1w["state"], "PROGRESS",
+   "🔴🔴 130 ROWS ON ONE WEEK IS NOT THREE WEEKS, and no row count "
+   "changes that")
+ck(not [w for w in T.STAT_WORDS if w in T.render(_1w).lower()],
+   "   ⛔ ...and not one statistic is emitted",
+   "🔴 130 rows feels like a sample. Independence is what is missing, and "
+   "a p-value computed across one slate would not say so")
+for _k in ("t58", "t59", "gap", "p"):
+    ck(_k not in _1w, "   ⛔ ...nor computed (`%s`)" % _k,
+       "the bar gates the COMPUTATION, not the formatting")
+
+# ⚠️ AND THE weeks=0 CASE, which is the one that looks like arithmetic.
+_0w = T.run(mkrepo(one_week(), {}, {}))
+eq(_0w["weeks"], 0, "   a record with NO schedule map resolves 0 weeks")
+eq(_0w["week_unresolved"], 130, "   ...and says all 130 are unmatched")
+eq(_0w["state"], "PROGRESS",
+   "⛔ zero distinct weeks is not a small number of weeks — it is no week "
+   "map at all, and it must never read as a cleared bar")
+ck("could not be matched to an NFL week" in T.render(_0w),
+   "   ⚠️ ...and the report says so out loud",
+   "🔴 a silent unknown is the shape of every calibration bug here")
 
 section("5. 🔴 FRESH MEANS PUBLISHED AFTER 2026-09-15 — DRIVEN BOTH WAYS")
 _on = {"2026-09-15": [row("over", 70, True, "2026-09-15")]}
