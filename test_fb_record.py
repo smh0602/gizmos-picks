@@ -18,6 +18,7 @@ a record carrying `stated` and no `predicted` at all.
 import hashlib
 import json
 import os
+import re as _re
 import subprocess
 import sys
 import tempfile
@@ -39,13 +40,13 @@ IDX = os.path.join(ROOT, "index.html")
 #
 # @vacuity the claimed figure is `stated`; MLB's `predicted` finds nothing
 #   file: index.html
-#   find: said: c.stated, hit: c.n ? c.pct : null });
-#   with: said: c.predicted, hit: c.n ? c.pct : null });
+#   find: said: c.stated, hit: c.n ? c.pct : null }, 'the record claimed');
+#   with: said: c.predicted, hit: c.n ? c.pct : null }, 'the record claimed');
 #
 # @vacuity an empty bucket is "No sample", never a bar sitting at zero
 #   file: index.html
-#   find: hit: c.n ? c.pct : null });
-#   with: hit: c.pct || 0 });
+#   find: hit: c.n ? c.pct : null }, 'the record claimed');
+#   with: hit: c.pct || 0 }, 'the record claimed');
 #
 # @vacuity a graded day row must carry data-date, or nothing can open it
 #   file: index.html
@@ -62,10 +63,20 @@ IDX = os.path.join(ROOT, "index.html")
 #   find: cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The grader
 #   with: cell.innerHTML = `<div class="x"><b>nothing at all</b> The grader
 #
-# @vacuity MLB's bandRow stays byte-identical to main
+# @vacuity the football bands must not speak in MLB's first person
 #   file: index.html
-#   find: const verdict = gap == null ? 'No sample'
-#   with: const verdict = gap == null ? 'no sample'
+#   find: }, 'the record claimed');
+#   with: });
+#
+# @vacuity MLB's RENDERED bands must be byte-identical to the frozen copy
+#   file: index.html
+#   find: gap.toFixed(1)
+#   with: gap.toFixed(2)
+#
+# @vacuity the default voice is preserved for callers that pass none
+#   find: ${saidAs || 'we said'}
+#   file: index.html
+#   with: ${saidAs || 'the record claimed'}
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -174,8 +185,13 @@ _r2 = out("const h = fbCalBlock(%s);"
           "const said=[...h.matchAll(/left:([^%%;\"]*)%%/g)].map(m=>m[1]);"
           "const wide=[...h.matchAll(/width:([^%%;\"]*)%%/g)].map(m=>m[1]);"
           "console.log(JSON.stringify({said, wide, "
-          "claimed:[...h.matchAll(/claimed ([^<]*)%%/g)].map(m=>m[1])}));"
+          "claimed:[...h.matchAll(/nbsp; claimed ([^<]*)%%/g)]"
+          ".map(m=>m[1])}));"
           % json.dumps(_SYN))
+# ⚠️ ANCHORED ON THE VISIBLE LABEL, not on the word "claimed" anywhere.
+#    The tooltip now reads "the record claimed 84.1%" too, and the loose
+#    form counted every band twice — a check that would have stayed green
+#    if the label lost its number and the tooltip kept one.
 eq(_r2.get("claimed"), ["84.1", "65.1"],
    "🔴🔴 THE BARS CLAIM 84.1% AND 65.1%, THE RECORD'S OWN NUMBERS",
    )
@@ -321,8 +337,16 @@ section("8. ⛔⛔ MLB IS UNTOUCHED — BYTE-IDENTICAL, NOT 'I DIDN'T MEAN TO'")
 #    MLB does not change; teaching `bandRow` about `stated` would be
 #    editing MLB through the back door, and this is the check that refuses
 #    it. If a hash is red, the answer is to revert the MLB function.
-_MAIN = {"bandRow": "647b8b356b15b9e5",
-         "renderRecord": "20cb8492840fbdc4",
+# ⚠️ ~~`bandRow` pinned by hash~~ — REMOVED 2026-09-17, deliberately, and
+#    replaced by section 9. The hash asked "did this source change?", and
+#    the answer is now YES: it takes an optional label. ⛔ The question
+#    that matters is whether MLB's RENDERED OUTPUT changed, and section 9
+#    answers it by diffing MLB's real bands through a frozen copy of the
+#    old function against the live one.
+# 🔴 SAY WHAT THIS GIVES UP: a hash forbids every edit; a rendered diff
+#    permits any edit MLB cannot see. That is the narrower licence Sam
+#    granted for this change, and it is written down rather than implied.
+_MAIN = {"renderRecord": "20cb8492840fbdc4",
          "dayDetailHtml": "cf90d3ea7c684cf9",
          "loadRecordDetail": "a6fff37555f03ce7"}
 for _n, _want in sorted(_MAIN.items()):
@@ -347,6 +371,95 @@ eq(_IDXSRC.count("said: c.predicted"), 1,
    )
 eq(_IDXSRC.count("said: c.stated"), 1,
    "   while football's `said: c.stated` is its own, separate call")
+section("9. 🔴🔴 A SHARED COMPONENT CARRIES ITS FIRST CALLER'S VOICE")
+# ⛔ `bandRow` was written for the MLB MODEL and its first person was
+#    correct there and only there. Football renders through it, where the
+#    number is the player's OWN 2025 record — rule 55, in a tooltip.
+# 🔴 AND NOT ONLY FOOTBALL: today's MLB card is 25 MODEL rows and 25
+#    RECORD rows through these same buckets. ⚠️ MLB's half is REPORTED,
+#    NOT FIXED — see the PR body. The freeze means report and leave.
+_FROZEN = os.path.join(ROOT, "research", "bandrow_pre_saidas.js")
+_frozen_src = open(_FROZEN, encoding="utf-8").read()
+_live_src = js_block("bandRow", IDX)
+ck(_frozen_src.strip() and "function bandRow" in _frozen_src,
+   "⚠️ the frozen oracle is there and is a bandRow",
+   "⛔ a missing oracle would make every diff below compare nothing")
+ck(_live_src not in _frozen_src,
+   "⚠️ ...and it is NOT the live version",
+   "🔴 RULE 67: the moment the oracle tracks the function it is meant to "
+   "check, the diff passes by construction and proves nothing. If this "
+   "is red, somebody updated the fixture instead of answering the "
+   "question it asks.")
+
+# 🔴 MLB'S OWN CALL SITE IS EXTRACTED, NOT RETYPED. If MLB ever changes
+#    how it calls bandRow, this check follows it instead of testing a copy.
+_CALL = _re.search(
+    r"\(R\.calibration \|\| \[\]\)\.map\(c => bandRow\(\{[\s\S]*?\}\)\)\.join\(''\)",
+    js_block("renderRecord", IDX))
+ck(bool(_CALL), "⚠️ MLB's own bandRow call site was found in renderRecord",
+   "⛔ if this regex stops matching, the diff below silently has nothing "
+   "to render and the licence for this change evaporates")
+_MLBREC = json.load(open(os.path.join(ROOT, "data", "latest", "record.json"),
+                         encoding="utf-8"))
+ck(len(_MLBREC.get("calibration") or []) >= 3,
+   "⚠️ ...and MLB has real bands to diff (%d)"
+   % len(_MLBREC.get("calibration") or []),
+   "⛔ diffing two empty strings is the emptiest possible pass")
+_r9 = out(
+    "const oldFn = new Function(FROZEN + '; return bandRow;')();"
+    "const newFn = NEWBAND;"
+    "const render = fn => new Function('R','bandRow','return ' + CALL)(REC, fn);"
+    "const a = render(oldFn), b = render(newFn);"
+    "console.log(JSON.stringify({same: a === b, alen: a.length, blen: b.length,"
+    " weSaid: (b.match(/we said/g)||[]).length}));",
+    extra=("const FROZEN = " + json.dumps(_frozen_src) + ";\n"
+           "const CALL = " + json.dumps(_CALL.group(0) if _CALL else "''") + ";\n"
+           "const REC = " + json.dumps(_MLBREC) + ";\n"
+           "const NEWBAND = bandRow;"))
+ck(_r9.get("same") is True,
+   "🔴🔴 MLB'S RENDERED BANDS ARE BYTE-IDENTICAL, OLD FUNCTION VS NEW",
+   "⛔ THIS IS THE WHOLE LICENCE FOR TOUCHING A COMPONENT MLB DEPENDS "
+   "ON. Not 'I did not change the MLB call site' — the strings. Got "
+   "old=%s new=%s chars" % (_r9.get("alen"), _r9.get("blen")))
+ck((_r9.get("weSaid") or 0) == len(_MLBREC["calibration"]),
+   "   ✅ ...and MLB still says \"we said\" on every band",
+   "the default is what keeps MLB unchanged; %s of %d bands carried it"
+   % (_r9.get("weSaid"), len(_MLBREC["calibration"])))
+
+_r9b = out("console.log(JSON.stringify({"
+           "dflt: bandRow({name:'x',n:1,said:35,hit:40}),"
+           "given: bandRow({name:'x',n:1,said:35,hit:40}, 'the record claimed')}));")
+ck('title="we said 35%"' in (_r9b.get("dflt") or ""),
+   "🔴 CALLED WITHOUT A LABEL, bandRow still says \"we said\"",
+   "⛔ the parameter is OPTIONAL. A required one would have been a "
+   "breaking change to MLB dressed as an addition")
+ck('title="the record claimed 35%"' in (_r9b.get("given") or ""),
+   "   ...and honours the label when one is passed")
+
+for _lg in ("nfl", "ncaaf"):
+    _r9c = out("const h = fbCalBlock(%s);"
+               "console.log(JSON.stringify({titles:[...h.matchAll("
+               "/title=\"([^\"]*)\"/g)].map(m=>m[1])}));"
+               % json.dumps(REAL[_lg]["calibration"]))
+    _t = _r9c.get("titles") or []
+    ck(_t and not any("we said" in x for x in _t),
+       "🔴🔴 NO %s BAND SAYS \"we said\" — driven on the real record" % _lg,
+       "⛔ `record.json`'s own no_model_note: \"No number here is a model "
+       "output.\" Attributing it to \"we\" is a DESCRIPTIVE number in a "
+       "MODEL voice. Got %s" % _t[:3])
+    ck(all("the record claimed" in x for x in _t),
+       "   ...every one names the record instead (%d band(s))" % len(_t),
+       "Got %s" % _t[:3])
+
+note("📌 THE CLASS, SWEPT AND REPORTED `[2026-09-17]`: of the renderers "
+     "BOTH boards share — pickCard, bandRow, freshness, startedToggle, "
+     "splitStarted, cardStaleNote — `bandRow` was the ONLY one with a "
+     "hard-coded voice in rendered output. `pickCard` already branches on "
+     "the row's own `confidence_basis` and prints 'RECORD — no model' "
+     "where that is what the row is. `cardStaleNote` says 'projections' "
+     "but is called only by MLB's renderPicks and renderParlays, so its "
+     "voice matches its only callers. ⛔ Nothing else was fixed here.")
+
 note("⛔ WHAT THIS DOES NOT CLAIM: that the tab LOOKS right. It claims the "
      "bands come from bandRow with football's own numbers, that a graded "
      "day can be opened, that the cache cannot serve the wrong league, "
