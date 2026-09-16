@@ -29,7 +29,7 @@ import subprocess
 import sys
 import tempfile
 
-from jsblock import js_block
+from jsblock import js_block, calls
 from tcheck import ck, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -185,7 +185,22 @@ ck("the reset banner is built from the file's own fields",
 ck("⛔ a product that never graded anything does NOT claim a reset",
    "(R.cards_before_record_from || 0) > 0" in blk,
    "'reset' and 'brand new' are different facts")
+# ⚠️ ~~`"Nothing graded since ${R.record_from}" in blk`~~ — the markup
+#    moved into `fbDayRows()` on 2026-09-16 when the day rows became
+#    clickable, and its variable is `rec` there, not `R`. ⛔ The question
+#    is still right; the ADDRESS was wrong, and a substring search in one
+#    function is what made it fragile.
+# ✅ THE REPLACEMENT IS TWO ASSERTIONS WHERE THERE WAS ONE: the sentence
+#    is where the markup now lives, AND `fbRecord` still calls that
+#    function — so it cannot drift into dead code, which the old form
+#    could never have detected.
+# ➡️ `test_fb_record.py` drives the same sentence by RENDERING it.
+_dayrows = js_block("fbDayRows", os.path.join(ROOT, "index.html"))
 ck("the empty day table names the start date rather than saying 'never'",
-   "Nothing graded since ${R.record_from}" in blk)
+   "Nothing graded since ${rec.record_from}" in _dayrows)
+ck("   ...and fbRecord still calls the function that draws it",
+   "fbDayRows(" in blk and calls("fbDayRows", os.path.join(ROOT, "index.html")) >= 1,
+   "🔴 a renderer nobody calls looks exactly like the one that renders "
+   "the page — rule 130")
 ck("the stat boxes still draw", "tr-hero" in blk and "tr-box" in blk,
    "Sam, 2026-09-03: 'i literally want everything to look exactly the same'")

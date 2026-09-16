@@ -4484,6 +4484,148 @@ async function fbRecordLoad(){
   return FBREC[LEAGUE];
 }
 
+/* 🔴🔴 THE PER-ROW DETAIL, KEYED BY LEAGUE. ⛔ MLB's `loadRecordDetail()`
+   caches in ONE module-level `RECDETAIL` and hard-codes `data/latest/`.
+   Copied verbatim that shape serves NFL's picks under the college tab the
+   moment you switch leagues — SILENTLY, AND LOOKING CORRECT, which is the
+   worst kind of wrong this page can be.
+   ⚠️ THE PATH COMES FROM `record.json`'s own `detail_file` where it
+   exists. `record_fb.py` already computes it, and a second copy of a path
+   is a second thing to drift (rule 132). The literal is the fallback for
+   a record written before that field existed.
+   ⛔ A FAILURE IS NOT CACHED. The assignment only happens on success, so a
+   file that appears later is picked up rather than remembered as absent. */
+const FBDETAIL = {};
+async function fbDetailLoad(lg, rec){
+  /* ⚠️ THE KEY IS NAMED because it is the thing that must not be shared.
+     `const key = 'one'` here IS the MLB defect, and it is the mutation
+     `test_fb_record.py` declares against this function. */
+  const key = lg;
+  if (FBDETAIL[key] !== undefined) return FBDETAIL[key];
+  const path = (rec && rec.detail_file) || `${LG_DATA[lg]}/latest/record-detail.json.gz`;
+  FBDETAIL[key] = await jgetGz(path);
+  return FBDETAIL[key];
+}
+
+/* One card's rows, opened under its day. ⚠️ Published order, not losers
+   first — the board was published in confidence order, so that is the
+   order it is reviewed in. */
+function fbDayDetailHtml(rows){
+  if (!rows || !rows.length)
+    return '<div class="msg">No rows stored for that card.</div>';
+  const body = rows.map(r => {
+    const res = r.won == null ? ['v', 'UNSETTLED'] : r.won ? ['w', 'HIT'] : ['l', 'MISS'];
+    /* ⚠️ THE DENOMINATOR THE ROW WAS RATED ON, carried onto the graded row
+       by `record_fb.py` — `hits of n_games` in `logs_season`. It is what
+       the CONF number means on a RECORD board, and printing the number
+       without it invites it to be read as a model output. */
+    const rec = (r.hits != null && r.n_games)
+      ? `${r.hits} of ${r.n_games}${r.logs_season ? ' · ' + r.logs_season : ''}` : '';
+    return `<tr>
+      <td><b>${r.player}</b> <span class="rec">${r.game || ''}</span></td>
+      <td>${r.side === 'over' ? 'Over' : 'Under'} ${r.line} ${r.market_label || r.market}</td>
+      <td class="n">${r.confidence != null ? r.confidence + '%' : '&mdash;'}${
+        rec ? `<br><span class="rec" style="font-size:10px">${rec}</span>` : ''}</td>
+      <td class="n">${r.price != null ? sgn(r.price) : '&mdash;'}</td>
+      <td class="n">${r.actual == null ? '&mdash;' : r.actual}</td>
+      <td><span class="res ${res[0]}">${res[1]}</span></td></tr>`;
+  }).join('');
+  const nu = rows.filter(r => r.won == null).length;
+  return `<div style="overflow-x:auto"><table class="ddtab">
+      <thead><tr><th>Player</th><th>Pick</th><th class="n">Conf</th>
+        <th class="n">Price</th><th class="n">Actual</th><th>Result</th></tr></thead>
+      <tbody>${body}</tbody></table></div>
+    <div class="note" style="margin:0 0 8px;padding:7px 10px;font-size:11.5px">
+      <b>Actual</b> is what the player really did, read off the stored game log.
+      ${nu ? `<b>${nu} unsettled</b> — the log does not reach that game yet.
+        Unsettled rows are shown here and excluded from every percentage.`
+       : 'Every row on this card was settled.'}</div>`;
+}
+
+/* 🔴 THE SAME BANDS MLB DRAWS, THROUGH THE SAME `bandRow()`. Sam saw the
+   bare table and the bars side by side on 2026-09-16 and asked for MLB's
+   exactly: a bar, a marker for the claimed rate, the gap in points and a
+   one-word verdict.
+   🔴🔴 `stated`, NOT `predicted`, AND THE MAPPING HAPPENS HERE. MLB calls
+   `bandRow` with `said` taken from its OWN `predicted` key; football's
+   `record.json` names
+   that figure `stated`. ⛔ Copied verbatim it publishes bars claiming 0% —
+   the identical mismatch `card_fb.py` was bitten by on 2026-09-16, one
+   file over.
+   ⛔ AND `bandRow` ITSELF IS NOT TOUCHED. It is shared and MLB depends on
+   it; teaching it about `stated` would be editing MLB through the back
+   door, which the freeze forbids as surely as editing the card.
+   ⚠️ `hit: null` ON AN EMPTY BUCKET, never 0. `bandRow` draws "No sample"
+   for null and a bar sitting at zero for 0 — a bucket nobody bet is not a
+   bucket that lost. */
+function fbCalBlock(cal){
+  if (!cal || !cal.length) return '';
+  const band = c => bandRow({ name: c.bucket, n: c.n, said: c.stated, hit: c.n ? c.pct : null });
+  return `<h3 style="margin:18px 0 8px;font-size:14px">Was the record right?</h3>
+    ${cal.map(band).join('')}
+    <div class="legend">
+      <span><i style="background:var(--accent2)"></i>Beat the claim</span>
+      <span><i style="background:#d9534f"></i>Fell short of it</span>
+      <span><i style="background:#14181f;width:3px;border-radius:0"></i>What the record claimed</span>
+    </div>`;
+}
+
+/* 🔴 EVERY GRADED DAY IS CLICKABLE, the same as MLB's. Sam, 2026-08-26:
+   he wants to open a date and see which props hit and which missed.
+   ⛔ A DAY WITH NOTHING GRADED IS NOT CLICKABLE — there is nothing behind
+   it, and a caret that opens an empty box reads as a broken page rather
+   than as an honest empty state. */
+function fbDayRows(days, rec){
+  if (!days || !days.length)
+    return `<tr><td colspan="5" class="sub" style="text-align:center;padding:14px">
+         ${(rec && rec.record_from)
+           ? `Nothing graded since ${rec.record_from}.`
+           : 'No football day has been graded yet.'}</td></tr>`;
+  return days.slice().reverse().map(d => {
+    const open = d.n > 0;
+    return `<tr class="${open ? 'dayrow' : ''}"${open ? ` data-date="${d.date}"` : ''}${
+        open ? ' title="Click to see every row from this card"' : ''}>
+      <td>${d.date}${open ? ' <span class="caret">&#9656;</span>' : ''}</td>
+      <td class="n">${d.n ? `${d.w}/${d.n}` : '&mdash;'}</td>
+      <td class="n">${d.n ? `${(100*d.w/d.n).toFixed(1)}%` : '&mdash;'}</td>
+      <td class="n sub">${d.carded}</td>
+      <td class="n sub">${(d.voids || 0) + (d.unresolved || 0)}</td></tr>`
+      + (open ? `<tr class="daydetail" id="fbdd-${d.date}" hidden><td colspan="5"></td></tr>` : '');
+  }).join('');
+}
+
+/* ⚠️ SCOPED TO `#fbview`. MLB wires `document.querySelectorAll('tr.dayrow')`
+   unscoped; a second unscoped sweep would double-bind whichever tab drew
+   last. ⛔ The detail file is fetched ONCE per league and cached — inlining
+   it would push the record file past the size where a tab that only needs
+   totals to draw has to download every row of the season. */
+function fbWireDayRows(lg, rec){
+  document.querySelectorAll('#fbview tr.dayrow').forEach(tr => {
+    tr.addEventListener('click', async () => {
+      const date = tr.dataset.date;
+      const box = document.querySelector('#fbdd-' + date);
+      if (!box) return;
+      if (!box.hidden){ box.hidden = true; tr.classList.remove('open'); return; }
+      tr.classList.add('open');
+      box.hidden = false;
+      const cell = box.querySelector('td');
+      if (cell.dataset.loaded) return;
+      cell.innerHTML = '<div class="msg">Loading&hellip;</div>';
+      try {
+        const D = await fbDetailLoad(lg, rec);
+        cell.innerHTML = fbDayDetailHtml(((D || {}).days || {})[date]);
+        cell.dataset.loaded = '1';
+      } catch(e){
+        /* ⛔ DEGRADES TO A NOTE, NEVER A BROKEN TAB. Before the first
+           graded card there is no detail file and that is not an error. */
+        cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The grader
+          writes <code>${(rec && rec.detail_file)
+            || `${LG_DATA[lg]}/latest/record-detail.json.gz`}</code> on its next run.</div>`;
+      }
+    });
+  });
+}
+
 const fbPct = t => (t && t.n) ? `${t.pct.toFixed(1)}%` : '&mdash;';
 const fbWL  = t => (t && t.n) ? `${t.w}/${t.n}` : '0/0';
 
@@ -4541,36 +4683,17 @@ async function fbRecord(){
   }).join('');
 
   const days = (R && R.by_day) || [];
-  const dayRows = days.length ? days.slice().reverse().map(d => `<tr>
-      <td>${d.date}</td>
-      <td class="n">${d.n ? `${d.w}/${d.n}` : '&mdash;'}</td>
-      <td class="n">${d.n ? `${(100*d.w/d.n).toFixed(1)}%` : '&mdash;'}</td>
-      <td class="n sub">${d.carded}</td>
-      <td class="n sub">${(d.voids || 0) + (d.unresolved || 0)}</td></tr>`).join('')
-    : `<tr><td colspan="5" class="sub" style="text-align:center;padding:14px">
-         ${(R && R.record_from)
-           ? `Nothing graded since ${R.record_from}.`
-           : 'No football day has been graded yet.'}</td></tr>`;
+  const dayRows = fbDayRows(days, R);
 
   /* 🔴 CALIBRATION, AND THE WORD "MODEL" APPEARS NOWHERE IN IT. The
-     bucket is the player's OWN RECORD at that line -- ledger rule 55 --
-     so the column is headed "stated", not "predicted". */
-  const cal = (R && R.calibration) || [];
-  const calBlock = cal.length ? `
-    <h3 style="margin:18px 0 8px;font-size:14px">Was the record right?</h3>
-    <table class="ob">
-      <thead><tr><th>Stated</th><th class="n">Said</th><th class="n">Actual</th>
-        <th class="n">Rows</th><th class="n">Gap</th></tr></thead>
-      <tbody>${cal.map(c => {
-        const gap = c.n ? (c.pct - c.stated) : null;
-        return `<tr><td>${c.bucket}</td>
-          <td class="n">${c.stated.toFixed(1)}%</td>
-          <td class="n">${c.n ? c.pct.toFixed(1) + '%' : '&mdash;'}</td>
-          <td class="n">${c.n}</td>
-          <td class="n" style="color:${gap == null ? 'inherit'
-            : gap < -5 ? '#b9482a' : gap > 5 ? '#1a7060' : 'inherit'}">${
-            gap == null ? '&mdash;' : (gap > 0 ? '+' : '') + gap.toFixed(1)}</td></tr>`;
-      }).join('')}</tbody></table>` : '';
+     bucket is the player's OWN RECORD at that line -- ledger rule 55.
+     ~~a bare table headed Stated / Said / Actual / Rows / Gap~~ —
+     **REPLACED 2026-09-16**: the same data now renders through MLB's own
+     `bandRow()`, which Sam asked for after seeing both side by side. The
+     honesty the column heading carried is KEPT — it is the `Descriptive`
+     chip beside this tab's heading that says these are records, not model
+     outputs, and nothing here says "predicted". */
+  const calBlock = fbCalBlock((R && R.calibration) || []);
 
   /* 🔴 A RESET IS NOT THE SAME FACT AS A NEW PRODUCT, AND THE TAB MUST
      NOT LET A READER CONFUSE THEM. Sam, 2026-09-06: *"wipe the track
@@ -4629,6 +4752,9 @@ async function fbRecord(){
       ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} &mdash; so a slate is graded
       the week after it is played.` : ''}
     </div>`);
+  /* ⚠️ WIRED AFTER THE MARKUP IS IN THE DOM, not before — the rows do
+     not exist until `fbShell` has been assigned above. */
+  fbWireDayRows(LEAGUE, R);
   /* ⛔ `fbNoModelNote(C)` IS NOT CALLED HERE EITHER — it is a cream box
      and Sam asked for none on this tab (2026-09-11). ⚠️ Its claim, that
      no row carries a Gizmo's rating, is already carried by the
