@@ -636,3 +636,147 @@ _short = [_leg("A", "g1", -900, 95), _leg("B", "g2", -900, 94)]
 _pl6, _m6 = _C.build_parlays_fb(_short)
 eq(len(_pl6["2"]), 0, "   two -900 legs pay 1.22x -> outside the band")
 ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
+
+print("\n17. 🔴🔴 A BOARD THAT STATES A CONFIDENCE MUST STATE HOW THAT")
+print("    CONFIDENCE HAS PERFORMED.")
+print("    `[the defect, measured 2026-09-16]` MLB published a")
+print("    `calibration_warning` above its rows from 2026-09-01. FOOTBALL")
+print("    PUBLISHED NONE — so the better-calibrated board warned and the")
+print("    worse one did not. NFL overall 46.4%; its 80-90 bucket claimed")
+print("    84.1 and delivered 47.8 over 23 graded plays, and a reader")
+print("    seeing 84 in a CONF cell was told nothing about that.")
+print("    ⚠️ THE LABEL WAS NEVER THE PROBLEM — rule 55 was satisfied.")
+
+# ⛔ GUARDING THE CLASS, NOT THE FILE. CLAUDE.md: ask what CLASS the defect
+#    belongs to and guard the class where the class is answerable. It is
+#    answerable here — the class is "a card builder that publishes a
+#    confidence number", which is discoverable rather than a list I type.
+#    This file broke once by naming one file (rules 246, 130).
+import glob as _g17
+_ROOT17 = os.path.dirname(os.path.abspath(__file__))
+_BUILDERS = sorted(os.path.basename(p)
+                   for p in _g17.glob(os.path.join(_ROOT17, "card*.py")))
+ck(len(_BUILDERS) >= 2,
+   "⚠️ the sweep found the card builders at all",
+   "⛔ AN EMPTY SWEEP PASSES EVERY ASSERTION BELOW AND PROVES NOTHING "
+   "(rule 67). Got %s" % _BUILDERS)
+_STATERS = []
+for _b in _BUILDERS:
+    _src = open(os.path.join(_ROOT17, _b), encoding="utf-8").read()
+    if '"confidence"' not in _src:
+        continue                      # not a board that states a confidence
+    _STATERS.append(_b)
+    ck('"calibration_warning":' in _src,
+       "🔴🔴 %s states a confidence, so it publishes a calibration_warning"
+       % _b,
+       "⛔ THIS IS THE DEFECT. A board that prints 84 in a CONF cell and "
+       "says nothing about how that bucket has gone is advertising a "
+       "number it has never been held to. Every builder that states one "
+       "owes the reader its record.")
+ck(len(_STATERS) >= 2,
+   "⚠️ ...and BOTH boards were actually swept, not just one",
+   "⛔ if only MLB matched, the football half of this check never ran. "
+   "Got %s" % _STATERS)
+
+print("\n17a. ⚠️ DERIVED AT BUILD TIME, NEVER HAND-WRITTEN")
+_C17 = load("nfl")
+
+
+def _rec17(rows, path=None):
+    """Write a record.json with the given calibration buckets."""
+    p = path or os.path.join(tempfile.mkdtemp(prefix="fbcal-"), "record.json")
+    with open(p, "w") as fh:
+        json.dump({"calibration": rows}, fh)
+    return p
+
+
+_HOT = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 11, "n": 23},
+               {"bucket": "60-70%", "stated": 65.1, "w": 14, "n": 32}])
+_COLD = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 22, "n": 23},
+                {"bucket": "60-70%", "stated": 65.1, "w": 30, "n": 32}])
+_s_hot = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_HOT))
+_s_cold = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_COLD))
+ck("47.8" in _s_hot and "84.1" in _s_hot and "n=23" in _s_hot,
+   "🔴 the sentence quotes delivered, claimed and n off the RECORD",
+   "⛔ a banner that does not carry the record's own numbers is a typed "
+   "sentence wearing a derived one's clothes. Got: %s" % _s_hot)
+ck(_s_hot != _s_cold,
+   "🔴🔴 CHANGE THE RECORD AND THE SENTENCE CHANGES",
+   "⛔ THIS IS THE WHOLE CLAIM. A hand-written banner is correct until "
+   "the first night it grades and stale every night after. If these two "
+   "records produce the same sentence, nothing is being derived.")
+ck("95.7" in _s_cold,
+   "✅ ...and the second record's own delivered rate is what it says",
+   "⛔ different is not enough — it has to be RIGHT. 22/23 = 95.7 pct. "
+   "Got: %s" % _s_cold)
+
+print("\n17b. 🔴🔴 `stated` IS NOT `predicted`, AND DEFAULTING IS FABRICATION")
+print("     card.py reads `row.get(\"predicted\") or 0.0`. Copied across")
+print("     verbatim it finds nothing in a football record and publishes")
+print("     'against a claimed 0%' on a board that claimed 84.")
+_MLBKEY = _rec17([{"bucket": "80-90%", "predicted": 84.1, "w": 11, "n": 23}])
+_cal_k, _drop_k = _C17.load_calibration_fb(_MLBKEY)
+eq(_cal_k, {}, "   a bucket with no readable claim is DROPPED")
+eq(_drop_k, 23, "   ...and its rows are COUNTED, not lost in silence")
+ck("claimed 0%" not in _C17.calibration_sentence_fb(_cal_k, _drop_k),
+   "⛔ and nothing is published as 'claimed 0%'",
+   "🔴 a fabricated number is worse than no banner at all — CLAUDE.md, "
+   "never invent a price, and this is the same offence one column over")
+
+print("\n17c. ⚠️ A BAND TOO THIN TO READ IS NAMED, NOT SILENTLY DROPPED")
+_THIN = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 11, "n": 23},
+                {"bucket": "70-80%", "stated": 75.9, "w": 2, "n": 4}])
+_s_thin = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_THIN))
+ck("70-80" in _s_thin and "too few" in _s_thin,
+   "   the 4-play band is named as unreadable",
+   "⛔ a band that vanishes from the banner reads as a band with no "
+   "problem. Got: %s" % _s_thin)
+ck("n=4" not in _s_thin,
+   "   ...and its percentage is NOT quoted",
+   "🔴 a percentage on n=4 is not a rate (the T37 lesson). Got: %s"
+   % _s_thin)
+_NONE = _rec17([{"bucket": "80-90%", "stated": 84.1, "w": 2, "n": 3}])
+_s_none = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_NONE))
+ck("not enough graded" in _s_none and "unproven" in _s_none,
+   "   with no band at the bar it says so plainly",
+   "⛔ 'I cannot say yet' is a third state and must not read as a pass. "
+   "Got: %s" % _s_none)
+eq(_C17.load_calibration_fb("/nonexistent/record.json"), ({}, 0),
+   "   ⛔ a missing record fails to SILENCE, never to a stale number")
+
+print("\n17d. ⚠️ FOOTBALL ROWS GO BELOW 50 AND MLB'S TABLE WOULD DROP THEM")
+print("     card.py maps buckets through a literal dict starting at")
+print("     `50-60%` because an MLB row never sits below 50. The graded")
+print("     football record carries buckets down to `0-10%`.")
+for _b, _want in (("0-10%", "under-60"), ("40-50%", "under-60"),
+                  ("50-60%", "under-60"), ("60-70%", "60-70"),
+                  ("70-80%", "70-80"), ("80-90%", "80-plus"),
+                  ("90-100%", "80-plus")):
+    eq(_C17.band_of_bucket(_b), _want, "   %s -> %s" % (_b, _want))
+eq(_C17.band_of_bucket("nonsense"), None,
+   "   ⛔ an unparseable label returns None rather than guessing")
+_LOW = _rec17([{"bucket": "0-10%", "stated": 6.0, "w": 1, "n": 1},
+               {"bucket": "30-40%", "stated": 34.3, "w": 5, "n": 12},
+               {"bucket": "40-50%", "stated": 43.1, "w": 9, "n": 13}])
+_cal_low, _drop_low = _C17.load_calibration_fb(_LOW)
+eq(_drop_low, 0, "   no sub-50 row is dropped")
+eq(_cal_low["under-60"]["n"], 26, "   all 26 roll into under-60")
+
+print("\n17e. ⛔ THE PAGE SAYS 'Read the confidence number honestly.' ONCE")
+_s_live = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_HOT))
+ck("Read the confidence number honestly" not in _s_live,
+   "   the builder's string does NOT carry the bold prefix",
+   "🔴 index.html renders that phrase in bold immediately before this "
+   "string. MLB's first draft carried it too and the banner said it "
+   "TWICE (caught 2026-09-01 by rendering the page)")
+_IDX = open(os.path.join(_ROOT17, "index.html"), encoding="utf-8").read()
+ck(_IDX.count("${fbCalNote(C)}") == 1,
+   "   the football header renders it, once",
+   "⛔ the props board is the only place a CONF cell appears")
+ck("!C.calibration_warning) return ''" in _IDX,
+   "   ⚠️ ...and a card without the field renders NOTHING, not 'undefined'",
+   "🔴 older dated cards predate the field and this tab renders whatever "
+   "is there")
+ck(_IDX.count("${P.calibration_warning}") == 1,
+   "   ⛔ and the MLB render is untouched — still exactly one",
+   "MLB is frozen. This task copies FROM it and does not edit it.")
