@@ -877,3 +877,161 @@ note("⚠️ NOT FIXED, REPORTED: when the list IS truncated, `missing` and "
      "findings return 1 and would still file as an outage. It is latent, "
      "not live — #6 had no such finding — and suppressing them is a "
      "behaviour change beyond this drop. ➡️ Sam's call.")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity a workflow with no slot yet due must NOT read as UNSEEN
+#   file: runs_report.py
+#   find: if any(last_fire(c, now - datetime.timedelta(minutes=GRACE_MIN),
+#   with: if True or any(last_fire(c, now - datetime.timedelta(minutes=GRACE_MIN),
+#
+# @vacuity a slot that came due with no run must STILL read as UNSEEN
+#   file: runs_report.py
+#   find: floor) is not None for c in parsed):
+#   with: floor) is None for c in parsed):
+#
+# @vacuity an unknown registration time REPORTS, it never suppresses
+#   file: runs_report.py
+#   find: names.append(w)          # ⛔ ignorance never buys silence
+#   with: continue                 # ⛔ ignorance never buys silence
+#
+# @vacuity the floor is applied to EVERY declared workflow, not the first
+#   file: runs_report.py
+#   find: for w, f in sorted(scheduled_workflows(root).items()):
+#   with: for w, f in list(sorted(scheduled_workflows(root).items()))[:1]:
+# ══════════════════════════════════════════════════════════════════════
+
+section("20. 🔴🔴 THE UNSEEN CHECK HAD NO EVIDENCE FLOOR")
+# ⛔ A workflow declared on disk with no runs in the window read as UNSEEN
+#    whether or not it had ever HAD a slot to miss — and then filed "a
+#    workflow is failing" with nothing failing. FOUR occurrences; six
+#    workflows were exposed at once on 2026-09-17.
+# ✅ The fix already existed one function above: `missed_fires()` has
+#    carried `stamp_floor` per workflow since rule 273.
+_ROOT20 = os.path.dirname(os.path.abspath(__file__))
+_UTC = datetime.timezone.utc
+_DECL20 = R.scheduled_workflows(_ROOT20)
+ck(len(_DECL20) >= 5,
+   "⚠️ the REAL declared set is what these run against (%d workflow(s))"
+   % len(_DECL20),
+   "⛔ a fixture of one proves nothing about a check that sweeps a "
+   "directory. Got %s" % sorted(_DECL20))
+
+# 🔴 GitHub's own timestamp format, measured 2026-09-17 on all 11
+#    workflows: an ISO OFFSET, not a `Z`. A `strptime(..., "...Z")` would
+#    have thrown on every one.
+ck(R._dt("2026-09-16T15:12:50-04:00") is not None,
+   "🔴 the registry's real `created_at` format parses (offset, not Z)",
+   "⛔ `2026-09-16T15:12:50-04:00` is what the API actually returns. If "
+   "this is red the registry is empty, which reports everything — noisy, "
+   "but never a false all-clear")
+ck(R._dt("2026-09-16T15:12:50-04:00").utcoffset().total_seconds() == -14400,
+   "   ...and the offset is honoured, not dropped",
+   "a timestamp read as UTC when it is -04:00 is four hours of floor "
+   "this check does not have")
+
+section("20a. ✅ NOT YET DUE IS NOT UNSEEN — AND THE CLOCK IS THE ONLY DIFFERENCE")
+# `owed-tests` declares `38 11 * * *`. Registered at 08:00Z, a 09:00Z
+# reading has had no slot; a 12:30Z reading has had exactly one.
+_WF, _FILE = "owed-tests", "owed_tests.yml"
+ck(_DECL20.get(_WF) == _FILE, "⚠️ the fixture names a REAL declared workflow",
+   "⛔ if this workflow ever leaves the repo this section is testing a "
+   "ghost. Got %s" % _DECL20.get(_WF))
+_BORN = datetime.datetime(2026, 9, 17, 8, 0, tzinfo=_UTC)
+_REG = {_FILE: _BORN}
+_EARLY = datetime.datetime(2026, 9, 17, 9, 0, tzinfo=_UTC)
+_LATE = datetime.datetime(2026, 9, 17, 12, 30, tzinfo=_UTC)
+_n_early, _f_early = R.unseen_workflows({}, _EARLY, _ROOT20, _REG)
+_n_late, _f_late = R.unseen_workflows({}, _LATE, _ROOT20, _REG)
+ck(_WF not in _n_early,
+   "🔴🔴 REGISTERED 1h AGO, FIRST SLOT NOT YET DUE -> NOT UNSEEN",
+   "⛔ THIS IS THE DEFECT. Four scheduled workflows filed a spurious "
+   "outage on their first day because this read as a failure. Got %s"
+   % _n_early)
+ck(_WF in _n_late,
+   "🔴🔴 ...AND ONCE 11:38 PASSED WITH NO RUN -> UNSEEN",
+   "⛔ the floor must not become a mute button. Got %s" % _n_late)
+# ⚠️ `.get`, NOT `[...]`. A KeyError here KILLS THE FILE and the 13
+#    checks after it never run — the "first workflow only" mutation
+#    empties this map. A guard that dies reports "an unknown number never
+#    ran", which is strictly less than a guard that fails.
+ck(_f_early.get(_WF) == _BORN and _f_late.get(_WF) == _BORN,
+   "⚠️ THE TWO READINGS DIFFER ONLY BY THE CLOCK",
+   "🔴 same declared set, same registry, same floor — only `now` moved. "
+   "If anything else differs, these two are not a pair and the first "
+   "could be passing for the wrong reason")
+
+section("20b. ⛔ NO WEAKENING: AN OLD WORKFLOW THAT NEVER RAN IS STILL UNSEEN")
+# 🔴 THE `ncaaf` 19:0x CLASS (rule 251) — a cron that declares a run and
+#    never lands. If the floor could silence that, the fix would have
+#    removed the only reason this check exists.
+for _days, _label in ((3, "3 days"), (400, "400 days")):
+    _old = {_FILE: _LATE - datetime.timedelta(days=_days)}
+    _n_old, _ = R.unseen_workflows({}, _LATE, _ROOT20, _old)
+    ck(_WF in _n_old,
+       "🔴 registered %s ago and never ran -> UNSEEN" % _label,
+       "⛔ eligibility older than the window must NOT buy silence — the "
+       "floor is bounded to the window for exactly this. Got %s" % _n_old)
+
+section("20c. ⚠️ AN UNKNOWN FLOOR REPORTS, AND SAYS SO")
+# ⛔ Suppressing on ignorance is the dangerous direction: a false alarm
+#    wastes attention, a false all-clear hides an outage.
+_n_unk, _f_unk = R.unseen_workflows({}, _LATE, _ROOT20, {})
+ck(_WF in _n_unk,
+   "🔴 registration unavailable -> STILL UNSEEN",
+   "⛔ 'I could not establish the floor' is not 'it is fine'. Got %s"
+   % _n_unk)
+ck(_f_unk.get(_WF) is None, "   ...and the floor is recorded as unknown")
+_body = R.render([], [], [], False, [_WF], floors=_f_unk)
+ck("could NOT be" in _body and "rather than suppressed" in _body,
+   "🔴 ...and the BODY says the floor could not be established",
+   "⛔ a reader who cannot tell 'a slot was missed' from 'I could not "
+   "check' will treat both the same way, which is how the channel dies")
+_body_known = R.render([], [], [], False, [_WF], floors={_WF: _BORN})
+ck("could NOT be" not in _body_known,
+   "   ✅ ...and says nothing of the sort when the floor IS known",
+   "⛔ a caveat that never clears is decoration. Got: %s"
+   % _body_known[:160])
+
+section("20d. ⛔ DRIVEN ACROSS THE WHOLE DECLARED SET, NOT ONE FIXTURE")
+_all_new = {f: _LATE - datetime.timedelta(minutes=1) for f in _DECL20.values()}
+_all_old = {f: _LATE - datetime.timedelta(days=8) for f in _DECL20.values()}
+_n_new, _ = R.unseen_workflows({}, _LATE, _ROOT20, _all_new)
+_n_old2, _ = R.unseen_workflows({}, _LATE, _ROOT20, _all_old)
+ck(not _n_new,
+   "🔴 EVERY workflow registered one minute ago -> NONE is unseen",
+   "⛔ six were exposed at once on 2026-09-17 (budget, calibration, "
+   "cfbd, runs, vacuity, owed_tests). Got %s" % _n_new)
+ck(sorted(_n_old2) == sorted(_DECL20),
+   "🔴 ...and every one registered 8 days ago with no runs -> ALL unseen",
+   "⛔ the floor must bite in both directions across the real set. "
+   "Got %d of %d: %s" % (len(_n_old2), len(_DECL20), _n_old2))
+_seen_one = {"collect"}
+_n_part, _ = R.unseen_workflows(_seen_one, _LATE, _ROOT20, _all_old)
+ck("collect" not in _n_part and len(_n_part) == len(_DECL20) - 1,
+   "   ⚠️ a workflow WITH runs is never listed, floor or no floor",
+   "Got %s" % _n_part)
+
+section("20e. ⚠️ analyse() KEEPS ITS 5-TUPLE, AND ITS DEFAULT FAILS SAFE")
+# 🔴 Rule 269: the arity does not move. `registered` is a KEYWORD with a
+#    default, so no positional caller changes.
+_res = R.analyse([], _LATE, _ROOT20)
+eq_len = len(_res)
+ck(eq_len == 5, "⛔ analyse still returns exactly 5 values",
+   "rule 269 — a signature change has no safe upload order. Got %d"
+   % eq_len)
+ck(sorted(_res[4]) == sorted(_DECL20),
+   "🔴 ...and with NO registry supplied it reports everything",
+   "⛔ THE DEFAULT MUST BE THE NOISY ONE. A caller that forgets the "
+   "registry must get the old behaviour, never a quieter one. Got %s"
+   % _res[4])
+_res2 = R.analyse([], _EARLY, _ROOT20, _REG)
+ck(_WF not in _res2[4],
+   "   ✅ ...and applies the floor when it is supplied",
+   "Got %s" % _res2[4])
+note("⚠️ WHAT IS NOT COVERED: `gh_workflows()` itself is not driven here — "
+     "it shells out to `gh api`, which needs a token and a repository this "
+     "test has neither of. Its FORMAT assumption is pinned above against "
+     "the real string GitHub returned, and its failure path is pinned by "
+     "20c: an empty registry reports everything. ➡️ The first live run is "
+     "what proves the fetch, and #33 closing is what will show it.")
