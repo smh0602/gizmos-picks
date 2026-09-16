@@ -1902,7 +1902,23 @@ async function renderOdds(){
    measure neither. Both carry the date they were last true. */
 let RECORD = null;
 
-function bandRow(b){
+/* ⚠️ A SHARED COMPONENT CARRIES ITS FIRST CALLER'S VOICE, AND NOTHING
+   WAS CHECKING THAT. `[Sam, 2026-09-17]` This was written for the MLB
+   MODEL and its first person was correct there and only there. Football
+   renders through it too, where the number is the player's OWN 2025
+   record — `record.json` says outright "No number here is a model
+   output" — so "we said" is a DESCRIPTIVE number wearing a MODEL voice,
+   which is rule 55 in a tooltip.
+   🔴 AND IT IS NOT ONLY FOOTBALL. `[measured 2026-09-16]` today's MLB
+   card is 25 MODEL rows and 25 RECORD rows, passing through these same
+   buckets. MLB's own RECORD rows still read "we said"; that is Sam's
+   call, reported and left.
+   ✅ THE PARAMETER IS OPTIONAL AND THE DEFAULT IS THE OLD STRING, so MLB's
+   rendered output is unchanged — proven byte-for-byte against a frozen
+   copy of this function in `research/bandrow_pre_saidas.js`, not merely
+   asserted. ⛔ Reuse is right (rule 66); a component's WORDS are an
+   assumption about its caller, and this one now takes it as an argument. */
+function bandRow(b, saidAs){
   const gap = b.hit == null ? null : b.hit - b.said;
   const cls = gap == null ? 'v-none' : (gap >= 0 ? 'v-good' : 'v-bad');
   const verdict = gap == null ? 'No sample'
@@ -1912,7 +1928,7 @@ function bandRow(b){
     <div class="bn">${b.name}<small>${b.n} pick${b.n===1?'':'s'}</small></div>
     <div class="track">
       ${b.hit != null ? `<div class="hit ${gap >= 0 ? 'good' : 'bad'}" style="width:${b.hit}%"></div>` : ''}
-      <div class="said" style="left:${b.said}%" title="we said ${b.said}%"></div>
+      <div class="said" style="left:${b.said}%" title="${saidAs || 'we said'} ${b.said}%"></div>
       <div class="lbl">hit ${b.hit != null ? b.hit + '%' : '—'} &nbsp;·&nbsp; claimed ${b.said}%</div>
     </div>
     <div class="verd ${cls}">${verdict}${gap != null ? `<br><span style="font-weight:600;color:var(--mut)">${
@@ -4560,7 +4576,9 @@ function fbDayDetailHtml(rows){
    bucket that lost. */
 function fbCalBlock(cal){
   if (!cal || !cal.length) return '';
-  const band = c => bandRow({ name: c.bucket, n: c.n, said: c.stated, hit: c.n ? c.pct : null });
+  /* ⚠️ FOOTBALL PASSES ITS OWN WORDING. The figure is the mean of the
+     players' own records at those lines, so nobody "said" it. */
+  const band = c => bandRow({ name: c.bucket, n: c.n, said: c.stated, hit: c.n ? c.pct : null }, 'the record claimed');
   return `<h3 style="margin:18px 0 8px;font-size:14px">Was the record right?</h3>
     ${cal.map(band).join('')}
     <div class="legend">
