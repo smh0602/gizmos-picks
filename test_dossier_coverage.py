@@ -237,17 +237,95 @@ for _lg in _LEAGUES:
     shutil.rmtree(_d, ignore_errors=True)
 note("   league / board games / dossiers / named skips / one-sided: %s"
      % (_seen,))
-ck(sum(_totpart) >= 1,
-   "🔴🔴 THE PARTIAL-ROW CHECKS ABOVE RAN OVER REAL PARTIAL ROWS (%d)"
-   % sum(_totpart),
-   "⛔ rule 67 AGAIN, and this is the one that matters: with zero "
-   "partial rows on every board, every check in this block passes "
-   "having been asked nothing. ⚠️ NFL contributes 0 by construction — "
-   "if college ever contributes 0 too, this is NOT a pass, it is a "
-   "board that no longer carries the case. Per league: %s"
-   % list(zip(_LEAGUES, _totpart)))
+# ══════════════════════════════════════════════════════════════════════
+# ⛔⛔ ~~`ck(sum(_totpart) >= 1)`~~ — I WROTE THAT FLOOR AND IT WOULD HAVE
+# REDDENED THE SUITE ON `main` ON CORRECT CODE. `[measured 2026-09-17,
+# hours after writing it]`
+# 🔴 THE PARTIAL-ROW COUNT IS A FACT ABOUT TODAY'S BOARD, NOT ABOUT THE
+# CODE. Across the 36 college board snapshots stored under
+# `data/ncaaf/*/gamelines/`, partial rows run 0 to 41 — and **2 of them
+# carried ZERO, both on 2026-09-13**, 1 of the 16 days stored. Mid-slate
+# on a Saturday the lower-division games have already kicked off, so the
+# UPCOMING board is all top-division and the count is legitimately 0.
+# ⛔ A floor demanding one would have failed a scheduled run and filed an
+# issue about a perfectly good board — CLAUDE.md: a guard that fires on
+# correct code is the other failure, not a safe one, and rule 238 says
+# crying wolf kills the channel.
+# ✅ SO THE COUNT IS REPORTED, NOT ASSERTED, and the rule-67 obligation
+# moves to section 3 where it belongs: the case is DRIVEN on a synthetic
+# row every run, whatever the board happens to hold today.
+# ══════════════════════════════════════════════════════════════════════
+note("⚠️ %d real partial row(s) on today's boards %s. ⛔ NOT A FLOOR: "
+     "measured 0-41 across 36 stored college boards, ZERO on 2026-09-13 "
+     "— legitimately, because mid-Saturday the lower-division games have "
+     "already kicked off. Section 3 drives the case unconditionally."
+     % (sum(_totpart), list(zip(_LEAGUES, _totpart))))
 note("⚠️ ONE-SIDED IS NOT A FAILURE. The team file is the top-division "
      "list, so a lower-division opponent is absent from it by "
      "construction. Those games ARE described — §1's price is real and "
      "Sam can bet it — and every section that compares the two REFUSES "
      "BY NAME. Dropping them would lose 18 pct of the Saturday board.")
+
+section("3. 🔴🔴 AND THE CASE IS DRIVEN WHATEVER TODAY'S BOARD HOLDS")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ UNCONDITIONAL, NOT "ONLY WHEN THE REAL BOARD IS THIN". A branch that
+# executes on 1 day in 16 is a branch whose first real run is in
+# production (ledger rule 235), and the 6 pct of days it covers are
+# exactly the days the checks above prove nothing. One extra build is a
+# couple of seconds; a guard nobody has driven is free and worthless.
+# ⚠️ THREE GAMES ONLY. The question is whether the builder refuses, not
+# whether it can describe a slate — the section above already did that on
+# every real game.
+# ══════════════════════════════════════════════════════════════════════
+_lg3 = "ncaaf" if "ncaaf" in _LEAGUES else _LEAGUES[0]
+_d3 = tree(_lg3)
+_bp3 = os.path.join(_d3, "data", _lg3, "latest", "board.json")
+_b3 = json.load(open(_bp3, encoding="utf-8"))
+_keep = (_b3.get("games") or [])[:2]
+ck(len(_keep) == 2,
+   "⚠️ the fixture board really has games to build on (%d)" % len(_keep),
+   "⛔ rule 67: an empty fixture would make every check below pass over "
+   "nothing")
+_b3["games"] = _keep + [dict(_keep[0], away="Slippery Rock Aardvarks")]
+json.dump(_b3, open(_bp3, "w", encoding="utf-8"))
+_p3 = subprocess.run([sys.executable, "-B", "dossier_fb.py"], cwd=_d3,
+                     timeout=1200, capture_output=True, text=True,
+                     env=dict(os.environ, LEAGUE=_lg3))
+_out3 = (_p3.stdout or "") + (_p3.stderr or "")
+_dos3 = _jz(os.path.join(_d3, "data", _lg3, "latest", "dossiers.json.gz"))
+ck(_dos3 is not None and _p3.returncode == 0,
+   "   %s: an unidentifiable opponent does not cost the slate its "
+   "dossiers" % _lg3,
+   "⛔ §1 is real and the game is bettable — the refusal is per SECTION, "
+   "never the whole run. rc=%s %s" % (_p3.returncode, _out3[-300:]))
+_row3 = [x for x in ((_dos3 or {}).get("dossiers") or [])
+         if x.get("away_name") == "Slippery Rock Aardvarks"]
+ck(len(_row3) == 1,
+   "🔴🔴 %s: THE GAME IS DESCRIBED AND NAMED, NOT DROPPED" % _lg3,
+   "⛔ A GAME THE READER CAN NAME MUST NEVER RENDER AS None, and it must "
+   "not vanish either. Got %s"
+   % [x.get("away_name") for x in ((_dos3 or {}).get("dossiers") or [])])
+_s3 = {x.get("name"): x for x in ((_row3 or [{}])[0].get("sections") or [])}
+_ok3 = sorted(n for n in _s3
+              if n in _PAIRWISE_NAMES and _s3[n].get("state") == "OK")
+ck(_s3 and not _ok3,
+   "   🔴 ...and NO pair-wise section reads OK on it (%d checked)"
+   % len([n for n in _s3 if n in _PAIRWISE_NAMES]),
+   "⛔ a section whose subject is the PAIR cannot answer when one side "
+   "is unknown. Still OK: %s" % _ok3)
+ck(all("Slippery Rock Aardvarks" in (_s3[n].get("why") or "")
+       for n in _s3 if n in _PAIRWISE_NAMES),
+   "   ⛔ ...and each refusal NAMES the side it could not identify",
+   "🔴 'not available' with no subject is unreadable. Got %s"
+   % [(n, (_s3[n].get("why") or "")[:50]) for n in sorted(_s3)])
+ck("No meeting between these two" not in ((_s3.get("Head to head") or {})
+                                          .get("why") or ""),
+   "   🔴🔴 ...and head to head does not assert a check that never ran",
+   "⛔ a fact about a query is not a fact about the world — there is no "
+   "'these two'. Got: %s"
+   % ((_s3.get("Head to head") or {}).get("why") or "")[:140])
+ck((_s3.get("Market") or {}).get("state") == "OK",
+   "   ✅ ...while the market section STAYS OK",
+   "⛔ do not suppress the game: the price is real. Got %s"
+   % (_s3.get("Market") or {}).get("state"))
+shutil.rmtree(_d3, ignore_errors=True)
