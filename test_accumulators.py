@@ -151,10 +151,33 @@ ck('"fb-record": "card-fb"' in _FBFRESH
    "that quoted it is wrong")
 
 
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE ARTIFACTS UNDER TEST ARE STRIPPED FROM THE THROWAWAY TREE.
+# 🔴🔴 THE DEFECT THIS EXISTS FOR IS THIS FILE'S OWN, `[2026-09-17]`, and
+# it is a whole class: **a precondition that was true only until the
+# feature started working.** Section 2 asserted "the tree starts with NO
+# t54.json" — true when it was written, because the counter had never
+# run. The moment `card-fb` started writing `t54.json` in production, the
+# file landed in `data/nfl/latest/`, `copytree` brought it along, and the
+# check went red **because the thing it was guarding had succeeded.**
+# ⚠️ The suite was red on main on EVERY collector run from then on.
+# ✅ STRIPPING IT ASKS THE SAME QUESTION AND ASKS IT HARDER: "this run
+# produced the file" rather than "the fixture happened not to have one".
+# ⛔ Do not answer this by deleting the assertion — a run that produced
+# nothing would then pass.
+# ══════════════════════════════════════════════════════════════════════
+PRODUCED = ("data/nfl/latest/t54.json",
+            "data/nfl/latest/dossiers.json.gz")
+
+
 def tree():
     d = tempfile.mkdtemp(prefix="accum-")
     shutil.copytree(os.path.join(ROOT, "data", "nfl"),
                     os.path.join(d, "data", "nfl"))
+    for _rel in PRODUCED:
+        _p = os.path.join(d, _rel)
+        if os.path.exists(_p):
+            os.remove(_p)
     os.makedirs(os.path.join(d, "picks"), exist_ok=True)
     for f in glob.glob(os.path.join(ROOT, "picks", "fb-nfl-*.json")):
         shutil.copy(f, os.path.join(d, "picks"))
@@ -171,15 +194,18 @@ section("2. 🔴 t54.json IS PRODUCED BY RUNNING THE REAL MODE")
 _d = tree()
 _p54 = os.path.join(_d, "data/nfl/latest/t54.json")
 ck(not os.path.exists(_p54),
-   "⚠️ the tree starts with NO t54.json",
-   "⛔ finding a file that was already there proves nothing")
+   "⚠️ the tree was CLEARED of t54.json before the run",
+   "⛔ finding a file that was already there proves nothing — and since "
+   "`card-fb` started writing one in production, `copytree` brings it "
+   "along, which is what turned this red on main. `tree()` strips it.")
 _r = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d,
                     timeout=1200, capture_output=True, text=True,
                     env=dict(os.environ, LEAGUE="nfl"))
 _out = _r.stdout + _r.stderr
 ck(os.path.exists(_p54),
-   "🔴🔴 RUNNING `card-fb` WRITES t54.json — FOR THE FIRST TIME EVER",
-   "⛔ it had never existed on disk. rc=%s %s" % (_r.returncode, _out[-300:]))
+   "🔴🔴 RUNNING `card-fb` WRITES t54.json",
+   "⛔ THE RUN HAS TO PRODUCE IT. The tree was cleared above, so finding "
+   "it here means this run wrote it. rc=%s %s" % (_r.returncode, _out[-300:]))
 _T = json.load(open(_p54, encoding="utf-8")) if os.path.exists(_p54) else {}
 ck(bool(_T.get("test") == "T54" and _T.get("verdict")),
    "   ...carrying a real verdict (%s)" % _T.get("verdict"),
