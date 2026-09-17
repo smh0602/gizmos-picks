@@ -132,9 +132,12 @@ def unmapped(root=ROOT):
 # DERIVED here and `test_vacuity.py` compares it against this constant,
 # exactly as `test_watchdog.py` does for the cron total.
 # ══════════════════════════════════════════════════════════════════════
-# `[2026-09-17]` 59 when this was first measured; four came down the same
-# day (test_epa, test_fbs_gate, test_harness, test_vacuity itself).
-BLIND_CEILING = 55
+# `[2026-09-17]` 59 when this was first measured. Three came down the same
+# day — `test_epa.py`, `test_fbs_gate.py`, `test_harness.py`.
+# ⛔ `test_vacuity.py` STAYS IN THE SET ON PURPOSE and cannot leave it: a
+# declaration naming it would make this sweep run that file, which runs
+# this sweep, without bound. Its own header records the measurement.
+BLIND_CEILING = 56
 
 
 def blind(root=ROOT):
@@ -146,7 +149,7 @@ def blind(root=ROOT):
     """
     declared = {d["test"] for d in declarations(root)}
     mapped = set(name_map(root))
-    return []
+    return sorted(set(tests(root)) - declared - mapped)
 
 
 class _Gut(ast.NodeTransformer):

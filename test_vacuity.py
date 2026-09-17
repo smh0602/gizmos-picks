@@ -16,10 +16,32 @@ and only the second half catches that.
 """
 
 # ══════════════════════════════════════════════════════════════════════
-# @vacuity the blind set is DERIVED, never an empty list
-#   file: vacuity.py
-#   find: return sorted(set(tests(root)) - declared - mapped)
-#   with: return []
+# 🔴🔴 THIS FILE DECLARES NO `@vacuity` MUTATION, AND THAT IS A FINDING
+# RATHER THAN AN OVERSIGHT. `[2026-09-17]` One was written here —
+#
+#     file: vacuity.py
+#     find: return sorted(set(tests(root)) - declared - mapped)
+#     with: return []
+#
+# — and driving it is what exposed why it cannot exist. ⛔ **THIS FILE
+# RUNS THE REAL SWEEP.** `V.tier2(ROOT)` below is the whole nightly pass.
+# So a declaration naming THIS file as its `test` makes the sweep run
+# `test_vacuity.py` as a subprocess, which runs the sweep again, which
+# runs `test_vacuity.py` again — **unbounded recursion, every level
+# rewriting the same real source files at the same time.**
+# 🔴 MEASURED CONSEQUENCE: the outer run finished while a nested one was
+# still mutating, its own leak check failed with `nfl.py` left modified,
+# and earlier in the evening the same interleaving baked a mutation
+# permanently into `vacuity.py` — TWICE.
+#
+# ⚠️ SO IT IS THE SECOND THING IN THIS REPO NO DECLARED MUTATION CAN
+# TEST, for the same family of reason as `tcheck.py`'s `os._exit(1)`
+# (recorded in `test_harness.py`): a guard cannot be proven by breaking
+# the machinery that would report the break.
+# ✅ WHAT COVERS IT INSTEAD: section 6 takes its measurement AT IMPORT,
+# before anything mutates the tree, and asserts the set is non-empty —
+# so a `blind()` that returns nothing fails here on the next ordinary
+# suite run. That is exactly how the corruption was caught, twice.
 # ══════════════════════════════════════════════════════════════════════
 
 import os
@@ -33,6 +55,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import vacuity as V  # noqa: E402
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 MEASURED HERE, AT IMPORT, BEFORE ANYTHING MUTATES THE TREE.
+# ⛔ This file runs the REAL tier-2 sweep further down, which rewrites
+# source files in place — including `vacuity.py` itself, which is where
+# `blind()` lives. Reading the blind set AFTER that is reading it through
+# whatever the sweep is holding at that instant. `[2026-09-17]` It read
+# 0 of 81 that way and the ratchet below passed on an empty set.
+# ⚠️ A measurement taken while the thing measured is being edited is not
+# a measurement.
+# ══════════════════════════════════════════════════════════════════════
+_BLIND_AT_IMPORT = V.blind(ROOT)
+_TESTS_AT_IMPORT = V.tests(ROOT)
 
 
 def plant():
@@ -319,8 +354,7 @@ section("6. 🔴🔴 THE THIRD HOLE — A TEST WITH NO PROOF OF ANY KIND")
 #    number anywhere in this repo said so. The nightly line read "(65
 #    unmapped)", which looks like the whole gap and is not: 18 of those
 #    unmapped files DO carry declarations.
-_blind = V.blind(ROOT)
-_all = V.tests(ROOT)
+_blind, _all = _BLIND_AT_IMPORT, _TESTS_AT_IMPORT
 ck("⚠️ the blind set is DERIVED from the repo (%d of %d test file(s))"
    % (len(_blind), len(_all)),
    _blind and len(_all) > 50,
