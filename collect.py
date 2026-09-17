@@ -3646,6 +3646,35 @@ def run_mode(mode):
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back. The contract will report the "
                         f"record late until a later run repairs it.")
+            # ══════════════════════════════════════════════════════════
+            # 🔴 AND THE PER-GAME DOSSIER, ON THE SAME REASONING.
+            # ⛔ NOTHING ON THE SITE MAY DEPEND ON A MANUAL RUN (Sam's
+            # standing rule), and `dossier_fb.py` had no schedule at all.
+            # ⚠️ CHAINED TO `card-fb` DELIBERATELY, and the choice is
+            # MEASURED rather than assumed: `card-fb` is reached by EIGHT
+            # distinct crons, while `fb-record` — where `t54.py`'s counter
+            # was hooked — is reached by NONE, which is why
+            # `data/*/latest/t54.json` has never been written once. ⛔ Do
+            # not move this onto a mode nobody schedules.
+            # ✅ NFL ONLY today, and the builder itself says so and exits
+            # clean for any other league; the call is unconditional so
+            # that college starts working the day the builder does.
+            # 🔴 A FAILURE HERE MUST NOT LOSE THE CARD. The card is the
+            # product; the dossier is a report about it.
+            # ⛔ AND THE DOSSIER REFUSES TO PUBLISH A JUDGEMENT. It exits
+            # non-zero rather than write a scored document, so a non-zero
+            # return here is a REAL finding and is logged as one.
+            try:
+                import dossier_fb as _dos
+                _rc = _dos.build(LEAGUE)
+                if _rc:
+                    log("  ⛔ THE DOSSIER REFUSED TO PUBLISH — it carries a "
+                        "judgement field, or its audit exemptions went "
+                        "stale. Nothing was written. The card is fine.")
+            except Exception as e:
+                log(f"  ⚠️ the dossier did not build "
+                    f"({type(e).__name__}: {e}) — the CARD IS FINE and is "
+                    f"not rolled back.")
         elif mode == "halftime-probe":
             # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
             # digits: 2 credits for the bulk ask, 2 more only if that
