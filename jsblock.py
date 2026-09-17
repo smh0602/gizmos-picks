@@ -64,3 +64,65 @@ def calls(name, path):
         body = ""
     outside = src.replace(body, "") if body else src
     return len(re.findall(r"\b" + re.escape(name) + r"\s*\(", outside))
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE WHOLE-PAGE READERS, for the questions that are about EVERY
+# function or EVERY rule rather than one named thing.
+# ⛔ THEY LIVE HERE FOR THE REASON THE MODULE EXISTS. `test_mlb_untouched.py`
+# needs a brace matcher over the whole script and a rule splitter over the
+# style block; growing its own would be the sixth copy of a parser this
+# repo has paid for (rule 117).
+# ══════════════════════════════════════════════════════════════════════
+def top_level_blocks(path):
+    """{name: body} for every top-level `function name(...)` on the page.
+
+    ⛔ BRACE-MATCHED like `js_block`, never length-guessed."""
+    src = source(path)
+    out = {}
+    for m in re.finditer(r"\n(?:async )?function ([A-Za-z_$][\w$]*)\s*\(", src):
+        i = src.index("{", m.end() - 1)
+        depth = 0
+        for j in range(i, len(src)):
+            if src[j] == "{":
+                depth += 1
+            elif src[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    out[m.group(1)] = src[m.start() + 1:j + 1]
+                    break
+    return out
+
+
+def css_rules(path):
+    """{selector: declarations} for every rule in every `<style>` block.
+
+    ⚠️ NESTING-AWARE, because `@media` wraps rules in another brace pair
+    and a naive split would return the media query as one enormous
+    "selector" — which would make a comparison over it useless rather
+    than wrong, and useless is harder to notice.
+    ⛔ COMMENTS ARE STRIPPED. A comment is not a rendered rule, and a
+    check that reddened on a reworded comment would be the stripped-comment
+    failure in reverse (rule 244)."""
+    src = source(path)
+    out = {}
+    for st in re.findall(r"<style>(.*?)</style>", src, re.S):
+        st = re.sub(r"/\*.*?\*/", "", st, flags=re.S)
+        depth, buf, sel = 0, [], None
+        for c in st:
+            if c == "{":
+                depth += 1
+                if depth == 1:
+                    sel, buf = "".join(buf).strip(), []
+                else:
+                    buf.append(c)
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    if sel:
+                        out.setdefault(sel, []).append("".join(buf).strip())
+                    buf, sel = [], None
+                else:
+                    buf.append(c)
+            else:
+                buf.append(c)
+    return {k: "\n".join(v) for k, v in out.items()}

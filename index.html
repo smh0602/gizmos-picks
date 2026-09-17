@@ -260,6 +260,38 @@ tr.dayrow{cursor:pointer}
 tr.dayrow:hover td{background:#f2f4f7}
 tr.dayrow .caret{color:var(--mut);font-size:10px;display:inline-block;transition:transform .12s}
 tr.dayrow.open .caret{transform:rotate(90deg)}
+/* ══════════════════════════════════════════════════════════════════
+   THE EIGHT SIGNALS PANEL, under a game row on the Odds tab.
+   ⛔ ADDITIVE ONLY. Every selector here is new — nothing above is
+   changed, because `index.html` is shared with MLB and the freeze
+   forbids editing MLB through the back door as surely as editing the
+   card. `test_mlb_untouched.py` proves it rather than asserting it.
+   🔴 A SECTION THAT CANNOT ANSWER IS SHOWN, NOT HIDDEN, AND IT IS
+   DISTINGUISHED BY STYLE RATHER THAN BY A WORD. A dashed muted rail
+   instead of the solid one — because the reason is the builder's own
+   sentence in the body, and stamping "UNAVAILABLE" on it is jargon
+   nobody outside this repo reads (Sam, 2026-08-26).
+   ══════════════════════════════════════════════════════════════════ */
+.dosg{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:9px;margin:4px 0 8px}
+.dossec{border-left:3px solid var(--accent2);background:var(--card);
+  border-radius:0 7px 7px 0;padding:8px 11px}
+.dossec.gap{border-left:3px dashed var(--line);background:transparent}
+.dossec .dn{font:700 11px/1.3 system-ui;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--ink);margin:0 0 4px}
+.dossec.gap .dn{color:var(--mut)}
+.dossec .dw{font-size:12px;line-height:1.5;color:var(--ink);margin:0}
+.dossec.gap .dw{color:var(--mut)}
+.dossec .df{margin:6px 0 0;padding:0;list-style:none;font-size:11.5px;
+  color:var(--mut);line-height:1.6}
+.dossec .df b{color:var(--ink);font-variant-numeric:tabular-nums}
+.doshd{font:700 13px/1.3 system-ui;margin:2px 0 3px}
+.dospart{display:inline-block;font:700 10px/1 system-ui;text-transform:uppercase;
+  letter-spacing:.05em;color:#8a5f14;border:1px solid #f0dcb8;background:#fdf7ec;
+  border-radius:20px;padding:3px 8px;margin-left:6px;vertical-align:2px}
+tr.dosrow{cursor:pointer}
+tr.dosrow:hover td{background:#f2f4f7}
+tr.dosrow .caret{color:var(--mut);font-size:10px;display:inline-block;transition:transform .12s}
+tr.dosrow.open .caret{transform:rotate(90deg)}
 .ddtab{width:100%;border-collapse:collapse;font-size:12px;margin:2px 0 6px}
 .ddtab th,.ddtab td{padding:5px 8px;border-top:1px solid var(--line);text-align:left}
 .ddtab th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
@@ -2903,6 +2935,230 @@ async function fbBoardLoad(){
   return FBBOARD[LEAGUE];
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   SAM'S EIGHT SIGNALS, UNDER THE GAME THEY DESCRIBE.
+
+   🔴🔴 `dossier_fb.py` HAS COMPUTED, AUDITED AND ARCHIVED THESE SINCE
+   2026-09-17 AND NOTHING RENDERED ONE. `grep -c dossier index.html`
+   returned **0**: eight signals on every game of both boards, on disk,
+   invisible. ⛔ An artifact nothing reads is not a feature — and
+   verifying that the FILE was written is not verifying that anything
+   SHOWS it. That was the miss.
+
+   🔴 THE JOIN IS `board_id` AND NOTHING ELSE.
+   ⛔ NOT ON TEAM NAMES. CLAUDE.md: "Two legs are in different games only
+      if the GAME ID differs. Never compare opponent names." A live MLB
+      card shipped four impossible parlays off a name check, including
+      its top recommendation.
+   ⛔ NOT ON KICKOFF TIME either. That is `boardFor()`'s nearest-first-
+      pitch problem, and re-solving it here would be a second copy of it
+      in a second language — which is exactly how the wrong-game bug put
+      six games' live odds onto the following day's cards.
+   ⛔ AND NOT ON `game_id`. Measured 2026-09-17 on the live NFL artifact:
+      **0 of 32** dossier `game_id`s appear anywhere in `board.json` —
+      they are the season schedule's ids (`2026_02_DET_BUF`), while the
+      board carries the odds feed's own hash. Different namespaces.
+   ✅ So the builder puts the board's own id on the frame and this joins
+      on one exact key, inferring nothing.
+
+   🔴 THE PAGE PRINTS THE BUILDER'S OWN SENTENCE (rule 132) AND COMPOSES
+   NOTHING. Every section already carries a `why` written for a reader,
+   available and unavailable alike — jargon-checked against
+   `verify_card.py`'s own list, 0 hits across 89 distinct strings. ⛔ A
+   second sentence written here would be a second copy of the reasoning
+   and a second thing to drift. Nothing below computes a number.
+
+   ⛔ THE FRAME'S `note` IS NOT RENDERED. It carries the word
+   DESCRIPTIVE, which is on the jargon list — it is the ledger's label
+   for the artifact, not a sentence for a reader. `test_dossier_page.py`
+   fails if it reaches the panel.
+
+   ⛔ AND NEITHER IS A SECTION'S `remedy`. That field says what an
+   OPERATOR should run — "run the season's log build (`nfl-logs` writes
+   `top-2026.json.gz`)" — and it is exactly the "nonsense users dont
+   need to read and cant understand" Sam ruled out on 2026-08-26. The
+   `why` is the reader's sentence; the remedy is the runbook's.
+   ⚠️ Driving this found one `why` that was ALSO operator-facing, on all
+   32 NFL games. That was fixed IN THE BUILDER, not papered over here —
+   the page printing the builder's string means the builder's string has
+   to be readable.
+   ══════════════════════════════════════════════════════════════════ */
+const FBDOS = {};
+async function fbDossierLoad(lg){
+  if (FBDOS[lg] !== undefined) return FBDOS[lg];
+  /* ⛔ A FAILURE IS NOT CACHED. The builder writes this on the `card-fb`
+     arms; before the first one there is no file, and a file that appears
+     later must be picked up rather than remembered as absent — the same
+     rule `fbDossierLoad`'s neighbour `fbRecordLoad` follows. */
+  try { FBDOS[lg] = await jgetGz(`${LG_DATA[lg]}/latest/dossiers.json.gz`); }
+  catch(e){ return null; }
+  return FBDOS[lg];
+}
+
+/* 🔴 ONE EXACT KEY. A frame with no `board_id` is SKIPPED rather than
+   matched some other way — a game with no dossier shows no panel, which
+   is a gap; a game shown another game's dossier is misinformation. */
+function fbDossierBy(D){
+  const m = new Map();
+  (((D || {}).dossiers) || []).forEach(x => { if (x.board_id) m.set(x.board_id, x); });
+  return m;
+}
+
+/* One section. ⛔ The state is carried by STYLE, never by the word
+   "UNAVAILABLE" — Sam, 2026-08-26: "all of these things that a casual
+   fine wont know about has to go." The reason is the builder's sentence.
+   ⚠️ `facts` are the builder's OWN scalars, printed under their field
+   name. Nothing here derives, sums, ranks or rounds anything. */
+/* 🔴 AND EVERY SECTION THAT CAN ANSWER SHOWS ONE OF THE BUILDER'S OWN
+   VALUES, NOT ONLY ITS SENTENCE. `[2026-09-17, caught by reading the
+   rendered panel rather than the code]` The first draft printed the
+   `why` and nothing else, so "This season" and "Versus position" read
+   `OK` and showed a heading and a sentence — which is the Task 27
+   disease one layer out: a section that knows something and displays
+   none of it looks the same as one that knows nothing.
+   ⛔ `test_dossier_page.py` now fails if an OK section renders no stored
+   value at all.
+   ⚠️ WHAT IS DELIBERATELY NOT SHOWN: the per-position RANK NUMBERS in
+   "Versus position". The builder stores up to 13 of them per position
+   per team — 104 figures for one game — and cutting that down means
+   either computing which is worst (forbidden: the page computes
+   nothing) or picking a favourite (an editorial judgement this file has
+   no licence to make). So the section shows WHICH positions are ranked
+   and on how many games, and the ranking itself waits for Sam to say
+   which cut he wants. ➡️ Flagged, not guessed. */
+function fbDosFacts(s){
+  const f = [];
+  const li = (k, v) => f.push(`<li>${k} <b>${v}</b></li>`);
+  const num = v => v == null ? null : v;
+  if (s.n === 1){
+    /* ⚠️ THE BOARD'S OWN FIGURES AS THE DOSSIER STORED THEM — a
+       point-in-time reading, which is the whole nature of this artifact.
+       ⛔ Nothing here is recomputed; if these differ from the row above
+       it is because the board moved after the card was built, and that
+       is a fact worth seeing rather than one worth hiding. */
+    const L = s.live || {};
+    if (L.total != null) li('Total', L.total);
+    if (L.run_line != null)
+      li('Spread', `${L.run_line > 0 ? '+' : ''}${L.run_line}`
+         + (L.run_line_team ? ` ${L.run_line_team}` : ''));
+    if (L.n_books != null) li('Books priced', L.n_books);
+    const c = s.closing;
+    if (c && c.closing_spread != null) li('Closing spread', c.closing_spread);
+    if (c && c.closing_total  != null) li('Closing total',  c.closing_total);
+  }
+  if (s.n === 2 && (s.meetings || []).length)
+    s.meetings.forEach(m => li(`${m.date}`,
+      `${m.away} ${m.away_score} &ndash; ${m.home_score} ${m.home}`));
+  if (s.n === 3 && s.by_team)
+    Object.keys(s.by_team).forEach(t => {
+      const v = s.by_team[t] || {};
+      li(t, `${num(v.player_rows)} player game${v.player_rows === 1 ? '' : 's'}`
+           + ` across ${num(v.prior_seasons_with_this_week)} earlier season`
+           + (v.prior_seasons_with_this_week === 1 ? '' : 's'));
+    });
+  if (s.n === 4){
+    if (s.through_week != null) li('Through week', s.through_week);
+    /* ⚠️ THE NAMES AND POSITIONS THE BUILDER STORED, in its own order
+       (it sorted them by trailing snap share). ⛔ Not re-sorted here —
+       a second ordering is a second copy of the selection rule. */
+    if (s.by_team) Object.keys(s.by_team).forEach(t => {
+      const pl = s.by_team[t] || {};
+      const names = Object.keys(pl).map(n => `${n} (${(pl[n] || {}).pos || ''})`);
+      if (names.length) li(t, names.join(' &middot; '));
+    });
+  }
+  if (s.n === 5 && s.by_defence)
+    Object.keys(s.by_defence).forEach(t => {
+      const d = s.by_defence[t] || {};
+      Object.keys(d).forEach(pos => {
+        const g = (d[pos] || {}).games;
+        li(`${t} vs ${pos}`, `ranked over ${num(g)} game${g === 1 ? '' : 's'}`);
+      });
+    });
+  if (s.n === 6 && s.by_team)
+    Object.keys(s.by_team).forEach(t => {
+      const v = s.by_team[t] || {};
+      li(t, `${v.minutes} a game over ${num(v.games)} game`
+           + (v.games === 1 ? '' : 's'));
+    });
+  if (s.n === 7 && s.flagged != null)
+    li('Players carrying a flag', s.flagged);
+  if (s.n === 8){
+    if (s.venue)   li('Where', s.venue);
+    if (s.roof)    li('Roof', s.roof === 'outdoors' ? 'open to the sky' : s.roof);
+    if (s.surface) li('Surface', s.surface.replace(/_/g, ' '));
+    if (s.weather && s.weather.temp != null) li('Temperature', s.weather.temp + '&deg;');
+    if (s.weather && s.weather.wind != null) li('Wind', s.weather.wind + ' mph');
+  }
+  return f.length ? `<ul class="df">${f.join('')}</ul>` : '';
+}
+
+function fbDosSection(s){
+  const gap = s.state !== 'OK';
+  /* ⛔ `s.why` VERBATIM. Not summarised, not reworded, not truncated. */
+  return `<div class="dossec${gap ? ' gap' : ''}">
+      <div class="dn">${s.name}</div>
+      <p class="dw">${s.why || ''}</p>
+      ${fbDosFacts(s)}
+      ${s.weather_note ? `<p class="dw" style="margin-top:5px;color:var(--mut)">${s.weather_note}</p>` : ''}
+    </div>`;
+}
+
+/* 🔴 A PARTIAL GAME MUST LOOK PARTIAL. 16 of the 90 college games on the
+   board carry an opponent the season files do not cover. ⛔ The name is
+   NEVER a blank: the board always has it and the builder carries it
+   through as `away_name`/`home_name`, with the side it could not resolve
+   named in `unresolved_side`. */
+function fbDossierHtml(x){
+  if (!x) return `<div class="msg" style="padding:18px 0">No signals stored for
+    this game yet. They are written on the next card build.</div>`;
+  /* ⚠️ CALLED, NOT PASSED. `.map(fbDosSection)` reads identically and
+     `jsblock.calls()` cannot see it — and "who calls it" is the only
+     question that catches a renderer that is defined and never reached
+     (rule 130). ⛔ A guard blinded by a style choice is a guard. */
+  const secs = (x.sections || []).map(s => fbDosSection(s)).join('');
+  const u = x.unresolved_side;
+  return `<div class="doshd">${x.away_name || ''} at ${x.home_name || ''}${
+      u ? `<span class="dospart">no season record for ${u}</span>` : ''}</div>
+    <div class="dosg">${secs}</div>`;
+}
+
+/* ⚠️ SCOPED TO `#fbview`, like `fbWireDayRows`. An unscoped sweep would
+   double-bind whichever football tab drew last — and MLB wires its own
+   `tr.dayrow` unscoped, so a shared class name here would collide with
+   MLB the moment both were on the page. `tr.dosrow` is football's alone.
+   ⛔ ONE OPEN AT A TIME and collapsed by default, the same as the
+   `fbdd-<date>` rows Sam asked for. */
+function fbWireDossierRows(lg){
+  document.querySelectorAll('#fbview tr.dosrow').forEach(tr => {
+    tr.addEventListener('click', async () => {
+      const id = tr.dataset.bid;
+      const box = document.querySelector('#fbdos-' + id);
+      if (!box) return;
+      if (!box.hidden){ box.hidden = true; tr.classList.remove('open'); return; }
+      document.querySelectorAll('#fbview tr.dosdetail').forEach(o => { o.hidden = true; });
+      document.querySelectorAll('#fbview tr.dosrow.open').forEach(o => o.classList.remove('open'));
+      tr.classList.add('open');
+      box.hidden = false;
+      const cell = box.querySelector('td');
+      if (cell.dataset.loaded) return;
+      cell.innerHTML = '<div class="msg" style="padding:18px 0">Loading&hellip;</div>';
+      const D = await fbDossierLoad(lg);
+      if (!D){
+        /* ⛔ DEGRADES TO A NOTE, NEVER A BROKEN TAB. Before the first
+           `card-fb` arm of a league there is no file, and that is the
+           calendar rather than an error. */
+        cell.innerHTML = `<div class="note">The eight signals are written by the
+          card build. <code>${LG_DATA[lg]}/latest/dossiers.json.gz</code> is not
+          on disk yet, so there is nothing to open for this game.</div>`;
+        return;
+      }
+      cell.innerHTML = fbDossierHtml(fbDossierBy(D).get(id));
+      cell.dataset.loaded = '1';
+    });
+  });
+}
+
 function fbOddsTable(list){
   const row = g => {
     const a = g.away, h = g.home;
@@ -2932,9 +3188,15 @@ function fbOddsTable(list){
                : (g.run_line != null ? sgn(g.run_line) : '');
     const sprH = ((g.best_spread||{})[h]||{}).pt != null ? sgn(g.best_spread[h].pt)
                : (g.run_line != null ? sgn(-g.run_line) : '');
-    return `<tr>
+    /* 🔴 THE ROW OPENS SAM'S EIGHT SIGNALS. ⛔ Keyed on the BOARD'S OWN
+       `g.id`, which is the one key the dossier now carries as
+       `board_id` — never the team names and never the kickoff. */
+    return `<tr class="dosrow" data-bid="${g.id}"
+        title="Click for the eight checks on this game">
       <td class="gm"><div class="gt">${t}</div>
-        <div class="stack">${nm(a)}${nm(h)}</div></td>
+        <div class="stack">${nm(a)}${nm(h)}</div>
+        <div class="gt" style="margin-top:2px">the eight checks
+          <span class="caret">&#9656;</span></div></td>
       <td><div class="stack">
         <span class="cell">${g.win_pct[a] != null ? g.win_pct[a] + '%' : '&mdash;'}</span>
         <span class="cell">${g.win_pct[h] != null ? g.win_pct[h] + '%' : '&mdash;'}</span>
@@ -2973,7 +3235,9 @@ function fbOddsTable(list){
           ? `<div class="sub" style="line-height:1.35">no moneyline<br>posted</div>`
           : `<div class="big" style="font-size:13px;color:var(--mut)">&mdash;</div>`;
       })()}</td>
-    </tr>`;
+    </tr>
+    <tr class="dosdetail" id="fbdos-${g.id}" hidden>
+      <td colspan="8"></td></tr>`;
   };
   return `<div class="obwrap"><table class="ob">
       <thead><tr>
@@ -3046,6 +3310,12 @@ async function fbOdds(){
       football side of this site carries a confidence rating.
     </div>`);
   fbWire();
+  /* 🔴 WIRED HERE, AFTER THE innerHTML THAT DREW THE ROWS. `#fbview` is
+     rebuilt from scratch by every football renderer, so a listener bound
+     before the write is bound to a detached row — ledger rule 197: the
+     game-lines section existed, was wired, and simply never drew, and
+     that was found by LOADING the page, not by reading it. */
+  fbWireDossierRows(LEAGUE);
   const t = $('#fb-ob-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbOdds(); });
 }
