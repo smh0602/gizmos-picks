@@ -579,14 +579,34 @@ def s_possession(home, away, this_season, data=None, missing=None):
                 "third.",
                 "it starts filling in on its own once a few more weekends "
                 "have been played")
+        # ══════════════════════════════════════════════════════════
+        # 🔴 ~~"No `top-2026.json.gz` under `data/` yet..."~~ REWRITTEN
+        # `[2026-09-17, when the page started printing these]`
+        # ⛔ THAT SENTENCE WAS FOR AN OPERATOR AND IT WENT TO A READER.
+        # It named a filename, a directory and a probe file, and it was
+        # the §6 text on all 32 NFL games the moment the panel shipped.
+        # Sam, 2026-08-26: "all of these things that a casual fine wont
+        # know about has to go."
+        # ✅ THE HONESTY IS KEPT, NOT SOFTENED: the old string's real
+        # content was that an absent table is AMBIGUOUS between "the job
+        # has not run" and "too little of the clock could be read", and
+        # that ambiguity is still stated — in English, and still refusing
+        # to claim which. ➡️ The filenames move to `remedy`, which is
+        # where an operator looks and which the page does not print.
+        # ══════════════════════════════════════════════════════════
         return unavailable(
             6, "Time of possession",
-            "No `top-%d.json.gz` under `data/` yet. ⚠️ The builder "
-            "REFUSES to write a partial table, so an absent file is as "
-            "likely to mean 'too little of the clock could be read' as "
-            "'the job has not run' — `top-probe-%d.json` beside it says "
-            "which." % (this_season, this_season),
-            "run the season's log build (`nfl-logs` writes it)")
+            "No time-of-possession figures are stored for the %d season "
+            "yet. They are worked out from the game clock rather than "
+            "read off a stat sheet, and a table is only kept when enough "
+            "of the clock could be read — so this is either a build that "
+            "has not run or a season whose clock is too patchy to use, "
+            "and we are not claiming to know which."
+            % this_season,
+            "run the season's log build (`nfl-logs` writes "
+            "`top-%d.json.gz`); `top-probe-%d.json` beside it says "
+            "whether the job never ran or the clock was too thin"
+            % (this_season, this_season))
     by = top.get("teams") or {}
     # ══════════════════════════════════════════════════════════════════
     # 🔴🔴 THE SECTION READS THE SHARE, AND ONLY THE SHARE.
@@ -796,6 +816,28 @@ def build(league=None):
         #    inside `by_team` on 19 college rows.
         teams = [t for t in (home, away) if t]
         out.append({
+            # ══════════════════════════════════════════════════════════
+            # 🔴🔴 TWO IDS, EACH NAMED FOR WHERE IT CAME FROM.
+            # ⛔ THEY ARE DIFFERENT NAMESPACES AND NEITHER IS THE OTHER.
+            # `game_id` is the SEASON SCHEDULE's id — nflverse
+            # `2026_02_DET_BUF` for NFL, a CFBD integer for college — and
+            # sections 2, 3 and 4 are built from it. `board_id` is the
+            # ODDS FEED's own hash, e.g. `0283a29e1b38ef78b29b904fd56a16dd`.
+            # ⚠️ MEASURED 2026-09-17 on the live NFL artifact: **0 of 32**
+            # dossier `game_id`s appear anywhere in `board.json`. A page
+            # given only `game_id` cannot join to the board at all.
+            # ⛔ AND IT MUST NEVER JOIN ON TEAM NAMES OR ON KICKOFF TIME.
+            # CLAUDE.md: "Two legs are in different games only if the GAME
+            # ID differs. Never compare opponent names" — a live MLB card
+            # shipped four impossible parlays that way. Matching on time
+            # is `boardFor()`'s nearest-first-pitch problem, and doing it
+            # in JavaScript would be a second copy of it in a second
+            # language, which is exactly how the wrong-game bug shipped.
+            # ✅ SO THE JOIN KEY IS PUT HERE, IN THE BUILDER, which already
+            # holds the board row. The page then joins on one exact key
+            # and infers nothing.
+            # ══════════════════════════════════════════════════════════
+            "board_id": g.get("id"),
             "game_id": (row or {}).get("id"),
             "away": away, "home": home,
             # ⛔ ALWAYS THE BOARD'S OWN STRINGS, resolved or not. A game
