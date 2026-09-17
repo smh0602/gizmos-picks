@@ -80,11 +80,34 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 # ══════════════════════════════════════════════════════════════════════
 
 
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE ARTIFACT UNDER TEST IS STRIPPED FROM THE THROWAWAY TREE.
+# 🔴🔴 A PRECONDITION THAT WAS TRUE ONLY UNTIL THE FEATURE STARTED
+# WORKING, `[2026-09-17]`. The gate check below injects a `score` into a
+# copy of the builder, runs it, and asserts it "wrote nothing at all" —
+# by testing that `latest/dossiers.json.gz` does not exist. That was
+# right while the dossier had never been published. The moment `card-fb`
+# started publishing one, `copytree` brought it into every throwaway
+# tree, and the check went red **because the thing it guards had
+# succeeded.** The suite was red on main on every collector run after.
+# ✅ STRIPPING IT ASKS THE SAME QUESTION AND ASKS IT HARDER: "this run
+# wrote nothing" instead of "the fixture happened not to have one".
+# ⛔ Do not answer this by deleting the assertion — a refusal that still
+# published the file would then pass.
+# ══════════════════════════════════════════════════════════════════════
+PRODUCED = ("data/nfl/latest/dossiers.json.gz",
+            "data/nfl/latest/t54.json")
+
+
 def tree(with_dossier=True):
     """A throwaway repo with the data the builder and the card both read."""
     d = tempfile.mkdtemp(prefix="dossier-")
     shutil.copytree(os.path.join(ROOT, "data", "nfl"),
                     os.path.join(d, "data", "nfl"))
+    for _rel in PRODUCED:
+        _p = os.path.join(d, _rel)
+        if os.path.exists(_p):
+            os.remove(_p)
     os.makedirs(os.path.join(d, "picks"), exist_ok=True)
     for f in glob.glob(os.path.join(ROOT, "picks", "fb-nfl-*.json")):
         shutil.copy(f, os.path.join(d, "picks"))
