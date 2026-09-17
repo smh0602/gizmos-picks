@@ -393,7 +393,50 @@ index.html        the dashboard, single file, no build step
 .github/workflows/collect.yml   every schedule
 data/             timestamped snapshots. append-only.
 picks/            published cards. append-only once a slate starts.
+
+FOOTBALL (not frozen)
+card_fb.py        the football picks board -> picks/fb-<lg>-<date>.json
+cfb.py            college: probe, back-fill and verify, one dispatch
+nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
+record_fb.py      the football grader -> data/<lg>/latest/record.json
+dossier_fb.py     Sam's eight per-game checks, every board game.
+                  ⛔ Combines nothing, ranks nothing, scores nothing.
+possession.py     ONE implementation of the possession coverage/share
+                  maths, read by BOTH leagues. ⛔ Never copy it into
+                  nfl.py or cfb.py (rule 117).
+liveprobe.py      can the football scores tab ever be live?
+verify_nfl.py     the football data-layer verifier
+
+CONTRACT AND SPEND
+freshness.py      THE FRESHNESS CONTRACT — what must be how current.
+                  `converge` plans its work from this, not from crons.
+verify_freshness.py  fails the run when the site is not current
+cfbd_budget.py    projected CFBD call volume, derived from the workflow
+cfbd_watch.py     ...and the watcher that asks whether it will run out
+budget_watch.py   the same question for the Odds API spend
+calibration.py    is the product still winning? the automatic answer.
+card_gate.py      did the card fail for a reason Sam already accepted?
+
+OWED TESTS (pre-registered, not adopted)
+t54.py            should a record against a line never faced be RANKED?
+t58_t59.py        the two owed tests, accumulating themselves
+
+SHARED HELPERS — ⛔ ONE COPY EACH. Rule 117: a helper duplicated breaks
+in the file you did not edit.
+tcheck.py         the one check harness every test file uses
+ranking.py        the one tie-aware ranker, both leagues
+wfroutes.py       the one parser for the workflow's routing table
+jsblock.py        the one reader for a function's body in index.html
+runs_report.py    did any workflow run fail?
+vacuity.py        does each guard actually bite? ⛔ It MUTATES SOURCE
+                  FILES while it runs — never edit the repo during a
+                  sweep, and never run two at once.
 ```
+
+⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`
+fails if a top-level module exists and is not named here. ⛔ If it fails
+because you added a module, add the line — the list going stale is how a
+fresh session ends up writing a second copy of something.
 
 The reasoning behind all of it — the model, the ledger, the pre-registered
 tests — lives in Sam's Claude project docs, not in this repo. **If a change
