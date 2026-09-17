@@ -53,6 +53,26 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   find: "verdict": VS_VERDICT,
 #   with: "verdict": "",
 #
+# @vacuity a verdict field must never reach the published file
+#   file: dossier_fb.py
+#   find: "sections": [
+#   with: "score": 0.73, "confidence": 88, "sections": [
+#
+# @vacuity the audit REFUSES to write, it does not merely warn
+#   file: dossier_fb.py
+#   find: if bad:
+#   with: if bad and False:
+#
+# @vacuity the carried-subtree list cannot be padded to hide a verdict
+#   file: dossier_fb.py
+#   find: CARRIED = ("live", "closing", "meetings", "by_team", "by_player",
+#   with: CARRIED = ("sections", "live", "closing", "meetings", "by_team", "by_player",
+#
+# @vacuity the dossier must be CHAINED to a mode a cron actually routes to
+#   file: collect.py
+#   find: _rc = _dos.build(LEAGUE)
+#   with: _rc = 0  # _dos.build(LEAGUE)
+#
 # @vacuity nothing in the dossier is ever labelled MODEL
 #   file: dossier_fb.py
 #   find: MARKET, DESC = "MARKET", "DESCRIPTIVE"
@@ -69,14 +89,27 @@ def tree(with_dossier=True):
     for f in glob.glob(os.path.join(ROOT, "picks", "fb-nfl-*.json")):
         shutil.copy(f, os.path.join(d, "picks"))
     copy_module("card_fb", d)
-    # ⚠️ `collect.py` IS COPIED BY HAND AND THAT IS DELIBERATE.
-    #    `dossier_fb.py` does not IMPORT it — it parses `NFL_TEAMS` out of
-    #    its source at runtime — so `copy_module`'s import walk cannot see
-    #    the dependency. A runtime file read is not an import.
-    shutil.copy(os.path.join(ROOT, "collect.py"), d)
+    # ⚠️ `collect.py` COMES WITH ITS OWN IMPORTS. `dossier_fb.py` does not
+    #    IMPORT it — it parses `NFL_TEAMS` out of its source at runtime, a
+    #    file read the walk cannot see — but section 8 EXECUTES the real
+    #    `card-fb` mode, and the collector imports `freshness`, `nfl` and
+    #    more. `copy_module` brings them; a bare `shutil.copy` did not,
+    #    and the section died on `ModuleNotFoundError` rather than
+    #    answering its question.
+    copy_module("collect", d)
     if with_dossier:
         copy_module("dossier_fb", d)
     return d
+
+
+def _load(path):
+    """The dossier file, or `{}` if the builder refused to write one."""
+    if not os.path.exists(path):
+        return {}
+    try:
+        return json.load(gzip.open(path, "rt"))
+    except Exception:
+        return {}
 
 
 def run(d, script, league="nfl"):
@@ -92,7 +125,7 @@ _rc, _out = run(_d, "dossier_fb.py")
 ck(_rc == 0, "the builder exits clean", _out[-400:])
 _P = os.path.join(_d, "data/nfl/latest/dossiers.json.gz")
 ck(os.path.exists(_P), "⛔ ...and wrote a dossier file", _out[-300:])
-_D = json.load(gzip.open(_P, "rt")) if os.path.exists(_P) else {}
+_D = _load(_P)
 _BOARD = json.load(open(os.path.join(ROOT, "data/nfl/latest/board.json"),
                         encoding="utf-8"))
 _NG = len(_BOARD.get("games") or [])
@@ -127,8 +160,12 @@ _rc2, _out2 = run(_d2, "dossier_fb.py")
 ck(_rc2 == 0, "   the builder survives a name it cannot resolve",
    "⛔ one unmappable game must not cost the other 31 their dossiers. %s"
    % _out2[-300:])
-_D2 = json.load(gzip.open(os.path.join(_d2, "data/nfl/latest/dossiers.json.gz"),
-                          "rt"))
+# ⚠️ `.get`-STYLE, NOT A BARE LOAD. When a mutation makes the builder
+#    correctly REFUSE, no file exists — and a FileNotFoundError kills this
+#    file and costs every check after it its turn. A guard that dies
+#    reports "an unknown number never ran", which is strictly less than a
+#    guard that fails.
+_D2 = _load(os.path.join(_d2, "data/nfl/latest/dossiers.json.gz"))
 ck(len(_D2.get("skipped") or []) == 1,
    "🔴🔴 THE UNMAPPABLE GAME IS NAMED IN `skipped`",
    "⛔ a game that simply vanished from the output is indistinguishable "
@@ -294,9 +331,136 @@ ck(_top and all(s["state"] == "UNAVAILABLE" for s in _top),
 ck(all("remedy" in s for s in _top),
    "   ...and names what would fix it",
    "a gap with no remedy is a complaint")
-note("📌 REPORTED, NOT FIXED: nothing runs `dossier_fb.py` on a schedule. "
-     "It is a tool, exactly as `t54.py` was before its hook — and that "
-     "hook landed in `collect.py`'s `fb-record` branch, which no cron "
-     "fires, so `t54.json` has never been written once. ➡️ Wiring this "
-     "means touching `collect.py` or a workflow, which this task did not "
-     "ask for. Sam's call.")
+section("7. 🔴🔴 NO VERDICT MAY REACH THE PUBLISHED FILE")
+# ⛔ THE ONE BOUNDARY THIS FILE EXISTS TO HOLD, AND NOTHING HELD IT.
+#    `[Sam, 2026-09-17]` `"score": 0.73, "confidence": 88` beside
+#    `"sections": [` reached the PUBLISHED dossiers.json.gz with the suite
+#    fully green. Section 5 walked `sections` and never looked at the
+#    dossier's own frame.
+# ✅ THE GATE IS NOW IN THE BUILDER: it refuses to write at all.
+import dossier_fb as DF  # noqa: E402
+
+_bad, _miss = DF.audit(_D)
+ck(not _bad,
+   "🔴🔴 THE REAL DOCUMENT CARRIES NO NUMERIC JUDGEMENT FIELD",
+   "⛔ a report that scores a game is a model, and a model needs a "
+   "pre-registered test this artifact does not have. Found %s" % _bad[:5])
+ck(not _miss,
+   "⛔ ...and every carried-subtree exemption actually appears",
+   "🔴 THE EXCEPTION SURFACE MUST BE REAL. A name in `CARRIED` that no "
+   "longer appears means the walk is skipping a subtree that is not "
+   "there — and could be skipping one that is. Stale: %s" % _miss)
+
+# ⚠️ A CLASS, NOT A BLOCKLIST OF THREE. The next synonym is what walks
+#    past a list of `score`/`rank`/`confidence`.
+for _syn in ("score", "confidence", "rating", "tier", "signal", "priority",
+             "conviction_index", "strength", "ev", "edge_pts"):
+    ck(DF._verdicty(_syn), "   `%s` reads as a judgement" % _syn,
+       "⛔ a blocklist of three names is what the next synonym walks "
+       "straight past")
+for _fact in ("week", "season", "games", "n_meetings", "temp", "wind",
+              "snap_pct", "flagged"):
+    ck(not DF._verdicty(_fact),
+       "   ✅ ...and `%s` does not" % _fact,
+       "⛔ A GUARD THAT FIRES ON CORRECT DATA IS THE OTHER FAILURE. These "
+       "are facts the dossier reports, not verdicts it forms")
+
+# 🔴 DRIVEN END TO END, exactly as Sam drove it: inject the field, run the
+#    builder, and assert NOTHING IS PUBLISHED.
+_d3 = tree()
+_dp = os.path.join(_d3, "dossier_fb.py")
+_src3 = open(_dp, encoding="utf-8").read()
+_inj = _src3.replace('            "sections": [',
+                     '            "score": 0.73, "confidence": 88,\n'
+                     '            "sections": [', 1)
+ck(_inj != _src3, "⚠️ the injection landed in the copy",
+   "⛔ a no-op edit proves nothing about the gate")
+open(_dp, "w", encoding="utf-8").write(_inj)
+_rc3, _out3 = run(_d3, "dossier_fb.py")
+ck(_rc3 != 0,
+   "🔴🔴 THE BUILDER REFUSES TO RUN CLEAN WITH A SCORE IN THE DOCUMENT",
+   "⛔ Sam's own mutation reached the published file with the suite "
+   "green. rc=%s out=%s" % (_rc3, _out3[-300:]))
+ck(not os.path.exists(os.path.join(_d3, "data/nfl/latest/dossiers.json.gz")),
+   "🔴🔴 ...AND WROTE NOTHING AT ALL",
+   "⛔ publishing a verdict is the forbidden act; not publishing is the "
+   "safe direction. A warning that still writes the file is not a gate")
+ck("REFUSING TO WRITE" in _out3 and "score" in _out3,
+   "   ...saying what it found and where",
+   "Got: %s" % _out3[-300:])
+
+# ⚠️ AND A VERDICT INSIDE A SECTION IS CAUGHT TOO, not only at the frame.
+_d4 = tree()
+_dp4 = os.path.join(_d4, "dossier_fb.py")
+_s4 = open(_dp4, encoding="utf-8").read().replace(
+    '    d["why"] = "Where it is played',
+    '    d["rating"] = 0.5\n    d["why"] = "Where it is played', 1)
+open(_dp4, "w", encoding="utf-8").write(_s4)
+_rc4, _out4 = run(_d4, "dossier_fb.py")
+ck(_rc4 != 0 and "REFUSING TO WRITE" in _out4,
+   "🔴 a judgement inside a SECTION is refused as well",
+   "⛔ the frame and the sections are the same rule. rc=%s %s"
+   % (_rc4, _out4[-200:]))
+
+section("8. 🔴🔴 IT RUNS ON A SCHEDULE — AND ON A MODE A CRON REACHES")
+# ⛔ NOTHING ON THE SITE MAY DEPEND ON A MANUAL RUN (Sam's standing rule).
+# 🔴 AND "IT IS WIRED" IS NOT ENOUGH — `t54.py`'s counter is wired into
+#    `collect.py`'s `fb-record` branch, which NO cron routes to, so
+#    `data/*/latest/t54.json` has never been written once. The class check
+#    is: the mode this is chained to must be one some cron actually
+#    reaches. ⚠️ The routing is read with `wfroutes.py`, the repo's one
+#    parser for it — five hand-rolled copies of that regex is why it
+#    exists (rule 117).
+import wfroutes  # noqa: E402
+
+_WF = open(os.path.join(ROOT, ".github/workflows/collect.yml"),
+           encoding="utf-8").read()
+_CSRC = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
+_routes = wfroutes.parse_routes(_WF)
+ck(len(_routes) >= 10, "⚠️ the routing table parsed (%d arm(s))" % len(_routes),
+   "⛔ an empty routing table would make every claim below vacuous")
+# 🔴🔴 ~~`"_dos.build(LEAGUE)" in collect.py`~~ — THAT CHECK WAS VACUOUS
+#    AND DRIVING IT IS WHAT FOUND THAT. Commenting the call out as
+#    `_rc = 0  # _dos.build(LEAGUE)` left the substring in place and all
+#    70 checks green. A source string says the text exists; it says
+#    NOTHING about whether the line runs.
+# ✅ SO THE REAL `card-fb` MODE IS EXECUTED and the artifact is looked
+#    for. Slower, and it is the only form that can tell a live wire from
+#    a commented one.
+_d5 = tree()
+os.remove(os.path.join(_d5, "data/nfl/latest/dossiers.json.gz")) \
+    if os.path.exists(os.path.join(_d5, "data/nfl/latest/dossiers.json.gz")) \
+    else None
+_rc5 = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d5,
+                      timeout=1200, capture_output=True, text=True,
+                      env=dict(os.environ, LEAGUE="nfl"))
+_made = os.path.exists(os.path.join(_d5, "data/nfl/latest/dossiers.json.gz"))
+ck(_made,
+   "🔴🔴 RUNNING THE REAL `card-fb` MODE PRODUCES THE DOSSIER",
+   "⛔ a tool nothing runs is a tool that rots, and a SOURCE STRING "
+   "cannot tell a live call from a commented-out one. rc=%s %s"
+   % (_rc5.returncode, (_rc5.stdout + _rc5.stderr)[-300:]))
+ck("dossier_fb[nfl]" in (_rc5.stdout + _rc5.stderr),
+   "   ...and the collector's own log says so",
+   (_rc5.stdout + _rc5.stderr)[-250:])
+_modes_with_crons = {m for _c, _lg, m in _routes}
+ck("card-fb" in _modes_with_crons,
+   "🔴🔴 ...AND A CRON ACTUALLY ROUTES TO `card-fb`",
+   "⛔ THIS IS THE t54 TEST. Its counter sits in `fb-record`, which no "
+   "cron reaches, so it has never run. Modes with crons: %s"
+   % sorted(_modes_with_crons))
+_n_cardfb = sum(1 for _c, _lg, m in _routes if m == "card-fb")
+ck(_n_cardfb >= 2,
+   "   ...on %d cron arm(s), not one that could vanish" % _n_cardfb)
+ck("fb-record" not in _modes_with_crons,
+   "   ⚠️ ...while `fb-record` still has none — the finding stands",
+   "📌 REPORTED, NOT FIXED: t54.py's own counter is hooked into a mode "
+   "no cron routes to. That is collect.py's wiring, not this task's, and "
+   "it is named here so it cannot be forgotten. Modes: %s"
+   % sorted(_modes_with_crons))
+
+note("✅ FIXED, NOT JUST REPORTED: `dossier_fb.py` is now chained to "
+     "`card-fb`, which eight cron arms route to — no new cron, no CRON "
+     "TOTAL change, and the existing data commit publishes the artifact. "
+     "📌 STILL OPEN AND NOT MINE TO FIX HERE: `t54.py`'s counter remains "
+     "hooked into `fb-record`, which no cron routes to.")

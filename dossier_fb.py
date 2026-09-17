@@ -72,6 +72,77 @@ H2H_DAYS = 365          # ⚠️ "within 1 year" — the brief's own bound
 MAX_PLAYERS = 8         # per team, by trailing snap share. Capped and SAID.
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE ONE BOUNDARY THIS FILE EXISTS TO HOLD, AND NOTHING HELD IT.
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-09-17]` The docstring said "combines nothing, ranks nothing,
+# scores nothing" and that was the whole enforcement. Adding
+# `"score": 0.73, "confidence": 88` beside the sections list put both
+# the PUBLISHED `dossiers.json.gz` with the suite fully green — confirmed
+# end to end, not argued about. The test walked `sections` and never
+# looked at the dossier's own frame.
+#
+# ⛔ SO THE GATE IS IN THE BUILDER, NOT ONLY IN THE TEST. A test catches
+# it in CI; this refuses to WRITE the file at all. Publishing a verdict is
+# the forbidden act, and not publishing is the safe direction.
+#
+# ⚠️ A CLASS, NOT A BLOCKLIST OF THREE NAMES. The next synonym — `rating`,
+# `tier`, `signal`, `priority` — would walk straight past a list of
+# `score`/`rank`/`confidence`. The rule is: any NUMERIC field whose NAME
+# carries a judgement token.
+#
+# ⛔ AND IT MUST NOT FIRE ON CORRECT DATA. Carried source payloads
+# legitimately contain `home_score` (a game that happened), `rec_yds_rank`
+# (the league's own ranking) and `best_spread` (a book's price). Those are
+# FACTS THIS FILE COPIED, not judgements it formed. So the walk descends
+# everywhere EXCEPT the subtrees named below, each of which is verbatim
+# source data — and `audit()` refuses to run if one of those names has
+# stopped appearing, so the exception surface cannot be padded with junk
+# to silence a finding.
+VERDICT_TOKENS = ("score", "conf", "rank", "rating", "grade", "edge",
+                  "pick", "lean", "bet", "recommend", "verdict", "tier",
+                  "star", "weight", "index", "prob", "likelihood",
+                  "chance", "ev", "odds", "strength", "signal",
+                  "priority", "best", "top", "value")
+
+# The keys whose SUBTREES are copied from a source, verbatim.
+CARRIED = ("live", "closing", "meetings", "by_team", "by_player",
+           "by_defence", "weather")
+
+
+def _verdicty(key):
+    k = str(key).lower()
+    return any(t in k for t in VERDICT_TOKENS)
+
+
+def audit(doc):
+    """Every numeric judgement-shaped field the dossier itself emits.
+
+    -> [(path, key, value)]  ⛔ empty is the only acceptable answer.
+
+    ⚠️ BOOLEANS ARE NUMBERS IN PYTHON and a `True` here would be a verdict
+    too, so `isinstance(v, bool)` is NOT excused.
+    """
+    found, seen_carried = [], set()
+
+    def walk(o, path):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k in CARRIED:
+                    seen_carried.add(k)
+                    continue          # ⛔ copied source data, not ours
+                if isinstance(v, (int, float)) and _verdicty(k):
+                    found.append(("%s.%s" % (path, k), k, v))
+                walk(v, "%s.%s" % (path, k))
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                walk(v, "%s[%d]" % (path, i))
+
+    walk(doc, "")
+    missing = [c for c in CARRIED if c not in seen_carried]
+    return found, missing
+
+
 def log(m):
     print("[%s] %s" % (datetime.datetime.now(datetime.timezone.utc)
                        .strftime("%Y-%m-%dT%H:%M:%SZ"), m))
@@ -101,10 +172,10 @@ def team_codes():
     return {}
 
 
-def seasons(kind):
+def seasons(kind, data=None):
     """{season: payload} for every `<kind>-<year>.json.gz` on disk."""
     out = {}
-    for p in sorted(glob.glob(os.path.join(DATA, "latest",
+    for p in sorted(glob.glob(os.path.join(data or DATA, "latest",
                                            "%s-*.json.gz" % kind))):
         m = re.search(r"-(\d{4})\.json\.gz$", p)
         j = _jz(p)
@@ -314,9 +385,10 @@ def s_vs_position(home, away, allowed, this_season):
 
 
 # ──────────────────────────────────────── 6. TIME OF POSSESSION
-def s_possession(home, away, this_season):
+def s_possession(home, away, this_season, data=None):
     """⚠️ PROBED, NOT ASSUMED. See the module header."""
-    top = _jz(os.path.join(DATA, "latest", "top-%d.json.gz" % this_season))
+    top = _jz(os.path.join(data or DATA, "latest",
+                           "top-%d.json.gz" % this_season))
     if not top:
         return unavailable(
             6, "Time of possession",
@@ -414,25 +486,36 @@ def s_venue(home, away, sched_row, players, this_season):
 
 
 # ───────────────────────────────────────────────────────── build
-def build():
-    if LEAGUE != "nfl":
+def build(league=None):
+    """-> 0 on a clean write, 1 on a refusal or a missing board.
+
+    ⚠️ THE LEAGUE IS RESOLVED AT CALL TIME, not bound at import. The
+    collector runs one league per process (`LEAGUE=$lg python collect.py`),
+    so the module-level default is already right — but a caller that
+    imports this once and builds twice would otherwise get the first
+    league's data under the second league's name, silently and looking
+    correct. That is the shape `fbDetailLoad` was fixed for one file over.
+    """
+    lg = (league or LEAGUE or "nfl").strip().lower()
+    data = os.path.join(ROOT, "data", lg)
+    if lg != "nfl":
         # ⛔ NFL FIRST, and a half-built college dossier is worse than
         #    none: it would look complete and describe a different sport's
         #    data shape. Explicit, not silent.
         log("dossier_fb: %s is not built yet — NFL only. Nothing written."
-            % LEAGUE)
+            % lg)
         return 0
     board = None
     try:
-        board = json.load(open(os.path.join(DATA, "latest", "board.json"),
+        board = json.load(open(os.path.join(data, "latest", "board.json"),
                                encoding="utf-8"))
     except Exception as e:
         log("dossier_fb: no board to describe: %s" % e)
         return 1
     codes = team_codes()
-    sched = seasons("schedule")
-    players = seasons("players")
-    allowed = seasons("allowed-by-position")
+    sched = seasons("schedule", data)
+    players = seasons("players", data)
+    allowed = seasons("allowed-by-position", data)
     this_season = max(sched) if sched else None
     srows = {}
     for season, j in sched.items():
@@ -480,12 +563,12 @@ def build():
                 s_time_of_year(teams, week, players, this_season),
                 s_this_season(teams, players, this_season, week),
                 s_vs_position(home, away, allowed, this_season),
-                s_possession(home, away, this_season),
+                s_possession(home, away, this_season, data),
                 s_personnel(teams, players, this_season),
                 s_venue(home, away, row, players, this_season),
             ]})
 
-    doc = {"kind": "DOSSIER", "league": LEAGUE, "season": this_season,
+    doc = {"kind": "DOSSIER", "league": lg, "season": this_season,
            "built_at": datetime.datetime.now(datetime.timezone.utc)
                        .strftime("%Y-%m-%dT%H:%M:%SZ"),
            "n_board_games": len(board.get("games") or []),
@@ -496,7 +579,25 @@ def build():
                     "ranking, no confidence. Every section is present or "
                     "explicitly UNAVAILABLE with its reason."),
            "dossiers": out}
-    p = os.path.join(DATA, "latest", "dossiers.json.gz")
+    # 🔴🔴 THE GATE. ⛔ NOTHING IS WRITTEN IF THE DOCUMENT CARRIES A
+    #    JUDGEMENT. A report that scores a game is a model, and a model
+    #    needs a pre-registered test this artifact does not have.
+    bad, missing_carried = audit(doc)
+    if missing_carried:
+        # ⚠️ THE EXCEPTION SURFACE HAS TO BE REAL. If a name in `CARRIED`
+        #    no longer appears, the walk is skipping a subtree that is not
+        #    there — which means it could be skipping one that is.
+        log("dossier_fb: ⛔ REFUSING TO WRITE — these carried-subtree "
+            "names no longer appear in the output, so the audit's "
+            "exception list is stale: %s" % missing_carried)
+        return 1
+    if bad:
+        log("dossier_fb: ⛔ REFUSING TO WRITE — the document carries %d "
+            "numeric judgement field(s), and this artifact combines, "
+            "ranks and scores NOTHING: %s"
+            % (len(bad), [(p_, v) for p_, _k, v in bad[:6]]))
+        return 1
+    p = os.path.join(data, "latest", "dossiers.json.gz")
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with gzip.open(p, "wt") as fh:
         json.dump(doc, fh)
@@ -504,7 +605,7 @@ def build():
         s["name"] for d in out for s in d["sections"]
         if s["state"] == "UNAVAILABLE")
     log("dossier_fb[%s]: %d of %d board game(s) -> %s%s"
-        % (LEAGUE, len(out), doc["n_board_games"], p,
+        % (lg, len(out), doc["n_board_games"], p,
            ("; unavailable sections: %s" % dict(un)) if un else ""))
     if skipped:
         log("  ⚠️ %d game(s) skipped and named in the file: %s"
