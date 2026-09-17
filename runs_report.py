@@ -461,6 +461,116 @@ def gh_page(page, per_page=REST_PER_PAGE):
     return json.loads(out.stdout or "[]")
 
 
+def gh_workflows():
+    """{workflow FILE basename: when GitHub made it eligible to fire}.
+
+    🔴🔴 MEASURED BEFORE ANYTHING WAS BUILT ON IT `[2026-09-17, all 11
+    workflows this repo has]`. The endpoint is
+    `/repos/{owner}/{repo}/actions/workflows`; the field is **`created_at`**
+    and it is populated on every one — GitHub's own record of when a
+    workflow became eligible to fire, which is the authority here and
+    not something this repo could compute.
+
+    ⚠️ IT IS NOT `Z`-SUFFIXED. GitHub returns `2026-09-16T15:12:50-04:00`,
+    an ISO offset. `_dt()` survives it because it goes through
+    `fromisoformat`; a `strptime(..., "%Y-%m-%dT%H:%M:%SZ")` would have
+    thrown on all 11 and produced an empty registry — which, by the rule
+    below, would at least have FAILED SAFE rather than gone quiet.
+
+    ⛔ KEYED BY `path`, NOT `name`. A workflow's `name:` is editable in a
+    commit; its path is what the registration is tracked against.
+    ⛔ AND IT RAISES rather than returning a half-registry, so the caller
+    reports "the floor could not be established" instead of silently
+    suppressing a real outage.
+
+    ⛔ THE GIT ROUTE IS DEAD HERE AND THAT IS MEASURED, NOT ASSUMED:
+    `runs.yml` checks out with `fetch-depth: 1`, so
+    `git log --diff-filter=A .github/workflows/x.yml` finds nothing at
+    all. Deepening a checkout to answer this would cost every run.
+    """
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not repo:
+        raise RuntimeError("GITHUB_REPOSITORY is not set — refusing to "
+                           "guess which repository to read")
+    out = subprocess.run(
+        ["gh", "api", "-H", "Accept: application/vnd.github+json",
+         "--paginate", "/repos/%s/actions/workflows" % repo,
+         "--jq", ".workflows[] | [.path, .created_at] | @tsv"],
+        capture_output=True, text=True, timeout=120)
+    if out.returncode != 0:
+        raise RuntimeError("gh api workflows failed: %s"
+                           % (out.stderr or "").strip()[:400])
+    reg = {}
+    for line in (out.stdout or "").splitlines():
+        parts = line.split("\t")
+        if len(parts) != 2:
+            continue
+        t = _dt(parts[1])
+        if t:
+            reg[os.path.basename(parts[0])] = t
+    return reg
+
+
+def unseen_workflows(by, now=None, root=".", registered=None):
+    """Scheduled workflows with no runs — WITH AN EVIDENCE FLOOR.
+
+    -> (names, floors)  where floors is {name: datetime or None}
+
+    ══════════════════════════════════════════════════════════════════
+    🔴🔴 A WORKFLOW IS UNSEEN ONLY IF A DECLARED SLOT CAME DUE AT OR
+    AFTER THE MOMENT IT BECAME ELIGIBLE TO FIRE.
+    ══════════════════════════════════════════════════════════════════
+    ⛔ WITHOUT THIS THERE WAS NO EVIDENCE FLOOR AT ALL, and every
+    scheduled workflow added to this repo filed a spurious outage on its
+    first day. `[measured 2026-09-17: SIX were exposed at once —
+    budget 39.3h, calibration 40.1h, cfbd 27.3h, runs 47.2h,
+    vacuity 23.3h, owed_tests 15.4h]` Four of them actually did it.
+    ⚠️ THAT IS RULE 238 KILLING THE CHANNEL: Sam learns the title is
+    noise, and the next real outage is the one he scrolls past.
+
+    ✅ THE FIX ALREADY EXISTED ONE FUNCTION ABOVE. `missed_fires()` has
+    carried `stamp_floor` per workflow since rule 273 — "a guard that
+    needs history will false-alarm on its own deploy day." The same
+    reasoning, never applied down here.
+
+    ⛔ IT DOES NOT WEAKEN THE CHECK. A workflow registered three days ago
+    that has never run is STILL UNSEEN — that is the `ncaaf` 19:0x class
+    (rule 251) and the whole reason this check exists. The floor is
+    bounded to the window for exactly that reason: eligibility older than
+    the window cannot buy silence.
+
+    ⚠️ AN UNKNOWN REGISTRATION TIME MUST NOT SUPPRESS. If the API cannot
+    answer, or the workflow is absent from the registry, it is REPORTED
+    and the body says the floor could not be established. A false alarm
+    wastes attention; a false all-clear hides an outage, and those are
+    not comparable quantities.
+    """
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    decl = declared_crons(root)
+    window = now - datetime.timedelta(hours=WINDOW_H)
+    names, floors = [], {}
+    for w, f in sorted(scheduled_workflows(root).items()):
+        if w in by:
+            continue
+        born = (registered or {}).get(f)
+        floors[w] = born
+        if born is None:
+            names.append(w)          # ⛔ ignorance never buys silence
+            continue
+        # ⛔ BOUNDED BY THE WINDOW. A workflow eligible for a week is
+        #    judged over the last day, not over the week.
+        floor = max(born, window)
+        crons = (decl.get(w) or {}).get("crons") or []
+        parsed = [c for c in (parse_cron(e) for e in crons) if c]
+        if not parsed:
+            names.append(w)          # no readable cron -> no floor -> report
+            continue
+        if any(last_fire(c, now - datetime.timedelta(minutes=GRACE_MIN),
+                         floor) is not None for c in parsed):
+            names.append(w)
+    return names, floors
+
+
 def verdict(broken, flapping, missing, truncated, missed, unattributable):
     """The findings -> the exit code. ⛔ A red workflow outranks coverage.
 
@@ -477,10 +587,16 @@ def verdict(broken, flapping, missing, truncated, missed, unattributable):
     return EXIT_OK
 
 
-def analyse(runs, now=None, root="."):
+def analyse(runs, now=None, root=".", registered=None):
     """runs: the JSON `gh run list` emits.
 
     Returns (broken, flapping, seen, truncated, missing).
+
+    ⚠️ `registered` IS OPTIONAL AND ITS ABSENCE FAILS SAFE. A caller that
+    does not supply the workflow registry gets the OLD behaviour — every
+    run-less scheduled workflow reported — never a quieter one. Adding a
+    keyword with a default keeps rule 269 satisfied: no positional caller
+    changes and the 5-tuple is untouched.
 
     ⛔ THE ARITY IS DELIBERATELY UNCHANGED. Drop 58 changed this from 3
     to 5 and the OLD test on `main` died with `ValueError: too many
@@ -550,12 +666,17 @@ def analyse(runs, now=None, root="."):
     #    UNSEEN — and that is the `ncaaf` 19:0x class (rule 251): a cron
     #    that declares a run and never lands, invisible because nothing
     #    compared the declaration to the reality.
-    missing = [w for w in sorted(scheduled_workflows(root)) if w not in by]
+    # ⛔ ~~`[w for w in scheduled_workflows(root) if w not in by]`~~ —
+    #    NO EVIDENCE FLOOR AT ALL, so a workflow that had never HAD a slot
+    #    to miss read as UNSEEN and filed "a workflow is failing" with
+    #    nothing failing. See `unseen_workflows()` for the measurement and
+    #    the rule; it is still UNSEEN if a slot came due and no run landed.
+    missing, _floors = unseen_workflows(by, now, root, registered)
     return broken, flapping, sorted(by), truncated, missing
 
 
 def render(broken, flapping, seen, truncated=False, missing=(),
-           missed=(), unattributable=()):
+           missed=(), unattributable=(), floors=None):
     out = []
     # 🔴 FIRST, BECAUSE IT IS THE FINDING NOTHING IN THIS REPO COULD MAKE
     #    UNTIL NOW. A workflow can be green all day with one of its crons
@@ -580,7 +701,18 @@ def render(broken, flapping, seen, truncated=False, missing=(),
         out.append("**These workflows declare a schedule and produced NO "
                    "runs in the window — they are UNSEEN, not healthy:**\n")
         for m in missing:
-            out.append("- `%s` — declares a cron, no run found" % m)
+            # ⚠️ A WORKFLOW REPORTED WITH NO FLOOR IS REPORTED AS SUCH.
+            #    Suppressing on ignorance is the dangerous direction, so
+            #    it is listed — and the reader is told the difference
+            #    rather than left to assume a slot was measured.
+            if m in (floors or {}) and (floors or {})[m] is None:
+                out.append("- `%s` — declares a cron, no run found. ⚠️ GitHub "
+                           "did not report when this workflow became eligible "
+                           "to fire, so the evidence floor could NOT be "
+                           "established — it is listed rather than suppressed."
+                           % m)
+            else:
+                out.append("- `%s` — declares a cron, no run found" % m)
         out.append("")
     if broken:
         out.append("**These workflows are failing right now — their most "
@@ -706,7 +838,25 @@ def main(argv=None):
         #    workflow can tell "nothing is broken" from "I could not look".
         sys.stderr.write("could not read run list: %s\n" % e)
         return 2
-    broken, flapping, seen, truncated, missing = analyse(runs)
+    # 🔴 THE EVIDENCE FLOOR. ⛔ A FAILURE HERE IS NOT FATAL AND IS NOT
+    #    SILENT: an empty registry means every workflow's floor is
+    #    unknown, which REPORTS them all and says so — the old behaviour,
+    #    which was noisy but never hid an outage.
+    try:
+        registered = gh_workflows()
+    except Exception as e:          # noqa: BLE001 - reported, not hidden
+        sys.stderr.write("could not read the workflow registry: %s: %s\n"
+                         % (type(e).__name__, e))
+        registered = {}
+    broken, flapping, seen, truncated, missing = analyse(runs, None, ".",
+                                                         registered)
+    _by = sorted({(r or {}).get("workflowName") or (r or {}).get("name") or ""
+                  for r in (runs or [])} - {""})
+    # ⚠️ CALLED A SECOND TIME FOR THE FLOORS ALONE. `analyse` returns a
+    #    5-tuple and rule 269 says that arity does not move; this function
+    #    is pure and cheap, so the honest cost is one extra call rather
+    #    than a signature nothing can safely change.
+    _names, floors = unseen_workflows(_by, None, ".", registered)
     missed, unattributable = missed_fires(runs)
     rc = verdict(broken, flapping, missing, truncated, missed, unattributable)
     if rc == EXIT_OK:
@@ -721,7 +871,7 @@ def main(argv=None):
             for r in (runs or [])) - {""}), runs=runs))
         return EXIT_COVERAGE
     print(render(broken, flapping, seen, truncated, missing,
-                 missed, unattributable))
+                 missed, unattributable, floors))
     return EXIT_BROKEN
 
 
