@@ -1,7 +1,7 @@
 {
  "date": "2026-09-17",
  "league": "nfl",
- "generated_at": "2026-09-17T11:48:07Z",
+ "generated_at": "2026-09-17T13:19:54Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-17T11:28:48Z",
@@ -19,19 +19,19 @@
    "game_id": "56e8897681915f7ec92baeee952bb1ae",
    "commence": "2026-09-18T00:15:00Z",
    "market": "totals",
-   "side": "Over",
+   "side": "Under",
    "point": 54.5,
-   "best_price": -107,
-   "best_book": "williamhill_us",
+   "best_price": 100,
+   "best_book": "draftkings",
    "link": null,
-   "median_price": 1.8734,
-   "n_books": 6,
-   "gain_pct": 3.27
+   "median_price": 1.9434,
+   "n_books": 3,
+   "gain_pct": 2.91
   }
  ],
  "game_lines_meta": {
   "games_seen": 1,
-  "comparable_quotes": 4,
+  "comparable_quotes": 6,
   "games_with_an_edge": 1,
   "min_books": 3,
   "slate": "2026-09-17",
@@ -45,9 +45,9 @@
   ],
   "card_slate": "2026-09-17",
   "is_next_slate": false,
-  "snapshot": "data/nfl/2026-09-16/gamelines/1820.json.gz"
+  "snapshot": "data/nfl/2026-09-17/gamelines/1227.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 6 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -151,7 +151,7 @@
    {
     "legs": [
      "Keon Coleman o1.5 rec",
-     "Over 54.5 total"
+     "Under 54.5 total"
     ],
     "game": "Detroit Lions @ Buffalo Bills",
     "game_id": "56e8897681915f7ec92baeee952bb1ae",
@@ -159,13 +159,13 @@
     "book": "fanduel",
     "prices": [
      158,
-     -114
+     -106
     ],
-    "line_best_book": "williamhill_us",
-    "line_best_price": -107,
+    "line_best_book": "draftkings",
+    "line_best_price": 100,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 4.843,
+    "multiplier": 5.014,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -181,22 +181,22 @@
    },
    {
     "legs": [
-     "Dawson Knox o11.5 rec yds",
-     "Over 54.5 total"
+     "Dawson Knox o12.5 rec yds",
+     "Under 54.5 total"
     ],
     "game": "Detroit Lions @ Buffalo Bills",
     "game_id": "56e8897681915f7ec92baeee952bb1ae",
     "same_game": true,
-    "book": "betmgm",
+    "book": "draftkings",
     "prices": [
-     -115,
-     -112
+     -113,
+     100
     ],
-    "line_best_book": "williamhill_us",
-    "line_best_price": -107,
+    "line_best_book": "draftkings",
+    "line_best_price": 100,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.539,
+    "multiplier": 3.77,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -214,43 +214,9 @@
   "3": [
    {
     "legs": [
-     "Dawson Knox o11.5 rec yds",
-     "Keon Coleman o12.5 rec yds",
-     "Over 54.5 total"
-    ],
-    "game": "Detroit Lions @ Buffalo Bills",
-    "game_id": "56e8897681915f7ec92baeee952bb1ae",
-    "same_game": true,
-    "book": "betmgm",
-    "prices": [
-     -115,
-     -115,
-     -112
-    ],
-    "line_best_book": "williamhill_us",
-    "line_best_price": -107,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.616,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 86,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     89,
-     86
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
      "Dawson Knox o12.5 rec yds",
      "Isaac TeSlaa o16.5 rec yds",
-     "Over 54.5 total"
+     "Under 54.5 total"
     ],
     "game": "Detroit Lions @ Buffalo Bills",
     "game_id": "56e8897681915f7ec92baeee952bb1ae",
@@ -259,13 +225,13 @@
     "prices": [
      -113,
      -108,
-     -118
+     100
     ],
-    "line_best_book": "williamhill_us",
-    "line_best_price": -107,
+    "line_best_book": "draftkings",
+    "line_best_price": 100,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.707,
+    "multiplier": 7.261,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -276,6 +242,41 @@
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      89,
+     79
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Dawson Knox o11.5 rec yds",
+     "Keon Coleman o12.5 rec yds",
+     "Isaac TeSlaa o15.5 rec yds"
+    ],
+    "game": "Detroit Lions @ Buffalo Bills",
+    "game_id": "56e8897681915f7ec92baeee952bb1ae",
+    "same_game": true,
+    "book": "betmgm",
+    "prices": [
+     -115,
+     -115,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.535,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 79,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     89,
+     86,
      79
     ],
     "band_floor": 3.0
@@ -292,7 +293,7 @@
    "mixed_book": 112,
    "below_floor": 0,
    "no_rated_leg": 0,
-   "line_not_at_book": 0
+   "line_not_at_book": 14
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
