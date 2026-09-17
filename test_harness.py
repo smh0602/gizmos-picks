@@ -25,6 +25,35 @@ so neither order can be misread.
 required to use is a suggestion, and the next test file written in the old
 shape brings both defects straight back.
 """
+
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity a file that asserts NOTHING must not be allowed to pass
+#   file: tcheck.py
+#   find: FAILURES.append("no checks recorded")
+#   with: pass
+#
+# 🔴🔴 AND A MUTATION THIS FILE DELIBERATELY DOES **NOT** DECLARE, because
+# driving it by hand is how the reason was found. `[2026-09-17]`
+#
+#     find: os._exit(1)        with: pass
+#
+# That is the gate itself — the line that turns a recorded failure into a
+# non-zero exit. Mutating it makes three checks in this very file print ❌
+# **and the process exit 0**, because the mutation destroys the channel
+# the harness reads its answer through. ⛔ The vacuity harness would
+# therefore report this file as NOT BITING, which is a FALSE ACCUSATION on
+# a guard that detected the failure perfectly well and merely could not
+# say so. A vacuity detector that cries wolf is rule 238 aimed at the one
+# channel that has to be trustworthy.
+#
+# ⚠️ SO THE GATE IS THE ONE LINE IN THIS REPO NO DECLARED MUTATION CAN
+# TEST: every test reports through it, so silencing it silences the test
+# that would catch the silencing. ✅ It IS covered — sections below drive
+# real files in SUBPROCESSES and read their exit codes, which is the only
+# vantage point outside the channel. That is not an accident of how this
+# file was written; it is the only shape that can work.
+# ══════════════════════════════════════════════════════════════════════
+
 import glob
 import os
 import re

@@ -14,6 +14,14 @@ genuinely bite and it MUST NOT. ⛔ Both halves matter: a detector that
 calls everything vacuous is as useless as one that calls nothing vacuous,
 and only the second half catches that.
 """
+
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity the blind set is DERIVED, never an empty list
+#   file: vacuity.py
+#   find: return sorted(set(tests(root)) - declared - mapped)
+#   with: return []
+# ══════════════════════════════════════════════════════════════════════
+
 import os
 import subprocess
 import sys
@@ -299,3 +307,46 @@ note("⛔ WHAT THIS DOES NOT CLAIM: that a guard the harness calls BITES is "
      "a GOOD guard. It claims only that it is not VACUOUS — that something "
      "about it depends on the thing it says it checks. ➡️ The two tiers "
      "catch different shapes, and neither replaces reading the check.")
+
+
+section("6. 🔴🔴 THE THIRD HOLE — A TEST WITH NO PROOF OF ANY KIND")
+# ⛔ Tier 1 reports what it cannot NAME-MAP. Tier 2 reports what it was
+#    TOLD about. Neither reported the files that are in NEITHER, and a
+#    test with no mapped subject and no declared mutation is checked by
+#    nothing at all — while `CLAUDE.md` says every guard ships with the
+#    mutation that proves it.
+# 🔴 `[measured 2026-09-17]` 59 of 81 test files were in that set, and no
+#    number anywhere in this repo said so. The nightly line read "(65
+#    unmapped)", which looks like the whole gap and is not: 18 of those
+#    unmapped files DO carry declarations.
+_blind = V.blind(ROOT)
+_all = V.tests(ROOT)
+ck("⚠️ the blind set is DERIVED from the repo (%d of %d test file(s))"
+   % (len(_blind), len(_all)),
+   _blind and len(_all) > 50,
+   "⛔ an empty blind set would make the ratchet below pass forever "
+   "without checking anything (rule 67). Got %d of %d"
+   % (len(_blind), len(_all)))
+ck("⛔ ...and it really is files with NEITHER kind of proof",
+   all(f not in V.name_map(ROOT) for f in _blind)
+   and not ({d["test"] for d in V.declarations(ROOT)} & set(_blind)),
+   "🔴 a file with a tier-1 subject or a tier-2 declaration is NOT blind, "
+   "and counting it would inflate the number into noise")
+ck("🔴🔴 THE BLIND SET HAS NOT GROWN (%d against a ceiling of %d)"
+   % (len(_blind), V.BLIND_CEILING),
+   len(_blind) <= V.BLIND_CEILING,
+   "⛔ IF THIS FAILS BECAUSE YOU ADDED A TEST, DECLARE A MUTATION FOR IT "
+   "— do not raise the number. `CLAUDE.md`: every fix ships with a guard, "
+   "and a guard nothing has ever tried to break is a guard nobody has "
+   "checked. Lowering the ceiling is the only edit that is automatically "
+   "right. Newest blind file(s): %s" % _blind[-4:])
+ck("⚠️ ...and the nightly run prints it, rather than only this file",
+   "BLIND of" in open(os.path.join(ROOT, "vacuity.py"),
+                      encoding="utf-8").read(),
+   "⛔ a backlog only a contributor's local run can see is a backlog "
+   "nobody is counting")
+note("📌 WHAT THIS RATCHET DOES NOT CLAIM: that the other %d file(s) are "
+     "wrong, or even weak. It claims only that NOTHING HAS EVER TRIED TO "
+     "BREAK THEM, which is the state this whole harness exists to make "
+     "visible rather than comfortable. ➡️ The ceiling comes down one "
+     "declared mutation at a time." % len(_blind))

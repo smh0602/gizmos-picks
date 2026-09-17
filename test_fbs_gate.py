@@ -32,6 +32,17 @@ and survives realignment.
 
 ⚠️ No network, no credits. The events are constructed.
 """
+
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity the FBS gate keeps a game if EITHER side is FBS, never BOTH
+#   file: collect.py
+#   find: if _match_team(h, norm) or _match_team(a_, norm):
+#   with: if _match_team(h, norm) and _match_team(a_, norm):
+# 🔴 THE BOTH-SIDES FORM IS THE DEFECT THIS FILE EXISTS FOR, and Sam has
+#    caught it THREE TIMES. Measured 2026-09-03 on the real schedule: it
+#    threw away 122 of the 189 September Power 4 games.
+# ══════════════════════════════════════════════════════════════════════
+
 import os
 import sys
 from tcheck import ck, eq, note   # the shared gate — see tcheck.py
