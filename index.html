@@ -3041,7 +3041,47 @@ function fbDosFacts(s){
     if (L.run_line != null)
       li('Spread', `${L.run_line > 0 ? '+' : ''}${L.run_line}`
          + (L.run_line_team ? ` ${L.run_line_team}` : ''));
-    if (L.n_books != null) li('Books priced', L.n_books);
+    /* ══════════════════════════════════════════════════════════════
+       🔴🔴 ~~`li('Books priced', L.n_books)`~~ — THAT LABEL PUT "Books
+       priced 0" DIRECTLY BESIDE A TOTAL OF 67.5 THAT HARD ROCK WAS
+       SHOWING. `[found in review of the panel, 2026-09-17]`
+       ⛔ `n_books` IS `len(vigs)` IN `collect.py` AND `vigs` COMES FROM
+       THE MONEYLINE DE-VIG, so it counts books showing a two-sided
+       MONEYLINE — not books pricing the game. MEASURED on the live
+       college board: 15 of 90 games have an empty `best_ml` AND
+       `n_books == 0`, the same 15, and all 15 still carry a total and a
+       spread. The data was right; the word was wrong.
+       ⚠️ THE ROW ABOVE ALREADY KNEW THIS — `fbOddsTable` has carried a
+       comment saying `n_books` counts moneyline books since 2026-09-01,
+       and it degrades to "no moneyline posted" on a zero. This label
+       took the field without its meaning.
+       ➡️ THE CLASS: A FIELD NAME NARROWER THAN IT READS IS HARMLESS
+       UNTIL SOMETHING DISPLAYS IT. `n_books` had been correct and
+       privately understood for weeks; putting it on the page beside the
+       thing it does not count is what created the defect. Same family
+       as `fixed_drive` — the authoritative-sounding name was not the
+       one the value was keyed to.
+       ⛔ THE COUNT IS NOT SUPPRESSED. A game we hold no moneyline for
+       is a real and useful fact about a mismatch this size, and hiding
+       it would make these 15 look like the other 75. ⚠️ Note the wording
+       even here: "we hold none", not "no book will quote one" — the
+       inference the rule below forbids is easy to make in a comment two
+       lines above the rule itself.
+       ⛔ AND THE ZERO SENTENCE CLAIMS NOTHING ABOUT THE SPORTSBOOKS.
+       CLAUDE.md: an absence in an API response is evidence about the
+       API, never about the book — this project has written down "the
+       feed has no X" as "the book has no X" five times and been wrong
+       every time. So it says what we DO NOT HOLD, not what nobody will
+       take.
+       ══════════════════════════════════════════════════════════════ */
+    if (L.n_books != null){
+      li('Books with a moneyline', L.n_books);
+      if (!L.n_books && (L.total != null || L.run_line != null))
+        f.push(`<li>&#9888;&#65039; <b>That zero is about the moneyline
+          only.</b> None is stored for this game, so there is no
+          win&nbsp;% to show &mdash; the total and spread above are real
+          prices a book is showing.</li>`);
+    }
     const c = s.closing;
     if (c && c.closing_spread != null) li('Closing spread', c.closing_spread);
     if (c && c.closing_total  != null) li('Closing total',  c.closing_total);
