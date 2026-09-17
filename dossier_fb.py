@@ -392,24 +392,46 @@ def s_possession(home, away, this_season, data=None):
     if not top:
         return unavailable(
             6, "Time of possession",
-            "PROBED 2026-09-17 and the column EXISTS: "
-            "`drive_time_of_possession` is one of 372 columns in "
-            "`play_by_play_2025.csv.gz`, populated on 2457 of 2491 "
-            "sampled plays, formatted M:SS. ⛔ But that file is "
-            "downloaded by the collector and discarded — nothing under "
-            "`data/` carries possession, so there is nothing to report "
-            "from here. The field is confirmed; the artifact is not.",
-            "persist a per-team `top-<season>.json.gz` from the "
-            "play-by-play the collector already downloads")
+            "No `top-%d.json.gz` under `data/` yet. ⚠️ The builder "
+            "REFUSES to write a partial table, so an absent file is as "
+            "likely to mean 'too little of the clock could be read' as "
+            "'the job has not run' — `top-probe-%d.json` beside it says "
+            "which." % (this_season, this_season),
+            "run the season's log build (`nfl-logs` for NFL, the Sunday "
+            "rebuild for college) and read `top-probe-<season>.json`")
     by = top.get("teams") or {}
-    out = {t: by[t] for t in (home, away) if t in by}
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 THE SECTION READS THE SHARE, AND ONLY THE SHARE.
+    # ⛔ `seconds`, `drives` and `seconds_per_drive` stay in the artifact
+    # as honest raw material and DO NOT COME OUT HERE. They are not
+    # comparable between teams: the derivation observes a different
+    # fraction of each game's clock, and on the college side that spread
+    # runs from 30 pct to 101 pct. Reading raw seconds off it moved 202
+    # of 217 teams by more than a minute and INVERTED the ranking —
+    # Nicholls 21:00 raw against 38:33 real. `possession.py` has the
+    # measurement.
+    # ⚠️ `minutes` here is the SHARE expressed on a 60-minute clock, not
+    # a second source for the same quantity (rule 66).
+    # ══════════════════════════════════════════════════════════════════
+    out = {}
+    for t in (home, away):
+        v = by.get(t)
+        if not v or v.get("share") is None:
+            continue
+        spg = int(v.get("seconds_per_game") or round(v["share"] * 3600))
+        out[t] = {"share": v["share"], "seconds_per_game": spg,
+                  "minutes": "%d:%02d" % divmod(spg, 60),
+                  "games": v.get("games")}
     if not out:
         return unavailable(6, "Time of possession",
                            "A possession file exists but carries neither "
-                           "%s nor %s." % (home, away))
+                           "%s nor %s with a readable share." % (home, away))
     return {"n": 6, "name": "Time of possession", "state": "OK",
             "basis": DESC, "by_team": out,
-            "why": "Mean drive time of possession, from the play-by-play."}
+            "why": ("Share of the game clock each team held, averaged per "
+                    "game and shown on a 60-minute clock. Games where too "
+                    "little of the clock could be read are left out "
+                    "rather than counted short.")}
 
 
 # ─────────────────────────────────────────────── 7. PERSONNEL
@@ -601,11 +623,46 @@ def build(league=None):
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with gzip.open(p, "wt") as fh:
         json.dump(doc, fh)
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 AND A DATED, WRITE-ONCE COPY. `[2026-09-17]`
+    # ⛔ `latest/` IS OVERWRITTEN ON EVERY ONE OF THE EIGHT DAILY
+    # `card-fb` ARMS, so until now this file kept NO history at all and
+    # every day that passed was observations nobody could ever recover.
+    # ⚠️ EVERY SECTION HERE IS A POINT-IN-TIME READING — the market's
+    # numbers move, the season-to-date rows grow, a section flips from
+    # UNAVAILABLE to OK. A report with no archive cannot be checked
+    # against what actually happened.
+    #
+    # 💾 DATED AND WRITE-ONCE, NOT ONE CUMULATIVE FILE, AND THE REASON IS
+    # MEASURED (ledger rule 285): ⛔ GIT CANNOT DELTA-COMPRESS A GZIP.
+    # A one-row input change rewrites essentially the whole output, so
+    # consecutive versions share no usable delta and git stores each IN
+    # FULL. At 34 b/row gzipped and ~8,000 rows a week that is 5.17 MiB
+    # for a 20-week season written this way, against 2,896 MiB for one
+    # cumulative archive rewritten eight times a day. **560x.**
+    #
+    # ⚠️ THE DATE IS UTC, DELIBERATELY. `data/<lg>/<date>/` is written by
+    # the collector's `daydir()`, which stamps UTC — `picks/` is the tree
+    # that is ET-dated. ⛔ Two date conventions inside one directory is a
+    # trap, so this follows the neighbours it lands beside, not `picks/`.
+    # ══════════════════════════════════════════════════════════════════
+    _n = datetime.datetime.now(datetime.timezone.utc)
+    arch = os.path.join(data, _n.strftime("%Y-%m-%d"), "dossiers",
+                        _n.strftime("%H%M") + ".json.gz")
+    os.makedirs(os.path.dirname(arch), exist_ok=True)
+    # ⛔ WRITE-ONCE. An archive a later run can rewrite is not an archive;
+    # it is `latest/` with a longer name. Two runs inside one minute leave
+    # the first one's reading alone.
+    if os.path.exists(arch):
+        log("dossier_fb: archive %s already exists — left as it was" % arch)
+    else:
+        with gzip.open(arch, "wt") as fh:
+            json.dump(doc, fh)
     un = collections.Counter(
         s["name"] for d in out for s in d["sections"]
         if s["state"] == "UNAVAILABLE")
-    log("dossier_fb[%s]: %d of %d board game(s) -> %s%s"
-        % (lg, len(out), doc["n_board_games"], p,
+    log("dossier_fb[%s]: %d of %d board game(s) -> %s (archived %s)%s"
+        % (lg, len(out), doc["n_board_games"], p, arch,
            ("; unavailable sections: %s" % dict(un)) if un else ""))
     if skipped:
         log("  ⚠️ %d game(s) skipped and named in the file: %s"

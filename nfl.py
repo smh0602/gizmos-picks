@@ -25,6 +25,7 @@ import urllib.error
 import urllib.request
 
 import ranking as _ranking   # the shared tie-aware ranker
+import possession as _poss  # the shared coverage/share maths, both leagues
 
 GH_API = "https://api.github.com/repos/nflverse/nflverse-data/releases"
 
@@ -474,6 +475,7 @@ def _num(v):
 # those teams and as silence for the rest, which is missingness clustered
 # BY TEAM — the shape that killed CFB targets.
 TOP_MIN_TEAMS = 24
+GAME_CLOCK = _poss.GAME_CLOCK_SECS
 
 
 def build_routes(season, seen=None, log=print):
@@ -705,9 +707,15 @@ def possession_from_rows(pbp, season, log=print):
     vacuity.py: a judgement reachable only through a 200MB download is a
     judgement no test drives. This takes the rows and returns the same
     (payload, report) pair.
+
+    🔴 IT EMITS A SHARE. See `possession.py` — raw seconds are not
+    comparable between games, and the share is. ⚠️ NFL is the league where
+    that barely matters (the floor withholds 0 of 269 regulation games in
+    2025) and it still runs the same code, because one implementation is
+    how the two leagues stay the same shape.
     """
     rep = {"column": None, "drives": 0, "teams": 0, "unparsed": 0,
-           "usable": False}
+           "usable": False, "recovered_from_later_row": 0}
     cols = set(pbp[0].keys())
     # ⛔ NAME THE COLUMN. Assuming a schema is how the `stats_player_reg`
     #    season-totals trap and a 0-of-1,848 name join both happened.
@@ -715,70 +723,105 @@ def possession_from_rows(pbp, season, log=print):
     posc = "posteam" if "posteam" in cols else None
     drvc = next((c for c in ("fixed_drive", "drive") if c in cols), None)
     gidc = next((c for c in ("game_id", "nflverse_game_id") if c in cols), None)
+    qtrc = next((c for c in ("qtr", "quarter") if c in cols), None)
     rep["column"] = topc
     rep["columns_used"] = {"top": topc, "team": posc, "drive": drvc,
-                           "game": gidc}
+                           "game": gidc, "period": qtrc}
     if not (topc and posc and drvc and gidc):
         rep["error"] = ("the play-by-play does not carry the columns this "
                         "needs: %s" % rep["columns_used"])
         log(f"  ⚠️ possession {season}: {rep['error']} — writing NOTHING")
         return None, rep
 
-    drives, unparsed = {}, 0
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 THE VALUE IS THE FIRST ONE IN THE DRIVE THAT PARSES, NOT THE
+    # FIRST ROW'S. `[measured 2026-09-17 on the whole 2025 season]` 44
+    # drives carry no `drive_time_of_possession` on their first row with a
+    # posteam, and **18 of those carry one on a LATER ROW OF THE SAME
+    # DRIVE**. Taking the first row silently dropped all 44, and with them
+    # the whole drive's time.
+    # ⛔ THE COST WAS MEASURABLE AND NOBODY WAS MEASURING IT: regulation
+    # games whose two teams' drive times sum to EXACTLY 3600 went from
+    # **238 of 269 to 254 of 269** once the later rows are read. That gap
+    # is the bug, and `test_nfl_possession.py`'s identity bar sits between
+    # the two numbers so it cannot come back quietly.
+    # ══════════════════════════════════════════════════════════════════
+    rows_of = {}
+    periods = {}
     for r in pbp:
+        gid = r.get(gidc)
+        if qtrc is not None:
+            try:
+                periods[gid] = max(periods.get(gid, 0), int(float(r.get(qtrc))))
+            except (TypeError, ValueError):
+                pass
         team = (r.get(posc) or "").strip()
         if not team:
             continue                      # between drives; not a team's time
-        # 🔴 THE KEY IS WHAT MAKES THIS PER-DRIVE. `drive_time_of_possession`
-        #    is repeated on EVERY PLAY of the drive, so summing the column
-        #    row by row multiplies a team's total by its play count — about
-        #    8x, and still an integer, still plausible-looking per drive.
-        #    Keying the dict on (game, drive) is the dedupe; the `continue`
-        #    below is only an early exit, not the guarantee.
-        key = (r.get(gidc), r.get(drvc))
-        if key in drives:
-            continue                      # already have this drive's time
-        secs = _mmss(r.get(topc))
-        if secs is None:
+        rows_of.setdefault((gid, r.get(drvc)), []).append((team, r.get(topc)))
+
+    drives, unparsed = {}, 0
+    for key, rows in rows_of.items():
+        first = _mmss(rows[0][1])
+        best = next((v for v in (_mmss(x[1]) for x in rows) if v is not None),
+                    None)
+        if best is None:
             unparsed += 1
             continue
-        drives[key] = (team, secs)
+        if first is None:
+            rep["recovered_from_later_row"] += 1
+        drives[key] = (rows[0][0], best)
     rep["drives"], rep["unparsed"] = len(drives), unparsed
 
-    agg = {}
-    for team, secs in drives.values():
-        a = agg.setdefault(team, {"drives": 0, "seconds": 0})
-        a["drives"] += 1
-        a["seconds"] += secs
-    rep["teams"] = len(agg)
+    per_game, drv_game = {}, {}
+    for (gid, _d), (team, secs) in drives.items():
+        per_game.setdefault(gid, {})
+        per_game[gid][team] = per_game[gid].get(team, 0) + secs
+        drv_game.setdefault(gid, {})
+        drv_game[gid][team] = drv_game[gid].get(team, 0) + 1
+
+    # ⚠️ THE REGULATION IDENTITY, REPORTED EVERY RUN. A recorded drive
+    # clock should tile the whole game: two teams, 3600 seconds. ⛔ It is
+    # REPORTED, not enforced, because 15 of 269 real 2025 games fall short
+    # — source rows with no time at all — and one (2025_10_NO_CAR) sums to
+    # 3908 with no overtime. A hard `== 3600` would redden on real data;
+    # the RATE is what a derivation bug moves.
+    reg = [g for g in per_game if periods.get(g, 4) <= 4]
+    exact = [g for g in reg if sum(per_game[g].values()) == GAME_CLOCK]
+    rep["regulation_games"] = len(reg)
+    rep["regulation_exact_3600"] = len(exact)
+    rep["regulation_exact_pct"] = (round(100.0 * len(exact) / len(reg), 2)
+                                   if reg else None)
+    ot = [g for g in per_game if periods.get(g, 4) > 4]
+    rep["overtime_games"] = len(ot)
+    rep["overtime_over_3600"] = sum(
+        1 for g in ot if sum(per_game[g].values()) > GAME_CLOCK)
+
+    teams, srep = _poss.share_table(per_game, drv_game, log)
+    rep.update(srep)
     # ⛔ THE COVERAGE BAR. The NFL has 32 teams; a table holding a handful
     #    is a partial table, and a partial table is worse than none.
-    if len(agg) < TOP_MIN_TEAMS:
+    if len(teams) < TOP_MIN_TEAMS:
         rep["error"] = ("only %d team(s) have usable possession rows, under "
                         "the %d required — writing NOTHING rather than a "
                         "table that is silent for the rest"
-                        % (len(agg), TOP_MIN_TEAMS))
+                        % (len(teams), TOP_MIN_TEAMS))
         log(f"  ⚠️ possession {season}: {rep['error']}")
         return None, rep
 
-    teams = {}
-    for team, a in sorted(agg.items()):
-        # ⚠️ SECONDS, INTEGER, EVERY FIELD. Nothing downstream should ever
-        #    meet `M:SS` again.
-        teams[team] = {"drives": int(a["drives"]),
-                       "seconds": int(a["seconds"]),
-                       "seconds_per_drive": int(round(a["seconds"]
-                                                      / a["drives"]))}
     rep["usable"] = True
     return ({"season": season, "kind": "DESCRIPTIVE", "source": "nflverse pbp",
-             "column": topc, "unit": "seconds",
-             "note": ("Time of possession per team, summed over drives. "
-                      "⚠️ Every value is an INTEGER NUMBER OF SECONDS — the "
-                      "source column is the string `M:SS` and it is parsed "
-                      "once, here. ⛔ No model reads this."),
-             "drives": len(drives), "unparsed_drives": unparsed,
+             "column": topc, "unit": "share_of_game_clock",
+             "note": ("Share of the game clock each team held, averaged "
+                      "per game. ⚠️ `share` is the number to read; "
+                      "`seconds_per_game` is it expressed on a 3600-second "
+                      "clock. ⛔ `seconds` and `drives` are DIAGNOSTICS — "
+                      "they are not comparable between teams, because "
+                      "each team's games were observed to a different "
+                      "depth. ⛔ No model reads this."),
+             "drives": sum(t["drives"] for t in teams.values()),
+             "unparsed_drives": unparsed,
              "teams": teams}, rep)
-
 
 def build_def_epa(season, seen=None, log=print):
     """Defensive EPA per play allowed, per defence per game. **T48.**
