@@ -32,6 +32,7 @@ and their order are the source's, unedited. CFBD itself needs a key this
 session does not hold, and inventing a clock sequence would test the
 arithmetic against my own expectation of it rather than against football.
 """
+import collections
 import gzip
 import json
 import os
@@ -67,14 +68,14 @@ import dossier_fb as DF  # noqa: E402
 #   find: c = p.get("clock") or {}
 #   with: c = p.get("clock") or {"minutes": len(str(p.get("wallclock") or "")), "seconds": 0}
 #
-# @vacuity both leagues emit the same per-team shape
-#   file: cfb.py
-#   find: teams[t] = {"drives": int(n),
-#   with: teams[t] = {"drive_count": int(n),
+# @vacuity the section-6 renderer must read the SHARE, not raw seconds
+#   file: dossier_fb.py
+#   find: out[t] = {"share": v["share"], "seconds_per_game": spg,
+#   with: out[t] = {"share": v["seconds"], "seconds_per_game": v["seconds"],
 #
 # @vacuity a season that cannot be covered writes no artifact
 #   file: cfb.py
-#   find: if len(agg) < CFB_TOP_MIN_TEAMS:
+#   find: if len(teams) < CFB_TOP_MIN_TEAMS:
 #   with: if False:
 # ══════════════════════════════════════════════════════════════════════
 
@@ -102,12 +103,15 @@ ck(_used <= _COLS,
 ck("wallclock" in _COLS,
    "⚠️ ...and `wallclock` really is there to be reached for",
    "🔴 the trap is only a trap because the field exists and looks right")
-ck(_SAMPLE["overtime_games"] >= 3 and _SAMPLE["games"] >= 40,
+ck(_SAMPLE["overtime_games"] >= 20 and _SAMPLE["games"] >= 800,
    "⚠️ %d real games, %d into OVERTIME, %d teams, %d drives"
    % (_SAMPLE["games"], _SAMPLE["overtime_games"], _SAMPLE["teams"],
       _SAMPLE["drives"]),
    "⛔ without real overtime and real period boundaries this file would "
-   "be testing arithmetic against my own expectation of it")
+   "be testing arithmetic against my own expectation of it. ⚠️ THE WHOLE "
+   "2019 SEASON, no selection — picking games by team or by clock "
+   "coverage would bias the coverage distribution the share exists to "
+   "correct for")
 _ot = [p for p in PLAYS if (p.get("period") or 0) > cfb.CFB_REG_PERIODS]
 ck(_ot and all((p.get("minutes"), p.get("seconds")) == (0, 0) for p in _ot),
    "🔴🔴 MEASURED: all %d overtime plays read 0:00 — college OT is UNTIMED"
@@ -182,11 +186,13 @@ ck(_r["overtime_plays_seen"] > 0,
    "⛔ college OT is untimed — every clock in it reads 0:00, so diffing "
    "across the 4→5 boundary books a phantom period")
 _max_game_secs = cfb.CFB_REG_PERIODS * cfb.CFB_PERIOD_SECS
-ck(0 < _r["seconds_per_game"] <= _max_game_secs * 1.05,
-   "🔴🔴 TWO TEAMS SHARE ONE PERIOD CLOCK (%.0fs per game against %ds)"
-   % (_r["seconds_per_game"], _max_game_secs),
+ck(0 < _r["coverage_median"] <= 1.05 and _r["coverage_max"] <= 1.05,
+   "🔴🔴 TWO TEAMS SHARE ONE PERIOD CLOCK (median coverage %.2f, max "
+   "%.2f)" % (_r["coverage_median"], _r["coverage_max"]),
    "⛔ THIS IS WHAT CATCHES A CROSS-PERIOD SUM. Per-drive means stay "
-   "plausible under it; the per-game total does not.")
+   "plausible under it; the fraction of the clock a game accounts for "
+   "does not. ⚠️ Coverage BELOW 1 is ordinary and is what the floor in "
+   "`possession.py` is for; coverage far ABOVE 1 is arithmetic.")
 # ⚠️ READ DEFENSIVELY. A refusal above leaves `_pay` None, and a
 #    TypeError here would cost every check in the three sections below.
 _spd = ([t["seconds_per_drive"] for t in (_pay or {}).get("teams", {}).values()]
@@ -197,9 +203,10 @@ ck(all(40 <= v <= 400 for v in _spd),
    "⛔ `drives` must be a COUNT OF DRIVES. A snap count wearing that name "
    "reads ~15s and would make both leagues' section 6 look alike while "
    "meaning different things. Got %s" % sorted(_spd)[:5])
-note("   %d team(s), %d drive(s), %.1fs per game, %.3f%% anomalies, "
-     "%d bucket(s)" % (_r["teams"], _r["drives"], _r["seconds_per_game"],
-                       _r["anomaly_pct"], _r["buckets"]))
+note("   %d team(s), %d drive(s), %.3f pct anomalies, %d bucket(s), "
+     "%d of %d games used" % (_r["teams"], _r["drives"], _r["anomaly_pct"],
+                              _r["buckets"], _r["games_used"],
+                              _r["games_seen"]))
 
 
 section("3. ⛔ `wallclock` IS NOT THE SOURCE — ASKED TWO WAYS")
@@ -264,42 +271,13 @@ ck(not _reads(_deriv, "wallclock"),
    "read. Reads found at line(s): %s" % _reads(_deriv, "wallclock"))
 
 
-section("4. ✅ BOTH LEAGUES' SECTION 6 READS ONE SHAPE AND ONE UNIT")
-_N = json.load(gzip.open(os.path.join(
-    ROOT, "research", "pbp_possession_sample_2025.json.gz"), "rt"))
-_npay, _nrep = nfl.possession_from_rows(_N["rows"], 2025, _QUIET)
-ck(_npay is not None and _pay is not None,
-   "⚠️ both leagues produced a table to compare",
-   "⛔ comparing one table against nothing is rule 67")
-# ⚠️ AND READ DEFENSIVELY FROM HERE DOWN. If either league refused above,
-#    the comparisons must go RED and say so — never die and take the two
-#    sections below with them.
-_npay = _npay or {"teams": {}}
-_pay = _pay or {"teams": {}}
-_TOP = {"season", "kind", "unit", "column", "note", "drives", "teams"}
-ck(_TOP <= set(_npay) and _TOP <= set(_pay),
-   "🔴 the same top-level keys in both",
-   "nfl missing %s ; cfb missing %s"
-   % (sorted(_TOP - set(_npay)), sorted(_TOP - set(_pay))))
-ck(_npay.get("unit") == _pay.get("unit") == "seconds",
-   "🔴🔴 ONE UNIT: seconds, declared on both",
-   "⛔ a page reading one league's minutes as the other's seconds is a "
-   "60x error that renders. Got %r / %r"
-   % (_npay.get("unit"), _pay.get("unit")))
-_nk = {frozenset(v) for v in _npay["teams"].values()}
-_ck_ = {frozenset(v) for v in _pay["teams"].values()}
-ck(_nk == _ck_ and len(_nk) == 1,
-   "🔴 ...and one per-team shape: %s" % sorted(next(iter(_nk))),
-   "nfl %s ; cfb %s" % ([sorted(x) for x in _nk], [sorted(x) for x in _ck_]))
-_bad = [(t, k, v) for pay in (_npay, _pay)
-        for t, d in pay["teams"].items() for k, v in d.items()
-        if not isinstance(v, int) or isinstance(v, bool)]
-ck(not _bad,
-   "🔴🔴 EVERY VALUE IS AN INT IN BOTH — NO `M:SS`, NO `15:00`, NO STRING",
-   "⛔ `\"7:42\" + \"3:10\"` does not raise, it produces `\"7:423:10\"`. "
-   "Offenders: %s" % _bad[:4])
-# ✅ AND THE RENDERER IS DRIVEN ON THE COLLEGE ARTIFACT, not just on the
-#    NFL one it was written against.
+section("4. ✅ SECTION 6 READS THE COLLEGE ARTIFACT, AND READS THE SHARE")
+# 📌 THE CROSS-LEAGUE SHAPE COMPARISON MOVED TO `test_possession.py`, and
+#    it got stronger on the way: both leagues now go through ONE
+#    implementation of the share maths (`possession.share_table`), so the
+#    shapes match by construction rather than because two copies of the
+#    arithmetic happen to agree. What stays here is the half that is
+#    college-specific — that the dossier's renderer reads THIS artifact.
 import shutil  # noqa: E402
 import tempfile  # noqa: E402
 
@@ -316,6 +294,18 @@ ck(_s6["state"] == "OK" and _t0 in (_s6.get("by_team") or {}),
 ck(_s6.get("basis") == "DESCRIPTIVE",
    "   ...and it is labelled DESCRIPTIVE, rule 55",
    "⛔ possession is not a model output and must never read as one")
+_shown = set(_s6["by_team"][_t0])
+ck("share" in _shown and not ({"seconds", "drives", "seconds_per_drive"}
+                              & _shown),
+   "🔴🔴 ...AND IT SHOWS THE SHARE, NOT THE RAW SECONDS (%s)"
+   % sorted(_shown),
+   "⛔ raw seconds are not comparable between teams — each team's games "
+   "were observed to a different depth, and reading them off the page "
+   "INVERTED the college ranking. `possession.py` has the measurement.")
+ck(_s6["by_team"][_t0]["minutes"] == "%d:%02d"
+   % divmod(_s6["by_team"][_t0]["seconds_per_game"], 60),
+   "   ...with the minutes derived from it, not a second source",
+   "⛔ rule 66. Got %s" % _s6["by_team"][_t0])
 shutil.rmtree(_d, ignore_errors=True)
 
 
@@ -340,8 +330,33 @@ ck(_p4 is None,
    % str(_p4)[:120])
 ck("writing NOTHING" in (_r4.get("error") or ""),
    "   ...saying it chose to write nothing", str(_r4.get("error"))[:160])
+ck("coverage floor" in (_r4.get("error") or ""),
+   "   ...and naming the floor the teams failed to clear",
+   "⛔ a refusal that does not say which bar it hit is not a diagnosis. "
+   "Got %s" % str(_r4.get("error"))[:160])
 # ⛔ AND A CLOCK OUTSIDE ITS OWN DOMAIN IS FABRICATED DATA, not something
 #    to round. Same rule as `outs_of()` and an inningsPitched `.3`.
+# ⛔ AND THE TEAM BAR ITSELF, ON A WELL-OBSERVED SLICE. The two-team case
+#    above is now caught by the COVERAGE floor first — halving a game's
+#    plays halves its coverage — so the bar that refuses a thin TABLE
+#    needs a slice that clears the floor and still holds too few teams.
+_one_game = max(
+    collections.Counter(p["gameId"] for p in PLAYS
+                        if (p.get("period") or 9) <= cfb.CFB_REG_PERIODS
+                        ).items(), key=lambda kv: kv[1])[0]
+_g_plays = [p for p in PLAYS if p["gameId"] == _one_game]
+_p6, _r6 = cfb.possession_from_plays(_g_plays, 2019, log=_QUIET)
+ck(_r6["games_used"] == 1 and _r6["teams"] == 2,
+   "⚠️ one whole real game clears the coverage floor with 2 teams",
+   "⛔ otherwise the refusal below would be the floor again, not the "
+   "team bar. Got used=%s teams=%s" % (_r6.get("games_used"),
+                                       _r6.get("teams")))
+ck(_p6 is None and "under the %d required" % cfb.CFB_TOP_MIN_TEAMS
+   in (_r6.get("error") or ""),
+   "🔴🔴 ...AND A TWO-TEAM TABLE IS STILL REFUSED ON ITS OWN MERITS",
+   "⛔ THE PARTIAL CASE IS THE DANGEROUS ONE — it looks like data. "
+   "Got %s" % str(_r6.get("error"))[:160])
+
 _wrecked = [dict(p, clock=None, minutes=99, seconds=99) for p in PLAYS]
 _p5, _r5 = cfb.possession_from_plays(_wrecked, 2019, log=_QUIET)
 ck(_p5 is None,

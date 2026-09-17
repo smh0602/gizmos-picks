@@ -69,6 +69,7 @@ import urllib.error
 import urllib.request
 
 import ranking as _ranking   # the shared tie-aware ranker
+import possession as _poss  # the shared coverage/share maths, both leagues
 
 API = "https://api.collegefootballdata.com"
 KEY = os.environ.get("CFBD_API_KEY", "").strip()
@@ -1155,8 +1156,12 @@ CFB_PERIOD_SECS = 15 * 60
 CFB_MAX_PLAY_SECS = 300    # a single snap-to-snap gap inside one period
 CFB_TOP_MIN_TEAMS = 80     # ~134 FBS plus opponents; a handful is partial
 CFB_ANOMALY_MAX_PCT = 2.0  # above this, the ordering is not what we think
-CFB_GAME_SECS_LO = 1800    # both teams share one period-clock hour, minus
-CFB_GAME_SECS_HI = 3900    # the tail of each period this cannot observe
+# ⛔ ~~CFB_GAME_SECS_LO/HI = 1800..3900~~ — REMOVED 2026-09-17. It was a
+# band on the SEASON's mean seconds per game, and it accepted 887 of 887
+# real games including the one that exposed 30 pct of its clock. A bar
+# that accepts everything it has ever seen is not a bar. What replaced it
+# is strictly stronger and acts per GAME, not per season:
+# `possession.COVERAGE_MIN` withholds 484 of those 887 outright.
 
 
 def _clock_secs(p):
@@ -1182,28 +1187,38 @@ def _clock_secs(p):
 
 
 def possession_from_plays(plays, season, log=log):
-    """Per-team possession seconds from CFBD `/plays` rows. No fetching.
+    """Per-team possession SHARE from CFBD `/plays` rows. No fetching.
 
     -> (payload, report). ⛔ `payload` is None unless the clock is really
     there and the derivation really holds together; the report says which
     it was either way.
 
-    ⛔⛔ A PARTIAL TABLE IS NEVER WRITTEN. Possession present for some
-    teams and absent for the rest is missingness clustered BY TEAM, which
-    is the shape that killed CFB targets. Absent clock fields, an
-    impossible total, too few teams, too many ordering anomalies, or a
-    per-game total outside the period clock all return None.
+    🔴🔴 IT EMITS A SHARE, NOT RAW SECONDS, AND THAT IS THE WHOLE POINT
+    OF THIS FUNCTION. `possession.py` has the measurement: over the 887
+    games of the 2019 season the derivation sees anywhere from 30 pct to
+    101 pct of a game's clock, and raw seconds carry that straight onto
+    the team number — 202 of 217 teams move by more than a minute, and
+    the ranking INVERTS (Nicholls 21:00 raw against 38:33 real).
 
-    ✅ SECONDS, AS AN INT, SAME AS THE NFL SIDE — so both leagues'
-    section 6 reads one shape and one unit.
+    ⛔⛔ A PARTIAL TABLE IS NEVER WRITTEN. Absent clock fields, an
+    impossible total, too few teams, or too many ordering anomalies all
+    return None. ⚠️ And a GAME whose clock is too thinly observed is
+    withheld before any of that, in `possession.share_table`.
+
+    ✅ ONE IMPLEMENTATION OF THE SHARE MATHS, SHARED WITH `nfl.py` — so
+    "both leagues emit the same shape" is true by construction rather
+    than by a test comparing two copies (rule 117).
     """
-    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False,
-           "plays": len(plays), "games": 0, "teams": 0,
-           "pairs": 0, "negative": 0, "over_max": 0,
-           "overtime_plays_seen": 0, "no_clock": 0,
-           "source": "derived from the CFBD /plays game clock",
-           "derived_from": ["gameId", "period", "playNumber", "offense",
-                            "clock.minutes", "clock.seconds"],
+    # ⛔ NAME THE COLUMNS. Assuming a schema is how the `stats_player_reg`
+    #    season-totals trap and a 0-of-1,848 name join both happened, and
+    #    every name here is one `data/ncaaf/latest/probe-report.json`
+    #    measured on the real endpoint.
+    rep = {"column": "clock.minutes/clock.seconds", "drives": 0, "teams": 0,
+           "unparsed": 0, "usable": False,
+           "columns_used": {"clock": "clock|minutes|seconds",
+                            "team": "offense", "period": "period",
+                            "game": "gameId", "drive": "driveId",
+                            "order": "playNumber"},
            "not_used": ["wallclock"]}
     if not plays:
         rep["error"] = "no plays to derive possession from"
@@ -1212,6 +1227,8 @@ def possession_from_plays(plays, season, log=log):
     # ── group by (game, period), regulation only ──────────────────────
     buckets = collections.defaultdict(list)
     games = set()
+    rep["overtime_plays_seen"] = 0
+    rep["no_clock"] = 0
     for p in plays:
         gid, per_ = p.get("gameId"), p.get("period")
         if gid is None or per_ is None:
@@ -1242,9 +1259,10 @@ def possession_from_plays(plays, season, log=log):
         log(f"    ⚠️ possession {season}: {rep['error']}")
         return None, rep
 
-    agg = collections.defaultdict(
-        lambda: {"snaps": 0, "seconds": 0, "drives": set()})
-    for (_gid, _per), rows in buckets.items():
+    rep["pairs"] = rep["negative"] = rep["over_max"] = 0
+    per_game = collections.defaultdict(dict)
+    drv_game = collections.defaultdict(lambda: collections.defaultdict(set))
+    for (gid, _per), rows in buckets.items():
         # ⚠️ ORDERED BY playNumber, which is the play's ordinal in the
         # game. ⛔ Never by wallclock and never by list order alone.
         rows.sort(key=lambda r: (r[0] is None, r[0]))
@@ -1263,70 +1281,64 @@ def possession_from_plays(plays, season, log=log):
                 continue
             if not team:
                 continue
-            agg[team]["snaps"] += 1
-            agg[team]["seconds"] += elapsed
+            per_game[gid][team] = per_game[gid].get(team, 0) + elapsed
             if dkey[1] is not None:
-                agg[team]["drives"].add(dkey)
+                drv_game[gid][team].add(dkey)
 
-    rep["teams"] = len(agg)
-    tot = sum(v["seconds"] for v in agg.values())
-    rep["seconds_total"] = tot
-    rep["seconds_per_game"] = round(tot / rep["games"], 1) if rep["games"] else 0
-    rep["drives"] = sum(len(v["drives"]) for v in agg.values())
-    bad = [t for t, v in agg.items()
-           if v["seconds"] <= 0 or v["snaps"] <= 0 or not v["drives"]]
+    drv_counts = {g: {t: len(v) for t, v in tt.items()}
+                  for g, tt in drv_game.items()}
+    teams, srep = _poss.share_table(dict(per_game), drv_counts, log)
+    rep.update(srep)
+    # ⚠️ THE THIRD BUCKET, so the accounting closes. A game every one of
+    # whose pairs was dropped as anomalous produced no possession at all;
+    # it is neither USED nor WITHHELD, and a report whose numbers do not
+    # add up invites the reader to assume the missing ones are fine.
+    rep["games_no_possession"] = len(games) - len(per_game)
+    rep["drives"] = sum(t["drives"] for t in teams.values())
     anom = (100.0 * (rep["negative"] + rep["over_max"]) / rep["pairs"]
             if rep["pairs"] else 100.0)
     rep["anomaly_pct"] = round(anom, 3)
+    bad = [t for t, v in teams.items()
+           if v["seconds"] <= 0 or v["drives"] <= 0 or not v["share"]]
 
     why = None
-    if len(agg) < CFB_TOP_MIN_TEAMS:
-        why = ("only %d team(s) have usable possession rows, under the %d "
+    if len(teams) < CFB_TOP_MIN_TEAMS:
+        why = ("only %d team(s) clear the coverage floor, under the %d "
                "required — writing NOTHING rather than a table that is "
-               "silent for the rest" % (len(agg), CFB_TOP_MIN_TEAMS))
+               "silent for the rest" % (len(teams), CFB_TOP_MIN_TEAMS))
     elif bad:
         why = ("%d team(s) derived an impossible total (<= 0 seconds, <= 0 "
-               "snaps, or no drive at all): %s — writing NOTHING"
+               "drives, or no share at all): %s — writing NOTHING"
                % (len(bad), sorted(bad)[:5]))
     elif anom > CFB_ANOMALY_MAX_PCT:
-        why = ("%.2f%% of in-period play pairs ran backwards or longer than "
-               "%ds, over the %.1f%% this trusts — the play ordering is not "
-               "what this assumes, so NOTHING is written"
+        why = ("%.2f pct of in-period play pairs ran backwards or longer "
+               "than %ds, over the %.1f pct this trusts — the play "
+               "ordering is not what this assumes, so NOTHING is written"
                % (anom, CFB_MAX_PLAY_SECS, CFB_ANOMALY_MAX_PCT))
-    elif not (CFB_GAME_SECS_LO <= rep["seconds_per_game"] <= CFB_GAME_SECS_HI):
-        why = ("%.0f possession seconds per game is outside [%d, %d] — two "
-               "teams share one period clock, so a number outside that band "
-               "is derived wrong however plausible it looks"
-               % (rep["seconds_per_game"], CFB_GAME_SECS_LO, CFB_GAME_SECS_HI))
     if why:
         rep["error"] = why
         log(f"    ⚠️ possession {season}: {why}")
         return None, rep
 
-    teams = {}
-    for t, v in sorted(agg.items()):
-        # ⚠️ SECONDS, INTEGER, EVERY FIELD — the NFL side's shape exactly,
-        # and `drives` really is a COUNT OF DRIVES. ⛔ Calling a snap count
-        # `drives` would make the two leagues' section 6 look identical
-        # while meaning different things, which is worse than differing.
-        n = len(v["drives"])
-        teams[t] = {"drives": int(n),
-                    "seconds": int(v["seconds"]),
-                    "seconds_per_drive": int(round(v["seconds"] / n))}
     rep["usable"] = True
     return ({"season": season, "kind": "DESCRIPTIVE",
              "source": "CFBD /plays game clock",
-             "column": "clock.minutes/clock.seconds", "unit": "seconds",
-             "note": ("Time of possession per team, derived from the game "
-                      "clock. ⚠️ Every value is an INTEGER NUMBER OF "
-                      "SECONDS. ⛔ Regulation only — college overtime is "
-                      "untimed and every clock in it reads 0:00. ⛔ "
-                      "`wallclock` is real-world time and is not used. "
-                      "⛔ No model reads this."),
-             "drives": sum(len(v["drives"]) for v in agg.values()),
+             "column": "clock.minutes/clock.seconds",
+             "unit": "share_of_game_clock",
+             "note": ("Share of the game clock each team held, averaged "
+                      "per game. ⚠️ `share` is the number to read; "
+                      "`seconds_per_game` is it expressed on a "
+                      "3600-second clock. ⛔ `seconds` and `drives` are "
+                      "DIAGNOSTICS and are NOT comparable between teams — "
+                      "the derivation sees a different fraction of each "
+                      "game's clock, which is why the share exists. "
+                      "⛔ Regulation only — college overtime is untimed "
+                      "and every clock in it reads 0:00. ⛔ `wallclock` "
+                      "is real-world time and is not used. ⛔ No model "
+                      "reads this."),
+             "drives": rep["drives"],
              "unparsed_drives": rep["negative"] + rep["over_max"],
              "teams": teams}, rep)
-
 
 def build_pace(season, log=log):
     """Offensive plays per team-game, plus a targets-from-text report."""

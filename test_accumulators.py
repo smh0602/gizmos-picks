@@ -43,20 +43,17 @@ import nfl  # noqa: E402
 #   find: write(f"{LATEST}/t54.json", _rep)
 #   with: pass  # write(f"{LATEST}/t54.json", _rep)
 #
-# @vacuity possession is stored in SECONDS, never the source string
-#   file: nfl.py
-#   find: "seconds": int(a["seconds"]),
-#   with: "seconds": "%d:%02d" % (a["seconds"] // 60, a["seconds"] % 60),
-#
 # @vacuity a partial possession table is never written at all
 #   file: nfl.py
-#   find: if len(agg) < TOP_MIN_TEAMS:
+#   find: if len(teams) < TOP_MIN_TEAMS:
 #   with: if False:
 #
-# @vacuity possession counts each DRIVE once, not once per play
-#   file: nfl.py
-#   find: key = (r.get(gidc), r.get(drvc))
-#   with: key = (r.get(gidc), r.get(drvc), id(r))
+# 📌 THE OTHER TWO POSSESSION MUTATIONS MOVED WITH THE CODE THEY DRIVE.
+#    `"seconds": int(...)` and the per-drive key now live in
+#    `possession.py` and are declared in `test_possession.py`, which
+#    drives them on two whole real seasons. ⛔ Not dropped — a mutation
+#    declared against a line that no longer exists is reported MALFORMED
+#    by the harness, which is how this was noticed.
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -239,104 +236,47 @@ ck("T54 did not run" in (_r2.stdout + _r2.stderr),
    "   ...and the failure is LOGGED, not swallowed",
    "🔴 a counter that fails silently is the same defect one level down")
 
-section("4. 🔴 POSSESSION IS SECONDS, AN INTEGER, ON THE REAL COLUMN")
-# ⛔ DRIVEN ON A REAL SLICE of nflverse play_by_play_2025, committed at
-#    research/pbp_possession_sample_2025.json.gz — the ACTUAL column and
-#    the ACTUAL `M:SS` format, not a fixture somebody invented.
-_S = json.load(gzip.open(os.path.join(
+section("4. 📌 THE POSSESSION ARTIFACT — WIRED HERE, JUDGED ELSEWHERE")
+# ⛔ THE POSSESSION GUARDS MOVED, THEY WERE NOT DROPPED, and they got
+#    stronger on the way. `[2026-09-17]` The builder used to emit RAW
+#    DERIVED SECONDS, and raw seconds are biased by how much of a game's
+#    clock the derivation happened to see — on the college side that
+#    inverted the ranking outright. Both leagues now go through ONE
+#    implementation of the coverage-and-share maths.
+#      `test_possession.py`      — possession.py: the floor, the share,
+#                                  per-game averaging, and the NFL
+#                                  regulation-clock identity, driven on
+#                                  two WHOLE real seasons.
+#      `test_cfb_possession.py`  — the college derivation that produces
+#                                  the seconds in the first place.
+# ✅ WHAT BELONGS HERE IS THE ACCUMULATOR QUESTION: the builder is hooked
+#    into a mode a cron reaches, and it refuses rather than half-writes.
+_NS = json.load(gzip.open(os.path.join(
     ROOT, "research", "pbp_possession_sample_2025.json.gz"), "rt"))
-_rows = _S["rows"]
-ck(len(_rows) > 1000, "⚠️ the real sample has plays to aggregate (%d)"
-   % len(_rows), "⛔ a thin sample cannot clear the team bar and the "
-   "section below would prove nothing")
-ck(any(re.match(r"^\d+:\d\d$", str(r.get("drive_time_of_possession") or ""))
-       for r in _rows),
-   "⚠️ ...and the column really is `M:SS` in the source",
-   "🔴 the whole reason this is parsed at write time")
-_pay, _rep = nfl.possession_from_rows(_rows, 2025, lambda *a: None)
-ck(_pay is not None, "the aggregation produced a table",
-   "rep=%s" % _rep)
-if _pay:
-    _bad = [(t, v) for t, d in _pay["teams"].items()
-            for k, v in d.items() if not isinstance(v, int)
-            or isinstance(v, bool)]
-    ck(not _bad,
-       "🔴🔴 EVERY VALUE IS AN INT — NO STRING SURVIVES TO A CONSUMER",
-       "⛔ `\"7:42\" + \"3:10\"` does not raise, it produces `\"7:423:10\"`. "
-       "A string that looks numeric is how a sum silently becomes "
-       "concatenation. Offenders: %s" % _bad[:4])
-    ck(_pay["unit"] == "seconds", "   ...and the unit is declared")
-    _spd = [d["seconds_per_drive"] for d in _pay["teams"].values()]
-    ck(all(20 <= v <= 600 for v in _spd),
-       "🔴 ...and a drive lasts a plausible number of seconds (%d-%d)"
-       % (min(_spd), max(_spd)),
-       "⛔ COUNTING EACH DRIVE ONCE PER PLAY would multiply every total by "
-       "its play count — the numbers would still be ints and still be "
-       "wrong. Got %s" % sorted(_spd)[:5])
-    ck(len(_pay["teams"]) >= nfl.TOP_MIN_TEAMS,
-       "   ...across %d teams" % len(_pay["teams"]))
-    # ⛔ AND THE PHYSICAL BAR, WHICH IS WHAT ACTUALLY CATCHES PER-PLAY
-    #    COUNTING. `seconds_per_drive` cannot: if every play becomes its
-    #    own "drive" the mean per drive barely moves, because the column
-    #    is the DRIVE's time repeated on each play. Two teams share one
-    #    hour of game clock, so the sample's seconds-per-game must land
-    #    near 3600 — MEASURED at 3600.6 on the real slice, and about 8x
-    #    that if the column is summed row by row.
-    _games = len({r.get("game_id") for r in _rows if r.get("game_id")})
-    # ⚠️ SUMMED DEFENSIVELY so a non-int value fails the check ABOVE and
-    #    does not take the rest of the file down with a TypeError.
-    _tot = sum(d["seconds"] for d in _pay["teams"].values()
-               if isinstance(d["seconds"], int)
-               and not isinstance(d["seconds"], bool))
-    _per_game = _tot / _games if _games else 0
-    ck(_games > 4 and 3000 <= _per_game <= 4200,
-       "🔴🔴 A GAME'S TWO TEAMS SHARE ONE HOUR OF CLOCK (%.0fs over %d "
-       "games)" % (_per_game, _games),
-       "⛔ `drive_time_of_possession` IS REPEATED ON EVERY PLAY OF THE "
-       "DRIVE. Summing it row by row multiplies every total by the play "
-       "count — the numbers stay integers and the per-drive mean stays "
-       "plausible, so only the game-clock total catches it.")
-
-section("5. ⛔ NO USABLE COLUMN -> NO ARTIFACT, AND SECTION 6 SAYS SO")
-# 🔴 A PARTIAL TABLE IS WORSE THAN NONE: it reads as a real number for
-#    some teams and silence for the rest, which is missingness clustered
-#    BY TEAM — the shape that killed CFB targets.
-_no_col = [{k: v for k, v in r.items() if k != "drive_time_of_possession"}
-           for r in _rows[:500]]
-_p2, _r2b = nfl.possession_from_rows(_no_col, 2025, lambda *a: None)
-ck(_p2 is None, "🔴 a season with the column MISSING writes NOTHING",
-   "⛔ rather than a table nobody can trust. Got %s" % str(_p2)[:120])
-ck("does not carry the columns" in (_r2b.get("error") or ""),
-   "   ...and the report says which columns were missing",
-   str(_r2b))
-_few = [r for r in _rows if r.get("posteam") in ("BUF", "NO")]
-_p3, _r3 = nfl.possession_from_rows(_few, 2025, lambda *a: None)
-ck(_p3 is None,
-   "🔴🔴 ...AND A TWO-TEAM TABLE IS REFUSED TOO",
-   "⛔ THE PARTIAL CASE IS THE DANGEROUS ONE — it looks like data. Got %s"
-   % str(_p3)[:120])
-ck("writing NOTHING" in (_r3.get("error") or ""),
-   "   ...saying it chose to write nothing", str(_r3))
-
-# ✅ AND SECTION 6 STAYS UNAVAILABLE WITH ITS REASON — driven both ways.
-import dossier_fb as DF  # noqa: E402
-
-_s6 = DF.s_possession("BUF", "NO", 2025, data=os.path.join(_d, "data/nfl"))
-ck(_s6["state"] == "UNAVAILABLE",
-   "🔴 with no artifact, section 6 is UNAVAILABLE",
-   "Got %s" % _s6)
-ck("remedy" in _s6 and "drive_time_of_possession" in (_s6.get("why") or ""),
-   "   ...naming the column and the remedy", str(_s6)[:200])
-_fake = os.path.join(_d, "data/nfl/latest/top-2025.json.gz")
-with gzip.open(_fake, "wt") as fh:
-    json.dump({"season": 2025, "unit": "seconds",
-               "teams": {"BUF": {"drives": 10, "seconds": 1800,
-                                 "seconds_per_drive": 180}}}, fh)
-_s6b = DF.s_possession("BUF", "NO", 2025, data=os.path.join(_d, "data/nfl"))
-ck(_s6b["state"] == "OK" and "BUF" in (_s6b.get("by_team") or {}),
-   "✅ ...and it reads the artifact the moment one exists",
-   "⛔ a section that can never turn OK is decoration. Got %s" % _s6b)
+_npay, _nrep = nfl.possession_from_rows(_NS["rows"], 2025, lambda *a: None)
+ck(_npay is not None and _nrep["usable"],
+   "⚠️ the NFL builder produces a table from the real season",
+   "⛔ a builder that produces nothing would make the wiring question "
+   "below meaningless. rep=%s" % {k: _nrep.get(k) for k in
+                                  ("teams", "error")})
+ck("nfl-logs" in _REACHABLE,
+   "🔴 ...and it is built in `nfl-logs`, which a cron arm names",
+   "⛔ rule 78 cuts the other way for a builder whose INPUT is the "
+   "expensive thing: this rides a download `nfl-logs` already pays for. "
+   "Reachable: %s" % sorted(_REACHABLE))
+ck("build_possession" in (_BRANCHES.get("nfl-logs") or ""),
+   "   ...by name, in that branch",
+   "⛔ a builder nothing calls is a builder that rots")
+_few = [r for r in _NS["rows"] if (r.get("posteam") or "") in ("BUF", "NO")]
+_p2, _r2b = nfl.possession_from_rows(_few, 2025, lambda *a: None)
+ck(_p2 is None,
+   "🔴🔴 ...AND IT REFUSES A PARTIAL TABLE RATHER THAN HALF-WRITING ONE",
+   "⛔ possession present for some teams and absent for the rest is "
+   "missingness clustered BY TEAM — the shape that killed CFB targets. "
+   "Got %s" % str(_p2)[:120])
+ck("writing NOTHING" in (_r2b.get("error") or ""),
+   "   ...saying so in the probe it writes either way",
+   str(_r2b.get("error"))[:160])
 note("📌 The possession artifact is built in `nfl-logs`, which pays the "
-     "play-by-play download already — rule 78 cuts the other way for a "
-     "builder whose INPUT is the expensive thing. `nfl-logs` is in the "
-     "derived reachable set, asserted in section 1.")
+     "play-by-play download already. `test_possession.py` owns what the "
+     "numbers in it must MEAN; this file owns that it is reachable.")

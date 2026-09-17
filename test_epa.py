@@ -23,6 +23,17 @@ things that must not happen are asserted:
 
 ⚠️ No network, no data files, no clock.
 """
+
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity only PASS and RUSH plays count toward defensive EPA
+#   file: nfl.py
+#   find: if not (p_ or u_):
+#   with: if False:
+# ⛔ NOT A FILTER CHOSEN AFTER SEEING A RESULT. T48's spec fixed "plays
+#    where the play is a pass or a rush" before any of this was written,
+#    and kicks, punts, kneels and no-play penalties carry EPA too.
+# ══════════════════════════════════════════════════════════════════════
+
 import sys
 
 import nfl

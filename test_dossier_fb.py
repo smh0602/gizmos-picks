@@ -22,6 +22,7 @@ import glob
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -72,6 +73,16 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   file: collect.py
 #   find: _rc = _dos.build(LEAGUE)
 #   with: _rc = 0  # _dos.build(LEAGUE)
+#
+# @vacuity the dossier is ARCHIVED to a dated path, not only to latest/
+#   file: dossier_fb.py
+#   find: if os.path.exists(arch):
+#   with: if True:
+#
+# @vacuity the dated archive is WRITE-ONCE and a later run cannot rewrite it
+#   file: dossier_fb.py
+#   find: if os.path.exists(arch):
+#   with: if False:
 #
 # @vacuity nothing in the dossier is ever labelled MODEL
 #   file: dossier_fb.py
@@ -338,12 +349,22 @@ ck("not built yet" in _out_cf,
    "different sport's data shape. Got: %s" % _out_cf[-200:])
 
 section("6. ⚠️ THE MEASUREMENTS THIS FILE STANDS ON ARE WRITTEN DOWN")
-for _claim in ("drive_time_of_possession", "2457 of 2491",
-               "189 of those carry BOTH", "285 of 285",
+for _claim in ("189 of those carry BOTH", "285 of 285",
                "FIRST-HALF MARKETS ARE NOT HELD"):
     ck(_claim in _DSRC, "   the file records %r" % _claim,
        "⛔ rule 166: a number written down is a claim about the world. "
        "These were measured on 2026-09-17 and the source says so")
+# ⚠️ THE POSSESSION MEASUREMENTS MOVED, THEY DID NOT VANISH. The probe
+#    numbers this file used to check for (`drive_time_of_possession`,
+#    `2457 of 2491`) were the reason section 6 could not answer; the
+#    section answers now, and the numbers that govern WHAT it answers
+#    live in `possession.py`. Rule 166 applies to them just the same.
+_PSRC = open(os.path.join(ROOT, "possession.py"), encoding="utf-8").read()
+for _claim in ("min 0.30", "median 0.87", "r = +0.6426",
+               "202 of 217", "269 of 269 regulation games"):
+    ck(_claim in _PSRC, "   `possession.py` records %r" % _claim,
+       "⛔ rule 166. Measured 2026-09-17 over the whole 2019 college "
+       "season and the whole 2025 NFL season")
 _top = [s for g in _docs for s in g["sections"]
         if s["name"] == "Time of possession"]
 ck(_top and all(s["state"] == "UNAVAILABLE" for s in _top),
@@ -477,13 +498,105 @@ ck(_n_cardfb >= 2,
    "   ...on %d cron arm(s), not one that could vanish" % _n_cardfb)
 ck("fb-record" not in _modes_with_crons,
    "   ⚠️ ...while `fb-record` still has none — the finding stands",
-   "📌 REPORTED, NOT FIXED: t54.py's own counter is hooked into a mode "
-   "no cron routes to. That is collect.py's wiring, not this task's, and "
-   "it is named here so it cannot be forgotten. Modes: %s"
+   "📌 THE FINDING THIS LINE RECORDED IS NOW FIXED `[#39]`: t54's counter "
+   "moved to `card-fb`. What stays true is that `fb-record` is reached "
+   "by no cron, so nothing may publish from it. Modes: %s"
    % sorted(_modes_with_crons))
 
 note("✅ FIXED, NOT JUST REPORTED: `dossier_fb.py` is now chained to "
      "`card-fb`, which eight cron arms route to — no new cron, no CRON "
      "TOTAL change, and the existing data commit publishes the artifact. "
-     "📌 STILL OPEN AND NOT MINE TO FIX HERE: `t54.py`'s counter remains "
-     "hooked into `fb-record`, which no cron routes to.")
+     "✅ AND THE t54 FINDING THIS FILE NAMED IS CLOSED TOO `[#39]`: its "
+     "counter moved to `card-fb` and `t54.json` now exists. `fb-record` "
+     "is still reached by no cron and nothing publishes from it any "
+     "more — `test_accumulators.py` holds that on the class.")
+
+
+section("9. 🔴🔴 EVERY READING IS ARCHIVED — `latest/` KEEPS NO HISTORY")
+# ⛔ `latest/dossiers.json.gz` IS OVERWRITTEN ON ALL EIGHT DAILY `card-fb`
+#    ARMS. Every section in it is a POINT-IN-TIME reading — the market
+#    moves, season-to-date rows grow, an UNAVAILABLE section flips to OK —
+#    so with no archive there is nothing to check against what happened,
+#    and every day that passes is observations that cannot be recovered.
+# ✅ DRIVEN THROUGH THE REAL `card-fb` MODE, for the reason section 8
+#    gives: a source string says the text exists and says nothing about
+#    whether the line runs.
+_d9 = tree()
+_lat9 = os.path.join(_d9, "data/nfl/latest/dossiers.json.gz")
+for _f in glob.glob(os.path.join(_d9, "data/nfl/*/dossiers/*.json.gz")):
+    os.remove(_f)
+if os.path.exists(_lat9):
+    os.remove(_lat9)
+_rc9 = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d9,
+                      timeout=1200, capture_output=True, text=True,
+                      env=dict(os.environ, LEAGUE="nfl"))
+_out9 = (_rc9.stdout or "") + (_rc9.stderr or "")
+_arch9 = sorted(glob.glob(os.path.join(_d9, "data/nfl/*/dossiers/*.json.gz")))
+ck(os.path.exists(_lat9),
+   "⚠️ the run wrote `latest/dossiers.json.gz` as it always did",
+   "⛔ if it wrote nothing at all the claim below would pass having "
+   "checked nothing (rule 67). rc=%s %s" % (_rc9.returncode, _out9[-300:]))
+ck(len(_arch9) == 1,
+   "🔴🔴 ...AND A DATED COPY BESIDE IT (%s)"
+   % (os.path.relpath(_arch9[0], _d9) if _arch9 else "none"),
+   "⛔ a report with no archive cannot be checked against what actually "
+   "happened, and `latest/` is overwritten eight times a day. Found: %s"
+   % [os.path.relpath(a, _d9) for a in _arch9])
+if _arch9:
+    _dd = os.path.relpath(_arch9[0], _d9).split(os.sep)
+    ck(re.match(r"^\d{4}-\d{2}-\d{2}$", _dd[2])
+       and re.match(r"^\d{4}\.json\.gz$", _dd[4]),
+       "   ...at `data/<league>/<date>/dossiers/<HHMM>.json.gz`",
+       "⛔ the shape the collector's own dated writes already use. Got %s"
+       % _dd)
+    ck(_load(_arch9[0]) == _load(_lat9),
+       "   ...carrying the same document, not a summary of it",
+       "⛔ an archive that drops fields is not an archive of this file")
+    ck((_load(_arch9[0]).get("dossiers") or []) and
+       len(_load(_arch9[0])["dossiers"][0].get("sections") or []) == 8,
+       "   ...with all eight sections in it (%d game(s))"
+       % len(_load(_arch9[0]).get("dossiers") or []),
+       "⛔ an archive of an empty document proves nothing")
+
+# 🔴 AND IT IS WRITE-ONCE. An archive a later run can rewrite is not an
+#    archive — it is `latest/` with a longer name.
+if _arch9:
+    with gzip.open(_arch9[0], "wt") as _fh:
+        json.dump({"sentinel": "the earlier reading"}, _fh)
+    _rc9b = subprocess.run([sys.executable, "collect.py", "card-fb"],
+                           cwd=_d9, timeout=1200, capture_output=True,
+                           text=True, env=dict(os.environ, LEAGUE="nfl"))
+    _again = sorted(glob.glob(
+        os.path.join(_d9, "data/nfl/*/dossiers/*.json.gz")))
+    _out9b = (_rc9b.stdout or "") + (_rc9b.stderr or "")
+    # ⚠️ ASKED OF THE BUILDER, NOT OF THE EXIT CODE. This sandbox has no
+    #    network, so `card-fb` exits non-zero on the feeds it cannot
+    #    reach — and a run that never reached the builder would leave the
+    #    sentinel intact too, which would make the claim below pass
+    #    having tested nothing (rule 67).
+    ck("dossier_fb[nfl]" in _out9b,
+       "⚠️ the second run really did rebuild the dossier",
+       "⛔ the sentinel survives a run that did nothing, so this has to "
+       "be established first. %s" % _out9b[-250:])
+    ck("already exists" in _out9b,
+       "   ...and said out loud that it left the archive alone",
+       "⛔ a write-once that is silent about declining to write is a "
+       "write-once nobody can audit. %s" % _out9b[-250:])
+    ck(len(_again) == 1,
+       "   ...and added no second archive for the same minute (%d)"
+       % len(_again),
+       "Found: %s" % [os.path.relpath(a, _d9) for a in _again])
+    ck(_load(_arch9[0]).get("sentinel") == "the earlier reading",
+       "🔴🔴 ...AND LEAVES THE EARLIER READING EXACTLY AS IT WAS",
+       "⛔ WRITE-ONCE. A later run overwriting it destroys the very "
+       "history this exists to keep. Got %s" % str(_load(_arch9[0]))[:120])
+    ck(os.path.getsize(_lat9) > 200,
+       "   ...while `latest/` is refreshed as normal (%d bytes)"
+       % os.path.getsize(_lat9),
+       "⛔ the page reads `latest/`; write-once must not freeze it too")
+note("💾 DATED AND WRITE-ONCE RATHER THAN ONE CUMULATIVE ARCHIVE, and "
+     "the reason is measured (rule 285): git cannot delta-compress a "
+     "gzip, so a one-row change rewrites the whole output and git stores "
+     "each version IN FULL. 5.17 MiB for a 20-week season written this "
+     "way against 2,896 MiB rewritten eight times a day — 560x.")
+shutil.rmtree(_d9, ignore_errors=True)

@@ -46,7 +46,20 @@ TWO TIERS, AND THEY CATCH DIFFERENT THINGS.
    skipped is the same vacuity one level up.
 
 ══════════════════════════════════════════════════════════════════════
-⛔ IT REPORTS. IT NEVER EDITS.
+⛔ IT REPORTS. IT NEVER EDITS — BUT IT DOES MUTATE WHILE IT RUNS.
+
+🔴🔴 SO NOTHING ELSE MAY WRITE TO THIS REPO WHILE IT IS RUNNING, AND
+THAT IS NOT THEORETICAL. `[2026-09-17]` An editor read `vacuity.py` while
+this harness had one of its own declared mutations applied to it, changed
+a different line, and wrote the file back — **baking `blind()` down to
+`return []` permanently.** The harness reverted its copy in the `finally:`
+and the corruption survived, because the revert restores what the harness
+read, not what is on disk now.
+⚠️ The read-modify-write is the hazard, not the harness: the same thing
+happens with any concurrent editor, and the window is the whole sweep.
+✅ It was caught immediately, by the ratchet below — a `blind()` that
+returns nothing fails its own "the set is DERIVED" check. ⛔ That is the
+only reason it is a paragraph here rather than a silent hole.
 
 A guard this finds is NOT deleted and NOT weakened — `CLAUDE.md` forbids
 removing a check outright, and a weak guard removed is strictly worse
@@ -95,6 +108,48 @@ def unmapped(root=ROOT):
     return sorted([t for t in tests(root) if t not in m]
                   + [os.path.basename(p)
                      for p in glob.glob(os.path.join(root, "test_*.js"))])
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE THIRD HOLE, AND NOTHING WAS LOOKING AT IT.
+#
+# Tier 1 reports the files it cannot NAME-MAP. Tier 2 reports the
+# mutations it was TOLD about. ⛔ Neither reports the files that are in
+# NEITHER — a test with no name-mapped subject AND no declared mutation
+# is checked by nothing at all, and `CLAUDE.md` is explicit that every
+# guard ships with the mutation that proves it.
+#
+# `[measured 2026-09-17]` **59 of 81 test files were in that set** and no
+# number anywhere in this repo said so. The harness printed "(65
+# unmapped)" every night, which reads like the whole gap and is not:
+# 18 of those unmapped files DO carry declarations, and 59 carry nothing.
+#
+# ⚠️ THE CEILING IS A RATCHET, NOT A TARGET. It exists so the set cannot
+# grow quietly while somebody works on something else. ⛔ If a new test
+# pushes it over, DECLARE A MUTATION for that test — do not raise the
+# number. Lowering it is the only edit that is automatically right.
+# ⚠️ And it is a number written down, so rule 166 applies: the count is
+# DERIVED here and `test_vacuity.py` compares it against this constant,
+# exactly as `test_watchdog.py` does for the cron total.
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-09-17]` 59 when this was first measured. Three came down the same
+# day — `test_epa.py`, `test_fbs_gate.py`, `test_harness.py`.
+# ⛔ `test_vacuity.py` STAYS IN THE SET ON PURPOSE and cannot leave it: a
+# declaration naming it would make this sweep run that file, which runs
+# this sweep, without bound. Its own header records the measurement.
+BLIND_CEILING = 56
+
+
+def blind(root=ROOT):
+    """Test files with NO tier-1 subject and NO tier-2 declaration.
+
+    ⛔ These are not "probably fine". They are the files about which this
+    harness has no opinion whatsoever, which is the state it exists to
+    make impossible.
+    """
+    declared = {d["test"] for d in declarations(root)}
+    mapped = set(name_map(root))
+    return sorted(set(tests(root)) - declared - mapped)
 
 
 class _Gut(ast.NodeTransformer):
@@ -437,8 +492,22 @@ def main():
     elif not t1 and not t2:
         sys.stderr.write("nothing to check\n")
     elif rc == EXIT_OK:
+        _b = blind()
         print("OK  tier1 %d pair(s), tier2 %d mutation(s), all bite  "
-              "(%d unmapped)" % (len(t1), len(t2), len(unmapped())))
+              "(%d unmapped, %d BLIND of %d test file(s); ceiling %d)"
+              % (len(t1), len(t2), len(unmapped()), len(_b), len(tests()),
+                 BLIND_CEILING))
+        if len(_b) > BLIND_CEILING:
+            # ⛔ REPORTED, NOT ENFORCED HERE. `vacuity.yml` branches on the
+            # exit code and this is not a vacuous guard — it is an
+            # UNPROVEN one. The ratchet that fails lives in
+            # `test_vacuity.py`, where the contributor who added the file
+            # is standing.
+            print("⚠️ THE BLIND SET GREW: %d over the ceiling of %d. "
+                  "Declare a mutation for the new test rather than "
+                  "raising the number.\n   %s"
+                  % (len(_b) - BLIND_CEILING, BLIND_CEILING,
+                     ", ".join(_b[-6:])))
     else:
         print(render(t1, t2, unmapped()))
     return rc
