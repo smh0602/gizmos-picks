@@ -48,6 +48,7 @@ catches the exact hole — `build("ncaaf")` returned 0 and wrote nothing.
 draft wrong.
 ══════════════════════════════════════════════════════════════════════
 """
+import ast
 import glob
 import gzip
 import json
@@ -113,7 +114,32 @@ ck("mlb" not in _LEAGUES,
    "freeze is not a flag this file may flip")
 
 section("2. 🔴🔴 EVERY ROUTED LEAGUE BUILDS A DOSSIER OVER ITS OWN BOARD")
-_seen = []
+# ⛔ DERIVED FROM THE BUILDER, NOT LISTED. A section is PAIR-WISE if it
+#    takes both `home` and `away` and uses them — so venue, whose
+#    subject is the ground, is correctly not one, and a pair-wise
+#    section added tomorrow is covered without editing this file.
+_DSRC = open(os.path.join(ROOT, "dossier_fb.py"), encoding="utf-8").read()
+_PAIRWISE_NAMES = set()
+for _fn in ast.parse(_DSRC).body:
+    if not (isinstance(_fn, ast.FunctionDef) and _fn.name.startswith("s_")):
+        continue
+    _a = {x.arg for x in _fn.args.args}
+    _u = {x.id for x in ast.walk(_fn) if isinstance(x, ast.Name)}
+    if not ({"home", "away"} <= (_a & _u)):
+        continue
+    for _c in ast.walk(_fn):
+        if (isinstance(_c, ast.Call)
+                and getattr(_c.func, "id", "") in ("unavailable",
+                                                   "no_opponent")
+                and len(_c.args) >= 2
+                and isinstance(_c.args[1], ast.Constant)):
+            _PAIRWISE_NAMES.add(_c.args[1].value)
+ck(len(_PAIRWISE_NAMES) >= 3,
+   "⛔ the PAIR-WISE sections are derived from the builder (%s)"
+   % ", ".join(sorted(_PAIRWISE_NAMES)),
+   "🔴 rule 67: an empty set would make every check below pass over "
+   "nothing. Found %s" % sorted(_PAIRWISE_NAMES))
+_seen, _totpart = [], []
 for _lg in _LEAGUES:
     _d = tree(_lg)
     _p = subprocess.run([sys.executable, "-B", "dossier_fb.py"], cwd=_d,
@@ -151,6 +177,56 @@ for _lg in _LEAGUES:
        "   %s: every number is MARKET or DESCRIPTIVE — zero MODEL (rule 55)"
        % _lg,
        "⛔ this artifact combines, ranks and scores NOTHING. Found: %s" % _bad)
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 AND NO ROW WITH AN UNIDENTIFIED OPPONENT CARRIES AN `OK`
+    # PAIR-WISE SECTION — ON THE REAL BOARD, FOR EVERY ROUTED LEAGUE.
+    # `[2026-09-17]` 19 of 88 college rows published a null opponent with
+    # five sections reading OK, including head to head asserting "no
+    # meeting between these two" about a comparison never attempted.
+    # ⛔ THE PAIR-WISE LIST IS DERIVED FROM THE BUILDER'S OWN SOURCE, not
+    # written here: a section is pair-wise if it takes BOTH `home` and
+    # `away` and uses them. Naming §2/§5/§6 would guard those three and
+    # leave the next one open (rules 246, 130).
+    # ⚠️ NFL contributes 0 partial rows and that is not a weakness of
+    # this check — it is the measurement that explains why nothing caught
+    # this for NFL. The sweep's own denominator is asserted below.
+    # ══════════════════════════════════════════════════════════════════
+    _partial = [x for x in (_dos.get("dossiers") or [])
+                if x.get("unresolved_side")]
+    _okp = sorted({(s.get("n"), s.get("name")) for x in _partial
+                   for s in x["sections"]
+                   if s.get("name") in _PAIRWISE_NAMES
+                   and s.get("state") == "OK"})
+    ck(not _okp,
+       "   %s: %d partial row(s), and no pair-wise section reads OK on "
+       "one" % (_lg, len(_partial)),
+       "⛔ a section whose subject is the PAIR cannot answer when one "
+       "side is unknown. Still OK: %s" % _okp)
+    _unnamed = sorted({(x.get("home_name"), s.get("n")) for x in _partial
+                       for s in x["sections"]
+                       if s.get("name") in _PAIRWISE_NAMES
+                       and x["unresolved_side"] not in (s.get("why") or "")})
+    ck(not _unnamed,
+       "   %s: ...and every such refusal NAMES the side it could not "
+       "identify" % _lg,
+       "⛔ 'not available' with no subject is unreadable, and the board "
+       "always holds the name. Unnamed: %s" % _unnamed[:4])
+    ck(all(x.get("away_name") and x.get("home_name")
+           for x in (_dos.get("dossiers") or [])),
+       "   %s: every row carries the board's own names for both sides"
+       % _lg,
+       "⛔ A GAME THE READER CAN NAME MUST NEVER RENDER AS None. Rows "
+       "missing a name: %s" % [(x.get("home"), x.get("away"))
+                               for x in (_dos.get("dossiers") or [])
+                               if not (x.get("away_name")
+                                       and x.get("home_name"))][:4])
+    ck(_dos.get("n_partial") == len(_partial),
+       "   %s: ...and the partial count is STATED (%s), not inferred"
+       % (_lg, _dos.get("n_partial")),
+       "⛔ rule 166: \"88 of 88\" read as full coverage while 19 rows had "
+       "no identified opponent. Says %r, rows say %d"
+       % (_dos.get("n_partial"), len(_partial)))
+    _totpart.append(len(_partial))
     # ⚠️ AND THE DATED ARCHIVE COMES THROUGH THE SAME WRITER, for free.
     _arch = glob.glob(os.path.join(_d, "data", _lg, "*", "dossiers",
                                    "*.json.gz"))
@@ -161,7 +237,17 @@ for _lg in _LEAGUES:
     shutil.rmtree(_d, ignore_errors=True)
 note("   league / board games / dossiers / named skips / one-sided: %s"
      % (_seen,))
-note("⚠️ ONE-SIDED IS NOT A FAILURE. `teams.json` is the FBS list, so an "
-     "FCS opponent is absent from it by construction. Those games ARE "
-     "described and the missing side is NAMED — dropping them would lose "
-     "18 pct of the Saturday board.")
+ck(sum(_totpart) >= 1,
+   "🔴🔴 THE PARTIAL-ROW CHECKS ABOVE RAN OVER REAL PARTIAL ROWS (%d)"
+   % sum(_totpart),
+   "⛔ rule 67 AGAIN, and this is the one that matters: with zero "
+   "partial rows on every board, every check in this block passes "
+   "having been asked nothing. ⚠️ NFL contributes 0 by construction — "
+   "if college ever contributes 0 too, this is NOT a pass, it is a "
+   "board that no longer carries the case. Per league: %s"
+   % list(zip(_LEAGUES, _totpart)))
+note("⚠️ ONE-SIDED IS NOT A FAILURE. The team file is the top-division "
+     "list, so a lower-division opponent is absent from it by "
+     "construction. Those games ARE described — §1's price is real and "
+     "Sam can bet it — and every section that compares the two REFUSES "
+     "BY NAME. Dropping them would lose 18 pct of the Saturday board.")

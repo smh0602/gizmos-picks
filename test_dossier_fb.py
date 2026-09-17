@@ -42,8 +42,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #
 # @vacuity all EIGHT sections are written for every game
 #   file: dossier_fb.py
-#   find: s_personnel(teams, players, this_season),
-#   with: # s_personnel(teams, players, this_season),
+#   find: s_personnel(teams, players, this_season, missing),
+#   with: # s_personnel(teams, players, this_season, missing),
 #
 # @vacuity a section that cannot answer says UNAVAILABLE, never vanishes
 #   file: dossier_fb.py
@@ -64,6 +64,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   file: dossier_fb.py
 #   find: _lg = os.path.basename((data or DATA).rstrip(os.sep)).strip().lower()
 #   with: _lg = (LEAGUE or "nfl").strip().lower()  # the environment
+#
+# @vacuity a section comparing two sides REFUSES when one does not resolve
+#   file: dossier_fb.py
+#   find: return no_opponent(5, "Versus position", missing)
+#   with: pass  # fall through — a null opponent reaches an OK section
 #
 # @vacuity the audit REFUSES to write, it does not merely warn
 #   file: dossier_fb.py
@@ -260,6 +265,146 @@ ck(_D2.get("n_dossiers", 0) + len(_D2.get("skipped") or [])
    "%d + %d vs %d" % (_D2.get("n_dossiers", 0),
                       len(_D2.get("skipped") or []), len(_b2["games"])))
 
+section("1b. 🔴🔴 AN UNIDENTIFIED OPPONENT IS NEVER AN `OK` SECTION")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 19 OF 88 COLLEGE ROWS PUBLISHED A NULL OPPONENT AND FIVE SECTIONS
+# STILL READ `OK`. `[found in review of the college port, 2026-09-17]`
+# ⛔ AND THE NULL WAS NOT THE WORST OF IT. Head to head said "No meeting
+# between these two inside 365 days" — a statement about a comparison
+# THAT WAS NEVER ATTEMPTED, because there is no "these two". A reader
+# takes it as "they have not played recently"; the truth is "we do not
+# know who the opponent is". Versus position — whose whole subject is
+# the OPPOSING defence — read `OK` with one defence in it.
+#
+# 🔴 THE CLASS: A REFERENCE SET NARROWER THAN THE BOARD SILENTLY
+# TRUNCATES THE BOARD. The top-division team list is the right source
+# for top-division teams and the wrong source for "who is playing
+# tonight" — the board is a SUPERSET by construction, because books
+# price top-division-vs-lower-division games. ➡️ Wherever a lookup set
+# and the thing looked up come from different sources, the mismatch is a
+# DATA CLASS, not an edge case.
+#
+# ⚠️ NFL CANNOT HAVE THIS, WHICH IS WHY NOTHING CAUGHT IT: every NFL
+# opponent is an NFL team, and all 32 NFL board games join a schedule
+# row. ⛔ A fact about NFL is not a fact about the board.
+#
+# ⛔ SO THE FIRST CHECK IS DERIVED FROM THE SOURCE, NOT A LIST OF THREE
+# SECTION NUMBERS. Naming §2, §5 and §6 would guard exactly those three
+# and leave the next pair-wise section wide open — rules 246 and 130,
+# which this repo has now shipped twice.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ ONE READ OF THE SOURCE FOR THE WHOLE FILE (section 5 reuses it) —
+#    two copies of the same file read is two things to drift.
+_DSRC = open(os.path.join(ROOT, "dossier_fb.py"), encoding="utf-8").read()
+_SFNS = [n for n in ast.parse(_DSRC).body
+         if isinstance(n, ast.FunctionDef) and n.name.startswith("s_")]
+_pairwise, _gated = [], []
+for _n in _SFNS:
+    _args = {a.arg for a in _n.args.args}
+    _used = {x.id for x in ast.walk(_n) if isinstance(x, ast.Name)}
+    if {"home", "away"} <= (_args & _used):
+        _pairwise.append(_n.name)
+        if "no_opponent" in _used:
+            _gated.append(_n.name)
+ck(len(_pairwise) >= 3,
+   "⚠️ the sections that COMPARE the two sides are derived (%s)"
+   % ", ".join(_pairwise),
+   "⛔ rule 67: an empty list here would make the check below pass "
+   "forever. A section is pair-wise if it takes BOTH `home` and `away` "
+   "and USES them — which is why venue, whose subject is the ground, is "
+   "correctly not in this list. Found %s" % _pairwise)
+ck(_pairwise == _gated,
+   "🔴🔴 ...AND EVERY ONE OF THEM ROUTES THROUGH `no_opponent`",
+   "⛔ a section whose subject is the PAIR cannot answer at all when one "
+   "side is unknown — it must say so, not show the half it has. "
+   "Ungated: %s" % sorted(set(_pairwise) - set(_gated)))
+
+# ── AND DRIVEN, on a board row whose AWAY side does not resolve ──────
+# ⚠️ AWAY on purpose: all 16 real cases are the away team, because the
+#    lower-division side is the visitor in a money game.
+_d1b = tree()
+_bp1b = os.path.join(_d1b, "data/nfl/latest/board.json")
+_b1b = json.load(open(_bp1b, encoding="utf-8"))
+_b1b["games"] = _b1b["games"][:2] + [dict(_b1b["games"][0],
+                                          home="Detroit Lions",
+                                          away="Slippery Rock Aardvarks")]
+json.dump(_b1b, open(_bp1b, "w", encoding="utf-8"))
+_rc1b, _out1b = run(_d1b, "dossier_fb.py")
+ck(_rc1b == 0, "   the builder still exits clean on that board",
+   "⛔ one unidentifiable opponent must not cost the slate its dossiers. "
+   "%s" % _out1b[-300:])
+_D1b = _load(os.path.join(_d1b, "data/nfl/latest/dossiers.json.gz"))
+_part = [g for g in (_D1b.get("dossiers") or [])
+         if g.get("away_name") == "Slippery Rock Aardvarks"]
+ck(len(_part) == 1,
+   "🔴 the game is DESCRIBED, not dropped (%d row)" % len(_part),
+   "⛔ §1 is real — the price is a price and the game is bettable. "
+   "Suppressing the whole game loses a row Sam can bet. Got %s"
+   % [g.get("away_name") for g in (_D1b.get("dossiers") or [])])
+_pg = (_part or [{}])[0]
+ck(_pg.get("away_name") == "Slippery Rock Aardvarks",
+   "🔴🔴 ...AND IT CARRIES THE BOARD'S OWN NAME FOR THAT SIDE",
+   "⛔ A GAME THE READER CAN NAME MUST NEVER RENDER AS None. The board "
+   "is complete — it has the name — and publishing null instead threw "
+   "away the one thing we did know. Got %r" % _pg.get("away_name"))
+ck(_pg.get("unresolved_side") == "Slippery Rock Aardvarks",
+   "   ⛔ ...and the gap is ON THE ROW, not only in a list elsewhere",
+   "🔴 a consumer reading one row must not have to cross-reference "
+   "another key to learn half of it is missing. Got %r"
+   % _pg.get("unresolved_side"))
+_sec1b = {s.get("n"): s for s in (_pg.get("sections") or [])}
+_okpair = sorted(n for n in _sec1b
+                 if _sec1b[n].get("name") in
+                 ("Head to head", "Versus position", "Time of possession")
+                 and _sec1b[n].get("state") == "OK")
+ck(not _okpair,
+   "🔴🔴 ...AND NO PAIR-WISE SECTION READS `OK` ON IT",
+   "⛔ NEVER WEAKEN A CHECK TO MAKE IT PASS, and never widen what OK "
+   "means either: a section that compared nothing must read UNAVAILABLE. "
+   "Still OK: %s" % [(n, _sec1b[n].get("name")) for n in _okpair])
+ck(all("Slippery Rock Aardvarks" in (_sec1b[n].get("why") or "")
+       for n in _sec1b
+       if _sec1b[n].get("name") in ("Head to head", "Versus position",
+                                    "Time of possession")),
+   "   ⛔ ...and each refusal NAMES the side it could not identify",
+   "🔴 'not available' with no subject is unreadable. Got %s"
+   % [(_sec1b[n].get("name"), (_sec1b[n].get("why") or "")[:60])
+      for n in sorted(_sec1b)])
+_h2h1b = _sec1b.get(2) or {}
+ck("No meeting between these two" not in (_h2h1b.get("why") or ""),
+   "🔴🔴 ...AND HEAD TO HEAD NO LONGER ASSERTS A CHECK THAT NEVER RAN",
+   "⛔ THIS IS THE FOUNDING ERROR OF THIS PROJECT IN COLLEGE COLOURS: a "
+   "fact about a query is not a fact about the world. There is no "
+   "'these two'. Got: %s" % (_h2h1b.get("why") or "")[:140])
+ck((_sec1b.get(1) or {}).get("state") == "OK",
+   "   ✅ ...while §1 STAYS OK — the market is the thing we do know",
+   "⛔ do not suppress the game. The price is real and it is on the "
+   "board. Got %s" % (_sec1b.get(1) or {}).get("state"))
+_nullkey = sorted(n for n in _sec1b
+                  if isinstance(_sec1b[n].get("by_team"), dict)
+                  and any(k in (None, "null", "None")
+                          for k in _sec1b[n]["by_team"]))
+ck(not _nullkey,
+   "   ⛔ ...and no per-team table carries a `null` team key",
+   "🔴 a None in the team list published a literal \"null\" key inside "
+   "`by_team` — junk in a permanent record. Sections: %s" % _nullkey)
+_named1b = sorted(n for n in _sec1b
+                  if _sec1b[n].get("state") == "OK"
+                  and isinstance(_sec1b[n].get("by_team"), dict)
+                  and _sec1b[n].get("not_covered")
+                  == "Slippery Rock Aardvarks")
+ck(len(_named1b) >= 2,
+   "   ✅ ...and each per-team section NAMES the half it covers nothing "
+   "for (%s)" % _named1b,
+   "⛔ a section covering one team of two and saying nothing about it is "
+   "the same 'looks complete' failure one step quieter. Got %s"
+   % [(n, _sec1b[n].get("not_covered")) for n in sorted(_sec1b)])
+ck(_D1b.get("n_partial") == 1 and "PARTIAL" in _out1b,
+   "   ⚠️ ...and the count is STATED, in the file and in the log",
+   "⛔ rule 166: \"88 of 88\" read as full coverage while 19 rows had no "
+   "identified opponent. n_partial=%r, log says PARTIAL=%s"
+   % (_D1b.get("n_partial"), "PARTIAL" in _out1b))
+
 section("2. ⚠️ ALL EIGHT SECTIONS, EVERY GAME, PRESENT OR UNAVAILABLE")
 _docs = _D.get("dossiers") or []
 _WANT = ["Market", "Head to head", "Time of year", "This season",
@@ -382,7 +527,6 @@ ck(_hist == ["away_score", "home_score"],
    "   ✅ ...while prior meetings still carry the scores that happened",
    "⛔ THE CHECK MUST NOT FORCE OUT HONEST HISTORY. A result is a fact; a "
    "score for THIS game would be a claim. Got %s" % _hist)
-_DSRC = open(os.path.join(ROOT, "dossier_fb.py"), encoding="utf-8").read()
 ck("data/mlb" not in _DSRC and '"mlb"' not in _DSRC,
    "⛔ the builder has no MLB path at all — the absence IS the guard",
    "🔴 CLAUDE.md: the freeze forbids a scheduled check that reads MLB "

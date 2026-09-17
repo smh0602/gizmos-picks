@@ -280,6 +280,58 @@ def unavailable(n, name, why, remedy=None):
     return d
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ONE REFUSAL FOR A GAME WHOSE OPPONENT WE CANNOT IDENTIFY, AND IT
+# IS WRITTEN ONCE (rule 117).
+# ⛔ `[2026-09-17 — 19 of 88 college rows published a null opponent and
+# five sections still read OK.]` The board is a SUPERSET of the
+# top-division team list by construction, because books price
+# top-division-vs-lower-division games. So a name that does not resolve
+# is a DATA CLASS, not an edge case.
+# 🔴 AND THE WORST OF IT WAS NOT THE NULL. Head-to-head said "No meeting
+# between these two inside 365 days" — a statement about a comparison
+# THAT WAS NEVER ATTEMPTED, because there is no "these two". A reader
+# takes that as "they have not played recently". The truth is "we do not
+# know who the opponent is". ⛔ A fact about a query is not a fact about
+# the world, and that is this project's founding error wearing college
+# colours.
+# ⚠️ WRITTEN FOR A READER. `verify_card.py`'s jargon list is the
+# standard, and "top-division" is said instead of an acronym.
+#
+# 🔴🔴 AND IT SAYS WHAT WE DO NOT HAVE, NOT WHAT THE WORLD IS. The first
+# draft of this sentence read "X is not a top-division team" — which is
+# an assertion about the WORLD inferred from a FAILED LOOKUP, and every
+# one of those today happens to be true only because all 16 really are
+# lower-division schools. ⛔ A name can also fail to resolve because our
+# own matching missed a real top-division school, and then that sentence
+# is simply false on a page Sam bets from. ➡️ So it reports the state of
+# our records, which is true either way — the same distinction the
+# head-to-head sentence got wrong.
+# ══════════════════════════════════════════════════════════════════════
+def no_opponent(n, name, who):
+    """⛔ UNAVAILABLE, never OK and never a blank. `who` is the board's
+    own name for the side that does not resolve — the board always has
+    it, so nothing here ever reads `None`."""
+    return unavailable(
+        n, name,
+        "We hold no season record for %s — the team list this page is "
+        "built from covers top-division sides only, and that name is not "
+        "in it. The price above is real; this comparison is not "
+        "available." % (who or "the opponent"),
+        "nothing to run on our side — this is a team the season files do "
+        "not cover, not a file that is late")
+
+
+# ⚠️ SAID ONCE TOO, for the per-team sections that keep the half they do
+#    have. ⛔ They stay OK because what they show is real — but a section
+#    covering one team of two and saying nothing about it is the same
+#    "looks complete" failure one step quieter.
+def one_side_only(who):
+    return ("Nothing is shown for %s — we hold no season record for them, "
+            "because that name is not in the top-division team list this "
+            "page is built from." % (who or "the opponent"))
+
+
 # ───────────────────────────────────────────────────── 1. MARKET
 def s_market(g, sched_row):
     """The books' own numbers. ⛔ MARKET, never ours."""
@@ -312,8 +364,16 @@ def s_market(g, sched_row):
 
 
 # ─────────────────────────────────────────────── 2. HEAD-TO-HEAD
-def s_h2h(home, away, kick, sched):
-    """Prior meetings inside one year. ⚠️ n is 1-2 and it says so."""
+def s_h2h(home, away, kick, sched, missing=None):
+    """Prior meetings inside one year. ⚠️ n is 1-2 and it says so.
+
+    ⛔ IT REFUSES BEFORE IT SEARCHES when one side does not resolve. The
+    search itself would `pair != {home, None}` on every row and report
+    "no meeting between these two" — a false statement about a check
+    that never ran. See `no_opponent`.
+    """
+    if missing or not (home and away):
+        return no_opponent(2, "Head to head", missing)
     met = []
     for season, j in sorted(sched.items()):
         for x in (j.get("games") or []):
@@ -347,8 +407,14 @@ def s_h2h(home, away, kick, sched):
 
 
 # ──────────────────────────────────────────────── 3. TIME OF YEAR
-def s_time_of_year(teams, week, players, this_season):
-    """What these teams and players did in THIS week number before."""
+def s_time_of_year(teams, week, players, this_season, missing=None):
+    """What these teams and players did in THIS week number before.
+
+    ⚠️ PER TEAM, so one resolvable side is a real half-answer — but it
+    SAYS which half is missing. ⛔ And `teams` never carries a None:
+    `build()` filters it, because a None in this list published a
+    literal `"null"` key inside `by_team` on 19 college rows.
+    """
     if not week:
         return unavailable(3, "Time of year",
                            "The schedule does not give this game a week "
@@ -379,17 +445,23 @@ def s_time_of_year(teams, week, players, this_season):
         return unavailable(3, "Time of year",
                            "No prior-season rows exist for week %d for "
                            "either team." % week)
-    return {"n": 3, "name": "Time of year", "state": "OK", "basis": DESC,
-            "week": week, "by_team": per_team, "by_player": per_player,
-            "why": ("Week %d in earlier seasons, from the same player-game "
-                    "rows the board is built on. ⚠️ Capped at %d players a "
-                    "team by row count — it is a sample of the week, not a "
-                    "roster." % (week, MAX_PLAYERS))}
+    d = {"n": 3, "name": "Time of year", "state": "OK", "basis": DESC,
+         "week": week, "by_team": per_team, "by_player": per_player,
+         "why": ("Week %d in earlier seasons, from the same player-game "
+                 "rows the board is built on. ⚠️ Capped at %d players a "
+                 "team by row count — it is a sample of the week, not a "
+                 "roster." % (week, MAX_PLAYERS))}
+    if missing:
+        d["not_covered"] = missing
+        d["why"] += " " + one_side_only(missing)
+    return d
 
 
 # ──────────────────────────────────────────────── 4. THIS SEASON
-def s_this_season(teams, players, this_season, week):
-    """Trailing form — the same rows the model already reads."""
+def s_this_season(teams, players, this_season, week, missing=None):
+    """Trailing form — the same rows the model already reads.
+
+    ⚠️ PER TEAM, and it names the side it covers nothing for."""
     j = players.get(this_season)
     if not j:
         return unavailable(4, "This season",
@@ -411,11 +483,15 @@ def s_this_season(teams, players, this_season, week):
     if not any(out.values()):
         return unavailable(4, "This season",
                            "No %d rows for either team yet." % this_season)
-    return {"n": 4, "name": "This season", "state": "OK", "basis": DESC,
-            "season": this_season, "through_week": week, "by_team": out,
-            "why": ("The last four games each, by trailing snap share. "
-                    "⚠️ This is the model's own input shown as a record; "
-                    "it is not a second estimate of anything.")}
+    d = {"n": 4, "name": "This season", "state": "OK", "basis": DESC,
+         "season": this_season, "through_week": week, "by_team": out,
+         "why": ("The last four games each, by trailing snap share. "
+                 "⚠️ This is the model's own input shown as a record; "
+                 "it is not a second estimate of anything.")}
+    if missing:
+        d["not_covered"] = missing
+        d["why"] += " " + one_side_only(missing)
+    return d
 
 
 # ─────────────────────────────────────────────── 5. VS POSITION
@@ -431,7 +507,12 @@ VS_VERDICT = (
     "sentence reads as a reason to bet.")
 
 
-def s_vs_position(home, away, allowed, this_season):
+def s_vs_position(home, away, allowed, this_season, missing=None):
+    """⛔ THE SUBJECT IS THE OPPOSING DEFENCE, so an unidentified
+    opponent is not a thin answer — it is no answer. This read OK with
+    one defence in it on 19 college rows."""
+    if missing or not (home and away):
+        return no_opponent(5, "Versus position", missing)
     j = allowed.get(this_season) or allowed.get(this_season - 1)
     if not j:
         return unavailable(5, "Versus position",
@@ -461,8 +542,16 @@ def s_vs_position(home, away, allowed, this_season):
 
 
 # ──────────────────────────────────────── 6. TIME OF POSSESSION
-def s_possession(home, away, this_season, data=None):
-    """⚠️ PROBED, NOT ASSUMED. See the module header."""
+def s_possession(home, away, this_season, data=None, missing=None):
+    """⚠️ PROBED, NOT ASSUMED. See the module header.
+
+    ⚠️ THE OPPONENT GATE COMES FIRST, and deliberately: "we do not know
+    who is playing" outranks "we do not have the numbers yet". Both are
+    true on those rows and only the first tells the reader why no
+    later run will fill it in.
+    """
+    if missing or not (home and away):
+        return no_opponent(6, "Time of possession", missing)
     top = _jz(os.path.join(data or DATA, "latest",
                            "top-%d.json.gz" % this_season))
     if not top:
@@ -534,7 +623,8 @@ def s_possession(home, away, this_season, data=None):
 
 
 # ─────────────────────────────────────────────── 7. PERSONNEL
-def s_personnel(teams, players, this_season):
+def s_personnel(teams, players, this_season, missing=None):
+    """⚠️ PER TEAM, and it names the side it covers nothing for."""
     j = players.get(this_season)
     if not j:
         return unavailable(7, "Personnel",
@@ -555,17 +645,21 @@ def s_personnel(teams, players, this_season):
                     "opp_dl_out": r.get("opp_dl_out"),
                     "ahead_out": r.get("ahead_out")}
         out[t] = latest
-    return {"n": 7, "name": "Personnel", "state": "OK", "basis": DESC,
-            "by_team": out,
-            "flagged": sum(len(v) for v in out.values()),
-            "why": ("Availability flags carried on each player's most "
-                    "recent game row: his own injury designation, line "
-                    "absences, opposing line absences, and whether the "
-                    "man ahead of him was out."),
-            "open_gap": ("⛔ COACHING CHANGES HAVE NO SOURCE IN THIS "
-                         "STACK. Not approximated, not inferred from "
-                         "results — recorded as missing. Nothing here "
-                         "knows whether a coordinator changed.")}
+    d = {"n": 7, "name": "Personnel", "state": "OK", "basis": DESC,
+         "by_team": out,
+         "flagged": sum(len(v) for v in out.values()),
+         "why": ("Availability flags carried on each player's most "
+                 "recent game row: his own injury designation, line "
+                 "absences, opposing line absences, and whether the "
+                 "man ahead of him was out."),
+         "open_gap": ("⛔ COACHING CHANGES HAVE NO SOURCE IN THIS "
+                      "STACK. Not approximated, not inferred from "
+                      "results — recorded as missing. Nothing here "
+                      "knows whether a coordinator changed.")}
+    if missing:
+        d["not_covered"] = missing
+        d["why"] += " " + one_side_only(missing)
+    return d
 
 
 # ─────────────────────────────────────────────────── 8. VENUE
@@ -577,6 +671,20 @@ VENUE_COVERAGE = (
 
 
 def s_venue(home, away, sched_row, players, this_season):
+    """⛔ IT REFUSES WHEN THERE IS NO SCHEDULE ROW. `[2026-09-17]` It used
+    to read OK with `venue`, `roof`, `surface`, `neutral` and `weather`
+    ALL null on 19 college rows — a section that knows nothing and says
+    it is fine, which is the same failure as the head-to-head sentence
+    one section up. ⚠️ NFL cannot reach this: every NFL board game joins
+    a schedule row (0 of 32 missing, measured), which is exactly why
+    nothing caught it."""
+    if not sched_row:
+        return unavailable(
+            8, "Venue",
+            "The schedule has no row for this game yet, so we do not "
+            "know where it is played or what the roof and surface are.",
+            "it fills in once the game appears in the season schedule "
+            "file")
     wx = None
     j = players.get(this_season)
     if j and sched_row:
@@ -661,10 +769,15 @@ def build(league=None):
         # the sections that need both sides report what they have and
         # nothing they do not. ⛔ The name is never guessed at.
         # ══════════════════════════════════════════════════════════════
+        # ⛔ THE BOARD'S OWN NAME FOR THE SIDE THAT DOES NOT RESOLVE.
+        #    The board is complete — 0 missing home, away or id across
+        #    all 88 — so this is never None, and every section that
+        #    declines can say WHO it declined over.
+        missing = None
         if not (home and away):
+            missing = g.get("home") if not home else g.get("away")
             unresolved.append({"away": g.get("away"), "home": g.get("home"),
-                               "not_in_table": (g.get("home") if not home
-                                                else g.get("away"))})
+                               "not_in_table": missing})
         kick = None
         try:
             kick = datetime.datetime.strptime((g.get("commence") or "")[:10],
@@ -679,11 +792,20 @@ def build(league=None):
                 row = x
                 break
         week = (row or {}).get("week")
-        teams = [home, away]
+        # ⛔ NO None IN THE TEAM LIST. It published a literal `"null"` key
+        #    inside `by_team` on 19 college rows.
+        teams = [t for t in (home, away) if t]
         out.append({
             "game_id": (row or {}).get("id"),
             "away": away, "home": home,
+            # ⛔ ALWAYS THE BOARD'S OWN STRINGS, resolved or not. A game
+            #    the reader can name must never render as None.
             "away_name": g.get("away"), "home_name": g.get("home"),
+            # ⚠️ AND THE GAP IS ON THE FRAME, not only in the document's
+            #    `one_sided` list — a consumer reading one row must not
+            #    have to cross-reference another key to learn that half
+            #    of it is missing.
+            "unresolved_side": missing,
             "commence": g.get("commence"), "week": week,
             "season": this_season,
             "kind": "DOSSIER",
@@ -692,14 +814,18 @@ def build(league=None):
                      "scored — that would be a model, and a model needs a "
                      "pre-registered test. Every number is labelled "
                      "MARKET or DESCRIPTIVE; none is MODEL."),
+            # ⚠️ §1 STAYS OK ON THESE ROWS, deliberately. The market is
+            #    real, it is the one thing we genuinely know, and the
+            #    game is on the board for Sam to bet. ⛔ The refusal is
+            #    per SECTION, never the whole game.
             "sections": [
                 s_market(g, row),
-                s_h2h(home, away, kick, sched),
-                s_time_of_year(teams, week, players, this_season),
-                s_this_season(teams, players, this_season, week),
-                s_vs_position(home, away, allowed, this_season),
-                s_possession(home, away, this_season, data),
-                s_personnel(teams, players, this_season),
+                s_h2h(home, away, kick, sched, missing),
+                s_time_of_year(teams, week, players, this_season, missing),
+                s_this_season(teams, players, this_season, week, missing),
+                s_vs_position(home, away, allowed, this_season, missing),
+                s_possession(home, away, this_season, data, missing),
+                s_personnel(teams, players, this_season, missing),
                 s_venue(home, away, row, players, this_season),
             ]})
 
@@ -707,12 +833,27 @@ def build(league=None):
            "built_at": datetime.datetime.now(datetime.timezone.utc)
                        .strftime("%Y-%m-%dT%H:%M:%SZ"),
            "n_board_games": len(board.get("games") or []),
+           # ══════════════════════════════════════════════════════════
+           # ⚠️ WHAT THESE TWO NUMBERS MEAN, SAID OUT LOUD.
+           # `n_dossiers` = games this file DESCRIBES. It is not a
+           # coverage claim: "88 of 88" read as full coverage while 19
+           # of those rows had no identified opponent, which is the
+           # defect this comment exists because of. `n_partial` is the
+           # subset where one side does not resolve — described, with
+           # every pair-wise section refusing by name.
+           # ══════════════════════════════════════════════════════════
            "n_dossiers": len(out),
+           "n_partial": len(unresolved),
+           "counts_note": ("`n_dossiers` counts games DESCRIBED, not "
+                           "games fully answered. `n_partial` of them "
+                           "have one side the season files do not cover, "
+                           "so every section comparing the two reads "
+                           "UNAVAILABLE and says which side is missing."),
            "skipped": skipped,
            # ⚠️ REPORTED, NOT HIDDEN. These games ARE described; one side
-           # is an FCS school absent from the FBS table, so the sections
-           # needing both sides carry only what exists. Naming them is
-           # how a reader knows which half of a comparison is missing.
+           # is a lower-division school absent from the top-division
+           # table, so the sections needing both sides REFUSE BY NAME.
+           # Naming them is how a reader knows which half is missing.
            "one_sided": unresolved,
            "sections_declared": 8,
            "note": ("⛔ A REPORT, NOT A MODEL. No combined score, no "
@@ -779,8 +920,22 @@ def build(league=None):
     un = collections.Counter(
         s["name"] for d in out for s in d["sections"]
         if s["state"] == "UNAVAILABLE")
-    log("dossier_fb[%s]: %d of %d board game(s) -> %s (archived %s)%s"
-        % (lg, len(out), doc["n_board_games"], p, arch,
+    # ⛔ THE PARTIAL COUNT RIDES IN THE SAME LINE AS THE TOTAL.
+    #    "88 of 88" on its own reads as full coverage, and on the day
+    #    this was found 19 of those 88 had no identified opponent. A
+    #    number that overstates what was answered is worse in a log than
+    #    in a file, because the log is what a watcher reads.
+    log("dossier_fb[%s]: %d of %d board game(s) described%s -> %s "
+        "(archived %s)%s"
+        % (lg, len(out), doc["n_board_games"],
+           (", %d of them PARTIAL (opponent not in the top-division "
+            "team list: %s)"
+            % (len(unresolved),
+               ", ".join(sorted(x["not_in_table"] for x in unresolved)[:4])
+               + (" +%d more" % (len(unresolved) - 4)
+                  if len(unresolved) > 4 else "")))
+           if unresolved else "",
+           p, arch,
            ("; unavailable sections: %s" % dict(un)) if un else ""))
     if skipped:
         log("  ⚠️ %d game(s) skipped and named in the file: %s"
