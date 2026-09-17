@@ -3664,6 +3664,38 @@ def run_mode(mode):
             # ⛔ AND THE DOSSIER REFUSES TO PUBLISH A JUDGEMENT. It exits
             # non-zero rather than write a scored document, so a non-zero
             # return here is a REAL finding and is logged as one.
+            # ══════════════════════════════════════════════════════════
+            # 🔴🔴 AND THE OWED TEST READS ITSELF, ON A MODE THAT FIRES.
+            # ⚠️ T54's counter used to live in `fb-record`, and that
+            # branch NEVER EXECUTES: no cron arm names the mode, and
+            # converge cannot rescue it either, because `fb-record`'s
+            # freshness row probes `{latest}/record.json` — a file
+            # `card-fb` writes itself, three lines below, by calling
+            # `build_record_fb()`. The row is therefore never stale, the
+            # mode is never planned, and the branch is dead code that
+            # reads like live code. `test_fb_freshness.py` already knew:
+            # its `drivers` map reads {"fb-record": "card-fb"}.
+            # 🔴 MEASURED, NOT INFERRED: `t54.json` had never existed on
+            # disk in any commit. `card-fb` is named by eight cron arms.
+            # ⛔ IT IS A MEASUREMENT, NOT A GATE. A FAIL is a finding for
+            # Sam to act on deliberately; it must never redden a run that
+            # built its card. Only BLOCKED — the test cannot run at all —
+            # is loud, and that state is a defect in THIS repo.
+            # 🔴 A FAILURE HERE MUST NOT LOSE THE CARD.
+            try:
+                import t54 as _t54
+                _rep = _t54.run()
+                log(f"  T54: {_rep['verdict']} — "
+                    f"{_rep['stretched_n']}/{_t54.MIN_STRETCHED} stretched "
+                    f"rows, {_rep['rows_with_own_mean']} of "
+                    f"{_rep['graded_rows']} graded rows carry own_mean")
+                if _rep["verdict"] == "BLOCKED":
+                    log("  ⛔ T54 IS BLOCKED — the graded rows carry no "
+                        "own_mean, so the test cannot accumulate at all. "
+                        "That is a GRADER defect, not a thin slate.")
+                write(f"{LATEST}/t54.json", _rep)
+            except Exception as _e:
+                log(f"  ⚠️ T54 did not run: {type(_e).__name__}: {_e}")
             try:
                 import dossier_fb as _dos
                 _rc = _dos.build(LEAGUE)
@@ -3719,22 +3751,22 @@ def run_mode(mode):
             # run that did its job. Only BLOCKED — the test cannot run at
             # all — exits non-zero, and that state is a defect in THIS
             # repo rather than a thin slate.
-            try:
-                import t54 as _t54
-                _rep = _t54.run()
-                log(f"  T54: {_rep['verdict']} — "
-                    f"{_rep['stretched_n']}/{_t54.MIN_STRETCHED} stretched "
-                    f"rows, {_rep['rows_with_own_mean']} of "
-                    f"{_rep['graded_rows']} graded rows carry own_mean")
-                if _rep["verdict"] == "BLOCKED":
-                    log("  ⛔ T54 IS BLOCKED — the graded rows carry no "
-                        "own_mean, so the test cannot accumulate at all. "
-                        "That is a GRADER defect, not a thin slate.")
-                write(f"{LATEST}/t54.json", _rep)
-            except Exception as _e:
-                # ⚠️ AN OWED TEST MUST NEVER TAKE THE GRADER DOWN WITH IT.
-                # The record is the product; this is a note about a test.
-                log(f"  ⚠️ T54 did not run: {type(_e).__name__}: {_e}")
+            # ⛔ ~~T54 RAN HERE~~ — MOVED 2026-09-17 to the `card-fb`
+            # branch, and the reason is the whole point of this drop:
+            # **THIS BRANCH NEVER RUNS.** `fb-record` appears in
+            # `collect.yml` exactly once, in the workflow_dispatch
+            # dropdown text, so no cron names it; and converge never
+            # plans it either, because `card-fb` writes the very file
+            # this mode's freshness row probes. So the counter written
+            # specifically so T54 could accumulate had never run, and
+            # `t54.json` had never existed on disk in any commit.
+            # ⚠️ `own_mean` was added to `record_fb.py` FOR that test:
+            # the predictor was carried onto every graded row and
+            # nothing consumed it.
+            # ⛔ THE BRANCH IS KEPT so a hand-run still grades football,
+            # but NOTHING NEW GOES IN IT. `test_accumulators.py` fails
+            # the build if any mode branch publishes an artifact from a
+            # mode no cron arm names.
         elif mode == "news-probe":
             # 🔴 FREE, and it WRITES NO news.json. It writes a report for a
             # human to read. ⛔ Do not chain it into `news`.
@@ -3901,6 +3933,32 @@ def run_mode(mode):
                     if _ep:
                         _ep["pulled_at"] = stamp()
                         write(f"{base}/def-epa-{season}.json.gz", _ep,
+                              compress=True)
+
+                    # ══════════════════════════════════════════════
+                    # 🔴 TIME OF POSSESSION, FROM THE SAME FILE.
+                    # ✅ FREE AND NO NEW SOURCE — `play_by_play_{y}` is
+                    # already in hand for `build_routes` and
+                    # `build_def_epa`. ⚠️ No new vendor, no new cost.
+                    # ⛔ BUILT HERE AND NOT ON `card-fb`: this is the mode
+                    # that already pays the download. Rule 78 cuts the
+                    # other way for a builder whose input IS the
+                    # expensive thing.
+                    # ⛔ AND A PARTIAL TABLE IS NEVER WRITTEN. If the
+                    # column is missing or too few teams parse,
+                    # `build_possession` returns None and the dossier's
+                    # section 6 stays UNAVAILABLE with its reason.
+                    try:
+                        _tp, _trep = _nfl.build_possession(season, None, log)
+                    except Exception as _te_:
+                        _tp, _trep = None, {"season": season,
+                                            "kind": "DIAGNOSTIC",
+                                            "usable": False,
+                                            "error": f"{type(_te_).__name__}: {_te_}"}
+                    write(f"{base}/top-probe-{season}.json", _trep)
+                    if _tp:
+                        _tp["pulled_at"] = stamp()
+                        write(f"{base}/top-{season}.json.gz", _tp,
                               compress=True)
 
                     done.append(season)

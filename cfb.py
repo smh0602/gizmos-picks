@@ -1117,6 +1117,217 @@ def _f(v):
         return None
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 TIME OF POSSESSION, COLLEGE SIDE. `[2026-09-17]`
+#
+# Sam's standing rule: everything we do for CFB we do for NFL and back.
+# The NFL side reads `drive_time_of_possession` straight out of the
+# play-by-play. ⛔ **CFBD HAS NO SUCH COLUMN.** The 29 columns `/plays`
+# really returns are measured in `data/ncaaf/latest/probe-report.json`,
+# and possession is not one of them — it has to be DERIVED from the game
+# clock.
+#
+# 💰 AND IT IS DERIVED INSIDE `build_pace`, FROM ROWS ALREADY IN HAND.
+# A second `/plays` sweep would cost +520 CFBD calls a month against a
+# quota already at 906/1000 (91%) — 1426/1000, 143%, blown. So this
+# takes the rows `build_pace` is already looping over and spends NOTHING.
+# ⛔ Never give this its own fetch.
+#
+# 🔴 TWO TRAPS, BOTH REAL, BOTH NAMED BEFORE THIS WAS WRITTEN:
+#   1. `wallclock` IS REAL-WORLD TIME, NOT GAME CLOCK. It is in the
+#      column list and it looks exactly right. Summing it measures TV
+#      timeouts and replay reviews. ⛔ Nothing below reads it, and
+#      `test_cfb_possession.py` asserts that of the source.
+#   2. THE GAME CLOCK COUNTS DOWN WITHIN A PERIOD. Elapsed is
+#      `clock[n] - clock[n+1]`, which goes NEGATIVE at every period
+#      boundary — and a naive sum produces a plausible wrong number,
+#      which is worse than a missing one. So no pair is ever taken
+#      across a period boundary.
+#
+# ⚠️ AND COLLEGE OVERTIME HAS NO CLOCK AT ALL. Each team gets an untimed
+# possession from the 25. **MEASURED on the real 2019 slice committed at
+# `research/cfb_clock_sample_2019.json.gz`: every play in periods 5, 6
+# and 7 reads `0:00`.** Diffing across the 4→5 boundary would book a
+# whole period of phantom time. Periods above the fourth are excluded.
+# ══════════════════════════════════════════════════════════════════════
+CFB_REG_PERIODS = 4        # ⛔ overtime is untimed; see above
+CFB_PERIOD_SECS = 15 * 60
+CFB_MAX_PLAY_SECS = 300    # a single snap-to-snap gap inside one period
+CFB_TOP_MIN_TEAMS = 80     # ~134 FBS plus opponents; a handful is partial
+CFB_ANOMALY_MAX_PCT = 2.0  # above this, the ordering is not what we think
+CFB_GAME_SECS_LO = 1800    # both teams share one period-clock hour, minus
+CFB_GAME_SECS_HI = 3900    # the tail of each period this cannot observe
+
+
+def _clock_secs(p):
+    """CFBD /plays row -> SECONDS REMAINING in its period, or None.
+
+    ⚠️ CFBD gives both a nested `clock` object and flattened `minutes` /
+    `seconds`. Both are read, nested first. ⛔ `wallclock` is not, and
+    must never be — it is wall time, not game time.
+    """
+    c = p.get("clock") or {}
+    m, s = c.get("minutes"), c.get("seconds")
+    if m is None and s is None:
+        m, s = p.get("minutes"), p.get("seconds")
+    try:
+        m, s = int(m), int(s)
+    except (TypeError, ValueError):
+        return None
+    # ⛔ A CLOCK OUTSIDE ITS OWN DOMAIN IS FABRICATED DATA, exactly as
+    # `outs_of()` treats an inningsPitched fraction that is not a third.
+    if not (0 <= s <= 59 and 0 <= m <= 15):
+        return None
+    return m * 60 + s
+
+
+def possession_from_plays(plays, season, log=log):
+    """Per-team possession seconds from CFBD `/plays` rows. No fetching.
+
+    -> (payload, report). ⛔ `payload` is None unless the clock is really
+    there and the derivation really holds together; the report says which
+    it was either way.
+
+    ⛔⛔ A PARTIAL TABLE IS NEVER WRITTEN. Possession present for some
+    teams and absent for the rest is missingness clustered BY TEAM, which
+    is the shape that killed CFB targets. Absent clock fields, an
+    impossible total, too few teams, too many ordering anomalies, or a
+    per-game total outside the period clock all return None.
+
+    ✅ SECONDS, AS AN INT, SAME AS THE NFL SIDE — so both leagues'
+    section 6 reads one shape and one unit.
+    """
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False,
+           "plays": len(plays), "games": 0, "teams": 0,
+           "pairs": 0, "negative": 0, "over_max": 0,
+           "overtime_plays_seen": 0, "no_clock": 0,
+           "source": "derived from the CFBD /plays game clock",
+           "derived_from": ["gameId", "period", "playNumber", "offense",
+                            "clock.minutes", "clock.seconds"],
+           "not_used": ["wallclock"]}
+    if not plays:
+        rep["error"] = "no plays to derive possession from"
+        return None, rep
+
+    # ── group by (game, period), regulation only ──────────────────────
+    buckets = collections.defaultdict(list)
+    games = set()
+    for p in plays:
+        gid, per_ = p.get("gameId"), p.get("period")
+        if gid is None or per_ is None:
+            continue
+        games.add(gid)
+        if int(per_) > CFB_REG_PERIODS:
+            rep["overtime_plays_seen"] += 1
+            continue          # ⛔ untimed; every clock in OT reads 0:00
+        secs = _clock_secs(p)
+        if secs is None:
+            rep["no_clock"] += 1
+            continue
+        # ⚠️ THE DRIVE KEY TRAVELS WITH THE PLAY so the per-drive number
+        # below is a real drive count, not a snap count wearing the NFL
+        # side's field name. `driveId` is in the measured column list.
+        dkey = (gid, p.get("driveId"))
+        buckets[(gid, int(per_))].append(
+            (p.get("playNumber"), (p.get("offense") or "").strip(), secs, dkey))
+    rep["games"] = len(games)
+    # ⚠️ HOW MANY (GAME, PERIOD) BUCKETS THE PAIRING RAN INSIDE. This is
+    # the structural fact that "no pair crosses a period" rests on, and
+    # it is stored so a test can assert it directly instead of inferring
+    # it from an anomaly rate that a boundary only nudges.
+    rep["buckets"] = len(buckets)
+    if not buckets:
+        rep["error"] = ("the /plays rows do not carry a usable game clock "
+                        "(`clock`/`minutes`/`seconds`) — writing NOTHING")
+        log(f"    ⚠️ possession {season}: {rep['error']}")
+        return None, rep
+
+    agg = collections.defaultdict(
+        lambda: {"snaps": 0, "seconds": 0, "drives": set()})
+    for (_gid, _per), rows in buckets.items():
+        # ⚠️ ORDERED BY playNumber, which is the play's ordinal in the
+        # game. ⛔ Never by wallclock and never by list order alone.
+        rows.sort(key=lambda r: (r[0] is None, r[0]))
+        for a, (_n1, team, rem1, dkey) in enumerate(rows[:-1]):
+            rem2 = rows[a + 1][2]
+            rep["pairs"] += 1
+            elapsed = rem1 - rem2
+            # 🔴 THE PERIOD BOUNDARY CANNOT REACH HERE — pairs are taken
+            # only inside one (game, period) bucket. A negative here is a
+            # real ordering anomaly and is DROPPED, never summed.
+            if elapsed < 0:
+                rep["negative"] += 1
+                continue
+            if elapsed > CFB_MAX_PLAY_SECS:
+                rep["over_max"] += 1
+                continue
+            if not team:
+                continue
+            agg[team]["snaps"] += 1
+            agg[team]["seconds"] += elapsed
+            if dkey[1] is not None:
+                agg[team]["drives"].add(dkey)
+
+    rep["teams"] = len(agg)
+    tot = sum(v["seconds"] for v in agg.values())
+    rep["seconds_total"] = tot
+    rep["seconds_per_game"] = round(tot / rep["games"], 1) if rep["games"] else 0
+    rep["drives"] = sum(len(v["drives"]) for v in agg.values())
+    bad = [t for t, v in agg.items()
+           if v["seconds"] <= 0 or v["snaps"] <= 0 or not v["drives"]]
+    anom = (100.0 * (rep["negative"] + rep["over_max"]) / rep["pairs"]
+            if rep["pairs"] else 100.0)
+    rep["anomaly_pct"] = round(anom, 3)
+
+    why = None
+    if len(agg) < CFB_TOP_MIN_TEAMS:
+        why = ("only %d team(s) have usable possession rows, under the %d "
+               "required — writing NOTHING rather than a table that is "
+               "silent for the rest" % (len(agg), CFB_TOP_MIN_TEAMS))
+    elif bad:
+        why = ("%d team(s) derived an impossible total (<= 0 seconds, <= 0 "
+               "snaps, or no drive at all): %s — writing NOTHING"
+               % (len(bad), sorted(bad)[:5]))
+    elif anom > CFB_ANOMALY_MAX_PCT:
+        why = ("%.2f%% of in-period play pairs ran backwards or longer than "
+               "%ds, over the %.1f%% this trusts — the play ordering is not "
+               "what this assumes, so NOTHING is written"
+               % (anom, CFB_MAX_PLAY_SECS, CFB_ANOMALY_MAX_PCT))
+    elif not (CFB_GAME_SECS_LO <= rep["seconds_per_game"] <= CFB_GAME_SECS_HI):
+        why = ("%.0f possession seconds per game is outside [%d, %d] — two "
+               "teams share one period clock, so a number outside that band "
+               "is derived wrong however plausible it looks"
+               % (rep["seconds_per_game"], CFB_GAME_SECS_LO, CFB_GAME_SECS_HI))
+    if why:
+        rep["error"] = why
+        log(f"    ⚠️ possession {season}: {why}")
+        return None, rep
+
+    teams = {}
+    for t, v in sorted(agg.items()):
+        # ⚠️ SECONDS, INTEGER, EVERY FIELD — the NFL side's shape exactly,
+        # and `drives` really is a COUNT OF DRIVES. ⛔ Calling a snap count
+        # `drives` would make the two leagues' section 6 look identical
+        # while meaning different things, which is worse than differing.
+        n = len(v["drives"])
+        teams[t] = {"drives": int(n),
+                    "seconds": int(v["seconds"]),
+                    "seconds_per_drive": int(round(v["seconds"] / n))}
+    rep["usable"] = True
+    return ({"season": season, "kind": "DESCRIPTIVE",
+             "source": "CFBD /plays game clock",
+             "column": "clock.minutes/clock.seconds", "unit": "seconds",
+             "note": ("Time of possession per team, derived from the game "
+                      "clock. ⚠️ Every value is an INTEGER NUMBER OF "
+                      "SECONDS. ⛔ Regulation only — college overtime is "
+                      "untimed and every clock in it reads 0:00. ⛔ "
+                      "`wallclock` is real-world time and is not used. "
+                      "⛔ No model reads this."),
+             "drives": sum(len(v["drives"]) for v in agg.values()),
+             "unparsed_drives": rep["negative"] + rep["over_max"],
+             "teams": teams}, rep)
+
+
 def build_pace(season, log=log):
     """Offensive plays per team-game, plus a targets-from-text report."""
     per = collections.defaultdict(lambda: {"plays": 0, "pass": 0, "rush": 0})
@@ -1143,6 +1354,10 @@ def build_pace(season, log=log):
     # ══════════════════════════════════════════════════════════════════
     weeks_seen, fails = 0, []
     calls, skipped = 0, 0
+    # 💰 POSSESSION RIDES THIS SWEEP AND PAYS NOTHING. Only the six fields
+    # the derivation reads are kept, out of the 29 `/plays` returns.
+    # ⛔ `wallclock` is not one of them.
+    poss_rows = []
     for st in ("regular", "postseason"):
         empty_run = 0
         for wk in range(1, 17):
@@ -1164,6 +1379,12 @@ def build_pace(season, log=log):
             weeks_seen += 1
             for p in rows:
                 off, gid = p.get("offense"), p.get("gameId")
+                poss_rows.append({
+                    "gameId": gid, "period": p.get("period"),
+                    "playNumber": p.get("playNumber"), "offense": off,
+                    "driveId": p.get("driveId"),
+                    "clock": p.get("clock"), "minutes": p.get("minutes"),
+                    "seconds": p.get("seconds")})
                 pt = (p.get("playType") or "").strip()
                 ptypes[pt] += 1
                 if off and gid:
@@ -1242,6 +1463,25 @@ def build_pace(season, log=log):
             "carries the lines it could not parse; read them before "
             "trusting any target count.")
 
+    # ══════════════════════════════════════════════════════════════════
+    # 💰 ZERO ADDITIONAL CFBD CALLS. `poss_rows` is the sweep above,
+    # trimmed. ⛔ A second `/plays` sweep would cost +520 calls a month on
+    # a quota already at 91% — never give this its own fetch.
+    # ⚠️ AND A FAILURE HERE MUST NOT LOSE THE PACE BOARD, which is the
+    # thing on the page. Possession is a report beside it.
+    # ══════════════════════════════════════════════════════════════════
+    try:
+        top, toprep = possession_from_plays(poss_rows, season, log)
+    except Exception as _te:
+        top, toprep = None, {"season": season, "kind": "DIAGNOSTIC",
+                             "usable": False,
+                             "error": f"{type(_te).__name__}: {_te}"}
+    toprep["cfbd_calls_for_possession"] = 0
+    log(f"    possession: {toprep.get('teams', 0)} team(s), "
+        f"{toprep.get('seconds_per_game', 0)}s per game, "
+        f"{'WRITING' if top else 'writing NOTHING'}"
+        + ("" if top else f" — {toprep.get('error', '?')}"))
+
     return {"season": season, "kind": "DESCRIPTIVE",
             "built_at": datetime.datetime.now(datetime.timezone.utc)
                         .strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -1276,7 +1516,7 @@ def build_pace(season, log=log):
             "unparsed_samples": samples,
             "top_targets_if_usable": [
                 [t[2], t[0], n] for t, n in tgt.most_common(15)],
-            }
+            }, (top, toprep)
 
 
 def build_allowed(doc, log=None):
@@ -1749,8 +1989,9 @@ def probe(log=log):
             # ⚠️ A pace failure must NOT lose the box-score boards that
             # already succeeded -- they are the ones on the page.
             pace, tgtprobe = None, None
+            top, toprep = None, None
             try:
-                pace, tgtprobe = build_pace(season, log)
+                pace, tgtprobe, (top, toprep) = build_pace(season, log)
             except Exception as _pe:
                 log(f"    pace/{season} FAILED: {type(_pe).__name__}: {_pe}")
                 log("    ⚠️ the box-score boards are unaffected and still write")
@@ -1777,7 +2018,15 @@ def probe(log=log):
                          # diagnosis that exists only in an Actions log
                          # is a diagnosis you do not have.
                          ((f"schedule-probe-{season}.json", schedrep),)
-                         if schedrep else ()):
+                         if schedrep else ()) + (
+                         # 🔴 POSSESSION. ⛔ The PROBE is written either
+                         # way and the TABLE only when it is usable — a
+                         # partial possession table is missingness
+                         # clustered by team, and section 6 stays
+                         # UNAVAILABLE with the probe's reason instead.
+                         ((f"top-probe-{season}.json", toprep),)
+                         if toprep else ()) + (
+                         ((f"top-{season}.json.gz", top),) if top else ()):
                 # ⚠️ the probe is plain JSON on purpose -- it exists to
                 # be READ, and a gzipped diagnostic is a diagnostic
                 # nobody opens.
