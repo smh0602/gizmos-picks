@@ -77,18 +77,62 @@ ck("🔴 record_fb.py puts own_mean ON THE GRADED ROW",
    "reach its minimum, however many slates pass. Measured 2026-09-12: "
    "339 of 339 published picks carried it and 0 of 200 graded rows did")
 
-print("\n═══ 3. 🔴 IT RUNS ON THE JOB THAT WRITES WHAT IT READS ═══")
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity T54's counter must sit in a mode some cron arm names
+#   file: collect.py
+#   find: elif mode == "card-fb":
+#   with: elif mode == "card-fb-renamed":
+# ══════════════════════════════════════════════════════════════════════
+print("\n═══ 3. 🔴 IT RUNS ON A JOB A CRON ACTUALLY REACHES ═══")
+# 🔴🔴 THIS CHECK USED TO NAME `fb-record`, AND THAT WAS THE DEFECT.
+# `"import t54" in the fb-record branch` was TRUE for weeks while the
+# branch never executed once — no cron arm names the mode, and converge
+# never plans it because `card-fb` writes the very `record.json` that
+# mode's freshness row probes. So the counter had never run and
+# `data/*/latest/t54.json` had never existed on disk in any commit.
+# ⛔ REPLACED, NOT RELAXED: the old question was "is it hooked somewhere
+# I have named", the new one is "is it hooked in a branch some cron arm
+# REACHES". The second implies the first and rules out the mode that
+# broke it, so it is strictly harder to pass. ⚠️ And it names no mode:
+# the branch is found by looking for the call, and the reachable set is
+# derived from collect.yml.
 col = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
-_arm = col[col.index('elif mode == "fb-record":'):]
-_arm = _arm[:_arm.index('elif mode == "news-probe":')]
-ck("🔴 the fb-record job runs T54",
-   "import t54" in _arm and "_t54.run()" in _arm,
+sys.path.insert(0, ROOT)
+import wfroutes  # noqa: E402
+
+_parts = re.split(r'\n        elif mode == "([^"]+)":', col)
+_branches = {}
+for _i in range(1, len(_parts), 2):
+    _body = []
+    for _ln in _parts[_i + 1].split("\n"):
+        if _ln.strip() and not re.match(r"^ {12,}", _ln):
+            break
+        _body.append(_ln)
+    _branches[_parts[_i]] = "\n".join(_body)
+# ⛔ ASKED OF THE CODE, NOT THE PROSE (rule 249): `fb-record` still
+# carries a struck-through comment naming t54, on purpose.
+_code = {m: "\n".join(l for l in b.split("\n")
+                      if l.strip() and not l.lstrip().startswith("#"))
+         for m, b in _branches.items()}
+_runs_t54 = sorted(m for m, b in _code.items()
+                   if "import t54" in b and "_t54.run()" in b)
+_reach = {m for _c, _lg, _arm in wfroutes.parse_routes(
+    open(os.path.join(ROOT, ".github/workflows/collect.yml"),
+         encoding="utf-8").read()) for m in _arm.split()}
+ck("⚠️ the reachable mode set is derived from collect.yml (%d)" % len(_reach),
+   len(_reach) >= 5,
+   "⛔ an empty set would make the claim below vacuous (rule 67): %s"
+   % sorted(_reach))
+ck("🔴🔴 T54 RUNS FROM A MODE SOME CRON ARM NAMES (%s)" % (_runs_t54 or "—"),
+   bool(_runs_t54) and all(m in _reach for m in _runs_t54),
    "⛔ Sam's standing rule: nothing that updates the site may depend on "
-   "somebody remembering. A pre-registered test checked when convenient "
-   "is checked when it is convenient to like the answer")
-ck("⚠️ ...and a failure there cannot take the grader down",
+   "somebody remembering. A counter wired into a mode nobody schedules "
+   "has not been wired — it had never run once. Reachable: %s"
+   % sorted(_reach))
+_arm = "\n".join(_branches[m] for m in _runs_t54)
+ck("⚠️ ...and a failure there cannot take the card down",
    "except Exception" in _arm and "did not run" in _arm,
-   "the RECORD is the product; this is a note about a test")
+   "the CARD is the product; this is a note about a test")
 ck("⛔ T54 is a MEASUREMENT, not a gate — only BLOCKED exits non-zero",
    'sys.exit(1 if r["verdict"] == "BLOCKED" else 0)' in src,
    "⚠️ a FAIL is a finding for Sam to act on deliberately and must never "
@@ -169,7 +213,7 @@ note("graded %d · with own_mean %d · STRETCHED %d/%d · verdict %s"
 #    that is asked by DRIVING THE GRADER below rather than by reading
 #    whatever the last cron left on disk.
 note("live verdict is %s — ⚠️ BLOCKED here means only that the stored "
-     "record detail predates the fix, and the next fb-record run clears "
+     "record detail predates the fix, and the next `card-fb` run clears "
      "it. It is NOT asserted, because it is a fact about when the cron "
      "last ran." % live["verdict"])
 

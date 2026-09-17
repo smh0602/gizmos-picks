@@ -469,6 +469,13 @@ def _num(v):
         return 0.0
 
 
+# ⛔ A POSSESSION TABLE BELOW THIS MANY TEAMS IS NOT WRITTEN AT ALL.
+# The NFL has 32; a table holding a handful reads as a real number for
+# those teams and as silence for the rest, which is missingness clustered
+# BY TEAM — the shape that killed CFB targets.
+TOP_MIN_TEAMS = 24
+
+
 def build_routes(season, seen=None, log=print):
     """Pass snaps per receiver, from `pbp_participation`.
 
@@ -628,6 +635,149 @@ def build_routes(season, seen=None, log=print):
                      "is not a charted route."),
             "join_coverage_pct": jcov,
             "by_player": {k: v for k, v in out.items()}}, rep
+
+
+def _mmss(v):
+    """`"7:42"` -> 462 SECONDS, as an int. ⛔ `None` on anything else.
+
+    🔴🔴 PARSED ONCE, AT WRITE TIME, AND STORED AS A NUMBER. The column is
+    a STRING, and a string that looks numeric is how a sum silently
+    becomes concatenation — `"7:42" + "3:10"` does not raise, it produces
+    `"7:423:10"`. ⛔ No consumer should ever have to know the format.
+    ⚠️ Minutes may exceed 59 on a long drive, so the minute field is not
+    bounded; seconds are.
+    """
+    m = re.match(r"^\s*(\d+):([0-5]\d)\s*$", str(v or ""))
+    return int(m.group(1)) * 60 + int(m.group(2)) if m else None
+
+
+def build_possession(season, seen=None, log=print):
+    """Per-team time of possession, from the play-by-play already pulled.
+
+    -> (payload, report). ⛔ `payload` is None unless the column is really
+    there and really parses.
+
+    ✅ FREE, AND NO NEW SOURCE. `play_by_play_{y}.csv.gz` is the same file
+    `build_routes` takes its pass flag from and `build_def_epa` takes EPA
+    from. ⚠️ No new vendor, no new cost.
+
+    🔴 THE COLUMN WAS PROBED BEFORE THIS WAS WRITTEN `[2026-09-17]`:
+    `drive_time_of_possession` is one of 372 columns in the real 2025
+    file, populated on 2457 of 2491 sampled plays, formatted `M:SS`.
+
+    ⛔⛔ A PARTIAL TABLE IS WORSE THAN NONE, AND THAT IS THE WHOLE SHAPE OF
+    THIS FUNCTION. If a season's column is absent or unparseable, NOTHING
+    is written and the dossier's section 6 stays UNAVAILABLE with its
+    reason. A table covering some teams and not others would read as a
+    real number for the covered ones and silence for the rest — which is
+    missingness clustered by team, the thing that killed CFB targets.
+    ⚠️ So the bar is on COVERAGE, not on having any rows at all.
+
+    ⚠️ ONE ROW PER DRIVE, NOT PER PLAY. Every play of a drive repeats that
+    drive's total, so summing the raw column would multiply each drive by
+    its own play count. Keyed on (game, fixed_drive).
+    """
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False,
+           "column": None, "drives": 0, "teams": 0, "unparsed": 0}
+    if seen is None:
+        seen = {r["tag_name"]: [(a["name"], a["size"],
+                                a["browser_download_url"])
+                                for a in (r.get("assets") or [])]
+                for r in _releases(log)}
+    try:
+        pbp = _rows(seen, "pbp", FILES["pbp"].format(y=season), log)
+    except Exception as e:
+        rep["error"] = f"{type(e).__name__}: {e}"
+        log(f"  ⛔ {rep['error']}")
+        return None, rep
+    if not pbp:
+        rep["error"] = "no play-by-play rows"
+        return None, rep
+    payload, rep2 = possession_from_rows(pbp, season, log)
+    rep.update(rep2)
+    return payload, rep
+
+
+def possession_from_rows(pbp, season, log=print):
+    """The aggregation, split out so a test can drive it on REAL rows.
+
+    ⛔ EXTRACTED FOR THE SAME REASON `verdict()` WAS in runs_report.py and
+    vacuity.py: a judgement reachable only through a 200MB download is a
+    judgement no test drives. This takes the rows and returns the same
+    (payload, report) pair.
+    """
+    rep = {"column": None, "drives": 0, "teams": 0, "unparsed": 0,
+           "usable": False}
+    cols = set(pbp[0].keys())
+    # ⛔ NAME THE COLUMN. Assuming a schema is how the `stats_player_reg`
+    #    season-totals trap and a 0-of-1,848 name join both happened.
+    topc = next((c for c in ("drive_time_of_possession",) if c in cols), None)
+    posc = "posteam" if "posteam" in cols else None
+    drvc = next((c for c in ("fixed_drive", "drive") if c in cols), None)
+    gidc = next((c for c in ("game_id", "nflverse_game_id") if c in cols), None)
+    rep["column"] = topc
+    rep["columns_used"] = {"top": topc, "team": posc, "drive": drvc,
+                           "game": gidc}
+    if not (topc and posc and drvc and gidc):
+        rep["error"] = ("the play-by-play does not carry the columns this "
+                        "needs: %s" % rep["columns_used"])
+        log(f"  ⚠️ possession {season}: {rep['error']} — writing NOTHING")
+        return None, rep
+
+    drives, unparsed = {}, 0
+    for r in pbp:
+        team = (r.get(posc) or "").strip()
+        if not team:
+            continue                      # between drives; not a team's time
+        # 🔴 THE KEY IS WHAT MAKES THIS PER-DRIVE. `drive_time_of_possession`
+        #    is repeated on EVERY PLAY of the drive, so summing the column
+        #    row by row multiplies a team's total by its play count — about
+        #    8x, and still an integer, still plausible-looking per drive.
+        #    Keying the dict on (game, drive) is the dedupe; the `continue`
+        #    below is only an early exit, not the guarantee.
+        key = (r.get(gidc), r.get(drvc))
+        if key in drives:
+            continue                      # already have this drive's time
+        secs = _mmss(r.get(topc))
+        if secs is None:
+            unparsed += 1
+            continue
+        drives[key] = (team, secs)
+    rep["drives"], rep["unparsed"] = len(drives), unparsed
+
+    agg = {}
+    for team, secs in drives.values():
+        a = agg.setdefault(team, {"drives": 0, "seconds": 0})
+        a["drives"] += 1
+        a["seconds"] += secs
+    rep["teams"] = len(agg)
+    # ⛔ THE COVERAGE BAR. The NFL has 32 teams; a table holding a handful
+    #    is a partial table, and a partial table is worse than none.
+    if len(agg) < TOP_MIN_TEAMS:
+        rep["error"] = ("only %d team(s) have usable possession rows, under "
+                        "the %d required — writing NOTHING rather than a "
+                        "table that is silent for the rest"
+                        % (len(agg), TOP_MIN_TEAMS))
+        log(f"  ⚠️ possession {season}: {rep['error']}")
+        return None, rep
+
+    teams = {}
+    for team, a in sorted(agg.items()):
+        # ⚠️ SECONDS, INTEGER, EVERY FIELD. Nothing downstream should ever
+        #    meet `M:SS` again.
+        teams[team] = {"drives": int(a["drives"]),
+                       "seconds": int(a["seconds"]),
+                       "seconds_per_drive": int(round(a["seconds"]
+                                                      / a["drives"]))}
+    rep["usable"] = True
+    return ({"season": season, "kind": "DESCRIPTIVE", "source": "nflverse pbp",
+             "column": topc, "unit": "seconds",
+             "note": ("Time of possession per team, summed over drives. "
+                      "⚠️ Every value is an INTEGER NUMBER OF SECONDS — the "
+                      "source column is the string `M:SS` and it is parsed "
+                      "once, here. ⛔ No model reads this."),
+             "drives": len(drives), "unparsed_drives": unparsed,
+             "teams": teams}, rep)
 
 
 def build_def_epa(season, seen=None, log=print):
