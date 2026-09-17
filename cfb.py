@@ -1289,6 +1289,11 @@ def possession_from_plays(plays, season, log=log):
                   for g, tt in drv_game.items()}
     teams, srep = _poss.share_table(dict(per_game), drv_counts, log)
     rep.update(srep)
+    # ⚠️ THE THIRD BUCKET, so the accounting closes. A game every one of
+    # whose pairs was dropped as anomalous produced no possession at all;
+    # it is neither USED nor WITHHELD, and a report whose numbers do not
+    # add up invites the reader to assume the missing ones are fine.
+    rep["games_no_possession"] = len(games) - len(per_game)
     rep["drives"] = sum(t["drives"] for t in teams.values())
     anom = (100.0 * (rep["negative"] + rep["over_max"]) / rep["pairs"]
             if rep["pairs"] else 100.0)

@@ -748,8 +748,10 @@ def possession_from_rows(pbp, season, log=print):
     # ══════════════════════════════════════════════════════════════════
     rows_of = {}
     periods = {}
+    seen_games = set()
     for r in pbp:
         gid = r.get(gidc)
+        seen_games.add(gid)
         if qtrc is not None:
             try:
                 periods[gid] = max(periods.get(gid, 0), int(float(r.get(qtrc))))
@@ -786,19 +788,51 @@ def possession_from_rows(pbp, season, log=print):
     # — source rows with no time at all — and one (2025_10_NO_CAR) sums to
     # 3908 with no overtime. A hard `== 3600` would redden on real data;
     # the RATE is what a derivation bug moves.
-    reg = [g for g in per_game if periods.get(g, 4) <= 4]
-    exact = [g for g in reg if sum(per_game[g].values()) == GAME_CLOCK]
-    rep["regulation_games"] = len(reg)
-    rep["regulation_exact_3600"] = len(exact)
-    rep["regulation_exact_pct"] = (round(100.0 * len(exact) / len(reg), 2)
-                                   if reg else None)
-    ot = [g for g in per_game if periods.get(g, 4) > 4]
-    rep["overtime_games"] = len(ot)
-    rep["overtime_over_3600"] = sum(
-        1 for g in ot if sum(per_game[g].values()) > GAME_CLOCK)
+    # ══════════════════════════════════════════════════════════════════
+    # ⛔⛔ AND IT IS NOT CLAIMED AT ALL WITHOUT THE PERIOD COLUMN.
+    # `[measured 2026-09-17]` Defaulting an unknown period to regulation
+    # folded all 16 overtime games into the denominator and reported
+    # **285 regulation games at 89.12 pct** — a number that reads exactly
+    # like the real 94.42 pct, sits below the 92 pct bar, and is simply
+    # false. ⚠️ An absence in the source is evidence about the SOURCE,
+    # never about the games: a diagnostic that cannot be computed reports
+    # None and says which column it wanted.
+    # ══════════════════════════════════════════════════════════════════
+    if qtrc is None or not periods:
+        rep["regulation_games"] = None
+        rep["regulation_exact_3600"] = None
+        rep["regulation_exact_pct"] = None
+        rep["overtime_games"] = None
+        rep["overtime_over_3600"] = None
+        rep["identity_not_measurable"] = (
+            "no period column (`qtr`/`quarter`) in these rows, so a "
+            "regulation game cannot be told from an overtime one and the "
+            "3600-second identity is NOT REPORTED rather than reported "
+            "wrong")
+        log(f"  ⚠️ possession {season}: {rep['identity_not_measurable']}")
+    else:
+        reg = [g for g in per_game if periods.get(g, 4) <= 4]
+        exact = [g for g in reg if sum(per_game[g].values()) == GAME_CLOCK]
+        rep["regulation_games"] = len(reg)
+        rep["regulation_exact_3600"] = len(exact)
+        rep["regulation_exact_pct"] = (round(100.0 * len(exact) / len(reg), 2)
+                                       if reg else None)
+        ot = [g for g in per_game if periods.get(g, 4) > 4]
+        rep["overtime_games"] = len(ot)
+        rep["overtime_over_3600"] = sum(
+            1 for g in ot if sum(per_game[g].values()) > GAME_CLOCK)
+        # ⚠️ A GAME WHOSE PERIOD IS UNKNOWN IS NEITHER, and is counted so
+        # the three numbers add up to the games that carried possession.
+        rep["period_unknown_games"] = sum(
+            1 for g in per_game if g not in periods)
 
     teams, srep = _poss.share_table(per_game, drv_game, log)
     rep.update(srep)
+    # ⚠️ THE THIRD BUCKET, so the accounting closes. A game that produced
+    # no possession at all is neither USED nor WITHHELD, and a report
+    # whose numbers do not add up invites the reader to assume the
+    # missing ones are fine.
+    rep["games_no_possession"] = len(seen_games) - len(per_game)
     # ⛔ THE COVERAGE BAR. The NFL has 32 teams; a table holding a handful
     #    is a partial table, and a partial table is worse than none.
     if len(teams) < TOP_MIN_TEAMS:

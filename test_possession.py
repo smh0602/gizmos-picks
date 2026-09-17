@@ -58,6 +58,11 @@ import nfl  # noqa: E402
 #   find: if tot <= 0 or tot / float(GAME_CLOCK_SECS) < COVERAGE_MIN:
 #   with: if tot <= 0:
 #
+# @vacuity a diagnostic that cannot be computed is NOT reported instead
+#   file: nfl.py
+#   find: if qtrc is None or not periods:
+#   with: if False:
+#
 # @vacuity the drive's time is the first that PARSES, not the first row's
 #   file: nfl.py
 #   find: best = next((v for v in (_mmss(x[1]) for x in rows) if v is not None),
@@ -225,7 +230,8 @@ ck(_nrep["regulation_games"] > 250 and _nrep["overtime_games"] > 5,
    "⚠️ ...over %d regulation and %d overtime games"
    % (_nrep["regulation_games"], _nrep["overtime_games"]),
    "⛔ without both, the two claims below prove nothing")
-ck(_nrep["regulation_exact_pct"] >= 92.0,
+ck(_nrep["regulation_exact_pct"] is not None
+   and _nrep["regulation_exact_pct"] >= 92.0,
    "🔴🔴 %d of %d REGULATION GAMES TILE THE CLOCK EXACTLY (%.2f pct)"
    % (_nrep["regulation_exact_3600"], _nrep["regulation_games"],
       _nrep["regulation_exact_pct"]),
@@ -264,6 +270,45 @@ ck(max(_nd) <= 60 and _r_nfl >= 0.95,
    % (max(_nd), _r_nfl),
    "⛔ the acceptance bar is max |diff| <= 60s AND r >= 0.95. NFL passes "
    "it; college fails it on both halves. Same unit, different quantity.")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔⛔ AND THE IDENTITY IS NOT CLAIMED WITHOUT THE COLUMN IT NEEDS.
+# `[measured 2026-09-17, and this was a defect in the first draft of this
+# very change]` Defaulting an unknown period to regulation folded all 16
+# overtime games into the denominator and reported **285 regulation games
+# at 89.12 pct** — a number that reads exactly like the real 94.42 pct,
+# sits below the bar above, and is simply false.
+# ⚠️ "An absence in an API response is evidence about the API, never
+# about the sportsbook" — the same rule, one field over.
+_noq = [{k: v for k, v in r.items() if k != "qtr"} for r in _NS["rows"]]
+_nopay, _norep = nfl.possession_from_rows(_noq, 2025, _QUIET)
+ck(_nopay is not None,
+   "⚠️ the rows still derive a table without the period column",
+   "⛔ if they did not, the claim below would be about nothing")
+ck(_norep["regulation_exact_pct"] is None
+   and _norep["regulation_games"] is None
+   and _norep["overtime_games"] is None,
+   "🔴🔴 WITH NO PERIOD COLUMN THE IDENTITY IS NOT REPORTED AT ALL",
+   "⛔ NOT REPORTED WRONG. Defaulting to regulation gave %s regulation "
+   "games at %s pct against the real 269 and 94.42 — a plausible number "
+   "is worse than a missing one."
+   % (_norep.get("regulation_games"), _norep.get("regulation_exact_pct")))
+ck("no period column" in (_norep.get("identity_not_measurable") or ""),
+   "   ...and it names the column it wanted",
+   "⛔ a diagnostic that goes quiet without saying why is a diagnostic "
+   "nobody can repair. Got %r" % _norep.get("identity_not_measurable"))
+ck((_nrep["games_used"] + _nrep["games_withheld"]
+    + _nrep["games_no_possession"]) == _nrep["games_seen"] + 0
+   and _crep["games_used"] + _crep["games_withheld"]
+   + _crep["games_no_possession"] == _crep["games_seen"],
+   "⚠️ ...and the game accounting closes in both leagues",
+   "⛔ a game that produced no possession at all is neither used nor "
+   "withheld; numbers that do not add up invite the reader to assume "
+   "the missing ones are fine. nfl %s ; cfb %s"
+   % ({k: _nrep[k] for k in ("games_seen", "games_used", "games_withheld",
+                             "games_no_possession")},
+      {k: _crep[k] for k in ("games_seen", "games_used", "games_withheld",
+                             "games_no_possession")}))
+
 note("   NFL coverage  min %.3f  median %.3f  max %.3f  — %d of %d games "
      "tile exactly" % (_nrep["coverage_min"], _nrep["coverage_median"],
                        _nrep["coverage_max"], _nrep["regulation_exact_3600"],
