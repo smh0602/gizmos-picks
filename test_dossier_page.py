@@ -49,6 +49,11 @@ reader SEES is made against rendered HTML.
 #   file: index.html
 #   find: return f.length ? `<ul class="df">${f.join('')}</ul>` : '';
 #   with: return '';   // the values are dropped and only prose is drawn
+#
+# @vacuity the book count says WHAT IT COUNTS — books with a moneyline
+#   file: index.html
+#   find: li('Books with a moneyline', L.n_books);
+#   with: li('Books priced', L.n_books);   // the label that read "priced 0"
 # ══════════════════════════════════════════════════════════════════════
 
 import gzip
@@ -364,6 +369,140 @@ if _doc4 is not None:
        "⛔ this is the check that stops a name or time fallback creeping "
        "back in. Matched: %s" % [r["matched"] for r in _R4["rows"]])
     shutil.rmtree(_tree4, ignore_errors=True)
+section("5. 🔴🔴 THE BOOK COUNT SAYS WHAT IT COUNTS")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 "Books priced 0" SAT DIRECTLY BESIDE A TOTAL OF 67.5 THAT A NAMED
+# BOOK WAS SHOWING. `[found in review, 2026-09-17]` `n_books` is
+# `len(vigs)` in `collect.py` and `vigs` comes from the MONEYLINE de-vig,
+# so it counts books showing a two-sided moneyline — not books pricing
+# the game. MEASURED on the live college board: 15 of 90 games have an
+# empty `best_ml` AND `n_books == 0`, the same 15, and all 15 still carry
+# a total and a spread.
+#
+# ➡️ THE CLASS: A FIELD NAME NARROWER THAN IT READS IS HARMLESS UNTIL
+# SOMETHING DISPLAYS IT. `n_books` had been correct and privately
+# understood for weeks; the defect was created by putting it on the page
+# beside the thing it does not count. ⚠️ AND I GUARDED THE INSTANCE, NOT
+# THE CLASS, DELIBERATELY: "re-read what a field actually counts when it
+# first reaches the surface" is a thing a person does, not a question a
+# check can ask. What IS checkable is that THIS count names its subject
+# and never reads as "nothing is priced" — so that is what is checked,
+# on the real board and on an injected row.
+#
+# ⛔ THE ZERO IS NOT SUPPRESSED, and the check below insists on that: a
+# game we hold no moneyline for is a real fact about a mismatch this
+# size, and hiding it would make those 15 look like the other 75.
+# ⚠️ "we hold none", not "no book will quote one" — CLAUDE.md: an absence
+# in an API response is evidence about the API, never about the
+# sportsbook, and this project has got that backwards five times.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE CONTRADICTION SHAPE, not the old literal. A label that reads as
+#    "nothing is priced" beside a price is the defect whatever word it
+#    reaches for, so the pattern covers priced/prices/pricing.
+_PRICED0 = re.compile(r"pric(?:ed|es|ing)[^0-9<]{0,40}(?:<[^>]+>\s*)?0\b",
+                      re.I)
+
+
+def market_of(html):
+    """The market section's own fragment, or '' if it is not there."""
+    for g in html.split('<div class="dossec'):
+        if ">Market<" in g:
+            return g
+    return ""
+
+
+_tree5, _doc5, _log5 = build("ncaaf")
+ck(_doc5 is not None, "⚠️ there is a college document to render", _log5[-200:])
+if _doc5 is not None:
+    # ── 1. THE REAL BOARD. ⛔ It asserts an ABSENCE, so it cannot
+    #    false-alarm on a board that happens to carry no zero — the
+    #    board-dependent floor is the mistake #51 just fixed. The
+    #    NON-VACUOUS drive is the injected row below.
+    _R5 = drive(_doc5, _tree5)
+    _mkts = [(r["board_id"], market_of(r["html"])) for r in _R5["rows"]]
+    ck(all(m for _b, m in _mkts),
+       "⚠️ every game rendered a market section (%d)" % len(_mkts),
+       "⛔ rule 67: the sweep below would pass over nothing. Missing: %s"
+       % [b for b, m in _mkts if not m][:4])
+    _contra = [b for b, m in _mkts if _PRICED0.search(m)]
+    ck(not _contra,
+       "🔴 no game on the real board reads as 'nothing is priced' beside "
+       "a price",
+       "⛔ THIS IS THE DEFECT: 'Books priced 0' next to a total of 67.5 "
+       "that Hard Rock was showing. A reader who sees 0 beside a number "
+       "they can bet stops trusting the page. Games: %s" % _contra[:4])
+    _zeros = [(b, m) for b, m in _mkts if "moneyline</b> <b>0<" in
+              m.replace("moneyline", "moneyline</b>")]
+    _nolabel = [b for b, m in _mkts if "Books" in m
+                and "moneyline" not in m]
+    ck(not _nolabel,
+       "   ⛔ ...and every book count on it NAMES what it counts",
+       "🔴 the count is of books showing a two-sided MONEYLINE, and a "
+       "bare 'Books' is the reading that was wrong. Games: %s"
+       % _nolabel[:4])
+    note("   %d of %d real college games carry a zero book count — "
+         "reported, NOT asserted (it is a fact about today's board)."
+         % (len([1 for x in _doc5["dossiers"]
+                 for s_ in x["sections"]
+                 if s_.get("n") == 1
+                 and (s_.get("live") or {}).get("n_books") == 0]),
+            len(_doc5["dossiers"])))
+
+    # ── 2. AND DRIVEN ON AN INJECTED ROW, unconditionally. ⛔ The real
+    #    board carried 15 today and could carry none tomorrow; the case
+    #    this file exists for must be driven either way.
+    _g5 = _doc5["dossiers"][0]
+    _m5 = [x for x in _g5["sections"] if x["n"] == 1][0]
+    _m5.setdefault("live", {})
+    _m5["live"]["n_books"] = 0
+    _m5["live"]["total"] = 67.5
+    _m5["live"]["run_line"] = -56.5
+    _g6 = json.loads(json.dumps(_doc5["dossiers"][0]))
+    _g6["board_id"] = "second-frame-for-the-positive-control"
+    [x for x in _g6["sections"] if x["n"] == 1][0]["live"]["n_books"] = 4
+    _doc5["dossiers"] = [_g5, _g6]
+    _R6 = drive(_doc5, _tree5)
+    _z = market_of(_R6["rows"][0]["html"])
+    _p = market_of(_R6["rows"][1]["html"])
+    ck(bool(_z) and bool(_p),
+       "⚠️ both injected rows rendered a market section",
+       "⛔ rule 67 again — the checks below would pass over empty strings")
+    ck(not _PRICED0.search(_z),
+       "🔴🔴 A ZERO COUNT BESIDE A LIVE TOTAL DOES NOT SAY 'PRICED'",
+       "⛔ THE WHOLE FINDING. Got: %s" % text(_z)[:200])
+    ck("67.5" in _z,
+       "   ⛔ ...and the total is still shown",
+       "🔴 the price is real and it is the one thing we know for sure. "
+       "Got: %s" % text(_z)[:200])
+    ck("moneyline <b>0</b>" in _z,
+       "   ⛔ ...and the ZERO IS NOT SUPPRESSED, it is LABELLED",
+       "🔴 hiding it would make these games look like the rest of the "
+       "board. Got: %s" % text(_z)[:200])
+    ck("moneyline" in _z,
+       "🔴 ...and the label NAMES the moneyline, which is what it counts",
+       "⛔ `n_books` is `len(vigs)` off the moneyline de-vig. A bare "
+       "'Books' is the reading that put 0 beside a price. Got: %s"
+       % text(_z)[:200])
+    # ⚠️ ON THE NORMALISED TEXT, not the raw HTML. The sentence is a
+    #    template literal, so it carries newlines and indentation that a
+    #    browser collapses and a substring match does not — a check that
+    #    fails on how the source is WRAPPED is a check that reddens on
+    #    correct code.
+    _ztxt = text(_z)
+    ck("moneyline only" in _ztxt and "real prices" in _ztxt,
+       "   ✅ ...and the zero is explained in words a reader can use",
+       "⛔ the count alone still invites the wrong reading; the sentence "
+       "says what is missing and what is real. Got: %s" % _ztxt[:240])
+    ck("moneyline" in _p and not _PRICED0.search(_p),
+       "   ⚠️ ...and a NON-zero count is labelled the same way",
+       "🔴 one label, both cases — a special case for zero would be two "
+       "descriptions of one field. Got: %s" % text(_p)[:200])
+    ck("real prices" not in text(_p),
+       "   ⛔ ...without the zero explanation attached to it",
+       "🔴 a sentence about a missing moneyline under a count of 4 is "
+       "noise, and noise is what the clean-look rule is about. Got: %s"
+       % text(_p)[:200])
+    shutil.rmtree(_tree5, ignore_errors=True)
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the panel is well designed, "
      "or that a reader finds it useful. It claims the eight signals "
      "REACH A READER, every section is shown whether or not it could "
