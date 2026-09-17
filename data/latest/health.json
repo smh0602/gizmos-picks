@@ -1,21 +1,11 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-17T00:40:14Z",
+ "checked_at": "2026-09-17T01:19:57Z",
  "et_date": "2026-09-16",
- "healthy": false,
- "broken": 1,
+ "healthy": true,
+ "broken": 0,
  "degraded": 0,
- "findings": [
-  {
-   "key": "verify:mlb",
-   "severity": "BROKEN",
-   "what": "the mlb card was BUILT and then REFUSED, so nothing published",
-   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (28 rows, zero tolerance -- stricter than T37's 5%)  [('Dustin Harris', 'batter_rbis', 'under', 0.5, 71, 0.6)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (28 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (28 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
-   "repair": null
-  }
- ],
+ "findings": [],
  "repairs": [],
- "unrepairable": [
-  "verify"
- ]
+ "unrepairable": []
 }
