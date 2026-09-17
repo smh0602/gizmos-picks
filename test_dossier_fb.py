@@ -85,15 +85,25 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   find: _rc = _dos.build(LEAGUE)
 #   with: _rc = 0  # _dos.build(LEAGUE)
 #
+# ⚠️ THE TWO ARCHIVE MUTATIONS NOW POINT AT `daystore.py`, because the
+#    writer MOVED there on 2026-09-17 so `shadow_fb.py` could share it
+#    (rule 117). ⛔ The QUESTIONS are unchanged and they are still asked
+#    from here, driving the dossier's own archive — what moved is the
+#    line the mutation lands on. The harness said MALFORMED the moment
+#    the old `find` stopped matching, which is exactly its job.
 # @vacuity the dossier is ARCHIVED to a dated path, not only to latest/
-#   file: dossier_fb.py
-#   find: if os.path.exists(arch):
+#   file: daystore.py
+#   find: if os.path.exists(p):
 #   with: if True:
 #
 # @vacuity the dated archive is WRITE-ONCE and a later run cannot rewrite it
-#   file: dossier_fb.py
-#   find: if os.path.exists(arch):
-#   with: if False:
+#   file: daystore.py
+#   find: return p, False
+#   with: pass   # fall through and OVERWRITE the earlier reading
+#   ⚠️ ...and it mutates the EARLY RETURN, not the write. Gutting the
+#      write would make "the archive exists" fail — a different question
+#      going red for a different reason. Removing the return is what
+#      breaks write-once and nothing else.
 #
 # @vacuity nothing in the dossier is ever labelled MODEL
 #   file: dossier_fb.py

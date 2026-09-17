@@ -401,6 +401,15 @@ nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
 record_fb.py      the football grader -> data/<lg>/latest/record.json
 dossier_fb.py     Sam's eight per-game checks, every board game.
                   ⛔ Combines nothing, ranks nothing, scores nothing.
+shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
+                  priced -- measured 2,923 graded rows in one run
+                  against the card's 222 in total -- so a selection rule
+                  can be evaluated in weeks instead of seasons. ⛔ NOT
+                  PUBLISHED: the page shows the card, the same way
+                  `carried` is a shadow column. ⛔ Every rate carries an
+                  effective n clustered by GAME and capped by the
+                  complementary-pair bound, and NO p-value is ever
+                  computed on the raw row count.
 possession.py     ONE implementation of the possession coverage/share
                   maths, read by BOTH leagues. ⛔ Never copy it into
                   nfl.py or cfb.py (rule 117).
@@ -428,6 +437,9 @@ ranking.py        the one tie-aware ranker, both leagues
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
 runs_report.py    did any workflow run fail?
+daystore.py       the one dated, write-once archive writer. ⛔ Never
+                  cumulative (rule 285: git cannot delta-compress a
+                  gzip, 560x) and never into `picks/`.
 vacuity.py        does each guard actually bite? ⛔ It MUTATES SOURCE
                   FILES while it runs — never edit the repo during a
                   sweep, and never run two at once.
