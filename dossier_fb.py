@@ -62,6 +62,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -155,21 +156,95 @@ def _jz(path):
         return None
 
 
-def team_codes():
-    """Full team name -> nflverse abbreviation.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE LEAGUES THIS BUILDS. `[ncaaf added 2026-09-17]`
+# ⛔ The college board carried **88 games with no signals 1-8 at all** —
+# the biggest slate of the week — because `build()` opened with
+# `if lg != "nfl": return 0`. **`return 0` IS SUCCESS**: the card built,
+# the chained call ran, nothing raised, and every check passed.
+# ➡️ AN UNIMPLEMENTED BRANCH MUST RETURN A STATE THE WATCHERS CAN SEE, OR
+# IT IS INDISTINGUISHABLE FROM A WORKING ONE.
+# ⚠️ The refusal's REASONING was right — "a half-built college dossier is
+# worse than none: it would look complete and describe a different
+# sport's data shape" — and that is the thing engineered against below,
+# not a reason to keep refusing.
+# ══════════════════════════════════════════════════════════════════════
+LEAGUES_BUILT = ("nfl", "ncaaf")
 
-    ⛔ READ OUT OF `collect.py`'s SOURCE, never retyped. That file's own
-    comment says "if you edit one side, edit both", and a second copy of a
-    32-row table is a second thing to drift (rule 66). ⚠️ Parsed rather
-    than imported: importing the collector runs its module-level league
-    handling, and a reporting tool must not be able to trip that.
+# ⛔ VERIFIED ONE BY ONE AGAINST `teams.json`, NEVER FUZZY-MATCHED. The
+# college board names a school plus its mascot ("Syracuse Orange") while
+# every college artifact keys on the school alone ("Syracuse"), so the
+# join is a prefix match — and three FBS schools are spelled differently
+# on the two sides. ⚠️ `difflib` was tried and REFUSED: it maps "East
+# Texas A&M Lions" onto "Texas A&M", "Portland State" onto "Colorado
+# State" and "South Dakota" onto "North Dakota State" — different
+# schools. That is `resolve()`'s rule (CLAUDE.md): refuse to guess.
+CFB_ALIAS = {"appalachianstate": "App State",
+             "southernmississippi": "Southern Miss",
+             "umass": "Massachusetts"}
+
+
+def _norm_school(s):
+    """Fold case, accents and punctuation. ⚠️ `San José State` and `San
+    Jose State` are one school; `Hawai'i` and `Hawaii` are one school."""
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]+", "", s.lower())
+
+
+def team_codes(lg=None):
+    """A RESOLVER: board team name -> the key that league's files use.
+
+    ⚠️ IT RETURNS A FUNCTION, not a dict, because the two leagues join
+    differently. NFL board names are exact keys of a 32-row table;
+    college names need folding and a longest-prefix match.
+
+    ⛔ NFL's TABLE IS READ OUT OF `collect.py`'s SOURCE, never retyped.
+    That file's own comment says "if you edit one side, edit both", and a
+    second copy of a 32-row table is a second thing to drift (rule 66).
+    ⚠️ Parsed rather than imported: importing the collector runs its
+    module-level league handling, and a reporting tool must not be able
+    to trip that.
+
+    ⛔ AND IT RETURNS None RATHER THAN A GUESS. 16 of the 88 college
+    board sides are FCS schools absent from the FBS `teams.json` — a
+    correct absence, not a failure, and naming it is the only honest
+    answer.
     """
-    src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
-    for n in ast.parse(src).body:
-        if (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "")
-                == "NFL_TEAMS"):
-            return ast.literal_eval(n.value)
-    return {}
+    lg = (lg or LEAGUE or "nfl").strip().lower()
+    if lg == "nfl":
+        src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
+        for n in ast.parse(src).body:
+            if (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "")
+                    == "NFL_TEAMS"):
+                return ast.literal_eval(n.value).get
+        return {}.get
+    # ── college ──────────────────────────────────────────────────────
+    try:
+        raw = json.load(open(os.path.join(ROOT, "data", lg, "latest",
+                                          "teams.json"), encoding="utf-8"))
+        schools = list((raw.get("teams") or {}))
+    except Exception:
+        schools = []
+    idx = {}
+    for t in schools:
+        idx.setdefault(_norm_school(t), t)
+    # ⚠️ LONGEST FIRST, so "Miami (OH) RedHawks" resolves to `Miami (OH)`
+    #    and not to `Miami`.
+    order = sorted(idx, key=len, reverse=True)
+
+    def resolve(name):
+        n = _norm_school(name)
+        if not n:
+            return None
+        for a, t in CFB_ALIAS.items():
+            if n.startswith(a):
+                return t
+        for k in order:
+            if n == k or n.startswith(k):
+                return idx[k]
+        return None
+    return resolve
 
 
 def seasons(kind, data=None):
@@ -361,7 +436,8 @@ def s_vs_position(home, away, allowed, this_season):
     if not j:
         return unavailable(5, "Versus position",
                            "No allowed-by-position file on disk.",
-                           "the collector's `nfl-logs` mode writes it")
+                           "the season back-fill writes it (`nfl-logs` "
+                           "for NFL, `cfb-probe` for college)")
     defs = j.get("defences") or {}
     out = {}
     for t in (home, away):
@@ -390,6 +466,30 @@ def s_possession(home, away, this_season, data=None):
     top = _jz(os.path.join(data or DATA, "latest",
                            "top-%d.json.gz" % this_season))
     if not top:
+        # ⚠️ WRITTEN FOR A READER, NOT FOR THE LEDGER. `verify_card.py`'s
+        # jargon list is the standard: no "coverage", no "0.90", no
+        # "p10". ✅ Every sentence still carries a number — the stats are
+        # the argument.
+        # ⛔ THE LEAGUE COMES FROM THE PATH THE CALLER THREADED, NEVER
+        # FROM THE ENVIRONMENT. `build(league)` takes a league and hands
+        # every section the matching `data` root; reading the module
+        # global here would let the SECTION answer about one league while
+        # the DOCUMENT is about another the moment the two disagree — a
+        # second source for one fact (rule 66). They happen to agree in
+        # production because the workflow sets `LEAGUE` on every arm, and
+        # "it happens to agree" is what this repo stops trusting.
+        _lg = os.path.basename((data or DATA).rstrip(os.sep)).strip().lower()
+        if _lg != "nfl":
+            return unavailable(
+                6, "Time of possession",
+                "Not enough college games have been played yet. College "
+                "possession is worked out from the game clock rather than "
+                "read off a stat sheet, and it needs about 80 teams' worth "
+                "of well-timed games before it is worth showing — that is "
+                "roughly the fourth week of the season, and this is the "
+                "third.",
+                "it starts filling in on its own once a few more weekends "
+                "have been played")
         return unavailable(
             6, "Time of possession",
             "No `top-%d.json.gz` under `data/` yet. ⚠️ The builder "
@@ -397,8 +497,7 @@ def s_possession(home, away, this_season, data=None):
             "likely to mean 'too little of the clock could be read' as "
             "'the job has not run' — `top-probe-%d.json` beside it says "
             "which." % (this_season, this_season),
-            "run the season's log build (`nfl-logs` for NFL, the Sunday "
-            "rebuild for college) and read `top-probe-<season>.json`")
+            "run the season's log build (`nfl-logs` writes it)")
     by = top.get("teams") or {}
     # ══════════════════════════════════════════════════════════════════
     # 🔴🔴 THE SECTION READS THE SHARE, AND ONLY THE SHARE.
@@ -520,13 +619,13 @@ def build(league=None):
     """
     lg = (league or LEAGUE or "nfl").strip().lower()
     data = os.path.join(ROOT, "data", lg)
-    if lg != "nfl":
-        # ⛔ NFL FIRST, and a half-built college dossier is worse than
-        #    none: it would look complete and describe a different sport's
-        #    data shape. Explicit, not silent.
-        log("dossier_fb: %s is not built yet — NFL only. Nothing written."
-            % lg)
-        return 0
+    if lg not in LEAGUES_BUILT:
+        # ⛔ AND THIS RETURNS NON-ZERO, unlike the refusal it replaces. A
+        #    league nothing describes is a product hole, and a hole that
+        #    exits 0 is invisible to every watcher (see LEAGUES_BUILT).
+        log("dossier_fb: %s is not one of %s — nothing written, and this "
+            "run FAILS so it is visible." % (lg, ", ".join(LEAGUES_BUILT)))
+        return 1
     board = None
     try:
         board = json.load(open(os.path.join(data, "latest", "board.json"),
@@ -534,7 +633,7 @@ def build(league=None):
     except Exception as e:
         log("dossier_fb: no board to describe: %s" % e)
         return 1
-    codes = team_codes()
+    resolve = team_codes(lg)
     sched = seasons("schedule", data)
     players = seasons("players", data)
     allowed = seasons("allowed-by-position", data)
@@ -544,14 +643,28 @@ def build(league=None):
         for x in (j.get("games") or []):
             srows[(x.get("home"), x.get("away"), (x.get("start") or "")[:10])] = x
 
-    out, skipped = [], []
+    out, skipped, unresolved = [], [], []
     for g in (board.get("games") or []):
-        home, away = codes.get(g.get("home")), codes.get(g.get("away"))
-        if not home or not away:
+        home, away = resolve(g.get("home")), resolve(g.get("away"))
+        if not home and not away:
             # ⚠️ NAMED, NEVER DROPPED. A game missing from the output and a
             #    game with nothing to say are different facts.
-            skipped.append(_skip(g, "team name not in the code table"))
+            skipped.append(_skip(g, "neither team name is in the code table"))
             continue
+        # ══════════════════════════════════════════════════════════════
+        # ⚠️ ONE SIDE IS ENOUGH TO DESCRIBE A GAME, AND ON THE COLLEGE
+        # BOARD THAT IS 16 OF 88 GAMES. `teams.json` is the FBS list, so
+        # an FCS opponent is absent from it — a CORRECT absence, not a
+        # failure. ⛔ Dropping those games would lose 18 pct of the
+        # Saturday board, and they are real games people bet.
+        # ✅ So the game IS described, the unresolvable side is NAMED, and
+        # the sections that need both sides report what they have and
+        # nothing they do not. ⛔ The name is never guessed at.
+        # ══════════════════════════════════════════════════════════════
+        if not (home and away):
+            unresolved.append({"away": g.get("away"), "home": g.get("home"),
+                               "not_in_table": (g.get("home") if not home
+                                                else g.get("away"))})
         kick = None
         try:
             kick = datetime.datetime.strptime((g.get("commence") or "")[:10],
@@ -596,6 +709,11 @@ def build(league=None):
            "n_board_games": len(board.get("games") or []),
            "n_dossiers": len(out),
            "skipped": skipped,
+           # ⚠️ REPORTED, NOT HIDDEN. These games ARE described; one side
+           # is an FCS school absent from the FBS table, so the sections
+           # needing both sides carry only what exists. Naming them is
+           # how a reader knows which half of a comparison is missing.
+           "one_sided": unresolved,
            "sections_declared": 8,
            "note": ("⛔ A REPORT, NOT A MODEL. No combined score, no "
                     "ranking, no confidence. Every section is present or "
