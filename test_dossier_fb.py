@@ -18,6 +18,7 @@ all 339 and nothing said so.
 throwaway copy; `tcheck` fails any test that leaves a file under `data/`
 changed, and it is right to.
 """
+import ast
 import glob
 import gzip
 import json
@@ -36,13 +37,13 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 # ══════════════════════════════════════════════════════════════════════
 # @vacuity every board game gets a dossier, or is NAMED as skipped
 #   file: dossier_fb.py
-#   find: skipped.append(_skip(g, "team name not in the code table"))
+#   find: skipped.append(_skip(g, "neither team name is in the code table"))
 #   with: pass  # the skip is dropped instead of named
 #
 # @vacuity all EIGHT sections are written for every game
 #   file: dossier_fb.py
-#   find: s_personnel(teams, players, this_season),
-#   with: # s_personnel(teams, players, this_season),
+#   find: s_personnel(teams, players, this_season, missing),
+#   with: # s_personnel(teams, players, this_season, missing),
 #
 # @vacuity a section that cannot answer says UNAVAILABLE, never vanishes
 #   file: dossier_fb.py
@@ -58,6 +59,16 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   file: dossier_fb.py
 #   find: "sections": [
 #   with: "score": 0.73, "confidence": 88, "sections": [
+#
+# @vacuity no section asks the ENVIRONMENT which league it is describing
+#   file: dossier_fb.py
+#   find: _lg = os.path.basename((data or DATA).rstrip(os.sep)).strip().lower()
+#   with: _lg = (LEAGUE or "nfl").strip().lower()  # the environment
+#
+# @vacuity a section comparing two sides REFUSES when one does not resolve
+#   file: dossier_fb.py
+#   find: return no_opponent(5, "Versus position", missing)
+#   with: pass  # fall through — a null opponent reaches an OK section
 #
 # @vacuity the audit REFUSES to write, it does not merely warn
 #   file: dossier_fb.py
@@ -183,12 +194,28 @@ section("1a. ⛔ AND THE 'OR NAMED' HALF IS DRIVEN, NOT ASSUMED")
 #    the line that records a skip changed NOTHING — the guard above was
 #    half vacuous. A board with a name the code table does not hold is the
 #    only thing that exercises it.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 AND IT WENT VACUOUS A SECOND TIME, THE SAME WAY. `[2026-09-17]`
+# The college port split one outcome into two: a game with ONE
+# unresolvable side is now DESCRIBED and named in `one_sided`, and only a
+# game with NEITHER side resolvable is skipped. The fixture below had one
+# unmappable side, so after the port `skipped` was empty again and the
+# harness called the declaration VACUOUS — correctly, and for the second
+# time on the same line.
+# ➡️ SO THE FIXTURE NOW CARRIES BOTH SHAPES: a game with one side
+# missing and a game with both. Each of the two lists has exactly one
+# entry, and each entry is checked BY NAME, so neither path can go quiet
+# without a check going red.
+# ══════════════════════════════════════════════════════════════════════
 _d2 = tree()
 _bp = os.path.join(_d2, "data/nfl/latest/board.json")
 _b2 = json.load(open(_bp, encoding="utf-8"))
 _b2["games"] = _b2["games"][:2] + [dict(_b2["games"][0],
                                         home="Nonexistent Ballclub",
-                                        away="Detroit Lions")]
+                                        away="Detroit Lions"),
+                                   dict(_b2["games"][0],
+                                        home="Imaginary Athletic",
+                                        away="Phantom Nine")]
 json.dump(_b2, open(_bp, "w", encoding="utf-8"))
 _rc2, _out2 = run(_d2, "dossier_fb.py")
 ck(_rc2 == 0, "   the builder survives a name it cannot resolve",
@@ -200,19 +227,183 @@ ck(_rc2 == 0, "   the builder survives a name it cannot resolve",
 #    reports "an unknown number never ran", which is strictly less than a
 #    guard that fails.
 _D2 = _load(os.path.join(_d2, "data/nfl/latest/dossiers.json.gz"))
-ck(len(_D2.get("skipped") or []) == 1,
-   "🔴🔴 THE UNMAPPABLE GAME IS NAMED IN `skipped`",
+# ══════════════════════════════════════════════════════════════════════
+# ⚠️ THE QUESTION IS UNCHANGED; THE ANSWER GAINED A SECOND SHAPE.
+# `[college port, 2026-09-17]` A game with ONE unresolvable side is no
+# longer skipped — 16 of the 88 college board sides are FCS schools
+# absent from the FBS table, and dropping those games would lose 18 pct
+# of the Saturday board. They are DESCRIBED and the missing side is
+# NAMED in `one_sided`. Only a game with NEITHER side resolvable is
+# skipped.
+# ⛔ SO THIS ASKS THE SAME THING AND ASKS IT HARDER: the unmappable name
+# must appear in one of the two lists, and it must appear BY NAME —
+# "named somewhere" alone would pass on a list that named the wrong game.
+# ══════════════════════════════════════════════════════════════════════
+_skip2 = _D2.get("skipped") or []
+_one2 = _D2.get("one_sided") or []
+ck(len(_skip2) == 1 and len(_one2) == 1,
+   "🔴🔴 BOTH UNMAPPABLE GAMES ARE NAMED (%d skipped, %d one-sided)"
+   % (len(_skip2), len(_one2)),
    "⛔ a game that simply vanished from the output is indistinguishable "
-   "from one with nothing to say. Got %s" % (_D2.get("skipped") or []))
-ck(any(x.get("home") == "Nonexistent Ballclub"
-       for x in (_D2.get("skipped") or [])),
-   "   ...by the name the board used",
-   "Got %s" % (_D2.get("skipped") or []))
+   "from one with nothing to say, and an EMPTY list is the shape that "
+   "made this declaration vacuous twice (rule 67). Got %s / %s"
+   % (_skip2, _one2))
+ck(any(x.get("home") == "Imaginary Athletic" for x in _skip2),
+   "   ...the unsalvageable one BY THE NAME THE BOARD USED, in `skipped`",
+   "🔴 neither side of this game resolves, so there is nothing to "
+   "describe — naming it is the whole obligation. Got %s" % _skip2)
+ck(any(x.get("home") == "Nonexistent Ballclub" for x in _one2),
+   "   ...and the half-resolvable one in `one_sided`, also by name",
+   "Got %s" % _one2)
+ck(any(x.get("not_in_table") == "Nonexistent Ballclub" for x in _one2),
+   "   ⛔ ...and the side that could not be resolved is named SEPARATELY",
+   "🔴 'one side is missing' is useless without which side. Got %s"
+   % _one2)
 ck(_D2.get("n_dossiers", 0) + len(_D2.get("skipped") or [])
    == len(_b2["games"]),
    "   ⛔ ...and the two still account for every board game",
    "%d + %d vs %d" % (_D2.get("n_dossiers", 0),
                       len(_D2.get("skipped") or []), len(_b2["games"])))
+
+section("1b. 🔴🔴 AN UNIDENTIFIED OPPONENT IS NEVER AN `OK` SECTION")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 19 OF 88 COLLEGE ROWS PUBLISHED A NULL OPPONENT AND FIVE SECTIONS
+# STILL READ `OK`. `[found in review of the college port, 2026-09-17]`
+# ⛔ AND THE NULL WAS NOT THE WORST OF IT. Head to head said "No meeting
+# between these two inside 365 days" — a statement about a comparison
+# THAT WAS NEVER ATTEMPTED, because there is no "these two". A reader
+# takes it as "they have not played recently"; the truth is "we do not
+# know who the opponent is". Versus position — whose whole subject is
+# the OPPOSING defence — read `OK` with one defence in it.
+#
+# 🔴 THE CLASS: A REFERENCE SET NARROWER THAN THE BOARD SILENTLY
+# TRUNCATES THE BOARD. The top-division team list is the right source
+# for top-division teams and the wrong source for "who is playing
+# tonight" — the board is a SUPERSET by construction, because books
+# price top-division-vs-lower-division games. ➡️ Wherever a lookup set
+# and the thing looked up come from different sources, the mismatch is a
+# DATA CLASS, not an edge case.
+#
+# ⚠️ NFL CANNOT HAVE THIS, WHICH IS WHY NOTHING CAUGHT IT: every NFL
+# opponent is an NFL team, and all 32 NFL board games join a schedule
+# row. ⛔ A fact about NFL is not a fact about the board.
+#
+# ⛔ SO THE FIRST CHECK IS DERIVED FROM THE SOURCE, NOT A LIST OF THREE
+# SECTION NUMBERS. Naming §2, §5 and §6 would guard exactly those three
+# and leave the next pair-wise section wide open — rules 246 and 130,
+# which this repo has now shipped twice.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ ONE READ OF THE SOURCE FOR THE WHOLE FILE (section 5 reuses it) —
+#    two copies of the same file read is two things to drift.
+_DSRC = open(os.path.join(ROOT, "dossier_fb.py"), encoding="utf-8").read()
+_SFNS = [n for n in ast.parse(_DSRC).body
+         if isinstance(n, ast.FunctionDef) and n.name.startswith("s_")]
+_pairwise, _gated = [], []
+for _n in _SFNS:
+    _args = {a.arg for a in _n.args.args}
+    _used = {x.id for x in ast.walk(_n) if isinstance(x, ast.Name)}
+    if {"home", "away"} <= (_args & _used):
+        _pairwise.append(_n.name)
+        if "no_opponent" in _used:
+            _gated.append(_n.name)
+ck(len(_pairwise) >= 3,
+   "⚠️ the sections that COMPARE the two sides are derived (%s)"
+   % ", ".join(_pairwise),
+   "⛔ rule 67: an empty list here would make the check below pass "
+   "forever. A section is pair-wise if it takes BOTH `home` and `away` "
+   "and USES them — which is why venue, whose subject is the ground, is "
+   "correctly not in this list. Found %s" % _pairwise)
+ck(_pairwise == _gated,
+   "🔴🔴 ...AND EVERY ONE OF THEM ROUTES THROUGH `no_opponent`",
+   "⛔ a section whose subject is the PAIR cannot answer at all when one "
+   "side is unknown — it must say so, not show the half it has. "
+   "Ungated: %s" % sorted(set(_pairwise) - set(_gated)))
+
+# ── AND DRIVEN, on a board row whose AWAY side does not resolve ──────
+# ⚠️ AWAY on purpose: all 16 real cases are the away team, because the
+#    lower-division side is the visitor in a money game.
+_d1b = tree()
+_bp1b = os.path.join(_d1b, "data/nfl/latest/board.json")
+_b1b = json.load(open(_bp1b, encoding="utf-8"))
+_b1b["games"] = _b1b["games"][:2] + [dict(_b1b["games"][0],
+                                          home="Detroit Lions",
+                                          away="Slippery Rock Aardvarks")]
+json.dump(_b1b, open(_bp1b, "w", encoding="utf-8"))
+_rc1b, _out1b = run(_d1b, "dossier_fb.py")
+ck(_rc1b == 0, "   the builder still exits clean on that board",
+   "⛔ one unidentifiable opponent must not cost the slate its dossiers. "
+   "%s" % _out1b[-300:])
+_D1b = _load(os.path.join(_d1b, "data/nfl/latest/dossiers.json.gz"))
+_part = [g for g in (_D1b.get("dossiers") or [])
+         if g.get("away_name") == "Slippery Rock Aardvarks"]
+ck(len(_part) == 1,
+   "🔴 the game is DESCRIBED, not dropped (%d row)" % len(_part),
+   "⛔ §1 is real — the price is a price and the game is bettable. "
+   "Suppressing the whole game loses a row Sam can bet. Got %s"
+   % [g.get("away_name") for g in (_D1b.get("dossiers") or [])])
+_pg = (_part or [{}])[0]
+ck(_pg.get("away_name") == "Slippery Rock Aardvarks",
+   "🔴🔴 ...AND IT CARRIES THE BOARD'S OWN NAME FOR THAT SIDE",
+   "⛔ A GAME THE READER CAN NAME MUST NEVER RENDER AS None. The board "
+   "is complete — it has the name — and publishing null instead threw "
+   "away the one thing we did know. Got %r" % _pg.get("away_name"))
+ck(_pg.get("unresolved_side") == "Slippery Rock Aardvarks",
+   "   ⛔ ...and the gap is ON THE ROW, not only in a list elsewhere",
+   "🔴 a consumer reading one row must not have to cross-reference "
+   "another key to learn half of it is missing. Got %r"
+   % _pg.get("unresolved_side"))
+_sec1b = {s.get("n"): s for s in (_pg.get("sections") or [])}
+_okpair = sorted(n for n in _sec1b
+                 if _sec1b[n].get("name") in
+                 ("Head to head", "Versus position", "Time of possession")
+                 and _sec1b[n].get("state") == "OK")
+ck(not _okpair,
+   "🔴🔴 ...AND NO PAIR-WISE SECTION READS `OK` ON IT",
+   "⛔ NEVER WEAKEN A CHECK TO MAKE IT PASS, and never widen what OK "
+   "means either: a section that compared nothing must read UNAVAILABLE. "
+   "Still OK: %s" % [(n, _sec1b[n].get("name")) for n in _okpair])
+ck(all("Slippery Rock Aardvarks" in (_sec1b[n].get("why") or "")
+       for n in _sec1b
+       if _sec1b[n].get("name") in ("Head to head", "Versus position",
+                                    "Time of possession")),
+   "   ⛔ ...and each refusal NAMES the side it could not identify",
+   "🔴 'not available' with no subject is unreadable. Got %s"
+   % [(_sec1b[n].get("name"), (_sec1b[n].get("why") or "")[:60])
+      for n in sorted(_sec1b)])
+_h2h1b = _sec1b.get(2) or {}
+ck("No meeting between these two" not in (_h2h1b.get("why") or ""),
+   "🔴🔴 ...AND HEAD TO HEAD NO LONGER ASSERTS A CHECK THAT NEVER RAN",
+   "⛔ THIS IS THE FOUNDING ERROR OF THIS PROJECT IN COLLEGE COLOURS: a "
+   "fact about a query is not a fact about the world. There is no "
+   "'these two'. Got: %s" % (_h2h1b.get("why") or "")[:140])
+ck((_sec1b.get(1) or {}).get("state") == "OK",
+   "   ✅ ...while §1 STAYS OK — the market is the thing we do know",
+   "⛔ do not suppress the game. The price is real and it is on the "
+   "board. Got %s" % (_sec1b.get(1) or {}).get("state"))
+_nullkey = sorted(n for n in _sec1b
+                  if isinstance(_sec1b[n].get("by_team"), dict)
+                  and any(k in (None, "null", "None")
+                          for k in _sec1b[n]["by_team"]))
+ck(not _nullkey,
+   "   ⛔ ...and no per-team table carries a `null` team key",
+   "🔴 a None in the team list published a literal \"null\" key inside "
+   "`by_team` — junk in a permanent record. Sections: %s" % _nullkey)
+_named1b = sorted(n for n in _sec1b
+                  if _sec1b[n].get("state") == "OK"
+                  and isinstance(_sec1b[n].get("by_team"), dict)
+                  and _sec1b[n].get("not_covered")
+                  == "Slippery Rock Aardvarks")
+ck(len(_named1b) >= 2,
+   "   ✅ ...and each per-team section NAMES the half it covers nothing "
+   "for (%s)" % _named1b,
+   "⛔ a section covering one team of two and saying nothing about it is "
+   "the same 'looks complete' failure one step quieter. Got %s"
+   % [(n, _sec1b[n].get("not_covered")) for n in sorted(_sec1b)])
+ck(_D1b.get("n_partial") == 1 and "PARTIAL" in _out1b,
+   "   ⚠️ ...and the count is STATED, in the file and in the log",
+   "⛔ rule 166: \"88 of 88\" read as full coverage while 19 rows had no "
+   "identified opponent. n_partial=%r, log says PARTIAL=%s"
+   % (_D1b.get("n_partial"), "PARTIAL" in _out1b))
 
 section("2. ⚠️ ALL EIGHT SECTIONS, EVERY GAME, PRESENT OR UNAVAILABLE")
 _docs = _D.get("dossiers") or []
@@ -336,17 +527,69 @@ ck(_hist == ["away_score", "home_score"],
    "   ✅ ...while prior meetings still carry the scores that happened",
    "⛔ THE CHECK MUST NOT FORCE OUT HONEST HISTORY. A result is a fact; a "
    "score for THIS game would be a claim. Got %s" % _hist)
-_DSRC = open(os.path.join(ROOT, "dossier_fb.py"), encoding="utf-8").read()
 ck("data/mlb" not in _DSRC and '"mlb"' not in _DSRC,
    "⛔ the builder has no MLB path at all — the absence IS the guard",
    "🔴 CLAUDE.md: the freeze forbids a scheduled check that reads MLB "
    "state, and a path nobody can flip is stronger than a flag")
-_rc_cf, _out_cf = run(tree(), "dossier_fb.py", league="ncaaf")
-ck(_rc_cf == 0, "⚠️ a non-NFL league exits clean...", _out_cf[-200:])
-ck("not built yet" in _out_cf,
-   "   ...and says it is not built, rather than half-building",
-   "⛔ a half-built college dossier would look complete and describe a "
-   "different sport's data shape. Got: %s" % _out_cf[-200:])
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 NO SECTION ASKS THE ENVIRONMENT WHICH LEAGUE IT IS DESCRIBING.
+# `[2026-09-17, found in my own college port before it landed]`
+# `build(league)` takes a league and hands every section the matching
+# `data` root. A section reading the module-level `LEAGUE` instead is
+# reading `os.environ` — so `build("ncaaf")` under `LEAGUE=nfl` would
+# emit a document about college carrying a section written for the NFL.
+# ⛔ GUARDING THE CLASS, NOT THE INSTANCE. The port put this in section 6
+# only, but the defect belongs to all eight and to every section added
+# later, so the check sweeps `s_*` by AST rather than naming the one that
+# had it (CLAUDE.md: rules 246 and 130, guarding the instance, twice).
+# ⚠️ Section 6 is the only one that has ever needed the league at all, so
+# a search for the STRING would pass on a repo where nothing asks —
+# hence the sweep is over the functions and the emptiness is asserted
+# against a non-empty list of them.
+# ══════════════════════════════════════════════════════════════════════
+_sfns = [n for n in ast.parse(_DSRC).body
+         if isinstance(n, ast.FunctionDef) and n.name.startswith("s_")]
+ck(len(_sfns) == 8,
+   "⚠️ the sweep below really does see all eight sections (%d)"
+   % len(_sfns),
+   "⛔ rule 67: a sweep over an empty or short list of functions proves "
+   "nothing. Found %s" % [n.name for n in _sfns])
+_envlg = sorted({n.name for n in _sfns
+                 for x in ast.walk(n)
+                 if isinstance(x, ast.Name) and x.id == "LEAGUE"})
+ck(not _envlg,
+   "🔴🔴 ...AND NONE OF THEM READS THE MODULE-LEVEL `LEAGUE`",
+   "⛔ that global is `os.environ.get(\"LEAGUE\")`, and the league a "
+   "document is FOR arrives as an argument. A section that disagrees "
+   "with its own document is misinformation, not a gap. Reads it: %s"
+   % _envlg)
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ~~"A NON-NFL LEAGUE EXITS CLEAN AND SAYS IT IS NOT BUILT"~~ —
+# THAT CHECK IS GONE BECAUSE THE BEHAVIOUR IT GUARDED WAS THE DEFECT.
+# `return 0` on an unimplemented path is SUCCESS: the college card built,
+# the chained call ran, and 88 board games carried no signals at all
+# while every check in this repo passed. College is built now, and
+# `test_dossier_coverage.py` holds that on the class — every league
+# `collect.yml` routes to `card-fb`, derived, not listed.
+# ✅ WHAT REPLACES IT IS STRICTLY STRONGER: a league NOT in the built set
+# must exit NON-ZERO, so the next unimplemented league is visible to
+# every watcher instead of only to the log.
+# ══════════════════════════════════════════════════════════════════════
+_rc_un, _out_un = run(tree(), "dossier_fb.py", league="kabaddi")
+ck(_rc_un != 0,
+   "🔴🔴 AN UNBUILT LEAGUE EXITS NON-ZERO (rc=%s)" % _rc_un,
+   "⛔ THIS IS THE WHOLE FINDING. `return 0` made a product hole "
+   "invisible to every watcher — the more carefully the refusal was "
+   "written, the less anything noticed. Got: %s" % _out_un[-200:])
+ck("is not one of" in _out_un and "kabaddi" in _out_un,
+   "   ...and says which league and what the built set is",
+   "⛔ a refusal that does not name itself cannot be acted on. Got: %s"
+   % _out_un[-200:])
+import dossier_fb as _DF  # noqa: E402
+ck("ncaaf" in getattr(_DF, "LEAGUES_BUILT", ()),
+   "✅ ...and college is IN the built set now",
+   "🔴 88 board games had no signals 1-8 at all, on the biggest slate "
+   "of the week. Built: %s" % (getattr(_DF, "LEAGUES_BUILT", ()),))
 
 section("6. ⚠️ THE MEASUREMENTS THIS FILE STANDS ON ARE WRITTEN DOWN")
 for _claim in ("189 of those carry BOTH", "285 of 285",
@@ -578,14 +821,29 @@ if _arch9:
        "⚠️ the second run really did rebuild the dossier",
        "⛔ the sentinel survives a run that did nothing, so this has to "
        "be established first. %s" % _out9b[-250:])
-    ck("already exists" in _out9b,
-       "   ...and said out loud that it left the archive alone",
-       "⛔ a write-once that is silent about declining to write is a "
-       "write-once nobody can audit. %s" % _out9b[-250:])
-    ck(len(_again) == 1,
-       "   ...and added no second archive for the same minute (%d)"
-       % len(_again),
-       "Found: %s" % [os.path.relpath(a, _d9) for a in _again])
+    # ══════════════════════════════════════════════════════════════
+    # ⚠️ TIME-INDEPENDENT, AND THE FIRST DRAFT WAS NOT. `[2026-09-17]`
+    # It asserted exactly ONE archive and that the log said "already
+    # exists" — both true only when the two runs land inside the SAME
+    # MINUTE. The runs take seconds, so it passed most of the time and
+    # failed whenever the clock rolled between them. A check that
+    # depends on when it is run is a check that will redden on correct
+    # code, which is the other failure CLAUDE.md names.
+    # ✅ THE REAL INVARIANT IS THAT THE EARLIER READING IS NEVER
+    # REWRITTEN — asserted unconditionally below — and each branch of
+    # the minute question still asserts something.
+    # ══════════════════════════════════════════════════════════════
+    if len(_again) == 1:
+        ck("already exists" in _out9b,
+           "   ...the same minute, and it said out loud it left it alone",
+           "⛔ a write-once that is silent about declining to write is a "
+           "write-once nobody can audit. %s" % _out9b[-250:])
+    else:
+        ck(sorted(_again)[0] == _arch9[0] and len(_again) == 2,
+           "   ...the minute rolled, so it wrote a SECOND dated file (%d) "
+           "and left the first alone" % len(_again),
+           "⛔ write-once is per-file, not one-file-ever. Found: %s"
+           % [os.path.relpath(a, _d9) for a in _again])
     ck(_load(_arch9[0]).get("sentinel") == "the earlier reading",
        "🔴🔴 ...AND LEAVES THE EARLIER READING EXACTLY AS IT WAS",
        "⛔ WRITE-ONCE. A later run overwriting it destroys the very "
