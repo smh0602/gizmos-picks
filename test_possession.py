@@ -58,6 +58,11 @@ import nfl  # noqa: E402
 #   find: if tot <= 0 or tot / float(GAME_CLOCK_SECS) < COVERAGE_MIN:
 #   with: if tot <= 0:
 #
+# @vacuity possession is keyed to `drive`, never to `fixed_drive`
+#   file: nfl.py
+#   find: drvc = next((c for c in ("drive", "fixed_drive") if c in cols), None)
+#   with: drvc = next((c for c in ("fixed_drive", "drive") if c in cols), None)
+#
 # @vacuity a diagnostic that cannot be computed is NOT reported instead
 #   file: nfl.py
 #   find: if qtrc is None or not periods:
@@ -224,34 +229,47 @@ section("6. 🔴 NFL IS THE CONTROL — RECORDED CLOCK, AND IT TILES THE GAME")
 _NS = json.load(gzip.open(os.path.join(
     ROOT, "research", "pbp_possession_sample_2025.json.gz"), "rt"))
 _npay, _nrep = nfl.possession_from_rows(_NS["rows"], 2025, _QUIET)
+# ⚠️ READ DEFENSIVELY FROM HERE. The identity is now a REFUSAL, so a
+#    mis-tiled season returns before the share maths runs and the report
+#    carries no `games_*` keys at all. A KeyError here would cost every
+#    check below — the checks must go RED and say so, not die.
+for _k in ("games_withheld", "games_seen", "games_used",
+           "games_no_possession", "unparsed", "recovered_from_later_row",
+           "coverage_min", "coverage_median", "coverage_max"):
+    _nrep.setdefault(_k, -1)
 ck(_npay is not None, "⚠️ the whole 2025 season derives a table",
    "rep=%s" % {k: _nrep.get(k) for k in ("teams", "error")})
+# ⚠️ ...and only NOW is it coerced, so the check above still sees the real
+#    answer while nothing below dies on a None.
+_npay = _npay or {"teams": {}, "unit": None}
 ck(_nrep["regulation_games"] > 250 and _nrep["overtime_games"] > 5,
    "⚠️ ...over %d regulation and %d overtime games"
    % (_nrep["regulation_games"], _nrep["overtime_games"]),
    "⛔ without both, the two claims below prove nothing")
-ck(_nrep["regulation_exact_pct"] is not None
-   and _nrep["regulation_exact_pct"] >= 92.0,
-   "🔴🔴 %d of %d REGULATION GAMES TILE THE CLOCK EXACTLY (%.2f pct)"
-   % (_nrep["regulation_exact_3600"], _nrep["regulation_games"],
-      _nrep["regulation_exact_pct"]),
-   "⛔ THE BAR SITS BETWEEN TWO MEASURED NUMBERS, not at a round one: "
-   "94.42 pct with the drive time read from the first row of the drive "
-   "that PARSES, and 88.48 pct reading only the first row. A derivation "
-   "bug moves this rate; a hard `== 3600` would instead redden on the "
-   "15 real games whose source rows carry no time at all.")
+ck(_nrep["regulation_exact_3600"] == _nrep["regulation_games"],
+   "🔴🔴 EVERY REGULATION GAME TILES THE CLOCK EXACTLY (%d of %d, zero "
+   "seconds of deviation)"
+   % (_nrep["regulation_exact_3600"], _nrep["regulation_games"]),
+   "⛔ EQUALITY, NOT A RATE. ~~A 92 pct bar~~ stood here and it was WRONG: "
+   "it existed only because this keyed on `fixed_drive`, which mis-tiled "
+   "15 games and made the identity look like it held 94.42 pct of the "
+   "time. A rate bar passes a regression that breaks up to 8 pct of "
+   "games; equality catches the first one. Off-identity: %s"
+   % _nrep.get("regulation_off_identity"))
 ck(_nrep["overtime_over_3600"] == _nrep["overtime_games"],
    "🔴 ...and every one of the %d overtime games exceeds it"
    % _nrep["overtime_games"],
    "⛔ an overtime game that did NOT would mean the extra period was "
    "being dropped. Got %d of %d"
    % (_nrep["overtime_over_3600"], _nrep["overtime_games"]))
-ck(_nrep["recovered_from_later_row"] > 0,
-   "🔴🔴 %d DRIVES CARRY NO TIME ON THEIR FIRST ROW AND ONE ON A LATER "
-   "ONE" % _nrep["recovered_from_later_row"],
-   "⛔ THE BUG THIS FOUND: taking the first row dropped every one of "
-   "them, and with them the whole drive. It cost 16 regulation games "
-   "their exact tiling (238 of 269 against 254 of 269).")
+ck(_nrep["recovered_from_later_row"] == 0 and _nrep["unparsed"] == 0,
+   "⚠️ the later-row recovery fires ZERO times on real data (%d), and no "
+   "drive is unparsed (%d)"
+   % (_nrep["recovered_from_later_row"], _nrep["unparsed"]),
+   "⛔ SAID OUT LOUD SO A DEAD BRANCH DOES NOT LOOK LOAD-BEARING. It was "
+   "written when this keyed on `fixed_drive`, where it 'recovered' 18 "
+   "drives — an artifact of the wrong grouping, not a source quirk. "
+   "Every real drive carries its time on its first row.")
 ck(_nrep["games_withheld"] == 0,
    "✅ ...and the coverage floor withholds NOTHING here (%d of %d)"
    % (_nrep["games_withheld"], _nrep["games_seen"]),
@@ -263,8 +281,12 @@ ck(_nrep["games_withheld"] == 0,
 _nraw = {t: v["seconds"] / float(v["games"]) for t, v in _npay["teams"].items()}
 _nshr = {t: v["seconds_per_game"] for t, v in _npay["teams"].items()}
 _nk = sorted(_npay["teams"])
-_nd = [abs(_nraw[t] - _nshr[t]) for t in _nk]
-_r_nfl = pearson([_nraw[t] for t in _nk], [_nshr[t] for t in _nk])
+# ⚠️ AND THIS BLOCK SURVIVES A REFUSAL TOO. With no teams there is no
+#    correlation to take, and `pearson` would divide by zero — which
+#    would cost every check below for the wrong reason.
+_nd = [abs(_nraw[t] - _nshr[t]) for t in _nk] or [9999.0]
+_r_nfl = (pearson([_nraw[t] for t in _nk], [_nshr[t] for t in _nk])
+          if len(_nk) > 2 else 0.0)
 ck(max(_nd) <= 60 and _r_nfl >= 0.95,
    "✅ NFL raw vs share: max |diff| %.0fs, r %+.4f — INTERCHANGEABLE"
    % (max(_nd), _r_nfl),
@@ -329,7 +351,8 @@ ck(_npay["unit"] == _cpay["unit"] == "share_of_game_clock",
 _ns = {frozenset(v) for v in _npay["teams"].values()}
 _cs = {frozenset(v) for v in _cpay["teams"].values()}
 ck(_ns == _cs and len(_ns) == 1,
-   "🔴 ...and one per-team shape: %s" % sorted(next(iter(_ns))),
+   "🔴 ...and one per-team shape: %s"
+   % (sorted(next(iter(_ns))) if _ns else "— no NFL teams at all"),
    "nfl %s ; cfb %s" % ([sorted(x) for x in _ns], [sorted(x) for x in _cs]))
 _bad = [(t, k, v) for pay in (_npay, _cpay)
         for t, d in pay["teams"].items() for k, v in d.items()
