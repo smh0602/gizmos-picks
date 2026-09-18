@@ -35,6 +35,16 @@ Sections 3-7 drive `cfb.coaches_probe` itself against stub payloads.
 #   find:    "corrected_value": true,
 #   with:    "corrected_value": false,
 #
+# @vacuity superseded content stays VISIBLY STRUCK
+#   file: data/ncaaf/latest/coaches-probe.json
+#   find: see start_year.superseded. ~~\"New this season\" is NOT COMPUTABLE
+#   with: see start_year.superseded. \"New this season\" is NOT COMPUTABLE
+#
+# @vacuity the original verdict stays PRESERVED, never erased
+#   file: data/ncaaf/latest/coaches-probe.json
+#   find: "verdict_stored_originally": "EXISTS
+#   with: "verdict_stored_originallyX": "EXISTS
+#
 # @vacuity a probe mode may write ONLY its own report
 #   file: cfb.py
 #   find: p = f"{OUT}/{COACHES_PROBE_FILE}"
@@ -695,6 +705,26 @@ if os.path.exists(_ART):
            "SUPERSEDED" in (_a.get("verdict") or ""),
            "⛔ a reader who opens this file sees `verdict` first. "
            "verdict=%r" % ((_a.get("verdict") or "")[:120],))
+        # 🔴 SUPERSEDED CONTENT STAYS VISIBLY STRUCK, AND THE ORIGINAL
+        #    STAYS PRESERVED. `[Sam's mutation drive on #62, 2026-09-18]`
+        #    Deleting the `~~…~~` strike, and deleting
+        #    `verdict_stored_originally`, BOTH left this file green — the
+        #    substance was guarded by the contradiction check above, the
+        #    PRESENTATION was not. ⛔ This repo's standing form is a
+        #    struck line beside the correction (CLAUDE.md does it a dozen
+        #    times, and `picks/` is annotated, never erased), so a later
+        #    edit must not be able to quietly tidy either away.
+        ck("🔴 the superseded clause is VISIBLY STRUCK, not just replaced",
+           "~~" in (_a.get("verdict") or ""),
+           "⛔ a reader must see WHAT was withdrawn, not only what "
+           "replaced it. A verdict that reads clean hides that it ever "
+           "said otherwise. verdict=%r" % ((_a.get("verdict") or "")[:140],))
+        ck("🔴 ...and the original line is PRESERVED verbatim, never erased",
+           bool(_a.get("verdict_stored_originally"))
+           and "NOT COMPUTABLE" in (_a.get("verdict_stored_originally") or ""),
+           "⛔ the record is annotated, never rewritten — the same rule as "
+           "a published card. verdict_stored_originally=%r"
+           % ((_a.get("verdict_stored_originally") or "")[:100],))
         ck("...and it cites the evidence out of this same file",
            bool((_sup.get("evidence") or {})),
            "the contradiction is provable from `columns` and `sample_row`, "
