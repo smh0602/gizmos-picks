@@ -25,8 +25,8 @@ added — and a new watcher is precisely the one most likely to forget.
 
 # @vacuity 🔴 a watcher that files without the label is caught
 #   file: .github/workflows/vacuity.yml
-#   find:             gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/vacuity.md --assignee smh0602 \\
-#   with:             gh issue create --title "$TITLE" --body-file /tmp/vacuity.md --assignee smh0602 \\
+#   find:             gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/vacuity.md --assignee smh0602 \
+#   with:             gh issue create --title "$TITLE" --body-file /tmp/vacuity.md --assignee smh0602 \
 #
 # @vacuity ⛔ the label is ensured to exist, so a create cannot fail on it
 #   file: .github/workflows/vacuity.yml
@@ -35,8 +35,8 @@ added — and a new watcher is precisely the one most likely to forget.
 #
 # @vacuity 🔴 triage reads the issue queue, not health.json alone
 #   file: .github/workflows/self-repair.yml
-#   find:           QUEUE=$(gh issue list --state open --label gizmo-watch \\
-#   with:           QUEUE=$(echo "[]" && false || echo "[]" && true && gh issue list --state open --label nope \\
+#   find:           QUEUE=$(gh issue list --state open --label gizmo-watch \
+#   with:           QUEUE=$(echo "[]" && false || echo "[]" && true && gh issue list --state open --label nope \
 #
 # @vacuity ⚠️ the queue is oldest-first, so nothing starves
 #   file: .github/workflows/self-repair.yml
