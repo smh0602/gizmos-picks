@@ -27,6 +27,7 @@ Usage:  python collect.py card
 """
 
 import collections
+import glob
 import gzip
 import json
 import os
@@ -34,8 +35,14 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
+
+# 📰 THE ONE DATED, WRITE-ONCE ARCHIVE WRITER (rule 117). Already shared
+#    by `dossier_fb` and `shadow_fb`; the news archive is its third
+#    caller and writes nothing of its own.
+import daystore
 
 ODDS_KEY = os.environ.get("ODDS_API_KEY", "").strip()
 API = "https://api.the-odds-api.com/v4"
@@ -2663,6 +2670,144 @@ def build_record_fb():
     return None
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 📰 KEEPING THE NEWS WE ALREADY PULL.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 WE FETCH IT HOURLY, FREE, AND KEEP NONE OF IT. `latest/news.json` is
+# overwritten in place 24 times a day and `find data -name "news*" -not
+# -path "*/latest/*"` returned NOTHING. `daystore.archive()` already
+# existed and already served two callers; it was never pointed at this.
+#
+# ⛔ THE ARCHIVE IS THE **DELTA**, NOT THE SNAPSHOT. Measured churn is
+# ~0.8 genuinely new items an hour for nfl and ~2.5 for ncaaf against a
+# 50-item window, so an hourly pull is ~97% repeats. Whole snapshots
+# would cost ~410 KB/day against ~3.5 MB/day of current growth to store
+# the same fifty headlines over and over.
+#
+# ⚠️ AND IT IS WRITE-ONCE, which is why the delta shape is the one that
+# fits: `daystore` refuses to rewrite a file, so a daily union rebuilt in
+# place would break its contract. The day's union is a cheap read over
+# the day's files instead.
+def _news_link_key(url):
+    """The dedupe key: the link, query string and fragment stripped, host
+    lowercased.
+
+    ⛔ NOT THE TITLE. Outlets re-title stories in place and a re-title is
+    NOT a new story — keying on the title would archive the same piece
+    twice and call it news. ⚠️ The reverse case is handled by the caller:
+    the same link with a changed title is a CORRECTION, kept as a
+    revision rather than dropped or silently overwritten.
+    """
+    try:
+        u = urllib.parse.urlsplit((url or "").strip())
+    except Exception:
+        return (url or "").strip().lower()
+    if not u.netloc:
+        return (url or "").strip().lower()
+    return urllib.parse.urlunsplit(
+        (u.scheme.lower(), u.netloc.lower(), u.path, "", ""))
+
+
+def _news_seen_today(day_dir):
+    """`{link_key: item}` for everything already archived today.
+
+    ⛔ READ-ONLY, and it reads the DAY's files rather than a running
+    index — there is no state to corrupt and nothing to rebuild.
+    """
+    seen = {}
+    for f in sorted(glob.glob(os.path.join(day_dir, "*.json.gz"))):
+        try:
+            with gzip.open(f, "rt") as fh:
+                doc = json.load(fh)
+        except Exception:
+            # ⚠️ A single unreadable archive must not make the day look
+            #    empty — that would re-archive everything and call it new.
+            log(f"  news archive: could not read {f}, skipping it")
+            continue
+        for it in (doc.get("items") or []):
+            k = it.get("link_key")
+            if k:
+                seen[k] = it
+    return seen
+
+
+def archive_news(items, pulled_at, data=None, log=log, when=None):
+    """Archive the items this pull saw for the FIRST time today.
+
+    -> (path, wrote?, n_new, n_revised)
+
+    ⛔ IT WRITES EVERY HOUR, EVEN WITH AN EMPTY DELTA, and that is
+    deliberate: "we pulled and nothing was new" and "we did not pull" are
+    different facts, and an archive that cannot tell them apart cannot
+    answer the question it exists for. An empty reading is a couple of
+    hundred bytes gzipped.
+    """
+    data = data or DATA
+    # 🔴 ONE CLOCK, READ ONCE (rule 66). The day we scan for "already seen"
+    #    and the day we write into MUST be the same day, and they were
+    #    two different clocks until this was driven: `day_dir` came from
+    #    this module's `now()` while the path came from `daystore`'s own.
+    # ⛔ Across UTC midnight those disagree, the seen-set is read from one
+    #    day, the file lands in the other, and EVERY ITEM ARCHIVES AS NEW.
+    #    A duplicate day of headlines is a corrupted answer to the only
+    #    question this archive exists for.
+    when = when or now()
+    day_dir = os.path.join(data, when.strftime("%Y-%m-%d"), "news")
+    seen = _news_seen_today(day_dir)
+    fresh, revised = [], []
+    for it in (items or []):
+        k = _news_link_key(it.get("link"))
+        if not k:
+            continue
+        prev = seen.get(k)
+        if prev is None:
+            row = dict(it)
+            row["link_key"] = k
+            # 🔴 `first_seen` IS WHEN **WE** COULD HAVE KNOWN, AND IT IS
+            #    NEVER DERIVED FROM `published`. `published` is the
+            #    outlet's claim about when it wrote the story; the
+            #    line-movement question is "did the news PRECEDE the
+            #    move", which is a question about what was KNOWABLE.
+            # ⛔ Answering it with `published` would answer an easier
+            #    question and flatter every result. Both are recorded;
+            #    neither is computed from the other.
+            row["first_seen"] = pulled_at
+            row["revision"] = 0
+            fresh.append(row)
+            seen[k] = row
+        elif (it.get("title") or "") != (prev.get("title") or ""):
+            # ⚠️ SAME LINK, DIFFERENT TITLE — a correction. Kept as a new
+            #    row so the change is VISIBLE. ⛔ `first_seen` stays the
+            #    original: this is the same story, and when we could first
+            #    have known about it did not change.
+            row = dict(it)
+            row["link_key"] = k
+            row["first_seen"] = prev.get("first_seen")
+            row["revision"] = int(prev.get("revision") or 0) + 1
+            row["revised_at"] = pulled_at
+            row["previous_title"] = prev.get("title")
+            revised.append(row)
+            seen[k] = row
+    doc = {
+        "kind": "DESCRIPTIVE",
+        "pulled_at": pulled_at,
+        "n_new": len(fresh),
+        "n_revised": len(revised),
+        "n_in_pull": len(items or []),
+        "items": fresh + revised,
+        "note": ("The items this pull saw for the FIRST time today, plus "
+                 "any whose title changed. ⛔ NOT the whole feed — the "
+                 "day's union is a read over the day's files. `first_seen` "
+                 "is when WE could have known; `published` is the "
+                 "outlet's claim. Neither is derived from the other."),
+    }
+    p, wrote = daystore.archive(doc, data, "news", log=log, when=when)
+    log(f"  news archive: {len(fresh)} new, {len(revised)} revised, "
+        f"{len(items or [])} in the pull -> {p}"
+        + ("" if wrote else "  (left as it was)"))
+    return p, wrote, len(fresh), len(revised)
+
+
 def collect_news():
     # 🔴 THE LEAGUE PICKS THE LIST. ⛔ An empty list is NOT an error and
     # must NOT write an empty news.json over a good one -- football has no
@@ -2721,8 +2866,9 @@ def collect_news():
     if not items:
         raise RuntimeError("every news feed failed — nothing written")
 
+    _pulled_at = stamp()
     write(f"{LATEST}/news.json", {
-        "pulled_at": stamp(),
+        "pulled_at": _pulled_at,
         "kind": "DESCRIPTIVE",
         "n": len(items),
         # ⚠️ PER-FEED HEALTH, so a dead source is visible in the artifact
@@ -2733,6 +2879,38 @@ def collect_news():
         "items": items[:60],
     })
     log(f"news: {len(items)} items from {len({i['source'] for i in items})} sources")
+    # ══════════════════════════════════════════════════════════════════
+    # 📰 AND KEEP IT. ⛔ AFTER `latest/news.json`, never instead of it.
+    # ⚠️ A FAILURE HERE MUST NOT LOSE THE NEWS. `latest/news.json` is the
+    # thing the page reads and it is already written above; the archive is
+    # a record for a question nobody can ask yet. ⛔ Same contract the
+    # shadow record has on the card path.
+    # 💰 ZERO API CALLS: this re-uses the items the pull already returned.
+    # ══════════════════════════════════════════════════════════════════
+    # ⛔ FOOTBALL ONLY. MLB IS FROZEN, and the brief for this change says
+    # no MLB. ⚠️ Note that MLB *does* have a news feed — `NEWS_FEEDS["mlb"]`
+    # is populated and `data/latest/news.json` is 21 KB on disk — so this
+    # gate is doing real work rather than describing an empty case. The
+    # line-movement question this archive exists for is a FOOTBALL props
+    # question; extending it to MLB is a decision, not a default.
+    # ⛔ FOOTBALL ONLY, AND THE GATE READS **WHERE IT WOULD WRITE**.
+    # ⚠️ MLB IS FROZEN and this change is scoped away from it. Note that
+    # MLB *does* have a news feed — `NEWS_FEEDS["mlb"]` is populated and
+    # `data/latest/news.json` is 21 KB on disk — so this gate does real
+    # work rather than describing an empty case.
+    # 🔴 IT KEYS ON `DATA`, NOT ON `LEAGUE`, AND THAT IS THE POINT.
+    #    `test_news.py` sets `C.LEAGUE = "nfl"` while `C.DATA` is still
+    #    `data` — MLB's root — and a gate reading LEAGUE wrote a real
+    #    archive into MLB's tree from a test run. `DATA` is what decides
+    #    the destination, so `DATA` is what may permit the write. Two
+    #    sources for one fact is the same bug as the two clocks above.
+    try:
+        if os.path.basename(DATA.rstrip("/")) in ("nfl", "ncaaf"):
+            archive_news(items[:60], _pulled_at)
+    except Exception as e:
+        log(f"  ⚠️ the news archive did not write "
+            f"({type(e).__name__}: {e}) — `latest/news.json` IS FINE and "
+            f"is not rolled back.")
     return None
 
 
