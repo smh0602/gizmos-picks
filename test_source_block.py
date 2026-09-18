@@ -36,6 +36,7 @@ WHAT IS PINNED HERE:
 """
 import datetime
 import gzip
+import io
 import json
 import os
 import re
@@ -146,13 +147,32 @@ def _gate(age_days, state="refused"):
     #    the stamp inside the file and never `getmtime`, so this is the
     #    supported way to age one — and it now holds whether the live
     #    table is six days old or six minutes.
-    _art = f"{d}/data/ncaaf/latest/allowed-by-position-2026.json.gz"
-    if os.path.exists(_art):
-        _doc = json.load(gzip.open(_art, "rt"))
-        _doc["built_at"] = (NOW - datetime.timedelta(days=7)).strftime(
-            "%Y-%m-%dT%H:%M:%SZ")
-        with gzip.open(_art, "wt") as _fh:
-            json.dump(_doc, _fh)
+    # ⚠️ EVERY ARTIFACT THE MODE OWNS, NOT JUST THE FIRST ONE. `cfb-probe`
+    #    writes TWO watched files — the defence-vs-position table and the
+    #    possession probe — and ageing only one leaves the other MISSING.
+    # 🔴 A MISSING ROW IS NEVER DOWNGRADED, DELIBERATELY: `verify_freshness`
+    #    carries `and not r["missing"]`, because "we have never seen this
+    #    file" is a stronger statement than "it is old". So a sandbox that
+    #    ages one file and leaves the other absent produces an ERROR line
+    #    for the same mode the downgrade is being asserted about, and the
+    #    assertion below stops describing what it means to describe.
+    # ⛔ THE FIXTURE IS WHAT WAS INCOMPLETE, NOT THE CHECK. The assertion
+    #    is unchanged and now has two rows to hold rather than one.
+    _built = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for _art in (f"{d}/data/ncaaf/latest/allowed-by-position-2026.json.gz",
+                 f"{d}/data/ncaaf/latest/top-probe-2026.json"):
+        if not os.path.exists(_art):
+            continue
+        _gz = _art.endswith(".gz")
+        _doc = json.load(gzip.open(_art, "rt") if _gz
+                         else io.open(_art, encoding="utf-8"))
+        _doc["built_at"] = _built
+        if _gz:
+            with gzip.open(_art, "wt") as _fh:
+                json.dump(_doc, _fh)
+        else:
+            with io.open(_art, "w", encoding="utf-8") as _fh:
+                json.dump(_doc, _fh)
     when = NOW - datetime.timedelta(minutes=5)
     body = (_report(when, failed=[2026], extra="HTTPError 429")
             if state == "refused"
