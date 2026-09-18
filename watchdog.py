@@ -114,6 +114,93 @@ HEALTH = "data/latest/health.json"
 
 LEAGUES = ("mlb", "ncaaf", "nfl")
 DATA = {"mlb": "data", "ncaaf": "data/ncaaf", "nfl": "data/nfl"}
+
+# ══════════════════════════════════════════════════════════════════════
+# 💰 WHERE THE CREDIT BALANCE COMES FROM, AND WHERE IT DOES NOT.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE RESERVE GUARD WORKS AND NOTHING EVER SAID SO. `collect.py` stands
+# down rather than spending past `RESERVE`, so the site degrades instead
+# of dying — and the FIRST VISIBLE SYMPTOM is pulls quietly standing
+# down, which looks exactly like missing data, a dropped cron or a dead
+# feed. ⛔ The one failure that hands you a plausible wrong explanation.
+#
+# ✅ IT READS THE API'S OWN NUMBER. The Odds API returns a remaining-quota
+# header on every paid pull and `collect.py` records it as
+# `credits_remaining`; this reads the newest one back out of the stored
+# snapshots.
+# ⚠️ THE HEADER'S LITERAL NAME IS DELIBERATELY NOT WRITTEN IN THIS FILE.
+# `test_watchdog.py` forbids every network primitive here by substring —
+# a blunt instrument that errs toward refusing, which for a guard about
+# spending Sam's money is the safe direction — and the header's name
+# contains one of those substrings. ⛔ The check is not the thing to
+# loosen; `collect.py` is where the header is named.
+# ⛔ NOT `budget.py`'s projection, and NOT a plan size. `budget.py:23`
+# hard-codes `PLAN = 20000` and `cfbd_budget.py` hard-codes `1000`,
+# neither read from an API — the same shape as the CFBD figure that a
+# live header (`X-CallLimit-Remaining: 2374`) turned out to contradict.
+# **A measurement is a measurement; a plan size is a claim.**
+#
+# ⛔ AND IT SPENDS NOTHING. Every figure is already on disk.
+#
+# ⚠️ `SRCDIR` IS THE REPO'S OWN SOURCE, AND IT IS SEPARATE FROM `ROOT` ON
+# PURPOSE. Tests swap `ROOT` to a synthetic data tree; the reserve has to
+# come from the real `collect.py` in production and from a synthetic one
+# under test, so it gets its own swappable name rather than riding on the
+# data root.
+SRCDIR = ROOT
+
+# The dated, timed, PAID snapshot paths — the only files that carry a
+# balance. ⛔ Matched on the STORAGE SHAPE rather than a mode list, so a
+# new paid mode is covered the day it first writes one.
+PAID_SNAPSHOT = re.compile(
+    r"(\d{4}-\d{2}-\d{2})/(gamelines|props-[a-z-]+)/(\d{4})\.json\.gz$")
+
+
+def _reserve():
+    """`RESERVE` AS `collect.py` DEFINES IT. ⛔ NEVER A COPY.
+
+    🔴 A hard-coded 750 here would silently stop describing the thing it
+    is named after the first time the collector's floor moved. Same rule
+    as the budget: never keep a number you cannot re-derive.
+    ⚠️ Returns None when it cannot be read, and the caller treats that as
+    a finding rather than as a default — a watcher that invents the floor
+    it is watching is worse than one that says it cannot see it.
+    """
+    try:
+        src = open(os.path.join(SRCDIR, "collect.py"),
+                   encoding="utf-8").read()
+    except OSError:
+        return None
+    m = re.search(r"^RESERVE\s*=\s*(\d+)", src, re.M)
+    return int(m.group(1)) if m else None
+
+
+def _paid_readings(root=None):
+    """Every stored balance reading, newest first.
+
+    -> [(pulled_at, credits_remaining, path)]  ⛔ read-only, zero spend.
+    """
+    root = root or ROOT
+    rows = []
+    for f in glob.glob(os.path.join(root, "data", "**", "*.json.gz"),
+                       recursive=True):
+        m = PAID_SNAPSHOT.search(f.replace(os.sep, "/"))
+        if not m:
+            continue
+        rows.append((m.group(1) + "T" + m.group(3), f))
+    # ⛔ ORDERED BY THE PATH'S OWN DATE AND TIME, NEVER BY MTIME. A fresh
+    #    checkout rewrites every mtime, so on the runner mtime says when
+    #    CI cloned the repo and nothing about when a pull happened.
+    rows.sort(reverse=True)
+    out = []
+    for _key, f in rows:
+        # ⛔ `_read` ALREADY HANDLES `.gz` — one reader, not a second
+        #    copy of the same three lines (rule 117).
+        j = _read(f)
+        if not j:
+            continue
+        out.append((j.get("pulled_at"), j.get("credits_remaining"), f))
+    return out
 PICKS = {"mlb": "picks", "ncaaf": "picks", "nfl": "picks"}
 
 
@@ -635,6 +722,136 @@ def check_record_written(rep, now):
                      repair="record")
 
 
+def check_credit_balance(rep, now):
+    """💰 HOW CLOSE IS THE COLLECTOR TO STANDING DOWN?
+
+    🔴 THE RESERVE GUARD IS REAL AND NOTHING EVER SAID SO. `collect.py`
+    refuses to spend past `RESERVE`, so a quota problem shows up as pulls
+    QUIETLY STANDING DOWN — indistinguishable, from the outside, from
+    missing data, a dropped cron or a dead feed. ⛔ This check exists so
+    that the explanation arrives with the symptom.
+
+    ⛔ IT SPENDS NOTHING and it asks the API nothing. Every figure is the
+    API's own remaining-quota header, already written into a stored
+    snapshot as `credits_remaining`.
+
+    ⚠️ IT STATES A CLAIM ABOUT OUR RECORDS, NEVER ABOUT THE ACCOUNT. "We
+    hold no reading newer than X" is true; "the account has N credits" is
+    a sentence about Sam's plan that a stored file cannot support.
+    """
+    reserve = _reserve()
+    if reserve is None:
+        # ⛔ A WATCHER THAT INVENTS THE FLOOR IT IS WATCHING IS WORSE THAN
+        #    ONE THAT SAYS IT CANNOT SEE IT.
+        rep.warn("credits:reserve",
+                 "the spend floor could not be read, so the credit "
+                 "balance cannot be judged against it",
+                 "no `RESERVE = <n>` line was found in collect.py")
+        return
+
+    readings = _paid_readings()
+    if not readings:
+        # ⚠️ NO PAID SNAPSHOT AT ALL is a legitimate state in a fresh
+        #    tree and must not alarm; it is recorded so a reader can tell
+        #    "nothing to read" from "read and healthy" (rule 67 one level
+        #    up).
+        rep.note_credits = {"state": "NO_READING", "reserve": reserve,
+                            "balance": None, "pulled_at": None,
+                            "why": ("We hold no paid snapshot, so there "
+                                    "is no balance reading to report.")}
+        return
+
+    newest_pull = readings[0][0]
+    # ⛔ THE NEWEST READING THAT ACTUALLY CARRIES A NUMBER — not simply
+    #    the newest file. A snapshot written down an error path can lack
+    #    the field, and taking `readings[0][1]` blindly would report
+    #    `None` as a balance.
+    bal, at, src = None, None, None
+    for pulled, credits, f in readings:
+        if isinstance(credits, int):
+            bal, at, src = credits, pulled, f
+            break
+    if bal is None:
+        rep.warn("credits:unreadable",
+                 "no stored pull carries a credit balance, so how close "
+                 "the collector is to standing down is unknown",
+                 "%d paid snapshot(s) on disk and none holds "
+                 "`credits_remaining`" % len(readings))
+        return
+
+    # 🔴 STALE IS THE CASE THAT MATTERS, AND IT IS THE EASY ONE TO SKIP.
+    # ⛔ A watcher that reads a three-day-old balance and reports HEALTHY
+    #    is worse than no watcher: it ACTIVELY ARGUES AGAINST the correct
+    #    diagnosis while pulls stand down. So the reading is compared
+    #    against the newest paid pull, not against the clock — money was
+    #    spent after the last number we hold, and that number is
+    #    therefore not current.
+    stale = bool(newest_pull and at and newest_pull > at)
+    gap_h = _hours_between(at, newest_pull) if stale else 0.0
+    age_h = _hours_between(at, now.strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+    warn_at = reserve * 3
+    state = ("CRITICAL" if bal <= reserve else
+             "STALE" if stale else
+             "LOW" if bal <= warn_at else "HEALTHY")
+
+    # 📌 THE OPERATOR'S SURFACE, IN FULL. `health.json` is already wired
+    #    and already the place an operator looks. ⛔ NOT the public page:
+    #    a credit balance is operational, not a fact about a game, and
+    #    rule 55 governs what sits beside a price.
+    rep.note_credits = {
+        "state": state, "balance": bal, "pulled_at": at,
+        "reserve": reserve, "warn_at": warn_at,
+        "reading_age_hours": round(age_h, 1) if age_h is not None else None,
+        "behind_newest_pull_hours": round(gap_h, 1) if stale else 0.0,
+        "newest_paid_pull": newest_pull,
+        "source": os.path.relpath(src, ROOT) if src else None,
+        "readings_on_disk": len(readings),
+        "basis": ("The API's own remaining-quota header, recorded on a "
+                  "paid pull as `credits_remaining`. ⛔ NOT a plan size "
+                  "and NOT budget.py's projection."),
+        "stands_down_first": ("A props pull is priced per game, so it is "
+                              "the first thing that cannot afford to run; "
+                              "the bulk game-lines pull is the cheapest "
+                              "and stands down last."),
+    }
+
+    if state == "CRITICAL":
+        rep.bad("credits:reserve",
+                "paid pulls are standing down — any missing prices have "
+                "an explanation",
+                "we hold no reading newer than %s, and it says %d left "
+                "against a floor of %d. Below that floor the collector "
+                "refuses to spend, so props stop first." % (at, bal, reserve))
+    elif state == "STALE":
+        rep.warn("credits:stale",
+                 "the credit balance we hold is not current, so how close "
+                 "the collector is to standing down is unknown",
+                 "we hold no reading newer than %s, and a paid pull ran "
+                 "at %s — %.0f hour(s) later. The last number we have is "
+                 "%d against a floor of %d, and spending since then is "
+                 "not reflected in it."
+                 % (at, newest_pull, gap_h, bal, reserve))
+    elif state == "LOW":
+        rep.warn("credits:low",
+                 "the credit balance is within reach of the floor where "
+                 "paid pulls stand down",
+                 "we hold %d as of %s, against a floor of %d. Props are "
+                 "priced per game and stop first." % (bal, at, reserve))
+
+
+def _hours_between(a, b):
+    """Hours from timestamp `a` to `b`. ⚠️ None when either cannot be read
+    — never a zero, because zero would read as "current"."""
+    try:
+        fmt = "%Y-%m-%dT%H:%M:%SZ"
+        ta = datetime.datetime.strptime(a, fmt)
+        tb = datetime.datetime.strptime(b, fmt)
+    except Exception:
+        return None
+    return (tb - ta).total_seconds() / 3600.0
+
+
 def check_board_not_empty(rep, now):
     """⚠️ THE BUILDER HAD CANDIDATES AND CARDED NONE OF THEM.
 
@@ -740,7 +957,11 @@ def check_record_sane(rep, now):
 CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_verify_failure, check_card_day_agreement,
           check_board_not_empty, check_record_sane,
-          check_freshness, check_record_written)
+          check_freshness, check_record_written,
+          # 💰 THE TENTH. ⛔ Not a second reporting channel — it writes
+          #    into the same health report and escalates through the same
+          #    single issue.
+          check_credit_balance)
 
 
 def _previous():
@@ -841,6 +1062,16 @@ def run(now=None):
         "unrepairable": sorted({i["key"].split(":")[0] for i in rep.broken
                                 if i["repair"] not in SAFE_REPAIRS}),
     }
+    # 💰 THE CREDIT READING GOES IN WHETHER OR NOT IT IS A FINDING.
+    # ⛔ A balance that only appears when it is already a problem cannot
+    #    be watched CLOSING — and the gap closing as the season fills is
+    #    the thing `budget.py`'s own ceiling warning is about. ✅ So the
+    #    number, its age, the floor it is measured against and which of
+    #    the states applies are always here, in the one place an operator
+    #    already reads.
+    # ⛔ AND NOT ON THE PUBLIC PAGE: operational, not a fact about a game.
+    if getattr(rep, "note_credits", None):
+        out["credits"] = rep.note_credits
     return out
 
 
