@@ -76,18 +76,22 @@ T60_P = 0.01
 # which null it was scored under.
 BREAK_EVEN = 110.0 / 210.0
 
-# ⛔⛔ AND THE FOURTH TERM IS NOT WRITTEN DOWN HERE, BECAUSE I CANNOT READ
-# IT. The bar also carries a minimum n ("NOT YET MEASURABLE under n") and
-# that number lives in `claude/owed-tests.md`, a path this repository does
-# not contain and never has. CLAUDE.md: "⛔ Do not infer what a missing
-# doc said, and do not treat its absence as permission."
-# ➡️ SO IT IS None, AND None CAN NEVER PASS. Until Sam supplies the
-# figure the verdict reads AWAITING_PRE_REGISTERED_N even if the rate and
-# the p-value both clear — which is the conservative direction, and today
-# the sample is far below any plausible floor anyway.
-# ⚠️ `test_shadow_fb.py` FAILS IF THIS IS FILLED IN silently. Changing it
-# is a decision about a pre-registered test, not a code tidy-up.
-T60_MIN_EFF_N = None
+# 🔴🔴 THE FOURTH TERM, SUPPLIED BY SAM ON 2026-09-18 AND NOT DERIVED
+# HERE. `claude/owed-tests.md` holds the bar and this repository does not
+# contain that file; the figure was ASKED FOR rather than inferred, and
+# it arrived with its own derivation:
+#
+#     one-sided, α = 0.01, power 0.80, p0 = 0.5238, p1 = 0.554  ->  2774
+#
+# ⛔ AND IT IS A MINIMUM ON THE **EFFECTIVE** n, NOT THE RAW ROW COUNT.
+# The power calculation assumes independent observations, which is
+# exactly the quantity `cluster()` estimates — so comparing it against
+# the raw count would be comparing a number to a different number that
+# happens to share a name.
+# ⚠️ `test_shadow_fb.py` FAILS IF THIS BECOMES ANYTHING ELSE, including
+# `None`. Changing it is a decision about a pre-registered test, not a
+# code tidy-up, and a bar edited after seeing data is not pre-registered.
+T60_MIN_EFF_N = 2774
 
 # ⚠️ THE MARKETS ARE `card_fb.MARKETS`, NOT A LIST HERE. Those are the
 #    ones `record_fb._val` can actually read a result for; a market this
@@ -234,10 +238,24 @@ def pair_bound(rows):
     """The MOST independent observations these rows can carry.
 
     ══════════════════════════════════════════════════════════════════
-    🔴🔴 FOUND BY DRIVING IT, NOT BY READING IT. `[2026-09-17]` The
-    cluster estimator below reported `deff 1.0` on 1,331 real graded
-    rows across 16 games — i.e. "1,331 independent observations" — and
-    it was RIGHT about its own estimand and USELESS as a headline.
+    🔴🔴 THE BRIEF GUARDED ONE DIRECTION AND THE DATA PRODUCED THE
+    OTHER. `[2026-09-17, and recorded this way on Sam's instruction]`
+    The task specified a guard against correlated rows INFLATING n. What
+    the board actually does is the reverse.
+
+    ➡️ THE CLASS, WHICH IS WORTH MORE THAN THE FIX: **A DESIGN EFFECT CAN
+    BE LESS THAN ONE, AND THEN THE CLUSTER CORRECTION ADDS CONFIDENCE
+    INSTEAD OF REMOVING IT.** A variance-based effective n therefore
+    needs a COMBINATORIAL CEILING, because the number of independent
+    observations cannot exceed the number of distinct outcomes the market
+    resolves — and a complementary pair resolves once. Taking the minimum
+    of the two, and naming which bound applied, is the construction.
+    ⛔ The brief was wrong and the running was right.
+
+    🔴 FOUND BY DRIVING IT, NOT BY READING IT. The cluster estimator
+    below reported `deff 1.0` on 1,331 real graded rows across 16 games —
+    i.e. "1,331 independent observations" — and it was RIGHT about its
+    own estimand and USELESS as a headline.
     ⛔ The reason is that the board prices BOTH SIDES: measured on those
     rows, 509 keys carried both an Over and an Under (1,018 rows) beside
     313 one-sided anytime-TD rows. Within a game, every Over that wins
@@ -262,7 +280,30 @@ def pair_bound(rows):
 
 
 def cluster(rows, key="board_id"):
-    """Raw n, cluster count, and the effective n a p-value may use."""
+    """Raw n, cluster count, and the effective n a p-value may use.
+
+    ══════════════════════════════════════════════════════════════════
+    🔴🔴 UNGRADED ROWS LEAVE HERE, AND THE FILTER IS IN THIS FUNCTION
+    RATHER THAN IN ITS CALLERS. `[2026-09-18]`
+    ⛔ `this_reading` divided 541 wins by 1,374 WAGERS and reported
+    39.37%, while `pooled_all_rows` divided the same wins by the 1,245
+    GRADED rows and reported 43.45% — two blocks of one document
+    disagreeing by 4.1 points about the same rows, because one counted
+    every ungraded wager as a LOSS.
+    ⛔ AND 14 OF THEM WERE VOIDS. CLAUDE.md, on `verify_record.py`:
+    "Voids stay out of every denominator." The MLB grader enforces that;
+    this file broke the same rule in a new place.
+    ⚠️ A "no log for this player" row is not a loss either. It is a row
+    we could not grade, and telling those apart is the entire reason
+    `state` exists rather than a bare boolean.
+    ✅ SO ONE CALLER CANNOT GET IT RIGHT WHILE ANOTHER GETS IT WRONG —
+    the denominator is decided once, here, and what was dropped is
+    REPORTED rather than silently vanishing.
+    ══════════════════════════════════════════════════════════════════
+    """
+    dropped = collections.Counter(str(r.get("state") or "not graded")
+                                  for r in rows if r.get("won") is None)
+    rows = [r for r in rows if r.get("won") is not None]
     g = collections.defaultdict(lambda: [0, 0])      # cluster -> [wins, m]
     for r in rows:
         c = g[r.get(key)]
@@ -273,6 +314,10 @@ def cluster(rows, key="board_id"):
     G = len(g)
     pb = pair_bound(rows)
     rep = {"n": n, "wins": w, "games": G,
+           # ⚠️ NAMED, NOT SILENT. "n went down" with no reason beside it
+           #    is how a denominator change gets mistaken for a data loss.
+           "ungraded_excluded": sum(dropped.values()),
+           "ungraded_by_state": dict(dropped.most_common()),
            "rate": (w / n) if n else None,
            "rows_per_game": round(n / G, 2) if G else None,
            "pair_bound": pb["bound"], "complementary_pairs": pb["pairs"],
@@ -447,18 +492,38 @@ def sections_for(day, data=None):
     fs = sorted(glob.glob(os.path.join(data or DATA, day, "dossiers",
                                        "*.json.gz")))
     if not fs:
-        return {}, None
+        # ⚠️ AND IT SAYS WHICH ABSENCE THIS IS. `[2026-09-18]` A row with
+        #    `sections: null` reads identically whether the JOIN MISSED
+        #    or the dossier DID NOT EXIST, and those are opposite facts:
+        #    the first is a defect, the second is the calendar. The
+        #    dossier archive only begins the day the panel shipped, so
+        #    every board graded before it has nothing to join to — which
+        #    is correct and self-resolving, and unreadable if unsaid.
+        #    ⛔ Same reason `state` exists on a graded row rather than a
+        #    bare boolean.
+        have = sorted({os.path.basename(os.path.dirname(os.path.dirname(x)))
+                       for x in glob.glob(os.path.join(data or DATA, "*",
+                                                       "dossiers",
+                                                       "*.json.gz"))})
+        return {}, None, (
+            "no dossier archive for %s — %s. This is the calendar, not a "
+            "failed join."
+            % (day, ("the archive begins %s, so boards graded before it "
+                     "have nothing to join to" % have[0]) if have else
+               "nothing has been archived yet, so there is nothing to "
+               "join to at all"))
     f = fs[-1]
     try:
         doc = json.load(gzip.open(f, "rt"))
     except Exception:
-        return {}, None
+        return {}, None, ("%s's dossier archive could not be read"
+                          % day)
     out = {}
     for x in doc.get("dossiers") or []:
         if x.get("board_id"):
             out[x["board_id"]] = {s.get("name"): s.get("state")
                                   for s in (x.get("sections") or [])}
-    return out, os.path.basename(f)
+    return out, os.path.basename(f), None
 
 
 def possession_validated(root=None):
@@ -510,14 +575,22 @@ def grade_day(day, data=None, bk=None, log=log):
             "record_fb.grade_card returned %d rows for %d wagers — the "
             "one-row-per-pick contract this join relies on has changed"
             % (len(graded), len(w)))
-    sec, sec_from = sections_for(day, data)
+    sec, sec_from, no_arch = sections_for(day, data)
     rows = []
     for src, g in zip(w, graded):
+        got = sec.get(src["board_id"])
         rows.append({**g, "day": day, "board_id": src["board_id"],
                      "priced_at": src["priced_at"],
                      "n_books_for_this_side": src["n_books_for_this_side"],
-                     "sections": sec.get(src["board_id"]),
-                     "sections_from": sec_from})
+                     "sections": got,
+                     "sections_from": sec_from,
+                     # ⛔ `None` WHEN THERE IS NOTHING TO EXPLAIN. A
+                     #    reason on a row that HAS its sections is noise.
+                     "sections_absent": None if got else (
+                         no_arch or ("this game is not in %s's dossier — "
+                                     "the archive exists and does not "
+                                     "describe it, which IS a gap worth "
+                                     "looking at" % day))})
     return rows, None
 
 
@@ -579,10 +652,17 @@ def build(league=None, data=None, root=None, log=log, when=None):
             pending.append({"day": day, "why": why})
             continue
         g = [r for r in got if r.get("won") is not None]
+        _why = sorted({r["sections_absent"] for r in got
+                       if r.get("sections_absent")})
         per_day.append({"day": day, "wagers": len(got), "graded": len(g),
                         "wins": sum(1 for r in g if r["won"]),
                         "games": len({r.get("board_id") for r in got}),
-                        "described": len([r for r in got if r.get("sections")])})
+                        "described": len([r for r in got if r.get("sections")]),
+                        # ⚠️ ONCE BOARDS FROM THE ARCHIVE'S FIRST DAY ARE
+                        #    GRADED, `described` SHOULD START CLIMBING. If
+                        #    it does not, that is a real defect and this
+                        #    field is how anyone would notice.
+                        "not_described_why": _why})
         rows += got
     ok_poss, poss = possession_validated(root)
     pooled = accumulate(data, log) + rows
@@ -608,6 +688,10 @@ def build(league=None, data=None, root=None, log=log, when=None):
             "passed in BOTH leagues AND the row carries the dossier "
             "sections it was described by. ⛔ Rows are kept either way — "
             "discarding one is irreversible, marking it is not."),
+        # ⚠️ BOTH BLOCKS NOW SHARE ONE DENOMINATOR BY CONSTRUCTION:
+        #    `cluster()` drops ungraded rows itself, so a caller cannot
+        #    hand one block wagers and the other graded rows. They
+        #    disagreed by 4.1 points before that moved.
         "this_reading": t60(rows),
         "pooled_all_rows": t60([r for r in pooled
                                 if r.get("won") is not None]),

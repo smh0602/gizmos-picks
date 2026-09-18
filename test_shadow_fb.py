@@ -41,18 +41,26 @@ a pre-registration condition of T60, not a refinement.
 #
 # @vacuity the dossier join is on `board_id`, never on a team name
 #   file: shadow_fb.py
-#   find: "sections": sec.get(src["board_id"]),
-#   with: "sections": sec.get(src["game"]),
+#   find: got = sec.get(src["board_id"])
+#   with: got = sec.get(src["game"])
+#   ⚠️ repointed 2026-09-18: the lookup moved to its own line when the
+#      row gained `sections_absent`, and the harness said MALFORMED the
+#      moment the old `find` stopped matching — exactly its job.
 #
 # @vacuity a complementary pair collapses to ONE observation
 #   file: shadow_fb.py
 #   find: return {"bound": len(rows) - doubled + pairs,
 #   with: return {"bound": len(rows),
 #
-# @vacuity the pre-registered minimum n is NOT invented in this repo
+# @vacuity the pre-registered minimum n is EXACTLY the one Sam supplied
 #   file: shadow_fb.py
-#   find: T60_MIN_EFF_N = None
+#   find: T60_MIN_EFF_N = 2774
 #   with: T60_MIN_EFF_N = 400
+#
+# @vacuity an UNGRADED wager is never counted as a loss
+#   file: shadow_fb.py
+#   find: rows = [r for r in rows if r.get("won") is not None]
+#   with: rows = list(rows)   # voids and no-logs back in the denominator
 #
 # @vacuity the published card is still capped at TOP_N top plays
 #   file: card_fb.py
@@ -201,20 +209,86 @@ ck(shadow_fb.T60_RATE == 0.554 and shadow_fb.T60_P == 0.01,
    "   the rate and alpha are the pre-registered ones (%.3f, %.2f)"
    % (shadow_fb.T60_RATE, shadow_fb.T60_P),
    "⛔ a bar re-decided after seeing data is not a pre-registered test")
-ck(shadow_fb.T60_MIN_EFF_N is None,
-   "🔴🔴 ...AND THE MINIMUM n IS NOT INVENTED IN THIS REPOSITORY",
-   "⛔ `claude/owed-tests.md` holds it and this repo does not contain "
-   "that file. CLAUDE.md: do not infer what a missing doc said, and do "
-   "not treat its absence as permission. Got %r"
+# 🔴 SUPPLIED BY SAM ON 2026-09-18, NOT DERIVED HERE — one-sided,
+#    α = 0.01, power 0.80, p0 = 0.5238, p1 = 0.554. ⛔ The check is on
+#    the EXACT figure, so filling it in with anything else fails, and so
+#    does emptying it back to None.
+ck(shadow_fb.T60_MIN_EFF_N == 2774,
+   "🔴🔴 ...AND THE MINIMUM n IS EXACTLY THE PRE-REGISTERED 2774",
+   "⛔ a bar edited after seeing data is not a pre-registered test. It "
+   "came from `claude/owed-tests.md`, which this repo does not contain, "
+   "and was ASKED FOR rather than inferred. Got %r"
    % (shadow_fb.T60_MIN_EFF_N,))
 _aw = shadow_fb.t60(_hot)
-ck(_aw["verdict"] == "AWAITING_PRE_REGISTERED_N",
-   "   ⛔ ...so nothing can PASS until Sam supplies it",
-   "🔴 a test that can pass against a floor nobody set is a test that "
-   "decided its own bar. Got %s" % _aw["verdict"])
+ck(_aw["verdict"] == "NOT YET MEASURABLE" and _aw["min_eff_n"] == 2774,
+   "   ⛔ ...and a sample under it is NOT YET MEASURABLE — not a pass, "
+   "not a fail",
+   "🔴 %s at eff_n %s against %s"
+   % (_aw["verdict"], _aw["eff_n"], _aw["min_eff_n"]))
 ck(shadow_fb.t60(_hot, min_eff_n=1)["verdict"] in ("PASS", "FAIL"),
-   "   ⚠️ ...and the verdict machinery still works once a floor is given",
+   "   ⚠️ ...and the verdict machinery still works once the floor is "
+   "cleared",
    "⛔ rule 67: a verdict that can only ever say one thing proves nothing")
+ck(shadow_fb.t60(_hot, min_eff_n=1)["eff_n"] <= len(_hot),
+   "   ⛔ ...and the floor is compared against the EFFECTIVE n",
+   "🔴 the power calculation assumes independent observations, which is "
+   "what `eff_n` estimates. Comparing 2774 to the RAW count would be "
+   "comparing a number to a different number that shares a name")
+
+section("3a. 🔴🔴 AN UNGRADED WAGER IS NEVER COUNTED AS A LOSS")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ `this_reading` DIVIDED 541 WINS BY 1,374 WAGERS AND REPORTED 39.37%
+# WHILE `pooled_all_rows` DIVIDED THE SAME WINS BY 1,245 GRADED ROWS AND
+# REPORTED 43.45%. `[found in review, 2026-09-18]` Two blocks of one
+# document, 4.1 points apart, about the same rows — because one counted
+# every ungraded wager as a loss.
+# 🔴 AND 14 OF THEM WERE VOIDS. CLAUDE.md, on `verify_record.py`: "Voids
+# stay out of every denominator." The MLB grader enforces it; this file
+# broke the same rule in a new place.
+# ⚠️ A "no log for this player" row is not a loss either — it is a row we
+# could not grade, and telling those apart is the whole reason `state`
+# exists rather than a bare boolean.
+# ✅ AND THE FILTER IS IN `cluster()`, NOT IN ITS CALLERS, so one block
+# cannot be right while another is wrong. That is the class; the two
+# call sites were the instance.
+# ══════════════════════════════════════════════════════════════════════
+_base = [{"board_id": "g%d" % (i // 4), "market": "m", "player": "p%d" % i,
+          "line": 1, "side": "over", "won": i % 2 == 0, "state": "graded"}
+         for i in range(40)]
+_dirt = _base + [
+    {"board_id": "gV", "market": "m", "player": "v", "line": 1,
+     "side": "over", "won": None,
+     "state": "void — on the roster but took no snaps"},
+    {"board_id": "gN", "market": "m", "player": "n", "line": 1,
+     "side": "over", "won": None, "state": "no log for this player"}]
+_cb, _cd = shadow_fb.cluster(_base), shadow_fb.cluster(_dirt)
+ck(_cb["n"] == 40 and _cb["rate"] == 0.5,
+   "⚠️ the clean fixture is 40 graded rows at 50 pct", "Got %s" % _cb)
+ck(_cd["n"] == _cb["n"],
+   "🔴🔴 A VOID AND A NO-LOG ROW MOVE THE DENOMINATOR BY ZERO (%d -> %d)"
+   % (_cb["n"], _cd["n"]),
+   "⛔ THIS IS THE DEFECT. An ungraded wager is not a lost wager, and a "
+   "VOID is barred from every denominator by CLAUDE.md")
+ck(_cd["rate"] == _cb["rate"],
+   "   ⛔ ...and the rate does not move either (%.5f)" % _cd["rate"],
+   "🔴 counting 2 ungraded rows as losses drops 50.0%% to %.5f"
+   % (_cb["wins"] / len(_dirt)))
+ck(_cd.get("ungraded_excluded") == 2
+   and set(_cd.get("ungraded_by_state") or {}) == {
+       "void — on the roster but took no snaps",
+       "no log for this player"},
+   "   ⚠️ ...and what was dropped is NAMED, by state",
+   "⛔ \"n went down\" with no reason beside it is how a denominator "
+   "change gets mistaken for a data loss. ⚠️ `.get`-style on purpose: a "
+   "guard that DIES reports \"an unknown number never ran\", which is "
+   "strictly less than a guard that fails. Got %s"
+   % _cd.get("ungraded_by_state"))
+ck(_cd["games"] == _cb["games"],
+   "   ⛔ ...and the ungraded rows do not add phantom clusters (%d)"
+   % _cd["games"],
+   "🔴 two rows in two new games would inflate the cluster count and "
+   "therefore the effective n. Got %d vs %d"
+   % (_cd["games"], _cb["games"]))
 
 section("4. 🔴🔴 IT GRADES THE BOARD, ON REAL STORED DATA")
 _days = snapshot_days("nfl")
@@ -253,9 +327,24 @@ ck(_games >= 5,
    "   ⚠️ ...across %d distinct game(s), so the clustering has clusters"
    % _games,
    "⛔ rule 67 — one game would make every clustered figure trivial")
+_tr, _po = _D.get("this_reading") or {}, _D.get("pooled_all_rows") or {}
+ck(_tr.get("n") == len(_graded) and _po.get("n") == len(_graded),
+   "🔴🔴 BOTH BLOCKS COUNT THE GRADED ROWS, NOT THE WAGERS (%s / %s of "
+   "%d)" % (_tr.get("n"), _po.get("n"), len(_graded)),
+   "⛔ they disagreed by 4.1 points on the real artifact — 541/1374 "
+   "against 541/1245 — because one counted every ungraded wager as a "
+   "loss. %d wager(s) were handed in" % len(_rows))
+ck(_tr.get("rate") == _po.get("rate"),
+   "   ⛔ ...so they report the SAME rate (%.5f)" % (_tr.get("rate") or 0),
+   "🔴 %s vs %s" % (_tr.get("rate"), _po.get("rate")))
+ck(_tr.get("ungraded_excluded") == len(_rows) - len(_graded),
+   "   ⚠️ ...and the excluded count reconciles (%s of %d wagers)"
+   % (_tr.get("ungraded_excluded"), len(_rows)),
+   "⛔ %s excluded vs %d ungraded"
+   % (_tr.get("ungraded_excluded"), len(_rows) - len(_graded)))
 note("   graded %d row(s) over %d game(s); effective n %s (%s)"
-     % (len(_graded), _games, (_D.get("pooled_all_rows") or {}).get("eff_n"),
-        (_D.get("pooled_all_rows") or {}).get("eff_basis")))
+     % (len(_graded), _games, _po.get("eff_n"), _po.get("eff_basis")))
+note("   excluded, by state: %s" % _tr.get("ungraded_by_state"))
 
 section("5. ⛔ DATED AND WRITE-ONCE, AND NEVER INTO `picks/`")
 _p = _files[0] if _files else ""
@@ -379,6 +468,45 @@ if _day:
        and next(iter({len(r["sections"]) for r in _with})) == 8,
        "   ⚠️ ...all eight of them",
        "⛔ a partial join is a join that drops evidence silently")
+    ck(not [r for r in _with if r.get("sections_absent")],
+       "   ⛔ ...and a row that HAS its sections carries no excuse",
+       "🔴 a reason beside data that is present is noise, and noise is "
+       "what the clean-look rule is about")
+    # ══════════════════════════════════════════════════════════════
+    # ⚠️ AND A ROW WITH NO SECTIONS SAYS WHICH ABSENCE IT IS.
+    # `[2026-09-18]` `sections: null` reads identically whether the JOIN
+    # MISSED or the dossier DID NOT EXIST, and those are opposite facts:
+    # the first is a defect, the second is the calendar. Today every one
+    # of the 1,374 rows is the second — the graded boards predate the
+    # archive — which is correct, self-resolving, and unreadable unless
+    # it is said.
+    # ══════════════════════════════════════════════════════════════
+    _other = [r for r in _D7["rows"] if r.get("day") != _day]
+    _blank = [r for r in _other if not r.get("sections")]
+    ck(bool(_blank), "⚠️ there are undescribed rows to explain (%d)"
+       % len(_blank), "⛔ rule 67 — nothing to check otherwise")
+    ck(all(r.get("sections_absent") for r in _blank),
+       "🔴 EVERY UNDESCRIBED ROW SAYS WHY IT IS UNDESCRIBED (%d of %d)"
+       % (len([r for r in _blank if r.get("sections_absent")]), len(_blank)),
+       "⛔ a bare null cannot tell a failed join from a calendar that "
+       "has not reached the archive yet. Silent: %s"
+       % [(r.get("day"), r.get("board_id"))
+          for r in _blank if not r.get("sections_absent")][:3])
+    ck(all("calendar, not a failed join" in (r.get("sections_absent") or "")
+           for r in _blank),
+       "   ✅ ...and today that reason is the CALENDAR, not a defect",
+       "🔴 a row whose game IS in the archive and still has no sections "
+       "is a real gap, and it must not read the same. Got %s"
+       % sorted({r.get("sections_absent") for r in _blank})[:2])
+    _dayblk = [d for d in _D7.get("per_day") or []
+               if d["day"] != _day and not d.get("described")]
+    ck(all(d.get("not_described_why") for d in _dayblk),
+       "   ⚠️ ...and the day block says it too, so `described` climbing "
+       "later is the signal it is meant to be",
+       "⛔ if `described` never starts climbing once archived boards are "
+       "graded, THAT is a real defect and this field is how anyone "
+       "notices. Silent day(s): %s"
+       % [d["day"] for d in _dayblk if not d.get("not_described_why")])
 shutil.rmtree(_d4, ignore_errors=True)
 
 section("8. 🔴🔴 IT RUNS ON A MODE A CRON ACTUALLY REACHES")
