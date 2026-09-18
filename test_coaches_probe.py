@@ -714,11 +714,37 @@ if os.path.exists(_ART):
         #    struck line beside the correction (CLAUDE.md does it a dozen
         #    times, and `picks/` is annotated, never erased), so a later
         #    edit must not be able to quietly tidy either away.
-        ck("🔴 the superseded clause is VISIBLY STRUCK, not just replaced",
-           "~~" in (_a.get("verdict") or ""),
+        # 🔴 ~~`ck("~~" in verdict)`~~ STRUCK 2026-09-18 — IT WAS VACUOUS,
+        #    AND THE VACUITY HARNESS CAUGHT IT, NOT ME.
+        # ⛔ The verdict carries TWO markers, opening and closing. The
+        #    declared mutation removes only the OPENING one, which leaves
+        #    a dangling `~~` after the full stop and a verdict that reads
+        #    the withdrawn claim as CURRENT:
+        #      "… is NOT COMPUTABLE from this response.~~ IT IS: …"
+        #    `"~~" in verdict` is still True, so the check passed on
+        #    exactly the text it exists to reject.
+        # ⚠️ AND MY OWN DRIVE HID IT: in #64 I mutated by removing ALL
+        #    `~~`, which is STRONGER than the mutation I declared. A drive
+        #    that is harsher than the declaration proves the declaration
+        #    is fine when it is not.
+        # ✅ THE REPLACEMENT IS STRICTLY HARDER: a BALANCED pair, with the
+        #    withdrawn claim BETWEEN the markers. It cannot be satisfied
+        #    by a stray marker, and it checks that the right thing is
+        #    struck rather than that striking happened somewhere.
+        _struck = re.findall(r"~~(.+?)~~", _a.get("verdict") or "")
+        ck("🔴 the superseded clause is VISIBLY STRUCK — a BALANCED pair",
+           bool(_struck),
            "⛔ a reader must see WHAT was withdrawn, not only what "
-           "replaced it. A verdict that reads clean hides that it ever "
-           "said otherwise. verdict=%r" % ((_a.get("verdict") or "")[:140],))
+           "replaced it, and a lone marker is not a strike. verdict=%r"
+           % ((_a.get("verdict") or "")[:160],))
+        ck("🔴 ...and what is struck is the WITHDRAWN CLAIM itself",
+           any("NOT COMPUTABLE" in x for x in _struck),
+           "⛔ striking the wrong span would read as withdrawing "
+           "something that still stands. struck=%r" % (_struck,))
+        ck("⛔ ...and no marker is left dangling outside a pair",
+           (_a.get("verdict") or "").count("~~") % 2 == 0,
+           "an odd count means one half of a pair was removed. count=%d"
+           % ((_a.get("verdict") or "").count("~~"),))
         ck("🔴 ...and the original line is PRESERVED verbatim, never erased",
            bool(_a.get("verdict_stored_originally"))
            and "NOT COMPUTABLE" in (_a.get("verdict_stored_originally") or ""),
