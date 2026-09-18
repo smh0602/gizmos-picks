@@ -1934,6 +1934,300 @@ def verify(doc, log=log):
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🔴 /coaches — A PROBE, NOT A PRODUCT. `[Sam's work order, 2026-09-18:
+#    "PROBE ONLY, DO NOT BUILD ... ONE PROBE. ONE CREDIT. WRITE A REPORT
+#    AND STOP."]`
+#
+# §7 of the dossier says, in the artifact it publishes today:
+#   "⛔ COACHING CHANGES HAVE NO SOURCE IN THIS STACK."
+# CFBD documents a `/coaches` endpoint. ⛔ **THAT IS A FACT ABOUT THE
+# DOCUMENTATION AND NOT ABOUT THE FEED** — this project has written one
+# down as the other five times and been wrong every time (`CLAUDE.md`,
+# "an absence in an API response is evidence about the API"). So the five
+# questions below are answered off the RESPONSE BODY, and the ones the
+# body cannot answer are recorded as unanswered.
+#
+# 💰 WHAT IT COSTS TO ASK: ONE call. The budget is at 906/1000 a month
+# (91% of the free tier — run `python cfbd_budget.py`, do not trust this
+# number), so a probe that sweeps seasons or pages teams would itself be
+# the retry storm the headroom warning is about.
+#
+# ⛔ FBS COVERAGE IS MEASURED AGAINST `teams.json`, WHICH IS ALREADY ON
+# DISK. Asking `/teams/fbs` to check coverage would be a SECOND credit
+# for a set this repo re-fetches weekly and stores. The report names the
+# file and its season so the comparison can be argued with.
+#
+# ⚠️ IT WRITES A REPORT AND NOTHING ELSE. No product file, nothing §7
+# reads, nothing the page can reach. A mode that could would not be a
+# probe — `probe_news` says the same thing in the same words.
+COACHES_PROBE_FILE = "coaches-probe.json"
+
+# 🔴 THE ONE-CALL BUDGET IS COUNTED, NOT INTENDED. A comment saying "one
+#    call" is a comment; this is the number the run actually made.
+CALLS = {"n": 0}
+
+
+def _counted_get(path, params):
+    """⛔ ONE REQUEST, AND `tries=1` IS THE HALF THAT MAKES THAT TRUE.
+
+    🔴 `get()` DEFAULTS TO `tries=4` AND RETRIES ON 429 — which would make
+    "one credit" a comment rather than a fact, on precisely the response
+    where it matters most. CFBD answered 429 on every endpoint for four
+    days in September 2026 and the repair was a BACK-OFF; a probe that
+    answers a 429 by asking three more times is the opposite of that, and
+    it would spend four credits to learn the one thing a single 429
+    already told us.
+    ⚠️ A 429 IS THE FINDING. It is recorded and the probe stops.
+    """
+    CALLS["n"] += 1
+    return get(path, params, tries=1)
+
+
+def _fbs_on_disk():
+    """The FBS school set THIS REPO ALREADY HAS. ⛔ Never a second fetch."""
+    p = f"{OUT}/teams.json"
+    try:
+        with open(p, encoding="utf-8") as fh:
+            j = json.load(fh)
+    except Exception as e:
+        return None, {"file": p, "usable": False,
+                      "why": f"{type(e).__name__}: {e}"}
+    names = set(j.get("teams") or {})
+    return names, {"file": p, "season": j.get("season"),
+                   "source": j.get("source"), "n": len(names),
+                   "built_at": j.get("built_at"), "usable": bool(names)}
+
+
+def _keys_of(rows):
+    """Every key the response really carries, top level and one deep.
+
+    ⛔ NOT the first row's keys. A feed that omits a null field on some
+    rows would make `rows[0]` a claim about one coach, and the question
+    is what the ENDPOINT returns.
+    """
+    top = collections.Counter()
+    nested = collections.Counter()
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        for k, v in r.items():
+            top[k] += 1
+            if isinstance(v, list):
+                for x in v:
+                    if isinstance(x, dict):
+                        for k2 in x:
+                            nested[f"{k}[].{k2}"] += 1
+            elif isinstance(v, dict):
+                for k2 in v:
+                    nested[f"{k}.{k2}"] += 1
+    return top, nested
+
+
+# ⚠️ CANDIDATE NAMES, NOT A SCHEMA. Which of these the feed actually uses
+#    is the question; the report prints what it FOUND, and prints the
+#    candidates it looked for so a miss can be told from an absence.
+_YEAR_KEYS = ("year", "season", "startYear", "start_year", "hireYear",
+              "firstYear", "hire_year")
+_SCHOOL_KEYS = ("school", "team", "teamName")
+
+
+def coaches_probe(log=log, season=None):
+    """Does CFBD `/coaches` exist, what does it carry, and what did it cost?
+
+    ⛔ ONE CALL. ⛔ WRITES ONE REPORT AND NOTHING ELSE. ⛔ NOT WIRED INTO
+    §7 — adopting it is a separate decision Sam has not made.
+    """
+    if not KEY:
+        log("FATAL: CFBD_API_KEY is not set.")
+        return False
+    # 🔴 ONE IMPLEMENTATION OF "WHICH SEASON IS IT" (rule 117). A
+    #    football season is named for the year it STARTS, and this repo
+    #    has that rule in `freshness.py` and in the workflow's bash, with
+    #    a test pinning them together. ⛔ Do not write a third copy here.
+    # ⚠️ AND `SEASON` MAY BE A RANGE. `cfb-probe` reads "2021-2025" out
+    #    of the same variable, so `int()` on it raises. A value this
+    #    probe cannot read as ONE year is not guessed at — it falls back
+    #    to the current season and the artifact records what it used.
+    import freshness as _fr
+    _env = str(os.environ.get("SEASON") or "").strip()
+    season = (int(season) if season else
+              int(_env) if _env.isdigit() else
+              _fr.current_football_season())
+    log("=" * 72)
+    log(f"CFBD /coaches — PROBE ONLY. ONE CALL. season={season}")
+    log("=" * 72)
+
+    fbs, fbs_src = _fbs_on_disk()
+    out = {
+        "kind": "PROBE",
+        "league": "ncaaf",
+        "asked": {"endpoint": "/coaches", "params": {"year": season}},
+        "built_at": datetime.datetime.now(datetime.timezone.utc)
+                    .strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "question": ("Does /coaches exist, what columns does it REALLY "
+                     "return, does it carry a start year so \"new this "
+                     "season\" is computable, does it cover FBS, and what "
+                     "did the call cost?"),
+        "fbs_reference": fbs_src,
+        "exists": None, "rows": None, "columns": None,
+        "nested_columns": None, "start_year": None, "fbs_coverage": None,
+        "cost": None, "sample_row": None, "verdict": None,
+        # 🔴 THE CONTRACT, IN THE ARTIFACT ITSELF, so a reader who finds
+        #    this file cannot mistake it for an adopted source.
+        "not_adopted": ("⛔ §7 does not read this file and must not until "
+                        "Sam says so. The dossier still records coaching "
+                        "changes as MISSING."),
+    }
+
+    CALLS["n"] = 0
+    try:
+        rows = _counted_get("/coaches", {"year": season})
+    except urllib.error.HTTPError as e:
+        out["exists"] = False
+        out["error"] = {"http": e.code, "reason": str(getattr(e, "reason", ""))}
+        out["verdict"] = (
+            f"/coaches answered HTTP {e.code} for year={season}. ⛔ That is "
+            f"evidence about THIS REQUEST — the key's tier, the year, the "
+            f"path — and NOT proof the endpoint does not exist. Re-ask "
+            f"before concluding anything about CFBD.")
+        out["cost"] = {"calls_made": CALLS["n"], "quota": quota_report()}
+        _write_coaches_probe(out, log)
+        return True
+    except Exception as e:
+        out["exists"] = None
+        out["error"] = {"exception": f"{type(e).__name__}: {e}"}
+        out["verdict"] = ("The call did not complete, so NOTHING was "
+                          "learned about /coaches. ⛔ Not an answer.")
+        out["cost"] = {"calls_made": CALLS["n"], "quota": quota_report()}
+        _write_coaches_probe(out, log)
+        return True
+
+    if not isinstance(rows, list):
+        out["exists"] = True
+        out["error"] = {"shape": type(rows).__name__}
+        out["verdict"] = (f"/coaches answered, but with a "
+                          f"{type(rows).__name__} and not a list of rows. "
+                          f"The shape has to be read before anything else "
+                          f"here is meaningful.")
+        out["cost"] = {"calls_made": CALLS["n"], "quota": quota_report()}
+        _write_coaches_probe(out, log)
+        return True
+
+    out["exists"] = True
+    out["rows"] = len(rows)
+    top, nested = _keys_of(rows)
+    out["columns"] = {k: top[k] for k in sorted(top)}
+    out["nested_columns"] = {k: nested[k] for k in sorted(nested)}
+
+    # ── 3. IS "NEW THIS SEASON" COMPUTABLE? ───────────────────────────
+    # 🔴 A YEAR COLUMN IS NOT ENOUGH. `/coaches?year=N` filtering to N
+    #    would give every row year == N and answer nothing. What makes
+    #    "new this season" computable is a year that VARIES — a first
+    #    season at the school, not the season asked for.
+    yk = [k for k in _YEAR_KEYS if k in top] + \
+         [k for k in sorted(nested) if k.split(".")[-1] in _YEAR_KEYS]
+    vals = {}
+    for k in yk:
+        seen = []
+        for r in rows:
+            if not isinstance(r, dict):
+                continue
+            if k in r:
+                seen.append(r.get(k))
+            elif "." in k or "[]" in k:
+                base = k.split("[")[0].split(".")[0]
+                leaf = k.split(".")[-1]
+                v = r.get(base)
+                for x in (v if isinstance(v, list) else [v]):
+                    if isinstance(x, dict) and leaf in x:
+                        seen.append(x.get(leaf))
+        nums = sorted({v for v in seen if isinstance(v, int)})
+        vals[k] = {"n": len(seen), "distinct": len(nums),
+                   "min": nums[0] if nums else None,
+                   "max": nums[-1] if nums else None}
+    varying = sorted(k for k, v in vals.items() if v["distinct"] > 1)
+    out["start_year"] = {
+        "candidates_looked_for": list(_YEAR_KEYS),
+        "found": yk, "per_key": vals, "varying": varying,
+        "new_this_season_computable": bool(varying),
+        "why": ("A year that is the SAME on every row is the year we "
+                "asked for and says nothing about tenure. \"New this "
+                "season\" needs a year that VARIES across coaches — a "
+                "first season at the school."
+                if not varying else
+                "At least one year column varies across rows, so a "
+                "first-season-at-this-school comparison is arithmetic on "
+                "what the feed already sends.")}
+
+    # ── 4. DOES IT COVER FBS? ─────────────────────────────────────────
+    sk = [k for k in _SCHOOL_KEYS if k in top]
+    schools = set()
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        for k in sk:
+            if isinstance(r.get(k), str):
+                schools.add(r[k].strip())
+        # ⚠️ the school may live one level down, on a per-season row
+        for k, v in r.items():
+            for x in (v if isinstance(v, list) else []):
+                if isinstance(x, dict):
+                    for k2 in _SCHOOL_KEYS:
+                        if isinstance(x.get(k2), str):
+                            schools.add(x[k2].strip())
+    cov = {"school_keys_found": sk, "distinct_schools": len(schools)}
+    if fbs:
+        have = schools & fbs
+        cov.update({
+            "fbs_reference_n": len(fbs),
+            "fbs_matched": len(have),
+            "fbs_missing": sorted(fbs - schools)[:20],
+            "fbs_missing_n": len(fbs - schools),
+            "not_in_fbs_n": len(schools - fbs),
+            "not_in_fbs_sample": sorted(schools - fbs)[:20],
+            # ⛔ NAME MATCHING IS EXACT, and a miss is ambiguous between
+            #    "not covered" and "spelled differently". Say so rather
+            #    than reporting a coverage percentage as if it were clean.
+            "caveat": ("Matched on the EXACT school string. A school in "
+                       "`fbs_missing` is either not covered or spelled "
+                       "differently in the two feeds, and this probe "
+                       "cannot tell those apart without a second call."),
+        })
+    else:
+        cov["caveat"] = ("No FBS reference on disk, so coverage was NOT "
+                         "measured. ⛔ Not 'no coverage'.")
+    out["fbs_coverage"] = cov
+
+    out["sample_row"] = rows[0] if rows else None
+    out["cost"] = {"calls_made": CALLS["n"],
+                   "quota": quota_report(),
+                   "note": ("⛔ The authority on the bill is CFBD's own "
+                            "quota headers, not this count. When no such "
+                            "header comes back, `calls_made` is the only "
+                            "number anyone has and it is OUR arithmetic.")}
+
+    out["verdict"] = (
+        "EXISTS — %d row(s), %d column(s), %d distinct school(s). "
+        "\"New this season\" is %sCOMPUTABLE from this response. "
+        "⛔ Nothing is adopted: §7 still records coaching changes as "
+        "missing, and wiring this in is a separate decision."
+        % (len(rows), len(out["columns"]), len(schools),
+           "" if varying else "NOT "))
+    _write_coaches_probe(out, log)
+    return True
+
+
+def _write_coaches_probe(out, log):
+    os.makedirs(OUT, exist_ok=True)
+    p = f"{OUT}/{COACHES_PROBE_FILE}"
+    with open(p, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, indent=1, sort_keys=True)
+    log(f"  verdict: {out.get('verdict')}")
+    log(f"  CALLS MADE THIS PROBE: {CALLS['n']}")
+    log(f"wrote {p}")
+
+
+# ══════════════════════════════════════════════════════════════════════
 def probe(log=log):
     if not KEY:
         log("FATAL: CFBD_API_KEY is not set.")
