@@ -148,6 +148,28 @@ if not HALF_M:
 # 0 while the tool still printed "✅ FITS".
 # ⚠️ THAT IS LEDGER RULE 68 FOR THE THIRD TIME. Scope the search to the
 # block that actually defines the pull, and FAIL LOUD if it is not found.
+# ══════════════════════════════════════════════════════════════════════
+# 💰 THE LIVE FIRST-HALF PULL, PRICED EXPLICITLY AND NOT BY REUSING THE
+#    PROBE'S LIST.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ `HALFTIME_MARKETS` ABOVE IS THE PROBE'S QUESTION and stays that. The
+#    live pull has its own two definitions in `collect.py`, and they are
+#    read here by their own names so that changing either one reprices
+#    exactly the thing it changed (rule 117).
+# 🔴 IT IS PER **GAME**, WHICH IS THE EXPENSIVE SHAPE. `markets x regions
+#    x games`, on every gamelines arm, for both football leagues.
+# ⛔ FAIL LOUD ON A MISSING PARSE. A per-game market silently priced at
+#    zero is exactly the failure this file was written after (rule 68,
+#    three times).
+_hlm = re.search(r'^HALF_LIVE_MARKETS\s*=\s*\[(.*?)\]', src, re.S | re.M)
+HALF_LIVE_M = len(re.findall(r'"', _hlm.group(1))) // 2 if _hlm else 0
+_hlr = re.search(r'^HALF_LIVE_REGION\s*=\s*"([^"]*)"', src, re.M)
+HALF_LIVE_R = len([x for x in _hlr.group(1).split(",") if x]) if _hlr else 0
+if not HALF_LIVE_M or not HALF_LIVE_R:
+    sys.exit("FATAL: cannot read HALF_LIVE_MARKETS / HALF_LIVE_REGION out "
+             "of collect.py — refusing to price a PER-GAME market at zero. "
+             "Fix this parser, do not guess.")
+
 _pm = re.search(r'^PROP_MARKETS\s*=\s*\{(.*?)^\}', src, re.S | re.M)
 if not _pm:
     sys.exit("FATAL: cannot find PROP_MARKETS in collect.py — refusing to "
@@ -185,7 +207,16 @@ def _fb_cost(mode, lg):
     if mode == "props-player":
         return FB_MARKETS.get(lg, 0) * 2 * FB_GAMES[lg]
     if mode == "gamelines":
-        return GAME_M * 2
+        # 💰 THE BULK BOARD **PLUS** THE PER-GAME FIRST-HALF TOTAL.
+        # ⛔ Two terms, not one number: the bulk call bills
+        #    `markets x regions` ONCE for the slate, the half total bills
+        #    `markets x regions` PER GAME. Collapsing them would hide
+        #    which half moves when one changes.
+        # ⚠️ WORST CASE BY CONSTRUCTION — it assumes every modelled game
+        #    sits inside the paid window. On most days none does and the
+        #    real spend is zero, which is why the MEASURED figure below
+        #    is the one to read and this is the CEILING.
+        return GAME_M * 2 + HALF_LIVE_M * HALF_LIVE_R * FB_GAMES[lg]
     if mode == "halftime-probe":
         return HALF_M * 1 + 1 + HALF_M * 2
     return 0

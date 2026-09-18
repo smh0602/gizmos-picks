@@ -131,6 +131,36 @@ RESERVE = 750
 
 # --- market definitions -----------------------------------------------
 GAME_MARKETS = ["h2h", "spreads", "totals"]
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE LIVE FIRST-HALF PULL — ONE MARKET, ONE REGION, FOOTBALL ONLY.
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-09-18: "totals_h1 ONLY. One market, not two."]`
+#
+# ⛔ THIS IS **NOT** `HALFTIME_MARKETS`. That list belongs to
+# `halftime-probe` — it is the QUESTION the probe asked (two markets, to
+# find out which the books carry) and `budget.py` parses it by name to
+# price that probe. ⛔ Widening it to mean the live pull too would make
+# one line answer two questions and silently reprice the probe. So the
+# live pull has its own name and `budget.py` is taught about it
+# explicitly (rule 117: one meaning per definition).
+#
+# 💰 WHAT THE PROBE MEASURED, AND WHY THIS IS THE CHEAPER HALF:
+#     totals_h1        15 books   Hard Rock TRUE
+#     team_totals_h1    6 books   Hard Rock TRUE
+# ⛔ `team_totals_h1` IS NOT BUILT. Six books to fifteen, and dropping it
+# halves a per-GAME spend.
+#
+# 🔴 EXACTLY ONE REGION, AND IT IS `us2`. Sam's decision, 2026-09-18.
+# `us2` is the region Hard Rock lives in, and `CLAUDE.md`'s rule is that
+# **a price from a book he cannot bet is not a better price**. ⛔ The
+# trade this accepts is real and §1 SAYS IT: there is no best-price
+# shopping on this market. One book, labelled as Hard Rock's own number,
+# and it must never read as a five-book consensus.
+# ⛔ A second region doubles a per-game spend against a ceiling that is
+# already 219% of plan (`python budget.py`). Do not add one.
+HALF_LIVE_MARKETS = ["totals_h1"]
+HALF_LIVE_REGION = "us2"
 PITCHER_MARKETS = ["pitcher_strikeouts", "pitcher_outs", "pitcher_strikeouts_alternate"]
 # Alternate rungs, kept as a ladder the card can walk. Hard Rock posts NO
 # alternate OUTS market at all -- Sam-confirmed at the book, not a feed
@@ -321,6 +351,117 @@ def filename():
 # a day the raw payloads would run to gigabytes a year; the extract keeps
 # every number we can actually use and drops the packaging.
 # ----------------------------------------------------------------------
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE FIRST-HALF TOTAL, PER GAME, AND IT STANDS DOWN BY DEFAULT.
+# ══════════════════════════════════════════════════════════════════════
+# 💰 THE ONLY PER-GAME MARKET ON THE GAMELINES JOB, so it is the one that
+# walks toward the ceiling. `budget.py` already says it in its own
+# output: *"anything that widens that window, or adds a per-GAME market,
+# spends against the CEILING and not against the measurement."*
+#
+# ⛔ NO `/events` CALL. The bulk gamelines response this run ALREADY
+# carries every event's `id` and `commence_time`, so asking the events
+# list for them again would be a credit a run for a fact already in hand.
+# ⚠️ That is also what makes the ceiling arithmetic come out: 1 credit
+# per game in the window and nothing else. Run `python budget.py`.
+#
+# 🔴 THE WINDOW IS THE WHOLE SAFETY MARGIN, and it is the SAME constant
+# the paid props pull uses (`freshness.FB_PROPS_WINDOW_H`) — ⛔ not a
+# second copy of the idea, and not a wider one. A gamelines cron fires
+# every day of the week; a college slate is Saturday. On a Tuesday
+# morning no game kicks off inside the window and this buys NOTHING.
+# ⛔ Standing down is the normal case here, not the exception.
+def collect_half_totals(body, left):
+    """The first-half total for each game kicking off inside the window.
+
+    Returns `(by_event_id, spent, left)`. ⛔ FOOTBALL ONLY — MLB does not
+    reach this and its gamelines price is unchanged.
+    """
+    if LEAGUE not in ("nfl", "ncaaf"):
+        return {}, 0, left
+    # ⚠️ THIS LOCAL IS NAMED `window_end` DELIBERATELY. The paid props
+    #    pull one function up uses the OTHER obvious name for the same
+    #    idea, so an identical gate line existed twice in this file and a
+    #    mutation aimed at this one matched both — the vacuity harness
+    #    called the declaration MALFORMED, correctly (rule 244). A guard
+    #    that cannot be aimed at one place is not a guard.
+    window_end = now() + timedelta(hours=FB_PROPS_WINDOW_H)
+    evs = []
+    for g in (body or []):
+        t, eid = g.get("commence_time"), g.get("id")
+        if not t or not eid:
+            # ⚠️ no kickoff time -> cannot bound it -> DROP, never buy.
+            continue
+        try:
+            when = datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc)
+        except Exception:
+            continue
+        if when <= window_end:
+            evs.append((eid, g.get("home_team"), g.get("away_team")))
+    if not evs:
+        log(f"  first-half totals: no kickoff within {FB_PROPS_WINDOW_H}h "
+            f"of {len(body or [])} game(s) on the board. NOTHING SPENT.")
+        return {}, 0, left
+
+    per = len(HALF_LIVE_MARKETS) * len(HALF_LIVE_REGION.split(","))
+    need = per * len(evs)
+    if left is not None and left - need < RESERVE:
+        log(f"  SKIPPING first-half totals: would need {need}, only {left} "
+            f"left (reserve {RESERVE}). Nothing spent.")
+        return {}, 0, left
+
+    out, spent = {}, 0
+    for eid, home, away in evs:
+        try:
+            body1, used, left = odds_get(
+                f"/sports/{SPORT}/events/{eid}/odds",
+                {"regions": HALF_LIVE_REGION,
+                 "markets": ",".join(HALF_LIVE_MARKETS),
+                 "oddsFormat": "american"})
+            spent += used
+        except Exception as e:
+            # ⚠️ ONE GAME FAILING IS NOT THE SLATE FAILING, and a
+            #    half total is an EXTRA on a row that already has its
+            #    full-game prices. ⛔ It must never cost the gamelines
+            #    pull, which is the thing the page needs.
+            log(f"  first-half total {eid}: {type(e).__name__}: {e}")
+            continue
+        books = {}
+        for bk in (body1 or {}).get("bookmakers", []):
+            if bk.get("key") not in BOOKS:
+                continue          # ⛔ Sam's five, same rule as the board
+            for mk in bk.get("markets", []):
+                if mk.get("key") != "totals_h1":
+                    continue
+                row = {o.get("name"): {"pt": o.get("point"),
+                                       "px": o.get("price")}
+                       for o in mk.get("outcomes", [])}
+                if row:
+                    books[BOOKS[bk["key"]]] = row
+        if not books:
+            # ⛔ AN ABSENCE IN A RESPONSE IS EVIDENCE ABOUT THE REQUEST,
+            #    NEVER ABOUT THE SPORTSBOOK. This project has written one
+            #    down as the other five times. The row simply carries no
+            #    half total and §1 says why in words.
+            continue
+        bk_name = sorted(books)[0]
+        o, u = books[bk_name].get("Over") or {}, books[bk_name].get("Under") or {}
+        out[eid] = {
+            "point": o.get("pt") if o.get("pt") is not None else u.get("pt"),
+            "over": o.get("px"), "under": u.get("px"),
+            # 🔴 THE PROVENANCE TRAVELS WITH THE NUMBER (rule 55). One
+            #    book is not a consensus and the row must be able to say
+            #    so without anyone re-deriving it.
+            "book": bk_name,
+            "n_books": len(books),
+            "region": HALF_LIVE_REGION,
+        }
+    log(f"  first-half totals: {len(evs)} game(s) in window, "
+        f"{len(out)} priced, spent {spent}")
+    return out, spent, left
+
+
 def collect_gamelines():
     body, used, left = odds_get(
         f"/sports/{SPORT}/odds",
@@ -359,6 +500,11 @@ def collect_gamelines():
             "books": books,
         })
 
+    # ⛔ AFTER the bulk pull, because it reuses that response's event ids
+    #    rather than buying an events list. ⚠️ Football only, and it
+    #    stands down to zero spend on a day with no kickoff in the window.
+    half, half_spent, left = collect_half_totals(body, left)
+
     write(f"{daydir('gamelines')}/{filename()}.gz", {
         "pulled_at": stamp(),
         "endpoint": "bulk",
@@ -368,6 +514,14 @@ def collect_gamelines():
         "credits_remaining": left,
         "n_games": len(games),
         "games": games,
+        # 🔴 THE PAID EXTRA IS RECORDED SEPARATELY, never folded into
+        #    `credits_used`. The bulk pull's bill and the per-game bill
+        #    move for different reasons, and a single total cannot be
+        #    reconciled against `budget.py` afterwards.
+        "half_total_market": HALF_LIVE_MARKETS,
+        "half_total_region": HALF_LIVE_REGION,
+        "half_total_credits": half_spent,
+        "half_totals": half,
     }, compress=True)
     # One known URL for the dashboard, overwritten every run.
     write(f"{LATEST}/board.json", {
@@ -375,7 +529,7 @@ def collect_gamelines():
         "kind": "MARKET",
         "note": "De-vigged sportsbook consensus. NOT a Gizmo's projection (ledger rule 55).",
         "n_books_seen": len({b for g in games for b in g["books"]}),
-        "games": build_board(games),
+        "games": build_board(games, half),
     })
 
     linked = sum(1 for g in body for b in g.get("bookmakers", []) if b.get("link"))
@@ -407,8 +561,14 @@ def implied(american):
     return (-american) / ((-american) + 100) if american < 0 else 100 / (american + 100)
 
 
-def build_board(games):
-    """Compact, de-vigged, dashboard-ready view of one gamelines pull."""
+def build_board(games, half=None):
+    """Compact, de-vigged, dashboard-ready view of one gamelines pull.
+
+    ⚠️ `half` is `{event_id: {...}}` from `collect_half_totals` and is
+    EMPTY on every MLB run and on any football run with no kickoff inside
+    the window. ⛔ Absent is the normal case; it is not an error.
+    """
+    half = half or {}
     board = []
     for g in games:
         away, home = g["away"], g["home"]
@@ -555,6 +715,13 @@ def build_board(games):
             "best_total": best_total,     # {"Over": {...}, "Under": {...}}
             "best_spread": best_spread,   # {"<team>": {...}, "<team>": {...}}
             "team_total": {away: tt_away, home: tt_home},
+            # 🔴 ONE BOOK, AND THE ROW CARRIES THAT FACT (rule 55).
+            #    `n_books` above counts the full-game consensus; this
+            #    market has its own count and its own book name, because
+            #    a half total from one book must never be read as the
+            #    same kind of number as a five-book best price.
+            #    ⛔ None when unpriced — never a zero and never a guess.
+            "first_half_total": half.get(g["id"]),
         })
     return board
 

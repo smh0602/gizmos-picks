@@ -407,9 +407,55 @@ def s_market(g, sched_row):
                              "one only once the game is final. Measured "
                              "2026-09-17: 285 of 285 on the completed "
                              "2025 season, 16 of 16 finals in 2026.")
-    d["known_gap"] = ("FIRST-HALF MARKETS ARE NOT HELD. No field matching "
-                      "`half` or `1h` exists anywhere in the stored "
-                      "schedule, and none is invented here.")
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 THE FIRST-HALF TOTAL — ONE BOOK, AND IT SAYS SO.
+    # ══════════════════════════════════════════════════════════════════
+    # `[Sam, 2026-09-18]` The live pull asks ONE market in ONE region,
+    # and `us2` is the region Hard Rock lives in. So this figure is Hard
+    # Rock's own number, not a best price across five books.
+    # ⛔ IT MUST NOT INHERIT THE CONSENSUS WORDING THE FULL-GAME ROWS
+    # USE. Every other price in this section is the best of five books;
+    # this one is one book's line, and a reader who cannot tell them
+    # apart has been told something false about how hard it was shopped.
+    # ⚠️ ~~"FIRST-HALF MARKETS ARE NOT HELD"~~ — the TOTAL is held now.
+    # The MONEYLINE still is not, and that half stays a stated gap
+    # rather than a silence.
+    fh = g.get("first_half_total")
+    if fh:
+        d["first_half"] = {
+            "total": fh.get("point"),
+            "over": fh.get("over"), "under": fh.get("under"),
+            "book": fh.get("book"),
+            "n_books": fh.get("n_books"),
+            # 🔴 RULE 55 ON THE SURFACE: the label travels with the
+            #    number, so the page cannot show one without the other.
+            "shopping": "ONE BOOK",
+            "why": ("The first-half total is %s, priced by %s alone. "
+                    "Every other number in this section is the best of "
+                    "%s books; this one is not shopped, so it is that "
+                    "book's own line and may not be the best available."
+                    % (fh.get("point"), fh.get("book") or "one book",
+                       g.get("n_books") if g.get("n_books") else "several")),
+        }
+    else:
+        d["first_half"] = None
+        d["first_half_note"] = (
+            "No first-half total for this game yet. It is bought only for "
+            "games kicking off soon, from one book, so an absence here is "
+            "about what we asked for and not about what the book is "
+            "offering.")
+    # 🔴 READER ENGLISH, IN THE BUILDER. `[rule 132]` The page prints
+    #    this string VERBATIM — it does not sentence-case it, trim it or
+    #    reword it — so the register has to be right here. ⛔ No jargon,
+    #    no shouting, and every sentence carries a number.
+    d["known_gap"] = (
+        "There is no first-half moneyline or spread. The half total is "
+        "the only one of the three we buy, and the stored schedule holds "
+        "no first-half figures at all, so none is filled in from "
+        "anywhere else.")
+    d["known_gap_remedy"] = (
+        "adding one would mean a second market on the same per-game "
+        "pull, which is a spending decision rather than an oversight")
     return d
 
 
