@@ -3707,6 +3707,35 @@ def run_mode(mode):
                 log(f"  ⚠️ the dossier did not build "
                     f"({type(e).__name__}: {e}) — the CARD IS FINE and is "
                     f"not rolled back.")
+            # ══════════════════════════════════════════════════════════
+            # 🔴🔴 AND THE SHADOW RECORD, ON THE SAME REASONING AND IN
+            # THIS ORDER.
+            # ⚠️ AFTER the dossier, deliberately: it joins each graded
+            # wager to the sections that described it, on `board_id`, and
+            # a run that graded before the dossier existed would store
+            # rows with nothing attached.
+            # ⛔ NOT ON `fb-record`, WHICH HAS ZERO CRON ARMS. That is the
+            # defect task 19 existed to fix and the reason `t54.json` had
+            # never been written once. `card-fb` is named by EIGHT arms,
+            # is free, and is already the thing whose board this grades.
+            # 💰 AND IT COSTS NOTHING: it reads a props snapshot already
+            # bought and a player log already fetched. Zero Odds credits,
+            # zero CFBD calls, no new pull, no new cron.
+            # 🔴 A FAILURE HERE MUST NOT LOSE THE CARD. The card is the
+            # product; the shadow record is a report on the board it came
+            # from, and it is not published anywhere.
+            # ══════════════════════════════════════════════════════════
+            try:
+                import shadow_fb as _sh
+                if _sh.build(LEAGUE):
+                    log("  ⛔ THE SHADOW RECORD REFUSED TO WRITE — the "
+                        "grader's one-row-per-wager contract changed, or "
+                        "the league has no path here. Nothing was "
+                        "written. The card is fine.")
+            except Exception as e:
+                log(f"  ⚠️ the shadow record did not build "
+                    f"({type(e).__name__}: {e}) — the CARD IS FINE and is "
+                    f"not rolled back.")
         elif mode == "halftime-probe":
             # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
             # digits: 2 credits for the bulk ask, 2 more only if that

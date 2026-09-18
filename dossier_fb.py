@@ -64,6 +64,8 @@ import re
 import sys
 import unicodedata
 
+import daystore
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 DATA = os.path.join(ROOT, "data", LEAGUE)
@@ -927,38 +929,22 @@ def build(league=None):
     # ══════════════════════════════════════════════════════════════════
     # 🔴🔴 AND A DATED, WRITE-ONCE COPY. `[2026-09-17]`
     # ⛔ `latest/` IS OVERWRITTEN ON EVERY ONE OF THE EIGHT DAILY
-    # `card-fb` ARMS, so until now this file kept NO history at all and
-    # every day that passed was observations nobody could ever recover.
+    # `card-fb` ARMS, so until this existed the file kept NO history at
+    # all and every day that passed was observations nobody could ever
+    # recover.
     # ⚠️ EVERY SECTION HERE IS A POINT-IN-TIME READING — the market's
     # numbers move, the season-to-date rows grow, a section flips from
     # UNAVAILABLE to OK. A report with no archive cannot be checked
     # against what actually happened.
     #
-    # 💾 DATED AND WRITE-ONCE, NOT ONE CUMULATIVE FILE, AND THE REASON IS
-    # MEASURED (ledger rule 285): ⛔ GIT CANNOT DELTA-COMPRESS A GZIP.
-    # A one-row input change rewrites essentially the whole output, so
-    # consecutive versions share no usable delta and git stores each IN
-    # FULL. At 34 b/row gzipped and ~8,000 rows a week that is 5.17 MiB
-    # for a 20-week season written this way, against 2,896 MiB for one
-    # cumulative archive rewritten eight times a day. **560x.**
-    #
-    # ⚠️ THE DATE IS UTC, DELIBERATELY. `data/<lg>/<date>/` is written by
-    # the collector's `daydir()`, which stamps UTC — `picks/` is the tree
-    # that is ET-dated. ⛔ Two date conventions inside one directory is a
-    # trap, so this follows the neighbours it lands beside, not `picks/`.
+    # 🔴 THE WRITER ITSELF NOW LIVES IN `daystore.py`. `[moved 2026-09-17]`
+    # ⛔ `shadow_fb.py` needs exactly this behaviour the next day, and a
+    # second copy of a write-once rule is a second thing to drift — rule
+    # 117, which this repo has paid for five times. The measurement that
+    # justifies dated-over-cumulative (560x, ledger rule 285) travels
+    # with the code rather than being restated here.
     # ══════════════════════════════════════════════════════════════════
-    _n = datetime.datetime.now(datetime.timezone.utc)
-    arch = os.path.join(data, _n.strftime("%Y-%m-%d"), "dossiers",
-                        _n.strftime("%H%M") + ".json.gz")
-    os.makedirs(os.path.dirname(arch), exist_ok=True)
-    # ⛔ WRITE-ONCE. An archive a later run can rewrite is not an archive;
-    # it is `latest/` with a longer name. Two runs inside one minute leave
-    # the first one's reading alone.
-    if os.path.exists(arch):
-        log("dossier_fb: archive %s already exists — left as it was" % arch)
-    else:
-        with gzip.open(arch, "wt") as fh:
-            json.dump(doc, fh)
+    arch, _wrote = daystore.archive(doc, data, "dossiers", log=log)
     un = collections.Counter(
         s["name"] for d in out for s in d["sections"]
         if s["state"] == "UNAVAILABLE")
