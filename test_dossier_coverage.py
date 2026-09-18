@@ -49,10 +49,12 @@ draft wrong.
 ══════════════════════════════════════════════════════════════════════
 """
 import ast
+import datetime
 import glob
 import gzip
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -80,6 +82,9 @@ def _jz(p):
         return None
 
 
+_PRESTRIP = {}
+
+
 def tree(lg):
     """A throwaway repo with one league's data and the builder."""
     d = tempfile.mkdtemp(prefix="doscov-")
@@ -93,6 +98,22 @@ def tree(lg):
     for rel in ("data/%s/latest/dossiers.json.gz" % lg,):
         if os.path.exists(os.path.join(d, rel)):
             os.remove(os.path.join(d, rel))
+    # 🔴🔴 AND THE DATED ARCHIVES TOO — THE STRIP COVERED ONE PATH AND THE
+    # WRITER WRITES TWO. `[measured 2026-09-18: this is what turned the
+    # suite red on every collector run of the day.]`
+    # ⛔ `data/<lg>/<date>/dossiers/HHMM.json.gz` is COMMITTED, so the
+    # copytree above carries every previous run's archive in, and a check
+    # meant to count WHAT THIS RUN WROTE was counting what every run ever
+    # wrote. It read 1 on the day it was written — when none had been
+    # committed yet — and could never read 1 again. A premise that is
+    # true only on the day you write it is rule 67 with a fuse on it.
+    for _old in glob.glob(os.path.join(d, "data", lg, "*", "dossiers")):
+        shutil.rmtree(_old, ignore_errors=True)
+    # ✅ AND THE STRIP IS RECORDED, NOT TRUSTED. The archive count below
+    #    means "what this run wrote" ONLY if this is 0, so the premise is
+    #    asserted rather than assumed — that assumption is the whole bug.
+    _PRESTRIP[lg] = len(glob.glob(os.path.join(d, "data", lg, "*",
+                                               "dossiers", "*.json.gz")))
     copy_module("dossier_fb", d)
     copy_module("collect", d)
     return d
@@ -275,10 +296,40 @@ for _lg in _LEAGUES:
     # ⚠️ AND THE DATED ARCHIVE COMES THROUGH THE SAME WRITER, for free.
     _arch = glob.glob(os.path.join(_d, "data", _lg, "*", "dossiers",
                                    "*.json.gz"))
+    ck(_PRESTRIP.get(_lg) == 0,
+       "   %s: ⛔ the fixture inherited ZERO archives before the run "
+       "(%s)" % (_lg, _PRESTRIP.get(_lg)),
+       "🔴🔴 THE PREMISE OF THE NEXT CHECK. `data/<lg>/<date>/dossiers/` "
+       "is COMMITTED, so copytree carries every previous run's archive "
+       "in. Counting those as this run's output is what turned the suite "
+       "red on every collector run of 2026-09-18, and it read 1 only on "
+       "the day it was written. A count of THIS RUN'S output is a claim "
+       "about the strip first.")
     ck(len(_arch) == 1,
        "   %s: one dated, write-once archive beside `latest/`" % _lg,
        "⛔ rule 285 — and a SECOND archive path would be a second thing "
        "to drift. Found: %s" % [os.path.relpath(a, _d) for a in _arch])
+    # 🔴 AND IT IS THE SHAPE `daystore.py` DECLARES, NOT MERELY ONE FILE.
+    # ⛔ The old error text claimed to guard against "a SECOND archive
+    #    path" and NOTHING checked the path at all — an archive written
+    #    as `dossiers/1808-nfl.json.gz`, or under `<lg>/dossiers/`, or
+    #    dated to the wrong day, all passed a bare count of 1. Rule 249:
+    #    a check must ask its own prose.
+    _rel = [os.path.relpath(a, os.path.join(_d, "data", _lg))
+            for a in _arch]
+    _today = datetime.datetime.now(datetime.timezone.utc).strftime(
+        "%Y-%m-%d")
+    _shape = [r for r in _rel
+              if re.fullmatch(re.escape(_today) + r"[/\\]dossiers[/\\]"
+                              r"(?:[01]\d|2[0-3])[0-5]\d\.json\.gz", r)]
+    ck(len(_shape) == len(_arch) and bool(_arch),
+       "   %s: ...and it is `<UTC today>/dossiers/HHMM.json.gz` (%s)"
+       % (_lg, ", ".join(_rel) or "none"),
+       "⛔ `daystore.path()` declares the shape and this is the only "
+       "place that reads it back. A file that is not a valid clock time, "
+       "or sits under another day or another directory, is a SECOND "
+       "archive path — which is the thing the count was always supposed "
+       "to be about. Off-shape: %s" % [r for r in _rel if r not in _shape])
     shutil.rmtree(_d, ignore_errors=True)
 note("   league / board games / dossiers / named skips / one-sided: %s"
      % (_seen,))
