@@ -2368,6 +2368,40 @@ def probe(log=log):
                          ((f"top-probe-{season}.json", toprep),)
                          if toprep else ()) + (
                          ((f"top-{season}.json.gz", top),) if top else ()):
+                # ══════════════════════════════════════════════════
+                # 🔴🔴 STAMP EVERY DOCUMENT, AT THE CHOKE POINT.
+                # ══════════════════════════════════════════════════
+                # ⛔ THIS LOOP IS A SECOND WRITE PATH AND IT SKIPPED THE
+                #    ONE IN `collect.write()`, whose own docstring says
+                #    why that matters: *"Stamping at the single choke
+                #    point means a NEW artifact added later cannot be
+                #    born un-ageable, which is the whole failure this
+                #    rewrite exists to end."*
+                # 🔴 `[measured 2026-09-18]` IT WAS BORN UN-AGEABLE.
+                #    `freshness.stamp_of()` reads the timestamp out of a
+                #    file's CONTENT and never from the filesystem — "⛔
+                #    Never from the filesystem" — so a document with no
+                #    stamp field reads as MISSING for ever, no matter how
+                #    recently it was written. On disk today:
+                #        schedule-probe-2026.json   written_at ✅
+                #        targets-probe-2026.json    NONE       ⛔
+                #        top-probe-2026.json        NONE       ⛔
+                #    `schedule-probe` only has one because `collect.py`
+                #    writes it a SECOND time through the choke point. The
+                #    two written ONLY here had nothing.
+                # ⚠️ So a freshness row on any of them could never clear,
+                #    which is why this ships in the same commit as the
+                #    possession contract entry rather than after it.
+                # ⛔ `written_at`, not `built_at`: it means WHEN THIS FILE
+                #    WAS WRITTEN and is refreshed every write, exactly as
+                #    at the other choke point. An explicit `built_at` or
+                #    `pulled_at` a builder set for itself still WINS at
+                #    read time — it answers the different question of when
+                #    the DATA is from — because `written_at` is last in
+                #    `freshness.STAMP_FIELDS`.
+                if isinstance(o, dict):
+                    o = dict(o, written_at=datetime.datetime.now(
+                        datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
                 # ⚠️ the probe is plain JSON on purpose -- it exists to
                 # be READ, and a gzipped diagnostic is a diagnostic
                 # nobody opens.

@@ -378,6 +378,23 @@ FB_TIMES = {
         # kickoff) rather than the two dates -- a late slate for any
         # other reason must go red, not be absorbed.
         "trends": [(3, 0)],                              # 3am ET DAILY
+        # ══════════════════════════════════════════════════════════
+        # 🔴🔴 THE POSSESSION PROBE, AND IT IS NOT `trends`.
+        # ══════════════════════════════════════════════════════════
+        # `[measured 2026-09-18]` Both artifacts are written by the SAME
+        # mode, and that is exactly why they need separate rows. `trends`
+        # is pinned to when the defence-vs-position TABLE is rebuilt;
+        # possession is written by EVERY run of that mode. For the NFL
+        # those are weekly and daily respectively — so the trends row was
+        # green all day while the possession artifact did not exist at
+        # all, and `top-<season>` had NO contract entry of any kind.
+        # ⛔ A row pointing at the wrong file is worse than no row: it
+        # reports healthy about a file it is not watching.
+        # ⚠️ 3AM ET, JUST BEFORE THE CRON AND NOT AFTER IT — the same rule
+        # this file already learned the hard way for `scores`. The daily
+        # arms fire at 07:04Z (`cfb-probe`) and 07:14Z (`nfl-logs`),
+        # which is 03:04 and 03:14 ET.
+        "possession": [(3, 0)],                          # 3am ET DAILY
         # 🔴 HOURLY. `[Sam: "news should be updating every hour i see that
         # it is 5 hours old, unacceptable"]` ⛔ One 8am deadline meant a
         # 5-hour-old file was INSIDE contract and nothing anywhere was
@@ -449,6 +466,23 @@ FB_TIMES = {
         # so a daily deadline would be a deadline nothing can satisfy
         # (rule 112). College is daily because CFBD publishes daily.
         "trends": [(12, 0, {1})],                        # Tue noon
+        # ══════════════════════════════════════════════════════════
+        # 🔴🔴 THE POSSESSION PROBE, AND IT IS NOT `trends`.
+        # ══════════════════════════════════════════════════════════
+        # `[measured 2026-09-18]` Both artifacts are written by the SAME
+        # mode, and that is exactly why they need separate rows. `trends`
+        # is pinned to when the defence-vs-position TABLE is rebuilt;
+        # possession is written by EVERY run of that mode. For the NFL
+        # those are weekly and daily respectively — so the trends row was
+        # green all day while the possession artifact did not exist at
+        # all, and `top-<season>` had NO contract entry of any kind.
+        # ⛔ A row pointing at the wrong file is worse than no row: it
+        # reports healthy about a file it is not watching.
+        # ⚠️ 3AM ET, JUST BEFORE THE CRON AND NOT AFTER IT — the same rule
+        # this file already learned the hard way for `scores`. The daily
+        # arms fire at 07:04Z (`cfb-probe`) and 07:14Z (`nfl-logs`),
+        # which is 03:04 and 03:14 ET.
+        "possession": [(3, 0)],                          # 3am ET DAILY
         # 🔴 HOURLY, same as college — Sam's complaint was about the news
         # tab and both leagues read the same builder.
         "news":   [(h, 0) for h in range(24)],           # every hour
@@ -701,6 +735,56 @@ def _football_contract(league, data, picks, now):
         (("cfb-probe" if league == "ncaaf" else "nfl-logs"),
          ("file", tpath), T["trends"], False,
          "Trends — defence-vs-position"))
+    # ══════════════════════════════════════════════════════════════
+    # 🔴🔴 AND SO DOES POSSESSION — RULE 78 AGAIN, AND IT ALREADY BIT.
+    # ══════════════════════════════════════════════════════════════
+    # `[measured 2026-09-18]` The first full production day of the college
+    # path: the dossier landed in both leagues, and **section 6 was
+    # UNAVAILABLE for all 32 NFL games** because `build_possession` never
+    # ran — the daily `14 7 * * *` arm was DROPPED, which GitHub does and
+    # this repo has measured repeatedly. ⛔ That is not a code defect.
+    #
+    # 🔴 THE DEFECT IS THAT NOTHING NOTICED. `top-<season>.json.gz` had no
+    # contract entry of any kind, so the survey read `stale: False,
+    # ok: True` while the artifact did not exist at all, and §6 would have
+    # stayed UNAVAILABLE indefinitely with the contract reporting healthy.
+    # ⚠️ That is the `t54.json` shape: an artifact nothing tracks is an
+    # artifact nobody misses.
+    #
+    # ══════════════════════════════════════════════════════════════
+    # ⛔ THE PROBE IS THE *PROBE*, NOT THE TABLE, AND THAT IS THE WHOLE
+    #    DESIGN.
+    # ══════════════════════════════════════════════════════════════
+    # `top-{season}.json.gz` is written ONLY when the derivation holds
+    # together. `top-probe-{season}.json` is written EITHER WAY — both
+    # builders say so in as many words: *"⛔ THE PROBE IS WRITTEN EITHER
+    # WAY. A diagnosis that exists only in an Actions log is a diagnosis
+    # you do not have."*
+    #
+    # 🔴 SO THE TWO FILES ANSWER TWO DIFFERENT QUESTIONS, and only one of
+    # them is this contract's business:
+    #
+    #    probe MISSING or STALE  ->  THE BUILDER DID NOT RUN. That is a
+    #                                dropped arm, it is repairable, and
+    #                                converge should rebuild it. ✅
+    #    probe FRESH, table absent -> THE BUILDER RAN AND REFUSED. The
+    #                                reason is in the probe and §6 says
+    #                                it. ⛔ NOT late, and NOT this
+    #                                contract's business.
+    #
+    # ⛔ A ROW ON THE TABLE WOULD CONFLATE THEM, and the cost is not
+    # hypothetical: college's derivation is refusing RIGHT NOW over CFBD's
+    # play ordering (36.28 pct anomaly against a 2.0 bar, and correctly).
+    # A row on `top-{season}.json.gz` would mark the site stale on every
+    # single run until that ordering question is settled — **a banner
+    # nobody can clear**, which is the exact failure this file argues
+    # against in four separate places and has already lived through once.
+    # ✅ Probing the probe asks "did the builder run?", which is the
+    # question a freshness contract exists to ask.
+    rows.append(
+        (("cfb-probe" if league == "ncaaf" else "nfl-logs"),
+         ("file", f"{latest}/top-probe-{season}.json"), T["possession"],
+         False, "Dossier §6 — time of possession"))
     # ⛔ AND THE SCORES REFRESHER GETS A ROW, because a builder nothing
     # watches runs approximately never (rule 78). The probe is the CURRENT
     # season's schedule -- the file `home_score`, `away_score` and `final`
@@ -977,7 +1061,15 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     """The ordered list of modes needed to meet every deadline that has
     passed. Order is the contract's order, which is dependency order."""
     rows = survey(data, picks, now)
-    order = [r["mode"] for r in rows]
+    # ⛔ ONE MODE, ONE ENTRY, EVEN WHEN IT OWNS TWO ROWS. A mode may
+    #    legitimately appear in the contract more than once — `nfl-logs`
+    #    writes both the defence-vs-position table and the possession
+    #    probe, on different cadences — and without this a run where both
+    #    are stale would execute that mode TWICE in one pass. For a free
+    #    mode that is wasted minutes; for a paid one it would be wasted
+    #    credits. ⚠️ `dict.fromkeys` keeps the contract's order, which is
+    #    dependency order and is what the return relies on.
+    order = list(dict.fromkeys(r["mode"] for r in rows))
     need = {r["mode"] for r in rows if r["stale"]
             and (allow_paid or not r["paid"])}
     changed = True
