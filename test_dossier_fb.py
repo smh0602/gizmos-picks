@@ -19,6 +19,7 @@ throwaway copy; `tcheck` fails any test that leaves a file under `data/`
 changed, and it is right to.
 """
 import ast
+import datetime
 import glob
 import gzip
 import json
@@ -59,6 +60,22 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   file: dossier_fb.py
 #   find: "sections": [
 #   with: "score": 0.73, "confidence": 88, "sections": [
+#
+# @vacuity a venue is never invented when the schedule has no row
+#   file: dossier_fb.py
+#   find: if not sched_row:
+#   with: sched_row = sched_row or {"venue": home, "roof": "outdoors"}
+#   if False:
+#
+# @vacuity a week is PLACED by the calendar or refused, never guessed
+#   find: return {d: next(iter(w)) for d, w in seen.items() if len(w) == 1}
+#   file: dossier_fb.py
+#   with: return {d: 1 for d in seen}
+#
+# @vacuity an ambiguous schedule key REFUSES, it does not pick the first
+#   file: dossier_fb.py
+#   find: sideidx.setdefault((side, x[side], d), []).append(x)
+#   with: sideidx[(side, x[side], d)] = [x]
 #
 # @vacuity no section asks the ENVIRONMENT which league it is describing
 #   file: dossier_fb.py
@@ -414,6 +431,217 @@ ck(_D1b.get("n_partial") == 1 and "PARTIAL" in _out1b,
    "⛔ rule 166: \"88 of 88\" read as full coverage while 19 rows had no "
    "identified opponent. n_partial=%r, log says PARTIAL=%s"
    % (_D1b.get("n_partial"), "PARTIAL" in _out1b))
+
+section("1c. 🔴🔴 A MISSING SCHEDULE ROW WAS A FAILED JOIN, NOT AN ABSENCE")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 19 COLLEGE GAMES READ "the schedule has no row for this game" AND 17
+# OF THEM WERE IN `schedule-2026.json.gz` ALL ALONG. `[measured
+# 2026-09-18]` The pair key is built from the RESOLVED code on BOTH
+# sides, and an FCS away team resolves to `None`, so `(home, None, date)`
+# could never match. ⚠️ The schedule holds that school's name perfectly
+# well — it is the FBS-only TEAM LIST that does not. Same
+# reference-set-narrower-than-the-board class as task 27, one join over.
+# ✅ SO: the exact pair first, then ONE SIDE PLUS THE DATE — and UNIQUE
+# OR NOTHING. Measured across 4 stored schedules, 8,063 of 8,065
+# (team, date ±1) keys hold exactly one game; the two that do not are a
+# Division III fixture duplicated under two ids. A key that is unique
+# 99.98% of the time is not a key you may assume.
+# ⛔ AND THE WINDOW IS LOAD-BEARING: the college schedule stamps `start`
+# with a `Z` and the NFL one stores `2026-09-09T20:20` with no zone at
+# all, so an NFL night game files a day earlier there than on the board.
+# ══════════════════════════════════════════════════════════════════════
+_d1c = tree()
+_sp = os.path.join(_d1c, "data/nfl/latest/schedule-2026.json.gz")
+_S = _load(_sp)
+_sg = _S.get("games") or []
+ck(len(_sg) > 50, "⚠️ the fixture has a real schedule to join against (%d)"
+   % len(_sg), "⛔ rule 67 — every check below would pass over nothing")
+# ⚠️ DERIVED FROM THE ARTIFACT, never a literal date. The stored
+#    schedules age, and a hard-coded day reddens on correct code (#51).
+_real = sorted(_sg, key=lambda x: x.get("start") or "")[0]
+_covered = (_real.get("start") or "")[:10]
+_dates = sorted({(x.get("start") or "")[:10] for x in _sg if x.get("start")})
+_uncovered = (datetime.datetime.strptime(_dates[0], "%Y-%m-%d")
+              - datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+# ⚠️ A DATE THE CALENDAR **DOES** COVER, for the third fixture below.
+#    ⛔ THE HARNESS CALLED AN EARLIER VERSION OF THIS SECTION VACUOUS AND
+#    IT WAS RIGHT: every fixture used an UNCOVERABLE date, so mutating
+#    `week_calendar` to hand back week 1 for everything changed nothing
+#    observable and the declaration proved nothing (rule 244). A guard
+#    that only tests the refusal never tests the placement.
+_placed = _dates[-1]
+_placed_week = next(x["week"] for x in _sg
+                    if (x.get("start") or "")[:10] == _placed
+                    and x.get("week") is not None)
+_bp1c = os.path.join(_d1c, "data/nfl/latest/board.json")
+_b1c = json.load(open(_bp1c, encoding="utf-8"))
+# ⚠️ THE BOARD NAMES THE HOME TEAM IN FULL; reuse the builder's OWN
+#    resolver rather than a second copy of the mapping (rule 66).
+import dossier_fb as _DFX  # noqa: E402
+_res = _DFX.team_codes("nfl")
+_homefull = next(g["home"] for g in _b1c["games"] if _res(g.get("home")))
+_homecode = _res(_homefull)
+# ⛔ A SCHEDULE ROW THAT EXISTS FOR (home, date) BUT WHOSE AWAY SIDE THE
+#    TEAM LIST CANNOT RESOLVE — the exact 17-game shape.
+# ⛔ AND THE HOME TEAM HAS NO ROW NEAR `_placed` EITHER, so that game
+#    reaches the calendar rather than a schedule row.
+_S["games"] = [x for x in _sg
+               if not (x.get("home") == _homecode
+                       and abs((datetime.datetime.strptime(
+                           (x.get("start") or "1900-01-01")[:10], "%Y-%m-%d")
+                           - datetime.datetime.strptime(_covered, "%Y-%m-%d")
+                       ).days) <= 1)
+               and not (x.get("home") == _homecode
+                        and abs((datetime.datetime.strptime(
+                            (x.get("start") or "1900-01-01")[:10], "%Y-%m-%d")
+                            - datetime.datetime.strptime(_placed, "%Y-%m-%d")
+                        ).days) <= 1)]
+_S["games"].append({"home": _homecode, "away": "Slippery Rock",
+                    "start": _covered + "T18:00", "week": 99,
+                    "venue": "A Real Stored Stadium", "roof": "outdoors",
+                    "surface": "grass", "neutral": False,
+                    "id": "fixture-one-side"})
+with gzip.open(_sp, "wt") as _fh:
+    json.dump(_S, _fh)
+# ⚠️ THE REAL GAMES STAY ON THE BOARD BESIDE THE TWO FIXTURES. A board
+#    of two synthetic games carries no prior meetings and no ranked
+#    defences, so `audit()` correctly REFUSES to write — its stale-
+#    exception check fires because `meetings`, `by_player` and
+#    `by_defence` never appear at all. ⛔ That is the audit working; a
+#    fixture thin enough to trip it is testing the fixture.
+_b1c["games"] = _b1c["games"][:6] + [
+    dict(_b1c["games"][0], home=_homefull,
+         away="Slippery Rock Aardvarks",
+         commence=_covered + "T18:00:00Z", id="bid-oneside"),
+    dict(_b1c["games"][0], home=_homefull,
+         away="Nowhere Nine",
+         commence=_uncovered + "T18:00:00Z", id="bid-uncovered"),
+    dict(_b1c["games"][0], home=_homefull,
+         away="Nobody State",
+         commence=_placed + "T18:00:00Z", id="bid-placed")]
+json.dump(_b1c, open(_bp1c, "w", encoding="utf-8"))
+_rc1c, _out1c = run(_d1c, "dossier_fb.py")
+ck(_rc1c == 0, "   the builder runs on that board", _out1c[-300:])
+_D1c = {x.get("board_id"): x
+        for x in (_load(os.path.join(
+            _d1c, "data/nfl/latest/dossiers.json.gz")).get("dossiers") or [])}
+_one = _D1c.get("bid-oneside") or {}
+_unc = _D1c.get("bid-uncovered") or {}
+ck(bool(_one) and bool(_unc), "⚠️ both fixture games were described",
+   "⛔ rule 67. Got %s" % sorted(_D1c))
+_s8one = next((s for s in (_one.get("sections") or []) if s["n"] == 8), {})
+ck(_s8one.get("state") == "OK"
+   and _s8one.get("venue") == "A Real Stored Stadium",
+   "🔴🔴 A ROW THE PAIR KEY MISSES IS FOUND ON ONE SIDE PLUS THE DATE",
+   "⛔ 17 of 19 college games carried their venue, roof and surface in "
+   "the stored schedule and the dossier said it had no row. Got %s / %r"
+   % (_s8one.get("state"), _s8one.get("venue")))
+ck("the home team and the date" in (_one.get("row_basis") or ""),
+   "   ⚠️ ...and the row SAYS it was joined on one side, not the pair",
+   "🔴 a weaker join with no provenance beside it gets read as the "
+   "stronger one. Got %r" % _one.get("row_basis"))
+ck(_one.get("week") == 99,
+   "   ⛔ ...and the week comes from that row (%s)" % _one.get("week"),
+   "🔴 the recovered row is the authority when there is one")
+
+section("1d. ⛔ AND WHERE IT GENUINELY CANNOT ANSWER, IT STILL REFUSES")
+_s8unc = next((s for s in (_unc.get("sections") or []) if s["n"] == 8), {})
+ck(_s8unc.get("state") != "OK" and not _s8unc.get("venue"),
+   "🔴🔴 NO SCHEDULE ROW MEANS NO VENUE — IT IS NOT INVENTED",
+   "⛔ DO NOT INVENT A VENUE. A home-team default is not a stadium and a "
+   "dome is not an assumption. Got %s / %r"
+   % (_s8unc.get("state"), _s8unc.get("venue")))
+_s3unc = next((s for s in (_unc.get("sections") or []) if s["n"] == 3), {})
+ck(_unc.get("week") is None and _s3unc.get("state") != "OK",
+   "🔴 a date the calendar cannot place is NOT placed (%r)"
+   % _unc.get("week"),
+   "⛔ the weeks do not tile the calendar — week 1 ends 09-07 and week 2 "
+   "opens 09-10, and week 14 is absent entirely. A date in a gap is "
+   "refused, not rounded to a neighbour. Got %s" % _s3unc.get("state"))
+ck(_uncovered in (_s3unc.get("why") or ""),
+   "   ⛔ ...and the refusal NAMES the date it could not place",
+   "🔴 \"could not place it\" without saying which date is unactionable. "
+   "Got: %s" % (_s3unc.get("why") or "")[:140])
+ck(_unc.get("week_basis") is None,
+   "   ⚠️ ...and claims no provenance for a week it does not have",
+   "Got %r" % _unc.get("week_basis"))
+# ── AND THE OTHER HALF: a date the calendar CAN place, with no row ───
+_pl = _D1c.get("bid-placed") or {}
+_s3pl = next((s for s in (_pl.get("sections") or []) if s["n"] == 3), {})
+ck(bool(_pl) and _pl.get("game_id") is None,
+   "⚠️ the third fixture game reaches the calendar (no schedule row)",
+   "⛔ rule 67 — with a row it would never exercise the calendar at "
+   "all. game_id %r" % _pl.get("game_id"))
+ck(_pl.get("week") == _placed_week,
+   "🔴🔴 A DATE THE CALENDAR COVERS IS PLACED IN **THE RIGHT WEEK** "
+   "(%s, expected %s)" % (_pl.get("week"), _placed_week),
+   "⛔ THE HARNESS CALLED THE EARLIER VERSION OF THIS VACUOUS: every "
+   "fixture used an uncoverable date, so a `week_calendar` that handed "
+   "back week 1 for everything changed nothing and the declaration "
+   "proved nothing. ⚠️ The expected week is read out of the schedule "
+   "artifact, never written here")
+ck("season calendar" in (_pl.get("week_basis") or ""),
+   "   ⚠️ ...and says the calendar placed it, not a schedule row",
+   "🔴 two different strengths of claim. Got %r" % _pl.get("week_basis"))
+ck(_s3pl.get("state") == "OK" or "prior-season" in (_s3pl.get("why") or ""),
+   "   ✅ ...so section 3 can answer, or refuses for a REAL reason",
+   "⛔ a placed week that still reads 'we cannot place this date' would "
+   "mean the week never reached the section. Got %s / %s"
+   % (_s3pl.get("state"), (_s3pl.get("why") or "")[:80]))
+shutil.rmtree(_d1c, ignore_errors=True)
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 AND AN AMBIGUOUS KEY REFUSES RATHER THAN PICKING THE FIRST MATCH.
+# ⛔ (team, date ±1) is unique in 8,063 of 8,065 stored rows, and the two
+# that are not are a Division III fixture duplicated under two CFBD ids.
+# A key that is unique 99.98% of the time is not a key you may assume —
+# `resolve()`'s rule, one file over: this project does not guess.
+# ⚠️ DRIVEN, because the real schedules contain no such collision for any
+# board team, so nothing would ever exercise this branch on live data.
+# ══════════════════════════════════════════════════════════════════════
+_d1e = tree()
+_sp1e = os.path.join(_d1e, "data/nfl/latest/schedule-2026.json.gz")
+_S1e = _load(_sp1e)
+_g1e = _S1e.get("games") or []
+_day1e = sorted({(x.get("start") or "")[:10] for x in _g1e if x.get("start")})[0]
+_bp1e = os.path.join(_d1e, "data/nfl/latest/board.json")
+_b1e = json.load(open(_bp1e, encoding="utf-8"))
+_hf1e = next(g["home"] for g in _b1e["games"] if _res(g.get("home")))
+_hc1e = _res(_hf1e)
+_S1e["games"] = [x for x in _g1e
+                 if not (x.get("home") == _hc1e
+                         and (x.get("start") or "")[:10] == _day1e)]
+for _i in (1, 2):
+    _S1e["games"].append({"home": _hc1e, "away": "Ghost %d" % _i,
+                          "start": _day1e + "T18:00", "week": 50 + _i,
+                          "venue": "Stadium %d" % _i, "id": "dup%d" % _i})
+with gzip.open(_sp1e, "wt") as _fh:
+    json.dump(_S1e, _fh)
+_b1e["games"] = _b1e["games"][:6] + [
+    dict(_b1e["games"][0], home=_hf1e, away="Slippery Rock Aardvarks",
+         commence=_day1e + "T18:00:00Z", id="bid-amb")]
+json.dump(_b1e, open(_bp1e, "w", encoding="utf-8"))
+run(_d1e, "dossier_fb.py")
+_amb = next((x for x in (_load(os.path.join(
+    _d1e, "data/nfl/latest/dossiers.json.gz")).get("dossiers") or [])
+    if x.get("board_id") == "bid-amb"), {})
+ck(bool(_amb), "⚠️ the ambiguous fixture game was described",
+   "⛔ rule 67 — nothing to check otherwise")
+ck(_amb.get("game_id") is None,
+   "🔴🔴 TWO CANDIDATES FOR ONE KEY ATTACH NEITHER (game_id %r)"
+   % _amb.get("game_id"),
+   "⛔ picking the first match is how a dossier ends up describing "
+   "another game — the wrong-game class, at a different join")
+ck("REFUSED" in (_amb.get("row_basis") or "")
+   and "2 schedule rows" in (_amb.get("row_basis") or ""),
+   "   ⛔ ...and the row SAYS it refused, and how many it saw",
+   "🔴 a silent refusal is indistinguishable from an absent row. Got %r"
+   % _amb.get("row_basis"))
+_s8amb = next((s for s in (_amb.get("sections") or []) if s["n"] == 8), {})
+ck(_s8amb.get("state") != "OK" and not _s8amb.get("venue"),
+   "   ⛔ ...so no venue is attached from either of them",
+   "🔴 Got %s / %r" % (_s8amb.get("state"), _s8amb.get("venue")))
+shutil.rmtree(_d1e, ignore_errors=True)
 
 section("2. ⚠️ ALL EIGHT SECTIONS, EVERY GAME, PRESENT OR UNAVAILABLE")
 _docs = _D.get("dossiers") or []
