@@ -1,0 +1,122 @@
+{
+ "asked": {
+  "endpoint": "/coaches",
+  "params": {
+   "year": 2026
+  }
+ },
+ "built_at": "2026-09-18T03:45:31Z",
+ "columns": {
+  "firstName": 138,
+  "hireDate": 138,
+  "id": 138,
+  "lastName": 138,
+  "seasons": 138
+ },
+ "cost": {
+  "calls_made": 1,
+  "note": "\u26d4 The authority on the bill is CFBD's own quota headers, not this count. When no such header comes back, `calls_made` is the only number anyone has and it is OUR arithmetic.",
+  "quota": {
+   "checked_at": "2026-09-18T03:45:32Z",
+   "headers": {
+    "X-CallLimit-Remaining": "2374"
+   },
+   "kind": "DIAGNOSTIC",
+   "note": null,
+   "quota_headers_seen": true
+  }
+ },
+ "exists": true,
+ "fbs_coverage": {
+  "caveat": "Matched on the EXACT school string. A school in `fbs_missing` is either not covered or spelled differently in the two feeds, and this probe cannot tell those apart without a second call.",
+  "distinct_schools": 138,
+  "fbs_matched": 138,
+  "fbs_missing": [],
+  "fbs_missing_n": 0,
+  "fbs_reference_n": 138,
+  "not_in_fbs_n": 0,
+  "not_in_fbs_sample": [],
+  "school_keys_found": []
+ },
+ "fbs_reference": {
+  "built_at": "2026-09-17T07:27:43Z",
+  "file": "data/ncaaf/latest/teams.json",
+  "n": 138,
+  "season": 2026,
+  "source": "CFBD /teams/fbs",
+  "usable": true
+ },
+ "kind": "PROBE",
+ "league": "ncaaf",
+ "nested_columns": {
+  "seasons[].conference": 138,
+  "seasons[].games": 138,
+  "seasons[].losses": 138,
+  "seasons[].postseasonRank": 138,
+  "seasons[].preseasonRank": 138,
+  "seasons[].school": 138,
+  "seasons[].spDefense": 138,
+  "seasons[].spOffense": 138,
+  "seasons[].spOverall": 138,
+  "seasons[].srs": 138,
+  "seasons[].teamId": 138,
+  "seasons[].ties": 138,
+  "seasons[].winPercentage": 138,
+  "seasons[].wins": 138,
+  "seasons[].year": 138
+ },
+ "not_adopted": "\u26d4 \u00a77 does not read this file and must not until Sam says so. The dossier still records coaching changes as MISSING.",
+ "question": "Does /coaches exist, what columns does it REALLY return, does it carry a start year so \"new this season\" is computable, does it cover FBS, and what did the call cost?",
+ "rows": 138,
+ "sample_row": {
+  "firstName": "Scott",
+  "hireDate": "2024-11-26T00:00:00.000Z",
+  "id": 1826,
+  "lastName": "Abell",
+  "seasons": [
+   {
+    "conference": "American Athletic",
+    "games": 0,
+    "losses": 0,
+    "postseasonRank": null,
+    "preseasonRank": null,
+    "school": "Rice",
+    "spDefense": 32.2,
+    "spOffense": 16.7,
+    "spOverall": -15.1,
+    "srs": null,
+    "teamId": 242,
+    "ties": 0,
+    "winPercentage": null,
+    "wins": 0,
+    "year": 2026
+   }
+  ]
+ },
+ "start_year": {
+  "candidates_looked_for": [
+   "year",
+   "season",
+   "startYear",
+   "start_year",
+   "hireYear",
+   "firstYear",
+   "hire_year"
+  ],
+  "found": [
+   "seasons[].year"
+  ],
+  "new_this_season_computable": false,
+  "per_key": {
+   "seasons[].year": {
+    "distinct": 1,
+    "max": 2026,
+    "min": 2026,
+    "n": 138
+   }
+  },
+  "varying": [],
+  "why": "A year that is the SAME on every row is the year we asked for and says nothing about tenure. \"New this season\" needs a year that VARIES across coaches \u2014 a first season at the school."
+ },
+ "verdict": "EXISTS \u2014 138 row(s), 5 column(s), 138 distinct school(s). \"New this season\" is NOT COMPUTABLE from this response. \u26d4 Nothing is adopted: \u00a77 still records coaching changes as missing, and wiring this in is a separate decision."
+}

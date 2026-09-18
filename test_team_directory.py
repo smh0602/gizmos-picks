@@ -134,10 +134,41 @@ ck(all("ncaaf" in l for l in routes), "  routed as ncaaf", routes[:1])
 print("\n4. ⛔ FREE, AND NEVER FATAL")
 # The mode must be on the FREE list, or a missing ODDS_API_KEY would kill
 # a mode that never touches the Odds API.
-src = open("collect.py", encoding="utf-8").read()
-i = src.index("FREE = (")
-ck('"cfb-teams"' in src[i:i + 500],
-   "`cfb-teams` is on the FREE list (it calls CFBD, never the Odds API)")
+# 🔴 ~~`ck('"cfb-teams"' in src[src.index("FREE = (") : +500])`~~ STRUCK
+#    2026-09-18. IT ASKED THE WRONG QUESTION AND WENT RED ON CORRECT CODE.
+#    ⛔ "within 500 characters of the assignment's opening" is not "on the
+#    FREE list", and the gap is not theoretical -- it was DRIVEN, in both
+#    directions, on 2026-09-18:
+#      - IT CAN BE BROKEN BY A COMMENT. A note added above the tuple that
+#        repeated the eight-character landmark became the FIRST match, so
+#        the search read the comment and `"cfb-teams"` fell outside the
+#        window. The collector was correct; the check was red.
+#      - IT CAN BE SATISFIED BY A COMMENT. The mode name appearing in
+#        prose within the window passes, with the tuple empty.
+#    ⚠️ ~~"the tuple was already 480-odd characters, so ANY new free mode
+#    broke it"~~ RETRACTED -- I wrote that and it is FALSE. Measured: 315
+#    characters to `"cfb-teams"` before this PR and 344 after, both well
+#    inside 500. The window was never the fault; the landmark was. A
+#    wrong reason for a right change is still a wrong reason (rule 166).
+# ✅ THE REPLACEMENT IS STRICTLY HARDER: the tuple is PARSED and
+#    membership is asserted. It cannot be satisfied by proximity, cannot
+#    be satisfied by a comment, and cannot be broken by an unrelated mode
+#    being added. (CLAUDE.md: a check may change only when it asks the
+#    wrong question, and the new one must be harder to pass.)
+import ast as _ast
+_free = None
+for _n in _ast.walk(_ast.parse(open("collect.py", encoding="utf-8").read())):
+    if isinstance(_n, _ast.Assign) and any(
+            isinstance(t, _ast.Name) and t.id == "FREE" for t in _n.targets):
+        _free = [e.value for e in _ast.walk(_n.value)
+                 if isinstance(e, _ast.Constant) and isinstance(e.value, str)]
+        break
+ck(_free is not None and len(_free) > 5,
+   "the FREE tuple in collect.py is found and parsed, not string-matched",
+   "parsed: %s" % (_free,))
+ck("cfb-teams" in (_free or []),
+   "`cfb-teams` is on the FREE list (it calls CFBD, never the Odds API)",
+   "FREE = %s" % (_free,))
 # 🔴 The on-demand rebuild must swallow its own failure. Proven by making
 # the rebuild raise and checking the caller returns normally.
 import types

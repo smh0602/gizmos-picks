@@ -63,7 +63,7 @@ LEAGUES = {
 # still a thing a tired operator has to read at 4am, whereas a forced path
 # CANNOT be wrong.
 MODE_LEAGUE = {"nfl-probe": "nfl", "nfl-logs": "nfl",
-               "cfb-probe": "ncaaf"}
+               "cfb-probe": "ncaaf", "coaches-probe": "ncaaf"}
 LEAGUE = os.environ.get("LEAGUE", "mlb").strip().lower() or "mlb"
 _forced = {MODE_LEAGUE[m] for m in MODE_LEAGUE
            if m in " ".join(sys.argv[1:]).split()}
@@ -3526,9 +3526,23 @@ def run_mode(mode):
     # The free modes touch statsapi or the repo only. `card` calls nothing
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
+    # ⚠️ FREE OF **ODDS** CREDITS, which is the only thing this tuple
+    # decides: `cfb-probe` and `coaches-probe` both spend CFBD calls and
+    # neither must be gated on a key it never reads.
+    #
+    # 🔴 DO NOT WRITE THE OPENING OF THIS ASSIGNMENT IN A COMMENT.
+    # `[measured 2026-09-18]` Four test files find this tuple by searching
+    # collect.py for that exact eight-character landmark — three of them
+    # then `.split(landmark)[1].split(")")[0]`. A comment that repeats it
+    # becomes the FIRST match, so the search reads the comment instead of
+    # the code and **test_live_probe.py, test_record_fb.py,
+    # test_drop16_fixes.py and test_team_directory.py all went red on a
+    # correct collector at once.** ⛔ The tests are not the problem to
+    # solve here; the duplicated landmark is.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
+            "coaches-probe",
             "fb-scores", "fb-record", "live-probe",
             "card-fb", "nfl-teams", "cfb-teams")
     if mode not in FREE and not ODDS_KEY:
@@ -4322,6 +4336,26 @@ def run_mode(mode):
                 sys.exit(1)
             else:
                 left = None
+        elif mode == "coaches-probe":
+            # ══════════════════════════════════════════════════════════
+            # 🔴 PROBE ONLY. `[Sam's work order, 2026-09-18: "ONE PROBE.
+            #    ONE CREDIT. WRITE A REPORT AND STOP."]`
+            # §7 of the dossier publishes "⛔ COACHING CHANGES HAVE NO
+            # SOURCE IN THIS STACK". CFBD documents `/coaches`. ⛔ That is
+            # a fact about the DOCUMENTATION; this asks the feed.
+            # 💰 ONE CFBD CALL, counted in the artifact rather than
+            # promised in a comment. ⛔ NO CRON ARM — it is dispatched by
+            # hand, once, and `cfbd_budget.py` therefore prices it at
+            # zero a month, which is the true answer for a mode nothing
+            # schedules.
+            # ⛔ IT WRITES `coaches-probe.json` AND NOTHING ELSE, and
+            # nothing reads it. Adopting it into §7 is a separate
+            # decision Sam has not made.
+            # ══════════════════════════════════════════════════════════
+            import cfb as _cfb
+            if not _cfb.coaches_probe(log):
+                sys.exit(1)
+            left = None
         elif mode == "nfl-probe":
             # 🔴 ASKS THE SOURCE WHAT IT PUBLISHES AND WRITES NOTHING.
             # The Claude container may not fetch URLs, so every nflverse
