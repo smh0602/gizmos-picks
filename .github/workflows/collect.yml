@@ -1083,7 +1083,9 @@ jobs:
             # ⚠️ THE ASSIGNEE IS TRIED AND THEN DROPPED. A create that
             # fails because a username changed would mean NO alert at all,
             # and the notification matters more than the assignment.
-            gh issue create --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
+            gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/body.md \
               || gh issue create --title "$TITLE" --body-file /tmp/body.md
           fi
           exit 0
@@ -1146,7 +1148,9 @@ jobs:
           if [ -n "$NUM" ]; then
             gh issue edit "$NUM" --body-file /tmp/tests_body.md
           else
-            gh issue create --title "$TITLE" --body-file /tmp/tests_body.md --assignee smh0602 \
+            gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/tests_body.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/tests_body.md \
               || gh issue create --title "$TITLE" --body-file /tmp/tests_body.md
           fi
           exit 0
