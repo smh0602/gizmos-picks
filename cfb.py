@@ -2028,6 +2028,17 @@ def _keys_of(rows):
 #    candidates it looked for so a miss can be told from an absence.
 _YEAR_KEYS = ("year", "season", "startYear", "start_year", "hireYear",
               "firstYear", "hire_year")
+# 🔴 A START **DATE** IS A START YEAR, AND THE FIRST RUN MISSED IT.
+#    `[measured 2026-09-18 on the real response]` /coaches returns
+#    `hireDate: "2024-11-26T00:00:00.000Z"` on every row, and this list
+#    was year-SHAPED only — so the probe found `seasons[].year`, saw it
+#    constant at the year it had asked for, and reported "new this season
+#    is NOT COMPUTABLE" while the answer was sitting in the next column.
+#    ⛔ That is a fact about MY CANDIDATE LIST reported as a fact about
+#    the feed, which is the exact error this repo has made five times in
+#    the other direction.
+_DATE_KEYS = ("hireDate", "hire_date", "startDate", "start_date")
+_ISO_YEAR = re.compile(r"^(\d{4})-\d{2}-\d{2}")
 _SCHOOL_KEYS = ("school", "team", "teamName")
 
 
@@ -2145,15 +2156,39 @@ def coaches_probe(log=log, season=None):
         vals[k] = {"n": len(seen), "distinct": len(nums),
                    "min": nums[0] if nums else None,
                    "max": nums[-1] if nums else None}
+    # ── AND THE DATE-SHAPED COLUMNS, WHICH ARE THE ONES THAT ANSWER ──
+    # ⛔ A DATE IS NOT A SECOND-CLASS YEAR. `hireDate` varies across
+    #    coaches by construction — it is when THIS coach was hired, not
+    #    the season we asked for — so it answers "new this season"
+    #    directly, and the year-only list could not see it.
+    dk = {}
+    for k in _DATE_KEYS:
+        seen = [r.get(k) for r in rows if isinstance(r, dict) and r.get(k)]
+        yrs = sorted({int(m.group(1)) for m in
+                      (_ISO_YEAR.match(str(v)) for v in seen) if m})
+        if seen:
+            dk[k] = {"n": len(seen), "distinct_years": len(yrs),
+                     "min_year": yrs[0] if yrs else None,
+                     "max_year": yrs[-1] if yrs else None,
+                     "unparsed": len(seen) - sum(
+                         1 for v in seen if _ISO_YEAR.match(str(v))),
+                     "hired_in_asked_season": sum(
+                         1 for v in seen
+                         if (_ISO_YEAR.match(str(v)) or [None]) and
+                         _ISO_YEAR.match(str(v)) and
+                         int(_ISO_YEAR.match(str(v)).group(1)) == season)}
     varying = sorted(k for k, v in vals.items() if v["distinct"] > 1)
+    varying += sorted(k for k, v in dk.items() if v["distinct_years"] > 1)
     out["start_year"] = {
-        "candidates_looked_for": list(_YEAR_KEYS),
-        "found": yk, "per_key": vals, "varying": varying,
+        "candidates_looked_for": list(_YEAR_KEYS) + list(_DATE_KEYS),
+        "found": yk + sorted(dk), "per_key": vals, "per_date_key": dk,
+        "varying": varying,
         "new_this_season_computable": bool(varying),
-        "why": ("A year that is the SAME on every row is the year we "
-                "asked for and says nothing about tenure. \"New this "
-                "season\" needs a year that VARIES across coaches — a "
-                "first season at the school."
+        "why": ("No column varies across coaches. A year that is the "
+                "SAME on every row is the year we asked for and says "
+                "nothing about tenure. \"New this season\" needs a value "
+                "that VARIES across coaches — a first season, or a hire "
+                "date."
                 if not varying else
                 "At least one year column varies across rows, so a "
                 "first-season-at-this-school comparison is arithmetic on "

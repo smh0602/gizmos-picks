@@ -3526,12 +3526,17 @@ def run_mode(mode):
     # The free modes touch statsapi or the repo only. `card` calls nothing
     # at all -- it reads what is already on disk -- so it must not be gated
     # on a key it does not use.
+    # ⚠️ FREE OF **ODDS** CREDITS, which is the only thing this tuple
+    # decides: `cfb-probe` and `coaches-probe` both spend CFBD calls and
+    # neither must be gated on a key it never reads.
+    # ⛔ KEEP THE LITERAL COMPACT — NO COMMENTS INSIDE IT.
+    # `test_team_directory.py` asserts `"cfb-teams"` appears within 500
+    # characters of `FREE = (`, and a four-line note added here pushed it
+    # past that window and reddened a check on correct code. The note
+    # belongs above the literal; the window is not to be widened.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
-            # ⚠️ FREE OF **ODDS** CREDITS, which is the only thing this
-            # tuple decides. `coaches-probe` spends ONE CFBD call and
-            # must not be gated on a key it never reads.
             "coaches-probe",
             "fb-scores", "fb-record", "live-probe",
             "card-fb", "nfl-teams", "cfb-teams")

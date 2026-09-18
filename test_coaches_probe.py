@@ -40,10 +40,20 @@ Sections 3-7 drive `cfb.coaches_probe` itself against stub payloads.
 #   find:         rows = _counted_get("/coaches", {"year": season})
 #   with:         rows = _counted_get("/coaches", {"year": season}); _counted_get("/teams/fbs", {"year": season})
 #
+# @vacuity the mode is FREE of Odds credits, or a missing key kills it
+#   file: collect.py
+#   find:             "coaches-probe",
+#   with:             # "coaches-probe",
+#
 # @vacuity ⛔ a 429 is the finding — the probe must NOT retry into 4 credits
 #   file: cfb.py
 #   find:     return get(path, params, tries=1)
 #   with:     return get(path, params)
+#
+# @vacuity a start DATE is a start year — the miss the first run made
+#   file: cfb.py
+#   find: _DATE_KEYS = ("hireDate", "hire_date", "startDate", "start_date")
+#   with: _DATE_KEYS = ()
 #
 # @vacuity a year that does not VARY cannot answer "new this season"
 #   file: cfb.py
@@ -100,6 +110,26 @@ ck("every `*-probe` mode in collect.py is discovered, not listed",
    len(MODES) >= 4, "found: %s" % (MODES,))
 ck("...and the mode this PR adds is one of them",
    "coaches-probe" in MODES, "MODES=%s" % (MODES,))
+
+# ⛔ AND IT MUST BE ON THE **FREE** LIST. `FREE` decides one thing only:
+#    whether a missing ODDS_API_KEY is fatal. `coaches-probe` never reads
+#    that key, so leaving it off would kill the mode over a secret it does
+#    not use -- and I only noticed because deleting the entry left this
+#    file green at 51 checks. A contract nothing asserts is a comment.
+import ast as _ast
+_free = None
+for _n in _ast.walk(_ast.parse(SRC)):
+    if isinstance(_n, _ast.Assign) and any(
+            isinstance(t, _ast.Name) and t.id == "FREE" for t in _n.targets):
+        _free = [e.value for e in _ast.walk(_n.value)
+                 if isinstance(e, _ast.Constant) and isinstance(e.value, str)]
+        break
+ck("⚠️ the FREE tuple is PARSED, never string-matched near a landmark",
+   _free is not None and len(_free) > 5, "parsed: %s" % (_free,))
+ck("🔴 `coaches-probe` is on the FREE list — it spends CFBD, not Odds",
+   "coaches-probe" in (_free or []),
+   "⛔ off the list, a missing ODDS_API_KEY kills a mode that never reads "
+   "it. FREE = %s" % (_free,))
 
 # 🔴 `cfb-probe` IS THE ONE DECLARED EXCEPTION, AND THE EXCEPTION IS
 #    CHECKED RATHER THAN TRUSTED. `test_parity.py` already says it: it is
@@ -533,3 +563,44 @@ ck("...and the list says how many rows carried each one",
 ck("a second year candidate is picked up by name",
    "hire_year" in ((rep5.get("start_year") or {}).get("found") or []),
    "found=%s" % ((rep5.get("start_year") or {}).get("found"),))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("8. 🔴 A START **DATE** IS A START YEAR — THE REAL SHAPE")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THIS SECTION EXISTS BECAUSE THE FIRST RUN GOT IT WRONG. The live
+#    response carries `hireDate` on every row, and the probe's candidate
+#    list was year-SHAPED only — so it found `seasons[].year`, saw it
+#    pinned to the season it had asked for, and published "new this
+#    season is NOT COMPUTABLE" with the answer in the next column.
+# ⚠️ THE FIXTURE IS THE MEASURED SHAPE, NOT AN INVENTED ONE: copied from
+#    `sample_row` in the artifact the 2026-09-18 run committed.
+REAL = [{"firstName": "Scott", "lastName": "Abell", "id": 1826,
+         "hireDate": "2024-11-26T00:00:00.000Z",
+         "seasons": [{"school": "Rice", "conference": "American Athletic",
+                      "year": 2026, "games": 0, "wins": 0, "losses": 0}]},
+        {"firstName": "New", "lastName": "Guy", "id": 99,
+         "hireDate": "2026-01-09T00:00:00.000Z",
+         "seasons": [{"school": "Alabama", "conference": "SEC",
+                      "year": 2026, "games": 0, "wins": 0, "losses": 0}]}]
+rep8, asked8, _, _ = drive(REAL, teams=FBS, season=2026)
+sy8 = rep8.get("start_year") or {}
+ck("the year column is STILL reported constant — that part was right",
+   (sy8.get("per_key") or {}).get("seasons[].year", {}).get("distinct") == 1,
+   "per_key=%s" % (sy8.get("per_key"),))
+ck("🔴 ...but hireDate is found, and it is what answers the question",
+   "hireDate" in (sy8.get("found") or []),
+   "⛔ a date is not a second-class year. found=%s" % (sy8.get("found"),))
+ck("🔴 ...so \"new this season\" reads COMPUTABLE on the real shape",
+   sy8.get("new_this_season_computable") is True,
+   "varying=%s" % (sy8.get("varying"),))
+ck("...and the count of coaches hired in the asked season is reported",
+   (sy8.get("per_date_key") or {}).get("hireDate", {})
+   .get("hired_in_asked_season") == 1,
+   "⚠️ one of the two fixture coaches was hired in 2026. per_date_key=%s"
+   % (sy8.get("per_date_key"),))
+ck("...and a date it cannot parse is COUNTED, never silently dropped",
+   "unparsed" in (sy8.get("per_date_key") or {}).get("hireDate", {}),
+   "per_date_key=%s" % (sy8.get("per_date_key"),))
+ck("⛔ and reading the date cost nothing extra", len(asked8) == 1,
+   "calls: %s" % (asked8,))
