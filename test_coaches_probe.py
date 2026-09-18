@@ -30,6 +30,11 @@ check working.
 
 Sections 3-7 drive `cfb.coaches_probe` itself against stub payloads.
 
+# @vacuity the stored artifact's annotation cannot be quietly dropped
+#   file: data/ncaaf/latest/coaches-probe.json
+#   find:    "corrected_value": true,
+#   with:    "corrected_value": false,
+#
 # @vacuity a probe mode may write ONLY its own report
 #   file: cfb.py
 #   find: p = f"{OUT}/{COACHES_PROBE_FILE}"
@@ -628,3 +633,70 @@ ck("...and a date it cannot parse is COUNTED, never silently dropped",
    "per_date_key=%s" % (sy8.get("per_date_key"),))
 ck("⛔ and reading the date cost nothing extra", len(asked8) == 1,
    "calls: %s" % (asked8,))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("9. 🔴 THE STORED ARTIFACT MAY NOT CONTRADICT ITS OWN COLUMNS")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE PROBE HAS NO CRON, SO IT NEVER REGENERATES ITSELF. The file the
+#    2026-09-18 run committed says "new this season" is NOT COMPUTABLE
+#    while its own `columns` block records `hireDate` on 138 of 138 rows
+#    and its own `sample_row` shows `2024-11-26` against a 2026 season.
+#    ⛔ A published artifact that disproves itself is worse than a missing
+#    one, because the wrong half is the half with a verdict attached.
+# ⚠️ AND IT CANNOT BE FIXED BY RE-RUNNING: that is another CFBD credit.
+#    So it is ANNOTATED, and this check is what makes the annotation
+#    compulsory rather than optional.
+# ✅ THE QUESTION IS SELF-CONTAINED: every start-year-shaped column the
+#    artifact ITSELF records must either be in `start_year.found`, or be
+#    named in a `superseded` block that states the corrected value. No
+#    network, no second call, no appeal to anything outside the file.
+# ⛔ THE KEY LISTS ARE READ OFF `cfb.py`, NOT RE-TYPED HERE. Rule 166 — a
+#    list written down twice is a claim that goes stale in one copy.
+_ART = os.path.join(ROOT, "data", "ncaaf", "latest", "coaches-probe.json")
+ck("the stored probe artifact is present, so this is not a vacuous pass",
+   os.path.exists(_ART),
+   "⛔ an absent artifact must FAIL here, never pass quietly (rule 67). "
+   "looked for %s" % _ART)
+if os.path.exists(_ART):
+    with io.open(_ART, encoding="utf-8") as _fh:
+        _a = json.load(_fh)
+    _shaped = set(cfb._YEAR_KEYS) | set(cfb._DATE_KEYS)
+
+    def _leaf(k):
+        return k.split("[")[0].split(".")[-1] if "." in k else k
+
+    _recorded = {_leaf(k) for k in list(_a.get("columns") or {})
+                 + list(_a.get("nested_columns") or {})} & _shaped
+    _sy = _a.get("start_year") or {}
+    _found = {_leaf(k) for k in (_sy.get("found") or [])}
+    _missed = sorted(_recorded - _found)
+    note("start-year-shaped columns the artifact records: %s; its parser "
+         "found: %s" % (sorted(_recorded), sorted(_found)))
+    _sup = _sy.get("superseded") or {}
+    ck("🔴 every start-year column the file RECORDS was seen by the "
+       "parser, or is named as superseded",
+       not _missed or sorted(_sup.get("missed_columns") or []) == _missed,
+       "⛔ the artifact records %s and its verdict was computed without "
+       "it. That is a fact about the parser published as a fact about the "
+       "feed. Annotate the file — do NOT spend a credit re-running it. "
+       "superseded names: %s"
+       % (_missed, sorted(_sup.get("missed_columns") or []) or "nothing"))
+    if _missed:
+        ck("...and the annotation states the CORRECTED value, not just "
+           "that something was wrong",
+           _sup.get("corrected_value") is not None
+           and _sup.get("corrected_value") != _sy.get(
+               "new_this_season_computable"),
+           "a note that says 'this is wrong' without saying what is right "
+           "leaves the reader where they started. superseded=%s" % (_sup,))
+        ck("...and the verdict LINE itself is struck, not left to read "
+           "as current",
+           "SUPERSEDED" in (_a.get("verdict") or ""),
+           "⛔ a reader who opens this file sees `verdict` first. "
+           "verdict=%r" % ((_a.get("verdict") or "")[:120],))
+        ck("...and it cites the evidence out of this same file",
+           bool((_sup.get("evidence") or {})),
+           "the contradiction is provable from `columns` and `sample_row`, "
+           "so the annotation quotes them rather than asserting. "
+           "evidence=%s" % (_sup.get("evidence"),))

@@ -115,8 +115,29 @@
     "n": 138
    }
   },
+  "superseded": {
+   "annotated_at": "2026-09-18T04:48:57Z",
+   "annotated_how": "Edited in place from this file's own `columns` and `sample_row`. ZERO CFBD calls \u2014 the probe has no cron and would never have regenerated itself.",
+   "corrected_value": true,
+   "evidence": {
+    "argument": "`hireDate` is recorded on 138 of 138 rows, and the one row this file stores carries 2024 against a season of 2026 \u2014 so the value is not pinned to the year requested and DOES separate coaches by tenure.",
+    "columns.hireDate": 138,
+    "rows": 138,
+    "sample_row.hireDate": "2024-11-26T00:00:00.000Z",
+    "season_asked": 2026
+   },
+   "field": "new_this_season_computable",
+   "fixed_parser_finds": "`cfb.py` now reads `_DATE_KEYS` (hireDate, hire_date, startDate, start_date) with an ISO-year parser alongside the year-shaped list, and reports `per_date_key` with the spread of hire years and how many coaches were hired in the season asked for \u2014 which is the \"new this season\" count.",
+   "missed_columns": [
+    "hireDate"
+   ],
+   "not_remeasured": "\u26a0\ufe0f The corrected parser has NOT been run against all 138 live rows: that is a second CFBD credit and it was not authorised. So this says `hireDate` EXISTS and VARIES, and does NOT say how many of the 138 are new this year.",
+   "stored_value": false,
+   "why": "The stored value was produced by a candidate list that was YEAR-SHAPED ONLY. It found `seasons[].year`, correctly saw it pinned to the season this probe asked for \u2014 a `?year=` filter makes that column say nothing about tenure \u2014 and concluded no usable start year existed. `hireDate` is a start DATE and the list could not see it. \u26d4 A fact about the parser, published as a fact about the feed."
+  },
   "varying": [],
   "why": "A year that is the SAME on every row is the year we asked for and says nothing about tenure. \"New this season\" needs a year that VARIES across coaches \u2014 a first season at the school."
  },
- "verdict": "EXISTS \u2014 138 row(s), 5 column(s), 138 distinct school(s). \"New this season\" is NOT COMPUTABLE from this response. \u26d4 Nothing is adopted: \u00a77 still records coaching changes as missing, and wiring this in is a separate decision."
+ "verdict": "\u26a0\ufe0f SUPERSEDED IN PART \u2014 see start_year.superseded. ~~\"New this season\" is NOT COMPUTABLE from this response.~~ IT IS: `hireDate` is carried on 138 of 138 rows. The rest of the line stands: EXISTS \u2014 138 row(s), 5 column(s), 138 distinct school(s). \u26d4 Nothing is adopted: \u00a77 still records coaching changes as missing, and wiring this in is a separate decision.",
+ "verdict_stored_originally": "EXISTS \u2014 138 row(s), 5 column(s), 138 distinct school(s). \"New this season\" is NOT COMPUTABLE from this response. \u26d4 Nothing is adopted: \u00a77 still records coaching changes as missing, and wiring this in is a separate decision."
 }
