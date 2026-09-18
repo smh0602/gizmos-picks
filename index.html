@@ -3145,14 +3145,48 @@ function fbDosFacts(s){
       if (names.length) li(t, names.join(' &middot; '));
     });
   }
-  if (s.n === 5 && s.by_defence)
-    Object.keys(s.by_defence).forEach(t => {
-      const d = s.by_defence[t] || {};
-      Object.keys(d).forEach(pos => {
-        const g = (d[pos] || {}).games;
-        li(`${t} vs ${pos}`, `ranked over ${num(g)} game${g === 1 ? '' : 's'}`);
+  /* ══════════════════════════════════════════════════════════════
+     🔴 §5 SHOWS SAM'S FOUR AND NOTHING ELSE.
+     `[Sam, 2026-09-18: "for player props i only want qb,rb,wr,te"]`
+     ⛔ ~~`Object.keys(d).forEach`~~ — that iterated WHATEVER THE FILE
+     HELD. It gave the right answer only because
+     `allowed-by-position-2026.json.gz` happens to hold exactly those
+     four today, while `PROP_POS` in cfb.py AND nfl.py is
+     `{QB, RB, WR, TE, FB}` — five. The first fullback row to appear
+     would have put a fifth position on the page with nobody deciding.
+     ✅ It now walks `s.positions`, the list the BUILDER declared, so
+     the page cannot show a position that was not chosen.
+     ⛔ AND A POSITION WE HOLD NOTHING FOR REFUSES BY NAME — not a zero,
+     not a blank, not an omission. Same shape as an UNAVAILABLE section
+     one level up.
+     ══════════════════════════════════════════════════════════════ */
+  if (s.n === 5 && (s.by_defence || s.not_held)){
+    const held = s.by_defence || {};
+    const gone = s.not_held || {};
+    /* teams in a stable order, both sides, whichever half holds them */
+    const teams = Array.from(new Set(
+      Object.keys(held).concat(Object.keys(gone))));
+    /* ⛔ THE DECLARED LIST, NEVER THE DATA'S KEYS. No fallback to
+       Object.keys here: if `positions` is absent the section is from an
+       older build and showing nothing is correct, because showing the
+       file's own keys is exactly the behaviour being removed. */
+    const order = s.positions || [];
+    teams.forEach(t => {
+      order.forEach(pos => {
+        const row = (held[t] || {})[pos];
+        if (row){
+          const g = row.games;
+          li(`${t} vs ${pos}`, `ranked over ${num(g)} game${g === 1 ? '' : 's'}`);
+        } else {
+          const r = (gone[t] || {})[pos];
+          /* ⛔ THE BUILDER'S OWN SENTENCE, VERBATIM (rule 132). */
+          if (r && r.why) f.push(`<li>${r.why}</li>`);
+        }
       });
     });
+    if (s.positions_not_shown_note)
+      f.push(`<li>${s.positions_not_shown_note}</li>`);
+  }
   if (s.n === 6 && s.by_team)
     Object.keys(s.by_team).forEach(t => {
       const v = s.by_team[t] || {};

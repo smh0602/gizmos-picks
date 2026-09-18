@@ -613,6 +613,56 @@ VS_VERDICT = (
     "sentence reads as a reason to bet.")
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SAM'S FOUR, FIXED, IN HIS OWN ORDER.
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-09-18: "for player props i only want qb,rb,wr,te"]`
+#
+# ⛔ NOT A SORT, NOT THE BIGGEST GAPS, NOT THE WORST. The four are chosen
+# because they carry the props he bets — his call, already made — so this
+# requires NO JUDGEMENT of the builder and offers none. ⛔ They are never
+# ranked against each other; the order below is the order he typed them
+# in and means nothing else.
+#
+# 🔴 AND IT WAS ALREADY TRUE BY ACCIDENT, WHICH IS THE PART WORTH FIXING.
+# `[measured 2026-09-18]` `allowed-by-position-2026.json.gz` holds exactly
+# QB, RB, TE and WR — 217 college defences and 32 NFL ones, no fifth
+# position anywhere. So iterating the FILE's keys gave the right answer
+# today. ⛔ But `PROP_POS` in BOTH `cfb.py` and `nfl.py` is
+# `{"QB", "RB", "WR", "TE", "FB"}` — **five** — so the collectors are
+# already scoped to gather a fullback, and the first FB row to appear
+# would put a fifth position on the page with nobody deciding.
+# ⚠️ "It happens to agree" is what this project stops trusting — §6's own
+# comment says so in those words.
+VS_POSITIONS = ("QB", "RB", "WR", "TE")
+
+
+def no_position(team, pos, whole_team=False):
+    """ONE REFUSAL FOR A POSITION WE HOLD NO NUMBERS FOR (rule 117).
+
+    ⛔ IT STATES A CLAIM ABOUT OUR RECORDS, NEVER ABOUT THE WORLD. "We
+    hold nothing for X against the running back" is true; "X has faced no
+    running backs" is a sentence about football that this file cannot
+    support, and the same slip has been corrected twice in this repo.
+    """
+    return {
+        "state": "UNAVAILABLE",
+        "why": ("We hold no numbers for %s against the %s%s."
+                % (team, _POS_WORDS.get(pos, pos),
+                   " — we hold nothing for that defence at all"
+                   if whole_team else "")),
+        "remedy": ("it fills in once the season back-fill covers that "
+                   "defence"),
+    }
+
+
+# ⚠️ READER ENGLISH FOR EACH CODE. `verify_card.py` fails the MLB build on
+#    a jargon list and the same standard governs this page: a casual
+#    reader knows "quarterback", not necessarily "QB" beside a refusal.
+_POS_WORDS = {"QB": "quarterback", "RB": "running back",
+              "WR": "wide receivers", "TE": "tight end"}
+
+
 def s_vs_position(home, away, allowed, this_season, missing=None):
     """⛔ THE SUBJECT IS THE OPPOSING DEFENCE, so an unidentified
     opponent is not a thin answer — it is no answer. This read OK with
@@ -626,25 +676,70 @@ def s_vs_position(home, away, allowed, this_season, missing=None):
                            "the season back-fill writes it (`nfl-logs` "
                            "for NFL, `cfb-probe` for college)")
     defs = j.get("defences") or {}
-    out = {}
+    out, not_held, dropped = {}, {}, set()
     for t in (home, away):
         d = defs.get(t)
-        if not d:
+        if d is None:
+            # ⛔ A DEFENCE WE HOLD NOTHING FOR REFUSES ON ALL FOUR, BY
+            #    NAME. Leaving the team out entirely is the shape that
+            #    let 19 college rows read OK with one defence in them.
+            not_held[t] = {pos: no_position(t, pos, whole_team=True)
+                           for pos in VS_POSITIONS}
             continue
-        out[t] = {pos: {k: v for k, v in (d.get(pos) or {}).items()
-                        if k.endswith("_rank") or k.endswith("_pct")
-                        or k == "games"}
-                  for pos in sorted(d)}
-    if not out:
+        # ⚠️ ANYTHING THE FILE HOLDS BEYOND THE FOUR IS DROPPED — AND
+        #    SAID SO. Silently discarding a position would be the same
+        #    class of quiet as silently showing one.
+        dropped |= {p for p in d if p not in VS_POSITIONS}
+        kept, miss = {}, {}
+        # 🔴 THE DECLARED FOUR, IN ORDER — NEVER THE FILE'S OWN KEYS.
+        for pos in VS_POSITIONS:
+            row = {k: v for k, v in (d.get(pos) or {}).items()
+                   if k.endswith("_rank") or k.endswith("_pct")
+                   or k == "games"}
+            if row:
+                kept[pos] = row
+            else:
+                # ⛔ NOT A ZERO AND NOT A BLANK. A missing position is
+                #    the same shape as an unresolved opponent one level
+                #    up: it refuses, it names itself, and it says the
+                #    claim is about OUR RECORDS and not about the team.
+                miss[pos] = no_position(t, pos)
+        if kept:
+            out[t] = kept
+        if miss:
+            not_held[t] = miss
+    if not out and not not_held:
         return unavailable(5, "Versus position",
                            "Neither %s nor %s appears in the "
                            "allowed-by-position file." % (home, away))
-    return {"n": 5, "name": "Versus position", "state": "OK", "basis": DESC,
-            "season": j.get("season"), "by_defence": out,
-            "scale": j.get("rank_note") or "rank 1 = ALLOWS THE MOST",
-            "verdict": VS_VERDICT,
-            "why": ("How each defence has been scored on by position, "
-                    "ranked across the league. " + VS_VERDICT)}
+    if not out:
+        return unavailable(
+            5, "Versus position",
+            "We hold no numbers for either defence in this game, so there "
+            "is nothing to compare the four positions against.",
+            "it fills in once the season back-fill covers both teams")
+    d = {"n": 5, "name": "Versus position", "state": "OK", "basis": DESC,
+         "season": j.get("season"), "by_defence": out,
+         # 🔴 THE DECLARED LIST TRAVELS WITH THE DATA, so the page
+         #    iterates WHAT WAS DECIDED rather than what happened to be
+         #    on disk. ⛔ That is what stops a fifth position appearing
+         #    on the page the day a fullback row does.
+         "positions": list(VS_POSITIONS),
+         "positions_note": ("These four because they carry the player "
+                            "props on this site. They are not ordered "
+                            "against each other."),
+         "scale": j.get("rank_note") or "rank 1 = ALLOWS THE MOST",
+         "verdict": VS_VERDICT,
+         "why": ("How each defence has been scored on by position, "
+                 "ranked across the league. " + VS_VERDICT)}
+    if not_held:
+        d["not_held"] = not_held
+    if dropped:
+        d["positions_not_shown"] = sorted(dropped)
+        d["positions_not_shown_note"] = (
+            "The file also holds %s, which this page does not show."
+            % ", ".join(sorted(dropped)))
+    return d
 
 
 # ──────────────────────────────────────── 6. TIME OF POSSESSION
