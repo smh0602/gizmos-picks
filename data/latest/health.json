@@ -1,11 +1,25 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-18T21:42:46Z",
+ "checked_at": "2026-09-18T22:31:36Z",
  "et_date": "2026-09-18",
  "healthy": true,
  "broken": 0,
  "degraded": 0,
  "findings": [],
  "repairs": [],
- "unrepairable": []
+ "unrepairable": [],
+ "credits": {
+  "state": "HEALTHY",
+  "balance": 12109,
+  "pulled_at": "2026-09-18T20:31:47Z",
+  "reserve": 750,
+  "warn_at": 2250,
+  "reading_age_hours": 2.0,
+  "behind_newest_pull_hours": 0.0,
+  "newest_paid_pull": "2026-09-18T20:31:47Z",
+  "source": "data/2026-09-18/props-pitcher/2031.json.gz",
+  "readings_on_disk": 303,
+  "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
+  "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
+ }
 }
