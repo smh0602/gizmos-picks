@@ -1,64 +1,64 @@
 {
- "built_at": "2026-09-17T15:47:17Z",
+ "built_at": "2026-09-18T11:52:47Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 55,
-  "n": 97,
-  "pct": 56.7
+  "w": 62,
+  "n": 119,
+  "pct": 52.1
  },
  "by_market": {
   "player_anytime_td": {
-   "w": 13,
-   "n": 20,
-   "pct": 65.0
+   "w": 14,
+   "n": 27,
+   "pct": 51.9
   },
   "player_pass_yds": {
-   "w": 8,
-   "n": 12,
-   "pct": 66.7
+   "w": 9,
+   "n": 14,
+   "pct": 64.3
   },
   "player_reception_yds": {
-   "w": 12,
-   "n": 25,
-   "pct": 48.0
+   "w": 15,
+   "n": 30,
+   "pct": 50.0
   },
   "player_receptions": {
-   "w": 6,
-   "n": 13,
-   "pct": 46.2
+   "w": 7,
+   "n": 19,
+   "pct": 36.8
   },
   "player_rush_yds": {
-   "w": 16,
-   "n": 27,
-   "pct": 59.3
+   "w": 17,
+   "n": 29,
+   "pct": 58.6
   }
  },
  "by_side": {
   "over": {
-   "w": 18,
-   "n": 33,
-   "pct": 54.5
+   "w": 20,
+   "n": 42,
+   "pct": 47.6
   },
   "under": {
-   "w": 24,
-   "n": 44,
-   "pct": 54.5
+   "w": 28,
+   "n": 50,
+   "pct": 56.0
   },
   "yes": {
-   "w": 13,
-   "n": 20,
-   "pct": 65.0
+   "w": 14,
+   "n": 27,
+   "pct": 51.9
   }
  },
  "by_book": {
   "hardrockbet": {
-   "w": 55,
-   "n": 97,
-   "pct": 56.7
+   "w": 62,
+   "n": 119,
+   "pct": 52.1
   }
  },
  "calibration": [
@@ -78,38 +78,38 @@
   },
   {
    "bucket": "20-30%",
-   "stated": 27.0,
-   "w": 2,
-   "n": 3,
-   "pct": 66.7
+   "stated": 26.0,
+   "w": 3,
+   "n": 4,
+   "pct": 75.0
   },
   {
    "bucket": "30-40%",
-   "stated": 34.3,
+   "stated": 34.1,
    "w": 5,
-   "n": 12,
-   "pct": 41.7
+   "n": 13,
+   "pct": 38.5
   },
   {
    "bucket": "40-50%",
-   "stated": 43.1,
-   "w": 9,
-   "n": 13,
-   "pct": 69.2
+   "stated": 42.9,
+   "w": 11,
+   "n": 17,
+   "pct": 64.7
   },
   {
    "bucket": "50-60%",
-   "stated": 55.6,
-   "w": 4,
-   "n": 11,
-   "pct": 36.4
+   "stated": 56.1,
+   "w": 5,
+   "n": 14,
+   "pct": 35.7
   },
   {
    "bucket": "60-70%",
-   "stated": 65.6,
-   "w": 5,
-   "n": 9,
-   "pct": 55.6
+   "stated": 65.9,
+   "w": 6,
+   "n": 10,
+   "pct": 60.0
   },
   {
    "bucket": "70-80%",
@@ -160,33 +160,29 @@
   },
   {
    "date": "2026-09-17",
-   "w": 0,
-   "n": 0,
+   "w": 7,
+   "n": 22,
    "carded": 25,
    "voids": 0,
-   "unresolved": 25
+   "unresolved": 3
   }
  ],
- "days_graded": 3,
+ "days_graded": 4,
  "cards_seen": 4,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 46,
- "distinct_games": 19,
+ "distinct_players": 54,
+ "distinct_games": 20,
  "carded_rows": 125,
  "voids": 0,
- "unresolved": 28,
- "coverage_note": "97 of 125 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 28 could not be settled at all.",
+ "unresolved": 6,
+ "coverage_note": "119 of 125 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 6 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
   {
    "date": "2026-09-10",
-   "why": "nothing settled yet \u2014 the log does not reach this slate"
-  },
-  {
-   "date": "2026-09-17",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],

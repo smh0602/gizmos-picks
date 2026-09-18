@@ -1,7 +1,7 @@
 {
  "date": "2026-09-17",
  "league": "ncaaf",
- "generated_at": "2026-09-17T19:26:42Z",
+ "generated_at": "2026-09-18T11:52:47Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-17T19:26:42Z",
@@ -25,37 +25,66 @@
  "game_lines": [
   {
    "kind": "MARKET",
-   "game": "Syracuse Orange @ Pittsburgh Panthers",
-   "game_id": "f06e90b4212fb514f3564ded9f190107",
-   "commence": "2026-09-17T23:30:00Z",
+   "game": "Miami Hurricanes @ Wake Forest Demon Deacons",
+   "game_id": "720451b07d54e435c9be484ef73ea211",
+   "commence": "2026-09-18T23:30:00Z",
    "market": "totals",
    "side": "Over",
-   "point": 51.5,
+   "point": 55.5,
    "best_price": -105,
-   "best_book": "fanduel",
+   "best_book": "hardrockbet",
    "link": null,
    "median_price": 1.9091,
    "n_books": 5,
    "gain_pct": 2.27
+  },
+  {
+   "kind": "MARKET",
+   "game": "Portland State Vikings @ Oregon Ducks",
+   "game_id": "5658a82b80479ea42281da7d3e3e1337",
+   "commence": "2026-09-19T02:30:00Z",
+   "market": "spreads",
+   "side": "Portland State Vikings",
+   "point": 57.5,
+   "best_price": -105,
+   "best_book": "fanduel",
+   "link": null,
+   "median_price": 1.9091,
+   "n_books": 3,
+   "gain_pct": 2.27
+  },
+  {
+   "kind": "MARKET",
+   "game": "Houston Cougars @ Texas Tech Red Raiders",
+   "game_id": "7311bf775464ae97893928e22512bb47",
+   "commence": "2026-09-19T00:00:00Z",
+   "market": "totals",
+   "side": "Over",
+   "point": 52.5,
+   "best_price": -105,
+   "best_book": "fanduel",
+   "link": null,
+   "median_price": 1.9259,
+   "n_books": 4,
+   "gain_pct": 1.37
   }
  ],
  "game_lines_meta": {
-  "games_seen": 1,
-  "comparable_quotes": 4,
-  "games_with_an_edge": 1,
+  "games_seen": 3,
+  "comparable_quotes": 12,
+  "games_with_an_edge": 3,
   "min_books": 3,
-  "slate": "2026-09-17",
-  "off_day_games": 89,
+  "slate": "2026-09-18",
+  "off_day_games": 87,
   "off_day_dates": [
-   "2026-09-18",
    "2026-09-19",
    "2026-09-26"
   ],
   "card_slate": "2026-09-17",
-  "is_next_slate": false,
-  "snapshot": "data/ncaaf/2026-09-17/gamelines/1926.json.gz"
+  "is_next_slate": true,
+  "snapshot": "data/ncaaf/2026-09-18/gamelines/1125.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "\ud83d\udcc5 2026-09-18 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 3 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 12 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -160,7 +189,7 @@
    {
     "legs": [
      "Justus Ross-Simmons u3.5 rec",
-     "Over 51.5 total"
+     "Mason Heintschel u280.5 pass yds"
     ],
     "game": "Syracuse Orange @ Pittsburgh Panthers",
     "game_id": "f06e90b4212fb514f3564ded9f190107",
@@ -170,28 +199,29 @@
      -110,
      -115
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 2,
-    "n_line_legs": 1,
+    "n_line_legs": 0,
     "multiplier": 3.569,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 69,
+    "weakest_leg": 59,
     "weakest_leg_basis": "RECORD",
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     69
+     69,
+     59
     ],
     "band_floor": 1.8
    },
    {
     "legs": [
      "Justus Ross-Simmons u3.5 rec",
-     "Mason Heintschel u280.5 pass yds"
+     "Mason Heintschel u11.5 rush yds"
     ],
     "game": "Syracuse Orange @ Pittsburgh Panthers",
     "game_id": "f06e90b4212fb514f3564ded9f190107",
@@ -224,69 +254,71 @@
   "3": [
    {
     "legs": [
-     "Justus Ross-Simmons u3.5 rec",
      "Mason Heintschel u280.5 pass yds",
-     "Over 51.5 total"
+     "Justus Ross-Simmons TD",
+     "Ja'Kyrian Turner TD"
     ],
     "game": "Syracuse Orange @ Pittsburgh Panthers",
     "game_id": "f06e90b4212fb514f3564ded9f190107",
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -110,
      -115,
-     -115
+     300,
+     -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.673,
+    "n_line_legs": 0,
+    "multiplier": 14.277,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 59,
+    "weakest_leg": 42,
     "weakest_leg_basis": "RECORD",
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     69,
-     59
+     59,
+     44,
+     42
     ],
     "band_floor": 3.0
    },
    {
     "legs": [
-     "Justus Ross-Simmons u3.5 rec",
      "Mason Heintschel u11.5 rush yds",
-     "Over 51.5 total"
+     "Justus Ross-Simmons TD",
+     "Ja'Kyrian Turner TD"
     ],
     "game": "Syracuse Orange @ Pittsburgh Panthers",
     "game_id": "f06e90b4212fb514f3564ded9f190107",
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -110,
      -115,
-     -115
+     300,
+     -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.673,
+    "n_line_legs": 0,
+    "multiplier": 14.277,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 59,
+    "weakest_leg": 42,
     "weakest_leg_basis": "RECORD",
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     69,
-     59
+     59,
+     44,
+     42
     ],
     "band_floor": 3.0
    }
@@ -294,11 +326,11 @@
  },
  "sgp_meta": {
   "games_with_rated_legs": 1,
-  "games_with_a_line_row": 1,
+  "games_with_a_line_row": 3,
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 132,
+   "same_player": 116,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
@@ -306,7 +338,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 3 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
@@ -866,7 +898,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Bryce Yates averaged 1.3 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 2 games \u2014 he is at 3 touches a game, 0 TD a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Bryce Yates averaged 1.3 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 0 TD a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 12
   },
@@ -916,7 +948,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Censere Lee took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 2 games \u2014 he is at 4 touches a game, 0 TD a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Censere Lee took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 0 TD a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 14
   },
@@ -941,7 +973,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 2 games \u2014 he is at 4 touches a game, 0 TD a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 0 TD a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 15
   },
@@ -991,7 +1023,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 2 games \u2014 he is at 4 touches a game, 4 rec a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 3 rec a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 17
   },
@@ -1016,7 +1048,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Censere Lee took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 2 games \u2014 he is at 4 touches a game, 4 rec a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Censere Lee took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 3 rec a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 18
   },
@@ -1091,7 +1123,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Carson Kent took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 2 games \u2014 he is at 2 touches a game, 2 rec a game, 17 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Carson Kent took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 3 games \u2014 he is at 2 touches a game, 2 rec a game, 32 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 21
   },
@@ -1166,7 +1198,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 2 games \u2014 he is at 4 touches a game, 4 rec a game, 89 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 3 rec a game, 62 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 24
   },
@@ -1191,7 +1223,7 @@
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 2 games \u2014 he is at 4 touches a game, 4 rec a game, 89 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Cataurus Hicks averaged 2.8 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 3 games \u2014 he is at 3 touches a game, 3 rec a game, 62 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 25
   }
