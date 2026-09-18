@@ -40,6 +40,11 @@ Sections 3-7 drive `cfb.coaches_probe` itself against stub payloads.
 #   find:         rows = _counted_get("/coaches", {"year": season})
 #   with:         rows = _counted_get("/coaches", {"year": season}); _counted_get("/teams/fbs", {"year": season})
 #
+# @vacuity the FREE-tuple landmark must not be repeated in a comment
+#   file: collect.py
+#   find:     # ⚠️ FREE OF **ODDS** CREDITS, which is the only thing this tuple
+#   with:     # ⚠️ FREE OF **ODDS** CREDITS (the FREE = ( tuple), which is this tuple
+#
 # @vacuity the mode is FREE of Odds credits, or a missing key kills it
 #   file: collect.py
 #   find:             "coaches-probe",
@@ -124,6 +129,25 @@ for _n in _ast.walk(_ast.parse(SRC)):
         _free = [e.value for e in _ast.walk(_n.value)
                  if isinstance(e, _ast.Constant) and isinstance(e.value, str)]
         break
+# 🔴🔴 AND THE LANDMARK MUST BE UNIQUE IN THE FILE. This is the guard for
+#    the defect this PR caused: four separate test files locate that
+#    tuple by searching collect.py for the eight characters that open its
+#    assignment, and three of them then split on it. ⛔ A COMMENT THAT
+#    REPEATS IT BECOMES THE FIRST MATCH — test_live_probe.py,
+#    test_record_fb.py, test_drop16_fixes.py and test_team_directory.py
+#    ALL went red at once on a collector that was correct.
+# ⚠️ Guarding the CLASS is not available here without rewriting three
+#    files this task does not own, so this guards the INSTANCE and says
+#    so: the landmark those four depend on occurs exactly once.
+#    ➡️ The standing fix is to give them one shared reader, the way
+#    `wfroutes.py` and `jsblock.py` already do for the workflow and the
+#    page (rule 117). That is a change for its own PR.
+_LANDMARK = "FREE" + " = ("
+ck("🔴 the landmark four test files search for occurs EXACTLY once",
+   SRC.count(_LANDMARK) == 1,
+   "⛔ a second occurrence — in a comment, in a docstring, anywhere — is "
+   "read INSTEAD of the code by every one of them. found %d"
+   % SRC.count(_LANDMARK))
 ck("⚠️ the FREE tuple is PARSED, never string-matched near a landmark",
    _free is not None and len(_free) > 5, "parsed: %s" % (_free,))
 ck("🔴 `coaches-probe` is on the FREE list — it spends CFBD, not Odds",

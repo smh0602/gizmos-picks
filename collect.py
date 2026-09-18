@@ -3529,11 +3529,16 @@ def run_mode(mode):
     # ⚠️ FREE OF **ODDS** CREDITS, which is the only thing this tuple
     # decides: `cfb-probe` and `coaches-probe` both spend CFBD calls and
     # neither must be gated on a key it never reads.
-    # ⛔ KEEP THE LITERAL COMPACT — NO COMMENTS INSIDE IT.
-    # `test_team_directory.py` asserts `"cfb-teams"` appears within 500
-    # characters of `FREE = (`, and a four-line note added here pushed it
-    # past that window and reddened a check on correct code. The note
-    # belongs above the literal; the window is not to be widened.
+    #
+    # 🔴 DO NOT WRITE THE OPENING OF THIS ASSIGNMENT IN A COMMENT.
+    # `[measured 2026-09-18]` Four test files find this tuple by searching
+    # collect.py for that exact eight-character landmark — three of them
+    # then `.split(landmark)[1].split(")")[0]`. A comment that repeats it
+    # becomes the FIRST match, so the search reads the comment instead of
+    # the code and **test_live_probe.py, test_record_fb.py,
+    # test_drop16_fixes.py and test_team_directory.py all went red on a
+    # correct collector at once.** ⛔ The tests are not the problem to
+    # solve here; the duplicated landmark is.
     FREE = ("schedule", "results", "hitters", "news", "props-board", "pitchers",
             "card", "record", "refresh", "lineups", "scores", "weather",
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",

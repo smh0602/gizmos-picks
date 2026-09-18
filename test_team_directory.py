@@ -136,13 +136,20 @@ print("\n4. ⛔ FREE, AND NEVER FATAL")
 # a mode that never touches the Odds API.
 # 🔴 ~~`ck('"cfb-teams"' in src[src.index("FREE = (") : +500])`~~ STRUCK
 #    2026-09-18. IT ASKED THE WRONG QUESTION AND WENT RED ON CORRECT CODE.
-#    ⛔ "within 500 characters of `FREE = (`" is not "on the FREE list".
-#    The tuple was already 480-odd characters long, so adding ONE free
-#    mode -- `coaches-probe`, which genuinely belongs there -- pushed
-#    `"cfb-teams"` out of the window and failed a correct collector. A
-#    comment placed inside the literal did the same thing.
-#    ⚠️ It could also pass on a string that is merely NEARBY: the word in
-#    a comment two lines above the tuple would have satisfied it.
+#    ⛔ "within 500 characters of the assignment's opening" is not "on the
+#    FREE list", and the gap is not theoretical -- it was DRIVEN, in both
+#    directions, on 2026-09-18:
+#      - IT CAN BE BROKEN BY A COMMENT. A note added above the tuple that
+#        repeated the eight-character landmark became the FIRST match, so
+#        the search read the comment and `"cfb-teams"` fell outside the
+#        window. The collector was correct; the check was red.
+#      - IT CAN BE SATISFIED BY A COMMENT. The mode name appearing in
+#        prose within the window passes, with the tuple empty.
+#    ⚠️ ~~"the tuple was already 480-odd characters, so ANY new free mode
+#    broke it"~~ RETRACTED -- I wrote that and it is FALSE. Measured: 315
+#    characters to `"cfb-teams"` before this PR and 344 after, both well
+#    inside 500. The window was never the fault; the landmark was. A
+#    wrong reason for a right change is still a wrong reason (rule 166).
 # ✅ THE REPLACEMENT IS STRICTLY HARDER: the tuple is PARSED and
 #    membership is asserted. It cannot be satisfied by proximity, cannot
 #    be satisfied by a comment, and cannot be broken by an unrelated mode
