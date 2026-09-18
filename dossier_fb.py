@@ -247,6 +247,54 @@ def team_codes(lg=None):
     return resolve
 
 
+def _near(d, kick, days=1):
+    """Is schedule date `d` within `days` of the board's kickoff date?
+
+    ⚠️ AND THE TWO SIDES ARE NOT THE SAME CONVENTION, WHICH IS WHY THE
+    WINDOW EXISTS. `[measured 2026-09-18]` The board's `commence` is UTC.
+    The COLLEGE schedule stores `start` with a `Z` and agrees with it;
+    the NFL schedule stores `2026-09-09T20:20` with NO ZONE MARKER at
+    all, so a Sunday-night kickoff files under 09-13 there and 09-14 on
+    the board. ⛔ So `days=1` is load-bearing rather than slack, and
+    tightening it to an exact match would silently drop every NFL night
+    game. ✅ It is safe to widen this far because the key is checked for
+    uniqueness: measured across 4 stored schedules, 8,063 of 8,065
+    (team, date ±1) keys hold exactly one game."""
+    if not (d and kick):
+        return False
+    try:
+        return abs((datetime.datetime.strptime(d, "%Y-%m-%d")
+                    - kick).days) <= days
+    except ValueError:
+        return False
+
+
+def week_calendar(sched):
+    """{UTC date: week} for every date the stored schedule places.
+
+    ══════════════════════════════════════════════════════════════════
+    ⚠️ DERIVED FROM THE CALENDAR, NEVER GUESSED FROM A DATE. `[2026-09-18]`
+    A week number is a fact about the season the schedule already
+    defines: measured on `schedule-2026.json.gz`, 67 distinct dates and
+    **not one of them maps to two different weeks**, so the mapping is a
+    function rather than a judgement.
+    ⛔ AND IT FAILS CLOSED. The weeks do not tile the calendar — week 1
+    ends 09-07 and week 2 opens 09-10, week 14 is absent entirely — so a
+    date in a gap, before the first week or after the last, IS NOT
+    PLACED. It is refused, and the reason names the date.
+    ⛔ A date that somehow reached two weeks would be dropped rather than
+    resolved to either: this project does not pick the first match.
+    ══════════════════════════════════════════════════════════════════
+    """
+    seen = collections.defaultdict(set)
+    for _season, j in sorted(sched.items()):
+        for x in (j.get("games") or []):
+            d, w = (x.get("start") or "")[:10], x.get("week")
+            if d and w is not None:
+                seen[d].add(w)
+    return {d: next(iter(w)) for d, w in seen.items() if len(w) == 1}
+
+
 def seasons(kind, data=None):
     """{season: payload} for every `<kind>-<year>.json.gz` on disk."""
     out = {}
@@ -407,7 +455,8 @@ def s_h2h(home, away, kick, sched, missing=None):
 
 
 # ──────────────────────────────────────────────── 3. TIME OF YEAR
-def s_time_of_year(teams, week, players, this_season, missing=None):
+def s_time_of_year(teams, week, players, this_season, missing=None,
+                   kick_date=None):
     """What these teams and players did in THIS week number before.
 
     ⚠️ PER TEAM, so one resolvable side is a real half-answer — but it
@@ -416,9 +465,18 @@ def s_time_of_year(teams, week, players, this_season, missing=None):
     literal `"null"` key inside `by_team` on 19 college rows.
     """
     if not week:
+        # ⛔ AND IT NAMES THE DATE IT COULD NOT PLACE. `[2026-09-18]`
+        #    "the schedule does not give this game a week number" is true
+        #    and unactionable: it does not say WHICH date the season
+        #    calendar failed on, so nobody can check whether the calendar
+        #    is short or the date is wrong. ⚠️ The weeks do not tile the
+        #    year — week 1 ends 09-07 and week 2 opens 09-10 — so a date
+        #    landing in a gap is a real and recognisable state.
         return unavailable(3, "Time of year",
-                           "The schedule does not give this game a week "
-                           "number, so there is nothing to compare against.")
+                           "We cannot place %s in the season's weeks, so "
+                           "there is nothing to compare this game "
+                           "against."
+                           % (kick_date or "this game's date"))
     per_team, per_player = {}, {}
     for t in teams:
         games, pl = [], collections.defaultdict(list)
@@ -766,10 +824,22 @@ def build(league=None):
     players = seasons("players", data)
     allowed = seasons("allowed-by-position", data)
     this_season = max(sched) if sched else None
-    srows = {}
+    srows, sideidx = {}, {}
     for season, j in sched.items():
         for x in (j.get("games") or []):
-            srows[(x.get("home"), x.get("away"), (x.get("start") or "")[:10])] = x
+            d = (x.get("start") or "")[:10]
+            srows[(x.get("home"), x.get("away"), d)] = x
+            # ⚠️ A LIST PER KEY, not a last-one-wins dict — the whole
+            #    point is to SEE a second candidate rather than
+            #    silently overwrite the first with it.
+            for side in ("home", "away"):
+                if x.get(side):
+                    # ⛔ A LIST, NOT LAST-ONE-WINS. `setdefault(k, x)`
+                    #    silently DISCARDS a second candidate, which is
+                    #    exactly the ambiguity the refusal below exists
+                    #    to notice — the guard would never have fired.
+                    sideidx.setdefault((side, x[side], d), []).append(x)
+    wkcal = week_calendar(sched)
 
     out, skipped, unresolved = [], [], []
     for g in (board.get("games") or []):
@@ -804,14 +874,61 @@ def build(league=None):
                                               "%Y-%m-%d")
         except ValueError:
             pass
-        row = None
+        # ══════════════════════════════════════════════════════════════
+        # 🔴🔴 THE 19 GAMES WITH "NO SCHEDULE ROW" WERE A FAILED JOIN, NOT
+        # AN ABSENT ROW. `[measured 2026-09-18]` 17 of the 19 ARE in
+        # `schedule-2026.json.gz`, carrying their week, venue, roof and
+        # surface — and the pair key could never match them, because it
+        # is built from the RESOLVED code on both sides and the away side
+        # is an FCS school that resolves to `None`.
+        # ⚠️ The schedule holds that school's name perfectly well
+        # ("Portland State", "Mercer", "Maine"). It is the FBS-only TEAM
+        # LIST that does not — the same reference-set-narrower-than-the-
+        # board class task 27 fixed for the opponent, one join over.
+        # ✅ SO: the exact pair first, then ONE SIDE PLUS THE DATE.
+        # ⛔ UNIQUE OR NOTHING. Measured across 4 stored schedules, 8,063
+        # of 8,065 (team, date) keys hold exactly one game and the two
+        # that do not are a Division III fixture duplicated under two
+        # ids. A key that is unique 99.98% of the time is not a key you
+        # may assume, so a second candidate REFUSES rather than picking
+        # one — `resolve()`'s rule, one file over.
+        # ══════════════════════════════════════════════════════════════
+        row, row_basis = None, None
         for (h, a, d), x in srows.items():
-            if h == home and a == away and kick and abs(
-                    (datetime.datetime.strptime(d, "%Y-%m-%d")
-                     - kick).days) <= 1:
-                row = x
+            if h == home and a == away and _near(d, kick):
+                row, row_basis = x, "the home team, the away team and the date"
                 break
+        if row is None and kick:
+            for side, code in (("home", home), ("away", away)):
+                if not code:
+                    continue
+                cand = [x for (k, c, d), v in sideidx.items()
+                        if k == side and c == code and _near(d, kick)
+                        for x in v]
+                if len(cand) == 1:
+                    row = cand[0]
+                    row_basis = ("the %s team and the date — the other "
+                                 "side is not in the top-division team "
+                                 "list, so the pair could not be matched"
+                                 % side)
+                    break
+                if len(cand) > 1:
+                    row_basis = ("REFUSED: %d schedule rows share this %s "
+                                 "team and date, and this project does "
+                                 "not pick the first match"
+                                 % (len(cand), side))
+                    break
         week = (row or {}).get("week")
+        # ⚠️ AND WHEN THERE IS STILL NO ROW, THE WEEK IS DERIVED FROM THE
+        #    SEASON CALENDAR — which places a date or refuses to.
+        week_basis = "the schedule row for this game" if week is not None else None
+        if week is None and kick:
+            week = wkcal.get(kick.strftime("%Y-%m-%d"))
+            if week is not None:
+                week_basis = ("the season calendar — this game has no "
+                              "schedule row, and the stored schedule "
+                              "places %s in week %d"
+                              % (kick.strftime("%Y-%m-%d"), week))
         # ⛔ NO None IN THE TEAM LIST. It published a literal `"null"` key
         #    inside `by_team` on 19 college rows.
         teams = [t for t in (home, away) if t]
@@ -839,6 +956,15 @@ def build(league=None):
             # ══════════════════════════════════════════════════════════
             "board_id": g.get("id"),
             "game_id": (row or {}).get("id"),
+            # ⚠️ WHERE EACH CAME FROM, SAID ON THE ROW. `[2026-09-18]`
+            # A week matched off a schedule row and a week placed by the
+            # season calendar are both correct and they are not the same
+            # claim, and a row joined on ONE side plus the date is a
+            # weaker join than one matched on the pair. ⛔ A number with
+            # no provenance beside it gets read as the strongest reading
+            # available — rule 55's habit, applied to a join.
+            "row_basis": row_basis,
+            "week_basis": week_basis,
             "away": away, "home": home,
             # ⛔ ALWAYS THE BOARD'S OWN STRINGS, resolved or not. A game
             #    the reader can name must never render as None.
@@ -863,7 +989,8 @@ def build(league=None):
             "sections": [
                 s_market(g, row),
                 s_h2h(home, away, kick, sched, missing),
-                s_time_of_year(teams, week, players, this_season, missing),
+                s_time_of_year(teams, week, players, this_season, missing,
+                               kick.strftime("%Y-%m-%d") if kick else None),
                 s_this_season(teams, players, this_season, week, missing),
                 s_vs_position(home, away, allowed, this_season, missing),
                 s_possession(home, away, this_season, data, missing),

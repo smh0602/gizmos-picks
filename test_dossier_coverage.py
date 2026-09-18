@@ -227,6 +227,51 @@ for _lg in _LEAGUES:
        "no identified opponent. Says %r, rows say %d"
        % (_dos.get("n_partial"), len(_partial)))
     _totpart.append(len(_partial))
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 EVERY NUMBER JOINED FROM THE SCHEDULE SAYS WHERE IT CAME FROM.
+    # `[2026-09-18]` A week matched on the full pair, a week matched on
+    # ONE side plus the date, and a week PLACED by the season calendar
+    # are three different strengths of claim. ⛔ A number with no
+    # provenance beside it gets read as the strongest one available.
+    # ⚠️ DERIVED FROM THE ARTIFACT, never a literal count — the college
+    # board moved 88 -> 90 mid-session, and a hard-coded number reddens
+    # on correct code (the trap #51 fixed).
+    # ══════════════════════════════════════════════════════════════════
+    _rows = _dos.get("dossiers") or []
+    _wk = [x for x in _rows if x.get("week") is not None]
+    ck(bool(_wk) and all(x.get("week_basis") for x in _wk),
+       "   %s: every week says where it came from (%d of %d row(s))"
+       % (_lg, len([x for x in _wk if x.get("week_basis")]), len(_wk)),
+       "⛔ a week from the season calendar and a week off a schedule row "
+       "are both correct and are not the same claim. Silent: %s"
+       % [(x.get("home_name"), x.get("week")) for x in _wk
+          if not x.get("week_basis")][:3])
+    _nowk = [x for x in _rows if x.get("week") is None]
+    ck(not [x for x in _nowk if x.get("week_basis")],
+       "   %s: ...and a row with no week claims no provenance for one"
+       % _lg,
+       "🔴 a basis beside an absent number is worse than no basis")
+    _joined = [x for x in _rows if x.get("game_id") is not None]
+    ck(bool(_joined) and all(x.get("row_basis") for x in _joined),
+       "   %s: every joined schedule row says HOW it was joined (%d)"
+       % (_lg, len(_joined)),
+       "⛔ the pair key and one-side-plus-date are different strengths. "
+       "Silent: %s" % [x.get("home_name") for x in _joined
+                       if not x.get("row_basis")][:3])
+    ck(not [x for x in _rows
+            if x.get("game_id") is None
+            and "REFUSED" not in (x.get("row_basis") or "REFUSED")],
+       "   %s: ...and a row with no schedule row either says nothing or "
+       "says it REFUSED" % _lg,
+       "🔴 a silent refusal is indistinguishable from an absent row")
+    _venue_ok = [s_ for x in _rows for s_ in x["sections"]
+                 if s_.get("n") == 8 and s_.get("state") == "OK"]
+    ck(bool(_venue_ok) and all(v.get("venue") for v in _venue_ok),
+       "   %s: every venue section that reads OK carries a venue (%d)"
+       % (_lg, len(_venue_ok)),
+       "⛔ DO NOT INVENT A VENUE — and do not read OK without one "
+       "either. Empty: %d" % len([v for v in _venue_ok
+                                  if not v.get("venue")]))
     # ⚠️ AND THE DATED ARCHIVE COMES THROUGH THE SAME WRITER, for free.
     _arch = glob.glob(os.path.join(_d, "data", _lg, "*", "dossiers",
                                    "*.json.gz"))
