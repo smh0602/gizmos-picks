@@ -531,6 +531,39 @@ jobs:
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
           exit $rc
 
+      # ══════════════════════════════════════════════════════════════
+      # 🔴🔴 THE TESTS MUST NOT HAVE MODIFIED THE TREE.
+      # ══════════════════════════════════════════════════════════════
+      # ⛔ NO CONDITION ON THIS STEP, DELIBERATELY. The Tests step is
+      # `continue-on-error`, so this is reached whether the suite passed
+      # or failed — and `if: always()` would be WRONG here, because a red
+      # test on a CLEAN tree must still let the collector run. That is
+      # the existing deliberate design and this does not change it.
+      # ⛔ AND IT IS NOT `continue-on-error`. This is the one place in
+      # this workflow where stopping is right: every step below writes to
+      # `data/` and pushes.
+      - name: The tests must not have modified the tree
+        run: |
+          # 🔴🔴 A TEST THAT REWRITES SOURCE AND IS KILLED LEAVES IT REWRITTEN.
+          # `[measured 2026-09-18]` test_vacuity.py runs the real mutation
+          # sweep; SIGTERM does not run its `finally`; the 600s timeout fires on
+          # it every run. A kill at 90s left `cfb.py` modified, and every step
+          # below this one builds and COMMITS data.
+          # ⛔ `git add data/ picks/` does not protect against this — the
+          # mutated .py is correctly not committed, and the WRONG DATA IT
+          # PRODUCES is exactly what the allowlist permits.
+          # ⛔ AND DO NOT "CLEAN UP" WITH `git checkout -- .` AND CARRY ON.
+          # A tree a test rewrote is a tree whose test RESULT is also
+          # suspect, and silently reverting is how the evidence disappears.
+          # ✅ Fail here, before a single converge pass, and name the files.
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::the test step modified the working tree — refusing to collect"
+            git status --porcelain
+            git diff | head -200
+            exit 1
+          fi
+          echo "tree clean after tests"
+
       - name: Decide what this run collects
         id: mode
         run: |

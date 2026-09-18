@@ -45,6 +45,7 @@ and only the second half catches that.
 # ══════════════════════════════════════════════════════════════════════
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -198,9 +199,70 @@ ck("⛔ a declaration whose `find` matches nothing is MALFORMED, not a skip",
    % _t2.get("test_declared_bad.py", {}).get("state"))
 
 section("2. ⛔ IT REPORTS. IT NEVER EDITS.")
-_before = V._porcelain(ROOT)
-_real2 = V.tier2(ROOT)
-_ok, _dirt = V.leaked(_before, ROOT)
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE REAL SWEEP RUNS IN A THROWAWAY WORKTREE, NOT THE TREE THE
+#      COLLECTOR IS ABOUT TO BUILD DATA FROM.
+# ══════════════════════════════════════════════════════════════════════
+# `[measured 2026-09-18]` `tier2` rewrites live source files and restores
+# them in a `finally`. **SIGTERM DOES NOT RUN `finally`**, and
+# `collect.yml`'s Tests step gives every file 600s while this sweep needs
+# ~18 minutes — so the timeout fires on this file EVERY collect run.
+#
+# ⛔ A kill at 90s on `main` left `cfb.py` MODIFIED:
+#       -    p = f"{OUT}/{COACHES_PROBE_FILE}"
+#       +    p = f"{OUT}/coaches.json"
+#    `cfb.py` is a COLLECTOR module, the Tests step is
+#    `continue-on-error`, and every step after it builds data, commits it
+#    and pushes. ⚠️ `git add data/ picks/` does not save this: it
+#    correctly refuses the mutated `.py`, and THE WRONG DATA THAT `.py`
+#    PRODUCES is exactly what the allowlist permits.
+# ⚠️ And `leaked()` — the guard built for this — never runs, because the
+#    process was killed before reaching it.
+#
+# ✅ A DETACHED WORKTREE SHARES THE OBJECT STORE, so this costs no
+#    meaningful disk and no copy. It is a real git tree, so
+#    `V._porcelain()` and `V.leaked()` work unchanged, and `data/` is
+#    committed so the tests inside it have what they need.
+# 🔴 THE QUESTION IS UNCHANGED: still real files, still the repo's own,
+#    still under git. What changes is only that a kill can dirty a
+#    throwaway tree instead of the collector's.
+# ⚠️ VERIFIED, NOT ASSUMED: `git worktree add --detach` works on a
+#    SHALLOW clone (`actions/checkout`'s default, which `collect.yml`
+#    uses), driven against a real `--depth 1` clone with
+#    `git status --porcelain` returning rc=0 inside the worktree.
+_swept_root, _wt = ROOT, None
+try:
+    # ⚠️ SELF-HEALING, BECAUSE THE KILL IS THE NORMAL CASE HERE. This
+    #    sweep is killed by the 600s budget on EVERY collect run, so the
+    #    removal below never runs and a worktree is orphaned each time.
+    #    On CI each job is a fresh checkout so nothing accumulates, but a
+    #    developer running this repeatedly would collect one per run.
+    # ⛔ `prune` only drops registrations whose directory is already gone,
+    #    so it can never remove a live one.
+    subprocess.run(["git", "worktree", "prune"], cwd=ROOT, check=False,
+                   capture_output=True)
+    _wt = tempfile.mkdtemp(prefix="vacuity-sweep-")
+    subprocess.run(["git", "worktree", "add", "--detach", _wt, "HEAD"],
+                   cwd=ROOT, check=True, capture_output=True, text=True)
+    _swept_root = _wt
+except Exception as _e:
+    # ⛔ DO NOT SILENTLY FALL BACK TO SWEEPING `ROOT`. That is the exact
+    #    hazard this block exists to remove, and a quiet fallback would
+    #    reinstate it while every check below still read green.
+    note("⛔ could not create the sweep worktree: %s: %s"
+         % (type(_e).__name__, _e))
+    _swept_root = None
+
+ck("🔴🔴 a throwaway worktree was created for the real sweep",
+   bool(_swept_root),
+   "⛔ without it the sweep would rewrite the collector's own source, "
+   "and a SIGTERM would leave it rewritten. This does NOT fall back to "
+   "sweeping ROOT — it fails instead, because a silent fallback is the "
+   "hazard wearing a green tick.")
+
+_before = V._porcelain(_swept_root or ROOT)
+_real2 = V.tier2(_swept_root or ROOT)
+_ok, _dirt = V.leaked(_before, _swept_root or ROOT)
 ck("🔴🔴 the harness leaves NOTHING behind after mutating real files",
    _ok,
    "⛔ it rewrites cfbd_budget.py and cfbd.yml in place. A leaked "
@@ -223,6 +285,36 @@ ck("⛔ the harness never deletes or rewrites a guard it accuses",
        [{"tier": 1, "test": "x.py", "state": "VACUOUS", "why": "w"}], [], []),
    "🔴 CLAUDE.md forbids removing a check outright. A weak guard removed "
    "is strictly worse than a weak guard reported")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 AND THE ROOT THAT WAS ACTUALLY SWEPT IS NOT THE COLLECTOR'S OWN.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ WITHOUT THIS, SOMEONE PUTS `V.tier2(ROOT)` BACK IN A YEAR AND
+#    NOTHING NOTICES until a bad dossier is on the site. The worktree is
+#    not a convenience — it is the thing standing between a SIGTERM and a
+#    rewritten collector module, so it is asserted, not trusted.
+ck("🔴🔴 the real sweep ran in a worktree, NOT the collector's own tree",
+   bool(_swept_root)
+   and os.path.realpath(_swept_root) != os.path.realpath(ROOT),
+   "⛔ a kill during this sweep must be able to dirty ONLY a throwaway "
+   "tree. swept=%r ROOT=%r"
+   % (_swept_root and os.path.realpath(_swept_root),
+      os.path.realpath(ROOT)))
+ck("⚠️ ...and it really was a git tree, so leaked() could ask git at all",
+   _before is not None,
+   "🔴 `leaked()` fails closed on an unaskable tree, so a worktree git "
+   "could not read would have surfaced here rather than silently")
+
+# ⚠️ HOUSEKEEPING, NOT A FINDING. A leftover temp worktree costs a few
+#    bytes of metadata and is not a defect in anything this file tests,
+#    so removal is best-effort and never fails the run.
+if _wt:
+    try:
+        subprocess.run(["git", "worktree", "remove", "--force", _wt],
+                       cwd=ROOT, check=False, capture_output=True)
+        shutil.rmtree(_wt, ignore_errors=True)
+    except Exception:
+        pass
 
 section("3. 🔴 THE MAPPING IS NAME-ONLY, AND THAT WAS MEASURED")
 # ⛔ A looser rule ("the one non-test module this file imports") produced
