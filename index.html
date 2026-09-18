@@ -288,6 +288,7 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
 .dospart{display:inline-block;font:700 10px/1 system-ui;text-transform:uppercase;
   letter-spacing:.05em;color:#8a5f14;border:1px solid #f0dcb8;background:#fdf7ec;
   border-radius:20px;padding:3px 8px;margin-left:6px;vertical-align:2px}
+.donebook{font-weight:400;font-size:11px;color:var(--mut);margin-left:4px}
 tr.dosrow{cursor:pointer}
 tr.dosrow:hover td{background:#f2f4f7}
 tr.dosrow .caret{color:var(--mut);font-size:10px;display:inline-block;transition:transform .12s}
@@ -3082,6 +3083,43 @@ function fbDosFacts(s){
           win&nbsp;% to show &mdash; the total and spread above are real
           prices a book is showing.</li>`);
     }
+    /* ══════════════════════════════════════════════════════════════
+       🔴 THE FIRST-HALF TOTAL IS ONE BOOK'S LINE, AND THE PAGE SAYS SO.
+       `[Sam, 2026-09-18]` The live pull asks ONE market in ONE region,
+       and `us2` is the region Hard Rock lives in. ⛔ Every other price
+       in this section is the best of five books; this one is not
+       shopped at all.
+       ⛔ SO IT DOES NOT GET THE BARE `li()` THE SHOPPED PRICES GET. A
+       reader who sees "First-half total 21.5" in the same style as
+       "Total 45.5" has been told it was shopped the same way, which is
+       false. The book is named on the value itself, not in a footnote
+       they might not reach.
+       ⚠️ AND THE ABSENT CASE IS SHOWN, NOT HIDDEN — same rule as an
+       UNAVAILABLE section. It says what we did not buy, never what a
+       book will not quote (CLAUDE.md: an absence in a response is
+       evidence about the request).
+       ══════════════════════════════════════════════════════════════ */
+    const H = s.first_half;
+    if (H && H.total != null){
+      li('First-half total', `${H.total} <span class="donebook">`
+         + `${H.book || 'one book'} only</span>`);
+      f.push(`<li>&#9888;&#65039; <b>Not shopped.</b> That half total is
+        ${H.book || 'one book'}&rsquo;s own line &mdash; the only book we
+        ask for it &mdash; so it may not be the best price available.
+        The full-game numbers above are the best of ${L.n_books || 'several'}.</li>`);
+    } else if (s.first_half_note){
+      f.push(`<li>${s.first_half_note}</li>`);
+    }
+    /* ⛔ AND THE HALF WE DO NOT BUY IS NAMED, not left as silence.
+       ⛔ THE BUILDER'S OWN STRING, VERBATIM (rule 132). My first version
+       sentence-cased it here with a regex, which is the page quietly
+       editing the model's words — the same defect Task 28 was written
+       to stop. The register is written in reader English in
+       `dossier_fb.py`; this only places it. */
+    if (s.known_gap)
+      f.push(`<li>${s.known_gap}`
+             + (s.known_gap_remedy ? ` &mdash; ${s.known_gap_remedy}.` : '')
+             + `</li>`);
     const c = s.closing;
     if (c && c.closing_spread != null) li('Closing spread', c.closing_spread);
     if (c && c.closing_total  != null) li('Closing total',  c.closing_total);
