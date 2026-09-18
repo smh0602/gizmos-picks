@@ -45,7 +45,15 @@ for cron, lg, modes in ROUTES:
 PAIRED = {"cfb-probe": "nfl-logs"}          # the same tab, two feeds
 CFB_ONLY = {"cfb-teams"}                    # NFL crests are embedded
 # ⚠️ A mode that is chained rather than scheduled is driven by its parent.
-DRIVEN_BY = {"props-board": "props-player", "fb-record": "card-fb"}
+# 📰 `news-archive` IS WRITTEN BY THE `news` PULL ITSELF, in the same
+#    function, immediately after `latest/news.json`. ⛔ The chain is REAL
+#    and is asserted against `collect.py`'s own source in
+#    `test_news_archive.py` ("`latest/news.json` is still written, and
+#    first", read off the AST of `collect_news`) — so if the chain is ever
+#    removed, THAT check fails rather than this entry quietly excusing an
+#    ungoverned artifact.
+DRIVEN_BY = {"props-board": "props-player", "fb-record": "card-fb",
+             "news-archive": "news"}
 
 print("\n═══ 1. EVERY FOOTBALL MODE IS ROUTED FOR BOTH LEAGUES ═══")
 c, n = set(SCHED["ncaaf"]), set(SCHED["nfl"])

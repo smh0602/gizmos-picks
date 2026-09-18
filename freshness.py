@@ -665,6 +665,21 @@ def _football_contract(league, data, picks, now):
         ("card-fb", ("file", f"picks/fb-{league}-latest.json"), T["card"], False,
          "Gizmo's Picks + Parlays + Track Record"),
         ("news", ("file", f"{latest}/news.json"), T["news"], False, "News"),
+        # ══════════════════════════════════════════════════════════════
+        # 📰 THE DATED NEWS ARCHIVE, AND IT GETS A CONTRACT ENTRY IN THE
+        #    SAME PR THAT CREATES IT.
+        # ⛔ `top-<season>.json.gz` shipped with NO entry and the contract
+        #    read `stale: False, ok: True` WHILE THE FILE DID NOT EXIST.
+        #    An artifact nothing watches is an artifact that can stop
+        #    being written and nobody finds out.
+        # ⚠️ HOURLY, the same deadline as the pull it rides on — the
+        #    archive is written in the same code path, immediately after
+        #    `latest/news.json`, so the two can only diverge through a
+        #    bug, which is exactly what this is here to surface.
+        # ⛔ `dir`, not `file`: the archive is one file per pull, so the
+        #    question is "when was the newest one written".
+        ("news-archive", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
+         "News — the dated archive the line-movement question needs"),
     ]
     # ⚠️ TRENDS IS SEASON-STAMPED, so the probe names the season rather
     # than a generic file -- a 2025 table sitting where 2026 belongs is
@@ -778,7 +793,20 @@ def contract(data="data", picks="picks", now=None):
 # lose without being misled -- headlines, conditions, lineups. Odds, the
 # card and the track record are NOT here and never should be: those are
 # numbers someone bets on.
-SOFT = {"news", "weather", "lineups", "cfb-teams"}
+# ⚠️ `news-archive` SHARES `news`'s FATE, AND THAT IS WHY IT IS HERE.
+#    Both are written by the same code path: when every RSS feed fails,
+#    `collect_news` raises before either is written. ⛔ Making the archive
+#    HARD would turn a third-party outage back into a red run — which is
+#    the precise regression this set was created to stop, and which this
+#    project has already lived through once.
+# 🔴 THE CONDITION THAT IS A REAL FAILURE IS **DIVERGENCE**, not absence:
+#    `latest/news.json` fresh while the day's archive is empty means the
+#    archive silently stopped. A staleness deadline cannot express "fresh
+#    but only one of the two", so that condition is asserted as a CHECK
+#    (`test_news_archive.py`) rather than pretended into a contract row.
+#    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
+#    reads STALE.
+SOFT = {"news", "weather", "lineups", "cfb-teams", "news-archive"}
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.
