@@ -135,6 +135,9 @@ jobs:
       go: ${{ steps.decide.outputs.go }}
       drill: ${{ steps.decide.outputs.drill }}
       summary: ${{ steps.decide.outputs.summary }}
+      # ⚠️ THE ISSUE NUMBER TRAVELS, so the fix job can record whether this
+      #    issue produced a PR — which is what the one-pass skip reads.
+      issue: ${{ steps.decide.outputs.issue }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -172,7 +175,41 @@ jobs:
           print(' | '.join('%s :: %s' % (i['what'], i['why'][:200]) for i in rows)[:900])
           ")
           echo "unrepairable findings: $UNREP"
-          if [ "$UNREP" = "0" ]; then
+
+          # ══════════════════════════════════════════════════════════
+          # 🔴🔴 AND THE WATCHER ISSUE QUEUE, WHICH IS THE OTHER FIVE
+          #      DETECTORS.
+          # ══════════════════════════════════════════════════════════
+          # `[measured 2026-09-18]` SIX things watch this repo and ONE of
+          # them could produce a fix. `health.json` is written by
+          # `watchdog.py`, which reads REPO FILES — so a red test, a
+          # failed run and a vacuous guard are none of them findings in
+          # it. `runs_report.py`'s own header says why: *"a red tick on
+          # the Actions tab is not a file in the repo, so it is invisible
+          # to every guard this project has."*
+          # ⛔ So all five became an email and stopped there, which is
+          # why two known vacuous guards sat unfixed for three days —
+          # nothing could make them anyone's task.
+          #
+          # ✅ EVERY WATCHER HERE ALREADY FILES ONE ISSUE, updated in
+          # place and closed by itself when the condition clears. That is
+          # a work queue: deduplicated, self-clearing, and already the
+          # thing sending the mail.
+          # ⛔ IDENTIFIED BY LABEL, NEVER BY TITLE. Titles are prose and
+          # prose drifts; this project has been burned by regex-over-prose
+          # before. `test_watch_label.py` derives the `gh issue create`
+          # call sites from the workflows and fails if one can file
+          # without the label — a queue that empties silently is worse
+          # than no queue.
+          # ⚠️ OLDEST FIRST, so nothing starves.
+          QUEUE=$(gh issue list --state open --label gizmo-watch \
+                    --limit 50 --json number,title,body,labels,createdAt \
+                    --jq 'sort_by(.createdAt)' 2>/dev/null || echo "[]")
+          QN=$(python -c "import json,sys;print(len(json.loads(sys.stdin.read() or '[]')))" <<< "$QUEUE")
+          echo "open watcher issues: $QN"
+
+          if [ "$UNREP" = "0" ] && [ "$QN" = "0" ]; then
+            echo "nothing unrepairable and no watcher issue open"
             echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
           fi
           # ⛔ ONE PR PER PROBLEM. An open PR from this workflow means the
@@ -183,10 +220,75 @@ jobs:
             echo "a self-repair PR is already open — not opening another"
             echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
           fi
+          # ══════════════════════════════════════════════════════════
+          # ⚠️ SKIP AN ISSUE THAT ALREADY PRODUCED NO PR — ONCE, NOT
+          #    FOREVER.
+          # ══════════════════════════════════════════════════════════
+          # ⛔ A PERMANENT SKIP LIST IS A FILTERED ALERT, AND RULE 238
+          #    SAYS A FILTERED ALERT IS NO ALERT. A problem that is
+          #    undiagnosable today may be diagnosable after the next
+          #    merge, so the skip lasts exactly one pass.
+          LAST=""
+          if [ -f data/latest/self-repair-last.json ]; then
+            LAST=$(python -c "
+          import json
+          try:
+              d = json.load(open('data/latest/self-repair-last.json'))
+              print(d.get('issue') or '' if not d.get('opened_pr') else '')
+          except Exception:
+              print('')
+          ")
+          fi
+          # ⛔ `$LAST` IS PASSED AS AN ARGUMENT, NEVER SPLICED INTO THE
+          #    PYTHON SOURCE. It is empty on the very first pass and on
+          #    every pass after one that opened a PR — and an empty
+          #    expansion spliced into source is `skip = .strip()`, a
+          #    SyntaxError. That does not fail loudly: the snippet dies,
+          #    `PICK` comes back empty, and the gate below reads that as
+          #    "nothing to do" and stands down. ⚠️ The whole widening
+          #    would have shipped green and fired never.
+          PICK=$(python -c "
+          import json, sys
+          skip = sys.argv[1].strip()
+          q = json.loads(sys.stdin.read() or '[]')
+          for it in q:
+              if skip and str(it.get('number')) == skip:
+                  continue
+              print(json.dumps(it))
+              break
+          " "$LAST" <<< "$QUEUE")
+
+          if [ "$UNREP" = "0" ] && [ -z "$PICK" ]; then
+            echo "the only open watcher issue is the one the last pass could not diagnose — skipping it this pass"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          ISSUE_N=$(python -c "import json,sys;d=sys.stdin.read().strip();print(json.loads(d)['number'] if d else '')" <<< "$PICK")
+          ISSUE_TXT=$(python -c "
+          import json, sys
+          d = sys.stdin.read().strip()
+          if not d:
+              print('')
+          else:
+              it = json.loads(d)
+              labs = ','.join(l['name'] for l in (it.get('labels') or []))
+              print('ISSUE #%s [%s]\n%s\n\n%s'
+                    % (it['number'], labs, it['title'], (it.get('body') or '')[:3000]))
+          " <<< "$PICK")
+
+          # ⚠️ A RANDOM HEREDOC DELIMITER, because the summary now
+          #    carries an ISSUE BODY — text this workflow did not write.
+          #    A body containing a line that is exactly `EOF` would end
+          #    the block early and the rest would be read as further
+          #    `key=value` output lines. ⛔ The delimiter must be
+          #    unguessable by whoever wrote the body.
+          DELIM="SR_$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
           echo "go=yes" >> "$GITHUB_OUTPUT"
-          echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+          echo "issue=$ISSUE_N" >> "$GITHUB_OUTPUT"
+          echo "summary<<$DELIM" >> "$GITHUB_OUTPUT"
           echo "$SUMMARY" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "$ISSUE_TXT" >> "$GITHUB_OUTPUT"
+          echo "$DELIM" >> "$GITHUB_OUTPUT"
 
   fix:
     needs: triage
@@ -284,14 +386,31 @@ jobs:
           # mention needed, and on a `schedule` event there is no actor to
           # reject.
           prompt: |
-            The site watchdog has reported a defect that cannot be
-            repaired by rebuilding anything. Read `data/latest/health.json`
-            for the full report. The findings with no `repair` are the
-            ones meant for you:
+            Something this repo watches is broken. It is EITHER a
+            watchdog finding that cannot be repaired by rebuilding
+            anything -- read `data/latest/health.json`, the findings with
+            no `repair` are those -- OR an open issue filed by one of this
+            repo's own watchers, which is quoted below with its number.
+            Read the repo yourself; nothing else is passed to you.
 
             ${{ needs.triage.outputs.summary }}
 
             Read CLAUDE.md FIRST and follow it. In particular:
+
+            - You may open ONE pull request. You may not merge it. Sam
+              merges.
+            - EVERY FIX SHIPS WITH A GUARD.
+            - Do not touch MLB. Do not touch any workflow file containing
+              a `cron:` block. Do not edit or delete any
+              `picks/<date>.json`.
+            - If the issue is from `vacuity.py`: you may NOT delete, skip
+              or weaken the guard it names. You may only STRENGTHEN it,
+              or -- if you cannot -- write the case for Sam and open no
+              PR. `vacuity.py` says it itself: "Sam decides what happens
+              to each." An agent that could clear its own queue by
+              deleting a check is the worst possible version of this.
+            - If you cannot diagnose it, say so and open no PR. A PR that
+              guesses is worse than an issue that waits.
 
             - MLB IS FROZEN. Do not change card.py, verify_card.py, the
               MLB model or any MLB doc. If this finding is MLB, make NO
@@ -384,3 +503,48 @@ jobs:
             exit 1
           fi
           echo "the drill produced its artifact — the Tier 3 path works"
+
+      # ══════════════════════════════════════════════════════════════
+      # ⚠️ RECORD WHETHER THIS PASS PRODUCED A PR, SO THE NEXT ONE CAN
+      #    SKIP AN ISSUE IT COULD NOT DIAGNOSE — ONCE.
+      # ══════════════════════════════════════════════════════════════
+      # ⛔ A PERMANENT SKIP LIST IS A FILTERED ALERT, AND RULE 238 SAYS A
+      #    FILTERED ALERT IS NO ALERT. The skip lasts exactly one pass: a
+      #    problem that is undiagnosable today may be diagnosable after
+      #    the next merge.
+      # ⚠️ `if: always()` IS RIGHT HERE and nowhere else in this workflow:
+      #    the whole point is to record the case where the agent ran and
+      #    produced NOTHING, which is the case where earlier steps failed.
+      # ⛔ It commits ONE file and nothing else. `git add` names it
+      #    explicitly rather than `-A`, because this job's tree has just
+      #    had an agent working in it.
+      - name: Record whether this pass produced a pull request
+        if: always() && needs.triage.outputs.drill != 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          ISSUE="${{ needs.triage.outputs.issue }}"
+          [ -z "$ISSUE" ] && { echo "no issue was picked — nothing to record"; exit 0; }
+          OPENED=$(gh pr list --state all --limit 20 --json headRefName,createdAt \
+                     --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' \
+                     2>/dev/null || echo 0)
+          case "$OPENED" in ''|*[!0-9]*) OPENED=0 ;; esac
+          python - "$ISSUE" "$OPENED" <<'PYEOF'
+          import json, sys, datetime
+          issue, opened = sys.argv[1], sys.argv[2] != "0"
+          json.dump({"issue": int(issue), "opened_pr": opened,
+                     "at": datetime.datetime.now(datetime.timezone.utc)
+                           .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                     "note": ("⛔ The next pass skips this issue ONLY if "
+                              "opened_pr is false, and only for that one "
+                              "pass. A permanent skip list is a filtered "
+                              "alert (rule 238).")},
+                    open("data/latest/self-repair-last.json", "w"), indent=1)
+          PYEOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/latest/self-repair-last.json
+          git commit -q -m "self-repair: issue #$ISSUE, opened_pr=$OPENED" 2>/dev/null \
+            && (git pull --rebase -q && git push -q) \
+            || echo "nothing to record or nothing changed"
