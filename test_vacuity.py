@@ -162,6 +162,61 @@ ck("⚠️ ...and `-B` is still actually there, since nothing else pins it",
    '"-B"' in open(os.path.join(ROOT, "vacuity.py"), encoding="utf-8").read(),
    "⛔ a backstop nobody checks is a backstop that quietly disappears")
 
+section("0b. 🔴🔴 EVERY REAL DECLARATION'S `find` STILL MATCHES, EXACTLY ONCE")
+# ═══════════════════════════════════════════════════════════════════════
+# ⛔ A `find:` THAT MATCHES ZERO TIMES MUTATES NOTHING, AND THE FILE THEN
+#    "PASSES" HAVING BEEN ASKED NOTHING. Rule 244. Two matches is the same
+#    hole from the other side: the harness cannot say which line it gutted.
+#
+# 🔴 THE CLASS, NOT THE THREE INSTANCES. `[measured 2026-09-19]` three
+#    declarations went stale in ONE night, each one broken by a correct fix
+#    to the file it names — `--add-label` added to the line a `find` quoted,
+#    a comment that repeated `issues: read` so the literal occurred twice,
+#    and a trailing `\` written doubled inside a docstring. ⚠️ Not one of
+#    them was a mistake in the declaration when it was WRITTEN. They rot
+#    because they are a copy of somebody else's line, and rule 166 applies
+#    to a quoted string exactly as it does to a number.
+#
+# ✅ WHY HERE AND WHY THIS EARLY. `V.tier2()` already reports MALFORMED
+#    — that is what found these three — but only after the full sweep,
+#    which measured **18m16s**. This asks the same question in
+#    milliseconds, off the real tree, BEFORE the expensive pass, so a
+#    rotted declaration is named in the first second of the run instead of
+#    twenty minutes in. ⛔ It does not replace the sweep and it weakens
+#    nothing: a `find` that matches once can still be VACUOUS, and only
+#    the sweep can say so.
+_DECLS = V.declarations(ROOT)
+ck("⚠️ there are declarations to check at all",
+   len(_DECLS) >= 20,
+   "⛔ rule 67: this whole section is vacuous over an empty set. The "
+   "parser returned %d declaration(s)." % len(_DECLS))
+_ROT = []
+for _d in _DECLS:
+    _miss = [k for k in ("file", "find", "with") if not _d.get(k)]
+    if _miss:
+        _ROT.append((_d.get("test"), _d.get("file"), "missing " + ",".join(_miss)))
+        continue
+    try:
+        _src = open(os.path.join(ROOT, _d["file"]),
+                    encoding="utf-8").read()
+    except OSError as _e:
+        _ROT.append((_d["test"], _d["file"], "unreadable: %s" % _e))
+        continue
+    _n = _src.count(_d["find"])
+    if _n != 1:
+        _ROT.append((_d["test"], _d["file"],
+                     "`find` occurs %d time(s): %r" % (_n, _d["find"][:70])))
+ck("🔴🔴 NO DECLARED MUTATION HAS ROTTED AWAY FROM ITS SUBJECT",
+   not _ROT,
+   "⛔ each of these declares an edit that would change NOTHING, so the "
+   "test it belongs to is proving nothing and saying so in green. Fix the "
+   "`find:`, do not delete the declaration. %d of %d rotted:\n%s"
+   % (len(_ROT), len(_DECLS),
+      "\n".join("       %-28s %-34s %s" % r for r in _ROT)))
+note("%d declaration(s) checked statically, %d rotted. \u26a0\ufe0f This says each\n"
+     "`find` still RESOLVES, never that the mutation BITES \u2014 only the "
+     "sweep below can say that." % (len(_DECLS), len(_ROT)))
+
 section("1. 🔴🔴 THE HARNESS, DRIVEN AGAINST PLANTED GUARDS")
 _d = plant()
 _t1 = {r["test"]: r for r in V.tier1(_d)}

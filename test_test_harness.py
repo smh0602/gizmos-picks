@@ -131,13 +131,49 @@ ck("🔴 ...and strictly under the job's own timeout",
    "⛔ a per-file bound above the job bound can never fire — the job is "
    "cancelled first and the file is never named. PER_FILE=%ds against "
    "timeout-minutes=%d (%ds)" % (_per, _job, _job * 60))
+# ⛔ AND SO IS EVERY PER-FILE OVERRIDE. `budget_for` may give one file a
+#    longer clock than the default — `test_vacuity.py` measured 18m16s
+#    against a 600s default — but an override above the JOB bound is a
+#    clock that can never fire, which is the same hole one size up.
+_OVR = [int(v) for v in
+        re.findall(r"^\s*test_[a-z0-9_]+\.py\)\s*echo (\d+)", STEP, re.M)]
+ck("⛔ ...and so is every per-file override",
+   all(0 < v < _job * 60 for v in _OVR),
+   "🔴 an override above the job bound is cancelled before it fires and "
+   "the file is never named. overrides=%s against timeout-minutes=%d"
+   % (_OVR, _job))
+ck("⚠️ ...and no override is SHORTER than the default",
+   all(v >= _per for v in _OVR),
+   "⛔ the table is for a file that needs MORE time. A shorter clock is "
+   "a way to make a slow file's red go away. overrides=%s default=%d"
+   % (_OVR, _per))
 
 print("\n═══ 4. 🔴🔴 THE SHELL FUNCTION, ACTUALLY EXECUTED ═══")
 # ⛔ RULE 260: I once wrote a check that read its expectation off the
 #    thing it was checking. Reading `TIMED OUT` out of the YAML proves
 #    the string is present, NOT that the logic works. So: pull the real
 #    function out of the workflow and run it against planted files.
-_fn = re.search(r"(PER_FILE=\d+\n.*?^          \}\n)", STEP, re.S | re.M)
+# 🔴 ~~`re.search(r"(PER_FILE=\d+\n.*?^          \}\n)")`~~ STRUCK
+#    2026-09-19. It captured from `PER_FILE=` to the FIRST line that is
+#    exactly `}` — a SHAPE assumption, not the question. The moment the
+#    step gained a second helper (`budget_for`, the per-file clock), the
+#    first `}` closed THAT and `run_one` fell outside the capture; §4
+#    then ran a shell in which the function it is driving did not exist
+#    (`bash: run_one: command not found`).
+# ⛔ It failed LOUDLY, which is the only reason this is a repair and not
+#    a silent hole — but "the first block ending in a brace" was never
+#    what §4 needs.
+# ✅ THE REPLACEMENT IS HARDER: everything from `PER_FILE=` up to the
+#    discovery loop, so EVERY definition the loop relies on is driven,
+#    however many there are. And the marker's absence is a RED, not a
+#    smaller capture.
+_MARK = "for t in test_*.py; do"
+ck("⚠️ the definitions can be separated from the discovery loop",
+   _MARK in STEP,
+   "⛔ without this marker the extraction below would run the real "
+   "suite instead of driving the function. Fail rather than do that.")
+_fn = re.search(r"(PER_FILE=\d+\n.*?)^          for t in test_\*\.py; do",
+                STEP, re.S | re.M)
 ck("🔴 the runner function is extractable to be driven",
    bool(_fn),
    "⛔ if this stops matching, section 4 proves nothing. A guard that "
