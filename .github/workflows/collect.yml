@@ -752,6 +752,24 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+          # 🔴🔴 nflverse PUBLISHES THROUGH api.github.com, AND WE WERE
+          # ASKING IT ANONYMOUSLY. `[measured 2026-09-19]` every NFL
+          # build had failed for 47 hours with
+          # `HTTPError: HTTP Error 403: rate limit exceeded` — the
+          # unauthenticated GitHub API limit is 60 requests an hour PER
+          # IP, and a runner shares that IP. `players-2026.json.gz` held
+          # week 1 while the schedule already recorded finals for weeks
+          # 1 AND 2, and the NFL possession artifact had never been
+          # written at all.
+          # ✅ The built-in token raises it to 1,000/hour. NO NEW SECRET
+          # — Actions injects this one. 💰 Zero credits: nflverse is
+          # free, this only stops us being throttled off it.
+          # ⛔ `nfl.py` sends it to api.github.com ONLY and strips it
+          # across any redirect that leaves that host, because a release
+          # ASSET redirects to objects.githubusercontent.com and urllib
+          # re-sends headers. `test_nflverse_auth.py` drives a real
+          # redirect and fails if the header survives it.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # 🔴 `LEAGUES`, PLURAL, SINCE 2026-09-06. Sam: *"if any of these
           # runs can be done for nfl and cfb its expected we do that so we
           # can kill two birds with one stone."*

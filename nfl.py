@@ -21,7 +21,9 @@ import re
 import gzip
 import io
 import json
+import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 import ranking as _ranking   # the shared tie-aware ranker
@@ -133,9 +135,86 @@ SCHEDULE_FILE = "games.csv.gz"
 # `stats_player` (542). nflverse migrated. Use `stats_player`.
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE RELEASES API IS AUTHENTICATED, AND ONLY THE RELEASES API.
+# ══════════════════════════════════════════════════════════════════════
+# `[measured 2026-09-19]` every NFL build had been failing for 47 hours:
+#
+#     $ cat data/nfl/latest/backfill-report.txt
+#     nfl-logs back-fill at 2026-09-19T07:38:29Z
+#     requested: [2026]   written: []   failed: [2026]
+#     --- 2026 ---
+#     HTTPError: HTTP Error 403: rate limit exceeded
+#
+# nflverse publishes through `api.github.com`, and an UNAUTHENTICATED
+# GitHub API call is limited to 60 requests an hour **per IP** — an IP a
+# GitHub Actions runner shares with everyone else on that host. This
+# project asks for up to ten pages of releases on every football pass,
+# ~46 passes a day. We were rate-limiting ourselves out of our own data:
+# `players-2026.json.gz` holds week 1 only, while the schedule already
+# records finals for weeks 1 AND 2, and `top-probe-2026.json` — the NFL
+# possession artifact — has never been written at all.
+#
+# ✅ `GITHUB_TOKEN` raises that to 1,000 requests an hour. It costs
+# nothing, needs no new secret (Actions injects it) and is stdlib.
+#
+# ⛔ AND IT IS SENT TO api.github.com AND NOWHERE ELSE. A release ASSET
+# download redirects to `objects.githubusercontent.com`, and urllib
+# re-sends every header across a redirect — so a token attached to an
+# asset URL is a token handed to a CDN. GitHub says so in as many words.
+# `_auth_for()` is host-matched, and `test_nflverse_auth.py` drives a
+# real redirect and fails if the header survives it.
+#
+# ⚠️ WHAT IS NOT MEASURED HERE: whether this clears the production 403.
+# It cannot be — this sandbox's own egress proxy refuses api.github.com
+# for repositories outside its allow-list, so the 403 seen from here is
+# not GitHub's. What IS measured is that the header goes to the API host,
+# never to the redirect target, and that a 403 is loud either way.
+API_HOSTS = ("api.github.com",)
+
+
+def _token():
+    return (os.environ.get("GITHUB_TOKEN")
+            or os.environ.get("GH_TOKEN") or "").strip()
+
+
+def _auth_for(url):
+    """Headers for this URL — the token ONLY on the API host."""
+    h = dict(UA)
+    host = urllib.parse.urlsplit(url).hostname or ""
+    tok = _token()
+    if tok and host.lower() in API_HOSTS:
+        h["Authorization"] = "Bearer " + tok
+        h["X-GitHub-Api-Version"] = "2022-11-28"
+    return h
+
+
+class _NoAuthRedirect(urllib.request.HTTPRedirectHandler):
+    """⛔ Drop `Authorization` when a redirect leaves the API host.
+
+    Belt and braces with `_auth_for`: even if a caller hands us an API
+    URL that redirects off-host, the credential does not travel.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        new = urllib.request.HTTPRedirectHandler.redirect_request(
+            self, req, fp, code, msg, headers, newurl)
+        if new is not None:
+            host = (urllib.parse.urlsplit(newurl).hostname or "").lower()
+            if host not in API_HOSTS:
+                for k in list(new.headers):
+                    if k.lower() == "authorization":
+                        del new.headers[k]
+                new.unredirected_hdrs.pop("Authorization", None)
+        return new
+
+
+_OPENER = urllib.request.build_opener(_NoAuthRedirect())
+
+
 def _raw(url, timeout=60):
-    req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    req = urllib.request.Request(url, headers=_auth_for(url))
+    with _OPENER.open(req, timeout=timeout) as r:
         blob = r.read()
     if url.endswith(".gz") or blob[:2] == b"\x1f\x8b":
         blob = gzip.decompress(blob)

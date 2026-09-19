@@ -4244,6 +4244,36 @@ def run_mode(mode):
             # everything that CAN land, lands; the failures are named; the
             # run still goes red at the end.
             done, failed, not_yet = [], [], []
+            # ══════════════════════════════════════════════════════════
+            # 🔴🔴 AND IT STANDS DOWN AFTER A FAILURE, EXACTLY AS
+            #    `cfb-probe` DOES — for exactly the same reason.
+            # `[measured 2026-09-19]` nflverse answered
+            # `HTTP Error 403: rate limit exceeded` on EVERY pass for 47
+            # hours. nflverse publishes through `api.github.com`, whose
+            # unauthenticated limit is 60 requests an hour PER IP — an IP
+            # a runner shares — and football converges ~46 times a day,
+            # each asking for up to ten pages. **The retry storm is what
+            # feeds the limit.** Authenticating (see `nfl._auth_for`)
+            # raises the ceiling; backing off stops us standing on it.
+            # ⛔ THE NAME `_cfb_backoff_left` IS HISTORICAL. The function
+            # is path-driven and league-agnostic — it reads the streak
+            # out of whichever `backfill-report.txt` it is given — and
+            # `nfl-logs` writes a report of exactly that shape. One
+            # implementation, two callers (rule 117).
+            # ⚠️ SKIPPING IS NOT HIDING: the artifact stays out of
+            # contract, `verify_freshness.py` reports it every run, and
+            # the watchdog now sees it too.
+            # ⛔ AND THE REPORT IS NOT REWRITTEN WHILE STANDING DOWN — it
+            # is the state the back-off reads, so overwriting it with an
+            # empty attempt would clear the streak and restore the storm.
+            # ══════════════════════════════════════════════════════════
+            _nwait = _cfb_backoff_left(f"{base}/backfill-report.txt")
+            if _nwait > 0:
+                log(f"SKIPPING nfl-logs: the last back-fill FAILED and "
+                    f"nflverse needs room. {_nwait:.0f} min of back-off "
+                    f"left. NOTHING FETCHED. The artifact stays out of "
+                    f"contract and verify_freshness reports it.")
+                seasons = []
             for season in seasons:
                 try:
                     doc = _nfl.build_logs(season, log)
@@ -4459,28 +4489,31 @@ def run_mode(mode):
             # GitHub deletes it. A diagnosis you cannot retrieve is a
             # diagnosis you do not have -- same rule as
             # card-verify-failure.txt.
-            os.makedirs(base, exist_ok=True)
-            _rp = f"{base}/backfill-report.txt"
-            with open(_rp, "w", encoding="utf-8") as _fh:
-                _fh.write(f"nfl-logs back-fill at {stamp()}\n")
-                _fh.write(f"requested: {seasons}\n")
-                _fh.write(f"written  : {done}\n")
-                _fh.write(f"failed   : {[y for y, _ in failed]}\n")
-                # ⚠️ REPORTED, NOT SUPPRESSED. A season the source has no
-                # data for yet gets its own STATUS line, so the artifact
-                # says why it is empty instead of just being empty.
-                _fh.write(f"not yet  : {[y for y, _ in not_yet]}"
-                          f"   (season not started — not a failure)\n\n")
-                for _yr, _why in not_yet:
-                    _fh.write(f"--- {_yr} NOT YET PUBLISHED ---\n{_why}\n\n")
-                for _yr, _why in failed:
-                    _fh.write(f"--- {_yr} ---\n{_why}\n\n")
-            log(f"wrote {_rp}")
+            if _nwait <= 0:
+                os.makedirs(base, exist_ok=True)
+                _rp = f"{base}/backfill-report.txt"
+                with open(_rp, "w", encoding="utf-8") as _fh:
+                    _fh.write(f"nfl-logs back-fill at {stamp()}\n")
+                    _fh.write(f"requested: {seasons}\n")
+                    _fh.write(f"written  : {done}\n")
+                    _fh.write(f"failed   : {[y for y, _ in failed]}\n")
+                    # ⚠️ REPORTED, NOT SUPPRESSED. A season the source has
+                    # no data for yet gets its own STATUS line, so the
+                    # artifact says why it is empty instead of just being
+                    # empty.
+                    _fh.write(f"not yet  : {[y for y, _ in not_yet]}"
+                              f"   (season not started — not a failure)\n\n")
+                    for _yr, _why in not_yet:
+                        _fh.write(f"--- {_yr} NOT YET PUBLISHED ---\n"
+                                  f"{_why}\n\n")
+                    for _yr, _why in failed:
+                        _fh.write(f"--- {_yr} ---\n{_why}\n\n")
+                log(f"wrote {_rp}")
 
-            if failed:
-                raise RuntimeError(
-                    f"{len(failed)} season(s) failed: "
-                    f"{[y for y, _ in failed]} -- see {_rp}")
+                if failed:
+                    raise RuntimeError(
+                        f"{len(failed)} season(s) failed: "
+                        f"{[y for y, _ in failed]} -- see {_rp}")
             left = None
         elif mode == "fb-scores":
             # ══════════════════════════════════════════════════════════
