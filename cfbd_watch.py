@@ -173,9 +173,15 @@ def render(v, retry_month=None):
                  "the strength of not having looked.")
         return "\n".join(o)
     if v["state"] == "OVER":
-        o.append("**The CFBD call budget is close to its quota. This is a "
-                 "DATA-OUTAGE finding, not a pipeline one — every job is "
-                 "green.**\n")
+        # ⛔ ~~"— every job is green."~~ STRUCK 2026-09-19. This module
+        # reads the workflow's cron schedule and `cfb.py`'s call counts;
+        # it has never been able to see a run. It printed that into
+        # issue #31 while collect.yml was red on 68 consecutive runs.
+        # ✅ The distinction it draws — a data outage is not a pipeline
+        # outage — is real and is kept in terms this file can support.
+        o.append("**The CFBD call budget is close to its quota. This is "
+                 "a DATA-OUTAGE finding: the calls are scheduled and "
+                 "priced, and the quota is what runs out.**\n")
         o.append("- %s" % v["why"])
     else:
         o.append("✅ %s" % v["why"])
