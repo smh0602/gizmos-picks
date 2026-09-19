@@ -163,9 +163,18 @@ def render(res):
     bad = [lg for lg, r in res.items() if r["state"] == "UNDER"]
     out = []
     if bad:
+        # ⛔ ~~"— every job is green."~~ STRUCK 2026-09-19. This module
+        # reads `record.json` and nothing else; it has never been able to
+        # see a workflow run. `[measured]` it printed that sentence into
+        # issue #16 while `collect.yml` was red on 68 consecutive runs.
+        # Rule 166/293: a number — or a status — written down is a claim
+        # about the world, and this one was not measured by the thing
+        # making it. ✅ The DISTINCTION it was drawing is real and is
+        # kept, said in terms of what this file actually reads.
         out.append("**The board is delivering materially less than it "
-                   "claims. This is a MONEY finding, not a pipeline "
-                   "one — every job is green.**\n")
+                   "claims. This is a MONEY finding: it is about what "
+                   "the board DELIVERS against what it printed, not "
+                   "about whether anything ran.**\n")
         for lg in bad:
             r = res[lg]
             out.append("- **`%s`** — %s" % (lg, r["why"]))
