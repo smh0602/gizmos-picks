@@ -267,13 +267,54 @@ ck("nfl-logs" in _REACHABLE,
 ck("build_possession" in (_BRANCHES.get("nfl-logs") or ""),
    "   ...by name, in that branch",
    "⛔ a builder nothing calls is a builder that rots")
-_few = [r for r in _NS["rows"] if (r.get("posteam") or "") in ("BUF", "NO")]
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ~~`[r for r in _NS["rows"] if posteam in ("BUF", "NO")]`~~ STRUCK
+#      2026-09-19. THIS DRIVE WAS VACUOUS AND THE SWEEP SAID SO.
+# ══════════════════════════════════════════════════════════════════════
+# Filtering by POSSESSION TEAM keeps only half of every game, so the
+# regulation clock no longer tiles and `build_possession` refuses at the
+# TILING check — several branches before the coverage floor this drive
+# exists to test. `vacuity.py` has reported it since 2026-09-16:
+#
+#   test_accumulators.py still PASSES under the mutation it declares
+#   (nfl.py: `if len(teams) < TOP_MIN_TEAMS:` -> `if False:`)
+#
+# ⛔ IT IS STRENGTHENED, NOT DELETED — `vacuity.py` says Sam decides,
+#    and the only edit that is automatically right is a harder one.
+# ✅ WHOLE GAMES, FEW TEAMS. Three complete games give six teams: the
+#    clock tiles, every earlier refusal passes, and the run reaches the
+#    coverage floor that is actually under test. Measured: 6 teams
+#    against TOP_MIN_TEAMS=24.
+_by_game = {}
+for _r in _NS["rows"]:
+    _by_game.setdefault(_r.get("game_id"), []).append(_r)
+_teams_of = {_g: {_r.get("posteam") for _r in _rs if _r.get("posteam")}
+             for _g, _rs in _by_game.items()}
+_chosen, _union = [], set()
+for _g, _ts in sorted(_teams_of.items()):
+    if len(_union | _ts) <= 8:
+        _chosen.append(_g)
+        _union |= _ts
+    if len(_union) >= 6 and len(_chosen) >= 3:
+        break
+_few = [_r for _g in _chosen for _r in _by_game[_g]]
+ck(0 < len(_union) < nfl.TOP_MIN_TEAMS and len(_chosen) >= 2,
+   "⚠️ the subset is WHOLE GAMES and under the coverage floor",
+   "⛔ rule 67: if it were half-games the refusal below would come from "
+   "the clock tiler and this drive would prove nothing about the floor. "
+   "%d game(s), %d team(s), floor %d"
+   % (len(_chosen), len(_union), nfl.TOP_MIN_TEAMS))
 _p2, _r2b = nfl.possession_from_rows(_few, 2025, lambda *a: None)
 ck(_p2 is None,
    "🔴🔴 ...AND IT REFUSES A PARTIAL TABLE RATHER THAN HALF-WRITING ONE",
    "⛔ possession present for some teams and absent for the rest is "
    "missingness clustered BY TEAM — the shape that killed CFB targets. "
    "Got %s" % str(_p2)[:120])
+ck("under the %d required" % nfl.TOP_MIN_TEAMS in (_r2b.get("error") or ""),
+   "🔴 ...and it refuses for the COVERAGE reason, not another one",
+   "⛔ THIS IS THE LINE THAT MAKES THE CHECK BITE. A refusal from the "
+   "clock tiler would satisfy `_p2 is None` while the floor itself "
+   "could be deleted. error=%r" % (_r2b.get("error"),))
 ck("writing NOTHING" in (_r2b.get("error") or ""),
    "   ...saying so in the probe it writes either way",
    str(_r2b.get("error"))[:160])
