@@ -26,8 +26,16 @@ covered by the same line.
 
 # @vacuity 🔴 a verifier nothing invokes is caught
 #   file: .github/workflows/collect.yml
-#   find:               python verify_nfl.py --current \\
-#   with:               true verify_nfl.py --current \\
+#   find: python verify_nfl.py --current
+#   with: true verify_nfl.py --current
+# ⚠️ ~~`python verify_nfl.py --current \\`~~ — the trailing backslash
+#    was written DOUBLED, because this declaration lives in a Python
+#    docstring and the habit is to escape it. ⛔ `vacuity.py` reads the
+#    declaration out of the FILE TEXT with a regex, not out of the
+#    parsed string, so it searched `collect.yml` for two backslashes
+#    and found ZERO — a mutation that changes nothing, rule 244.
+#    ✅ The continuation is simply not part of the `find` any more, so
+#    there is no backslash left to get wrong.
 """
 import glob
 import io
