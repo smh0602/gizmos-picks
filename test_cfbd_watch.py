@@ -382,8 +382,14 @@ ck("🔴 the harness CAN observe a create — proven with no issue open first",
 _with_open = _drive("bad", "42")
 # @vacuity the OVER path must EDIT an open issue, never open a second one
 #   file: .github/workflows/cfbd.yml
-#   find: gh issue edit "$NUM" --body-file /tmp/cfbd.md
-#   with: gh issue create --title "$TITLE" --body-file /tmp/cfbd.md
+#   find: gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/cfbd.md
+#   with: gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cfbd.md
+# ⚠️ ~~`find: gh issue edit "$NUM" --body-file /tmp/cfbd.md`~~ REPOINTED
+#    2026-09-19, in the same commit that put `--add-label gizmo-watch` on
+#    that line. ⛔ A `find` that matches ZERO times mutates nothing, so
+#    the file "passes" having been asked nothing — rule 244, and the
+#    exact shape this harness exists to catch. `vacuity.py` calls it
+#    MALFORMED rather than clean, which is what caught this one.
 # ⚠️ THIS EXACT MUTATION LEFT THE WHOLE SUITE GREEN on 2026-09-15 — a new
 #    quota issue every day, rule 238, on the one channel that would warn
 #    about a quota that has already run out once.
