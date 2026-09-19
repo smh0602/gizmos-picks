@@ -246,18 +246,48 @@ print("   HARDCODED `picks/`, but `collect.py` passes PICKS, which for")
 print("   football is `picks/ncaaf` — A DIRECTORY THAT DOES NOT EXIST.")
 print("   A hand-run survey passing `picks` read FINE; production would")
 print("   have reported the card MISSING FOREVER.")
+# ⚠️ ~~"every `card-fb` row resolves to ONE path"~~ — REPLACED
+#    2026-09-19, AND THE REPLACEMENT IS STRICTLY HARDER.
+# 🔴 THE OLD FORM ASKED THE RIGHT QUESTION THE WRONG WAY. What §8 is
+#    for is *"the card probe does not move when the caller's `picks`
+#    argument does"*. It implemented that as *"the `card-fb` mode has
+#    exactly one path"*, which was the SAME STATEMENT only while that
+#    mode had exactly one row.
+# ⛔ It is not the same statement any more: `dossiers.json.gz` is built
+#    inside `card-fb` and rides that mode, the way `cfb-probe` and
+#    `nfl-logs` have ridden theirs with two files each all along. The
+#    old check read a second row as the caller-dependence bug.
+# ✅ SO THE QUESTION IS NOW ASKED DIRECTLY, AND OF EVERY ROW rather
+#    than of one mode: **no row's path may change when `picks` does**,
+#    and the card row is still pinned to the exact file `card_fb.py`
+#    writes. That covers the original bug, covers it for modes the old
+#    form never looked at, and would still fail on the `picks/ncaaf`
+#    regression that put it here.
 for lg in ("nfl", "ncaaf"):
-    got = set()
+    seen = {}
     for arg in ("picks", f"picks/{lg}", "picks/"):
         for m, (_k, p), _t, _pd, _w in F.contract(data=f"data/{lg}", picks=arg):
-            if m == "card-fb":
-                got.add(p)
-    if not got:
-        print(f"  note {lg}: no card row right now (no board yet)")
+            seen.setdefault((m, p), set()).add(arg)
+    if not seen:
+        print(f"  note {lg}: no contract rows right now")
         continue
-    eq(len(got), 1, f"   {lg}: one path whatever the caller passes")
-    eq(got.pop(), f"picks/fb-{lg}-latest.json", f"   {lg}: and it is the "
-       f"path card_fb.py writes")
+    args = {"picks", f"picks/{lg}", "picks/"}
+    # ⛔ A ROW PRESENT FOR ONE CALLER AND ABSENT FOR ANOTHER IS THE BUG.
+    moved = sorted(k for k, v in seen.items() if v != args)
+    eq(moved, [], f"   🔴 {lg}: NO row moves when the caller's `picks` "
+                  f"does — rows present for only some callers: {moved}")
+    cards = sorted(p for (m, p) in seen if m == "card-fb"
+                   and p.startswith("picks/"))
+    eq(cards, [f"picks/fb-{lg}-latest.json"],
+       f"   {lg}: and the card row is the path card_fb.py writes")
+    # ⚠️ AND THE MODE MAY CARRY MORE THAN ONE FILE, which is what the
+    #    old form forbade by accident. Stated so a future reader does
+    #    not "restore" the single-path rule.
+    extra = sorted(p for (m, p) in seen if m == "card-fb"
+                   and not p.startswith("picks/"))
+    ck(all(p.endswith("dossiers.json.gz") for p in extra),
+       f"   ⚠️ {lg}: `card-fb`'s other files are the ones it builds",
+       f"unexpected non-picks files under card-fb: {extra}")
 
 print("\n9. 🔴 A PULL THAT CORRECTLY BUYS NOTHING IS NOT A LATE PULL")
 print("   With a 14h window a Friday buys no Saturday college games.")
