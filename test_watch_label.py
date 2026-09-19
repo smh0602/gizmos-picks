@@ -40,8 +40,8 @@ added — and a new watcher is precisely the one most likely to forget.
 #
 # @vacuity ⚠️ the queue is oldest-first, so nothing starves
 #   file: .github/workflows/self-repair.yml
-#   find:                     --jq 'sort_by(.createdAt)' 2>/dev/null || echo "[]")
-#   with:                     --jq 'reverse' 2>/dev/null || echo "[]")
+#   find:                     --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
+#   with:                     --jq 'reverse' 2>/tmp/ghqueue.err)
 """
 import glob
 import io

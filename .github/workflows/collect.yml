@@ -1191,14 +1191,41 @@ jobs:
       # 🔴 THE DEFERRED FAILURE. Everything is committed and every
       # verifier has spoken; only now does a failure turn the job red.
       # ⛔ Keep this LAST.
+      # ══════════════════════════════════════════════════════════════
+      # 🔴🔴 BOTH GATES REPORT. THE FIRST ONE USED TO EAT THE SECOND.
+      # ══════════════════════════════════════════════════════════════
+      # `[measured 2026-09-19]` a step that `exit 1`s makes GitHub SKIP
+      # every later step that does not say otherwise. So from the moment
+      # the suite went red — 2026-09-17T23:27, and it has not been green
+      # since — the converge gate below has been **skipped on every
+      # run**, and a collector failure could not reach the Actions page
+      # at all. Confirmed on job 105631080959, where both gates read
+      # `skipped`.
+      # ⛔ WHAT WAS HIDING IN THERE: nflverse answered
+      #    `403 rate limit exceeded` on every NFL pass for 47 hours. The
+      #    run was already red for the tests, so nothing said so.
+      # ✅ `!cancelled()` makes each gate run on its own merits. A run
+      #    can be red for two reasons and must name both.
+      # ⚠️ NOT `always()`: on a CANCELLED run — which is the DESIGNED
+      #    outcome for every MLB-group heartbeat, 17 of them in 29 hours
+      #    — neither gate should annotate anything.
       - name: Fail if the tests failed
-        if: steps.tests.outputs.rc != '0' && steps.tests.outputs.rc != ''
+        if: ${{ !cancelled() && steps.tests.outputs.rc != '0' && steps.tests.outputs.rc != '' }}
         run: |
           echo "::error::the test suite failed — see the Tests step"
           exit 1
 
       - name: Fail if any pass failed
-        if: steps.collect.outputs.rc != '0'
+        if: ${{ !cancelled() && steps.collect.outputs.rc != '0' }}
         run: |
-          echo "::error::at least one converge pass failed -- see the log"
+          # ⛔ AND IT SAYS WHICH OF THE TWO IT IS. An empty rc means the
+          # converge step never reported — it did not run to completion,
+          # which is not the same as a pass failing, and the old single
+          # message claimed the wrong one every time the suite failed
+          # first on a push.
+          if [ -z "${{ steps.collect.outputs.rc }}" ]; then
+            echo "::error::the converge step never reported a result — it did not run to completion"
+          else
+            echo "::error::at least one converge pass failed -- see the log"
+          fi
           exit 1

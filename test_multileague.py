@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import tempfile
 
+import wfparse as _wf          # the one workflow hand parser — rule 117
 from tcheck import ck, note   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -41,29 +42,17 @@ def converge_script(text=None):
     ⛔ Parsed from the workflow, never pasted in here — a copy of the
     script under test is not the script under test.
     ⚠️ BY HAND, NOT WITH PyYAML. The CI runner installs a bare Python and
-    NOTHING in this repo has ever needed a third-party package. A test
-    that cannot import is a test that fails the whole suite — and on a
-    push the suite BLOCKS. `[ledger rule 67: a test that never runs is
-    worse than no test; this is its louder cousin.]`
-    ✅ The extraction is cross-checked against PyYAML below wherever
-    PyYAML happens to be installed."""
-    lines = (text or open(WF, encoding="utf-8").read()).splitlines()
-    for i, ln in enumerate(lines):
-        if ln.strip() != "id: collect":
-            continue
-        for j in range(i, len(lines)):
-            m = re.match(r"^(\s+)run: \|\s*$", lines[j])
-            if not m:
-                continue
-            pad = len(m.group(1)) + 2
-            out = []
-            for k in range(j + 1, len(lines)):
-                cur = lines[k]
-                if cur.strip() and not cur.startswith(" " * pad):
-                    break
-                out.append(cur[pad:] if len(cur) >= pad else "")
-            return "\n".join(out).rstrip() + "\n"
-    return None
+    a test that cannot import BLOCKS a push. `[measured 2026-09-19: the
+    third copy of this rule was the one that forgot it, and
+    `test_watch_label.py` was red on every CI run for a day.]`
+    🔴 ONE COPY, NOT THREE. This loop used to live here AND in
+    `test_season_default.py`, byte for byte, with a different `id:`
+    hardcoded in each — rule 117, a helper duplicated breaks in the file
+    you did not edit. Both now call `wfparse.step_run`, which
+    `test_wfparse.py` drives on known answers and cross-checks against
+    PyYAML on all ten real workflows.
+    """
+    return _wf.step_run(text if text is not None else WF, step_id="collect")
 
 
 SCRIPT = converge_script()
@@ -257,13 +246,24 @@ if MULTI:
        "rc=1" in r5.rc_out,
        "the step reports %r, and `Fail if any pass failed` turns that into a "
        "red job" % r5.rc_out.strip())
-    # ✅ AND THE STEP THAT ACTS ON IT REALLY EXISTS — a verdict nothing reads
-    #    is not a verdict.
-    _wf_text = open(WF, encoding="utf-8").read()
-    _after = _wf_text.split("steps.collect.outputs.rc")[1:]
+    # ✅ AND THE STEP THAT ACTS ON IT REALLY EXISTS — a verdict nothing
+    #    reads is not a verdict.
+    # 🔴 ~~`_wf_text.split("steps.collect.outputs.rc")[1][:400]`~~ STRUCK
+    #    2026-09-19. That asked whether `exit 1` appeared within 400
+    #    CHARACTERS of the reference — a proximity window, not a
+    #    relationship. It would pass on an `exit 1` belonging to a
+    #    different step that happened to sit nearby, and it went red the
+    #    moment the gate gained a comment. ⛔ CLAUDE.md allows replacing
+    #    a check that asks the WRONG QUESTION, and requires the
+    #    replacement be harder: this one binds the `exit 1` to the body
+    #    of the very step whose CONDITION reads the verdict, which the
+    #    character window never did.
+    _gates = [st for st in _wf.steps(WF, "collect")
+              if "steps.collect.outputs.rc" in (st.cond or "")]
     ck("⛔ and a later step actually fails the job on it",
-       bool(_after) and "exit 1" in _after[0][:400],
-       "a verdict nothing reads is not a verdict")
+       bool(_gates) and all("exit 1" in (st.run or "") for st in _gates),
+       "a verdict nothing reads is not a verdict. gates=%s"
+       % [(st.name, "exit 1" in (st.run or "")) for st in _gates])
     ck("a clean two-league run reports rc=0", "rc=0" in r3.rc_out,
        r3.rc_out.strip())
     ck("...and both leagues were still graded",
