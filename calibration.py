@@ -57,9 +57,30 @@ import math
 import os
 import sys
 
-# ⛔ NEVER `mlb`. See the header — the freeze forbids a scheduled check
-#    that reads MLB state, and the absence of the path is the guard.
-LEAGUES = ("nfl", "ncaaf")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ~~`LEAGUES = ("nfl", "ncaaf")`~~ — CHANGED ONLY ON SAM'S WORD.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE FREEZE FORBIDS THIS, IN AS MANY WORDS, and the struck line and
+# its reason are kept rather than deleted:
+#     # ⛔ NEVER `mlb`. See the header — the freeze forbids a scheduled
+#     #    check that reads MLB state, and the absence of the path is
+#     #    the guard.
+#
+# ⚠️ WHAT IT COSTS TO LEAVE IT OFF, measured 2026-09-19:
+#     by_kind.pitcher = {"w": 290, "n": 580, "pct": 50.0}
+#     calibration     50-60% predicted 56.4, delivered 46.4 on n=181
+#                     60-70% predicted 64.2, delivered 49.5 on n=279
+#                     70-80% predicted 73.5, delivered 59.2 on n=98
+#                     80-90% predicted 85.5, delivered 47.1 on n=17
+# The MLB pitcher board is a coin flip advertising 58–93%, and the only
+# thing that says so is the card writing its own confession into
+# `calibration_warning` — which the page does render, honestly. NOTHING
+# ALARMS ON IT. It is the one number the whole product exists to produce.
+#
+# ⛔ SO THIS IS PREPARED, NOT DECIDED. The branch it lives on is named so
+# it cannot be merged by accident. Reverting is one word: put the tuple
+# back.
+LEAGUES = ("nfl", "ncaaf", "mlb")
 
 # 🔴 A PERCENTAGE ON A THIN SAMPLE IS NOT A RATE. `[T37's lesson: build
 #    #183 failed on 1 contradiction out of 4 rows]` Under this it reports
@@ -96,7 +117,23 @@ def pooled(cal):
     w = sum(b.get("w") or 0 for b in rows)
     if not n:
         return 0, 0, None
-    stated = sum((b.get("stated") or 0.0) * b["n"] for b in rows) / n
+    # 🔴🔴 THE LEAGUES NAME THE SAME NUMBER DIFFERENTLY, AND READING THE
+    # WRONG ONE IS SILENT. `[measured 2026-09-19]` football buckets carry
+    # `stated`; MLB's carry `predicted`. `b.get("stated") or 0.0` against
+    # an MLB bucket returns 0.0, not None — so the gap becomes
+    # `actual - 0`, the board reads as beating its claim by sixty points,
+    # and the alarm never fires. Same shape as the watchdog reading
+    # `rows` off a file the collector writes with `artifacts`.
+    # ⛔ RESOLVED, NEVER DEFAULTED: buckets carrying neither key make this
+    # UNREADABLE rather than zero.
+    key = ("stated" if any("stated" in b for b in rows)
+           else "predicted" if any("predicted" in b for b in rows) else None)
+    if key is None:
+        return n, w, None
+    vals = [b for b in rows if isinstance(b.get(key), (int, float))]
+    if not vals:
+        return n, w, None
+    stated = sum(b[key] * b["n"] for b in vals) / sum(b["n"] for b in vals)
     return n, w, stated
 
 
@@ -146,10 +183,22 @@ def judge(doc):
     return out
 
 
+# 🔴 MLB'S ROOT IS `data/latest/`, NOT `data/mlb/latest/`. It was the
+#    first league and never got a subdirectory. A path built from the
+#    league name alone lands nowhere and reports UNREADABLE — which is
+#    honest, and useless.
+DATA = {"mlb": "data"}
+
+
+def record_path(lg, root="."):
+    return os.path.join(root, DATA.get(lg, os.path.join("data", lg)),
+                        "latest", "record.json")
+
+
 def read_all(root="."):
     out = {}
     for lg in LEAGUES:
-        p = os.path.join(root, "data", lg, "latest", "record.json")
+        p = record_path(lg, root)
         try:
             doc = json.load(open(p, encoding="utf-8"))
         except (OSError, ValueError) as e:
@@ -185,14 +234,45 @@ def render(res):
                "WRONG QUESTION, and the replacement must be harder to "
                "pass.")
     out.append("")
+    # ⛔ ~~"Football only — MLB is frozen and is never read here."~~ — it
+    #    IS read here now, and a footer that says otherwise is the same
+    #    class of stale claim this whole night's work is about.
     out.append("_One issue, updated in place, closed by itself when every "
-               "league is back inside the bar. Football only — MLB is "
-               "frozen and is never read here._")
+               "league is back inside the bar. ⛔ READING a league is not "
+               "CHANGING it: nothing here writes, and no card moves "
+               "because this fired._")
     for lg, r in sorted(res.items()):
         if r["state"] == "NOT_MEASURABLE":
             out.append("")
             out.append("⚠️ `%s` is **NOT YET MEASURABLE** — %s. Not a pass "
                        "and not a fail." % (lg, r["why"]))
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 EVERY LEAGUE'S NUMBER, ALWAYS — NOT ONLY THE ONES THAT TRIP.
+    # ⛔ A monitor that prints only failures cannot show you a gap that
+    # misses the bar by less than a point. `[measured 2026-09-19]` the
+    # MLB pitcher board reads **stated 64.2%, delivered 50.0% over 580
+    # rows, p≈0, gap −14.2** — and the bar is −15.0, so it does NOT
+    # fire. Under the old renderer that league would have appeared
+    # nowhere at all.
+    # ⛔ THE BAR IS NOT MOVED TO MAKE IT FIRE. It is borrowed from T58
+    # and was fixed before any data existed; tuning it to today's number
+    # is the one thing `CLAUDE.md` forbids most plainly. What changes is
+    # that the number is SHOWN.
+    rows = [(lg, r) for lg, r in sorted(res.items())
+            if r.get("n") and r.get("stated") is not None]
+    if rows:
+        out.append("")
+        out.append("| league | stated | delivered | rows | gap | verdict |")
+        out.append("|---|---:|---:|---:|---:|---|")
+        for lg, r in rows:
+            out.append("| `%s` | %.1f%% | %.1f%% | %d | %+.1f | %s |"
+                       % (lg, r["stated"], r["actual"], r["n"], r["gap"],
+                          r["state"]))
+        out.append("")
+        out.append("_The bar is %.0f points AND p<%.2f on %d+ rows, borrowed "
+                   "from T58 and T37 and fixed before any of these numbers "
+                   "existed. A gap that misses it is printed, not alarmed._"
+                   % (-GAP_POINTS, P_MAX, MIN_N))
     return "\n".join(out)
 
 

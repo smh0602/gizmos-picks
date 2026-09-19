@@ -2577,11 +2577,24 @@ def main(dry=False):
             "break-even, calibrated-band plays first, then by edge. "
             f"{len(plays)} pitcher and {len(hitters)} hitter rows were priced; "
             f"{len(board)} are shown."),
+        # ⛔ ~~"Hitter rows carry NO confidence rating and NO band."~~
+        # STRUCK — the card has shipped a hitter CONF number since
+        # 2026-08-24, and `CLAUDE.md` records why: two different headline
+        # numbers made the board unreadable, so both kinds of row show one
+        # number and the board sorts strictly by it. What rule 55 requires
+        # is that the number be LABELLED, not hidden.
+        # ⚠️ The note went on saying the opposite for 26 days, in the
+        # permanent record, beside 25 rows that each carry `confidence`
+        # and `confidence_basis: RECORD`. Rule 166: a sentence written
+        # down is a claim about the world and it goes stale.
         "hitter_note": (
-            "Hitter rows carry NO confidence rating and NO band. There is no hitter "
-            "model in this project, and ledger rule 55 forbids a MARKET number from "
-            "carrying a Gizmo's confidence %. Their number is the player's own season "
-            "rate at that exact line with a Jeffreys prior — DESCRIPTIVE, not a "
+            "Hitter rows carry a confidence NUMBER but never MODEL "
+            "provenance. There is no hitter model in this project, and "
+            "ledger rule 55 forbids a MARKET number from carrying a "
+            "Gizmo's confidence %. Every hitter row is labelled "
+            "confidence_basis RECORD and carries no blend and no "
+            "calibration band. The number is the player's own season rate "
+            "at that exact line with a Jeffreys prior — DESCRIPTIVE, not a "
             "projection. A real hitter model is the next build."),
         "coverage": (f"{len(board)} plays across {len({x['game_id'] for x in board})} games, "
                      f"ranked by blend. {len(pairs)} pairs clear the 1.8x floor. "
@@ -2646,15 +2659,25 @@ def main(dry=False):
         "projections": {**_board_px,
                         **projection_index(plays + hitters, priced=True)},
         "projection_gaps": _px_gaps,
+        # ⛔ ~~"inverted through the same distribution that row assumes"~~
+        # STRUCK — inversion was RETIRED 2026-08-27, ledger rule 66. It
+        # made the projection a property of the ROW, so every rung of one
+        # ladder implied a different number and 51 of 608 player-market
+        # combos disagreed with themselves, worst 2.1 K. Sam: *"you should
+        # have the same numbers across the entire website."*
+        # ⚠️ The rows have been right ever since and this sentence has
+        # described the retired method for 23 days. The ROW-level note is
+        # correct and is what the page renders; this one is the permanent
+        # record's description of its own column.
         "projection_note": (
-            "Keyed pid|market|side|line. On a PITCHER row it is the central "
-            "outcome that would produce the confidence shown beside it, "
-            "inverted through the same distribution that row assumes, so the "
-            "two can never disagree. On a HITTER row for hits, home runs or "
-            "RBIs it is the same inversion of his own record. On TOTAL BASES "
-            "and HITS+RUNS+RBIs it is his own per-game MEAN -- T34/T35 fitted "
-            "three distributions and none reproduced that mean to the 0.25 "
-            "bar, so the mean itself is used, which reproduces it exactly."),
+            "Keyed pid|market|side|line. ONE projection per player per "
+            "stat, the same number everywhere on the site. On a PITCHER "
+            "row it is the model's own central estimate — E[K] for "
+            "strikeouts, mu for outs. On a HITTER row it is his own "
+            "per-game mean over the games he started. Both are "
+            "LINE-INDEPENDENT by construction, which is what makes them "
+            "identical at every rung of a ladder, and apply_projections() "
+            "is the only writer of the field."),
         "schema_note": ("picks[] are the standard lines, ranked by blend, each carrying "
                         "its Hard Rock alt ladder in .ladder with every rung priced "
                         "through the same model. pairs[] may use any rung. Every price "
