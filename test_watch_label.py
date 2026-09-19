@@ -38,6 +38,11 @@ added — and a new watcher is precisely the one most likely to forget.
 #   find:           QUEUE=$(gh issue list --state open --label gizmo-watch \
 #   with:           QUEUE=$(echo "[]" && false || echo "[]" && true && gh issue list --state open --label nope \
 #
+# @vacuity 🔴🔴 an update-in-place that does not label is caught
+#   file: .github/workflows/vacuity.yml
+#   find:             gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/vacuity.md
+#   with:             gh issue edit "$NUM" --body-file /tmp/vacuity.md
+#
 # @vacuity ⚠️ the queue is oldest-first, so nothing starves
 #   file: .github/workflows/self-repair.yml
 #   find:                     --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
@@ -137,6 +142,76 @@ ck("⛔ every filing workflow ensures the label exists first",
    "label did not exist in this repo until this change. Ensuring it in "
    "the workflow means no manual one-off step can be forgotten or "
    "undone. Missing: %s" % (missing_ensure,))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("2b. 🔴🔴 AND SO MUST EVERY PATH THAT UPDATES ONE IN PLACE")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE CREATE PATH WAS NEVER THE ONE THAT MATTERED.
+# `[measured 2026-09-19]` every watcher here files ONE issue and then
+# updates it in place for ever — that is the design, and it is why the
+# queue deduplicates itself. PR #73 labelled `gh issue create` and left
+# `gh issue edit` alone, so **five of the six open watcher issues carried
+# no label at all**:
+#
+#     #80  the test suite is failing         gizmo-watch ✅
+#     #69  a guard is not guarding anything  —
+#     #44  a workflow is failing             —
+#     #42  T58 and T59 are accumulating      —
+#     #31  CFBD past the free tier           —
+#     #16  the board is not delivering       —
+#
+# ⛔ #69 IS THE ONE THAT HURTS. It reports the two vacuous guards — the
+#    exact thing PR #73 existed to turn into somebody's task — and triage
+#    reads the queue BY LABEL, so it could never see it.
+# ✅ THE EDIT PATH HEALS THE BACKLOG. `--add-label` is idempotent, so the
+#    next run of each watcher puts its own issue into the queue. Nothing
+#    has to be relabelled by hand, and nothing has to be closed and
+#    refiled.
+edits, unlabelled_edits = [], []
+for f in WF:
+    for i, l in enumerate(lines(f), 1):
+        s = l.strip()
+        if s.startswith("#") or "gh issue edit " not in s:
+            continue
+        edits.append((os.path.basename(f), i, s))
+        if "--add-label %s" % LABEL not in s:
+            unlabelled_edits.append((os.path.basename(f), i, s[:72]))
+
+note("issue UPDATE sites found: %d across %s"
+     % (len(edits), sorted({f for f, _i, _s in edits})))
+ck("🔴🔴 every `gh issue edit` puts the issue INTO the queue",
+   not unlabelled_edits,
+   "⛔ an issue created before the label existed is updated for ever and "
+   "never relabelled, so it is invisible to triage for ever. This is not "
+   "hypothetical: five of six were in exactly that state. "
+   "Offenders: %s" % (unlabelled_edits,))
+ck("⚠️ ...and there are update sites to judge",
+   len(edits) >= 8 and len({f for f, _i, _s in edits}) >= 5,
+   "⛔ rule 67, and rule 246: a guard covering one file covers one file. "
+   "found %d site(s) across %d file(s)"
+   % (len(edits), len({f for f, _i, _s in edits})))
+
+# ⛔ AND THE LABEL MUST EXIST BEFORE THE EDIT RUNS, NOT ONLY BEFORE A
+#    CREATE. `gh issue edit --add-label X` FAILS when X does not exist,
+#    exactly as `create --label X` does. The ensure used to sit inside
+#    the `else` branch, which is the one branch that does not run when
+#    an issue already exists.
+late_ensure = []
+for f in WF:
+    ls = lines(f)
+    ensure_at = [i for i, l in enumerate(ls)
+                 if "gh label create %s" % LABEL in l and not l.strip().startswith("#")]
+    for i, l in enumerate(ls):
+        if "gh issue edit " not in l or l.strip().startswith("#"):
+            continue
+        if not any(e < i for e in ensure_at):
+            late_ensure.append((os.path.basename(f), i + 1))
+ck("⛔ ...and the label is ensured BEFORE every update, not inside the else",
+   not late_ensure,
+   "🔴 `--add-label` on a label that does not exist is an error, and an "
+   "errored edit is a watcher that stopped reporting. Sites with no "
+   "ensure above them: %s" % (late_ensure,))
 
 
 # ══════════════════════════════════════════════════════════════════════

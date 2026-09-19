@@ -93,10 +93,24 @@ jobs:
             echo "inside the bar"
             exit 0
           fi
+          # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+          # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+          # left the `gh issue edit` path alone. Every watcher files ONCE and then
+          # updates in place for ever, so **five of the six open watcher issues
+          # carried no label at all** — #69, #44, #42, #31, #16 — and
+          # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+          # vacuous guards, which is the exact thing PR #73 existed to make
+          # actionable, was one of the five.
+          # ✅ `--add-label` on the edit path HEALS them: the next run of each
+          # watcher puts its own issue into the queue. Nothing has to be relabelled
+          # by hand.
+          # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+          # when X does not exist — the create path needed that and the edit path
+          # needs it too.
+          gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
           if [ -n "$NUM" ]; then
-            gh issue edit "$NUM" --body-file /tmp/cal.md
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/cal.md
           else
-            gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
             gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cal.md --assignee smh0602 \
               || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cal.md \
               || gh issue create --title "$TITLE" --body-file /tmp/cal.md
