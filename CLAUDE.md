@@ -445,6 +445,12 @@ SHARED HELPERS — ⛔ ONE COPY EACH. Rule 117: a helper duplicated breaks
 in the file you did not edit.
 tcheck.py         the one check harness every test file uses
 ranking.py        the one tie-aware ranker, both leagues
+wfparse.py        the one HAND parser for a workflow file -- jobs,
+                  steps, `run:` bodies and `permissions:` blocks.
+                  ⛔ Never `import yaml`: PyYAML is NOT on the CI
+                  runner (measured 2026-09-19) and a test that cannot
+                  import blocks a push. Cross-checked against PyYAML
+                  in test_wfparse.py wherever PyYAML happens to exist.
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
 runs_report.py    did any workflow run fail?

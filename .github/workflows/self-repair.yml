@@ -131,6 +131,16 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      # 🔴🔴 `issues: read` — WITHOUT IT THE WHOLE GATE STANDS DOWN, SILENTLY.
+      # `[measured 2026-09-19 on the DEPLOYED run 35424213172]` this job
+      # printed `open watcher issues: 0` at 05:32:22Z while issue #80 was
+      # open and carried the label. The same query asked with a token that
+      # can read issues returns it. ⛔ `gh issue list` needs this scope and
+      # the step below swallowed the refusal, so the widening that PR #73
+      # shipped fired ZERO times between merging and this line being added.
+      # ⚠️ READ, not write. Triage only looks; the `fix` job is the one
+      # that writes, and it already has its own scopes.
+      issues: read
     outputs:
       go: ${{ steps.decide.outputs.go }}
       drill: ${{ steps.decide.outputs.drill }}
@@ -202,9 +212,26 @@ jobs:
           # without the label — a queue that empties silently is worse
           # than no queue.
           # ⚠️ OLDEST FIRST, so nothing starves.
+          # 🔴🔴 `2>/dev/null || echo "[]"` WAS THE BUG, NOT THE SCOPE.
+          # Both halves destroyed the evidence: the redirect ate the 403 and
+          # the fallback turned "I was refused" into "there is nothing to
+          # do". A queue you could not read is NOT an empty queue, and a
+          # gate that cannot tell those apart is rule 238 aimed at the one
+          # channel that has to be trustworthy.
+          # ✅ IT NOW FAILS LOUD. `CLAUDE.md`: the collector must fail loud;
+          # sys.exit(1) on error, because a green tick proved nothing.
+          set +e
           QUEUE=$(gh issue list --state open --label gizmo-watch \
                     --limit 50 --json number,title,body,labels,createdAt \
-                    --jq 'sort_by(.createdAt)' 2>/dev/null || echo "[]")
+                    --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
+          GHRC=$?
+          set -e
+          if [ "$GHRC" != "0" ]; then
+            echo "::error::could not read the watcher issue queue (exit $GHRC from gh) — this is NOT an empty queue"
+            sed -e 's/^/    /' /tmp/ghqueue.err | head -20
+            echo "go=no" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
           QN=$(python -c "import json,sys;print(len(json.loads(sys.stdin.read() or '[]')))" <<< "$QUEUE")
           echo "open watcher issues: $QN"
 
@@ -214,8 +241,20 @@ jobs:
           fi
           # ⛔ ONE PR PER PROBLEM. An open PR from this workflow means the
           # fix is already written and waiting on Sam, not missing.
+          # ⛔ SAME TREATMENT. A PR cap that reads 0 because the call was
+          # refused is a cap that opens a second PR, which is the failure
+          # this cap exists to prevent — in the other direction.
+          set +e
           OPEN=$(gh pr list --state open --limit 50 --json headRefName \
-                   --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' 2>/dev/null || echo 0)
+                   --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' 2>/tmp/ghpr.err)
+          PRRC=$?
+          set -e
+          if [ "$PRRC" != "0" ]; then
+            echo "::error::could not read the open pull requests (exit $PRRC from gh) — refusing to assume there are none"
+            sed -e 's/^/    /' /tmp/ghpr.err | head -20
+            echo "go=no" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
           if [ "$OPEN" != "0" ]; then
             echo "a self-repair PR is already open — not opening another"
             echo "go=no" >> "$GITHUB_OUTPUT"; exit 0

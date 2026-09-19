@@ -27,6 +27,7 @@ import re
 import subprocess
 import tempfile
 
+import wfparse as _wf
 from tcheck import ck, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -34,24 +35,14 @@ WF = os.path.join(ROOT, ".github/workflows/collect.yml")
 
 
 def step_script(step_id):
-    """The `run:` block of the step with this id."""
-    lines = open(WF, encoding="utf-8").read().splitlines()
-    for i, ln in enumerate(lines):
-        if ln.strip() != f"id: {step_id}":
-            continue
-        for j in range(i, len(lines)):
-            m = re.match(r"^(\s+)run: \|\s*$", lines[j])
-            if not m:
-                continue
-            pad = len(m.group(1)) + 2
-            out = []
-            for k in range(j + 1, len(lines)):
-                cur = lines[k]
-                if cur.strip() and not cur.startswith(" " * pad):
-                    break
-                out.append(cur[pad:] if len(cur) >= pad else "")
-            return "\n".join(out).rstrip() + "\n"
-    return None
+    """The `run:` block of the step with this id.
+
+    🔴 ONE COPY, NOT THREE — rule 117. The loop that used to sit here was
+    identical to `test_multileague.py`'s with a different `id:` in it.
+    Both now call `wfparse.step_run`, which is driven on known answers in
+    `test_wfparse.py` and cross-checked against PyYAML there.
+    """
+    return _wf.step_run(WF, step_id=step_id)
 
 
 SCRIPT = step_script("mode")
