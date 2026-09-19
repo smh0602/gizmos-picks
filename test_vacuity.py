@@ -44,8 +44,12 @@ and only the second half catches that.
 # suite run. That is exactly how the corruption was caught, twice.
 # ══════════════════════════════════════════════════════════════════════
 
+import atexit
+import glob
 import os
+import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -230,25 +234,121 @@ section("2. ⛔ IT REPORTS. IT NEVER EDITS.")
 #    SHALLOW clone (`actions/checkout`'s default, which `collect.yml`
 #    uses), driven against a real `--depth 1` clone with
 #    `git status --porcelain` returning rc=0 inside the worktree.
-_swept_root, _wt = ROOT, None
-try:
-    # ⚠️ SELF-HEALING, BECAUSE THE KILL IS THE NORMAL CASE HERE. This
-    #    sweep is killed by the 600s budget on EVERY collect run, so the
-    #    removal below never runs and a worktree is orphaned each time.
-    #    On CI each job is a fresh checkout so nothing accumulates, but a
-    #    developer running this repeatedly would collect one per run.
-    # ⛔ `prune` only drops registrations whose directory is already gone,
-    #    so it can never remove a live one.
+_swept_root, _wt = None, None
+
+
+def _drop_wt():
+    """Release the throwaway worktree. ⛔ ONE IMPLEMENTATION, three callers.
+
+    ⚠️ Best-effort by design: a leftover temp worktree is housekeeping, not
+    a finding, and this must never be able to fail the run.
+    """
+    if not _wt:
+        return
+    subprocess.run(["git", "worktree", "remove", "--force", _wt],
+                   cwd=ROOT, check=False, capture_output=True)
+    shutil.rmtree(_wt, ignore_errors=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE KILL IS THE NORMAL EXIT FOR THIS FILE, SO CLEANUP HANGS OFF
+#      THE KILL — NOT OFF THE END OF THE SCRIPT.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ `[measured 2026-09-18, on a real SIGTERM of the merged code]` The
+#    removal at the bottom of this file never ran, for exactly the reason
+#    this whole file exists: **SIGTERM does not run it**, the same way it
+#    does not run a `finally`. After the kill:
+#
+#        worktrees registered   2 (the main tree + one orphan)
+#        directory              still there, 59 MB
+#        after `git worktree prune`   still 2, still there
+#
+# 🔴 AND `prune` CANNOT COVER IT. It only drops registrations whose
+#    directory is ALREADY GONE, and this one is not — so the self-healing
+#    measure added for orphans does not reach the orphan the timeout
+#    actually produces. Every collect run leaked one.
+# ⚠️ THE CHAIN THAT CLOSES: orphans accumulate -> the disk fills ->
+#    `tempfile.mkdtemp()` raises -> the sweep is refused (below). Every
+#    link was observed in one evening. On CI each job is a fresh runner,
+#    so this accumulates only in a persistent environment.
+# ⛔ SIGKILL still cannot be caught, and that is fine: `timeout -k 15`
+#    sends TERM first and only KILLs 15s later. `prune` stays as the cover
+#    for the SIGKILL case and costs nothing.
+atexit.register(_drop_wt)
+
+
+def _on_term(_signum, _frame):
+    # ⛔ `atexit` DOES NOT RUN ON SIGTERM EITHER, so registering it is not
+    #    enough on its own. 143 is 128 + SIGTERM, what the shell reports
+    #    for an uncaught one — so the exit code is unchanged.
+    _drop_wt()
+    os._exit(143)
+
+
+signal.signal(signal.SIGTERM, _on_term)
+
+def _reap_orphans():
+    """Release sweep worktrees whose owning process is GONE.
+
+    ⛔ `git worktree prune` DOES NOT COVER THE SIGKILL CASE, and the
+    reason is the one this file already gives for SIGTERM: prune only
+    drops registrations whose DIRECTORY IS ALREADY GONE. A SIGKILL leaves
+    the directory, so prune walks straight past it.
+    🔴 `[measured 2026-09-19]` Driven directly — create a sweep worktree,
+    run `git worktree prune`, and the registration and the 59 MB are both
+    still there. So a SIGKILLed run leaks one FOR EVER, and this session's
+    own container restart produced exactly that.
+    ✅ The directory carries its owner's PID, so "is this an orphan" is a
+    question with an exact answer rather than a heuristic on age.
+    ⚠️ AND A LIVE SWEEP IS NEVER TOUCHED. `vacuity.py` says never run two
+    at once and CLAUDE.md repeats it, but a cleanup that could delete a
+    running sweep's tree would make that rule destructive rather than
+    merely discouraged.
+    """
     subprocess.run(["git", "worktree", "prune"], cwd=ROOT, check=False,
                    capture_output=True)
-    _wt = tempfile.mkdtemp(prefix="vacuity-sweep-")
+    for _d in glob.glob(os.path.join(tempfile.gettempdir(),
+                                     "vacuity-sweep-*")):
+        _m = re.search(r"vacuity-sweep-(\d+)-", os.path.basename(_d))
+        if not _m:
+            continue                      # not PID-tagged: leave it alone
+        try:
+            os.kill(int(_m.group(1)), 0)
+            continue                      # ⛔ still running — hands off
+        except ProcessLookupError:
+            pass                          # the owner is gone
+        except (PermissionError, OSError):
+            continue                      # alive but not ours — hands off
+        subprocess.run(["git", "worktree", "remove", "--force", _d],
+                       cwd=ROOT, check=False, capture_output=True)
+        shutil.rmtree(_d, ignore_errors=True)
+
+
+try:
+    # ⚠️ REAP FIRST, for anything an uncatchable SIGKILL left behind.
+    _reap_orphans()
+    # ⚠️ THE PID IS IN THE NAME so the reap above can tell an orphan from
+    #    a live sweep without guessing.
+    _wt = tempfile.mkdtemp(prefix="vacuity-sweep-%d-" % os.getpid())
     subprocess.run(["git", "worktree", "add", "--detach", _wt, "HEAD"],
                    cwd=ROOT, check=True, capture_output=True, text=True)
     _swept_root = _wt
 except Exception as _e:
-    # ⛔ DO NOT SILENTLY FALL BACK TO SWEEPING `ROOT`. That is the exact
-    #    hazard this block exists to remove, and a quiet fallback would
-    #    reinstate it while every check below still read green.
+    # ⛔ THE SWEEP IS REFUSED, NOT REDIRECTED. `_swept_root` stays None and
+    #    the block below runs NOTHING rather than falling back to `ROOT`.
+    # 🔴 `[measured 2026-09-19]` THIS PROSE USED TO BE FALSE. It said "DO
+    #    NOT SILENTLY FALL BACK TO SWEEPING ROOT" while the next three
+    #    lines read `V.tier2(_swept_root or ROOT)` — which is `ROOT` when
+    #    `_swept_root` is None. `tcheck.ck()` RECORDS a failure and
+    #    RETURNS; it does not abort. So a worktree failure produced a red
+    #    check AND swept the collector's own tree anyway. Driven by
+    #    forcing the exception and instrumenting the call: `tier2` received
+    #    the live tree. It was reported, not prevented, and the comment
+    #    claimed prevented.
+    # ⚠️ The trigger is not hypothetical: `tempfile.mkdtemp()` raises on a
+    #    full disk, and the disk hit 100% mid-sweep while #74 was being
+    #    built. The one condition under which this guard matters most was
+    #    the condition under which it did not hold.
     note("⛔ could not create the sweep worktree: %s: %s"
          % (type(_e).__name__, _e))
     _swept_root = None
@@ -256,13 +356,26 @@ except Exception as _e:
 ck("🔴🔴 a throwaway worktree was created for the real sweep",
    bool(_swept_root),
    "⛔ without it the sweep would rewrite the collector's own source, "
-   "and a SIGTERM would leave it rewritten. This does NOT fall back to "
-   "sweeping ROOT — it fails instead, because a silent fallback is the "
-   "hazard wearing a green tick.")
+   "and a SIGTERM would leave it rewritten. ⚠️ WHEN THIS FAILS THE SWEEP "
+   "IS REFUSED — not redirected at ROOT — so the checks below go red on "
+   "an UNREADABLE result rather than green on a measurement taken from "
+   "the live tree.")
 
-_before = V._porcelain(_swept_root or ROOT)
-_real2 = V.tier2(_swept_root or ROOT)
-_ok, _dirt = V.leaked(_before, _swept_root or ROOT)
+if _swept_root:
+    _before = V._porcelain(_swept_root)
+    _real2 = V.tier2(_swept_root)
+    _ok, _dirt = V.leaked(_before, _swept_root)
+else:
+    # ⛔ NO WORKTREE, NO SWEEP. Sweeping `ROOT` is the hazard this block
+    #    exists to remove; running it anyway and reporting it afterwards
+    #    is the hazard plus a receipt.
+    # ✅ `leaked()` already fails closed on a tree git cannot be asked
+    #    about — `V.leaked(None, ROOT)[0] is False`, asserted a few lines
+    #    down. This is the same answer for a tree that was never created.
+    # ⚠️ AND THE CHECKS BELOW GOING RED IS CORRECT, NOT COLLATERAL:
+    #    nothing was measured, so nothing may be reported as a pass.
+    _before, _real2 = None, []
+    _ok, _dirt = False, ["the sweep was REFUSED: no worktree"]
 ck("🔴🔴 the harness leaves NOTHING behind after mutating real files",
    _ok,
    "⛔ it rewrites cfbd_budget.py and cfbd.yml in place. A leaked "
@@ -308,13 +421,14 @@ ck("⚠️ ...and it really was a git tree, so leaked() could ask git at all",
 # ⚠️ HOUSEKEEPING, NOT A FINDING. A leftover temp worktree costs a few
 #    bytes of metadata and is not a defect in anything this file tests,
 #    so removal is best-effort and never fails the run.
-if _wt:
-    try:
-        subprocess.run(["git", "worktree", "remove", "--force", _wt],
-                       cwd=ROOT, check=False, capture_output=True)
-        shutil.rmtree(_wt, ignore_errors=True)
-    except Exception:
-        pass
+# ⚠️ THE NORMAL-COMPLETION PATH. `atexit` and the SIGTERM handler cover
+#    the two abnormal ones; this releases the worktree as soon as the
+#    sweep is done rather than at interpreter shutdown. ⛔ One
+#    implementation, three callers (rule 117).
+try:
+    _drop_wt()
+except Exception:
+    pass
 
 section("3. 🔴 THE MAPPING IS NAME-ONLY, AND THAT WAS MEASURED")
 # ⛔ A looser rule ("the one non-test module this file imports") produced

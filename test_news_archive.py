@@ -46,6 +46,7 @@ point of shipping the archive first.
 #   find:     day_dir = os.path.join(data, when.strftime("%Y-%m-%d"), "news")
 #   with:     day_dir = os.path.join(data, now().strftime("%Y-%m-%d"), "news")
 """
+import ast
 import datetime
 import glob
 import gzip
@@ -325,29 +326,136 @@ ck("⚠️ ...and latest ABSENT with an empty archive is NOT this failure",
    "⛔ that is a dead feed, which `news` already reports softly — "
    "calling it this failure too would be crying wolf twice")
 
-# ⚠️ AND THE SAME QUESTION, AGAINST THE LIVE TREE.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 AND AGAINST THE LIVE TREE — SELF-ARMING, BECAUSE A DEFERRED CHECK
+#      WITH NO WAY BACK IS A PERMANENT NO-OP.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ `[found 2026-09-19]` THIS CHECK USED TO READ `isinstance(_n, int)`,
+#    where `_n` was `len(glob(...))`. `len()` returns an int by the
+#    language definition, so it COULD NOT FAIL. It was a `note()` wearing
+#    a `ck()`.
+# ✅ DEFERRING IT WAS RIGHT AND IS NOT BEING UNDONE. The archive had
+#    never run, so asserting on day one would have reddened a correct
+#    repo — the trap #51 fixed, and CLAUDE.md is explicit that a guard
+#    firing on correct code is the other failure, not a safe one.
+# ⛔ WHAT WAS MISSING WAS A WAY BACK. Nothing would ever have un-deferred
+#    it, so from the first archived pull onward the real failure — the
+#    one this whole task exists for — would have been defined,
+#    unit-tested against a hand-written helper, and asserted NOWHERE.
+# ➡️ THE CLASS: a check deferred on correct grounds, with nothing to
+#    un-defer it, is a permanent no-op that reads like coverage.
+# ✅ SO THE PRECONDITION IS READ OFF THE TREE. "Has this league ever
+#    archived anything" is a question the tree answers, so the check arms
+#    itself on the first archived pull and nobody has to remember to come
+#    back for it.
+# ⚠️ AND THE TWO COUNTS ARE DIFFERENT GLOBS. The old one globbed `*` for
+#    the date — an ALL-TIME count — and then stood in for a question
+#    about TODAY. Those are not the same number and conflating them was
+#    its own small bug.
+def _divergence(root, lg, utc_day, latest_stale):
+    """-> (ever, today, fires). ⛔ ONE implementation, live and driven."""
+    ever = len(glob.glob(os.path.join(root, "data", lg, "*", "news",
+                                      "*.json.gz")))
+    today = len(glob.glob(os.path.join(root, "data", lg, utc_day, "news",
+                                       "*.json.gz")))
+    # ⛔ DORMANT UNTIL THE LEAGUE HAS EVER ARCHIVED. `ever == 0` is "this
+    #    has not started yet", which is not a divergence.
+    return ever, today, bool(ever > 0 and diverged(not latest_stale, today))
+
+
+_UTC_TODAY = datetime.datetime.now(UTC).strftime("%Y-%m-%d")
+
 for _lg in ("nfl", "ncaaf"):
     _rows = {r["mode"]: r for r in F.survey("data/%s" % _lg, "picks")}
     _lat, _arc = _rows.get("news", {}), _rows.get("news-archive", {})
-    _n = len(glob.glob(os.path.join(ROOT, "data", _lg, "*", "news",
-                                    "*.json.gz")))
-    note("%s: latest stale=%s (age %sm) · archived files on disk %d"
-         % (_lg, _lat.get("stale"), _lat.get("age_min"), _n))
-    # ⛔ THE ARCHIVE HAS NEVER RUN ON main, so the live tree cannot
-    #    satisfy this yet and asserting it would redden a correct repo —
-    #    the trap #51 fixed. The condition is driven above; this only
-    #    reports what is actually there.
-    ck("⚠️ %s: the divergence condition is REPORTED against the live tree"
-       % _lg, isinstance(_n, int),
-       "⛔ not asserted here: the first archive is written by the next "
-       "news run, and failing until then would be a guard firing on "
-       "correct code")
+    _ever, _today, _fires = _divergence(ROOT, _lg, _UTC_TODAY,
+                                        _lat.get("stale"))
+    note("%s: latest stale=%s (age %sm) · archived all-time %d · today %d"
+         % (_lg, _lat.get("stale"), _lat.get("age_min"), _ever, _today))
+    ck("🔴 %s: latest fresh + an EMPTY archive day" % _lg,
+       not _fires,
+       "⛔ the archive silently stopped — `latest/news.json` is current "
+       "and today's archive holds nothing. ⚠️ DORMANT while the league "
+       "has never archived (ever=%d); it ARMS ITSELF on the first "
+       "archived pull. today=%d latest_stale=%s"
+       % (_ever, _today, _lat.get("stale")))
+
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ AND THE ARMING IS DRIVEN, IN A TEMP TREE — FOUR CASES, TWO OF WHICH
+#    MUST NOT FIRE.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A self-arming check is worth exactly as much as the proof that it
+#    both arms AND stays quiet. ⛔ Nothing under this repo's `data/` is
+#    written by any of this — every case is a throwaway tree.
+def _synth(ever_day=None, today_day=None):
+    """A tree with an archive file on the given day(s). -> root"""
+    d = tempfile.mkdtemp(prefix="divarm-")
+    for _day in (ever_day, today_day):
+        if _day is None:
+            continue
+        _p = os.path.join(d, "data", "nfl", _day, "news")
+        os.makedirs(_p, exist_ok=True)
+        with gzip.open(os.path.join(_p, "0100.json.gz"), "wt",
+                       encoding="utf-8") as _fh:
+            _fh.write("[]")
+    return d
+
+
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ AND THE LIVE CHECK MUST ACTUALLY ASK `_divergence`, NOT SOMETHING
+#    ALWAYS TRUE.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE HOLE THIS CLOSES WAS MEASURED ON THIS VERY FILE. Restoring the
+#    old spelling — `isinstance(_today, int)` — leaves every drive below
+#    GREEN, because the drives exercise `_divergence()` while the live
+#    assertion is a separate expression that can be hollowed out
+#    independently. That is the same defect one level up: the thing that
+#    proves the condition and the thing that asserts it had drifted
+#    apart, and nothing was watching the join.
+# ⚠️ Read from the PARSED AST, so a comment naming `_fires` cannot
+#    satisfy it.
+_own = ast.parse(io.open(os.path.abspath(__file__), encoding="utf-8").read())
+# ⚠️ WALK EACH ARGUMENT. The condition is `not _fires` — a UnaryOp, not
+#    a bare Name — so matching only top-level names finds nothing and
+#    reddens on correct code, which is the other failure.
+_live_ck = [n for n in ast.walk(_own)
+            if isinstance(n, ast.Call)
+            and getattr(n.func, "id", "") == "ck"
+            and any(isinstance(x, ast.Name) and x.id == "_fires"
+                    for a in n.args for x in ast.walk(a))]
+ck("⛔ the live divergence check reads `_divergence`'s verdict, in CODE",
+   len(_live_ck) == 1,
+   "🔴 a condition that cannot be false is a `note()` wearing a `ck()` — "
+   "which is exactly what this check was until 2026-09-19. The drives "
+   "below exercise the helper; this asserts the LIVE check still asks "
+   "it. ck calls referencing `_fires`: %d" % len(_live_ck))
+
+_PAST = (datetime.datetime.now(UTC)
+         - datetime.timedelta(days=4)).strftime("%Y-%m-%d")
+
+for _name, _kw, _stale, _want_ever, _want_fire in (
+        ("⚠️ DORMANT: never archived, empty day, latest fresh",
+         {}, False, 0, False),
+        ("🔴🔴 ARMED and FIRING: archived before, nothing today",
+         {"ever_day": _PAST}, False, 1, True),
+        ("✅ ARMED and quiet: archived before AND today",
+         {"ever_day": _PAST, "today_day": _UTC_TODAY}, False, 2, False),
+        ("⚠️ not crying wolf: latest STALE and today empty",
+         {"ever_day": _PAST}, True, 1, False)):
+    _d = _synth(**_kw)
+    try:
+        _e, _t, _f = _divergence(_d, "nfl", _UTC_TODAY, _stale)
+    finally:
+        shutil.rmtree(_d, ignore_errors=True)
+    ck(_name, _e == _want_ever and _f is _want_fire,
+       "⛔ ever=%d (wanted %d) fires=%s (wanted %s) today=%d — the four "
+       "cases together are what make this an assertion rather than a "
+       "note wearing a ck()" % (_e, _want_ever, _f, _want_fire, _t))
 
 
 # ══════════════════════════════════════════════════════════════════════
 section("8. ⛔ NO NEW API CALLS, AND THE PAGE DOES NOT CHANGE")
 # ══════════════════════════════════════════════════════════════════════
-import ast                                                # noqa: E402
 
 _tree = ast.parse(CSRC)
 
