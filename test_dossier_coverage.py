@@ -425,3 +425,169 @@ ck((_s3.get("Market") or {}).get("state") == "OK",
    "⛔ do not suppress the game: the price is real. Got %s"
    % (_s3.get("Market") or {}).get("state"))
 shutil.rmtree(_d3, ignore_errors=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴🔴 A `CARRIED` NAME THE SLATE LACKS IS NOT A DEFECT")
+# ══════════════════════════════════════════════════════════════════════
+# `[measured 2026-09-19]` THIS FILE PASSED 42/42 AGAINST `main` AT 10:11Z
+# AND FAILED 4 OF 42 AGAINST `main` AT 16:04Z — **with no code change to
+# it or to `dossier_fb.py`.** The only difference was 72 files the
+# collector had committed under `data/`.
+#
+# ⛔ THE CAUSE WAS IN THE PRODUCT. `dossier_fb.audit()` refused to write
+# the WHOLE dossier unless all seven `CARRIED` subtree names appeared
+# somewhere in the output — and `meetings` is only there if some game on
+# the board has a prior meeting inside 365 days. On a board where none
+# does, the football tabs got nothing at all.
+# ⚠️ Production was fine that day (all seven present, 87 of 87 college
+# dossiers written) — but a one-game NFL Thursday between two teams who
+# have not met would have written NOTHING.
+#
+# ✅ THE ANTI-PADDING QUESTION THE REFUSAL WAS REACHING FOR IS ASKED
+#    STATICALLY, AND IT IS STRICTLY HARDER: every `CARRIED` name must be
+#    a dict key THIS MODULE EMITS. A junk name added to silence a finding
+#    fails that on a quiet Tuesday as surely as on a full Saturday, where
+#    the old form could be satisfied by nothing more than a busy slate.
+import ast as _ast                                          # noqa: E402
+import dossier_fb as _D                                      # noqa: E402
+
+_SRC = open(os.path.join(ROOT, "dossier_fb.py"), encoding="utf-8").read()
+
+
+def _emitted_keys(src):
+    """Every string key this module WRITES — dict literals AND subscript
+    assignments.
+
+    ⚠️ BOTH SHAPES, because the first draft of this check only read
+    `ast.Dict` and reported `closing` as unemitted — it is written
+    `d["closing"] = {…}` at line 435, a subscript, and it is one of the
+    seven names the check exists to validate. ⛔ A scan that misses a
+    real emitter accuses correct code, which is the same failure this
+    whole section is about.
+    """
+    out = set()
+    for n in _ast.walk(_ast.parse(src)):
+        if isinstance(n, _ast.Dict):
+            for k in n.keys:
+                if isinstance(k, _ast.Constant) and isinstance(k.value, str):
+                    out.add(k.value)
+        elif isinstance(n, (_ast.Assign, _ast.AnnAssign)):
+            tgts = n.targets if isinstance(n, _ast.Assign) else [n.target]
+            for t in tgts:
+                if isinstance(t, _ast.Subscript) \
+                        and isinstance(t.slice, _ast.Constant) \
+                        and isinstance(t.slice.value, str):
+                    out.add(t.slice.value)
+    return out
+
+
+def _artifact_keys():
+    """Every key that has ever appeared in a STORED dossier artifact.
+
+    ✅ THE SECOND, INDEPENDENT LEG. A junk name added to `CARRIED` to
+    silence a finding has never been written by anything, so it appears
+    in no artifact — on any day. ⛔ Unlike the refusal this replaces, the
+    answer does not move with today's board: it is the union over every
+    stored dossier, `latest/` and the dated archives.
+    """
+    out = set()
+    for p in sorted(glob.glob(os.path.join(ROOT, "data", "*", "latest",
+                                           "dossiers.json.gz"))) + \
+             sorted(glob.glob(os.path.join(ROOT, "data", "*", "*",
+                                           "dossiers", "*.json.gz"))):
+        d = _jz(p)
+        st = [d]
+        while st:
+            o = st.pop()
+            if isinstance(o, dict):
+                out.update(o.keys())
+                st.extend(o.values())
+            elif isinstance(o, list):
+                st.extend(o)
+    return out
+
+
+_KEYS = _emitted_keys(_SRC)
+_unemitted = [c for c in _D.CARRIED if c not in _KEYS]
+note("dict-literal keys this module emits: %d · CARRIED: %s"
+     % (len(_KEYS), list(_D.CARRIED)))
+ck(not _unemitted,
+   "🔴🔴 every CARRIED name is a dict key `dossier_fb.py` actually emits",
+   "⛔ THE ANTI-PADDING GUARD. A name here that nothing emits is an "
+   "exception surface with nothing behind it, and the walk would be "
+   "skipping a subtree that could hold a verdict. Unemitted: %s"
+   % (_unemitted,))
+ck(len(_KEYS) > 50 and "sections" in _KEYS and "closing" in _KEYS,
+   "⚠️ ...and the key scan really read the module, subscripts included",
+   "⛔ rule 67: a scan that returns nothing makes the check above pass "
+   "over an empty set — and one that misses `d[\"closing\"] = {…}` "
+   "accuses correct code. found %d keys" % len(_KEYS))
+
+# ✅ SECOND LEG, INDEPENDENT OF THE SOURCE: every CARRIED name has
+#    actually been written into a stored artifact at some point.
+_ART = _artifact_keys()
+_never = [c for c in _D.CARRIED if c not in _ART]
+note("keys across every stored dossier artifact: %d" % len(_ART))
+ck(len(_ART) > 500,
+   "⚠️ ...and there are stored dossiers to read",
+   "⛔ rule 67 again. found %d keys" % len(_ART))
+ck(not _never,
+   "✅ every CARRIED name has really appeared in a stored dossier",
+   "⛔ a name nothing has ever written is an exception surface with "
+   "nothing behind it. Never seen: %s" % (_never,))
+# ✅ AND IT IS PROVEN TO BITE, against a planted junk name.
+ck([c for c in tuple(_D.CARRIED) + ("no_such_subtree",)
+    if c not in _KEYS] == ["no_such_subtree"],
+   "🔴 ...and a planted junk name in CARRIED is caught",
+   "a guard that cannot fail is not a guard (rule 67)")
+
+# ── the absence itself, driven on a document whose answer is known ────
+_full = {"dossiers": [{"sections": [
+    {"live": {}, "closing": {}, "meetings": {}, "by_team": {},
+     "by_player": {}, "by_defence": {}, "weather": {}}]}]}
+_found, _absent = _D.audit(_full)
+ck(_found == [] and _absent == [],
+   "✅ a document carrying every CARRIED subtree reports nothing absent",
+   "found=%r absent=%r" % (_found, _absent))
+
+_nomeet = json.loads(json.dumps(_full))
+del _nomeet["dossiers"][0]["sections"][0]["meetings"]
+_found, _absent = _D.audit(_nomeet)
+ck(_absent == ["meetings"],
+   "🔴🔴 a slate with no prior meeting reports `meetings` ABSENT",
+   "⛔ and the caller must REPORT that, never refuse on it — refusing is "
+   "what wrote nothing to the football tabs. got %r" % (_absent,))
+ck(_found == [],
+   "⛔ ...and an absent subtree does not invent a verdict finding",
+   "found=%r" % (_found,))
+
+# 🔴 THE REFUSAL THAT MUST STILL BITE — a real judgement field.
+_verdict = json.loads(json.dumps(_full))
+_verdict["dossiers"][0]["sections"][0]["confidence"] = 0.8
+_found, _absent = _D.audit(_verdict)
+ck(len(_found) == 1 and _found[0][1] == "confidence",
+   "🔴🔴 a numeric judgement field IS still found, and still stops the write",
+   "⛔ this artifact combines, ranks and scores NOTHING, and that gate is "
+   "untouched by today's change. got %r" % (_found,))
+
+# ⛔ AND THE WRITER NO LONGER RETURNS 1 ON AN ABSENCE — read structurally,
+#    because the alternative is rebuilding a whole slate to observe it.
+_gate = _SRC.split("bad, carried_absent = audit(doc)", 1)
+ck(len(_gate) == 2,
+   "⚠️ the writer's gate is where this test thinks it is",
+   "⛔ if this split fails the two checks below read nothing (rule 67)")
+_after = _gate[1][:1200]
+ck('doc["carried_absent"] = carried_absent' in _after,
+   "🔴 an absent subtree is recorded ON THE DOCUMENT",
+   "⛔ a reader has to be able to see which source subtrees this slate "
+   "carried. got:\n%s" % _after[:400])
+_branch = "\n".join(l for l in _after.split("if bad:")[0].split("\n")
+                    if not l.strip().startswith("#"))
+ck("return 1" not in _branch,
+   "🔴🔴 ...and the absence branch does NOT return 1",
+   "⛔ THIS IS THE DEFECT. A `return 1` here writes nothing to the "
+   "football tabs on a board that is entirely fine. ⚠️ Comments are "
+   "stripped first — the struck ~~`return 1`~~ in the comment beside it "
+   "is the record of the fix, not the fix undone. got:\n%s"
+   % _branch[:400])

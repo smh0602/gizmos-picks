@@ -99,9 +99,29 @@ MAX_PLAYERS = 8         # per team, by trailing snap share. Capped and SAID.
 # (the league's own ranking) and `best_spread` (a book's price). Those are
 # FACTS THIS FILE COPIED, not judgements it formed. So the walk descends
 # everywhere EXCEPT the subtrees named below, each of which is verbatim
-# source data — and `audit()` refuses to run if one of those names has
-# stopped appearing, so the exception surface cannot be padded with junk
-# to silence a finding.
+# source data.
+#
+# 🔴🔴 ~~"`audit()` refuses to run if one of those names has stopped
+# appearing, so the exception surface cannot be padded with junk"~~
+# **STRUCK 2026-09-19 — IT WAS A GUARD FIRING ON CORRECT DATA, AND IT
+# FAILED CLOSED.** Whether `meetings` appears is a property of the SLATE,
+# not of the walk: it is there only if some game on the board has a prior
+# meeting inside 365 days. On a board where none does, the whole dossier
+# refused to write and the football tabs got nothing.
+# `[measured 2026-09-19]` `test_dossier_coverage.py` passed 42/42 against
+# `main` at 10:11Z and failed 4 of 42 against `main` at 16:04Z **with no
+# code change to this file or that test** — the only difference was 72
+# files the collector had committed under `data/`. The verdict of a
+# product guard was being decided by which two games the board happened
+# to hold.
+# ✅ **THE ANTI-PADDING QUESTION IS ANSWERED STATICALLY INSTEAD, AND IT IS
+# STRICTLY HARDER:** every name in `CARRIED` must be a dict key THIS
+# MODULE EMITS, checked against this file's own AST by
+# `test_dossier_coverage.py` on every run. A junk name fails that on a
+# quiet Tuesday as surely as on a full Saturday — where the old check
+# could be satisfied by nothing more than a busy slate.
+# ⚠️ A name that is absent from a given slate is now REPORTED on the
+# document as `carried_absent`, never a refusal.
 VERDICT_TOKENS = ("score", "conf", "rank", "rating", "grade", "edge",
                   "pick", "lean", "bet", "recommend", "verdict", "tier",
                   "star", "weight", "index", "prob", "likelihood",
@@ -142,8 +162,12 @@ def audit(doc):
                 walk(v, "%s[%d]" % (path, i))
 
     walk(doc, "")
-    missing = [c for c in CARRIED if c not in seen_carried]
-    return found, missing
+    # ⚠️ ABSENT, NOT MISSING — the word matters. A `CARRIED` name this
+    #    slate does not happen to carry is a fact about the slate. The
+    #    caller REPORTS it; it must never refuse on it. See the struck
+    #    paragraph beside `CARRIED`.
+    absent = [c for c in CARRIED if c not in seen_carried]
+    return found, absent
 
 
 def log(m):
@@ -1249,15 +1273,20 @@ def build(league=None):
     # 🔴🔴 THE GATE. ⛔ NOTHING IS WRITTEN IF THE DOCUMENT CARRIES A
     #    JUDGEMENT. A report that scores a game is a model, and a model
     #    needs a pre-registered test this artifact does not have.
-    bad, missing_carried = audit(doc)
-    if missing_carried:
-        # ⚠️ THE EXCEPTION SURFACE HAS TO BE REAL. If a name in `CARRIED`
-        #    no longer appears, the walk is skipping a subtree that is not
-        #    there — which means it could be skipping one that is.
-        log("dossier_fb: ⛔ REFUSING TO WRITE — these carried-subtree "
-            "names no longer appear in the output, so the audit's "
-            "exception list is stale: %s" % missing_carried)
-        return 1
+    bad, carried_absent = audit(doc)
+    if carried_absent:
+        # ⚠️ REPORTED, NOT REFUSED. ~~`return 1`~~ STRUCK 2026-09-19: a
+        #    `CARRIED` name is absent when the SLATE has nothing of that
+        #    kind — no prior meeting, no live game, no weather indoors —
+        #    and refusing on it wrote NOTHING to the football tabs on a
+        #    board that was entirely fine.
+        # ✅ It goes ON THE DOCUMENT so a reader can see which source
+        #    subtrees this slate carried, and `test_dossier_coverage.py`
+        #    checks the exception surface against this file's own AST,
+        #    which is the question the refusal was reaching for.
+        doc["carried_absent"] = carried_absent
+        log("dossier_fb: ⚠️ this slate carries no %s subtree — reported "
+            "on the document, not a refusal" % carried_absent)
     if bad:
         log("dossier_fb: ⛔ REFUSING TO WRITE — the document carries %d "
             "numeric judgement field(s), and this artifact combines, "

@@ -332,13 +332,35 @@ ck("⛔ budget.yml still declares exactly ONE cron",
    "🔴 CRON TOTAL must not move. Jobs share their workflow's schedule, "
    "which is why this is a second JOB and not a second workflow. got %d"
    % _Y.count("- cron:"))
-ck("⚠️ the issue chain LEADS with the gizmo-watch label",
-   _Y.count("gh label create gizmo-watch") == 2
-   and _Y.count("--label gizmo-watch --title") == 4,
+# ~~`_Y.count("gh label create gizmo-watch") == 2`~~ — **STRUCK
+# 2026-09-19, LEDGER RULE 166 FOR THE FOURTH TIME.** Two literal counts,
+# 2 and 4, asserting a fact about a file that was correct on the day they
+# were written. ⛔ They went RED the moment the UPDATE path learned to
+# label as well — a CORRECT change, adding two more `gh label create`
+# lines, failed a check whose real subject was never the number.
+# ✅ THE QUESTION IS PER CALL SITE, DERIVED. Every filing chain must lead
+# with the label, every update must add it, and each must have the label
+# ensured above it. That is strictly harder to pass than a count — a new
+# unlabelled site now fails where before a matching PAIR of changes could
+# have kept the totals and lost the property.
+_creates = [l.strip() for l in _Y.split("\n")
+            if l.strip().startswith("gh issue create")]
+_edits = [l.strip() for l in _Y.split("\n")
+          if l.strip().startswith("gh issue edit")]
+_heads = [l for l in _creates if not l.startswith("|| gh issue create")]
+ck("⚠️ every issue chain in budget.yml LEADS with the gizmo-watch label",
+   _heads and all("--label gizmo-watch" in l for l in _heads),
    "⛔ self-repair triages by label, and a watcher that can file without "
-   "one files into a queue nothing reads. labels=%d labelled creates=%d"
-   % (_Y.count("gh label create gizmo-watch"),
-      _Y.count("--label gizmo-watch --title")))
+   "one files into a queue nothing reads. heads=%r" % (_heads,))
+ck("🔴 ...and every UPDATE adds it too — that is where 5 of 6 were lost",
+   _edits and all("--add-label gizmo-watch" in l for l in _edits),
+   "⛔ an issue created before the label existed stays invisible to "
+   "triage forever unless the update path labels it. edits=%r" % (_edits,))
+ck("⛔ ...and the label is ensured to exist as often as it is used",
+   _Y.count("gh label create gizmo-watch") >= len(_edits),
+   "🔴 `gh issue edit --add-label X` FAILS when X does not exist, and "
+   "the `else` branch's ensure is on the CREATE path. ensures=%d "
+   "edits=%d" % (_Y.count("gh label create gizmo-watch"), len(_edits)))
 ck("⛔ ...and `unknown` never closes an open issue",
    _Y.count("leaving any open issue alone") == 2,
    "🔴 'I could not look' is not 'it is fine' — both watchers in this "
