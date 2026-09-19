@@ -337,29 +337,59 @@ import json as _json
 import re as _re
 import shutil as _shutil
 import subprocess as _sp
+import sys as _sys
 import tempfile as _tf
 
+import wfparse as _wf   # the one workflow hand parser — rule 117
+
 _SR = os.path.join(ROOT, ".github", "workflows", "self-repair.yml")
-try:
-    import yaml as _yaml
-    _doc = _yaml.safe_load(io.open(_SR, encoding="utf-8"))
-    _step = [s for s in _doc["jobs"]["triage"]["steps"]
-             if s.get("id") == "decide"][0]
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ~~`import yaml`~~ — STRUCK 2026-09-19, AND THIS IS THE REASON.
+# ══════════════════════════════════════════════════════════════════════
+# PyYAML IS NOT INSTALLED ON THE RUNNER. `[measured on CI job
+# 105862432594]` — this exact block, on the machine that matters:
+#
+#     ⚪ ⛔ could not extract the decide step:
+#          ModuleNotFoundError: No module named 'yaml'
+#     ❌ ⚠️ the `decide` step was extracted from the deployed workflow
+#     ...
+#     ❌ 10 of 41 checks FAILED
+#
+# ⛔ SO THIS FILE WAS RED ON EVERY CI RUN FROM THE HOUR IT MERGED, and
+# green on every developer machine. It is one of the two files that have
+# had `collect.yml` red continuously since 2026-09-18T21:22 — and I am
+# the one who wrote it and reported it green.
+#
+# ⚠️ THE REPO ALREADY KNEW. `test_multileague.py:82` and
+# `test_watchdog.py:328` both say so in as many words, and both keep
+# asking their question with a hand parser. This file did not read them.
+# ⛔ NOTHING HERE MAY NEED A PACKAGE CI DOES NOT INSTALL IN ORDER TO ASK
+# ITS QUESTION. `test_third_party_imports.py` now guards that class.
+#
+# ✅ `wfparse.step_run` is the one hand parser, driven on known answers
+# and cross-checked against PyYAML on all ten real workflows in
+# `test_wfparse.py`.
+_RUN = _wf.step_run(_SR, step_id="decide")
+if _RUN is not None:
     # ⚠️ `${{ … }}` is GitHub's, not the shell's, and it is substituted
     #    before the runner ever invokes bash. Emptying it is what the
     #    scheduled path actually sees: `inputs.drill` does not exist on a
     #    schedule, so the drill branch is correctly unreachable here.
-    _RUN = _re.sub(r"\$\{\{[^}]*\}\}", "", _step["run"])
-except Exception as _e:                      # pragma: no cover
-    _RUN = None
-    note("⛔ could not extract the decide step: %s: %s"
-         % (type(_e).__name__, _e))
+    _RUN = _re.sub(r"\$\{\{[^}]*\}\}", "", _RUN)
+else:                                        # pragma: no cover
+    note("⛔ could not extract the decide step from %s" % _SR)
 
 ck("⚠️ the `decide` step was extracted from the deployed workflow",
    bool(_RUN) and "gizmo-watch" in _RUN and "health.json" in _RUN,
    "⛔ if this cannot be read, every drive below silently checks nothing "
    "— rule 67. The drives are the only checks here that run the step "
    "rather than read it.")
+ck("🔴🔴 ...WITHOUT PyYAML, which the runner does not have",
+   "yaml" not in {m.split(".")[0] for m in _sys.modules
+                  if m.startswith("yaml")},
+   "⛔ THE DEFECT OF 2026-09-19: this file imported PyYAML to drive the "
+   "deployed step and was red on every CI run from the hour it merged. "
+   "loaded: %s" % sorted(m for m in _sys.modules if m.startswith("yaml")))
 
 
 def _drive(health, queue, last=None, openprs=0):
