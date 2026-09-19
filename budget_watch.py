@@ -253,9 +253,15 @@ def render(v, trend=None):
     """The issue body. ⚠️ Every sentence carries a number."""
     o = []
     if v["state"] == "OVER":
+        # ⛔ ~~"— every job is green and every cap is holding."~~
+        # STRUCK 2026-09-19. This module reads `budget.py`'s output and
+        # the stored credit readings; it cannot see a workflow run, and
+        # it printed that while `collect.yml` was red on every run for
+        # 32 hours. ✅ The cap half IS measured here, so it stays; the
+        # job half was never measured and is gone.
         o.append("**The Odds API spend is on a trajectory to exceed the "
-                 "plan. This is a MONEY finding, not a pipeline one — "
-                 "every job is green and every cap is holding.**\n")
+                 "plan. This is a MONEY finding: every cap below is "
+                 "holding and the spend still does not fit.**\n")
         o.append("- %s" % v["why"])
         o.append("- MLB **%d/day**, football **%d/day**, combined "
                  "**%d/day**." % (v["mlb_day"], v["fb_day"], v["day"]))
