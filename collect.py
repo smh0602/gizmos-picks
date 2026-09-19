@@ -4721,6 +4721,34 @@ def run_mode(mode):
     except Exception as e:
         log(f"ERROR in {mode}: {type(e).__name__}: {e}")
         raise
+    finally:
+        # ══════════════════════════════════════════════════════════════
+        # 🔴🔴 RECORD WHAT CFBD SAID ABOUT THE QUOTA, ON EVERY RUN THAT
+        #      COULD HAVE ASKED IT.
+        # ══════════════════════════════════════════════════════════════
+        # 💰 NO NEW CALL. `cfb._record_quota()` already captures the
+        #    header on every response and `quota_report()` already
+        #    returns it — it was only being written into a couple of
+        #    PROBE artifacts, so all of history holds TWO readings
+        #    (2374 on 09-18, 2236 on 09-19) and the question "are we
+        #    inside the CFBD budget" could not be answered from our own
+        #    data at all.
+        # 🔴 `finally`, NOT the success path. A 429 is precisely when the
+        #    reading matters most, and `_record_quota` captures it on a
+        #    429 too — writing only on success would throw away the one
+        #    reading that explains a dead run.
+        # ⚠️ DERIVED, NOT A MODE LIST. Anything that can call CFBD must
+        #    import `cfb`, so "was `cfb` loaded" is the question itself
+        #    rather than a list that goes stale the next time a mode is
+        #    added. ⛔ A hardcoded list is how the next mode ships blind.
+        # ⛔ AND IT IS GATED ON THE DESTINATION, NOT THE LEAGUE. `DATA`
+        #    decides where the bytes land; `LEAGUE` is a second source
+        #    for that fact and they can disagree (the news-archive bug,
+        #    2026-09-18). CFBD is college-only, so college is the only
+        #    tree this may write into.
+        _cfbmod = sys.modules.get("cfb")
+        if _cfbmod is not None and os.path.basename(DATA.rstrip("/")) == "ncaaf":
+            _cfbmod.record_quota(DATA, log)
 
 
 # ======================================================================

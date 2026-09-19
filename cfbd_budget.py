@@ -102,6 +102,130 @@ def calls_per_build(weeks_played=3):
             "cfb-teams": 1, "_early_stop": early_stop}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE PLAN CAN BE MEASURED, AND GUESSING IT IS WHAT WENT WRONG.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ `PLAN` above is read from the environment with a `1000` default, and
+# for the whole of September NO WORKFLOW SET IT. Every scheduled run
+# printed "906/month against a 1000 plan — 91%" against a plan that does
+# not exist, and that false alarm is what made the CFBD budget look
+# urgent. The real tier is 3,000 and the same 906 is 30%.
+#
+# 🔴 AND OUR OWN DATA HAD ALREADY RULED 1000 OUT. A reading of **2,236
+# remaining** is not reachable on a 1,000/month plan, and it was sitting
+# in a college schedule probe on disk the entire time. (Named only in
+# prose here: `test_coaches_probe.py` reads this file as TEXT and a
+# filename in a comment trips its probe-reader ratchet.)
+# ➡️ So the header is not just a budget input — it is a CONTRADICTION
+# DETECTOR for whatever plan somebody configured, and that is the check
+# below that would have caught this without anyone being asked.
+#
+# ⛔ WHAT THIS DOES NOT DO IS INVENT A NUMBER. A plan inferred from a
+# partial series is exactly the mistake `1000` was. `remaining` only ever
+# gives a FLOOR on the ceiling — the reading after a reset has already
+# had some calls taken out of it — so a floor is what it reports, and
+# when it has seen no reset it says UNKNOWN and defers to the tier table.
+_REMAIN_KEYS = ("X-CallLimit-Remaining", "x-calllimit-remaining")
+_TIME_KEYS = ("recorded_at", "checked_at", "written_at", "built_at")
+
+
+def _readings(data):
+    """Every (when, remaining) the quota RECORD holds.
+
+    ⛔ IT DOES NOT READ THE PROBE ARTIFACTS, AND THAT IS NOT AN
+    OVERSIGHT. The first version globbed every plain JSON under `latest/`
+    and so picked up a schedule probe — which carries the only two
+    quota readings that exist anywhere. `test_coaches_probe.py` failed it
+    immediately: *"NO PRODUCT FILE READS A PROBE ARTIFACT… a probe
+    becoming a source is a decision Sam makes, not a diff."*
+    ⚠️ The filename is deliberately not written here either: that check
+    reads this file as TEXT, so naming it in a comment trips the same
+    ratchet. (Which is itself a comment-as-code read — but it is a
+    pre-existing guard erring toward refusal, and refusing is the safe
+    direction for "has a probe become a source".)
+    ✅ THE CHECK IS RIGHT AND THE CEILING STAYS AT ZERO. The two probe
+    readings are EVIDENCE in a pull request, not an input to a costing
+    tool. The series starts here and fills from the next run that can
+    call CFBD.
+    """
+    import glob as _glob
+    import gzip as _gzip
+    import json as _json
+    out = []
+    pats = [os.path.join(data, "latest", "cfbd-quota.json"),
+            os.path.join(data, "*", "cfbd-quota", "*.json.gz")]
+    for pat in pats:
+        for f in _glob.glob(pat):
+            try:
+                op = _gzip.open if f.endswith(".gz") else open
+                doc = _json.load(op(f, "rt", encoding="utf-8"))
+            except Exception:
+                continue
+            for when, remaining in _walk_quota(doc):
+                out.append((when, remaining, os.path.basename(f)))
+    # ⚠️ One reading per timestamp: the same run's block lands in `latest/`
+    #    AND in the dated archive, and counting it twice would invent a
+    #    reset out of a duplicate.
+    seen, uniq = set(), []
+    for when, remaining, src in sorted(out):
+        if when in seen:
+            continue
+        seen.add(when)
+        uniq.append((when, remaining, src))
+    return uniq
+
+
+def _walk_quota(doc, when=None):
+    """Yield (when, remaining) from any nesting of a quota block."""
+    if not isinstance(doc, dict):
+        return
+    when = next((doc[k] for k in _TIME_KEYS if isinstance(doc.get(k), str)),
+                when)
+    headers = doc.get("headers")
+    if isinstance(headers, dict):
+        for k in _REMAIN_KEYS:
+            if k in headers:
+                try:
+                    if when:
+                        yield when, int(str(headers[k]).strip())
+                except (TypeError, ValueError):
+                    pass
+                break
+    for v in doc.values():
+        if isinstance(v, dict):
+            for got in _walk_quota(v, when):
+                yield got
+
+
+def measured_plan(data):
+    """-> dict. `floor` is a LOWER BOUND, never a plan size."""
+    rs = _readings(data)
+    rep = {"readings": len(rs), "first": rs[0][0] if rs else None,
+           "last": rs[-1][0] if rs else None,
+           "max_remaining": max((r for _w, r, _s in rs), default=None),
+           "resets": 0, "floor": None, "why": ""}
+    if len(rs) < 2:
+        rep["why"] = ("%d reading(s) — a plan cannot be inferred from fewer "
+                      "than two, and two points are a line, not a trend"
+                      % len(rs))
+        return rep
+    # 🔴 A RESET IS THE HEADER GOING UP. The ceiling is the value it
+    #    returns to — and that value has already had this month's first
+    #    calls taken out of it, so it is a FLOOR and is labelled one.
+    for (_w0, r0, _s0), (_w1, r1, _s1) in zip(rs, rs[1:]):
+        if r1 > r0:
+            rep["resets"] += 1
+            rep["floor"] = max(rep["floor"] or 0, r1)
+    if not rep["resets"]:
+        rep["why"] = ("no reset seen across %d reading(s) — the header has "
+                      "only ever gone down, so the ceiling it returns to "
+                      "has not been observed" % len(rs))
+    else:
+        rep["why"] = ("%d reset(s) seen; the header returned to at least %d"
+                      % (rep["resets"], rep["floor"]))
+    return rep
+
+
 def main():
     retries = 1
     for i, a in enumerate(sys.argv):
@@ -149,6 +273,38 @@ def main():
         if name == "Free":
             worst = pct
     print()
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 WHAT CFBD ITSELF SAID, AND WHETHER IT CONTRADICTS THE PLAN.
+    # ══════════════════════════════════════════════════════════════════
+    # ⚠️ INJECTABLE FOR TESTS ONLY — the default is the real tree. A
+    #    contradiction check that can only be driven against live data is
+    #    one that goes red for reasons nobody caused.
+    _m = measured_plan(os.environ.get(
+        "CFBD_DATA", os.path.join(ROOT, "data", "ncaaf")))
+    if _m["readings"]:
+        print("  MEASURED, from CFBD's own header (%d reading(s), %s → %s):"
+              % (_m["readings"], (_m["first"] or "?")[:10],
+                 (_m["last"] or "?")[:10]))
+        print("    highest remaining ever seen   %s" % _m["max_remaining"])
+        print("    plan floor from a reset       %s   (%s)"
+              % (_m["floor"] if _m["floor"] else "UNKNOWN", _m["why"]))
+        # 🔴 THE CHECK THAT WOULD HAVE CAUGHT THE `1000` DEFAULT WITHOUT
+        #    ANYONE BEING ASKED. You cannot have more calls left than the
+        #    plan holds, so a reading above `PLAN` PROVES `PLAN` wrong.
+        #    `[2,236 remaining sat in a probe artifact for the whole of
+        #    September while the tier was asked for five times.]`
+        if (_m["max_remaining"] or 0) > PLAN:
+            print()
+            print("🔴 THE CONFIGURED PLAN IS WRONG. CFBD reported %d calls "
+                  "REMAINING, which a %d plan cannot hold. ⛔ Set CFBD_PLAN "
+                  "to the real tier — the percentage below is meaningless "
+                  "until you do." % (_m["max_remaining"], PLAN))
+        print()
+    else:
+        print("  MEASURED: no quota reading on disk yet. ⚠️ `cfb.py` records "
+              "one on every run that can call CFBD; this fills in by "
+              "itself.")
+        print()
     pct = 100.0 * month / PLAN
     if pct >= 100:
         print(f"🔴 {month}/month against a {PLAN} plan — {pct:.0f}%. "
