@@ -423,6 +423,17 @@ verify_freshness.py  fails the run when the site is not current
 cfbd_budget.py    projected CFBD call volume, derived from the workflow
 cfbd_watch.py     ...and the watcher that asks whether it will run out
 budget_watch.py   the same question for the Odds API spend
+repo_watch.py     is the REPOSITORY growing in a way that will become
+                  a problem, and WHAT is doing it? ⛔ Reads
+                  `objectsize:disk`, never the working tree and never
+                  a raw blob sum — measured 2026-09-19 they differ by
+                  2.84x, because git deltas text and CANNOT delta a
+                  gzip. ⚠️ Flags gzips REWRITTEN IN PLACE, measured
+                  from the version count rather than guessed from the
+                  path — a dated archive is written once and is the
+                  correct design (rule 285). ⛔ Refuses a shallow
+                  clone rather than reporting its size. Rides
+                  budget.yml as a second JOB; no new cron.
 calibration.py    is the product still winning? the automatic answer.
 card_gate.py      did the card fail for a reason Sam already accepted?
 
