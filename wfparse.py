@@ -62,9 +62,14 @@ def read(src):
 
 
 class Step(object):
-    def __init__(self, name, sid, run, start, end):
+    def __init__(self, name, sid, run, start, end, cond=None):
         self.name, self.id, self.run = name, sid, run
         self.start, self.end = start, end
+        # ⚠️ `if:` IS PART OF THE STEP, and for a gate it is the whole
+        #    step. `test_collect_gates.py` evaluates these, because two
+        #    gates whose conditions are both true must BOTH run — and
+        #    until 2026-09-19 the second one never did.
+        self.cond = cond
 
     def __repr__(self):                     # pragma: no cover - debugging only
         return "<Step %r id=%r %d-%d>" % (self.name, self.id, self.start,
@@ -211,7 +216,7 @@ def steps(src, job=None):
         heads = [e[0] for e in dashes if e[1] == col]
         for k, start in enumerate(heads):
             end = heads[k + 1] if k + 1 < len(heads) else jb.end
-            name = sid = run = None
+            name = sid = run = cond = None
             for lineno, indent, key, val, body in entries:
                 if not (start <= lineno < end) or indent != col:
                     continue
@@ -221,7 +226,9 @@ def steps(src, job=None):
                     sid = val.strip().strip('"').strip("'")
                 elif key == "run" and run is None:
                     run = body if body is not None else val
-            out.append(Step(name, sid, run, start, end))
+                elif key == "if" and cond is None:
+                    cond = (body if body is not None else val).strip()
+            out.append(Step(name, sid, run, start, end, cond))
     return out
 
 

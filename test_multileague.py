@@ -246,13 +246,24 @@ if MULTI:
        "rc=1" in r5.rc_out,
        "the step reports %r, and `Fail if any pass failed` turns that into a "
        "red job" % r5.rc_out.strip())
-    # ✅ AND THE STEP THAT ACTS ON IT REALLY EXISTS — a verdict nothing reads
-    #    is not a verdict.
-    _wf_text = open(WF, encoding="utf-8").read()
-    _after = _wf_text.split("steps.collect.outputs.rc")[1:]
+    # ✅ AND THE STEP THAT ACTS ON IT REALLY EXISTS — a verdict nothing
+    #    reads is not a verdict.
+    # 🔴 ~~`_wf_text.split("steps.collect.outputs.rc")[1][:400]`~~ STRUCK
+    #    2026-09-19. That asked whether `exit 1` appeared within 400
+    #    CHARACTERS of the reference — a proximity window, not a
+    #    relationship. It would pass on an `exit 1` belonging to a
+    #    different step that happened to sit nearby, and it went red the
+    #    moment the gate gained a comment. ⛔ CLAUDE.md allows replacing
+    #    a check that asks the WRONG QUESTION, and requires the
+    #    replacement be harder: this one binds the `exit 1` to the body
+    #    of the very step whose CONDITION reads the verdict, which the
+    #    character window never did.
+    _gates = [st for st in _wf.steps(WF, "collect")
+              if "steps.collect.outputs.rc" in (st.cond or "")]
     ck("⛔ and a later step actually fails the job on it",
-       bool(_after) and "exit 1" in _after[0][:400],
-       "a verdict nothing reads is not a verdict")
+       bool(_gates) and all("exit 1" in (st.run or "") for st in _gates),
+       "a verdict nothing reads is not a verdict. gates=%s"
+       % [(st.name, "exit 1" in (st.run or "")) for st in _gates])
     ck("a clean two-league run reports rc=0", "rc=0" in r3.rc_out,
        r3.rc_out.strip())
     ck("...and both leagues were still graded",
