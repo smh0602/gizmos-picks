@@ -941,6 +941,23 @@ jobs:
               python verify_board.py  || { rc=1; echo "::error::verify_board failed"; }
               python verify_record.py || { rc=1; echo "::error::verify_record failed"; }
             fi
+            # ══════════════════════════════════════════════════════════
+            # 🔴🔴 AND FOOTBALL GETS THE SAME TREATMENT IT HAS NEVER HAD.
+            # `verify_nfl.py`'s own header says it *"caught four real
+            # defects, two before Sam saw them"* — and `[measured
+            # 2026-09-19]` **no workflow and no test has ever invoked
+            # it.** Rule 78: a verifier nothing runs, runs never. It was
+            # failing on this tree the whole time and nobody could know.
+            # ⚠️ `--current` ON PURPOSE: a pass verifies what it just
+            # produced. 2022's snap coverage is 78.3%, a real historical
+            # gap this job did not create and cannot repair; a bare
+            # `python verify_nfl.py` still reports it.
+            # ⛔ SAME PLACEMENT RULE AS MLB'S: after the commit, so a
+            # failure turns the run red WITHOUT discarding a snapshot.
+            if [ "$LEAGUE_NAME" = "nfl" ]; then
+              python verify_nfl.py --current \
+                || { rc=1; echo "::error::verify_nfl failed"; }
+            fi
             echo "::endgroup::"
 
             # 🔴 THE FRESHNESS GATE IS THE JOB'S REAL OUTPUT. If anything
