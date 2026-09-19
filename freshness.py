@@ -736,6 +736,57 @@ def _football_contract(league, data, picks, now):
          ("file", tpath), T["trends"], False,
          "Trends — defence-vs-position"))
     # ══════════════════════════════════════════════════════════════
+    # 🔴🔴 THE *OFFENCE* SIDE IS A SECOND FILE AND IT HAD NO ROW.
+    # ══════════════════════════════════════════════════════════════
+    # `index.html`'s `fbPath()` picks the stem from the tab the reader is
+    # on: `allowed-by-position-{season}` for defence, **`offense-by-
+    # position-{season}` for offence.** One builder writes both — its own
+    # comment says *"⛔ ONE FILE PER SIDE, BUILT BY ONE FUNCTION ON THE
+    # COLLECTOR"* — so the row costs no cron and shares the deadline.
+    # ⛔ WATCHING ONE OF TWO FILES IS THE SAME HOLE AS WATCHING NEITHER
+    # for the half nobody watched. The Trends tab has two sides and the
+    # contract described one of them.
+    # ✅ Same season fallback as the defence row, for the same reason.
+    opath = f"{latest}/offense-by-position-{season}.json.gz"
+    if not os.path.exists(opath):
+        oprev = f"{latest}/offense-by-position-{season - 1}.json.gz"
+        if os.path.exists(oprev):
+            opath = oprev
+    rows.append(
+        (("cfb-probe" if league == "ncaaf" else "nfl-logs"),
+         ("file", opath), T["trends"], False,
+         "Trends — offence-by-position"))
+    # ══════════════════════════════════════════════════════════════
+    # 🔴🔴 AND THE PLAYER LOGS, WHICH EVERY OTHER FOOTBALL TABLE IS MADE
+    #      FROM — ALSO WITH NO ROW OF ANY KIND.
+    # ══════════════════════════════════════════════════════════════
+    # `jgetGz(`${LG_DATA[LEAGUE]}/latest/players-${season}.json.gz`)` is
+    # read directly by the page, and the same job writes it as writes the
+    # two tables above.
+    # `[measured on origin/main 2026-09-19T17:25Z]`
+    #
+    #     data/nfl/latest/players-2026.json.gz    2026-09-17T07:34Z   57.9h
+    #     data/ncaaf/latest/players-2026.json.gz  2026-09-19T07:53Z    9.5h
+    #
+    # ⚠️ AND IT IS NOT LATE EITHER, BY THIS CONTRACT'S OWN TERMS: the NFL
+    # logs are a WEEKLY artifact (`T["trends"]`, Tue), and 57.9h has not
+    # reached the next Tuesday. ⛔ So this row does not make today red,
+    # and saying it would be false. What it does is make the file
+    # ANSWERABLE — today the contract holds no row naming it at all, so
+    # if the nflverse fetch stays broken past Tuesday nothing would say
+    # so, and the two aggregate rows would not say it either: they are
+    # rebuilt from the CACHED log when the fetch fails, so the input can
+    # rot while its outputs keep a current timestamp.
+    lpath = f"{latest}/players-{season}.json.gz"
+    if not os.path.exists(lpath):
+        lprev = f"{latest}/players-{season - 1}.json.gz"
+        if os.path.exists(lprev):
+            lpath = lprev
+    rows.append(
+        (("cfb-probe" if league == "ncaaf" else "nfl-logs"),
+         ("file", lpath), T["trends"], False,
+         "Trends + Dossier — the weekly player logs"))
+    # ══════════════════════════════════════════════════════════════
     # 🔴🔴 AND SO DOES POSSESSION — RULE 78 AGAIN, AND IT ALREADY BIT.
     # ══════════════════════════════════════════════════════════════
     # `[measured 2026-09-18]` The first full production day of the college
@@ -793,12 +844,71 @@ def _football_contract(league, data, picks, now):
         ("fb-scores",
          ("file", f"{latest}/schedule-{season}.json.gz"), T["scores"], False,
          "Scores & Matchups — the day's results"))
+    # ══════════════════════════════════════════════════════════════
+    # 🔴🔴 THE DOSSIER FILE ITSELF — EIGHT SECTIONS, ZERO CONTRACT ROWS.
+    # ══════════════════════════════════════════════════════════════
+    # `dossiers.json.gz` is what `index.html` reads for **all eight** of
+    # Sam's per-game checks. It had no row of any kind, and this file's
+    # own `top-<season>` comment already says why that matters: *"an
+    # artifact nothing tracks is an artifact nobody misses."*
+    #
+    # ⚠️ AND IT IS NOT LATE TODAY — SAID PLAINLY RATHER THAN DRESSED UP.
+    # `[measured on origin/main 2026-09-19T17:25Z]`
+    #
+    #     data/ncaaf/latest/dossiers.json.gz   15:52:53Z    92 min
+    #     data/nfl/latest/dossiers.json.gz     15:52:46Z    93 min
+    #
+    # ⛔ ~~"27h old on both leagues"~~ was measured on a two-day-old
+    # checkout and is WRONG. It is struck rather than deleted because it
+    # is the same mistake the row exists to prevent one level up: a fact
+    # about the tree in front of you is not a fact about the product.
+    # ✅ THE ROW IS STILL THE POINT. It adds no red today; what it adds
+    # is the ability to go red at all. Until now the eight sections
+    # Sam reads could have stopped being written and the contract would
+    # have reported both leagues healthy, indefinitely.
+    #
+    # ✅ NO NEW CRON, AND NO NEW MODE. The dossier is built inside
+    # `card-fb`, so this is a SECOND ROW under the mode that already
+    # exists and already carries `T["card"]` — exactly the shape
+    # `cfb-probe` and `nfl-logs` already use for their two files each.
+    # That also means it inherits the existing repair path rather than
+    # inventing one (`SAFE_REPAIRS` holds `card-fb` today).
+    # ⚠️ GATED THE SAME WAY THE CARD IS. Before a league's first paid
+    # pull there is no board, no card and no dossier; "cannot exist yet
+    # is not late" (rule 86) governs all three, and the `props.json.gz`
+    # filter below withdraws this row with the card it belongs to.
+    rows.append(
+        ("card-fb", ("file", f"{latest}/dossiers.json.gz"), T["card"], False,
+         "Dossier — all eight per-game checks"))
     # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
     # probe is `record.json` -- the file the Track Record tab reads.
     # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card
     # there is nothing for it to produce, and "cannot exist yet is not
     # late" (rule 86) governs here exactly as it does for the card.
-    if T.get("grade") and glob.glob(f"{picks}/fb-{league}-2*.json"):
+    # ══════════════════════════════════════════════════════════════
+    # 🔴🔴 THE GLOB IS `picks/`, NOT `{picks}` — THE SAME CALLER BUG THE
+    #      CARD ROW ABOVE ALREADY FIXED, LEFT IN THE LINE BELOW IT.
+    # ══════════════════════════════════════════════════════════════
+    # ~~`glob.glob(f"{picks}/fb-{league}-2*.json")`~~ **STRUCK
+    # 2026-09-19.** `collect.py` passes `PICKS`, which for football is
+    # `picks/nfl` / `picks/ncaaf` — **directories that do not exist** —
+    # while `card_fb.py` writes every card to a HARDCODED `picks/`.
+    # ⛔ So the glob matched NOTHING on every production run and this
+    # row was WITHDRAWN every time. `[measured 2026-09-19]`
+    #
+    #     picks=picks        -> 5 nfl / 10 ncaaf cards   row PRESENT
+    #     picks=picks/nfl    -> 0 cards                  row WITHDRAWN
+    #     picks=picks/ncaaf  -> 0 cards                  row WITHDRAWN
+    #
+    # …and the middle two are what the collector actually passes. The
+    # football grader has therefore been unwatched since the row was
+    # added to watch it — rule 78, inside the fix for rule 78.
+    # ⚠️ THE ROW ABOVE CARRIES THIS EXACT LESSON IN ITS OWN COMMENT
+    # ("a fact about a query is not a fact about the world") and the
+    # gate two lines below it was never brought along.
+    # ✅ `test_fb_freshness.py` §8 now asks it of EVERY row rather than
+    # only of `card-fb`, which is how this surfaced.
+    if T.get("grade") and glob.glob(f"picks/fb-{league}-2*.json"):
         rows.append(
             ("fb-record", ("file", f"{latest}/record.json"), T["grade"], False,
              "Track Record — the board's own graded record"))
