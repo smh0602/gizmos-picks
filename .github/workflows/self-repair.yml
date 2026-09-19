@@ -131,7 +131,14 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      # 🔴🔴 `issues: read` — WITHOUT IT THE WHOLE GATE STANDS DOWN, SILENTLY.
+      # 🔴🔴 THE `issues` READ SCOPE — WITHOUT IT THE WHOLE GATE
+      # STANDS DOWN, SILENTLY.
+      # ⚠️ The scope is named here WITHOUT its value on purpose:
+      #    `test_gh_permissions.py` declares a mutation whose `find:` is
+      #    the literal `issues:<space>read`, and `vacuity.py` requires it
+      #    to occur EXACTLY ONCE in this file. Spelling it out in prose
+      #    as well made the mutation AMBIGUOUS, which the harness reports
+      #    as MALFORMED rather than clean. ⛔ Do not re-add it.
       # `[measured 2026-09-19 on the DEPLOYED run 35424213172]` this job
       # printed `open watcher issues: 0` at 05:32:22Z while issue #80 was
       # open and carried the label. The same query asked with a token that
