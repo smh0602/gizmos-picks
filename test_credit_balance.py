@@ -460,6 +460,59 @@ note("live reading: %s left as of %s, floor %s, state %s"
      % (_cr.get("balance"), _cr.get("pulled_at"),
         _cr.get("reserve"), _cr.get("state")))
 
+# ═══════════════════════════════════════════════════════════════════════
+# 🔴🔴 6b. "REPORTED EVEN WHEN IT IS NOT A FINDING" — DRIVEN ON A REPORT
+#      THAT GENUINELY HAS NO FINDINGS, NOT ON TODAY'S LIVE TREE.
+# ═══════════════════════════════════════════════════════════════════════
+# ⛔ THIS FILE'S OWN DECLARED MUTATION WENT **VACUOUS** ON 2026-09-19,
+#    AND NOTHING IN IT WAS EDITED. `[measured]` the declaration
+#
+#        find:     if getattr(rep, "note_credits", None):
+#        with:     if getattr(rep, "note_credits", None) and rep.items:
+#
+#    dropped the reading from `run()`'s report **only when the report
+#    carries no findings** — so it turned this file red only because
+#    `_out = W.run(NOW)` above was measuring a LIVE REPO that happened to
+#    be finding-free. The watchdog's freshness check was reading a key
+#    nothing writes, so it reported nothing; the moment that was fixed
+#    the live tree carried a real DEGRADED row, `rep.items` was truthy,
+#    and the mutation stopped changing anything.
+#
+# 🔴 THE GUARD'S BITE DEPENDED ON THE STATE OF PRODUCTION DATA. It
+#    would have gone vacuous the first time anything on the real tree
+#    went stale — no code change required, and nothing would have said
+#    so except `vacuity.py`, which is where it did say so.
+#
+# ✅ SO THE CONDITION IS BUILT, NOT WAITED FOR: a synthetic tree with one
+#    healthy reading, and `CHECKS` narrowed to the credit check alone so
+#    the report has zero findings BY CONSTRUCTION. ⛔ This is strictly
+#    harder than what it replaces — the old form could only ask the
+#    question on days the repo happened to be clean; this one asks it
+#    every day. The live-repo checks above are KEPT, as an observation
+#    about today rather than as this guard's driver.
+_SAVED_CHECKS = W.CHECKS
+with Tree(reserve=750) as t:
+    t.pull(hours_ago(1), 12000)
+    try:
+        W.CHECKS = [W.check_credit_balance]
+        _sout = W.run(NOW)
+    finally:
+        W.CHECKS = _SAVED_CHECKS
+ck("⚠️ the synthetic report really does carry NO findings",
+   _sout.get("healthy") is True and not _sout.get("findings"),
+   "⛔ rule 67 — with a finding present the mutation below changes "
+   "nothing and the check proves nothing, which is exactly how this "
+   "went vacuous. findings=%s" % (_sout.get("findings"),))
+ck("🔴🔴 ...and the READING IS IN THE REPORT ANYWAY",
+   isinstance(_sout.get("credits"), dict)
+   and _sout["credits"].get("balance") == 12000,
+   "⛔ a balance that only appears once it is already a problem cannot "
+   "be watched CLOSING. credits=%s" % (_sout.get("credits"),))
+ck("⚠️ ...and CHECKS was put back, so nothing below reads a stub",
+   W.CHECKS is _SAVED_CHECKS and len(W.CHECKS) > 1,
+   "⛔ module state left swapped is a fixture leaking into every later "
+   "check. len=%d" % len(W.CHECKS))
+
 
 # ══════════════════════════════════════════════════════════════════════
 section("7. ⛔ A SNAPSHOT WITH NO NUMBER IS NOT A BALANCE OF NONE")
