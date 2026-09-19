@@ -63,6 +63,28 @@ jobs:
 
       - name: Is the CFBD quota going to run out?
         id: look
+        # ══════════════════════════════════════════════════════════════
+        # 🔴🔴 THE PLAN IS AN ACCOUNT FACT AND BELONGS IN THE DEPLOYMENT,
+        #      NOT IN THE CODE.
+        # ══════════════════════════════════════════════════════════════
+        # ⛔ `cfbd_budget.py` reads `CFBD_PLAN` with a `1000` default and
+        # NO WORKFLOW SET IT — `grep -rn CFBD_PLAN .github/workflows/`
+        # returned nothing. So every scheduled run has printed
+        # **"906/month against a 1000 plan — 91%"** against a plan that
+        # does not exist, and that false alarm is what made this urgent.
+        # ✅ Sam's key is the 3,000 academic tier. The same 906 is **30%**.
+        # ✅ AND CFBD'S OWN HEADER AGREES, which is the check that
+        # matters: 2,236 remaining of 3,000 is 764 used over 18 days
+        # since the 09-01 reset — 42/day, ~1,265/month, **42% of plan**.
+        # ⛔ THE `1000` DEFAULT STAYS PUT, deliberately. It is the
+        # "nobody told me" value. Moving the real number into the code
+        # would put an account fact back in a file — which is the defect,
+        # not the wrong default.
+        # ⚠️ `test_cfbd_watch.py` derives the workflows that run this from
+        # the workflow files and fails if one of them omits `CFBD_PLAN`,
+        # so the next one to call it cannot silently inherit 1000.
+        env:
+          CFBD_PLAN: "3000"
         run: |
           set +e
           # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.

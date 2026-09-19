@@ -70,6 +70,7 @@ import urllib.request
 
 import ranking as _ranking   # the shared tie-aware ranker
 import possession as _poss  # the shared coverage/share maths, both leagues
+import daystore as _day     # the ONE dated write-once archive writer
 
 API = "https://api.collegefootballdata.com"
 KEY = os.environ.get("CFBD_API_KEY", "").strip()
@@ -223,6 +224,69 @@ def quota_report():
     return {"kind": "DIAGNOSTIC", "quota_headers_seen": QUOTA["seen"],
             "headers": dict(QUOTA["headers"]), "checked_at": QUOTA["at"],
             "note": QUOTA["note"]}
+
+
+def cost_block():
+    """What this run spent and what CFBD said about it. ⛔ ONE COPY.
+
+    ⚠️ `calls_made` and `quota` only mean something TOGETHER. Our count
+    without CFBD's leaves the gap between them invisible; CFBD's without
+    ours leaves it unattributable. `[measured 2026-09-19]` the only two
+    quota readings in the whole repository are 23 hours apart and show
+    138 calls, while our own counter recorded ZERO in that window —
+    because `calls_made` lands in a handful of artifacts and none of them
+    is timestamped inside it, so the two numbers cannot be differenced at
+    all.
+    """
+    return {"calls_made": CALLS["n"], "quota": quota_report()}
+
+
+def record_quota(data, log=log, when=None):
+    """Persist the quota reading this run received. ⛔ NO NEW CALL.
+
+    🔴🔴 THE HEADER ARRIVES ON CALLS WE ALREADY MAKE AND WAS BEING
+    THROWN AWAY. `_record_quota()` has captured it on every response —
+    **including 429s** — since the module was written, and
+    `quota_report()` has returned it. It was only ever written into a
+    few PROBE artifacts, so all of history holds two readings.
+
+    ⚠️ IT IS WRITTEN EVEN WHEN NOTHING WAS CALLED, with `calls_made: 0`
+    and the note CFBD's silence earned. ⛔ An absent block is
+    indistinguishable from a run that never happened, and "CFBD sent no
+    quota header" is a finding ABOUT CFBD — this module's own docstring
+    says so — not an absence to drop on the floor.
+
+    ⚠️ AND IT CARRIES ITS OWN TIMESTAMP, which is the whole point. A
+    reading with no time on it cannot be differenced against the next
+    one, and a series that cannot be differenced is not a measurement.
+    """
+    doc = dict(cost_block())
+    doc["kind"] = "DIAGNOSTIC"
+    doc["recorded_at"] = (when or datetime.datetime.now(
+        datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    doc["note"] = ("What CFBD's own header said about the key's remaining "
+                   "quota, and how many calls this run made. ⛔ Read TOGETHER "
+                   "— either alone cannot be differenced against the next "
+                   "reading. ⛔ No model, no projection: this is what the "
+                   "API said.")
+    latest = os.path.join(data, "latest")
+    try:
+        os.makedirs(latest, exist_ok=True)
+        with open(os.path.join(latest, "cfbd-quota.json"), "w",
+                  encoding="utf-8") as fh:
+            json.dump(doc, fh, indent=1)
+        # ⚠️ AND A DATED COPY, because `latest/` is overwritten every run
+        #    and a series that only ever holds its newest point is not a
+        #    series. ⛔ `daystore` is the ONE dated write-once writer
+        #    (rule 117); it refuses `picks/` by construction.
+        _day.archive(doc, data, "cfbd-quota", log, when)
+    except Exception as e:
+        # ⛔ RECORDING WHAT A RUN COST MUST NEVER BREAK THE RUN. This is a
+        #    diagnostic riding along; the collector's job is the product.
+        log("    ⚠️ the quota reading did not write: %s: %s"
+            % (type(e).__name__, e))
+        return None
+    return doc
 
 
 def get(path, params, timeout=90, tries=4):
@@ -2101,7 +2165,7 @@ def coaches_probe(log=log, season=None):
             f"evidence about THIS REQUEST — the key's tier, the year, the "
             f"path — and NOT proof the endpoint does not exist. Re-ask "
             f"before concluding anything about CFBD.")
-        out["cost"] = {"calls_made": CALLS["n"], "quota": quota_report()}
+        out["cost"] = cost_block()
         _write_coaches_probe(out, log)
         return True
     except Exception as e:
@@ -2109,7 +2173,7 @@ def coaches_probe(log=log, season=None):
         out["error"] = {"exception": f"{type(e).__name__}: {e}"}
         out["verdict"] = ("The call did not complete, so NOTHING was "
                           "learned about /coaches. ⛔ Not an answer.")
-        out["cost"] = {"calls_made": CALLS["n"], "quota": quota_report()}
+        out["cost"] = cost_block()
         _write_coaches_probe(out, log)
         return True
 
@@ -2120,7 +2184,7 @@ def coaches_probe(log=log, season=None):
                           f"{type(rows).__name__} and not a list of rows. "
                           f"The shape has to be read before anything else "
                           f"here is meaningful.")
-        out["cost"] = {"calls_made": CALLS["n"], "quota": quota_report()}
+        out["cost"] = cost_block()
         _write_coaches_probe(out, log)
         return True
 
