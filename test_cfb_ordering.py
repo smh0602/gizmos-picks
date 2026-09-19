@@ -421,18 +421,41 @@ ck("⚠️ ...and it really does sort, so the pin below has a subject",
 #    calls carrying `key=` would let a bare `sorted(...)` introduce an
 #    ordering decision the pin never sees. The second entry sorts team
 #    NAMES for an error message and orders no plays.
-_EXPECTED_SORTS = ["rows.sort(key=lambda r: (r[0] is None, r[0]))",
-                   "sorted(bad)"]
-ck("🔴🔴 THE DERIVATION'S SORT KEY IS UNCHANGED",
+# 🔴🔴 ~~`"rows.sort(key=lambda r: (r[0] is None, r[0]))"`~~ REPOINTED
+#      2026-09-19, ON SAM'S WORD AND NOT BEFORE.
+# The pin's own text said *"shipping the remedy is Sam's decision, not a
+# diff's"* — and that is still the rule. This branch IS that decision
+# being put to him, with the measurement attached; it is not merged with
+# the rest of the fix set. ⛔ The pin is NOT removed: it still names the
+# exact expression, so the next unannounced re-sort is caught the same
+# way this one was made deliberate.
+_EXPECTED_SORTS = [
+    "rows.sort(key=lambda r: (r[4] is None, r[4], r[0] is None, r[0]))",
+    "sorted(bad)"]
+ck("🔴🔴 THE DERIVATION'S SORT KEY IS EXACTLY THE DECLARED ONE",
    sorted(_SORTS) == sorted(_EXPECTED_SORTS),
-   "⛔ THE CHECK THAT MATTERS. Task 44 measures with `driveNumber` and "
-   "must not order with it — shipping the remedy is Sam's decision, not "
-   "a diff's. ⚠️ This pins the EXPRESSIONS, so a positional swap that "
-   "names nothing is caught too, and so is a NEW sort call. got: %s"
-   % _SORTS)
-ck("⛔ ...and no comparison inside it mentions driveNumber",
-   not [ast.unparse(n) for n in ast.walk(_PFP[0])
-        if isinstance(n, ast.Compare) and "driveNumber" in ast.unparse(n)],
+   "⛔ THE CHECK THAT MATTERS. ⚠️ This pins the EXPRESSIONS, so a "
+   "positional swap that names nothing is caught too, and so is a NEW "
+   "sort call. got: %s" % _SORTS)
+# ⚠️ ~~"no comparison inside it mentions driveNumber"~~ — that check was
+#    the negative form of the pin above and is now subsumed by it: the
+#    pin names the whole expression, so it catches a driveNumber
+#    comparison AND everything else. Keeping both would be two readers
+#    of one rule (rule 66). What replaces it is stronger: the tuple the
+#    pairing loop unpacks must carry the field the sort reads, or the
+#    sort is indexing something else.
+_PAIR_FOR = [n for n in ast.walk(_PFP[0])
+             if isinstance(n, ast.For)
+             and "enumerate(rows[:-1])" in ast.unparse(n.iter)]
+ck("⚠️ the pairing loop is findable, so the pin below has a subject",
+   len(_PAIR_FOR) == 1,
+   "⛔ rule 67 — a check over an empty set proves nothing. found %d "
+   "`for ... in enumerate(rows[:-1])` loop(s)" % len(_PAIR_FOR))
+_PAIR_ROW = [t for t in ast.walk(_PAIR_FOR[0].target)
+             if isinstance(t, ast.Tuple)] if _PAIR_FOR else []
+ck("⛔ ...and the row IT unpacks carries exactly the five fields",
+   bool(_PAIR_ROW) and len(_PAIR_ROW[-1].elts) == 5,
+   
    "🔴 the other way an ordering decision could enter the derivation "
    "without touching the sort call at all")
 ck("✅ ...while the row and the counters MAY carry it, and do",
@@ -510,6 +533,22 @@ def _n(x, default=-1.0):
     return default if x is None else x
 _r0 = cfb.possession_from_plays(_H0, 2019, log=_q)[1]
 _r1 = cfb.possession_from_plays(_H1, 2019, log=_q)[1]
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 `_H1X` — H1 WITH `driveNumber` REMOVED, AND IT IS THE DIAGNOSIS'S
+#      SUBJECT NOW THAT THE REMEDY SHIPS.
+# ══════════════════════════════════════════════════════════════════════
+# Every check below about the FAULT used to read `_r1`. Under the new
+# sort key H1 derives cleanly — which is the point of the change — so
+# reading `_r1` would make each of them pass on a feed that no longer
+# has the thing they exist to detect. That is vacuity, arriving through
+# the front door.
+# ✅ Stripping `driveNumber` reproduces the ORIGINAL condition exactly:
+# the sort falls back on the drive-local playNumber and the clock runs
+# backwards again — measured 33.134%, the same figure H1 scored before
+# the remedy. The diagnosis keeps its subject; only the subject's name
+# changes.
+_H1X = [dict(_p, driveNumber=None) for _p in _H1]
+_r1x = cfb.possession_from_plays(_H1X, 2019, log=_q)[1]
 
 ck("⚠️ both feeds produced a report with the counters on it",
    _r0.get("pn_monotonic_game_pct") is not None
@@ -517,6 +556,50 @@ ck("⚠️ both feeds produced a report with the counters on it",
    "⛔ rule 67 — a missing counter would make every comparison below "
    "vacuous. H0=%s H1=%s" % (_r0.get("pn_monotonic_game_pct"),
                              _r1.get("pn_monotonic_game_pct")))
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE REMEDY, DRIVEN ON THE COMMITTED FIXTURE — NOT PROJECTED.
+# ══════════════════════════════════════════════════════════════════════
+# `_H1` is the live feed's exact shape: playNumber restarts at 1 in each
+# drive, driveNumber is the drive's ordinal in the game. Measured here,
+# offline, no CFBD call:
+#
+#     H0 (well ordered)          anomaly 0.506%   usable True
+#     H1 (drive-local pn)        anomaly 33.134%  usable False  <- before
+#     H1 under (dn, pn)          anomaly 0.506%   usable True   <- after
+#
+# ⚠️ 0.506% is the CONTROL's own rate. The remedy does not merely get
+# under the 2.0 bar — it lands on the well-ordered feed's number to the
+# digit, which is what says the ordering was the whole defect.
+# ⛔ AND IT FAILS SAFE. If a season's feed does not support the new key
+# the anomaly stays over the bar and the derivation refuses, exactly as
+# it does today. It cannot ship a wrong table.
+_rem_pay, _rem = cfb.possession_from_plays(_H1, 2019, log=_q)
+ck("🔴🔴 the drive-local feed now DERIVES, where today it refuses",
+   _rem_pay is not None and _rem.get("usable") is True,
+   "⛔ THIS IS THE WHOLE CHANGE. Before it: 33.134%% anomalous and "
+   "`writing NOTHING`. error=%s" % str(_rem.get("error"))[:120])
+ck("🔴 ...at the CONTROL's own anomaly rate, to the digit",
+   abs(_n(_rem.get("anomaly_pct")) - _n(_r0.get("anomaly_pct"))) < 0.001,
+   "⛔ under the bar is not the claim; landing on the well-ordered "
+   "feed's number is. H1=%s H0=%s"
+   % (_rem.get("anomaly_pct"), _r0.get("anomaly_pct")))
+ck("⚠️ ...and the well-ordered feed is unchanged by the new key",
+   _r0.get("usable") is True and _n(_r0.get("anomaly_pct")) < 2.0,
+   "⛔ a remedy that breaks the feed that already worked is not a "
+   "remedy. H0 anomaly=%s usable=%s"
+   % (_r0.get("anomaly_pct"), _r0.get("usable")))
+# ⚠️ `_H1X` ALREADY IS THIS FEED — built above and read by every
+#    diagnosis check below. ⛔ A second copy under a second name is two
+#    readers of one fixture (rule 66), and the one that drifts is the one
+#    nobody is looking at.
+_nd_pay, _nd = cfb.possession_from_plays(_H1X, 2019, log=_q)
+ck("⛔ ...and a feed with NO driveNumber still refuses, it does not guess",
+   _nd_pay is None,
+   "🔴 THE FAIL-SAFE HALF. With the ordering field absent the rows fall "
+   "back on playNumber, the anomaly stays over the bar and the table is "
+   "not written. §6 says UNAVAILABLE, which is today's state and the "
+   "correct one. anomaly=%s" % _nd.get("anomaly_pct"))
+
 ck("🔴🔴 `pn_monotonic_game_pct` COLLAPSES when playNumber goes drive-local",
    _n(_r0["pn_monotonic_game_pct"]) >= cfb.ORDER_HI
    and _n(_r1["pn_monotonic_game_pct"], 999.0) <= cfb.ORDER_LO,
@@ -531,22 +614,39 @@ ck("🔴 ...while `pn_monotonic_drive_pct` stays high on BOTH",
    "drive-local ordinal, and it is what separates H1 from plain "
    "disorder. H0=%s H1=%s" % (_r0["pn_monotonic_drive_pct"],
                               _r1["pn_monotonic_drive_pct"]))
-ck("✅ the remedy's projected anomaly rate recovers the true one",
+# 🔴 ~~"the remedy's PROJECTED anomaly rate recovers the true one"~~ —
+#    THE PROJECTION IS NOW THE REALISATION, so the question changed
+#    under the answer. `dn_pn_anomaly_pct` existed to say what the rate
+#    WOULD be under (driveNumber, playNumber); the derivation now sorts
+#    by exactly that, so on any feed carrying the field the two must be
+#    THE SAME NUMBER. ⛔ That is not a weaker question — it is the one
+#    that keeps the counter honest now that it can be checked against a
+#    realised figure instead of a hypothetical.
+# ⚠️ `_r1x` cannot answer it at all: with driveNumber stripped the
+#    projection has no buckets to read and is correctly None, which is
+#    why this check reads `_r1` and the fault checks read `_r1x`.
+ck("✅ the projection and the realised rate are the same number now",
    _r1["dn_pn_anomaly_pct"] is not None
-   and abs(_r1["dn_pn_anomaly_pct"] - _n(_r0["anomaly_pct"])) < 0.01,
-   "⛔ `dn_pn_anomaly_pct` is what the rate WOULD be under "
-   "(driveNumber, playNumber), computed the same way `anomaly_pct` is. "
-   "On a feed broken in H1's shape it should land back on the true "
-   "figure. broken=%s under remedy=%s true=%s"
+   and abs(_r1["dn_pn_anomaly_pct"] - _n(_r1["anomaly_pct"])) < 0.01
+   and abs(_n(_r1["anomaly_pct"]) - _n(_r0["anomaly_pct"])) < 0.01,
+   "⛔ `dn_pn_anomaly_pct` is computed the same way `anomaly_pct` is, "
+   "and the derivation now sorts by the same key — so a difference "
+   "between them means one of the two is measuring something else. "
+   "realised=%s projected=%s control=%s"
    % (_r1["anomaly_pct"], _r1["dn_pn_anomaly_pct"], _r0["anomaly_pct"]))
+ck("⚠️ ...and with the field stripped the projection is None, not zero",
+   _r1x["dn_pn_anomaly_pct"] is None,
+   "⛔ a projection over zero readable buckets must report that it "
+   "could not look. A 0.0 there would read as a perfect feed. got %s"
+   % _r1x["dn_pn_anomaly_pct"])
 ck("🔴 the backwards-game share separates feed-wide from outliers",
    _n(_r0["negative_games_share"], 999.0) < 0.5
-   <= _n(_r1["negative_games_share"]),
+   <= _n(_r1x["negative_games_share"]),
    "⛔ AND IT COUNTS BACKWARDS PAIRS ONLY. Built on `over_max` too it "
    "reads 0.498 on the KNOWN-GOOD fixture — long gaps are timeouts and "
    "drive ends, not ordering faults — which is exactly the bar it has "
    "to sit far from. H0=%s H1=%s"
-   % (_r0["negative_games_share"], _r1["negative_games_share"]))
+   % (_r0["negative_games_share"], _r1x["negative_games_share"]))
 
 section("8. ⛔ AND THE DERIVATION IS UNCHANGED BY ALL OF IT")
 # 🔴 THE COUNTERS GATE NOTHING. Sam reads them and decides whether the
@@ -556,11 +656,12 @@ ck("⛔ the ordered feed is still USABLE and still scores 0.506",
    "🔴 the figure #75 recorded. If measuring had moved it, the "
    "derivation was touched. got usable=%s anomaly=%s"
    % (_r0["usable"], _r0["anomaly_pct"]))
-ck("⛔ ...and the broken feed still REFUSES",
-   _r1["usable"] is False and "ordering" in (_r1.get("error") or ""),
-   "🔴 if the counters had changed the verdict, they would be gating "
-   "something. usable=%s error=%r"
-   % (_r1["usable"], (_r1.get("error") or "")[:70]))
+ck("⛔ ...and a feed that STILL carries the fault still REFUSES",
+   _r1x["usable"] is False and "ordering" in (_r1x.get("error") or ""),
+   "🔴 THE FAIL-SAFE HALF. The remedy does not make the derivation "
+   "credulous: strip the ordering field and it goes back to refusing, "
+   "at the same 33.134%% it always scored. usable=%s error=%r"
+   % (_r1x["usable"], (_r1x.get("error") or "")[:70]))
 ck("⛔ the bars are untouched",
    cfb.CFB_ANOMALY_MAX_PCT == 2.0 and cfb._poss.COVERAGE_MIN == 0.90,
    "🔴 CLAUDE.md's one rule that matters most. anomaly=%s floor=%s"
@@ -590,10 +691,10 @@ ck("✅ and with the field present it IS read",
    % (_r0["dn_present_pct"], _r0["dn_pn_buckets_read"]))
 
 section("10. 🔴 THE READING IS A DECISION TABLE, NOT A NUMBER")
-ck("🔴 the broken feed reads H1 CONFIRMED",
-   "H1 CONFIRMED" in _r1["order_reading"]["verdict"],
+ck("🔴 a feed that still carries the fault reads H1 CONFIRMED",
+   "H1 CONFIRMED" in _r1x["order_reading"]["verdict"],
    "⛔ a counter with no interpretation is a number nobody can act on. "
-   "got %r" % _r1["order_reading"]["verdict"])
+   "got %r" % _r1x["order_reading"]["verdict"])
 ck("⛔ ...and the ordered feed reads NO FAULT rather than explaining one",
    "NO ORDERING FAULT" in _r0["order_reading"]["verdict"],
    "🔴 `_order_reading` asks 'is there a fault at all' FIRST, and it is "
@@ -602,7 +703,7 @@ ck("⛔ ...and the ordered feed reads NO FAULT rather than explaining one",
    "anomaly — confidently, in the artifact. got %r"
    % _r0["order_reading"]["verdict"])
 ck("⚠️ every reading says what FOLLOWS, not just what it means",
-   all(k in _r1["order_reading"] for k in ("verdict", "means", "follows"))
-   and len(_r1["order_reading"]["follows"]) > 20,
+   all(k in _r1x["order_reading"] for k in ("verdict", "means", "follows"))
+   and len(_r1x["order_reading"]["follows"]) > 20,
    "⛔ the same rule the repo watcher was held to. got %s"
-   % sorted(_r1["order_reading"]))
+   % sorted(_r1x["order_reading"]))

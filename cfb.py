@@ -1463,8 +1463,13 @@ def possession_from_plays(plays, season, log=log):
         # below is a real drive count, not a snap count wearing the NFL
         # side's field name. `driveId` is in the measured column list.
         dkey = (gid, p.get("driveId"))
+        # ⚠️ `driveNumber` TRAVELS ON THE ROW NOW, because it is part of
+        #    the ORDER. Task 44 deliberately kept it OUT of this tuple
+        #    while it was only being measured; ordering by it is the
+        #    whole of this change and the tuple has to carry it.
         buckets[(gid, int(per_))].append(
-            (p.get("playNumber"), (p.get("offense") or "").strip(), secs, dkey))
+            (p.get("playNumber"), (p.get("offense") or "").strip(), secs,
+             dkey, p.get("driveNumber")))
         # ══════════════════════════════════════════════════════════
         # 🔴 THE ORDERING EVIDENCE, COLLECTED ALONGSIDE AND NEVER
         #    INSIDE THE DERIVATION'S OWN BUCKETS.
@@ -1504,10 +1509,36 @@ def possession_from_plays(plays, season, log=log):
     per_game = collections.defaultdict(dict)
     drv_game = collections.defaultdict(lambda: collections.defaultdict(set))
     for (gid, _per), rows in buckets.items():
-        # ⚠️ ORDERED BY playNumber, which is the play's ordinal in the
-        # game. ⛔ Never by wallclock and never by list order alone.
-        rows.sort(key=lambda r: (r[0] is None, r[0]))
-        for a, (_n1, team, rem1, dkey) in enumerate(rows[:-1]):
+        # ══════════════════════════════════════════════════════════
+        # 🔴🔴 ~~ORDERED BY playNumber~~ — CHANGED 2026-09-19, ON THE
+        #      COUNTERS TASK 44 WAS BUILT TO PRODUCE.
+        # ══════════════════════════════════════════════════════════
+        # The old comment said *"playNumber, which is the play's ordinal
+        # in the game"*. `[measured 2026-09-19 on the live 2026 probe,
+        # 339 games, 59,462 rows]` **it is not**:
+        #
+        #     pn_monotonic_game_pct        0.0    <- never, in any game
+        #     pn_monotonic_drive_pct      22.9
+        #     dn_pn_monotonic_game_pct    68.73
+        #
+        # playNumber is a DRIVE-LOCAL ordinal. Sorting a whole period by
+        # it interleaves drives, and the clock then runs backwards:
+        #
+        #     anomaly_pct                 36.339   <- refuses, bar is 2.0
+        #     dn_pn_anomaly_pct            1.585   <- under the bar
+        #
+        # ⚠️ THOSE TWO ARE LIKE FOR LIKE: same rows, same buckets, same
+        # "backwards or longer than CFB_MAX_PLAY_SECS" rule — see
+        # `_order_counters`, which computes the second exactly as the
+        # pairing loop below computes the first. 1,356 buckets read, 0
+        # skipped for a missing driveNumber, which is present on 100.0%
+        # of rows.
+        # ✅ AND IT FAILS SAFE. If this reading is wrong the anomaly stays
+        # over the bar and the derivation refuses exactly as it does
+        # today — §6 stays UNAVAILABLE. It cannot ship a wrong table.
+        # ⛔ Still never by wallclock and never by list order alone.
+        rows.sort(key=lambda r: (r[4] is None, r[4], r[0] is None, r[0]))
+        for a, (_n1, team, rem1, dkey, _dn) in enumerate(rows[:-1]):
             rem2 = rows[a + 1][2]
             rep["pairs"] += 1
             elapsed = rem1 - rem2
