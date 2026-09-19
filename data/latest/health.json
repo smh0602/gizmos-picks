@@ -1,11 +1,19 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-19T18:01:01Z",
+ "checked_at": "2026-09-19T18:20:54Z",
  "et_date": "2026-09-19",
- "healthy": true,
+ "healthy": false,
  "broken": 0,
- "degraded": 0,
- "findings": [],
+ "degraded": 1,
+ "findings": [
+  {
+   "key": "fresh:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl tabs are showing data older than promised (nfl-logs)",
+   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  }
+ ],
  "repairs": [],
  "unrepairable": [],
  "credits": {
@@ -14,7 +22,7 @@
   "pulled_at": "2026-09-19T12:58:44Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 5.0,
+  "reading_age_hours": 5.4,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-09-19T12:58:44Z",
   "source": "data/ncaaf/2026-09-19/props-player/1258.json.gz",
