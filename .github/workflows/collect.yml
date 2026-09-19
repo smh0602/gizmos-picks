@@ -491,9 +491,38 @@ jobs:
           # CLAUDE.md — a guard that fires on correct code is the other
           # failure, not a safe one.
           PER_FILE=600
+          # 🔴🔴 ONE FILE NEEDS A DIFFERENT CLOCK, AND THE CLOCK WAS THE
+          #    THING ASKING THE WRONG QUESTION — NOT THE CHECK.
+          # `[measured 2026-09-19, isolated]` `test_vacuity.py` applies
+          # 141 declared mutations, runs the declaring test under each,
+          # and restores the tree: **18m16s, exit 0, 40 of 40 checks**.
+          # Against a 600s clock it can only ever be killed, and it has
+          # been — `collect.yml` has not had a green run since
+          # 2026-09-17T23:27 and this one line is why.
+          # ⛔ THE 600 WAS NOT WRONG WHEN IT WAS WRITTEN. The comment
+          #    above derives it as "5.2x the slowest measured file", and
+          #    the slowest file then was `test_box_live.py` at 115s. A
+          #    sweep is not that shape. `CLAUDE.md`: a check may change
+          #    when it asks the WRONG QUESTION — and "did this finish
+          #    inside 5x the slowest UNIT test" is the wrong question to
+          #    ask a mutation sweep.
+          # ⛔ THE SWEEP ITSELF IS UNTOUCHED — not shortened, not
+          #    sampled, not skipped. 2400s is 2.2x its measured cost,
+          #    the same margin 600 gave the file it was fitted to.
+          # ⚠️ AND NO BUDGET MAY BE LOWERED. `test_suite_clock.py` drives
+          #    this function and fails if any file's clock drops below
+          #    the default, so this cannot become a way to let a slow
+          #    file off.
+          budget_for() {   # $1 = file
+            case "$1" in
+              test_vacuity.py) echo 2400 ;;
+              *)               echo "$PER_FILE" ;;
+            esac
+          }
           run_one() {   # $1 = runner, $2 = file
-            local s=$(date +%s) trc=0
-            timeout -k 15 "$PER_FILE" "$1" "$2" || trc=$?
+            local s=$(date +%s) trc=0 lim
+            lim=$(budget_for "$2")
+            timeout -k 15 "$lim" "$1" "$2" || trc=$?
             local d=$(( $(date +%s) - s ))
             if [ "$trc" = "124" ] || [ "$trc" = "137" ]; then
               # 🔴 "NEVER ANSWERED" IS NOT "FAILED". A red assertion tells
@@ -501,7 +530,7 @@ jobs:
               # came back, and conflating them sends the reader hunting
               # for a bug that may not exist.
               rc=1; failed="$failed $2(TIMEOUT)"
-              echo "::error::$2 TIMED OUT after ${PER_FILE}s — it did not fail, it never answered"
+              echo "::error::$2 TIMED OUT after ${lim}s — it did not fail, it never answered"
             elif [ "$trc" != "0" ]; then
               rc=1; failed="$failed $2"
               echo "::error::$2 FAILED"
