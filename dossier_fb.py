@@ -158,6 +158,16 @@ def _jz(path):
         return None
 
 
+def _j(path):
+    """The same, for a file that is NOT gzipped. ⚠️ The probes are plain
+    JSON on purpose — they exist to be READ, and a gzipped diagnostic is
+    a diagnostic nobody opens."""
+    try:
+        return json.load(open(path, encoding="utf-8"))
+    except Exception:
+        return None
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE LEAGUES THIS BUILDS. `[ncaaf added 2026-09-17]`
 # ⛔ The college board carried **88 games with no signals 1-8 at all** —
@@ -770,16 +780,80 @@ def s_possession(home, away, this_season, data=None, missing=None):
         # "it happens to agree" is what this repo stops trusting.
         _lg = os.path.basename((data or DATA).rstrip(os.sep)).strip().lower()
         if _lg != "nfl":
+            # ══════════════════════════════════════════════════════
+            # 🔴🔴 ~~"Not enough college games have been played yet...
+            # roughly the fourth week of the season, and this is the
+            # third."~~ REWRITTEN `[2026-09-19]`
+            # ══════════════════════════════════════════════════════
+            # ⛔ IT NAMED A CAUSE THAT WAS NOT THE CAUSE. `[measured
+            # 2026-09-18]` 336 games' worth of plays were fetched and
+            # parsed — 10,132 drives, 299 teams, nothing unparsed. The
+            # derivation REFUSED, over a play-ordering anomaly. The
+            # coverage floor was never the binding constraint and the
+            # week-4 estimate had been struck from the validation notes
+            # the day before.
+            # ⛔ AND IT WAS A CONSTANT ON `if _lg != "nfl"`, reading no
+            # data at all, so it could never become true or false. In
+            # week 10 it would still have said "this is the third".
+            # ➡️ A sentence that cannot be wrong cannot be right either.
+            # It is not a measurement, it is a caption.
+            # ✅ THE PROBE IS ALREADY ON DISK AND ALREADY DISTINGUISHES
+            # THE CASES, so this is derived. It is written in the voice
+            # the NFL branch below was rewritten into on 2026-09-17,
+            # which exists for exactly this class of mistake.
+            # ⛔ AND THE REFUSAL TEXT DOES NOT NAME WHICH CHECK REFUSED.
+            # Today it is the play ordering; tomorrow it could be the
+            # coverage floor, and a string asserting one of them is the
+            # defect above wearing a newer coat. The probe's OWN words
+            # go in `remedy`, which the page does not print.
+            _probe = _j(os.path.join(data or DATA, "latest",
+                                     "top-probe-%d.json" % this_season))
+            if _probe is None:
+                # ⚠️ SAME SITUATION AS THE NFL BRANCH, so the same
+                #    sentence: nothing ran, or the clock was too thin,
+                #    and we do not claim to know which.
+                return unavailable(
+                    6, "Time of possession",
+                    "No time-of-possession figures are stored for the %d "
+                    "college season yet. They are worked out from the game "
+                    "clock rather than read off a stat sheet, and a table "
+                    "is only kept when enough of the clock could be read — "
+                    "so this is either a build that has not run or a season "
+                    "whose clock is too patchy to use, and we are not "
+                    "claiming to know which." % this_season,
+                    "run the college log build; the possession probe beside "
+                    "the table says whether the job never ran or the clock "
+                    "was too thin")
+            if not _probe.get("usable"):
+                # ✅ THE REFUSAL IS DELIBERATE AND READS LIKE IT. A blank
+                #    section looks broken; a guard that declined to
+                #    publish a number it could not stand behind is a
+                #    feature, and the reader is entitled to know that is
+                #    what happened.
+                return unavailable(
+                    6, "Time of possession",
+                    "This season's college games have been read, and a "
+                    "check this build runs before publishing turned the "
+                    "result down — the timings it works from did not hold "
+                    "together well enough to trust. Nothing is shown here "
+                    "rather than a number we would not stand behind, which "
+                    "is that check doing its job.",
+                    "the possession probe for %d records the refusal and "
+                    "its reason: %s"
+                    % (this_season,
+                       (_probe.get("error") or "no reason recorded")))
+            # ⚠️ THE PROBE SAYS THE TABLE WAS USABLE AND THERE IS NO
+            #    TABLE. That is a gap in the build, not in the data, and
+            #    saying so is different from both cases above.
             return unavailable(
                 6, "Time of possession",
-                "Not enough college games have been played yet. College "
-                "possession is worked out from the game clock rather than "
-                "read off a stat sheet, and it needs about 80 teams' worth "
-                "of well-timed games before it is worth showing — that is "
-                "roughly the fourth week of the season, and this is the "
-                "third.",
-                "it starts filling in on its own once a few more weekends "
-                "have been played")
+                "Time-of-possession figures were worked out for the %d "
+                "college season but have not reached this page. That is a "
+                "gap in how the numbers are moved around rather than a gap "
+                "in the numbers themselves, and we would rather say so "
+                "than leave the section looking empty." % this_season,
+                "the probe reports a usable table but none is stored "
+                "beside it — check the write step of the college log build")
         # ══════════════════════════════════════════════════════════
         # 🔴 ~~"No `top-2026.json.gz` under `data/` yet..."~~ REWRITTEN
         # `[2026-09-17, when the page started printing these]`
