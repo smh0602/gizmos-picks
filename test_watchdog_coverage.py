@@ -39,6 +39,43 @@ DAY = F.et_date(F.last_due(F.CARD, NOW))
 OLD = W.ROOT
 ROWS = []
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE FRESHNESS FIXTURE IS TAKEN FROM A REAL CONTRACT, NOT TYPED.
+# ══════════════════════════════════════════════════════════════════════
+# `[found 2026-09-19 by the audit]` this file used to hand the watchdog
+#     {"ok": False, "rows": [{"key": "props-player", "stale": True}]}
+# and scored the row CAUGHT. `collect.py` writes that artifact with the
+# key **`artifacts`**, and its rows carry **`mode`**, not `key` — so the
+# fixture had been built to match the READER'S MISTAKE, and the matrix
+# certified coverage of a check that had never once run in production.
+# ⛔ That is the exact trap this file's own header warns about: a fixture
+# shaped wrong makes the matrix unable to measure.
+# ✅ So the shape now comes from an artifact the collector actually
+# wrote. A fixture nobody types cannot drift from the writer again.
+def _real_contract():
+    for sub in ("latest", "ncaaf/latest", "nfl/latest"):
+        p = os.path.join(OLD, "data", sub, "freshness.json")
+        if os.path.exists(p):
+            with open(p, encoding="utf-8") as fh:
+                return json.load(fh)
+    return None
+
+
+_CONTRACT = _real_contract()
+
+
+def fresh_doc(stale):
+    """A real freshness contract with every row fresh, or one stale."""
+    doc = dict(_CONTRACT or {})
+    rows = [dict(r) for r in (doc.get("artifacts") or [])]
+    for r in rows:
+        r["stale"], r["missing"] = False, False
+    if stale and rows:
+        rows[0]["stale"] = True
+    doc["artifacts"] = rows
+    doc["ok"] = not stale
+    return doc
+
 
 
 def healthy_tree():
@@ -57,7 +94,7 @@ def healthy_tree():
             "date": dt, "picks": [], "game_lines": [], "top_plays": [],
             "game_lines_meta": {"slate": dt}})
     for sub in ("latest", "ncaaf/latest", "nfl/latest"):
-        w(d, "data/%s/freshness.json" % sub, {"ok": True, "rows": []})
+        w(d, "data/%s/freshness.json" % sub, fresh_doc(False))
         w(d, "data/%s/record.json" % sub, {"n": 1})
     # 🔴 THE REAL PAGE, COPIED IN. Without it `page:missing` fires on
     #    EVERY case including the control — and a check that fires on
@@ -94,6 +131,26 @@ def case(name, what_reader_sees, mutate):
 
 
 # ── sanity ──────────────────────────────────────────────────────────
+# ⛔ AND THE FIXTURE IS PROVED TO BE THE REAL SHAPE BEFORE ANY ROW USES
+#    IT. Without this the matrix could quietly go back to certifying a
+#    check against a document the collector never writes — which is what
+#    it did for as long as this file existed (rule 67).
+_probe = fresh_doc(True)
+ck("🔴🔴 the freshness fixture comes from a contract the collector wrote",
+   bool(_CONTRACT) and "artifacts" in _probe and _probe["artifacts"]
+   and "mode" in _probe["artifacts"][0]
+   and "stale" in _probe["artifacts"][0],
+   "⛔ this file used to type `{\"rows\": [{\"key\": ...}]}` by hand — "
+   "the READER's mistaken shape — and scored the row CAUGHT. A fixture "
+   "nobody types cannot drift from the writer again. got %r"
+   % (sorted(_probe.get("artifacts", [{}])[0]) if _probe.get("artifacts")
+      else _probe,))
+ck("⚠️ ...and exactly one row in it is stale",
+   sum(1 for r in _probe["artifacts"] if r.get("stale")) == 1,
+   "⛔ a fixture with nothing stale makes the row below pass for the "
+   "wrong reason. got %d"
+   % sum(1 for r in _probe.get("artifacts", []) if r.get("stale")))
+
 case("CONTROL — nothing wrong", "a correct page", lambda d: None)
 
 # ── the ones it was built for ───────────────────────────────────────
@@ -112,8 +169,7 @@ case("football picks on another day", "a Saturday row on a Sunday card",
                   "picks": [{"commence": "2026-09-20T17:00:00Z"}],
                   "game_lines_meta": {"slate": "2026-09-13"}}))
 case("freshness contract reports stale", "tabs showing old data",
-     lambda d: w(d, "data/ncaaf/latest/freshness.json",
-                 {"ok": False, "rows": [{"key": "props-player", "stale": True}]}))
+     lambda d: w(d, "data/ncaaf/latest/freshness.json", fresh_doc(True)))
 case("football card file gone", "football Gizmo's Picks empty",
      lambda d: os.remove(os.path.join(d, "picks/fb-nfl-latest.json")))
 

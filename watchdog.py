@@ -639,10 +639,26 @@ def check_freshness(rep, now):
         f = _read(os.path.join(ROOT, d, "latest", "freshness.json"))
         if not f:
             continue
-        stale = [r for r in (f.get("rows") or []) if r.get("stale")]
+        # 🔴🔴 `artifacts`, NOT `rows` — AND THIS CHECK HAD NEVER RUN.
+        # `[measured 2026-09-19]` `collect.py:4851` writes this file with
+        # the key **`artifacts`**. This line asked for `rows`, got None
+        # on every league on every pass, and `continue`d — so the
+        # watchdog reported `healthy: true` with zero findings at
+        # 07:53:58Z while `verify_freshness.py` was printing
+        # `FAIL — 2 artifact(s) past due` for the same tree.
+        # ⛔ Two graders of one question, and the one that summons the
+        # repair agent was the one saying healthy. Rule 67, shipped.
+        # ⚠️ AND THE ROW KEY WAS WRONG TOO: the rows carry `mode`, not
+        # `key`, so even a corrected container would have printed
+        # "None tabs are showing data older than promised".
+        # ✅ `test_artifact_keys.py` guards the class — every key any
+        # module reads off a repo-written artifact must exist in the
+        # artifact on disk — and drives this function on a synthetic
+        # contract, which is the half that would have caught it.
+        stale = [r for r in (f.get("artifacts") or []) if r.get("stale")]
         if not stale:
             continue
-        names = ", ".join(sorted({str(r.get("key")) for r in stale})[:6])
+        names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
         # ⛔ NO REPAIR NAMED, ON PURPOSE. The converge loop in this same
         #    job is what repairs staleness, and it has already run by the
         #    time the watchdog looks. Naming `converge` here would have
