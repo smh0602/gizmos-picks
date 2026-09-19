@@ -27,6 +27,7 @@ coverage and share maths that both leagues call. `test_cfb_possession.py`
 owns the college derivation that produces the seconds in the first place.
 """
 import collections
+import copy
 import gzip
 import json
 import math
@@ -270,6 +271,60 @@ ck(_nrep["recovered_from_later_row"] == 0 and _nrep["unparsed"] == 0,
    "written when this keyed on `fixed_drive`, where it 'recovered' 18 "
    "drives — an artifact of the wrong grouping, not a source quirk. "
    "Every real drive carries its time on its first row.")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 AND THAT DEAD BRANCH IS NOW DRIVEN, BECAUSE SAYING IT IS DEAD IS
+#      NOT THE SAME AS KNOWING IT WORKS.
+# ══════════════════════════════════════════════════════════════════════
+# `vacuity.py` has reported this file since 2026-09-16:
+#
+#   test_possession.py still PASSES under the mutation it declares
+#   (nfl.py: `... for x in rows)` -> `... for x in rows[:1])`)
+#
+# ⛔ And it was right. The check above asserts the counter is ZERO on
+# clean data, which is true whether the scan reads every row of a drive
+# or only the first. **A branch nothing exercises is a branch that will
+# be wrong the day it matters** — and the day it matters is the day
+# nflverse ships a drive whose first row has no time on it.
+# ⛔ STRENGTHENED, NEVER DELETED: `vacuity.py` says Sam decides what
+#    happens to a weak guard, and the only automatically-right edit is a
+#    harder one.
+# ✅ Three real drives have the time blanked on their FIRST row only.
+#    The later rows still carry it, so a scan that reads the whole drive
+#    recovers all three and loses nothing; a scan that reads `rows[:1]`
+#    reports three unparsed drives and zero recoveries.
+_GAP = copy.deepcopy(_NS["rows"])
+_bydrv = {}
+for _i, _r in enumerate(_GAP):
+    if _r.get("drive_time_of_possession"):
+        _bydrv.setdefault(
+            (_r.get("game_id"), _r.get("fixed_drive") or _r.get("drive")),
+            []).append(_i)
+_multi = [_ix for _ix in _bydrv.values() if len(_ix) >= 2][:3]
+for _ix in _multi:
+    _GAP[_ix[0]]["drive_time_of_possession"] = ""
+ck(len(_multi) == 3,
+   "⚠️ three real drives were found with a time on more than one row",
+   "⛔ rule 67 — with nothing blanked the drive below asserts nothing. "
+   "found %d" % len(_multi))
+_gpay, _grep = nfl.possession_from_rows(_GAP, 2025, _QUIET)
+ck(_grep.get("recovered_from_later_row") == 3,
+   "🔴🔴 a drive whose FIRST row lost its time is recovered from a later one",
+   "⛔ THIS IS THE CHECK THAT MAKES THE BRANCH REAL. Reading only the "
+   "first row of a drive would report these three as unparsed and "
+   "silently drop their seconds out of the team's possession. Got "
+   "recovered=%s unparsed=%s"
+   % (_grep.get("recovered_from_later_row"), _grep.get("unparsed")))
+ck(_grep.get("unparsed") == 0,
+   "   ...and NOTHING is dropped as unparsed",
+   "⛔ a recovered drive that is also counted unparsed would mean the "
+   "seconds were lost anyway. Got %s" % _grep.get("unparsed"))
+ck(_gpay is not None and len(_gpay.get("teams") or {}) ==
+   len((_npay or {}).get("teams") or {}),
+   "   ...and the table still covers every team it did before",
+   "⛔ three blanked rows must not cost a team its row. %s vs %s"
+   % (len((_gpay or {}).get("teams") or {}),
+      len((_npay or {}).get("teams") or {})))
 ck(_nrep["games_withheld"] == 0,
    "✅ ...and the coverage floor withholds NOTHING here (%d of %d)"
    % (_nrep["games_withheld"], _nrep["games_seen"]),
