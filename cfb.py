@@ -1186,6 +1186,155 @@ def _clock_secs(p):
     return m * 60 + s
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE READINGS, AND WHAT EACH ONE MEANS. ⛔ A counter with no
+#    interpretation is a number nobody can act on.
+# ══════════════════════════════════════════════════════════════════════
+# ⚠️ THE BARS ARE NAMED so a test can drive either side of them rather
+#    than re-typing a literal that drifts out of step with the prose.
+ORDER_HI = 95.0      # "high" — effectively always true
+ORDER_LO = 50.0      # "low"  — true less than half the time
+
+
+def _nondecreasing(seq):
+    """-> (comparable, is_non_decreasing). ⛔ A sequence with fewer than
+    two comparable values is not evidence and is reported as such rather
+    than counted as a pass — that is how a denominator gets quietly
+    inflated by trivial cases."""
+    xs = [x for x in seq if x is not None]
+    if len(xs) < 2:
+        return False, False
+    return True, all(b >= a for a, b in zip(xs, xs[1:]))
+
+
+def _order_counters(rep, ord_game, ord_drive, ord_bucket, bad_games,
+                    neg_games, n_games, log=log):
+    """Answer #75's question on live rows. ⛔ Writes only to `rep`."""
+    # ── is `playNumber` a GAME ordinal, or does it restart per drive? ──
+    g_ok = g_n = 0
+    for _g, seq in ord_game.items():
+        comparable, ok = _nondecreasing([pn for pn, _dn in seq])
+        g_n += comparable
+        g_ok += comparable and ok
+    d_ok = d_n = 0
+    for _k, seq in ord_drive.items():
+        comparable, ok = _nondecreasing(seq)
+        d_n += comparable
+        d_ok += comparable and ok
+    rep["pn_monotonic_game_pct"] = round(100.0 * g_ok / g_n, 2) if g_n else None
+    rep["pn_monotonic_drive_pct"] = round(100.0 * d_ok / d_n, 2) if d_n else None
+    rep["pn_games_comparable"] = g_n
+    rep["pn_drives_comparable"] = d_n
+
+    # ── does (driveNumber, playNumber) recover a sane order? ──────────
+    # ⚠️ "SANE" IS THE CLOCK RUNNING DOWN, which is the same question the
+    #    derivation already asks of its own sort — so this is a
+    #    LIKE-FOR-LIKE figure and not a new bar.
+    b_ok = b_n = b_skip = 0
+    dn_pairs = dn_bad = 0
+    for _k, rows in ord_bucket.items():
+        if any(dn is None or pn is None for pn, dn, _s in rows):
+            b_skip += 1
+            continue
+        if len(rows) < 2:
+            continue
+        ordered = sorted(rows, key=lambda r: (r[1], r[0]))
+        clocks = [sec for _pn, _dn, sec in ordered]
+        b_n += 1
+        b_ok += all(b <= a for a, b in zip(clocks, clocks[1:]))
+        for a, b in zip(clocks, clocks[1:]):
+            dn_pairs += 1
+            if b > a or (a - b) > CFB_MAX_PLAY_SECS:
+                dn_bad += 1
+    rep["dn_pn_monotonic_game_pct"] = (round(100.0 * b_ok / b_n, 2)
+                                       if b_n else None)
+    rep["dn_pn_buckets_read"] = b_n
+    rep["dn_pn_buckets_skipped_no_drivenumber"] = b_skip
+    # 🔴 THE NUMBER THE DECISION ACTUALLY TURNS ON: what the anomaly rate
+    #    WOULD be under the remedy's key, computed the same way
+    #    `anomaly_pct` is. ⛔ It is a projection over the same rows, not a
+    #    promise about a future run.
+    rep["dn_pn_anomaly_pct"] = (round(100.0 * dn_bad / dn_pairs, 3)
+                                if dn_pairs else None)
+
+    # ── is the fault feed-wide, or a handful of games? ────────────────
+    rep["anomaly_games"] = len(bad_games)
+    rep["anomaly_games_share"] = (round(len(bad_games) / float(n_games), 4)
+                                  if n_games else None)
+    # 🔴 THE ONE THE READING TURNS ON. Backwards is an ordering fault;
+    #    a long gap is football.
+    rep["negative_games"] = len(neg_games)
+    rep["negative_games_share"] = (round(len(neg_games) / float(n_games), 4)
+                                   if n_games else None)
+    # ── how often is the field even there? ────────────────────────────
+    # ⚠️ AN ABSENT `driveNumber` IS NOT A ZERO. If CFBD omits it on some
+    #    rows, every figure above is measuring a smaller population than
+    #    it appears to, and that is part of the answer rather than a
+    #    footnote.
+    rep["dn_present_pct"] = (round(100.0 * rep["dn_present"] / rep["dn_rows"], 2)
+                             if rep.get("dn_rows") else None)
+
+    rep["order_reading"] = _order_reading(rep)
+    log("    ordering: playNumber monotonic per game %s / per drive %s · "
+        "(driveNumber, playNumber) %s · anomaly games %s · driveNumber on %s"
+        % (rep["pn_monotonic_game_pct"], rep["pn_monotonic_drive_pct"],
+           rep["dn_pn_monotonic_game_pct"], rep["negative_games_share"],
+           rep["dn_present_pct"]))
+    log("    ordering verdict: %s" % rep["order_reading"]["verdict"])
+
+
+def _order_reading(rep):
+    """The decision table, applied. -> {verdict, means, follows}."""
+    g = rep.get("pn_monotonic_game_pct")
+    d = rep.get("pn_monotonic_drive_pct")
+    k = rep.get("dn_pn_monotonic_game_pct")
+    share = rep.get("negative_games_share")
+    if g is None or d is None:
+        return {"verdict": "NOT MEASURABLE",
+                "means": "too few rows carried a comparable playNumber",
+                "follows": "nothing — this is not a reading"}
+    # ⛔ FIRST, IS THERE A FAULT AT ALL? A reading that explains a fault
+    #    the derivation never saw is a conclusion about nothing. `[the
+    #    known-good 2019 fixture reaches this branch, which is the point]`
+    if (rep.get("anomaly_pct") or 0) <= CFB_ANOMALY_MAX_PCT:
+        return {"verdict": "NO ORDERING FAULT TO EXPLAIN",
+                "means": "the anomaly rate is inside the bar the derivation "
+                         "already trusts, so there is nothing for these "
+                         "counters to diagnose",
+                "follows": "nothing"}
+    # ⛔ THEN THE OUTLIER CASE, WHICH OUTRANKS THE MONOTONICITY. A small
+    #    share of affected games means the pair rate is driven by a few
+    #    bad games, and then H1 is WRONG whatever the ordering looks like.
+    if share is not None and share < 0.5:
+        return {"verdict": "H1 NOT SUPPORTED — the fault is not feed-wide",
+                "means": "only %s of games carry a BACKWARDS pair, so the "
+                         "rate is outlier-driven rather than systematic"
+                         % ("%.1f%%" % (100 * share)),
+                "follows": "do NOT ship the sort — re-diagnose against the "
+                           "affected games"}
+    if d >= ORDER_HI and g <= ORDER_LO:
+        return {"verdict": "H1 CONFIRMED — playNumber restarts per drive",
+                "means": "it is monotonic inside a drive and not across a "
+                         "game, which is what a drive-local ordinal looks "
+                         "like",
+                "follows": "the (driveNumber, playNumber) sort is the "
+                           "remedy — shipping it is a separate decision"}
+    if g <= ORDER_LO and d <= ORDER_LO and k is not None and k >= ORDER_HI:
+        return {"verdict": "RECOVERABLE, but not by H1's mechanism",
+                "means": "playNumber is not ordered at either level, yet "
+                         "the drive key still recovers a sane clock",
+                "follows": "re-diagnose before touching the sort"}
+    if g <= ORDER_LO and d <= ORDER_LO and (k is None or k <= ORDER_LO):
+        return {"verdict": "NO USABLE ORDER IN THESE ROWS",
+                "means": "neither playNumber nor the drive key orders the "
+                         "plays",
+                "follows": "`/games/teams` becomes the only path to "
+                           "possession"}
+    return {"verdict": "INCONCLUSIVE",
+            "means": "the counters do not match any pre-registered reading",
+            "follows": "read the numbers directly rather than the verdict"}
+
+
 def possession_from_plays(plays, season, log=log):
     """Per-team possession SHARE from CFBD `/plays` rows. No fetching.
 
@@ -1226,9 +1375,14 @@ def possession_from_plays(plays, season, log=log):
 
     # ── group by (game, period), regulation only ──────────────────────
     buckets = collections.defaultdict(list)
+    # ⚠️ PARALLEL TO `buckets`, NEVER PART OF IT. See the collection site.
+    _ord_game = collections.defaultdict(list)
+    _ord_drive = collections.defaultdict(list)
+    _ord_bucket = collections.defaultdict(list)
     games = set()
     rep["overtime_plays_seen"] = 0
     rep["no_clock"] = 0
+    rep["dn_rows"] = rep["dn_present"] = 0
     for p in plays:
         gid, per_ = p.get("gameId"), p.get("period")
         if gid is None or per_ is None:
@@ -1247,6 +1401,27 @@ def possession_from_plays(plays, season, log=log):
         dkey = (gid, p.get("driveId"))
         buckets[(gid, int(per_))].append(
             (p.get("playNumber"), (p.get("offense") or "").strip(), secs, dkey))
+        # ══════════════════════════════════════════════════════════
+        # 🔴 THE ORDERING EVIDENCE, COLLECTED ALONGSIDE AND NEVER
+        #    INSIDE THE DERIVATION'S OWN BUCKETS.
+        # ══════════════════════════════════════════════════════════
+        # ⛔ A FIFTH ELEMENT ON THE TUPLE ABOVE WOULD HAVE BEEN SMALLER
+        #    AND WORSE: it would change the shape the pairing loop
+        #    unpacks, which is the derivation, and this PR must leave the
+        #    derivation provably alone. A parallel structure costs a list
+        #    and proves the separation by construction.
+        # ⚠️ ARRIVAL ORDER IS THE POINT and is preserved deliberately —
+        #    "is playNumber non-decreasing as the feed emits it" is a
+        #    different question from "can it be sorted", and only the
+        #    first distinguishes a game ordinal from a drive-local one.
+        _dn = p.get("driveNumber")
+        _pn = p.get("playNumber")
+        _ord_game[gid].append((_pn, _dn))
+        _ord_drive[dkey].append(_pn)
+        _ord_bucket[(gid, int(per_))].append((_pn, _dn, secs))
+        rep["dn_rows"] += 1
+        if _dn is not None:
+            rep["dn_present"] += 1
     rep["games"] = len(games)
     # ⚠️ HOW MANY (GAME, PERIOD) BUCKETS THE PAIRING RAN INSIDE. This is
     # the structural fact that "no pair crosses a period" rests on, and
@@ -1260,6 +1435,8 @@ def possession_from_plays(plays, season, log=log):
         return None, rep
 
     rep["pairs"] = rep["negative"] = rep["over_max"] = 0
+    _bad_games = set()
+    _neg_games = set()
     per_game = collections.defaultdict(dict)
     drv_game = collections.defaultdict(lambda: collections.defaultdict(set))
     for (gid, _per), rows in buckets.items():
@@ -1275,9 +1452,26 @@ def possession_from_plays(plays, season, log=log):
             # real ordering anomaly and is DROPPED, never summed.
             if elapsed < 0:
                 rep["negative"] += 1
+                # ⚠️ WHICH GAMES, NOT JUST HOW MANY PAIRS. A feed-wide
+                #    ordering fault and a handful of broken games produce
+                #    the same pair rate and mean opposite things — this
+                #    is the counter that separates them, and it is
+                #    recorded HERE so there is one copy of the pairing
+                #    rules rather than a second pass that can drift
+                #    (rule 117).
+                _neg_games.add(gid)
+                _bad_games.add(gid)
                 continue
             if elapsed > CFB_MAX_PLAY_SECS:
                 rep["over_max"] += 1
+                # ⚠️ A LONG GAP IS NOT A BACKWARDS PAIR, and conflating
+                #    them ruins the counter. `[measured on the known-good
+                #    2019 fixture]` 49.8% of games carry an over-300s gap
+                #    — timeouts, injuries, the end of a drive — against
+                #    0.02% of pairs running backwards. A share built on
+                #    both reads ~0.5 on a PERFECTLY ordered feed, which
+                #    is exactly the bar it was meant to sit far from.
+                _bad_games.add(gid)
                 continue
             if not team:
                 continue
@@ -1285,6 +1479,21 @@ def possession_from_plays(plays, season, log=log):
             if dkey[1] is not None:
                 drv_game[gid][team].add(dkey)
 
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴🔴 THE ORDERING COUNTERS. RECORDED, NEVER ACTED ON.
+    # ══════════════════════════════════════════════════════════════════
+    # `[#75, 2026-09-19]` That PR diagnosed CFBD's play ordering against
+    # SIMULATED buckets and shipped the remedy as a PREDICTION. It
+    # deliberately did not touch this file — so nothing computed these on
+    # live rows, and the live question was unanswerable rather than
+    # unanswered.
+    # 💰 ZERO ADDITIONAL CALLS: the rows are already in hand and the
+    #    report already lands in `top-probe-<season>.json`, which is
+    #    written whether the derivation succeeds or REFUSES. No new
+    #    artifact, no contract change.
+    # ⛔ THEY GATE NOTHING. `usable`, `error` and the bars below are
+    #    untouched by every line here. Sam reads the numbers and decides
+    #    whether the sort ships; that is a separate task.
     drv_counts = {g: {t: len(v) for t, v in tt.items()}
                   for g, tt in drv_game.items()}
     teams, srep = _poss.share_table(dict(per_game), drv_counts, log)
@@ -1298,6 +1507,14 @@ def possession_from_plays(plays, season, log=log):
     anom = (100.0 * (rep["negative"] + rep["over_max"]) / rep["pairs"]
             if rep["pairs"] else 100.0)
     rep["anomaly_pct"] = round(anom, 3)
+    # ⛔ AFTER `anomaly_pct`, DELIBERATELY. `_order_reading` asks "is there
+    #    a fault to explain at all", and its first branch reads that
+    #    field. Called any earlier it reads None, `(None or 0) <= 2.0` is
+    #    True, and the verdict says NO ORDERING FAULT TO EXPLAIN on a
+    #    33.1% anomaly — confidently, in the artifact, for a reader to
+    #    act on. `[caught by driving a synthetic H1 feed, 2026-09-19]`
+    _order_counters(rep, _ord_game, _ord_drive, _ord_bucket, _bad_games,
+                    _neg_games, len(games), log)
     bad = [t for t, v in teams.items()
            if v["seconds"] <= 0 or v["drives"] <= 0 or not v["share"]]
 
@@ -1395,6 +1612,14 @@ def build_pace(season, log=log):
                     "gameId": gid, "period": p.get("period"),
                     "playNumber": p.get("playNumber"), "offense": off,
                     "driveId": p.get("driveId"),
+                    # 💰 ZERO ADDITIONAL CALLS. `driveNumber` is already in
+                    #    every `/plays` row and was being discarded one
+                    #    line after it arrived. ⛔ IT IS CARRIED TO BE
+                    #    COUNTED, NOT TO BE SORTED BY — the derivation's
+                    #    sort key is unchanged, and
+                    #    `test_cfb_ordering.py` parses this file's AST to
+                    #    keep it that way.
+                    "driveNumber": p.get("driveNumber"),
                     "clock": p.get("clock"), "minutes": p.get("minutes"),
                     "seconds": p.get("seconds")})
                 pt = (p.get("playType") or "").strip()
