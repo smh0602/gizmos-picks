@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-20T17:56:55Z",
+ "checked_at": "2026-09-20T18:20:23Z",
  "et_date": "2026-09-20",
  "healthy": false,
  "broken": 2,
@@ -10,7 +10,7 @@
    "key": "verify:mlb",
    "severity": "BROKEN",
    "what": "the mlb card was BUILT and then REFUSED, so nothing published",
-   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (20 rows, zero tolerance -- stricter than T37's 5%)  [('Andr\u00e9s Chaparro', 'batter_rbis', 'under', 0.5, 77, 0.6)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (20 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (20 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
+   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (24 rows, zero tolerance -- stricter than T37's 5%)  [('Andr\u00e9s Chaparro', 'batter_rbis', 'under', 0.5, 77, 0.6)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (24 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (24 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
    "repair": null
   },
   {
@@ -34,7 +34,7 @@
   "pulled_at": "2026-09-20T15:08:15Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.8,
+  "reading_age_hours": 3.2,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-09-20T15:08:15Z",
   "source": "data/nfl/2026-09-20/props-player/1508.json.gz",
