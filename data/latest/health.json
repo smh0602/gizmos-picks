@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-20T12:44:14Z",
+ "checked_at": "2026-09-20T13:18:47Z",
  "et_date": "2026-09-20",
  "healthy": false,
  "broken": 1,
@@ -10,22 +10,23 @@
    "key": "day:ncaaf:game_lines",
    "severity": "BROKEN",
    "what": "the ncaaf game lines say 2026-09-24 and carry rows on 2026-09-19",
-   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader",
-   "repair": "card-fb",
-   "repair_attempts": 2
+   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader \u26d4 `card-fb` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card-fb"
   }
  ],
- "repairs": [
-  "card-fb"
+ "repairs": [],
+ "unrepairable": [
+  "day"
  ],
- "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
   "balance": 8320,
   "pulled_at": "2026-09-20T12:43:30Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.6,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-09-20T12:43:30Z",
   "source": "data/nfl/2026-09-20/gamelines/1243.json.gz",
