@@ -1,8 +1,8 @@
-verify_card FAILED at 2026-09-20T17:58:32Z
-pass 10 of run 1565
+verify_card FAILED at 2026-09-20T18:13:41Z
+pass 11 of run 1565
 --- the failing checks ---
-  FAIL ⛔ NO inverted hitter projection contradicts its own row (20 rows, zero tolerance -- stricter than T37's 5%)  [('Andrés Chaparro', 'batter_rbis', 'under', 0.5, 77, 0.6)]
-FAILURES: ⛔ NO inverted hitter projection contradicts its own row (20 rows, zero tolerance -- stricter than T37's 5%)
+  FAIL ⛔ NO inverted hitter projection contradicts its own row (24 rows, zero tolerance -- stricter than T37's 5%)  [('Andrés Chaparro', 'batter_rbis', 'under', 0.5, 77, 0.6)]
+FAILURES: ⛔ NO inverted hitter projection contradicts its own row (24 rows, zero tolerance -- stricter than T37's 5%)
 --- last 60 lines ---
 
 33. TOP 10 OF THE DAY -- a different list, held to its own rules
@@ -12,10 +12,10 @@ FAILURES: ⛔ NO inverted hitter projection contradicts its own row (20 rows, ze
   PASS every row is priced better than the payable floor (-400)  []
   PASS no player appears twice  []
   PASS it is ordered by confidence, descending
-  PASS every top-10 row traces to a row the card priced (1618 priced keys)  []
+  PASS every top-10 row traces to a row the card priced (1264 priced keys)  []
   PASS every carded row is flagged priced in the index  []
-  PASS the priced flag is a subset, not a rubber stamp (1618 of 2822)
-  PASS the price gate actually excluded something, and the card says how much  60 row(s) excluded
+  PASS the priced flag is a subset, not a rubber stamp (1264 of 2793)
+  PASS the price gate actually excluded something, and the card says how much  45 row(s) excluded
 
 34. PARLAYS -- recomputed leg by leg
   PASS every parlay's leg count matches its own n_legs (24 parlays)
@@ -28,10 +28,10 @@ FAILURES: ⛔ NO inverted hitter projection contradicts its own row (20 rows, ze
   PASS the builder counts a price of exactly the floor as CLEARING it  ⛔ if a row priced at exactly -700 is labelled as NOT clearing, the builder and this file have drifted apart again and one of them is lying to the reader
   PASS every joint number is labelled MODEL, RECORD or MIXED (rule 55)
   PASS the MIXED label appears exactly when the legs' provenance differs  []
-  PASS every 'strictly worse' warning names a parlay that really is on this card (8 warned)  []
+  PASS every 'strictly worse' warning names a parlay that really is on this card (5 warned)  []
 
 35. OPPONENT RECENT STARTERS -- descriptive, point-in-time, and NOT in the model
-  PASS every pitcher row carries the opponent block (23 of 23)  []
+  PASS every pitcher row carries the opponent block (18 of 18)  []
   PASS no listed start is dated on or after the slate  []
   PASS every block is about the opponent the row actually faces  []
   PASS each block is newest-first  []
@@ -41,26 +41,26 @@ FAILURES: ⛔ NO inverted hitter projection contradicts its own row (20 rows, ze
   PASS every block states in words that it is not a model input
 
 36. THE WHY -- the splits Sam asked for, counted at the row's own line
-  PASS every pitcher row carries the five splits (23 rows)
+  PASS every pitcher row carries the five splits (18 rows)
   PASS the season split agrees with the row's own raw record  []
   PASS home + road accounts for every start in the season split  []
   PASS the last-15 split never counts more than 15 starts  []
   PASS every row's why mentions the splits
 
 37. BATTER ALTERNATE LINES, INNINGS NOTATION, AND PLAIN ENGLISH
-  PASS no batter row sits on an alternate line (27 hitter rows)  []
+  PASS no batter row sits on an alternate line (32 hitter rows)  []
   PASS no batter row is priced at -1000 or shorter
   PASS every innings figure uses thirds (.0 .1 .2 only)  []
   PASS innings notation matches the out count it describes  []
-  PASS no jargon in any why (284 lines checked)  []
+  PASS no jargon in any why (277 lines checked)  []
   PASS every row still explains itself  []
   PASS every hitter row still says its number is a record, not a forecast
 
 38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
-  NOTE  38 flag(s) on this card: 7 shown, 31 recorded but not rendered
-  PASS the Hard Rock flag is written on EVERY row that needs it and no row that does not (27 rows reconciled against the board)  missing=[] false=[]
+  NOTE  29 flag(s) on this card: 6 shown, 23 recorded but not rendered
+  PASS the Hard Rock flag is written on EVERY row that needs it and no row that does not (32 rows reconciled against the board)  missing=[] false=[]
   PASS every row's on_hardrock agrees with the stored board  []
   PASS every flag that reaches the page is marked actionable
   PASS no model diagnostic is marked for display  []
 
-FAILURES: ⛔ NO inverted hitter projection contradicts its own row (20 rows, zero tolerance -- stricter than T37's 5%)
+FAILURES: ⛔ NO inverted hitter projection contradicts its own row (24 rows, zero tolerance -- stricter than T37's 5%)
