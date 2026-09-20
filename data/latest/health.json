@@ -1,19 +1,11 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-20T07:43:26Z",
+ "checked_at": "2026-09-20T08:53:20Z",
  "et_date": "2026-09-20",
- "healthy": false,
+ "healthy": true,
  "broken": 0,
- "degraded": 1,
- "findings": [
-  {
-   "key": "fresh:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl tabs are showing data older than promised (nfl-logs)",
-   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  }
- ],
+ "degraded": 0,
+ "findings": [],
  "repairs": [],
  "unrepairable": [],
  "credits": {
@@ -22,7 +14,7 @@
   "pulled_at": "2026-09-19T20:12:16Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 11.5,
+  "reading_age_hours": 12.7,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-09-19T20:12:16Z",
   "source": "data/2026-09-19/props-pitcher/2012.json.gz",
