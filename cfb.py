@@ -1463,8 +1463,12 @@ def possession_from_plays(plays, season, log=log):
         # below is a real drive count, not a snap count wearing the NFL
         # side's field name. `driveId` is in the measured column list.
         dkey = (gid, p.get("driveId"))
+        # ⚠️ `driveNumber` TRAVELS ON THE TUPLE NOW, as element 4. It is
+        #    appended rather than inserted so elements 0–3 keep their
+        #    meaning for every reader of this structure.
         buckets[(gid, int(per_))].append(
-            (p.get("playNumber"), (p.get("offense") or "").strip(), secs, dkey))
+            (p.get("playNumber"), (p.get("offense") or "").strip(), secs,
+             dkey, p.get("driveNumber")))
         # ══════════════════════════════════════════════════════════
         # 🔴 THE ORDERING EVIDENCE, COLLECTED ALONGSIDE AND NEVER
         #    INSIDE THE DERIVATION'S OWN BUCKETS.
@@ -1504,10 +1508,34 @@ def possession_from_plays(plays, season, log=log):
     per_game = collections.defaultdict(dict)
     drv_game = collections.defaultdict(lambda: collections.defaultdict(set))
     for (gid, _per), rows in buckets.items():
-        # ⚠️ ORDERED BY playNumber, which is the play's ordinal in the
-        # game. ⛔ Never by wallclock and never by list order alone.
-        rows.sort(key=lambda r: (r[0] is None, r[0]))
-        for a, (_n1, team, rem1, dkey) in enumerate(rows[:-1]):
+        # ════════════════════════════════════════════════════
+        # 🔴🔴 ORDERED BY `(driveNumber, playNumber)`. ⚠️ `playNumber`
+        #    ALONE WAS THE DEFECT, and the number that changes this line
+        #    was measured on REAL CFBD BYTES by the counter PR #75 shipped
+        #    BEFORE anyone saw the data — not chosen after looking.
+        # ⛔ `[live 2026-09-19T07:53:52Z, data/ncaaf/latest/top-probe-2026.json]`
+        #      anomaly_pct        36.339   <- ordering by playNumber
+        #      dn_pn_anomaly_pct   1.585   <- ordering by (driveNumber, playNumber)
+        #      dn_present_pct      100.0   on all 59,462 rows
+        #      dn_pn_buckets_skipped_no_drivenumber  0
+        #    The floor is 2.0, so the remedy clears it and the status quo
+        #    misses it eighteen-fold, over the SAME rows.
+        # ⚠️ WHAT IS NOT CLAIMED: the pre-registered `order_reading`
+        #    verdict came back **INCONCLUSIVE** — the counters match no
+        #    declared hypothesis, so WHY `playNumber` is scrambled is
+        #    still unknown, and `dn_pn_monotonic_game_pct` is 68.73, not
+        #    100. ⛔ This changes the SORT KEY on a measured anomaly rate;
+        #    it does not claim to have explained the feed.
+        # ⛔ AND IT IS NOT THE ONLY GATE. `COVERAGE_MIN` (0.90) is
+        #    untested under this key — the probe reported coverage only
+        #    for the old order. If coverage still refuses, the table is
+        #    still not written, and that is the correct outcome.
+        # ✅ A MISSING `driveNumber` SORTS LAST rather than crashing or
+        #    silently colliding with 0 — the same shape the old key used
+        #    for a missing `playNumber`, kept deliberately.
+        # ════════════════════════════════════════════════════
+        rows.sort(key=lambda r: (r[4] is None, r[4], r[0] is None, r[0]))
+        for a, (_n1, team, rem1, dkey, _dn1) in enumerate(rows[:-1]):
             rem2 = rows[a + 1][2]
             rep["pairs"] += 1
             elapsed = rem1 - rem2
@@ -1571,6 +1599,10 @@ def possession_from_plays(plays, season, log=log):
     anom = (100.0 * (rep["negative"] + rep["over_max"]) / rep["pairs"]
             if rep["pairs"] else 100.0)
     rep["anomaly_pct"] = round(anom, 3)
+    # ⚠️ WHICH KEY PRODUCED THE NUMBER ABOVE. ⛔ An anomaly rate with no
+    #    ordering key beside it is not comparable to the next run's.
+    rep["order_key"] = "(driveNumber, playNumber)"
+    rep["columns_used"]["order"] = "driveNumber|playNumber"
     # ⛔ AFTER `anomaly_pct`, DELIBERATELY. `_order_reading` asks "is there
     #    a fault to explain at all", and its first branch reads that
     #    field. Called any earlier it reads None, `(None or 0) <= 2.0` is

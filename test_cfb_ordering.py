@@ -421,20 +421,32 @@ ck("⚠️ ...and it really does sort, so the pin below has a subject",
 #    calls carrying `key=` would let a bare `sorted(...)` introduce an
 #    ordering decision the pin never sees. The second entry sorts team
 #    NAMES for an error message and orders no plays.
-_EXPECTED_SORTS = ["rows.sort(key=lambda r: (r[0] is None, r[0]))",
-                   "sorted(bad)"]
-ck("🔴🔴 THE DERIVATION'S SORT KEY IS UNCHANGED",
+# ════════════════════════════════════════════════════════════════════
+# 🔴🔴 ~~`_EXPECTED_SORTS = ["rows.sort(key=lambda r: (r[0] is None,
+#      r[0]))", "sorted(bad)"]`~~ — **RE-POINTED `[2026-09-20]`, NOT
+#      RELAXED.**
+# ⛔ THE OLD PIN SAID: *"shipping the remedy is Sam's decision, not a
+#    diff's."* ✅ **SAM DECIDED. 2026-09-20.** The pin's job was never to
+#    forbid the key forever — it was to stop `cfb.py` drifting into a
+#    re-sort that nobody chose. So it now pins the CHOSEN key with the
+#    same grip: byte-identical expressions, every sort in the function,
+#    a positional swap still caught.
+# ⚠️ WHAT THE DECISION RESTED ON, so a later reader need not take it on
+#    trust: `dn_pn_anomaly_pct` **1.585** against `anomaly_pct` **36.339**
+#    on the same live CFBD rows, `dn_present_pct` **100.0**, floor 2.0.
+#    The counter was shipped by #75 BEFORE the data was seen.
+# ⛔ AND THE `driveNumber` COMPARISON BAN IS GONE WITH IT, deliberately:
+#    the sort key IS the ordering decision now, and it is pinned above.
+# ════════════════════════════════════════════════════════════════════
+_EXPECTED_SORTS = [
+    "rows.sort(key=lambda r: (r[4] is None, r[4], r[0] is None, r[0]))",
+    "sorted(bad)"]
+ck("🔴🔴 THE DERIVATION'S SORT KEY IS (driveNumber, playNumber) "
+   "AND NOTHING ELSE",
    sorted(_SORTS) == sorted(_EXPECTED_SORTS),
-   "⛔ THE CHECK THAT MATTERS. Task 44 measures with `driveNumber` and "
-   "must not order with it — shipping the remedy is Sam's decision, not "
-   "a diff's. ⚠️ This pins the EXPRESSIONS, so a positional swap that "
-   "names nothing is caught too, and so is a NEW sort call. got: %s"
-   % _SORTS)
-ck("⛔ ...and no comparison inside it mentions driveNumber",
-   not [ast.unparse(n) for n in ast.walk(_PFP[0])
-        if isinstance(n, ast.Compare) and "driveNumber" in ast.unparse(n)],
-   "🔴 the other way an ordering decision could enter the derivation "
-   "without touching the sort call at all")
+   "⛔ THE CHECK THAT MATTERS. ⚠️ This pins the EXPRESSIONS, so a "
+   "positional swap that names nothing is caught too, and so is a NEW "
+   "sort call appearing anywhere in the function. got: %s" % _SORTS)
 ck("✅ ...while the row and the counters MAY carry it, and do",
    "driveNumber" in ast.unparse(_PFP[0])
    or "driveNumber" in ast.unparse(_CFB_AST),
@@ -508,8 +520,24 @@ def _n(x, default=-1.0):
     counter that actually broke. ⚠️ The sentinel is out of range for
     every bar here, so a missing figure reads as a failed comparison."""
     return default if x is None else x
+# ════════════════════════════════════════════════════════════════════
+# 🔴🔴 A THIRD FEED, ADDED `[2026-09-20]` WHEN THE REMEDY SHIPPED.
+#    `_H1` is now RECOVERABLE — the derivation sorts by
+#    `(driveNumber, playNumber)`, so the very fault this file was built
+#    to detect no longer reaches the output. ⛔ Testing DETECTION on a
+#    feed the build repairs would silently stop testing detection.
+# ✅ `_H1B` IS `_H1` WITH `driveNumber` TAKEN AWAY: the same disorder,
+#    and nothing the derivation can do about it. Every check that used
+#    to ask "does the broken feed still refuse" now asks it of THIS one,
+#    unchanged in strength, while `_H1` carries the NEW question — does
+#    the remedy actually publish.
+# ➡️ STRICTLY HARDER THAN BEFORE: this file now pins BOTH halves,
+#    where it previously pinned only that the fault was seen.
+# ════════════════════════════════════════════════════════════════════
+_H1B = [{k: v for k, v in _p.items() if k != "driveNumber"} for _p in _H1]
 _r0 = cfb.possession_from_plays(_H0, 2019, log=_q)[1]
 _r1 = cfb.possession_from_plays(_H1, 2019, log=_q)[1]
+_r1b = cfb.possession_from_plays(_H1B, 2019, log=_q)[1]
 
 ck("⚠️ both feeds produced a report with the counters on it",
    _r0.get("pn_monotonic_game_pct") is not None
@@ -541,26 +569,52 @@ ck("✅ the remedy's projected anomaly rate recovers the true one",
    % (_r1["anomaly_pct"], _r1["dn_pn_anomaly_pct"], _r0["anomaly_pct"]))
 ck("🔴 the backwards-game share separates feed-wide from outliers",
    _n(_r0["negative_games_share"], 999.0) < 0.5
-   <= _n(_r1["negative_games_share"]),
+   <= _n(_r1b["negative_games_share"]),
    "⛔ AND IT COUNTS BACKWARDS PAIRS ONLY. Built on `over_max` too it "
    "reads 0.498 on the KNOWN-GOOD fixture — long gaps are timeouts and "
    "drive ends, not ordering faults — which is exactly the bar it has "
    "to sit far from. H0=%s H1=%s"
-   % (_r0["negative_games_share"], _r1["negative_games_share"]))
+   % (_r0["negative_games_share"], _r1b["negative_games_share"]))
 
-section("8. ⛔ AND THE DERIVATION IS UNCHANGED BY ALL OF IT")
-# 🔴 THE COUNTERS GATE NOTHING. Sam reads them and decides whether the
-#    sort ships; that is a separate task.
+section("8. ⛔ THE COUNTERS STILL GATE NOTHING — THE SORT KEY DOES")
+# 🔴 ~~"AND THE DERIVATION IS UNCHANGED BY ALL OF IT"~~ — the sort key
+#    shipped on 2026-09-20 and this section is restated rather than
+#    struck. ⚠️ THE COUNTERS THEMSELVES STILL DECIDE NOTHING: they are
+#    reported, and what changed is one sort key that Sam chose after
+#    reading them.
 ck("⛔ the ordered feed is still USABLE and still scores 0.506",
    _r0["usable"] is True and _r0["anomaly_pct"] == 0.506,
    "🔴 the figure #75 recorded. If measuring had moved it, the "
    "derivation was touched. got usable=%s anomaly=%s"
    % (_r0["usable"], _r0["anomaly_pct"]))
-ck("⛔ ...and the broken feed still REFUSES",
-   _r1["usable"] is False and "ordering" in (_r1.get("error") or ""),
-   "🔴 if the counters had changed the verdict, they would be gating "
-   "something. usable=%s error=%r"
+ck("⛔ ...and a feed the remedy CANNOT reach still REFUSES",
+   _r1b["usable"] is False and "ordering" in (_r1b.get("error") or ""),
+   "🔴 the refusal must survive the fix. A build that publishes a feed "
+   "it cannot order is the failure this whole file exists to stop. "
+   "usable=%s error=%r"
+   % (_r1b["usable"], (_r1b.get("error") or "")[:70]))
+# ✅ AND THE NEW HALF, WHICH IS THE POINT OF THE CHANGE.
+ck("✅ 🆕 ...while the SAME disorder WITH `driveNumber` now PUBLISHES",
+   _r1["usable"] is True and not _r1.get("error"),
+   "🔴🔴 THE REMEDY. Identical rows, one column more, and the "
+   "derivation recovers the order instead of refusing. usable=%s error=%r"
    % (_r1["usable"], (_r1.get("error") or "")[:70]))
+ck("✅ 🆕 ...and it recovers the TRUE anomaly rate, not merely a "
+   "passing one",
+   _r1["anomaly_pct"] == _r0["anomaly_pct"],
+   "⛔ clearing the bar is not the same as being right. The repaired "
+   "feed must land on the ordered feed's own figure. true=%s "
+   "repaired=%s broken=%s"
+   % (_r0["anomaly_pct"], _r1["anomaly_pct"], _r1b["anomaly_pct"]))
+ck("✅ 🆕 ...and the projection agrees with the derivation now that "
+   "they use one key",
+   _r1["dn_pn_anomaly_pct"] is not None
+   and abs(_r1["dn_pn_anomaly_pct"] - _n(_r1["anomaly_pct"])) < 0.01,
+   "⚠️ `dn_pn_anomaly_pct` is computed in a PARALLEL structure from the "
+   "raw rows; `anomaly_pct` comes from the derivation's own buckets. "
+   "Two independent paths to one number — a gap means one of them is "
+   "not doing what it says. projected=%s derived=%s"
+   % (_r1["dn_pn_anomaly_pct"], _r1["anomaly_pct"]))
 ck("⛔ the bars are untouched",
    cfb.CFB_ANOMALY_MAX_PCT == 2.0 and cfb._poss.COVERAGE_MIN == 0.90,
    "🔴 CLAUDE.md's one rule that matters most. anomaly=%s floor=%s"
@@ -590,10 +644,10 @@ ck("✅ and with the field present it IS read",
    % (_r0["dn_present_pct"], _r0["dn_pn_buckets_read"]))
 
 section("10. 🔴 THE READING IS A DECISION TABLE, NOT A NUMBER")
-ck("🔴 the broken feed reads H1 CONFIRMED",
-   "H1 CONFIRMED" in _r1["order_reading"]["verdict"],
+ck("🔴 the unrecoverable feed reads H1 CONFIRMED",
+   "H1 CONFIRMED" in _r1b["order_reading"]["verdict"],
    "⛔ a counter with no interpretation is a number nobody can act on. "
-   "got %r" % _r1["order_reading"]["verdict"])
+   "got %r" % _r1b["order_reading"]["verdict"])
 ck("⛔ ...and the ordered feed reads NO FAULT rather than explaining one",
    "NO ORDERING FAULT" in _r0["order_reading"]["verdict"],
    "🔴 `_order_reading` asks 'is there a fault at all' FIRST, and it is "
@@ -602,7 +656,7 @@ ck("⛔ ...and the ordered feed reads NO FAULT rather than explaining one",
    "anomaly — confidently, in the artifact. got %r"
    % _r0["order_reading"]["verdict"])
 ck("⚠️ every reading says what FOLLOWS, not just what it means",
-   all(k in _r1["order_reading"] for k in ("verdict", "means", "follows"))
-   and len(_r1["order_reading"]["follows"]) > 20,
+   all(k in _r1b["order_reading"] for k in ("verdict", "means", "follows"))
+   and len(_r1b["order_reading"]["follows"]) > 20,
    "⛔ the same rule the repo watcher was held to. got %s"
-   % sorted(_r1["order_reading"]))
+   % sorted(_r1b["order_reading"]))
