@@ -1,214 +1,245 @@
 #!/usr/bin/env python3
-"""🔴🔴 A PUBLISHED FOOTBALL ROW IS FROZEN THE MOMENT ITS GAME STARTS.
-
-`CLAUDE.md`: *"`picks/<date>.json` already written — Published estimates
-are a permanent record. ⛔ Never edit or delete one after its games have
-started."*
-
-`[measured 2026-09-19]` `picks/fb-nfl-2026-09-17.json` holds one game,
-kickoff **2026-09-18T00:15:00Z**. It was rewritten SIX times after that
-kickoff, the last at **2026-09-18T15:52:33Z** — 15h37m late — and the
-rewrite changed **ten prices**, dropped twelve rows and added twelve
-different ones:
-
-    Keon Coleman   o1.5 receptions       +158 -> +145
-    Dawson Knox    o12.5 reception yds   -113 -> -120
-    Jared Goff     u0.5 rush yds         -175 -> -185
-    Khalil Shakir  o4.5 receptions       +112 -> +110   … and six more
-
-⛔ `record_fb.py` and `shadow_fb.py` grade against these files, so the
-graded record was reconciled against numbers the board never showed at
-the time anyone could have bet them.
-
-⚠️ MLB LOOKS PROTECTED AND IS NOT. No `picks/<date>.json` appears in the
-rewrite list — but that is the CARD CRON RUNNING ONCE A DAY, not a
-guard. `card.py` returns None only when EVERY game on the board has
-started, so a rebuild at 20:00Z on a slate with a 23:40Z game would
-overwrite the morning's published rows exactly the same way. ⛔ MLB is
-frozen and that is REPORTED, not fixed, here.
-
-✅ PER ROW, NOT PER CARD, AND THAT IS THE WHOLE DESIGN DECISION. An NFL
-Sunday runs 17:00Z to 03:00Z. Freezing the card whole at the first
-kickoff would stop repricing the late games, which is a real loss and is
-not what the rule asks for. The rule is about a row whose own game has
-started.
-
-# @vacuity 🔴🔴 a published row is not repriced after its game starts
-#   file: card_fb.py
-#   find:     keep = [r for r in old_rows if isinstance(r, dict)
-#   with:     keep = [r for r in [] if isinstance(r, dict)
-#
-# @vacuity 🔴 ...and a started game never gains a NEW published row
-#   file: card_fb.py
-#   find:     fresh = [r for r in new_rows if isinstance(r, dict)
-#   with:     fresh = [r for r in new_rows if isinstance(r, dict) or True
-#
-# @vacuity ⛔ ...and the writer actually calls the freeze
-#   file: card_fb.py
-#   find:     out, _frozen = freeze_published(
-#   with:     out, _frozen = (lambda *a, **k: (a[0], 0))(
 """
-import ast
-import copy
+A PUBLISHED CARD IS FROZEN THE MOMENT ITS SLATE STARTS — IN EVERY LEAGUE.
+
+🔴🔴 CLAUDE.md has carried this rule since MLB shipped: *"`picks/<date>.json`
+already written — published estimates are a permanent record. ⛔ Never edit
+or delete one after its games have started."* **Football never enforced it,
+and nothing in the repo ever asked.**
+
+`[measured 2026-09-19 across every dated card in `picks/`]`
+
+    MLB        0 of 28 rewritten after their own first kickoff
+    NFL        4 of  5
+    NCAAF      7 of  8      — 11 of 13 football cards, 85%
+
+⛔ AND THE DAMAGE IS NOT "SOME PRICES MOVED".
+`picks/fb-nfl-2026-09-17.json` — whose first kickoff was 00:15Z on the
+18th — was rewritten at 15:52Z on the 18th and now carries **the
+2026-09-20 game lines**. The permanent record of what this product
+advertised on the 17th is partly a different week's board. Two others are
+39 hours late and one is 112.
+
+══════════════════════════════════════════════════════════════════════
+THE THREE HALVES, AND THE THIRD IS THE ONE THAT CANNOT BE FAKED
+══════════════════════════════════════════════════════════════════════
+  §1 `publish_dated()` is DRIVEN against real bytes on disk — written
+     when the slate is ahead, refused when it has started, and the file
+     compared byte for byte either way.
+  §2 the decision function on every branch, including the two ways it
+     can fail to tell.
+  §3 THE REPO ITSELF: no dated card may carry a `generated_at` later
+     than its own first kickoff. ⛔ The eleven already-damaged files are
+     listed by name and the list may only SHRINK — it is the damage this
+     fix ended, not a tolerance.
+
+# @vacuity 🔴 a card rewritten after its slate started is caught
+#   file: card_fb.py
+#   find:     frozen, why = _frozen(path, now)
+#   with:     frozen, why = (False, "")
+#
+# @vacuity ⛔ an unreadable published card is not an editable one
+#   file: card_fb.py
+#   find:         return True, ("it is already published and could not be read "
+#   with:         return False, ("it is already published and could not be read "
+"""
+import datetime
+import glob
 import io
 import json
 import os
+import shutil
+import sys
 import tempfile
 
-import card_fb as C
-from tcheck import ck, note, section
-
 ROOT = os.path.dirname(os.path.abspath(__file__))
-BEFORE = "2026-09-17T18:00:00Z"        # before the kickoff below
-AFTER = "2026-09-18T15:52:33Z"         # the moment of the real illegal write
+sys.path.insert(0, ROOT)
+
+from tcheck import ck, note, section
+import card_fb
+
+UTC = datetime.timezone.utc
+NOW = datetime.datetime(2026, 9, 18, 15, 52, tzinfo=UTC)
 
 
-def published(doc):
-    """Write `doc` to a throwaway path and hand back the path."""
-    fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
-    json.dump(doc, fh)
-    fh.close()
-    return fh.name
+def stamp(t):
+    return t.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def row(player, price, conf, commence, gid="G1", market="m", side="over",
-        line=1.5):
-    return {"player": player, "price": price, "confidence": conf,
-            "commence": commence, "game_id": gid, "market": market,
-            "side": side, "line": line}
+def card(date, kick, marker):
+    return {"date": date, "league": "nfl", "generated_at": stamp(NOW),
+            "marker": marker,
+            "picks": [{"player": "A", "commence": stamp(kick)}],
+            "game_lines": [{"game": "X @ Y", "commence": stamp(kick)}]}
 
 
-# ════════════════════════════════════════════════════════════════════════
-section("1. 🔴🔴 DRIVEN ON A SLATE THAT IS HALF UNDER WAY")
-# ════════════════════════════════════════════════════════════════════════
-STARTED = "2026-09-18T00:15:00Z"        # kicked off before AFTER
-LATER = "2026-09-20T17:00:00Z"          # has not kicked off at AFTER
+D = tempfile.mkdtemp(prefix="frozen-")
 
-OLD = {"date": "2026-09-17", "picks": [
-    row("Started Sam", 158, 95, STARTED),
-    row("Later Lou", -110, 70, LATER, gid="G2")]}
+# ══════════════════════════════════════════════════════════════════════
+section("1. 🔴🔴 DRIVEN AGAINST REAL BYTES, BOTH WAYS")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ NOT "does the function return False" — does the FILE change. A guard
+#    that returns the right answer and writes anyway is the shape this
+#    repo has shipped before.
+ahead = os.path.join(D, "fb-nfl-2026-09-20.json")
+published = card("2026-09-20", NOW + datetime.timedelta(hours=26), "FIRST")
+io.open(ahead, "w", encoding="utf-8").write(json.dumps(published, indent=1))
+before = io.open(ahead, encoding="utf-8").read()
+wrote, why = card_fb.publish_dated(
+    ahead, card("2026-09-20", NOW + datetime.timedelta(hours=26), "SECOND"),
+    now=NOW)
+after = io.open(ahead, encoding="utf-8").read()
+ck("✅ a card whose slate has NOT started is rewritten normally",
+   wrote and json.loads(after)["marker"] == "SECOND",
+   "⛔ THE REGRESSION CHECK, AND IT COMES FIRST. Football rebuilds its "
+   "card many times a day before kickoff and every one of those is "
+   "correct. A freeze that stops them has broken the product. "
+   "wrote=%r why=%r" % (wrote, why))
 
-# what a rebuild at 15:52 the next day would have produced
-NEW = {"date": "2026-09-17", "picks": [
-    row("Started Sam", 145, 88, STARTED),          # repriced AFTER kickoff
-    row("Later Lou", -120, 72, LATER, gid="G2"),   # legitimately repriced
-    row("Late Arrival", -200, 64, STARTED, gid="G1", market="m2")]}
+started = os.path.join(D, "fb-nfl-2026-09-17.json")
+orig = card("2026-09-17", NOW - datetime.timedelta(hours=15, minutes=37),
+            "PUBLISHED")
+io.open(started, "w", encoding="utf-8").write(json.dumps(orig, indent=1))
+before = io.open(started, encoding="utf-8").read()
+wrote, why = card_fb.publish_dated(
+    started, card("2026-09-17", NOW + datetime.timedelta(days=2), "OVERWRITE"),
+    now=NOW)
+after = io.open(started, encoding="utf-8").read()
+ck("🔴🔴 a card whose first kickoff has passed is NOT rewritten",
+   (not wrote) and after == before,
+   "⛔ this is `picks/fb-nfl-2026-09-17.json` exactly: kickoff 00:15Z on "
+   "the 18th, rewritten 15:52Z on the 18th with the NEXT week's lines. "
+   "wrote=%r why=%r" % (wrote, why))
+ck("⚠️ ...and the refusal says which kickoff and when, not just 'frozen'",
+   "first kickoff" in why and "2026-09-18T00:15Z" in why,
+   "⛔ a refusal a reader cannot check is a refusal they will delete. "
+   "got %r" % (why,))
+ck("⛔ ...and the published bytes are byte-identical, not merely similar",
+   json.loads(after)["marker"] == "PUBLISHED",
+   "got %r" % (json.loads(after).get("marker"),))
 
-p = published(OLD)
-try:
-    got, n = C.freeze_published(copy.deepcopy(NEW), p, AFTER, log=lambda *a: None)
-finally:
-    os.unlink(p)
-by = {r["player"]: r for r in got["picks"]}
+fresh = os.path.join(D, "fb-nfl-2026-09-27.json")
+wrote, why = card_fb.publish_dated(fresh, card(
+    "2026-09-27", NOW + datetime.timedelta(days=9), "NEW"), now=NOW)
+ck("✅ a slate published for the FIRST time is always written",
+   wrote and os.path.exists(fresh),
+   "⛔ a freeze that blocks a brand-new slate has killed the product. "
+   "wrote=%r why=%r" % (wrote, why))
 
-ck("🔴🔴 a row whose game has started keeps its PUBLISHED price",
-   by.get("Started Sam", {}).get("price") == 158,
-   "⛔ THIS IS THE DEFECT. Ten rows of fb-nfl-2026-09-17.json were "
-   "repriced 15 hours after the only game on it had finished. got %r"
-   % (by.get("Started Sam", {}).get("price"),))
-ck("🔴 ...and its published confidence too, not just the price",
-   by.get("Started Sam", {}).get("confidence") == 95,
-   "⛔ the confidence is the number Sam reads; repricing it after the "
-   "fact is the same offence. got %r"
-   % (by.get("Started Sam", {}).get("confidence"),))
-ck("🔴 a row whose game has NOT started is still updated",
-   by.get("Later Lou", {}).get("price") == -120,
-   "⛔ THE OTHER FAILURE, and the expensive one: a card frozen whole at "
-   "the first kickoff stops repricing the late games of an NFL Sunday. "
-   "The rule is per ROW. got %r" % (by.get("Later Lou", {}).get("price"),))
-ck("🔴🔴 a NEW row is never published on a game already under way",
-   "Late Arrival" not in by,
-   "⛔ the same misinformation in the other direction — an estimate "
-   "published on a game whose result is partly known. got %s"
-   % sorted(by))
-ck("⛔ ...and a published row is never DROPPED either",
-   len(got["picks"]) == 2 and n == 1,
-   "⛔ the real rewrite dropped twelve published rows and added twelve "
-   "others. picks=%d frozen=%d" % (len(got["picks"]), n))
-ck("⚠️ the board is still sorted by confidence, descending",
-   [r["confidence"] for r in got["picks"]] ==
-   sorted([r["confidence"] for r in got["picks"]], reverse=True),
-   "⛔ Sam's ordering rule survives the merge. got %r"
-   % [r["confidence"] for r in got["picks"]])
+# ══════════════════════════════════════════════════════════════════════
+section("2. THE DECISION, ON EVERY BRANCH — INCLUDING 'CANNOT TELL'")
+# ══════════════════════════════════════════════════════════════════════
+ck("an unpublished path is not frozen",
+   card_fb._frozen(os.path.join(D, "nope.json"), NOW)[0] is False)
 
-# ── and BEFORE any kickoff nothing is frozen at all
-p = published(OLD)
-try:
-    pre, npre = C.freeze_published(copy.deepcopy(NEW), p, BEFORE,
-                                   log=lambda *a: None)
-finally:
-    os.unlink(p)
-ck("✅ before kickoff the rebuild is untouched — all three rows, repriced",
-   npre == 0 and len(pre["picks"]) == 3
-   and {r["player"]: r["price"] for r in pre["picks"]}["Started Sam"] == 145,
-   "⛔ a guard that fires early would freeze the morning card and stop "
-   "the whole day's pricing. frozen=%d picks=%d" % (npre, len(pre["picks"])))
+bad = os.path.join(D, "corrupt.json")
+io.open(bad, "w", encoding="utf-8").write("{not json")
+_f, _w = card_fb._frozen(bad, NOW)
+ck("🔴 an UNREADABLE published card is frozen, not editable",
+   _f,
+   "⛔ an absence read as permission is this project's oldest recurring "
+   "error. A file we cannot parse is a file whose slate we cannot date, "
+   "and overwriting it destroys the only copy. got %r" % (_w,))
 
-# ── and a card that has never been published is written as built
-p = os.path.join(tempfile.mkdtemp(), "fb-nfl-2099-01-01.json")
-first, nfirst = C.freeze_published(copy.deepcopy(NEW), p, AFTER,
-                                   log=lambda *a: None)
-ck("⚠️ a FIRST publication is never blocked by this",
-   nfirst == 0 and len(first["picks"]) == 3,
-   "⛔ the rule is 'never EDIT one after its games have started'. "
-   "Refusing to create one at all would lose a slate. frozen=%d picks=%d"
-   % (nfirst, len(first["picks"])))
+nokick = os.path.join(D, "nokick-old.json")
+io.open(nokick, "w", encoding="utf-8").write(json.dumps(
+    {"date": "2026-09-10", "picks": [{"player": "A"}], "game_lines": []}))
+_f, _w = card_fb._frozen(nokick, NOW)
+ck("🔴 no readable kickoff + a slate date behind today = frozen",
+   _f and "slate date" in _w,
+   "got %r %r" % (_f, _w))
 
-# ════════════════════════════════════════════════════════════════════════
-section("2. 🔴🔴 AND ON THE REAL CARD THAT WAS CORRUPTED")
-# ════════════════════════════════════════════════════════════════════════
-REAL = os.path.join(ROOT, "picks", "fb-nfl-2026-09-17.json")
-if not os.path.exists(REAL):             # pragma: no cover
-    ck("the real card is in the repo", False,
-       "⛔ this half of the file checks nothing without it — rule 67")
-else:
-    live = json.load(io.open(REAL, encoding="utf-8"))
-    kicks = sorted({r.get("commence") for r in live["picks"]})
-    ck("⚠️ the real card's slate really has started",
-       bool(kicks) and kicks[0] < AFTER,
-       "⛔ if this stops being true the drive below proves nothing "
-       "(rule 67). earliest kickoff %r" % (kicks[0] if kicks else None,))
-    # a rebuild that moves every single price by 10 points
-    rebuild = copy.deepcopy(live)
-    for r in rebuild["picks"]:
-        if isinstance(r.get("price"), (int, float)):
-            r["price"] = r["price"] + 10
-    got2, n2 = C.freeze_published(rebuild, REAL, AFTER, log=lambda *a: None)
-    same = all(a.get("price") == b.get("price")
-               for a, b in zip(live["picks"], got2["picks"]))
-    ck("🔴🔴 every one of the real card's %d rows survives a full reprice"
-       % len(live["picks"]),
-       same and len(got2["picks"]) == len(live["picks"]) and n2 >= len(live["picks"]),
-       "⛔ driven against the artifact itself, not a fixture of it. "
-       "rows %d -> %d, frozen %d, prices identical: %s"
-       % (len(live["picks"]), len(got2["picks"]), n2, same))
-    note("the real card: %d published row(s), all kicked off at %s, "
-         "%d frozen on a rebuild dated %s"
-         % (len(live["picks"]), kicks[0], n2, AFTER))
+nokick2 = os.path.join(D, "nokick-today.json")
+io.open(nokick2, "w", encoding="utf-8").write(json.dumps(
+    {"date": "2026-09-27", "picks": [{"player": "A"}], "game_lines": []}))
+ck("✅ ...and a FUTURE slate with no kickoff yet is still editable",
+   card_fb._frozen(nokick2, NOW)[0] is False,
+   "⛔ a card built before any line is priced has no commence to read "
+   "and must not be frozen out of existence")
 
-# ════════════════════════════════════════════════════════════════════════
-section("3. ⛔ AND THE WRITER CALLS IT — STRUCTURALLY, NOT IN PROSE")
-# ════════════════════════════════════════════════════════════════════════
-tree = ast.parse(io.open(os.path.join(ROOT, "card_fb.py"),
-                         encoding="utf-8").read())
-main = next((n for n in ast.walk(tree)
-             if isinstance(n, ast.FunctionDef) and n.name == "main"), None)
-calls, dumps = [], []
-for n in ast.walk(main or ast.Module(body=[], type_ignores=[])):
-    if isinstance(n, ast.Call):
-        nm = getattr(n.func, "id", None) or getattr(n.func, "attr", None)
-        if nm == "freeze_published":
-            calls.append(n.lineno)
-        if nm == "dump":
-            dumps.append(n.lineno)
-ck("🔴 `main` calls freeze_published",
-   bool(calls),
-   "⛔ a helper nothing calls is rule 78 in one file. A green test on an "
-   "uncalled function is the exact shape of the two vacuous guards "
-   "already open on issue #69.")
-ck("🔴🔴 ...and it calls it BEFORE it writes either file",
-   bool(calls) and bool(dumps) and min(calls) < min(dumps),
-   "⛔ freezing after the write would publish the corruption and then "
-   "correct it on the next run — the dated record and the `latest` "
-   "pointer must never disagree about a row. freeze@%s dump@%s"
-   % (calls, dumps))
+edge = os.path.join(D, "edge.json")
+io.open(edge, "w", encoding="utf-8").write(json.dumps(
+    card("2026-09-18", NOW, "EXACT")))
+ck("⚠️ kickoff EXACTLY now counts as started",
+   card_fb._frozen(edge, NOW)[0],
+   "⛔ the boundary is the one place an off-by-one lives, and 'started' "
+   "is the safe side of it")
+
+# ⛔ AND THERE IS EXACTLY ONE WRITER OF A DATED CARD, so the refusal
+#    cannot be bypassed by a second call site appearing later.
+_src = io.open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
+_writes = [l.strip() for l in _src.split("\n")
+           if "json.dump(out" in l and not l.strip().startswith("#")]
+ck("⛔ `card_fb.py` has exactly two `json.dump(out` sites — dated + latest",
+   len(_writes) == 2,
+   "🔴 a third writer would bypass the freeze entirely. found %d: %s"
+   % (len(_writes), _writes))
+ck("...and the dated one is inside `publish_dated()`",
+   "def publish_dated" in _src
+   and _src.index("def publish_dated") < _src.index("json.dump(out"),
+   "the only path to the dated file has to go through the check")
+
+# ══════════════════════════════════════════════════════════════════════
+section("3. 🔴 AND THE REPO ITSELF, EVERY LEAGUE, EVERY PUBLISHED CARD")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE ELEVEN ARE THE DAMAGE THIS FIX ENDED, NOT A TOLERANCE. The
+#    correct content of each is gone — a published card may never be
+#    edited, including to repair it — so they are listed by name and the
+#    list may only SHRINK. A twelfth fails.
+DAMAGED = {
+    "picks/fb-ncaaf-2026-09-03.json", "picks/fb-ncaaf-2026-09-05.json",
+    "picks/fb-ncaaf-2026-09-06.json", "picks/fb-ncaaf-2026-09-07.json",
+    "picks/fb-ncaaf-2026-09-11.json", "picks/fb-ncaaf-2026-09-12.json",
+    "picks/fb-ncaaf-2026-09-17.json", "picks/fb-nfl-2026-09-10.json",
+    "picks/fb-nfl-2026-09-13.json", "picks/fb-nfl-2026-09-14.json",
+    "picks/fb-nfl-2026-09-17.json",
+}
+
+
+def _dt(s):
+    try:
+        return datetime.datetime.strptime(
+            s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except Exception:
+        return None
+
+
+late, seen, mlb = [], 0, 0
+for p in sorted(glob.glob(os.path.join(ROOT, "picks", "*.json"))):
+    rel = "picks/" + os.path.basename(p)
+    if rel.endswith("-latest.json"):
+        continue
+    try:
+        d = json.load(io.open(p, encoding="utf-8"))
+    except Exception:
+        continue
+    gen = _dt(d.get("generated_at") or "") or _dt(d.get("built_at") or "")
+    kicks = [_dt(r.get("commence") or "")
+             for k in ("picks", "game_lines", "top_plays")
+             for r in (d.get(k) or []) if isinstance(r, dict)]
+    kicks = [k for k in kicks if k]
+    if not gen or not kicks:
+        continue
+    seen += 1
+    if "/fb-" not in rel:
+        mlb += 1
+    if gen > min(kicks) and rel not in DAMAGED:
+        late.append("%s generated %s, first kickoff %s"
+                    % (rel, gen.strftime("%m-%dT%H:%MZ"),
+                       min(kicks).strftime("%m-%dT%H:%MZ")))
+note("dated cards with both a stamp and a kickoff: %d (%d MLB) · "
+     "known-damaged: %d" % (seen, mlb, len(DAMAGED)))
+ck("🔴🔴 no card outside the known-damaged list was written after kickoff",
+   not late,
+   "⛔ a published estimate is what this product is judged on. %s"
+   % (late,))
+ck("⚠️ MLB has published cards in the sweep, so this covers every league",
+   mlb >= 5,
+   "⛔ a rule stated for all three leagues and measured on one is a rule "
+   "measured on one. MLB cards seen: %d" % mlb)
+_dead = sorted(r for r in DAMAGED
+               if not os.path.exists(os.path.join(ROOT, r)))
+ck("⛔ the damaged list has no dead entries — it may only shrink",
+   not _dead,
+   "a list nobody prunes becomes a blanket: %s" % (_dead,))
+shutil.rmtree(D, ignore_errors=True)
