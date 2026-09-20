@@ -204,6 +204,75 @@ ck("🔴 ...but a REAL snap-floor break over 3 weeks STILL raises",
    "⛔ this is the failure the guard exists for and it is not relaxed: %s"
    % str(_e)[:90])
 
+print("\n═══ 4c. 🔴 A WEEK PRESENT IS NOT A WEEK PUBLISHED ═══")
+# ⛔ `[live, 2026-09-19]` THE SAME GUARD FAILED A HEALTHY BUILD A THIRD
+#    TIME, in a third shape: *"ahead_out is CONSTANT ZERO across 1,188
+#    player-weeks spanning 2 weeks [1, 2]"*. It had been red on every
+#    scheduled `collect` run for days.
+# 🔴 THE MEASUREMENT, taken off the live nflverse feed:
+#    `stats_player_week_2026.csv.gz` held 1,190 rows — **1,118 in week 1
+#    and 72 in week 2** — and the 72 were **two teams, DET and BUF**.
+#    One of week 2's sixteen games had been published.
+#      · week-1 rows are zero by arithmetic (§1 above)
+#      · among week-2 OUT/DOUBTFUL players on DET or BUF, **none** is in
+#        a prop position — so not one row had a candidate that could be
+#        non-zero. The column was zero BY CONSTRUCTION.
+# ⚠️ So 1,118 rows that could never carry the signal were what cleared
+#    the 500-row bar. `cfb.py` learnt the near version of this — *"the
+#    bar was counting the wrong thing: rows, when the question is
+#    WEEKS"*. This is one turn further: rows IN THE WEEKS THAT COUNT.
+# ✅ THE RULE: the bar is met by rows in weeks the column is CAPABLE of
+#    varying in — every week after the log's first.
+
+
+def mixed(counts):
+    """A log holding exactly `counts[week]` rows in each week."""
+    P, i = {}, 0
+    for w, n in sorted(counts.items()):
+        for _ in range(n):
+            P[i] = {"g": [{"week": w}]}
+            i += 1
+    return P
+
+
+BOTH = schedule((1, YDAY), (2, YDAY))
+
+# 🔴 THE LIVE SHAPE, ROW FOR ROW.
+err, out = drive(mixed({1: 1118, 2: 72}), BOTH, 0, 1190)
+ck("🔴 the live 2026 shape (1,118 wk1 + 72 wk2) does NOT raise",
+   err is None,
+   "every scheduled collect run was red on this: %s" % err)
+ck("⛔ ...and it says a week PRESENT is not a week PUBLISHED",
+   "NOT a pass" in out and "72 row(s) sit in a week AFTER" in out,
+   "an absence with no arithmetic behind it is an accusation")
+ck("⚠️ ...and the per-week counts are on the log, not inferred",
+   "{1: 1118, 2: 72}" in out and "72 of 1,190" in out,
+   "the next reader must be able to see WHY without re-deriving it: "
+   "%s" % out[:200])
+
+# ⛔ THE BAR IS ON THE ELIGIBLE ROWS, AND THE OLD ONE WAS NOT.
+err, _ = drive(mixed({1: 5000, 2: 3}), BOTH, 0, 5003)
+ck("⛔ 5,000 week-1 rows do NOT clear the bar on their own",
+   err is None,
+   "this is the defect in one line: the old bar counted 5,003 and "
+   "fired, when only 3 rows could ever have been non-zero")
+
+# ✅ AND THE MOMENT THE SECOND WEEK IS REALLY PUBLISHED, IT BITES.
+err, _ = drive(mixed({1: 1118, 2: 1100}), BOTH, 0, 2218)
+ck("✅ a fully published week 2 with a constant column STILL raises",
+   err is not None and "CONSTANT ZERO" in str(err),
+   "the guard must come back the moment it can mean something: %s" % err)
+ck("...and the message states how many rows COULD have varied",
+   "1,100 of them in a week that CAN vary" in str(err),
+   "a refusal that does not show its own arithmetic is the thing this "
+   "file exists to stop: %s" % str(err))
+
+# 🔴 AND A POPULATED COLUMN ON THE LIVE SHAPE IS UNTOUCHED.
+err, _ = drive(mixed({1: 1118, 2: 72}), BOTH, 4, 1190)
+ck("a non-zero ahead_out passes on the live shape too",
+   err is None, str(err))
+
+
 print("\n═══ 5. ⛔ WHAT WAS NOT RELAXED ═══")
 src = open("nfl.py", encoding="utf-8").read()
 ck("the injury-file guard is untouched and still unconditional",

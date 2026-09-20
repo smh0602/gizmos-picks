@@ -521,72 +521,6 @@ LABEL = {
 }
 
 
-
-# ══════════════════════════════════════════════════════════════════════
-# 🔴🔴 IS THIS PUBLISHED CARD STILL EDITABLE?
-# ══════════════════════════════════════════════════════════════════════
-# ⛔ READ FROM THE FILE ON DISK, NEVER FROM THE CARD BEING BUILT. The
-# question is whether the RECORD's slate has started, and the record is
-# the bytes already published. A card being rebuilt for next week would
-# answer "no" about itself and happily overwrite last week's.
-# ⚠️ FAILS CLOSED WHEN IT CANNOT TELL. A file with no parsable kickoff
-# still carries a slate DATE, and a slate whose date is behind today's
-# UTC date has certainly started. **An unreadable file is not a file
-# that may be overwritten** — that is the absence-read-as-permission
-# error this project keeps making.
-def publish_dated(path, out, now=None):
-    """Write the dated card unless its slate has already started.
-
-    -> (wrote, why). ⛔ THE ONLY WRITER OF `picks/fb-<lg>-<date>.json`,
-    so the refusal cannot be bypassed by a second call site appearing.
-    `test_card_frozen.py` drives THIS function against real bytes.
-    """
-    frozen, why = _frozen(path, now)
-    if frozen:
-        return False, why
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(out, fh, indent=1)
-    return True, why
-
-
-def _frozen(path, now=None):
-    """(frozen, why) for an already-published dated card."""
-    if not os.path.exists(path):
-        return False, "not published yet"
-    now = now or datetime.now(timezone.utc)
-    try:
-        with open(path, encoding="utf-8") as fh:
-            d = json.load(fh)
-    except Exception as e:
-        return True, ("it is already published and could not be read "
-                      "(%s: %s), so whether its slate has started cannot "
-                      "be established" % (type(e).__name__, e))
-    stamps = []
-    for key in ("picks", "game_lines", "top_plays"):
-        for r in (d.get(key) or []):
-            c = r.get("commence")
-            if not isinstance(c, str):
-                continue
-            try:
-                stamps.append(datetime.strptime(
-                    c, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc))
-            except ValueError:
-                pass
-    if stamps:
-        first = min(stamps)
-        if first <= now:
-            return True, ("its first kickoff was %s and it is now %s"
-                          % (first.strftime("%Y-%m-%dT%H:%MZ"),
-                             now.strftime("%Y-%m-%dT%H:%MZ")))
-        return False, ("its first kickoff is %s, still ahead"
-                       % first.strftime("%Y-%m-%dT%H:%MZ"))
-    slate = d.get("date")
-    if isinstance(slate, str) and slate < now.strftime("%Y-%m-%d"):
-        return True, ("it carries no readable kickoff and its slate date "
-                      "%s is behind today" % slate)
-    return False, "no kickoff has passed that can be established"
-
-
 def log(m):
     print(f"[{datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ}] {m}", flush=True)
 
@@ -1289,6 +1223,202 @@ def build_top_plays(rows, board, n=TOP_N):
     return out, meta
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 A PUBLISHED ESTIMATE IS FROZEN THE MOMENT ITS GAME STARTS.
+# ══════════════════════════════════════════════════════════════════════
+# `CLAUDE.md`: *"Published estimates are a permanent record. ⛔ Never edit
+# or delete one after its games have started."* Football had no such stop
+# and MLB's is an accident of scheduling, not a guard.
+#
+# `[measured 2026-09-19]` `picks/fb-nfl-2026-09-17.json` — one game,
+# kickoff **2026-09-18T00:15:00Z** — was rewritten SIX times after that
+# kickoff, last at **2026-09-18T15:52:33Z**, 15h37m late:
+#
+#     Keon Coleman   o1.5 receptions       +158 -> +145
+#     Dawson Knox    o12.5 reception yds   -113 -> -120
+#     Jared Goff     u0.5 rush yds         -175 -> -185
+#     ...10 rows repriced, 12 dropped, 12 different ones added
+#
+# ⛔ `record_fb.py` and `shadow_fb.py` grade against these files, so the
+# graded record was being reconciled against numbers the board never
+# showed at the time it mattered.
+#
+# ✅ PER ROW, NOT PER CARD. An NFL Sunday runs from 17:00Z to 03:00Z. A
+# card frozen whole at the first kickoff would stop repricing the late
+# games, which is a real loss and is not what the rule asks for. The rule
+# is about a row whose game has started, and that is what freezes.
+# ⛔ A STARTED ROW IS ALSO NEVER ADDED. Publishing a new "pick" on a game
+# already in progress is the same misinformation in the other direction.
+FREEZE_SECTIONS = ("picks", "top_plays", "game_lines", "parlays", "sgp")
+
+# ═══════════════════════════════════════════════════════════════════
+# 🔴🔴 A MERGE OF TWO CAPPED LISTS IS NOT A CAPPED LIST.
+#    `[measured live 2026-09-19 19:10Z, the first NCAAF card written after
+#    the freeze shipped]` `picks/fb-ncaaf-2026-09-19.json` went from
+#    **25 picks / 20 top plays at 15:52Z to 34 / 26**, and four of the
+#    five frozen sections breached the cap the card declares on itself:
+#
+#        picks      34 > 25 (its own `board_max`)   top_plays  26 > 20
+#        parlays[2] 11 > 8   parlays[3] 15 > 8      parlays[4] 16 > 8
+#        sgp[2]     10 > 6   sgp[3]      8 > 6
+#
+#    Every other card in `picks/` was clean. ⛔ **The freeze introduced
+#    it**: `_merge_list` returns `keep + fresh`, where `keep` is every
+#    started row off the published card and `fresh` is a full, freshly
+#    capped build. Two lists of ≤N make one list of ≤2N.
+# ⚠️ **THE PAGE WAS THEREFORE LYING ABOUT ITS OWN STATED RULE** — the
+#    card publishes `board_max` so a reader can check it without the
+#    source, and it was publishing 34 against its own 25.
+# ✅ THE RESOLUTION, AND THE ORDER MATTERS: a FROZEN row is a published
+#    record and is never dropped to make room. The cap is filled from the
+#    frozen rows first and the remainder taken from the highest-confidence
+#    fresh rows. ⛔ So the board stops GROWING past its cap; it never
+#    loses a row it already published.
+# 📌 **NOT ENFORCED HERE, AND SAID RATHER THAN HIDDEN:** `SGP_PER_GAME`
+#    is a SELECTION constraint the builder applies while choosing, not a
+#    length the card declares. The merge does not re-derive it, because
+#    satisfying it could only mean dropping a frozen row.
+# ═══════════════════════════════════════════════════════════════════
+# ⚠️ A DICT SECTION'S CAP IS PER KEY, because that is how the builder
+#    applies it — `PARLAY_PER_SIZE` is per size, not per card.
+# ⛔ READ AT CALL TIME, NOT AT IMPORT. `PARLAY_PER_SIZE` and
+#    `SGP_PER_SIZE` are defined FURTHER DOWN this module, so a literal
+#    dict here raises NameError on import — which it did, once, and the
+#    whole collector would not have started. A name is only a name when
+#    the line runs.
+FREEZE_CAP_NAMES = {"picks": "BOARD_MAX", "top_plays": "TOP_N",
+                    "game_lines": "GAME_LINES_N",
+                    "parlays": "PARLAY_PER_SIZE", "sgp": "SGP_PER_SIZE"}
+
+
+def freeze_cap(sec):
+    """The published length cap for a frozen section, or None."""
+    name = FREEZE_CAP_NAMES.get(sec)
+    return globals().get(name) if name else None
+
+
+def _kickoffs(*docs):
+    """game_id -> kickoff, gathered from every row that carries both."""
+    out = {}
+    for doc in docs:
+        for v in (doc or {}).values():
+            for row in _rows_of(v):
+                gid, when = row.get("game_id"), row.get("commence")
+                if gid and when:
+                    out.setdefault(gid, when)
+    return out
+
+
+def _rows_of(v):
+    """Dict rows one or two levels down — a list, or a dict of lists."""
+    if isinstance(v, list):
+        return [r for r in v if isinstance(r, dict)]
+    if isinstance(v, dict):
+        out = []
+        for inner in v.values():
+            if isinstance(inner, list):
+                out += [r for r in inner if isinstance(r, dict)]
+        return out
+    return []
+
+
+def _started(row, kicks, now_iso):
+    """Has this row's game already kicked off?
+
+    ⚠️ A ROW WHOSE KICKOFF CANNOT BE RESOLVED IS TREATED AS NOT STARTED.
+    ⛔ That is the deliberate direction: the alternative freezes rows for
+    games that have not happened, which would stop the board updating on
+    a data gap. An unknown must not be able to silently stop the product.
+    """
+    when = row.get("commence")
+    if not when:
+        gids = row.get("game_ids") or ([row["game_id"]]
+                                       if row.get("game_id") else [])
+        cands = [kicks.get(g) for g in gids if kicks.get(g)]
+        when = min(cands) if cands else None
+    return bool(when) and str(when) <= now_iso
+
+
+def _key(row):
+    """What makes a published row the same row on the next build."""
+    return (row.get("game_id"), row.get("player"), row.get("market"),
+            row.get("side"), row.get("line"), row.get("label"),
+            tuple(row.get("game_ids") or ()), tuple(row.get("legs") or ()))
+
+
+def freeze_published(new, path, now_iso, log=print):
+    """Merge a freshly built card onto the one already published.
+
+    Returns (doc, frozen_count). `new` is mutated in place.
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            old = json.load(fh)
+    except Exception:
+        return new, 0                      # nothing published yet
+    kicks = _kickoffs(old, new)
+    frozen_total = 0
+    for sec in FREEZE_SECTIONS:
+        if sec not in old and sec not in new:
+            continue
+        o, n = old.get(sec), new.get(sec)
+        # ⚠️ `picks` is capped by the value the CARD DECLARES where it has
+        #    one, not by today's constant — a card written under an older
+        #    BOARD_MAX must be judged by the number it published.
+        cap = freeze_cap(sec)
+        if sec == "picks":
+            cap = new.get("board_max") or old.get("board_max") or cap
+        if isinstance(o, dict) or isinstance(n, dict):
+            keys = sorted(set(list(o or {})) | set(list(n or {})))
+            merged = {}
+            for k in keys:
+                merged[k], c = _merge_list((o or {}).get(k) or [],
+                                           (n or {}).get(k) or [],
+                                           kicks, now_iso, cap)
+                frozen_total += c
+            new[sec] = merged
+        else:
+            new[sec], c = _merge_list(o or [], n or [], kicks, now_iso, cap)
+            frozen_total += c
+    if frozen_total:
+        # 🔴 RANK IS A DISPLAY NUMBER AND IS RECOMPUTED; the row's own
+        #    price and confidence are the record and are not touched.
+        for i, r in enumerate(new.get("picks") or [], 1):
+            if "rank" in r:
+                r["rank"] = i
+        log("card_fb: %d published row(s) whose game had already started "
+            "were kept verbatim — %s" % (frozen_total, path))
+    return new, frozen_total
+
+
+def _merge_list(old_rows, new_rows, kicks, now_iso, cap=None):
+    keep = [r for r in old_rows if isinstance(r, dict)
+            and _started(r, kicks, now_iso)]
+    seen = {_key(r) for r in keep}
+    fresh = [r for r in new_rows if isinstance(r, dict)
+             and not _started(r, kicks, now_iso) and _key(r) not in seen]
+    out = keep + fresh
+    conf = [r.get("confidence") for r in out]
+    if out and all(isinstance(c, (int, float)) for c in conf):
+        out.sort(key=lambda r: -r["confidence"])
+    # 🔴 THE CAP IS APPLIED TO THE MERGED LIST, NOT TO EACH HALF.
+    #    ⛔ FROZEN ROWS ARE NEVER TRIMMED — they are already published and
+    #    already graded against. If they alone fill or exceed the cap there
+    #    is simply no room for a fresh row, which is the correct answer on
+    #    a slate that has finished starting.
+    if cap is not None and len(out) > cap:
+        frozen = {id(r) for r in keep}
+        room, trimmed = max(0, cap - len(keep)), []
+        for r in out:
+            if id(r) in frozen:
+                trimmed.append(r)
+            elif room:
+                trimmed.append(r)
+                room -= 1
+        out = trimmed
+    return out, len(keep)
+
+
 def slate_date(B):
     """The ET date of the earliest game on the board (ledger rule 60).
 
@@ -1913,34 +2043,15 @@ def main():
     # wrong-game bug happened.
     os.makedirs("picks", exist_ok=True)
     path = f"picks/fb-{LEAGUE}-{out['date']}.json"
-    # ══════════════════════════════════════════════════════════════════
-    # 🔴🔴 A PUBLISHED CARD IS FROZEN THE MOMENT ITS SLATE STARTS.
-    # ══════════════════════════════════════════════════════════════════
-    # CLAUDE.md has said so since MLB shipped — *"published estimates are
-    # a permanent record; never edit or delete one after its games have
-    # started"* — and **football never enforced it.**
-    # `[measured 2026-09-19 across every dated card in `picks/`]`
-    #   MLB       0 of 28 rewritten after their own first kickoff
-    #   NFL       4 of  5
-    #   NCAAF     7 of  8   — 11 of 13 football cards, 85%
-    # ⛔ AND THE DAMAGE IS NOT "SOME PRICES MOVED".
-    # `picks/fb-nfl-2026-09-17.json` — first kickoff 00:15Z on the 18th —
-    # was rewritten at 15:52Z on the 18th and now carries **the
-    # 2026-09-20 game lines** under a slate that had already played. The
-    # permanent record of what this product advertised on the 17th is
-    # partly a different week's board.
-    # ✅ SO THE REFUSAL IS DECIDED BY THE FILE ALREADY ON DISK, not by
-    #    the card being built: the published bytes are the record, and it
-    #    is their own earliest kickoff that says whether they are still
-    #    editable.
-    # ⚠️ `picks/fb-<lg>-latest.json` IS NOT A RECORD. It is the pointer
-    #    the page reads for "the next slate" and it is rewritten every
-    #    build, exactly as before.
-    wrote, why = publish_dated(path, out)
-    if not wrote:
-        log(f"::warning::card_fb[{LEAGUE}]: REFUSING to rewrite {path} — "
-            f"{why}. The published card is a permanent record. "
-            f"picks/fb-{LEAGUE}-latest.json is still being updated.")
+    # 🔴🔴 AND NOTHING ALREADY PUBLISHED FOR A STARTED GAME IS TOUCHED.
+    # See `freeze_published` above for the measurement. ⛔ This runs
+    # BEFORE either write, so the dated record and the pointer the page
+    # reads can never disagree about a row.
+    out, _frozen = freeze_published(
+        out, path, datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        log)
+    with open(path, "w") as fh:
+        json.dump(out, fh, indent=1)
     with open(f"picks/fb-{LEAGUE}-latest.json", "w") as fh:
         json.dump(out, fh, indent=1)
     rated = sum(1 for r in board if r.get("confidence") is not None)

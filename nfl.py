@@ -1576,20 +1576,59 @@ def check_ahead_out(players, when, n_ao, n_rows, log=print):
     _wks = sorted({g["week"] for p in players.values() for g in p["g"]
                    if g.get("week") is not None})
     AHEAD_OUT_MIN_ROWS = 500
-    if n_ao == 0 and len(_wks) >= 2 and n_rows >= AHEAD_OUT_MIN_ROWS:
+    # ═══════════════════════════════════════════════════════════════════
+    # 🔴 THE ROW BAR IS COUNTED ON THE WEEKS THE COLUMN CAN VARY IN, NOT
+    #    ON THE WHOLE LOG. `[2026-09-19 — this guard failed a healthy build
+    #    for the THIRD time, in a third shape]`
+    #    *"ahead_out is CONSTANT ZERO across 1,188 player-weeks spanning 2
+    #    weeks [1, 2]"*. **It was not a join failure either.**
+    # ⛔ THE MEASUREMENT, taken off the live feed rather than argued:
+    #    `stats_player_week_2026.csv.gz` held **1,190 rows — 1,118 in week
+    #    1 and 72 in week 2**, and those 72 rows were **two teams, DET and
+    #    BUF**. nflverse had published ONE of week 2's sixteen games.
+    #      · every week-1 row is zero by ARITHMETIC (no earlier week to
+    #        trail from) — the paragraph below already says why
+    #      · the week-2 rows exist only for DET and BUF, and NOT ONE
+    #        OUT/DOUBTFUL player in week 2 on either club is in a prop
+    #        position, so no row had a candidate that could be non-zero
+    #    ➡️ The column was zero BY CONSTRUCTION, and 1,118 rows that could
+    #    never have carried the signal were what cleared the 500-row bar.
+    # ⚠️ SAME CLASS AS `cfb.py`'s `CONST_MIN`, WHICH LEARNT THIS FIRST:
+    #    *"the bar was counting the wrong thing: rows, when the question is
+    #    WEEKS."* Here it is one turn further — rows IN THE WEEKS THAT
+    #    COUNT. A week present in the log is not a week published.
+    # ✅ UNCHANGED WHERE IT MATTERS: run #194 (constant zero over a real
+    #    multi-week season) still raises — 16 of its 17 weeks are eligible,
+    #    so the bar is cleared many times over. What is given up is rows in
+    #    the log's FIRST week, which are zero whatever the join does.
+    # ═══════════════════════════════════════════════════════════════════
+    _first = _wks[0] if _wks else None
+    _by_week = collections.Counter(
+        g["week"] for p in players.values() for g in p["g"]
+        if g.get("week") is not None)
+    n_eligible = sum(c for w, c in _by_week.items()
+                     if _first is not None and w > _first)
+    log(f"    ahead_out rows by week: {dict(sorted(_by_week.items()))} "
+        f"— {n_eligible:,} of {n_rows:,} sit in a week that can vary "
+        f"(bar: {AHEAD_OUT_MIN_ROWS})")
+    if n_ao == 0 and len(_wks) >= 2 and n_eligible >= AHEAD_OUT_MIN_ROWS:
         raise RuntimeError(
             f"ahead_out is CONSTANT ZERO across {n_rows:,} player-weeks "
-            f"spanning {len(_wks)} weeks {_wks}. That is a join failure, "
-            f"not a result. Run nfl-probe and read section 3b before "
-            f"fitting anything on it.")
+            f"spanning {len(_wks)} weeks {_wks}, {n_eligible:,} of them in "
+            f"a week that CAN vary. That is a join failure, not a result. "
+            f"Run nfl-probe and read section 3b before fitting anything "
+            f"on it.")
     if n_ao == 0:
         log(f"    ⚠️ ahead_out is constant ZERO across {n_rows:,} "
             f"player-week(s) over {len(_wks)} week(s) {_wks}, and that is "
             f"CORRECT, not a join failure: share_before() reads STRICTLY "
             f"EARLIER weeks, so on a log with no week to trail from it "
             f"returns 0.0 for everyone and nobody can rank ahead of "
-            f"anyone. NOT a pass — the check is NOT EXERCISED until "
-            f"{AHEAD_OUT_MIN_ROWS}+ rows span 2+ weeks.")
+            f"anyone. ⛔ AND A WEEK PRESENT IS NOT A WEEK PUBLISHED: only "
+            f"{n_eligible:,} row(s) sit in a week AFTER the log's first "
+            f"({_first!r}), which is where the only non-zero can come "
+            f"from. NOT a pass — the check is NOT EXERCISED until "
+            f"{AHEAD_OUT_MIN_ROWS}+ rows sit in weeks past the first.")
 
     # 🔴 AND THE FAILURE THAT ACTUALLY LOOKS LIKE A CONSTANT COLUMN:
     #    A WEEK THE SCHEDULE SAYS WAS PLAYED THAT PRODUCED NO ROWS.
