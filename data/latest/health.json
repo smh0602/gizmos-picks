@@ -1,24 +1,35 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-20T12:22:50Z",
+ "checked_at": "2026-09-20T12:44:14Z",
  "et_date": "2026-09-20",
- "healthy": true,
- "broken": 0,
+ "healthy": false,
+ "broken": 1,
  "degraded": 0,
- "findings": [],
- "repairs": [],
+ "findings": [
+  {
+   "key": "day:ncaaf:game_lines",
+   "severity": "BROKEN",
+   "what": "the ncaaf game lines say 2026-09-24 and carry rows on 2026-09-19",
+   "why": "this list declares its own slate and then contradicts it \u2014 the declaration is what the page shows the reader",
+   "repair": "card-fb",
+   "repair_attempts": 2
+  }
+ ],
+ "repairs": [
+  "card-fb"
+ ],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 8702,
-  "pulled_at": "2026-09-20T11:38:36Z",
+  "balance": 8320,
+  "pulled_at": "2026-09-20T12:43:30Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.7,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-09-20T11:38:36Z",
-  "source": "data/nfl/2026-09-20/props-player/1138.json.gz",
-  "readings_on_disk": 321,
+  "newest_paid_pull": "2026-09-20T12:43:30Z",
+  "source": "data/nfl/2026-09-20/gamelines/1243.json.gz",
+  "readings_on_disk": 322,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
