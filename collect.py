@@ -4212,7 +4212,18 @@ def run_mode(mode):
             write_freshness()
             left = None
         elif mode == "props-board":
-            left = collect_props_board()
+            # 🔴🔴 FOOTBALL HAS ITS OWN BUILDER. `[measured 2026-09-21,
+            #    runs #1633/#1634/#1638]` this branch called the MLB-only
+            #    `collect_props_board()` for every league, so every
+            #    football converge pass that planned `props-board` raised
+            #    "no game logs at all -- run the hitters and pitchers jobs
+            #    first" and exited 1 -- and the workflow then blamed
+            #    whichever mode the cron had launched ("mode 'news'
+            #    failed", "mode 'gamelines' failed", "mode 'props-player'
+            #    failed") while that mode had in fact succeeded.
+            #    ⛔ MLB is byte-identical: same function, same arguments.
+            left = (collect_props_board() if LEAGUE == "mlb"
+                    else collect_props_board_fb())
         elif mode == "nfl-logs":
             # 🔴 FREE. nflverse publishes flat files on GitHub; no key, no
             # credits. ⚠️ 2026 stat files appear only once week 1 is played,

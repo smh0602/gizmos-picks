@@ -1250,6 +1250,9 @@ def build_top_plays(rows, board, n=TOP_N):
 # ⛔ A STARTED ROW IS ALSO NEVER ADDED. Publishing a new "pick" on a game
 # already in progress is the same misinformation in the other direction.
 FREEZE_SECTIONS = ("picks", "top_plays", "game_lines", "parlays", "sgp")
+# Started game lines from a slate the list has since moved past — kept
+# verbatim as record, never displayed. See `freeze_published`.
+GL_EARLIER = "game_lines_earlier_slates"
 
 # ═══════════════════════════════════════════════════════════════════
 # 🔴🔴 A MERGE OF TWO CAPPED LISTS IS NOT A CAPPED LIST.
@@ -1358,6 +1361,39 @@ def freeze_published(new, path, now_iso, log=print):
         return new, 0                      # nothing published yet
     kicks = _kickoffs(old, new)
     frozen_total = 0
+    # 🔴🔴 A STARTED GAME LINE FROM AN EARLIER SLATE IS RECORD, NOT LIST.
+    #    `[measured 2026-09-21]` The college card stays dated 09-19 all
+    #    week (its props are Saturday's), while `game_lines` falls FORWARD
+    #    to the next day with open lines (rule 255). Every rebuild froze
+    #    the started 09-19 lines back INTO `game_lines`, so the list
+    #    printed "Thursday, Sept 24" over 10 Saturday rows + 1 Sunday row
+    #    + 1 Thursday row. test_game_lines_day.py §5 went red on EVERY
+    #    collect run from 09-20 on, and the watchdog's card-fb repair
+    #    failed on it 3x per pass (that is also what exhausted
+    #    self-repair's 40 turns).
+    #    ⛔ DROPPING THEM WOULD DELETE STARTED ROWS FROM A PERMANENT
+    #    RECORD, so they are MOVED, verbatim, to `GL_EARLIER` keyed by
+    #    their own ET day — a dict, so no list-day check mistakes it for
+    #    a published list, and nothing renders it.
+    #    ⚠️ Only STARTED off-slate rows move. An unstarted one is freely
+    #    repriceable and simply falls away, exactly as in `_merge_list`.
+    _gl_day = (new.get("game_lines_meta") or {}).get("slate")
+    archive = {k: list(v) for k, v in (old.get(GL_EARLIER) or {}).items()
+               if isinstance(v, list)}
+    if _gl_day and isinstance(old.get("game_lines"), list):
+        stay, seen = [], {_key(r) for v in archive.values() for r in v
+                          if isinstance(r, dict)}
+        for r in old["game_lines"]:
+            d = et_date(r.get("commence")) if isinstance(r, dict) else None
+            if d and d != _gl_day:
+                if _started(r, kicks, now_iso) and _key(r) not in seen:
+                    archive.setdefault(d, []).append(r)
+                    seen.add(_key(r))
+                continue
+            stay.append(r)
+        old = dict(old, game_lines=stay)
+    if archive:
+        new[GL_EARLIER] = archive
     for sec in FREEZE_SECTIONS:
         if sec not in old and sec not in new:
             continue

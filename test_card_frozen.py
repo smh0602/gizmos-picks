@@ -52,6 +52,11 @@ started.
 #   file: card_fb.py
 #   find:     if cap is not None and len(out) > cap:
 #   with:     if cap is not None and len(out) > cap and False:
+#
+# @vacuity 🔴🔴 a game line from a slate the list has left is not frozen back into it
+#   file: card_fb.py
+#   find:             if d and d != _gl_day:
+#   with:             if d and d != _gl_day and False:
 """
 import ast
 import copy
@@ -344,3 +349,87 @@ ck("🔴🔴 ...and it calls it BEFORE it writes either file",
    "correct it on the next run — the dated record and the `latest` "
    "pointer must never disagree about a row. freeze@%s dump@%s"
    % (calls, dumps))
+
+
+section("5. 🔴🔴 A MOVED GAME-LINE SLATE DOES NOT DRAG THE OLD DAY WITH IT")
+# ════════════════════════════════════════════════════════════════════════
+# `[measured 2026-09-21]` the college card, dated 09-19 all week, printed
+# game lines "for Thursday Sept 24" over 10 Saturday rows: every rebuild
+# froze the started Saturday lines back INTO a list that had moved on.
+# test_game_lines_day.py §5 was red on every collect run from 09-20.
+SAT = "2026-09-19T20:00:00Z"            # started at NOW
+SAT_LATE = "2026-09-20T02:30:00Z"       # a Saturday 10:30pm ET kickoff
+THU = "2026-09-24T23:30:00Z"            # not started at NOW
+NOW = "2026-09-21T19:00:00Z"
+def gl(gid, when, price):
+    return {"game_id": gid, "commence": when, "market": "h2h",
+            "side": "home", "label": gid, "price": price}
+OLDGL = {"date": "2026-09-19",
+         "game_lines_meta": {"slate": "2026-09-19"},
+         "game_lines": [gl("S1", SAT, -110), gl("S2", SAT_LATE, 120)]}
+NEWGL = {"date": "2026-09-19",
+         "game_lines_meta": {"slate": "2026-09-24", "is_next_slate": True},
+         "game_lines": [gl("T1", THU, 105)]}
+p = published(OLDGL)
+try:
+    got, _ = C.freeze_published(copy.deepcopy(NEWGL), p, NOW, log=lambda *a: None)
+finally:
+    os.unlink(p)
+days = sorted({C.et_date(r["commence"]) for r in got["game_lines"]})
+ck("🔴🔴 slate moved: every game line is on the list's declared day",
+   days == ["2026-09-24"],
+   "the list says Sept 24; it held %s" % days)
+arch = got.get(C.GL_EARLIER) or {}
+kept = [r for v in arch.values() for r in v]
+ck("🔴🔴 ...and NO started row was deleted — both are kept VERBATIM as record",
+   sorted(json.dumps(r, sort_keys=True) for r in kept)
+   == sorted(json.dumps(r, sort_keys=True) for r in OLDGL["game_lines"]),
+   "the permanent-record rule: a started row is never edited or deleted. "
+   "archive=%s" % arch)
+ck("⛔ ...filed under their own ET day, not the UTC string's",
+   list(arch) == ["2026-09-19"],
+   "a 10:30pm ET Saturday kickoff is 02:30Z Sunday; got %s" % list(arch))
+ck("⛔ ...and the record is a dict, so no list-day check can mistake it "
+   "for a published list",
+   isinstance(arch, dict) and not isinstance(got.get(C.GL_EARLIER), list))
+
+# carried forward, not duplicated, on the NEXT rebuild
+p = published(got)
+try:
+    again, _ = C.freeze_published(copy.deepcopy(NEWGL), p,
+                                  "2026-09-22T19:00:00Z", log=lambda *a: None)
+finally:
+    os.unlink(p)
+ck("🔴 the record survives the next rebuild exactly once",
+   again.get(C.GL_EARLIER) == arch,
+   "a record that vanishes on the second build is a delete with a delay; "
+   "got %s" % again.get(C.GL_EARLIER))
+
+# slate UNCHANGED: the ordinary freeze is untouched
+OLDSAME = {"date": "2026-09-19", "game_lines_meta": {"slate": "2026-09-19"},
+           "game_lines": [gl("S1", SAT, -110)]}
+NEWSAME = {"date": "2026-09-19", "game_lines_meta": {"slate": "2026-09-19"},
+           "game_lines": [gl("S1", SAT, -150), gl("S3", "2026-09-19T23:00:00Z", 100)]}
+p = published(OLDSAME)
+try:
+    same, _ = C.freeze_published(copy.deepcopy(NEWSAME), p,
+                                 "2026-09-19T21:00:00Z", log=lambda *a: None)
+finally:
+    os.unlink(p)
+s1 = [r for r in same["game_lines"] if r["game_id"] == "S1"]
+ck("🔴 slate unchanged: a started line is still frozen at its PUBLISHED price",
+   [r["price"] for r in s1] == [-110] and C.GL_EARLIER not in same,
+   "got %s" % same)
+
+# the live card, when it was built by a builder with this fix
+_lp = os.path.join(ROOT, "picks", "fb-ncaaf-latest.json")
+if os.path.exists(_lp):
+    _d = json.load(open(_lp, encoding="utf-8"))
+    if C.GL_EARLIER in _d or not any(
+            C.et_date(r.get("commence")) != (_d.get("game_lines_meta") or {}).get("slate")
+            for r in _d.get("game_lines") or []):
+        note("live college card is consistent with this section")
+    else:
+        note("⚠️ the live college card predates this fix; the next card-fb "
+             "run rewrites it. ⛔ Reported, not passed — "
+             "test_game_lines_day.py §5 is the live assertion.")

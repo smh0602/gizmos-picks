@@ -11,7 +11,8 @@ for his injury to attach to. Nothing failed. Nothing warned.
 
 Usage:  python verify_nfl.py [season ...]
 """
-import collections, glob, gzip, json, os, re, sys
+import collections
+import datetime, glob, gzip, json, os, re, sys
 
 FAIL, WARN, PASS, NYM = [], [], [], []
 BASE = "data/nfl/latest"
@@ -65,6 +66,100 @@ def final_weeks(season):
 def load(p):
     with gzip.open(p, "rt") as fh:
         return json.load(fh)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 SNAP COVERAGE IS JUDGED PER WEEK, NOT POOLED.
+# ~~one pooled fraction over every player-week, >= 0.80~~ REPLACED
+# 2026-09-21. `[measured]` `players-2026.json.gz` pulled 07:52:26Z held
+# week 1 at 356 of 357 skill player-weeks with snaps (99.7%) and week 2
+# at 22 of 337 (6.5%) — week 2's Monday night game had not been played,
+# and nflverse's `snap_counts_2026` added week 2 at 11:03Z, three hours
+# AFTER the pull. Pooled, that read "54.3% — FAILED" on every collect run.
+# ⛔ THE POOLED FORM ASKED THE WRONG QUESTION BOTH WAYS: it failed a
+#    correct log whose newest week the feed had not reached, and it
+#    PASSED a log with a whole missing week hidden behind fat ones
+#    (16 weeks at 100% and one at 0% pools to 94%).
+# ✅ THE REPLACEMENT IS HARDER. Every COMPLETE week (every scheduled game
+#    final) must clear the bar ON ITS OWN. Only two cases are not yet
+#    measurable, and both are read from the artifacts, never the clock:
+#      · a week the schedule does not call complete yet;
+#      · the LATEST complete week, when the logs were pulled within
+#        SNAP_LAG_DAYS of its last kickoff — nflverse posts snap counts
+#        after the week, and a pull that beat them is early, not broken.
+#    ⛔ An interior week never gets that grace, and the latest one loses
+#    it the moment a pull lands more than SNAP_LAG_DAYS after the week.
+# ══════════════════════════════════════════════════════════════════════
+SNAP_MIN = 0.80
+SNAP_LAG_DAYS = 3
+
+
+def week_status(season):
+    """week -> (every game final, last kickoff 'YYYY-MM-DDTHH:MM') from the
+    schedule artifact; None when there is no schedule to read."""
+    p = f"{BASE}/schedule-{season}.json.gz"
+    if not os.path.exists(p):
+        return None
+    try:
+        games = load(p).get("games") or []
+    except Exception:
+        return None
+    out = {}
+    for g in games:
+        w = g.get("week")
+        if not isinstance(w, int):
+            continue
+        done, last = out.get(w, (True, ""))
+        out[w] = (done and bool(g.get("final")),
+                  max(last, (g.get("start") or "")[:16]))
+    return out
+
+
+def check_snap_coverage(season, prop_rows, pulled_at, status=None):
+    """Per-week snap coverage. Returns {week: fraction} for the tests."""
+    per = collections.defaultdict(lambda: [0, 0])
+    for _, _, g in prop_rows:
+        w = g.get("week")
+        if isinstance(w, int):
+            per[w][0] += 1
+            per[w][1] += "snap_pct" in g
+    frac = {w: (h / n if n else 0.0) for w, (n, h) in per.items()}
+    if not frac:
+        bad("snap coverage on QB/RB/WR/TE", "— no skill-position rows at all")
+        return frac
+    st = status if status is not None else week_status(season)
+    complete = sorted(w for w in frac if st is None or (st.get(w) or (False,))[0])
+    pending = sorted(set(frac) - set(complete))
+    latest = complete[-1] if complete else None
+    for w in pending:
+        nym(f"snap coverage, week {w}",
+            f"[{frac[w]:.1%} of {per[w][0]:,}] — the schedule does not call "
+            f"week {w} complete yet")
+    thin = [w for w in complete if frac[w] < SNAP_MIN]
+    if latest in thin and st is not None and pulled_at:
+        try:
+            last = datetime.datetime.fromisoformat(st[latest][1])
+            pull = datetime.datetime.fromisoformat(pulled_at[:16])
+            early = (pull - last).total_seconds() < SNAP_LAG_DAYS * 86400
+        except Exception:
+            early = False
+        if early:
+            thin.remove(latest)
+            complete.remove(latest)
+            nym(f"snap coverage, week {latest}",
+                f"[{frac[latest]:.1%} of {per[latest][0]:,}] — the logs were "
+                f"pulled {pulled_at} and the week's last game kicked off "
+                f"{st[latest][1]} ET; nflverse posts snap counts after the "
+                f"week, so this pull beat them. ⛔ Not a pass.")
+    if not complete and not thin:
+        return frac
+    shown = ", ".join(f"wk{w} {frac[w]:.1%}" for w in sorted(complete))
+    (ok if not thin else bad)(
+        "snap coverage on QB/RB/WR/TE, every complete week on its own",
+        f"[{shown}] — the depth-rank system rests on this"
+        if not thin else
+        f"⛔ week(s) {thin} below {SNAP_MIN:.0%}: [{shown}]")
+    return frac
 
 
 def check_logs(path):
@@ -181,11 +276,7 @@ def check_logs(path):
     (ok if not sf else bad)("no player faces his own team", f"[{sf} rows]")
 
     prop_rows = [(i, p, g) for i, p, g in rows if p.get("pos") in PROP_POS]
-    frac = (sum(1 for _, _, g in prop_rows if "snap_pct" in g)
-            / len(prop_rows)) if prop_rows else 0
-    (ok if frac >= 0.80 else bad)("snap coverage on QB/RB/WR/TE",
-        f"[{frac:.1%} of {len(prop_rows):,} — the depth-rank system rests "
-        f"on this]")
+    check_snap_coverage(season, prop_rows, doc.get("pulled_at"))
 
     badpct = [g for _, _, g in rows
               if "snap_pct" in g and not 0.0 <= g["snap_pct"] <= 1.0]

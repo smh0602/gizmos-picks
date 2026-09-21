@@ -36,6 +36,21 @@ covered by the same line.
 #    and found ZERO — a mutation that changes nothing, rule 244.
 #    ✅ The continuation is simply not part of the `find` any more, so
 #    there is no backslash left to get wrong.
+#
+# @vacuity 🔴🔴 snap coverage is judged week by week, not pooled
+#   file: verify_nfl.py
+#   find:     thin = [w for w in complete if frac[w] < SNAP_MIN]
+#   with:     thin = []
+#
+# @vacuity 🔴 the newest-week grace expires
+#   file: verify_nfl.py
+#   find:             early = (pull - last).total_seconds() < SNAP_LAG_DAYS * 86400
+#   with:             early = True
+#
+# @vacuity ⛔ only the schedule decides a week is unfinished
+#   file: verify_nfl.py
+#   find:     complete = sorted(w for w in frac if st is None or (st.get(w) or (False,))[0])
+#   with:     complete = sorted(frac)
 """
 import glob
 import io
@@ -149,6 +164,91 @@ section("3. 🔴🔴 AND 'NOT YET MEASURABLE' IS NOT A PASS")
 #    `ahead_out` is 0 across ALL of 2025's week-1 rows too. Those became
 #    a THIRD verdict rather than being deleted, and a third verdict is
 #    only honest if it can never be mistaken for a pass.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 ~~`nnym >= 1` and "RED, for a real and current reason" ON THE LIVE
+#    TREE~~ — REPLACED 2026-09-21. ⛔ BOTH ASKED THE WRONG QUESTION: they
+#    asserted what the live data looked like in week 2 ("something is not
+#    yet measurable", "the logs are behind"), so they went red the moment
+#    the season moved on and the data caught up — on every collect run
+#    from 2026-09-20. ⛔ And the second one passed BY ACCIDENT: the text
+#    it looked for, "the logs cover every week the schedule calls final",
+#    is the name of a check, printed on its PASS line too.
+# ✅ THE BEHAVIOUR IS NOW DRIVEN ON A FIXTURE WHOSE STATE CANNOT DRIFT,
+#    and the live tree gets only the assertions that hold in every week.
+# ══════════════════════════════════════════════════════════════════════
+import verify_nfl as V  # noqa: E402
+
+
+def _drive(weeks, status, pulled_at):
+    """weeks: {week: (rows, rows_with_snaps)} -> (PASS, NYM, FAIL) names."""
+    for lst in (V.PASS, V.FAIL, V.WARN, V.NYM):
+        del lst[:]
+    rows = []
+    for w, (n, h) in weeks.items():
+        rows += [("p%d_%d" % (w, i), {"pos": "WR"},
+                  dict({"week": w}, **({"snap_pct": 0.5} if i < h else {})))
+                 for i in range(n)]
+    _o = sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        V.check_snap_coverage(2099, rows, pulled_at, status=status)
+    finally:
+        sys.stdout = _o
+    return list(V.PASS), list(V.NYM), list(V.FAIL)
+
+
+_FULL = (100, 100)
+# a. week 1 complete, week 2 half-played and thin — the 2026-09-21 tree
+ps, ny, fl = _drive({1: _FULL, 2: (100, 6)},
+                    {1: (True, "2099-09-14T20:15"), 2: (False, "2099-09-21T20:15")},
+                    "2099-09-21T07:52:26Z")
+ck("🔴🔴 a week still being played is NOT YET MEASURABLE — and not a pass",
+   not fl and any("week 2" in n for n in ny)
+   and not any("week 2" in n for n in ps),
+   "⛔ folding it into `passed` would make the third verdict a way of "
+   "quietly going green. PASS=%s NYM=%s FAIL=%s" % (ps, ny, fl))
+ck("   ...while the complete week IS judged, and passes on its own",
+   any("every complete week" in n for n in ps), "PASS=%s" % ps)
+# a2. ...and it is the SCHEDULE that says so, not the pull's timing: a
+#     week with a postponed game is still not complete a fortnight on.
+ps, ny, fl = _drive({1: _FULL, 2: (100, 6)},
+                    {1: (True, "2099-09-14T20:15"), 2: (False, "2099-09-21T20:15")},
+                    "2099-10-05T07:52:26Z")
+ck("⛔ ...because the SCHEDULE says the week is unfinished, however late "
+   "the pull",
+   not fl and any("week 2" in n for n in ny),
+   "NYM=%s FAIL=%s" % (ny, fl))
+
+# b. an interior week missing — pooled this is 80.0% and PASSED
+ps, ny, fl = _drive({1: _FULL, 2: _FULL, 3: (100, 0), 4: _FULL, 5: _FULL},
+                    {w: (True, "2099-09-%02dT20:15" % (7 * w)) for w in range(1, 6)},
+                    "2099-10-10T07:00:00Z")
+ck("🔴🔴 a whole missing week can no longer hide behind full ones",
+   bool(fl) and not ny,
+   "⛔ 4 weeks at 100%% and one at 0%% pools to exactly the 80%% bar. "
+   "FAIL=%s NYM=%s" % (fl, ny))
+
+# c. the latest complete week is thin: early pull = NYM, late pull = FAIL
+_st = {1: (True, "2099-09-14T20:15"), 2: (True, "2099-09-21T20:15")}
+ps, ny, fl = _drive({1: _FULL, 2: (100, 6)}, _st, "2099-09-22T07:52:00Z")
+ck("🔴 the newest complete week, pulled before nflverse posted it, is "
+   "NOT YET MEASURABLE",
+   not fl and any("week 2" in n for n in ny), "NYM=%s FAIL=%s" % (ny, fl))
+ps, ny, fl = _drive({1: _FULL, 2: (100, 6)}, _st, "2099-09-28T07:52:00Z")
+ck("🔴🔴 ...and the grace EXPIRES: a week later it is a FAILURE",
+   bool(fl) and not ny,
+   "⛔ a grace with no end is a switched-off check. FAIL=%s NYM=%s"
+   % (fl, ny))
+ps, ny, fl = _drive({1: (100, 6), 2: _FULL}, _st, "2099-09-22T07:52:00Z")
+ck("⛔ ...and it NEVER reaches an interior week, however early the pull",
+   bool(fl), "FAIL=%s" % fl)
+
+# d. no schedule to read: nothing is excused
+ps, ny, fl = _drive({1: _FULL, 2: (100, 6)}, None, "2099-09-22T07:52:00Z")
+ck("⛔ with no schedule artifact, every week is judged — nothing excused",
+   bool(fl) and not ny, "FAIL=%s NYM=%s" % (fl, ny))
+
+# the live tree: only what holds in every week of every season
 r = subprocess.run([sys.executable, "-B", os.path.join(ROOT, "verify_nfl.py"),
                     "--current"], cwd=ROOT, capture_output=True, text=True,
                    timeout=600)
@@ -161,20 +261,12 @@ ck("⚠️ the verifier reports all four states in its summary",
    "tail=%r" % out[-220:])
 if m:
     npass, nnym, _nwarn, nfail = (int(x) for x in m.groups())
-    ck("🔴🔴 a NOT-YET-MEASURABLE is counted apart from a pass",
-       nnym >= 1,
-       "⛔ if it were folded into `passed`, this whole distinction "
-       "would be a way of quietly going green. got %s" % (m.group(0),))
     ck("🔴 ...and the exit code follows the FAILURES only",
        (r.returncode == 1) == (nfail > 0),
        "⛔ the job gates on this number. rc=%s fails=%d"
        % (r.returncode, nfail))
-    ck("🔴🔴 ...and on this tree it is RED, for a real and current reason",
-       nfail >= 1 and "the logs cover every week the schedule calls final"
-       in out,
-       "⛔ `players-2026.json.gz` holds week 1 while the schedule "
-       "already records finals for weeks 1 AND 2 — the visible edge of "
-       "a 47-hour nflverse outage. This check is the point of the "
-       "whole change; if it ever passes by accident, say so. %s"
-       % (m.group(0),))
+    ck("🔴 ...and every FAILED line is also an ::error:: annotation",
+       nfail == out.count("::error::"),
+       "⛔ a failure the Actions page does not show is a failure Sam "
+       "cannot find. %d failed, %d annotated" % (nfail, out.count("::error::")))
     note("verify_nfl --current on this tree: %s" % m.group(0))

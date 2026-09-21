@@ -46,6 +46,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   find: s_personnel(teams, players, this_season, missing),
 #   with: # s_personnel(teams, players, this_season, missing),
 #
+# @vacuity section 6 answers from the stored table, and never denies it is there
+#   file: dossier_fb.py
+#   find:     if not top:
+#   with:     if True:
+#
 # @vacuity a section that cannot answer says UNAVAILABLE, never vanishes
 #   file: dossier_fb.py
 #   find: d = {"n": n, "name": name, "state": "UNAVAILABLE", "basis": None,
@@ -608,9 +613,16 @@ _bp1e = os.path.join(_d1e, "data/nfl/latest/board.json")
 _b1e = json.load(open(_bp1e, encoding="utf-8"))
 _hf1e = next(g["home"] for g in _b1e["games"] if _res(g.get("home")))
 _hc1e = _res(_hf1e)
+# ⚠️ THE DOSSIER'S KEY IS (team, date ±1), SO THE FIXTURE CLEARS ±1 TOO.
+#    `[measured 2026-09-21]` clearing only the exact day left a real
+#    adjacent-day row in the window once the season had games on
+#    consecutive days, and the builder — correctly — counted THREE
+#    candidates. The test expected two and went red on correct code.
+_win1e = {(datetime.date.fromisoformat(_day1e)
+           + datetime.timedelta(days=_k)).isoformat() for _k in (-1, 0, 1)}
 _S1e["games"] = [x for x in _g1e
                  if not (x.get("home") == _hc1e
-                         and (x.get("start") or "")[:10] == _day1e)]
+                         and (x.get("start") or "")[:10] in _win1e)]
 for _i in (1, 2):
     _S1e["games"].append({"home": _hc1e, "away": "Ghost %d" % _i,
                           "start": _day1e + "T18:00", "week": 50 + _i,
@@ -848,14 +860,79 @@ for _claim in ("min 0.30", "median 0.87", "r = +0.6426",
        "season and the whole 2025 NFL season")
 _top = [s for g in _docs for s in g["sections"]
         if s["name"] == "Time of possession"]
-ck(_top and all(s["state"] == "UNAVAILABLE" for s in _top),
-   "🔴 time of possession reports UNAVAILABLE — the column EXISTS but "
-   "nothing under data/ carries it",
-   "⛔ the probe confirmed the field; it did NOT confirm an artifact, and "
-   "claiming one would be the thing the brief forbade")
-ck(all("remedy" in s for s in _top),
-   "   ...and names what would fix it",
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ~~"every section 6 reports UNAVAILABLE"~~ — REPLACED 2026-09-21.
+# ⛔ IT ASKED THE WRONG QUESTION: it asserted a FACT ABOUT THE CALENDAR
+#    ("no possession table exists yet"), so it went red the moment the
+#    table shipped — `top-2026.json.gz` landed 2026-09-20 08:53Z and this
+#    file failed every collect run from then on, on CORRECT output.
+# ✅ THE REPLACEMENT IS HARDER, NOT SOFTER. It now asks the question in
+#    BOTH states and checks the section against the DISK, where the old
+#    form only ever checked one state and never looked at the disk:
+#      1. an OK section is DESCRIPTIVE, names at least one team, and every
+#         share is a real fraction whose minutes say the same thing;
+#      2. every UNAVAILABLE section still names a remedy;
+#      3. a section may not claim "no figures are stored" while the table
+#         IS on disk — nor answer OK while it is not;
+#      4. and the ABSENT case is DRIVEN on a tree with the table removed,
+#         so the old assertion still holds exactly where it is true.
+# ══════════════════════════════════════════════════════════════════════
+ck(bool(_top), "⚠️ there are section-6 rows to check (%d)" % len(_top),
+   "⛔ rule 67 — an empty sweep proves nothing")
+_ok6 = [s for s in _top if s["state"] == "OK"]
+_bad6 = []
+for s in _ok6:
+    bt = s.get("by_team") or {}
+    if s.get("basis") != "DESCRIPTIVE" or not bt:
+        _bad6.append(("basis/by_team", s.get("basis"), list(bt)))
+    for t, v in bt.items():
+        sh = v.get("share")
+        spg = v.get("seconds_per_game")
+        if not (isinstance(sh, (int, float)) and 0 < sh < 1):
+            _bad6.append((t, "share", sh))
+        elif not (isinstance(spg, int)
+                  and v.get("minutes") == "%d:%02d" % divmod(spg, 60)
+                  and abs(spg - sh * 3600) <= 60):
+            _bad6.append((t, "minutes/seconds disagree", v))
+ck(not _bad6,
+   "🔴 every OK section 6 is DESCRIPTIVE, names a team, and its shares "
+   "are real fractions whose minutes agree (%d OK)" % len(_ok6),
+   "⛔ a possession share of 0, 1 or more is a join fault, and minutes "
+   "that disagree with the share are two sources for one fact (rule 66). "
+   "Bad: %s" % _bad6[:4])
+ck(all(s["state"] == "OK" or "remedy" in s for s in _top),
+   "   ...and every section that is not OK names what would fix it",
    "a gap with no remedy is a complaint")
+_TOPF = glob.glob(os.path.join(_d, "data/nfl/latest/top-[0-9][0-9][0-9][0-9].json.gz"))
+_claims_none = [s for s in _top
+                if "No time-of-possession figures are stored" in (s.get("why") or "")]
+if _TOPF:
+    ck(not _claims_none and _ok6,
+       "🔴🔴 the table is on disk (%s), so NO section says it is not, and "
+       "the section answers" % os.path.basename(_TOPF[0]),
+       "⛔ a page saying 'nothing is stored' beside a stored table is the "
+       "section lying about the disk. %d claim none, %d OK"
+       % (len(_claims_none), len(_ok6)))
+else:
+    ck(not _ok6,
+       "🔴🔴 no table on disk, so NO section answers OK",
+       "⛔ an OK section with no table under it is a number from nowhere")
+
+# 4. THE ABSENT CASE, DRIVEN — the old assertion, exactly where it holds.
+_d6 = tree()
+for _f in glob.glob(os.path.join(_d6, "data/nfl/latest/top-[0-9][0-9][0-9][0-9].json.gz")):
+    os.remove(_f)
+_rc6, _out6 = run(_d6, "dossier_fb.py")
+_top6 = [s for g in (_load(os.path.join(_d6, "data/nfl/latest/dossiers.json.gz"))
+                     .get("dossiers") or [])
+         for s in g["sections"] if s["name"] == "Time of possession"]
+ck(_rc6 == 0 and _top6
+   and all(s["state"] == "UNAVAILABLE" and "remedy" in s for s in _top6),
+   "🔴 table removed: every section 6 reports UNAVAILABLE and names a "
+   "remedy (%d)" % len(_top6),
+   "⛔ the probe confirms a field, not an artifact. rc=%s %s"
+   % (_rc6, sorted({s["state"] for s in _top6})))
+shutil.rmtree(_d6, ignore_errors=True)
 section("7. 🔴🔴 NO VERDICT MAY REACH THE PUBLISHED FILE")
 # ⛔ THE ONE BOUNDARY THIS FILE EXISTS TO HOLD, AND NOTHING HELD IT.
 #    `[Sam, 2026-09-17]` `"score": 0.73, "confidence": 88` beside
