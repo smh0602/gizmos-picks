@@ -1,7 +1,7 @@
 {
  "date": "2026-09-21",
  "league": "nfl",
- "generated_at": "2026-09-21T11:57:49Z",
+ "generated_at": "2026-09-21T13:27:20Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-21T11:40:38Z",
@@ -18,32 +18,34 @@
    "game": "New York Giants @ Los Angeles Rams",
    "game_id": "32367f882fac1a0c20a6335619922025",
    "commence": "2026-09-22T00:15:00Z",
-   "market": "spreads",
-   "side": "Los Angeles Rams",
-   "point": -7.0,
-   "best_price": -102,
-   "best_book": "betmgm",
+   "market": "totals",
+   "side": "Over",
+   "point": 47.5,
+   "best_price": -105,
+   "best_book": "fanduel",
    "link": null,
-   "median_price": 1.9091,
-   "n_books": 3,
-   "gain_pct": 3.73
+   "median_price": 1.9175,
+   "n_books": 4,
+   "gain_pct": 1.82
   }
  ],
  "game_lines_meta": {
   "games_seen": 1,
-  "comparable_quotes": 6,
+  "comparable_quotes": 4,
   "games_with_an_edge": 1,
   "min_books": 3,
   "slate": "2026-09-21",
-  "off_day_games": 14,
+  "off_day_games": 16,
   "off_day_dates": [
-   "2026-09-20"
+   "2026-09-24",
+   "2026-09-27",
+   "2026-09-28"
   ],
   "card_slate": "2026-09-21",
   "is_next_slate": false,
-  "snapshot": "data/nfl/2026-09-20/gamelines/1819.json.gz"
+  "snapshot": "data/nfl/2026-09-21/gamelines/1244.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 6 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -148,7 +150,7 @@
    {
     "legs": [
      "Cam Skattebo o1.5 rec",
-     "Los Angeles Rams -7 spread"
+     "Over 47.5 total"
     ],
     "game": "New York Giants @ Los Angeles Rams",
     "game_id": "32367f882fac1a0c20a6335619922025",
@@ -156,13 +158,13 @@
     "book": "betmgm",
     "prices": [
      -150,
-     -102
+     -108
     ],
-    "line_best_book": "betmgm",
-    "line_best_price": -102,
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.301,
+    "multiplier": 3.21,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -178,32 +180,32 @@
    },
    {
     "legs": [
-     "Isaiah Likely u4.5 rec",
-     "Los Angeles Rams -7 spread"
+     "Theo Johnson o0.5 rec",
+     "Over 47.5 total"
     ],
     "game": "New York Giants @ Los Angeles Rams",
     "game_id": "32367f882fac1a0c20a6335619922025",
     "same_game": true,
-    "book": "hardrockbet",
+    "book": "fanduel",
     "prices": [
-     -125,
-     -110
+     -210,
+     -105
     ],
-    "line_best_book": "betmgm",
-    "line_best_price": -102,
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.436,
+    "multiplier": 2.882,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 86,
+    "weakest_leg": 91,
     "weakest_leg_basis": "RECORD",
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     86
+     91
     ],
     "band_floor": 1.8
    }
@@ -213,7 +215,7 @@
     "legs": [
      "Cam Skattebo o1.5 rec",
      "Davante Adams u5.5 rec",
-     "Los Angeles Rams -7 spread"
+     "Over 47.5 total"
     ],
     "game": "New York Giants @ Los Angeles Rams",
     "game_id": "32367f882fac1a0c20a6335619922025",
@@ -222,13 +224,13 @@
     "prices": [
      -150,
      -145,
-     -102
+     -108
     ],
-    "line_best_book": "betmgm",
-    "line_best_price": -102,
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 5.577,
+    "multiplier": 5.424,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -247,7 +249,7 @@
     "legs": [
      "Theo Johnson o7.5 rec yds",
      "Darnell Mooney o11.5 rec yds",
-     "Matthew Stafford o1.5 pass TD"
+     "Over 47.5 total"
     ],
     "game": "New York Giants @ Los Angeles Rams",
     "game_id": "32367f882fac1a0c20a6335619922025",
@@ -256,13 +258,13 @@
     "prices": [
      -113,
      -113,
-     -178
+     -105
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
     "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 5.549,
+    "n_line_legs": 1,
+    "multiplier": 6.937,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -273,7 +275,6 @@
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      84,
-     83,
      83
     ],
     "band_floor": 3.0
@@ -290,7 +291,7 @@
    "mixed_book": 141,
    "below_floor": 0,
    "no_rated_leg": 0,
-   "line_not_at_book": 15
+   "line_not_at_book": 1
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
