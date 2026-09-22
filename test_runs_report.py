@@ -318,6 +318,19 @@ ck("🔴🔴 EVERY cron-declaring workflow stamps its schedule",
    "cron that never fires is INVISIBLE. Unstamped: %s"
    % [k for k, d in _CRONS.items() if not d["stamped"]])
 
+# 🔴🔴 ...AND SO DOES EVERY WORKFLOW STAGED FOR SAM TO UPLOAD.
+# `[2026-09-22]` `docs/upload/t60r.yml` was handed over with no stamp. The
+#    check above only reads `.github/workflows/`, so the file was NEVER
+#    TESTED before it reached Sam — it went red on `main` the moment he
+#    uploaded it, and he had to upload it twice. ⛔ THE CLASS: a cron
+#    workflow can only reach `main` by hand, so the staging folder is the
+#    LAST place a test can see it. Checked there, with the same reader.
+_STAGED = R.declared_crons(".", pattern="docs/upload/*.yml")
+ck("🔴🔴 every cron workflow STAGED for upload stamps its schedule too",
+   all(d["stamped"] for d in _STAGED.values()),
+   "⛔ a file Sam uploads by hand is checked here or nowhere. Unstamped: %s"
+   % [k for k, d in _STAGED.items() if not d["stamped"]])
+
 # ── the cron arithmetic, pinned by hand against cron's own grammar ──
 # ⛔ NOT READ OFF THE CODE. `budget.py` shipped `*/6` counted as ONE fire
 #    a day and printed a plausible number for a week (rule 260 shape).

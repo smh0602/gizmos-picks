@@ -1,5 +1,17 @@
 # UPLOAD BY HAND — `t60r.yml` (weekly backtest grading)
 
+> ## ⚠️ SECOND UPLOAD NEEDED — 2026-09-22
+> The first file I gave you was missing one line (the schedule "stamp"
+> every cron workflow here carries), and the tests went red on `main`
+> the moment it landed. **That was my mistake, not an upload problem.**
+> The corrected file is at the same place. Follow the same steps below;
+> GitHub will **replace** the existing `t60r.yml`. Commit message for
+> this upload (paste it):
+>
+> ```
+> t60r: add the schedule stamp to run-name (second upload)
+> ```
+
 **Why you and not me:** this file has a `cron:` block. GitHub credits
 every scheduled run in the repo to whoever last changed a cron block. If
 that becomes a bot, every schedule can stop firing silently. So a file
@@ -58,3 +70,15 @@ or its own check would be red for the opposite reason.
    button, to run it once now rather than waiting for Tuesday.
 4. It should finish green in a few minutes, and the run's log ends with
    the three numbers: 2025, 2026 and the combined verdict.
+
+---
+
+## Changelog
+
+- **2026-09-22 (second upload):** ⚠️ **MISTAKE.** The first `t60r.yml`
+  had no `run-name:` stamp, so `test_runs_report.py` went red on `main`
+  when it landed. Root cause: the file sat in `docs/upload/`, which no
+  workflow test read, so it reached Sam untested. Fixed by adding the
+  stamp, and `test_runs_report.py` now checks every cron workflow staged
+  in `docs/upload/` with the same reader it uses on the deployed ones.
+- **2026-09-22:** first version.
