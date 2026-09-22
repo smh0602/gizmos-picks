@@ -41,6 +41,7 @@ same schedule at N attempts a day. **Run it that way before believing a
 green headline number.**
 """
 import collections
+import glob as _g
 import os
 import re
 import sys
@@ -226,6 +227,51 @@ def measured_plan(data):
     return rep
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 EVERY WORKFLOW THAT CALLS CFBD COUNTS, NOT ONLY collect.yml.
+# ══════════════════════════════════════════════════════════════════════
+# `[added 2026-09-22 with t60r.py]` This script derived the whole budget
+# from `collect.yml`, which was right while that was the only file making
+# CFBD calls. A second workflow would have spent quota that no budget
+# line knew about — CLAUDE.md: the budget is DERIVED, and a number
+# nobody derives is a number that goes wrong.
+# ⚠️ The per-run call count is READ OFF the script, not typed here.
+CFBD_HOST = "api.collegefootballdata.com"
+
+
+def cfbd_scripts(root=ROOT):
+    """{script name: calls per run}, read from the scripts themselves."""
+    out = {}
+    for p in sorted(_g.glob(os.path.join(root, "*.py"))):
+        src = open(p, encoding="utf-8").read()
+        if CFBD_HOST not in src or os.path.basename(p) in ("cfb.py",
+                                                           "cfbd_budget.py",
+                                                           "cfbd_watch.py"):
+            continue
+        m = re.search(r"(?m)^SEASONS\s*=\s*\(([^)]*)\)", src)
+        seasons = len([x for x in m.group(1).split(",") if x.strip()]) if m else 1
+        out[os.path.basename(p)] = seasons
+    return out
+
+
+def other_workflow_calls(root=ROOT):
+    """Weekly CFBD calls made by workflows OTHER than collect.yml."""
+    per_run = cfbd_scripts(root)
+    weekly = collections.Counter()
+    for wf in sorted(_g.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        if os.path.basename(wf) == "collect.yml":
+            continue
+        text = open(wf, encoding="utf-8").read()
+        hit = [s for s in per_run if re.search(r"%s\s+lines" % re.escape(s), text)]
+        if not hit:
+            continue
+        fires = sum(fires_per_week(c) for c in
+                    re.findall(r"(?m)^\s*-\s*cron:\s*[\"']([^\"']+)[\"']", text))
+        for s in hit:
+            weekly["%s (%s)" % (os.path.basename(wf), s)] += fires * per_run[s]
+    return weekly
+
+
 def main():
     retries = 1
     for i, a in enumerate(sys.argv):
@@ -253,7 +299,10 @@ def main():
     for mode in sorted(weekly):
         builds = weekly[mode] // per[mode]
         print(f"  {mode:12} {per[mode]:12} {builds:10} {weekly[mode]:10}")
-    wk = sum(weekly.values())
+    other = other_workflow_calls()
+    for name, n in sorted(other.items()):
+        print(f"  {name:12} {'':12} {'':10} {n:10}   (outside collect.yml)")
+    wk = sum(weekly.values()) + sum(other.values())
     month = round(wk * 52 / 12)
     print(f"  {'':12} {'':12} {'':10} {wk:10}  = {month}/month")
 
