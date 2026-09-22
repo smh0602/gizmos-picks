@@ -125,6 +125,25 @@ treating "I wrote it" as "it is there"** more than once.
 
 ---
 
+## ✅ HOW A CLAUDE CODE SESSION SHIPS HERE — `[Sam, 2026-09-22]`
+
+Sam: *"when we used claude code for this it did end up causing alot of
+failed recurring runs, i would like to avoid that"*. So:
+
+1. **Branch → pull request → `pr-tests` green → Sam merges.** ⛔ Never push
+   to `main`. `pr-tests.yml` runs the collector's own test loop on every PR
+   (`test_pr_tests.py` fails if the two loops ever differ).
+2. ⛔ **A workflow file with a `cron:` block is never changed in a PR.**
+   Hand Sam the file; he uploads it with GitHub's "choose your files"
+   button. (Dragging a folder put 37 files one level too deep, twice, on
+   2026-09-22.)
+3. ⛔ **One agent at a time**, and never during a `vacuity.py` sweep.
+4. The current open work is in `docs/HANDOFF-2026-09-22.md`, and dated
+   snapshots of Sam's project docs (rules, ledger, owed tests, model) are
+   `docs/snapshot-*.md`. Read the handoff first; it says which to read.
+
+---
+
 ## THE ONE RULE THAT MATTERS MOST
 
 🔴 **NEVER WEAKEN A CHECK TO MAKE IT PASS.**
