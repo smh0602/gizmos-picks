@@ -16,6 +16,11 @@ no such line and are not covered; that is said here rather than implied.
 
 It also recomputes T60R's power table, because a number written down is a
 claim that can be wrong (rule 166).
+
+# @vacuity a wrong figure in the bar table must not read as plausible
+#   file: research/t60r_spec.md
+#   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
+#   with: | 1,000 | +4.0 pts (57.4%) | +3.9 pts (56.3%) |
 """
 import glob
 import os
