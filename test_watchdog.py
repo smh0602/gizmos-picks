@@ -556,6 +556,63 @@ ck("⛔ ...and `flat()` actually collapses a wrapped sentence",
    "on prose that says nothing, which is rule 67 in the helper rather "
    "than in the assertion. Got %r" % flat("a\n   b\n\tc"))
 
+# 🔴🔴 SAM'S STANDING RULES MUST STAY IN CLAUDE.md, WHOLE.
+#    `[Sam, 2026-09-22: "Also add a check in test_watchdog.py that fails if
+#    this section or its money rule is ever removed from CLAUDE.md."]`
+# ✅ GUARDS THE CLASS, NOT ONE LINE: the section must exist, sit ABOVE
+#    every other section, and carry an unbroken run of rules 1..16+ —
+#    so dropping ANY rule fails, not only the money one. The money rule
+#    is then checked by content, because a rule gutted to its label is
+#    a rule removed.
+# ⚠️ PROVEN TO BITE below, on mutated copies of the real file, every run.
+_SAM_HEAD = "## WORKING WITH SAM — standing rules [Sam, 2026-09-22]"
+_MONEY = ("Never buy, subscribe to, upgrade, or sign up for any paid",
+          "Never enter payment details",
+          "exact added credits per day from budget.py",
+          "waits for his yes")
+
+
+def sam_rules_problems(text):
+    """Return what is wrong with the standing-rules section (empty = ok)."""
+    i = text.find(_SAM_HEAD)
+    if i < 0:
+        return ["section heading missing"]
+    out = []
+    first = re.search(r"(?m)^## ", text)
+    if first and first.start() != i:
+        out.append("section is not the first section of CLAUDE.md")
+    body = text[i + len(_SAM_HEAD):]
+    end = re.search(r"(?m)^(?:---\s*$|## )", body)
+    body = body[:end.start()] if end else body
+    nums = [int(n) for n in re.findall(r"(?m)^(\d+)\. ", body)]
+    if nums != list(range(1, len(nums) + 1)) or len(nums) < 16:
+        out.append("rules are not an unbroken 1..16+ run: %r" % nums)
+    m = re.search(r"(?ms)^1\. (.*?)(?=^2\. |\Z)", body)
+    money = flat(m.group(1)) if m else ""
+    if not money.startswith("MONEY:"):
+        out.append("rule 1 is not the MONEY rule")
+    out += ["money rule lost %r" % p for p in _MONEY if p not in money]
+    return out
+
+
+_cmraw = open(CM, encoding="utf-8").read()
+_p = sam_rules_problems(_cmraw)
+ck("🔴🔴 Sam's standing rules are in CLAUDE.md, whole, money rule first",
+   not _p,
+   "⛔ a rule an agent cannot read binds nobody. Problems: %r" % _p)
+_sec = _cmraw[_cmraw.find(_SAM_HEAD):]
+_muts = {
+    "section removed": _cmraw.replace(_SAM_HEAD, "## something else"),
+    "money rule removed": _cmraw.replace(_sec[:_sec.find("\n2. ")], _SAM_HEAD + "\n"),
+    "money rule gutted": _cmraw.replace("exact added credits per day from budget.py", "a rough idea"),
+    "rule 7 removed": _cmraw.replace("\n7. Sam gets", "\nSam gets"),
+    "section moved down": _cmraw.replace(_SAM_HEAD, "## a\n\n" + _SAM_HEAD, 1),
+}
+_blind = [k for k, v in _muts.items() if v == _cmraw or not sam_rules_problems(v)]
+ck("⛔ ...and that check FAILS on every way of removing them",
+   not _blind,
+   "🔴 a guard that cannot fail is not a guard. Passed on: %r" % _blind)
+
 
 print("\n═══ 11. 🔴 A MISSING CARD AND A REFUSED CARD ARE ONE FAULT ═══")
 # 🔴 FOUND BY WALKING THE SCENARIO END TO END, NOT BY READING THE CODE.

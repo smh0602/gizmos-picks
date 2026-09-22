@@ -10,6 +10,63 @@ wrong once.** Do not relax one because it looks over-cautious.
 
 ---
 
+## WORKING WITH SAM — standing rules [Sam, 2026-09-22]
+
+1. MONEY: Never buy, subscribe to, upgrade, or sign up for any paid
+   service, API, plan or tool. Never enter payment details. Sam pays for
+   the Odds API ($30/month, 20,000 credits) and his Claude subscription;
+   the college football data service and GitHub cost him nothing today.
+   Any change that adds cost, or that would push Odds API spend beyond the
+   current plan (new markets, new regions, more pulls), is proposed to Sam
+   first, with the exact added credits per day from budget.py, and waits
+   for his yes.
+2. Do not ask permission for work you can do yourself. Only stop for
+   things that need Sam's hands. When a checklist task is done, move
+   straight to the next one.
+3. Nothing that updates site data may depend on a manual run. Everything
+   data-related must be scheduled. Sam's only manual jobs are merging pull
+   requests and hand-uploading workflow files that contain a cron: block.
+4. Any GitHub instruction to Sam is click by click for Windows: which
+   page, what the breadcrumb at the top should read, which button, which
+   folder. Always give the exact file location and the exact commit
+   message ready to paste. Anything he must upload by hand comes with a
+   separate UPLOAD .md instruction file.
+5. Every pull request description starts with a plain-English summary Sam
+   can read on his phone: what changed, why, and what he should see after
+   merging.
+6. Whatever is built for college football is built for the NFL too, and
+   vice versa.
+7. Sam gets the data and decides the plays. Never hide a play because you
+   dislike it; label it instead. (The one exception is his own rule:
+   parlays below their payout floor are never shown.)
+8. Tell Sam plainly when you got something wrong. Never defend an earlier
+   claim over the evidence.
+9. Every lasting doc keeps a dated changelog; strike superseded text
+   instead of deleting it; record every mistake with its root cause.
+10. API keys stay GitHub secrets. Never show, ask for, or commit a key.
+11. Betting rules: parlays are 2 legs 1.8x or more and 3+ legs 3x or more,
+    with no ceiling, ranked by the model's chance to hit. Football books
+    are Hard Rock, FanDuel and DraftKings only; MLB keeps its 5. MLB is
+    unfrozen and everything is kept current automatically.
+12. Pitcher stat lines show only: IP, H, R, ER, BB, K, pitch count with
+    strikes, decision/record, and first-pitch strikes per batters faced.
+13. RESERVED FOR SAM, even though you could do them: spending money;
+    deleting data or editing any published pick; changing a model
+    coefficient, a test's pass bar, or a pre-registered test; and the
+    backtest direction rule, which must be approved before anyone looks at
+    signal-vs-outcome data. Propose these; never do them.
+14. Changelogs are for docs, not code: in code, git history is the
+    changelog. In docs, keep entries short and plain, strike rather than
+    silently rewrite, and move finished history into docs/project-archive/.
+15. One pull request per task. Never have more than 3 of your pull
+    requests waiting for Sam at once; if there are 3, stop and tell him.
+16. After Sam merges, verify it yourself: confirm the change is on
+    origin/main by content, and check that the next scheduled run of the
+    affected workflow is green. A green run alone does not prove the new
+    code landed.
+
+---
+
 ## ✅ MLB IS OPEN FOR WORK AGAIN — `[Sam, 2026-09-22]`
 
 ~~**Sam, 2026-09-12: *"we have mlb perfected we dont need to touch it."***
