@@ -1,0 +1,260 @@
+# 🔴🔴 `budget.py` HAS ALWAYS COMPUTED THE SPEND AND NOTHING HAS EVER RUN IT.
+#
+# `[measured 2026-09-15]` **Both mentions of `budget.py` in `collect.yml`
+# are comments.** It is a correct, carefully-maintained tool whose entire
+# output has only ever reached a human who typed its name — which is to
+# say, the spend trajectory has been reported to nobody.
+#
+# ⛔ AND THE CAPS ARE NOT THIS QUESTION'S ANSWER, THOUGH THEY LOOK LIKE IT.
+# `collect.py` rations itself with `FLAT_DAILY_CAP` (600) and
+# `HARD_DAY_CEIL` (1,200), and 13 call sites honour them, so **money
+# cannot run away in a day.** But 1,200/day sustained is **36,000 a month
+# against a 20,000 plan.** ➡️ The caps bound a SPIKE. Nothing bounded the
+# CREEP, and a creep is what ends the month with a dead key and a board
+# carrying no prices at all.
+#
+# ⛔ THE WATCHDOG WOULD HAVE SAID "HEALTHY" THROUGHOUT. It reads repo
+# files and asks whether the product is right; it has never asked what the
+# product COST. Five watchers now, five questions, and none replaces
+# another.
+#
+# 💰 FREE. `budget.py` reads committed snapshots and the workflow file.
+# ⛔ No Odds API call, no Claude usage — seconds of runner time on a
+# public repo.
+name: budget
+# 🔴 THE RUN SAYS WHICH CRON FIRED IT — ledger rule 271, and
+# `runs_report.py` reads this field back to tell a landed cron from a
+# dropped one. A scheduled workflow without it is one the run watcher can
+# see but cannot attribute.
+run-name: ${{ github.event.schedule && format('budget [cron {0}]', github.event.schedule) || format('budget [{0}]', github.event_name) }}
+
+on:
+  # ⚠️ DAILY, NOT HOURLY. `budget.py`'s rate is a mean over the last seven
+  # COMPLETED days, so it can only move once a day — asking hourly would
+  # be 24 identical answers and an issue nobody reads (rule 238).
+  # ⛔ Off :00 and :30 like every cron here; those slots are the most
+  # congested on GitHub's scheduler and runs get dropped.
+  # ⚠️ 13:56Z = 9:56am ET, chosen for two reasons: the 6am ET trends job
+  # has long since committed the previous day's snapshots, and it lands
+  # just after `calibration` (12:52Z) so the two MONEY reports arrive in
+  # the same morning window rather than scattered through the day.
+  schedule:
+    - cron: "56 13 * * *"
+  workflow_dispatch:
+
+# ⚠️ PER-WORKFLOW GROUP. A shared group silently cancels queued scheduled
+# runs when someone triggers a job by hand — CLAUDE.md.
+concurrency:
+  group: budget
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # ⛔ FULL HISTORY IS NOT NEEDED AND IS NOT FREE: `budget.py`
+          # reads the snapshot files in the WORKING TREE, not the log.
+          fetch-depth: 1
+
+      - name: Is the spend on a trajectory to blow the plan?
+        id: look
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.
+          # A shell step that decides what counts as over-budget is a
+          # second copy of that judgement, and it is the copy no test can
+          # reach. `budget_watch.py` is driven by `test_budget_watch.py`.
+          # ⚠️ It RUNS `budget.py` rather than reimplementing it, so there
+          # is exactly one costing in this repo and this file cannot
+          # disagree with it.
+          python budget_watch.py > /tmp/budget.md 2>/tmp/budget.err
+          rc=$?
+          cat /tmp/budget.md
+          cat /tmp/budget.err >&2
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::budget_watch could not read a spend figure"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
+      # as the watchdog's, the run watcher's and the calibration watcher's,
+      # for the same reason: a workflow that opens a fresh issue daily is
+      # one whose notifications get filtered, and a filtered alert is no
+      # alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not "the
+      # spend is fine" and must never close an open issue. That covers
+      # BOTH third states here — a `budget.py` whose output this cannot
+      # parse, and a run-rate averaged over too few days to read.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - Odds API spend is trending past plan"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not read the spend — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — the measured run-rate is back inside plan."
+              gh issue close "$NUM"
+            fi
+            echo "inside plan"
+            exit 0
+          fi
+          # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+          # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+          # left the `gh issue edit` path alone. Every watcher files ONCE and then
+          # updates in place for ever, so **five of the six open watcher issues
+          # carried no label at all** — #69, #44, #42, #31, #16 — and
+          # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+          # vacuous guards, which is the exact thing PR #73 existed to make
+          # actionable, was one of the five.
+          # ✅ `--add-label` on the edit path HEALS them: the next run of each
+          # watcher puts its own issue into the queue. Nothing has to be relabelled
+          # by hand.
+          # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+          # when X does not exist — the create path needed that and the edit path
+          # needs it too.
+          gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/budget.md
+          else
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/budget.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/budget.md \
+              || gh issue create --title "$TITLE" --body-file /tmp/budget.md
+          fi
+          exit 0
+
+  # ══════════════════════════════════════════════════════════════════
+  # 🔴 A SECOND JOB, NOT A SECOND WORKFLOW AND NOT A SECOND CRON.
+  # ══════════════════════════════════════════════════════════════════
+  # ⛔ CRON TOTAL MUST NOT MOVE. Jobs share their workflow's schedule, so
+  # this rides the 13:56Z arm that already runs daily and files this exact
+  # shape of issue. No `cron:` line is added anywhere.
+  #
+  # ⚠️ IT IS A SEPARATE JOB BECAUSE IT NEEDS A DIFFERENT CHECKOUT, and
+  # that is the whole reason it is not folded into `watch` above.
+  # `budget.py` reads the working tree and correctly takes
+  # `fetch-depth: 1`; `repo_watch.py` reads git's OWN accounting and a
+  # shallow clone cannot answer it. `[measured 2026-09-19]` in a
+  # `fetch-depth: 1` checkout `git count-objects` reports **43.39 MiB
+  # against a real 105.14 MiB**, and there is no history at all to
+  # compute a window over.
+  # ⛔ A watcher reporting 43 MiB and "no growth" would be reassuring,
+  # constant and false — so `repo_watch.py` refuses a shallow clone
+  # outright rather than reporting it. Keeping `watch` cheap and paying
+  # for one full clone a day is the trade.
+  repo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 🔴 FULL HISTORY, DELIBERATELY. See the job comment: git cannot
+          # be asked how big a repository is from a shallow clone of it.
+          fetch-depth: 0
+
+      - name: Is the repository growing in a way that will become a problem?
+        id: look
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66,
+          # the same reason the spend judgement does. `repo_watch.py` is
+          # driven by `test_repo_watch.py`.
+          python repo_watch.py > /tmp/repo.md 2>/tmp/repo.err
+          rc=$?
+          cat /tmp/repo.md
+          cat /tmp/repo.err >&2
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::repo_watch could not read the repository size"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      # 🔴 `[2026-09-22]` THE LIVE REPOSITORY CHECK HAD NEVER RUN ANYWHERE.
+      # `collect.yml` checks out shallow, so `test_repo_watch.py` skipped
+      # its live block in every CI run. This job already has full history;
+      # repacking makes every object stored once, where the measurement
+      # has exactly one right answer, and REQUIRED makes skipping it fail.
+      - name: The repository size check, on a repository that can answer it
+        run: |
+          git repack -a -d -q
+          REPO_WATCH_LIVE_REQUIRED=1 python test_repo_watch.py
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
+      # as every other watcher here, for the same reason: a workflow that
+      # opens a fresh issue daily is one whose notifications get filtered,
+      # and a filtered alert is no alert (rule 238).
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not "the
+      # repository is fine" and must never close an open issue.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - the repository is growing faster than planned"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not read the repository size — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — the pack and the packed growth rate are both back inside their bars."
+              gh issue close "$NUM"
+            fi
+            echo "inside the bars"
+            exit 0
+          fi
+          # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+          # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+          # left the `gh issue edit` path alone. Every watcher files ONCE and then
+          # updates in place for ever, so **five of the six open watcher issues
+          # carried no label at all** — #69, #44, #42, #31, #16 — and
+          # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+          # vacuous guards, which is the exact thing PR #73 existed to make
+          # actionable, was one of the five.
+          # ✅ `--add-label` on the edit path HEALS them: the next run of each
+          # watcher puts its own issue into the queue. Nothing has to be relabelled
+          # by hand.
+          # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+          # when X does not exist — the create path needed that and the edit path
+          # needs it too.
+          gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/repo.md
+          else
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/repo.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/repo.md \
+              || gh issue create --title "$TITLE" --body-file /tmp/repo.md
+          fi
+          exit 0
