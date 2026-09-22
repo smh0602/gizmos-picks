@@ -14,6 +14,12 @@ lifts only when the line reads `APPROVED BY SAM <yyyy-mm-dd>`.
 `Status:` line, not only T60R. ⚠️ Specs written before 2026-09-22 carry
 no such line and are not covered; that is said here rather than implied.
 
+🔴 AND ONCE SAM APPROVES ONE, THE RULE IS FROZEN. `[Sam, 2026-09-22:
+"The rule is frozen once approved; weekly grading adds new games but
+never changes the rule."]` ⛔ The approved sections are HASHED here. An
+edit to them — a threshold nudged after a bad week, a bar relaxed — goes
+red. Adding a season, or grading more games, touches neither.
+
 It also recomputes T60R's power table, because a number written down is a
 claim that can be wrong (rule 166).
 
@@ -23,6 +29,7 @@ claim that can be wrong (rule 166).
 #   with: | 1,000 | +4.0 pts (57.4%) | +3.9 pts (56.3%) |
 """
 import glob
+import hashlib
 import os
 import re
 import shutil
@@ -83,6 +90,45 @@ try:
        bool(_case("APPROVED BY SAM", ["t99.py"])))
 finally:
     shutil.rmtree(_tmp)
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 AN APPROVED RULE IS FROZEN, AND THE HASH IS WHAT MAKES THAT REAL.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ The frozen region is section 2 (the direction rule) through the end
+#    of section 3a (the bar and how it is reported) — everything Sam
+#    approved. The prose around it, the changelog and section 4's build
+#    steps are NOT frozen and may be edited freely.
+# ⚠️ If this fails, the answer is NEVER to paste the new hash in. It is
+#    to put the rule back, or to register a NEW test with a new id.
+FROZEN = {
+    "t60r_spec.md": "a65d815a376c9f5b4e299ecebcaa6f2bdbe890b5b6fa879eef6ff15b9226ea6e",
+}
+
+
+def frozen_region(text):
+    """Section 2 through the end of 3a — what Sam approved."""
+    i = text.find("\n## 2. ")
+    j = text.find("\n## 4. ")
+    return text[i:j] if i >= 0 and j > i else None
+
+
+for _spec_path in sorted(glob.glob(os.path.join(ROOT, "research", "*_spec.md"))):
+    _name = os.path.basename(_spec_path)
+    _txt = open(_spec_path, encoding="utf-8").read()
+    _m = re.search(r"(?m)^Status:(.*)$", _txt)
+    if not (_m and APPROVED.search(_m.group(1))):
+        continue
+    _reg = frozen_region(_txt)
+    ck("🔴 %s marks the sections Sam approved" % _name, _reg is not None,
+       "⛔ expected `## 2. ` and `## 4. ` headings around the frozen rule")
+    if _reg is None:
+        continue
+    _got = hashlib.sha256(_reg.encode("utf-8")).hexdigest()
+    ck("🔴🔴 %s's approved rule and bar are UNCHANGED since approval" % _name,
+       FROZEN.get(_name) == _got,
+       "⛔ Sam froze this on approval. Do NOT paste the new hash in — put "
+       "the rule back, or register a new test with a new id. want %s, got "
+       "%s" % (FROZEN.get(_name), _got))
 
 # 🔴 T60R's power table, recomputed from the formula T60 used.
 _spec = os.path.join(ROOT, "research", "t60r_spec.md")

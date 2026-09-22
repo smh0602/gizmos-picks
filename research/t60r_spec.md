@@ -1,12 +1,18 @@
 # T60R — the played-games backtest: direction rule and bar
 
-Status: PROPOSED — NOT APPROVED BY SAM — DO NOT RUN
+Status: APPROVED BY SAM 2026-09-22 — bar option B — FROZEN
 
-⛔ **Nothing in this file has been run, and no code for it exists.** Rule
-13 in `CLAUDE.md`: the direction rule and the bar must be approved by Sam
-**before anyone looks at signal-vs-outcome data.** `test_prereg_gate.py`
-fails the build if a `t60r*.py` file appears while the line above says
-PROPOSED.
+🔴 **APPROVED AND FROZEN.** `[Sam, 2026-09-22: "I approve the T60R
+direction rule as written, and bar option B … The rule is frozen once
+approved; weekly grading adds new games but never changes the rule."]`
+⛔ **No part of section 2 or section 3 may be changed from here on.**
+Weekly grading adds games; it never re-decides the rule, the thresholds
+or the bar. A different rule is a NEW pre-registered test with a new id.
+
+⚠️ Everything in this file was written and approved **before any
+signal-vs-outcome number was computed.** `test_prereg_gate.py` enforced
+that: it blocked every `t60r*.py` until the line above carried Sam's
+dated approval.
 
 ## In plain English (for Sam)
 
@@ -16,15 +22,14 @@ You asked for a backtest of signals 1–8 on games already played, 2025 and
 exists yet. This file is the rule that picks the side, written before
 anyone has compared a signal with a result.
 
-Two things for you to decide, both below:
-1. **The direction rule.** Does the way each signal votes look right?
-   (Section 2.)
-2. **The bar.** How good does it have to be to count as a pass? There
-   are only enough past games to test for a fairly **big** edge, not a
-   small one. (Section 3.)
+~~Two things for you to decide, both below: the direction rule (section
+2) and the bar (section 3).~~ **DECIDED 2026-09-22: rule as written, bar
+option B.** Both are frozen.
 
-Once you approve it, the code gets built, it runs once over 2025 and 2026,
-and then it grades each new week by itself on a schedule.
+The code now gets built, it runs once over 2025 and 2026, and then it
+grades each new week by itself on a schedule. Because only a big edge is
+detectable on this much history, a FAIL means "no big edge", not "no
+edge".
 
 ---
 
@@ -82,13 +87,15 @@ more, or −2 or less.** Otherwise the game has no row in that market.
 
 ⚠️ **The thresholds (3 points, 4 points of share, 2 players, one third, a
 net of 2) were chosen without looking at any data.** They are round
-numbers, not fitted ones. Sam may change any of them **before approving**;
-after approval they are frozen.
+numbers, not fitted ones. ~~Sam may change any of them before
+approving~~ — **APPROVED AS WRITTEN 2026-09-22 AND NOW FROZEN.** ⛔ A
+threshold may not be moved to make a result look better; that is a new
+test with a new id.
 
 ⚠️ **Four of the eight signals abstain on spreads, and five on totals.**
 That is a statement about what each signal measures, not a verdict on
-it. If you want a signal to vote where it abstains, say how it should
-vote.
+it. ~~If you want a signal to vote where it abstains, say how it should
+vote.~~ **Sam approved the abstentions as written.**
 
 ## 3. The bar — the choice that matters most
 
@@ -117,6 +124,26 @@ Options:
   p < 0.05.** Can detect T60's 3-point
   edge, but 1 in 20 signal sets with no edge at all would pass by luck.
 
+✅ **APPROVED: OPTION B.** `[Sam, 2026-09-22]` PASS at hit rate **≥
+57.4%** with one-sided **p < 0.01** on an **effective n ≥ 1,000**.
+
+### 3a. How the verdict is reported `[Sam, 2026-09-22, part of the approval]`
+
+⛔ **Three numbers, always, in this order: 2025 alone, 2026 alone, and
+combined.** Each carries its own hit rate, effective n and p-value.
+
+- 🔴 **The PASS/FAIL verdict is the COMBINED number and only that.** The
+  bar above is applied to it. ⛔ A season may not be dropped, swapped or
+  read as the verdict because it looks better.
+- ✅ **The per-season pair is reported beside it** so Sam can see whether
+  the edge holds across the offseason.
+- ⚠️ **Each season alone will usually sit under the n floor**, so it
+  reports NOT YET MEASURABLE rather than a verdict. That is expected and
+  is not a second test.
+- ⛔ **No per-season split is ever promoted to a decision rule** — "it
+  worked in 2025 so use 2025's version" is exactly the re-deciding this
+  pre-registration forbids.
+
 Under the n floor: **NOT YET MEASURABLE**, not a pass and not a fail (the
 T37/T60 three-state rule). The n floor and the p-value both use an
 **effective n clustered by game**, the way `shadow_fb.py` already does:
@@ -126,6 +153,8 @@ yet**: counting them means computing the votes, and that code is blocked
 until approval.
 
 ## 4. After approval
+
+⛔ Every step below runs the rule EXACTLY as section 2 and 3 state it.
 
 1. Pull CFBD `/lines` for FBS 2025 + 2026 (~20–25 calls, free tier, no
    Odds API credits).
@@ -138,6 +167,11 @@ until approval.
 
 ## Changelog
 
+- **2026-09-22 (later):** ✅ **APPROVED BY SAM** — direction rule as
+  written, bar option B, and the three-way reporting rule in section 3a
+  added as part of the approval. Frozen from this point: weekly grading
+  adds games and never changes the rule. Still nothing run at the moment
+  of approval.
 - **2026-09-22:** drafted. Proposed, not approved, not run. No
   signal-vs-outcome number was computed while writing it; the only data
   read was the count of finished games and whether their lines are
