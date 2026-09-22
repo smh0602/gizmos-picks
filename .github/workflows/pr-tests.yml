@@ -1,0 +1,159 @@
+# ══════════════════════════════════════════════════════════════════════
+# PR TESTS — THE WHOLE SUITE, ON EVERY PULL REQUEST, BEFORE SAM MERGES.
+# `[added 2026-09-22]`
+# ⛔ UNTIL THIS FILE, THE ONLY PLACE THE SUITE RAN WAS INSIDE `collect.yml`,
+# i.e. AFTER a change was already on `main` and already running on the
+# live site. Sam, 2026-09-22, on moving the work to Claude Code: "it did end
+# up causing alot of failed recurring runs, i would like to avoid that".
+# ✅ So a Claude Code session works on a BRANCH and opens a PR; this job
+# runs the same suite on it; Sam merges only on a green check.
+# ⛔ NO SCHEDULE BLOCK, ON PURPOSE. GitHub runs scheduled jobs as the
+# user who last changed a cron block (CLAUDE.md). A file with no cron
+# cannot move that attribution, so an agent may safely edit this one.
+# ⚠️ The loop below is copied from collect.yml's Tests step, not
+# reinvented — test_pr_tests.py fails if the two ever disagree.
+# ⛔ READ-ONLY: it writes nothing, pushes nothing, opens nothing.
+# ══════════════════════════════════════════════════════════════════════
+name: pr-tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pr-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tests
+        run: |
+          # 🔴 THIS STEP NAMED ONE TEST FILE AND THE REPO HELD SIX.
+          # `[measured 2026-09-01]` test_cfb.py, test_p4.py,
+          # test_regions.py and test_board_match.js were all in the repo,
+          # all passing, and NONE of them had ever gated anything. They
+          # were written to protect the Power 4 name matcher, the props
+          # region pricing and the CFB parsers -- three of the places
+          # this project has actually been burned.
+          # ⛔ A TEST THAT NEVER RUNS IS WORSE THAN NO TEST: it is a
+          # false sense of cover, and it rots silently.
+          # ✅ So DISCOVER them. Same rule as budget.py -- never put a
+          # list anywhere you cannot auto-update. A new test_*.py is
+          # picked up by existing here, with no workflow edit.
+          rc=0
+          found=0
+          # 🔴 THE FAILING NAMES ARE RECORDED, NOT ONLY ANNOTATED.
+          # `::error::` reaches the run page and nowhere else, and the run
+          # page is the thing nobody is watching at 3am. The names go into
+          # an output so "Tell Sam the tests are failing" can put them in
+          # an ISSUE, which emails. `[added after test_board_match.js went
+          # red on 47 consecutive runs and the only alarm was Sam
+          # happening to look — ledger rule 261]`
+          failed=""
+          # 🔴🔴 EVERY FILE GETS A CLOCK, AND A TIMEOUT IS ITS OWN VERDICT.
+          # `[added 2026-09-15 — ledger rule 272]`
+          # ⛔ THIS LOOP HAD NO TIMEOUT AND THE JOB'S IS **350 MINUTES**.
+          # One hanging file would have burned nearly six hours of runner
+          # time and been CANCELLED — no `::error::`, no name in
+          # `failed=`, nothing in the issue. The one failure mode that
+          # produces no evidence at all.
+          # ⚠️ AND IT ALREADY MISLED ME. I recorded that two files "hang
+          # because the proxy blocks ESPN and CollegeFootballData" —
+          # **both claims were false.** Measured 2026-09-15: all 71 files
+          # pass in 308s total; `test_box_live.py` simply takes 115s and
+          # I had been killing it at 45. ⛔ A timeout I chose is not a
+          # fact about the code, and "it hung" is not a diagnosis.
+          # ✅ 600s = 5.2x the slowest measured file. Generous on purpose:
+          # CLAUDE.md — a guard that fires on correct code is the other
+          # failure, not a safe one.
+          PER_FILE=600
+          # 🔴🔴 ONE FILE NEEDS A DIFFERENT CLOCK, AND THE CLOCK WAS THE
+          #    THING ASKING THE WRONG QUESTION — NOT THE CHECK.
+          # `[measured 2026-09-19, isolated]` `test_vacuity.py` applies
+          # 141 declared mutations, runs the declaring test under each,
+          # and restores the tree: **18m16s, exit 0, 40 of 40 checks**.
+          # Against a 600s clock it can only ever be killed, and it has
+          # been — `collect.yml` has not had a green run since
+          # 2026-09-17T23:27 and this one line is why.
+          # ⛔ THE 600 WAS NOT WRONG WHEN IT WAS WRITTEN. The comment
+          #    above derives it as "5.2x the slowest measured file", and
+          #    the slowest file then was `test_box_live.py` at 115s. A
+          #    sweep is not that shape. `CLAUDE.md`: a check may change
+          #    when it asks the WRONG QUESTION — and "did this finish
+          #    inside 5x the slowest UNIT test" is the wrong question to
+          #    ask a mutation sweep.
+          # ⛔ THE SWEEP ITSELF IS UNTOUCHED — not shortened, not
+          #    sampled, not skipped. 2400s is 2.2x its measured cost,
+          #    the same margin 600 gave the file it was fitted to.
+          # ⚠️ AND NO BUDGET MAY BE LOWERED. `test_suite_clock.py` drives
+          #    this function and fails if any file's clock drops below
+          #    the default, so this cannot become a way to let a slow
+          #    file off.
+          budget_for() {   # $1 = file
+            case "$1" in
+              test_vacuity.py) echo 2400 ;;
+              *)               echo "$PER_FILE" ;;
+            esac
+          }
+          run_one() {   # $1 = runner, $2 = file
+            local s=$(date +%s) trc=0 lim
+            lim=$(budget_for "$2")
+            timeout -k 15 "$lim" "$1" "$2" || trc=$?
+            local d=$(( $(date +%s) - s ))
+            if [ "$trc" = "124" ] || [ "$trc" = "137" ]; then
+              # 🔴 "NEVER ANSWERED" IS NOT "FAILED". A red assertion tells
+              # you what is wrong; a timeout tells you only that nothing
+              # came back, and conflating them sends the reader hunting
+              # for a bug that may not exist.
+              rc=1; failed="$failed $2(TIMEOUT)"
+              echo "::error::$2 TIMED OUT after ${lim}s — it did not fail, it never answered"
+            elif [ "$trc" != "0" ]; then
+              rc=1; failed="$failed $2"
+              echo "::error::$2 FAILED"
+            fi
+            echo "   ${d}s"
+          }
+          for t in test_*.py; do
+            [ -e "$t" ] || continue
+            found=$((found+1))
+            echo "── $t"
+            run_one python "$t"
+          done
+          for t in test_*.js; do
+            [ -e "$t" ] || continue
+            found=$((found+1))
+            echo "── $t"
+            run_one node "$t"
+          done
+          echo "ran $found test file(s)"
+          echo "failed=$(echo $failed | tr ' ' ',')"
+          # ⚠️ ZERO TEST FILES IS A FAILURE, NOT A PASS. A glob that
+          # matches nothing is exactly how a suite disappears unnoticed.
+          if [ "$found" -lt 4 ]; then
+            echo "::error::only $found test file(s) found — the suite has shrunk"
+            rc=1
+          fi
+          echo "rc=$rc"
+          exit $rc
+
+      - name: The tests must not have modified the tree
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::the test step modified the working tree"
+            git status --porcelain
+            git diff | head -200
+            exit 1
+          fi
