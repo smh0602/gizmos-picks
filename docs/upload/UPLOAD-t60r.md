@@ -39,21 +39,16 @@ t60r: weekly backtest grading, uploaded by hand (cron block)
 9. Leave **Commit directly to the main branch** selected.
 10. Click the green **Commit changes** button.
 
-## Step 2 — merge the one-line pull request that follows it
+## Step 2 — tell me it's uploaded
 
-Uploading a cron makes the repo's cron count 56, and `CLAUDE.md` still
-says 55, so the test suite goes red until that number is corrected. That
-is the check doing its job — it is how a cron added or lost by accident
-gets noticed.
+Uploading a cron makes the repo's cron count 56, while `CLAUDE.md` says
+55, so the test suite goes red until that number is corrected. That is
+the check doing its job — it is how a cron added or lost by accident gets
+noticed.
 
-1. Go to **https://github.com/smh0602/gizmos-picks/pulls**
-2. Open the pull request titled **"CLAUDE.md: cron total 55 → 56 (t60r.yml
-   uploaded)"**.
-3. Wait for the green tick, then click **Merge pull request** and
-   **Confirm merge**.
-
-⚠️ Merge it only AFTER the upload in step 1. Merged first, it makes the
-count wrong the other way.
+Say "t60r is uploaded" and I'll open a one-line pull request correcting
+55 to 56 for you to merge. ⚠️ It has to be opened **after** the upload,
+or its own check would be red for the opposite reason.
 
 ## Step 3 — check it works (optional, I can do this for you)
 
