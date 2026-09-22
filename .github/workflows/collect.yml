@@ -822,6 +822,12 @@ jobs:
           while : ; do
             PASS=$((PASS + 1))
             echo "::group::converge pass $PASS"
+            # 🔴 START EVERY PASS FROM THE CURRENT TIP. The Tests step now
+            # runs ~20 min, so a pass built on the checkout-time base
+            # rewrites latest/ files other runs have moved on since.
+            # ⚠️ --ff-only: harmless when a previous pass's push failed
+            # (local commits exist) -- push_retry.sh replays those.
+            git pull -q --ff-only 2>/dev/null || true
 
             pass_rc=0
             # ══════════════════════════════════════════════════════════
@@ -974,11 +980,13 @@ jobs:
               echo "pass $PASS: nothing new to commit"
             else
               git commit -q -m "collect[$LEAGUE_NAME]: converge pass $PASS $(date -u +%Y-%m-%dT%H:%MZ)"
-              for i in 1 2 3; do
-                git pull --rebase --autostash -q && git push -q && break
-                echo "push attempt $i failed, retrying"
-                sleep 5
-              done
+              # 🔴🔴 `[measured 2026-09-21]` the inline pull/push loop that
+              # was here LOST WHOLE PASSES: a conflicted rebase was left
+              # half-done and the loop fell through silently. Those lost
+              # passes were the audits' "dark crons" AND the "~50%
+              # unrecorded Odds spend". `push_retry.sh` aborts, replays
+              # this pass's files onto the fresh tip, and fails LOUDLY.
+              bash push_retry.sh "converge pass $PASS" || { rc=1; echo "::error::converge pass $PASS could not be pushed -- its data is NOT on main"; }
             fi
 
             # 🔴 THESE RUN AFTER THE COMMIT, DELIBERATELY. The data they
@@ -1119,12 +1127,11 @@ jobs:
           fi
           git -c user.name=collector -c user.email=collector@local \
               commit -qm "watchdog: health report $(date -u +%Y-%m-%dT%H:%MZ)"
-          for i in 1 2 3; do
-            git pull --rebase -q && git push -q && exit 0
-            echo "push race, retrying ($i)"
-            sleep 5
-          done
-          echo "::warning::the health report could not be pushed"
+          # 🔴 Same helper as the converge loop -- this loop failed the
+          # same way (a half-done rebase) and reported it as a warning.
+          bash push_retry.sh "health report" && exit 0
+          echo "::error::the health report could not be pushed"
+          exit 1
 
       # 📣 ONE ISSUE, UPDATED IN PLACE, CLOSED WHEN HEALTHY.
       # ⛔ NOT ONE ISSUE PER RUN. A watchdog that opens a new issue every

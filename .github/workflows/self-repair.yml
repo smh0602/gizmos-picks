@@ -77,10 +77,10 @@
 #    PR every four hours is a workflow whose PRs get ignored, which is the
 #    same death as a filtered alert.
 #
-# 4. ⛔ MLB IS FROZEN AND THE PROMPT SAYS SO. `CLAUDE.md`'s first section
-#    is the freeze, so the agent reads it either way — but a prompt that
-#    stays silent about the one constraint most likely to be violated is a
-#    prompt inviting the violation. An MLB finding is REPORTED and LEFT.
+# 4. ✅ THE PROMPT STATES THE CURRENT MLB POLICY, THE SAME AS CLAUDE.md.
+#    ~~the old MLB freeze~~ — Sam lifted the freeze 2026-09-22 ("unfreeze all
+#    mlb"). A prompt that disagrees with CLAUDE.md is worse than silence;
+#    test_watchdog.py fails if the two ever say different things.
 name: self-repair
 # 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
 # ⛔ WITHOUT THIS, TWO CRONS IN ONE HOUR ARE INDISTINGUISHABLE. The
@@ -458,10 +458,11 @@ jobs:
             - If you cannot diagnose it, say so and open no PR. A PR that
               guesses is worse than an issue that waits.
 
-            - MLB IS FROZEN. Do not change card.py, verify_card.py, the
-              MLB model or any MLB doc. If this finding is MLB, make NO
-              code change: comment on the existing watchdog issue saying
-              the freeze is why, and stop. Sam lifts it per incident.
+            - MLB IS OPEN FOR REPAIR (Sam lifted the freeze 2026-09-22).
+              An MLB finding is fixed like any other: failing test first,
+              one PR, a human merges. Never change a fitted coefficient,
+              and card.py output must stay byte-identical unless the
+              finding IS the card.
             - NEVER WEAKEN A CHECK TO MAKE IT PASS. If a check is failing,
               the thing it checks is wrong, not the check. The only
               legitimate reason to change a check is that it asks the
@@ -514,9 +515,9 @@ jobs:
       # runs when the agent step itself errored.
       #
       # ⛔ THE REAL REPAIR PATH IS NOT ASSERTED THE SAME WAY, ON PURPOSE.
-      # It has a legitimate empty outcome: `CLAUDE.md` tells the agent
-      # that an MLB finding gets a comment and NO code change. Failing on
-      # "no branch" there would punish the agent for obeying the freeze.
+      # It has a legitimate empty outcome: the agent is told to open NO PR
+      # when it cannot diagnose a finding. Failing on "no branch" there
+      # would punish the agent for refusing to guess.
       - name: Did the drill actually do anything?
         if: always() && needs.triage.outputs.drill == 'yes'
         env:

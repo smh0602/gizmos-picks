@@ -196,6 +196,16 @@ jobs:
           fi
           exit 0
 
+      # 🔴 `[2026-09-22]` THE LIVE REPOSITORY CHECK HAD NEVER RUN ANYWHERE.
+      # `collect.yml` checks out shallow, so `test_repo_watch.py` skipped
+      # its live block in every CI run. This job already has full history;
+      # repacking makes every object stored once, where the measurement
+      # has exactly one right answer, and REQUIRED makes skipping it fail.
+      - name: The repository size check, on a repository that can answer it
+        run: |
+          git repack -a -d -q
+          REPO_WATCH_LIVE_REQUIRED=1 python test_repo_watch.py
+
       # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
       # as every other watcher here, for the same reason: a workflow that
       # opens a fresh issue daily is one whose notifications get filtered,
