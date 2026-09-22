@@ -1007,23 +1007,132 @@ ck("could NOT be" not in _body_known,
    % _body_known[:160])
 
 section("20d. ⛔ DRIVEN ACROSS THE WHOLE DECLARED SET, NOT ONE FIXTURE")
-_all_new = {f: _LATE - datetime.timedelta(minutes=1) for f in _DECL20.values()}
-_all_old = {f: _LATE - datetime.timedelta(days=8) for f in _DECL20.values()}
-_n_new, _ = R.unseen_workflows({}, _LATE, _ROOT20, _all_new)
-_n_old2, _ = R.unseen_workflows({}, _LATE, _ROOT20, _all_old)
-ck(not _n_new,
-   "🔴 EVERY workflow registered one minute ago -> NONE is unseen",
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 EACH WORKFLOW IS JUDGED AT A MOMENT ITS OWN SLOT CAME DUE.
+# ══════════════════════════════════════════════════════════════════════
+# `[rewritten 2026-09-22, when t60r.yml landed]` This section used to
+#    drive every workflow at ONE moment — `_LATE`, a THURSDAY 12:30Z — and
+#    assert all of them unseen. That silently assumed every cron fires at
+#    least once a day. `t60r` fires TUESDAYS ONLY (`17 9 * * 2`), so no
+#    slot of it is due in the 24h before a Thursday noon, and the watcher
+#    — CORRECTLY — did not list it: "not yet due is not unseen" is 20a's
+#    whole point. The test went red on correct code (CLAUDE.md: the other
+#    failure, not a safe one).
+# ⛔ NOT WEAKENED. The old form proved "unseen" for the workflows that
+#    happened to be due on a Thursday. This proves it for EVERY declared
+#    workflow at its own due moment — weekly, hourly, weekend-only alike —
+#    plus the two negatives at that same moment, plus a coverage check
+#    that counts cron FILES without going through the watcher's reader.
+_ANCHOR = datetime.datetime(2026, 9, 14, 0, 0, tzinfo=_UTC)    # a Monday
+
+
+def _first_slot(name):
+    """The first minute at/after _ANCHOR that any of `name`'s crons fire.
+
+    ⚠️ The cron arithmetic is `R.cron_matches`, which the hand-pinned
+    grammar checks above cover (`*/3`, lists, Sunday as 0 AND 7). A week
+    is scanned because a weekly cron is the sparsest this repo schedules.
+    """
+    parsed = [c for c in (R.parse_cron(e) for e in
+                          (R.declared_crons(_ROOT20).get(name) or {})
+                          .get("crons", [])) if c]
+    t = _ANCHOR
+    for _ in range(8 * 24 * 60):
+        if any(R.cron_matches(c, t) for c in parsed):
+            return t
+        t += datetime.timedelta(minutes=1)
+    return None
+
+
+_DUE = {}
+for _w in sorted(_DECL20):
+    _slot = _first_slot(_w)
+    if _slot is not None:
+        # One minute past the grace: the first moment a miss is a miss.
+        _DUE[_w] = _slot + datetime.timedelta(minutes=R.GRACE_MIN + 1)
+ck(sorted(_DUE) == sorted(_DECL20),
+   "🔴 every declared workflow has a slot inside one week of the anchor",
+   "⛔ a workflow with no findable slot cannot be driven below, and "
+   "would be excused by omission. Missing: %s"
+   % sorted(set(_DECL20) - set(_DUE)))
+
+_bad_old, _bad_new, _bad_seen = [], [], []
+for _w, _now in sorted(_DUE.items()):
+    _old = {f: _now - datetime.timedelta(days=8) for f in _DECL20.values()}
+    _new = {f: _now - datetime.timedelta(minutes=1) for f in _DECL20.values()}
+    if _w not in R.unseen_workflows({}, _now, _ROOT20, _old)[0]:
+        _bad_old.append(_w)
+    if _w in R.unseen_workflows({}, _now, _ROOT20, _new)[0]:
+        _bad_new.append(_w)
+    if _w in R.unseen_workflows({_w}, _now, _ROOT20, _old)[0]:
+        _bad_seen.append(_w)
+ck(not _bad_old and len(_DUE) == len(_DECL20),
+   "🔴 ...and EACH one, registered 8 days ago with no runs, is UNSEEN "
+   "once its own slot is due (%d of %d)" % (len(_DUE) - len(_bad_old),
+                                            len(_DECL20)),
+   "⛔ the floor must bite for every workflow, not only the daily ones. "
+   "Not reported: %s" % _bad_old)
+ck(not _bad_new,
+   "🔴 EVERY workflow registered one minute before that moment -> NOT unseen",
    "⛔ six were exposed at once on 2026-09-17 (budget, calibration, "
-   "cfbd, runs, vacuity, owed_tests). Got %s" % _n_new)
-ck(sorted(_n_old2) == sorted(_DECL20),
-   "🔴 ...and every one registered 8 days ago with no runs -> ALL unseen",
-   "⛔ the floor must bite in both directions across the real set. "
-   "Got %d of %d: %s" % (len(_n_old2), len(_DECL20), _n_old2))
-_seen_one = {"collect"}
-_n_part, _ = R.unseen_workflows(_seen_one, _LATE, _ROOT20, _all_old)
-ck("collect" not in _n_part and len(_n_part) == len(_DECL20) - 1,
+   "cfbd, runs, vacuity, owed_tests). Wrongly reported: %s" % _bad_new)
+ck(not _bad_seen,
    "   ⚠️ a workflow WITH runs is never listed, floor or no floor",
-   "Got %s" % _n_part)
+   "Wrongly reported: %s" % _bad_seen)
+
+# ✅ AND THE WEEKLY CASE PINNED IN BOTH DIRECTIONS, on the real t60r cron:
+#    a Thursday is NOT evidence, the Tuesday after the fire IS.
+if "t60r" in _DECL20:
+    _reg_t = {_DECL20["t60r"]: _ANCHOR}
+    _thu = datetime.datetime(2026, 9, 24, 12, 30, tzinfo=_UTC)
+    _tue = datetime.datetime(2026, 9, 22, 10, 41, tzinfo=_UTC)
+    ck("t60r" not in R.unseen_workflows({}, _thu, _ROOT20, _reg_t)[0],
+       "✅ a TUESDAY-only workflow is not unseen on a Thursday",
+       "⛔ no slot came due in the window — absence there is not evidence")
+    ck("t60r" in R.unseen_workflows({}, _tue, _ROOT20, _reg_t)[0],
+       "🔴 ...and IS unseen at the first watcher run after a missed Tuesday",
+       "⛔ runs.yml fires hourly at :41; 10:41 is the first run past the "
+       "09:17 slot plus its 45-minute grace")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 COVERAGE: NO SCHEDULED WORKFLOW CAN BE LEFT OUT OF THE WATCHER.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ Counted from the FILES, with a regex that is not the watcher's own,
+#    and compared by FILE. `scheduled_workflows()` keys by the `name:`
+#    field, so two workflows sharing a name would collapse into one entry
+#    and the second would never be watched — silently. This is the check
+#    that notices.
+def _cron_files(root):
+    return sorted(os.path.basename(p) for p in
+                  glob.glob(os.path.join(root, ".github", "workflows", "*.yml"))
+                  if re.search(r"(?m)^\s*-\s*cron:",
+                               open(p, encoding="utf-8").read()))
+
+
+def _left_out(root):
+    return sorted(set(_cron_files(root)) - set(R.scheduled_workflows(root).values()))
+
+
+ck(not _left_out(_ROOT20) and len(_cron_files(_ROOT20)) == len(_DECL20),
+   "🔴🔴 every workflow file with a cron is one the watcher watches "
+   "(%d file(s), %d watched)" % (len(_cron_files(_ROOT20)), len(_DECL20)),
+   "⛔ left out: %s" % _left_out(_ROOT20))
+_col = tempfile.mkdtemp()
+try:
+    os.makedirs(os.path.join(_col, ".github", "workflows"))
+    for _f in ("a.yml", "b.yml"):
+        with open(os.path.join(_col, ".github", "workflows", _f), "w",
+                  encoding="utf-8") as _h:
+            _h.write('name: same\non:\n  schedule:\n    - cron: "1 1 * * *"\n')
+    # ⚠️ Which of the two is dropped is dict-overwrite order (the LAST
+    #    file wins the name, so a.yml vanishes) — an accident, not a
+    #    rule, so the check asserts that exactly ONE goes unwatched.
+    ck(len(_left_out(_col)) == 1 and set(_left_out(_col)) <= {"a.yml", "b.yml"},
+       "⛔ ...and that check FAILS when two workflows share a name",
+       "🔴 proven on a scratch tree: a guard that cannot fail is not a "
+       "guard. Got %s" % _left_out(_col))
+finally:
+    shutil.rmtree(_col, ignore_errors=True)
 
 section("20e. ⚠️ analyse() KEEPS ITS 5-TUPLE, AND ITS DEFAULT FAILS SAFE")
 # 🔴 Rule 269: the arity does not move. `registered` is a KEYWORD with a
