@@ -515,6 +515,8 @@ def lines():
         json.dump({"games": games, "calls": calls,
                    "providers_seen": dict(providers.most_common()),
                    "provider_order": list(PROVIDER_ORDER),
+                   "unknown_providers": sorted(
+                       {p for p in providers if provider_rank(p) == len(PROVIDER_ORDER)}),
                    "built_at": datetime.datetime.now(datetime.timezone.utc)
                                .strftime("%Y-%m-%dT%H:%M:%SZ")}, f)
     log("cfbd lines: %d game(s) from %d call(s); providers %s"
@@ -522,7 +524,30 @@ def lines():
     return 0
 
 
-# ⛔ FIXED BEFORE ANY GRADING, from CFBD's own documented provider names.
+# ⛔ THE ORDER WAS FIXED BEFORE ANY GRADING AND IS NOT RE-PICKED.
+# 🔴 WHAT WENT WRONG `[2026-09-22, the first run]`: the spec said to fix
+#    this order FROM THE LIST THE FIRST CALL RETURNS. It was typed from
+#    memory instead, and CFBD spells one book two ways — "DraftKings" 1,268
+#    lines, "Draft Kings" 423. An exact-string match sent the second
+#    spelling to the bottom, behind books the order ranks lower. Root
+#    cause: a name compared as a raw string, the same shape as CLAUDE.md's
+#    "shop a price only at the EXACT SIGNED number" — confirm two labels
+#    are the same thing before comparing them. ✅ Names are normalised
+#    here, and `test_t60r.py` fails if the stored pull holds a provider
+#    this order does not recognise.
+def _norm_provider(name):
+    return "".join(ch for ch in str(name or "").lower() if ch.isalnum())
+
+
+def provider_rank(name):
+    """Position in PROVIDER_ORDER, spelling-insensitive; unknown = last."""
+    key = _norm_provider(name)
+    for i, p in enumerate(PROVIDER_ORDER):
+        if _norm_provider(p) == key:
+            return i
+    return len(PROVIDER_ORDER)
+
+
 PROVIDER_ORDER = ("consensus", "DraftKings", "Bovada", "ESPN Bet",
                   "teamrankings", "numberfire")
 
