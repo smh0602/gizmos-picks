@@ -1,0 +1,2716 @@
+#!/usr/bin/env python3
+"""
+Gizmo's Picks -- the daily card, generated on the runner.
+
+This is the last manual step in the project, automated. It runs the
+projection model (see MODEL_VERSION below) over the game logs the collector
+already stores, joins it to the Hard Rock prop board, and writes
+picks/<date>.json.
+
+🔴 ~~"It runs the v4.0 projection model"~~ STRUCK 2026-09-11. The card has
+run v5.0 since 01:11Z that day and this sentence still said v4.0 -- along
+with two strings the READER sees. A version is a fact about the code, so
+it is read from MODEL_VERSION rather than retyped in prose (rule 66).
+
+WHAT IT DOES NOT DO, DELIBERATELY:
+
+  * It does not pick. Every qualifying pitcher prop on the board is
+    printed with its numbers attached (ledger rule 53). A play that fails
+    a check is LABELLED, never deleted. The selection is Sam's.
+  * It does not adopt an unadopted test. T21 (perfect-record shrinkage)
+    and T22 (the shuttled-starter penalty) are PRE-REGISTERED AND NOT
+    ADOPTED. So `blend` -- the number that enters the calibration table --
+    is the plain 50/50, exactly as every other play in that table is, and
+    the flagged number lives in a separate `carried` column that enters no
+    denominator. Both are written. This mirrors the 8/22 card.
+  * It does not fold the matched class into anything. STEP 4B is a flag.
+  * It does not show a pair below 1.8x. Sam's own instruction, and the one
+    deliberate exception to rule 53.
+  * It does not invent a price. Every price here came out of a raw pull
+    and carries the minute it was pulled (ledger rule 49).
+
+USAGE:  python card.py            -- write today's card
+        python card.py --dry      -- print it, write nothing
+"""
+
+import collections
+import gzip
+import itertools
+import json
+import math
+import os
+import re
+import sys
+import unicodedata
+from datetime import datetime, timedelta, timezone
+
+MODEL_VERSION = "v5.0"
+
+# Sam's board size, in his words: "i would like to see 25-50 players
+# everytime, including hitters props as well as pitchers."
+BOARD_MIN, BOARD_MAX = 25, 50
+
+# ---------------------------------------------------------------- model
+# claude/mlb-projection-model.md. Do not edit a coefficient here without
+# editing it there, and do not edit it there without a re-fit.
+K_INTERCEPT, K_TRAIL_B, K_TRAIL_C = 4.9292, 0.6653, 4.9454
+K_OPP_B, K_HOME = 0.5803, 0.1449
+O_INTERCEPT, O_TRAIL_C = 15.9121, 15.8988
+O_NP_B, O_NP_C = 0.0366, 87.2645
+O_HOME = 0.1994
+# The trailing-outs slope is TIERED on his own level. These are shipped
+# coefficients and they move at the re-fit like any other -- they live here,
+# not buried as literals inside outs_k(), so there is ONE place to edit.
+O_TIER_CUT_LO, O_TIER_CUT_HI = 15.25, 17.0
+O_TIER_B_LO, O_TIER_B_MID, O_TIER_B_HI = 0.629, 0.647, 0.361
+TRAIL_N = 8
+
+# ⛔ NOT A MODEL COEFFICIENT, AND DELIBERATELY BELOW THE BLOCK ABOVE.
+# `test_model_version.py` fingerprints the 16 constants above; this is not
+# one of them and must never be added to that tuple. It is the window
+# ledger rule 51 was MEASURED on -- 296 rematches inside 30 days, mean gap
+# 15.2 days -- and it is a LABEL threshold, nothing more. ⛔ It does not
+# enter `blend`, a probability, a band or a pair: rule 51's pre-registered
+# specification FAILED and the threshold split that survives is
+# exploratory. Changing this number changes what a sentence says, and
+# nothing else.
+REMATCH_DAYS = 30
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SAM'S -700 FLOOR, AS A CONSTANT, BECAUSE TWO FILES READ IT.
+# ⛔ NOT A MODEL COEFFICIENT and never added to `test_model_version.py`'s
+#    fingerprint tuple. It is SAM'S OWN NUMBER, chosen by hand, and
+#    CLAUDE.md lists it beside the 1.8x pair floor as a thing that must
+#    not change without him saying so.
+#
+# 🔴 THE BOUNDARY IS INCLUSIVE: -700 IS THE SHORTEST RUNG HE WILL TAKE,
+#    so a price of exactly -700 CLEARS the floor. "Below it" means
+#    strictly below.
+#
+# ⚠️ THIS CONSTANT EXISTS BECAUSE THE TWO HALVES DISAGREED ABOUT THAT
+#    BOUNDARY FOR A DAY AND A LIVE RUN WENT RED FOR IT.
+#    `[run 932, 2026-09-12T13:49Z]` Ledger rule 187 fixed the BUILDER on
+#    09-11 from `>` to `>=` — and `verify_card.py` was still asking
+#    `<= -700`, in TWO checks. So the builder called a -700 leg legal and
+#    the verifier called it a violation, and nothing noticed until a
+#    parlay finally carried a leg at exactly -700:
+#        Walbert Ureña o2.5 K  -700  +  Ha-Seong Kim u1.5 TB  -400
+#    ⛔ Rule 207 in its purest form: the verifier's whole job is to
+#    disagree with the card, so a SECOND COPY of the rule inside it is
+#    the most expensive place in this repo for a copy to drift.
+# ✅ One constant. Both halves import it. They cannot disagree again.
+PRICE_FLOOR = -700
+
+
+def h2h_gap_days(h2h, today):
+    """Days since this pitcher last faced this lineup, or None.
+
+    ⛔ A NAMED FUNCTION ON PURPOSE. The three week-1 football guards were
+    unreachable from any test because they sat inline inside a builder,
+    and `nfl.py`'s `check_ahead_out()` was pulled out for exactly this
+    reason. A rule the card PRINTS should be a rule a test can DRIVE.
+
+    ⚠️ `None` is a FINDING, not a gap to fill: four of the ten arms
+    checked on 2026-08-21 had never faced that night's opponent. "No
+    head-to-head" is the honest answer and the card says so in words.
+
+    ⛔ Returns a LABEL input and nothing else -- see REMATCH_DAYS above.
+    """
+    last = max((r.get("d") or "") for r in h2h) if h2h else ""
+    if not last:
+        return None
+    try:
+        return (datetime.fromisoformat(today).date()
+                - datetime.fromisoformat(last[:10]).date()).days
+    except ValueError:
+        # ⚠️ A MALFORMED DATE IS NOT A ZERO-DAY REMATCH. Returning None
+        #    makes the card say "never faced" rather than assert a gap it
+        #    cannot compute -- fail to SILENT, never to a wrong number.
+        return None
+
+
+def outs_k(trailing_outs):
+    """The trailing-outs slope is TIERED on his own level. Pooled 0.525 is
+    a reference figure for the v3.4 comparison and is NOT shipped."""
+    if trailing_outs < O_TIER_CUT_LO:
+        return O_TIER_B_LO
+    if trailing_outs < O_TIER_CUT_HI:
+        return O_TIER_B_MID
+    return O_TIER_B_HI
+
+
+# T21's measured grid (claude/owed-tests.md). NOT ADOPTED -- used only for
+# the shadow `carried` column, never for `blend`.
+T21_PERFECT_LONG = 88.8      # 100% on 9+ prior starts -> 88.8% next
+T21_PERFECT_SHORT = 78.0     # 100% on 3-8 prior starts -> 78.0% next
+T22_SHUTTLE_PENALTY = 14.4   # point-in-time, z = 6.97
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 CALIBRATION IS READ FROM THE RECORD, NOT WRITTEN DOWN HERE.
+# `[measured 2026-09-01 by driving the live site]` these strings were
+# HARDCODED from a 2026-08-22 snapshot taken at n = 40 graded plays, and
+# the site had grown to 407. The result was that GIZMO'S PICKS AND THE
+# TRACK RECORD TAB DISAGREED ABOUT THE MODEL'S OWN RELIABILITY, in the
+# same session, both rendered:
+#
+#     band      Gizmo's Picks banner      Track Record (live)
+#     60-70%    -25.9                     -12.7   (n=87)
+#     80%+      -18.0                     -89.2   (n=2)
+#     70-80%    "the only band that..."   -4.9    (n=25)
+#
+# ⛔ THE BANNER OVERSTATED 60-70's PROBLEM BY ROUGHLY 2x AND QUOTED -18.0
+# FOR A BAND THAT IS ACTUALLY 0-FOR-2. It also dropped the "small samples
+# throughout" hedge that the Track Record tab carries.
+# 🔴 THE SITE ALREADY COMPUTES THIS NIGHTLY. `data/latest/record.json` is
+# regenerated by `collect.py record` (due 06:00, before the 10:00 card)
+# and is what the Track Record tab renders.
+# ✅ SO READ THAT FILE. One number per fact, the same everywhere on the
+# site -- ledger rule 66, applied to calibration instead of projections.
+# ⚠️ AND THE POPULATION MATTERS: `record.json` grades THE MACHINE CARD.
+# ⛔ `claude/pick-ledger.md` is a DIFFERENT population -- hand-built cards
+# and Sam's own slips were split out on 2026-08-24 at his instruction and
+# the two must never share a denominator. A banner on the machine card
+# takes the machine record.
+# ══════════════════════════════════════════════════════════════════════
+BAND_ORDER = ("under-60", "60-70", "70-80", "80-plus")
+# How `record.json`'s calibration buckets roll up into the four labels a
+# row can carry. ⚠️ Anything at 80 or above is one band on the card.
+_BUCKET_BAND = {"50-60%": "under-60", "60-70%": "60-70", "70-80%": "70-80",
+                "80-90%": "80-plus", "90-100%": "80-plus"}
+CAL = {}
+
+
+def load_calibration(path="data/latest/record.json"):
+    """Per-band (predicted, actual, n) from the model's own graded record.
+
+    ⛔ FAILS TO SILENCE, NOT TO A STALE NUMBER. If the record is missing
+    or unreadable the bands say they have no record rather than quoting
+    a figure nobody can reproduce -- which is the defect this replaces.
+    """
+    try:
+        rec = json.load(open(path))
+    except Exception:
+        return {}
+    agg = {}
+    for row in rec.get("calibration") or []:
+        band = _BUCKET_BAND.get(row.get("bucket"))
+        n, w = row.get("n") or 0, row.get("w") or 0
+        if not band or not n:
+            continue
+        a = agg.setdefault(band, {"n": 0, "w": 0, "pw": 0.0})
+        a["n"] += n
+        a["w"] += w
+        a["pw"] += (row.get("predicted") or 0.0) * n
+    out = {}
+    for band, a in agg.items():
+        actual = 100.0 * a["w"] / a["n"]
+        predicted = a["pw"] / a["n"]
+        out[band] = {"n": a["n"], "actual": round(actual, 1),
+                     "predicted": round(predicted, 1),
+                     "delta": round(actual - predicted, 1)}
+    return out
+
+
+# ⚠️ A BAND WITH FEWER THAN THIS MANY GRADED PLAYS IS NOT EVIDENCE. The
+# old banner quoted "-18.0" off SIX plays and the live figure off TWO.
+CAL_MIN_N = 20
+
+
+def band_note(band):
+    """The prose for one band, generated from the live record."""
+    c = CAL.get(band)
+    if not c:
+        return "no graded record in this range yet"
+    if c["n"] < CAL_MIN_N:
+        return (f"only {c['n']} graded plays in this range -- "
+                f"too few to say anything")
+    d = c["delta"]
+    how = ("runs close to its claim" if abs(d) < 5.0
+           else "runs hot" if d < 0 else "beats its claim")
+    return (f"{how}: hit {c['actual']:g}% against a claimed "
+            f"{c['predicted']:g}%, {d:+g} pts over {c['n']} graded plays")
+
+
+# Calibration bands. These are a LABEL on the row, not a filter.
+def band_of(p):
+    if p < 60:
+        return ("under-60", band_note("under-60"))
+    if p < 70:
+        return ("60-70", band_note("60-70"))
+    if p < 80:
+        return ("70-80", band_note("70-80"))
+    return ("80-plus", band_note("80-plus"))
+
+
+def calibration_sentence():
+    """The banner at the top of Gizmo's Picks, built from the record.
+
+    ⚠️ CARRIES THE SMALL-SAMPLE HEDGE. The Track Record tab has always
+    said "every figure here will move"; the card's banner did not, and
+    quoted two-decimal figures off single-digit samples as if settled.
+    """
+    have = [(b, CAL[b]) for b in BAND_ORDER
+            if b in CAL and CAL[b]["n"] >= CAL_MIN_N]
+    if not have:
+        return ("There are not enough graded plays yet to say whether these "
+                "confidence numbers hold up. Treat every one as unproven.")
+    best = min(have, key=lambda kv: abs(kv[1]["delta"]))
+    total = sum(c["n"] for _, c in have)
+    parts = [f"{b} hit {c['actual']:g}% against a claimed {c['predicted']:g}% "
+             f"({c['delta']:+g} pts, n={c['n']})" for b, c in have]
+    thin = [b for b in BAND_ORDER
+            if b in CAL and CAL[b]["n"] < CAL_MIN_N]
+    tail = (f" {' and '.join(thin)} has too few graded plays to read."
+            if thin else "")
+    # ⚠️ NO "Read the confidence number honestly." PREFIX HERE.
+    # `index.html:1538` already renders that phrase in bold immediately
+    # before this string. `[caught 2026-09-01 by rendering the page]` the
+    # first draft carried it too and the banner said it TWICE.
+    return ("; ".join(parts) + "."
+            + f" The {best[0]} band is currently the closest to its own claim."
+            + tail
+            + f" {total} graded plays behind these figures and small samples "
+              "throughout -- every one of them will move.")
+
+
+# ------------------------------------------------------------ distributions
+def pois_cdf(lam, k):
+    """P(X <= k) for integer k >= 0."""
+    if k < 0:
+        return 0.0
+    t, s = math.exp(-lam), 0.0
+    for i in range(0, k + 1):
+        s += t
+        t *= lam / (i + 1)
+    return min(1.0, s)
+
+
+def norm_cdf(x, mu, sd):
+    if sd <= 0:
+        return 1.0 if x >= mu else 0.0
+    return 0.5 * (1.0 + math.erf((x - mu) / (sd * math.sqrt(2.0))))
+
+
+# ------------------------------------------------------------- projection
+# 🔴 A PROJECTION IS AN INVERSION OF THE DISPLAYED NUMBER, NOT A SECOND
+# ESTIMATE. Sam, 2026-08-26: "it should go hand in hand with the confidence
+# score." If a projection were computed independently it could contradict
+# the row it sits next to -- an 85% OVER 5.5 printed beside a 5.2 K
+# projection, which reads as a bug to anyone who can subtract. So it is not
+# computed independently: take the probability the card ALREADY displays and
+# solve for the central value that WOULD produce it, under the SAME
+# distribution the row already assumed. One number in, one number out,
+# consistent by construction.
+#
+# ⛔ Do not "improve" this by printing E[K] (`central`) instead. `central`
+# is the MODEL half of a 50/50 blend; `blend` is what the card shows, and
+# the two disagree BY DESIGN. Measured 2026-08-26 on the published cards:
+# mean gap between the inverted projection and the model's own E[K] was
+# +0.06 K, 0 of 43 plays diverged by 2 or more -- so the choice costs
+# almost nothing in accuracy and buys the consistency guarantee outright.
+PROJ_P_MIN, PROJ_P_MAX = 0.001, 0.999
+
+
+def invert_poisson(line, p_over, lo=0.01, hi=40.0, tol=1e-10):
+    """The lam whose P(X > line) equals p_over. Monotone in lam, so bisect."""
+    k = int(math.floor(line))
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if (1.0 - pois_cdf(mid, k)) < p_over:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < tol:
+            break
+    return 0.5 * (lo + hi)
+
+
+def invert_normal(line, sd, p_over, lo=-10.0, hi=60.0, tol=1e-10):
+    """The mu whose P(X > line) equals p_over, at fixed sd."""
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if (1.0 - norm_cdf(line, mid, sd)) < p_over:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < tol:
+            break
+    return 0.5 * (lo + hi)
+
+
+def invert_negbin(line, p_over, mean_obs, var_obs, lo=1e-4, hi=40.0):
+    """The NB mean whose P(X > line) equals p_over, holding the DISPERSION
+    the player actually showed. Falls back to Poisson only when the sample
+    is not overdispersed, which is the case Poisson already fits.
+
+    ⚠️ RBIs need this and hits do not. T34, 2026-08-26: RBI failed Poisson
+    at p90 0.299 and passed NB at 0.117. A three-run homer is one swing,
+    so RBI is lumpier than its mean suggests."""
+    if not var_obs or not mean_obs or var_obs <= mean_obs or mean_obs <= 0:
+        return invert_poisson(line, p_over)
+    r = mean_obs * mean_obs / (var_obs - mean_obs)      # NB size, held fixed
+    k = int(math.floor(line))
+
+    def sf(m):
+        q = r / (r + m)
+        term = q ** r
+        cdf = term
+        for i in range(1, k + 1):
+            term *= (r + i - 1) / i * (1 - q)
+            cdf += term
+        return 1.0 - min(1.0, cdf)
+
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if sf(mid) < p_over:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 1e-10:
+            break
+    return 0.5 * (lo + hi)
+
+
+# 🔴 WHICH HITTER MARKETS MAY CARRY A PROJECTION -- and which may not.
+# T34/T34b/T35, 2026-08-26, bar fixed before any fit: the implied central
+# value must reproduce the player's observed per-game mean to within 0.10
+# on the mean AND 0.25 at the 90th percentile, in the market's own units.
+#   hits        Poisson   p90 0.202  PASS
+#   home runs   Poisson   p90 0.022  PASS
+#   RBIs        NegBin    p90 0.117  PASS   (Poisson failed at 0.299)
+#   total bases  --  Poisson 0.673, NegBin 0.350, compound Poisson 0.287
+#                    ALL FAIL. No projection.
+#   H+R+RBI      --  Poisson 0.696, NegBin 0.356, own mean 96.95% on-side
+#                    ALL FAIL. No projection.
+# ⛔ Three attempts have failed on total bases. A fourth does not get an
+# easier bar. Do not add one without a NEW pre-registered test at 0.25.
+HITTER_PROJ = {
+    "batter_hits": "poisson",
+    "batter_home_runs": "poisson",
+    "batter_rbis": "negbin",
+}
+# The unit as it reads BESIDE a number, not as a column heading. "0.2 RBI",
+# never "0.2 rbis" -- lowercasing the display label produced that once.
+HITTER_UNIT = {"batter_hits": "H", "batter_home_runs": "HR",
+               "batter_rbis": "RBI", "batter_total_bases": "TB",
+               "batter_hits_runs_rbis": "H+R+RBI"}
+HITTER_NO_PROJ_NOTE = (
+    "No projection on this market. A projection has to reproduce the "
+    "player's own per-game average to within a quarter of a unit, and "
+    "nothing does here — plain Poisson misses by 0.67, a negative binomial "
+    "by 0.35, a compound Poisson by 0.29, against a 0.25 bar fixed before "
+    "any of them were fitted. The confidence number beside it is his real "
+    "record and stands on its own; a precise-looking projection that is "
+    "wrong two-thirds of a base at the tail would not.")
+
+
+def project(dist, line, side, conf_pct, sd=None, central=None):
+    """`conf_pct` is the probability THE ROW DISPLAYS, for the side it picked.
+
+    Returns (value, saturated). `saturated` is True when the confidence had
+    to be clamped to invert at all -- at that point the projection is a
+    floor or a ceiling, not a point estimate, and the row must say so."""
+    if conf_pct is None or line is None:
+        return None, False
+    # 🔴 NO PROJECTION ON A COIN FLIP. At a displayed 50% there is no
+    # direction to project, and the Poisson's discreteness makes the answer
+    # actively misleading: P(X > 2.5) = 0.5 needs lam = 2.67, so an UNDER
+    # 2.5 at 50% would print a projection ABOVE its own line. That is the
+    # only case in 2,500 tested where the projection and the pick disagreed.
+    # A row this close to even has nothing to say; it says nothing.
+    # ⚠️ Rows BELOW 50% still project, and still project onto the losing
+    # side of the line -- that is correct, not a bug. It is what "we like
+    # the over at +180 even though we project under the line" looks like,
+    # and hiding it would flatter the card.
+    # ⛔ THE GUARD IS FOR THE DISCRETE DISTRIBUTIONS ONLY. The artifact
+    # described above is a property of the Poisson's lumpiness. The NORMAL
+    # is continuous: inverting it at a displayed 50% returns the line
+    # itself, which contradicts nothing and is the honest answer. Suppress-
+    # ing it there cost every near-even outs row its projection -- 52 of
+    # them on the 2026-08-27 board, Landen Roupp's 16.5 among them, at a
+    # blend of 49.6/50.4. Sam, 2026-08-26: "we need to make sure every
+    # player has one."
+    if abs(conf_pct - 50.0) < 0.5 and dist in ("poisson", "negbin"):
+        # The model's own expected value is not an inversion and so carries
+        # none of the artifact. Where the caller has one, it is the answer.
+        return (central, False) if central is not None else (None, False)
+    p = conf_pct / 100.0
+    p_over = p if side == "over" else 1.0 - p
+    sat = not (PROJ_P_MIN < p_over < PROJ_P_MAX)
+    p_over = max(PROJ_P_MIN, min(PROJ_P_MAX, p_over))
+    if dist == "poisson":
+        return invert_poisson(line, p_over), sat
+    if dist == "negbin":
+        # sd carries (observed mean, observed variance) for this shape.
+        if not sd or len(sd) != 2 or not sd[0]:
+            return None, False
+        return invert_negbin(line, p_over, sd[0], sd[1]), sat
+    if sd is None or sd <= 0:
+        return None, False
+    return invert_normal(line, sd, p_over), sat
+
+
+def proj_round(value, lines):
+    """One decimal -- EXCEPT when that lands exactly on one of HIS lines.
+
+    A projection printed as "1.5" beside "under 1.5" reads as a
+    contradiction even when the underlying number (1.469) agrees with the
+    pick perfectly well. That is a rounding artifact, not a disagreement.
+
+    🔴 `lines` IS EVERY LINE THAT PLAYER HAS IN THAT MARKET, NOT THE ONE
+    ROW'S LINE. Rounding against a single row made the SAME projection
+    print as 1.5 on his 0.5 rung and 1.51 on his 1.5 rung -- which is the
+    exact incoherence this whole pass exists to remove. The decision has to
+    be made ONCE per player per market or it reintroduces the bug."""
+    if value is None:
+        return None
+    v = round(float(value), 1)
+    if any(abs(v - float(L)) < 1e-9 for L in (lines or ())):
+        return round(float(value), 2)
+    return v
+
+
+def implied(american):
+    a = float(american)
+    return 100.0 / (a + 100.0) if a > 0 else (-a) / (-a + 100.0)
+
+
+def decimal(american):
+    a = float(american)
+    return 1.0 + (a / 100.0 if a > 0 else 100.0 / -a)
+
+
+# ---------------------------------------------------------------- helpers
+ABBR = {
+    'Cincinnati Reds': 'CIN', 'Los Angeles Angels': 'LAA', 'New York Yankees': 'NYY',
+    'Pittsburgh Pirates': 'PIT', 'Baltimore Orioles': 'BAL', 'Athletics': 'ATH',
+    'Chicago White Sox': 'CWS', 'Colorado Rockies': 'COL', 'Philadelphia Phillies': 'PHI',
+    'San Diego Padres': 'SD', 'Seattle Mariners': 'SEA', 'Chicago Cubs': 'CHC',
+    'Miami Marlins': 'MIA', 'Houston Astros': 'HOU', 'Boston Red Sox': 'BOS',
+    'Texas Rangers': 'TEX', 'New York Mets': 'NYM', 'Washington Nationals': 'WSH',
+    'Detroit Tigers': 'DET', 'Milwaukee Brewers': 'MIL', 'Los Angeles Dodgers': 'LAD',
+    'Atlanta Braves': 'ATL', 'Kansas City Royals': 'KC', 'San Francisco Giants': 'SF',
+    'Minnesota Twins': 'MIN', 'Toronto Blue Jays': 'TOR', 'Cleveland Guardians': 'CLE',
+    'St. Louis Cardinals': 'STL', 'Arizona Diamondbacks': 'AZ', 'Tampa Bay Rays': 'TB',
+}
+
+
+def norm_name(n):
+    """Same fold the collector uses, so a ladder key matches a prop name."""
+    if not n:
+        return ""
+    n = unicodedata.normalize("NFKD", n)
+    n = "".join(c for c in n if not unicodedata.combining(c))
+    n = n.lower().replace(".", "").replace("'", "").replace("-", " ")
+    n = n.replace(" jr", "").replace(" sr", "").replace(" iii", "").replace(" ii", "")
+    return " ".join(n.split())
+
+
+def ab(name):
+    return ABBR.get(name, (name or "")[:3].upper())
+
+
+def starts_of(p):
+    """His starts, oldest first. Relief outings are not evidence about a
+    starter's line and mixing them in silently deflates every rate."""
+    rows = [r for r in p["g"] if r.get("gs")]
+    rows.sort(key=lambda r: r.get("d") or "")
+    return rows
+
+
+def mean(xs):
+    xs = [x for x in xs if x is not None]
+    return sum(xs) / len(xs) if xs else None
+
+
+def sd(xs):
+    xs = [x for x in xs if x is not None]
+    if len(xs) < 2:
+        return None
+    m = sum(xs) / len(xs)
+    return math.sqrt(sum((x - m) ** 2 for x in xs) / (len(xs) - 1))
+
+
+# ------------------------------------------------------- opponent table
+def opponent_table(players):
+    """Rebuild the opponent meanK from the same pull the model reads, and
+    take the centering constant from that same rebuild.
+
+    claude/mlb-opponent-database.md owns the published table, and its own
+    regeneration recipe is exactly this: group the start table by opponent,
+    take the mean of strikeOuts. The published copy can only be rebuilt in
+    an interactive browser session, so it goes stale by a slate at a time;
+    this one rebuilds nightly off the collector's pool.
+
+    ⚠️ The pool is IP-filtered, so it holds ~99% of season starts rather
+    than all of them. Measured 2026-08-23 against the published table:
+    mean |dE[K]| difference 0.021 K, max 0.064 K -- inside the ~0.045 K
+    the opponent doc itself quotes as the cost of a one-slate lag. The
+    variable and its centering constant come from the SAME pull, which is
+    the property that actually matters: a meanK from one scale centred on
+    a constant from another is this project's oldest documented bug.
+    """
+    opp, tot, n = {}, 0, 0
+    for v in players.values():
+        for r in v["g"]:
+            if r.get("gs") and r.get("k") is not None and r.get("o"):
+                opp.setdefault(r["o"], []).append(r["k"])
+    for v in opp.values():
+        tot += sum(v)
+        n += len(v)
+    means = {t: sum(v) / len(v) for t, v in opp.items()}
+    return means, {t: len(v) for t, v in opp.items()}, (tot / n if n else 0.0), n
+
+
+# --------------------------------------------------------- matched class
+def matched_class_k(players, opp_team, line, side, k9, today):
+    """STEP 4B on the strikeout axis: starters within +/-1.5 season K/9."""
+    allh = alln = fh = fn = 0
+    notable = []
+    for v in players.values():
+        rows = starts_of(v)
+        tot_o = sum(r["outs"] for r in rows if r.get("outs") is not None)
+        tot_k = sum(r["k"] for r in rows if r.get("k") is not None)
+        if tot_o < 30:
+            continue
+        their_k9 = tot_k * 27.0 / tot_o
+        if abs(their_k9 - k9) > 1.5:
+            continue
+        for r in rows:
+            if r.get("o") != opp_team or r.get("k") is None or (r.get("d") or "") >= today:
+                continue
+            hit = (r["k"] > line) if side == "over" else (r["k"] < line)
+            alln += 1
+            allh += 1 if hit else 0
+            if (r.get("outs") or 0) >= 12:
+                fn += 1
+                fh += 1 if hit else 0
+            notable.append((r["k"], v["name"], r["d"], r["outs"], hit))
+    notable.sort(key=lambda x: -x[0])
+    return allh, alln, fh, fn, notable
+
+
+def matched_class_outs(players, opp_team, line, side, trail_bucket, today):
+    """STEP 4B on the DURABILITY axis -- owed test T24.
+
+    Sam's correction, 8/22: 'how many of those pitchers are tiers above
+    ryan johnson.' An outs line is a workload question, so the comparison
+    class is trailing mean outs AT THE TIME OF THE START, point-in-time --
+    not K/9, which is what a first pass used and which put Irvin at 46.9%
+    when the durability-matched class said 66.7%.
+    """
+    allh = alln = fh = fn = 0
+    notable = []
+    for v in players.values():
+        rows = starts_of(v)
+        for i, r in enumerate(rows):
+            if r.get("o") != opp_team or r.get("outs") is None or (r.get("d") or "") >= today:
+                continue
+            prior = [x["outs"] for x in rows[max(0, i - TRAIL_N):i] if x.get("outs") is not None]
+            if len(prior) < 3:
+                continue
+            if outs_bucket(sum(prior) / len(prior)) != trail_bucket:
+                continue
+            hit = (r["outs"] > line) if side == "over" else (r["outs"] < line)
+            alln += 1
+            allh += 1 if hit else 0
+            if r["outs"] >= 12:
+                fn += 1
+                fh += 1 if hit else 0
+            notable.append((r["outs"], v["name"], r["d"], r["outs"], hit))
+    notable.sort(key=lambda x: -x[0])
+    return allh, alln, fh, fn, notable
+
+
+def ip_str(outs):
+    """Outs -> baseball innings notation. 16 outs is 5.1, NEVER 5.3.
+
+    🔴 CLAUDE.md line 57 says this in capitals -- "inningsPitched fractions
+    are THIRDS. Only .0, .1, .2 exist. There is no .3" -- and the opponent
+    log shipped `round(outs/3, 1)` anyway, printing 3.7 and 5.3 IP. Sam
+    caught it: "there is no such thing as 5.3 outs."
+    ⛔ Never divide outs by three to display them. The fraction is a COUNT
+    of outs, not a decimal.
+    """
+    if outs is None:
+        return None
+    return f"{int(outs) // 3}.{int(outs) % 3}"
+
+
+def ip_float_str(outs):
+    """Same, for a fractional projection: 14.43 outs -> '4.2'."""
+    if outs is None:
+        return None
+    return ip_str(int(round(float(outs))))
+
+
+def outs_bucket(m):
+    if m < 14:
+        return "<14"
+    if m < 16:
+        return "14-16"
+    if m < 18:
+        return "16-18"
+    return "18+"
+
+
+# ----------------------------------------- the splits behind the "why"
+# 🔴 THE PLAYER PROPS TAB ALREADY SHOWS THESE FOR HITTERS AND THE PICKS
+# BOARD DID NOT SHOW THEM FOR ANYONE. Sam, 2026-08-26: "those are probably
+# some of the most important stats betting on a pitcher". Season, last 15,
+# home, road, and against tonight's opponent -- every one of them counted
+# at the EXACT line and side the row is about, not at some generic
+# threshold, because a 62% at 4.5 says nothing about 6.5.
+def split_at_line(rows, market, line, side):
+    """(cleared, of) at this exact number over the rows given."""
+    key = "k" if market == "strikeouts" else "outs"
+    vals = [r[key] for r in rows if r.get(key) is not None]
+    hit = sum(1 for v in vals if (v > line if side == "over" else v < line))
+    return hit, len(vals)
+
+
+def pitcher_splits(prior, market, line, side, opp_team):
+    """Season / last 15 / home / road / vs tonight's opponent, at this line.
+
+    ⛔ `prior` is already point-in-time -- build_play filters it to starts
+    dated BEFORE the slate. Do not re-derive it from the raw log here."""
+    out = {}
+    out["season"] = split_at_line(prior, market, line, side)
+    out["last15"] = split_at_line(prior[-15:], market, line, side)
+    out["home"] = split_at_line([r for r in prior if r.get("h")], market, line, side)
+    out["road"] = split_at_line([r for r in prior if not r.get("h")], market, line, side)
+    out["vs_opp"] = split_at_line([r for r in prior if r.get("o") == opp_team],
+                                  market, line, side)
+    return out
+
+
+# 🔴 THE LAST TEN STARTING PITCHERS TO FACE THIS OPPONENT.
+# Sam's idea, 2026-08-26: "if gerrit cole is facing the red sox ... include
+# the last 10 starting pitchers game log that the red sox have faced. this
+# allows the user to find a better edge."
+#
+# ✅ HE ASKED FOR THIS FROM STATMUSE. IT DOES NOT NEED STATMUSE, AND SHOULD
+# NOT USE IT. Every one of the 3,852 starts in the pitcher log already
+# names its opponent (verified 2026-08-26, 3852/3852). So this is a query
+# over data the collector already stores: zero credits, no scraping, no
+# third-party page to break, and -- the part that actually matters -- it is
+# POINT-IN-TIME by construction, which a scraped "last 20 games" table
+# never is. `claude/mlb-data-stack.md` also forbids letting a summarising
+# fetch touch a number the card computes with.
+#
+# ⛔ DESCRIPTIVE ONLY. Sam also asked for it to feed the confidence score.
+# It must not, yet: the model ALREADY carries an opponent strikeout term
+# (`oppK`, the season-long mean), and this is a RECENCY-WEIGHTED estimator
+# of the same quantity. Swapping or blending them is a model change, and a
+# model change without a pre-registered test is the one thing this project
+# does not do. See owed-test T36.
+OPP_RECENT_N = 10
+
+
+def opponent_starters(players, opp_team, today, n=OPP_RECENT_N):
+    rows = []
+    for pid, pl in players.items():
+        for r in pl.get("g") or []:
+            if not r.get("gs") or r.get("o") != opp_team:
+                continue
+            if (r.get("d") or "") >= today:          # point-in-time, always
+                continue
+            if r.get("outs") is None or r.get("k") is None:
+                continue
+            rows.append({"d": r["d"], "pitcher": pl["name"], "team": pl.get("team"),
+                         "throws": pl.get("throws"), "outs": r["outs"], "k": r["k"],
+                         "er": r.get("er"), "hit": r.get("hit"), "bb": r.get("bb"),
+                         "np": r.get("np"),
+                         "ip": ip_str(r["outs"])})
+    rows.sort(key=lambda x: x["d"], reverse=True)
+    rows = rows[:n]
+    if not rows:
+        return None
+    ks = [r["k"] for r in rows]
+    os_ = [r["outs"] for r in rows]
+    return {
+        "opponent": opp_team, "n": len(rows), "starts": rows,
+        "mean_k": round(sum(ks) / len(ks), 2),
+        "mean_outs": round(sum(os_) / len(os_), 2),
+        "mean_ip": ip_float_str(sum(os_) / len(os_)),
+        "basis": "DESCRIPTIVE",
+        "note": ("The last {} starts any pitcher has made against {} , newest first. "
+                 "⚠️ DESCRIPTIVE — it is NOT in the model. The model already carries a "
+                 "season-long opponent strikeout term; whether this recent window beats "
+                 "it is owed-test T36 and has not been run.").format(len(rows), ab(opp_team)),
+    }
+
+
+# ------------------------------------------------------------- one play
+def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None):
+    """Every number on one row. Returns None only when the inputs to the
+    model are genuinely absent -- never because the answer was unflattering."""
+    market = "strikeouts" if prop["market"] == "pitcher_strikeouts" else "outs"
+    line, side = float(prop["line"]), prop["side"]
+    rows = starts_of(p)
+    prior = [r for r in rows if (r.get("d") or "") < today]
+    if len(prior) < 3:
+        return None
+    trail = prior[-TRAIL_N:]
+
+    home = 1 if p["team"] == game["home"] else 0
+    if p["team"] not in (game["home"], game["away"]):
+        return None                      # rule 32: never guess a team
+
+    tot_o = sum(r["outs"] for r in prior if r.get("outs") is not None)
+    tot_k = sum(r["k"] for r in prior if r.get("k") is not None)
+    k9 = tot_k * 27.0 / tot_o if tot_o else 0.0
+    era = float(p["era"]) if p.get("era") not in (None, "-", "") else None
+
+    # ---- model
+    if market == "strikeouts":
+        mK8 = mean([r["k"] for r in trail])
+        if mK8 is None or oppK is None:
+            return None
+        lam = (K_INTERCEPT + K_TRAIL_B * (mK8 - K_TRAIL_C)
+               + K_OPP_B * (oppK - centerC) + (K_HOME if home else -K_HOME))
+        lam = max(0.05, lam)
+        cdf = pois_cdf(lam, int(math.floor(line)))
+        model = (1.0 - cdf) if side == "over" else cdf
+        central = round(lam, 2)
+        spread = None                    # Poisson has no free scale parameter
+        inputs = {"trailing8_K": round(mK8, 2), "opp_meanK": round(oppK, 3),
+                  "centering_constant": round(centerC, 4), "home": bool(home),
+                  "E_K": central}
+    else:
+        mO8 = mean([r["outs"] for r in trail])
+        prevNP = trail[-1].get("np")
+        if mO8 is None or prevNP is None:
+            return None
+        mu = (O_INTERCEPT + outs_k(mO8) * (mO8 - O_TRAIL_C)
+              + O_NP_B * (prevNP - O_NP_C) + (O_HOME if home else -O_HOME))
+        season_outs = mean([r["outs"] for r in prior])
+        s_sd = sd([r["outs"] for r in prior])
+        if not season_outs or not s_sd:
+            return None
+        cvO = s_sd / season_outs
+        spread = cvO * season_outs
+        model = (1.0 - norm_cdf(line, mu, spread)) if side == "over" else norm_cdf(line, mu, spread)
+        central = round(mu, 2)
+        inputs = {"trailing8_outs": round(mO8, 2), "k_tier": outs_k(mO8),
+                  "prev_start_pitches": prevNP, "home": bool(home),
+                  "cvO": round(cvO, 3), "mu": central,
+                  "opponent_term": "none -- measured null on outs, t=-0.34"}
+    model *= 100.0
+
+    # ---- raw, at this exact number, ALL starts.
+    # T23: the 4+IP filter is provably biased on an outs UNDER at T >= 12,
+    # where it deletes only winners. The unbiased all-starts rate leads.
+    stat = (lambda r: r.get("k")) if market == "strikeouts" else (lambda r: r.get("outs"))
+    vals = [stat(r) for r in prior if stat(r) is not None]
+    h = sum(1 for v in vals if (v > line if side == "over" else v < line))
+    n = len(vals)
+    raw = 100.0 * h / n if n else None
+    if raw is None:
+        return None
+
+    blend = 0.5 * model + 0.5 * raw
+
+    # ---- projection, by INVERTING the number the row displays. See project().
+    # ⛔ `blend` goes in, not `model` -- the projection must match what is
+    # printed beside it, and `model` is only half of that.
+    proj, proj_sat = project("poisson" if market == "strikeouts" else "normal",
+                             line, side, blend, spread, central)
+
+    # ---- matched class
+    opp_team = game["home"] if home == 0 else game["away"]
+    if market == "strikeouts":
+        ah, an, fh, fn, notable = matched_class_k(players, opp_team, line, side, k9, today)
+        axis = f"season K/9 within +/-1.5 of {k9:.2f}"
+    else:
+        bucket = outs_bucket(mean([r["outs"] for r in trail]))
+        ah, an, fh, fn, notable = matched_class_outs(players, opp_team, line, side, bucket, today)
+        axis = f"trailing mean outs in the {bucket} band, point-in-time (T24)"
+    cls_all = 100.0 * ah / an if an else None
+    cls_4 = 100.0 * fh / fn if fn else None
+
+    # ---- head-to-head (STEP 4C), reported whenever it exists
+    h2h = [r for r in prior if r.get("o") == opp_team]
+    h2h_hit = sum(1 for r in h2h if stat(r) is not None
+                  and (stat(r) > line if side == "over" else stat(r) < line))
+
+    # 🔴 RULE 51 — THE GAP IN DAYS, WHICH THIS CARD NEVER PRINTED.
+    # `claude/card-blueprint.md` STEP 4C says plainly: "State the gap in
+    # days on the card row." Pre-publish check 36 has reported it missing
+    # for weeks and nothing added it.
+    # ⚠️ WHY IT MATTERS, AND EXACTLY HOW FAR IT GOES: conditional on a
+    #    first meeting of 5+ K, the next start reaches 4+ K 74.6%
+    #    (1363/1826) against ANYONE but only 67.1% (116/173) against the
+    #    SAME lineup inside 30 days -- which is just the league base rate.
+    #    Whatever edge he had, they have seen it.
+    # ⛔ IT IS A LABEL, NOT AN INPUT. It does not touch `blend`, the
+    #    model, a band or a pair -- rule 51's own pre-registered
+    #    specification FAILED (0.30, t=-1.78) and the threshold split is
+    #    EXPLORATORY. Printing the gap lets Sam weigh it; folding it into
+    #    a number would be fitting an exploratory result.
+    # ➡️ AND THE EFFECT IS THRESHOLD-DEPENDENT: ~8 points at a 4+ K bar
+    #    against ~3 at 3+ K. A rematch is a reason to DROP A RUNG, not to
+    #    drop the pitcher.
+    h2h_gap = h2h_gap_days(h2h, today)
+
+    # ---- price.
+    # 🔴 Hard Rock is the book Sam bets, so Hard Rock's OWN number is the
+    # one quoted. "Best price across books" answers a different question.
+    # When Hard Rock did not post the market in this pull, the play is
+    # still printed -- rule 53 -- with the fact stated on the row, and it
+    # is barred from pairs, because only Hard Rock multiplies.
+    hrq = prop.get("hr") or {}
+    on_hr = bool(hrq.get("price") is not None)
+    if on_hr:
+        price, book, link = hrq["price"], hrq.get("book", "hardrockbet"), hrq.get("link")
+    else:
+        price, book, link = prop.get("price"), prop.get("book"), prop.get("link")
+
+    # ---- the shadow column. T21/T22 are NOT ADOPTED; `blend` above is
+    # what enters calibration, and `carried` enters no denominator.
+    flags, carried = [], blend
+    if h == n and n >= 9:
+        carried = 0.5 * model + 0.5 * T21_PERFECT_LONG
+        flags.append({"kind": "warn", "test": "T21", "text":
+                      f"{h}-for-{n} is not 100%. A perfect record over 9+ prior starts "
+                      f"delivers about {T21_PERFECT_LONG}% going forward. Measured at the "
+                      f"4+ K threshold; applying it here is an extrapolation."})
+    elif h == n and n >= 3:
+        carried = 0.5 * model + 0.5 * T21_PERFECT_SHORT
+        flags.append({"kind": "warn", "test": "T21", "text":
+                      f"{h}-for-{n} on a short sample is worth no more than a merely good "
+                      f"record -- the measured cell is {T21_PERFECT_SHORT}%."})
+    elif h == 0 and n >= 9:
+        carried = 0.5 * model + 0.5 * (100 - T21_PERFECT_LONG)
+    shuttled = any((not r.get("gs")) and (r.get("d") or "") < today for r in p["g"])
+    if shuttled:
+        nrel = sum(1 for r in p["g"] if not r.get("gs") and (r.get("d") or "") < today)
+        carried -= T22_SHUTTLE_PENALTY
+        flags.append({"kind": "warn", "test": "T22", "text":
+                      f"{nrel} relief appearance(s) this season -- a shuttled arm reads "
+                      f"{T22_SHUTTLE_PENALTY} points worse point-in-time (z=6.97)."})
+    carried = max(1.0, min(99.0, carried))
+
+    if abs(model - raw) > 10:
+        flags.append({"kind": "flag", "test": "rule 15", "text":
+                      f"model {model:.1f}% vs raw {raw:.1f}% -- a {abs(model-raw):.1f}-point gap. "
+                      "The model is the suspect, but see the class rate."})
+    # 🔴 The reference figure is the ALL-STARTS rate, not the 4+IP one.
+    # The blueprint says quote both and do not pick the flattering one, and
+    # T23 showed the 4+IP filter is the biased one -- it deletes short
+    # outings, which are where the losers live. Both are printed either way.
+    cls_ref = cls_all if an >= 8 else None
+    if cls_ref is not None and abs(cls_ref - blend) >= 15:
+        flags.append({"kind": "flag", "test": "STEP 4B", "text":
+                      f"matched class {cls_ref:.0f}% ({ah}/{an} all starts"
+                      + (f", {fh}/{fn} on 4+ innings" if fn else "")
+                      + f") vs blend {blend:.1f}% -- {abs(cls_ref-blend):.0f} points apart. "
+                      "Suspect. Post-hoc subgroup; the class is a flag and is never "
+                      "folded into the blend."})
+    if an < 8:
+        flags.append({"kind": "note", "test": "STEP 4B", "text":
+                      f"matched class n={an} -- UNINFORMATIVE, do not use it."})
+    if not on_hr:
+        # ✅ THE ONE FLAG THAT REACHES THE PAGE. It changes what the
+        # reader can do: the price on screen is not one they can bet.
+        # `actionable` is what index.html filters on -- every other flag
+        # is a note the model writes to itself and is stored, not shown.
+        flags.append({"kind": "note", "test": "STEP 5", "actionable": True,
+                      "text": (f"Hard Rock didn't post this one when we pulled the odds. "
+                               f"The price above is {bookName(prop.get('book'))}'s — you "
+                               f"can't get that number at Hard Rock.")})
+
+    splits = pitcher_splits(prior, market, line, side, opp_team)
+    opp_recent = opponent_starters(players, opp_team, today)
+
+    be = 100.0 * implied(price) if price is not None else None
+    grp = "GOOD" if (k9 >= 9.0 and era is not None and era <= 3.50) else \
+          ("BAD" if (k9 < 9.0 and era is not None and era > 3.50) else "MIXED")
+    bnd, bnd_note = band_of(blend)
+    # Sam's -700 floor: the shortest rung he will take. His rule, not a
+    # judgment call of Claude's -- so it sorts the board rather than
+    # hiding anything. Every below-floor rung is still written out in full.
+    # 🔴 `>=`, NOT `>`. Sam's rule is "-700, nothing shorter" — so -700
+    #    ITSELF is the shortest rung he WILL take, and this line excluded
+    #    exactly it. `[reported by the scheduled grading run for 18 days,
+    #    fixed 2026-09-11]` The comment directly above already said "the
+    #    shortest rung he will take"; the comparison disagreed with it.
+    # ⚠️ Off-by-one on a boundary Sam chose by hand, so it is his number
+    #    that was wrong on the page, not a tolerance of ours to tune.
+    # 🔴🔴 AND IT IS `PRICE_FLOOR`, NOT A LITERAL, SINCE 2026-09-12.
+    #    Fixing THIS line on 09-11 left `verify_card.py` still asking
+    #    `<= -700`, so the builder said a -700 leg CLEARS and the verifier
+    #    said it FAILS. They disagreed for a day and went red the first
+    #    time a parlay actually carried a leg at exactly -700 (run 932).
+    #    ⛔ Rule 207: a verifier that RESTATES a specification is a second
+    #    copy of it, and two copies drift. One constant, both readers.
+    floor_ok = price is None or price >= PRICE_FLOOR
+
+    return {
+        "pitcher": p["name"], "pid": prop.get("pid"), "team": p["team"], "throws": p.get("throws"),
+        "market": market, "side": side, "line": line,
+        "game": f"{ab(game['away'])} @ {ab(game['home'])}",
+        "game_id": game["id"], "away": game["away"], "home": game["home"],
+        "commence": game["commence"], "opponent": opp_team, "home_side": bool(home),
+        "group": grp, "k9": round(k9, 2), "era": era, "whip": p.get("whip"),
+        "book": book, "price": price, "link": link, "on_hardrock": on_hr,
+        "best_elsewhere": (None if on_hr else
+                           {"book": prop.get("book"), "price": prop.get("price")}),
+        "ladder": prop.get("_ladder") or [],
+        "alt_rung": bool(prop.get("_alt")),
+        "break_even": round(be, 1) if be is not None else None,
+        "edge": round(blend - be, 1) if be is not None else None,
+        "model": round(model, 1), "raw_pct": round(raw, 1), "raw": f"{h}/{n}",
+        "blend": round(blend, 1), "carried": round(carried, 1),
+        "confidence": round(blend),
+        "confidence_basis": "MODEL",
+        # 🔴 ~~"v4.0 model blended 50/50 ..."~~ STRUCK 2026-09-11. THE READER
+        # SEES THIS STRING, and it named v4.0 while the card ran v5.0 --
+        # a false provenance claim on a page real money is bet against
+        # (the same class as rule 184, where a stamp and the code
+        # disagreed). ⛔ A version is a fact about the code: read it,
+        # never retype it.
+        "confidence_note": (MODEL_VERSION + " model blended 50/50 with his "
+                            "own rate at this line."),
+        # The single number Sam asked for beside the line, covers-style. It is
+        # the blend read backwards, so it can never argue with the confidence.
+        # ⛔ SET TO None ON PURPOSE. apply_projections() is the ONLY writer
+        # of this field (rule 66). Leaving a per-row inversion here is what
+        # gave one pitcher several projections.
+        "projection": None,
+        "projection_unit": "K" if market == "strikeouts" else "outs",
+        "projection_basis": "MODEL",
+        "projection_saturated": proj_sat,
+        "projection_note": (
+            ("Inverted from the " + f"{blend:.0f}" + "% shown: the "
+             + ("strikeout total" if market == "strikeouts" else "outs total")
+             + " that would produce exactly that probability, under the same "
+             + ("Poisson" if market == "strikeouts" else "Normal")
+             + " the row already assumes.")
+            + (" ⚠️ The confidence saturated the distribution, so this is a "
+               "bound, not a point estimate." if proj_sat else "")),
+        "band": bnd, "band_note": bnd_note, "clears_price_floor": floor_ok,
+        "class": {"axis": axis, "all": f"{ah}/{an}" if an else None,
+                  "all_pct": round(cls_all, 1) if cls_all is not None else None,
+                  "four_plus": f"{fh}/{fn}" if fn else None,
+                  "four_plus_pct": round(cls_4, 1) if cls_4 is not None else None,
+                  "n": an,
+                  "best": [f"{x[1]} {x[2]} -- {x[0]}" for x in notable[:2]],
+                  "worst": [f"{x[1]} {x[2]} -- {x[0]}" for x in notable[-1:]]},
+        # 🔴 The gap in days is APPENDED to the existing sentence rather
+        #    than replacing it -- every published card's `h2h` string keeps
+        #    the same leading clause, so nothing that reads the old prefix
+        #    breaks and no historical row is re-described.
+        "h2h": (f"{len(h2h)} start(s) vs {ab(opp_team)} -- cleared "
+                f"{h2h_hit}/{len(h2h)}"
+                + (f" -- last one {h2h_gap} days ago" if h2h_gap is not None
+                   else "")
+                + (", and they have seen him inside a month"
+                   if h2h_gap is not None and h2h_gap <= REMATCH_DAYS else "")
+                if h2h else f"never faced {ab(opp_team)} this season"),
+        # ⛔ MACHINE-READABLE, SEPARATE FROM THE PROSE. The calibration
+        #    record needs the number itself, not a sentence to re-parse.
+        #    `None` means no prior meeting this season -- which is a
+        #    finding (four of ten arms checked on 8/21 had none), not a
+        #    blank to skip.
+        "h2h_gap_days": h2h_gap,
+        "h2h_rematch": (h2h_gap is not None and h2h_gap <= REMATCH_DAYS),
+        "model_inputs": inputs, "central": central,
+        # The same five splits the Player Props tab shows for hitters,
+        # counted at THIS line and side. Sam, 2026-08-26.
+        "splits": {k: (f"{a}/{n2}" if n2 else None) for k, (a, n2) in splits.items()},
+        "opp_recent": opp_recent,
+        "first_pitch": et(game["commence"]),
+        "why": why_lines(p, market, side, line, h, n, model, raw, blend,
+                         ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
+                         price, be, k9, era, grp, book, splits, opp_recent,
+                         oppRank, central),
+        "flags": flags,
+    }
+
+
+def why_lines(p, market, side, line, h, n, model, raw, blend,
+              ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
+              price, be, k9, era, grp, book, splits=None, opp_recent=None,
+              oppRank=None, central=None):
+    """Why the card likes this, in words a person reads once and gets.
+
+    🔴 REWRITTEN 2026-08-26. Sam: "this is too confusing to read, the user
+    wont understand it ... lose the technical wording, using t=.34, (t23),
+    measured null, edge of 36 points, all of these things that a casual
+    fine wont know about has to go."
+
+    He is right, and the old version was written for the ledger rather than
+    for a reader. ⛔ NO test IDs (T23, T24, STEP 4B), no "measured null",
+    no t-statistics, no "edge of N points", no coefficients. The honesty
+    those phrases carried is KEPT -- it is just said in English: a small
+    sample is "too small to read anything into", and a number that is not
+    a model output says "that isn't part of the model's math".
+
+    ✅ STATS ARE THE ARGUMENT. Sam: "use as many stats as you can to back
+    up your picks ... incorporate it in a casual way." Every sentence
+    should carry a number.
+    """
+    w = []
+    who = p["name"].split()[-1] if p.get("name") else "He"
+    unit = "strikeouts" if market == "strikeouts" else "outs"
+    verb = "stayed under" if side == "under" else "cleared"
+    Verb = "Stayed under" if side == "under" else "Cleared"
+
+    # ---- 1. his own record at this exact number
+    if splits:
+        def sp(k):
+            a, m = splits[k]
+            return (a, m) if m else None
+        se = sp("season")
+        bits = []
+        for key, lbl in (("last15", "his last 15"), ("home", "at home"), ("road", "on the road")):
+            v = sp(key)
+            if not v:
+                continue
+            # ⛔ "6 of 6 his last 15" when he has made 6 starts all year is
+            # the season line said twice. Drop it rather than pad.
+            if key == "last15" and se and v[1] >= se[1]:
+                continue
+            bits.append(f"{v[0]} of {v[1]} {lbl}" if key != "last15"
+                        else f"{v[0]} of his last {v[1]}")
+        vs = sp("vs_opp")
+        line1 = (f"{p['name']} has {verb} {line} {unit} in "
+                 f"<b>{se[0]} of his {se[1]} starts</b> this season"
+                 if se else f"{p['name']} is on {line} {unit} tonight")
+        if bits:
+            line1 += " — " + ", ".join(bits)
+        line1 += "."
+        if vs:
+            line1 += (f" He has faced {ab(opp_team)} {vs[1]} time"
+                      f"{'s' if vs[1] > 1 else ''} and {verb} it {vs[0]}."
+                      + (" That's too small a sample to read much into."
+                         if vs[1] < 4 else ""))
+        else:
+            line1 += f" He has never faced {ab(opp_team)}."
+        w.append(line1)
+    else:
+        w.append(f"{p['name']} has {verb} {line} {unit} in <b>{h} of {n} starts</b> "
+                 f"this season ({raw:.0f}%).")
+
+    # ---- 2. recent form, and what we expect tonight
+    if market == "strikeouts":
+        w.append(f"He's averaged <b>{inputs['trailing8_K']:.1f} strikeouts</b> a start "
+                 f"over his last eight. Tonight we have him around "
+                 f"<b>{central:.0f} strikeouts</b>.")
+    else:
+        t8, mu = inputs["trailing8_outs"], inputs["mu"]
+        w.append(f"He's averaged <b>{ip_float_str(t8)} innings</b> a start over his last "
+                 f"eight ({t8:.1f} outs), and threw {inputs['prev_start_pitches']} pitches "
+                 f"last time out. Tonight we have him around "
+                 f"<b>{ip_float_str(mu)} innings</b> ({mu:.0f} outs).")
+
+    # ---- 3. the matchup, ranked rather than coefficient-ed
+    if market == "strikeouts" and oppRank and opp_team in oppRank:
+        r = oppRank[opp_team]
+        tone = ("one of the easiest lineups in baseball to strike out" if r <= 6 else
+                "a lineup that strikes out more than most" if r <= 12 else
+                "a tough lineup to strike out" if r >= 24 else
+                "a lineup that puts the bat on the ball more than most" if r >= 19 else
+                "a middle-of-the-pack lineup for strikeouts")
+        w.append(f"{ab(opp_team)} are <b>{tone}</b> — {oppK:.1f} strikeouts a start, "
+                 f"{_ordinal(r)} of 30, against a league average of {centerC:.1f}.")
+
+    # ---- 4. comparable arms
+    if an >= 8:
+        w.append(f"Pitchers with a similar profile have {verb} this number in "
+                 f"<b>{ah} of {an} starts</b> against {ab(opp_team)} this season "
+                 f"({100.0 * ah / an:.0f}%).")
+    else:
+        w.append(f"Only {an} comparable start{'s' if an != 1 else ''} against "
+                 f"{ab(opp_team)} exist this season, so there's nothing to read there "
+                 f"either way.")
+
+    # ---- 5. what this lineup has actually done to starters lately
+    if opp_recent:
+        r = opp_recent
+        if market == "strikeouts":
+            same = sum(1 for x in r["starts"]
+                       if (x["k"] > line if side == "over" else x["k"] < line))
+            w.append(f"The last {r['n']} starters to face {ab(opp_team)} averaged "
+                     f"<b>{r['mean_k']:.1f} strikeouts</b> over {r['mean_ip']} innings, "
+                     f"and <b>{same} of {r['n']}</b> landed on this side of {line}. "
+                     f"That's recent history, not part of the model's math.")
+        else:
+            same = sum(1 for x in r["starts"]
+                       if (x["outs"] > line if side == "over" else x["outs"] < line))
+            w.append(f"Starters haven't been going deep against {ab(opp_team)}: the last "
+                     f"{r['n']} to face them averaged <b>{r['mean_ip']} innings</b>, and "
+                     f"<b>{same} of {r['n']}</b> finished on this side of {line} outs. "
+                     f"That's recent history, not part of the model's math.")
+
+    # ---- 6. what kind of arm he is
+    kind = ("a strikeout arm" if k9 >= 9.5 else
+            "a solid strikeout arm" if k9 >= 8.0 else
+            "not a big strikeout pitcher" if k9 < 7.0 else "an average arm for whiffs")
+    w.append(f"He's {kind} — <b>{k9:.1f} strikeouts per nine</b>"
+             + (f" with a <b>{era} ERA</b>." if era is not None else "."))
+
+    # ---- 7. the price, in plain terms
+    if price is not None and be is not None:
+        w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the time "
+                 f"just to break even. We make it <b>{blend:.0f}%</b>."
+                 + ("" if book in ("hardrockbet", "hardrockbet_oh") else
+                    f" That price is {bookName(book)}'s, not Hard Rock's."))
+    return w
+
+
+def _ordinal(i):
+    return f"{i}{'th' if 11 <= i % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(i % 10, 'th')}"
+
+
+def bookName(k):
+    return {"hardrockbet": "Hard Rock", "hardrockbet_oh": "Hard Rock",
+            "draftkings": "DraftKings", "fanduel": "FanDuel",
+            "williamhill_us": "Caesars", "betmgm": "BetMGM"}.get(k, k)
+
+HITTER_LABEL = {
+    "batter_hits": "Hits", "batter_total_bases": "Total bases",
+    "batter_home_runs": "Home runs", "batter_rbis": "RBIs",
+    "batter_hits_runs_rbis": "Hits+Runs+RBIs",
+}
+MIN_HITTER_GAMES = 25
+
+# 🔴 BATTER ALTERNATE LINES ARE NOT CARDED. Sam, 2026-08-26.
+# We never REQUEST a batter alt market -- ALT_MARKETS holds only
+# pitcher_strikeouts_alternate. They arrive INSIDE the standard markets:
+# batter_total_bases came back with 244 players at 1.5 and 17 at 3.5.
+# "Under 3.5 total bases" is a 58-of-59 record priced at -2200, and once
+# the -700 board gate came off it sorted straight to the TOP of a board
+# ranked by confidence, burying every real play. The floor lift stays --
+# Sam asked for props under -700 to be bettable -- but a lift on PRICE was
+# never a licence to card an ALTERNATE LINE.
+# ⛔ A LINE rule, not a price rule: a -300 alternate is still an alternate.
+HITTER_PRIMARY_LINES = {
+    "batter_hits": {0.5, 1.5},
+    "batter_total_bases": {1.5},
+    "batter_home_runs": {0.5},
+    "batter_rbis": {0.5},
+    "batter_hits_runs_rbis": {0.5, 1.5},
+}
+
+
+def parse_rate(s):
+    """'38/125' -> (38, 125). Returns (None, None) on anything else."""
+    try:
+        h, n = str(s).split("/")
+        return int(h), int(n)
+    except Exception:
+        return (None, None)
+
+
+HITTER_STAT = {"batter_hits": "H", "batter_home_runs": "hr", "batter_rbis": "rbi"}
+
+
+def hitter_moments(hlogs, pid, market, today):
+    """(mean, variance) of this stat over games he STARTED, POINT IN TIME.
+
+    🔴 The log on disk is `latest` and contains tonight's games once they
+    finish. Filtering on `today` is not tidiness -- without it the card
+    would quietly describe a player using the game he is about to play."""
+    key = HITTER_STAT.get(market)
+    p = (hlogs or {}).get(str(pid))
+    if not key or not p:
+        return None, None
+    vals = [g.get(key) or 0 for g in (p.get("g") or [])
+            if (g.get("pa") or 0) >= 3 and (g.get("d") or "") < today]
+    if len(vals) < 25:
+        return None, None
+    m = sum(vals) / len(vals)
+    v = sum((x - m) ** 2 for x in vals) / (len(vals) - 1)
+    return m, v
+
+
+def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
+    ev = prop.get("evidence") or {}
+    _ok = HITTER_PRIMARY_LINES.get(prop.get("market"))
+    if _ok is not None and prop.get("line") not in _ok:
+        return "alt"                      # see HITTER_PRIMARY_LINES
+    h, n = parse_rate(ev.get("season"))
+    if h is None or n is None or n < MIN_HITTER_GAMES:
+        return None
+
+    # 🔴 LINEUP RISK. `n` counts games he actually BATTED. A player who has
+    # batted in 41 of his team's 128 games is a bench bat, and his rate --
+    # however true -- is conditional on him being in the lineup at all. If
+    # he is not, the bet is usually VOID, not a win. The rate cannot see
+    # that, so it is stated on the row instead of being folded into it.
+    tg = team_games.get(prop.get("team")) or 0
+    share = (n / tg) if tg else None
+    risk = bool(share is not None and share < 0.70)
+
+    hrq = prop.get("hr") or {}
+    on_hr = hrq.get("price") is not None
+    price = hrq["price"] if on_hr else prop.get("price")
+    book = hrq.get("book", "hardrockbet") if on_hr else prop.get("book")
+    link = hrq.get("link") if on_hr else prop.get("link")
+    if price is None:
+        return None
+
+    rate = 100.0 * (h + 0.5) / (n + 1)          # Jeffreys, not a projection
+    be = 100.0 * implied(price)
+
+    # ---- projection, where a distribution earned the right to give one.
+    _mkt = prop.get("market")
+    _dist = HITTER_PROJ.get(_mkt)
+    _proj, _psat, _pnote = None, False, HITTER_NO_PROJ_NOTE
+    if _mkt in MEAN_PROJ_MARKETS:
+        # 🔴 TOTAL BASES and H+R+RBI: his OWN PER-GAME MEAN, not an
+        # inversion. T34/T35 fitted three distributions and none reproduced
+        # that mean to the 0.25 bar -- so use the mean itself, which
+        # reproduces it exactly. What inversion bought was agreement with
+        # the confidence, and that was MEASURED across 948 real props: the
+        # mean sits on the losing side of the line in 0.0% of rows at 80%+
+        # confidence and 1.9% at 70%+. The board's lowest hitter is 78%.
+        _m, _ng = hitter_mean(hlogs, prop.get("pid"), _mkt, today)
+        if _m is not None:
+            _proj = _m
+            _pnote = (f"His own average over {_ng} games this season — "
+                      f"{_m:.1f} a game. That's what he has actually been "
+                      f"doing, not a forecast.")
+    elif _dist:
+        _shape = None
+        if _dist == "negbin":
+            _shape = hitter_moments(hlogs, prop.get("pid"), _mkt, today)
+            if _shape[0] is None:
+                _shape = None
+        if _dist == "poisson" or _shape:
+            _proj, _psat = project(_dist, prop.get("line"), prop.get("side"),
+                                   rate, _shape)
+        if _proj is None:
+            # Same fallback as the board pass -- his own mean beats a blank.
+            _m2, _n2 = hitter_mean(hlogs, prop.get("pid"), _mkt, today)
+            if _m2 is not None:
+                _proj = _m2
+                _pnote = (f"His own average over {_n2} games this season — "
+                          f"{_m2:.1f} a game.")
+        if _proj is not None and _dist:
+            _pnote = (
+                f"Inverted from the {rate:.0f}% shown: the "
+                f"{HITTER_LABEL.get(_mkt, _mkt).lower()} total that would produce "
+                f"exactly that rate, under a "
+                + ("Poisson" if _dist == "poisson"
+                   else "negative binomial holding his own game-to-game spread")
+                + ". ⚠️ DESCRIPTIVE — it inverts his record, not a forecast. "
+                  "There is no hitter model in this project.")
+            if _psat:
+                _pnote += " ⚠️ The rate saturated the distribution; this is a bound."
+    mkt = prop.get("implied")                    # de-vigged, from the board
+
+    # 🔴 THE ONE FLAG THAT REACHES THE PAGE — AND HITTER ROWS NEVER
+    # CARRIED IT. `[measured 2026-09-04]` this card had 25 pitcher rows and
+    # 25 hitter rows. All 8 pitcher rows Hard Rock had not posted said so.
+    # All 3 hitter rows Hard Rock had not posted said NOTHING: the hitter
+    # dict had no `flags` key at all, so the branch could not exist.
+    # ⛔ THE READER SAW A DRAFTKINGS PRICE ON A HARD ROCK BOARD with no
+    # warning, on the book Sam actually bets. `on_hardrock` was correct the
+    # whole time -- the field was right and the sentence was missing, which
+    # is why only a check that reconciles the flag AGAINST THE BOARD found
+    # it. A check on the field alone would still be green today.
+    # ✅ Same shape, same text, same `actionable` key as the pitcher row --
+    # index.html filters on `actionable` and needs no change.
+    flags = []
+    if not on_hr:
+        flags.append({"kind": "note", "test": "STEP 5", "actionable": True,
+                      "text": (f"Hard Rock didn't post this one when we pulled the odds. "
+                               f"The price above is {bookName(prop.get('book'))}'s — you "
+                               f"can't get that number at Hard Rock.")})
+
+    def r(k):
+        a, b = parse_rate(ev.get(k))
+        return None if a is None or not b else round(100.0 * a / b, 1)
+
+    return {
+        "kind": "hitter",
+        "flags": flags,
+        "basis": "MARKET + DESCRIPTIVE — no model, no confidence rating (rule 55)",
+        "player": prop.get("player"), "pid": prop.get("pid"),
+        "team": prop.get("team"), "bats": ev.get("bats"),
+        "market": prop.get("market"),
+        "market_label": HITTER_LABEL.get(prop.get("market"), prop.get("market")),
+        "side": prop.get("side"), "line": prop.get("line"),
+        "game": f"{ab(game['away'])} @ {ab(game['home'])}",
+        "game_id": game["id"], "away": game["away"], "home": game["home"],
+        "away_id": ids.get(game["away"]), "home_id": ids.get(game["home"]),
+        "commence": game["commence"], "first_pitch": et(game["commence"]),
+        "opponent": ev.get("opp"),
+        "book": book, "price": price, "link": link, "on_hardrock": bool(on_hr),
+        # 🔴 ONE NUMBER, SORTABLE, WITH ITS PROVENANCE ATTACHED.
+        # Sam, 2026-08-24: "lets keep it at confidence score so its easier
+        # for people to understand". Ledger rule 55 requires every number
+        # to be labelled MODEL / MARKET / DESCRIPTIVE -- so the number is
+        # shown, and `confidence_basis` says where it came from. It is NOT
+        # a model output: T27, T28 and T29 all failed and hitter modelling
+        # is CLOSED pending lineup slot. ⛔ Do not relabel this MODEL until
+        # a hitter model exists and has passed a pre-registered test.
+        "confidence": round(rate),
+        # 🔴 Sam's -700 floor applies to HITTERS TOO. It was set on pitcher
+        # rows only, so a hitter row simply defaulted to "clears" and the
+        # floor was never enforced on half the board. No live slate had
+        # violated it yet -- which is exactly the kind of gap that gets
+        # found by the slate that does.
+        # 🔴 `>=` — the same off-by-one as the pitcher floor, fixed with
+        #    it 2026-09-11. -700 is the shortest rung Sam WILL take, so a
+        #    row priced exactly -700 CLEARS the floor.
+        "clears_price_floor": price >= PRICE_FLOOR,
+        "confidence_basis": "RECORD",
+        # 🔴 NEVER "MODEL". Rule 55 binds here hardest: this number is an
+        # inversion of the player's own RECORD, so it is DESCRIPTIVE no
+        # matter which distribution produced it. T27/T28/T29 all failed and
+        # hitter modelling is CLOSED.
+        # ⛔ SET TO None ON PURPOSE -- see the pitcher row. One writer.
+        "projection": None,
+        "projection_unit": HITTER_UNIT.get(_mkt),
+        "projection_basis": "DESCRIPTIVE",
+        "projection_dist": _dist,
+        "projection_saturated": _psat,
+        "projection_note": _pnote,
+        "confidence_note": ("His own rate at this exact line, smoothed. There is no "
+                            "hitter model in this project yet, so this is DESCRIPTIVE "
+                            "— not a projection."),
+        "rate": round(rate, 1), "raw": f"{h}/{n}",
+        "break_even": round(be, 1),
+        "market_implied": mkt,
+        "edge": round(rate - be, 1),
+        "edge_vs_market": None if mkt is None else round(rate - mkt, 1),
+        "games_batted": n, "team_games": tg or None,
+        "lineup_share": None if share is None else round(100 * share, 1),
+        "lineup_risk": risk,
+        "splits": {"season": ev.get("season"), "last15": ev.get("last15"),
+                   "home": ev.get("home"), "road": ev.get("road"),
+                   "vs_opp": ev.get("vs_opp"),
+                   "last15_pct": r("last15"), "home_pct": r("home"),
+                   "road_pct": r("road")},
+        "why": hitter_why(prop, ev, h, n, rate, be, price, book, share, risk),
+    }
+
+
+def hitter_why(prop, ev, h, n, rate, be, price, book, share, risk):
+    """Same plain-English rule as the pitcher rows. Sam, 2026-08-26:
+    "for the hitters in gizmos picks simply use the player props tab stats
+    ... and convert that into the why."
+    ⛔ No rule numbers, no "DESCRIPTIVE", no jargon. The honesty stays,
+    said in English."""
+    # ⛔ Not `.lower()` -- that printed "stayed under 0.5 rbis". These are
+    # written the way a person says them out loud.
+    lbl = {"batter_hits": "hits", "batter_total_bases": "total bases",
+           "batter_home_runs": "home runs", "batter_rbis": "RBIs",
+           "batter_hits_runs_rbis": "hits + runs + RBIs"}.get(
+        prop.get("market"), HITTER_LABEL.get(prop.get("market"), prop.get("market")))
+    who = prop.get("player") or "He"
+    verb = "gone over" if prop.get("side") == "over" else "stayed under"
+    line = prop.get("line")
+    opp = ab(ev.get("opp") or "")
+    l15h, l15n = parse_rate(ev.get("last15"))
+    hh, hn = parse_rate(ev.get("home"))
+    rh, rn = parse_rate(ev.get("road"))
+    vh, vn = parse_rate(ev.get("vs_opp"))
+
+    bits = []
+    if l15n and l15n < n:
+        bits.append(f"{l15h} of his last {l15n}")
+    if hn:
+        bits.append(f"{hh} of {hn} at home")
+    if rn:
+        bits.append(f"{rh} of {rn} on the road")
+    first = (f"{who} has {verb} {line} {lbl} in <b>{h} of {n} games</b> this season "
+             f"({100.0*h/n:.0f}%)")
+    if bits:
+        first += " — " + ", ".join(bits)
+    w = [first + "."]
+
+    if vn:
+        w.append(f"Against {opp} he's {vh} for {vn} on this line"
+                 + (". Too small a sample to read much into." if vn < 8 else "."))
+    else:
+        w.append(f"He hasn't faced {opp} this season.")
+
+    if share is not None:
+        w.append(f"He's been in the lineup for <b>{100*share:.0f}%</b> of his team's "
+                 f"games" + (", so there's a real chance he doesn't play tonight — "
+                             "that usually voids the bet rather than losing it."
+                             if risk else "."))
+    if price is not None and be is not None:
+        w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the "
+                 f"time just to break even. His own record puts it at <b>{rate:.0f}%</b>.")
+    w.append("One thing to know: that number is his own track record at this exact "
+             "line, not a projection — we don't have a hitter model yet, so this is "
+             "history rather than a forecast.")
+    return w
+
+# --------------------------------------------------------------- pairs
+FLOOR, TARGET = 1.80, 2.10
+# 🔴 `TARGET` IS THE SOFT TARGET, NOT A BAND EDGE, AND USING IT AS ONE WAS
+#    THE BUG. `[settled 2026-09-11]` 2.10x is the break-even landmark
+#    (47.6%) and the number to WALK THE RUNGS TOWARD — ledger rule 28
+#    calls it a SOFT TARGET and explicitly not a cap. The two-leg BAND is
+#    1.80-2.20, widened by Sam on 2026-08-26.
+# ⛔ Do not reintroduce `mult <= TARGET` as an in-band test. The bands
+#    live in `PARLAY_BANDS` below and nowhere else; `_P2_LO`/`_P2_HI`
+#    exist so the pairs path reads them rather than keeping a third copy.
+
+
+# ------------------------------------------------------- top 10 of the day
+# 🔴 THIS IS A DIFFERENT LIST FROM THE BOARD AND THAT IS THE WHOLE POINT.
+# Sam, 2026-08-26: "top 10 plays of the day, most likely to hit, not
+# confidence-ranked, may include alt lines with good value." The board is
+# ranked by confidence and capped at 50, so its top ten is just its first
+# ten rows. This pool is WIDER (every priced row PLUS every alt ladder
+# rung, which never reach the board at all) and NARROWER (nothing priced
+# worse than the payable floor), and it is deduped to one row per player.
+#
+# ⛔ The price gate is what stops this becoming a list of -2000 rungs that
+# all win and pay nothing. Sam chose "likely AND payable" over "safest,
+# full stop" explicitly. It is HIS number, like the -700 and 1.8x floors,
+# and it is not a judgment Claude re-litigates per slate.
+TOP10_PRICE_FLOOR = -400
+TOP10_N = 10
+
+
+def build_top10(plays, hitters, n=TOP10_N):
+    """Most likely to hit, among rows a person would actually be paid on."""
+    pool, dropped_price, dropped_dupe = [], 0, 0
+    for x in plays + hitters:
+        if x is None or x.get("price") is None or x.get("confidence") is None:
+            continue
+        if x["price"] <= TOP10_PRICE_FLOOR:
+            dropped_price += 1
+            continue
+        pool.append(x)
+    pool.sort(key=lambda x: -x["confidence"])
+
+    seen, out = set(), []
+    for x in pool:
+        key = x.get("pid") or x.get("pitcher") or x.get("player")
+        if key in seen:
+            dropped_dupe += 1
+            continue
+        seen.add(key)
+        out.append(x)
+        if len(out) >= n:
+            break
+    return out, {"below_payable_floor": dropped_price,
+                 "same_player_already_listed": dropped_dupe,
+                 "price_floor": TOP10_PRICE_FLOOR,
+                 "pool_after_price_gate": len(pool)}
+
+
+# ------------------------------------------------------------- parlays
+# Sam, 2026-08-26: two-mans in 1.8x-2.2x, three- and four-mans in 3x-6x.
+# ⛔ THE 1.80 FLOOR IS UNCHANGED AND IS STILL NEVER CROSSED. What is new
+# is an UPPER bound on the two-leg list, which is also his instruction --
+# a 4x two-man is not a better two-man, it is a different bet.
+# 🔴🔴 `[Sam, 2026-09-22]` NO UPPER LIMIT ANY MORE. ~~2-leg 1.80-2.20,
+#    3/4-leg 3.00-6.00~~ -> "we can make it 1.8- unlimited, but we still
+#    have to make sure the bets we provide have a high % to hit", and
+#    "the minimum for 2 mans to be 1.8, for anything over 2man parlays
+#    ... the minimum to be 3x". ⛔ The FLOORS are unchanged and are still
+#    never crossed. ✅ The ceiling was what forced the search toward
+#    longer prices; with it gone every list is still ranked by JOINT
+#    PROBABILITY (highest first), which is Sam's "high % to hit".
+#    `None` = no ceiling. Read through `band_ok()` / `band_text()`.
+PARLAY_BANDS = {2: (1.80, None), 3: (3.00, None), 4: (3.00, None)}
+
+
+def band_ok(mult, band):
+    """Is a multiplier inside a (floor, ceiling-or-None) band?"""
+    lo, hi = band
+    return mult >= lo and (hi is None or mult <= hi)
+
+
+def band_text(band):
+    lo, hi = band
+    return f"{lo:g}x+" if hi is None else f"{lo:g}x-{hi:g}x"
+# ⛔ The pairs path reads the two-leg band from here rather than
+#    carrying a third copy of the numbers (settled 2026-09-11).
+_P2_LO, _P2_HI = PARLAY_BANDS[2]
+# 🔴 A HARD CAP ON THE CANDIDATE POOL, STATED RATHER THAN HIDDEN.
+# C(n,4) is 91,390 at n=40 and 3.9 million at n=120.
+#
+# ⛔ THE POOL IS STRATIFIED BY PRICE, AND IT HAS TO BE. Taking the N
+# highest-confidence legs looks obviously right and is structurally broken:
+# confidence and price move together, so the 100 most confident legs on a
+# real slate had decimal odds of 1.154 to 1.571 -- every one a short
+# favourite. A three-leg parlay paying 3x needs legs averaging 1.442, so
+# the search returned ZERO three-mans on a slate with 2,396 priced legs.
+# Measured 2026-08-26; the fix is to take the best legs FROM EACH PRICE
+# BAND so the pool spans what the bands actually need.
+PARLAY_STRATA = [(1.00, 1.30), (1.30, 1.60), (1.60, 2.00),
+                 (2.00, 3.00), (3.00, 99.0)]
+PARLAY_PER_STRATUM = 12
+PARLAY_POOL = PARLAY_PER_STRATUM * len(PARLAY_STRATA)
+
+
+def build_parlays(plays, hitters, per_size=8):
+    """Combinations of 2, 3 and 4 legs. Different games, checked on GAME ID.
+
+    🔴 THE DIFFERENT-GAMES TEST IS ON GAME IDENTITY, NEVER ON OPPONENT NAME
+    (ledger rule 54). In every game both starters have DIFFERENT opponents
+    and the SAME game, so a name comparison passes on precisely the pairs
+    it exists to catch. A live card shipped four impossible parlays that
+    way, including its top recommendation.
+    """
+    priced = [p for p in dedupe_legs(plays) + dedupe_legs(hitters)
+              if p is not None and p.get("price") is not None
+              and p.get("on_hardrock") and p.get("clears_price_floor")
+              and p.get("confidence") is not None]
+    priced.sort(key=lambda p: -p["confidence"])
+    # Best legs from EACH price band -- see PARLAY_STRATA for why.
+    pool, strata_counts = [], []
+    for lo_d, hi_d in PARLAY_STRATA:
+        band = [p for p in priced if lo_d <= decimal(p["price"]) < hi_d]
+        pool.extend(band[:PARLAY_PER_STRATUM])
+        strata_counts.append({"decimal": f"{lo_d:g}-{hi_d:g}",
+                              "available": len(band),
+                              "taken": len(band[:PARLAY_PER_STRATUM])})
+    truncated = len(priced) - len(pool)
+
+    def leg(p):
+        unit = ("K" if p.get("market") == "strikeouts"
+                else "outs" if p.get("market") == "outs"
+                else HITTER_UNIT.get(p.get("market"))
+                or HITTER_LABEL.get(p.get("market"), p.get("market")))
+        who = p.get("pitcher") or p.get("player")
+        return f"{who} {p['side'][0]}{p['line']} {unit}"
+
+    out = {}
+    for size, (lo, hi) in PARLAY_BANDS.items():
+        found = []
+        for combo in itertools.combinations(pool, size):
+            gids = {c["game_id"] for c in combo}
+            if len(gids) != size:                 # rule 54, on GAME ID
+                continue
+            pids = {c.get("pid") for c in combo}
+            if len(pids) != size:
+                continue
+            mult = 1.0
+            for c in combo:
+                mult *= decimal(c["price"])
+            if not band_ok(mult, (lo, hi)):
+                continue
+            joint = 1.0
+            for c in combo:
+                joint *= c["confidence"] / 100.0
+            be = 100.0 / mult
+            # 🔴 PROVENANCE OF THE JOINT NUMBER (ledger rule 55). A pitcher
+            # leg's confidence is MODEL; a hitter leg's is his own RECORD.
+            # A parlay that mixes them produces a joint that is neither, so
+            # it says so rather than inheriting the flattering label.
+            bases = {c.get("confidence_basis") for c in combo}
+            basis = bases.pop() if len(bases) == 1 else "MIXED"
+            found.append({
+                "legs": [leg(c) for c in combo],
+                "games": [c["game"] for c in combo],
+                "game_ids": [c["game_id"] for c in combo],
+                "kinds": [("hitter" if c.get("kind") == "hitter" else "pitcher")
+                          for c in combo],
+                "book": "hardrockbet",
+                "prices": [c["price"] for c in combo],
+                "decimals": [round(decimal(c["price"]), 3) for c in combo],
+                "multiplier": round(mult, 3),
+                "n_legs": size,
+                "band": band_text((lo, hi)),
+                # ══════════════════════════════════════════════════════
+                # 🔴 THE FLAG IS COMPUTED FROM THE BAND IT PRINTS. `[the
+                #    contradiction every grading run has re-reported since
+                #    2026-08-26; settled 2026-09-11]` This read
+                #    `mult <= TARGET` with `TARGET = 2.10`, while the
+                #    `band` string one line up prints `lo`-`hi` out of
+                #    `PARLAY_BANDS`, which Sam widened to **2.20 for two
+                #    legs on 2026-08-26**. So a pair at 2.15x was ABOVE
+                #    BAND to the flag and INSIDE BAND to the same card's
+                #    own prose.
+                # ✅ `claude/pick-ledger.md` RULE 28 OWNS THE BANDS and is
+                #    unambiguous: 2 LEGS 1.80-2.20 · 3 LEGS 3.00-6.00 ·
+                #    4 LEGS 3.00-6.00. `PARLAY_BANDS` already matches it;
+                #    only this flag was stale. ⛔ Reading `lo`/`hi` means
+                #    the two can never drift apart again.
+                # ⚠️ AND IT FIXES A SECOND, QUIETER BUG: `(size != 2)`
+                #    made in_band UNCONDITIONALLY TRUE for 3- and 4-leg
+                #    tickets, so a 3-leg at 2.5x — below its own 3.00
+                #    floor — was labelled IN BAND. Now every size is
+                #    judged against its own band.
+                # ⛔ THIS CHANGES A LABEL, NOT WHAT IS SHOWN. The 1.80
+                #    hard floor at `mult < FLOOR` below is untouched, and
+                #    an above-band pair that is a good bet is still shown
+                #    (rule 28: 2.1x is a SOFT TARGET, never a cap).
+                # ⛔ AND IT DOES NOT RE-GRADE HISTORY. Every INSIDE-BAND /
+                #    ABOVE-BAND subtotal already in `pick-ledger.md` was
+                #    computed on the 2.1x flag and STAYS THAT WAY — the
+                #    ledger says so on the rows. This governs cards built
+                #    from today forward.
+                # ══════════════════════════════════════════════════════
+                "in_band": band_ok(mult, (lo, hi)),
+                "label": ("IN BAND" if (size == 2 and band_ok(mult, (lo, hi)))
+                          else "ABOVE BAND" if size == 2 else f"{size}-LEG"),
+                "joint": round(100 * joint, 1),
+                "joint_basis": basis,
+                "joint_note": (
+                    "Product of the legs' own numbers. "
+                    # 🔴 ~~"Every leg is a v4.0 model estimate."~~ STRUCK
+                    # 2026-09-11, same defect as `confidence_note` above.
+                    + {"MODEL": "Every leg is a %s model estimate."
+                                % MODEL_VERSION,
+                       "RECORD": "Every leg is the player's own record — "
+                                 "DESCRIPTIVE, not a model output.",
+                       "MIXED": "⚠️ MIXED PROVENANCE — some legs are model "
+                                "estimates and some are a player's own record. "
+                                "The joint is neither and is labelled MIXED."}[basis]
+                    + " Legs are in different games, so they are treated as "
+                      "independent; that assumption is not free and has never "
+                      "been tested in this project."),
+                "leg_confidences": [c["confidence"] for c in combo],
+                "leg_bases": [c.get("confidence_basis") for c in combo],
+                "break_even": round(be, 1),
+                "edge": round(100 * joint - be, 1),
+                "ev_30": round(30 * (joint * mult - 1), 2),
+            })
+        found.sort(key=lambda x: -x["joint"])
+        out[str(size)] = found[:per_size]
+
+    # 🔴 A LONGER PARLAY THAT PAYS NO MORE IS STRICTLY WORSE, AND THE CARD
+    # SAYS SO RATHER THAN LETTING IT LOOK LIKE A BIGGER BET.
+    # Sam set ONE band (3x-6x) for both three- and four-leg parlays, and
+    # ranking by joint probability inside a band always finds the BOTTOM of
+    # it. So a four-man lands at 3.05x next to a three-man at 3.06x: more
+    # ways to lose, the same payout. That is a fact about the bands, not a
+    # reason to hide the four-man (ledger rule 53) -- it is labelled.
+    for size in sorted(out, key=int, reverse=True):
+        for p in out[size]:
+            better = [q for k in out if int(k) < int(size) for q in out[k]
+                      if q["multiplier"] >= p["multiplier"] and q["joint"] > p["joint"]]
+            if better:
+                q = max(better, key=lambda q: q["joint"])
+                p["dominated_by"] = {
+                    "n_legs": q["n_legs"], "multiplier": q["multiplier"],
+                    "joint": q["joint"],
+                    "text": (f"A {q['n_legs']}-leg on this card pays "
+                             f"{q['multiplier']:.2f}x at {q['joint']}% — at least as "
+                             f"much, more likely to land. This one is strictly worse.")}
+
+    return out, {"pool": len(pool), "priced": len(priced),
+                 "truncated_from_pool": truncated,
+                 "pool_cap": PARLAY_POOL,
+                 "strata": strata_counts,
+                 "note": (f"{truncated} priced leg(s) never entered a combination. "
+                          f"The pool takes the {PARLAY_PER_STRATUM} highest-confidence "
+                          f"legs from each of {len(PARLAY_STRATA)} PRICE BANDS rather "
+                          f"than the top {PARLAY_POOL} overall, because confidence and "
+                          f"price move together and a confidence-ranked pool contains "
+                          f"only short favourites — which cannot multiply to 3x in "
+                          f"three legs at all. Stated rather than hidden.")
+                         if truncated else
+                         "Every priced leg entered the combination search."}
+
+
+def dedupe_legs(rows):
+    """One row per (pid, market, side, line) for combination building.
+
+    🔴 WHY THIS EXISTS SEPARATELY FROM THE RUNG FIX. `[2026-09-01]` the
+    alt-ladder loop was emitting each rung once per triggering prop, and
+    the rung fix upstream stops that. ⛔ BUT A PITCHER WITH TWO REAL
+    STRIKEOUTS-OVER PROPS STILL PRODUCES TWO ROWS AT THE SAME LINE -- one
+    a real prop, one a rung synthesised from the OTHER prop's pass -- and
+    a combination built from both is a byte-identical repeat.
+    ⚠️ The alternative was to stop synthesising a rung whose line already
+    exists as a prop. THAT WAS TRIED AND `verify_card` CAUGHT IT: it drops
+    legitimate Hard Rock rungs when the colliding prop belongs to a
+    DIFFERENT BOOK.
+    ✅ So the ladder keeps every rung it should show, and the COMBINATION
+    POOL -- and only the combination pool -- takes one row per rung.
+    ⛔ This cannot change the card, the ladder, the top 10 or any
+    projection. It is a filter on an input to two builders.
+    """
+    seen, out = set(), []
+    for p in rows:
+        if p is None:
+            continue
+        k = (p.get("pid"), p.get("market"), p.get("side"), p.get("line"))
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(p)
+    return out
+
+
+def build_pairs(plays, limit=8):
+    """STEP 6. Two legs, ONE book, TWO DIFFERENT GAMES, product >= 1.80.
+
+    🔴 The different-games test is on GAME IDENTITY, never on opponent name
+    (ledger rule 54). In every game on every slate the two starters have
+    DIFFERENT opponents and the SAME game, so a name comparison passes on
+    precisely the pairs it exists to catch. A live card shipped four
+    impossible parlays that way, including the #1 recommendation.
+
+    Below 1.8x is never shown -- not printed, not labelled, not listed as
+    declined. Sam's own instruction, and the one deliberate exception to
+    ledger rule 53. Above 2.1x IS shown, marked ABOVE BAND.
+    """
+    out = []
+    plays = dedupe_legs(plays)          # one row per rung — see dedupe_legs
+    priced = [p for p in plays if p.get("price") is not None and p.get("on_hardrock")
+              and p.get("clears_price_floor")]
+    for i in range(len(priced)):
+        for j in range(i + 1, len(priced)):
+            a, b = priced[i], priced[j]
+            if a["game_id"] == b["game_id"]:
+                continue
+            if a["pid"] == b["pid"]:
+                continue
+            mult = decimal(a["price"]) * decimal(b["price"])
+            if mult < FLOOR:
+                continue
+            joint = a["blend"] / 100.0 * b["blend"] / 100.0
+            be = 100.0 / mult
+            out.append({
+                "legs": [f"{a['pitcher']} {a['side'][0]}{a['line']} "
+                         f"{'K' if a['market']=='strikeouts' else 'outs'}",
+                         f"{b['pitcher']} {b['side'][0]}{b['line']} "
+                         f"{'K' if b['market']=='strikeouts' else 'outs'}"],
+                "games": [a["game"], b["game"]],
+                "game_ids": [a["game_id"], b["game_id"]],
+                "book": "hardrockbet",
+                "decimals": [round(decimal(a["price"]), 3), round(decimal(b["price"]), 3)],
+                "prices": [a["price"], b["price"]],
+                "multiplier": round(mult, 3),
+                # 🔴 THE SECOND COPY OF THE SAME STALE CEILING — this is
+                #    the PAIRS path and it carried `TARGET` (2.10) too.
+                #    Both now read `PARLAY_BANDS[2]`, which is Sam's
+                #    2026-08-26 instruction (1.80-2.20) and what ledger
+                #    rule 28 owns. ⛔ A label, not a filter: `mult < FLOOR`
+                #    above is what suppresses, and it is untouched.
+                "in_band": band_ok(mult, PARLAY_BANDS[2]),
+                "label": ("IN BAND" if band_ok(mult, PARLAY_BANDS[2])
+                          else "ABOVE BAND"),
+                "joint": round(100 * joint, 1),
+                "leg_blends": [a["blend"], b["blend"]],
+                "leg_models": [a["model"], b["model"]],
+                "leg_raws": [a["raw"], b["raw"]],
+                "break_even": round(be, 1),
+                "edge": round(100 * joint - be, 1),
+                "ev_30": round(30 * (joint * mult - 1), 2),
+            })
+    out.sort(key=lambda x: -x["joint"])
+    return out[:limit]
+
+
+# ---------------------------------------------------------------- main
+def load(path, gz=False):
+    if not os.path.exists(path):
+        raise RuntimeError(f"{path} missing -- the collector has not run")
+    return json.load(gzip.open(path, "rt")) if gz else json.load(open(path))
+
+
+TEAM_IDS = {
+    'Tampa Bay Rays': 139, 'Baltimore Orioles': 110, 'St. Louis Cardinals': 138,
+    'Philadelphia Phillies': 143, 'Toronto Blue Jays': 141, 'New York Yankees': 147,
+    'Washington Nationals': 120, 'Miami Marlins': 146, 'Detroit Tigers': 116,
+    'Kansas City Royals': 118, 'Athletics': 133, 'Houston Astros': 117,
+    'New York Mets': 121, 'Chicago White Sox': 145, 'Los Angeles Angels': 108,
+    'Texas Rangers': 140, 'Cleveland Guardians': 114, 'Colorado Rockies': 115,
+    'San Francisco Giants': 137, 'Boston Red Sox': 111, 'Pittsburgh Pirates': 134,
+    'Los Angeles Dodgers': 119, 'Chicago Cubs': 112, 'Seattle Mariners': 136,
+    'Minnesota Twins': 142, 'San Diego Padres': 135, 'Cincinnati Reds': 113,
+    'Arizona Diamondbacks': 109, 'Atlanta Braves': 144, 'Milwaukee Brewers': 158,
+}
+
+
+def team_ids():
+    """Prefer the stored schedule -- a name the league changes (Athletics)
+    breaks a hardcoded map silently, and the schedule is authoritative."""
+    import glob
+    m = dict(TEAM_IDS)
+    snaps = sorted(glob.glob("data/*/schedule/*.json.gz"))
+    if snaps:
+        try:
+            D = json.load(gzip.open(snaps[-1], "rt"))
+            for dd in (D.get("schedule") or {}).get("dates") or []:
+                for g in dd.get("games", []):
+                    for sidek in ("away", "home"):
+                        t = ((g.get("teams") or {}).get(sidek) or {}).get("team") or {}
+                        if t.get("name") and t.get("id"):
+                            m[t["name"]] = t["id"]
+        except Exception:
+            pass
+    return m
+
+
+def et(iso):
+    """ET clock time for an ISO-Z kickoff. MLB is entirely inside DST in
+    August, so a fixed -4 is exact for this season's card."""
+    try:
+        return (datetime.fromisoformat(iso.replace("Z", "+00:00"))
+                - timedelta(hours=4)).strftime("%-I:%M%p").lower()
+    except Exception:
+        return None
+
+
+def et_date(iso):
+    return (datetime.fromisoformat(iso.replace("Z", "+00:00"))
+            - timedelta(hours=4)).strftime("%Y-%m-%d")
+
+
+def et_today():
+    """The slate date in ET. A 10pm PT first pitch is still tonight's card."""
+    return (datetime.now(timezone.utc) - timedelta(hours=4)).strftime("%Y-%m-%d")
+
+
+# 🔴 EVERY ROW ON THE BOARD GETS A PROJECTION. Sam, 2026-08-26: "not every
+# player has a projected line. we need to make sure every player has one."
+#
+# Three separate reasons a row had none, and they need three answers:
+#
+#  1. TOTAL BASES and H+R+RBI were BARRED. T34/T35 fitted three
+#     distributions and none reproduced a player's own per-game mean to the
+#     0.25 bar, so nothing shipped -- 1,036 of the 1,290 blanks.
+#     ✅ FIXED BY DROPPING THE INVERSION, NOT BY LOWERING THE BAR. The
+#     player's OWN per-game mean IS his expected total; it reproduces
+#     itself exactly, so the accuracy question T34 asked does not arise.
+#     What inversion bought was agreement with the confidence beside it,
+#     and that was measured rather than assumed: across 948 real props,
+#     the mean sits on the losing side of the line in 0.0% of rows at 80%+
+#     confidence and 1.9% at 70%+. The board's lowest hitter is 78%.
+#     ⚠️ Below ~60% it disagrees often, and that is CORRECT -- it is how a
+#     bad number looks. On the Player Props tab that is information.
+#
+#  2. Rows for players the CARD never priced -- a hitter under the 25-game
+#     carding floor, a pitcher with fewer than three starts. The index was
+#     built only from carded rows, so the tab inherited the card's filter
+#     for no reason. It is now built from the WHOLE prop board.
+#
+#  3. Genuinely no history. A callup with four games gets nothing, and
+#     that stays true -- a projection off four games is noise wearing a
+#     decimal point. PROJ_MIN_GAMES is the floor and it is stated.
+PROJ_MIN_GAMES = 10
+MEAN_PROJ_MARKETS = {"batter_total_bases": "tb", "batter_hits_runs_rbis": None}
+# Every hitter market's key in the game log, for the MEAN fallback below.
+HITTER_STAT_KEY = {"batter_total_bases": "tb", "batter_hits_runs_rbis": None,
+                   "batter_hits": "H", "batter_home_runs": "hr",
+                   "batter_rbis": "rbi"}
+
+
+def hitter_mean(hlogs, pid, market, today):
+    """His own per-game mean of this stat, point in time."""
+    if market not in HITTER_STAT_KEY:
+        return None, 0
+    key = HITTER_STAT_KEY[market]
+    rec = (hlogs or {}).get(str(pid))
+    if not rec:
+        return None, 0
+    vals = []
+    for g in rec.get("g") or []:
+        if (g.get("pa") or 0) < 3 or (g.get("d") or "") >= today:
+            continue
+        vals.append((g.get("H") or 0) + (g.get("r") or 0) + (g.get("rbi") or 0)
+                    if key is None else (g.get(key) or 0))
+    if len(vals) < PROJ_MIN_GAMES:
+        return None, len(vals)
+    return sum(vals) / len(vals), len(vals)
+
+
+FEED_MKT = {"strikeouts": "pitcher_strikeouts", "outs": "pitcher_outs"}
+
+
+def coherent_projections(board, late_rows, hlogs, today):
+    """ONE projected number per (player, market). The same everywhere.
+
+    🔴 SAM, 2026-08-27: "you should have the same numbers across the entire
+    website if your talking about the same stat or projction." He is right
+    and the old design could not do it. A projection used to be an
+    INVERSION of the row's own confidence, and confidence is `50% model +
+    50% his raw hit rate AT THAT LINE` -- so every rung of the same ladder
+    implied a different central value. Measured on the 2026-08-27 board: 51
+    of 608 (player, market) combos carried more than one number, worst
+    pitcher_strikeouts at 9 of 11 pitchers and a 2.1 K spread. Sean Manaea
+    read 6.3 K on the Top-10 row and 5.3 K on his carded row.
+
+    ✅ WHAT REPLACES IT IS LINE-INDEPENDENT BY CONSTRUCTION:
+      - PITCHERS -- the model's own central value, E[K] or mu. 🟢 MODEL.
+      - HITTERS  -- his own per-game mean. ⚪ DESCRIPTIVE (rule 55: there
+                    is no hitter model and inverting a RECORD is still a
+                    record).
+    ⚠️ WHAT THIS COSTS is the property inversion was bought for -- that a
+    confident pick can never project against itself -- so it was NOT
+    assumed, it was PRE-REGISTERED AND MEASURED as T37, bar fixed first at
+    <=5% contradictions at 70%+ and <=2% at 80%+. Result on the live board:
+    pitchers 0.00% (n=31) and 0.00% (n=25); hitters 5.00% (n=80) and 0.00%
+    (n=5); across all six published cards hitters 2.59% (n=116) and 0.00%
+    (n=50). ⛔ MY PRE-REGISTERED PREDICTION WAS WRONG: I predicted pitchers
+    would contradict 3-8% and they contradicted not at all.
+    ⚠️ HITTERS LANDED ON THE BAR, NOT COMFORTABLY INSIDE IT (5.00% against
+    5%). Do not read that as slack. If a later slate pushes it over, the
+    pre-registered fallback is written in `research/t37_spec.md` -- invert
+    ONCE at the primary line and reuse that -- and the bar does not move.
+    """
+    val, unit, basis, ngames = {}, {}, {}, {}
+    # 🔴 WHICH METHOD PRODUCED EACH NUMBER. Without this, a projection that
+    # fell back from T37's inversion to the mean it replaced is
+    # indistinguishable from one that never had a distribution at all.
+    _proj_method = {}
+    # -- pitchers. `central` is lam / mu: it depends on the pitcher, the
+    #    opponent and home/away, and on NOTHING about the line. `late_rows`
+    #    is used because it runs build_play over EVERY game, started or not.
+    for r in late_rows or ():
+        pid, c = r.get("pid"), r.get("central")
+        if pid is None or c is None:
+            continue
+        mkt = FEED_MKT.get(r.get("market"), r.get("market"))
+        if (pid, mkt) in val:
+            continue
+        val[(pid, mkt)] = float(c)
+        unit[(pid, mkt)] = "K" if r.get("market") == "strikeouts" else "outs"
+        basis[(pid, mkt)] = "MODEL"
+
+    # -- hitters, and the full set of lines each player has in each market,
+    #    which the rounding rule needs.
+    lines = collections.defaultdict(set)
+    for g in board.get("games", []):
+        for p in g.get("props", []):
+            pid, mkt = p.get("pid"), p.get("market")
+            if pid is None or p.get("line") is None:
+                continue
+            lines[(pid, mkt)].add(float(p["line"]))
+            if mkt not in HITTER_UNIT or (pid, mkt) in val:
+                continue
+
+            # 🔴 T37's PRE-REGISTERED FALLBACK, TRIGGERED 2026-09-04.
+            # `research/t37_spec.md`: *"IF IT FAILS ... Fall back to:
+            # invert ONCE at the PRIMARY (non-alt) line and reuse that
+            # single value on every rung of that market."*
+            # ⛔ THE BAR WAS NOT MOVED. It failed at 5.43% against 5.00%
+            # over 1,049 pooled hitter rows at 70%+, and this is the
+            # remedy that was written down BEFORE the data was seen.
+            #
+            # ⚠️ WHERE IT APPLIES IS DECIDED BY PRIOR PRE-REGISTERED
+            # RESULTS, NOT BY TODAY'S NUMBERS. A market may use the
+            # inversion only where a distribution has already cleared its
+            # own bar -- `HITTER_PROJ`, from T34/T35: hits and home runs
+            # (Poisson), RBIs (negative binomial). ⛔ TOTAL BASES and
+            # H+R+RBI KEEP THE MEAN, because all three distributions
+            # tried for them FAILED the 0.25 bar and inverting through a
+            # rejected distribution would be worse than the artifact it
+            # replaces.
+            #
+            # 📊 THE DEFECT THIS FIXES, measured across every published
+            # card: 49 of the 57 contradictions were `batter_rbis` at the
+            # 0.5 line -- 8.0% of that market against 0.0% for hits and
+            # 3.5% for total bases. A player averaging 0.51 RBI a game is
+            # genuinely under 0.5 in most of them, because RBI is heavily
+            # right-skewed. The mean and the record were BOTH right; the
+            # mean is simply the wrong statistic for a lumpy count.
+            _pdist = HITTER_PROJ.get(mkt)
+            _pv = None
+            if _pdist:
+                _pv = hitter_primary_projection(board, hlogs, pid, mkt, today)
+            if _pv is not None:
+                val[(pid, mkt)] = _pv
+                unit[(pid, mkt)] = HITTER_UNIT.get(mkt)
+                basis[(pid, mkt)] = "DESCRIPTIVE"
+                ngames[(pid, mkt)] = None
+                _proj_method[(pid, mkt)] = "inversion"
+                continue
+
+            # 🔴🔴 THE FALL-THROUGH BELOW IS T37'S REJECTED STATISTIC, AND
+            # IT USED TO HAPPEN SILENTLY. `[found 2026-09-06]` For a market
+            # in `HITTER_PROJ` the pre-registered fallback says the
+            # projection is an INVERSION at the primary line; when
+            # `hitter_primary_projection` cannot produce one, this drops
+            # to `hitter_mean` — **the very statistic T37 measured at
+            # 5.43% against a 5.00% bar and replaced.** Nothing said so.
+            # ⛔ THE CONSEQUENCE WAS A RED RUN NOBODY COULD DIAGNOSE: the
+            # mean legitimately sits on the far side of a skewed line, the
+            # zero-tolerance gate correctly refused it, and the row said
+            # only "his own per-game average" — true of the value, silent
+            # about the method having failed.
+            # ⚠️ MEASURED: Andrés Chaparro carried 0.6 on `under 0.5` at
+            # 76% while his log reads 75.4% zero-RBI games and a mean of
+            # 0.493 — so the published 0.6 is NEITHER a valid inversion
+            # (which must land under the line) NOR the point-in-time mean.
+            # ✅ THIS DOES NOT RE-DECIDE T37 and does not move its bar. It
+            # RECORDS which method produced the number, so the gate and the
+            # card can both say what actually happened.
+            if _pdist:
+                _proj_method[(pid, mkt)] = "mean_fallback"
+            else:
+                _proj_method[(pid, mkt)] = "mean"
+            m, n = hitter_mean(hlogs, pid, mkt, today)
+            if m is None:
+                continue
+            val[(pid, mkt)] = m
+            unit[(pid, mkt)] = HITTER_UNIT.get(mkt)
+            basis[(pid, mkt)] = "DESCRIPTIVE"
+            ngames[(pid, mkt)] = n
+
+    out = {}
+    for k, v in val.items():
+        out[k] = {"v": proj_round(v, lines.get(k)), "u": unit.get(k),
+                  "b": basis.get(k), "n": ngames.get(k),
+                  "m": _proj_method.get(k)}
+    return out
+
+
+def hitter_primary_projection(board, hlogs, pid, market, today):
+    """Invert this player's record ONCE, at his PRIMARY line, and return it.
+
+    🔴 T37's pre-registered fallback. ⛔ ONE value per (player, market),
+    reused on every rung -- so rule 66 still holds: the site quotes one
+    number per player per stat.
+
+    ⚠️ "PRIMARY (non-alt) line" is the STANDARD line the books post for
+    everyone, not this player's cheapest rung. It is taken as the MODAL
+    line for the market across the whole board -- measured 2026-09-04,
+    `batter_rbis` is 0.5 on 227 of 239 posted props -- falling back to the
+    player's own lowest line if he has no prop at the modal one.
+    ⛔ Returns None rather than guessing when there is no usable row; the
+    caller then keeps the mean, which is the previous behaviour.
+    """
+    modal = collections.Counter()
+    mine = {}
+    for g in board.get("games", []):
+        for p in g.get("props", []):
+            if p.get("market") != market or p.get("line") is None:
+                continue
+            modal[float(p["line"])] += 1
+            if p.get("pid") == pid:
+                mine.setdefault(float(p["line"]), p)
+    if not mine:
+        return None
+    want = modal.most_common(1)[0][0] if modal else None
+    prop = mine.get(want) or mine[min(mine)]
+
+    ev = prop.get("evidence") or {}
+    h, n = parse_rate(ev.get("season"))
+    if h is None or not n:
+        return None
+    # ⚠️ The SAME Jeffreys-smoothed rate the row displays. ⛔ Not a
+    # different estimator -- inverting anything else would break the tie
+    # between the projection and the confidence beside it, which is the
+    # entire property this fallback exists to restore.
+    rate = 100.0 * (h + 0.5) / (n + 1)
+    side = prop.get("side") or "over"
+    shape = None
+    if HITTER_PROJ.get(market) == "negbin":
+        shape = hitter_moments(hlogs, pid, market, today)
+        if shape[0] is None:
+            return None
+    v, _sat = project(HITTER_PROJ[market], float(prop["line"]), side, rate,
+                      sd=shape)
+    return v
+
+
+def apply_projections(rows, PROJ):
+    """Stamp the ONE number onto every row that shows it.
+
+    ⛔ THIS IS THE ONLY PLACE A ROW'S `projection` IS SET. build_play and
+    hitter_play still compute a per-row inversion on their way to other
+    things; whatever they left here is OVERWRITTEN. Two writers is how the
+    site ended up quoting two numbers for one pitcher."""
+    for r in rows or ():
+        if r is None:
+            continue
+        mkt = FEED_MKT.get(r.get("market"), r.get("market"))
+        e = PROJ.get((r.get("pid"), mkt))
+        if e is None or e["v"] is None:
+            r["projection"] = None
+            r["projection_note"] = ("No projection: there is no game log to "
+                                    "build one from.")
+            continue
+        r["projection"] = e["v"]
+        r["projection_unit"] = e["u"]
+        r["projection_basis"] = e["b"]
+        r["projection_saturated"] = False
+        if e["b"] == "MODEL":
+            what = "strikeouts" if r.get("market") == "strikeouts" else "outs"
+            r["projection_note"] = (
+                f"What the model expects him to record today — {e['v']} "
+                f"{what}. It is the same number wherever he appears on this "
+                f"site, at every line.")
+        else:
+            g = e.get("n")
+            r["projection_method"] = e.get("m")
+            r["projection_note"] = (
+                f"His own average over {g} games this season — {e['v']} a "
+                f"game. That's what he has actually been doing, not a "
+                f"forecast, and it is the same number at every line."
+                if g else
+                f"His own per-game average this season — {e['v']}.")
+            # ⛔ SAY IT ON THE ROW WHEN THE INTENDED METHOD FAILED. T37
+            # replaced the mean with an inversion for this market; if the
+            # inversion could not be built, the reader is looking at the
+            # statistic T37 rejected and deserves to know.
+            if e.get("m") == "mean_fallback":
+                r["projection_note"] += (
+                    " ⚠️ This is his plain average because the usual "
+                    "method for this market — reading his own record "
+                    "backwards at the standard line — could not be built "
+                    "for him today. An average is a poor guide on a lumpy "
+                    "count like this one, so weigh it accordingly.")
+
+
+def board_projections(board, PROJ):
+    """Every prop on the board, keyed the way the Player Props tab joins.
+
+    ⛔ THIS NO LONGER COMPUTES ANYTHING. It formats `PROJ`, which is the one
+    source of truth (see coherent_projections). It used to derive a value
+    per PROP, which is precisely how one player ended up with several."""
+    out, blank = {}, collections.Counter()
+    for g in board.get("games", []):
+        for p in g.get("props", []):
+            pid, mkt = p.get("pid"), p.get("market")
+            side, line = p.get("side"), p.get("line")
+            if pid is None or line is None:
+                blank["no player id"] += 1
+                continue
+            e = PROJ.get((pid, mkt))
+            if e is None or e["v"] is None:
+                blank["no usable game log"] += 1
+                continue
+            out[f"{pid}|{mkt}|{side}|{line}"] = {"v": e["v"], "u": e["u"],
+                                                 "b": e["b"][0]}
+    return out, dict(blank)
+
+
+def projection_index(rows, priced=False):
+    """Flat lookup for the Player Props tab. One entry per priced row that
+    earned a projection; rows without one are simply absent, and absent
+    means "no projection", never "look it up somewhere else"."""
+    out = {}
+    for r in rows:
+        if r is None or r.get("projection") is None:
+            continue
+        pid = r.get("pid")
+        if pid is None:
+            continue
+        mkt = r.get("market")
+        # Pitcher rows carry the model's short name; the props feed uses the
+        # book's. Key on the FEED's name so the join needs no translation.
+        if mkt == "strikeouts":
+            mkt = "pitcher_strikeouts"
+        elif mkt == "outs":
+            mkt = "pitcher_outs"
+        # ⛔ NO per-entry note. There are ~1,400 of these and the note is
+        # ~200 bytes of near-identical prose, which is a quarter-megabyte
+        # added to a file the PAGE DOWNLOADS. The full note stays on the
+        # board rows in picks[]; the tab builds its tooltip from `basis`.
+        e = {
+            "v": r["projection"],
+            "u": r.get("projection_unit"),
+            "b": "M" if r.get("projection_basis") == "MODEL" else "D",
+        }
+        # 🔴 "p" MEANS card.py PRICED THIS EXACT ROW -- same pid, market,
+        # side and line. It is one byte and it is what lets verify_card.py
+        # prove every top-10 row came from the priced pool without the card
+        # carrying a 48KB second copy of that pool's keys.
+        if priced:
+            e["p"] = 1
+            # 🔴 AND ITS CONFIDENCE, so T37's contradiction rate can be
+            # recomputed by verify_card.py over the population T37 actually
+            # pre-registered -- EVERY priced row, not the carded subset.
+            # Carding selects high-confidence rows, so the carded-only rate
+            # is a different number against a bar that was never set for it.
+            if r.get("confidence") is not None:
+                e["c"] = round(r["confidence"])
+        out[f"{pid}|{mkt}|{r.get('side')}|{r.get('line')}"] = e
+    return out
+
+
+def main(dry=False):
+    root = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(root)
+    # 🔴 THE PATHS COME FROM collect.py, NOT A SECOND COPY HERE. A league's
+    # directories are defined in exactly one place; two copies of a path is
+    # the same defect as two copies of a coefficient.
+    import collect as _c
+    LATEST, PICKS = _c.LATEST, _c.PICKS
+    # 🔴 LOAD THE LIVE CALIBRATION BEFORE ANY ROW IS BANDED. `band_of()`
+    # reads CAL, and an empty CAL makes every band say "no graded record"
+    # -- honest, but wrong when the file is right there.
+    # ⚠️ `record.json` is due 06:00 and the card at 10:00, so it is always
+    # the same day's record. ⛔ If it is missing, the bands say so rather
+    # than quoting a number nobody can reproduce.
+    CAL.clear()
+    CAL.update(load_calibration(f"{LATEST}/record.json"))
+    print(f"[card] calibration bands from record.json: "
+          f"{ {b: (c['n'], c['delta']) for b, c in CAL.items()} or 'NONE'}")
+    P = load(f"{LATEST}/pitchers.json.gz", gz=True)
+    B = load(f"{LATEST}/props.json.gz", gz=True)
+    # 🔴 THE MODEL POOL ONLY. The pull also carries starters under the
+    # 20-IP bar (`below_min_ip`) for the published tables; letting them in
+    # here moves the opponent table and its centering constant -- a model
+    # change. ONE filter, in collect.py (rule 117).
+    players = _c.model_pitchers(P["players"])
+    # Hitter game logs. Used ONLY for the RBI projection's dispersion --
+    # never for a rate, never for a price. Its absence costs the RBI
+    # projection and nothing else, so it is not fatal.
+    try:
+        hlogs = (load(f"{LATEST}/hitters.json.gz", gz=True) or {}).get("players") or {}
+    except Exception as e:
+        print(f"[card] no hitter log ({e}) -- RBI projections will be omitted")
+        hlogs = {}
+
+    means, ns, centerC, npop = opponent_table(players)
+    # Where each lineup sits among the 30 for strikeouts -- 1 = whiffs the
+    # most. Used only to say "8th easiest lineup in baseball to strike
+    # out" instead of quoting a coefficient at a reader.
+    _order = sorted(means, key=lambda t: -means[t])
+    oppRank = {t: i + 1 for i, t in enumerate(_order)}
+    by_pid = {int(k): v for k, v in players.items()}
+
+    now = datetime.now(timezone.utc)
+    ids = team_ids()
+
+    # 🔴 The card is dated by the SLATE, not by the clock. At 11pm ET the
+    # board already holds tomorrow's games and none of today's; dating it
+    # off the wall clock would file tomorrow's card under today and the
+    # page would never find it. The date is the ET date of the earliest
+    # game that has NOT started.
+    upcoming = [g for g in B["games"]
+                if datetime.fromisoformat(g["commence"].replace("Z", "+00:00")) > now]
+    if not upcoming:
+        print("[card] every game on the board has started -- nothing to write")
+        return None
+    today = min(et_date(g["commence"]) for g in upcoming)
+
+    # A team's games played, approximated by the most games any of its
+    # hitters has batted in. Used only to size lineup risk, never to price.
+    team_games = {}
+    for g0 in B["games"]:
+        for pr in g0["props"]:
+            if pr.get("kind") != "batter":
+                continue
+            _h, _n = parse_rate((pr.get("evidence") or {}).get("season"))
+            if _n and pr.get("team"):
+                team_games[pr["team"]] = max(team_games.get(pr["team"], 0), _n)
+
+    plays, hitters, skipped = [], [], {}
+    for g in B["games"]:
+        # A started game is off the board. Every tab does this; the card must too.
+        try:
+            if datetime.fromisoformat(g["commence"].replace("Z", "+00:00")) <= now:
+                skipped["already started"] = skipped.get("already started", 0) + 1
+                continue
+        except Exception:
+            pass
+        # 🔴 STEP 5: the alt ladder is part of the board, not an extra.
+        # Walking a rung is the main tool for landing a pair inside 1.8x-2.1x,
+        # so every Hard Rock rung becomes a play in its own right, priced
+        # through the same model. The feed carries only the OVER side of Hard
+        # Rock's strikeout ladder; the book offers both, so a wanted UNDER rung
+        # is NAMED with its price asked for, never invented.
+        lad = g.get("ladders") or {}
+        rungs = []
+        # 🔴 A RUNG IS EMITTED ONCE, NOT ONCE PER PROP THAT TRIGGERS IT.
+        # `[measured 2026-09-01 on the live board]` SIX pitchers carried
+        # TWO strikeouts-over props at DIFFERENT LINES -- Gasser at o3.5
+        # (FanDuel) and o4.5 (BetMGM), both legitimate board rows. This
+        # loop fired for BOTH, and the old skip excluded only the rung
+        # matching THAT prop's own line, so every OTHER rung of the ladder
+        # was appended TWICE.
+        # ⛔ THE RESULT SHIPPED, IN THREE PLACES: 9 of 24 parlays and 3 of
+        # 8 pairs were byte-identical repeats at the top of their tabs,
+        # and the alt-ladder rung walk under an affected pitcher printed
+        # every rung twice -- Gasser showed 14 rungs where there are 6.
+        # `pids` inside build_parlays dedupes a player WITHIN a
+        # combination and cannot see two identical rows.
+        # ✅ THE FIX IS A SET, AND IT IS DELIBERATELY ONLY THAT: emit each
+        # (pid, market, side, line) rung ONCE per game.
+        # 🔴 A BROADER VERSION WAS TRIED FIRST AND `verify_card` CAUGHT IT.
+        # Also skipping any rung whose line already exists as a real prop
+        # looked right and DROPPED TWO LEGITIMATE HARD ROCK RUNGS -- Woo's
+        # o5.5 and Gasser's o4.5 -- because the prop sitting at that line
+        # belonged to a DIFFERENT BOOK. ⛔ A BetMGM prop at 4.5 does not
+        # mean the Hard Rock rung at 4.5 is covered.
+        # ⚠️ So this can only ever REMOVE AN EXACT REPEAT. Every rung
+        # reachable before is still reachable.
+        _seen = set()
+        for prop in g["props"]:
+            if prop["market"] != "pitcher_strikeouts" or prop["side"] != "over":
+                continue
+            key = norm_name(prop["player"])
+            mine = sorted([r for r in lad.get(key, []) if r["market"] == "strikeouts"],
+                          key=lambda r: r["line"])
+            for r in mine:
+                # ⚠️ The ORIGINAL exclusion is KEPT: a rung equal to this
+                # prop's own line is covered by the play itself.
+                if abs(r["line"] - prop["line"]) < 1e-9 and r["side"] == prop["side"]:
+                    continue
+                # ✅ THE FIX, AND IT IS ONLY THIS: emit each rung ONCE.
+                _k = (prop.get("pid"), prop["market"], r["side"], r["line"])
+                if _k in _seen:
+                    continue
+                _seen.add(_k)
+                rungs.append(dict(prop, line=r["line"], side=r["side"],
+                                  price=r["price"], book=r["book"],
+                                  link=r.get("link"), app_label=r.get("app_label"),
+                                  hr={"price": r["price"], "book": r["book"],
+                                      "link": r.get("link")},
+                                  _alt=True, _ladder=mine))
+            prop["_ladder"] = mine
+
+        for prop in g["props"]:
+            if prop.get("kind") != "batter" or prop["market"] not in HITTER_LABEL:
+                continue
+            hp = hitter_play(prop, g, ids, team_games, hlogs, today)
+            if hp == "alt":
+                skipped["hitter: alternate line, not carded"] = \
+                    skipped.get("hitter: alternate line, not carded", 0) + 1
+                continue
+            if hp is None:
+                skipped["hitter: too few games or no price"] = \
+                    skipped.get("hitter: too few games or no price", 0) + 1
+                continue
+            hitters.append(hp)
+
+        for prop in list(g["props"]) + rungs:
+            if prop["market"] not in ("pitcher_strikeouts", "pitcher_outs"):
+                continue
+            pid = prop.get("pid")
+            p = by_pid.get(pid) if pid else None
+            if not p:
+                skipped["no game log"] = skipped.get("no game log", 0) + 1
+                continue
+            opp_team = g["home"] if p["team"] == g["away"] else g["away"]
+            row = build_play(prop, p, players, means.get(opp_team), centerC,
+                             ns.get(opp_team, 0), g, today, oppRank)
+            if row is None:
+                skipped["insufficient inputs"] = skipped.get("insufficient inputs", 0) + 1
+                continue
+            row["away_id"] = ids.get(g["away"])
+            row["home_id"] = ids.get(g["home"])
+            row["kind"] = "pitcher"
+            plays.append(row)
+
+    # 🔴 An alt rung is a RUNG, not a separate pick. Printing all of them as
+    # top-level rows turned a 13-play card into 147 near-duplicates. Each
+    # rung is priced through the same model and hung under its own pitcher,
+    # which is what STEP 7's `Alt ladder:` line asks for and what a rung-walk
+    # into the 1.8x band actually reads.
+    for x in plays:
+        if not x["alt_rung"]:
+            continue
+        x["ladder_row"] = {
+            "line": x["line"], "side": x["side"], "price": x["price"],
+            "app_label": (f"To Record {int(x['line'] + 0.5)}+"
+                          if x["side"] == "over" and x["market"] == "strikeouts" else None),
+            "model": x["model"], "raw": x["raw"], "blend": x["blend"],
+            "carried": x["carried"], "band": x["band"],
+            "break_even": x["break_even"], "edge": x["edge"],
+            "clears_price_floor": x["clears_price_floor"], "link": x["link"],
+        }
+    standard = [x for x in plays if not x["alt_rung"]]
+    for x in standard:
+        rungs = sorted(
+            (y["ladder_row"] for y in plays
+             if y["alt_rung"] and y["pid"] == x["pid"] and y["market"] == x["market"]),
+            key=lambda r: r["line"])
+        x["ladder"] = rungs
+        # ★ the rung this card would take: the safest one that still clears
+        # Sam's -700 floor. At a flat-ish payout, climbing is a donation.
+        ok = [r for r in rungs if r["clears_price_floor"] and r["side"] == x["side"]]
+        x["ladder_pick"] = (min(ok, key=lambda r: -r["blend"]) if ok else None)
+
+    # The under of a 90% over is the same number written backwards. Both
+    # sides are kept -- the losing one hangs on its own row as `other_side`
+    # with its price and its blend -- but only one of the pair gets a card,
+    # so the board is 32 numbers rather than 64 mirror images.
+    for x in standard:
+        mirror = next((y for y in standard
+                       if y["pid"] == x["pid"] and y["market"] == x["market"]
+                       and y["line"] == x["line"] and y["side"] != x["side"]), None)
+        x["other_side"] = ({"side": mirror["side"], "price": mirror["price"],
+                            "model": mirror["model"], "raw": mirror["raw"],
+                            "blend": mirror["blend"], "link": mirror["link"]}
+                           if mirror else None)
+    standard = [x for x in standard
+                if x["other_side"] is None or x["blend"] >= x["other_side"]["blend"]]
+
+    plays_all = plays
+    plays = standard
+    # 🔴 PITCHERS ON GAMES THAT HAVE ALREADY STARTED STILL NEED A
+    # PROJECTION. Sam, 2026-08-26: "there are still players that have game
+    # logs that dont have projections, most of the pitchers."
+    #
+    # He is right and the cause is upstream of the index: the play loop
+    # SKIPS a game the moment it commences (correct -- a started game is
+    # off the board), so no play is built, so nothing reaches the index.
+    # Measured on this board: 31 of 54 pitcher_outs props had none, and 54
+    # of the 62 missing rows were pitchers we have a full game log for.
+    #
+    # ⛔ THIS DOES NOT PUT STARTED GAMES BACK ON THE BOARD. It runs
+    # build_play a second time, over every game, and keeps ONLY the
+    # projection. `plays` is untouched, so the card, the pairs, the top 10
+    # and the parlays all still stop at first pitch.
+    # ✅ It reuses build_play rather than reimplementing the model, so the
+    # number here cannot drift from the number on a carded row.
+    _late = []
+    for g in B["games"]:
+        for prop in g["props"]:
+            if prop["market"] not in ("pitcher_strikeouts", "pitcher_outs"):
+                continue
+            p = by_pid.get(prop.get("pid"))
+            if not p or p.get("team") not in (g["home"], g["away"]):
+                continue
+            opp_team = g["home"] if p["team"] == g["away"] else g["away"]
+            try:
+                row = build_play(prop, p, players, means.get(opp_team), centerC,
+                                 ns.get(opp_team, 0), g, today, oppRank)
+            except Exception:
+                continue
+            if row is not None:
+                row["kind"] = "pitcher"
+                _late.append(row)
+
+    # 🔴 ONE NUMBER PER PLAYER PER MARKET, DECIDED ONCE, USED EVERYWHERE.
+    # Sam, 2026-08-27. See coherent_projections() and research/t37_spec.md.
+    # ⛔ apply_projections runs BEFORE the top 10, the pairs and the parlays
+    # are built. Those hold REFERENCES to these same row objects, so the
+    # stamp reaches them -- but do not reorder this on that assumption.
+    PROJ = coherent_projections(B, _late, hlogs, today)
+    apply_projections(plays_all, PROJ)
+    apply_projections(hitters, PROJ)
+    apply_projections(_late, PROJ)
+    _board_px, _px_gaps = board_projections(B, PROJ)
+    # ⛔ ORDER IS LOAD-BEARING. The descriptive board pass goes down first;
+    # anything card.py actually priced then overwrites it, so a row that
+    # has a model number never displays the fallback.
+    _board_px.update(projection_index(plays_all + hitters, priced=True))
+    _board_px.update(projection_index(_late, priced=True))
+    pairs = build_pairs(plays_all)
+    top10, top10_drops = build_top10(plays_all, hitters)
+    parlays, parlay_meta = build_parlays(plays_all, hitters)
+
+    # ---- THE BOARD -------------------------------------------------
+    # 🔴 THIS IS A FILTERED BOARD, AND THE FILTER IS SAM'S, NOT CLAUDE'S.
+    # Sam, 2026-08-23: "gizmos picks should only include the picks the
+    # model likes, i would like to see 25-50 players everytime, including
+    # hitters props as well as pitchers." Asked what "likes" means, he
+    # chose BIGGEST EDGE VS THE PRICE and THE CALIBRATED BAND, together.
+    # ⚠️ Ledger rule 53 says a play is never absent because CLAUDE did not
+    # like it. This exclusion is Sam's own instruction, the same authority
+    # as the 1.8x pair floor -- and every count that was excluded is
+    # printed below so the size of what is hidden stays visible.
+    for x in plays:
+        x["in_band"] = (x.get("band") == "70-80")
+        x["clears_price_floor"] = x.get("clears_price_floor", True)
+    for x in hitters:
+        x["in_band"] = False          # no model, so no calibration band
+
+    # 🔴 THE -700 FLOOR NO LONGER GATES THE BOARD.
+    # Sam, 2026-08-25: "we need to also be allowing users to be able to bet
+    # on any props that are under our -700 odd threshold in the gizmos picks
+    # tab, we aren't building this just for me anymore."
+    # ⚠️ THE FLOOR IS NOT DELETED -- ITS SCOPE NARROWED. It was doing two
+    # different jobs under one name:
+    #   (a) DISPLAY   -- keep short prices off Sam's personal board.  ← LIFTED
+    #   (b) PAIRING   -- a -700 leg cannot reach 1.8x without a partner
+    #                    doing all the work, so it is a donation.     ← KEPT
+    # `build_pairs` still requires clears_price_floor, and the starred alt
+    # rung still requires it. Only the board gate is gone, and every
+    # below-floor row is LABELLED so a user sees what they are taking.
+    liked = [x for x in plays + hitters
+             if (x.get("edge") is not None and x["edge"] > 0)]
+    # Band-qualifying plays lead, then everything by edge.
+    # 🔴 STRICTLY BY CONFIDENCE, DESCENDING.
+    # Sam, 2026-08-24: "i notice that your highest confidence score is not
+    # at the top, it need to all be in order". It was sorting by band, then
+    # lineup risk, then edge — defensible, and it made the board look
+    # broken to anyone reading down the numbers.
+    # ⚠️ THE TRADE, STATED: ordering by probability floats short-priced
+    # favourites to the top, and EDGE is what actually pays. Edge is still
+    # on every row and still drives which plays make the board at all —
+    # it just no longer decides the order.
+    liked.sort(key=lambda x: -(x.get("confidence") or 0))
+
+    # 🔴 BOTH KINDS GET A SEAT.
+    # Sam, 2026-08-24: "there is a lot of hitters in that tab, maybe a bit
+    # too much ... lets mix it in with some more pitching props." There are
+    # far more hitter props on any board than pitcher props, so a straight
+    # top-50 was coming back 49 hitters to 1. Each kind is allotted half
+    # the board and the unused half spills to the other, so a thin pitcher
+    # slate still fills 50 rows. ⚠️ The UNION is then re-sorted descending,
+    # so the strict order Sam asked for still holds top to bottom.
+    half = BOARD_MAX // 2
+    pit_liked = [x for x in liked if x["kind"] == "pitcher"]
+    hit_liked = [x for x in liked if x["kind"] == "hitter"]
+    board = pit_liked[:half] + hit_liked[:BOARD_MAX - len(pit_liked[:half])]
+    board.sort(key=lambda x: -(x.get("confidence") or 0))
+    if len(board) < BOARD_MIN:
+        # Not enough positive-edge plays. Top up by edge, and SAY SO on the
+        # row rather than quietly padding the board with plays that lose to
+        # their own price.
+        rest = sorted([x for x in plays + hitters if x not in liked],
+                      key=lambda x: -(x.get("edge") if x.get("edge") is not None else -999))
+
+        # Never put BOTH sides of one prop on the board. Above the edge
+        # filter this cannot happen -- a positive-edge over implies a
+        # negative-edge under -- so it only ever bites HERE, in the top-up,
+        # which deliberately reaches into negative edge. Measured on a thin
+        # pre-dawn board: all 16 rows were 8 mirror pairs, every pair summing
+        # to 100 (Turang under 0.5 hits at 59 AND over 0.5 hits at 41). That
+        # is not a board.
+        def _propkey(x):
+            return ((x.get("pid") or x.get("player") or x.get("pitcher")),
+                    x.get("market"), x.get("line"))
+        _on = {_propkey(x) for x in board}
+        for x in rest:
+            if len(board) >= BOARD_MIN:
+                break
+            if _propkey(x) in _on:
+                continue
+            x["below_price"] = True
+            _on.add(_propkey(x))
+            board.append(x)
+
+        # RE-SORT. The top-up appends in EDGE order onto a list already
+        # sorted by CONFIDENCE, which left the board out of order from the
+        # first topped-up row down. Sam's instruction is that it reads
+        # strictly descending; verify_card.py enforces it and caught this.
+        board.sort(key=lambda x: -(x.get("confidence") or 0))
+
+    for i, x in enumerate(board, 1):
+        x["rank"] = i
+    # Kept for the doc's own accounting and for anything still reading it,
+    # but these rows are now ON the board rather than exiled to it.
+    below = [x for x in plays + hitters if not x.get("clears_price_floor", True)]
+
+    doc = {
+        "date": today,
+        "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "kind": "gizmos-card",
+        "generated_by": "card.py -- automated, unattended",
+        "model_version": MODEL_VERSION,
+        "odds_pulled_at": B.get("pitcher_odds_at"),
+        "logs_pulled_at": P.get("pulled_at"),
+        "opponent_table": {
+            "rebuilt_from": "the same pitcher pull the model reads",
+            "starts": npop,
+            "centering_constant": round(centerC, 4),
+            "note": ("meanK and its centering constant come from the SAME pull. "
+                     "The published table in claude/mlb-opponent-database.md needs an "
+                     "interactive browser session to rebuild and lags by a slate at a "
+                     "time; this one rebuilds nightly. Measured 2026-08-23 the two "
+                     "agree to a mean |dE[K]| of 0.021 K, max 0.064 K."),
+        },
+        "board_rule": (
+            "Sam's filter, not Claude's: plays whose estimate beats the price's "
+            "break-even, calibrated-band plays first, then by edge. "
+            f"{len(plays)} pitcher and {len(hitters)} hitter rows were priced; "
+            f"{len(board)} are shown."),
+        "hitter_note": (
+            "Hitter rows carry NO confidence rating and NO band. There is no hitter "
+            "model in this project, and ledger rule 55 forbids a MARKET number from "
+            "carrying a Gizmo's confidence %. Their number is the player's own season "
+            "rate at that exact line with a Jeffreys prior — DESCRIPTIVE, not a "
+            "projection. A real hitter model is the next build."),
+        "coverage": (f"{len(board)} plays across {len({x['game_id'] for x in board})} games, "
+                     f"ranked by blend. {len(pairs)} pairs clear the 1.8x floor. "
+                     f"Generated unattended from the collector's own data -- no human "
+                     f"chose which plays appear."),
+        "coverage_detail": {"pitchers_with_logs": len(players), "plays": len(board),
+                     "below_price_floor": len(below), "pairs": len(pairs),
+                     "skipped": skipped},
+        # 🔴 GENERATED FROM `data/latest/record.json`, NOT WRITTEN HERE.
+        # See load_calibration(). The old string was a 2026-08-22 snapshot
+        # that contradicted the site's own Track Record tab.
+        "calibration_warning": calibration_sentence(),
+        "selection_note": (
+            "Nothing here is a recommendation to bet. Every qualifying pitcher prop on "
+            "the board is printed with its failing numbers attached (ledger rule 53); "
+            "which of them to bet is Sam's call. The one thing withheld is a PAIR below "
+            "1.8x, which is his own instruction."),
+        "shadow_note": (
+            "`blend` is the carded estimate and the ONLY column that enters calibration. "
+            "`carried` is the blend after the T21/T22 flags -- both PRE-REGISTERED AND "
+            "NOT ADOPTED -- and enters no denominator. It is a shadow ladder kept so the "
+            "September re-fit can measure whether the flagged number would have won."),
+        "picks": board,
+        "below_price_floor": below,
+        "pairs": pairs,
+        # 🔴 A DIFFERENT LIST FROM picks[], DELIBERATELY. See build_top10().
+        "top10": top10,
+        "top10_rule": (
+            f"Most likely to hit, among rows priced better than "
+            f"{TOP10_PRICE_FLOOR}. Sam's instruction, 2026-08-26: likely AND "
+            f"payable. The pool is EVERY priced row plus EVERY alt ladder "
+            f"rung -- rungs never reach picks[] at all -- deduped to one row "
+            f"per player, then ranked by the confidence that row already "
+            f"carries. ⛔ This is NOT picks[:10]: different pool, different "
+            f"gate, different dedup."),
+        "top10_excluded": top10_drops,
+        "parlays": parlays,
+        "parlay_meta": parlay_meta,
+        "parlay_rule": (
+            "Two-leg combinations pay 1.8x or more and three- and four-leg "
+            "combinations pay 3x or more, with no upper limit -- Sam's "
+            "bands, 2026-09-22. The floors are never crossed, and every list "
+            "is ranked by its chance to land, highest first. Legs are Hard "
+            "Rock only (the only book of the five that multiplies), never "
+            "below the -700 price floor, and always in DIFFERENT GAMES "
+            "checked on GAME ID rather than on opponent name (ledger rule "
+            "54). ⛔ No same-game parlays: legs inside one game are "
+            "correlated and books reprice them."),
+        # 🔴 WHY THIS INDEX EXISTS. The Player Props tab renders from
+        # props.json.gz, which has no model in it -- the model lives here.
+        # Recomputing a projection in the browser would mean a SECOND
+        # implementation of the model in JavaScript, which is how two
+        # numbers that must agree stop agreeing. So the card publishes the
+        # projections it already computed and the tab joins against them.
+        # ⛔ Do not compute a projection client-side. Ever. A row with no
+        # entry here shows no projection, which is the correct answer.
+        # Carded rows first (they carry the MODEL projections), then every
+        # remaining prop on the board filled in from the player's own log.
+        # ⛔ priced=True HERE TOO. This merge runs last, so leaving it off
+        # silently stripped the flag back off every carded row -- the index
+        # said 107 priced when the pool was 1,194.
+        "projections": {**_board_px,
+                        **projection_index(plays + hitters, priced=True)},
+        "projection_gaps": _px_gaps,
+        "projection_note": (
+            "Keyed pid|market|side|line. On a PITCHER row it is the central "
+            "outcome that would produce the confidence shown beside it, "
+            "inverted through the same distribution that row assumes, so the "
+            "two can never disagree. On a HITTER row for hits, home runs or "
+            "RBIs it is the same inversion of his own record. On TOTAL BASES "
+            "and HITS+RUNS+RBIs it is his own per-game MEAN -- T34/T35 fitted "
+            "three distributions and none reproduced that mean to the 0.25 "
+            "bar, so the mean itself is used, which reproduces it exactly."),
+        "schema_note": ("picks[] are the standard lines, ranked by blend, each carrying "
+                        "its Hard Rock alt ladder in .ladder with every rung priced "
+                        "through the same model. pairs[] may use any rung. Every price "
+                        "is Hard Rock's own, from a us2 pull, at the minute stamped above."),
+    }
+    if dry:
+        print(json.dumps({k: v for k, v in doc.items()
+                          if k not in ("picks", "pairs", "below_price_floor")}, indent=1))
+        for x in board[:16]:
+            who = x.get("pitcher") or x.get("player")
+            unit = ("K" if x["market"] == "strikeouts"
+                    else "outs" if x["market"] == "outs"
+                    else x.get("market_label", x["market"])[:12])
+            if x["kind"] == "pitcher":
+                extra = (f"model {x['model']:5.1f}  blend {x['blend']:5.1f}  "
+                         f"carried {x['carried']:5.1f}  [{x['band']}]")
+            else:
+                extra = f"rate  {x['rate']:5.1f}  NO MODEL           lineup {x.get('lineup_share')}%"
+            print(f"  {x['rank']:2}. {x['kind'][:3]} {who[:20]:21} "
+                  f"{x['side'][0]}{x['line']:<5} {unit:12} {x['game']:11} "
+                  f"{str(x['price']):>6}  raw {x['raw']:>7}  edge {x['edge']:+6.1f}  {extra}")
+        print(f"\n  {len(pairs)} pairs")
+        for p in pairs[:6]:
+            print(f"   {p['multiplier']:.2f}x {p['label']:10} joint {p['joint']:5.1f}%  "
+                  f"EV${p['ev_30']:>7}  {p['legs'][0]} + {p['legs'][1]}")
+        return doc
+    os.makedirs(PICKS, exist_ok=True)
+    with open(f"{PICKS}/{today}.json", "w") as f:
+        json.dump(doc, f, separators=(",", ":"))
+    print(f"[card] wrote picks/{today}.json -- {len(plays)} plays, {len(pairs)} pairs")
+    return doc
+
+
+if __name__ == "__main__":
+    main(dry="--dry" in sys.argv)
