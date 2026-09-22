@@ -868,6 +868,78 @@ def _hours_between(a, b):
     return (tb - ta).total_seconds() / 3600.0
 
 
+# 🔴🔴 EVERY CREDIT THE ACCOUNT SPENT MUST APPEAR ON A STORED SNAPSHOT.
+# `[measured 2026-09-19]` 1,628 of 2,750 billed credits sat in converge
+# passes whose commits were LOST at push time, so no snapshot recorded
+# them, the daily cap could not see them, and the next run bought the
+# same pull again. `push_retry.sh` fixes that cause; this check catches
+# ANY cause, because it asks the API's own balance header.
+# ✅ ORDERED BY BALANCE, NOT BY TIME. Within a month the balance only
+#    falls, so sorting readings by `credits_remaining` descending is the
+#    true order of the calls even when two runs interleave. Each step
+#    must satisfy  prev_remaining − used − half_used == this_remaining;
+#    a positive residue is spend no stored snapshot accounts for.
+# ⚠️ ONLY READINGS AFTER THE FIX SHIPPED ARE JUDGED — the 09-15→09-21
+#    losses are history, recorded in the audits, and must not keep the
+#    report red for a defect that is already fixed.
+RECON_SINCE = "2026-09-22T12:00:00Z"
+RECON_WINDOW_H = 24
+RECON_WARN, RECON_BROKEN = 30, 200
+
+
+def _balance_steps(root=None, since=None):
+    """-> [(pulled_at, prev_remaining, used, this_remaining, residue, path)]"""
+    root = root or ROOT
+    rows = []
+    for f in glob.glob(os.path.join(root, "data", "**", "*.json.gz"),
+                       recursive=True):
+        if not PAID_SNAPSHOT.search(f.replace(os.sep, "/")):
+            continue
+        j = _read(f)
+        if not j or not isinstance(j.get("credits_remaining"), int):
+            continue
+        at = j.get("pulled_at") or ""
+        if since and at < since:
+            continue
+        used = int(j.get("credits_used") or 0) + int(j.get("half_total_credits") or 0)
+        rows.append((at[:7], j["credits_remaining"], used, at, f))
+    rows.sort(key=lambda r: (r[0], -r[1]))
+    out = []
+    for prev, cur in zip(rows, rows[1:]):
+        if prev[0] != cur[0]:
+            continue                    # a new month resets the balance
+        residue = prev[1] - cur[2] - cur[1]
+        out.append((cur[3], prev[1], cur[2], cur[1], residue, cur[4]))
+    return out
+
+
+def check_credit_reconciliation(rep, now):
+    """💰 DOES EVERY CREDIT SPENT SHOW UP ON A STORED SNAPSHOT?"""
+    lo = (now - datetime.timedelta(hours=RECON_WINDOW_H)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
+    since = max(lo, RECON_SINCE)
+    steps = _balance_steps(since=since)
+    gap = sum(r[4] for r in steps if r[4] > 0)
+    worst = sorted((r for r in steps if r[4] > 0), key=lambda r: -r[4])[:3]
+    rep.note_reconciliation = {"since": since, "steps": len(steps),
+                               "unrecorded": gap}
+    if gap > RECON_BROKEN:
+        sev = rep.bad
+    elif gap > RECON_WARN:
+        sev = rep.warn
+    else:
+        return
+    sev("credits:unrecorded",
+        "%d Odds API credit(s) were spent since %s that no stored "
+        "snapshot records" % (gap, since),
+        "the API's own balance fell by more than the snapshots add up to. "
+        "A pull whose snapshot never reached main (a lost push, a crash "
+        "after the request) is money the daily cap cannot see and a pull "
+        "the next run may buy again. Largest gaps: %s"
+        % "; ".join("%s −%d (%s)" % (r[0], r[4], os.path.relpath(r[5], ROOT))
+                    for r in worst))
+
+
 def check_board_not_empty(rep, now):
     """⚠️ THE BUILDER HAD CANDIDATES AND CARDED NONE OF THEM.
 
@@ -977,7 +1049,10 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           # 💰 THE TENTH. ⛔ Not a second reporting channel — it writes
           #    into the same health report and escalates through the same
           #    single issue.
-          check_credit_balance)
+          check_credit_balance,
+          # 💰 THE ELEVENTH: the balance header must reconcile with what
+          #    the stored snapshots say was spent.
+          check_credit_reconciliation)
 
 
 def _previous():

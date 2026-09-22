@@ -53,14 +53,15 @@ sys.path.insert(0, ROOT)
 import card  # noqa: E402
 
 print("\n═══ 1. 🔴 THE BANDS ARE RULE 28'S, IN ONE PLACE ═══")
-ck("🔴 the two-leg band is Sam's 2026-08-26 instruction",
-   card.PARLAY_BANDS[2] == (1.80, 2.20),
-   "1.80-2.20 — ledger rule 28 owns this and the code must not hold a "
-   "second opinion")
-ck("...and the multi-leg bands are his too",
-   card.PARLAY_BANDS[3] == (3.00, 6.00)
-   and card.PARLAY_BANDS[4] == (3.00, 6.00),
-   "3x-6x for three- and four-mans")
+# 🔴 `[Sam, 2026-09-22]` ~~1.80-2.20 / 3.00-6.00~~ -> FLOORS ONLY: 2-leg
+#    1.80+, 3/4-leg 3.00+, no ceiling, ranked by chance to land.
+ck("🔴 the two-leg band is Sam's 2026-09-22 instruction: 1.80 and up",
+   card.PARLAY_BANDS[2] == (1.80, None),
+   "ledger rule 28 owns this and the code must not hold a second opinion")
+ck("...and the multi-leg bands are his too: 3.00 and up",
+   card.PARLAY_BANDS[3] == (3.00, None)
+   and card.PARLAY_BANDS[4] == (3.00, None),
+   "anything over a two-man pays at least 3x")
 ck("⛔ the 1.80 HARD FLOOR is unchanged",
    card.FLOOR == 1.80,
    "a pair below it is never shown — Sam: 'i dont want to see them at "
@@ -129,12 +130,11 @@ ck("✅ ...and a pair that was always in band still is",
    "%s — the fix widens the label, it does not invert it"
    % (rows[0]["multiplier"] if rows else "no pair built"))
 
-rows = pair_at(2.25)
-ck("⛔ ...while ABOVE the band is still ABOVE BAND",
-   bool(rows) and not rows[0]["in_band"]
-   and rows[0]["label"] == "ABOVE BAND",
-   "%s — 2.20 is the edge, so this is not a licence to relabel "
-   "everything" % (rows[0]["multiplier"] if rows else "no pair built"))
+rows = pair_at(4.00)
+ck("🔴 ...and a 4x two-man is IN BAND now — there is no ceiling",
+   bool(rows) and rows[0]["in_band"] and rows[0]["label"] == "IN BAND",
+   "%s — Sam 2026-09-22: '1.8- unlimited'"
+   % (rows[0]["multiplier"] if rows else "no pair built"))
 
 rows = pair_at(1.79)
 ck("🔴 ...and BELOW 1.80 is still NOT SHOWN AT ALL",
@@ -149,8 +149,13 @@ ck("🔴 the multi-leg flag is no longer unconditionally true",
    "(size != 2) or" not in src,
    "a 3-leg at 2.5x is below its own 3.00 floor and was called IN BAND")
 ck("...it is computed from that size's own band",
-   "lo <= mult <= hi" in src,
+   'band_ok(mult, (lo, hi))' in src,
    "one expression, every size, read off PARLAY_BANDS")
+ck("⛔ ...and band_ok still enforces a floor and would enforce a ceiling",
+   card.band_ok(1.79, (1.80, None)) is False
+   and card.band_ok(9.0, (1.80, None)) is True
+   and card.band_ok(2.5, (1.80, 2.20)) is False,
+   "a helper that ignores its band is a filter that stopped filtering")
 
 note("⛔ THIS CHANGES A LABEL, NOT WHAT REACHES THE PAGE. The 1.80 hard "
      "floor still suppresses, an above-band pair that is a good bet is "

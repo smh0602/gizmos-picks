@@ -627,9 +627,10 @@ if _m_bands:
     eq(eval(_m_bands.group(1)), _C.PARLAY_BANDS,
        "   🔴 card_fb.py's bands are IDENTICAL to card.py's")
 _m_str = _re2.search(r"^PARLAY_STRATA = (\[[^\]]*\][^\n]*)", _mlb_src, _re2.M)
-ck(_C.PARLAY_BANDS[2] == (1.80, 2.20),
-   "   ⛔ the 1.8x-2.2x two-leg band is Sam's and is not tuned",
-   str(_C.PARLAY_BANDS[2]))
+# 🔴 `[Sam, 2026-09-22]` floors only: 1.8x+ two-legs, 3x+ above that.
+ck(_C.PARLAY_BANDS == {2: (1.80, None), 3: (3.00, None), 4: (3.00, None)},
+   "   ⛔ the bands are Sam's (1.8x+ two-legs, 3x+ above) and are not tuned",
+   str(_C.PARLAY_BANDS))
 
 print("\n16f. ⚠️ A BAND NOTHING FITS PRODUCES NOTHING, NOT A STRETCH")
 _short = [_leg("A", "g1", -900, 95), _leg("B", "g2", -900, 94)]

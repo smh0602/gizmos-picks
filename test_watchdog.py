@@ -449,12 +449,32 @@ else:
 
 # 🔴 AND THE FREEZE HAS TO BE VISIBLE TO AN AGENT INSIDE THE REPO.
 CM = os.path.join(ROOT, "CLAUDE.md")
-ck("🔴 the MLB freeze is in CLAUDE.md, not only in Sam's project docs",
-   "MLB IS CLOSED FOR WORK" in flat(open(CM, encoding="utf-8").read()),
+# `[rewritten 2026-09-22 — Sam lifted the freeze: "unfreeze all mlb"]`
+# ⛔ THE OLD CHECK ASKED "IS THE FREEZE IN CLAUDE.md?" — THE WRONG QUESTION
+#    once Sam lifted it. The thing that must hold is that the CURRENT MLB
+#    policy is readable inside the repo, is cited to Sam, and that the
+#    self-repair prompt says the SAME thing. The new check is harder: the
+#    old one never noticed the prompt and CLAUDE.md disagreeing.
+_cmf = flat(open(CM, encoding="utf-8").read())
+_closed = "MLB IS CLOSED FOR WORK" in _cmf and "SUPERSEDED" not in _cmf.split("MLB IS CLOSED FOR WORK")[1][:400]
+_open = "MLB IS OPEN FOR WORK" in _cmf
+ck("🔴 the CURRENT MLB policy is in CLAUDE.md, not only in Sam's project docs",
+   _closed != _open,
    "⛔ it lived only in the project docs until 2026-09-14, which meant "
    "the Claude Code GitHub Action — an agent working INSIDE this "
    "repository — could not see it at all. A rule the actor cannot read "
-   "is not a rule, it is a hope")
+   "is not a rule, it is a hope. Exactly one of closed/open must be live")
+ck("⛔ ...and the policy is cited to Sam, with a date",
+   re.search(r"MLB IS (?:OPEN|CLOSED) FOR WORK[^\n]{0,40}\[Sam, 20\d\d-\d\d-\d\d\]", _cmf) is not None,
+   "a policy nobody can trace to Sam is a policy an agent may argue with")
+_SRP = os.path.join(ROOT, ".github", "workflows", "self-repair.yml")
+if os.path.exists(_SRP):
+    _sr = open(_SRP, encoding="utf-8").read()
+    ck("🔴🔴 ...and the self-repair prompt states the SAME MLB policy",
+       ("MLB IS FROZEN" in _sr) == _closed and ("MLB IS OPEN FOR REPAIR" in _sr) == _open,
+       "⛔ an agent reads BOTH. If CLAUDE.md says open and the prompt says "
+       "frozen, every MLB finding is silently left; the reverse lets an "
+       "agent edit a frozen file. Sam hand-uploads self-repair.yml")
 
 # 🔴🔴 AND SO IS THE RULE THAT EVERY FIX SHIPS WITH A GUARD — which this
 #    assertion is itself an instance of. `[Sam, 2026-09-14: "from now on
@@ -964,8 +984,8 @@ else:
        "⛔ THIS IS THE LINE THAT MATTERS. An agent that can write the fix "
        "AND merge it can make a failing check green by deleting it, with "
        "nobody reading the diff. Automatic to the PR; a human merges")
-    ck("🔴 the prompt repeats the freeze and the never-weaken rule",
-       "MLB IS FROZEN" in sr and "NEVER WEAKEN A CHECK" in sr,
+    ck("🔴 the prompt states the MLB policy and the never-weaken rule",
+       ("MLB IS FROZEN" in sr or "MLB IS OPEN FOR REPAIR" in sr) and "NEVER WEAKEN A CHECK" in sr,
        "⚠️ CLAUDE.md carries both and the agent reads it — but a prompt "
        "silent about the constraint most likely to be violated is a "
        "prompt inviting the violation")

@@ -221,6 +221,21 @@ BOOKS = {
     "williamhill_us": "Caesars", "betmgm": "BetMGM",
 }
 
+# 🔴 FOOTBALL IS THREE BOOKS. Sam, 2026-09-22: "just use those three" —
+#    Hard Rock, FanDuel, DraftKings — settling the open question of his
+#    8/27 three-book instruction against this five-book filter. ⚠️ MLB is
+#    unchanged at five. 💰 Credits are unchanged too: books are free
+#    inside a region, so this is a DISPLAY filter (see CLAUDE.md).
+FB_BOOK_KEYS = ("hardrockbet", "hardrockbet_oh", "draftkings", "fanduel")
+
+
+def league_books(league=None):
+    """The book filter for one league: MLB's five, football's three."""
+    lg = (league or LEAGUE or "mlb").lower()
+    if lg == "mlb":
+        return BOOKS
+    return {k: v for k, v in BOOKS.items() if k in FB_BOOK_KEYS}
+
 
 def now():
     return datetime.now(timezone.utc)
@@ -435,9 +450,10 @@ def collect_half_totals(body, left):
             log(f"  first-half total {eid}: {type(e).__name__}: {e}")
             continue
         books = {}
+        _bk = league_books()
         for bk in (body1 or {}).get("bookmakers", []):
-            if bk.get("key") not in BOOKS:
-                continue          # ⛔ Sam's five, same rule as the board
+            if bk.get("key") not in _bk:
+                continue          # ⛔ Sam's books for this league, same rule as the board
             for mk in bk.get("markets", []):
                 if mk.get("key") != "totals_h1":
                     continue
@@ -445,7 +461,7 @@ def collect_half_totals(body, left):
                                        "px": o.get("price")}
                        for o in mk.get("outcomes", [])}
                 if row:
-                    books[BOOKS[bk["key"]]] = row
+                    books[_bk[bk["key"]]] = row
         if not books:
             # ⛔ AN ABSENCE IN A RESPONSE IS EVIDENCE ABOUT THE REQUEST,
             #    NEVER ABOUT THE SPORTSBOOK. This project has written one
@@ -582,7 +598,7 @@ def build_board(games, half=None):
         # Same five-book rule as the props board. The raw snapshot keeps
         # every book -- that is the historical record and it is not
         # touched -- but the DASHBOARD only shows books Sam can bet at.
-        g = dict(g, books={k: v for k, v in g["books"].items() if k in BOOKS})
+        g = dict(g, books={k: v for k, v in g["books"].items() if k in league_books()})
 
         # Best price for each side across every book, and the book offering it.
         best = {}
@@ -814,7 +830,13 @@ def _spend_under(root):
             try:
                 op = gzip.open if fp.endswith(".gz") else open
                 with op(fp, "rt") as fh:
-                    total += int(json.load(fh).get("credits_used") or 0)
+                    _d = json.load(fh)
+                # 🔴 `half_total_credits` IS A SEPARATE BILL ON THE SAME
+                #    SNAPSHOT (first-half totals, per game) and this sum
+                #    never saw it — 176 credits on 2026-09-19 invisible to
+                #    the daily cap. `test_spend_fields.py`.
+                total += int(_d.get("credits_used") or 0) \
+                    + int(_d.get("half_total_credits") or 0)
             except Exception:
                 continue
     return total
@@ -1692,8 +1714,8 @@ def collect_props_board_fb(league=None):
         for bk in ev.get("bookmakers") or []:
             key = bk.get("key")
             books_seen.add(key)
-            # ⛔ Sam's five books only, same filter as every other pull.
-            if key not in BOOKS:
+            # ⛔ Sam's football books only (Hard Rock, FanDuel, DraftKings).
+            if key not in league_books(lg):
                 continue
             for mk in bk.get("markets") or []:
                 m = mk.get("key")
@@ -1736,7 +1758,7 @@ def collect_props_board_fb(league=None):
     out = {
         "kind": "MARKET",
         "note": ("Player prop lines and the best available price across "
-                 "Sam's five books. NOT a Gizmo's projection (rule 55) -- "
+                 "Sam's football books (Hard Rock, FanDuel, DraftKings). NOT a Gizmo's projection (rule 55) -- "
                  "football has no model, so no row carries a confidence %."),
         "league": lg,
         "pulled_at": doc.get("pulled_at"),
@@ -1748,7 +1770,7 @@ def collect_props_board_fb(league=None):
     }
     write(f"{base}/props.json.gz", out, compress=True)
     log(f"  props board: {out['n_games']} games, {out['n_props']} rungs, "
-        f"books {sorted(b for b in books_seen if b in BOOKS)}")
+        f"books {sorted(b for b in books_seen if b in league_books(lg))}")
     return out
 
 
@@ -1762,7 +1784,9 @@ def collect_props_board():
             return None, {}
         D = json.load(gzip.open(path, "rt"))
         by = {}
-        for pid, v in D["players"].items():
+        # 🔴 `model_pitchers`, not `D["players"]`: the low-IP starters the
+        # pull now carries for the tables must not join a prop (see it).
+        for pid, v in model_pitchers(D["players"]).items():
             v["_pid"] = pid
             by.setdefault(norm_name(v["name"]), []).append((pid, v))
         dupes = {k: [x[1]["name"] + " (" + str(x[1]["team"]) + ")" for x in v]
@@ -2002,6 +2026,24 @@ def collect_props_board():
 # lives elsewhere; a model number never comes from this file (rule 55).
 # ----------------------------------------------------------------------
 PITCHER_MIN_IP = 20
+# 🔴 `[2026-09-22]` THE PULL CARRIES TWO POPULATIONS, AND ONLY ONE IS THE
+# MODEL'S. The 20-IP pool above is what `card.py` and the props board have
+# always read -- its opponent table and centering constant are computed
+# from it. The published pitcher/opponent tables (`mlb_tables.py`) need
+# EVERY starter (`gamesStarted > 0`): the opponent table's population is
+# every start a team faced, and an IP filter drops ~80 of them.
+# ✅ So a second pool call adds the starters under the bar, each marked
+# `below_min_ip: true`, and `model_pitchers()` is the ONE filter every
+# model consumer reads through. ⛔ Adding them unfiltered moves the
+# centering constant (+0.03 K measured) and with it every K projection --
+# a model change no test has adopted.
+STARTER_POOL_LIMIT = 2000
+
+
+def model_pitchers(players):
+    """The 20-IP model pool: every entry NOT marked `below_min_ip`.
+    ⛔ ONE COPY (rule 117) -- card.py and the props board both call this."""
+    return {k: v for k, v in players.items() if not v.get("below_min_ip")}
 
 
 def collect_pitchers():
@@ -2028,6 +2070,54 @@ def collect_pitchers():
     if not people:
         raise RuntimeError("pitcher pool came back empty")
 
+    # ── the starters UNDER the bar: ONE extra pool call, plus one game-log
+    # call per starter it adds (and a handedness chunk per 100). Every
+    # model pitcher is already in `people`, so nothing already there is
+    # fetched twice.
+    # ⚠️ A FAILED second call does NOT fail the pull: the model pool is
+    # whole without it. It is recorded as `starter_pool`, and
+    # `mlb_tables.py` REFUSES to build a table on an incomplete population
+    # rather than publish an IP-filtered one under a full-population label.
+    have = {p["id"] for p in people}
+    starter_pool, added = "complete", 0
+    try:
+        pool2, _ = get(f"{STATS}/stats?stats=season&group=pitching&season={yr}&gameType=R"
+                       f"&playerPool=All&limit={STARTER_POOL_LIMIT}&sortStat=gamesStarted")
+        sp2 = (pool2.get("stats") or [{}])[0].get("splits", []) if pool2.get("stats") else []
+        if len(sp2) >= STARTER_POOL_LIMIT:
+            raise RuntimeError(f"starter pool hit its limit ({len(sp2)}) -- it may be truncated")
+        for sp in sp2:
+            st, pl = sp.get("stat") or {}, sp.get("player") or {}
+            if not pl.get("id") or pl["id"] in have or (st.get("gamesStarted") or 0) <= 0:
+                continue
+            try:
+                outs = outs_of(st.get("inningsPitched"))
+            except ValueError as e:
+                log(f"  DOMAIN VIOLATION in starter pool: {e}")
+                skipped += 1
+                continue
+            if outs is not None and outs >= PITCHER_MIN_IP * 3:
+                # ⛔ Only possible if pool 1 was truncated. Not added: it would
+                # enter the MODEL pool, and that pool is not changed here.
+                log(f"  ⚠️ starter pool: {pl.get('fullName')} has {outs} outs but was "
+                    f"not in the {PITCHER_MIN_IP}-IP pool -- pool 1 truncated?")
+                starter_pool = f"INCOMPLETE: {pl.get('fullName')} missing from pool 1"
+                continue
+            have.add(pl["id"])
+            added += 1
+            people.append({"id": pl["id"], "name": pl.get("fullName"),
+                           "team": (sp.get("team") or {}).get("name"),
+                           "era": st.get("era"), "whip": st.get("whip"),
+                           "w": st.get("wins"), "l": st.get("losses"),
+                           "gs": st.get("gamesStarted"), "outs": outs,
+                           "below_min_ip": True})
+        log(f"starter pool: {len(sp2)} returned, {added} starter(s) under "
+            f"{PITCHER_MIN_IP} IP added (below_min_ip)")
+    except Exception as e:
+        starter_pool = f"FAILED: {type(e).__name__}: {e}"
+        log(f"  🔴 STARTER POOL {starter_pool} -- the model pool is unaffected; "
+            f"the pitcher/opponent tables will refuse to build")
+
     hand = {}
     ids = [p["id"] for p in people]
     for i in range(0, len(ids), 100):
@@ -2050,6 +2140,8 @@ def collect_pitchers():
         except Exception as e:
             log(f"  {p['name']}: {type(e).__name__}")
             bad += 1
+            if p.get("below_min_ip") and starter_pool == "complete":
+                starter_pool = f"INCOMPLETE: game log failed for {p['name']}"
             continue
         rows = []
         for g in sp:
@@ -2070,10 +2162,19 @@ def collect_pitchers():
             logs[p["id"]] = {"name": p["name"], "team": p["team"], "throws": hand.get(p["id"]),
                              "era": p["era"], "whip": p["whip"], "w": p["w"], "l": p["l"],
                              "gs": p["gs"], "g": rows}
+            if p.get("below_min_ip"):
+                logs[p["id"]]["below_min_ip"] = True
+        elif p.get("below_min_ip") and starter_pool == "complete":
+            # A starter with no game log is a start the table cannot count.
+            starter_pool = f"INCOMPLETE: no game log for {p['name']}"
 
     write(f"{LATEST}/pitchers.json.gz", {
         "pulled_at": stamp(), "season": yr, "min_ip": PITCHER_MIN_IP,
-        "n_players": len(logs), "n_failed": bad, "domain_violations": viol,
+        # `n_players` keeps its meaning: the MODEL pool.
+        "n_players": sum(1 for v in logs.values() if not v.get("below_min_ip")),
+        "n_below_min_ip": sum(1 for v in logs.values() if v.get("below_min_ip")),
+        "starter_pool": starter_pool,
+        "n_failed": bad, "domain_violations": viol,
         "players": logs}, compress=True)
     log(f"pitchers: {len(logs)} arms, {sum(len(v['g']) for v in logs.values())} rows, "
         f"{bad} failed, {viol} domain violations")
@@ -4161,6 +4262,18 @@ def run_mode(mode):
             left = probe_news(LEAGUE)
         elif mode == "pitchers":
             left = collect_pitchers()
+            # 🔴 THE PUBLISHED PITCHER + OPPONENT TABLES, rebuilt from the
+            # pull just written. Free: no network, reads only that file.
+            # ⛔ A TABLE FAILURE MUST NOT LOSE THE PULL, so it is caught
+            # here -- and it is LOUD twice: in this log, and in the
+            # freshness contract, whose `pitcher-table.json` /
+            # `opponent-table.json` rows go stale and redden the gate.
+            try:
+                import mlb_tables as _mt
+                _mt.write_all(LATEST)
+            except Exception as e:
+                log(f"🔴 MLB TABLES FAILED ({type(e).__name__}: {e}) -- pitchers.json.gz "
+                    f"is kept; the table artifacts are now stale")
         elif mode == "refresh":
             # Fired automatically after any push that changes the code.
             # 🔴 FREE MODES ONLY -- no API call, no credits. A push must

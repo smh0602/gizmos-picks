@@ -58,7 +58,7 @@ print("\n═══ 1. 🔴 THE BEST PRICE IS BEST FOR A BETTOR ═══")
 rows, meta = C.build_game_lines(snap([game("g1", {
     "fanduel":   {"totals": {"Over": {"pt": 50.5, "px": -110}}},
     "draftkings": {"totals": {"Over": {"pt": 50.5, "px": -105}}},
-    "betmgm":    {"totals": {"Over": {"pt": 50.5, "px": -120}}},
+    "hardrockbet":    {"totals": {"Over": {"pt": 50.5, "px": -120}}},
 })]))
 eq(len(rows), 1, "one game in, one row out")
 eq(rows[0]["best_price"], -105,
@@ -68,7 +68,7 @@ eq(rows[0]["n_books"], 3, "...and how many books were comparable")
 ck("✅ a plus price beats every minus price",
    C.build_game_lines(snap([game("g2", {
        "fanduel": {"h2h": {"A Team": {"pt": None, "px": -105}}},
-       "betmgm": {"h2h": {"A Team": {"pt": None, "px": 115}}},
+       "hardrockbet": {"h2h": {"A Team": {"pt": None, "px": 115}}},
        "draftkings": {"h2h": {"A Team": {"pt": None, "px": -110}}},
    })]))[0][0]["best_price"] == 115,
    "+115 pays more than −105 on the same wager")
@@ -77,7 +77,7 @@ print("\n═══ 2. 🔴 THE EXACT SIGNED NUMBER, OR NO COMPARISON ═══")
 rows, meta = C.build_game_lines(snap([game("g3", {
     "fanduel":   {"spreads": {"A Team": {"pt": 1.5, "px": 130}}},
     "draftkings": {"spreads": {"A Team": {"pt": -1.5, "px": -182}}},
-    "betmgm":    {"spreads": {"A Team": {"pt": -1.5, "px": -180}}},
+    "hardrockbet":    {"spreads": {"A Team": {"pt": -1.5, "px": -180}}},
 })]))
 ck("🔴 +1.5 and −1.5 are NOT the same wager and are never compared",
    not rows or rows[0]["point"] == -1.5,
@@ -91,7 +91,7 @@ ck("⛔ ...and a lone quote at its own number is not a comparison at all",
    "one book at +1.5 has nothing to be measured against: %d comparable"
    % meta["comparable_quotes"])
 
-print("\n═══ 3. ⛔ ONLY SAM'S FIVE BOOKS COUNT ═══")
+print("\n═══ 3. ⛔ ONLY SAM'S THREE FOOTBALL BOOKS COUNT ═══")
 # ⛔ THE FIXTURE MUST LEAVE A REAL EDGE AMONG SAM'S BOOKS, or the row is
 #    dropped for having no gap and the check passes for the wrong reason.
 #    The first form priced all three identically and failed on an EMPTY
@@ -100,8 +100,10 @@ print("\n═══ 3. ⛔ ONLY SAM'S FIVE BOOKS COUNT ═══")
 rows, meta = C.build_game_lines(snap([game("g4", {
     "fanduel":   {"totals": {"Over": {"pt": 44.5, "px": -102}}},
     "draftkings": {"totals": {"Over": {"pt": 44.5, "px": -115}}},
-    "betmgm":    {"totals": {"Over": {"pt": 44.5, "px": -118}}},
+    "hardrockbet":    {"totals": {"Over": {"pt": 44.5, "px": -118}}},
     "fliff":     {"totals": {"Over": {"pt": 44.5, "px": 140}}},
+    # 🔴 `[2026-09-22]` BetMGM is no longer one of Sam's football books.
+    "betmgm":    {"totals": {"Over": {"pt": 44.5, "px": 150}}},
 })]))
 eq(len(rows), 1, "the three eligible books leave a real gap to rank")
 eq(rows[0]["best_price"], -102,
@@ -111,13 +113,24 @@ eq(rows[0]["n_books"], 3,
    "he cannot bet is not a better price")
 src = open("card_fb.py", encoding="utf-8").read()
 collect = open("collect.py", encoding="utf-8").read()
-_declared = set(re.findall(r'"([a-z_]+)":\s*"(?:Hard Rock|DraftKings|FanDuel'
-                           r'|Caesars|BetMGM)"', collect))
+# 🔴 `[2026-09-22]` football is THREE books (Sam: "just use those three"),
+#    declared in `collect.FB_BOOK_KEYS`; MLB keeps the five in `BOOKS`.
+_m = re.search(r"^FB_BOOK_KEYS\s*=\s*\(([^)]*)\)", collect, re.M)
+_declared = set(re.findall(r'"([a-z_]+)"', _m.group(1))) if _m else set()
 ck("🔒 the book list here matches collect.py's, key for key",
    C.GL_BOOKS == _declared,
    "⛔ A RESTATEMENT IS A RULE 66 HAZARD, so it is CHECKED rather than "
    "trusted — the same treatment PARLAY_BANDS gets. here=%s collect=%s"
    % (sorted(C.GL_BOOKS), sorted(_declared)))
+
+rows, meta = C.build_game_lines(snap([game("g4b", {
+    "hardrockbet":    {"totals": {"Over": {"pt": 44.5, "px": -102}}},
+    "hardrockbet_oh": {"totals": {"Over": {"pt": 44.5, "px": -110}}},
+    "draftkings":     {"totals": {"Over": {"pt": 44.5, "px": -115}}},
+})]))
+eq(len(rows), 0,
+   "⛔ Hard Rock's Ohio skin is the SAME book: two skins + one other is "
+   "two books, not the three a comparison needs")
 
 print("\n═══ 4. ⚠️ A THIN MARKET IS NOT AN EDGE ═══")
 rows, meta = C.build_game_lines(snap([game("g5", {
@@ -134,7 +147,7 @@ many = {"fanduel":   {"totals": {"Over": {"pt": 40.5, "px": -100}},
                       "spreads": {"A Team": {"pt": 3.5, "px": -100}}},
         "draftkings": {"totals": {"Over": {"pt": 40.5, "px": -120}},
                        "spreads": {"A Team": {"pt": 3.5, "px": -120}}},
-        "betmgm":    {"totals": {"Over": {"pt": 40.5, "px": -120}},
+        "hardrockbet":    {"totals": {"Over": {"pt": 40.5, "px": -120}},
                       "spreads": {"A Team": {"pt": 3.5, "px": -125}}}}
 rows, _ = C.build_game_lines(snap([game("g6", many)]))
 eq(len(rows), 1,
@@ -145,7 +158,7 @@ print("\n═══ 6. ⛔ NOTHING HERE PREDICTS ANYTHING ═══")
 rows, meta = C.build_game_lines(snap([game("g%d" % i, {
     "fanduel":   {"totals": {"Over": {"pt": 40.5 + i, "px": -100}}},
     "draftkings": {"totals": {"Over": {"pt": 40.5 + i, "px": -120}}},
-    "betmgm":    {"totals": {"Over": {"pt": 40.5 + i, "px": -125}}},
+    "hardrockbet":    {"totals": {"Over": {"pt": 40.5 + i, "px": -125}}},
 }) for i in range(25)]))
 eq(len(rows), C.GAME_LINES_N, "🔴 the list is capped at Sam's 15")
 ck("🔴 every row is labelled MARKET",

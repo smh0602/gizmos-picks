@@ -110,8 +110,33 @@ def _bad(why):
 
 
 def clone_is_complete(root=ROOT):
-    """⛔ A SHALLOW CLONE CANNOT BE ASKED HOW BIG THE REPOSITORY IS."""
-    return not os.path.exists(os.path.join(root, ".git", "shallow"))
+    """⛔ A SHALLOW CLONE CANNOT BE ASKED HOW BIG THE REPOSITORY IS.
+
+    🔴 `[2026-09-22]` ~~`.git/shallow` exists~~ was wrong whenever `.git`
+    is a FILE (a worktree), which always read "complete". Ask git.
+    """
+    try:
+        return _git("rev-parse", "--is-shallow-repository",
+                    cwd=root).strip() == "false"
+    except Exception:
+        return False
+
+
+def single_copy(root=ROOT):
+    """True when every object is stored exactly once: one pack, no loose.
+
+    🔴 `[measured 2026-09-22]` with 10 packs and 857 loose objects (84 of
+    them also packed), `%(objectsize:disk)` reports WHICHEVER copy git
+    finds first — so two correct measurements of the same repository
+    disagreed by 0.034 MB and 9 blobs changed size merely by reordering
+    the query. Only a single-copy repository has one right answer.
+    """
+    got = {}
+    for line in _git("count-objects", "-v", cwd=root).splitlines():
+        if ":" in line:
+            k, v = line.split(":", 1)
+            got[k.strip()] = v.strip()
+    return got.get("packs") == "1" and got.get("count") == "0"
 
 
 def pack_mib(root=ROOT):

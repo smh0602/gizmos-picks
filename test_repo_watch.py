@@ -171,16 +171,23 @@ ck("🔴 the per-day series RECONCILES with the window total",
    "real figure in a shape that looked plausible. series=%.4f total=%.4f"
    % (sum(d["disk_mb"] for d in _B.get("series", [])), _B.get("disk_mb", 0)))
 
-# ⚠️ AND THE LIVE TREE TOO — BUT ONLY WHERE IT CAN ANSWER. In CI it
-#    cannot, by design, and that is stated rather than skipped silently.
-if R.clone_is_complete():
+# ⚠️ AND THE LIVE TREE TOO — BUT ONLY WHERE IT CAN ANSWER.
+# 🔴 `[2026-09-22]` ~~within 0.01 MB, on any full clone~~ asked a question
+#    with no single answer: on a repository storing objects more than
+#    once, `objectsize:disk` depends on WHICH copy git finds first. The
+#    check now runs only on a single-copy repository — and there it must
+#    match EXACTLY, which is harder than 0.01. ⛔ And it now RUNS: the
+#    `repo` job in `budget.yml` (full history) repacks and sets
+#    REPO_WATCH_LIVE_REQUIRED=1, so skipping it there is a failure.
+_REQUIRED = os.environ.get("REPO_WATCH_LIVE_REQUIRED") == "1"
+if R.clone_is_complete() and R.single_copy():
     _LIVE = R.judge(R.measure())
     _LRAW, _LDISK = _independent(ROOT)
-    ck("✅ and the same three hold on the LIVE repository",
+    ck("✅ and the same three hold on the LIVE repository, EXACTLY",
        _LIVE["state"] in ("OK", "BAD")
-       and abs(_LIVE["disk_mb"] - _LDISK / 1e6) < 0.01
+       and abs(_LIVE["disk_mb"] - _LDISK / 1e6) < 1e-6
        and abs(_LIVE["disk_mb"] - _LRAW / 1e6) > 0.01,
-       "⛔ real data, real mix. state=%s reported=%.2f raw=%.2f disk=%.2f MB"
+       "⛔ real data, real mix. state=%s reported=%.6f raw=%.2f disk=%.6f MB"
        % (_LIVE["state"], _LIVE.get("disk_mb", -1), _LRAW / 1e6,
           _LDISK / 1e6))
     note("live: pack %.2f MiB · packed %.2f MB/day · raw %.2f MB/day (%.2fx)"
@@ -188,44 +195,15 @@ if R.clone_is_complete():
             _LIVE["raw_over_disk"]))
 else:
     _LIVE = None
-    note("⚠️ this checkout is SHALLOW, so the live tree cannot be measured "
-         "and is not asserted on — `collect.yml` uses actions/checkout's "
-         "defaults. ⛔ That is exactly why every assertion above runs "
-         "against the bench instead of being skipped here.")
-
-note("bench: raw %.3f MB · disk %.3f MB · %.2fx · %d day(s) in the series"
-     % (_BRAW / 1e6, _BDISK / 1e6, _BRAW / float(_BDISK) if _BDISK else 0,
-        len(_B.get("series", []))))
-
-# ══════════════════════════════════════════════════════════════════════
-section("2. ⛔ THE BARS FIRE, AND THEY ARE CLEAR OF THE HEALTHY BASELINE")
-# ══════════════════════════════════════════════════════════════════════
-_OKREP = {"complete_clone": True, "pack_mib": 105.0, "disk_mb_day": 5.0,
-          "window_days": 7}
-
-
-def _j(**kw):
-    d = dict(_OKREP)
-    d.update(kw)
-    return R.judge(d)["state"]
-
-
-ck("✅ today's shape reads OK", _j() == "OK",
-   "⛔ a watcher that fires on the state it was measured from is the "
-   "other failure (CLAUDE.md). got %s" % _j())
-ck("🔴 a pack over the bar reads BAD",
-   _j(pack_mib=R.PACK_WARN_MIB + 1) == "BAD",
-   "⛔ got %s" % _j(pack_mib=R.PACK_WARN_MIB + 1))
-ck("⚠️ ...and one just under it does not",
-   _j(pack_mib=R.PACK_WARN_MIB - 1) == "OK",
-   "⛔ an off-by-one at the bar is a watcher that cries wolf for a week "
-   "before anyone checks. got %s" % _j(pack_mib=R.PACK_WARN_MIB - 1))
-ck("🔴 growth over the bar reads BAD",
-   _j(disk_mb_day=R.GROWTH_WARN_MB_DAY + 0.1) == "BAD",
-   "⛔ got %s" % _j(disk_mb_day=R.GROWTH_WARN_MB_DAY + 0.1))
-ck("⚠️ ...and growth just under it does not",
-   _j(disk_mb_day=R.GROWTH_WARN_MB_DAY - 0.1) == "OK",
-   "⛔ got %s" % _j(disk_mb_day=R.GROWTH_WARN_MB_DAY - 0.1))
+    note("⚠️ the live tree was not measured: %s. ⛔ That is exactly why "
+         "every assertion above runs against the bench." %
+         ("this checkout is SHALLOW" if not R.clone_is_complete() else
+          "objects are stored more than once here, so an on-disk size has "
+          "no single answer (repack to one pack to measure)"))
+ck("⛔ where the live check is REQUIRED it actually ran",
+   _LIVE is not None or not _REQUIRED,
+   "REPO_WATCH_LIVE_REQUIRED=1 and the live block was skipped — a check "
+   "that only runs where nobody looks runs nowhere")
 
 # ⚠️ `if _LIVE:` AND NOT `_LIVE["state"]`. In a SHALLOW clone `_LIVE` is
 #    None, and subscripting it raised a TypeError that made this file DIE

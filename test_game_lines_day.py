@@ -56,7 +56,7 @@ def _snap(games):
             "commence": commence,
             "books": {b: {"h2h": {"A%d" % i: {"px": px, "pt": None}}}
                       for b, px in (("draftkings", -110), ("fanduel", -105),
-                                    ("betmgm", -120))},
+                                    ("hardrockbet", -120))},
         })
     return {"games": out}
 

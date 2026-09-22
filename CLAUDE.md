@@ -10,28 +10,24 @@ wrong once.** Do not relax one because it looks over-cautious.
 
 ---
 
-## 🔴🔴 MLB IS CLOSED FOR WORK. READ THIS BEFORE THE RULE BELOW.
+## ✅ MLB IS OPEN FOR WORK AGAIN — `[Sam, 2026-09-22]`
 
-**Sam, 2026-09-12: *"we have mlb perfected we dont need to touch it."***
+~~**Sam, 2026-09-12: *"we have mlb perfected we dont need to touch it."***
+DO NOT CHANGE `card.py`, `verify_card.py`, the MLB model, the MLB card, or
+any MLB doc. A LIVE MLB FAILURE IS REPORTED AND LEFT.~~ **SUPERSEDED.**
 
-⛔ **DO NOT CHANGE `card.py`, `verify_card.py`, the MLB model, the MLB
-card, or any MLB doc.** ⚠️ This lived only in Sam's project docs until
-2026-09-14, which meant **an agent working inside this repository — the
-Claude Code GitHub Action, a fresh Actions session — could not see it at
-all.** It is written here so that it binds whoever is reading.
+**Sam, 2026-09-22: *"unfreeze all mlb. anything else thats out of date
+regarding any of the sports should be kept up to date right now and it
+should be kept up to date from now on."***
 
-⚠️ **A LIVE MLB FAILURE IS REPORTED AND LEFT.** Do not fix it, do not open
-a PR for it, do not propose one until Sam asks. ⛔ ***"It was broken so I
-touched it"* is precisely the reasoning this rule exists to refuse** — and
-it is the reasoning that will feel most justified at the moment it
-applies.
-
-✅ **THE DEPLOYED MLB CRONS KEEP RUNNING.** The freeze is on CHANGING MLB,
-not on MLB running. Nothing in the schedule is to be disabled, retimed or
-repriced.
-
-✅ **FOOTBALL (`card_fb.py`, `cfb.py`, `nfl.py`, the football tabs) IS NOT
-FROZEN**, and neither is `index.html`, `watchdog.py` or the test suite.
+✅ **MLB may be changed again** — under every other rule in this file:
+a fix ships with a guard, a check is never weakened, and the rows in
+"What must never change without Sam saying so" still need Sam.
+⚠️ **The model coefficients are still fitted, not tuned** — "unfrozen"
+means the code can be worked on, not that a coefficient may be nudged.
+✅ **"Kept up to date" is automatic, never a manual run.** The MLB pitcher
+and opponent tables are rebuilt by `mlb_tables.py` after every `pitchers`
+pull and carry freshness contract rows.
 
 ---
 
@@ -160,6 +156,7 @@ old one, not easier.**
 | **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. |
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
+| **The payout bands have FLOORS ONLY** | `[Sam, 2026-09-22]` Two-leg 1.8x and up; three- and four-leg 3x and up; **no ceiling** (~~1.8–2.2x / 3–6x~~). Every list is ranked by its chance to land, highest first — Sam: "we still have to make sure the bets we provide have a high % to hit". `PARLAY_BANDS` in `card.py` and `card_fb.py` hold `(floor, None)`; read them through `band_ok()`. |
 | **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
 | **The parlay candidate pool is STRATIFIED BY PRICE** | ⛔ Do not "simplify" it to the N highest-confidence legs. Confidence and price move together, so a confidence-ranked pool of 100 legs had decimal odds of 1.154–1.571 — all short favourites — and the three-leg search returned **zero** parlays on a slate with 2,396 priced legs. Measured 2026-08-26. The pool takes the best legs from each price band for exactly this reason. |
 | **The top-10 price gate (−400)** | Sam's own instruction, 2026-08-26: "likely AND payable". Without it the list fills with −2000 alt rungs that always win and pay nothing. It is a floor like the other two, not a judgment call per slate. |
@@ -168,7 +165,7 @@ old one, not easier.**
 | **The budget is DERIVED, not written down** | `python budget.py` reads the cron schedule out of the workflow and the market lists out of `collect.py` and computes the spend. ⛔ Do not put a credit total in a comment — this project has done it three times and been wrong twice. Run the script. |
 | **Every props pull is scheduled TWICE, 15 minutes apart** | The backup costs **nothing** when the first one landed: `props_is_fresh()` stands it down inside a 45-minute window. GitHub drops scheduled runs — only 29 of 70 gamelines hour-slots produced a file, measured 2026-08-26 — and with three props pulls a day one drop is a third of the board's freshness. ⛔ The guard keys on the STORAGE DIRECTORY, not the region, so a cheap `us2` backup stands down behind a full `us,us2` primary. |
 | **Paid pulls are anchored to the CARDS** | The full two-region pull runs at 14:08–14:28Z, immediately before the 14:46Z card. ⛔ Do not move it later "to be fresher" — a noon pull lands AFTER the morning card, which then falls back to the 4am prices, 6¾ hours stale. |
-| **Five books only** (`BOOKS` in collect.py) | Hard Rock, DraftKings, FanDuel, Caesars (`williamhill_us`), BetMGM. Sam's instruction, 2026-08-23. ⚠️ This SUPERSEDED the earlier "Hard Rock only / `regions=us2`" rule for props — four of the five live in `us`, so props pull `us,us2` and cost double. A price from a book he cannot bet is not a better price. |
+| **Five books for MLB, THREE for football** (`BOOKS`, `FB_BOOK_KEYS` in collect.py) | MLB: Hard Rock, DraftKings, FanDuel, Caesars (`williamhill_us`), BetMGM — Sam, 2026-08-23. **Football: Hard Rock, FanDuel, DraftKings only — Sam, 2026-09-22 ("just use those three").** `league_books()` is the one filter. Hard Rock's Ohio skin is the same book and is never counted twice. ⚠️ Props still pull `us,us2`; books are free inside a region, so this changes what is shown, not what is spent. A price from a book he cannot bet is not a better price. |
 | **`picks/<date>.json` already written** | Published estimates are a permanent record. ⛔ Never edit or delete one after its games have started. |
 
 ## Things that are true and easy to get wrong
@@ -457,6 +454,15 @@ runs_report.py    did any workflow run fail?
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a
                   gzip, 560x) and never into `picks/`.
+push_retry.sh     the ONE way a workflow lands its commits: rebase
+                  favouring this run's files, abort + replay on a
+                  conflict, exit 1 after 5 tries. ⛔ Never hand-roll a
+                  pull/push loop again — a half-done rebase lost whole
+                  converge passes (and paid pulls) 09-15 → 09-21.
+mlb_tables.py     the MLB pitcher + opponent tables, rebuilt after every
+                  `pitchers` pull from the FULL starter population.
+                  ⛔ card.py reads `model_pitchers()`, never the widened
+                  pool, so the card's numbers do not move.
 vacuity.py        does each guard actually bite? ⛔ It MUTATES SOURCE
                   FILES while it runs — never edit the repo during a
                   sweep, and never run two at once.

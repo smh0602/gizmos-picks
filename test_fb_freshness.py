@@ -38,7 +38,20 @@ fails = []
 
 print("\n1. ⛔ MLB IS NOT TOUCHED BY ANY OF THIS")
 mlb = F.contract(data="data", picks="picks")
-eq(len(mlb), 13, "MLB still has exactly its 13 rows")
+# 🔴 `[2026-09-22]` 13 -> 14, DELIBERATELY: MLB was unfrozen by Sam and the
+#    Track Record drill-down (`record-detail.json.gz`) gained its row. The
+#    pin still exists so any OTHER change to MLB's contract is a decision.
+# 🔴 `[2026-09-22]` 14 -> 16, DELIBERATELY: the pitchers mode now chains
+#    `mlb_tables.py`, and its two JSON artifacts (`pitcher-table.json`,
+#    `opponent-table.json`) gained rows at the pitchers deadline. Any
+#    OTHER change to MLB's contract is still a decision.
+eq(len(mlb), 16, "MLB has exactly its 16 rows")
+ck(any(p == "data/latest/record-detail.json.gz" for _m, (_k, p), *_ in mlb),
+   "   ...and the MLB drill-down is one of them")
+for _tab in ("pitcher-table.json", "opponent-table.json"):
+    ck(any(m == "pitchers" and p == "data/latest/" + _tab
+           for m, (_k, p), *_ in mlb),
+       "   ...and %s is owned by the pitchers mode" % _tab)
 ck(all(len(t) == 2 for _m, _p, times, _pd, _w in mlb for t in times),
    "🔴 no MLB deadline carries a day filter — they are all daily")
 

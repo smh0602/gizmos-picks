@@ -920,7 +920,9 @@ ck("the price gate actually excluded something, and the card says how much",
 print("\n34. PARLAYS -- recomputed leg by leg")
 _PL = doc.get('parlays') or {}
 _all_p = [p for k in _PL for p in _PL[k]]
-_BANDS = {'2': (1.80, 2.20), '3': (3.00, 6.00), '4': (3.00, 6.00)}
+# 🔴 `[Sam, 2026-09-22]` floors only — 2-leg 1.80+, 3/4-leg 3.00+, no
+#    ceiling. ⛔ Recomputed from the prices below, never read from the card.
+_BANDS = {'2': (1.80, None), '3': (3.00, None), '4': (3.00, None)}
 
 
 def _dec(a):
@@ -932,7 +934,8 @@ ck(f"every parlay's leg count matches its own n_legs ({len(_all_p)} parlays)",
    all(len(p['legs']) == p['n_legs'] == len(p['prices']) == len(p['game_ids'])
        for p in _all_p))
 _band_bad = [(k, p['multiplier']) for k in _PL for p in _PL[k]
-             if not (_BANDS[k][0] <= p['multiplier'] <= _BANDS[k][1])]
+             if not (_BANDS[k][0] <= p['multiplier']
+                     and (_BANDS[k][1] is None or p['multiplier'] <= _BANDS[k][1]))]
 ck("every parlay pays inside the band its section advertises",
    not _band_bad, str(_band_bad[:3]))
 # 🔴 RECOMPUTED FROM THE AMERICAN PRICES, not read back from `decimals`.

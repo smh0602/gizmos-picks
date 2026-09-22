@@ -912,6 +912,12 @@ def _football_contract(league, data, picks, now):
         rows.append(
             ("fb-record", ("file", f"{latest}/record.json"), T["grade"], False,
              "Track Record — the board's own graded record"))
+        # 🔴 `[2026-09-22]` THE PAGE READS THE DRILL-DOWN TOO, through a
+        #    variable, so `test_page_contract.py`'s literal-argument scan
+        #    never saw it. Same writer (`record_fb.py`), same deadline.
+        rows.append(
+            ("fb-record", ("file", f"{latest}/record-detail.json.gz"), T["grade"], False,
+             "Track Record — the per-pick drill-down"))
     # ⛔ AND AN ARTIFACT THAT CANNOT EXIST YET IS NOT LATE EITHER. Before
     # a league's first paid pull there is no props board, so there is no
     # card either -- neither is a defect and neither is repairable by any
@@ -952,10 +958,22 @@ def contract(data="data", picks="picks", now=None):
          "Track Record — the finished slate the grader reads"),
         ("pitchers", ("file", f"{latest}/pitchers.json.gz"),       GRADING, False,
          "Trends — pitcher game logs, every model input"),
+        # 🔴 `[2026-09-22]` the published pitcher and opponent tables.
+        #    Same writer (`collect.py` pitchers mode chains `mlb_tables`),
+        #    same deadline. ⚠️ A table failure is caught so it cannot lose
+        #    the pull -- THESE rows are what make that failure loud.
+        ("pitchers", ("file", f"{latest}/pitcher-table.json"),     GRADING, False,
+         "MLB pitcher table — rebuilt from the pitcher logs"),
+        ("pitchers", ("file", f"{latest}/opponent-table.json"),    GRADING, False,
+         "MLB opponent table — rebuilt from the pitcher logs"),
         ("hitters",  ("file", f"{latest}/hitters.json.gz"),        GRADING, False,
          "Trends — hitter game logs"),
         ("record",   ("file", f"{latest}/record.json"),            GRADING, False,
          "Track Record — the graded record itself"),
+        # 🔴 `[2026-09-22, MLB unfrozen]` the drill-down the Track Record
+        #    tab opens. Same writer (`collect.py` record mode), same deadline.
+        ("record",   ("file", f"{latest}/record-detail.json.gz"),  GRADING, False,
+         "Track Record — the per-pick drill-down"),
         # ── 7:00am and 4:00pm — the paid pulls
         ("gamelines", ("file", f"{latest}/board.json"),            ODDS, True,
          "Odds + Scores & Matchups — moneylines, spreads, totals"),

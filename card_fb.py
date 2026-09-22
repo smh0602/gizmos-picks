@@ -913,10 +913,16 @@ def empty_top_plays_sentence(slate, n_board):
 #    ATL -1.5 while two posted the same game inverted, and matching on
 #    |point| paired opposite bets. A comparison group is therefore keyed
 #    on (market, side, SIGNED point) and never on the absolute value.
-# 🔒 SAM'S FIVE BOOKS. ⛔ A RESTATEMENT IS A RULE 66 HAZARD, so it is
-#    CHECKED against `collect.py` by the test rather than trusted.
-GL_BOOKS = {"hardrockbet", "hardrockbet_oh", "draftkings", "fanduel",
-            "williamhill_us", "betmgm"}
+# 🔒 SAM'S FOOTBALL BOOKS — ~~five~~ THREE since 2026-09-22 (Sam: "just use
+#    those three": Hard Rock, FanDuel, DraftKings). ⛔ A RESTATEMENT IS A
+#    RULE 66 HAZARD, so it is CHECKED against `collect.FB_BOOK_KEYS` by the
+#    test rather than trusted.
+GL_BOOKS = {"hardrockbet", "hardrockbet_oh", "draftkings", "fanduel"}
+# ⚠️ Hard Rock's Ohio skin is THE SAME BOOK. With three books a pair of
+#    Hard Rock skins would otherwise count as two of the three quotes a
+#    comparison needs, so the count is of distinct BOOKS, not keys.
+GL_BOOK_NAME = {"hardrockbet": "Hard Rock", "hardrockbet_oh": "Hard Rock",
+                "draftkings": "DraftKings", "fanduel": "FanDuel"}
 SHOP_MIN_BOOKS = 3
 GAME_LINES_N = 15
 
@@ -1007,7 +1013,7 @@ def build_game_lines(snapshot, n=GAME_LINES_N, slate=None):
                     groups[(market, side, o.get("pt"))].append((bk, o["px"], o))
         best_row = None
         for (market, side, pt), quotes in groups.items():
-            if len(quotes) < SHOP_MIN_BOOKS:
+            if len({GL_BOOK_NAME.get(b, b) for b, _, _ in quotes}) < SHOP_MIN_BOOKS:
                 continue
             meta["comparable_quotes"] += 1
             prices = sorted(_gl_decimal(p) for _, p, _ in quotes)
@@ -2242,7 +2248,20 @@ def no_rate_reason(rates_ok, plog, who, market=None, season=None):
 # ⚠️ THE BANDS ARE SAM'S AND THEY ARE THE SAME NUMBERS AS `card.py`'s.
 # ⛔ Restating them is a rule 66 hazard, so `test_card_fb.py` asserts the
 # two files agree rather than trusting that they do.
-PARLAY_BANDS = {2: (1.80, 2.20), 3: (3.00, 6.00), 4: (3.00, 6.00)}
+# 🔴 `[Sam, 2026-09-22]` NO UPPER LIMIT: 2-leg 1.80+, 3/4-leg 3.00+,
+#    ranked by joint (chance to land). Same numbers as `card.py`, checked
+#    by `test_card_fb.py` rather than trusted. `None` = no ceiling.
+PARLAY_BANDS = {2: (1.80, None), 3: (3.00, None), 4: (3.00, None)}
+
+
+def band_ok(mult, band):
+    lo, hi = band
+    return mult >= lo and (hi is None or mult <= hi)
+
+
+def band_text(band):
+    lo, hi = band
+    return f"{lo:g}x+" if hi is None else f"{lo:g}x-{hi:g}x"
 PARLAY_STRATA = [(1.00, 1.30), (1.30, 1.60), (1.60, 2.00),
                  (2.00, 3.00), (3.00, 99.0)]
 PARLAY_PER_STRATUM = 12
@@ -2300,7 +2319,7 @@ def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
             mult = 1.0
             for c in combo:
                 mult *= decimal_odds(c["price"])
-            if not (lo <= mult <= hi):
+            if not band_ok(mult, (lo, hi)):
                 rejects["out_of_band"] += 1
                 continue
             joint = 1.0
@@ -2315,7 +2334,7 @@ def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
                 "prices": [c["price"] for c in combo],
                 "multiplier": round(mult, 3),
                 "n_legs": size,
-                "band": f"{lo:g}x-{hi:g}x",
+                "band": band_text((lo, hi)),
                 "joint": round(100 * joint, 1),
                 "joint_basis": "RECORD",
                 "joint_note": (

@@ -287,7 +287,9 @@ def _measure(pattern, day_at):
     for _p in _glob.glob(os.path.join(ROOT, pattern)):
         try:
             with _gzip.open(_p, "rt") as _fh:
-                _u = _json.load(_fh).get("credits_used")
+                _dd = _json.load(_fh)
+            # 🔴 the first-half totals bill rides on the same snapshot
+            _u = (_dd.get("credits_used") or 0) + (_dd.get("half_total_credits") or 0)
         except Exception:
             continue
         if _u:
@@ -395,8 +397,9 @@ for _lg in ("ncaaf", "nfl"):
             _d = _json.load(_gzip.open(_p, "rt"))
         except (OSError, EOFError, ValueError):
             continue
-        if _d.get("credits_used"):
-            _by_mode[(_lg, _parts[-2])] += _d["credits_used"]
+        _spent = (_d.get("credits_used") or 0) + (_d.get("half_total_credits") or 0)
+        if _spent:
+            _by_mode[(_lg, _parts[-2])] += _spent
 if _by_mode:
     print("\n💰 WHERE IT ACTUALLY WENT — measured per mode, all time")
     print("   ⛔ converge means the cron that DECLARES a mode is often not "

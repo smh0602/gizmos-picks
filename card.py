@@ -1505,7 +1505,27 @@ def build_top10(plays, hitters, n=TOP10_N):
 # ⛔ THE 1.80 FLOOR IS UNCHANGED AND IS STILL NEVER CROSSED. What is new
 # is an UPPER bound on the two-leg list, which is also his instruction --
 # a 4x two-man is not a better two-man, it is a different bet.
-PARLAY_BANDS = {2: (1.80, 2.20), 3: (3.00, 6.00), 4: (3.00, 6.00)}
+# 🔴🔴 `[Sam, 2026-09-22]` NO UPPER LIMIT ANY MORE. ~~2-leg 1.80-2.20,
+#    3/4-leg 3.00-6.00~~ -> "we can make it 1.8- unlimited, but we still
+#    have to make sure the bets we provide have a high % to hit", and
+#    "the minimum for 2 mans to be 1.8, for anything over 2man parlays
+#    ... the minimum to be 3x". ⛔ The FLOORS are unchanged and are still
+#    never crossed. ✅ The ceiling was what forced the search toward
+#    longer prices; with it gone every list is still ranked by JOINT
+#    PROBABILITY (highest first), which is Sam's "high % to hit".
+#    `None` = no ceiling. Read through `band_ok()` / `band_text()`.
+PARLAY_BANDS = {2: (1.80, None), 3: (3.00, None), 4: (3.00, None)}
+
+
+def band_ok(mult, band):
+    """Is a multiplier inside a (floor, ceiling-or-None) band?"""
+    lo, hi = band
+    return mult >= lo and (hi is None or mult <= hi)
+
+
+def band_text(band):
+    lo, hi = band
+    return f"{lo:g}x+" if hi is None else f"{lo:g}x-{hi:g}x"
 # ⛔ The pairs path reads the two-leg band from here rather than
 #    carrying a third copy of the numbers (settled 2026-09-11).
 _P2_LO, _P2_HI = PARLAY_BANDS[2]
@@ -1571,7 +1591,7 @@ def build_parlays(plays, hitters, per_size=8):
             mult = 1.0
             for c in combo:
                 mult *= decimal(c["price"])
-            if not (lo <= mult <= hi):
+            if not band_ok(mult, (lo, hi)):
                 continue
             joint = 1.0
             for c in combo:
@@ -1594,7 +1614,7 @@ def build_parlays(plays, hitters, per_size=8):
                 "decimals": [round(decimal(c["price"]), 3) for c in combo],
                 "multiplier": round(mult, 3),
                 "n_legs": size,
-                "band": f"{lo:g}x-{hi:g}x",
+                "band": band_text((lo, hi)),
                 # ══════════════════════════════════════════════════════
                 # 🔴 THE FLAG IS COMPUTED FROM THE BAND IT PRINTS. `[the
                 #    contradiction every grading run has re-reported since
@@ -1625,8 +1645,8 @@ def build_parlays(plays, hitters, per_size=8):
                 #    ledger says so on the rows. This governs cards built
                 #    from today forward.
                 # ══════════════════════════════════════════════════════
-                "in_band": lo <= mult <= hi,
-                "label": ("IN BAND" if (size == 2 and lo <= mult <= hi)
+                "in_band": band_ok(mult, (lo, hi)),
+                "label": ("IN BAND" if (size == 2 and band_ok(mult, (lo, hi)))
                           else "ABOVE BAND" if size == 2 else f"{size}-LEG"),
                 "joint": round(100 * joint, 1),
                 "joint_basis": basis,
@@ -1764,8 +1784,8 @@ def build_pairs(plays, limit=8):
                 #    2026-08-26 instruction (1.80-2.20) and what ledger
                 #    rule 28 owns. ⛔ A label, not a filter: `mult < FLOOR`
                 #    above is what suppresses, and it is untouched.
-                "in_band": _P2_LO <= mult <= _P2_HI,
-                "label": ("IN BAND" if _P2_LO <= mult <= _P2_HI
+                "in_band": band_ok(mult, PARLAY_BANDS[2]),
+                "label": ("IN BAND" if band_ok(mult, PARLAY_BANDS[2])
                           else "ABOVE BAND"),
                 "joint": round(100 * joint, 1),
                 "leg_blends": [a["blend"], b["blend"]],
@@ -2219,7 +2239,11 @@ def main(dry=False):
           f"{ {b: (c['n'], c['delta']) for b, c in CAL.items()} or 'NONE'}")
     P = load(f"{LATEST}/pitchers.json.gz", gz=True)
     B = load(f"{LATEST}/props.json.gz", gz=True)
-    players = P["players"]
+    # 🔴 THE MODEL POOL ONLY. The pull also carries starters under the
+    # 20-IP bar (`below_min_ip`) for the published tables; letting them in
+    # here moves the opponent table and its centering constant -- a model
+    # change. ONE filter, in collect.py (rule 117).
+    players = _c.model_pitchers(P["players"])
     # Hitter game logs. Used ONLY for the RBI projection's dispersion --
     # never for a rate, never for a price. Its absence costs the RBI
     # projection and nothing else, so it is not fatal.
@@ -2621,10 +2645,10 @@ def main(dry=False):
         "parlays": parlays,
         "parlay_meta": parlay_meta,
         "parlay_rule": (
-            "Two-leg combinations pay 1.8x-2.2x and three- and four-leg "
-            "combinations pay 3x-6x -- Sam's bands, 2026-08-26. The 1.80 "
-            "floor is unchanged and is still never crossed; the UPPER bound "
-            "on two-mans is new and is also his instruction. Legs are Hard "
+            "Two-leg combinations pay 1.8x or more and three- and four-leg "
+            "combinations pay 3x or more, with no upper limit -- Sam's "
+            "bands, 2026-09-22. The floors are never crossed, and every list "
+            "is ranked by its chance to land, highest first. Legs are Hard "
             "Rock only (the only book of the five that multiplies), never "
             "below the -700 price floor, and always in DIFFERENT GAMES "
             "checked on GAME ID rather than on opponent name (ledger rule "

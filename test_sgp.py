@@ -114,13 +114,15 @@ ck("🔴 no published slip's upper bound is under Sam's floor",
    all(r["multiplier"] >= C.PARLAY_BANDS[r["n_legs"]][0] - 1e-9 for r in flat),
    "the 1.8x floor is Sam's standing instruction (CLAUDE.md) and a slip "
    "whose BEST case misses it can never pay it")
-over = [r["multiplier"] for r in flat if r["multiplier"] > hi2 and r["n_legs"] == 2]
-ck("✅ ...and the ceiling is deliberately NOT enforced",
+# 🔴 `[Sam, 2026-09-22]` THERE IS NO CEILING ANY MORE ("1.8- unlimited"),
+#    so the one-sided rule below is now simply the rule.
+ck("🔴 the two-leg band has no ceiling",
+   hi2 is None, "PARLAY_BANDS[2] = %s" % (C.PARLAY_BANDS[2],))
+ck("✅ ...and no ceiling is enforced on a same-game slip",
    meta.get("ceiling_applied") is False,
-   "⛔ this is the half that looks like a bug and is not. %d two-leg "
-   "slip(s) sit above the %gx ceiling as UPPER bounds; the discounted "
-   "slip may well land inside it, and excluding on a number we do not "
-   "hold would be inventing one." % (len(over), hi2))
+   "⛔ an upper bound above any ceiling may sit inside it once the book "
+   "discounts, and excluding on a number we do not hold would be "
+   "inventing one")
 
 print("\n═══ 4. 🔴 EVERY LEG OF ONE SLIP IS ONE GAME AND ONE BOOK ═══")
 

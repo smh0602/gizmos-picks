@@ -2573,9 +2573,9 @@ async function renderParlays(){
     .filter(p => showStarted || !p.commence || new Date(p.commence) > new Date())
     .map(p => p.game));
 
-  const TITLES = {'2': 'Two-leg &mdash; pays 1.8x to 2.2x',
-                  '3': 'Three-leg &mdash; pays 3x to 6x',
-                  '4': 'Four-leg &mdash; pays 3x to 6x'};
+  const TITLES = {'2': 'Two-leg &mdash; pays 1.8x or more',
+                  '3': 'Three-leg &mdash; pays 3x or more',
+                  '4': 'Four-leg &mdash; pays 3x or more'};
   let any = 0;
   ['2','3','4'].forEach(size => {
     const rows = (PL[size] || []).filter(x => !x.games || x.games.every(g => live.has(g)));
@@ -4732,9 +4732,9 @@ async function fbParlays(){
      number here is the player's OWN RECORD and the combined figure is
      those records multiplied. It is labelled RECORD, never MODEL. */
   const PL = (C && C.parlays) || {};
-  const TITLES = {'2': 'Two-leg &mdash; pays 1.8x to 2.2x',
-                  '3': 'Three-leg &mdash; pays 3x to 6x',
-                  '4': 'Four-leg &mdash; pays 3x to 6x'};
+  const TITLES = {'2': 'Two-leg &mdash; pays 1.8x or more',
+                  '3': 'Three-leg &mdash; pays 3x or more',
+                  '4': 'Four-leg &mdash; pays 3x or more'};
   const head = `<div style="margin-bottom:10px">
       <h2 style="margin:0 0 4px;font-size:16px">Parlays
         <span class="kind k-record">Record</span></h2>

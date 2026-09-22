@@ -70,10 +70,6 @@ EXEMPT = {
         "MLB. ⛔ FROZEN, and already covered by the `card` row for the "
         "current slate; older days are the permanent record, which is "
         "never rewritten and therefore never late",
-    "data/latest/record-detail.json.gz":
-        "MLB. The Track Record drill-down. ⛔ NOT ADDED: the freeze "
-        "forbids new scheduled checks that read MLB state, and this "
-        "would be one. Reported to Sam instead of decided by a diff",
     "data/nfl/latest/teams.json":
         "fetched by the page for BOTH leagues and NOTHING WRITES IT — "
         "only college has a `cfb-teams` writer. A row would be red "
@@ -95,6 +91,20 @@ def page_paths():
             r"""(?:jgetGz|jget|fetch)\(\s*(['"`])"""
             r"""((?:data/|picks/|\$\{LG_DATA\[)[^'"`]*)\1""",
             src):
+        out.add(m.group(2))
+    # 🔴 AND ANY PATH-SHAPED LITERAL, NOT ONLY A DIRECT FETCH ARGUMENT.
+    #    `[measured 2026-09-22]` the Track Record drill-down is fetched
+    #    through a variable — `const path = ... || `${LG_DATA[lg]}/latest/
+    #    record-detail.json.gz``; `jgetGz(path)` — so the pattern above
+    #    never saw it and nothing in the contract covered it.
+    for m in re.finditer(
+            r"""(['"`])((?:data/|picks/|\$\{LG_DATA\[)[^'"`\s<>]*\.json(?:\.gz)?)\1""",
+            src):
+        # ⚠️ a literal still carrying a JS placeholder other than the
+        #    league map and the season is a fragment `fbPath()` expands
+        #    below — not a path.
+        if re.search(r"\$\{(?!LG_DATA\[|season\})", m.group(2)):
+            continue
         out.add(m.group(2))
     # `fbPath()` builds its own; take both stems it can return
     if "function fbPath" in src:

@@ -84,7 +84,7 @@ out, _ = run(snapshot([
         {"key": MK, "outcomes": [outcome("Ja'Marr Chase", "Over", 65.5, -130)]}]},
     {"key": "fanduel", "title": "FD", "markets": [
         {"key": MK, "outcomes": [outcome("Ja'Marr Chase", "Over", 65.5, -110)]}]},
-    {"key": "betmgm", "title": "MGM", "markets": [
+    {"key": "hardrockbet", "title": "HR", "markets": [
         {"key": MK, "outcomes": [outcome("Ja'Marr Chase", "Over", 65.5, -125)]}]},
 ]))
 over = out["games"][0]["props"][0]["sides"]["over"]
@@ -103,17 +103,21 @@ u = out["games"][0]["props"][0]["sides"]["under"]
 eq(u["price"], 115, "+115 beats -105")
 eq(u["book"], "hardrockbet", "named the book")
 
-print("\n3. ⛔ a book outside Sam's five cannot win, or even be counted")
+print("\n3. ⛔ a book outside Sam's three football books cannot win, or even be counted")
 out, _ = run(snapshot([
     {"key": "draftkings", "title": "DK", "markets": [
         {"key": MK, "outcomes": [outcome("B. Player", "Over", 55.5, -120)]}]},
     # ⚠️ bovada offers a BETTER price and must be ignored entirely
     {"key": "bovada", "title": "Bovada", "markets": [
         {"key": MK, "outcomes": [outcome("B. Player", "Over", 55.5, 105)]}]},
+    # 🔴 `[2026-09-22]` and so must BetMGM: football is Hard Rock,
+    #    FanDuel and DraftKings only (Sam: "just use those three").
+    {"key": "betmgm", "title": "MGM", "markets": [
+        {"key": MK, "outcomes": [outcome("B. Player", "Over", 55.5, 110)]}]},
 ]))
 o = out["games"][0]["props"][0]["sides"]["over"]
 eq(o["price"], -120, "🔴 the better outside price is NOT used")
-eq(o["book"], "draftkings", "the five-book price wins")
+eq(o["book"], "draftkings", "the in-set price wins")
 eq(o["n_books"], 1, "and the outside book is not counted")
 eq("bovada" in out["books_seen"], True, "  ...but it IS reported as seen")
 
