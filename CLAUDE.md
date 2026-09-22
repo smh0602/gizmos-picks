@@ -513,6 +513,14 @@ card_gate.py      did the card fail for a reason Sam already accepted?
 OWED TESTS (pre-registered, not adopted)
 t54.py            should a record against a line never faced be RANKED?
 t58_t59.py        the two owed tests, accumulating themselves
+t60r.py           the played-games backtest of signals 1-8, run to the
+                  rule Sam APPROVED on 2026-09-22 in
+                  `research/t60r_spec.md`. ⛔ That rule and its bar are
+                  FROZEN and hashed by `test_prereg_gate.py` — weekly
+                  grading adds games, never a new threshold. Modes:
+                  `lines` (CFBD closing lines, needs the repo secret)
+                  and `grade`. ⛔ The verdict is the COMBINED number;
+                  2025 and 2026 are reported beside it, never as it.
 
 SHARED HELPERS — ⛔ ONE COPY EACH. Rule 117: a helper duplicated breaks
 in the file you did not edit.
