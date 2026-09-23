@@ -45,6 +45,7 @@ and only the second half catches that.
 # ══════════════════════════════════════════════════════════════════════
 
 import atexit
+import collections
 import glob
 import os
 import re
@@ -53,6 +54,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 from tcheck import ck, note, section
 
@@ -418,8 +420,16 @@ ck("🔴🔴 a throwaway worktree was created for the real sweep",
 
 if _swept_root:
     _before = V._porcelain(_swept_root)
-    _real2 = V.tier2(_swept_root)
+    # ⚠️ THE SWEEP RUNS IN `V.JOBS` TREES AT ONCE (`test_vacuity_pool.py`
+    #    is that pool's guard). A worker tree left modified is a leak exactly
+    #    like this one left modified, so it is folded into the same verdict.
+    _wleaks = []
+    _t0 = time.time()
+    _real2 = V.tier2(_swept_root, leaks=_wleaks)
+    _elapsed = time.time() - _t0
     _ok, _dirt = V.leaked(_before, _swept_root)
+    if _wleaks:
+        _ok, _dirt = False, "%s\n%s" % (_dirt, "\n".join(_wleaks))
 else:
     # ⛔ NO WORKTREE, NO SWEEP. Sweeping `ROOT` is the hazard this block
     #    exists to remove; running it anyway and reporting it afterwards
@@ -429,7 +439,7 @@ else:
     #    down. This is the same answer for a tree that was never created.
     # ⚠️ AND THE CHECKS BELOW GOING RED IS CORRECT, NOT COLLATERAL:
     #    nothing was measured, so nothing may be reported as a pass.
-    _before, _real2 = None, []
+    _before, _real2, _elapsed = None, [], 0.0
     _ok, _dirt = False, ["the sweep was REFUSED: no worktree"]
 ck("🔴🔴 the harness leaves NOTHING behind after mutating real files",
    _ok,
@@ -523,6 +533,27 @@ ck("🔴🔴 the issue-in-place mutation turns it red too",
 note("tier 2 currently covers %d declared mutation(s); tier 1 covers %d "
      "name-mapped pair(s); %d test file(s) are unmapped and reported every "
      "run." % (len(_real2), len(V.name_map(ROOT)), len(_um)))
+
+# ⚠️ WHERE THE SWEEP'S TIME WENT, printed every run. `[2026-09-23]` The
+#    serial sweep reached 2401s against a 2400s clock and nothing had
+#    ever said which test files it was spending on.
+_cost = collections.Counter()
+for _r in _real2:
+    _cost[_r["test"]] += _r.get("secs") or 0
+_m = re.search(r"test_vacuity\.py\)\s*echo (\d+)",
+               open(os.path.join(ROOT, ".github", "workflows", "pr-tests.yml"),
+                    encoding="utf-8").read())
+_clock = int(_m.group(1)) if _m else None
+note("the sweep took %ds wall in %d tree(s) (clock %ss); per-run total %ds. "
+     "Costliest: %s"
+     % (_elapsed, V.JOBS, _clock, sum(_cost.values()),
+        ", ".join("%s %ds" % kv for kv in _cost.most_common(5))))
+if _clock and _elapsed > _clock / 2:
+    # ⛔ A WARNING, NOT A FAILURE. Failing at half the clock would halve the
+    #    clock, which `test_suite_clock.py` forbids. It is here so the next
+    #    slow runner is seen coming instead of met as a TIMEOUT.
+    print("::warning::test_vacuity.py's sweep used %ds of its %ds clock"
+          % (_elapsed, _clock))
 
 section("5. 🔴🔴 THE EXIT CODE IS THE WHOLE INTERFACE, SO IT IS DRIVEN")
 # ⛔ `main()` USED TO CLASSIFY INLINE AND NOTHING COULD REACH IT.
