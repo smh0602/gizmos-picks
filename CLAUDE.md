@@ -137,7 +137,7 @@ its way in.**
 changed the workflow's `cron:` block.** Every one of them depends on that
 user staying a human with write access.
 
-<!-- CRON TOTAL: 55 -->
+<!-- CRON TOTAL: 56 -->
 ⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
 counts every `- cron:` line in `.github/workflows/` and fails if this
 comment disagrees. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
