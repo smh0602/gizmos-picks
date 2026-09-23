@@ -1,20 +1,30 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-22T23:35:22Z",
+ "checked_at": "2026-09-23T00:54:33Z",
  "et_date": "2026-09-22",
- "healthy": true,
- "broken": 0,
+ "healthy": false,
+ "broken": 1,
  "degraded": 0,
- "findings": [],
+ "findings": [
+  {
+   "key": "verify:mlb",
+   "severity": "BROKEN",
+   "what": "the mlb card was BUILT and then REFUSED, so nothing published",
+   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (29 rows, zero tolerance -- stricter than T37's 5%)  [('Jonah Heim', 'batter_rbis', 'under', 0.5, 71, 0.6)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (29 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (29 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
+   "repair": null
+  }
+ ],
  "repairs": [],
- "unrepairable": [],
+ "unrepairable": [
+  "verify"
+ ],
  "credits": {
   "state": "HEALTHY",
   "balance": 7393,
   "pulled_at": "2026-09-22T22:43:55Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.9,
+  "reading_age_hours": 2.2,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-09-22T22:43:55Z",
   "source": "data/ncaaf/2026-09-22/gamelines/2243.json.gz",
