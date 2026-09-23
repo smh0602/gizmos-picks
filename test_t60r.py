@@ -21,6 +21,11 @@ only way to see PASS before the real data can reach the floor.
 #   file: t60r.py
 #   find:     past = [x for x in past_all if kick(x) < k]
 #   with:     past = list(past_all)
+#
+# @vacuity a provider spelled two ways must still be one book
+#   file: t60r.py
+#   find:     return "".join(ch for ch in str(name or "").lower() if ch.isalnum())
+#   with:     return str(name or "")
 """
 import gzip
 import json
@@ -244,3 +249,34 @@ finally:
 note("⚠️ `docs/upload/t60r.yml` is NOT in `.github/workflows/` until Sam "
      "uploads it by hand, so the live budget counts 0 for it until then — "
      "correct, not a gap: an unuploaded workflow spends nothing.")
+
+# ══════════════════════════════════════════════════════════════════════
+# 7. EVERY PROVIDER IN THE STORED PULL IS ONE THE ORDER RECOGNISES
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 `[2026-09-22, the first real run]` CFBD spells one book two ways —
+#    "DraftKings" and "Draft Kings" — and an exact-string match sent 423
+#    lines of the second to the back of the queue. ⛔ THE CLASS: any name
+#    in the pull that ranks as unknown is a line demoted without anyone
+#    deciding it. Driven against the REAL stored pull, so a new spelling
+#    in a future weekly run turns this red — which is correct: it is a
+#    silent change to which price a game is graded at.
+_lines = os.path.join(ROOT, "data", "t60r", "cfbd-lines.json.gz")
+ck("⛔ 'Draft Kings' and 'DraftKings' rank as one book",
+   t60r.provider_rank("Draft Kings") == t60r.provider_rank("DraftKings")
+   < len(t60r.PROVIDER_ORDER))
+ck("⛔ ...and a book the order never named still ranks LAST, not first",
+   t60r.provider_rank("Some New Book") == len(t60r.PROVIDER_ORDER))
+if os.path.exists(_lines):
+    with gzip.open(_lines, "rt", encoding="utf-8") as f:
+        _seen = json.load(f).get("providers_seen") or {}
+    _unknown = sorted(p for p in _seen
+                      if t60r.provider_rank(p) == len(t60r.PROVIDER_ORDER))
+    ck("🔴🔴 every provider in the stored CFBD pull is recognised",
+       bool(_seen) and not _unknown,
+       "⛔ unrecognised: %r (seen %r). ⛔ Do NOT add a name to the order "
+       "after grading without Sam — a new spelling of a KNOWN book is an "
+       "alias; a genuinely new book changes which price games are graded "
+       "at, and that is his call." % (_unknown, _seen))
+else:
+    note("⚪ data/t60r/cfbd-lines.json.gz not in this tree yet; the "
+         "provider check runs once the weekly job has pulled lines.")

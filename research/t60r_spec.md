@@ -41,7 +41,7 @@ edge".
 | Markets | **Full-game spread and total only.** No props: we hold no 2025 prop prices. |
 | One row | One game, one market, **one side**. Never both sides. That is exactly the fault that stops T60 passing. |
 | Price | The closing line. NFL: nflverse (`closing_spread`, `closing_total`, already stored for 285/285 games in 2025 and 32/32 finals in 2026). FBS: CFBD `/lines`, about 20–25 calls, free tier. |
-| FBS line source | CFBD returns several providers per game. ⛔ The provider order is fixed **from the provider LIST the first call returns** (names only, no scores read) and written here before any grading. |
+| FBS line source | CFBD returns several providers per game. ⛔ The provider order is fixed **from the provider LIST the first call returns** (names only, no scores read) and written here before any grading. ~~(order not yet written)~~ **Observed on the first pull, 2026-09-22: ESPN Bet 1,542 lines · DraftKings 1,268 · Bovada 1,200 · "Draft Kings" 423** (one book, two spellings). **Order, as committed in code before any grading: DraftKings → Bovada → ESPN Bet.** "consensus", "teamrankings" and "numberfire" were in the typed order and never appear; they change nothing. ⚠️ See the changelog: this was written into the code, not here, and the spelling split was missed. |
 | Spread sign | ⛔ Not assumed. The favourite by closing moneyline lays the points (CLAUDE.md, `run_line`). A game where the spread's sign disagrees with the moneyline is VOID, and counted. |
 | Push | VOID. Out of every denominator. |
 | Break-even | −110 (52.38%) for every row, the same as T60. |
@@ -167,6 +167,19 @@ until approval.
 
 ## Changelog
 
+- **2026-09-22 (first run):** ⚠️ **MISTAKE, and its root cause.** The
+  provider order was typed from memory into `t60r.py` instead of being
+  read off the first pull and written into section 1, as section 1
+  required. CFBD spells one book two ways ("DraftKings" / "Draft Kings"),
+  and an exact-string match ranked the 423 "Draft Kings" lines last, so
+  some games were priced from ESPN Bet or Bovada when a DraftKings line
+  existed. Root cause: two labels compared as raw strings without first
+  confirming they name the same thing. Fixed by comparing names
+  spelling-insensitively; `test_t60r.py` now fails if the stored pull
+  holds any provider the order does not recognise. The ORDER itself is
+  unchanged. No hit rate was looked at before or during the fix, and the
+  first run's verdict (NOT YET MEASURABLE) cannot have been affected in
+  kind.
 - **2026-09-22 (later):** ✅ **APPROVED BY SAM** — direction rule as
   written, bar option B, and the three-way reporting rule in section 3a
   added as part of the approval. Frozen from this point: weekly grading
