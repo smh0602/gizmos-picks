@@ -42,9 +42,15 @@ declarations of its own — the nightly sweep proves each check here bites.
 #   file: vacuity.py
 #   find:         tr = free.get()
 #   with:         tr = root
+#
+# @vacuity 🔴 the nightly job's clock may not fall below the PR's sweep clock
+#   file: docs/upload/vacuity.yml
+#   find:     timeout-minutes: 60
+#   with:     timeout-minutes: 30
 """
 import glob
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -255,6 +261,54 @@ ck("🔴 JOBS is more than 1 on any machine with more than one core",
    % (os.cpu_count(), V.JOBS))
 note("JOBS=%d on this machine (%s cores); GitHub's runner has 4."
      % (V.JOBS, os.cpu_count()))
+
+# ════════════════════════════════════════════════════════════════════════
+section("5. 🔴 THE NIGHTLY JOB GETS AT LEAST THE CLOCK A PR GIVES THE SWEEP")
+# ════════════════════════════════════════════════════════════════════════
+# ⛔ `[2026-09-23]` `vacuity.yml` ran tier 1 AND tier 2 under a 30-minute
+#    job limit while pr-tests gave tier 2 ALONE 2400s. It was cancelled on
+#    09-22 and 09-23 and reported nothing either night.
+# ⚠️ `vacuity.yml` has a cron block, so the fix is uploaded by Sam, never
+#    merged. Until he does, a DIFFERENT copy staged in `docs/upload/` is the
+#    fix in flight and the deployed file is reported, not failed. Once the
+#    two match, the deployed file is held to the bar like any other.
+_WF = os.path.join(ROOT, ".github", "workflows")
+_m = re.search(r"test_vacuity\.py\)\s*echo (\d+)",
+               open(os.path.join(_WF, "pr-tests.yml"), encoding="utf-8").read())
+_pr_clock = int(_m.group(1)) if _m else 0
+ck("⚠️ the PR clock for test_vacuity.py was read (%ds)" % _pr_clock,
+   _pr_clock >= 600,
+   "⛔ every comparison below is against this number (rule 67)")
+
+
+def _job_secs(path):
+    m = re.search(r"^\s*timeout-minutes:\s*(\d+)",
+                  open(path, encoding="utf-8").read(), re.M)
+    return int(m.group(1)) * 60 if m else None
+
+
+def _text(path):
+    return open(path, encoding="utf-8").read().replace("\r\n", "\n")
+
+
+_dep = os.path.join(_WF, "vacuity.yml")
+_stg = os.path.join(ROOT, "docs", "upload", "vacuity.yml")
+_pending = os.path.exists(_stg) and _text(_stg) != _text(_dep)
+if os.path.exists(_stg):
+    ck("🔴 the STAGED vacuity.yml gives the nightly at least %ds" % _pr_clock,
+       (_job_secs(_stg) or 0) >= _pr_clock,
+       "⛔ this is the file Sam will upload; it has to be right. got %ss"
+       % _job_secs(_stg))
+if _pending and (_job_secs(_dep) or 0) < _pr_clock:
+    note("⚠️ deployed vacuity.yml still allows %ss; the fix is staged in "
+         "docs/upload/vacuity.yml and waiting for Sam's upload."
+         % _job_secs(_dep))
+else:
+    ck("🔴🔴 the DEPLOYED nightly gets at least the PR's sweep clock",
+       (_job_secs(_dep) or 0) >= _pr_clock,
+       "⛔ the nightly runs tier 1 AND tier 2; a job limit below what a PR "
+       "gives tier 2 alone is cancelled before it can report. deployed=%ss "
+       "pr=%ss" % (_job_secs(_dep), _pr_clock))
 
 shutil.rmtree(_d, ignore_errors=True)
 shutil.rmtree(LOG, ignore_errors=True)
