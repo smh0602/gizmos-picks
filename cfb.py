@@ -1399,7 +1399,89 @@ def _order_reading(rep):
             "follows": "read the numbers directly rather than the verdict"}
 
 
-def possession_from_plays(plays, season, log=log):
+def schedule_dates(season):
+    """{game id (str): "YYYY-MM-DD"} from the schedule this repo stores.
+
+    ⚠️ `/plays` rows carry no date, and the per-game possession rows need
+    one (`possession.share_before` reads games strictly before a kickoff).
+    💰 ZERO CALLS: the schedule is already committed. ⚠️ Absent or unreadable
+    -> {} and every game is stored UNDATED, which `share_before` never uses.
+    """
+    import gzip as _gz
+    import json as _js
+    p = os.path.join(OUT, "schedule-%d.json.gz" % int(season))
+    try:
+        with _gz.open(p, "rt", encoding="utf-8") as fh:
+            return {str(g.get("id")): str(g.get("start") or "")[:10]
+                    for g in (_js.load(fh).get("games") or [])
+                    if g.get("id") is not None and g.get("start")}
+    except Exception:
+        return {}
+
+
+def write_stamped(f, o, log=log):
+    """Write one artifact into OUT with `written_at` — the ONE write path
+    for `cfb-probe`'s documents (see the loop's STAMP comment for why the
+    stamp is not optional). ⚠️ Probes are plain JSON so they get read."""
+    if isinstance(o, dict):
+        o = dict(o, written_at=datetime.datetime.now(
+            datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    if f.endswith(".gz"):
+        with gzip.open(f"{OUT}/{f}", "wt", encoding="utf-8") as fh:
+            json.dump(o, fh)
+    else:
+        with open(f"{OUT}/{f}", "w", encoding="utf-8") as fh:
+            json.dump(o, fh, indent=1)
+    log(f"    wrote {OUT}/{f}")
+
+
+def possession_gap(season):
+    """Why `season` still needs a possession sweep, or None. ⛔ Probe, not
+    table, decides — a season the derivation REFUSED is not re-swept."""
+    probe = os.path.join(OUT, "top-probe-%d.json" % season)
+    table = os.path.join(OUT, "top-%d.json.gz" % season)
+    if not os.path.exists(probe):
+        return "no possession probe for %d" % season
+    if os.path.exists(table):
+        try:
+            with gzip.open(table, "rt", encoding="utf-8") as fh:
+                if "games" not in json.load(fh):
+                    return "top-%d predates the per-game rows" % season
+        except Exception as e:
+            return "top-%d unreadable: %s" % (season, type(e).__name__)
+    return None
+
+
+def backfill_possession(season, log=log):
+    """ONE priced `/plays` sweep for a history season's per-game possession.
+
+    💰 `cfbd_budget.preflight` prices it BEFORE any call, at a ceiling read
+    off `build_pace`'s own loop, and refuses unless a full week of scheduled
+    CFBD calls stays in reserve. ⛔ Refused -> nothing is fetched, the
+    refusal is logged with its numbers, and NO probe is written — a probe
+    would mark the season done and it would never be retried once the
+    quota recovers. The next daily run prices it again, which costs nothing.
+    ⚠️ Only the possession outputs are written; the pace board for that
+    season is left exactly as it was.
+    """
+    import cfbd_budget as _cb
+    why = possession_gap(season)
+    if not why:
+        return {"season": season, "skipped": "per-game possession already stored"}
+    price = _cb.preflight(_cb.plays_sweep_max(), "possession back-fill %d" % season, OUT)
+    log(f"    💰 CFBD PRICE — {price['purpose']} ({why}): "
+        f"{'ALLOWED' if price['allowed'] else 'REFUSED'} — {price['why']}")
+    if not price["allowed"]:
+        return {"season": season, "refused": price}
+    _pace, _tgt, (top, toprep) = build_pace(season, log)
+    toprep = dict(toprep or {}, backfill=True, price=price)
+    write_stamped(f"top-probe-{season}.json", toprep, log)
+    if top:
+        write_stamped(f"top-{season}.json.gz", top, log)
+    return {"season": season, "written": bool(top), "price": price}
+
+
+def possession_from_plays(plays, season, log=log, dates=None):
     """Per-team possession SHARE from CFBD `/plays` rows. No fetching.
 
     -> (payload, report). ⛔ `payload` is None unless the clock is really
@@ -1634,8 +1716,15 @@ def possession_from_plays(plays, season, log=log):
         return None, rep
 
     rep["usable"] = True
+    # 🔴 SIGNAL 6, PER GAME. Same seconds, same withholding rule, via the one
+    #    per-game formula in `possession.py` — NFL writes the same shape.
+    games = _poss.per_game_rows(dict(per_game), drv_counts,
+                                schedule_dates(season) if dates is None else dates)
+    rep["games_stored"] = len(games)
+    rep["games_undated"] = sum(1 for g in games.values() if not g["date"])
     return ({"season": season, "kind": "DESCRIPTIVE",
              "source": "CFBD /plays game clock",
+             "games": games,
              "column": "clock.minutes/clock.seconds",
              "unit": "share_of_game_clock",
              "note": ("Share of the game clock each team held, averaged "
@@ -2720,19 +2809,7 @@ def probe(log=log):
                 #    read time — it answers the different question of when
                 #    the DATA is from — because `written_at` is last in
                 #    `freshness.STAMP_FIELDS`.
-                if isinstance(o, dict):
-                    o = dict(o, written_at=datetime.datetime.now(
-                        datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
-                # ⚠️ the probe is plain JSON on purpose -- it exists to
-                # be READ, and a gzipped diagnostic is a diagnostic
-                # nobody opens.
-                if f.endswith(".gz"):
-                    with gzip.open(f"{OUT}/{f}", "wt", encoding="utf-8") as fh:
-                        json.dump(o, fh)
-                else:
-                    with open(f"{OUT}/{f}", "w", encoding="utf-8") as fh:
-                        json.dump(o, fh, indent=1)
-                log(f"    wrote {OUT}/{f}")
+                write_stamped(f, o, log)
             done.append(season)
             if season in T37_FIT_SEASONS:
                 t37_pool += [g["trailing_usage"]
@@ -2812,6 +2889,21 @@ def probe(log=log):
             # 🔴 ONE BAD SEASON MUST NOT DESTROY THE WHOLE BACK-FILL.
             log(f"    SEASON {season} FAILED: {type(e).__name__}: {e}")
             failed.append((season, f"{type(e).__name__}: {e}"))
+
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 SIGNAL 6 NEEDS 2025 TOO. `[Sam, 2026-09-23]` A history season
+    #    that has no per-game possession yet gets ONE `/plays` sweep,
+    #    priced by `cfbd_budget.preflight` before a single call is made.
+    #    ⛔ Not the whole box-score back-fill — possession only.
+    # ══════════════════════════════════════════════════════════════════
+    import freshness as _fr6
+    for _hs in _fr6.FOOTBALL_HISTORY:
+        if _hs not in seasons:
+            try:
+                backfill_possession(_hs, log)
+            except Exception as _be:
+                log(f"    possession back-fill {_hs} FAILED: "
+                    f"{type(_be).__name__}: {_be}")
 
     # ══════════════════════════════════════════════════════════════════
     # 🔴 READ THE OLD REPORT BEFORE TRUNCATING IT. THIS WAS A REAL BUG,

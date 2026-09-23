@@ -46,8 +46,8 @@ import nfl  # noqa: E402
 # ══════════════════════════════════════════════════════════════════════
 # @vacuity the emitted number is the SHARE, never raw seconds
 #   file: possession.py
-#   find: a["shares"].append(secs / float(tot))
-#   with: a["shares"].append(secs / float(GAME_CLOCK_SECS))
+#   find: return {team: secs / float(tot) for team, secs in per_team_seconds.items()}
+#   with: return {team: secs / float(GAME_CLOCK_SECS) for team, secs in per_team_seconds.items()}
 #
 # @vacuity the share is averaged PER GAME, not season-total over season-total
 #   file: possession.py

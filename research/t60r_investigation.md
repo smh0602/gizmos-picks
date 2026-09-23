@@ -215,7 +215,27 @@ contribution per week.
 
 ---
 
-## 5. Options, as proposals for a NEW pre-registered test (not implemented)
+## 5. ~~Options, as proposals for a NEW pre-registered test (not implemented)~~
+
+> ### ✅ DECIDED BY SAM, 2026-09-23. These replace P1–P6 below.
+> 1. **Signal 6 per game:** every team's possession share for each game
+>    played in 2025 and 2026 is stored, and new games are added as they
+>    finish. A game's "share before kickoff" uses only that team's
+>    earlier games. NFL from nflverse play-by-play; college from the same
+>    CFBD `/plays` data `possession.py` already uses.
+> 2. **Signal 7 players ruled out:** out, doubtful, IR or inactive, per
+>    team-week. NFL from the nflverse injury and weekly roster files. The
+>    "questionable and played" bug is fixed. College: the SEC, Big Ten and
+>    ACC reports were probed, and none of their terms allows collecting
+>    them, so signal 7 is **NFL-only** and the page says so.
+> 3. **History is 2025 and 2026 only.** ⛔ No 2024. ~~P3~~ is declined.
+> 4. **No cron line edited**; the existing daily builders do the work.
+> 5. **No paid tiers, no new spend**; every new CFBD call is priced first.
+>
+> ⛔ **T60R itself is untouched** and keeps running weekly as a record,
+> with its own frozen code, including the signal 7 bug in section 2 of
+> this doc. The fixes land in the data and the dossier, not in T60R.
+
 
 ⛔ **None of these is implemented, and T60R is not edited.** Each would be
 a new test with a new id, approved by Sam before it runs.
@@ -251,6 +271,8 @@ decides whether the test can ever finish.
 
 ## Changelog
 
+- **2026-09-23 (later):** Sam's decisions recorded at the top of section
+  5; the P1–P6 proposals are superseded, not deleted.
 - **2026-09-23:** first version. Investigation only: signal 6 (hard-coded
   off, no point-in-time source), signal 7 (my bug: counts
   "questionable and played", never "out"), missing 2024 history, college

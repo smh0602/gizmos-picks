@@ -393,6 +393,100 @@ SNAP_FLOOR = {"QB": 0.60, "RB": 0.30, "WR": 0.50, "TE": 0.40, "FB": 0.30}
 # ⛔ Graded, not boolean: "Questionable" plays most weeks, "Out" never does.
 INJ_RANK = {"": 0, "questionable": 1, "doubtful": 2, "out": 2,
             "injured reserve": 2, "reserve/injured": 2}
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SIGNAL 7 — PLAYERS RULED OUT, PER TEAM-WEEK. `[Sam, 2026-09-23]`
+# ══════════════════════════════════════════════════════════════════════
+# "count players listed OUT, DOUBTFUL, IR or inactive for each team-week."
+# ⛔ THE BUG THIS REPLACES: the dossier (and T60R) read `inj` off each
+#    player's STAT row. A player who is out HAS NO STAT ROW — the same
+#    defect run #194 fixed for `ahead_out` — so "flagged out" was never
+#    seen. `[measured 2026-09-23]` 2025 stat rows: rank 2 on 0 of 19,400.
+#    What was counted was "questionable and played".
+# ✅ So this reads the two files that DO list absent players: the injury
+#    report (`report_status`) and the weekly roster (`status`).
+# ⚠️ ROSTER CODES ARE NOT GUESSED. nflverse's dictionary describes
+#    `status` ("Active, Inactive, Injured Reserve, Practice Squad etc")
+#    without listing the codes, so `team_out_from_rows` records every
+#    status it sees and REFUSES if none of these appears in a season that
+#    has roster rows — a column of zeros from a code that never matches is
+#    the trench-column failure, and it shipped once already.
+# ✅ MEASURED 2026-09-23 on the real files, so these are no longer a guess:
+#    2025 roster rows by `status` — ACT 27,377 · DEV 8,783 · RES 5,763 ·
+#    INA 3,593 · CUT 951 · RET 361. `RES` carries the reserve lists
+#    (`R01` injured reserve 4,428 · `R48` designated to return 586 · `R04`
+#    444 · `R05` 162) and `INA` the game-day inactives (`A01` 3,369).
+OUT_ROSTER_STATUS = {"INA": "inactive", "RES": "reserve list (injured reserve and similar)"}
+
+
+def team_out_from_rows(inj_rows, rost_rows):
+    """-> (team_out, report). team_out is {team: {week: {...}}} or None.
+
+    A player counts ONCE per team-week however many sources name him, and
+    the entry says which source(s) did.
+    """
+    rep = {"injury_rows": 0, "roster_rows": 0, "statuses_seen": {},
+           "injury_out": 0, "roster_out": 0, "players_out": 0,
+           "usable": False}
+    team_of = {}
+    for r in rost_rows or []:
+        g, wk = r.get("gsis_id"), str(r.get("week"))
+        if g and r.get("team"):
+            team_of[(g, wk)] = r.get("team")
+    cells = {}
+
+    def add(team, wk, gid, name, why):
+        if not team or not gid or not str(wk).isdigit():
+            return False
+        c = cells.setdefault(team, {}).setdefault(str(int(wk)), {})
+        p = c.setdefault(gid, {"name": name or gid, "why": []})
+        if why not in p["why"]:
+            p["why"].append(why)
+        return True
+
+    for r in inj_rows or []:
+        rep["injury_rows"] += 1
+        st = (r.get("report_status") or "").strip().lower()
+        if INJ_RANK.get(st, 1 if st else 0) < 2:
+            continue                 # ⛔ questionable is NOT out
+        g, wk = r.get("gsis_id"), str(r.get("week"))
+        if add(team_of.get((g, wk)) or r.get("team"), wk, g,
+               r.get("full_name"), "injury report: %s" % st):
+            rep["injury_out"] += 1
+    seen = {}
+    for r in rost_rows or []:
+        rep["roster_rows"] += 1
+        code = (r.get("status") or "").strip().upper()
+        seen[code] = seen.get(code, 0) + 1
+        if code in OUT_ROSTER_STATUS:
+            if add(r.get("team"), r.get("week"), r.get("gsis_id"),
+                   r.get("full_name"), "roster: %s" % OUT_ROSTER_STATUS[code]):
+                rep["roster_out"] += 1
+    rep["statuses_seen"] = dict(sorted(seen.items(), key=lambda kv: -kv[1]))
+    if rep["roster_rows"] and not any(c in seen for c in OUT_ROSTER_STATUS):
+        rep["error"] = ("none of the roster codes %s appears in %d roster "
+                        "row(s) (seen: %s) — writing NOTHING rather than "
+                        "a column of zeros from a code that never matches"
+                        % (sorted(OUT_ROSTER_STATUS), rep["roster_rows"],
+                           sorted(seen)[:12]))
+        return None, rep
+    out = {}
+    for team, weeks in sorted(cells.items()):
+        for wk, ps in sorted(weeks.items(), key=lambda kv: int(kv[0])):
+            out.setdefault(team, {})[wk] = {
+                "out": len(ps),
+                "injury_report": sum(1 for p in ps.values()
+                                     if any(w.startswith("injury") for w in p["why"])),
+                "roster_status": sum(1 for p in ps.values()
+                                     if any(w.startswith("roster") for w in p["why"])),
+                "players": sorted(({"name": p["name"], "why": p["why"]}
+                                   for p in ps.values()),
+                                  key=lambda x: x["name"])}
+    rep["players_out"] = sum(v["out"] for w in out.values() for v in w.values())
+    rep["team_weeks"] = sum(len(w) for w in out.values())
+    rep["usable"] = True
+    return out, rep
+
+
 BRIDGE_MIN = 95.0          # % of prop-position snap rows that must bridge
 # Which nflverse asset each requested filename actually resolved to.
 USED = {}
@@ -780,6 +874,59 @@ def build_possession(season, seen=None, log=print):
     return payload, rep
 
 
+def schedule_dates(season, root=None):
+    """{game id: "YYYY-MM-DD"} from the committed NFL schedule. No fetch.
+
+    ⚠️ The fallback when a play-by-play row carries no `game_date`, so the
+    per-game possession rows stay dated either way. The same shape
+    `cfb.schedule_dates` returns for college.
+    """
+    import gzip as _gz
+    import json as _js
+    p = os.path.join(root or os.path.dirname(os.path.abspath(__file__)),
+                     "data", "nfl", "latest", "schedule-%d.json.gz" % int(season))
+    try:
+        with _gz.open(p, "rt", encoding="utf-8") as fh:
+            return {str(g.get("id")): str(g.get("start") or "")[:10]
+                    for g in (_js.load(fh).get("games") or [])
+                    if g.get("id") and g.get("start")}
+    except Exception:
+        return {}
+
+
+def history_gap(base, season):
+    """Why `season` must be rebuilt for signals 6 and 7, or None.
+
+    ⛔ PROBES, NOT TABLES, decide "the builder ran" — the freshness
+    contract's own rule. A table the builder REFUSED to write (with its
+    reason in the probe) is not a gap: re-downloading a season every day to
+    be refused again is the retry storm `nfl-logs` already backs off from.
+    """
+    import gzip as _gz
+    import json as _js
+    probe = os.path.join(base, "top-probe-%d.json" % season)
+    table = os.path.join(base, "top-%d.json.gz" % season)
+    logs = os.path.join(base, "players-%d.json.gz" % season)
+    if not os.path.exists(probe):
+        return "no possession probe for %d" % season
+    if os.path.exists(table):
+        try:
+            with _gz.open(table, "rt", encoding="utf-8") as fh:
+                if "games" not in _js.load(fh):
+                    return "top-%d predates the per-game rows" % season
+        except Exception as e:
+            return "top-%d unreadable: %s" % (season, type(e).__name__)
+    try:
+        with _gz.open(logs, "rt", encoding="utf-8") as fh:
+            if "team_out_report" not in _js.load(fh):
+                return "players-%d predates the players-out count" % season
+    except FileNotFoundError:
+        return "no players-%d" % season
+    except Exception as e:
+        return "players-%d unreadable: %s" % (season, type(e).__name__)
+    return None
+
+
 def possession_from_rows(pbp, season, log=print):
     """The aggregation, split out so a test can drive it on REAL rows.
 
@@ -824,9 +971,13 @@ def possession_from_rows(pbp, season, log=print):
     drvc = next((c for c in ("drive", "fixed_drive") if c in cols), None)
     gidc = next((c for c in ("game_id", "nflverse_game_id") if c in cols), None)
     qtrc = next((c for c in ("qtr", "quarter") if c in cols), None)
+    # ⚠️ THE GAME'S DATE, for the per-game rows `possession.share_before`
+    #    reads. Absent, a game is stored undated and never used before a
+    #    kickoff — never placed in time by guesswork.
+    datec = next((c for c in ("game_date",) if c in cols), None)
     rep["column"] = topc
     rep["columns_used"] = {"top": topc, "team": posc, "drive": drvc,
-                           "game": gidc, "period": qtrc}
+                           "game": gidc, "period": qtrc, "date": datec}
     if not (topc and posc and drvc and gidc):
         rep["error"] = ("the play-by-play does not carry the columns this "
                         "needs: %s" % rep["columns_used"])
@@ -847,10 +998,13 @@ def possession_from_rows(pbp, season, log=print):
     # ══════════════════════════════════════════════════════════════════
     rows_of = {}
     periods = {}
+    dates = {}
     seen_games = set()
     for r in pbp:
         gid = r.get(gidc)
         seen_games.add(gid)
+        if datec and gid not in dates and (r.get(datec) or "").strip():
+            dates[gid] = str(r.get(datec)).strip()[:10]
         if qtrc is not None:
             try:
                 periods[gid] = max(periods.get(gid, 0), int(float(r.get(qtrc))))
@@ -978,7 +1132,17 @@ def possession_from_rows(pbp, season, log=print):
         return None, rep
 
     rep["usable"] = True
+    # 🔴 SIGNAL 6, PER GAME. Same seconds, same withholding rule, via the one
+    #    per-game formula in `possession.py`.
+    _sched = schedule_dates(season)
+    for _g in per_game:
+        if not dates.get(_g) and _sched.get(str(_g)):
+            dates[_g] = _sched[str(_g)]
+    games = _poss.per_game_rows(per_game, drv_game, dates)
+    rep["games_stored"] = len(games)
+    rep["games_undated"] = sum(1 for g in games.values() if not g["date"])
     return ({"season": season, "kind": "DESCRIPTIVE", "source": "nflverse pbp",
+             "games": games,
              "column": topc, "unit": "share_of_game_clock",
              "note": ("Share of the game clock each team held, averaged "
                       "per game. ⚠️ `share` is the number to read; "
@@ -1807,9 +1971,13 @@ def build_logs(season, log=print):
     # to attach to -- and `ahead_out`, which read teammates' inj off the
     # JOINED rows, could never see a single one. The absence of a row IS the
     # signal, and it was being looked for in the one place it cannot appear.
-    inj, out_set = {}, set()
+    inj, out_set, inj_rows = {}, set(), []
     try:
         for r in _rows(seen, "injuries", FILES["injuries"].format(y=season), log):
+            # ⚠️ KEPT for signal 7 — the only file that lists a player who
+            #    did not play. Five fields, not the whole row.
+            inj_rows.append({k: r.get(k) for k in ("gsis_id", "week", "team",
+                                                    "full_name", "report_status")})
             st = (r.get("report_status") or "").strip().lower()
             rank = INJ_RANK.get(st, 1 if st else 0)
             key = (r.get("gsis_id"), str(r.get("week")))
@@ -2020,7 +2188,17 @@ def build_logs(season, log=print):
         # ⛔ A row with no kickoff date cannot be filtered point-in-time, so
         # it can never be used safely. Refuse rather than silently include.
         raise RuntimeError(f"{undated} player-weeks have no kickoff date")
+    team_out, team_out_rep = team_out_from_rows(inj_rows, rost)
+    log(f"  players out: {team_out_rep.get('players_out', 0):,} across "
+        f"{team_out_rep.get('team_weeks', 0):,} team-week(s) — "
+        f"{team_out_rep['injury_out']:,} from the injury report, "
+        f"{team_out_rep['roster_out']:,} from roster status; roster codes "
+        f"seen: {team_out_rep['statuses_seen']}"
+        + ("" if team_out else f" ⛔ {team_out_rep.get('error')}"))
     return {"season": season, "source": "nflverse", "players": players,
+            # 🔴 SIGNAL 7. None (with the reason beside it) when the roster
+            #    codes do not match — never a table of silent zeros.
+            "team_out": team_out, "team_out_report": team_out_rep,
             "source_assets": dict(USED),
             "substituted": {k: v for k, v in USED.items() if k != v},
             "bridge_ok": bridge_ok, "bridge_coverage": bridge_cov,
