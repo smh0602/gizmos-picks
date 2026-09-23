@@ -880,6 +880,12 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/dossiers.json.gz"), T["card"], False,
          "Dossier — all eight per-game checks"))
+    # 🔴 THE PICK MODEL'S FILE, IN THE SAME PR THAT CREATES IT (the rule the
+    #    news archive row states). `[Sam, 2026-09-23]` It is rebuilt by the
+    #    same `card-fb` run as the dossier, on the same deadlines.
+    rows.append(
+        ("card-fb", ("file", f"{latest}/fb-model.json"), T["card"], False,
+         "Model picks + walk-forward record"))
     # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
     # probe is `record.json` -- the file the Track Record tab reads.
     # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card

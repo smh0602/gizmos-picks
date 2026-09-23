@@ -4208,6 +4208,26 @@ def run_mode(mode):
                 log(f"  ⚠️ the shadow record did not build "
                     f"({type(e).__name__}: {e}) — the CARD IS FINE and is "
                     f"not rolled back.")
+            # ══════════════════════════════════════════════════════════
+            # 🔴 THE PICK MODEL RETRAINS HERE, AFTER THE CARD, AND NEVER
+            #    TOUCHES IT. `[Sam, 2026-09-23]` "After each week's games
+            #    are final, retrain automatically and add the week to the
+            #    record. Do not edit any cron line."
+            # ✅ Riding `card-fb` means no new schedule: every card run
+            #    re-scores the whole walk-forward from stored data, so a
+            #    newly final week joins the record on the next run, and
+            #    the freshness row on `fb-model.json` makes `converge`
+            #    rebuild it when a run is missed.
+            # ⛔ A failure here is logged and the card stands.
+            # ══════════════════════════════════════════════════════════
+            if LEAGUE in ("nfl", "ncaaf"):
+                try:
+                    import fb_model as _fm
+                    _fm.build(LEAGUE)
+                except Exception as e:
+                    log(f"  ⚠️ the pick model did not build "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back.")
         elif mode == "halftime-probe":
             # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
             # digits: 2 credits for the bulk ask, 2 more only if that
