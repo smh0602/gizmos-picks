@@ -137,10 +137,15 @@ its way in.**
 changed the workflow's `cron:` block.** Every one of them depends on that
 user staying a human with write access.
 
-<!-- CRON TOTAL: 56 -->
+<!-- CRON TOTAL: 57 -->
 ⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
-counts every `- cron:` line in `.github/workflows/` and fails if this
-comment disagrees. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
+counts every `- cron:` line in `.github/workflows/` **and in files staged
+under `docs/upload/`**, one per file name (`wfparse.cron_total`), and
+fails if this comment disagrees. ✅ `[Sam, 2026-09-23]` Staged files count,
+so the total is right before AND after Sam's upload: no red window. The
+uploaded file must match its staged copy (`wfparse.staged_mismatches`),
+and `runs_report.py` flags a staged cron still not uploaded 48 hours
+after its PR merged. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
 first whether a cron was added or lost on purpose. `[This line exists
 because the prose originally said "50 crons", which was already wrong
 when it was written, and a test asserting that literal string would have

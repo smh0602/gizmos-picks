@@ -48,6 +48,8 @@ import re
 import subprocess
 import sys
 
+import wfparse  # the one workflow reader: cron files, staged and deployed
+
 # ⛔ NOT A THRESHOLD FOR THE ALARM — the alarm is "latest run failed".
 #    This is only how many failures make a RECOVERED workflow worth a note.
 FLAP_MIN = 3
@@ -808,6 +810,77 @@ def render_coverage(seen, pages=None, runs=None):
     return "\n".join(out)
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A STAGED CRON THAT NEVER GETS UPLOADED IS A CRON THAT NEVER FIRES.
+#    `[Sam, 2026-09-23]`
+# ══════════════════════════════════════════════════════════════════════
+# CLAUDE.md's CRON TOTAL now counts files staged in `docs/upload/`, so the
+# total no longer goes red between a merge and Sam's upload. ⛔ That removes
+# the only alarm that used to say "this still needs uploading", so this puts
+# it back — later and quieter, but it cannot be forgotten: 48 hours after the
+# PR that staged it MERGED (the moment Sam could first upload it).
+# ⚠️ THE CLOCK IS THE MERGE, READ FROM GITHUB, because `runs.yml` checks out
+#    one commit and git history cannot date the file (see `gh_workflows`).
+# ⛔ AN UNKNOWN DATE IS REPORTED, never read as "recent" — the same rule
+#    the rest of this file follows.
+STAGED_UPLOAD_HOURS = 48
+
+
+def _gh_json(path):
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not repo:
+        raise RuntimeError("GITHUB_REPOSITORY is not set")
+    out = subprocess.run(["gh", "api", "repos/%s/%s" % (repo, path)],
+                         capture_output=True, text=True, timeout=60)
+    if out.returncode != 0:
+        raise RuntimeError("gh api %s: %s" % (path, out.stderr.strip()[:200]))
+    return json.loads(out.stdout or "null")
+
+
+def staged_since(name, fetch=_gh_json):
+    """When the staged copy of `name` landed on main: the merge time of the
+    PR carrying its latest commit, else that commit's own date. None if
+    GitHub cannot say."""
+    try:
+        commits = fetch("commits?path=docs/upload/%s&per_page=1" % name) or []
+        if not commits:
+            return None
+        sha = commits[0]["sha"]
+        for pr in fetch("commits/%s/pulls" % sha) or []:
+            if pr.get("merged_at"):
+                return _dt(pr["merged_at"])
+        return _dt(((commits[0].get("commit") or {}).get("committer") or {}).get("date"))
+    except Exception:           # noqa: BLE001 - None is reported, not hidden
+        return None
+
+
+def stale_uploads(root=".", now=None, fetch=_gh_json):
+    """[{"file", "since", "hours"}] for staged crons not uploaded in time."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    out = []
+    for f, v in sorted(wfparse.cron_files(root).items()):
+        if v["deployed"] or not v["staged"]:
+            continue
+        since = staged_since(f, fetch)
+        hours = None if since is None else (now - since).total_seconds() / 3600.0
+        if hours is None or hours >= STAGED_UPLOAD_HOURS:
+            out.append({"file": f, "since": since.isoformat() if since else None,
+                        "hours": None if hours is None else round(hours, 1)})
+    return out
+
+
+def render_stale(stale):
+    lines = ["## A scheduled job is waiting to be uploaded", ""]
+    for s in stale:
+        lines.append("- `docs/upload/%s` — %s. Its schedule is counted as "
+                     "declared but it has **never been uploaded**, so it has "
+                     "never fired. Instructions: `docs/upload/UPLOAD-%s.md`."
+                     % (s["file"], ("staged %s hours ago" % s["hours"])
+                        if s["hours"] is not None else "GitHub could not say when it was staged",
+                        s["file"][:-4]))
+    return "\n".join(lines)
+
+
 def main(argv=None):
     """stdin -> a verdict, or `--collect` -> the run list on stdout.
 
@@ -859,6 +932,16 @@ def main(argv=None):
     _names, floors = unseen_workflows(_by, None, ".", registered)
     missed, unattributable = missed_fires(runs)
     rc = verdict(broken, flapping, missing, truncated, missed, unattributable)
+    # ⚠️ ANDED IN AFTER THE VERDICT, so `verdict()` and `analyse()` keep their
+    #    signatures (rule 269). A staged cron left unuploaded fails the run.
+    stale = stale_uploads(".")
+    if stale:
+        body = ""
+        if rc == EXIT_BROKEN:
+            body = render(broken, flapping, seen, truncated, missing,
+                          missed, unattributable, floors) + "\n\n"
+        print(body + render_stale(stale))
+        return EXIT_BROKEN
     if rc == EXIT_OK:
         print("OK")
         return EXIT_OK
