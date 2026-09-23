@@ -257,8 +257,14 @@ def step_run(src, step_id=None, step_name=None, job=None):
 # CLAUDE.md's `CRON TOTAL` wrong for the hours between merge and upload —
 # twice on 2026-09-22 (t60r). ✅ Counted across BOTH folders, deduplicated
 # by FILE NAME, the total is the same before and after the upload.
-# ⛔ The dedupe is only safe because the two copies must be identical —
-#    `staged_mismatches` is that check, and `test_runs_report.py` runs it.
+# 🔴 `[Sam, 2026-09-23, on PR #145]` ~~the two copies must be identical~~ —
+#    A STAGED COPY THAT DIFFERS FROM THE DEPLOYED ONE IS A PENDING UPLOAD,
+#    NOT A FAILURE: it is exactly what an update to an existing cron
+#    workflow looks like between its PR merging and Sam uploading it. For a
+#    pending pair the total counts the STAGED version, because that is what
+#    will be live. ⛔ Still strict: `runs_report.stale_uploads` flags a
+#    pending upload 48 hours after its PR merged, the same clock as a new
+#    staged file — so a wrong upload, which stays pending, is caught too.
 # ⛔ ONE COPY (rule 117): test_watchdog.py and test_cfbd_watch.py both read
 #    the total from here.
 CRON_LINE = re.compile(r"(?m)^\s*-\s*cron:")
@@ -266,10 +272,20 @@ DEPLOYED_DIR = os.path.join(".github", "workflows")
 STAGED_DIR = os.path.join("docs", "upload")
 
 
+def _same(root, f):
+    """The two copies of `f` are the same file. ⚠️ Line endings ignored and
+    nothing else: a file uploaded from a Windows checkout arrives CRLF."""
+    a, b = (open(os.path.join(root, sub, f), encoding="utf-8").read().replace("\r", "")
+            for sub in (DEPLOYED_DIR, STAGED_DIR))
+    return a == b
+
+
 def cron_files(root="."):
-    """{file name: {"crons", "deployed", "staged"}} for every workflow file,
-    in either folder, that declares at least one cron."""
-    out = {}
+    """{file name: {"crons", "deployed", "staged", "pending"}} for every
+    workflow file, in either folder, that declares at least one cron.
+    `pending`: staged AND deployed AND different — an update Sam has not
+    uploaded yet. Its `crons` is the STAGED count."""
+    out, staged_n = {}, {}
     for where, sub in (("deployed", DEPLOYED_DIR), ("staged", STAGED_DIR)):
         d = os.path.join(root, sub)
         if not os.path.isdir(d):
@@ -285,6 +301,12 @@ def cron_files(root="."):
             e[where] = True
             if where == "deployed":
                 e["crons"] = n          # the live file is the one that fires
+            else:
+                staged_n[f] = n
+    for f, e in out.items():
+        e["pending"] = bool(e["deployed"] and e["staged"] and not _same(root, f))
+        if e["pending"]:
+            e["crons"] = staged_n[f]     # what WILL be live once Sam uploads
     return out
 
 
@@ -293,18 +315,7 @@ def cron_total(root="."):
     return sum(v["crons"] for v in cron_files(root).values())
 
 
-def staged_mismatches(root="."):
-    """Names present in BOTH folders whose contents differ.
-
-    ⚠️ Line endings are ignored and nothing else: a file uploaded from a
-    Windows checkout arrives with CRLF, and that is the same file.
-    """
-    bad = []
-    for f, v in sorted(cron_files(root).items()):
-        if not (v["deployed"] and v["staged"]):
-            continue
-        a, b = (open(os.path.join(root, sub, f), encoding="utf-8").read().replace("\r", "")
-                for sub in (DEPLOYED_DIR, STAGED_DIR))
-        if a != b:
-            bad.append(f)
-    return bad
+def pending_uploads(root="."):
+    """Names staged AND deployed whose contents differ — updates waiting for
+    Sam's hand upload. ⛔ Not a failure by itself; `runs_report` times them."""
+    return sorted(f for f, v in cron_files(root).items() if v["pending"])

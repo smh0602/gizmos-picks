@@ -520,8 +520,9 @@ ck("⛔ ...and the cron-block exception is stated, not implied",
 #    `.github/workflows/` AND `docs/upload/`, deduplicated by file name, by
 #    the ONE counter in `wfparse.py`. The total now reads the same before
 #    and after Sam's hand upload, so a staged cron no longer turns the
-#    suite red in between. ⛔ Not looser: the copies must be identical
-#    (`wfparse.staged_mismatches`, checked in test_runs_report.py).
+#    suite red in between. ⛔ Not looser: a staged copy that differs from the
+#    deployed one is a PENDING upload counted at its staged version, and
+#    `runs_report` flags it 48h after its PR merged (test_staged_uploads.py).
 import wfparse as _wfp  # noqa: E402
 _total = _wfp.cron_total(ROOT)
 _claim = re.search(r"<!--\s*CRON TOTAL:\s*(\d+)\s*-->",

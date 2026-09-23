@@ -70,9 +70,14 @@ asking git whether the tree is clean.
 import ast
 import glob
 import os
+import queue
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -81,6 +86,24 @@ EXIT_OK, EXIT_VACUOUS, EXIT_UNREADABLE = 0, 1, 2
 # ⚠️ CI gives every test file 600s. Matching it means this cannot invent a
 #    failure a real run would not see.
 PER_TEST = 600
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE SWEEP RAN ONE MUTATION AT A TIME, SO ITS COST WAS THE SERIAL
+#      SUM OF EVERY DECLARATION, AND THAT SUM OUTGREW EVERY CLOCK.
+# `[measured 2026-09-23]` 188 declarations across 51 test files, each run
+# twice (red, then green): `test_vacuity.py` took 1448s, 2240s and then
+# 2401s = TIMEOUT against its 2400s clock in pr-tests, on the same code —
+# runner speed alone. `vacuity.yml` was CANCELLED at its 30-minute limit
+# on 2026-09-22 and 2026-09-23. `test_dossier_fb.py` (17 declarations x a
+# full dossier build) and `test_mlb_tables.py` (12) were ~60% of it.
+# ✅ SO THE SAME SWEEP RUNS IN `JOBS` TREES AT ONCE. Every declaration is
+# still applied, still run red, still reverted, still run green — in a
+# tree of its own, which no other mutation can see. ⛔ Nothing is sampled
+# or skipped; only the wall clock changes.
+# ⚠️ Capped at 8: each extra tree is a full checkout (~80 MB), and GitHub's
+# runner has 4 cores, so more would buy nothing there.
+# ══════════════════════════════════════════════════════════════════════
+JOBS = max(1, min(8, os.cpu_count() or 1))
 
 # ⚠️ `tcheck.py` is every test's harness, not any test's subject — except
 #    for `test_tcheck_guard.py`, which name-maps to it correctly.
@@ -238,45 +261,48 @@ def _swap(path, new):
     return orig
 
 
-def tier1(root=ROOT, only=None):
+def _tier1_one(pair, root):
+    """Gut one name-mapped subject in `root` and run its test once."""
+    t, s = pair
+    sp = os.path.join(root, s)
+    try:
+        stub, nfun = neuter(open(sp, encoding="utf-8").read())
+    except (OSError, SyntaxError, ValueError) as e:
+        return {"tier": 1, "test": t, "subject": s, "state": "UNREADABLE",
+                "why": "cannot gut %s: %s" % (s, e)}
+    if nfun == 0:
+        # ⛔ NOT REPORTED AS CLEAN. A module with no functions is one
+        #    this mutation cannot speak about at all.
+        return {"tier": 1, "test": t, "subject": s, "state": "NO_FUNCS",
+                "why": "%s defines no functions — gutting it is not a "
+                       "mutation, so this pair is UNTESTED" % s}
+    t0 = time.time()
+    orig = _swap(sp, stub)
+    try:
+        rc = run_test(t, root)
+    finally:
+        open(sp, "wb").write(orig)
+    secs = round(time.time() - t0, 1)
+    if rc is None:
+        return {"tier": 1, "test": t, "subject": s, "state": "TIMEOUT",
+                "secs": secs,
+                "why": "%s never answered in %ds with %s gutted"
+                       % (t, PER_TEST, s)}
+    if rc == 0:
+        return {"tier": 1, "test": t, "subject": s, "state": "VACUOUS",
+                "secs": secs,
+                "why": "%s passes with every function in %s gutted — "
+                       "it does not depend on its subject" % (t, s)}
+    return {"tier": 1, "test": t, "subject": s, "state": "BITES",
+            "secs": secs, "why": "goes red when %s is gutted" % s}
+
+
+def tier1(root=ROOT, only=None, jobs=None, leaks=None):
     """Gut each name-mapped subject; the test must go RED."""
-    out = []
-    for t, s in sorted(name_map(root).items()):
-        if only and t not in only:
-            continue
-        sp = os.path.join(root, s)
-        try:
-            stub, nfun = neuter(open(sp, encoding="utf-8").read())
-        except (OSError, SyntaxError, ValueError) as e:
-            out.append({"tier": 1, "test": t, "subject": s,
-                        "state": "UNREADABLE",
-                        "why": "cannot gut %s: %s" % (s, e)})
-            continue
-        if nfun == 0:
-            # ⛔ NOT REPORTED AS CLEAN. A module with no functions is one
-            #    this mutation cannot speak about at all.
-            out.append({"tier": 1, "test": t, "subject": s, "state": "NO_FUNCS",
-                        "why": "%s defines no functions — gutting it is not a "
-                               "mutation, so this pair is UNTESTED" % s})
-            continue
-        orig = _swap(sp, stub)
-        try:
-            rc = run_test(t, root)
-        finally:
-            open(sp, "wb").write(orig)
-        if rc is None:
-            out.append({"tier": 1, "test": t, "subject": s, "state": "TIMEOUT",
-                        "why": "%s never answered in %ds with %s gutted"
-                               % (t, PER_TEST, s)})
-        elif rc == 0:
-            out.append({"tier": 1, "test": t, "subject": s, "state": "VACUOUS",
-                        "why": "%s passes with every function in %s gutted — "
-                               "it does not depend on its subject"
-                               % (t, s)})
-        else:
-            out.append({"tier": 1, "test": t, "subject": s, "state": "BITES",
-                        "why": "goes red when %s is gutted" % s})
-    return out
+    pairs = [(t, s) for t, s in sorted(name_map(root).items())
+             if not (only and t not in only)]
+    return _pool(root, JOBS if jobs is None else jobs, pairs, _tier1_one,
+                 leaks)
 
 
 def declarations(root=ROOT):
@@ -308,63 +334,146 @@ def declarations(root=ROOT):
     return out
 
 
-def tier2(root=ROOT, only=None):
+def _tier2_one(d, root):
+    """Apply one declared mutation in `root`: RED, revert, GREEN."""
+    t = d["test"]
+    miss = [k for k in ("file", "find", "with") if not d.get(k)]
+    if miss:
+        return {**d, "state": "MALFORMED",
+                "why": "declaration at %s:%d is missing %s"
+                       % (t, d["line"], ", ".join(miss))}
+    p = os.path.join(root, d["file"])
+    try:
+        src = open(p, encoding="utf-8").read()
+    except OSError as e:
+        return {**d, "state": "MALFORMED",
+                "why": "declared file %s: %s" % (d["file"], e)}
+    n = src.count(d["find"])
+    if n != 1:
+        # ⛔ THE STRIPPED-COMMENT FAILURE, ONE LEVEL UP. A `find` that
+        #    matches nothing would make the mutation a no-op and the
+        #    check would "pass" having changed nothing at all.
+        return {**d, "state": "MALFORMED",
+                "why": "`find` occurs %d times in %s — a mutation "
+                       "that matches 0 or many is not a mutation"
+                       % (n, d["file"])}
+    t0 = time.time()
+    orig = _swap(p, src.replace(d["find"], d["with"]))
+    try:
+        red = run_test(t, root)
+    finally:
+        open(p, "wb").write(orig)
+    if red is None:
+        return {**d, "state": "TIMEOUT", "secs": round(time.time() - t0, 1),
+                "why": "%s never answered under its own mutation" % t}
+    if red == 0:
+        return {**d, "state": "VACUOUS", "secs": round(time.time() - t0, 1),
+                "why": "%s still PASSES under the mutation it declares "
+                       "(%s: `%s` -> `%s`)"
+                       % (t, d["file"], d["find"], d["with"])}
+    # ✅ AND GREEN ON THE REVERT. Red under mutation is only half the
+    #    claim: a test that is red either way proves nothing either.
+    green = run_test(t, root)
+    secs = round(time.time() - t0, 1)
+    if green != 0:
+        return {**d, "state": "RED_BOTH_WAYS", "secs": secs,
+                "why": "%s is RED even unmutated — its mutation result "
+                       "says nothing" % t}
+    return {**d, "state": "BITES", "secs": secs,
+            "why": "red under `%s` -> `%s`, green on revert"
+                   % (d["find"], d["with"])}
+
+
+def tier2(root=ROOT, only=None, jobs=None, leaks=None):
     """Apply each declared mutation: must go RED, then GREEN on revert."""
+    ds = [d for d in declarations(root) if not (only and d["test"] not in only)]
+    return _pool(root, JOBS if jobs is None else jobs, ds, _tier2_one, leaks)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE POOL. ONE MUTATION PER TREE AT A TIME, NEVER TWO IN ONE TREE.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ The header's rule is "nothing else may write to this repo while it is
+#    running", because a second writer in the SAME tree bakes a mutation
+#    in. That rule is unchanged: each extra worker gets a DETACHED GIT
+#    WORKTREE of its own, and a tree is handed to exactly one worker at a
+#    time. No two mutations ever share a tree.
+# 🔴 AND IT IS REFUSED ON A DIRTY TREE. A worktree is HEAD, not what is on
+#    disk; if `root` differs from HEAD the extra trees would sweep code
+#    other than the code asked about. So a dirty `root` runs serially in
+#    `root`, exactly as before — slower, never a different answer.
+# ⚠️ The trees are named `vacuity-sweep-<pid>-w<k>-*` so the orphan reaper
+#    in `test_vacuity.py` releases them if a SIGKILL skips the `finally`.
+def _extra_trees(root, n):
+    """Up to `n` detached worktrees of `root`'s HEAD. -> list of paths.
+
+    ⚠️ Best effort: a tree that cannot be made means fewer workers, never
+    a different result.
+    """
     out = []
-    for d in declarations(root):
-        t = d["test"]
-        if only and t not in only:
-            continue
-        miss = [k for k in ("file", "find", "with") if not d.get(k)]
-        if miss:
-            out.append({**d, "state": "MALFORMED",
-                        "why": "declaration at %s:%d is missing %s"
-                               % (t, d["line"], ", ".join(miss))})
-            continue
-        p = os.path.join(root, d["file"])
+    for k in range(n):
+        d = None
         try:
-            src = open(p, encoding="utf-8").read()
-        except OSError as e:
-            out.append({**d, "state": "MALFORMED",
-                        "why": "declared file %s: %s" % (d["file"], e)})
-            continue
-        n = src.count(d["find"])
-        if n != 1:
-            # ⛔ THE STRIPPED-COMMENT FAILURE, ONE LEVEL UP. A `find` that
-            #    matches nothing would make the mutation a no-op and the
-            #    check would "pass" having changed nothing at all.
-            out.append({**d, "state": "MALFORMED",
-                        "why": "`find` occurs %d times in %s — a mutation "
-                               "that matches 0 or many is not a mutation"
-                               % (n, d["file"])})
-            continue
-        orig = _swap(p, src.replace(d["find"], d["with"]))
-        try:
-            red = run_test(t, root)
-        finally:
-            open(p, "wb").write(orig)
-        if red is None:
-            out.append({**d, "state": "TIMEOUT",
-                        "why": "%s never answered under its own mutation" % t})
-            continue
-        if red == 0:
-            out.append({**d, "state": "VACUOUS",
-                        "why": "%s still PASSES under the mutation it declares "
-                               "(%s: `%s` -> `%s`)"
-                               % (t, d["file"], d["find"], d["with"])})
-            continue
-        # ✅ AND GREEN ON THE REVERT. Red under mutation is only half the
-        #    claim: a test that is red either way proves nothing either.
-        green = run_test(t, root)
-        if green != 0:
-            out.append({**d, "state": "RED_BOTH_WAYS",
-                        "why": "%s is RED even unmutated — its mutation result "
-                               "says nothing" % t})
-            continue
-        out.append({**d, "state": "BITES",
-                    "why": "red under `%s` -> `%s`, green on revert"
-                           % (d["find"], d["with"])})
+            d = tempfile.mkdtemp(prefix="vacuity-sweep-%d-w%d-"
+                                 % (os.getpid(), k))
+            subprocess.run(["git", "worktree", "add", "--detach", d, "HEAD"],
+                           cwd=root, check=True, capture_output=True,
+                           timeout=600)
+            out.append(d)
+        except (OSError, subprocess.SubprocessError):
+            if d:
+                shutil.rmtree(d, ignore_errors=True)
+            break
     return out
+
+
+def _drop_tree(root, d):
+    subprocess.run(["git", "worktree", "remove", "--force", d], cwd=root,
+                   check=False, capture_output=True)
+    shutil.rmtree(d, ignore_errors=True)
+
+
+def _pool(root, jobs, tasks, work, leaks=None):
+    """`work(task, tree)` for every task, in task order, over `jobs` trees.
+
+    🔴 A WORKER TREE LEFT MODIFIED IS A LEAK, and it FAILS CLOSED: it is
+    appended to `leaks` for the caller to fold into its own leak verdict,
+    and with no list to report into it RAISES. A mutation left behind in a
+    tree would have been read by every later mutation in that tree.
+    """
+    extra = []
+    if jobs > 1 and len(tasks) > 1 and _porcelain(root) == set():
+        extra = _extra_trees(root, min(jobs, len(tasks)) - 1)
+    if not extra:
+        return [work(t, root) for t in tasks]
+    free = queue.Queue()
+    for tr in [root] + extra:
+        free.put(tr)
+
+    def one(task):
+        tr = free.get()
+        try:
+            return work(task, tr)
+        finally:
+            free.put(tr)
+
+    dirty = []
+    try:
+        with ThreadPoolExecutor(len(extra) + 1) as ex:
+            return list(ex.map(one, tasks))
+    finally:
+        for d in extra:
+            left = _porcelain(d)
+            if left != set():
+                dirty.append("%s: %s" % (d, sorted(left or ["git unavailable"])))
+            _drop_tree(root, d)
+        subprocess.run(["git", "worktree", "prune"], cwd=root, check=False,
+                       capture_output=True)
+        if dirty:
+            if leaks is None:
+                raise RuntimeError("a sweep worker tree was left modified: %s"
+                                   % dirty)
+            leaks.extend(dirty)
 
 
 def render(t1, t2, unmapped_files):
@@ -474,9 +583,13 @@ def verdict(results, leak_ok):
 
 def main():
     before = _porcelain()
-    t1 = tier1()
-    t2 = tier2()
+    wleaks = []
+    t1 = tier1(leaks=wleaks)
+    t2 = tier2(leaks=wleaks)
     ok, dirty = leaked(before)
+    # ⛔ A WORKER TREE LEFT MODIFIED COUNTS EXACTLY LIKE `root` LEFT
+    #    MODIFIED: every result that tree produced after it is suspect.
+    dirty = "\n".join(x for x in [dirty] + wleaks if x)
     leak_ok = bool(ok) and not dirty
     # ⛔ EVERY RETURN BELOW IS THIS NUMBER. main() chooses what to SAY;
     #    it no longer chooses what to REPORT.

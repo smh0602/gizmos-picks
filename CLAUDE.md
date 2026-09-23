@@ -142,10 +142,11 @@ user staying a human with write access.
 counts every `- cron:` line in `.github/workflows/` **and in files staged
 under `docs/upload/`**, one per file name (`wfparse.cron_total`), and
 fails if this comment disagrees. ✅ `[Sam, 2026-09-23]` Staged files count,
-so the total is right before AND after Sam's upload: no red window. The
-uploaded file must match its staged copy (`wfparse.staged_mismatches`),
-and `runs_report.py` flags a staged cron still not uploaded 48 hours
-after its PR merged. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
+so the total is right before AND after Sam's upload: no red window. A
+staged copy that differs from the deployed one is a PENDING upload, not a
+failure, and is counted at its STAGED version (what will be live)
+(`wfparse.pending_uploads`). `runs_report.py` flags a new staged cron, or
+a pending update, still not uploaded 48 hours after its PR merged. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
 first whether a cron was added or lost on purpose. `[This line exists
 because the prose originally said "50 crons", which was already wrong
 when it was written, and a test asserting that literal string would have
