@@ -11,6 +11,11 @@
 # ⚠️ Minute is off :00 and :30 on purpose: those slots get dropped.
 # ══════════════════════════════════════════════════════════════════════
 name: t60r
+# ⛔ THE STAMP. Every cron workflow writes its schedule into the run's name
+#    so `runs_report.py` can tell a cron that never fired from one that
+#    did. This line was MISSING from the first upload, and
+#    `test_runs_report.py` went red on `main` the moment it landed.
+run-name: ${{ github.event.schedule && format('t60r [cron {0}]', github.event.schedule) || format('t60r [{0}]', github.event_name) }}
 
 on:
   schedule:

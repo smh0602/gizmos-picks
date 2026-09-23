@@ -215,7 +215,7 @@ def last_fire(c, now, floor):
     return None
 
 
-def declared_crons(root="."):
+def declared_crons(root=".", pattern=".github/workflows/*.yml"):
     """{workflow name: {"file", "crons", "stamped"}} for cron workflows.
 
     ⛔ `stamped` IS THE HONEST HALF. A workflow that declares crons but
@@ -227,7 +227,7 @@ def declared_crons(root="."):
     which. Ledger rule 251.]`
     """
     out = {}
-    for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+    for p in sorted(glob.glob(os.path.join(root, pattern))):
         try:
             t = open(p, encoding="utf-8").read()
         except OSError:
