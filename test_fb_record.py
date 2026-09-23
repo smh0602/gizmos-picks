@@ -346,7 +346,11 @@ section("8. ⛔⛔ MLB IS UNTOUCHED — BYTE-IDENTICAL, NOT 'I DIDN'T MEAN TO'")
 # 🔴 SAY WHAT THIS GIVES UP: a hash forbids every edit; a rendered diff
 #    permits any edit MLB cannot see. That is the narrower licence Sam
 #    granted for this change, and it is written down rather than implied.
-_MAIN = {"renderRecord": "20cb8492840fbdc4",
+# ⚠️ renderRecord re-baselined 2026-09-23 (~~20cb8492840fbdc4~~) on Sam's
+#    instruction — MLB unfrozen 2026-09-22, and his MLB learning task puts the
+#    labelled champion-vs-challenger panel on this tab. The same amendment is
+#    recorded in research/mlb_render_frozen.json's `_why`.
+_MAIN = {"renderRecord": "0975b831faa24360",
          "dayDetailHtml": "cf90d3ea7c684cf9",
          "loadRecordDetail": "a6fff37555f03ce7"}
 for _n, _want in sorted(_MAIN.items()):

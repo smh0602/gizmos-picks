@@ -1233,6 +1233,12 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
 # in the back-fill report and warned in the log. It is a different
 # STATUS, not a suppressed error.
 # ══════════════════════════════════════════════════════════════════════
+# 🔴 THE FOOTBALL HISTORY THE SIGNALS ARE BUILT OVER. `[Sam, 2026-09-23:
+#    "History is 2025 and 2026 only. Do not add 2024."]` ⛔ One list, read
+#    by both leagues' back-fills — never a second copy in nfl.py or cfb.py.
+FOOTBALL_HISTORY = (2025, 2026)
+
+
 def current_football_season(now=None):
     """The football season currently in progress or most recently played.
 

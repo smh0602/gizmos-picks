@@ -2046,6 +2046,27 @@ def model_pitchers(players):
     return {k: v for k, v in players.items() if not v.get("below_min_ip")}
 
 
+# 🔴 ONE MAPPING FROM A statsapi PITCHING GAME-LOG SPLIT TO A STORED ROW.
+#    `collect_pitchers` (the daily pull) and `mlb_refit.py` (the 2025 and
+#    postseason pull) both call this, so the two stores cannot disagree about
+#    what a start looks like (rule 117). ⛔ `outs_of` raises on a fraction
+#    that is not a third — the caller counts it as a domain violation.
+PITCHING_LOG_FIELDS = ("&fields=stats,splits,date,isHome,opponent,name,stat,gamesStarted,"
+                       "inningsPitched,strikeOuts,earnedRuns,hits,baseOnBalls,"
+                       "numberOfPitches,battersFaced")
+
+
+def pitching_log_row(g):
+    st = g.get("stat") or {}
+    o = outs_of(st.get("inningsPitched"))
+    return {"d": g.get("date"), "o": (g.get("opponent") or {}).get("name"),
+            "h": 1 if g.get("isHome") else 0,
+            "gs": 1 if (st.get("gamesStarted") or 0) > 0 else 0,
+            "outs": o, "k": st.get("strikeOuts"), "er": st.get("earnedRuns"),
+            "hit": st.get("hits"), "bb": st.get("baseOnBalls"),
+            "np": st.get("numberOfPitches"), "bf": st.get("battersFaced")}
+
+
 def collect_pitchers():
     yr = now().year
     pool, _ = get(f"{STATS}/stats?stats=season&group=pitching&season={yr}&gameType=R"
@@ -2133,9 +2154,7 @@ def collect_pitchers():
     for p in people:
         try:
             d, _ = get(f"{STATS}/people/{p['id']}/stats?stats=gameLog&group=pitching"
-                       f"&season={yr}&gameType=R"
-                       "&fields=stats,splits,date,isHome,opponent,name,stat,gamesStarted,"
-                       "inningsPitched,strikeOuts,earnedRuns,hits,baseOnBalls,numberOfPitches,battersFaced")
+                       f"&season={yr}&gameType=R" + PITCHING_LOG_FIELDS)
             sp = (d.get("stats") or [{}])[0].get("splits", []) if d.get("stats") else []
         except Exception as e:
             log(f"  {p['name']}: {type(e).__name__}")
@@ -2145,19 +2164,12 @@ def collect_pitchers():
             continue
         rows = []
         for g in sp:
-            st = g.get("stat") or {}
             try:
-                o = outs_of(st.get("inningsPitched"))
+                rows.append(pitching_log_row(g))
             except ValueError as e:
                 log(f"  DOMAIN VIOLATION {p['name']} {g.get('date')}: {e}")
                 viol += 1
                 continue
-            rows.append({"d": g.get("date"), "o": (g.get("opponent") or {}).get("name"),
-                         "h": 1 if g.get("isHome") else 0,
-                         "gs": 1 if (st.get("gamesStarted") or 0) > 0 else 0,
-                         "outs": o, "k": st.get("strikeOuts"), "er": st.get("earnedRuns"),
-                         "hit": st.get("hits"), "bb": st.get("baseOnBalls"),
-                         "np": st.get("numberOfPitches"), "bf": st.get("battersFaced")})
         if rows:
             logs[p["id"]] = {"name": p["name"], "team": p["team"], "throws": hand.get(p["id"]),
                              "era": p["era"], "whip": p["whip"], "w": p["w"], "l": p["l"],
@@ -4398,6 +4410,22 @@ def run_mode(mode):
                     f"left. NOTHING FETCHED. The artifact stays out of "
                     f"contract and verify_freshness reports it.")
                 seasons = []
+            # ══════════════════════════════════════════════════════════
+            # 🔴 SIGNALS 6 AND 7 NEED 2025 TOO, AND NO CRON IS CHANGED.
+            # `[Sam, 2026-09-23]` The schedule asks for SEASON=CUR only.
+            # ✅ A history season joins THIS run while its per-game
+            #    possession or players-out count is missing, and stops
+            #    joining the day both exist — `nfl.history_gap` decides
+            #    from the probes, so a season the builder REFUSED is not
+            #    re-downloaded every morning. 💰 nflverse is free.
+            # ══════════════════════════════════════════════════════════
+            import freshness as _fr7
+            for _hs in _fr7.FOOTBALL_HISTORY:
+                if seasons and _hs not in seasons:
+                    _why = _nfl.history_gap(base, _hs)
+                    if _why:
+                        log(f"history back-fill: adding {_hs} — {_why}")
+                        seasons.append(_hs)
             for season in seasons:
                 try:
                     doc = _nfl.build_logs(season, log)

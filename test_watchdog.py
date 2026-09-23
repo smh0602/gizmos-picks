@@ -516,13 +516,14 @@ ck("⛔ ...and the cron-block exception is stated, not implied",
 # ✅ DERIVED INSTEAD, copying `test_cron_wiring.py`'s existing pattern for
 #    collect.yml's own header — the count is read from the workflows and
 #    the doc must agree with it.
-_wfdir = os.path.join(ROOT, ".github/workflows")
-_total = 0
-for _f in sorted(os.listdir(_wfdir)):
-    if _f.endswith(".yml"):
-        _total += len(re.findall(r"(?m)^\s*-\s*cron:",
-                                 open(os.path.join(_wfdir, _f),
-                                      encoding="utf-8").read()))
+# 🔴 `[2026-09-23, Sam]` ~~deployed folder only~~ — COUNTED ACROSS
+#    `.github/workflows/` AND `docs/upload/`, deduplicated by file name, by
+#    the ONE counter in `wfparse.py`. The total now reads the same before
+#    and after Sam's hand upload, so a staged cron no longer turns the
+#    suite red in between. ⛔ Not looser: the copies must be identical
+#    (`wfparse.staged_mismatches`, checked in test_runs_report.py).
+import wfparse as _wfp  # noqa: E402
+_total = _wfp.cron_total(ROOT)
 _claim = re.search(r"<!--\s*CRON TOTAL:\s*(\d+)\s*-->",
                    open(CM, encoding="utf-8").read())
 ck("🔴 CLAUDE.md states its cron total in a machine-readable form",

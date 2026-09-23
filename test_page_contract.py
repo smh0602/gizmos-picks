@@ -70,6 +70,11 @@ EXEMPT = {
         "MLB. ⛔ FROZEN, and already covered by the `card` row for the "
         "current slate; older days are the permanent record, which is "
         "never rewritten and therefore never late",
+    "data/latest/mlb-refit.json":
+        "written WEEKLY by its own workflow (`mlb-refit.yml`), not by "
+        "collect.py — a contract row would send `converge` to rebuild it "
+        "through a mode the collector does not have. Its Monday cron is "
+        "stamped, so `runs_report.py` reports a missed fire",
     "data/nfl/latest/teams.json":
         "fetched by the page for BOTH leagues and NOTHING WRITES IT — "
         "only college has a `cfb-teams` writer. A row would be red "

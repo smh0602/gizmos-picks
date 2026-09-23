@@ -272,15 +272,13 @@ def other_workflow_calls(root=ROOT):
     return weekly
 
 
-def main():
-    retries = 1
-    for i, a in enumerate(sys.argv):
-        if a == "--retries" and i + 1 < len(sys.argv):
-            retries = int(sys.argv[i + 1])
-    weeks = int(os.environ.get("CFBD_WEEKS_PLAYED", "3"))
-
+def weekly_by_mode(weeks=None, root=ROOT):
+    """{mode: CFBD calls a week} for collect.yml's routes. ⛔ Derived, never
+    typed — the same computation `main()` prints, split out so the price
+    check below reserves exactly what the report says is scheduled."""
+    weeks = int(os.environ.get("CFBD_WEEKS_PLAYED", "3")) if weeks is None else weeks
     per = calls_per_build(weeks)
-    wf = open(os.path.join(ROOT, ".github/workflows/collect.yml"),
+    wf = open(os.path.join(root, ".github/workflows/collect.yml"),
               encoding="utf-8").read()
     weekly = collections.Counter()
     for cron, league, modes in parse_routes(wf):
@@ -289,6 +287,77 @@ def main():
         for mode in modes.split():
             if mode in per:
                 weekly[mode] += fires_per_week(cron) * per[mode]
+    return weekly, per
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 💰 EVERY NEW CFBD PULL IS PRICED BEFORE IT IS MADE. `[Sam, 2026-09-23]`
+# ══════════════════════════════════════════════════════════════════════
+# "No paid tiers and no new spend. Have cfbd_budget.py price every CFBD
+# call before it is made."
+# ⛔ THE PRICE IS A CEILING, READ OFF THE CODE. `plays_sweep_max()` reads
+#    the week range out of `cfb.build_pace` — the same regex
+#    `calls_per_build` uses — and assumes NO early stop, so the price can
+#    only overstate what the sweep spends.
+# ⛔ AND THE RESERVE IS THE SCHEDULE. A pull is allowed only if, after its
+#    ceiling, CFBD's own remaining-calls header still covers ONE FULL WEEK
+#    of every scheduled CFBD call. A one-off must never be what makes the
+#    daily builders run dry.
+# ⛔ NO READING IS NO PERMISSION. If the header was never seen, the answer
+#    is REFUSED — an unknown allowance is not a large one.
+def plays_sweep_max(root=ROOT):
+    """Ceiling on one `/plays` sweep of a season: both season types, every
+    week in `build_pace`'s range, no early stop."""
+    src = open(os.path.join(root, "cfb.py"), encoding="utf-8").read()
+    m = re.search(r"def build_pace.*?for wk in range\((\d+),\s*(\d+)\)", src, re.S)
+    lo, hi = (int(m.group(1)), int(m.group(2))) if m else (1, 17)
+    return 2 * (hi - lo)
+
+
+def remaining_calls(latest):
+    """CFBD's own `X-CallLimit-Remaining`, from the committed reading."""
+    import json as _json
+    try:
+        with open(os.path.join(latest, "cfbd-quota.json"), encoding="utf-8") as fh:
+            h = (((_json.load(fh) or {}).get("quota") or {}).get("headers") or {})
+    except (OSError, ValueError):
+        return None
+    for k, v in h.items():
+        if k.lower() == "x-calllimit-remaining":
+            try:
+                return int(v)
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+def preflight(calls, purpose, latest, root=ROOT):
+    """-> {"allowed", "calls", "remaining", "reserve", "why"}. No call made."""
+    weekly, _per = weekly_by_mode(root=root)
+    reserve = sum(weekly.values()) + sum(other_workflow_calls(root).values())
+    left = remaining_calls(latest)
+    out = {"purpose": purpose, "calls": int(calls), "remaining": left,
+           "reserve_one_week": int(reserve), "allowed": False}
+    if left is None:
+        out["why"] = ("no CFBD remaining-calls reading on disk — an unknown "
+                      "allowance is never permission")
+    elif calls + reserve > left:
+        out["why"] = ("%d call(s) + a week of scheduled pulls (%d) exceeds "
+                      "the %d CFBD says remain" % (calls, reserve, left))
+    else:
+        out["allowed"] = True
+        out["why"] = ("%d call(s) at most; %d remain; %d stay reserved for a "
+                      "week of scheduled pulls" % (calls, left, reserve))
+    return out
+
+
+def main():
+    retries = 1
+    for i, a in enumerate(sys.argv):
+        if a == "--retries" and i + 1 < len(sys.argv):
+            retries = int(sys.argv[i + 1])
+    weekly, per = weekly_by_mode()
+    weeks = int(os.environ.get("CFBD_WEEKS_PLAYED", "3"))
 
     print("CFBD CALL BUDGET — derived from the deployed workflow and cfb.py")
     print(f"  assuming {weeks} played week(s); "

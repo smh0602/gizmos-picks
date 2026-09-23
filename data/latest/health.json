@@ -1,34 +1,24 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-23T16:50:36Z",
+ "checked_at": "2026-09-23T22:09:55Z",
  "et_date": "2026-09-23",
- "healthy": false,
- "broken": 1,
+ "healthy": true,
+ "broken": 0,
  "degraded": 0,
- "findings": [
-  {
-   "key": "verify:mlb",
-   "severity": "BROKEN",
-   "what": "the mlb card was BUILT and then REFUSED, so nothing published",
-   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (17 rows, zero tolerance -- stricter than T37's 5%)  [('Andr\u00e9s Chaparro', 'batter_rbis', 'under', 0.5, 78, 0.53)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (17 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (17 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
-   "repair": null
-  }
- ],
+ "findings": [],
  "repairs": [],
- "unrepairable": [
-  "verify"
- ],
+ "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 7129,
-  "pulled_at": "2026-09-23T16:04:37Z",
+  "balance": 6981,
+  "pulled_at": "2026-09-23T22:09:53Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.8,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-09-23T16:04:37Z",
-  "source": "data/ncaaf/2026-09-23/gamelines/1604.json.gz",
-  "readings_on_disk": 360,
+  "newest_paid_pull": "2026-09-23T22:09:53Z",
+  "source": "data/nfl/2026-09-23/gamelines/2209.json.gz",
+  "readings_on_disk": 367,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }

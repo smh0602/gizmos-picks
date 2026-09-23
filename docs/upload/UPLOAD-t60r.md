@@ -75,6 +75,10 @@ or its own check would be red for the opposite reason.
 
 ## Changelog
 
+- **2026-09-23:** the "open a one-line pull request after the upload"
+  step (Step 2) no longer applies to any future upload. Staged cron files
+  now count toward `CRON TOTAL`, so an upload never turns the tests red.
+  Kept above as history of how t60r was uploaded.
 - **2026-09-22 (second upload):** ⚠️ **MISTAKE.** The first `t60r.yml`
   had no `run-name:` stamp, so `test_runs_report.py` went red on `main`
   when it landed. Root cause: the file sat in `docs/upload/`, which no
