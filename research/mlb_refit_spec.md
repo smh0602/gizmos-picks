@@ -81,5 +81,12 @@ new test with a new id.
 
 ## Changelog
 
+- **2026-09-23 (first run):** **DOES NOT QUALIFY. v5.0 stays.** 13,004
+  paired predictions; mean improvement from re-fitting **−0.0219** (the
+  challenger was worse); one-sided p ≈ 1.0. Strikeouts were a tie
+  (−0.0006). Outs were worse in every segment (−0.0431 overall), including
+  2026 after v5.0's fit window, where neither model had seen the games.
+  The full report is `research/mlb_refit_run_2026-09-23.json`. The code
+  was committed before this run (96c73cbd), after this spec (cda92bd4).
 - **2026-09-23:** written. Section 2 approved by Sam; section 3 fixed by
   Claude before any result was computed.

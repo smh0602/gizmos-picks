@@ -2006,6 +2006,50 @@ function dayDetailHtml(rows, date){
        : 'Every pick on this card was settled.'}</div>`;
 }
 
+/* 🔴 IS v5.0 STILL THE BEST VERSION? `[Sam, 2026-09-23]` The weekly
+   champion-vs-challenger check (`mlb_refit.py`, research/mlb_refit_spec.md).
+   ⛔ RULE 55, BY CONSTRUCTION: every number reaches the page through
+   `labN`, which prints its MODEL / MARKET / DESCRIPTIVE chip beside it. A
+   number the report sends without a basis is shown as "unlabelled" rather
+   than passed off as either. `test_mlb_refit.py` checks both halves. */
+function labN(x, unit){
+  if (!x || typeof x !== 'object' || !('basis' in x))
+    return '<span class="kind k-desc">unlabelled</span>';
+  const cls = {MODEL: 'k-model', MARKET: 'k-market', DESCRIPTIVE: 'k-desc'}[x.basis] || 'k-desc';
+  const word = {MODEL: 'Model', MARKET: 'Market', DESCRIPTIVE: 'Record'}[x.basis] || x.basis;
+  const v = x.value == null ? '—' : (Array.isArray(x.value) ? x.value.join(' / ') : x.value);
+  return `${v}${unit || ''} <span class="kind ${cls}">${word}</span>`;
+}
+
+function refitPanel(F){
+  if (!F || !F.display) return '';
+  const D = F.display, P = D.paired || {};
+  const verdictWord = {QUALIFIES: 'The re-fitted version qualifies — a pull request is waiting for your decision.',
+    'DOES NOT QUALIFY': 'The re-fitted version has not beaten v5.0 by your rule. v5.0 stays.',
+    'NOT YET MEASURABLE': 'Not enough side-by-side predictions yet to decide.'}[F.verdict] || F.verdict;
+  const rec = (name, R) => `<tr><td>${name}</td><td>${labN(R.predictions)}</td>
+      <td>${labN(R.mean_log_loss)}</td><td>${labN(R.strikeouts_mean_log_loss)}</td><td>${labN(R.outs_mean_log_loss)}</td></tr>`;
+  const cal = (rows) => (rows || []).filter(r => r.rows && r.rows.value)
+    .map(r => `<tr><td>${r.bucket}</td><td>${labN(r.model_said, '%')}</td><td>${labN(r.it_hit, '%')}</td><td>${labN(r.rows)}</td></tr>`).join('');
+  return `<div class="panel">
+    <h2>Is v5.0 still the best version? <span class="kind k-model">Model</span></h2>
+    <p class="stamp">Checked every week. Each week is predicted twice: by v5.0's frozen numbers, and by
+      the same model re-fitted on every game played before that week. Lower "surprise" is better.
+      <span class="rec">built ${F.built_at}</span></p>
+    <div class="note"><b>${verdictWord}</b><br>${F.rule}</div>
+    <table class="ob" style="margin-top:12px"><thead><tr><th></th><th>Predictions</th><th>Surprise</th>
+      <th>Strikeouts</th><th>Outs</th></tr></thead><tbody>
+      ${rec('v5.0 (on the card)', D.champion || {})}${rec('Re-fitted', D.challenger || {})}</tbody></table>
+    <p style="margin-top:10px">Side by side: ${labN(P.predictions)} predictions. Average improvement from
+      re-fitting ${labN(P.mean_improvement)}, and the chance of seeing that by luck alone ${labN(P.p_one_sided)}.</p>
+    <h3 style="margin:18px 0 8px;font-size:14px">When v5.0 says a number, how often does it happen?</h3>
+    <table class="ob"><thead><tr><th>It said</th><th>On average</th><th>It happened</th><th>Rows</th></tr></thead>
+      <tbody>${cal((D.calibration || {}).champion)}</tbody></table>
+    <div class="note" style="margin-top:12px">Each start is checked at every half-line, so the rows in a band
+      are not independent — read the bands as a shape, not as exact odds.</div>
+  </div>`;
+}
+
 async function renderRecord(){
   const v = $('#view');
   if (!RECORD){
@@ -2019,6 +2063,10 @@ async function renderRecord(){
     }
   }
   const R = RECORD, M = R.overall || {};
+  /* ⚠️ OPTIONAL: the model check writes its own file weekly. Missing is
+     not an error on this tab — the panel simply does not draw. */
+  let REFIT = null;
+  try { REFIT = await jget('data/latest/mlb-refit.json'); } catch(e){ REFIT = null; }
   const cal = R.calibration_meta || {};
   /* Bands now come from the MODEL's own graded rows, not from a copied
      ledger snapshot. Empty until enough cards are graded, and that is the
@@ -2111,7 +2159,8 @@ async function renderRecord(){
         Only the <b>70–80%</b> band has a record that supports its own number. At <b>60–70%</b> the model has
         been badly wrong, and <b>80%+</b> is running hot. Small samples throughout — every figure here will move.<br><br>
         Nothing is removed after the fact. A losing pick stays logged even when there is a good excuse for it.</div>
-    </div>`;
+    </div>
+    ${refitPanel(REFIT)}`;
 }
 
 /* 🔴 A HEADLINE WITHOUT ART STILL HAS A SUBJECT.
