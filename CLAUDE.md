@@ -137,10 +137,15 @@ its way in.**
 changed the workflow's `cron:` block.** Every one of them depends on that
 user staying a human with write access.
 
-<!-- CRON TOTAL: 56 -->
+<!-- CRON TOTAL: 57 -->
 ⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
-counts every `- cron:` line in `.github/workflows/` and fails if this
-comment disagrees. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
+counts every `- cron:` line in `.github/workflows/` **and in files staged
+under `docs/upload/`**, one per file name (`wfparse.cron_total`), and
+fails if this comment disagrees. ✅ `[Sam, 2026-09-23]` Staged files count,
+so the total is right before AND after Sam's upload: no red window. The
+uploaded file must match its staged copy (`wfparse.staged_mismatches`),
+and `runs_report.py` flags a staged cron still not uploaded 48 hours
+after its PR merged. ⛔ **IF IT FAILS, DO NOT JUST EDIT THE NUMBER** — ask
 first whether a cron was added or lost on purpose. `[This line exists
 because the prose originally said "50 crons", which was already wrong
 when it was written, and a test asserting that literal string would have
@@ -543,6 +548,12 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a
                   pull/push loop again — a half-done rebase lost whole
                   converge passes (and paid pulls) 09-15 → 09-21.
+mlb_refit.py      MLB champion vs challenger, as Sam approved it on
+                  2026-09-23 in `research/mlb_refit_spec.md`: v5.0
+                  (READ from card.py) against the same model re-fitted
+                  each week on earlier games only, scored by log loss.
+                  ⛔ Changes no coefficient; when the challenger
+                  qualifies it opens ONE "[ASK SAM]" PR. Stdlib only.
 mlb_tables.py     the MLB pitcher + opponent tables, rebuilt after every
                   `pitchers` pull from the FULL starter population.
                   ⛔ card.py reads `model_pitchers()`, never the widened

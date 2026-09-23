@@ -1,0 +1,857 @@
+{
+ "spec": "research/mlb_refit_spec.md",
+ "built_at": "2026-09-23T17:07:09Z",
+ "verdict": "DOES NOT QUALIFY",
+ "rule": "The challenger replaces v5.0 only if its per-prediction log loss is lower with one-sided p < 0.05 (paired test) over at least 500 predictions. [Sam, 2026-09-23]",
+ "display": {
+  "champion": {
+   "predictions": {
+    "value": 15012,
+    "basis": "DESCRIPTIVE"
+   },
+   "mean_log_loss": {
+    "value": 2.57628,
+    "basis": "DESCRIPTIVE"
+   },
+   "strikeouts_mean_log_loss": {
+    "value": 2.22067,
+    "basis": "DESCRIPTIVE"
+   },
+   "outs_mean_log_loss": {
+    "value": 2.93188,
+    "basis": "DESCRIPTIVE"
+   },
+   "name": "v5.0 (frozen coefficients)"
+  },
+  "challenger": {
+   "predictions": {
+    "value": 13004,
+    "basis": "DESCRIPTIVE"
+   },
+   "mean_log_loss": {
+    "value": 2.58066,
+    "basis": "DESCRIPTIVE"
+   },
+   "strikeouts_mean_log_loss": {
+    "value": 2.21884,
+    "basis": "DESCRIPTIVE"
+   },
+   "outs_mean_log_loss": {
+    "value": 2.94248,
+    "basis": "DESCRIPTIVE"
+   },
+   "name": "re-fitted each week on earlier games"
+  },
+  "paired": {
+   "predictions": {
+    "value": 13004,
+    "basis": "DESCRIPTIVE"
+   },
+   "mean_improvement": {
+    "value": -0.02189,
+    "basis": "DESCRIPTIVE"
+   },
+   "t": {
+    "value": -4.861,
+    "basis": "DESCRIPTIVE"
+   },
+   "p_one_sided": {
+    "value": 0.999999,
+    "basis": "DESCRIPTIVE"
+   },
+   "strikeouts_mean_improvement": {
+    "value": -0.00065,
+    "basis": "DESCRIPTIVE"
+   },
+   "outs_mean_improvement": {
+    "value": -0.04314,
+    "basis": "DESCRIPTIVE"
+   }
+  },
+  "calibration": {
+   "champion": [
+    {
+     "bucket": "0-10%",
+     "rows": {
+      "value": 55693,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 2.9,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 4.0,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "10-20%",
+     "rows": {
+      "value": 18257,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 14.6,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 15.8,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "20-30%",
+     "rows": {
+      "value": 13300,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 24.8,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 25.9,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "30-40%",
+     "rows": {
+      "value": 11022,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 34.9,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 37.7,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "40-50%",
+     "rows": {
+      "value": 10196,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 44.9,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 48.8,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "50-60%",
+     "rows": {
+      "value": 10097,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 55.0,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 59.2,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "60-70%",
+     "rows": {
+      "value": 10544,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 65.1,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 68.0,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "70-80%",
+     "rows": {
+      "value": 11999,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 75.2,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 77.0,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "80-90%",
+     "rows": {
+      "value": 15549,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 85.3,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 84.7,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "90-100%",
+     "rows": {
+      "value": 38499,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 96.6,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 93.5,
+      "basis": "DESCRIPTIVE"
+     }
+    }
+   ],
+   "challenger": [
+    {
+     "bucket": "0-10%",
+     "rows": {
+      "value": 46874,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 2.9,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 3.7,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "10-20%",
+     "rows": {
+      "value": 15696,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 14.7,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 14.6,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "20-30%",
+     "rows": {
+      "value": 11587,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 24.8,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 24.4,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "30-40%",
+     "rows": {
+      "value": 9559,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 34.9,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 35.6,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "40-50%",
+     "rows": {
+      "value": 8947,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 44.9,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 46.0,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "50-60%",
+     "rows": {
+      "value": 8707,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 55.0,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 57.3,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "60-70%",
+     "rows": {
+      "value": 9273,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 65.0,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 66.4,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "70-80%",
+     "rows": {
+      "value": 10463,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 75.2,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 75.7,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "80-90%",
+     "rows": {
+      "value": 13780,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 85.3,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 83.7,
+      "basis": "DESCRIPTIVE"
+     }
+    },
+    {
+     "bucket": "90-100%",
+     "rows": {
+      "value": 34166,
+      "basis": "DESCRIPTIVE"
+     },
+     "model_said": {
+      "value": 96.6,
+      "basis": "MODEL"
+     },
+     "it_hit": {
+      "value": 93.3,
+      "basis": "DESCRIPTIVE"
+     }
+    }
+   ]
+  },
+  "coverage": {
+   "2025": {
+    "R": {
+     "finals": {
+      "value": 2430,
+      "basis": "DESCRIPTIVE"
+     },
+     "starts": {
+      "value": 4860,
+      "basis": "DESCRIPTIVE"
+     },
+     "complete": true
+    },
+    "P": {
+     "finals": {
+      "value": 47,
+      "basis": "DESCRIPTIVE"
+     },
+     "starts": {
+      "value": 94,
+      "basis": "DESCRIPTIVE"
+     },
+     "complete": true
+    }
+   },
+   "2026": {
+    "R": {
+     "finals": {
+      "value": 2357,
+      "basis": "DESCRIPTIVE"
+     },
+     "starts": {
+      "value": 4714,
+      "basis": "DESCRIPTIVE"
+     },
+     "complete": true
+    },
+    "P": {
+     "finals": {
+      "value": 0,
+      "basis": "DESCRIPTIVE"
+     },
+     "starts": {
+      "value": 0,
+      "basis": "DESCRIPTIVE"
+     },
+     "complete": true
+    }
+   }
+  },
+  "latest_challenger_coefficients": {
+   "strikeouts": {
+    "b0": {
+     "value": 4.9057,
+     "basis": "MODEL"
+    },
+    "trail": {
+     "value": 0.6442,
+     "basis": "MODEL"
+    },
+    "c": {
+     "value": 4.9316,
+     "basis": "MODEL"
+    },
+    "opp": {
+     "value": 0.673,
+     "basis": "MODEL"
+    },
+    "home": {
+     "value": 0.1659,
+     "basis": "MODEL"
+    }
+   },
+   "outs": {
+    "a0": {
+     "value": 15.8882,
+     "basis": "MODEL"
+    },
+    "c": {
+     "value": 15.9777,
+     "basis": "MODEL"
+    },
+    "np": {
+     "value": 0.0387,
+     "basis": "MODEL"
+    },
+    "cnp": {
+     "value": 87.3433,
+     "basis": "MODEL"
+    },
+    "home": {
+     "value": 0.2006,
+     "basis": "MODEL"
+    },
+    "tiers": {
+     "value": [
+      0.5917,
+      0.6554,
+      0.5025
+     ],
+     "basis": "MODEL"
+    }
+   }
+  },
+  "champion_coefficients": {
+   "strikeouts": {
+    "b0": {
+     "value": 4.9292,
+     "basis": "MODEL"
+    },
+    "trail": {
+     "value": 0.6653,
+     "basis": "MODEL"
+    },
+    "c": {
+     "value": 4.9454,
+     "basis": "MODEL"
+    },
+    "opp": {
+     "value": 0.5803,
+     "basis": "MODEL"
+    },
+    "home": {
+     "value": 0.1449,
+     "basis": "MODEL"
+    }
+   },
+   "outs": {
+    "a0": {
+     "value": 15.9121,
+     "basis": "MODEL"
+    },
+    "c": {
+     "value": 15.8988,
+     "basis": "MODEL"
+    },
+    "np": {
+     "value": 0.0366,
+     "basis": "MODEL"
+    },
+    "cnp": {
+     "value": 87.2645,
+     "basis": "MODEL"
+    },
+    "home": {
+     "value": 0.1994,
+     "basis": "MODEL"
+    },
+    "tiers": {
+     "value": [
+      0.629,
+      0.647,
+      0.361
+     ],
+     "basis": "MODEL"
+    }
+   }
+  }
+ },
+ "weeks": [
+  {
+   "week": "2025-04-14",
+   "starts": 53,
+   "train": 0,
+   "challenger": false
+  },
+  {
+   "week": "2025-04-21",
+   "starts": 152,
+   "train": 53,
+   "challenger": false
+  },
+  {
+   "week": "2025-04-28",
+   "starts": 162,
+   "train": 205,
+   "challenger": false
+  },
+  {
+   "week": "2025-05-05",
+   "starts": 162,
+   "train": 367,
+   "challenger": false
+  },
+  {
+   "week": "2025-05-12",
+   "starts": 162,
+   "train": 529,
+   "challenger": false
+  },
+  {
+   "week": "2025-05-19",
+   "starts": 156,
+   "train": 691,
+   "challenger": false
+  },
+  {
+   "week": "2025-05-26",
+   "starts": 157,
+   "train": 847,
+   "challenger": false
+  },
+  {
+   "week": "2025-06-02",
+   "starts": 163,
+   "train": 1004,
+   "challenger": true
+  },
+  {
+   "week": "2025-06-09",
+   "starts": 161,
+   "train": 1167,
+   "challenger": true
+  },
+  {
+   "week": "2025-06-16",
+   "starts": 168,
+   "train": 1328,
+   "challenger": true
+  },
+  {
+   "week": "2025-06-23",
+   "starts": 165,
+   "train": 1496,
+   "challenger": true
+  },
+  {
+   "week": "2025-06-30",
+   "starts": 163,
+   "train": 1661,
+   "challenger": true
+  },
+  {
+   "week": "2025-07-07",
+   "starts": 176,
+   "train": 1824,
+   "challenger": true
+  },
+  {
+   "week": "2025-07-14",
+   "starts": 83,
+   "train": 2000,
+   "challenger": true
+  },
+  {
+   "week": "2025-07-21",
+   "starts": 177,
+   "train": 2083,
+   "challenger": true
+  },
+  {
+   "week": "2025-07-28",
+   "starts": 165,
+   "train": 2260,
+   "challenger": true
+  },
+  {
+   "week": "2025-08-04",
+   "starts": 169,
+   "train": 2425,
+   "challenger": true
+  },
+  {
+   "week": "2025-08-11",
+   "starts": 163,
+   "train": 2594,
+   "challenger": true
+  },
+  {
+   "week": "2025-08-18",
+   "starts": 174,
+   "train": 2757,
+   "challenger": true
+  },
+  {
+   "week": "2025-08-25",
+   "starts": 174,
+   "train": 2931,
+   "challenger": true
+  },
+  {
+   "week": "2025-09-01",
+   "starts": 159,
+   "train": 3105,
+   "challenger": true
+  },
+  {
+   "week": "2025-09-08",
+   "starts": 172,
+   "train": 3264,
+   "challenger": true
+  },
+  {
+   "week": "2025-09-15",
+   "starts": 178,
+   "train": 3436,
+   "challenger": true
+  },
+  {
+   "week": "2025-09-22",
+   "starts": 166,
+   "train": 3614,
+   "challenger": true
+  },
+  {
+   "week": "2025-09-29",
+   "starts": 33,
+   "train": 3780,
+   "challenger": true
+  },
+  {
+   "week": "2025-10-06",
+   "starts": 23,
+   "train": 3813,
+   "challenger": true
+  },
+  {
+   "week": "2025-10-13",
+   "starts": 17,
+   "train": 3836,
+   "challenger": true
+  },
+  {
+   "week": "2025-10-20",
+   "starts": 6,
+   "train": 3853,
+   "challenger": true
+  },
+  {
+   "week": "2025-10-27",
+   "starts": 10,
+   "train": 3859,
+   "challenger": true
+  },
+  {
+   "week": "2026-04-13",
+   "starts": 46,
+   "train": 3869,
+   "challenger": true
+  },
+  {
+   "week": "2026-04-20",
+   "starts": 151,
+   "train": 3915,
+   "challenger": true
+  },
+  {
+   "week": "2026-04-27",
+   "starts": 155,
+   "train": 4066,
+   "challenger": true
+  },
+  {
+   "week": "2026-05-04",
+   "starts": 150,
+   "train": 4221,
+   "challenger": true
+  },
+  {
+   "week": "2026-05-11",
+   "starts": 154,
+   "train": 4371,
+   "challenger": true
+  },
+  {
+   "week": "2026-05-18",
+   "starts": 160,
+   "train": 4525,
+   "challenger": true
+  },
+  {
+   "week": "2026-05-25",
+   "starts": 163,
+   "train": 4685,
+   "challenger": true
+  },
+  {
+   "week": "2026-06-01",
+   "starts": 158,
+   "train": 4848,
+   "challenger": true
+  },
+  {
+   "week": "2026-06-08",
+   "starts": 158,
+   "train": 5006,
+   "challenger": true
+  },
+  {
+   "week": "2026-06-15",
+   "starts": 158,
+   "train": 5164,
+   "challenger": true
+  },
+  {
+   "week": "2026-06-22",
+   "starts": 166,
+   "train": 5322,
+   "challenger": true
+  },
+  {
+   "week": "2026-06-29",
+   "starts": 170,
+   "train": 5488,
+   "challenger": true
+  },
+  {
+   "week": "2026-07-06",
+   "starts": 175,
+   "train": 5658,
+   "challenger": true
+  },
+  {
+   "week": "2026-07-13",
+   "starts": 80,
+   "train": 5833,
+   "challenger": true
+  },
+  {
+   "week": "2026-07-20",
+   "starts": 174,
+   "train": 5913,
+   "challenger": true
+  },
+  {
+   "week": "2026-07-27",
+   "starts": 175,
+   "train": 6087,
+   "challenger": true
+  },
+  {
+   "week": "2026-08-03",
+   "starts": 175,
+   "train": 6262,
+   "challenger": true
+  },
+  {
+   "week": "2026-08-10",
+   "starts": 171,
+   "train": 6437,
+   "challenger": true
+  },
+  {
+   "week": "2026-08-17",
+   "starts": 171,
+   "train": 6608,
+   "challenger": true
+  },
+  {
+   "week": "2026-08-24",
+   "starts": 172,
+   "train": 6779,
+   "challenger": true
+  },
+  {
+   "week": "2026-08-31",
+   "starts": 179,
+   "train": 6951,
+   "challenger": true
+  },
+  {
+   "week": "2026-09-07",
+   "starts": 170,
+   "train": 7130,
+   "challenger": true
+  },
+  {
+   "week": "2026-09-14",
+   "starts": 174,
+   "train": 7300,
+   "challenger": true
+  },
+  {
+   "week": "2026-09-21",
+   "starts": 32,
+   "train": 7474,
+   "challenger": true
+  }
+ ],
+ "note": "A prediction is one start in one market; both markets pooled (spec 3). \u26a0\ufe0f The paired t-test treats predictions as independent; two from one start and many from one pitcher are not, so p is likely smaller than it should be (spec 3, disclosed risk)."
+}

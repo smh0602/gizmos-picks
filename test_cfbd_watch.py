@@ -411,8 +411,9 @@ section("8. 🔴 THE CRON TOTAL MOVES WITH THE CRON THIS ADDS")
 # ⛔ Drop 66's guard counts every `- cron:` line and fails if CLAUDE.md
 #    disagrees. This adds exactly one, so the marker moves IN THIS COMMIT
 #    — a follow-up would leave an intermediate red state on main.
-_total = sum(len(re.findall(r"(?m)^\s*-\s*cron:", read(os.path.join(WF_DIR, f))))
-             for f in sorted(os.listdir(WF_DIR)) if f.endswith(".yml"))
+# ⚠️ Deployed + staged, one per file name — the one counter (rule 117).
+import wfparse as _wfp  # noqa: E402
+_total = _wfp.cron_total(ROOT)
 _claim = re.search(r"<!--\s*CRON TOTAL:\s*(\d+)\s*-->",
                    read(os.path.join(ROOT, "CLAUDE.md")))
 ck("🔴 CLAUDE.md's stated cron total matches the crons actually scheduled",

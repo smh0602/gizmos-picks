@@ -246,3 +246,65 @@ def step_run(src, step_id=None, step_name=None, job=None):
             if st.name == step_name:
                 return st.run
     return None
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE CRON TOTAL COUNTS STAGED UPLOADS TOO — SO IT NEVER GOES RED IN
+#    THE GAP BETWEEN A PR MERGING AND SAM UPLOADING. `[Sam, 2026-09-23]`
+# ══════════════════════════════════════════════════════════════════════
+# A cron workflow reaches `.github/workflows/` only by Sam's hand, so it is
+# STAGED in `docs/upload/` first. Counting only the deployed folder made
+# CLAUDE.md's `CRON TOTAL` wrong for the hours between merge and upload —
+# twice on 2026-09-22 (t60r). ✅ Counted across BOTH folders, deduplicated
+# by FILE NAME, the total is the same before and after the upload.
+# ⛔ The dedupe is only safe because the two copies must be identical —
+#    `staged_mismatches` is that check, and `test_runs_report.py` runs it.
+# ⛔ ONE COPY (rule 117): test_watchdog.py and test_cfbd_watch.py both read
+#    the total from here.
+CRON_LINE = re.compile(r"(?m)^\s*-\s*cron:")
+DEPLOYED_DIR = os.path.join(".github", "workflows")
+STAGED_DIR = os.path.join("docs", "upload")
+
+
+def cron_files(root="."):
+    """{file name: {"crons", "deployed", "staged"}} for every workflow file,
+    in either folder, that declares at least one cron."""
+    out = {}
+    for where, sub in (("deployed", DEPLOYED_DIR), ("staged", STAGED_DIR)):
+        d = os.path.join(root, sub)
+        if not os.path.isdir(d):
+            continue
+        for f in sorted(os.listdir(d)):
+            if not f.endswith(".yml"):
+                continue
+            with open(os.path.join(d, f), encoding="utf-8") as fh:
+                n = len(CRON_LINE.findall(fh.read()))
+            if not n:
+                continue
+            e = out.setdefault(f, {"crons": n, "deployed": False, "staged": False})
+            e[where] = True
+            if where == "deployed":
+                e["crons"] = n          # the live file is the one that fires
+    return out
+
+
+def cron_total(root="."):
+    """Crons declared across deployed and staged workflows, one per name."""
+    return sum(v["crons"] for v in cron_files(root).values())
+
+
+def staged_mismatches(root="."):
+    """Names present in BOTH folders whose contents differ.
+
+    ⚠️ Line endings are ignored and nothing else: a file uploaded from a
+    Windows checkout arrives with CRLF, and that is the same file.
+    """
+    bad = []
+    for f, v in sorted(cron_files(root).items()):
+        if not (v["deployed"] and v["staged"]):
+            continue
+        a, b = (open(os.path.join(root, sub, f), encoding="utf-8").read().replace("\r", "")
+                for sub in (DEPLOYED_DIR, STAGED_DIR))
+        if a != b:
+            bad.append(f)
+    return bad

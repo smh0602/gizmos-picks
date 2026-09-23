@@ -659,6 +659,9 @@ def _tree():
         "jobs:\n  x:\n    runs-on: ubuntu-latest\n"
         "    steps:\n      - run: echo hi\n")
     shutil.copy(os.path.join(ROOT, "runs_report.py"), d)
+    # ⚠️ runs_report.py imports wfparse (the staged-upload check, 2026-09-23);
+    #    a fixture missing a module the script imports tests a crash.
+    shutil.copy(os.path.join(ROOT, "wfparse.py"), d)
     return d
 
 
