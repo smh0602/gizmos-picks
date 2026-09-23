@@ -153,6 +153,9 @@ PRODUCED = ("data/nfl/latest/dossiers.json.gz",
             "data/nfl/latest/t54.json")
 
 
+_TEAM_OUT_PATCHED = {}      # players file name -> patched gz bytes, or None
+
+
 def tree(with_dossier=True):
     """A throwaway repo with the data the builder and the card both read."""
     d = tempfile.mkdtemp(prefix="dossier-")
@@ -168,22 +171,33 @@ def tree(with_dossier=True):
     #    turns it green. Same shape `team_out_from_rows` emits; a file that
     #    already carries the real block is left exactly as it is.
     # ══════════════════════════════════════════════════════════════════
+    # ⚠️ PATCHED ONCE PER PROCESS, THEN COPIED AS BYTES. `[measured
+    #    2026-09-23]` Re-reading and re-writing six players files in every
+    #    `tree()` cost 3s a call — 91s -> 131s for this file — and the
+    #    nightly `vacuity` sweep runs this file 34 times, which pushed
+    #    `test_vacuity.py` past its 2400s clock on PR #138.
     for _pf in glob.glob(os.path.join(d, "data", "nfl", "latest",
                                       "players-*.json.gz")):
-        with gzip.open(_pf, "rt", encoding="utf-8") as _fh:
-            _doc = json.load(_fh)
-        if "team_out_report" in _doc:
-            continue
-        _teams = sorted({r.get("team") for v in (_doc.get("players") or {}).values()
-                         for r in (v.get("g") or []) if r.get("team")})
-        _doc["team_out"] = {t: {"1": {"out": 1, "injury_report": 1,
-                                      "roster_status": 0,
-                                      "players": [{"name": "Fixture Player",
-                                                   "why": ["injury report: out"]}]}}
-                            for t in _teams}
-        _doc["team_out_report"] = {"usable": True, "fixture": True}
-        with gzip.open(_pf, "wt", encoding="utf-8") as _fh:
-            json.dump(_doc, _fh)
+        _name = os.path.basename(_pf)
+        if _name not in _TEAM_OUT_PATCHED:
+            with gzip.open(_pf, "rt", encoding="utf-8") as _fh:
+                _doc = json.load(_fh)
+            if "team_out_report" in _doc:
+                _TEAM_OUT_PATCHED[_name] = None       # the real block: leave it
+            else:
+                _teams = sorted({r.get("team") for v in (_doc.get("players") or {}).values()
+                                 for r in (v.get("g") or []) if r.get("team")})
+                _doc["team_out"] = {t: {"1": {"out": 1, "injury_report": 1,
+                                              "roster_status": 0,
+                                              "players": [{"name": "Fixture Player",
+                                                           "why": ["injury report: out"]}]}}
+                                    for t in _teams}
+                _doc["team_out_report"] = {"usable": True, "fixture": True}
+                _TEAM_OUT_PATCHED[_name] = gzip.compress(
+                    json.dumps(_doc).encode("utf-8"), compresslevel=1)
+        if _TEAM_OUT_PATCHED[_name] is not None:
+            with open(_pf, "wb") as _fh:
+                _fh.write(_TEAM_OUT_PATCHED[_name])
     for _rel in PRODUCED:
         _p = os.path.join(d, _rel)
         if os.path.exists(_p):
