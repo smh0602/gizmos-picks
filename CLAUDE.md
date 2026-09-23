@@ -479,6 +479,12 @@ nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
 record_fb.py      the football grader -> data/<lg>/latest/record.json
 dossier_fb.py     Sam's eight per-game checks, every board game.
                   ⛔ Combines nothing, ranks nothing, scores nothing.
+fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
+                  logistic per league x market on signals 1-8, walk-
+                  forward weekly, graded ONLY at Hard Rock / FanDuel /
+                  DraftKings prices archived before kickoff. Rides
+                  `card-fb`; its own MODEL section on the page. ⛔ Never
+                  touches the card. Design: research/fb_model_design.md.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule

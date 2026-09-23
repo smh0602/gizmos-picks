@@ -107,3 +107,17 @@ drifting toward whatever the first record happens to reward.
 ## Changelog
 
 - **2026-09-23:** written, before any result.
+- **2026-09-23, after the first run: three places the code did not match
+  this design, all fixed without changing the design:**
+  - **§3 college moneylines were never graded at CFBD's DraftKings price.**
+    Root cause: `best_pick` returned early when there was no board
+    snapshot, so the CFBD fallback this section promises was unreachable.
+    Guard: `test_fb_model.py`.
+  - **§3 "spread direction is checked against the moneyline" was not
+    implemented.** Root cause: I wrote the rule here and never carried it
+    into `book_lines`. It is now `spread_oriented()`, applied per book, and
+    it fails closed. Guard: a mutation in `test_fb_model.py`.
+  - **This week's picks read `board.json`, which has no per-book prices.**
+    Root cause: I assumed the processed board kept each book's quote.
+    Picks now come from the same raw snapshot archive the walk-forward
+    grades against, limited to the next 7 days.

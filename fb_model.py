@@ -38,6 +38,7 @@ SEASONS = (2025, 2026)
 MARKETS = ("spread", "total", "moneyline")
 RIDGE = 1.0                  # ⛔ design §2
 MIN_TRAIN = 150              # ⛔ design §4
+PICK_WINDOW_DAYS = 7         # the page shows the coming week's slate only
 Z95 = 1.959964
 BASES = ("MODEL", "MARKET", "DESCRIPTIVE")
 FEATURES = {
@@ -116,6 +117,24 @@ def board_prices(lg, resolve, root=None):
     return out
 
 
+def spread_oriented(M, ml_h, ml_a):
+    """Design §3: a book's spread is used only if the SAME book's moneyline
+    agrees on who the favourite is — the favourite lays the points.
+
+    CLAUDE.md's `run_line` rule, and `t60r.market`'s, applied per book: the
+    moneyline is one unambiguous market, the spread label is the one books
+    have been caught inverting. ⛔ Fails closed — no moneyline to orient it,
+    or a moneyline pick'em against a non-zero spread, and the row is not used.
+    A zero spread (pick'em) needs no orientation.
+    """
+    if M == 0:
+        return True
+    if ml_h is None or ml_a is None or float(ml_h) == float(ml_a):
+        return False
+    home_fav = float(ml_h) < float(ml_a)
+    return (M > 0) == home_fav
+
+
 def book_lines(snap):
     """-> {"spread": [(book, M, home_px, away_px)], "total": [(book, T, over_px,
     under_px)], "moneyline": [(book, home_px, away_px)]} from one snapshot."""
@@ -123,7 +142,8 @@ def book_lines(snap):
     out = {"spread": [], "total": [], "moneyline": []}
     for b, v in sorted(snap["books"].items()):
         sp = v.get("spreads") or {}
-        if hname in sp and aname in sp and sp[hname].get("pt") is not None:
+        ml = v.get("h2h") or {}
+        if hname in sp and aname in sp and sp[hname].get("pt") is not None                 and spread_oriented(-float(sp[hname]["pt"]), ml.get(hname), ml.get(aname)):
             out["spread"].append((b, -float(sp[hname]["pt"]), sp[hname].get("px"),
                                   sp[aname].get("px")))
         to = v.get("totals") or {}
@@ -228,6 +248,15 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
                 snap = v
                 break
         M, T, pml = training_line(g, snap, cfb if lg == "ncaaf" else None)
+        # ✅ design §3: college moneylines are ALSO graded at CFBD's stored
+        #    DRAFTKINGS price (2025 and 2026) — one of Sam's three books, and a
+        #    real price. Any other CFBD provider is training-only.
+        dk_ml = None
+        if lg == "ncaaf" and cfb:
+            c = cfb.get(str(g.get("id"))) or {}
+            prov = "".join(ch for ch in str(c.get("provider") or "").lower() if ch.isalnum())
+            if prov == "draftkings" and c.get("ml_home") is not None and c.get("ml_away") is not None:
+                dk_ml = (c["ml_home"], c["ml_away"])
         past = [x for x in hist if t60r.kick(x) < k]
         h2h_m, h2h_t = t60r.s2_h2h(g, past)
         f_m, f_t = t60r.s4_this_season(g, past)
@@ -244,7 +273,7 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
             "id": str(g.get("id")), "season": g["season"], "day": day, "kick": g["start"],
             "week": wk, "home": g["home"], "away": g["away"], "final": bool(g.get("final")),
             "hs": g.get("home_score"), "as": g.get("away_score"),
-            "M": M, "T": T, "pml": pml, "snap": snap,
+            "M": M, "T": T, "pml": pml, "snap": snap, "dk_ml": dk_ml,
             "sig": {"h2h_m": h2h_m, "h2h_t": h2h_t, "form_m": f_m, "form_t": f_t,
                     "def": frac, "poss": (sb_h - sb_a) if sb_h is not None and sb_a is not None else None,
                     "out": (o_a - o_h) if o_h is not None and o_a is not None else None,
@@ -363,9 +392,13 @@ def predict(m, x):
 # ══════════════════════════════════════════════════════════════════════
 def best_pick(r, market, model):
     """-> {"side", "book", "line", "price", "p", "ev", "break_even"} or None."""
-    if not r["snap"] or not model:
+    if not model:
         return None
-    bl = book_lines(r["snap"])[market]
+    bl = book_lines(r["snap"])[market] if r["snap"] else []
+    if market == "moneyline" and not bl and r.get("dk_ml"):
+        bl = [("draftkings", r["dk_ml"][0], r["dk_ml"][1])]
+    if not bl:
+        return None
     cands = []
     if market == "spread":
         for b, M, hp, ap in bl:
@@ -463,42 +496,42 @@ def record(picks):
             "pushes": L(sum(1 for p in picks if p["won"] is None), "DESCRIPTIVE")}
 
 
-def current_picks(lg, rows, root=None):
-    """This week's picks for games on the live board, trained on every final."""
-    board = json.load(open(os.path.join(root or ROOT, "data", lg, "latest", "board.json"),
-                           encoding="utf-8")) if os.path.exists(
-        os.path.join(root or ROOT, "data", lg, "latest", "board.json")) else {}
-    resolve = D.team_codes(lg)
-    ok = books_ok(lg)
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    out = []
+def current_picks(lg, rows, root=None, now=None):
+    """This week's picks: every game not yet played whose latest archived
+    snapshot (pulled before kickoff) carries prices at Sam's three books.
+
+    ⚠️ `board.json` is the processed board — best prices and consensus, no
+    per-book prices — so the per-book prices come from the same raw snapshot
+    archive the walk-forward grades against (`build_rows` attaches it).
+    """
+    now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # ⚠️ The snapshots price games weeks ahead; the page shows THIS week's.
+    horizon = (datetime.datetime.fromisoformat(now.replace("Z", "+00:00"))
+               + datetime.timedelta(days=PICK_WINDOW_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     models = {}
     for mk in MARKETS:
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
         models[mk] = fit([x for x, _ in data], [y for _, y in data])
-    byk = {(r["home"], r["away"]): r for r in rows if not r["final"]}
-    for g in board.get("games") or []:
-        if (g.get("commence") or "") <= now:
+    out = []
+    for r in rows:
+        snap = r["snap"]
+        if r["final"] or not snap or not (now < snap["commence"] <= horizon):
             continue
-        h, a = resolve(g.get("home")), resolve(g.get("away"))
-        r = byk.get((h, a))
-        if not r:
-            continue
-        snap = {"pulled_at": board.get("pulled_at") or "", "commence": g["commence"],
-                "names": (g.get("home"), g.get("away")),
-                "books": {k: v for k, v in (g.get("books") or {}).items() if k in ok}}
-        rr = dict(r, snap=snap)
+        hname, aname = snap["names"]
         for mk in MARKETS:
-            pk = best_pick(rr, mk, models[mk])
+            pk = best_pick(r, mk, models[mk])
             if pk:
-                out.append({"game": "%s at %s" % (g.get("away"), g.get("home")),
-                            "commence": g["commence"], "market": mk,
-                            "side": pk["side"], "book": collect.BOOKS.get(pk["book"], pk["book"]),
+                out.append({"game": "%s at %s" % (aname, hname), "game_id": r["id"],
+                            "commence": snap["commence"], "market": mk, "side": pk["side"],
+                            "team": (hname if pk["side"] == "home" else aname)
+                            if mk != "total" else pk["side"].title(),
+                            "book": collect.BOOKS.get(pk["book"], pk["book"]),
                             "line": L(pk["line"], "MARKET"), "price": L(pk["price"], "MARKET"),
                             "model_probability": L(round(100 * pk["p"], 1), "MODEL"),
                             "break_even": L(round(100 * pk["break_even"], 1), "MARKET"),
-                            "edge": L(round(100 * pk["ev"], 1), "MODEL")})
-    return out
+                            "edge": L(round(100 * pk["ev"], 1), "MODEL"),
+                            "priced_at": snap["pulled_at"]})
+    return sorted(out, key=lambda x: (x["commence"], x["game"], x["market"]))
 
 
 def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):

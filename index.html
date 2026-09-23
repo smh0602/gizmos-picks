@@ -4600,6 +4600,8 @@ function fbNoModelNote(C){
     ever will on today's evidence.</b> Four football models were tested
     against held-out weeks and every one lost to a player's own season
     average, so there is nothing of ours to put beside these lines.
+    <b>The Model picks section below is separate:</b> it prices game lines
+    (spread, total, moneyline), not these player rows.
     ${C && C.rates_available
       ? `What each number IS: <b>his own record at that exact line</b> over
          ${C.logs_season}, counted over ${C.denominator || 'his logged games'}.
@@ -4642,6 +4644,57 @@ function fbKindWire(){
   });
 }
 
+/* 🔴 THE PICK MODEL, ITS OWN SECTION, LABELLED MODEL. `[Sam, 2026-09-23]`
+   "Show the model's picks on the football page as their own section,
+   labelled MODEL. Next to them, show the walk-forward record per league and
+   market: picks, hit rate, and the break-even rate at the price. Do not
+   remove the existing card."
+   ⛔ It is appended AFTER the card on every path out of fbPicks and never
+   touches it. Every number goes through labN, so it carries its basis. */
+const FBMODEL = {};
+async function fbModelLoad(lg){
+  if (FBMODEL[lg] !== undefined) return FBMODEL[lg];
+  try { FBMODEL[lg] = await jget(`${LG_DATA[lg]}/latest/fb-model.json`); }
+  catch(e){ FBMODEL[lg] = null; }
+  return FBMODEL[lg];
+}
+function fbModelHtml(M){
+  if (!M) return `<div class="panel"><h2>Model picks <span class="kind k-model">Model</span></h2>
+    <div class="note">The model's file has not been built yet. It is rebuilt with the card.</div></div>`;
+  const mk = {spread: 'Spread', total: 'Total', moneyline: 'Moneyline'};
+  const rec = Object.keys(mk).map(k => {
+    const r = (M.record || {})[k] || {};
+    return `<tr><td>${mk[k]}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
+      <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td>
+      <td>${r.first_graded || '—'}</td></tr>`;
+  }).join('');
+  const picks = (M.picks || []).map(p => `<tr><td>${fbEsc(p.game)}<br><span class="rec">${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
+      <td>${mk[p.market]}</td><td><b>${fbEsc(p.team)}</b></td>
+      <td>${p.line && p.line.value != null ? labN(p.line) : ''}</td>
+      <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
+      <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
+  return `<div class="panel">
+    <h2>Model picks <span class="kind k-model">Model</span></h2>
+    <p class="stamp">A separate model trained on all eight checks, retrained every week on games
+      already played. It picks a side only when its chance beats the break-even of the best
+      ${(M.books || []).join(', ')} price. It does not change the card above.
+      <span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
+    <h3 style="margin:14px 0 8px;font-size:14px">This week</h3>
+    ${picks ? `<table class="ob"><thead><tr><th>Game</th><th>Market</th><th>Pick</th><th>Line</th>
+      <th>Price</th><th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
+      : '<div class="note">No pick this week clears the break-even of the best available price.</div>'}
+    <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
+    <table class="ob"><thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
+      <th>95% range</th><th>Graded since</th></tr></thead><tbody>${rec}</tbody></table>
+    <div class="note" style="margin-top:12px">${fbEsc(M.note || '')} The 95% range counts each
+      game once, so two picks from one game are not treated as two independent results.</div>
+  </div>`;
+}
+async function fbModelAppend(v, lg){
+  const M = await fbModelLoad(lg);
+  if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M));
+}
+
 async function fbPicks(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
@@ -4671,7 +4724,7 @@ async function fbPicks(){
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
         '<div class="note">No game lines on this board yet.</div>');
-    fbWire(); fbKindWire(); return;
+    await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   if (!C || !(C.picks || []).length){
     v.innerHTML = fbShell(fbKindBar(C) +
@@ -4679,7 +4732,7 @@ async function fbPicks(){
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
         '<div class="note">No game lines on this board yet.</div>');
-    fbWire(); fbKindWire(); return;
+    await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   /* ⛔ THE GAME-LINE BOARD IS ITS OWN TAB AND RETURNS HERE. It shares
      nothing with the props board below -- not the conference filter, not
@@ -4689,7 +4742,7 @@ async function fbPicks(){
     v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") + fbKindBar(C));
     v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
       '<div class="note">No game lines on this board yet.</div>');
-    fbWire(); fbKindWire(); return;
+    await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
   const wrap = document.createElement('div');
@@ -4723,6 +4776,7 @@ async function fbPicks(){
      Rendering it in both places would put a MARKET board underneath a
      RECORD board again, which is the mixing Sam asked to end. */
   v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
+  await fbModelAppend(v, LEAGUE);
   fbWire(); fbKindWire();
   const t = $('#fb-pk-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbPicks(); });
