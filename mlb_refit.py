@@ -368,6 +368,34 @@ def paired_test(d):
     return n, m, t, t_sf(t, n - 1)
 
 
+def paired_test_clustered(d, clusters):
+    """One-sided test of mean(d) > 0, with CLUSTER-ROBUST standard errors by
+    pitcher. -> (n, mean, t, p, n_clusters).
+
+    🔴 `[Sam, 2026-09-23, tightened after the first run]` "The paired test
+    must treat all predictions from the same pitcher as one cluster."
+    ✅ CR1: V = G/(G-1) · Σ_g (Σ_{i∈g} (d_i − mean))² / n², t = mean/√V,
+    Student's t on G − 1 degrees of freedom. The estimand is unchanged —
+    the per-prediction mean Sam's rule names — only its uncertainty is
+    corrected for predictions that are not independent.
+    """
+    n = len(d)
+    if n < 2:
+        return n, (d[0] if d else None), None, None, len(set(clusters))
+    m = sum(d) / n
+    sums = {}
+    for x, g in zip(d, clusters):
+        sums[g] = sums.get(g, 0.0) + (x - m)
+    G = len(sums)
+    if G < 2:
+        return n, m, None, None, G
+    v = (G / (G - 1.0)) * sum(s * s for s in sums.values()) / (n * n)
+    if v <= 0:
+        return n, m, None, (0.0 if m > 0 else 1.0), G
+    t = m / math.sqrt(v)
+    return n, m, t, t_sf(t, G - 1), G
+
+
 def verdict(n, mean_d, p):
     if n < MIN_PAIRED:
         return "NOT YET MEASURABLE"
@@ -400,7 +428,8 @@ def walk_forward(rows):
     for r in rows:
         dd = datetime.date.fromisoformat(r["d"][:10])
         weeks.setdefault((dd - datetime.timedelta(days=dd.weekday())).isoformat(), []).append(r)
-    res = {"champ": {"k": [], "o": []}, "chal": {"k": [], "o": []}, "d": [], "d_by": {"k": [], "o": []},
+    res = {"champ": {"k": [], "o": []}, "chal": {"k": [], "o": []}, "d": [], "d_pid": [],
+           "d_by": {"k": [], "o": []}, "pid_by": {"k": [], "o": []},
            "cal_champ": _buckets(), "cal_chal": _buckets(), "weeks": [], "last_fit": None}
     for monday in sorted(weeks):
         test = weeks[monday]
@@ -421,8 +450,11 @@ def walk_forward(rows):
                 res["chal"]["o"].append(lo2)
                 _calib(r, lam2, mu2, res["cal_chal"])
                 res["d"] += [lk - lk2, lo - lo2]
+                res["d_pid"] += [r["pid"], r["pid"]]
                 res["d_by"]["k"].append(lk - lk2)
                 res["d_by"]["o"].append(lo - lo2)
+                res["pid_by"]["k"].append(r["pid"])
+                res["pid_by"]["o"].append(r["pid"])
         if chal:
             res["last_fit"] = dict(chal, week=monday)
         res["weeks"].append(wk)
@@ -461,20 +493,22 @@ def _coefs(m):
 
 
 def report(docs, res):
-    n, md, t, p = paired_test(res["d"])
+    n, md, t, p, G = paired_test_clustered(res["d"], res["d_pid"])
     v = verdict(n, md, p)
-    per = {mk: paired_test(res["d_by"][mk]) for mk in ("k", "o")}
+    per = {mk: paired_test_clustered(res["d_by"][mk], res["pid_by"][mk]) for mk in ("k", "o")}
     return {
         "spec": "research/mlb_refit_spec.md",
         "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "verdict": v,
         "rule": ("The challenger replaces v5.0 only if its per-prediction log loss is "
-                 "lower with one-sided p < 0.05 (paired test) over at least 500 "
-                 "predictions. [Sam, 2026-09-23]"),
+                 "lower with one-sided p < 0.05 (paired test, every prediction from one "
+                 "pitcher treated as one cluster) over at least 500 predictions. "
+                 "[Sam, 2026-09-23]"),
         "display": {
             "champion": dict(_record(res["champ"]), name="v5.0 (frozen coefficients)"),
             "challenger": dict(_record(res["chal"]), name="re-fitted each week on earlier games"),
             "paired": {"predictions": L(n, "DESCRIPTIVE"),
+                       "pitchers": L(G, "DESCRIPTIVE"),
                        "mean_improvement": L(round(md, 5) if md is not None else None, "DESCRIPTIVE"),
                        "t": L(round(t, 3) if t is not None else None, "DESCRIPTIVE"),
                        "p_one_sided": L(round(p, 6) if p is not None else None, "DESCRIPTIVE"),
@@ -491,9 +525,8 @@ def report(docs, res):
         },
         "weeks": res["weeks"],
         "note": ("A prediction is one start in one market; both markets pooled "
-                 "(spec 3). ⚠️ The paired t-test treats predictions as independent; "
-                 "two from one start and many from one pitcher are not, so p is "
-                 "likely smaller than it should be (spec 3, disclosed risk)."),
+                 "(spec 3). p is cluster-robust by pitcher (Sam, 2026-09-23): every "
+                 "prediction from one pitcher counts as one cluster."),
     }
 
 

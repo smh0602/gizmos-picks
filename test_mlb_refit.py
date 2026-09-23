@@ -39,6 +39,11 @@ guards; `vacuity.py` drives the declarations:
 #   find:         tiers.append(bt[1] if bt else None)
 #   with:         tiers.append(bt[0] if bt else None)
 #
+# @vacuity the verdict treats every prediction from one pitcher as one cluster
+#   file: mlb_refit.py
+#   find:     n, md, t, p, G = paired_test_clustered(res["d"], res["d_pid"])
+#   with:     n, md, t, p, G = paired_test_clustered(res["d"], list(range(len(res["d"]))))
+#
 # @vacuity a playoff starter is read from the box score, not the season pool
 #   file: mlb_refit.py
 #   find:                                  else _post_starters(season)).items()):
@@ -304,3 +309,40 @@ ck(_pd["coverage"]["P"]["complete"] and "22" in _pd["pitchers"],
    "🔴🔴 a playoff OPENER the season pool does not list is still counted",
    "⛔ the box score names every starter. got coverage %r pitchers %r"
    % (_pd["coverage"]["P"], sorted(_pd["pitchers"])))
+
+# ══════════════════════════════════════════════════════════════════════
+# 10. THE TIGHTENED RULE — one cluster per pitcher `[Sam, 2026-09-23]`
+# ══════════════════════════════════════════════════════════════════════
+_d1 = [0.01 * ((i * 7919) % 13 - 6) + 0.002 for i in range(600)]
+_a, _b = M.paired_test(_d1), M.paired_test_clustered(_d1, list(range(600)))
+ck(abs(_a[2] - _b[2]) < 1e-9 and abs(_a[3] - _b[3]) < 1e-9,
+   "⚠️ with one prediction per pitcher the clustered test IS the plain paired test",
+   "iid %r vs clustered %r" % (_a, _b))
+# 10 pitchers x 60 predictions: a pitcher's luck is shared by all 60 of his.
+# Plain test: 600 'independent' rows, tiny p. Clustered: 10 pitchers, not proven.
+_eff = [0.30, -0.25, 0.28, -0.24, 0.31, -0.26, 0.29, -0.23, 0.30, -0.27]
+_dc = [_eff[g] + 0.001 * ((i % 7) - 3) for g in range(10) for i in range(60)]
+_gc = [g for g in range(10) for _ in range(60)]
+_iid = M.paired_test(_dc)
+_cl = M.paired_test_clustered(_dc, _gc)
+ck(_iid[3] < 0.05 and _cl[3] > 0.05 and _cl[4] == 10,
+   "🔴🔴 one pitcher's shared luck cannot pass as 60 independent wins",
+   "⛔ Sam: 'treat all predictions from the same pitcher as one cluster'. plain "
+   "p=%.4g would have qualified; clustered p=%.4g over %d pitchers" % (_iid[3], _cl[3], _cl[4]))
+
+
+def _fake_res(d, pids):
+    return {"champ": {"k": [2.0], "o": [3.0]}, "chal": {"k": [2.0], "o": [3.0]},
+            "d": d, "d_pid": pids, "d_by": {"k": d[::2], "o": d[1::2]},
+            "pid_by": {"k": pids[::2], "o": pids[1::2]},
+            "cal_champ": M._buckets(), "cal_chal": M._buckets(), "weeks": [], "last_fit": None}
+
+
+_rep_c = M.report([_doc(_st)], _fake_res(_dc, _gc))
+ck(_rep_c["verdict"] == "DOES NOT QUALIFY"
+   and _rep_c["display"]["paired"]["pitchers"]["value"] == 10,
+   "🔴🔴 ...and the REPORT's verdict is decided on the clustered p",
+   "⛔ the rule, not just a helper beside it. got %r with %r pitchers"
+   % (_rep_c["verdict"], _rep_c["display"]["paired"]["pitchers"]["value"]))
+ck("one cluster" in SPEC and "cluster-robust" in SPEC,
+   "⛔ ...and the frozen spec states the clustered rule the code runs")

@@ -1,6 +1,6 @@
 # MLB champion vs challenger — the re-fit rule
 
-Status: APPROVED BY SAM 2026-09-23 — replacement rule in section 2; section 3 fixed by Claude before any result
+Status: APPROVED BY SAM 2026-09-23 — replacement rule in section 2; section 3 fixed by Claude before any result; test tightened by Sam 2026-09-23 after the first run
 
 🔴 **Written and frozen before any walk-forward result was computed.**
 Section 2 is Sam's rule, in his words. Section 3 is the arithmetic the code
@@ -41,6 +41,19 @@ pull request opens for you to decide.
 > predictions. Report both records in the PR. Do not switch models or
 > change any coefficient in this PR."
 
+### 2a. Tightened by Sam, 2026-09-23, after the first run
+
+> "Tighten the replacement rule. Sam approves this now, before the first
+> weekly run. The paired test must treat all predictions from the same
+> pitcher as one cluster: either cluster-robust standard errors by
+> pitcher, or a paired test on per-pitcher mean log-loss differences.
+> Keep one-sided p < 0.05 and at least 500 predictions."
+
+⚠️ **Made after the first run, when the challenger had already failed
+(p ≈ 1).** A cluster-robust p can only move toward "not proven", so this
+change makes qualifying **harder**. It cannot have been chosen to help the
+challenger.
+
 ## 3. Definitions fixed by Claude before any result `[2026-09-23]`
 
 ⚠️ **Not approved by Sam. Frozen by Claude so nothing can be tuned after
@@ -58,16 +71,16 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
 | Challenger fit | Ordinary least squares on every eligible start dated **before** the week's Monday, across both seasons, in v5.0's own shape. Strikeouts: intercept, trailing K (centred on the training mean), opponent K minus that date's league mean, home ±1. Outs: intercept, pitch-count slope and home ±1 from the pooled fit, and a trailing-outs slope `k` from separate fits within v5.0's three tiers (cut-points 15.25 and 17.0, read from `card.py`). |
 | When the challenger starts | Only once **≥ 1,000 eligible starts** precede the week, and only when every fit it needs solves. Before that it makes no prediction. |
 | The paired set | The predictions where **both** models made one. The rule's p-value is computed on this set alone. |
-| The test | d = champion loss − challenger loss for each paired prediction. One-sided paired t-test of mean d > 0, using Student's t with n − 1 degrees of freedom. |
+| The test | ~~d = champion loss − challenger loss for each paired prediction. One-sided paired t-test of mean d > 0, using Student's t with n − 1 degrees of freedom.~~ **Superseded by 2a.** d = champion loss − challenger loss for each paired prediction, and the estimand is still the mean of d over every prediction. Its standard error is **cluster-robust by pitcher**, with every prediction from one pitcher treated as one cluster (CR1: V = G/(G−1) · Σ_g (Σ_{i∈g} (d_i − mean))² / n²). The one-sided test of mean d > 0 uses Student's t with **G − 1** degrees of freedom, G being the number of pitchers. Chosen over the per-pitcher-means test because it keeps the per-prediction mean Sam's rule names; that test would weight a pitcher with 2 starts the same as one with 30. |
 | Verdict | **QUALIFIES** if n ≥ 500, mean d > 0 and p < 0.05. **NOT YET MEASURABLE** if n < 500. Otherwise **DOES NOT QUALIFY**. |
 | Calibration table | For every prediction and every half-line from 0.5 to 12.5 strikeouts and 9.5 to 21.5 outs, the model's P(over) is recorded against what happened. The records are grouped into 10-point buckets, and each bucket shows the mean stated probability (MODEL) beside the observed hit rate (DESCRIPTIVE). ⚠️ A start contributes many correlated rows, so the bucket counts are not independent observations. |
 
-⚠️ **Disclosed risk in the approved rule, not acted on.** A paired t-test
+~~⚠️ **Disclosed risk in the approved rule, not acted on.** A paired t-test
 treats each prediction as independent. Two predictions from one start, and
 many from one pitcher, are not. So p is likely **smaller than it should
 be**, which makes qualifying **easier**, not harder. The rule is applied
 exactly as approved. A version clustered by pitcher is Sam's call, as a
-new test with a new id.
+new test with a new id.~~ ✅ **Resolved by Sam's tightening in 2a, 2026-09-23.**
 
 ## 4. What happens each week
 
@@ -81,6 +94,15 @@ new test with a new id.
 
 ## Changelog
 
+- **2026-09-23 (after the first run): the paired test tightened by Sam,
+  stricter.** Every prediction from one pitcher now counts as one cluster
+  (cluster-robust standard errors by pitcher; section 2a, section 3 "The
+  test"). One-sided p < 0.05 and at least 500 predictions are kept.
+  ⚠️ **This is a stricter change made after the first run, when the
+  challenger had already failed (p ≈ 1), so it cannot have been chosen to
+  help the challenger.** The first run re-scored under it is in
+  `research/mlb_refit_run_2026-09-23_clustered.json`, and the original
+  stays in `research/mlb_refit_run_2026-09-23.json`.
 - **2026-09-23 (first run):** **DOES NOT QUALIFY. v5.0 stays.** 13,004
   paired predictions; mean improvement from re-fitting **−0.0219** (the
   challenger was worse); one-sided p ≈ 1.0. Strikeouts were a tie

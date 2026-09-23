@@ -103,7 +103,12 @@ finally:
 FROZEN = {
     "t60r_spec.md": "a65d815a376c9f5b4e299ecebcaa6f2bdbe890b5b6fa879eef6ff15b9226ea6e",
     # [Sam, 2026-09-23] rule in section 2; section 3 fixed before any result.
-    "mlb_refit_spec.md": "3bcac448819596f2e82f01b823e464cb8b1c3ba70fb65c5bf870a9f2ecefad43",
+    # ~~3bcac448819596f2e82f01b823e464cb8b1c3ba70fb65c5bf870a9f2ecefad43~~
+    # RE-FROZEN 2026-09-23 ON SAM'S APPROVAL: the paired test tightened to
+    # cluster by pitcher (spec 2a). STRICTER, made after the first run had
+    # already failed — recorded in the spec's changelog. ⛔ This entry moved
+    # because SAM changed the rule, not because a result was seen.
+    "mlb_refit_spec.md": "25d526a42b119f08f6d2e4183a535964c8db5bde364428f02c61beed1a3bb1c0",
 }
 
 
