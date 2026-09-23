@@ -543,6 +543,12 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a
                   pull/push loop again — a half-done rebase lost whole
                   converge passes (and paid pulls) 09-15 → 09-21.
+mlb_refit.py      MLB champion vs challenger, as Sam approved it on
+                  2026-09-23 in `research/mlb_refit_spec.md`: v5.0
+                  (READ from card.py) against the same model re-fitted
+                  each week on earlier games only, scored by log loss.
+                  ⛔ Changes no coefficient; when the challenger
+                  qualifies it opens ONE "[ASK SAM]" PR. Stdlib only.
 mlb_tables.py     the MLB pitcher + opponent tables, rebuilt after every
                   `pitchers` pull from the FULL starter population.
                   ⛔ card.py reads `model_pitchers()`, never the widened
