@@ -4398,6 +4398,22 @@ def run_mode(mode):
                     f"left. NOTHING FETCHED. The artifact stays out of "
                     f"contract and verify_freshness reports it.")
                 seasons = []
+            # ══════════════════════════════════════════════════════════
+            # 🔴 SIGNALS 6 AND 7 NEED 2025 TOO, AND NO CRON IS CHANGED.
+            # `[Sam, 2026-09-23]` The schedule asks for SEASON=CUR only.
+            # ✅ A history season joins THIS run while its per-game
+            #    possession or players-out count is missing, and stops
+            #    joining the day both exist — `nfl.history_gap` decides
+            #    from the probes, so a season the builder REFUSED is not
+            #    re-downloaded every morning. 💰 nflverse is free.
+            # ══════════════════════════════════════════════════════════
+            import freshness as _fr7
+            for _hs in _fr7.FOOTBALL_HISTORY:
+                if seasons and _hs not in seasons:
+                    _why = _nfl.history_gap(base, _hs)
+                    if _why:
+                        log(f"history back-fill: adding {_hs} — {_why}")
+                        seasons.append(_hs)
             for season in seasons:
                 try:
                     doc = _nfl.build_logs(season, log)

@@ -3193,8 +3193,23 @@ function fbDosFacts(s){
       li(t, `${v.minutes} a game over ${num(v.games)} game`
            + (v.games === 1 ? '' : 's'));
     });
-  if (s.n === 7 && s.flagged != null)
-    li('Players carrying a flag', s.flagged);
+  /* 🔴 SIGNAL 7 IS PLAYERS RULED OUT, PER TEAM, WITH THEIR NAMES.
+     `[Sam, 2026-09-23]` ~~'Players carrying a flag'~~ counted the injury
+     flag on stat rows, and a player who is out has no stat row — so it
+     only ever showed "questionable and played". The builder now sends
+     each team's latest reported week of out / doubtful / IR / inactive.
+     ⛔ College sends no `by_team` and an UNAVAILABLE `why` instead, which
+     renders above as the sentence saying it is NFL-only. */
+  if (s.n === 7 && s.by_team){
+    const h = x => String(x).replace(/[&<>"]/g,
+      c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+    Object.keys(s.by_team).forEach(t => {
+      const v = s.by_team[t] || {};
+      if (v.week == null){ li(h(t), 'no players ruled out on record'); return; }
+      const names = (v.players || []).map(h).join(', ');
+      li(h(t), `${num(v.out)} ruled out for week ${v.week}` + (names ? `: ${names}` : ''));
+    });
+  }
   if (s.n === 8){
     if (s.venue)   li('Where', s.venue);
     if (s.roof)    li('Roof', s.roof === 'outdoors' ? 'open to the sky' : s.roof);

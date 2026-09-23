@@ -74,6 +74,92 @@ def coverage(per_team_seconds):
     return sum(per_team_seconds.values()) / float(GAME_CLOCK_SECS)
 
 
+def game_shares(per_team_seconds):
+    """{team: secs} for ONE game -> {team: share}, or None if withheld.
+
+    ✅ THE ONE PER-GAME FORMULA. `share_table` averages these and
+    `per_game_rows` stores them, and both call HERE, so the season table
+    and the per-game history cannot disagree about a single game (rule 66:
+    two routes to one number is two numbers).
+    """
+    tot = sum((per_team_seconds or {}).values())
+    # ⛔ THE GAME IS WITHHELD, NOT THE TEAM. See the header.
+    if tot <= 0 or tot / float(GAME_CLOCK_SECS) < COVERAGE_MIN:
+        return None
+    return {team: secs / float(tot) for team, secs in per_team_seconds.items()}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SIGNAL 6, PER GAME — AND "BEFORE KICKOFF" IS ENFORCED HERE, ONCE.
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-09-23]` "store every team's time-of-possession share for each
+# game already played ... A game's 'share before kickoff' must be built
+# only from that team's earlier games."
+# ⛔ The season table (`share_table`) is a season-to-date number: read for a
+#    game INSIDE that season it contains games played AFTER that kickoff,
+#    which is lookahead. That is why T60R had to leave signal 6 switched off
+#    (research/t60r_investigation.md, section 1). The per-game rows below
+#    are the missing source, and `share_before` is the only reader that may
+#    turn them into a pre-kickoff number.
+def per_game_rows(per_game, drives_per_game, dates):
+    """-> {gid: {"date", "coverage", "withheld", "teams": {team: {...}}}}.
+
+    ⚠️ A WITHHELD GAME IS KEPT, MARKED, WITH NO SHARES: it happened, and
+    dropping it would make "no possession stored" and "never played" look
+    the same. ⚠️ An UNDATED game is kept with `date: None`; `share_before`
+    cannot place it in time and therefore never uses it.
+    """
+    out = {}
+    for gid, tt in per_game.items():
+        if not tt:
+            continue
+        sh = game_shares(tt)
+        out[str(gid)] = {
+            "date": (dates or {}).get(gid) or (dates or {}).get(str(gid)),
+            "coverage": round(coverage(tt), 4),
+            "withheld": sh is None,
+            "teams": {team: {"share": (round(sh[team], 4) if sh else None),
+                             "seconds": int(secs),
+                             "drives": int((drives_per_game.get(gid) or {})
+                                           .get(team, 0))}
+                      for team, secs in sorted(tt.items())},
+        }
+    return out
+
+
+def share_before(games, team, kickoff_date):
+    """The team's mean per-game share over games dated BEFORE kickoff.
+
+    -> {"share": float|None, "games": n, "withheld": w, "undated": u}
+
+    ⛔ STRICTLY EARLIER, by calendar date. A team does not play twice in a
+    day, so `date < kickoff_date` is exactly "its earlier games" — and a
+    game on the kickoff date itself (the game being asked about) can never
+    be counted. ⛔ No fallback to the season table: if nothing earlier is
+    stored the answer is None, never a number that saw the future.
+    """
+    k = str(kickoff_date or "")[:10]
+    shares, withheld, undated = [], 0, 0
+    if not k:
+        return {"share": None, "games": 0, "withheld": 0, "undated": 0}
+    for g in (games or {}).values():
+        t = (g.get("teams") or {}).get(team)
+        if t is None:
+            continue
+        d = g.get("date")
+        if not d:
+            undated += 1
+            continue
+        if str(d)[:10] >= k:
+            continue
+        if g.get("withheld") or t.get("share") is None:
+            withheld += 1
+            continue
+        shares.append(t["share"])
+    return {"share": (round(sum(shares) / len(shares), 4) if shares else None),
+            "games": len(shares), "withheld": withheld, "undated": undated}
+
+
 def share_table(per_game, drives_per_game, log=print):
     """{gid: {team: secs}} + {gid: {team: drives}} -> (teams, report).
 
@@ -100,8 +186,11 @@ def share_table(per_game, drives_per_game, log=print):
         if not tt:
             continue
         tot = sum(tt.values())
-        # ⛔ THE GAME IS WITHHELD, NOT THE TEAM. See the header.
-        if tot <= 0 or tot / float(GAME_CLOCK_SECS) < COVERAGE_MIN:
+        # ⛔ THE GAME IS WITHHELD, NOT THE TEAM — decided by `game_shares`,
+        #    the one per-game formula, so this table and the per-game rows
+        #    cannot disagree about which games count.
+        sh = game_shares(tt)
+        if sh is None:
             rep["games_withheld"] += 1
             continue
         for team, secs in tt.items():
@@ -116,7 +205,7 @@ def share_table(per_game, drives_per_game, log=print):
             a["drives"] += (drives_per_game.get(gid) or {}).get(team, 0)
             # ⚠️ ONE SHARE PER GAME, AVERAGED BELOW. Never a ratio of the
             # season totals — see the header.
-            a["shares"].append(secs / float(tot))
+            a["shares"].append(sh[team])
     rep["games_used"] = rep["games_seen"] - rep["games_withheld"]
 
     teams = {}

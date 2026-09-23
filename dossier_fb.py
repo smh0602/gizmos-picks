@@ -65,6 +65,7 @@ import sys
 import unicodedata
 
 import daystore
+import possession as _poss
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -777,7 +778,8 @@ def s_vs_position(home, away, allowed, this_season, missing=None):
 
 
 # ──────────────────────────────────────── 6. TIME OF POSSESSION
-def s_possession(home, away, this_season, data=None, missing=None):
+def s_possession(home, away, this_season, data=None, missing=None,
+                 kickoff=None):
     """⚠️ PROBED, NOT ASSUMED. See the module header.
 
     ⚠️ THE OPPONENT GATE COMES FIRST, and deliberately: "we do not know
@@ -921,11 +923,23 @@ def s_possession(home, away, this_season, data=None, missing=None):
     # a second source for the same quantity (rule 66).
     # ══════════════════════════════════════════════════════════════════
     out = {}
+    # 🔴 SIGNAL 6 BEFORE KICKOFF. `[Sam, 2026-09-23]` When the file carries
+    #    per-game rows, each team's number is `possession.share_before` —
+    #    its games dated BEFORE this kickoff and nothing else. ⛔ The season
+    #    table is read only from a file built before per-game rows existed,
+    #    and the next build of that season replaces it.
+    games = top.get("games")
     for t in (home, away):
-        v = by.get(t)
-        if not v or v.get("share") is None:
-            continue
-        spg = int(v.get("seconds_per_game") or round(v["share"] * 3600))
+        if games is not None and kickoff:
+            b = _poss.share_before(games, t, kickoff)
+            if b["share"] is None:
+                continue
+            v = {"share": b["share"], "games": b["games"]}
+        else:
+            v = by.get(t)
+            if not v or v.get("share") is None:
+                continue
+        spg = int(round(v["share"] * 3600))
         out[t] = {"share": v["share"], "seconds_per_game": spg,
                   "minutes": "%d:%02d" % divmod(spg, 60),
                   "games": v.get("games")}
@@ -942,35 +956,64 @@ def s_possession(home, away, this_season, data=None, missing=None):
 
 
 # ─────────────────────────────────────────────── 7. PERSONNEL
-def s_personnel(teams, players, this_season, missing=None):
-    """⚠️ PER TEAM, and it names the side it covers nothing for."""
+# ⛔ COLLEGE HAS NO SOURCE WE MAY USE, AND THE PAGE SAYS SO IN WORDS.
+#    `[probed 2026-09-23]` The SEC, Big Ten and ACC do publish availability
+#    reports for conference games, but every one of their sites limits its
+#    content to personal, non-commercial use and forbids copying or
+#    republishing it (Big Ten, ACC/SIDEARM), or forbids automated access
+#    outright (SEC, under ESPN/Disney's terms). Sam: "Build it only if it
+#    is free and allowed by those sites' terms. Otherwise signal 7 is
+#    NFL-only, and the page says so."
+PERSONNEL_COLLEGE = (
+    "Not covered for college games. The SEC, Big Ten and ACC publish "
+    "injury reports for conference games, but their websites only allow "
+    "personal use and do not allow the reports to be copied onto another "
+    "site, so we don't collect them. This check covers NFL games only.")
+
+
+def s_personnel(teams, players, this_season, missing=None, week=None,
+                league=None):
+    """⚠️ PER TEAM, and it names the side it covers nothing for.
+
+    🔴 IT COUNTS PLAYERS RULED OUT. `[Sam, 2026-09-23]` It used to show
+    the injury flag on each player's most recent STAT row — and a player
+    who was out has no stat row, so it could only ever show "questionable
+    and played". ✅ It now reads `team_out`, built by `nfl.py` from the
+    injury report and the weekly roster: out, doubtful, injured reserve,
+    inactive.
+    """
+    if league and league != "nfl":
+        return unavailable(7, "Personnel", PERSONNEL_COLLEGE)
     j = players.get(this_season)
     if not j:
         return unavailable(7, "Personnel",
                            "No player file for %d yet." % this_season)
+    tout = j.get("team_out")
+    if tout is None:
+        rep = j.get("team_out_report")
+        return unavailable(
+            7, "Personnel",
+            "We don't have a list of players ruled out for this season yet.",
+            ("the players-out count was built and turned down: %s"
+             % rep.get("error")) if rep else
+            ("the next NFL log build adds it to players-%d" % this_season))
     out = {}
     for t in teams:
-        latest = {}
-        for pid, v in (j.get("players") or {}).items():
-            rows = [r for r in (v.get("g") or []) if r.get("team") == t]
-            if not rows:
-                continue
-            r = sorted(rows, key=lambda x: x.get("week") or 0)[-1]
-            if any(r.get(k) for k in ("inj", "ol_out", "opp_dl_out",
-                                      "ahead_out")):
-                latest[v.get("name") or pid] = {
-                    "week": r.get("week"), "inj": r.get("inj"),
-                    "ol_out": r.get("ol_out"),
-                    "opp_dl_out": r.get("opp_dl_out"),
-                    "ahead_out": r.get("ahead_out")}
-        out[t] = latest
+        wks = sorted((int(w) for w in (tout.get(t) or {})
+                      if str(w).isdigit() and (week is None or int(w) <= int(week))))
+        if not wks:
+            out[t] = {"week": None, "out": 0, "players": []}
+            continue
+        c = tout[t][str(wks[-1])]
+        out[t] = {"week": wks[-1], "out": c.get("out", 0),
+                  "players": [p.get("name") for p in (c.get("players") or [])]}
     d = {"n": 7, "name": "Personnel", "state": "OK", "basis": DESC,
          "by_team": out,
-         "flagged": sum(len(v) for v in out.values()),
-         "why": ("Availability flags carried on each player's most "
-                 "recent game row: his own injury designation, line "
-                 "absences, opposing line absences, and whether the "
-                 "man ahead of him was out."),
+         "flagged": sum(v["out"] for v in out.values()),
+         "why": ("Players ruled out for each team's latest reported week: "
+                 "listed out or doubtful on the injury report, on injured "
+                 "reserve, or inactive. Players listed as questionable are "
+                 "not counted, because most of them play."),
          "open_gap": ("⛔ COACHING CHANGES HAVE NO SOURCE IN THIS "
                       "STACK. Not approximated, not inferred from "
                       "results — recorded as missing. Nothing here "
@@ -1234,8 +1277,9 @@ def build(league=None):
                                kick.strftime("%Y-%m-%d") if kick else None),
                 s_this_season(teams, players, this_season, week, missing),
                 s_vs_position(home, away, allowed, this_season, missing),
-                s_possession(home, away, this_season, data, missing),
-                s_personnel(teams, players, this_season, missing),
+                s_possession(home, away, this_season, data, missing,
+                             kick.strftime("%Y-%m-%d") if kick else None),
+                s_personnel(teams, players, this_season, missing, week, lg),
                 s_venue(home, away, row, players, this_season),
             ]})
 
