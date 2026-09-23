@@ -855,29 +855,35 @@ def staged_since(name, fetch=_gh_json):
 
 
 def stale_uploads(root=".", now=None, fetch=_gh_json):
-    """[{"file", "since", "hours"}] for staged crons not uploaded in time."""
+    """[{"file", "since", "hours", "kind"}] for staged crons not uploaded in
+    time: a NEW file never uploaded, or a PENDING update whose deployed copy
+    still differs. ⛔ One clock for both: 48h after the PR merged."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     out = []
     for f, v in sorted(wfparse.cron_files(root).items()):
-        if v["deployed"] or not v["staged"]:
+        if not v["staged"] or (v["deployed"] and not v["pending"]):
             continue
         since = staged_since(f, fetch)
         hours = None if since is None else (now - since).total_seconds() / 3600.0
         if hours is None or hours >= STAGED_UPLOAD_HOURS:
             out.append({"file": f, "since": since.isoformat() if since else None,
-                        "hours": None if hours is None else round(hours, 1)})
+                        "hours": None if hours is None else round(hours, 1),
+                        "kind": "update" if v["deployed"] else "new"})
     return out
 
 
 def render_stale(stale):
     lines = ["## A scheduled job is waiting to be uploaded", ""]
     for s in stale:
-        lines.append("- `docs/upload/%s` — %s. Its schedule is counted as "
-                     "declared but it has **never been uploaded**, so it has "
-                     "never fired. Instructions: `docs/upload/UPLOAD-%s.md`."
+        what = ("an **update** that has not been uploaded — the live file still "
+                "differs from the staged one, so the change is not running"
+                if s.get("kind") == "update" else
+                "counted as declared but **never uploaded**, so it has never fired")
+        lines.append("- `docs/upload/%s` — %s. It is %s. Instructions: "
+                     "`docs/upload/UPLOAD-%s.md`."
                      % (s["file"], ("staged %s hours ago" % s["hours"])
                         if s["hours"] is not None else "GitHub could not say when it was staged",
-                        s["file"][:-4]))
+                        what, s["file"][:-4]))
     return "\n".join(lines)
 
 
