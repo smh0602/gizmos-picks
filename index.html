@@ -4662,12 +4662,19 @@ function fbModelHtml(M){
   if (!M) return `<div class="panel"><h2>Model picks <span class="kind k-model">Model</span></h2>
     <div class="note">The model's file has not been built yet. It is rebuilt with the card.</div></div>`;
   const mk = {spread: 'Spread', total: 'Total', moneyline: 'Moneyline'};
-  const rec = Object.keys(mk).map(k => {
-    const r = (M.record || {})[k] || {};
-    return `<tr><td>${mk[k]}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
+  /* ONE row renderer, two records. ⛔ The records are never summed or
+     interleaved: each table reads only its own key. A row priced at an
+     ASSUMED -110 says so beside its market name. [Sam, 2026-09-23] */
+  const recRows = R => Object.keys(mk).map(k => {
+    const r = (R || {})[k] || {};
+    return `<tr><td>${mk[k]}${r.price_note ? `<br><span class="rec">${fbEsc(r.price_note)}</span>` : ''}</td>
+      <td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
       <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td>
       <td>${r.first_graded || '—'}</td></tr>`;
   }).join('');
+  const rec = recRows(M.record);
+  const recHead = `<thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
+      <th>95% range</th><th>Graded since</th></tr></thead>`;
   const picks = (M.picks || []).map(p => `<tr><td>${fbEsc(p.game)}<br><span class="rec">${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
       <td>${mk[p.market]}</td><td><b>${fbEsc(p.team)}</b></td>
       <td>${p.line && p.line.value != null ? labN(p.line) : ''}</td>
@@ -4684,10 +4691,12 @@ function fbModelHtml(M){
       <th>Price</th><th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
       : '<div class="note">No pick this week clears the break-even of the best available price.</div>'}
     <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
-    <table class="ob"><thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
-      <th>95% range</th><th>Graded since</th></tr></thead><tbody>${rec}</tbody></table>
+    <table class="ob">${recHead}<tbody>${rec}</tbody></table>
     <div class="note" style="margin-top:12px">${fbEsc(M.note || '')} The 95% range counts each
       game once, so two picks from one game are not treated as two independent results.</div>
+    ${M.closing_record ? `<h3 style="margin:18px 0 8px;font-size:14px">${fbEsc(M.closing_title || '')}</h3>
+    <table class="ob">${recHead}<tbody>${recRows(M.closing_record)}</tbody></table>
+    <div class="note" style="margin-top:12px">${fbEsc(M.closing_note || '')}</div>` : ''}
   </div>`;
 }
 async function fbModelAppend(v, lg){

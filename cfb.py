@@ -1150,6 +1150,8 @@ def build_schedule(season, log=log):
             # ⛔ CFBD's /games carries no closing prices. None, not zero.
             "closing_ml_home": None, "closing_ml_away": None,
             "closing_spread": None, "closing_total": None,
+            "closing_spread_odds_home": None, "closing_spread_odds_away": None,
+            "closing_over_odds": None, "closing_under_odds": None,
             "final": done,
         })
     out.sort(key=lambda r: (r["start"] or "", r["home"] or ""))
