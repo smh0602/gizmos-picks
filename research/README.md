@@ -8,6 +8,13 @@ Every test in here has a specification and a pass bar that were fixed
 BEFORE it was run. **A script that is edited after seeing its own result
 is no longer the test that was registered.**
 
+## MLB props card calibration audit — 2026-09-24 (DESCRIPTIVE, not a test)
+
+`mlb_calibration_audit.md`: stated vs actual per 10-point band, per market,
+clustered by game; the ten biggest misses traced; football's structural
+checks asked of MLB. Proposals only, nothing adopted.
+`python research/mlb_calibration_audit.py` rebuilds the numbers.
+
 ## Phase 2 — hitter modelling. **CLOSED 2026-08-24. REOPENED AND CLOSED AGAIN 2026-08-25.**
 
 **Four pre-registered specifications across two targets and two samples. Every
