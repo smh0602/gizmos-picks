@@ -506,6 +506,12 @@ fb_card_fix.py    scores the football props card's season fix (reads 2026
                   average) against the card as it was, by Sam's ship rule
                   in `research/fb_card_fix_spec.md` (frozen). The live
                   switch is `card_fb.CARD_METHOD`.
+fb_ledger.py      "What the model showed, graded": both football models'
+                  picks saved before kickoff via daystore, graded ONCE
+                  and frozen, listed pick by pick; the verdict label per
+                  market (fb_model.verdict) beside every record
+                  (`research/fb_model_live_spec.md`, frozen). Rides
+                  `card-fb`. ⛔ Never recalculates a graded pick.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule

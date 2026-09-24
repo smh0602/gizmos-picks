@@ -812,13 +812,6 @@ def current_picks(lg, wf, root=None, now=None):
     return out
 
 
-def cap_picks(live):
-    """-> (the top `card_fb.BOARD_MAX` by the model's chance, the rest).
-    ⛔ Rule 66: the cap is the BUILDER's, so the page never holds a copy.
-    Rule 7: the rest stay in the file, labelled, never dropped."""
-    return live[:card_fb.BOARD_MAX], live[card_fb.BOARD_MAX:]
-
-
 def build(lg=None, root=None, out=None, logs=None):
     lg = (lg or LEAGUE).lower()
     wf = walk_forward(lg, root, logs)
@@ -827,7 +820,10 @@ def build(lg=None, root=None, out=None, logs=None):
         ps = [p for p in wf["picks"] if p["market"] == mk]
         rec[mk] = dict(F.record(ps), market_label=card_fb.LABEL.get(mk, mk),
                        first_graded=min((p["day"] for p in ps), default=None),
-                       last_graded=max((p["day"] for p in ps), default=None))
+                       last_graded=max((p["day"] for p in ps), default=None),
+                       # `[Sam, 2026-09-24]` no closing-line record exists for
+                       # props, so its one graded record is the evidence (spec §3)
+                       verdict=F.verdict(ps))
     mine = compact(wf["graded"])
     ll = {}
     for mk in markets_for(lg):
@@ -856,8 +852,11 @@ def build(lg=None, root=None, out=None, logs=None):
                     "card's own probabilities are recomputed with its own rating function to "
                     "compare the two on the same props.")}
     doc["decision"] = pooled_decision(lg, mine, root)
+    # ~~the top card_fb.BOARD_MAX on the page, the rest in `more_picks`~~
+    # 🔴 NO CAP ON MODEL PICKS `[Sam, 2026-09-24]`: "Only the Gizmo's Picks
+    #    card keeps its limit." Every pick the model makes is shown.
     live = current_picks(lg, wf, root)
-    doc["picks"], doc["more_picks"] = cap_picks(live)
+    doc["picks"] = live
     doc["picks_total"] = len(live)
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-props-model.json")
     with open(path, "w", encoding="utf-8") as fh:

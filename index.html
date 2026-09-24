@@ -4705,7 +4705,7 @@ function fbModelHtml(M){
      ASSUMED -110 says so beside its market name. [Sam, 2026-09-23] */
   const recRows = R => Object.keys(mk).map(k => {
     const r = (R || {})[k] || {};
-    return `<tr><td>${mk[k]}${r.price_note ? `<br><span class="rec">${fbEsc(r.price_note)}</span>` : ''}</td>
+    return `<tr><td>${mk[k]}${fbVerdictTag(r.verdict)}${r.price_note ? `<br><span class="rec">${fbEsc(r.price_note)}</span>` : ''}</td>
       <td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
       <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td>
       <td>${r.first_graded || '—'}</td></tr>`;
@@ -4743,6 +4743,51 @@ function fbModelHtml(M){
    picks, hit rate and break-even. Use the same price floors as the existing
    card. Do not remove the existing card." ⛔ Appended after the card, never
    inside it; every number goes through labN. */
+/* 🔴 THE VERDICT LABEL, BESIDE EVERY RECORD. `[Sam, 2026-09-24]` "It is
+   information only; nothing is hidden." The label is computed by
+   fb_model.verdict() — ⛔ never re-derived here. */
+function fbVerdictTag(v){
+  if (!v || !v.label) return '';
+  const col = {'PROVEN': '#1e8449', 'LOSING': '#c0392b', 'NOT PROVEN': '#b9770e'}[v.label] || 'var(--mut)';
+  const why = v.label === 'NOT YET MEASURABLE' ? `${v.picks} of ${v.min_picks} picks` :
+              `${v.picks} picks${v.edge_points != null ? `, ${v.edge_points > 0 ? '+' : ''}${v.edge_points} pts vs break-even` : ''}`;
+  return ` <span class="rec" style="color:${col};font-weight:600;white-space:nowrap">${fbEsc(v.label)}</span>
+    <span class="rec">(${why})</span>`;
+}
+const FBLEDGER = {};
+async function fbLedgerLoad(lg){
+  if (FBLEDGER[lg] !== undefined) return FBLEDGER[lg];
+  try { FBLEDGER[lg] = await jget(`${LG_DATA[lg]}/latest/model-ledger.json`); }
+  catch(e){ FBLEDGER[lg] = null; }
+  return FBLEDGER[lg];
+}
+function fbLedgerHtml(LD){
+  if (!LD) return `<div class="panel"><h2>What the model showed, graded <span class="kind k-desc">Record</span></h2>
+    <div class="note">Nothing saved yet. The models' picks are saved before each kickoff from ${'2026-09-24'} on.</div></div>`;
+  const name = {game_model: 'Game model', props_model: 'Props model'};
+  const rec = Object.entries(LD.record || {}).flatMap(([m, mks]) => Object.entries(mks).map(([mk, r]) =>
+    `<tr><td>${name[m] || m}</td><td>${fbEsc(mk.replace('player_', '').replace(/_/g, ' '))}${fbVerdictTag(r.verdict)}</td>
+     <td>${labN(r.picks)}</td><td>${labN(r.hits)}</td><td>${labN(r.hit_rate, '%')}</td>
+     <td>${labN(r.break_even, '%')}</td><td>${labN(r.pending)}</td></tr>`)).join('');
+  const res = s => ({graded: '', void: 'Void', pending: 'Pending'})[s] ?? s;
+  const picks = (LD.picks || []).map(p => `<tr><td>${fbKickDate(p.commence)}</td><td>${name[p.model] || p.model}</td>
+     <td>${fbEsc(p.player || p.team || '')}<br><span class="rec">${fbEsc(p.game || '')}</span></td>
+     <td>${fbEsc(p.market_label || p.market || '')} <b>${fbEsc(String(p.side || '').replace(/^./, c => c.toUpperCase()))}${
+       p.line && p.line.value != null ? ' ' + p.line.value : ''}</b></td>
+     <td>${labN(p.price)} <span class="rec">${fbEsc(p.book || '')}</span></td><td>${labN(p.model_probability, '%')}</td>
+     <td>${p.state === 'graded' ? (p.won ? '<b style="color:#1e8449">Hit</b>' : '<b style="color:#c0392b">Miss</b>') : res(p.state)}</td></tr>`).join('');
+  return `<div class="panel">
+    <h2>What the model showed, graded <span class="kind k-desc">Record</span></h2>
+    <p class="stamp">Every pick the two models showed before kickoff, saved and frozen from ${fbEsc(LD.from || '')},
+      then graded once. Nothing here is recalculated after it is graded. <span class="rec">built ${fbEsc(LD.built_at || '')}</span></p>
+    ${rec ? `<table class="ob"><thead><tr><th>Model</th><th>Market</th><th>Picks</th><th>Hits</th><th>Hit rate</th>
+      <th>Break-even</th><th>Pending</th></tr></thead><tbody>${rec}</tbody></table>`
+      : '<div class="note">No pick has been saved yet.</div>'}
+    ${picks ? `<h3 style="margin:18px 0 8px;font-size:14px">Every pick, newest first</h3>
+    <table class="ob"><thead><tr><th>Date</th><th>Model</th><th>Who</th><th>Pick</th><th>Price</th><th>Model</th>
+      <th>Result</th></tr></thead><tbody>${picks}</tbody></table>` : ''}
+  </div>`;
+}
 const FBPROPMODEL = {};
 async function fbPropModelLoad(lg){
   if (FBPROPMODEL[lg] !== undefined) return FBPROPMODEL[lg];
@@ -4762,7 +4807,7 @@ function fbPropModelHtml(M){
       <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
   const rec = Object.keys(M.record || {}).map(k => {
     const r = M.record[k] || {};
-    return `<tr><td>${fbEsc(r.market_label || k)}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
+    return `<tr><td>${fbEsc(r.market_label || k)}${fbVerdictTag(r.verdict)}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
       <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td><td>${r.first_graded || '—'}</td></tr>`;
   }).join('');
   return `<div class="panel">
@@ -4785,7 +4830,8 @@ function fbPropModelHtml(M){
 async function fbModelAppend(v, lg){
   const M = await fbModelLoad(lg);
   const PM = await fbPropModelLoad(lg);
-  if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM));
+  const LD = await fbLedgerLoad(lg);
+  if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM) + fbLedgerHtml(LD));
 }
 
 async function fbPicks(){
