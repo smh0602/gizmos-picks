@@ -1,0 +1,2314 @@
+{
+ "league": "nfl",
+ "kind": "MODEL",
+ "built_at": "2026-09-24T00:29:49Z",
+ "design": "research/fb_model_design.md",
+ "books": [
+  "DraftKings",
+  "FanDuel",
+  "Hard Rock"
+ ],
+ "record": {
+  "spread": {
+   "picks": {
+    "value": 26,
+    "basis": "DESCRIPTIVE"
+   },
+   "wins": {
+    "value": 16,
+    "basis": "DESCRIPTIVE"
+   },
+   "hit_rate": {
+    "value": 61.5,
+    "basis": "DESCRIPTIVE"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "interval_95": {
+    "value": [
+     42.8,
+     80.2
+    ],
+    "basis": "DESCRIPTIVE"
+   },
+   "effective_n": {
+    "value": 26.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "pushes": {
+    "value": 0,
+    "basis": "DESCRIPTIVE"
+   },
+   "first_graded": "2026-09-09"
+  },
+  "total": {
+   "picks": {
+    "value": 22,
+    "basis": "DESCRIPTIVE"
+   },
+   "wins": {
+    "value": 13,
+    "basis": "DESCRIPTIVE"
+   },
+   "hit_rate": {
+    "value": 59.1,
+    "basis": "DESCRIPTIVE"
+   },
+   "break_even": {
+    "value": 51.6,
+    "basis": "MARKET"
+   },
+   "interval_95": {
+    "value": [
+     38.5,
+     79.6
+    ],
+    "basis": "DESCRIPTIVE"
+   },
+   "effective_n": {
+    "value": 22.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "pushes": {
+    "value": 0,
+    "basis": "DESCRIPTIVE"
+   },
+   "first_graded": "2026-09-09"
+  },
+  "moneyline": {
+   "picks": {
+    "value": 28,
+    "basis": "DESCRIPTIVE"
+   },
+   "wins": {
+    "value": 13,
+    "basis": "DESCRIPTIVE"
+   },
+   "hit_rate": {
+    "value": 46.4,
+    "basis": "DESCRIPTIVE"
+   },
+   "break_even": {
+    "value": 41.0,
+    "basis": "MARKET"
+   },
+   "interval_95": {
+    "value": [
+     28.0,
+     64.9
+    ],
+    "basis": "DESCRIPTIVE"
+   },
+   "effective_n": {
+    "value": 28.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "pushes": {
+    "value": 0,
+    "basis": "DESCRIPTIVE"
+   },
+   "first_graded": "2026-09-09"
+  }
+ },
+ "picks": [
+  {
+   "game": "Atlanta Falcons at Green Bay Packers",
+   "game_id": "2026_03_ATL_GB",
+   "commence": "2026-09-25T00:15:00Z",
+   "market": "moneyline",
+   "side": "away",
+   "team": "Atlanta Falcons",
+   "book": "Hard Rock",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 210,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 32.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 32.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Atlanta Falcons at Green Bay Packers",
+   "game_id": "2026_03_ATL_GB",
+   "commence": "2026-09-25T00:15:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "FanDuel",
+   "line": {
+    "value": 43.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 3.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Carolina Panthers at Cleveland Browns",
+   "game_id": "2026_03_CAR_CLE",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Cleveland Browns",
+   "book": "DraftKings",
+   "line": {
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "game_id": "2026_03_CIN_PIT",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "Cincinnati Bengals",
+   "book": "FanDuel",
+   "line": {
+    "value": -3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 52.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "game_id": "2026_03_CIN_PIT",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "DraftKings",
+   "line": {
+    "value": 42.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Houston Texans at Indianapolis Colts",
+   "game_id": "2026_03_HOU_IND",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "moneyline",
+   "side": "away",
+   "team": "Houston Texans",
+   "book": "DraftKings",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -142,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 58.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 58.7,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.4,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Houston Texans at Indianapolis Colts",
+   "game_id": "2026_03_HOU_IND",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Indianapolis Colts",
+   "book": "Hard Rock",
+   "line": {
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "game_id": "2026_03_KC_MIA",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Miami Dolphins",
+   "book": "FanDuel",
+   "line": {
+    "value": -10.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -104,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 4.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "game_id": "2026_03_KC_MIA",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "DraftKings",
+   "line": {
+    "value": 46.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 55.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "game_id": "2026_03_LAC_BUF",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Buffalo Bills",
+   "book": "FanDuel",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 54.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "game_id": "2026_03_LAC_BUF",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "DraftKings",
+   "line": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 57.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 12.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "game_id": "2026_03_NE_JAX",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "moneyline",
+   "side": "home",
+   "team": "Jacksonville Jaguars",
+   "book": "DraftKings",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -148,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 62.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 59.7,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 5.1,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "game_id": "2026_03_NE_JAX",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Jacksonville Jaguars",
+   "book": "DraftKings",
+   "line": {
+    "value": 3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 55.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "game_id": "2026_03_NE_JAX",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "DraftKings",
+   "line": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 57.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 11.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "New York Jets at Detroit Lions",
+   "game_id": "2026_03_NYJ_DET",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "moneyline",
+   "side": "away",
+   "team": "New York Jets",
+   "book": "FanDuel",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 265,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 31.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 27.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 13.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "New York Jets at Detroit Lions",
+   "game_id": "2026_03_NYJ_DET",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "New York Jets",
+   "book": "FanDuel",
+   "line": {
+    "value": 6.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 54.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Seattle Seahawks at Washington Commanders",
+   "game_id": "2026_03_SEA_WAS",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "moneyline",
+   "side": "away",
+   "team": "Seattle Seahawks",
+   "book": "Hard Rock",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -325,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 77.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 76.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Seattle Seahawks at Washington Commanders",
+   "game_id": "2026_03_SEA_WAS",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Washington Commanders",
+   "book": "FanDuel",
+   "line": {
+    "value": -7.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 56.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Tennessee Titans at New York Giants",
+   "game_id": "2026_03_TEN_NYG",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "moneyline",
+   "side": "home",
+   "team": "New York Giants",
+   "book": "DraftKings",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -142,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 65.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 58.7,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 11.4,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Tennessee Titans at New York Giants",
+   "game_id": "2026_03_TEN_NYG",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "New York Giants",
+   "book": "DraftKings",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -118,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 57.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.1,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Arizona Cardinals at San Francisco 49ers",
+   "game_id": "2026_03_ARI_SF",
+   "commence": "2026-09-27T20:05:00Z",
+   "market": "moneyline",
+   "side": "home",
+   "team": "San Francisco 49ers",
+   "book": "Hard Rock",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -425,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 82.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 81.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Arizona Cardinals at San Francisco 49ers",
+   "game_id": "2026_03_ARI_SF",
+   "commence": "2026-09-27T20:05:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "Hard Rock",
+   "line": {
+    "value": 47.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 55.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 5.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "game_id": "2026_03_MIN_TB",
+   "commence": "2026-09-27T20:05:00Z",
+   "market": "moneyline",
+   "side": "away",
+   "team": "Minnesota Vikings",
+   "book": "Hard Rock",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 56.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 3.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "game_id": "2026_03_MIN_TB",
+   "commence": "2026-09-27T20:05:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "DraftKings",
+   "line": {
+    "value": 42.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 54.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 4.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "game_id": "2026_03_BAL_DAL",
+   "commence": "2026-09-27T20:25:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "Baltimore Ravens",
+   "book": "FanDuel",
+   "line": {
+    "value": -3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.4,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "game_id": "2026_03_LV_NO",
+   "commence": "2026-09-27T20:25:00Z",
+   "market": "moneyline",
+   "side": "away",
+   "team": "Las Vegas Raiders",
+   "book": "DraftKings",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 154,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 43.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 39.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 11.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "game_id": "2026_03_LV_NO",
+   "commence": "2026-09-27T20:25:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "Las Vegas Raiders",
+   "book": "DraftKings",
+   "line": {
+    "value": 3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 54.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 49.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "game_id": "2026_03_LV_NO",
+   "commence": "2026-09-27T20:25:00Z",
+   "market": "total",
+   "side": "under",
+   "team": "Under",
+   "book": "FanDuel",
+   "line": {
+    "value": 43.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 52.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Los Angeles Rams at Denver Broncos",
+   "game_id": "2026_03_LA_DEN",
+   "commence": "2026-09-28T00:20:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Denver Broncos",
+   "book": "Hard Rock",
+   "line": {
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 4.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Los Angeles Rams at Denver Broncos",
+   "game_id": "2026_03_LA_DEN",
+   "commence": "2026-09-28T00:20:00Z",
+   "market": "total",
+   "side": "over",
+   "team": "Over",
+   "book": "FanDuel",
+   "line": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 55.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 9.1,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Philadelphia Eagles at Chicago Bears",
+   "game_id": "2026_03_PHI_CHI",
+   "commence": "2026-09-29T00:15:00Z",
+   "market": "moneyline",
+   "side": "home",
+   "team": "Chicago Bears",
+   "book": "FanDuel",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 194,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 39.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 34.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 17.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  },
+  {
+   "game": "Philadelphia Eagles at Chicago Bears",
+   "game_id": "2026_03_PHI_CHI",
+   "commence": "2026-09-29T00:15:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Chicago Bears",
+   "book": "DraftKings",
+   "line": {
+    "value": -4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 54.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 5.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-23T22:09:53Z"
+  }
+ ],
+ "games_trained": {
+  "spread": 315,
+  "total": 316,
+  "moneyline": 315
+ },
+ "signal_coverage": {
+  "h2h_m": 143,
+  "form_m": 525,
+  "def": 557,
+  "poss": 0,
+  "out": 0
+ },
+ "note": "Graded only at Hard Rock, FanDuel and DraftKings prices that existed before kickoff; those are archived from September 2026. Earlier games train the model but are not graded. Intervals use the effective n clustered by game.",
+ "graded": {
+  "spread": [
+   {
+    "side": "home",
+    "book": "fanduel",
+    "line": 3.5,
+    "price": -102,
+    "p": 0.531491826569608,
+    "ev": 0.05256224477510618,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_01_NE_SEA",
+    "week": "2026-09-07",
+    "day": "2026-09-09",
+    "home": "SEA",
+    "away": "NE",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": -3.0,
+    "price": 100,
+    "p": 0.5356518529882506,
+    "ev": 0.07130370597650115,
+    "break_even": 0.5,
+    "game_id": "2026_01_CHI_CAR",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "CAR",
+    "away": "CHI",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "hardrockbet",
+    "line": 4.0,
+    "price": -110,
+    "p": 0.5270371973737809,
+    "ev": 0.006161922259036112,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_01_TB_CIN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "CIN",
+    "away": "TB",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": 6.5,
+    "price": 100,
+    "p": 0.5850952976487822,
+    "ev": 0.17019059529756442,
+    "break_even": 0.5,
+    "game_id": "2026_01_NO_DET",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "DET",
+    "away": "NO",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": -1.5,
+    "price": -105,
+    "p": 0.5155875283692098,
+    "ev": 0.006623269673219134,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_BUF_HOU",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "HOU",
+    "away": "BUF",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": -3.5,
+    "price": 100,
+    "p": 0.5468870895585164,
+    "ev": 0.09377417911703279,
+    "break_even": 0.5,
+    "game_id": "2026_01_BAL_IND",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "IND",
+    "away": "BAL",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": 8.5,
+    "price": -112,
+    "p": 0.5368741647586683,
+    "ev": 0.016226097578907916,
+    "break_even": 0.5283018867924528,
+    "game_id": "2026_01_CLE_JAX",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "JAX",
+    "away": "CLE",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": 6.5,
+    "price": -110,
+    "p": 0.5301460615420258,
+    "ev": 0.012097026580231152,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_01_ATL_PIT",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "PIT",
+    "away": "ATL",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": 1.5,
+    "price": -105,
+    "p": 0.571841338007091,
+    "ev": 0.11645213610908245,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_NYJ_TEN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "TEN",
+    "away": "NYJ",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": 8.5,
+    "price": -105,
+    "p": 0.5223127141639907,
+    "ev": 0.019753394320172424,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_ARI_LAC",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "LAC",
+    "away": "ARI",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": 3.0,
+    "price": -105,
+    "p": 0.5249147286949614,
+    "ev": 0.024833517928257942,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_MIA_LV",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "LV",
+    "away": "MIA",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "hardrockbet",
+    "line": 2.5,
+    "price": -110,
+    "p": 0.5330370797241424,
+    "ev": 0.017616243109726426,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_01_GB_MIN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "MIN",
+    "away": "GB",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "hardrockbet",
+    "line": -3.0,
+    "price": -105,
+    "p": 0.5763292963597905,
+    "ev": 0.1252143405119719,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_DAL_NYG",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "NYG",
+    "away": "DAL",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": 5.5,
+    "price": -110,
+    "p": 0.535681389397482,
+    "ev": 0.02266447066792021,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_DET_BUF",
+    "week": "2026-09-14",
+    "day": "2026-09-17",
+    "home": "BUF",
+    "away": "DET",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": -2.5,
+    "price": 100,
+    "p": 0.5590998207687756,
+    "ev": 0.11819964153755125,
+    "break_even": 0.5,
+    "game_id": "2026_02_CAR_ATL",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "ATL",
+    "away": "CAR",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": 4.5,
+    "price": -102,
+    "p": 0.511996435980014,
+    "ev": 0.01395372615649837,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_MIN_CHI",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "CHI",
+    "away": "MIN",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": 2.5,
+    "price": 100,
+    "p": 0.569402493302082,
+    "ev": 0.13880498660416407,
+    "break_even": 0.5,
+    "game_id": "2026_02_CIN_HOU",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "HOU",
+    "away": "CIN",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": 5.5,
+    "price": -112,
+    "p": 0.5401058790394343,
+    "ev": 0.02234327103892908,
+    "break_even": 0.5283018867924528,
+    "game_id": "2026_02_PIT_NE",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "NE",
+    "away": "PIT",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": -3.5,
+    "price": -108,
+    "p": 0.5352551930749007,
+    "ev": 0.03086185332943847,
+    "break_even": 0.5192307692307692,
+    "game_id": "2026_02_GB_NYJ",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "NYJ",
+    "away": "GB",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": -7.0,
+    "price": -108,
+    "p": 0.545581893256673,
+    "ev": 0.05075031293877763,
+    "break_even": 0.5192307692307692,
+    "game_id": "2026_02_PHI_TEN",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "TEN",
+    "away": "PHI",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": 6.5,
+    "price": 102,
+    "p": 0.6131689364533698,
+    "ev": 0.23860125163580692,
+    "break_even": 0.49504950495049505,
+    "game_id": "2026_02_LV_LAC",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "LAC",
+    "away": "LV",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": -4.5,
+    "price": -102,
+    "p": 0.5583059675776194,
+    "ev": 0.10566475932038366,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_SEA_ARI",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "ARI",
+    "away": "SEA",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": 4.5,
+    "price": -110,
+    "p": 0.5908361111220002,
+    "ev": 0.1279598485056368,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_WAS_DAL",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "DAL",
+    "away": "WAS",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": 13.5,
+    "price": -105,
+    "p": 0.5137680151150203,
+    "ev": 0.003070886653135041,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_02_MIA_SF",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "SF",
+    "away": "MIA",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "fanduel",
+    "line": 6.5,
+    "price": -102,
+    "p": 0.5391913470235334,
+    "ev": 0.06781031469366439,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_IND_KC",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "KC",
+    "away": "IND",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": 6.5,
+    "price": -102,
+    "p": 0.623295585017544,
+    "ev": 0.2343696879759205,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_NYG_LA",
+    "week": "2026-09-21",
+    "day": "2026-09-21",
+    "home": "LA",
+    "away": "NYG",
+    "won": false,
+    "state": "graded"
+   }
+  ],
+  "total": [
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 44.5,
+    "price": -105,
+    "p": 0.5701336356369191,
+    "ev": 0.11311805052922308,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_NE_SEA",
+    "week": "2026-09-07",
+    "day": "2026-09-09",
+    "home": "SEA",
+    "away": "NE",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 47.5,
+    "price": -110,
+    "p": 0.5370694103985848,
+    "ev": 0.025314328942752873,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_01_CHI_CAR",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "CAR",
+    "away": "CHI",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 50.5,
+    "price": -108,
+    "p": 0.5725576203158123,
+    "ev": 0.10270356505267553,
+    "break_even": 0.5192307692307692,
+    "game_id": "2026_01_TB_CIN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "CIN",
+    "away": "TB",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 40.5,
+    "price": -102,
+    "p": 0.5333197734482054,
+    "ev": 0.056182296436642076,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_01_CLE_JAX",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "JAX",
+    "away": "CLE",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "hardrockbet",
+    "line": 41.0,
+    "price": -110,
+    "p": 0.5282308946818006,
+    "ev": 0.008440798937983107,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_01_ATL_PIT",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "PIT",
+    "away": "ATL",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 47.5,
+    "price": -104,
+    "p": 0.522307891446152,
+    "ev": 0.024527017836682763,
+    "break_even": 0.5098039215686274,
+    "game_id": "2026_01_ARI_LAC",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "LAC",
+    "away": "ARI",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 46.5,
+    "price": -104,
+    "p": 0.5151315919173458,
+    "ev": 0.010450430299409064,
+    "break_even": 0.5098039215686274,
+    "game_id": "2026_01_GB_MIN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "MIN",
+    "away": "GB",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 44.5,
+    "price": -105,
+    "p": 0.5439482180836959,
+    "ev": 0.06199414006816806,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_WAS_PHI",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "PHI",
+    "away": "WAS",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "hardrockbet",
+    "line": 47.5,
+    "price": -110,
+    "p": 0.5456172181951289,
+    "ev": 0.041632871099791524,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_01_DAL_NYG",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "NYG",
+    "away": "DAL",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "hardrockbet",
+    "line": 43.5,
+    "price": -105,
+    "p": 0.5964334061080153,
+    "ev": 0.16446522144898235,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_01_DEN_KC",
+    "week": "2026-09-14",
+    "day": "2026-09-14",
+    "home": "KC",
+    "away": "DEN",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "hardrockbet",
+    "line": 55.0,
+    "price": -110,
+    "p": 0.5936385203862642,
+    "ev": 0.13330990255559527,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_DET_BUF",
+    "week": "2026-09-14",
+    "day": "2026-09-17",
+    "home": "BUF",
+    "away": "DET",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 47.5,
+    "price": -108,
+    "p": 0.5655219006015293,
+    "ev": 0.08915329004738992,
+    "break_even": 0.5192307692307692,
+    "game_id": "2026_02_MIN_CHI",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "CHI",
+    "away": "MIN",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "under",
+    "book": "draftkings",
+    "line": 45.5,
+    "price": -110,
+    "p": 0.5289431607186801,
+    "ev": 0.009800579553843836,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_CIN_HOU",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "HOU",
+    "away": "CIN",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 41.5,
+    "price": -108,
+    "p": 0.5786635920247386,
+    "ev": 0.11446321426986694,
+    "break_even": 0.5192307692307692,
+    "game_id": "2026_02_PIT_NE",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "NE",
+    "away": "PIT",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 44.5,
+    "price": -110,
+    "p": 0.5397587563695156,
+    "ev": 0.030448534887257184,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_GB_NYJ",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "NYJ",
+    "away": "GB",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 41.5,
+    "price": -102,
+    "p": 0.5474985729922838,
+    "ev": 0.08426187984746392,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_CLE_TB",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "TB",
+    "away": "CLE",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 45.5,
+    "price": -105,
+    "p": 0.5662988168945122,
+    "ev": 0.10563102346071429,
+    "break_even": 0.5121951219512195,
+    "game_id": "2026_02_JAX_DEN",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "DEN",
+    "away": "JAX",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 43.5,
+    "price": -110,
+    "p": 0.5478779813525223,
+    "ev": 0.04594887349117904,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_LV_LAC",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "LAC",
+    "away": "LV",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "under",
+    "book": "hardrockbet",
+    "line": 41.0,
+    "price": -110,
+    "p": 0.5292781854588476,
+    "ev": 0.01044017223961835,
+    "break_even": 0.5238095238095238,
+    "game_id": "2026_02_SEA_ARI",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "ARI",
+    "away": "SEA",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 51.5,
+    "price": -102,
+    "p": 0.5356120122534866,
+    "ev": 0.06072182818827754,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_WAS_DAL",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "DAL",
+    "away": "WAS",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "fanduel",
+    "line": 45.5,
+    "price": -102,
+    "p": 0.5676128249794219,
+    "ev": 0.12409598672395328,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_MIA_SF",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "SF",
+    "away": "MIA",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "over",
+    "book": "draftkings",
+    "line": 46.5,
+    "price": -102,
+    "p": 0.5465661492410132,
+    "ev": 0.08241531516357514,
+    "break_even": 0.504950495049505,
+    "game_id": "2026_02_IND_KC",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "KC",
+    "away": "IND",
+    "won": true,
+    "state": "graded"
+   }
+  ],
+  "moneyline": [
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": null,
+    "price": -170,
+    "p": 0.6926462065024894,
+    "ev": 0.1000851515039538,
+    "break_even": 0.6296296296296295,
+    "game_id": "2026_01_NE_SEA",
+    "week": "2026-09-07",
+    "day": "2026-09-09",
+    "home": "SEA",
+    "away": "NE",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": null,
+    "price": -198,
+    "p": 0.7300329669760204,
+    "ev": 0.0987364856507782,
+    "break_even": 0.6644295302013422,
+    "game_id": "2026_01_SF_LA",
+    "week": "2026-09-07",
+    "day": "2026-09-10",
+    "home": "LA",
+    "away": "SF",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "fanduel",
+    "line": null,
+    "price": 150,
+    "p": 0.40287129339539896,
+    "ev": 0.007178233488497332,
+    "break_even": 0.4,
+    "game_id": "2026_01_CHI_CAR",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "CAR",
+    "away": "CHI",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 275,
+    "p": 0.34530785304118017,
+    "ev": 0.2949044489044257,
+    "break_even": 0.26666666666666666,
+    "game_id": "2026_01_NO_DET",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "DET",
+    "away": "NO",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": null,
+    "price": -174,
+    "p": 0.6743916886350759,
+    "ev": 0.06197311888511958,
+    "break_even": 0.635036496350365,
+    "game_id": "2026_01_BAL_IND",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "IND",
+    "away": "BAL",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": null,
+    "price": 250,
+    "p": 0.32604805634555034,
+    "ev": 0.14116819720942608,
+    "break_even": 0.2857142857142857,
+    "game_id": "2026_01_ATL_PIT",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "PIT",
+    "away": "ATL",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": null,
+    "price": -118,
+    "p": 0.5915180114504902,
+    "ev": 0.09280446183226165,
+    "break_even": 0.5412844036697247,
+    "game_id": "2026_01_NYJ_TEN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "TEN",
+    "away": "NYJ",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 400,
+    "p": 0.20849191855137028,
+    "ev": 0.042459592756851405,
+    "break_even": 0.2,
+    "game_id": "2026_01_ARI_LAC",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "LAC",
+    "away": "ARI",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": null,
+    "price": 142,
+    "p": 0.42545100711314066,
+    "ev": 0.02959143721380042,
+    "break_even": 0.4132231404958678,
+    "game_id": "2026_01_MIA_LV",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "LV",
+    "away": "MIA",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": null,
+    "price": -130,
+    "p": 0.5910572572746977,
+    "ev": 0.04571668594754197,
+    "break_even": 0.5652173913043479,
+    "game_id": "2026_01_GB_MIN",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "MIN",
+    "away": "GB",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 225,
+    "p": 0.30846585792325265,
+    "ev": 0.00251403825057106,
+    "break_even": 0.3076923076923077,
+    "game_id": "2026_01_WAS_PHI",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "PHI",
+    "away": "WAS",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 145,
+    "p": 0.4981233805291363,
+    "ev": 0.22040228229638403,
+    "break_even": 0.4081632653061224,
+    "game_id": "2026_01_DAL_NYG",
+    "week": "2026-09-07",
+    "day": "2026-09-13",
+    "home": "NYG",
+    "away": "DAL",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 115,
+    "p": 0.4995742540165794,
+    "ev": 0.0740846461356457,
+    "break_even": 0.46511627906976744,
+    "game_id": "2026_01_DEN_KC",
+    "week": "2026-09-14",
+    "day": "2026-09-14",
+    "home": "KC",
+    "away": "DEN",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": null,
+    "price": -148,
+    "p": 0.6070304766425425,
+    "ev": 0.01718620410371985,
+    "break_even": 0.5967741935483871,
+    "game_id": "2026_02_CAR_ATL",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "ATL",
+    "away": "CAR",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 350,
+    "p": 0.2345421218177376,
+    "ev": 0.05543954817981911,
+    "break_even": 0.2222222222222222,
+    "game_id": "2026_02_NO_BAL",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "BAL",
+    "away": "NO",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 185,
+    "p": 0.3558320703483101,
+    "ev": 0.014121400492683733,
+    "break_even": 0.3508771929824561,
+    "game_id": "2026_02_MIN_CHI",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "CHI",
+    "away": "MIN",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": null,
+    "price": 130,
+    "p": 0.48873042377218756,
+    "ev": 0.12407997467603127,
+    "break_even": 0.4347826086956522,
+    "game_id": "2026_02_CIN_HOU",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "HOU",
+    "away": "CIN",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 210,
+    "p": 0.3255087175582029,
+    "ev": 0.009077024430429015,
+    "break_even": 0.3225806451612903,
+    "game_id": "2026_02_PIT_NE",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "NE",
+    "away": "PIT",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": null,
+    "price": 160,
+    "p": 0.3935001959378333,
+    "ev": 0.023100509438366723,
+    "break_even": 0.3846153846153846,
+    "game_id": "2026_02_GB_NYJ",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "NYJ",
+    "away": "GB",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": null,
+    "price": 340,
+    "p": 0.23467031541756045,
+    "ev": 0.03254938783726602,
+    "break_even": 0.22727272727272727,
+    "game_id": "2026_02_CLE_TB",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "TB",
+    "away": "CLE",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "fanduel",
+    "line": null,
+    "price": 280,
+    "p": 0.2754207975417086,
+    "ev": 0.04659903065849269,
+    "break_even": 0.2631578947368421,
+    "game_id": "2026_02_PHI_TEN",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "TEN",
+    "away": "PHI",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 125,
+    "p": 0.5171213000179824,
+    "ev": 0.1635229250404604,
+    "break_even": 0.4444444444444444,
+    "game_id": "2026_02_JAX_DEN",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "DEN",
+    "away": "JAX",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": null,
+    "price": 260,
+    "p": 0.3008280705311309,
+    "ev": 0.08298105391207145,
+    "break_even": 0.2777777777777778,
+    "game_id": "2026_02_LV_LAC",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "LAC",
+    "away": "LV",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "fanduel",
+    "line": null,
+    "price": -210,
+    "p": 0.7576413974068329,
+    "ev": 0.11842301521961063,
+    "break_even": 0.6774193548387096,
+    "game_id": "2026_02_SEA_ARI",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "ARI",
+    "away": "SEA",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "draftkings",
+    "line": null,
+    "price": 185,
+    "p": 0.36332640027772145,
+    "ev": 0.035480240791506246,
+    "break_even": 0.3508771929824561,
+    "game_id": "2026_02_WAS_DAL",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "DAL",
+    "away": "WAS",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 700,
+    "p": 0.12740151515267473,
+    "ev": 0.019212121221397815,
+    "break_even": 0.125,
+    "game_id": "2026_02_MIA_SF",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "SF",
+    "away": "MIA",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "side": "home",
+    "book": "draftkings",
+    "line": null,
+    "price": -265,
+    "p": 0.7420281220324462,
+    "ev": 0.02203873412016155,
+    "break_even": 0.726027397260274,
+    "game_id": "2026_02_IND_KC",
+    "week": "2026-09-14",
+    "day": "2026-09-20",
+    "home": "KC",
+    "away": "IND",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "side": "away",
+    "book": "hardrockbet",
+    "line": null,
+    "price": 250,
+    "p": 0.40812151591270707,
+    "ev": 0.4284253056944747,
+    "break_even": 0.2857142857142857,
+    "game_id": "2026_02_NYG_LA",
+    "week": "2026-09-21",
+    "day": "2026-09-21",
+    "home": "LA",
+    "away": "NYG",
+    "won": false,
+    "state": "graded"
+   }
+  ]
+ }
+}
