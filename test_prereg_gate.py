@@ -115,6 +115,9 @@ FROZEN = {
     # [Sam, 2026-09-24] rule in section 2 before any scoring; section 3
     # fixed by Claude before any scoring code existed.
     "fb_card_calibration_spec.md": "73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda",
+    # [Sam, 2026-09-24] ship rule in section 2 before any result; the
+    # formula and scoring in section 3 fixed by Claude before any scoring.
+    "fb_card_fix_spec.md": "8162387a90aaae4228a661e898cbe72c9e8cd3ee4d6ed2ebbbfcfed7f05715a1",
 }
 
 
