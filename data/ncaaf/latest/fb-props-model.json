@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "MODEL",
- "built_at": "2026-09-24T10:43:23Z",
+ "built_at": "2026-09-24T13:22:52Z",
  "design": "research/fb_props_design.md",
  "books": [
   "DraftKings",
@@ -93,15 +93,15 @@
   },
   "player_reception_yds": {
    "picks": {
-    "value": 142,
+    "value": 141,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 58,
+    "value": 57,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 40.8,
+    "value": 40.4,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -114,13 +114,13 @@
    },
    "interval_95": {
     "value": [
-     32.2,
-     49.5
+     31.9,
+     48.9
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 124.5,
+    "value": 127.6,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -173,7 +173,7 @@
   },
   "player_anytime_td": {
    "picks": {
-    "value": 250,
+    "value": 249,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
@@ -181,11 +181,11 @@
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 24.0,
+    "value": 24.1,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
-    "value": 28.7,
+    "value": 28.8,
     "basis": "MARKET"
    },
    "price_assumed": {
@@ -194,13 +194,13 @@
    },
    "interval_95": {
     "value": [
-     18.7,
-     29.3
+     18.8,
+     29.4
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 250.0,
+    "value": 249.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -215,12 +215,14 @@
  "weeks": [
   "2026-08-31",
   "2026-09-07",
-  "2026-09-14"
+  "2026-09-14",
+  "2026-09-21"
  ],
  "stage2_weeks": {
   "2026-08-31": false,
   "2026-09-07": true,
-  "2026-09-14": true
+  "2026-09-14": true,
+  "2026-09-21": true
  },
  "graded_rungs": 2907,
  "calibration": {
@@ -228,52 +230,52 @@
    {
     "bucket": "0-10%",
     "n": {
-     "value": 67,
+     "value": 68,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 6.9,
+     "value": 7.0,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 23.9,
+     "value": 23.5,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "10-20%",
     "n": {
-     "value": 344,
+     "value": 345,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 15.7,
+     "value": 15.8,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 24.7,
+     "value": 24.6,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "20-30%",
     "n": {
-     "value": 515,
+     "value": 507,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 24.9,
+     "value": 24.8,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 32.4,
+     "value": 32.3,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "30-40%",
     "n": {
-     "value": 375,
+     "value": 381,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -288,7 +290,7 @@
    {
     "bucket": "40-50%",
     "n": {
-     "value": 522,
+     "value": 518,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -296,37 +298,37 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 48.7,
+     "value": 49.0,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "50-60%",
     "n": {
-     "value": 968,
+     "value": 970,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 52.3,
+     "value": 52.2,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 53.0,
+     "value": 52.9,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "60-70%",
     "n": {
-     "value": 85,
+     "value": 87,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 64.1,
+     "value": 64.0,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 60.0,
+     "value": 59.8,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -337,7 +339,7 @@
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 74.5,
+     "value": 74.6,
      "basis": "MODEL"
     },
     "observed": {
@@ -352,7 +354,7 @@
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 83.1,
+     "value": 83.2,
      "basis": "MODEL"
     },
     "observed": {
@@ -367,7 +369,7 @@
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 92.9,
+     "value": 92.8,
      "basis": "MODEL"
     },
     "observed": {
@@ -533,47 +535,48 @@
   "player_pass_yds": {
    "n": 140,
    "card": 0.7634418117037842,
-   "model": 0.7760932831704809
+   "model": 0.776077042066639
   },
   "player_rush_yds": {
    "n": 285,
    "card": 0.7763337078566235,
-   "model": 0.7061555942771425
+   "model": 0.7068351323263972
   },
   "player_reception_yds": {
    "n": 270,
    "card": 0.7460869149357486,
-   "model": 0.7553993361785543
+   "model": 0.7550107432901817
   },
   "player_receptions": {
    "n": 118,
    "card": 0.7924471515548228,
-   "model": 0.7912537208187161
+   "model": 0.791297217382452
   },
   "player_anytime_td": {
    "n": 613,
    "card": 0.6716542569257615,
-   "model": 0.6237670726487625
+   "model": 0.6235433765089404
   }
  },
  "card_logs_season": 2025,
  "card_seasons_published": {
-  "2026-09-12": 2025,
-  "2026-09-03": 2025,
-  "2026-09-18": 2025,
-  "2026-09-05": 2025,
-  "2026-09-10": 2025,
-  "2026-09-19": 2025,
+  "2026-09-07": 2025,
   "2026-09-11": 2025,
   "2026-09-06": 2025,
+  "2026-09-18": 2025,
+  "2026-09-12": 2025,
   "2026-09-17": 2025,
-  "2026-09-07": 2025
+  "2026-09-19": 2025,
+  "2026-09-24": 2025,
+  "2026-09-03": 2025,
+  "2026-09-10": 2025,
+  "2026-09-05": 2025
  },
  "league_only": {
   "n": 1426,
-  "mean_d": 0.031704678413687244,
-  "t": 1.806124205831158,
-  "p": 0.036804377784149404,
+  "mean_d": 0.03173659891126856,
+  "t": 1.8099960000854756,
+  "p": 0.036501042861796056,
   "clusters": 112
  },
  "paired_rows": [
@@ -582,5859 +585,5859 @@
    "player_anytime_td",
    0,
    0.35,
-   0.53134
+   0.534341
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_anytime_td",
    0,
    0.17,
-   0.240281
+   0.235414
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_anytime_td",
    1,
    0.19,
-   0.329175
+   0.324827
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_anytime_td",
    0,
    0.35,
-   0.400091
+   0.396236
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_anytime_td",
    0,
    0.14,
-   0.187921
+   0.192864
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_reception_yds",
    0,
    0.42,
-   0.633822
+   0.632122
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_reception_yds",
    1,
    0.35,
-   0.278361
+   0.276829
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_receptions",
    1,
    0.42,
-   0.242712
+   0.243192
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_rush_yds",
    0,
    0.65,
-   0.582138
+   0.585598
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_rush_yds",
    0,
    0.06,
-   0.094987
+   0.09344
   ],
   [
    "ncaaf:f089e3d943a34a9c4fe1808568b96529",
    "player_rush_yds",
    1,
    0.12,
-   0.025503
+   0.024966
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    0,
    0.41,
-   0.263539
+   0.261626
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    1,
    0.27,
-   0.299379
+   0.297553
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    0,
    0.81,
-   0.578099
+   0.579082
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    0,
    0.21,
-   0.261504
+   0.259455
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    0,
    0.17,
-   0.230348
+   0.232082
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    0,
    0.15,
-   0.238716
+   0.240444
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_anytime_td",
    0,
    0.39,
-   0.343299
+   0.344842
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_pass_yds",
    1,
    0.06,
-   0.04275
+   0.042778
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_reception_yds",
    1,
    0.35,
-   0.161817
+   0.162296
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_reception_yds",
    0,
    0.44,
-   0.515955
+   0.516607
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_reception_yds",
    0,
    0.59,
-   0.311971
+   0.31145
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_reception_yds",
    0,
    0.38,
-   0.186289
+   0.18578
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_receptions",
    0,
    0.29,
-   0.118453
+   0.118607
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_receptions",
    1,
    0.25,
-   0.160052
+   0.159874
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_receptions",
    0,
    0.41,
-   0.355194
+   0.355427
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_rush_yds",
    0,
    0.54,
-   0.125132
+   0.125793
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_rush_yds",
    0,
    0.81,
-   0.183163
+   0.184079
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_rush_yds",
    0,
    0.39,
-   0.197866
+   0.198771
   ],
   [
    "ncaaf:1d6daad1c93bf7e5ae16be1db12e27d5",
    "player_rush_yds",
    1,
    0.58,
-   0.315188
+   0.313867
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_anytime_td",
    1,
    0.32,
-   0.380329
+   0.376711
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_anytime_td",
    1,
    0.58,
-   0.40594
+   0.402327
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_anytime_td",
    0,
    0.25,
-   0.357303
+   0.353574
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_anytime_td",
    1,
    0.28,
-   0.201652
+   0.206078
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_pass_yds",
    0,
    0.5,
-   0.240278
+   0.240028
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_pass_yds",
    1,
    0.39,
-   0.059035
+   0.059125
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_reception_yds",
    0,
    0.25,
-   0.673866
+   0.672423
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_rush_yds",
    0,
    0.25,
-   0.072635
+   0.071466
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_rush_yds",
    1,
    0.27,
-   0.550453
+   0.547037
   ],
   [
    "ncaaf:1697069330d0343bdf7930ac0b0c3863",
    "player_rush_yds",
    1,
    0.18,
-   0.073243
+   0.072074
   ],
   [
    "ncaaf:05c2e060c97c538faeee8237a0bd60f0",
    "player_anytime_td",
    0,
    0.18,
-   0.357747
+   0.356608
   ],
   [
    "ncaaf:05c2e060c97c538faeee8237a0bd60f0",
    "player_anytime_td",
    0,
    0.15,
-   0.263041
+   0.261677
   ],
   [
    "ncaaf:05c2e060c97c538faeee8237a0bd60f0",
    "player_anytime_td",
    0,
    0.05,
-   0.245922
+   0.244526
   ],
   [
    "ncaaf:05c2e060c97c538faeee8237a0bd60f0",
    "player_pass_yds",
    1,
    0.35,
-   0.267913
+   0.267844
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_anytime_td",
    1,
    0.42,
-   0.440742
+   0.448448
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_anytime_td",
    0,
    0.58,
-   0.460012
+   0.46755
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_anytime_td",
    1,
    0.58,
-   0.362352
+   0.371003
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_anytime_td",
    0,
    0.41,
-   0.364787
+   0.373606
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_anytime_td",
    1,
    0.25,
-   0.320262
+   0.329599
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_pass_yds",
    0,
    0.5,
-   0.312585
+   0.313234
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_reception_yds",
    1,
    0.54,
-   0.364362
+   0.367847
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_reception_yds",
    1,
    0.73,
-   0.33598
+   0.339271
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_rush_yds",
    0,
    0.35,
-   0.324681
+   0.331746
   ],
   [
    "ncaaf:7356f9bad07c48fc6b78f52e38c85c11",
    "player_rush_yds",
    0,
    0.32,
-   0.073812
+   0.076585
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_anytime_td",
    0,
    0.39,
-   0.348861
+   0.346031
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_anytime_td",
    0,
    0.58,
-   0.607238
+   0.605356
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_anytime_td",
    1,
    0.64,
-   0.457167
+   0.454484
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_pass_yds",
    1,
    0.61,
-   0.39806
+   0.397823
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_reception_yds",
    0,
    0.5,
-   0.432934
+   0.431642
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_rush_yds",
    0,
    0.25,
-   0.316925
+   0.31467
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_rush_yds",
    0,
    0.58,
-   0.545518
+   0.542745
   ],
   [
    "ncaaf:a77e0c42754f1a99ae4fbea861a78408",
    "player_rush_yds",
    1,
    0.64,
-   0.481096
+   0.478289
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    0,
    0.12,
-   0.27702
+   0.268141
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    0,
    0.14,
-   0.3021
+   0.293235
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    0,
    0.1,
-   0.224671
+   0.234012
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    0,
    0.63,
-   0.522392
+   0.528244
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    0,
    0.55,
-   0.277407
+   0.286153
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    1,
    0.53,
-   0.354705
+   0.362486
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    1,
    0.43,
-   0.29564
+   0.304135
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    0,
    0.45,
-   0.739091
+   0.735957
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_anytime_td",
    1,
    0.56,
-   0.350487
+   0.358298
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_pass_yds",
    1,
    0.7,
-   0.293366
+   0.293912
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_reception_yds",
    1,
    0.56,
-   0.209221
+   0.211661
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_reception_yds",
    1,
    0.7,
-   0.226802
+   0.229286
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_receptions",
    1,
    0.56,
-   0.233672
+   0.232813
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_receptions",
    0,
    0.57,
-   0.29598
+   0.294957
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_rush_yds",
    0,
    0.63,
-   0.23157
+   0.236932
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_rush_yds",
    0,
    0.44,
-   0.38479
+   0.391386
   ],
   [
    "ncaaf:5f92cc707afed4249e1e935dbbeacb5e",
    "player_rush_yds",
    0,
    0.55,
-   0.928752
+   0.926271
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_anytime_td",
    0,
    0.23,
-   0.317038
+   0.324077
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_anytime_td",
    1,
    0.5,
-   0.397358
+   0.403676
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_anytime_td",
    0,
    0.15,
-   0.250047
+   0.242034
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_reception_yds",
    0,
    0.35,
-   0.594933
+   0.59786
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_rush_yds",
    0,
    0.04,
-   0.046248
+   0.047693
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_rush_yds",
    0,
    0.75,
-   0.507403
+   0.501316
   ],
   [
    "ncaaf:b10ebab18213ecdc575885bfa874b98d",
    "player_rush_yds",
    0,
    0.14,
-   0.046958
+   0.048419
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_anytime_td",
    1,
    0.55,
-   0.29208
+   0.29454
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_anytime_td",
    1,
    0.82,
-   0.607912
+   0.606529
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_anytime_td",
    0,
    0.27,
-   0.295674
+   0.292992
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_anytime_td",
    0,
    0.11,
-   0.251117
+   0.253847
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_anytime_td",
    0,
    0.32,
-   0.27725
+   0.27981
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_reception_yds",
    0,
    0.42,
-   0.320464
+   0.319634
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_reception_yds",
    0,
    0.54,
-   0.555878
+   0.55487
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_reception_yds",
    0,
    0.32,
-   0.773169
+   0.774005
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_reception_yds",
    1,
    0.55,
-   0.391785
+   0.392848
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_receptions",
    0,
    0.42,
-   0.324612
+   0.324973
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_rush_yds",
    0,
    0.32,
-   0.126733
+   0.127756
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_rush_yds",
    0,
    0.46,
-   0.224258
+   0.225727
   ],
   [
    "ncaaf:185883640e8f90f283915ddadb0230a3",
    "player_rush_yds",
    1,
    0.68,
-   0.123157
+   0.122085
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_anytime_td",
    0,
    0.35,
-   0.255247
+   0.257202
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_anytime_td",
    0,
    0.32,
-   0.346923
+   0.344947
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_anytime_td",
    1,
    0.61,
-   0.42921
+   0.427462
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_anytime_td",
    1,
    0.61,
-   0.498219
+   0.496869
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_anytime_td",
    0,
    0.21,
-   0.309469
+   0.307443
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_pass_yds",
    1,
    0.32,
-   0.264272
+   0.264155
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_reception_yds",
    1,
    0.39,
-   0.589275
+   0.588477
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_reception_yds",
    0,
    0.62,
-   0.382561
+   0.381898
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_reception_yds",
    1,
    0.61,
-   0.247532
+   0.247023
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_receptions",
    1,
    0.39,
-   0.224066
+   0.224232
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_receptions",
    0,
    0.79,
-   0.476967
+   0.477222
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_rush_yds",
    0,
    0.54,
-   0.562438
+   0.560894
   ],
   [
    "ncaaf:4289d82f1cd4747962ff68c9098c6dcc",
    "player_rush_yds",
    0,
    0.35,
-   0.100575
+   0.10121
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_anytime_td",
    0,
    0.29,
-   0.287859
+   0.272523
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_anytime_td",
    1,
    0.42,
-   0.323052
+   0.337117
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_anytime_td",
    1,
    0.62,
-   0.517134
+   0.527184
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_anytime_td",
    0,
    0.19,
-   0.301572
+   0.316178
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_pass_yds",
    0,
    0.73,
-   0.250498
+   0.251371
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_reception_yds",
    1,
    0.62,
-   0.743398
+   0.748089
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_reception_yds",
    0,
    0.5,
-   0.112081
+   0.114862
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_rush_yds",
    0,
    0.19,
-   0.408737
+   0.420228
   ],
   [
    "ncaaf:e599d006aed0025ea9182d6763be6fd7",
    "player_rush_yds",
    0,
    0.29,
-   0.14272
+   0.149622
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_anytime_td",
    0,
    0.23,
-   0.353785
+   0.351845
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_anytime_td",
    1,
    0.5,
-   0.310675
+   0.312612
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_anytime_td",
    1,
    0.42,
-   0.500819
+   0.499438
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_pass_yds",
    1,
    0.5,
-   0.250871
+   0.250743
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_reception_yds",
    1,
    0.27,
-   0.607027
+   0.606556
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_rush_yds",
    0,
    0.27,
-   0.174667
+   0.173571
   ],
   [
    "ncaaf:ab601e833e1494159df16e0331dd02d4",
    "player_rush_yds",
    1,
    0.41,
-   0.468436
+   0.466477
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_anytime_td",
    1,
    0.57,
-   0.398896
+   0.400423
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_anytime_td",
    0,
    0.32,
-   0.288644
+   0.290487
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_anytime_td",
    0,
    0.32,
-   0.386468
+   0.384687
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_anytime_td",
    1,
    0.35,
-   0.329175
+   0.330912
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_anytime_td",
    0,
    0.35,
-   0.262912
+   0.264848
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_pass_yds",
    1,
    0.57,
-   0.258509
+   0.258621
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_reception_yds",
    1,
    0.32,
-   0.218781
+   0.219329
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_reception_yds",
    0,
    0.42,
-   0.152454
+   0.152829
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_reception_yds",
    1,
    0.5,
-   0.346399
+   0.347201
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_receptions",
    0,
    0.58,
-   0.166122
+   0.165919
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_receptions",
    1,
    0.39,
-   0.225266
+   0.22503
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_receptions",
    1,
    0.5,
-   0.447673
+   0.447395
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_rush_yds",
    0,
    0.39,
-   0.220472
+   0.219244
   ],
   [
    "ncaaf:0b8f9bbc0bf1b04a819f0113922998b0",
    "player_rush_yds",
    0,
    0.5,
-   0.323097
+   0.324489
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_anytime_td",
    1,
    0.03,
-   0.265261
+   0.274498
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_anytime_td",
    1,
    0.46,
-   0.4876
+   0.494162
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_anytime_td",
    1,
    0.68,
-   0.400135
+   0.40757
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_anytime_td",
    1,
    0.5,
-   0.373833
+   0.381613
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_pass_yds",
    1,
    0.5,
-   0.177006
+   0.177433
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_reception_yds",
    1,
    0.54,
-   0.138178
+   0.139977
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_reception_yds",
    1,
    0.61,
-   0.65881
+   0.6619
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_reception_yds",
    1,
    0.73,
-   0.599082
+   0.602394
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_receptions",
    1,
    0.68,
-   0.188795
+   0.187976
   ],
   [
    "ncaaf:9bb89639201454f186964f5b86365760",
    "player_rush_yds",
    0,
    0.46,
-   0.141805
+   0.145889
   ],
   [
    "ncaaf:994c7280c9e8dcb041c260eb2c767d4d",
    "player_anytime_td",
    0,
    0.12,
-   0.196419
+   0.192382
   ],
   [
    "ncaaf:994c7280c9e8dcb041c260eb2c767d4d",
    "player_anytime_td",
    0,
    0.35,
-   0.402809
+   0.405672
   ],
   [
    "ncaaf:994c7280c9e8dcb041c260eb2c767d4d",
    "player_anytime_td",
    0,
    0.29,
-   0.278198
+   0.274571
   ],
   [
    "ncaaf:994c7280c9e8dcb041c260eb2c767d4d",
    "player_anytime_td",
    0,
    0.28,
-   0.35017
+   0.353301
   ],
   [
    "ncaaf:994c7280c9e8dcb041c260eb2c767d4d",
    "player_pass_yds",
    0,
    0.19,
-   0.208038
+   0.208213
   ],
   [
    "ncaaf:994c7280c9e8dcb041c260eb2c767d4d",
    "player_rush_yds",
    0,
    0.27,
-   0.183473
+   0.185225
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    0,
    0.19,
-   0.312582
+   0.312565
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    0,
    0.36,
-   0.325433
+   0.325166
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    1,
    0.35,
-   0.280635
+   0.280477
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    0,
    0.5,
-   0.358771
+   0.358531
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    0,
    0.42,
-   0.360811
+   0.360764
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    0,
    0.75,
-   0.341332
+   0.341084
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    1,
    0.35,
-   0.429112
+   0.429127
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    0,
    0.19,
-   0.296578
+   0.296544
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_anytime_td",
    1,
    0.73,
-   0.520707
+   0.52056
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_pass_yds",
    1,
    0.65,
-   0.362725
+   0.362709
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_reception_yds",
    1,
    0.65,
-   0.291399
+   0.291338
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_reception_yds",
    1,
    0.65,
-   0.32385
+   0.323739
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_reception_yds",
    1,
    0.42,
-   0.732817
+   0.732887
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_reception_yds",
    1,
    0.79,
-   0.624812
+   0.624707
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_reception_yds",
    1,
    0.42,
-   0.370814
+   0.370972
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_receptions",
    1,
    0.75,
-   0.308735
+   0.308748
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_receptions",
    1,
    0.5,
-   0.277579
+   0.277564
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_receptions",
    1,
    0.5,
-   0.292642
+   0.292631
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_rush_yds",
    0,
    0.58,
-   0.261655
+   0.261614
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_rush_yds",
    0,
    0.81,
-   0.750802
+   0.750709
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_rush_yds",
    0,
    0.58,
-   0.203062
+   0.202987
   ],
   [
    "ncaaf:525909f6be5e505d076a97eb097528eb",
    "player_rush_yds",
    1,
    0.58,
-   0.588612
+   0.588475
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    0,
    0.41,
-   0.347731
+   0.338897
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    1,
    0.29,
-   0.261905
+   0.251863
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    1,
    0.7,
-   0.471941
+   0.464794
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    0,
    0.16,
-   0.294467
+   0.284889
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    0,
    0.57,
-   0.496782
+   0.503506
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    0,
    0.38,
-   0.235118
+   0.245093
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    0,
    0.44,
-   0.293409
+   0.302567
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_anytime_td",
    1,
    0.43,
-   0.355526
+   0.364025
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_pass_yds",
    1,
    0.59,
-   0.279896
+   0.279294
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_pass_yds",
    1,
    0.79,
-   0.200613
+   0.201105
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_reception_yds",
    0,
    0.3,
-   0.621705
+   0.618239
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_reception_yds",
    0,
    0.94,
-   0.592379
+   0.595774
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_reception_yds",
    0,
    0.47,
-   0.69504
+   0.691906
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_reception_yds",
    1,
    0.46,
-   0.175162
+   0.172836
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_receptions",
    1,
    0.29,
-   0.174702
+   0.175848
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_rush_yds",
    0,
    0.34,
-   0.139285
+   0.135098
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_rush_yds",
    0,
    0.34,
-   0.422757
+   0.415122
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_rush_yds",
    1,
    0.63,
-   0.55303
+   0.560501
   ],
   [
    "ncaaf:ac175733be9ad7061abab75fe080d18a",
    "player_rush_yds",
    1,
    0.23,
-   0.122334
+   0.118477
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_anytime_td",
    1,
    0.79,
-   0.682113
+   0.68846
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_anytime_td",
    0,
    0.29,
-   0.326619
+   0.312869
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_anytime_td",
    0,
    0.5,
-   0.420021
+   0.408233
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_anytime_td",
    1,
    0.39,
-   0.377539
+   0.364921
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_pass_yds",
    0,
    0.39,
-   0.28699
+   0.286081
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_rush_yds",
    0,
    0.71,
-   0.84449
+   0.851272
   ],
   [
    "ncaaf:9e750af965ce9f276f4280686d4dba35",
    "player_rush_yds",
    1,
    0.46,
-   0.343391
+   0.332786
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_anytime_td",
    0,
    0.04,
-   0.236063
+   0.229028
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_anytime_td",
    0,
    0.06,
-   0.165018
+   0.172418
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_anytime_td",
    0,
    0.04,
-   0.191699
+   0.198896
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_anytime_td",
    1,
    0.57,
-   0.594117
+   0.590476
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_pass_yds",
    0,
    0.62,
-   0.12106
+   0.120817
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_reception_yds",
    0,
    0.3,
-   0.569443
+   0.567136
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_rush_yds",
    1,
    0.43,
-   0.230684
+   0.226758
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_rush_yds",
    0,
    0.19,
-   0.055869
+   0.057287
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_rush_yds",
    0,
    0.12,
-   0.076692
+   0.078522
   ],
   [
    "ncaaf:8154373235ce2adf76b37ecd334601fc",
    "player_rush_yds",
    0,
    0.54,
-   0.611672
+   0.606646
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_anytime_td",
    1,
    0.42,
-   0.297075
+   0.295787
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_anytime_td",
    0,
    0.21,
-   0.345611
+   0.344453
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_anytime_td",
    0,
    0.38,
-   0.562589
+   0.562054
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_anytime_td",
    0,
    0.38,
-   0.371971
+   0.372854
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_anytime_td",
    0,
    0.42,
-   0.338701
+   0.337633
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_anytime_td",
    0,
    0.23,
-   0.273643
+   0.272405
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_pass_yds",
    1,
    0.5,
-   0.194608
+   0.194549
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_pass_yds",
    0,
    0.46,
-   0.421085
+   0.421148
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_reception_yds",
    0,
    0.79,
-   0.644601
+   0.644135
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_reception_yds",
    0,
    0.5,
-   0.330915
+   0.330466
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_reception_yds",
    0,
    0.5,
-   0.274134
+   0.273658
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_rush_yds",
    0,
    0.71,
-   0.36351
+   0.364278
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_rush_yds",
    0,
    0.54,
-   0.349359
+   0.348533
   ],
   [
    "ncaaf:3b70c72dad6ee188202de37cf3218811",
    "player_rush_yds",
    0,
    0.5,
-   0.4687
+   0.467708
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    0,
    0.54,
-   0.412079
+   0.409723
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    1,
    0.42,
-   0.492658
+   0.490862
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    1,
    0.42,
-   0.350195
+   0.347757
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    1,
    0.46,
-   0.3269
+   0.324383
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    0,
    0.82,
-   0.503573
+   0.505154
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    0,
    0.27,
-   0.326157
+   0.328451
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_anytime_td",
    0,
    0.54,
-   0.355711
+   0.357797
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_pass_yds",
    0,
    0.89,
-   0.402085
+   0.402251
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_pass_yds",
    1,
    0.39,
-   0.182951
+   0.182819
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_reception_yds",
    1,
    0.35,
-   0.222291
+   0.221605
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_reception_yds",
    1,
    0.54,
-   0.26501
+   0.264206
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_reception_yds",
    0,
    0.65,
-   0.378975
+   0.379986
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_reception_yds",
    0,
    0.96,
-   0.319946
+   0.320749
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_receptions",
    1,
    0.68,
-   0.379125
+   0.379467
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_receptions",
    0,
    0.58,
-   0.333137
+   0.333416
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_rush_yds",
    0,
    0.46,
-   0.363126
+   0.361213
   ],
   [
    "ncaaf:932e0ced2b1a1ae5694574642bb186ae",
    "player_rush_yds",
    0,
    0.42,
-   0.297524
+   0.295791
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.32,
-   0.382381
+   0.38101
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.5,
-   0.303547
+   0.304972
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.32,
-   0.310777
+   0.30924
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.68,
-   0.641851
+   0.642532
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.37,
-   0.248167
+   0.249716
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.12,
-   0.223722
+   0.225306
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_anytime_td",
    0,
    0.27,
-   0.237136
+   0.238645
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_pass_yds",
    1,
    0.59,
-   0.256818
+   0.256718
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_pass_yds",
    0,
    0.5,
-   0.187634
+   0.187696
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_reception_yds",
    0,
    0.38,
-   0.108263
+   0.108532
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_reception_yds",
    1,
    0.54,
-   0.539199
+   0.539729
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_reception_yds",
    1,
    0.5,
-   0.145288
+   0.145592
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_reception_yds",
    1,
    0.58,
-   0.459258
+   0.459732
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_receptions",
    1,
    0.5,
-   0.113244
+   0.113135
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_receptions",
    0,
    0.12,
-   0.034234
+   0.034185
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_rush_yds",
    0,
    0.46,
-   0.118654
+   0.119269
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_rush_yds",
    0,
    0.37,
-   0.439501
+   0.440597
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_rush_yds",
    1,
    0.75,
-   0.637085
+   0.635914
   ],
   [
    "ncaaf:2da3627714934ad966d548980bb69658",
    "player_rush_yds",
    1,
    0.59,
-   0.603295
+   0.601997
   ],
   [
    "ncaaf:261e6183f68405cd431bbdbd0c31eefa",
    "player_anytime_td",
    0,
    0.06,
-   0.245922
+   0.251826
   ],
   [
    "ncaaf:261e6183f68405cd431bbdbd0c31eefa",
    "player_anytime_td",
    1,
    0.23,
-   0.264527
+   0.270251
   ],
   [
    "ncaaf:261e6183f68405cd431bbdbd0c31eefa",
    "player_anytime_td",
    1,
    0.38,
-   0.4859
+   0.48998
   ],
   [
    "ncaaf:261e6183f68405cd431bbdbd0c31eefa",
    "player_reception_yds",
    0,
    0.46,
-   0.674732
+   0.676638
   ],
   [
    "ncaaf:261e6183f68405cd431bbdbd0c31eefa",
    "player_rush_yds",
    0,
    0.32,
-   0.105156
+   0.107173
   ],
   [
    "ncaaf:261e6183f68405cd431bbdbd0c31eefa",
    "player_rush_yds",
    1,
    0.62,
-   0.218862
+   0.222203
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_anytime_td",
    0,
    0.55,
-   0.367557
+   0.359831
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_anytime_td",
    0,
    0.54,
-   0.535975
+   0.530324
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_anytime_td",
    0,
    0.63,
-   0.46739
+   0.47371
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_anytime_td",
    0,
    0.61,
-   0.457399
+   0.46376
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_anytime_td",
    1,
    0.39,
-   0.378357
+   0.37085
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_pass_yds",
    0,
    0.54,
-   0.259808
+   0.259298
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_pass_yds",
    0,
    0.57,
-   0.471377
+   0.471998
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_reception_yds",
    1,
    0.54,
-   0.692886
+   0.689989
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_reception_yds",
    0,
    0.45,
-   0.316859
+   0.314031
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_receptions",
    0,
    0.45,
-   0.338893
+   0.33988
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_rush_yds",
    1,
    0.83,
-   0.640312
+   0.646618
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_rush_yds",
    1,
    0.61,
-   0.537511
+   0.544349
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_rush_yds",
    1,
    0.32,
-   0.294727
+   0.288763
   ],
   [
    "ncaaf:965fa47588c773e6753d409fc1020dec",
    "player_rush_yds",
    0,
    0.38,
-   0.11798
+   0.114659
   ],
   [
    "ncaaf:19db717a66097e6d3fb887ae8cf3aaae",
    "player_anytime_td",
    0,
    0.27,
-   0.385476
+   0.386712
   ],
   [
    "ncaaf:19db717a66097e6d3fb887ae8cf3aaae",
    "player_anytime_td",
    0,
    0.39,
-   0.3694
+   0.370639
   ],
   [
    "ncaaf:19db717a66097e6d3fb887ae8cf3aaae",
    "player_pass_yds",
    0,
    0.32,
-   0.197281
+   0.197349
   ],
   [
    "ncaaf:19db717a66097e6d3fb887ae8cf3aaae",
    "player_rush_yds",
    0,
    0.39,
-   0.254044
+   0.254854
   ],
   [
    "ncaaf:19db717a66097e6d3fb887ae8cf3aaae",
    "player_rush_yds",
    0,
    0.19,
-   0.019176
+   0.019291
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.04,
-   0.252305
+   0.253937
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.25,
-   0.252411
+   0.253982
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.18,
-   0.381481
+   0.380199
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.64,
-   0.345211
+   0.346403
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.35,
-   0.316011
+   0.317447
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    1,
    0.31,
-   0.424921
+   0.423712
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.5,
-   0.327434
+   0.325844
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.72,
-   0.365469
+   0.363838
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.68,
-   0.423705
+   0.422142
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    1,
    0.12,
-   0.231457
+   0.229659
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.65,
-   0.344708
+   0.343092
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    0,
    0.27,
-   0.30565
+   0.304089
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_anytime_td",
    1,
    0.56,
-   0.412769
+   0.411451
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_pass_yds",
    0,
    0.56,
-   0.287236
+   0.287133
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    0,
    0.77,
-   0.495175
+   0.494284
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    0,
    0.79,
-   0.340798
+   0.341184
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    1,
    0.62,
-   0.380669
+   0.380095
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    1,
    0.5,
-   0.574705
+   0.574112
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    1,
    0.61,
-   0.33141
+   0.330783
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    0,
    0.68,
-   0.442252
+   0.442752
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    0,
    0.75,
-   0.362966
+   0.362076
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_reception_yds",
    0,
    0.38,
-   0.600385
+   0.600878
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_receptions",
    0,
    0.79,
-   0.394007
+   0.393805
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_receptions",
    0,
    0.55,
-   0.275203
+   0.275434
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_receptions",
    1,
    0.61,
-   0.309384
+   0.309607
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_receptions",
    1,
    0.54,
-   0.409018
+   0.408801
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_rush_yds",
    1,
    0.69,
-   0.515043
+   0.513683
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_rush_yds",
    1,
    0.44,
-   0.294415
+   0.293252
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_rush_yds",
    0,
    0.5,
-   0.472848
+   0.474058
   ],
   [
    "ncaaf:073bba47dc105fcd66913e74f281ae96",
    "player_rush_yds",
    0,
    0.21,
-   0.125564
+   0.126155
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_anytime_td",
    1,
    0.46,
-   0.48997
+   0.488411
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_anytime_td",
    1,
    0.27,
-   0.309705
+   0.307581
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_anytime_td",
    0,
    0.21,
-   0.254011
+   0.256142
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_pass_yds",
    1,
    0.12,
-   0.171204
+   0.171109
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_pass_yds",
    0,
    0.54,
-   0.477719
+   0.477873
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_reception_yds",
    1,
    0.27,
-   0.104323
+   0.103955
   ],
   [
    "ncaaf:61a35dab6017f6f7de74fab10707197c",
    "player_rush_yds",
    1,
    0.21,
-   0.321513
+   0.31992
   ],
   [
    "ncaaf:247137e181f9ff51165c0283d6d56987",
    "player_anytime_td",
    1,
    0.05,
-   0.231085
+   0.238222
   ],
   [
    "ncaaf:247137e181f9ff51165c0283d6d56987",
    "player_anytime_td",
    1,
    0.73,
-   0.590028
+   0.59393
   ],
   [
    "ncaaf:247137e181f9ff51165c0283d6d56987",
    "player_reception_yds",
    0,
    0.58,
-   0.514433
+   0.516931
   ],
   [
    "ncaaf:247137e181f9ff51165c0283d6d56987",
    "player_reception_yds",
    1,
    0.59,
-   0.158227
+   0.159759
   ],
   [
    "ncaaf:247137e181f9ff51165c0283d6d56987",
    "player_receptions",
    1,
    0.5,
-   0.238746
+   0.237899
   ],
   [
    "ncaaf:247137e181f9ff51165c0283d6d56987",
    "player_rush_yds",
    1,
    0.35,
-   0.203102
+   0.206923
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    1,
    0.21,
-   0.272186
+   0.26281
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    0,
    0.32,
-   0.308897
+   0.317505
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    0,
    0.21,
-   0.24915
+   0.239378
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    0,
    0.23,
-   0.32043
+   0.328815
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    1,
    0.41,
-   0.290265
+   0.299127
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    1,
    0.25,
-   0.413813
+   0.421333
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    1,
    0.5,
-   0.322619
+   0.331087
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    1,
    0.63,
-   0.485336
+   0.478822
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    0,
    0.27,
-   0.220108
+   0.209941
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_anytime_td",
    1,
    0.21,
-   0.331764
+   0.323199
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_pass_yds",
    1,
    0.39,
-   0.275013
+   0.27557
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_pass_yds",
    0,
    0.29,
-   0.228272
+   0.227763
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_reception_yds",
    0,
    0.73,
-   0.331031
+   0.327738
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_reception_yds",
    1,
    0.59,
-   0.138441
+   0.140276
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_reception_yds",
    1,
    0.7,
-   0.535135
+   0.531706
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_reception_yds",
    1,
    0.46,
-   0.489094
+   0.492571
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_reception_yds",
    1,
    0.73,
-   0.246431
+   0.249028
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_receptions",
    1,
    0.68,
-   0.141223
+   0.140409
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_receptions",
    1,
    0.58,
-   0.187766
+   0.186851
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_rush_yds",
    0,
    0.46,
-   0.287398
+   0.281146
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_rush_yds",
    1,
    0.32,
-   0.196145
+   0.201177
   ],
   [
    "ncaaf:1bb9e45b6e7ed1200104ed018eff9093",
    "player_rush_yds",
    1,
    0.83,
-   0.526886
+   0.519691
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_anytime_td",
    1,
    0.32,
-   0.391154
+   0.383816
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_anytime_td",
    0,
    0.21,
-   0.252514
+   0.243427
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_anytime_td",
    0,
    0.42,
-   0.437846
+   0.444514
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_anytime_td",
    1,
    0.39,
-   0.286692
+   0.278094
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_anytime_td",
    0,
    0.04,
-   0.294759
+   0.303121
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_anytime_td",
    0,
    0.04,
-   0.217527
+   0.2267
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_pass_yds",
    1,
    0.46,
-   0.200348
+   0.199904
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_reception_yds",
    0,
    0.38,
-   0.331451
+   0.328497
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_reception_yds",
    1,
    0.58,
-   0.617111
+   0.620045
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_receptions",
    1,
    0.38,
-   0.170536
+   0.171547
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_rush_yds",
    1,
    0.61,
-   0.152584
+   0.148572
   ],
   [
    "ncaaf:36c2a063d7a55e85488fbe0e89015686",
    "player_rush_yds",
    0,
    0.65,
-   0.59413
+   0.600605
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    0,
    0.55,
-   0.437055
+   0.439368
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    1,
    0.34,
-   0.327874
+   0.324698
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    1,
    0.16,
-   0.251681
+   0.248255
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    1,
    0.42,
-   0.345355
+   0.347891
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    1,
    0.91,
-   0.561475
+   0.559444
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    0,
    0.54,
-   0.3138
+   0.31656
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    1,
    0.28,
-   0.225284
+   0.221678
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    1,
    0.36,
-   0.201856
+   0.205083
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    0,
    0.41,
-   0.411378
+   0.414003
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_anytime_td",
    0,
    0.25,
-   0.355639
+   0.3528
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_pass_yds",
    1,
    0.66,
-   0.30693
+   0.306724
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_reception_yds",
    1,
    0.41,
-   0.163046
+   0.162318
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_reception_yds",
    1,
    0.65,
-   0.447042
+   0.448059
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_reception_yds",
    1,
    0.41,
-   0.557585
+   0.556446
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_reception_yds",
    0,
    0.88,
-   0.713449
+   0.714483
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_receptions",
    1,
    0.09,
-   0.129813
+   0.130092
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_receptions",
    0,
    0.42,
-   0.300998
+   0.300615
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_rush_yds",
    0,
    0.53,
-   0.152011
+   0.150508
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_rush_yds",
    1,
    0.53,
-   0.325772
+   0.32338
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_rush_yds",
    1,
    0.21,
-   0.172912
+   0.174409
   ],
   [
    "ncaaf:4f0e1900bdc8d12bf0cc91ae291c104e",
    "player_rush_yds",
    0,
    0.65,
-   0.297817
+   0.300011
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_anytime_td",
    0,
    0.35,
-   0.255398
+   0.250869
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_anytime_td",
    0,
    0.14,
-   0.35231
+   0.355945
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_anytime_td",
    0,
    0.73,
-   0.499079
+   0.501851
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_anytime_td",
    0,
    0.35,
-   0.363743
+   0.36735
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_pass_yds",
    1,
    0.73,
-   0.462584
+   0.462881
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_reception_yds",
    1,
    0.5,
-   0.15369
+   0.152704
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_receptions",
    0,
    0.42,
-   0.09281
+   0.093134
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_rush_yds",
    1,
    0.65,
-   0.520565
+   0.523725
   ],
   [
    "ncaaf:b460f3aa4235ec2485f25182755304d6",
    "player_rush_yds",
    0,
    0.88,
-   0.856292
+   0.858144
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    0,
    0.32,
-   0.332845
+   0.333472
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    0,
    0.68,
-   0.583064
+   0.58313
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    1,
    0.44,
-   0.422862
+   0.422357
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    0,
    0.42,
-   0.364898
+   0.365484
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    0,
    0.42,
-   0.41692
+   0.416532
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    1,
    0.32,
-   0.294471
+   0.294942
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    1,
    0.12,
-   0.421816
+   0.421402
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    0,
    0.46,
-   0.336156
+   0.335775
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_anytime_td",
    1,
    0.45,
-   0.25586
+   0.256356
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_pass_yds",
    1,
    0.68,
-   0.528573
+   0.528641
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_reception_yds",
    0,
    0.65,
-   0.521828
+   0.521696
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_reception_yds",
    0,
    0.54,
-   0.515424
+   0.515175
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_reception_yds",
    0,
    0.35,
-   0.524237
+   0.524429
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_reception_yds",
    0,
    0.32,
-   0.50291
+   0.502694
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_reception_yds",
    1,
    0.77,
-   0.50413
+   0.503951
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_receptions",
    0,
    0.5,
-   0.524836
+   0.525099
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_receptions",
    1,
    0.42,
-   0.592764
+   0.592745
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_rush_yds",
    0,
    0.56,
-   0.500909
+   0.500279
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_rush_yds",
    1,
    0.19,
-   0.513879
+   0.513419
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_rush_yds",
    1,
    0.61,
-   0.513416
+   0.513629
   ],
   [
    "ncaaf:a570687d47661da4982cfd885cdb4a44",
    "player_rush_yds",
    1,
    0.39,
-   0.497954
+   0.498049
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_anytime_td",
    1,
    0.81,
-   0.619595
+   0.618978
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_anytime_td",
    1,
    0.58,
-   0.604006
+   0.603332
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_anytime_td",
    0,
    0.39,
-   0.328361
+   0.327587
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_anytime_td",
    1,
    0.79,
-   0.566585
+   0.56662
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_reception_yds",
    1,
    0.58,
-   0.504039
+   0.503444
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_reception_yds",
    1,
    0.29,
-   0.50607
+   0.506059
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_reception_yds",
    1,
    0.27,
-   0.509934
+   0.509441
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_receptions",
    1,
    0.19,
-   0.502718
+   0.502683
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_rush_yds",
    1,
    0.42,
-   0.521512
+   0.520828
   ],
   [
    "ncaaf:db698f29983406d35dea606edfdc5922",
    "player_rush_yds",
    0,
    0.71,
-   0.482798
+   0.482856
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_anytime_td",
    0,
    0.25,
-   0.395883
+   0.395711
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_anytime_td",
    1,
    0.19,
-   0.345947
+   0.346017
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_anytime_td",
    1,
    0.41,
-   0.232633
+   0.232909
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_anytime_td",
    1,
    0.54,
-   0.635287
+   0.635117
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_pass_yds",
    1,
    0.21,
-   0.536107
+   0.536404
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_reception_yds",
    0,
    0.77,
-   0.502726
+   0.502424
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_reception_yds",
    0,
    0.58,
-   0.486879
+   0.486289
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_receptions",
    0,
    0.58,
-   0.446342
+   0.445659
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_rush_yds",
    1,
    0.25,
-   0.537082
+   0.537215
   ],
   [
    "ncaaf:912c15dcb8dd09eacabdcb80673d9d72",
    "player_rush_yds",
    0,
    0.65,
-   0.499075
+   0.498905
   ],
   [
    "ncaaf:6dbd3546b178b91878131862fd719e1e",
    "player_anytime_td",
    1,
    0.39,
-   0.647138
+   0.647174
   ],
   [
    "ncaaf:6dbd3546b178b91878131862fd719e1e",
    "player_anytime_td",
    0,
    0.41,
-   0.594639
+   0.594539
   ],
   [
    "ncaaf:6dbd3546b178b91878131862fd719e1e",
    "player_anytime_td",
    1,
    0.5,
-   0.563316
+   0.563245
   ],
   [
    "ncaaf:6dbd3546b178b91878131862fd719e1e",
    "player_anytime_td",
    1,
    0.12,
-   0.408535
+   0.409217
   ],
   [
    "ncaaf:6dbd3546b178b91878131862fd719e1e",
    "player_anytime_td",
    0,
    0.15,
-   0.277608
+   0.2775
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    1,
    0.27,
-   0.645933
+   0.645858
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    0,
    0.39,
-   0.467712
+   0.467608
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    1,
    0.35,
-   0.453099
+   0.452958
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    0,
    0.21,
-   0.361061
+   0.360875
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    0,
    0.54,
-   0.316915
+   0.316899
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    1,
    0.46,
-   0.269553
+   0.269461
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_anytime_td",
    0,
    0.21,
-   0.25583
+   0.256089
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_pass_yds",
    1,
    0.54,
-   0.498501
+   0.498056
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_pass_yds",
    0,
    0.32,
-   0.521732
+   0.521754
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_reception_yds",
    1,
    0.54,
-   0.510142
+   0.509386
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_reception_yds",
    0,
    0.71,
-   0.486005
+   0.485376
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_reception_yds",
    0,
    0.58,
-   0.506772
+   0.506543
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_receptions",
    0,
    0.58,
-   0.480974
+   0.480756
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_receptions",
    1,
    0.46,
-   0.446326
+   0.445812
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_receptions",
    1,
    0.46,
-   0.416421
+   0.415852
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_rush_yds",
    1,
    0.62,
-   0.291953
+   0.288213
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_rush_yds",
    0,
    0.68,
-   0.510723
+   0.51026
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_pass_yds",
    0,
    0.39,
-   0.518824
+   0.518792
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_pass_yds",
    1,
    0.54,
-   0.499696
+   0.499274
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_reception_yds",
    0,
    0.58,
-   0.508995
+   0.508822
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_reception_yds",
    1,
    0.54,
-   0.4895
+   0.488934
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_reception_yds",
    0,
    0.62,
-   0.489903
+   0.489411
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_rush_yds",
    0,
    0.19,
-   0.522216
+   0.522148
   ],
   [
    "ncaaf:cad3845e3f9f9e746c4bbf45487eed02",
    "player_rush_yds",
    0,
    0.54,
-   0.501616
+   0.501255
   ],
   [
    "ncaaf:a7c7e0143d5131ee3e2d78f356f0089d",
    "player_anytime_td",
    0,
    0.75,
-   0.709605
+   0.708785
   ],
   [
    "ncaaf:a7c7e0143d5131ee3e2d78f356f0089d",
    "player_anytime_td",
    1,
    0.19,
-   0.283036
+   0.284788
   ],
   [
    "ncaaf:a7c7e0143d5131ee3e2d78f356f0089d",
    "player_pass_yds",
    1,
    0.32,
-   0.508726
+   0.508674
   ],
   [
    "ncaaf:a7c7e0143d5131ee3e2d78f356f0089d",
    "player_pass_yds",
    1,
    0.44,
-   0.517768
+   0.517505
   ],
   [
    "ncaaf:a7c7e0143d5131ee3e2d78f356f0089d",
    "player_rush_yds",
    0,
    0.39,
-   0.528989
+   0.527938
   ],
   [
    "ncaaf:a50cf094d107e92ff579fba17969676c",
    "player_anytime_td",
    1,
    0.62,
-   0.929028
+   0.928905
   ],
   [
    "ncaaf:a50cf094d107e92ff579fba17969676c",
    "player_anytime_td",
    1,
    0.42,
-   0.69952
+   0.698988
   ],
   [
    "ncaaf:a50cf094d107e92ff579fba17969676c",
    "player_anytime_td",
    0,
    0.19,
-   0.491081
+   0.489991
   ],
   [
    "ncaaf:a50cf094d107e92ff579fba17969676c",
    "player_pass_yds",
    0,
    0.65,
-   0.513877
+   0.513839
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    1,
    0.25,
-   0.595365
+   0.595723
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    0,
    0.5,
-   0.576052
+   0.576639
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    1,
    0.46,
-   0.548959
+   0.549031
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    0,
    0.27,
-   0.320007
+   0.320646
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_pass_yds",
    0,
    0.35,
-   0.52106
+   0.520947
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    0,
    0.42,
-   0.332639
+   0.331993
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    0,
    0.25,
-   0.283564
+   0.28398
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    0,
    0.04,
-   0.225754
+   0.225026
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_anytime_td",
    0,
    0.04,
-   0.146859
+   0.146309
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_pass_yds",
    0,
    0.35,
-   0.523112
+   0.523036
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_reception_yds",
    0,
    0.65,
-   0.515307
+   0.515351
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_receptions",
    0,
    0.5,
-   0.448019
+   0.447547
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_rush_yds",
    1,
    0.42,
-   0.513998
+   0.51449
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_rush_yds",
    1,
    0.73,
-   0.496013
+   0.494911
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_rush_yds",
    1,
    0.35,
-   0.503371
+   0.503681
   ],
   [
    "ncaaf:3b3054849b678fcfa0b6a5a9994557bf",
    "player_rush_yds",
    1,
    0.62,
-   0.486608
+   0.486713
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    1,
    0.54,
-   0.483031
+   0.482984
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.58,
-   0.43575
+   0.435784
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.58,
-   0.386103
+   0.386047
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.42,
-   0.400257
+   0.400073
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.27,
-   0.345465
+   0.34544
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    1,
    0.39,
-   0.367611
+   0.367519
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.25,
-   0.314113
+   0.314108
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.41,
-   0.289416
+   0.289477
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.65,
-   0.205757
+   0.205666
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.55,
-   0.2304
+   0.230496
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_pass_yds",
    0,
    0.61,
-   0.505775
+   0.505474
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_pass_yds",
    0,
    0.5,
-   0.51194
+   0.511764
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    0,
    0.65,
-   0.5068
+   0.506612
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    0,
    0.54,
-   0.506347
+   0.506147
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    0,
    0.65,
-   0.517776
+   0.517732
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    1,
    0.32,
-   0.500321
+   0.500001
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    0,
    0.54,
-   0.51131
+   0.511188
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    1,
    0.35,
-   0.520595
+   0.520557
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_anytime_td",
    0,
    0.31,
-   0.144312
+   0.144161
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_pass_yds",
    0,
    0.61,
-   0.505282
+   0.504971
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_pass_yds",
    0,
    0.58,
-   0.510461
+   0.510257
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    0,
    0.65,
-   0.516886
+   0.516825
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    0,
    0.38,
-   0.502351
+   0.501933
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    1,
    0.68,
-   0.506942
+   0.506653
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_reception_yds",
    0,
    0.73,
-   0.511425
+   0.511134
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_receptions",
    0,
    0.65,
-   0.569311
+   0.569285
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_receptions",
    0,
    0.5,
-   0.532644
+   0.532523
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_receptions",
    1,
    0.68,
-   0.472201
+   0.472194
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    0,
    0.35,
-   0.519252
+   0.519115
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    1,
    0.42,
-   0.512298
+   0.512191
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    1,
    0.39,
-   0.495609
+   0.495202
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    0,
    0.62,
-   0.506509
+   0.506297
   ],
   [
    "ncaaf:b38f4f63351c15767e64a76a73589574",
    "player_rush_yds",
    0,
    0.59,
-   0.503055
+   0.502694
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    1,
    0.7,
-   0.731473
+   0.731258
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    0,
    0.41,
-   0.611595
+   0.61141
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    1,
    0.68,
-   0.407719
+   0.407533
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    1,
    0.29,
-   0.441489
+   0.441189
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    1,
    0.5,
-   0.299767
+   0.300046
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    0,
    0.16,
-   0.350074
+   0.349758
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    0,
    0.27,
-   0.208606
+   0.208971
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    0,
    0.12,
-   0.181691
+   0.182012
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_anytime_td",
    1,
    0.37,
-   0.14804
+   0.148228
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_pass_yds",
    0,
    0.41,
-   0.507597
+   0.507383
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_pass_yds",
    1,
    0.9,
-   0.504503
+   0.504147
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    1,
    0.46,
-   0.505792
+   0.505606
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    0,
    0.54,
-   0.49761
+   0.497276
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    0,
    0.58,
-   0.500388
+   0.500104
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    1,
    0.7,
-   0.503758
+   0.503528
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    0,
    0.38,
-   0.507425
+   0.507099
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_rush_yds",
    1,
    0.61,
-   0.496752
+   0.496513
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_rush_yds",
    1,
    0.28,
-   0.536833
+   0.536831
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_rush_yds",
    0,
    0.23,
-   0.524731
+   0.524538
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_pass_yds",
    1,
    0.97,
-   0.502299
+   0.501901
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    0,
    0.34,
-   0.502658
+   0.502197
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    0,
    0.58,
-   0.490073
+   0.489765
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    1,
    0.7,
-   0.504543
+   0.504328
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    0,
    0.54,
-   0.494877
+   0.494495
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_reception_yds",
    1,
    0.46,
-   0.508768
+   0.508637
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_receptions",
    0,
    0.12,
-   0.55245
+   0.552356
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_receptions",
    1,
    0.57,
-   0.565434
+   0.564951
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_receptions",
    0,
    0.38,
-   0.458663
+   0.458326
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_rush_yds",
    1,
    0.28,
-   0.473906
+   0.473932
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_rush_yds",
    1,
    0.61,
-   0.488575
+   0.488258
   ],
   [
    "ncaaf:d652c7bc0594f13ef0a2a04e31ef5666",
    "player_rush_yds",
    0,
    0.47,
-   0.513953
+   0.513543
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_anytime_td",
    1,
    0.21,
-   0.635808
+   0.635613
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_anytime_td",
    1,
    0.19,
-   0.3959
+   0.395648
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_anytime_td",
    1,
    0.14,
-   0.34699
+   0.347269
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_anytime_td",
    0,
    0.29,
-   0.312633
+   0.312498
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_pass_yds",
    1,
    0.23,
-   0.516584
+   0.51649
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_rush_yds",
    0,
    0.38,
-   0.518941
+   0.518921
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_pass_yds",
    1,
    0.14,
-   0.517876
+   0.517805
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_rush_yds",
    0,
    0.38,
-   0.521132
+   0.521153
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_rush_yds",
    0,
    0.46,
-   0.491142
+   0.490591
   ],
   [
    "ncaaf:cdbde17fe5ba072172683681026c6312",
    "player_rush_yds",
    1,
    0.19,
-   0.507096
+   0.506848
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    0,
    0.38,
-   0.688113
+   0.688096
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    0,
    0.21,
-   0.532529
+   0.532725
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    0,
    0.42,
-   0.469475
+   0.469667
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    0,
    0.17,
-   0.369861
+   0.369629
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    1,
    0.42,
-   0.338483
+   0.338503
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    1,
    0.23,
-   0.347633
+   0.347894
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_pass_yds",
    1,
    0.35,
-   0.526942
+   0.527044
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_reception_yds",
    1,
    0.73,
-   0.518714
+   0.518662
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_reception_yds",
    1,
    0.5,
-   0.509308
+   0.509078
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_rush_yds",
    1,
    0.62,
-   0.505171
+   0.504858
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_rush_yds",
    1,
    0.06,
-   0.501523
+   0.501211
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_anytime_td",
    0,
    0.19,
-   0.249987
+   0.250065
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_pass_yds",
    1,
    0.5,
-   0.52481
+   0.524871
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_reception_yds",
    1,
    0.81,
-   0.50589
+   0.505768
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_reception_yds",
    1,
    0.5,
-   0.507373
+   0.507106
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_rush_yds",
    1,
    0.06,
-   0.49575
+   0.495499
   ],
   [
    "ncaaf:eee54863c6c50d585de1919f1fca51e5",
    "player_rush_yds",
    1,
    0.58,
-   0.526654
+   0.52656
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    1,
    0.35,
-   0.591427
+   0.591363
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    1,
    0.29,
-   0.528893
+   0.529003
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    0,
    0.42,
-   0.37783
+   0.378242
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    0,
    0.19,
-   0.37439
+   0.374201
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    0,
    0.17,
-   0.274753
+   0.275094
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    0,
    0.17,
-   0.260076
+   0.259954
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    0,
    0.35,
-   0.276494
+   0.276508
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_anytime_td",
    0,
    0.27,
-   0.169384
+   0.169257
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_pass_yds",
    1,
    0.42,
-   0.518595
+   0.518517
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_reception_yds",
    1,
    0.35,
-   0.497322
+   0.496788
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_reception_yds",
    1,
    0.38,
-   0.506971
+   0.506766
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_reception_yds",
    1,
    0.28,
-   0.520509
+   0.520474
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_reception_yds",
    1,
    0.65,
-   0.492348
+   0.491853
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_receptions",
    1,
    0.27,
-   0.530367
+   0.530409
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_receptions",
    1,
    0.42,
-   0.536906
+   0.536421
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_receptions",
    1,
    0.17,
-   0.450432
+   0.449975
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_rush_yds",
    0,
    0.35,
-   0.532707
+   0.532996
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_rush_yds",
    0,
    0.19,
-   0.520616
+   0.520471
   ],
   [
    "ncaaf:5a8d98c3147d18b683d90a536e76eb64",
    "player_rush_yds",
    1,
    0.21,
-   0.525607
+   0.525871
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_anytime_td",
    1,
    0.37,
-   0.765789
+   0.765282
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_anytime_td",
    0,
    0.5,
-   0.518609
+   0.517779
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_anytime_td",
    1,
    0.42,
-   0.551076
+   0.5502
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_anytime_td",
    0,
    0.15,
-   0.369414
+   0.368312
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_anytime_td",
    0,
    0.46,
-   0.226265
+   0.226339
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_anytime_td",
    0,
    0.28,
-   0.12839
+   0.128951
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_pass_yds",
    1,
    0.37,
-   0.518585
+   0.518655
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_rush_yds",
    0,
    0.23,
-   0.52371
+   0.522999
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_rush_yds",
    0,
    0.42,
-   0.542576
+   0.542041
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_pass_yds",
    1,
    0.43,
-   0.517724
+   0.517777
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_rush_yds",
    0,
    0.63,
-   0.526454
+   0.525763
   ],
   [
    "ncaaf:43ee6255542faa05e9b9853cb1c6289e",
    "player_rush_yds",
    0,
    0.42,
-   0.530982
+   0.530364
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_anytime_td",
    0,
    0.17,
-   0.385011
+   0.38479
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_anytime_td",
    1,
    0.5,
-   0.517311
+   0.517177
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_anytime_td",
    0,
    0.25,
-   0.276487
+   0.276431
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_reception_yds",
    1,
    0.42,
-   0.518011
+   0.517789
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_rush_yds",
    1,
    0.35,
-   0.481533
+   0.48094
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_rush_yds",
    0,
    0.17,
-   0.522243
+   0.522239
   ],
   [
    "ncaaf:2cb6f8436ba0f1fbcdcd7871a03466d5",
    "player_rush_yds",
    1,
    0.12,
-   0.561567
+   0.561633
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_anytime_td",
    0,
    0.68,
-   0.487236
+   0.487279
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_anytime_td",
    1,
    0.18,
-   0.255351
+   0.25574
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_anytime_td",
    1,
    0.63,
-   0.49581
+   0.495473
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_anytime_td",
    0,
    0.61,
-   0.732043
+   0.731813
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_pass_yds",
    0,
    0.43,
-   0.516033
+   0.515978
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_pass_yds",
    1,
    0.54,
-   0.507852
+   0.50755
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_reception_yds",
    1,
    0.54,
-   0.519461
+   0.51913
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_rush_yds",
    0,
    0.43,
-   0.550851
+   0.550917
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_rush_yds",
    1,
    0.41,
-   0.51892
+   0.519183
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_rush_yds",
    1,
    0.61,
-   0.484757
+   0.484406
   ],
   [
    "ncaaf:6e781bfdb712f185fb1be983bc10af15",
    "player_rush_yds",
    0,
    0.39,
-   0.535645
+   0.53561
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_anytime_td",
    1,
    0.5,
-   0.359231
+   0.359199
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_anytime_td",
    0,
    0.25,
-   0.57625
+   0.576084
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_anytime_td",
    0,
    0.32,
-   0.224779
+   0.224937
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_anytime_td",
    0,
    0.23,
-   0.414379
+   0.414646
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_anytime_td",
    0,
    0.41,
-   0.320772
+   0.320805
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_pass_yds",
    0,
    0.46,
-   0.513728
+   0.513584
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_reception_yds",
    1,
    0.68,
-   0.503876
+   0.503461
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_reception_yds",
    0,
    0.73,
-   0.507653
+   0.507403
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_reception_yds",
    0,
    0.32,
-   0.505205
+   0.504731
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_reception_yds",
    0,
    0.59,
-   0.521946
+   0.521954
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_receptions",
    0,
    0.5,
-   0.441946
+   0.441814
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_receptions",
    0,
    0.68,
-   0.579516
+   0.579492
   ],
   [
    "ncaaf:1427645d6020f742eece986c58bdb29d",
    "player_rush_yds",
    0,
    0.25,
-   0.52489
+   0.524984
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_anytime_td",
    0,
    0.58,
-   0.395452
+   0.395108
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_anytime_td",
    1,
    0.57,
-   0.646086
+   0.645885
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_anytime_td",
    0,
    0.04,
-   0.272683
+   0.274095
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_pass_yds",
    1,
    0.71,
-   0.480895
+   0.480998
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_pass_yds",
    1,
    0.81,
-   0.513832
+   0.513726
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_reception_yds",
    1,
    0.63,
-   0.501998
+   0.50174
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_rush_yds",
    1,
    0.27,
-   0.490984
+   0.49017
   ],
   [
    "ncaaf:52e9b0f6515766724ee70457912bdc18",
    "player_rush_yds",
    1,
    0.17,
-   0.502956
+   0.502908
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_anytime_td",
    0,
    0.35,
-   0.229375
+   0.229192
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_anytime_td",
    0,
    0.18,
-   0.310271
+   0.310112
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_anytime_td",
    0,
    0.27,
-   0.259453
+   0.259769
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_anytime_td",
    1,
    0.5,
-   0.217126
+   0.217236
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_anytime_td",
    1,
    0.05,
-   0.377683
+   0.377549
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_anytime_td",
    0,
    0.15,
-   0.223383
+   0.223268
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_pass_yds",
    0,
    0.65,
-   0.497272
+   0.496801
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_pass_yds",
    0,
    0.35,
-   0.513403
+   0.513273
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_reception_yds",
    0,
    0.42,
-   0.501208
+   0.500877
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_receptions",
    0,
    0.35,
-   0.488987
+   0.488519
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_rush_yds",
    0,
    0.73,
-   0.502229
+   0.501994
   ],
   [
    "ncaaf:db05b8a09b0efd8546a13a2cb5e457fc",
    "player_rush_yds",
    1,
    0.45,
-   0.509186
+   0.508562
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_anytime_td",
    1,
    0.41,
-   0.311337
+   0.311769
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_anytime_td",
    0,
    0.29,
-   0.250545
+   0.251153
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_anytime_td",
    0,
    0.25,
-   0.36934
+   0.368967
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_anytime_td",
    0,
    0.31,
-   0.255729
+   0.255352
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_anytime_td",
    0,
    0.35,
-   0.368951
+   0.369435
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_pass_yds",
    0,
    0.06,
-   0.513213
+   0.513092
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_pass_yds",
    1,
    0.65,
-   0.512823
+   0.512632
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_reception_yds",
    1,
    0.71,
-   0.501337
+   0.501206
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_reception_yds",
    1,
    0.41,
-   0.508245
+   0.508074
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_receptions",
    1,
    0.5,
-   0.430166
+   0.42982
   ],
   [
    "ncaaf:70a4d83a64789d57f114b077a570ea27",
    "player_rush_yds",
    0,
    0.18,
-   0.530488
+   0.530462
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_anytime_td",
    0,
    0.25,
-   0.156317
+   0.156249
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_anytime_td",
    0,
    0.46,
-   0.536183
+   0.536135
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_anytime_td",
    1,
    0.27,
-   0.427282
+   0.427398
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_anytime_td",
    1,
    0.29,
-   0.463389
+   0.463469
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_anytime_td",
    0,
    0.35,
-   0.359833
+   0.359794
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_anytime_td",
    0,
    0.28,
-   0.241076
+   0.241175
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_pass_yds",
    0,
    0.12,
-   0.510498
+   0.51028
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_pass_yds",
    1,
    0.25,
-   0.521468
+   0.521484
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_reception_yds",
    1,
    0.58,
-   0.504253
+   0.503961
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_reception_yds",
    0,
    0.46,
-   0.503386
+   0.503082
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_reception_yds",
    1,
    0.35,
-   0.504916
+   0.504641
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_reception_yds",
    0,
    0.28,
-   0.490922
+   0.490372
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_receptions",
    1,
    0.27,
-   0.498688
+   0.498413
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_receptions",
    1,
    0.19,
-   0.46208
+   0.46206
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_rush_yds",
    1,
    0.29,
-   0.475647
+   0.475413
   ],
   [
    "ncaaf:25c198f097870d531920ba524262737d",
    "player_rush_yds",
    1,
    0.46,
-   0.513105
+   0.513056
   ],
   [
    "ncaaf:2be7c621008f4d4147868ababc385a6c",
    "player_anytime_td",
    1,
    0.35,
-   0.562554
+   0.563246
   ],
   [
    "ncaaf:2be7c621008f4d4147868ababc385a6c",
    "player_reception_yds",
    0,
    0.35,
-   0.520027
+   0.520105
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_anytime_td",
    0,
    0.23,
-   0.311857
+   0.311916
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_anytime_td",
    0,
    0.29,
-   0.227434
+   0.227401
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_anytime_td",
    0,
    0.7,
-   0.480737
+   0.480622
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_anytime_td",
    0,
    0.41,
-   0.317009
+   0.317166
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_anytime_td",
    0,
    0.31,
-   0.334551
+   0.334468
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_pass_yds",
    0,
    0.5,
-   0.519677
+   0.519644
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_pass_yds",
    0,
    0.41,
-   0.507799
+   0.507544
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_reception_yds",
    0,
    0.59,
-   0.512601
+   0.512526
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_receptions",
    0,
    0.77,
-   0.498562
+   0.498711
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_rush_yds",
    1,
    0.41,
-   0.50237
+   0.501868
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_rush_yds",
    0,
    0.63,
-   0.510836
+   0.510636
   ],
   [
    "ncaaf:dd880570288831c4fc55cb68f19f9667",
    "player_rush_yds",
    0,
    0.19,
-   0.52473
+   0.524307
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_anytime_td",
    0,
    0.32,
-   0.680575
+   0.680233
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_anytime_td",
    1,
    0.35,
-   0.125179
+   0.125583
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_anytime_td",
    0,
    0.21,
-   0.352612
+   0.352067
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_anytime_td",
    0,
    0.54,
-   0.373185
+   0.373452
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_pass_yds",
    0,
    0.18,
-   0.520192
+   0.520238
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_reception_yds",
    0,
    0.54,
-   0.503569
+   0.503234
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_reception_yds",
    0,
    0.38,
-   0.512281
+   0.511947
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_receptions",
    0,
    0.38,
-   0.458371
+   0.458377
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_rush_yds",
    0,
    0.32,
-   0.516887
+   0.517222
   ],
   [
    "ncaaf:2186fba5726dbd7fee2ce72477bdaa2b",
    "player_rush_yds",
    0,
    0.39,
-   0.52436
+   0.524013
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_anytime_td",
    1,
    0.61,
-   0.632425
+   0.631989
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_anytime_td",
    0,
    0.46,
-   0.178069
+   0.178249
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_anytime_td",
    0,
    0.46,
-   0.448615
+   0.448097
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_pass_yds",
    0,
    0.75,
-   0.503834
+   0.503429
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_pass_yds",
    0,
    0.07,
-   0.530253
+   0.530495
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_reception_yds",
    1,
    0.46,
-   0.524996
+   0.524718
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_reception_yds",
    1,
    0.46,
-   0.507569
+   0.507213
   ],
   [
    "ncaaf:04d0c72553f17ebc22509fb1b5926600",
    "player_rush_yds",
    0,
    0.25,
-   0.533724
+   0.533476
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_anytime_td",
    0,
    0.57,
-   0.467944
+   0.467843
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_anytime_td",
    0,
    0.35,
-   0.355104
+   0.355427
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_anytime_td",
    1,
    0.35,
-   0.391826
+   0.391821
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_pass_yds",
    0,
    0.57,
-   0.512648
+   0.512476
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_reception_yds",
    0,
    0.5,
-   0.533117
+   0.533361
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_reception_yds",
    0,
    0.42,
-   0.509622
+   0.50941
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_receptions",
    1,
    0.35,
-   0.423793
+   0.4235
   ],
   [
    "ncaaf:5cc49501cef64287d2f6b5afe9526a16",
    "player_rush_yds",
    0,
    0.5,
-   0.501323
+   0.501088
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    1,
    0.81,
-   0.439044
+   0.438503
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    1,
    0.75,
-   0.672285
+   0.672398
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    0,
    0.39,
-   0.237905
+   0.237506
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    1,
    0.39,
-   0.393112
+   0.394271
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    0,
    0.32,
-   0.485709
+   0.486109
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    0,
    0.12,
-   0.210176
+   0.209764
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    0,
    0.17,
-   0.286282
+   0.285768
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    0,
    0.15,
-   0.296373
+   0.295932
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_anytime_td",
    0,
    0.3,
-   0.404458
+   0.40507
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_pass_yds",
    0,
    0.06,
-   0.532517
+   0.532792
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_reception_yds",
    1,
    0.44,
-   0.509809
+   0.50943
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_reception_yds",
    0,
    0.54,
-   0.53497
+   0.535404
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_reception_yds",
    0,
    0.32,
-   0.507584
+   0.507476
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_reception_yds",
    1,
    0.32,
-   0.529101
+   0.52924
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_reception_yds",
    0,
    0.35,
-   0.507849
+   0.507419
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_receptions",
    0,
    0.25,
-   0.528195
+   0.527937
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_receptions",
    0,
    0.46,
-   0.535116
+   0.534752
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_receptions",
    0,
    0.82,
-   0.546286
+   0.54611
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_rush_yds",
    1,
    0.25,
-   0.520505
+   0.520928
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_rush_yds",
    1,
    0.81,
-   0.497386
+   0.496537
   ],
   [
    "ncaaf:2fef91bee444782036d23f91abe0a5da",
    "player_rush_yds",
    0,
    0.37,
-   0.513336
+   0.513609
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    1,
    0.63,
-   0.569344
+   0.569191
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    0,
    0.21,
-   0.489249
+   0.489358
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    0,
    0.21,
-   0.532092
+   0.532364
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    0,
    0.27,
-   0.300726
+   0.30039
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    0,
    0.61,
-   0.514977
+   0.514413
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    1,
    0.14,
-   0.339655
+   0.340081
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_anytime_td",
    0,
    0.19,
-   0.206939
+   0.206588
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_pass_yds",
    0,
    0.65,
-   0.507472
+   0.507258
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_pass_yds",
    0,
    0.38,
-   0.511545
+   0.511309
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_reception_yds",
    0,
    0.7,
-   0.481559
+   0.481111
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_reception_yds",
    0,
    0.71,
-   0.509273
+   0.509006
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_reception_yds",
    0,
    0.73,
-   0.491792
+   0.491116
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_rush_yds",
    1,
    0.46,
-   0.517254
+   0.517504
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_rush_yds",
    1,
    0.83,
-   0.501521
+   0.501485
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_rush_yds",
    0,
    0.42,
-   0.495106
+   0.494414
   ],
   [
    "ncaaf:14620ae05bec8eaa19ca94156c71dff2",
    "player_rush_yds",
    0,
    0.21,
-   0.511087
+   0.511239
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_anytime_td",
    0,
    0.35,
-   0.375709
+   0.375187
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_anytime_td",
    1,
    0.25,
-   0.505307
+   0.504789
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_anytime_td",
    0,
    0.64,
-   0.548378
+   0.547918
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_anytime_td",
    0,
    0.07,
-   0.176334
+   0.176744
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_anytime_td",
    0,
    0.04,
-   0.662896
+   0.662506
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_reception_yds",
    0,
    0.5,
-   0.538626
+   0.538749
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_reception_yds",
    1,
    0.46,
-   0.528069
+   0.528004
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_receptions",
    1,
    0.32,
-   0.544321
+   0.544538
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_receptions",
    1,
    0.64,
-   0.603139
+   0.603575
   ],
   [
    "ncaaf:a8283159aa27932e7a640f6158b2ca98",
    "player_rush_yds",
    0,
    0.04,
-   0.558993
+   0.559101
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_anytime_td",
    0,
    0.06,
-   0.335218
+   0.335794
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_anytime_td",
    0,
    0.12,
-   0.149814
+   0.14959
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_anytime_td",
    0,
    0.38,
-   0.672946
+   0.672958
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_anytime_td",
    0,
    0.15,
-   0.252965
+   0.252712
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_anytime_td",
    0,
    0.32,
-   0.2588
+   0.258436
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_anytime_td",
    0,
    0.23,
-   0.224302
+   0.224429
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_pass_yds",
    0,
    0.89,
-   0.491518
+   0.490997
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_reception_yds",
    1,
    0.81,
-   0.480533
+   0.479738
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_reception_yds",
    1,
    0.46,
-   0.523244
+   0.52348
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_rush_yds",
    0,
    0.65,
-   0.498007
+   0.497495
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_rush_yds",
    0,
    0.04,
-   0.511305
+   0.511406
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_rush_yds",
    0,
    0.39,
-   0.521973
+   0.522429
   ],
   [
    "ncaaf:0633819fa9e60ac71609cd40e1596b1b",
    "player_rush_yds",
    1,
    0.68,
-   0.48485
+   0.483811
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    0,
    0.5,
-   0.330807
+   0.330841
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    1,
    0.56,
-   0.556891
+   0.556691
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    0,
    0.68,
-   0.31968
+   0.319686
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    0,
    0.27,
-   0.396162
+   0.396299
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    1,
    0.72,
-   0.471132
+   0.47124
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    0,
    0.31,
-   0.699652
+   0.699485
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    0,
    0.18,
-   0.39353
+   0.393621
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_anytime_td",
    0,
    0.12,
-   0.4382
+   0.438217
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_pass_yds",
    1,
    0.56,
-   0.517082
+   0.517003
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_reception_yds",
    1,
    0.61,
-   0.511879
+   0.511698
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_reception_yds",
    1,
    0.5,
-   0.501102
+   0.500713
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_reception_yds",
    0,
    0.21,
-   0.514044
+   0.513891
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_reception_yds",
    1,
    0.77,
-   0.503901
+   0.503576
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_rush_yds",
    0,
    0.06,
-   0.518459
+   0.518407
   ],
   [
    "ncaaf:f64dfff0ca497539e1d013801cca92af",
    "player_rush_yds",
    0,
    0.56,
-   0.500644
+   0.500263
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.42,
-   0.459356
+   0.45987
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.03,
-   0.164194
+   0.163597
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.23,
-   0.244529
+   0.243702
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    1,
    0.46,
-   0.369441
+   0.370045
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    1,
    0.68,
-   0.516788
+   0.516057
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.46,
-   0.480443
+   0.479711
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.54,
-   0.347765
+   0.34851
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.5,
-   0.296902
+   0.296193
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_anytime_td",
    0,
    0.42,
-   0.37017
+   0.370295
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_pass_yds",
    1,
    0.57,
-   0.512211
+   0.512148
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_pass_yds",
    0,
    0.46,
-   0.515846
+   0.515628
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_reception_yds",
    0,
    0.54,
-   0.493598
+   0.493355
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_reception_yds",
    1,
    0.54,
-   0.495958
+   0.495192
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_reception_yds",
    0,
    0.73,
-   0.482308
+   0.481354
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_reception_yds",
    1,
    0.61,
-   0.504278
+   0.503683
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_reception_yds",
    0,
    0.35,
-   0.518879
+   0.519098
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_receptions",
    1,
    0.54,
-   0.465928
+   0.465778
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_receptions",
    0,
    0.81,
-   0.562865
+   0.562408
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_receptions",
    0,
    0.58,
-   0.582215
+   0.582096
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_receptions",
    1,
    0.68,
-   0.554955
+   0.554222
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_rush_yds",
    1,
    0.75,
-   0.51133
+   0.510301
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_rush_yds",
    1,
    0.54,
-   0.505882
+   0.506275
   ],
   [
    "ncaaf:08c34029ecc85b4a6d519f90f9082e56",
    "player_rush_yds",
    1,
    0.96,
-   0.493053
+   0.49312
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_anytime_td",
    1,
    0.39,
-   0.329232
+   0.329541
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_anytime_td",
    0,
    0.39,
-   0.375298
+   0.375692
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_anytime_td",
    0,
    0.5,
-   0.424122
+   0.424312
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_anytime_td",
    1,
    0.83,
-   0.567477
+   0.567429
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_anytime_td",
    1,
    0.43,
-   0.620062
+   0.619957
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_anytime_td",
    0,
    0.35,
-   0.16607
+   0.166044
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
@@ -6448,4131 +6451,4412 @@
    "player_reception_yds",
    0,
    0.54,
-   0.525669
+   0.525677
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_reception_yds",
    0,
    0.7,
-   0.494487
+   0.494
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_reception_yds",
    1,
    0.61,
-   0.532669
+   0.532819
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_reception_yds",
    0,
    0.43,
-   0.498568
+   0.498148
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_receptions",
    1,
    0.39,
-   0.462722
+   0.462864
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_rush_yds",
    0,
    0.37,
-   0.528642
+   0.528835
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_rush_yds",
    0,
    0.83,
-   0.497321
+   0.49692
   ],
   [
    "ncaaf:f0d4ea035d6edfabda0c2b298c7d42d2",
    "player_rush_yds",
    1,
    0.37,
-   0.471041
+   0.47084
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_anytime_td",
    1,
    0.73,
-   0.579902
+   0.579495
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_anytime_td",
    0,
    0.36,
-   0.358676
+   0.358406
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_anytime_td",
    0,
    0.5,
-   0.499542
+   0.499299
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_anytime_td",
    0,
    0.75,
-   0.468346
+   0.4681
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_anytime_td",
    0,
    0.35,
-   0.652406
+   0.652139
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_pass_yds",
    0,
    0.81,
-   0.508046
+   0.507836
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_reception_yds",
    0,
    0.58,
-   0.504349
+   0.503924
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_reception_yds",
    0,
    0.65,
-   0.516383
+   0.516185
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_reception_yds",
    1,
    0.42,
-   0.497543
+   0.49708
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_reception_yds",
    1,
    0.79,
-   0.503633
+   0.503195
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_receptions",
    1,
    0.64,
-   0.437799
+   0.437567
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_receptions",
    0,
    0.5,
-   0.524823
+   0.524436
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_receptions",
    0,
    0.25,
-   0.507709
+   0.50769
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_rush_yds",
    1,
    0.58,
-   0.523374
+   0.523161
   ],
   [
    "ncaaf:0a6b6423d89be9817a0c8cd830e8cc0d",
    "player_rush_yds",
    1,
    0.73,
-   0.513125
+   0.512714
   ],
   [
    "ncaaf:964916986927738c0d73842de1dd51bd",
    "player_anytime_td",
    0,
    0.34,
-   0.505219
+   0.505023
   ],
   [
    "ncaaf:964916986927738c0d73842de1dd51bd",
    "player_anytime_td",
    0,
    0.16,
-   0.514902
+   0.514684
   ],
   [
    "ncaaf:964916986927738c0d73842de1dd51bd",
    "player_anytime_td",
    1,
    0.91,
-   0.759644
+   0.759427
   ],
   [
    "ncaaf:964916986927738c0d73842de1dd51bd",
    "player_pass_yds",
    0,
    0.53,
-   0.513167
+   0.513038
   ],
   [
    "ncaaf:964916986927738c0d73842de1dd51bd",
    "player_rush_yds",
    0,
    0.41,
-   0.518918
+   0.518733
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    0,
    0.42,
-   0.520118
+   0.51983
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    1,
    0.42,
-   0.513209
+   0.512989
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    0,
    0.15,
-   0.277878
+   0.277719
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    0,
    0.5,
-   0.431995
+   0.432129
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    0,
    0.55,
-   0.394271
+   0.394285
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    0,
    0.5,
-   0.122412
+   0.122495
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_anytime_td",
    0,
    0.18,
-   0.16747
+   0.167701
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_pass_yds",
    1,
    0.5,
-   0.519491
+   0.51948
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_reception_yds",
    0,
    0.12,
-   0.497969
+   0.497585
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_reception_yds",
    0,
    0.58,
-   0.517933
+   0.517786
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_receptions",
    0,
    0.58,
-   0.540815
+   0.540544
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_rush_yds",
    0,
    0.58,
-   0.510877
+   0.510512
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_rush_yds",
    0,
    0.42,
-   0.51419
+   0.514222
   ],
   [
    "ncaaf:c12cd73c4077a0265acec205a572c2ec",
    "player_rush_yds",
    0,
    0.35,
-   0.51389
+   0.513921
   ],
   [
    "ncaaf:91ba0aefe833f0543aa43843374916f4",
    "player_anytime_td",
    0,
    0.39,
-   0.369879
+   0.369658
   ],
   [
    "ncaaf:91ba0aefe833f0543aa43843374916f4",
    "player_anytime_td",
    0,
    0.64,
-   0.576701
+   0.576461
   ],
   [
    "ncaaf:91ba0aefe833f0543aa43843374916f4",
    "player_pass_yds",
    0,
    0.32,
-   0.520989
+   0.52101
   ],
   [
    "ncaaf:91ba0aefe833f0543aa43843374916f4",
    "player_rush_yds",
    0,
    0.64,
-   0.5178
+   0.51754
   ],
   [
    "ncaaf:91ba0aefe833f0543aa43843374916f4",
    "player_rush_yds",
    0,
    0.75,
-   0.510479
+   0.510064
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_anytime_td",
    0,
    0.44,
-   0.22108
+   0.221286
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_anytime_td",
    1,
    0.23,
-   0.373194
+   0.373253
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_anytime_td",
    0,
    0.12,
-   0.13872
+   0.139069
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_pass_yds",
    0,
    0.41,
-   0.505072
+   0.504985
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_reception_yds",
    0,
    0.56,
-   0.516271
+   0.515663
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_receptions",
    0,
    0.31,
-   0.520645
+   0.519984
   ],
   [
    "ncaaf:f06e90b4212fb514f3564ded9f190107",
    "player_rush_yds",
    1,
    0.41,
-   0.515509
+   0.514544
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    0,
    0.35,
-   0.274179
+   0.273433
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    1,
    0.63,
-   0.604725
+   0.604828
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    1,
    0.19,
-   0.266442
+   0.265937
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    1,
    0.56,
-   0.586641
+   0.586797
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    0,
    0.27,
-   0.082634
+   0.082327
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    0,
    0.53,
-   0.311448
+   0.311778
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    0,
    0.1,
-   0.213421
+   0.215062
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_anytime_td",
    0,
    0.43,
-   0.381246
+   0.381802
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_pass_yds",
    0,
    0.43,
-   0.501562
+   0.501641
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_reception_yds",
    1,
    0.32,
-   0.510518
+   0.510053
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_reception_yds",
    1,
    0.35,
-   0.516069
+   0.515085
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_reception_yds",
    0,
    0.7,
-   0.495654
+   0.496312
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_receptions",
    1,
    0.32,
-   0.454185
+   0.453772
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_receptions",
    1,
    0.77,
-   0.582017
+   0.581818
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_receptions",
    1,
    0.27,
-   0.466326
+   0.466598
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_rush_yds",
    1,
    0.63,
-   0.497914
+   0.498707
   ],
   [
    "ncaaf:720451b07d54e435c9be484ef73ea211",
    "player_rush_yds",
    0,
    0.27,
-   0.52401
+   0.522083
   ],
   [
    "ncaaf:529a333381665c34d05b290d2c9eb5b9",
    "player_anytime_td",
    0,
    0.46,
-   0.466734
+   0.466768
   ],
   [
    "ncaaf:529a333381665c34d05b290d2c9eb5b9",
    "player_anytime_td",
    0,
    0.32,
-   0.402857
+   0.402735
   ],
   [
    "ncaaf:529a333381665c34d05b290d2c9eb5b9",
    "player_anytime_td",
    0,
    0.32,
-   0.399764
+   0.399783
   ],
   [
    "ncaaf:529a333381665c34d05b290d2c9eb5b9",
    "player_anytime_td",
    0,
    0.11,
-   0.398014
+   0.39815
   ],
   [
    "ncaaf:529a333381665c34d05b290d2c9eb5b9",
    "player_anytime_td",
    0,
    0.15,
-   0.353837
+   0.353811
   ],
   [
    "ncaaf:529a333381665c34d05b290d2c9eb5b9",
    "player_anytime_td",
    0,
    0.55,
-   0.254652
+   0.254298
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    1,
    0.37,
-   0.655972
+   0.656236
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    1,
    0.42,
-   0.502729
+   0.503585
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    0,
    0.5,
-   0.454739
+   0.455687
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    1,
    0.5,
-   0.296985
+   0.296338
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    0,
    0.55,
-   0.279332
+   0.278625
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    0,
    0.18,
-   0.101325
+   0.100996
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    0,
    0.5,
-   0.075138
+   0.074791
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_pass_yds",
    0,
    0.23,
-   0.498678
+   0.498976
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_reception_yds",
    1,
    0.12,
-   0.509069
+   0.508616
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_reception_yds",
    0,
    0.5,
-   0.508166
+   0.507873
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_rush_yds",
    0,
    0.58,
-   0.513306
+   0.512638
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_rush_yds",
    1,
    0.42,
-   0.48921
+   0.490664
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_rush_yds",
    0,
    0.23,
-   0.493583
+   0.494682
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_rush_yds",
    1,
    0.63,
-   0.486416
+   0.488097
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_rush_yds",
    0,
    0.65,
-   0.512248
+   0.511267
   ],
   [
    "ncaaf:01e9c4d460a55375a75d025e2b1ddbf5",
    "player_anytime_td",
    0,
    0.15,
-   0.255832
+   0.256686
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_anytime_td",
    0,
    0.35,
-   0.373188
+   0.373247
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_anytime_td",
    0,
    0.25,
-   0.276472
+   0.276569
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_anytime_td",
    0,
    0.35,
-   0.305566
+   0.305112
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_anytime_td",
    0,
    0.14,
-   0.224957
+   0.224828
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_anytime_td",
    0,
    0.42,
-   0.154991
+   0.155244
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_pass_yds",
    0,
    0.25,
-   0.503482
+   0.503521
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_reception_yds",
    1,
    0.27,
-   0.50477
+   0.504676
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_pass_yds",
    0,
    0.25,
-   0.50427
+   0.504248
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_reception_yds",
    1,
    0.27,
-   0.504294
+   0.504235
   ],
   [
    "ncaaf:5bc9efd5f27827a26c1cf8744bb8c2b1",
    "player_receptions",
    1,
    0.19,
-   0.569447
+   0.569316
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_anytime_td",
    0,
    0.25,
-   0.415356
+   0.414929
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_anytime_td",
    1,
    0.46,
-   0.421182
+   0.42098
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_anytime_td",
    0,
    0.54,
-   0.371479
+   0.371465
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_anytime_td",
    0,
    0.19,
-   0.30171
+   0.30149
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_anytime_td",
    1,
    0.21,
-   0.256702
+   0.257061
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_anytime_td",
    0,
    0.41,
-   0.167933
+   0.167744
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_pass_yds",
    0,
    0.46,
-   0.509509
+   0.509048
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    0,
    0.29,
-   0.508906
+   0.508137
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    0,
    0.58,
-   0.51488
+   0.514022
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    0,
    0.62,
-   0.519409
+   0.518621
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    1,
    0.86,
-   0.513803
+   0.513026
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_receptions",
    0,
    0.29,
-   0.513079
+   0.512083
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_receptions",
    1,
    0.58,
-   0.511291
+   0.51075
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_receptions",
    0,
    0.38,
-   0.507027
+   0.505963
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_rush_yds",
    0,
    0.75,
-   0.509255
+   0.508744
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_pass_yds",
    0,
    0.46,
-   0.509232
+   0.508792
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    0,
    0.29,
-   0.516523
+   0.515567
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    0,
    0.62,
-   0.515413
+   0.51454
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    0,
    0.58,
-   0.515401
+   0.514503
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_reception_yds",
    1,
    0.86,
-   0.515707
+   0.514785
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_rush_yds",
    0,
    0.75,
-   0.508019
+   0.507601
   ],
   [
    "ncaaf:a317e3ffe5919c8bff3b9b303054f1b3",
    "player_rush_yds",
    1,
    0.46,
-   0.511806
+   0.511602
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_anytime_td",
    0,
    0.32,
-   0.539609
+   0.539734
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_anytime_td",
    0,
    0.15,
-   0.31319
+   0.313297
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_anytime_td",
    0,
    0.12,
-   0.289319
+   0.289686
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_pass_yds",
    0,
    0.89,
-   0.50778
+   0.507451
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_reception_yds",
    0,
    0.5,
-   0.509161
+   0.508759
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_rush_yds",
    1,
    0.54,
-   0.507511
+   0.5073
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_anytime_td",
    1,
    0.04,
-   0.229152
+   0.22947
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_pass_yds",
    0,
    0.89,
-   0.507938
+   0.507597
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_reception_yds",
    0,
    0.5,
-   0.515888
+   0.515312
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_rush_yds",
    0,
    0.55,
-   0.503317
+   0.503765
   ],
   [
    "ncaaf:9a69dbd474c6181a4c51f397b9b25d38",
    "player_rush_yds",
    1,
    0.61,
-   0.511079
+   0.510599
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    1,
    0.38,
-   0.644942
+   0.645105
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    1,
    0.21,
-   0.431928
+   0.432499
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    0,
    0.42,
-   0.425145
+   0.425668
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    0,
    0.42,
-   0.445548
+   0.445731
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    0,
    0.23,
-   0.326881
+   0.327221
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_pass_yds",
    0,
    0.35,
-   0.499235
+   0.499509
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_reception_yds",
    0,
    0.58,
-   0.50541
+   0.505315
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_reception_yds",
    0,
    0.5,
-   0.509536
+   0.509385
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_rush_yds",
    0,
    0.54,
-   0.501151
+   0.501587
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    0,
    0.29,
-   0.049952
+   0.04979
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_anytime_td",
    0,
    0.15,
-   0.118813
+   0.118806
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_pass_yds",
    0,
    0.35,
-   0.498961
+   0.499256
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_reception_yds",
    0,
    0.46,
-   0.509285
+   0.509543
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_reception_yds",
    0,
    0.5,
-   0.506804
+   0.506605
   ],
   [
    "ncaaf:36baf28c66c363255bb0cd88b6aaf914",
    "player_rush_yds",
    0,
    0.54,
-   0.502491
+   0.502825
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    1,
    0.04,
-   0.450845
+   0.451337
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    1,
    0.21,
-   0.328147
+   0.327931
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    1,
    0.21,
-   0.314918
+   0.314546
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    0,
    0.25,
-   0.32781
+   0.32794
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    0,
    0.64,
-   0.305799
+   0.305846
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    0,
    0.35,
-   0.279287
+   0.279497
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    0,
    0.42,
-   0.269028
+   0.268855
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_anytime_td",
    0,
    0.12,
-   0.17635
+   0.176245
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    0,
    0.61,
-   0.510274
+   0.509805
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    1,
    0.5,
-   0.506332
+   0.506355
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    0,
    0.27,
-   0.511588
+   0.511347
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    1,
    0.79,
-   0.503988
+   0.503993
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_receptions",
    1,
    0.35,
-   0.41908
+   0.419577
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_receptions",
    1,
    0.54,
-   0.566288
+   0.565215
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_receptions",
    1,
    0.79,
-   0.581832
+   0.581355
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_rush_yds",
    1,
    0.04,
-   0.490732
+   0.491925
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_rush_yds",
    1,
    0.21,
-   0.503634
+   0.503437
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_rush_yds",
    1,
    0.54,
-   0.501797
+   0.501739
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    0,
    0.54,
-   0.50929
+   0.508896
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    1,
    0.79,
-   0.502489
+   0.502607
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    1,
    0.5,
-   0.502575
+   0.502627
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_reception_yds",
    0,
    0.27,
-   0.507329
+   0.507022
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_receptions",
    1,
    0.64,
-   0.502186
+   0.502207
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_receptions",
    1,
    0.5,
-   0.504455
+   0.504499
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_receptions",
    1,
    0.46,
-   0.54316
+   0.542698
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_rush_yds",
    1,
    0.04,
-   0.488981
+   0.490311
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_rush_yds",
    1,
    0.54,
-   0.501008
+   0.501009
   ],
   [
    "ncaaf:3fe3d77e009a7f205cce737523609a86",
    "player_rush_yds",
    1,
    0.21,
-   0.50658
+   0.506493
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    0,
    0.25,
-   0.569483
+   0.56915
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    0,
    0.46,
-   0.515554
+   0.514807
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    1,
    0.5,
-   0.504992
+   0.505049
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    0,
    0.04,
-   0.315254
+   0.31555
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    0,
    0.5,
-   0.257804
+   0.257691
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    0,
    0.27,
-   0.269116
+   0.268985
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_pass_yds",
    1,
    0.35,
-   0.500429
+   0.50072
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_rush_yds",
    0,
    0.35,
-   0.506894
+   0.506435
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_rush_yds",
    0,
    0.12,
-   0.504872
+   0.504945
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_rush_yds",
    1,
    0.42,
-   0.504966
+   0.504684
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    1,
    0.25,
-   0.29401
+   0.293561
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_pass_yds",
    1,
    0.35,
-   0.500722
+   0.50099
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_reception_yds",
    1,
    0.73,
-   0.499954
+   0.50021
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_receptions",
    1,
    0.5,
-   0.438685
+   0.438869
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_rush_yds",
    0,
    0.25,
-   0.504278
+   0.504016
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_rush_yds",
    0,
    0.62,
-   0.517172
+   0.516274
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_rush_yds",
    1,
    0.35,
-   0.501729
+   0.50169
   ],
   [
    "ncaaf:72215c37435df22c87999aa675c675ca",
    "player_anytime_td",
    1,
    0.06,
-   0.180442
+   0.180913
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    1,
    0.46,
-   0.657595
+   0.657848
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    0,
    0.68,
-   0.756023
+   0.756363
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    0,
    0.5,
-   0.458287
+   0.458831
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    1,
    0.23,
-   0.423267
+   0.424308
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    0,
    0.03,
-   0.258071
+   0.258482
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    0,
    0.12,
-   0.08776
+   0.087454
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_anytime_td",
    0,
    0.29,
-   0.08321
+   0.082806
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_pass_yds",
    0,
    0.43,
-   0.501349
+   0.501432
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_reception_yds",
    0,
    0.46,
-   0.50982
+   0.509663
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_receptions",
    0,
    0.54,
-   0.467671
+   0.46707
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_rush_yds",
    0,
    0.61,
-   0.50692
+   0.507417
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_pass_yds",
    0,
    0.43,
-   0.500852
+   0.500973
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_reception_yds",
    0,
    0.39,
-   0.504507
+   0.504498
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_reception_yds",
    0,
    0.42,
-   0.495337
+   0.496022
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_receptions",
    0,
    0.81,
-   0.509109
+   0.508537
   ],
   [
    "ncaaf:6eee31d7778965a3e617f10146619c1d",
    "player_rush_yds",
    0,
    0.61,
-   0.502874
+   0.503288
   ],
   [
    "ncaaf:b0cd2e8beaf0dc333daa592a0d3d5c3a",
    "player_anytime_td",
    0,
    0.82,
-   0.698489
+   0.698614
   ],
   [
    "ncaaf:b0cd2e8beaf0dc333daa592a0d3d5c3a",
    "player_anytime_td",
    0,
    0.54,
-   0.409297
+   0.409311
   ],
   [
    "ncaaf:b0cd2e8beaf0dc333daa592a0d3d5c3a",
    "player_anytime_td",
    1,
    0.27,
-   0.402768
+   0.402572
   ],
   [
    "ncaaf:b0cd2e8beaf0dc333daa592a0d3d5c3a",
    "player_anytime_td",
    0,
    0.29,
-   0.310421
+   0.310512
   ],
   [
    "ncaaf:b0cd2e8beaf0dc333daa592a0d3d5c3a",
    "player_anytime_td",
    0,
    0.36,
-   0.217457
+   0.217468
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_anytime_td",
    1,
    0.73,
-   0.506239
+   0.506331
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_anytime_td",
    0,
    0.39,
-   0.330614
+   0.330798
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_anytime_td",
    0,
    0.5,
-   0.178038
+   0.177647
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_anytime_td",
    0,
    0.27,
-   0.127559
+   0.127384
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_pass_yds",
    1,
    0.58,
-   0.503979
+   0.503919
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_pass_yds",
    1,
    0.96,
-   0.519752
+   0.518578
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_rush_yds",
    1,
    0.88,
-   0.505818
+   0.505837
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_pass_yds",
    1,
    0.58,
-   0.503404
+   0.503387
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_pass_yds",
    1,
    0.96,
-   0.519173
+   0.518043
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_reception_yds",
    0,
    0.73,
-   0.50673
+   0.50583
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_rush_yds",
    1,
    0.88,
-   0.506555
+   0.506185
   ],
   [
    "ncaaf:bd7ae9e585a6595f7d308d45e1bf35e3",
    "player_anytime_td",
    1,
    0.14,
-   0.437585
+   0.437938
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    1,
    0.61,
-   0.517966
+   0.517722
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    1,
    0.46,
-   0.383621
+   0.383804
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    1,
    0.46,
-   0.362365
+   0.362537
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    1,
    0.54,
-   0.274055
+   0.273323
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    0,
    0.39,
-   0.319493
+   0.319241
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    0,
    0.42,
-   0.255638
+   0.255288
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    0,
    0.58,
-   0.226696
+   0.22668
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_pass_yds",
    1,
    0.54,
-   0.500413
+   0.500689
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_reception_yds",
    1,
    0.32,
-   0.503914
+   0.503911
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    1,
    0.46,
-   0.517507
+   0.516351
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    0,
    0.32,
-   0.496864
+   0.497468
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_anytime_td",
    0,
    0.25,
-   0.395311
+   0.394966
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_pass_yds",
    1,
    0.54,
-   0.500997
+   0.501229
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_reception_yds",
    1,
    0.46,
-   0.505182
+   0.505083
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_reception_yds",
    1,
    0.54,
-   0.509674
+   0.509236
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_receptions",
    1,
    0.39,
-   0.550967
+   0.550809
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    0,
    0.25,
-   0.50168
+   0.501719
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    1,
    0.46,
-   0.514203
+   0.513299
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    0,
    0.32,
-   0.495114
+   0.495852
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    1,
    0.5,
-   0.497212
+   0.496944
   ],
   [
    "ncaaf:2e9835b129f8b8055d4a24f736547363",
    "player_rush_yds",
    0,
    0.32,
-   0.49741
+   0.497976
   ],
   [
    "ncaaf:26a76b78050ad3953d2d41dbeecd5a07",
    "player_anytime_td",
    1,
    0.45,
-   0.508982
+   0.508847
   ],
   [
    "ncaaf:26a76b78050ad3953d2d41dbeecd5a07",
    "player_anytime_td",
    0,
    0.12,
-   0.393376
+   0.393023
   ],
   [
    "ncaaf:26a76b78050ad3953d2d41dbeecd5a07",
    "player_anytime_td",
    0,
    0.32,
-   0.313074
+   0.313124
   ],
   [
    "ncaaf:26a76b78050ad3953d2d41dbeecd5a07",
    "player_anytime_td",
    0,
    0.25,
-   0.198006
+   0.198139
   ],
   [
    "ncaaf:26a76b78050ad3953d2d41dbeecd5a07",
    "player_anytime_td",
    1,
    0.42,
-   0.165101
+   0.165071
   ],
   [
    "ncaaf:26a76b78050ad3953d2d41dbeecd5a07",
    "player_anytime_td",
    0,
    0.19,
-   0.087518
+   0.087311
   ],
   [
    "ncaaf:578e82a8bc67101e9eba884729ffcc69",
    "player_anytime_td",
    0,
    0.32,
-   0.669259
+   0.669515
   ],
   [
    "ncaaf:578e82a8bc67101e9eba884729ffcc69",
    "player_anytime_td",
    1,
    0.25,
-   0.581528
+   0.581994
   ],
   [
    "ncaaf:578e82a8bc67101e9eba884729ffcc69",
    "player_anytime_td",
    0,
    0.58,
-   0.482402
+   0.482631
   ],
   [
    "ncaaf:578e82a8bc67101e9eba884729ffcc69",
    "player_anytime_td",
    0,
    0.61,
-   0.253578
+   0.253503
   ],
   [
    "ncaaf:578e82a8bc67101e9eba884729ffcc69",
    "player_pass_yds",
    1,
    0.73,
-   0.504291
+   0.504194
   ],
   [
    "ncaaf:ea8b0414ff464255eef426fd61427030",
    "player_anytime_td",
    1,
    0.06,
-   0.548289
+   0.548438
   ],
   [
    "ncaaf:ea8b0414ff464255eef426fd61427030",
    "player_anytime_td",
    0,
    0.17,
-   0.533918
+   0.533658
   ],
   [
    "ncaaf:ea8b0414ff464255eef426fd61427030",
    "player_anytime_td",
    1,
    0.35,
-   0.17589
+   0.175787
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_anytime_td",
    1,
    0.12,
-   0.344062
+   0.343569
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_anytime_td",
    0,
    0.5,
-   0.631317
+   0.6314
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_anytime_td",
    1,
    0.42,
-   0.229694
+   0.229731
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_anytime_td",
    0,
    0.44,
-   0.25561
+   0.255078
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_anytime_td",
    0,
    0.46,
-   0.174571
+   0.174415
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_reception_yds",
    1,
    0.73,
-   0.503519
+   0.503502
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_reception_yds",
    1,
    0.62,
-   0.512477
+   0.511785
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_reception_yds",
    1,
    0.42,
-   0.509925
+   0.509154
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_receptions",
    1,
    0.65,
-   0.469384
+   0.469874
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_rush_yds",
    1,
    0.19,
-   0.510708
+   0.509976
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_rush_yds",
    0,
    0.81,
-   0.513905
+   0.512939
   ],
   [
    "ncaaf:a85cea77fbd44d9135461815777f6a9c",
    "player_rush_yds",
    0,
    0.04,
-   0.484021
+   0.485428
   ],
   [
    "ncaaf:15ebe2df1d91e584d091d509e70a1a71",
    "player_anytime_td",
    1,
    0.29,
-   0.260193
+   0.259496
   ],
   [
    "ncaaf:15ebe2df1d91e584d091d509e70a1a71",
    "player_anytime_td",
    1,
    0.39,
-   0.415949
+   0.415108
   ],
   [
    "ncaaf:15ebe2df1d91e584d091d509e70a1a71",
    "player_pass_yds",
    1,
    0.61,
-   0.50142
+   0.50173
   ],
   [
    "ncaaf:15ebe2df1d91e584d091d509e70a1a71",
    "player_rush_yds",
    1,
    0.39,
-   0.511564
+   0.510432
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_anytime_td",
    0,
    0.35,
-   0.35492
+   0.354917
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_anytime_td",
    1,
    0.39,
-   0.400519
+   0.400692
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_anytime_td",
    0,
    0.27,
-   0.593981
+   0.594125
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_anytime_td",
    1,
    0.17,
-   0.273645
+   0.273344
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_anytime_td",
    0,
    0.25,
-   0.270401
+   0.270305
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_pass_yds",
    0,
    0.32,
-   0.501443
+   0.50157
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_reception_yds",
    0,
    0.35,
-   0.51007
+   0.50961
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_reception_yds",
    1,
    0.58,
-   0.503733
+   0.503752
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_receptions",
    1,
    0.58,
-   0.458555
+   0.45843
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_rush_yds",
    1,
    0.25,
-   0.522344
+   0.521121
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_rush_yds",
    1,
    0.54,
-   0.505428
+   0.505451
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_rush_yds",
    1,
    0.28,
-   0.499643
+   0.499809
   ],
   [
    "ncaaf:d2da9e958e6f4800929ff9411b697a4b",
    "player_rush_yds",
    0,
    0.19,
-   0.491935
+   0.492986
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_anytime_td",
    1,
    0.42,
-   0.298132
+   0.298118
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_anytime_td",
    1,
    0.68,
-   0.507259
+   0.506952
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_anytime_td",
    1,
    0.36,
-   0.396968
+   0.396698
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_anytime_td",
    1,
    0.55,
-   0.528072
+   0.527975
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_anytime_td",
    0,
    0.32,
-   0.295204
+   0.295342
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_anytime_td",
    1,
    0.41,
-   0.323222
+   0.323277
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_pass_yds",
    0,
    0.54,
-   0.505469
+   0.505383
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_reception_yds",
    1,
    0.35,
-   0.506736
+   0.506482
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_rush_yds",
    0,
    0.65,
-   0.500848
+   0.501224
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_rush_yds",
    1,
    0.07,
-   0.511755
+   0.511633
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_rush_yds",
    1,
    0.59,
-   0.505293
+   0.505328
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_rush_yds",
    1,
    0.75,
-   0.511998
+   0.511843
   ],
   [
    "ncaaf:dbcfc3184e20d1ea45e910b89585071f",
    "player_rush_yds",
    1,
    0.18,
-   0.502171
+   0.502111
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_anytime_td",
    1,
    0.54,
-   0.645962
+   0.646254
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_anytime_td",
    1,
    0.55,
-   0.38766
+   0.388346
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_anytime_td",
    0,
    0.39,
-   0.529498
+   0.529386
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_pass_yds",
    1,
    0.61,
-   0.504483
+   0.504346
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_reception_yds",
    1,
    0.65,
-   0.494676
+   0.495402
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_reception_yds",
    1,
    0.54,
-   0.499676
+   0.499373
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_receptions",
    1,
    0.65,
-   0.508562
+   0.508683
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_rush_yds",
    0,
    0.25,
-   0.513815
+   0.513338
   ],
   [
    "ncaaf:f9b0ff34657875b54ee16b8254168159",
    "player_rush_yds",
    0,
    0.38,
-   0.480349
+   0.482469
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    1,
    0.81,
-   0.41296
+   0.41217
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    1,
    0.58,
-   0.481763
+   0.481415
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    1,
    0.58,
-   0.578724
+   0.578312
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    0,
    0.64,
-   0.451259
+   0.45088
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    0,
    0.39,
-   0.264456
+   0.264358
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    0,
    0.14,
-   0.170571
+   0.170626
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_anytime_td",
    1,
    0.39,
-   0.251285
+   0.251472
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_pass_yds",
    1,
    0.59,
-   0.506027
+   0.505783
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_pass_yds",
    0,
    0.46,
-   0.4995
+   0.49988
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_reception_yds",
    0,
    0.27,
-   0.511016
+   0.510498
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_reception_yds",
    1,
    0.58,
-   0.5073
+   0.506415
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_receptions",
    0,
    0.12,
-   0.448948
+   0.448941
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_rush_yds",
    1,
    0.75,
-   0.495437
+   0.495166
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_rush_yds",
    0,
    0.64,
-   0.50167
+   0.501598
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_rush_yds",
    0,
    0.61,
-   0.49843
+   0.499093
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_rush_yds",
    1,
    0.58,
-   0.503354
+   0.503154
   ],
   [
    "ncaaf:8b31d45a11a98ec8e6a9a9a5368a1bf4",
    "player_rush_yds",
    1,
    0.65,
-   0.515072
+   0.514474
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    0,
    0.42,
-   0.547463
+   0.547361
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    0,
    0.54,
-   0.66921
+   0.668837
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    1,
    0.5,
-   0.259456
+   0.259503
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    1,
    0.42,
-   0.368723
+   0.368882
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    0,
    0.5,
-   0.349007
+   0.349032
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    1,
    0.15,
-   0.275704
+   0.276339
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_anytime_td",
    0,
    0.54,
-   0.292443
+   0.291841
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_pass_yds",
    1,
    0.5,
-   0.50501
+   0.504843
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_reception_yds",
    1,
    0.73,
-   0.50342
+   0.503479
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_reception_yds",
    0,
    0.25,
-   0.520243
+   0.519367
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_reception_yds",
    0,
    0.61,
-   0.524646
+   0.523669
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_receptions",
    1,
    0.58,
-   0.521615
+   0.521425
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_rush_yds",
    1,
    0.46,
-   0.499386
+   0.499103
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_rush_yds",
    0,
    0.65,
-   0.523011
+   0.522168
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_rush_yds",
    0,
    0.35,
-   0.505893
+   0.505987
   ],
   [
    "ncaaf:9a94b95365b9c78fbfb612ce4c859eda",
    "player_rush_yds",
    0,
    0.46,
-   0.497641
+   0.498369
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_anytime_td",
    0,
    0.19,
-   0.422292
+   0.42209
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_anytime_td",
    0,
    0.35,
-   0.497233
+   0.497244
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_anytime_td",
    0,
    0.19,
-   0.299235
+   0.299324
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_anytime_td",
    0,
    0.23,
-   0.269045
+   0.268968
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_anytime_td",
    1,
    0.54,
-   0.205956
+   0.205596
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_anytime_td",
    1,
    0.04,
-   0.162586
+   0.162636
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_pass_yds",
    1,
    0.32,
-   0.494142
+   0.494858
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_reception_yds",
    0,
    0.04,
-   0.504972
+   0.504872
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_reception_yds",
    1,
    0.46,
-   0.511937
+   0.511321
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_receptions",
    0,
    0.04,
-   0.486033
+   0.485414
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_rush_yds",
    1,
    0.41,
-   0.500217
+   0.500521
   ],
   [
    "ncaaf:790266884d07b6c2aeed8efc216ba610",
    "player_rush_yds",
    0,
    0.27,
-   0.499049
+   0.499349
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_anytime_td",
    0,
    0.14,
-   0.23165
+   0.232029
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_anytime_td",
    0,
    0.45,
-   0.505232
+   0.504718
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_anytime_td",
    1,
    0.57,
-   0.730402
+   0.729672
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_anytime_td",
    0,
    0.04,
-   0.215745
+   0.216231
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_anytime_td",
    1,
    0.12,
-   0.189707
+   0.189876
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_pass_yds",
    0,
    0.71,
-   0.49828
+   0.49871
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_reception_yds",
    1,
    0.25,
-   0.524891
+   0.524586
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_reception_yds",
    0,
    0.37,
-   0.506606
+   0.505736
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_reception_yds",
    1,
    0.27,
-   0.51378
+   0.513022
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_receptions",
    0,
    0.37,
-   0.460936
+   0.460717
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_receptions",
    1,
    0.27,
-   0.452496
+   0.451548
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_rush_yds",
    1,
    0.17,
-   0.508115
+   0.507761
   ],
   [
    "ncaaf:3c742aa7dc1c1da030846964a72de370",
    "player_rush_yds",
    1,
    0.35,
-   0.507557
+   0.507308
   ],
   [
    "ncaaf:f459decff5e212a417df01fead33b180",
    "player_anytime_td",
    1,
    0.62,
-   0.61046
+   0.6101
   ],
   [
    "ncaaf:f459decff5e212a417df01fead33b180",
    "player_anytime_td",
    0,
    0.19,
-   0.329027
+   0.32995
   ],
   [
    "ncaaf:f459decff5e212a417df01fead33b180",
    "player_anytime_td",
    0,
    0.46,
-   0.178934
+   0.177997
   ],
   [
    "ncaaf:f459decff5e212a417df01fead33b180",
    "player_pass_yds",
    1,
    0.65,
-   0.496624
+   0.497054
   ],
   [
    "ncaaf:f459decff5e212a417df01fead33b180",
    "player_rush_yds",
    0,
    0.46,
-   0.525253
+   0.523161
   ],
   [
    "ncaaf:f459decff5e212a417df01fead33b180",
    "player_rush_yds",
    1,
    0.29,
-   0.498334
+   0.499123
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_anytime_td",
    0,
    0.29,
-   0.494639
+   0.494361
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_anytime_td",
    1,
    0.27,
-   0.392225
+   0.39223
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_anytime_td",
    0,
    0.35,
-   0.437782
+   0.437907
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_anytime_td",
    0,
    0.46,
-   0.45149
+   0.451349
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_anytime_td",
    0,
    0.28,
-   0.345339
+   0.345374
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_anytime_td",
    1,
    0.28,
-   0.20981
+   0.209964
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_pass_yds",
    1,
    0.12,
-   0.503974
+   0.503942
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_pass_yds",
    1,
    0.35,
-   0.499717
+   0.500027
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_reception_yds",
    0,
    0.27,
-   0.508246
+   0.507908
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_reception_yds",
    1,
    0.21,
-   0.509923
+   0.509791
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_receptions",
    0,
    0.27,
-   0.46787
+   0.467949
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_rush_yds",
    1,
    0.27,
-   0.472715
+   0.473048
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_rush_yds",
    0,
    0.28,
-   0.506198
+   0.506001
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_rush_yds",
    0,
    0.29,
-   0.507499
+   0.507241
   ],
   [
    "ncaaf:a4e7771497976db67e6a81bc3700b32f",
    "player_rush_yds",
    1,
    0.38,
-   0.502688
+   0.502794
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    1,
    0.35,
-   0.443827
+   0.443444
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    0,
    0.42,
-   0.095799
+   0.095719
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    0,
    0.75,
-   0.272279
+   0.272097
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    0,
    0.05,
-   0.406191
+   0.406636
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    0,
    0.32,
-   0.088056
+   0.088074
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    1,
    0.36,
-   0.245106
+   0.244938
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    1,
    0.73,
-   0.610958
+   0.610424
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    1,
    0.5,
-   0.288771
+   0.288567
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    1,
    0.73,
-   0.449822
+   0.449003
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    0,
    0.21,
-   0.17513
+   0.175071
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_anytime_td",
    0,
    0.42,
-   0.159177
+   0.158921
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_pass_yds",
    1,
    0.81,
-   0.506191
+   0.506028
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    0,
    0.58,
-   0.474875
+   0.476421
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    0,
    0.65,
-   0.511519
+   0.510912
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    0,
    0.64,
-   0.5183
+   0.517515
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    1,
    0.27,
-   0.500177
+   0.499782
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    1,
    0.32,
-   0.499971
+   0.500266
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    1,
    0.73,
-   0.5125
+   0.511819
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_reception_yds",
    1,
    0.79,
-   0.513506
+   0.51275
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_receptions",
    0,
    0.23,
-   0.533542
+   0.534101
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_receptions",
    0,
    0.75,
-   0.452837
+   0.452674
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_receptions",
    1,
    0.65,
-   0.567033
+   0.566329
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_receptions",
    1,
    0.64,
-   0.498776
+   0.497886
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_rush_yds",
    0,
    0.58,
-   0.498044
+   0.498026
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_rush_yds",
    1,
    0.27,
-   0.51131
+   0.510832
   ],
   [
    "ncaaf:7ef3b27d15de635a3e05324f2b0c56cb",
    "player_rush_yds",
    1,
    0.73,
-   0.512126
+   0.511384
   ],
   [
    "ncaaf:4a9e833f32775e201ee648c51840df85",
    "player_anytime_td",
    1,
    0.31,
-   0.551635
+   0.551686
   ],
   [
    "ncaaf:4a9e833f32775e201ee648c51840df85",
    "player_anytime_td",
    0,
    0.41,
-   0.296401
+   0.29659
   ],
   [
    "ncaaf:4a9e833f32775e201ee648c51840df85",
    "player_pass_yds",
    1,
    0.32,
-   0.507986
+   0.507617
   ],
   [
    "ncaaf:4a9e833f32775e201ee648c51840df85",
    "player_rush_yds",
    0,
    0.32,
-   0.513332
+   0.513417
   ],
   [
    "ncaaf:4a9e833f32775e201ee648c51840df85",
    "player_rush_yds",
    1,
    0.06,
-   0.484415
+   0.48564
   ],
   [
    "ncaaf:69164d1b806f25a76cdb6268e19d4365",
    "player_anytime_td",
    1,
    0.54,
-   0.665239
+   0.6651
   ],
   [
    "ncaaf:69164d1b806f25a76cdb6268e19d4365",
    "player_anytime_td",
    0,
    0.11,
-   0.178107
+   0.177817
   ],
   [
    "ncaaf:69164d1b806f25a76cdb6268e19d4365",
    "player_pass_yds",
    0,
    0.21,
-   0.494003
+   0.494699
   ],
   [
    "ncaaf:69164d1b806f25a76cdb6268e19d4365",
    "player_rush_yds",
    1,
    0.25,
-   0.495382
+   0.496149
   ],
   [
    "ncaaf:d3b7a8be0f6c9e50f7afd4005990228b",
    "player_anytime_td",
    1,
    0.61,
-   0.675366
+   0.675755
   ],
   [
    "ncaaf:d3b7a8be0f6c9e50f7afd4005990228b",
    "player_anytime_td",
    0,
    0.63,
-   0.561375
+   0.562201
   ],
   [
    "ncaaf:d3b7a8be0f6c9e50f7afd4005990228b",
    "player_pass_yds",
    0,
    0.43,
-   0.504206
+   0.50404
   ],
   [
    "ncaaf:d3b7a8be0f6c9e50f7afd4005990228b",
    "player_reception_yds",
    0,
    0.54,
-   0.50823
+   0.507959
   ],
   [
    "ncaaf:d3b7a8be0f6c9e50f7afd4005990228b",
    "player_rush_yds",
    1,
    0.32,
-   0.488225
+   0.489941
   ],
   [
    "ncaaf:d3b7a8be0f6c9e50f7afd4005990228b",
    "player_rush_yds",
    0,
    0.5,
-   0.487308
+   0.488742
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    1,
    0.61,
-   0.299592
+   0.299197
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    0,
    0.21,
-   0.285051
+   0.28483
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    0,
    0.54,
-   0.43747
+   0.437982
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    1,
    0.41,
-   0.280551
+   0.280148
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    0,
    0.42,
-   0.290601
+   0.290609
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    0,
    0.27,
-   0.33341
+   0.332734
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_anytime_td",
    0,
    0.73,
-   0.402268
+   0.401646
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_pass_yds",
    1,
    0.28,
-   0.505898
+   0.505655
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_reception_yds",
    1,
    0.41,
-   0.503768
+   0.50372
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_reception_yds",
    1,
    0.39,
-   0.501799
+   0.501988
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_reception_yds",
    1,
    0.62,
-   0.504798
+   0.504671
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_reception_yds",
    1,
    0.35,
-   0.508077
+   0.507701
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_receptions",
    1,
    0.32,
-   0.459468
+   0.460111
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_receptions",
    1,
    0.29,
-   0.435994
+   0.436646
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_receptions",
    0,
    0.39,
-   0.487545
+   0.487977
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_rush_yds",
    0,
    0.65,
-   0.512237
+   0.51188
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_rush_yds",
    1,
    0.42,
-   0.510116
+   0.50991
   ],
   [
    "ncaaf:03297aa8a399c223aa1cc6aa923d9bc6",
    "player_rush_yds",
    0,
    0.42,
-   0.515108
+   0.513926
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    1,
    0.31,
-   0.566772
+   0.566776
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    0,
    0.21,
-   0.185142
+   0.184952
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    0,
    0.72,
-   0.390802
+   0.390981
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    0,
    0.5,
-   0.267421
+   0.267527
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    0,
    0.68,
-   0.202155
+   0.202145
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    0,
    0.28,
-   0.237128
+   0.236938
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    1,
    0.91,
-   0.568263
+   0.567613
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    0,
    0.65,
-   0.17509
+   0.175251
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    1,
    0.34,
-   0.400019
+   0.399981
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    1,
    0.56,
-   0.42847
+   0.427913
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_anytime_td",
    1,
    0.16,
-   0.346301
+   0.346214
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_pass_yds",
    1,
    0.66,
-   0.500506
+   0.500757
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_pass_yds",
    0,
    0.44,
-   0.501439
+   0.501586
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    1,
    0.28,
-   0.506929
+   0.506676
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    0,
    0.39,
-   0.50208
+   0.50188
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    0,
    0.28,
-   0.505063
+   0.50495
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    0,
    0.22,
-   0.499876
+   0.500156
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    0,
    0.31,
-   0.507462
+   0.507191
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    0,
    0.5,
-   0.514215
+   0.513435
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_reception_yds",
    0,
    0.77,
-   0.521586
+   0.520247
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_receptions",
    0,
    0.5,
-   0.543086
+   0.54202
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_receptions",
    1,
    0.09,
-   0.439072
+   0.43917
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_receptions",
    0,
    0.39,
-   0.382094
+   0.382354
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_rush_yds",
    0,
    0.47,
-   0.498082
+   0.498789
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_rush_yds",
    1,
    0.56,
-   0.513554
+   0.512896
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_rush_yds",
    0,
    0.66,
-   0.498561
+   0.498893
   ],
   [
    "ncaaf:65571f1cab1a260aae4a220e38dbbc1d",
    "player_rush_yds",
    1,
    0.06,
-   0.538989
+   0.539648
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_anytime_td",
    0,
    0.35,
-   0.222691
+   0.222606
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_anytime_td",
    1,
    0.29,
-   0.182808
+   0.182769
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_anytime_td",
    1,
    0.05,
-   0.340909
+   0.340294
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_anytime_td",
    1,
    0.41,
-   0.336315
+   0.336032
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_anytime_td",
    0,
    0.21,
-   0.416651
+   0.416222
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_anytime_td",
    1,
    0.14,
-   0.221775
+   0.221934
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_pass_yds",
    1,
    0.05,
-   0.500929
+   0.501117
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_pass_yds",
    1,
    0.12,
-   0.505676
+   0.505544
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_reception_yds",
    1,
    0.23,
-   0.506664
+   0.506431
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_reception_yds",
    1,
    0.62,
-   0.515534
+   0.515274
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_receptions",
    1,
    0.32,
-   0.541828
+   0.541178
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_rush_yds",
    1,
    0.46,
-   0.497352
+   0.497906
   ],
   [
    "ncaaf:b7cdc05f280bede1f19b996cc9b95753",
    "player_rush_yds",
    0,
    0.14,
-   0.511594
+   0.511558
   ],
   [
    "ncaaf:7e3b8cd721f0817d0a6c3111221e8a91",
    "player_anytime_td",
    0,
    0.15,
-   0.122549
+   0.122592
   ],
   [
    "ncaaf:7e3b8cd721f0817d0a6c3111221e8a91",
    "player_anytime_td",
    0,
    0.35,
-   0.438598
+   0.438687
   ],
   [
    "ncaaf:7e3b8cd721f0817d0a6c3111221e8a91",
    "player_anytime_td",
    0,
    0.18,
-   0.093269
+   0.093359
   ],
   [
    "ncaaf:7e3b8cd721f0817d0a6c3111221e8a91",
    "player_pass_yds",
    0,
    0.35,
-   0.508199
+   0.50784
   ],
   [
    "ncaaf:7e3b8cd721f0817d0a6c3111221e8a91",
    "player_reception_yds",
    0,
    0.42,
-   0.501402
+   0.501574
   ],
   [
    "ncaaf:7e3b8cd721f0817d0a6c3111221e8a91",
    "player_receptions",
    1,
    0.42,
-   0.523625
+   0.524074
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_anytime_td",
    0,
    0.65,
-   0.323849
+   0.323663
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_anytime_td",
    1,
    0.58,
-   0.391724
+   0.391683
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_anytime_td",
    0,
    0.58,
-   0.422436
+   0.422228
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_anytime_td",
    0,
    0.42,
-   0.561791
+   0.561642
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_pass_yds",
    1,
    0.5,
-   0.50484
+   0.504762
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_reception_yds",
    1,
    0.73,
-   0.495363
+   0.495987
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_reception_yds",
    0,
    0.45,
-   0.512874
+   0.512175
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_receptions",
    1,
    0.5,
-   0.537946
+   0.538838
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_rush_yds",
    0,
    0.12,
-   0.491615
+   0.492481
   ],
   [
    "ncaaf:47892b65c28a830d83bbe465b070ce01",
    "player_rush_yds",
    0,
    0.5,
-   0.504242
+   0.503515
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    0,
    0.05,
-   0.241656
+   0.241533
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    0,
    0.82,
-   0.48639
+   0.485216
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    1,
    0.31,
-   0.283173
+   0.28326
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    1,
    0.46,
-   0.422542
+   0.422797
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    0,
    0.06,
-   0.242479
+   0.24322
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    0,
    0.5,
-   0.497026
+   0.497572
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_anytime_td",
    1,
    0.27,
-   0.222342
+   0.221793
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_pass_yds",
    1,
    0.5,
-   0.496859
+   0.497247
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_reception_yds",
    0,
    0.61,
-   0.506707
+   0.506407
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_rush_yds",
    0,
    0.32,
-   0.492704
+   0.49406
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_rush_yds",
    1,
    0.75,
-   0.502572
+   0.502139
   ],
   [
    "ncaaf:eda972dc55ded05916deafa37efab9c3",
    "player_rush_yds",
    1,
    0.62,
-   0.508376
+   0.508845
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_anytime_td",
    0,
    0.19,
-   0.182307
+   0.181854
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_anytime_td",
    1,
    0.39,
-   0.406328
+   0.406524
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_anytime_td",
    1,
    0.75,
-   0.741694
+   0.741412
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_anytime_td",
    0,
    0.28,
-   0.13865
+   0.138619
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_anytime_td",
    0,
    0.32,
-   0.494426
+   0.494615
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_pass_yds",
    1,
    0.44,
-   0.508833
+   0.508424
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_reception_yds",
    0,
    0.32,
-   0.495446
+   0.496058
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_reception_yds",
    1,
    0.72,
-   0.516951
+   0.515958
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_reception_yds",
    1,
    0.54,
-   0.486748
+   0.488016
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_receptions",
    1,
    0.82,
-   0.518799
+   0.519664
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_receptions",
    0,
    0.39,
-   0.444595
+   0.445421
   ],
   [
    "ncaaf:cc6953f45fe5acfc853fdf5e5e28a0e7",
    "player_rush_yds",
    0,
    0.18,
-   0.49757
+   0.497942
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_anytime_td",
    0,
    0.46,
-   0.315092
+   0.314384
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_anytime_td",
    0,
    0.32,
-   0.218976
+   0.219205
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_anytime_td",
    1,
    0.46,
-   0.632115
+   0.631966
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_reception_yds",
    1,
    0.25,
-   0.505612
+   0.505795
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_reception_yds",
    0,
    0.71,
-   0.509282
+   0.508216
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_rush_yds",
    0,
    0.21,
-   0.499119
+   0.49947
   ],
   [
    "ncaaf:a64b980a572375c0cc1adba3c3fc2811",
    "player_rush_yds",
    0,
    0.39,
-   0.512966
+   0.512233
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_anytime_td",
    1,
    0.42,
-   0.495211
+   0.495088
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_anytime_td",
    0,
    0.46,
-   0.431438
+   0.431057
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_anytime_td",
    0,
    0.42,
-   0.557652
+   0.557208
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_anytime_td",
    0,
    0.54,
-   0.419889
+   0.419582
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_pass_yds",
    0,
    0.39,
-   0.500652
+   0.500961
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_reception_yds",
    0,
    0.35,
-   0.492573
+   0.493367
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_reception_yds",
    0,
    0.54,
-   0.506093
+   0.505868
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_rush_yds",
    1,
    0.46,
-   0.511008
+   0.510485
   ],
   [
    "ncaaf:6059b05ef23d08d9033bd7b5fe38e5d0",
    "player_rush_yds",
    0,
    0.58,
-   0.495463
+   0.495434
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    0,
    0.68,
-   0.528931
+   0.528759
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    0,
    0.04,
-   0.339796
+   0.340519
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    0,
    0.27,
-   0.159271
+   0.158969
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    0,
    0.35,
-   0.242656
+   0.242017
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    1,
    0.18,
-   0.348897
+   0.34882
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    0,
    0.19,
-   0.365827
+   0.366106
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_anytime_td",
    0,
    0.39,
-   0.395468
+   0.395307
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_pass_yds",
    1,
    0.32,
-   0.502024
+   0.50211
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_reception_yds",
    1,
    0.58,
-   0.512304
+   0.511632
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_reception_yds",
    0,
    0.5,
-   0.503258
+   0.502622
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_reception_yds",
    0,
    0.19,
-   0.497433
+   0.497929
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_receptions",
    0,
    0.27,
-   0.480938
+   0.481005
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_rush_yds",
    0,
    0.54,
-   0.529627
+   0.528166
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_rush_yds",
    1,
    0.5,
-   0.507312
+   0.506881
   ],
   [
    "ncaaf:93de8127b5d37170dff2b88deca0b95e",
    "player_rush_yds",
    0,
    0.23,
-   0.491148
+   0.49225
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    1,
    0.14,
-   0.368269
+   0.368228
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    1,
    0.17,
-   0.19645
+   0.196751
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    0,
    0.42,
-   0.24061
+   0.240845
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    0,
    0.35,
-   0.211281
+   0.211254
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    0,
    0.21,
-   0.543412
+   0.543444
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    1,
    0.29,
-   0.474512
+   0.47391
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    1,
    0.63,
-   0.611081
+   0.610489
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    1,
    0.21,
-   0.395343
+   0.395094
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_anytime_td",
    1,
    0.27,
-   0.20013
+   0.200222
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_pass_yds",
    1,
    0.42,
-   0.509406
+   0.508972
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_pass_yds",
    1,
    0.46,
-   0.50722
+   0.506945
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_reception_yds",
    0,
    0.12,
-   0.519658
+   0.519092
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_reception_yds",
    1,
    0.28,
-   0.504104
+   0.504072
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_reception_yds",
    0,
    0.71,
-   0.514861
+   0.514021
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_reception_yds",
    1,
    0.7,
-   0.507808
+   0.507501
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_reception_yds",
    0,
    0.81,
-   0.510118
+   0.509969
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_reception_yds",
    1,
    0.65,
-   0.516331
+   0.515376
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_receptions",
    1,
    0.17,
-   0.461306
+   0.461045
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_receptions",
    1,
    0.42,
-   0.485321
+   0.484753
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_rush_yds",
    1,
    0.38,
-   0.504197
+   0.504183
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_rush_yds",
    1,
    0.63,
-   0.502667
+   0.502764
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_rush_yds",
    0,
    0.21,
-   0.506865
+   0.50691
   ],
   [
    "ncaaf:7a6a2035bf5d7abd30d6cc8b76d59e3e",
    "player_rush_yds",
    1,
    0.21,
-   0.46407
+   0.46362
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 1426,
-  "mean_d": 0.03170470693777409,
-  "t": 1.8061257349542623,
-  "p": 0.03680425757415112,
-  "clusters": 112,
-  "verdict": "INCOMPLETE \u2014 needs both leagues",
+  "n": 2556,
+  "mean_d": 0.02142557277428688,
+  "t": 1.483425673087504,
+  "p": 0.07008101599665612,
+  "clusters": 144,
+  "verdict": "DOES NOT QUALIFY",
   "leagues": [
-   "ncaaf"
+   "ncaaf",
+   "nfl"
   ]
  },
- "picks": [],
+ "picks": [
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Deuce Bailey",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": {
+    "value": 25.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Peyton Jones",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 140,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 42.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 41.7,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Kam Davis",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 190,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 41.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 34.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 21.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Deshawn Purdie",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 190,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 34.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 34.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Makai Jackson",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 205,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 33.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 32.8,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 3.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Clayton Coppock Jr.",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 320,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 27.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 23.8,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 16.4,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Jamari Person",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 285,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 26.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 26.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Karmello English",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 300,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 25.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 25.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  },
+  {
+   "game": "Liberty Flames at Coastal Carolina Chanticleers",
+   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+   "commence": "2026-09-24T23:30:00Z",
+   "player": "Robby Washington",
+   "market": "player_anytime_td",
+   "market_label": "Anytime TD",
+   "side": "yes",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 350,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 23.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 22.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 4.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-09-24T13:21:00Z"
+  }
+ ],
  "more_picks": [],
- "picks_total": 0
+ "picks_total": 9
 }
