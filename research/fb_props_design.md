@@ -109,6 +109,10 @@ earlier game in the logs.
 | Anytime TD | rush_td + rec_td | Poisson(μ) | P(yes) = 1 − e^(−μ) |
 
 - P(under L) = P(s < L), so a push is neither.
+- ⚠️ **Changed after the first run:** for the yardage markets, the stat,
+  usage and opponent inputs are averaged on the **same √ scale** as the
+  target (first written with raw yards). See the changelog: a design
+  mistake, recorded with its root cause.
 
 **Stage 2: the market line.** The final probability is
 
@@ -196,3 +200,29 @@ earlier game in the logs.
 ## Changelog
 
 - **2026-09-24:** written and committed before any scoring code.
+- **2026-09-24, first run: a mistake in this design, fixed.** §3
+  regressed √yards on inputs averaged in **raw** yards. A straight line
+  from raw yards to √yards extrapolates wildly for high-volume players:
+  Derrick Henry's recent 144 and 162 projected 218 yards on a 96.5 line,
+  at P = 0.996. **Root cause:** I fixed the target's scale in §3 and never
+  put the inputs on the same scale. **Fix:** for the yardage markets, the
+  stat and usage averages (inputs 1, 3–6) and the opponent input (9) are
+  taken on the same √ scale as the target. Counts are unchanged.
+  - Both runs are reported. The first did **not** qualify (n = 2,556,
+    one-sided p = 0.088); nor does the fixed one (p = 0.069).
+  - Guard: a mutation in `test_fb_props_model.py`.
+- **2026-09-24: a labelling mistake in the build, fixed.** When the other
+  league's file was missing, `build()` reported one league's figure as
+  "the pooled verdict", and college alone read QUALIFIES while the true
+  pooled answer did not. One league is now never a verdict ("INCOMPLETE —
+  needs both leagues"). Guard: a mutation.
+- **Seen, and deliberately NOT acted on** (changing it now would be tuning
+  after seeing results):
+  - Stage 1 predicts overs too rarely in every over/under market (NFL
+    passing yards: 0.31 stated against 0.48 observed).
+  - On its own, stage 1 does worse than a coin flip on most markets. The
+    market's own de-vigged probability beats both models everywhere.
+  - Anytime TD is well calibrated (0.19 against 0.19 in the NFL).
+- ⚠️ **A limit of the live picks:** the §7 inputs (18–20) sit on a game's
+  own log row, which exists only after the game. The graded record has
+  them; this week's live picks carry 0 for them.

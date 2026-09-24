@@ -886,6 +886,10 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-model.json"), T["card"], False,
          "Model picks + walk-forward record"))
+    # `[Sam, 2026-09-24]` the props model's file, rebuilt by the same run.
+    rows.append(
+        ("card-fb", ("file", f"{latest}/fb-props-model.json"), T["card"], False,
+         "Prop model picks + walk-forward record"))
     # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
     # probe is `record.json` -- the file the Track Record tab reads.
     # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card
