@@ -4607,10 +4607,19 @@ async function fbCardCalLoad(lg){
   return FBCARDCAL[lg];
 }
 function fbCardCalHtml(K){
-  if (!K || !(K.bands || []).length) return '';
-  const rows = K.bands.map(b => `<tr${b.flag === 'UNDER' ? ' style="color:var(--bad,#c0392b)"' : ''}>
+  const before = Object.entries((K && K.bands_before) || {});
+  if (!K || (!(K.bands || []).length && !before.length)) return '';
+  const tbl = bands => bands.map(b => `<tr${b.flag === 'UNDER' ? ' style="color:var(--bad,#c0392b)"' : ''}>
       <td>${fbEsc(b.bucket)}</td><td>${labN(b.graded)}</td><td>${labN(b.stated, '%')}</td>
       <td>${labN(b.actual, '%')}</td><td>${b.flag === 'UNDER' ? '&#9888; running high' : ''}</td></tr>`).join('');
+  const head = `<thead><tr><th>Card said</th><th>Graded</th><th>Average said</th>
+      <th>Actually hit</th><th></th></tr></thead>`;
+  /* ⛔ EACH METHOD IN ITS OWN TABLE, NEVER POOLED. `[Sam, 2026-09-24]` */
+  const rows = (K.bands || []).length ? tbl(K.bands)
+    : '<tr><td colspan="5">No play rated this way has been graded yet.</td></tr>';
+  const old = before.map(([m, b]) => `<div style="margin-top:10px;font-size:13px"><b>Before the fix</b>
+      (${m === '2025-only' ? 'last season only' : fbEsc(m)}) &mdash; kept apart, not counted above</div>
+    <table class="ob" style="margin-top:4px">${head}<tbody>${tbl(b)}</tbody></table>`).join('');
   const T = K.test || {};
   const status = T.applied ? '' : `<div class="note" style="margin-top:8px">&#9888; <b>These are the card's raw
       numbers.</b> A correction replaces them only if it passes a test fixed in advance${
@@ -4619,8 +4628,8 @@ function fbCardCalHtml(K){
       : ` &mdash; it did not pass (${T.n} graded plays)`}.</div>`;
   return `<details style="margin-top:10px" open><summary><b>How this card's confidence has held up</b>
       <span class="kind k-desc">Record</span></summary>
-    <table class="ob" style="margin-top:8px"><thead><tr><th>Card said</th><th>Graded</th><th>Average said</th>
-      <th>Actually hit</th><th></th></tr></thead><tbody>${rows}</tbody></table>${status}</details>`;
+    ${before.length ? `<div style="margin-top:8px;font-size:13px"><b>Since the fix</b> (reads this season first)</div>` : ''}
+    <table class="ob" style="margin-top:8px">${head}<tbody>${rows}</tbody></table>${status}${old}</details>`;
 }
 
 function fbNoModelNote(C){

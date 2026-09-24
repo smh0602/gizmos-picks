@@ -298,8 +298,14 @@ try:
        "🔴 receptions o4.5 CARRIES A RATE — this is the change")
     eq(r45["record"], "6 of 10",
        "⛔ 10 games, not 6 — the union denominator is what is counted")
-    eq(r45["confidence"], round(100 * 6.5 / 11),
-       "   Jeffreys-smoothed exactly as an MLB hitter row")
+    # ~~Jeffreys-smoothed exactly as an MLB hitter row: round(100 * 6.5 / 11)~~
+    # 🔴 CHANGED 2026-09-24 BY SAM'S SHIP RULE (research/fb_card_fix_spec.md):
+    #    the card now reads this season first and shrinks toward the position
+    #    average. Still EXACT: 6 of 10, no 2026 games (2025 counts in full),
+    #    and this fixture's position has under 50 games, so p0 = 0.5 —
+    #    (6 + 12 x 0.5) / (10 + 12).
+    eq(r45["confidence"], round(100 * (6 + 12 * 0.5) / (10 + 12)),
+       "   shrunk toward the position average exactly as the fix's spec says")
 
     r25 = by[("player_receptions", 2.5)]
     eq(r25["confidence_basis"], "MARKET",

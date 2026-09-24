@@ -212,6 +212,25 @@ def _raw_record(raw):
     return int(m.group(1)), int(m.group(2))
 
 
+METHOD_BEFORE = "2025-only"
+
+
+def calibration_by_method(rows, current):
+    """-> (the CURRENT method's buckets, {method: buckets}). ⛔ The methods
+    are never pooled: a confidence printed one way is not evidence about
+    a confidence printed another way `[Sam, 2026-09-24]`."""
+    per = {}
+    for r in rows:
+        if r.get("confidence") is None:
+            continue
+        per.setdefault(r.get("card_method") or METHOD_BEFORE, {}).setdefault(
+            int(r["confidence"] // 10) * 10, []).append(r)
+    out = {m: [{"bucket": f"{b}-{b + 10}%",
+                "stated": round(sum(r["confidence"] for r in v) / len(v), 1),
+                **tally(v)} for b, v in sorted(bk.items())] for m, bk in per.items()}
+    return out.get(current, []), out
+
+
 def grade_card(card, P, idx, covers_through):
     """One card -> a list of graded rows, each carrying its own verdict."""
     rows = []
@@ -276,6 +295,10 @@ def grade_card(card, P, idx, covers_through):
             "hits": _hits,
             "n_games": _n_games,
             "logs_season": card.get("logs_season"),
+            # `[Sam, 2026-09-24]` the method that printed this confidence, so
+            # before- and after-fix plays are never mixed. Cards written
+            # before the field existed were all the 2025-only method.
+            "card_method": card.get("card_method") or METHOD_BEFORE,
         }
         if mk not in card_fb.MARKETS:
             rows.append({**base, "won": None, "state": "unknown market",
@@ -420,12 +443,11 @@ def main():
 
     # 🔴 CALIBRATION BUCKETS ON THE CARD'S OWN CONFIDENCE, which on
     # football is a RECORD and never a MODEL number (ledger rule 55). The
-    # bucket labels say so.
-    buckets = {}
-    for r in A:
-        if r.get("confidence") is None:
-            continue
-        buckets.setdefault(int(r["confidence"] // 10) * 10, []).append(r)
+    # bucket labels say so. ⛔ ONE METHOD AT A TIME: `calibration` is the
+    # method the newest card used; every method is kept apart beside it.
+    _current = next((r.get("card_method") for d in reversed(days) for r in d["rows"]
+                     if r.get("card_method")), METHOD_BEFORE)
+    _cal_now, _cal_by = calibration_by_method(A, _current)
 
     unresolved = sum(d["unresolved"] for d in days)
     voids = sum(d["voids"] for d in days)
@@ -452,9 +474,11 @@ def main():
                     for s in sorted({r["side"] for r in A})},
         "by_book": {b: tally([r for r in A if r["book"] == b])
                     for b in sorted({r["book"] for r in A if r.get("book")})},
-        "calibration": [{"bucket": f"{b}-{b + 10}%",
-                         "stated": round(sum(r["confidence"] for r in v) / len(v), 1),
-                         **tally(v)} for b, v in sorted(buckets.items())],
+        "calibration": _cal_now,
+        "card_method_current": _current,
+        "calibration_by_method": _cal_by,
+        "by_method": {m: tally([r for r in A if (r.get("card_method") or METHOD_BEFORE) == m])
+                      for m in sorted({r.get("card_method") or METHOD_BEFORE for r in A})},
         "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
                     "carded": d["carded"], "voids": d["voids"],
                     "unresolved": d["unresolved"]} for d in days],

@@ -144,6 +144,14 @@ def judge(doc):
     if not isinstance(doc, dict):
         return {"state": "UNREADABLE", "why": "record.json is not an object"}
     n, w, stated = pooled(doc.get("calibration"))
+    if (not n or stated is None) and any(pooled(v)[0] for v in (doc.get("calibration_by_method") or {}).values()):
+        # `[Sam, 2026-09-24]` the card changed how it rates. Its earlier
+        # method's record is kept apart; the new one has nothing graded yet.
+        # ⛔ NOT A PASS: "not yet measurable" until its own plays are graded.
+        return {"state": "NOT_MEASURABLE", "n": 0,
+                "why": ("the card's current method (%s) has no graded plays yet; "
+                        "its earlier method's record is kept apart"
+                        % doc.get("card_method_current"))}
     if not n or stated is None:
         return {"state": "UNREADABLE",
                 "why": "no calibration buckets carrying a sample"}

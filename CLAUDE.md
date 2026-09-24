@@ -501,6 +501,11 @@ fb_card_calibration.py  the football props card's stated-vs-actual bands
                   (`research/fb_card_calibration_spec.md`, frozen).
                   ⛔ Never changes what the card prints; a QUALIFIES
                   waits for Sam. Rides `card-fb`.
+fb_card_fix.py    scores the football props card's season fix (reads 2026
+                  first, 2025 as the start, shrunk toward the position
+                  average) against the card as it was, by Sam's ship rule
+                  in `research/fb_card_fix_spec.md` (frozen). The live
+                  switch is `card_fb.CARD_METHOD`.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule
