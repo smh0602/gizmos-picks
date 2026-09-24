@@ -109,6 +109,9 @@ FROZEN = {
     # already failed — recorded in the spec's changelog. ⛔ This entry moved
     # because SAM changed the rule, not because a result was seen.
     "mlb_refit_spec.md": "25d526a42b119f08f6d2e4183a535964c8db5bde364428f02c61beed1a3bb1c0",
+    # [Sam, 2026-09-24] rule in section 2, pre-registered before any result;
+    # section 3 fixed by Claude before any scoring code existed.
+    "fb_model_lambda_spec.md": "0d04a78d959d75097a24196e282d6aa48fed5455fdbfb00e9952fde67d54ca8b",
 }
 
 
