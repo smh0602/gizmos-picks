@@ -528,6 +528,11 @@ card_gate.py      did the card fail for a reason Sam already accepted?
 OWED TESTS (pre-registered, not adopted)
 t54.py            should a record against a line never faced be RANKED?
 t58_t59.py        the two owed tests, accumulating themselves
+fb_model_lambda.py  the football model with a SELF-CHOSEN ridge λ, scored
+                  against today's fixed 1.0 by the rule Sam pre-registered
+                  on 2026-09-24 in `research/fb_model_lambda_spec.md`
+                  (frozen by `test_prereg_gate.py`). ⛔ Never switches the
+                  live model and never edits `fb_model.RIDGE`; Sam decides.
 t60r.py           the played-games backtest of signals 1-8, run to the
                   rule Sam APPROVED on 2026-09-22 in
                   `research/t60r_spec.md`. ⛔ That rule and its bar are

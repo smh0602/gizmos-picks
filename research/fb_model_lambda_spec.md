@@ -92,3 +92,14 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
 
 - **2026-09-24:** written and committed before any scoring code. Rule by
   Sam; definitions in section 3 by Claude.
+- **2026-09-24, first run: DOES NOT QUALIFY.** 2,572 paired predictions
+  from 878 games. The self-chosen version's loss is lower by 0.0022 per
+  prediction, with one-sided p = 0.24. The live model is unchanged. Record:
+  `research/fb_model_lambda_run_2026-09-24.json`.
+  - ⚠️ The first run's list of chosen λ values included weeks not yet
+    played, running to 2027. The list now stops at the last week with a
+    finished game. The verdict, the log losses and both records were
+    re-run and are identical.
+  - ⚠️ From mid-season on, the choice sits at the **edge of the grid**
+    (100) in four of the six league-market pairs. Whether a larger λ would
+    do better is not tested here: the grid is Sam's and is frozen.

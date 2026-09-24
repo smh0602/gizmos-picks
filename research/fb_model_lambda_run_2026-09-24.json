@@ -1,0 +1,1426 @@
+{
+ "spec": "research/fb_model_lambda_spec.md",
+ "built_at": "2026-09-24T01:59:58Z",
+ "grid": [
+  0.1,
+  0.3,
+  1.0,
+  3.0,
+  10.0,
+  30.0,
+  100.0
+ ],
+ "fixed": 1.0,
+ "decision": {
+  "n": 2572,
+  "mean_d": 0.0022239516468253342,
+  "t": 0.6973285392259734,
+  "p": 0.24289101168432142,
+  "clusters": 878,
+  "verdict": "DOES NOT QUALIFY"
+ },
+ "log_loss": {
+  "nfl": {
+   "spread": {
+    "n": 152,
+    "fixed": 0.7155645712997136,
+    "self": 0.7144246849273191
+   },
+   "total": {
+    "n": 154,
+    "fixed": 0.7197435863101098,
+    "self": 0.7080971314423977
+   },
+   "moneyline": {
+    "n": 154,
+    "fixed": 0.6404471692805883,
+    "self": 0.6340584900916415
+   }
+  },
+  "ncaaf": {
+   "spread": {
+    "n": 684,
+    "fixed": 0.7041986676651529,
+    "self": 0.6959995468523
+   },
+   "total": {
+    "n": 724,
+    "fixed": 0.7066037960244383,
+    "self": 0.7016210972131901
+   },
+   "moneyline": {
+    "n": 704,
+    "fixed": 0.5815023213181778,
+    "self": 0.590659057558277
+   }
+  }
+ },
+ "records": {
+  "nfl": {
+   "spread": {
+    "fixed": {
+     "books": {
+      "picks": {
+       "value": 23,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 13,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 56.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.1,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        36.3,
+        76.8
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 23.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 98,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 38,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 38.8,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.9,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        29.1,
+        48.4
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 98.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 2,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    },
+    "self": {
+     "books": {
+      "picks": {
+       "value": 17,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 9,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 52.9,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 50.7,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        29.2,
+        76.7
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 17.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 71,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 26,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 36.6,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.8,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        25.4,
+        47.8
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 71.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 1,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    }
+   },
+   "total": {
+    "fixed": {
+     "books": {
+      "picks": {
+       "value": 22,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 13,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 59.1,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.6,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        38.5,
+        79.6
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 22.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 120,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 55,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 45.8,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 52.0,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        36.9,
+        54.7
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 120.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    },
+    "self": {
+     "books": {
+      "picks": {
+       "value": 21,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 12,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 57.1,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.4,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        36.0,
+        78.3
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 21.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 104,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 44,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 42.3,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.9,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        32.8,
+        51.8
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 104.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    }
+   },
+   "moneyline": {
+    "fixed": {
+     "books": {
+      "picks": {
+       "value": 22,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 10,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 45.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 49.7,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        24.6,
+        66.3
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 22.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 99,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 48,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 48.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 54.4,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        38.6,
+        58.3
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 99.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    },
+    "self": {
+     "books": {
+      "picks": {
+       "value": 29,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 10,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 34.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 37.3,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        17.2,
+        51.8
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 29.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 121,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 54,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 44.6,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 43.7,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        35.8,
+        53.5
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 121.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    }
+   }
+  },
+  "ncaaf": {
+   "spread": {
+    "fixed": {
+     "books": {
+      "picks": {
+       "value": 114,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 56,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 49.1,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.4,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        39.9,
+        58.3
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 114.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 419,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 220,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 52.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 52.4,
+       "basis": "DESCRIPTIVE"
+      },
+      "price_assumed": {
+       "value": 419,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        47.7,
+        57.3
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 419.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 9,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    },
+    "self": {
+     "books": {
+      "picks": {
+       "value": 102,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 49,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 48.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.4,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        38.3,
+        57.7
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 102.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 411,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 208,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 50.6,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 52.4,
+       "basis": "DESCRIPTIVE"
+      },
+      "price_assumed": {
+       "value": 411,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        45.8,
+        55.4
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 411.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 9,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    }
+   },
+   "total": {
+    "fixed": {
+     "books": {
+      "picks": {
+       "value": 87,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 43,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 49.4,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.5,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        38.9,
+        59.9
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 87.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 390,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 193,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 49.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 52.4,
+       "basis": "DESCRIPTIVE"
+      },
+      "price_assumed": {
+       "value": 390,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        44.5,
+        54.4
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 390.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    },
+    "self": {
+     "books": {
+      "picks": {
+       "value": 82,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 39,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 47.6,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.5,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        36.8,
+        58.4
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 82.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 292,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 143,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 49.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 52.4,
+       "basis": "DESCRIPTIVE"
+      },
+      "price_assumed": {
+       "value": 292,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        43.2,
+        54.7
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 292.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    }
+   },
+   "moneyline": {
+    "fixed": {
+     "books": {
+      "picks": {
+       "value": 413,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 203,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 49.2,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.3,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        44.3,
+        54.0
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 413.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 399,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 197,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 49.4,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 51.5,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        44.5,
+        54.3
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 399.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    },
+    "self": {
+     "books": {
+      "picks": {
+       "value": 479,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 199,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 41.5,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 44.7,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        37.1,
+        46.0
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 479.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     },
+     "closing": {
+      "picks": {
+       "value": 470,
+       "basis": "DESCRIPTIVE"
+      },
+      "wins": {
+       "value": 199,
+       "basis": "DESCRIPTIVE"
+      },
+      "hit_rate": {
+       "value": 42.3,
+       "basis": "DESCRIPTIVE"
+      },
+      "break_even": {
+       "value": 45.3,
+       "basis": "MARKET"
+      },
+      "price_assumed": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      },
+      "interval_95": {
+       "value": [
+        37.9,
+        46.8
+       ],
+       "basis": "DESCRIPTIVE"
+      },
+      "effective_n": {
+       "value": 470.0,
+       "basis": "DESCRIPTIVE"
+      },
+      "pushes": {
+       "value": 0,
+       "basis": "DESCRIPTIVE"
+      }
+     }
+    }
+   }
+  }
+ },
+ "lambdas": {
+  "nfl": {
+   "spread": [
+    [
+     "2025-11-17",
+     1.0
+    ],
+    [
+     "2025-11-24",
+     1.0
+    ],
+    [
+     "2025-12-01",
+     1.0
+    ],
+    [
+     "2025-12-08",
+     1.0
+    ],
+    [
+     "2025-12-15",
+     100.0
+    ],
+    [
+     "2025-12-22",
+     100.0
+    ],
+    [
+     "2025-12-29",
+     100.0
+    ],
+    [
+     "2026-01-05",
+     100.0
+    ],
+    [
+     "2026-01-12",
+     100.0
+    ],
+    [
+     "2026-01-19",
+     100.0
+    ],
+    [
+     "2026-02-02",
+     100.0
+    ],
+    [
+     "2026-09-07",
+     100.0
+    ],
+    [
+     "2026-09-14",
+     100.0
+    ],
+    [
+     "2026-09-21",
+     100.0
+    ]
+   ],
+   "total": [
+    [
+     "2025-11-17",
+     1.0
+    ],
+    [
+     "2025-11-24",
+     1.0
+    ],
+    [
+     "2025-12-01",
+     1.0
+    ],
+    [
+     "2025-12-08",
+     1.0
+    ],
+    [
+     "2025-12-15",
+     100.0
+    ],
+    [
+     "2025-12-22",
+     100.0
+    ],
+    [
+     "2025-12-29",
+     100.0
+    ],
+    [
+     "2026-01-05",
+     100.0
+    ],
+    [
+     "2026-01-12",
+     100.0
+    ],
+    [
+     "2026-01-19",
+     100.0
+    ],
+    [
+     "2026-02-02",
+     100.0
+    ],
+    [
+     "2026-09-07",
+     100.0
+    ],
+    [
+     "2026-09-14",
+     100.0
+    ],
+    [
+     "2026-09-21",
+     100.0
+    ]
+   ],
+   "moneyline": [
+    [
+     "2025-11-17",
+     1.0
+    ],
+    [
+     "2025-11-24",
+     1.0
+    ],
+    [
+     "2025-12-01",
+     1.0
+    ],
+    [
+     "2025-12-08",
+     1.0
+    ],
+    [
+     "2025-12-15",
+     30.0
+    ],
+    [
+     "2025-12-22",
+     30.0
+    ],
+    [
+     "2025-12-29",
+     30.0
+    ],
+    [
+     "2026-01-05",
+     30.0
+    ],
+    [
+     "2026-01-12",
+     30.0
+    ],
+    [
+     "2026-01-19",
+     30.0
+    ],
+    [
+     "2026-02-02",
+     30.0
+    ],
+    [
+     "2026-09-07",
+     30.0
+    ],
+    [
+     "2026-09-14",
+     30.0
+    ],
+    [
+     "2026-09-21",
+     30.0
+    ]
+   ]
+  },
+  "ncaaf": {
+   "spread": [
+    [
+     "2025-09-22",
+     1.0
+    ],
+    [
+     "2025-09-29",
+     1.0
+    ],
+    [
+     "2025-10-06",
+     1.0
+    ],
+    [
+     "2025-10-13",
+     1.0
+    ],
+    [
+     "2025-10-20",
+     100.0
+    ],
+    [
+     "2025-10-27",
+     100.0
+    ],
+    [
+     "2025-11-03",
+     100.0
+    ],
+    [
+     "2025-11-10",
+     100.0
+    ],
+    [
+     "2025-11-17",
+     100.0
+    ],
+    [
+     "2025-11-24",
+     100.0
+    ],
+    [
+     "2025-12-01",
+     100.0
+    ],
+    [
+     "2025-12-08",
+     100.0
+    ],
+    [
+     "2025-12-15",
+     100.0
+    ],
+    [
+     "2025-12-22",
+     100.0
+    ],
+    [
+     "2025-12-29",
+     100.0
+    ],
+    [
+     "2026-01-05",
+     100.0
+    ],
+    [
+     "2026-01-19",
+     100.0
+    ],
+    [
+     "2026-08-24",
+     100.0
+    ],
+    [
+     "2026-08-31",
+     100.0
+    ],
+    [
+     "2026-09-07",
+     100.0
+    ],
+    [
+     "2026-09-14",
+     100.0
+    ]
+   ],
+   "total": [
+    [
+     "2025-09-22",
+     1.0
+    ],
+    [
+     "2025-09-29",
+     1.0
+    ],
+    [
+     "2025-10-06",
+     1.0
+    ],
+    [
+     "2025-10-13",
+     1.0
+    ],
+    [
+     "2025-10-20",
+     100.0
+    ],
+    [
+     "2025-10-27",
+     100.0
+    ],
+    [
+     "2025-11-03",
+     100.0
+    ],
+    [
+     "2025-11-10",
+     100.0
+    ],
+    [
+     "2025-11-17",
+     100.0
+    ],
+    [
+     "2025-11-24",
+     100.0
+    ],
+    [
+     "2025-12-01",
+     100.0
+    ],
+    [
+     "2025-12-08",
+     100.0
+    ],
+    [
+     "2025-12-15",
+     100.0
+    ],
+    [
+     "2025-12-22",
+     100.0
+    ],
+    [
+     "2025-12-29",
+     100.0
+    ],
+    [
+     "2026-01-05",
+     100.0
+    ],
+    [
+     "2026-01-19",
+     100.0
+    ],
+    [
+     "2026-08-24",
+     100.0
+    ],
+    [
+     "2026-08-31",
+     100.0
+    ],
+    [
+     "2026-09-07",
+     100.0
+    ],
+    [
+     "2026-09-14",
+     100.0
+    ]
+   ],
+   "moneyline": [
+    [
+     "2025-09-22",
+     1.0
+    ],
+    [
+     "2025-09-29",
+     1.0
+    ],
+    [
+     "2025-10-06",
+     1.0
+    ],
+    [
+     "2025-10-13",
+     1.0
+    ],
+    [
+     "2025-10-20",
+     0.1
+    ],
+    [
+     "2025-10-27",
+     0.1
+    ],
+    [
+     "2025-11-03",
+     0.1
+    ],
+    [
+     "2025-11-10",
+     1.0
+    ],
+    [
+     "2025-11-17",
+     0.1
+    ],
+    [
+     "2025-11-24",
+     0.1
+    ],
+    [
+     "2025-12-01",
+     0.1
+    ],
+    [
+     "2025-12-08",
+     30.0
+    ],
+    [
+     "2025-12-15",
+     30.0
+    ],
+    [
+     "2025-12-22",
+     30.0
+    ],
+    [
+     "2025-12-29",
+     30.0
+    ],
+    [
+     "2026-01-05",
+     30.0
+    ],
+    [
+     "2026-01-19",
+     30.0
+    ],
+    [
+     "2026-08-24",
+     30.0
+    ],
+    [
+     "2026-08-31",
+     30.0
+    ],
+    [
+     "2026-09-07",
+     30.0
+    ],
+    [
+     "2026-09-14",
+     30.0
+    ]
+   ]
+  }
+ }
+}
