@@ -894,6 +894,10 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/card-calibration.json"), T["card"], False,
          "Card calibration — stated vs actual by band"))
+    # `[Sam, 2026-09-24]` "What the model showed, graded".
+    rows.append(
+        ("card-fb", ("file", f"{latest}/model-ledger.json"), T["card"], False,
+         "What the model showed, graded"))
     # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
     # probe is `record.json` -- the file the Track Record tab reads.
     # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card

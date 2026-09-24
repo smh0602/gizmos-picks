@@ -572,6 +572,35 @@ def record(picks):
             "pushes": L(sum(1 for p in picks if p["won"] is None), "DESCRIPTIVE")}
 
 
+VERDICT_MIN_N = 300        # ⛔ research/fb_model_live_spec.md §2 (Sam)
+VERDICT_ALPHA = 0.05       # ⛔ §2 (Sam)
+
+
+def verdict(picks):
+    """PROVEN / LOSING / NOT PROVEN / NOT YET MEASURABLE for one record,
+    in Sam's order, first match wins (spec §3). Information only — it
+    hides nothing. d = hit − that pick's break-even, clustered by game."""
+    import mlb_refit            # paired_test_clustered: the ONE cluster-robust paired test
+    graded = [p for p in picks if p.get("won") is not None]
+    n = len(graded)
+    rec = record(picks)
+    d = [(1.0 if p["won"] else 0.0) - p["break_even"] for p in graded]
+    _n, mean, _t, pval, G = mlb_refit.paired_test_clustered(d, [p["game_id"] for p in graded])
+    iv, be = rec["interval_95"]["value"], rec["break_even"]["value"]
+    if n >= VERDICT_MIN_N and mean is not None and mean > 0 and pval is not None and pval < VERDICT_ALPHA:
+        label = "PROVEN"
+    elif iv is not None and be is not None and iv[1] < be:
+        label = "LOSING"
+    elif n >= VERDICT_MIN_N:
+        label = "NOT PROVEN"
+    else:
+        label = "NOT YET MEASURABLE"
+    # rule 55: the label and its numbers describe the record — DESCRIPTIVE
+    return {"basis": "DESCRIPTIVE", "label": label, "picks": n, "min_picks": VERDICT_MIN_N,
+            "p": round(pval, 4) if pval is not None else None, "games": G,
+            "edge_points": round(100 * mean, 1) if mean is not None else None}
+
+
 def current_picks(lg, rows, root=None, now=None):
     """This week's picks: every game not yet played whose latest archived
     snapshot (pulled before kickoff) carries prices at Sam's three books.
@@ -628,6 +657,9 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
            # ⛔ SEPARATE, and shown UNDER the headline, never mixed with it.
            "closing_title": CLOSING_TITLE,
            "closing_record": {mk: rec(wf["closing"][mk]) for mk in MARKETS},
+           # `[Sam, 2026-09-24]` one label per league and market, from the
+           # CLOSING-LINE record, shown beside every record of that market.
+           "verdict_basis": "closing-line record",
            "closing_note": ("The same weekly model and pick rule, graded at closing lines "
                             "instead of your books: CFBD's stored lines. CFBD stores no "
                             "spread or total price, so those rows assume -110 and say so."
@@ -644,6 +676,9 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
                     "clustered by game."),
            "graded": {mk: wf["books"][mk] for mk in MARKETS},
            "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS}}
+    for mk in MARKETS:
+        v = verdict(wf["closing"][mk])
+        doc["record"][mk]["verdict"] = doc["closing_record"][mk]["verdict"] = v
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)

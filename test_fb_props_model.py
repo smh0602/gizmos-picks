@@ -62,15 +62,15 @@ in `research/fb_props_design.md` (Sam, 2026-09-24).
 #   find:     if dec["leagues"] != ["ncaaf", "nfl"]:
 #   with:     if False:
 #
-# @vacuity the builder caps the page's list at the card's BOARD_MAX
+# @vacuity no cap on model picks: every pick the model makes is written
 #   file: fb_props_model.py
-#   find:     return live[:card_fb.BOARD_MAX], live[card_fb.BOARD_MAX:]
-#   with:     return live, []
+#   find:     doc["picks"] = live
+#   with:     doc["picks"] = live[:card_fb.BOARD_MAX]
 #
 # @vacuity the page shows the props model beside the card, after it
 #   file: index.html
-#   find:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM));
-#   with:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M));
+#   find:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM) + fbLedgerHtml(LD));
+#   with:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbLedgerHtml(LD));
 """
 import gzip
 import json
@@ -223,9 +223,24 @@ ck("fbPropModelHtml(PM)" in _app and "k-model" in _pm and "labN(r.hit_rate" in _
    and "labN(r.break_even" in _pm and "board_max" not in _pm and ".slice(" not in _pm,
    "🔴 the page shows the props model as its own MODEL section with picks, hit rate and break-even",
    "⛔ Sam: 'their own section, labelled MODEL ... picks, hit rate and break-even'")
-_shown, _more = M.cap_picks(list(range(40)))
-ck(len(_shown) == card_fb.BOARD_MAX and _more == list(range(card_fb.BOARD_MAX, 40)),
-   "🔴 the BUILDER caps the page at the card's BOARD_MAX, and keeps the rest in the file",
-   "⛔ rule 66: the cap is the builder's, never the page's; rule 7: nothing is hidden. got %d + %d"
-   % (len(_shown), len(_more)))
+# ~~🔴 the BUILDER caps the page at the card's BOARD_MAX (25), the rest in the file~~
+# 🔴 STRUCK 2026-09-24 BY SAM: "No cap on model picks. Only the Gizmo's Picks
+#    card keeps its limit." Driven through build() on 40 fake picks.
+_fake_wf = {"picks": [], "graded": [], "weeks": [], "stage2_weeks": {}, "card_season": 2025,
+            "card_seasons": {}}
+_fake_live = [{"model_probability": {"value": 90 - i, "basis": "MODEL"}, "i": i} for i in range(40)]
+_ow, _oc, _ol = M.walk_forward, M.current_picks, M.log
+_tmpb = tempfile.mkdtemp()
+try:
+    M.walk_forward = lambda *a, **k: _fake_wf
+    M.current_picks = lambda *a, **k: list(_fake_live)
+    M.log = lambda m: None
+    _docb = M.build("nfl", root=_tmpb, out=os.path.join(_tmpb, "fbp.json"))
+finally:
+    M.walk_forward, M.current_picks, M.log = _ow, _oc, _ol
+    shutil.rmtree(_tmpb, ignore_errors=True)
+ck(len(_docb["picks"]) == 40 and _docb["picks_total"] == 40 and "more_picks" not in _docb,
+   "🔴 no cap on model picks: all 40 are written, none held back",
+   "⛔ Sam, 2026-09-24: 'No cap on model picks. Only the Gizmo's Picks card keeps its limit.' got %d"
+   % len(_docb["picks"]))
 

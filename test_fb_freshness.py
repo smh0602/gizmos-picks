@@ -302,7 +302,7 @@ for lg in ("nfl", "ncaaf"):
     #    (fb_model.build, chained after the shadow record) — so it is one of
     #    "the ones it builds", and the check below proves the chain exists.
     ck(all(p.endswith(("dossiers.json.gz", "fb-model.json", "fb-props-model.json",
-                       "card-calibration.json")) for p in extra),
+                       "card-calibration.json", "model-ledger.json")) for p in extra),
        f"   ⚠️ {lg}: `card-fb`'s other files are the ones it builds",
        f"unexpected non-picks files under card-fb: {extra}")
     _cfb = open("collect.py", encoding="utf-8").read()
@@ -315,6 +315,9 @@ for lg in ("nfl", "ncaaf"):
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("card-calibration.json" not in " ".join(extra)) or "_fcc.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds card-calibration.json",
+       "⛔ a contract row on a file its mode never writes is late for ever")
+    ck(("model-ledger.json" not in " ".join(extra)) or "_fl.build(LEAGUE)" in _cfb,
+       f"   🔴 {lg}: ...and card-fb really builds model-ledger.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
 
 print("\n9. 🔴 A PULL THAT CORRECTLY BUYS NOTHING IS NOT A LATE PULL")
