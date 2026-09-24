@@ -443,6 +443,16 @@ if _day:
             for _i, _b in enumerate(_ids)]}, _fh)
     for _f in glob.glob(os.path.join(_d4, "data/nfl/*/shadow/*.json.gz")):
         os.remove(_f)
+    # 🔴 AND ONE OTHER GRADED DAY WITH NO ARCHIVE, BUILT ON PURPOSE.
+    # `[issue #156, 2026-09-24]` The "undescribed rows" below used to come
+    #    from the CALENDAR — boards graded before the archive began. Once
+    #    the real archive covered every graded day there were none, and
+    #    the rule-67 guard (correctly) refused to pass on nothing. ✅ A
+    #    check that waits for the calendar to supply its case is asking
+    #    whether data EXISTS; this makes the case exist, every run, so the
+    #    reason-text checks below always have a row to read.
+    for _od in [x for x in (_D.get("days") or []) if x != _day][:1]:
+        shutil.rmtree(os.path.join(_d4, "data/nfl", _od, "dossiers"), ignore_errors=True)
     shadow_fb.build("nfl", data=os.path.join(_d4, "data", "nfl"), root=_d4,
                     log=lambda m: None, when=_w)
     _D7 = load(glob.glob(os.path.join(_d4, "data/nfl/*/shadow/*.json.gz"))[0])

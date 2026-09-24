@@ -1652,7 +1652,15 @@ def build_schedule(season, seen=None, log=print, lines=None, rows=None, root=Non
     # game by game, whoever calls.
     _stored_at = os.path.join(root or os.path.dirname(os.path.abspath(__file__)),
                               "data", "nfl", "latest")
-    lines = dict(stored_line_scores(_stored_at, season), **(lines or {})) or None
+    # 🔴 "OFFERED" MEANS WHAT THE CALLER DERIVED, NOT WHAT WAS KEPT. `[found
+    #    2026-09-24, issue #156]` the merge above made the report count the
+    #    stored quarter scores as "offered" — 33 where the caller offered 1 —
+    #    and the suite went red on every collector run once 2026's 32 were
+    #    stored. The two are different facts and are reported apart.
+    _offered = len(lines or {})
+    _fresh_ids = set(lines or {})
+    _stored = stored_line_scores(_stored_at, season)
+    lines = dict(_stored, **(lines or {})) or None
     if seen is None and rows is None:
         seen = {r["tag_name"]: [(a["name"], a["size"],
                                  a["browser_download_url"])
@@ -1782,7 +1790,8 @@ def build_schedule(season, seen=None, log=print, lines=None, rows=None, root=Non
     # ⚠️ REPORT THE JOIN, don't assume it landed. A line-score dict that
     # was passed in but matched nothing is a silent hole, and the only
     # way to see it is to count what actually attached.
-    rep["line_scores_offered"] = len(lines or {})
+    rep["line_scores_offered"] = _offered
+    rep["line_scores_kept_from_store"] = len(set(_stored) - _fresh_ids)
     rep["line_scores_joined"] = sum(1 for r in out if r["home_line"])
     log(f"  {len(out):,} games, {finals:,} final, "
         f"{rep['line_scores_joined']} with quarter scores "

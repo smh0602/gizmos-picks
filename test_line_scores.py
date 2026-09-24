@@ -34,6 +34,11 @@ nflverse.
 #   file: nfl.py
 #   find:     lines = dict(stored_line_scores(_stored_at, season), **(lines or {})) or None
 #   with:     lines = dict(**(lines or {})) or None
+
+# @vacuity "offered" counts only the quarter scores the caller derived
+#   file: nfl.py
+#   find:     rep["line_scores_offered"] = _offered
+#   with:     rep["line_scores_offered"] = len(lines or {})
 """
 import os
 import random
@@ -261,6 +266,18 @@ _g9b = {g["id"]: g for g in _d9b["games"]}
 ck(_g9b["2026_01_A_B"]["home_line"] == [10, 0, 7, 0] and _g9b["2026_01_C_D"]["home_line"] == [0, 0, 0, 0],
    "   ✅ ...and a freshly derived game overrides its stored copy while the rest are kept",
    "got %r" % {k: v["home_line"] for k, v in _g9b.items()})
+# 🔴 AND THE REPORT KEEPS THE TWO FACTS APART. `[issue #156, 2026-09-24]`
+#    With stored scores present, "offered" read 33 where the caller offered
+#    1, and the suite went red on every run. Driven here with a store present.
+_ra = N.build_schedule(2026, log=_q9, rows=_rows9, root=_root9)[1]
+_rb = N.build_schedule(2026, log=_q9, rows=_rows9, root=_root9,
+                       lines={"2026_01_A_B": {"home_line": [10, 0, 7, 0], "away_line": [0, 0, 3, 0]}})[1]
+ck(_ra["line_scores_offered"] == 0 and _rb["line_scores_offered"] == 1
+   and _ra["line_scores_kept_from_store"] == 2,
+   "🔴🔴 'offered' counts only what the caller derived; the stored ones are reported as KEPT",
+   "⛔ issue #156: 33 'offered' where 1 was. got offered %r / %r, kept %r"
+   % (_ra.get("line_scores_offered"), _rb.get("line_scores_offered"),
+      _ra.get("line_scores_kept_from_store")))
 _src9 = open(_os9.path.join(_os9.path.dirname(_os9.path.abspath(__file__)), "collect.py"),
              encoding="utf-8").read()
 ck("stored_line_scores" not in _src9,
