@@ -27,6 +27,13 @@ nflverse.
   7. Missing columns write NOTHING.
   8. The join into build_schedule is fail-closed: no lines -> None, and
      the report counts what actually attached.
+  9. 🔴 A REBUILD NEVER DROPS QUARTER SCORES THE STORED FILE HOLDS — a
+     season that was not re-derived keeps what it had.
+
+# @vacuity a schedule rebuild keeps the quarter scores the stored file holds
+#   file: collect.py
+#   find:                 _lines = dict(_nfl.stored_line_scores(base, season),
+#   with:                 _lines = dict({},
 """
 import os
 import random
@@ -210,4 +217,31 @@ print("   numbers must be able to disagree:")
 d, r = build_sched({"NOPE": {"home_line": [1], "away_line": [2]}})
 eq(r.get("line_scores_offered"), 1, "offered")
 eq(r.get("line_scores_joined"), 0, "joined — the gap is visible")
+
+
+# ══════════════════════════════════════════════════════════════════════
+print("\n9. 🔴 A REBUILD NEVER DROPS QUARTER SCORES THE STORED FILE HOLDS")
+# `[found 2026-09-24]` the signals 6/7 history back-fill adds 2025 to the
+# daily run; quarter scores are derived only for the current season, so
+# 2025's schedule was about to be rewritten with every quarter score gone.
+import gzip as _gz9, json as _js9, os as _os9, re as _re9, tempfile as _tf9  # noqa: E401,E402
+_d9 = _tf9.mkdtemp()
+with _gz9.open(_os9.path.join(_d9, "schedule-2025.json.gz"), "wt", encoding="utf-8") as _f9:
+    _js9.dump({"games": [{"id": "2025_01_A_B", "home_line": [7, 7, 0, 3], "away_line": [0, 3, 0, 0]},
+                         {"id": "2025_01_C_D", "home_line": None, "away_line": None}]}, _f9)
+_kept9 = N.stored_line_scores(_d9, 2025)
+ck(_kept9 == {"2025_01_A_B": {"home_line": [7, 7, 0, 3], "away_line": [0, 3, 0, 0]}},
+   "stored quarter scores are read back by game id (games without any are skipped)",
+   "got %r" % _kept9)
+ck(N.stored_line_scores(_d9, 2024) == {},
+   "   ...and a season with no stored schedule gives nothing, not an error")
+# the collector's schedule loop merges them in BEFORE the rebuild
+_src9 = open(_os9.path.join(_os9.path.dirname(_os9.path.abspath(__file__)), "collect.py"),
+             encoding="utf-8").read()
+_m9 = _re9.search(r"_lines = dict\(_nfl\.stored_line_scores\(base, season\),\s*\*\*\(_lines or \{\}\)\) or None"
+                  r"\s*(?:#[^\n]*\s*)*try:\s*_sc, _srep = _nfl\.build_schedule\(season, None, log,\s*lines=_lines\)",
+                  _src9)
+ck(bool(_m9),
+   "🔴 the collector merges the stored quarter scores UNDER fresh ones right before every NFL schedule rebuild",
+   "⛔ without it a multi-season run rewrites a past season with lines=None")
 

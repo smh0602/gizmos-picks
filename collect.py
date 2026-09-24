@@ -4630,6 +4630,11 @@ def run_mode(mode):
                     # that only exists in an Actions log is a diagnosis
                     # you do not have.
                     write(f"{base}/linescore-probe-{season}.json", _lrep)
+                # 🔴 NEVER DROP QUARTER SCORES THE STORED FILE HOLDS.
+                #    A season not re-derived above keeps what it had; a
+                #    season that was re-derived overrides game by game.
+                _lines = dict(_nfl.stored_line_scores(base, season),
+                              **(_lines or {})) or None
                 try:
                     _sc, _srep = _nfl.build_schedule(season, None, log,
                                                      lines=_lines)

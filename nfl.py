@@ -894,6 +894,29 @@ def schedule_dates(season, root=None):
         return {}
 
 
+def stored_line_scores(base, season):
+    """{game id: {"home_line", "away_line"}} from the COMMITTED schedule.
+
+    🔴 A REBUILD MUST NEVER DROP DATA THE STORED FILE ALREADY HOLDS.
+    `[found 2026-09-24]` Quarter scores are derived only for the current
+    season (or a one-season run), because each derivation is a large
+    play-by-play download. A multi-season run — the signals 6/7 history
+    back-fill adds 2025 to the daily `SEASON=CUR` run — then rebuilt 2025's
+    schedule with `lines=None` and would have wiped all 285 of its quarter
+    scores. The caller merges these UNDER whatever it derived fresh.
+    """
+    import gzip as _gz
+    import json as _js
+    p = os.path.join(base, "schedule-%d.json.gz" % int(season))
+    try:
+        with _gz.open(p, "rt", encoding="utf-8") as fh:
+            games = _js.load(fh).get("games") or []
+    except Exception:
+        return {}
+    return {str(g["id"]): {"home_line": g["home_line"], "away_line": g.get("away_line")}
+            for g in games if g.get("id") and g.get("home_line")}
+
+
 def history_gap(base, season):
     """Why `season` must be rebuilt for signals 6 and 7, or None.
 
