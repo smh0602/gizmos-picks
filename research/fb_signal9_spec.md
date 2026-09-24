@@ -143,3 +143,26 @@ It is labelled DESCRIPTIVE. College shows CFBD's returning production.
 ## Changelog
 
 - **2026-09-24:** written and committed before any scoring code.
+- **2026-09-24, scored** (`research/fb_signal9_run_2026-09-24.json`),
+  NFL only, walk-forward, each use with and without signal 9:
+  - Props model: 1,573 graded rungs in 32 games, mean d **−0.0007**
+    (worse). **OFF.**
+  - Card starting point: 198 graded props in 30 game clusters, log loss
+    0.7925 → 0.7967, mean d **−0.0042** (worse). **OFF.**
+  - Game model: 460 closing-line predictions in 154 games, mean d
+    **+0.0002** (not worse; clustered p 0.47, reported only). **KEPT**,
+    NFL only.
+  - College: nothing stored to score, so all three uses stay **OFF** until
+    the first scheduled `cfb-probe` stores returning production and the
+    portal (4 one-time calls, priced by `cfbd_budget.signal9_one_time`).
+- **2026-09-24, check against Sam's figures** (week-1 vacated targets,
+  IR counted as vacated / off the roster only): MIA 56.5 / 56.5, PIT
+  48.3 / 48.3, **WAS 59.7 / 52.5, PHI 40.5 / 37.7**. Sam's 52.3 and 37.3
+  match the off-roster-only definition, where a player on injured reserve
+  still counts as on the team. The rule in §2 says IR counts as vacated,
+  so that is the primary figure (what the uses read) and the off-roster
+  figure is stored beside it (`off_roster`).
+- **2026-09-24, not in this run:** inside-10 targets were not in the
+  local scoring tables (no play-by-play file locally). They are
+  descriptive only (no use reads them) and are written by the next
+  scheduled NFL possession pass.
