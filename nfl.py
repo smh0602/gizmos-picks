@@ -1619,7 +1619,7 @@ def build_line_scores(season, seen=None, log=print):
             "by_game": out}, rep
 
 
-def build_schedule(season, seen=None, log=print, lines=None, rows=None):
+def build_schedule(season, seen=None, log=print, lines=None, rows=None, root=None):
     """Schedule and final scores for one season. **Feeds the Scores tab.**
 
     ✅ FREE AND ALREADY DOWNLOADED. `games.csv.gz` is the same file
@@ -1643,6 +1643,16 @@ def build_schedule(season, seen=None, log=print, lines=None, rows=None):
     """
     log(f"=== nfl: schedule {season} ===")
     rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False}
+    # 🔴 NEVER DROP QUARTER SCORES THE STORED FILE HOLDS — IN EVERY CALLER.
+    # `[found 2026-09-24]` #149 put this merge at ONE call site (the
+    # nfl-logs loop). The `fb-scores` refresher also rebuilds the current
+    # season's schedule, passes no quarter scores, and was wiping 2026's 32
+    # every time it ran — they flipped 32 -> 0 -> 32 on main for days. So it
+    # lives HERE now: stored scores underneath, freshly derived ones win
+    # game by game, whoever calls.
+    _stored_at = os.path.join(root or os.path.dirname(os.path.abspath(__file__)),
+                              "data", "nfl", "latest")
+    lines = dict(stored_line_scores(_stored_at, season), **(lines or {})) or None
     if seen is None and rows is None:
         seen = {r["tag_name"]: [(a["name"], a["size"],
                                  a["browser_download_url"])
