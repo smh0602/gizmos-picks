@@ -32,7 +32,7 @@ nflverse.
 
 # @vacuity every NFL schedule rebuild keeps the quarter scores the stored file holds
 #   file: nfl.py
-#   find:     lines = dict(stored_line_scores(_stored_at, season), **(lines or {})) or None
+#   find:     lines = dict(_stored, **(lines or {})) or None
 #   with:     lines = dict(**(lines or {})) or None
 
 # @vacuity "offered" counts only the quarter scores the caller derived
