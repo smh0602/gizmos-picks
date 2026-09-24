@@ -1,0 +1,236 @@
+# 🔴🔴 THE QUESTION NOBODY IN THIS REPO HAS EVER ASKED: DID A RUN FAIL?
+#
+# `[Sam, 2026-09-14: "ive seen a few failed runs in github today, it
+#  didnt do anyhting about those failed runs"]`
+#
+# ⛔ HE IS RIGHT, AND NOTHING COULD HAVE. Measured before writing this:
+# every input `watchdog.py` reads is a FILE IN THE REPO — the cards,
+# `card-verify-failure.txt`, `freshness.json`, `health.json`,
+# `index.html`. **A red tick on the Actions tab is not a file in the repo,
+# so it is invisible to every guard this project has ever had.**
+#
+# ⚠️ AND DROP 52 WAS NOT ENOUGH. Its alert lives INSIDE `collect.yml` and
+# fires only from the test step, so it cannot see:
+#   - a run that failed BEFORE reaching that step (checkout, setup, a
+#     converge pass)
+#   - a run of `browser.yml`, `self-repair.yml` or `claude.yml`
+#   - anything at all, on the three workflows it does not live in
+# `[4 workflows deployed, 1 of them partially covered]`
+#
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ WHY THIS IS ITS OWN WORKFLOW AND NOT A STEP IN collect.yml
+#
+# 🔴 A STEP INSIDE A WORKFLOW CANNOT REPORT THAT WORKFLOW FAILING TO
+# START. That is rule 242 — I broke `collect.yml`'s YAML once and the
+# watchdog living inside it was structurally unable to say so. The whole
+# point of this file is to watch from OUTSIDE, so it must not share a
+# process with the thing it watches.
+#
+# 💰 FREE. `gh run list` is the GitHub API on a public repo, and the job
+# is seconds of runner time. ⛔ No Claude usage, no Odds credits — it
+# reads status and writes an issue, nothing else.
+name: runs
+# 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
+# ⛔ WITHOUT THIS, TWO CRONS IN ONE HOUR ARE INDISTINGUISHABLE. The
+# `ncaaf` 19:0x question sat open for six days for exactly this reason:
+# `4 19 * * *` and `18 19 * * *` both land in the 19:00Z hour, GitHub
+# delays both by 11-15 minutes, and NOTHING in the API says which run
+# came from which cron. A commit message names the MODE, not the cron.
+# ✅ `run-name:` is read back as `name` in `gh run list` — free, no
+# commit, and it is recorded even when the run FAILS BEFORE COMMITTING
+# or has nothing to commit, which a git-log trailer never would be.
+run-name: ${{ github.event.schedule && format('runs [cron {0}]', github.event.schedule) || format('runs [{0}]', github.event_name) }}
+
+on:
+  # ⛔ Off :00 like every cron here — those slots are the most congested
+  # on GitHub's scheduler and runs get dropped.
+  # ⚠️ HOURLY, because "broken right now" is the thing it reports and a
+  # 24-hour-old answer to that question is worthless.
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: runs
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Ask GitHub whether anything is failing
+        id: look
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL. A shell
+          # step that decides what counts as broken is a second copy of
+          # that judgement (rule 66) — and it is the copy no test can
+          # reach. `runs_report.py` is driven by `test_runs_report.py`.
+          #
+          # 🔴🔴 ~~`gh run list --limit 300`~~ STRUCK 2026-09-15, AND THE
+          # COLLECTION MOVED INTO PYTHON WITH IT. `[measured]` ~351
+          # runs/day against that ask, **254 of them `pages build and
+          # deployment`** (one per commit to `main`). The number had been
+          # raised from 100 nine hours earlier and had ALREADY expired —
+          # which left issue #6 open, titled "a workflow is failing",
+          # with nothing failing and the truncation warning as its entire
+          # content.
+          # ⛔ A FIXED COUNT IS A GUESS WITH AN EXPIRY DATE. `--collect`
+          # pages `/actions/runs` until the TIMESTAMPS say the 24h window
+          # is covered, capped at 10 pages, and the cap failing is a
+          # reported finding rather than a silent under-count.
+          # ⚠️ THE EXISTING TRUNCATION DETECTOR IS KEPT as the backstop —
+          # it reads the data, so it still catches a short list however
+          # the list came to be short.
+          python runs_report.py --collect > /tmp/runs.json 2>/tmp/collect.err
+          crc=$?
+          cat /tmp/collect.err >&2
+          if [ "$crc" != "0" ] || [ ! -s /tmp/runs.json ]; then
+            echo "::warning::could not collect the run list"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          python runs_report.py < /tmp/runs.json > /tmp/body.md
+          rc=$?
+          # ⛔ FOUR STATES, NOT THREE. A coverage problem is not an
+          # outage, and filing it as one is what taught Sam to distrust
+          # the title. `[issue #6]`
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "3" ]; then
+            echo "::warning::the run watcher cannot see a full 24h"
+            echo "state=coverage" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::runs_report could not read the run list"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          cat /tmp/body.md
+          exit 0
+
+      # ⚠️ ONE ISSUE PER QUESTION, UPDATED IN PLACE, CLOSED BY ITSELF —
+      # the same shape as the watchdog's and the test alert's, for the
+      # same reason: a workflow that opens a fresh issue every hour is
+      # one whose notifications get filtered, and a filtered alert is no
+      # alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not
+      # "everything is fine" and must never close an open issue.
+      #
+      # 🔴🔴 TWO TITLES, BECAUSE THERE ARE TWO QUESTIONS. `[added
+      # 2026-09-15 — issue #6 sat OPEN under the outage title with
+      # NOTHING failing, its whole body the truncation warning.]`
+      # ⛔ A MISCATEGORISED ALARM IS THE SAME DISEASE AS A FALSE ONE: Sam
+      # reads the title from his phone, and an outage title on a coverage
+      # problem teaches him the title is noise.
+      # ✅ So a coverage finding files under its OWN title AND CLOSES the
+      # false outage issue, which is how #6 cleans itself up.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - a workflow is failing"
+          COV_TITLE="Gizmo's Picks - the run watcher cannot see a full day"
+          find_issue () {
+            gh issue list --state open --limit 100 --json number,title \
+              --jq ".[] | select(.title == \"$1\") | .number" | head -1
+          }
+          NUM=$(find_issue "$TITLE")
+          COV=$(find_issue "$COV_TITLE")
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not determine run state — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — every workflow's latest run is green."
+              gh issue close "$NUM"
+            fi
+            if [ -n "$COV" ]; then
+              gh issue comment "$COV" --body "✅ Resolved — the watcher can see a full day again."
+              gh issue close "$COV"
+            fi
+            echo "all workflows green"
+            exit 0
+          fi
+          if [ "$STATE" = "coverage" ]; then
+            # ⛔ NOTHING IS FAILING, so the outage issue is FALSE and gets
+            # closed. This is the line that cleans up #6.
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Closing — nothing is failing. The only finding was that the watcher could not see a full 24h, which is now tracked under \"$COV_TITLE\"."
+              gh issue close "$NUM"
+            fi
+            # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+            # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+            # left the `gh issue edit` path alone. Every watcher files ONCE and then
+            # updates in place for ever, so **five of the six open watcher issues
+            # carried no label at all** — #69, #44, #42, #31, #16 — and
+            # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+            # vacuous guards, which is the exact thing PR #73 existed to make
+            # actionable, was one of the five.
+            # ✅ `--add-label` on the edit path HEALS them: the next run of each
+            # watcher puts its own issue into the queue. Nothing has to be relabelled
+            # by hand.
+            # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+            # when X does not exist — the create path needed that and the edit path
+            # needs it too.
+            gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+            if [ -n "$COV" ]; then
+              gh issue edit "$COV" --add-label gizmo-watch --body-file /tmp/body.md
+            else
+              gh issue create --label gizmo-watch --title "$COV_TITLE" --body-file /tmp/body.md --assignee smh0602 \
+                || gh issue create --label gizmo-watch --title "$COV_TITLE" --body-file /tmp/body.md \
+                || gh issue create --title "$COV_TITLE" --body-file /tmp/body.md
+            fi
+            echo "coverage finding filed under its own title"
+            exit 0
+          fi
+          # ⛔ `bad` LEAVES THE COVERAGE ISSUE ALONE. A red workflow
+          # outranks truncation, but it does not RESOLVE it — if the list
+          # is also short, that is still true.
+          # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+          # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+          # left the `gh issue edit` path alone. Every watcher files ONCE and then
+          # updates in place for ever, so **five of the six open watcher issues
+          # carried no label at all** — #69, #44, #42, #31, #16 — and
+          # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+          # vacuous guards, which is the exact thing PR #73 existed to make
+          # actionable, was one of the five.
+          # ✅ `--add-label` on the edit path HEALS them: the next run of each
+          # watcher puts its own issue into the queue. Nothing has to be relabelled
+          # by hand.
+          # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+          # when X does not exist — the create path needed that and the edit path
+          # needs it too.
+          gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/body.md
+          else
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/body.md \
+              || gh issue create --title "$TITLE" --body-file /tmp/body.md
+          fi
+          exit 0

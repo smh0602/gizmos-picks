@@ -33,12 +33,14 @@ permissions:
 
 jobs:
   grade:
-    runs-on: ubuntu-latest
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
