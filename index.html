@@ -4715,7 +4715,7 @@ async function fbPropModelLoad(lg){
 function fbPropModelHtml(M){
   if (!M) return `<div class="panel"><h2>Prop model picks <span class="kind k-model">Model</span></h2>
     <div class="note">The props model's file has not been built yet. It is rebuilt with the card.</div></div>`;
-  const all = M.picks || [], cap = M.board_max || 25, shown = all.slice(0, cap);
+  const shown = M.picks || [], total = M.picks_total || shown.length;
   const side = s => ({over: 'Over', under: 'Under', yes: 'Yes'}[s] || s);
   const picks = shown.map(p => `<tr><td>${fbEsc(p.player)}<br><span class="rec">${fbEsc(p.game)} · ${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
       <td>${fbEsc(p.market_label || p.market)}</td>
@@ -4734,7 +4734,7 @@ function fbPropModelHtml(M){
       break-even of the best ${(M.books || []).join(', ')} price, inside the card's own price limits
       (${M.price_floor} to +${M.price_ceiling}). It does not change the card above.
       <span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
-    <h3 style="margin:14px 0 8px;font-size:14px">This week${all.length > cap ? ` — top ${cap} of ${all.length} by the model's chance` : ''}</h3>
+    <h3 style="margin:14px 0 8px;font-size:14px">This week${total > shown.length ? ` — top ${shown.length} of ${total} by the model's chance` : ''}</h3>
     ${picks ? `<table class="ob"><thead><tr><th>Player</th><th>Market</th><th>Pick</th><th>Price</th>
       <th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
       : '<div class="note">No prop this week clears the break-even of the best available price.</div>'}

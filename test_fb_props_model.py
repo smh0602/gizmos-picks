@@ -62,6 +62,11 @@ in `research/fb_props_design.md` (Sam, 2026-09-24).
 #   find:     if dec["leagues"] != ["ncaaf", "nfl"]:
 #   with:     if False:
 #
+# @vacuity the builder caps the page's list at the card's BOARD_MAX
+#   file: fb_props_model.py
+#   find:     return live[:card_fb.BOARD_MAX], live[card_fb.BOARD_MAX:]
+#   with:     return live, []
+#
 # @vacuity the page shows the props model beside the card, after it
 #   file: index.html
 #   find:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM));
@@ -215,6 +220,12 @@ _html = os.path.join(ROOT, "index.html")
 _app = jsblock.js_block("fbModelAppend", _html)
 _pm = jsblock.js_block("fbPropModelHtml", _html)
 ck("fbPropModelHtml(PM)" in _app and "k-model" in _pm and "labN(r.hit_rate" in _pm
-   and "labN(r.break_even" in _pm and "M.board_max" in _pm,
+   and "labN(r.break_even" in _pm and "board_max" not in _pm and ".slice(" not in _pm,
    "🔴 the page shows the props model as its own MODEL section with picks, hit rate and break-even",
    "⛔ Sam: 'their own section, labelled MODEL ... picks, hit rate and break-even'")
+_shown, _more = M.cap_picks(list(range(40)))
+ck(len(_shown) == card_fb.BOARD_MAX and _more == list(range(card_fb.BOARD_MAX, 40)),
+   "🔴 the BUILDER caps the page at the card's BOARD_MAX, and keeps the rest in the file",
+   "⛔ rule 66: the cap is the builder's, never the page's; rule 7: nothing is hidden. got %d + %d"
+   % (len(_shown), len(_more)))
+

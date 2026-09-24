@@ -812,6 +812,13 @@ def current_picks(lg, wf, root=None, now=None):
     return out
 
 
+def cap_picks(live):
+    """-> (the top `card_fb.BOARD_MAX` by the model's chance, the rest).
+    ⛔ Rule 66: the cap is the BUILDER's, so the page never holds a copy.
+    Rule 7: the rest stay in the file, labelled, never dropped."""
+    return live[:card_fb.BOARD_MAX], live[card_fb.BOARD_MAX:]
+
+
 def build(lg=None, root=None, out=None, logs=None):
     lg = (lg or LEAGUE).lower()
     wf = walk_forward(lg, root, logs)
@@ -833,9 +840,7 @@ def build(lg=None, root=None, out=None, logs=None):
            "design": "research/fb_props_design.md",
            "books": sorted(set(collect.BOOKS[k] for k in F.books_ok(lg))),
            "price_floor": card_fb.PRICE_FLOOR, "price_ceiling": card_fb.PRICE_CEIL,
-           "board_max": card_fb.BOARD_MAX,
            "record": rec,
-           "picks": current_picks(lg, wf, root),
            "weeks": wf["weeks"], "stage2_weeks": wf["stage2_weeks"],
            "graded_rungs": len(wf["graded"]),
            "calibration": {"model": calibration(wf["graded"], "p_model"),
@@ -851,6 +856,9 @@ def build(lg=None, root=None, out=None, logs=None):
                     "card's own probabilities are recomputed with its own rating function to "
                     "compare the two on the same props.")}
     doc["decision"] = pooled_decision(lg, mine, root)
+    live = current_picks(lg, wf, root)
+    doc["picks"], doc["more_picks"] = cap_picks(live)
+    doc["picks_total"] = len(live)
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-props-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)
