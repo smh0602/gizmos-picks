@@ -496,6 +496,11 @@ fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   against the props card's OWN recomputed probabilities.
                   Rides `card-fb`. ⛔ Never touches the card; the switch
                   is Sam's. Design: research/fb_props_design.md.
+fb_card_calibration.py  the football props card's stated-vs-actual bands
+                  and Sam's pre-registered calibration test
+                  (`research/fb_card_calibration_spec.md`, frozen).
+                  ⛔ Never changes what the card prints; a QUALIFIES
+                  waits for Sam. Rides `card-fb`.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule

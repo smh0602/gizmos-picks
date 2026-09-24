@@ -79,3 +79,14 @@ seeing a result, and disclosed here so Sam can overrule any of it.**
 ## Changelog
 
 - **2026-09-24:** written and committed before any scoring code.
+- **2026-09-24, first scoring: NOT YET MEASURABLE.** 157 picks were
+  scored walk-forward, of the 500 needed; 345 graded picks exist in total,
+  and the first week has nothing earlier to learn from. The correction
+  cut log loss from 0.871 to 0.695 (NFL, 98 picks) and from 1.065 to
+  0.701 (college, 59), with mean d = +0.247 and p = 0.008. But the rule
+  needs 500, so **the card keeps its raw numbers** and carries the
+  warning.
+  - ⚠️ The fitted mapping is nearly flat (slope 0.07, then 0.01 on the
+    logit scale). Every printed confidence maps to roughly 50–53%, so on
+    this evidence the printed number carries almost no information about
+    which props hit.

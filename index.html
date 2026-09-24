@@ -4594,6 +4594,35 @@ function fbCalNote(C){
     number honestly.</b> ${C.calibration_warning}</div>`;
 }
 
+/* 🔴 STATED VS ACTUAL, EVERY 10-POINT BAND, NEXT TO THE CARD.
+   `[Sam, 2026-09-24]` "On the page, next to the football props card, show
+   stated vs actual hit rate for each 10-point band, labelled DESCRIPTIVE."
+   The bands, their flags and the test's verdict all come from
+   card-calibration.json — ⛔ none of the rule is re-computed here. */
+const FBCARDCAL = {};
+async function fbCardCalLoad(lg){
+  if (FBCARDCAL[lg] !== undefined) return FBCARDCAL[lg];
+  try { FBCARDCAL[lg] = await jget(`${LG_DATA[lg]}/latest/card-calibration.json`); }
+  catch(e){ FBCARDCAL[lg] = null; }
+  return FBCARDCAL[lg];
+}
+function fbCardCalHtml(K){
+  if (!K || !(K.bands || []).length) return '';
+  const rows = K.bands.map(b => `<tr${b.flag === 'UNDER' ? ' style="color:var(--bad,#c0392b)"' : ''}>
+      <td>${fbEsc(b.bucket)}</td><td>${labN(b.graded)}</td><td>${labN(b.stated, '%')}</td>
+      <td>${labN(b.actual, '%')}</td><td>${b.flag === 'UNDER' ? '&#9888; running high' : ''}</td></tr>`).join('');
+  const T = K.test || {};
+  const status = T.applied ? '' : `<div class="note" style="margin-top:8px">&#9888; <b>These are the card's raw
+      numbers.</b> A correction replaces them only if it passes a test fixed in advance${
+      T.verdict === 'NOT YET MEASURABLE' ? ` &mdash; not yet measurable: ${T.n} of the ${T.min_n} graded plays it needs`
+      : T.verdict === 'QUALIFIES' ? ' &mdash; it has passed, and is waiting for Sam to decide'
+      : ` &mdash; it did not pass (${T.n} graded plays)`}.</div>`;
+  return `<details style="margin-top:10px" open><summary><b>How this card's confidence has held up</b>
+      <span class="kind k-desc">Record</span></summary>
+    <table class="ob" style="margin-top:8px"><thead><tr><th>Card said</th><th>Graded</th><th>Average said</th>
+      <th>Actually hit</th><th></th></tr></thead><tbody>${rows}</tbody></table>${status}</details>`;
+}
+
 function fbNoModelNote(C){
   return `<div class="note" style="margin-top:16px">
     &#9940; <b>No row here carries a Gizmo's confidence rating, and none
@@ -4800,6 +4829,7 @@ async function fbPicks(){
     await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
+  const CC = await fbCardCalLoad(LEAGUE);
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div style="margin-bottom:10px">
       <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks
@@ -4809,6 +4839,7 @@ async function fbPicks(){
          ${freshness(C.odds_pulled_at)}</p>
       ${fbDayLine(C)}
       ${fbCalNote(C)}
+      ${fbCardCalHtml(CC)}
     </div>
     ${fbShortNote(C)}
     ${fbConfBar()}
