@@ -132,6 +132,15 @@ def bands(rows, key):
             for b in bk if b["n"]]
 
 
+def _band_rows(flags):
+    """calibration.band_flags rows -> the page's rows. ⛔ One copy, read by
+    both the current method's table and the before-the-fix table."""
+    return [{"bucket": b["bucket"], "graded": L(b["n"], "DESCRIPTIVE"),
+             "stated": L(round(b["stated"], 1), "DESCRIPTIVE"),
+             "actual": L(b["actual"], "DESCRIPTIVE"), "flag": b["state"]}
+            for b in flags]
+
+
 def page_bands(lg, root=None):
     """The card's own record, every 10-point band, with calibration.py's
     per-band verdict. What the page shows next to the card."""
@@ -144,10 +153,7 @@ def page_bands(lg, root=None):
     #    `actual` and `state`), not record.json's — so they are read from
     #    that function's result, held apart from the file.
     flags = C.band_flags(rec.get("calibration"))
-    return [{"bucket": b["bucket"], "graded": L(b["n"], "DESCRIPTIVE"),
-             "stated": L(round(b["stated"], 1), "DESCRIPTIVE"),
-             "actual": L(b["actual"], "DESCRIPTIVE"), "flag": b["state"]}
-            for b in flags]
+    return _band_rows(flags)
 
 
 def _graded_rows(lg, root=None):
@@ -183,10 +189,7 @@ def page_bands_before(lg, root=None):
     for m, cal in by.items():
         if m == cur:
             continue
-        out[m] = [{"bucket": b["bucket"], "graded": L(b["n"], "DESCRIPTIVE"),
-                   "stated": L(round(b["stated"], 1), "DESCRIPTIVE"),
-                   "actual": L(b["actual"], "DESCRIPTIVE"), "flag": b["state"]}
-                  for b in C.band_flags(cal)]
+        out[m] = _band_rows(C.band_flags(cal))
     return out
 
 
