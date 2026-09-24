@@ -14,6 +14,21 @@ are worse here than anywhere else:
 the NFL over/under asymmetry, with a bar fixed before any data. **A
 monitor that quietly answered T58 would destroy the test**, because the
 whole value of pre-registration is that the bar was chosen blind.
+
+# @vacuity a band far below its claim is flagged even when the pooled figure is fine
+#   file: calibration.py
+#   find:     if under:
+#   with:     if False:
+#
+# @vacuity a band under its floor of rows is not asked
+#   file: calibration.py
+#   find:         if n < BAND_MIN_N:
+#   with:         if n < 1:
+#
+# @vacuity the card's banner opens with the warning when a band is flagged
+#   file: card_fb.py
+#   find:     return (alarm + "; ".join(parts) + "."
+#   with:     return ("; ".join(parts) + "."
 """
 import json
 import math
@@ -215,5 +230,36 @@ note("⛔ WHAT THIS DOES NOT CLAIM: that a green run means the picks are "
      "board delivered materially less than it stated, on enough rows to "
      "read, and that a human should look. ➡️ Four watchers, four "
      "questions, and none of them replaces another.")
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 EVERY 10-POINT BAND ON ITS OWN  `[Sam, 2026-09-24]`
+# ══════════════════════════════════════════════════════════════════════
+# The live miss: college's 80-90 band delivered 59% against 85% and its
+# 90-100 band 62% against 95%, and the POOLED gap read -9.4, "inside the
+# bar". Here a low band over-delivers and hides a high band that fails.
+_hidden = C.judge(doc([bucket(40.0, 60, 100), bucket(85.0, 12, 25)]))
+ck("🔴🔴 a band far below its claim is flagged even when the POOLED figure looks fine",
+   _hidden["state"] == "UNDER" and "85.0%" in _hidden["why"],
+   "pooled here is +8.6 points; the 85%% band delivered 48%%. got %r" % (_hidden,))
+_floor = C.judge(doc([bucket(40.0, 60, 100), bucket(90.0, 1, 9)]))
+ck("⚠️ ...but a band under its floor of %d rows is not asked" % C.BAND_MIN_N,
+   _floor["state"] != "UNDER",
+   "a 1-of-9 band is noise wearing a finding's clothes. got %r" % _floor.get("state"))
+_near = C.judge(doc([bucket(40.0, 60, 100), bucket(85.0, 19, 25)]))
+ck("✅ ...and a band within 15 points of its claim is not flagged",
+   _near["state"] != "UNDER", "76%% against 85%% is inside the bar. got %r" % _near.get("state"))
+
+import card_fb as _CF  # noqa: E402
+_flags = [b for b in C.band_flags([bucket(85.0, 12, 25)]) if b["state"] == "UNDER"]
+_ban = _CF.calibration_sentence_fb({"80-plus": {"n": 25, "w": 12, "delivered": 48.0,
+                                                "claimed": 85.0, "delta": -37.0}}, 0, _flags)
+ck("🔴🔴 the card's banner OPENS with a plain warning when a band is flagged",
+   _ban.startswith("⚠️ These confidence numbers are running high") and "48% (25 graded)" in _ban,
+   "⛔ Sam: the banner printed the gap as one figure among four and never warned. got %r" % _ban[:160])
+_quiet = _CF.calibration_sentence_fb({"80-plus": {"n": 25, "w": 21, "delivered": 84.0,
+                                                  "claimed": 85.0, "delta": -1.0}}, 0, [])
+ck("   ✅ ...and says nothing alarming when no band is flagged",
+   not _quiet.startswith("⚠️"), "got %r" % _quiet[:120])
+
 
 sys.exit(0)

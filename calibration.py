@@ -69,6 +69,15 @@ MIN_N = 100
 #    that test before any data existed.
 GAP_POINTS = 15.0
 P_MAX = 0.01
+# 🔴🔴 AND EVERY 10-POINT BAND IS ASKED ON ITS OWN. `[Sam, 2026-09-24]`
+#    The pooled question alone let a band hide behind its neighbours:
+#    college's 80-90 band hit 59% against a claimed 85% and its 90-100
+#    band 62% against 95% while the POOLED gap read −9.4, "inside the
+#    bar". ⚠️ GAP_POINTS and P_MAX are the same borrowed bars. The one new
+#    number is the band floor, set 2026-09-24 AFTER seeing the gap and said
+#    so: 10 rows, below which a band is not asked. The p is an EXACT
+#    one-sided binomial tail, because a band's n is small.
+BAND_MIN_N = 10
 
 
 def _two_sided_p(w, n, p0):
@@ -100,6 +109,36 @@ def pooled(cal):
     return n, w, stated
 
 
+def _binom_low(w, n, p0):
+    """Exact P(X <= w) for X ~ Binomial(n, p0)."""
+    if n <= 0 or not (0.0 < p0 < 1.0):
+        return None
+    return min(1.0, sum(math.comb(n, k) * p0 ** k * (1.0 - p0) ** (n - k)
+                        for k in range(0, int(w) + 1)))
+
+
+def band_flags(cal):
+    """Every 10-point band asked on its own. -> [{bucket, n, w, stated,
+    actual, gap, p, state}] with state UNDER / NOT_MEASURABLE / OK."""
+    out = []
+    for b in cal or []:
+        if not isinstance(b, dict) or not b.get("n") or b.get("stated") is None:
+            continue
+        n, w, stated = int(b["n"]), int(b.get("w") or 0), float(b["stated"])
+        actual = 100.0 * w / n
+        row = {"bucket": b.get("bucket"), "n": n, "w": w, "stated": stated,
+               "actual": round(actual, 1), "gap": round(actual - stated, 1), "p": None}
+        if n < BAND_MIN_N:
+            row["state"] = "NOT_MEASURABLE"
+        else:
+            p = _binom_low(w, n, stated / 100.0)
+            row["p"] = p
+            row["state"] = ("UNDER" if (actual - stated <= -GAP_POINTS and p is not None
+                                        and p < P_MAX) else "OK")
+        out.append(row)
+    return out
+
+
 def judge(doc):
     """One league -> a verdict dict. Never raises on a malformed file."""
     if not isinstance(doc, dict):
@@ -108,6 +147,17 @@ def judge(doc):
     if not n or stated is None:
         return {"state": "UNREADABLE",
                 "why": "no calibration buckets carrying a sample"}
+    bands = band_flags(doc.get("calibration"))
+    under = [b for b in bands if b["state"] == "UNDER"]
+    if under:
+        # ⛔ A BAND THIS FAR OFF IS FLAGGED WHATEVER THE POOLED FIGURE SAYS.
+        return {"n": n, "w": w, "stated": stated, "actual": 100.0 * w / n,
+                "gap": 100.0 * w / n - stated, "z": None, "p": None,
+                "built_at": doc.get("built_at"), "bands": bands, "state": "UNDER",
+                "why": "; ".join("the %s band claimed %.1f%% and delivered %.1f%% over %d "
+                                 "graded rows (%+.1f points, p=%.5f)"
+                                 % (b["bucket"], b["stated"], b["actual"], b["n"], b["gap"], b["p"])
+                                 for b in under)}
     actual = 100.0 * w / n
     gap = actual - stated
     zp = _two_sided_p(w, n, stated / 100.0)

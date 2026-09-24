@@ -116,7 +116,7 @@ from datetime import datetime, timezone
 #    it would be the copy that runs on the day the import breaks. A
 #    missing calibration.py is a broken repo and the builder should say so
 #    loudly rather than quietly publish a bar nobody chose.
-from calibration import MIN_N
+from calibration import MIN_N, band_flags
 
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
@@ -228,7 +228,31 @@ def load_calibration_fb(path=None):
     return out, dropped
 
 
-def calibration_sentence_fb(cal=None, dropped=0):
+def calibration_flags_fb(path=None):
+    """The 10-point bands `calibration.band_flags` calls UNDER, from THIS
+    league's graded record. ⛔ One copy of the rule: calibration.py's."""
+    path = path or f"{DATA}/latest/record.json"
+    try:
+        rec = json.load(open(path))
+    except Exception:
+        return []
+    return [b for b in band_flags(rec.get("calibration")) if b["state"] == "UNDER"]
+
+
+def calibration_alarm_fb(flags):
+    """🔴 THE WARNING, IN WORDS A READER CAN USE. `[Sam, 2026-09-24]` the
+    banner printed "80-plus hit 40.8% against a claimed 84.1%" as one
+    figure among four and never said the numbers could not be trusted.
+    ⛔ No test ids, no p-values — the numbers carry the argument."""
+    if not flags:
+        return ""
+    parts = [f"when it said {b['bucket'].replace('%', '')}%, those plays hit "
+             f"{b['actual']:g}% ({b['n']} graded)" for b in flags]
+    return ("⚠️ These confidence numbers are running high. On this card's own record, "
+            + "; ".join(parts) + ". Treat every confidence below as overstated. ")
+
+
+def calibration_sentence_fb(cal=None, dropped=0, flags=None):
     """The banner above the football rows, built from the record.
 
     ⚠️ NO "Read the confidence number honestly." PREFIX HERE. The page
@@ -238,11 +262,13 @@ def calibration_sentence_fb(cal=None, dropped=0):
     """
     if cal is None:
         cal, dropped = load_calibration_fb()
+        flags = calibration_flags_fb() if flags is None else flags
+    alarm = calibration_alarm_fb(flags or [])
     have = [(b, cal[b]) for b in FB_BAND_ORDER
             if b in cal and cal[b]["n"] >= FB_CAL_MIN_N]
     if not have:
         thin_n = sum(c["n"] for c in cal.values())
-        return (f"There are not enough graded {LG_NAME} plays yet to say "
+        return alarm + (f"There are not enough graded {LG_NAME} plays yet to say "
                 f"whether these confidence numbers hold up"
                 + (f" — {thin_n} so far, and no band has reached "
                    f"{FB_CAL_MIN_N}." if thin_n else ".")
@@ -281,7 +307,7 @@ def calibration_sentence_fb(cal=None, dropped=0):
         if total < MIN_N else
         f" {total} graded {LG_NAME} plays behind these figures and small "
         "samples throughout -- every one of them will move.")
-    return ("; ".join(parts) + "."
+    return (alarm + "; ".join(parts) + "."
             + f" The {best[0]} band is currently the closest to its own claim."
             + tail + drop + weight)
 
