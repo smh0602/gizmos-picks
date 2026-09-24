@@ -30,10 +30,10 @@ nflverse.
   9. 🔴 A REBUILD NEVER DROPS QUARTER SCORES THE STORED FILE HOLDS — a
      season that was not re-derived keeps what it had.
 
-# @vacuity a schedule rebuild keeps the quarter scores the stored file holds
-#   file: collect.py
-#   find:                 _lines = dict(_nfl.stored_line_scores(base, season),
-#   with:                 _lines = dict({},
+# @vacuity every NFL schedule rebuild keeps the quarter scores the stored file holds
+#   file: nfl.py
+#   find:     lines = dict(stored_line_scores(_stored_at, season), **(lines or {})) or None
+#   with:     lines = dict(**(lines or {})) or None
 """
 import os
 import random
@@ -235,13 +235,34 @@ ck(_kept9 == {"2025_01_A_B": {"home_line": [7, 7, 0, 3], "away_line": [0, 3, 0, 
    "got %r" % _kept9)
 ck(N.stored_line_scores(_d9, 2024) == {},
    "   ...and a season with no stored schedule gives nothing, not an error")
-# the collector's schedule loop merges them in BEFORE the rebuild
+# 🔴 THE BUILDER ITSELF keeps them — so EVERY caller does (the nfl-logs
+#    loop AND the fb-scores refresher, which wiped 2026's for days).
+_root9 = _tf9.mkdtemp()
+_lat9 = _os9.path.join(_root9, "data", "nfl", "latest")
+_os9.makedirs(_lat9)
+with _gz9.open(_os9.path.join(_lat9, "schedule-2026.json.gz"), "wt", encoding="utf-8") as _f9:
+    _js9.dump({"games": [{"id": "2026_01_A_B", "home_line": [7, 7, 0, 3], "away_line": [0, 3, 0, 0]},
+                         {"id": "2026_01_C_D", "home_line": [0, 0, 0, 0], "away_line": [3, 0, 0, 0]}]}, _f9)
+_rows9 = [{"season": "2026", "week": "1", "gameday": "2026-09-10", "gametime": "20:20",
+           "game_id": gid, "home_team": h, "away_team": a, "home_score": hs, "away_score": as_}
+          for gid, h, a, hs, as_ in (("2026_01_A_B", "A", "B", "17", "3"), ("2026_01_C_D", "C", "D", "0", "3"))]
+_q9 = lambda *a, **k: None  # noqa: E731
+# as fb-scores calls it: NO quarter scores passed
+_d9a, _ = N.build_schedule(2026, log=_q9, rows=_rows9, root=_root9)
+_g9a = {g["id"]: g for g in _d9a["games"]}
+ck(_g9a["2026_01_A_B"]["home_line"] == [7, 7, 0, 3] and _g9a["2026_01_C_D"]["away_line"] == [3, 0, 0, 0],
+   "🔴🔴 a rebuild that passes NO quarter scores (the fb-scores refresher) keeps the stored ones",
+   "⛔ measured on main 2026-09-22..24: 2026's 32 quarter scores flipped 32 -> 0 -> 32. got %r"
+   % {k: v["home_line"] for k, v in _g9a.items()})
+# as nfl-logs calls it: freshly derived scores win, game by game
+_d9b, _ = N.build_schedule(2026, log=_q9, rows=_rows9, root=_root9,
+                           lines={"2026_01_A_B": {"home_line": [10, 0, 7, 0], "away_line": [0, 0, 3, 0]}})
+_g9b = {g["id"]: g for g in _d9b["games"]}
+ck(_g9b["2026_01_A_B"]["home_line"] == [10, 0, 7, 0] and _g9b["2026_01_C_D"]["home_line"] == [0, 0, 0, 0],
+   "   ✅ ...and a freshly derived game overrides its stored copy while the rest are kept",
+   "got %r" % {k: v["home_line"] for k, v in _g9b.items()})
 _src9 = open(_os9.path.join(_os9.path.dirname(_os9.path.abspath(__file__)), "collect.py"),
              encoding="utf-8").read()
-_m9 = _re9.search(r"_lines = dict\(_nfl\.stored_line_scores\(base, season\),\s*\*\*\(_lines or \{\}\)\) or None"
-                  r"\s*(?:#[^\n]*\s*)*try:\s*_sc, _srep = _nfl\.build_schedule\(season, None, log,\s*lines=_lines\)",
-                  _src9)
-ck(bool(_m9),
-   "🔴 the collector merges the stored quarter scores UNDER fresh ones right before every NFL schedule rebuild",
-   "⛔ without it a multi-season run rewrites a past season with lines=None")
-
+ck("stored_line_scores" not in _src9,
+   "   ⛔ ...and the collector no longer carries a second copy of the merge (rule 117)",
+   "one copy, in nfl.build_schedule")
