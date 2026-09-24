@@ -1,10 +1,10 @@
 {
  "date": "2026-09-24",
  "league": "ncaaf",
- "generated_at": "2026-09-24T18:30:01Z",
+ "generated_at": "2026-09-24T19:44:46Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
- "odds_pulled_at": "2026-09-24T18:10:42Z",
+ "odds_pulled_at": "2026-09-24T19:44:46Z",
  "logs_season": 2025,
  "rates_available": true,
  "snap_floor": null,
@@ -22,27 +22,11 @@
   ],
   "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
  },
- "game_lines": [
-  {
-   "kind": "MARKET",
-   "game": "Liberty Flames @ Coastal Carolina Chanticleers",
-   "game_id": "9e0eaa3fed3125ec9629a777bf077185",
-   "commence": "2026-09-24T23:30:00Z",
-   "market": "totals",
-   "side": "Over",
-   "point": 50.5,
-   "best_price": -105,
-   "best_book": "draftkings",
-   "link": null,
-   "median_price": 1.9091,
-   "n_books": 3,
-   "gain_pct": 2.27
-  }
- ],
+ "game_lines": [],
  "game_lines_meta": {
   "games_seen": 1,
-  "comparable_quotes": 4,
-  "games_with_an_edge": 1,
+  "comparable_quotes": 2,
+  "games_with_an_edge": 0,
   "min_books": 3,
   "slate": "2026-09-24",
   "off_day_games": 84,
@@ -54,9 +38,9 @@
   ],
   "card_slate": "2026-09-24",
   "is_next_slate": false,
-  "snapshot": "data/ncaaf/2026-09-24/gamelines/1625.json.gz"
+  "snapshot": "data/ncaaf/2026-09-24/gamelines/1944.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "No game lines for this slate yet. 1 game(s) are on the board and 2 quote(s) had 3+ books at the same signed number \u2014 not enough agreement to compare prices, which is a fact about the board and not a view about the games.",
  "top_plays": [
   {
    "kind": "fb",
@@ -66,7 +50,7 @@
    "market": "player_pass_yds",
    "market_label": "Passing yards",
    "side": "under",
-   "line": 201.5,
+   "line": 195.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
@@ -74,7 +58,7 @@
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4977414596206920072",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/164795012868080029",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -91,9 +75,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 8 games this record is built from \u2014 77.2 pass yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Deshawn Purdie</b> went under 201.5 pass yds in <b>7 of 8 games</b> in 2025 (88%) across the games he appears in.",
+    "<b>Deshawn Purdie</b> went under 195.5 pass yds in <b>7 of 8 games</b> in 2025 (88%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>77.2 pass yds a game</b> over those 8 games, against a line of 201.5.",
+    "He averaged <b>77.2 pass yds a game</b> over those 8 games, against a line of 195.5.",
     "\u26a0\ufe0f That line is a long way from what he actually did last season, which usually means his role has changed. His record is history; it is not evidence about a line he never faced.",
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
@@ -140,13 +124,13 @@
    },
    {
     "decimal": "2-3",
-    "available": 4,
-    "taken": 4
+    "available": 3,
+    "taken": 3
    },
    {
     "decimal": "3-99",
-    "available": 0,
-    "taken": 0
+    "available": 1,
+    "taken": 1
    }
   ],
   "rejected": {
@@ -161,8 +145,8 @@
   "2": [
    {
     "legs": [
-     "Deshawn Purdie u201.5 pass yds",
-     "Over 50.5 total"
+     "Deshawn Purdie u195.5 pass yds",
+     "Jevon Edwards u48.5 rush yds"
     ],
     "game": "Liberty Flames @ Coastal Carolina Chanticleers",
     "game_id": "9e0eaa3fed3125ec9629a777bf077185",
@@ -170,79 +154,13 @@
     "book": "hardrockbet",
     "prices": [
      -115,
-     -110
+     -115
     ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.569,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 83,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     83
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Jevon Edwards u49.5 rush yds",
-     "Over 50.5 total"
-    ],
-    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
-    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.569,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 82,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     82
-    ],
-    "band_floor": 1.8
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "Deshawn Purdie u201.5 pass yds",
-     "Jevon Edwards u49.5 rush yds",
-     "Over 50.5 total"
-    ],
-    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
-    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -115,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.673,
+    "n_line_legs": 0,
+    "multiplier": 3.495,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -255,13 +173,12 @@
      83,
      82
     ],
-    "band_floor": 3.0
+    "band_floor": 1.8
    },
    {
     "legs": [
-     "Deshawn Purdie u201.5 pass yds",
-     "Dominic Knicely u6.5 rec yds",
-     "Over 50.5 total"
+     "Deshawn Purdie u195.5 pass yds",
+     "Dominic Knicely u6.5 rec yds"
     ],
     "game": "Liberty Flames @ Coastal Carolina Chanticleers",
     "game_id": "9e0eaa3fed3125ec9629a777bf077185",
@@ -269,14 +186,13 @@
     "book": "hardrockbet",
     "prices": [
      -115,
-     -110,
      -110
     ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.814,
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.569,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -289,17 +205,89 @@
      83,
      68
     ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Deshawn Purdie u195.5 pass yds",
+     "Jevon Edwards u48.5 rush yds",
+     "Dominic Knicely u6.5 rec yds"
+    ],
+    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
+    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115,
+     -110
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.673,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 68,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     83,
+     82,
+     68
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Deshawn Purdie u195.5 pass yds",
+     "Jevon Edwards u48.5 rush yds",
+     "Dominic Knicely u30.5 rush yds"
+    ],
+    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
+    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -115,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.535,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 68,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     83,
+     82,
+     68
+    ],
     "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
   "games_with_rated_legs": 1,
-  "games_with_a_line_row": 1,
+  "games_with_a_line_row": 0,
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 108,
+   "same_player": 95,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
@@ -307,7 +295,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
@@ -336,25 +324,25 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 0.1 TD a game. That is what he has actually been doing, not a forecast."
   },
-  "Deshawn Purdie|player_pass_yds|over|201.5": {
+  "Deshawn Purdie|player_pass_yds|over|195.5": {
    "v": 77.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 77.2 pass yds a game. That is what he has actually been doing, not a forecast."
   },
-  "Deshawn Purdie|player_pass_yds|under|201.5": {
+  "Deshawn Purdie|player_pass_yds|under|195.5": {
    "v": 77.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 77.2 pass yds a game. That is what he has actually been doing, not a forecast."
   },
-  "Clayton Coppock Jr.|player_reception_yds|over|39.5": {
+  "Clayton Coppock Jr.|player_reception_yds|over|34.5": {
    "v": 34.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 34.6 rec yds a game. That is what he has actually been doing, not a forecast."
   },
-  "Clayton Coppock Jr.|player_reception_yds|under|39.5": {
+  "Clayton Coppock Jr.|player_reception_yds|under|34.5": {
    "v": 34.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -384,13 +372,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 29.5 rush yds a game. That is what he has actually been doing, not a forecast."
   },
-  "Jevon Edwards|player_rush_yds|over|49.5": {
+  "Jevon Edwards|player_rush_yds|over|48.5": {
    "v": 28.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 28.5 rush yds a game. That is what he has actually been doing, not a forecast."
   },
-  "Jevon Edwards|player_rush_yds|under|49.5": {
+  "Jevon Edwards|player_rush_yds|under|48.5": {
    "v": 28.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -424,7 +412,7 @@
    "market": "player_pass_yds",
    "market_label": "Passing yards",
    "side": "under",
-   "line": 201.5,
+   "line": 195.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
@@ -432,7 +420,7 @@
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4977414596206920072",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/164795012868080029",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -449,9 +437,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 8 games this record is built from \u2014 77.2 pass yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Deshawn Purdie</b> went under 201.5 pass yds in <b>7 of 8 games</b> in 2025 (88%) across the games he appears in.",
+    "<b>Deshawn Purdie</b> went under 195.5 pass yds in <b>7 of 8 games</b> in 2025 (88%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>77.2 pass yds a game</b> over those 8 games, against a line of 201.5.",
+    "He averaged <b>77.2 pass yds a game</b> over those 8 games, against a line of 195.5.",
     "\u26a0\ufe0f That line is a long way from what he actually did last season, which usually means his role has changed. His record is history; it is not evidence about a line he never faced.",
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
@@ -466,7 +454,7 @@
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
    "side": "under",
-   "line": 49.5,
+   "line": 48.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
@@ -474,7 +462,7 @@
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7036954159383445912",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3403916863581847944",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -491,9 +479,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 13 games this record is built from \u2014 28.5 rush yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Jevon Edwards</b> went under 49.5 rush yds in <b>11 of 13 games</b> in 2025 (85%) across the games he appears in.",
+    "<b>Jevon Edwards</b> went under 48.5 rush yds in <b>11 of 13 games</b> in 2025 (85%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>28.5 rush yds a game</b> over those 13 games, against a line of 49.5.",
+    "He averaged <b>28.5 rush yds a game</b> over those 13 games, against a line of 48.5.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
    ],
    "rank": 2
@@ -586,7 +574,7 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
-   "line": 39.5,
+   "line": 34.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
@@ -594,7 +582,7 @@
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2453281061732483498",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3485720459968905617",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -611,9 +599,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 9 games this record is built from \u2014 34.6 rec yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Clayton Coppock Jr.</b> went under 39.5 rec yds in <b>6 of 9 games</b> in 2025 (67%) across the games he appears in.",
+    "<b>Clayton Coppock Jr.</b> went under 34.5 rec yds in <b>6 of 9 games</b> in 2025 (67%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>34.6 rec yds a game</b> over those 9 games, against a line of 39.5.",
+    "He averaged <b>34.6 rec yds a game</b> over those 9 games, against a line of 34.5.",
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
    ],
@@ -634,7 +622,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": 180,
+   "price": 225,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/3331341917245014429",
    "n_books": 1,
    "clears_price_floor": true,
@@ -643,8 +631,8 @@
    "raw": "5 of 9",
    "record": "5 of 9",
    "rate": 55,
-   "break_even": 35.7,
-   "edge": 19.3,
+   "break_even": 30.8,
+   "edge": 24.2,
    "confidence_note": "His own rate at this exact line over the 9 games in 2025 he appears in, smoothed. College box scores list a player only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
    "own_mean": 0.67,
    "projection": 0.7,
@@ -667,15 +655,15 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "over",
-   "line": 39.5,
+   "line": 34.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4099346725536399786",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3456447062390997393",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -683,8 +671,8 @@
    "raw": "3 of 9",
    "record": "3 of 9",
    "rate": 35,
-   "break_even": 52.4,
-   "edge": -17.4,
+   "break_even": 53.5,
+   "edge": -18.5,
    "confidence_note": "His own rate at this exact line over the 9 games in 2025 he appears in, smoothed. College box scores list a player only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
    "own_mean": 34.56,
    "projection": 34.6,
@@ -692,9 +680,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 9 games this record is built from \u2014 34.6 rec yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Clayton Coppock Jr.</b> went over 39.5 rec yds in <b>3 of 9 games</b> in 2025 (33%) across the games he appears in.",
+    "<b>Clayton Coppock Jr.</b> went over 34.5 rec yds in <b>3 of 9 games</b> in 2025 (33%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>34.6 rec yds a game</b> over those 9 games, against a line of 39.5.",
+    "He averaged <b>34.6 rec yds a game</b> over those 9 games, against a line of 34.5.",
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
    ],
@@ -715,7 +703,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": 135,
+   "price": 140,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/4683829180339716494",
    "n_books": 1,
    "clears_price_floor": true,
@@ -724,8 +712,8 @@
    "raw": "4 of 13",
    "record": "4 of 13",
    "rate": 32,
-   "break_even": 42.6,
-   "edge": -10.6,
+   "break_even": 41.7,
+   "edge": -9.7,
    "confidence_note": "His own rate at this exact line over the 13 games in 2025 he appears in, smoothed. College box scores list a player only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
    "own_mean": 0.31,
    "projection": 0.3,
@@ -754,7 +742,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": -115,
+   "price": -110,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/89540854657712552",
    "n_books": 1,
    "clears_price_floor": true,
@@ -763,8 +751,8 @@
    "raw": "4 of 13",
    "record": "4 of 13",
    "rate": 32,
-   "break_even": 53.5,
-   "edge": -21.5,
+   "break_even": 52.4,
+   "edge": -20.4,
    "confidence_note": "His own rate at this exact line over the 13 games in 2025 he appears in, smoothed. College box scores list a player only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
    "own_mean": 29.54,
    "projection": 29.5,
@@ -827,15 +815,15 @@
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
    "side": "over",
-   "line": 49.5,
+   "line": 48.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7495195421468393880",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8927018856598339976",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -843,8 +831,8 @@
    "raw": "2 of 13",
    "record": "2 of 13",
    "rate": 18,
-   "break_even": 52.4,
-   "edge": -34.4,
+   "break_even": 53.5,
+   "edge": -35.5,
    "confidence_note": "His own rate at this exact line over the 13 games in 2025 he appears in, smoothed. College box scores list a player only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
    "own_mean": 28.54,
    "projection": 28.5,
@@ -852,9 +840,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 13 games this record is built from \u2014 28.5 rush yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Jevon Edwards</b> went over 49.5 rush yds in <b>2 of 13 games</b> in 2025 (15%) across the games he appears in.",
+    "<b>Jevon Edwards</b> went over 48.5 rush yds in <b>2 of 13 games</b> in 2025 (15%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>28.5 rush yds a game</b> over those 13 games, against a line of 49.5.",
+    "He averaged <b>28.5 rush yds a game</b> over those 13 games, against a line of 48.5.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
    ],
    "rank": 11
@@ -867,7 +855,7 @@
    "market": "player_pass_yds",
    "market_label": "Passing yards",
    "side": "over",
-   "line": 201.5,
+   "line": 195.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
@@ -875,7 +863,7 @@
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7398099395918561672",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4549049250113257885",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "RECORD",
@@ -892,9 +880,9 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 8 games this record is built from \u2014 77.2 pass yds a game. That is what he has actually been doing, not a forecast.",
    "why": [
-    "<b>Deshawn Purdie</b> went over 201.5 pass yds in <b>1 of 8 games</b> in 2025 (12%) across the games he appears in.",
+    "<b>Deshawn Purdie</b> went over 195.5 pass yds in <b>1 of 8 games</b> in 2025 (12%) across the games he appears in.",
     "College box scores list a player only when he did something, so a game he played quietly can be missing from that count \u2014 which nudges an over slightly high.",
-    "He averaged <b>77.2 pass yds a game</b> over those 8 games, against a line of 201.5.",
+    "He averaged <b>77.2 pass yds a game</b> over those 8 games, against a line of 195.5.",
     "\u26a0\ufe0f That line is a long way from what he actually did last season, which usually means his role has changed. His record is history; it is not evidence about a line he never faced.",
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
@@ -916,7 +904,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": 125,
+   "price": 135,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/4592068337932042642",
    "n_books": 1,
    "clears_price_floor": true,
@@ -925,8 +913,8 @@
    "raw": "1 of 13",
    "record": "1 of 13",
    "rate": 11,
-   "break_even": 44.4,
-   "edge": -33.4,
+   "break_even": 42.6,
+   "edge": -31.6,
    "confidence_note": "His own rate at this exact line over the 13 games in 2025 he appears in, smoothed. College box scores list a player only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
    "own_mean": 0.08,
    "projection": 0.1,
@@ -995,7 +983,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": 350,
+   "price": 325,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/6213716047506309534",
    "n_books": 1,
    "clears_price_floor": true,
@@ -1145,7 +1133,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": 175,
+   "price": 170,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/8965626526062215582",
    "n_books": 1,
    "clears_price_floor": true,
@@ -1195,7 +1183,7 @@
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": 130,
+   "price": 140,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/4178089015934845324",
    "n_books": 1,
    "clears_price_floor": true,
@@ -1209,11 +1197,11 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MARKET \u2014 price only, no rate available",
-   "player": "Deuce Bailey",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
+   "player": "Jamari Person",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
    "side": "over",
-   "line": 29.5,
+   "line": 31.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
@@ -1221,12 +1209,12 @@
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
    "price": 100,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4767606226018238863",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6958475050756473243",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Deuce Bailey took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 3 games \u2014 he is at 38 touches a game, 9 carries a game, 27 rush yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Jamari Person averaged 2.6 touches a game in 2025, under the 3.0 this project froze as the least that can describe a role. The price is shown; the record is not. In 2026 so far \u2014 3 games \u2014 he is at 2 touches a game, 2 rec a game, 30 rec yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 24
   },
@@ -1234,24 +1222,24 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MARKET \u2014 price only, no rate available",
-   "player": "Peyton Jones",
+   "player": "Deuce Bailey",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
-   "side": "under",
-   "line": 47.5,
+   "side": "over",
+   "line": 28.5,
    "game": "Liberty Flames @ Coastal Carolina Chanticleers",
    "game_id": "9e0eaa3fed3125ec9629a777bf077185",
    "away": "Liberty Flames",
    "home": "Coastal Carolina Chanticleers",
    "commence": "2026-09-24T23:30:00Z",
    "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8795605396497760643",
+   "price": 100,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4697331123401916839",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MARKET",
    "why": [
-    "Peyton Jones took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 3 games \u2014 he is at 11 touches a game, 10 carries a game, 45 rush yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
+    "Deuce Bailey took part in this market in only 3 of his 3 2025 games, and 6 is the floor. A record counted over games he did not play the position is not a record about this line. In 2026 so far \u2014 3 games \u2014 he is at 38 touches a game, 9 carries a game, 27 rush yds a game. That is a different role from the one his 2025 log describes, which is why no record is shown rather than one built on the wrong job."
    ],
    "rank": 25
   }
