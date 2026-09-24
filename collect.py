@@ -4238,6 +4238,16 @@ def run_mode(mode):
                     log(f"  ⚠️ the props model did not build "
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back.")
+                # `[Sam, 2026-09-24]` the card's own calibration: the band
+                #    table beside the card and Sam's pre-registered test,
+                #    re-scored every run. ⛔ It changes nothing the card prints.
+                try:
+                    import fb_card_calibration as _fcc
+                    _fcc.build(LEAGUE)
+                except Exception as e:
+                    log(f"  ⚠️ the card calibration did not build "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back.")
         elif mode == "halftime-probe":
             # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
             # digits: 2 credits for the bulk ask, 2 more only if that

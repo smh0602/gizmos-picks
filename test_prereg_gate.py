@@ -112,6 +112,9 @@ FROZEN = {
     # [Sam, 2026-09-24] rule in section 2, pre-registered before any result;
     # section 3 fixed by Claude before any scoring code existed.
     "fb_model_lambda_spec.md": "0d04a78d959d75097a24196e282d6aa48fed5455fdbfb00e9952fde67d54ca8b",
+    # [Sam, 2026-09-24] rule in section 2 before any scoring; section 3
+    # fixed by Claude before any scoring code existed.
+    "fb_card_calibration_spec.md": "73e83ec67ddecc7df3d229c29d5423e238ced75ffc31990426433fc737e89bda",
 }
 
 
