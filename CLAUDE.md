@@ -486,6 +486,9 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   DraftKings prices archived before kickoff. Rides
                   `card-fb`; its own MODEL section on the page. ⛔ Never
                   touches the card. Design: research/fb_model_design.md.
+                  ⛔ Its SECOND record (closing lines, college at an
+                  assumed -110, labelled) is kept apart from the headline
+                  and shown under it, never mixed in [Sam, 2026-09-23].
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule

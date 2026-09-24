@@ -12,6 +12,11 @@ Rock, FanDuel and DraftKings prices that existed before kickoff.
 page shows these picks in their own MODEL section beside the card.
 ⛔ NEVER INVENTS A PRICE. A game with no price at the three books is
 trained on and not graded.
+✅ A SECOND, SEPARATE RECORD `[Sam, 2026-09-23]`: the same walk-forward
+graded at CLOSING LINES — nflverse's with their own prices, CFBD's for
+college, where a spread or total price was never stored and -110 is
+ASSUMED and labelled so. ⛔ It is never mixed into the headline record,
+which stays Hard Rock / FanDuel / DraftKings only.
 ⛔ UNCERTAINTY IS CLUSTERED BY GAME (`shadow_fb.cluster`); no p-value or
 interval is ever taken on raw rows.
 ⚠️ STDLIB ONLY — the logistic fit is Newton's method by hand.
@@ -41,6 +46,10 @@ MIN_TRAIN = 150              # ⛔ design §4
 PICK_WINDOW_DAYS = 7         # the page shows the coming week's slate only
 Z95 = 1.959964
 BASES = ("MODEL", "MARKET", "DESCRIPTIVE")
+# ⛔ Sam's wording, 2026-09-23 — the page prints these exactly.
+CLOSING_TITLE = "graded at closing lines — not your books"
+ASSUMED_PX = -110
+ASSUMED_NOTE = "price assumed -110"
 FEATURES = {
     "spread": ["line", "h2h", "form", "possession", "personnel", "neutral", "dome"],
     "total": ["line", "h2h", "form", "defence", "neutral", "dome"],
@@ -153,6 +162,48 @@ def book_lines(snap):
         ml = v.get("h2h") or {}
         if hname in ml and aname in ml:
             out["moneyline"].append((b, ml[hname], ml[aname]))
+    return out
+
+
+def closing_lines(g, cfb):
+    """The SECOND record's prices: one stored closing quote per market.
+    -> {"spread": [(M, home_px, away_px, assumed)], "total": [(T, over_px,
+    under_px, assumed)], "moneyline": [(None, home_px, away_px, False)]}
+
+    NFL: nflverse's closing line WITH ITS OWN PRICES; a missing price is
+    not graded. College: CFBD's stored line, which never carries a spread
+    or total price, so -110 is ASSUMED and every such quote says so.
+    ⛔ A moneyline price is never assumed, in either league.
+    ⛔ The spread is oriented by the moneyline (`t60r.market`), never by a
+    sign convention.
+    """
+    college = cfb is not None
+    if college:
+        row = cfb.get(str(g.get("id"))) or {}
+        total, ml = row.get("total"), (row.get("ml_home"), row.get("ml_away"))
+        sp_px = to_px = (None, None)          # CFBD's stored lines carry no price
+    else:
+        total, ml = g.get("closing_total"), (g.get("closing_ml_home"), g.get("closing_ml_away"))
+        sp_px = (g.get("closing_spread_odds_home"), g.get("closing_spread_odds_away"))
+        to_px = (g.get("closing_over_odds"), g.get("closing_under_odds"))
+
+    def quote(px):
+        if px[0] is not None and px[1] is not None:
+            return (px[0], px[1], False)
+        if college:                           # ⛔ Sam's -110 rule: college spreads and totals only
+            return (ASSUMED_PX, ASSUMED_PX, True)
+        return None
+
+    out = {"spread": [], "total": [], "moneyline": []}
+    M, _T, why = t60r.market(g, cfb)
+    q = quote(sp_px)
+    if not why and q:
+        out["spread"].append((M,) + q)
+    q = quote(to_px)
+    if total is not None and q:
+        out["total"].append((float(total),) + q)
+    if ml[0] is not None and ml[1] is not None:
+        out["moneyline"].append((None, ml[0], ml[1], False))
     return out
 
 
@@ -274,6 +325,7 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
             "week": wk, "home": g["home"], "away": g["away"], "final": bool(g.get("final")),
             "hs": g.get("home_score"), "as": g.get("away_score"),
             "M": M, "T": T, "pml": pml, "snap": snap, "dk_ml": dk_ml,
+            "close": closing_lines(g, cfb if lg == "ncaaf" else None),
             "sig": {"h2h_m": h2h_m, "h2h_t": h2h_t, "form_m": f_m, "form_t": f_t,
                     "def": frac, "poss": (sb_h - sb_a) if sb_h is not None and sb_a is not None else None,
                     "out": (o_a - o_h) if o_h is not None and o_a is not None else None,
@@ -390,36 +442,49 @@ def predict(m, x):
 # ══════════════════════════════════════════════════════════════════════
 # PICKS — best Hard Rock / FanDuel / DraftKings price, EV above zero
 # ══════════════════════════════════════════════════════════════════════
-def best_pick(r, market, model):
-    """-> {"side", "book", "line", "price", "p", "ev", "break_even"} or None."""
+def book_quotes(r, market):
+    """The HEADLINE record's prices: Sam's three books only.
+    -> [(book, line, px_a, px_b, assumed)]"""
+    bl = book_lines(r["snap"])[market] if r["snap"] else []
+    if market == "moneyline":
+        bl = [(b, None, hp, ap) for b, hp, ap in bl]
+        if not bl and r.get("dk_ml"):
+            bl = [("draftkings", None, r["dk_ml"][0], r["dk_ml"][1])]
+    return [tuple(q) + (False,) for q in bl]
+
+
+def closing_quotes(r, market):
+    """The SECOND record's prices — never Sam's books, never mixed in."""
+    return [("closing",) + tuple(q) for q in (r.get("close") or {}).get(market) or []]
+
+
+def best_pick(r, market, model, quotes=book_quotes):
+    """-> {"side", "book", "line", "price", "p", "ev", "break_even",
+    "assumed"} or None. The ONE pick rule, whichever prices it is given."""
     if not model:
         return None
-    bl = book_lines(r["snap"])[market] if r["snap"] else []
-    if market == "moneyline" and not bl and r.get("dk_ml"):
-        bl = [("draftkings", r["dk_ml"][0], r["dk_ml"][1])]
+    bl = quotes(r, market)
     if not bl:
         return None
     cands = []
-    if market == "spread":
-        for b, M, hp, ap in bl:
-            p = predict(model, features(r, "spread", M=M))
-            cands += [("home", b, M, hp, p), ("away", b, M, ap, 1 - p)]
-    elif market == "total":
-        for b, T, op, up in bl:
-            p = predict(model, features(r, "total", T=T))
-            cands += [("over", b, T, op, p), ("under", b, T, up, 1 - p)]
-    else:
-        p = predict(model, features(r, "moneyline"))
-        for b, hp, ap in bl:
-            cands += [("home", b, None, hp, p), ("away", b, None, ap, 1 - p)]
+    for b, ln, pa, pb, assumed in bl:
+        if market == "spread":
+            p = predict(model, features(r, "spread", M=ln))
+            cands += [("home", b, ln, pa, p, assumed), ("away", b, ln, pb, 1 - p, assumed)]
+        elif market == "total":
+            p = predict(model, features(r, "total", T=ln))
+            cands += [("over", b, ln, pa, p, assumed), ("under", b, ln, pb, 1 - p, assumed)]
+        else:
+            p = predict(model, features(r, "moneyline"))
+            cands += [("home", b, None, pa, p, assumed), ("away", b, None, pb, 1 - p, assumed)]
     best = None
-    for side, b, ln, px, p in cands:
+    for side, b, ln, px, p, assumed in cands:
         if px is None:
             continue
         ev = p * decimal(px) - 1.0
         if best is None or ev > best["ev"]:
             best = {"side": side, "book": b, "line": ln, "price": px, "p": p, "ev": ev,
-                    "break_even": 1.0 / decimal(px)}
+                    "break_even": 1.0 / decimal(px), "assumed": assumed}
     return best if best and best["ev"] > 0 else None
 
 
@@ -451,13 +516,19 @@ def monday(day):
     return (d - datetime.timedelta(days=d.weekday())).isoformat()
 
 
+RECORDS = (("books", book_quotes), ("closing", closing_quotes))
+
+
 def walk_forward(rows):
-    """-> {market: [pick rows]} graded week by week, trained only on games
-    that kicked off before each week's Monday."""
+    """-> {"books": {market: [pick rows]}, "closing": {...}} graded week by
+    week, trained only on games that kicked off before each week's Monday.
+
+    Both records come from the SAME weekly model and the SAME pick rule;
+    only the prices differ. ⛔ They are kept apart, never summed."""
     weeks = collections.defaultdict(list)
     for r in rows:
         weeks[monday(r["day"])].append(r)
-    out = {mk: [] for mk in MARKETS}
+    out = {name: {mk: [] for mk in MARKETS} for name, _q in RECORDS}
     for wk in sorted(weeks):
         train = [r for r in rows if r["day"] < wk]
         for mk in MARKETS:
@@ -468,13 +539,14 @@ def walk_forward(rows):
             for r in weeks[wk]:
                 if not r["final"]:
                     continue
-                pk = best_pick(r, mk, model)
-                if not pk:
-                    continue
-                won = grade(r, mk, pk)
-                out[mk].append(dict(pk, game_id=r["id"], week=wk, day=r["day"],
-                                    home=r["home"], away=r["away"], won=won,
-                                    state="graded" if won is not None else "push"))
+                for name, quotes in RECORDS:
+                    pk = best_pick(r, mk, model, quotes)
+                    if not pk:
+                        continue
+                    won = grade(r, mk, pk)
+                    out[name][mk].append(dict(pk, game_id=r["id"], week=wk, day=r["day"],
+                                              home=r["home"], away=r["away"], won=won,
+                                              state="graded" if won is not None else "push"))
     return out
 
 
@@ -486,10 +558,14 @@ def record(picks):
     rate = c.get("rate")
     en = c.get("eff_n") or 0
     half = Z95 * math.sqrt(rate * (1 - rate) / en) if rate is not None and en else None
+    # ⚠️ A break-even at an ASSUMED -110 is not the market's number.
+    n_assumed = sum(1 for p in graded if p.get("assumed"))
     return {"picks": L(len(graded), "DESCRIPTIVE"),
             "wins": L(c.get("wins"), "DESCRIPTIVE"),
             "hit_rate": L(round(100 * rate, 1) if rate is not None else None, "DESCRIPTIVE"),
-            "break_even": L(round(100 * be, 1) if be is not None else None, "MARKET"),
+            "break_even": L(round(100 * be, 1) if be is not None else None,
+                            "DESCRIPTIVE" if n_assumed else "MARKET"),
+            "price_assumed": L(n_assumed, "DESCRIPTIVE"),
             "interval_95": L([round(100 * max(0.0, rate - half), 1), round(100 * min(1.0, rate + half), 1)]
                              if half is not None else None, "DESCRIPTIVE"),
             "effective_n": L(round(en, 1), "DESCRIPTIVE"),
@@ -538,12 +614,26 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
     lg = (lg or LEAGUE).lower()
     rows = build_rows(lg, root, extra_top, extra_players)
     wf = walk_forward(rows)
-    first = {mk: (min(p["day"] for p in wf[mk]) if wf[mk] else None) for mk in MARKETS}
+
+    def rec(picks):
+        graded = [p for p in picks if p["won"] is not None]
+        return dict(record(picks), first_graded=min((p["day"] for p in picks), default=None),
+                    last_graded=max((p["day"] for p in picks), default=None),
+                    price_note=ASSUMED_NOTE if any(p.get("assumed") for p in graded) else None)
     doc = {"league": lg, "kind": "MODEL",
            "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "design": "research/fb_model_design.md",
            "books": sorted(set(collect.BOOKS[k] for k in books_ok(lg))),
-           "record": {mk: dict(record(wf[mk]), first_graded=first[mk]) for mk in MARKETS},
+           "record": {mk: rec(wf["books"][mk]) for mk in MARKETS},
+           # ⛔ SEPARATE, and shown UNDER the headline, never mixed with it.
+           "closing_title": CLOSING_TITLE,
+           "closing_record": {mk: rec(wf["closing"][mk]) for mk in MARKETS},
+           "closing_note": ("The same weekly model and pick rule, graded at closing lines "
+                            "instead of your books: CFBD's stored lines. CFBD stores no "
+                            "spread or total price, so those rows assume -110 and say so."
+                            if lg == "ncaaf" else
+                            "The same weekly model and pick rule, graded at nflverse's closing "
+                            "lines with their own prices instead of your books."),
            "picks": current_picks(lg, rows, root),
            "games_trained": {mk: sum(1 for r in rows if label(r, mk) is not None) for mk in MARKETS},
            "signal_coverage": {k: sum(1 for r in rows if r["sig"].get(k) is not None)
@@ -552,15 +642,18 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
                     "before kickoff; those are archived from September 2026. Earlier games "
                     "train the model but are not graded. Intervals use the effective n "
                     "clustered by game."),
-           "graded": {mk: wf[mk] for mk in MARKETS}}
+           "graded": {mk: wf["books"][mk] for mk in MARKETS},
+           "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS}}
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)
-    for mk in MARKETS:
-        r = doc["record"][mk]
-        log("%s %-9s picks %s hit %s%% break-even %s%% (eff n %s, from %s)" % (
-            lg, mk, r["picks"]["value"], r["hit_rate"]["value"], r["break_even"]["value"],
-            r["effective_n"]["value"], r["first_graded"]))
+    for key in ("record", "closing_record"):
+        for mk in MARKETS:
+            r = doc[key][mk]
+            log("%s %-14s %-9s picks %s hit %s%% break-even %s%% (eff n %s, %s to %s)%s" % (
+                lg, key, mk, r["picks"]["value"], r["hit_rate"]["value"], r["break_even"]["value"],
+                r["effective_n"]["value"], r["first_graded"], r["last_graded"],
+                " [%s]" % r["price_note"] if r["price_note"] else ""))
     return doc
 
 

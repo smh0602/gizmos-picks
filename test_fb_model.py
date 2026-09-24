@@ -37,14 +37,36 @@
 #   find:     return (M > 0) == home_fav
 #   with:     return True
 #
+# @vacuity -110 is assumed for COLLEGE spreads and totals only, never the NFL
+#   file: fb_model.py
+#   find:         if college:                           # ⛔ Sam's -110 rule: college spreads and totals only
+#   with:         if True:
+#
+# @vacuity the headline record is graded at Sam's books, never at closing lines
+#   file: fb_model.py
+#   find:            "record": {mk: rec(wf["books"][mk]) for mk in MARKETS},
+#   with:            "record": {mk: rec(wf["closing"][mk]) for mk in MARKETS},
+#
+# @vacuity a record row priced at an assumed -110 is labelled so
+#   file: fb_model.py
+#   find:                     price_note=ASSUMED_NOTE if any(p.get("assumed") for p in graded) else None)
+#   with:                     price_note=None)
+#
+# @vacuity the page's closing table reads the closing record, not the headline
+#   file: index.html
+#   find:     <table class="ob">${recHead}<tbody>${recRows(M.closing_record)}</tbody></table>
+#   with:     <table class="ob">${recHead}<tbody>${recRows(M.record)}</tbody></table>
+#
 # @vacuity every number the page shows carries MODEL, MARKET or DESCRIPTIVE
 #   file: fb_model.py
 #   find:             "hit_rate": L(round(100 * rate, 1) if rate is not None else None, "DESCRIPTIVE"),
 #   with:             "hit_rate": round(100 * rate, 1) if rate is not None else None,
 """
 import datetime
+import json
 import os
 import sys
+import tempfile
 
 from tcheck import ck
 
@@ -215,3 +237,82 @@ finally:
 ck(_r3["sig"]["out"] == 5 - 2,
    "🔴 a week-3 game reads players out from week 1 (the latest EARLIER week), not week 3",
    "⛔ week 3's own list would be read before it exists. got %r" % _r3["sig"]["out"])
+
+# ══════════════════════════════════════════════════════════════════════
+# 5. THE SECOND RECORD: closing lines, kept apart  `[Sam, 2026-09-23]`
+# ══════════════════════════════════════════════════════════════════════
+_nfl_g = {"id": "n1", "closing_spread": "3.5", "closing_total": "44.5",
+          "closing_ml_home": -180, "closing_ml_away": 150,
+          "closing_spread_odds_home": -105, "closing_spread_odds_away": -115,
+          "closing_over_odds": None, "closing_under_odds": None}
+_cl = F.closing_lines(_nfl_g, None)
+ck(_cl["spread"] == [(3.5, -105, -115, False)],
+   "🔴 NFL: the closing spread is graded at nflverse's OWN price",
+   "⛔ Sam: 'nflverse closing lines with their own prices'. got %r" % _cl["spread"])
+ck(_cl["total"] == [],
+   "🔴🔴 NFL: a closing total with no stored price is NOT graded — -110 is never assumed for the NFL",
+   "⛔ Sam's -110 rule is for college only. got %r" % _cl["total"])
+_cfb = {"c1": {"spread": 7.0, "total": 55.5, "ml_home": None, "ml_away": None}}
+_cc = F.closing_lines({"id": "c1"}, _cfb)
+ck(_cc["total"] == [(55.5, -110, -110, True)],
+   "🔴 college: CFBD stores no total price, so -110 is assumed AND flagged",
+   "got %r" % _cc["total"])
+ck(_cc["moneyline"] == [] and _cc["spread"] == [],
+   "   ⛔ ...but a moneyline is never assumed, and an unoriented spread is not graded",
+   "no moneyline stored means no moneyline price and nothing to orient the spread. got %r" % _cc)
+
+# build() on synthetic rows: no book prices at all, closing prices everywhere
+_syn = []
+for i in range(230):
+    d = (datetime.date(2025, 9, 1) + datetime.timedelta(days=i // 3)).isoformat()
+    cover = i % 5 != 0                                  # home covers 80%
+    _syn.append({"id": "s%d" % i, "season": 2025, "day": d, "kick": d, "week": 1,
+                 "home": "HOM", "away": "AWY", "final": True,
+                 "hs": 30 if cover else 20, "as": 17 if cover else 23,
+                 "M": 3.0, "T": 44.5, "pml": 0.6, "snap": None, "dk_ml": None,
+                 "close": {"spread": [(3.0, -110, -110, True)],
+                           "total": [(44.5, -110, -110, True)],
+                           "moneyline": [(None, -150, 130, False)]},
+                 "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None,
+                         "def": None, "poss": None, "out": None, "neutral": 0.0, "dome": 0.0}})
+_orig_rows, _orig_cur, _orig_log = F.build_rows, F.current_picks, F.log
+_tmp = os.path.join(tempfile.mkdtemp(), "fb-model.json")
+try:
+    F.build_rows = lambda *a, **k: _syn
+    F.current_picks = lambda *a, **k: []
+    F.log = lambda m: None
+    _doc = F.build("nfl", out=_tmp)
+finally:
+    F.build_rows, F.current_picks, F.log = _orig_rows, _orig_cur, _orig_log
+_hs = _doc["record"]["spread"]
+_cs = _doc["closing_record"]["spread"]
+ck(_hs["picks"]["value"] == 0 and _cs["picks"]["value"] > 0,
+   "🔴🔴 the headline record stays Hard Rock / FanDuel / DraftKings only — closing picks never enter it",
+   "⛔ Sam: 'Keep the headline record exactly as it is'. headline %r, closing %r"
+   % (_hs["picks"]["value"], _cs["picks"]["value"]))
+ck(_cs["price_note"] == "price assumed -110" and _cs["break_even"]["basis"] == "DESCRIPTIVE",
+   "🔴 a closing row priced at an assumed -110 says 'price assumed -110', and its break-even is not called MARKET",
+   "got note %r, basis %r" % (_cs["price_note"], _cs["break_even"]["basis"]))
+_cm = _doc["closing_record"]["moneyline"]
+ck(_cm["price_note"] is None and (_cm["picks"]["value"] == 0 or _cm["break_even"]["basis"] == "MARKET"),
+   "   ✅ ...while a row at real stored prices carries no such label",
+   "got %r" % _cm)
+ck(_doc["closing_title"] == "graded at closing lines — not your books"
+   and json.load(open(_tmp, encoding="utf-8"))["closing_record"],
+   "🔴 the second record is written under Sam's own label",
+   "got %r" % _doc.get("closing_title"))
+_bare2 = [k for k, v in _cs.items()
+          if k not in ("first_graded", "last_graded", "price_note")
+          and not (isinstance(v, dict) and v.get("basis") in F.BASES)]
+ck(not _bare2, "   ⚠️ ...and every number in it carries its basis", "unlabelled: %s" % _bare2)
+
+# the page: its own table, UNDER the headline, reading only its own key
+import jsblock  # noqa: E402
+_js = jsblock.js_block("fbModelHtml", os.path.join(ROOT, "index.html"))
+_i_head = _js.find("recRows(M.record)")
+_i_close = _js.find("recRows(M.closing_record)")
+ck(0 <= _i_head < _i_close and "M.closing_title" in _js and "r.price_note" in _js,
+   "🔴 the page shows the closing record as its OWN table, under the headline, with its label",
+   "⛔ Sam: 'Show it under the headline record, never mixed with it'. "
+   "headline at %d, closing at %d" % (_i_head, _i_close))
+

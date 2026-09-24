@@ -1722,6 +1722,14 @@ def build_schedule(season, seen=None, log=print, lines=None):
             "closing_ml_away": _i(g.get("away_moneyline")),
             "closing_spread": g.get("spread_line"),
             "closing_total": g.get("total_line"),
+            # 🔵 MARKET, nflverse's closing PRICES for that spread and
+            # total `[Sam, 2026-09-23: "nflverse closing lines with their
+            # own prices"]`. ⚠️ We were dropping them; same file, no cost.
+            # The home price is for the home side AT `spread_line`.
+            "closing_spread_odds_home": _i(g.get("home_spread_odds")),
+            "closing_spread_odds_away": _i(g.get("away_spread_odds")),
+            "closing_over_odds": _i(g.get("over_odds")),
+            "closing_under_odds": _i(g.get("under_odds")),
             "final": done,
         })
     out.sort(key=lambda r: (r["start"] or "", r["home"] or ""))

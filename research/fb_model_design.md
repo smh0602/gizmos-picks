@@ -95,6 +95,27 @@ drifting toward whatever the first record happens to reward.
   - a 95% interval on the hit rate using the **effective n clustered by
     game** (`shadow_fb.cluster`). A p-value is never taken on raw rows.
 
+## 4b. The second record: closing lines, not Sam's books
+
+`[Sam, 2026-09-23]` *"Keep the headline record exactly as it is: Hard
+Rock, FanDuel and DraftKings only. Add a SEPARATE record, labelled
+'graded at closing lines — not your books', for all of 2025 and 2026."*
+
+- **The same weekly model and the same pick rule** as §4, fitted once a
+  week. Only the prices differ.
+- **NFL prices:** nflverse's closing spread, total and moneyline, each
+  with nflverse's own price. `nfl.py` now stores the spread and total
+  prices; they come from the same `games.csv.gz` it already downloads.
+  **A missing price is not graded.**
+- **College prices:** CFBD's stored line. CFBD stores no spread or total
+  price, so those are **assumed -110**, and every record row that uses one
+  says **"price assumed -110"**. Its break-even is then labelled a record
+  figure, not a market one. **A moneyline price is never assumed.**
+- **The spread is oriented by the moneyline** (`t60r.market`), as in §3.
+- **Kept apart:** it is written as `closing_record` beside `record`, and
+  the page shows it as its own table under the headline. The two records
+  are never summed or interleaved.
+
 ## 5. What runs when
 
 - `fb_model.py` rides the existing `card-fb` mode, after the dossier and
@@ -121,3 +142,6 @@ drifting toward whatever the first record happens to reward.
     Root cause: I assumed the processed board kept each book's quote.
     Picks now come from the same raw snapshot archive the walk-forward
     grades against, limited to the next 7 days.
+- **2026-09-23:** §4b added on Sam's instruction: a second, separate
+  record graded at closing lines. The headline record is unchanged, and
+  its numbers were re-checked identical after the change.

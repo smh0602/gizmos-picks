@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """`build_schedule` for both leagues, against synthetic feeds.
 
 🔴 WHY A FIXTURE. Neither collector's score columns have ever been read
@@ -22,6 +21,11 @@ name join that matched 0 of 1,848.
      in one file).
 
 ⚠️ No network, no data files, no clock.
+
+# @vacuity the NFL schedule carries nflverse's closing spread and total PRICES
+#   file: nfl.py
+#   find:             "closing_over_odds": _i(g.get("over_odds")),
+#   with:             "closing_over_odds": None,
 """
 import sys
 
@@ -113,6 +117,21 @@ eq(n["2026_01_A_B"]["away_score"], 0, "🔴 shutout keeps a score of 0")
 eq(n["2026_01_A_B"]["final"], True, "  ...and is still marked FINAL")
 eq(n["2026_02_C_D"]["final"], False, "empty string is not a score")
 eq(n["2026_01_A_B"]["start"], "2026-09-10T20:20", "local date+time, no invented zone")
+
+print("\n4b. NFL — the closing PRICES travel with the closing line")
+# `[Sam, 2026-09-23]` the second model record grades at "nflverse closing
+# lines with their own prices" — so the prices must reach the stored file.
+doc, rep = nfl_run([
+    {"season": "2026", "week": "1", "gameday": "2026-09-10", "gametime": "20:20",
+     "game_id": "2026_01_P_Q", "home_team": "KC", "away_team": "BUF",
+     "home_score": "27", "away_score": "20", "spread_line": "3.5", "total_line": "47.5",
+     "home_moneyline": "-180", "away_moneyline": "150",
+     "home_spread_odds": "-105", "away_spread_odds": "-115",
+     "over_odds": "-112", "under_odds": "-108"}])
+q = doc["games"][0]
+eq((q["closing_spread_odds_home"], q["closing_spread_odds_away"],
+    q["closing_over_odds"], q["closing_under_odds"]), (-105, -115, -112, -108),
+   "🔴 nflverse's spread and total prices are stored, not dropped")
 
 print("\n5. NFL — no rows for the requested season")
 doc, rep = nfl_run([{"season": "2025", "week": "1", "game_id": "x",
