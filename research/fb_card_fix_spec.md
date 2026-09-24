@@ -103,3 +103,11 @@ card date D:
 ## Changelog
 
 - **2026-09-24:** written and committed before any scoring code.
+- **2026-09-24, scored: LIVE.** The fix beat the current card on 340
+  graded props in 64 games, with mean d = +0.074 and one-sided p = 0.011.
+  Log loss went from 0.865 to 0.793 (NFL, 198) and from 0.876 to 0.799
+  (college, 142). `card_fb.CARD_METHOD` is set to the fixed method in the
+  same PR. Record: `research/fb_card_fix_run_2026-09-24.json`.
+  - ⚠️ **Better, not good.** Both are still worse than a coin flip
+    (0.693), and the fixed card's 80–90% band hit 48% (NFL, 29) and 42%
+    (college, 26). The formula is frozen, so this is reported, not tuned.

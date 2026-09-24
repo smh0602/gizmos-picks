@@ -239,6 +239,27 @@ def calibration_flags_fb(path=None):
     return [b for b in band_flags(rec.get("calibration")) if b["state"] == "UNDER"]
 
 
+def calibration_before_fb(path=None):
+    """`[Sam, 2026-09-24]` the card now reads this season first. The OLD
+    method's record is said in its own sentence and never mixed in."""
+    path = path or f"{DATA}/latest/record.json"
+    try:
+        rec = json.load(open(path))
+    except Exception:
+        return ""
+    cur = rec.get("card_method_current")
+    old = [m for m in (rec.get("calibration_by_method") or {}) if m != cur]
+    if not old:
+        return ""
+    bad = [b for m in old for b in band_flags(rec["calibration_by_method"][m])
+           if b["state"] == "UNDER"]
+    worst = ("; before the change, when it said %s, those plays hit %g%% (%d graded)"
+             % (bad[0]["bucket"], bad[0]["actual"], bad[0]["n"])) if bad else ""
+    return ("This card changed how it rates: it now reads this season first and "
+            "pulls thin records toward the average%s. That earlier record is kept "
+            "apart and is not counted in the figures below. " % worst)
+
+
 def calibration_alarm_fb(flags):
     """🔴 THE WARNING, IN WORDS A READER CAN USE. `[Sam, 2026-09-24]` the
     banner printed "80-plus hit 40.8% against a claimed 84.1%" as one
@@ -263,7 +284,9 @@ def calibration_sentence_fb(cal=None, dropped=0, flags=None):
     if cal is None:
         cal, dropped = load_calibration_fb()
         flags = calibration_flags_fb() if flags is None else flags
-    alarm = calibration_alarm_fb(flags or [])
+        alarm = calibration_alarm_fb(flags or []) + calibration_before_fb()
+    else:
+        alarm = calibration_alarm_fb(flags or [])
     have = [(b, cal[b]) for b in FB_BAND_ORDER
             if b in cal and cal[b]["n"] >= FB_CAL_MIN_N]
     if not have:
@@ -765,8 +788,12 @@ def usage_level(games):
     return sum(float(g.get("usage") or 0) for g in games) / max(1, len(games))
 
 
-def rate_for(games, market, line, side):
-    """(confidence 0-100, hits, n) over his qualifying games, or None."""
+def gated_games(games, market, line):
+    """The games a rate may be read over, after EVERY gate — or None.
+
+    ⛔ ONE COPY OF THE GATES, read by both ways of rating a row
+    (`rate_for` and `rate_blend`), so the fixed card can never skip one
+    the current card applies (rule 117)."""
     getter = MARKETS.get(market)
     if not getter:
         return None
@@ -775,7 +802,6 @@ def rate_for(games, market, line, side):
     ok, _why = market_rateable(market, line)
     if not ok:
         return None
-    read = getter[0]
     q = qualifying(games)
     if len(q) < MIN_GAMES:
         return None
@@ -805,16 +831,98 @@ def rate_for(games, market, line, side):
     if LEAGUE != "nfl" and USAGE_FLOOR is not None and q:
         if usage_level(q) < USAGE_FLOOR:
             return None
-    vals = [read(g) for g in q]
+    return q
+
+
+def count_hits(vals, market, line, side):
     if market == "player_anytime_td":
         # ⚠️ A one-sided market. "Yes" is scoring at all; there is no line.
-        hits = sum(1 for v in vals if v >= 1)
-    elif side == "over":
-        hits = sum(1 for v in vals if v > line)
-    else:
-        hits = sum(1 for v in vals if v < line)
+        return sum(1 for v in vals if v >= 1)
+    if side == "over":
+        return sum(1 for v in vals if v > line)
+    return sum(1 for v in vals if v < line)
+
+
+def rate_for(games, market, line, side):
+    """(confidence 0-100, hits, n, mean) over his qualifying games, or None.
+    The CURRENT card: one season, Jeffreys-smoothed."""
+    q = gated_games(games, market, line)
+    if q is None:
+        return None
+    vals = [MARKETS[market][0](g) for g in q]
+    hits = count_hits(vals, market, line, side)
     mean = (sum(vals) / len(vals)) if vals else None
     return round(100 * jeffreys(hits, len(vals))), hits, len(vals), mean
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE FIXED CARD — `research/fb_card_fix_spec.md` §3, frozen before any
+#    scoring `[Sam, 2026-09-24]`. It reads the CURRENT season first, with
+#    2025 as the starting point, and pulls every record toward what
+#    players at his position do at that line.
+# ══════════════════════════════════════════════════════════════════════
+METHOD_CURRENT = "2025-only"
+METHOD_FIXED = "season-blend"
+K_SEASON = 4.0        # ⛔ spec §3: each 2025 game counts 4 / (4 + n26)
+K_PRIOR = 12.0        # ⛔ spec §3: shrink toward the position average
+THIN_N = 10.0         # ⛔ spec §3: under 10 weighted games ...
+THIN_CAP = 0.89       # ⛔ ... the confidence never reaches 90%
+PRIOR_MIN = 50        # ⛔ spec §3: fewer position games -> p0 = 0.5
+DID_JOB = {"player_pass_yds": ("att",), "player_pass_tds": ("att",),
+           "player_rush_yds": ("car",), "player_reception_yds": ("rec",),
+           "player_receptions": ("rec",), "player_anytime_td": ("car", "rec")}
+
+
+def position_pools(players_by_season):
+    """{(pos, market): [(date, value)]} over every player's qualifying games
+    in which he did this job (spec §3's position average)."""
+    out = {}
+    for players in players_by_season:
+        for p in (players or {}).values():
+            pos = (p.get("pos") or "").upper()
+            for g in qualifying(p.get("g") or []):
+                for mk, job in DID_JOB.items():
+                    if any(float(g.get(f) or 0) > 0 for f in job):
+                        out.setdefault((pos, mk), []).append(
+                            ((g.get("d") or "")[:10], MARKETS[mk][0](g)))
+    return out
+
+
+def position_prior(pools, pos, market, side, line, before):
+    """p0: the share of his position's games, dated before `before`, that
+    clear this side at this line. 0.5 with fewer than PRIOR_MIN games."""
+    vals = [v for d, v in pools.get(((pos or "").upper(), market)) or [] if d < before]
+    if len(vals) < PRIOR_MIN:
+        return 0.5
+    return count_hits(vals, market, line, side) / float(len(vals))
+
+
+def games_before(games, day):
+    """⛔ ONE COPY of 'games dated before the card's day' — the card and the
+    scorer both read it, so neither can let a prop see its own game."""
+    return [g for g in games or [] if (g.get("d") or "") < day]
+
+
+def rate_blend(g25, g26, market, line, side, p0):
+    """The FIXED card's (confidence 0-100, hits, n, mean, detail) or None.
+    ⛔ `g26` must already hold only games dated before the card's date."""
+    both = sorted(list(g25) + list(g26), key=lambda g: g.get("d") or "")
+    if gated_games(both, market, line) is None:
+        return None
+    read = MARKETS[market][0]
+    v25 = [read(g) for g in qualifying(g25)]
+    v26 = [read(g) for g in qualifying(g26)]
+    h25, n25 = count_hits(v25, market, line, side), len(v25)
+    h26, n26 = count_hits(v26, market, line, side), len(v26)
+    w = K_SEASON / (K_SEASON + n26)
+    H, N = h26 + w * h25, n26 + w * n25
+    conf = (H + K_PRIOR * p0) / (N + K_PRIOR)
+    if N < THIN_N:
+        conf = min(conf, THIN_CAP)
+    mean = (sum(v25) / n25) if n25 else ((sum(v26) / n26) if n26 else None)
+    return (round(100 * conf), h25 + h26, n25 + n26, mean,
+            {"h25": h25, "n25": n25, "h26": h26, "n26": n26, "w25": round(w, 3),
+             "p0": round(p0, 3), "weighted_n": round(N, 2)})
 
 
 def american_break_even(price):
@@ -1533,6 +1641,14 @@ def et(dt):
         return dt
 
 
+# ⛔ SET BY SAM'S SHIP RULE (`research/fb_card_fix_spec.md` §2), never
+#    by hand-tuning: `fb_card_fix.py` scores it and the PR records why.
+# ✅ LIVE 2026-09-24: the fix beat the current card, log loss 0.865 ->
+#    0.793 (NFL) and 0.876 -> 0.799 (college), one-sided p = 0.011 over
+#    340 graded props in 64 games (research/fb_card_fix_run_2026-09-24.json).
+CARD_METHOD = METHOD_FIXED
+
+
 def main():
     try:
         B = json.load(gzip.open(f"{DATA}/latest/props.json.gz", "rt"))
@@ -1542,6 +1658,9 @@ def main():
 
     season, P = load_logs()
     idx = index_by_name(P)
+    _card_day = slate_date(B)
+    _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
+              if CARD_METHOD == METHOD_FIXED else None)
 
     rows, unmatched, ambiguous, thin, gated = [], set(), set(), 0, 0
     seen_players = set()
@@ -1569,7 +1688,15 @@ def main():
                     continue
                 r = None
                 gate_ok, gate_why = market_rateable(mk, pr.get("line"))
-                if plog is not None and gate_ok:
+                if plog is not None and gate_ok and CARD_METHOD == METHOD_FIXED:
+                    _g26 = (games_before(((CUR_P or {}).get(pids[0]) or {}).get("g"), _card_day)
+                            if CUR_SEASON != season else [])
+                    _p0 = position_prior(_pools, plog.get("pos"), mk, side,
+                                         pr.get("line"), _card_day)
+                    r = rate_blend(plog.get("g") or [], _g26, mk, pr.get("line"), side, _p0)
+                    if r is None:
+                        thin += 1
+                elif plog is not None and gate_ok:
                     r = rate_for(plog.get("g") or [], mk, pr.get("line"), side)
                     if r is None:
                         thin += 1
@@ -1620,7 +1747,19 @@ def main():
                     # ACTUALLY USED. ⛔ Claiming a snap floor on a league
                     # that publishes no snap counts would be stating
                     # something the data cannot support.
+                    _d = r[4] if len(r) > 4 else None
+                    if _d:
+                        row["season_detail"] = _d
                     row["confidence_note"] = (
+                        f"His record at this exact line, reading this season first: "
+                        f"{_d['h26']} of {_d['n26']} in {CUR_SEASON}, with his "
+                        f"{season} record ({_d['h25']} of {_d['n25']}) counting "
+                        f"{_d['w25']:g} per game, pulled toward the "
+                        f"{round(100 * _d['p0'])}% of games in which players at his "
+                        f"position clear this line. Fewer than 10 games' worth never "
+                        f"shows 90% or more. There is no football model in this "
+                        f"project, so this is DESCRIPTIVE — not a projection."
+                    ) if _d else (
                         f"His own rate at this exact line over {n} games in "
                         f"{season} where he played at least half his team's "
                         f"snaps, smoothed. There is no football model in this "
@@ -1914,6 +2053,9 @@ def main():
         "kind": "RECORD + MARKET" if RATES_OK else "MARKET",
         "odds_pulled_at": B.get("pulled_at"),
         "logs_season": season,
+        # `[Sam, 2026-09-24]` which way this card rated its rows, so the
+        # record reports each method apart and never mixes them.
+        "card_method": CARD_METHOD,
         "rates_available": RATES_OK,
         # ⚠️ THE SNAP FLOOR IS AN NFL FACT. ⛔ Reporting it on a college
         # card would advertise a filter that cannot exist there.
