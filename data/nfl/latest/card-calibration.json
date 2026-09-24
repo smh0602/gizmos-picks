@@ -1,122 +1,11 @@
 {
  "league": "nfl",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-09-24T20:09:02Z",
+ "built_at": "2026-09-24T21:50:31Z",
  "spec": "research/fb_card_calibration_spec.md",
- "bands": [
-  {
-   "bucket": "30-40%",
-   "graded": {
-    "value": 11,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 35.0,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 36.4,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "OK"
-  },
-  {
-   "bucket": "40-50%",
-   "graded": {
-    "value": 12,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 44.5,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 75.0,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "OK"
-  },
-  {
-   "bucket": "50-60%",
-   "graded": {
-    "value": 35,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 55.8,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 40.0,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "OK"
-  },
-  {
-   "bucket": "60-70%",
-   "graded": {
-    "value": 48,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 65.1,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 50.0,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "OK"
-  },
-  {
-   "bucket": "70-80%",
-   "graded": {
-    "value": 32,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 75.9,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 68.8,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "OK"
-  },
-  {
-   "bucket": "80-90%",
-   "graded": {
-    "value": 49,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 84.1,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 40.8,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "UNDER"
-  },
-  {
-   "bucket": "90-100%",
-   "graded": {
-    "value": 11,
-    "basis": "DESCRIPTIVE"
-   },
-   "stated": {
-    "value": 93.8,
-    "basis": "DESCRIPTIVE"
-   },
-   "actual": {
-    "value": 54.5,
-    "basis": "DESCRIPTIVE"
-   },
-   "flag": "UNDER"
-  }
- ],
+ "bands": [],
+ "bands_before": {},
+ "method_now": "2025-only",
  "test": {
   "n": 157,
   "mean_d": 0.24654293565026483,
@@ -127,6 +16,17 @@
   "graded_picks": 345,
   "min_n": 500,
   "applied": false
+ },
+ "test_after_fix": {
+  "n": 0,
+  "mean_d": null,
+  "t": null,
+  "p": null,
+  "clusters": 0,
+  "verdict": "NOT YET MEASURABLE",
+  "graded_picks": 0,
+  "min_n": 500,
+  "method": "season-blend"
  },
  "log_loss": {
   "nfl": {
