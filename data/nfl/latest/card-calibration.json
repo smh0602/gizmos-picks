@@ -1,0 +1,227 @@
+{
+ "league": "nfl",
+ "kind": "DESCRIPTIVE",
+ "built_at": "2026-09-24T10:44:50Z",
+ "spec": "research/fb_card_calibration_spec.md",
+ "bands": [
+  {
+   "bucket": "30-40%",
+   "graded": {
+    "value": 11,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 35.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 36.4,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  },
+  {
+   "bucket": "40-50%",
+   "graded": {
+    "value": 12,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 44.5,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 75.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  },
+  {
+   "bucket": "50-60%",
+   "graded": {
+    "value": 35,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 55.8,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 40.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  },
+  {
+   "bucket": "60-70%",
+   "graded": {
+    "value": 48,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 65.1,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 50.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  },
+  {
+   "bucket": "70-80%",
+   "graded": {
+    "value": 32,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 75.9,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 68.8,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  },
+  {
+   "bucket": "80-90%",
+   "graded": {
+    "value": 49,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 84.1,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 40.8,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "UNDER"
+  },
+  {
+   "bucket": "90-100%",
+   "graded": {
+    "value": 11,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 93.8,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 54.5,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "UNDER"
+  }
+ ],
+ "test": {
+  "n": 157,
+  "mean_d": 0.24654293565026483,
+  "t": 2.5669233734107952,
+  "p": 0.007745314993861185,
+  "clusters": 31,
+  "verdict": "NOT YET MEASURABLE",
+  "graded_picks": 345,
+  "min_n": 500,
+  "applied": false
+ },
+ "log_loss": {
+  "nfl": {
+   "n": 98,
+   "raw": 0.8706527922554269,
+   "calibrated": 0.6945659844983535
+  },
+  "ncaaf": {
+   "n": 59,
+   "raw": 1.064513107735683,
+   "calibrated": 0.7009413494831679
+  }
+ },
+ "scored_bands": {
+  "raw": [
+   {
+    "bucket": "10-20%",
+    "n": 2,
+    "stated": 14.5,
+    "actual": 50.0
+   },
+   {
+    "bucket": "20-30%",
+    "n": 4,
+    "stated": 25.0,
+    "actual": 50.0
+   },
+   {
+    "bucket": "30-40%",
+    "n": 7,
+    "stated": 33.1,
+    "actual": 57.1
+   },
+   {
+    "bucket": "40-50%",
+    "n": 6,
+    "stated": 42.7,
+    "actual": 33.3
+   },
+   {
+    "bucket": "50-60%",
+    "n": 25,
+    "stated": 56.6,
+    "actual": 48.0
+   },
+   {
+    "bucket": "60-70%",
+    "n": 32,
+    "stated": 65.3,
+    "actual": 53.1
+   },
+   {
+    "bucket": "70-80%",
+    "n": 22,
+    "stated": 74.7,
+    "actual": 68.2
+   },
+   {
+    "bucket": "80-90%",
+    "n": 36,
+    "stated": 84.9,
+    "actual": 41.7
+   },
+   {
+    "bucket": "90-100%",
+    "n": 23,
+    "stated": 94.6,
+    "actual": 47.8
+   }
+  ],
+  "calibrated": [
+   {
+    "bucket": "40-50%",
+    "n": 7,
+    "stated": 49.2,
+    "actual": 57.1
+   },
+   {
+    "bucket": "50-60%",
+    "n": 150,
+    "stated": 53.2,
+    "actual": 50.0
+   }
+  ]
+ },
+ "mappings": {
+  "2026-09-07": null,
+  "2026-09-14": [
+   0.05873402009726049,
+   0.07128142641227203
+  ],
+  "2026-09-21": [
+   0.04071005456383858,
+   0.010869002152611428
+  ]
+ },
+ "note": "Stated is what the card printed; actual is how those plays did. A correction replaces the printed number only if it passes Sam's rule, and even then only by his decision."
+}
