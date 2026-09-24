@@ -118,6 +118,9 @@ FROZEN = {
     # [Sam, 2026-09-24] ship rule in section 2 before any result; the
     # formula and scoring in section 3 fixed by Claude before any scoring.
     "fb_card_fix_spec.md": "8162387a90aaae4228a661e898cbe72c9e8cd3ee4d6ed2ebbbfcfed7f05715a1",
+    # [Sam, 2026-09-24] ledger, no cap and verdict rules in section 2;
+    # definitions in section 3 fixed by Claude before any scoring code.
+    "fb_model_live_spec.md": "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398",
 }
 
 
