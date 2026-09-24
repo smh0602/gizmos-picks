@@ -1161,8 +1161,25 @@ if _arch9:
 # 🔴 AND IT IS WRITE-ONCE. An archive a later run can rewrite is not an
 #    archive — it is `latest/` with a longer name.
 if _arch9:
-    with gzip.open(_arch9[0], "wt") as _fh:
-        json.dump({"sentinel": "the earlier reading"}, _fh)
+    # ══════════════════════════════════════════════════════════════
+    # 🔴 A SENTINEL AT EVERY MINUTE THE SECOND RUN COULD LAND IN, not
+    #    only the first file. `[2026-09-24, found by the sweep]` With one
+    #    sentinel the check bit only when both runs shared a MINUTE: once
+    #    `card-fb` took longer, the clock rolled, the mutated writer made
+    #    a NEW file, the sentinel survived and the mutation read VACUOUS.
+    #    ✅ Now wherever the run lands it meets an earlier reading, so a
+    #    writer that overwrites is red whatever the clock says.
+    # ══════════════════════════════════════════════════════════════
+    import daystore as _dsx
+    _now9 = datetime.datetime.now(datetime.timezone.utc)
+    _planted = sorted({_arch9[0]} | {
+        os.path.abspath(_dsx.path(os.path.join(_d9, "data", "nfl"), "dossiers",
+                                  _now9 + datetime.timedelta(minutes=_m)))
+        for _m in range(-1, 61)})
+    for _pp in _planted:
+        os.makedirs(os.path.dirname(_pp), exist_ok=True)
+        with gzip.open(_pp, "wt") as _fh:
+            json.dump({"sentinel": "the earlier reading"}, _fh)
     _rc9b = subprocess.run([sys.executable, "collect.py", "card-fb"],
                            cwd=_d9, timeout=1200, capture_output=True,
                            text=True, env=dict(os.environ, LEAGUE="nfl"))
@@ -1187,24 +1204,21 @@ if _arch9:
     # depends on when it is run is a check that will redden on correct
     # code, which is the other failure CLAUDE.md names.
     # ✅ THE REAL INVARIANT IS THAT THE EARLIER READING IS NEVER
-    # REWRITTEN — asserted unconditionally below — and each branch of
-    # the minute question still asserts something.
+    # REWRITTEN. `[2026-09-24]` The minute question is gone: every minute
+    # the run can land in already holds a reading, so there is one branch.
     # ══════════════════════════════════════════════════════════════
-    if len(_again) == 1:
-        ck("already exists" in _out9b,
-           "   ...the same minute, and it said out loud it left it alone",
-           "⛔ a write-once that is silent about declining to write is a "
-           "write-once nobody can audit. %s" % _out9b[-250:])
-    else:
-        ck(sorted(_again)[0] == _arch9[0] and len(_again) == 2,
-           "   ...the minute rolled, so it wrote a SECOND dated file (%d) "
-           "and left the first alone" % len(_again),
-           "⛔ write-once is per-file, not one-file-ever. Found: %s"
-           % [os.path.relpath(a, _d9) for a in _again])
-    ck(_load(_arch9[0]).get("sentinel") == "the earlier reading",
-       "🔴🔴 ...AND LEAVES THE EARLIER READING EXACTLY AS IT WAS",
+    _norm9 = lambda xs: {os.path.normcase(os.path.abspath(x)) for x in xs}  # noqa: E731
+    ck("already exists" in _out9b and _norm9(_again) == _norm9(_planted),
+       "   ...it landed on an earlier reading, said so out loud, and wrote no new file",
+       "⛔ a write-once that is silent about declining to write is a "
+       "write-once nobody can audit. %s" % _out9b[-250:])
+    _hit = [os.path.relpath(a, _d9) for a in _planted
+            if _load(a).get("sentinel") != "the earlier reading"]
+    ck(not _hit,
+       "🔴🔴 ...AND LEAVES EVERY EARLIER READING EXACTLY AS IT WAS (%d planted)"
+       % len(_planted),
        "⛔ WRITE-ONCE. A later run overwriting it destroys the very "
-       "history this exists to keep. Got %s" % str(_load(_arch9[0]))[:120])
+       "history this exists to keep. Rewritten: %s" % _hit)
     ck(os.path.getsize(_lat9) > 200,
        "   ...while `latest/` is refreshed as normal (%d bytes)"
        % os.path.getsize(_lat9),
