@@ -106,7 +106,10 @@ Rock, FanDuel and DraftKings only. Add a SEPARATE record, labelled
 - **NFL prices:** nflverse's closing spread, total and moneyline, each
   with nflverse's own price. `nfl.py` now stores the spread and total
   prices; they come from the same `games.csv.gz` it already downloads.
-  **A missing price is not graded.**
+  **A missing price is not graded.** The daily build rewrites only the
+  current season's schedule, so `nfl.history_gap` now also rebuilds a past
+  season (2025) once when its stored schedule lacks a field the builder
+  writes today.
 - **College prices:** CFBD's stored line. CFBD stores no spread or total
   price, so those are **assumed -110**, and every record row that uses one
   says **"price assumed -110"**. Its break-even is then labelled a record

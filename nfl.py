@@ -917,6 +917,16 @@ def stored_line_scores(base, season):
             for g in games if g.get("id") and g.get("home_line")}
 
 
+def schedule_keys():
+    """The per-game keys `build_schedule` emits TODAY, read off the builder
+    itself on one synthetic row — never a hand-kept list that goes stale."""
+    doc, _rep = build_schedule(2000, log=lambda *a, **k: None, rows=[{
+        "season": "2000", "week": "1", "gameday": "2000-09-03", "gametime": "13:00",
+        "game_id": "2000_01_A_B", "home_team": "A", "away_team": "B",
+        "home_score": "1", "away_score": "0"}])
+    return frozenset(doc["games"][0]) if doc else frozenset()
+
+
 def history_gap(base, season):
     """Why `season` must be rebuilt for signals 6 and 7, or None.
 
@@ -947,6 +957,25 @@ def history_gap(base, season):
         return "no players-%d" % season
     except Exception as e:
         return "players-%d unreadable: %s" % (season, type(e).__name__)
+    # 🔴 A FIELD ADDED TO THE SCHEDULE BUILDER MUST REACH PAST SEASONS TOO.
+    # `[found 2026-09-24]` the daily run rebuilds only the CURRENT season's
+    # schedule, so nflverse's closing prices (added for the model's
+    # closing-line record) would never have reached 2025. Any key the
+    # builder emits today that a stored game lacks rebuilds that season
+    # ONCE; the rebuild closes the gap. Quarter scores survive it
+    # (`stored_line_scores`).
+    try:
+        with _gz.open(os.path.join(base, "schedule-%d.json.gz" % season), "rt",
+                      encoding="utf-8") as fh:
+            games = _js.load(fh).get("games") or []
+    except FileNotFoundError:
+        return "no schedule-%d" % season
+    except Exception as e:
+        return "schedule-%d unreadable: %s" % (season, type(e).__name__)
+    want = schedule_keys()
+    missing = sorted(k for k in want if games and any(k not in g for g in games))
+    if missing:
+        return "schedule-%d predates %s" % (season, ", ".join(missing))
     return None
 
 
@@ -1590,7 +1619,7 @@ def build_line_scores(season, seen=None, log=print):
             "by_game": out}, rep
 
 
-def build_schedule(season, seen=None, log=print, lines=None):
+def build_schedule(season, seen=None, log=print, lines=None, rows=None):
     """Schedule and final scores for one season. **Feeds the Scores tab.**
 
     ✅ FREE AND ALREADY DOWNLOADED. `games.csv.gz` is the same file
@@ -1614,13 +1643,13 @@ def build_schedule(season, seen=None, log=print, lines=None):
     """
     log(f"=== nfl: schedule {season} ===")
     rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False}
-    if seen is None:
+    if seen is None and rows is None:
         seen = {r["tag_name"]: [(a["name"], a["size"],
                                  a["browser_download_url"])
                                 for a in (r.get("assets") or [])]
                 for r in _releases(log)}
     try:
-        sched = _rows(seen, "schedules", SCHEDULE_FILE, log)
+        sched = rows if rows is not None else _rows(seen, "schedules", SCHEDULE_FILE, log)
     except Exception as e:
         rep["error"] = f"{type(e).__name__}: {e}"
         log(f"  ⛔ {rep['error']}")

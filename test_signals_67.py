@@ -34,6 +34,11 @@ declarations are what `vacuity.py` drives:
 #   file: cfb.py
 #   find:     if not price["allowed"]:
 #   with:     if False:
+
+# @vacuity a past season whose schedule lacks a field the builder now writes is rebuilt
+#   file: nfl.py
+#   find:     missing = sorted(k for k in want if games and any(k not in g for g in games))
+#   with:     missing = []
 """
 import gzip
 import json
@@ -205,6 +210,10 @@ def _tree(files):
     return d
 
 
+# ✅ A COMPLETE stored schedule carries every key the builder emits today
+#    (read off the builder, not listed here). One game is enough.
+_sched_ok = {"games": [{k: None for k in nfl.schedule_keys()}]}
+_sched_old = {"games": [{k: None for k in nfl.schedule_keys() if k != "closing_over_odds"}]}
 _cases = [
     ({}, True, "nothing stored"),
     ({"top-probe-2025.json": {}, "top-2025.json.gz": {"teams": {}},
@@ -212,9 +221,18 @@ _cases = [
     ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
       "players-2025.json.gz": {}}, True, "players predate the out count"),
     ({"top-probe-2025.json": {"error": "refused"},
-      "players-2025.json.gz": {"team_out_report": {}}}, False, "builder REFUSED"),
+      "players-2025.json.gz": {"team_out_report": {}},
+      "schedule-2025.json.gz": _sched_ok}, False, "builder REFUSED"),
     ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
-      "players-2025.json.gz": {"team_out_report": {}}}, False, "complete"),
+      "players-2025.json.gz": {"team_out_report": {}},
+      "schedule-2025.json.gz": _sched_ok}, False, "complete"),
+    # 🔴 a stored schedule missing a field the builder now writes (the
+    #    closing prices, 2026-09-24) is rebuilt — or 2025 never gets it
+    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
+      "players-2025.json.gz": {"team_out_report": {}},
+      "schedule-2025.json.gz": _sched_old}, True, "schedule predates a builder field"),
+    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
+      "players-2025.json.gz": {"team_out_report": {}}}, True, "no stored schedule"),
 ]
 _wrong = []
 for files, want, label in _cases:
