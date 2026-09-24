@@ -3080,6 +3080,22 @@ function fbDosFacts(s){
   const f = [];
   const li = (k, v) => f.push(`<li>${k} <b>${v}</b></li>`);
   const num = v => v == null ? null : v;
+  if (s.n === 9 && s.teams){
+    /* 🔴 SIGNAL 9, DESCRIPTIVE `[Sam, 2026-09-24]`: what left each team. */
+    for (const [t, e] of Object.entries(s.teams)){
+      if (e.returning_usage){
+        const r = e.returning_usage;
+        li(`${t} returning`, `${r.receivingUsage ?? '—'}% receiving · ${r.rushingUsage ?? '—'}% rushing`);
+        continue;
+      }
+      const g = c => (e[c] && e[c].share != null) ? `${e[c].share}%` : '—';
+      li(`${t} vacated`, `targets ${g('tgt')} · air yards ${g('ay')} · carries ${g('car')}${
+        e.i10 ? ` · inside-10 ${g('i10')}` : ''}`);
+      if (e.off_roster_targets != null) li(`${t} targets gone from the roster`, `${e.off_roster_targets}%`);
+      if (e.arrivals_changed_teams != null) li(`${t} arrivals from other teams`, e.arrivals_changed_teams);
+    }
+    return f.length ? `<ul class="dosf">${f.join('')}</ul><span class="kind k-desc">Record</span>` : '';
+  }
   if (s.n === 1){
     /* ⚠️ THE BOARD'S OWN FIGURES AS THE DOSSIER STORED THEM — a
        point-in-time reading, which is the whole nature of this artifact.

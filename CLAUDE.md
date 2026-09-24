@@ -524,6 +524,16 @@ shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
 possession.py     ONE implementation of the possession coverage/share
                   maths, read by BOTH leagues. ⛔ Never copy it into
                   nfl.py or cfb.py (rule 117).
+signal9.py        SIGNAL 9, "Opportunity change" (Sam, 2026-09-24): the
+                  ONE copy of the vacated-share maths (s_adj, E_share,
+                  the card scale), read by the props model, the card,
+                  the game model and the dossier. Formulas frozen in
+                  research/fb_signal9_spec.md. ⛔ Injured reserve counts
+                  as vacated while out (Sam's rule).
+fb_signal9.py     scores signal 9's three uses by Sam's keep rule (mean
+                  log-loss difference >= 0, clustered by game). ⛔ The
+                  per-league switches are constants set from the recorded
+                  run; test_signal9.py fails if they disagree.
 liveprobe.py      can the football scores tab ever be live?
 verify_nfl.py     the football data-layer verifier
 

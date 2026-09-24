@@ -695,17 +695,19 @@ ck(_s8amb.get("state") != "OK" and not _s8amb.get("venue"),
    "🔴 Got %s / %r" % (_s8amb.get("state"), _s8amb.get("venue")))
 shutil.rmtree(_d1e, ignore_errors=True)
 
-section("2. ⚠️ ALL EIGHT SECTIONS, EVERY GAME, PRESENT OR UNAVAILABLE")
+section("2. ⚠️ ALL NINE SECTIONS, EVERY GAME, PRESENT OR UNAVAILABLE")
 _docs = _D.get("dossiers") or []
+# `[Sam, 2026-09-24]` section 9, "Opportunity change", added after Venue.
 _WANT = ["Market", "Head to head", "Time of year", "This season",
-         "Versus position", "Time of possession", "Personnel", "Venue"]
+         "Versus position", "Time of possession", "Personnel", "Venue",
+         "Opportunity change"]
 _bad = []
 for _g in _docs:
     _names = [s.get("name") for s in _g.get("sections") or []]
     if _names != _WANT:
         _bad.append((_g.get("home"), _names))
 ck(_docs and not _bad,
-   "🔴🔴 ALL EIGHT SECTIONS, IN ORDER, ON EVERY GAME",
+   "🔴🔴 ALL NINE SECTIONS, IN ORDER, ON EVERY GAME",
    "⛔ an absent section is indistinguishable from a section that found "
    "nothing — the `own_mean` shape. Offenders: %s" % _bad[:3])
 _states = {s["state"] for g in _docs for s in g["sections"]}
@@ -839,8 +841,8 @@ ck("data/mlb" not in _DSRC and '"mlb"' not in _DSRC,
 # ══════════════════════════════════════════════════════════════════════
 _sfns = [n for n in ast.parse(_DSRC).body
          if isinstance(n, ast.FunctionDef) and n.name.startswith("s_")]
-ck(len(_sfns) == 8,
-   "⚠️ the sweep below really does see all eight sections (%d)"
+ck(len(_sfns) == 9,
+   "⚠️ the sweep below really does see all nine sections, signal 9 included (%d)"
    % len(_sfns),
    "⛔ rule 67: a sweep over an empty or short list of functions proves "
    "nothing. Found %s" % [n.name for n in _sfns])
@@ -1151,8 +1153,8 @@ if _arch9:
        "   ...carrying the same document, not a summary of it",
        "⛔ an archive that drops fields is not an archive of this file")
     ck((_load(_arch9[0]).get("dossiers") or []) and
-       len(_load(_arch9[0])["dossiers"][0].get("sections") or []) == 8,
-       "   ...with all eight sections in it (%d game(s))"
+       len(_load(_arch9[0])["dossiers"][0].get("sections") or []) == _DFX.SECTIONS_DECLARED,
+       "   ...with every declared section in it (%d game(s))"
        % len(_load(_arch9[0]).get("dossiers") or []),
        "⛔ an archive of an empty document proves nothing")
 

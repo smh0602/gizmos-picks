@@ -36,6 +36,7 @@ import dossier_fb as D              # team_codes, _near: the board -> schedule j
 import possession as P              # share_before: signal 6 from EARLIER games only
 import shadow_fb                    # cluster: effective n by game
 import t60r                         # point-in-time §2, §4, §5 — read, never edited
+import signal9                      # the ONE opportunity table reader (signal 9)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -55,6 +56,13 @@ FEATURES = {
     "total": ["line", "h2h", "form", "defence", "neutral", "dome"],
     "moneyline": ["market", "h2h", "form", "possession", "personnel", "neutral", "dome"],
 }
+# 🔴 SIGNAL 9 `[Sam, 2026-09-24]` — the team-level vacated share as one more
+#    input (research/fb_signal9_spec.md §3). ⛔ ON/OFF IS SET BY THE RECORDED
+#    KEEP-RULE RESULT (fb_signal9.py), never by hand.
+# ✅ NFL KEPT 2026-09-24: not worse, mean log-loss difference +0.0002 over
+#    460 closing-line predictions in 154 games (research/fb_signal9_run_2026-09-24.json).
+#    ⛔ College stays OFF until its CFBD data is stored and scored (spec §3).
+S9_GAME = {"nfl": True, "ncaaf": False}
 
 
 def log(m):
@@ -320,8 +328,11 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
             prev = lambda team: max(((w, n) for w, n in (outs.get((g["season"], team)) or {}).items()  # noqa: E731
                                      if w < int(wk)), default=(None, None))[1]
             o_h, o_a = prev(g["home"]), prev(g["away"])
+        _o9 = signal9.load(lg, g["season"], root)
+        vac_h = signal9.team_vacated_combined(_o9, g["home"], wk) if _o9 else None
+        vac_a = signal9.team_vacated_combined(_o9, g["away"], wk) if _o9 else None
         rows.append({
-            "id": str(g.get("id")), "season": g["season"], "day": day, "kick": g["start"],
+            "id": str(g.get("id")), "lg": lg, "season": g["season"], "day": day, "kick": g["start"],
             "week": wk, "home": g["home"], "away": g["away"], "final": bool(g.get("final")),
             "hs": g.get("home_score"), "as": g.get("away_score"),
             "M": M, "T": T, "pml": pml, "snap": snap, "dk_ml": dk_ml,
@@ -329,6 +340,7 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
             "sig": {"h2h_m": h2h_m, "h2h_t": h2h_t, "form_m": f_m, "form_t": f_t,
                     "def": frac, "poss": (sb_h - sb_a) if sb_h is not None and sb_a is not None else None,
                     "out": (o_a - o_h) if o_h is not None and o_a is not None else None,
+                    "vac_h": vac_h, "vac_a": vac_a,
                     "neutral": 1.0 if g.get("neutral") else 0.0,
                     "dome": 1.0 if (g.get("roof") or "") in ("dome", "closed") else 0.0},
         })
@@ -341,20 +353,25 @@ def features(r, market, M=None, T=None):
     M = r["M"] if M is None else M
     T = r["T"] if T is None else T
     z = lambda x: 0.0 if x is None else float(x)  # noqa: E731
+    vh, va = s.get("vac_h"), s.get("vac_a")
+    s9 = (lambda x: [x] if S9_GAME.get(r.get("lg")) else [])  # noqa: E731
     if market == "spread":
         return [z(M) / 7.0,
                 z(None if s["h2h_m"] is None else s["h2h_m"] - M) / 10.0,
                 z(None if s["form_m"] is None else s["form_m"] - M) / 10.0,
-                z(s["poss"]) * 10.0, z(s["out"]) / 3.0, s["neutral"], s["dome"]]
+                z(s["poss"]) * 10.0, z(s["out"]) / 3.0, s["neutral"], s["dome"]] + s9(
+            (vh - va) if vh is not None and va is not None else 0.0)
     if market == "total":
         return [(z(T) - 45.0) / 10.0,
                 z(None if s["h2h_t"] is None else s["h2h_t"] - T) / 10.0,
                 z(None if s["form_t"] is None else s["form_t"] - T) / 10.0,
-                z(None if s["def"] is None else s["def"] - 0.5) * 4.0, s["neutral"], s["dome"]]
+                z(None if s["def"] is None else s["def"] - 0.5) * 4.0, s["neutral"], s["dome"]] + s9(
+            (vh + va) if vh is not None and va is not None else 0.0)
     p = r["pml"]
     lo = math.log(p / (1 - p)) if p and 0 < p < 1 else 0.0
     return [lo, z(s["h2h_m"]) / 10.0, z(s["form_m"]) / 10.0,
-            z(s["poss"]) * 10.0, z(s["out"]) / 3.0, s["neutral"], s["dome"]]
+            z(s["poss"]) * 10.0, z(s["out"]) / 3.0, s["neutral"], s["dome"]] + s9(
+        (vh - va) if vh is not None and va is not None else 0.0)
 
 
 def label(r, market, M=None, T=None):

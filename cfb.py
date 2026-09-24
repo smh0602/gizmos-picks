@@ -1454,6 +1454,44 @@ def possession_gap(season):
     return None
 
 
+# 🔴 SIGNAL 9 (research/fb_signal9_spec.md §1) — CFBD returning production
+#    and the transfer portal, ONE call each per season, fetched only when
+#    that season's file is missing and only after `cfbd_budget.preflight`.
+#    ⛔ A refusal fetches nothing and writes nothing, so it is retried next run.
+SIGNAL9_ENDPOINTS = (("/player/returning", "returning-{s}.json.gz"),
+                     ("/player/portal", "portal-{s}.json.gz"))
+
+
+def signal9_missing(season):
+    return [(path, fn.format(s=season)) for path, fn in SIGNAL9_ENDPOINTS
+            if not os.path.exists(os.path.join(OUT, fn.format(s=season)))]
+
+
+def fetch_signal9(season, log=log):
+    """-> {file: "written" | "refused" | "failed: ..."} for what was missing."""
+    import cfbd_budget as _cb
+    out = {}
+    for path, fn in signal9_missing(season):
+        quote = _cb.preflight(1, "signal 9 %s %d" % (path, season), OUT)
+        log(f"    💰 CFBD PRICE — {quote['purpose']}: "
+            f"{'ALLOWED' if quote['allowed'] else 'REFUSED'} — {quote['why']}")
+        if not quote["allowed"]:
+            out[fn] = "refused"
+            continue
+        try:
+            rows = get(path, {"year": str(season)})
+        except Exception as e:
+            out[fn] = "failed: %s" % type(e).__name__
+            continue
+        if not rows:
+            out[fn] = "failed: empty"
+            continue
+        write_stamped(fn, {"season": season, "kind": "DESCRIPTIVE", "endpoint": path,
+                           "spec": "research/fb_signal9_spec.md", "rows": rows}, log)
+        out[fn] = "written"
+    return out
+
+
 def backfill_possession(season, log=log):
     """ONE priced `/plays` sweep for a history season's per-game possession.
 
@@ -2906,6 +2944,14 @@ def probe(log=log):
             except Exception as _be:
                 log(f"    possession back-fill {_hs} FAILED: "
                     f"{type(_be).__name__}: {_be}")
+    # 🔴 SIGNAL 9: returning production + the portal, once per season.
+    for _hs in _fr6.FOOTBALL_HISTORY:
+        try:
+            _s9 = fetch_signal9(_hs, log)
+            if _s9:
+                log(f"    signal 9 {_hs}: {_s9}")
+        except Exception as _se:
+            log(f"    signal 9 {_hs} FAILED: {type(_se).__name__}: {_se}")
 
     # ══════════════════════════════════════════════════════════════════
     # 🔴 READ THE OLD REPORT BEFORE TRUNCATING IT. THIS WAS A REAL BUG,

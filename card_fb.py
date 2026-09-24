@@ -117,6 +117,7 @@ from datetime import datetime, timezone
 #    missing calibration.py is a broken repo and the builder should say so
 #    loudly rather than quietly publish a bar nobody chose.
 from calibration import MIN_N, band_flags
+import signal9                          # the ONE expected-share formula (signal 9)
 
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
@@ -863,6 +864,11 @@ def rate_for(games, market, line, side):
 # ══════════════════════════════════════════════════════════════════════
 METHOD_CURRENT = "2025-only"
 METHOD_FIXED = "season-blend"
+METHOD_FIXED_S9 = "season-blend+signal9"
+# ⛔ SET BY THE RECORDED KEEP-RULE RESULT (fb_signal9.py), never by hand.
+#    NFL OFF 2026-09-24: worse, mean log-loss difference −0.0042 over 198
+#    graded published props. College OFF until scored.
+S9_CARD = {"nfl": False, "ncaaf": False}
 K_SEASON = 4.0        # ⛔ spec §3: each 2025 game counts 4 / (4 + n26)
 K_PRIOR = 12.0        # ⛔ spec §3: shrink toward the position average
 THIN_N = 10.0         # ⛔ spec §3: under 10 weighted games ...
@@ -903,14 +909,17 @@ def games_before(games, day):
     return [g for g in games or [] if (g.get("d") or "") < day]
 
 
-def rate_blend(g25, g26, market, line, side, p0):
+def rate_blend(g25, g26, market, line, side, p0, r=1.0):
     """The FIXED card's (confidence 0-100, hits, n, mean, detail) or None.
     ⛔ `g26` must already hold only games dated before the card's date."""
     both = sorted(list(g25) + list(g26), key=lambda g: g.get("d") or "")
     if gated_games(both, market, line) is None:
         return None
     read = MARKETS[market][0]
-    v25 = [read(g) for g in qualifying(g25)]
+    # 🔴 SIGNAL 9 (research/fb_signal9_spec.md §3): the 2025 starting point
+    #    scaled by his opportunity change, r = s_adj / s25 — volume markets
+    #    only; r = 1 everywhere else and whenever signal 9 is off.
+    v25 = [read(g) * r for g in qualifying(g25)]
     v26 = [read(g) for g in qualifying(g26)]
     h25, n25 = count_hits(v25, market, line, side), len(v25)
     h26, n26 = count_hits(v26, market, line, side), len(v26)
@@ -1659,6 +1668,7 @@ def main():
     season, P = load_logs()
     idx = index_by_name(P)
     _card_day = slate_date(B)
+    _opp9 = signal9.load(LEAGUE, CUR_SEASON) if (S9_CARD.get(LEAGUE) and CUR_SEASON) else None
     _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
               if CARD_METHOD == METHOD_FIXED else None)
 
@@ -1693,7 +1703,11 @@ def main():
                             if CUR_SEASON != season else [])
                     _p0 = position_prior(_pools, plog.get("pos"), mk, side,
                                          pr.get("line"), _card_day)
-                    r = rate_blend(plog.get("g") or [], _g26, mk, pr.get("line"), side, _p0)
+                    _r9 = 1.0
+                    if S9_CARD.get(LEAGUE) and _opp9:
+                        _pl9 = (_opp9.get("players") or {}).get(pids[0]) or {}
+                        _r9 = signal9.card_scale(_opp9, pids[0], _pl9.get("team_now"), None, mk)
+                    r = rate_blend(plog.get("g") or [], _g26, mk, pr.get("line"), side, _p0, _r9)
                     if r is None:
                         thin += 1
                 elif plog is not None and gate_ok:
@@ -2055,7 +2069,8 @@ def main():
         "logs_season": season,
         # `[Sam, 2026-09-24]` which way this card rated its rows, so the
         # record reports each method apart and never mixes them.
-        "card_method": CARD_METHOD,
+        "card_method": (METHOD_FIXED_S9 if (CARD_METHOD == METHOD_FIXED and S9_CARD.get(LEAGUE))
+                        else CARD_METHOD),
         "rates_available": RATES_OK,
         # ⚠️ THE SNAP FLOOR IS AN NFL FACT. ⛔ Reporting it on a college
         # card would advertise a filter that cannot exist there.
