@@ -4699,9 +4699,55 @@ function fbModelHtml(M){
     <div class="note" style="margin-top:12px">${fbEsc(M.closing_note || '')}</div>` : ''}
   </div>`;
 }
+/* 🔴 THE PROPS MODEL, ITS OWN SECTION, LABELLED MODEL. `[Sam, 2026-09-24]`
+   "Show the model's prop picks on the football page as their own section,
+   labelled MODEL. Next to them, show the walk-forward record per market:
+   picks, hit rate and break-even. Use the same price floors as the existing
+   card. Do not remove the existing card." ⛔ Appended after the card, never
+   inside it; every number goes through labN. */
+const FBPROPMODEL = {};
+async function fbPropModelLoad(lg){
+  if (FBPROPMODEL[lg] !== undefined) return FBPROPMODEL[lg];
+  try { FBPROPMODEL[lg] = await jget(`${LG_DATA[lg]}/latest/fb-props-model.json`); }
+  catch(e){ FBPROPMODEL[lg] = null; }
+  return FBPROPMODEL[lg];
+}
+function fbPropModelHtml(M){
+  if (!M) return `<div class="panel"><h2>Prop model picks <span class="kind k-model">Model</span></h2>
+    <div class="note">The props model's file has not been built yet. It is rebuilt with the card.</div></div>`;
+  const shown = M.picks || [], total = M.picks_total || shown.length;
+  const side = s => ({over: 'Over', under: 'Under', yes: 'Yes'}[s] || s);
+  const picks = shown.map(p => `<tr><td>${fbEsc(p.player)}<br><span class="rec">${fbEsc(p.game)} · ${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
+      <td>${fbEsc(p.market_label || p.market)}</td>
+      <td><b>${side(p.side)}${p.line && p.line.value != null ? ' ' + p.line.value : ''}</b></td>
+      <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
+      <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
+  const rec = Object.keys(M.record || {}).map(k => {
+    const r = M.record[k] || {};
+    return `<tr><td>${fbEsc(r.market_label || k)}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
+      <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td><td>${r.first_graded || '—'}</td></tr>`;
+  }).join('');
+  return `<div class="panel">
+    <h2>Prop model picks <span class="kind k-model">Model</span></h2>
+    <p class="stamp">A separate model of each player's likely stat line, trained on the stored player logs
+      and retrained every week on games already played. It picks a side only when its chance beats the
+      break-even of the best ${(M.books || []).join(', ')} price, inside the card's own price limits
+      (${M.price_floor} to +${M.price_ceiling}). It does not change the card above.
+      <span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
+    <h3 style="margin:14px 0 8px;font-size:14px">This week${total > shown.length ? ` — top ${shown.length} of ${total} by the model's chance` : ''}</h3>
+    ${picks ? `<table class="ob"><thead><tr><th>Player</th><th>Market</th><th>Pick</th><th>Price</th>
+      <th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
+      : '<div class="note">No prop this week clears the break-even of the best available price.</div>'}
+    <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
+    <table class="ob"><thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
+      <th>95% range</th><th>Graded since</th></tr></thead><tbody>${rec}</tbody></table>
+    <div class="note" style="margin-top:12px">${fbEsc(M.note || '')}</div>
+  </div>`;
+}
 async function fbModelAppend(v, lg){
   const M = await fbModelLoad(lg);
-  if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M));
+  const PM = await fbPropModelLoad(lg);
+  if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM));
 }
 
 async function fbPicks(){

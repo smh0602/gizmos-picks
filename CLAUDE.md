@@ -489,6 +489,13 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   ⛔ Its SECOND record (closing lines, college at an
                   assumed -110, labelled) is kept apart from the headline
                   and shown under it, never mixed in [Sam, 2026-09-23].
+fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
+                  stat distribution from the stored logs 2021-26, the
+                  market line folded in from EARLIER priced weeks only,
+                  walk-forward at the three books' prices, and scored
+                  against the props card's OWN recomputed probabilities.
+                  Rides `card-fb`. ⛔ Never touches the card; the switch
+                  is Sam's. Design: research/fb_props_design.md.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule

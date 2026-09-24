@@ -4228,6 +4228,16 @@ def run_mode(mode):
                     log(f"  ⚠️ the pick model did not build "
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back.")
+                # 🔴 AND THE PROPS MODEL, THE SAME WAY. `[Sam, 2026-09-24]`
+                #    "Retrain automatically inside the existing card-fb run.
+                #    No cron changes." ⛔ It never touches the card either.
+                try:
+                    import fb_props_model as _fpm
+                    _fpm.build(LEAGUE)
+                except Exception as e:
+                    log(f"  ⚠️ the props model did not build "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back.")
         elif mode == "halftime-probe":
             # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
             # digits: 2 credits for the bulk ask, 2 more only if that
