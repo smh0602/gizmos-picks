@@ -28,7 +28,9 @@ jobs:
     if: |
       contains(github.event.comment.body, '@claude') ||
       contains(github.event.issue.body, '@claude')
-    runs-on: ubuntu-latest
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: write
@@ -40,6 +42,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # agent runs the suite and verify_card.py, and the image's own `python`
+      # is 3.12 on ubuntu-24.04 but 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - uses: anthropics/claude-code-action@v1
         with:

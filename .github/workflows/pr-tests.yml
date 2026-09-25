@@ -13,6 +13,9 @@
 # ⚠️ The loop below is copied from collect.yml's Tests step, not
 # reinvented — test_pr_tests.py fails if the two ever disagree.
 # ⛔ READ-ONLY: it writes nothing, pushes nothing, opens nothing.
+# ✅ `[2026-09-24]` It also runs browser.yml's render tests, on both
+# images, so a PR learns about a broken page (or a Playwright install
+# that no longer works on a new Ubuntu) BEFORE merge, not after.
 # ══════════════════════════════════════════════════════════════════════
 name: pr-tests
 
@@ -30,12 +33,24 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    # 🔴 THE SUITE RUNS ON THE IMAGE WE USE AND THE ONE WE ARE MOVING TO.
+    # `[2026-09-24]` GitHub moves `ubuntu-latest` to Ubuntu 26.04 from
+    # 2026-10-19. Every workflow is PINNED to ubuntu-24.04 (a floating
+    # label fails test_runner_image.py), and this matrix is how we learn,
+    # on every PR, whether it is safe to move them to 26.04.
+    # ⚠️ The 24.04 row keeps the check's old name, `tests`, so nothing
+    #    that already waits on that name has to change.
+    name: tests${{ matrix.os != 'ubuntu-24.04' && format(' ({0})', matrix.os) || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -157,3 +172,94 @@ jobs:
             git diff | head -200
             exit 1
           fi
+
+  # ══════════════════════════════════════════════════════════════════════
+  # 🔴 BROWSER.YML'S RENDER TESTS, ON BOTH IMAGES. `[added 2026-09-24]`
+  # ⚠️ `playwright install --with-deps` installs Ubuntu PACKAGES by name,
+  # and package names change between Ubuntu releases — it is the step most
+  # likely to break on 26.04. browser.yml has a cron block, so it cannot be
+  # pointed at 26.04 to find out without Sam's hand; this job can.
+  # ⛔ THE STEPS BELOW ARE browser.yml's, LINE FOR LINE — test_runner_image.py
+  #    fails if they drift (rule 117: a copy breaks in the file you did not
+  #    edit). It runs on PRs only: browser.yml still owns push + schedule.
+  # ══════════════════════════════════════════════════════════════════════
+  render:
+    name: render${{ matrix.os != 'ubuntu-24.04' && format(' ({0})', matrix.os) || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      # ⚠️ `--with-deps` PULLS THE SYSTEM LIBRARIES CHROMIUM NEEDS. Without
+      # it the browser installs and then fails to launch, which reads as a
+      # test failure rather than a setup one.
+      - name: Install Playwright
+        run: |
+          python -m pip install --quiet playwright
+          python -m playwright install --with-deps chromium
+
+      # 🔴 THE BROWSER MUST ACTUALLY BE THERE. If the install silently
+      # half-worked, every gated check would `note()` its skip again and
+      # this whole workflow would go green having tested nothing — the
+      # exact failure it exists to end.
+      - name: Prove the browser is available
+        run: |
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              b = p.chromium.launch()
+              pg = b.new_page()
+              pg.set_content("<h1 id=x>ok</h1>")
+              assert pg.inner_text("#x") == "ok"
+              b.close()
+          print("browser OK")
+          PY
+
+      - name: Render tests
+        run: |
+          rc=0
+          ran=0
+          for t in test_box_live.py test_box_score.py test_live_scores.py \
+                   test_nfl_opener.py test_league_switch.py; do
+            [ -e "$t" ] || continue
+            ran=$((ran+1))
+            echo "── $t"
+            python "$t" || { rc=1; echo "::error::$t FAILED"; }
+          done
+          echo "ran $ran render test file(s)"
+          # ⛔ ZERO FILES IS A FAILURE, NOT A PASS — a glob that matches
+          # nothing is how a suite disappears unnoticed. Same rule as the
+          # collector's own Tests step.
+          if [ "$ran" -lt 5 ]; then
+            echo "::error::only $ran render file(s) found — the set has shrunk"
+            rc=1
+          fi
+          exit $rc
+
+      # 🔴 AND THE SKIP ITSELF IS NOW A FAILURE, HERE ONLY. In this
+      # workflow a browser is guaranteed, so a file reporting "NO BROWSER
+      # HERE" means the install broke — and reporting that as a pass is
+      # precisely the silence this file was written to remove.
+      # ⚠️ `collect.yml` keeps the note-and-continue behaviour, because
+      # there the absence is correct (rule 133).
+      - name: A skipped render check is a failure in THIS workflow
+        if: always()
+        run: |
+          out=$(for t in test_box_live.py test_box_score.py \
+                         test_live_scores.py test_nfl_opener.py \
+                         test_league_switch.py; do
+                  [ -e "$t" ] && python "$t" 2>&1
+                done | grep -c "NO BROWSER HERE" || true)
+          if [ "$out" != "0" ]; then
+            echo "::error::$out file(s) reported NO BROWSER — the install did not take"
+            exit 1
+          fi
+          echo "every render file had a browser"

@@ -1,0 +1,126 @@
+# 🔴🔴 ARE THE PICKS WINNING? NOTHING IN THIS REPO HAS EVER ASKED.
+#
+# `[Sam, 2026-09-15: "lets fix this and make them automatic then"]` — on
+# the hole I had reported as **the biggest one left, and the only one
+# that costs money rather than sleep.**
+#
+# ⛔ THE WATCHDOG WOULD HAVE SAID "HEALTHY" THROUGHOUT. It checks the
+# record is SANE — is the percentage 0-100, is grading still happening —
+# never whether it is any GOOD. Measured 2026-09-15: the NFL board
+# delivered **48.0% against a stated 64.5% on 100 graded rows**, every
+# job green, every artifact fresh, and nothing in the repo could see it.
+#
+# ⛔ FOOTBALL ONLY. The MLB freeze names "no scheduled checks that read
+# MLB state", so `calibration.py` has no MLB path at all — the absence is
+# the guard, not a flag somebody could flip.
+#
+# 💰 FREE. Reads two committed JSON files and writes an issue. No Claude
+# usage, no Odds credits, seconds of runner time on a public repo.
+name: calibration
+run-name: ${{ github.event.schedule && format('calibration [cron {0}]', github.event.schedule) || format('calibration [{0}]', github.event_name) }}
+
+on:
+  # ⚠️ DAILY, NOT HOURLY. A calibration gap moves over WEEKS — asking
+  # every hour would be 24 identical answers a day and an issue nobody
+  # reads. ⛔ Off :00 like every cron here; those slots get dropped.
+  schedule:
+    - cron: "52 12 * * *"      # 8:52am ET — after the morning football cards
+  workflow_dispatch:
+
+concurrency:
+  group: calibration
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Is the board delivering what it claims?
+        id: look
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.
+          # A shell step that decides what counts as under-performing is a
+          # second copy of that judgement, and the copy no test can reach.
+          python calibration.py > /tmp/cal.md 2>/tmp/cal.err
+          rc=$?
+          cat /tmp/cal.md
+          cat /tmp/cal.err >&2
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::calibration could not read a record"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — same shape as
+      # the watchdog's and the run watcher's, for the same reason: a
+      # workflow that opens a fresh issue daily is one whose notifications
+      # get filtered, and a filtered alert is no alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not "the
+      # picks are fine" and must never close an open issue.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - the board is not delivering what it claims"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not read the record — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — every league is back inside the bar."
+              gh issue close "$NUM"
+            fi
+            echo "inside the bar"
+            exit 0
+          fi
+          # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+          # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+          # left the `gh issue edit` path alone. Every watcher files ONCE and then
+          # updates in place for ever, so **five of the six open watcher issues
+          # carried no label at all** — #69, #44, #42, #31, #16 — and
+          # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+          # vacuous guards, which is the exact thing PR #73 existed to make
+          # actionable, was one of the five.
+          # ✅ `--add-label` on the edit path HEALS them: the next run of each
+          # watcher puts its own issue into the queue. Nothing has to be relabelled
+          # by hand.
+          # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+          # when X does not exist — the create path needed that and the edit path
+          # needs it too.
+          gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/cal.md
+          else
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cal.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cal.md \
+              || gh issue create --title "$TITLE" --body-file /tmp/cal.md
+          fi
+          exit 0

@@ -406,6 +406,14 @@ old one, not easier.**
   break the tie. ⛔ Do not make it pick the first match.
 - 🔴 **The collector must FAIL LOUD.** `sys.exit(1)` on error. It used to
   exit 0, and a green check proved nothing.
+- 🔴 **Every workflow runs on a PINNED image (`ubuntu-24.04`), never
+  `ubuntu-latest`, with Node 24 actions and its own Python.** `[2026-09-24]`
+  GitHub moves `-latest` to Ubuntu 26.04 from 2026-10-19 (image Python
+  3.12 → 3.14, Node 20 → 24, apt names change). `test_runner_image.py`
+  fails on a floating label, a Node 20 action major, an action not in its
+  table, or a job running the image's Python. ➡️ Move a pin only after
+  `pr-tests`' `ubuntu-26.04` rows are green — they run on every PR.
+  Details: `docs/HANDOFF-2026-09-24-runner-image.md`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
