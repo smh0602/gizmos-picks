@@ -5215,18 +5215,45 @@ function fbDayDetailHtml(rows){
    ⚠️ `hit: null` ON AN EMPTY BUCKET, never 0. `bandRow` draws "No sample"
    for null and a bar sitting at zero for 0 — a bucket nobody bet is not a
    bucket that lost. */
-function fbCalBlock(cal){
-  if (!cal || !cal.length) return '';
+function fbCalBlock(cal, label){
+  /* ⚠️ A LABELLED METHOD WITH NOTHING GRADED SAYS SO. Unlabelled, an empty
+     list still draws nothing — that is the old call shape. */
+  const head = `<h3 style="margin:18px 0 8px;font-size:14px">Was the record right?${
+    label ? ` <span class="sub" style="font-weight:400">&mdash; ${label}</span>` : ''}</h3>`;
+  if (!cal || !cal.length)
+    return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">No graded
+      picks under the ${label} yet &mdash; its rows appear here once their
+      games are in the stored log.</div>` : '';
   /* ⚠️ FOOTBALL PASSES ITS OWN WORDING. The figure is the mean of the
      players' own records at those lines, so nobody "said" it. */
   const band = c => bandRow({ name: c.bucket, n: c.n, said: c.stated, hit: c.n ? c.pct : null }, 'the record claimed');
-  return `<h3 style="margin:18px 0 8px;font-size:14px">Was the record right?</h3>
+  return `${head}
     ${cal.map(band).join('')}
     <div class="legend">
       <span><i style="background:var(--accent2)"></i>Beat the claim</span>
       <span><i style="background:#d9534f"></i>Fell short of it</span>
       <span><i style="background:#14181f;width:3px;border-radius:0"></i>What the record claimed</span>
     </div>`;
+}
+
+/* 🔴🔴 ONE LABELLED TABLE PER CARD METHOD, NEVER POOLED. `[Sam, 2026-09-24]`
+   `record.json` keeps each method's buckets apart in
+   `calibration_by_method`; `calibration` alone is only the CURRENT
+   method's, and the day the new method went live it was EMPTY — so the tab
+   drew no football bands at all while every graded row sat beside it.
+   ✅ The current method is drawn first and ALWAYS, saying so when nothing
+   under it is graded yet; every other method follows under its own name.
+   ⛔ An older record with no `calibration_by_method` is read as the one
+   method it names — never guessed into two. */
+const FB_METHOD_BEFORE = '2025-only';
+function fbCalMethods(R){
+  if (!R) return '';
+  const cur = R.card_method_current || FB_METHOD_BEFORE;
+  const by = R.calibration_by_method || { [cur]: R.calibration || [] };
+  const label = m => m === cur ? 'current method'
+    : (m === FB_METHOD_BEFORE ? '2025-only method' : `earlier method (${m})`);
+  const order = [cur, ...Object.keys(by).filter(m => m !== cur)];
+  return order.map(m => fbCalBlock(by[m] || [], label(m))).join('');
 }
 
 /* 🔴 EVERY GRADED DAY IS CLICKABLE, the same as MLB's. Sam, 2026-08-26:
@@ -5352,7 +5379,7 @@ async function fbRecord(){
      honesty the column heading carried is KEPT — it is the `Descriptive`
      chip beside this tab's heading that says these are records, not model
      outputs, and nothing here says "predicted". */
-  const calBlock = fbCalBlock((R && R.calibration) || []);
+  const calBlock = fbCalMethods(R);
 
   /* 🔴 A RESET IS NOT THE SAME FACT AS A NEW PRODUCT, AND THE TAB MUST
      NOT LET A READER CONFUSE THEM. Sam, 2026-09-06: *"wipe the track

@@ -73,6 +73,26 @@ IDX = os.path.join(ROOT, "index.html")
 #   find: gap.toFixed(1)
 #   with: gap.toFixed(2)
 #
+# @vacuity the tab must draw every method's bands, not `calibration` alone
+#   file: index.html
+#   find: const calBlock = fbCalMethods(R);
+#   with: const calBlock = fbCalBlock((R && R.calibration) || []);
+#
+# @vacuity a method other than the current one must still be drawn
+#   file: index.html
+#   find: const order = [cur, ...Object.keys(by).filter(m => m !== cur)];
+#   with: const order = [cur];
+#
+# @vacuity each method's table carries its own label
+#   file: index.html
+#   find: : (m === FB_METHOD_BEFORE ? '2025-only method' : `earlier method (${m})`);
+#   with: : (m === FB_METHOD_BEFORE ? '' : `earlier method (${m})`);
+#
+# @vacuity a method with no graded picks says so instead of drawing nothing
+#   file: index.html
+#   find: return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">No graded
+#   with: return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">
+#
 # @vacuity the default voice is preserved for callers that pass none
 #   find: ${saidAs || 'we said'}
 #   file: index.html
@@ -87,8 +107,8 @@ def node(body, extra=""):
     copy of the function under test is a test of the copy.
     """
     src = "\n".join(js_block(n, IDX) for n in
-                    ("bandRow", "fbCalBlock", "fbDayRows", "fbDayDetailHtml",
-                     "fbDetailLoad"))
+                    ("bandRow", "fbCalBlock", "fbCalMethods", "fbDayRows",
+                     "fbDayDetailHtml", "fbDetailLoad"))
     # ⚠️ `const FBDETAIL = {}` LIVES OUTSIDE THE FUNCTION, so js_block
     #    cannot reach it — and retyping it here would make the cache test
     #    a test of my copy. Pulled out of the page by its own declaration.
@@ -96,8 +116,11 @@ def node(body, extra=""):
     decl = _re.search(r"^const FBDETAIL = \{\};", open(IDX, encoding="utf-8")
                       .read(), _re.M)
     assert decl, "index.html no longer declares FBDETAIL"
+    mdecl = _re.search(r"^const FB_METHOD_BEFORE = '[^']*';",
+                       open(IDX, encoding="utf-8").read(), _re.M)
+    assert mdecl, "index.html no longer declares FB_METHOD_BEFORE"
     prog = ("const LG_DATA = { mlb:'data', nfl:'data/nfl', ncaaf:'data/ncaaf' };\n"
-            + decl.group(0) + "\n"
+            + decl.group(0) + "\n" + mdecl.group(0) + "\n"
             "const sgn = v => v == null ? '-' : (v > 0 ? '+' + v : '' + v);\n"
             + extra + "\n" + src + "\n"
             + "(async () => { " + body + " })().catch(e => {"
@@ -127,12 +150,27 @@ REAL = {lg: json.load(open(os.path.join(ROOT, "data", lg, "latest",
                                         "record.json"), encoding="utf-8"))
         for lg in ("nfl", "ncaaf")}
 
+
+# 🔴 EVERY METHOD'S BANDS, NOT `calibration` ALONE. `[2026-09-24]`
+# ⛔ `calibration` is only the CURRENT card method's buckets, and the day
+#    the method switched it was EMPTY — so every check below that drove it
+#    ran on `[]` and several PASSED on nothing (one `.band` per bucket, 0
+#    of 0). The real bands are every method's, concatenated.
+def all_bands(rec):
+    by = rec.get("calibration_by_method")
+    if by is None:
+        return list(rec.get("calibration") or [])
+    return [c for v in by.values() for c in v]
+
+
+BANDS = {lg: all_bands(REAL[lg]) for lg in REAL}
+
 section("0. ⚠️ THE FUNCTIONS EXIST AND ARE ACTUALLY CALLED")
 # 🔴 "DOES IT EXIST" IS THE QUESTION THAT GOT `fbScores` WRONG. The
 #    question is who CALLS it.
 _fbrec = js_block("fbRecord", IDX)
 _wire = js_block("fbWireDayRows", IDX)
-for _n in ("fbCalBlock", "fbDayRows", "fbWireDayRows"):
+for _n in ("fbCalMethods", "fbDayRows", "fbWireDayRows"):
     ck(calls(_n, IDX) >= 1 and (_n + "(") in _fbrec,
        "⛔ fbRecord CALLS %s" % _n,
        "🔴 a renderer defined and never called is the defect jsblock.py "
@@ -151,20 +189,25 @@ _r = out("const h = fbCalBlock(%s);"
          "tables:(h.match(/<table/g)||[]).length,"
          "verdicts:[...h.matchAll(/class=\"verd [^\"]*\">([^<]*)</g)].map(m=>m[1]).length,"
          "pts:(h.match(/pts</g)||[]).length, html:h}));"
-         % json.dumps(REAL["nfl"]["calibration"]))
-eq(_r.get("bands"), len(REAL["nfl"]["calibration"]),
+         % json.dumps(BANDS["nfl"]))
+ck(len(BANDS["nfl"]) >= 3,
+   "⚠️ the real nfl record has bands to draw (%d)" % len(BANDS["nfl"]),
+   "⛔ one `.band` per bucket over zero buckets is the emptiest pass there "
+   "is — and it is exactly what this section did the day `calibration` "
+   "went empty")
+eq(_r.get("bands"), len(BANDS["nfl"]),
    "🔴 one `.band` per bucket, off the REAL nfl record")
 eq(_r.get("tables"), 0,
    "⛔ AND NOT ONE `<table>` — the bare table is gone, not hidden beside "
    "the bars")
-eq(_r.get("verdicts"), len(REAL["nfl"]["calibration"]),
+eq(_r.get("verdicts"), len(BANDS["nfl"]),
    "   every band carries MLB's one-word verdict",
    )
 # ⚠️ COUNTED INSIDE THE `verd` DIV, not anywhere on the page. The legend
 #    repeats "Beat the claim" as a key, so a loose match counted 8 for 7
 #    bands — a check that would have stayed green if a band lost its
 #    verdict and the legend kept its label.
-eq(_r.get("pts"), len(REAL["nfl"]["calibration"]),
+eq(_r.get("pts"), len(BANDS["nfl"]),
    "   ...and the gap in points")
 
 section("2. 🔴🔴 THE CLAIMED FIGURE COMES FROM `stated`, NEVER 0")
@@ -178,7 +221,7 @@ ck(all("predicted" not in b for b in _SYN),
    "⚠️ the fixture carries NO `predicted` key at all",
    "⛔ if it carried one, MLB's mapping would work here and this section "
    "would prove nothing (rule 67)")
-ck(all("predicted" not in c for c in REAL["nfl"]["calibration"]),
+ck(BANDS["nfl"] and all("predicted" not in c for c in BANDS["nfl"]),
    "⚠️ ...and neither does the real record",
    "🔴 this is why the verbatim copy fails: the key simply is not there")
 _r2 = out("const h = fbCalBlock(%s);"
@@ -211,7 +254,7 @@ section("3. ⚠️ THE GEOMETRY HOLDS AT FOOTBALL'S RANGE, WHICH MLB NEVER HITS"
 _EDGE = [{"bucket": "0-10%", "stated": 0.0, "w": 0, "n": 1, "pct": 0.0},
          {"bucket": "90-100%", "stated": 100.0, "w": 1, "n": 1, "pct": 100.0},
          {"bucket": "80-90%", "stated": 94.2, "w": 0, "n": 30, "pct": 0.0}]
-_all = REAL["nfl"]["calibration"] + REAL["ncaaf"]["calibration"] + _EDGE
+_all = BANDS["nfl"] + BANDS["ncaaf"] + _EDGE
 _r3 = out("const h = fbCalBlock(%s);"
           "const num=re=>[...h.matchAll(re)].map(m=>parseFloat(m[1]));"
           "console.log(JSON.stringify({left:num(/left:([^%%;\"]*)%%/g),"
@@ -440,20 +483,70 @@ ck('title="we said 35%"' in (_r9b.get("dflt") or ""),
 ck('title="the record claimed 35%"' in (_r9b.get("given") or ""),
    "   ...and honours the label when one is passed")
 
+# 🔴 EVERY METHOD'S BANDS, DRIVEN THROUGH THE TAB'S OWN ENTRY POINT.
+# ⛔ This drove `calibration` alone, and the day the card switched method
+#    that was `[]`: "no band says we said" became "no band at all" and went
+#    red for the wrong reason. Now it drives `fbCalMethods` on the whole
+#    record — every method, as the tab draws it — and a method with nothing
+#    graded yet is REPORTED, not failed.
 for _lg in ("nfl", "ncaaf"):
-    _r9c = out("const h = fbCalBlock(%s);"
+    _r9c = out("const h = fbCalMethods(%s);"
                "console.log(JSON.stringify({titles:[...h.matchAll("
-               "/title=\"([^\"]*)\"/g)].map(m=>m[1])}));"
-               % json.dumps(REAL[_lg]["calibration"]))
+               "/class=\"said\"[^>]*title=\"([^\"]*)\"/g)].map(m=>m[1]),"
+               "bands:(h.match(/class=\"band\"/g)||[]).length}));"
+               % json.dumps(REAL[_lg]))
     _t = _r9c.get("titles") or []
     ck(_t and not any("we said" in x for x in _t),
-       "🔴🔴 NO %s BAND SAYS \"we said\" — driven on the real record" % _lg,
+       "🔴🔴 NO %s BAND SAYS \"we said\" — driven on the real record, every method" % _lg,
        "⛔ `record.json`'s own no_model_note: \"No number here is a model "
        "output.\" Attributing it to \"we\" is a DESCRIPTIVE number in a "
        "MODEL voice. Got %s" % _t[:3])
-    ck(all("the record claimed" in x for x in _t),
-       "   ...every one names the record instead (%d band(s))" % len(_t),
-       "Got %s" % _t[:3])
+    ck(len(_t) == len(BANDS[_lg]) and all("the record claimed" in x for x in _t),
+       "   ...every one of the %d band(s) names the record instead" % len(BANDS[_lg]),
+       "Got %d titles %s" % (len(_t), _t[:3]))
+    for _m, _v in (REAL[_lg].get("calibration_by_method") or {}).items():
+        if not _v:
+            note("⚠️ %s method %r has no graded picks yet — reported, not "
+                 "failed" % (_lg, _m))
+    if REAL[_lg].get("card_method_current") not in (REAL[_lg].get("calibration_by_method") or {}):
+        note("⚠️ %s: the current method %r has no graded picks yet — the tab "
+             "says so under its own heading" % (_lg, REAL[_lg].get("card_method_current")))
+
+section("9b. 🔴🔴 ONE LABELLED TABLE PER METHOD, AND AN EMPTY ONE SAYS SO")
+# ⛔ SYNTHETIC ON PURPOSE: the real records hold one graded method today,
+#    so "two methods drawn apart" cannot be driven on them yet.
+_OLD = [{"bucket": "80-90%", "stated": 84.1, "w": 20, "n": 49, "pct": 40.8},
+        {"bucket": "60-70%", "stated": 65.1, "w": 24, "n": 48, "pct": 50.0}]
+_NEW = [{"bucket": "70-80%", "stated": 74.0, "w": 3, "n": 4, "pct": 75.0}]
+_PROBE = ("const h = fbCalMethods(REC);"
+          "const heads=[...h.matchAll(/Was the record right\\? <span[^>]*>&mdash; ([^<]*)</g)].map(m=>m[1]);"
+          "const parts=h.split('Was the record right?').slice(1)"
+          ".map(x=>(x.match(/class=\"band\"/g)||[]).length);"
+          "console.log(JSON.stringify({heads, parts, empty:(h.match(/No graded\\s+picks under the ([^<]*?) yet/)||[])[1]||null,"
+          "weSaid:(h.match(/we said/g)||[]).length}));")
+_s1 = out(_PROBE, extra="const REC = " + json.dumps(
+    {"card_method_current": "season-blend", "calibration": [],
+     "calibration_by_method": {"2025-only": _OLD}}) + ";")
+eq(_s1.get("heads"), ["current method", "2025-only method"],
+   "🔴 the new method with nothing graded still gets its own heading, "
+   "FIRST, and the old method follows under its own")
+eq(_s1.get("empty"), "current method",
+   "🔴🔴 ...and the empty one SAYS it has no graded picks yet",
+   )
+eq(_s1.get("parts"), [0, 2],
+   "   the old method's bands sit under the old method's heading only")
+_s2 = out(_PROBE, extra="const REC = " + json.dumps(
+    {"card_method_current": "season-blend", "calibration": _NEW,
+     "calibration_by_method": {"2025-only": _OLD, "season-blend": _NEW}}) + ";")
+eq(_s2.get("parts"), [1, 2],
+   "🔴 both methods graded: each draws ONLY its own bands — never pooled")
+eq(_s2.get("empty"), None, "   ...and nothing claims to be empty")
+eq(_s2.get("weSaid"), 0, "   ...and no band, in either table, says \"we said\"")
+_s3 = out(_PROBE, extra="const REC = " + json.dumps(
+    {"calibration": _OLD}) + ";")
+eq(_s3.get("parts"), [2],
+   "⚠️ a record written before the split still draws its bands, as the "
+   "one method it is")
 
 note("📌 THE CLASS, SWEPT AND REPORTED `[2026-09-17]`: of the renderers "
      "BOTH boards share — pickCard, bandRow, freshness, startedToggle, "
