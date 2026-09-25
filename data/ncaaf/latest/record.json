@@ -1,30 +1,30 @@
 {
- "built_at": "2026-09-25T07:15:23Z",
+ "built_at": "2026-09-25T13:14:30Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 85,
-  "n": 168,
-  "pct": 50.6
+  "w": 94,
+  "n": 193,
+  "pct": 48.7
  },
  "by_market": {
   "player_anytime_td": {
-   "w": 18,
-   "n": 35,
-   "pct": 51.4
+   "w": 20,
+   "n": 46,
+   "pct": 43.5
   },
   "player_pass_yds": {
-   "w": 13,
-   "n": 24,
-   "pct": 54.2
+   "w": 14,
+   "n": 26,
+   "pct": 53.8
   },
   "player_reception_yds": {
-   "w": 20,
-   "n": 38,
-   "pct": 52.6
+   "w": 22,
+   "n": 42,
+   "pct": 52.4
   },
   "player_receptions": {
    "w": 12,
@@ -32,26 +32,26 @@
    "pct": 42.9
   },
   "player_rush_yds": {
-   "w": 22,
-   "n": 43,
-   "pct": 51.2
+   "w": 26,
+   "n": 51,
+   "pct": 51.0
   }
  },
  "by_side": {
   "over": {
-   "w": 29,
-   "n": 56,
-   "pct": 51.8
+   "w": 32,
+   "n": 63,
+   "pct": 50.8
   },
   "under": {
-   "w": 38,
-   "n": 77,
-   "pct": 49.4
+   "w": 42,
+   "n": 84,
+   "pct": 50.0
   },
   "yes": {
-   "w": 18,
-   "n": 35,
-   "pct": 51.4
+   "w": 20,
+   "n": 46,
+   "pct": 43.5
   }
  },
  "by_book": {
@@ -66,9 +66,9 @@
    "pct": 33.3
   },
   "hardrockbet": {
-   "w": 83,
-   "n": 162,
-   "pct": 51.2
+   "w": 92,
+   "n": 187,
+   "pct": 49.2
   },
   "williamhill_us": {
    "w": 1,
@@ -76,7 +76,57 @@
    "pct": 50.0
   }
  },
- "calibration": [],
+ "calibration": [
+  {
+   "bucket": "10-20%",
+   "stated": 18.0,
+   "w": 0,
+   "n": 2,
+   "pct": 0.0
+  },
+  {
+   "bucket": "20-30%",
+   "stated": 25.4,
+   "w": 1,
+   "n": 5,
+   "pct": 20.0
+  },
+  {
+   "bucket": "30-40%",
+   "stated": 33.5,
+   "w": 3,
+   "n": 6,
+   "pct": 50.0
+  },
+  {
+   "bucket": "40-50%",
+   "stated": 46.0,
+   "w": 0,
+   "n": 3,
+   "pct": 0.0
+  },
+  {
+   "bucket": "50-60%",
+   "stated": 54.0,
+   "w": 3,
+   "n": 3,
+   "pct": 100.0
+  },
+  {
+   "bucket": "60-70%",
+   "stated": 66.3,
+   "w": 1,
+   "n": 3,
+   "pct": 33.3
+  },
+  {
+   "bucket": "70-80%",
+   "stated": 71.0,
+   "w": 0,
+   "n": 1,
+   "pct": 0.0
+  }
+ ],
  "card_method_current": "season-blend",
  "calibration_by_method": {
   "2025-only": [
@@ -150,6 +200,57 @@
     "n": 26,
     "pct": 61.5
    }
+  ],
+  "season-blend": [
+   {
+    "bucket": "10-20%",
+    "stated": 18.0,
+    "w": 0,
+    "n": 2,
+    "pct": 0.0
+   },
+   {
+    "bucket": "20-30%",
+    "stated": 25.4,
+    "w": 1,
+    "n": 5,
+    "pct": 20.0
+   },
+   {
+    "bucket": "30-40%",
+    "stated": 33.5,
+    "w": 3,
+    "n": 6,
+    "pct": 50.0
+   },
+   {
+    "bucket": "40-50%",
+    "stated": 46.0,
+    "w": 0,
+    "n": 3,
+    "pct": 0.0
+   },
+   {
+    "bucket": "50-60%",
+    "stated": 54.0,
+    "w": 3,
+    "n": 3,
+    "pct": 100.0
+   },
+   {
+    "bucket": "60-70%",
+    "stated": 66.3,
+    "w": 1,
+    "n": 3,
+    "pct": 33.3
+   },
+   {
+    "bucket": "70-80%",
+    "stated": 71.0,
+    "w": 0,
+    "n": 1,
+    "pct": 0.0
+   }
   ]
  },
  "by_method": {
@@ -157,6 +258,11 @@
    "w": 85,
    "n": 168,
    "pct": 50.6
+  },
+  "season-blend": {
+   "w": 9,
+   "n": 25,
+   "pct": 36.0
   }
  },
  "by_day": [
@@ -210,6 +316,14 @@
   },
   {
    "date": "2026-09-24",
+   "w": 9,
+   "n": 25,
+   "carded": 25,
+   "voids": 0,
+   "unresolved": 0
+  },
+  {
+   "date": "2026-09-25",
    "w": 0,
    "n": 0,
    "carded": 25,
@@ -217,17 +331,17 @@
    "unresolved": 25
   }
  ],
- "days_graded": 6,
- "cards_seen": 7,
+ "days_graded": 7,
+ "cards_seen": 8,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 70,
- "distinct_games": 34,
- "carded_rows": 200,
+ "distinct_players": 81,
+ "distinct_games": 35,
+ "carded_rows": 225,
  "voids": 0,
  "unresolved": 32,
- "coverage_note": "168 of 200 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 32 could not be settled at all.",
+ "coverage_note": "193 of 225 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 32 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -236,7 +350,7 @@
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   },
   {
-   "date": "2026-09-24",
+   "date": "2026-09-25",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
