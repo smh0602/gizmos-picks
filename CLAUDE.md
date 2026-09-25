@@ -203,7 +203,9 @@ failed recurring runs, i would like to avoid that"*. So:
 2. ⛔ **A workflow file with a `cron:` block is never changed in a PR.**
    Hand Sam the file; he uploads it with GitHub's "choose your files"
    button. (Dragging a folder put 37 files one level too deep, twice, on
-   2026-09-22.)
+   2026-09-22.) `[2026-09-25]` Uploading from the repo's front page put 11
+   workflow copies in the TOP LEVEL (103c7ac), where they never run;
+   `test_top_level_yaml.py` now fails on any top-level `.yml`/`.yaml`.
 3. ⛔ **One agent at a time**, and never during a `vacuity.py` sweep.
 4. The current open work is in `docs/HANDOFF-2026-09-22.md`, and dated
    snapshots of Sam's project docs (rules, ledger, owed tests, model) are

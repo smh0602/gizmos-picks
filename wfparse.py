@@ -41,7 +41,7 @@ import os
 import re
 
 __all__ = ["read", "jobs", "steps", "step_run", "permissions", "Job", "Step",
-           "effective_workflows"]
+           "effective_workflows", "top_level_yaml"]
 
 # A mapping key at some indent: `foo:`, `foo: bar`, `foo: |`, `- foo: bar`.
 _KEY = re.compile(r"^(\s*)(-\s+)?([A-Za-z_][A-Za-z0-9_.-]*):\s?(.*?)\s*$")
@@ -342,3 +342,23 @@ def effective_workflows(root="."):
             if f.endswith(".yml"):
                 out[f] = os.path.join(d, f)
     return out
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A WORKFLOW UPLOADED TO THE WRONG FOLDER. `[added 2026-09-25]`
+# ══════════════════════════════════════════════════════════════════════
+# GitHub runs a workflow only from `.github/workflows/`. A copy anywhere
+# else never fires, and nothing errors: the upload simply did not happen.
+# `[measured 2026-09-25]` 103c7ac put ELEVEN workflow copies in the repo's
+# top level (runs.yml's first from 251d4c65, 09-14). They sat there as
+# dead duplicates of the real files, one wrong edit away from being the
+# copy somebody changed. ⛔ The top level holds no YAML of its own, so ANY
+# .yml/.yaml there is a stray — case-blind, since `COLLECT.YML` is the
+# same mistake as `collect.yml`.
+TOP_LEVEL_YAML = (".yml", ".yaml")
+
+
+def top_level_yaml(root="."):
+    """Every .yml/.yaml directly in `root`, sorted. Should be none."""
+    return sorted(f for f in os.listdir(root)
+                  if f.lower().endswith(TOP_LEVEL_YAML))
