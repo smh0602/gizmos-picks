@@ -1,30 +1,20 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-25T22:57:51Z",
+ "checked_at": "2026-09-25T23:04:11Z",
  "et_date": "2026-09-25",
- "healthy": false,
- "broken": 1,
+ "healthy": true,
+ "broken": 0,
  "degraded": 0,
- "findings": [
-  {
-   "key": "verify:mlb",
-   "severity": "BROKEN",
-   "what": "the mlb card was BUILT and then REFUSED, so nothing published",
-   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (31 rows, zero tolerance -- stricter than T37's 5%)  [('Andr\u00e9s Chaparro', 'batter_rbis', 'under', 0.5, 78, 0.52)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (31 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (31 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
-   "repair": null
-  }
- ],
+ "findings": [],
  "repairs": [],
- "unrepairable": [
-  "verify"
- ],
+ "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
   "balance": 6013,
   "pulled_at": "2026-09-25T22:57:44Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-09-25T22:57:44Z",
   "source": "data/ncaaf/2026-09-25/props-player/2257.json.gz",
