@@ -1843,7 +1843,8 @@ def build_pairs(plays, limit=8):
             if mult < FLOOR:
                 continue
             # ⚠️ The PRINTED number, corrected (C2) where a mapping exists.
-            joint = a["confidence_value"] / 100.0 * b["confidence_value"] / 100.0
+            _ca, _cb = a.get("confidence_value", a["blend"]), b.get("confidence_value", b["blend"])
+            joint = _ca / 100.0 * _cb / 100.0
             be = 100.0 / mult
             out.append({
                 "legs": [f"{a['pitcher']} {a['side'][0]}{a['line']} "
@@ -1867,7 +1868,7 @@ def build_pairs(plays, limit=8):
                           else "ABOVE BAND"),
                 "joint": round(100 * joint, 1),
                 "leg_blends": [a["blend"], b["blend"]],
-                "leg_confidences": [a["confidence_value"], b["confidence_value"]],
+                "leg_confidences": [_ca, _cb],
                 "leg_models": [a["model"], b["model"]],
                 "leg_raws": [a["raw"], b["raw"]],
                 "break_even": round(be, 1),

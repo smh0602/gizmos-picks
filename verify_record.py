@@ -131,6 +131,8 @@ def actual(slate, pid, market):
 mine, byday, bykind = {"w": 0, "n": 0}, {}, {"pitcher": {"w": 0, "n": 0},
                                             "hitter": {"w": 0, "n": 0}}
 voids = {}
+# graded rows that carry a printed number, per kind (the printed-number table)
+byconf = {"pitcher": {"w": 0, "n": 0}, "hitter": {"w": 0, "n": 0}}
 # 🔴 THIS FILE NO LONGER READS `record.json`'s OWN `skipped` LIST, AND
 # THAT IS THE POINT OF THIS FILE. `[measured 2026-09-04]` the builder wrote
 # 2026-09-03 into `skipped` twice -- because two COLLEGE FOOTBALL cards in
@@ -170,6 +172,9 @@ for f in sorted(glob.glob("picks/*.json")):
         for c in (mine, day, bykind[kind]):
             c["n"] += 1
             c["w"] += win
+        if isinstance(row.get("confidence"), (int, float)):
+            byconf[kind]["n"] += 1
+            byconf[kind]["w"] += win
 
 print(f"\nRE-GRADED INDEPENDENTLY from {len(byday)} card(s) and the stored box scores")
 ck(f"overall reproduces ({mine['w']}/{mine['n']})",
@@ -194,8 +199,8 @@ if _cp is not None:
         _t = _cp.get(k) or []
         _got = (sum(b.get("w") or 0 for b in _t), sum(b.get("n") or 0 for b in _t))
         ck(f"{k} printed-number table holds every graded row {_got}",
-           _got == (bykind[k]["w"], bykind[k]["n"]),
-           f"re-graded {bykind[k]['w']}/{bykind[k]['n']}")
+           _got == (byconf[k]["w"], byconf[k]["n"]),
+           f"re-graded {byconf[k]['w']}/{byconf[k]['n']} rows carrying a printed number")
 
 # 🔴 THE ARITHMETIC MUST CLOSE ON ITSELF TOO.
 ck("pitcher + hitter equals the overall",
