@@ -108,7 +108,8 @@ try:
     _late = os.path.join(root, "data", "nfl", "2026-09-27", "agreement")
     os.makedirs(_late, exist_ok=True)
     with gzip.open(os.path.join(_late, "1800.json.gz"), "wt") as fh:
-        json.dump({"taken_at": "2026-09-27T18:00:00Z", "rows": [dict(AG.rows(card, model)[0], label="AGREE")]}, fh)
+        _row = [r for r in AG.rows(card, model) if r["player"] == "Jonnu Smith" and r["side"] == "over"][0]
+        json.dump({"taken_at": "2026-09-27T18:00:00Z", "rows": [dict(_row, label="AGREE")]}, fh)
     fr = {r["key"]: r for r in AG.frozen_rows("nfl", root)}
     _k = AG.key_of("g1", "Jonnu Smith", "player_receptions", "over", 1.5)
     ck(fr[_k]["label"] == "SPLIT" and fr[_k]["taken_at"] == "2026-09-26T15:00:00Z",
@@ -153,10 +154,13 @@ _ms = sum((1.0 if r["won"] else 0.0) - 0.5 for r in base if r["label"] == "SPLIT
 ck(abs(d - (_ma - _ms)) < 1e-12 and q["state"] == "PASSES" and q["p"] < 0.05,
    "🔴 Δ is mean(won − break-even) of AGREE minus SPLIT; a real gap on enough games PASSES",
    "got %r" % q)
-dup = [dict(r, won=r2["won"]) for r in base for r2 in (r,) * 5]
-ck(abs(AG.cr1_diff(dup)[1] - _p) < 0.02,
+random.seed(11)
+mild = mk(200, 2, "AGREE", 0.53) + mk(80, 2, "SPLIT", 0.50)
+_pm = AG.cr1_diff(mild)[1]
+dup = [dict(r) for r in mild for _k in range(5)]
+ck(0.05 < _pm < 0.6 and abs(AG.cr1_diff(dup)[1] - _pm) < 0.02,
    "🔴🔴 clustered by GAME: copying every row five times inside its game does not make it more significant",
-   "p %s -> %s" % (_p, AG.cr1_diff(dup)[1]))
+   "p %s -> %s" % (_pm, AG.cr1_diff(dup)[1]))
 ck(AG.question(mk(40, 2, "AGREE", 0.9) + mk(20, 2, "SPLIT", 0.1))["state"] == "NOT YET MEASURABLE",
    "🔴 under 300 AGREE / 100 SPLIT graded rows it is NOT YET MEASURABLE, however big the gap")
 ck(AG.question(mk(200, 2, "AGREE", 0.45) + mk(80, 2, "SPLIT", 0.60))["state"] == "FAILS",

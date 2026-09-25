@@ -154,16 +154,23 @@ try:
                    "p2": {"name": "Tre Harris", "g": [{"d": "2026-09-20"}]}}}
     t0 = datetime.datetime(2026, 9, 26, 15, 0, tzinfo=UTC)
     d1 = N.build("ncaaf", root=root, now=t0, log=lambda m: None, logs=logs)
+    # a new headline changes the flag set, so a SECOND copy is frozen holding both old flags again
+    _n = json.load(open(os.path.join(lat, "news.json")))
+    _n["items"].append({"title": "Tre Harris suspended for first half", "link": "LS"})
+    json.dump(_n, open(os.path.join(lat, "news.json"), "w"))
     d2 = N.build("ncaaf", root=root, now=t0 + datetime.timedelta(hours=20), log=lambda m: None, logs=logs)
-    ck(len(d1["flags"]) == 2 and all(f["first_seen"] == "2026-09-26T15:00:00Z" for f in d2["flags"]),
-       "🔴 every flag is frozen with its time, and first_seen stays the FIRST time it was seen")
+    _fs = {f["link"]: f["first_seen"] for f in d2["flags"]}
+    ck(len(d1["flags"]) == 2 and len(glob.glob(os.path.join(root, "data", "ncaaf", "*", "news-flags", "*.json.gz"))) == 2
+       and _fs["LL"] == _fs["LT"] == "2026-09-26T15:00:00Z" and _fs["LS"] == "2026-09-27T11:00:00Z",
+       "🔴 every flag is frozen with its time, and first_seen stays the FIRST time it was seen",
+       "got %r" % _fs)
     ck(d1["college_note"] and "headlines only" in d1["college_note"], "   ✅ the college file says it is headlines only")
     d3 = N.build("ncaaf", root=root, now=t0 + datetime.timedelta(days=2), log=lambda m: None, logs=logs)
     ck(d3["record"]["absence"]["graded"] == 0,
        "🔴 no game row yet, but the logs have not reached the game: left PENDING, not 'did not play'")
     logs[2026]["p1"]["g"].append({"d": "2026-09-27"})
     d4 = N.build("ncaaf", root=root, now=t0 + datetime.timedelta(days=3), log=lambda m: None, logs=logs)
-    ck(d4["record"]["absence"] == dict(d4["record"]["absence"], graded=1, did_not_play=1, right_pct=100.0)
+    ck(d4["record"]["absence"] == dict(d4["record"]["absence"], graded=2, did_not_play=2, right_pct=100.0)
        and d4["record"]["caution"]["played"] == 1,
        "🔴 graded once the logs pass the game: 'ruled out' and he sat = right; 'questionable' shown as played",
        "got %r" % d4["record"])
