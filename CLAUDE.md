@@ -235,7 +235,7 @@ old one, not easier.**
 | | |
 |---|---|
 | **Model coefficients in `card.py`** | Fitted, re-fit monthly. ⛔ Do not "tune" one, round one, or tier a term that ships pooled. |
-| **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. |
+| **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. `[2026-09-25]` ~~A pitcher row prints its blend~~ — it now PRINTS `confidence` = the blend corrected against the price (C2, `mlb_pitcher_cal.py`, pre-registered and passed). `blend` itself is unchanged and still stored. |
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The payout bands have FLOORS ONLY** | `[Sam, 2026-09-22]` Two-leg 1.8x and up; three- and four-leg 3x and up; **no ceiling** (~~1.8–2.2x / 3–6x~~). Every list is ranked by its chance to land, highest first — Sam: "we still have to make sure the bets we provide have a high % to hit". `PARLAY_BANDS` in `card.py` and `card_fb.py` hold `(floor, None)`; read them through `band_ok()`. |
@@ -627,6 +627,13 @@ mlb_tables.py     the MLB pitcher + opponent tables, rebuilt after every
                   `pitchers` pull from the FULL starter population.
                   ⛔ card.py reads `model_pitchers()`, never the widened
                   pool, so the card's numbers do not move.
+mlb_pitcher_cal.py  audit C/D, scored to `research/mlb_pitcher_cal_spec.md`
+                  (frozen). C2 shipped `[2026-09-25]`: a pitcher row
+                  PRINTS its blend mixed with its price, refitted each
+                  card on earlier graded rows. ⛔ `blend` is unchanged;
+                  card.py reads `mappings()`/`corrected()` from here and
+                  never imports `fb_model` (it drags in card_fb, which
+                  exits under LEAGUE=mlb). Off switch: `SHIPPED = None`.
 vacuity.py        does each guard actually bite? ⛔ It MUTATES SOURCE
                   FILES while it runs — never edit the repo during a
                   sweep, and never run two at once.

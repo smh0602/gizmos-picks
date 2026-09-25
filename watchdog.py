@@ -1024,6 +1024,56 @@ def check_record_sane(rep, now):
                     "renders, so this is on the page now.")
 
 
+# 🔴 A PUBLISHED CARD THIS OLD HAS HAD EVERY CHANCE TO BE GRADED.
+UNGRADED_AFTER_DAYS = 3
+
+
+def check_record_ungraded(rep, now):
+    """🔴 A PUBLISHED MLB CARD THAT NEVER REACHES THE TRACK RECORD.
+
+    `[audit Proposal A, approved by Sam 2026-09-25]` TOR @ BAL was
+    Postponed on 2026-09-22 and the grader waited for it to go Final,
+    forever: 48 picks missing, `record.json` rebuilt fresh every night,
+    every check green. ⛔ `check_record_written` asks whether the FILE is
+    moving, and it was. This asks whether every card is IN it.
+
+    ✅ THE CLASS, NOT THE INSTANCE: any machine card whose date is more
+    than UNGRADED_AFTER_DAYS behind today (ET) and is absent from
+    `by_day` is reported, whatever held it back. No box score, a feed
+    state nobody has seen yet, a grader bug: one finding covers them all.
+    ⚠️ MLB only. The football records are built by `record_fb.py` in a
+    different shape, and that lane was out of scope for this change.
+    """
+    rec = _read(os.path.join(ROOT, "data", "latest", "record.json"))
+    if not isinstance(rec, dict) or "by_day" not in rec:
+        return          # a missing or foreign record is check_record_written's
+    graded = {d.get("date") for d in rec.get("by_day") or []}
+    why_skipped = {x.get("date"): x.get("why") for x in rec.get("skipped") or []}
+    today = datetime.date.fromisoformat(_et_today(now))
+    late = []
+    for f in sorted(glob.glob(os.path.join(ROOT, "picks", "20*.json"))):
+        card = _read(f)
+        if not isinstance(card, dict) or card.get("kind") != "gizmos-card":
+            continue        # 2026-08-22 is hand-built, graded in the ledger
+        if (card.get("league") or "mlb").lower() != "mlb":
+            continue
+        day = card.get("date") or os.path.basename(f)[:-5]
+        try:
+            age = (today - datetime.date.fromisoformat(day)).days
+        except ValueError:
+            continue
+        if age > UNGRADED_AFTER_DAYS and day not in graded:
+            late.append("%s (%d days; %s)" % (day, age,
+                        why_skipped.get(day) or "not in the record at all"))
+    if late:
+        rep.bad("record:mlb:ungraded",
+                "%d MLB card(s) older than %d days are missing from the "
+                "Track Record" % (len(late), UNGRADED_AFTER_DAYS),
+                "; ".join(late) + ". ⛔ Every pick on those cards is "
+                "absent from the published record.",
+                repair="record")
+
+
 # 🔴🔴 ONE THING THIS FILE DELIBERATELY DOES NOT CHECK, AND THE REASON
 #    MATTERS MORE THAN THE CHECK WOULD.
 #
@@ -1046,6 +1096,8 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_verify_failure, check_card_day_agreement,
           check_board_not_empty, check_record_sane,
           check_freshness, check_record_written,
+          # 🔴 A card that never reaches the record (audit Proposal A).
+          check_record_ungraded,
           # 💰 THE TENTH. ⛔ Not a second reporting channel — it writes
           #    into the same health report and escalates through the same
           #    single issue.
