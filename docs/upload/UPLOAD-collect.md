@@ -54,8 +54,9 @@ delivers both:
 
 **What you should see afterwards:** nothing different on the site. The
 next `collect` run's "Tests" step ends with a line like
-`ran 132 of 132 test file(s) (shard all)`, where it used to say
-`ran 132 test file(s)`. Until you upload, the nightly "runs" report lists
+`ran 133 of 133 test file(s) (shard all)`, where it used to say
+`ran 133 test file(s)`. The count grows as tests are added; what matters
+is that **both numbers are the same** (the step goes red if they are not). Until you upload, the nightly "runs" report lists
 `collect.yml` as waiting and after 48 hours says so in an issue.
 
 ---
