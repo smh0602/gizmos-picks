@@ -120,6 +120,23 @@ def bands(units):
     return calibration.band_flags(cal)
 
 
+def finding(m):
+    """What the check found for one market, in plain words, or None if it
+    passed. ⚠️ Read off the stored bands and log losses — it describes the
+    result and changes nothing the frozen rule decides."""
+    if not m or m.get("state") == "PASS":
+        return None
+    hi = [b for b in m.get("bands") or [] if (b.get("stated") or 0) >= 60]
+    n, w = sum(b["n"] for b in hi), sum(b["w"] for b in hi)
+    if n >= calibration.BAND_MIN_N and w / n < 0.5:
+        return ("it points the wrong way away from the main line: rungs it rated "
+                "60%% or more won %d%% of the time" % round(100.0 * w / n))
+    if m.get("state") == "FAIL" and m.get("log_loss_model") is not None:
+        return ("it is less accurate than the books' own line away from the main line "
+                "(log loss %.3f against %.3f)" % (m["log_loss_model"], m["log_loss_baseline"]))
+    return "it has not been tested away from the main line yet"
+
+
 def label(check, market, p, distance):
     """spec §3d -> (calibrated?, warning or None) for one shown rung.
 

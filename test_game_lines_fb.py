@@ -42,6 +42,21 @@ its record keep Sam's rules (2026-09-24).
 #   find:         train = [r for r in rows if r["day"] < wk]
 #   with:         train = list(rows)
 #
+# @vacuity the books' chance de-vigs the two sides of the SAME rung at the SAME book
+#   file: game_lines_fb.py
+#   find:             chance[b] = F.devig(px, opp[b])
+#   with:             chance[b] = 1.0 / F.decimal(px)
+#
+# @vacuity the alt parlays are built and ranked on the books' chance, never the model's
+#   file: game_lines_fb.py
+#   find:                 legs.append({"confidence": r["mkt_books"][book], "price": px,
+#   with:                 legs.append({"confidence": r["p"] if r["p"] is not None else 0.0, "price": px,
+#
+# @vacuity the warning says, in words, when the model points the wrong way
+#   file: fb_alt_lines.py
+#   find:     if n >= calibration.BAND_MIN_N and w / n < 0.5:
+#   with:     if False:
+#
 # @vacuity the check passes only when the model is not worse than the baseline
 #   file: fb_alt_lines.py
 #   find:     state = ("NOT YET MEASURABLE" if n < MIN_N else "PASS" if mean >= 0 else "FAIL")
@@ -52,6 +67,7 @@ import datetime
 import glob
 import gzip
 import json
+import math
 import os
 import random
 import shutil
@@ -268,6 +284,15 @@ ck(A.label(_chk, "spread", 0.55, 3.0) == (True, None)
    and A.label(_chk, "total", 0.55, 3.0)[0] is False
    and A.label(None, "total", 0.55, 3.0)[1].startswith(A.WARNING),
    "🔴 plain MODEL only when the market PASSED, within 10 points, in a band that did not run under")
+_inv = {"state": "FAIL", "log_loss_model": 0.73, "log_loss_baseline": 0.61,
+        "bands": [{"stated": 64.0, "n": 134, "w": 36}, {"stated": 73.0, "n": 17, "w": 3},
+                  {"stated": 36.0, "n": 134, "w": 98}]}
+_flat = {"state": "FAIL", "log_loss_model": 0.667, "log_loss_baseline": 0.625,
+         "bands": [{"stated": 64.0, "n": 606, "w": 410}]}
+ck(A.finding(_inv).startswith("it points the wrong way") and "won 26%" in A.finding(_inv)
+   and A.finding(_flat).startswith("it is less accurate") and A.finding({"state": "PASS"}) is None,
+   "🔴 the warning says what the check found: 'points the wrong way' when rungs rated 60%+ win under half",
+   "got %r / %r" % (A.finding(_inv), A.finding(_flat)))
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. THE TAB: every rung, exact signed prices, the label, the slate")
@@ -357,17 +382,49 @@ try:
        and "BetMGM" not in doc["games"][0]["main"],
        "   ✅ the fair line is where the model says 50%, and the main lines are the three books only")
 
-    # parlays — the card's builder and the card's rules
+    # ── the books' own chance `[Sam, 2026-09-25]` ──────────────────────
+    dv = lambda a, b: F.devig(a, b)  # noqa: E731
+    ck(r["mkt_books"] == {"Hard Rock": round(100 * dv(-150, 125), 1), "DraftKings": round(100 * dv(-145, 120), 1)}
+       and r["mkt"] == round(100 * (dv(-150, 125) + dv(-145, 120)) / 2, 1) and r["mkt_one_side"] == [],
+       "🔴🔴 the books' chance: both sides of the SAME rung at the SAME book, vig removed, per book",
+       "got %r / %r" % (r["mkt_books"], r["mkt"]))
+    _one = sp[("home", 3.5)]
+    ck(_one["mkt_books"] == {"DraftKings": round(100 / F.decimal(130), 1)} and _one["mkt_one_side"] == ["DraftKings"],
+       "🔴 where a book posts only one side it is that price's break-even, and the book is named",
+       "got %r" % _one)
+    _ov = [x for x in g1["total"] if x["side"] == "over"][0]
+    ck(_ov["mkt_books"] == {"Hard Rock": round(100 * dv(-140, 115), 1), "FanDuel": round(100 / F.decimal(-135), 1)}
+       and _ov["mkt_one_side"] == ["FanDuel"],
+       "   ✅ ...book by book: Hard Rock de-vigged, FanDuel (over only) at its break-even")
+    ck(G.BASES["mkt"] == "MARKET" and G.BASES["mkt_books"] == "MARKET",
+       "   ✅ rule 55: the books' chance is MARKET")
+
+    # parlays — the card's builder and rules, ranked on the BOOKS' chance
     P = doc["parlays"]
     legs2 = P.get("2") or []
     ck(bool(legs2) and all(len(set(p["game_ids"])) == len(p["game_ids"]) for s in P.values() for p in s)
-       and all(p["multiplier"] >= 1.8 for p in legs2) and all(p["joint_basis"] == "MODEL" for p in legs2),
-       "🔴 alt-line parlays: different games, 1.8x or more, joint labelled MODEL",
+       and all(p["multiplier"] >= 1.8 for p in legs2),
+       "🔴 alt-line parlays: different games, 1.8x or more",
        "got %r" % [(p["legs"], p["multiplier"]) for p in legs2][:3])
     ck(not any("+20.5" in t for s in P.values() for p in s for t in p["legs"]),
        "🔴 a rung below -700 is never paired")
-    ck(all(p["warning"] == A.WARNING for s in P.values() for p in s if any("Over" in t for t in p["legs"])),
-       "   ✅ a parlay with an uncalibrated leg carries the warning")
+    _mk = {}
+    for _g in doc["games"]:
+        for _x in _g["spread"] + _g["total"]:
+            _who = (_g["home"] if _x["side"] == "home" else _g["away"]) if _x["m"] == "spread" else _x["side"].title()
+            _pt = ("%+g" % _x["pt"]) if _x["m"] == "spread" else ("%g" % _x["pt"])
+            for _b, _c in _x["mkt_books"].items():
+                _mk[("%s %s (%s @ %s)" % (_who, _pt, _g["away"], _g["home"]), _b)] = _c
+    _all = [p for s in P.values() for p in s]
+    _joint_ok = all(p["leg_confidences"] == [_mk[(t, p["book"])] for t in p["legs"]]
+                    and abs(p["joint"] - round(100 * math.prod(c / 100 for c in p["leg_confidences"]), 1)) < 0.05
+                    for p in _all)
+    ck(bool(_all) and _joint_ok and all(p["joint_basis"] == "MARKET" for p in _all),
+       "🔴🔴 every alt parlay is built on the books' chance at ITS book, joint labelled MARKET",
+       "got %r" % [(p["legs"], p["book"], p["leg_confidences"], p["joint"]) for p in _all][:2])
+    ck(all(s == sorted(s, key=lambda p: -p["joint"]) for s in P.values())
+       and not any(k in p for p in _all for k in ("warning", "p", "model", "cal")),
+       "🔴 ranked by that chance, highest first, and no model % anywhere on a parlay")
     _rows_card = [{"confidence": 70, "price": -150, "clears_price_floor": True, "game_id": "a", "book": "X",
                    "player": "P1", "game": "A", "side": "over", "line": 50.5, "market": "player_pass_yds"},
                   {"confidence": 70, "price": -150, "clears_price_floor": True, "game_id": "b", "book": "X",

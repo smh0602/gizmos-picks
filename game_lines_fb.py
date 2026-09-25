@@ -47,14 +47,19 @@ LEAGUE = os.environ.get("LEAGUE", "nfl")
 ALT_DAYS = 3
 BASES = {
     "pt": "MARKET", "prices": "MARKET", "best": "MARKET", "be": "MARKET",
+    "mkt": "MARKET", "mkt_books": "MARKET", "mkt_one_side": "MARKET",
     "p": "MODEL", "edge": "MODEL", "dist": "DESCRIPTIVE",
     "main": "MARKET", "fair_spread": "MODEL", "fair_total": "MODEL",
 }
+# ⛔ `[Sam, 2026-09-25]` THE ALT PARLAYS ARE BUILT AND RANKED ON THE BOOKS'
+#    OWN CHANCE, never the model's: the pre-registered check failed on all
+#    four, and on NFL the model's % points the wrong way off the main line.
 JOINT_NOTE = (
-    "The game model's probabilities for each leg, multiplied together — MODEL, "
-    "and every leg carries the model's label. Legs are in different games, so "
-    "they are treated as independent; that assumption is not free and has never "
-    "been tested here.")
+    "The books' own chance for each leg — the two sides of that rung at that "
+    "book with the vig taken out, or the break-even where the book posts only "
+    "one side — multiplied together. MARKET, not a model. Legs are in "
+    "different games, so they are treated as independent; that assumption is "
+    "not free and has never been tested here.")
 
 
 def log(m):
@@ -235,18 +240,49 @@ def fair_line(models, row, market, main):
 # ══════════════════════════════════════════════════════════════════════
 # THE TAB
 # ══════════════════════════════════════════════════════════════════════
+def opposite(market, side, pt):
+    """The other side of the SAME wager: home -3.5 <-> away +3.5, over <-> under."""
+    if market == "spread":
+        return ("away" if side == "home" else "home", -pt)
+    return ("under" if side == "over" else "over", pt)
+
+
+def market_chance(lad, market, side, pt, prices):
+    """-> ({book: chance}, [books posting only this side]) — the books' own
+    implied chance at each book: this side and the other side of the same
+    rung, at the SAME book, with the vig taken out. ⛔ Where the book posts
+    only this side there is no second price to de-vig against, so it is that
+    price's break-even, and the book is named in the list."""
+    opp = lad.get(opposite(market, side, pt)) or {}
+    chance, one = {}, []
+    for b, px in prices.items():
+        if b in opp:
+            chance[b] = F.devig(px, opp[b])
+        else:
+            chance[b] = 1.0 / F.decimal(px)
+            one.append(b)
+    return chance, sorted(one)
+
+
 def rungs_for(lad, market, main, models, row, check):
     out = []
+    finding = A.finding(((check or {}).get("markets") or {}).get(market))
     for (side, pt), prices in sorted(lad.items(), key=lambda kv: (kv[0][0], kv[0][1])):
         best_book = max(prices, key=lambda b: F.decimal(prices[b]))
         best = prices[best_book]
         be = 1.0 / F.decimal(best)
+        chance, one = market_chance(lad, market, side, pt, prices)
         p = model_p(models, row, market, side, pt)
         line = (-pt if side == "home" else pt) if market == "spread" else pt
         dist = abs(line - main) if main is not None else None
         cal, warn = A.label(check, market, p, dist)
+        if not cal and finding:
+            warn = "%s — %s" % (warn, finding)
         out.append({"m": market, "side": side, "pt": pt, "prices": prices, "best": best,
                     "book": best_book, "be": round(100 * be, 1),
+                    "mkt": round(100 * sum(chance.values()) / len(chance), 1),
+                    "mkt_books": {b: round(100 * c, 1) for b, c in chance.items()},
+                    "mkt_one_side": one,
                     "p": round(100 * p, 1) if p is not None else None,
                     "edge": round(100 * (p * F.decimal(best) - 1.0), 1) if p is not None else None,
                     "dist": round(dist, 1) if dist is not None else None,
@@ -302,8 +338,9 @@ def build_doc(lg, root=None, now=None):
     doc = {"league": lg, "kind": "MARKET + MODEL", "built_at": _iso(now), "slate_date": slate,
            "single_day": True, "books": sorted(set(names.values())), "bases": BASES,
            "gamelines_pulled_at": snap.get("pulled_at"),
-           "check": {mk: {k: ((check or {}).get("markets") or {}).get(mk, {}).get(k)
-                          for k in ("state", "n", "games", "mean_d", "p")}
+           "check": {mk: dict({k: ((check or {}).get("markets") or {}).get(mk, {}).get(k)
+                               for k in ("state", "n", "games", "mean_d", "p")},
+                              finding=A.finding(((check or {}).get("markets") or {}).get(mk)))
                      for mk in A.MARKETS},
            "warning": A.WARNING, "spec": "research/fb_alt_lines_spec.md",
            "n_rungs": sum(len(x["spread"]) + len(x["total"]) for x in games),
@@ -333,20 +370,18 @@ def parlay_legs(doc, now=None):
         if (g.get("commence") or "") <= now_s:
             continue
         for r in g["spread"] + g["total"]:
-            if r["p"] is None:
-                continue
             who = (g["home"] if r["side"] == "home" else g["away"]) if r["m"] == "spread" \
                 else r["side"].title()
             pt = ("%+g" % r["pt"]) if r["m"] == "spread" else ("%g" % r["pt"])
             text = "%s %s (%s @ %s)" % (who, pt, g["away"], g["home"])
             for book, px in r["prices"].items():
-                legs.append({"confidence": r["p"], "price": px,
+                legs.append({"confidence": r["mkt_books"][book], "price": px,
                              "clears_price_floor": px >= card_fb.PRICE_FLOOR,
                              "game_id": g["id"], "book": book,
                              "player": "%s|%s" % (g["id"], r["m"]),
                              "game": "%s @ %s" % (g["away"], g["home"]),
                              "side": r["side"], "line": r["pt"], "market": r["m"],
-                             "text": text, "cal": r["cal"]})
+                             "text": text})
     return legs
 
 
@@ -354,12 +389,8 @@ def parlays(doc, now=None):
     legs = parlay_legs(doc, now)
     if not legs:
         return {}, {"rated_legs": 0, "note": "no priced alt rung on this slate yet"}
-    out, meta = card_fb.build_parlays_fb(legs, leg_text=_leg_text, joint_basis="MODEL",
+    out, meta = card_fb.build_parlays_fb(legs, leg_text=_leg_text, joint_basis="MARKET",
                                          joint_note=JOINT_NOTE)
-    cal = {l["text"]: l["cal"] for l in legs}
-    for size in out.values():
-        for p in size:
-            p["warning"] = None if all(cal.get(t) for t in p["legs"]) else A.WARNING
     return out, meta
 
 
@@ -372,7 +403,8 @@ def frozen_view(doc, now=None):
     games = [{"id": g["id"], "sched_id": g["sched_id"], "commence": g["commence"],
               "home": g["home"], "away": g["away"],
               "rungs": [{k: r[k] for k in ("m", "side", "pt", "prices", "best", "book", "be",
-                                           "p", "edge", "cal")} for r in g["spread"] + g["total"]]}
+                                           "mkt", "mkt_books", "p", "edge", "cal")}
+                        for r in g["spread"] + g["total"]]}
              for g in doc["games"] if (g.get("commence") or "") > now_s and (g["spread"] or g["total"])]
     body = json.dumps(games, sort_keys=True)
     return games, hashlib.sha256(body.encode("utf-8")).hexdigest()

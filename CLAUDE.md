@@ -551,7 +551,10 @@ game_lines_fb.py  THE GAME LINES TAB (Sam, 2026-09-24): every alt spread
                   slate, each rung's price per book, best, break-even,
                   the game model's % and edge; frozen before kickoff
                   (daystore), graded once, its own record; alt-only
-                  parlays through card_fb.build_parlays_fb's rules.
+                  parlays through card_fb.build_parlays_fb's rules,
+                  built and RANKED ON THE BOOKS' OWN CHANCE (de-vigged
+                  per book, MARKET) — ⛔ never the model's % [Sam,
+                  2026-09-25: the check failed; NFL points the wrong way].
                   ⛔ Never touches the card. Data: the paid `alt-lines`
                   pull in collect.py (one pull per game, capped at
                   1,500 credits a month, bill measured per call).

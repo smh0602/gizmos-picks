@@ -140,3 +140,12 @@ main line"**. The model's fair line (the line where its probability is
   raised OverflowError on bands of more than about 1,000 rows. It now sums
   in log space, and `test_calibration.py` guards both halves (it matches
   the exact sum, and it survives n = 4,000).
+- **2026-09-25, Sam, after reading the result:** the alt parlays are built
+  and ranked on the **books' own chance**, never the model's %.
+  - The books' chance is the two sides of the same rung at the same book
+    with the vig taken out; where a book posts only one side, it is that
+    price's break-even, and the rung says so. Labelled MARKET.
+  - On the tab, the books' chance comes first. The model % sits beside it,
+    with the check's finding in plain words: for NFL (and college spreads)
+    it points the wrong way away from the main line.
+  - The rule and bar above are unchanged.

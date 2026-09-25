@@ -475,7 +475,7 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
 .glwrap{overflow-x:auto}
 .glmain{border-collapse:collapse;font-size:12px;margin:6px 0 10px}
 .glmain th,.glmain td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-.glr{display:grid;grid-template-columns:minmax(96px,1.3fr) repeat(3,minmax(50px,.7fr)) minmax(84px,1fr) repeat(3,minmax(58px,.7fr));
+.glr{display:grid;grid-template-columns:minmax(96px,1.3fr) minmax(64px,.8fr) repeat(3,minmax(50px,.7fr)) minmax(84px,1fr) repeat(3,minmax(58px,.7fr));
   gap:4px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
 .glr.gh{font-weight:700;color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
 .glr.nofloor{opacity:.62}
@@ -4410,7 +4410,8 @@ async function fbGlRecLoad(){
 /* Display order only — ladder, model %, or edge. */
 function fbGlSort(rungs, key){
   const r = rungs.slice();
-  if (key === 'p') r.sort((a, b) => (b.p == null ? -1 : b.p) - (a.p == null ? -1 : a.p));
+  if (key === 'mkt') r.sort((a, b) => (b.mkt == null ? -1 : b.mkt) - (a.mkt == null ? -1 : a.mkt));
+  else if (key === 'p') r.sort((a, b) => (b.p == null ? -1 : b.p) - (a.p == null ? -1 : a.p));
   else if (key === 'edge') r.sort((a, b) => (b.edge == null ? -1e9 : b.edge) - (a.edge == null ? -1e9 : a.edge));
   else r.sort((a, b) => a.side < b.side ? -1 : a.side > b.side ? 1 : a.pt - b.pt);
   return r;
@@ -4419,7 +4420,8 @@ function fbGlSort(rungs, key){
 function fbGlPt(r){ return r.m === 'spread' ? (r.pt > 0 ? '+' + r.pt : '' + r.pt) : '' + r.pt; }
 
 function fbGlHead(books){
-  return `<div class="glr gh"><div>Line</div>${books.map(b => `<div>${b}</div>`).join('')}
+  return `<div class="glr gh"><div>Line</div>
+    <div>Books&rsquo; chance <span class="kind k-market">Market</span></div>${books.map(b => `<div>${b}</div>`).join('')}
     <div>Best <span class="kind k-market">Market</span></div>
     <div>Break-even <span class="kind k-market">Market</span></div>
     <div>Model % <span class="kind k-model">Model</span></div>
@@ -4432,6 +4434,8 @@ function fbGlRung(r, g, books){
   return `<div class="glr${r.floor ? '' : ' nofloor'}">
     <div class="glw"><b>${who} ${fbGlPt(r)}</b>${r.floor ? ''
       : ' <span class="rec">below &minus;700 &middot; never paired</span>'}</div>
+    <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b>${(r.mkt_one_side || []).length
+      ? ` <span class="rec" title="Only one side posted at ${r.mkt_one_side.join(', ')} &mdash; that price's break-even, no vig removed">one side</span>` : ''}</div>
     ${books.map(b => `<div data-l="${b}">${(r.prices || {})[b] == null ? '&mdash;' : sgn(r.prices[b])}</div>`).join('')}
     <div data-l="Best">${sgn(r.best)} <span class="rec">${r.book}</span></div>
     <div data-l="Break-even">${r.be}%</div>
@@ -4486,16 +4490,17 @@ function fbGlParlays(G){
   const P = G.parlays || {}, sizes = Object.keys(P).filter(k => (P[k] || []).length);
   if (!sizes.length) return '';
   return `<div class="panel" style="margin-top:18px"><h2>Alt-line parlays
-      <span class="kind k-model">Model</span></h2>
+      <span class="kind k-market">Market</span></h2>
     <p style="font-size:12px">Built by the same parlay builder and rules as the Parlays tab &mdash;
       2 legs 1.8x+, 3&ndash;4 legs 3x+, no ceiling, legs in different games at one book, nothing
-      below &minus;700 &mdash; from alt rungs only, ranked by the chance all legs land.</p>
+      below &minus;700 &mdash; from alt rungs only, ranked by <b>the books&rsquo; own chance</b> that
+      every leg lands. The model&rsquo;s % is not used here.</p>
     ${sizes.map(k => `<div style="margin:10px 0 4px;font-weight:700">${k} legs</div>` + P[k].map(p => `
       <div class="glr" style="grid-template-columns:minmax(0,3fr) repeat(3,minmax(0,1fr))">
-        <div class="glw">${p.legs.join('<br>')}${p.warning ? ` <span class="glwarn" title="${p.warning}">&#9888;</span>` : ''}</div>
+        <div class="glw">${p.legs.join('<br>')}</div>
         <div data-l="Book">${p.book}</div>
         <div data-l="Pays">${p.multiplier}x</div>
-        <div data-l="All land">${p.joint}%</div></div>`).join('')).join('')}
+        <div data-l="Books&rsquo; chance all land">${p.joint}%</div></div>`).join('')).join('')}
     <div class="note" style="margin-top:8px">${(G.parlays && sizes.length && P[sizes[0]][0].joint_note) || ''}</div></div>`;
 }
 
@@ -4520,11 +4525,12 @@ function fbGlRecordHtml(R){
 function fbGameLinesHtml(G, R, games, st){
   const chk = G.check || {};
   const failed = Object.keys(chk).filter(m => (chk[m] || {}).state !== 'PASS');
-  const warnNote = failed.length ? `<div class="note" style="margin:0 0 12px">&#9888; <b>${G.warning}</b>
-      &mdash; the game model was trained on main lines only, and the pre-registered check of its
-      ${failed.map(m => m === 'spread' ? 'spreads' : 'totals').join(' and ')} 3, 7 and 10 points off the
-      main line came back ${failed.map(m => (chk[m] || {}).state || 'not yet run').join(' / ')}. Every number is
-      still shown; the &#9888; on a row is that result.</div>` : '';
+  /* 🔴 `[Sam, 2026-09-25]` THE BOOKS' CHANCE LEADS; the model's % sits beside
+     it, and this says in plain words what the check found. */
+  const warnNote = failed.length ? `<div class="note" style="margin:0 0 12px">&#9888; <b>Read the
+      books&rsquo; chance first.</b> The model&rsquo;s % is shown beside it, but a test run before
+      this tab was built found ${failed.map(m => `for alt ${m === 'spread' ? 'spreads' : 'totals'}
+      <b>${(chk[m] || {}).finding || G.warning}</b>`).join('; and ')}. The &#9888; on a row is that result.</div>` : '';
   return `<div style="margin-bottom:10px"><h2 style="margin:0 0 4px;font-size:16px">Game Lines
       <span class="kind k-market">Market</span> <span class="kind k-model">Model</span></h2>
     ${fbDayLine(G)}</div>${warnNote}
@@ -4552,7 +4558,8 @@ async function fbGameLinesTab(){
       ${opt('fb-gl-game', fbGl.game, [['all', 'All games']].concat(G.games.map(g =>
         [g.id, `${fbAb(g.away)} @ ${fbAb(g.home)} — ${fbKickTime(g.commence) || ''}`])))}
       ${opt('fb-gl-mkt', fbGl.market, [['both', 'Spreads and totals'], ['spread', 'Alt spreads'], ['total', 'Alt totals']])}
-      ${opt('fb-gl-sort', fbGl.sort, [['line', 'Ladder order'], ['p', 'Sort by model %'], ['edge', 'Sort by edge']])}
+      ${opt('fb-gl-sort', fbGl.sort, [['line', 'Ladder order'], ['mkt', "Sort by books' chance"],
+                                        ['p', 'Sort by model %'], ['edge', 'Sort by edge']])}
       <span class="stamp">${(G.n_rungs || 0).toLocaleString()} rungs &middot; ${freshness(G.built_at)}</span>
     </div>
     ${startedToggle(nStarted, 'fb-gl-started', allDone)}
