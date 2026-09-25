@@ -18,8 +18,8 @@ is live — and shows the `tests` job's loop cannot see it while the
 
 # @vacuity the staged job must actually apply the staged files
 #   file: .github/workflows/pr-tests.yml
-#   find:           python -c "import wfparse; print('\\n'.join(wfparse.apply_staged('.')))" > /tmp/staged.txt
-#   with:           : > /tmp/staged.txt
+#   find: .join(wfparse.apply_staged('.')))" > /tmp/staged.txt
+#   with: .join([]))" > /tmp/staged.txt
 #
 # @vacuity an UPDATE to a live workflow is a staged change, not only a new file
 #   file: wfparse.py
