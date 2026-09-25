@@ -1,0 +1,171 @@
+# 🔴🔴 THE SECOND BUDGET TOOL NOTHING RAN.
+#
+# `[found 2026-09-15 while wiring `budget.py`; reported, left, and now
+#  wired on Sam's instruction.]` `cfbd_budget.py` derives the CFBD call
+# volume from the deployed schedule and `cfb.py`'s own loop bounds, and
+# **no workflow has ever run it** — the identical defect, one file over.
+#
+# ⛔ AND THIS ONE HAS ALREADY COST US THE PRODUCT ONCE. `[2026-09-09]`
+# CFBD answered **HTTP 429 on every endpoint from 09-06 to 09-09** and
+# the college Trends table and stored schedule **froze for five days.**
+# September's quota resets on the 1st; it was spent in about three days
+# at roughly 8x the plan, and nothing in this repo knew how many CFBD
+# calls it was making.
+#
+# ⛔ IT IS NOT A SECOND COPY OF THE ODDS BUDGET, AND THAT WAS MEASURED
+# BEFORE THIS FILE WAS WRITTEN — Sam asked the question first.
+#   budget.py       Odds API                20,000 credits/mo
+#   cfbd_budget.py  collegefootballdata.com  1,000 calls/mo
+# 🔴 The clincher: **every mode priced here — `cfb-probe`, `cfb-teams`,
+# `fb-scores` — is one `budget.py` explicitly reports as FREE.** Free in
+# ODDS credits, and 906 CFBD calls a month all the same. A fact each tool
+# can see and the other cannot is not a duplicated fact (rule 66).
+#
+# 💰 FREE. `cfbd_budget.py` reads the workflow and `cfb.py` and calls no
+# API. ⛔ No CFBD call, no Odds credit, no Claude usage.
+name: cfbd
+# 🔴 THE RUN SAYS WHICH CRON FIRED IT — ledger rule 271, and
+# `runs_report.py` reads this field back to tell a landed cron from a
+# dropped one.
+run-name: ${{ github.event.schedule && format('cfbd [cron {0}]', github.event.schedule) || format('cfbd [{0}]', github.event_name) }}
+
+on:
+  # ⚠️ DAILY, NOT HOURLY. This number is DERIVED from the schedule and
+  # `cfb.py`, so it moves only when code moves — asking hourly would be
+  # 24 identical answers a day and an issue nobody reads (rule 238).
+  # ⛔ Off :00 and :30 like every cron here; those slots are the most
+  # congested on GitHub's scheduler and runs get dropped.
+  # ⚠️ 14:58Z = 10:58am ET, after the morning football cards and the
+  # day's `cfb-probe` rebuilds, so it prices a settled schedule. The
+  # minute is free in this hour (4 and 35 are taken, plus :20 and :41
+  # hourly).
+  schedule:
+    - cron: "58 14 * * *"
+  workflow_dispatch:
+
+# ⚠️ PER-WORKFLOW GROUP. A shared group silently cancels queued scheduled
+# runs when someone triggers a job by hand — CLAUDE.md.
+concurrency:
+  group: cfbd
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Is the CFBD quota going to run out?
+        id: look
+        # ══════════════════════════════════════════════════════════════
+        # 🔴🔴 THE PLAN IS AN ACCOUNT FACT AND BELONGS IN THE DEPLOYMENT,
+        #      NOT IN THE CODE.
+        # ══════════════════════════════════════════════════════════════
+        # ⛔ `cfbd_budget.py` reads `CFBD_PLAN` with a `1000` default and
+        # NO WORKFLOW SET IT — `grep -rn CFBD_PLAN .github/workflows/`
+        # returned nothing. So every scheduled run has printed
+        # **"906/month against a 1000 plan — 91%"** against a plan that
+        # does not exist, and that false alarm is what made this urgent.
+        # ✅ Sam's key is the 3,000 academic tier. The same 906 is **30%**.
+        # ✅ AND CFBD'S OWN HEADER AGREES, which is the check that
+        # matters: 2,236 remaining of 3,000 is 764 used over 18 days
+        # since the 09-01 reset — 42/day, ~1,265/month, **42% of plan**.
+        # ⛔ THE `1000` DEFAULT STAYS PUT, deliberately. It is the
+        # "nobody told me" value. Moving the real number into the code
+        # would put an account fact back in a file — which is the defect,
+        # not the wrong default.
+        # ⚠️ `test_cfbd_watch.py` derives the workflows that run this from
+        # the workflow files and fails if one of them omits `CFBD_PLAN`,
+        # so the next one to call it cannot silently inherit 1000.
+        env:
+          CFBD_PLAN: "3000"
+        run: |
+          set +e
+          # ⛔ THE JUDGEMENT LIVES IN PYTHON, NOT IN THIS SHELL — rule 66.
+          # A shell step that decides what counts as over-quota is a
+          # second copy of that judgement, and it is the copy no test can
+          # reach. `cfbd_watch.py` is driven by `test_cfbd_watch.py`.
+          # ⚠️ It RUNS `cfbd_budget.py` rather than reimplementing it, so
+          # there is exactly one CFBD costing in this repo and this file
+          # cannot disagree with it.
+          python cfbd_watch.py > /tmp/cfbd.md 2>/tmp/cfbd.err
+          rc=$?
+          cat /tmp/cfbd.md
+          cat /tmp/cfbd.err >&2
+          if [ "$rc" = "0" ]; then
+            echo "state=ok" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" = "1" ]; then
+            echo "state=bad" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::cfbd_watch could not read a call figure"
+            echo "state=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      # ⚠️ ONE ISSUE, UPDATED IN PLACE, CLOSED BY ITSELF — the same shape
+      # as the watchdog's, the run watcher's and the calibration
+      # watcher's, for the same reason: a workflow that opens a fresh
+      # issue daily is one whose notifications get filtered, and a
+      # filtered alert is no alert.
+      # ⛔ AND `unknown` CHANGES NOTHING. "I could not look" is not "the
+      # quota is fine" and must never close an open issue.
+      - name: Tell Sam
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          STATE='${{ steps.look.outputs.state }}'
+          TITLE="Gizmo's Picks - CFBD calls are trending past the free tier"
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+                  --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ "$STATE" = "unknown" ]; then
+            echo "could not read the CFBD budget — leaving any open issue alone"
+            exit 0
+          fi
+          if [ "$STATE" = "ok" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Resolved — the derived CFBD call volume is back inside the bar."
+              gh issue close "$NUM"
+            fi
+            echo "inside the bar"
+            exit 0
+          fi
+          # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
+          # `[measured 2026-09-19]` PR #73 labelled the `gh issue create` path and
+          # left the `gh issue edit` path alone. Every watcher files ONCE and then
+          # updates in place for ever, so **five of the six open watcher issues
+          # carried no label at all** — #69, #44, #42, #31, #16 — and
+          # `self-repair.yml` reads the queue BY LABEL. The issue reporting two
+          # vacuous guards, which is the exact thing PR #73 existed to make
+          # actionable, was one of the five.
+          # ✅ `--add-label` on the edit path HEALS them: the next run of each
+          # watcher puts its own issue into the queue. Nothing has to be relabelled
+          # by hand.
+          # ⛔ And the ensure moved ABOVE the branch because `--add-label X` fails
+          # when X does not exist — the create path needed that and the edit path
+          # needs it too.
+          gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
+          if [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/cfbd.md
+          else
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cfbd.md --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/cfbd.md \
+              || gh issue create --title "$TITLE" --body-file /tmp/cfbd.md
+          fi
+          exit 0

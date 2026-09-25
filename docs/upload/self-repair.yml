@@ -1,0 +1,613 @@
+# 🔴🔴 TIER 3 SELF-REPAIR — the findings nothing mechanical can fix.
+#
+# `[Sam, 2026-09-14: "are there any extension or other tools we can use to
+#  be able to make tier 3 be able to self repair efficiently that is free
+#  to use?"]`
+#
+# THE THREE TIERS, AND WHY ONLY THIS ONE NEEDED A NEW FILE:
+#   Tier 1  the freshness contract — converge rebuilds anything overdue.
+#           Already automatic. Covers every mode that puts data on a tab.
+#   Tier 2  `watchdog.py` — runs the FREE rebuild modes, re-checks.
+#           Already automatic.
+#   Tier 3  a CODE defect. Nothing mechanical can fix it, because fixing
+#           it means deciding which of two disagreeing halves is right.
+#           ⛔ Until now this stopped at "open an issue and wait for Sam".
+#
+# ══════════════════════════════════════════════════════════════════════
+# ✅ THE FREE TOOL IS ALREADY IN THIS REPO, AND THE SEAM WAS THE TRIGGER
+# ══════════════════════════════════════════════════════════════════════
+#
+# `.github/workflows/claude.yml` has had the Claude Code GitHub Action
+# since before I looked, authenticating with Sam's SUBSCRIPTION token
+# (`CLAUDE_CODE_OAUTH_TOKEN`) rather than a metered API key — so running
+# it costs no extra money, only GitHub Actions minutes.
+#
+# ⛔ WHAT BLOCKED IT WAS THE ACTOR CHECK. The watchdog opens its issue
+# with the default `GITHUB_TOKEN`, so the author is `github-actions[bot]`,
+# and the action rejects bot actors. `allowed_bots` is supposed to permit
+# that, but upstream issue anthropics/claude-code-action#900 reports the
+# bot check calling the users API BEFORE reading `allowed_bots` — a call
+# that 404s for a bot account. **Unreliable, and not worth building on.**
+#
+# ✅ A SCHEDULE IS NOT TRIGGERED BY THE BOT, AND THAT IS THE SEAM.
+#
+# ⚠️⚠️ **CORRECTED 2026-09-14, BEFORE THIS FILE WAS EVER UPLOADED.** The
+# first version of this comment said *"a schedule has no actor at all"*,
+# quoting the action's `docs/security.md`. **Anthropic's own product docs
+# say the opposite, and they are the safer reading:**
+#
+#     "This check also applies to scheduled runs, which GitHub attributes
+#      to a repository user, usually the one who last changed the
+#      workflow's `cron` schedule. If that user is a bot, list it in
+#      `allowed_bots`."
+#     — code.claude.com/docs/en/github-actions, "Who can trigger runs"
+#
+# ⛔ **Two Anthropic sources disagree, so this file must survive EITHER
+# being true.** It does, because the actor on a scheduled run here is
+# **Sam** — he uploads this file through the GitHub web UI, so the commit
+# that last set the `cron:` block is authored by a human with write
+# access. Both checks pass under either reading. ⚠️ The write-access check
+# is exempt for `schedule` under both.
+#
+# 🔴🔴 **AND THAT IS A LIVE FRAGILITY, NOT A SETTLED POINT.** If a
+# self-repair PR is ever merged that EDITS THE CRON BLOCK IN THIS FILE,
+# the "user who last changed the cron schedule" becomes the Claude GitHub
+# App — a bot — and **self-repair stops firing, silently, with no red
+# run.** ➡️ The prompt below forbids the agent from touching this file,
+# and `test_watchdog.py` §13 asserts that it does.
+#
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE GUARDS, AND THEY MATTER MORE THAN THE FEATURE
+# ══════════════════════════════════════════════════════════════════════
+#
+# 1. 🔴 IT OPENS A PULL REQUEST. IT NEVER MERGES. This repo publishes
+#    numbers Sam bets real money against, and CLAUDE.md's first rule is
+#    never weaken a check to make it pass. ⚠️ An agent that can both write
+#    the fix AND merge it is an agent that can make a check green by
+#    deleting it with nobody reading the diff. **Automatic to the PR; a
+#    human presses merge.**
+#
+# 2. 🔴 IT DOES NOT RUN WHEN THERE IS NOTHING TO DO. The first step reads
+#    `data/latest/health.json` and exits before Claude is invoked at all
+#    unless there is an UNREPAIRABLE finding. A healthy day costs a few
+#    seconds of runner time and nothing else.
+#
+# 3. 🔴 ONE PR PER PROBLEM, NOT ONE PER RUN. If an open PR from this
+#    workflow already exists, it skips. ⛔ A workflow that opens a fresh
+#    PR every four hours is a workflow whose PRs get ignored, which is the
+#    same death as a filtered alert.
+#
+# 4. ✅ THE PROMPT STATES THE CURRENT MLB POLICY, THE SAME AS CLAUDE.md.
+#    ~~the old MLB freeze~~ — Sam lifted the freeze 2026-09-22 ("unfreeze all
+#    mlb"). A prompt that disagrees with CLAUDE.md is worse than silence;
+#    test_watchdog.py fails if the two ever say different things.
+name: self-repair
+# 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
+# ⛔ WITHOUT THIS, TWO CRONS IN ONE HOUR ARE INDISTINGUISHABLE. The
+# `ncaaf` 19:0x question sat open for six days for exactly this reason:
+# `4 19 * * *` and `18 19 * * *` both land in the 19:00Z hour, GitHub
+# delays both by 11-15 minutes, and NOTHING in the API says which run
+# came from which cron. A commit message names the MODE, not the cron.
+# ✅ `run-name:` is read back as `name` in `gh run list` — free, no
+# commit, and it is recorded even when the run FAILS BEFORE COMMITTING
+# or has nothing to commit, which a git-log trailer never would be.
+run-name: ${{ github.event.schedule && format('self-repair [cron {0}]', github.event.schedule) || format('self-repair [{0}]', github.event_name) }}
+
+on:
+  # ⛔ Off :00, like every cron in this repo — those slots are the most
+  # congested on GitHub's scheduler and runs get dropped there.
+  # ⚠️ FOUR TIMES A DAY, NOT HOURLY. A code defect is not fixed faster by
+  # asking more often, and each ask spends subscription usage.
+  schedule:
+    - cron: "23 11 * * *"     #  7:23am ET
+    - cron: "23 17 * * *"     #  1:23pm ET
+    - cron: "23 23 * * *"     #  7:23pm ET
+    - cron: "23 5 * * *"      #  1:23am ET
+  # 🔴🔴 THE FIRE DRILL. `[Sam, 2026-09-14: "create a mock tier 3 problem
+  # and test it"]` — because everything up to the agent is now proven and
+  # THE AGENT ITSELF HAS NEVER EXECUTED. A mode whose first run is in
+  # production is a mode nothing drove (ledger rule 235), and this is the
+  # last one left in the architecture.
+  # ⛔ IT DOES NOT FAKE A DEFECT. It asks the agent to do one harmless,
+  # verifiable thing, so what is proven is exactly what is in question:
+  # does the action authenticate, does the actor check pass, can the agent
+  # read the repo, and can it open a PR? ⚠️ It proves NOTHING about
+  # diagnosis, and says so in the prompt.
+  workflow_dispatch:
+    inputs:
+      drill:
+        description: "Fire a DRILL: run the agent on a harmless task to prove the path works. Costs one agent run of Sam's subscription."
+        type: boolean
+        default: false
+
+concurrency:
+  group: self-repair
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      # 🔴🔴 THE `issues` READ SCOPE — WITHOUT IT THE WHOLE GATE
+      # STANDS DOWN, SILENTLY.
+      # ⚠️ The scope is named here WITHOUT its value on purpose:
+      #    `test_gh_permissions.py` declares a mutation whose `find:` is
+      #    the literal `issues:<space>read`, and `vacuity.py` requires it
+      #    to occur EXACTLY ONCE in this file. Spelling it out in prose
+      #    as well made the mutation AMBIGUOUS, which the harness reports
+      #    as MALFORMED rather than clean. ⛔ Do not re-add it.
+      # `[measured 2026-09-19 on the DEPLOYED run 35424213172]` this job
+      # printed `open watcher issues: 0` at 05:32:22Z while issue #80 was
+      # open and carried the label. The same query asked with a token that
+      # can read issues returns it. ⛔ `gh issue list` needs this scope and
+      # the step below swallowed the refusal, so the widening that PR #73
+      # shipped fired ZERO times between merging and this line being added.
+      # ⚠️ READ, not write. Triage only looks; the `fix` job is the one
+      # that writes, and it already has its own scopes.
+      issues: read
+    outputs:
+      go: ${{ steps.decide.outputs.go }}
+      drill: ${{ steps.decide.outputs.drill }}
+      summary: ${{ steps.decide.outputs.summary }}
+      # ⚠️ THE ISSUE NUMBER TRAVELS, so the fix job can record whether this
+      #    issue produced a PR — which is what the one-pass skip reads.
+      issue: ${{ steps.decide.outputs.issue }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Is there anything only a person could fix?
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          # ⛔ A DRILL IS THE ONLY THING THAT BYPASSES THE GATE, AND IT
+          # IS MANUAL-ONLY — `inputs.drill` does not exist on a schedule,
+          # so a scheduled run can never take this branch.
+          if [ "${{ github.event.inputs.drill }}" = "true" ]; then
+            echo "DRILL requested — bypassing the unrepairable gate"
+            echo "go=yes" >> "$GITHUB_OUTPUT"
+            echo "drill=yes" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ ! -f data/latest/health.json ]; then
+            echo "no health report yet"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # ⛔ THE GATE IS `unrepairable`, NOT `healthy`. A finding the
+          # watchdog is already rebuilding must never summon an agent —
+          # that is an interruption for something that fixes itself, and
+          # it is how the whole channel gets ignored.
+          UNREP=$(python -c "import json;d=json.load(open('data/latest/health.json'));print(len(d.get('unrepairable') or []))")
+          SUMMARY=$(python -c "
+          import json
+          d = json.load(open('data/latest/health.json'))
+          rows = [i for i in d['findings']
+                  if i['severity'] == 'BROKEN' and not i['repair']]
+          print(' | '.join('%s :: %s' % (i['what'], i['why'][:200]) for i in rows)[:900])
+          ")
+          echo "unrepairable findings: $UNREP"
+
+          # ══════════════════════════════════════════════════════════
+          # 🔴🔴 AND THE WATCHER ISSUE QUEUE, WHICH IS THE OTHER FIVE
+          #      DETECTORS.
+          # ══════════════════════════════════════════════════════════
+          # `[measured 2026-09-18]` SIX things watch this repo and ONE of
+          # them could produce a fix. `health.json` is written by
+          # `watchdog.py`, which reads REPO FILES — so a red test, a
+          # failed run and a vacuous guard are none of them findings in
+          # it. `runs_report.py`'s own header says why: *"a red tick on
+          # the Actions tab is not a file in the repo, so it is invisible
+          # to every guard this project has."*
+          # ⛔ So all five became an email and stopped there, which is
+          # why two known vacuous guards sat unfixed for three days —
+          # nothing could make them anyone's task.
+          #
+          # ✅ EVERY WATCHER HERE ALREADY FILES ONE ISSUE, updated in
+          # place and closed by itself when the condition clears. That is
+          # a work queue: deduplicated, self-clearing, and already the
+          # thing sending the mail.
+          # ⛔ IDENTIFIED BY LABEL, NEVER BY TITLE. Titles are prose and
+          # prose drifts; this project has been burned by regex-over-prose
+          # before. `test_watch_label.py` derives the `gh issue create`
+          # call sites from the workflows and fails if one can file
+          # without the label — a queue that empties silently is worse
+          # than no queue.
+          # ⚠️ OLDEST FIRST, so nothing starves.
+          # 🔴🔴 `2>/dev/null || echo "[]"` WAS THE BUG, NOT THE SCOPE.
+          # Both halves destroyed the evidence: the redirect ate the 403 and
+          # the fallback turned "I was refused" into "there is nothing to
+          # do". A queue you could not read is NOT an empty queue, and a
+          # gate that cannot tell those apart is rule 238 aimed at the one
+          # channel that has to be trustworthy.
+          # ✅ IT NOW FAILS LOUD. `CLAUDE.md`: the collector must fail loud;
+          # sys.exit(1) on error, because a green tick proved nothing.
+          set +e
+          QUEUE=$(gh issue list --state open --label gizmo-watch \
+                    --limit 50 --json number,title,body,labels,createdAt \
+                    --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
+          GHRC=$?
+          set -e
+          if [ "$GHRC" != "0" ]; then
+            echo "::error::could not read the watcher issue queue (exit $GHRC from gh) — this is NOT an empty queue"
+            sed -e 's/^/    /' /tmp/ghqueue.err | head -20
+            echo "go=no" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          QN=$(python -c "import json,sys;print(len(json.loads(sys.stdin.read() or '[]')))" <<< "$QUEUE")
+          echo "open watcher issues: $QN"
+
+          if [ "$UNREP" = "0" ] && [ "$QN" = "0" ]; then
+            echo "nothing unrepairable and no watcher issue open"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # ⛔ ONE PR PER PROBLEM. An open PR from this workflow means the
+          # fix is already written and waiting on Sam, not missing.
+          # ⛔ SAME TREATMENT. A PR cap that reads 0 because the call was
+          # refused is a cap that opens a second PR, which is the failure
+          # this cap exists to prevent — in the other direction.
+          set +e
+          OPEN=$(gh pr list --state open --limit 50 --json headRefName \
+                   --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' 2>/tmp/ghpr.err)
+          PRRC=$?
+          set -e
+          if [ "$PRRC" != "0" ]; then
+            echo "::error::could not read the open pull requests (exit $PRRC from gh) — refusing to assume there are none"
+            sed -e 's/^/    /' /tmp/ghpr.err | head -20
+            echo "go=no" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          if [ "$OPEN" != "0" ]; then
+            echo "a self-repair PR is already open — not opening another"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # ══════════════════════════════════════════════════════════
+          # ⚠️ SKIP AN ISSUE THAT ALREADY PRODUCED NO PR — ONCE, NOT
+          #    FOREVER.
+          # ══════════════════════════════════════════════════════════
+          # ⛔ A PERMANENT SKIP LIST IS A FILTERED ALERT, AND RULE 238
+          #    SAYS A FILTERED ALERT IS NO ALERT. A problem that is
+          #    undiagnosable today may be diagnosable after the next
+          #    merge, so the skip lasts exactly one pass.
+          LAST=""
+          if [ -f data/latest/self-repair-last.json ]; then
+            LAST=$(python -c "
+          import json
+          try:
+              d = json.load(open('data/latest/self-repair-last.json'))
+              print(d.get('issue') or '' if not d.get('opened_pr') else '')
+          except Exception:
+              print('')
+          ")
+          fi
+          # ⛔ `$LAST` IS PASSED AS AN ARGUMENT, NEVER SPLICED INTO THE
+          #    PYTHON SOURCE. It is empty on the very first pass and on
+          #    every pass after one that opened a PR — and an empty
+          #    expansion spliced into source is `skip = .strip()`, a
+          #    SyntaxError. That does not fail loudly: the snippet dies,
+          #    `PICK` comes back empty, and the gate below reads that as
+          #    "nothing to do" and stands down. ⚠️ The whole widening
+          #    would have shipped green and fired never.
+          PICK=$(python -c "
+          import json, sys
+          skip = sys.argv[1].strip()
+          q = json.loads(sys.stdin.read() or '[]')
+          for it in q:
+              if skip and str(it.get('number')) == skip:
+                  continue
+              print(json.dumps(it))
+              break
+          " "$LAST" <<< "$QUEUE")
+
+          if [ "$UNREP" = "0" ] && [ -z "$PICK" ]; then
+            echo "the only open watcher issue is the one the last pass could not diagnose — skipping it this pass"
+            echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          ISSUE_N=$(python -c "import json,sys;d=sys.stdin.read().strip();print(json.loads(d)['number'] if d else '')" <<< "$PICK")
+          ISSUE_TXT=$(python -c "
+          import json, sys
+          d = sys.stdin.read().strip()
+          if not d:
+              print('')
+          else:
+              it = json.loads(d)
+              labs = ','.join(l['name'] for l in (it.get('labels') or []))
+              print('ISSUE #%s [%s]\n%s\n\n%s'
+                    % (it['number'], labs, it['title'], (it.get('body') or '')[:3000]))
+          " <<< "$PICK")
+
+          # ⚠️ A RANDOM HEREDOC DELIMITER, because the summary now
+          #    carries an ISSUE BODY — text this workflow did not write.
+          #    A body containing a line that is exactly `EOF` would end
+          #    the block early and the rest would be read as further
+          #    `key=value` output lines. ⛔ The delimiter must be
+          #    unguessable by whoever wrote the body.
+          DELIM="SR_$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+          echo "go=yes" >> "$GITHUB_OUTPUT"
+          echo "issue=$ISSUE_N" >> "$GITHUB_OUTPUT"
+          echo "summary<<$DELIM" >> "$GITHUB_OUTPUT"
+          echo "$SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "$ISSUE_TXT" >> "$GITHUB_OUTPUT"
+          echo "$DELIM" >> "$GITHUB_OUTPUT"
+
+  fix:
+    needs: triage
+    if: needs.triage.outputs.go == 'yes'
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # 🔴 THE DRILL PROMPT. Deliberately trivial work, because the
+      # question is whether the PATH works, not whether the agent is
+      # clever. ⛔ It must still obey CLAUDE.md and still open a PR
+      # rather than pushing, so the drill exercises the same guards the
+      # real thing does.
+      - name: DRILL — prove the agent can run and open a PR
+        if: needs.triage.outputs.drill == 'yes'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            This is a FIRE DRILL. Nothing is broken. You are proving that
+            this automation path works at all, because it has never run.
+
+            Read CLAUDE.md first and follow it.
+
+            Do exactly this and nothing else:
+
+            1. Create or append to a file named `self-repair-drill.md` in
+               the repository root. Add one line in this format:
+               `- <UTC timestamp> drill OK — <the model you are running as>`
+            2. In that same file, state in one sentence what CLAUDE.md
+               says about MLB, so the log proves you read it.
+            3. Change NOTHING else. Do not touch any .py file, any
+               workflow, index.html, any card, or any data file.
+            4. Open a PULL REQUEST from a branch named
+               `self-repair/drill`. Do not push to main. Do not merge.
+            5. In the PR body, say what you were able to do and what you
+               could not, plainly.
+
+            ⛔ Do not modify `.github/workflows/self-repair.yml`. GitHub
+            attributes a scheduled run to whoever last changed the cron
+            schedule; if that becomes a bot, this workflow stops firing
+            silently.
+          # 🔴🔴 THE AGENT WAS BLOCKED BY ITS OWN PERMISSION GATE, NOT
+          # BY AUTH. `[run #8 log, 2026-09-15 — ledger rule 275]`
+          #
+          #     "permission_denials_count": 3
+          #     "num_turns": 6   "duration_ms": 10701
+          #     "is_error": false   "subtype": "success"
+          #
+          # ⛔ EVERYTHING I SUSPECTED WAS FINE. OIDC exchanged, app token
+          # obtained, `Verified human actor: smh0602`, git configured,
+          # Claude Code 2.1.272 installed, model `claude-sonnet-5`, and it
+          # SPENT $0.105 of Sam's subscription. **The token was never the
+          # problem** — I said so three times and was wrong three times.
+          # ➡️ It asked to do three things, was DENIED all three, and
+          # reported `success` because nothing errored.
+          #
+          # ⚠️ WITHOUT AN ALLOWLIST THE AGENT CAN READ AND THINK AND
+          # NOTHING ELSE. It cannot write the file, cannot branch, cannot
+          # push, cannot open the PR — so **Tier 3 has never been capable
+          # of working, and that is true of the REAL repair step below
+          # too, for the same reason.**
+          #
+          # ⛔ STILL BOUND BY `CLAUDE.md`, WHICH IS THE ACTUAL GUARDRAIL:
+          # it opens a PR and never merges, never touches MLB, never
+          # weakens a check. **The permission gate was never what kept
+          # this safe** — a human pressing merge is.
+          claude_args: |
+            --max-turns 15
+            --allowedTools Read,Glob,Grep,Write,Edit,Bash
+          # ⚠️ ON THE DRILL ONLY, AND DELIBERATELY NOT ON THE REAL STEP.
+          # The log said the detail was hidden "for security" and told us
+          # to turn this on — which is the only reason the next failure
+          # will name WHICH tool was denied instead of just counting them.
+          # ⛔ The drill's prompt is harmless and fixed; the repair
+          # prompt carries live findings, so full output there could echo
+          # repo state into a public log. Diagnosis where it is safe,
+          # silence where it is not.
+          show_full_output: true
+
+      - if: needs.triage.outputs.drill != 'yes'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # ⚠️ `prompt` PUTS THE ACTION IN AUTOMATION MODE — no @claude
+          # mention needed, and on a `schedule` event there is no actor to
+          # reject.
+          prompt: |
+            Something this repo watches is broken. It is EITHER a
+            watchdog finding that cannot be repaired by rebuilding
+            anything -- read `data/latest/health.json`, the findings with
+            no `repair` are those -- OR an open issue filed by one of this
+            repo's own watchers, which is quoted below with its number.
+            Read the repo yourself; nothing else is passed to you.
+
+            ${{ needs.triage.outputs.summary }}
+
+            Read CLAUDE.md FIRST and follow it. In particular:
+
+            - You may open ONE pull request. You may not merge it. Sam
+              merges.
+            - EVERY FIX SHIPS WITH A GUARD.
+            - Do not touch MLB. Do not touch any workflow file containing
+              a `cron:` block. Do not edit or delete any
+              `picks/<date>.json`.
+            - If the issue is from `vacuity.py`: you may NOT delete, skip
+              or weaken the guard it names. You may only STRENGTHEN it,
+              or -- if you cannot -- write the case for Sam and open no
+              PR. `vacuity.py` says it itself: "Sam decides what happens
+              to each." An agent that could clear its own queue by
+              deleting a check is the worst possible version of this.
+            - If you cannot diagnose it, say so and open no PR. A PR that
+              guesses is worse than an issue that waits.
+
+            - MLB IS OPEN FOR REPAIR (Sam lifted the freeze 2026-09-22).
+              An MLB finding is fixed like any other: failing test first,
+              one PR, a human merges. Never change a fitted coefficient,
+              and card.py output must stay byte-identical unless the
+              finding IS the card.
+            - NEVER WEAKEN A CHECK TO MAKE IT PASS. If a check is failing,
+              the thing it checks is wrong, not the check. The only
+              legitimate reason to change a check is that it asks the
+              WRONG QUESTION, and then the argument must be made
+              explicitly and the new check must be HARDER to pass.
+            - Do not touch a model coefficient, a threshold, a payout
+              band, a price floor or a freshness deadline. Those are Sam's
+              numbers.
+            - Add or extend a test that FAILS on the defect before your
+              fix and passes after it. A fix with no failing test is a
+              guess.
+            - Run the full suite (`for t in test_*.py; do python $t; done`)
+              before you finish, and say what you did NOT change.
+            - DO NOT MODIFY `.github/workflows/self-repair.yml`. GitHub
+              attributes a scheduled run to the user who last changed the
+              cron schedule. If that becomes a bot, this workflow's own
+              actor check starts rejecting it and self-repair dies with no
+              red run and no alert. If this file is what is broken, say so
+              in the PR body and change nothing in it.
+
+            Open a PULL REQUEST from a branch named
+            `self-repair/<short-description>`. Do not push to main. Do not
+            merge. Sam reviews and merges.
+          # 🔴 THE SAME ALLOWLIST, BECAUSE THE SAME GATE BLOCKED THIS
+          # STEP TOO. Run #8 proved the denial happens in the agent, not
+          # in anything drill-specific — so the real repair path has been
+          # equally incapable since the day it shipped, and nothing would
+          # have revealed that until a genuine outage. `[rule 275]`
+          claude_args: |
+            --max-turns 40
+            --allowedTools Read,Glob,Grep,Write,Edit,Bash
+
+      # 🔴🔴 THE DRILL MUST PROVE ITSELF. `[added 2026-09-15 — ledger rule
+      # 274, after run #7 reported SUCCESS having produced nothing]`
+      #
+      # ⛔ `claude-code-action@v1` EXITS 0 WHETHER OR NOT THE AGENT DID
+      # THE WORK. Run #7: `triage` success, `fix` success in 45 seconds,
+      # and **no `self-repair/drill` branch, no `self-repair-drill.md`,
+      # no PR.** Sam fired it SEVEN times and every run went green.
+      #
+      # 🔴 A DRILL EXISTS TO ANSWER ONE QUESTION — *does this path work?*
+      # — so a drill that cannot fail answers nothing, and a green tick
+      # that proves nothing is worse than a red one because it gets
+      # trusted (`CLAUDE.md`, the one rule that matters most). **I shipped
+      # the fire alarm test that cannot report a fire.**
+      #
+      # ✅ SO THE DRILL NOW ASSERTS ITS OWN ARTIFACT. Exactly one outcome
+      # is correct — a branch named `self-repair/drill`, or a PR from it —
+      # and anything else fails the job loudly. ⚠️ `always()` so it still
+      # runs when the agent step itself errored.
+      #
+      # ⛔ THE REAL REPAIR PATH IS NOT ASSERTED THE SAME WAY, ON PURPOSE.
+      # It has a legitimate empty outcome: the agent is told to open NO PR
+      # when it cannot diagnose a finding. Failing on "no branch" there
+      # would punish the agent for refusing to guess.
+      - name: Did the drill actually do anything?
+        if: always() && needs.triage.outputs.drill == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          # ⛔ `grep -c .` COUNTS NON-EMPTY LINES, NOT `wc -l`. An empty
+          # answer through a pipe still carries a newline, and `wc -l`
+          # reads that as ONE — a phantom branch, and the guard passes.
+          BR=$(git ls-remote --heads origin 'refs/heads/self-repair/drill' 2>/dev/null | grep -c .)
+          PR=$(gh pr list --state all --limit 50 --json headRefName \
+                 --jq '[.[] | select(.headRefName == "self-repair/drill")] | length' \
+                 2>/dev/null)
+          # 🔴🔴 "I COULD NOT LOOK" IS NOT "IT WORKED". A blank or garbled
+          # answer is coerced to ZERO so the drill FAILS, rather than
+          # sailing past on a lookup that never happened. `[my first
+          # version of this step let a blank `gh` answer pass — caught by
+          # test_drill_proof.py before it shipped, which is the only
+          # reason it is not the SECOND false all-clear in this file]`
+          # ⚠️ ONLY `$PR` NEEDS THIS. `grep -c .` always returns a
+          # clean integer, so the same coercion on `$BR` was unreachable
+          # — **no mutation could make it bite**, which by this repo's own
+          # rule means it is not a guard, it is decoration. Deleted rather
+          # than kept as an untested line.
+          case "$PR" in ''|*[!0-9]*) echo "::warning::could not read the pull request list"; PR=0 ;; esac
+          echo "branch self-repair/drill on origin : $BR"
+          echo "pull request from that branch      : $PR"
+          if [ "$BR" = "0" ] && [ "$PR" = "0" ]; then
+            echo "::error::THE DRILL PRODUCED NOTHING. The agent step exited 0 but there is no self-repair/drill branch and no PR, so the Tier 3 path is NOT proven. Check the agent step's log for an auth or permission failure — claude-code-action exits 0 even when the agent could not act."
+            exit 1
+          fi
+          echo "the drill produced its artifact — the Tier 3 path works"
+
+      # ══════════════════════════════════════════════════════════════
+      # ⚠️ RECORD WHETHER THIS PASS PRODUCED A PR, SO THE NEXT ONE CAN
+      #    SKIP AN ISSUE IT COULD NOT DIAGNOSE — ONCE.
+      # ══════════════════════════════════════════════════════════════
+      # ⛔ A PERMANENT SKIP LIST IS A FILTERED ALERT, AND RULE 238 SAYS A
+      #    FILTERED ALERT IS NO ALERT. The skip lasts exactly one pass: a
+      #    problem that is undiagnosable today may be diagnosable after
+      #    the next merge.
+      # ⚠️ `if: always()` IS RIGHT HERE and nowhere else in this workflow:
+      #    the whole point is to record the case where the agent ran and
+      #    produced NOTHING, which is the case where earlier steps failed.
+      # ⛔ It commits ONE file and nothing else. `git add` names it
+      #    explicitly rather than `-A`, because this job's tree has just
+      #    had an agent working in it.
+      - name: Record whether this pass produced a pull request
+        if: always() && needs.triage.outputs.drill != 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          ISSUE="${{ needs.triage.outputs.issue }}"
+          [ -z "$ISSUE" ] && { echo "no issue was picked — nothing to record"; exit 0; }
+          OPENED=$(gh pr list --state all --limit 20 --json headRefName,createdAt \
+                     --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' \
+                     2>/dev/null || echo 0)
+          case "$OPENED" in ''|*[!0-9]*) OPENED=0 ;; esac
+          python - "$ISSUE" "$OPENED" <<'PYEOF'
+          import json, sys, datetime
+          issue, opened = sys.argv[1], sys.argv[2] != "0"
+          json.dump({"issue": int(issue), "opened_pr": opened,
+                     "at": datetime.datetime.now(datetime.timezone.utc)
+                           .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                     "note": ("⛔ The next pass skips this issue ONLY if "
+                              "opened_pr is false, and only for that one "
+                              "pass. A permanent skip list is a filtered "
+                              "alert (rule 238).")},
+                    open("data/latest/self-repair-last.json", "w"), indent=1)
+          PYEOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/latest/self-repair-last.json
+          git commit -q -m "self-repair: issue #$ISSUE, opened_pr=$OPENED" 2>/dev/null \
+            && (git pull --rebase -q && git push -q) \
+            || echo "nothing to record or nothing changed"

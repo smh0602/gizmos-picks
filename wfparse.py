@@ -40,7 +40,8 @@ import io
 import os
 import re
 
-__all__ = ["read", "jobs", "steps", "step_run", "permissions", "Job", "Step"]
+__all__ = ["read", "jobs", "steps", "step_run", "permissions", "Job", "Step",
+           "effective_workflows"]
 
 # A mapping key at some indent: `foo:`, `foo: bar`, `foo: |`, `- foo: bar`.
 _KEY = re.compile(r"^(\s*)(-\s+)?([A-Za-z_][A-Za-z0-9_.-]*):\s?(.*?)\s*$")
@@ -319,3 +320,25 @@ def pending_uploads(root="."):
     """Names staged AND deployed whose contents differ — updates waiting for
     Sam's hand upload. ⛔ Not a failure by itself; `runs_report` times them."""
     return sorted(f for f, v in cron_files(root).items() if v["pending"])
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 EVERY WORKFLOW AS IT WILL BE LIVE. `[added 2026-09-24]`
+# ══════════════════════════════════════════════════════════════════════
+# A check about what the workflows RUN ON (test_runner_image.py) must read
+# the file that will fire once Sam's pending uploads land — the staged copy
+# when there is one — or it is red for the whole window between a PR
+# merging and his upload, which is the red window cron_total() was fixed
+# to avoid. ⚠️ A pending upload left too long is still caught: runs_report
+# flags it 48h after its PR merged.
+def effective_workflows(root="."):
+    """{file name: path} for every workflow, the STAGED copy winning."""
+    out = {}
+    for sub in (DEPLOYED_DIR, STAGED_DIR):   # staged read second, so it wins
+        d = os.path.join(root, sub)
+        if not os.path.isdir(d):
+            continue
+        for f in sorted(os.listdir(d)):
+            if f.endswith(".yml"):
+                out[f] = os.path.join(d, f)
+    return out
