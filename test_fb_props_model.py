@@ -2,6 +2,11 @@
 """test_fb_props_model.py — the football props model keeps the promises
 in `research/fb_props_design.md` (Sam, 2026-09-24).
 
+# @vacuity the remembered share_before answers per (team, day), not per team
+#   file: fb_props_model.py
+#   find:         k = (team, day)
+#   with:         k = team
+#
 # @vacuity a prop snapshot pulled after kickoff is never a price
 #   file: fb_props_model.py
 #   find:             if not pulled or not c or pulled >= c:
@@ -244,3 +249,34 @@ ck(len(_docb["picks"]) == 40 and _docb["picks_total"] == 40 and "more_picks" not
    "⛔ Sam, 2026-09-24: 'No cap on model picks. Only the Gizmo's Picks card keeps its limit.' got %d"
    % len(_docb["picks"]))
 
+
+# ⚠️ `History.share_before` REMEMBERS `possession.share_before`. `[2026-09-25]`
+#    It is called ~220,000 times a `card-fb` run for ~2,000 distinct
+#    answers (32s of 70s, profiled). ⛔ A cache keyed on less than
+#    (team, day) would hand one day's number to another — lookahead the
+#    function exists to prevent. So every NFL (team, day) is asked twice,
+#    in an order that mixes them, and each answer must equal the uncached
+#    call. The cache is league-agnostic; NFL keeps this under a second.
+import possession as _P  # noqa: E402
+_poss = M.possession_games("nfl")
+_teams = sorted({t for g in _poss.values() for t in (g.get("teams") or {})})
+_days = sorted({str(g.get("date"))[:10] for g in _poss.values() if g.get("date")})
+_days.append("2099-01-01")
+_H = M.History("nfl", _poss)
+_asked, _wrong = 0, []
+for _pass in (0, 1):
+    for _d in (_days if _pass == 0 else list(reversed(_days))):
+        for _t in _teams:
+            _asked += 1
+            _want = _P.share_before(_poss, _t, _d)["share"]
+            if _H.share_before(_t, _d) != _want:
+                _wrong.append((_t, _d))
+ck(len(_teams) >= 30 and len(_days) >= 20,
+   "⚠️ the real NFL possession rows were found to ask about",
+   "⛔ a cache compared over no rows agrees with anything (rule 67). "
+   "teams=%d days=%d" % (len(_teams), len(_days)))
+ck(not _wrong,
+   "🔴🔴 the remembered share_before equals the direct call for every "
+   "(team, day), asked twice (%d answers)" % _asked,
+   "⛔ a stale answer is another day's possession share in this row. "
+   "wrong: %r" % _wrong[:5])

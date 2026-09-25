@@ -62,7 +62,7 @@ imports a module removed in Python 3.13/3.14 (`cgi`, `imp`, `distutils`,
 
 ## How to test on 26.04 before the 19th — no schedule touched
 
-- **Automatic:** every pull request runs `tests (ubuntu-26.04)` and
+- **Automatic:** every pull request runs `tests (ubuntu-26.04)` _(since 2026-09-25 plus four `tests (ubuntu-26.04) · sweep k/4` jobs: the vacuity sweep in parallel parts)_ and
   `render (ubuntu-26.04)` beside the 24.04 rows. The PR that introduced
   this is the first 26.04 test of the whole suite and of the Playwright
   install. Nothing to click.
@@ -81,4 +81,6 @@ and `claude.yml`, and stages the 11 cron files with
 
 ## Changelog
 
+- **2026-09-25:** pr-tests now runs each image as five jobs (`rest` plus
+  the vacuity sweep in four parts); `test_pr_shards.py` holds the split.
 - **2026-09-24:** first version.

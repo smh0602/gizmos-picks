@@ -292,6 +292,12 @@ section("2. ⛔ IT REPORTS. IT NEVER EDITS.")
 #    uses), driven against a real `--depth 1` clone with
 #    `git status --porcelain` returning rc=0 inside the worktree.
 _swept_root, _wt = None, None
+# ⚠️ WHICH SHARE OF THE SWEEP THIS RUN OWNS. `[2026-09-25]` pr-tests.yml
+#    splits the one sweep across parallel jobs (`vacuity.part_of`);
+#    unset — collect.yml, a laptop — sweeps everything, as before.
+#    ⛔ A malformed value RAISES here and the file goes red: it must never
+#    be read as some other part.
+_PART = V.parse_part(os.environ.get("VACUITY_PART"))
 
 
 def _drop_wt():
@@ -425,8 +431,9 @@ if _swept_root:
     #    like this one left modified, so it is folded into the same verdict.
     _wleaks = []
     _t0 = time.time()
-    _real2 = V.tier2(_swept_root, leaks=_wleaks)
+    _real2 = V.tier2(_swept_root, leaks=_wleaks, part=_PART)
     _elapsed = time.time() - _t0
+    _share = V.part_of(V.declarations(_swept_root), _PART)
     _ok, _dirt = V.leaked(_before, _swept_root)
     if _wleaks:
         _ok, _dirt = False, "%s\n%s" % (_dirt, "\n".join(_wleaks))
@@ -439,8 +446,17 @@ else:
     #    down. This is the same answer for a tree that was never created.
     # ⚠️ AND THE CHECKS BELOW GOING RED IS CORRECT, NOT COLLATERAL:
     #    nothing was measured, so nothing may be reported as a pass.
-    _before, _real2, _elapsed = None, [], 0.0
+    _before, _real2, _elapsed, _share = None, [], 0.0, []
     _ok, _dirt = False, ["the sweep was REFUSED: no worktree"]
+# 🔴🔴 AND IT SWEPT ITS WHOLE SHARE — every declaration, when unsplit.
+ck("🔴🔴 this run applied EXACTLY its share of the declarations (%s)"
+   % ("all" if _PART is None else "part %d of %d" % _PART),
+   bool(_share)
+   and sorted((r["test"], r["line"]) for r in _real2)
+   == sorted((d["test"], d["line"]) for d in _share),
+   "⛔ a part that swept less than its share is a sample, and nothing "
+   "else would notice: the other parts are separate jobs. swept %d, "
+   "share %d" % (len(_real2), len(_share)))
 ck("🔴🔴 the harness leaves NOTHING behind after mutating real files",
    _ok,
    "⛔ it rewrites cfbd_budget.py and cfbd.yml in place. A leaked "
@@ -519,17 +535,37 @@ ck("⚠️ name-mapping still covers the pairs it should",
 
 section("4. ✅ THE TWO REAL BACK-FILLED MUTATIONS BOTH BITE")
 _by = {(r["file"], r["find"]): r for r in _real2}
-ck("🔴🔴 the CFBD bar mutation turns test_cfbd_watch.py red",
-   _by.get(("cfbd_budget.py", "if pct >= 80:"), {}).get("state") == "BITES",
-   "⛔ this is the exact edit that left the suite GREEN on 2026-09-15 "
-   "with the two bars disagreeing. Got %s"
-   % _by.get(("cfbd_budget.py", "if pct >= 80:"), {}).get("state"))
-ck("🔴🔴 the issue-in-place mutation turns it red too",
-   any(r["state"] == "BITES" and r["file"].endswith("cfbd.yml")
-       for r in _real2),
-   "⛔ the other one Sam found by hand: `gh issue edit` -> a fresh `gh "
-   "issue create`, a new quota issue every day. Got %s"
-   % [(r["file"], r["state"]) for r in _real2])
+# ⚠️ SPLIT ACROSS PARTS, EACH NAMED MUTATION IS ASSERTED BY THE PART THAT
+#    SWEPT IT, and every other part asserts it EXISTS in the full set — so
+#    it is some part's to prove, and pr-tests runs every part
+#    (`test_pr_shards.py`). Unsplit, both halves are the checks as before.
+_ALL = V.declarations(ROOT)
+_cfbd_bar = [d for d in _ALL
+             if (d.get("file"), d.get("find")) == ("cfbd_budget.py", "if pct >= 80:")]
+_cfbd_yml = [d for d in _ALL if (d.get("file") or "").endswith("cfbd.yml")]
+ck("⚠️ both named mutations are still declared somewhere in the sweep",
+   len(_cfbd_bar) == 1 and _cfbd_yml,
+   "⛔ a named check over a declaration that no longer exists passes in "
+   "every part and proves nothing (rule 67). bar=%d yml=%d"
+   % (len(_cfbd_bar), len(_cfbd_yml)))
+_mine = {(d["test"], d["line"]) for d in _share}
+if _PART is None or any((d["test"], d["line"]) in _mine for d in _cfbd_bar):
+    ck("🔴🔴 the CFBD bar mutation turns test_cfbd_watch.py red",
+       _by.get(("cfbd_budget.py", "if pct >= 80:"), {}).get("state") == "BITES",
+       "⛔ this is the exact edit that left the suite GREEN on 2026-09-15 "
+       "with the two bars disagreeing. Got %s"
+       % _by.get(("cfbd_budget.py", "if pct >= 80:"), {}).get("state"))
+else:
+    note("the CFBD bar mutation is another part's to sweep")
+if _PART is None or any((d["test"], d["line"]) in _mine for d in _cfbd_yml):
+    ck("🔴🔴 the issue-in-place mutation turns it red too",
+       any(r["state"] == "BITES" and r["file"].endswith("cfbd.yml")
+           for r in _real2),
+       "⛔ the other one Sam found by hand: `gh issue edit` -> a fresh `gh "
+       "issue create`, a new quota issue every day. Got %s"
+       % [(r["file"], r["state"]) for r in _real2])
+else:
+    note("the issue-in-place mutation is another part's to sweep")
 note("tier 2 currently covers %d declared mutation(s); tier 1 covers %d "
      "name-mapped pair(s); %d test file(s) are unmapped and reported every "
      "run." % (len(_real2), len(V.name_map(ROOT)), len(_um)))
