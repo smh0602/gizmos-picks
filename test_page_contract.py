@@ -291,7 +291,11 @@ _KNOWN = {"scores", "results", "pitchers", "hitters", "record", "gamelines",
           "cfb-teams",
           # `[Sam, 2026-09-24]` the alt-line pull: an arm in `run_mode`, and
           # chained into the scheduled props pull (test_game_lines_fb.py).
-          "alt-lines"}
+          "alt-lines",
+          # `[Sam, 2026-09-25]` the run-status file: an arm in `run_mode`
+          # (test_runs_status.py §3), run hourly by runs.yml. Its row exists
+          # only once that watcher is deployed.
+          "runs"}
 ck("🔴 no contract row names a mode the collector does not already have",
    not (_MODES - _KNOWN),
    "⛔ converge runs the mode a row names. A mode with no arm is a "

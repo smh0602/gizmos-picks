@@ -60,6 +60,39 @@ if not os.path.exists("data/latest/record.json"):
     sys.exit(0)
 REC = _read_json("data/latest/record.json", "the track record")
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 A RECORD BUILT BY DIFFERENT GRADING CODE IS REBUILT BEFORE IT IS
+#      VERIFIED. `[2026-09-25]`
+# ⛔ PR #166 changed the grading rule (postponed = void) and this file
+# checked the NEW rule against a record.json the OLD rule had written, so
+# collect runs #1813 and #1816-#1819 went red until the 12:08Z rebuild.
+# The record and the grader were each right; only their ORDER was wrong.
+# ✅ `collect_record()` stamps `record_grader.fingerprint` into the file.
+# When it differs from the collect.py beside this verifier, the builder
+# rebuilds the record (free: stored picks + stored box scores) and the
+# check below runs on what the CURRENT grader writes.
+# ⛔ NOTHING IS RELAXED. The re-grade below is untouched, and a record that
+# carries the current fingerprint is NEVER rebuilt — so a builder and a
+# verifier that genuinely disagree still fail, exactly as before.
+# ⛔ The builder is RUN, not imported (this file may not import it).
+# ══════════════════════════════════════════════════════════════════════
+import record_grader  # noqa: E402  (parses collect.py as text)
+_NOW = record_grader.fingerprint(os.path.join(ROOT, "collect.py"))
+if REC.get("grader") != _NOW:
+    print(f"  REBUILD record.json was built by grading code "
+          f"{REC.get('grader') or '(unstamped)'}; the grader beside this "
+          f"verifier is {_NOW} -- rebuilding it before verifying")
+    import subprocess  # noqa: E402
+    _p = subprocess.run([sys.executable, "collect.py", "record", "converge-off"],
+                        cwd=ROOT, env=dict(os.environ, LEAGUE="mlb"))
+    if _p.returncode != 0:
+        print(f"  FAIL the stale record could not be rebuilt "
+              f"(collect.py record exited {_p.returncode}) -- nothing verified")
+        sys.exit(1)
+    REC = _read_json("data/latest/record.json", "the rebuilt track record")
+    ck("the rebuilt record carries the current grader's fingerprint",
+       REC.get("grader") == _NOW, f"got {REC.get('grader')!r}, want {_NOW}")
+
 # ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE: this verifier may
 # not import the builder it checks. test_record_postponed.py fails if the
 # two ever differ.

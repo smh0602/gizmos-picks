@@ -1,9 +1,12 @@
 const fs=require('fs');
 const html=fs.readFileSync('index.html','utf8');
 // Pull the real implementation out of the page -- never a copy of it.
+// `[2026-09-25]` boardFor now reads the ET date through the page's own
+// etDate(), so that is lifted too -- a stand-in would be a second copy.
 const src=html.match(/const BOARD_MATCH_WINDOW_MS[\s\S]*?\n}/)[0];
+const etSrc=html.match(/const etDate = [\s\S]*?\n};/)[0];
 const BOARD=JSON.parse(fs.readFileSync('data/latest/board.json','utf8'));
-const boardFor=new Function('BOARD', src+'; return boardFor;')(BOARD);
+const [boardFor, etDate]=new Function('BOARD', etSrc+'\n'+src+'; return [boardFor, etDate];')(BOARD);
 
 const dupes={};
 BOARD.games.forEach(g=>{const k=g.away+'|'+g.home; (dupes[k]||=[]).push(g);});
@@ -92,6 +95,55 @@ if(!gaps.length){
 // missing a line is a card missing a line -- the safe direction, per
 // CLAUDE.md. The dangerous direction is widening, and widening past the
 // doubleheader gap is what the assertion above fails on.
+
+// ══════════════════════════════════════════════════════════════════════
+// 🔴🔴 THE CARDS ASK WITH MLB's GAME, NOT WITH THE BOARD's OWN TIME.
+// `[2026-09-25]` Every probe above passes the RECORD's commence back in,
+// so it can only ever find the record it started from. The page asks with
+// MLB's `gameDate` -- and MLB lists game 2 of a traditional doubleheader
+// at a placeholder (BAL @ NYY: 20:10Z beside game 1's 20:05Z, odds feed
+// 23:06Z). All six assertions above were green while game 2's card showed
+// game 1's odds.
+// ✅ So replay the newest STORED schedule -- the same statsapi payload the
+// page fetches -- through the page's matcher, game object and all, and
+// assert the one thing a doubleheader must never do: hand ONE board record
+// to TWO games. Discovered from the data, never dated (test_frozen_dates).
+const zlib=require('zlib'), path=require('path');
+const snaps=[];
+for (const d of fs.readdirSync('data').filter(x=>/^\d{4}-\d\d-\d\d$/.test(x)).sort().slice(-3)){
+  const dir=path.join('data',d,'schedule');
+  if (!fs.existsSync(dir)) continue;
+  for (const f of fs.readdirSync(dir).filter(x=>x.endsWith('.json.gz'))) snaps.push(path.join(dir,f));
+}
+snaps.sort();
+const sched=snaps.length
+  ? JSON.parse(zlib.gunzipSync(fs.readFileSync(snaps[snaps.length-1])).toString()).schedule||{}
+  : {};
+const mlbGames=[].concat(...(sched.dates||[]).map(x=>x.games||[]));
+const owner={};
+let matched=0;
+const failBefore=fail;
+for (const g of mlbGames){
+  const a=g.teams.away.team.name, h=g.teams.home.team.name;
+  const r=boardFor(a, h, g.gameDate, g);
+  if (!r) continue;
+  matched++;
+  const sameDay = r.away===a && r.home===h && (g.officialDate||etDate(g.gameDate))===etDate(r.commence);
+  if (!sameDay){ fail++; console.log(`  ❌ ${a} @ ${h} game ${g.gameNumber} got a record from another pair or day: ${r.commence}`); }
+  if (owner[r.id] && owner[r.id]!==g.gamePk){
+    fail++;
+    console.log(`  ❌ ONE RECORD, TWO GAMES: ${a} @ ${h} -- ${r.id.slice(0,8)} (${r.commence}) `
+      +`went to game ${owner[r.id]} AND game ${g.gamePk} (game ${g.gameNumber}, MLB time ${g.gameDate})`);
+  }
+  owner[r.id]=g.gamePk;
+}
+const dhs=mlbGames.filter(g=>g.doubleHeader==='S'||g.doubleHeader==='Y').length;
+if (!snaps.length || !matched){
+  console.log(`  ⚠️ NOT EXERCISED: ${snaps.length?'no game in the newest schedule has a board record':'no stored schedule'}`);
+}else{
+  console.log(`  ${fail===failBefore?'✅':'❌'} ${matched} of ${mlbGames.length} scheduled game(s) in ${snaps[snaps.length-1]} matched, `
+    +`${dhs} doubleheader game(s)`+(fail===failBefore?', and no record went to two games':''));
+}
 
 // ...and far beyond it, measured from the board's OWN last record.
 const last=BOARD.games.reduce((a,g)=>g.commence>a?g.commence:a,BOARD.games[0].commence);

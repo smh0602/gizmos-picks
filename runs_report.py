@@ -405,7 +405,7 @@ def normalise(run, names=None):
 
 
 def collect(fetch_page, now=None, root=".", max_pages=MAX_PAGES,
-            window_h=WINDOW_H):
+            window_h=WINDOW_H, raw=False):
     """Page until the window is covered. -> (runs, pages_read, covered).
 
     `fetch_page(n)` returns the REST `workflow_runs` list for 1-based page
@@ -420,14 +420,20 @@ def collect(fetch_page, now=None, root=".", max_pages=MAX_PAGES,
       3. the page cap was reached                          -> NOT covered,
          and that becomes the coverage finding rather than a quiet
          under-count
+
+    ⚠️ `raw=True` hands back the REST objects themselves (the run status
+    file needs `run_number`, `event` and `id`, which `normalise` drops);
+    the stopping rule is the same one either way.
     """
     now = now or datetime.datetime.now(datetime.timezone.utc)
     floor = now - datetime.timedelta(hours=window_h + COVER_MARGIN_H)
     runs, pages, covered = [], 0, False
+    kept = []
     names = workflow_names(root)
     for page in range(1, max_pages + 1):
         batch = fetch_page(page) or []
         pages = page
+        kept.extend(batch)
         runs.extend(normalise(r, names) for r in batch)
         if len(batch) < REST_PER_PAGE:
             covered = True       # end of history — nothing older exists
@@ -437,7 +443,7 @@ def collect(fetch_page, now=None, root=".", max_pages=MAX_PAGES,
         if stamps and min(stamps) <= floor:
             covered = True
             break
-    return runs, pages, covered
+    return (kept if raw else runs), pages, covered
 
 
 def gh_page(page, per_page=REST_PER_PAGE):
@@ -887,6 +893,166 @@ def render_stale(stale):
     return "\n".join(lines)
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE SAME RUN LIST, WRITTEN WHERE ANYONE CAN READ IT. `[2026-09-25]`
+# Sam: "Nobody can read run status reliably from outside GitHub." The
+# Actions page needs a GitHub login, and on 2026-09-25 a session had to be
+# TOLD which runs had failed since 06:44Z. `data/latest/runs.json` is the
+# last 48 hours of every workflow — run number, trigger, start, conclusion
+# and, for a failed run, the step that failed and its error annotations —
+# committed like any other data file by the hourly `runs.yml`
+# (`collect.py runs`).
+# ⛔ IT JUDGES NOTHING. Whether a workflow is BROKEN is still `analyse()`'s
+#    call, made in the issue; this file is the evidence, not the verdict.
+# ⚠️ A failed run's detail costs two API calls (jobs, then annotations) and
+#    a finished run never changes, so detail already in the previous file
+#    is reused, keyed on run id + attempt + conclusion.
+# ══════════════════════════════════════════════════════════════════════
+STATUS_WINDOW_H = 48
+FAILED = frozenset({"failure", "timed_out", "startup_failure"})
+MAX_ANNOTATIONS = 6
+
+
+def status_entry(r, names):
+    """One REST run -> one row of runs.json."""
+    title = r.get("display_title") or r.get("name") or ""
+    m = CRON_STAMP.search(title)
+    e = {"workflow": names.get(r.get("path") or "") or r.get("name"),
+         "file": r.get("path"),
+         "run_number": r.get("run_number"),
+         "run_id": r.get("id"),
+         "attempt": r.get("run_attempt"),
+         "trigger": r.get("event"),
+         "started": r.get("run_started_at") or r.get("created_at"),
+         "status": r.get("status"),
+         "conclusion": r.get("conclusion"),
+         "url": r.get("html_url")}
+    if m:
+        e["cron"] = m.group(1)
+    return e
+
+
+def failure_detail(run_id, fetch_json):
+    """-> {"failing_steps": [...], "annotations": [...]} for one failed run.
+
+    ⚠️ `collect.yml` records its test failures as `::error::` ANNOTATIONS
+    and fails a LATER step ("Fail if the tests failed"), so the step name
+    alone would say nothing useful — the annotations say which file."""
+    jobs = (fetch_json("actions/runs/%s/jobs?per_page=100" % run_id) or {}).get("jobs") or []
+    steps, notes = [], []
+    multi = len(jobs) > 1
+    for j in jobs:
+        if j.get("conclusion") not in FAILED:
+            continue
+        bad = [s.get("name") for s in (j.get("steps") or [])
+               if s.get("conclusion") in FAILED]
+        pre = (j.get("name") + ": ") if multi else ""
+        steps.extend(pre + (s or "?") for s in bad)
+        if not bad:
+            steps.append(pre + "(the job %s with no failed step)" % j.get("conclusion"))
+        # ⚠️ a job IS a check run; its own URL names the id to ask about.
+        cr = (j.get("check_run_url") or "").rstrip("/").rsplit("/", 1)[-1] or j.get("id")
+        for a in fetch_json("check-runs/%s/annotations" % cr) or []:
+            if a.get("annotation_level") == "failure" and a.get("message"):
+                notes.append(pre + a["message"].strip()[:240])
+    out = {"failing_steps": steps, "annotations": notes[:MAX_ANNOTATIONS]}
+    if not jobs:
+        out["note"] = "no job ran"
+    return out
+
+
+def status_doc(raw, now, names, prior=None, fetch_json=None,
+               window_h=STATUS_WINDOW_H, pages=None, covered=None):
+    """REST runs -> the runs.json document. Pure apart from `fetch_json`."""
+    floor = now - datetime.timedelta(hours=window_h)
+    prior = prior or {}
+    entries, seen = [], set()
+    for r in raw or []:
+        e = status_entry(r, names)
+        t = _dt(e["started"])
+        # ⚠️ a page boundary can shift between calls, so one run can
+        #    arrive twice; it is listed once.
+        if (t and t < floor) or e["run_id"] in seen:
+            continue
+        seen.add(e["run_id"])
+        if e["conclusion"] in FAILED:
+            old = prior.get((e["run_id"], e["attempt"], e["conclusion"]))
+            if old and "failing_steps" in old and not old.get("detail_error"):
+                for k in ("failing_steps", "annotations", "note"):
+                    if k in old:
+                        e[k] = old[k]
+            else:
+                try:
+                    e.update(failure_detail(e["run_id"], fetch_json))
+                except Exception as x:      # noqa: BLE001 - recorded, not hidden
+                    e["detail_error"] = ("%s: %s" % (type(x).__name__, x))[:200]
+        entries.append(e)
+    entries.sort(key=lambda e: e["started"] or "", reverse=True)
+    by = {}
+    for e in entries:
+        b = by.setdefault(e["workflow"] or "?", {
+            "file": e["file"], "runs": 0, "failed": 0, "cancelled": 0,
+            "latest": {k: e[k] for k in ("run_number", "trigger", "started",
+                                          "status", "conclusion")}})
+        b["runs"] += 1
+        b["failed"] += e["conclusion"] in FAILED
+        b["cancelled"] += e["conclusion"] == "cancelled"
+    return {"generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "kind": "DESCRIPTIVE",
+            "note": ("Every workflow run of the last %d hours, read from the "
+                     "GitHub Actions API by the hourly runs watcher. A failed "
+                     "run lists the step(s) that failed and its error "
+                     "annotations. Evidence only: whether a workflow is broken "
+                     "is decided in the runs watcher's issue." % window_h),
+            "window_hours": window_h,
+            "window_from": floor.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "covered": covered, "pages_read": pages,
+            "n_runs": len(entries), "n_failed": sum(e["conclusion"] in FAILED
+                                                    for e in entries),
+            "by_workflow": dict(sorted(by.items())),
+            "runs": entries}
+
+
+def render_status(doc):
+    """The file's text: the header indented, then ONE RUN PER LINE, so a
+    reader can scan it and git stores each hour as a small delta."""
+    head = {k: v for k, v in doc.items() if k != "runs"}
+    txt = json.dumps(head, indent=1, ensure_ascii=False)[:-2]
+    rows = ",\n".join("  " + json.dumps(e, ensure_ascii=False) for e in doc["runs"])
+    txt += ',\n "runs": [\n%s\n ]\n}\n' % rows if rows else ',\n "runs": []\n}\n'
+    # ⛔ a hand-assembled JSON file is checked by parsing it back
+    if json.loads(txt) != doc:
+        raise ValueError("runs.json did not round-trip")
+    return txt
+
+
+def write_status(path, fetch_page=None, fetch_json=None, now=None, root=".",
+                 window_h=STATUS_WINDOW_H):
+    """Collect the window, add failure detail, write `path`. -> the doc.
+
+    ⛔ Raises when the list cannot be collected: a runs.json that silently
+    stopped updating is exactly what its freshness row exists to catch."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    raw, pages, covered = collect(fetch_page or gh_page, now, root,
+                                  window_h=window_h, raw=True)
+    prior = {}
+    try:
+        old = json.load(open(path, encoding="utf-8"))
+        prior = {(e.get("run_id"), e.get("attempt"), e.get("conclusion")): e
+                 for e in old.get("runs") or []}
+    except (OSError, ValueError, AttributeError):
+        pass
+    doc = status_doc(raw, now, workflow_names(root), prior,
+                     fetch_json or _gh_json, window_h, pages, covered)
+    txt = render_status(doc)
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(txt)
+    os.replace(tmp, path)
+    return doc
+
+
 def main(argv=None):
     """stdin -> a verdict, or `--collect` -> the run list on stdout.
 
@@ -897,6 +1063,16 @@ def main(argv=None):
     reaches.
     """
     argv = list(sys.argv[1:] if argv is None else argv)
+    if "--status-file" in argv:
+        # `collect.py runs` is the scheduled way in; this is the same call.
+        try:
+            doc = write_status(argv[argv.index("--status-file") + 1])
+        except Exception as e:          # noqa: BLE001 - reported, not hidden
+            sys.stderr.write("could not write the run status: %s: %s\n"
+                             % (type(e).__name__, e))
+            return EXIT_UNREADABLE
+        sys.stderr.write("wrote %d run(s), %d failed\n" % (doc["n_runs"], doc["n_failed"]))
+        return EXIT_OK
     if "--collect" in argv:
         # ⛔ EXIT 2, NOT 1, on a collection failure — "I could not look"
         #    must never reach the judgement path as a short list.

@@ -49,6 +49,13 @@ on:
   schedule:
     - cron: "41 * * * *"
   workflow_dispatch:
+  # ✅ `[2026-09-25]` AND ONCE THE MOMENT THIS FILE CHANGES, so the upload
+  # itself writes `data/latest/runs.json` instead of leaving it missing
+  # until :41. ⛔ It cannot loop: the only file this workflow commits is
+  # data/latest/runs.json, which this filter does not name.
+  push:
+    branches: [main]
+    paths: [".github/workflows/runs.yml"]
 
 concurrency:
   group: runs
@@ -234,3 +241,54 @@ jobs:
               || gh issue create --title "$TITLE" --body-file /tmp/body.md
           fi
           exit 0
+
+  # ══════════════════════════════════════════════════════════════════════
+  # 🔴🔴 THE SAME ANSWER, WRITTEN WHERE ANYONE CAN READ IT. `[2026-09-25]`
+  # Sam: "Nobody can read run status reliably from outside GitHub." The
+  # Actions page needs a GitHub login; the job above files an issue only
+  # when something is BROKEN. This job commits `data/latest/runs.json` —
+  # the last 48 hours of every workflow: run number, trigger, start,
+  # conclusion, and for a failed run its failing step and error
+  # annotations — like every other data file.
+  # ⛔ ITS OWN JOB, SO THE WATCHER STAYS READ-ONLY. The job above keeps
+  # `contents: read` (a watcher that can change what it watches is not a
+  # watcher — test_runs_report.py); only this job may write, and only
+  # data/latest/runs.json.
+  # ✅ A freshness row (`freshness.py`, `runs`) goes stale if two hourly
+  # runs in a row fail to land it, and the watchdog says so.
+  # 💰 Free: the GitHub API. No Odds credit, no Claude usage.
+  # ══════════════════════════════════════════════════════════════════════
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+      checks: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # ⛔ THE SAME MODE CONVERGE CALLS, so there is one writer.
+      - name: Write the run status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          LEAGUE: mlb
+        run: python collect.py runs converge-off
+
+      - name: Commit the run status
+        run: |
+          git config user.name  "gizmos-collector"
+          git config user.email "collector@users.noreply.github.com"
+          git add data/latest/runs.json
+          if git diff --cached --quiet; then
+            echo "no change"
+            exit 0
+          fi
+          git commit -q -m "runs: run status $(date -u +%Y-%m-%dT%H:%MZ)"
+          # ⛔ THE ONE WAY A WORKFLOW LANDS ITS COMMITS (CLAUDE.md).
+          bash push_retry.sh "run status"

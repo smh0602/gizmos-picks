@@ -7,7 +7,8 @@
   "⚠️ AND EVERY CSS RULE, because a render is the functions AND the rules they draw into. An added selector is allowed; a CHANGED or REMOVED one is not, and neither is a new selector that collides with a frozen one.",
   "⛔ DO NOT REGENERATE IT TO MAKE A RUN GREEN. The moment it tracks the live page it proves nothing. If an MLB-side render must change, that is a decision for Sam and for the freeze, not a fixture edit.",
   "2026-09-22: renderParlays RE-BASELINED, and ONLY it, on Sam's instruction the same day: MLB is unfrozen and the parlay bands lost their ceilings ('1.8- unlimited'; 3x+ above two legs), so the section titles now read 'pays 1.8x or more' / 'pays 3x or more'. Digest a4eab2a6870f4a4dee46d140 -> 3192ca78fc37b7737b736271. Every other frozen digest is unchanged and still pinned at the source commit.",
-  "2026-09-23: renderRecord RE-BASELINED, and labN + refitPanel ADDED, on Sam's instruction: MLB was unfrozen 2026-09-22, and the MLB learning task (Sam, 2026-09-23, item 6: 'Every number on the page is labelled MODEL, MARKET or DESCRIPTIVE') puts the champion-vs-challenger panel on the Track Record tab. renderRecord's only change: it fetches data/latest/mlb-refit.json and appends refitPanel(REFIT) after the calibration panel. Digest 20cb8492840fbdc4f7bd1061 -> 0975b831faa24360f95c5ed9. labN and refitPanel are PINNED from birth so a later edit to them is caught too. Every other frozen digest is unchanged and still pinned at the source commit."
+  "2026-09-23: renderRecord RE-BASELINED, and labN + refitPanel ADDED, on Sam's instruction: MLB was unfrozen 2026-09-22, and the MLB learning task (Sam, 2026-09-23, item 6: 'Every number on the page is labelled MODEL, MARKET or DESCRIPTIVE') puts the champion-vs-challenger panel on the Track Record tab. renderRecord's only change: it fetches data/latest/mlb-refit.json and appends refitPanel(REFIT) after the calibration panel. Digest 20cb8492840fbdc4f7bd1061 -> 0975b831faa24360f95c5ed9. labN and refitPanel are PINNED from birth so a later edit to them is caught too. Every other frozen digest is unchanged and still pinned at the source commit.",
+  "2026-09-25: boardFor, gameCard and renderStaleBanner RE-BASELINED, and ONLY they, on Sam's instruction the same day (\"Fix the MATCH, not the test: each game of a doubleheader must get its own odds\"). MLB was unfrozen 2026-09-22. Measured on the 12:08Z board: MLB lists BAL @ NYY game 2 at a 20:10Z placeholder (startTimeTBD) and nearest-first-pitch gave that card GAME 1's odds; the 4h window was also wider than the pair's 3.0h gap. boardFor now matches MLB's gameNumber against the board's first-pitch order first, and falls back to a 90-minute window that refuses a tie and never matches a placeholder time; gameCard's only change passes the game object (`boardFor(away, home, g.gameDate, g)`). Digests boardFor fe1c8d846a5fd62c1bb64096 -> 1992b489b31487aa4e2cef8a, gameCard cd90e58540229fa73446bd5d -> 448c573aec84f22a20240c53. renderStaleBanner's only change: it skips a freshness row marked `page: false` (the new run-status file, data/latest/runs.json, which no tab reads and which reaches Sam through the watchdog instead) — same task, item 3. Digest renderStaleBanner d66926e760beb9a9d51b2c5a -> 9561dbb07cc64ba470cffa24. Every other frozen digest is unchanged and still pinned at the source commit."
  ],
  "_source_commit": "407afad",
  "_counts": {
@@ -19,12 +20,12 @@
   "betControl": "cf3be0943c746b18928d523b",
   "betLink": "3805b0dfcbfb925a16598ad1",
   "betState": "176b20597352cd1f0dbedb09",
-  "boardFor": "fe1c8d846a5fd62c1bb64096",
+  "boardFor": "1992b489b31487aa4e2cef8a",
   "cardStaleNote": "c85eba61f39079baf6078b03",
   "dayDetailHtml": "cf90d3ea7c684cf917f35a51",
   "focusState": "b61b8f3a8f60557f0b71f1d0",
   "freshness": "739cce74b72a7ab47cf878e7",
-  "gameCard": "cd90e58540229fa73446bd5d",
+  "gameCard": "448c573aec84f22a20240c53",
   "gameState": "3824bcdf1648e131c360a713",
   "gunzip": "5120d09c43a4742c4c16103e",
   "inflate": "75195eda6c961121858951e4",
@@ -55,7 +56,7 @@
   "renderProps": "7c8d0073675f1ab6a2595aba",
   "renderRecord": "0975b831faa24360f95c5ed9",
   "renderScores": "3fa1cb769522b3ceeda7317b",
-  "renderStaleBanner": "d66926e760beb9a9d51b2c5a",
+  "renderStaleBanner": "9561dbb07cc64ba470cffa24",
   "renderTrends": "6e336cec0731df688db0a4fb",
   "setBetState": "ce3d07c60f85a99d0fd4b1af",
   "setLeague": "a206e086c795dd981df2016f",

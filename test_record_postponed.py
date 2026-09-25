@@ -100,7 +100,10 @@ def grade(second_state):
         C.collect_record()
         rec = json.load(open("data/latest/record.json"))
         det = json.load(gzip.open("data/latest/record-detail.json.gz", "rt"))
-        shutil.copy(os.path.join(REPO, "verify_record.py"), t)
+        # ⚠️ `[2026-09-25]` the verifier reads the fingerprint of the
+        #    builder beside it (record_grader.py), so the tree carries both.
+        for _f in ("verify_record.py", "collect.py", "record_grader.py"):
+            shutil.copy(os.path.join(REPO, _f), t)
         p = subprocess.run([sys.executable, "verify_record.py"], cwd=t,
                            capture_output=True, text=True)
         return rec, det, p.returncode, p.stdout + p.stderr
