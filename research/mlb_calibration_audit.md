@@ -9,6 +9,13 @@ writes the numbers to `research/mlb_calibration_audit_run_2026-09-24.json`.
 
 ## Changelog
 
+- **2026-09-25** — Sam approved proposals A to D; built in one PR.
+  A: postponed games are settled-void and 2026-09-22 is graded (the
+  audit's "48 gradeable picks" was 44: four more players did not play).
+  B: hitter rows carry the shared per-band label (no band trips it yet;
+  70–80 is −14.4 against the 15-point bar). C and D: pre-registered in
+  `research/mlb_pitcher_cal_spec.md`; C2 qualified and ships, D qualified
+  and does not (one ships). E and F are untouched.
 - **2026-09-24** — First version. Graded record as built at
   2026-09-24T12:05Z: 31 machine cards (2026-08-23 → 2026-09-23), 1,411
   graded picks, 109 voids.

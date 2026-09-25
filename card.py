@@ -44,6 +44,10 @@ import sys
 import unicodedata
 from datetime import datetime, timedelta, timezone
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (C2)
+import calibration as _calib  # noqa: E402  the ONE per-band "runs hot" rule
+
 MODEL_VERSION = "v5.0"
 
 # Sam's board size, in his words: "i would like to see 25-50 players
@@ -178,6 +182,44 @@ BAND_ORDER = ("under-60", "60-70", "70-80", "80-plus")
 _BUCKET_BAND = {"50-60%": "under-60", "60-70%": "60-70", "70-80%": "70-80",
                 "80-90%": "80-plus", "90-100%": "80-plus"}
 CAL = {}
+# The C2 mapping per market, fitted in main() before any row is built.
+PCAL = {}
+# Hitter stated-vs-actual on the printed number, from record.json.
+HCAL = []
+LAST_PITCHER_ROWS = []
+
+
+def hitter_band(conf):
+    """The per-band verdict for a hitter row's printed number, or None.
+
+    🔴 `[audit Proposal B, approved by Sam 2026-09-25]` Hitter RECORD rows
+    had no band warning while their 70-80 band ran 14 points high on 220
+    graded picks. ⛔ THE RULE IS NOT RESTATED HERE: `calibration.band_flags`
+    (15+ points under, exact binomial p < 0.01, 10+ graded) decides, so
+    football and MLB share one copy of it. ⚠️ A LABEL ONLY: nothing about
+    the number, the board or the order changes.
+    """
+    if conf is None or not HCAL:
+        return None
+    lo = min(90, int(conf // 10) * 10)
+    want = f"{lo}-{lo + 10}%"
+    for b in _calib.band_flags([dict(x, stated=x.get("predicted")) for x in HCAL]):
+        if b["bucket"] == want:
+            return b
+    return None
+
+
+def hitter_band_flag(b):
+    """The sentence a reader sees when the band runs hot, else None."""
+    if not b or b.get("state") != "UNDER":
+        return None
+    lo = b["bucket"].split("-")[0]
+    hi = b["bucket"].split("-")[1].rstrip("%")
+    return {"kind": "note", "test": "RECORD BAND", "actionable": True,
+            "text": (f"Heads up: hitter picks we've rated {lo}–{hi}% have come in "
+                     f"{b['actual']:.0f}% of the time ({b['w']} of {b['n']} graded), "
+                     f"against the {b['stated']:.0f}% they claimed. This number has "
+                     f"been running hot.")}
 
 
 def load_calibration(path="data/latest/record.json"):
@@ -924,6 +966,20 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
     opp_recent = opponent_starters(players, opp_team, today)
 
     be = 100.0 * implied(price) if price is not None else None
+    # 🔴 THE PRINTED NUMBER IS CORRECTED, `blend` IS NOT. `[2026-09-25,
+    # research/mlb_pitcher_cal_spec.md, C2 QUALIFIED]` Pitcher rows printed
+    # ~65% and hit ~50%, and the price alone predicted better. The printed
+    # `confidence` (so `edge`, the board, top 10, pairs and parlays) is now
+    # the walk-forward mix of this number and the price, fitted per market
+    # on every graded pitcher row from EARLIER cards (mlb_pitcher_cal.py,
+    # the same code the test scored). ⛔ `blend` keeps its definition and
+    # is still written: it is the permanent calibration column.
+    # ⚠️ Below 150 graded rows for the market there is no mapping, and the
+    # row prints its blend exactly as before.
+    shown = pcal.corrected(PCAL, market, blend, be)
+    conf_method = pcal.SHIPPED if shown is not None else "BLEND"
+    if shown is None:
+        shown = blend
     grp = "GOOD" if (k9 >= 9.0 and era is not None and era <= 3.50) else \
           ("BAD" if (k9 < 9.0 and era is not None and era > 3.50) else "MIXED")
     bnd, bnd_note = band_of(blend)
@@ -959,10 +1015,12 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         "ladder": prop.get("_ladder") or [],
         "alt_rung": bool(prop.get("_alt")),
         "break_even": round(be, 1) if be is not None else None,
-        "edge": round(blend - be, 1) if be is not None else None,
+        "edge": round(shown - be, 1) if be is not None else None,
         "model": round(model, 1), "raw_pct": round(raw, 1), "raw": f"{h}/{n}",
         "blend": round(blend, 1), "carried": round(carried, 1),
-        "confidence": round(blend),
+        "confidence": round(shown),
+        "confidence_value": round(shown, 1),
+        "confidence_method": conf_method,
         "confidence_basis": "MODEL",
         # 🔴 ~~"v4.0 model blended 50/50 ..."~~ STRUCK 2026-09-11. THE READER
         # SEES THIS STRING, and it named v4.0 while the card ran v5.0 --
@@ -971,7 +1029,10 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         # disagreed). ⛔ A version is a fact about the code: read it,
         # never retype it.
         "confidence_note": (MODEL_VERSION + " model blended 50/50 with his "
-                            "own rate at this line."),
+                            "own rate at this line"
+                            + ("." if conf_method == "BLEND" else
+                               f" ({blend:.0f}%), then corrected against the price "
+                               f"using graded pitcher plays from earlier cards.")),
         # The single number Sam asked for beside the line, covers-style. It is
         # the blend read backwards, so it can never argue with the confidence.
         # ⛔ SET TO None ON PURPOSE. apply_projections() is the ONLY writer
@@ -1024,7 +1085,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
         "why": why_lines(p, market, side, line, h, n, model, raw, blend,
                          ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
                          price, be, k9, era, grp, book, splits, opp_recent,
-                         oppRank, central),
+                         oppRank, central, shown=shown),
         "flags": flags,
     }
 
@@ -1032,7 +1093,7 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
 def why_lines(p, market, side, line, h, n, model, raw, blend,
               ah, an, fh, fn, axis, oppK, centerC, inputs, opp_team,
               price, be, k9, era, grp, book, splits=None, opp_recent=None,
-              oppRank=None, central=None):
+              oppRank=None, central=None, shown=None):
     """Why the card likes this, in words a person reads once and gets.
 
     🔴 REWRITTEN 2026-08-26. Sam: "this is too confusing to read, the user
@@ -1154,7 +1215,11 @@ def why_lines(p, market, side, line, h, n, model, raw, blend,
     # ---- 7. the price, in plain terms
     if price is not None and be is not None:
         w.append(f"At <b>{price:+d}</b> this has to hit about <b>{be:.0f}%</b> of the time "
-                 f"just to break even. We make it <b>{blend:.0f}%</b>."
+                 f"just to break even. We make it <b>{(blend if shown is None else shown):.0f}%</b>."
+                 + ("" if shown is None or round(shown) == round(blend) else
+                    f" Before checking it against the price it read {blend:.0f}%; "
+                    f"our pitcher picks have hit less often than they claimed, so "
+                    f"the number is corrected using every graded pitcher play so far.")
                  + ("" if book in ("hardrockbet", "hardrockbet_oh") else
                     f" That price is {bookName(book)}'s, not Hard Rock's."))
     return w
@@ -1320,6 +1385,12 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
                       "text": (f"Hard Rock didn't post this one when we pulled the odds. "
                                f"The price above is {bookName(prop.get('book'))}'s — you "
                                f"can't get that number at Hard Rock.")})
+    # 🔴 THE "RUNS HOT" LABEL, PER BAND (audit B). ⚠️ It reaches the page
+    # because it changes what a reader should DO with the number beside it.
+    _hb = hitter_band(round(rate))
+    _hbf = hitter_band_flag(_hb)
+    if _hbf:
+        flags.append(_hbf)
 
     def r(k):
         a, b = parse_rate(ev.get(k))
@@ -1374,6 +1445,12 @@ def hitter_play(prop, game, ids, team_games, hlogs=None, today=""):
                             "hitter model in this project yet, so this is DESCRIPTIVE "
                             "— not a projection."),
         "rate": round(rate, 1), "raw": f"{h}/{n}",
+        # ⛔ NOT `band`: a hitter row never carries the pitcher calibration
+        # band (verify_card). This is the record's own verdict on the
+        # printed number's 10-point range, stored whether or not it warns.
+        "record_band": (None if _hb is None else
+                        {k: _hb.get(k) for k in ("bucket", "state", "n", "w",
+                                                 "stated", "actual", "p")}),
         "break_even": round(be, 1),
         "market_implied": mkt,
         "edge": round(rate - be, 1),
@@ -1765,7 +1842,9 @@ def build_pairs(plays, limit=8):
             mult = decimal(a["price"]) * decimal(b["price"])
             if mult < FLOOR:
                 continue
-            joint = a["blend"] / 100.0 * b["blend"] / 100.0
+            # ⚠️ The PRINTED number, corrected (C2) where a mapping exists.
+            _ca, _cb = a.get("confidence_value", a["blend"]), b.get("confidence_value", b["blend"])
+            joint = _ca / 100.0 * _cb / 100.0
             be = 100.0 / mult
             out.append({
                 "legs": [f"{a['pitcher']} {a['side'][0]}{a['line']} "
@@ -1789,6 +1868,7 @@ def build_pairs(plays, limit=8):
                           else "ABOVE BAND"),
                 "joint": round(100 * joint, 1),
                 "leg_blends": [a["blend"], b["blend"]],
+                "leg_confidences": [_ca, _cb],
                 "leg_models": [a["model"], b["model"]],
                 "leg_raws": [a["raw"], b["raw"]],
                 "break_even": round(be, 1),
@@ -2235,6 +2315,12 @@ def main(dry=False):
     # than quoting a number nobody can reproduce.
     CAL.clear()
     CAL.update(load_calibration(f"{LATEST}/record.json"))
+    HCAL.clear()
+    try:
+        HCAL.extend((json.load(open(f"{LATEST}/record.json"))
+                     .get("calibration_printed") or {}).get("hitter") or [])
+    except (OSError, ValueError):
+        pass          # no record: no label, never a stale number
     print(f"[card] calibration bands from record.json: "
           f"{ {b: (c['n'], c['delta']) for b, c in CAL.items()} or 'NONE'}")
     P = load(f"{LATEST}/pitchers.json.gz", gz=True)
@@ -2275,6 +2361,11 @@ def main(dry=False):
         print("[card] every game on the board has started -- nothing to write")
         return None
     today = min(et_date(g["commence"]) for g in upcoming)
+    PCAL.clear()
+    PCAL.update(pcal.mappings(today))
+    print("[card] pitcher correction (C2) fitted on: "
+          + ", ".join(f"{mk} {m['n_train'] if m else 'none (<150)'}"
+                      for mk, m in PCAL.items()))
 
     # A team's games played, approximated by the most games any of its
     # hitters has batted in. Used only to size lineup risk, never to price.
@@ -2431,6 +2522,10 @@ def main(dry=False):
 
     plays_all = plays
     plays = standard
+    # ⚠️ In memory only, never published: every priced pitcher row, so
+    # verify_card can re-derive the printed number on a day when no
+    # pitcher reaches the board.
+    LAST_PITCHER_ROWS[:] = plays_all
     # 🔴 PITCHERS ON GAMES THAT HAVE ALREADY STARTED STILL NEED A
     # PROJECTION. Sam, 2026-08-26: "there are still players that have game
     # logs that dont have projections, most of the pitchers."
@@ -2618,6 +2713,16 @@ def main(dry=False):
         # See load_calibration(). The old string was a 2026-08-22 snapshot
         # that contradicted the site's own Track Record tab.
         "calibration_warning": calibration_sentence(),
+        # ⛔ THE INPUTS THE PRINTED NUMBERS WERE BUILT FROM, SO THE VERIFIER
+        # RE-DERIVES THEM FROM THE CARD ITSELF, not from a record.json that
+        # may have been regraded since.
+        "pitcher_correction": {"method": pcal.SHIPPED,
+                               "spec": "research/mlb_pitcher_cal_spec.md",
+                               "maps": {mk: (None if m is None else
+                                             {k: m[k] for k in ("mu", "sd", "w", "n_train", "before")})
+                                        for mk, m in PCAL.items()}},
+        "hitter_record_bands": _calib.band_flags(
+            [dict(x, stated=x.get("predicted")) for x in HCAL]),
         "selection_note": (
             "Nothing here is a recommendation to bet. Every qualifying pitcher prop on "
             "the board is printed with its failing numbers attached (ledger rule 53); "
