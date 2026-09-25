@@ -2829,6 +2829,7 @@ const FB_EMPTY = {
   parlays: ['Parlays', 'Parlays are built from carded plays. There are no football picks yet, so there is nothing to pair.'],
   record:  ['Track Record', 'Nothing has been carded, so nothing has been graded. An empty record is the honest state, not a bug.'],
   news:    ['News', 'The news feed is MLB-only today.'],
+  gamelines: ['Game Lines', 'Loading&hellip;'],
 };
 
 /* ⛔ ONE FILE PER SIDE, BUILT BY ONE FUNCTION ON THE COLLECTOR. The
@@ -4533,11 +4534,11 @@ function fbGameLinesHtml(G, R, games, st){
 
 async function fbGameLinesTab(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="note" data-gl>Loading&hellip;</div>');
   fbWire();
   const [G, R] = await Promise.all([fbGlLoad(), fbGlRecLoad()]);
   if (!G || !(G.games || []).length){
-    v.innerHTML = fbShell(`<div class="note"><b>No ${LG_NAME[LEAGUE]} game lines stored yet.</b><br>
+    v.innerHTML = fbShell(`<div class="note" data-gl><b>No ${LG_NAME[LEAGUE]} game lines stored yet.</b><br>
       The tab fills after the next odds pull; each game's alt lines are bought once, at the last
       pull before kickoff.</div>`);
     fbWire(); return;
@@ -4546,7 +4547,7 @@ async function fbGameLinesTab(){
   const games = list.filter(g => (fbGl.game === 'all' || g.id === fbGl.game) && fbConfPass(g.away, g.home));
   const opt = (id, cur, pairs) => `<select id="${id}">${pairs.map(([k, t]) =>
     `<option value="${k}"${k === cur ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
-  v.innerHTML = fbShell(`${fbConfBar()}
+  v.innerHTML = fbShell(`<span data-gl hidden></span>${fbConfBar()}
     <div class="pfilt">
       ${opt('fb-gl-game', fbGl.game, [['all', 'All games']].concat(G.games.map(g =>
         [g.id, `${fbAb(g.away)} @ ${fbAb(g.home)} — ${fbKickTime(g.commence) || ''}`])))}
@@ -6781,7 +6782,6 @@ async function renderFootball(){
   if (FBTAB === 'odds') return fbOdds();
   if (FBTAB === 'scores') return fbScores();
   if (FBTAB === 'props') return fbProps();
-  if (FBTAB === 'gamelines') return fbGameLinesTab();
   if (FBTAB === 'news') return fbNews();
   if (FBTAB === 'picks') return fbPicks();
   if (FBTAB === 'parlays') return fbParlays();
@@ -7046,6 +7046,12 @@ async function renderFootball(){
 }
 
 function fbWire(){
+  /* 🔴 GAME LINES IS ROUTED HERE, NOT IN `renderFootball` — that function is
+     pinned byte for byte by `test_mlb_untouched.py`. Every football render
+     ends in fbWire(), so this catches every path to the tab: a tab click, a
+     conference chip, a league switch. ⚠️ The tab's own shells carry
+     `data-gl`, so its own fbWire() calls do not re-enter it. */
+  if (FBTAB === 'gamelines' && !document.querySelector('#fbview [data-gl]')) { fbGameLinesTab(); return; }
   document.querySelectorAll('#fbview a[data-fbtab]').forEach(a =>
     a.addEventListener('click', () => { FBTAB = a.dataset.fbtab; renderFootball(); }));
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };

@@ -409,8 +409,14 @@ try:
     wgz(os.path.join(_lg, "latest", "schedule-2026.json.gz"),
         {"games": [{"id": "S1", "home": BUF, "away": LAC, "final": True, "home_score": 3, "away_score": 20}]})
     G.build("nfl", root=_r, now=AFTER + datetime.timedelta(hours=1), log=lambda m: None)
+    ck(G.stored_grades("nfl", _r)["g1|spread|home|-3.5"]["won"] is True
+       and len(glob.glob(os.path.join(_lg, "*", "game-lines-grades", "*.json.gz"))) == 1,
+       "🔴🔴 a rung graded once is never re-graded, whatever changes later (no second grade written)")
+    # ...and if two stored grades ever disagree, the FIRST one stands
+    wgz(os.path.join(_lg, "2026-09-30", "game-lines-grades", "0900.json.gz"),
+        {"grades": [{"key": "g1|spread|home|-3.5", "state": "graded", "won": False}]})
     ck(G.stored_grades("nfl", _r)["g1|spread|home|-3.5"]["won"] is True,
-       "🔴🔴 a rung graded once is never re-graded, whatever changes later")
+       "🔴 two stored grades for one rung: the FIRST stands, a later file never overrides it")
     rec = json.load(open(os.path.join(_lg, "latest", "game-lines-record.json"), encoding="utf-8"))
     ck(rec["kind"] == "DESCRIPTIVE" and rec["markets"]["spread"]["graded"] == 5
        and rec["markets"]["spread"]["voids"] == 2 and "clustered by game" in rec["note"],

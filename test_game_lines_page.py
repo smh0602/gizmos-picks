@@ -14,8 +14,8 @@ right column, and the sort. ⛔ Not a copy of the page — the page itself.
 #
 # @vacuity the Game Lines tab is dispatched, not merely defined
 #   file: index.html
-#   find:   if (FBTAB === 'gamelines') return fbGameLinesTab();
-#   with:   if (FBTAB === 'gamelines') return;
+#   find:   if (FBTAB === 'gamelines' && !document.querySelector('#fbview [data-gl]')) { fbGameLinesTab(); return; }
+#   with:   if (false) { fbGameLinesTab(); return; }
 """
 import datetime
 import gzip
@@ -150,8 +150,13 @@ ck("Over" not in re.sub(r"<[^>]+>", " ", R["sp"]) and len(re.findall(r'data-l="E
 section("4. WIRED, AND IT FITS A PHONE")
 ck("'props','gamelines'" in js_block("fbShell", PAGE).replace(" ", ""),
    "   ✅ the tab sits beside Player Props")
-ck("fbGameLinesTab()" in js_block("renderFootball", PAGE) and calls("fbGameLinesHtml", PAGE) >= 1,
-   "🔴 the tab is DISPATCHED and its renderer CALLED — not merely defined (rule 130)")
+_wire = js_block("fbWire", PAGE)
+_tab = js_block("fbGameLinesTab", PAGE)
+ck("FBTAB === 'gamelines'" in _wire and "fbGameLinesTab()" in _wire and calls("fbGameLinesHtml", PAGE) >= 1
+   and "gamelines:" in HTML[HTML.index("const FB_EMPTY = {"):HTML.index("const FB_EMPTY = {") + 2500],
+   "🔴 the tab is ROUTED (every football render ends in fbWire) and its renderer CALLED — rule 130")
+ck(_tab.count("data-gl") >= 3,
+   "   ✅ every shell the tab draws carries data-gl, so its own fbWire() cannot loop")
 _mq = re.search(r"@media\(max-width:600px\)\{(.*?)\n\}", HTML, re.S)
 ck(bool(_mq) and ".glr.gh{display:none}" in _mq.group(1) and "content:attr(data-l)" in _mq.group(1),
    "🔴 on a phone the header folds away and every cell carries its own label")
