@@ -375,12 +375,21 @@ old one, not easier.**
   games' LIVE IN-PROGRESS odds onto the following day's cards — CHC at
   −4000 with a 4.5 total, Pittsburgh implied for 0 runs. ⚠️ **ET dates are
   not sufficient either**: a doubleheader is two games with the same teams
-  on the same ET date. Nearest first pitch inside `BOARD_MATCH_WINDOW_MS`
-  separates all three cases, and **it fails closed** — no candidate in the
-  window returns null and the card renders with no odds. A card missing a
-  line is a card missing a line; a card showing another game's line is
-  misinformation. `test_board_match.js` is the regression test and runs
-  against the real board.
+  on the same ET date. ~~Nearest first pitch inside `BOARD_MATCH_WINDOW_MS`
+  separates all three cases~~ — **false for a doubleheader, and it was live
+  `[2026-09-25]`**: MLB lists game 2 of a traditional doubleheader at a
+  PLACEHOLDER time (`startTimeTBD`, BAL @ NYY 20:10Z beside game 1's
+  20:05Z; odds feed 23:06Z), so game 2's card showed game 1's odds.
+  ✅ **The game decides first**: MLB's `gameNumber` against the board's
+  first-pitch order, when both list the same number of games for the pair
+  that ET date. Only otherwise does a FIRM first pitch decide, inside a
+  90-minute window (narrower than every same-pair gap ever stored), never
+  between two records, never on a placeholder. **It fails closed** — no
+  candidate returns null and the card renders with no odds. A card missing
+  a line is a card missing a line; a card showing another game's line is
+  misinformation. `test_board_match.js` runs against the real board and
+  the newest stored schedule; `test_board_doubleheader.py` replays the
+  2026-09-25 doubleheaders.
 - 🔴 **`run_line` is the HOME team's point, by MAJORITY across books, then
   cross-checked against the MONEYLINE.** ⛔ Never take it from one book.
   Books split on which side they show laying the runs — 11 to 6 on TB@DET,
@@ -469,6 +478,15 @@ verify_record.py  re-grades EVERY published pick from the stored box
                   it -- totals, per day, per kind, the internal sums, and
                   the drill-down detail. ⛔ Voids stay out of every
                   denominator. Runs on the record and refresh jobs.
+                  `[2026-09-25]` A record.json whose `grader` stamp is
+                  not the collect.py beside it is REBUILT first (it
+                  runs `collect.py record converge-off`), so a grading-rule
+                  change cannot turn runs red; a current-stamped record
+                  that disagrees still fails.
+record_grader.py  the fingerprint of the MLB grading code: collect_record
+                  and every top-level name it reaches, parsed with ast,
+                  comments ignored. collect.py stamps it, verify_record
+                  compares it. ⛔ Parsed, never imported.
 verify_board.py   checks data/latest/board.json -- implied runs vs the
                   moneyline, run-line attribution, and whether the PAGE
                   can tell two records for one matchup apart. ⛔ Runs on
@@ -630,7 +648,10 @@ wfparse.py        the one HAND parser for a workflow file -- jobs,
                   in test_wfparse.py wherever PyYAML happens to exist.
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
-runs_report.py    did any workflow run fail?
+runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
+                  data/latest/runs.json (`collect.py runs`, hourly from
+                  runs.yml's own `publish` job): the last 48h of every
+                  workflow, and each failure's step and annotations.
 daystore.py       the one dated, write-once archive writer. ⛔ Never
                   cumulative (rule 285: git cannot delta-compress a
                   gzip, 560x) and never into `picks/`.

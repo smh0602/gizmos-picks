@@ -3703,8 +3703,14 @@ def collect_record():
     # claude/pick-ledger.md and the 7:30am grading run still maintains
     # them. ⛔ Do not read this as permission to stop grading them.
 
+    # 🔴 WHICH GRADING CODE WROTE THIS FILE. `[2026-09-25]` verify_record.py
+    #    rebuilds a record whose `grader` differs from the collect.py beside
+    #    it BEFORE verifying, so a grading-rule change can never again turn
+    #    runs red on a file the old rule wrote (#1813, #1816-#1819).
+    import record_grader
     doc = {
         "built_at": stamp(),
+        "grader": record_grader.fingerprint(os.path.abspath(__file__)),
         "kind": "DESCRIPTIVE",
         "note": ("Graded from stored results, not from anyone's memory. Machine cards "
                  "only -- the hand-built cards live in the ledger and are a different, "
@@ -4239,7 +4245,7 @@ def run_mode(mode):
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
             "coaches-probe",
             "fb-scores", "fb-record", "live-probe",
-            "card-fb", "nfl-teams", "cfb-teams")
+            "card-fb", "nfl-teams", "cfb-teams", "runs")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -4649,6 +4655,14 @@ def run_mode(mode):
             left = None
         elif mode == "record":
             collect_record()
+            left = None
+        elif mode == "runs":
+            # 🔴 RUN STATUS, READABLE WITHOUT A GITHUB LOGIN. `[2026-09-25]`
+            #    The last 48h of every workflow, written hourly by runs.yml.
+            #    ⛔ ONE REPO-WIDE FILE, whatever LEAGUE says. Free: the
+            #    GitHub API, no Odds credit.
+            import runs_report as _rr
+            _rr.write_status("data/latest/runs.json")
             left = None
         elif mode == "card":
             # Rebuild the board FIRST, from the snapshots already on disk.

@@ -770,7 +770,9 @@ function renderStaleBanner(){
       "current. Treat every number as possibly stale.";
     return;
   }
-  const bad = FRESH.artifacts.filter(a => a.stale);
+  /* ⛔ `page: false` marks a row no tab reads (the run-status file): it
+     reaches Sam through the watchdog, never a reader through this bar. */
+  const bad = FRESH.artifacts.filter(a => a.stale && a.page !== false);
   /* 🔴 A BLOCKED CARD MUST SHOW EVEN WHEN NOTHING READS AS STALE.
      `[measured 2026-08-29]` `card_blocked` was set and the banner still
      went hidden, because this early return only looked at `stale`. The
@@ -1112,24 +1114,54 @@ async function loadSplits(){
    🔴 IT FAILS CLOSED. No candidate inside the window returns null, and
    the card renders WITH NO ODDS. A card missing its line is a card
    missing its line; a card showing another game's line is misinformation,
-   and Sam's instruction on this is that it cannot happen again. */
-const BOARD_MATCH_WINDOW_MS = 4 * 3600 * 1000;
-function boardFor(away, home, firstPitchISO){
+   and Sam's instruction on this is that it cannot happen again.
+
+   🔴🔴 `[2026-09-25]` ~~"each nearest its own record"~~ — FALSE FOR A
+   DOUBLEHEADER, AND IT WAS LIVE. MLB lists the second game of a
+   traditional doubleheader at a PLACEHOLDER time (`startTimeTBD`):
+   BAL @ NYY game 2 read 20:10Z, five minutes after game 1's 20:05Z, while
+   the odds feed put it at 23:06Z. Nearest-first-pitch handed game 2's
+   card GAME 1's odds. And the ~~4-hour~~ window was wider than the 3.0h
+   gap between that pair's two board records, so a card whose own record
+   had dropped off the board would have taken its sibling's.
+   ✅ SO THE EVENT DECIDES FIRST. MLB numbers a doubleheader's games
+   (`gameNumber` 1, 2) and the board lists the same games in first-pitch
+   order: when the board holds EXACTLY as many records of this pair on
+   this ET date as MLB plays, game N gets the Nth. No clock is involved,
+   so a placeholder time cannot mislead it.
+   ⚠️ ONLY WHEN THE COUNTS DISAGREE (a half has left the board, or there is
+   no MLB game to ask) does first pitch decide — a FIRM one only, inside a
+   window narrower than any same-pair gap ever stored (3.0h, measured over
+   103 board pulls; `test_board_match.js` checks it against every live
+   board), and never between two records at once.
+   `test_board_doubleheader.py` replays the 2026-09-25 doubleheaders. */
+const BOARD_MATCH_WINDOW_MS = 90 * 60 * 1000;
+function boardFor(away, home, firstPitchISO, game){
   if (!BOARD) return null;
   const cand = (BOARD.games || []).filter(g => g.away === away && g.home === home);
   if (!cand.length) return null;
   const t = Date.parse(firstPitchISO || '');
+  const tbd = !!(game && (game.status || {}).startTimeTBD);
+  if (game){
+    /* THE EVENT ITSELF: game N of this pair's games on this date. */
+    const k = (game.doubleHeader === 'S' || game.doubleHeader === 'Y') ? 2 : 1;
+    const n = Number(game.gameNumber) || 1;
+    const day = game.officialDate || etDate(firstPitchISO);
+    const same = cand.filter(g => etDate(g.commence) === day)
+      .sort((a, b) => Date.parse(a.commence) - Date.parse(b.commence));
+    if (day && same.length === k && n >= 1 && n <= k) return same[n - 1];
+    /* A placeholder time is not a first pitch; there is nothing left to
+       match it on. */
+    if (tbd) return null;
+  }
   if (!isFinite(t)){
     /* No first pitch to compare against. One candidate is unambiguous;
        more than one is not, and a guess is what caused this bug. */
     return cand.length === 1 ? cand[0] : null;
   }
-  let best = null, bestGap = Infinity;
-  for (const g of cand){
-    const gap = Math.abs(Date.parse(g.commence) - t);
-    if (gap < bestGap){ bestGap = gap; best = g; }
-  }
-  return bestGap <= BOARD_MATCH_WINDOW_MS ? best : null;
+  /* ⛔ Two records inside the window is a guess between them: refused. */
+  const near = cand.filter(g => Math.abs(Date.parse(g.commence) - t) <= BOARD_MATCH_WINDOW_MS);
+  return near.length === 1 ? near[0] : null;
 }
 
 /* 🔴 A GAME IS NOT LIVE JUST BECAUSE MLB SAYS `abstractGameState === "Live"`.
@@ -1162,8 +1194,9 @@ function gameCard(g){
   const gs = gameState(g);
   const live = gs === 'live', fin = gs === 'final', warm = gs === 'warmup';
   const ls = g.linescore || {};
-  /* Pass the FULL first-pitch timestamp, never a date slice. */
-  const b = boardFor(away, home, g.gameDate);
+  /* Pass the FULL first-pitch timestamp, never a date slice — and the
+     game itself, so a doubleheader is matched by its game number. */
+  const b = boardFor(away, home, g.gameDate, g);
   const c = el('div','g clickable');
   c.addEventListener('click', ev => {
     if (ev.target.closest('a')) return;   // never hijack a real link
