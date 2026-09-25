@@ -360,6 +360,84 @@ for c, lg in sorted(LEAGUE_OF.items(), key=lambda kv: kv[1]):
 print(f"  {'':<6} {'':<20} {'FOOTBALL WEEKLY':<26} {'':>5}       {fb_week:>6}")
 
 # ══════════════════════════════════════════════════════════════════════
+# 💰 ALT LINES `[Sam, 2026-09-24]` — PRICED FROM THE SCHEDULE, NOT A CRON.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ No cron names `alt-lines`: converge plans it from its contract row, and
+#    each game is bought FB_ALT_PULLS_PER_GAME times. So the price is
+#    games per week (the stored schedules, FBS rule from `freshness`) x
+#    pulls per game x markets x billing units. Every factor is READ, from
+#    `collect.py` and the data, never written here.
+# ⚠️ The units are the newest MEASURED bill in a stored alt snapshot
+#    (`x-requests-last`); until one exists, the worst case of two.
+def _alt_const(name, cast=int):
+    m = re.search(r'^%s\s*=\s*(.+)$' % name, src, re.M)
+    if not m:
+        sys.exit("FATAL: cannot read %s from collect.py — refusing to price "
+                 "a per-game market at zero." % name)
+    return cast(m.group(1).split("#")[0].strip())
+
+
+_am = re.search(r'^FB_ALT_MARKETS\s*=\s*\[(.*?)\]', src, re.S | re.M)
+ALT_M = len(re.findall(r'"', _am.group(1))) // 2 if _am else 0
+if not ALT_M:
+    sys.exit("FATAL: cannot read FB_ALT_MARKETS from collect.py.")
+ALT_CAP = _alt_const("FB_ALT_MONTHLY_CAP")
+ALT_PULLS = _alt_const("FB_ALT_PULLS_PER_GAME")
+ALT_WORST = _alt_const("FB_ALT_WORST_UNITS")
+
+
+def alt_units(root=ROOT):
+    """(units per market, where it came from)."""
+    best = None
+    for _p in _glob.glob(os.path.join(root, "data", "*", "20*", "alt-lines", "*.json.gz")):
+        try:
+            _d = _json.load(_gzip.open(_p, "rt"))
+        except (OSError, EOFError, ValueError):
+            continue
+        if _d.get("measured_units") and (best is None or _d["pulled_at"] > best["pulled_at"]):
+            best = _d
+    if best:
+        return float(best["measured_units"]), "MEASURED %s (%s)" % (best["pulled_at"], best.get("request"))
+    return float(ALT_WORST), "WORST CASE, not yet measured"
+
+
+def alt_games_per_week(lg, root=ROOT):
+    """(mean, peak) games per ISO week on the stored current schedule."""
+    import freshness as _fr
+    season = _fr.current_football_season()
+    ks = _fr.kickoffs_utc(lg, os.path.join(root, "data", lg, "latest",
+                                           "schedule-%d.json.gz" % season)) or []
+    wk = _c.Counter(k.isocalendar()[:2] for k in ks)
+    if not wk:
+        return 0.0, 0
+    return sum(wk.values()) / float(len(wk)), max(wk.values())
+
+
+def alt_price(root=ROOT):
+    units, src_u = alt_units(root)
+    per_game = ALT_M * units * ALT_PULLS
+    out = {}
+    for lg in ("nfl", "ncaaf"):
+        mean, peak = alt_games_per_week(lg, root)
+        out[lg] = {"games_week": mean, "peak_week": peak,
+                   "month": per_game * mean * 52 / 12.0,
+                   "peak_month": per_game * peak * 52 / 12.0}
+    return per_game, units, src_u, out
+
+
+_apg, _au, _asrc, _alt = alt_price()
+print(f"\nALT LINES  {ALT_M} markets x {_au:g} unit(s) x {ALT_PULLS} pull/game "
+      f"= {_apg:g} credits a game   units: {_asrc}")
+for _lg in ("nfl", "ncaaf"):
+    _r = _alt[_lg]
+    print(f"  {_lg:<6} {_r['games_week']:>5.1f} games/wk (peak {_r['peak_week']})"
+          f"   {round(_r['month']):>6}/month   peak-week pace {round(_r['peak_month']):>6}/month")
+_alt_tot = sum(v["month"] for v in _alt.values())
+print(f"  {'TOTAL':<6} {'':>22}   {round(_alt_tot):>6}/month of Sam's {ALT_CAP}"
+      f"  {'✅ FITS' if _alt_tot <= ALT_CAP else '⛔ OVER — cut pulls per game'}"
+      f"   (the pull also refuses to buy past {ALT_CAP} a month)")
+
+# ══════════════════════════════════════════════════════════════════════
 # 💰 WHERE THE MONEY ACTUALLY WENT, BY MODE — because the table above is
 #    an ATTRIBUTION and the attribution is wrong.
 # ══════════════════════════════════════════════════════════════════════

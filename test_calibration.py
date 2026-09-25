@@ -29,6 +29,11 @@ whole value of pre-registration is that the bar was chosen blind.
 #   file: card_fb.py
 #   find:     return (alarm + "; ".join(parts) + "."
 #   with:     return ("; ".join(parts) + "."
+#
+# @vacuity a band of thousands of rows is judged, not an OverflowError
+#   file: calibration.py
+#   find:     lp, lq, lc = math.log(p0), math.log1p(-p0), math.lgamma(n + 1)
+#   with:     return min(1.0, sum(math.comb(n, k) * p0 ** k * (1.0 - p0) ** (n - k) for k in range(0, int(w) + 1)))
 """
 import json
 import math
@@ -260,6 +265,21 @@ _quiet = _CF.calibration_sentence_fb({"80-plus": {"n": 25, "w": 21, "delivered":
                                                   "claimed": 85.0, "delta": -1.0}}, 0, [])
 ck("   ✅ ...and says nothing alarming when no band is flagged",
    not _quiet.startswith("⚠️"), "got %r" % _quiet[:120])
+
+# 🔴 `[2026-09-24]` THE EXACT TAIL IN LOG SPACE. The direct form turned
+#    `math.comb(n, k)` into a float and raised OverflowError past n ≈ 1,000 —
+#    the alt-lines check's college bands hold thousands of rows.
+_exact = lambda w, n, p0: sum(math.comb(n, k) * p0 ** k * (1 - p0) ** (n - k)  # noqa: E731
+                              for k in range(0, w + 1))
+_diff = max(abs(_exact(w, n, p) - C._binom_low(w, n, p)) for n in (10, 37, 120)
+            for w in range(0, n + 1, 3) for p in (0.05, 0.5, 0.85))
+ck("🔴 the binomial tail matches the exact sum on small bands (max gap %.1e)" % _diff, _diff < 1e-9)
+try:
+    _big = C.band_flags([{"bucket": "40-50%", "n": 4000, "w": 1700, "stated": 46.0}])
+except OverflowError as _e:
+    _big = [{"state": "OverflowError: %s" % _e}]
+ck("🔴🔴 ...and a band of 4,000 rows is judged, not crashed", _big[0]["state"] in ("UNDER", "OK"),
+   "got %r" % _big)
 
 
 sys.exit(0)

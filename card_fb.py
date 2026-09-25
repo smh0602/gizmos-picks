@@ -2455,12 +2455,25 @@ def decimal_odds(american):
     return 1 + (100.0 / -american if american < 0 else american / 100.0)
 
 
-def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
+_RECORD_NOTE = (
+    "The legs' own records multiplied together. ⛔ Every leg "
+    "is the player's OWN RATE at that exact line — "
+    "DESCRIPTIVE, never a model output, because this project "
+    "has no football model. Legs are in different games, so "
+    "they are treated as independent; that assumption is not "
+    "free and has never been tested here.")
+
+
+def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE, leg_text=None,
+                     joint_basis="RECORD", joint_note=_RECORD_NOTE):
     """Combinations of 2, 3 and 4 legs from RATED football rows.
 
     ⛔ EVERY NUMBER HERE IS DESCRIPTIVE. A leg's confidence is the
     player's own record, so their product is a product of records --
     never a model output, and the note says so on the card.
+    `[2026-09-24]` The Game Lines tab calls the SAME builder for alt rungs
+    alone, under the same rules, passing its own leg text and a MODEL basis
+    (its legs are the game model's %). ⛔ The card's call is unchanged.
     """
     legs = [r for r in rows
             if r.get("confidence") is not None
@@ -2480,10 +2493,11 @@ def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
                        "available": len(band),
                        "taken": len(band[:PARLAY_PER_STRATUM])})
 
-    def leg_text(r):
+    def _prop_text(r):
         side = {"over": "o", "under": "u", "yes": ""}.get(r["side"], r["side"])
         ln = "" if r.get("line") is None else f"{side}{r['line']}"
         return f"{r['player']} {ln} {MARKETS[r['market']][1]}".replace("  ", " ")
+    leg_text = leg_text or _prop_text
 
     out, rejects = {}, {"same_game": 0, "same_player": 0, "mixed_book": 0,
                         "out_of_band": 0}
@@ -2519,14 +2533,8 @@ def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE):
                 "n_legs": size,
                 "band": band_text((lo, hi)),
                 "joint": round(100 * joint, 1),
-                "joint_basis": "RECORD",
-                "joint_note": (
-                    "The legs' own records multiplied together. ⛔ Every leg "
-                    "is the player's OWN RATE at that exact line — "
-                    "DESCRIPTIVE, never a model output, because this project "
-                    "has no football model. Legs are in different games, so "
-                    "they are treated as independent; that assumption is not "
-                    "free and has never been tested here."),
+                "joint_basis": joint_basis,
+                "joint_note": joint_note,
                 "leg_confidences": [c["confidence"] for c in combo],
                 "break_even": round(be, 1),
                 "edge": round(100 * joint - be, 1),

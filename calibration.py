@@ -110,11 +110,19 @@ def pooled(cal):
 
 
 def _binom_low(w, n, p0):
-    """Exact P(X <= w) for X ~ Binomial(n, p0)."""
+    """Exact P(X <= w) for X ~ Binomial(n, p0).
+
+    ⚠️ IN LOG SPACE. `[2026-09-24]` The direct form multiplied `math.comb(n,
+    k)` by a float, and past n ≈ 1,000 the integer is too large to convert:
+    the alt-lines check's college bands (n in the thousands) raised
+    OverflowError. Same sum, same answer on small n (`test_calibration.py`)."""
     if n <= 0 or not (0.0 < p0 < 1.0):
         return None
-    return min(1.0, sum(math.comb(n, k) * p0 ** k * (1.0 - p0) ** (n - k)
-                        for k in range(0, int(w) + 1)))
+    lp, lq, lc = math.log(p0), math.log1p(-p0), math.lgamma(n + 1)
+    t = [lc - math.lgamma(k + 1) - math.lgamma(n - k + 1) + k * lp + (n - k) * lq
+         for k in range(0, int(w) + 1)]
+    m = max(t)
+    return min(1.0, math.exp(m) * sum(math.exp(x - m) for x in t))
 
 
 def band_flags(cal):

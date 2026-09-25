@@ -117,3 +117,26 @@ main line"**. The model's fair line (the line where its probability is
 
 - **2026-09-24:** written and committed on its own, before any scoring
   code.
+- **2026-09-24, scored** (`research/fb_alt_lines_run_2026-09-24.json`),
+  2025 and 2026 finals pooled. **All four FAIL**, so every alt rung and
+  fair line carries the warning:
+
+  | League | Market | Units | Games | Mean d | Log loss, model | Log loss, baseline |
+  |---|---|---|---|---|---|---|
+  | NFL | spread | 914 | 154 | −0.126 | 0.735 | 0.609 |
+  | NFL | total | 924 | 154 | −0.153 | 0.748 | 0.595 |
+  | College | spread | 4,190 | 702 | −0.101 | 0.722 | 0.621 |
+  | College | total | 4,212 | 702 | −0.042 | 0.667 | 0.625 |
+
+  - It gets worse with distance in every case. For example, NFL spread
+    mean d is −0.049 at 3 points, −0.133 at 7 and −0.196 at 10.
+  - The bands show why:
+    - **NFL:** the model's probability moves the WRONG way as the line
+      moves. Stated 60–70% landed 27% (spread) and 45% (total).
+    - **College:** the probability barely moves off 50%.
+  - The model learned from main lines, where every game sits near 50%, so
+    it never learned how far a line is from the likely score.
+- **2026-09-24, a shared fix found by this check:** `calibration._binom_low`
+  raised OverflowError on bands of more than about 1,000 rows. It now sums
+  in log space, and `test_calibration.py` guards both halves (it matches
+  the exact sum, and it survives n = 4,000).
