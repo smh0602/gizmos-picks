@@ -187,8 +187,11 @@ for _lg in _LEAGUES:
        "⛔ a game that is neither described nor named has silently "
        "vanished from the report")
     _sections = {len(x.get("sections") or []) for x in (_dos.get("dossiers") or [])}
-    ck(_sections == {8},
-       "   %s: every dossier carries all eight sections" % _lg,
+    # ⚠️ THE ARTIFACT'S OWN DECLARED COUNT (files built before signal 9
+    #    declared nothing and carry eight). `[2026-09-24]` None may vanish.
+    _want = _dos.get("sections_declared", 8)
+    ck(_sections == {_want},
+       "   %s: every dossier carries all %d declared sections" % (_lg, _want),
        "⛔ a section that cannot answer says UNAVAILABLE; it never "
        "vanishes. Counts seen: %s" % sorted(_sections))
     _bad = sorted({s.get("basis") for x in (_dos.get("dossiers") or [])

@@ -235,8 +235,10 @@ for _lg in ("nfl", "ncaaf"):
        "neighbouring game. Got: %s" % text(_R["miss_html"])[:120])
     # ── EVERY SECTION IS ON THE PAGE, AVAILABLE OR NOT ────────────────
     _names = [s["name"] for s in _doc["dossiers"][0]["sections"]]
-    ck(len(_names) == 8,
-       "   %s: the artifact declares eight sections" % _lg,
+    # ⚠️ The artifact's own declared count; files built before signal 9 (9th
+    #    section, 2026-09-24) declared nothing and carry eight.
+    ck(len(_names) == _doc.get("sections_declared", 8) and len(_names) >= 8,
+       "   %s: the artifact carries every section it declares (%d)" % (_lg, len(_names)),
        "⛔ rule 67 again — eight is the premise of every check below. "
        "Got %s" % _names)
     _missing = [(r["board_id"], n) for r in _rows for n in _names

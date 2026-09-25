@@ -39,6 +39,16 @@ declarations are what `vacuity.py` drives:
 #   file: nfl.py
 #   find:     missing = sorted(k for k in want if games and any(k not in g for g in games))
 #   with:     missing = []
+#
+# @vacuity a stored possession table from before signal 9's inside-10 targets is rebuilt
+#   file: nfl.py
+#   find:                 if "inside10" not in _tbl:
+#   with:                 if False:
+#
+# @vacuity stored logs from before signal 9's opportunity table are rebuilt
+#   file: nfl.py
+#   find:             if "opportunity_report" not in _pl:
+#   with:             if False:
 """
 import gzip
 import json
@@ -221,15 +231,24 @@ _cases = [
     ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
       "players-2025.json.gz": {}}, True, "players predate the out count"),
     ({"top-probe-2025.json": {"error": "refused"},
-      "players-2025.json.gz": {"team_out_report": {}},
+      "players-2025.json.gz": {"team_out_report": {}, "opportunity_report": {}},
       "schedule-2025.json.gz": _sched_ok}, False, "builder REFUSED"),
-    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
-      "players-2025.json.gz": {"team_out_report": {}},
+    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}, "inside10": {}},
+      "players-2025.json.gz": {"team_out_report": {}, "opportunity_report": {}},
       "schedule-2025.json.gz": _sched_ok}, False, "complete"),
+    # 🔴 SIGNAL 9 (2026-09-24): stored files from before it are rebuilt —
+    #    the inside-10 targets and the opportunity table. ✅ A refused
+    #    opportunity build still writes its report, so it is not retried.
+    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
+      "players-2025.json.gz": {"team_out_report": {}, "opportunity_report": {}},
+      "schedule-2025.json.gz": _sched_ok}, True, "table predates inside-10"),
+    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}, "inside10": {}},
+      "players-2025.json.gz": {"team_out_report": {}},
+      "schedule-2025.json.gz": _sched_ok}, True, "players predate signal 9"),
     # 🔴 a stored schedule missing a field the builder now writes (the
     #    closing prices, 2026-09-24) is rebuilt — or 2025 never gets it
-    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
-      "players-2025.json.gz": {"team_out_report": {}},
+    ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}, "inside10": {}},
+      "players-2025.json.gz": {"team_out_report": {}, "opportunity_report": {}},
       "schedule-2025.json.gz": _sched_old}, True, "schedule predates a builder field"),
     ({"top-probe-2025.json": {}, "top-2025.json.gz": {"games": {}},
       "players-2025.json.gz": {"team_out_report": {}}}, True, "no stored schedule"),
