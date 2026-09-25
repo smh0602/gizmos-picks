@@ -201,6 +201,24 @@ PROP_MARKETS = {
               "player_receptions", "player_anytime_td"],
 }
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 FOOTBALL ALT LINES `[Sam, 2026-09-24]` — the Game Lines tab's ladders.
+# ══════════════════════════════════════════════════════════════════════
+# 💰 PER-EVENT, so the bill is `markets x billing units` PER GAME. The three
+#    books are asked by `bookmakers=` (the Odds API counts up to ten books
+#    as one unit) and the bill is MEASURED from `x-requests-last` on every
+#    call — never taken from the docs. Until a measurement is stored the
+#    budget assumes the worst case, two units (the price of `us,us2`).
+# ⛔ SAM APPROVED UP TO 1,500 CREDITS A MONTH FOR THIS. The pull refuses to
+#    buy past it, and past the account's daily allowance. Run `budget.py`.
+# ⚠️ ONE PULL PER GAME: each game is bought at the LAST props deadline before
+#    its kickoff (`FB_ALT_PULLS_PER_GAME`, read by `budget.py`).
+FB_ALT_MARKETS = ["alternate_spreads", "alternate_totals"]
+FB_ALT_MONTHLY_CAP = 1500
+FB_ALT_PULLS_PER_GAME = 1
+FB_ALT_WORST_UNITS = 2
+FB_ALT_LEAD_MIN = 30
+
 # Two regions gives us best-odds shopping across ~15 books.
 # One region (us2) is Hard Rock only and costs half.
 REGIONS_FULL = "us,us2"
@@ -1520,6 +1538,172 @@ def collect_props(kind, regions=None):
         "events": out,
     }, compress=True)
     log(f"props-{kind}: {len(out)} events, spent {spent}, {left} left")
+    return left
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE ALT-LINE PULL `[Sam, 2026-09-24]` — see `FB_ALT_MARKETS`.
+# ══════════════════════════════════════════════════════════════════════
+def _alt_snaps(days=2):
+    """[(path, doc)] of this league's alt-line snapshots over the last
+    `days` UTC days, oldest first."""
+    out = []
+    for back in range(days, -1, -1):
+        d = (now() - timedelta(days=back)).strftime("%Y-%m-%d")
+        for p in sorted(glob.glob(f"{DATA}/{d}/alt-lines/*.json.gz")):
+            try:
+                out.append((p, json.load(gzip.open(p, "rt"))))
+            except Exception:
+                continue
+    return out
+
+
+def alt_month_spend():
+    """Credits the alt-line pulls billed this calendar month, BOTH leagues —
+    Sam's 1,500 is one allowance, not one per league."""
+    total, month = 0, now().strftime("%Y-%m")
+    for lg in ("nfl", "ncaaf"):
+        for p in glob.glob(f"{LEAGUES[lg]['data']}/{month}-*/alt-lines/*.json.gz"):
+            try:
+                total += int(json.load(gzip.open(p, "rt")).get("credits_used") or 0)
+            except Exception:
+                continue
+    return total
+
+
+def alt_billing(snaps):
+    """(request, units per market) from the newest MEASURED bill.
+
+    ✅ `bookmakers=` is used while it bills LESS than two regions would;
+    once a stored measurement shows it does not, the pull asks `us,us2`.
+    ⚠️ No measurement yet -> `bookmakers`, budgeted at the worst case."""
+    for _p, d in reversed(snaps):
+        u = d.get("measured_units")
+        if u:
+            if d.get("request") == "bookmakers" and u >= FB_ALT_WORST_UNITS:
+                return "regions", FB_ALT_WORST_UNITS
+            return d.get("request") or "bookmakers", u
+    return "bookmakers", FB_ALT_WORST_UNITS
+
+
+def alt_plan(events, at, times, window_h, bought):
+    """-> (buy, held) — which events to buy NOW. `events` are
+    (id, commence, home, away). ⛔ Each game once: at the LAST props deadline
+    before kickoff (a later one that still precedes kickoff by
+    FB_ALT_LEAD_MIN holds it), never after kickoff, never twice."""
+    nd = _fresh.next_due(times, at)
+    buy, held = [], []
+    for ev in events:
+        eid, commence = ev[0], ev[1]
+        try:
+            kick = datetime.strptime(commence, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        except Exception:
+            held.append((eid, "no kickoff time"))
+            continue
+        if kick <= at:
+            held.append((eid, "kicked off"))
+        elif kick > at + timedelta(hours=window_h):
+            held.append((eid, "outside the %dh window" % window_h))
+        elif eid in bought:
+            held.append((eid, "already bought"))
+        elif nd is not None and nd <= kick - timedelta(minutes=FB_ALT_LEAD_MIN):
+            held.append((eid, "held for the %s deadline" % nd.strftime("%H:%MZ")))
+        else:
+            buy.append(ev)
+    return buy, held
+
+
+def collect_alt_lines():
+    """Buy alternate spreads and totals for the games this deadline owns.
+
+    ⛔ NO `/events` CALL: event ids and kickoffs come from the newest stored
+    gamelines pull, which already carries them (the first-half pull's rule).
+    ⛔ ALWAYS WRITES ITS SNAPSHOT, even when it buys nothing, so a pull that
+    correctly holds every game is not reported late.
+    🔴 FAILS LOUD (after writing) if a call bills more than the worst case
+    the budget allows — the bill is measured, never assumed."""
+    if LEAGUE not in ("nfl", "ncaaf"):
+        log("alt-lines is a FOOTBALL mode. Nothing done.")
+        return None
+    snap = None
+    for back in (0, 1):
+        d = (now() - timedelta(days=back)).strftime("%Y-%m-%d")
+        for p in reversed(sorted(glob.glob(f"{DATA}/{d}/gamelines/*.json.gz"))):
+            try:
+                snap = json.load(gzip.open(p, "rt"))
+                break
+            except Exception:
+                continue
+        if snap:
+            break
+    if not snap:
+        raise RuntimeError("no gamelines pull in two days — the alt pull has no event list")
+    events = [(g.get("id"), g.get("commence"), g.get("home"), g.get("away"))
+              for g in snap.get("games") or [] if g.get("id") and g.get("commence")]
+    if LEAGUE == "ncaaf":
+        kept, why = filter_fbs([{"id": e[0], "home_team": e[2], "away_team": e[3]}
+                                for e in events], log)
+        if why:
+            raise RuntimeError("alt-lines: %s" % why)
+        ok = {k["id"] for k in kept}
+        events = [e for e in events if e[0] in ok]
+    snaps = _alt_snaps()
+    bought = {i for _p, d in snaps for i in d.get("bought") or []}
+    at = now()
+    buy, held = alt_plan(events, at, _fresh.FB_TIMES[LEAGUE]["props"], FB_PROPS_WINDOW_H, bought)
+    request, units = alt_billing(snaps)
+    per_game = max(1, int(round(len(FB_ALT_MARKETS) * units)))
+    room_m = FB_ALT_MONTHLY_CAP - alt_month_spend()
+    room_d = daily_allowance() - daily_spend()
+    fit = max(0, min(len(buy), room_m // per_game, room_d // per_game))
+    over = buy[fit:]
+    buy = buy[:fit]
+    if over:
+        log(f"  alt-lines: {len(over)} game(s) NOT bought — month room {room_m}, "
+            f"day room {room_d}, {per_game}/game. NOTHING SPENT on them.")
+    params = {"markets": ",".join(FB_ALT_MARKETS), "oddsFormat": "american"}
+    if request == "bookmakers":
+        params["bookmakers"] = ",".join(FB_BOOK_KEYS)
+    else:
+        params["regions"] = REGIONS_FULL
+    worst = len(FB_ALT_MARKETS) * FB_ALT_WORST_UNITS
+    out, billed, spent, left, stopped = [], [], 0, None, None
+    books = league_books()
+    for eid, commence, home, away in buy:
+        if left is not None and left - worst < RESERVE:
+            stopped = f"only {left} credits left (reserve {RESERVE})"
+            break
+        try:
+            body, used, left = odds_get(f"/sports/{SPORT}/events/{eid}/odds", params)
+        except Exception as e:
+            log(f"  alt {away}@{home}: {type(e).__name__}: {e}")
+            continue
+        spent += used
+        billed.append(used)
+        out.append({"id": eid, "commence": commence, "home": home, "away": away,
+                    "bookmakers": [b for b in (body or {}).get("bookmakers") or []
+                                   if b.get("key") in books]})
+        if used > worst:
+            stopped = (f"a call billed {used}, above the worst case {worst} "
+                       f"the budget allows — stopped buying")
+            break
+    measured = max(billed) if billed else None
+    write(f"{daydir('alt-lines')}/{filename()}.gz", {
+        "pulled_at": stamp(), "endpoint": "per-event", "request": request,
+        "bookmakers": list(FB_BOOK_KEYS) if request == "bookmakers" else None,
+        "regions": REGIONS_FULL if request == "regions" else None,
+        "markets": FB_ALT_MARKETS, "credits_used": spent, "credits_remaining": left,
+        "billed_per_event": billed,
+        "measured_units": (measured / float(len(FB_ALT_MARKETS))) if measured else None,
+        "budget_per_game": per_game, "month_room": room_m, "day_room": room_d,
+        "bought": [e["id"] for e in out], "held": [list(h) for h in held],
+        "not_bought_budget": [e[0] for e in over], "stopped": stopped,
+        "n_events": len(out), "events": out,
+    }, compress=True)
+    log(f"alt-lines: bought {len(out)}, held {len(held)}, spent {spent} "
+        f"({request}; billed per game {billed or 'n/a'})")
+    if stopped and "above the worst case" in stopped:
+        raise RuntimeError("alt-lines: " + stopped)
     return left
 
 
@@ -4112,9 +4296,31 @@ def run_mode(mode):
             except Exception as _ce:
                 log(f"  football card FAILED: {type(_ce).__name__}: {_ce}")
                 log("  ⚠️ the board is safe; the card can be rebuilt")
+            # 🔴 `[Sam, 2026-09-24]` AND THE ALT LINES, ON THE SAME DEADLINE.
+            #    It buys only the games this deadline owns (the last one
+            #    before each kickoff) and spends nothing otherwise; converge
+            #    repairs a missed one through its own `alt-lines` row.
+            #    ⛔ A failure here never loses the props already bought.
+            try:
+                collect_alt_lines()
+                import game_lines_fb as _glf
+                _glf.build(LEAGUE)
+            except Exception as _ae:
+                log(f"  alt lines FAILED: {type(_ae).__name__}: {_ae}")
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.
+        elif mode == "alt-lines":
+            # 🔴 `[Sam, 2026-09-24]` PAID, FOOTBALL. Planned by converge from its
+            #    contract row; no cron names it. The tab is rebuilt straight
+            #    after, so a 3pm pull does not wait for the next card run.
+            left = collect_alt_lines()
+            try:
+                import game_lines_fb as _glf
+                _glf.build(LEAGUE)
+            except Exception as _ge:
+                log(f"  game lines tab FAILED: {type(_ge).__name__}: {_ge} — "
+                    f"the alt snapshot is safe on disk")
         elif mode == "props-pitcher-hr":
             left = collect_props("pitcher", REGIONS_CHEAP)
         elif mode == "props-batter-hr":
@@ -4310,6 +4516,16 @@ def run_mode(mode):
                     _fl.build(LEAGUE)
                 except Exception as e:
                     log(f"  ⚠️ the model ledger did not build "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back.")
+                # `[Sam, 2026-09-24]` the Game Lines tab: alt ladders priced
+                #    by the model just refitted above, frozen, graded, and
+                #    its own record. ⛔ It never touches the card.
+                try:
+                    import game_lines_fb as _glf
+                    _glf.build(LEAGUE)
+                except Exception as e:
+                    log(f"  ⚠️ the game lines tab did not build "
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back.")
         elif mode == "halftime-probe":

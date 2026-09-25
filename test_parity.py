@@ -52,8 +52,10 @@ CFB_ONLY = {"cfb-teams"}                    # NFL crests are embedded
 #    first", read off the AST of `collect_news`) — so if the chain is ever
 #    removed, THAT check fails rather than this entry quietly excusing an
 #    ungoverned artifact.
+# 💰 `alt-lines` rides the props pull `[2026-09-24]`; the chain is asserted
+#    against collect.py's source in test_game_lines_fb.py.
 DRIVEN_BY = {"props-board": "props-player", "fb-record": "card-fb",
-             "news-archive": "news"}
+             "news-archive": "news", "alt-lines": "props-player"}
 
 print("\n═══ 1. EVERY FOOTBALL MODE IS ROUTED FOR BOTH LEAGUES ═══")
 c, n = set(SCHED["ncaaf"]), set(SCHED["nfl"])

@@ -289,6 +289,26 @@ def last_due(times_et, now=None):
     return None if best is None else best + ET_OFFSET
 
 
+def next_due(times_et, now=None):
+    """The next scheduled build time strictly after `now` — `last_due`'s
+    mirror, same day rules and the same fixed ET offset. None if none in a
+    week. `[2026-09-24]` The alt-line pull buys each game at the LAST props
+    deadline before its kickoff, so it asks whether another one comes first."""
+    now = now or datetime.datetime.now(UTC)
+    et = now - ET_OFFSET
+    best = None
+    for fwd in range(0, 8):
+        d = (et + datetime.timedelta(days=fwd)).date()
+        for t in times_et:
+            days = t[2] if len(t) > 2 else None
+            if days is not None and d.weekday() not in days:
+                continue
+            cand = datetime.datetime.combine(d, datetime.time(t[0], t[1]), tzinfo=UTC)
+            if cand > et and (best is None or cand < best):
+                best = cand
+    return None if best is None else best + ET_OFFSET
+
+
 # ── Sam's schedule, 2026-08-28 ────────────────────────────────────────
 #   Scores & Matchups  live (the browser polls statsapi every 45s, free)
 #   Odds               7:00am and 4:00pm
@@ -681,6 +701,12 @@ def _football_contract(league, data, picks, now):
          "Player Props — the paid pull"),
         ("props-board", ("file", f"{latest}/props.json.gz"), T["props"], False,
          "Player Props — the join that puts props on the board"),
+        # 🔴 `[Sam, 2026-09-24]` THE ALT-LINE PULL, on the props deadlines and
+        #    the props window. ⛔ Its own mode, planned by converge, so no cron
+        #    changes: a missed deadline is repaired by the next run. A pull that
+        #    correctly buys nothing still writes its snapshot, so it is not late.
+        ("alt-lines", ("dir", f"{data}/{utc_day}/alt-lines"), T["props"], True,
+         "Game Lines — the paid alt-line pull"),
         # ⛔ ONE ROW FOR THE CARD FILE. Picks, Parlays and Track Record all
         # read it; three rows would be three chances to disagree.
         # 🔴 THE CARD PATH IS NOT `{picks}` AND MUST NOT BE. `card_fb.py`
@@ -898,6 +924,14 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/model-ledger.json"), T["card"], False,
          "What the model showed, graded"))
+    # `[Sam, 2026-09-24]` the Game Lines tab and its alt-rung record, rebuilt
+    #    by the same run (and right after every alt-line pull).
+    rows.append(
+        ("card-fb", ("file", f"{latest}/game-lines.json.gz"), T["card"], False,
+         "Game Lines — alt ladders with the model's prices"))
+    rows.append(
+        ("card-fb", ("file", f"{latest}/game-lines-record.json"), T["card"], False,
+         "Game Lines — the alt-rung track record"))
     # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
     # probe is `record.json` -- the file the Track Record tab reads.
     # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card
@@ -949,7 +983,7 @@ def _football_contract(league, data, picks, now):
     # GOVERNED: it is free, it rebuilds from whatever board exists, and a
     # dropped card cron is exactly what converge is now here to repair.
     if not _props_warranted(league, latest, now):
-        rows = [r for r in rows if r[0] not in ("props-player", "props-board")]
+        rows = [r for r in rows if r[0] not in ("props-player", "props-board", "alt-lines")]
     if T["teams"]:
         rows.append(("cfb-teams", ("file", f"{latest}/teams.json"),
                      T["teams"], False, "team logos across every tab"))

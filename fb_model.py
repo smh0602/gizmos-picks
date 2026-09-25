@@ -656,6 +656,33 @@ def current_picks(lg, rows, root=None, now=None):
     return sorted(out, key=lambda x: (x["commence"], x["game"], x["market"]))
 
 
+PRICING_DAYS = 8           # the Game Lines tab prices this week's slate
+
+
+def pricing(rows, now=None):
+    """`[Sam, 2026-09-24]` What the Game Lines tab needs to price ANY rung:
+    today's spread and total fits (the same fit `current_picks` makes) and
+    each upcoming game's inputs. ⛔ No new model — the live one, stored so
+    the tab does not rebuild every row a second time."""
+    now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    horizon = (datetime.datetime.fromisoformat(now.replace("Z", "+00:00"))
+               + datetime.timedelta(days=PRICING_DAYS)).strftime("%Y-%m-%d")
+    models = {}
+    for mk in ("spread", "total"):
+        data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
+        models[mk] = fit([x for x, _ in data], [y for _, y in data])
+    games = []
+    for r in rows:
+        if r["final"] or r["day"] < now[:10] or r["day"] > horizon:
+            continue
+        snap = r.get("snap") or {}
+        games.append({k: r.get(k) for k in ("id", "lg", "season", "day", "kick", "week", "home",
+                                            "away", "M", "T", "pml", "sig")}
+                     | {"names": list(snap.get("names") or []) or None,
+                        "commence": snap.get("commence")})
+    return {"models": models, "games": games, "ridge": RIDGE}
+
+
 def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
     lg = (lg or LEAGUE).lower()
     rows = build_rows(lg, root, extra_top, extra_players)
@@ -692,13 +719,22 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
                     "train the model but are not graded. Intervals use the effective n "
                     "clustered by game."),
            "graded": {mk: wf["books"][mk] for mk in MARKETS},
-           "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS}}
+           "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS},
+           "pricing": pricing(rows)}
     for mk in MARKETS:
         v = verdict(wf["closing"][mk])
         doc["record"][mk]["verdict"] = doc["closing_record"][mk]["verdict"] = v
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)
+    # `[Sam, 2026-09-24]` the pre-registered alt-lines check, on the rows
+    #    already built. ⛔ A failure there never costs this file.
+    if out is None:
+        try:
+            import fb_alt_lines
+            fb_alt_lines.build(lg, rows=rows, root=root, log=log)
+        except Exception as e:
+            log("  ⚠️ the alt-lines check did not run (%s: %s)" % (type(e).__name__, e))
     for key in ("record", "closing_record"):
         for mk in MARKETS:
             r = doc[key][mk]

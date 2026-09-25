@@ -288,7 +288,10 @@ _KNOWN = {"scores", "results", "pitchers", "hitters", "record", "gamelines",
           "props-pitcher", "props-batter", "props-board", "lineups",
           "weather", "card", "news", "props-player", "card-fb",
           "news-archive", "cfb-probe", "nfl-logs", "fb-scores", "fb-record",
-          "cfb-teams"}
+          "cfb-teams",
+          # `[Sam, 2026-09-24]` the alt-line pull: an arm in `run_mode`, and
+          # chained into the scheduled props pull (test_game_lines_fb.py).
+          "alt-lines"}
 ck("🔴 no contract row names a mode the collector does not already have",
    not (_MODES - _KNOWN),
    "⛔ converge runs the mode a row names. A mode with no arm is a "

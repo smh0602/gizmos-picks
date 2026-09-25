@@ -98,8 +98,10 @@ for lg in ("nfl", "ncaaf"):
     #    against `collect.py`'s source in `test_news_archive.py`, per the
     #    rule above — a `drivers` entry is a CLAIM, and this one is
     #    checked somewhere that fails if the chain goes away.
+    # 💰 `alt-lines` rides the props pull (`[Sam, 2026-09-24]`), and the
+    #    chain is asserted against `collect.py` in `test_game_lines_fb.py`.
     drivers = {"props-board": "props-player", "fb-record": "card-fb",
-               "news-archive": "news"}
+               "news-archive": "news", "alt-lines": "props-player"}
     unrunnable = sorted(m for m in governed
                         if m not in scheduled
                         and drivers.get(m) not in scheduled)
@@ -245,12 +247,16 @@ for lg in ("nfl", "ncaaf"):
     paid = {m for m, _p, _t, pd, _w in rows if pd}
     free = {m for m, _p, _t, pd, _w in rows if not pd}
     ck("gamelines" in paid, f"   {lg}: the odds board is paid", str(sorted(paid)))
-    ck(not (paid - {"gamelines", "props-player"}),
+    # 💰 `[2026-09-24]` `alt-lines` is a third paid pull (priced by
+    #    `budget.py`, capped at Sam's 1,500 a month). Named here, not waved
+    #    through: the check still fails on any OTHER row marked paid.
+    PAID_MODES = {"gamelines", "props-player", "alt-lines"}
+    ck(not (paid - PAID_MODES),
        f"   🔴 {lg}: nothing else is ever marked paid",
-       str(sorted(paid - {"gamelines", "props-player"})))
-    ck(not (free & {"gamelines", "props-player"}),
-       f"   ⛔ {lg}: and neither paid row is ever marked free",
-       str(sorted(free & {"gamelines", "props-player"})))
+       str(sorted(paid - PAID_MODES)))
+    ck(not (free & PAID_MODES),
+       f"   ⛔ {lg}: and no paid row is ever marked free",
+       str(sorted(free & PAID_MODES)))
 
 
 print("\n8. 🔴 THE CARD PROBE IS IMMUNE TO THE CALLER'S `picks` ARGUMENT")
@@ -302,7 +308,8 @@ for lg in ("nfl", "ncaaf"):
     #    (fb_model.build, chained after the shadow record) — so it is one of
     #    "the ones it builds", and the check below proves the chain exists.
     ck(all(p.endswith(("dossiers.json.gz", "fb-model.json", "fb-props-model.json",
-                       "card-calibration.json", "model-ledger.json")) for p in extra),
+                       "card-calibration.json", "model-ledger.json",
+                       "game-lines.json.gz", "game-lines-record.json")) for p in extra),
        f"   ⚠️ {lg}: `card-fb`'s other files are the ones it builds",
        f"unexpected non-picks files under card-fb: {extra}")
     _cfb = open("collect.py", encoding="utf-8").read()
@@ -315,6 +322,9 @@ for lg in ("nfl", "ncaaf"):
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("card-calibration.json" not in " ".join(extra)) or "_fcc.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds card-calibration.json",
+       "⛔ a contract row on a file its mode never writes is late for ever")
+    ck(("game-lines" not in " ".join(extra)) or "_glf.build(LEAGUE)" in _cfb,
+       f"   🔴 {lg}: ...and card-fb really builds the game lines files",
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("model-ledger.json" not in " ".join(extra)) or "_fl.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds model-ledger.json",
