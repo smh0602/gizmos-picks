@@ -87,3 +87,34 @@ No candidate had been scored against any result.
 ## Changelog
 
 - **2026-09-25:** written and committed before any scoring code.
+- **2026-09-25, first scoring (`mlb_pitcher_cal_run_2026-09-25.json`).**
+  Scored on the record rebuilt with proposal A (so 2026-09-22 is in):
+  709 graded pitcher rows (391 strikeouts, 318 outs), card dates
+  2026-08-23 to 2026-09-23, 0 rows that failed to join. All three
+  candidates **QUALIFY**:
+
+  | | Scored rows | Games | Mean d | p (one-sided, by game) | Log loss, card → candidate (K / outs) |
+  |---|---|---|---|---|---|
+  | C1 correction | 397 | 205 | +0.0441 | 0.0097 | 0.727 → 0.688 / 0.750 → 0.699 |
+  | **C2 with the price** | 397 | 205 | **+0.0451** | 0.0102 | 0.727 → 0.691 / 0.750 → 0.691 |
+  | D smoothed record | 709 | 334 | +0.0045 | 0.00002 | 0.722 → 0.719 / 0.763 → 0.756 |
+
+  - Only one ships. On the 397 rows every qualifier scored, mean log loss
+    was card 0.736, D 0.732, C1 0.692, **C2 0.691**. **C2 ships.**
+  - **D qualified and does NOT ship** (the one-ships rule). Its gain is
+    real but small (+0.0045 per row); it fixes rows like Gordon's 6/6,
+    as the audit predicted, and not the gap.
+  - ⚠️ What C2 learned, in words: on **outs** the printed number carries
+    almost no information once the price is known (its weight is
+    slightly negative, the price's is +0.28 on the standardised scale),
+    so a corrected outs row sits a little under its own break-even and
+    never has an edge. On **strikeouts** the printed number keeps real
+    weight, so a very high rating can still beat its price.
+  - ⚠️ **Consequence on the page:** pitcher rows only reach Gizmo's Picks
+    with a positive edge, so far fewer will. On the 2026-09-24 slate,
+    rebuilt at 16:00Z, `main` put 15 pitcher rows on the board and C2 put
+    none. The board fills its other half with hitters, as it always has.
+    Pairs and parlays still build, on the corrected number.
+  - `blend`, `carried` and the T21 flag are unchanged. The off switch is
+    `mlb_pitcher_cal.SHIPPED = None`, which is Sam's call.
+
