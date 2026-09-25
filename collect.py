@@ -3346,6 +3346,32 @@ BATTER_RESULT = {
 }
 
 
+# 🔴 A POSTPONED GAME IS SETTLED, NOT PENDING. `[measured 2026-09-24,
+# research/mlb_calibration_audit.md §4, Proposal A, approved by Sam]`
+# ~~`n_final < n_games` -> "not settled"~~ counted ONLY `Final` games, so
+# TOR @ BAL, Postponed on 2026-09-22, held its whole day back on every
+# rebuild, forever: 48 gradeable picks never reached the record.
+# ✅ At the book a prop on a postponed or cancelled game is a VOID, so
+# the game is settled-void: the other games grade, and its picks void
+# (nobody in it took the field, so they fall out exactly like any void).
+# ⚠️ `Suspended` is NOT here: a suspended game resumes and still ends.
+# ⛔ verify_record.py keeps its own copy of this set, by design (it may
+# not import the builder it checks); test_record_postponed.py fails if
+# the two copies ever differ.
+VOID_STATES = frozenset({"Postponed", "Cancelled"})
+
+
+def slate_settled(R):
+    """(settled, n_void) for one stored results file. Every game is Final
+    or VOID_STATES. A file that lists no games is never settled."""
+    games = R.get("games") or []
+    if not games:
+        return False, 0
+    n_void = sum(1 for g in games if g.get("state") in VOID_STATES)
+    n_final = sum(1 for g in games if g.get("state") == "Final")
+    return n_final + n_void == len(games), n_void
+
+
 def _won(val, line, side):
     if val is None:
         return None
@@ -3389,9 +3415,15 @@ def collect_record():
             skipped.append((date, "no results stored yet"))
             continue
         R = json.load(gzip.open(rf, "rt"))
-        if R.get("n_final", 0) < R.get("n_games", 1):
+        settled, _n_void = slate_settled(R)
+        if not settled:
             skipped.append((date, f"{R.get('n_final')}/{R.get('n_games')} games final -- not settled"))
             continue
+        # The postponed game's players are absent from `pit`/`bat` below,
+        # so its picks record as voids. The ids are kept so a void row can
+        # say WHY it voided.
+        _void_games = [f"{g.get('away')} @ {g.get('home')} ({g.get('state')})"
+                       for g in R["games"] if g.get("state") in VOID_STATES]
 
         pit, bat = {}, {}
         for g in R["games"]:
@@ -3446,7 +3478,8 @@ def collect_record():
         graded = [r for r in rows if r["won"] is not None]
         days.append({"date": date, "rows": rows, "graded": graded,
                      "n": len(graded), "w": sum(1 for r in graded if r["won"]),
-                     "voids": sum(1 for r in rows if r["won"] is None)})
+                     "voids": sum(1 for r in rows if r["won"] is None),
+                     "void_games": _void_games})
 
     def tally(rows):
         n = len(rows)
@@ -3488,7 +3521,9 @@ def collect_record():
                          "predicted": round(sum(r["blend"] for r in v) / len(v), 1),
                          **tally(v)} for b, v in sorted(buckets.items())],
         "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
-                     "voids": d["voids"]} for d in days],
+                     "voids": d["voids"],
+                     **({"void_games": d["void_games"]} if d["void_games"] else {})}
+                    for d in days],
         # 🔴 THE PER-PICK DETAIL LIVES IN ITS OWN GZIPPED FILE.
         # Sam, 2026-08-26: he wants to click a day and see what hit and what
         # missed. Inlining ~50 rows a day here would push record.json past

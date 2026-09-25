@@ -58,7 +58,7 @@ FB_CARD = {"date": "2026-09-03", "kind": "RECORD + MARKET",
            "league": "ncaaf", "picks": [{"market": "player_pass_tds"}]}
 RESULTS = {
     "slate_date": "2026-09-03", "n_games": 1, "n_final": 1,
-    "games": [{"id": "g1",
+    "games": [{"id": "g1", "state": "Final",
                "pitchers": [{"id": 2002, "started": True, "k": 5, "outs": 18}],
                "batters": [{"id": 1001, "H": 2, "tb": 3, "hr": 0, "r": 1,
                             "rbi": 1}]}],

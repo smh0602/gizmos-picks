@@ -60,6 +60,11 @@ if not os.path.exists("data/latest/record.json"):
     sys.exit(0)
 REC = _read_json("data/latest/record.json", "the track record")
 
+# ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE: this verifier may
+# not import the builder it checks. test_record_postponed.py fails if the
+# two ever differ.
+VOID_STATES = frozenset({"Postponed", "Cancelled"})
+
 # Results are filed under the RUN date and name their slate inside.
 BY_SLATE, UNSETTLED = {}, {}
 for p in glob.glob("data/*/results/final.json.gz"):
@@ -81,8 +86,17 @@ for p in glob.glob("data/*/results/final.json.gz"):
     # forbids reusing the number it is checking -- and if the builder has
     # not run since the card was written, that list does not mention the
     # slate at all. THAT IS EXACTLY WHAT HAPPENED ON 8/31.
-    n_g, n_f = r.get("n_games", 0), r.get("n_final", 0)
-    if n_g and n_f >= n_g:
+    # 🔴 A POSTPONED OR CANCELLED GAME IS SETTLED-VOID, NOT PENDING.
+    # `[2026-09-25, audit Proposal A]` ~~`n_f >= n_g`~~ counted only Final,
+    # so one rainout (TOR @ BAL, 2026-09-22) held its whole day out of the
+    # record forever. Derived HERE from each game's own state, never from
+    # the stored `n_final` -- and still strict: a Scheduled, Live or
+    # Suspended game keeps the slate ungraded.
+    _games = r.get("games") or []
+    n_g = len(_games)
+    n_f = sum(1 for g in _games if g.get("state") == "Final")
+    n_v = sum(1 for g in _games if g.get("state") in VOID_STATES)
+    if n_g and n_f + n_v == n_g:
         BY_SLATE.setdefault(r["slate_date"], r)
     else:
         UNSETTLED[r["slate_date"]] = f"{n_f}/{n_g} final"
