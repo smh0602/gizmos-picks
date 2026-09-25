@@ -1,0 +1,66 @@
+# ══════════════════════════════════════════════════════════════════════
+# T60R — THE PLAYED-GAMES BACKTEST, GRADED WEEKLY, BY ITSELF.
+# `[Sam approved the rule 2026-09-22; research/t60r_spec.md]`
+# ⛔ SAM UPLOADS THIS FILE BY HAND. It carries a `cron:` block, and
+# GitHub attributes every scheduled run in the repository to whoever last
+# changed one. CLAUDE.md, "IF YOU CAN PUSH TO THIS REPO".
+# ⛔ NOTHING HERE MAY CHANGE THE RULE. It runs `t60r.py`, which is pinned
+# to the approved spec by `test_prereg_gate.py`'s hash.
+# ⚠️ CFBD COST: 2 calls per run, once a week — `python cfbd_budget.py`
+# counts it from this file, so the budget stays derived.
+# ⚠️ Minute is off :00 and :30 on purpose: those slots get dropped.
+# ══════════════════════════════════════════════════════════════════════
+name: t60r
+# ⛔ THE STAMP. Every cron workflow writes its schedule into the run's name
+#    so `runs_report.py` can tell a cron that never fired from one that
+#    did. This line was MISSING from the first upload, and
+#    `test_runs_report.py` went red on `main` the moment it landed.
+run-name: ${{ github.event.schedule && format('t60r [cron {0}]', github.event.schedule) || format('t60r [{0}]', github.event_name) }}
+
+on:
+  schedule:
+    # Tuesday 09:17 UTC — after Monday night's game is final and after
+    # the Tuesday noon NFL log refresh has a full week behind it.
+    - cron: "17 9 * * 2"
+  workflow_dispatch:
+
+concurrency:
+  group: t60r
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  grade:
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Closing lines for FBS (CFBD)
+        env:
+          CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+        run: python t60r.py lines
+
+      - name: Grade every played game
+        run: python t60r.py grade
+
+      - name: Commit the report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/t60r/
+          if git diff --cached --quiet; then
+            echo "no change"
+            exit 0
+          fi
+          git commit -m "t60r: weekly backtest grading $(date -u +%Y-%m-%dT%H:%MZ)"
+          # ⛔ THE ONE WAY A WORKFLOW LANDS ITS COMMITS (CLAUDE.md).
+          bash push_retry.sh t60r
