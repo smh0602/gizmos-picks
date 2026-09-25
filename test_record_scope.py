@@ -36,6 +36,8 @@ import sys
 import tempfile
 from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
+import record_grader
+
 REPO = os.path.dirname(os.path.abspath(__file__))
 fails = []
 
@@ -135,9 +137,14 @@ def run_verifier(mutate):
     t = tempfile.mkdtemp()
     try:
         build_tree(t)
-        for f in ("verify_record.py",):
+        # ⚠️ `[2026-09-25]` the verifier rebuilds a record whose `grader`
+        #    is not the builder's beside it. This hand-written file stands
+        #    for one the CURRENT builder wrote, so it carries that stamp and
+        #    the tree carries the builder the stamp is read from.
+        for f in ("verify_record.py", "collect.py", "record_grader.py"):
             shutil.copy(os.path.join(REPO, f), t)
         rec = {"built_at": "2026-09-04T00:00:00Z", "kind": "DESCRIPTIVE",
+               "grader": record_grader.fingerprint(os.path.join(REPO, "collect.py")),
                "overall": {"w": 2, "n": 2, "pct": 100.0},
                "by_kind": {"pitcher": {"w": 1, "n": 1},
                            "hitter": {"w": 1, "n": 1}},

@@ -1,72 +1,115 @@
 {
- "built_at": "2026-09-25T07:14:14Z",
+ "built_at": "2026-09-25T20:01:02Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 99,
-  "n": 198,
-  "pct": 50.0
+  "w": 112,
+  "n": 223,
+  "pct": 50.2
  },
  "by_market": {
   "player_anytime_td": {
-   "w": 5,
-   "n": 13,
-   "pct": 38.5
+   "w": 7,
+   "n": 17,
+   "pct": 41.2
   },
   "player_pass_tds": {
-   "w": 7,
-   "n": 13,
-   "pct": 53.8
-  },
-  "player_pass_yds": {
-   "w": 6,
-   "n": 11,
-   "pct": 54.5
-  },
-  "player_reception_yds": {
-   "w": 29,
-   "n": 62,
-   "pct": 46.8
-  },
-  "player_receptions": {
-   "w": 36,
-   "n": 68,
+   "w": 9,
+   "n": 17,
    "pct": 52.9
   },
+  "player_pass_yds": {
+   "w": 8,
+   "n": 15,
+   "pct": 53.3
+  },
+  "player_reception_yds": {
+   "w": 33,
+   "n": 70,
+   "pct": 47.1
+  },
+  "player_receptions": {
+   "w": 37,
+   "n": 69,
+   "pct": 53.6
+  },
   "player_rush_yds": {
-   "w": 16,
-   "n": 31,
-   "pct": 51.6
+   "w": 18,
+   "n": 35,
+   "pct": 51.4
   }
  },
  "by_side": {
   "over": {
-   "w": 56,
-   "n": 126,
-   "pct": 44.4
+   "w": 63,
+   "n": 137,
+   "pct": 46.0
   },
   "under": {
-   "w": 38,
-   "n": 59,
-   "pct": 64.4
+   "w": 42,
+   "n": 69,
+   "pct": 60.9
   },
   "yes": {
-   "w": 5,
-   "n": 13,
-   "pct": 38.5
+   "w": 7,
+   "n": 17,
+   "pct": 41.2
   }
  },
  "by_book": {
   "hardrockbet": {
-   "w": 99,
-   "n": 198,
-   "pct": 50.0
+   "w": 112,
+   "n": 223,
+   "pct": 50.2
   }
  },
- "calibration": [],
+ "calibration": [
+  {
+   "bucket": "20-30%",
+   "stated": 28.0,
+   "w": 1,
+   "n": 1,
+   "pct": 100.0
+  },
+  {
+   "bucket": "30-40%",
+   "stated": 33.3,
+   "w": 2,
+   "n": 7,
+   "pct": 28.6
+  },
+  {
+   "bucket": "40-50%",
+   "stated": 44.8,
+   "w": 4,
+   "n": 6,
+   "pct": 66.7
+  },
+  {
+   "bucket": "50-60%",
+   "stated": 55.2,
+   "w": 2,
+   "n": 4,
+   "pct": 50.0
+  },
+  {
+   "bucket": "60-70%",
+   "stated": 63.3,
+   "w": 2,
+   "n": 3,
+   "pct": 66.7
+  },
+  {
+   "bucket": "70-80%",
+   "stated": 71.0,
+   "w": 2,
+   "n": 4,
+   "pct": 50.0
+  }
+ ],
  "card_method_current": "season-blend",
  "calibration_by_method": {
   "2025-only": [
@@ -119,6 +162,50 @@
     "n": 11,
     "pct": 54.5
    }
+  ],
+  "season-blend": [
+   {
+    "bucket": "20-30%",
+    "stated": 28.0,
+    "w": 1,
+    "n": 1,
+    "pct": 100.0
+   },
+   {
+    "bucket": "30-40%",
+    "stated": 33.3,
+    "w": 2,
+    "n": 7,
+    "pct": 28.6
+   },
+   {
+    "bucket": "40-50%",
+    "stated": 44.8,
+    "w": 4,
+    "n": 6,
+    "pct": 66.7
+   },
+   {
+    "bucket": "50-60%",
+    "stated": 55.2,
+    "w": 2,
+    "n": 4,
+    "pct": 50.0
+   },
+   {
+    "bucket": "60-70%",
+    "stated": 63.3,
+    "w": 2,
+    "n": 3,
+    "pct": 66.7
+   },
+   {
+    "bucket": "70-80%",
+    "stated": 71.0,
+    "w": 2,
+    "n": 4,
+    "pct": 50.0
+   }
   ]
  },
  "by_method": {
@@ -126,6 +213,11 @@
    "w": 99,
    "n": 198,
    "pct": 50.0
+  },
+  "season-blend": {
+   "w": 13,
+   "n": 25,
+   "pct": 52.0
   }
  },
  "by_day": [
@@ -187,31 +279,26 @@
   },
   {
    "date": "2026-09-24",
-   "w": 0,
-   "n": 0,
+   "w": 13,
+   "n": 25,
    "carded": 25,
    "voids": 0,
-   "unresolved": 25
+   "unresolved": 0
   }
  ],
- "days_graded": 7,
+ "days_graded": 8,
  "cards_seen": 8,
  "record_from": "2026-09-07",
  "cards_before_record_from": 0,
  "record_from_note": "Counting from 2026-09-07. No earlier cards were set aside.",
- "distinct_players": 75,
- "distinct_games": 30,
+ "distinct_players": 83,
+ "distinct_games": 31,
  "carded_rows": 225,
  "voids": 0,
- "unresolved": 27,
- "coverage_note": "198 of 225 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 27 could not be settled at all.",
+ "unresolved": 2,
+ "coverage_note": "223 of 225 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 2 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
- "skipped": [
-  {
-   "date": "2026-09-24",
-   "why": "nothing settled yet \u2014 the log does not reach this slate"
-  }
- ],
+ "skipped": [],
  "join_note": "A pick is joined to a game log by player name and a \u00b11-day window around kickoff. The window is there because the two leagues date a game differently \u2014 college logs a kickoff on its UTC date, so a Thursday night game lands on Friday, while the NFL logs the Eastern one \u2014 and it is safe because a player has at most one game inside any three-day window."
 }

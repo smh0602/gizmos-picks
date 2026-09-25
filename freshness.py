@@ -1060,7 +1060,55 @@ def contract(data="data", picks="picks", now=None):
         # ── unchanged
         ("news",     ("file", f"{latest}/news.json"),              NEWS, False,
          "News"),
-    ]
+    ] + runs_rows(latest)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 RUN STATUS — `data/latest/runs.json`. `[2026-09-25]`
+# Sam: "Nobody can read run status reliably from outside GitHub." The
+# hourly runs watcher (`runs.yml`, 41 past every hour UTC) writes the last
+# 48h of every workflow through `collect.py runs`.
+# ⚠️ AN HOURLY FILE GETS A MAXIMUM AGE, NOT AN HOURLY DEADLINE. GitHub
+#    drops scheduled runs (29 of 70 hour-slots landed, 2026-08-26); an
+#    hourly deadline would flap the watchdog's issue every time one did.
+#    `LATE_GRACE_MIN` moves the deadline back: the row is stale only when
+#    the newest file is older than the last top of the hour minus 100
+#    minutes — TWO consecutive watcher runs missing, not one.
+#    ⚠️ DERIVED, NOT PICKED: a run lands 44-58 minutes past the hour. One
+#    miss must stay fresh (grace >= 120 - 44 = 76); two misses must go
+#    stale (grace < 180 - 58 = 122). ~~150~~ was my first number and it
+#    only fired after THREE misses — caught by test_runs_status.py §4.
+# ⛔ NOT A TAB. `OFF_PAGE` keeps it off the reader's stale banner; it is
+#    SOFT (a late run list misleads no bettor), so it reaches Sam through
+#    the watchdog's issue, never through a red collect run.
+# ⛔ AND IT EXISTS ONLY ONCE THE WATCHER WRITES IT. Until Sam uploads the
+#    staged runs.yml (docs/upload/UPLOAD-runs.md) no job writes the file,
+#    and a row would be red on a correct system — CLAUDE.md, "no red
+#    window". The row switches itself on with the deployed workflow.
+# ══════════════════════════════════════════════════════════════════════
+RUNS_DUE = [(h, 0) for h in range(24)]
+LATE_GRACE_MIN = {"runs": 100}
+OFF_PAGE = {"runs"}
+RUNS_WRITER = "python collect.py runs"
+
+
+def runs_writer_deployed(root=None):
+    """Does the DEPLOYED runs.yml run the writer? Read, never assumed."""
+    root = root or os.path.dirname(os.path.abspath(__file__))
+    try:
+        with open(os.path.join(root, ".github", "workflows", "runs.yml"),
+                  encoding="utf-8") as fh:
+            return any(RUNS_WRITER in l and not l.lstrip().startswith("#")
+                       for l in fh)
+    except OSError:
+        return False
+
+
+def runs_rows(latest, root=None):
+    if not runs_writer_deployed(root):
+        return []
+    return [("runs", ("file", f"{latest}/runs.json"), RUNS_DUE, False,
+             "Run status — every workflow's last 48h (runs.yml, hourly)")]
 
 
 # 🔴 SOFT ARTIFACTS — late, or failing, must not take the site down.
@@ -1083,7 +1131,7 @@ def contract(data="data", picks="picks", now=None):
 #    (`test_news_archive.py`) rather than pretended into a contract row.
 #    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
 #    reads STALE.
-SOFT = {"news", "weather", "lineups", "cfb-teams", "news-archive"}
+SOFT = {"news", "weather", "lineups", "cfb-teams", "news-archive", "runs"}
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.
@@ -1231,6 +1279,8 @@ def survey(data="data", picks="picks", now=None):
                else age_minutes(path, now))
         built = None if age >= MISSING else now - datetime.timedelta(minutes=age)
         due = last_due(times, now)
+        if due is not None and mode in LATE_GRACE_MIN:
+            due -= datetime.timedelta(minutes=LATE_GRACE_MIN[mode])
         stale = built is None or (due is not None and built < due)
         rows.append({
             "mode": mode, "path": path, "kind": kind, "why": why,
@@ -1246,6 +1296,8 @@ def survey(data="data", picks="picks", now=None):
             "late_min": (None if (built is None or due is None or not stale)
                          else round((now - due).total_seconds() / 60.0, 1)),
             "paid": paid, "stale": stale, "missing": age >= MISSING,
+            # ⛔ a row no tab reads stays off the reader's stale banner
+            "page": mode not in OFF_PAGE,
         })
     return rows
 

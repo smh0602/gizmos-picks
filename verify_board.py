@@ -105,19 +105,23 @@ if m:
     def ts(x):
         return datetime.fromisoformat(x.replace("Z", "+00:00")).timestamp() * 1000
     def _match(away, home, when):
-        """index.html's rule, reimplemented: nearest commence, in window."""
+        """index.html's rule when a card has no MLB game to ask with:
+        the ONE record inside the window, or None.
+
+        `[2026-09-25]` ~~nearest commence, in window~~ — the page now
+        refuses to choose between two records inside the window, so this
+        copy does too (a copy that still picked one would call a row
+        matched while the page showed nothing). The page's game-number
+        match needs MLB's schedule, which a carded row does not carry;
+        `test_board_doubleheader.py` covers that half."""
         cand = [g for g in games if g["away"] == away and g["home"] == home]
         if not cand:
             return None
         if not when:
             return cand[0] if len(cand) == 1 else None
         t = ts(when)
-        best, bg = None, float("inf")
-        for g in cand:
-            gap = abs(ts(g["commence"]) - t)
-            if gap < bg:
-                bg, best = gap, g
-        return best if bg <= win_ms else None
+        near = [g for g in cand if abs(ts(g["commence"]) - t) <= win_ms]
+        return near[0] if len(near) == 1 else None
 
     # ══════════════════════════════════════════════════════════════════
     # 🔴 ~~"no two records for one matchup sit inside the page's window"~~

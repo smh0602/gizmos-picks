@@ -1,0 +1,66 @@
+verify_card FAILED at 2026-09-25T20:28:01Z
+pass 6 of run 1834
+--- the failing checks ---
+  FAIL ⛔ NO inverted hitter projection contradicts its own row (31 rows, zero tolerance -- stricter than T37's 5%)  [('Andrés Chaparro', 'batter_rbis', 'under', 0.5, 78, 0.52)]
+FAILURES: ⛔ NO inverted hitter projection contradicts its own row (31 rows, zero tolerance -- stricter than T37's 5%)
+--- last 60 lines ---
+  PASS no player appears twice  []
+  PASS it is ordered by confidence, descending
+  PASS every top-10 row traces to a row the card priced (2389 priced keys)  []
+  PASS every carded row is flagged priced in the index  []
+  PASS the priced flag is a subset, not a rubber stamp (2389 of 2414)
+  PASS the price gate actually excluded something, and the card says how much  135 row(s) excluded
+
+34. PARLAYS -- recomputed leg by leg
+  PASS every parlay's leg count matches its own n_legs (24 parlays)
+  PASS every parlay pays inside the band its section advertises  []
+  PASS multiplier re-derived from the American prices  []
+  PASS joint is the product of the legs' own numbers  []
+  PASS no parlay puts two legs in the same GAME ID  []
+  PASS no parlay reuses a player
+  PASS no parlay leg is shorter than the -700 floor
+  PASS the builder counts a price of exactly the floor as CLEARING it  ⛔ if a row priced at exactly -700 is labelled as NOT clearing, the builder and this file have drifted apart again and one of them is lying to the reader
+  PASS every joint number is labelled MODEL, RECORD or MIXED (rule 55)
+  PASS the MIXED label appears exactly when the legs' provenance differs  []
+  PASS every 'strictly worse' warning names a parlay that really is on this card (8 warned)  []
+
+35. OPPONENT RECENT STARTERS -- descriptive, point-in-time, and NOT in the model
+  PASS every pitcher row carries the opponent block (0 of 0)  []
+  PASS no listed start is dated on or after the slate  []
+  PASS every block is about the opponent the row actually faces  []
+  PASS each block is newest-first  []
+  PASS no block lists more than 10 starts
+  PASS the average recomputes from the rows shown  []
+  PASS every block is labelled DESCRIPTIVE (rule 55)
+  PASS every block states in words that it is not a model input
+
+36. THE WHY -- the splits Sam asked for, counted at the row's own line
+  PASS every pitcher row carries the five splits (0 rows)
+  PASS the season split agrees with the row's own raw record  []
+  PASS home + road accounts for every start in the season split  []
+  PASS the last-15 split never counts more than 15 starts  []
+  PASS every row's why mentions the splits
+
+37. BATTER ALTERNATE LINES, INNINGS NOTATION, AND PLAIN ENGLISH
+  PASS no batter row sits on an alternate line (50 hitter rows)  []
+  PASS no batter row is priced at -1000 or shorter
+  PASS every innings figure uses thirds (.0 .1 .2 only)  []
+  PASS innings notation matches the out count it describes  []
+  PASS no jargon in any why (250 lines checked)  []
+  PASS every row still explains itself  []
+  PASS every hitter row still says its number is a record, not a forecast
+
+38. THE PAGE SHOWS ONLY WHAT A READER CAN ACT ON
+  NOTE  0 flag(s) on this card: 0 shown, 0 recorded but not rendered
+  PASS the Hard Rock flag is written on EVERY row that needs it and no row that does not (50 rows reconciled against the board)  missing=[] false=[]
+  PASS every row's on_hardrock agrees with the stored board  []
+  PASS every flag that reaches the page is marked actionable
+  PASS no model diagnostic is marked for display  []
+
+39. THE PRINTED PITCHER NUMBER AND THE HITTER BAND LABEL, RE-DERIVED
+  PASS every pitcher row prints the number its stored correction gives (271 priced rows)  []
+  PASS a corrected pitcher row says so in its note
+  PASS the hitter 'running hot' label is on every row whose band runs hot and no other (50 rows)  missing=[] false=[]
+  PASS the stored hitter band table is calibration.band_flags' own verdict
+
+FAILURES: ⛔ NO inverted hitter projection contradicts its own row (31 rows, zero tolerance -- stricter than T37's 5%)
