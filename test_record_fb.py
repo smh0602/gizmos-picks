@@ -19,6 +19,17 @@ and a feed can change:
   2. an NFL log row does NOT mean he played (68% have zero snaps)
   3. college omits a category instead of writing a zero
 """
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity every graded row lands in its method's buckets — none dropped
+#   file: record_fb.py
+#   find: for m, bk in per.items()}
+#   with: for m, bk in per.items() if m == current}
+#
+# @vacuity `calibration` is the CURRENT method's buckets, not another's
+#   file: record_fb.py
+#   find: return out.get(current, []), out
+#   with: return out.get(METHOD_BEFORE, []), out
+# ══════════════════════════════════════════════════════════════════════
 import glob
 import gzip
 import json
@@ -164,10 +175,11 @@ if not D.get("days"):
          "from " + str(R.get("record_from", "its start date")))
 ck("the record is labelled DESCRIPTIVE and RECORD, never MODEL",
    R["kind"] == "DESCRIPTIVE" and R["basis"] == "RECORD"
-   and "MODEL" not in json.dumps(R["calibration"]).upper(),
+   and "MODEL" not in json.dumps(R.get("calibration_by_method")).upper(),
    "ledger rule 55 — football has no model to calibrate")
 ck("the calibration column is headed `stated`, not `predicted`",
-   all("stated" in c for c in R["calibration"]) if R["calibration"] else True,
+   all("stated" in c for v in (R.get("calibration_by_method") or {}).values()
+       for c in v),
    "a record is not a forecast")
 
 # ⛔ THE POINTER FILE MUST NOT BE GRADED TWICE.
@@ -365,9 +377,31 @@ ck("every by_market tally reconciles against the detail rows",
 ck("every by_day tally reconciles too",
    all(d["n"] == len([r for r in D["days"][d["date"]] if r["won"] is not None])
        for d in R["by_day"]))
-ck("the calibration buckets hold every graded row that has a confidence",
-   sum(c["n"] for c in R["calibration"])
-   == len([r for r in graded if r.get("confidence") is not None]))
+# 🔴 ONE METHOD'S BUCKETS PER ROW, EVERY ROW IN EXACTLY ONE. `[2026-09-24]`
+# ⛔ THIS USED TO SUM `calibration` ALONE. The day the card switched
+#    method (PR #158) `calibration` became the NEW method's buckets — empty
+#    until its first slate is graded — and this went red on a correct
+#    record. The question is unchanged and now asked of every method:
+#    each graded row with a confidence lands in its OWN method's buckets,
+#    so the per-method counts match the detail rows method by method.
+_CAL = R.get("calibration_by_method") or {}
+_conf = [r for r in graded if r.get("confidence") is not None]
+_want = {}
+for _r in _conf:
+    _m = _r.get("card_method") or record_fb.METHOD_BEFORE
+    _want[_m] = _want.get(_m, 0) + 1
+_got = {m: sum(c["n"] for c in v) for m, v in _CAL.items()}
+ck("every graded row with a confidence is in exactly one method's buckets",
+   _got == _want and sum(_got.values()) == len(_conf),
+   "per method, buckets %s vs detail rows %s (of %d)"
+   % (_got, _want, len(_conf)))
+ck("`calibration` is exactly the CURRENT method's buckets, never a pool",
+   R["calibration"] == _CAL.get(R.get("card_method_current"), []),
+   "current=%s" % R.get("card_method_current"))
+for _m in [R.get("card_method_current")] + [m for m in _CAL if m != R.get("card_method_current")]:
+    if not _CAL.get(_m):
+        note("⚠️ method %r has no graded rows yet — reported, not failed: a "
+             "method that has just gone live has graded nothing" % _m)
 
 # 🔴 THE HONEST LIMIT MUST BE ON THE FILE, NOT ONLY IN A DOCSTRING.
 ck("the file states which way the unsettled rows bias the number",
