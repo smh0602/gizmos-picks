@@ -124,6 +124,9 @@ FROZEN = {
     # [Sam, 2026-09-24] signal 9 rules in section 2; formulas, the keep
     # rule and the dossier in section 3 fixed by Claude before any scoring.
     "fb_signal9_spec.md": "dad87ef8ddf949bd50796137d0bda9817e51ae82aa7bb23057de2f4e55b066b6",
+    # [Sam, 2026-09-24] the alt-lines check in section 2; formulas, bar and
+    # label rule in section 3 fixed by Claude before any scoring code.
+    "fb_alt_lines_spec.md": "74f9ddca892acc81228edeaa80712171183c35678f6fd0bf7ad6b21b8d03d1db",
 }
 
 
