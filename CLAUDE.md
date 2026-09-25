@@ -548,6 +548,22 @@ fb_signal9.py     scores signal 9's three uses by Sam's keep rule (mean
                   log-loss difference >= 0, clustered by game). ⛔ The
                   per-league switches are constants set from the recorded
                   run; test_signal9.py fails if they disagree.
+game_lines_fb.py  THE GAME LINES TAB (Sam, 2026-09-24): every alt spread
+                  and total Hard Rock / FanDuel / DraftKings post for the
+                  slate, each rung's price per book, best, break-even,
+                  the game model's % and edge; frozen before kickoff
+                  (daystore), graded once, its own record; alt-only
+                  parlays through card_fb.build_parlays_fb's rules,
+                  built and RANKED ON THE BOOKS' OWN CHANCE (de-vigged
+                  per book, MARKET) — ⛔ never the model's % [Sam,
+                  2026-09-25: the check failed; NFL points the wrong way].
+                  ⛔ Never touches the card. Data: the paid `alt-lines`
+                  pull in collect.py (one pull per game, capped at
+                  1,500 credits a month, bill measured per call).
+fb_alt_lines.py   the pre-registered check (research/fb_alt_lines_spec.md,
+                  frozen): is the game model calibrated 3/7/10 points off
+                  the main line? ⛔ Decides the tab's LABEL, never whether
+                  a number shows. Called by fb_model.build on its rows.
 liveprobe.py      can the football scores tab ever be live?
 verify_nfl.py     the football data-layer verifier
 

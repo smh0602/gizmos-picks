@@ -469,6 +469,25 @@ a.cell.best:hover{background:#d4ecdd}
 .tapme{font-size:10.5px;color:var(--mut);text-align:center;padding:7px 0 9px;letter-spacing:.02em}
 footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid var(--line)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
+/* 🔴 GAME LINES `[Sam, 2026-09-24]` — one grid per rung. ⚠️ ON A PHONE IT
+   FOLDS TO FOUR COLUMNS AND EVERY CELL NAMES ITSELF, so no price is dropped
+   to make it fit and nothing scrolls sideways. */
+.glwrap{overflow-x:auto}
+.glmain{border-collapse:collapse;font-size:12px;margin:6px 0 10px}
+.glmain th,.glmain td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.glr{display:grid;grid-template-columns:minmax(96px,1.3fr) minmax(64px,.8fr) repeat(3,minmax(50px,.7fr)) minmax(84px,1fr) repeat(3,minmax(58px,.7fr));
+  gap:4px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+.glr.gh{font-weight:700;color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
+.glr.nofloor{opacity:.62}
+.glwarn{color:#b26a00;font-weight:800;cursor:help}
+.glgame{margin:0 0 22px}
+@media(max-width:600px){
+  .glr{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .glr.gh{display:none}
+  .glr > div[data-l]::before{content:attr(data-l);display:block;font-size:9.5px;color:var(--mut);
+    text-transform:uppercase;letter-spacing:.03em}
+  .glr .glw{grid-column:1 / -1}
+}
 
 /* ── the staleness banner ─────────────────────────────────────────
    Deliberately loud and at the very top. It is not decoration: it is
@@ -2704,7 +2723,8 @@ const TAB_TAG = {
     scores:'Schedule, scores &amp; box scores', picks:'Market board &mdash; no model',
     odds:'Live board, vig removed', record:'Every published row, graded',
     trends:'Defensive &amp; offensive trends', news:'Around the league',
-    parlays:'Market only &mdash; no model', props:'Player props &mdash; best price'
+    parlays:'Market only &mdash; no model', props:'Player props &mdash; best price',
+    gamelines:'Alt lines &mdash; three books, the model&rsquo;s price'
   }
 };
 
@@ -2809,6 +2829,7 @@ const FB_EMPTY = {
   parlays: ['Parlays', 'Parlays are built from carded plays. There are no football picks yet, so there is nothing to pair.'],
   record:  ['Track Record', 'Nothing has been carded, so nothing has been graded. An empty record is the honest state, not a bug.'],
   news:    ['News', 'The news feed is MLB-only today.'],
+  gamelines: ['Game Lines', 'Loading&hellip;'],
 };
 
 /* ⛔ ONE FILE PER SIDE, BUILT BY ONE FUNCTION ON THE COLLECTOR. The
@@ -2886,9 +2907,10 @@ function fbPanel(inner){
 }
 
 function fbShell(inner){
-  const tabs = ['trends','scores','picks','odds','props','parlays','record','news'];
+  const tabs = ['trends','scores','picks','odds','props','gamelines','parlays','record','news'];
   const nm = { trends:'Trends', scores:'Scores', picks:"Gizmo's Picks", odds:'Odds',
-               props:'Player Props', parlays:'Parlays', record:'Track Record', news:'News' };
+               props:'Player Props', gamelines:'Game Lines', parlays:'Parlays',
+               record:'Track Record', news:'News' };
   return `<nav class="subnav" style="background:transparent;border-bottom:1px solid #dfe4ea;margin:-4px 0 16px">
       <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:2px">
       ${tabs.map(t => `<li><a data-fbtab="${t}" class="${t===FBTAB?'on':''}"
@@ -4353,6 +4375,202 @@ async function fbProps(){
   on('fb-pf-side', e => { fbPf.side = e.target.value; fbProps(); });
   const t = $('#fb-pr-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbProps(); });
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   GAME LINES — alt spreads and totals at Hard Rock, FanDuel, DraftKings.
+   🔴 `[Sam, 2026-09-24]` "a Game Lines tab (like the Player Props tab) for
+      NFL and CFB showing more than one line per game (alt lines) with the
+      model's projections for game lines."
+   ⛔ EVERY RUNG IS DRAWN. No cap and no filter beyond the reader's own —
+      Sam gets the data and decides. `game_lines_fb.py` computes every
+      number; this page sorts and prints, it never prices anything (a price
+      computed here would be a second copy of the model).
+   ⛔ RULE 55: prices and break-evens wear Market, the model's % and edge
+      wear Model — and a rung that failed the pre-registered alt-lines check
+      carries its warning ON THE ROW, not in a footnote.
+   ══════════════════════════════════════════════════════════════════ */
+const FBGL = {}, FBGLREC = {};
+const fbGl = {game:'all', market:'both', sort:'line'};
+
+async function fbGlLoad(){
+  if (FBGL[LEAGUE] !== undefined) return FBGL[LEAGUE];
+  try { FBGL[LEAGUE] = await jgetGz(`${LG_DATA[LEAGUE]}/latest/game-lines.json.gz`); }
+  catch(e){ FBGL[LEAGUE] = null; }
+  return FBGL[LEAGUE];
+}
+async function fbGlRecLoad(){
+  if (FBGLREC[LEAGUE] !== undefined) return FBGLREC[LEAGUE];
+  try { FBGLREC[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/game-lines-record.json`); }
+  catch(e){ FBGLREC[LEAGUE] = null; }
+  return FBGLREC[LEAGUE];
+}
+
+/* Display order only — ladder, model %, or edge. */
+function fbGlSort(rungs, key){
+  const r = rungs.slice();
+  if (key === 'mkt') r.sort((a, b) => (b.mkt == null ? -1 : b.mkt) - (a.mkt == null ? -1 : a.mkt));
+  else if (key === 'p') r.sort((a, b) => (b.p == null ? -1 : b.p) - (a.p == null ? -1 : a.p));
+  else if (key === 'edge') r.sort((a, b) => (b.edge == null ? -1e9 : b.edge) - (a.edge == null ? -1e9 : a.edge));
+  else r.sort((a, b) => a.side < b.side ? -1 : a.side > b.side ? 1 : a.pt - b.pt);
+  return r;
+}
+
+function fbGlPt(r){ return r.m === 'spread' ? (r.pt > 0 ? '+' + r.pt : '' + r.pt) : '' + r.pt; }
+
+function fbGlHead(books){
+  return `<div class="glr gh"><div>Line</div>
+    <div>Books&rsquo; chance <span class="kind k-market">Market</span></div>${books.map(b => `<div>${b}</div>`).join('')}
+    <div>Best <span class="kind k-market">Market</span></div>
+    <div>Break-even <span class="kind k-market">Market</span></div>
+    <div>Model % <span class="kind k-model">Model</span></div>
+    <div>Edge <span class="kind k-model">Model</span></div></div>`;
+}
+
+function fbGlRung(r, g, books){
+  const who = r.m === 'spread' ? fbAb(r.side === 'home' ? g.home : g.away)
+                               : (r.side === 'over' ? 'Over' : 'Under');
+  return `<div class="glr${r.floor ? '' : ' nofloor'}">
+    <div class="glw"><b>${who} ${fbGlPt(r)}</b>${r.floor ? ''
+      : ' <span class="rec">below &minus;700 &middot; never paired</span>'}</div>
+    <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b>${(r.mkt_one_side || []).length
+      ? ` <span class="rec" title="Only one side posted at ${r.mkt_one_side.join(', ')} &mdash; that price's break-even, no vig removed">one side</span>` : ''}</div>
+    ${books.map(b => `<div data-l="${b}">${(r.prices || {})[b] == null ? '&mdash;' : sgn(r.prices[b])}</div>`).join('')}
+    <div data-l="Best">${sgn(r.best)} <span class="rec">${r.book}</span></div>
+    <div data-l="Break-even">${r.be}%</div>
+    <div data-l="Model %">${r.p == null ? '&mdash;' : r.p + '%'}${r.cal ? ''
+      : ` <span class="glwarn" title="${r.warn || ''}">&#9888;</span>`}</div>
+    <div data-l="Edge">${r.edge == null ? '&mdash;' : (r.edge > 0 ? '+' : '') + r.edge + '%'}</div>
+  </div>`;
+}
+
+function fbGlMain(g, books){
+  const cell = x => x ? `${x[0] == null ? '' : (x[0] > 0 ? '+' + x[0] : x[0])} ${sgn(x[1])}` : '&mdash;';
+  const rows = books.map(b => { const m = (g.main || {})[b] || {};
+    return `<tr><td><b>${b}</b></td>
+      <td>${fbAb(g.away)} ${cell(m.spread && m.spread.away)}</td><td>${fbAb(g.home)} ${cell(m.spread && m.spread.home)}</td>
+      <td>O ${cell(m.total && m.total.over)}</td><td>U ${cell(m.total && m.total.under)}</td>
+      <td>${m.moneyline ? `${fbAb(g.away)} ${sgn(m.moneyline.away)} / ${fbAb(g.home)} ${sgn(m.moneyline.home)}` : '&mdash;'}</td></tr>`; }).join('');
+  return `<div class="glwrap"><table class="glmain"><tr><th>Main lines <span class="kind k-market">Market</span></th>
+    <th colspan="2">Spread</th><th colspan="2">Total</th><th>Moneyline</th></tr>${rows}</table></div>`;
+}
+
+function fbGlFair(g){
+  const one = (label, v, why, warn, fmt) => `<span style="margin-right:14px">${label}
+    <b>${v == null ? '&mdash;' : fmt(v)}</b> <span class="kind k-model">Model</span>
+    ${v == null && why ? `<span class="rec">${why}</span>` : ''}
+    ${warn ? ` <span class="glwarn" title="${warn}">&#9888; ${warn}</span>` : ''}</span>`;
+  return `<div style="font-size:12px;margin:0 0 8px">
+    ${one("Model's fair spread", g.fair_spread, g.fair_spread_why, g.fair_spread_warn,
+          v => `${fbAb(g.home)} ${v > 0 ? '+' + v : v}`)}
+    ${one("Model's fair total", g.fair_total, g.fair_total_why, g.fair_total_warn, v => '' + v)}</div>`;
+}
+
+function fbGlGame(g, G, st){
+  const books = G.books || [];
+  const mk = st.market === 'both' ? ['spread', 'total'] : [st.market];
+  const lad = mk.map(m => {
+    const list = fbGlSort(g[m] || [], st.sort);
+    if (!list.length) return `<div class="rec" style="margin:4px 0 10px">No alt ${m === 'spread' ? 'spreads' : 'totals'} stored for this game yet${
+      g.alt_pulled_at ? '' : ' &mdash; each game is priced once, at the last odds pull before kickoff'}.</div>`;
+    return `<div style="margin:8px 0 4px;font-weight:700">Alt ${m === 'spread' ? 'spreads' : 'totals'}
+      <span class="rec">${list.length} rung${list.length === 1 ? '' : 's'}</span></div>
+      ${fbGlHead(books)}${list.map(r => fbGlRung(r, g, books)).join('')}`;
+  }).join('');
+  return `<div class="glgame" data-game="${g.id}"><div class="ghead">
+      ${fbMark(g.away, 20)} ${fbAb(g.away)} <span style="color:var(--line)">@</span>
+      ${fbMark(g.home, 20)} ${fbAb(g.home)}
+      <span class="tt2">${fbKickTime(g.commence) || ''}${g.alt_pulled_at ? ` &middot; alt prices ${fbKickTime(g.alt_pulled_at)}` : ''}</span></div>
+    ${fbGlMain(g, books)}${g.modelled ? fbGlFair(g) : '<div class="rec">The model has no row for this game, so its rungs carry no model %.</div>'}
+    ${lad}</div>`;
+}
+
+function fbGlParlays(G){
+  const P = G.parlays || {}, sizes = Object.keys(P).filter(k => (P[k] || []).length);
+  if (!sizes.length) return '';
+  return `<div class="panel" style="margin-top:18px"><h2>Alt-line parlays
+      <span class="kind k-market">Market</span></h2>
+    <p style="font-size:12px">Built by the same parlay builder and rules as the Parlays tab &mdash;
+      2 legs 1.8x+, 3&ndash;4 legs 3x+, no ceiling, legs in different games at one book, nothing
+      below &minus;700 &mdash; from alt rungs only, ranked by <b>the books&rsquo; own chance</b> that
+      every leg lands. The model&rsquo;s % is not used here.</p>
+    ${sizes.map(k => `<div style="margin:10px 0 4px;font-weight:700">${k} legs</div>` + P[k].map(p => `
+      <div class="glr" style="grid-template-columns:minmax(0,3fr) repeat(3,minmax(0,1fr))">
+        <div class="glw">${p.legs.join('<br>')}</div>
+        <div data-l="Book">${p.book}</div>
+        <div data-l="Pays">${p.multiplier}x</div>
+        <div data-l="Books&rsquo; chance all land">${p.joint}%</div></div>`).join('')).join('')}
+    <div class="note" style="margin-top:8px">${(G.parlays && sizes.length && P[sizes[0]][0].joint_note) || ''}</div></div>`;
+}
+
+function fbGlRecordHtml(R){
+  if (!R || !R.markets) return '';
+  const row = (m, x) => {
+    const e = x.positive_edge || {}, v = k => (e[k] || {}).value;
+    return `<tr><td><b>${m === 'spread' ? 'Alt spreads' : 'Alt totals'}</b></td><td>${x.shown}</td><td>${x.graded}</td>
+      <td>${x.pending}</td><td>${v('picks') || 0}</td><td>${v('hit_rate') == null ? '&mdash;' : v('hit_rate') + '%'}</td>
+      <td>${v('break_even') == null ? '&mdash;' : v('break_even') + '%'}</td><td>${v('effective_n') == null ? '&mdash;' : v('effective_n')}</td></tr>`;
+  };
+  return `<div class="panel" style="margin-top:18px"><h2>Track record &mdash; alt rungs
+      <span class="kind k-desc">Descriptive</span></h2>
+    <div class="glwrap"><table class="glmain"><tr><th></th><th>Shown</th><th>Graded</th><th>Pending</th>
+      <th>Model edge &gt; 0</th><th>Hit</th><th>Break-even</th><th>Games (eff. n)</th></tr>
+      ${Object.entries(R.markets).map(([m, x]) => row(m, x)).join('')}</table></div>
+    <p style="font-size:12px;color:var(--mut)">${R.note || ''}</p></div>`;
+}
+
+/* 🔴 PURE: data in, HTML out — `test_game_lines_page.py` renders the real
+   artifact through exactly this in node. */
+function fbGameLinesHtml(G, R, games, st){
+  const chk = G.check || {};
+  const failed = Object.keys(chk).filter(m => (chk[m] || {}).state !== 'PASS');
+  /* 🔴 `[Sam, 2026-09-25]` THE BOOKS' CHANCE LEADS; the model's % sits beside
+     it, and this says in plain words what the check found. */
+  const warnNote = failed.length ? `<div class="note" style="margin:0 0 12px">&#9888; <b>Read the
+      books&rsquo; chance first.</b> The model&rsquo;s % is shown beside it, but a test run before
+      this tab was built found ${failed.map(m => `for alt ${m === 'spread' ? 'spreads' : 'totals'}
+      <b>${(chk[m] || {}).finding || G.warning}</b>`).join('; and ')}. The &#9888; on a row is that result.</div>` : '';
+  return `<div style="margin-bottom:10px"><h2 style="margin:0 0 4px;font-size:16px">Game Lines
+      <span class="kind k-market">Market</span> <span class="kind k-model">Model</span></h2>
+    ${fbDayLine(G)}</div>${warnNote}
+    ${games.map(g => fbGlGame(g, G, st)).join('') || '<div class="msg">No games on this slate match the filters.</div>'}
+    ${fbGlParlays(G)}${fbGlRecordHtml(R)}`;
+}
+
+async function fbGameLinesTab(){
+  const v = $('#fbview');
+  v.innerHTML = fbShell('<div class="note" data-gl>Loading&hellip;</div>');
+  fbWire();
+  const [G, R] = await Promise.all([fbGlLoad(), fbGlRecLoad()]);
+  if (!G || !(G.games || []).length){
+    v.innerHTML = fbShell(`<div class="note" data-gl><b>No ${LG_NAME[LEAGUE]} game lines stored yet.</b><br>
+      The tab fills after the next odds pull; each game's alt lines are bought once, at the last
+      pull before kickoff.</div>`);
+    fbWire(); return;
+  }
+  const {list, nStarted, allDone} = splitStarted(G.games);
+  const games = list.filter(g => (fbGl.game === 'all' || g.id === fbGl.game) && fbConfPass(g.away, g.home));
+  const opt = (id, cur, pairs) => `<select id="${id}">${pairs.map(([k, t]) =>
+    `<option value="${k}"${k === cur ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
+  v.innerHTML = fbShell(`<span data-gl hidden></span>${fbConfBar()}
+    <div class="pfilt">
+      ${opt('fb-gl-game', fbGl.game, [['all', 'All games']].concat(G.games.map(g =>
+        [g.id, `${fbAb(g.away)} @ ${fbAb(g.home)} — ${fbKickTime(g.commence) || ''}`])))}
+      ${opt('fb-gl-mkt', fbGl.market, [['both', 'Spreads and totals'], ['spread', 'Alt spreads'], ['total', 'Alt totals']])}
+      ${opt('fb-gl-sort', fbGl.sort, [['line', 'Ladder order'], ['mkt', "Sort by books' chance"],
+                                        ['p', 'Sort by model %'], ['edge', 'Sort by edge']])}
+      <span class="stamp">${(G.n_rungs || 0).toLocaleString()} rungs &middot; ${freshness(G.built_at)}</span>
+    </div>
+    ${startedToggle(nStarted, 'fb-gl-started', allDone)}
+    ${fbGameLinesHtml(G, R, games, fbGl)}`);
+  fbWire();
+  const on = (id, fn) => { const e = $('#' + id); if (e) e.addEventListener('change', fn); };
+  on('fb-gl-game', e => { fbGl.game = e.target.value; fbGameLinesTab(); });
+  on('fb-gl-mkt',  e => { fbGl.market = e.target.value; fbGameLinesTab(); });
+  on('fb-gl-sort', e => { fbGl.sort = e.target.value; fbGameLinesTab(); });
+  const t = $('#fb-gl-started');
+  if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbGameLinesTab(); });
 }
 
 
@@ -6432,7 +6650,7 @@ async function fbOpenBox(g){
 
 
 const FB_TITLE = {trends:'Trends', scores:'Scores & Matchups',
-  picks:"Gizmo's Picks", odds:'Odds', props:'Player Props',
+  picks:"Gizmo's Picks", odds:'Odds', props:'Player Props', gamelines:'Game Lines',
   parlays:'Parlays', record:'Track Record', news:'News'};
 
 /* ══════════════════════════════════════════════════════════════════
@@ -6835,6 +7053,12 @@ async function renderFootball(){
 }
 
 function fbWire(){
+  /* 🔴 GAME LINES IS ROUTED HERE, NOT IN `renderFootball` — that function is
+     pinned byte for byte by `test_mlb_untouched.py`. Every football render
+     ends in fbWire(), so this catches every path to the tab: a tab click, a
+     conference chip, a league switch. ⚠️ The tab's own shells carry
+     `data-gl`, so its own fbWire() calls do not re-enter it. */
+  if (FBTAB === 'gamelines' && !document.querySelector('#fbview [data-gl]')) { fbGameLinesTab(); return; }
   document.querySelectorAll('#fbview a[data-fbtab]').forEach(a =>
     a.addEventListener('click', () => { FBTAB = a.dataset.fbtab; renderFootball(); }));
   const sel = (id, fn) => { const el = $('#'+id); if (el) el.addEventListener('change', fn); };
