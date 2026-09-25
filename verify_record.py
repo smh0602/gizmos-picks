@@ -186,6 +186,17 @@ bad = [(d, f"{v['w']}/{v['n']}", f"{recday.get(d,{}).get('w')}/{recday.get(d,{})
        if (v["w"], v["n"]) != (recday.get(d, {}).get("w"), recday.get(d, {}).get("n"))]
 ck(f"every graded day reproduces ({len(byday)} days)", not bad, str(bad[:3]))
 
+# 🔴 THE PRINTED-NUMBER TABLE (C2, audit B) MUST HOLD EVERY GRADED ROW,
+# checked against THIS file's own re-grade, not against record.json.
+_cp = REC.get("calibration_printed")
+if _cp is not None:
+    for k in ("pitcher", "hitter"):
+        _t = _cp.get(k) or []
+        _got = (sum(b.get("w") or 0 for b in _t), sum(b.get("n") or 0 for b in _t))
+        ck(f"{k} printed-number table holds every graded row {_got}",
+           _got == (bykind[k]["w"], bykind[k]["n"]),
+           f"re-graded {bykind[k]['w']}/{bykind[k]['n']}")
+
 # 🔴 THE ARITHMETIC MUST CLOSE ON ITSELF TOO.
 ck("pitcher + hitter equals the overall",
    REC["by_kind"]["pitcher"]["n"] + REC["by_kind"]["hitter"]["n"] == REC["overall"]["n"])

@@ -149,8 +149,12 @@ ck("multiplier = product of the two decimals, recomputed from the prices", mm <=
 # unit in the last place. ⛔ THIS IS NOT A WIDENING: it is STRICTER in every
 # case except the exact-boundary one, because a wrong joint no longer gets
 # to hide behind the verifier's own rounding.
-jm = max((abs(p['joint'] - p['leg_blends'][0]*p['leg_blends'][1]/100) for p in doc['pairs']), default=0)
-ck("joint = product of the two blends", jm <= 0.051, f"max drift {jm:.4f}")
+# ⚠️ `[2026-09-25, C2]` the joint is the product of the two PRINTED
+# numbers (`leg_confidences`, corrected against the price); a card from
+# before carries only `leg_blends`, which were the printed numbers then.
+jm = max((abs(p['joint'] - _lc[0]*_lc[1]/100) for p in doc['pairs']
+          for _lc in [p.get('leg_confidences') or p['leg_blends']]), default=0)
+ck("joint = product of the two printed leg numbers", jm <= 0.051, f"max drift {jm:.4f}")
 ck("every pair leg is priced at Hard Rock", all(p['book']=='hardrockbet' for p in doc['pairs']))
 ck("no pair reuses a pitcher", all(len(set(p['game_ids']))==2 for p in doc['pairs']))
 
@@ -1217,6 +1221,66 @@ ck("every flag that reaches the page is marked actionable",
 _bad = [f['test'] for f in _shown if f.get('test') in
         ('T21', 'T22', 'rule 15', 'STEP 4B')]
 ck("no model diagnostic is marked for display", not _bad, str(_bad[:3]))
+
+print("\n39. THE PRINTED PITCHER NUMBER AND THE HITTER BAND LABEL, RE-DERIVED")
+# 🔴 `[2026-09-25]` research/mlb_pitcher_cal_spec.md: C2 qualified, so a
+# pitcher row prints `blend` corrected against its price. ⛔ Re-derived
+# here from the mapping the card stored, through the SAME function the
+# card and the test used (one copy, rule 207), on EVERY pitcher row.
+import mlb_pitcher_cal as _pc
+import calibration as _cb
+_pcor = doc.get('pitcher_correction') or {}
+_pmaps = _pcor.get('maps') or {}
+_pbad = []
+# ⚠️ EVERY priced pitcher row, not just the board's: since C2 a slate can
+# put no pitcher on the board at all, and a check over an empty list proves
+# nothing (rule 67).
+_pall = list(C.LAST_PITCHER_ROWS) or pit_rows
+for r in _pall:
+    _m = _pmaps.get(r['market'])
+    if r.get('confidence_method') == 'BLEND' or 'confidence_method' not in r:
+        # no mapping: the old number, exactly -- and a mapping that existed
+        # but was not applied is a skipped correction
+        if r['confidence'] != round(r['blend']) or (_m and _pcor.get('method')):
+            _pbad.append((r['pitcher'], r['market'], 'blend', r['confidence']))
+        continue
+    _want = _pc.corrected({r['market']: _m}, r['market'], r['blend'], r['break_even'])
+    if (_want is None or abs(_want - r['confidence_value']) > 0.3
+            or abs(r['confidence'] - r['confidence_value']) > 0.5
+            or r['confidence_method'] != _pcor.get('method')
+            or (r.get('edge') is not None
+                and abs(r['edge'] - (r['confidence_value'] - r['break_even'])) > 0.15)):
+        _pbad.append((r['pitcher'], r['market'], r.get('confidence_value'), _want))
+ck(f"every pitcher row prints the number its stored correction gives "
+   f"({len(_pall)} priced rows)", not _pbad, str(_pbad[:3]))
+# ⛔ `blend` itself must be untouched by the correction (check 12 above
+# pins the 50/50); a row whose printed number moved must still say so.
+ck("a corrected pitcher row says so in its note",
+   all('corrected against the price' in (r.get('confidence_note') or '')
+       for r in _pall if r.get('confidence_method') not in (None, 'BLEND')))
+
+# 🔴 AUDIT PROPOSAL B. The hitter "runs hot" label, both directions, on
+# every hitter row, from the band table the card stored.
+_hb = {b['bucket']: b for b in (doc.get('hitter_record_bands') or [])}
+_hmiss, _hfalse = [], []
+for r in hit:
+    _b = _hb.get(f"{min(90, r['confidence'] // 10 * 10)}-{min(90, r['confidence'] // 10 * 10) + 10}%")
+    _has = any(f.get('test') == 'RECORD BAND' and f.get('actionable')
+               for f in (r.get('flags') or []))
+    _hot = bool(_b and _b.get('state') == 'UNDER')
+    if _hot and not _has:
+        _hmiss.append((r['player'], r['confidence']))
+    if _has and not _hot:
+        _hfalse.append((r['player'], r['confidence']))
+ck(f"the hitter 'running hot' label is on every row whose band runs hot "
+   f"and no other ({len(hit)} rows)", not _hmiss and not _hfalse,
+   f"missing={_hmiss[:3]} false={_hfalse[:3]}")
+# ⛔ The stored table must be the shared rule's own output, not a copy.
+_rest = list(doc.get('hitter_record_bands') or [])
+ck("the stored hitter band table is calibration.band_flags' own verdict",
+   [b['state'] for b in _cb.band_flags(
+       [{'bucket': b['bucket'], 'n': b['n'], 'w': b['w'], 'stated': b['stated']}
+        for b in _rest])] == [b['state'] for b in _rest])
 
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

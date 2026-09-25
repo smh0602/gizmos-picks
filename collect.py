@@ -3495,6 +3495,23 @@ def collect_record():
         b = int(r["blend"] // 10) * 10
         buckets.setdefault(b, []).append(r)
 
+    # 🔴 STATED-VS-ACTUAL ON THE NUMBER THE ROW PRINTED, per kind.
+    # `[2026-09-25]` `calibration` above is keyed on `blend` and stays the
+    # permanent pitcher column. Since C2 (research/mlb_pitcher_cal_spec.md)
+    # a pitcher row can print a corrected number, and hitter rows never had
+    # a table at all (audit Proposal B). ⛔ Built from `confidence`, which
+    # every machine card row carries; a row without one has no bucket.
+    def printed_buckets(kind):
+        bk = {}
+        for r in allrows:
+            c = r.get("confidence")
+            if r["kind"] != kind or not isinstance(c, (int, float)):
+                continue
+            bk.setdefault(min(90, int(c // 10) * 10), []).append(r)
+        return [{"bucket": f"{b}-{b+10}%",
+                 "predicted": round(sum(r["confidence"] for r in v) / len(v), 1),
+                 **tally(v)} for b, v in sorted(bk.items())]
+
     # 🔴 THE HAND-BUILT RECORD AND SAM'S BANKROLL WERE REMOVED FROM THE
     # DASHBOARD ON 2026-08-24, at Sam's instruction: the site tracks the
     # MODEL's record and nothing else.
@@ -3520,6 +3537,7 @@ def collect_record():
         "calibration": [{"bucket": f"{b}-{b+10}%",
                          "predicted": round(sum(r["blend"] for r in v) / len(v), 1),
                          **tally(v)} for b, v in sorted(buckets.items())],
+        "calibration_printed": {k: printed_buckets(k) for k in ("pitcher", "hitter")},
         "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
                      "voids": d["voids"],
                      **({"void_games": d["void_games"]} if d["void_games"] else {})}
