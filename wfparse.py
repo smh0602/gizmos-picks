@@ -345,6 +345,45 @@ def effective_workflows(root="."):
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE SUITE AS IT WILL RUN ONCE SAM UPLOADS. `[added 2026-09-25]`
+# ══════════════════════════════════════════════════════════════════════
+# `[measured, collect run #1839]` PR #174 staged a new runs.yml; every
+# pr-tests job was green; Sam uploaded it and the very next collect run
+# went RED — `test_fb_freshness.py` pinned MLB's contract at 16 rows and
+# the uploaded watcher switched on a 17th. pr-tests had tested the repo
+# as it was, never as it would be. ✅ pr-tests' `staged` job applies these
+# files locally and runs the same suite, so a staged upload that would
+# turn the suite red is red on the PR, before Sam's hands are involved.
+def staged_changes(root="."):
+    """Staged workflow names that are NEW or DIFFER (line endings aside)
+    from the deployed copy — what Sam's next uploads will change."""
+    d = os.path.join(root, STAGED_DIR)
+    if not os.path.isdir(d):
+        return []
+    changed = []
+    for f in sorted(os.listdir(d)):
+        if not f.endswith(".yml"):
+            continue
+        live = os.path.join(root, DEPLOYED_DIR, f)
+        if not os.path.exists(live) or not _same(root, f):
+            changed.append(f)
+    return changed
+
+
+def apply_staged(root="."):
+    """Copy every staged change over the deployed folder. -> the names.
+    ⛔ For a THROWAWAY checkout only (pr-tests' `staged` job): the real
+    upload is Sam's, by hand (CLAUDE.md)."""
+    names = staged_changes(root)
+    os.makedirs(os.path.join(root, DEPLOYED_DIR), exist_ok=True)
+    for f in names:
+        with open(os.path.join(root, STAGED_DIR, f), "rb") as src, \
+                open(os.path.join(root, DEPLOYED_DIR, f), "wb") as dst:
+            dst.write(src.read())
+    return names
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 🔴 A WORKFLOW UPLOADED TO THE WRONG FOLDER. `[added 2026-09-25]`
 # ══════════════════════════════════════════════════════════════════════
 # GitHub runs a workflow only from `.github/workflows/`. A copy anywhere
