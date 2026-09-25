@@ -1241,7 +1241,12 @@ for r in _pall:
     if r.get('confidence_method') == 'BLEND' or 'confidence_method' not in r:
         # no mapping: the old number, exactly -- and a mapping that existed
         # but was not applied is a skipped correction
-        if r['confidence'] != round(r['blend']) or (_m and _pcor.get('method')):
+        # ⚠️ `blend` is STORED to one decimal and the card rounds the
+        # unrounded value: a true 69.45 is stored 69.5 and prints 69.
+        # ~~`confidence != round(blend)`~~ failed that correct card
+        # (2026-09-24, Dobnak/Painter). The printed number is within 0.5
+        # of the true blend, which is within 0.05 of the stored one.
+        if abs(r['confidence'] - r['blend']) > 0.55 or (_m and _pcor.get('method')):
             _pbad.append((r['pitcher'], r['market'], 'blend', r['confidence']))
         continue
     _want = _pc.corrected({r['market']: _m}, r['market'], r['blend'], r['break_even'])

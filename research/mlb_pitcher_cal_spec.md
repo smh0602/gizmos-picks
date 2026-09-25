@@ -118,3 +118,19 @@ No candidate had been scored against any result.
   - `blend`, `carried` and the T21 flag are unchanged. The off switch is
     `mlb_pitcher_cal.SHIPPED = None`, which is Sam's call.
 
+- **2026-09-25, two mistakes of mine after the merge (PR #166).**
+  - `verify_card.py`'s new check asked `confidence == round(blend)` on
+    a row with no correction. `blend` is stored to one decimal, so a true
+    69.45 is stored 69.5 and prints 69: **the check failed a correct
+    card** (2026-09-24, Dobnak and Painter). Today's rows are all
+    corrected, so no live card was refused, but a market below 150 rows
+    or `SHIPPED = None` would have hit it. Root cause: I compared against
+    a rounded copy of the number. Fixed to the exact relationship (within
+    0.5 of the true blend, stored within 0.05). Guard:
+    `test_verify_card.py` fails if this check ever fails a real published
+    card, and still catches a row printed 2 points off.
+  - Collector run 1813 (07:25Z) went red: the new `verify_record.py`
+    grades 2026-09-22, and `record.json` was still the pre-merge build
+    until the scheduled rebuild at 12:08Z. Root cause: a grading-rule
+    change reaches the verifier at merge and the record only at its next
+    rebuild. It reconciled at 12:08Z (923/1,499).
