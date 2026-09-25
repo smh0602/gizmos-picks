@@ -134,3 +134,10 @@ No candidate had been scored against any result.
     until the scheduled rebuild at 12:08Z. Root cause: a grading-rule
     change reaches the verifier at merge and the record only at its next
     rebuild. It reconciled at 12:08Z (923/1,499).
+  - `test_mlb_tables.py` required pitcher rows ON THE BOARD as proof its
+    card comparison was not blind. C2 legitimately leaves few or none
+    there (2026-09-25 replay: 50 picks, 0 pitcher rows), so it failed a
+    correct card. Root cause: I did not run the suite against a board C2
+    had emptied. Now it requires pitcher model output anywhere on the
+    card (275 pitcher projections, 8 pairs on that replay), and fails
+    when there is none (watched).
