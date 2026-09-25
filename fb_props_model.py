@@ -812,7 +812,10 @@ def schedule_ctx(lg, root=None):
     return out
 
 
-def current_picks(lg, wf, root=None, now=None):
+def current_picks(lg, wf, root=None, now=None, rated=None):
+    """This week's picks. `[2026-09-25]` When `rated` is a list, EVERY side of
+    every rung the model prices is appended to it (`research/fb_agreement_spec.md`
+    §3a) — the picks themselves are unchanged."""
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     models = {mk: s.solve() for mk, s in wf["final"].items()}
     s2 = F.fit([x for x, _ in wf["s2_train"]], [y for _, y in wf["s2_train"]]) if wf["s2_train"] else None
@@ -854,6 +857,11 @@ def current_picks(lg, wf, root=None, now=None):
             if p1o is None:
                 continue
             po, pu = final_probs(mk, p1o, p1u, market_prob(mk, rung), s2)
+            if rated is not None:
+                for _side, _p in ((("yes", po),) if mk == TD_MARKET else (("over", po), ("under", pu))):
+                    if _p is not None:
+                        rated.append({"game_id": eid, "player": who, "market": mk, "line": line,
+                                      "side": _side, "p": round(100 * _p, 1)})
             pk = pick_for(mk, rung, po, pu)
             if not pk:
                 continue
@@ -916,8 +924,11 @@ def build(lg=None, root=None, out=None, logs=None):
     # ~~the top card_fb.BOARD_MAX on the page, the rest in `more_picks`~~
     # 🔴 NO CAP ON MODEL PICKS `[Sam, 2026-09-24]`: "Only the Gizmo's Picks
     #    card keeps its limit." Every pick the model makes is shown.
-    live = current_picks(lg, wf, root)
+    rated = []
+    live = current_picks(lg, wf, root, rated=rated)
     doc["picks"] = live
+    # `[Sam, 2026-09-25]` every side the model rates, for the agreement label.
+    doc["rated"] = rated
     doc["picks_total"] = len(live)
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-props-model.json")
     with open(path, "w", encoding="utf-8") as fh:

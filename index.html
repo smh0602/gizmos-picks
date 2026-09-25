@@ -481,6 +481,10 @@ footer{color:var(--mut);font-size:12px;padding:24px 0 40px;border-top:1px solid 
 .glr.nofloor{opacity:.62}
 .glwarn{color:#b26a00;font-weight:800;cursor:help}
 .glgame{margin:0 0 22px}
+/* `[Sam, 2026-09-25]` the notes under a row: agreement label + news flags. */
+.fbnotes{font-size:11.5px;margin:-4px 0 12px;padding:6px 10px;border-left:3px solid var(--line)}
+.fbnotes .agl,.fbflag{display:block;margin:2px 0}
+.fbflag{color:#8a4b00}
 @media(max-width:600px){
   .glr{grid-template-columns:repeat(4,minmax(0,1fr))}
   .glr.gh{display:none}
@@ -4229,6 +4233,7 @@ async function fbProps(){
   v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
   fbWire();
   const B = await fbPropsLoad();
+  const FL = await fbFlagsLoad();
   /* ⚠️ LOADED BEFORE THE ROWS ARE BUILT, and a failure is not an error:
      on a day with no published card there are simply no projections, and
      the tab renders exactly as it did before. */
@@ -4324,8 +4329,10 @@ async function fbProps(){
       fbPf.market === 'all' || p.market === fbPf.market);
     if (!list.length) return;
     let rows = '';
+    const flagged = new Set();
     list.forEach(p => {
       const sides = p.sides || {};
+      if (!flagged.has(p.player)){ flagged.add(p.player); rows += fbFlagHtml(fbFlagsFor(FL, 'player', p.player, g.id)); }
       ['over', 'under', 'yes'].forEach(k => {
         if (!sides[k]) return;
         if (fbPf.side !== 'all' && k !== 'yes' && k !== fbPf.side) return;
@@ -4377,6 +4384,108 @@ async function fbProps(){
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbProps(); });
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   CARD VS PROPS MODEL · NEWS FLAGS `[Sam, 2026-09-25]`
+   ⛔ BOTH ARE NOTES, NEVER LEVERS. Neither removes, hides, re-ranks or
+      re-prices a row; the builders (`fb_agreement.py`, `news_flags_fb.py`)
+      decide everything and this page only prints what they wrote.
+   ⛔ RULE 55: the label and every flag are Descriptive; the props model's
+      % is Model; the card's % keeps the card's own basis (Record); the
+      break-even is Market.
+   ══════════════════════════════════════════════════════════════════ */
+const FBAG = {}, FBFLAGS = {};
+async function fbAgLoad(){
+  if (FBAG[LEAGUE] !== undefined) return FBAG[LEAGUE];
+  try { FBAG[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/agreement.json`); }
+  catch(e){ FBAG[LEAGUE] = null; }
+  return FBAG[LEAGUE];
+}
+async function fbFlagsLoad(){
+  if (FBFLAGS[LEAGUE] !== undefined) return FBFLAGS[LEAGUE];
+  try { FBFLAGS[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/news-flags.json`); }
+  catch(e){ FBFLAGS[LEAGUE] = null; }
+  return FBFLAGS[LEAGUE];
+}
+function fbAgFind(AG, p){
+  const ln = v => (v && typeof v === 'object') ? v.value : v;
+  return ((AG || {}).rows || []).find(r => r.game_id === p.game_id && r.player === p.player
+    && r.market === p.market && r.side === p.side
+    && ((r.line == null && ln(p.line) == null) || Number(r.line) === Number(ln(p.line))));
+}
+function fbAgHtml(r){
+  if (!r || !r.label) return '';
+  const pct = v => v == null ? '&mdash;' : v + '%';
+  return `<span class="agl"><span class="kind k-desc">${r.label}</span>
+    card ${pct(r.card_p)}${r.card_p == null ? '' : ` <span class="kind k-desc">${r.card_basis === 'MODEL' ? 'Model' : 'Record'}</span>`}
+    &middot; props model ${pct(r.model_p)}${r.model_p == null ? '' : ' <span class="kind k-model">Model</span>'}
+    &middot; break-even ${pct(r.break_even)} <span class="kind k-market">Market</span></span>`;
+}
+function fbFlagsFor(FL, kind, name, gid){
+  return ((FL || {}).flags || []).filter(f => f.kind === kind && f.subject === name && f.game_id === gid);
+}
+function fbFlagOne(f){
+  const what = f.source === 'injury report'
+    ? `injury report${f.kind === 'team' && f.headline ? ': ' + fbEsc(f.headline) : ''}`
+    : `<a href="${f.link}" target="_blank" rel="noopener nofollow">${fbEsc(f.headline || '')}</a>`;
+  return `<span class="fbflag" title="first seen ${f.first_seen || ''}">&#9873; <b>${fbEsc(f.status)}</b> &mdash; ${what}
+    <span class="kind k-desc">Descriptive</span></span>`;
+}
+function fbFlagHtml(fs){
+  if (!fs || !fs.length) return '';
+  return fs.length > 3
+    ? `<details class="fbnotes"><summary>&#9873; ${fs.length} news flags</summary>${fs.map(fbFlagOne).join('')}</details>`
+    : `<div class="fbnotes">${fs.map(fbFlagOne).join('')}</div>`;
+}
+function fbRowNotes(p, AG, FL){
+  const a = fbAgHtml(fbAgFind(AG, p)), f = fbFlagsFor(FL, 'player', p.player, p.game_id);
+  return (a || f.length) ? `<div class="fbnotes">${a}${f.map(fbFlagOne).join('')}</div>` : '';
+}
+function fbParlayFlagsHtml(FL, src, P){
+  const hits = ((FL || {}).parlay_legs || []).filter(x => x.source === src);
+  if (!hits.length) return '';
+  const byKey = {};
+  ((FL || {}).flags || []).forEach(f => { byKey[f.key] = f; });
+  return `<div class="fbnotes"><b>News flags on parlay legs</b>${hits.map(x => {
+    const par = ((P || {})[x.size] || [])[x.index] || {};
+    return `<div>${x.size} legs, #${x.index + 1} &mdash; ${fbEsc((par.legs || [])[x.leg] || '')}:
+      ${x.flags.map(k => byKey[k] ? fbFlagOne(byKey[k]) : '').join('')}</div>`; }).join('')}</div>`;
+}
+function fbAgRecordHtml(AG){
+  if (!AG || !AG.record) return '';
+  const Q = AG.question || {}, v = (r, k) => ((r || {})[k] || {}).value;
+  const rows = ['AGREE', 'SPLIT', 'ONE SOURCE'].map(lb => { const r = AG.record[lb] || {};
+    return `<tr><td><b>${lb}</b></td><td>${(AG.counts || {})[lb] || 0}</td><td>${v(r, 'picks') || 0}</td>
+      <td>${v(r, 'hit_rate') == null ? '&mdash;' : v(r, 'hit_rate') + '%'}</td>
+      <td>${v(r, 'break_even') == null ? '&mdash;' : v(r, 'break_even') + '%'}</td>
+      <td>${v(r, 'effective_n') == null ? '&mdash;' : v(r, 'effective_n')}</td></tr>`; }).join('');
+  return `<div class="panel" style="margin-top:18px"><h2>Card vs props model &mdash; do they agree?
+      <span class="kind k-desc">Descriptive</span></h2>
+    <p style="font-size:12px">AGREE: both chances are on the same side of the row's break-even. SPLIT: one
+      above, one below. ONE SOURCE: only one of them rates the row. A note on the row &mdash; it changes no
+      pick, ranking or price.</p>
+    <div class="glwrap"><table class="glmain"><tr><th></th><th>On this board</th><th>Graded</th><th>Hit</th>
+      <th>Break-even</th><th>Games (eff. n)</th></tr>${rows}</table></div>
+    <p style="font-size:12px">Pre-registered question &mdash; do AGREE rows beat their break-even by more than
+      SPLIT rows? <b>${Q.state || 'NOT YET MEASURABLE'}</b> (${Q.agree_graded || 0} of ${(Q.min || {}).agree || 300}
+      AGREE and ${Q.split_graded || 0} of ${(Q.min || {}).split || 100} SPLIT rows graded). ${Q.consequence || ''}</p></div>`;
+}
+function fbFlagsRecordHtml(FL){
+  if (!FL) return '';
+  const R = FL.record || {}, a = R.absence || {}, c = R.caution || {};
+  return `<div class="panel" style="margin-top:18px"><h2>News flags &mdash; how often they were right
+      <span class="kind k-desc">Descriptive</span></h2>
+    <p style="font-size:12px">Once a day every player and team on the board is checked against
+      ${(FL.sources || []).join(' and ')}. A flag is a note: it never hides, re-ranks or re-prices a row and
+      never feeds a model. Names match on the exact full name.${FL.college_note ? ' <b>' + FL.college_note + '</b>' : ''}</p>
+    <div class="glwrap"><table class="glmain"><tr><th></th><th>Graded</th><th>Did not play</th><th>Played</th><th>Right</th></tr>
+      <tr><td><b>Should sit</b> (out, IR, doubtful, ruled out, inactive, suspended, traded, released, benched)</td>
+        <td>${a.graded || 0}</td><td>${a.did_not_play || 0}</td><td>${a.played || 0}</td>
+        <td>${a.right_pct == null ? '&mdash;' : a.right_pct + '%'}</td></tr>
+      <tr><td><b>Might sit</b> (questionable, limited, illness) &mdash; no right answer, shown as played</td>
+        <td>${c.graded || 0}</td><td>${c.did_not_play || 0}</td><td>${c.played || 0}</td><td>&mdash;</td></tr>
+    </table></div><p style="font-size:12px;color:var(--mut)">${(FL.flags || []).length} flag(s) on today's board.</p></div>`;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    GAME LINES — alt spreads and totals at Hard Rock, FanDuel, DraftKings.
@@ -4569,6 +4678,14 @@ async function fbGameLinesTab(){
   on('fb-gl-game', e => { fbGl.game = e.target.value; fbGameLinesTab(); });
   on('fb-gl-mkt',  e => { fbGl.market = e.target.value; fbGameLinesTab(); });
   on('fb-gl-sort', e => { fbGl.sort = e.target.value; fbGameLinesTab(); });
+  const FLG = await fbFlagsLoad();
+  document.querySelectorAll('#fbview .glgame[data-game]').forEach(el => {
+    const g = G.games.find(x => x.id === el.dataset.game);
+    const fs = g ? fbFlagsFor(FLG, 'team', g.away, g.id).concat(fbFlagsFor(FLG, 'team', g.home, g.id)) : [];
+    const h = el.querySelector('.ghead');
+    if (fs.length && h) h.insertAdjacentHTML('afterend', fbFlagHtml(fs));
+  });
+  v.insertAdjacentHTML('beforeend', fbParlayFlagsHtml(FLG, 'game_lines', G.parlays));
   const t = $('#fb-gl-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbGameLinesTab(); });
 }
@@ -5038,7 +5155,8 @@ function fbPropModelHtml(M){
       <td>${fbEsc(p.market_label || p.market)}</td>
       <td><b>${side(p.side)}${p.line && p.line.value != null ? ' ' + p.line.value : ''}</b></td>
       <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
-      <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
+      <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td>
+      <td>${fbAgHtml(fbAgFind(FBAG[LEAGUE], p))}</td></tr>`).join('');
   const rec = Object.keys(M.record || {}).map(k => {
     const r = M.record[k] || {};
     return `<tr><td>${fbEsc(r.market_label || k)}${fbVerdictTag(r.verdict)}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
@@ -5053,7 +5171,7 @@ function fbPropModelHtml(M){
       <span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
     <h3 style="margin:14px 0 8px;font-size:14px">This week${total > shown.length ? ` — top ${shown.length} of ${total} by the model's chance` : ''}</h3>
     ${picks ? `<table class="ob"><thead><tr><th>Player</th><th>Market</th><th>Pick</th><th>Price</th>
-      <th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
+      <th>Model</th><th>Break-even</th><th>Card vs model</th></tr></thead><tbody>${picks}</tbody></table>`
       : '<div class="note">No prop this week clears the break-even of the best available price.</div>'}
     <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
     <table class="ob"><thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
@@ -5119,6 +5237,7 @@ async function fbPicks(){
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
   const CC = await fbCardCalLoad(LEAGUE);
+  const [AG, FL] = await Promise.all([fbAgLoad(), fbFlagsLoad()]);
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div style="margin-bottom:10px">
       <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks
@@ -5136,7 +5255,7 @@ async function fbPicks(){
   const host = document.createElement('div');
   const pool = allDone ? C.picks : list;
   const kept = pool.filter(p => fbConfPass(p.away, p.home));
-  kept.forEach(p => host.append(pickCard(p)));
+  kept.forEach(p => { host.append(pickCard(p)); host.insertAdjacentHTML('beforeend', fbRowNotes(p, AG, FL)); });
   /* ⛔ AN EMPTY BOARD AND AN EMPTY FILTER LOOK IDENTICAL unless the page
      says which one happened. A reader who clicks a conference with no
      picks on it must not be left reading "no card". */
@@ -5151,6 +5270,7 @@ async function fbPicks(){
      Rendering it in both places would put a MARKET board underneath a
      RECORD board again, which is the mixing Sam asked to end. */
   v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
+  v.insertAdjacentHTML('beforeend', fbAgRecordHtml(AG));
   await fbModelAppend(v, LEAGUE);
   fbWire(); fbKindWire();
   const t = $('#fb-pk-started');
@@ -5242,12 +5362,14 @@ async function fbParlays(){
      (100 combinations outside Sam's bands, the rest in one game) simply
      never drew. ⚠️ An absent explanation reads as an absent feature. */
   let body = '', crossAny = 0;
+  const FL = await fbFlagsLoad();
   ['2','3','4'].forEach(size => {
     const rows = PL[size] || [];
     if (!rows.length) return;
     crossAny += rows.length;
     body += parlayTable(TITLES[size], rows).outerHTML;
   });
+  body += fbParlayFlagsHtml(FL, 'card', PL);
   /* 🔴 SAME-GAME PARLAYS, AFTER the cross-game ones and in their own
      tables. ⛔ They are read off `C.sgp`, a SEPARATE key — merging them
      into `C.parlays` would put two different row shapes under one name,
@@ -6769,6 +6891,7 @@ async function fbNews(){
       <br><br>&#9940; <b>Nothing on this tab feeds a number anywhere on the
       site.</b> It is here to read, not to bet from.
     </div>`);
+  v.insertAdjacentHTML('beforeend', fbFlagsRecordHtml(await fbFlagsLoad()));
   fbWire();
 }
 

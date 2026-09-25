@@ -560,6 +560,19 @@ game_lines_fb.py  THE GAME LINES TAB (Sam, 2026-09-24): every alt spread
                   ⛔ Never touches the card. Data: the paid `alt-lines`
                   pull in collect.py (one pull per game, capped at
                   1,500 credits a month, bill measured per call).
+fb_agreement.py   card vs props model (Sam, 2026-09-25): every card row and
+                  props-model pick labelled AGREE / SPLIT / ONE SOURCE
+                  against its break-even, frozen per card run, graded
+                  once, its own record; scores the pre-registered
+                  question in research/fb_agreement_spec.md (frozen).
+                  ⛔ A note on the row — changes no pick, rank or price.
+news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a
+                  day on the news run, NFL injury-report status (the
+                  injury rows nfl.py stores for signal 7) and stored
+                  headlines naming a board player/team with a status
+                  word. Exact full names only. ⛔ FLAGS, NEVER PICKS:
+                  hides, re-ranks, re-prices nothing; feeds no model.
+                  College is headlines only (no injury reports).
 fb_alt_lines.py   the pre-registered check (research/fb_alt_lines_spec.md,
                   frozen): is the game model calibrated 3/7/10 points off
                   the main line? ⛔ Decides the tab's LABEL, never whether

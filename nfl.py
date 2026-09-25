@@ -2430,6 +2430,11 @@ def build_logs(season, log=print):
             # 🔴 SIGNAL 7. None (with the reason beside it) when the roster
             #    codes do not match — never a table of silent zeros.
             "team_out": team_out, "team_out_report": team_out_rep,
+            # 🔴 `[Sam, 2026-09-25]` THE INJURY REPORT ITSELF, every designation
+            #    (Out, Doubtful, Questionable, IR) — the same five fields signal
+            #    7 already keeps, now stored so the news-flag reviewer can read
+            #    them. ⛔ No new download; DESCRIPTIVE; feeds no model.
+            "injury_report": inj_rows,
             # 🔴 SIGNAL 9 — None (with its reason) rather than silent zeros.
             "opportunity": opportunity, "opportunity_report": opportunity_rep,
             "source_assets": dict(USED),
