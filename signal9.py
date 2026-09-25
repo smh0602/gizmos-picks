@@ -23,6 +23,26 @@ PRIOR_GAMES = 17.0                    # ⛔ spec §3: TOT / 17 = the prior per-g
 # run on locally computed tables, or a test). Empty in production.
 OVERRIDE = {}
 
+# 🔴 ONE READ PER FILE VERSION. `[2026-09-24, measured on PR #164's CI]`
+#    The game model asks once per GAME and the dossier once per board game;
+#    re-reading the players file each time made `card-fb` about 3x slower
+#    and pushed the nightly mutation sweep past its clock. Keyed on the
+#    file's mtime and size, so a file rebuilt in-process is read again.
+#    ⛔ Callers only read what comes back; nothing may mutate it.
+_READS = {}
+
+
+def _read_gz(path):
+    st = os.stat(path)
+    ver = (st.st_mtime_ns, st.st_size)
+    hit = _READS.get(path)
+    if hit and hit[0] == ver:
+        return hit[1]
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        doc = json.load(fh)
+    _READS[path] = (ver, doc)         # one version per path: the current one
+    return doc
+
 
 def load(lg, season, root=None):
     """The stored opportunity table for (league, season), or None."""
@@ -31,8 +51,7 @@ def load(lg, season, root=None):
     if lg != "nfl":
         return None                   # college: its CFBD tables, once stored (spec §1)
     try:
-        doc = json.load(gzip.open(os.path.join(root or ROOT, "data", lg, "latest",
-                                               "players-%d.json.gz" % int(season)), "rt", encoding="utf-8"))
+        doc = _read_gz(os.path.join(root or ROOT, "data", lg, "latest", "players-%d.json.gz" % int(season)))
     except (OSError, ValueError):
         return None
     return doc.get("opportunity")
@@ -112,8 +131,7 @@ def week_of(lg, day, root=None):
     ⛔ Point in time: a week-1 card must read week-1 roster status, never a
     later week's."""
     try:
-        d = json.load(gzip.open(os.path.join(root or ROOT, "data", lg, "latest",
-                                             "schedule-%s.json.gz" % str(day)[:4]), "rt", encoding="utf-8"))
+        d = _read_gz(os.path.join(root or ROOT, "data", lg, "latest", "schedule-%s.json.gz" % str(day)[:4]))
     except (OSError, ValueError):
         return None
     last = {}

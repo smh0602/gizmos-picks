@@ -52,6 +52,11 @@
 #   find:         return no_opponent(9, "Opportunity change", missing)
 #   with:         pass
 #
+# @vacuity the stored tables are read ONCE per file version, not once per game
+#   file: signal9.py
+#   find:     if hit and hit[0] == ver:
+#   with:     if False:
+#
 # @vacuity a refused CFBD price fetches nothing and writes nothing
 #   file: cfb.py
 #   find:         if not quote["allowed"]:
@@ -212,3 +217,34 @@ ck(_s9["n"] == 9 and _s9["name"] == "Opportunity change" and _s9["basis"] == D.D
 ck(_s9m["state"] == "UNAVAILABLE" and "Some FCS U" in _s9m["why"],
    "🔴 ...and refuses by name when one side is unknown (a pair section)")
 ck(D.SECTIONS_DECLARED == 9, "   ✅ every dossier now declares nine sections")
+
+# ══════════════════════════════════════════════════════════════════════
+# 6. ONE READ PER FILE VERSION `[2026-09-24, PR #164's CI]`
+# ══════════════════════════════════════════════════════════════════════
+# The game model asks once per game; re-reading the players file each time
+# made `card-fb` ~3x slower and pushed the nightly sweep past its clock.
+_r6 = tempfile.mkdtemp()
+_p6 = os.path.join(_r6, "data", "nfl", "latest", "players-2026.json.gz")
+os.makedirs(os.path.dirname(_p6))
+with gzip.open(_p6, "wt", encoding="utf-8") as _fh:
+    json.dump({"opportunity": {"v": 1}}, _fh)
+_reads = []
+_real_open = S.gzip.open
+S.gzip.open = lambda *a, **k: (_reads.append(a[0]) or _real_open(*a, **k))
+try:
+    _v = [S.load("nfl", 2026, _r6) for _i in range(50)]
+    _n1 = len(_reads)
+    with _real_open(_p6, "wt", encoding="utf-8") as _fh:
+        json.dump({"opportunity": {"v": 2, "rebuilt": True}}, _fh)
+    _st = os.stat(_p6)
+    os.utime(_p6, ns=(_st.st_atime_ns, _st.st_mtime_ns + 10 ** 9))
+    _v2 = S.load("nfl", 2026, _r6)
+finally:
+    S.gzip.open = _real_open
+    shutil.rmtree(_r6, ignore_errors=True)
+ck(_n1 == 1 and all(x == {"v": 1} for x in _v),
+   "🔴 fifty asks for the same table read the file ONCE (%d read(s))" % _n1,
+   "⛔ once per game made card-fb ~3x slower and timed out the nightly sweep")
+ck(_v2 == {"v": 2, "rebuilt": True} and len(_reads) == 2,
+   "🔴 ...and a file rebuilt in the same process is read again, never served stale",
+   "got %r after %d read(s)" % (_v2, len(_reads)))
