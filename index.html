@@ -1646,9 +1646,21 @@ function pickCard(p){
     c.append(el('div','fl fl-flag',
       `<b>Lineup risk</b> &middot; batted in only ${p.lineup_share}% of his team's games. If he is not in
        today's lineup this is usually a VOID, not a win. Check the card before you bet it.`));
+  /* 🔴 A ROW SEATED BELOW ITS PRICE SAYS SO WITH ITS NUMBERS. Sam,
+     2026-09-25 (C8): pitchers keep their own 25 seats, and when fewer than
+     25 beat their price the rest are the best pitcher rows that do NOT --
+     "clearly labelled that it loses to its price on the corrected number
+     (show the printed %, the break-even and the edge)". ⛔ The edge is the
+     card's own (`edge`, from the unrounded number), never recomputed here.
+     ⚠️ Each number is guarded on its own field; a row missing one keeps
+     the plain sentence rather than printing "undefined". */
   if (p.below_price)
     c.append(el('div','fl fl-note',
-      `This one doesn't have an edge at the price shown — it's here to fill the board out.`));
+      (p.confidence != null && p.break_even != null && p.edge != null)
+        ? `<b>Loses to its price.</b> The ${p.confidence}% shown is under the
+           ${p.break_even}% this price needs to break even (edge <b>${p.edge > 0 ? '+' : ''}${p.edge}%</b>).
+           It's here to fill the board out, not because it beats the price.`
+        : `This one doesn't have an edge at the price shown — it's here to fill the board out.`));
 
   /* 🔴 WHAT THIS OPPONENT HAS DONE TO STARTERS LATELY.
      Sam's idea, 2026-08-26. Built from our OWN pitcher logs -- every one of

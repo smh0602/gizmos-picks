@@ -372,6 +372,15 @@ old one, not easier.**
   just no longer decides the order. ⛔ Do not reintroduce band-first or
   edge-first ordering — it made the page look broken to anyone reading
   down the numbers.
+- 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
+  card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
+  other kind~~, and after C2 (#166) few pitcher rows beat their price.
+  ✅ `card.select_board`: hitters up to 25 that beat the price; pitchers
+  that beat it first, then the best remaining pitcher rows by the
+  corrected number, marked `below_price` (the page prints the %, the
+  break-even and the edge). Never both sides of one prop, keyed by GAME
+  ID. ⛔ Do not let one kind take the other's seats again.
+  `test_card_seats.py`, `verify_card.py` section 7c.
 - 🔴 **A CARD IS MATCHED TO A BOARD RECORD ON NEAREST FIRST PITCH, NEVER
   ON A DATE.** ⛔ Do not "simplify" `boardFor()` back to a date comparison.
   **A UTC date is not a game's date**: a 9:40pm ET first pitch is `01:40Z
