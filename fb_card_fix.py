@@ -59,8 +59,9 @@ def graded_props(lg, root=None):
     return out
 
 
-def score_league(lg, root=None):
-    """-> rows with both probabilities, and the count the fix could not rate."""
+def score_league(lg, root=None, scale=None):
+    """-> rows with both probabilities, and the count the fix could not rate.
+    `scale(pid, row)` -> r gives signal 9's 2025 scaling (fb_signal9.py); 1 by default."""
     logs = M.load_logs(lg, root)
     season, P25, floor = M.champion_logs(lg, root)
     P26 = logs.get(2026) or {}
@@ -79,11 +80,12 @@ def score_league(lg, root=None):
             g26 = card_fb.games_before((P26.get(pids[0]) or {}).get("g"), day)
             side = r.get("side")
             p0 = card_fb.position_prior(pools, p.get("pos"), r.get("market"), side, r.get("line"), day)
-            fx = card_fb.rate_blend(p.get("g") or [], g26, r.get("market"), r.get("line"), side, p0)
+            _r = scale(pids[0], r) if scale else 1.0
+            fx = card_fb.rate_blend(p.get("g") or [], g26, r.get("market"), r.get("line"), side, p0, _r)
             if fx is None:
                 unrated += 1
                 continue
-            out.append(dict(r, league=lg, fixed=fx[0] / 100.0, detail=fx[4]))
+            out.append(dict(r, league=lg, fixed=fx[0] / 100.0, detail=fx[4], pid=pids[0]))
     return out, unrated
 
 

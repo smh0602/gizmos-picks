@@ -1032,6 +1032,80 @@ VENUE_COVERAGE = (
     "weather is not missing — it is meaningless.")
 
 
+# 🔴 SIGNAL 9 — "OPPORTUNITY CHANGE" `[Sam, 2026-09-24]` — section 9,
+#    DESCRIPTIVE (research/fb_signal9_spec.md §3). The dossier combines
+#    nothing: it shows what left each team and how much of it.
+SECTIONS_DECLARED = 9
+
+
+def _pct(x):
+    return None if x is None else round(100.0 * x, 1)
+
+
+def s_opportunity(home, away, this_season, week, lg, data=None, missing=None):
+    import signal9
+    if missing:
+        # ⛔ A PAIR SECTION: with one side unknown it cannot answer at all
+        return no_opponent(9, "Opportunity change", missing)
+    if lg == "nfl":
+        opp = signal9.load("nfl", this_season)
+        if not opp:
+            return unavailable(
+                9, "Opportunity change",
+                "The opportunity table for this season is not stored yet, so "
+                "we cannot say how much of last season's work has left.",
+                "it is built by the next NFL data run, which also refreshes rosters")
+        wk = signal9._week(opp, week)
+        teams, parts = {}, []
+        for t in (home, away):
+            e = (opp.get("teams") or {}).get(t)
+            if not e:
+                continue
+            w = (e.get("weeks") or {}).get(wk) or {}
+            teams[t] = {c: {"share": _pct((w.get(c) or {}).get("share")),
+                            "count": (w.get(c) or {}).get("count")}
+                        for c in ("tgt", "ay", "car", "i10", "combined") if c in w}
+            teams[t]["off_roster_targets"] = _pct((e.get("off_roster") or {}).get("tgt"))
+            teams[t]["departed"] = (e.get("departed") or [])[:3]
+            teams[t]["arrivals_changed_teams"] = e.get("arrivals_changed_teams")
+            tg, ca = teams[t].get("tgt") or {}, teams[t].get("car") or {}
+            parts.append("%s has lost %s%% of last season's targets (%s) and %s%% of its "
+                         "carries (%s)" % (t, tg.get("share"), round(tg.get("count") or 0),
+                                           ca.get("share"), round(ca.get("count") or 0)))
+        if not teams:
+            return unavailable(9, "Opportunity change",
+                               "Neither team appears in the opportunity table.", None)
+        gone = [d["player"] for t in teams for d in teams[t]["departed"] if d.get("player")][:4]
+        return {"n": 9, "name": "Opportunity change", "state": "OK", "basis": DESC,
+                "week": wk, "teams": teams,
+                "why": ("; ".join(parts) + "." + (" The biggest departures: %s." % ", ".join(gone) if gone else "")
+                        + " A player on injured reserve counts as gone while he is out.")}
+    # college: CFBD returning production, once stored (spec §1)
+    ret = _jz(os.path.join(data or ("data/" + lg), "latest", "returning-%s.json.gz" % this_season)) or {}
+    rows = {r.get("team"): r for r in ret.get("rows") or [] if isinstance(r, dict)}
+    if not rows:
+        return unavailable(
+            9, "Opportunity change",
+            "College returning production is not stored yet, so we cannot say "
+            "how much of last season's work each team kept.",
+            "it is fetched once per season by the next college data run, if "
+            "the data service's free quota allows")
+    teams, parts = {}, []
+    for t in (home, away):
+        r = rows.get(t)
+        if not r:
+            continue
+        kept = {k: _pct(r.get(k)) for k in ("usage", "passingUsage", "receivingUsage", "rushingUsage")}
+        teams[t] = {"returning_usage": kept}
+        parts.append("%s brings back %s%% of last season's receiving work and %s%% of its "
+                     "rushing" % (t, kept.get("receivingUsage"), kept.get("rushingUsage")))
+    if not teams:
+        return unavailable(9, "Opportunity change",
+                           "Neither team appears in the returning-production table.", None)
+    return {"n": 9, "name": "Opportunity change", "state": "OK", "basis": DESC,
+            "teams": teams, "why": "; ".join(parts) + "."}
+
+
 def s_venue(home, away, sched_row, players, this_season):
     """⛔ IT REFUSES WHEN THERE IS NO SCHEDULE ROW. `[2026-09-17]` It used
     to read OK with `venue`, `roof`, `surface`, `neutral` and `weather`
@@ -1261,7 +1335,7 @@ def build(league=None):
             "commence": g.get("commence"), "week": week,
             "season": this_season,
             "kind": "DOSSIER",
-            "note": ("Eight checks, run in order, for every game on the "
+            "note": ("Nine checks, run in order, for every game on the "
                      "board. ⛔ Nothing here is combined, ranked or "
                      "scored — that would be a model, and a model needs a "
                      "pre-registered test. Every number is labelled "
@@ -1281,6 +1355,7 @@ def build(league=None):
                              kick.strftime("%Y-%m-%d") if kick else None),
                 s_personnel(teams, players, this_season, missing, week, lg),
                 s_venue(home, away, row, players, this_season),
+                s_opportunity(home, away, this_season, week, lg, data, missing),
             ]})
 
     doc = {"kind": "DOSSIER", "league": lg, "season": this_season,
@@ -1309,7 +1384,7 @@ def build(league=None):
            # table, so the sections needing both sides REFUSE BY NAME.
            # Naming them is how a reader knows which half is missing.
            "one_sided": unresolved,
-           "sections_declared": 8,
+           "sections_declared": SECTIONS_DECLARED,   # was a literal 8; derived since section 9 (2026-09-24)
            "note": ("⛔ A REPORT, NOT A MODEL. No combined score, no "
                     "ranking, no confidence. Every section is present or "
                     "explicitly UNAVAILABLE with its reason."),
