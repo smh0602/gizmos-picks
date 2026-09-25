@@ -174,6 +174,8 @@ try:
        and d4["record"]["caution"]["played"] == 1,
        "🔴 graded once the logs pass the game: 'ruled out' and he sat = right; 'questionable' shown as played",
        "got %r" % d4["record"])
+    ck({f["link"]: f["first_seen"] for f in d4["flags"]}.get("LL") == "2026-09-26T15:00:00Z",
+       "🔴 ...and still the first sighting once a LATER frozen copy also holds that flag")
     ck(N.due("ncaaf", root, now=t0 + datetime.timedelta(days=3, minutes=1)) is False,
        "   ✅ once a day: a file built after today's deadline is not rebuilt")
 finally:
