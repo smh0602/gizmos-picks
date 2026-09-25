@@ -126,7 +126,9 @@ concurrency:
 
 jobs:
   triage:
-    runs-on: ubuntu-latest
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -156,9 +158,15 @@ jobs:
       #    issue produced a PR — which is what the one-pass skip reads.
       issue: ${{ steps.decide.outputs.issue }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Is there anything only a person could fix?
         id: decide
@@ -339,7 +347,9 @@ jobs:
   fix:
     needs: triage
     if: needs.triage.outputs.go == 'yes'
-    runs-on: ubuntu-latest
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: write
@@ -348,9 +358,15 @@ jobs:
       id-token: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       # 🔴 THE DRILL PROMPT. Deliberately trivial work, because the
       # question is whether the PATH works, not whether the agent is

@@ -50,17 +50,25 @@ concurrency:
 
 jobs:
   watch:
-    runs-on: ubuntu-latest
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # ⛔ FULL HISTORY IS NOT NEEDED AND IS NOT FREE: `budget.py`
           # reads the snapshot files in the WORKING TREE, not the log.
           fetch-depth: 1
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Is the spend on a trajectory to blow the plan?
         id: look
@@ -163,17 +171,25 @@ jobs:
   # outright rather than reporting it. Keeping `watch` cheap and paying
   # for one full clone a day is the trade.
   repo:
-    runs-on: ubuntu-latest
+    # ⚠️ PINNED, NOT `ubuntu-latest` `[2026-09-24]`: GitHub moves -latest to
+    # Ubuntu 26.04 from 2026-10-19. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # 🔴 FULL HISTORY, DELIBERATELY. See the job comment: git cannot
           # be asked how big a repository is from a shallow clone of it.
           fetch-depth: 0
+
+      # ⚠️ PYTHON IS PINNED HERE, NOT TAKEN FROM THE IMAGE `[2026-09-24]`: the
+      # image's own `python` is 3.12 on ubuntu-24.04 and 3.14 on ubuntu-26.04.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Is the repository growing in a way that will become a problem?
         id: look
