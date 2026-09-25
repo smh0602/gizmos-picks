@@ -14,7 +14,7 @@ GitHub is changing the computer our scheduled jobs run on:
 - GitHub is retiring **Node 20**, the engine two of our standard steps
   (`checkout@v4`, `setup-python@v5`) run on.
 
-These 11 files change three things only:
+These 11 files change three things only ~~:~~ _(2026-09-25: `collect.yml` also carries a fourth, harmless one: the pr-tests split switch, left off. See `UPLOAD-collect.md`)_:
 
 1. `runs-on: ubuntu-latest` becomes `runs-on: ubuntu-24.04`, so the 19th
    changes nothing for us.
@@ -107,4 +107,8 @@ have been green for a while, a later PR stages the one-line change.
 
 ## Changelog
 
+- **2026-09-25:** `collect.yml` now also carries the pr-tests split switch
+  (off there). Upload it after merging "pr-tests: run the vacuity sweep as
+  parallel parts" and this one upload delivers both; if you already
+  uploaded, `UPLOAD-collect.md` has the one-file steps.
 - **2026-09-24:** first version.

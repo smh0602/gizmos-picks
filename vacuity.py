@@ -384,10 +384,55 @@ def _tier2_one(d, root):
                    % (d["find"], d["with"])}
 
 
-def tier2(root=ROOT, only=None, jobs=None, leaks=None):
-    """Apply each declared mutation: must go RED, then GREEN on revert."""
+def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
+    """Apply each declared mutation: must go RED, then GREEN on revert.
+
+    `part` = (k, n) sweeps only this runner's share (`part_of`); None, the
+    default and what `main()` and `collect.yml` use, sweeps everything.
+    """
     ds = [d for d in declarations(root) if not (only and d["test"] not in only)]
-    return _pool(root, JOBS if jobs is None else jobs, ds, _tier2_one, leaks)
+    return _pool(root, JOBS if jobs is None else jobs, part_of(ds, part),
+                 _tier2_one, leaks)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 ONE SWEEP, SPLIT ACROSS RUNNERS — NEVER SAMPLED. `[2026-09-25]`
+# ══════════════════════════════════════════════════════════════════════
+# `[measured, PR #163's last pr-tests run]` 292 declarations cost 7,829
+# test-seconds; four trees on a 4-core runner made that 1,960s wall
+# against a 2,400s clock, and the tests job took 39m30s. The pool above
+# already fills every core ONE runner has. ➡️ So pr-tests runs the same
+# sweep as N jobs; job k applies declaration i when `i % n == k - 1`.
+# ⛔ NOTHING IS DROPPED: `test_pr_shards.py` proves the N parts cover every
+#    declaration exactly once, and that pr-tests.yml runs every part.
+# ⚠️ ROUND-ROBIN IN DECLARATION ORDER, on purpose: one file's declarations
+#    are adjacent, so the costly ones (test_dossier_fb.py, 17 of them) are
+#    dealt across the parts instead of piling into one.
+# ✅ Unset (`VACUITY_PART` empty), everything is swept in one run, as before.
+def parse_part(spec):
+    """'k/n' -> (k, n); '' or None -> None. ⛔ Anything else RAISES.
+
+    A malformed spec must never read as "no part" (that would sweep all,
+    harmless) or as some other part (that would silently sweep the wrong
+    share while another part is swept twice and one not at all).
+    """
+    if spec is None or str(spec).strip() == "":
+        return None
+    m = re.fullmatch(r"\s*(\d+)\s*/\s*(\d+)\s*", str(spec))
+    if not m:
+        raise ValueError("VACUITY_PART must be 'k/n', got %r" % (spec,))
+    k, n = int(m.group(1)), int(m.group(2))
+    if not 1 <= k <= n:
+        raise ValueError("VACUITY_PART %r: need 1 <= k <= n" % (spec,))
+    return (k, n)
+
+
+def part_of(items, part):
+    """This part's share of `items`, in order. `part` None -> all of them."""
+    if part is None:
+        return list(items)
+    k, n = part
+    return [x for i, x in enumerate(items) if i % n == k - 1]
 
 
 # ══════════════════════════════════════════════════════════════════════
