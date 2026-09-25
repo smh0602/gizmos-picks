@@ -1,0 +1,1163 @@
+{
+ "league": "nfl",
+ "kind": "DESCRIPTIVE",
+ "title": "What the model showed, graded",
+ "from": "2026-09-24",
+ "built_at": "2026-09-24T21:50:31Z",
+ "snapshots": 1,
+ "spec": "research/fb_model_live_spec.md",
+ "record": {
+  "game_model": {
+   "moneyline": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 9,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 99,
+     "min_picks": 300,
+     "p": 0.8903,
+     "games": 99,
+     "edge_points": -5.9
+    }
+   },
+   "spread": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 13,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "LOSING",
+     "picks": 98,
+     "min_picks": 300,
+     "p": 0.9955,
+     "games": 98,
+     "edge_points": -13.1
+    }
+   },
+   "total": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 9,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 120,
+     "min_picks": 300,
+     "p": 0.9096,
+     "games": 120,
+     "edge_points": -6.2
+    }
+   }
+  },
+  "props_model": {
+   "player_reception_yds": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 1,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 212,
+     "min_picks": 300,
+     "p": 0.9411,
+     "games": 31,
+     "edge_points": -5.3
+    }
+   },
+   "player_receptions": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 1,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 231,
+     "min_picks": 300,
+     "p": 0.7996,
+     "games": 32,
+     "edge_points": -3.8
+    }
+   }
+  }
+ },
+ "picks": [
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Philadelphia Eagles at Chicago Bears",
+   "player": null,
+   "team": "Chicago Bears",
+   "side": "home",
+   "line": {
+    "value": -4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-29T00:15:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Philadelphia Eagles at Chicago Bears",
+   "player": null,
+   "team": "Chicago Bears",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 195,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 39.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 33.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-29T00:15:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 55.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": null,
+   "team": "Denver Broncos",
+   "side": "home",
+   "line": {
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -106,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": null,
+   "team": "Under",
+   "side": "under",
+   "line": {
+    "value": 43.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "player": null,
+   "team": "Baltimore Ravens",
+   "side": "away",
+   "line": {
+    "value": -3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": null,
+   "team": "Las Vegas Raiders",
+   "side": "away",
+   "line": {
+    "value": 3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 102,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 54.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 49.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": null,
+   "team": "Las Vegas Raiders",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 154,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 44.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 39.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Arizona Cardinals at San Francisco 49ers",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 47.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 55.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 42.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 54.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": null,
+   "team": "Minnesota Vikings",
+   "side": "away",
+   "line": {
+    "value": -1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 42.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 46.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 55.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 57.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 57.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": null,
+   "team": "Cleveland Browns",
+   "side": "home",
+   "line": {
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": null,
+   "team": "Indianapolis Colts",
+   "side": "home",
+   "line": {
+    "value": -1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 55.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": null,
+   "team": "Miami Dolphins",
+   "side": "home",
+   "line": {
+    "value": -10.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": null,
+   "team": "Buffalo Bills",
+   "side": "home",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": null,
+   "team": "Jacksonville Jaguars",
+   "side": "home",
+   "line": {
+    "value": 3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 55.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "New York Jets at Detroit Lions",
+   "player": null,
+   "team": "New York Jets",
+   "side": "away",
+   "line": {
+    "value": 6.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": null,
+   "team": "Washington Commanders",
+   "side": "home",
+   "line": {
+    "value": -7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 55.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Tennessee Titans at New York Giants",
+   "player": null,
+   "team": "New York Giants",
+   "side": "home",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": null,
+   "team": "Cincinnati Bengals",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -185,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 66.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 64.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": null,
+   "team": "Buffalo Bills",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -345,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 77.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 77.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": null,
+   "team": "Jacksonville Jaguars",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -154,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 62.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 60.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "New York Jets at Detroit Lions",
+   "player": null,
+   "team": "New York Jets",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 265,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 31.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 27.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": null,
+   "team": "Seattle Seahawks",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -350,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 78.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 77.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Tennessee Titans at New York Giants",
+   "player": null,
+   "team": "New York Giants",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -134,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 64.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 57.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Atlanta Falcons at Green Bay Packers",
+   "player": "Jonnu Smith",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -185,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 64.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 64.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-25T00:15:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Atlanta Falcons at Green Bay Packers",
+   "player": "Jonnu Smith",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 9.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 55.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-25T00:15:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Atlanta Falcons at Green Bay Packers",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 43.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -104,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-25T00:15:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Atlanta Falcons at Green Bay Packers",
+   "player": null,
+   "team": "Atlanta Falcons",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 200,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 33.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 33.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-25T00:15:00Z",
+   "shown_at": "2026-09-24T21:50:31Z",
+   "state": "pending",
+   "won": null
+  }
+ ],
+ "note": "Every pick the models showed before kickoff, saved and frozen, then graded. Nothing here is recalculated after it is graded."
+}
