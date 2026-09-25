@@ -48,6 +48,11 @@ REAL workflows and the REAL declarations:
 #   file: vacuity.py
 #   find:     return _pool(root, JOBS if jobs is None else jobs, part_of(ds, part),
 #   with:     return _pool(root, JOBS if jobs is None else jobs, ds,
+#
+# @vacuity 🔴 stub output is printed neutralised, never as a workflow command
+#   file: tcheck.py
+#   find:     return str(s).replace("::", ": :")
+#   with:     return str(s)
 """
 import os
 import re
@@ -58,7 +63,7 @@ import tempfile
 
 import vacuity as V
 import wfparse as W
-from tcheck import ck, note, section
+from tcheck import ck, note, section, shown
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PR_PATH = os.path.join(ROOT, ".github", "workflows", "pr-tests.yml")
@@ -152,7 +157,7 @@ for _name, _body in _bodies.items():
     ck("🔴 %s: unset runs EVERY file, as before the split" % _name,
        rc_all == 0 and sorted(ran_all) == sorted(FIX),
        "⛔ collect.yml runs the loop unset; this is its whole suite. "
-       "rc=%s ran=%r %s" % (rc_all, ran_all, o_all[-200:]))
+       "rc=%s ran=%r %s" % (rc_all, ran_all, shown(o_all[-200:])))
     rc_r, ran_r, o_r = drive(_body, "rest")
     rc_s, ran_s, o_s = drive(_body, "sweep")
     ck("🔴🔴 %s: rest + sweep = every file" % _name,
@@ -176,7 +181,7 @@ for _name, _body in _bodies.items():
     ck("🔴 %s: a shard that ran NOTHING is red" % _name,
        rc_e != 0 and ran_e == [],
        "⛔ rename test_vacuity.py and the sweep jobs would pass having run "
-       "nothing. rc=%s %s" % (rc_e, o_e[-200:]))
+       "nothing. rc=%s %s" % (rc_e, shown(o_e[-200:])))
 
 # ════════════════════════════════════════════════════════════════════════
 section("3. 🔴🔴 THE PARTS COVER EVERY DECLARED MUTATION, EACH EXACTLY ONCE")
@@ -236,4 +241,27 @@ try:
        "⛔ the unsplit sweep is the baseline the parts must add up to")
 finally:
     shutil.rmtree(_d, ignore_errors=True)
-sys.stdout.flush()
+
+# ════════════════════════════════════════════════════════════════════════
+section("5. 🔴 A GREEN RUN OF THIS FILE PRINTS NO ERROR COMMAND")
+# ════════════════════════════════════════════════════════════════════════
+# ⛔ Checked on the REAL output: this file is run again as a child (which
+#    skips only this section, so it cannot recurse) and everything it
+#    printed is searched. `[2026-09-25]` 4 error annotations on a green
+#    pr-tests run came from here.
+_CHILD = "TEST_PR_SHARDS_CHILD"
+if not os.environ.get(_CHILD):
+    _p = subprocess.run([sys.executable, "-B", os.path.abspath(__file__)],
+                        cwd=ROOT, capture_output=True, text=True, timeout=300,
+                        env=dict(os.environ, **{_CHILD: "1"}))
+    _txt = (_p.stdout or "") + (_p.stderr or "")
+    ck("⚠️ the child run passed and printed its checks",
+       _p.returncode == 0 and "checks passed" in _txt,
+       "⛔ an empty or failed run contains no error command and proves "
+       "nothing (rule 67). rc=%s, %d chars" % (_p.returncode, len(_txt)))
+    _ERR = "::" + "error::"      # spelled apart so this file's own text never matches
+    _hits = [l for l in _txt.splitlines() if _ERR in l]
+    ck("🔴 ...and NOTHING it printed contains the error command",
+       not _hits,
+       "⛔ GitHub makes each such line an error annotation on a green run. "
+       "%d line(s), first: %s" % (len(_hits), shown(_hits[0][:160]) if _hits else ""))
