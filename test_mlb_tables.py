@@ -300,9 +300,22 @@ ck(base is not None, "the baseline board + card build in an isolated tree")
 _bd = json.loads(base) if base else {}
 _ncard = len(((_bd.get("card") or {}).get("picks")) or [])
 _npit = sum(1 for r in ((_bd.get("card") or {}).get("picks") or []) if r.get("kind") != "hitter")
-ck(_ncard > 0 and _npit > 0,
-   "   ⚠️ the baseline card is NOT empty (%d picks, %d pitcher rows) — an empty "
-   "card would make the comparison below pass blind" % (_ncard, _npit))
+# 🔴 `[2026-09-25]` ~~pitcher rows on the BOARD~~ asked the wrong question
+#    once C2 shipped (research/mlb_pitcher_cal_spec.md): a corrected pitcher
+#    number rarely beats its price, so a correct card can put NO pitcher on
+#    the board (the 2026-09-25 replay: 50 picks, 0 pitcher rows) and this
+#    guard failed a correct card. ✅ What makes the comparison below
+#    non-blind is PITCHER MODEL OUTPUT anywhere on the card: every priced
+#    pitcher prop's projection (hundreds, board or not) and the pitcher
+#    pairs. It must still be there.
+_cd = _bd.get("card") or {}
+_npj = sum(1 for k in (_cd.get("projections") or {})
+           if k.split("|")[1:2] in (["pitcher_strikeouts"], ["pitcher_outs"]))
+_npair = len(_cd.get("pairs") or [])
+ck(_ncard > 0 and _npj > 0,
+   "   ⚠️ the baseline card carries pitcher model output (%d picks, %d pitcher "
+   "rows on the board, %d pitcher projections, %d pairs) — a card without it "
+   "would make the comparison below pass blind" % (_ncard, _npit, _npj, _npair))
 S1, _nx = salted(flag=True)
 flagged = drive("flagged", S1)
 ck(_nx >= 3, "   the salt adds %d below_min_ip starter(s)" % _nx)

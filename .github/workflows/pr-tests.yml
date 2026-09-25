@@ -223,6 +223,65 @@ jobs:
           fi
 
   # ══════════════════════════════════════════════════════════════════════
+  # 🔴🔴 THE SUITE AS IT WILL RUN ONCE SAM UPLOADS. `[added 2026-09-25]`
+  # `[measured, collect run #1839]` PR #174 staged a new runs.yml, every job
+  # above was green, Sam uploaded it — and the next collect run was RED:
+  # `test_fb_freshness.py` pinned MLB's contract at 16 rows and the live
+  # watcher switched on a 17th. The jobs above test the repo as it IS; a
+  # staged workflow changes what it WILL be, by Sam's hand, after merge.
+  # ✅ So this job applies every staged upload to its own throwaway checkout
+  # (committed locally so the tree check below means what it says, never
+  # pushed — this job cannot write) and runs the `rest` shard again.
+  # ⛔ NOT A THIRD COPY OF THE LOOP (rule 117): it runs the `tests` job's
+  # own Tests step, read out of this file by wfparse at run time.
+  # ⚠️ With nothing staged that differs from what is live, it says so and
+  # stops: the `tests` job has already run that exact suite.
+  # ══════════════════════════════════════════════════════════════════════
+  staged:
+    name: tests (staged uploads applied)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      SUITE_SHARD: rest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Apply every staged upload (locally, never pushed)
+        id: apply
+        run: |
+          python -c "import wfparse; print('\n'.join(wfparse.apply_staged('.')))" > /tmp/staged.txt
+          n=$(grep -c . /tmp/staged.txt || true)
+          echo "n=$n" >> "$GITHUB_OUTPUT"
+          if [ "$n" = "0" ]; then
+            echo "nothing staged differs from what is live — the tests job already ran this suite"
+            exit 0
+          fi
+          echo "applied $n staged upload(s):"; cat /tmp/staged.txt
+          git add .github/workflows
+          git -c user.name=pr-tests -c user.email=pr-tests@localhost \
+              commit -q -m "pr-tests: staged uploads applied (local only)"
+
+      - name: Tests, as they will run after the upload
+        if: steps.apply.outputs.n != '0'
+        run: |
+          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > /tmp/loop.sh
+          grep -q "run_one" /tmp/loop.sh || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
+          bash -e /tmp/loop.sh
+
+      - name: The tests must not have modified the tree
+        if: steps.apply.outputs.n != '0'
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::the test step modified the working tree"
+            git status --porcelain
+            exit 1
+          fi
+
+  # ══════════════════════════════════════════════════════════════════════
   # 🔴 BROWSER.YML'S RENDER TESTS, ON BOTH IMAGES. `[added 2026-09-24]`
   # ⚠️ `playwright install --with-deps` installs Ubuntu PACKAGES by name,
   # and package names change between Ubuntu releases — it is the step most

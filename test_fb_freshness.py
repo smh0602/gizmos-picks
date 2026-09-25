@@ -18,6 +18,11 @@ banner nobody can fix is a banner everybody ignores. **Section 4 checks
 they agree.**
 
 ⚠️ No network. Everything is read off disk or constructed.
+
+# @vacuity MLB's row pin holds in BOTH states of the run watcher
+#   file: freshness.py
+#   find:     if not runs_writer_deployed(root):
+#   with:     if False:
 """
 import datetime
 import gzip
@@ -45,7 +50,29 @@ mlb = F.contract(data="data", picks="picks")
 #    `mlb_tables.py`, and its two JSON artifacts (`pitcher-table.json`,
 #    `opponent-table.json`) gained rows at the pitchers deadline. Any
 #    OTHER change to MLB's contract is still a decision.
-eq(len(mlb), 16, "MLB has exactly its 16 rows")
+# 🔴 `[2026-09-25]` 16 -> 17 ONCE THE RUN WATCHER RUNS ITS WRITER, AND
+#    BOTH STATES ARE PINNED. Sam asked for a freshness row for
+#    `data/latest/runs.json`; it exists only when the deployed runs.yml runs
+#    `collect.py runs` (freshness.runs_writer_deployed). ⛔ This line said a
+#    bare 16 and went red on collect run #1839, the moment Sam uploaded
+#    runs.yml: I had checked the staged file against ten tests, not this
+#    one. So the pin is asked of BOTH worlds, whichever is live today, and
+#    the one extra row may only be `runs`. Any OTHER change is a decision.
+_live = F.runs_writer_deployed
+for _on in (False, True):
+    F.runs_writer_deployed = lambda root=None, _v=_on: _v
+    try:
+        _rows = F.contract(data="data", picks="picks")
+    finally:
+        F.runs_writer_deployed = _live
+    eq(len([r for r in _rows if r[0] != "runs"]), 16,
+       "MLB has exactly its 16 rows besides run status (watcher %s)"
+       % ("deployed" if _on else "not deployed"))
+    eq([r[1][1] for r in _rows if r[0] == "runs"],
+       ["data/latest/runs.json"] if _on else [],
+       "   ...and the run-status row exists exactly when its writer is deployed")
+eq(len(mlb), 16 + (1 if _live() else 0),
+   "MLB has exactly its %d rows today" % (16 + (1 if _live() else 0)))
 ck(any(p == "data/latest/record-detail.json.gz" for _m, (_k, p), *_ in mlb),
    "   ...and the MLB drill-down is one of them")
 for _tab in ("pitcher-table.json", "opponent-table.json"):
