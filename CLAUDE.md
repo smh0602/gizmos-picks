@@ -200,6 +200,11 @@ failed recurring runs, i would like to avoid that"*. So:
    the vacuity sweep in four parts (`SUITE_SHARD`, `VACUITY_PART`).
    `test_pr_shards.py` fails if a file or a declared mutation falls
    between them. `collect.yml` leaves both unset and runs everything.
+   `[2026-09-25]` One more job, `staged`, applies every workflow staged in
+   `docs/upload/` to its own checkout and runs the `rest` shard again:
+   the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's
+   runs.yml turned collect #1839 red on a row-count pin that every
+   pr-tests job had passed (`test_pr_staged.py`).
 2. ⛔ **A workflow file with a `cron:` block is never changed in a PR.**
    Hand Sam the file; he uploads it with GitHub's "choose your files"
    button. (Dragging a folder put 37 files one level too deep, twice, on

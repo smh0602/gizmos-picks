@@ -57,6 +57,23 @@ re-grade are untouched. `collect.yml` is untouched.
   grader's output vs new grader's re-grade. Root cause: nothing recorded
   which code built the file.
 
+- **Mine again, after merge: the upload turned the suite red.** Sam
+  uploaded the staged `runs.yml` at 20:33Z and collect run #1839 went red
+  on `test_fb_freshness.py`: it pins MLB's contract at 16 rows and the
+  live watcher switched on the 17th (`runs`). I had "simulated the
+  upload" with ten tests I picked, not the suite. Root cause: pr-tests
+  only ever tested the repo as it IS, never as it will be after a staged
+  upload. Fix: the pin now holds in both states and admits exactly the
+  `runs` row. Class guard: pr-tests' new `staged` job applies every
+  staged upload to its own checkout and runs the suite again
+  (`test_pr_staged.py`). Replayed on PR #174's head it goes red on
+  exactly this test.
+- **Not mine, same run:** `test_mlb_tables.py` required pitcher rows on
+  the board; after C2 (#166) tonight's card has 0 (today's published card
+  has 1 of 50). Pre-merge code fails identically on the same data. PR #171
+  (another session) already fixes it; its hunk is ported byte-for-byte
+  into the follow-up PR so the two merge cleanly in either order.
+
 ## Open
 
 - `checks: read` for annotations is granted but unmeasured in production;
@@ -68,3 +85,5 @@ re-grade are untouched. `collect.yml` is untouched.
 ## Changelog
 
 - **2026-09-25:** first version.
+- **2026-09-25 (later):** the post-upload red run (#1839), its root
+  cause, the pin fix and the `staged` pr-tests job.
