@@ -35,6 +35,7 @@ import fb_model as F                # fit, predict, record, devig, implied, deci
 import mlb_refit                    # paired_test_clustered: the ONE cluster-robust paired test
 import possession as P              # share_before: signal 6 from EARLIER games only
 import record_fb                    # _val, _won, _played, JOIN_WINDOW_DAYS: the card's own grader
+import signal9                      # the ONE expected-share formula (signal 9)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -59,7 +60,20 @@ USAGE = {"nfl": {"player_pass_yds": ("att",), "player_pass_tds": ("att",),
 POSITIONS = {"player_pass_yds": {"QB"}, "player_pass_tds": {"QB"},
              "player_rush_yds": {"QB", "RB", "WR"}, "player_reception_yds": {"WR", "TE", "RB"},
              "player_receptions": {"WR", "TE", "RB"}, TD_MARKET: {"QB", "RB", "WR", "TE"}}
-N_FEAT = 20
+# 🔴 SIGNAL 9 `[Sam, 2026-09-24]` — one extra input, his expected volume per
+#    game (research/fb_signal9_spec.md §3). ⛔ ON/OFF IS SET BY THE RECORDED
+#    KEEP-RULE RESULT (fb_signal9.py), never by hand.
+# ⛔ NFL OFF 2026-09-24: worse, mean log-loss difference −0.0007 over 1,573
+#    graded rungs (research/fb_signal9_run_2026-09-24.json). College OFF until scored.
+S9_PROPS = {"nfl": False, "ncaaf": False}
+N_BASE = 20
+
+
+def n_feat(lg=None):
+    return N_BASE + (1 if S9_PROPS.get(lg or LEAGUE) else 0)
+
+
+N_FEAT = N_BASE
 
 
 def log(m):
@@ -119,7 +133,8 @@ class Sums:
     unpenalised intercept. Adding rows in date order and copying at a week
     boundary gives that week's training set exactly."""
 
-    def __init__(self, k=N_FEAT):
+    def __init__(self, k=None):
+        k = n_feat() if k is None else k
         self.k, self.n = k, 0
         self.sx = [0.0] * k
         self.sxx = [[0.0] * k for _ in range(k)]
@@ -143,7 +158,7 @@ class Sums:
                     row[j] += xi * xj
 
     def copy(self):
-        c = Sums(self.k)
+        c = Sums(k=self.k)
         c.n, c.sy, c.syy = self.n, self.sy, self.syy
         c.sx, c.sxy = list(self.sx), list(self.sxy)
         c.sxx = [list(r) for r in self.sxx]
@@ -254,6 +269,32 @@ class History:
         self.team_games = collections.defaultdict(set)    # (season, team) -> {game ids}
         self.lg_pace = collections.defaultdict(float)     # season -> total
         self.lg_team_games = collections.defaultdict(int)
+        self.team_game_vol = collections.defaultdict(lambda: collections.defaultdict(float))  # (season, team, gid) -> cat
+        self.opp = {}                                     # season -> signal 9 table (or None)
+
+    def _opp(self, season):
+        if season not in self.opp:
+            self.opp[season] = signal9.load(self.lg, season)
+        return self.opp[season]
+
+    def s9_volume(self, pid, season, market, ctx, ssn):
+        """Signal 9's expected volume per game, or 0 (spec §3)."""
+        cat = signal9.MARKET_CAT.get(market)
+        opp = self._opp(season) if cat else None
+        if not opp:
+            return 0.0
+        team = ctx.get("team")
+        a = signal9.s_adj(opp, pid, team, ctx.get("week"), cat)
+        per_game = signal9.team_prior_per_game(opp, team, cat)
+        if not a or not per_game:
+            return 0.0
+        fields = ("tgt", "car") if cat == "combined" else (cat,)
+        obs = []
+        for g in ssn:
+            tv = sum(self.team_game_vol[(season, g.get("team"), g.get("game_id"))][f] for f in fields)
+            if tv > 0:
+                obs.append(stat(g, fields) / tv)
+        return signal9.e_share(a[0], obs) * per_game
 
     def features(self, pid, season, market, ctx):
         """The 20 design-§2 inputs, or None if he has no earlier game."""
@@ -304,7 +345,8 @@ class History:
                 fnum(wx.get("wind")) if nfl and wx.get("wind") is not None else 0.0,
                 fnum(ctx.get("ahead_out")) if nfl else 0.0,
                 fnum(ctx.get("ol_out")) if nfl else 0.0,
-                fnum(ctx.get("opp_dl_out")) if nfl else 0.0]
+                fnum(ctx.get("opp_dl_out")) if nfl else 0.0] + (
+            [self.s9_volume(pid, season, market, ctx, ssn)] if S9_PROPS.get(self.lg) else [])
 
     def add_day(self, entries):
         """Fold one date's played games into the state (after that date's
@@ -328,6 +370,8 @@ class History:
                         self.lg_allowed[(season, pos, mk)] += v
             if team is not None:
                 by_game_team[(season, team, gid)] += fnum(g.get("att")) + fnum(g.get("car"))
+                for f in ("tgt", "car"):
+                    self.team_game_vol[(season, team, gid)][f] += fnum(g.get(f))
         for (season, team, gid), v in by_game_team.items():
             if gid not in self.team_games[(season, team)]:
                 self.team_games[(season, team)].add(gid)
@@ -338,6 +382,7 @@ class History:
 
 def ctx_of(pos, g):
     return {"opp": g.get("o"), "team": g.get("team"), "pos": pos, "day": (g.get("d") or "")[:10],
+            "week": g.get("week"),
             "home": bool(g.get("home")) and g.get("home") not in (0, "0"), "neutral": bool(g.get("neutral")),
             "wx": g.get("wx"), "ahead_out": g.get("ahead_out"), "ol_out": g.get("ol_out"),
             "opp_dl_out": g.get("opp_dl_out")}
@@ -359,7 +404,7 @@ def stream(lg, logs, boundaries, keep_from, poss=None):
                 if d:
                     entries[d].append((season, pid, pos, g))
     H = History(lg, poss or {})
-    sums = {mk: Sums() for mk in markets}
+    sums = {mk: Sums(k=n_feat(lg)) for mk in markets}
     snaps, kept = {}, {}
     todo = sorted(boundaries)
     for day in sorted(entries):

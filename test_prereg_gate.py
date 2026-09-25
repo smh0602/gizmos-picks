@@ -124,6 +124,9 @@ FROZEN = {
     # [Sam, 2026-09-25] audit proposals C and D in section 2; the bar in
     # section 3 fixed by Claude before any scoring code existed.
     "mlb_pitcher_cal_spec.md": "4b8a9a77f13cdab57a88340f70399f189c2b9b7b00fe63bee7b8f38036935e12",
+    # [Sam, 2026-09-24] signal 9 rules in section 2; formulas, the keep
+    # rule and the dossier in section 3 fixed by Claude before any scoring.
+    "fb_signal9_spec.md": "dad87ef8ddf949bd50796137d0bda9817e51ae82aa7bb23057de2f4e55b066b6",
 }
 
 

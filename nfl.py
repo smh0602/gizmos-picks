@@ -871,7 +871,20 @@ def build_possession(season, seen=None, log=print):
         return None, rep
     payload, rep2 = possession_from_rows(pbp, season, log)
     rep.update(rep2)
+    if payload is not None:
+        # signal 9's inside-10 targets, from the same play-by-play pass
+        payload["inside10"] = inside10_from_rows(pbp)
     return payload, rep
+
+
+def _stored_json(path):
+    import gzip as _gz
+    import json as _js
+    try:
+        with _gz.open(path, "rt", encoding="utf-8") as fh:
+            return _js.load(fh)
+    except Exception:
+        return None
 
 
 def schedule_dates(season, root=None):
@@ -927,6 +940,128 @@ def schedule_keys():
     return frozenset(doc["games"][0]) if doc else frozenset()
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SIGNAL 9 — OPPORTUNITY CHANGE `[Sam, 2026-09-24]`
+#    research/fb_signal9_spec.md §3, frozen before any scoring.
+# ══════════════════════════════════════════════════════════════════════
+OPP_CATS = ("tgt", "ay", "car")
+OPP_AVAILABLE = ("ACT", "INA")            # ⛔ IR (RES) is NOT available: vacated while out (Sam)
+OPP_OFF_ROSTER_ONLY = ("ACT", "INA", "RES")  # the definition Sam's check figures match
+
+
+def inside10_from_rows(pbp):
+    """{receiver id: {team: inside-10 targets}} from play-by-play rows:
+    regular-season passes to a receiver with yardline_100 <= 10."""
+    out = {}
+    for r in pbp or []:
+        if str(r.get("season_type") or "REG") != "REG":
+            continue
+        rid, team = r.get("receiver_player_id"), r.get("posteam")
+        if not rid or not team or str(r.get("pass_attempt") or "") not in ("1", "1.0"):
+            continue
+        try:
+            yl = float(r.get("yardline_100"))
+        except (TypeError, ValueError):
+            continue
+        if yl <= 10:
+            out.setdefault(rid, {}).setdefault(team, 0)
+            out[rid][team] += 1
+    return out
+
+
+def opportunity_from_rows(rost_rows, prior_players, season, inside10=None):
+    """-> (payload, report). spec §3: every team's season-1 regular-season
+    targets, air yards, carries (and inside-10 targets, where stored) held
+    by players NOT available to it in each week of `season`, as a count
+    and a share; per player his season-1 share and whether he moved."""
+    rep = {"season": season, "kind": "DIAGNOSTIC", "usable": False}
+    TOT, VOL = {}, {}
+    for pid, p in (prior_players or {}).items():
+        for g in p.get("g") or []:
+            wk = g.get("week")
+            if not isinstance(wk, int) or wk > 18 or not g.get("team"):
+                continue
+            t = g["team"]
+            for c in OPP_CATS:
+                v = float(g.get(c) or 0)
+                TOT.setdefault(t, {}).setdefault(c, 0.0)
+                TOT[t][c] += v
+                VOL.setdefault(pid, {}).setdefault(t, {}).setdefault(c, 0.0)
+                VOL[pid][t][c] += v
+    cats = list(OPP_CATS)
+    if inside10:
+        cats.append("i10")
+        for pid, by_team in inside10.items():
+            for t, n in by_team.items():
+                TOT.setdefault(t, {}).setdefault("i10", 0.0)
+                TOT[t]["i10"] += n
+                VOL.setdefault(pid, {}).setdefault(t, {}).setdefault("i10", 0.0)
+                VOL[pid][t]["i10"] += n
+    status, team_now, weeks = {}, {}, set()
+    for r in rost_rows or []:
+        try:
+            w = int(float(r.get("week")))
+        except (TypeError, ValueError):
+            continue
+        t, pid = r.get("team"), r.get("gsis_id")
+        if not t or not pid:
+            continue
+        weeks.add(w)
+        status[(w, t, pid)] = r.get("status")
+        if w == min(weeks):
+            team_now.setdefault(pid, t)
+    if not TOT or not weeks:
+        rep["error"] = "no prior-season volume" if not TOT else "no roster rows for %s" % season
+        return None, rep
+    w1 = min(weeks)
+    team_now = {pid: t for (w, t, pid), _s in status.items() if w == w1}
+
+    def comb(d):
+        return d.get("tgt", 0.0) + d.get("car", 0.0)
+    teams = {}
+    for t, tot in TOT.items():
+        rows = {pid: v[t] for pid, v in VOL.items() if t in v}
+        entry = {"totals": dict(tot, combined=comb(tot)), "weeks": {}, "off_roster": {}, "departed": []}
+        for w in sorted(weeks):
+            vac = {c: sum(d.get(c, 0.0) for pid, d in rows.items()
+                          if status.get((w, t, pid)) not in OPP_AVAILABLE) for c in cats}
+            vac["combined"] = vac["tgt"] + vac["car"]
+            _den = dict(tot, combined=comb(tot))   # ⛔ the combined total is targets + carries
+            entry["weeks"][str(w)] = {c: {"count": round(vac[c], 1),
+                                          "share": round(vac[c] / _den[c], 4) if _den.get(c) else None}
+                                      for c in cats + ["combined"] if c in vac and _den.get(c) is not None}
+        off = {c: sum(d.get(c, 0.0) for pid, d in rows.items()
+                      if status.get((w1, t, pid)) not in OPP_OFF_ROSTER_ONLY) for c in cats}
+        entry["off_roster"] = {c: round(off[c] / tot[c], 4) for c in cats if tot.get(c)}
+        gone = sorted(((comb(d), pid) for pid, d in rows.items()
+                       if status.get((w1, t, pid)) not in OPP_AVAILABLE), reverse=True)[:5]
+        entry["departed"] = [{"player": (prior_players.get(pid) or {}).get("name"),
+                              "tgt": round(rows[pid].get("tgt", 0.0)), "car": round(rows[pid].get("car", 0.0)),
+                              "status": status.get((w1, t, pid)) or "not on the roster"}
+                             for _c, pid in gone if _c > 0]
+        entry["arrivals_changed_teams"] = 0
+        teams[t] = entry
+    players = {}
+    for pid, by_team in VOL.items():
+        if not any(comb(d) > 0 or d.get("ay", 0.0) > 0 for d in by_team.values()):
+            continue                          # no opportunity to vacate or carry over
+        told = max(by_team, key=lambda t: comb(by_team[t]))
+        d = by_team[told]
+        share = {c: round(d.get(c, 0.0) / TOT[told][c], 4) for c in cats if TOT[told].get(c)}
+        tc = comb(TOT[told])
+        share["combined"] = round(comb(d) / tc, 4) if tc else None
+        now = team_now.get(pid)
+        players[pid] = {"team_old": told, "team_now": now, "changed": bool(now and now != told),
+                        "share25": share}
+        if now and now != told and now in teams:
+            teams[now]["arrivals_changed_teams"] += 1
+    rep.update({"usable": True, "teams": len(teams), "players": len(players),
+                "weeks": sorted(weeks), "inside10": bool(inside10)})
+    return {"season": season, "prior_season": season - 1, "kind": "DESCRIPTIVE",
+            "spec": "research/fb_signal9_spec.md", "weeks": sorted(weeks),
+            "teams": teams, "players": players}, rep
+
+
 def history_gap(base, season):
     """Why `season` must be rebuilt for signals 6 and 7, or None.
 
@@ -945,14 +1080,20 @@ def history_gap(base, season):
     if os.path.exists(table):
         try:
             with _gz.open(table, "rt", encoding="utf-8") as fh:
-                if "games" not in _js.load(fh):
+                _tbl = _js.load(fh)
+                if "games" not in _tbl:
                     return "top-%d predates the per-game rows" % season
+                if "inside10" not in _tbl:
+                    return "top-%d predates signal 9's inside-10 targets" % season
         except Exception as e:
             return "top-%d unreadable: %s" % (season, type(e).__name__)
     try:
         with _gz.open(logs, "rt", encoding="utf-8") as fh:
-            if "team_out_report" not in _js.load(fh):
+            _pl = _js.load(fh)
+            if "team_out_report" not in _pl:
                 return "players-%d predates the players-out count" % season
+            if "opportunity_report" not in _pl:
+                return "players-%d predates signal 9" % season
     except FileNotFoundError:
         return "no players-%d" % season
     except Exception as e:
@@ -2268,6 +2409,17 @@ def build_logs(season, log=print):
         # it can never be used safely. Refuse rather than silently include.
         raise RuntimeError(f"{undated} player-weeks have no kickoff date")
     team_out, team_out_rep = team_out_from_rows(inj_rows, rost)
+    # 🔴 SIGNAL 9 FROM THE SAME PULL, rebuilt every run — the run that
+    #    refreshes rosters. Prior season from its stored logs; inside-10
+    #    targets from its stored possession table, where present.
+    _latest = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "nfl", "latest")
+    _prior = _stored_json(os.path.join(_latest, "players-%d.json.gz" % (int(season) - 1)))
+    _top = _stored_json(os.path.join(_latest, "top-%d.json.gz" % (int(season) - 1)))
+    opportunity, opportunity_rep = opportunity_from_rows(
+        rost, (_prior or {}).get("players") or {}, int(season), (_top or {}).get("inside10"))
+    log(f"  signal 9: {opportunity_rep.get('teams', 0)} team(s), "
+        f"{opportunity_rep.get('players', 0)} player(s)"
+        + ("" if opportunity else f" ⛔ {opportunity_rep.get('error')}"))
     log(f"  players out: {team_out_rep.get('players_out', 0):,} across "
         f"{team_out_rep.get('team_weeks', 0):,} team-week(s) — "
         f"{team_out_rep['injury_out']:,} from the injury report, "
@@ -2278,6 +2430,8 @@ def build_logs(season, log=print):
             # 🔴 SIGNAL 7. None (with the reason beside it) when the roster
             #    codes do not match — never a table of silent zeros.
             "team_out": team_out, "team_out_report": team_out_rep,
+            # 🔴 SIGNAL 9 — None (with its reason) rather than silent zeros.
+            "opportunity": opportunity, "opportunity_report": opportunity_rep,
             "source_assets": dict(USED),
             "substituted": {k: v for k, v in USED.items() if k != v},
             "bridge_ok": bridge_ok, "bridge_coverage": bridge_cov,

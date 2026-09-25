@@ -80,6 +80,22 @@ def fires_per_week(cron):
     return len(_expand(dow, 0, 6)) * len(_expand(h, 0, 23)) * len(_expand(m, 0, 59))
 
 
+def signal9_one_time(root=ROOT):
+    """Signal 9's one-time CFBD calls still owed: one per endpoint per
+    history season whose file is missing, READ OFF `cfb.py`'s own list.
+    ⛔ One-time, not monthly: each is fetched once and never again."""
+    src = open(os.path.join(root, "cfb.py"), encoding="utf-8").read()
+    eps = re.findall(r'\("(/player/(?:returning|portal))",\s*"([a-z]+)-\{s\}\.json\.gz"\)', src)
+    try:
+        import freshness as _fr
+        seasons = _fr.FOOTBALL_HISTORY
+    except Exception:
+        seasons = (2025, 2026)
+    owed = [(ep, s) for ep, stem in eps for s in seasons
+            if not os.path.exists(os.path.join(root, "data", "ncaaf", "latest", "%s-%d.json.gz" % (stem, s)))]
+    return {"endpoints": [ep for ep, _stem in eps], "owed": owed, "calls": len(owed)}
+
+
 def calls_per_build(weeks_played=3):
     """CFBD calls one build of each mode makes, READ OFF `cfb.py`.
 
