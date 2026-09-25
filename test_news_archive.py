@@ -483,9 +483,19 @@ ck("✅ it writes through the shared archive writer, not its own",
    "rule 117: one dated write-once writer")
 
 _page = io.open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
-for _t in ("first_seen", "link_key", "news/", "revision"):
+for _t in ("link_key", "news/", "revision"):
     ck("⛔ %r does not reach the page" % _t, _t not in _page,
        "nothing is joined to a player and nothing is on the surface")
+# ⚠️ `[Sam, 2026-09-25]` ONE FIELD NOW HAS ONE DOOR. A news FLAG on a board
+#    row shows when the reviewer first saw it — Sam asked for exactly that
+#    ("the source, the headline or status, its link, and first_seen"). ⛔ It
+#    may appear ONLY inside the flag renderer, read off a flag; anywhere
+#    else on the page (the archive's own field reaching the surface) is red.
+from jsblock import js_block as _jsb  # noqa: E402
+_door = _jsb("fbFlagOne", os.path.join(ROOT, "index.html"))
+ck("⛔ 'first_seen' reaches the page ONLY through the news-flag renderer",
+   _page.count("first_seen") == _door.count("first_seen") >= 1 and "f.first_seen" in _door,
+   "page %d, fbFlagOne %d" % (_page.count("first_seen"), _door.count("first_seen")))
 # ⛔ ORDER INSIDE THE FUNCTION, NOT POSITION IN THE FILE. My first form
 #    compared `CSRC.index(...)` and matched the `def archive_news` that
 #    sits ABOVE the writer — a check that reddened on correct code

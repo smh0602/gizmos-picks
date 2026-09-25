@@ -158,7 +158,9 @@ def _fires(lg, mode):
 # which mode builds each FB_TIMES key
 _BUILDER = {"odds": "gamelines", "props": "props-player", "card": "card-fb",
             "news": "news", "teams": "cfb-teams", "scores": "fb-scores",
-            "grade": "card-fb"}
+            "grade": "card-fb",
+            # `[2026-09-25]` the daily news flags are built by the news run
+            "flags": "news"}
 _LOGS = {"ncaaf": "cfb-probe", "nfl": "nfl-logs"}
 # ⚠️ 20 MINUTES. A cron is allowed to sit a few minutes past its deadline --
 #    GitHub itself is not punctual -- but a deadline no cron reaches for
@@ -309,7 +311,8 @@ for lg in ("nfl", "ncaaf"):
     #    "the ones it builds", and the check below proves the chain exists.
     ck(all(p.endswith(("dossiers.json.gz", "fb-model.json", "fb-props-model.json",
                        "card-calibration.json", "model-ledger.json",
-                       "game-lines.json.gz", "game-lines-record.json")) for p in extra),
+                       "game-lines.json.gz", "game-lines-record.json",
+                       "agreement.json")) for p in extra),
        f"   ⚠️ {lg}: `card-fb`'s other files are the ones it builds",
        f"unexpected non-picks files under card-fb: {extra}")
     _cfb = open("collect.py", encoding="utf-8").read()
@@ -322,6 +325,9 @@ for lg in ("nfl", "ncaaf"):
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("card-calibration.json" not in " ".join(extra)) or "_fcc.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds card-calibration.json",
+       "⛔ a contract row on a file its mode never writes is late for ever")
+    ck(("agreement.json" not in " ".join(extra)) or "_fag.build(LEAGUE)" in _cfb,
+       f"   🔴 {lg}: ...and card-fb really builds agreement.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("game-lines" not in " ".join(extra)) or "_glf.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds the game lines files",

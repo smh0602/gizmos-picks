@@ -420,6 +420,9 @@ FB_TIMES = {
         # 5-hour-old file was INSIDE contract and nothing anywhere was
         # wrong. It is free; there was never a reason for it to be daily.
         "news":   [(h, 0) for h in range(24)],           # every hour
+        # `[Sam, 2026-09-25]` the news-flag reviewer: ONCE a day, built by the
+        #    hourly news run that follows this deadline (no new cron).
+        "flags":  [(10, 5)],                              # 10:05am ET daily
         "teams":  [(10, 35, {6})],                       # Sun, with the rebuild
         # 🔴 SCORES ARE DUE ON THE DAY THE SPORT IS PLAYED. They live in
         # the schedule file, which rode the weekly rebuild -- so on
@@ -506,6 +509,9 @@ FB_TIMES = {
         # 🔴 HOURLY, same as college — Sam's complaint was about the news
         # tab and both leagues read the same builder.
         "news":   [(h, 0) for h in range(24)],           # every hour
+        # `[Sam, 2026-09-25]` the news-flag reviewer: ONCE a day, built by the
+        #    hourly news run that follows this deadline (no new cron).
+        "flags":  [(10, 5)],                              # 10:05am ET daily
         "teams":  [],                                    # embedded in the page
         # ⚠️ The NFL's game days are Sunday, Monday and Thursday; its
         # schedule rode the TUESDAY rebuild.
@@ -725,6 +731,9 @@ def _football_contract(league, data, picks, now):
         ("card-fb", ("file", f"picks/fb-{league}-latest.json"), T["card"], False,
          "Gizmo's Picks + Parlays + Track Record"),
         ("news", ("file", f"{latest}/news.json"), T["news"], False, "News"),
+        # `[Sam, 2026-09-25]` the daily news flags on board rows — DESCRIPTIVE.
+        ("news", ("file", f"{latest}/news-flags.json"), T["flags"], False,
+         "News flags — injury status and headlines on board rows"),
         # ══════════════════════════════════════════════════════════════
         # 📰 THE DATED NEWS ARCHIVE, AND IT GETS A CONTRACT ENTRY IN THE
         #    SAME PR THAT CREATES IT.
@@ -932,6 +941,10 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/game-lines-record.json"), T["card"], False,
          "Game Lines — the alt-rung track record"))
+    # `[Sam, 2026-09-25]` card vs props-model agreement labels and their record.
+    rows.append(
+        ("card-fb", ("file", f"{latest}/agreement.json"), T["card"], False,
+         "Card vs props model — agreement labels"))
     # ⛔ AND THE GRADER GETS ONE TOO, for the same reason (rule 78). The
     # probe is `record.json` -- the file the Track Record tab reads.
     # ⚠️ ONLY ONCE A CARD EXISTS TO GRADE. Before the first published card

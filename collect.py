@@ -4333,6 +4333,16 @@ def run_mode(mode):
             left = collect_hitters()
         elif mode == "news":
             left = collect_news()
+            # 🔴 `[Sam, 2026-09-25]` THE NEWS-FLAG REVIEWER, ONCE A DAY, on the
+            #    news run after its deadline. ⛔ It flags and never picks; a
+            #    failure here never costs the news already written.
+            if LEAGUE in ("nfl", "ncaaf"):
+                try:
+                    import news_flags_fb as _nf
+                    if _nf.due(LEAGUE):
+                        _nf.build(LEAGUE)
+                except Exception as _ne:
+                    log(f"  news flags FAILED: {type(_ne).__name__}: {_ne}")
         elif mode == "nfl-teams":
             # ⛔ FREE -- no API call at all, it writes a static directory.
             # ⚠️ The PAGE no longer depends on this file (the NFL map is
@@ -4495,6 +4505,15 @@ def run_mode(mode):
                     _fpm.build(LEAGUE)
                 except Exception as e:
                     log(f"  ⚠️ the props model did not build "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back.")
+                # `[Sam, 2026-09-25]` card vs props-model agreement: labelled,
+                #    frozen, graded. ⛔ A note on the row; it changes no pick.
+                try:
+                    import fb_agreement as _fag
+                    _fag.build(LEAGUE)
+                except Exception as e:
+                    log(f"  ⚠️ the agreement labels did not build "
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back.")
                 # `[Sam, 2026-09-24]` the card's own calibration: the band

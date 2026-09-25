@@ -120,3 +120,8 @@ scores a row exists.** Sections 2 and 3 are hashed by `test_prereg_gate.py`.
 
 - **2026-09-25:** written and committed on its own, before any labelling or
   scoring code.
+- **2026-09-25, first labels** (Thursday's slate as it stood before kickoff):
+  - NFL: 26 rows, 14 AGREE / 11 SPLIT / 1 ONE SOURCE.
+  - College: 24 rows, 14 AGREE / 9 SPLIT / 1 ONE SOURCE.
+  - Every card row had a props-model probability for the same side. No row
+    is graded yet, so the question is NOT YET MEASURABLE.
