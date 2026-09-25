@@ -539,24 +539,57 @@ jobs:
             fi
             echo "   ${d}s"
           }
+          # 🔴🔴 ONE SUITE, SPLIT ACROSS RUNNERS ONLY WHEN ASKED. `[2026-09-25]`
+          # `SUITE_SHARD` unset = `all`: every file, exactly as before.
+          # pr-tests.yml sets it so the vacuity sweep (84% of the job,
+          # measured on PR #163) runs as parallel jobs beside the rest:
+          #   rest  = every file but test_vacuity.py
+          #   sweep = test_vacuity.py alone, on its VACUITY_PART share
+          # ⛔ Every file is still DISCOVERED and counted here, so the
+          # shrink check below sees the whole suite in every shard.
+          # ✅ test_pr_shards.py drives this loop: rest + sweep = all,
+          # nothing in both, and an unknown shard is refused.
+          shard="${SUITE_SHARD:-all}"
+          case "$shard" in
+            all|rest|sweep) ;;
+            *) echo "::error::unknown SUITE_SHARD=$shard"; exit 1 ;;
+          esac
+          in_shard() {   # $1 = file
+            case "$shard" in
+              all)   return 0 ;;
+              sweep) [ "$1" = test_vacuity.py ] ;;
+              rest)  [ "$1" != test_vacuity.py ] ;;
+            esac
+          }
+          ran=0
           for t in test_*.py; do
             [ -e "$t" ] || continue
             found=$((found+1))
+            in_shard "$t" || continue
+            ran=$((ran+1))
             echo "── $t"
             run_one python "$t"
           done
           for t in test_*.js; do
             [ -e "$t" ] || continue
             found=$((found+1))
+            in_shard "$t" || continue
+            ran=$((ran+1))
             echo "── $t"
             run_one node "$t"
           done
-          echo "ran $found test file(s)"
+          echo "ran $ran of $found test file(s) (shard $shard)"
           echo "failed=$(echo $failed | tr ' ' ',')" >> "$GITHUB_OUTPUT"
           # ⚠️ ZERO TEST FILES IS A FAILURE, NOT A PASS. A glob that
           # matches nothing is exactly how a suite disappears unnoticed.
           if [ "$found" -lt 4 ]; then
             echo "::error::only $found test file(s) found — the suite has shrunk"
+            rc=1
+          fi
+          # ⛔ A SHARD THAT RAN NOTHING IS A FAILURE, and `all` must run
+          # every file it found — a selector that drops one is a skip.
+          if [ "$ran" -lt 1 ] || { [ "$shard" = all ] && [ "$ran" != "$found" ]; }; then
+            echo "::error::shard $shard ran $ran of $found test file(s)"
             rc=1
           fi
           echo "rc=$rc" >> "$GITHUB_OUTPUT"

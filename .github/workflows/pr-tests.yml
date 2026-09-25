@@ -40,13 +40,29 @@ jobs:
     # on every PR, whether it is safe to move them to 26.04.
     # ⚠️ The 24.04 row keeps the check's old name, `tests`, so nothing
     #    that already waits on that name has to change.
-    name: tests${{ matrix.os != 'ubuntu-24.04' && format(' ({0})', matrix.os) || '' }}
+    # 🔴🔴 AND EACH IMAGE RUNS THE SUITE AS FIVE PARALLEL JOBS. `[2026-09-25]`
+    # `[measured, PR #163's last run]` the job took 37m25s on 24.04 and
+    # 39m25s on 26.04, and `test_vacuity.py`'s sweep was 1,883s and 1,960s
+    # of it (84%) — already spread over every core one runner has.
+    #   `rest`      every test file except test_vacuity.py, the same loop
+    #   `sweep k/4` test_vacuity.py, sweeping declarations i % 4 == k-1
+    # ⛔ NOTHING IS SKIPPED OR SAMPLED: every job runs every check of the
+    #    files it owns; test_pr_shards.py proves rest + sweep = every file
+    #    and the four parts = every declaration, each exactly once.
+    # ⚠️ ADD A PART, NOT A NUMBER: the parts listed here must be 1..N of one
+    #    N, and test_pr_shards.py fails if one is missing or repeated.
+    # ✅ Public repo: standard runners cost nothing, however many jobs.
+    name: tests${{ matrix.os != 'ubuntu-24.04' && format(' ({0})', matrix.os) || '' }}${{ matrix.shard != 'rest' && format(' · sweep {0}', matrix.shard) || '' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-26.04]
+        shard: [rest, 1/4, 2/4, 3/4, 4/4]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
+    env:
+      SUITE_SHARD: ${{ matrix.shard == 'rest' && 'rest' || 'sweep' }}
+      VACUITY_PART: ${{ matrix.shard != 'rest' && matrix.shard || '' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -141,24 +157,57 @@ jobs:
             fi
             echo "   ${d}s"
           }
+          # 🔴🔴 ONE SUITE, SPLIT ACROSS RUNNERS ONLY WHEN ASKED. `[2026-09-25]`
+          # `SUITE_SHARD` unset = `all`: every file, exactly as before.
+          # pr-tests.yml sets it so the vacuity sweep (84% of the job,
+          # measured on PR #163) runs as parallel jobs beside the rest:
+          #   rest  = every file but test_vacuity.py
+          #   sweep = test_vacuity.py alone, on its VACUITY_PART share
+          # ⛔ Every file is still DISCOVERED and counted here, so the
+          # shrink check below sees the whole suite in every shard.
+          # ✅ test_pr_shards.py drives this loop: rest + sweep = all,
+          # nothing in both, and an unknown shard is refused.
+          shard="${SUITE_SHARD:-all}"
+          case "$shard" in
+            all|rest|sweep) ;;
+            *) echo "::error::unknown SUITE_SHARD=$shard"; exit 1 ;;
+          esac
+          in_shard() {   # $1 = file
+            case "$shard" in
+              all)   return 0 ;;
+              sweep) [ "$1" = test_vacuity.py ] ;;
+              rest)  [ "$1" != test_vacuity.py ] ;;
+            esac
+          }
+          ran=0
           for t in test_*.py; do
             [ -e "$t" ] || continue
             found=$((found+1))
+            in_shard "$t" || continue
+            ran=$((ran+1))
             echo "── $t"
             run_one python "$t"
           done
           for t in test_*.js; do
             [ -e "$t" ] || continue
             found=$((found+1))
+            in_shard "$t" || continue
+            ran=$((ran+1))
             echo "── $t"
             run_one node "$t"
           done
-          echo "ran $found test file(s)"
+          echo "ran $ran of $found test file(s) (shard $shard)"
           echo "failed=$(echo $failed | tr ' ' ',')"
           # ⚠️ ZERO TEST FILES IS A FAILURE, NOT A PASS. A glob that
           # matches nothing is exactly how a suite disappears unnoticed.
           if [ "$found" -lt 4 ]; then
             echo "::error::only $found test file(s) found — the suite has shrunk"
+            rc=1
+          fi
+          # ⛔ A SHARD THAT RAN NOTHING IS A FAILURE, and `all` must run
+          # every file it found — a selector that drops one is a skip.
+          if [ "$ran" -lt 1 ] || { [ "$shard" = all ] && [ "$ran" != "$found" ]; }; then
+            echo "::error::shard $shard ran $ran of $found test file(s)"
             rc=1
           fi
           echo "rc=$rc"

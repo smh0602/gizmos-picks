@@ -14,16 +14,29 @@ Claude Code: "it did end up causing alot of failed recurring runs".
 #   file: .github/workflows/pr-tests.yml
 #   find:               test_vacuity.py) echo 2400 ;;
 #   with:               test_vacuity.py) echo 1 ;;
+#
+# @vacuity 🔴🔴 the loop is compared with collect.yml AS IT WILL BE LIVE
+#   file: docs/upload/collect.yml
+#   find:               sweep) [ "$1" = test_vacuity.py ] ;;
+#   with:               sweep) return 0 ;;
 """
 import os
 import re
 
-from tcheck import ck
+import wfparse as W
+from tcheck import ck, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 WF = os.path.join(ROOT, ".github", "workflows")
 PR = open(os.path.join(WF, "pr-tests.yml"), encoding="utf-8").read()
-CO = open(os.path.join(WF, "collect.yml"), encoding="utf-8").read()
+# 🔴 `collect.yml` AS IT WILL BE LIVE: the copy staged in `docs/upload/`
+#    wins, exactly as `test_runner_image.py` and the cron count read it
+#    `[2026-09-25]`. collect.yml has a cron block, so a change to this loop
+#    reaches it only by Sam's upload; comparing against the deployed copy
+#    would fail every PR that changes the loop, and the staged copy is the
+#    one that must be right. A pending upload is timed by runs_report.py.
+CO_PATH = W.effective_workflows(ROOT)["collect.yml"]
+CO = open(CO_PATH, encoding="utf-8").read()
 
 
 def loop(src):
@@ -59,6 +72,9 @@ ck("🔴🔴 the PR test loop is the collector's loop, line for line",
    "a weaker copy would pass PRs the collector then fails on main — the "
    "exact failure this file exists to prevent. Differing lines: %s"
    % ([x for x in a if x not in b][:3] + [x for x in b if x not in a][:3]))
+if "collect.yml" in W.pending_uploads(ROOT):
+    note("collect.yml is a PENDING upload: compared against the staged copy "
+         "in docs/upload/, which is what will run once Sam uploads it")
 ck("✅ ...and it still refuses a tree the tests modified",
    "The tests must not have modified the tree" in PR and "git status --porcelain" in PR,
    "same guard as collect.yml")

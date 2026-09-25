@@ -196,6 +196,10 @@ failed recurring runs, i would like to avoid that"*. So:
 1. **Branch → pull request → `pr-tests` green → Sam merges.** ⛔ Never push
    to `main`. `pr-tests.yml` runs the collector's own test loop on every PR
    (`test_pr_tests.py` fails if the two loops ever differ).
+   `[2026-09-25]` It runs it as five parallel jobs per image: `rest`, and
+   the vacuity sweep in four parts (`SUITE_SHARD`, `VACUITY_PART`).
+   `test_pr_shards.py` fails if a file or a declared mutation falls
+   between them. `collect.yml` leaves both unset and runs everything.
 2. ⛔ **A workflow file with a `cron:` block is never changed in a PR.**
    Hand Sam the file; he uploads it with GitHub's "choose your files"
    button. (Dragging a folder put 37 files one level too deep, twice, on
@@ -621,7 +625,9 @@ mlb_pitcher_cal.py  audit C/D, scored to `research/mlb_pitcher_cal_spec.md`
                   card.py reads `mappings()`/`corrected()` from here and
                   never imports `fb_model` (it drags in card_fb, which
                   exits under LEAGUE=mlb). Off switch: `SHIPPED = None`.
-vacuity.py        does each guard actually bite? ⛔ It MUTATES SOURCE
+vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
+                  sweeps one share (pr-tests' parallel parts, never a
+                  sample: test_pr_shards.py). ⛔ It MUTATES SOURCE
                   FILES while it runs — never edit the repo during a
                   sweep, and never run two at once.
 ```

@@ -269,8 +269,24 @@ class History:
         self.team_games = collections.defaultdict(set)    # (season, team) -> {game ids}
         self.lg_pace = collections.defaultdict(float)     # season -> total
         self.lg_team_games = collections.defaultdict(int)
+        self._share = {}                                  # (team, day) -> share_before
         self.team_game_vol = collections.defaultdict(lambda: collections.defaultdict(float))  # (season, team, gid) -> cat
         self.opp = {}                                     # season -> signal 9 table (or None)
+
+    def share_before(self, team, day):
+        """`possession.share_before(self.poss, team, day)["share"]`, memoised.
+
+        ⚠️ `share_before` scans every stored game, and `stream` asks it for
+        the same (team, day) once per player: 219,606 calls for ~1,000
+        distinct answers, 32s of a 70s `card-fb` run `[measured
+        2026-09-25]`. ✅ Safe to remember: `self.poss` is never written
+        after `__init__`, and the answer is a function of (team, day)
+        alone. `test_fb_props_model.py` holds it equal to the direct call.
+        """
+        k = (team, day)
+        if k not in self._share:
+            self._share[k] = P.share_before(self.poss, team, day)["share"]
+        return self._share[k]
 
     def _opp(self, season):
         if season not in self.opp:
@@ -330,8 +346,8 @@ class History:
         f12 = 0.0
         day = ctx.get("day")
         if self.poss and day and team and opp:
-            a = P.share_before(self.poss, team, day)["share"]
-            b = P.share_before(self.poss, opp, day)["share"]
+            a = self.share_before(team, day)
+            b = self.share_before(opp, day)
             if a is not None and b is not None:
                 f12 = a - b
         wx = ctx.get("wx") or {}

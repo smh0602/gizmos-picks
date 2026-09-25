@@ -188,6 +188,17 @@ def section(title):
     print("\n═══ " + str(title) + " ═══")
 
 
+def shown(s):
+    """Captured output made safe to PRINT inside a check's detail.
+
+    ⛔ GitHub turns any printed line starting `::error::` (or `::warning::`,
+    any `::command::`) into an annotation on the run. A test that echoes a
+    driven workflow's output would put ERROR annotations on a GREEN run —
+    4 of them on PR #167 `[2026-09-25]`. Assert on the raw text; print this.
+    """
+    return str(s).replace("::", ": :")
+
+
 def eq(got, want, name):
     """`got == want`, with both values printed on the row.
 
