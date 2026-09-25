@@ -60,6 +60,11 @@ if not os.path.exists("data/latest/record.json"):
     sys.exit(0)
 REC = _read_json("data/latest/record.json", "the track record")
 
+# ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE: this verifier may
+# not import the builder it checks. test_record_postponed.py fails if the
+# two ever differ.
+VOID_STATES = frozenset({"Postponed", "Cancelled"})
+
 # Results are filed under the RUN date and name their slate inside.
 BY_SLATE, UNSETTLED = {}, {}
 for p in glob.glob("data/*/results/final.json.gz"):
@@ -81,8 +86,17 @@ for p in glob.glob("data/*/results/final.json.gz"):
     # forbids reusing the number it is checking -- and if the builder has
     # not run since the card was written, that list does not mention the
     # slate at all. THAT IS EXACTLY WHAT HAPPENED ON 8/31.
-    n_g, n_f = r.get("n_games", 0), r.get("n_final", 0)
-    if n_g and n_f >= n_g:
+    # 🔴 A POSTPONED OR CANCELLED GAME IS SETTLED-VOID, NOT PENDING.
+    # `[2026-09-25, audit Proposal A]` ~~`n_f >= n_g`~~ counted only Final,
+    # so one rainout (TOR @ BAL, 2026-09-22) held its whole day out of the
+    # record forever. Derived HERE from each game's own state, never from
+    # the stored `n_final` -- and still strict: a Scheduled, Live or
+    # Suspended game keeps the slate ungraded.
+    _games = r.get("games") or []
+    n_g = len(_games)
+    n_f = sum(1 for g in _games if g.get("state") == "Final")
+    n_v = sum(1 for g in _games if g.get("state") in VOID_STATES)
+    if n_g and n_f + n_v == n_g:
         BY_SLATE.setdefault(r["slate_date"], r)
     else:
         UNSETTLED[r["slate_date"]] = f"{n_f}/{n_g} final"
@@ -117,6 +131,8 @@ def actual(slate, pid, market):
 mine, byday, bykind = {"w": 0, "n": 0}, {}, {"pitcher": {"w": 0, "n": 0},
                                             "hitter": {"w": 0, "n": 0}}
 voids = {}
+# graded rows that carry a printed number, per kind (the printed-number table)
+byconf = {"pitcher": {"w": 0, "n": 0}, "hitter": {"w": 0, "n": 0}}
 # 🔴 THIS FILE NO LONGER READS `record.json`'s OWN `skipped` LIST, AND
 # THAT IS THE POINT OF THIS FILE. `[measured 2026-09-04]` the builder wrote
 # 2026-09-03 into `skipped` twice -- because two COLLEGE FOOTBALL cards in
@@ -156,6 +172,9 @@ for f in sorted(glob.glob("picks/*.json")):
         for c in (mine, day, bykind[kind]):
             c["n"] += 1
             c["w"] += win
+        if isinstance(row.get("confidence"), (int, float)):
+            byconf[kind]["n"] += 1
+            byconf[kind]["w"] += win
 
 print(f"\nRE-GRADED INDEPENDENTLY from {len(byday)} card(s) and the stored box scores")
 ck(f"overall reproduces ({mine['w']}/{mine['n']})",
@@ -171,6 +190,17 @@ bad = [(d, f"{v['w']}/{v['n']}", f"{recday.get(d,{}).get('w')}/{recday.get(d,{})
        for d, v in byday.items()
        if (v["w"], v["n"]) != (recday.get(d, {}).get("w"), recday.get(d, {}).get("n"))]
 ck(f"every graded day reproduces ({len(byday)} days)", not bad, str(bad[:3]))
+
+# 🔴 THE PRINTED-NUMBER TABLE (C2, audit B) MUST HOLD EVERY GRADED ROW,
+# checked against THIS file's own re-grade, not against record.json.
+_cp = REC.get("calibration_printed")
+if _cp is not None:
+    for k in ("pitcher", "hitter"):
+        _t = _cp.get(k) or []
+        _got = (sum(b.get("w") or 0 for b in _t), sum(b.get("n") or 0 for b in _t))
+        ck(f"{k} printed-number table holds every graded row {_got}",
+           _got == (byconf[k]["w"], byconf[k]["n"]),
+           f"re-graded {byconf[k]['w']}/{byconf[k]['n']} rows carrying a printed number")
 
 # 🔴 THE ARITHMETIC MUST CLOSE ON ITSELF TOO.
 ck("pitcher + hitter equals the overall",
