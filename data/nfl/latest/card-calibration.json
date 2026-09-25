@@ -1,11 +1,223 @@
 {
  "league": "nfl",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-09-25T07:14:27Z",
+ "built_at": "2026-09-25T13:25:46Z",
  "spec": "research/fb_card_calibration_spec.md",
- "bands": [],
- "bands_before": {},
- "method_now": "2025-only",
+ "bands": [
+  {
+   "bucket": "20-30%",
+   "graded": {
+    "value": 1,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 28.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 100.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  },
+  {
+   "bucket": "30-40%",
+   "graded": {
+    "value": 7,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 33.3,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 28.6,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  },
+  {
+   "bucket": "40-50%",
+   "graded": {
+    "value": 6,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 44.8,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 66.7,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  },
+  {
+   "bucket": "50-60%",
+   "graded": {
+    "value": 4,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 55.2,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 50.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  },
+  {
+   "bucket": "60-70%",
+   "graded": {
+    "value": 3,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 63.3,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 66.7,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  },
+  {
+   "bucket": "70-80%",
+   "graded": {
+    "value": 4,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 71.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 50.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  }
+ ],
+ "bands_before": {
+  "2025-only": [
+   {
+    "bucket": "30-40%",
+    "graded": {
+     "value": 11,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 35.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 36.4,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "40-50%",
+    "graded": {
+     "value": 12,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 44.5,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 75.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "50-60%",
+    "graded": {
+     "value": 35,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 55.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 40.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "60-70%",
+    "graded": {
+     "value": 48,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 65.1,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 50.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "70-80%",
+    "graded": {
+     "value": 32,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 75.9,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 68.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "80-90%",
+    "graded": {
+     "value": 49,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 84.1,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 40.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "UNDER"
+   },
+   {
+    "bucket": "90-100%",
+    "graded": {
+     "value": 11,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 93.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 54.5,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "UNDER"
+   }
+  ]
+ },
+ "method_now": "season-blend",
  "test": {
   "n": 157,
   "mean_d": 0.24654293565026483,
@@ -24,7 +236,7 @@
   "p": null,
   "clusters": 0,
   "verdict": "NOT YET MEASURABLE",
-  "graded_picks": 0,
+  "graded_picks": 48,
   "min_n": 500,
   "method": "season-blend"
  },
