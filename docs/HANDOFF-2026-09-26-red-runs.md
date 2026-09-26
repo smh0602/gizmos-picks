@@ -49,8 +49,9 @@ inside its deadline) with **today's** UTC archive, which is empty until the
 first pull of the new day. GitHub has started runs 2-3 hours late, so this
 can redden collect runs every night after 00:00Z. Fixed: the check reads the
 archive of the day the latest pull ran (`_archive_day`), which is harder to
-pass (it never goes dormant at midnight). Guarded both ways, plus a declared
-mutation back to the wall clock.
+pass (it never goes dormant at midnight). Guarded both ways by drives, and
+the live join pinned by an AST check; a test cannot declare a mutation of
+its own file, so the wall-clock version was watched red by hand.
 
 ## ⚠️ Where this differs from the request, and why
 
@@ -99,6 +100,13 @@ framed it ("a failed converge pass for an outside source").
   ("open watcher issues needing a repair") no longer matched a check
   searching for "open watcher issues: 0", which would have passed
   vacuously. Kept the phrase.
+- **Mine, caught by test_vacuity:** my props-board rewrite left
+  `test_props_board_dispatch.py`'s declared mutation pointing at a line that
+  no longer exists (1 of 412 rotted). Root cause: I did not search for
+  declarations naming the lines I changed. Re-pointed, same intent, BITES.
+- **Found, not fixed here:** #171's `test_verify_card.py` declaration is
+  VACUOUS since the 09-25 card was published (it checks "the newest card",
+  which no longer has a row on the rounding branch). Queued separately.
 - **Not mine, recorded:** the annotation "mode 'news' failed for ncaaf"
   pointed at the wrong mode for two days; Sam's diagnosis followed it.
   Converge now annotates the mode that failed.
