@@ -38,8 +38,8 @@ point of shipping the archive first.
 #
 # @vacuity 🔴 the dated archive has a freshness contract entry
 #   file: freshness.py
-#   find:         ("news-archive", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
-#   with:         ("news-archive-DISABLED", ("file", f"{latest}/news.json"), T["news"], False,
+#   find:         ("news", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
+#   with:         ("news", ("file", f"{latest}/news.json"), T["news"], False,
 #
 # @vacuity ⛔ ONE CLOCK — the day scanned and the day written are the same
 #   file: collect.py
@@ -274,16 +274,36 @@ section("6. 🔴 THE FRESHNESS CONTRACT ENTRY IS LOAD-BEARING")
 # ⛔ `top-<season>.json.gz` shipped with NO entry and the contract read
 #    `stale: False, ok: True` while the file did not exist. An artifact
 #    nothing watches can stop being written with nobody finding out.
+# 🔴 ROWS ARE FOUND BY PATH, NEVER BY MODE. `news` writes three rows —
+#    `latest/news.json`, `latest/news-flags.json` and the dated archive —
+#    and a lookup by mode returns whichever came last. `[measured
+#    2026-09-26 00:38Z]` section 7's `{mode: row}` read the news-FLAGS row
+#    as "latest": fresh all day, so between UTC midnight and the first
+#    news pull it fired on a healthy tree.
+def news_rows(rows):
+    """-> (latest/news.json row, dated-archive row); {} when not exactly one."""
+    lat = [r for r in rows if r["kind"] == "file"
+           and r["path"].endswith("/latest/news.json")]
+    arc = [r for r in rows if r["kind"] == "dir"
+           and r["path"].endswith("/news")]
+    return (lat[0] if len(lat) == 1 else {}), (arc[0] if len(arc) == 1 else {})
+
+
+_UTC_TODAY = datetime.datetime.now(UTC).strftime("%Y-%m-%d")
+
 for _lg in ("nfl", "ncaaf"):
-    _modes = [r["mode"] for r in F.survey("data/%s" % _lg, "picks")]
+    _lat, _row = news_rows(F.survey("data/%s" % _lg, "picks"))
     ck("%s: the dated news archive is IN the contract" % _lg,
-       "news-archive" in _modes, "modes=%s" % (_modes,))
-    _row = [r for r in F.survey("data/%s" % _lg, "picks")
-            if r["mode"] == "news-archive"]
-    _row = _row[0] if _row else {}
-    ck("   ...probing the dated directory, not `latest/`",
-       _row.get("kind") == "dir" and _row.get("path", "").endswith("/news"),
+       bool(_row), "rows=%s" % ([r["path"] for r in
+                                 F.survey("data/%s" % _lg, "picks")],))
+    ck("   ...probing TODAY's dated directory, not `latest/`",
+       _row.get("path") == "data/%s/%s/news" % (_lg, _UTC_TODAY),
        "path=%r kind=%r" % (_row.get("path"), _row.get("kind")))
+    ck("🔴    ...under its WRITER's mode, `news`, the one converge can run",
+       _row.get("mode") == "news" and _lat.get("mode") == "news",
+       "⛔ `news-archive` was a name with no arm in `run_mode`: every pass "
+       "printed 'unknown mode' and repaired nothing. archive=%r latest=%r"
+       % (_row.get("mode"), _lat.get("mode")))
     ck("   ...hourly, the same deadline as the pull it rides on",
        len(F.FB_TIMES[_lg]["news"]) == 24,
        "⛔ the archive is written in the same code path as "
@@ -292,16 +312,20 @@ for _lg in ("nfl", "ncaaf"):
 
 # ⚠️ AND MLB DOES NOT GAIN ONE. `mlb` has no news.json at all.
 ck("⛔ MLB's contract is untouched",
-   "news-archive" not in [r["mode"] for r in F.survey("data", "picks")],
+   not news_rows(F.survey("data", "picks"))[1],
    "the freeze stands and mlb has no news feed")
 
-# 🔴 SOFT, AND THE REASON IS WRITTEN DOWN.
-ck("⚠️ `news-archive` shares `news`'s soft status",
-   "news-archive" in F.SOFT and "news" in F.SOFT,
+# 🔴 SOFT, AND THE REASON IS WRITTEN DOWN. ⚠️ Asked of the ROW: the set is
+#    keyed by mode, so the row is soft exactly when its mode is.
+_arc_modes = {news_rows(F.survey("data/%s" % _l, "picks"))[1].get("mode")
+              for _l in ("nfl", "ncaaf")}
+ck("⚠️ the archive row shares `news`'s soft status",
+   _arc_modes == {"news"} and "news" in F.SOFT,
    "⛔ both are written by one code path: when every feed fails, "
    "`collect_news` raises before either. Making the archive HARD would "
    "turn a third-party outage back into a red run — the exact regression "
-   "this set exists to stop. SOFT=%s" % (sorted(F.SOFT),))
+   "this set exists to stop. modes=%s SOFT=%s"
+   % (sorted(map(str, _arc_modes)), sorted(F.SOFT)))
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -363,25 +387,27 @@ def _divergence(root, lg, utc_day, latest_stale):
     return ever, today, bool(ever > 0 and diverged(not latest_stale, today))
 
 
-_UTC_TODAY = datetime.datetime.now(UTC).strftime("%Y-%m-%d")
+# 🔴 WHICH ROW IS "LATEST" IS DRIVEN, IN EVERY ORDER. A `{mode: row}` dict
+#    answered "the news-flags row" (see `news_rows`), and a missing row is
+#    worse still: `.get("stale")` is None, which reads as FRESH.
+_P = ("data/nfl/latest/news.json", "data/nfl/latest/news-flags.json",
+      "data/nfl/2026-09-26/news")
+_SYN = [{"mode": "news", "kind": k, "path": p, "stale": s}
+        for k, p, s in (("file", _P[0], True), ("file", _P[1], False),
+                        ("dir", _P[2], False))]
+_ok = all(news_rows(o)[0].get("path") == _P[0]
+          and news_rows(o)[1].get("path") == _P[2]
+          for o in (_SYN, _SYN[::-1], [_SYN[1], _SYN[0], _SYN[2]]))
+ck("🔴 `latest` is the news.json row and the archive the dated dir, in any "
+   "order", _ok, "three rows under one mode; the flags row is neither")
 
 for _lg in ("nfl", "ncaaf"):
-    _all = F.survey("data/%s" % _lg, "picks")
-    # ══════════════════════════════════════════════════════════════════
-    # 🔴 `[2026-09-26]` BY PATH, NOT BY MODE. A mode may own several rows,
-    #    and since #170 `news` owns two: `latest/news.json` AND the daily
-    #    `news-flags.json`. Keyed by mode, the LAST one won, so this read
-    #    the flag file's freshness as if it were news.json's — and between
-    #    midnight UTC and the first hourly pull it fired "the archive
-    #    silently stopped" on a correct tree, every night.
-    # ══════════════════════════════════════════════════════════════════
-    _lat = next((r for r in _all if r["mode"] == "news"
-                 and r["path"].replace("\\", "/").endswith("latest/news.json")), {})
-    _arc = next((r for r in _all if r["mode"] == "news-archive"), {})
-    ck("   ✅ %s: the 'latest' this reads is latest/news.json itself, though `news` owns %d row(s)"
-       % (_lg, sum(1 for r in _all if r["mode"] == "news")),
-       (_lat.get("path") or "").replace("\\", "/").endswith("latest/news.json"),
-       "got %r" % _lat.get("path"))
+    _lat, _arc = news_rows(F.survey("data/%s" % _lg, "picks"))
+    ck("⛔ %s: the live check found BOTH rows it compares" % _lg,
+       bool(_lat) and bool(_arc),
+       "a missing `latest` row reads as fresh and would fire on nothing "
+       "but the clock. latest=%r archive=%r"
+       % (_lat.get("path"), _arc.get("path")))
     _ever, _today, _fires = _divergence(ROOT, _lg, _UTC_TODAY,
                                         _lat.get("stale"))
     note("%s: latest stale=%s (age %sm) · archived all-time %d · today %d"
