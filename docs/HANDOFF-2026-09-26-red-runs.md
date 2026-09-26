@@ -41,6 +41,17 @@ Read `CLAUDE.md` first. Dated; check every claim against `main`.
 | 1 | `self_repair.py`: the one pick; an issue marked `COUNTER` is never a task. `t58_t59.py` marks PROGRESS and ANSWERED (SHRANK and UNREADABLE stay findings). Staged `docs/upload/self-repair.yml`: triage uses the module; the prompt asks for the tests the change touches; the record uses its own checkout and `push_retry.sh`, fails loudly, and counts only this pass's PR; the contradictory "Do not touch MLB" line is gone. The 40-turn cap is unchanged. | `test_self_repair.py` (record step driven against a bare remote), `test_watch_label.py` §7 (staged triage driven), tier 1 + 6 declared mutations. |
 | 2 | `collect.py`: props-board no longer stores the board in `left`. `freshness.classify` is the gate's one hard/soft verdict (verify_freshness calls it; output identical on all three leagues). `freshness.judge_failures` + `outside_source`: a failed converge mode is a `::warning::` naming the source only when the error is evidence of an OUTSIDE source AND every artifact it writes is inside contract; everything else stays red, and converge annotates the mode that actually failed. | `test_converge_judge.py` (the real converge, 5 cases, 7 mutations), `test_run_mode_left.py` (AST over every `left =` in run_mode + football props-board driven end to end). |
 
+## Found while testing: a news-archive check red on a correct site
+
+At 00:44Z on 09-26, `test_news_archive.py` failed on `main`'s own code.
+It compared a fresh `latest/news.json` (built 23:05Z the day before, still
+inside its deadline) with **today's** UTC archive, which is empty until the
+first pull of the new day. GitHub has started runs 2-3 hours late, so this
+can redden collect runs every night after 00:00Z. Fixed: the check reads the
+archive of the day the latest pull ran (`_archive_day`), which is harder to
+pass (it never goes dormant at midnight). Guarded both ways, plus a declared
+mutation back to the wall clock.
+
 ## ⚠️ Where this differs from the request, and why
 
 Sam asked: red only when an artifact is left stale or missing, otherwise a

@@ -16,6 +16,11 @@ point of shipping the archive first.
 #   find:             row["first_seen"] = pulled_at
 #   with:             row["first_seen"] = it.get("published")
 #
+# @vacuity 🔴 the divergence check reads the day the pull ran, not the clock's
+#   file: test_news_archive.py
+#   find:     return (latest_stamp or now).strftime("%Y-%m-%d")
+#   with:     return now.strftime("%Y-%m-%d")
+#
 # @vacuity the archive keeps only what THIS pull saw first
 #   file: collect.py
 #   find:         prev = seen.get(k)
@@ -363,22 +368,38 @@ def _divergence(root, lg, utc_day, latest_stale):
     return ever, today, bool(ever > 0 and diverged(not latest_stale, today))
 
 
-_UTC_TODAY = datetime.datetime.now(UTC).strftime("%Y-%m-%d")
+_NOW = datetime.datetime.now(UTC)
+_UTC_TODAY = _NOW.strftime("%Y-%m-%d")
+
+
+# 🔴 `[2026-09-26]` ~~the WALL CLOCK's UTC day~~ -> the UTC day the latest
+#    pull was WRITTEN. At 00:44Z `latest/news.json` (built 23:05Z the day
+#    before) was inside its deadline while "today's" archive was empty
+#    because no pull had run yet today -- and this fired on a correct site
+#    until the first pull of the new day landed (GitHub has started runs
+#    two to three hours late). It asked the WRONG QUESTION. The right one
+#    is harder, not softer: the archive of the day that pull ran must hold
+#    it, at every hour, with no dormant window at midnight.
+def _archive_day(latest_stamp, now):
+    """The UTC day whose archive must hold the pull that wrote latest."""
+    return (latest_stamp or now).strftime("%Y-%m-%d")
+
 
 for _lg in ("nfl", "ncaaf"):
     _rows = {r["mode"]: r for r in F.survey("data/%s" % _lg, "picks")}
     _lat, _arc = _rows.get("news", {}), _rows.get("news-archive", {})
-    _ever, _today, _fires = _divergence(ROOT, _lg, _UTC_TODAY,
+    _day = _archive_day(F.stamp_of("data/%s/latest/news.json" % _lg), _NOW)
+    _ever, _today, _fires = _divergence(ROOT, _lg, _day,
                                         _lat.get("stale"))
-    note("%s: latest stale=%s (age %sm) · archived all-time %d · today %d"
-         % (_lg, _lat.get("stale"), _lat.get("age_min"), _ever, _today))
+    note("%s: latest stale=%s (age %sm) · archived all-time %d · on %s %d"
+         % (_lg, _lat.get("stale"), _lat.get("age_min"), _ever, _day, _today))
     ck("🔴 %s: latest fresh + an EMPTY archive day" % _lg,
        not _fires,
        "⛔ the archive silently stopped — `latest/news.json` is current "
-       "and today's archive holds nothing. ⚠️ DORMANT while the league "
-       "has never archived (ever=%d); it ARMS ITSELF on the first "
-       "archived pull. today=%d latest_stale=%s"
-       % (_ever, _today, _lat.get("stale")))
+       "and the archive of the day it was pulled (%s) holds nothing. "
+       "⚠️ DORMANT while the league has never archived (ever=%d); it ARMS "
+       "ITSELF on the first archived pull. that day=%d latest_stale=%s"
+       % (_day, _ever, _today, _lat.get("stale")))
 
 # ══════════════════════════════════════════════════════════════════════
 # ⛔ AND THE ARMING IS DRIVEN, IN A TEMP TREE — FOUR CASES, TWO OF WHICH
@@ -451,6 +472,24 @@ for _name, _kw, _stale, _want_ever, _want_fire in (
        "⛔ ever=%d (wanted %d) fires=%s (wanted %s) today=%d — the four "
        "cases together are what make this an assertion rather than a "
        "note wearing a ck()" % (_e, _want_ever, _f, _want_fire, _t))
+
+# 🔴 THE MIDNIGHT WINDOW, BOTH WAYS `[2026-09-26]`: just after 00:00Z the
+#    latest pull is yesterday's. Its own day's archive decides -- quiet
+#    when that day holds it, firing when it does not.
+_Y_PULL = datetime.datetime(2026, 9, 25, 23, 5, tzinfo=UTC)
+_AFTER_MIDNIGHT = datetime.datetime(2026, 9, 26, 0, 44, tzinfo=UTC)
+for _name, _kw, _want_fire in (
+        ("✅ just after midnight: yesterday's pull IS in yesterday's archive",
+         {"ever_day": "2026-09-25"}, False),
+        ("🔴 ...and yesterday's pull MISSING from yesterday's archive still fires",
+         {"ever_day": "2026-09-20"}, True)):
+    _d = _synth(**_kw)
+    try:
+        _e, _t, _f = _divergence(_d, "nfl", _archive_day(_Y_PULL, _AFTER_MIDNIGHT),
+                                 False)
+    finally:
+        shutil.rmtree(_d, ignore_errors=True)
+    ck(_name, _f is _want_fire, "fires=%s (wanted %s) on-day=%d" % (_f, _want_fire, _t))
 
 
 # ══════════════════════════════════════════════════════════════════════
