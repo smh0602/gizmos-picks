@@ -287,7 +287,7 @@ for _d in DATA_DIRS:
 _KNOWN = {"scores", "results", "pitchers", "hitters", "record", "gamelines",
           "props-pitcher", "props-batter", "props-board", "lineups",
           "weather", "card", "news", "props-player", "card-fb",
-          "news-archive", "cfb-probe", "nfl-logs", "fb-scores", "fb-record",
+          "cfb-probe", "nfl-logs", "fb-scores", "fb-record",
           "cfb-teams",
           # `[Sam, 2026-09-24]` the alt-line pull: an arm in `run_mode`, and
           # chained into the scheduled props pull (test_game_lines_fb.py).
@@ -296,6 +296,11 @@ _KNOWN = {"scores", "results", "pitchers", "hitters", "record", "gamelines",
           # (test_runs_status.py §3), run hourly by runs.yml. Its row exists
           # only once that watcher is deployed.
           "runs"}
+# ⚠️ THIS LIST IS TYPED BY HAND, AND IT ONCE CARRIED `news-archive` — a
+#    mode with no arm in `run_mode` — so this check passed while converge
+#    printed "unknown mode" on every football pass. The question "does the
+#    collector run it" is answered from collect.py's own source by
+#    `test_contract_modes.py`; this list only asks "was a mode invented".
 ck("🔴 no contract row names a mode the collector does not already have",
    not (_MODES - _KNOWN),
    "⛔ converge runs the mode a row names. A mode with no arm is a "

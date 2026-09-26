@@ -120,15 +120,10 @@ for lg in ("nfl", "ncaaf"):
     # crons needed a `.github/workflows/` edit that did not land, and
     # card-fb runs DAILY in both leagues, which is a better cadence than
     # the weekly crons it replaces.
-    # 📰 `news-archive` rides the `news` pull: same function, written
-    #    immediately after `latest/news.json`. The chain is asserted
-    #    against `collect.py`'s source in `test_news_archive.py`, per the
-    #    rule above — a `drivers` entry is a CLAIM, and this one is
-    #    checked somewhere that fails if the chain goes away.
     # 💰 `alt-lines` rides the props pull (`[Sam, 2026-09-24]`), and the
     #    chain is asserted against `collect.py` in `test_game_lines_fb.py`.
     drivers = {"props-board": "props-player", "fb-record": "card-fb",
-               "news-archive": "news", "alt-lines": "props-player"}
+               "alt-lines": "props-player"}
     unrunnable = sorted(m for m in governed
                         if m not in scheduled
                         and drivers.get(m) not in scheduled)
