@@ -747,7 +747,15 @@ def _football_contract(league, data, picks, now):
         #    bug, which is exactly what this is here to surface.
         # ⛔ `dir`, not `file`: the archive is one file per pull, so the
         #    question is "when was the newest one written".
-        ("news-archive", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
+        # 🔴 THE MODE IS THE WRITER, `news`, LIKE EVERY OTHER ROW. Converge
+        #    runs the mode a row names. This row named `news-archive`, which
+        #    `run_mode` has no arm for, so every pass that found the archive
+        #    stale printed "unknown mode: news-archive" and repaired nothing
+        #    (collect runs #1766–#1835, 2026-09-26). The row was SOFT, so
+        #    no run went red. Two rows under `news` are planned as ONE run.
+        #    ✅ `test_contract_modes.py` fails on any contract mode, in any
+        #    league, that `run_mode` does not dispatch.
+        ("news", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
          "News — the dated archive the line-movement question needs"),
     ]
     # ⚠️ TRENDS IS SEASON-STAMPED, so the probe names the season rather
@@ -1118,12 +1126,16 @@ def runs_rows(latest, root=None):
 # lose without being misled -- headlines, conditions, lineups. Odds, the
 # card and the track record are NOT here and never should be: those are
 # numbers someone bets on.
-# ⚠️ `news-archive` SHARES `news`'s FATE, AND THAT IS WHY IT IS HERE.
+# ⚠️ THE NEWS ARCHIVE SHARES `news`'s FATE, AND THAT IS WHY IT IS SOFT.
 #    Both are written by the same code path: when every RSS feed fails,
 #    `collect_news` raises before either is written. ⛔ Making the archive
 #    HARD would turn a third-party outage back into a red run — which is
 #    the precise regression this set was created to stop, and which this
 #    project has already lived through once.
+#    ✅ Its contract row names its writer, `news`, so `news` here is what
+#    keeps it soft. The separate `news-archive` entry named a mode no arm
+#    of `run_mode` runs, and is gone with the row's old name
+#    (`test_contract_modes.py` fails on an entry here that names no mode).
 # 🔴 THE CONDITION THAT IS A REAL FAILURE IS **DIVERGENCE**, not absence:
 #    `latest/news.json` fresh while the day's archive is empty means the
 #    archive silently stopped. A staleness deadline cannot express "fresh
@@ -1131,7 +1143,7 @@ def runs_rows(latest, root=None):
 #    (`test_news_archive.py`) rather than pretended into a contract row.
 #    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
 #    reads STALE.
-SOFT = {"news", "weather", "lineups", "cfb-teams", "news-archive", "runs"}
+SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.

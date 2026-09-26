@@ -51,6 +51,11 @@ and the spend counter stubbed.
 #   find:         print(f"::warning::{m} failed for {LEAGUE} ({why}) — {verdict}: "
 #   with:         print(f"{m} failed for {LEAGUE} ({why}) — {verdict}: "
 #
+# @vacuity 🔴 the renamed news archive row (#182) stays soft under its writer
+#   file: freshness.py
+#   find: SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
+#   with: SOFT = {"weather", "lineups", "cfb-teams", "runs"}
+#
 # @vacuity a SOFT failure is an annotation too
 #   file: collect.py
 #   find:         print(f"::warning::{mode} failed for {LEAGUE} ({why}) — a SOFT "
@@ -213,6 +218,36 @@ try:
     ck(len(e) == 1 and "no freshness row" in e[0], "   ...and says why", str(e))
 finally:
     shutil.rmtree(d, ignore_errors=True)
+
+# ══════════════════════════════════════════════════════════════════════
+section("6. THE NEWS ARCHIVE ROW, RENAMED TO ITS WRITER `news` (#182)")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-09-26]` #182 renamed the dated archive's row from `news-archive`
+# (a mode `run_mode` never had) to `news`, and took `news-archive` out of
+# SOFT. The judge must still treat it as the SOFT row it always was: a
+# stale archive is the gate's warning, never a red run, and a failed news
+# pass beside it is never red. Driven on the REAL football contracts, with
+# only the archive row forced stale.
+for _lg in ("nfl", "ncaaf"):
+    _d = os.path.join(ROOT, "data", _lg)
+    _rows = F.survey(_d, os.path.join(ROOT, "picks"))
+    _arc = [r for r in _rows if r["kind"] == "dir" and r["path"].endswith("/news")]
+    ck(len(_arc) == 1 and _arc[0]["mode"] == "news",
+       "%s: the archive row is found by path, under its writer `news`" % _lg,
+       str([(r["mode"], r["path"]) for r in _arc]))
+    if len(_arc) != 1:
+        continue
+    _forced = [dict(r, stale=True, missing=False, age_min=r["age_min"] or 90)
+               if r is _arc[0] else r for r in _rows]
+    _hard, _soft = F.classify(_forced, _d)
+    ck(any(r["path"] == _arc[0]["path"] for r in _soft)
+       and not any(r["path"] == _arc[0]["path"] for r in _hard),
+       "   🔴 a stale archive is SOFT in the gate, never hard")
+    _red, _warned = F.judge_failures(
+        [("news", "URLError: feed down", "URLError reaching the source")], _forced, _d)
+    ck(not _red and len(_warned) == 1,
+       "   🔴 ...and a failed news pass beside it is a warning, not a red run",
+       "red=%r" % ([x[3] for x in _red],))
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that a warning is harmless forever. The "
      "pass-end gate (verify_freshness.py) still turns the run red the moment "

@@ -43,15 +43,17 @@ Read `CLAUDE.md` first. Dated; check every claim against `main`.
 
 ## Found while testing: a news-archive check red on a correct site
 
-At 00:44Z on 09-26, `test_news_archive.py` failed on `main`'s own code.
-It compared a fresh `latest/news.json` (built 23:05Z the day before, still
-inside its deadline) with **today's** UTC archive, which is empty until the
-first pull of the new day. GitHub has started runs 2-3 hours late, so this
-can redden collect runs every night after 00:00Z. Fixed: the check reads the
-archive of the day the latest pull ran (`_archive_day`), which is harder to
-pass (it never goes dormant at midnight). Guarded both ways by drives, and
-the live join pinned by an AST check; a test cannot declare a mutation of
-its own file, so the wall-clock version was watched red by hand.
+At 00:44Z on 09-26, `test_news_archive.py` failed on `main`'s own code
+(and turned collect #1849 red). ~~It compared a fresh `latest/news.json`
+(built 23:05Z the day before, still inside its deadline) with today's UTC
+archive.~~ **Wrong diagnosis, mine.** The row the check read as "latest"
+was `latest/news-flags.json`, fresh all day, picked by a `{mode: row}`
+lookup; `news.json` itself was stale from 00:00Z. #182 fixed that (rows by
+path, `news_rows`). ✅ Merged here with #182; my `_archive_day` stays on
+top at Sam's request (2026-09-26). With news due at the top of every hour,
+it equals the clock's day whenever the check can fire; it matters only if
+a news deadline moves off the hour. Guarded by drives and an AST pin of
+the live join (a test cannot declare a mutation of its own file).
 
 ## ⚠️ Where this differs from the request, and why
 
@@ -85,11 +87,20 @@ framed it ("a failed converge pass for an outside source").
 
 ## Open
 
-- `unknown mode: news-archive` is logged as a SOFT failure on every
+- ~~`unknown mode: news-archive` is logged as a SOFT failure on every
   football pass that plans it: the contract names a mode `run_mode` does
-  not have. Soft, so not red; not fixed here.
+  not have. Soft, so not red; not fixed here.~~ ✅ **Closed by #182**
+  (merged 2026-09-26): the archive row names its writer, `news`, and
+  `test_contract_modes.py` fails on any contract mode `run_mode` does not
+  dispatch. Checked against this PR after the merge: `classify` puts a
+  stale archive row in SOFT (never hard) and `judge_failures` keeps a
+  failed `news` pass a warning, on the real nfl and ncaaf contracts
+  (`test_converge_judge.py` §6, declared mutation BITES).
+- #171's rounding guard in `test_verify_card.py` is VACUOUS: open as #185.
 - A downgraded failure is a `::warning::` on the run page only;
   `runs.json` lists annotations for failed runs only.
+- `self-repair.yml` is staged: until Sam uploads it, the deployed triage
+  still hands the agent issue #42.
 
 ## Mistakes, with root cause
 
@@ -107,6 +118,10 @@ framed it ("a failed converge pass for an outside source").
 - **Found, not fixed here:** #171's `test_verify_card.py` declaration is
   VACUOUS since the 09-25 card was published (it checks "the newest card",
   which no longer has a row on the rounding branch). Queued separately.
+- **Mine, corrected after #182:** I blamed the midnight news-archive
+  failure on the clock's day. It was the wrong ROW (news-flags, fresh all
+  day), which #182 found. Root cause: I did not check which file the
+  test's "latest" row was before explaining its verdict.
 - **Not mine, recorded:** the annotation "mode 'news' failed for ncaaf"
   pointed at the wrong mode for two days; Sam's diagnosis followed it.
   Converge now annotates the mode that failed.
@@ -114,3 +129,6 @@ framed it ("a failed converge pass for an outside source").
 ## Changelog
 
 - **2026-09-26:** first version.
+- **2026-09-26 (later):** merged main with #182; the midnight diagnosis
+  corrected (struck, not deleted); Open updated: news-archive closed by
+  #182, #171's vacuous guard is #185.

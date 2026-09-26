@@ -38,8 +38,8 @@ point of shipping the archive first.
 #
 # @vacuity 🔴 the dated archive has a freshness contract entry
 #   file: freshness.py
-#   find:         ("news-archive", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
-#   with:         ("news-archive-DISABLED", ("file", f"{latest}/news.json"), T["news"], False,
+#   find:         ("news", ("dir", f"{data}/{utc_day}/news"), T["news"], False,
+#   with:         ("news", ("file", f"{latest}/news.json"), T["news"], False,
 #
 # @vacuity ⛔ ONE CLOCK — the day scanned and the day written are the same
 #   file: collect.py
@@ -274,16 +274,36 @@ section("6. 🔴 THE FRESHNESS CONTRACT ENTRY IS LOAD-BEARING")
 # ⛔ `top-<season>.json.gz` shipped with NO entry and the contract read
 #    `stale: False, ok: True` while the file did not exist. An artifact
 #    nothing watches can stop being written with nobody finding out.
+# 🔴 ROWS ARE FOUND BY PATH, NEVER BY MODE. `news` writes three rows —
+#    `latest/news.json`, `latest/news-flags.json` and the dated archive —
+#    and a lookup by mode returns whichever came last. `[measured
+#    2026-09-26 00:38Z]` section 7's `{mode: row}` read the news-FLAGS row
+#    as "latest": fresh all day, so between UTC midnight and the first
+#    news pull it fired on a healthy tree.
+def news_rows(rows):
+    """-> (latest/news.json row, dated-archive row); {} when not exactly one."""
+    lat = [r for r in rows if r["kind"] == "file"
+           and r["path"].endswith("/latest/news.json")]
+    arc = [r for r in rows if r["kind"] == "dir"
+           and r["path"].endswith("/news")]
+    return (lat[0] if len(lat) == 1 else {}), (arc[0] if len(arc) == 1 else {})
+
+
+_UTC_TODAY = datetime.datetime.now(UTC).strftime("%Y-%m-%d")
+
 for _lg in ("nfl", "ncaaf"):
-    _modes = [r["mode"] for r in F.survey("data/%s" % _lg, "picks")]
+    _lat, _row = news_rows(F.survey("data/%s" % _lg, "picks"))
     ck("%s: the dated news archive is IN the contract" % _lg,
-       "news-archive" in _modes, "modes=%s" % (_modes,))
-    _row = [r for r in F.survey("data/%s" % _lg, "picks")
-            if r["mode"] == "news-archive"]
-    _row = _row[0] if _row else {}
-    ck("   ...probing the dated directory, not `latest/`",
-       _row.get("kind") == "dir" and _row.get("path", "").endswith("/news"),
+       bool(_row), "rows=%s" % ([r["path"] for r in
+                                 F.survey("data/%s" % _lg, "picks")],))
+    ck("   ...probing TODAY's dated directory, not `latest/`",
+       _row.get("path") == "data/%s/%s/news" % (_lg, _UTC_TODAY),
        "path=%r kind=%r" % (_row.get("path"), _row.get("kind")))
+    ck("🔴    ...under its WRITER's mode, `news`, the one converge can run",
+       _row.get("mode") == "news" and _lat.get("mode") == "news",
+       "⛔ `news-archive` was a name with no arm in `run_mode`: every pass "
+       "printed 'unknown mode' and repaired nothing. archive=%r latest=%r"
+       % (_row.get("mode"), _lat.get("mode")))
     ck("   ...hourly, the same deadline as the pull it rides on",
        len(F.FB_TIMES[_lg]["news"]) == 24,
        "⛔ the archive is written in the same code path as "
@@ -292,16 +312,20 @@ for _lg in ("nfl", "ncaaf"):
 
 # ⚠️ AND MLB DOES NOT GAIN ONE. `mlb` has no news.json at all.
 ck("⛔ MLB's contract is untouched",
-   "news-archive" not in [r["mode"] for r in F.survey("data", "picks")],
+   not news_rows(F.survey("data", "picks"))[1],
    "the freeze stands and mlb has no news feed")
 
-# 🔴 SOFT, AND THE REASON IS WRITTEN DOWN.
-ck("⚠️ `news-archive` shares `news`'s soft status",
-   "news-archive" in F.SOFT and "news" in F.SOFT,
+# 🔴 SOFT, AND THE REASON IS WRITTEN DOWN. ⚠️ Asked of the ROW: the set is
+#    keyed by mode, so the row is soft exactly when its mode is.
+_arc_modes = {news_rows(F.survey("data/%s" % _l, "picks"))[1].get("mode")
+              for _l in ("nfl", "ncaaf")}
+ck("⚠️ the archive row shares `news`'s soft status",
+   _arc_modes == {"news"} and "news" in F.SOFT,
    "⛔ both are written by one code path: when every feed fails, "
    "`collect_news` raises before either. Making the archive HARD would "
    "turn a third-party outage back into a red run — the exact regression "
-   "this set exists to stop. SOFT=%s" % (sorted(F.SOFT),))
+   "this set exists to stop. modes=%s SOFT=%s"
+   % (sorted(map(str, _arc_modes)), sorted(F.SOFT)))
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -364,26 +388,45 @@ def _divergence(root, lg, utc_day, latest_stale):
 
 
 _NOW = datetime.datetime.now(UTC)
-_UTC_TODAY = _NOW.strftime("%Y-%m-%d")
 
 
-# 🔴 `[2026-09-26]` ~~the WALL CLOCK's UTC day~~ -> the UTC day the latest
-#    pull was WRITTEN. At 00:44Z `latest/news.json` (built 23:05Z the day
-#    before) was inside its deadline while "today's" archive was empty
-#    because no pull had run yet today -- and this fired on a correct site
-#    until the first pull of the new day landed (GitHub has started runs
-#    two to three hours late). It asked the WRONG QUESTION. The right one
-#    is harder, not softer: the archive of the day that pull ran must hold
-#    it, at every hour, with no dormant window at midnight.
+# ⚠️ `[2026-09-26]` THE DAY IS THE PULL'S, NOT THE CLOCK'S -- A SECOND,
+#    SMALLER GUARD. ~~"At 00:44Z latest/news.json (23:05Z the day before)
+#    was inside its deadline"~~ -- WRONG, and the diagnosis that made it:
+#    the row that read fresh was news-FLAGS, picked by the `{mode: row}`
+#    lookup; `news.json` itself was stale from 00:00Z (#182, `news_rows`).
+#    With news due at the top of every hour, a FRESH `latest` is always
+#    this UTC hour's pull, so this day equals the clock's whenever the
+#    check can fire. ✅ It holds if a news deadline ever moves off the
+#    hour (or gains a grace): the archive of the day the pull RAN must
+#    hold it, never the day on the clock.
 def _archive_day(latest_stamp, now):
     """The UTC day whose archive must hold the pull that wrote latest."""
     return (latest_stamp or now).strftime("%Y-%m-%d")
 
 
+# 🔴 WHICH ROW IS "LATEST" IS DRIVEN, IN EVERY ORDER. A `{mode: row}` dict
+#    answered "the news-flags row" (see `news_rows`), and a missing row is
+#    worse still: `.get("stale")` is None, which reads as FRESH.
+_P = ("data/nfl/latest/news.json", "data/nfl/latest/news-flags.json",
+      "data/nfl/2026-09-26/news")
+_SYN = [{"mode": "news", "kind": k, "path": p, "stale": s}
+        for k, p, s in (("file", _P[0], True), ("file", _P[1], False),
+                        ("dir", _P[2], False))]
+_ok = all(news_rows(o)[0].get("path") == _P[0]
+          and news_rows(o)[1].get("path") == _P[2]
+          for o in (_SYN, _SYN[::-1], [_SYN[1], _SYN[0], _SYN[2]]))
+ck("🔴 `latest` is the news.json row and the archive the dated dir, in any "
+   "order", _ok, "three rows under one mode; the flags row is neither")
+
 for _lg in ("nfl", "ncaaf"):
-    _rows = {r["mode"]: r for r in F.survey("data/%s" % _lg, "picks")}
-    _lat, _arc = _rows.get("news", {}), _rows.get("news-archive", {})
-    _day = _archive_day(F.stamp_of("data/%s/latest/news.json" % _lg), _NOW)
+    _lat, _arc = news_rows(F.survey("data/%s" % _lg, "picks"))
+    ck("⛔ %s: the live check found BOTH rows it compares" % _lg,
+       bool(_lat) and bool(_arc),
+       "a missing `latest` row reads as fresh and would fire on nothing "
+       "but the clock. latest=%r archive=%r"
+       % (_lat.get("path"), _arc.get("path")))
+    _day = _archive_day(F.stamp_of(_lat.get("path") or ""), _NOW)
     _ever, _today, _fires = _divergence(ROOT, _lg, _day,
                                         _lat.get("stale"))
     note("%s: latest stale=%s (age %sm) · archived all-time %d · on %s %d"
@@ -468,9 +511,10 @@ for _name, _kw, _stale, _want_ever, _want_fire in (
        "cases together are what make this an assertion rather than a "
        "note wearing a ck()" % (_e, _want_ever, _f, _want_fire, _t))
 
-# 🔴 THE MIDNIGHT WINDOW, BOTH WAYS `[2026-09-26]`: just after 00:00Z the
-#    latest pull is yesterday's. Its own day's archive decides -- quiet
-#    when that day holds it, firing when it does not.
+# ⚠️ THE MIDNIGHT WINDOW, BOTH WAYS `[2026-09-26]`: IF a latest pull from
+#    yesterday is still inside its deadline after 00:00Z (possible only for
+#    a deadline off the hour, see `_archive_day`), its own day's archive
+#    decides -- quiet when that day holds it, firing when it does not.
 _Y_PULL = datetime.datetime(2026, 9, 25, 23, 5, tzinfo=UTC)
 _AFTER_MIDNIGHT = datetime.datetime(2026, 9, 26, 0, 44, tzinfo=UTC)
 for _name, _kw, _want_fire in (
@@ -496,8 +540,9 @@ _day_calls = [n for n in ast.walk(_own)
               and getattr(n.args[0].func, "attr", "") == "stamp_of"]
 ck("⛔ the live check reads the archive of the day the latest pull ran",
    len(_day_calls) == 1,
-   "🔴 the wall clock's day fired on a correct site every night after "
-   "00:00Z (2026-09-26). _archive_day(F.stamp_of(...)) calls: %d" % len(_day_calls))
+   "the clock's day and the pull's day differ only across midnight, and "
+   "only for a deadline off the hour. _archive_day(F.stamp_of(...)) calls: %d"
+   % len(_day_calls))
 
 
 # ══════════════════════════════════════════════════════════════════════
