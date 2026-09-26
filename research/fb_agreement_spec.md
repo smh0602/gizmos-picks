@@ -125,3 +125,24 @@ scores a row exists.** Sections 2 and 3 are hashed by `test_prereg_gate.py`.
   - College: 24 rows, 14 AGREE / 9 SPLIT / 1 ONE SOURCE.
   - Every card row had a props-model probability for the same side. No row
     is graded yet, so the question is NOT YET MEASURABLE.
+- **2026-09-26, a mistake in #170, fixed:** once a game kicked off, the page
+  file relabelled every row of it ONE SOURCE.
+  - **Measured on the live file:** 25/25 NFL and 23/23 college rows at
+    2026-09-25 07:14Z; all 25 of Thursday's NFL rows still at
+    2026-09-26 00:05Z.
+  - **Root cause:** the props model rates only games not yet started, and
+    the builder recomputed every row's label on every run.
+  - **Fix:** a started game's rows show the board as last frozen before
+    kickoff, marked "frozen before kickoff". A started row that was never
+    frozen shows no label and says so.
+  - The frozen record was always right; it grades frozen rows only.
+  - ⚠️ Thursday's NFL game (2026-09-25 00:15Z) kicked off before #170
+    merged, so it has **no** frozen labels. It shows "no label was frozen
+    before kickoff" on every row. The 14 AGREE / 11 SPLIT quoted in #170
+    were computed locally for that PR, never archived.
+- **2026-09-26, a gap found, not changed:** labels are frozen on `card-fb`
+  runs only, but the props pull also rebuilds the card. Rows it adds after
+  the last `card-fb` run before kickoff carry no label. Freezing them at the
+  props pull would use the props model's older numbers and bake wrong
+  ONE SOURCE labels into the record, so the honest fix (rebuilding the
+  props model there too) is proposed to Sam.

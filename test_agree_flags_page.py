@@ -12,6 +12,11 @@ page code (sliced out of `index.html` and run in node).
 #   file: index.html
 #   find:   kept.forEach(p => { host.append(pickCard(p)); host.insertAdjacentHTML('beforeend', fbRowNotes(p, AG, FL)); });
 #   with:   kept.forEach(p => host.append(pickCard(p)));
+#
+# @vacuity a started game's row says its label was frozen before kickoff
+#   file: index.html
+#   find:       ? ' <span class="rec">frozen before kickoff</span>' : ''}
+#   with:       ? '' : ''}
 """
 import json
 import os
@@ -28,7 +33,16 @@ PAGE = os.path.join(ROOT, "index.html")
 
 AG = {"rows": [{"game_id": "g1", "player": "Jonnu Smith", "market": "player_receptions", "side": "over",
                 "line": 1.5, "card_p": 72, "card_basis": "RECORD", "model_p": 35.1, "break_even": 41.7,
-                "label": "SPLIT"}],
+                "label": "SPLIT"},
+               # `[2026-09-26]` a started game: its label frozen before kickoff
+               {"game_id": "g2", "player": "Frozen Guy", "market": "player_rush_yds", "side": "over",
+                "line": 50.5, "card_p": 70, "card_basis": "RECORD", "model_p": 61.0, "break_even": 52.4,
+                "label": "AGREE", "frozen_before_kickoff": True, "frozen_at": "2026-09-26T15:00:00Z"},
+               # ...and a started row never frozen
+               {"game_id": "g3", "player": "Unfrozen Guy", "market": "player_rush_yds", "side": "over",
+                "line": 40.5, "card_p": 60, "card_basis": "RECORD", "model_p": None, "break_even": 52.4,
+                "label": None, "frozen_before_kickoff": False,
+                "label_note": "no label was frozen before kickoff"}],
       "counts": {"AGREE": 14, "SPLIT": 11, "ONE SOURCE": 1},
       "record": {"AGREE": {}, "SPLIT": {}, "ONE SOURCE": {}},
       "question": {"state": "NOT YET MEASURABLE", "agree_graded": 0, "split_graded": 0,
@@ -57,6 +71,8 @@ process.stdout.write(JSON.stringify({
   notes: M.fbRowNotes(d.row, d.ag, d.fl),
   model_pick: M.fbAgHtml(M.fbAgFind(d.ag, d.mp)),
   none: M.fbRowNotes(Object.assign({}, d.row, {player: 'Nobody'}), d.ag, d.fl),
+  frozen: M.fbRowNotes({game_id: 'g2', player: 'Frozen Guy', market: 'player_rush_yds', side: 'over', line: 50.5}, d.ag, d.fl),
+  unfrozen: M.fbRowNotes({game_id: 'g3', player: 'Unfrozen Guy', market: 'player_rush_yds', side: 'over', line: 40.5}, d.ag, d.fl),
   agrec: M.fbAgRecordHtml(d.ag), flrec: M.fbFlagsRecordHtml(d.fl)}));
 """
 tmp = tempfile.mkdtemp(prefix="agpage-")
@@ -66,7 +82,8 @@ try:
     r = subprocess.run(["node", os.path.join(tmp, "d.js"), PAGE, os.path.join(tmp, "d.json")],
                        capture_output=True, text=True, timeout=300)
     ck(r.returncode == 0, "⚠️ the shipped helpers ran in node", (r.stderr or "")[-300:])
-    R = json.loads(r.stdout) if r.returncode == 0 else {k: "" for k in ("notes", "model_pick", "none", "agrec", "flrec")}
+    R = json.loads(r.stdout) if r.returncode == 0 else {k: "" for k in ("notes", "model_pick", "none", "agrec", "flrec",
+                                                                        "frozen", "unfrozen")}
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
@@ -80,6 +97,14 @@ ck(re.search(r'<span class="kind k-desc">SPLIT</span>', n)
    "the break-even (Market)")
 ck("SPLIT" in R["model_pick"], "   ✅ the props model's own pick row finds the same label (its line is wrapped)")
 ck(R["none"] == "", "   ✅ a row with no label and no flag draws nothing")
+
+ck('<span class="kind k-desc">AGREE</span> <span class="rec">frozen before kickoff</span>' in R["frozen"]
+   and "props model 61% " in R["frozen"],
+   "🔴🔴 a started game's row reads its FROZEN label — AGREE, 'frozen before kickoff' — with the numbers it was frozen with",
+   R["frozen"][:300])
+ck("no label was frozen before kickoff" in R["unfrozen"] and "ONE SOURCE" not in R["unfrozen"]
+   and "k-desc\">Descriptive" in R["unfrozen"],
+   "🔴 a started row never frozen says so, and never reads ONE SOURCE", R["unfrozen"][:300])
 
 section("2. THE FLAG, DESCRIPTIVE, WITH ITS SOURCE, LINK AND FIRST SEEN")
 ck('&#9873; <b>questionable</b>' in n and 'href="https://ex.com/a"' in n and "Jonnu Smith questionable" in n
