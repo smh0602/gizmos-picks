@@ -20,8 +20,11 @@ baseball onto the football join.
 
 # @vacuity 🔴🔴 football props-board runs the football join
 #   file: collect.py
-#   find:             left = (collect_props_board() if LEAGUE == "mlb"
-#   with:             left = (collect_props_board() if True
+#   find:                 collect_props_board_fb()        # the BOARD, not a credit count
+#   with:                 collect_props_board()
+# `[2026-09-26]` ~~find: `left = (collect_props_board() if LEAGUE == "mlb"`~~
+#   -- that line was rewritten when `left` stopped holding the football
+#   board (test_run_mode_left.py); same intent, the football branch.
 """
 import tempfile
 

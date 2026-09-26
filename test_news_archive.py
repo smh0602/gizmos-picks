@@ -16,11 +16,6 @@ point of shipping the archive first.
 #   find:             row["first_seen"] = pulled_at
 #   with:             row["first_seen"] = it.get("published")
 #
-# @vacuity 🔴 the divergence check reads the day the pull ran, not the clock's
-#   file: test_news_archive.py
-#   find:     return (latest_stamp or now).strftime("%Y-%m-%d")
-#   with:     return now.strftime("%Y-%m-%d")
-#
 # @vacuity the archive keeps only what THIS pull saw first
 #   file: collect.py
 #   find:         prev = seen.get(k)
@@ -490,6 +485,19 @@ for _name, _kw, _want_fire in (
     finally:
         shutil.rmtree(_d, ignore_errors=True)
     ck(_name, _f is _want_fire, "fires=%s (wanted %s) on-day=%d" % (_f, _want_fire, _t))
+
+# ⛔ AND THE LIVE CHECK ASKS FOR THAT DAY, IN CODE. ⚠️ A test cannot declare
+#    a mutation of its own file (vacuity counts the `find` in the docstring
+#    too), so the join is pinned the way `_fires` is above: from the parsed
+#    AST, `_archive_day` fed the latest pull's own stamp.
+_day_calls = [n for n in ast.walk(_own)
+              if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "_archive_day"
+              and n.args and isinstance(n.args[0], ast.Call)
+              and getattr(n.args[0].func, "attr", "") == "stamp_of"]
+ck("⛔ the live check reads the archive of the day the latest pull ran",
+   len(_day_calls) == 1,
+   "🔴 the wall clock's day fired on a correct site every night after "
+   "00:00Z (2026-09-26). _archive_day(F.stamp_of(...)) calls: %d" % len(_day_calls))
 
 
 # ══════════════════════════════════════════════════════════════════════
