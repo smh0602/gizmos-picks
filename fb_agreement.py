@@ -146,6 +146,41 @@ def frozen_rows(lg, root=None):
     return list(chosen.values())
 
 
+NOT_FROZEN = "no label was frozen before kickoff"
+
+
+def settle(rs, frozen, now):
+    """What the page file shows once a game has kicked off.
+
+    🔴 `[2026-09-26, the defect this fixes]` The props model rates only games
+    NOT yet started, so a label recomputed after kickoff finds no model
+    number and reads ONE SOURCE — measured on the live file 2026-09-25
+    07:14Z: 25/25 NFL and 23/23 college rows ONE SOURCE, while the frozen
+    record was right. ⛔ So a row whose game has kicked off NEVER gets a
+    fresh label: it shows its last copy frozen before kickoff (the same row
+    the record grades), marked as such, and a row that was never frozen
+    shows no label and says so — never a fresh ONE SOURCE.
+    """
+    now_s = _iso(now)
+    started = {r["game_id"] for r in rs if (r.get("commence") or "") <= now_s}
+    out = [r for r in rs if r["game_id"] not in started]
+    by_game = {}
+    for f in frozen:
+        if f["game_id"] in started:
+            by_game.setdefault(f["game_id"], {})[f["key"]] = f
+    for gid in sorted(started):
+        fr = by_game.get(gid, {})
+        # ⚠️ The game's board as LAST frozen before kickoff, plus whatever the
+        #    card still shows — a row dropped from the board before kickoff
+        #    (only in an earlier copy) is not put back on it.
+        last = max((f["taken_at"] for f in fr.values()), default=None)
+        keep = {k for k, f in fr.items() if f["taken_at"] == last} | {r["key"] for r in rs if r["game_id"] == gid}
+        out += [dict(fr[k], frozen_before_kickoff=True, frozen_at=fr[k]["taken_at"]) for k in keep if k in fr]
+        out += [dict(r, label=None, model_p=None, frozen_before_kickoff=False, label_note=NOT_FROZEN)
+                for r in rs if r["game_id"] == gid and r["key"] not in fr]
+    return sorted(out, key=lambda r: (r["commence"] or "", r["player"], r["market"], r["side"]))
+
+
 # ── grade, once ──────────────────────────────────────────────────────────
 def stored_grades(lg, root=None):
     out = {}
@@ -257,8 +292,11 @@ def build(lg=None, root=None, now=None, log=log, logs=None):
     now = now or _now()
     card = _json(os.path.join(root or ROOT, "picks", "fb-%s-latest.json" % lg))
     model = _json(os.path.join(_data(lg, root), "latest", "fb-props-model.json"))
-    rs = rows(card, model)
-    frz = freeze(lg, rs, root, now, log)
+    fresh = rows(card, model)
+    frz = freeze(lg, fresh, root, now, log)
+    # ⛔ AFTER the freeze, and only for display: a started game's rows are
+    #    its frozen pre-kickoff rows, never a label recomputed after kickoff.
+    rs = settle(fresh, frozen_rows(lg, root), now)
     grades = stored_grades(lg, root)
     for g in grade_new(lg, frozen_rows(lg, root), grades, root, now, log, logs):
         grades.setdefault(g["key"], g)
@@ -270,6 +308,7 @@ def build(lg=None, root=None, now=None, log=log, logs=None):
     doc = {"league": lg, "kind": "DESCRIPTIVE", "spec": "research/fb_agreement_spec.md",
            "built_at": _iso(now), "bases": BASES, "rows": rs,
            "counts": {lb: sum(1 for r in rs if r["label"] == lb) for lb in LABELS},
+           "not_frozen": sum(1 for r in rs if r.get("label_note") == NOT_FROZEN),
            "record": record_by_label(mine), "question": question(both),
            "note": ("A note on the row, never a lever: the label changes no pick, ranking or price. "
                     "The card's number is its own rate (RECORD); the model's is MODEL; the "

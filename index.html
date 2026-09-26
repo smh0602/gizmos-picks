@@ -4459,9 +4459,15 @@ function fbAgFind(AG, p){
     && ((r.line == null && ln(p.line) == null) || Number(r.line) === Number(ln(p.line))));
 }
 function fbAgHtml(r){
-  if (!r || !r.label) return '';
+  if (!r) return '';
+  /* 🔴 `[2026-09-26]` ONCE A GAME KICKS OFF THE LABEL IS THE ONE FROZEN BEFORE
+     KICKOFF (fb_agreement.settle), and says so; a row never frozen says that
+     instead of showing a label. ⛔ Never a fresh ONE SOURCE on a started game. */
+  if (!r.label) return r.label_note
+    ? `<span class="agl">${fbEsc(r.label_note)} <span class="kind k-desc">Descriptive</span></span>` : '';
   const pct = v => v == null ? '&mdash;' : v + '%';
-  return `<span class="agl"><span class="kind k-desc">${r.label}</span>
+  return `<span class="agl"><span class="kind k-desc">${r.label}</span>${r.frozen_before_kickoff
+      ? ' <span class="rec">frozen before kickoff</span>' : ''}
     card ${pct(r.card_p)}${r.card_p == null ? '' : ` <span class="kind k-desc">${r.card_basis === 'MODEL' ? 'Model' : 'Record'}</span>`}
     &middot; props model ${pct(r.model_p)}${r.model_p == null ? '' : ' <span class="kind k-model">Model</span>'}
     &middot; break-even ${pct(r.break_even)} <span class="kind k-market">Market</span></span>`;
@@ -4511,6 +4517,8 @@ function fbAgRecordHtml(AG){
       pick, ranking or price.</p>
     <div class="glwrap"><table class="glmain"><tr><th></th><th>On this board</th><th>Graded</th><th>Hit</th>
       <th>Break-even</th><th>Games (eff. n)</th></tr>${rows}</table></div>
+    ${AG.not_frozen ? `<p style="font-size:12px;color:var(--mut)">${AG.not_frozen} row(s) belong to games
+      that kicked off before any label was frozen, so they carry no label.</p>` : ''}
     <p style="font-size:12px">Pre-registered question &mdash; do AGREE rows beat their break-even by more than
       SPLIT rows? <b>${Q.state || 'NOT YET MEASURABLE'}</b> (${Q.agree_graded || 0} of ${(Q.min || {}).agree || 300}
       AGREE and ${Q.split_graded || 0} of ${(Q.min || {}).split || 100} SPLIT rows graded). ${Q.consequence || ''}</p></div>`;

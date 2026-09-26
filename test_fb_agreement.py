@@ -26,6 +26,21 @@
 #   file: fb_agreement.py
 #   find:     if na < MIN_AGREE or ns < MIN_SPLIT or weeks < MIN_WEEKS:
 #   with:     if False:
+#
+# @vacuity a game that has kicked off shows its FROZEN label, never a fresh one
+#   file: fb_agreement.py
+#   find:     started = {r["game_id"] for r in rs if (r.get("commence") or "") <= now_s}
+#   with:     started = set()
+#
+# @vacuity a started row that was never frozen carries NO label, never ONE SOURCE
+#   file: fb_agreement.py
+#   find:         out += [dict(r, label=None, model_p=None, frozen_before_kickoff=False, label_note=NOT_FROZEN)
+#   with:         out += [dict(r, frozen_before_kickoff=False, label_note=NOT_FROZEN)
+#
+# @vacuity a started game shows its board as LAST frozen — a row dropped before kickoff stays off
+#   file: fb_agreement.py
+#   find:         keep = {k for k, f in fr.items() if f["taken_at"] == last} | {r["key"] for r in rs if r["game_id"] == gid}
+#   with:         keep = set(fr) | {r["key"] for r in rs if r["game_id"] == gid}
 """
 import datetime
 import glob
@@ -167,3 +182,101 @@ ck(AG.question(mk(200, 2, "AGREE", 0.45) + mk(80, 2, "SPLIT", 0.60))["state"] ==
    "   ✅ enough rows and no gap FAILS")
 ck("Nothing changes on its own" in q["consequence"],
    "   ✅ whatever the answer, nothing changes on its own — Sam decides")
+
+
+section("4. 🔴🔴 A GAME THAT HAS KICKED OFF KEEPS ITS FROZEN LABEL")
+# `[2026-09-26]` The defect: the props model rates only games NOT yet
+# started, so relabelling after kickoff found no model number and every
+# row read ONE SOURCE — 25/25 NFL and 23/23 college on the live file.
+root = tempfile.mkdtemp(prefix="ag4-")
+try:
+    lat = os.path.join(root, "data", "nfl", "latest")
+    os.makedirs(lat)
+    os.makedirs(os.path.join(root, "data", "ncaaf", "latest"))
+    os.makedirs(os.path.join(root, "picks"))
+    K1, K0 = "2026-09-27T17:00:00Z", "2026-09-26T13:00:00Z"   # g1 later; g0 kicked off before any build
+    card4 = {"picks": [
+        {"game_id": "g1", "player": "Agree Guy", "market": "player_rush_yds", "side": "over", "line": 50.5,
+         "price": -110, "break_even": 52.4, "confidence": 70, "confidence_basis": "RECORD", "commence": K1},
+        {"game_id": "g0", "player": "Early Guy", "market": "player_rush_yds", "side": "over", "line": 40.5,
+         "price": -110, "break_even": 52.4, "confidence": 60, "confidence_basis": "RECORD", "commence": K0}]}
+    json.dump(card4, open(os.path.join(root, "picks", "fb-nfl-latest.json"), "w"))
+    # before kickoff the model rates g1 on the same side of the break-even -> AGREE,
+    # and at 14:00 it also picked a row it had dropped by 15:00
+    _rated = [{"game_id": "g1", "player": "Agree Guy", "market": "player_rush_yds", "line": 50.5,
+               "side": "over", "p": 61.0}]
+    _drop = {"game_id": "g1", "player": "Dropped Guy", "market": "player_receptions", "side": "over",
+             "line": {"value": 3.5}, "price": {"value": 120}, "model_probability": {"value": 55.0},
+             "break_even": {"value": 45.5}, "commence": K1}
+    json.dump({"rated": _rated, "picks": [_drop]}, open(os.path.join(lat, "fb-props-model.json"), "w"))
+    AG.build("nfl", root=root, now=datetime.datetime(2026, 9, 26, 14, 0, tzinfo=UTC), log=lambda m: None, logs={})
+    json.dump({"rated": _rated, "picks": []}, open(os.path.join(lat, "fb-props-model.json"), "w"))
+    before = datetime.datetime(2026, 9, 26, 15, 0, tzinfo=UTC)
+    d0 = AG.build("nfl", root=root, now=before, log=lambda m: None, logs={})
+    # after kickoff the model rates nothing for g1 (it only rates games not started)
+    json.dump({"rated": [], "picks": []}, open(os.path.join(lat, "fb-props-model.json"), "w"))
+    after = datetime.datetime(2026, 9, 27, 18, 30, tzinfo=UTC)
+    AG.build("nfl", root=root, now=after, log=lambda m: None, logs={})
+    page = json.load(open(os.path.join(lat, "agreement.json"), encoding="utf-8"))
+    by = {r["player"]: r for r in page["rows"]}
+    ck({r["player"]: r["label"] for r in d0["rows"]}.get("Agree Guy") == "AGREE",
+       "   ✅ before kickoff: the card (70%) and the model (61%) both sit above the 52.4% break-even -> AGREE")
+    ck(by["Agree Guy"]["label"] == "AGREE" and by["Agree Guy"]["frozen_before_kickoff"] is True
+       and by["Agree Guy"]["frozen_at"] == "2026-09-26T15:00:00Z" and by["Agree Guy"]["model_p"] == 61.0
+       and page["counts"]["AGREE"] == 1,
+       "🔴🔴 after kickoff the PAGE FILE still reads AGREE — the label frozen before kickoff, marked as "
+       "such — never a fresh ONE SOURCE", "got %r" % by.get("Agree Guy"))
+    ck(by["Early Guy"]["label"] is None and by["Early Guy"]["label_note"] == AG.NOT_FROZEN
+       and page["counts"]["ONE SOURCE"] == 0 and page["not_frozen"] == 1,
+       "🔴 a started row that was never frozen shows NO label and says so — never ONE SOURCE",
+       "got %r" % by.get("Early Guy"))
+    ck("Dropped Guy" not in by and any(r["player"] == "Dropped Guy" for r in AG.frozen_rows("nfl", root)),
+       "🔴 a started game shows its board as LAST frozen before kickoff: a row dropped before kickoff "
+       "is not put back (the record still holds it)")
+    ck(all(r.get("frozen_before_kickoff") is True or r["label"] is None
+           for r in page["rows"] if r["commence"] <= page["built_at"]),
+       "🔴 the class: no row of a started game carries a label computed after its kickoff")
+finally:
+    shutil.rmtree(root, ignore_errors=True)
+
+section("5. ...AND ON THE REAL STORED CARDS, MODEL FILES AND FROZEN COPIES")
+# Driven against the real artifacts (copied, never written in place), with
+# the clock set after every card game's kickoff, so every row is settled.
+_seen = 0
+for _lg in AG.LEAGUES:
+    _card = os.path.join(ROOT, "picks", "fb-%s-latest.json" % _lg)
+    _cp = (json.load(open(_card, encoding="utf-8")).get("picks") or []) if os.path.exists(_card) else []
+    _ks = [r.get("commence") for r in _cp if r.get("commence")]
+    if not _ks:
+        continue
+    rt = tempfile.mkdtemp(prefix="ag5-")
+    try:
+        os.makedirs(os.path.join(rt, "picks"))
+        shutil.copy(_card, os.path.join(rt, "picks"))
+        for _o in AG.LEAGUES:
+            os.makedirs(os.path.join(rt, "data", _o, "latest"), exist_ok=True)
+        _mf = os.path.join(ROOT, "data", _lg, "latest", "fb-props-model.json")
+        if os.path.exists(_mf):
+            shutil.copy(_mf, os.path.join(rt, "data", _lg, "latest"))
+        for _a in glob.glob(os.path.join(ROOT, "data", _lg, "20*", "agreement", "*.json.gz")):
+            _dst = os.path.join(rt, os.path.relpath(_a, ROOT))
+            os.makedirs(os.path.dirname(_dst), exist_ok=True)
+            shutil.copy(_a, _dst)
+        _now = datetime.datetime.strptime(max(_ks), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC) \
+            + datetime.timedelta(hours=1)
+        _doc = AG.build(_lg, root=rt, now=_now, log=lambda m: None, logs={})
+        _fz = {r["key"]: r["label"] for r in AG.frozen_rows(_lg, rt)}
+        _started = [r for r in _doc["rows"] if r["commence"] <= _doc["built_at"]]
+        _bad = [r["key"] for r in _started
+                if not ((r.get("frozen_before_kickoff") and r["label"] == _fz.get(r["key"]))
+                        or (r["label"] is None and r.get("label_note") == AG.NOT_FROZEN))]
+        _seen += len(_started)
+        ck(not _bad and _started,
+           "🔴 %s, real files: all %d started rows show their frozen label (%d) or no label (%d) — "
+           "none relabelled after kickoff" % (_lg, len(_started),
+                                              sum(1 for r in _started if r.get("frozen_before_kickoff")),
+                                              sum(1 for r in _started if r["label"] is None)),
+           "relabelled: %s" % _bad[:3])
+    finally:
+        shutil.rmtree(rt, ignore_errors=True)
+ck(_seen > 0, "   ✅ the real-file drive saw started rows (a drive over nothing proves nothing)")
