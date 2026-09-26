@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-09-25T07:16:51Z",
+ "written_at": "2026-09-26T19:58:36Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -21,15 +21,15 @@
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20260925&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20260926&limit=400",
    "http": 200,
-   "events": 5
+   "events": 65
   },
   {
    "variant": "groups=80 + dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20260925&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20260926&limit=400",
    "http": 200,
-   "events": 5
+   "events": 65
   }
  ],
  "variant_used": "groups=80 (FBS)",
@@ -66,18 +66,16 @@
    "dateValid",
    "format",
    "geoBroadcasts",
-   "groups",
    "highlights",
    "id",
    "leaders",
    "neutralSite",
    "notes",
-   "odds",
    "playByPlayAvailable",
    "recent",
+   "situation",
    "startDate",
    "status",
-   "tickets",
    "timeValid",
    "type",
    "uid",
@@ -102,7 +100,7 @@
    "curatedRank",
    "homeAway",
    "id",
-   "leaders",
+   "linescores",
    "order",
    "records",
    "score",
@@ -139,13 +137,79 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "pre": 70,
-  "post": 1
+  "in": 19,
+  "post": 17,
+  "pre": 35
  },
- "in_progress": 0,
- "live_sample": [],
- "live_state_fields": null,
- "live_state_note": "\u26a0\ufe0f NOTHING WAS IN PROGRESS when this ran, so whether the feed carries a moving clock is NOT ANSWERED. Re-run while games are on. \u26d4 Do not read a full slate of finals as evidence either way.",
+ "in_progress": 19,
+ "live_sample": [
+  {
+   "id": "401864576",
+   "away": "South Alabama Jaguars",
+   "home": "Kentucky Wildcats",
+   "away_score": "21",
+   "home_score": "45",
+   "state": "in",
+   "detail": "2:49 - 4th",
+   "clock": "2:49",
+   "period": 4,
+   "start": "2026-09-26T16:45Z"
+  },
+  {
+   "id": "401866427",
+   "away": "Lindenwood Lions",
+   "home": "Eastern Michigan Eagles",
+   "away_score": "3",
+   "home_score": "29",
+   "state": "in",
+   "detail": "5:19 - 4th",
+   "clock": "5:19",
+   "period": 4,
+   "start": "2026-09-26T17:00Z"
+  },
+  {
+   "id": "401858462",
+   "away": "UCLA Bruins",
+   "home": "Maryland Terrapins",
+   "away_score": "34",
+   "home_score": "3",
+   "state": "in",
+   "detail": "3:12 - 3rd",
+   "clock": "3:12",
+   "period": 3,
+   "start": "2026-09-26T17:30Z"
+  },
+  {
+   "id": "401858467",
+   "away": "Notre Dame Fighting Irish",
+   "home": "Purdue Boilermakers",
+   "away_score": "35",
+   "home_score": "0",
+   "state": "in",
+   "detail": "12:10 - 3rd",
+   "clock": "12:10",
+   "period": 3,
+   "start": "2026-09-26T18:00Z"
+  },
+  {
+   "id": "401864511",
+   "away": "Northern Illinois Huskies",
+   "home": "Georgia State Panthers",
+   "away_score": "14",
+   "home_score": "21",
+   "state": "in",
+   "detail": "10:33 - 3rd",
+   "clock": "10:33",
+   "period": 3,
+   "start": "2026-09-26T18:00Z"
+  }
+ ],
+ "live_state_fields": {
+  "with a running clock": 19,
+  "with a period": 19,
+  "with both scores": 19,
+  "of": 19
+ },
  "join": {
   "our_schedule_season": 2026,
   "our_games": 3679,
@@ -179,42 +243,52 @@
    {
     "et_date": "2026-09-25",
     "espn_events": 5,
-    "our_games": 6,
+    "our_games": 7,
     "ours_that_espn_returned": 5,
-    "ours_MISSING_from_espn": 1,
-    "pct_of_ours_present": 83.3,
+    "ours_MISSING_from_espn": 2,
+    "pct_of_ours_present": 71.4,
     "missing_examples": [
+     "WPI @ Coast Guard",
      "Harvard @ Brown"
     ]
    },
    {
     "et_date": "2026-09-26",
     "espn_events": 65,
-    "our_games": 277,
+    "our_games": 276,
     "ours_that_espn_returned": 65,
-    "ours_MISSING_from_espn": 212,
-    "pct_of_ours_present": 23.5,
+    "ours_MISSING_from_espn": 211,
+    "pct_of_ours_present": 23.6,
     "missing_examples": [
      "Curry @ Maine Maritime",
+     "Salve Regina @ SUNY Maritime",
      "Misericordia @ Albright",
      "St. John Fisher @ Alfred",
-     "Slippery Rock @ California (PA)",
-     "Edinboro @ Clarion"
+     "Slippery Rock @ California (PA)"
     ]
    }
   ],
-  "worst_pct_of_ours_present": 23.5,
-  "verdict": "\ud83d\udd34 PARTIAL \u2014 as low as 23.5% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so",
+  "worst_pct_of_ours_present": 23.6,
+  "verdict": "\ud83d\udd34 PARTIAL \u2014 as low as 23.6% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so",
   "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
  },
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
- "refresh_check": null,
- "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
+ "refresh_check": {
+  "seconds_apart": 45,
+  "live_games_compared": 19,
+  "games_whose_clock_or_period_changed": 16,
+  "example": {
+   "id": "401864576",
+   "was": "2:49 Q4",
+   "now": "2:36 Q4"
+  },
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 16 of 19 live games in 45s, so the feed is live enough for a polling tab"
+ },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=3",
+  "cache_control": "max-age=8",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "71 events via [groups=80 (FBS)], 0 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 23.5% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "71 events via [groups=80 (FBS)], 19 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 23.6% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
