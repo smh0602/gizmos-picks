@@ -48,6 +48,10 @@ Read `CLAUDE.md` first. Dated; check every claim against `main`.
 
 ## Why fail-fast is not a weaker sweep
 
+⚠️ An early exit also skips cleanup at the END of a test file, and that
+filled a local disk once (see Mistakes). So every run has its own TMPDIR,
+deleted however it ended.
+
 The sweep reads one bit from a red run: did it exit non-zero. A failed
 check is final. Nothing in the suite un-records one (searched: no test
 touches `tcheck.FAILURES`), and the gate turns any failure into exit 1.
@@ -66,8 +70,13 @@ run red for the wrong reason), or sweeping only the files a PR touched
 | CI #1852 (before #184) | 2081 s | 8283 s | 13% |
 | CI #1856 (main with #184) | 1733 s | 6837 s | 28% |
 | local, main with #184 | 1140 s | 4476 s | — |
-| CI, pr-tests sweep part 1/4 on this branch | 208 s | 807 s (108 of 108 bite) | — |
-| local, this branch | _pending_ | _pending_ | — |
+| ~~CI, pr-tests sweep part 1/4 on this branch | 208 s | 807 s (108 of 108 bite) | —~~ (e1bcf185, before the TMPDIR fix) |
+| CI, pr-tests on 911a5d92, four parts summed | 223–369 s per part | **4713 s** (−31% vs #1856) | ~50% for one 4-tree job (≈1200 s); ~40% at #1852's runner speed |
+| local, this branch (717ca5dc), whole sweep | 742 s | 2927 s (−35%) | 432 of 433 bite; the one VACUOUS is fixed in 911a5d92 |
+
+⚠️ The collect number is an estimate until the first collect run after the
+merge prints its own `the sweep took` line. pr-tests part 1 printed its
+verdicts: 109 of 109 bite.
 
 ## What Sam must do
 
