@@ -30,7 +30,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from tcheck import ck, note   # the shared gate — see tcheck.py
+from tcheck import ck, note, shown   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 HTML = os.path.join(ROOT, "index.html")
@@ -307,7 +307,7 @@ open(jsp, "w", encoding="utf-8").write(harness)
 r = subprocess.run(["node", jsp], capture_output=True, text=True)
 shutil.rmtree(tmp, ignore_errors=True)
 if r.returncode != 0:
-    print(r.stderr[-2000:])
+    print(shown(r.stderr[-2000:]))
     ck("the page's own resolver runs", False)
     R = None
 else:

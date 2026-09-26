@@ -25,7 +25,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+from tcheck import ck, note, copy_module, shown  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
 #                                 fixture went red on all four harnesses at once
 #                                 the day card_fb.py gained one import
 
@@ -95,7 +95,7 @@ def run(tmp, mutate=None):
                        capture_output=True, text=True)
     lp = os.path.join(tmp, "picks/fb-ncaaf-latest.json")
     if r.returncode != 0 or not os.path.exists(lp):
-        print(r.stdout[-1200:], r.stderr[-1200:])
+        print(shown(r.stdout[-1200:]), shown(r.stderr[-1200:]))
         return None
     return json.load(open(lp))
 

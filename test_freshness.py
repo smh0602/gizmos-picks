@@ -8,9 +8,9 @@ MISSED, the fix is not doing what it claims.
 
 Run:  python test_freshness.py        (exit 0 = every case behaved)
 """
-import datetime, gzip, json, os, re, shutil, sys, tempfile, time
+import contextlib, datetime, gzip, io, json, os, re, shutil, sys, tempfile, time
 import freshness as F
-from tcheck import ck, note   # the shared gate — see tcheck.py
+from tcheck import ck, note, shown   # the shared gate — see tcheck.py
 
 UTC = datetime.timezone.utc
 PASS, FAIL = [], []
@@ -339,7 +339,18 @@ def check_converge():
         ran = []
         collect.run_mode = lambda m: ran.append(m)
         collect.daily_spend = lambda: 0
-        code = collect.converge()          # 🔴 the real thing
+
+        def converge():
+            # ⚠️ CAPTURED, THEN PRINTED THROUGH `shown()`. converge writes
+            #    `::error::` for a failed mode, and printed raw from here
+            #    that was an ERROR annotation on every collect run
+            #    `[2026-09-26]` (tcheck's watcher now fails the file).
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                c = collect.converge()
+            print(shown(buf.getvalue()), end="")
+            return c
+        code = converge()          # 🔴 the real thing
         print(f"  [{'OK  ' if ran else 'DEAD'}] converge ran {len(ran)} mode(s) "
               f"and returned {code}")
         ok &= bool(ran)
@@ -349,7 +360,7 @@ def check_converge():
             if m == "card":
                 raise RuntimeError("card blew up")
         collect.run_mode = hard_fail
-        code = collect.converge()
+        code = converge()
         print(f"  [{'OK  ' if code else 'WRONG'}] a failed CARD returns {code} "
               f"(non-zero = the run goes red)")
         ok &= bool(code)
@@ -359,7 +370,7 @@ def check_converge():
             if m in ("news", "weather", "lineups"):
                 raise RuntimeError("feed down")
         collect.run_mode = soft_fail
-        code = collect.converge()
+        code = converge()
         print(f"  [{'OK  ' if not code else 'WRONG'}] a failed NEWS returns "
               f"{code} (zero = headlines are not worth a red run)")
         ok &= not code

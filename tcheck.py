@@ -45,10 +45,25 @@ import atexit
 import os
 import subprocess
 import sys
+import threading
 
 FAILURES = []
 _CHECKS = [0]
 _NOTES = []
+
+# ══════════════════════════════════════════════════════════════════════
+# ⚠️ STOP AT THE FIRST FAILURE — ONLY WHEN THE VACUITY SWEEP ASKS.
+# `[2026-09-26]` The sweep runs a test under each declared mutation and
+# reads ONE thing from that run: is the exit code non-zero. A failed check
+# is final (nothing un-records one, and the gate turns any failure into
+# exit 1), so the rest of that run can only confirm what the first failure
+# already decided. `vacuity.run_test(..., red=True)` sets this for the RED
+# run alone; the green-on-revert run is always a full run.
+# ⛔ POPPED, NOT READ: a test that drives planted files or harness copies
+#    in child processes must never hand them this mode.
+# ⚠️ `SystemExit`, not `os._exit`: `finally` blocks still clean up, and
+#    the gate still runs (and still exits 1).
+FAIL_FAST = os.environ.pop("TCHECK_FAIL_FAST", "") == "1"
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 AND THE THIRD DEFECT, FOUND ON 2026-09-06 AND LIVE IN PRODUCTION:
@@ -89,7 +104,6 @@ def copy_module(name, dst, root=None):
     ⚠️ REPO-LOCAL ONLY. A name is followed only when `<root>/<name>.py`
     exists, so stdlib and third-party imports are left alone.
     """
-    import ast
     import shutil
     root = root or os.path.dirname(os.path.abspath(__file__))
     todo = [name if name.endswith(".py") else name + ".py"]
@@ -104,21 +118,43 @@ def copy_module(name, dst, root=None):
             continue
         shutil.copy(src, dst)
         out.append(f)
+        for m in _imports_of(src):
+            cand = m.split(".")[0] + ".py"
+            if os.path.exists(os.path.join(root, cand)):
+                todo.append(cand)
+    return sorted(out)
+
+
+# ⚠️ PARSED ONCE PER FILE VERSION, NOT ONCE PER CALL. `[measured
+#    2026-09-26]` `test_dossier_fb.py` calls `copy_module` 38 times and
+#    spent 12s of its 62s re-parsing the same modules (2.5M AST nodes), in
+#    a file the vacuity sweep runs 34 times. Keyed on (path, mtime, size),
+#    so a file that changes mid-process is parsed again; the answer is the
+#    same list the walk always produced.
+_IMPORTS = {}
+
+
+def _imports_of(src):
+    """Every module name `src` imports, absolute imports only, in AST order."""
+    import ast
+    try:
+        st = os.stat(src)
+    except OSError:
+        return []
+    key = (os.path.abspath(src), st.st_mtime_ns, st.st_size)
+    if key not in _IMPORTS:
+        names = []
         try:
             tree = ast.parse(open(src, encoding="utf-8").read())
         except (OSError, SyntaxError):
-            continue
-        for n in ast.walk(tree):
-            mods = []
+            tree = None
+        for n in ast.walk(tree) if tree is not None else ():
             if isinstance(n, ast.Import):
-                mods = [a.name for a in n.names]
+                names.extend(a.name for a in n.names)
             elif isinstance(n, ast.ImportFrom) and not n.level and n.module:
-                mods = [n.module]
-            for m in mods:
-                cand = m.split(".")[0] + ".py"
-                if os.path.exists(os.path.join(root, cand)):
-                    todo.append(cand)
-    return sorted(out)
+                names.append(n.module)
+        _IMPORTS[key] = names
+    return _IMPORTS[key]
 
 
 def _snapshot():
@@ -168,9 +204,13 @@ def ck(a, b, extra=""):
     name, cond = _order(a, b)
     _CHECKS[0] += 1
     ok = bool(cond)
-    print(("  ✅ " if ok else "  ❌ ") + name + (f"  — {extra}" if extra else ""))
+    _say(("  ✅ " if ok else "  ❌ ") + name + (f"  — {extra}" if extra else ""))
     if not ok:
         FAILURES.append(name)
+        if FAIL_FAST:
+            print("  ⏹ stopped at the first failure (TCHECK_FAIL_FAST, the "
+                  "vacuity sweep's red run)")
+            raise SystemExit(1)
     return ok
 
 
@@ -181,11 +221,11 @@ def note(s):
     of the world that a test may not turn red on (ledger rule 76).
     """
     _NOTES.append(s)
-    print("  ⚪ " + str(s))
+    _say("  ⚪ " + str(s))
 
 
 def section(title):
-    print("\n═══ " + str(title) + " ═══")
+    _say("\n═══ " + str(title) + " ═══")
 
 
 def shown(s):
@@ -197,6 +237,182 @@ def shown(s):
     4 of them on PR #167 `[2026-09-25]`. Assert on the raw text; print this.
     """
     return str(s).replace("::", ": :")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A TEST'S OUTPUT IS READ BY GITHUB, NOT ONLY BY PEOPLE. `[2026-09-26]`
+# ══════════════════════════════════════════════════════════════════════
+# The runner parses every line a step prints. A line that starts (after
+# leading whitespace) `::error::`, `::warning::`, ... is an annotation on
+# the run. ⛔ `shown()` above was OPT-IN, and three files did not opt in:
+# every collect run, green ones included (#1852), carried two
+# "test_live.py FAILED" errors that were `test_pr_staged.py` echoing the
+# planted suite it drives, and after #184 two more (`test_self_repair.py`
+# echoing a driven record step, `test_freshness.py` running converge
+# in-process). An alarm that is false on every run is an alarm nobody
+# reads (rule 238).
+# ✅ So every line this process writes to `sys.stdout` or `sys.stderr`
+#    passes through `_Watched`: a line GitHub would read as a command is
+#    written DEFUSED (its leading `::` becomes `: :`), so it cannot reach
+#    the run as an annotation, and it is RECORDED, so the gate fails the
+#    file and names it. ⛔ A deliberate annotation goes through
+#    `annotate()` and nothing else.
+# ⚠️ WHAT THIS CANNOT SEE: a child process writing to the descriptor it
+#    inherited. `test_workflow_commands.py` fails any test file that starts
+#    one without capturing both of its streams.
+LEAKS = []
+
+
+def command_of(line):
+    """The workflow command GitHub's runner would read in `line`, or None.
+
+    Mirrors the runner's own parse: leading whitespace is skipped, the
+    line must start `::`, and the command runs to the NEXT `::`. ⚠️ Any
+    name counts, not only the registered ones: `::stop-commands::` makes
+    an arbitrary `::<token>::` a command, so no name is safe to allow.
+    """
+    s = str(line).lstrip()
+    if not s.startswith("::"):
+        return None
+    end = s.find("::", 2)
+    if end < 0:
+        return None
+    return s[2:end].split(" ", 1)[0] or None
+
+
+def _defuse_start(text):
+    """`text` with a line-leading `::` (after whitespace) made `: :`."""
+    i = len(text) - len(text.lstrip())
+    if text[i:i + 2] == "::":
+        return text[:i] + ": :" + text[i + 2:]
+    return text
+
+
+def _say(text):
+    """Print what the HARNESS prints — a check, a note, a section — defused.
+
+    ⚠️ A check's detail is where captured output is SHOWN, on purpose, and
+    what it holds can depend on the machine: `test_accumulators.py` prints
+    the tail of a collector run whose `::warning::` lines exist only where
+    the news feeds fail. Failing the file for it would be a red run that
+    comes and goes with the network. So the harness defuses its own lines,
+    and the watcher fails only what bypasses it.
+    """
+    print("\n".join(_defuse_start(ln) for ln in str(text).split("\n")))
+
+
+class _Watched:
+    """A stream every write passes through, one LINE START at a time.
+
+    ⚠️ Only a line's START can make it a command, so everything is written
+    straight through except a fragment that could still become `::` — a
+    line that so far holds only whitespace, or whitespace and one `:`.
+    That fragment waits for the next write (at most two characters plus
+    indentation), and `finish()` releases it at exit.
+    """
+
+    def __init__(self, stream):
+        self._s = stream
+        self._held = ""     # a line start that cannot be judged yet
+        self._line = ""     # the current line, as the caller wrote it
+        self._mid = False   # this line's start has been judged
+        self._lock = threading.RLock()     # tests print from worker threads
+
+    def write(self, text):
+        if not isinstance(text, str):
+            return self._s.write(text)      # the stream's own TypeError
+        with self._lock:
+            return self._write(text)
+
+    def _write(self, text):
+        out = []
+        chunks = text.split("\n")
+        for i, c in enumerate(chunks):
+            last = i == len(chunks) - 1
+            self._line += c
+            if self._mid:
+                out.append(c)
+            else:
+                self._held += c
+                s = self._held.lstrip()
+                if not (last and len(s) < 2 and "::".startswith(s)):
+                    out.append(_defuse_start(self._held))
+                    self._held, self._mid = "", True
+            if not last:
+                out.append("\n")
+                self._judge()
+        self._s.write("".join(out))
+        return len(text)
+
+    def writelines(self, lines):
+        for ln in lines:
+            self.write(ln)
+
+    def _judge(self):
+        if command_of(self._line):
+            LEAKS.append(self._line)
+        self._line, self._held, self._mid = "", "", False
+
+    def raw(self, line):
+        """Write one line UNWATCHED, on a line of its own. `annotate()` only."""
+        with self._lock:
+            if self._line or self._held:
+                self._write("\n")
+            self._s.write(line + "\n")
+            self._s.flush()
+
+    def finish(self):
+        """Release a held fragment and judge an unfinished last line."""
+        with self._lock:
+            if self._held:
+                self._s.write(self._held)
+            if self._line:
+                self._judge()
+            self._held = ""
+
+    def __getattr__(self, name):
+        return getattr(self._s, name)
+
+
+def annotate(level, message):
+    """Put an annotation on the run ON PURPOSE. -> the line written.
+
+    ⛔ The only sanctioned way: any other line that GitHub would read as a
+    command fails the file (`LEAKS`). The message is escaped the way the
+    runner reads it (`%`, CR, LF), so it stays on one line.
+    """
+    if level not in ("error", "warning", "notice"):
+        raise ValueError("annotate() level must be error, warning or notice, "
+                         "got %r" % (level,))
+    msg = (str(message).replace("%", "%25").replace("\r", "%0D")
+           .replace("\n", "%0A"))
+    line = "::%s::%s" % (level, msg)
+    out = sys.stdout
+    if isinstance(out, _Watched):
+        out.raw(line)
+    else:
+        print(line, flush=True)
+    return line
+
+
+_WATCHERS = []
+
+
+def _watch():
+    for name in ("stdout", "stderr"):
+        cur = getattr(sys, name)
+        if cur is not None and not isinstance(cur, _Watched):
+            w = _Watched(cur)
+            _WATCHERS.append(w)
+            setattr(sys, name, w)
+
+
+def _finish_watch():
+    for w in _WATCHERS:
+        w.finish()
+
+
+_watch()   # every test process, from the moment it imports tcheck
 
 
 def eq(got, want, name):
@@ -248,6 +464,21 @@ def _gate():
     remaining hooks and buffers, so the flush is done by hand first.
     """
     try:
+        # 🔴 DID THIS FILE PRINT A WORKFLOW COMMAND? Every one was written
+        # defused already; this makes it a failure, named, so it is fixed
+        # rather than carried (see `_Watched`).
+        _finish_watch()
+        if LEAKS:
+            _CHECKS[0] += 1
+            name = ("🔴 this file printed %d line(s) GitHub reads as a "
+                    "workflow command — each would be an annotation on the run"
+                    % len(LEAKS))
+            print("  ❌ " + name)
+            for ln in LEAKS[:5]:
+                print("     - " + shown(ln.strip())[:200])
+            print("     ⛔ Print captured output through tcheck.shown(), and "
+                  "annotate on purpose only with tcheck.annotate().")
+            FAILURES.append(name)
         # 🔴 DID THIS FILE WRITE THE PRODUCT? Checked BEFORE the summary,
         # so a side effect is a failure like any other and cannot hide
         # behind a green count.

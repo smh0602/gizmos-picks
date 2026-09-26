@@ -662,7 +662,12 @@ t60r.py           the played-games backtest of signals 1-8, run to the
 
 SHARED HELPERS — ⛔ ONE COPY EACH. Rule 117: a helper duplicated breaks
 in the file you did not edit.
-tcheck.py         the one check harness every test file uses
+tcheck.py         the one check harness every test file uses.
+                  `[2026-09-26]` It watches every line a test prints:
+                  one GitHub reads as a workflow command (`::error::`)
+                  is written defused and FAILS the file. Print captured
+                  output through `shown()`; annotate on purpose only
+                  with `annotate()` (test_workflow_commands.py).
 ranking.py        the one tie-aware ranker, both leagues
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
@@ -710,7 +715,10 @@ vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   sweeps one share (pr-tests' parallel parts, never a
                   sample: test_pr_shards.py). ⛔ It MUTATES SOURCE
                   FILES while it runs — never edit the repo during a
-                  sweep, and never run two at once.
+                  sweep, and never run two at once. `[2026-09-26]` A
+                  RED run stops at the first failed check
+                  (`TCHECK_FAIL_FAST`); the green-on-revert run is
+                  always a full run (test_fail_fast.py).
 ```
 
 ⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`

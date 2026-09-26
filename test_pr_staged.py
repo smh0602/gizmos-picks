@@ -30,6 +30,19 @@ is live — and shows the `tests` job's loop cannot see it while the
 #   file: .github/workflows/pr-tests.yml
 #   find:           bash -e /tmp/loop.sh
 #   with:           true
+#
+# @vacuity a declaration must also resolve in a pending upload's staged copy
+#   file: vacuity.py
+#   find:             copies.append("docs/upload/" + base)
+#   with:             pass
+
+🔴 AND THE SAME CLASS, ONE LEVEL DOWN `[2026-09-26, collect #1856]`. A
+declared mutation (`@vacuity`) quoted a line of the LIVE `self-repair.yml`
+that #184's staged copy no longer had. Every pr-tests job passed: the
+sweep checks declarations against the live file, and the `staged` job runs
+the `rest` shard, which has no sweep. Sam uploaded; the declaration rotted;
+collect went red. `vacuity.rotted` now checks a declaration naming a
+workflow with a pending upload against the staged copy too. Section 4.
 """
 import os
 import shutil
@@ -37,7 +50,7 @@ import subprocess
 import tempfile
 
 import wfparse as W
-from tcheck import ck, eq, note, section
+from tcheck import ck, eq, note, section, shown
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PR = open(os.path.join(ROOT, ".github", "workflows", "pr-tests.yml"), encoding="utf-8").read()
@@ -146,10 +159,10 @@ try:
     n, trc, krc, log = staged_job(d)
     ck(n == "1" and trc != 0,
        "🔴🔴 the `staged` job is RED: the planted test fails once the staged file is live",
-       "n=%r rc=%r %s" % (n, trc, log[-500:]))
+       "n=%r rc=%r %s" % (n, trc, shown(log[-500:])))
     ck("test_live.py" in log and krc == 0,
        "   ...it names the file, and its own local commit left the tree clean",
-       log[-300:])
+       shown(log[-300:]))
 finally:
     shutil.rmtree(d, ignore_errors=True)
 
@@ -158,9 +171,46 @@ try:
     n, trc, krc, log = staged_job(d)
     ck(n == "0" and trc == 0,
        "✅ with nothing staged that differs, it says so and stays green",
-       "n=%r rc=%r %s" % (n, trc, log[-300:]))
+       "n=%r rc=%r %s" % (n, trc, shown(log[-300:])))
 finally:
     shutil.rmtree(d, ignore_errors=True)
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴🔴 A DECLARED MUTATION MUST SURVIVE THE UPLOAD IT WAITS FOR")
+# ══════════════════════════════════════════════════════════════════════
+import vacuity as V  # noqa: E402
+
+
+def decl_tree(staged_text):
+    d = tempfile.mkdtemp(prefix="staged-decl-")
+    for sub in (".github/workflows", "docs/upload"):
+        os.makedirs(os.path.join(d, sub))
+    open(os.path.join(d, ".github", "workflows", "w.yml"), "w").write(
+        "on: push\n# keep = sys.argv[1]\n")
+    open(os.path.join(d, "docs", "upload", "w.yml"), "w").write(staged_text)
+    open(os.path.join(d, "test_w.py"), "w").write(
+        "# @vacuity planted\n#   file: .github/workflows/w.yml\n"
+        "#   find: keep = sys.argv[1]\n#   with: keep = $X\n")
+    return d
+
+
+for why, staged, want in (
+        ("the staged copy drops the declared line (the #1856 shape)", "on: push\n", 1),
+        ("the staged copy still has it", "on: push\n# keep = sys.argv[1]\n# more\n", 0),
+        ("nothing is pending (staged == live)", "on: push\n# keep = sys.argv[1]\n", 0)):
+    d = decl_tree(staged)
+    try:
+        _r = V.rotted(d)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    eq(len(_r), want, "%s: %d finding(s)" % (why, want))
+    if want:
+        ck(_r and _r[0][1] == "docs/upload/w.yml" and "STAGED" in _r[0][2],
+           "   ...and it names the STAGED copy, so the fix is made before the upload",
+           "%r" % (_r,))
+_real = V.rotted(ROOT)
+ck(not _real, "🔴 no real declaration rots in the live files OR in a pending upload",
+   "%r" % (_real,))
+
 note("⛔ WHAT THIS DOES NOT CLAIM: that an uploaded file matches its staged "
      "copy. runs_report.stale_uploads times a pending upload, and "
      "test_top_level_yaml.py catches one put in the wrong folder.")

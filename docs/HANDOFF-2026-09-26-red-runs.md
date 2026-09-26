@@ -122,6 +122,17 @@ framed it ("a failed converge pass for an outside source").
   failure on the clock's day. It was the wrong ROW (news-flags, fresh all
   day), which #182 found. Root cause: I did not check which file the
   test's "latest" row was before explaining its verdict.
+- **Mine, found after merge (fixed in the next PR,
+  `HANDOFF-2026-09-26-annotations-sweep.md`):** this PR put two FALSE
+  `::error::` annotations on every collect run. `test_self_repair.py`
+  echoed the driven record step's error, and `test_freshness.py` prints
+  converge's new `::error::` in-process. Root cause: I checked that the
+  tests passed, never what their output said to GitHub.
+- **Mine, found after merge (collect #1856 red):** the staged
+  `self-repair.yml` dropped the line `test_workflow_python.py`'s declared
+  mutation quoted from the LIVE file. It rotted the moment Sam uploaded.
+  Root cause: I searched for declarations quoting the lines I changed in
+  `collect.py`, not the lines my staged workflow removed.
 - **Not mine, recorded:** the annotation "mode 'news' failed for ncaaf"
   pointed at the wrong mode for two days; Sam's diagnosis followed it.
   Converge now annotates the mode that failed.
@@ -129,6 +140,8 @@ framed it ("a failed converge pass for an outside source").
 ## Changelog
 
 - **2026-09-26:** first version.
+- **2026-09-26 (after merge):** two mistakes of this PR recorded, found
+  by collect #1856; fixed in `HANDOFF-2026-09-26-annotations-sweep.md`'s PR.
 - **2026-09-26 (later):** merged main with #182; the midnight diagnosis
   corrected (struck, not deleted); Open updated: news-archive closed by
   #182, #171's vacuous guard is #185.

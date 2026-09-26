@@ -56,7 +56,7 @@ import sys
 import tempfile
 import time
 
-from tcheck import ck, note, section
+from tcheck import annotate, ck, note, section
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import vacuity as V  # noqa: E402
@@ -111,7 +111,7 @@ def plant():
       "#   find: this string does not exist\n"
       "#   with: neither does this\n"
       "import sys\nsys.exit(0)\n")
-    subprocess.run(["git", "init", "-q"], cwd=d, timeout=60)
+    subprocess.run(["git", "init", "-q"], cwd=d, timeout=60, capture_output=True)
     return d
 
 
@@ -192,22 +192,9 @@ ck("⚠️ there are declarations to check at all",
    len(_DECLS) >= 20,
    "⛔ rule 67: this whole section is vacuous over an empty set. The "
    "parser returned %d declaration(s)." % len(_DECLS))
-_ROT = []
-for _d in _DECLS:
-    _miss = [k for k in ("file", "find", "with") if not _d.get(k)]
-    if _miss:
-        _ROT.append((_d.get("test"), _d.get("file"), "missing " + ",".join(_miss)))
-        continue
-    try:
-        _src = open(os.path.join(ROOT, _d["file"]),
-                    encoding="utf-8").read()
-    except OSError as _e:
-        _ROT.append((_d["test"], _d["file"], "unreadable: %s" % _e))
-        continue
-    _n = _src.count(_d["find"])
-    if _n != 1:
-        _ROT.append((_d["test"], _d["file"],
-                     "`find` occurs %d time(s): %r" % (_n, _d["find"][:70])))
+# ✅ `V.rotted` asks it, including against a PENDING UPLOAD's staged copy
+#    (driven in test_pr_staged.py, where a planted tree can hold one).
+_ROT = V.rotted(ROOT)
 ck("🔴🔴 NO DECLARED MUTATION HAS ROTTED AWAY FROM ITS SUBJECT",
    not _ROT,
    "⛔ each of these declares an edit that would change NOTHING, so the "
@@ -588,8 +575,8 @@ if _clock and _elapsed > _clock / 2:
     # ⛔ A WARNING, NOT A FAILURE. Failing at half the clock would halve the
     #    clock, which `test_suite_clock.py` forbids. It is here so the next
     #    slow runner is seen coming instead of met as a TIMEOUT.
-    print("::warning::test_vacuity.py's sweep used %ds of its %ds clock"
-          % (_elapsed, _clock))
+    annotate("warning", "test_vacuity.py's sweep used %ds of its %ds clock"
+             % (_elapsed, _clock))
 
 section("5. 🔴🔴 THE EXIT CODE IS THE WHOLE INTERFACE, SO IT IS DRIVEN")
 # ⛔ `main()` USED TO CLASSIFY INLINE AND NOTHING COULD REACH IT.
