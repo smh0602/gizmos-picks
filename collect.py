@@ -5348,7 +5348,7 @@ def write_freshness(rows=None):
     """
     rows = rows if rows is not None else _fresh.survey(data=DATA, picks=PICKS)
     # ⛔ `ok` is derived HERE from the rows it publishes, never passed in:
-    #    a caller's own list is how a lossy one reached the page.
+    #    a caller's own list is how a lossy one reached `freshness.json`.
     still = _stale_modes(rows)
     # 🔴 "LATE" AND "REFUSED TO PUBLISH" ARE DIFFERENT THINGS AND THE PAGE
     # MUST NOT CONFLATE THEM. `[measured 2026-08-29]` the card sat 140
