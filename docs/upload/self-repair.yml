@@ -256,7 +256,7 @@ jobs:
           #    ⛔ A crash here is an error, never an empty queue.
           QN=$(python self_repair.py count <<< "$QUEUE") \
             || { echo "::error::self_repair.py could not count the queue"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
-          echo "open watcher issues needing a repair: $QN"
+          echo "open watcher issues: $QN (counters left out)"
 
           if [ "$UNREP" = "0" ] && [ "$QN" = "0" ]; then
             echo "nothing unrepairable and no watcher issue open"

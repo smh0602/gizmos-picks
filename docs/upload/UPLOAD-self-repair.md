@@ -54,7 +54,7 @@ self-repair: never hand the agent a counter, run touched tests, record every pas
 
 - Nothing runs on upload (this workflow has no push trigger).
 - At the next self-repair time (7:23am, 1:23pm, 7:23pm or 1:23am ET) the
-  **triage** job's log says `open watcher issues needing a repair: N`. Issue
+  **triage** job's log says `open watcher issues: N (counters left out)`. Issue
   #42 is not counted once the owed-tests watcher has rewritten it with the
   marker (its next daily run).
 - If the agent runs and opens no pull request, a commit
