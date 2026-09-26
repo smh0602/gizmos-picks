@@ -247,8 +247,16 @@ jobs:
             echo "go=no" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          QN=$(python -c "import json,sys;print(len(json.loads(sys.stdin.read() or '[]')))" <<< "$QUEUE")
-          echo "open watcher issues: $QN"
+          # 🔴 `[2026-09-26]` A COUNTER IS NOT A TASK. All eight passes of
+          #    09-24/25 were handed issue #42 ("T58 and T59 are
+          #    accumulating" -- "a counter, not a finding"); five ran out
+          #    of turns looking for a defect that does not exist. A
+          #    watcher marks a counter in its body and `self_repair.py`
+          #    leaves it out: a queue holding only counters stands down.
+          #    ⛔ A crash here is an error, never an empty queue.
+          QN=$(python self_repair.py count <<< "$QUEUE") \
+            || { echo "::error::self_repair.py could not count the queue"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
+          echo "open watcher issues: $QN (counters left out)"
 
           if [ "$UNREP" = "0" ] && [ "$QN" = "0" ]; then
             echo "nothing unrepairable and no watcher issue open"
@@ -301,16 +309,10 @@ jobs:
           #    `PICK` comes back empty, and the gate below reads that as
           #    "nothing to do" and stands down. ⚠️ The whole widening
           #    would have shipped green and fired never.
-          PICK=$(python -c "
-          import json, sys
-          skip = sys.argv[1].strip()
-          q = json.loads(sys.stdin.read() or '[]')
-          for it in q:
-              if skip and str(it.get('number')) == skip:
-                  continue
-              print(json.dumps(it))
-              break
-          " "$LAST" <<< "$QUEUE")
+          #    ✅ `self_repair.pick` takes it as an argument too, and
+          #    keeps the queue's own order (oldest first, above).
+          PICK=$(python self_repair.py pick "$LAST" <<< "$QUEUE") \
+            || { echo "::error::self_repair.py could not pick from the queue"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
 
           if [ "$UNREP" = "0" ] && [ -z "$PICK" ]; then
             echo "the only open watcher issue is the one the last pass could not diagnose — skipping it this pass"
@@ -367,6 +369,14 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
+      # ⚠️ `[2026-09-26]` The record below asks "did THIS pass open a PR?".
+      #    It used to count every self-repair PR among the last 20, so one
+      #    old PR (the #127 drill) would read as this pass's, and the
+      #    one-pass skip would never happen.
+      - name: When this pass started
+        id: since
+        run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       # 🔴 THE DRILL PROMPT. Deliberately trivial work, because the
       # question is whether the PATH works, not whether the agent is
@@ -462,7 +472,7 @@ jobs:
             - You may open ONE pull request. You may not merge it. Sam
               merges.
             - EVERY FIX SHIPS WITH A GUARD.
-            - Do not touch MLB. Do not touch any workflow file containing
+            - Do not touch any workflow file containing
               a `cron:` block. Do not edit or delete any
               `picks/<date>.json`.
             - If the issue is from `vacuity.py`: you may NOT delete, skip
@@ -490,8 +500,12 @@ jobs:
             - Add or extend a test that FAILS on the defect before your
               fix and passes after it. A fix with no failing test is a
               guess.
-            - Run the full suite (`for t in test_*.py; do python $t; done`)
-              before you finish, and say what you did NOT change.
+            - Run the test files your change touches: the tests you added
+              or changed, and `test_<name>.py` for each `<name>.py` you
+              edited. Say what you did NOT change. Do NOT run the whole
+              suite here: it takes about 26 minutes of this job's 30, more
+              than one command may run, so it costs turns you need for the
+              fix -- and `pr-tests` runs all of it on your pull request.
             - DO NOT MODIFY `.github/workflows/self-repair.yml`. GitHub
               attributes a scheduled run to the user who last changed the
               cron schedule. If that becomes a bot, this workflow's own
@@ -581,17 +595,44 @@ jobs:
       # ⛔ It commits ONE file and nothing else. `git add` names it
       #    explicitly rather than `-A`, because this job's tree has just
       #    had an agent working in it.
+      # 🔴🔴 `[2026-09-26]` THE RECORD NEVER LANDED -- NOT ONCE. All eight
+      #    passes of 09-24/25 ended this step with "nothing to record or
+      #    nothing changed" while its push had failed: five on
+      #    "Authentication failed" (the action revokes its token as it
+      #    exits), two on "cannot pull with rebase: You have unstaged
+      #    changes" (the agent's half-done edits), one on the agent's own
+      #    branch left checked out. So the one-pass skip never happened and
+      #    every pass re-picked issue #42. ✅ The record is written in its
+      #    OWN clean checkout, with this workflow's token, landed through
+      #    `push_retry.sh` (the ONE way a workflow lands its commits), and
+      #    a push that fails is an ::error:: and a red step, never a
+      #    message that reads like success.
+      - name: A clean checkout to record into
+        if: always() && needs.triage.outputs.drill != 'yes' && needs.triage.outputs.issue != ''
+        uses: actions/checkout@v5
+        with:
+          path: record
+          fetch-depth: 1
+
       - name: Record whether this pass produced a pull request
         if: always() && needs.triage.outputs.drill != 'yes'
+        working-directory: ${{ needs.triage.outputs.issue != '' && 'record' || '.' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SINCE: ${{ steps.since.outputs.at }}
         run: |
           set +e
           ISSUE="${{ needs.triage.outputs.issue }}"
           [ -z "$ISSUE" ] && { echo "no issue was picked — nothing to record"; exit 0; }
-          OPENED=$(gh pr list --state all --limit 20 --json headRefName,createdAt \
-                     --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' \
-                     2>/dev/null || echo 0)
+          PRS=$(gh pr list --state all --limit 20 --json headRefName,createdAt 2>/tmp/ghpr.err) \
+            || { echo "::warning::could not list pull requests — recording opened_pr=0"; PRS="[]"; }
+          OPENED=$(python -c "
+          import json, sys
+          since = sys.argv[1]
+          prs = json.loads(sys.stdin.read() or '[]')
+          print(sum(1 for p in prs if p['headRefName'].startswith('self-repair/')
+                    and p['createdAt'] >= since))
+          " "$SINCE" <<< "$PRS")
           case "$OPENED" in ''|*[!0-9]*) OPENED=0 ;; esac
           python - "$ISSUE" "$OPENED" <<'PYEOF'
           import json, sys, datetime
@@ -608,6 +649,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/latest/self-repair-last.json
-          git commit -q -m "self-repair: issue #$ISSUE, opened_pr=$OPENED" 2>/dev/null \
-            && (git pull --rebase -q && git push -q) \
-            || echo "nothing to record or nothing changed"
+          if git diff --staged --quiet; then
+            echo "the record is unchanged"; exit 0
+          fi
+          git commit -q -m "self-repair: issue #$ISSUE, opened_pr=$OPENED"
+          if ! bash push_retry.sh "self-repair record"; then
+            echo "::error::could not record this pass (issue #$ISSUE, opened_pr=$OPENED) — the next pass will pick the same issue again"
+            exit 1
+          fi
+          echo "recorded: issue #$ISSUE, opened_pr=$OPENED"
