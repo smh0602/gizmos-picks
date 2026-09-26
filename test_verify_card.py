@@ -34,6 +34,11 @@ FAILS ON REAL DEFECTS.** A verifier that early-returns, that silently
 checks six things instead of ninety, or that has stopped catching a class
 it once caught, fails here — and none of those can be told apart from a
 healthy one by reading an exit code.
+
+# @vacuity the printed-pitcher-number check must not fail a correct card on rounding
+#   file: verify_card.py
+#   find: if abs(r['confidence'] - r['blend']) > 0.55 or (_m and _pcor.get('method')):
+#   with: if r['confidence'] != round(r['blend']) or (_m and _pcor.get('method')):
 """
 import json
 import os
@@ -138,6 +143,16 @@ else:
          "and a stored card ages against them" % (_pass, len(BASE)))
     for _b in sorted(BASE):
         note("  ⚪ pre-existing: %s" % _b[:110])
+    # 🔴 `[2026-09-25]` ONE CHECK MAY NEVER BE "PRE-EXISTING": the printed
+    #    pitcher number. It is re-derived from inputs the card STORES
+    #    (`blend`, `break_even`, the mapping), not from today's logs, so it
+    #    cannot age. ⛔ It shipped comparing `confidence` to `round(blend)`
+    #    on a blend stored to one decimal, and failed this correct card:
+    #    a true 69.45 is stored 69.5 and prints 69. A verifier that fails a
+    #    correct card refuses to publish it.
+    _pc = [b for b in BASE if "prints the number its stored correction" in b]
+    ck("🔴 the printed-pitcher-number check passes on a real published card",
+       not _pc, "⛔ it fails a card it has no stale input to blame: %s" % _pc)
     # ⛔ A COUNT, NOT A BOOLEAN. A verifier that early-returns after six
     #    checks exits 0 exactly like one that ran ninety, and the exit
     #    code cannot tell them apart. This is the check that would catch
@@ -184,6 +199,17 @@ else:
              "_p = _doc.get('projections') or {}",
              "for _k in list(_p)[:1]:",
              "    _p[_k] = (_p[_k] + 7.5) if isinstance(_p[_k], (int, float)) else _p[_k]",
+         ])),
+
+        ("a pitcher row prints a number 2 points off its own",
+         "⛔ `[2026-09-25]` the printed pitcher number is the blend, or the "
+         "blend corrected against the price (C2). A row that prints "
+         "anything else is a number nobody computed.",
+         "\n".join([
+             "for _r in _doc.get('picks') or []:",
+             "    if _r.get('kind') != 'hitter' and _r.get('blend') is not None:",
+             "        _r['confidence'] += 2",
+             "        break",
          ])),
 
         ("an internal diagnostic is marked for DISPLAY",
