@@ -44,7 +44,7 @@ Read `CLAUDE.md` first. Dated; check every claim against `main`.
 |---|---|---|
 | 1 | `tcheck.py` watches every line a test process writes to stdout or stderr. What the HARNESS prints (a check, its detail, a note, a section) is defused (`::` → `: :`), because showing captured output there is its job and the content can depend on the machine. Any other line GitHub would read as a command is written defused AND fails the file, naming it. `tcheck.annotate()` is the one deliberate way (`test_vacuity.py`'s clock warning uses it). The four real sources are fixed (`shown()` in `test_pr_staged.py` and `test_self_repair.py`; `test_freshness.py` captures converge's output), and four failure-branch prints of child output now go through `shown()`. | `test_workflow_commands.py`: every way a planted `::error::` can be written (detail, note, `eq`, section, bare print, stderr, indented, split across writes, unfinished last line, product code in-process, worker thread, traceback) and the control; a static check that no test starts a child without capturing both streams; tcheck imported before anything prints. 7 declared mutations, all bite. |
 | 2 | `test_workflow_python.py`'s declaration is re-pointed to `since = sys.argv[1]` in the same file, with the same intent. `vacuity.rotted()` (one copy; `test_vacuity.py` §0b calls it) also checks a declaration naming a workflow with a pending upload against the STAGED copy. | `test_pr_staged.py` §4 drives `rotted()` on planted trees, and on the real tree. On the tree as #184 merged it, the new check names this exact declaration; the old one found nothing. 1 new declared mutation, bites. |
-| 3 | The sweep does less work and drops nothing: all 431 declarations, each still run red and then green. **Red runs stop at the first failed check** (`TCHECK_FAIL_FAST`, set by `vacuity.run_test(red=True)` only). **`test_self_repair.py`** sets `PUSH_BACKOFF=0` on its unreachable-remote drive: all five attempts are still made, just without 45 s of sleep. **`copy_module`** parses each file once per process. | `test_fail_fast.py`: the verdict matches a full run in 8 shapes (first or last check failing, all passing, crash, no checks, a failure caught by `except BaseException`, a worker thread, a `finally`); the mode is never inherited by a child; the sweep asks for it on the red run only. 4 declared mutations, all bite. `copy_module`: all 52 modules copy exactly the same files as before. |
+| 3 | The sweep does less work and drops nothing: all 432 declarations, each still run red and then green. **Red runs stop at the first failed check** (`TCHECK_FAIL_FAST`, set by `vacuity.run_test(red=True)` only). **`test_self_repair.py`** sets `PUSH_BACKOFF=0` on its unreachable-remote drive: all five attempts are still made, just without 45 s of sleep. **`copy_module`** parses each file once per process. | `test_fail_fast.py`: the verdict matches a full run in 8 shapes (first or last check failing, all passing, crash, no checks, a failure caught by `except BaseException`, a worker thread, a `finally`); the mode is never inherited by a child; the sweep asks for it on the red run only; a run that stops early leaves nothing in the temp dir (every run gets its own TMPDIR, deleted afterwards). 5 declared mutations, all bite. `copy_module`: all 52 modules copy exactly the same files as before. |
 
 ## Why fail-fast is not a weaker sweep
 
@@ -66,6 +66,7 @@ run red for the wrong reason), or sweeping only the files a PR touched
 | CI #1852 (before #184) | 2081 s | 8283 s | 13% |
 | CI #1856 (main with #184) | 1733 s | 6837 s | 28% |
 | local, main with #184 | 1140 s | 4476 s | — |
+| CI, pr-tests sweep part 1/4 on this branch | 208 s | 807 s (108 of 108 bite) | — |
 | local, this branch | _pending_ | _pending_ | — |
 
 ## What Sam must do
@@ -97,6 +98,16 @@ run red for the wrong reason), or sweeping only the files a PR touched
   `sys.path.insert` first. The first subprocess rule flagged
   `capture_output=True, **k`. Both fired on correct code and were narrowed
   to the real question.
+- **Mine, caught before merge by the first full local sweep:** fail-fast
+  stopped red runs before their end-of-file cleanup, so fixture copies of
+  `data/` piled up in /tmp. With leftovers from earlier runs (30 GB in
+  all) the disk filled, and 328 of 431 declarations read RED_BOTH_WAYS on
+  "No space left on device". pr-tests stayed green: a fresh runner, a
+  quarter of the sweep, and test_vacuity does not fail on RED_BOTH_WAYS.
+  Root cause: I proved the verdict for eight shapes of test but never
+  asked what an early exit leaves behind. Fixed: `vacuity.run_test` gives
+  every run its own TMPDIR and deletes it (`test_fail_fast.py` §4). The
+  same slice then gave 80 of 80 BITES with /tmp unchanged.
 - **Mine, caught before commit:** the first design failed a file for a
   command inside a check's detail. `test_accumulators.py` prints the tail of
   a collector run whose `::warning::` lines exist only where the news feeds

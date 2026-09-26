@@ -249,8 +249,18 @@ def run_test(t, root=ROOT, red=False):
     ══════════════════════════════════════════════════════════════════
     """
     _purge_pycache(root)
+    # 🔴 EVERY RUN GETS ITS OWN TEMP DIR, AND IT IS DELETED WHATEVER THE
+    #    RUN DID. `[measured 2026-09-26]` Fixture copies of `data/` are
+    #    cleaned up at the END of many test files, so a run that stops
+    #    early (a crash, or a red run at its first failed check) leaves its
+    #    copy behind; some tests never clean up at all. One local sweep
+    #    filled the disk (30 GB in /tmp) and every later run died on
+    #    "No space left on device", which reads as RED_BOTH_WAYS.
+    #    `tempfile` follows TMPDIR, in the test and in every child it starts.
+    tmp = tempfile.mkdtemp(prefix="vacuity-run-")
     try:
-        env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+        env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1",
+                   TMPDIR=tmp, TEMP=tmp, TMP=tmp)
         env.pop("TCHECK_FAIL_FAST", None)
         if red:
             env["TCHECK_FAIL_FAST"] = "1"
@@ -260,6 +270,8 @@ def run_test(t, root=ROOT, red=False):
         return p.returncode
     except subprocess.TimeoutExpired:
         return None
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def _swap(path, new):

@@ -35,6 +35,19 @@ red=True)` sets TCHECK_FAIL_FAST and tcheck stops at the first failed check.
 #   file: vacuity.py
 #   find:     green = run_test(t, root)
 #   with:     green = run_test(t, root, red=True)
+#
+# @vacuity a run's temp dir is deleted however the run ended
+#   file: vacuity.py
+#   find:         shutil.rmtree(tmp, ignore_errors=True)
+#   with:         pass
+
+🔴 AND WHAT A RUN THAT STOPS EARLY LEAVES BEHIND `[2026-09-26, found by
+the first full sweep of this change]`. Fixture copies of `data/` are
+removed at the END of many test files. A red run stopped at its first
+failure skipped that, the copies piled up to 30 GB, the disk filled, and
+every later run died on "No space left on device", reading as
+RED_BOTH_WAYS. So every run gets its own TMPDIR, deleted afterwards.
+Section 4.
 """
 import os
 import shutil
@@ -143,6 +156,28 @@ try:
     _r = V.tier2(d, jobs=1)
     eq([r["state"] for r in _r], ["BITES"],
        "🔴🔴 the sweep's red run is fail-fast and its green run is a full run")
+finally:
+    shutil.rmtree(d, ignore_errors=True)
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴🔴 A RUN THAT STOPS EARLY LEAVES NOTHING IN THE TEMP DIR")
+# ══════════════════════════════════════════════════════════════════════
+d = tempfile.mkdtemp(prefix="failfast-tmp-")
+try:
+    open(os.path.join(d, "test_leaky.py"), "w").write(
+        "import os, sys, tempfile\n"
+        "t = tempfile.mkdtemp(prefix='fixture-')\n"
+        "open(os.path.join(t, 'copy.bin'), 'wb').write(b'x' * 1024)\n"
+        "open('made.txt', 'w').write(t)\n"
+        "sys.exit(1)   # dies before its own cleanup, like a red run\n")
+    rc = V.run_test("test_leaky.py", d, red=True)
+    made = open(os.path.join(d, "made.txt")).read().strip()
+    ck(rc == 1 and made and not os.path.exists(made),
+       "🔴🔴 the fixture a dead run left in its temp dir is gone",
+       "rc=%s made=%r exists=%s" % (rc, made, os.path.exists(made)))
+    ck(not made.startswith(tempfile.gettempdir() + os.sep + "fixture-"),
+       "   ...because the run had a temp dir of its own, not the shared one",
+       "made=%r" % made)
 finally:
     shutil.rmtree(d, ignore_errors=True)
 
