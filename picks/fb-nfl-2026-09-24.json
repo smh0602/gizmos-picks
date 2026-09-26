@@ -1,7 +1,7 @@
 {
  "date": "2026-09-24",
  "league": "nfl",
- "generated_at": "2026-09-26T17:42:01Z",
+ "generated_at": "2026-09-26T19:06:52Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-24T19:47:03Z",
@@ -43,6 +43,21 @@
    "median_price": 1.9524,
    "n_books": 4,
    "gain_pct": 2.44
+  },
+  {
+   "kind": "MARKET",
+   "game": "Tennessee Titans @ New York Giants",
+   "game_id": "555afd4a27aaa392662881cffa8f2eef",
+   "commence": "2026-09-27T17:00:00Z",
+   "market": "totals",
+   "side": "Over",
+   "point": 37.5,
+   "best_price": -105,
+   "best_book": "fanduel",
+   "link": null,
+   "median_price": 1.9091,
+   "n_books": 4,
+   "gain_pct": 2.27
   },
   {
    "kind": "MARKET",
@@ -91,21 +106,6 @@
   },
   {
    "kind": "MARKET",
-   "game": "Tennessee Titans @ New York Giants",
-   "game_id": "555afd4a27aaa392662881cffa8f2eef",
-   "commence": "2026-09-27T17:00:00Z",
-   "market": "spreads",
-   "side": "Tennessee Titans",
-   "point": 2.5,
-   "best_price": -106,
-   "best_book": "fanduel",
-   "link": null,
-   "median_price": 1.9091,
-   "n_books": 4,
-   "gain_pct": 1.8
-  },
-  {
-   "kind": "MARKET",
    "game": "Las Vegas Raiders @ New Orleans Saints",
    "game_id": "2e523fcb0497aa689473e290eb2b97de",
    "commence": "2026-09-27T20:25:00Z",
@@ -133,21 +133,6 @@
    "median_price": 1.9175,
    "n_books": 4,
    "gain_pct": 1.35
-  },
-  {
-   "kind": "MARKET",
-   "game": "Baltimore Ravens @ Dallas Cowboys",
-   "game_id": "84cfca14efc21363fd605508404cf1ff",
-   "commence": "2026-09-27T20:25:00Z",
-   "market": "spreads",
-   "side": "Baltimore Ravens",
-   "point": -3.5,
-   "best_price": -102,
-   "best_book": "draftkings",
-   "link": null,
-   "median_price": 1.957,
-   "n_books": 4,
-   "gain_pct": 1.2
   },
   {
    "kind": "MARKET",
@@ -183,7 +168,7 @@
  "game_lines_meta": {
   "games_seen": 14,
   "comparable_quotes": 24,
-  "games_with_an_edge": 11,
+  "games_with_an_edge": 10,
   "min_books": 3,
   "slate": "2026-09-27",
   "off_day_games": 15,
@@ -194,9 +179,9 @@
   ],
   "card_slate": "2026-09-24",
   "is_next_slate": true,
-  "snapshot": "data/nfl/2026-09-26/gamelines/1648.json.gz"
+  "snapshot": "data/nfl/2026-09-26/gamelines/1906.json.gz"
  },
- "game_lines_rule": "\ud83d\udcc5 2026-09-27 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 11 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 24 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "\ud83d\udcc5 2026-09-27 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 10 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 24 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -445,7 +430,7 @@
  },
  "sgp_meta": {
   "games_with_rated_legs": 1,
-  "games_with_a_line_row": 11,
+  "games_with_a_line_row": 10,
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
@@ -457,7 +442,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "1 game(s) on this card carry a rated leg and 11 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 10 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
