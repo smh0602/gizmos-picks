@@ -4517,8 +4517,9 @@ function fbAgRecordHtml(AG){
       pick, ranking or price.</p>
     <div class="glwrap"><table class="glmain"><tr><th></th><th>On this board</th><th>Graded</th><th>Hit</th>
       <th>Break-even</th><th>Games (eff. n)</th></tr>${rows}</table></div>
-    ${AG.not_frozen ? `<p style="font-size:12px;color:var(--mut)">${AG.not_frozen} row(s) belong to games
-      that kicked off before any label was frozen, so they carry no label.</p>` : ''}
+    ${AG.not_frozen ? `<p style="font-size:12px;color:var(--mut)">${AG.not_frozen} row(s) on games that have
+      kicked off were never labelled before kickoff &mdash; the game started before labelling began, or the
+      row reached the card after its last labelled build &mdash; so they carry no label.</p>` : ''}
     <p style="font-size:12px">Pre-registered question &mdash; do AGREE rows beat their break-even by more than
       SPLIT rows? <b>${Q.state || 'NOT YET MEASURABLE'}</b> (${Q.agree_graded || 0} of ${(Q.min || {}).agree || 300}
       AGREE and ${Q.split_graded || 0} of ${(Q.min || {}).split || 100} SPLIT rows graded). ${Q.consequence || ''}</p></div>`;

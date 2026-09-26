@@ -160,6 +160,9 @@ def settle(rs, frozen, now):
     fresh label: it shows its last copy frozen before kickoff (the same row
     the record grades), marked as such, and a row that was never frozen
     shows no label and says so — never a fresh ONE SOURCE.
+    ⚠️ A started game shows exactly the rows its card still shows, each with
+    its own frozen label. A frozen row the card no longer shows (a line that
+    moved) stays in the record but is not counted on the board.
     """
     now_s = _iso(now)
     started = {r["game_id"] for r in rs if (r.get("commence") or "") <= now_s}
@@ -168,16 +171,14 @@ def settle(rs, frozen, now):
     for f in frozen:
         if f["game_id"] in started:
             by_game.setdefault(f["game_id"], {})[f["key"]] = f
-    for gid in sorted(started):
-        fr = by_game.get(gid, {})
-        # ⚠️ The game's board as LAST frozen before kickoff, plus whatever the
-        #    card still shows — a row dropped from the board before kickoff
-        #    (only in an earlier copy) is not put back on it.
-        last = max((f["taken_at"] for f in fr.values()), default=None)
-        keep = {k for k, f in fr.items() if f["taken_at"] == last} | {r["key"] for r in rs if r["game_id"] == gid}
-        out += [dict(fr[k], frozen_before_kickoff=True, frozen_at=fr[k]["taken_at"]) for k in keep if k in fr]
-        out += [dict(r, label=None, model_p=None, frozen_before_kickoff=False, label_note=NOT_FROZEN)
-                for r in rs if r["game_id"] == gid and r["key"] not in fr]
+    for r in rs:
+        if r["game_id"] not in started:
+            continue
+        f = by_game.get(r["game_id"], {}).get(r["key"])
+        if f:
+            out.append(dict(f, frozen_before_kickoff=True, frozen_at=f["taken_at"]))
+        else:
+            out.append(dict(r, label=None, model_p=None, frozen_before_kickoff=False, label_note=NOT_FROZEN))
     return sorted(out, key=lambda r: (r["commence"] or "", r["player"], r["market"], r["side"]))
 
 

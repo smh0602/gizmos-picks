@@ -34,13 +34,13 @@
 #
 # @vacuity a started row that was never frozen carries NO label, never ONE SOURCE
 #   file: fb_agreement.py
-#   find:         out += [dict(r, label=None, model_p=None, frozen_before_kickoff=False, label_note=NOT_FROZEN)
-#   with:         out += [dict(r, frozen_before_kickoff=False, label_note=NOT_FROZEN)
+#   find:             out.append(dict(r, label=None, model_p=None, frozen_before_kickoff=False, label_note=NOT_FROZEN))
+#   with:             out.append(dict(r, frozen_before_kickoff=False, label_note=NOT_FROZEN))
 #
-# @vacuity a started game shows its board as LAST frozen — a row dropped before kickoff stays off
+# @vacuity a started row finds ITS OWN frozen copy by key
 #   file: fb_agreement.py
-#   find:         keep = {k for k, f in fr.items() if f["taken_at"] == last} | {r["key"] for r in rs if r["game_id"] == gid}
-#   with:         keep = set(fr) | {r["key"] for r in rs if r["game_id"] == gid}
+#   find:         f = by_game.get(r["game_id"], {}).get(r["key"])
+#   with:         f = None
 """
 import datetime
 import glob
@@ -52,7 +52,7 @@ import shutil
 import sys
 import tempfile
 
-from tcheck import ck, section
+from tcheck import ck, note, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -230,9 +230,10 @@ try:
        and page["counts"]["ONE SOURCE"] == 0 and page["not_frozen"] == 1,
        "🔴 a started row that was never frozen shows NO label and says so — never ONE SOURCE",
        "got %r" % by.get("Early Guy"))
-    ck("Dropped Guy" not in by and any(r["player"] == "Dropped Guy" for r in AG.frozen_rows("nfl", root)),
-       "🔴 a started game shows its board as LAST frozen before kickoff: a row dropped before kickoff "
-       "is not put back (the record still holds it)")
+    ck("Dropped Guy" not in by and any(r["player"] == "Dropped Guy" for r in AG.frozen_rows("nfl", root))
+       and len(page["rows"]) == 2,
+       "🔴 a started game shows exactly the rows its card still shows: a frozen row no longer on the "
+       "board is not counted there (the record still holds it)")
     ck(all(r.get("frozen_before_kickoff") is True or r["label"] is None
            for r in page["rows"] if r["commence"] <= page["built_at"]),
        "🔴 the class: no row of a started game carries a label computed after its kickoff")
@@ -271,7 +272,10 @@ for _lg in AG.LEAGUES:
                 if not ((r.get("frozen_before_kickoff") and r["label"] == _fz.get(r["key"]))
                         or (r["label"] is None and r.get("label_note") == AG.NOT_FROZEN))]
         _seen += len(_started)
-        ck(not _bad and _started,
+        if not _started:
+            note("%s: the real card has no rated row on a started game today — nothing to drive" % _lg)
+            continue
+        ck(not _bad,
            "🔴 %s, real files: all %d started rows show their frozen label (%d) or no label (%d) — "
            "none relabelled after kickoff" % (_lg, len(_started),
                                               sum(1 for r in _started if r.get("frozen_before_kickoff")),
@@ -279,4 +283,5 @@ for _lg in AG.LEAGUES:
            "relabelled: %s" % _bad[:3])
     finally:
         shutil.rmtree(rt, ignore_errors=True)
-ck(_seen > 0, "   ✅ the real-file drive saw started rows (a drive over nothing proves nothing)")
+note("real-file drive: %d started row(s) checked across both leagues (section 4 is the guard; this "
+     "confirms the real files, and a day with none to drive is noted, never failed)" % _seen)
