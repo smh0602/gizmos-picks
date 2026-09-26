@@ -21,7 +21,7 @@ cannot see: a child process writing to the descriptor it inherited.
 
 # @vacuity a planted command must be written DEFUSED, never as a command
 #   file: tcheck.py
-#   find:         return text[:i] + ": :" + text[i + 2:]
+#   find:         return text[:i] + DEFUSED + text[i + 2:]
 #   with:         return text
 #
 # @vacuity a file that printed a command must FAIL, not only defuse it

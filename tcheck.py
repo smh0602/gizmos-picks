@@ -228,6 +228,14 @@ def section(title):
     _say("\n═══ " + str(title) + " ═══")
 
 
+# ⛔ ONE SPELLING of a defused `::`, read by `shown()` AND by the harness's
+#    own line defusing (`_defuse_start`). Two copies could drift apart,
+#    and a guard that mutates one would leave the other still defusing:
+#    `test_pr_shards.py`'s declaration went VACUOUS exactly that way
+#    `[2026-09-26]` once the harness began defusing its own lines.
+DEFUSED = ": :"
+
+
 def shown(s):
     """Captured output made safe to PRINT inside a check's detail.
 
@@ -236,7 +244,7 @@ def shown(s):
     driven workflow's output would put ERROR annotations on a GREEN run —
     4 of them on PR #167 `[2026-09-25]`. Assert on the raw text; print this.
     """
-    return str(s).replace("::", ": :")
+    return str(s).replace("::", DEFUSED)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -284,7 +292,7 @@ def _defuse_start(text):
     """`text` with a line-leading `::` (after whitespace) made `: :`."""
     i = len(text) - len(text.lstrip())
     if text[i:i + 2] == "::":
-        return text[:i] + ": :" + text[i + 2:]
+        return text[:i] + DEFUSED + text[i + 2:]
     return text
 
 
