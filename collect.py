@@ -5314,7 +5314,22 @@ def _record_failure(failed, soft_failed, mode, why):
         failed.append((mode, why))
 
 
-def write_freshness(rows=None, still=None):
+def _stale_modes(rows):
+    """Every mode that owns at least one stale row, sorted.
+
+    🔴 FROM EVERY ROW, NEVER ONE ROW PER MODE. `[2026-09-26]` A mode may
+    own several contract rows (MLB `pitchers` owns three, football
+    `card-fb` nine, `news` two). converge keyed the survey by mode, so
+    only each mode's LAST row was read: a stale `news.json` behind a fresh
+    `news-flags.json` dropped out, `freshness.json` could say `"ok": true`
+    over a stale row, and the log said "every artifact is inside
+    contract". ⛔ ONE copy, read by `write_freshness` and `converge`;
+    `test_freshness_rows.py` fails on a mode-keyed row map anywhere.
+    """
+    return sorted({r["mode"] for r in rows if r["stale"]})
+
+
+def write_freshness(rows=None):
     """Publish the freshness report the PAGE reads.
 
     🔴 THIS MUST RUN AFTER THE CARD REVERT, NOT BEFORE, AND THAT IS THE
@@ -5332,8 +5347,9 @@ def write_freshness(rows=None, still=None):
     moment earlier.
     """
     rows = rows if rows is not None else _fresh.survey(data=DATA, picks=PICKS)
-    still = still if still is not None else [r["mode"] for r in rows
-                                             if r["stale"]]
+    # ⛔ `ok` is derived HERE from the rows it publishes, never passed in:
+    #    a caller's own list is how a lossy one reached the page.
+    still = _stale_modes(rows)
     # 🔴 "LATE" AND "REFUSED TO PUBLISH" ARE DIFFERENT THINGS AND THE PAGE
     # MUST NOT CONFLATE THEM. `[measured 2026-08-29]` the card sat 140
     # minutes past its 10:00 deadline because `verify_card` was FAILING it
@@ -5463,9 +5479,8 @@ def converge(explicit=(), allow_paid=True):
             _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}")
 
     rows2 = _fresh.survey(data=DATA, picks=PICKS)
-    after = {r["mode"]: r for r in rows2}
-    still = [m for m, r in after.items() if r["stale"]]
-    write_freshness(rows2, still)
+    still = _stale_modes(rows2)
+    write_freshness(rows2)
 
     # 🔴 THE PAGE MUST BE ABLE TO SAY HOW OLD IT IS. Sam had to ask why
     # the board looked wrong; the site itself said nothing, because

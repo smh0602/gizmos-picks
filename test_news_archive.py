@@ -366,8 +366,22 @@ def _divergence(root, lg, utc_day, latest_stale):
 _UTC_TODAY = datetime.datetime.now(UTC).strftime("%Y-%m-%d")
 
 for _lg in ("nfl", "ncaaf"):
-    _rows = {r["mode"]: r for r in F.survey("data/%s" % _lg, "picks")}
-    _lat, _arc = _rows.get("news", {}), _rows.get("news-archive", {})
+    _all = F.survey("data/%s" % _lg, "picks")
+    # ══════════════════════════════════════════════════════════════════
+    # 🔴 `[2026-09-26]` BY PATH, NOT BY MODE. A mode may own several rows,
+    #    and since #170 `news` owns two: `latest/news.json` AND the daily
+    #    `news-flags.json`. Keyed by mode, the LAST one won, so this read
+    #    the flag file's freshness as if it were news.json's — and between
+    #    midnight UTC and the first hourly pull it fired "the archive
+    #    silently stopped" on a correct tree, every night.
+    # ══════════════════════════════════════════════════════════════════
+    _lat = next((r for r in _all if r["mode"] == "news"
+                 and r["path"].replace("\\", "/").endswith("latest/news.json")), {})
+    _arc = next((r for r in _all if r["mode"] == "news-archive"), {})
+    ck("   ✅ %s: the 'latest' this reads is latest/news.json itself, though `news` owns %d row(s)"
+       % (_lg, sum(1 for r in _all if r["mode"] == "news")),
+       (_lat.get("path") or "").replace("\\", "/").endswith("latest/news.json"),
+       "got %r" % _lat.get("path"))
     _ever, _today, _fires = _divergence(ROOT, _lg, _UTC_TODAY,
                                         _lat.get("stale"))
     note("%s: latest stale=%s (age %sm) · archived all-time %d · today %d"
