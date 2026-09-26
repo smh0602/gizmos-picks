@@ -53,14 +53,13 @@ sys.path.insert(0, ROOT)
 import card as C  # noqa: E402
 
 
-def _stored_card():
-    """The most recent published card that actually has rows.
+def _cards():
+    """Every published MLB card that actually has rows, NEWEST FIRST.
 
     ⚠️ NOT "today's". The point is a REAL document with real prices,
     parlays and projections in it — today's may not exist yet, and
     building one here would spend credits and take minutes.
     """
-    best = None
     for f in sorted(os.listdir(os.path.join(ROOT, "picks")), reverse=True):
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}\.json", f):
             continue
@@ -70,11 +69,59 @@ def _stored_card():
         except Exception:
             continue
         if d.get("picks"):
-            return f[:-5], d
-    return None, best
+            yield f[:-5], d
 
 
-DAY, CARD = _stored_card()
+def _newest_card(has_case=lambda d: True, cards=None):
+    """The newest published card for which `has_case(card)` is true.
+
+    🔴🔴 A CHECK ABOUT ONE ROW SHAPE IS DRIVEN ON A CARD THAT HAS THAT
+    SHAPE, NEVER ON WHATEVER CARD IS NEWEST. `[2026-09-26]` The rounding
+    guard below was written against the newest card, 2026-09-24, whose
+    Dobnak/Painter rows are the case. At 2026-09-25 14:12Z a newer card
+    landed with one pitcher row, on the C2 branch; the guard's subject
+    moved with the date, and `vacuity.tier2` found it VACUOUS: green with
+    the wrong line restored (rule 166). ✅ Published cards are permanent,
+    so once a card holds a shape, some card always will.
+    """
+    for day, d in (_cards() if cards is None else cards):
+        if has_case(d):
+            return day, d
+    return None, None
+
+
+def _rounding_rows(d):
+    """Pitcher rows the ~~`confidence != round(blend)`~~ line wrongly fails.
+
+    The verifier's no-correction branch (`confidence_method` BLEND or
+    absent, no applied mapping) on a row whose stored blend ROUNDS to
+    another number than the one printed, and is still a correct row:
+    `blend` is stored to one decimal (±0.05) and the card rounds the
+    unrounded value (±0.5), so a correct row prints within 0.55 of it.
+    """
+    pcor = d.get("pitcher_correction") or {}
+    maps = pcor.get("maps") or {}
+    out = []
+    for r in (d.get("picks") or []) + (d.get("below_price_floor") or []):
+        if r.get("kind") == "hitter" or r.get("blend") is None:
+            continue
+        if r.get("confidence_method", "BLEND") != "BLEND":
+            continue
+        if maps.get(r.get("market")) and pcor.get("method"):
+            continue
+        if (r["confidence"] != round(r["blend"])
+                and abs(r["confidence"] - r["blend"]) <= 0.55):
+            out.append(r)
+    return out
+
+
+def _has_rounding_case(d):
+    return bool(_rounding_rows(d))
+
+
+DAY, CARD = _newest_card()
+# 🔴 THE ROUNDING CASE'S OWN CARD: the newest that CONTAINS it.
+RDAY, RCARD = _newest_card(_has_rounding_case)
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE VERIFIER IS DRIVEN BY PATCHING `card.main`, WHICH IS THE ONLY
@@ -95,10 +142,12 @@ import verify_card
 '''
 
 
-def run(mutate=""):
-    """Run the REAL verifier over the stored card, optionally broken."""
+def run(mutate="", day=None):
+    """Run the REAL verifier over a stored card (the newest by default),
+    optionally broken."""
     src = RUNNER % {"root": ROOT,
-                    "path": os.path.join(ROOT, "picks", "%s.json" % DAY),
+                    "path": os.path.join(ROOT, "picks",
+                                         "%s.json" % (day or DAY)),
                     "mutate": mutate}
     p = subprocess.run([sys.executable, "-c", src], cwd=ROOT,
                        capture_output=True, text=True, timeout=900)
@@ -147,12 +196,56 @@ else:
     #    pitcher number. It is re-derived from inputs the card STORES
     #    (`blend`, `break_even`, the mapping), not from today's logs, so it
     #    cannot age. ⛔ It shipped comparing `confidence` to `round(blend)`
-    #    on a blend stored to one decimal, and failed this correct card:
-    #    a true 69.45 is stored 69.5 and prints 69. A verifier that fails a
-    #    correct card refuses to publish it.
+    #    on a blend stored to one decimal, and failed the correct 2026-09-24
+    #    card: a true 69.45 is stored 69.5 and prints 69. A verifier that
+    #    fails a correct card refuses to publish it.
+    # ⚠️ ON THE NEWEST CARD THIS PROVES ONLY WHAT THAT CARD HOLDS. The
+    #    rounding case itself is driven on its own card, just below.
     _pc = [b for b in BASE if "prints the number its stored correction" in b]
     ck("🔴 the printed-pitcher-number check passes on a real published card",
        not _pc, "⛔ it fails a card it has no stale input to blame: %s" % _pc)
+
+    # 🔴🔴 `[2026-09-26]` ...AND ON THE NEWEST CARD THAT CONTAINS THE CASE.
+    #    Driven on the newest card alone, the check above went VACUOUS the
+    #    day a card landed with no row on the no-correction branch
+    #    (`_newest_card`). ⛔ No case on any stored card is a FAILURE, not
+    #    a note: a guard with no case is not a guard (rule 67).
+    _rr = _rounding_rows(RCARD) if RCARD else []
+    ck("🔴🔴 a stored card holds the rounding case (%s: %s)"
+       % (RDAY, ", ".join("%s %s %s->%s" % (r.get("pitcher"), r["market"],
+                                           r["blend"], r["confidence"])
+                          for r in _rr[:3])),
+       bool(_rr),
+       "⛔ no published card has a pitcher row on the no-correction "
+       "branch whose stored blend rounds to another number than the one "
+       "printed, so nothing below can tell `round(blend)` from the "
+       "tolerance")
+    if _rr:
+        _, _rout = run(day=RDAY)
+        _rl = [ln.strip() for ln in _rout.splitlines()
+               if "prints the number its stored correction" in ln]
+        # ⚠️ PASS MUST BE PRINTED, not merely FAIL absent: a verifier that
+        #    crashed before section 39 prints neither, and "no FAIL" would
+        #    score it a pass.
+        ck("🔴🔴 the printed-pitcher-number check passes on %s, which holds "
+           "%d rounding row(s)" % (RDAY, len(_rr)),
+           any(ln.startswith("PASS ") for ln in _rl)
+           and not any(ln.startswith("FAIL ") for ln in _rl),
+           "⛔ a correct card whose stored blend rounds away from its "
+           "printed number must verify. Got %s" % (_rl or "no line at all"))
+    # ✅ AND A NEWER CARD WITHOUT THE CASE CANNOT TAKE ITS PLACE — which is
+    #    exactly what happened at 2026-09-25 14:12Z. A card dated after
+    #    every real one, with no pitcher row at all, is put in front.
+    _future = ("2099-12-31", {"picks": [{"kind": "hitter", "confidence": 60}]})
+    _withf = [_future] + list(_cards())
+    ck("🔴 a newer card with no rounding case does not move the case's card",
+       _newest_card(cards=_withf)[0] == _future[0]
+       and _newest_card(_has_rounding_case, cards=_withf)[0] == RDAY
+       and RDAY is not None,
+       "⛔ the planted card is newest (%s) and must be skipped: the case's "
+       "card must stay %s, got %s"
+       % (_newest_card(cards=_withf)[0], RDAY,
+          _newest_card(_has_rounding_case, cards=_withf)[0]))
     # ⛔ A COUNT, NOT A BOOLEAN. A verifier that early-returns after six
     #    checks exits 0 exactly like one that ran ninety, and the exit
     #    code cannot tell them apart. This is the check that would catch
@@ -270,7 +363,8 @@ else:
        "this one exists to end")
 
 note("⛔ WHAT THIS FILE STILL DOES NOT COVER: the ~90 checks are exercised "
-     "against ONE stored card, so a check that only fires on a board "
-     "shape this card does not have is still unproven. ➡️ That is a "
-     "smaller gap than 'the verifier is not in the suite at all', and it "
-     "is stated rather than papered over.")
+     "against the NEWEST stored card (only the rounding case is driven on "
+     "a card chosen for holding it), so a check that only fires on a "
+     "board shape that card does not have is still unproven. ➡️ That is "
+     "a smaller gap than 'the verifier is not in the suite at all', and "
+     "it is stated rather than papered over.")
