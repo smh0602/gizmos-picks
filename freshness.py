@@ -1267,6 +1267,134 @@ def source_block(data="data", now=None):
     return {"state": None, "detail": None, "age_min": None}
 
 
+def classify(rows, data="data", refused=None, block=None):
+    """The freshness gate's verdict on every STALE row -> (hard, soft).
+
+    ⛔ ONE COPY. `verify_freshness.py` (the gate) and `collect.converge`
+    (is a failed mode worth a red run?) both call this; the reasons for
+    each branch are argued in verify_freshness.main.
+    `refused`: the card was refused by verify_card (a known state).
+    `block`: `source_block(data)` (a third-party source that will not serve).
+    """
+    if refused is None:
+        refused = os.path.exists(f"{data}/latest/card-verify-failure.txt")
+    if block is None:
+        block = source_block(data)
+    hard, soft = [], []
+    for r in rows:
+        if not r["stale"]:
+            continue
+        if (r["mode"] in SOURCE_BACKED and block["state"]
+                and not r["missing"]):
+            _grace = (SOURCE_REFUSED_GRACE_MIN if block["state"] == "refused"
+                      else SOURCE_NOT_YET_GRACE_MIN)
+            _age = r["age_min"]
+            if _age is not None and _age <= _grace:
+                soft.append(dict(r, _blocked=block, _grace=_grace))
+                continue
+            # 🔴 PAST THE GRACE IT IS NOT "WAITING" ANY MORE.
+            hard.append(dict(r, _blocked=block, _grace=_grace, _stuck=True))
+            continue
+        if r["mode"] == "card" and refused:
+            # 🔴 BOUNDED. A refusal is a KNOWN state for as long as somebody
+            # is still acting on it. Past the grace it is a FROZEN BOARD,
+            # and a frozen board with a green build is the worst state this
+            # project has ever shipped. ⚠️ The card's own age is the signal:
+            # `card-verify-failure.txt` is rewritten every pass and can only
+            # say when the LAST refusal was, never the first.
+            _age = r["age_min"]
+            if r["missing"] or (_age is not None
+                                and _age > CARD_REFUSED_GRACE_MIN):
+                r = dict(r, _frozen=True)
+                hard.append(r)
+                continue
+            soft.append(r)
+            continue
+        (soft if r["mode"] in SOFT else hard).append(r)
+    return hard, soft
+
+
+def outside_source(exc):
+    """Is this exception POSITIVE EVIDENCE that an outside source failed?
+    -> a short description of that evidence, or None.
+
+    ⛔ THE SAME RULE AS `source_block`: a refusal needs evidence from the
+    source. A network or HTTP error, a timeout, a dropped connection, or
+    the typed `SourceUnavailable` the fetch layer raises. Anything else --
+    a TypeError, a KeyError, a RuntimeError our own build raises about its
+    own output -- is OURS, and a grace any exception could claim "is not a
+    grace, it is a mute button". The cause chain is read, so a fetch error
+    re-raised inside our own wrapper still counts.
+    `[measured 2026-09-26]` all seven football pass failures in the 48h
+    before this were `TypeError: '<' not supported between instances of
+    'dict' and 'int'` from props-board -- our code, while the annotation
+    blamed the mode the cron had launched.
+    """
+    import http.client
+    import ssl
+    import urllib.error
+    seen = 0
+    while exc is not None and seen < 6:
+        if isinstance(exc, urllib.error.HTTPError):
+            return f"HTTP {exc.code} from the source"
+        if isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError,
+                            http.client.HTTPException, ssl.SSLError)):
+            return f"{type(exc).__name__} reaching the source"
+        if type(exc).__name__ == "SourceUnavailable":
+            return "the source refused us (SourceUnavailable)"
+        exc = exc.__cause__ or exc.__context__
+        seen += 1
+    return None
+
+
+def judge_failures(failed, rows, data="data"):
+    """Which failed modes turn the run red? -> (red, warned).
+
+    `[Sam, 2026-09-26]` "A single failed converge pass for an outside
+    source ... turns the whole collect run red even when every artifact
+    is still inside its freshness deadline." ✅ THE CONTRACT IS THE JUDGE
+    of staleness, by the gate's own `classify`. A failure is a WARNING,
+    naming its source, only when BOTH hold:
+      - every artifact the mode writes is inside contract (or excused by
+        the gate as a known state), and
+      - the error is evidence that an OUTSIDE SOURCE failed
+        (`outside_source`), not our own code.
+    Everything else stays RED: an artifact left stale or missing, a mode no
+    contract row can judge (fail closed), and every failure of our own code
+    -- which the contract cannot see when the artifact was written before
+    the crash (props-board, 2026-09-24/25).
+    `failed`: converge's list of (mode, why, source-evidence-or-None).
+    Each result is (mode, why, rows, verdict).
+    ⛔ This decides the RUN's colour only. The failure is still logged, and
+    the gate (`verify_freshness.py`) still fails the run the moment an
+    artifact goes past due, whoever let it.
+    """
+    hard, _soft = classify(rows, data)
+    hard_by = {}
+    for r in hard:
+        hard_by.setdefault(r["mode"], []).append(r)
+    red, warned = [], []
+    for mode, why, source in failed:
+        own = [r for r in rows if r["mode"] == mode]
+        if not own:
+            red.append((mode, why, [], "no freshness row judges this mode"))
+        elif mode in hard_by:
+            red.append((mode, why, hard_by[mode], "it left an artifact out of contract"))
+        elif not source:
+            red.append((mode, why, own, "a failure in our own code, not an outside "
+                        "source -- the contract cannot excuse a defect"))
+        elif not any(r["stale"] for r in own):
+            warned.append((mode, why, own, f"{source}, and every artifact it "
+                           f"writes is inside its deadline"))
+        else:
+            # stale, but the gate itself excuses it (a source outage inside
+            # its grace, or a refused card): the gate decides when it turns
+            # red, and says so every pass
+            warned.append((mode, why, own, f"{source}; its artifact is past due "
+                           f"but the freshness gate excuses it as a known state"))
+    return red, warned
+
+
 # 🔴 CASCADES. Refreshing an input INVALIDATES what was derived from it.
 # Without this a pass could pull brand-new props and still serve a card
 # priced off the old ones -- ledger rule 66 arriving by a different door.

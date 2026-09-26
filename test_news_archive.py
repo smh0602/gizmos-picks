@@ -387,6 +387,24 @@ def _divergence(root, lg, utc_day, latest_stale):
     return ever, today, bool(ever > 0 and diverged(not latest_stale, today))
 
 
+_NOW = datetime.datetime.now(UTC)
+
+
+# ⚠️ `[2026-09-26]` THE DAY IS THE PULL'S, NOT THE CLOCK'S -- A SECOND,
+#    SMALLER GUARD. ~~"At 00:44Z latest/news.json (23:05Z the day before)
+#    was inside its deadline"~~ -- WRONG, and the diagnosis that made it:
+#    the row that read fresh was news-FLAGS, picked by the `{mode: row}`
+#    lookup; `news.json` itself was stale from 00:00Z (#182, `news_rows`).
+#    With news due at the top of every hour, a FRESH `latest` is always
+#    this UTC hour's pull, so this day equals the clock's whenever the
+#    check can fire. ✅ It holds if a news deadline ever moves off the
+#    hour (or gains a grace): the archive of the day the pull RAN must
+#    hold it, never the day on the clock.
+def _archive_day(latest_stamp, now):
+    """The UTC day whose archive must hold the pull that wrote latest."""
+    return (latest_stamp or now).strftime("%Y-%m-%d")
+
+
 # 🔴 WHICH ROW IS "LATEST" IS DRIVEN, IN EVERY ORDER. A `{mode: row}` dict
 #    answered "the news-flags row" (see `news_rows`), and a missing row is
 #    worse still: `.get("stale")` is None, which reads as FRESH.
@@ -408,17 +426,18 @@ for _lg in ("nfl", "ncaaf"):
        "a missing `latest` row reads as fresh and would fire on nothing "
        "but the clock. latest=%r archive=%r"
        % (_lat.get("path"), _arc.get("path")))
-    _ever, _today, _fires = _divergence(ROOT, _lg, _UTC_TODAY,
+    _day = _archive_day(F.stamp_of(_lat.get("path") or ""), _NOW)
+    _ever, _today, _fires = _divergence(ROOT, _lg, _day,
                                         _lat.get("stale"))
-    note("%s: latest stale=%s (age %sm) · archived all-time %d · today %d"
-         % (_lg, _lat.get("stale"), _lat.get("age_min"), _ever, _today))
+    note("%s: latest stale=%s (age %sm) · archived all-time %d · on %s %d"
+         % (_lg, _lat.get("stale"), _lat.get("age_min"), _ever, _day, _today))
     ck("🔴 %s: latest fresh + an EMPTY archive day" % _lg,
        not _fires,
        "⛔ the archive silently stopped — `latest/news.json` is current "
-       "and today's archive holds nothing. ⚠️ DORMANT while the league "
-       "has never archived (ever=%d); it ARMS ITSELF on the first "
-       "archived pull. today=%d latest_stale=%s"
-       % (_ever, _today, _lat.get("stale")))
+       "and the archive of the day it was pulled (%s) holds nothing. "
+       "⚠️ DORMANT while the league has never archived (ever=%d); it ARMS "
+       "ITSELF on the first archived pull. that day=%d latest_stale=%s"
+       % (_day, _ever, _today, _lat.get("stale")))
 
 # ══════════════════════════════════════════════════════════════════════
 # ⛔ AND THE ARMING IS DRIVEN, IN A TEMP TREE — FOUR CASES, TWO OF WHICH
@@ -491,6 +510,39 @@ for _name, _kw, _stale, _want_ever, _want_fire in (
        "⛔ ever=%d (wanted %d) fires=%s (wanted %s) today=%d — the four "
        "cases together are what make this an assertion rather than a "
        "note wearing a ck()" % (_e, _want_ever, _f, _want_fire, _t))
+
+# ⚠️ THE MIDNIGHT WINDOW, BOTH WAYS `[2026-09-26]`: IF a latest pull from
+#    yesterday is still inside its deadline after 00:00Z (possible only for
+#    a deadline off the hour, see `_archive_day`), its own day's archive
+#    decides -- quiet when that day holds it, firing when it does not.
+_Y_PULL = datetime.datetime(2026, 9, 25, 23, 5, tzinfo=UTC)
+_AFTER_MIDNIGHT = datetime.datetime(2026, 9, 26, 0, 44, tzinfo=UTC)
+for _name, _kw, _want_fire in (
+        ("✅ just after midnight: yesterday's pull IS in yesterday's archive",
+         {"ever_day": "2026-09-25"}, False),
+        ("🔴 ...and yesterday's pull MISSING from yesterday's archive still fires",
+         {"ever_day": "2026-09-20"}, True)):
+    _d = _synth(**_kw)
+    try:
+        _e, _t, _f = _divergence(_d, "nfl", _archive_day(_Y_PULL, _AFTER_MIDNIGHT),
+                                 False)
+    finally:
+        shutil.rmtree(_d, ignore_errors=True)
+    ck(_name, _f is _want_fire, "fires=%s (wanted %s) on-day=%d" % (_f, _want_fire, _t))
+
+# ⛔ AND THE LIVE CHECK ASKS FOR THAT DAY, IN CODE. ⚠️ A test cannot declare
+#    a mutation of its own file (vacuity counts the `find` in the docstring
+#    too), so the join is pinned the way `_fires` is above: from the parsed
+#    AST, `_archive_day` fed the latest pull's own stamp.
+_day_calls = [n for n in ast.walk(_own)
+              if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "_archive_day"
+              and n.args and isinstance(n.args[0], ast.Call)
+              and getattr(n.args[0].func, "attr", "") == "stamp_of"]
+ck("⛔ the live check reads the archive of the day the latest pull ran",
+   len(_day_calls) == 1,
+   "the clock's day and the pull's day differ only across midnight, and "
+   "only for a deadline off the hour. _archive_day(F.stamp_of(...)) calls: %d"
+   % len(_day_calls))
 
 
 # ══════════════════════════════════════════════════════════════════════

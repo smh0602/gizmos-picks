@@ -4700,8 +4700,18 @@ def run_mode(mode):
             #    failed", "mode 'gamelines' failed", "mode 'props-player'
             #    failed") while that mode had in fact succeeded.
             #    ⛔ MLB is byte-identical: same function, same arguments.
-            left = (collect_props_board() if LEAGUE == "mlb"
-                    else collect_props_board_fb())
+            # 🔴 `[2026-09-26]` ~~`left = (... else collect_props_board_fb())`~~
+            #    The football builder returns its BOARD, and `left` is a
+            #    credit count: `left < RESERVE` then raised "TypeError: '<'
+            #    not supported between instances of 'dict' and 'int'" AFTER
+            #    the board was written -- every football pass that planned
+            #    props-board, 09-24 and 09-25, blamed on news / cfb-probe /
+            #    card-fb / nfl-logs. `test_run_mode_left.py` guards the class.
+            if LEAGUE == "mlb":
+                left = collect_props_board()
+            else:
+                left = None
+                collect_props_board_fb()        # the BOARD, not a credit count
         elif mode == "nfl-logs":
             # 🔴 FREE. nflverse publishes flat files on GitHub; no key, no
             # credits. ⚠️ 2026 stat files appear only once week 1 is played,
@@ -5303,15 +5313,22 @@ def run_mode(mode):
 # ⛔ THIS IS WHY EVERY MODE NOW CONVERGES FIRST. A `gamelines` run that
 # also rebuilds the card is not a bug, it is the entire mechanism.
 
-def _record_failure(failed, soft_failed, mode, why):
-    """A SOFT mode's failure is reported and survived; everything else
-    turns the run red. ⛔ See freshness.SOFT for what may be lost."""
+def _record_failure(failed, soft_failed, mode, why, source=None):
+    """A SOFT mode's failure is reported and survived; everything else is
+    judged by the freshness contract at the end of the pass
+    (`freshness.judge_failures`). ⛔ See freshness.SOFT for what may be
+    lost. `source`: evidence that an outside source failed
+    (`freshness.outside_source`), or None when the failure is ours."""
     if mode in _fresh.SOFT:
         log(f"WARNING: {mode} failed ({why}). It is a SOFT artifact — the "
             f"run continues and the page will show it as late.")
+        # ⚠️ print, not log(): GitHub reads an annotation only at the start
+        #    of a line, and log() prefixes a timestamp.
+        print(f"::warning::{mode} failed for {LEAGUE} ({why}) — a SOFT "
+              f"artifact, so the run stays green", flush=True)
         soft_failed.append((mode, why))
     else:
-        failed.append((mode, why))
+        failed.append((mode, why, source))
 
 
 def write_freshness(rows=None, still=None):
@@ -5458,9 +5475,11 @@ def converge(explicit=(), allow_paid=True):
             run_mode(m)
         except SystemExit as e:
             if e.code:
+                # ⛔ an exit code is no evidence about a source
                 _record_failure(failed, soft_failed, m, f"exit {e.code}")
         except Exception as e:
-            _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}")
+            _record_failure(failed, soft_failed, m, f"{type(e).__name__}: {e}",
+                            source=_fresh.outside_source(e))
 
     rows2 = _fresh.survey(data=DATA, picks=PICKS)
     after = {r["mode"]: r for r in rows2}
@@ -5474,15 +5493,45 @@ def converge(explicit=(), allow_paid=True):
     # page cannot drift out of agreement with the checker the way two
     # copies of a number in this project always have.
 
+    # 🔴 AN OUTSIDE SOURCE FAILING IS RED ONLY WHEN IT LEFT THE SITE OUT
+    # OF CONTRACT. `[Sam, 2026-09-26]` one failed pass ("mode 'news' failed
+    # for ncaaf", cfb-probe, nfl-logs, card-fb) turned the whole run red
+    # while every artifact was inside its deadline. ✅ The freshness
+    # contract is the judge (`freshness.judge_failures`, the gate's own
+    # rules): a failure with EVIDENCE of an outside source, whose artifacts
+    # are all still current, is a WARNING naming the source. Red: an
+    # artifact left stale or missing, a mode no contract row can judge, and
+    # every failure of our own code (see `freshness.outside_source` -- the
+    # seven failures that prompted this were ours). ⛔ SOFT modes were never
+    # in `failed` and stay soft. The pass-end gate (`verify_freshness.py`)
+    # still fails the run the moment anything goes past due.
+    failed, excused = _fresh.judge_failures(failed, rows2, DATA)
+
     log("=" * 66)
     if skipped:
         log(f"SKIPPED ON BUDGET: {' '.join(skipped)} "
             f"(spent {daily_spend()} of {cap_today})")
     for m, why in soft_failed:
         log(f"SOFT FAILURE (run stays green): {m} — {why}")
+    for m, why, rows_m, verdict in excused:
+        # ⚠️ print, not log(): GitHub reads an annotation only at the
+        #    start of a line, and log() prefixes a timestamp.
+        print(f"::warning::{m} failed for {LEAGUE} ({why}) — {verdict}: "
+              + "; ".join(f"{r['path']} "
+                          + ("never built" if r["age_min"] is None
+                             else f"built {r['age_min']:.0f}m ago")
+                          + f", due {r['due_et']} ET ({r['why']})"
+                          for r in rows_m)
+              + ". A warning, not a red run: the freshness contract says "
+                "the site is still current.", flush=True)
     if failed:
-        for m, why in failed:
-            log(f"FAILED: {m} — {why}")
+        for m, why, rows_m, verdict in failed:
+            log(f"FAILED: {m} — {why} — {verdict}"
+                + (": " + ", ".join(r["path"] for r in rows_m) if rows_m else ""))
+            # 🔴 THE MODE THAT BROKE, BY NAME. The workflow's own line names
+            #    the mode the cron LAUNCHED ("mode 'news' failed"), which for
+            #    seven runs on 09-24/25 was not the mode that failed.
+            print(f"::error::{m} failed for {LEAGUE} ({why}) — {verdict}", flush=True)
     if still:
         log(f"STILL OUT OF CONTRACT: {' '.join(sorted(still))}")
     else:

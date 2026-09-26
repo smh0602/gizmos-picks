@@ -434,7 +434,14 @@ old one, not easier.**
   `(None, None)` when a name is ambiguous and the game's own teams do not
   break the tie. ⛔ Do not make it pick the first match.
 - 🔴 **The collector must FAIL LOUD.** `sys.exit(1)` on error. It used to
-  exit 0, and a green check proved nothing.
+  exit 0, and a green check proved nothing. `[Sam, 2026-09-26]` One
+  refinement, judged by the freshness contract (`freshness.judge_failures`):
+  a converge mode that failed on an OUTSIDE SOURCE (HTTP, network, timeout,
+  `SourceUnavailable`) while every artifact it writes is still inside its
+  deadline is a `::warning::` naming the source, not a red run. ⛔ Our own
+  exception stays red whatever the contract says: the seven "outside
+  source" failures that prompted this were football `props-board` raising a
+  `TypeError` after it had written its file (fixed; `test_run_mode_left.py`).
 - 🔴 **Every workflow runs on a PINNED image (`ubuntu-24.04`), never
   `ubuntu-latest`, with Node 24 actions and its own Python.** `[2026-09-24]`
   GitHub moves `-latest` to Ubuntu 26.04 from 2026-10-19 (image Python
@@ -615,6 +622,9 @@ verify_nfl.py     the football data-layer verifier
 CONTRACT AND SPEND
 freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `converge` plans its work from this, not from crons.
+                  `[2026-09-26]` `classify` is the gate's one hard/soft
+                  verdict; `judge_failures` decides whether a failed
+                  converge mode turns the run red (see FAIL LOUD above).
 verify_freshness.py  fails the run when the site is not current
 cfbd_budget.py    projected CFBD call volume, derived from the workflow
 cfbd_watch.py     ...and the watcher that asks whether it will run out
@@ -662,6 +672,11 @@ wfparse.py        the one HAND parser for a workflow file -- jobs,
                   in test_wfparse.py wherever PyYAML happens to exist.
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
+self_repair.py    self-repair triage: which watcher issue the repair agent
+                  gets. ⛔ An issue whose watcher marks it a counter
+                  (`COUNTER`, e.g. T58/T59's progress) is never a task:
+                  eight passes on 09-24/25 got #42 and five ran out of
+                  turns. Read by self-repair.yml's triage step.
 runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
                   data/latest/runs.json (`collect.py runs`, hourly from
                   runs.yml's own `publish` job): the last 48h of every

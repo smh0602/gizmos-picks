@@ -241,6 +241,9 @@ def drive(gh_body, health='{"unrepairable": [], "findings": []}'):
         with open(os.path.join(b, "gh"), "w") as fh:
             fh.write(gh_body)
         os.chmod(os.path.join(b, "gh"), 0o755)
+        # ⚠️ `[2026-09-26]` the staged step calls `self_repair.py`; the runner
+        #    has the checkout, this throwaway dir gets that one module.
+        shutil.copy(os.path.join(ROOT, "self_repair.py"), d)
         out = os.path.join(d, "out")
         open(out, "w").close()
         env = dict(os.environ)

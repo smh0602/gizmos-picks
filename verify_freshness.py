@@ -89,37 +89,11 @@ def main():
     # ══════════════════════════════════════════════════════════════════
     block = F.source_block(_DATA)
 
-    hard, soft = [], []
-    for r in rows:
-        if not r["stale"]:
-            continue
-        if (r["mode"] in F.SOURCE_BACKED and block["state"]
-                and not r["missing"]):
-            _grace = (F.SOURCE_REFUSED_GRACE_MIN if block["state"] == "refused"
-                      else F.SOURCE_NOT_YET_GRACE_MIN)
-            _age = r["age_min"]
-            if _age is not None and _age <= _grace:
-                soft.append(dict(r, _blocked=block, _grace=_grace))
-                continue
-            # 🔴 PAST THE GRACE IT IS NOT "WAITING" ANY MORE.
-            hard.append(dict(r, _blocked=block, _grace=_grace, _stuck=True))
-            continue
-        if r["mode"] == "card" and refused:
-            # 🔴 BOUNDED. A refusal is a KNOWN state for as long as somebody
-            # is still acting on it. Past the grace it is a FROZEN BOARD,
-            # and a frozen board with a green build is the worst state this
-            # project has ever shipped. ⚠️ The card's own age is the signal:
-            # `card-verify-failure.txt` is rewritten every pass and can only
-            # say when the LAST refusal was, never the first.
-            _age = r["age_min"]
-            if r["missing"] or (_age is not None
-                                and _age > CARD_REFUSED_GRACE_MIN):
-                r = dict(r, _frozen=True)
-                hard.append(r)
-                continue
-            soft.append(r)
-            continue
-        (soft if r["mode"] in SOFT else hard).append(r)
+    # 🔴 ONE JUDGEMENT, TWO CALLERS. The hard/soft split lives in
+    #    `freshness.classify`, because `collect.converge` now asks the
+    #    SAME question about a failed mode `[2026-09-26]`: did it leave
+    #    an artifact out of contract? Two copies would drift (rule 117).
+    hard, soft = F.classify(rows, _DATA, refused=refused, block=block)
 
     print("=" * 70)
     print("FRESHNESS GATE")
