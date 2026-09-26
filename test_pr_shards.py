@@ -51,8 +51,12 @@ REAL workflows and the REAL declarations:
 #
 # @vacuity 🔴 stub output is printed neutralised, never as a workflow command
 #   file: tcheck.py
-#   find:     return str(s).replace("::", ": :")
-#   with:     return str(s)
+#   find: DEFUSED = ": :"
+#   with: DEFUSED = "::"
+# ⚠️ Re-pointed 2026-09-26 from `shown()`'s own line: tcheck now also
+#    defuses every line it prints, so breaking `shown()` alone left this
+#    file green (VACUOUS, pr-tests sweep 1/4 on PR #187). `DEFUSED` is
+#    the one spelling both read, so this still breaks what protects §5.
 """
 import os
 import re

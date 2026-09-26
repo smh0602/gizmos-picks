@@ -100,7 +100,7 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from tcheck import ck, copy_module, eq, note, section  # noqa: E402
+from tcheck import ck, copy_module, eq, note, section, shown  # noqa: E402
 
 import mlb_tables as M  # noqa: E402
 
@@ -258,7 +258,7 @@ def drive(tag, players_json=None):
                        capture_output=True, text=True, timeout=600,
                        env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
     if p.returncode:
-        print(p.stdout[-2000:], p.stderr[-2000:])
+        print(shown(p.stdout[-2000:]), shown(p.stderr[-2000:]))
         return None
     return open(out, encoding="utf-8").read()
 

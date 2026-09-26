@@ -59,8 +59,12 @@ WF = os.path.join(ROOT, ".github", "workflows")
 # ══════════════════════════════════════════════════════════════════════
 # @vacuity a shell expansion spliced into embedded python source is caught
 #   file: .github/workflows/self-repair.yml
-#   find: skip = sys.argv[1].strip()
-#   with: skip = $LAST.strip()
+#   find: since = sys.argv[1]
+#   with: since = $SINCE
+# ⚠️ Re-pointed 2026-09-26: `skip = sys.argv[1].strip()` left this file
+#    when #184's triage moved into self_repair.py, and the declaration
+#    rotted the moment Sam uploaded it (collect #1856). Same intent: a
+#    shell variable standing where the snippet reads sys.argv[1].
 # ══════════════════════════════════════════════════════════════════════
 
 # ⚠️ `${{ ... }}` FIRST. GitHub's own expression syntax is substituted

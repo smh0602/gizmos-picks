@@ -217,8 +217,12 @@ def _purge_pycache(root=ROOT):
                 dirs.remove(x)
 
 
-def run_test(t, root=ROOT):
+def run_test(t, root=ROOT, red=False):
     """-> returncode, or None if it never answered.
+
+    `red=True` is a run under a mutation: it only has to answer "did it
+    go red", so tcheck stops at the first failed check (TCHECK_FAIL_FAST,
+    see tcheck.py). ⛔ Never for the green-on-revert run.
 
     ══════════════════════════════════════════════════════════════════
     🔴🔴 `-B` AND A PURGED `__pycache__`, AND THIS IS THE WHOLE HARNESS.
@@ -245,13 +249,29 @@ def run_test(t, root=ROOT):
     ══════════════════════════════════════════════════════════════════
     """
     _purge_pycache(root)
+    # 🔴 EVERY RUN GETS ITS OWN TEMP DIR, AND IT IS DELETED WHATEVER THE
+    #    RUN DID. `[measured 2026-09-26]` Fixture copies of `data/` are
+    #    cleaned up at the END of many test files, so a run that stops
+    #    early (a crash, or a red run at its first failed check) leaves its
+    #    copy behind; some tests never clean up at all. One local sweep
+    #    filled the disk (30 GB in /tmp) and every later run died on
+    #    "No space left on device", which reads as RED_BOTH_WAYS.
+    #    `tempfile` follows TMPDIR, in the test and in every child it starts.
+    tmp = tempfile.mkdtemp(prefix="vacuity-run-")
     try:
+        env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1",
+                   TMPDIR=tmp, TEMP=tmp, TMP=tmp)
+        env.pop("TCHECK_FAIL_FAST", None)
+        if red:
+            env["TCHECK_FAIL_FAST"] = "1"
         p = subprocess.run([sys.executable, "-B", t], cwd=root,
                            capture_output=True, text=True, timeout=PER_TEST,
-                           env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+                           env=env)
         return p.returncode
     except subprocess.TimeoutExpired:
         return None
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def _swap(path, new):
@@ -279,7 +299,7 @@ def _tier1_one(pair, root):
     t0 = time.time()
     orig = _swap(sp, stub)
     try:
-        rc = run_test(t, root)
+        rc = run_test(t, root, red=True)
     finally:
         open(sp, "wb").write(orig)
     secs = round(time.time() - t0, 1)
@@ -334,6 +354,48 @@ def declarations(root=ROOT):
     return out
 
 
+def rotted(root=ROOT):
+    """Every declaration whose `find` would not mutate exactly one line.
+
+    -> [(test, file, why)]. A `find` that matches nothing mutates nothing,
+    and the test it belongs to then "passes" having been asked nothing.
+
+    🔴 AND IN THE STAGED COPY THAT WILL REPLACE ITS FILE. `[2026-09-26]`
+    #184 staged a `self-repair.yml` that moved its triage Python into
+    `self_repair.py`, while `test_workflow_python.py` still declared a
+    mutation on the live file's `skip = sys.argv[1].strip()`. Every check
+    passed until Sam uploaded the file; the next collect run (#1856) went
+    red here. A declaration naming a workflow with a pending upload must
+    resolve in BOTH copies: the one swept today and the one Sam will make
+    live. (`wfparse.staged_changes`: new or different, line endings aside.)
+    """
+    import wfparse
+    pending = set(wfparse.staged_changes(root))
+    out = []
+    for d in declarations(root):
+        miss = [k for k in ("file", "find", "with") if not d.get(k)]
+        if miss:
+            out.append((d.get("test"), d.get("file"), "missing " + ",".join(miss)))
+            continue
+        copies = [d["file"]]
+        base = os.path.basename(d["file"])
+        if d["file"].replace(os.sep, "/").startswith(".github/workflows/") \
+                and base in pending:
+            copies.append("docs/upload/" + base)
+        for f in copies:
+            try:
+                src = open(os.path.join(root, f), encoding="utf-8").read()
+            except OSError as e:
+                out.append((d["test"], f, "unreadable: %s" % e))
+                continue
+            n = src.count(d["find"])
+            if n != 1:
+                out.append((d["test"], f, "`find` occurs %d time(s)%s: %r" % (
+                    n, " in the STAGED copy Sam will upload" if f != d["file"] else "",
+                    d["find"][:70])))
+    return out
+
+
 def _tier2_one(d, root):
     """Apply one declared mutation in `root`: RED, revert, GREEN."""
     t = d["test"]
@@ -360,7 +422,7 @@ def _tier2_one(d, root):
     t0 = time.time()
     orig = _swap(p, src.replace(d["find"], d["with"]))
     try:
-        red = run_test(t, root)
+        red = run_test(t, root, red=True)
     finally:
         open(p, "wb").write(orig)
     if red is None:

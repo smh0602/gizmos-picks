@@ -61,7 +61,7 @@ sys.path.insert(0, ROOT)
 import self_repair as S  # noqa: E402
 import t58_t59 as T  # noqa: E402
 import wfparse as W  # noqa: E402
-from tcheck import ck, eq, note, section  # noqa: E402
+from tcheck import ck, eq, note, section, shown  # noqa: E402
 
 STAGED = os.path.join(ROOT, "docs", "upload", "self-repair.yml")
 SRC = W.read(STAGED)
@@ -176,8 +176,11 @@ def drive(prs, reachable=True):
             fh.write("#!/bin/sh\ncat <<'EOF'\n%s\nEOF\n" % json.dumps(prs))
         os.chmod(os.path.join(b, "gh"), 0o755)
         body = REC.run.replace("${{ needs.triage.outputs.issue }}", "42")
+        # ⚠️ PUSH_BACKOFF=0: the unreachable case still makes all five
+        #    attempts; it only stops sleeping 45s between them, a run the
+        #    vacuity sweep repeats 8 times (`push_retry.sh` default is 3).
         env = dict(os.environ, PATH=b + os.pathsep + os.environ["PATH"],
-                   SINCE="2026-09-26T10:00:00Z", GH_TOKEN="x")
+                   SINCE="2026-09-26T10:00:00Z", GH_TOKEN="x", PUSH_BACKOFF="0")
         p = subprocess.run(["bash", "-c", body], cwd=rec, env=env,
                            capture_output=True, text=True, timeout=120)
         got = None
@@ -196,7 +199,7 @@ if REC and REC.run:
                            "createdAt": "2026-09-22T05:20:47Z"}])
     ck(rc == 0 and got and got["issue"] == 42 and got["opened_pr"] is False,
        "🔴🔴 a pass that opened no PR is RECORDED on origin/main (opened_pr false)",
-       "rc=%s got=%r %s" % (rc, got, out[-300:]))
+       "rc=%s got=%r %s" % (rc, got, shown(out[-300:])))
     ck(got is not None and got.get("opened_pr") is False,
        "   ⚠️ an OLD self-repair PR (the #127 drill) is not this pass's PR")
     rc, out, got = drive([{"headRefName": "self-repair/fix-x",
@@ -206,7 +209,7 @@ if REC and REC.run:
     rc, out, got = drive([], reachable=False)
     ck(rc != 0 and "::error::could not record this pass" in out,
        "🔴 a record that cannot be pushed is an error and a red step, never 'nothing to record'",
-       "rc=%s %s" % (rc, out[-300:]))
+       "rc=%s %s" % (rc, shown(out[-300:])))
 else:
     ck(False, "the staged record step was found")
 

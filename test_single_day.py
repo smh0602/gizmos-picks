@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
-from tcheck import ck, note, copy_module  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
+from tcheck import ck, note, copy_module, shown  # ⚠️ copies the SUBJECT'S OWN IMPORTS too — a hand-listed
 #                                 fixture went red on all four harnesses at once
 #                                 the day card_fb.py gained one import
 
@@ -217,7 +217,7 @@ def build(tmp, shift_frac=0.0, keep_frac=1.0):
     r = subprocess.run([sys.executable, "card_fb.py"], cwd=tmp, env=env,
                        capture_output=True, text=True)
     if r.returncode != 0:
-        print(r.stdout[-1500:], r.stderr[-1500:])
+        print(shown(r.stdout[-1500:]), shown(r.stderr[-1500:]))
         return None, r
     with open(os.path.join(tmp, "picks/fb-ncaaf-latest.json")) as fh:
         return json.load(fh), r

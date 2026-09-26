@@ -28,8 +28,11 @@ Dated and it goes stale. Check it against `main` before acting on it.
 
 ## Still open, for Sam to decide
 
-- **Headroom is about 1.6× on the slowest runner seen** and shrinks with
-  every new declaration. Next options, in order: (C) make
+- ~~**Headroom is about 1.6× on the slowest runner seen** and shrinks with
+  every new declaration.~~ `[2026-09-26]` Measured 2081 s of 2400 s on
+  collect #1852 and 1733 s on #1856. A red run now stops at its first
+  failed check, and two costly tests are cheaper: see
+  `HANDOFF-2026-09-26-annotations-sweep.md`. Next options, in order: (C) make
   `test_dossier_fb.py` / `test_mlb_tables.py` cheaper without changing
   what they check; (D) raise the 2400s clock, which is a `collect.yml`
   hand upload plus a matching pr-tests PR.
@@ -41,3 +44,5 @@ Dated and it goes stale. Check it against `main` before acting on it.
 ## Changelog
 
 - **2026-09-23:** first version.
+- **2026-09-26:** headroom line struck; fail-fast red runs and cheaper
+  tests (`HANDOFF-2026-09-26-annotations-sweep.md`).
