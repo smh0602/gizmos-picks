@@ -323,6 +323,14 @@ def run(root=ROOT, prior=None):
     return rep
 
 
+# 🔴 A COUNTER SAYS SO, FOR SELF-REPAIR TRIAGE. `[2026-09-26]` Issue #42
+#    (this file's) was handed to the repair agent on every pass of 09-24/25
+#    and five of them ran out of turns looking for a defect that does not
+#    exist. PROGRESS and ANSWERED are counters; SHRANK is a finding (rows
+#    disappeared) and UNREADABLE says nothing, so both stay in the queue.
+from self_repair import COUNTER  # noqa: E402  ⛔ one copy (self_repair.py)
+
+
 def marker(rep):
     keep = ("fresh_nfl", "fresh_cfb", "weeks", "band_high", "band_low")
     return "<!-- %s %s -->" % (MARKER, json.dumps(
@@ -364,6 +372,7 @@ def render(rep):
                  "longer owed. The verdict above is the record of it._")
         o.append("")
         o.append(marker(rep))
+        o.append(COUNTER)      # ANSWERED: it closes itself; nothing to repair
         return "\n".join(o)
 
     # ── PROGRESS. ⛔ COUNTS ONLY. See STAT_WORDS and the module header.
@@ -402,6 +411,7 @@ def render(rep):
              "never read here._")
     o.append("")
     o.append(marker(rep))
+    o.append(COUNTER)          # PROGRESS: a counter, not a finding
     return "\n".join(o)
 
 

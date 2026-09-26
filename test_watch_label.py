@@ -47,6 +47,16 @@ added — and a new watcher is precisely the one most likely to forget.
 #   file: .github/workflows/self-repair.yml
 #   find:                     --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
 #   with:                     --jq 'reverse' 2>/tmp/ghqueue.err)
+#
+# @vacuity 🔴🔴 the staged triage never hands a counter to the agent
+#   file: docs/upload/self-repair.yml
+#   find:           PICK=$(python self_repair.py pick "$LAST" <<< "$QUEUE") \
+#   with:           PICK=$(python -c "import json,sys;q=json.loads(sys.stdin.read() or '[]');print(json.dumps(q[0]) if q else '')" <<< "$QUEUE") \
+#
+# @vacuity 🔴 ...and a counter is left out of the queue, not only skipped
+#   file: self_repair.py
+#   find:     return [it for it in (queue or []) if not is_counter(it)]
+#   with:     return list(queue or [])
 """
 import glob
 import io
@@ -392,8 +402,9 @@ ck("🔴🔴 ...WITHOUT PyYAML, which the runner does not have",
    "loaded: %s" % sorted(m for m in _sys.modules if m.startswith("yaml")))
 
 
-def _drive(health, queue, last=None, openprs=0):
-    """Run the real step in a throwaway dir; return its GITHUB_OUTPUT."""
+def _drive(health, queue, last=None, openprs=0, run=None):
+    """Run the real step in a throwaway dir; return its GITHUB_OUTPUT.
+    `run`: another copy of the step (the STAGED one); default the deployed."""
     d = _tf.mkdtemp(prefix="triage-drive-")
     try:
         os.makedirs(os.path.join(d, "data", "latest"))
@@ -408,6 +419,10 @@ def _drive(health, queue, last=None, openprs=0):
                                "w", encoding="utf-8"))
         _json.dump(queue, io.open(os.path.join(d, "queue.json"), "w",
                                   encoding="utf-8"))
+        # ⚠️ `[2026-09-26]` the step now calls `self_repair.py` (the one
+        #    copy of the pick). The runner has the whole checkout; this
+        #    throwaway dir gets the one module the step imports.
+        _shutil.copy(os.path.join(ROOT, "self_repair.py"), d)
         _bin = os.path.join(d, "bin")
         os.makedirs(_bin)
         _gh = os.path.join(_bin, "gh")
@@ -424,7 +439,7 @@ def _drive(health, queue, last=None, openprs=0):
         _env = dict(os.environ)
         _env["PATH"] = _bin + os.pathsep + _env["PATH"]
         _env["GITHUB_OUTPUT"] = _out
-        _sp.run(["bash", "-c", _RUN], cwd=d, env=_env,
+        _sp.run(["bash", "-c", run or _RUN], cwd=d, env=_env,
                 capture_output=True, text=True, timeout=120)
         got = {}
         for ln in io.open(_out, encoding="utf-8").read().split("\n"):
@@ -506,3 +521,52 @@ for _name, _kw, _want_go, _want_issue, _why in _CASES:
 
 note("drove the deployed `decide` step %d time(s) against fixtures — no "
      "network, no gh, nothing written inside this repo" % len(_CASES))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴🔴 A COUNTER IS NOT A TASK (the triage Sam uploads)")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-09-26]` All eight self-repair passes of 09-24/25 were handed issue
+# #42, "T58 and T59 are accumulating" -- by its own words "a counter, not a
+# finding" -- and five ran out of their 40 turns looking for a defect that
+# does not exist. ✅ A watcher marks a counter (`self_repair.COUNTER`, from
+# `t58_t59.render`) and triage never hands one to the agent.
+# ⚠️ DRIVEN ON THE STAGED COPY, `docs/upload/self-repair.yml`: that is the
+#    file Sam uploads, and until he does the deployed one still picks #42.
+#    After the upload the two are the same file.
+import self_repair as _srm  # noqa: E402
+
+_SRS = os.path.join(ROOT, "docs", "upload", "self-repair.yml")
+_RUN_S = _wf.step_run(_SRS, step_id="decide") if os.path.exists(_SRS) else None
+_RUN_S = _re.sub(r"\$\{\{[^}]*\}\}", "", _RUN_S) if _RUN_S else None
+ck("the staged `decide` step was extracted", bool(_RUN_S) and "self_repair.py" in _RUN_S,
+   "rule 67: an unread step is a drive that checks nothing")
+
+
+def _cnt(n, t):
+    it = _iss(n, t)
+    it["body"] = "Two owed tests are accumulating.\n" + _srm.COUNTER
+    return it
+
+
+_CASES7 = [
+    ("🔴🔴 a queue holding only a counter stands down",
+     dict(health=_CLEAN, queue=[_cnt(42, "T58 and T59 are accumulating")]), "no", None,
+     "⛔ THE 09-24/25 FAILURE: #42 was the whole task, eight passes running"),
+    ("🔴 a counter at the head of the queue never blocks a finding behind it",
+     dict(health=_CLEAN, queue=[_cnt(42, "counter"), _iss(44, "a workflow is failing")]),
+     "yes", "44", "⛔ oldest-first must not mean counter-first"),
+    ("✅ health.json unrepairable still fires beside a counter-only queue",
+     dict(health=_BROKEN, queue=[_cnt(42, "counter")]), "yes", "",
+     "⛔ the existing path must not regress; the counter is not attached"),
+    ("✅ an unmarked issue is still a task",
+     dict(health=_CLEAN, queue=[_iss(9, "w")]), "yes", "9",
+     "⛔ absent the marker an issue IS actionable -- nothing guesses from prose"),
+]
+for _name, _kw, _want_go, _want_issue, _why in _CASES7:
+    _got = _drive(run=_RUN_S, **_kw) if _RUN_S else {}
+    _ok = (_got.get("go") == _want_go
+           and (_want_issue is None or _got.get("issue") == _want_issue))
+    ck(_name, _ok, "%s got go=%r issue=%r, wanted go=%r issue=%r"
+       % (_why, _got.get("go"), _got.get("issue"), _want_go, _want_issue))
+
