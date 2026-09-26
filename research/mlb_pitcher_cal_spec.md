@@ -126,9 +126,10 @@ No candidate had been scored against any result.
     corrected, so no live card was refused, but a market below 150 rows
     or `SHIPPED = None` would have hit it. Root cause: I compared against
     a rounded copy of the number. Fixed to the exact relationship (within
-    0.5 of the true blend, stored within 0.05). Guard:
+    0.5 of the true blend, stored within 0.05). ~~Guard:
     `test_verify_card.py` fails if this check ever fails a real published
-    card, and still catches a row printed 2 points off.
+    card~~ (only while the newest card held the case: see 2026-09-26), and
+    still catches a row printed 2 points off.
   - Collector run 1813 (07:25Z) went red: the new `verify_record.py`
     grades 2026-09-22, and `record.json` was still the pre-merge build
     until the scheduled rebuild at 12:08Z. Root cause: a grading-rule
@@ -141,3 +142,11 @@ No candidate had been scored against any result.
     had emptied. Now it requires pitcher model output anywhere on the
     card (275 pitcher projections, 8 pairs on that replay), and fails
     when there is none (watched).
+- **2026-09-26, the rounding guard above stopped guarding.** It ran the
+  verifier on the NEWEST card only. From 2026-09-25 14:12Z that was the
+  09-25 card, whose one pitcher row is corrected, so no row reached the
+  rounding case and the test passed with the wrong line put back (vacuity
+  sweep: VACUOUS). Root cause: "the newest card" is a fact about the date,
+  not the code (rule 166). Fixed: the check now runs on the newest card
+  that holds the case (2026-09-24 today), fails if no card holds one, and
+  fails if a newer card without it could take its place. Sweep: BITES.
