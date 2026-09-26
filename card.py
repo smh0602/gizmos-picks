@@ -54,6 +54,102 @@ MODEL_VERSION = "v5.0"
 # everytime, including hitters props as well as pitchers."
 BOARD_MIN, BOARD_MAX = 25, 50
 
+# 🔴 EACH KIND OWNS ITS SEATS. `[Sam, 2026-09-25, C8]` Gizmo's Picks showed
+# 1 pitcher prop and 46 hitter props (the card: 1 and 49); he wants pitcher props on the board,
+# no more than 25 hitters, "and it must not happen again". ~~Each kind is
+# allotted half the board and the unused half spills to the other~~ — the
+# spill let hitters take the pitcher seats once C2 (#166) left few pitcher
+# rows beating their price. ⛔ No seat is ever taken by the other kind.
+SEATS = {"pitcher": BOARD_MAX // 2, "hitter": BOARD_MAX // 2}
+
+
+def _propkey(x):
+    """One prop, either side: the same GAME, player, market and line.
+    ⚠️ The game is part of it: a doubleheader's game 2 is another wager
+    (2026-09-25: Narvaez under 0.5 RBI at -650 in game 1, -575 in game 2).
+    ⛔ By game ID, never by names -- two games of one pair share both."""
+    return (x.get("game_id"), (x.get("pid") or x.get("player") or x.get("pitcher")),
+            x.get("market"), x.get("line"))
+
+
+def select_board(plays, hitters, seats=None):
+    """The Gizmo's Picks board. -> (board, accounting). Pure: reads rows,
+    sets `below_price` on the rows it seats below their price.
+
+      hitters   up to 25 whose record beats the price's break-even — the
+                rule as it was, capped at their own 25 seats.
+      pitchers  every pitcher row whose CORRECTED number beats the
+                break-even first; seats still empty are filled with the
+                best remaining pitcher rows by that corrected number, each
+                flagged `below_price` — it loses to its price, and the row
+                shows its printed %, break-even and edge.
+      never     both sides of one prop, or one kind in the other's seats.
+    The union reads strictly by confidence, descending (Sam, 2026-08-24).
+    """
+    cap = dict(seats or SEATS)
+    seats = dict(cap)
+    by_conf = lambda x: -(x.get("confidence") or 0)
+    liked = sorted([x for x in plays + hitters
+                    if x.get("edge") is not None and x["edge"] > 0], key=by_conf)
+    board, on, used = [], set(), set()
+
+    def seat(x, below):
+        if seats.get(x["kind"], 0) <= 0 or id(x) in used:
+            return False
+        # ⛔ NEVER BOTH SIDES OF ONE PROP, in any pass. It bites hardest
+        # below the price: on a thin pre-dawn board all 16 top-up rows were
+        # 8 mirror pairs summing to 100 (Turang under 0.5 hits at 59 AND
+        # over at 41). That is not a board. Checked in the positive-edge
+        # pass too, since each side's price is shopped separately.
+        if _propkey(x) in on:
+            return False
+        if below:
+            x["below_price"] = True
+        else:
+            x.pop("below_price", None)
+        seats[x["kind"]] -= 1
+        used.add(id(x))
+        on.add(_propkey(x))
+        board.append(x)
+        return True
+
+    for x in liked:
+        seat(x, below=False)
+    n_beat = {k: sum(1 for x in board if x["kind"] == k) for k in cap}
+    # The pitcher seats a thin slate leaves empty: the best remaining pitcher
+    # rows by the corrected number. Only rows that CAN show their price
+    # (a break-even and an edge), because the label has to state them.
+    fill = [x for x in plays if x["kind"] == "pitcher" and id(x) not in used
+            and x.get("edge") is not None and x.get("break_even") is not None]
+    fill.sort(key=by_conf)
+    for x in fill:
+        if seats["pitcher"] <= 0:
+            break
+        seat(x, below=True)
+    if len(board) < BOARD_MIN:
+        # Not enough plays. Top up by edge, and SAY SO on the row rather
+        # than quietly padding the board -- now inside each kind's own seats.
+        # ⚠️ Only rows with an edge: a row seated below its price must be
+        # able to state it (printed %, break-even, edge).
+        rest = sorted([x for x in plays + hitters if id(x) not in used
+                       and x.get("edge") is not None and x.get("break_even") is not None],
+                      key=lambda x: -x["edge"])
+        for x in rest:
+            if len(board) >= BOARD_MIN:
+                break
+            seat(x, below=True)
+    # RE-SORT: the fills append in their own order; Sam's board reads
+    # strictly descending, and verify_card.py enforces it.
+    board.sort(key=by_conf)
+    acct = {k: {"seats": cap[k], "beat_price": n_beat[k],
+                "below_price": sum(1 for x in board if x["kind"] == k and x.get("below_price")),
+                "shown": sum(1 for x in board if x["kind"] == k)} for k in cap}
+    acct["pitcher"]["eligible_props"] = len({_propkey(x) for x in plays
+                                             if x["kind"] == "pitcher"
+                                             and x.get("edge") is not None
+                                             and x.get("break_even") is not None})
+    return board, acct
+
 # ---------------------------------------------------------------- model
 # claude/mlb-projection-model.md. Do not edit a coefficient here without
 # editing it there, and do not edit it there without a re-fit.
@@ -2607,8 +2703,8 @@ def main(dry=False):
     # `build_pairs` still requires clears_price_floor, and the starred alt
     # rung still requires it. Only the board gate is gone, and every
     # below-floor row is LABELLED so a user sees what they are taking.
-    liked = [x for x in plays + hitters
-             if (x.get("edge") is not None and x["edge"] > 0)]
+    # ✅ The positive-edge filter and the order below now live in
+    #    `select_board`; these notes are the reasons for them.
     # Band-qualifying plays lead, then everything by edge.
     # 🔴 STRICTLY BY CONFIDENCE, DESCENDING.
     # Sam, 2026-08-24: "i notice that your highest confidence score is not
@@ -2619,53 +2715,22 @@ def main(dry=False):
     # favourites to the top, and EDGE is what actually pays. Edge is still
     # on every row and still drives which plays make the board at all —
     # it just no longer decides the order.
-    liked.sort(key=lambda x: -(x.get("confidence") or 0))
 
-    # 🔴 BOTH KINDS GET A SEAT.
+    # 🔴 BOTH KINDS GET A SEAT, AND EACH KIND KEEPS ITS OWN.
     # Sam, 2026-08-24: "there is a lot of hitters in that tab, maybe a bit
     # too much ... lets mix it in with some more pitching props." There are
     # far more hitter props on any board than pitcher props, so a straight
-    # top-50 was coming back 49 hitters to 1. Each kind is allotted half
-    # the board and the unused half spills to the other, so a thin pitcher
-    # slate still fills 50 rows. ⚠️ The UNION is then re-sorted descending,
-    # so the strict order Sam asked for still holds top to bottom.
-    half = BOARD_MAX // 2
-    pit_liked = [x for x in liked if x["kind"] == "pitcher"]
-    hit_liked = [x for x in liked if x["kind"] == "hitter"]
-    board = pit_liked[:half] + hit_liked[:BOARD_MAX - len(pit_liked[:half])]
-    board.sort(key=lambda x: -(x.get("confidence") or 0))
-    if len(board) < BOARD_MIN:
-        # Not enough positive-edge plays. Top up by edge, and SAY SO on the
-        # row rather than quietly padding the board with plays that lose to
-        # their own price.
-        rest = sorted([x for x in plays + hitters if x not in liked],
-                      key=lambda x: -(x.get("edge") if x.get("edge") is not None else -999))
-
-        # Never put BOTH sides of one prop on the board. Above the edge
-        # filter this cannot happen -- a positive-edge over implies a
-        # negative-edge under -- so it only ever bites HERE, in the top-up,
-        # which deliberately reaches into negative edge. Measured on a thin
-        # pre-dawn board: all 16 rows were 8 mirror pairs, every pair summing
-        # to 100 (Turang under 0.5 hits at 59 AND over 0.5 hits at 41). That
-        # is not a board.
-        def _propkey(x):
-            return ((x.get("pid") or x.get("player") or x.get("pitcher")),
-                    x.get("market"), x.get("line"))
-        _on = {_propkey(x) for x in board}
-        for x in rest:
-            if len(board) >= BOARD_MIN:
-                break
-            if _propkey(x) in _on:
-                continue
-            x["below_price"] = True
-            _on.add(_propkey(x))
-            board.append(x)
-
-        # RE-SORT. The top-up appends in EDGE order onto a list already
-        # sorted by CONFIDENCE, which left the board out of order from the
-        # first topped-up row down. Sam's instruction is that it reads
-        # strictly descending; verify_card.py enforces it and caught this.
-        board.sort(key=lambda x: -(x.get("confidence") or 0))
+    # top-50 was coming back 49 hitters to 1.
+    # ~~Each kind is allotted half the board and the unused half spills to
+    # the other, so a thin pitcher slate still fills 50 rows.~~ `[Sam,
+    # 2026-09-25, C8]` the spill is exactly how 49 hitters to 1 came BACK:
+    # after C2 (#166) few pitcher rows beat their price, and hitters took
+    # the empty pitcher seats. ✅ Each kind owns 25 seats (`select_board`);
+    # empty pitcher seats are filled with the best remaining pitcher rows,
+    # labelled as losing to their price. The union still reads strictly by
+    # confidence, descending, and the old thin-board top-up (and its
+    # never-both-sides rule) lives on inside each kind's seats.
+    board, seats_acct = select_board(plays, hitters)
 
     for i, x in enumerate(board, 1):
         x["rank"] = i
@@ -2691,11 +2756,22 @@ def main(dry=False):
                      "time; this one rebuilds nightly. Measured 2026-08-23 the two "
                      "agree to a mean |dE[K]| of 0.021 K, max 0.064 K."),
         },
+        # ~~"plays whose estimate beats the price's break-even, calibrated-band
+        #   plays first, then by edge"~~ `[2026-09-25, C8]` described neither
+        #   the order (confidence, since 2026-08-24) nor the seats.
         "board_rule": (
-            "Sam's filter, not Claude's: plays whose estimate beats the price's "
-            "break-even, calibrated-band plays first, then by edge. "
+            "Sam's filter, not Claude's: pitchers and hitters each have their own "
+            f"{SEATS['pitcher']} seats, and neither kind takes the other's. "
+            f"Hitters: up to {SEATS['hitter']} whose record beats the price's break-even. "
+            "Pitchers: every pitcher prop whose number beats the price's break-even "
+            "comes first; any seats left are filled with the best remaining pitcher "
+            "props by that number, each marked as losing to its price, never both "
+            "sides of one prop. Everything reads by confidence, highest first. "
             f"{len(plays)} pitcher and {len(hitters)} hitter rows were priced; "
-            f"{len(board)} are shown."),
+            f"{len(board)} are shown: {seats_acct['pitcher']['shown']} pitcher "
+            f"({seats_acct['pitcher']['below_price']} below their price) and "
+            f"{seats_acct['hitter']['shown']} hitter."),
+        "board_seats": seats_acct,
         "hitter_note": (
             "Hitter rows carry NO confidence rating and NO band. There is no hitter "
             "model in this project, and ledger rule 55 forbids a MARKET number from "

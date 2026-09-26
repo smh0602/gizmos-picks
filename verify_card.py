@@ -260,6 +260,64 @@ ck("the board is in descending confidence order, no exceptions", desc,
    f"{len(picks)} rows, top {picks[0]['confidence'] if picks else '-'}%")
 ck("rank matches position", all(p.get('rank') == i+1 for i, p in enumerate(picks)))
 
+print("\n7c. SEATS -- each kind keeps its own 25")
+# 🔴 `[Sam, 2026-09-25, C8]` the card showed 1 pitcher prop and 49 hitter
+# props: the unused half of the board spilled to the other kind, and after
+# C2 (#166) few pitcher rows beat their price, so hitters took the pitcher
+# seats. Sam: pitcher props on the board, no more than 25 hitters, "and it
+# must not happen again". ⛔ 25 is Sam's number, written here, not read
+# back from card.py -- the card's own copy must AGREE with it.
+_SEATS = 25
+_kinds = collections.Counter(r.get('kind') for r in picks)
+ck(f"no more than {_SEATS} hitter rows ({_kinds.get('hitter', 0)} on this card)",
+   _kinds.get('hitter', 0) <= _SEATS)
+ck(f"no more than {_SEATS} pitcher rows ({_kinds.get('pitcher', 0)} on this card)",
+   _kinds.get('pitcher', 0) <= _SEATS)
+ck("card.py's seat table is Sam's 25 and 25",
+   getattr(C, 'SEATS', None) == {'pitcher': _SEATS, 'hitter': _SEATS}, str(getattr(C, 'SEATS', None)))
+# One prop, either side: the same GAME, player, market and line. Two rows
+# on one key are both sides of it (or the same row twice) -- never a pick.
+# ⚠️ By game ID: a doubleheader's game 2 is another wager (Narvaez under
+# 0.5 RBI in both BAL @ NYY games on 2026-09-25's card, correctly).
+_pk = collections.Counter((r.get('game_id'), (r.get('pid') or r.get('player') or r.get('pitcher')),
+                           r.get('market'), r.get('line')) for r in picks)
+ck("⛔ never both sides of one prop on the board",
+   all(n == 1 for n in _pk.values()), str([k for k, n in _pk.items() if n > 1][:3]))
+# The label tells the truth BOTH ways: a row seated below its price loses
+# to it, and a row not so marked beats it.
+_lie = [(r.get('pitcher') or r.get('player'), r.get('market'), r.get('line'),
+         r.get('edge'), bool(r.get('below_price'))) for r in picks
+        if r.get('edge') is None or (r['edge'] > 0) == bool(r.get('below_price'))]
+ck("every row marked below its price loses to it, and every unmarked row beats it",
+   not _lie, str(_lie[:3]))
+ck("every row below its price carries its printed %, break-even and edge for the label",
+   all(r.get('confidence') is not None and r.get('break_even') is not None
+       and r.get('edge') is not None for r in picks if r.get('below_price')))
+_st = doc.get('board_seats') or {}
+_sp = _st.get('pitcher') or {}
+_shown_p = _kinds.get('pitcher', 0)
+ck("🔴 the pitcher seats are full whenever the card priced enough pitcher props "
+   f"({_shown_p} shown of {_sp.get('eligible_props')} priced props)",
+   _sp.get('eligible_props') is not None
+   and _shown_p == min(_SEATS, _sp['eligible_props']), str(_sp))
+# ...and that count is not inflated: it cannot exceed the pitcher props the
+# card's own priced index holds (standard lines AND rungs, so a ceiling).
+_ppk = {tuple(k.split('|')[i] for i in (0, 1, 3))
+        for k, v in (doc.get('projections') or {}).items()
+        if v.get('p') and k.split('|')[1] in ('pitcher_strikeouts', 'pitcher_outs')}
+ck(f"   ...and the priced-props count is no more than the card priced ({len(_ppk)} in the index)",
+   (_sp.get('eligible_props') or 0) <= len(_ppk))
+ck("board_seats counts what is on the board",
+   all((_st.get(k) or {}).get('shown') == _kinds.get(k, 0)
+       and (_st.get(k) or {}).get('below_price') == sum(1 for r in picks if r.get('kind') == k and r.get('below_price'))
+       and (_st.get(k) or {}).get('beat_price', -1) + (_st.get(k) or {}).get('below_price', -1) == _kinds.get(k, 0)
+       for k in ('pitcher', 'hitter')), str(_st))
+_bp = sum(1 for r in picks if r.get('kind') == 'pitcher' and r.get('below_price'))
+ck("board_rule states the board's real make-up",
+   f"{_kinds.get('pitcher', 0)} pitcher ({_bp} below their price) and "
+   f"{_kinds.get('hitter', 0)} hitter" in (doc.get('board_rule') or ''),
+   (doc.get('board_rule') or '')[-120:])
+
 print("\n8. BAND / FLOOR / LADDER")
 # The floor is Sam's and it applies to EVERY row, not just pitchers. It
 # used to be checked on pitcher rows only, which is how it came to be
