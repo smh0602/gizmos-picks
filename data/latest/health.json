@@ -1,32 +1,41 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-27T08:45:54Z",
+ "checked_at": "2026-09-27T11:57:32Z",
  "et_date": "2026-09-27",
  "healthy": false,
- "broken": 0,
+ "broken": 1,
  "degraded": 1,
  "findings": [
   {
+   "key": "verify:mlb",
+   "severity": "BROKEN",
+   "what": "the mlb card was BUILT and then REFUSED, so nothing published",
+   "why": "verify_card rejected it: FAIL \u26d4 NO inverted hitter projection contradicts its own row (17 rows, zero tolerance -- stricter than T37's 5%)  [('Andr\u00e9s Chaparro', 'batter_rbis', 'under', 0.5, 79, 0.51)]; FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (17 rows, zero tolerance -- stricter than T37's 5%); FAILURES: \u26d4 NO inverted hitter projection contradicts its own row (17 rows, zero tolerance -- stricter than T37's 5%) \u26d4 This is a CODE defect \u2014 the builder and the verifier disagree \u2014 and no automatic repair is possible or wanted. The guard is doing its job by publishing nothing.",
+   "repair": null
+  },
+  {
    "key": "credits:unrecorded",
    "severity": "DEGRADED",
-   "what": "140 Odds API credit(s) were spent since 2026-09-26T08:45:54Z that no stored snapshot records",
+   "what": "140 Odds API credit(s) were spent since 2026-09-26T11:57:32Z that no stored snapshot records",
    "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-09-26T20:04:08Z \u221294 (data/2026-09-26/gamelines/2004.json.gz); 2026-09-26T15:18:59Z \u221236 (data/ncaaf/2026-09-26/gamelines/1518.json.gz); 2026-09-26T19:06:51Z \u221210 (data/nfl/2026-09-26/gamelines/1906.json.gz)",
    "repair": null
   }
  ],
  "repairs": [],
- "unrepairable": [],
+ "unrepairable": [
+  "verify"
+ ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 4663,
-  "pulled_at": "2026-09-26T22:15:07Z",
+  "balance": 4581,
+  "pulled_at": "2026-09-27T11:09:43Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 10.5,
+  "reading_age_hours": 0.8,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-09-26T22:15:07Z",
-  "source": "data/ncaaf/2026-09-26/gamelines/2215.json.gz",
-  "readings_on_disk": 425,
+  "newest_paid_pull": "2026-09-27T11:09:43Z",
+  "source": "data/2026-09-27/props-pitcher/1109.json.gz",
+  "readings_on_disk": 428,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
