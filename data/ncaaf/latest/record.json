@@ -1,14 +1,14 @@
 {
- "built_at": "2026-09-26T19:15:05Z",
+ "built_at": "2026-09-27T13:27:34Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 110,
-  "n": 218,
-  "pct": 50.5
+  "w": 125,
+  "n": 242,
+  "pct": 51.7
  },
  "by_market": {
   "player_anytime_td": {
@@ -18,23 +18,23 @@
   },
   "player_pass_yds": {
    "w": 16,
-   "n": 28,
-   "pct": 57.1
+   "n": 29,
+   "pct": 55.2
   },
   "player_reception_yds": {
-   "w": 28,
-   "n": 51,
-   "pct": 54.9
+   "w": 31,
+   "n": 54,
+   "pct": 57.4
   },
   "player_receptions": {
-   "w": 17,
-   "n": 35,
-   "pct": 48.6
+   "w": 22,
+   "n": 45,
+   "pct": 48.9
   },
   "player_rush_yds": {
-   "w": 29,
-   "n": 58,
-   "pct": 50.0
+   "w": 36,
+   "n": 68,
+   "pct": 52.9
   }
  },
  "by_side": {
@@ -44,9 +44,9 @@
    "pct": 49.3
   },
   "under": {
-   "w": 57,
-   "n": 105,
-   "pct": 54.3
+   "w": 72,
+   "n": 129,
+   "pct": 55.8
   },
   "yes": {
    "w": 20,
@@ -61,14 +61,14 @@
    "pct": 0.0
   },
   "fanduel": {
-   "w": 1,
-   "n": 3,
-   "pct": 33.3
+   "w": 6,
+   "n": 10,
+   "pct": 60.0
   },
   "hardrockbet": {
-   "w": 108,
-   "n": 212,
-   "pct": 50.9
+   "w": 118,
+   "n": 229,
+   "pct": 51.5
   },
   "williamhill_us": {
    "w": 1,
@@ -128,10 +128,10 @@
   },
   {
    "bucket": "80-90%",
-   "stated": 84.0,
-   "w": 1,
-   "n": 3,
-   "pct": 33.3
+   "stated": 84.5,
+   "w": 16,
+   "n": 27,
+   "pct": 59.3
   }
  ],
  "card_method_current": "season-blend",
@@ -260,10 +260,10 @@
    },
    {
     "bucket": "80-90%",
-    "stated": 84.0,
-    "w": 1,
-    "n": 3,
-    "pct": 33.3
+    "stated": 84.5,
+    "w": 16,
+    "n": 27,
+    "pct": 59.3
    }
   ]
  },
@@ -274,9 +274,9 @@
    "pct": 50.6
   },
   "season-blend": {
-   "w": 25,
-   "n": 50,
-   "pct": 50.0
+   "w": 40,
+   "n": 74,
+   "pct": 54.1
   }
  },
  "by_day": [
@@ -346,33 +346,29 @@
   },
   {
    "date": "2026-09-26",
-   "w": 0,
-   "n": 0,
+   "w": 15,
+   "n": 24,
    "carded": 25,
    "voids": 0,
-   "unresolved": 25
+   "unresolved": 1
   }
  ],
- "days_graded": 8,
+ "days_graded": 9,
  "cards_seen": 9,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 95,
- "distinct_games": 37,
+ "distinct_players": 106,
+ "distinct_games": 54,
  "carded_rows": 250,
  "voids": 0,
- "unresolved": 32,
- "coverage_note": "218 of 250 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 32 could not be settled at all.",
+ "unresolved": 8,
+ "coverage_note": "242 of 250 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 8 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
   {
    "date": "2026-09-10",
-   "why": "nothing settled yet \u2014 the log does not reach this slate"
-  },
-  {
-   "date": "2026-09-26",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
