@@ -3,8 +3,8 @@
  "kind": "DESCRIPTIVE",
  "title": "What the model showed, graded",
  "from": "2026-09-24",
- "built_at": "2026-09-26T19:13:49Z",
- "snapshots": 21,
+ "built_at": "2026-09-27T12:57:50Z",
+ "snapshots": 22,
  "spec": "research/fb_model_live_spec.md",
  "record": {
   "game_model": {
@@ -88,7 +88,7 @@
      "basis": "MARKET"
     },
     "pending": {
-     "value": 13,
+     "value": 12,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
@@ -103,6 +103,68 @@
    }
   },
   "props_model": {
+   "player_pass_tds": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 8,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 36,
+     "min_picks": 300,
+     "p": 0.6376,
+     "games": 22,
+     "edge_points": -3.4
+    }
+   },
+   "player_pass_yds": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 2,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 40,
+     "min_picks": 300,
+     "p": 0.6693,
+     "games": 25,
+     "edge_points": -3.5
+    }
+   },
    "player_reception_yds": {
     "picks": {
      "value": 1,
@@ -121,7 +183,7 @@
      "basis": "MARKET"
     },
     "pending": {
-     "value": 0,
+     "value": 36,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
@@ -152,7 +214,7 @@
      "basis": "MARKET"
     },
     "pending": {
-     "value": 0,
+     "value": 53,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
@@ -163,6 +225,37 @@
      "p": 0.7996,
      "games": 32,
      "edge_points": -3.8
+    }
+   },
+   "player_rush_yds": {
+    "picks": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 0,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": null,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": null,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 18,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "LOSING",
+     "picks": 119,
+     "min_picks": 300,
+     "p": 0.999,
+     "games": 31,
+     "edge_points": -13.4
     }
    }
   }
@@ -194,7 +287,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-02T00:15:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -224,7 +317,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-29T00:15:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -254,7 +347,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-29T00:15:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -271,20 +364,200 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 160,
+    "value": 164,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 41.3,
+    "value": 40.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 38.5,
+    "value": 37.9,
     "basis": "MARKET"
    },
    "commence": "2026-09-29T00:15:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": "Matthew Stafford",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -149,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 60.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 59.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": "RJ Harvey",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 106,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 49.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 48.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": "Adam Trautman",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 174,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 39.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 36.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": "RJ Harvey",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 17.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": "Kyren Williams",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 12.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Los Angeles Rams at Denver Broncos",
+   "player": "Adam Trautman",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 6.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -297,24 +570,24 @@
    "team": "Under",
    "side": "under",
    "line": {
-    "value": 44.0,
+    "value": 43.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -102,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 54.7,
+    "value": 55.6,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "commence": "2026-09-28T00:20:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -331,6 +604,456 @@
     "basis": "MARKET"
    },
    "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-28T00:20:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Kirk Cousins",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -106,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Ashton Jeanty",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 69.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "player": "Emari Demercado",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Michael Mayer",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -136,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 58.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 57.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Bryce Lance",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -125,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 55.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Travis Etienne Jr.",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 117,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 48.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 46.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Ashton Jeanty",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 118,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 46.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Alvin Kamara",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 125,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 45.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 44.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "player": "Javonte Williams",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 119,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 47.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.7,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Travis Etienne Jr.",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 9.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Ashton Jeanty",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 21.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Michael Mayer",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 19.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Las Vegas Raiders at New Orleans Saints",
+   "player": "Alvin Kamara",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 13.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "player": "Derrick Henry",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 10.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "player": "Javonte Williams",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 13.5,
+    "basis": "MARKET"
+   },
+   "price": {
     "value": -110,
     "basis": "MARKET"
    },
@@ -343,8 +1066,38 @@
     "value": 52.4,
     "basis": "MARKET"
    },
-   "commence": "2026-09-28T00:20:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Baltimore Ravens at Dallas Cowboys",
+   "player": "Dak Prescott",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 128,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 44.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 43.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:25:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -374,7 +1127,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:25:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -396,7 +1149,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 52.5,
+    "value": 52.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -404,7 +1157,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:25:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -421,7 +1174,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -104,
+    "value": -102,
     "basis": "MARKET"
    },
    "book": "FanDuel",
@@ -430,11 +1183,11 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.0,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:25:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -451,20 +1204,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 102,
+    "value": -102,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 55.1,
+    "value": 55.0,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 49.5,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:25:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -481,20 +1234,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -166,
+    "value": -170,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 64.0,
+    "value": 63.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 62.4,
+    "value": 63.0,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:25:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -511,20 +1264,440 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 154,
+    "value": 164,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 41.9,
+    "value": 41.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 39.4,
+    "value": 37.9,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:25:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Aaron Jones",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -112,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Baker Mayfield",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 16.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Arizona Cardinals at San Francisco 49ers",
+   "player": "Jacoby Brissett",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Ted Hurst III",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -160,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 62.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 61.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Bucky Irving",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 49.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 47.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Kenny Gainwell",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 143,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 43.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 41.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Aaron Jones",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 145,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 42.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 40.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Arizona Cardinals at San Francisco 49ers",
+   "player": "Michael Wilson",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 122,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 45.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Bucky Irving",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 16.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Josh Oliver",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 11.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Cade Otton",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 28.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -112,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Jalen McMillan",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 14.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Minnesota Vikings at Tampa Bay Buccaneers",
+   "player": "Kenny Gainwell",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 9.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Arizona Cardinals at San Francisco 49ers",
+   "player": "Brock Purdy",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 131,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 43.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 43.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T20:05:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -537,24 +1710,24 @@
    "team": "Over",
    "side": "over",
    "line": {
-    "value": 47.5,
+    "value": 48.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -115,
+    "value": -105,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 59.4,
+    "value": 61.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 53.5,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:05:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -571,7 +1744,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -105,
     "basis": "MARKET"
    },
    "book": "DraftKings",
@@ -580,11 +1753,11 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:05:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -601,7 +1774,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -108,
+    "value": 100,
     "basis": "MARKET"
    },
    "book": "DraftKings",
@@ -610,24 +1783,144 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.9,
+    "value": 50.0,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T20:05:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
   {
-   "model": "game_model",
-   "market": "total",
-   "market_label": "total",
-   "game": "Carolina Panthers at Cleveland Browns",
-   "player": null,
-   "team": "Over",
-   "side": "over",
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Aaron Rodgers",
+   "team": null,
+   "side": "under",
    "line": {
-    "value": 42.5,
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Samaje Perine",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 14.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Joe Burrow",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 5.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 51.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Devin Singletary",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 12.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": "Woody Marks",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 27.5,
     "basis": "MARKET"
    },
    "price": {
@@ -636,7 +1929,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 52.4,
+    "value": 52.5,
     "basis": "MODEL"
    },
    "break_even": {
@@ -644,7 +1937,2287 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Jared Goff",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -119,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 56.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Braelon Allen",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 17.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Kenneth Walker III",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 83.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": "Chris Rodriguez Jr.",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 19.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Jacory Croskey-Merritt",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 38.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Rachaad White",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 18.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Drew Sample",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -181,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 64.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 64.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Mike Gesicki",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Darnell Washington",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 105,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 48.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 48.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Erick All",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 116,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 47.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 46.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Michael Pittman Jr.",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 117,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 46.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 46.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Tony Pollard",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -164,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 62.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 62.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Elic Ayomanor",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -155,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 61.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 60.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Darnell Mooney",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -125,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 57.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 55.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Isaiah Likely",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 120,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 46.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Cam Skattebo",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 139,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 43.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 41.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Malachi Fields",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 145,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 41.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 40.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": "Dawson Knox",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -150,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 61.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 60.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": "Tre Harris",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 108,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 48.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 48.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": "James Cook",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 122,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 45.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": "Laquon Treadwell",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -158,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 61.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 61.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": "Keenan Allen",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -106,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": "Woody Marks",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 120,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 45.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Isaac TeSlaa",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -153,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 61.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 60.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Amon-Ra St. Brown",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -145,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 60.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 59.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Adonai Mitchell",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -106,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Isaiah Williams",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 101,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 51.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 49.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New York Jets at Detroit Lions",
+   "player": "Jeremy Ruckert",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 180,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 38.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 35.7,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Greg Dulcich",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -144,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 59.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 59.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Kenneth Walker III",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -137,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 58.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 57.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Malik Washington",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 105,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 48.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 48.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Quinshon Judkins",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 55.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Chuba Hubbard",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Tommy Tremble",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 104,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 50.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 49.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Jalen Coker",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 49.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 47.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "KC Concepcion",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 107,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 48.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 48.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Jerry Jeudy",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 117,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 48.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 46.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Harold Fannin Jr.",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 118,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 46.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Raheim Sanders",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 137,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 44.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 42.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Blake Whiteheart",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 135,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 43.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 42.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": "Mack Hollins",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 128,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 44.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 43.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": "Kyle Williams",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 133,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 43.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 42.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Jaxon Smith-Njigba",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 6.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -106,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Elijah Arroyo",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 116,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 46.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 46.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Stefon Diggs",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 120,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 45.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 45.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Antonio Williams",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 128,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 44.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 43.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Erick All",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 5.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -120,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 54.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 54.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Samaje Perine",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 8.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Drew Sample",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 6.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Mike Gesicki",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 24.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Chase Brown",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 22.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Michael Pittman Jr.",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 26.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Cincinnati Bengals at Pittsburgh Steelers",
+   "player": "Jaylen Warren",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 26.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -109,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Elic Ayomanor",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 13.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Darnell Mooney",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 17.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Calvin Ridley",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 14.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Malachi Fields",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 22.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -109,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": "Dawson Knox",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 8.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": "David Montgomery",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 9.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Kenneth Walker III",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 22.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Raheim Sanders",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -106,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Tommy Tremble",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 10.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Blake Whiteheart",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 5.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Chuba Hubbard",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 15.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Quinshon Judkins",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 13.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "New England Patriots at Jacksonville Jaguars",
+   "player": "Rhamondre Stevenson",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 14.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Cooper Kupp",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 20.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -112,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Elijah Arroyo",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -109,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 52.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "game": "Houston Texans at Indianapolis Colts",
+   "player": "C.J. Stroud",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 236.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -112,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.8,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "game": "Carolina Panthers at Cleveland Browns",
+   "player": "Bryce Young",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 220.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -113,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.1,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Cam Ward",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 154,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 39.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 39.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Tennessee Titans at New York Giants",
+   "player": "Jameis Winston",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 195,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 34.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 33.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Los Angeles Chargers at Buffalo Bills",
+   "player": "Josh Allen",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 124,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 45.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 44.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Patrick Mahomes",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 155,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 40.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 39.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Kansas City Chiefs at Miami Dolphins",
+   "player": "Malik Willis",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 169,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 38.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 37.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "props_model",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "game": "Seattle Seahawks at Washington Commanders",
+   "player": "Marcus Mariota",
+   "team": null,
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 137,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 43.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 42.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-09-27T17:00:00Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -666,7 +4239,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 53.2,
+    "value": 51.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -674,7 +4247,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -694,7 +4267,7 @@
     "value": -105,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "DraftKings",
    "model_probability": {
     "value": 58.2,
     "basis": "MODEL"
@@ -704,7 +4277,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -721,7 +4294,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -102,
+    "value": -105,
     "basis": "MARKET"
    },
    "book": "DraftKings",
@@ -730,11 +4303,11 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 50.5,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -747,24 +4320,24 @@
    "team": "Over",
    "side": "over",
    "line": {
-    "value": 46.5,
+    "value": 46.0,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 60.2,
+    "value": 59.6,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -786,7 +4359,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 54.3,
+    "value": 54.2,
     "basis": "MODEL"
    },
    "break_even": {
@@ -794,7 +4367,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -811,20 +4384,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -108,
+    "value": -105,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
     "value": 56.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.9,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -841,20 +4414,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -108,
+    "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 53.6,
+    "value": 53.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.9,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -871,20 +4444,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -104,
+    "value": -102,
     "basis": "MARKET"
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 53.4,
+    "value": 53.2,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.0,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -906,7 +4479,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 56.1,
+    "value": 55.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -914,7 +4487,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -927,16 +4500,16 @@
    "team": "Miami Dolphins",
    "side": "home",
    "line": {
-    "value": -10.5,
+    "value": -9.5,
     "basis": "MARKET"
    },
    "price": {
     "value": -108,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 54.2,
+    "value": 53.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -944,7 +4517,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -961,7 +4534,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -102,
+    "value": 100,
     "basis": "MARKET"
    },
    "book": "FanDuel",
@@ -970,11 +4543,11 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 50.5,
+    "value": 50.0,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1004,7 +4577,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1034,7 +4607,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1047,24 +4620,24 @@
    "team": "Washington Commanders",
    "side": "home",
    "line": {
-    "value": -7.5,
+    "value": -8.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -102,
+    "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 56.4,
+    "value": 56.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 50.5,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1077,16 +4650,16 @@
    "team": "New York Giants",
    "side": "home",
    "line": {
-    "value": 2.5,
+    "value": 2.0,
     "basis": "MARKET"
    },
    "price": {
     "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 55.5,
+    "value": 55.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -1094,7 +4667,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1111,20 +4684,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -130,
+    "value": -126,
     "basis": "MARKET"
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 57.6,
+    "value": 56.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 56.5,
+    "value": 55.8,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1141,20 +4714,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -125,
+    "value": -124,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 57.8,
+    "value": 56.6,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 55.6,
+    "value": 55.4,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1171,20 +4744,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -625,
+    "value": -550,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 87.0,
+    "value": 86.2,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 86.2,
+    "value": 84.6,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1201,20 +4774,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -150,
+    "value": -155,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 64.3,
+    "value": 64.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 60.0,
+    "value": 60.8,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1231,20 +4804,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 250,
+    "value": 260,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 30.9,
+    "value": 30.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 28.6,
+    "value": 27.8,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1261,20 +4834,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -375,
+    "value": -395,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 81.3,
+    "value": 82.3,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 78.9,
+    "value": 79.8,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
@@ -1291,20 +4864,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -135,
+    "value": -130,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 66.3,
+    "value": 65.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 57.4,
+    "value": 56.5,
     "basis": "MARKET"
    },
    "commence": "2026-09-27T17:00:00Z",
-   "shown_at": "2026-09-26T19:13:49Z",
+   "shown_at": "2026-09-27T12:57:50Z",
    "state": "pending",
    "won": null
   },
