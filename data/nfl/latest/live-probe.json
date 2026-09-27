@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
- "written_at": "2026-09-27T20:59:26Z",
+ "written_at": "2026-09-27T23:54:42Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -40,7 +40,6 @@
    "shortName",
    "status",
    "uid",
-   "weather",
    "week"
   ],
   "competition": [
@@ -59,7 +58,6 @@
    "notes",
    "playByPlayAvailable",
    "recent",
-   "situation",
    "startDate",
    "status",
    "timeValid",
@@ -94,7 +92,8 @@
    "statistics",
    "team",
    "type",
-   "uid"
+   "uid",
+   "winner"
   ],
   "team": [
    "abbreviation",
@@ -123,67 +122,13 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "in": 4,
-  "post": 10,
+  "post": 14,
   "pre": 2
  },
- "in_progress": 4,
- "live_sample": [
-  {
-   "id": "401872958",
-   "away": "Arizona Cardinals",
-   "home": "San Francisco 49ers",
-   "away_score": "0",
-   "home_score": "14",
-   "state": "in",
-   "detail": "11:12 - 2nd",
-   "clock": "11:12",
-   "period": 2,
-   "start": "2026-09-27T20:05Z"
-  },
-  {
-   "id": "401872959",
-   "away": "Minnesota Vikings",
-   "home": "Tampa Bay Buccaneers",
-   "away_score": "10",
-   "home_score": "7",
-   "state": "in",
-   "detail": "12:11 - 2nd",
-   "clock": "12:11",
-   "period": 2,
-   "start": "2026-09-27T20:05Z"
-  },
-  {
-   "id": "401872960",
-   "away": "Baltimore Ravens",
-   "home": "Dallas Cowboys",
-   "away_score": "7",
-   "home_score": "10",
-   "state": "in",
-   "detail": "0:11 - 1st",
-   "clock": "0:11",
-   "period": 1,
-   "start": "2026-09-27T20:25Z"
-  },
-  {
-   "id": "401872961",
-   "away": "Las Vegas Raiders",
-   "home": "New Orleans Saints",
-   "away_score": "3",
-   "home_score": "6",
-   "state": "in",
-   "detail": "14:55 - 2nd",
-   "clock": "14:55",
-   "period": 2,
-   "start": "2026-09-27T20:25Z"
-  }
- ],
- "live_state_fields": {
-  "with a running clock": 4,
-  "with a period": 4,
-  "with both scores": 4,
-  "of": 4
- },
+ "in_progress": 0,
+ "live_sample": [],
+ "live_state_fields": null,
+ "live_state_note": "\u26a0\ufe0f NOTHING WAS IN PROGRESS when this ran, so whether the feed carries a moving clock is NOT ANSWERED. Re-run while games are on. \u26d4 Do not read a full slate of finals as evidence either way.",
  "join": {
   "our_schedule_season": 2026,
   "our_games": 272,
@@ -236,22 +181,13 @@
   "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
  },
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
- "refresh_check": {
-  "seconds_apart": 45,
-  "live_games_compared": 4,
-  "games_whose_clock_or_period_changed": 3,
-  "example": {
-   "id": "401872959",
-   "was": "12:11 Q2",
-   "now": "11:15 Q2"
-  },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 3 of 4 live games in 45s, so the feed is live enough for a polling tab"
- },
+ "refresh_check": null,
+ "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=6",
+  "cache_control": "max-age=8",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "16 events via [default (what run 1 used)], 4 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
+ "conclusion": "16 events via [default (what run 1 used)], 0 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
 }
