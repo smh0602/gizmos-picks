@@ -1,32 +1,49 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-28T12:12:49Z",
+ "checked_at": "2026-09-28T15:54:19Z",
  "et_date": "2026-09-28",
  "healthy": false,
- "broken": 0,
- "degraded": 1,
+ "broken": 1,
+ "degraded": 2,
  "findings": [
+  {
+   "key": "card:mlb",
+   "severity": "BROKEN",
+   "what": "Gizmo's Picks and Parlays have no card for 2026-09-28",
+   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 114 minutes ago.",
+   "repair": "card",
+   "repair_attempts": 2
+  },
   {
    "key": "fresh:mlb",
    "severity": "DEGRADED",
-   "what": "mlb tabs are showing data older than promised (results)",
-   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "what": "mlb tabs are showing data older than promised (card, results)",
+   "why": "the freshness contract says 2 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
+  {
+   "key": "fresh:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl tabs are showing data older than promised (alt-lines, gamelines, props-board, props-player)",
+   "why": "the freshness contract says 4 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   }
  ],
- "repairs": [],
+ "repairs": [
+  "card"
+ ],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 3848,
-  "pulled_at": "2026-09-28T11:13:35Z",
+  "balance": 3802,
+  "pulled_at": "2026-09-28T15:49:28Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 1.0,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-09-28T11:13:35Z",
-  "source": "data/2026-09-28/props-pitcher/1113.json.gz",
-  "readings_on_disk": 445,
+  "newest_paid_pull": "2026-09-28T15:49:28Z",
+  "source": "data/ncaaf/2026-09-28/gamelines/1549.json.gz",
+  "readings_on_disk": 446,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }

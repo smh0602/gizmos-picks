@@ -6,25 +6,25 @@
  "markets": {
   "spread": {
    "shown": 2640,
-   "graded": 0,
-   "voids": 0,
-   "pending": 2640,
-   "games": 0,
+   "graded": 2614,
+   "voids": 26,
+   "pending": 0,
+   "games": 14,
    "positive_edge": {
     "picks": {
-     "value": 0,
+     "value": 1270,
      "basis": "DESCRIPTIVE"
     },
     "wins": {
-     "value": 0,
+     "value": 146,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": null,
+     "value": 11.5,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": null,
+     "value": 19.8,
      "basis": "MARKET"
     },
     "price_assumed": {
@@ -32,11 +32,14 @@
      "basis": "DESCRIPTIVE"
     },
     "interval_95": {
-     "value": null,
+     "value": [
+      4.0,
+      19.0
+     ],
      "basis": "DESCRIPTIVE"
     },
     "effective_n": {
-     "value": 0,
+     "value": 69.5,
      "basis": "DESCRIPTIVE"
     },
     "pushes": {
@@ -44,29 +47,70 @@
      "basis": "DESCRIPTIVE"
     }
    },
-   "bands": []
+   "bands": [
+    {
+     "bucket": "30-40%",
+     "n": 275,
+     "w": 0,
+     "stated": 37.36436363636365,
+     "actual": 0.0,
+     "gap": -37.4,
+     "p": 1.336321270619824e-56,
+     "state": "UNDER"
+    },
+    {
+     "bucket": "40-50%",
+     "n": 1024,
+     "w": 228,
+     "stated": 45.48720703125002,
+     "actual": 22.3,
+     "gap": -23.2,
+     "p": 5.258357333956252e-54,
+     "state": "UNDER"
+    },
+    {
+     "bucket": "50-60%",
+     "n": 1033,
+     "w": 797,
+     "stated": 54.40571151984509,
+     "actual": 77.2,
+     "gap": 22.7,
+     "p": 1.0,
+     "state": "OK"
+    },
+    {
+     "bucket": "60-70%",
+     "n": 282,
+     "w": 282,
+     "stated": 62.57021276595746,
+     "actual": 100.0,
+     "gap": 37.4,
+     "p": 0.9999999999998213,
+     "state": "OK"
+    }
+   ]
   },
   "total": {
    "shown": 2927,
-   "graded": 0,
-   "voids": 0,
-   "pending": 2927,
-   "games": 0,
+   "graded": 2899,
+   "voids": 28,
+   "pending": 0,
+   "games": 14,
    "positive_edge": {
     "picks": {
-     "value": 0,
+     "value": 1410,
      "basis": "DESCRIPTIVE"
     },
     "wins": {
-     "value": 0,
+     "value": 293,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": null,
+     "value": 20.8,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": null,
+     "value": 21.0,
      "basis": "MARKET"
     },
     "price_assumed": {
@@ -74,11 +118,14 @@
      "basis": "DESCRIPTIVE"
     },
     "interval_95": {
-     "value": null,
+     "value": [
+      13.1,
+      28.4
+     ],
      "basis": "DESCRIPTIVE"
     },
     "effective_n": {
-     "value": 0,
+     "value": 108.4,
      "basis": "DESCRIPTIVE"
     },
     "pushes": {
@@ -86,8 +133,89 @@
      "basis": "DESCRIPTIVE"
     }
    },
-   "bands": []
+   "bands": [
+    {
+     "bucket": "10-20%",
+     "n": 79,
+     "w": 79,
+     "stated": 17.649367088607594,
+     "actual": 100.0,
+     "gap": 82.4,
+     "p": 0.9999999999999946,
+     "state": "OK"
+    },
+    {
+     "bucket": "20-30%",
+     "n": 410,
+     "w": 363,
+     "stated": 25.469756097560953,
+     "actual": 88.5,
+     "gap": 63.1,
+     "p": 1.0,
+     "state": "OK"
+    },
+    {
+     "bucket": "30-40%",
+     "n": 503,
+     "w": 418,
+     "stated": 34.893240556660054,
+     "actual": 83.1,
+     "gap": 48.2,
+     "p": 1.0,
+     "state": "OK"
+    },
+    {
+     "bucket": "40-50%",
+     "n": 456,
+     "w": 287,
+     "stated": 44.900657894736845,
+     "actual": 62.9,
+     "gap": 18.0,
+     "p": 0.9999999999999651,
+     "state": "OK"
+    },
+    {
+     "bucket": "50-60%",
+     "n": 461,
+     "w": 174,
+     "stated": 54.89219088937094,
+     "actual": 37.7,
+     "gap": -17.1,
+     "p": 1.0497783042365675e-13,
+     "state": "UNDER"
+    },
+    {
+     "bucket": "60-70%",
+     "n": 502,
+     "w": 85,
+     "stated": 64.95756972111552,
+     "actual": 16.9,
+     "gap": -48.0,
+     "p": 1.1263062991597606e-108,
+     "state": "UNDER"
+    },
+    {
+     "bucket": "70-80%",
+     "n": 409,
+     "w": 48,
+     "stated": 74.38557457212714,
+     "actual": 11.7,
+     "gap": -62.6,
+     "p": 2.1700240411378534e-157,
+     "state": "UNDER"
+    },
+    {
+     "bucket": "80-90%",
+     "n": 79,
+     "w": 0,
+     "stated": 82.3,
+     "actual": 0.0,
+     "gap": -82.3,
+     "p": 3.8894486539671875e-60,
+     "state": "UNDER"
+    }
+   ]
   }
  },
- "built_at": "2026-09-27T19:35:50Z"
+ "built_at": "2026-09-28T15:54:17Z"
 }

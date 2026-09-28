@@ -3,30 +3,61 @@
  "kind": "DESCRIPTIVE",
  "title": "What the model showed, graded",
  "from": "2026-09-24",
- "built_at": "2026-09-27T19:35:49Z",
- "snapshots": 30,
+ "built_at": "2026-09-28T15:54:16Z",
+ "snapshots": 31,
  "spec": "research/fb_model_live_spec.md",
  "record": {
   "game_model": {
    "moneyline": {
     "picks": {
-     "value": 1,
+     "value": 10,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 1,
+     "value": 6,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 100.0,
+     "value": 60.0,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 33.3,
+     "value": 55.5,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 17,
+     "value": 15,
+     "basis": "DESCRIPTIVE"
+    },
+    "verdict": {
+     "basis": "DESCRIPTIVE",
+     "label": "NOT YET MEASURABLE",
+     "picks": 123,
+     "min_picks": 300,
+     "p": 0.6632,
+     "games": 123,
+     "edge_points": -1.8
+    }
+   },
+   "spread": {
+    "picks": {
+     "value": 13,
+     "basis": "DESCRIPTIVE"
+    },
+    "hits": {
+     "value": 9,
+     "basis": "DESCRIPTIVE"
+    },
+    "hit_rate": {
+     "value": 69.2,
+     "basis": "DESCRIPTIVE"
+    },
+    "break_even": {
+     "value": 51.3,
+     "basis": "MARKET"
+    },
+    "pending": {
+     "value": 15,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
@@ -34,78 +65,47 @@
      "label": "NOT YET MEASURABLE",
      "picks": 112,
      "min_picks": 300,
-     "p": 0.6857,
+     "p": 0.9589,
      "games": 112,
-     "edge_points": -2.2
-    }
-   },
-   "spread": {
-    "picks": {
-     "value": 0,
-     "basis": "DESCRIPTIVE"
-    },
-    "hits": {
-     "value": 0,
-     "basis": "DESCRIPTIVE"
-    },
-    "hit_rate": {
-     "value": null,
-     "basis": "DESCRIPTIVE"
-    },
-    "break_even": {
-     "value": null,
-     "basis": "MARKET"
-    },
-    "pending": {
-     "value": 21,
-     "basis": "DESCRIPTIVE"
-    },
-    "verdict": {
-     "basis": "DESCRIPTIVE",
-     "label": "LOSING",
-     "picks": 101,
-     "min_picks": 300,
-     "p": 0.9937,
-     "games": 101,
-     "edge_points": -12.4
+     "edge_points": -8.2
     }
    },
    "total": {
     "picks": {
-     "value": 1,
+     "value": 12,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 1,
+     "value": 5,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 100.0,
+     "value": 41.7,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 51.0,
+     "value": 51.4,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 19,
+     "value": 10,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 129,
+     "picks": 140,
      "min_picks": 300,
-     "p": 0.7663,
-     "games": 129,
-     "edge_points": -3.2
+     "p": 0.8362,
+     "games": 140,
+     "edge_points": -4.2
     }
    }
   },
   "props_model": {
    "player_pass_tds": {
     "picks": {
-     "value": 0,
+     "value": 1,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
@@ -113,123 +113,483 @@
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": null,
+     "value": 0.0,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": null,
+     "value": 43.3,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 1,
+     "value": 0,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 36,
+     "picks": 38,
      "min_picks": 300,
-     "p": 0.6376,
-     "games": 22,
-     "edge_points": -3.4
+     "p": 0.6138,
+     "games": 24,
+     "edge_points": -2.7
     }
    },
    "player_reception_yds": {
     "picks": {
-     "value": 1,
+     "value": 5,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 0,
+     "value": 1,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 0.0,
+     "value": 20.0,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 54.5,
+     "value": 53.6,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 4,
+     "value": 0,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 213,
+     "picks": 219,
      "min_picks": 300,
-     "p": 0.9488,
-     "games": 32,
-     "edge_points": -5.6
+     "p": 0.9504,
+     "games": 38,
+     "edge_points": -5.5
     }
    },
    "player_receptions": {
     "picks": {
-     "value": 1,
+     "value": 19,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 0,
+     "value": 7,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 0.0,
+     "value": 36.8,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 64.9,
+     "value": 47.8,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 22,
+     "value": 4,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 231,
+     "picks": 255,
      "min_picks": 300,
-     "p": 0.7996,
-     "games": 32,
-     "edge_points": -3.8
+     "p": 0.8534,
+     "games": 44,
+     "edge_points": -4.4
     }
    },
    "player_rush_yds": {
     "picks": {
-     "value": 0,
+     "value": 4,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 0,
+     "value": 2,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": null,
+     "value": 50.0,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": null,
+     "value": 54.7,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 4,
+     "value": 0,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "LOSING",
-     "picks": 119,
+     "picks": 122,
      "min_picks": 300,
-     "p": 0.999,
-     "games": 31,
-     "edge_points": -13.4
+     "p": 0.9992,
+     "games": 34,
+     "edge_points": -13.6
     }
    }
   }
  },
  "picks": [
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Detroit Lions at Carolina Panthers",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 49.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 54.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-05T00:20:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Detroit Lions at Carolina Panthers",
+   "player": null,
+   "team": "Carolina Panthers",
+   "side": "home",
+   "line": {
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-05T00:20:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Detroit Lions at Carolina Panthers",
+   "player": null,
+   "team": "Carolina Panthers",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 130,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 47.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 43.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-05T00:20:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Denver Broncos at San Francisco 49ers",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 46.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "total",
+   "market_label": "total",
+   "game": "Los Angeles Chargers at Seattle Seahawks",
+   "player": null,
+   "team": "Over",
+   "side": "over",
+   "line": {
+    "value": 43.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 55.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Denver Broncos at San Francisco 49ers",
+   "player": null,
+   "team": "San Francisco 49ers",
+   "side": "home",
+   "line": {
+    "value": 3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Kansas City Chiefs at Las Vegas Raiders",
+   "player": null,
+   "team": "Las Vegas Raiders",
+   "side": "home",
+   "line": {
+    "value": -6.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 54.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Los Angeles Chargers at Seattle Seahawks",
+   "player": null,
+   "team": "Seattle Seahawks",
+   "side": "home",
+   "line": {
+    "value": 7.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 58.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Denver Broncos at San Francisco 49ers",
+   "player": null,
+   "team": "San Francisco 49ers",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -146,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 64.8,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 59.3,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Kansas City Chiefs at Las Vegas Raiders",
+   "player": null,
+   "team": "Kansas City Chiefs",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -240,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 75.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 70.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Los Angeles Chargers at Seattle Seahawks",
+   "player": null,
+   "team": "Seattle Seahawks",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -285,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 80.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 74.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:25:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Miami Dolphins at Minnesota Vikings",
+   "player": null,
+   "team": "Minnesota Vikings",
+   "side": "home",
+   "line": {
+    "value": 10.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T20:05:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
   {
    "model": "game_model",
    "market": "total",
@@ -248,7 +608,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 54.9,
+    "value": 54.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -256,7 +616,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -278,7 +638,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 53.6,
+    "value": 52.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -286,7 +646,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -308,7 +668,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 59.4,
+    "value": 58.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -316,7 +676,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -338,7 +698,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 58.0,
+    "value": 57.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -346,7 +706,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -368,7 +728,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 56.3,
+    "value": 55.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -376,7 +736,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -398,7 +758,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 52.9,
+    "value": 51.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -406,7 +766,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -428,7 +788,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 57.1,
+    "value": 56.0,
     "basis": "MODEL"
    },
    "break_even": {
@@ -436,7 +796,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -458,7 +818,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 51.2,
+    "value": 51.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -466,7 +826,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -488,7 +848,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 55.0,
+    "value": 55.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -496,7 +856,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -504,12 +864,42 @@
    "model": "game_model",
    "market": "spread",
    "market_label": "spread",
-   "game": "Jacksonville Jaguars at Cincinnati Bengals",
+   "game": "Los Angeles Rams at Philadelphia Eagles",
    "player": null,
-   "team": "Cincinnati Bengals",
+   "team": "Philadelphia Eagles",
    "side": "home",
    "line": {
-    "value": 3.0,
+    "value": -2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 55.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T17:00:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "New England Patriots at Buffalo Bills",
+   "player": null,
+   "team": "Buffalo Bills",
+   "side": "home",
+   "line": {
+    "value": 5.5,
     "basis": "MARKET"
    },
    "price": {
@@ -518,7 +908,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.3,
+    "value": 56.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -526,7 +916,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -548,7 +938,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 55.0,
+    "value": 54.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -556,7 +946,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -578,7 +968,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.5,
+    "value": 53.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -586,7 +976,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -608,7 +998,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 62.0,
+    "value": 60.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -616,7 +1006,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -638,7 +1028,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 61.2,
+    "value": 61.0,
     "basis": "MODEL"
    },
    "break_even": {
@@ -646,7 +1036,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -668,7 +1058,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 50.7,
+    "value": 50.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -676,7 +1066,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -698,7 +1088,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 47.2,
+    "value": 47.5,
     "basis": "MODEL"
    },
    "break_even": {
@@ -706,7 +1096,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -728,7 +1118,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 47.9,
+    "value": 52.0,
     "basis": "MODEL"
    },
    "break_even": {
@@ -736,7 +1126,37 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "New England Patriots at Buffalo Bills",
+   "player": null,
+   "team": "Buffalo Bills",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -250,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 73.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 71.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T17:00:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -758,7 +1178,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 65.9,
+    "value": 66.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -766,37 +1186,67 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T17:00:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
   {
    "model": "game_model",
-   "market": "total",
-   "market_label": "total",
-   "game": "Indianapolis Colts at Washington Commanders",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Tennessee Titans at Baltimore Ravens",
    "player": null,
-   "team": "Under",
-   "side": "under",
+   "team": "Baltimore Ravens",
+   "side": "home",
    "line": {
-    "value": 46.5,
+    "value": null,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -575,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 55.4,
+    "value": 85.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 85.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-04T17:00:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Indianapolis Colts at Washington Commanders",
+   "player": null,
+   "team": "Washington Commanders",
+   "side": "home",
+   "line": {
+    "value": -4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 56.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
     "basis": "MARKET"
    },
    "commence": "2026-10-04T13:30:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -818,7 +1268,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 38.4,
+    "value": 37.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -826,7 +1276,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-04T13:30:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -843,20 +1293,50 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": 100,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 55.9,
+    "value": 57.0,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 50.0,
     "basis": "MARKET"
    },
    "commence": "2026-10-02T00:15:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Pittsburgh Steelers at Cleveland Browns",
+   "player": null,
+   "team": "Cleveland Browns",
+   "side": "home",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 124,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 45.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 44.6,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-02T00:15:00Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -878,7 +1358,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 55.2,
+    "value": 55.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -886,7 +1366,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-29T00:15:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -899,16 +1379,16 @@
    "team": "Chicago Bears",
    "side": "home",
    "line": {
-    "value": -4.5,
+    "value": -4.0,
     "basis": "MARKET"
    },
    "price": {
     "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 53.4,
+    "value": 53.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -916,7 +1396,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-29T00:15:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -936,9 +1416,9 @@
     "value": 180,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 37.9,
+    "value": 39.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -946,7 +1426,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-09-29T00:15:00Z",
-   "shown_at": "2026-09-27T19:35:49Z",
+   "shown_at": "2026-09-28T15:54:16Z",
    "state": "pending",
    "won": null
   },
@@ -977,8 +1457,8 @@
    },
    "commence": "2026-09-28T00:20:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1037,8 +1517,8 @@
    },
    "commence": "2026-09-28T00:20:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1067,8 +1547,8 @@
    },
    "commence": "2026-09-28T00:20:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1097,8 +1577,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1127,8 +1607,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1157,8 +1637,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T18:28:50Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1187,8 +1667,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1217,8 +1697,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1247,8 +1727,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1277,8 +1757,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1307,8 +1787,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -1337,8 +1817,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -1367,8 +1847,8 @@
    },
    "commence": "2026-09-27T20:25:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1397,8 +1877,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1427,8 +1907,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1457,8 +1937,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1487,8 +1967,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1517,8 +1997,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1547,8 +2027,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -1577,8 +2057,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1607,8 +2087,8 @@
    },
    "commence": "2026-09-27T20:05:00Z",
    "shown_at": "2026-09-27T19:35:49Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1637,8 +2117,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1667,8 +2147,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1727,8 +2207,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1757,8 +2237,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1787,8 +2267,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1817,8 +2297,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1847,8 +2327,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1877,8 +2357,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1907,8 +2387,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1967,8 +2447,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -1997,8 +2477,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -2057,8 +2537,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -2087,8 +2567,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -2117,8 +2597,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -2147,8 +2627,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
@@ -2177,8 +2657,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -2207,8 +2687,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T13:26:14Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2237,8 +2717,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2267,8 +2747,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2297,8 +2777,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2327,8 +2807,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2357,8 +2837,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2387,8 +2867,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2417,8 +2897,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2447,8 +2927,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2477,8 +2957,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2507,8 +2987,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2537,8 +3017,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2567,8 +3047,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2597,8 +3077,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2627,8 +3107,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2657,8 +3137,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2687,8 +3167,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2717,8 +3197,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2747,8 +3227,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2777,8 +3257,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -2807,8 +3287,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2837,8 +3317,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -2867,8 +3347,8 @@
    },
    "commence": "2026-09-27T17:00:00Z",
    "shown_at": "2026-09-27T16:20:19Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",

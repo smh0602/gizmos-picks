@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-09-27T19:35:49Z",
+ "built_at": "2026-09-28T15:54:16Z",
  "spec": "research/fb_card_calibration_spec.md",
  "bands": [
   {
@@ -96,6 +96,38 @@
    },
    "actual": {
     "value": 50.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  },
+  {
+   "bucket": "80-90%",
+   "graded": {
+    "value": 16,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 85.2,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 43.8,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "UNDER"
+  },
+  {
+   "bucket": "90-100%",
+   "graded": {
+    "value": 1,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 91.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 0.0,
     "basis": "DESCRIPTIVE"
    },
    "flag": "NOT_MEASURABLE"
@@ -236,7 +268,7 @@
   "p": null,
   "clusters": 0,
   "verdict": "NOT YET MEASURABLE",
-  "graded_picks": 97,
+  "graded_picks": 114,
   "min_n": 500,
   "method": "season-blend"
  },
