@@ -684,7 +684,7 @@ self_repair.py    self-repair triage: which watcher issue the repair agent
                   runs watcher's late crons, the calibration monitor) is
                   never a task. `[2026-09-28]` After two passes in a row
                   that end at the turn cap or open no PR it STANDS DOWN
-                  until a PR merges to main or the queue changes (#55-#62:
+                  until a PR merges to main or a new watcher issue opens (#55-#62:
                   8 of 8 at the turn cap). Read by self-repair.yml's
                   triage and record steps.
 runs_report.py    did any workflow run fail? `[2026-09-25]` also writes

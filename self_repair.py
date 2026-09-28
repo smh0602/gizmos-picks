@@ -35,8 +35,10 @@ an agent in 40 turns. Each pass spends Sam's subscription, about 4 a day.
     turn cap, or run to the end and open no PR, triage does not start the
     agent again. Each issue those passes tried gets ONE comment
     (`NEEDS_PERSON`). It stays down until a pull request merges to main
-    or the set of issues the agent could be handed changes. The state is
-    `data/latest/self-repair-last.json`, landed through push_retry.sh.
+    or a new watcher issue opens (one the agent could be handed that was
+    not in the queue that just failed; an issue closing keeps it down).
+    The state is `data/latest/self-repair-last.json`, landed through
+    push_retry.sh.
   - NOT AGENT-REPAIRABLE. A watcher whose issue no code change can clear
     on its own (cron lateness: `runs_report.py`; the board's delivered
     rate: `calibration.py`) writes `NOT_REPAIRABLE` in its body, and
@@ -110,9 +112,9 @@ def pick(queue, last=""):
 
 def key(queue):
     """The set of issues the agent could be handed, as sorted numbers.
-    ⚠️ A counter or a not-agent-repairable issue opening or closing does not
-    change it: the agent would never be handed either, so it re-arms
-    nothing."""
+    ⚠️ A counter or a not-agent-repairable issue is never in it: the agent
+    would never be handed either, so neither one opening is a new watcher
+    issue that re-arms the agent."""
     return sorted({int(it["number"]) for it in actionable(queue)})
 
 
@@ -131,18 +133,22 @@ def down_since(state):
 
 def still_down(state, queue, merged):
     """-> why triage stays down (str), or "" when it is armed or re-armed.
-    `merged`: [{"number", "mergedAt"}] from `gh pr list --state merged`."""
+    `merged`: [{"number", "mergedAt"}] from `gh pr list --state merged`.
+    ⛔ `[2026-09-28, Sam's review of PR #195]` It re-arms on a NEW watcher
+    issue only -- one the agent could be handed that was not in the queue
+    that just failed twice. An issue CLOSING gives the agent nothing new:
+    in the #55-#62 replay, #190 closing re-armed two more 40-turn passes."""
     since = down_since(state)
     if not since:
         return ""
     if any((m or {}).get("mergedAt") and m["mergedAt"] > since for m in (merged or [])):
         return ""
-    if key(queue) != sorted(int(n) for n in (state.get("queue") or [])):
+    if set(key(queue)) - set(int(n) for n in state.get("queue") or []):
         return ""
     tried = ", ".join("#%s" % n for n in state.get("tried") or []) or "health.json findings"
     return ("standing down since %s: %d passes in a row could not finish (%s). "
-            "It starts again when a pull request merges to main or the set of "
-            "open watcher issues changes." % (since, state.get("streak", 0), tried))
+            "It starts again when a pull request merges to main or a new "
+            "watcher issue opens." % (since, state.get("streak", 0), tried))
 
 
 def outcome(opened, agent, result=None):
@@ -195,8 +201,8 @@ def advance(prev, issue, how, queue_key, now):
            "note": ("⛔ The next pass skips `issue` ONLY if opened_pr is false, "
                     "and only for that one pass (rule 238). After %d passes in "
                     "a row that could not finish, `down_since` is set and the "
-                    "agent is not started until a PR merges to main or `queue` "
-                    "changes." % STAND_DOWN_AFTER)}
+                    "agent is not started until a PR merges to main or a new "
+                    "watcher issue opens (one not in `queue`)." % STAND_DOWN_AFTER)}
     tell = []
     if streak >= STAND_DOWN_AFTER:
         new["down_since"] = now
@@ -209,8 +215,8 @@ def tell_body(state):
     """The ONE comment each tried issue gets when the stand-down begins."""
     return ("%s\n\nIts agent ended %d passes in a row without a pull request "
             "(the last at %s), so self-repair has stopped starting it. It starts "
-            "again when a pull request merges to main or the set of open watcher "
-            "issues changes. _From `self_repair.py`; this is the only comment it "
+            "again when a pull request merges to main or a new watcher issue "
+            "opens. _From `self_repair.py`; this is the only comment it "
             "posts here._" % (NEEDS_PERSON, (state or {}).get("streak", 0),
                               (state or {}).get("at", "?")))
 

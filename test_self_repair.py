@@ -37,8 +37,8 @@ unmutated). ✅ The class:
   - STAND DOWN (§5, driven through the staged record and triage steps):
     two passes in a row that end at the turn cap, or run to the end with
     no PR, and the third pass does not start the agent; each issue tried
-    gets one comment; a PR merged to main, or a changed set of issues the
-    agent could be handed, re-arms it;
+    gets one comment; a PR merged to main, or a new watcher issue opening,
+    re-arms it -- an issue closing keeps it down [Sam's review, PR #195];
   - NOT AGENT-REPAIRABLE (§6): a watcher whose issue no code change can
     clear writes `self_repair.NOT_REPAIRABLE` (the runs watcher, the
     calibration monitor) and triage never hands it over;
@@ -99,10 +99,15 @@ unmutated). ✅ The class:
 #   find:     if any((m or {}).get("mergedAt") and m["mergedAt"] > since for m in (merged or [])):
 #   with:     if False:
 #
-# @vacuity 🔴 a changed queue re-arms it
+# @vacuity 🔴 a new watcher issue re-arms it
 #   file: self_repair.py
-#   find:     if key(queue) != sorted(int(n) for n in (state.get("queue") or [])):
+#   find:     if set(key(queue)) - set(int(n) for n in state.get("queue") or []):
 #   with:     if False:
+#
+# @vacuity 🔴🔴 an issue CLOSING keeps it down (the loose rule re-armed #60 and #61)
+#   file: self_repair.py
+#   find:     if set(key(queue)) - set(int(n) for n in state.get("queue") or []):
+#   with:     if set(key(queue)) != set(int(n) for n in state.get("queue") or []):
 #
 # @vacuity a re-armed agent gets two passes again, not one
 #   file: self_repair.py
@@ -451,8 +456,12 @@ try:
     ck(triage(s2, NOW_Q, merged=_before).get("go") == "no",
        "   ...one merged before it does not")
     ck(triage(s2, NOW_Q + [iss(25)]).get("go") == "yes"
-       and triage(s2, [q for q in NOW_Q if q["number"] != 24]).get("go") == "yes",
-       "🔴 a changed queue re-arms it: an issue opened, or one closed")
+       and triage(s2, [q for q in NOW_Q if q["number"] != 24] + [iss(25)]).get("go") == "yes",
+       "🔴 a new watcher issue re-arms it -- also when another closed the same pass")
+    g = triage(s2, [q for q in NOW_Q if q["number"] != 24])
+    ck(g.get("go") == "no" and "standing down since" in g["log"],
+       "🔴🔴 an issue CLOSING keeps it down: every issue left was in the queue that just "
+       "failed twice [Sam's review, PR #195]", shown(g["log"][-200:]))
     ck(triage(s2, NOW_Q + [iss(26, NR)]).get("go") == "no"
        and triage(s2, NOW_Q + [iss(27, CNT)]).get("go") == "no",
        "   ...but not a not-agent-repairable issue or a counter: the agent would never get either")
@@ -578,14 +587,15 @@ for _n, _at, _unrep, _queue in REPLAY:
     if _tell:
         _told[_n] = _tell
 _stopped = [n for n, *_ in REPLAY if n not in _ran]
-eq(_stopped, [57, 58, 59, 62],
-   "🔴🔴 of the eight passes, four would not have started: #57, #58, #59 and #62")
-eq((_picked, _told), ({55: 188, 56: 190, 60: 188, 61: 191}, {56: [188, 190], 61: [191]}),
-   "   the four that start work #188, #190, #188, #191 (never #44); #60 because #190 "
-   "closed at 19:19Z on 9/27; #188 and #190 are told at #56, #191 at #61")
+eq(_stopped, [57, 58, 59, 60, 61, 62],
+   "🔴🔴 of the eight passes, six would not have started: #57 to #62")
+eq((_picked, _told), ({55: 188, 56: 190}, {56: [188, 190]}),
+   "   the two that start work #188 and #190 (never #44) and tell both; #190 closing "
+   "at 19:19Z on 9/27 and #192 opening (not agent-repairable) re-arm nothing")
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that an agent finishes a REAL repair in 40 "
      "turns. It claims the agent is not handed a counter or an issue no code "
      "change can clear, is not asked to run a suite longer than its job, that "
      "every pass is remembered, and that it is not started again after two "
-     "passes in a row that could not finish -- until something changes.")
+     "passes in a row that could not finish -- until a PR merges to main or a "
+     "new watcher issue opens.")

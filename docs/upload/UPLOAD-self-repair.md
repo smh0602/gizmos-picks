@@ -14,8 +14,9 @@ pull request. What changes in it:
    (or run to the end and open no pull request), it stops starting the
    agent. Each issue those passes worked on gets one comment: "self-repair
    could not fix this in 40 turns; it needs a person." It starts again
-   when a pull request merges to main, or when an issue it could work on
-   opens or closes.
+   when a pull request merges to main, or when a new watcher issue opens.
+   An issue closing does not restart it, because every issue left was
+   already in the queue that failed.
 2. **Every pass is recorded**, with how it ended (the turn cap, finished
    without a PR, a PR, or an error), in `data/latest/self-repair-last.json`.
    It lands the same way every data commit does.
@@ -61,7 +62,7 @@ self-repair: stand down after two passes that could not finish - no cron change
   - from the next pass on, the **triage** job's log says
     `standing down since …` and the agent does not start.
 - **It starts again on its own:** on the first pass after you merge any
-  pull request, or after a watcher issue it could work on opens or closes.
+  pull request, or after a new watcher issue opens.
 - **#44 and #192 are never picked.** The triage log's count leaves them
   out. Each picks up the marker the next time its watcher rewrites it:
   hourly for #44, daily for #192.

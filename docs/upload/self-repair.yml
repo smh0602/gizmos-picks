@@ -88,8 +88,8 @@
 #    runs a day. After two passes in a row that end at the turn cap (or run
 #    to the end and open no PR), triage does not start the agent; each issue
 #    those passes tried gets ONE comment saying it needs a person, and it
-#    stays down until a PR merges to main or the set of issues the agent
-#    could be handed changes. An issue whose watcher says no code change can
+#    stays down until a PR merges to main or a new watcher issue opens (an
+#    issue closing keeps it down). An issue whose watcher says no code change can
 #    clear it (`self_repair.NOT_REPAIRABLE`) is never handed over at all.
 name: self-repair
 # 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
@@ -168,7 +168,7 @@ jobs:
       #    issue produced a PR — which is what the one-pass skip reads.
       issue: ${{ steps.decide.outputs.issue }}
       # ⚠️ AND THE QUEUE IT WAS PICKED FROM (issue numbers only), so the
-      #    record can tell the next triage whether the queue has changed.
+      #    record can tell the next triage whether a new watcher issue opened.
       queue: ${{ steps.decide.outputs.queue }}
     steps:
       - uses: actions/checkout@v5
@@ -306,8 +306,10 @@ jobs:
           # with no PR, alternating #44 and #188. The record step below
           # counts passes like that; after two in a row it sets
           # `down_since`, and until a PR merges to main after that moment,
-          # or the set of issues the agent could be handed changes, the
-          # agent is NOT started -- health.json findings included.
+          # or a new watcher issue opens (one the agent could be handed
+          # that was not in the queue that failed), the agent is NOT
+          # started -- health.json findings included. ⛔ An issue CLOSING
+          # keeps it down: every issue left was in the queue that failed.
           # ⛔ "I could not look" is not "nothing merged": a refused
           #    query fails loud, exactly like the two above.
           QKEY=$(python self_repair.py key <<< "$QUEUE") \
@@ -332,7 +334,7 @@ jobs:
               echo "$WHY"
               echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
             fi
-            echo "re-armed: a pull request merged to main, or the watcher queue changed, since the stand-down began at $DOWN"
+            echo "re-armed: a pull request merged to main, or a new watcher issue opened, since the stand-down began at $DOWN"
           fi
           # ══════════════════════════════════════════════════════════
           # ⚠️ SKIP AN ISSUE THAT ALREADY PRODUCED NO PR — ONCE, NOT
@@ -732,5 +734,5 @@ jobs:
               echo "::error::could not tell issue #$N that it needs a person"; RC=1
             fi
           done
-          echo "self-repair stands down: the agent is not started again until a pull request merges to main or the set of open watcher issues changes"
+          echo "self-repair stands down: the agent is not started again until a pull request merges to main or a new watcher issue opens"
           exit $RC
