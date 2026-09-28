@@ -427,7 +427,26 @@ ck("⚠️ ...and it is the tenth, not a second reporting channel",
    len(W.CHECKS) == len({f.__name__ for f in W.CHECKS}),
    "one report, one issue")
 
-_out = W.run(NOW)
+# 🔴 REAL now, not the synthetic NOW above. This is the LIVE repo, and
+#    `check_credit_reconciliation`'s window is `max(now - 24h, RECON_SINCE)`
+#    — a `now` frozen in the past collapses that to `RECON_SINCE` and grows
+#    the window by a day every day the calendar moves on, until it starts
+#    flagging real cross-run residue a true 24h window would never see.
+#    Measured 2026-09-28: NOW=2026-09-18 turned this section red on a
+#    healthy repo. Same trap as #51, one level down — a frozen literal
+#    reddening on correct code — except the literal here is a timestamp.
+_out = W.run()
+ck("⛔ the live-repo read is timestamped near REAL now, not the frozen "
+   "synthetic NOW",
+   abs((datetime.datetime.now(UTC)
+        - datetime.datetime.strptime(_out["checked_at"], "%Y-%m-%dT%H:%M:%SZ")
+          .replace(tzinfo=UTC)).total_seconds()) < 3600,
+   "⛔ a frozen `now` handed to a check of the LIVE repo is a time bomb: "
+   "`check_credit_reconciliation`'s window is `max(now - 24h, "
+   "RECON_SINCE)`, so a stale `now` silently widens the window to every "
+   "day since RECON_SINCE and starts flagging real cross-run residue that "
+   "a true 24h window would never see. checked_at=%r"
+   % (_out.get("checked_at"),))
 ck("`run()` puts the reading into the report",
    isinstance(_out.get("credits"), dict), "credits=%s" % (_out.get("credits"),))
 for _k in ("state", "balance", "pulled_at", "reserve", "reading_age_hours",
