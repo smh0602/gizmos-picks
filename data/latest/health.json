@@ -1,16 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-28T16:00:41Z",
+ "checked_at": "2026-09-28T16:01:50Z",
  "et_date": "2026-09-28",
  "healthy": false,
  "broken": 1,
- "degraded": 2,
+ "degraded": 1,
  "findings": [
   {
    "key": "card:mlb",
    "severity": "BROKEN",
    "what": "Gizmo's Picks and Parlays have no card for 2026-09-28",
-   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 120 minutes ago. \u26d4 `card` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 121 minutes ago. \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card"
@@ -19,13 +19,6 @@
    "key": "fresh:mlb",
    "severity": "DEGRADED",
    "what": "mlb tabs are showing data older than promised (card, results)",
-   "why": "the freshness contract says 2 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
-  {
-   "key": "fresh:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl tabs are showing data older than promised (news)",
    "why": "the freshness contract says 2 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   }
