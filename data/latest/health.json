@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-28T18:54:02Z",
+ "checked_at": "2026-09-28T19:03:04Z",
  "et_date": "2026-09-28",
  "healthy": false,
  "broken": 1,
@@ -10,7 +10,7 @@
    "key": "card:mlb",
    "severity": "BROKEN",
    "what": "Gizmo's Picks and Parlays have no card for 2026-09-28",
-   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 294 minutes ago. \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
+   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 303 minutes ago. \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card"
@@ -29,15 +29,15 @@
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 3781,
-  "pulled_at": "2026-09-28T18:54:00Z",
+  "balance": 3768,
+  "pulled_at": "2026-09-28T19:02:54Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-09-28T18:54:00Z",
-  "source": "data/ncaaf/2026-09-28/gamelines/1854.json.gz",
-  "readings_on_disk": 449,
+  "newest_paid_pull": "2026-09-28T19:02:54Z",
+  "source": "data/nfl/2026-09-28/props-player/1902.json.gz",
+  "readings_on_disk": 451,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
