@@ -433,6 +433,12 @@ ck(bool(_day), "⚠️ there is a graded day to attach sections to",
 if _day:
     _ids = sorted({r["board_id"] for r in _rows if r.get("day") == _day})
     _arch = os.path.join(_d4, "data/nfl", _day, "dossiers", "1200.json.gz")
+    # 🔴 THE REAL ARCHIVES OF THAT DAY ARE REMOVED FIRST. `sections_for`
+    #    reads the NEWEST file of the day, and the collector keeps adding
+    #    real ones (1544.json.gz sorts after this fixture's 1200), so the
+    #    join was reading a real dossier and the expected states failed.
+    #    A fixture must be the ONLY archive, or it is not what is read.
+    shutil.rmtree(os.path.dirname(_arch), ignore_errors=True)
     os.makedirs(os.path.dirname(_arch), exist_ok=True)
     with gzip.open(_arch, "wt") as _fh:
         json.dump({"dossiers": [

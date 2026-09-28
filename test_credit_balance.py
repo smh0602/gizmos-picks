@@ -452,10 +452,21 @@ for _t in ("credits_remaining", "credit balance", "x-requests-remaining"):
 
 # ⚠️ AND IT IS QUIET ON THE REAL REPO — a new check that alarms on a
 #    healthy repo is the other failure (and it is how a channel dies).
+# 🔴 THE LIVE TREE IS JUDGED AT THE LIVE CLOCK. `_out` above runs at the
+#    fixed NOW (2026-09-18), which is BEFORE today's stored pulls: the
+#    ledger then reads the account as spending more than the snapshots
+#    add up to (`credits:unrecorded`) and the reading's age goes negative.
+#    That is a fixture clock judging real data, not a defect in the repo.
+_live = W.run()
+_live_cr = _live.get("credits") or {}
 ck("⚠️ it is SILENT on the live repo today",
-   not [i for i in _out["findings"] if i["key"].startswith("credits")],
+   not [i for i in _live["findings"] if i["key"].startswith("credits")],
    "⛔ a guard that fires on correct code is not a safe guard. "
-   "credits=%s" % (_out.get("credits"),))
+   "credits=%s" % (_live_cr,))
+ck("...and the live reading is not from the future",
+   (_live_cr.get("reading_age_hours") is None
+    or _live_cr["reading_age_hours"] >= 0),
+   "age=%s" % (_live_cr.get("reading_age_hours"),))
 note("live reading: %s left as of %s, floor %s, state %s"
      % (_cr.get("balance"), _cr.get("pulled_at"),
         _cr.get("reserve"), _cr.get("state")))
