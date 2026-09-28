@@ -662,6 +662,8 @@ def _tree():
     # ⚠️ runs_report.py imports wfparse (the staged-upload check, 2026-09-23);
     #    a fixture missing a module the script imports tests a crash.
     shutil.copy(os.path.join(ROOT, "wfparse.py"), d)
+    # ...and self_repair (the not-agent-repairable marker, 2026-09-28).
+    shutil.copy(os.path.join(ROOT, "self_repair.py"), d)
     return d
 
 

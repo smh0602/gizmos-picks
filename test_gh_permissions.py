@@ -249,7 +249,12 @@ def drive(gh_body, health='{"unrepairable": [], "findings": []}'):
         env = dict(os.environ)
         env["PATH"] = b + os.pathsep + env["PATH"]
         env["GITHUB_OUTPUT"] = out
-        p = subprocess.run(["bash", "-c", _RUN], cwd=d, env=env,
+        # ⚠️ FROM A FILE, NOT `bash -c` `[2026-09-28]`: on Windows a
+        #    `bash -c` script past about 8K characters is cut short with no
+        #    error, and the staged step is past it -- a drive of half a step.
+        with open(os.path.join(d, "step.sh"), "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(_RUN)
+        p = subprocess.run(["bash", "step.sh"], cwd=d, env=env,
                            capture_output=True, text=True, timeout=120)
         got = {}
         for ln in open(out).read().split("\n"):

@@ -55,8 +55,8 @@ added — and a new watcher is precisely the one most likely to forget.
 #
 # @vacuity 🔴 ...and a counter is left out of the queue, not only skipped
 #   file: self_repair.py
-#   find:     return [it for it in (queue or []) if not is_counter(it)]
-#   with:     return list(queue or [])
+#   find:             if not is_counter(it) and not is_not_repairable(it)]
+#   with:             if not is_not_repairable(it)]
 """
 import glob
 import io
@@ -267,12 +267,23 @@ ck("...and the skip is explicitly not forever",
    "the reasoning has to be where the next reader will look")
 # ⛔ AND SOMETHING ACTUALLY WRITES IT. A read with no writer is a skip
 #    that never happens — the cap would be decoration.
+# ⚠️ `[2026-09-28]` THE WRITER MOVED INTO `self_repair.py record`, which
+#    also keeps the stand-down's streak. The deployed file writes inline
+#    until Sam uploads the staged one, so BOTH forms are asked the same
+#    question -- and the new one is CALLED, not grepped (its record landing
+#    on a bare origin is driven in test_self_repair.py §4-§5).
+import self_repair as _srw  # noqa: E402
+_inline = 'json.dump({"issue"' in SR and '"opened_pr": opened' in SR
+_viamod = "python self_repair.py record" in SR
+_noprs = [_srw.advance({}, "7", how, [7], "2026-09-28T00:00:00Z")[0]
+          for how in (_srw.TURN_CAP, _srw.NO_PR, _srw.ERROR)]
 ck("🔴 a step RECORDS whether the pass produced a PR",
    "Record whether this pass produced a pull request" in SR
-   and 'json.dump({"issue"' in SR,
+   and (_inline or (_viamod and all(r["issue"] == 7 and "opened_pr" in r for r in _noprs))),
    "⛔ the read of self-repair-last.json is meaningless without a writer")
 ck("...and it records the PR-LESS case too, which is the whole point",
-   "if: always()" in SR and '"opened_pr": opened' in SR,
+   "if: always()" in SR
+   and (_inline or (_viamod and all(r["opened_pr"] is False for r in _noprs))),
    "🔴 the case worth recording is the one where the agent produced "
    "NOTHING, which is the case where the earlier steps failed")
 ck("⚠️ ...and it commits ONE named file, never `git add -A`",
@@ -439,7 +450,12 @@ def _drive(health, queue, last=None, openprs=0, run=None):
         _env = dict(os.environ)
         _env["PATH"] = _bin + os.pathsep + _env["PATH"]
         _env["GITHUB_OUTPUT"] = _out
-        _sp.run(["bash", "-c", run or _RUN], cwd=d, env=_env,
+        # ⚠️ FROM A FILE, NOT `bash -c` `[2026-09-28]`: on Windows a
+        #    `bash -c` script past about 8K characters is cut short with no
+        #    error, and the staged step is past it -- a drive of half a step.
+        io.open(os.path.join(d, "step.sh"), "w", encoding="utf-8",
+                newline="\n").write(run or _RUN)
+        _sp.run(["bash", "step.sh"], cwd=d, env=_env,
                 capture_output=True, text=True, timeout=120)
         got = {}
         for ln in io.open(_out, encoding="utf-8").read().split("\n"):

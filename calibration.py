@@ -263,6 +263,16 @@ def render(res):
     out.append("_One issue, updated in place, closed by itself when every "
                "league is back inside the bar. Football only — MLB is "
                "frozen and is never read here._")
+    # 🔴 `[2026-09-28]` SELF-REPAIR NEVER TAKES THIS ISSUE (#192): what the
+    #    board delivered is an outcome, and the model and its bar are Sam's.
+    #    No code change clears it on its own. ⚠️ Imported HERE, not at the
+    #    top: card.py imports this module, and the MLB card's imports stay
+    #    as they were. ⛔ One copy of the marker (self_repair.py).
+    from self_repair import NOT_REPAIRABLE
+    out.append("")
+    out.append("_Self-repair does not take this issue: no code change clears "
+               "what the board delivered, so it needs a person._")
+    out.append(NOT_REPAIRABLE)
     for lg, r in sorted(res.items()):
         if r["state"] == "NOT_MEASURABLE":
             out.append("")
