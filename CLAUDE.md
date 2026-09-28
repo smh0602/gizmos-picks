@@ -678,10 +678,15 @@ wfparse.py        the one HAND parser for a workflow file -- jobs,
 wfroutes.py       the one parser for the workflow's routing table
 jsblock.py        the one reader for a function's body in index.html
 self_repair.py    self-repair triage: which watcher issue the repair agent
-                  gets. ⛔ An issue whose watcher marks it a counter
-                  (`COUNTER`, e.g. T58/T59's progress) is never a task:
-                  eight passes on 09-24/25 got #42 and five ran out of
-                  turns. Read by self-repair.yml's triage step.
+                  gets, and whether it is started at all. ⛔ An issue whose
+                  watcher marks it a counter (`COUNTER`, e.g. T58/T59's
+                  progress) or not agent-repairable (`NOT_REPAIRABLE`: the
+                  runs watcher's late crons, the calibration monitor) is
+                  never a task. `[2026-09-28]` After two passes in a row
+                  that end at the turn cap or open no PR it STANDS DOWN
+                  until a PR merges to main or a new watcher issue opens (#55-#62:
+                  8 of 8 at the turn cap). Read by self-repair.yml's
+                  triage and record steps.
 runs_report.py    did any workflow run fail? `[2026-09-25]` also writes
                   data/latest/runs.json (`collect.py runs`, hourly from
                   runs.yml's own `publish` job): the last 48h of every

@@ -81,6 +81,16 @@
 #    ~~the old MLB freeze~~ — Sam lifted the freeze 2026-09-22 ("unfreeze all
 #    mlb"). A prompt that disagrees with CLAUDE.md is worse than silence;
 #    test_watchdog.py fails if the two ever say different things.
+#
+# 5. 🔴🔴 IT STOPS STARTING AN AGENT THAT CANNOT FINISH. `[2026-09-28]`
+#    self-repair #55-#62: eight passes in 48 hours, every one "Reached
+#    maximum number of turns (40)", 0 PRs, about four of Sam's subscription
+#    runs a day. After two passes in a row that end at the turn cap (or run
+#    to the end and open no PR), triage does not start the agent; each issue
+#    those passes tried gets ONE comment saying it needs a person, and it
+#    stays down until a PR merges to main or a new watcher issue opens (an
+#    issue closing keeps it down). An issue whose watcher says no code change can
+#    clear it (`self_repair.NOT_REPAIRABLE`) is never handed over at all.
 name: self-repair
 # 🔴🔴 THE RUN SAYS WHICH CRON FIRED IT. `[added 2026-09-15 — ledger rule 271]`
 # ⛔ WITHOUT THIS, TWO CRONS IN ONE HOUR ARE INDISTINGUISHABLE. The
@@ -157,6 +167,9 @@ jobs:
       # ⚠️ THE ISSUE NUMBER TRAVELS, so the fix job can record whether this
       #    issue produced a PR — which is what the one-pass skip reads.
       issue: ${{ steps.decide.outputs.issue }}
+      # ⚠️ AND THE QUEUE IT WAS PICKED FROM (issue numbers only), so the
+      #    record can tell the next triage whether a new watcher issue opened.
+      queue: ${{ steps.decide.outputs.queue }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -253,10 +266,13 @@ jobs:
           #    of turns looking for a defect that does not exist. A
           #    watcher marks a counter in its body and `self_repair.py`
           #    leaves it out: a queue holding only counters stands down.
+          #    `[2026-09-28]` The same for an issue its watcher marks NOT
+          #    AGENT-REPAIRABLE (cron lateness, the calibration monitor):
+          #    no code change clears it on its own.
           #    ⛔ A crash here is an error, never an empty queue.
           QN=$(python self_repair.py count <<< "$QUEUE") \
             || { echo "::error::self_repair.py could not count the queue"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
-          echo "open watcher issues: $QN (counters left out)"
+          echo "open watcher issues: $QN (counters and not-agent-repairable left out)"
 
           if [ "$UNREP" = "0" ] && [ "$QN" = "0" ]; then
             echo "nothing unrepairable and no watcher issue open"
@@ -281,6 +297,44 @@ jobs:
           if [ "$OPEN" != "0" ]; then
             echo "a self-repair PR is already open — not opening another"
             echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # ══════════════════════════════════════════════════════════
+          # 🔴🔴 STAND DOWN AFTER TWO PASSES THAT COULD NOT FINISH.
+          # ══════════════════════════════════════════════════════════
+          # `[2026-09-28]` self-repair #55-#62 ran eight times in 48 hours
+          # and every pass ended at "Reached maximum number of turns (40)"
+          # with no PR, alternating #44 and #188. The record step below
+          # counts passes like that; after two in a row it sets
+          # `down_since`, and until a PR merges to main after that moment,
+          # or a new watcher issue opens (one the agent could be handed
+          # that was not in the queue that failed), the agent is NOT
+          # started -- health.json findings included. ⛔ An issue CLOSING
+          # keeps it down: every issue left was in the queue that failed.
+          # ⛔ "I could not look" is not "nothing merged": a refused
+          #    query fails loud, exactly like the two above.
+          QKEY=$(python self_repair.py key <<< "$QUEUE") \
+            || { echo "::error::self_repair.py could not key the queue"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
+          DOWN=$(python self_repair.py down-since) \
+            || { echo "::error::could not read the stand-down record"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
+          if [ -n "$DOWN" ]; then
+            set +e
+            MERGED=$(gh pr list --state merged --base main --limit 50 \
+                       --json number,mergedAt 2>/tmp/ghmerged.err)
+            MRC=$?
+            set -e
+            if [ "$MRC" != "0" ]; then
+              echo "::error::could not read the merged pull requests (exit $MRC from gh) — refusing to assume none merged"
+              sed -e 's/^/    /' /tmp/ghmerged.err | head -20
+              echo "go=no" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+            WHY=$(python self_repair.py still-down "$MERGED" <<< "$QUEUE") \
+              || { echo "::error::self_repair.py could not judge the stand-down"; echo "go=no" >> "$GITHUB_OUTPUT"; exit 1; }
+            if [ -n "$WHY" ]; then
+              echo "$WHY"
+              echo "go=no" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            echo "re-armed: a pull request merged to main, or a new watcher issue opened, since the stand-down began at $DOWN"
           fi
           # ══════════════════════════════════════════════════════════
           # ⚠️ SKIP AN ISSUE THAT ALREADY PRODUCED NO PR — ONCE, NOT
@@ -341,6 +395,7 @@ jobs:
           DELIM="SR_$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
           echo "go=yes" >> "$GITHUB_OUTPUT"
           echo "issue=$ISSUE_N" >> "$GITHUB_OUTPUT"
+          echo "queue=$QKEY" >> "$GITHUB_OUTPUT"
           echo "summary<<$DELIM" >> "$GITHUB_OUTPUT"
           echo "$SUMMARY" >> "$GITHUB_OUTPUT"
           echo "$ISSUE_TXT" >> "$GITHUB_OUTPUT"
@@ -450,7 +505,10 @@ jobs:
           # silence where it is not.
           show_full_output: true
 
-      - if: needs.triage.outputs.drill != 'yes'
+      # ⚠️ `id: agent` `[2026-09-28]`: the record step reads how it ended
+      #    (`steps.agent.outcome`, and its result file's `subtype`).
+      - id: agent
+        if: needs.triage.outputs.drill != 'yes'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -607,8 +665,18 @@ jobs:
       #    `push_retry.sh` (the ONE way a workflow lands its commits), and
       #    a push that fails is an ::error:: and a red step, never a
       #    message that reads like success.
+      # 🔴🔴 `[2026-09-28]` AND HOW THE PASS ENDED, WHICH IS WHAT THE
+      #    STAND-DOWN COUNTS. Eight passes (#55-#62) ended at the turn cap
+      #    with nothing to stop the ninth. `self_repair.py record` reads the
+      #    agent's own result (`subtype: error_max_turns` -- measured in
+      #    #62's log, saved to claude-execution-output.json) and keeps the
+      #    streak; the second pass in a row that could not finish sets
+      #    `down_since`, and each issue it tried gets ONE comment. Every
+      #    pass is recorded now, a health.json-only pass too (issue null).
+      #    ⛔ The values come in through `env:`, never spliced into the
+      #    script, and the comments go out only AFTER the record landed.
       - name: A clean checkout to record into
-        if: always() && needs.triage.outputs.drill != 'yes' && needs.triage.outputs.issue != ''
+        if: always() && needs.triage.outputs.drill != 'yes'
         uses: actions/checkout@v5
         with:
           path: record
@@ -616,14 +684,16 @@ jobs:
 
       - name: Record whether this pass produced a pull request
         if: always() && needs.triage.outputs.drill != 'yes'
-        working-directory: ${{ needs.triage.outputs.issue != '' && 'record' || '.' }}
+        working-directory: record
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SINCE: ${{ steps.since.outputs.at }}
+          ISSUE: ${{ needs.triage.outputs.issue }}
+          QUEUE: ${{ needs.triage.outputs.queue }}
+          AGENT: ${{ steps.agent.outcome }}
+          RESULT: ${{ steps.agent.outputs.execution_file }}
         run: |
           set +e
-          ISSUE="${{ needs.triage.outputs.issue }}"
-          [ -z "$ISSUE" ] && { echo "no issue was picked — nothing to record"; exit 0; }
           PRS=$(gh pr list --state all --limit 20 --json headRefName,createdAt 2>/tmp/ghpr.err) \
             || { echo "::warning::could not list pull requests — recording opened_pr=0"; PRS="[]"; }
           OPENED=$(python -c "
@@ -634,27 +704,35 @@ jobs:
                     and p['createdAt'] >= since))
           " "$SINCE" <<< "$PRS")
           case "$OPENED" in ''|*[!0-9]*) OPENED=0 ;; esac
-          python - "$ISSUE" "$OPENED" <<'PYEOF'
-          import json, sys, datetime
-          issue, opened = sys.argv[1], sys.argv[2] != "0"
-          json.dump({"issue": int(issue), "opened_pr": opened,
-                     "at": datetime.datetime.now(datetime.timezone.utc)
-                           .strftime("%Y-%m-%dT%H:%M:%SZ"),
-                     "note": ("⛔ The next pass skips this issue ONLY if "
-                              "opened_pr is false, and only for that one "
-                              "pass. A permanent skip list is a filtered "
-                              "alert (rule 238).")},
-                    open("data/latest/self-repair-last.json", "w"), indent=1)
-          PYEOF
+          [ -n "$RESULT" ] || RESULT="$RUNNER_TEMP/claude-execution-output.json"
+          OUT=$(python self_repair.py record "$ISSUE" "$OPENED" "$AGENT" "$RESULT" "${QUEUE:-[]}") \
+            || { echo "::error::self_repair.py could not write the record for this pass"; exit 1; }
+          HOW=$(sed -n 1p <<< "$OUT")
+          TELL=$(sed -n 2p <<< "$OUT")
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/latest/self-repair-last.json
           if git diff --staged --quiet; then
             echo "the record is unchanged"; exit 0
           fi
-          git commit -q -m "self-repair: issue #$ISSUE, opened_pr=$OPENED"
+          git commit -q -m "self-repair: issue #${ISSUE:-none}, opened_pr=$OPENED, $HOW"
           if ! bash push_retry.sh "self-repair record"; then
-            echo "::error::could not record this pass (issue #$ISSUE, opened_pr=$OPENED) — the next pass will pick the same issue again"
+            echo "::error::could not record this pass (issue #${ISSUE:-none}, $HOW) — the next pass will pick the same issue again, and the stand-down cannot count it"
             exit 1
           fi
-          echo "recorded: issue #$ISSUE, opened_pr=$OPENED"
+          echo "recorded: issue #${ISSUE:-none}, opened_pr=$OPENED, $HOW"
+          # 🔴 THE STAND-DOWN BEGAN WITH THIS PASS: one comment on each issue
+          #    it tried, and never a second one on the same issue.
+          [ -z "$TELL" ] && exit 0
+          TELL_MD=$(mktemp)
+          python self_repair.py tell-body > "$TELL_MD"
+          RC=0
+          for N in $TELL; do
+            if gh issue comment "$N" --body-file "$TELL_MD"; then
+              echo "told #$N it needs a person"
+            else
+              echo "::error::could not tell issue #$N that it needs a person"; RC=1
+            fi
+          done
+          echo "self-repair stands down: the agent is not started again until a pull request merges to main or a new watcher issue opens"
+          exit $RC

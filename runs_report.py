@@ -49,6 +49,17 @@ import subprocess
 import sys
 
 import wfparse  # the one workflow reader: cron files, staged and deployed
+# 🔴 `[2026-09-28]` SELF-REPAIR NEVER TAKES THIS WATCHER'S ISSUE. Crons that
+#    did not fire and workflows GitHub never ran are its scheduler, a staged
+#    upload needs Sam's hands, and a failing run is reported here as a
+#    symptom. No code change clears the issue on its own: self-repair
+#    #55-#62 spent four of its eight 40-turn passes on it (#44).
+#    ⛔ One copy of the marker, in self_repair.py; triage reads it.
+from self_repair import NOT_REPAIRABLE  # noqa: E402
+
+PERSON_ONLY = ("_Self-repair does not take this issue: no code change clears "
+               "late crons, unseen workflows or a waiting upload on its own, "
+               "so it needs a person._\n" + NOT_REPAIRABLE)
 
 # ⛔ NOT A THRESHOLD FOR THE ALARM — the alarm is "latest run failed".
 #    This is only how many failures make a RECOVERED workflow worth a note.
@@ -761,6 +772,8 @@ def render(broken, flapping, seen, truncated=False, missing=(),
     out.append("_Workflows seen: %s. This issue is updated in place and "
                "closes itself when every workflow's latest run is green._"
                % ", ".join("`%s`" % s for s in seen))
+    out.append("")
+    out.append(PERSON_ONLY)
     return "\n".join(out)
 
 
@@ -890,6 +903,7 @@ def render_stale(stale):
                      % (s["file"], ("staged %s hours ago" % s["hours"])
                         if s["hours"] is not None else "GitHub could not say when it was staged",
                         what, s["file"][:-4]))
+    lines += ["", PERSON_ONLY]
     return "\n".join(lines)
 
 
