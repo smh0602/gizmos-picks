@@ -168,7 +168,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 # @vacuity the card diff compares FRESH cards built from a planted props board, never frozen copies
 #   file: card_fb.py
 #   find: conf = (H + K_PRIOR * p0) / (N + K_PRIOR)
-#   with: conf = (H + K_PRIOR * p0) / (N + K_PRIOR) - (0.01 if __import__("os").path.exists("dossier_fb.py") else 0)
+#   with: conf = (H + K_PRIOR * p0) / (N + K_PRIOR) - (0.01 if __import__("glob").glob("do*_fb.py") else 0)
+#   ⚠️ The replacement must not SPELL the file's name: "card_fb.py does not
+#      mention the dossier" would go red on the text alone and the sweep
+#      would read BITES whether or not the diff saw anything — which is
+#      how this mutation first passed while the WITHOUT tree held the file.
 #
 # @vacuity at least one vs-position section answers, so the verdict phrases are never checked over nothing
 #   file: dossier_fb.py
@@ -465,6 +469,20 @@ def tree(with_dossier=True, extras=False):
     copy_module("collect", d)
     if with_dossier:
         copy_module("dossier_fb", d)
+    else:
+        # ══════════════════════════════════════════════════════════════
+        # 🔴🔴 THE "WITHOUT" TREE HAD THE FILE ALL ALONG. `[found
+        # 2026-09-28 by driving section 3's mutation]` `collect.py`
+        # imports `dossier_fb` inside its `card-fb` branch, so the
+        # `copy_module("collect")` above copies it — and section 3's
+        # "card built WITHOUT this file" was built beside it. A card
+        # that reached the dossier would have reached it in BOTH trees,
+        # and the diff could not see it. ✅ Removed here, and section 3
+        # checks the two trees differ in exactly this file.
+        # ══════════════════════════════════════════════════════════════
+        _dx = os.path.join(d, "dossier_fb.py")
+        if os.path.exists(_dx):
+            os.remove(_dx)
     # 🌱 LAST, so the table it reads is the tree's own `collect.py`.
     _PLANTS[d] = plant(d, extras)
     return d
@@ -1066,6 +1084,9 @@ section("3. ⛔⛔ NO PROJECTION MOVES — THE CARDS ARE DIFFED, NOT ASSERTED")
 #      diff was comparing two copies of one file.
 #   2. NO PROPS. The rows come from the LIVE props board, so a day whose
 #      next slate is not priced yet has fewer than 5 rows, or none.
+#   3. NO "WITHOUT". The WITHOUT tree held `dossier_fb.py` too (see
+#      `tree()`): a `card_fb.py` that shifted every confidence whenever
+#      that file sat beside it passed all 121 checks of the old file.
 # ✅ SO BOTH TREES LOSE EVERY COMMITTED CARD BEFORE EITHER BUILDS, and
 #    the proof is built from a PLANTED props board: the priced props of a
 #    published card (`picks/fb-nfl-2026-09-20.json` — permanent history,
@@ -1077,6 +1098,11 @@ section("3. ⛔⛔ NO PROJECTION MOVES — THE CARDS ARE DIFFED, NOT ASSERTED")
 # ══════════════════════════════════════════════════════════════════════
 _CARD_FX = os.path.join(ROOT, "picks", "fb-nfl-2026-09-20.json")
 _with, _without = tree(True), tree(False)
+ck(os.path.exists(os.path.join(_with, "dossier_fb.py"))
+   and not os.path.exists(os.path.join(_without, "dossier_fb.py")),
+   "⚠️ the WITH tree holds `dossier_fb.py` and the WITHOUT tree does not",
+   "⛔ rule 67 — `copy_module(\"collect\")` brings the dossier along, and "
+   "two trees that both hold it diff to identical whatever the card does")
 
 
 def _card(d):
