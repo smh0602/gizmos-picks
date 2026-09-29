@@ -21,6 +21,15 @@ WHAT IS PINNED:
   2. the floor is applied before grading, and what it set aside is COUNTED
   3. the tab still renders, and says a reset happened rather than 0-0
   4. a product that simply never graded anything must NOT claim a reset
+
+`[2026-09-28]` Item 1 is DRIVEN in the sandbox (an MLB record planted
+beside the football tree must come out byte-identical), no longer read
+off the live MLB record.
+
+# @vacuity 🔴 the football grader never writes where MLB's record lives (planted sandbox)
+#   file: record_fb.py
+#   find: LATEST = f"{DATA}/latest"
+#   with: LATEST = "data/latest"
 """
 import gzip
 import json
@@ -44,18 +53,24 @@ ck("...and it is overridable without editing code",
    "so the earlier period can be graded again by moving one value")
 
 print("\n═══ 2. ⛔ MLB IS NOT TOUCHED ═══")
+# 🔴 `[2026-09-28]` ~~ck("MLB still has its graded record", live n > 0)~~
+#    asked PRODUCTION's MLB record to be non-empty (P3): a new season or a
+#    rebuild reddened it with football untouched, and it never proved the
+#    claim — a football grader that overwrote MLB's file with any graded
+#    record would pass. ✅ The claim is now DRIVEN: section 3 puts an MLB
+#    `record.json` in the sandbox and both football runs must leave it
+#    byte-identical. The live MLB record is reported.
 mlb = f"{ROOT}/data/latest/record.json"
 if os.path.exists(mlb):
     O = json.load(open(mlb, encoding="utf-8")).get("overall") or {}
-    ck("🔴 MLB still has its graded record", (O.get("n") or 0) > 0,
-       f"{O.get('w')} of {O.get('n')} ({O.get('pct')}%) — graded against "
-       f"the ledger and feeding the calibration accumulators")
-    ck("...and the football floor is not in MLB's grader",
-       "RECORD_FROM" not in open(f"{ROOT}/card.py", encoding="utf-8").read()
-       if os.path.exists(f"{ROOT}/card.py") else True,
-       "Sam said football only")
+    note("the live MLB record: %s of %s (%s%%) graded — reported, not asserted"
+         % (O.get("w"), O.get("n"), O.get("pct")))
 else:
-    note("no MLB record on disk — section 2 not measured")
+    note("no MLB record on disk")
+ck("...and the football floor is not in MLB's grader",
+   "RECORD_FROM" not in open(f"{ROOT}/card.py", encoding="utf-8").read()
+   if os.path.exists(f"{ROOT}/card.py") else True,
+   "Sam said football only")
 
 print("\n═══ 3. THE WIPE, DRIVEN IN A THROWAWAY TREE ═══")
 # ⛔ NEVER IN THE PRODUCT TREE. `tcheck` fails any test that leaves a file
@@ -78,6 +93,27 @@ for f in _g.glob(f"{ROOT}/data/ncaaf/latest/*"):
     if os.path.isfile(f):
         shutil.copy2(f, os.path.join(tmp, "data/ncaaf/latest",
                                      os.path.basename(f)))
+
+# 🔴 `[2026-09-28]` AND THE COPIED OUTPUTS ARE REMOVED. The loop above
+#    also copied the LIVE `record.json` and `record-detail.json.gz`, so
+#    "the grader ran in the sandbox" passed with no grader output at all
+#    (measured: a grader writing elsewhere stayed green here), and §3 read
+#    production's record instead of this run's.
+for _out in ("record.json", "record-detail.json.gz"):
+    _op = os.path.join(tmp, "data/ncaaf/latest", _out)
+    if os.path.exists(_op):
+        os.remove(_op)
+
+# ⛔ MLB'S RECORD, PLANTED IN THE SANDBOX — both football runs below must
+#    leave it byte-for-byte as it was (§2's claim, driven).
+_MLB_REC = os.path.join(tmp, "data", "latest", "record.json")
+os.makedirs(os.path.dirname(_MLB_REC), exist_ok=True)
+_MLB_BYTES = json.dumps({"built_at": "2026-09-27T12:00:00Z", "kind": "MLB",
+                         "overall": {"w": 3, "n": 5, "pct": 60.0},
+                         "calibration": [{"bucket": "60-70%", "predicted": 64.2,
+                                          "w": 3, "n": 5, "pct": 60.0}]},
+                        indent=1).encode("utf-8")
+open(_MLB_REC, "wb").write(_MLB_BYTES)
 
 dated = [f for f in os.listdir(os.path.join(tmp, "picks"))
          if f.startswith("fb-ncaaf-2") and not f.endswith("-latest.json")]
@@ -173,6 +209,13 @@ if os.path.exists(rec_p):
        f"floor rather than a delete")
     ck("...and the tab would then not claim a reset",
        (R2.get("cards_before_record_from") or 0) == 0)
+ck("🔴 MLB's record is byte-identical after BOTH football grading runs",
+   os.path.exists(_MLB_REC) and open(_MLB_REC, "rb").read() == _MLB_BYTES
+   and os.path.exists(rec_p),
+   "⛔ Sam: 'only football'. A football grader that wrote where MLB's "
+   "record lives would erase the record the calibration accumulators "
+   "feed on. rc=%s/%s" % (r.returncode, r2.returncode))
+shutil.rmtree(tmp, ignore_errors=True)
 
 print("\n═══ 5. THE TAB SURVIVES AND EXPLAINS ITSELF ═══")
 blk = js_block("fbRecord", os.path.join(ROOT, "index.html"))
