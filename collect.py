@@ -104,7 +104,7 @@ RESERVE = 750
 #    ⛔ alt-lines (#168) was paid and missing from watchdog's own pattern,
 #    so its spend was invisible to the reconciliation.
 PAID_KINDS = ("gamelines", "props-pitcher", "props-batter", "props-player",
-              "alt-lines")
+              "alt-lines")     # alt-lines: paid per game since #168
 
 # ⛔ A PAID MODE RUNS AT MOST ONCE PER PASS (`converge`). `[2026-09-29]`
 #    props-player buys the alt lines on its own deadline; converge had ALSO

@@ -803,15 +803,12 @@ def check_credit_balance(rep, now):
     #    the newest file. A snapshot written down an error path can lack
     #    the field, and taking `readings[0][1]` blindly would report
     #    `None` as a balance.
+    #    `credits.newest` keeps only integer balances (the one filter).
     bal, at, src = None, None, None
-    have = []
-    for pulled, credits, f in readings:
-        if isinstance(credits, int):
-            have.append((pulled, credits, f))
     # 🔴 `[2026-09-29]` THE NEWEST BALANCE BY THE CHAIN, NOT THE FILE NAME.
     #    Two paid pulls in one minute tie on the path: props-pitcher/1113
     #    (3,848) sorted above props-batter/1113 (3,808), the newer reading.
-    _nb = C.newest(have)
+    _nb = C.newest(readings)
     if _nb:
         at, bal, src = _nb
     if bal is None:

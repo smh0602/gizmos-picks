@@ -48,7 +48,7 @@ def readings(data, kinds):
         if not isinstance(j, dict):
             continue
         key = (m.group(1), m.group(3), int(m.group(4)[1:] or 0))
-        rows.append((key, (j.get("pulled_at"), j.get("credits_remaining"), f)))
+        rows.append((key + (f,), (j.get("pulled_at"), j.get("credits_remaining"), f)))
     rows.sort(key=lambda r: r[0], reverse=True)
     return [r for _k, r in rows]
 

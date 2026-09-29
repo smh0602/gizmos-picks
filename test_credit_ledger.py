@@ -23,7 +23,7 @@ Every case is planted in a throwaway tree; nothing reads production data.
 
 # @vacuity 🔴 alt-lines is a registered paid kind
 #   file: collect.py
-#   find:               "alt-lines")
+#   find:               "alt-lines")     # alt-lines: paid per game since #168
 #   with:               )
 #
 # @vacuity 🔴 every write that records credits goes through the registry
@@ -83,8 +83,8 @@ Every case is planted in a throwaway tree; nothing reads production data.
 #
 # @vacuity 🔴 health.json's balance is picked by the chain
 #   file: watchdog.py
-#   find:     _nb = C.newest(have)
-#   with:     _nb = have[0] if have else None
+#   find:     _nb = C.newest(readings)
+#   with:     _nb = readings[0] if readings else None
 """
 import ast
 import datetime
