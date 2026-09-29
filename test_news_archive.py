@@ -45,6 +45,16 @@ point of shipping the archive first.
 #   file: collect.py
 #   find:     day_dir = os.path.join(data, when.strftime("%Y-%m-%d"), "news")
 #   with:     day_dir = os.path.join(data, now().strftime("%Y-%m-%d"), "news")
+#
+# @vacuity 🔴 PLANTED quiet twin: a pull the real archive_news DID archive is not a divergence
+#   file: collect.py
+#   find:     p, wrote = daystore.archive(doc, data, "news", log=log, when=when)
+#   with:     p, wrote = daystore.archive(doc, data, "news-lost", log=log, when=when)
+#
+# @vacuity 🔴🔴 PLANTED firing twin: the chain reads latest's OWN stamp (a pull made now is fresh)
+#   file: freshness.py
+#   find: STAMP_FIELDS = ("pulled_at", "built_at", "generated_at", "written_at")
+#   with: STAMP_FIELDS = ("built_at", "generated_at", "written_at")
 """
 import ast
 import datetime
@@ -419,25 +429,49 @@ _ok = all(news_rows(o)[0].get("path") == _P[0]
 ck("🔴 `latest` is the news.json row and the archive the dated dir, in any "
    "order", _ok, "three rows under one mode; the flags row is neither")
 
+def _verdict(root, lg, now):
+    """THE WHOLE CHAIN, ONCE: the survey -> the `latest/news.json` row ->
+    the day its pull ran -> `_divergence` over that day's archive.
+    -> (latest row, archive row, day, ever, today, fires).
+    ⛔ ONE implementation, run on the live tree AND on the planted trees
+    below. ⚠️ Paths are built from `root`, never relative to the cwd: run
+    from elsewhere, a relative survey saw everything stale and the check
+    passed having asked nothing."""
+    # ⚠️ "/"-joined: `contract()` reads the league from the path's last
+    #    "/" component, so an `os.path.join` on Windows reads as MLB.
+    _r = root.replace(os.sep, "/")
+    _l, _a = news_rows(F.survey("%s/data/%s" % (_r, lg), "%s/picks" % _r, now))
+    _dy = _archive_day(F.stamp_of(_l.get("path") or ""), now)
+    _ev, _td, _fi = _divergence(root, lg, _dy, _l.get("stale"))
+    return _l, _a, _dy, _ev, _td, _fi
+
+
+# 🔴 `[2026-09-28]` ~~ck("latest fresh + an EMPTY archive day", not _fires)~~
+#    ON THE LIVE TREE asked PRODUCTION to stay silent (pattern P2): the
+#    news pull deliberately keeps `latest/news.json` when its archive write
+#    fails ("the news archive did not write ... IS FINE", pinned in §8), so
+#    one transient write failure turned every collect run and every PR red
+#    for up to an hour on correct code. ✅ The same chain is now asserted on
+#    PLANTED trees pinned to the real clock, quiet AND firing (below the
+#    four drives); the live verdict is reported here, and production keeps
+#    its own alarm — the soft dated-archive contract row goes STALE with a
+#    `::warning::` within the hour an archive write is missed.
 for _lg in ("nfl", "ncaaf"):
-    _lat, _arc = news_rows(F.survey("data/%s" % _lg, "picks"))
+    _lat, _arc, _day, _ever, _today, _fires = _verdict(ROOT, _lg, _NOW)
     ck("⛔ %s: the live check found BOTH rows it compares" % _lg,
        bool(_lat) and bool(_arc),
        "a missing `latest` row reads as fresh and would fire on nothing "
        "but the clock. latest=%r archive=%r"
        % (_lat.get("path"), _arc.get("path")))
-    _day = _archive_day(F.stamp_of(_lat.get("path") or ""), _NOW)
-    _ever, _today, _fires = _divergence(ROOT, _lg, _day,
-                                        _lat.get("stale"))
     note("%s: latest stale=%s (age %sm) · archived all-time %d · on %s %d"
          % (_lg, _lat.get("stale"), _lat.get("age_min"), _ever, _day, _today))
-    ck("🔴 %s: latest fresh + an EMPTY archive day" % _lg,
-       not _fires,
-       "⛔ the archive silently stopped — `latest/news.json` is current "
-       "and the archive of the day it was pulled (%s) holds nothing. "
-       "⚠️ DORMANT while the league has never archived (ever=%d); it ARMS "
-       "ITSELF on the first archived pull. that day=%d latest_stale=%s"
-       % (_day, _ever, _today, _lat.get("stale")))
+    note("%s %s: latest fresh + an EMPTY archive day — %s"
+         % ("⛔ DIVERGED" if _fires else "✅", _lg,
+            "the archive of the day the latest pull ran (%s) holds nothing "
+            "while latest is current; the soft archive row reports it to the "
+            "site as STALE" % _day if _fires else
+            "not diverged (ever=%d, that day=%d, latest_stale=%s)"
+            % (_ever, _today, _lat.get("stale"))))
 
 # ══════════════════════════════════════════════════════════════════════
 # ⛔ AND THE ARMING IS DRIVEN, IN A TEMP TREE — FOUR CASES, TWO OF WHICH
@@ -473,21 +507,48 @@ def _synth(ever_day=None, today_day=None):
 #    apart, and nothing was watching the join.
 # ⚠️ Read from the PARSED AST, so a comment naming `_fires` cannot
 #    satisfy it.
+# 🔴 `[2026-09-28]` RETARGETED, NOT RELAXED. The hard assertion moved from
+#    the live tree to the planted trees, so the pin follows it and asks
+#    MORE: both planted checks (quiet AND firing) must read a verdict bound
+#    from `_verdict(...)`, `_verdict` must be the one place `_divergence`
+#    is asked, and the live verdict must be REPORTED (one note) and never
+#    asserted (no ck) — a live ck here is the production-silence pattern
+#    this file just left.
 _own = ast.parse(io.open(os.path.abspath(__file__), encoding="utf-8").read())
-# ⚠️ WALK EACH ARGUMENT. The condition is `not _fires` — a UnaryOp, not
-#    a bare Name — so matching only top-level names finds nothing and
-#    reddens on correct code, which is the other failure.
-_live_ck = [n for n in ast.walk(_own)
-            if isinstance(n, ast.Call)
-            and getattr(n.func, "id", "") == "ck"
-            and any(isinstance(x, ast.Name) and x.id == "_fires"
-                    for a in n.args for x in ast.walk(a))]
-ck("⛔ the live divergence check reads `_divergence`'s verdict, in CODE",
-   len(_live_ck) == 1,
+
+
+def _refs(call, name):
+    # ⚠️ WALK EACH ARGUMENT. A condition like `not x` is a UnaryOp, not a
+    #    bare Name — matching only top-level names would find nothing.
+    return any(isinstance(x, ast.Name) and x.id == name
+               for a in call.args for x in ast.walk(a))
+
+
+_bound = set()
+for _n in ast.walk(_own):
+    if isinstance(_n, ast.Assign) and isinstance(_n.value, ast.Call) \
+            and getattr(_n.value.func, "id", "") == "_verdict":
+        _bound |= {x.id for t in _n.targets for x in ast.walk(t)
+                   if isinstance(x, ast.Name)}
+_calls = [n for n in ast.walk(_own) if isinstance(n, ast.Call)]
+_ck_of = lambda nm: [n for n in _calls if getattr(n.func, "id", "") == "ck" and _refs(n, nm)]  # noqa: E731
+_note_of = lambda nm: [n for n in _calls if getattr(n.func, "id", "") == "note" and _refs(n, nm)]  # noqa: E731
+_vfun = [n for n in ast.walk(_own) if isinstance(n, ast.FunctionDef) and n.name == "_verdict"]
+_div_in = [n for n in _calls if getattr(n.func, "id", "") == "_divergence"
+           and any(n in list(ast.walk(f)) for f in _vfun)]
+ck("⛔ the divergence verdict is asserted on the PLANTED trees, in CODE",
+   {"_quiet_fires", "_firing_fires", "_fires"} <= _bound
+   and len(_ck_of("_quiet_fires")) == 1 and len(_ck_of("_firing_fires")) == 1
+   and len(_div_in) == 1,
    "🔴 a condition that cannot be false is a `note()` wearing a `ck()` — "
-   "which is exactly what this check was until 2026-09-19. The drives "
-   "below exercise the helper; this asserts the LIVE check still asks "
-   "it. ck calls referencing `_fires`: %d" % len(_live_ck))
+   "which is exactly what this check was until 2026-09-19. bound from "
+   "_verdict: %s; ck on quiet %d, on firing %d; _divergence inside _verdict %d"
+   % (sorted(_bound), len(_ck_of("_quiet_fires")), len(_ck_of("_firing_fires")),
+      len(_div_in)))
+ck("⛔ ...and the LIVE verdict is reported, never asserted",
+   len(_ck_of("_fires")) == 0 and len(_note_of("_fires")) == 1,
+   "a ck on the live `_fires` asks production to stay silent (P2). "
+   "ck %d, note %d" % (len(_ck_of("_fires")), len(_note_of("_fires"))))
 
 _PAST = (datetime.datetime.now(UTC)
          - datetime.timedelta(days=4)).strftime("%Y-%m-%d")
@@ -529,6 +590,53 @@ for _name, _kw, _want_fire in (
     finally:
         shutil.rmtree(_d, ignore_errors=True)
     ck(_name, _f is _want_fire, "fires=%s (wanted %s) on-day=%d" % (_f, _want_fire, _t))
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE WHOLE LIVE CHAIN, ON PLANTED TREES PINNED TO NOW  `[2026-09-28]`
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ The drives above hand `_divergence` a day and a staleness. These run
+#    `_verdict` — the survey, the latest row, its own stamp, the archive
+#    of its day — end to end, on a tree whose `latest/news.json` was
+#    pulled NOW (the same clock the survey reads: never one of each), and
+#    whose archive was written by the REAL `collect.archive_news`.
+_PNOW = datetime.datetime.now(UTC)
+
+
+def _plant_news(archive_today):
+    d = _synth(ever_day=_PAST)            # armed: it has archived before
+    _lt = os.path.join(d, "data", "nfl", "latest")
+    os.makedirs(_lt, exist_ok=True)
+    _items = [{"title": "Planted headline", "link": "https://example.com/planted",
+               "published": iso(_PNOW)}]
+    with io.open(os.path.join(_lt, "news.json"), "w", encoding="utf-8") as _fh:
+        json.dump({"pulled_at": iso(_PNOW), "items": _items}, _fh)
+    if archive_today:
+        collect.archive_news(_items, iso(_PNOW), data=os.path.join(d, "data", "nfl"),
+                             log=Q, when=_PNOW)
+    return d
+
+
+_d = _plant_news(True)
+try:
+    _ql, _qa, _qday, _qever, _qtoday, _quiet_fires = _verdict(_d, "nfl", _PNOW)
+finally:
+    shutil.rmtree(_d, ignore_errors=True)
+ck("✅ PLANTED, pinned to now: latest fresh AND this pull archived — QUIET",
+   bool(_ql) and bool(_qa) and _ql.get("stale") is False
+   and _qtoday >= 1 and _quiet_fires is False,
+   "latest stale=%s, archive on %s: %d, ever %d, fires=%s"
+   % (_ql.get("stale"), _qday, _qtoday, _qever, _quiet_fires))
+_d = _plant_news(False)
+try:
+    _fl, _fa, _fday, _fever, _ftoday, _firing_fires = _verdict(_d, "nfl", _PNOW)
+finally:
+    shutil.rmtree(_d, ignore_errors=True)
+ck("🔴🔴 PLANTED, pinned to now: latest fresh and this pull NOT archived — FIRES",
+   bool(_fl) and _fl.get("stale") is False and _fever >= 1 and _ftoday == 0
+   and _firing_fires is True,
+   "⛔ the archive silently stopped and nothing else would say so. latest "
+   "stale=%s, archive on %s: %d, ever %d, fires=%s"
+   % (_fl.get("stale"), _fday, _ftoday, _fever, _firing_fires))
 
 # ⛔ AND THE LIVE CHECK ASKS FOR THAT DAY, IN CODE. ⚠️ A test cannot declare
 #    a mutation of its own file (vacuity counts the `find` in the docstring
