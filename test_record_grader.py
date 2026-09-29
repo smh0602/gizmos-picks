@@ -151,8 +151,12 @@ def tree():
 
 
 def sh(t, *argv):
+    # ⛔ KEYS BLANKED `[2026-09-28]`: `record` is free, and a collector run
+    #    from a test must never inherit a key it could spend if converge-off
+    #    were ever dropped (test_collect_subprocess.py).
     p = subprocess.run([sys.executable, "-B"] + list(argv), cwd=t, capture_output=True,
-                       text=True, timeout=300, env=dict(os.environ, LEAGUE="mlb"))
+                       text=True, timeout=300,
+                       env=dict(os.environ, LEAGUE="mlb", ODDS_API_KEY="", CFBD_API_KEY=""))
     return p.returncode, p.stdout + p.stderr
 
 
