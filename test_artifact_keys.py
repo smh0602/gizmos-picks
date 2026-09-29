@@ -254,13 +254,23 @@ ck("🔴🔴 PLANTED: this checkout's reader reads no key this checkout's writer
    % ("; ".join(_tf) or "none"))
 
 findings, surveyed, arts = scan(ROOT)
+# ⛔ `[2026-09-28]` THE CLASS SWEEP STAYS A CHECK. It asks THIS file's own
+#    question -- does every module read only keys its artifact carries --
+#    of every module in the repo, with the committed artifacts as the
+#    schema. The key set is a UNION over every dated copy on disk, and
+#    data/ is append-only, so it can only grow: this is not a guard's
+#    silence on production data. The planted twin above asks it where the
+#    answer is known by construction; this asks it of everything else.
 note("live sweep: bindings surveyed: %d, across artifacts %s" % (surveyed, sorted(arts)))
-note(("⚠️ LIVE SWEEP: %d reader(s) key on a name the ARTIFACT ON DISK does "
-      "not carry — either a reader bug (the defect of 2026-09-19) or a "
-      "writer ahead of production's copy. Check each: %s"
-      % (len(findings), "; ".join(findings))) if findings else
-     "⚪ live sweep: every key read off an on-disk artifact exists in it "
-     "(%d bindings)" % surveyed)
+ck("⚠️ the scanner found bindings to judge at all",
+   surveyed >= 4 and len(arts) >= 3,
+   "⛔ rule 67 — if the AST walk breaks, this file must go RED rather "
+   "than green on nothing. surveyed=%d artifacts=%s" % (surveyed, sorted(arts)))
+ck("🔴🔴 no module reads a key its artifact does not have",
+   not findings,
+   "⛔ THIS IS THE DEFECT OF 2026-09-19. A reader keyed on a name the "
+   "writer never emits gets an empty container, and an empty container "
+   "reads as 'nothing to report'. %s" % ("; ".join(findings) or "none"))
 
 # ════════════════════════════════════════════════════════════════════════
 section("2. 🔴🔴 AND THE STALENESS CHECK IS DRIVEN, NOT READ")
