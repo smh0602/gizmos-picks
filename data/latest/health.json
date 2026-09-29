@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-09-29T09:20:40Z",
+ "checked_at": "2026-09-29T12:29:24Z",
  "et_date": "2026-09-29",
  "healthy": false,
  "broken": 1,
@@ -10,7 +10,7 @@
    "key": "card:mlb",
    "severity": "BROKEN",
    "what": "Gizmo's Picks and Parlays have no card for 2026-09-28",
-   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 1160 minutes ago. \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
+   "why": "picks/2026-09-28.json does not exist and the mlb deadline passed 1349 minutes ago. \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card"
@@ -18,8 +18,8 @@
   {
    "key": "fresh:mlb",
    "severity": "DEGRADED",
-   "what": "mlb tabs are showing data older than promised (card, results)",
-   "why": "the freshness contract says 2 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "what": "mlb tabs are showing data older than promised (card)",
+   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   }
  ],
@@ -29,15 +29,15 @@
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 3699,
-  "pulled_at": "2026-09-29T00:17:39Z",
+  "balance": 3669,
+  "pulled_at": "2026-09-29T11:01:06Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 9.1,
+  "reading_age_hours": 1.5,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-09-29T00:17:39Z",
-  "source": "data/ncaaf/2026-09-29/gamelines/0017.json.gz",
-  "readings_on_disk": 459,
+  "newest_paid_pull": "2026-09-29T11:01:06Z",
+  "source": "data/2026-09-29/props-pitcher/1101.json.gz",
+  "readings_on_disk": 462,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
