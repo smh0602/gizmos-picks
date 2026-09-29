@@ -407,8 +407,8 @@ def render(rep):
     o.append("")
     o.append("_One issue, updated in place. It closes itself when the bar "
              "is met and both verdicts are in — until then this is a "
-             "counter, not a finding. Football only; MLB is frozen and is "
-             "never read here._")
+             "counter, not a finding. Football only: T58 and T59 are "
+             "football tests, so MLB is not read here._")
     o.append("")
     o.append(marker(rep))
     o.append(COUNTER)          # PROGRESS: a counter, not a finding

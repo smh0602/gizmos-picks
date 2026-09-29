@@ -28,6 +28,41 @@ deadline passed 887 minutes ago"* — because it took the day from `now` and
 the deadline from `last_due`, and at that hour those are DIFFERENT DAYS.
 Sunday's card was on disk, complete. ✅ The day now comes from the deadline
 itself, and section 2 drives that exact clock.
+
+# @vacuity 🔴 an all-zero schedule day owes no card (#200)
+#   file: freshness.py
+#   find:     return bool(seen) and all(n == 0 for n in seen)
+#   with:     return False
+#
+# @vacuity ⛔ ...but ANY reading with a game means the card is owed
+#   file: freshness.py
+#   find:     return bool(seen) and all(n == 0 for n in seen)
+#   with:     return bool(seen) and any(n == 0 for n in seen)
+#
+# @vacuity ⛔ ...and no schedule reading at all still fires (fails closed)
+#   file: freshness.py
+#   find:     return bool(seen) and all(n == 0 for n in seen)
+#   with:     return all(n == 0 for n in seen)
+#
+# @vacuity ⛔ ...and an unreadable reading does not count as zero games
+#   file: freshness.py
+#   find:                 return False          # unreadable: fail closed
+#   with:                 continue
+#
+# @vacuity ⛔ ...and a reading without totalGames fails closed
+#   file: freshness.py
+#   find:                 return False          # no totalGames: fail closed
+#   with:                 continue
+#
+# @vacuity the watchdog really asks freshness's one copy
+#   file: watchdog.py
+#   find:         if lg == "mlb" and F.no_games_day(day, os.path.join(ROOT, "data")):
+#   with:         if False:
+#
+# @vacuity 🔴 an MLB finding's summons names no freeze
+#   file: watchdog.py
+#   find:             L.append("MLB is fixed like any other finding: a failing test "
+#   with:             L.append("MLB is frozen; nothing changes until you lift it. A failing test "
 """
 import datetime
 import json
@@ -181,12 +216,25 @@ with Tree() as t:
 with Tree() as t:
     ck("⛔ ...and no schedule reading at all still fires (fails closed)",
        "card:mlb" in keys(W.run(_now)), "absence of evidence is not zero")
+# ⚠️ `[2026-09-29]` EACH FAIL-CLOSED BRANCH SITS BESIDE A ZERO READING. Alone,
+#    a junk or totalGames-less file leaves `seen` empty and the day owed
+#    whatever the branch does -- Cowork mutated `return False` to
+#    `continue` and this file stayed green. Beside a 0, only the branch
+#    itself keeps the card owed.
 with Tree() as t:
+    _sched(t, "2026-09-13", "1100.json.gz", "2026-09-13", 0)
     p = os.path.join(t.d, "data/2026-09-13/schedule/1200.json.gz")
-    os.makedirs(os.path.dirname(p))
     open(p, "wb").write(b"junk")
     ck("⛔ ...and an unreadable reading does not count as zero games",
        "card:mlb" in keys(W.run(_now)), "fail closed")
+with Tree() as t:
+    _sched(t, "2026-09-13", "1100.json.gz", "2026-09-13", 0)
+    p = os.path.join(t.d, "data/2026-09-13/schedule/1200.json.gz")
+    with gzip.open(p, "wt") as f:
+        json.dump({"date": "2026-09-13", "schedule": {"dates": []}}, f)
+    ck("⛔ ...and a reading without totalGames fails closed",
+       "card:mlb" in keys(W.run(_now)),
+       "a reading that does not say how many games is not a zero")
 
 print("\n═══ 3. ⏳ BEFORE THE DEADLINE, ABSENCE IS CORRECT ═══")
 # ⚠️ GRACE IS NOT LENIENCE. GitHub drops scheduled runs often enough that
@@ -430,12 +478,13 @@ ck("🔧 an UNREPAIRABLE finding offers the one-reply route",
    "@claude" in body_unrepairable and "pull request" in body_unrepairable,
    "⛔ this is the difference between 'Sam has to build and upload a "
    "drop' and 'Sam taps reply'. Got: %r" % body_unrepairable[-300:])
-ck("🔴 ...and it repeats the two rules that must not be broken",
+# ⚠️ `[2026-09-29]` ~~"...and do not touch MLB"~~ -- struck: Sam lifted the
+#    MLB freeze on 2026-09-22, so that rule is no longer one of CLAUDE.md's.
+ck("🔴 ...and it repeats the rule that must not be broken, and no lifted one",
    "do not weaken a check" in body_unrepairable
-   and "do not touch MLB" in body_unrepairable,
+   and "do not touch MLB" not in body_unrepairable,
    "⚠️ the agent that answers reads CLAUDE.md, but the summons is the "
-   "prompt and a prompt that omits the constraints is a prompt that "
-   "invites breaking them")
+   "prompt: it must carry CLAUDE.md's rules and no rule CLAUDE.md dropped")
 
 with Tree() as t:
     now = datetime.datetime(2026, 9, 14, 18, 0, tzinfo=UTC)
@@ -692,9 +741,10 @@ print("\n═══ 12. 🔴🔴 THE SUMMONS MUST NOT CONTRADICT ITSELF ═══
 # 🔴 THE FIRST VERSION ENDED "do not touch MLB" — ON AN ISSUE WHOSE
 #    FINDING WAS AN MLB CARD DEFECT. An instruction that forbids the only
 #    change that would resolve it produces either nothing or a violation.
-# ✅ The freeze becomes an explicit PER-INCIDENT UNLOCK: Sam sees MLB is
-#    what broke, sees nothing will be touched until he says so, and can
-#    lift it for that one issue in the same tap.
+# ~~✅ The freeze becomes an explicit PER-INCIDENT UNLOCK~~ -- struck
+#    `[2026-09-29]`: Sam lifted the MLB freeze on 2026-09-22. ✅ Every
+#    finding now gets the same summons; an MLB one also says a fitted
+#    coefficient is still Sam's (CLAUDE.md's "must never change" table).
 with Tree() as t:
     now = datetime.datetime(2026, 9, 14, 15, 30, tzinfo=UTC)
     t.write("picks/fb-nfl-latest.json", {"date": "2026-09-13"})
@@ -705,11 +755,12 @@ ck("🔴 an MLB finding does NOT tell the fixer to leave MLB alone",
    "do not touch MLB" not in body,
    "⛔ it is the one instruction that cannot be followed here. Got: %r"
    % body[-400:])
-ck("✅ ...it states the freeze and asks Sam to lift it for this issue",
-   "freeze is lifted for this issue only" in body
-   and "Nothing will be changed until you say so" in body,
-   "the freeze stays the default; what changes is that the decision is "
-   "VISIBLE rather than silently swallowed")
+ck("🔴 ...and it names no freeze: MLB is fixed like any other finding",
+   "freeze" not in body.lower() and "frozen" not in body.lower()
+   and "MLB is fixed like any other finding" in body
+   and "do not weaken a check" in body,
+   "⛔ Sam lifted the freeze on 2026-09-22; a summons that still names one "
+   "contradicts CLAUDE.md. Got: %r" % body[-400:])
 with Tree() as t:
     now = datetime.datetime(2026, 9, 14, 15, 30, tzinfo=UTC)
     t.write("picks/%s.json" % F.et_date(F.last_due(F.CARD, now)), {"picks": []})
@@ -717,9 +768,11 @@ with Tree() as t:
     t.write("picks/fb-ncaaf-latest.json", {"date": "2026-09-12"})
     t.write("data/ncaaf/latest/card-verify-failure.txt", "  FAIL x\n")
     body = W.render(W.run(now))
-ck("⛔ a NON-MLB finding still carries the plain do-not-touch-MLB rule",
-   "do not touch MLB" in body and "freeze is lifted" not in body,
-   "the unlock is per-incident and must not leak onto football issues. "
+ck("⛔ a NON-MLB finding gets the same summons, without the MLB line",
+   "do not touch MLB" not in body and "freeze" not in body.lower()
+   and "do not weaken a check" in body
+   and "MLB is fixed like any other finding" not in body,
+   "one summons for every finding; the MLB line only where MLB broke. "
    "Got: %r" % body[-300:])
 
 
