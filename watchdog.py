@@ -223,27 +223,6 @@ def _read(p):
         return None
 
 
-def _no_games_day(day):
-    """True only when every stored schedule reading for ET `day` says the
-    league had NO games. Fails closed: no reading, an unreadable one, or
-    any reading listing a game means a card is still owed.
-    """
-    nxt = (datetime.date.fromisoformat(day)
-           + datetime.timedelta(days=1)).isoformat()
-    seen = []
-    for d in (day, nxt):
-        pat = os.path.join(ROOT, "data", d, "schedule", "*.json.gz")
-        for p in sorted(glob.glob(pat)):
-            s = _read(p)
-            if not isinstance(s, dict) or s.get("date") != day:
-                continue
-            sc = s.get("schedule")
-            if not isinstance(sc, dict) or "totalGames" not in sc:
-                return False
-            seen.append(sc["totalGames"])
-    return bool(seen) and all(n == 0 for n in seen)
-
-
 class Report:
     """Findings, each with a severity and — where one exists — a repair.
 
@@ -316,7 +295,7 @@ def check_card_present(rep, now):
                         "picks/fb-%s-latest.json is missing or unreadable" % lg,
                         repair="card-fb")
             continue
-        if lg == "mlb" and _no_games_day(day):
+        if lg == "mlb" and F.no_games_day(day, os.path.join(ROOT, "data")):
             # 🔴 A DAY WITH NO GAMES OWES NO CARD. `[2026-09-29]` The season
             #    ended 09-27; 09-28's stored schedule lists 0 games, yet
             #    this raised BROKEN for a card about nothing and woke the
@@ -1292,39 +1271,27 @@ def render(out):
     #    below is what SAM sends if he chooses to; nothing here summons
     #    anything by itself.
     if out.get("unrepairable"):
-        # 🔴🔴 THE SUMMONS MUST NOT CONTRADICT ITSELF, AND THE FIRST
-        #    VERSION DID. It ended *"do not touch MLB"* — printed on an
-        #    issue whose finding WAS an MLB card defect. ⛔ An instruction
-        #    that forbids the only change that would resolve it produces
-        #    either nothing or a violation, and both are worse than saying
-        #    plainly that a decision is owed.
-        # ✅ SO THE FREEZE BECOMES AN EXPLICIT, PER-INCIDENT UNLOCK. Sam
-        #    sees that MLB is what broke, sees that nothing will be
-        #    touched until he says so, and can lift it for THIS issue in
-        #    the same tap. ⚠️ The freeze stays the default; what changes is
-        #    that the decision is visible instead of silently swallowed.
+        # 🔴🔴 THE SUMMONS MUST NOT CONTRADICT ITSELF. ~~It ended "do not touch
+        #    MLB", then asked Sam to lift an MLB freeze per issue~~ -- struck
+        #    `[2026-09-29]`: Sam lifted the freeze on 2026-09-22 ("unfreeze all
+        #    mlb"), and a summons that still named it contradicted CLAUDE.md.
+        # ✅ ONE SUMMONS FOR EVERY FINDING. An MLB finding also says what
+        #    still needs Sam (a fitted coefficient), because CLAUDE.md does.
         _mlb = any(i["key"].endswith(":mlb") for i in out["findings"]
                    if i["severity"] == "BROKEN" and not i["repair"])
         L.append("")
         L.append("---")
+        L.append("**To have this fixed without uploading anything:** "
+                 "reply to this issue with")
+        L.append("")
+        L.append("> `@claude` read the finding above, fix it, and open "
+                 "a pull request. Follow CLAUDE.md — do not weaken a "
+                 "check to make it pass.")
         if _mlb:
-            L.append("⛔ **This is MLB, which `CLAUDE.md` freezes — *\"we "
-                     "have mlb perfected we dont need to touch it\"*. "
-                     "Nothing will be changed until you say so.**")
             L.append("")
-            L.append("**If you want it fixed,** reply to this issue with")
-            L.append("")
-            L.append("> `@claude` the MLB freeze is lifted for this issue "
-                     "only. Read the finding above, fix it, and open a "
-                     "pull request. Follow CLAUDE.md — do not weaken a "
-                     "check to make it pass.")
-        else:
-            L.append("**To have this fixed without uploading anything:** "
-                     "reply to this issue with")
-            L.append("")
-            L.append("> `@claude` read the finding above, fix it, and open "
-                     "a pull request. Follow CLAUDE.md — do not weaken a "
-                     "check to make it pass, and do not touch MLB.")
+            L.append("MLB is fixed like any other finding: a failing test "
+                     "first, one pull request, and you merge it. A fitted "
+                     "model coefficient is still yours to change.")
         L.append("")
         L.append("The change comes back as a PR with the full suite run "
                  "against it, so nothing lands until you merge it.")

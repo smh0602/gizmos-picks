@@ -251,6 +251,37 @@ def due_date(times_et, now=None):
     return (d - ET_OFFSET).strftime("%Y-%m-%d")
 
 
+def no_games_day(day, data="data"):
+    """True only when every stored MLB schedule reading for ET `day` says
+    the league had NO games. ⛔ Fails closed: no reading, an unreadable
+    one, a reading without `totalGames`, or any reading listing a game
+    means the day's card and results are still owed.
+
+    `[2026-09-29]` ONE COPY: moved here from watchdog.py (#200), which
+    imports it. The contract's MLB `card` and `results` rows are not due on
+    such a day -- collect #1983 went red on 2026-09-28 (0 MLB games) for a
+    card "never built" and a results directory nobody could write.
+    ⚠️ A reading filed under the NEXT day's directory still counts: the
+    schedule mode stores by UTC date, and an evening pull lands there.
+    """
+    nxt = (datetime.date.fromisoformat(day)
+           + datetime.timedelta(days=1)).isoformat()
+    seen = []
+    for d in (day, nxt):
+        for p in sorted(glob.glob(os.path.join(data, d, "schedule", "*.json.gz"))):
+            try:
+                s = json.load(gzip.open(p, "rt"))
+            except Exception:
+                return False          # unreadable: fail closed
+            if not isinstance(s, dict) or s.get("date") != day:
+                continue
+            sc = s.get("schedule")
+            if not isinstance(sc, dict) or "totalGames" not in sc:
+                return False          # no totalGames: fail closed
+            seen.append(sc["totalGames"])
+    return bool(seen) and all(n == 0 for n in seen)
+
+
 def last_due(times_et, now=None):
     """The most recent scheduled build time that has already passed.
 
@@ -1022,7 +1053,7 @@ def contract(data="data", picks="picks", now=None):
     latest = f"{data}/latest"
     day = et_date(now)
     utc_day = (now or datetime.datetime.now(UTC)).strftime("%Y-%m-%d")
-    return [
+    rows = [
         # mode              probe                                  due       paid  tab / why
         # ── 6:00am — grade last night, then rebuild what grading feeds
         ("scores",   ("file", f"{latest}/scores.json.gz"),         GRADING, False,
@@ -1069,6 +1100,15 @@ def contract(data="data", picks="picks", now=None):
         ("news",     ("file", f"{latest}/news.json"),              NEWS, False,
          "News"),
     ] + runs_rows(latest)
+    # 🔴 `[2026-09-29]` A DAY WITH NO MLB GAMES OWES NO CARD AND NO RESULTS.
+    #    Each row is judged on ITS OWN date (the card's governing deadline,
+    #    the results' slate), and only when every schedule reading for that
+    #    date says 0 games -- fail closed otherwise (`no_games_day`).
+    if no_games_day(due_date(CARD, now), data):
+        rows = [r for r in rows if r[0] != "card"]
+    if no_games_day(slate_date(now), data):
+        rows = [r for r in rows if r[0] != "results"]
+    return rows
 
 
 # ══════════════════════════════════════════════════════════════════════

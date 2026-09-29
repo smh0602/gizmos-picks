@@ -23,10 +23,10 @@ precisely why nothing saw it.
 ══════════════════════════════════════════════════════════════════════
 ⛔ FOOTBALL ONLY. MLB IS NEVER READ HERE.
 
-`[Sam, 2026-09-12: "we have mlb perfected we dont need to touch it"]` —
-and the freeze names **"no scheduled checks that read MLB state."** A
-daily job that reads `data/latest/record.json` would be exactly that, so
-`LEAGUES` is `nfl` and `ncaaf` and there is no MLB path to disable later.
+~~`[Sam, 2026-09-12: "we have mlb perfected we dont need to touch it"]` —
+and the freeze names **"no scheduled checks that read MLB state."**~~ The
+freeze was lifted on 2026-09-22. `LEAGUES` is still `nfl` and `ncaaf`:
+an MLB arm would be a new daily monitor, which is Sam's call to add.
 
 ══════════════════════════════════════════════════════════════════════
 🔴🔴 THIS IS A MONITOR. IT IS **NOT** AN ANSWER TO T58.
@@ -57,8 +57,8 @@ import math
 import os
 import sys
 
-# ⛔ NEVER `mlb`. See the header — the freeze forbids a scheduled check
-#    that reads MLB state, and the absence of the path is the guard.
+# ⛔ NOT `mlb` (yet). See the header: ~~the freeze forbids it~~ (lifted
+#    2026-09-22); an MLB arm is a new monitor, Sam's call to add.
 LEAGUES = ("nfl", "ncaaf")
 
 # 🔴 A PERCENTAGE ON A THIN SAMPLE IS NOT A RATE. `[T37's lesson: build
@@ -261,8 +261,8 @@ def render(res):
                "pass.")
     out.append("")
     out.append("_One issue, updated in place, closed by itself when every "
-               "league is back inside the bar. Football only — MLB is "
-               "frozen and is never read here._")
+               "league is back inside the bar. Football only — this "
+               "monitor does not read MLB._")
     # 🔴 `[2026-09-28]` SELF-REPAIR NEVER TAKES THIS ISSUE (#192): what the
     #    board delivered is an outcome, and the model and its bar are Sam's.
     #    No code change clears it on its own. ⚠️ Imported HERE, not at the

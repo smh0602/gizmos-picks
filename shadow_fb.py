@@ -627,10 +627,11 @@ def build(league=None, data=None, root=None, log=log, when=None):
     """-> 0 on a clean write or a clean nothing-to-do, 1 on a refusal."""
     lg = (league or LEAGUE or "nfl").strip().lower()
     if lg == "mlb":
-        # ⛔ MLB IS FROZEN AND THIS FILE HAS NO PATH INTO IT. The absence
-        #    is the guard, and the caller is unconditional so a new
+        # ⛔ THE SHADOW RECORD IS FOOTBALL'S; this file has no MLB path.
+        #    ~~MLB IS FROZEN~~ (lifted 2026-09-22): an MLB shadow record
+        #    would be new work. The caller is unconditional so a new
         #    football league starts working the day it has data.
-        log("shadow_fb: mlb is not built here — the freeze, not a gap.")
+        log("shadow_fb: mlb is not built here — football only, not a gap.")
         return 1
     data = data or os.path.join(root or ROOT, "data", lg)
     today = (when or datetime.datetime.now(datetime.timezone.utc)).date()

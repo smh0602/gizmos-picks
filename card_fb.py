@@ -305,7 +305,8 @@ def calibration_sentence_fb(cal=None, dropped=0, flags=None):
             if b in cal and cal[b]["n"] < FB_CAL_MIN_N]
     # ⚠️ `have` WHEN PLURAL. The MLB banner says "60-70 and 70-80 has",
     #    which is the string this was modelled on; copying a typo across
-    #    is not fidelity. ⛔ MLB is frozen, so it is not fixed there.
+    #    is not fidelity. ~~MLB is frozen, so it is not fixed there~~ --
+    #    MLB is open again (2026-09-22); its banner still says "has".
     tail = (f" {' and '.join(thin)} {'has' if len(thin) == 1 else 'have'} "
             f"too few graded plays to read." if thin else "")
     # ⚠️ A DROPPED BUCKET IS SAID OUT LOUD. Rows the banner could not read

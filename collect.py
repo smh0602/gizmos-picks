@@ -3184,14 +3184,15 @@ def collect_news():
     # shadow record has on the card path.
     # 💰 ZERO API CALLS: this re-uses the items the pull already returned.
     # ══════════════════════════════════════════════════════════════════
-    # ⛔ FOOTBALL ONLY. MLB IS FROZEN, and the brief for this change says
-    # no MLB. ⚠️ Note that MLB *does* have a news feed — `NEWS_FEEDS["mlb"]`
+    # ⛔ FOOTBALL ONLY. ~~MLB IS FROZEN~~ (lifted 2026-09-22); the brief for
+    # this change said no MLB. ⚠️ Note that MLB *does* have a news feed — `NEWS_FEEDS["mlb"]`
     # is populated and `data/latest/news.json` is 21 KB on disk — so this
     # gate is doing real work rather than describing an empty case. The
     # line-movement question this archive exists for is a FOOTBALL props
     # question; extending it to MLB is a decision, not a default.
     # ⛔ FOOTBALL ONLY, AND THE GATE READS **WHERE IT WOULD WRITE**.
-    # ⚠️ MLB IS FROZEN and this change is scoped away from it. Note that
+    # ⚠️ ~~MLB IS FROZEN~~ (lifted 2026-09-22); this change is scoped away
+    # from MLB. Note that
     # MLB *does* have a news feed — `NEWS_FEEDS["mlb"]` is populated and
     # `data/latest/news.json` is 21 KB on disk — so this gate does real
     # work rather than describing an empty case.
