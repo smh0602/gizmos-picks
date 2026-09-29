@@ -72,6 +72,53 @@ a pre-registration condition of T60, not a refinement.
 #      cards. ⛔ Loosening it could not: there is no committed card above
 #      20 for a bigger cap to admit, so a raised bar would change
 #      nothing and the "mutation" would prove nothing (rule 244).
+#
+# @vacuity 🔴 a POSITIONAL join is caught even on a thin day: the planted archive lists a decoy FIRST
+#   file: shadow_fb.py
+#   find: got = sec.get(src["board_id"])
+#   with: got = next(iter(sec.values()), None)
+#   ⚠️ `[2026-09-28]` Under #196's fixture (a 1-game day, patterns that
+#      repeat from game 8 on) this mutation stayed GREEN. Two decoy
+#      dossiers and a unique pattern per entry give it a wrong answer to
+#      pick on every day.
+#
+# @vacuity 🔴 the join reads the NEWEST archive of the day, and that is the fixture
+#   file: shadow_fb.py
+#   find: f = fs[-1]
+#   with: f = fs[0]
+#
+# @vacuity 🔴 an archive that exists and omits a game says GAP, never "the calendar"
+#   file: shadow_fb.py
+#   find: no_arch or ("this game is not in %s's dossier — "
+#   with: no_arch or ("%s: This is the calendar, not a failed join — "
+#
+# @vacuity ✅ a day with no archive says CALENDAR, never "gap"
+#   file: shadow_fb.py
+#   find: no_arch or ("this game is not in %s's dossier — "
+#   with: ("this game is not in %s's dossier — "
+#
+# @vacuity ⛔ `card-fb converge-off` runs the mode ALONE and reaches no network
+#   file: collect.py
+#   find: if "converge-off" in args or not _fresh.has_contract(LEAGUE):
+#   with: if not _fresh.has_contract(LEAGUE):
+#   ⚠️ OFFLINE EVEN UNDER THE MUTATION: section 8's child refuses every
+#      lookup and connect, so the converge this lets in is COUNTED, not
+#      sent. The tree's news.json is stripped so that converge always has
+#      a network mode to plan.
+#
+# 📌 WATCHED, NOT DECLARED — a test cannot mutate itself (its `find`
+#    would occur twice, here and in the code). Each was run by hand on a
+#    scratch copy of this file `[2026-09-28]` and went RED:
+#      - section 7 without `wipe(_dd)`: the planted 2359 archive is read,
+#        not the fixture (4 checks red);
+#      - `_w` = the OLDEST snapshot window instead of `densest_when`:
+#        86 graded rows over 1 game (4 rule-67 floors in 4 and 7 red);
+#      - section 8's clock pin set to 2027-04-01: no shadow file (1 red);
+#      - `_throwaway` returning True: the live-repo refusal (1 red);
+#      - section 8 without `converge-off`: "ran ALONE" red, and the fence
+#        counted 2 refused attempts (2 red);
+#      - #156's `[:1]` (one other day wiped): 2 red — a real archive left
+#        in place described 168 of the "calendar" rows.
 # ══════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -85,13 +132,14 @@ import subprocess
 import sys
 import tempfile
 
-from tcheck import ck, copy_module, note, section
+from tcheck import ck, copy_module, fail, note, section, shown
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.environ.setdefault("LEAGUE", "nfl")
 
 import card_fb          # noqa: E402
 import daystore         # noqa: E402
+import record_fb        # noqa: E402
 import shadow_fb        # noqa: E402
 
 UTC = datetime.timezone.utc
@@ -124,12 +172,117 @@ def snapshot_days(lg="nfl", root=None):
 
 
 def when_for(lg="nfl", root=None):
-    """The clock that puts the committed snapshots inside the lookback."""
+    """The clock that puts the NEWEST committed snapshot inside the lookback.
+
+    ⚠️ Kept for the note in section 4 only. `[2026-09-28]` The newest
+    window moves with the calendar: a week-1 window held 86 graded rows
+    over 1 game, and a Super Bowl snapshot would pin it there all
+    off-season — red on correct code. `densest_when` drives the checks."""
     days = snapshot_days(lg, root)
     if not days:
         return None
     last = datetime.datetime.strptime(days[-1], "%Y-%m-%d").replace(tzinfo=UTC)
     return last + datetime.timedelta(days=1, hours=12)
+
+
+def pin_log(root, lg="nfl"):
+    """Point `record_fb`'s player log at `root`'s copy.
+
+    ⚠️ `record_fb.LATEST` is cwd-relative (`data/<lg>/latest`), so an
+    in-process grade read the LIVE log from wherever the file was started,
+    whatever tree it was handed. Pinned, every grade here reads the tree
+    it claims to read, from any cwd."""
+    record_fb.LATEST = os.path.join(root, "data", lg, "latest")
+
+
+def windows(lg="nfl", root=None):
+    """[(end day, graded games, graded rows, graded days)] — one row per
+    committed snapshot day, for the LOOKBACK_DAYS window `build()` grades
+    from end + 1d12h. ⛔ Graded by `shadow_fb.grade_day` itself, the one
+    copy of "what can be graded", never re-derived here."""
+    root = root or ROOT
+    data = os.path.join(root, "data", lg)
+    pin_log(root, lg)
+    days, bk, per = snapshot_days(lg, root), shadow_fb.books(), {}
+    for d in days:
+        rows, _why = shadow_fb.grade_day(d, data, bk, log=lambda m: None)
+        g = [r for r in rows if r.get("won") is not None]
+        per[d] = ({r.get("board_id") for r in g}, len(g))
+    out = []
+    for end in days:
+        e = datetime.date.fromisoformat(end)
+        win = [d for d in days if 0 <= (e - datetime.date.fromisoformat(d)).days
+               < shadow_fb.LOOKBACK_DAYS]
+        out.append((end, len(set().union(*(per[d][0] for d in win))),
+                    sum(per[d][1] for d in win),
+                    len([d for d in win if per[d][1]])))
+    return out
+
+
+def densest_when(lg="nfl", root=None, w=None):
+    """🔴 THE CLOCK THAT PUTS THE DENSEST COMMITTED WINDOW INSIDE THE LOOKBACK.
+
+    `[2026-09-28]` The checks in sections 4 and 7 need at least 200 graded
+    rows, 5 games and 2 graded days. The NEWEST window does not always
+    hold them (week 1: 86 rows, 1 game; the Super Bowl: 1 game, then the
+    whole off-season). ✅ The window with the most graded games wins, a tie
+    going to the later day. ⛔ `data/` is append-only and the player log
+    only grows, so this maximum can only rise: the floors get easier to
+    meet as seasons are stored, never harder, and never on a calendar
+    change. -> (when, (end, games, rows, days))"""
+    w = windows(lg, root) if w is None else w
+    if not w:
+        return None, None
+    best = max(w, key=lambda x: (x[1], x[0]))
+    end = datetime.datetime.strptime(best[0], "%Y-%m-%d").replace(tzinfo=UTC)
+    return end + datetime.timedelta(days=1, hours=12), best
+
+
+def _inside(p, d):
+    try:
+        return os.path.commonpath([p, d]) == d
+    except ValueError:          # different drives
+        return False
+
+
+def _throwaway(p):
+    """⛔ True only for a path inside a mkdtemp copy: under the temp dir and
+    outside the live repo. Section 7 deletes nothing anywhere else."""
+    rp, tmp, root = (os.path.normcase(os.path.realpath(x))
+                     for x in (p, tempfile.gettempdir(), ROOT))
+    return _inside(rp, tmp) and rp != tmp and not _inside(rp, root)
+
+
+def wipe(p):
+    """rmtree, ONLY inside a throwaway copy. Anything else fails the file
+    and stops it before one byte is deleted."""
+    if not _throwaway(p):
+        fail("⛔ REFUSED to delete %s — not inside a throwaway copy" % p,
+             "the live repo is never a fixture")
+        raise SystemExit(1)
+    shutil.rmtree(p, ignore_errors=True)
+
+
+# ⛔ THE CHILD CANNOT REACH THE NETWORK, BY CONSTRUCTION. `[2026-09-28]`
+#    `collect.py card-fb` without `converge-off` converged the whole NFL
+#    contract from this file: it fetched news from cbssports and
+#    profootballtalk on every run, and it plans the PAID modes whenever
+#    they are due (they died only because CI's Tests step has no key).
+#    This runs the real collector with every lookup and connect refused
+#    and COUNTED, so "it reached no network" is measured, not assumed.
+OFFLINE = (
+    "import atexit, runpy, socket, sys\n"
+    "_refused = []\n"
+    "def _refuse(*a, **k):\n"
+    "    _refused.append(repr(a[:1]))\n"
+    "    raise OSError('OFFLINE: a test may not reach the network')\n"
+    "socket.getaddrinfo = _refuse\n"
+    "socket.socket.connect = lambda self, *a, **k: _refuse(*a)\n"
+    "atexit.register(lambda: print('OFFLINE FENCE: %d network attempt(s) "
+    "refused %s' % (len(_refused), _refused[:3]), flush=True))\n"
+    "#PIN\n"
+    "sys.argv = ['collect.py'] + sys.argv[1:]\n"
+    "runpy.run_path('collect.py', run_name='__main__')\n")
 
 
 def load(p):
@@ -296,8 +449,21 @@ ck(len(_days) >= 2,
    "⚠️ the repo carries props snapshots to grade (%d day(s))" % len(_days),
    "⛔ rule 67: every check below would pass over nothing. Days: %s"
    % _days)
-_w = when_for("nfl")
+# 🔴 THE DENSEST COMMITTED WINDOW, NOT THE NEWEST. `[2026-09-28]` The
+#    floors below (200 rows, 5 games, 2 graded days) were asked of
+#    whatever the calendar's newest window held — 86 rows over 1 game in
+#    week 1, and a Super Bowl snapshot would have pinned it red for the
+#    whole off-season. ✅ The window is DERIVED from append-only data, so
+#    its case can only grow; the newest window is reported beside it.
+_win = windows("nfl")
+_w, _dense = densest_when("nfl", w=_win)
+_newest = (_win or [None])[-1]
+note("   window under test ends %s: %s graded game(s), %s graded row(s) "
+     "over %s day(s) (the densest committed); the NEWEST ends %s: %s "
+     "game(s), %s row(s), %s day(s)"
+     % ((_dense or (None,) * 4) + (_newest or (None,) * 4)))
 _d4 = tree("nfl")
+pin_log(_d4)
 _rc4 = shadow_fb.build("nfl", data=os.path.join(_d4, "data", "nfl"),
                        root=_d4, log=lambda m: None, when=_w)
 _files = glob.glob(os.path.join(_d4, "data/nfl/*/shadow/*.json.gz"))
@@ -347,7 +513,10 @@ note("   graded %d row(s) over %d game(s); effective n %s (%s)"
 note("   excluded, by state: %s" % _tr.get("ungraded_by_state"))
 
 section("5. ⛔ DATED AND WRITE-ONCE, AND NEVER INTO `picks/`")
-_p = _files[0] if _files else ""
+# ⚠️ SEPARATORS NORMALISED FIRST, THE PATTERN UNCHANGED. `[2026-09-28]`
+#    On Windows `glob` returns `...\2026-09-29\shadow\1200.json.gz`, and
+#    this check was red there on a correctly dated file (green on Linux).
+_p = (_files[0] if _files else "").replace(os.sep, "/")
 ck(re.search(r"/\d{4}-\d{2}-\d{2}/shadow/\d{4}\.json\.gz$", _p),
    "🔴 the path is `<date>/shadow/<HHMM>.json.gz`",
    "⛔ NEVER ONE CUMULATIVE FILE. Ledger rule 285: git cannot "
@@ -425,76 +594,165 @@ ck(not _over,
    % (card_fb.TOP_N, _over[:4]))
 
 section("7. ⛔ THE JOIN IS `board_id`, AND NOTHING ELSE")
-# ⚠️ A SYNTHETIC DOSSIER ARCHIVE, because the real ones only start the day
-#    the panel shipped — and the join must be driven, not hoped for.
-_day = (_D.get("days") or [None])[0]
-ck(bool(_day), "⚠️ there is a graded day to attach sections to",
-   "⛔ rule 67. Days: %s" % (_D.get("days"),))
-if _day:
-    _ids = sorted({r["board_id"] for r in _rows if r.get("day") == _day})
-    _arch = os.path.join(_d4, "data/nfl", _day, "dossiers", "1200.json.gz")
-    os.makedirs(os.path.dirname(_arch), exist_ok=True)
-    with gzip.open(_arch, "wt") as _fh:
-        json.dump({"dossiers": [
-            {"board_id": _b, "home_name": "H%d" % _i, "away_name": "A%d" % _i,
-             "sections": [{"n": _n, "name": "S%d" % _n,
-                           "state": "OK" if _n <= _i else "UNAVAILABLE"}
-                          for _n in range(1, 9)]}
-            for _i, _b in enumerate(_ids)]}, _fh)
-    for _f in glob.glob(os.path.join(_d4, "data/nfl/*/shadow/*.json.gz")):
-        os.remove(_f)
-    # 🔴 AND ONE OTHER GRADED DAY WITH NO ARCHIVE, BUILT ON PURPOSE.
+# ⚠️ A SYNTHETIC DOSSIER ARCHIVE, because the join must be driven, not
+#    hoped for.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 `[2026-09-28]` THE FIXTURE WAS SHADOWED; EVERY CASE BELOW NOW EXISTS
+#    BY CONSTRUCTION. `sections_for` reads the NEWEST archive of a day,
+#    and the fixture was `1200.json.gz` beside real archives written later
+#    that day. From 2026-09-27 13:04Z a real one (1544 on 09-21, 1545 on
+#    09-20) was the file read, and "THAT game's states" was red on every
+#    collect run, on correct code.
+#    ✅ A real-shaped archive is PLANTED later that day (2359), so the
+#       shadowing case exists on every run, not only when production holds
+#       one. The day's archives are then wiped — only ever inside the
+#       throwaway copy — and the fixture is written with one OLDER planted
+#       archive beside it, so "the newest archive is read" is asked too.
+#    ✅ The fixture day is the graded day with the MOST games, and the
+#       archive lists a decoy first and last and a unique state pattern
+#       per entry: a positional or neighbour join has a wrong answer to
+#       pick even on a thin day (#196's 1-game fixture let one through).
+#    ✅ One graded game is LEFT OUT of the archive, so the "IS a gap"
+#       branch is exercised (it never was).
+#    ✅ EVERY other graded day's archives are wiped (#156 wiped one), so
+#       "the reason is the CALENDAR" no longer asserts that production's
+#       archives describe every priced game.
+# ══════════════════════════════════════════════════════════════════════
+_nfl4 = os.path.join(_d4, "data", "nfl")
+ck(_throwaway(_d4) and not _throwaway(ROOT)
+   and not _throwaway(os.path.join(ROOT, "data", "nfl")),
+   "⛔ this section deletes only inside a throwaway copy, never the live "
+   "repo",
+   "🔴 it wipes whole dossier directories. copy=%s (throwaway=%s), "
+   "repo=%s (throwaway=%s)" % (_d4, _throwaway(_d4), ROOT, _throwaway(ROOT)))
+_gdays = {d: sorted({r["board_id"] for r in _rows if r.get("day") == d})
+          for d in (_D.get("days") or [])}
+_day = max(_gdays, key=lambda d: (len(_gdays[d]), d)) if _gdays else None
+_ids = _gdays.get(_day) or []
+ck(len(_ids) >= 2,
+   "⚠️ the fixture day (%s) has %d game(s), so every game has a neighbour"
+   % (_day, len(_ids)),
+   "⛔ rule 67: on a 1-game day a positional join is indistinguishable from "
+   "the right one. Days: %s" % {d: len(v) for d, v in _gdays.items()})
+ck(len(_gdays) >= 2,
+   "⚠️ ...and there is another graded day to leave undescribed (%d day(s))"
+   % len(_gdays),
+   "⛔ rule 67 — the calendar case below needs one")
+if len(_ids) >= 2:
+    _gap = _ids[-1]                 # 🔴 PLANTED GAP: in no dossier
+    _desc = ["0000-decoy-first"] + [b for b in _ids if b != _gap] + [
+        "zzzz-decoy-last"]
+    # ⚠️ ENTRY i CARRIES THE BITS OF i+1 — unique for up to 255 entries,
+    #    where `OK if n <= i` repeated itself from the eighth game on.
+    _want = {b: {"S%d" % n: ("OK" if ((i + 1) >> (n - 1)) & 1
+                             else "UNAVAILABLE") for n in range(1, 9)}
+             for i, b in enumerate(_desc)}
+    _dd = os.path.join(_nfl4, _day, "dossiers")
+
+    def _plant(name, entries):
+        with gzip.open(os.path.join(_dd, name), "wt") as _fh:
+            json.dump({"dossiers": entries}, _fh)
+
+    os.makedirs(_dd, exist_ok=True)
+    # 🔴 A REAL ARCHIVE WRITTEN LATER THAT DAY — what shadowed the fixture
+    #    from 2026-09-27. Planted, so the wipe below is needed EVERY run.
+    _plant("2359.json.gz", [
+        {"board_id": b, "sections": [{"n": n, "name": "REAL %d" % n,
+                                      "state": "OK"} for n in range(1, 9)]}
+        for b in _ids])
+    wipe(_dd)                       # ⛔ the fixture is the newest archive (#196)
+    os.makedirs(_dd)
+    _plant("0600.json.gz", [
+        {"board_id": b, "sections": [{"n": n, "name": "S%d" % n,
+                                      "state": "STALE"} for n in range(1, 9)]}
+        for b in _desc])
+    _plant("1200.json.gz", [
+        {"board_id": b, "home_name": "H", "away_name": "A",
+         "sections": [{"n": n, "name": k, "state": v}
+                      for n, (k, v) in enumerate(_want[b].items(), 1)]}
+        for b in _desc])
+    # 🔴 AND EVERY OTHER GRADED DAY WITH NO ARCHIVE, BUILT ON PURPOSE.
     # `[issue #156, 2026-09-24]` The "undescribed rows" below used to come
     #    from the CALENDAR — boards graded before the archive began. Once
     #    the real archive covered every graded day there were none, and
     #    the rule-67 guard (correctly) refused to pass on nothing. ✅ A
     #    check that waits for the calendar to supply its case is asking
-    #    whether data EXISTS; this makes the case exist, every run, so the
-    #    reason-text checks below always have a row to read.
-    for _od in [x for x in (_D.get("days") or []) if x != _day][:1]:
-        shutil.rmtree(os.path.join(_d4, "data/nfl", _od, "dossiers"), ignore_errors=True)
-    shadow_fb.build("nfl", data=os.path.join(_d4, "data", "nfl"), root=_d4,
-                    log=lambda m: None, when=_w)
-    _D7 = load(glob.glob(os.path.join(_d4, "data/nfl/*/shadow/*.json.gz"))[0])
+    #    whether data EXISTS; this makes the case exist, every run.
+    #    `[2026-09-28]` ~~`[:1]`~~ ALL of them: a day left in place asked
+    #    whether production's archives describe every game it priced.
+    for _od in _gdays:
+        if _od != _day:
+            wipe(os.path.join(_nfl4, _od, "dossiers"))
+    for _f in glob.glob(os.path.join(_nfl4, "*", "shadow", "*.json.gz")):
+        os.remove(_f)
+    ck(sorted(os.listdir(_dd)) == ["0600.json.gz", "1200.json.gz"]
+       and not [d for d in _gdays if d != _day
+                and os.path.isdir(os.path.join(_nfl4, d, "dossiers"))],
+       "⚠️ the fixture day holds ONLY the planted archives (the later 2359 "
+       "is gone), and no other graded day holds one",
+       "⛔ rule 67 on the fixture itself. %s" % sorted(os.listdir(_dd)))
+    shadow_fb.build("nfl", data=_nfl4, root=_d4, log=lambda m: None, when=_w)
+    _f7 = glob.glob(os.path.join(_nfl4, "*", "shadow", "*.json.gz"))
+    _D7 = load(_f7[0]) if _f7 else {"rows": [], "per_day": []}
     _day7 = [r for r in _D7["rows"] if r.get("day") == _day]
-    _with = [r for r in _day7 if r.get("sections")]
-    ck(bool(_day7) and len(_with) == len(_day7),
-       "🔴🔴 EVERY ROW OF THAT DAY CARRIES ITS OWN GAME'S SECTIONS (%d)"
-       % len(_with),
+    ck(bool(_day7)
+       and all(r.get("sections_from") == "1200.json.gz" for r in _day7),
+       "🔴 THE JOIN READ THE FIXTURE — the day's NEWEST archive, not an older "
+       "one",
+       "⛔ the reading closest to kickoff is the one a bettor saw. Read: %s"
+       % sorted({str(r.get("sections_from")) for r in _day7}))
+    _descr = [r for r in _day7 if r["board_id"] != _gap]
+    _with = [r for r in _descr if r.get("sections")]
+    ck(bool(_descr) and len(_with) == len(_descr),
+       "🔴🔴 EVERY ROW OF A DESCRIBED GAME CARRIES ITS OWN GAME'S SECTIONS "
+       "(%d)" % len(_with),
        "⛔ the join is `board_id` — the same key the dossier frame "
        "carries and the board's own id. %d of %d attached"
-       % (len(_with), len(_day7)))
+       % (len(_with), len(_descr)))
+    # ⚠️ `.get`, so a row joined to an id outside the fixture FAILS here
+    #    rather than killing the file.
     _wrong = [r["board_id"] for r in _with
-              if r["sections"] != {"S%d" % n: ("OK" if n <= _ids.index(r["board_id"])
-                                               else "UNAVAILABLE")
-                                   for n in range(1, 9)}]
+              if r["sections"] != _want.get(r["board_id"])]
     ck(not _wrong,
-       "   ⛔ ...and they are THAT game's states, not a neighbour's",
+       "   ⛔ ...and they are THAT game's states, not a neighbour's (%d "
+       "distinct patterns, decoys first and last)"
+       % len({json.dumps(v, sort_keys=True) for v in _want.values()}),
        "🔴 CLAUDE.md: two legs are in different games only if the GAME ID "
        "differs — a live MLB card shipped four impossible parlays off a "
        "name check, including its top recommendation. Wrong: %s"
        % _wrong[:3])
-    ck(len({len(r["sections"]) for r in _with}) == 1
-       and next(iter({len(r["sections"]) for r in _with})) == 8,
+    ck(bool(_with) and {len(r["sections"]) for r in _with} == {8},
        "   ⚠️ ...all eight of them",
        "⛔ a partial join is a join that drops evidence silently")
     ck(not [r for r in _with if r.get("sections_absent")],
        "   ⛔ ...and a row that HAS its sections carries no excuse",
        "🔴 a reason beside data that is present is noise, and noise is "
        "what the clean-look rule is about")
+    _gaprows = [r for r in _day7 if r["board_id"] == _gap]
+    ck(bool(_gaprows)
+       and all(not r.get("sections")
+               and "IS a gap" in (r.get("sections_absent") or "")
+               and "calendar" not in (r.get("sections_absent") or "")
+               for r in _gaprows),
+       "🔴 A GAME THE DAY'S ARCHIVE OMITS SAYS GAP, NEVER CALENDAR (%d "
+       "row(s))" % len(_gaprows),
+       "⛔ an archive that exists and does not describe a priced game is "
+       "the defect this field is for; reading like the calendar would hide "
+       "it. Got %s" % sorted({str(r.get("sections_absent"))
+                              for r in _gaprows})[:2])
     # ══════════════════════════════════════════════════════════════
     # ⚠️ AND A ROW WITH NO SECTIONS SAYS WHICH ABSENCE IT IS.
     # `[2026-09-18]` `sections: null` reads identically whether the JOIN
     # MISSED or the dossier DID NOT EXIST, and those are opposite facts:
-    # the first is a defect, the second is the calendar. Today every one
-    # of the 1,374 rows is the second — the graded boards predate the
-    # archive — which is correct, self-resolving, and unreadable unless
-    # it is said.
+    # the first is a defect, the second is the calendar.
     # ══════════════════════════════════════════════════════════════
     _other = [r for r in _D7["rows"] if r.get("day") != _day]
     _blank = [r for r in _other if not r.get("sections")]
-    ck(bool(_blank), "⚠️ there are undescribed rows to explain (%d)"
-       % len(_blank), "⛔ rule 67 — nothing to check otherwise")
+    ck(bool(_blank) and len(_blank) == len(_other),
+       "⚠️ there are undescribed rows to explain (%d) — every row of every "
+       "other graded day" % len(_blank),
+       "⛔ rule 67 — nothing to check otherwise. %d of %d undescribed"
+       % (len(_blank), len(_other)))
     ck(all(r.get("sections_absent") for r in _blank),
        "🔴 EVERY UNDESCRIBED ROW SAYS WHY IT IS UNDESCRIBED (%d of %d)"
        % (len([r for r in _blank if r.get("sections_absent")]), len(_blank)),
@@ -504,20 +762,30 @@ if _day:
           for r in _blank if not r.get("sections_absent")][:3])
     ck(all("calendar, not a failed join" in (r.get("sections_absent") or "")
            for r in _blank),
-       "   ✅ ...and today that reason is the CALENDAR, not a defect",
+       "   ✅ ...and a day with NO archive says the CALENDAR, not a defect",
        "🔴 a row whose game IS in the archive and still has no sections "
        "is a real gap, and it must not read the same. Got %s"
-       % sorted({r.get("sections_absent") for r in _blank})[:2])
+       % sorted({str(r.get("sections_absent")) for r in _blank})[:2])
     _dayblk = [d for d in _D7.get("per_day") or []
                if d["day"] != _day and not d.get("described")]
-    ck(all(d.get("not_described_why") for d in _dayblk),
+    ck(bool(_dayblk) and all(d.get("not_described_why") for d in _dayblk),
        "   ⚠️ ...and the day block says it too, so `described` climbing "
        "later is the signal it is meant to be",
        "⛔ if `described` never starts climbing once archived boards are "
        "graded, THAT is a real defect and this field is how anyone "
        "notices. Silent day(s): %s"
        % [d["day"] for d in _dayblk if not d.get("not_described_why")])
-shutil.rmtree(_d4, ignore_errors=True)
+    # ⚪ THE REAL ARCHIVES, REPORTED: what production's newest archive of
+    #    each graded day does not describe. A measurement, not a check (P2).
+    _real = []
+    for _od in sorted(_gdays):
+        _sec, _src, _ = shadow_fb.sections_for(
+            _od, os.path.join(ROOT, "data", "nfl"))
+        _real.append("%s %s: %d of %d graded game(s) undescribed"
+                     % (_od, _src, len([b for b in _gdays[_od]
+                                        if b not in _sec]), len(_gdays[_od])))
+    note("   real archives (live repo), per graded day: %s" % "; ".join(_real))
+wipe(_d4)
 
 section("8. 🔴🔴 IT RUNS ON A MODE A CRON ACTUALLY REACHES")
 # ⛔ "IT IS WIRED" IS NOT ENOUGH — `t54.py`'s counter is wired into the
@@ -535,24 +803,58 @@ _arms = [ms for _c, _lg, ms in wfroutes.parse_routes(_WF)]
 ck(_arms.count("card-fb") >= 4,
    "⚠️ `card-fb` is reached by %d cron arm(s)" % _arms.count("card-fb"),
    "⛔ THE WHOLE REASON IT HANGS HERE. `fb-record` is reached by NONE")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 `[2026-09-28]` ~~`collect.py card-fb`~~ -> `card-fb converge-off`,
+#    keys blanked, network fenced, shadow clock pinned to the tree.
+#    ⛔ Without `converge-off` the mode converged the whole NFL contract:
+#       news fetched from two outside hosts on every run, and the PAID
+#       modes planned whenever due — refused only because CI's Tests step
+#       has no key. A test must never be able to spend.
+#    ⛔ And the shadow record looked back 8 REAL days: off-season, or in
+#       the gap before the Super Bowl, nothing is gradable and the file is
+#       never written (measured at a 2027-04-01 clock). Pinned to the same
+#       tree-derived window as sections 4 and 7, it has its case every run.
+#    ⚠️ news.json is stripped from the copy, so a converge that sneaks back
+#       in ALWAYS has a network mode to plan — and the fence counts it.
+# ══════════════════════════════════════════════════════════════════════
 _d8 = tree("nfl")
-_r8 = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d8,
+_news8 = os.path.join(_d8, "data", "nfl", "latest", "news.json")
+if os.path.exists(_news8):
+    os.remove(_news8)
+_pin8 = ("import datetime, functools, shadow_fb\n"
+         "shadow_fb.build = functools.partial(shadow_fb.build, "
+         "when=datetime.datetime.fromisoformat(%r))\n"
+         % (_w or datetime.datetime.now(UTC)).isoformat())
+_r8 = subprocess.run([sys.executable, "-c", OFFLINE.replace("#PIN\n", _pin8),
+                      "card-fb", "converge-off"], cwd=_d8,
                      timeout=1800, capture_output=True, text=True,
-                     env=dict(os.environ, LEAGUE="nfl"))
+                     env=dict(os.environ, LEAGUE="nfl", ODDS_API_KEY="",
+                              CFBD_API_KEY=""))
 _out8 = (_r8.stdout or "") + (_r8.stderr or "")
 _made8 = glob.glob(os.path.join(_d8, "data/nfl/*/shadow/*.json.gz"))
 ck(bool(_made8),
    "🔴🔴 RUNNING THE REAL `card-fb` MODE PRODUCES THE SHADOW RECORD",
    "⛔ a builder nothing runs is a builder that rots. rc=%s %s"
-   % (_r8.returncode, _out8[-400:]))
+   % (_r8.returncode, shown(_out8[-400:])))
 ck("shadow_fb[nfl]" in _out8,
    "   ...and the collector's own log says so",
-   _out8[-300:])
+   shown(_out8[-300:]))
 ck("the CARD IS FINE" not in _out8.split("shadow record")[-1][:200],
    "   ⚠️ ...without the card having to be rescued from it",
    "⛔ a failure here must not lose the card, and it did not have to: %s"
-   % _out8[-300:])
-shutil.rmtree(_d8, ignore_errors=True)
+   % shown(_out8[-300:]))
+ck("FRESHNESS SURVEY" not in _out8 and "PLAN:" not in _out8,
+   "⛔ ...and the mode ran ALONE: no converge pass, so no other mode, no "
+   "network mode and no paid pull was planned",
+   "🔴 `collect.py <mode>` without `converge-off` converges every overdue "
+   "artifact. %s" % shown([ln for ln in _out8.splitlines()
+                           if "PLAN:" in ln][:1]))
+ck("OFFLINE FENCE: 0 network attempt(s) refused" in _out8,
+   "⛔ ...and it made NO network attempt (every lookup and connect was "
+   "fenced and counted)",
+   "🔴 a test must not depend on the network. %s"
+   % shown([ln for ln in _out8.splitlines() if "OFFLINE FENCE" in ln][:1]))
+wipe(_d8)
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the dossier carries any "
      "signal. T60 answers that, it needs rows this file did not have "
      "before today, and its verdict reads AWAITING_PRE_REGISTERED_N "
