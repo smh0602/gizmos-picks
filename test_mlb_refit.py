@@ -44,13 +44,17 @@ guards; `vacuity.py` drives the declarations:
 #   find:     n, md, t, p, G = paired_test_clustered(res["d"], res["d_pid"])
 #   with:     n, md, t, p, G = paired_test_clustered(res["d"], list(range(len(res["d"]))))
 #
+# @vacuity section 8 is v5.0's recipe: the K home term is coded +1/-1, not 0/1
+#   file: mlb_refit.py
+#   find:     bk = solve([[1.0, r["mk8"] - ck, r["oppk"] - r["center"], hs(r)] for r in train],
+#   with:     bk = solve([[1.0, r["mk8"] - ck, r["oppk"] - r["center"], r["home"]] for r in train],
+#
 # @vacuity a playoff starter is read from the box score, not the season pool
 #   file: mlb_refit.py
 #   find:                                  else _post_starters(season)).items()):
 #   with:                                  else _starters(season, api_gt)).items()):
 """
 import datetime
-import gzip
 import json
 import os
 import re
@@ -245,12 +249,21 @@ ck(M.open_pr(_q, dry_run=True, run=_r2).startswith("would open"),
 # ⚠️ Not exactly: v5.0's sample also dropped arms under 20 IP (a season-total
 # filter the spec does NOT use), and the pull date differs. The tolerances
 # below are wide enough for that and far too narrow for a wrong recipe.
-with gzip.open(os.path.join(ROOT, "data", "latest", "pitchers.json.gz"), "rt",
-               encoding="utf-8") as _fh:
-    _p26 = json.load(_fh)
-_doc26 = {"season": 2026, "pitchers": {k: {"name": v.get("name"),
-                                           "g": [dict(r, gt="R") for r in v["g"]]}
-                                       for k, v in _p26["players"].items()}}
+# 🔴 `[2026-09-28]` PINNED TO THE 2026 SEASON'S OWN FILE. This read
+#    `data/latest/pitchers.json.gz`, the collector's ROLLING pull, which is
+#    rewritten for `now().year` on every `pitchers` run — so a frozen
+#    2026-08-31 window was applied to a file that follows the real calendar
+#    (a frozen clock against a live tree). The first 2027 pull would have
+#    emptied `_win`, `fit` would have returned None under MIN_TRAIN, and
+#    this check would have gone red on correct code. ✅ It now reads the
+#    season-stamped file the refit itself scores (`M.load(2026)`,
+#    `mlb-starts-2026.json.gz`): the 2026 season whatever the date, and
+#    the same 3,104 rows and the same fit (measured 2026-09-28).
+_doc26 = M.load(2026)
+ck(bool(_doc26) and _doc26.get("season") == 2026,
+   "   the refit's own 2026 season file is on disk and IS the 2026 season",
+   "got season %r" % ((_doc26 or {}).get("season"),))
+_doc26 = _doc26 or {"season": 2026, "pitchers": {}}
 _win = [r for r in M.eligible_rows([_doc26]) if r["d"] <= "2026-08-31"]
 _f = M.fit(_win)
 _c = M.champion()

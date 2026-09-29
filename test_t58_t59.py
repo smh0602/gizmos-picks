@@ -111,27 +111,54 @@ def at_the_bar():
     return days, {D[0]: 2, D[1]: 3, D[2]: 4}
 
 
-section("1. 🔴🔴 UNDER THE BAR, AGAINST THE REAL RECORD: NO STATISTIC")
+section("1. 🔴🔴 UNDER THE BAR: NO STATISTIC — PLANTED, AND ON THE REAL RECORD")
+# 🔴 `[2026-09-28]` ~~`eq(T.run(ROOT)["state"], "PROGRESS")`~~ asserted that
+#    PRODUCTION had not reached the pre-registered bar yet — a precondition
+#    true only until the counter does its job (measured 2026-09-28: 115 of
+#    120 fresh rows, 2 of 3 weeks, so plausibly the next graded NFL slate).
+#    On that day every check here would have gone red on correct code.
+#    ✅ The question is now asked of a PLANTED record that is always under
+#    the bar — the at-the-bar fixture below with ONE row removed (119 of
+#    120, 3 weeks: the moment the bar is most tempting) — and of the real
+#    record as an EXTRA whenever it is still under the bar. Once the real
+#    record is answered, its state is reported, never asserted.
+def _under_bar_checks(rep, who):
+    txt = T.render(rep)
+    leak = [w for w in T.STAT_WORDS if w in txt.lower()]
+    ck(not leak,
+       "🔴🔴 %s: NOT ONE STATISTIC WORD REACHES THE PAGE" % who,
+       "⛔ THIS IS THE WHOLE DESIGN. A number on screen every morning makes "
+       "the decision to keep waiting stop being neutral, which is choosing "
+       "the cutoff after seeing the data one step earlier. Leaked: %s" % leak)
+    for k in ("gap", "p", "t58", "t59", "cfb_gap"):
+        ck(k not in rep,
+           "   ⛔ %s: ...and `%s` is not even COMPUTED" % (who, k),
+           "🔴 a statistic that exists in the report but is not printed is "
+           "one `render()` change away from being printed. The bar gates the "
+           "COMPUTATION, not the formatting")
+    ck("fresh graded NFL rows" in txt and "distinct NFL weeks" in txt,
+       "✅ %s: ...while the counts Sam asked for ARE printed" % who,
+       "⛔ a counter that prints nothing is not a counter — the point is that "
+       "neither of us has to remember this test exists")
+
+
+_bar0, _sbar0 = at_the_bar()
+_under = {k: (v[:-1] if k == "2026-10-01" else v) for k, v in _bar0.items()}
+_planted = T.run(mkrepo(_under, {}, _sbar0))
+ck(_planted["state"] == "PROGRESS" and _planted["fresh_nfl"] == T.MIN_FRESH - 1
+   and _planted["weeks"] >= T.MIN_WEEKS,
+   "⚠️ the PLANTED record is one row under the bar with every week present",
+   "state=%s rows=%s weeks=%s" % (_planted["state"], _planted["fresh_nfl"],
+                                  _planted["weeks"]))
+_under_bar_checks(_planted, "PLANTED")
 _real = T.run(ROOT)
-eq(_real["state"], "PROGRESS",
-   "⚠️ the real record is UNDER the bar today — so this check is live")
-_txt = T.render(_real)
-_leak = [w for w in T.STAT_WORDS if w in _txt.lower()]
-ck(not _leak,
-   "🔴🔴 NOT ONE STATISTIC WORD REACHES THE PAGE",
-   "⛔ THIS IS THE WHOLE DESIGN. A number on screen every morning makes "
-   "the decision to keep waiting stop being neutral, which is choosing "
-   "the cutoff after seeing the data one step earlier. Leaked: %s" % _leak)
-for _k in ("gap", "p", "t58", "t59", "cfb_gap"):
-    ck(_k not in _real,
-       "   ⛔ ...and `%s` is not even COMPUTED" % _k,
-       "🔴 a statistic that exists in the report but is not printed is "
-       "one `render()` change away from being printed. The bar gates the "
-       "COMPUTATION, not the formatting")
-ck("fresh graded NFL rows" in _txt and "distinct NFL weeks" in _txt,
-   "✅ ...while the counts Sam asked for ARE printed",
-   "⛔ a counter that prints nothing is not a counter — the point is that "
-   "neither of us has to remember this test exists")
+if _real["state"] == "PROGRESS":
+    _under_bar_checks(_real, "REAL RECORD")
+else:
+    note("⚪ the real record is no longer under the bar: state=%s, %s fresh "
+         "rows, %s weeks. ⛔ Reported, not asserted — the planted record "
+         "above asked the under-the-bar question this run."
+         % (_real["state"], _real.get("fresh_nfl"), _real.get("weeks")))
 
 section("2. ⚠️ AND THE LEAK-CHECK CAN ACTUALLY FAIL")
 _d_bar, _s_bar = at_the_bar()

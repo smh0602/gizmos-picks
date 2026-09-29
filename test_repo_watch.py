@@ -53,6 +53,21 @@ import repo_watch as R
 #   file: repo_watch.py
 #   find: "%(objectsize:disk)"],
 #   with: "%(objectsize)"],
+#
+# @vacuity a bar within reach of the dated healthy baseline is caught
+#   file: repo_watch.py
+#   find: PACK_WARN_MIB = 500.0        # ~5x the 105.14 MiB measured 2026-09-19
+#   with: PACK_WARN_MIB = 150.0        # ~5x the 105.14 MiB measured 2026-09-19
+#
+# @vacuity the judge says OK at the healthy baseline, driven not read
+#   file: repo_watch.py
+#   find:     if rep["disk_mb_day"] > GROWTH_WARN_MB_DAY:
+#   with:     if rep["disk_mb_day"] > 5.0:
+#
+# @vacuity only a gzip stored more than once is flagged (bench + live paths)
+#   file: repo_watch.py
+#   find:     return path.endswith(".gz") and versions > 1
+#   with:     return versions > 1
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -209,14 +224,41 @@ ck("⛔ where the live check is REQUIRED it actually ran",
 #    None, and subscripting it raised a TypeError that made this file DIE
 #    rather than fail — 10 checks ran and the rest never did. Caught by
 #    running the suite in a `--depth 1` clone, which is what CI has.
+# 🔴 `[2026-09-28]` ~~both bars sit well above what the LIVE repo measures
+#    today~~ asked whether PRODUCTION stays under half of repo_watch's own
+#    bars — another guard's silence on live data, with margin. It would
+#    have gone red on correct code within days (measured 2026-09-28 in
+#    budget run 36478004911: growth 9.89 against a 10.0 trip, pack 179 of
+#    250 MiB) while repo_watch itself still said OK. ✅ The DESIGN question
+#    — "is a bar within reach of the HEALTHY BASELINE?" — is now asked of
+#    the dated baseline the bars were set against (repo_watch.py cites it
+#    beside each constant, and this file's docstring quotes it), with the
+#    same factor of two, and the judge is driven on that baseline. The
+#    live numbers are printed as a note: Sam moves a bar, not this file.
+BASELINE = {"measured": "2026-09-19", "pack_mib": 105.14, "disk_mb_day": 5.34}
+ck("⛔ both bars sit at least TWICE the dated healthy baseline",
+   R.PACK_WARN_MIB >= 2 * BASELINE["pack_mib"]
+   and R.GROWTH_WARN_MB_DAY >= 2 * BASELINE["disk_mb_day"],
+   "🔴 a bar within reach of the healthy baseline fires on correct code. "
+   "pack bar %.0f vs %.2f MiB · growth bar %.1f vs %.2f MB/day (measured %s)"
+   % (R.PACK_WARN_MIB, BASELINE["pack_mib"], R.GROWTH_WARN_MB_DAY,
+      BASELINE["disk_mb_day"], BASELINE["measured"]))
+_at_base = R.judge(dict(_B, state=None, why="", complete_clone=True,
+                        pack_mib=BASELINE["pack_mib"],
+                        disk_mb_day=BASELINE["disk_mb_day"]))
+_over = R.judge(dict(_B, state=None, why="", complete_clone=True,
+                     pack_mib=R.PACK_WARN_MIB + 1,
+                     disk_mb_day=R.GROWTH_WARN_MB_DAY + 1))
+ck("   ...and the judge says OK at that baseline, BAD just past both bars",
+   _at_base["state"] == "OK" and _over["state"] == "BAD"
+   and "MiB bar" in _over["why"] and "MB/day bar" in _over["why"],
+   "baseline -> %s %r · over -> %s %r"
+   % (_at_base["state"], _at_base["why"], _over["state"], _over["why"][:120]))
 if _LIVE:
-    ck("⛔ both bars sit well above what was actually measured",
-       _LIVE["pack_mib"] < R.PACK_WARN_MIB * 0.5
-       and _LIVE["disk_mb_day"] < R.GROWTH_WARN_MB_DAY * 0.5,
-       "🔴 a bar within reach of the healthy baseline fires on correct "
-       "code. pack %.1f vs %.0f MiB · growth %.2f vs %.0f MB/day"
-       % (_LIVE["pack_mib"], R.PACK_WARN_MIB, _LIVE["disk_mb_day"],
-          R.GROWTH_WARN_MB_DAY))
+    note("live headroom: pack %.1f of %.0f MiB · packed growth %.2f of %.0f "
+         "MB/day (%s)"
+         % (_LIVE["pack_mib"], R.PACK_WARN_MIB, _LIVE["disk_mb_day"],
+            R.GROWTH_WARN_MB_DAY, _LIVE["state"]))
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 A SHALLOW CLONE IS UNREADABLE, NEVER OK")
@@ -283,13 +325,23 @@ ck("⛔ ...and a PLAIN file rewritten in place is not flagged either",
    "is about what git can STORE, not about how often a file changes. "
    "versions=%s" % _top.get("data/latest/big.json", {}).get("versions"))
 
+# 🔴 `[2026-09-28]` ~~`bool(_h) and ...`~~ required PRODUCTION to still
+#    hold the defect the watcher flags — a gzip rewritten in place. Moving
+#    those writers to dated archives (the design repo_watch recommends,
+#    rule 285), or a quiet week, would have turned it red on correct code.
+#    ✅ The planted case is the bench above (its board.json.gz is flagged,
+#    every run). On the live repo the PROPERTY is still checked on every
+#    path it flags; an empty list is reported, never asserted.
 if _LIVE:
     _h = [t for t in _LIVE["top"] if t["hostile"]]
-    ck("⚠️ and on the LIVE repo it names real paths rather than a number",
-       bool(_h) and all(p["path"].endswith(".gz") and p["versions"] > 1
-                        for p in _h),
+    ck("⚠️ and on the LIVE repo every path it flags is a gzip with several "
+       "versions — a real path, not a number",
+       all(p["path"].endswith(".gz") and p["versions"] > 1 for p in _h),
        "⛔ a number with no cause is a number nobody can act on. "
-       "flagged: %s" % [p["path"] for p in _h][:3])
+       "flagged: %s" % [(p["path"], p["versions"]) for p in _h][:3])
+    note("live: %d path(s) flagged as rewritten in place%s"
+         % (len(_h), (" — e.g. %s" % [p["path"] for p in _h][:3]) if _h else
+            " — none this window (the bench above is the planted case)"))
 
 shutil.rmtree(_BENCH, ignore_errors=True)
 

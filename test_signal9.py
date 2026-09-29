@@ -37,6 +37,11 @@
 #   find:     later = [w for w, s in last.items() if s >= str(day)[:10]]
 #   with:     later = [max(last)] if last else []
 #
+# @vacuity a card dated on its week's LAST game day (the Monday) still reads that week
+#   file: signal9.py
+#   find:     later = [w for w, s in last.items() if s >= str(day)[:10]]
+#   with:     later = [w for w, s in last.items() if s > str(day)[:10]]
+#
 # @vacuity a use is kept only if it does not make log loss worse
 #   file: fb_signal9.py
 #   find:     return {"n": n, "mean_d": mean, "t": t, "p": p, "clusters": G, "keep": mean >= 0,
@@ -70,7 +75,7 @@ import shutil
 import sys
 import tempfile
 
-from tcheck import ck
+from tcheck import ck, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -143,9 +148,36 @@ ck(S.s_adj(_opp, "d", "MIA", 1, "tgt")[0] == S.s_adj(_opp, "d", "MIA", 1, "tgt")
 ck(abs(S.card_scale(_opp, "c", "MIA", 2, "player_receptions") - 2.0) < 1e-9
    and S.card_scale(_opp, "c", "MIA", 2, "player_pass_yds") == 1.0,
    "🔴 the card scales a 2025 value by s_adj / s25 (40% / 20% = 2) on volume markets only")
-ck(S.week_of("nfl", "2026-09-13") == 1 and S.week_of("nfl", "2026-09-20") == 2,
-   "🔴 a card reads the roster of ITS week: 09-13 is week 1, 09-20 is week 2 — never a later week",
-   "got %r / %r" % (S.week_of("nfl", "2026-09-13"), S.week_of("nfl", "2026-09-20")))
+# 🔴 `[2026-09-28]` PLANTED. This read the collector-written
+#    data/nfl/latest/schedule-2026.json.gz, so its case (week 1 and week 2
+#    with start dates) existed only because production held it; a schedule
+#    rebuild or a checkout without the file would have made `week_of`
+#    return None and this red on correct code. ✅ A three-week schedule is
+#    planted under a temp root (`week_of` takes `root=`), with the Monday
+#    boundary each side of it; the live file is reported as a note.
+_wk = tempfile.mkdtemp(prefix="s9-week-")
+try:
+    os.makedirs(os.path.join(_wk, "data", "nfl", "latest"))
+    with gzip.open(os.path.join(_wk, "data", "nfl", "latest", "schedule-2026.json.gz"),
+                   "wt", encoding="utf-8") as _fh:
+        json.dump({"season": 2026, "games": [
+            {"week": w, "start": s + "T17:00:00Z"}
+            for w, days in ((1, ("2026-09-10", "2026-09-13", "2026-09-14")),
+                            (2, ("2026-09-17", "2026-09-20", "2026-09-21")),
+                            (3, ("2026-09-24", "2026-09-27", "2026-09-28")))
+            for s in days]}, _fh)
+    _wks = {d: S.week_of("nfl", d, root=_wk)
+            for d in ("2026-09-13", "2026-09-14", "2026-09-15", "2026-09-20")}
+    _none = S.week_of("nfl", "2025-09-13", root=_wk)
+finally:
+    shutil.rmtree(_wk, ignore_errors=True)
+ck(_wks == {"2026-09-13": 1, "2026-09-14": 1, "2026-09-15": 2, "2026-09-20": 2}
+   and _none is None,
+   "🔴 a card reads the roster of ITS week: 09-13 is week 1, Monday 09-14 still week 1, "
+   "09-15 and 09-20 week 2 — never a later week; no schedule file is None (PLANTED)",
+   "got %r / no-file %r" % (_wks, _none))
+note("⚪ live schedule: 09-13 -> week %r, 09-20 -> week %r"
+     % (S.week_of("nfl", "2026-09-13"), S.week_of("nfl", "2026-09-20")))
 
 # ══════════════════════════════════════════════════════════════════════
 # 3. THE KEEP RULE, AND THE SWITCHES MATCH THE RECORD

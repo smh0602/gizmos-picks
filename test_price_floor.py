@@ -34,13 +34,27 @@ floor are never paired. **-700 is not below -700.** The edit permits one
 price the old form rejected, and the suite is made **strictly harder** in
 the same change — `verify_card.py` gained a boundary check it had no
 equivalent of, and this file did not exist at all.
+
+# @vacuity section 4: a leg one point past the floor FAILS the verifier
+#   file: verify_card.py
+#   find:         if any(a < C.PRICE_FLOOR for a in p['prices'])])
+#   with:         if any(a < C.PRICE_FLOOR - 1 for a in p['prices'])])
+#
+# @vacuity section 4: a leg AT the floor PASSES the verifier (inclusive)
+#   file: verify_card.py
+#   find:         if any(a < C.PRICE_FLOOR for a in p['prices'])])
+#   with:         if any(a <= C.PRICE_FLOOR for a in p['prices'])])
 """
+import gzip
+import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
-from tcheck import ck, note
+from tcheck import ck, note, shown
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -104,12 +118,44 @@ print("\n═══ 4. 🔴🔴 FAULT-INJECTED — THE CHECK STILL BITES ══�
 #    so injecting into `picks/<date>.json` proves nothing — the first
 #    attempt at this test did exactly that and "passed" against a file
 #    the verifier never opens. The builder is patched instead.
-INJ = r'''
+# 🔴 `[2026-09-28]` ~~ONLY LEGS ALREADY AT THE FLOOR WERE PUSHED~~, on
+#    TODAY'S live card with the real clock. So the only proof that this
+#    check bites ran only on a slate that happened to carry a -700 leg —
+#    measured 2026-09-28: 40 parlay legs, none at -700, "NOT EXERCISED" —
+#    and never in the off-season, when there is no card at all. And when
+#    it did run it matched the bare substring, which verify_card prints on
+#    PASS as well as FAIL, beside ANY non-zero exit: an unrelated live
+#    failure satisfied it while the floor check itself printed PASS.
+#    ✅ THE CASE IS NOW PLANTED: a synthetic card with one two-leg parlay
+#    is driven through the REAL verifier in a tree holding nothing live,
+#    once with a leg AT the floor and once ONE POINT past it, and the
+#    verdict is read off the verifier's own line for THIS check — PASS
+#    at -700, FAIL (and counted in FAILURES) at -701. That is strictly
+#    harder: it proves both halves of the boundary every run.
+#    ➡️ Today's live card is still driven as an EXTRA when there is one.
+FLOOR_LINE = "no parlay leg is shorter than the %d floor" % C.PRICE_FLOOR
+PLANT = r'''
 import sys; sys.path.insert(0, %r)
 import card as C
+LEG = int(sys.argv[1])
 _orig = C.main
-def patched(*a, **k):
+def planted_parlay(leg):
+    return {"legs": ["Planted A o4.5 K", "Planted B u1.5 TB"], "n_legs": 2,
+            "prices": [leg, 250], "game_ids": ["planted-1", "planted-2"],
+            "decimals": [1.0 + 100.0 / -leg, 3.5],
+            "multiplier": round((1.0 + 100.0 / -leg) * 3.5, 3),
+            "leg_confidences": [90.0, 60.0], "joint": 54.0,
+            "joint_basis": "MODEL", "leg_bases": ["MODEL", "MODEL"]}
+def synthetic(*a, **k):
+    return {"date": "2026-09-28", "picks": [], "below_price_floor": [],
+            "pairs": [], "projections": {}, "top10": [], "top10_excluded": {},
+            "parlays": {"2": [planted_parlay(LEG)]}, "hitter_record_bands": [],
+            "board_rule": {}, "board_seats": {}, "pitcher_correction": {}}
+def live(*a, **k):
     d = _orig(*a, **k)
+    if d is None:
+        print("NO LIVE CARD", file=sys.stderr)
+        return d
     n = 0
     for rows in (d.get("parlays") or {}).values():
         for r in rows:
@@ -117,30 +163,83 @@ def patched(*a, **k):
                 if px == C.PRICE_FLOOR:
                     r["prices"][i] = C.PRICE_FLOOR - 1
                     n += 1
+    _first = [r for rows in (d.get("parlays") or {}).values() for r in rows]
+    if _first and C.PRICE_FLOOR - 1 not in _first[0]["prices"]:
+        _first[0]["prices"][0] = C.PRICE_FLOOR - 1
+        n += 1
+    elif not _first:
+        d.setdefault("parlays", {}).setdefault("2", []).append(
+            planted_parlay(C.PRICE_FLOOR - 1))
+        n += 1
     print("INJECTED %%d" %% n, file=sys.stderr)
     return d
-C.main = patched
+C.main = synthetic if sys.argv[2] == "synthetic" else live
 import verify_card  # noqa
 ''' % ROOT
 
-_p = subprocess.run([sys.executable, "-c", INJ], cwd=ROOT,
+
+def _floor_verdict(out):
+    """The verifier's own line for THIS check: 'PASS', 'FAIL' or None, and
+    whether its FAILURES summary counts it."""
+    got = [ln[2:6] for ln in out.splitlines()
+           if ln.startswith(("  PASS ", "  FAIL ")) and ln[7:].startswith(FLOOR_LINE)]
+    summary = [ln for ln in out.splitlines() if ln.startswith("FAILURES:")]
+    return (got[0] if len(got) == 1 else got or None,
+            bool(summary) and FLOOR_LINE in summary[-1])
+
+
+_T = tempfile.mkdtemp(prefix="pricefloor-")
+try:
+    # ⛔ A TREE WITH NOTHING LIVE IN IT: the verifier reads its data files
+    #    relative to the working directory, so it sees these empty ones
+    #    and never today's board, pull or published cards.
+    os.makedirs(os.path.join(_T, "data", "latest"))
+    for _nm, _obj in (("pitchers", {"players": {}}), ("props", {"games": []}),
+                      ("hitters", {"players": {}})):
+        with gzip.open(os.path.join(_T, "data", "latest", _nm + ".json.gz"),
+                       "wt", encoding="utf-8") as _fh:
+            json.dump(_obj, _fh)
+    _v = {}
+    for _leg in (C.PRICE_FLOOR, C.PRICE_FLOOR - 1):
+        _q = subprocess.run([sys.executable, "-c", PLANT, str(_leg), "synthetic"],
+                            cwd=_T, capture_output=True, text=True, timeout=600,
+                            env=dict(os.environ, PYTHONUTF8="1"))
+        _v[_leg] = _floor_verdict(_q.stdout) + (_q.returncode,)
+        if _v[_leg][0] not in ("PASS", "FAIL"):
+            print(shown(_q.stdout[-1500:]), shown(_q.stderr[-1500:]))
+finally:
+    shutil.rmtree(_T, ignore_errors=True)
+ck("🔴 PLANTED: a leg AT the floor (%d) PASSES the verifier's floor check"
+   % C.PRICE_FLOOR,
+   _v[C.PRICE_FLOOR][0] == "PASS" and not _v[C.PRICE_FLOOR][1],
+   "⛔ -700 is not below -700: the verifier calling it a violation is run "
+   "932's red on a correct card. got %r" % (_v[C.PRICE_FLOOR],))
+ck("🔴🔴 PLANTED: a leg ONE POINT past it (%d) FAILS it, and it is counted"
+   % (C.PRICE_FLOOR - 1),
+   _v[C.PRICE_FLOOR - 1][0] == "FAIL" and _v[C.PRICE_FLOOR - 1][1]
+   and _v[C.PRICE_FLOOR - 1][2] != 0,
+   "⛔ THIS IS THE CHECK THAT PROVES THE FIX IS A CORRECTION AND NOT A "
+   "WEAKENING. If it passes, the boundary edit stopped the check catching "
+   "anything at all. got %r" % (_v[C.PRICE_FLOOR - 1],))
+
+# ── the EXTRA: today's live card, when there is one ───────────────────
+_p = subprocess.run([sys.executable, "-c", PLANT, "0", "live"], cwd=ROOT,
                     capture_output=True, text=True, timeout=600)
 _n = re.search(r"INJECTED (\d+)", _p.stderr)
 _injected = int(_n.group(1)) if _n else 0
-if not _injected:
-    note("⚠️ NOT EXERCISED: today's card has no parlay leg priced at "
-         "exactly the floor, so there was nothing to push one point "
-         "past it. ⛔ Reported rather than passed — this section proves "
-         "nothing on a board without a leg on the boundary.")
+if not _injected or "34. PARLAYS" not in _p.stdout:
+    note("⚠️ LIVE EXTRA NOT EXERCISED: %s. ⛔ Reported rather than passed; "
+         "the planted card above asked the same question this run."
+         % ("there is no live card today" if "NO LIVE CARD" in _p.stderr
+            else "the live verifier did not reach its parlay section (rc %d)"
+            % _p.returncode))
 else:
-    ck("🔴 a leg ONE POINT below the floor still FAILS the verifier",
-       _p.returncode != 0
-       and "no parlay leg is shorter" in (_p.stdout + _p.stderr),
-       "⛔ THIS IS THE CHECK THAT PROVES THE FIX IS A CORRECTION AND NOT "
-       "A WEAKENING. If this passes, the boundary edit stopped the check "
-       "catching anything at all. injected=%d rc=%d"
-       % (_injected, _p.returncode))
-    note("injected %d leg(s) at %d and the verifier exited %d"
+    _lv = _floor_verdict(_p.stdout)
+    ck("🔴 LIVE: today's card with a leg pushed ONE POINT past the floor "
+       "FAILS the floor check",
+       _lv[0] == "FAIL" and _lv[1] and _p.returncode != 0,
+       "injected=%d rc=%d verdict=%r" % (_injected, _p.returncode, _lv))
+    note("injected %d leg(s) at %d into today's card and the verifier exited %d"
          % (_injected, C.PRICE_FLOOR - 1, _p.returncode))
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that -700 is a good floor. It is "

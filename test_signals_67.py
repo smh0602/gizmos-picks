@@ -20,6 +20,11 @@ declarations are what `vacuity.py` drives:
 #   find:             dates[_g] = _sched[str(_g)]
 #   with:             pass
 #
+# @vacuity signal 6: with NO schedule an undated NFL game is COUNTED undated, never hidden
+#   file: nfl.py
+#   find:     rep["games_undated"] = sum(1 for g in games.values() if not g["date"])
+#   with:     rep["games_undated"] = 0
+#
 # @vacuity signal 7: questionable is NOT ruled out
 #   file: nfl.py
 #   find:         if INJ_RANK.get(st, 1 if st else 0) < 2:
@@ -103,15 +108,51 @@ ck(P.share_before(G, "X", "2025-09-07")["share"] is None
 # ── driven on the REAL 2025 NFL season (committed drive-level sample) ──
 _s = json.load(gzip.open(os.path.join(ROOT, "research",
                                       "pbp_possession_sample_2025.json.gz"), "rt"))
-_pay, _rep = nfl.possession_from_rows(_s["rows"], 2025, log=Q)
+# 🔴 `[2026-09-28]` THE SCHEDULE IS PLANTED. `possession_from_rows` dates a
+#    game with no `game_date` from `nfl.schedule_dates(season)`, which read
+#    the COLLECTOR-WRITTEN data/nfl/latest/schedule-2025.json.gz (rewritten
+#    by nfl-logs history rebuilds). So "every game is DATED" held only
+#    because production held that file: missing, unreadable or rebuilt
+#    without ids, it went red on correct code. ✅ The schedule is now a map
+#    built from the sample's OWN game ids, and the twin — the same rows with
+#    NO schedule — must leave all 285 undated, which proves the fallback
+#    (not the rows) is what dated them. The live file stays as an extra
+#    whenever it covers the sample's games.
+_sids = sorted({str(r["game_id"]) for r in _s["rows"] if r.get("game_id")})
+_plant = {gid: "2025-%02d-%02d" % (9 + n // 150, 1 + (n % 150) // 6)
+          for n, gid in enumerate(_sids)}
+_live_sd = nfl.schedule_dates
+try:
+    nfl.schedule_dates = lambda season, root=None: dict(_plant)
+    _pay, _rep = nfl.possession_from_rows(_s["rows"], 2025, log=Q)
+    nfl.schedule_dates = lambda season, root=None: {}
+    _pay0, _rep0 = nfl.possession_from_rows(_s["rows"], 2025, log=Q)
+finally:
+    nfl.schedule_dates = _live_sd
 _g = (_pay or {}).get("games") or {}
 ck(_pay and len(_g) == 285,
    "🔴 NFL 2025: every game's per-team share is stored (%d of 285)" % len(_g),
    "⛔ one row per game already played. rep=%r" % {k: _rep.get(k) for k in
                                                     ("usable", "error", "games_stored")})
-ck(_rep.get("games_undated") == 0,
-   "   ⚠️ ...and every one is DATED (the sample has no `game_date`, so this "
-   "proves the schedule fallback)", "undated=%r" % _rep.get("games_undated"))
+ck(_rep.get("games_undated") == 0
+   and all(v["date"] == _plant[k] for k, v in _g.items()),
+   "   ⚠️ ...and every one is DATED, from the (planted) schedule: the sample "
+   "has no `game_date`, so this proves the schedule fallback",
+   "undated=%r" % _rep.get("games_undated"))
+ck(_rep0.get("games_undated") == len(_sids) == 285,
+   "   🔴 ...and with NO schedule the same rows leave all 285 undated — the "
+   "fallback is what dates them, not the rows",
+   "undated=%r of %d" % (_rep0.get("games_undated"), len(_sids)))
+_live_map = nfl.schedule_dates(2025)
+if _live_map and all(gid in _live_map for gid in _sids):
+    _payL, _repL = nfl.possession_from_rows(_s["rows"], 2025, log=Q)
+    ck(_repL.get("games_undated") == 0,
+       "   ✅ EXTRA: the committed 2025 schedule dates every one of them too",
+       "undated=%r" % _repL.get("games_undated"))
+else:
+    note("⚪ the live 2025 NFL schedule does not cover the sample's %d games "
+         "(%d ids stored); the planted schedule above asked the question"
+         % (len(_sids), len(_live_map or {})))
 _off = [t for t, v in (_pay or {}).get("teams", {}).items()
         if abs(v["share"] - round(sum(x["teams"][t]["share"] for x in _g.values()
                                       if t in x["teams"] and not x["withheld"])

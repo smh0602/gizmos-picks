@@ -33,6 +33,31 @@ WHAT IS PINNED HERE:
   4. MLB is untouched, and so is any stale artifact with no recorded cause
   5. a deliberate stand-down exits 0; an ATTEMPTED fetch that fails still
      exits 1
+
+# @vacuity §3 the sandbox's cfb-probe rows really are STALE once aged
+#   file: freshness.py
+#   find:         stale = built is None or (due is not None and built < due)
+#   with:         stale = built is None
+#
+# @vacuity §3 inside the grace a blocked, source-backed row is a WARNING
+#   file: freshness.py
+#   find:             if _age is not None and _age <= _grace:
+#   with:             if False:
+#
+# @vacuity §3 the planted props board keeps card-fb in the contract, and it stays red
+#   file: freshness.py
+#   find:     if not os.path.exists(f"{latest}/props.json.gz"):
+#   with:     if True:
+#
+# @vacuity §4 MLB (no source-backed mode) claims no source excuse, even beside a refusing report
+#   file: freshness.py
+#   find:         if (r["mode"] in SOURCE_BACKED and block["state"]
+#   with:         if (block["state"]
+#
+# @vacuity §5 fb-scores fetches anyway (the stub IS called) when the failure is OURS
+#   file: collect.py
+#   find:                 _wait = _cfb_backoff_left() if _refusing else 0
+#   with:                 _wait = _cfb_backoff_left()
 """
 import datetime
 import gzip
@@ -158,21 +183,53 @@ def _gate(age_days, state="refused"):
     #    assertion below stops describing what it means to describe.
     # ⛔ THE FIXTURE IS WHAT WAS INCOMPLETE, NOT THE CHECK. The assertion
     #    is unchanged and now has two rows to hold rather than one.
+    # 🔴 `[2026-09-28]` ~~two files, by a hardcoded 2026 name~~. The
+    #    contract now has FOUR cfb-probe rows (allowed-by-position,
+    #    offense-by-position, players, top-probe) and names them for
+    #    `current_football_season(now)` on the REAL clock: from 2027-08-01
+    #    the rows are 2027's, this sandbox would have aged 2026 files
+    #    nobody watches, and every check below would have gone red on
+    #    correct code (a pinned list against a live clock). A live row the
+    #    list never named, missing, is an ERROR row today. ✅ The list is
+    #    DERIVED from the contract itself, at the clock the gate runs on,
+    #    and every cfb-probe artifact is aged — written as a stamped stub
+    #    when the live tree does not hold it.
     _built = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    for _art in (f"{d}/data/ncaaf/latest/allowed-by-position-2026.json.gz",
-                 f"{d}/data/ncaaf/latest/top-probe-2026.json"):
-        if not os.path.exists(_art):
-            continue
+    _probe_arts = sorted({r["path"] for r in F.survey(
+        data=f"{d}/data/ncaaf", picks=f"{d}/picks", now=NOW)
+        if r["mode"] == "cfb-probe" and r["kind"] == "file"})
+    for _art in _probe_arts:
         _gz = _art.endswith(".gz")
-        _doc = json.load(gzip.open(_art, "rt") if _gz
-                         else io.open(_art, encoding="utf-8"))
+        _doc = {}
+        if os.path.exists(_art):
+            _doc = json.load(gzip.open(_art, "rt") if _gz
+                             else io.open(_art, encoding="utf-8"))
+        # ⚠️ EVERY stamp field it carries, not only `built_at`: the stamp
+        #    is the FIRST of `F.STAMP_FIELDS` present, so a file that also
+        #    carries `pulled_at` would otherwise keep its live age.
+        for _f in F.STAMP_FIELDS:
+            if _f in _doc:
+                _doc[_f] = _built
         _doc["built_at"] = _built
+        os.makedirs(os.path.dirname(_art), exist_ok=True)
         if _gz:
             with gzip.open(_art, "wt") as _fh:
                 json.dump(_doc, _fh)
         else:
             with io.open(_art, "w", encoding="utf-8") as _fh:
                 json.dump(_doc, _fh)
+    _after = [r for r in F.survey(data=f"{d}/data/ncaaf", picks=f"{d}/picks",
+                                  now=NOW) if r["mode"] == "cfb-probe"]
+    _AGED.append((len(_probe_arts), len(_after),
+                  all(r["stale"] and not r["missing"] for r in _after)))
+    # 🔴 `[2026-09-28]` AND AN UNBLOCKED STALE ROW IS PLANTED, not borrowed.
+    #    `card-fb` is in the contract only while a props board exists
+    #    (freshness.contract), so the "an UNblocked stale row still fails"
+    #    check below held only while production had one. ✅ A stale board
+    #    stub puts `card-fb` in the contract every run, and the sandbox's
+    #    empty picks/ makes its card missing — a real gap that must stay red.
+    with gzip.open(f"{d}/data/ncaaf/latest/props.json.gz", "wt") as _fh:
+        json.dump({"built_at": _built, "pulled_at": _built, "games": []}, _fh)
     when = NOW - datetime.timedelta(minutes=5)
     body = (_report(when, failed=[2026], extra="HTTPError 429")
             if state == "refused"
@@ -180,14 +237,22 @@ def _gate(age_days, state="refused"):
     with open(f"{d}/data/ncaaf/latest/backfill-report.txt", "w",
               encoding="utf-8") as fh:
         fh.write(body)
-    env = dict(os.environ, LEAGUE="ncaaf",
+    env = dict(os.environ, ODDS_API_KEY="", CFBD_API_KEY="", LEAGUE="ncaaf",
                SOURCE_REFUSED_GRACE_MIN=str(int(age_days * 1440)))
     r = subprocess.run([sys.executable, "verify_freshness.py"], cwd=d,
                        capture_output=True, text=True, env=env)
+    shutil.rmtree(d, ignore_errors=True)
     return r.returncode, r.stdout + r.stderr
 
 
+_AGED = []
 rc, out = _gate(age_days=30)          # grace far exceeds the real staleness
+ck("⚠️ the sandbox made EVERY cfb-probe row stale itself, and none missing "
+   "(%s artifact(s) aged)" % (_AGED[0][0] if _AGED else 0),
+   bool(_AGED) and _AGED[0][0] >= 1 and _AGED[0][1] == _AGED[0][0] and _AGED[0][2],
+   "⛔ derived from the contract at the gate's clock, never a typed list; a "
+   "row left fresh or MISSING makes the downgrade below describe nothing. "
+   "got (aged, rows, all stale & present) = %r" % (_AGED[:1],))
 # ⚠️ ASSERT ON THE ROW, NOT THE WHOLE GATE. The sandbox tree carries
 #    other genuinely-stale artifacts (no props board, no card) and those
 #    SHOULD still fail — that is the point of the narrowness. What this
@@ -203,10 +268,10 @@ ck("⛔ ...and is NOT an error",
    not _row(out, "cfb-probe", "error"),
    "a downgraded row must not also be reported as a failure")
 ck("⚠️ ...while an UNblocked stale row still fails the run",
-   rc == 1 and any(_row(out, m, "error")
-                   for m in ("props-board", "card-fb", "props-player")),
-   "the sandbox has no props board — that is a real gap and stays red, "
-   "which is how we know the downgrade is narrow")
+   rc == 1 and bool(_row(out, "card-fb", "error")),
+   "the sandbox's (planted) props board has no card — that is a real gap "
+   "and stays red, which is how we know the downgrade is narrow. "
+   "⚠️ `card-fb` itself now, not any of three: the plant guarantees it")
 ck("...and it names the actual reason, not a generic one",
    "429" in out, [l for l in out.splitlines() if "::warning::" in l][:1])
 
@@ -221,18 +286,95 @@ ck("⛔ ...and it says the next move is a DECISION, not a wait",
 print("\n═══ 4. ⛔ NOTHING ELSE IS DOWNGRADED ═══")
 # 🔴 MLB has no back-fill report, so it cannot claim a source excuse even
 #    by accident.
-r = subprocess.run([sys.executable, "verify_freshness.py"], cwd=ROOT,
-                   capture_output=True, text=True,
-                   env=dict(os.environ, LEAGUE="mlb", ODDS_API_KEY=""))
-ck("MLB is untouched by any of this",
+# 🔴 `[2026-09-28]` ~~the real gate over the LIVE MLB tree prints no
+#    source-block line~~ asserted that the gate is SILENT ON PRODUCTION
+#    DATA — and passed just as well when the gate crashed with empty
+#    stdout. ✅ PLANTED, AND HARDER: an MLB sandbox holding a REFUSING
+#    back-fill report (429, the strongest claim) and a stale, present MLB
+#    artifact. The gate must RUN (its banner and that row are printed) and
+#    still claim no source excuse, because no MLB mode is source-backed.
+#    The live MLB tree is reported as a note.
+_m = tempfile.mkdtemp(prefix="srcblock-mlb-")
+try:
+    for _f in ("freshness.py", "verify_freshness.py", "tcheck.py",
+               "wfroutes.py", "collect.py", "cfb.py", "nfl.py"):
+        if os.path.exists(f"{ROOT}/{_f}"):
+            shutil.copy2(f"{ROOT}/{_f}", f"{_m}/{_f}")
+    os.makedirs(f"{_m}/data/latest")
+    os.makedirs(f"{_m}/picks")
+    with open(f"{_m}/data/latest/backfill-report.txt", "w", encoding="utf-8") as fh:
+        fh.write(_report(NOW - datetime.timedelta(minutes=5), failed=[2026],
+                         extra="SourceUnavailable: regular: HTTPError 429"))
+    with gzip.open(f"{_m}/data/latest/pitchers.json.gz", "wt") as fh:
+        json.dump({"built_at": (NOW - datetime.timedelta(days=3)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"), "players": {}}, fh)
+    r = subprocess.run([sys.executable, "verify_freshness.py"], cwd=_m,
+                       capture_output=True, text=True,
+                       env=dict(os.environ, ODDS_API_KEY="", CFBD_API_KEY="",
+                                LEAGUE="mlb"))
+finally:
+    shutil.rmtree(_m, ignore_errors=True)
+ck("⚠️ the planted MLB gate RAN: its banner and the stale pitchers row are printed",
+   "FRESHNESS GATE" in r.stdout
+   and any(l.split()[:2] == ["STALE", "pitchers"] and "MISSING" not in l
+           for l in r.stdout.splitlines()),
+   "⛔ a gate that crashed prints nothing, and 'nothing' is what the "
+   "silence check below looks for. rc=%d tail=%r" % (r.returncode, r.stdout[-300:]))
+ck("MLB is untouched by any of this — even with a REFUSING report beside a stale row",
    "BLOCKED TOO LONG" not in r.stdout and "KNOWN state" not in r.stdout,
-   "no report -> no block -> the gate behaves exactly as before")
+   "no MLB mode is source-backed -> no block -> the gate behaves exactly as before")
+_rl = subprocess.run([sys.executable, "verify_freshness.py"], cwd=ROOT,
+                     capture_output=True, text=True,
+                     env=dict(os.environ, ODDS_API_KEY="", CFBD_API_KEY="",
+                              LEAGUE="mlb"))
+note("⚪ live MLB gate: rc %d, %s" % (
+    _rl.returncode, "a source-block line WAS printed" if (
+        "BLOCKED TOO LONG" in _rl.stdout or "KNOWN state" in _rl.stdout)
+    else "no source-block line"))
 ck("⚠️ and the downgrade requires the row to be SOURCE-BACKED",
    "card" not in F.SOURCE_BACKED and "props-player" not in F.SOURCE_BACKED,
    "a stale card is never excused by a stale source")
 
 print("\n═══ 5. 🔴 A STAND-DOWN IS NOT AN ERROR; A FAILED FETCH STILL IS ═══")
 C = open("collect.py", encoding="utf-8").read()
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 NO SANDBOX HERE CAN REACH THE NETWORK. `[2026-09-28]`
+# ══════════════════════════════════════════════════════════════════════
+# The "fetch anyway when the failure is OURS" case below takes the branch
+# that calls `cfb.build_schedule`, which asked api.collegefootballdata.com
+# for real on every run (two season types, four tries each, sleeping
+# between them) — with `CFBD_API_KEY` inherited, so a shell holding the
+# key spent CFBD quota from a test. ⛔ Sam: "A test must not depend on the
+# network; use recorded fixtures." ✅ Every collector call now goes
+# through `_nonet.py`, written into the sandbox: `urllib.request.urlopen`
+# REFUSES before anything is imported (a tripwire every module's fetch
+# goes through), and `cfb.build_schedule` is a RECORDER that says it was
+# called and returns what an empty source returns. So the fetch-anyway
+# branch is proved by the recorder BEING CALLED — stronger than a log line
+# — and the stand-down branches by it NOT being called. Both keys are
+# blanked as well.
+NONET = r'''
+import os, runpy, sys, urllib.request
+def _refuse(*a, **k):
+    print("NONET: urlopen REFUSED -- a test may not reach the network", flush=True)
+    raise OSError("no network in tests")
+urllib.request.urlopen = _refuse
+sys.path.insert(0, os.getcwd())
+import cfb
+def _schedule(season, log=print, *a, **k):
+    print("STUB: cfb.build_schedule(%s) CALLED" % season, flush=True)
+    return None, {"error": "stubbed: a test may not reach CFBD", "games": 0}
+cfb.build_schedule = _schedule
+sys.argv = sys.argv[1:]
+runpy.run_path(sys.argv[0], run_name="__main__")
+'''
+STUB_CALLED = "STUB: cfb.build_schedule("
+
+
+def _sandbox_collect(d):
+    """Write the no-network wrapper into sandbox `d`."""
+    with open(f"{d}/_nonet.py", "w", encoding="utf-8") as fh:
+        fh.write(NONET)
 # 🔴 DRIVEN, NOT READ. Reading the source cannot tell the stand-down's
 #    exit from the NEXT branch's exit — the first version of this check
 #    tried and was wrong. Run the collector with the back-off armed.
@@ -273,13 +415,18 @@ def _standdown(mode):
     # ✅ `converge-off` alone already stops it. The blank key is DEFENCE IN
     #    DEPTH: if a future edit drops `converge-off`, the worst outcome is
     #    a failed fetch, never a silent bill.
-    r = subprocess.run([sys.executable, "collect.py", mode, "converge-off"],
+    _sandbox_collect(d)
+    r = subprocess.run([sys.executable, "_nonet.py", "collect.py", mode,
+                        "converge-off"],
                        cwd=d, capture_output=True, text=True,
-                       env=dict(os.environ, LEAGUE="ncaaf",
-                                CFB_BACKOFF_MIN="180", ODDS_API_KEY=""))
+                       env=dict(os.environ, ODDS_API_KEY="", CFBD_API_KEY="",
+                                LEAGUE="ncaaf", CFB_BACKOFF_MIN="180"))
+    shutil.rmtree(d, ignore_errors=True)
+    _OUTS.append(r.stdout + r.stderr)
     return r.returncode, r.stdout + r.stderr
 
 
+_OUTS = []
 for _m in ("cfb-probe", "fb-scores"):
     _rc, _o = _standdown(_m)
     ck(f"🔴 {_m}: a back-off stand-down exits 0",
@@ -314,31 +461,39 @@ def _fbs(extra):
     # ⛔ Key blanked here too — see `_standdown()` above. `fb-scores` is a
     #    CFBD call, not an Odds API one, so this changes nothing it does;
     #    it only removes any path by which this file can spend.
-    r = subprocess.run([sys.executable, "collect.py", "fb-scores",
+    _sandbox_collect(d)
+    r = subprocess.run([sys.executable, "_nonet.py", "collect.py", "fb-scores",
                         "converge-off"], cwd=d,
                        capture_output=True, text=True,
-                       env=dict(os.environ, LEAGUE="ncaaf",
-                                CFB_BACKOFF_MIN="180", ODDS_API_KEY=""))
+                       env=dict(os.environ, ODDS_API_KEY="", CFBD_API_KEY="",
+                                LEAGUE="ncaaf", CFB_BACKOFF_MIN="180"))
     shutil.rmtree(d, ignore_errors=True)
+    _OUTS.append(r.stdout + r.stderr)
     return r.returncode, r.stdout + r.stderr
 
 
 _rc, _o = _fbs("SourceUnavailable: regular: HTTPError 429.")
 ck("🔴 fb-scores STANDS DOWN when CFBD is refusing us",
-   "SKIPPING fb-scores[ncaaf]" in _o and "REFUSING US" in _o,
-   "a 429 on the report is CFBD's own answer and backing off is right")
+   "SKIPPING fb-scores[ncaaf]" in _o and "REFUSING US" in _o
+   and STUB_CALLED not in _o,
+   "a 429 on the report is CFBD's own answer and backing off is right — "
+   "and the schedule fetch is NOT called")
 ck("   ...and that stand-down is a DECISION, so it exits 0",
    _rc == 0, f"exit={_rc}")
 
 _rc, _o = _fbs("RuntimeError: depth_rank is CONSTANT None across 1,848 rows")
 ck("🔴 ...but it FETCHES ANYWAY when the failure is OURS",
-   "SKIPPING fb-scores[ncaaf]" not in _o,
+   "SKIPPING fb-scores[ncaaf]" not in _o and STUB_CALLED in _o,
    "⛔ our RuntimeError is not a reason to stop asking a healthy source "
    "for a 2-call file — this is the bug that cost the Scores tab 101 "
-   "hours")
+   "hours. ✅ Proved by the (stubbed) schedule fetch BEING CALLED.")
 ck("   ...and it ANNOUNCES that it ignored an armed back-off",
    "a CFBD back-off is armed" in _o,
    "a mode that 'should' have stood down and did not must say why")
+ck("⛔ ...and not one of the %d collector sandboxes reached for the network"
+   % len(_OUTS),
+   len(_OUTS) == 4 and not [o for o in _OUTS if "NONET: urlopen REFUSED" in o],
+   "the tripwire fired: something fetched past the stub")
 
 ck("⛔ but a fetch that was ATTEMPTED and returned nothing still does",
    "NOTHING WRITTEN --" in C
@@ -410,21 +565,27 @@ print("\n═══ 7. 🔴🔴 NO SANDBOX IN THIS FILE CAN SPEND A CREDIT ══
 _src = open("test_source_block.py", encoding="utf-8").read()
 _live = "\n".join(_l for _l in _src.splitlines()
                   if not _l.lstrip().startswith("#"))
-_envs = re.findall(r"env=dict\(os\.environ[^)]*\)", _live)
-ck("🔴 every subprocess env in this file blanks ODDS_API_KEY",
-   bool(_envs) and all('ODDS_API_KEY=""' in e for e in _envs),
-   "⛔ %d sandbox env(s); the ones missing it can bill the account: %s"
-   % (len(_envs), [e[:70] for e in _envs if 'ODDS_API_KEY=""' not in e]))
-ck("✅ ...and every collector call names `converge-off`",
-   all("converge-off" in _a for _a in
-       re.findall(r"\[sys\.executable,\s*\"collect\.py\".*?\]",
-                  _live, re.S)),
-   "⛔ without it, `converge(explicit=...)` rebuilds every overdue "
-   "artifact — which is how a stand-down check came to own a props "
-   "pull. ⚠️ MATCHED ON THE WHOLE ARGUMENT LIST, not the line: the "
-   "call spans two lines and a line-based check failed on correct "
-   "code. arg lists=%s" % [" ".join(_a.split())[:60] for _a in
-   re.findall(r"\[sys\.executable,\s*\"collect\.py\".*?\]", _live, re.S)])
+# 🔴 `[2026-09-28]` HARDER, THREE WAYS. `env = dict(...)` with spaces
+#    escaped the old pattern (the gate sandbox's env was never checked);
+#    CFBD's key is blanked as well as the Odds API's; and the collector
+#    arg lists must EXIST (an `all()` over no matches passed on nothing)
+#    and must all run behind the no-network wrapper.
+_envs = re.findall(r"env\s*=\s*dict\(os\.environ[^)]*\)", _live)
+_KEYS = ('ODDS_API_KEY=""', 'CFBD_API_KEY=""')
+ck("🔴 every subprocess env in this file blanks ODDS_API_KEY and CFBD_API_KEY",
+   len(_envs) >= 4 and all(k in e for e in _envs for k in _KEYS),
+   "⛔ %d sandbox env(s); the ones missing a key can bill an account: %s"
+   % (len(_envs), [e[:70] for e in _envs if not all(k in e for k in _KEYS)]))
+_calls = re.findall(r"\[sys\.executable,[^\]]*?\"collect\.py\".*?\]", _live, re.S)
+ck("✅ ...and every collector call names `converge-off`, behind `_nonet.py`",
+   len(_calls) >= 2 and all("converge-off" in _a and '"_nonet.py"' in _a
+                            for _a in _calls),
+   "⛔ without `converge-off`, `converge(explicit=...)` rebuilds every "
+   "overdue artifact — which is how a stand-down check came to own a props "
+   "pull; without `_nonet.py` a sandbox can reach CFBD. ⚠️ MATCHED ON THE "
+   "WHOLE ARGUMENT LIST, not the line: the call spans two lines and a "
+   "line-based check failed on correct code. arg lists=%s"
+   % [" ".join(_a.split())[:70] for _a in _calls])
 note("➡️ TWO INDEPENDENT GUARDS ON PURPOSE. `converge-off` keeps the "
      "check measuring the mode its sentence is about; the blank key means "
      "that if a future edit drops it, the worst case is a failed fetch "
