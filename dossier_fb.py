@@ -229,6 +229,19 @@ def _norm_school(s):
     return re.sub(r"[^a-z0-9]+", "", s.lower())
 
 
+def nfl_table(root=None):
+    """`collect.py`'s NFL_TEAMS, READ from its source: board name -> the key
+    NFL files use. ⛔ ONE PARSE (rule 117): `team_codes()` and every test
+    that plants a board read this, never a retyped copy of the table.
+    `[2026-09-28]` Exposed so a test can plant games the builder resolves."""
+    src = open(os.path.join(root or ROOT, "collect.py"), encoding="utf-8").read()
+    for n in ast.parse(src).body:
+        if (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "")
+                == "NFL_TEAMS"):
+            return dict(ast.literal_eval(n.value))
+    return {}
+
+
 def team_codes(lg=None):
     """A RESOLVER: board team name -> the key that league's files use.
 
@@ -250,12 +263,7 @@ def team_codes(lg=None):
     """
     lg = (lg or LEAGUE or "nfl").strip().lower()
     if lg == "nfl":
-        src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
-        for n in ast.parse(src).body:
-            if (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "")
-                    == "NFL_TEAMS"):
-                return ast.literal_eval(n.value).get
-        return {}.get
+        return nfl_table().get
     # ── college ──────────────────────────────────────────────────────
     try:
         raw = json.load(open(os.path.join(ROOT, "data", lg, "latest",
