@@ -34,6 +34,16 @@ whole value of pre-registration is that the bar was chosen blind.
 #   file: calibration.py
 #   find:     lp, lq, lc = math.log(p0), math.log1p(-p0), math.lgamma(n + 1)
 #   with:     return min(1.0, sum(math.comb(n, k) * p0 ** k * (1.0 - p0) ** (n - k) for k in range(0, int(w) + 1)))
+#
+# @vacuity read_all reads each league's OWN record file (planted root, not production)
+#   file: calibration.py
+#   find:         p = os.path.join(root, "data", lg, "latest", "record.json")
+#   with:         p = os.path.join(root, "data", "latest", "record.json")
+#
+# @vacuity a record read_all cannot open is UNREADABLE, never a verdict (planted root)
+#   file: calibration.py
+#   find:             out[lg] = {"state": "UNREADABLE", "why": "%s: %s" % (p, e)}
+#   with:             out[lg] = judge({"calibration": [{"stated": 60.0, "w": 122, "n": 200}]})
 """
 import json
 import math
@@ -221,14 +231,56 @@ ck("⚠️ it is its own workflow, daily, off :00",
    "⛔ a calibration gap moves over WEEKS; hourly would be 24 identical "
    "answers a day. And :00 slots get dropped by GitHub's scheduler")
 
-print("\n═══ 8. 📋 WHAT IT SAYS ABOUT THE LIVE BOARD RIGHT NOW ═══")
+print("\n═══ 8. 📋 `read_all` READS EACH LEAGUE'S FILE, AND THE LIVE BOARD RIGHT NOW ═══")
+# 🔴 `[2026-09-28]` ~~ck("the live records are readable at all")~~ over
+#    `read_all(ROOT)` asked whether PRODUCTION held a record with a graded
+#    bucket. A new season, a reset, or a method switch with nothing graded
+#    under either method is a CORRECT record that judges UNREADABLE, so the
+#    suite went red on production state with calibration.py unchanged
+#    (pattern P2: an assertion that a guard is silent on live data).
+# ✅ The question the check existed for — "is section 8 more than a
+#    decorative print; does `read_all` really read each league's file?" —
+#    is now asked of a PLANTED root every run, in both directions: two
+#    readable records must judge (never UNREADABLE), and a missing and a
+#    garbled one must be UNREADABLE (never a false all-clear). The live
+#    verdicts are reported below as notes, exactly as before.
+import shutil as _sh    # noqa: E402
+import tempfile as _tf  # noqa: E402
+_proot = _tf.mkdtemp(prefix="calib-root-")
+try:
+    def _plant(lg, body):
+        _d = os.path.join(_proot, "data", lg, "latest")
+        os.makedirs(_d, exist_ok=True)
+        with open(os.path.join(_d, "record.json"), "w", encoding="utf-8") as _fh:
+            _fh.write(body)
+    _plant("nfl", json.dumps(doc([bucket(60.0, 122, 200)])))
+    _plant("ncaaf", json.dumps(doc([bucket(65.0, 90, 200)])))
+    _pread = C.read_all(_proot)
+    ck("⚠️ `read_all` reads BOTH planted league records and judges them",
+       set(_pread) == set(C.LEAGUES)
+       and _pread["nfl"]["state"] == "OK" and _pread["ncaaf"]["state"] == "UNDER",
+       "⛔ this check is what stops section 8 from being a decorative print: "
+       "a readable record must reach `judge`, per league, from its own "
+       "`data/<lg>/latest/record.json`. Got %s"
+       % {k: v["state"] for k, v in _pread.items()})
+    os.remove(os.path.join(_proot, "data", "ncaaf", "latest", "record.json"))
+    _plant("nfl", "{ not json")
+    _pbad = C.read_all(_proot)
+    ck("⛔ ...and a MISSING or GARBLED record is UNREADABLE, never a verdict",
+       {k: v["state"] for k, v in _pbad.items()}
+       == {"nfl": "UNREADABLE", "ncaaf": "UNREADABLE"},
+       "🔴 a watcher that cannot open the file must say so; reading it as OK "
+       "is the false all-clear this file exists to prevent. Got %s"
+       % {k: v["state"] for k, v in _pbad.items()})
+finally:
+    _sh.rmtree(_proot, ignore_errors=True)
 _live = C.read_all(ROOT)
 for _lg, _r in sorted(_live.items()):
     note("%s — %s: %s" % (_lg, _r["state"], _r["why"]))
-ck("⚠️ the live records are readable at all",
-   all(r["state"] != "UNREADABLE" for r in _live.values()),
-   "⛔ this check is what stops section 8 from being a decorative "
-   "print. Got %s" % {k: v["state"] for k, v in _live.items()})
+note("live records readable: %s — REPORTED, not asserted: a new season or a "
+     "reset record judges UNREADABLE on correct code, and the watcher itself "
+     "(exit 2) is what reports that to Sam"
+     % {k: v["state"] != "UNREADABLE" for k, v in _live.items()})
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that a green run means the picks are "
      "good, or that an alarm means the model is wrong. It claims the "
