@@ -25,6 +25,37 @@ WHAT IS PINNED, each one a way this could ship wrong:
 reads were confirmed present in both leagues**, so this is a capture, not
 a guess.
 
+# `[2026-09-28]` §0b2: the page's merge on planted games, every run.
+# @vacuity §0b2: the lifted merge actually runs
+#   file: index.html
+#   find: function fbMerge(g){
+#   with: function fbMerge(g){ throw new Error('mutated');
+#
+# @vacuity §0b2: in progress shows the FEED's score
+#   file: index.html
+#   find: return { home: L.home, away: L.away, final: false, live: true,
+#   with: return { home: g.home_score, away: g.away_score, final: false, live: true,
+#
+# @vacuity §0b2: a disagreeing final is carried out as a conflict
+#   file: index.html
+#   find: (L.home !== g.home_score || L.away !== g.away_score);
+#   with: false;
+#
+# @vacuity §0b2: an agreeing final is NOT a conflict
+#   file: index.html
+#   find: (L.home !== g.home_score || L.away !== g.away_score);
+#   with: true;
+#
+# @vacuity §0b2: a feed-only final shows the feed's score
+#   file: index.html
+#   find: : { home: L.home, away: L.away, final: true, live: false,
+#   with: : { home: g.home_score, away: g.away_score, final: true, live: false,
+#
+# @vacuity §0b2: a game the feed does not carry is unchanged
+#   file: index.html
+#   find: if (!L) return { home: g.home_score, away: g.away_score, final: !!g.final,
+#   with: if (!L) return { home: null, away: null, final: !!g.final,
+#
 # `[2026-09-28]` §0c: every browser test blocks the network (the class).
 # @vacuity §0c: a browser test that loses its catch-all is caught
 #   file: test_box_live.py
@@ -43,7 +74,7 @@ import socketserver
 import threading
 
 from jsblock import calls, js_block, source   # the ONE js reader
-from tcheck import ck, note   # the shared gate — see tcheck.py
+from tcheck import ck, note, shown   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT = 8913
@@ -186,6 +217,62 @@ ck("the divisions are fetched in parallel and merged by event id",
 ck("🔴 one bad STATUS keeps the other division; a REFUSAL still turns it off",
    "rs.filter(r => r.ok)" in _ll and "if (!oks.length) throw" in _ll,
    "CORS is decided per origin, not per query string")
+
+# ───────────────────────────────────────────────────────────────
+print("\n═══ 0b2. THE MERGE, DRIVEN ON PLANTED GAMES — EVERY RUN ═══")
+# 🔴 `[2026-09-28]` THE BROWSER SECTIONS TAKE THEIR GAMES FROM THE LIVE
+#    SCHEDULE, so section 3 (a stored final the feed disagrees with) only
+#    runs when this week's view happens to hold a final — from a Sunday
+#    until the next midweek game it does not, and it says so. ✅ The rule it
+#    drives lives in `fbMerge`, a pure function of the stored game and the
+#    feed, so it is lifted out of the page and run in node on planted games
+#    — in progress, a disagreeing final, an agreeing final, a feed-only
+#    final, and a game the feed does not carry — whatever the week holds.
+import subprocess as _sp  # noqa: E402
+import tempfile as _tf    # noqa: E402
+_mjs = "\n".join([
+    "let FB_DAY = null;",
+    "let FB_LIVE = { byId: {",
+    "  '1': { state: 'in', clock: '7:21', period: 3, home: 24, away: 17 },",
+    "  '2': { state: 'post', home: 98, away: 99 },",
+    "  '3': { state: 'post', home: 30, away: 10 },",
+    "  '4': { state: 'post', home: 21, away: 20 } } };",
+    js_block("fbLiveOf", HTML), js_block("fbMerge", HTML),
+    "const G = [",
+    "  { espn: '1', final: false, home_score: null, away_score: null },",
+    "  { espn: '2', final: true, home_score: 31, away_score: 28 },",
+    "  { espn: '3', final: true, home_score: 30, away_score: 10 },",
+    "  { espn: '4', final: false, home_score: null, away_score: null },",
+    "  { espn: '5', final: true, home_score: 7, away_score: 3 } ];",
+    "console.log(JSON.stringify(G.map(fbMerge)));",
+])
+_md = _tf.mkdtemp()
+try:
+    _mp = os.path.join(_md, "merge.js")
+    open(_mp, "w", encoding="utf-8").write(_mjs)
+    _mr = _sp.run(["node", _mp], capture_output=True, text=True)
+finally:
+    import shutil as _sh  # noqa: E402
+    _sh.rmtree(_md, ignore_errors=True)
+_M = json.loads(_mr.stdout.strip().splitlines()[-1]) if _mr.returncode == 0 else None
+ck("the page's own merge runs on planted games", _M is not None,
+   shown(_mr.stderr[-300:]) if _mr.returncode else "")
+if _M:
+    ck("🔴 in progress: the FEED's score and clock, marked live",
+       (_M[0]["home"], _M[0]["away"], _M[0]["live"], _M[0].get("clock"))
+       == (24, 17, True, "7:21"), str(_M[0]))
+    ck("🔴 a stored FINAL keeps OUR score when the feed disagrees — and the "
+       "disagreement is carried out, with the feed's numbers",
+       (_M[1]["home"], _M[1]["away"], _M[1]["final"], _M[1]["conflict"],
+        _M[1].get("theirs")) == (31, 28, True, True, "99-98"), str(_M[1]))
+    ck("⛔ ...an agreeing final is not a disagreement",
+       (_M[2]["home"], _M[2]["conflict"]) == (30, False), str(_M[2]))
+    ck("a final only the feed has shows the feed's, marked as from the feed",
+       (_M[3]["home"], _M[3]["away"], _M[3]["final"], _M[3].get("fromFeed"))
+       == (21, 20, True, True), str(_M[3]))
+    ck("⛔ a game the feed does not carry is returned UNCHANGED",
+       (_M[4]["home"], _M[4]["away"], _M[4]["covered"], _M[4]["live"])
+       == (7, 3, False, False), str(_M[4]))
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 0c. 🔴 NO BROWSER TEST REACHES THE NETWORK — THE CLASS ═══")
