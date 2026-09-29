@@ -17,6 +17,19 @@ WHAT IS PINNED:
   2. the rebuild lands BEFORE the day's props and card deadlines
   3. 3am is late enough — measured against the real schedule
   4. every cron still matches its routing arm
+
+`[2026-09-28]` Item 3 is asked of PLANTED schedules every run (one that
+must pass, two that must fail); the live CFBD schedule is reported.
+
+# @vacuity 🔴 the planted Friday slate must be in the table before Saturday's first card
+#   file: freshness.py
+#   find: "card":   [(9, 0), (9, 30)],
+#   with: "card":   [(2, 0), (9, 30)],
+#
+# @vacuity ⚠️ the rebuild instants are the ROUTED college cfb-probe crons
+#   file: .github/workflows/collect.yml
+#   find: "4 7 * * *")        LEAGUE=ncaaf; MODES="cfb-probe";  SEASON=CUR ;;
+#   with: "4 7 * * *")        LEAGUE=ncaaf; MODES="cfb-teams";  SEASON=CUR ;;
 """
 import collections
 import datetime
@@ -65,8 +78,8 @@ ck("🔴 ...and before the first Gizmo's Picks build",
 note("the old noon deadline sat AFTER both, so the morning card read a "
      "table built the previous day")
 
-print("\n═══ 3. \u26a0\ufe0f IS 3AM LATE ENOUGH? MEASURED, NOT ASSUMED \u2550\u2550\u2550")
-# \u26d4 THE FIRST VERSION OF THIS SECTION ASKED THE WRONG QUESTION.
+print("\n═══ 3. ⚠️ IS 3AM LATE ENOUGH? MEASURED, NOT ASSUMED ═══")
+# ⛔ THE FIRST VERSION OF THIS SECTION ASKED THE WRONG QUESTION.
 #    It asked "does every slate FINISH before its own 3am rebuild?" and
 #    went red on two days. Both are the same real thing: **Hawai'i kicks
 #    off at 5:59pm HST**, which is 11:59pm ET, and a 3h30m game ends at
@@ -79,91 +92,181 @@ print("\n═══ 3. \u26a0\ufe0f IS 3AM LATE ENOUGH? MEASURED, NOT ASSUMED \u2
 #    table before the next board a reader looks at?"** That is strictly
 #    harder: it must hold for all 62 slate days AND the late ones must be
 #    caught by a later rebuild, not merely excused.
-sp = f"{ROOT}/data/ncaaf/latest/schedule-2026.json.gz"
-if os.path.exists(sp):
-    with gzip.open(sp, "rt") as fh:
-        games = json.load(fh).get("games") or []
-    D1 = {"fbs", "fcs"}
+#
+# 🔴 `[2026-09-28]` ~~ck() over the LIVE schedule-2026.json.gz~~ (pattern
+#    P3). CFBD rewrites that file several times a day, so the verdict was
+#    a fact about the feed, not about the contract: one Pacific kickoff
+#    moved 15 minutes later turned both checks red with no code change, and
+#    on a schedule with no late day the Hawai'i check passed over an empty
+#    list. ✅ The measurement is now ONE function, driven every run on
+#    PLANTED schedules — one that must pass and two that must fail — and
+#    the live schedule is measured by the same function and REPORTED.
+# ⚠️ AND THE INPUTS ARE THE PRODUCT'S OWN: the rebuild instants are every
+#    ROUTED college `cfb-probe` cron (not a copy of their times), and the
+#    board is the contract's first college card deadline, placed in UTC
+#    the way `freshness.py` places every deadline (`ET_OFFSET`).
+# ⚠️ ~~"EDT; the season ends before the fall back"~~ — FALSE, the college
+#    season runs into December. Slate days are now binned by the real
+#    Eastern date (EDT until the first Sunday of November, EST after), so
+#    a 6pm HST November kickoff (23:00 EST) is not filed under Sunday.
+D1 = {"fbs", "fcs"}
+GAME = datetime.timedelta(hours=3, minutes=30)
+UTC = datetime.timezone.utc
 
-    def utc(s):
-        d = datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
-        return d if d.tzinfo else d.replace(tzinfo=datetime.timezone.utc)
 
-    def et(d):                      # EDT; the season ends before the fall back
-        return (d - datetime.timedelta(hours=4)).replace(tzinfo=None)
+def utc(s):
+    d = datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
+    return d if d.tzinfo else d.replace(tzinfo=UTC)
 
+
+def _nth_sunday(y, mo, nth):
+    d = datetime.date(y, mo, 1)
+    d += datetime.timedelta(days=(6 - d.weekday()) % 7)
+    return d + datetime.timedelta(weeks=nth - 1)
+
+
+def et_date(d):
+    """The US Eastern calendar date of a UTC instant (DST by the US rule:
+    2am local on the 2nd Sunday of March to the 1st Sunday of November).
+    ⚠️ Hand-rolled, not zoneinfo, so it needs no tzdata on any machine."""
+    y = d.year
+    on = datetime.datetime.combine(_nth_sunday(y, 3, 2), datetime.time(7), UTC)
+    off = datetime.datetime.combine(_nth_sunday(y, 11, 1), datetime.time(6), UTC)
+    return (d - datetime.timedelta(hours=4 if on <= d < off else 5)).date()
+
+
+def rebuild_crons(routes):
+    """[(minute, hour, weekday-or-None)] for every routed college Trends
+    rebuild. Cron weekday 0 is Sunday; Python's is Monday=0."""
+    out = []
+    for c_, lg_, m_ in routes:
+        if lg_ != "ncaaf" or "cfb-probe" not in m_.split():
+            continue
+        f = c_.split()
+        if len(f) == 5 and f[0].isdigit() and f[1].isdigit() and f[2] == f[3] == "*":
+            out.append((int(f[0]), int(f[1]),
+                        None if f[4] == "*" else (int(f[4]) - 1) % 7))
+    return out
+
+
+def measure(games, crons, first_card):
+    """-> {days, late, reasons, worst}. `late` = slates that end after their
+    OWN overnight rebuild; `worst` = the tightest (slate, hours between the
+    rebuild that catches it and the NEXT slate's first card, next slate)."""
     by = collections.defaultdict(list)
     for g in games:
         if (g.get("home_class") or "").lower() in D1 \
            or (g.get("away_class") or "").lower() in D1:
-            by[et(utc(g["start"])).date()].append(g)
+            by[et_date(utc(g["start"]))].append(g)
     days = sorted(by)
-    GAME = datetime.timedelta(hours=3, minutes=30)
 
-    def last_end(d):
-        return max(et(utc(g["start"])) for g in by[d]) + GAME
-
-    # every scheduled Trends rebuild, in ET, as the workflow deploys them:
-    #   daily  3:04am  (cron "4 7 * * *")
-    #   Sunday 10:35am (cron "35 14 * * 0", the season pass)
-    def rebuilds(d0, n=10):
+    def instants(d0, n=10):
         out = []
         for i in range(n):
-            d = d0 + datetime.timedelta(days=i)
-            out.append(datetime.datetime.combine(d, datetime.time(3, 4)))
-            if d.weekday() == 6:
-                out.append(datetime.datetime.combine(d, datetime.time(10, 35)))
+            day = d0 + datetime.timedelta(days=i)
+            for mm, hh, wd in crons:
+                if wd is None or day.weekday() == wd:
+                    out.append(datetime.datetime.combine(day, datetime.time(hh, mm), UTC))
         return sorted(out)
 
-    first_card = min(F.FB_TIMES["ncaaf"]["card"])
-
-    late, covered, worst = [], [], None
+    daily = [(mm, hh) for mm, hh, wd in crons if wd is None]
+    late, reasons, worst = [], {}, None
     for i, d in enumerate(days):
-        end = last_end(d)
-        own = datetime.datetime.combine(d + datetime.timedelta(days=1),
-                                        datetime.time(3, 4))
-        if end > own:
-            late.append(d)
-        landed = next(r for r in rebuilds(d) if r >= end)
-        if i + 1 < len(days):
+        last = max(by[d], key=lambda g: utc(g["start"]))
+        end = utc(last["start"]) + GAME
+        if daily:
+            own = datetime.datetime.combine(
+                d + datetime.timedelta(days=1), datetime.time(daily[0][1], daily[0][0]), UTC)
+            if end > own:
+                late.append(d)
+                reasons[d] = (last.get("away"), last.get("home"))
+        landed = next((r for r in instants(d) if r >= end), None)
+        if i + 1 < len(days) and landed is not None:
             nxt = days[i + 1]
             board = datetime.datetime.combine(
-                nxt, datetime.time(first_card[0], first_card[1]))
+                nxt, datetime.time(first_card[0], first_card[1]), UTC) + F.ET_OFFSET
             slack = (board - landed).total_seconds() / 3600
-            covered.append((str(d), round(slack, 1)))
             if worst is None or slack < worst[1]:
                 worst = (str(d), slack, str(nxt))
+    return {"days": days, "late": late, "reasons": reasons, "worst": worst,
+            "hawaii_only": all(h == "Hawai'i" for _a, h in reasons.values())}
 
-    ck("\U0001f534 every slate is in the table before the next board reads it",
-       worst is not None and worst[1] > 0,
-       f"tightest: {worst[0]} lands {worst[1]:.1f}h before the "
-       f"{worst[2]} card" if worst else "no slate days")
-    note(f"{len(days)} slate days measured; {len(late)} finish after their "
-         f"OWN 3am rebuild: {[str(d) for d in late]}")
 
-    # \U0001f534 PIN THE REASON, NOT THE DATES. A date list would go red the
-    #    day the 2027 schedule loads and get deleted (rule 139). The
-    #    durable fact is WHY: Hawai'i is six hours behind Eastern.
-    ck("\U0001f534 ...and every one of those is a Hawai'i (HST) kickoff",
-       all(max(by[d], key=lambda g: utc(g["start"])).get("home") == "Hawai'i"
-           for d in late),
-       "a late slate for any OTHER reason is new and must be looked at, "
-       "not absorbed"
-       + ("" if not late else
-          " \u2014 " + ", ".join(
-              f"{d}: {max(by[d], key=lambda g: utc(g['start'])).get('away')} "
-              f"@ {max(by[d], key=lambda g: utc(g['start'])).get('home')}"
-              for d in late)))
-    note("those two land in the NEXT morning's 3am pass, and the next "
-         "college slate is 4-5 days later \u2014 so no board ever reads a "
-         "table missing them")
-    # \u26a0\ufe0f THE HONEST LIMIT: finishing is not the same as being PUBLISHED.
-    note("\u26a0\ufe0f finishing is not the same as CFBD having published the "
+CRONS = rebuild_crons(ROUTES)
+FIRST_CARD = min(F.FB_TIMES["ncaaf"]["card"])
+ck("⚠️ the college Trends rebuilds are read from the routed crons, one of them daily",
+   bool(CRONS) and any(wd is None for _m, _h, wd in CRONS),
+   "⛔ rule 67: with no rebuild instant nothing below can be late or "
+   "covered. got %s" % CRONS)
+
+
+def _g(start, home="Home U", away="Away U"):
+    return {"start": start, "home": home, "away": away,
+            "home_class": "fbs", "away_class": "fbs"}
+
+
+# ✅ MUST PASS — the shapes the contract is built for: a Friday game that
+#    must be in the table by Saturday's first card, a Saturday slate whose
+#    last game is Hawai'i at 5:59pm HST (LATE, and caught next pass), and
+#    the next slate on Wednesday night.
+_ok = measure([_g("2026-10-02T23:00:00Z"),                    # Fri 7pm ET
+               _g("2026-10-03T16:00:00Z"), _g("2026-10-03T23:30:00Z"),
+               _g("2026-10-04T03:59:00Z", home="Hawai'i"),    # Sat 11:59pm ET
+               _g("2026-10-08T00:00:00Z")],                   # Wed 8pm ET
+              CRONS, FIRST_CARD)
+ck("🔴 PLANTED: every slate is in the table before the next board reads it",
+   _ok["worst"] is not None and _ok["worst"][1] > 0,
+   "tightest: %s" % (_ok["worst"],))
+ck("🔴 PLANTED: ...the Hawai'i slate IS late, and Hawai'i is the only reason",
+   [str(d) for d in _ok["late"]] == ["2026-10-03"] and _ok["hawaii_only"],
+   "late %s, reasons %s" % ([str(d) for d in _ok["late"]], _ok["reasons"]))
+# ⛔ MUST FAIL — the two defects the live check exists to surface. They
+#    prove the measurement can go red; a guard that cannot fail is not one.
+_other = measure([_g("2026-10-03T16:00:00Z"),
+                  _g("2026-10-04T03:45:00Z", home="Nevada"),  # 11:45pm ET, not HST
+                  _g("2026-10-08T00:00:00Z")], CRONS, FIRST_CARD)
+ck("⛔ PLANTED: a late slate for any reason but Hawai'i is FLAGGED, not absorbed",
+   bool(_other["late"]) and not _other["hawaii_only"],
+   "late %s, reasons %s" % ([str(d) for d in _other["late"]], _other["reasons"]))
+_tight = measure([_g("2026-10-03T03:59:00Z", home="Hawai'i"),  # Fri 11:59pm ET
+                  _g("2026-10-03T16:00:00Z")], CRONS, FIRST_CARD)  # Sat noon ET
+ck("⛔ PLANTED: a late Friday before a Saturday slate is a board reading a "
+   "stale table — FLAGGED",
+   _tight["worst"] is not None and _tight["worst"][1] <= 0,
+   "tightest: %s" % (_tight["worst"],))
+_nov = measure([_g("2026-11-15T04:00:00Z", home="Hawai'i")], CRONS, FIRST_CARD)
+ck("⚠️ PLANTED: a 6pm HST kickoff in November is SATURDAY's slate (23:00 EST)",
+   [str(d) for d in _nov["days"]] == ["2026-11-14"],
+   "⛔ a fixed UTC-4 files it under a Sunday slate that does not exist. "
+   "got %s" % [str(d) for d in _nov["days"]])
+
+sp = f"{ROOT}/data/ncaaf/latest/schedule-2026.json.gz"
+if os.path.exists(sp):
+    with gzip.open(sp, "rt") as fh:
+        _live = measure(json.load(fh).get("games") or [], CRONS, FIRST_CARD)
+    _w = _live["worst"]
+    # ⚠️ REPORTED, NOT ASSERTED: CFBD edits this file every day. A late or
+    #    uncovered LIVE slate is a finding about the feed for a person to
+    #    read — the contract's own shapes are asserted above, every run.
+    note("%s LIVE: %d slate days; tightest %s lands %.1fh before the %s card"
+         % ("✅" if (_w and _w[1] > 0) else "⛔ UNCOVERED",
+            len(_live["days"]), _w[0] if _w else "-", _w[1] if _w else 0.0,
+            _w[2] if _w else "-"))
+    note("%s LIVE: %d finish after their OWN 3am rebuild: %s"
+         % ("✅" if _live["hawaii_only"] else "⛔ NOT ONLY HAWAI'I —",
+            len(_live["late"]),
+            ", ".join("%s: %s @ %s" % (d, a, h) for d, (a, h) in sorted(_live["reasons"].items()))
+            or "none"))
+    note("those land in the NEXT morning's 3am pass, and the next college "
+         "slate is 4-5 days later — so no board ever reads a table missing them")
+    # ⚠️ THE HONEST LIMIT: finishing is not the same as being PUBLISHED.
+    note("⚠️ finishing is not the same as CFBD having published the "
          "box score. A game that ends at 2:30am ET may not be in the feed "
          "by 3:04am; if it is not, it lands in the NEXT day's rebuild and "
          "the Sunday 10:35am pass is the backstop.")
 else:
-    note("no college schedule on disk \u2014 section 3 not measured")
+    note("no college schedule on disk — the live schedule was not measured; "
+         "the planted schedules above were")
 
 print("\n═══ 4. THE CRON MOVED WITH THE DEADLINE ═══")
 # 🔴 THE FAILURE THIS PROJECT KEEPS REPEATING: moving a cron string and
