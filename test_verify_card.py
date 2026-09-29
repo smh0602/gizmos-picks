@@ -39,7 +39,28 @@ healthy one by reading an exit code.
 #   file: verify_card.py
 #   find: if abs(r['confidence'] - r['blend']) > 0.55 or (_m and _pcor.get('method')):
 #   with: if r['confidence'] != round(r['blend']) or (_m and _pcor.get('method')):
+#
+# @vacuity 🔴 PLANTED C2 row: the printed number is the one its stored mapping gives
+#   file: verify_card.py
+#   find: if (_want is None or abs(_want - r['confidence_value']) > 0.3
+#   with: if (_want is None or abs(_want - r['confidence_value']) > 99
+#
+# @vacuity 🔴 STATIC + COUNT: an exit after section 1 is a verifier that stops checking
+#   file: verify_card.py
+#   find: ck("Poisson CDF vs 200k simulations", worst < 0.6, f"max gap {worst:.3f} pts")
+#   with: ck("Poisson CDF vs 200k simulations", worst < 0.6, f"max gap {worst:.3f} pts"); sys.exit(0)
+#
+# @vacuity 🔴 the same-game parlay class is caught on its own subject card
+#   file: verify_card.py
+#   find: _same = [p['legs'] for p in _all_p if len(set(p['game_ids'])) != p['n_legs']]
+#   with: _same = []
+#
+# @vacuity 🔴 the projection class is caught on its own subject card (it landed on NO card before)
+#   file: verify_card.py
+#   find: _incoh = [(k, sorted(v)) for k, v in _seen_pm.items() if len(v) > 1]
+#   with: _incoh = []
 """
+import ast
 import json
 import os
 import re
@@ -155,6 +176,96 @@ def run(mutate="", day=None):
     return p.returncode, out
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A STORED CARD IS ONLY A FAIR SUBJECT WHILE THE LIVE TREE CAN STILL
+#    VERIFY IT. `[2026-09-28]` `verify_card.py` reads `data/latest/
+#    pitchers.json.gz` and indexes it by every carded pitcher, then divides
+#    by his starts BEFORE the card's date. That file is one season: the first
+#    pitchers pull of a new season (April) replaces it, and every stored card
+#    then dies in section 1 on a KeyError or a ZeroDivisionError — a correct
+#    verifier "running 1 check" and "catching nothing" (patterns P1/P3: a
+#    subject pinned to a date, driven against a tree that moves on).
+# ✅ So a card drives the whole verifier only while the tree can still read
+#    it, and what must hold EVERY run is asked of planted inputs instead.
+# ══════════════════════════════════════════════════════════════════════
+try:
+    import gzip as _gz
+    _PLIVE = json.load(_gz.open(os.path.join(ROOT, "data", "latest",
+                                             "pitchers.json.gz"), "rt"))["players"]
+except Exception:           # no pitcher log in this tree -> no card qualifies
+    _PLIVE = {}
+
+
+def _consistent(day, d):
+    """Every carded pitcher is in the live log with a start before `day`."""
+    for r in (d.get("picks") or []) + (d.get("below_price_floor") or []):
+        if r.get("kind") == "hitter":
+            continue
+        p = _PLIVE.get(str(r.get("pid")))
+        if not p or not any(x.get("gs") and (x.get("d") or "") < day
+                            for x in p.get("g") or []):
+            return False
+    return True
+
+
+def _newest_fair(has_case=lambda d: True):
+    """The newest stored card holding the case that the live tree can verify."""
+    for day, d in _cards():
+        if has_case(d) and _consistent(day, d):
+            return day, d
+    return None, None
+
+
+SUBJ, SUBJ_CARD = _newest_fair()
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 SECTION 39 — THE PRINTED PITCHER NUMBER — DRIVEN ON PLANTED ROWS.
+#    Its own lines are read out of `verify_card.py` (between its section
+#    header and the next audit block) and run on a planted card: ONE copy of
+#    the rule (rule 207), no data tree, no clock. `verify_card.py` is a
+#    script, so this is the only way to reach one section without the rest.
+#    ⛔ If the markers move, the block below is empty and the rule-67 check
+#    says so — it can never pass on nothing.
+# ══════════════════════════════════════════════════════════════════════
+_VSRC = open(os.path.join(ROOT, "verify_card.py"), encoding="utf-8").read()
+_S39_A = 'print("\\n39. THE PRINTED PITCHER NUMBER'
+_S39_B = "# 🔴 AUDIT PROPOSAL B."
+_S39 = (_VSRC[_VSRC.index(_S39_A):_VSRC.index(_S39_B)]
+        if _S39_A in _VSRC and _S39_B in _VSRC and _VSRC.index(_S39_A) < _VSRC.index(_S39_B)
+        else "")
+
+
+def section39(doc, rows):
+    """Run verify_card.py's own section 39 on `doc` -> {check name: ok}."""
+    import types
+    got = {}
+
+    def _ck(name, ok, detail=""):
+        got[re.sub(r"\s*\(\d+ priced rows\)", "", name)] = bool(ok)
+    ns = {"doc": doc, "pit_rows": rows, "ck": _ck, "print": lambda *a, **k: None,
+          "C": types.SimpleNamespace(LAST_PITCHER_ROWS=[])}
+    exec(compile(_S39, "verify_card.py#section39", "exec"), ns)
+    return got
+
+
+import mlb_pitcher_cal as _MPC  # noqa: E402
+_S39_NAME = "every pitcher row prints the number its stored correction gives"
+_MAP = {"mu": [0.65, 0.22], "sd": [0.40, 0.23], "w": [0.07, 0.14, 0.08],
+        "n_train": 400, "before": "2026-09-29"}
+_ROUND = {"pitcher": "Planted Blend", "market": "outs", "kind": "pitcher",
+          "blend": 69.5, "confidence": 69, "confidence_method": "BLEND",
+          "break_even": 55.0}
+
+
+def _c2_row():
+    v = _MPC.corrected({"strikeouts": _MAP}, "strikeouts", 61.6, 63.0)
+    return {"pitcher": "Planted C2", "market": "strikeouts", "kind": "pitcher",
+            "blend": 61.6, "break_even": 63.0, "confidence_value": round(v, 2),
+            "confidence": round(v), "confidence_method": _MPC.SHIPPED,
+            "edge": round(v - 63.0, 2),
+            "confidence_note": "blended 50/50, then corrected against the price."}
+
+
 if DAY is None:
     note("⚠️ NOT EXERCISED: no stored MLB card with rows in this tree, so "
          "nothing below ran. ⛔ Reported rather than passed (rule 144).")
@@ -194,22 +305,60 @@ else:
         note("  ⚪ pre-existing: %s" % _b[:110])
     # 🔴 `[2026-09-25]` ONE CHECK MAY NEVER BE "PRE-EXISTING": the printed
     #    pitcher number. It is re-derived from inputs the card STORES
-    #    (`blend`, `break_even`, the mapping), not from today's logs, so it
-    #    cannot age. ⛔ It shipped comparing `confidence` to `round(blend)`
-    #    on a blend stored to one decimal, and failed the correct 2026-09-24
-    #    card: a true 69.45 is stored 69.5 and prints 69. A verifier that
-    #    fails a correct card refuses to publish it.
-    # ⚠️ ON THE NEWEST CARD THIS PROVES ONLY WHAT THAT CARD HOLDS. The
-    #    rounding case itself is driven on its own card, just below.
+    #    (`blend`, `break_even`, the mapping), not from today's logs. ⛔ It
+    #    shipped comparing `confidence` to `round(blend)` on a blend stored
+    #    to one decimal, and failed the correct 2026-09-24 card: a true 69.45
+    #    is stored 69.5 and prints 69. A verifier that fails a correct card
+    #    refuses to publish it.
+    # 🔴 `[2026-09-28]` ~~ck("...passes on a real published card", newest)~~
+    #    asked the NEWEST card — whatever code last wrote it — to stay
+    #    silent (P2): Sam's documented off switch (`SHIPPED = None`) turns it
+    #    red in the PR that flips it, and it stays red until a newer card
+    #    lands, which in the off-season is never. ✅ The rule is now DRIVEN on
+    #    planted rows, both branches, both ways; the newest card is reported.
     _pc = [b for b in BASE if "prints the number its stored correction" in b]
-    ck("🔴 the printed-pitcher-number check passes on a real published card",
-       not _pc, "⛔ it fails a card it has no stale input to blame: %s" % _pc)
+    note("%s the newest card (%s) under section 39: %s"
+         % ("✅" if not _pc else "⛔", DAY, "no failure" if not _pc else _pc))
 
+print("\n═══ 1b. 🔴 SECTION 39 ON PLANTED ROWS — EVERY RUN ═══")
+ck("⚠️ section 39's own lines were read out of verify_card.py",
+   "_pbad" in _S39 and _S39_NAME in _S39 and _S39.count("ck(") >= 2,
+   "⛔ rule 67: an empty block runs nothing and every check below would "
+   "read a missing name as a failure — or worse, a pass. %d chars" % len(_S39))
+if _S39:
+    _rows = [_ROUND] + ([_c2_row()] if _MPC.SHIPPED else [])
+    _doc = {"pitcher_correction": {"method": _MPC.SHIPPED, "maps": {"strikeouts": _MAP}}
+            if _MPC.SHIPPED else {}}
+    _ok = section39(_doc, _rows)
+    ck("🔴🔴 PLANTED: a correct card passes — the rounding row (69.5 stored, "
+       "69 printed)%s" % (" and a C2 row" if _MPC.SHIPPED else ""),
+       _ok.get(_S39_NAME) is True,
+       "⛔ a correct card whose stored blend rounds away from its printed "
+       "number must verify. got %s" % _ok)
+    _off = dict(_ROUND, confidence=71)
+    ck("🔴 PLANTED: ...and a BLEND row printing 2 points off its blend FAILS",
+       section39(_doc, [_off]).get(_S39_NAME) is False,
+       "⛔ a tolerance that swallows 1.5 points is not a tolerance")
+    if _MPC.SHIPPED:
+        _bad = _c2_row()
+        _bad["confidence_value"] += 2
+        _bad["confidence"] += 2
+        # ⚠️ its edge moved with it, so ONLY the stored-mapping comparison
+        #    can catch this row — the arithmetic around it is consistent.
+        _bad["edge"] = round(_bad["confidence_value"] - 63.0, 2)
+        ck("🔴 PLANTED: ...and a C2 row 2 points off its stored correction FAILS",
+           section39(_doc, [_bad]).get(_S39_NAME) is False,
+           "⛔ the printed number must be the one the stored mapping gives")
+    else:
+        note("⚠️ mlb_pitcher_cal.SHIPPED is off — the C2 branch has no row "
+             "to plant; the BLEND branch is driven above")
+
+if DAY is not None:
     # 🔴🔴 `[2026-09-26]` ...AND ON THE NEWEST CARD THAT CONTAINS THE CASE.
     #    Driven on the newest card alone, the check above went VACUOUS the
     #    day a card landed with no row on the no-correction branch
     #    (`_newest_card`). ⛔ No case on any stored card is a FAILURE, not
-    #    a note: a guard with no case is not a guard (rule 67).
+    #    a note: published cards are permanent, so the case cannot leave.
     _rr = _rounding_rows(RCARD) if RCARD else []
     ck("🔴🔴 a stored card holds the rounding case (%s: %s)"
        % (RDAY, ", ".join("%s %s %s->%s" % (r.get("pitcher"), r["market"],
@@ -221,18 +370,26 @@ else:
        "printed, so nothing below can tell `round(blend)` from the "
        "tolerance")
     if _rr:
+        # ⚠️ `[2026-09-28]` THE WHOLE VERIFIER ON THAT CARD IS NOW THE EXTRA.
+        #    A FAIL line is still red. But the card is pinned to 2026-09-24
+        #    while the tree moves: once the pitcher log rolls to a new season
+        #    the run dies before section 39 and prints no line at all — that
+        #    is REPORTED, because §1b asks the same rule of planted rows.
         _, _rout = run(day=RDAY)
         _rl = [ln.strip() for ln in _rout.splitlines()
                if "prints the number its stored correction" in ln]
-        # ⚠️ PASS MUST BE PRINTED, not merely FAIL absent: a verifier that
-        #    crashed before section 39 prints neither, and "no FAIL" would
-        #    score it a pass.
-        ck("🔴🔴 the printed-pitcher-number check passes on %s, which holds "
-           "%d rounding row(s)" % (RDAY, len(_rr)),
-           any(ln.startswith("PASS ") for ln in _rl)
-           and not any(ln.startswith("FAIL ") for ln in _rl),
-           "⛔ a correct card whose stored blend rounds away from its "
-           "printed number must verify. Got %s" % (_rl or "no line at all"))
+        if _rl:
+            ck("🔴🔴 the printed-pitcher-number check passes on %s, which holds "
+               "%d rounding row(s)" % (RDAY, len(_rr)),
+               any(ln.startswith("PASS ") for ln in _rl)
+               and not any(ln.startswith("FAIL ") for ln in _rl),
+               "⛔ a correct card whose stored blend rounds away from its "
+               "printed number must verify. Got %s" % _rl)
+        else:
+            note("⚠️ NOT EXERCISED ON %s: the verifier printed no section-39 "
+                 "line (an earlier section died against today's tree: %r). §1b "
+                 "drove the rule on planted rows."
+                 % (RDAY, (_rout.strip().splitlines() or [""])[-1][:160]))
     # ✅ AND A NEWER CARD WITHOUT THE CASE CANNOT TAKE ITS PLACE — which is
     #    exactly what happened at 2026-09-25 14:12Z. A card dated after
     #    every real one, with no pitcher row at all, is put in front.
@@ -246,27 +403,72 @@ else:
        "card must stay %s, got %s"
        % (_newest_card(cards=_withf)[0], RDAY,
           _newest_card(_has_rounding_case, cards=_withf)[0]))
-    # ⛔ A COUNT, NOT A BOOLEAN. A verifier that early-returns after six
-    #    checks exits 0 exactly like one that ran ninety, and the exit
-    #    code cannot tell them apart. This is the check that would catch
-    #    an accidental `return` at the top of the file.
-    ck("🔴 ...and it actually performed a substantial number of checks",
-       _pass >= 60,
+
+# ⛔ A COUNT, NOT A BOOLEAN. A verifier that early-returns after six checks
+#    exits 0 exactly like one that ran ninety, and the exit code cannot tell
+#    them apart.
+# 🔴 `[2026-09-28]` TWO HALVES, AND ONE ALWAYS RUNS. (a) STATIC, every run:
+#    no top-level statement between the verifier's first and last check can
+#    exit. (b) THE COUNT, on the newest card the live tree can still verify —
+#    ~~the newest card, whatever the tree~~ dropped to 1 PASS every April
+#    when the pitcher log rolled over (a crash in section 1, on correct code).
+_VT = ast.parse(_VSRC)
+
+
+def _is_exit(n):
+    for x in ast.walk(n):
+        if isinstance(x, ast.Call) and (getattr(x.func, "attr", None) or getattr(x.func, "id", None)) \
+                in ("exit", "_exit", "quit"):
+            return True
+        if isinstance(x, ast.Raise) and x.exc is not None and "SystemExit" in ast.dump(x.exc):
+            return True
+    return False
+
+
+_ckstmts = [i for i, n in enumerate(_VT.body)
+            if not isinstance(n, ast.FunctionDef)
+            and any(isinstance(x, ast.Call) and getattr(x.func, "id", None) == "ck"
+                    for x in ast.walk(n))]
+_early = [n.lineno for i, n in enumerate(_VT.body)
+          if _ckstmts and _ckstmts[0] < i < _ckstmts[-1] and _is_exit(n)]
+ck("🔴 STATIC: nothing between the verifier's first and last check can exit early",
+   len(_ckstmts) >= 60 and not _early,
+   "⛔ an exit in the middle is a verifier that stops checking and exits "
+   "clean. %d top-level check statements; early exit(s) at line(s) %s"
+   % (len(_ckstmts), _early))
+if SUBJ is None:
+    note("⚠️ NOT EXERCISED: no stored card the live tree can still verify (the "
+         "pitcher log has rolled to a new season). The static half above ran.")
+else:
+    if SUBJ == DAY:
+        _spass = _pass
+    else:
+        _spass = run(day=SUBJ)[1].count("PASS")
+    ck("🔴 ...and it actually performed a substantial number of checks (%s)" % SUBJ,
+       _spass >= 60,
        "⛔ `verify_card.py` carries roughly ninety. Sixty is a floor with "
        "room for a slate that legitimately skips a section — but SIX is "
-       "an early return wearing a green tick. Counted %d" % _pass)
-    note("verifier reported %d PASS lines on the %s card" % (_pass, DAY))
+       "an early return wearing a green tick. Counted %d" % _spass)
+    note("verifier reported %d PASS lines on the %s card" % (_spass, SUBJ))
 
+if DAY is not None:
     print("\n═══ 2. 🔴🔴 FAULT-INJECTED — IT STILL BITES ═══")
-    # 🔴 FOUR DISTINCT CLASSES, EACH ONE A DEFECT THAT HAS ACTUALLY
+    # 🔴 FIVE DISTINCT CLASSES, EACH ONE A DEFECT THAT HAS ACTUALLY
     #    SHIPPED IN THIS PROJECT. Green here is only evidence because a
     #    deliberate red came first (rule 202).
+    # 🔴 `[2026-09-28]` EACH CLASS ON ITS OWN SUBJECT: the newest stored card
+    #    that HOLDS the case and that the live tree can still verify (the
+    #    rounding case's pattern). ~~every class on the newest card, and
+    #    "at least one landed"~~ let a class go unproven for weeks — the
+    #    projection class landed on NO card at all, because it edited a
+    #    number where every card stores a dict.
     CASES = (
         ("the board is out of confidence order",
          "⛔ Sam's standing rule is descending confidence. A board that "
          "jumps around made the page look broken to anyone reading down "
          "the numbers.",
-         "_doc['picks'] = list(reversed(_doc['picks']))"),
+         "_doc['picks'] = list(reversed(_doc['picks']))",
+         lambda d: len({p.get("confidence") for p in d.get("picks") or []}) >= 2),
 
         ("a parlay puts two legs in the SAME GAME",
          "⛔ A live card shipped FOUR impossible parlays this way, "
@@ -281,7 +483,9 @@ else:
              "    else:",
              "        continue",
              "    break",
-         ])),
+         ]),
+         lambda d: any(len(set(r.get("game_ids") or [])) > 1
+                       for rows in (d.get("parlays") or {}).values() for r in rows)),
 
         ("a projection no longer matches the player's own mean",
          "⛔ ONE projection per player per stat, the same everywhere — "
@@ -291,8 +495,13 @@ else:
          "\n".join([
              "_p = _doc.get('projections') or {}",
              "for _k in list(_p)[:1]:",
-             "    _p[_k] = (_p[_k] + 7.5) if isinstance(_p[_k], (int, float)) else _p[_k]",
-         ])),
+             "    if isinstance(_p[_k], dict):",
+             "        _p[_k]['v'] = _p[_k]['v'] + 7.5",
+             "    elif isinstance(_p[_k], (int, float)):",
+             "        _p[_k] = _p[_k] + 7.5",
+         ]),
+         lambda d: any(isinstance(v, (int, float)) or (isinstance(v, dict) and "v" in v)
+                       for v in (d.get("projections") or {}).values())),
 
         ("a pitcher row prints a number 2 points off its own",
          "⛔ `[2026-09-25]` the printed pitcher number is the blend, or the "
@@ -303,7 +512,9 @@ else:
              "    if _r.get('kind') != 'hitter' and _r.get('blend') is not None:",
              "        _r['confidence'] += 2",
              "        break",
-         ])),
+         ]),
+         lambda d: any(r.get("kind") != "hitter" and r.get("blend") is not None
+                       for r in d.get("picks") or [])),
 
         ("an internal diagnostic is marked for DISPLAY",
          "⛔ Sam: *'we have to advertise a clean look that doesnt include "
@@ -315,40 +526,42 @@ else:
              "        if isinstance(_f, dict) and not _f.get('actionable'):",
              "            _f['actionable'] = True",
              "            break",
-         ])),
+         ]),
+         lambda d: any(isinstance(f, dict) and not f.get("actionable")
+                       for r in d.get("picks") or [] for f in (r.get("flags") or []))),
     )
 
     # 🔴🔴 AN INJECTION IS ONLY "CAUGHT" IF IT PRODUCES A FAILURE THE
-    #    BASELINE DID NOT HAVE. My first version asked only "did it fail",
-    #    and THREE OF THE FOUR CASES scored a pass by re-detecting the
-    #    pre-existing projection failure — the injected defect was never
-    #    caught at all and the file printed green.
-    # ⛔ IT IS THE COVERAGE MATRIX'S MISTAKE AGAIN, TWO HOURS LATER: a
-    #    signal that fires on everything distinguishes nothing. The
-    #    difference from the baseline is the only honest measure.
+    #    BASELINE DID NOT HAVE — THE BASELINE OF ITS OWN SUBJECT CARD. A
+    #    signal that fires on everything distinguishes nothing.
+    _BASES = {DAY: BASE}
     _bit = 0
-    for name, why, mut in CASES:
-        rc, out = run(mut)
-        _new = _fails(out) - BASE
-        if not _new:
-            # ⚠️ NOT A SILENT PASS AND NOT A HARD FAIL. A card whose data
-            #    cannot express the defect (no multi-game parlay, no
-            #    flags) means the injection did not land — and rule 144
-            #    says a check that could not run did not pass.
-            note("⚠️ NOT EXERCISED — %s: the stored card has nothing to "
-                 "break for this case, so it proves nothing. ⛔ Reported, "
-                 "not passed." % name)
+    for name, why, mut, has_case in CASES:
+        _sd, _sc = _newest_fair(has_case)
+        if _sd is None:
+            note("⚠️ NOT EXERCISED — %s: no stored card holding this case can "
+                 "still be verified against today's tree. ⛔ Reported, not passed."
+                 % name)
             continue
-        _bit += 1
-        ck("🔴 caught: %s" % name, bool(_new),
-           "%s Verifier raised a NEW failure: %s"
-           % (why, sorted(_new)[0][:110]))
+        if _sd not in _BASES:
+            _BASES[_sd] = _fails(run(day=_sd)[1])
+        rc, out = run(mut, day=_sd)
+        _new = _fails(out) - _BASES[_sd]
+        _bit += bool(_new)
+        ck("🔴 caught: %s (on %s)" % (name, _sd), bool(_new),
+           "%s Verifier raised %s"
+           % (why, ("a NEW failure: %s" % sorted(_new)[0][:110]) if _new else
+              "NO new failure — the class is not caught"))
 
-    ck("🔴🔴 the fault injection exercised at least one real class",
-       _bit >= 1,
-       "⛔ IF NOTHING LANDED, SECTION 2 IS DECORATION. Every case would "
-       "have reported NOT EXERCISED and the file would print green "
-       "having driven nothing. Exercised %d of %d" % (_bit, len(CASES)))
+    if SUBJ is not None:
+        ck("🔴🔴 the fault injection exercised at least one real class",
+           _bit >= 1,
+           "⛔ IF NOTHING LANDED, SECTION 2 IS DECORATION. Exercised %d of %d"
+           % (_bit, len(CASES)))
+    else:
+        note("⚠️ NOT EXERCISED: no stored card can be verified against today's "
+             "tree. §1b's planted rows still inject a fault into section 39 "
+             "and watch it caught, every run.")
 
     print("\n═══ 3. ⛔ AND THE SUITE NOW COUNTS IT ═══")
     # 🔴 THE WHOLE POINT, STATED AS AN ASSERTION. The collector's Tests
@@ -362,9 +575,12 @@ else:
        "glob is a file that does not run, which is the exact condition "
        "this one exists to end")
 
-note("⛔ WHAT THIS FILE STILL DOES NOT COVER: the ~90 checks are exercised "
-     "against the NEWEST stored card (only the rounding case is driven on "
-     "a card chosen for holding it), so a check that only fires on a "
-     "board shape that card does not have is still unproven. ➡️ That is "
-     "a smaller gap than 'the verifier is not in the suite at all', and "
-     "it is stated rather than papered over.")
+note("⛔ WHAT THIS FILE STILL DOES NOT COVER: ~~the ~90 checks are exercised "
+     "against the NEWEST stored card~~ `[2026-09-28]` the five injected "
+     "classes each run on the newest stored card that holds the case AND that "
+     "today's tree can still verify, and section 39 runs on planted rows; the "
+     "other ~85 checks are exercised only through those real cards, so a "
+     "check that fires on a board shape no fair card holds is still unproven "
+     "— and between a season's first pitcher pull and its first card with "
+     "picks, no stored card is fair and only the static and planted halves "
+     "run. ➡️ Stated rather than papered over.")
