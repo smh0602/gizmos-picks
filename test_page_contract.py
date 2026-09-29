@@ -42,9 +42,13 @@ ONLY WAY TO PASS. There is no wildcard and no "starts with" escape: a
 new unexplained fetch fails this file until somebody writes down why.
 """
 import datetime
+import gzip
+import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -317,42 +321,152 @@ section("4. ⛔ THE NEW ROWS MUST NOT CRY WOLF ON A HEALTHY TREE")
 # ⚠️ THIS IS A STATEMENT ABOUT THE ROWS, NOT ABOUT THE TREE: it asks
 #    only that the rows this branch added are not late while the file
 #    they were modelled on — the defence table, and the card — is on
-#    time. A genuinely stale artifact still goes red, and should.
-_NEW_TARGETS = set()
-for _d in FB_DIRS:
-    _season = F.current_football_season(NOW)
-    _NEW_TARGETS |= {
-        "%s/latest/dossiers.json.gz" % _d,
-        "%s/latest/offense-by-position-%d.json.gz" % (_d, _season),
-        "%s/latest/players-%d.json.gz" % (_d, _season),
-    }
-_NOW = datetime.datetime.now(datetime.timezone.utc)
-_SIB = {}
-_BAD = []
-for _d in FB_DIRS:
-    for _r in F.survey(_d, now=_NOW):
-        _SIB[_r["path"]] = _r
-for _t in sorted(_NEW_TARGETS):
-    _row = _SIB.get(_t)
-    if not _row:
-        _BAD.append((_t, "no survey row"))
-        continue
-    _d = "/".join(_t.split("/")[:2])
-    _season = F.current_football_season(NOW)
-    _model = ("picks/fb-%s-latest.json" % _d.split("/")[-1]
-              if "dossiers" in _t
-              else "%s/latest/allowed-by-position-%d.json.gz" % (_d, _season))
-    _m = _SIB.get(_model)
-    if _row.get("stale") and _m and not _m.get("stale"):
-        _BAD.append((_t, "stale while its own builder's other output (%s) "
-                         "is on time" % _model))
+#    time.
+# 🔴 `[2026-09-28]` ~~surveyed the LIVE tree with the real clock, while
+#    naming its targets from the FROZEN season~~ — two defects in one
+#    check. (P2) It asked production to stay silent: `card-fb` keeps the
+#    card when the dossier build fails (collect.py: "the CARD IS FINE"),
+#    so a live dossier going late beside a fresh card turned this red with
+#    freshness.py unchanged — that is `verify_freshness.py`'s finding, not
+#    this file's. (P1) One of each clock: from August 2027, once the 2027
+#    logs exist, the survey names `-2027` paths while the targets said
+#    `-2026`, and "no survey row" went red on correct code.
+# ✅ So the question is asked of a TREE PINNED TO ONE INSTANT, at every
+#    hour of a week: each sibling is written just after its own last
+#    deadline, and each new row in the SAME run — its builder writes both
+#    — so a new row can only be late if its DEADLINE differs. The targets
+#    are read from the contract that survey uses, never rebuilt from a
+#    clock. A planted twin writes the new row BEFORE its deadline and must
+#    be caught, so the check is shown to bite. The live tree is reported.
+_NEW_RX = re.compile(r"/latest/(dossiers|offense-by-position-\d{4}|players-\d{4})\.json\.gz$")
+_MODEL_RX = re.compile(r"/latest/allowed-by-position-\d{4}\.json\.gz$")
+
+
+def _iso(t):
+    return t.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _write(path, when):
+    """An artifact whose CONTENT carries its stamp (never an mtime)."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    doc = {"built_at": _iso(when), "generated_at": _iso(when)}
+    if path.endswith(".gz"):
+        with gzip.open(path, "wt", encoding="utf-8") as fh:
+            json.dump(doc, fh)
+    else:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(doc, fh)
+
+
+def _pairs(rows, d):
+    """(new target row, the row it was modelled on) for league dir `d`,
+    both taken from THIS survey — the same clock and the same tree."""
+    card = "picks/fb-%s-latest.json" % d.split("/")[-1]
+    by = {r["path"]: r for r in rows}
+    model = [r for r in rows if _MODEL_RX.search(r["path"])]
+    out = []
+    for r in rows:
+        if _NEW_RX.search(r["path"]):
+            out.append((r, by.get(card) if "dossiers" in r["path"]
+                        else (model[0] if len(model) == 1 else None)))
+    return out
+
+
+def _bad_of(rows, d):
+    bad = []
+    for r, m in _pairs(rows, d):
+        if m is None:
+            bad.append((r["path"], "no row it was modelled on"))
+        elif r.get("stale") and not m.get("stale"):
+            bad.append((r["path"], "stale while its own builder's other output "
+                                   "(%s) is on time" % m["path"]))
+    return bad
+
+
+def _pinned(t, late=None):
+    """Plant every league's gate files, the siblings and the new rows at
+    instant `t` in a temp tree; survey there. `late` names one stem whose
+    new row is written BEFORE its deadline. -> {d: survey rows}"""
+    tree = tempfile.mkdtemp(prefix="pagecontract-")
+    here = os.getcwd()
+    try:
+        os.chdir(tree)
+        season = F.current_football_season(t)
+        out = {}
+        for d in FB_DIRS:
+            lat = "%s/latest" % d
+            # the gates: a props board (else card-fb is withdrawn) and the
+            # season files (else the fallback names last season)
+            _write("%s/props.json.gz" % lat, t)
+            for stem in ("allowed-by-position", "offense-by-position", "players"):
+                _write("%s/%s-%d.json.gz" % (lat, stem, season), t)
+            rows = {r[1][1]: r for r in F.contract(d, now=t)}
+            card ="picks/fb-%s-latest.json" % d.split("/")[-1]
+            model = [p for p in rows if _MODEL_RX.search(p)]
+            for sib in [card] + model:
+                if sib in rows:
+                    _write(sib, F.last_due(rows[sib][2], t) + datetime.timedelta(minutes=1))
+            for path in rows:
+                if not _NEW_RX.search(path):
+                    continue
+                sib = card if "dossiers" in path else (model[0] if model else None)
+                if sib is None or sib not in rows:
+                    continue
+                when = F.last_due(rows[sib][2], t) + datetime.timedelta(minutes=1)
+                if late and late in path:
+                    when = F.last_due(rows[path][2], t) - datetime.timedelta(minutes=1)
+                _write(path, when)
+            out[d] = F.survey(d, now=t)
+        return out
+    finally:
+        os.chdir(here)
+        shutil.rmtree(tree, ignore_errors=True)
+
+
+_INSTANTS = [NOW.replace(hour=h) + datetime.timedelta(days=day)
+             for day in range(7) for h in (2, 8, 13, 18, 23)]
+_BAD, _SEEN, _SIB_STALE = [], 0, []
+for _t in _INSTANTS:
+    for _d, _rows in _pinned(_t).items():
+        _pr = _pairs(_rows, _d)
+        _SEEN += len(_pr)
+        _SIB_STALE += [(_iso(_t), m["path"]) for _r, m in _pr if m and m.get("stale")]
+        _BAD += [(_iso(_t),) + b for b in _bad_of(_rows, _d)]
+ck("⚠️ the pinned tree names all three new rows in both leagues, at every instant",
+   _SEEN == 3 * len(FB_DIRS) * len(_INSTANTS),
+   "⛔ rule 67: a target the survey does not name is a target this never "
+   "asks about. seen %d of %d" % (_SEEN, 3 * len(FB_DIRS) * len(_INSTANTS)))
+ck("⚠️ ...and every sibling written just after its deadline reads ON TIME",
+   not _SIB_STALE,
+   "⛔ a stale sibling makes the question below vacuous. %s" % _SIB_STALE[:3])
 ck("⛔ no row added here is late while the file it was modelled on is not",
    not _BAD,
    "🔴 a row red on a tree its own builder just wrote is a row with the "
    "wrong deadline, and it would make the staleness banner noise. %s"
-   % _BAD)
+   % _BAD[:4])
+# ⛔ AND THE CHECK CAN FAIL: a new row written BEFORE its own deadline,
+#    beside an on-time sibling, is caught — one twin per kind of sibling.
+for _stem, _sib in (("dossiers", "the card"), ("offense-by-position", "the defence table")):
+    _tw = _pinned(NOW, late=_stem)
+    _hits = [b for _d, _rows in _tw.items() for b in _bad_of(_rows, _d) if _stem in b[0]]
+    ck("⛔ PLANTED: a %s row written before its deadline, beside %s on time, IS caught"
+       % (_stem, _sib),
+       len(_hits) == len(FB_DIRS),
+       "one per league, got %s" % _hits)
+
+# 📋 THE LIVE TREE, REPORTED — same clock and same tree for the survey AND
+#    for which paths it names (never the frozen season).
+_NOW = datetime.datetime.now(datetime.timezone.utc)
+_LIVE = {d: F.survey(d, now=_NOW) for d in FB_DIRS}
+_LBAD = [b for d, rows in _LIVE.items() for b in _bad_of(rows, d)]
+note("%s live tree: %s"
+     % ("⛔" if _LBAD else "✅",
+        ("new rows late beside an on-time sibling — verify_freshness reports "
+         "the site as stale: %s" % _LBAD) if _LBAD else
+        "no new row is late while its sibling is on time"))
 note("new rows and their ages right now: %s"
-     % {t: (_SIB.get(t) or {}).get("age_min") for t in sorted(_NEW_TARGETS)})
+     % {r["path"]: r.get("age_min") for d, rows in _LIVE.items()
+        for r, _m in _pairs(rows, d)})
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the contract's DEADLINES are "
      "right, or that an artifact with a row is fresh. It claims only that "
      "nothing the page reads is unwatched without a written reason. "
@@ -363,3 +477,18 @@ note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the contract's DEADLINES are "
 #   file: freshness.py
 #   find:          "Dossier — all eight per-game checks"))
 #   with:          "Dossier — all eight per-game checks")) if False else None
+#
+# @vacuity ⛔ §4 pinned tree: a dossier row on a deadline other than the card's is late beside it
+#   file: freshness.py
+#   find: ("card-fb", ("file", f"{latest}/dossiers.json.gz"), T["card"], False,
+#   with: ("card-fb", ("file", f"{latest}/dossiers.json.gz"), T["props"], False,
+#
+# @vacuity ⛔ §4 pinned tree: the players log on a deadline other than the defence table's
+#   file: freshness.py
+#   find: ("file", lpath), T["trends"], False,
+#   with: ("file", lpath), T["card"], False,
+#
+# @vacuity ⛔ §4 planted twins: a new row written before its deadline IS caught
+#   file: freshness.py
+#   find: stale = built is None or (due is not None and built < due)
+#   with: stale = built is None
