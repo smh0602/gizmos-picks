@@ -44,6 +44,11 @@ against the real tree and must be SILENT on everything but the defect.
 #   file: watchdog.py
 #   find:         names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
 #   with:         names = ", ".join(sorted({str(r.get("key")) for r in stale})[:6])
+#
+# @vacuity 🔴🔴 PLANTED twin: a WRITER that stops emitting the key its reader uses is caught
+#   file: collect.py
+#   find:         "artifacts": rows,
+#   with:         "rows": rows,
 """
 import ast
 import datetime
@@ -105,9 +110,9 @@ def keyed_on(var, node):
     return None
 
 
-def artifact_files(basename):
-    hits = glob.glob(os.path.join(ROOT, "data", "**", basename), recursive=True)
-    hits += glob.glob(os.path.join(ROOT, "picks", basename))
+def artifact_files(basename, root=ROOT):
+    hits = glob.glob(os.path.join(root, "data", "**", basename), recursive=True)
+    hits += glob.glob(os.path.join(root, "picks", basename))
     return sorted(hits)[:40]
 
 
@@ -123,94 +128,139 @@ def _doc(p):
 # ════════════════════════════════════════════════════════════════════════
 section("1. 🔴🔴 EVERY KEY READ OFF AN ARTIFACT EXISTS IN THAT ARTIFACT")
 # ════════════════════════════════════════════════════════════════════════
-findings, surveyed, arts = [], 0, set()
-for mod in sorted(glob.glob(os.path.join(ROOT, "*.py"))):
-    base = os.path.basename(mod)
-    if base.startswith("test_"):
-        continue
-    try:
-        tree = ast.parse(io.open(mod, encoding="utf-8").read())
-    except SyntaxError:                       # pragma: no cover
-        continue
-    scopes = [tree] + [n for n in ast.walk(tree)
-                       if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
-    for fn in scopes:
-        nodes = walk_scope(fn)
-        for st in nodes:
-            if not isinstance(st, ast.Assign) or len(st.targets) != 1:
-                continue
-            tgt = st.targets[0]
-            if not isinstance(tgt, ast.Name) or not isinstance(st.value, ast.Call):
-                continue
-            nm = getattr(st.value.func, "id", None) or \
-                getattr(st.value.func, "attr", None)
-            if nm not in LOADERS:
-                continue
-            names = [_lit(n) for n in ast.walk(st.value)]
-            names = [n for n in names
-                     if n and (n.endswith(".json") or n.endswith(".json.gz"))]
-            if not names:
-                continue
-            bn = names[-1]
-            files = artifact_files(bn)
-            if not files:
-                continue
-            arts.add(bn)
-            where = "%s:%s" % (base, getattr(fn, "name", "<module>"))
-            present = set()
-            for f in files:
-                d = _doc(f)
-                if isinstance(d, dict):
-                    present |= set(d.keys())
-            want = reads_on(tgt.id, nodes)
-            if want:
-                surveyed += 1
-                miss = sorted(k for k in want if k not in present)
-                if miss:
-                    findings.append("%s reads %s off %s — no such key in "
-                                    "%d file(s) on disk"
-                                    % (where, miss, bn, len(files)))
-            # ── and one level down, into the rows of a list it iterates
-            for n in nodes:
-                gens = []
-                if isinstance(n, ast.For) and isinstance(n.target, ast.Name):
-                    gens.append((n.target.id, n.iter, n))
-                for g in getattr(n, "generators", []) or []:
-                    if isinstance(g.target, ast.Name):
-                        gens.append((g.target.id, g.iter, n))
-                for lv, it, node in gens:
-                    cont = keyed_on(tgt.id, it)
-                    if not cont:
-                        continue
-                    rk = set()
-                    for f in files:
-                        d = _doc(f)
-                        v = (d or {}).get(cont)
-                        if isinstance(v, list):
-                            for row in v[:50]:
-                                if isinstance(row, dict):
-                                    rk |= set(row.keys())
-                    if not rk:
-                        continue
+def scan(root):
+    """-> (findings, bindings surveyed, artifact names) for every module
+    under `root` against the artifacts on disk under `root`."""
+    findings, surveyed, arts = [], 0, set()
+    for mod in sorted(glob.glob(os.path.join(root, "*.py"))):
+        base = os.path.basename(mod)
+        if base.startswith("test_"):
+            continue
+        try:
+            tree = ast.parse(io.open(mod, encoding="utf-8").read())
+        except SyntaxError:                       # pragma: no cover
+            continue
+        scopes = [tree] + [n for n in ast.walk(tree)
+                           if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+        for fn in scopes:
+            nodes = walk_scope(fn)
+            for st in nodes:
+                if not isinstance(st, ast.Assign) or len(st.targets) != 1:
+                    continue
+                tgt = st.targets[0]
+                if not isinstance(tgt, ast.Name) or not isinstance(st.value, ast.Call):
+                    continue
+                nm = getattr(st.value.func, "id", None) or \
+                    getattr(st.value.func, "attr", None)
+                if nm not in LOADERS:
+                    continue
+                names = [_lit(n) for n in ast.walk(st.value)]
+                names = [n for n in names
+                         if n and (n.endswith(".json") or n.endswith(".json.gz"))]
+                if not names:
+                    continue
+                bn = names[-1]
+                files = artifact_files(bn, root)
+                if not files:
+                    continue
+                arts.add(bn)
+                where = "%s:%s" % (base, getattr(fn, "name", "<module>"))
+                present = set()
+                for f in files:
+                    d = _doc(f)
+                    if isinstance(d, dict):
+                        present |= set(d.keys())
+                want = reads_on(tgt.id, nodes)
+                if want:
                     surveyed += 1
-                    rr = reads_on(lv, [node])
-                    rmiss = sorted(k for k in rr if k not in rk)
-                    if rmiss:
-                        findings.append(
-                            "%s reads %s off a row of %s[%s] — no such key "
-                            "in %d file(s) on disk"
-                            % (where, rmiss, bn, cont, len(files)))
+                    miss = sorted(k for k in want if k not in present)
+                    if miss:
+                        findings.append("%s reads %s off %s — no such key in "
+                                        "%d file(s) on disk"
+                                        % (where, miss, bn, len(files)))
+                # ── and one level down, into the rows of a list it iterates
+                for n in nodes:
+                    gens = []
+                    if isinstance(n, ast.For) and isinstance(n.target, ast.Name):
+                        gens.append((n.target.id, n.iter, n))
+                    for g in getattr(n, "generators", []) or []:
+                        if isinstance(g.target, ast.Name):
+                            gens.append((g.target.id, g.iter, n))
+                    for lv, it, node in gens:
+                        cont = keyed_on(tgt.id, it)
+                        if not cont:
+                            continue
+                        rk = set()
+                        for f in files:
+                            d = _doc(f)
+                            v = (d or {}).get(cont)
+                            if isinstance(v, list):
+                                for row in v[:50]:
+                                    if isinstance(row, dict):
+                                        rk |= set(row.keys())
+                        if not rk:
+                            continue
+                        surveyed += 1
+                        rr = reads_on(lv, [node])
+                        rmiss = sorted(k for k in rr if k not in rk)
+                        if rmiss:
+                            findings.append(
+                                "%s reads %s off a row of %s[%s] — no such key "
+                                "in %d file(s) on disk"
+                                % (where, rmiss, bn, cont, len(files)))
 
-note("bindings surveyed: %d, across artifacts %s" % (surveyed, sorted(arts)))
-ck("⚠️ the scanner found bindings to judge at all",
-   surveyed >= 4 and len(arts) >= 3,
-   "⛔ rule 67 — if the AST walk breaks, this file must go RED rather "
-   "than green on nothing. surveyed=%d artifacts=%s" % (surveyed, sorted(arts)))
-ck("🔴🔴 no module reads a key its artifact does not have",
-   not findings,
-   "⛔ THIS IS THE DEFECT OF 2026-09-19. A reader keyed on a name the "
-   "writer never emits gets an empty container, and an empty container "
-   "reads as 'nothing to report'. %s" % ("; ".join(findings) or "none"))
+    return findings, surveyed, arts
+
+
+# 🔴 `[2026-09-28]` THE CLASS QUESTION IS NOW ASKED OF A PLANTED TREE FIRST.
+#    The sweep below judges every reader against the artifacts ON DISK —
+#    production's copies, written by MAIN's writers. So a correct PR that
+#    adds a key to a writer and its reader together went red here until
+#    production rewrote the file, and a correctly optional key went red on
+#    any day every live copy happened to omit it: the scanner's silence on
+#    PRODUCTION DATA was being asserted. ✅ The twin is this checkout's
+#    READER (`watchdog.py`, copied) against this checkout's WRITER
+#    (`collect.write_freshness`, run into a temp tree at a pinned clock) —
+#    the pair behind the 2026-09-19 defect — so it asks a code-vs-code
+#    question every run, with its own rule-67 floor. The live sweep is
+#    REPORTED below, loudly when it finds something.
+_TW = tempfile.mkdtemp(prefix="artkeys-twin-")
+try:
+    import collect as _C                                        # noqa: E402
+    import freshness as _F                                      # noqa: E402
+    _tl = os.path.join(_TW, "data", "latest")
+    os.makedirs(_tl)
+    shutil.copy(os.path.join(ROOT, "watchdog.py"), os.path.join(_TW, "watchdog.py"))
+    _saved = _C.LATEST
+    try:
+        _C.LATEST = _tl
+        _C.write_freshness(rows=_F.survey(
+            data=os.path.join(_TW, "data"), picks=os.path.join(_TW, "picks"),
+            now=datetime.datetime(2026, 9, 19, 12, 0, tzinfo=datetime.timezone.utc)))
+    finally:
+        _C.LATEST = _saved
+    _tf, _ts, _ta = scan(_TW)
+finally:
+    shutil.rmtree(_TW, ignore_errors=True)
+ck("⚠️ PLANTED: the scanner found watchdog's freshness.json bindings to judge "
+   "(top level AND rows)",
+   _ts >= 2 and _ta == {"freshness.json"},
+   "⛔ rule 67 on a tree that always holds the case. surveyed=%d artifacts=%s"
+   % (_ts, sorted(_ta)))
+ck("🔴🔴 PLANTED: this checkout's reader reads no key this checkout's writer "
+   "does not emit",
+   not _tf,
+   "⛔ THIS IS THE DEFECT OF 2026-09-19, asked of the code alone. %s"
+   % ("; ".join(_tf) or "none"))
+
+findings, surveyed, arts = scan(ROOT)
+note("live sweep: bindings surveyed: %d, across artifacts %s" % (surveyed, sorted(arts)))
+note(("⚠️ LIVE SWEEP: %d reader(s) key on a name the ARTIFACT ON DISK does "
+      "not carry — either a reader bug (the defect of 2026-09-19) or a "
+      "writer ahead of production's copy. Check each: %s"
+      % (len(findings), "; ".join(findings))) if findings else
+     "⚪ live sweep: every key read off an on-disk artifact exists in it "
+     "(%d bindings)" % surveyed)
 
 # ════════════════════════════════════════════════════════════════════════
 section("2. 🔴🔴 AND THE STALENESS CHECK IS DRIVEN, NOT READ")

@@ -19,6 +19,26 @@ picks are 09-04 games. That card is on disk and stays there — it is the
 record of what was published. So the disk is REPORTED and the CODE is
 ASSERTED (ledger rule 76): asserting over every stored card would be red
 forever on a card nobody may rewrite.
+
+# @vacuity §3a the single-day filter keeps only the slate day's rows (board AND parlays)
+#   file: card_fb.py
+#   find:     rows = [r for r in rows if et_date(r.get("commence")) in (slate, None)]
+#   with:     rows = list(rows)
+#
+# @vacuity §3a the other day's rows are COUNTED, not silently vanished
+#   file: card_fb.py
+#   find:     off_day = [r for r in rows if et_date(r.get("commence")) not in (slate, None)]
+#   with:     off_day = [r for r in rows if False]
+#
+# @vacuity §3a the card's sentence says how many rows were held back
+#   file: card_fb.py
+#   find:             + (f"{len(off_day)} row(s) were held back for "
+#   with:             + (f"some row(s) were held back for "
+#
+# @vacuity §5a a board under the minimum is FLAGGED short
+#   file: card_fb.py
+#   find:     short_of_min = 0 < len(board) < BOARD_MIN
+#   with:     short_of_min = False
 """
 import gzip
 import json
@@ -223,6 +243,107 @@ def build(tmp, shift_frac=0.0, keep_frac=1.0):
         return json.load(fh), r
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 3a. PLANTED: THE CASE EXISTS ON EVERY RUN. `[2026-09-28]`
+# ══════════════════════════════════════════════════════════════════════
+# The run below (3b) takes its games from the LIVE college props board, so
+# it exercises the day filter only when production holds priced games: on
+# a gameless or unpriced board every check in it passed through an
+# `or not n_priced` escape, with not one row reaching the filter
+# (measured by simulating a gameless board: 20 of 20 green). Its own
+# comments record a 0-game board (09-10) and a 1-game board (09-08).
+# ✅ So the builder is now ALSO run on a PLANTED tree every time: a planted
+# player log (8 receivers, 10 games each) and a planted board of four
+# games, two on PLANT_DAY and two on the next ET day, every row priced at
+# one book. The checks below carry NO escape — the case cannot be absent.
+# ➡️ 3b, the live run, stays as the extra it always was.
+PLANT_DAY, PLANT_NEXT = "2026-10-03", "2026-10-04"
+_YDS = [80, 70, 60, 30, 90, 55, 40, 75, 65, 20]
+
+
+def plant(tmp, games):
+    """Stage the tree, then replace the player logs and the props board.
+
+    `games`: [(game_id, commence, away, home, [(player, team), ...])]."""
+    stage(tmp)
+    lat = os.path.join(tmp, "data/ncaaf/latest")
+    for f in glob.glob(os.path.join(lat, "players-*.json.gz")):
+        os.remove(f)
+    P, i = {}, 0
+    for _gid, _ko, _aw, _hm, who in games:
+        for name, team in who:
+            pid = "9%05d" % i
+            P[pid] = {"name": name, "pos": "WR", "g": [
+                {"pid": pid, "team": team, "o": "Planted Opp",
+                 "d": "2026-08-%02d" % (10 + k), "seasonType": "regular",
+                 "rec": 5, "rec_yds": _YDS[(k + i) % 10], "rec_td": 0,
+                 "usage": 8, "trailing_usage": 8, "pos": "WR"}
+                for k in range(10)]}
+            i += 1
+    with gzip.open(os.path.join(lat, "players-2026.json.gz"), "wt") as fh:
+        json.dump({"season": 2026, "scope": "planted test fixture",
+                   "usage_floor": 3.0, "players": P}, fh)
+    side = {"n_books": 1, "price": -110, "book": "draftkings"}
+    board = {"league": "ncaaf", "pulled_at": PLANT_DAY + "T12:00:00Z",
+             "n_games": len(games), "games": [
+                 {"id": gid, "commence": ko, "away": aw, "home": hm,
+                  "props": [{"player": name, "market": "player_reception_yds",
+                             "label": "Receiving yards", "unit": "rec yds",
+                             "line": 50.5,
+                             "sides": {"over": dict(side), "under": dict(side)}}
+                            for name, _t in who]}
+                 for gid, ko, aw, hm, who in games]}
+    with gzip.open(os.path.join(lat, "props.json.gz"), "wt") as fh:
+        json.dump(board, fh)
+    r = subprocess.run([sys.executable, "card_fb.py"], cwd=tmp,
+                       env=dict(os.environ, LEAGUE="ncaaf"),
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        print(shown(r.stdout[-1500:]), shown(r.stderr[-1500:]))
+        return None
+    with open(os.path.join(tmp, "picks/fb-ncaaf-latest.json")) as fh:
+        return json.load(fh)
+
+
+_PG = [("planted-a", PLANT_DAY + "T19:00:00Z", "Alpha U", "Beta U",
+        [("Planted Aone", "Alpha U"), ("Planted Bone", "Beta U")]),
+       ("planted-b", PLANT_DAY + "T23:30:00Z", "Gamma U", "Delta U",
+        [("Planted Cone", "Gamma U"), ("Planted Done", "Delta U")]),
+       ("planted-c", PLANT_NEXT + "T17:00:00Z", "Eps U", "Zeta U",
+        [("Planted Eone", "Eps U"), ("Planted Fone", "Zeta U")]),
+       ("planted-d", PLANT_NEXT + "T20:00:00Z", "Eta U", "Theta U",
+        [("Planted Gone", "Eta U"), ("Planted Hone", "Theta U")])]
+_ptmp = tempfile.mkdtemp()
+try:
+    pcard = plant(_ptmp, _PG)
+finally:
+    shutil.rmtree(_ptmp, ignore_errors=True)
+ck("🔴 PLANTED: the builder runs on a board that straddles two ET days",
+   pcard is not None and pcard.get("date") == PLANT_DAY,
+   "date %r" % ((pcard or {}).get("date"),))
+pcard = pcard or {"picks": [], "parlays": {}, "n_off_slate_day": 0,
+                  "off_slate_dates": [], "single_day_rule": "", "board_max": 0}
+_pdays = sorted({etd(r.get("commence")) for r in pcard["picks"]} - {None})
+ck("🔴 PLANTED: the board holds rated picks, every one on the card's own date",
+   len(pcard["picks"]) >= card_fb.BOARD_MIN and _pdays == [PLANT_DAY]
+   and all(r.get("confidence") is not None for r in pcard["picks"]),
+   "%d picks on %s" % (len(pcard["picks"]), _pdays))
+ck("🔴 PLANTED: the next day's 8 rows are HELD BACK and counted, for %s" % PLANT_NEXT,
+   pcard["n_off_slate_day"] == 8 and pcard["off_slate_dates"] == [PLANT_NEXT],
+   "%s row(s) held back for %s" % (pcard["n_off_slate_day"], pcard["off_slate_dates"]))
+ck("   PLANTED: ...and the card says so in a sentence a reader can read",
+   "8 row(s)" in pcard["single_day_rule"] and PLANT_NEXT in pcard["single_day_rule"],
+   pcard["single_day_rule"][:160])
+_pids = {g[0]: etd(g[1]) for g in _PG}
+_pall = [x for v in (pcard.get("parlays") or {}).values() for x in v]
+_pcross = [p for p in _pall if any(_pids.get(g) != PLANT_DAY for g in p["game_ids"])]
+ck("🔴 PLANTED: parlays ARE built, and not one crosses days",
+   bool(_pall) and not _pcross,
+   "%d parlay(s) built, %d touching %s" % (len(_pall), len(_pcross), PLANT_NEXT))
+
+# ══════════════════════════════════════════════════════════════════════
+# 3b. THE LIVE BOARD — the extra, when production holds games
+# ══════════════════════════════════════════════════════════════════════
 tmp = tempfile.mkdtemp()
 card, run = build(tmp, shift_frac=0.5)
 n_shifted = 0
@@ -361,6 +482,30 @@ finally:
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 5. A SHORT DAY IS REPORTED, NEVER PADDED ═══")
+# 🔴 `[2026-09-28]` 5a IS PLANTED: one game, one planted receiver, his
+#    over and his under — exactly two priced, rated rows, whatever the
+#    live board holds. The live-derived variant (5b) below reported only
+#    NOT EXERCISED on a gameless or unpriced board, so the short-board
+#    rule went unchecked on exactly those days.
+_stmp = tempfile.mkdtemp()
+try:
+    scard = plant(_stmp, [("planted-short", PLANT_DAY + "T19:00:00Z",
+                           "Alpha U", "Beta U", [("Planted Solo", "Alpha U")])])
+finally:
+    shutil.rmtree(_stmp, ignore_errors=True)
+scard = scard or {"picks": [], "n_on_slate_day": 0}
+_sn = len(scard["picks"])
+ck("🔴 PLANTED: a 2-row board under the minimum is shipped, not suppressed",
+   _sn == 2 and 0 < _sn < card_fb.BOARD_MIN, "%d pick(s)" % _sn)
+ck("🔴 PLANTED: ...FLAGGED as short, with a sentence saying it was NOT padded",
+   scard.get("short_of_min") is True and "NOT padded" in (scard.get("short_reason") or ""),
+   "short_of_min=%r reason=%r" % (scard.get("short_of_min"),
+                                  (scard.get("short_reason") or "")[:80]))
+ck("   PLANTED: ...and nothing was invented to reach the minimum",
+   _sn <= scard["n_on_slate_day"] == 2,
+   "%d shown of %d priced" % (_sn, scard["n_on_slate_day"]))
+
+# 5b. the live-derived short board — the extra
 tmp = tempfile.mkdtemp()
 try:
     stage(tmp)
