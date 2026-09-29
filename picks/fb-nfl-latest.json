@@ -1,7 +1,7 @@
 {
  "date": "2026-09-28",
  "league": "nfl",
- "generated_at": "2026-09-28T21:50:41Z",
+ "generated_at": "2026-09-29T14:35:14Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-28T21:40:51Z",
@@ -16,37 +16,36 @@
  "game_lines": [
   {
    "kind": "MARKET",
-   "game": "Philadelphia Eagles @ Chicago Bears",
-   "game_id": "47dc7baa254659f3beb2ed2b38c207b6",
-   "commence": "2026-09-29T00:15:00Z",
+   "game": "Pittsburgh Steelers @ Cleveland Browns",
+   "game_id": "d55cb69fed50a09170560b5b75d8de86",
+   "commence": "2026-10-02T00:15:00Z",
    "market": "spreads",
-   "side": "Chicago Bears",
-   "point": 3.5,
-   "best_price": -105,
+   "side": "Pittsburgh Steelers",
+   "point": -2.5,
+   "best_price": -112,
    "best_book": "fanduel",
    "link": null,
-   "median_price": 1.9091,
+   "median_price": 1.8333,
    "n_books": 4,
-   "gain_pct": 2.27
+   "gain_pct": 3.25
   }
  ],
  "game_lines_meta": {
   "games_seen": 1,
-  "comparable_quotes": 4,
+  "comparable_quotes": 2,
   "games_with_an_edge": 1,
   "min_books": 3,
-  "slate": "2026-09-28",
-  "off_day_games": 16,
+  "slate": "2026-10-01",
+  "off_day_games": 15,
   "off_day_dates": [
-   "2026-10-01",
    "2026-10-04",
    "2026-10-05"
   ],
   "card_slate": "2026-09-28",
-  "is_next_slate": false,
-  "snapshot": "data/nfl/2026-09-28/gamelines/1958.json.gz"
+  "is_next_slate": true,
+  "snapshot": "data/nfl/2026-09-29/gamelines/1435.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "\ud83d\udcc5 2026-10-01 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 2 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
   {
    "kind": "fb",
@@ -296,7 +295,7 @@
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 50,
+   "same_player": 45,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
@@ -1912,5 +1911,24 @@
  "board_mixed": false,
  "below_price_floor": [],
  "price_floor": -700,
- "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is RECORD or MARKET, never MODEL."
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is RECORD or MARKET, never MODEL.",
+ "game_lines_earlier_slates": {
+  "2026-09-28": [
+   {
+    "kind": "MARKET",
+    "game": "Philadelphia Eagles @ Chicago Bears",
+    "game_id": "47dc7baa254659f3beb2ed2b38c207b6",
+    "commence": "2026-09-29T00:15:00Z",
+    "market": "spreads",
+    "side": "Chicago Bears",
+    "point": 3.5,
+    "best_price": -105,
+    "best_book": "fanduel",
+    "link": null,
+    "median_price": 1.9091,
+    "n_books": 4,
+    "gain_pct": 2.27
+   }
+  ]
+ }
 }
