@@ -30,6 +30,19 @@ season of Power 4 games is still hundreds of games.
 
 ⚠️ No network. The events list is constructed and `odds_get` is stubbed,
 so a regression here can never spend a credit to prove itself.
+
+# `[2026-09-28]` 3b's coverage walk is runs_report's cron matcher, shown
+# on a planted case to say BOTH "covered" and "missed" before the real
+# schedule is walked with it.
+# @vacuity 3b: a matcher that never finds a firing misses every game
+#   file: runs_report.py
+#   find: while t >= floor:
+#   with: while False:
+#
+# @vacuity 3b: a matcher that always finds a firing can never say "missed"
+#   file: runs_report.py
+#   find: if cron_matches(c, t):
+#   with: if True:
 """
 import os
 import sys
@@ -121,17 +134,56 @@ print("\n3b. 🔴 EVERY REAL GAME IS CAUGHT BY SOME DEPLOYED PULL")
 print("    The question the constant was only ever a proxy for.")
 import re as _re, datetime as _dt, os as _os
 import freshness as _F
+import runs_report as _RR    # the ONE cron matcher (rule 117)
 _wf = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
                     ".github/workflows/collect.yml")
 from wfroutes import parse_routes as _parse_routes    # noqa: E402
 _routes = _parse_routes(open(_wf, encoding="utf-8").read())
+
+
+def _uncovered(games, crons, window_h):
+    """The kickoffs no cron fires for inside the `window_h` hours before.
+
+    ⚠️ `[2026-09-28]` The matcher is `runs_report`'s — the one the runs
+    watcher already trusts — not a second hand-written one here.
+    """
+    parsed = [_RR.parse_cron(c) for c in crons]
+    out = []
+    for g in games:
+        floor = g - _dt.timedelta(hours=window_h)
+        if not any(p and _RR.last_fire(p, g, floor) for p in parsed):
+            out.append(g)
+    return out
+
+
+# 🔴 `[2026-09-28]` THE WALK IS SHOWN TO BITE BEFORE IT IS TRUSTED. On the
+#    real schedule every game is covered, so the "missed" branch never
+#    ran: a matcher that always said "covered" passed 272/272 and 888/888
+#    (measured by the sweep's verifier on a scratch copy). ✅ A planted
+#    weekly cron and two kickoffs placed by the window itself — one half an
+#    hour inside it, one half an hour past it — must come back exactly as
+#    "the second one is missed", whatever the constant is.
+_pc = "8 15 * * 0"                                   # Sundays 15:08Z
+_pf = _dt.datetime(2026, 9, 20, 15, 8, tzinfo=timezone.utc)
+_pin = _pf + _dt.timedelta(hours=C.FB_PROPS_WINDOW_H) - _dt.timedelta(minutes=30)
+_pout = _pf + _dt.timedelta(hours=C.FB_PROPS_WINDOW_H) + _dt.timedelta(minutes=30)
+_pmiss = _uncovered([_pin, _pout], [_pc], C.FB_PROPS_WINDOW_H)
+ck(_pmiss == [_pout],
+   "   🔴 the coverage walk tells a covered kickoff from a missed one (planted)",
+   "⛔ a walk that never says 'missed' cannot catch a hole. missed: %s"
+   % [t.strftime("%a %H:%MZ") for t in _pmiss])
+
 for _lg in ("nfl", "ncaaf"):
     _times = [c for c, l, m in _routes if l == _lg and "props-player" in m.split()]
     if not _times:
         ck(False, f"   {_lg}: a cron runs props-player"); continue
-    _path = f"data/{_lg}/latest/schedule-2026.json.gz"
+    # ⚠️ `[2026-09-28]` ~~`schedule-2026.json.gz`~~ — the CURRENT season, by
+    #    the same rule freshness and collect.yml use, read against the real
+    #    clock; a season whose schedule is not stored yet is reported.
+    _path = f"data/{_lg}/latest/schedule-{_F.current_football_season(None)}.json.gz"
     if not _os.path.exists(_path):
-        print(f"    — {_lg}: no stored schedule, skipped"); continue
+        note(f"   {_lg}: no stored schedule at {_path} — the real-schedule "
+             f"coverage was not asked (the planted walk above was)"); continue
     # 🔴 THE KICKOFF TIMES COME FROM `freshness.kickoffs_utc`, NOT FROM A
     # SECOND PARSER HERE. ~~this file stamped `tzinfo=utc` on both
     # leagues~~ STRUCK 2026-09-04: that is right for college, whose CFBD
@@ -144,29 +196,11 @@ for _lg in ("nfl", "ncaaf"):
     # ✅ One parser, in the contract, used by the contract and by this
     # check, so the two can never disagree about when a game starts.
     _games = _F.kickoffs_utc(_lg, _path) or []
-    def _fires(cron, t):
-        mm, hh, _dom, _mon, dw = cron.split()
-        def _ok(f, v):
-            if f == "*": return True
-            if f.startswith("*/"): return v % int(f[2:]) == 0
-            for part in f.split(","):
-                if "-" in part:
-                    a, b = part.split("-")
-                    if int(a) <= v <= int(b): return True
-                elif int(part) == v: return True
-            return False
-        return _ok(mm, t.minute) and _ok(hh, t.hour) and _ok(dw, (t.weekday()+1) % 7)
-    _miss = 0
-    for _g in _games:
-        _covered = False
-        for _c in _times:
-            # walk back over the window looking for a firing that covers it
-            for _back in range(0, C.FB_PROPS_WINDOW_H * 60 + 1, 1):
-                _t = _g - _dt.timedelta(minutes=_back)
-                if _fires(_c, _t.replace(second=0, microsecond=0)):
-                    _covered = True; break
-            if _covered: break
-        if not _covered: _miss += 1
+    # ⚠️ `[2026-09-28]` ~~a hand-written `_fires` walked back minute by
+    #    minute~~ — the same walk, through `_uncovered` and runs_report's
+    #    matcher, which the planted case above has just shown can say
+    #    "missed".
+    _miss = len(_uncovered(_games, _times, C.FB_PROPS_WINDOW_H))
     _pct = 100.0 * (len(_games) - _miss) / max(len(_games), 1)
     ck(_pct >= 99.0,
        f"   🔴 {_lg}: every game reached by a pull before kickoff",

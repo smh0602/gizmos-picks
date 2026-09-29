@@ -131,6 +131,16 @@ if _BROWSER:
     pg = br.new_page(viewport={"width": 1400, "height": 1100})
     errs = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
+    # ⛔ NO REQUEST LEAVES THIS MACHINE. `[2026-09-28]` Sam: "A test must
+    #    not depend on the network." The page boots the MLB tab
+    #    (statsapi.mlb.com) and asks mlbstatic/espncdn for logos; none of
+    #    it was stubbed. Registered FIRST — Playwright tries the newest
+    #    route first — so the ESPN stub below still answers its own URLs;
+    #    anything else off this machine is aborted (the page already copes
+    #    with a feed it cannot reach) and counted. test_live_scores.py §0
+    #    fails if a browser test loses this line.
+    _offsite = []
+    pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
     # ⚠️ ESPN IS STUBBED EMPTY HERE ON PURPOSE. This file tests the
     #    STORED-LOG path, which is the fallback; the ESPN path is driven
     #    against real captured payloads in `test_box_live.py`. An empty
@@ -164,8 +174,14 @@ if _BROWSER:
         pg.wait_for_function("() => window.__fbShown && window.__fbShown.length > 0",
                              timeout=30000)
         # open the modal for that exact game, through the page's own code
+        # ⚠️ `[2026-09-28]` PINNED TO THE LOG'S SEASON, as §4 pins 2025. The
+        #    page's default season is the newest stored schedule, so the day
+        #    a later season's schedule lands the 2026 game read above is not
+        #    in it and this failed on correct code: a fixed season in the test
+        #    against a season the live tree chooses.
         opened = pg.evaluate("""async (gid) => {
-            const doc = await fbSchedLoad(fbScSeason);
+            fbScSeason = 2026;
+            const doc = await fbSchedLoad(2026);
             const g = (doc.games || []).find(x => String(x.id) === gid);
             if (!g) return false;
             await fbOpenBox(g);
@@ -321,5 +337,7 @@ if _BROWSER:
            "game)" % msg)
         ck("⛔ ...and the page did not error while reading it",
            not errs, str(errs[:1]))
+    note("%d off-machine request(s) blocked, none answered by the network: "
+         "%s" % (len(_offsite), sorted({u.split("/")[2] for u in _offsite})))
     br.close()
 srv.shutdown()

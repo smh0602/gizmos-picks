@@ -392,7 +392,7 @@ note("⚠️ THIS PREDICTS THE GUARD, NOT THE FETCH. If CFBD refuses the key "
      "will say so with the status code.")
 
 # ══════════════════════════════════════════════════════════════════════
-print("\n═══ 5. 🔴 THE FOUR TEST FILES, ON THE REAL EMPTY CARD ═══")
+print("\n═══ 5. THE FOUR TEST FILES, ON TODAY'S LIVE TREE (REPORTED) ═══")
 CARD = json.load(open("picks/fb-ncaaf-latest.json"))
 # ⛔ ~~ck("the live college card really is empty", ...)~~ — DEMOTED TO A
 #    NOTE 2026-09-11. It passed every day until a college board prices,
@@ -407,15 +407,32 @@ note("live college card (DESCRIPTIVE): n_priced=%s picks=%d%s"
         " — NOT empty today, so these four run against a live board "
         "instead; both inputs must pass"))
 
+# 🔴 `[2026-09-28]` ~~ck(f"✅ {t} passes on the empty card", ...)~~ — FOUR
+#    OTHER TEST FILES, RUN AGAINST THE LIVE REPO, ASSERTED GREEN FROM HERE.
+#    That is "another guard is silent on production data": each of the four
+#    reads the live board, card or record, so whatever turned one of them
+#    red turned this file red too — for a reason that is not this file's —
+#    and "the empty card" it names was a fact about 09-10, not an input
+#    anything here plants (the live card has priced rows today).
+# ✅ NOTHING IS LOST, AND IT IS SAID WHERE EACH QUESTION NOW LIVES:
+#    - each of the four is run directly by the suite loop (collect.yml's
+#      `for t in test_*.py`, and a pr-tests shard, which test_pr_shards.py
+#      proves covers every file), so its own verdict still gates;
+#    - the EMPTY CARD is planted where it belongs: test_single_day.py §4
+#      builds a card from an emptied board, test_empty_board.py drives both
+#      branches of the empty-board sentence with no data tree, and
+#      test_top_plays.py builds 0-row fixtures.
+#    Their results are reported here, for the record of this drop.
 FOUR = ["test_top_plays.py", "test_conf_filter.py",
         "test_record_fb.py", "test_single_day.py"]
 for t in FOUR:
     r = subprocess.run([sys.executable, t], capture_output=True, text=True,
                        cwd=ROOT, timeout=600)
-    ck(f"✅ {t} passes on the empty card",
-       r.returncode == 0 and "❌" not in r.stdout,
-       [l for l in r.stdout.splitlines() if l.startswith("   - ")][:3]
-       or (r.stdout.strip().splitlines() or ["no output"])[-1])
+    note(f"{t} on today's live tree (DESCRIPTIVE — the suite gates it "
+         f"directly): exit {r.returncode}, "
+         + str([l for l in r.stdout.splitlines() if l.startswith("   - ")][:3]
+               or (r.stdout.strip().splitlines() or ["no output"])[-1])[:160]
+         .replace("❌", "(x)"))
 
 # ══════════════════════════════════════════════════════════════════════
 print("\n═══ 6. 🔴 THE SENTENCE THE CARD SHOWS A READER ═══")

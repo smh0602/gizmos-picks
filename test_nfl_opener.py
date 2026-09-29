@@ -23,6 +23,18 @@ WHAT IS PINNED:
   3. the "bands" sentence cannot appear when out_of_band is 0
   4. the page states no hard-coded league schedule
   5. the log fallback: no players-2026 file yet, so 2025 must be usable
+
+# `[2026-09-28]` The constructed ET cases now run whatever the live board
+# holds, and the log choice is driven through card_fb.load_logs.
+# @vacuity §1: a night kickoff files under the PREVIOUS ET day (constructed)
+#   file: freshness.py
+#   find: return (now - datetime.timedelta(hours=4)).strftime("%Y-%m-%d")
+#   with: return now.strftime("%Y-%m-%d")
+#
+# @vacuity §2: a season is judged on games per player, never on existing
+#   file: card_fb.py
+#   find: if med >= MIN_GAMES:
+#   with: if True:
 """
 import datetime
 import glob
@@ -38,11 +50,44 @@ HTML = os.path.join(ROOT, "index.html")
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 1. WHEN THE NFL ACTUALLY STARTS — READ, NOT TYPED ═══")
+# 🔴 `[2026-09-28]` THE CONSTRUCTED CASES RUN EVERY TIME, FIRST. They sat
+#    inside `if ks:` — the LIVE board holding games — so on an empty board
+#    (the off-season, or a gamelines write with no games) the only real
+#    guards in this section silently never ran, while "the NFL board
+#    carries game times" went red on correct code. They are constructed
+#    precisely so that no calendar can decide them; now none does.
+_late = datetime.datetime(2026, 9, 11, 1, 40, tzinfo=datetime.timezone.utc)
+# ⛔ DRIVEN THROUGH `freshness.et_date`, THE REPO'S OWN CONVERTER, not
+#    through arithmetic written on this line. A check that asserts its own
+#    inline sum proves nothing about the code (rule 202 — it cannot fail on
+#    the thing it is about).
+import freshness as _F  # noqa: E402
+ck("🔴 a 9:40pm ET kickoff files under the PREVIOUS ET day",
+   str(_F.et_date(_late)) == "2026-09-10"
+   and str(_F.et_date(_late)) != str(_late.date()),
+   "⛔ READING THE UTC DATE IS HOW 'Thursday' GOT INTO TWO DOCS. "
+   "01:40Z on the 11th is 9:40pm ET on the 10th; et_date said %s. "
+   "A constructed case, so this runs identically in week 1 and "
+   "week 15" % _F.et_date(_late))
+ck("✅ ...and a 1pm ET kickoff files under its OWN UTC day",
+   str(_F.et_date(datetime.datetime(
+       2026, 9, 13, 17, 0, tzinfo=datetime.timezone.utc)))
+   == "2026-09-13",
+   "⚠️ BOTH CASES MATTER: the struck check asserted ET is ALWAYS "
+   "earlier than UTC, which is true only of night kickoffs and "
+   "is what made it expire when a Sunday game led the board")
 bp = f"{ROOT}/data/nfl/latest/board.json"
+_bgames = []
 if os.path.exists(bp):
     B = json.load(open(bp, encoding="utf-8"))
-    ks = sorted(g["commence"] for g in (B.get("games") or []) if g.get("commence"))
-    ck("the NFL board carries game times", bool(ks), f"{len(ks)} games")
+    _bgames = B.get("games") or []
+if _bgames:
+    ks = sorted(g["commence"] for g in _bgames if g.get("commence"))
+    # ⚠️ ASKED ONLY WHEN THE LIVE BOARD HOLDS GAMES (the case). A board
+    #    with games and no kickoff time is still red; an EMPTY board is a
+    #    legitimate state (off-season, a thin pull) and is reported.
+    ck("the NFL board carries game times", bool(ks),
+       f"{len(ks)} of {len(_bgames)} games")
     if ks:
         first = datetime.datetime.fromisoformat(ks[0].replace("Z", "+00:00"))
         et = first - datetime.timedelta(hours=4)          # EDT in September
@@ -59,28 +104,8 @@ if os.path.exists(bp):
         # ✅ THE LESSON IT WAS PROTECTING IS KEPT AND MADE PERMANENT: the
         #    slate day is obtained by CONVERTING, never by slicing the UTC
         #    string. That is driven on a CONSTRUCTED late kickoff, so no
-        #    calendar can falsify it.
-        _late = datetime.datetime(2026, 9, 11, 1, 40,
-                                  tzinfo=datetime.timezone.utc)
-        # ⛔ DRIVEN THROUGH `freshness.et_date`, THE REPO'S OWN CONVERTER,
-        #    not through arithmetic written on this line. A check that
-        #    asserts its own inline sum proves nothing about the code
-        #    (rule 202 — it cannot fail on the thing it is about).
-        import freshness as _F  # noqa: E402
-        ck("🔴 a 9:40pm ET kickoff files under the PREVIOUS ET day",
-           str(_F.et_date(_late)) == "2026-09-10"
-           and str(_F.et_date(_late)) != str(_late.date()),
-           "⛔ READING THE UTC DATE IS HOW 'Thursday' GOT INTO TWO DOCS. "
-           "01:40Z on the 11th is 9:40pm ET on the 10th; et_date said %s. "
-           "A constructed case, so this runs identically in week 1 and "
-           "week 15" % _F.et_date(_late))
-        ck("✅ ...and a 1pm ET kickoff files under its OWN UTC day",
-           str(_F.et_date(datetime.datetime(
-               2026, 9, 13, 17, 0, tzinfo=datetime.timezone.utc)))
-           == "2026-09-13",
-           "⚠️ BOTH CASES MATTER: the struck check asserted ET is ALWAYS "
-           "earlier than UTC, which is true only of night kickoffs and "
-           "is what made it expire when a Sunday game led the board")
+        #    calendar can falsify it — at the top of this section, where
+        #    `[2026-09-28]` it runs whether or not the live board has games.
         note("today's first kickoff on the board: %s = %s ET"
              % (ks[0], et.strftime("%a %d %b %I:%M%p")))
         n_first = sum(1 for k in ks if
@@ -104,7 +129,8 @@ if os.path.exists(bp):
                  "EXPLANATION. An empty pool today is about PRICING and "
                  "must be diagnosed, not excused." % n_first)
 else:
-    note("no NFL board on disk — section 1 not measured")
+    note("⚠️ the live NFL board holds no games today (or is absent) — its "
+         "kickoff times were not asked; the constructed ET cases above were")
 
 print("\n═══ 2. THE LOG FALLBACK THE FIRST CARD DEPENDS ON ═══")
 have = sorted(os.path.basename(f) for f in
@@ -158,10 +184,49 @@ elif _cur_usable:
     note(f"⚠️ players-{season} is now THICK enough to use on its own "
          f"(median {dict(usable).get(season)} games). The fallback is no "
          f"longer the live path; this section is measuring history.")
+# 🔴 `[2026-09-28]` ~~`all(m >= 6 for _s, m in usable)`~~ — IT COULD NOT
+#    FAIL: `usable` is built three lines up from medians of 6 or more, so
+#    it asserted its own filter (rule 202). ✅ The question it named is now
+#    asked of the CODE THAT CHOOSES: `card_fb.load_logs`, driven over
+#    planted season files. A thin newer season beside a full older one must
+#    fall back; two full seasons must take the newer one, whole. Strictly
+#    harder: it fails on a chooser that takes a file for existing, or
+#    blends two seasons.
+import shutil    # noqa: E402
+import tempfile  # noqa: E402
+import card_fb as _CF  # noqa: E402
+
+
+def _chosen(files):
+    """{season: games per player} planted as 3 players each -> the season
+    `card_fb.load_logs` picks and how many players it returns."""
+    tmp = tempfile.mkdtemp()
+    old = (_CF.DATA, _CF.log)
+    try:
+        os.makedirs(os.path.join(tmp, "data", "nfl", "latest"))
+        for s, n in files.items():
+            with gzip.open(os.path.join(tmp, "data", "nfl", "latest",
+                                        "players-%d.json.gz" % s), "wt") as fh:
+                json.dump({"season": s, "players": {
+                    "p%d_%d" % (s, i): {"g": [{"week": w} for w in range(n)]}
+                    for i in range(3 + (s % 2))}}, fh)
+        _CF.DATA = os.path.join(tmp, "data", "nfl")
+        _CF.log = lambda *a, **k: None
+        s, P = _CF.load_logs()
+        return s, len(P)
+    finally:
+        _CF.DATA, _CF.log = old
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+_fall = _chosen({2026: 1, 2025: 8})
+_both = _chosen({2026: 8, 2025: 8})
 ck("⛔ a season log is judged on GAMES PER PLAYER, never on existing",
-   all(m >= 6 for _s, m in usable),
-   "the bar is the median game count, so a one-game file can never "
-   "qualify merely by being present: %s" % sorted(usable, reverse=True))
+   _fall == (2025, 4) and _both == (2026, 3),
+   "the bar is the median game count, so a one-game file can never qualify "
+   "merely by being present, and a usable newer season is taken whole. "
+   "thin 2026 + full 2025 -> %s (want (2025, 4)); full both -> %s "
+   "(want (2026, 3))" % (_fall, _both))
 
 print("\n═══ 3. THE SENTENCE THAT WOULD HAVE BEEN FALSE ═══")
 blk = js_block("fbParlays", HTML)
@@ -277,6 +342,17 @@ if _BROWSER:
         pg = br.new_page(viewport={"width": 1280, "height": 900})
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
+        # ⛔ NO REQUEST LEAVES THIS MACHINE. `[2026-09-28]` Sam: "A test
+        #    must not depend on the network." The page boots the MLB tab
+        #    (statsapi.mlb.com) and asks mlbstatic/espncdn for logos; only
+        #    ESPN and the card were stubbed. Registered FIRST — Playwright
+        #    tries the newest route first — so the two stubs below still
+        #    answer their own URLs; anything else off this machine is
+        #    aborted (the page already copes with a feed it cannot reach)
+        #    and counted. test_live_scores.py §0 fails if a browser test
+        #    loses this line.
+        _offsite = []
+        pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
         pg.route("**/site.api.espn.com/**", lambda r: r.fulfill(
             status=200, content_type="application/json", body='{"events":[]}'))
         pg.route("**/picks/fb-nfl-latest.json", lambda r: r.fulfill(
@@ -300,5 +376,8 @@ if _BROWSER:
         ck("the rejection count is shown rather than described",
            "12,926" in txt or "12926" in txt, txt[:160])
         ck("no page error", not errs, str(errs[:1]))
+        note("%d off-machine request(s) blocked, none answered by the "
+             "network: %s" % (len(_offsite),
+                              sorted({u.split("/")[2] for u in _offsite})))
         br.close()
     srv.shutdown()

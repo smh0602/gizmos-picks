@@ -117,6 +117,16 @@ if _BROWSER:
         pg = br.new_page(viewport={"width": 1280, "height": 900})
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
+        # ⛔ NO REQUEST LEAVES THIS MACHINE. `[2026-09-28]` Sam: "A test
+        #    must not depend on the network." Every page load boots the MLB
+        #    tab (statsapi.mlb.com) and asks mlbstatic/espncdn for logos;
+        #    only ESPN was stubbed. Registered FIRST — Playwright tries the
+        #    newest route first — so the ESPN stub below still answers its
+        #    own URLs; anything else off this machine is aborted (the page
+        #    already copes with a feed it cannot reach) and counted.
+        #    test_live_scores.py §0 fails if a browser test loses this line.
+        _offsite = []
+        pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
         # ⛔ ESPN IS STUBBED TO EMPTY. The question here is which WEEK the
         #    picker lands on, which comes from the STORED schedule — the
         #    live feed only fills in scores. Leaving it live would make
@@ -137,6 +147,16 @@ if _BROWSER:
             after = {"nfl": _week(pg, ["ncaaf", "nfl"]),
                      "ncaaf": _week(pg, ["nfl", "ncaaf"])}
             bad = [lg for lg in alone if alone[lg] != after[lg]]
+            # ⚠️ `[2026-09-28]` A CARRIED WEEK IS ONLY VISIBLE WHEN THE TWO
+            #    LEAGUES' OWN WEEKS DIFFER. On a day both land on the same
+            #    number (possible in December) deleting the reset changes
+            #    nothing and the check below cannot fail — said, not passed.
+            #    Section 1 asks the reset of the SOURCE every run.
+            if alone["ncaaf"] == alone["nfl"]:
+                note("⚠️ NOT EXERCISED TODAY: both leagues land on week %s "
+                     "alone, so a week carried across the switch would look "
+                     "identical. ⛔ Reported rather than passed."
+                     % alone["nfl"])
             ck("🔴 A LEAGUE OPENS ON THE SAME WEEK WHATEVER YOU CAME FROM",
                not bad,
                "⛔ `fbWeek` survived the switch and the reader got a full, "
@@ -171,6 +191,9 @@ if _BROWSER:
                         m.group(1) if m else "?", weeks))
 
         ck("✅ no page error during any switch", not errs, str(errs[:3]))
+        note("%d off-machine request(s) blocked, none answered by the "
+             "network: %s" % (len(_offsite),
+                              sorted({u.split("/")[2] for u in _offsite})))
         br.close()
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that any particular week is the "

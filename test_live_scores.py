@@ -24,6 +24,17 @@ WHAT IS PINNED, each one a way this could ship wrong:
 `period`, `competitors[].score`, `homeAway`. **All seven fields this code
 reads were confirmed present in both leagues**, so this is a capture, not
 a guess.
+
+# `[2026-09-28]` §0c: every browser test blocks the network (the class).
+# @vacuity §0c: a browser test that loses its catch-all is caught
+#   file: test_box_live.py
+#   find: pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
+#   with: pass
+#
+# @vacuity §0c: a catch-all left only in a COMMENT does not count
+#   file: test_nfl_opener.py
+#   find: pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
+#   with: # pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
 """
 import http.server
 import json
@@ -176,6 +187,52 @@ ck("🔴 one bad STATUS keeps the other division; a REFUSAL still turns it off",
    "rs.filter(r => r.ok)" in _ll and "if (!oks.length) throw" in _ll,
    "CORS is decided per origin, not per query string")
 
+# ───────────────────────────────────────────────────────────────
+print("\n═══ 0c. 🔴 NO BROWSER TEST REACHES THE NETWORK — THE CLASS ═══")
+# ⛔ `[2026-09-28]` Sam: "A test must not depend on the network; use
+#    recorded fixtures." All five browser tests routed ONLY site.api.espn.com,
+#    while every page load boots the MLB tab (statsapi.mlb.com) and asks
+#    mlbstatic/espncdn for logos — real third-party answers reaching the
+#    "no page error" checks. Each now registers a catch-all FIRST that lets
+#    this machine through and aborts everything else (the page copes with a
+#    feed it cannot reach), so the stubs registered after it still win.
+# ✅ THE CLASS, NOT THE FIVE: every test file that imports Playwright must
+#    carry that line, on code (not a comment), before its first other
+#    route — a new browser test without it fails here. Runs without a
+#    browser, so the collector's runner asks it too.
+# ⚠️ The pattern is assembled from two pieces so this file's own guard text
+#    can never be the match that satisfies it (rules 67, 244).
+import glob as _glob  # noqa: E402
+import re as _re      # noqa: E402
+_CATCH_ALL = ('.route("**/*", lambda r: r.continue_() if r.request.url.startswith('
+              + '("http://127.0.0.1:", "http://localhost:")) else (')
+_A_ROUTE = _re.compile(r"\bpg\.route\(")      # a real call, not this text
+
+
+def _first(lines, pred):
+    return next((i for i, l in enumerate(lines)
+                 if not l.lstrip().startswith("#") and pred(l)), None)
+
+
+_net = {}
+for _p in sorted(_glob.glob(os.path.join(ROOT, "test_*.py"))):
+    _s = open(_p, encoding="utf-8").read()
+    if "sync_playwright" not in _s:
+        continue
+    _ls = _s.splitlines()
+    _ic = _first(_ls, lambda l: _CATCH_ALL in l)
+    _io = _first(_ls, lambda l: _A_ROUTE.search(l) and _CATCH_ALL not in l)
+    _net[os.path.basename(_p)] = (_ic is not None
+                                  and (_io is None or _ic < _io))
+ck("⚠️ the browser tests were found to ask about", len(_net) >= 5,
+   "⛔ a sweep over no files passes having asked nothing (rule 67). "
+   "found: %s" % sorted(_net))
+ck("🔴 every browser test blocks the network before its first stub",
+   _net and all(_net.values()),
+   "without it a third party's answer decides a check. missing or out of "
+   "order: %s" % sorted(k for k, v in _net.items() if not v))
+OFFSITE = []
+
 srv, PORT = serve()
 try:
     from playwright.sync_api import sync_playwright
@@ -195,6 +252,16 @@ class Page:
         self.hits = [0]
         self.pg = br.new_page(viewport={"width": 1400, "height": 1100})
         self.pg.on("pageerror", lambda e: self.errs.append(str(e)))
+        # ⛔ NO REQUEST LEAVES THIS MACHINE. `[2026-09-28]` Sam: "A test
+        #    must not depend on the network." Every page boots the MLB tab
+        #    (statsapi.mlb.com) and asks mlbstatic/espncdn for logos; only
+        #    ESPN was stubbed. Registered FIRST — Playwright tries the
+        #    newest route first — so the ESPN handler below still answers
+        #    its own URLs; anything else off this machine is aborted (the
+        #    page already copes with a feed it cannot reach) and counted.
+        #    §0 of this file fails if a browser test loses this line.
+        _offsite = OFFSITE
+        self.pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
 
         def handler(route):
             self.hits[0] += 1
@@ -378,6 +445,9 @@ if _BROWSER:
       ck("⛔ an unmatched NFL key is a no-op, not a broken row",
          not any(g["live"] for g in n_shown) and not nfl.errs)
       nfl.close()
+      note("%d off-machine request(s) blocked, none answered by the "
+           "network: %s" % (len(OFFSITE),
+                            sorted({u.split("/")[2] for u in OFFSITE})))
 
       br.close()
 srv.shutdown()
