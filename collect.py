@@ -97,6 +97,56 @@ LATEST = f"{DATA}/latest"
 # a doubleheader-heavy week can never zero us out mid-month.
 RESERVE = 750
 
+# 💰 THE PAID SNAPSHOT KINDS -- ONE REGISTRY. `[2026-09-29]` Every paid mode
+#    writes its snapshot through `paid_path(kind)`, which refuses a kind not
+#    listed here, and every reader of spend reads THIS list: `daily_spend()`,
+#    `alt_month_spend()`, and watchdog.py (which parses it, never imports).
+#    ⛔ alt-lines (#168) was paid and missing from watchdog's own pattern,
+#    so its spend was invisible to the reconciliation.
+PAID_KINDS = ("gamelines", "props-pitcher", "props-batter", "props-player",
+              "alt-lines")
+
+# ⛔ A PAID MODE RUNS AT MOST ONCE PER PASS (`converge`). `[2026-09-29]`
+#    props-player buys the alt lines on its own deadline; converge had ALSO
+#    planned `alt-lines`, ran it seconds later, found nothing left to buy and
+#    wrote the same HHMM file over the paid one: 36 credits and 18 games
+#    lost at 13:19Z on 09-26 (collect #1866), 94 and 47 at 19:14Z (#1886),
+#    2 and PHI@CHI at 16:00Z on 09-28 (#1954), which 19:03Z then bought again.
+_RAN_PAID = set()
+
+
+def paid_kind(kind):
+    """`kind`, when it is a registered paid kind. ⛔ Raises otherwise: a paid
+    mode missing from PAID_KINDS is spend nothing would count."""
+    if kind not in PAID_KINDS:
+        raise ValueError("%r is not in PAID_KINDS: register a paid kind "
+                         "before it can bill" % (kind,))
+    return kind
+
+
+def paid_path(kind):
+    """The dated directory a PAID snapshot is written under."""
+    return daydir(paid_kind(kind))
+
+
+def _paid_free_name(path):
+    """🔴 A PAID SNAPSHOT IS NEVER OVERWRITTEN. `[2026-09-29]` Snapshots are
+    named by the minute, so a second paid write in the same minute replaced
+    the first -- its spend and its `bought` record with it (see _RAN_PAID).
+    A taken name gets `HHMM-n` beside it; every reader of paid snapshots
+    (credits.snapshot_re) accepts the suffix."""
+    if (os.path.basename(os.path.dirname(path)) not in PAID_KINDS
+            or not os.path.exists(path)):
+        return path
+    stem, ext = path.split(".json", 1)
+    n = 1
+    while os.path.exists(f"{stem}-{n}.json{ext}"):
+        n += 1
+    free = f"{stem}-{n}.json{ext}"
+    log(f"⚠️ {path} already holds a paid snapshot: writing {free} beside it, "
+        f"never over it")
+    return free
+
 # 🔴 FOOTBALL PROPS ONLY PRICE THE SLATE ABOUT TO BE PLAYED. See the gate
 # in `collect_props`. ⛔ Every football props cron fires within two days of
 # its slate, so this keeps that slate and nothing else. Widening it costs
@@ -260,6 +310,7 @@ def now():
 
 
 import freshness as _fresh
+import credits as _credits
 
 # See the block above the market definitions: ONE number, defined in the
 # contract, read by the collector.
@@ -331,6 +382,7 @@ def write(path, obj, compress=False):
     os.replace() is atomic on POSIX: a reader sees the OLD file or the NEW
     one, never a torn one. ⛔ Do not "simplify" this back to a direct open.
     """
+    path = _paid_free_name(path)
     d = os.path.dirname(path)
     os.makedirs(d, exist_ok=True)
     tmp = f"{path}.tmp.{os.getpid()}"
@@ -546,7 +598,7 @@ def collect_gamelines():
     #    stands down to zero spend on a day with no kickoff in the window.
     half, half_spent, left = collect_half_totals(body, left)
 
-    write(f"{daydir('gamelines')}/{filename()}.gz", {
+    write(f"{paid_path('gamelines')}/{filename()}.gz", {
         "pulled_at": stamp(),
         "endpoint": "bulk",
         "regions": REGIONS_FULL,
@@ -839,7 +891,7 @@ def _spend_under(root):
     total = 0
     if not os.path.isdir(root):
         return 0
-    for kind in os.listdir(root):
+    for kind in PAID_KINDS:
         d = os.path.join(root, kind)
         if not os.path.isdir(d):
             continue
@@ -1002,6 +1054,18 @@ def month_spend():
     return out
 
 
+def month_billed(t=None):
+    """What the API says this calendar month has cost: MONTHLY_PLAN minus
+    the newest `credits_remaining` read THIS month (by the chain,
+    `credits.newest`), across every league (one key bills all three).
+    None when no paid snapshot this month carries a balance."""
+    t = t or now()
+    nb = _credits.newest(_credits.readings(LEAGUES["mlb"]["data"], PAID_KINDS))
+    if not nb or str(nb[0])[:7] != t.strftime("%Y-%m"):
+        return None
+    return MONTHLY_PLAN - nb[1]
+
+
 def daily_allowance():
     """Today's cap: the pro-rata entitlement, BORROWING FROM QUIET DAYS.
 
@@ -1026,7 +1090,14 @@ def daily_allowance():
     spending cannot drain the plan before anyone sees it.
     """
     t = now()
-    spent_month = sum(month_spend().values())
+    # 🔴 `[2026-09-29]` THE MONTH'S SPEND IS THE API'S, NOT OUR SNAPSHOTS'.
+    #    The stored sum ran 2,918 light by 09-26 (lost snapshots), so the
+    #    room was 592-761 credits too generous and 09-26 billed 1,342
+    #    against the 1,200 ceiling. ⚠️ Only a reading from THIS month: on
+    #    the 1st, before the first pull, last month's low balance is not
+    #    this month's -- the stored sum (0) is.
+    billed = month_billed(t)
+    spent_month = billed if billed is not None else sum(month_spend().values())
     entitled = FLAT_DAILY_CAP * t.day
     room = entitled - spent_month
     # ⚠️ NEVER BELOW THE FLAT CAP: a month that has already overspent
@@ -1527,7 +1598,7 @@ def collect_props(kind, regions=None):
         except Exception as e:
             log(f"  {ev.get('away_team')}@{ev.get('home_team')}: {type(e).__name__}")
 
-    write(f"{daydir('props-' + kind)}/{filename()}.gz", {
+    write(f"{paid_path('props-' + kind)}/{filename()}.gz", {
         "pulled_at": stamp(),
         "endpoint": "per-event",
         "regions": regions,
@@ -1563,7 +1634,7 @@ def alt_month_spend():
     Sam's 1,500 is one allowance, not one per league."""
     total, month = 0, now().strftime("%Y-%m")
     for lg in ("nfl", "ncaaf"):
-        for p in glob.glob(f"{LEAGUES[lg]['data']}/{month}-*/alt-lines/*.json.gz"):
+        for p in glob.glob(f"{LEAGUES[lg]['data']}/{month}-*/{paid_kind('alt-lines')}/*.json.gz"):
             try:
                 total += int(json.load(gzip.open(p, "rt")).get("credits_used") or 0)
             except Exception:
@@ -1688,7 +1759,7 @@ def collect_alt_lines():
                        f"the budget allows — stopped buying")
             break
     measured = max(billed) if billed else None
-    write(f"{daydir('alt-lines')}/{filename()}.gz", {
+    write(f"{paid_path('alt-lines')}/{filename()}.gz", {
         "pulled_at": stamp(), "endpoint": "per-event", "request": request,
         "bookmakers": list(FB_BOOK_KEYS) if request == "bookmakers" else None,
         "regions": REGIONS_FULL if request == "regions" else None,
@@ -1700,6 +1771,7 @@ def collect_alt_lines():
         "not_bought_budget": [e[0] for e in over], "stopped": stopped,
         "n_events": len(out), "events": out,
     }, compress=True)
+    _RAN_PAID.add("alt-lines")
     log(f"alt-lines: bought {len(out)}, held {len(held)}, spent {spent} "
         f"({request}; billed per game {billed or 'n/a'})")
     if stopped and "above the worst case" in stopped:
@@ -5470,12 +5542,19 @@ def converge(explicit=(), allow_paid=True):
     #    September (973 needed) while six quiet days go unused.
     cap_today = daily_allowance()
     _mspent = sum(month_spend().values())
+    _mbilled = month_billed()
     log(f"credits spent today: {spent} (ACCOUNT, all leagues) of a "
         f"{cap_today} allowance — flat cap {FLAT_DAILY_CAP}, ceiling "
-        f"{HARD_DAY_CEIL}, month to date {_mspent} of {MONTHLY_PLAN}")
+        f"{HARD_DAY_CEIL}, month to date "
+        f"{_mbilled if _mbilled is not None else _mspent} of {MONTHLY_PLAN} "
+        f"(the API's balance; stored snapshots record {_mspent})")
 
     failed, soft_failed, skipped = [], [], []
     for m in modes:
+        if m in paid and m in _RAN_PAID:
+            log(f"--- converge: {m} already ran this pass (chained): not run "
+                f"twice, nothing spent, its snapshot kept")
+            continue
         # 🔴 THE CAP IS CHECKED BEFORE EVERY PAID MODE, NOT ONCE PER RUN.
         # A single props cycle on a 15-game slate is ~120-240 credits, so
         # a check made only at the top of the pass could overshoot by a
@@ -5495,6 +5574,8 @@ def converge(explicit=(), allow_paid=True):
         try:
             log(f"--- converge: {m}")
             run_mode(m)
+            if m in paid:
+                _RAN_PAID.add(m)
         except SystemExit as e:
             if e.code:
                 # ⛔ an exit code is no evidence about a source

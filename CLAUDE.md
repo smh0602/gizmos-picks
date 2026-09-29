@@ -650,6 +650,11 @@ repo_watch.py     is the REPOSITORY growing in a way that will become
                   correct design (rule 285). ⛔ Refuses a shallow
                   clone rather than reporting its size. Rides
                   budget.yml as a second JOB; no new cron.
+credits.py        THE CREDIT BALANCE CHAIN: the one reader of stored
+                  `credits_remaining` readings and the one rule for the
+                  newest (by minute, then the LOWER balance). Read by
+                  collect.py (the daily room) and watchdog.py. The paid
+                  kinds come from ONE registry, `collect.PAID_KINDS`.
 calibration.py    is the product still winning? the automatic answer.
 card_gate.py      did the card fail for a reason Sam already accepted?
 
