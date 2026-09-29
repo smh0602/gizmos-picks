@@ -434,9 +434,16 @@ c_run("PLANTED", _PT, _pfix)
 
 # ── (c2) THE LIVE BOARD — the extra ───────────────────────────────────
 _B = json.load(gzip.open(os.path.join(ROOT, "data", "latest", "props.json.gz"), "rt"))
-_fix = _B.get("pulled_at") or _B.get("written_at")
 _live_pp = sum(1 for g in _B.get("games") or [] for pr in g.get("props") or []
                if pr.get("kind") == "pitcher")
+# ⚠️ THE CLOCK IS THE NEWEST STORED PITCHER SNAPSHOT, not the board's stamp
+#    `[2026-09-29]`: a board rebuilt after 00:00Z carries today's date while
+#    its pitcher props were priced from yesterday's snapshot, and a build at
+#    the board's clock finds "no prop snapshots stored" for today -- the
+#    extra ran without its case. Gated on that snapshot existing.
+import glob as _glob  # noqa: E402
+_snaps = sorted(_glob.glob(os.path.join(ROOT, "data", "20*", "props-pitcher", "*.json.gz")))
+_fix = (json.load(gzip.open(_snaps[-1], "rt")).get("pulled_at") if _snaps else None)
 if _fix and _live_pp >= 3:
     _day = _fix[:10]
     c_run("LIVE", c_tree("tree-live", [(_day, s) for s in
