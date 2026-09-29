@@ -62,6 +62,41 @@ the trap #51 fixed.
 #   file: watchdog.py
 #   find:         if isinstance(credits, int):
 #   with:         if True:
+#
+# @vacuity ⚠️ rule 67: 6a's healthy tree really is JUDGED by the reconciliation
+#   file: watchdog.py
+#   find: RECON_WINDOW_H = 24
+#   with: RECON_WINDOW_H = 0
+#
+# @vacuity 🔴 the reconciliation is SILENT on a tree where every credit is on a snapshot
+#   file: watchdog.py
+#   find: RECON_WARN, RECON_BROKEN = 30, 200
+#   with: RECON_WARN, RECON_BROKEN = -1, 200
+#
+# @vacuity 🔴 ...and a reconciliation that ignores what each pull spent fires on it
+#   file: watchdog.py
+#   find:         residue = prev[1] - cur[2] - cur[1]
+#   with:         residue = prev[1] - cur[1]
+#
+# @vacuity the report's keys are asked on the tree that always holds a reading
+#   file: watchdog.py
+#   find:         "newest_paid_pull": newest_pull,
+#   with:         "newest_pull": newest_pull,
+#
+# @vacuity ⛔ the live tree is judged at the REAL clock, never a frozen one
+#   file: watchdog.py
+#   find:     now = now or datetime.datetime.now(UTC)
+#   with:     now = now or datetime.datetime(2026, 9, 18, 12, 0, tzinfo=UTC)
+#
+# @vacuity ⚠️ rule 67: section 8's planted finding is SEEN on the live tree
+#   file: watchdog.py
+#   find:     sev("credits:unrecorded",
+#   with:     sev("recon:unrecorded",
+#
+# @vacuity 🔴 section 8 reads the planted child's verdict, not just its output
+#   file: watchdog.py
+#   find:     worst = sorted((r for r in steps if r[4] > 0), key=lambda r: -r[4])[:3]
+#   with:     worst = sorted((r for r in steps if r[4] > 0), key=lambda r: -r[4])[:3]; rep.note_credits = None if gap > 10 ** 5 else getattr(rep, 'note_credits', None)
 """
 import datetime
 import gzip
@@ -70,18 +105,48 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from tcheck import ck, note, section
+from tcheck import ck, note, section, shown
 
 import watchdog as W          # noqa: E402
 
 WSRC = io.open(os.path.join(ROOT, "watchdog.py"), encoding="utf-8").read()
 UTC = datetime.timezone.utc
+FMT = "%Y-%m-%dT%H:%M:%SZ"
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE STAY-GREEN PLANT (section 8). A credits finding on the LIVE repo
+#    tree is production's news, not this file's failure. Section 8 re-runs
+#    this whole file as a child with PLANT_ENV set; in that child `W` is
+#    watchdog.py with ONE line changed, so the reconciliation reports a
+#    huge unrecorded spend on a tree that holds CLAUDE.md (the live repo,
+#    or a vacuity tree's full checkout) and on no synthetic Tree (a temp
+#    dir holding only collect.py and data/). ⛔ Popped, never read, so a
+#    grandchild cannot inherit it. The plant is applied in memory: nothing
+#    on disk changes, so a parallel sweep cannot see it.
+# ══════════════════════════════════════════════════════════════════════
+PLANT_ENV = "TEST_CREDIT_BALANCE_PLANT"
+PLANT_FIND = "    gap = sum(r[4] for r in steps if r[4] > 0)"
+PLANT_WITH = ("    gap = sum(r[4] for r in steps if r[4] > 0) + (10 ** 6 if "
+              "os.path.isfile(os.path.join(ROOT, \"CLAUDE.md\")) else 0)")
+PLANTED = os.environ.pop(PLANT_ENV, "") == "1"
+if PLANTED:
+    import types
+    if WSRC.count(PLANT_FIND) != 1:
+        # ⛔ A plant that changes nothing is rule 67 one level up.
+        print("PLANT DID NOT APPLY: %d match(es) in watchdog.py"
+              % WSRC.count(PLANT_FIND))
+        sys.exit(3)
+    W = types.ModuleType("watchdog_planted")
+    W.__file__ = os.path.join(ROOT, "watchdog.py")
+    exec(compile(WSRC.replace(PLANT_FIND, PLANT_WITH), W.__file__, "exec"),
+         W.__dict__)
 
 
 class Tree:
@@ -98,7 +163,7 @@ class Tree:
                 encoding="utf-8").write(
             "# synthetic\nRESERVE = %d\n" % reserve)
 
-    def pull(self, when, balance, kind="gamelines", field=True):
+    def pull(self, when, balance, kind="gamelines", field=True, used=None):
         """Write one paid snapshot. `when` is a datetime."""
         day = when.strftime("%Y-%m-%d")
         hhmm = when.strftime("%H%M")
@@ -108,6 +173,8 @@ class Tree:
                "endpoint": "bulk", "n_games": 1, "games": []}
         if field:
             doc["credits_remaining"] = balance
+        if used is not None:
+            doc["credits_used"] = used
         with gzip.open(os.path.join(p, "%s.json.gz" % hhmm), "wt") as fh:
             json.dump(doc, fh)
         return self
@@ -427,21 +494,86 @@ ck("⚠️ ...and it is the tenth, not a second reporting channel",
    len(W.CHECKS) == len({f.__name__ for f in W.CHECKS}),
    "one report, one issue")
 
-_out = W.run(NOW)
+# ═══════════════════════════════════════════════════════════════════════
+# 🔴🔴 6a. SILENT ON A HEALTHY TREE — BUILT, NOT OBSERVED.
+# ═══════════════════════════════════════════════════════════════════════
+# ⛔ THIS WAS "it is SILENT on the live repo today", driven by
+#    `W.run(NOW)` on the LIVE tree with NOW frozen at 2026-09-18. Two
+#    wrong answers in one line `[measured 2026-09-28]`:
+#    1. A FROZEN CLOCK AGAINST A LIVE TREE. `check_credit_reconciliation`
+#       judges `max(now - 24h, RECON_SINCE)` onward, so a `now` in the past
+#       widened its window to everything since 2026-09-22: 114 steps and
+#       190 unrecorded credits, where the real clock sees 15 steps and 4.
+#       `reading_age_hours` read -251.6. Collect was red from 09-26 16:16Z.
+#    2. A SILENCE ASSERTED ON PRODUCTION DATA. Whether a neighbouring
+#       guard fires on the live tree is a fact about production, and the
+#       watchdog reports it through health.json. On 09-28 the live balance
+#       was 3,705 and falling ~400-800 a day against a warn line of 2,250,
+#       so `credits:low` on the live tree was days away, on correct code.
+# ✅ So the healthy case is BUILT: a tree pinned to its own `now`, inside
+#    the reconciliation window, every credit spent on a snapshot, and BOTH
+#    credits-family checks run through `run()`. The live tree is still
+#    read (6c), at the real clock, and what it says is a note().
+# ⚠️ NOW_R IS DERIVED FROM RECON_SINCE, not typed: three days after it, at
+#    its own 12:00Z, so the pulls at 09:00-11:00 are always in the window
+#    and in one billing month. The fixed NOW above sits BEFORE RECON_SINCE,
+#    where the reconciliation judges nothing, which is why it cannot drive
+#    this.
+NOW_R = (datetime.datetime.strptime(W.RECON_SINCE, FMT).replace(tzinfo=UTC)
+         + datetime.timedelta(days=3))
+_CREDIT_CHECKS = tuple(f for f in W.CHECKS
+                       if f.__name__.startswith("check_credit"))
+ck("both credits-family checks are found in CHECKS",
+   {f.__name__ for f in _CREDIT_CHECKS}
+   >= {"check_credit_balance", "check_credit_reconciliation"},
+   "found=%s" % ([f.__name__ for f in _CREDIT_CHECKS],))
+_SAVED_CHECKS = W.CHECKS
+with Tree(reserve=750) as t:
+    for _h, _left, _kind in ((3, 12000, "gamelines"),
+                             (2, 11960, "props-batter"),
+                             (1, 11920, "gamelines")):
+        t.pull(NOW_R - datetime.timedelta(hours=_h), _left, kind=_kind,
+               used=40)
+    _rrep = W.Report()
+    try:
+        W.check_credit_reconciliation(_rrep, NOW_R)
+    except Exception as e:
+        _rrep.note_reconciliation = {"error": "%s: %s" % (type(e).__name__, e)}
+    _recon = getattr(_rrep, "note_reconciliation", None) or {}
+    try:
+        W.CHECKS = _CREDIT_CHECKS
+        _hout = W.run(NOW_R)
+    finally:
+        W.CHECKS = _SAVED_CHECKS
+_hcr = _hout.get("credits") or {}
+ck("⚠️ rule 67: the reconciliation JUDGED the healthy tree (2 steps, "
+   "0 unrecorded)",
+   _recon.get("steps") == 2 and _recon.get("unrecorded") == 0,
+   "⛔ with no step in its window the silence below proves nothing. "
+   "reconciliation=%s" % (_recon,))
+ck("...and the balance check read it as HEALTHY",
+   _hcr.get("state") == "HEALTHY" and _hcr.get("balance") == 11920,
+   "credits=%s" % (_hcr,))
+ck("🔴 BOTH credits-family checks are SILENT on a healthy tree",
+   _hout.get("healthy") is True and not _hout.get("findings"),
+   "⛔ a guard that fires on correct code is not a safe guard. "
+   "findings=%s" % (_hout.get("findings"),))
+ck("⚠️ ...and CHECKS was put back",
+   W.CHECKS is _SAVED_CHECKS and len(W.CHECKS) > len(_CREDIT_CHECKS),
+   "len=%d" % len(W.CHECKS))
+
+# ⛔ THE REPORT'S SHAPE IS ASSERTED ON THE TREE THAT ALWAYS HAS A READING.
+#    A tree holding no numeric reading reports NO_READING, which carries
+#    none of these keys, so asking only the live tree made the question
+#    depend on what production held.
+_KEYS = ("state", "balance", "pulled_at", "reserve", "reading_age_hours",
+         "newest_paid_pull", "source", "basis")
 ck("`run()` puts the reading into the report",
-   isinstance(_out.get("credits"), dict), "credits=%s" % (_out.get("credits"),))
-for _k in ("state", "balance", "pulled_at", "reserve", "reading_age_hours",
-           "newest_paid_pull", "source", "basis"):
-    ck("health.json carries %r" % _k, _k in (_out.get("credits") or {}),
-       "keys=%s" % (sorted(_out.get("credits") or {}),))
-_cr = _out.get("credits") or {}
-ck("...and the four states are the four named",
-   _cr.get("state") in ("HEALTHY", "LOW", "STALE", "CRITICAL",
-                        "NO_READING"),
-   "state=%r" % (_cr.get("state"),))
+   isinstance(_hout.get("credits"), dict), "credits=%s" % (_hout.get("credits"),))
+for _k in _KEYS:
+    ck("health.json carries %r" % _k, _k in _hcr, "keys=%s" % (sorted(_hcr),))
 ck("⛔ the basis says it is NOT a plan size and NOT a projection",
-   "NOT a plan size" in _cr.get("basis", ""),
-   "basis=%r" % (_cr.get("basis"),))
+   "NOT a plan size" in _hcr.get("basis", ""), "basis=%r" % (_hcr.get("basis"),))
 
 # ⛔ NOT ON THE PUBLIC PAGE. Operational, not a fact about a game.
 _html = io.open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
@@ -449,16 +581,6 @@ for _t in ("credits_remaining", "credit balance", "x-requests-remaining"):
     ck("⛔ %r does not appear on the public page" % _t,
        _t.lower() not in _html.lower(),
        "rule 55 governs what sits beside a price")
-
-# ⚠️ AND IT IS QUIET ON THE REAL REPO — a new check that alarms on a
-#    healthy repo is the other failure (and it is how a channel dies).
-ck("⚠️ it is SILENT on the live repo today",
-   not [i for i in _out["findings"] if i["key"].startswith("credits")],
-   "⛔ a guard that fires on correct code is not a safe guard. "
-   "credits=%s" % (_out.get("credits"),))
-note("live reading: %s left as of %s, floor %s, state %s"
-     % (_cr.get("balance"), _cr.get("pulled_at"),
-        _cr.get("reserve"), _cr.get("state")))
 
 # ═══════════════════════════════════════════════════════════════════════
 # 🔴🔴 6b. "REPORTED EVEN WHEN IT IS NOT A FINDING" — DRIVEN ON A REPORT
@@ -514,6 +636,47 @@ ck("⚠️ ...and CHECKS was put back, so nothing below reads a stub",
    "check. len=%d" % len(W.CHECKS))
 
 
+
+# ═══════════════════════════════════════════════════════════════════════
+# 6c. THE LIVE REPO — AT THE REAL CLOCK, AND ONLY ITS SHAPE IS ASSERTED.
+# ═══════════════════════════════════════════════════════════════════════
+# ⛔ `run()` WITH NO CLOCK, the call production makes. A fixture clock
+#    against the live tree is the defect 6a records; the bracket below
+#    fails if any clock but this machine's reaches the live run. ✅ Both
+#    ends come from the clock `run()` reads, so runner skew cannot fail it.
+# ⚠️ WHAT THE LIVE TREE SAYS IS A NOTE. The watchdog reports production;
+#    this file tests the watchdog. Section 8 plants a finding here and
+#    proves the file stays green.
+_t0 = datetime.datetime.now(UTC).strftime(FMT)
+_live = W.run()
+_t1 = datetime.datetime.now(UTC).strftime(FMT)
+ck("⛔ the live tree is judged at the REAL clock, never the fixture's",
+   _t0 <= str(_live.get("checked_at")) <= _t1,
+   "t0=%s checked_at=%s t1=%s" % (_t0, _live.get("checked_at"), _t1))
+_lcr = _live.get("credits") or {}
+ck("the live report carries the reading block",
+   isinstance(_live.get("credits"), dict), "credits=%s" % (_live.get("credits"),))
+ck("...in one of the named states",
+   _lcr.get("state") in ("HEALTHY", "LOW", "STALE", "CRITICAL", "NO_READING"),
+   "state=%r" % (_lcr.get("state"),))
+if _lcr.get("state") in ("HEALTHY", "LOW", "STALE", "CRITICAL"):
+    # ✅ AN EXTRA, when the live tree holds the case. 6a is the twin that
+    #    always asks.
+    ck("the live block carries every key 6a asserts",
+       all(_k in _lcr for _k in _KEYS),
+       "missing=%s" % ([_k for _k in _KEYS if _k not in _lcr],))
+else:
+    note("the live tree holds no numeric reading (%s); the key checks ran "
+         "on 6a's tree only" % (_lcr.get("state"),))
+_lk = sorted({str(i.get("key")) for i in _live.get("findings") or []
+              if str(i.get("key", "")).startswith("credits")})
+note("live credits findings (reported, not asserted): %s"
+     % (", ".join(_lk) or "none"))
+note("live reading: %s left as of %s, floor %s, state %s, %s h old"
+     % (_lcr.get("balance"), _lcr.get("pulled_at"), _lcr.get("reserve"),
+        _lcr.get("state"), _lcr.get("reading_age_hours")))
+
+
 # ══════════════════════════════════════════════════════════════════════
 section("7. ⛔ A SNAPSHOT WITH NO NUMBER IS NOT A BALANCE OF NONE")
 # ══════════════════════════════════════════════════════════════════════
@@ -537,3 +700,33 @@ with Tree(reserve=750) as t:
     ck("...and it still says WHY there is nothing",
        "no paid snapshot" in (cr or {}).get("why", "").lower(),
        "credits=%s" % (cr,))
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("8. ⛔ A CREDITS FINDING ON THE LIVE TREE DOES NOT TURN THIS FILE RED")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE MUTATION THAT MUST STAY GREEN. `vacuity.py` only asks "red under
+#    the mutation"; this asks the opposite, so the file asks it itself:
+#    the whole file again, as a child, with PLANT_FIND -> PLANT_WITH
+#    applied to watchdog.py in memory (see the top of this file).
+# ⚠️ Two checks, because either alone proves nothing: rc 0 with the plant
+#    unseen is a plant that did not fire (rule 67).
+if PLANTED:
+    note("planted child: section 8 does not recurse")
+else:
+    _p = subprocess.run(
+        [sys.executable, "-B", os.path.abspath(__file__)], cwd=ROOT,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=600,
+        env=dict(os.environ, PYTHONUTF8="1", PYTHONDONTWRITEBYTECODE="1",
+                 **{PLANT_ENV: "1"}))
+    _o = (_p.stdout or "") + (_p.stderr or "")
+    _seen = re.search(r"live credits findings \(reported, not asserted\): "
+                      r"[^\n]*credits:unrecorded", _o)
+    ck("⚠️ rule 67: the planted finding was SEEN on the live tree",
+       bool(_seen),
+       "" if _seen else "rc=%s %s" % (_p.returncode, shown(_o[-800:])))
+    ck("🔴 ...and the whole file stays GREEN with it",
+       _p.returncode == 0,
+       "" if _p.returncode == 0 else "rc=%s %s"
+       % (_p.returncode, shown(_o[-800:])))
