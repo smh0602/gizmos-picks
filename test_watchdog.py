@@ -152,6 +152,42 @@ with Tree() as t:
        "the fix must not have bought its silence by never firing. "
        "Reported: %s" % sorted(keys(out)))
 
+print("\n═══ 2b. 🔴 A DAY WITH NO GAMES OWES NO CARD ═══")
+# `[2026-09-29]` 09-28 had 0 MLB games (season over) and the watchdog
+# reported a missing card and summoned the repair agent. Built, not read
+# from production.
+import gzip  # noqa: E402
+
+
+def _sched(t, dirday, name, day, total):
+    p = os.path.join(t.d, "data", dirday, "schedule", name)
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    with gzip.open(p, "wt") as f:
+        json.dump({"date": day, "schedule": {"totalGames": total}}, f)
+
+
+_now = datetime.datetime(2026, 9, 14, 4, 47, tzinfo=UTC)
+with Tree() as t:
+    _sched(t, "2026-09-13", "1200.json.gz", "2026-09-13", 0)
+    ck("🔴 an all-zero schedule day owes no card",
+       "card:mlb" not in keys(W.run(_now)),
+       "a card about nothing is not owed")
+with Tree() as t:
+    _sched(t, "2026-09-13", "1200.json.gz", "2026-09-13", 0)
+    _sched(t, "2026-09-13", "1500.json.gz", "2026-09-13", 3)
+    ck("⛔ ...but ANY reading with a game means the card is owed",
+       "card:mlb" in keys(W.run(_now)),
+       "the exemption must not swallow a real missing card")
+with Tree() as t:
+    ck("⛔ ...and no schedule reading at all still fires (fails closed)",
+       "card:mlb" in keys(W.run(_now)), "absence of evidence is not zero")
+with Tree() as t:
+    p = os.path.join(t.d, "data/2026-09-13/schedule/1200.json.gz")
+    os.makedirs(os.path.dirname(p))
+    open(p, "wb").write(b"junk")
+    ck("⛔ ...and an unreadable reading does not count as zero games",
+       "card:mlb" in keys(W.run(_now)), "fail closed")
+
 print("\n═══ 3. ⏳ BEFORE THE DEADLINE, ABSENCE IS CORRECT ═══")
 # ⚠️ GRACE IS NOT LENIENCE. GitHub drops scheduled runs often enough that
 #    this project times its crons off :00 for it, so a deadline that

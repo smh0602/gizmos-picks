@@ -223,6 +223,27 @@ def _read(p):
         return None
 
 
+def _no_games_day(day):
+    """True only when every stored schedule reading for ET `day` says the
+    league had NO games. Fails closed: no reading, an unreadable one, or
+    any reading listing a game means a card is still owed.
+    """
+    nxt = (datetime.date.fromisoformat(day)
+           + datetime.timedelta(days=1)).isoformat()
+    seen = []
+    for d in (day, nxt):
+        pat = os.path.join(ROOT, "data", d, "schedule", "*.json.gz")
+        for p in sorted(glob.glob(pat)):
+            s = _read(p)
+            if not isinstance(s, dict) or s.get("date") != day:
+                continue
+            sc = s.get("schedule")
+            if not isinstance(sc, dict) or "totalGames" not in sc:
+                return False
+            seen.append(sc["totalGames"])
+    return bool(seen) and all(n == 0 for n in seen)
+
+
 class Report:
     """Findings, each with a severity and — where one exists — a repair.
 
@@ -294,6 +315,13 @@ def check_card_present(rep, now):
                         "the %s Gizmo's Picks tab has no card at all" % lg,
                         "picks/fb-%s-latest.json is missing or unreadable" % lg,
                         repair="card-fb")
+            continue
+        if lg == "mlb" and _no_games_day(day):
+            # 🔴 A DAY WITH NO GAMES OWES NO CARD. `[2026-09-29]` The season
+            #    ended 09-27; 09-28's stored schedule lists 0 games, yet
+            #    this raised BROKEN for a card about nothing and woke the
+            #    repair agent (the football arm's "contract with no Sunday"
+            #    rule, applied to MLB).
             continue
         if not os.path.exists(_card_path(lg, day)):
             # 🔴🔴 A MISSING CARD AND A REFUSED CARD ARE ONE FAULT, NOT
