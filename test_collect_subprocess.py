@@ -360,7 +360,12 @@ ck(not _unparsed, "⚠️ every test file parsed (%d)" % len(_FILES),
    "⛔ a file this cannot read is a file it cannot vouch for: %s"
    % _unparsed)
 _byfile = sorted({f["file"] for f in _ALL})
-ck(len(_ALL) >= 10 and len(_byfile) >= 5,
+# ⚠️ A FLOOR, NOT A COUNT `[2026-09-28]`: 9 calls in 7 files once
+#    test_dossier_fb.py folded its three card-fb runs into one helper. A
+#    helper refactor moves the number, so the floor sits below it with
+#    headroom; the planted section above is what proves the scanner can
+#    tell a bad call from a good one.
+ck(len(_ALL) >= 7 and len(_byfile) >= 5,
    "⚠️ the scan found %d collector call(s) in %d file(s)"
    % (len(_ALL), len(_byfile)),
    "⛔ rule 67: a scan that finds none passes forever. Files: %s" % _byfile)
