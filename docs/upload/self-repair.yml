@@ -248,15 +248,21 @@ jobs:
           # channel that has to be trustworthy.
           # ✅ IT NOW FAILS LOUD. `CLAUDE.md`: the collector must fail loud;
           # sys.exit(1) on error, because a green tick proved nothing.
+          # 🔴 `[2026-09-28]` gh's refusal goes to a file of this run's own,
+          #    never a fixed path in /tmp: three tests drive this step, and
+          #    two copies at once emptied each other's file -- the "403"
+          #    this step must print vanished (test_step_tmp.py).
+          GHERR=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/gh.XXXXXX")
+          trap 'rm -f "$GHERR"' EXIT
           set +e
           QUEUE=$(gh issue list --state open --label gizmo-watch \
                     --limit 50 --json number,title,body,labels,createdAt \
-                    --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
+                    --jq 'sort_by(.createdAt)' 2>"$GHERR")
           GHRC=$?
           set -e
           if [ "$GHRC" != "0" ]; then
             echo "::error::could not read the watcher issue queue (exit $GHRC from gh) — this is NOT an empty queue"
-            sed -e 's/^/    /' /tmp/ghqueue.err | head -20
+            sed -e 's/^/    /' "$GHERR" | head -20
             echo "go=no" >> "$GITHUB_OUTPUT"
             exit 1
           fi
@@ -285,12 +291,12 @@ jobs:
           # this cap exists to prevent — in the other direction.
           set +e
           OPEN=$(gh pr list --state open --limit 50 --json headRefName \
-                   --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' 2>/tmp/ghpr.err)
+                   --jq '[.[] | select(.headRefName | startswith("self-repair/"))] | length' 2>"$GHERR")
           PRRC=$?
           set -e
           if [ "$PRRC" != "0" ]; then
             echo "::error::could not read the open pull requests (exit $PRRC from gh) — refusing to assume there are none"
-            sed -e 's/^/    /' /tmp/ghpr.err | head -20
+            sed -e 's/^/    /' "$GHERR" | head -20
             echo "go=no" >> "$GITHUB_OUTPUT"
             exit 1
           fi
@@ -319,12 +325,12 @@ jobs:
           if [ -n "$DOWN" ]; then
             set +e
             MERGED=$(gh pr list --state merged --base main --limit 50 \
-                       --json number,mergedAt 2>/tmp/ghmerged.err)
+                       --json number,mergedAt 2>"$GHERR")
             MRC=$?
             set -e
             if [ "$MRC" != "0" ]; then
               echo "::error::could not read the merged pull requests (exit $MRC from gh) — refusing to assume none merged"
-              sed -e 's/^/    /' /tmp/ghmerged.err | head -20
+              sed -e 's/^/    /' "$GHERR" | head -20
               echo "go=no" >> "$GITHUB_OUTPUT"
               exit 1
             fi
@@ -694,8 +700,13 @@ jobs:
           RESULT: ${{ steps.agent.outputs.execution_file }}
         run: |
           set +e
-          PRS=$(gh pr list --state all --limit 20 --json headRefName,createdAt 2>/tmp/ghpr.err) \
-            || { echo "::warning::could not list pull requests — recording opened_pr=0"; PRS="[]"; }
+          # 🔴 `[2026-09-28]` a file of this run's own, never a fixed path in
+          #    /tmp that the triage step's copy shares (test_step_tmp.py);
+          #    and the refusal is now shown, where it was written and unread.
+          GHERR=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/ghrecord.XXXXXX")
+          trap 'rm -f "$GHERR"' EXIT
+          PRS=$(gh pr list --state all --limit 20 --json headRefName,createdAt 2>"$GHERR") \
+            || { echo "::warning::could not list pull requests — recording opened_pr=0"; sed -e 's/^/    /' "$GHERR" | head -20; PRS="[]"; }
           OPENED=$(python -c "
           import json, sys
           since = sys.argv[1]

@@ -1,10 +1,74 @@
 # UPLOAD BY HAND: `self-repair.yml`
 
-## Current: stop starting an agent that cannot finish `[2026-09-28]`
+## Current: gh's error text goes to a file of its own `[2026-09-28, later]`
 
-**Do this after you merge the pull request "Self-repair stands down after
+**Do this after you merge the pull request that changed
+`docs/upload/self-repair.yml` on 2026-09-28 evening (its description links
+to this file).** It is one file.
+
+What changes in it:
+
+1. **The triage step** ("Is there anything only a person could fix?")
+   used to write GitHub's refusal message to fixed files in `/tmp`
+   (`ghqueue.err`, `ghpr.err`, `ghmerged.err`). It now writes it to a
+   temporary file of its own that no other copy can touch. Three tests
+   run this step. When two ran at once on one computer, one emptied the
+   other's file, and the "403" line the step must print disappeared. This
+   was replayed on purpose to prove it. On GitHub every job has its own
+   computer, so the live step was never wrong. Only the tests were.
+2. **The record step** used to write the same kind of message to
+   `/tmp/ghpr.err`, where nothing ever read it. It now uses its own
+   temporary file too, and **prints the message** when it cannot list the
+   pull requests, so the log says why.
+
+**No schedule or cron line changes. No cost.** The four cron lines are
+the same as the live file's, byte for byte.
+
+### Click by click (Windows)
+
+1. Open **File Explorer**, click **Downloads**, and delete any old
+   `self-repair.yml` there (otherwise Windows saves `self-repair (1).yml`).
+2. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/self-repair.yml
+   — the breadcrumb at the top reads **gizmos-picks / docs / upload / self-repair.yml**.
+3. Click the **Download raw file** button (the down-arrow icon above the
+   file, on the right). It saves `self-repair.yml` to **Downloads**.
+4. Open https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
+   — the breadcrumb reads **gizmos-picks / .github / workflows**.
+   ⛔ Not the repo's front page: a file uploaded there lands in the top
+   level, where it never runs.
+5. Click **Add file** (top right, next to the green **Code** button) →
+   **Upload files** → **choose your files** (the blue link in the middle).
+   ⛔ Do not drag a folder in. Pick `self-repair.yml` from **Downloads** and
+   click **Open**.
+6. Check the page lists exactly **1 file**, `self-repair.yml`.
+7. In the commit box paste:
+
+```
+self-repair: gh errors go to a per-run temp file, never a fixed /tmp path - no cron change
+```
+
+8. Leave **Commit directly to the `main` branch** selected and click the
+   green **Commit changes** button.
+
+### What you should see
+
+- Nothing runs on upload (this workflow has no push trigger).
+- Nothing different in a normal pass. The next time `gh` is refused
+  (for example a missing permission), the triage log shows the refusal,
+  exactly as it does today.
+- Until you upload, the nightly **runs** report lists `self-repair.yml`
+  as waiting, and after 48 hours it says so in an issue.
+
+---
+
+## ~~Current:~~ Done: stop starting an agent that cannot finish `[2026-09-28]`
+
+✅ Uploaded: on 2026-09-28 (commit c75f48c, "Add files via upload") the
+deployed `self-repair.yml` matched that staged copy.
+
+~~**Do this after you merge the pull request "Self-repair stands down after
 two passes it could not finish; #44 and #192 never go to the agent".** It
-is one file.
+is one file.~~
 
 `self-repair.yml` failed 8 of 8 runs between 9/26 14:58Z and 9/28 11:48Z.
 Every one stopped at "Reached maximum number of turns (40)" and opened no
@@ -28,7 +92,7 @@ from the merge.
 
 **No schedule or cron line changes. No cost.** The turn limit stays 40.
 
-### Click by click (Windows)
+### ~~Click by click (Windows)~~ — done on 2026-09-28; use the section at the top
 
 1. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/self-repair.yml
    — the breadcrumb at the top reads **gizmos-picks / docs / upload / self-repair.yml**.
@@ -51,7 +115,7 @@ self-repair: stand down after two passes that could not finish - no cron change
 6. Leave **Commit directly to the `main` branch** selected and click
    **Commit changes**.
 
-### What you should see
+### ~~What you should see~~ — then
 
 - Nothing runs on upload (this workflow has no push trigger).
 - **The first two passes after the upload still start the agent.** The
@@ -166,6 +230,10 @@ https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
 
 ## Changelog
 
+- **2026-09-28 (later):** gh's error text goes to a per-run temp file in
+  the triage and record steps, never a fixed `/tmp` path; the record step
+  prints it. The earlier 2026-09-28 section is marked done (uploaded in
+  c75f48c), not deleted.
 - **2026-09-28:** stand down after two passes that could not finish; the
   runs watcher's and calibration monitor's issues never go to the agent.
   The 2026-09-26 section is marked done, not deleted.

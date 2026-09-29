@@ -425,24 +425,61 @@ ck("🔴 exactly at the bar alarms, one credit under does not",
    "⛔ 600/day x 30 = 18,000 = 90%% of plan. Got %s / %s"
    % (B.judge(B.parse(report(600, 0)))["state"],
       B.judge(B.parse(report(599, 0)))["state"]))
-# 🔴 DRIVEN ON THE REAL REPORT, WHICH TODAY IS EXACTLY THE AWKWARD CASE:
-#    measured 67% of plan, cron-derived CEILING 217%. A watcher that read
-#    the ceiling would alarm right now, every day, on a working system.
+# 🔴 THE AWKWARD CASE: a measurement inside plan beside a cron-derived
+#    CEILING far over it. A watcher that read the ceiling would alarm every
+#    day on a working system.
+# ⚠️ BUILT, NOT WAITED FOR `[2026-09-28]`. This was asked of the REAL
+#    report only, which was the case the day it was written (67% measured,
+#    ceiling 217%) -- and 85% measured beside a 90% bar on 2026-09-28. One
+#    heavy college Saturday and it would have gone red on correct code at
+#    the moment budget.yml correctly opened its money issue. The line
+#    budget.py prints is planted beside a synthetic report every run; the
+#    real report is asked the same question whenever it holds the case.
+# @vacuity 🔴 a CEILING over plan is not an alarm (the planted awkward case)
+#   file: budget_watch.py
+#   find:     if p["month"] >= bar:
+#   with:     if p["month"] >= bar or (p.get("ceil_pct") or 0) > 100:
+#
+# @vacuity ...and the body still shows the ceiling
+#   file: budget_watch.py
+#   find:     if v.get("ceil_pct"):
+#   with:     if False:
+#
+# @vacuity the ceiling line is read off budget.py's real output
+#   file: budget.py
+#   find: print(f"{'  ...worst case, if every':26} {'':>7}       {round(_mo_ceil):>7}"
+#   with: print(f"{'  ...ceiling, if every':26} {'':>7}       {round(_mo_ceil):>7}"
+_CEIL_LINE = ("  ...worst case, if every                  43400/month  (217%)"
+              "  ⚠️ CEILING, NOT A FORECAST\n")
+_awk = B.parse(report(300, 139) + _CEIL_LINE)
 ck("⚠️ a report whose CEILING is over plan but whose MEASUREMENT is not "
    "stays silent",
-   _real.get("ceil_pct", 0) > 100 and _real["pct"] < 90
-   and B.judge(_real)["state"] == "OK",
-   "⛔ budget.py's ceiling is %s%% of plan today and its own author says "
-   "in capitals it is NOT A FORECAST — it prices every football props "
-   "cron as if it fired on a full slate. Alarming on it would fire every "
-   "day forever. measured=%.0f%% ceiling=%s%% verdict=%s"
-   % (_real.get("ceil_pct"), _real.get("pct", 0), _real.get("ceil_pct"),
-      B.judge(_real)["state"]))
+   _awk.get("ceil_pct", 0) > 100 and _awk.get("pct", 100) < 90
+   and B.judge(_awk)["state"] == "OK",
+   "⛔ budget.py's own author says in capitals the ceiling is NOT A "
+   "FORECAST — it prices every football props cron as if it fired on a "
+   "full slate. Alarming on it would fire every day forever. "
+   "measured=%.0f%% ceiling=%s%% verdict=%s"
+   % (_awk.get("pct", 0), _awk.get("ceil_pct"), B.judge(_awk)["state"]))
 ck("✅ ...and the body still SHOWS the ceiling rather than hiding it",
-   "CEILING" in B.render(B.judge(_real)) and "not a\n"
-   not in B.render(B.judge(_real)),
+   "CEILING" in B.render(B.judge(_awk)) and "not a\n"
+   not in B.render(B.judge(_awk)),
    "🔴 the ceiling is the number to reach for before ADDING a cron. Not "
    "alarming on it is not the same as concealing it")
+ck("   ...and the ceiling line is read off budget.py's REAL output, not only "
+   "off the one planted here",
+   _real.get("ceil_pct") is not None,
+   "⛔ the planted line above is only as good as its likeness to the real "
+   "one; if budget.py's wording moved, _RE_CEIL reads nothing. Got %r" % _real)
+_real_case = (_real.get("state") == "READ" and (_real.get("ceil_pct") or 0) > 100
+              and _real.get("pct", 100) < 90 and _real.get("days", 0) >= B.MIN_DAYS)
+note("real report: measured %.0f%% of plan, ceiling %s%%, %s-day window -> %s"
+     % (_real.get("pct", 0), _real.get("ceil_pct"), _real.get("days"),
+        B.judge(_real)["state"]))
+if _real_case:
+    ck("   ...and the REAL report, which holds that case today, stays silent too",
+       B.judge(_real)["state"] == "OK" and "CEILING" in B.render(B.judge(_real)),
+       "verdict=%s" % B.judge(_real)["state"])
 
 section("5. ⛔ A THIN WINDOW IS NOT A RATE")
 _thin = B.judge(B.parse(report(900, 400, days=3)))

@@ -915,7 +915,12 @@ jobs:
               # deletes. ⛔ A diagnosis you cannot retrieve is a diagnosis
               # you do not have. The failing checks now land in a file
               # that gets committed with everything else.
-              if ! python verify_card.py > /tmp/vc.txt 2>&1; then
+              # 🔴 `[2026-09-28]` verify_card's output goes to a file of this
+              #    pass's own, never a fixed path in /tmp: test_multileague.py
+              #    drives this step, and two copies at once would read each
+              #    other's verdict (test_step_tmp.py).
+              VC=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/vc.XXXXXX")
+              if ! python verify_card.py > "$VC" 2>&1; then
                 # ══════════════════════════════════════════════════════
                 # 🔴 ~~THE CARD IS REVERTED EITHER WAY.~~ CHANGED
                 # 2026-09-04, AND THE ARGUMENT IS THAT THE OLD RULE MADE
@@ -940,17 +945,17 @@ jobs:
                 # `card-accepted.txt` still reverts the card and still
                 # fails the run, exactly as before.
                 # ══════════════════════════════════════════════════════
-                cat /tmp/vc.txt
+                cat "$VC"
                 mkdir -p data/latest
                 {
                   echo "verify_card FAILED at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
                   echo "pass $PASS of run ${GITHUB_RUN_NUMBER:-?}"
                   echo "--- the failing checks ---"
-                  grep -E "FAIL|Traceback|Error|error:" /tmp/vc.txt | head -40
+                  grep -E "FAIL|Traceback|Error|error:" "$VC" | head -40
                   echo "--- last 60 lines ---"
-                  tail -60 /tmp/vc.txt
+                  tail -60 "$VC"
                 } > data/latest/card-verify-failure.txt
-                if python card_gate.py /tmp/vc.txt; then
+                if python card_gate.py "$VC"; then
                   # ✅ EVERY failing check is one Sam has signed off.
                   echo "::warning::verify_card failed on pass $PASS, and every"
                   echo "::warning::failing check is ACCEPTED -- the card is"
@@ -1003,10 +1008,11 @@ jobs:
                   done
                 fi
               else
-                cat /tmp/vc.txt | tail -5
+                tail -5 "$VC"
                 rm -f data/latest/card-verify-failure.txt
                 rm -f data/latest/card-accepted-now.txt
               fi
+              rm -f "$VC"
             fi
 
             # --- publish this pass ---
@@ -1125,7 +1131,9 @@ jobs:
             echo "healthy=skipped" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          python watchdog.py | tee /tmp/wd1.txt
+          # ⚠️ `[2026-09-28]` its report is printed, not also written to a
+          #    fixed file in /tmp that nothing read (test_step_tmp.py).
+          python watchdog.py
           REPAIRS=$(python -c "import json;print(' '.join(json.load(open('data/latest/health.json'))['repairs']))")
           if [ -n "$REPAIRS" ]; then
             echo "::notice::watchdog attempting repair: $REPAIRS"
@@ -1133,13 +1141,22 @@ jobs:
               # ⚠️ EACH LEAGUE IN TURN. A football card mode is a no-op
               #    on mlb and vice versa, and the modes cost nothing, so
               #    the simple loop is also the correct one.
+              # 🔴🔴 `converge-off`, BECAUSE THE KEY IS BLANK. `[2026-09-28,
+              #    collect #1953]` Every explicit mode also converges, so
+              #    this key-less repair planned every paid pull due for the
+              #    league, each one died on "ODDS_API_KEY is not set", and
+              #    the run reported "alt-lines failed for nfl -- it left an
+              #    artifact out of contract". Nothing was spent; the real
+              #    pull landed on the next keyed converge. The converge loop
+              #    above repairs staleness; this repairs one mode
+              #    (test_repair_loop.py).
               for lg in mlb ncaaf nfl; do
-                LEAGUE=$lg ODDS_API_KEY= timeout 900 python collect.py "$m" || true
+                LEAGUE=$lg ODDS_API_KEY= timeout 900 python collect.py "$m" converge-off || true
               done
             done
             # 🔴 RE-CHECK AFTER REPAIRING. An alarm raised for something
             #    the system just fixed is the alarm Sam learns to ignore.
-            python watchdog.py | tee /tmp/wd2.txt
+            python watchdog.py
           fi
           HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
           echo "healthy=$HEALTHY" >> "$GITHUB_OUTPUT"
