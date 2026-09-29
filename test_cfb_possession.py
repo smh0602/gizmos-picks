@@ -77,6 +77,24 @@ import dossier_fb as DF  # noqa: E402
 #   file: cfb.py
 #   find: if len(teams) < CFB_TOP_MIN_TEAMS:
 #   with: if False:
+#
+# `[2026-09-28]` SECTION 0 READS A RECORDED COLUMN LIST, NOT THE LATEST
+# PROBE. These three mutate the recording, the only input those checks
+# have, so each check is shown to read it.
+# @vacuity the recorded /plays column list is a real list, not a stub
+#   file: research/cfbd_plays_columns_20260928.json
+#   find: "plays": [
+#   with: "plays": ["gameId"], "cut": [
+#
+# @vacuity every field the derivation reads is in the recorded list
+#   file: research/cfbd_plays_columns_20260928.json
+#   find: "driveId",
+#   with: "driveIdX",
+#
+# @vacuity the wallclock trap exists in the recorded list
+#   file: research/cfbd_plays_columns_20260928.json
+#   find: "wallclock",
+#   with: "wallclockX",
 # ══════════════════════════════════════════════════════════════════════
 
 _SAMPLE = json.load(gzip.open(
@@ -86,23 +104,54 @@ _QUIET = lambda *a, **k: None          # noqa: E731
 
 
 section("0. ⚠️ THE FIXTURE IS REAL, AND CARRIES WHAT THE PROBE MEASURED")
-_PROBE = json.load(open(
-    os.path.join(ROOT, "data/ncaaf/latest/probe-report.json"), encoding="utf-8"))
-_COLS = set(_PROBE["columns_by_endpoint"]["plays"])
-ck(len(_COLS) >= 25,
-   "⚠️ the real /plays column list is read from the probe (%d columns)"
-   % len(_COLS),
-   "⛔ every claim below about a column name is measured against this, "
-   "not against a name somebody remembered")
+# 🔴 `[2026-09-28]` THE COLUMN LIST IS A RECORDING, NOT THE LATEST PROBE.
+#    This read `data/ncaaf/latest/probe-report.json`, which every
+#    `cfb-probe` run rewrites. `cfb.run_probe` skips an endpoint that
+#    raises (cfb.py, `fails.append((name, code)); continue`), so ONE
+#    refused `/plays` call leaves `columns_by_endpoint` without "plays"
+#    and this file died on a KeyError before its first check: a CFBD
+#    outage turning a possession test red. ✅ The list the probe measured
+#    on 2026-09-28T15:53Z is kept in `research/`, dated, and every check
+#    asks it. The live report is asked the same questions as an EXTRA,
+#    only when it carries the list.
+_REC = json.load(open(os.path.join(
+    ROOT, "research", "cfbd_plays_columns_20260928.json"), encoding="utf-8"))
+_COLS = set(_REC["plays"])
 _used = {"gameId", "period", "playNumber", "offense", "driveId",
          "clock", "minutes", "seconds"}
-ck(_used <= _COLS,
-   "🔴 every field the derivation reads is one CFBD really returns",
-   "⛔ a derivation built on a column that does not exist passes on a "
-   "fixture and dies in production. Missing: %s" % sorted(_used - _COLS))
-ck("wallclock" in _COLS,
-   "⚠️ ...and `wallclock` really is there to be reached for",
-   "🔴 the trap is only a trap because the field exists and looks right")
+
+
+def _column_checks(cols, where):
+    ck(len(cols) >= 25,
+       "⚠️ the real /plays column list is read from %s (%d columns)"
+       % (where, len(cols)),
+       "⛔ every claim below about a column name is measured against this, "
+       "not against a name somebody remembered")
+    ck(_used <= cols,
+       "🔴 every field the derivation reads is one CFBD really returns (%s)"
+       % where,
+       "⛔ a derivation built on a column that does not exist passes on a "
+       "fixture and dies in production. Missing: %s" % sorted(_used - cols))
+    ck("wallclock" in cols,
+       "⚠️ ...and `wallclock` really is there to be reached for (%s)" % where,
+       "🔴 the trap is only a trap because the field exists and looks right")
+
+
+_column_checks(_COLS, "the recorded probe of %s" % _REC["probed_at"])
+_lp = os.path.join(ROOT, "data/ncaaf/latest/probe-report.json")
+try:
+    _live = (json.load(open(_lp, encoding="utf-8")).get("columns_by_endpoint")
+             or {}).get("plays")
+except (OSError, ValueError) as _e:
+    _live = None
+    note("the live probe report could not be read (%s: %s)"
+         % (type(_e).__name__, _e))
+if _live:
+    _column_checks(set(_live), "the LIVE probe report")
+else:
+    note("⚠️ the live probe report carries no /plays column list today (a "
+         "refused /plays call is skipped, not recorded) — the recorded "
+         "list above is what was asked. ⛔ Reported, not passed.")
 ck(_SAMPLE["overtime_games"] >= 20 and _SAMPLE["games"] >= 800,
    "⚠️ %d real games, %d into OVERTIME, %d teams, %d drives"
    % (_SAMPLE["games"], _SAMPLE["overtime_games"], _SAMPLE["teams"],
