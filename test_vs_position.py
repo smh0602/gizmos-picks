@@ -56,6 +56,22 @@ confidence, a rank or a pick, and `audit()` must stay empty.
 #   file: dossier_fb.py
 #   find:         dropped |= {p for p in d if p not in VS_POSITIONS}
 #   with:         dropped |= set()
+#
+# ── [2026-09-28] section 7's PLANTED boards — each has its case every run.
+# @vacuity the PLANTED NFL board is read through the builder's own resolver
+#   file: dossier_fb.py
+#   find: return nfl_table().get
+#   with: return {}.get
+#
+# @vacuity the PLANTED college board is read through the builder's own resolver
+#   file: dossier_fb.py
+#   find: return idx[k]
+#   with: return None
+#
+# @vacuity a PLANTED side no table holds refuses §5 BY NAME
+#   file: dossier_fb.py
+#   find: return no_opponent(5, "Versus position", missing)
+#   with: return unavailable(5, "Versus position", "We cannot compare these defences.")
 """
 import io
 import os
@@ -316,19 +332,147 @@ ck("⚠️ and the position is spelled out for a reader, not left as a code",
 
 
 # ══════════════════════════════════════════════════════════════════════
-section("7. 🔴 THE REAL BOARDS — EVERY TEAM ACCOUNTS FOR ALL FOUR")
+section("7. 🔴 A WHOLE BOARD — EVERY TEAM ACCOUNTS FOR ALL FOUR")
 # ══════════════════════════════════════════════════════════════════════
-# ⛔ DRIVEN AGAINST THE LIVE ARTIFACTS, NOT AGAINST MY READING OF THEM.
-#    CLAUDE.md: a guard that fires on correct code is the other failure,
-#    and the only way to know is to run it on the real thing.
+# ⛔ DRIVEN THROUGH THE BUILDER'S OWN RESOLVER AND SECTION, NOT AGAINST MY
+#    READING OF THEM. CLAUDE.md: a guard that fires on correct code is the
+#    other failure, and the only way to know is to run it on the thing.
 # 🔴 THE INVARIANT: for every defence in an OK §5, SHOWN + REFUSED must
 #    cover the four exactly. A position that is neither shown nor refused
 #    has vanished, which is the defect this task closes.
 # ⚠️ MEASURED 2026-09-18 on the stored boards: 4 college defences hold
 #    QB/RB/WR and NO TE, and Northwestern is absent from the file
 #    entirely — 9 refusals that previously produced no output at all.
+# 🔴🔴 `[2026-09-28]` THE CASE IS PLANTED, NEVER WAITED FOR. ~~"has a real
+#    board to drive against" (more than 5 games) and "...this section
+#    actually ran on a real board"~~ asked TODAY'S boards to be big: the
+#    NFL board fell to 7 games on 2026-09-27 (two over the bar), holds 4,
+#    2 and 1 through the playoffs, and both boards are empty from
+#    February to August — red on correct code. And today's real boards
+#    carried ZERO refusals, so the refusal path this loop exists for was
+#    never reached at all.
+# ✅ So a PLANTED board, one per league, named from the league's OWN
+#    resolver table (`dossier_fb.nfl_table()` for NFL, `teams.json` for
+#    college) with a synthetic allowed-by-position file, carries every
+#    case on every run: both defences whole, a defence with no TE, a
+#    defence absent from the file, a defence that also holds FB, a side
+#    no table holds, and two defences neither of which is held. Today's
+#    boards are swept too, as an EXTRA: asserted when they reach an OK
+#    section, reported when they do not.
 import gzip                                              # noqa: E402
 import json                                              # noqa: E402
+
+UNHELD = "Slippery Rock Aardvarks"   # a side no team table holds
+
+
+def drive_board(games, resolve, allowed):
+    """Run §5 over every game the way `build()` does. -> dict of counts."""
+    out = {"ok": 0, "refused": 0, "bad": [], "fifth": [], "not_shown": [],
+           "unavailable": []}
+    for g in games:
+        h, a = resolve(g.get("home")), resolve(g.get("away"))
+        # ⚠️ THE BUILDER'S OWN SHAPE: the board's name for the side that
+        #    does not resolve (`build()`'s `missing`), never a list.
+        miss = None
+        if not (h and a):
+            miss = g.get("home") if not h else g.get("away")
+        s = D.s_vs_position(h, a, allowed, 2026, miss)
+        if s.get("state") != "OK":
+            out["unavailable"].append((g.get("id"), s.get("why") or ""))
+            continue
+        out["ok"] += 1
+        held = s.get("by_defence") or {}
+        gone = s.get("not_held") or {}
+        for t in set(held) | set(gone):
+            cover = set(held.get(t) or {}) | set(gone.get(t) or {})
+            if cover != set(D.VS_POSITIONS):
+                out["bad"].append((t, sorted(cover)))
+            out["refused"] += len(gone.get(t) or {})
+        out["fifth"] += [p for p in (s.get("positions") or [])
+                         if p not in D.VS_POSITIONS]
+        if s.get("positions_not_shown"):
+            out["not_shown"].append(s["positions_not_shown"])
+    return out
+
+
+def planted(lg):
+    """-> (games, resolve, allowed, n_resolvable). Nothing here reads a
+    board. The names are the league's own table, and they are resolved
+    through the BUILDER'S resolver (`team_codes`), the one `build()` uses."""
+    resolve = D.team_codes(lg)
+    if lg == "nfl":
+        pool = sorted(D.nfl_table())               # board name -> code
+    else:
+        try:
+            pool = sorted(json.load(io.open(os.path.join(
+                ROOT, "data", lg, "latest", "teams.json"),
+                encoding="utf-8")).get("teams") or {})
+        except (OSError, ValueError):
+            pool = []
+    names, code = [], []
+    for n in pool:
+        c = resolve(n)
+        if c and c not in code:                    # one name per defence
+            names.append(n)
+            code.append(c)
+    names, code = names[:13], code[:13]
+    if len(code) < 13:
+        return [], resolve, {}, len(code)
+    four = {p: dict(FULL) for p in D.VS_POSITIONS}
+    allowed = allowed_file({
+        code[0]: dict(four), code[1]: dict(four),
+        code[2]: dict(four),
+        code[3]: {p: dict(FULL) for p in D.VS_POSITIONS if p != "TE"},
+        code[4]: dict(four),                     # code[5]: not in the file
+        code[6]: dict(four, FB=dict(FULL)), code[7]: dict(four),
+        code[8]: dict(four),                     # opponent: no table holds
+        # code[9], code[10]: neither defence held
+        code[11]: dict(four), code[12]: dict(four)})
+    pairs = [(0, 1), (2, 3), (4, 5), (6, 7), (8, None), (9, 10), (11, 12)]
+    games = [{"id": "planted-%s-%d" % (lg, i), "home": names[h],
+              "away": UNHELD if a is None else names[a]}
+             for i, (h, a) in enumerate(pairs)]
+    return games, resolve, allowed, len(code)
+
+
+for _lg in ("ncaaf", "nfl"):
+    _games, _resolve, _allowed, _nres = planted(_lg)
+    ck("⚠️ planted %s: a board with every case, named from the league's "
+       "own table (%d games, %d names resolve)" % (_lg, len(_games), _nres),
+       len(_games) > 5 and _nres >= 13
+       and all(_resolve(g["home"]) for g in _games)
+       and not _resolve(UNHELD),
+       "⛔ rule 67: every check below would pass over nothing — and a "
+       "name the builder's resolver cannot read would make the case "
+       "silently absent")
+    _p = drive_board(_games, _resolve, _allowed)
+    note("planted %s: %d OK section(s), %d position refusal(s) by name, "
+         "%d unavailable" % (_lg, _p["ok"], _p["refused"],
+                             len(_p["unavailable"])))
+    ck("🔴🔴 planted %s: the loop reached every OK section it was given "
+       "(%d of 5)" % (_lg, _p["ok"]),
+       _p["ok"] == 5,
+       "⛔ the section-7 loop proves nothing if no section reads OK. "
+       "unavailable: %s" % (_p["unavailable"][:3],))
+    ck("🔴 planted %s: every defence accounts for ALL FOUR — shown or "
+       "refused by name" % _lg,
+       _p["ok"] >= 1 and not _p["bad"],
+       "⛔ a position that is neither shown nor refused has VANISHED, "
+       "which is what this task closes. offenders: %s" % (_p["bad"][:6],))
+    ck("   planted %s: ...and the refusals are all there (%d = one TE + "
+       "all four for the absent defence)" % (_lg, _p["refused"]),
+       _p["refused"] == 1 + len(D.VS_POSITIONS),
+       "⛔ a refusal that is not counted here was never written. "
+       "Got %d" % _p["refused"])
+    ck("⛔ planted %s: no position outside the four is offered to the page, "
+       "and the file's FB is NAMED as not shown" % _lg,
+       not _p["fifth"] and _p["not_shown"] == [["FB"]],
+       "found: %s, not shown: %s" % (_p["fifth"], _p["not_shown"]))
+    ck("   planted %s: the side no table holds REFUSES the section BY NAME"
+       % _lg,
+       any(UNHELD in w for _i, w in _p["unavailable"]),
+       "⛔ an opponent we cannot identify is no answer, and the refusal "
+       "says whom. unavailable: %s" % (_p["unavailable"][:3],))
 
 _ran = 0
 for _lg in ("ncaaf", "nfl"):
@@ -338,15 +482,10 @@ for _lg in ("ncaaf", "nfl"):
                                                 "board.json"),
                                    encoding="utf-8"))
     except Exception as e:
-        note("%s: no stored board (%s) — skipped" % (_lg, e))
+        note("live %s: no stored board (%s) — the PLANTED board carries "
+             "the case" % (_lg, e))
         continue
     _games = _board.get("games") or []
-    # ⛔ AN EMPTY BOARD MUST NOT LOOK LIKE A PASS (rule 67).
-    ck("⚠️ %s has a real board to drive against" % _lg,
-       len(_games) > 5, "%d game(s)" % len(_games))
-    if len(_games) <= 5:
-        continue
-    _resolve = D.team_codes(_lg)
     _allowed = {}
     for _yr in (2026, 2025):
         try:
@@ -355,38 +494,21 @@ for _lg in ("ncaaf", "nfl"):
                 "rt"))
         except Exception:
             pass
-    _bad, _fifth, _ok, _refused = [], [], 0, 0
-    for _g in _games:
-        _h, _a = _resolve(_g.get("home")), _resolve(_g.get("away"))
-        _miss = None
-        if not (_h and _a):
-            _miss = [n for n, r in ((_g.get("home"), _h),
-                                    (_g.get("away"), _a)) if not r]
-        _s = D.s_vs_position(_h, _a, _allowed, 2026, _miss)
-        if _s.get("state") != "OK":
-            continue
-        _ok += 1
-        _held = _s.get("by_defence") or {}
-        _gone = _s.get("not_held") or {}
-        for _t in set(_held) | set(_gone):
-            _cover = set(_held.get(_t) or {}) | set(_gone.get(_t) or {})
-            if _cover != set(D.VS_POSITIONS):
-                _bad.append((_t, sorted(_cover)))
-            _refused += len(_gone.get(_t) or {})
-        _fifth += [p for p in (_s.get("positions") or [])
-                   if p not in D.VS_POSITIONS]
-    note("%s: %d OK section(s), %d position refusal(s) by name"
-         % (_lg, _ok, _refused))
-    ck("🔴 %s: every defence accounts for ALL FOUR — shown or refused "
+    _r = drive_board(_games, D.team_codes(_lg), _allowed)
+    note("live %s: %d game(s), %d OK section(s), %d position refusal(s) "
+         "by name" % (_lg, len(_games), _r["ok"], _r["refused"]))
+    if not _r["ok"]:
+        note("live %s: no OK section on today's board — nothing to assert; "
+             "the PLANTED board carries the case" % _lg)
+        continue
+    ck("🔴 live %s: every defence accounts for ALL FOUR — shown or refused "
        "by name" % _lg,
-       not _bad,
+       not _r["bad"],
        "⛔ a position that is neither shown nor refused has VANISHED, "
-       "which is what this task closes. offenders: %s" % (_bad[:6],))
-    ck("⛔ %s: no position outside the four is offered to the page" % _lg,
-       not _fifth, "found: %s" % (_fifth,))
+       "which is what this task closes. offenders: %s" % (_r["bad"][:6],))
+    ck("⛔ live %s: no position outside the four is offered to the page"
+       % _lg,
+       not _r["fifth"], "found: %s" % (_r["fifth"],))
     _ran += 1
-
-ck("🔴🔴 ...and this section actually ran on a real board",
-   _ran >= 1,
-   "⛔ if neither board is on disk this file proves nothing about "
-   "production (rule 67). leagues driven: %d" % _ran)
+note("live boards swept: %d — a fact about today's slates, not a floor; "
+     "the planted boards above carry the case on every run" % _ran)
