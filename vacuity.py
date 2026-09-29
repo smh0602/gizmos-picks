@@ -160,7 +160,9 @@ def unmapped(root=ROOT):
 # ⛔ `test_vacuity.py` STAYS IN THE SET ON PURPOSE and cannot leave it: a
 # declaration naming it would make this sweep run that file, which runs
 # this sweep, without bound. Its own header records the measurement.
-BLIND_CEILING = 56
+# `[2026-09-28]` 56 -> 37: the live-tree test sweep declared mutations for
+# 16 files that had none (and added three guard files that carry their own).
+BLIND_CEILING = 37
 
 
 def blind(root=ROOT):

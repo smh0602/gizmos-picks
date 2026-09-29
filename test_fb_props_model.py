@@ -258,6 +258,34 @@ ck(len(_docb["picks"]) == 40 and _docb["picks_total"] == 40 and "more_picks" not
 #    in an order that mixes them, and each answer must equal the uncached
 #    call. The cache is league-agnostic; NFL keeps this under a second.
 import possession as _P  # noqa: E402
+# 🔴 `[2026-09-28]` THE CASE IS PLANTED FIRST. The live sweep below only
+#    has rows to ask about because production holds `top-<season>` files;
+#    a thin or rebuilt one would leave the cache compared over nothing.
+#    ✅ A planted league: one team whose share CHANGES from day to day, so
+#    a cache keyed on anything less than (team, day) must hand one day's
+#    answer to another. Asked in both orders, like the live sweep.
+_PL = {"g%d" % i: {"date": d, "withheld": False,
+                   "teams": {"AAA": {"share": sa}, "BBB": {"share": 1 - sa}}}
+       for i, (d, sa) in enumerate([("2026-09-06", 0.70), ("2026-09-13", 0.30),
+                                    ("2026-09-20", 0.55)])}
+_PL["g9"] = {"date": "2026-09-13", "withheld": False,
+             "teams": {"CCC": {"share": 0.40}, "DDD": {"share": 0.60}}}
+_pdays = ["2026-09-06", "2026-09-13", "2026-09-20", "2026-09-27"]
+_HP = M.History("nfl", _PL)
+_pwrong, _pdistinct = [], set()
+for _pass in (0, 1):
+    for _d in (_pdays if _pass == 0 else list(reversed(_pdays))):
+        for _t in ("AAA", "BBB", "CCC", "DDD"):
+            _want = _P.share_before(_PL, _t, _d)["share"]
+            if _t == "AAA":
+                _pdistinct.add(_want)
+            if _HP.share_before(_t, _d) != _want:
+                _pwrong.append((_t, _d))
+ck(len(_pdistinct) >= 3 and not _pwrong,
+   "🔴🔴 the remembered share_before equals the direct call on a PLANTED "
+   "league whose shares move day to day",
+   "⛔ a stale answer is another day's possession share. distinct answers "
+   "for one team: %d; wrong: %r" % (len(_pdistinct), _pwrong[:5]))
 _poss = M.possession_games("nfl")
 _teams = sorted({t for g in _poss.values() for t in (g.get("teams") or {})})
 _days = sorted({str(g.get("date"))[:10] for g in _poss.values() if g.get("date")})
@@ -271,12 +299,17 @@ for _pass in (0, 1):
             _want = _P.share_before(_poss, _t, _d)["share"]
             if _H.share_before(_t, _d) != _want:
                 _wrong.append((_t, _d))
-ck(len(_teams) >= 30 and len(_days) >= 20,
-   "⚠️ the real NFL possession rows were found to ask about",
-   "⛔ a cache compared over no rows agrees with anything (rule 67). "
-   "teams=%d days=%d" % (len(_teams), len(_days)))
-ck(not _wrong,
-   "🔴🔴 the remembered share_before equals the direct call for every "
-   "(team, day), asked twice (%d answers)" % _asked,
-   "⛔ a stale answer is another day's possession share in this row. "
-   "wrong: %r" % _wrong[:5])
+# ⚠️ THE LIVE SWEEP IS NOW THE EXTRA. Asserted when production holds the
+#    rows to ask about; reported, never passed, when it does not — the
+#    planted league above asks the same question every run.
+if len(_teams) >= 30 and len(_days) >= 20:
+    ck(not _wrong,
+       "🔴🔴 the remembered share_before equals the direct call for every "
+       "real (team, day), asked twice (%d answers)" % _asked,
+       "⛔ a stale answer is another day's possession share in this row. "
+       "wrong: %r" % _wrong[:5])
+else:
+    note("⚠️ NOT EXERCISED on real rows: the stored NFL possession files "
+         "hold teams=%d days=%d (a cache compared over no rows agrees with "
+         "anything — rule 67). The planted league above was asked. wrong "
+         "on what there was: %r" % (len(_teams), len(_days), _wrong[:5]))

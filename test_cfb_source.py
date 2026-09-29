@@ -27,6 +27,22 @@ WHAT IS PINNED:
   3. a refusing source is left alone for a while, and the skip is loud
   4. the back-off is read from the report the back-fill already writes
 """
+# ══════════════════════════════════════════════════════════════════════
+# @vacuity the probe records the code each endpoint was refused with
+#   file: cfb.py
+#   find: "endpoints_failed": [[n, str(c)] for n, c in fails],
+#   with: "endpoints_failed": [[n, "x"] for n, c in fails],
+#
+# @vacuity one refused endpoint is recorded alone, never all-or-nothing
+#   file: cfb.py
+#   find: fails.append((name, code))
+#   with: fails.extend([(x, code) for x, _p, _q in PROBES])
+#
+# @vacuity the refutation counts FINALS, not every game (planted + live)
+#   file: cfb.py
+#   find: if x.get("final"))
+#   with: if True)
+# ══════════════════════════════════════════════════════════════════════
 import datetime
 import gzip
 import json
@@ -54,18 +70,55 @@ def code_only(fn):
     return "\n".join(ln.split("#")[0] for ln in src.splitlines())
 
 
-print("\n═══ 1. THE EVIDENCE, READ OFF DISK ═══")
+print("\n═══ 1. THE EVIDENCE — THE PROBE RECORDS EVERY REFUSAL, BY ENDPOINT ═══")
+# 🔴 `[2026-09-28]` ~~`isinstance(P.get("endpoints_failed") or [], list)`
+#    over the LIVE probe report~~ — IT COULD NOT FAIL. The field is `[]`
+#    on every day CFBD answers, `or []` turned a missing field into a
+#    list, and the writer was never run: deleting the line that RECORDS a
+#    refusal left it green. The case it names (a refusal, recorded) only
+#    existed on disk on a day CFBD refused us.
+# ✅ SO THE WRITER IS DRIVEN, OFFLINE, ON A PLANTED 429 — every endpoint,
+#    then `/plays` alone — and must name exactly the endpoints refused,
+#    with the code. Strictly harder: it fails on a writer that stops
+#    recording, records the wrong code, or records all-or-nothing. The
+#    live report is now a note (it describes the last real run).
+_real_get = cfb.get
+_q = lambda *a, **k: None               # noqa: E731
+
+
+def _probe_with(fail):
+    def fake(path, params=None, **kw):
+        if fail(path):
+            raise urllib.error.HTTPError(path, 429, "Too Many Requests", {}, None)
+        return []
+    cfb.get = fake
+    try:
+        return cfb.run_probe(log=_q)
+    finally:
+        cfb.get = _real_get
+
+
+_all = _probe_with(lambda p: True)
+ck("🔴 a refusal on every endpoint is recorded, per endpoint, with its code",
+   _all.get("endpoints_failed") == [["games", "429"], ["player game", "429"],
+                                    ["plays", "429"], ["roster", "429"]],
+   "this is the field that said 429 while the back-fill said 'season not "
+   "started'. got %s" % (_all.get("endpoints_failed"),))
+_one = _probe_with(lambda p: p == "/plays")
+ck("⛔ ...and ONE refused endpoint is recorded alone, not as all-or-nothing",
+   _one.get("endpoints_failed") == [["plays", "429"]]
+   and "plays" not in (_one.get("columns_by_endpoint") or {})
+   and "games" in (_one.get("columns_by_endpoint") or {}),
+   "a refused endpoint has no columns; the others still do. got %s / %s"
+   % (_one.get("endpoints_failed"),
+      sorted((_one.get("columns_by_endpoint") or {}))))
 pr = f"{ROOT}/data/ncaaf/latest/probe-report.json"
 if os.path.exists(pr):
     P = json.load(open(pr, encoding="utf-8"))
-    failed = P.get("endpoints_failed") or []
-    note(f"probe report {P.get('probed_at')}: endpoints_failed={failed}")
-    ck("the probe report records per-endpoint failures at all",
-       isinstance(failed, list),
-       "this is the field that said 429 while the back-fill said "
-       "'season not started'")
+    note(f"live probe report {P.get('probed_at')}: endpoints_failed="
+         f"{P.get('endpoints_failed')} (DESCRIPTIVE — the last real run)")
 else:
-    note("no probe report on disk — section 1 not measured")
+    note("no live probe report on disk")
 
 print("\n═══ 2. A FAILED FETCH IS NOT AN UNPLAYED SEASON ═══")
 ck("🔴 the two facts have two different types",
@@ -100,14 +153,47 @@ if got == "SourceUnavailable":
        msg[-90:])
 
 print("\n═══ 3. OUR OWN FINALS REFUTE THE CLAIM ═══")
+# 🔴 `[2026-09-28]` THE CASE IS PLANTED, NOT READ OFF PRODUCTION. The
+#    `n > 0` half of this check only had its case because the live
+#    `schedule-2026.json.gz` happened to hold finals. ✅ A planted tree
+#    always holds 3 finals among 5 games, plus an unreadable season, so
+#    "count the finals, only the finals, and an unreadable file is 0" is
+#    asked every run. The live file is the same question as an EXTRA.
+import shutil     # noqa: E402
+import tempfile   # noqa: E402
+_pt = tempfile.mkdtemp()
+try:
+    os.makedirs(os.path.join(_pt, "data/ncaaf/latest"))
+    with gzip.open(os.path.join(_pt, "data/ncaaf/latest/schedule-2098.json.gz"),
+                   "wt") as fh:
+        json.dump({"games": [{"id": str(i), "final": i < 3} for i in range(5)]},
+                  fh)
+    with open(os.path.join(_pt, "data/ncaaf/latest/schedule-2097.json.gz"),
+              "wb") as fh:
+        fh.write(b"not a gzip")
+    os.chdir(_pt)
+    _planted = (cfb._stored_finals(2098), cfb._stored_finals(2097),
+                cfb._stored_finals(2096))
+finally:
+    os.chdir(ROOT)
+    shutil.rmtree(_pt, ignore_errors=True)
+ck("🔴 the refutation counts the finals a schedule holds, and only those "
+   "— and an unreadable or absent season counts none",
+   _planted == (3, 0, 0),
+   "planted: 3 finals among 5 games / a file that is not gzip / no file. "
+   "An unknown must never masquerade as a refutation. got %s" % (_planted,))
 n = cfb._stored_finals(2026)
 sp = f"{ROOT}/data/ncaaf/latest/schedule-2026.json.gz"
 real = 0
 if os.path.exists(sp):
     with gzip.open(sp, "rt") as fh:
         real = sum(1 for g in (json.load(fh).get("games") or []) if g.get("final"))
-ck("🔴 the refutation counts the SAME finals the schedule holds",
-   n == real and n > 0, f"{n} finals for 2026")
+if real > 0:
+    ck("🔴 the refutation counts the SAME finals the live schedule holds",
+       n == real and n > 0, f"{n} finals for 2026")
+else:
+    note("⚠️ the live 2026 schedule holds no finals (or is absent), so the "
+         "live half was not asked; the planted case above was. got n=%s" % n)
 ck("⚠️ a season we hold nothing for refutes nothing",
    cfb._stored_finals(2099) == 0,
    "an unknown must never masquerade as a refutation")

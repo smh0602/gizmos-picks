@@ -18,6 +18,21 @@ other row on this page is meaningless.
 is real, and it is deliberately NOT checked here — `verify_card.py` owns
 that rule and a copy in the watchdog would be a THIRD reader of Sam's
 number. The second copy is what broke the card on 2026-09-12.
+
+# @vacuity the freshness fixture is THIS checkout's writer's shape (`artifacts`)
+#   file: collect.py
+#   find:         "artifacts": rows,
+#   with:         "rows": rows,
+#
+# @vacuity the watchdog reads the contract's own container and flags
+#   file: watchdog.py
+#   find:         stale = [r for r in (f.get("artifacts") or []) if r.get("stale")]
+#   with:         stale = [r for r in (f.get("rows") or []) if r.get("stale")]
+#
+# @vacuity a Track Record not regraded in 48 hours is caught (stamped, pinned tree)
+#   file: watchdog.py
+#   find:         if age > 60 * 48:
+#   with:         if age > 60 * 48 * 100:
 """
 import datetime
 import json
@@ -52,7 +67,39 @@ ROWS = []
 # shaped wrong makes the matrix unable to measure.
 # ✅ So the shape now comes from an artifact the collector actually
 # wrote. A fixture nobody types cannot drift from the writer again.
-def _real_contract():
+# 🔴 `[2026-09-28]` ~~the COMMITTED data/latest/freshness.json~~ — the
+#    production copy, which every converge pass rewrites with MAIN's
+#    writer, never this checkout's. A PR that changed the artifact's shape
+#    in `collect.write_freshness` and `watchdog.check_freshness` together
+#    went red here until a converge on main rewrote the file; a checkout
+#    without it went red outright; and its real-clock stamps sat in a tree
+#    pinned to 2026-09-14. ✅ The fixture is now written by THIS checkout's
+#    own writer (`collect.write_freshness`) from THIS checkout's contract
+#    (`freshness.survey`) at the pinned NOW, into a temp dir — the reader
+#    and the fixture always move together. The committed file is kept as
+#    an extra: its shape is compared and reported.
+def _writer_contract():
+    import collect as _C
+    tmp = tempfile.mkdtemp(prefix="wdcov-contract-")
+    saved = _C.LATEST
+    try:
+        _C.LATEST = tmp
+        _C.write_freshness(rows=F.survey(data=os.path.join(tmp, "data"),
+                                         picks=os.path.join(tmp, "picks"),
+                                         now=NOW))
+        with open(os.path.join(tmp, "freshness.json"), encoding="utf-8") as fh:
+            doc = json.load(fh)
+    finally:
+        _C.LATEST = saved
+        shutil.rmtree(tmp, ignore_errors=True)
+    # ⛔ PINNED: the writer stamps the real clock; this tree is 2026-09-14.
+    for k in F.STAMP_FIELDS:
+        if k in doc:
+            doc[k] = NOW.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return doc
+
+
+def _committed_contract():
     for sub in ("latest", "ncaaf/latest", "nfl/latest"):
         p = os.path.join(OLD, "data", sub, "freshness.json")
         if os.path.exists(p):
@@ -61,7 +108,8 @@ def _real_contract():
     return None
 
 
-_CONTRACT = _real_contract()
+_CONTRACT = _writer_contract()
+_LIVE_CONTRACT = _committed_contract()
 
 
 def fresh_doc(stale):
@@ -76,6 +124,11 @@ def fresh_doc(stale):
     doc["ok"] = not stale
     return doc
 
+
+
+def _ago(hours):
+    """A stamp `hours` before the pinned NOW — never the real clock."""
+    return (NOW - datetime.timedelta(hours=hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def healthy_tree():
@@ -95,7 +148,10 @@ def healthy_tree():
             "game_lines_meta": {"slate": dt}})
     for sub in ("latest", "ncaaf/latest", "nfl/latest"):
         w(d, "data/%s/freshness.json" % sub, fresh_doc(False))
-        w(d, "data/%s/record.json" % sub, {"n": 1})
+        # ⛔ STAMPED AT THE PINNED CLOCK. `{"n": 1}` carried no stamp, so
+        #    the record-age check read it as unknowable and could NEVER
+        #    fire on this tree — not even in a case built to make it.
+        w(d, "data/%s/record.json" % sub, {"n": 1, "built_at": _ago(1)})
     # 🔴 THE REAL PAGE, COPIED IN. Without it `page:missing` fires on
     #    EVERY case including the control — and a check that fires on
     #    everything catches nothing, while scoring 100% on this matrix.
@@ -118,8 +174,12 @@ def case(name, what_reader_sees, mutate):
     try:
         mutate(d)
         W.ROOT = d
-        # record.json mtime is "now", so the record check cannot fire;
-        # that is correct for every case except the one that targets it.
+        # 🔴 `[2026-09-28]` ~~record.json mtime is "now", so the record
+        #    check cannot fire~~ — false twice over: the watchdog reads a
+        #    file's age from its CONTENT stamp, never its mtime
+        #    (freshness.stamp_of), and the fixture carried no stamp, so the
+        #    check could not fire at all. Every stamp in the tree is now
+        #    pinned to NOW, and the record-age case below targets it.
         r = W.run(NOW)
         W.ROOT = OLD
         caught = not r["healthy"]
@@ -150,6 +210,22 @@ ck("⚠️ ...and exactly one row in it is stale",
    "⛔ a fixture with nothing stale makes the row below pass for the "
    "wrong reason. got %d"
    % sum(1 for r in _probe.get("artifacts", []) if r.get("stale")))
+
+# ⚪ THE COMMITTED CONTRACT, AS AN EXTRA: does production's copy still have
+#    the writer's shape? Reported, not asserted — main's converge rewrites
+#    it, so a PR that changes the shape is AHEAD of it by design.
+if _LIVE_CONTRACT is None:
+    note("⚪ no committed freshness.json in this tree; the writer-built "
+         "fixture above is what the matrix uses")
+else:
+    _wk, _lk = sorted(_probe), sorted(_LIVE_CONTRACT)
+    _wr = sorted((_probe.get("artifacts") or [{}])[0])
+    _lr = sorted((_LIVE_CONTRACT.get("artifacts") or [{}])[0])
+    _same = (_wk, _wr) == (_lk, _lr)
+    note("⚪ committed freshness.json %s the writer's shape%s"
+         % ("MATCHES" if _same else "DIFFERS FROM",
+            "" if _same else " (keys %s vs %s; row keys %s vs %s)"
+            % (_lk, _wk, _lr, _wr)))
 
 case("CONTROL — nothing wrong", "a correct page", lambda d: None)
 
@@ -198,7 +274,10 @@ case("index.html throws — blank page", "the ENTIRE site is blank",
      lambda d: w(d, "index.html", "<script>syntax error(</script>"))
 case("record.json shows an impossible rate", "Track Record reads 140%",
      lambda d: w(d, "data/latest/record.json",
-                 {"overall": {"w": 14, "n": 10, "pct": 140.0}}))
+                 {"overall": {"w": 14, "n": 10, "pct": 140.0},
+                  "built_at": _ago(1)}))
+case("the Track Record stopped being regraded", "a record three days stale",
+     lambda d: w(d, "data/latest/record.json", {"n": 1, "built_at": _ago(72)}))
 case("a parlay leg is below the price floor", "an unbettable slip on the page",
      lambda d: w(d, "picks/%s.json" % DAY,
                  {"date": DAY, "picks": [{"player": "A", "price": -150}],

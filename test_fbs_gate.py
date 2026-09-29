@@ -41,6 +41,11 @@ and survives realignment.
 # 🔴 THE BOTH-SIDES FORM IS THE DEFECT THIS FILE EXISTS FOR, and Sam has
 #    caught it THREE TIMES. Measured 2026-09-03 on the real schedule: it
 #    threw away 122 of the 189 September Power 4 games.
+#
+# @vacuity 6b: a part-built newest schedule is skipped for a full one (planted)
+#   file: collect.py
+#   find: if len(got) >= FBS_MIN_TEAMS:
+#   with: if True:
 # ══════════════════════════════════════════════════════════════════════
 
 import os
@@ -128,6 +133,50 @@ eq(len(real) >= C.FBS_MIN_TEAMS, True,
 for t in ("Alabama", "Ohio State", "UCF", "South Florida", "Florida State"):
     eq(t in real, True, f"  {t} is in the list")
 eq("Merrimack" in real, False, "  an FCS school is NOT in the list")
+
+print("\n6b. 🔴 THE FLOOR AND 'READ FROM DISK' HAVE A PLANTED CASE")
+# ⚠️ `[2026-09-28]` Section 6 reads the real schedule, whose newest file
+#    already clears the floor, so the part-built-file branch never ran and
+#    a HARDCODED list of these five schools would have passed it. ✅ A
+#    planted tree: a part-built newest season (5 FBS schools) over a full
+#    one (120, including a school that exists nowhere else) and an FCS
+#    side. The real disk in section 6 stays exactly as it was.
+import gzip as _gz      # noqa: E402
+import json as _json    # noqa: E402
+import shutil as _sh    # noqa: E402
+import tempfile as _tf  # noqa: E402
+_t = _tf.mkdtemp()
+_old_data = C.LEAGUES["ncaaf"]["data"]
+try:
+    _lat = os.path.join(_t, "data", "ncaaf", "latest")
+    os.makedirs(_lat)
+
+    def _sched(season, fbs):
+        with _gz.open(os.path.join(_lat, "schedule-%d.json.gz" % season),
+                      "wt", encoding="utf-8") as fh:
+            _json.dump({"games": [{"home": h, "home_class": "fbs",
+                                   "away": "FCS Opponent %d" % i,
+                                   "away_class": "fcs"}
+                                  for i, h in enumerate(fbs)]}, fh)
+
+    _full = ["Planted U"] + ["School %03d" % i for i in range(119)]
+    _sched(2098, _full)
+    _sched(2099, ["School %03d" % i for i in range(5)])      # part-built
+    C.LEAGUES["ncaaf"]["data"] = os.path.join(_t, "data", "ncaaf")
+    C.fbs_teams = _real
+    _got = C.fbs_teams()
+    _skip = sorted(_got) == sorted(_full)
+    _disk = "Planted U" in _got and not any(t.startswith("FCS") for t in _got)
+    _sh.rmtree(_lat)
+    os.makedirs(_lat)
+    _none = C.fbs_teams() == set()
+    eq((_skip, _disk, _none), (True, True, True),
+       "🔴 a part-built newest file is SKIPPED for the full one beneath it — "
+       "read from disk (a school only the planted file names), FBS sides "
+       "only, and an empty tree is an empty list, never a guess")
+finally:
+    C.LEAGUES["ncaaf"]["data"] = _old_data
+    _sh.rmtree(_t, ignore_errors=True)
 
 print("\n7. the props window is a SPEND GUARD, and its size is owned by")
 print("   test_props_window.py, not duplicated here")

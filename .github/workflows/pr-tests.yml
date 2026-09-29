@@ -253,14 +253,23 @@ jobs:
       - name: Apply every staged upload (locally, never pushed)
         id: apply
         run: |
-          python -c "import wfparse; print('\n'.join(wfparse.apply_staged('.')))" > /tmp/staged.txt
-          n=$(grep -c . /tmp/staged.txt || true)
+          # 🔴 A FILE OF ITS OWN, NEVER A FIXED PATH. `[2026-09-28]` This
+          #    step wrote one fixed file in /tmp, shared by every copy on
+          #    the machine. Two copies at once (two suites, or the vacuity
+          #    sweep's parallel trees driving test_pr_staged.py) read each
+          #    other's answer and a correct case failed. RUNNER_TEMP on the
+          #    runner, TMPDIR when a test drives the step. Replayed in
+          #    test_pr_staged.py section 5; the class is test_step_tmp.py.
+          staged=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/staged.XXXXXX")
+          trap 'rm -f "$staged"' EXIT
+          python -c "import wfparse; print('\n'.join(wfparse.apply_staged('.')))" > "$staged"
+          n=$(grep -c . "$staged" || true)
           echo "n=$n" >> "$GITHUB_OUTPUT"
           if [ "$n" = "0" ]; then
             echo "nothing staged differs from what is live — the tests job already ran this suite"
             exit 0
           fi
-          echo "applied $n staged upload(s):"; cat /tmp/staged.txt
+          echo "applied $n staged upload(s):"; cat "$staged"
           git add .github/workflows
           git -c user.name=pr-tests -c user.email=pr-tests@localhost \
               commit -q -m "pr-tests: staged uploads applied (local only)"
@@ -268,9 +277,16 @@ jobs:
       - name: Tests, as they will run after the upload
         if: steps.apply.outputs.n != '0'
         run: |
-          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > /tmp/loop.sh
-          grep -q "run_one" /tmp/loop.sh || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
-          bash -e /tmp/loop.sh
+          # 🔴 Its own file too (see the step above). A fixed loop file is
+          #    rewritten by any other copy on the machine, so a copy could
+          #    run another copy's loop and report ITS verdict -- replayed
+          #    green on a planted failing test. This job's own suite also
+          #    runs test_pr_staged.py, which drives this very step.
+          loop=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/loop.XXXXXX")
+          trap 'rm -f "$loop"' EXIT
+          python -c "import wfparse; print(wfparse.step_run(open('.github/workflows/pr-tests.yml').read(), step_name='Tests', job='tests'))" > "$loop"
+          grep -q "run_one" "$loop" || { echo "::error::could not read the Tests step out of pr-tests.yml"; exit 1; }
+          bash -e "$loop"
 
       - name: The tests must not have modified the tree
         if: steps.apply.outputs.n != '0'

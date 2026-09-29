@@ -29,6 +29,36 @@ and a feed can change:
 #   file: record_fb.py
 #   find: return out.get(current, []), out
 #   with: return out.get(METHOD_BEFORE, []), out
+#
+# @vacuity 🔴🔴 PLANTED: a rated row reaches the record WITH its n_games
+#   file: record_fb.py
+#   find: "n_games": _n_games,
+#   with: "n_games": None,
+#
+# @vacuity ⛔ PLANTED: the denominator is an INTEGER, never a string
+#   file: record_fb.py
+#   find: "n_games": _n_games,
+#   with: "n_games": str(_n_games) if _n_games is not None else None,
+#
+# @vacuity 🔴🔴 PLANTED: logs_season is CARRIED from the card
+#   file: record_fb.py
+#   find: "logs_season": card.get("logs_season"),
+#   with: "logs_season": None,
+#
+# @vacuity 🔴 PLANTED: the grader's verdicts are the known ones (the hand control disagrees otherwise)
+#   file: record_fb.py
+#   find: return (val > line) if side == "over" else (val < line)
+#   with: return (val < line) if side == "over" else (val > line)
+#
+# @vacuity 🔴 PLANTED: the `-latest.json` pointer is never graded as a card
+#   file: record_fb.py
+#   find: if f.endswith("-latest.json"):
+#   with: if False:
+#
+# @vacuity every market the grader can grade has an independent hand reader
+#   file: card_fb.py
+#   find: "player_pass_tds":      (lambda g: float(g.get("pass_td") or 0),  "pass TD"),
+#   with: "player_pass_tdz":      (lambda g: float(g.get("pass_td") or 0),  "pass TD"),
 # ══════════════════════════════════════════════════════════════════════
 import glob
 import gzip
@@ -211,16 +241,35 @@ for _h in _eligible:
                 _carded.append(_h)
     except Exception:
         _carded.append(_h)      # unreadable -> count it, never hide it
-ck("`-latest.json` exists and is NOT counted as its own card",
-   "fb-ncaaf-latest.json" in have and R["cards_seen"] == len(_carded),
-   "%d cards seen, %d dated file(s) on disk, %d on or after the record "
-   "floor %s, %d of those carrying rows"
-   % (R["cards_seen"], len(_dated), len(_eligible), _rfb.RECORD_FROM,
-      len(_carded)))
+# 🔴 `[2026-09-28]` ASKED OF THE LIVE TREE ONLY WHEN IT HOLDS THE CASE. The
+#    pointer question bites only if the pointer itself carries rows (a
+#    grader that graded an EMPTY pointer would drop it again), and a card
+#    whose season log is not stored yet (the first card of a new season)
+#    is skipped by the grader while this count kept it — red on correct
+#    code at every season rollover. ✅ The planted tree in §3b asks it every
+#    run; here the count is cards the grader CAN grade, derived from the
+#    tree (the log file exists), never from the grader's own skip list.
+_carded = [h for h in _carded
+           if os.path.exists(f"{ROOT}/data/ncaaf/latest/players-%s.json.gz"
+                             % h[len("fb-ncaaf-"):len("fb-ncaaf-") + 4])]
+_ptr = f"{ROOT}/picks/fb-ncaaf-latest.json"
+_ptr_rows = bool(os.path.exists(_ptr) and (load(_ptr).get("picks") or []))
+if _ptr_rows:
+    ck("`-latest.json` exists and is NOT counted as its own card",
+       "fb-ncaaf-latest.json" in have and R["cards_seen"] == len(_carded),
+       "%d cards seen, %d dated file(s) on disk, %d on or after the record "
+       "floor %s, %d of those carrying rows with a stored log"
+       % (R["cards_seen"], len(_dated), len(_eligible), _rfb.RECORD_FROM,
+          len(_carded)))
+else:
+    note("⚠️ NOT EXERCISED ON THE LIVE TREE: the college pointer %s — a "
+         "grader that counted it would not show. §3b's planted pointer asks it."
+         % ("holds no rows" if os.path.exists(_ptr) else "is not on disk"))
 if len(_carded) < len(_eligible):
-    note("⚠️ %d eligible card(s) hold ZERO rows and are not graded — a "
-         "day with nothing priced is a legitimate empty (rule 144), and "
-         "the file still exists on disk (rule 86)."
+    note("⚠️ %d eligible card(s) hold ZERO rows, or have no stored season "
+         "log yet, and are not graded — a day with nothing priced is a "
+         "legitimate empty (rule 144), and the file still exists on disk "
+         "(rule 86)."
          % (len(_eligible) - len(_carded)))
 if len(_eligible) < len(_dated):
     note(f"⚠️ {len(_dated) - len(_eligible)} card(s) predate the floor and "
@@ -268,58 +317,75 @@ HAND = {
     "player_anytime_td":    lambda g: (g.get("rec_td") or 0) + (g.get("rush_td") or 0),
 }
 
-agree = dis = 0
-mismatch = []
-unverifiable = []
-for date, rows in D["days"].items():
-    season = int(date[:4])
-    P = load(f"{ROOT}/data/ncaaf/latest/players-{season}.json.gz")["players"]
-    byname = {}
-    for pl in P.values():
-        byname.setdefault(hand_norm(pl.get("name")), []).append(pl)
-    for r in rows:
-        if r["won"] is None:
-            continue
-        # 🔴 "NOT IN THE LOG" AND "AMBIGUOUS" ARE DIFFERENT FACTS, AND
-        #    THIS REPORTED BOTH AS "name not unique by hand".
-        #    `[2026-09-10]` `len(cands) != 1` is true for ZERO matches as
-        #    well as two, so a player the hand lookup simply could not
-        #    find was announced as a duplicate — the wrong cause, which
-        #    is the failure mode this project keeps paying for.
-        # ⚠️ Neither is a grading disagreement: the control could not
-        #    RUN on that row. Counted separately and bounded below, so it
-        #    can never quietly stop verifying.
-        cands = byname.get(hand_norm(r["player"]), [])
-        if len(cands) == 0:
-            unverifiable.append((r["player"], "not found in the log"))
-            continue
-        if len(cands) > 1:
-            unverifiable.append((r["player"],
-                                 "%d players share this name — the "
-                                 "grader disambiguates by game, the hand "
-                                 "check cannot" % len(cands)))
-            continue
-        t = datetime.strptime(r["commence"][:10], "%Y-%m-%d")
-        hits = [g for g in cands[0]["g"]
-                if abs((datetime.strptime(g["d"], "%Y-%m-%d") - t).days) <= 1]
-        if len(hits) != 1:
-            # ⚠️ Also a control that could not run, not a wrong grade.
-            unverifiable.append((r["player"],
-                                 "%d games in the +/-1 day window" % len(hits)))
-            continue
-        v = float(HAND[r["market"]](hits[0]))
-        if r["side"] == "yes":
-            w = v >= 1
-        elif r["side"] == "over":
-            w = v > r["line"]
-        else:
-            w = v < r["line"]
-        if v == r["actual"] and bool(w) == r["won"]:
-            agree += 1
-        else:
-            dis += 1
-            mismatch.append((r["player"], r["market"], "grader", r["actual"],
-                             r["won"], "hand", v, w))
+# ⛔ EVERY MARKET THE GRADER CAN GRADE HAS AN INDEPENDENT HAND READER.
+#    `[2026-09-28]` A market added to `card_fb.MARKETS` without one used to
+#    surface as a KeyError the day the first card carrying it was graded —
+#    on production's timing, not in the PR that added it.
+ck("every market the grader can grade has a hand reader here",
+   set(record_fb.card_fb.MARKETS) <= set(HAND),
+   "missing: %s" % sorted(set(record_fb.card_fb.MARKETS) - set(HAND)))
+
+
+def hand_control(days, players_of):
+    """Every graded row re-derived from the raw log. -> (agree, dis,
+    mismatch, unverifiable). ⛔ ONE copy, run on the live record AND on the
+    planted trees below."""
+    agree = dis = 0
+    mismatch = []
+    unverifiable = []
+    for date, rows in days.items():
+        P = players_of(int(date[:4]))
+        byname = {}
+        for pl in P.values():
+            byname.setdefault(hand_norm(pl.get("name")), []).append(pl)
+        for r in rows:
+            if r["won"] is None:
+                continue
+            # 🔴 "NOT IN THE LOG" AND "AMBIGUOUS" ARE DIFFERENT FACTS, AND
+            #    THIS REPORTED BOTH AS "name not unique by hand".
+            #    `[2026-09-10]` `len(cands) != 1` is true for ZERO matches as
+            #    well as two, so a player the hand lookup simply could not
+            #    find was announced as a duplicate — the wrong cause, which
+            #    is the failure mode this project keeps paying for.
+            # ⚠️ Neither is a grading disagreement: the control could not
+            #    RUN on that row. Counted separately and bounded below, so it
+            #    can never quietly stop verifying.
+            cands = byname.get(hand_norm(r["player"]), [])
+            if len(cands) == 0:
+                unverifiable.append((r["player"], "not found in the log"))
+                continue
+            if len(cands) > 1:
+                unverifiable.append((r["player"],
+                                     "%d players share this name — the "
+                                     "grader disambiguates by game, the hand "
+                                     "check cannot" % len(cands)))
+                continue
+            t = datetime.strptime(r["commence"][:10], "%Y-%m-%d")
+            hits = [g for g in cands[0]["g"]
+                    if abs((datetime.strptime(g["d"], "%Y-%m-%d") - t).days) <= 1]
+            if len(hits) != 1:
+                # ⚠️ Also a control that could not run, not a wrong grade.
+                unverifiable.append((r["player"],
+                                     "%d games in the +/-1 day window" % len(hits)))
+                continue
+            v = float(HAND[r["market"]](hits[0]))
+            if r["side"] == "yes":
+                w = v >= 1
+            elif r["side"] == "over":
+                w = v > r["line"]
+            else:
+                w = v < r["line"]
+            if v == r["actual"] and bool(w) == r["won"]:
+                agree += 1
+            else:
+                dis += 1
+                mismatch.append((r["player"], r["market"], "grader", r["actual"],
+                                 r["won"], "hand", v, w))
+    return agree, dis, mismatch, unverifiable
+
+
+agree, dis, mismatch, unverifiable = hand_control(
+    D["days"], lambda s: load(f"{ROOT}/data/ncaaf/latest/players-{s}.json.gz")["players"])
 
 # 🔴 THREE OUTCOMES, NOT TWO — the same split the concentration check
 #    needed. A disagreement is a FAILURE; agreement on a real sample is a
@@ -328,13 +394,17 @@ for date, rows in D["days"].items():
 ck("no graded row disagrees with a hand re-derivation", dis == 0,
    "%d agree, %d disagree, %d unverifiable"
    % (agree, dis, len(unverifiable)))
+# ⛔ ~~if agree: ck("...and the control ran on a real sample", agree > 0)~~
+#    `[2026-09-28]` could not fail — it was asked only when true. Replaced
+#    by an EXACT count on the planted trees in §3b (every planted graded
+#    row re-derived, with literal expected values), which can.
 if agree:
-    ck("...and the control ran on a real sample", agree > 0,
-       "%d row(s) re-derived" % agree)
+    note("the hand control re-derived %d live row(s)" % agree)
 else:
-    note("⚠️ NOT EXERCISED: no graded rows, so the hand control had "
-         "nothing to check. Expected while the record counts from "
-         + str(R.get("record_from", "its start date")))
+    note("⚠️ NOT EXERCISED ON THE LIVE RECORD: no graded rows, so the hand "
+         "control had nothing to check here (the record counts from "
+         + str(R.get("record_from", "its start date"))
+         + "). The planted trees in §3b ran it.")
 
 # ══════════════════════════════════════════════════════════════════════
 # ⛔ A CONTROL THAT STOPS VERIFYING MUST FAIL, NOT GO QUIET.
@@ -357,6 +427,154 @@ if unverifiable:
          "'name not unique', which was wrong on both halves.")
 for m in mismatch[:6]:
     note("🔴 " + str(m))
+
+# ───────────────────────────────────────────────────────────────
+print("\n═══ 3b. 🔴 THE SAME QUESTIONS ON A PLANTED TREE, BOTH LEAGUES ═══")
+# 🔴 `[2026-09-28]` Everything above grades a copy of the LIVE cards, so its
+#    cases existed only while production held graded rows (pattern P3):
+#    after a record reset (Sam has done one), at a new season's floor, or on
+#    a day the newest card held no rows, "has graded rows" went RED on
+#    correct code and the n_games / pointer / hand-control / per-method
+#    checks passed over nothing. ✅ Each is ALSO asked, every run, of a
+#    tree this file writes — the e4b04844 (#156) shape: two graded cards
+#    under two methods, an empty card, the `-latest.json` pointer, and a
+#    log whose values are known before the grader runs. The floor is pinned
+#    below the planted dates, so a moved `RECORD_FROM` cannot empty it.
+_PL_DATES = ("2026-09-12", "2026-09-19")
+_PL_NAMES = ("Plant Alpha", "Plant Bravo", "Plant Charlie")
+
+
+def plant_fb(lg, root):
+    """Write the planted tree. -> {date: card}. Rec yds: Alpha 30, Bravo 50,
+    Charlie 70; every rated row is over 40.5, the unrated one under 3.5 rec."""
+    lat = os.path.join(root, "data", lg, "latest")
+    os.makedirs(lat)
+    os.makedirs(os.path.join(root, "picks"))
+    players = {"p%d" % k: {"name": nm, "pos": "WR", "g": [
+        {"d": d, "week": i + 1, "rec": 3 + k, "rec_yds": 30 + 20 * k, "car": 1,
+         "rush_yds": 5, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0,
+         "att": 0, "snaps": 40, "snap_pct": 0.8, "team": "T%d" % k}
+        for i, d in enumerate(_PL_DATES)]} for k, nm in enumerate(_PL_NAMES)}
+    with gzip.open(os.path.join(lat, "players-2026.json.gz"), "wt") as fh:
+        json.dump({"season": 2026, "players": players}, fh)
+    cards = {}
+    for d in _PL_DATES:
+        picks = [{"player": nm, "market": "player_reception_yds", "side": "over",
+                  "line": 40.5, "price": -110, "book": "fanduel",
+                  "confidence": 60 + 5 * k, "confidence_basis": "RECORD",
+                  "raw": "%d of 10" % (5 + k), "commence": d + "T17:00:00Z",
+                  "game": "A%d @ H%d" % (k, k)} for k, nm in enumerate(_PL_NAMES)]
+        picks.append({"player": _PL_NAMES[0], "market": "player_receptions",
+                      "side": "under", "line": 3.5, "price": -120, "book": "fanduel",
+                      "confidence_basis": "MARKET", "commence": d + "T17:00:00Z",
+                      "game": "A0 @ H0"})
+        cards[d] = {"date": d, "league": lg, "logs_season": 2025, "picks": picks}
+        if d == _PL_DATES[-1]:
+            cards[d]["card_method"] = "season-blend"
+    # ⚠️ a card with NO rows is not a card the grader sees
+    cards["2026-09-20"] = {"date": "2026-09-20", "league": lg, "logs_season": 2025,
+                           "picks": []}
+    for d, c in cards.items():
+        json.dump(c, open(os.path.join(root, "picks", "fb-%s-%s.json" % (lg, d)),
+                          "w", encoding="utf-8"))
+    # ⛔ THE POINTER: byte-for-byte the newest card WITH rows.
+    shutil.copy(os.path.join(root, "picks", "fb-%s-%s.json" % (lg, _PL_DATES[-1])),
+                os.path.join(root, "picks", "fb-%s-latest.json" % lg))
+    return cards
+
+
+def graded_planted(lg):
+    """record_fb.py over the planted tree. -> (rc, R, D, cards, players)."""
+    t = tempfile.mkdtemp(prefix="recfb-plant-")
+    try:
+        cards = plant_fb(lg, t)
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "record_fb.py")],
+                           cwd=t, env=dict(os.environ, LEAGUE=lg,
+                                           FB_RECORD_FROM="2026-09-01"),
+                           capture_output=True, text=True, timeout=300)
+        lat = os.path.join(t, "data", lg, "latest")
+        Rp = load(os.path.join(lat, "record.json")) if os.path.exists(os.path.join(lat, "record.json")) else {}
+        Dp = (load(os.path.join(lat, "record-detail.json.gz"))
+              if os.path.exists(os.path.join(lat, "record-detail.json.gz")) else {})
+        Pp = load(os.path.join(lat, "players-2026.json.gz"))["players"]
+        return p.returncode, Rp, Dp, cards, Pp
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+
+
+import subprocess  # noqa: E402
+_RAWRE_PL = re.compile(r"^\s*(\d+)\s+of\s+(\d+)\s*$")
+_PL_SEEN = {}
+for _lg in ("ncaaf", "nfl"):
+    _prc, _PR, _PD, _PC, _PP = graded_planted(_lg)
+    _prows = [r for day in (_PD.get("days") or {}).values() for r in day]
+    _prated = [r for r in _prows if r.get("confidence") is not None]
+    ck("🔴 %s PLANTED: the grader ran and graded both carded days" % _lg,
+       _prc == 0 and sorted((_PD.get("days") or {})) == list(_PL_DATES)
+       and len(_prows) == 8 and len(_prated) == 6,
+       "rc=%s days=%s rows=%d rated=%d" % (_prc, sorted(_PD.get("days") or {}),
+                                           len(_prows), len(_prated)))
+    ck("🔴 %s PLANTED: `-latest.json` is NOT a card, and neither is an empty one" % _lg,
+       _PR.get("cards_seen") == 2,
+       "⛔ the pointer is byte-for-byte the newest card; grading it would count "
+       "that day twice. cards_seen=%s of 2 carded dated files (+1 empty, +1 "
+       "pointer on disk)" % _PR.get("cards_seen"))
+    _pbad = [(r.get("player"), r.get("market")) for r in _prated
+             if not isinstance(r.get("n_games"), int) or isinstance(r.get("n_games"), bool)]
+    ck("🔴🔴 %s PLANTED: every rated row carries an INTEGER `n_games`" % _lg,
+       bool(_prated) and not _pbad,
+       "⛔ the `own_mean` failure in a new costume. Offenders: %s" % _pbad)
+    _pdrift = []
+    for _day, _rs in (_PD.get("days") or {}).items():
+        _by = {(p.get("player"), p.get("market"), p.get("side"), p.get("line")): p
+               for p in _PC[_day]["picks"]}
+        for _r in _rs:
+            _p = _by[(_r.get("player"), _r.get("market"), _r.get("side"), _r.get("line"))]
+            _m = _RAWRE_PL.match(str(_p.get("raw") or "")) if _p.get("raw") else None
+            if (_r.get("n_games"), _r.get("hits")) != ((int(_m.group(2)), int(_m.group(1)))
+                                                       if _m else (None, None)):
+                _pdrift.append((_day, _r.get("player"), _p.get("raw"), _r.get("n_games")))
+            if _r.get("logs_season") != _PC[_day]["logs_season"]:
+                _pdrift.append((_day, _r.get("player"), "logs_season", _r.get("logs_season")))
+    ck("🔴🔴 %s PLANTED: n_games, hits and logs_season EQUAL the card's own — "
+       "and the unrated row carries none" % _lg,
+       bool(_prows) and not _pdrift,
+       "⛔ CARRIED, NOT COMPUTED. Drift: %s" % _pdrift[:5])
+    _pa, _pdis, _pmis, _punv = hand_control(_PD.get("days") or {}, lambda s: _PP)
+    ck("🔴 %s PLANTED: the hand control re-derives EVERY graded row, and agrees" % _lg,
+       _pa == 8 and _pdis == 0 and not _punv,
+       "%d agree (of 8), %d disagree %s, %d unverifiable %s"
+       % (_pa, _pdis, _pmis[:2], len(_punv), _punv[:2]))
+    _bravo = [r for r in _prows if r["player"] == "Plant Bravo"]
+    _alpha = [r for r in _prows if r["player"] == "Plant Alpha"
+              and r["market"] == "player_reception_yds"]
+    ck("🔴 %s PLANTED: the grader's answers are the KNOWN ones" % _lg,
+       len(_bravo) == 2 and all(r["actual"] == 50.0 and r["won"] is True for r in _bravo)
+       and len(_alpha) == 2 and all(r["actual"] == 30.0 and r["won"] is False for r in _alpha),
+       "Bravo over 40.5 on 50 yds must WIN, Alpha on 30 must LOSE. got %s / %s"
+       % ([(r["actual"], r["won"]) for r in _bravo], [(r["actual"], r["won"]) for r in _alpha]))
+    _PL_SEEN[_lg] = len(_prated)
+ck("🔴 PLANTED: the denominator reached EACH league, not a total across them",
+   all(_PL_SEEN.get(lg) == 6 for lg in ("ncaaf", "nfl")),
+   "⛔ Sam's standing rule: everything we do for cfb we do for nfl. %s" % _PL_SEEN)
+
+# ⚠️ THE PER-METHOD BUCKETS, ON PLANTED ROWS: two methods whose buckets
+#    differ, so pooling them, dropping one, or handing back the wrong one
+#    as `calibration` each changes the answer — whatever the live record
+#    holds today (it holds one method after a reset).
+_cm_rows = ([{"confidence": c, "won": w} for c, w in ((72, True), (75, False), (78, True))]
+            + [{"confidence": c, "won": w, "card_method": "season-blend"}
+               for c, w in ((85, True), (88, True))]
+            + [{"confidence": None, "won": True, "card_method": "season-blend"}])
+_cm_now, _cm_by = record_fb.calibration_by_method(_cm_rows, "season-blend")
+ck("🔴 PLANTED: every row with a confidence is in exactly its OWN method's buckets",
+   {m: sum(c["n"] for c in v) for m, v in _cm_by.items()}
+   == {record_fb.METHOD_BEFORE: 3, "season-blend": 2},
+   "got %s" % {m: sum(c["n"] for c in v) for m, v in _cm_by.items()})
+ck("🔴 PLANTED: `calibration` is the CURRENT method's buckets, not another's",
+   _cm_now == _cm_by.get("season-blend") and _cm_now != _cm_by.get(record_fb.METHOD_BEFORE)
+   and [c["bucket"] for c in _cm_now] == ["80-90%"],
+   "got %s" % _cm_now)
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 4. NOTHING UNSETTLED LEAKS INTO A PERCENTAGE ═══")
@@ -668,7 +886,14 @@ def _regrade(lg):
     return p.returncode, det, cards
 
 
-_seen_any = 0
+# 🔴 `[2026-09-28]` THE LIVE REGRADE IS NOW THE EXTRA, NOT THE ONLY CASE.
+#    Every question in this section is asked of the planted trees in §3b on
+#    every run. Here, "has graded rows" is asserted only when the live INPUT
+#    can produce them — a carded card on or after the floor whose season log
+#    is stored — so a record reset or a new season's floor is REPORTED
+#    instead of turning the suite red; and a grader that silently produces
+#    nothing from a gradeable card still fails.
+_seen_any = {}
 for _lg in ("ncaaf", "nfl"):
     _rc, _det, _cards = _regrade(_lg)
     ck("⚠️ %s regrades clean in an isolated tree" % _lg, _rc == 0,
@@ -676,10 +901,21 @@ for _lg in ("ncaaf", "nfl"):
     _rows = [r for day in (_det.get("days") or {}).values() for r in day]
     _rated = [r for r in _rows if r.get("confidence") is not None]
     _withn = [r for r in _rated if r.get("n_games") is not None]
-    _seen_any += len(_withn)
-    ck("⚠️ %s has graded rows to check at all" % _lg, bool(_rows),
-       "⛔ a check over an empty set passes and proves nothing — rule 67. "
-       "Got %d row(s)" % len(_rows))
+    _seen_any[_lg] = len(_withn)
+    _gradeable = [d for d, c in _cards.items()
+                  if str(d) >= record_fb.RECORD_FROM and (c.get("league") or "") == _lg
+                  and c.get("picks")
+                  and os.path.exists("%s/data/%s/latest/players-%s.json.gz"
+                                     % (ROOT, _lg, str(d)[:4]))]
+    if _gradeable:
+        ck("⚠️ %s has graded rows to check at all" % _lg, bool(_rows),
+           "⛔ a check over an empty set passes and proves nothing — rule 67. "
+           "%d gradeable live card(s), got %d row(s)" % (len(_gradeable), len(_rows)))
+    else:
+        note("⚠️ NOT EXERCISED ON THE LIVE %s RECORD: no carded card on or after "
+             "%s has its season log stored — a reset or a new season. §3b's "
+             "planted tree asked every question below." % (_lg, record_fb.RECORD_FROM))
+        continue
     # 🔴🔴 THE GUARD SAM ASKED FOR.
     _bad = [(r.get("player"), r.get("market")) for r in _rated
             if r.get("n_games") is None]
@@ -744,12 +980,12 @@ for _lg in ("ncaaf", "nfl"):
        "everywhere AND the cards also lack it — this pins that it is "
        "really being carried")
 
-ck("🔴 the denominator reached BOTH leagues, not just the one this file "
-   "grades by default",
-   _seen_any > 0,
-   "⛔ Sam's standing rule: everything we do for cfb we do for nfl. A "
-   "guard that sweeps one league covers one league. Got %d row(s) total"
-   % _seen_any)
+# ⛔ ~~ck("the denominator reached BOTH leagues", _seen_any > 0)~~ — a TOTAL
+#    across both leagues, so one league at zero still passed its label, and
+#    an empty live record reddened it on correct code. `[2026-09-28]` The
+#    per-league form is asserted on the planted trees in §3b ("reached EACH
+#    league"); the live counts are reported.
+note("the denominator on the live records, per league: %s" % _seen_any)
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that `n_games` is right to use, or "
      "that any test should split on it. It claims the number the board "

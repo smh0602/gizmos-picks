@@ -24,7 +24,7 @@ import subprocess
 import sys
 import tempfile
 
-from tcheck import ck, note, section, copy_module
+from tcheck import ck, note, section, copy_module, shown
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -47,6 +47,21 @@ import nfl  # noqa: E402
 #   file: nfl.py
 #   find: if len(teams) < TOP_MIN_TEAMS:
 #   with: if False:
+#
+# @vacuity 🔴 "the run produced a card" means THIS run wrote it, not a copy the tree started with
+#   file: card_fb.py
+#   find: with open(path, "w") as fh:
+#   with: with open(os.devnull, "w") as fh:
+#   ⚠️ `[2026-09-28]` The old glob stayed GREEN under this: `tree()` copies
+#      every published card, so the glob was never empty.
+#
+# @vacuity ⛔ `card-fb converge-off` runs the mode ALONE and reaches no network
+#   file: collect.py
+#   find: if "converge-off" in args or not _fresh.has_contract(LEAGUE):
+#   with: if not _fresh.has_contract(LEAGUE):
+#   ⚠️ OFFLINE EVEN UNDER THE MUTATION: the child refuses every lookup and
+#      connect, so the converge this lets in is COUNTED, not sent. The
+#      tree's news.json is stripped so converge always has one to plan.
 #
 # 📌 THE OTHER TWO POSSESSION MUTATIONS MOVED WITH THE CODE THEY DRIVE.
 #    `"seconds": int(...)` and the per-drive key now live in
@@ -168,24 +183,90 @@ ck('"fb-record": "card-fb"' in _FBFRESH
 # ══════════════════════════════════════════════════════════════════════
 PRODUCED = ("data/nfl/latest/t54.json",
             "data/nfl/latest/dossiers.json.gz")
+# ⚠️ STRIPPED FOR THE FENCE, NOT FOR THE MODE: `card-fb` never reads it.
+#    Without it `news` is always due, so a converge that sneaks back in
+#    always has a network mode to plan — and the fence below counts it.
+NETWORK_BAIT = "data/nfl/latest/news.json"
+# 🔴 EVERY CARD `tree()` COPIES IS STAMPED THIS (2000-01-01). `[2026-09-28]`
+#    "the run produced a card" globbed `picks/fb-nfl-2*.json` in a tree that
+#    already held every published card, so it was green whether or not the
+#    run wrote one. A newer mtime now means THIS run wrote it.
+OLD = 946684800
+
+# ⛔ THE CHILD CANNOT REACH THE NETWORK, BY CONSTRUCTION. `[2026-09-28]`
+#    `collect.py card-fb` without `converge-off` converged the whole NFL
+#    contract from this file: it fetched news from cbssports and
+#    profootballtalk on every run (4 attempts per run, measured), and it
+#    plans the PAID modes whenever they are due — refused only because
+#    CI's Tests step has no key. This runs the real collector with every
+#    lookup and connect refused and COUNTED. ⚠️ The same fence as
+#    `test_shadow_fb.py`'s; `test_collect_subprocess.py` fails if the two
+#    drift apart.
+OFFLINE = (
+    "import atexit, runpy, socket, sys\n"
+    "_refused = []\n"
+    "def _refuse(*a, **k):\n"
+    "    _refused.append(repr(a[:1]))\n"
+    "    raise OSError('OFFLINE: a test may not reach the network')\n"
+    "socket.getaddrinfo = _refuse\n"
+    "socket.socket.connect = lambda self, *a, **k: _refuse(*a)\n"
+    "atexit.register(lambda: print('OFFLINE FENCE: %d network attempt(s) "
+    "refused %s' % (len(_refused), _refused[:3]), flush=True))\n"
+    "#PIN\n"
+    "sys.argv = ['collect.py'] + sys.argv[1:]\n"
+    "runpy.run_path('collect.py', run_name='__main__')\n")
 
 
 def tree():
     d = tempfile.mkdtemp(prefix="accum-")
     shutil.copytree(os.path.join(ROOT, "data", "nfl"),
                     os.path.join(d, "data", "nfl"))
-    for _rel in PRODUCED:
+    for _rel in PRODUCED + (NETWORK_BAIT,):
         _p = os.path.join(d, _rel)
         if os.path.exists(_p):
             os.remove(_p)
     os.makedirs(os.path.join(d, "picks"), exist_ok=True)
     for f in glob.glob(os.path.join(ROOT, "picks", "fb-nfl-*.json")):
         shutil.copy(f, os.path.join(d, "picks"))
+        os.utime(os.path.join(d, "picks", os.path.basename(f)), (OLD, OLD))
     copy_module("collect", d)
     copy_module("card_fb", d)
     copy_module("dossier_fb", d)
     copy_module("t54", d)
     return d
+
+
+def card_fb_alone(d):
+    """`card-fb converge-off` in `d`: keys blank, network fenced.
+    -> (returncode, output)"""
+    r = subprocess.run([sys.executable, "-c", OFFLINE, "card-fb",
+                        "converge-off"], cwd=d, timeout=1200,
+                       capture_output=True, text=True,
+                       env=dict(os.environ, LEAGUE="nfl", ODDS_API_KEY="",
+                                CFBD_API_KEY=""))
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def written(d):
+    """The dated NFL cards THIS run wrote — never the copies `tree()` made."""
+    return sorted(os.path.basename(f) for f in
+                  glob.glob(os.path.join(d, "picks", "fb-nfl-2*.json"))
+                  if os.stat(f).st_mtime > OLD + 1)
+
+
+def ran_alone(out, what):
+    """The two checks every card-fb run here must pass."""
+    ck("FRESHNESS SURVEY" not in out and "PLAN:" not in out,
+       "   ⛔ ...and %s ran ALONE: no converge pass, so no other mode, no "
+       "network mode and no paid pull was planned" % what,
+       "🔴 `collect.py <mode>` without `converge-off` converges every "
+       "overdue artifact. %s" % shown([ln for ln in out.splitlines()
+                                       if "PLAN:" in ln][:1]))
+    ck("OFFLINE FENCE: 0 network attempt(s) refused" in out,
+       "   ⛔ ...and made NO network attempt (every lookup and connect "
+       "was fenced and counted)",
+       "🔴 a test must not depend on the network. %s"
+       % shown([ln for ln in out.splitlines() if "OFFLINE FENCE" in ln][:1]))
 
 
 section("2. 🔴 t54.json IS PRODUCED BY RUNNING THE REAL MODE")
@@ -198,14 +279,15 @@ ck(not os.path.exists(_p54),
    "⛔ finding a file that was already there proves nothing — and since "
    "`card-fb` started writing one in production, `copytree` brings it "
    "along, which is what turned this red on main. `tree()` strips it.")
-_r = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d,
-                    timeout=1200, capture_output=True, text=True,
-                    env=dict(os.environ, LEAGUE="nfl"))
-_out = _r.stdout + _r.stderr
+# ⛔ `[2026-09-28]` ~~`collect.py card-fb`~~ -> `card-fb converge-off`,
+#    keys blanked, network fenced (see OFFLINE). T54 is the question here;
+#    converging the rest of the NFL contract is not.
+_rc, _out = card_fb_alone(_d)
 ck(os.path.exists(_p54),
    "🔴🔴 RUNNING `card-fb` WRITES t54.json",
    "⛔ THE RUN HAS TO PRODUCE IT. The tree was cleared above, so finding "
-   "it here means this run wrote it. rc=%s %s" % (_r.returncode, _out[-300:]))
+   "it here means this run wrote it. rc=%s %s" % (_rc, shown(_out[-300:])))
+ran_alone(_out, "`card-fb`")
 _T = json.load(open(_p54, encoding="utf-8")) if os.path.exists(_p54) else {}
 ck(bool(_T.get("test") == "T54" and _T.get("verdict")),
    "   ...carrying a real verdict (%s)" % _T.get("verdict"),
@@ -218,23 +300,29 @@ ck((_T.get("rows_with_own_mean") or 0) > 0,
 
 section("3. ⛔ THE CARD STILL SHIPS IF AN ACCUMULATOR FAILS")
 # 🔴 The card is the product; a counter is a note about it.
-_cards = glob.glob(os.path.join(_d, "picks", "fb-nfl-2*.json"))
-ck(_cards, "⚠️ the same run produced a card", _out[-200:])
+# 🔴 `[2026-09-28]` WRITTEN BY THIS RUN, not found in the tree: `tree()`
+#    copies every published card, so the old glob was never empty and both
+#    checks below stayed green whether the run wrote a card or lost it.
+_copied = len(glob.glob(os.path.join(ROOT, "picks", "fb-nfl-2*.json")))
+_cards = written(_d)
+ck(_cards, "⚠️ the same run WROTE a card (%s), not one of the %d copies "
+   "the tree started with" % (_cards, _copied), shown(_out[-200:]))
 _d2 = tree()
 _t54p = os.path.join(_d2, "t54.py")
 open(_t54p, "w", encoding="utf-8").write(
     "raise RuntimeError('t54 is deliberately broken for this check')\n")
-_r2 = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d2,
-                     timeout=1200, capture_output=True, text=True,
-                     env=dict(os.environ, LEAGUE="nfl"))
-_cards2 = glob.glob(os.path.join(_d2, "picks", "fb-nfl-2*.json"))
+_rc2, _out2 = card_fb_alone(_d2)
+_cards2 = written(_d2)
 ck(_cards2,
-   "🔴🔴 A BROKEN ACCUMULATOR DOES NOT LOSE THE CARD",
-   "⛔ the card is the product. rc=%s %s"
-   % (_r2.returncode, (_r2.stdout + _r2.stderr)[-300:]))
-ck("T54 did not run" in (_r2.stdout + _r2.stderr),
+   "🔴🔴 A BROKEN ACCUMULATOR DOES NOT LOSE THE CARD (this run wrote %s)"
+   % _cards2,
+   "⛔ the card is the product. rc=%s %s" % (_rc2, shown(_out2[-300:])))
+ck("T54 did not run" in _out2,
    "   ...and the failure is LOGGED, not swallowed",
    "🔴 a counter that fails silently is the same defect one level down")
+ran_alone(_out2, "the broken-accumulator run")
+for _t in (_d, _d2):
+    shutil.rmtree(_t, ignore_errors=True)
 
 section("4. 📌 THE POSSESSION ARTIFACT — WIRED HERE, JUDGED ELSEWHERE")
 # ⛔ THE POSSESSION GUARDS MOVED, THEY WERE NOT DROPPED, and they got

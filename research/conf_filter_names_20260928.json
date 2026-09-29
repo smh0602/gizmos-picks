@@ -1,0 +1,854 @@
+{
+ "what": "RECORDED real college team names, as the board, card, schedule and trends files spelled them, each classed FBS by the schedule, plus CFBD's FBS directory (name -> conference). test_conf_filter.py asserts the page's resolver on THIS every run; the live files are the extra.",
+ "recorded_from": "data/ncaaf/latest/{board.json, schedule-2026.json.gz, allowed-by-position-2026.json.gz, teams.json} and picks/fb-ncaaf-latest.json at commit 78f3d91a",
+ "teams_built_at": "2026-09-28T15:52:31Z",
+ "names": {
+  "board · FBS": [
+   "Air Force Falcons",
+   "Akron Zips",
+   "Alabama Crimson Tide",
+   "Arizona State Sun Devils",
+   "Arizona Wildcats",
+   "Arkansas Razorbacks",
+   "Arkansas State Red Wolves",
+   "Army Black Knights",
+   "Auburn Tigers",
+   "BYU Cougars",
+   "Ball State Cardinals",
+   "Baylor Bears",
+   "Boise State Broncos",
+   "Boston College Eagles",
+   "Bowling Green Falcons",
+   "Buffalo Bulls",
+   "California Golden Bears",
+   "Central Michigan Chippewas",
+   "Charlotte 49ers",
+   "Cincinnati Bearcats",
+   "Clemson Tigers",
+   "Coastal Carolina Chanticleers",
+   "Colorado Buffaloes",
+   "Colorado State Rams",
+   "Delaware Blue Hens",
+   "Eastern Michigan Eagles",
+   "Florida Gators",
+   "Florida State Seminoles",
+   "Fresno State Bulldogs",
+   "Georgia Bulldogs",
+   "Georgia Southern Eagles",
+   "Georgia State Panthers",
+   "Hawaii Rainbow Warriors",
+   "Houston Cougars",
+   "Illinois Fighting Illini",
+   "Indiana Hoosiers",
+   "Iowa Hawkeyes",
+   "Iowa State Cyclones",
+   "James Madison Dukes",
+   "Kansas Jayhawks",
+   "Kent State Golden Flashes",
+   "Kentucky Wildcats",
+   "Liberty Flames",
+   "Louisiana Ragin Cajuns",
+   "Louisiana Tech Bulldogs",
+   "Louisville Cardinals",
+   "Marshall Thundering Herd",
+   "Maryland Terrapins",
+   "Memphis Tigers",
+   "Miami (OH) RedHawks",
+   "Miami Hurricanes",
+   "Michigan State Spartans",
+   "Michigan Wolverines",
+   "Middle Tennessee Blue Raiders",
+   "Minnesota Golden Gophers",
+   "Mississippi State Bulldogs",
+   "Missouri Tigers",
+   "NC State Wolfpack",
+   "Navy Midshipmen",
+   "Nebraska Cornhuskers",
+   "New Mexico Lobos",
+   "New Mexico State Aggies",
+   "North Carolina Tar Heels",
+   "North Dakota State Bison",
+   "North Texas Mean Green",
+   "Northwestern Wildcats",
+   "Notre Dame Fighting Irish",
+   "Ohio Bobcats",
+   "Ohio State Buckeyes",
+   "Old Dominion Monarchs",
+   "Oregon State Beavers",
+   "Penn State Nittany Lions",
+   "Pittsburgh Panthers",
+   "Purdue Boilermakers",
+   "Rice Owls",
+   "Rutgers Scarlet Knights",
+   "SMU Mustangs",
+   "San Diego State Aztecs",
+   "South Alabama Jaguars",
+   "South Carolina Gamecocks",
+   "South Florida Bulls",
+   "Stanford Cardinal",
+   "Syracuse Orange",
+   "TCU Horned Frogs",
+   "Temple Owls",
+   "Tennessee Volunteers",
+   "Texas A&M Aggies",
+   "Texas State Bobcats",
+   "Texas Tech Red Raiders",
+   "Toledo Rockets",
+   "Tulsa Golden Hurricane",
+   "UCF Knights",
+   "UConn Huskies",
+   "UL Monroe Warhawks",
+   "UMass Minutemen",
+   "UNLV Rebels",
+   "USC Trojans",
+   "UTEP Miners",
+   "UTSA Roadrunners",
+   "Utah State Aggies",
+   "Vanderbilt Commodores",
+   "Virginia Cavaliers",
+   "Virginia Tech Hokies",
+   "Wake Forest Demon Deacons",
+   "Washington Huskies",
+   "Washington State Cougars",
+   "West Virginia Mountaineers",
+   "Western Kentucky Hilltoppers",
+   "Western Michigan Broncos",
+   "Wisconsin Badgers",
+   "Wyoming Cowboys"
+  ],
+  "card · FBS": [
+   "Alabama Crimson Tide",
+   "Appalachian State Mountaineers",
+   "Arizona Wildcats",
+   "Arkansas Razorbacks",
+   "Baylor Bears",
+   "Boston College Eagles",
+   "Colorado Buffaloes",
+   "Delaware Blue Hens",
+   "Florida Gators",
+   "Kentucky Wildcats",
+   "LSU Tigers",
+   "Louisville Cardinals",
+   "Maryland Terrapins",
+   "Mississippi State Bulldogs",
+   "Missouri State Bears",
+   "Missouri Tigers",
+   "NC State Wolfpack",
+   "Notre Dame Fighting Irish",
+   "Ole Miss Rebels",
+   "Penn State Nittany Lions",
+   "Purdue Boilermakers",
+   "SMU Mustangs",
+   "Sam Houston State Bearkats",
+   "South Alabama Jaguars",
+   "South Carolina Gamecocks",
+   "TCU Horned Frogs",
+   "Texas A&M Aggies",
+   "Texas Tech Red Raiders",
+   "Tulsa Golden Hurricane",
+   "UCF Knights",
+   "UCLA Bruins",
+   "Virginia Cavaliers",
+   "Virginia Tech Hokies",
+   "Wake Forest Demon Deacons",
+   "Washington State Cougars",
+   "Wisconsin Badgers"
+  ],
+  "schedule · FBS": [
+   "Air Force",
+   "Akron",
+   "Alabama",
+   "App State",
+   "Arizona",
+   "Arizona State",
+   "Arkansas",
+   "Arkansas State",
+   "Army",
+   "Auburn",
+   "BYU",
+   "Ball State",
+   "Baylor",
+   "Boise State",
+   "Boston College",
+   "Bowling Green",
+   "Buffalo",
+   "California",
+   "Central Michigan",
+   "Charlotte",
+   "Cincinnati",
+   "Clemson",
+   "Coastal Carolina",
+   "Colorado",
+   "Colorado State",
+   "Delaware",
+   "Duke",
+   "East Carolina",
+   "Eastern Michigan",
+   "Florida",
+   "Florida Atlantic",
+   "Florida International",
+   "Florida State",
+   "Fresno State",
+   "Georgia",
+   "Georgia Southern",
+   "Georgia State",
+   "Georgia Tech",
+   "Hawai'i",
+   "Houston",
+   "Illinois",
+   "Indiana",
+   "Iowa",
+   "Iowa State",
+   "Jacksonville State",
+   "James Madison",
+   "Kansas",
+   "Kansas State",
+   "Kennesaw State",
+   "Kent State",
+   "Kentucky",
+   "LSU",
+   "Liberty",
+   "Louisiana",
+   "Louisiana Tech",
+   "Louisville",
+   "Marshall",
+   "Maryland",
+   "Massachusetts",
+   "Memphis",
+   "Miami",
+   "Miami (OH)",
+   "Michigan",
+   "Michigan State",
+   "Middle Tennessee",
+   "Minnesota",
+   "Mississippi State",
+   "Missouri",
+   "Missouri State",
+   "NC State",
+   "Navy",
+   "Nebraska",
+   "Nevada",
+   "New Mexico",
+   "New Mexico State",
+   "North Carolina",
+   "North Dakota State",
+   "North Texas",
+   "Northern Illinois",
+   "Northwestern",
+   "Notre Dame",
+   "Ohio",
+   "Ohio State",
+   "Oklahoma",
+   "Oklahoma State",
+   "Old Dominion",
+   "Ole Miss",
+   "Oregon",
+   "Oregon State",
+   "Penn State",
+   "Pittsburgh",
+   "Purdue",
+   "Rice",
+   "Rutgers",
+   "SMU",
+   "Sacramento State",
+   "Sam Houston",
+   "San Diego State",
+   "San José State",
+   "South Alabama",
+   "South Carolina",
+   "South Florida",
+   "Southern Miss",
+   "Stanford",
+   "Syracuse",
+   "TCU",
+   "Temple",
+   "Tennessee",
+   "Texas",
+   "Texas A&M",
+   "Texas State",
+   "Texas Tech",
+   "Toledo",
+   "Troy",
+   "Tulane",
+   "Tulsa",
+   "UAB",
+   "UCF",
+   "UCLA",
+   "UConn",
+   "UL Monroe",
+   "UNLV",
+   "USC",
+   "UTEP",
+   "UTSA",
+   "Utah",
+   "Utah State",
+   "Vanderbilt",
+   "Virginia",
+   "Virginia Tech",
+   "Wake Forest",
+   "Washington",
+   "Washington State",
+   "West Virginia",
+   "Western Kentucky",
+   "Western Michigan",
+   "Wisconsin",
+   "Wyoming"
+  ],
+  "trends · FBS": [
+   "Air Force",
+   "Akron",
+   "Alabama",
+   "App State",
+   "Arizona",
+   "Arizona State",
+   "Arkansas",
+   "Arkansas State",
+   "Army",
+   "Auburn",
+   "BYU",
+   "Ball State",
+   "Baylor",
+   "Boise State",
+   "Boston College",
+   "Bowling Green",
+   "Buffalo",
+   "California",
+   "Central Michigan",
+   "Charlotte",
+   "Cincinnati",
+   "Clemson",
+   "Coastal Carolina",
+   "Colorado",
+   "Colorado State",
+   "Delaware",
+   "Duke",
+   "East Carolina",
+   "Eastern Michigan",
+   "Florida",
+   "Florida Atlantic",
+   "Florida International",
+   "Florida State",
+   "Fresno State",
+   "Georgia",
+   "Georgia Southern",
+   "Georgia State",
+   "Georgia Tech",
+   "Hawai'i",
+   "Houston",
+   "Illinois",
+   "Indiana",
+   "Iowa",
+   "Iowa State",
+   "Jacksonville State",
+   "James Madison",
+   "Kansas",
+   "Kansas State",
+   "Kennesaw State",
+   "Kent State",
+   "Kentucky",
+   "LSU",
+   "Liberty",
+   "Louisiana",
+   "Louisiana Tech",
+   "Louisville",
+   "Marshall",
+   "Maryland",
+   "Massachusetts",
+   "Memphis",
+   "Miami",
+   "Miami (OH)",
+   "Michigan",
+   "Michigan State",
+   "Middle Tennessee",
+   "Minnesota",
+   "Mississippi State",
+   "Missouri",
+   "Missouri State",
+   "NC State",
+   "Navy",
+   "Nebraska",
+   "Nevada",
+   "New Mexico",
+   "New Mexico State",
+   "North Carolina",
+   "North Dakota State",
+   "North Texas",
+   "Northern Illinois",
+   "Northwestern",
+   "Notre Dame",
+   "Ohio",
+   "Ohio State",
+   "Oklahoma",
+   "Oklahoma State",
+   "Old Dominion",
+   "Ole Miss",
+   "Oregon",
+   "Oregon State",
+   "Penn State",
+   "Pittsburgh",
+   "Purdue",
+   "Rice",
+   "Rutgers",
+   "SMU",
+   "Sacramento State",
+   "Sam Houston",
+   "San Diego State",
+   "San José State",
+   "South Alabama",
+   "South Carolina",
+   "South Florida",
+   "Southern Miss",
+   "Stanford",
+   "Syracuse",
+   "TCU",
+   "Temple",
+   "Tennessee",
+   "Texas",
+   "Texas A&M",
+   "Texas State",
+   "Texas Tech",
+   "Toledo",
+   "Troy",
+   "Tulane",
+   "Tulsa",
+   "UAB",
+   "UCF",
+   "UCLA",
+   "UConn",
+   "UL Monroe",
+   "UNLV",
+   "USC",
+   "UTEP",
+   "UTSA",
+   "Utah",
+   "Utah State",
+   "Vanderbilt",
+   "Virginia",
+   "Virginia Tech",
+   "Wake Forest",
+   "Washington",
+   "Washington State",
+   "West Virginia",
+   "Western Kentucky",
+   "Western Michigan",
+   "Wisconsin",
+   "Wyoming"
+  ]
+ },
+ "teams": {
+  "Air Force": {
+   "conference": "Mountain West"
+  },
+  "Akron": {
+   "conference": "Mid-American"
+  },
+  "Alabama": {
+   "conference": "SEC"
+  },
+  "App State": {
+   "conference": "Sun Belt"
+  },
+  "Arizona": {
+   "conference": "Big 12"
+  },
+  "Arizona State": {
+   "conference": "Big 12"
+  },
+  "Arkansas": {
+   "conference": "SEC"
+  },
+  "Arkansas State": {
+   "conference": "Sun Belt"
+  },
+  "Army": {
+   "conference": "American Athletic"
+  },
+  "Auburn": {
+   "conference": "SEC"
+  },
+  "BYU": {
+   "conference": "Big 12"
+  },
+  "Ball State": {
+   "conference": "Mid-American"
+  },
+  "Baylor": {
+   "conference": "Big 12"
+  },
+  "Boise State": {
+   "conference": "Pac-12"
+  },
+  "Boston College": {
+   "conference": "ACC"
+  },
+  "Bowling Green": {
+   "conference": "Mid-American"
+  },
+  "Buffalo": {
+   "conference": "Mid-American"
+  },
+  "California": {
+   "conference": "ACC"
+  },
+  "Central Michigan": {
+   "conference": "Mid-American"
+  },
+  "Charlotte": {
+   "conference": "American Athletic"
+  },
+  "Cincinnati": {
+   "conference": "Big 12"
+  },
+  "Clemson": {
+   "conference": "ACC"
+  },
+  "Coastal Carolina": {
+   "conference": "Sun Belt"
+  },
+  "Colorado": {
+   "conference": "Big 12"
+  },
+  "Colorado State": {
+   "conference": "Pac-12"
+  },
+  "Delaware": {
+   "conference": "Conference USA"
+  },
+  "Duke": {
+   "conference": "ACC"
+  },
+  "East Carolina": {
+   "conference": "American Athletic"
+  },
+  "Eastern Michigan": {
+   "conference": "Mid-American"
+  },
+  "Florida": {
+   "conference": "SEC"
+  },
+  "Florida Atlantic": {
+   "conference": "American Athletic"
+  },
+  "Florida International": {
+   "conference": "Conference USA"
+  },
+  "Florida State": {
+   "conference": "ACC"
+  },
+  "Fresno State": {
+   "conference": "Pac-12"
+  },
+  "Georgia": {
+   "conference": "SEC"
+  },
+  "Georgia Southern": {
+   "conference": "Sun Belt"
+  },
+  "Georgia State": {
+   "conference": "Sun Belt"
+  },
+  "Georgia Tech": {
+   "conference": "ACC"
+  },
+  "Hawai'i": {
+   "conference": "Mountain West"
+  },
+  "Houston": {
+   "conference": "Big 12"
+  },
+  "Illinois": {
+   "conference": "Big Ten"
+  },
+  "Indiana": {
+   "conference": "Big Ten"
+  },
+  "Iowa": {
+   "conference": "Big Ten"
+  },
+  "Iowa State": {
+   "conference": "Big 12"
+  },
+  "Jacksonville State": {
+   "conference": "Conference USA"
+  },
+  "James Madison": {
+   "conference": "Sun Belt"
+  },
+  "Kansas": {
+   "conference": "Big 12"
+  },
+  "Kansas State": {
+   "conference": "Big 12"
+  },
+  "Kennesaw State": {
+   "conference": "Conference USA"
+  },
+  "Kent State": {
+   "conference": "Mid-American"
+  },
+  "Kentucky": {
+   "conference": "SEC"
+  },
+  "LSU": {
+   "conference": "SEC"
+  },
+  "Liberty": {
+   "conference": "Conference USA"
+  },
+  "Louisiana": {
+   "conference": "Sun Belt"
+  },
+  "Louisiana Tech": {
+   "conference": "Sun Belt"
+  },
+  "Louisville": {
+   "conference": "ACC"
+  },
+  "Marshall": {
+   "conference": "Sun Belt"
+  },
+  "Maryland": {
+   "conference": "Big Ten"
+  },
+  "Massachusetts": {
+   "conference": "Mid-American"
+  },
+  "Memphis": {
+   "conference": "American Athletic"
+  },
+  "Miami": {
+   "conference": "ACC"
+  },
+  "Miami (OH)": {
+   "conference": "Mid-American"
+  },
+  "Michigan": {
+   "conference": "Big Ten"
+  },
+  "Michigan State": {
+   "conference": "Big Ten"
+  },
+  "Middle Tennessee": {
+   "conference": "Conference USA"
+  },
+  "Minnesota": {
+   "conference": "Big Ten"
+  },
+  "Mississippi State": {
+   "conference": "SEC"
+  },
+  "Missouri": {
+   "conference": "SEC"
+  },
+  "Missouri State": {
+   "conference": "Conference USA"
+  },
+  "NC State": {
+   "conference": "ACC"
+  },
+  "Navy": {
+   "conference": "American Athletic"
+  },
+  "Nebraska": {
+   "conference": "Big Ten"
+  },
+  "Nevada": {
+   "conference": "Mountain West"
+  },
+  "New Mexico": {
+   "conference": "Mountain West"
+  },
+  "New Mexico State": {
+   "conference": "Conference USA"
+  },
+  "North Carolina": {
+   "conference": "ACC"
+  },
+  "North Dakota State": {
+   "conference": "Mountain West"
+  },
+  "North Texas": {
+   "conference": "American Athletic"
+  },
+  "Northern Illinois": {
+   "conference": "Mountain West"
+  },
+  "Northwestern": {
+   "conference": "Big Ten"
+  },
+  "Notre Dame": {
+   "conference": "FBS Independents"
+  },
+  "Ohio": {
+   "conference": "Mid-American"
+  },
+  "Ohio State": {
+   "conference": "Big Ten"
+  },
+  "Oklahoma": {
+   "conference": "SEC"
+  },
+  "Oklahoma State": {
+   "conference": "Big 12"
+  },
+  "Old Dominion": {
+   "conference": "Sun Belt"
+  },
+  "Ole Miss": {
+   "conference": "SEC"
+  },
+  "Oregon": {
+   "conference": "Big Ten"
+  },
+  "Oregon State": {
+   "conference": "Pac-12"
+  },
+  "Penn State": {
+   "conference": "Big Ten"
+  },
+  "Pittsburgh": {
+   "conference": "ACC"
+  },
+  "Purdue": {
+   "conference": "Big Ten"
+  },
+  "Rice": {
+   "conference": "American Athletic"
+  },
+  "Rutgers": {
+   "conference": "Big Ten"
+  },
+  "SMU": {
+   "conference": "ACC"
+  },
+  "Sacramento State": {
+   "conference": "Mid-American"
+  },
+  "Sam Houston": {
+   "conference": "Conference USA"
+  },
+  "San Diego State": {
+   "conference": "Pac-12"
+  },
+  "San José State": {
+   "conference": "Mountain West"
+  },
+  "South Alabama": {
+   "conference": "Sun Belt"
+  },
+  "South Carolina": {
+   "conference": "SEC"
+  },
+  "South Florida": {
+   "conference": "American Athletic"
+  },
+  "Southern Miss": {
+   "conference": "Sun Belt"
+  },
+  "Stanford": {
+   "conference": "ACC"
+  },
+  "Syracuse": {
+   "conference": "ACC"
+  },
+  "TCU": {
+   "conference": "Big 12"
+  },
+  "Temple": {
+   "conference": "American Athletic"
+  },
+  "Tennessee": {
+   "conference": "SEC"
+  },
+  "Texas": {
+   "conference": "SEC"
+  },
+  "Texas A&M": {
+   "conference": "SEC"
+  },
+  "Texas State": {
+   "conference": "Pac-12"
+  },
+  "Texas Tech": {
+   "conference": "Big 12"
+  },
+  "Toledo": {
+   "conference": "Mid-American"
+  },
+  "Troy": {
+   "conference": "Sun Belt"
+  },
+  "Tulane": {
+   "conference": "American Athletic"
+  },
+  "Tulsa": {
+   "conference": "American Athletic"
+  },
+  "UAB": {
+   "conference": "American Athletic"
+  },
+  "UCF": {
+   "conference": "Big 12"
+  },
+  "UCLA": {
+   "conference": "Big Ten"
+  },
+  "UConn": {
+   "conference": "FBS Independents"
+  },
+  "UL Monroe": {
+   "conference": "Sun Belt"
+  },
+  "UNLV": {
+   "conference": "Mountain West"
+  },
+  "USC": {
+   "conference": "Big Ten"
+  },
+  "UTEP": {
+   "conference": "Mountain West"
+  },
+  "UTSA": {
+   "conference": "American Athletic"
+  },
+  "Utah": {
+   "conference": "Big 12"
+  },
+  "Utah State": {
+   "conference": "Pac-12"
+  },
+  "Vanderbilt": {
+   "conference": "SEC"
+  },
+  "Virginia": {
+   "conference": "ACC"
+  },
+  "Virginia Tech": {
+   "conference": "ACC"
+  },
+  "Wake Forest": {
+   "conference": "ACC"
+  },
+  "Washington": {
+   "conference": "Big Ten"
+  },
+  "Washington State": {
+   "conference": "Pac-12"
+  },
+  "West Virginia": {
+   "conference": "Big 12"
+  },
+  "Western Kentucky": {
+   "conference": "Conference USA"
+  },
+  "Western Michigan": {
+   "conference": "Mid-American"
+  },
+  "Wisconsin": {
+   "conference": "Big Ten"
+  },
+  "Wyoming": {
+   "conference": "Mountain West"
+  }
+ }
+}

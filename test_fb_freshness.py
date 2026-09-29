@@ -23,7 +23,42 @@ they agree.**
 #   file: freshness.py
 #   find:     if not runs_writer_deployed(root):
 #   with:     if False:
+#
+# `[2026-09-28]` §3, §4, §7, §8 and §12 ASK A PLANTED TREE FIRST. The live
+# contract on the real clock only shows a conditional row (props, alt-lines,
+# card, grader) on a day production warrants it, so on a thin weekday those
+# questions were never asked. The planted tree holds every case, every run.
+# @vacuity the planted tree governs every conditional row (the case exists)
+#   file: freshness.py
+#   find: if not _props_warranted(league, latest, now):
+#   with: if True:
+#
+# @vacuity §4: a governed mode with no cron to build it goes red, whatever the day
+#   file: freshness.py
+#   find: ("card-fb", ("file", f"{latest}/agreement.json"), T["card"], False,
+#   with: ("agreement-x", ("file", f"{latest}/agreement.json"), T["card"], False,
+#
+# @vacuity §7: the paid set is EXACT on the planted tree
+#   file: freshness.py
+#   find: ("alt-lines", ("dir", f"{data}/{utc_day}/alt-lines"), T["props"], True,
+#   with: ("alt-lines", ("dir", f"{data}/{utc_day}/alt-lines"), T["props"], False,
+#
+# @vacuity §8: the card probe is immune to the caller's `picks` (planted)
+#   file: freshness.py
+#   find: ("card-fb", ("file", f"picks/fb-{league}-latest.json"), T["card"], False,
+#   with: ("card-fb", ("file", f"{picks}/fb-{league}-latest.json"), T["card"], False,
+#
+# @vacuity §3: the card is governed once a board exists (planted)
+#   file: freshness.py
+#   find: if not os.path.exists(f"{latest}/props.json.gz"):
+#   with: if True:
+#
+# @vacuity §12: a weekend-shaped scores deadline leaves weekdays uncovered
+#   file: freshness.py
+#   find: ("file", f"{latest}/schedule-{season}.json.gz"), T["scores"], False,
+#   with: ("file", f"{latest}/schedule-{season}.json.gz"), [(4, 0, {5, 6})], False,
 """
+import contextlib
 import datetime
 import gzip
 import json
@@ -37,6 +72,64 @@ from tcheck import ck, eq, note   # the shared gate — see tcheck.py
 
 UTC = datetime.timezone.utc
 fails = []
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE PLANTED FOOTBALL TREE, PINNED TO ITS OWN CLOCK. `[2026-09-28]`
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ The live contract on the real clock drops props-player, props-board
+#    and alt-lines whenever no game falls inside the window of the props
+#    deadline that just passed (most weekdays), drops props-board and
+#    card-fb until a props board exists, and drops fb-record until a dated
+#    card exists. A question asked only of the live contract is therefore
+#    asked only on the days production happens to hold the case.
+# ✅ This tree holds all of it: a props board, a dated card, and a
+#    schedule with a kickoff two hours after the props deadline before
+#    PIN. The tree and the clock are pinned TOGETHER (Sam: "a real clock,
+#    or a tree pinned to NOW — never one of each").
+PIN = datetime.datetime(2026, 9, 19, 20, 0, tzinfo=UTC)     # Sat 4pm ET
+COND = {"props-player", "props-board", "alt-lines", "card-fb", "fb-record"}
+
+
+def _start(lg, t):
+    """A kickoff in the league's OWN stored format (freshness.kickoffs_utc):
+    college is real UTC with a Z; the NFL is ET wall-clock with no zone.
+    ⚠️ September, so EDT (-4) and the fixed fallback agree."""
+    if lg == "ncaaf":
+        return t.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    return (t - datetime.timedelta(hours=4)).strftime("%Y-%m-%dT%H:%M")
+
+
+@contextlib.contextmanager
+def planted(lg, kicks=None):
+    """cwd = a temp tree where every conditional row of `lg` is on at PIN.
+
+    ⚠️ cwd, not a path argument: the fb-record gate globs `picks/` relative
+    to the working directory, exactly as the collector runs it."""
+    tmp, cwd = tempfile.mkdtemp(), os.getcwd()
+    try:
+        os.chdir(tmp)
+        latest = f"data/{lg}/latest"
+        os.makedirs(latest)
+        os.makedirs("picks")
+        open(f"{latest}/props.json.gz", "wb").close()
+        open(f"picks/fb-{lg}-2026-09-01.json", "w").close()
+        due = F.last_due(F.FB_TIMES[lg]["props"], PIN)
+        if kicks is None:
+            kicks = [due + datetime.timedelta(hours=2)]
+        with gzip.open(f"{latest}/schedule-{F.current_football_season(PIN)}"
+                       f".json.gz", "wt") as fh:
+            json.dump({"games": [{"start": _start(lg, k), "home": "H%d" % i,
+                                  "away": "A%d" % i, "home_class": "fbs",
+                                  "away_class": "fbs"}
+                                 for i, k in enumerate(kicks)]}, fh)
+        yield
+    finally:
+        os.chdir(cwd)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def planted_contract(lg, picks="picks"):
+    return F.contract(data=f"data/{lg}", picks=picks, now=PIN)
 
 
 
@@ -91,12 +184,26 @@ for data, lg in (("data/nfl", "nfl"), ("data/ncaaf", "ncaaf")):
        f"   every {lg} probe points inside {data}")
 
 print("\n3. THE ARTIFACTS THAT ACTUALLY BROKE ARE NOW GOVERNED")
+# 🔴 `[2026-09-28]` ASKED OF THE PLANTED TREE FIRST. `card-fb` is governed
+#    only once a props board exists, so on the live tree its case is
+#    whatever production holds. The live tree is the extra: the card half
+#    is asserted there only when a live board exists.
 for lg, want in (("ncaaf", {"cfb-teams", "news", "card-fb"}),
-                 ("nfl", {"news"})):
+                 ("nfl", {"news", "card-fb"})):
+    with planted(lg):
+        pmodes = {r[0] for r in planted_contract(lg)}
+    ck(not (want - pmodes), f"   {lg}: covers {sorted(want)} (planted tree)",
+       f"missing {want - pmodes}")
     modes = {m for m, _p, _t, _pd, _w in F.contract(data=f"data/{lg}",
                                                     picks="picks")}
-    missing = want - modes
-    ck(not missing, f"   {lg}: covers {sorted(want)}", f"missing {missing}")
+    live_want = set(want)
+    if not os.path.exists(f"data/{lg}/latest/props.json.gz"):
+        live_want.discard("card-fb")
+        note(f"   {lg}: no live props board, so the live card half was not "
+             f"asked (the planted tree was)")
+    missing = live_want - modes
+    ck(not missing, f"   {lg}: covers {sorted(live_want)} (live tree)",
+       f"missing {missing}")
 
 print("\n4. 🔴 THE CONTRACT AND THE CRONS AGREE")
 print("   One fact in two files is two things to drift.")
@@ -104,6 +211,32 @@ import re
 wf = open(".github/workflows/collect.yml", encoding="utf-8").read()
 from wfroutes import parse_routes    # noqa: E402  — the ONE parser
 routes = parse_routes(wf)
+def _unrunnable(lg, governed):
+    scheduled = {m for _c, l, ms in routes if l == lg for m in ms.split()}
+    drivers = {"props-board": "props-player", "fb-record": "card-fb",
+               "alt-lines": "props-player"}
+    return sorted(m for m in governed
+                  if m not in scheduled and drivers.get(m) not in scheduled)
+
+
+# 🔴 `[2026-09-28]` THE PLANTED TREE FIRST. On the live tree and the real
+#    clock the props, alt-line and grader rows are only governed on a day
+#    production warrants them, so on a thin weekday a props cron could be
+#    deleted and this section would not notice. The planted tree governs
+#    every conditional row, so the question is asked of all of them, every
+#    run; the live contract below is the extra it always was.
+for lg in ("nfl", "ncaaf"):
+    with planted(lg):
+        _pg = {r[0] for r in planted_contract(lg)}
+    ck(COND <= _pg,
+       f"   {lg}: the planted tree governs every conditional row",
+       "⛔ without them the check below asks nothing about the paid pulls "
+       "(rule 67). missing: %s" % sorted(COND - _pg))
+    _pu = _unrunnable(lg, _pg)
+    ck(not _pu,
+       f"   {lg}: every governed artifact has a cron that builds it "
+       f"(planted tree, {len(_pg)} modes)",
+       f"unrunnable: {_pu}")
 for lg in ("nfl", "ncaaf"):
     scheduled = {m for _c, l, ms in routes if l == lg for m in ms.split()}
     governed = {m for m, _p, _t, _pd, _w in
@@ -122,13 +255,12 @@ for lg in ("nfl", "ncaaf"):
     # the weekly crons it replaces.
     # 💰 `alt-lines` rides the props pull (`[Sam, 2026-09-24]`), and the
     #    chain is asserted against `collect.py` in `test_game_lines_fb.py`.
-    drivers = {"props-board": "props-player", "fb-record": "card-fb",
-               "alt-lines": "props-player"}
-    unrunnable = sorted(m for m in governed
-                        if m not in scheduled
-                        and drivers.get(m) not in scheduled)
+    #    (the `drivers` table lives in `_unrunnable`, above — ONE copy,
+    #    asked of the planted tree and of the live one)
+    unrunnable = _unrunnable(lg, governed)
     ck(not unrunnable,
-       f"   {lg}: every governed artifact has a cron that builds it",
+       f"   {lg}: every governed artifact has a cron that builds it "
+       f"(live tree, {len(governed)} modes today)",
        f"unrunnable: {unrunnable}")
 
 # ══════════════════════════════════════════════════════════════════════
@@ -266,15 +398,28 @@ print("\n7. THE PAID ROWS ARE MARKED PAID")
 # board always costs money, and NOTHING ELSE MAY EVER BE MARKED PAID
 # WITHOUT BEING ONE OF THESE TWO. A free row silently marked paid would
 # be skipped by `plan(allow_paid=False)` and never built.
+# 💰 `[2026-09-24]` `alt-lines` is a third paid pull (priced by
+#    `budget.py`, capped at Sam's 1,500 a month). Named here, not waved
+#    through: the check still fails on any OTHER row marked paid.
+PAID_MODES = {"gamelines", "props-player", "alt-lines"}
+# ✅ `[2026-09-28]` AND ON THE PLANTED TREE THE EXACT FORM IS BACK. The
+#    struck `eq(paid, ...)` above was right to go on the LIVE contract,
+#    whose paid set moves with the hour. On a tree where every paid row is
+#    governed, the set is invariant, so it is asserted exactly — strictly
+#    harder than the two subset checks, which on a thin day asked nothing
+#    about props-player or alt-lines.
+for lg in ("nfl", "ncaaf"):
+    with planted(lg):
+        _prow = planted_contract(lg)
+    eq({m for m, _p, _t, pd, _w in _prow if pd}, PAID_MODES,
+       f"   🔴 {lg}: the paid rows are EXACTLY the three paid pulls (planted tree)")
+    eq(sorted({m for m, _p, _t, pd, _w in _prow if not pd} & PAID_MODES), [],
+       f"   ⛔ {lg}: and no paid pull is ever marked free (planted tree)")
 for lg in ("nfl", "ncaaf"):
     rows = F.contract(data=f"data/{lg}", picks="picks")
     paid = {m for m, _p, _t, pd, _w in rows if pd}
     free = {m for m, _p, _t, pd, _w in rows if not pd}
     ck("gamelines" in paid, f"   {lg}: the odds board is paid", str(sorted(paid)))
-    # 💰 `[2026-09-24]` `alt-lines` is a third paid pull (priced by
-    #    `budget.py`, capped at Sam's 1,500 a month). Named here, not waved
-    #    through: the check still fails on any OTHER row marked paid.
-    PAID_MODES = {"gamelines", "props-player", "alt-lines"}
     ck(not (paid - PAID_MODES),
        f"   🔴 {lg}: nothing else is ever marked paid",
        str(sorted(paid - PAID_MODES)))
@@ -306,11 +451,35 @@ print("   have reported the card MISSING FOREVER.")
 #    writes. That covers the original bug, covers it for modes the old
 #    form never looked at, and would still fail on the `picks/ncaaf`
 #    regression that put it here.
-for lg in ("nfl", "ncaaf"):
+# 🔴 `[2026-09-28]` ASKED OF THE PLANTED TREE FIRST, then of the live one.
+#    Every card-fb row exists only while a props board does, and fb-record
+#    only once a dated card does: on the live tree the card half of this
+#    question had its case only because production held both files.
+def _seen_by_caller(lg, contract):
     seen = {}
     for arg in ("picks", f"picks/{lg}", "picks/"):
-        for m, (_k, p), _t, _pd, _w in F.contract(data=f"data/{lg}", picks=arg):
+        for m, (_k, p), _t, _pd, _w in contract(arg):
             seen.setdefault((m, p), set()).add(arg)
+    return seen
+
+
+for lg in ("nfl", "ncaaf"):
+    with planted(lg):
+        _ps = _seen_by_caller(lg, lambda a, _l=lg: planted_contract(_l, a))
+    _pargs = {"picks", f"picks/{lg}", "picks/"}
+    eq(sorted(k for k, v in _ps.items() if v != _pargs), [],
+       f"   🔴 {lg}: NO row moves when the caller's `picks` does (planted "
+       f"tree, {len(_ps)} rows incl. card and grader)")
+    eq(sorted(p for (m, p) in _ps if m == "card-fb" and p.startswith("picks/")),
+       [f"picks/fb-{lg}-latest.json"],
+       f"   {lg}: and the card row is the path card_fb.py writes (planted tree)")
+    ck({m for (m, _p) in _ps} >= {"card-fb", "fb-record"},
+       f"   {lg}: the planted tree holds the card and grader rows to ask about",
+       sorted({m for (m, _p) in _ps}))
+
+for lg in ("nfl", "ncaaf"):
+    seen = _seen_by_caller(
+        lg, lambda a, _l=lg: F.contract(data=f"data/{_l}", picks=a))
     if not seen:
         print(f"  note {lg}: no contract rows right now")
         continue
@@ -321,8 +490,12 @@ for lg in ("nfl", "ncaaf"):
                   f"does — rows present for only some callers: {moved}")
     cards = sorted(p for (m, p) in seen if m == "card-fb"
                    and p.startswith("picks/"))
-    eq(cards, [f"picks/fb-{lg}-latest.json"],
-       f"   {lg}: and the card row is the path card_fb.py writes")
+    if any(m == "card-fb" for (m, _p) in seen):
+        eq(cards, [f"picks/fb-{lg}-latest.json"],
+           f"   {lg}: and the card row is the path card_fb.py writes")
+    else:
+        note(f"   {lg}: no live props board, so no live card row to pin "
+             f"(the planted tree above was asked)")
     # ⚠️ AND THE MODE MAY CARRY MORE THAN ONE FILE, which is what the
     #    old form forbade by accident. Stated so a future reader does
     #    not "restore" the single-path rule.
@@ -481,18 +654,57 @@ def _played_days(lg):
         except Exception:
             continue
         for g in gm:
+            # ⚠️ `[2026-09-28]` ~~`F.kickoffs_utc([g])[0]`~~ — that call
+            #    passed ONE argument to a two-argument function, so it
+            #    raised on every game and this always fell through to the
+            #    parse below. The parse is now the only path, and it reads
+            #    each league's own format: a trailing Z is real UTC
+            #    (college, CFBD `startDate`); no zone is ET wall-clock (the
+            #    NFL, nflverse) and its weekday is read as written.
+            #    ⛔ Not `kickoffs_utc` itself: it keeps FBS games only, and
+            #    the Scores tab refreshes every division's games.
+            s = str(g.get("start") or "").strip()
             try:
-                t = F.kickoffs_utc([g])[0]
+                t = datetime.datetime.fromisoformat(
+                    s.replace("Z", "").split(".")[0])
             except Exception:
-                try:
-                    t = datetime.datetime.fromisoformat(
-                        g["start"].replace("Z", "+00:00"))
-                except Exception:
-                    continue
-            if t.tzinfo is None:
-                t = t.replace(tzinfo=datetime.timezone.utc)
-            days.add((t - datetime.timedelta(hours=4)).weekday())
+                continue
+            if s.endswith("Z"):
+                t = t - datetime.timedelta(hours=4)
+            days.add(t.weekday())
     return days
+
+
+DN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+def _scores_days(rows):
+    got = set()
+    for m, _p, t, _pd, _w in rows:
+        if m == "fb-scores":
+            for d in t:
+                got |= (d[2] if len(d) > 2 else set(range(7)))
+    return got
+
+
+# 🔴 `[2026-09-28]` THE PLANTED SCHEDULE FIRST: a game on EVERY ET weekday,
+#    in each league's own format, and the contract read off the same tree
+#    at the same pinned clock. `played` came only from the live stored
+#    schedules, so an uncovered day could only ever be caught on a live
+#    schedule that played it. ⛔ Only a DAILY deadline can cover all seven —
+#    which is the lesson of the struck weekend shape above.
+for lg in ("ncaaf", "nfl"):
+    _wk = [datetime.datetime(2026, 9, 14 + i, 17, 0, tzinfo=UTC)
+           for i in range(7)]                        # Mon 14 .. Sun 20, 1pm ET
+    with planted(lg, kicks=_wk):
+        _pplayed = _played_days(lg)
+        _pgot = _scores_days(planted_contract(lg))
+    ck(f"   {lg}: a refresh is due on EVERY day a planted league plays",
+       _pplayed == set(range(7)) and _pplayed <= _pgot,
+       "plays " + ",".join(DN[d] for d in sorted(_pplayed))
+       + " | due " + ",".join(DN[d] for d in sorted(_pgot))
+       + ("" if _pplayed <= _pgot else
+          "  🔴 UNCOVERED: " + ",".join(DN[d] for d in sorted(_pplayed - _pgot))))
 
 for lg in ("ncaaf", "nfl"):
     modes = {m: t for m, _p, t, _pd, _w in
@@ -500,18 +712,20 @@ for lg in ("ncaaf", "nfl"):
     ck("fb-scores" in modes, f"   {lg}: the scores refresher is GOVERNED",
        sorted(modes))
     if "fb-scores" in modes:
-        got = set()
-        for t in modes["fb-scores"]:
-            got |= (t[2] if len(t) > 2 else set(range(7)))
+        got = _scores_days(F.contract(data=f"data/{lg}", picks="picks"))
         played = _played_days(lg)
-        DN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        ck(f"   {lg}: a refresh is due on EVERY day the league plays",
-           bool(played) and played <= got,
-           "plays " + ",".join(DN[d] for d in sorted(played))
-           + " | due " + ",".join(DN[d] for d in sorted(got))
-           + ("" if played <= got else
-              "  🔴 UNCOVERED: "
-              + ",".join(DN[d] for d in sorted(played - got))))
+        if played:
+            ck(f"   {lg}: a refresh is due on EVERY day the league plays "
+               f"(live schedules)",
+               played <= got,
+               "plays " + ",".join(DN[d] for d in sorted(played))
+               + " | due " + ",".join(DN[d] for d in sorted(got))
+               + ("" if played <= got else
+                  "  🔴 UNCOVERED: "
+                  + ",".join(DN[d] for d in sorted(played - got))))
+        else:
+            note(f"   {lg}: no stored schedule holds a game, so the live half "
+                 f"was not asked (the planted week above was)")
         note(f"   {lg}: {len(played)} game day(s) in the stored schedule; "
              f"{len(got)} covered by a deadline")
     for _m, (_k, p), _t, _pd, _w in F.contract(data=f"data/{lg}",

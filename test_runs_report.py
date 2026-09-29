@@ -676,12 +676,29 @@ def _r_now(concl, minutes_ago, stamped=True):
             "createdAt": t.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
 
+# ⚠️ OFFLINE BY CONSTRUCTION `[2026-09-28]`. main() asks GitHub for the
+#    workflow registry whenever GITHUB_REPOSITORY is set, and every runner
+#    sets it; wherever gh is also signed in (a dev shell, or a job that adds
+#    GH_TOKEN) each run below was a real api.github.com request. The child
+#    gets no repository and no token, so the registry takes its own
+#    documented branch ("could not read the workflow registry"), the same
+#    on every machine.
+# @vacuity ⛔ the drive is offline, and the registry says it could not look
+#   file: runs_report.py
+#   find:         sys.stderr.write("could not read the workflow registry: %s: %s\n"
+#   with:         _ = ("could not read the workflow registry: %s: %s\n"
+_OFFLINE = {k: v for k, v in os.environ.items()
+            if k not in ("GITHUB_REPOSITORY", "GH_TOKEN", "GITHUB_TOKEN")}
+_EXIT_ERR = []
+
+
 def _exit(runs, tree=None):
-    """Run the REAL runs_report.py over `runs`. Returns (rc, stdout)."""
+    """Run the REAL runs_report.py over `runs`, offline. Returns (rc, stdout)."""
     d = tree or _tree()
     p = subprocess.run([sys.executable, os.path.join(d, "runs_report.py")],
-                       input=json.dumps(runs), cwd=d,
+                       input=json.dumps(runs), cwd=d, env=_OFFLINE,
                        capture_output=True, text=True, timeout=120)
+    _EXIT_ERR.append(p.stderr or "")
     return p.returncode, p.stdout
 
 
@@ -733,6 +750,14 @@ ck("✅ ...and that body reports the failure first, truncation after",
    if "truncat" in _out_b.lower() else "failing right now" in _out_b,
    "🔴 order is the message: the reader must not have to hunt for the "
    "outage under a coverage note")
+ck(len(_EXIT_ERR) >= 3 and all(
+       "could not read the workflow registry: RuntimeError: GITHUB_REPOSITORY is not set"
+       in e for e in _EXIT_ERR),
+   "⛔ ...and every one of those runs was OFFLINE: no repository was named, "
+   "so no registry was fetched, and each run said so",
+   "⛔ a test must not depend on the network; this is what makes the "
+   "three exit codes above the same on every machine. stderr: %r"
+   % [e[-160:] for e in _EXIT_ERR])
 # ⛔ AND "I COULD NOT LOOK" IS STILL ITS OWN ANSWER, UNCHANGED.
 _p_bad = subprocess.run([sys.executable, os.path.join(ROOT, "runs_report.py")],
                         input="not json", capture_output=True, text=True,

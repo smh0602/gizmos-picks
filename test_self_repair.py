@@ -193,11 +193,41 @@ ck(S.COUNTER.startswith("<!--") and S.COUNTER.endswith("-->"),
 # ══════════════════════════════════════════════════════════════════════
 section("2. THE WATCHER SAYS WHICH OF ITS REPORTS ARE COUNTERS")
 # ══════════════════════════════════════════════════════════════════════
-_prog = T.run()
-eq(_prog.get("state") not in ("SHRANK", "UNREADABLE", "ANSWERED"), True,
-   "the live T58/T59 report is still a progress count (as issue #42 is)")
+# ⚠️ A PLANTED SAMPLE, NOT THE LIVE ONE `[2026-09-28]`. This read the live
+#    record and asserted it was still PROGRESS -- 115 of 120 NFL rows and 2
+#    of 3 weeks that day, so the next graded NFL week would have turned it
+#    ANSWERED and this file red on correct code, and left the counter
+#    mutation above with no PROGRESS report to bite on. A sample under the
+#    bar now makes the PROGRESS report every run; the live state is a note.
+_T58 = tempfile.mkdtemp(prefix="sr-t58-")
+try:
+    import gzip  # noqa: E402
+    for _lg in ("nfl", "ncaaf"):
+        os.makedirs(os.path.join(_T58, "data", _lg, "latest"))
+        with gzip.open(os.path.join(_T58, "data", _lg, "latest", "record-detail.json.gz"), "wt") as _fh:
+            json.dump({"days": {
+                T.FRESH_AFTER: [{"won": True, "confidence": 80,
+                                 "commence": T.FRESH_AFTER + "T17:00:00Z"}],
+                "2099-01-01": [{"won": False, "confidence": 55,
+                                "commence": "2099-01-01T17:00:00Z"},
+                               {"won": None, "confidence": 70,
+                                "commence": "2099-01-01T17:00:00Z"}]}}, _fh)
+    _prog = T.run(root=_T58)
+finally:
+    shutil.rmtree(_T58, ignore_errors=True)
+eq((_prog.get("state"), _prog.get("fresh_nfl")), ("PROGRESS", 1),
+   "a planted sample under the bar is a PROGRESS report (one fresh graded row: "
+   "a void and a row dated on the cutoff do not count)")
 ck(S.COUNTER in T.render(_prog), "🔴🔴 its progress report carries the counter marker",
    T.render(_prog)[-200:])
+_live = T.run()
+note("live T58/T59 report: %s (%s of %d fresh NFL rows, %s of %d weeks)"
+     % (_live.get("state"), _live.get("fresh_nfl"), T.MIN_FRESH,
+        _live.get("weeks"), T.MIN_WEEKS))
+if _live.get("state") in ("PROGRESS", "ANSWERED"):
+    ck(S.COUNTER in T.render(_live),
+       "   ...and the live report, %s today, is a counter too (as issue #42 is)"
+       % _live.get("state"), T.render(_live)[-200:])
 _ans = dict(_prog, state="ANSWERED", why="the bar is met",
             t58={"test": "T58", "verdict": "PASS", "why": "w"},
             t59={"test": "T59", "verdict": "PASS", "why": "w"})

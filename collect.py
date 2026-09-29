@@ -4365,6 +4365,13 @@ def run_mode(mode):
             left = None
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.
+            # 🔴 FOOTBALL ONLY, THE WHOLE BRANCH. `[2026-09-28]` build_card_fb
+            #    refuses MLB, but T54, the dossier and the shadow record
+            #    below it ran anyway: the watchdog's `LEAGUE=mlb ... card-fb`
+            #    repair wrote data/latest/t54.json (commit 027d7215) and
+            #    exited 1. A football mode under MLB now does nothing.
+            if LEAGUE == "mlb":
+                return log("card-fb is football only; under mlb its card, T54, dossier and shadow record are skipped. Nothing done.")
             left = build_card_fb()
             # ══════════════════════════════════════════════════════════
             # 🔴 AND THE GRADER RUNS RIGHT BEHIND IT. `[2026-09-06]`
@@ -4654,6 +4661,15 @@ def run_mode(mode):
             collect_weather()
             left = None
         elif mode == "record":
+            # 🔴 THE MLB GRADER, AND ONLY UNDER MLB. `[2026-09-28]` The
+            #    watchdog's repair loop runs every mode for every league;
+            #    `LEAGUE=nfl ... record` replaced the football record.json
+            #    with an empty MLB-shaped one (measured in a copy, 4,964 ->
+            #    783 bytes). Football is graded by `card-fb` (record_fb).
+            #    ⛔ Guarded HERE, not in collect_record: record_grader
+            #    fingerprints the grader, and this changes no grading.
+            if LEAGUE != "mlb":
+                return log(f"record is the MLB grader; {LEAGUE} is graded by card-fb. Nothing done.")
             collect_record()
             left = None
         elif mode == "runs":
@@ -4671,6 +4687,11 @@ def run_mode(mode):
             # an older revision of this file. Making the card mode
             # self-sufficient means it can never silently price off a stale
             # or differently-shaped join.
+            # 🔴 MLB ONLY. `[2026-09-28, collect #1953]` the watchdog's
+            #    repair loop ran it under nfl and ncaaf and it raised "no
+            #    game logs at all" in each. Football cards are `card-fb`.
+            if LEAGUE != "mlb":
+                return log(f"card is the MLB card; {LEAGUE} builds its card with card-fb. Nothing done.")
             collect_props_board()
             import card as _card
             _card.main()

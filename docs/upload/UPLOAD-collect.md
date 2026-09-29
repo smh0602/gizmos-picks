@@ -1,9 +1,85 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: the Ubuntu 26 / Node 24 update, plus the faster PR tests `[2026-09-25]`
+## Current: the watchdog's repairs stop converging `[2026-09-28]`
 
-The staged `collect.yml` now carries **two** changes, and one upload
-delivers both:
+**Do this after you merge the pull request that changed
+`docs/upload/collect.yml` on 2026-09-28 (its description links to this
+file).** It is one file, and one upload carries all three changes:
+
+1. **The watchdog's repair runs only the repair.** On 9/28, collect run
+   #1953 reported "alt-lines failed for nfl — it left an artifact out of
+   contract". Nothing paid had failed. The watchdog chose to rebuild the
+   card, and ran the collector with the Odds key blanked. The collector
+   treats every run as a chance to catch up, so it also tried every paid
+   pull that was due. Each one stopped at "ODDS_API_KEY is not set" (no
+   credits were spent), and each was reported as a failure. After the
+   upload, each repair line says `converge-off`: it rebuilds the one free
+   thing it names and nothing else. The regular converge loop, which has
+   the key, still catches up everything that is late.
+2. **verify_card's output goes to a temporary file of its own** instead of
+   the fixed `/tmp/vc.txt`. A test runs this step. Two copies at once on
+   one computer would read each other's result. On GitHub each job has
+   its own computer, so the live step was never wrong.
+3. **The watchdog's report is only printed.** It was also copied into two
+   files in `/tmp` that nothing ever read.
+
+The other half of the fix does **not** need this upload. `collect.py` now
+makes `card` and `record` do nothing under a football league, and
+`card-fb` do nothing under MLB. On 9/20 a repair of `card-fb` under MLB
+wrote `data/latest/t54.json` into MLB's folder (commit 027d7215). That
+works from the merge.
+
+**No schedule, cron line or cost changes. The cron count stays at 57.**
+All 43 cron lines are the same as the live file's, byte for byte.
+
+### Click by click (Windows)
+
+1. Open **File Explorer**, click **Downloads**, and delete any old
+   `collect.yml` there (otherwise Windows saves `collect (1).yml`).
+2. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/collect.yml
+   and check the breadcrumb reads **gizmos-picks / docs / upload /
+   collect.yml**.
+3. Click **Download raw file** (the small downward-arrow icon on the
+   right, above the file's contents).
+4. Open https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
+   and check the breadcrumb reads **gizmos-picks / .github / workflows**.
+   ⛔ Not the repo's front page: a file uploaded there lands in the top
+   level, where it never runs.
+5. Click **Add file** (top right, next to the green **Code** button),
+   then **Upload files**.
+6. Click **choose your files** (the blue link in the middle of the box).
+   ⛔ Do not drag a folder in. In **Downloads** pick `collect.yml` and
+   click **Open**.
+7. Check the page lists exactly **1 file**, `collect.yml`.
+8. In the **Commit changes** box paste this as the first line:
+
+   ```
+   collect.yml: watchdog repairs run converge-off; verify_card output in a per-run temp file (no cron change)
+   ```
+
+9. Leave **Commit directly to the main branch** selected and click the
+   green **Commit changes** button.
+
+**What you should see afterwards:** nothing different on the site. The
+next time the watchdog repairs something, its log line
+`watchdog attempting repair: card` is followed by one short run per
+league. The football ones say `card is the MLB card; nfl builds its card
+with card-fb. Nothing done.` There are no `PLAN:` lines and no
+"ODDS_API_KEY is not set" lines, and `data/latest/runs.json` stops showing
+"... failed for nfl (exit 1) — it left an artifact out of contract" from
+that step. Until you upload, the nightly "runs" report lists `collect.yml`
+as waiting, and after 48 hours it says so in an issue.
+
+---
+
+## ~~Current:~~ Done: the Ubuntu 26 / Node 24 update, plus the faster PR tests `[2026-09-25]`
+
+✅ Uploaded: on 2026-09-25 (commit eb5bc2a4, "Add files via upload") the
+deployed `collect.yml` matched that staged copy; checked again on
+2026-09-28.
+
+The staged `collect.yml` ~~now carries~~ carried **two** changes, and one
+upload delivered both:
 
 1. **The Ubuntu 26 / Node 24 update** (from the pull request "Workflows:
    pin Ubuntu 24.04, move to Node 24 actions, pin Python"), exactly as
@@ -18,7 +94,7 @@ delivers both:
 
 **No schedule, cron line or cost changes. The cron count stays at 57.**
 
-### Which steps to follow
+### ~~Which steps to follow~~ — done on 2026-09-25; use the section at the top
 
 - **You have NOT yet done the 11-file upload in
   `UPLOAD-runner-image.md`:** do that one, after merging the pull request
@@ -95,6 +171,10 @@ workflows: pin ubuntu-24.04, Node 24 actions, pinned Python (no cron change)
 
 ## Changelog
 
+- **2026-09-28:** the watchdog's repair loop runs `converge-off`;
+  verify_card's output and the watchdog report no longer use fixed `/tmp`
+  files. The 2026-09-25 section is marked done (uploaded in eb5bc2a4),
+  not deleted.
 - **2026-09-25:** the staged file also carries the pr-tests split switch
   (off in `collect.yml`); new section on top with both upload paths.
 - **2026-09-24:** first version.

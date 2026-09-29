@@ -81,17 +81,75 @@ PROBE_GRADED = "probe-second-method"
 #   file: index.html
 #   find: return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">No graded
 #   with: return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">
+#
+# @vacuity 🔴 rule 67 on the planted tree: its three cards really are graded (the join settles them)
+#   file: record_fb.py
+#   find: hits.append(g)
+#   with: pass
 # ══════════════════════════════════════════════════════════════════════
 
 
-def rebuild(lg, mutate=None):
-    """Run THIS checkout's record_fb.py on a temp copy. -> (R, D, rc, log)."""
-    tmp = tempfile.mkdtemp(prefix="recfb-rebuild-")
-    shutil.copytree(os.path.join(ROOT, "data", lg),
-                    os.path.join(tmp, "data", lg))
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE PLANTED TREE. `[2026-09-28]` The three states were built only
+#    from the STORED cards, so NEXT METHOD needed stored graded rows and
+#    TWO GRADED needed two stored graded cards (pattern P3): after a record
+#    reset (`RECORD_FROM` moved), at a new lane, or on a slim tree, the
+#    rule-67 check went red on correct code — and every declared mutation
+#    above, which bites only through those states, went quiet with it.
+# ✅ So all three states are ALSO built from a tree this file writes:
+#    three graded cards (two under the method before the split, one under
+#    the fixed method) and a players log that settles them, with the floor
+#    pinned below them. The stored data is rebuilt as well, as an extra.
+# ══════════════════════════════════════════════════════════════════════
+PLANT_DATES = ("2026-09-12", "2026-09-19", "2026-09-26")
+PLANT_METHOD = {"2026-09-26": "season-blend"}
+PLANT_FLOOR = "2026-09-01"
+PLANT_NAMES = ("Plant Alpha", "Plant Bravo", "Plant Charlie")
+
+
+def plant(lg, tmp):
+    """Write the planted cards and the log that grades them into `tmp`."""
+    lat = os.path.join(tmp, "data", lg, "latest")
+    os.makedirs(lat)
     os.makedirs(os.path.join(tmp, "picks"))
-    for f in glob.glob(os.path.join(ROOT, "picks", "fb-%s-*.json" % lg)):
-        shutil.copy(f, os.path.join(tmp, "picks"))
+    players = {"p%d" % k: {"name": nm, "pos": "WR", "g": [
+        {"d": d, "week": i + 1, "rec": 3 + k, "rec_yds": 30 + 20 * k, "car": 1,
+         "rush_yds": 5, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0,
+         "att": 0, "snaps": 40, "snap_pct": 0.8, "team": "T%d" % k}
+        for i, d in enumerate(PLANT_DATES)]} for k, nm in enumerate(PLANT_NAMES)}
+    with gzip.open(os.path.join(lat, "players-2026.json.gz"), "wt") as fh:
+        json.dump({"season": 2026, "players": players}, fh)
+    for d in PLANT_DATES:
+        picks = [{"player": nm, "market": "player_reception_yds", "side": "over",
+                  "line": 40.5, "price": -110, "book": "fanduel",
+                  "confidence": 60 + 5 * k, "confidence_basis": "RECORD",
+                  "raw": "%d of 10" % (5 + k), "commence": d + "T17:00:00Z",
+                  "game": "A%d @ H%d" % (k, k), "break_even": 52.4}
+                 for k, nm in enumerate(PLANT_NAMES)]
+        # ⚠️ AND ONE UNRATED ROW: graded, but in no method's buckets.
+        picks.append({"player": PLANT_NAMES[0], "market": "player_receptions",
+                      "side": "under", "line": 3.5, "price": -120,
+                      "book": "fanduel", "confidence_basis": "MARKET",
+                      "commence": d + "T17:00:00Z", "game": "A0 @ H0"})
+        card = {"date": d, "league": lg, "logs_season": 2025, "picks": picks}
+        if d in PLANT_METHOD:
+            card["card_method"] = PLANT_METHOD[d]
+        json.dump(card, open(os.path.join(tmp, "picks", "fb-%s-%s.json" % (lg, d)),
+                             "w", encoding="utf-8"))
+
+
+def rebuild(lg, mutate=None, planted=False):
+    """Run THIS checkout's record_fb.py on a temp copy — of the stored data,
+    or of the planted tree. -> (R, D, rc, log)."""
+    tmp = tempfile.mkdtemp(prefix="recfb-rebuild-")
+    if planted:
+        plant(lg, tmp)
+    else:
+        shutil.copytree(os.path.join(ROOT, "data", lg),
+                        os.path.join(tmp, "data", lg))
+        os.makedirs(os.path.join(tmp, "picks"))
+        for f in glob.glob(os.path.join(ROOT, "picks", "fb-%s-*.json" % lg)):
+            shutil.copy(f, os.path.join(tmp, "picks"))
     # ⛔ THE COMMITTED OUTPUT IS REMOVED FIRST, so a run that writes
     #    nothing cannot be read as a run that wrote the old file.
     for f in ("record.json", "record-detail.json.gz"):
@@ -101,6 +159,9 @@ def rebuild(lg, mutate=None):
     if mutate:
         mutate(os.path.join(tmp, "picks"))
     env = dict(os.environ, LEAGUE=lg)
+    if planted:
+        # ⛔ the planted cards are graded whatever the source's floor is set to
+        env["FB_RECORD_FROM"] = PLANT_FLOOR
     p = subprocess.run([sys.executable, os.path.join(ROOT, "record_fb.py")],
                        cwd=tmp, env=env, capture_output=True, text=True,
                        timeout=900)
@@ -234,40 +295,56 @@ def check(lg, tag, R, D, rc, log, expect_methods=None, expect_current=None):
                  "not failed" % (lg, tag, m))
 
 
-for lg in ("nfl", "ncaaf"):
-    section("%s — REBUILT FROM THIS CHECKOUT'S record_fb.py" % lg.upper())
+def graded_dates_of(D):
+    """Card dates holding a graded row with a confidence, from a detail file."""
+    return sorted(d for d, rows in ((D or {}).get("days") or {}).items()
+                  if any(r.get("won") is not None
+                         and r.get("confidence") is not None for r in rows))
 
-    R, D, rc, log = rebuild(lg)
-    check(lg, "STORED", R, D, rc, log)
 
-    R2, D2, rc2, log2 = rebuild(lg, add_next_method_card(lg))
-    check(lg, "NEXT METHOD", R2, D2, rc2, log2, expect_current=PROBE_NEXT)
+def three_states(lg, planted):
+    """STORED, NEXT METHOD and TWO GRADED, on the planted tree or the stored data."""
+    src = "PLANTED" if planted else "STORED DATA"
+    R, D, rc, log = rebuild(lg, planted=planted)
+    check(lg, "%s" % src, R, D, rc, log,
+          expect_methods=(sorted({BEFORE, "season-blend"}) if planted else None),
+          expect_current=("season-blend" if planted else None))
+    graded_dates = graded_dates_of(D)
+    if planted:
+        # ⚠️ RULE 67, ON THE TREE THIS FILE WROTE: the case must exist.
+        if not ck(graded_dates == list(PLANT_DATES),
+                  "   %s PLANTED: all three planted cards hold graded rows" % lg,
+                  "⛔ with fewer, TWO GRADED cannot hold two graded methods and "
+                  "would prove nothing. got %s" % graded_dates):
+            return
+    elif len(graded_dates) < 2:
+        note("⚠️ NOT EXERCISED ON THE STORED DATA (%s): %d stored card(s) hold "
+             "graded rows — a record reset or a new lane. The planted tree "
+             "asked every question." % (lg, len(graded_dates)))
+        return
+    R2, D2, rc2, log2 = rebuild(lg, add_next_method_card(lg), planted=planted)
+    check(lg, "%s + NEXT METHOD" % src, R2, D2, rc2, log2, expect_current=PROBE_NEXT)
     if R2 is not None:
         ck(R2.get("calibration") == [] and any(
                v for v in (R2.get("calibration_by_method") or {}).values()),
-           "   NEXT METHOD: the new method is empty while earlier ones are "
-           "graded — the exact state main was in when #158 merged",
+           "   %s %s NEXT METHOD: the new method is empty while earlier ones are "
+           "graded — the exact state main was in when #158 merged" % (lg, src),
            "⛔ if this is not the state, the section above did not test it")
+    R3, D3, rc3, log3 = rebuild(lg, restamp_graded_card(lg, graded_dates[-1]),
+                                planted=planted)
+    before = sorted({(r.get("card_method") or BEFORE)
+                     for d, rows in D["days"].items()
+                     if d != graded_dates[-1] for r in rows
+                     if r.get("won") is not None
+                     and r.get("confidence") is not None})
+    check(lg, "%s + TWO GRADED" % src, R3, D3, rc3, log3,
+          expect_methods=sorted(set(before) | {PROBE_GRADED}))
 
-    # ⚠️ A card with graded rows, taken from the rebuild's own detail file.
-    graded_dates = sorted(d for d, rows in ((D or {}).get("days") or {}).items()
-                          if any(r.get("won") is not None
-                                 and r.get("confidence") is not None
-                                 for r in rows))
-    ck(len(graded_dates) >= 2,
-       "   %s: at least two stored cards hold graded rows (%d)"
-       % (lg, len(graded_dates)),
-       "⛔ with fewer, TWO GRADED cannot hold two graded methods and "
-       "would prove nothing")
-    if len(graded_dates) >= 2:
-        R3, D3, rc3, log3 = rebuild(lg, restamp_graded_card(lg, graded_dates[-1]))
-        before = sorted({(r.get("card_method") or BEFORE)
-                         for d, rows in D["days"].items()
-                         if d != graded_dates[-1] for r in rows
-                         if r.get("won") is not None
-                         and r.get("confidence") is not None})
-        check(lg, "TWO GRADED", R3, D3, rc3, log3,
-              expect_methods=sorted(set(before) | {PROBE_GRADED}))
+
+for lg in ("nfl", "ncaaf"):
+    section("%s — REBUILT FROM THIS CHECKOUT'S record_fb.py" % lg.upper())
+    three_states(lg, planted=True)
+    three_states(lg, planted=False)
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that the stored data is correct, or that "
      "the tab LOOKS right in a browser. It claims the record this "

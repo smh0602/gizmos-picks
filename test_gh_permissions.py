@@ -41,8 +41,8 @@ finding), so the parse comes from `wfparse.py` — the one hand parser.
 #
 # @vacuity 🔴 a refused query is not an empty queue
 #   file: .github/workflows/self-repair.yml
-#   find:                     --jq 'sort_by(.createdAt)' 2>/tmp/ghqueue.err)
-#   with:                     --jq 'sort_by(.createdAt)' 2>/dev/null || echo "[]")
+#   find:                     --jq 'sort_by(.createdAt)' 2>
+#   with:                     --jq 'sort_by(.createdAt)' 2>/dev/null || echo "[]"; : 2>
 """
 import glob
 import os

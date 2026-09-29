@@ -17,7 +17,21 @@ all 339 and nothing said so.
 `data/<league>/latest/dossiers.json.gz`, so every run here happens in a
 throwaway copy; `tcheck` fails any test that leaves a file under `data/`
 changed, and it is right to.
+
+🔴 EVERY CASE IS PLANTED, NEVER WAITED FOR. `[2026-09-28]` The sweeps
+below used to run over the LIVE board alone, so a Monday with 7 games
+(mostly finished) turned "the real board has games to describe" red on
+correct code, a board with no rematch turned the prior-meeting check red,
+and an empty board killed the file at its first fixture. ✅ Every tree now
+carries real schedule games PLANTED at the front of its board (`plant()`,
+the #156 shape), so each check has its case on any day; the live games
+stay behind them, and a check about the live slate alone is an EXTRA that
+asserts only when the live board holds the case and is a note() otherwise.
+⛔ AND NOTHING HERE TOUCHES THE NETWORK. `collect.py` runs pass
+`converge-off` with blank keys and a socket blocker, and a check fails if
+any attempt was made.
 """
+import atexit
 import ast
 import datetime
 import glob
@@ -69,8 +83,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 # @vacuity a venue is never invented when the schedule has no row
 #   file: dossier_fb.py
 #   find: if not sched_row:
-#   with: sched_row = sched_row or {"venue": home, "roof": "outdoors"}
-#   if False:
+#   with: if not (sched_row := sched_row or {"venue": home, "roof": "outdoors"}):
+#   ⚠️ `[2026-09-28]` ~~`sched_row = sched_row or {...}`~~ left the
+#      indented `return` under it and landed as an IndentationError: the
+#      builder could not start, so this went red for the WRONG reason. The
+#      walrus invents the row AND keeps the line a valid `if`.
 #
 # @vacuity a week is PLACED by the calendar or refused, never guessed
 #   find: return {d: next(iter(w)) for d, w in seen.items() if len(w) == 1}
@@ -131,6 +148,56 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 #   file: dossier_fb.py
 #   find: MARKET, DESC = "MARKET", "DESCRIPTIVE"
 #   with: MARKET, DESC = "MARKET", "MODEL"
+#
+# ── `[2026-09-28]` THE PLANTED CASES, EACH WITH ITS OWN MUTATION ─────────
+# @vacuity the board under test always has planted games, and a builder that describes none is caught
+#   file: dossier_fb.py
+#   find: for g in (board.get("games") or []):
+#   with: for g in (board.get("games") or [])[:0]:
+#
+# @vacuity the fixture reads the builder's own team table, and an empty table is caught before any sweep
+#   file: dossier_fb.py
+#   find: return dict(ast.literal_eval(n.value))
+#   with: return {}
+#
+# @vacuity an UNAVAILABLE section always says why, on the planted game that is always UNAVAILABLE somewhere
+#   file: dossier_fb.py
+#   find: d = {"n": n, "name": name, "state": "UNAVAILABLE", "basis": None,
+#   with: d = {"n": n, "name": name, "state": "UNAVAILABLE", "basis": None, "why": ""} or {
+#
+# @vacuity the card diff compares FRESH cards built from a planted props board, never frozen copies
+#   file: card_fb.py
+#   find: conf = (H + K_PRIOR * p0) / (N + K_PRIOR)
+#   with: conf = (H + K_PRIOR * p0) / (N + K_PRIOR) - (0.01 if __import__("glob").glob("do*_fb.py") else 0)
+#   ⚠️ The replacement must not SPELL the file's name: "card_fb.py does not
+#      mention the dossier" would go red on the text alone and the sweep
+#      would read BITES whether or not the diff saw anything — which is
+#      how this mutation first passed while the WITHOUT tree held the file.
+#
+# @vacuity at least one vs-position section answers, so the verdict phrases are never checked over nothing
+#   file: dossier_fb.py
+#   find: j = allowed.get(this_season) or allowed.get(this_season - 1)
+#   with: j = None
+#
+# @vacuity the planted prior meeting carries the score that happened, by value
+#   file: dossier_fb.py
+#   find: "home_score": x.get("home_score"),
+#   with: "home_score": None,
+#
+# @vacuity a game neither team has an earlier possession row for still names a remedy
+#   file: dossier_fb.py
+#   find: "it fills in once the season's log build stores a "
+#   with: None and "it fills in once the season's log build stores a "
+#
+# @vacuity every carried-subtree exemption appears on the PLANTED slate, so padding is caught on any day
+#   file: dossier_fb.py
+#   find: CARRIED = ("live", "closing", "meetings", "by_team", "by_player",
+#   with: CARRIED = ("junk_subtree", "live", "closing", "meetings", "by_team", "by_player",
+#
+# @vacuity `card-fb` runs ALONE here: no converge pass, so no other mode, no network and no paid pull
+#   file: collect.py
+#   find: if "converge-off" in args or not _fresh.has_contract(LEAGUE):
+#   with: if not _fresh.has_contract(LEAGUE):
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -155,10 +222,196 @@ PRODUCED = ("data/nfl/latest/dossiers.json.gz",
 
 _TEAM_OUT_PATCHED = {}      # players file name -> patched gz bytes, or None
 
+# ⚠️ THE BUILDER'S OWN MODULE, imported once for its team table
+#    (`nfl_table`, rule 117) and its declared section count.
+import dossier_fb as _DFX  # noqa: E402
 
-def tree(with_dossier=True):
-    """A throwaway repo with the data the builder and the card both read."""
-    d = tempfile.mkdtemp(prefix="dossier-")
+# ══════════════════════════════════════════════════════════════════════
+# 🧹 EVERY THROWAWAY TREE THIS FILE MAKES LIVES UNDER ONE PARENT, AND THE
+#    PARENT IS REMOVED WHEN THE FILE EXITS — pass, fail or crash.
+#    `[measured 2026-09-28]` Only 4 of this file's 13 trees were ever
+#    removed, and a run stopped at its first failure removed none: 5,317
+#    `dossier-*` dirs, about 82 GB, sat in %TEMP%. ⛔ Only what THIS
+#    process made is removed, never a glob over %TEMP% — that would take
+#    another run's trees out from under it.
+#    ⚠️ Registered AFTER `tcheck` is imported, so it runs BEFORE tcheck's
+#    gate (atexit is last-in, first-out) and the gate's `os._exit` on a
+#    failure cannot skip it.
+# ══════════════════════════════════════════════════════════════════════
+_RUN_TMP = tempfile.mkdtemp(prefix="dossier-run-")
+_MADE = []                  # every tree this process made, for the final check
+
+
+def _cleanup():
+    shutil.rmtree(_RUN_TMP, ignore_errors=True)
+
+
+atexit.register(_cleanup)
+
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ NO `collect.py` RUN HERE MAY REACH THE NETWORK OR SPEND A CREDIT.
+#    `[measured 2026-09-28]` `collect.py card-fb` WITHOUT `converge-off`
+#    converges: it fetched news from cbssports.com and profootballtalk on
+#    every run, and on the 2026-09-27 tree it planned THREE PAID MODES,
+#    refused only because the Tests step happens to have no key. So every
+#    run passes `converge-off`, blank keys, and this socket blocker, which
+#    records each attempt so a check can fail on it (`run_collect`).
+# ══════════════════════════════════════════════════════════════════════
+_NETBLOCK = os.path.join(_RUN_TMP, "netblock")
+os.makedirs(_NETBLOCK)
+with open(os.path.join(_NETBLOCK, "sitecustomize.py"), "w", encoding="utf-8") as _fh:
+    _fh.write('''\
+# Written by test_dossier_fb.py: every non-local connection is refused and logged.
+import os, socket
+_LOG = os.environ.get("DOSSIER_TEST_NETLOG")
+_gai, _conn = socket.getaddrinfo, socket.socket.connect
+def _local(h):
+    return str(h) in ("localhost", "127.0.0.1", "::1", "")
+def _say(what):
+    if _LOG:
+        with open(_LOG, "a", encoding="utf-8") as fh:
+            fh.write(str(what) + "\\n")
+def getaddrinfo(host, *a, **k):
+    if not _local(host):
+        _say(host)
+        raise OSError("network blocked by test_dossier_fb.py: %s" % host)
+    return _gai(host, *a, **k)
+def connect(self, addr):
+    h = addr[0] if isinstance(addr, tuple) else addr
+    if not _local(h):
+        _say(addr)
+        raise OSError("network blocked by test_dossier_fb.py: %r" % (addr,))
+    return _conn(self, addr)
+socket.getaddrinfo = getaddrinfo
+socket.socket.connect = connect
+''')
+
+
+def run_collect(d, mode="card-fb"):
+    """`collect.py <mode> converge-off` in tree `d` -> (rc, log, attempts).
+
+    ⛔ `converge-off`, so the mode runs ALONE; blank keys, so a paid mode
+    could not spend even if one were reached; and the blocker above on
+    PYTHONPATH, so any network attempt fails fast and is RETURNED."""
+    net = os.path.join(d, "network-attempts.log")
+    env = dict(os.environ, LEAGUE="nfl", ODDS_API_KEY="", CFBD_API_KEY="",
+               DOSSIER_TEST_NETLOG=net,
+               PYTHONPATH=os.pathsep.join(
+                   [_NETBLOCK] + [p for p in [os.environ.get("PYTHONPATH")] if p]))
+    p = subprocess.run([sys.executable, "collect.py", mode, "converge-off"],
+                       cwd=d, timeout=1200, capture_output=True, text=True,
+                       env=env)
+    tried = (open(net, encoding="utf-8").read().splitlines()
+             if os.path.exists(net) else [])
+    return p.returncode, (p.stdout or "") + (p.stderr or ""), tried
+
+
+def _load(path):
+    """The dossier file, or `{}` if the builder refused to write one."""
+    if not os.path.exists(path):
+        return {}
+    try:
+        return json.load(gzip.open(path, "rt"))
+    except Exception:
+        return {}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🌱 PLANT, NEVER WAIT. `[2026-09-28, Sam: "Each check must always have its
+#    case by planting a fixture (the way #156 did), never by waiting for
+#    live data."]`
+# ══════════════════════════════════════════════════════════════════════
+# Every tree's board gets FIXTURE_N REAL games at its front: rows of the
+# stored schedule, named by the builder's OWN team table, ids
+# `fixture-<schedule id>`. The live games stay behind them as extras.
+# ⚠️ FROM THE CALENDAR'S SECOND WEEK, NEVER THE FIRST: in week 1 no team
+#    has an earlier game, so the possession and this-season sections would
+#    have nothing to read. ⚠️ Read from the NEWEST schedule, the season the
+#    builder itself reads, so a season rollover moves the fixture with it.
+# ⛔ The old live floor was 10 board games; the planted floor is 12
+#    described games, on every day, before a single live game is counted.
+# `extras=True` (section 1's tree ONLY) also plants:
+#   - a PRIOR MEETING for the first game, 200 days earlier, 23-20, so a
+#     meeting with a known score always exists (in every tree it would
+#     become section 1c's earliest schedule date and break that fixture);
+#   - a POSSESSION ROW for that pair the day before, in the table for the
+#     builder's season, creating that table if the calendar has not yet;
+#   - a game dated 30 days before every possession row, so the refusal
+#     "carries neither team" always has a case (week 1, every season).
+FIXTURE_N = 12
+_PLANTS = {}                # tree -> what plant() put there
+
+
+def _fixture(board_id):
+    return str(board_id or "").startswith("fixture-")
+
+
+def plant(d, extras=False):
+    lat = os.path.join(d, "data", "nfl", "latest")
+    name = {}
+    for n, c in sorted(_DFX.nfl_table(d).items()):
+        name.setdefault(c, n)           # code -> a board name the builder resolves
+    info = {"pick": [], "season": None, "meeting": None, "no_row_id": None}
+    sps = sorted(glob.glob(os.path.join(
+        lat, "schedule-[0-9][0-9][0-9][0-9].json.gz")))
+    S = _load(sps[-1]) if sps else {}
+    if sps:
+        info["season"] = int(re.search(r"(\d{4})\.json\.gz$", sps[-1]).group(1))
+    sg = sorted((x for x in (S.get("games") or [])
+                 if x.get("start") and x.get("week") is not None
+                 and x.get("home") in name and x.get("away") in name),
+                key=lambda x: x["start"])
+    weeks = sorted({x["week"] for x in sg})
+    pick = [x for x in sg if len(weeks) > 1 and x["week"] == weeks[1]][:FIXTURE_N]
+    info["pick"] = pick
+    rows = [{"id": "fixture-%s" % x["id"], "home": name[x["home"]],
+             "away": name[x["away"]], "commence": x["start"][:16] + ":00Z"}
+            for x in pick]
+    if extras and len(pick) >= 2:
+        x0, x1 = pick[0], pick[1]
+        k0 = datetime.date.fromisoformat(x0["start"][:10])
+        met = {"id": "fixture-prior-meeting", "home": x0["away"],
+               "away": x0["home"], "week": None, "final": True,
+               "start": (k0 - datetime.timedelta(days=200)).isoformat() + "T13:00",
+               "home_score": 23, "away_score": 20}
+        S["games"].append(met)
+        with gzip.open(sps[-1], "wt") as fh:
+            json.dump(S, fh)
+        info["meeting"] = met
+        tp = os.path.join(lat, "top-%d.json.gz" % info["season"])
+        T = _load(tp) or {"season": info["season"], "kind": "FIXTURE",
+                          "teams": {}}
+        if not isinstance(T.get("games"), dict):
+            T["games"] = {}
+        T["games"]["fixture-top"] = {
+            "date": (k0 - datetime.timedelta(days=1)).isoformat(),
+            "coverage": 1.0, "withheld": False,
+            "teams": {x0["home"]: {"share": 0.55, "seconds": 1980, "drives": 11},
+                      x0["away"]: {"share": 0.45, "seconds": 1620, "drives": 10}}}
+        with gzip.open(tp, "wt") as fh:
+            json.dump(T, fh)
+        first = min(str(g.get("date"))[:10] for g in T["games"].values()
+                    if g.get("date"))
+        pre = datetime.date.fromisoformat(first) - datetime.timedelta(days=30)
+        info["no_row_id"] = "fixture-no-possession-row"
+        rows.append({"id": info["no_row_id"], "home": name[x1["home"]],
+                     "away": name[x1["away"]],
+                     "commence": pre.isoformat() + "T17:00:00Z"})
+    bp = os.path.join(lat, "board.json")
+    try:
+        B = json.load(open(bp, encoding="utf-8"))
+    except (OSError, ValueError):
+        B = {"games": []}
+    B["games"] = rows + (B.get("games") or [])
+    json.dump(B, open(bp, "w", encoding="utf-8"))
+    return info
+
+
+def tree(with_dossier=True, extras=False):
+    """A throwaway repo with the data the builder and the card both read,
+    and FIXTURE_N real games planted at the front of its board."""
+    d = tempfile.mkdtemp(prefix="dossier-", dir=_RUN_TMP)
+    _MADE.append(d)
     shutil.copytree(os.path.join(ROOT, "data", "nfl"),
                     os.path.join(d, "data", "nfl"))
     # ══════════════════════════════════════════════════════════════════
@@ -216,17 +469,23 @@ def tree(with_dossier=True):
     copy_module("collect", d)
     if with_dossier:
         copy_module("dossier_fb", d)
+    else:
+        # ══════════════════════════════════════════════════════════════
+        # 🔴🔴 THE "WITHOUT" TREE HAD THE FILE ALL ALONG. `[found
+        # 2026-09-28 by driving section 3's mutation]` `collect.py`
+        # imports `dossier_fb` inside its `card-fb` branch, so the
+        # `copy_module("collect")` above copies it — and section 3's
+        # "card built WITHOUT this file" was built beside it. A card
+        # that reached the dossier would have reached it in BOTH trees,
+        # and the diff could not see it. ✅ Removed here, and section 3
+        # checks the two trees differ in exactly this file.
+        # ══════════════════════════════════════════════════════════════
+        _dx = os.path.join(d, "dossier_fb.py")
+        if os.path.exists(_dx):
+            os.remove(_dx)
+    # 🌱 LAST, so the table it reads is the tree's own `collect.py`.
+    _PLANTS[d] = plant(d, extras)
     return d
-
-
-def _load(path):
-    """The dossier file, or `{}` if the builder refused to write one."""
-    if not os.path.exists(path):
-        return {}
-    try:
-        return json.load(gzip.open(path, "rt"))
-    except Exception:
-        return {}
 
 
 def run(d, script, league="nfl"):
@@ -237,17 +496,40 @@ def run(d, script, league="nfl"):
 
 
 section("1. ⚠️ IT RUNS, AND EVERY BOARD GAME IS ACCOUNTED FOR")
-_d = tree()
+_d = tree(extras=True)
+_FX = _PLANTS[_d]
+_PICK = _FX["pick"]
+ck(bool(len(_PICK) == FIXTURE_N and _FX["meeting"] and _FX["no_row_id"]),
+   "⚠️ the fixture planted %d real week-%s games from the %s schedule, plus "
+   "its prior meeting and its no-possession-row game"
+   % (len(_PICK), _PICK[0].get("week") if _PICK else "?", _FX["season"]),
+   "⛔ rule 67 — every sweep below stands on these games. The schedule "
+   "names the teams and the builder's own table (`nfl_table`) names them "
+   "on the board; an empty table or a one-week calendar plants nothing")
 _rc, _out = run(_d, "dossier_fb.py")
 ck(_rc == 0, "the builder exits clean", _out[-400:])
 _P = os.path.join(_d, "data/nfl/latest/dossiers.json.gz")
 ck(os.path.exists(_P), "⛔ ...and wrote a dossier file", _out[-300:])
 _D = _load(_P)
-_BOARD = json.load(open(os.path.join(ROOT, "data/nfl/latest/board.json"),
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 ~~"the real board has games to describe" (`_NG >= 10` over the LIVE
+# board)~~ REPLACED 2026-09-28. ⛔ It waited for live data: a Monday board
+# of 7 games, mostly finished, turned it red on correct code (collect red
+# from 2026-09-26 16:16Z), and an empty board killed this file at its
+# first fixture. ✅ The board under test is now the TREE's board — the
+# planted games in front, the live ones behind — and the floor is 12
+# DESCRIBED planted games: a higher bar than 10 board rows, met every day.
+# ══════════════════════════════════════════════════════════════════════
+_BOARD = json.load(open(os.path.join(_d, "data/nfl/latest/board.json"),
                         encoding="utf-8"))
 _NG = len(_BOARD.get("games") or [])
-ck(_NG >= 10, "⚠️ the real board has games to describe (%d)" % _NG,
-   "⛔ a sweep over an empty board passes and proves nothing (rule 67)")
+_FIXIDS = [g.get("id") for g in (_BOARD.get("games") or []) if _fixture(g.get("id"))]
+_NP = sum(1 for g in (_D.get("dossiers") or []) if _fixture(g.get("board_id")))
+ck(_NP == len(_FIXIDS) and _NP >= FIXTURE_N,
+   "⚠️ the board under test has games to describe (%d planted + %d live)"
+   % (_NP, _NG - len(_FIXIDS)),
+   "⛔ a sweep over an empty board passes and proves nothing (rule 67). %d "
+   "planted board row(s), %d described" % (len(_FIXIDS), _NP))
 ck(_D.get("n_dossiers", 0) + len(_D.get("skipped") or []) == _NG,
    "🔴🔴 EVERY board game is either a dossier or a NAMED skip",
    "⛔ a game that simply vanished from the output is the shape this "
@@ -257,8 +539,26 @@ ck(all(s.get("why") for s in (_D.get("skipped") or [])),
    "   ⛔ ...and every skip carries its reason",
    "🔴 a game missing from the output and a game with nothing to say are "
    "different facts. Skipped: %s" % (_D.get("skipped") or []))
-note("   %d of %d board games produced a dossier; %d skipped."
-     % (_D.get("n_dossiers", 0), _NG, len(_D.get("skipped") or [])))
+# ── THE LIVE BOARD, AS AN EXTRA: asserted only when it holds games ────
+# ⚠️ A skip carries no board id (`dossier_fb._skip`), so a live game is
+#    matched to one by the board's own (home, away) strings.
+_LIVE = [g for g in (_BOARD.get("games") or []) if not _fixture(g.get("id"))]
+if _LIVE:
+    _ids1 = {g.get("board_id") for g in (_D.get("dossiers") or [])}
+    _sk1 = {(s.get("home"), s.get("away")) for s in (_D.get("skipped") or [])}
+    _lost1 = [(g.get("away"), g.get("home")) for g in _LIVE
+              if g.get("id") not in _ids1
+              and (g.get("home"), g.get("away")) not in _sk1]
+    ck(not _lost1,
+       "   ✅ ...including every game on the LIVE board (%d)" % len(_LIVE),
+       "⛔ the planted games prove the builder; this proves today's slate. "
+       "Neither described nor named: %s" % _lost1)
+else:
+    note("   the live board holds no games right now — the planted games "
+         "carry every check in this file, which is what they are for")
+note("   %d of %d board games produced a dossier (%d planted, %d live); %d "
+     "skipped." % (_D.get("n_dossiers", 0), _NG, _NP, len(_LIVE),
+                   len(_D.get("skipped") or [])))
 
 section("1a. ⛔ AND THE 'OR NAMED' HALF IS DRIVEN, NOT ASSUMED")
 # 🔴 CAUGHT BY DRIVING THE MUTATION, NOT BY READING. Every game on today's
@@ -279,6 +579,10 @@ section("1a. ⛔ AND THE 'OR NAMED' HALF IS DRIVEN, NOT ASSUMED")
 # entry, and each entry is checked BY NAME, so neither path can go quiet
 # without a check going red.
 # ══════════════════════════════════════════════════════════════════════
+# ⚠️ `games[0]` IS A PLANTED ROW `[2026-09-28]`: every tree's board opens
+#    with FIXTURE_N real schedule games, so these fixtures are built on
+#    any day. It used to be the first LIVE game, and an empty live board
+#    raised IndexError here and killed every check after it.
 _d2 = tree()
 _bp = os.path.join(_d2, "data/nfl/latest/board.json")
 _b2 = json.load(open(_bp, encoding="utf-8"))
@@ -395,6 +699,37 @@ ck(_pairwise == _gated,
 # ⚠️ AWAY on purpose: all 16 real cases are the away team, because the
 #    lower-division side is the visitor in a money game.
 _d1b = tree()
+# ══════════════════════════════════════════════════════════════════════
+# ⚠️ THE PER-TEAM SECTIONS THAT NAME THE MISSING HALF NEED A PLAYERS FILE
+# FOR THE SEASON THE BUILDER READS, AND THE CALENDAR DOES NOT ALWAYS HAVE
+# ONE. `[found 2026-09-28 by replaying a season rollover]` This Season (§4)
+# and Personnel (§7) read `players-<season>`; from the day next season's
+# schedule lands until its first game is logged there is no such file
+# (or one with no rows), both refuse, and the floor of two named sections
+# below went red on correct output. ✅ So in that gap this tree's file
+# for the builder's season is the newest stored one that holds the home
+# team — planted, like the games, and said out loud.
+# ══════════════════════════════════════════════════════════════════════
+_s1b = _PLANTS[_d1b]["season"]
+_lat1b = os.path.join(_d1b, "data/nfl/latest")
+
+
+def _holds(path, team):
+    return any(r.get("team") == team
+               for v in ((_load(path).get("players") or {}).values())
+               for r in (v.get("g") or []))
+
+
+_det1b = _DFX.nfl_table(_d1b).get("Detroit Lions")
+if _s1b and not _holds(os.path.join(_lat1b, "players-%d.json.gz" % _s1b), _det1b):
+    _src1b = next((p for p in sorted(glob.glob(os.path.join(
+        _lat1b, "players-[0-9][0-9][0-9][0-9].json.gz")), reverse=True)
+        if _holds(p, _det1b)), None)
+    if _src1b:
+        shutil.copy(_src1b, os.path.join(_lat1b, "players-%d.json.gz" % _s1b))
+    note("   the %s season has no %s player rows yet, so the 1b tree reads %s "
+         "as that season's players file"
+         % (_s1b, _det1b, os.path.basename(_src1b or "nothing")))
 _bp1b = os.path.join(_d1b, "data/nfl/latest/board.json")
 _b1b = json.load(open(_bp1b, encoding="utf-8"))
 _b1b["games"] = _b1b["games"][:2] + [dict(_b1b["games"][0],
@@ -522,7 +857,7 @@ _bp1c = os.path.join(_d1c, "data/nfl/latest/board.json")
 _b1c = json.load(open(_bp1c, encoding="utf-8"))
 # ⚠️ THE BOARD NAMES THE HOME TEAM IN FULL; reuse the builder's OWN
 #    resolver rather than a second copy of the mapping (rule 66).
-import dossier_fb as _DFX  # noqa: E402
+#    ⚠️ `_DFX` is imported once, beside `tree()`, which plants with it.
 _res = _DFX.team_codes("nfl")
 _homefull = next(g["home"] for g in _b1c["games"] if _res(g.get("home")))
 _homecode = _res(_homefull)
@@ -554,6 +889,9 @@ with gzip.open(_sp, "wt") as _fh:
 #    exception check fires because `meetings`, `by_player` and
 #    `by_defence` never appear at all. ⛔ That is the audit working; a
 #    fixture thin enough to trip it is testing the fixture.
+# ⚠️ `[2026-09-28]` THE SIX KEPT ARE THE PLANTED GAMES, real schedule
+#    rows at the front of every tree's board, so this no longer needs
+#    six live games to exist (an empty board stopped it at StopIteration).
 _b1c["games"] = _b1c["games"][:6] + [
     dict(_b1c["games"][0], home=_homefull,
          away="Slippery Rock Aardvarks",
@@ -713,6 +1051,14 @@ ck(_docs and not _bad,
 _states = {s["state"] for g in _docs for s in g["sections"]}
 ck(_states and _states <= {"OK", "UNAVAILABLE"},
    "   every section is OK or explicitly UNAVAILABLE", str(_states))
+# ⚠️ RULE 67 FOR THE CHECK BELOW `[2026-09-28]`: on a slate where every
+#    section answers, "every UNAVAILABLE section says why" passes over
+#    nothing. The planted game dated before every possession row is
+#    UNAVAILABLE in three sections on any day.
+_unav = [(g.get("home"), s["name"]) for g in _docs for s in g["sections"]
+         if s["state"] == "UNAVAILABLE"]
+ck(_unav, "⚠️ there are UNAVAILABLE sections to check (%d)" % len(_unav),
+   "⛔ rule 67 — an empty sweep proves nothing")
 _silent = [(g["home"], s["name"]) for g in _docs for s in g["sections"]
            if s["state"] == "UNAVAILABLE" and not s.get("why")]
 ck(not _silent,
@@ -727,10 +1073,36 @@ section("3. ⛔⛔ NO PROJECTION MOVES — THE CARDS ARE DIFFED, NOT ASSERTED")
 # 🔴 "I did not import it" is not the proof. Build the card in a tree
 #    WITH this file and in a tree WITHOUT it, and compare what Sam bets
 #    from.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 TWO WAYS THIS DIFF COULD PASS HAVING COMPARED NOTHING, BOTH REAL.
+# `[measured 2026-09-28]`
+#   1. FROZEN COPIES. `card_fb.freeze_published` copies a started game's
+#      rows VERBATIM from the committed card of the same slate, and
+#      `tree()` copies every committed card into both trees. On the
+#      2026-09-27 data 18 rows came out with the committed cards present
+#      and 25 FRESH rows with them removed: on a mostly-started day the
+#      diff was comparing two copies of one file.
+#   2. NO PROPS. The rows come from the LIVE props board, so a day whose
+#      next slate is not priced yet has fewer than 5 rows, or none.
+#   3. NO "WITHOUT". The WITHOUT tree held `dossier_fb.py` too (see
+#      `tree()`): a `card_fb.py` that shifted every confidence whenever
+#      that file sat beside it passed all 121 checks of the old file.
+# ✅ SO BOTH TREES LOSE EVERY COMMITTED CARD BEFORE EITHER BUILDS, and
+#    the proof is built from a PLANTED props board: the priced props of a
+#    published card (`picks/fb-nfl-2026-09-20.json` — permanent history,
+#    append-only, never edited), 25 props across its games. The live props
+#    board is diffed the same way as an EXTRA, asserted when it builds a
+#    card and a note() when it does not.
+# ⛔ And the row floor is HARDER than it was: 5 rows that carry both a
+#    projection and a confidence, not 5 rows of anything.
+# ══════════════════════════════════════════════════════════════════════
+_CARD_FX = os.path.join(ROOT, "picks", "fb-nfl-2026-09-20.json")
 _with, _without = tree(True), tree(False)
-_rcw, _ow = run(_with, "card_fb.py")
-_rco, _oo = run(_without, "card_fb.py")
-ck((_rcw, _rco) == (0, 0), "both cards build", (_ow + _oo)[-400:])
+ck(os.path.exists(os.path.join(_with, "dossier_fb.py"))
+   and not os.path.exists(os.path.join(_without, "dossier_fb.py")),
+   "⚠️ the WITH tree holds `dossier_fb.py` and the WITHOUT tree does not",
+   "⛔ rule 67 — `copy_module(\"collect\")` brings the dossier along, and "
+   "two trees that both hold it diff to identical whatever the card does")
 
 
 def _card(d):
@@ -738,25 +1110,87 @@ def _card(d):
     return json.load(open(f[-1], encoding="utf-8")) if f else None
 
 
-_cw, _co = _card(_with), _card(_without)
-ck(_cw and _co, "⚠️ both trees produced a card to compare",
-   "⛔ comparing two absent cards is the emptiest possible pass")
-if _cw and _co:
-    _pw = [p.get("projection") for p in _cw.get("picks") or []]
-    _po = [p.get("projection") for p in _co.get("picks") or []]
-    ck(len(_pw) >= 5, "⚠️ ...carrying rows to compare (%d)" % len(_pw))
+def _fresh_card(d, props=None):
+    """Build the card in `d` with NO committed card beside it, from
+    `props` (a props board) or, when None, the tree's own live copy."""
+    for _f in glob.glob(os.path.join(d, "picks", "fb-nfl-*.json")):
+        os.remove(_f)
+    _pp = os.path.join(d, "data/nfl/latest/props.json.gz")
+    if props is None:
+        _src = os.path.join(ROOT, "data/nfl/latest/props.json.gz")
+        if os.path.exists(_src):
+            shutil.copy(_src, _pp)
+    else:
+        with gzip.open(_pp, "wt") as _fh:
+            json.dump(props, _fh)
+    _rc_, _o_ = run(d, "card_fb.py")
+    return _rc_, _o_, _card(d)
+
+
+def _props_from(card):
+    """A props board holding exactly the priced props a published card
+    carried, in the shape `props-board` writes (one priced side each)."""
+    games = {}
+    for p in card.get("picks") or []:
+        g = games.setdefault(p.get("game_id"), {
+            "id": p.get("game_id"), "home": p.get("home"),
+            "away": p.get("away"), "commence": p.get("commence"), "props": []})
+        g["props"].append({"player": p.get("player"), "market": p.get("market"),
+                           "line": p.get("line"),
+                           "sides": {p.get("side"): {
+                               "price": p.get("price"), "book": p.get("book"),
+                               "link": p.get("link"), "n_books": p.get("n_books")}}})
+    return {"kind": "FIXTURE", "league": "nfl", "games": list(games.values())}
+
+
+def _diff(cw, co, where):
+    _pw = [p.get("projection") for p in cw.get("picks") or []]
+    _po = [p.get("projection") for p in co.get("picks") or []]
     ck(_pw == _po,
-       "🔴🔴 EVERY PROJECTION IS IDENTICAL, WITH AND WITHOUT THIS FILE",
+       "🔴🔴 EVERY PROJECTION IS IDENTICAL, WITH AND WITHOUT THIS FILE (%s)"
+       % where,
        "⛔ THE LICENCE FOR ADDING A TOOL BESIDE THE CARD IS THAT IT "
        "CANNOT REACH IT. with=%s without=%s" % (_pw[:4], _po[:4]))
-    ck([p.get("confidence") for p in _cw["picks"]]
-       == [p.get("confidence") for p in _co["picks"]],
-       "🔴 ...and every confidence number too",
+    ck([p.get("confidence") for p in cw["picks"]]
+       == [p.get("confidence") for p in co["picks"]],
+       "🔴 ...and every confidence number too (%s)" % where,
        "a projection is not the only number a reader acts on")
-    ck(json.dumps(_cw.get("picks"), sort_keys=True)
-       == json.dumps(_co.get("picks"), sort_keys=True),
-       "🔴🔴 ...and the whole board is byte-identical",
+    ck(json.dumps(cw.get("picks"), sort_keys=True)
+       == json.dumps(co.get("picks"), sort_keys=True),
+       "🔴🔴 ...and the whole board is byte-identical (%s)" % where,
        "⛔ the cards are DIFFED, not asserted about")
+
+
+# ── 3a. THE PROOF: a planted props board, every day ────────────────────
+_PFX = _props_from(json.load(open(_CARD_FX, encoding="utf-8"))
+                   if os.path.exists(_CARD_FX) else {})
+_rcw, _ow, _cw = _fresh_card(_with, _PFX)
+_rco, _oo, _co = _fresh_card(_without, _PFX)
+ck((_rcw, _rco) == (0, 0), "both cards build from the planted props board",
+   (_ow + _oo)[-400:])
+ck(_cw and _co, "⚠️ both trees produced a FRESH card to compare",
+   "⛔ comparing two absent cards is the emptiest possible pass, and a "
+   "committed card left in the tree would be compared instead")
+if _cw and _co:
+    _full = [p for p in _cw.get("picks") or []
+             if p.get("projection") is not None and p.get("confidence") is not None]
+    ck(len(_full) >= 5,
+       "⚠️ ...carrying rows to compare (%d, %d with a projection and a "
+       "confidence)" % (len(_cw.get("picks") or []), len(_full)),
+       "⛔ rule 67 — a diff of rows that carry no number compares nothing. "
+       "Planted from %s" % os.path.relpath(_CARD_FX, ROOT))
+    _diff(_cw, _co, "planted props")
+
+# ── 3b. THE LIVE PROPS BOARD, AS AN EXTRA ─────────────────────────────
+_rcw2, _ow2, _cw2 = _fresh_card(_with)
+_rco2, _oo2, _co2 = _fresh_card(_without)
+if _cw2 and _co2 and (_cw2.get("picks") or _co2.get("picks")):
+    ck((_rcw2, _rco2) == (0, 0), "   both cards build from the LIVE props board",
+       (_ow2 + _oo2)[-400:])
+    _diff(_cw2, _co2, "live props, %d rows" % len(_cw2.get("picks") or []))
+else:
+    note("   the live props board built no card with rows today (rc %s/%s) — "
+         "the planted board above is the proof" % (_rcw2, _rco2))
 _SRC = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
 ck("dossier" not in _SRC.lower(),
    "⛔ card_fb.py does not mention the dossier at all",
@@ -765,6 +1199,13 @@ ck("dossier" not in _SRC.lower(),
 section("4. 🔴 THE VS-POSITION RANK CARRIES ITS MEASURED VERDICT")
 _vs = [s for g in _docs for s in g["sections"] if s["name"] == "Versus position"]
 ck(_vs, "⚠️ there are vs-position sections to check (%d)" % len(_vs))
+# ⚠️ RULE 67 `[2026-09-28]`: the phrase checks below read only the sections
+#    that ANSWER, so with none OK every one of them passed over nothing.
+#    The planted games' defences are in the stored table on any day.
+ck(any(s["state"] == "OK" for s in _vs),
+   "⚠️ ...and at least one of them answers (%d OK)"
+   % sum(1 for s in _vs if s["state"] == "OK"),
+   "⛔ rule 67 — a verdict check over no OK section proves nothing")
 for _phrase in ("4.4 rushing yards", "27 yards", "DISPLAYED, NOT APPLIED",
                 "moves no projection"):
     ck(all(_phrase in (s.get("verdict") or "") for s in _vs if s["state"] == "OK"),
@@ -819,6 +1260,32 @@ ck(_hist == ["away_score", "home_score"],
    "   ✅ ...while prior meetings still carry the scores that happened",
    "⛔ THE CHECK MUST NOT FORCE OUT HONEST HISTORY. A result is a fact; a "
    "score for THIS game would be a claim. Got %s" % _hist)
+# ⚠️ AND BY VALUE, ON THE PLANTED MEETING `[2026-09-28]`. The key check
+#    above needed a live game with a rematch inside 365 days — a 1-game
+#    board without one turned it red on correct code — and it passes on a
+#    meeting whose scores are all None. The planted meeting is 23-20.
+_M = _FX["meeting"] or {}
+_g0 = next((g for g in _docs if _PICK
+            and g.get("board_id") == "fixture-%s" % _PICK[0]["id"]), {})
+_m0 = [m for s in (_g0.get("sections") or []) if s.get("n") == 2
+       for m in (s.get("meetings") or []) if m.get("date") == _M.get("start", "")[:10]]
+ck(len(_m0) == 1 and (_m0[0].get("home"), _m0[0].get("away"),
+                      _m0[0].get("home_score"), _m0[0].get("away_score"))
+   == (_M.get("home"), _M.get("away"), 23, 20),
+   "   🔴 ...the planted prior meeting reads %s %s-%s %s, as it happened"
+   % (_M.get("home"), _M.get("home_score"), _M.get("away_score"), _M.get("away")),
+   "⛔ a meeting with the score dropped, or the sides swapped, is a record "
+   "of a game that did not happen. Got %s" % _m0)
+_livem = [m for g in _docs if not _fixture(g.get("board_id"))
+          for s in (g.get("sections") or []) if s.get("n") == 2
+          for m in (s.get("meetings") or [])]
+if _livem:
+    ck(all("home_score" in m and "away_score" in m for m in _livem),
+       "   ✅ ...and so do the live slate's %d meeting(s)" % len(_livem),
+       "Got %s" % _livem[:2])
+else:
+    note("   no live game has a prior meeting inside 365 days today — the "
+         "planted meeting carries the check")
 ck("data/mlb" not in _DSRC and '"mlb"' not in _DSRC,
    "⛔ the builder has no MLB path at all — the absence IS the guard",
    "🔴 CLAUDE.md: the freeze forbids a scheduled check that reads MLB "
@@ -945,20 +1412,50 @@ ck(not _bad6,
 ck(all(s["state"] == "OK" or "remedy" in s for s in _top),
    "   ...and every section that is not OK names what would fix it",
    "a gap with no remedy is a complaint")
-_TOPF = glob.glob(os.path.join(_d, "data/nfl/latest/top-[0-9][0-9][0-9][0-9].json.gz"))
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 AND THE REFUSAL WEEK 1 PRODUCES ON EVERY GAME NAMES ONE TOO.
+# `[measured 2026-09-28]` When the table exists but neither team has a
+# game before this kickoff — every game of week 1, every season — the
+# section said "a possession file exists but carries neither" and named
+# NO remedy, so the check above went red on correct output every week 1
+# and was never asked on any other week. ✅ The builder now names one, and
+# the case is PLANTED: a game dated 30 days before every stored row.
+# ══════════════════════════════════════════════════════════════════════
+_nr = next((g for g in _docs if _FX["no_row_id"]
+            and g.get("board_id") == _FX["no_row_id"]), {})
+_nr6 = next((s for s in (_nr.get("sections") or []) if s.get("n") == 6), {})
+ck(bool(_nr6.get("state") == "UNAVAILABLE" and _nr6.get("remedy")
+        and "carries neither" in (_nr6.get("why") or "")),
+   "🔴 a game neither team has an earlier possession row for refuses AND "
+   "names a remedy (planted, %s)" % (_nr.get("commence") or "missing")[:10],
+   "⛔ a gap with no remedy is a complaint, and week 1 is this gap on every "
+   "game. Got %s / %r / remedy %r" % (_nr6.get("state"),
+                                     (_nr6.get("why") or "")[:80],
+                                     _nr6.get("remedy")))
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 ~~`_TOPF = glob(top-[0-9]{4}.json.gz)` — ANY season's table~~
+# REPLACED 2026-09-28. ⛔ The builder reads `top-<the season it builds>`
+# only (`s_possession`), so at the season rollover — `schedule-2027` on
+# disk, `top-2027` not yet — the old glob found `top-2026`, demanded an OK
+# section, and went red on correct output. ✅ This reads the season the
+# document itself names, and `plant()` guarantees that table in this tree
+# (the stored one, or a planted one while the calendar has none), so the
+# present-case question is asked on every day. The ABSENT case is driven
+# below on a tree with every table removed.
+# ══════════════════════════════════════════════════════════════════════
+_TOPF = os.path.join(_d, "data/nfl/latest/top-%s.json.gz" % _D.get("season"))
 _claims_none = [s for s in _top
                 if "No time-of-possession figures are stored" in (s.get("why") or "")]
-if _TOPF:
-    ck(not _claims_none and _ok6,
-       "🔴🔴 the table is on disk (%s), so NO section says it is not, and "
-       "the section answers" % os.path.basename(_TOPF[0]),
-       "⛔ a page saying 'nothing is stored' beside a stored table is the "
-       "section lying about the disk. %d claim none, %d OK"
-       % (len(_claims_none), len(_ok6)))
-else:
-    ck(not _ok6,
-       "🔴🔴 no table on disk, so NO section answers OK",
-       "⛔ an OK section with no table under it is a number from nowhere")
+ck(os.path.exists(_TOPF),
+   "⚠️ the possession table for the season the builder reads is on disk "
+   "(%s)" % os.path.basename(_TOPF),
+   "⛔ rule 67 — the question below needs it; `plant()` writes it")
+ck(os.path.exists(_TOPF) and not _claims_none and _ok6,
+   "🔴🔴 the table is on disk (%s), so NO section says it is not, and "
+   "the section answers" % os.path.basename(_TOPF),
+   "⛔ a page saying 'nothing is stored' beside a stored table is the "
+   "section lying about the disk. %d claim none, %d OK"
+   % (len(_claims_none), len(_ok6)))
 
 # 4. THE ABSENT CASE, DRIVEN — the old assertion, exactly where it holds.
 _d6 = tree()
@@ -985,15 +1482,46 @@ section("7. 🔴🔴 NO VERDICT MAY REACH THE PUBLISHED FILE")
 import dossier_fb as DF  # noqa: E402
 
 _bad, _miss = DF.audit(_D)
-ck(not _bad,
+# ⚠️ `_D` ALWAYS HOLDS THE PLANTED GAMES `[2026-09-28]`, so this walk has
+#    real content on any day; on an empty live board it used to walk a
+#    document with no games in it.
+ck(_D.get("dossiers") and not _bad,
    "🔴🔴 THE REAL DOCUMENT CARRIES NO NUMERIC JUDGEMENT FIELD",
    "⛔ a report that scores a game is a model, and a model needs a "
    "pre-registered test this artifact does not have. Found %s" % _bad[:5])
-ck(not _miss,
-   "⛔ ...and every carried-subtree exemption actually appears",
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 ~~`ck(not _miss)` over the LIVE document~~ REPLACED 2026-09-28: IT
+# ASKED THE WRONG QUESTION OF THE LIVE SLATE.
+# ⛔ Whether `meetings` (or `weather`, or `closing`) appears is a fact
+#    about the SLATE: the builder struck exactly this refusal on
+#    2026-09-19 as a guard firing on correct data, and now only REPORTS it
+#    as `carried_absent` (dossier_fb.py, beside `CARRIED`, and `build()`).
+#    Measured: a 1-game board with no rematch (IND@WAS) turned this red —
+#    "Stale: ['meetings']" — on correct output.
+# ✅ THE SAME QUESTION, ASKED WHERE THE ANSWER IS KNOWN, AND NO EASIER: the
+#    planted slate carries every `CARRIED` subtree by construction (its
+#    prior meeting, its final games' closing lines, its venues), and the
+#    planted games are a SUBSET of the document the old check read — so
+#    every name appearing on the planted slate implies it appeared in the
+#    whole document. Passing the new check implies passing the old one on
+#    the same run. The live result is REPORTED; the static half (every
+#    name is a key this module emits) is `test_dossier_coverage.py`'s.
+# ══════════════════════════════════════════════════════════════════════
+_PL = dict(_D, dossiers=[g for g in (_D.get("dossiers") or [])
+                         if _fixture(g.get("board_id"))])
+_bp7, _mp7 = DF.audit(_PL)
+ck(_PL["dossiers"] and not _bp7 and not _mp7,
+   "⛔ ...and every carried-subtree exemption actually appears (on the "
+   "PLANTED slate, %d games)" % len(_PL["dossiers"]),
    "🔴 THE EXCEPTION SURFACE MUST BE REAL. A name in `CARRIED` that no "
    "longer appears means the walk is skipping a subtree that is not "
-   "there — and could be skipping one that is. Stale: %s" % _miss)
+   "there — and could be skipping one that is. Stale: %s, judgement "
+   "fields: %s" % (_mp7, _bp7[:3]))
+_mlive = DF.audit(dict(_D, dossiers=[g for g in (_D.get("dossiers") or [])
+                                     if not _fixture(g.get("board_id"))]))[1]
+note("   carried subtrees the LIVE slate alone does not carry: %s — a fact "
+     "about today's games, which the builder reports as `carried_absent`"
+     % (_mlive or "none"))
 
 # ⚠️ A CLASS, NOT A BLOCKLIST OF THREE. The next synonym is what walks
 #    past a list of `score`/`rank`/`confidence`.
@@ -1075,18 +1603,28 @@ _d5 = tree()
 os.remove(os.path.join(_d5, "data/nfl/latest/dossiers.json.gz")) \
     if os.path.exists(os.path.join(_d5, "data/nfl/latest/dossiers.json.gz")) \
     else None
-_rc5 = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d5,
-                      timeout=1200, capture_output=True, text=True,
-                      env=dict(os.environ, LEAGUE="nfl"))
+# ⛔ `converge-off`, BLANK KEYS, NO NETWORK `[2026-09-28]` — see
+#    `run_collect`. Without them this run converged the whole tree: news
+#    fetched from two outside sites on every run, and paid modes planned.
+_rc5, _o5, _net5 = run_collect(_d5)
 _made = os.path.exists(os.path.join(_d5, "data/nfl/latest/dossiers.json.gz"))
 ck(_made,
    "🔴🔴 RUNNING THE REAL `card-fb` MODE PRODUCES THE DOSSIER",
    "⛔ a tool nothing runs is a tool that rots, and a SOURCE STRING "
    "cannot tell a live call from a commented-out one. rc=%s %s"
-   % (_rc5.returncode, (_rc5.stdout + _rc5.stderr)[-300:]))
-ck("dossier_fb[nfl]" in (_rc5.stdout + _rc5.stderr),
+   % (_rc5, _o5[-300:]))
+ck("dossier_fb[nfl]" in _o5,
    "   ...and the collector's own log says so",
-   (_rc5.stdout + _rc5.stderr)[-250:])
+   _o5[-250:])
+ck("FRESHNESS SURVEY" not in _o5,
+   "⛔ ...and `card-fb` ran ALONE: no converge pass, so no other mode, no "
+   "network and no paid pull",
+   "🔴 a test that converges the tree runs every stale mode in it — news "
+   "from outside sites, and the paid pulls whenever a key is in the "
+   "environment. Log: %s" % _o5[:300])
+ck(not _net5,
+   "⛔ ...and reached for NO network (%d attempt(s) refused)" % len(_net5),
+   "🔴 a test must not depend on the network. Tried: %s" % _net5[:4])
 _modes_with_crons = {m for _c, _lg, m in _routes}
 ck("card-fb" in _modes_with_crons,
    "🔴🔴 ...AND A CRON ACTUALLY ROUTES TO `card-fb`",
@@ -1127,15 +1665,16 @@ for _f in glob.glob(os.path.join(_d9, "data/nfl/*/dossiers/*.json.gz")):
     os.remove(_f)
 if os.path.exists(_lat9):
     os.remove(_lat9)
-_rc9 = subprocess.run([sys.executable, "collect.py", "card-fb"], cwd=_d9,
-                      timeout=1200, capture_output=True, text=True,
-                      env=dict(os.environ, LEAGUE="nfl"))
-_out9 = (_rc9.stdout or "") + (_rc9.stderr or "")
+_rc9, _out9, _net9 = run_collect(_d9)
 _arch9 = sorted(glob.glob(os.path.join(_d9, "data/nfl/*/dossiers/*.json.gz")))
 ck(os.path.exists(_lat9),
    "⚠️ the run wrote `latest/dossiers.json.gz` as it always did",
    "⛔ if it wrote nothing at all the claim below would pass having "
-   "checked nothing (rule 67). rc=%s %s" % (_rc9.returncode, _out9[-300:]))
+   "checked nothing (rule 67). rc=%s %s" % (_rc9, _out9[-300:]))
+ck("FRESHNESS SURVEY" not in _out9 and not _net9,
+   "   ⛔ ...running `card-fb` alone, with no network (%d attempt(s))"
+   % len(_net9),
+   "🔴 Tried: %s. Log: %s" % (_net9[:4], _out9[:200]))
 ck(len(_arch9) == 1,
    "🔴🔴 ...AND A DATED COPY BESIDE IT (%s)"
    % (os.path.relpath(_arch9[0], _d9) if _arch9 else "none"),
@@ -1180,17 +1719,20 @@ if _arch9:
         os.makedirs(os.path.dirname(_pp), exist_ok=True)
         with gzip.open(_pp, "wt") as _fh:
             json.dump({"sentinel": "the earlier reading"}, _fh)
-    _rc9b = subprocess.run([sys.executable, "collect.py", "card-fb"],
-                           cwd=_d9, timeout=1200, capture_output=True,
-                           text=True, env=dict(os.environ, LEAGUE="nfl"))
+    _rc9b, _out9b, _net9b = run_collect(_d9)
     _again = sorted(glob.glob(
         os.path.join(_d9, "data/nfl/*/dossiers/*.json.gz")))
-    _out9b = (_rc9b.stdout or "") + (_rc9b.stderr or "")
-    # ⚠️ ASKED OF THE BUILDER, NOT OF THE EXIT CODE. This sandbox has no
-    #    network, so `card-fb` exits non-zero on the feeds it cannot
-    #    reach — and a run that never reached the builder would leave the
-    #    sentinel intact too, which would make the claim below pass
-    #    having tested nothing (rule 67).
+    ck("FRESHNESS SURVEY" not in _out9b and not _net9b,
+       "   ⛔ the second run too ran `card-fb` alone, with no network (%d "
+       "attempt(s))" % len(_net9b),
+       "🔴 Tried: %s. Log: %s" % (_net9b[:4], _out9b[:200]))
+    # ⚠️ ASKED OF THE BUILDER, NOT OF THE EXIT CODE. A run that never
+    #    reached the builder would leave the sentinel intact too, which
+    #    would make the claim below pass having tested nothing (rule 67).
+    #    ~~"This sandbox has no network, so `card-fb` exits non-zero on the
+    #    feeds it cannot reach"~~ — that was the converge pass this run no
+    #    longer makes (`[2026-09-28]`, `converge-off`); the exit code still
+    #    answers a different question from "did the builder run".
     ck("dossier_fb[nfl]" in _out9b,
        "⚠️ the second run really did rebuild the dossier",
        "⛔ the sentinel survives a run that did nothing, so this has to "
@@ -1229,3 +1771,17 @@ note("💾 DATED AND WRITE-ONCE RATHER THAN ONE CUMULATIVE ARCHIVE, and "
      "each version IN FULL. 5.17 MiB for a 20-week season written this "
      "way against 2,896 MiB rewritten eight times a day — 560x.")
 shutil.rmtree(_d9, ignore_errors=True)
+
+section("10. 🧹 NOTHING THIS FILE MADE OUTLIVES IT")
+# ⚠️ `[2026-09-28]` The atexit hook removes the parent on ANY exit; this
+#    runs it now so a removal that silently fails (a Windows file lock, a
+#    tree made outside the parent) is a red check rather than disk.
+_n_made = len(_MADE)
+_outside = [t for t in _MADE
+            if os.path.dirname(os.path.abspath(t)) != os.path.abspath(_RUN_TMP)]
+_cleanup()
+_left = [t for t in _MADE + [_RUN_TMP] if os.path.exists(t)]
+ck(_n_made >= 10 and not _outside and not _left,
+   "⛔ every throwaway tree this file made is removed (%d trees)" % _n_made,
+   "🔴 5,317 leaked `dossier-*` trees, about 82 GB, sat in %%TEMP%% before "
+   "this. Outside the parent: %s. Still on disk: %s" % (_outside, _left))

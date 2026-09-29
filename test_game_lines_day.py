@@ -28,6 +28,22 @@ which half is wrong.
 one week. That is Sam's call. What is owned here is that the list and the
 LABEL ABOVE IT agree — whatever the window is, the card must not say one
 thing and show another.
+
+`[2026-09-28]` §5 asserts a card BUILT here; the live cards are reported.
+# @vacuity §5: a freeze that drags the old slate's started lines back into the list
+#   file: card_fb.py
+#   find: if d and d != _gl_day:
+#   with: if False:
+#
+# @vacuity §5: a list that never moves to the next slate cannot be marked as moved
+#   file: card_fb.py
+#   find: return min(days) if days else None
+#   with: return None
+#
+# @vacuity §5: main must mark a list that is on another day than its card
+#   file: card_fb.py
+#   find: gl_meta["is_next_slate"] = (_gl_slate != slate)
+#   with: gl_meta["is_next_slate"] = False
 """
 import datetime
 import gzip
@@ -156,6 +172,86 @@ print("\n═══ 5. 🔴 AND THE LIVE CARDS AGREE WITH THEIR OWN LABEL ══�
 #    reported as not exercised. ⛔ It can never silently excuse the case
 #    it exists to catch, and it expires by itself the moment every card
 #    has been rebuilt.
+#
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 `[2026-09-28]` THE LIVE CARDS ARE NOW REPORTED; A BUILT CARD IS ASSERTED.
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ THE ASSERTION ABOVE WAS "ANOTHER GUARD IS SILENT ON PRODUCTION DATA".
+#    It judged `picks/fb-*-latest.json` — written by whatever builder last
+#    ran, not by the code under test — and went red on EVERY collect run
+#    from 09-20 (test_card_frozen.py §5 records it), and on a PR it judged
+#    that PR's code by a card main's code had built. The production
+#    question already has its own monitor: `watchdog.check_card_day_
+#    agreement` asks exactly this of the live cards, on every run.
+# ✅ SO THE SAME TWO QUESTIONS ARE ASKED OF A CARD BUILT HERE, every run:
+#    the next-slate choice, the one-day list, and the freeze onto a card
+#    already published with STARTED lines from the slate before — the
+#    path that broke on 09-20 — composed the way `card_fb.main` composes
+#    them, and `main` is read to prove it still does. Kickoffs are at
+#    17:00Z, where the ET and UTC dates agree, so no zone data is needed.
+def _foreign_days(d):
+    """ET days in a card's game lines that are not the list's own slate."""
+    _ls = (d.get("game_lines_meta") or {}).get("slate")
+    return sorted({C.et_date(r.get("commence"))
+                   for r in (d.get("game_lines") or [])
+                   if C.et_date(r.get("commence")) not in (_ls, None)})
+
+
+def _marks_its_day(d):
+    meta = d.get("game_lines_meta") or {}
+    return meta.get("slate") == d.get("date") or meta.get("is_next_slate") is True
+
+
+import tempfile  # noqa: E402
+_card_day = "2026-09-19"                                   # a Saturday card
+_snap5 = _snap([("sat", "2026-09-19T17:00:00Z"),           # started by NOW
+                ("thu", "2026-09-24T17:00:00Z"),           # the next slate
+                ("sat2", "2026-09-26T17:00:00Z")])         # a later one
+_now5 = datetime.datetime(2026, 9, 21, 19, 0, tzinfo=datetime.timezone.utc)
+# the card as it was published on Saturday: its own day's lines, started now
+_old_rows, _old_meta = C.build_game_lines(_snap5, n=None, slate=_card_day)
+_pubcard = {"date": _card_day, "game_lines_meta": _old_meta, "game_lines": _old_rows}
+# the rebuild on Monday, composed as `card_fb.main` composes it
+_gl_slate = C.next_line_slate(_snap5, _now5) or _card_day
+_rows5, _meta5 = C.build_game_lines(_snap5, n=None, slate=_gl_slate)
+_meta5["card_slate"] = _card_day
+_meta5["is_next_slate"] = (_gl_slate != _card_day)
+_new = {"date": _card_day, "game_lines_meta": _meta5, "game_lines": _rows5}
+_tmp5 = tempfile.mkdtemp()
+try:
+    _pub = os.path.join(_tmp5, "fb-ncaaf-latest.json")
+    with open(_pub, "w", encoding="utf-8") as fh:
+        json.dump(_pubcard, fh)
+    _built, _ = C.freeze_published(_new, _pub, "2026-09-21T19:00:00Z",
+                                   log=lambda *a, **k: None)
+finally:
+    import shutil  # noqa: E402
+    shutil.rmtree(_tmp5, ignore_errors=True)
+ck("🔴 a card built here puts every game line on the list's own day, "
+   "across a slate change and a freeze",
+   bool(_old_rows) and bool(_built.get("game_lines"))
+   and not _foreign_days(_built),
+   "⛔ the list prints ONE date and every row must be on it. slate %s; "
+   "foreign days present: %s (published rows %d, built rows %d)"
+   % ((_built.get("game_lines_meta") or {}).get("slate"),
+      _foreign_days(_built), len(_old_rows), len(_built.get("game_lines") or [])))
+ck("⛔ ...and that card says so when its list is on another day than it is",
+   (_built.get("game_lines_meta") or {}).get("slate") != _card_day
+   and _marks_its_day(_built),
+   "a list on a different day than the header MUST be marked, or it is the "
+   "contradiction Sam reported with a different date. meta %s"
+   % (_built.get("game_lines_meta") or {}))
+_main = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
+_main = _main[_main.index("\ndef main("):]
+ck("🔴 ...and `card_fb.main` still composes the list exactly that way",
+   "_gl_slate = (next_line_slate(_gl_snap) or slate) if _gl_snap else slate"
+   in _main
+   and "build_game_lines(_gl_snap, n=None, slate=_gl_slate)" in _main
+   and 'gl_meta["is_next_slate"] = (_gl_slate != slate)' in _main
+   and "freeze_published(" in _main,
+   "⛔ a built card composed differently from main's would prove nothing "
+   "about the card main writes")
+
 _checked = _old = 0
 for lg in ("ncaaf", "nfl"):
     p = os.path.join(ROOT, "picks", "fb-%s-latest.json" % lg)
@@ -167,35 +263,22 @@ for lg in ("ncaaf", "nfl"):
     if "slate" not in meta:
         _old += 1
         note("⚠️ %s: this stored card predates the day filter (no "
-             "`game_lines_meta.slate`), so it is NOT asserted. The next "
-             "card-fb run rewrites it. ⛔ Reported, not passed." % lg)
+             "`game_lines_meta.slate`). The next card-fb run rewrites it."
+             % lg)
         continue
     # ⚠️ CHECKED AGAINST THE LIST'S OWN SLATE, NOT THE CARD'S DATE.
     #    Since 2026-09-14 the game lines deliberately follow the NEXT day
     #    with games (Sam: college plays midweek), so they are ALLOWED to
     #    differ from the card — what is never allowed is the list holding
     #    more than one day, or disagreeing with the label it prints.
-    _ls = meta.get("slate")
-    bad = sorted({C.et_date(r.get("commence")) for r in (d.get("game_lines") or [])
-                  if C.et_date(r.get("commence")) not in (_ls, None)})
     _checked += 1
-    ck("🔴 %s: every published game line is on the list's own day (%s)"
-       % (lg, _ls),
-       not bad,
-       "⛔ the list prints ONE date and every row must be on it. This "
-       "card was built by a builder that HAS the filter, so a foreign "
-       "date means the filter stopped working. Present: %s" % bad)
-    ck("⛔ %s: ...and the card says so when they differ (card %s)"
-       % (lg, slate),
-       _ls == slate or meta.get("is_next_slate") is True,
-       "a list on a different day than the header MUST be marked, or it "
-       "is the contradiction Sam reported with a different date")
+    bad = _foreign_days(d)
+    note("%s live card (DESCRIPTIVE — the watchdog asks this of production): "
+         "list day %s, card day %s, foreign days %s, marked %s"
+         % (lg, meta.get("slate"), slate, bad or "none",
+            _marks_its_day(d)))
 if not (_checked or _old):
-    note("⚠️ NOT EXERCISED: no stored football card in this tree, so "
-         "section 5 proved nothing. ⛔ Reported rather than passed.")
-else:
-    note("asserted %d card(s); %d predate the filter and were reported "
-         "rather than asserted" % (_checked, _old))
+    note("no stored football card in this tree")
 
 
 print("\n═══ 6. 🔴🔴 THE LIST FOLLOWS THE NEXT SLATE, NOT THE CARD'S ═══")

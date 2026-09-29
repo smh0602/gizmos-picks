@@ -24,6 +24,19 @@ design — `fill_board` derives its per-market cap from the board cap, so
 int(50*0.34)=17 becomes int(25*0.34)=8 and a two-market slate comes out
 differently spread. ⛔ Asserting a prefix would be asserting the wrong
 thing, and it would fail on correct code.
+
+`[2026-09-28]` Item 2 is now asked of a card the BUILDER writes from a
+planted board, every run; the live published cards are reported.
+
+# @vacuity the builder's card never carries more rows than its cap (planted board)
+#   file: card_fb.py
+#   find: board = rows[:BOARD_MAX] if rated else fill_board(rows, BOARD_MAX)
+#   with: board = rows if rated else fill_board(rows, BOARD_MAX)
+#
+# @vacuity the builder's card declares the cap it was built to (planted board)
+#   file: card_fb.py
+#   find: "board_max": BOARD_MAX,
+#   with: "board_max": None,
 """
 import glob
 import json
@@ -129,19 +142,24 @@ print("\n═══ 3. 🔴 THE LIVE CARDS HONOUR IT ═══")
 #    may never be rewritten, so asserting over every stored card would be
 #    red forever. What is ASSERTED is the builder's own declared cap on
 #    every card; what is REPORTED is how many older cards exceed 25.
-cards = sorted(glob.glob(os.path.join(ROOT, "picks", "fb-*-2*.json")))
-if not cards:
-    note("⚠️ NOT EXERCISED: no football cards on this machine. Sections "
-         "1, 2 and 4 do not need them and still ran.")
-else:
-    # ⛔ ONLY CARDS THAT DECLARE A CAP ARE ASSERTED. The first form of
-    #    this check failed on `fb-ncaaf-2026-09-03.json`, which predates
-    #    the `board_max` field entirely — so it was failing a card for
-    #    not carrying a field that did not exist when it was written,
-    #    which is a fact about the schema's history and not about any
-    #    card being over its cap. Cards without the field are REPORTED.
+# 🔴 `[2026-09-28]` ~~ck("no published card exceeds the cap IT declares")~~
+#    over the live `picks/` asked PRODUCTION to stay silent (pattern P2):
+#    one card published over its cap — a card that can never be edited —
+#    would redden every run forever, and a tree with no card declaring a
+#    cap passed having asked nothing. ✅ Now the scanner is driven on
+#    PLANTED cards both ways, the BUILDER is shown to write a card within
+#    its own declared cap from a planted board, and the live scan is a
+#    note that names any over-cap card.
+
+
+def over_cap(paths):
+    """-> (bad, undeclared) over the given card files. ⛔ ONLY CARDS THAT
+    DECLARE A CAP ARE JUDGED. The first form of this check failed on
+    `fb-ncaaf-2026-09-03.json`, which predates the `board_max` field
+    entirely — a fact about the schema's history, not about any card being
+    over its cap. Cards without the field are REPORTED."""
     bad, undeclared = [], []
-    for p in cards:
+    for p in paths:
         try:
             c = json.load(open(p, encoding="utf-8"))
         except Exception as e:
@@ -153,11 +171,93 @@ else:
         elif n > cap:
             bad.append((os.path.basename(p), "%d picks over a cap of %d"
                         % (n, cap)))
-    ck("🔴 no published card exceeds the cap IT declares",
-       not bad,
+    return bad, undeclared
+
+
+import gzip as _gz        # noqa: E402
+import shutil as _sh      # noqa: E402
+import subprocess as _sp  # noqa: E402
+import tempfile as _tf    # noqa: E402
+from tcheck import copy_module, shown  # noqa: E402
+
+_pt = _tf.mkdtemp(prefix="boardcap-")
+try:
+    _pk = os.path.join(_pt, "planted-picks")
+    os.makedirs(_pk)
+    for _nm, _doc in (("fb-nfl-2026-09-10.json", {"board_max": 25, "picks": [{}] * 25}),
+                      ("fb-nfl-2026-09-11.json", {"board_max": 25, "picks": [{}] * 26}),
+                      ("fb-nfl-2026-09-12.json", {"picks": [{}] * 30})):
+        json.dump(_doc, open(os.path.join(_pk, _nm), "w", encoding="utf-8"))
+    open(os.path.join(_pk, "fb-nfl-2026-09-13.json"), "w").write("{ not json")
+    _pb, _pu = over_cap(sorted(glob.glob(os.path.join(_pk, "fb-*-2*.json"))))
+    ck("🔴 the scanner flags a planted card over its OWN cap, and an unreadable one",
+       [b[0] for b in _pb] == ["fb-nfl-2026-09-11.json", "fb-nfl-2026-09-13.json"]
+       and "26 picks over a cap of 25" in _pb[0][1],
+       "⛔ a card at its cap passes, one row over does not. got %s" % _pb)
+    ck("⚠️ ...and a card with no declared cap is REPORTED, not judged",
+       _pu == ["fb-nfl-2026-09-12.json"], "got %s" % _pu)
+
+    # ✅ THE BUILDER, ON A PLANTED BOARD WITH MORE RATED ROWS THAN THE CAP:
+    #    30 players, one game each, all rated — the card must declare the
+    #    cap and publish no more than it.
+    # ⚠️ Letters, not digits: `norm()` strips digits, so "Player 1" and
+    #    "Player 2" would be one ambiguous name and the join would refuse.
+    _nm = ["Cap Player %s%s" % (chr(97 + i // 26), chr(97 + i % 26)) for i in range(30)]
+    _tree = os.path.join(_pt, "tree")
+    os.makedirs(os.path.join(_tree, "data/nfl/latest"))
+    os.makedirs(os.path.join(_tree, "picks"))
+    _kick = "2026-09-13T17:00:00Z"
+    _board = {"pulled_at": "2026-09-12T22:31:00Z", "books_seen": ["fanduel"],
+              "games": [{"id": "g%d" % i, "away": "A%d" % i, "home": "H%d" % i,
+                         "commence": _kick,
+                         "props": [{"player": _nm[i],
+                                    "market": "player_receptions", "line": 3.5,
+                                    "sides": {"over": {"price": -110, "book": "fanduel",
+                                                       "n_books": 3, "link": "x"}}}]}
+                        for i in range(30)]}
+    _board["n_games"] = len(_board["games"])
+    _logs = {"season": 2025, "players": {
+        str(i): {"name": _nm[i], "pos": "WR",
+                 "g": [{"rec": 5 if j < 3 + i % 7 else 2, "rec_yds": 30,
+                        "snap_pct": 0.9, "team": "T", "game_id": "x",
+                        "d": "2025-10-%02d" % (j + 1)} for j in range(10)]}
+        for i in range(30)}}
+    with _gz.open(os.path.join(_tree, "data/nfl/latest/props.json.gz"), "wt") as _fh:
+        json.dump(_board, _fh)
+    with _gz.open(os.path.join(_tree, "data/nfl/latest/players-2025.json.gz"), "wt") as _fh:
+        json.dump(_logs, _fh)
+    copy_module("card_fb", _tree)
+    _r = _sp.run([sys.executable, "card_fb.py"], cwd=_tree,
+                 env=dict(os.environ, LEAGUE="nfl"), capture_output=True, text=True)
+    _lp = os.path.join(_tree, "picks", "fb-nfl-latest.json")
+    _built = json.load(open(_lp, encoding="utf-8")) if os.path.exists(_lp) else None
+    if _built is None:
+        print(shown(_r.stdout[-1200:]), shown(_r.stderr[-1200:]))
+    _rated = sum(1 for p in (_built or {}).get("picks") or []
+                 if p.get("confidence") is not None)
+    ck("🔴🔴 the builder, given 30 rated rows, publishes exactly its declared cap",
+       _built is not None and _built.get("board_max") == card_fb.BOARD_MAX
+       and len(_built.get("picks") or []) == card_fb.BOARD_MAX
+       and _rated == card_fb.BOARD_MAX
+       and not over_cap([_lp])[0],
        "⛔ the card carries its own board_max so a reader can check it "
-       "without the source. A card over its own stated cap is the page "
-       "lying about its own rule. Bad: %s" % bad[:3])
+       "without the source; a card over it is the page lying about its own "
+       "rule. got board_max=%s, %d picks (%d rated)"
+       % ((_built or {}).get("board_max"), len((_built or {}).get("picks") or []), _rated))
+finally:
+    _sh.rmtree(_pt, ignore_errors=True)
+
+cards = sorted(glob.glob(os.path.join(ROOT, "picks", "fb-*-2*.json")))
+if not cards:
+    note("⚠️ NOT EXERCISED: no football cards on this machine. Sections "
+         "1, 2 and 4 do not need them and still ran.")
+else:
+    bad, undeclared = over_cap(cards)
+    note("%s published card(s) over the cap they declare%s — REPORTED, not "
+         "asserted: a published card can never be edited (rule 76), so a hard "
+         "check here would be red forever on a card nobody may fix. The "
+         "builder's cap is asserted on the planted board above."
+         % (len(bad), (": %s" % bad[:3]) if bad else ""))
     if undeclared:
         note("⚠️ %d card(s) predate the board_max field and are not "
              "asserted over: %s. ⛔ They are not rewritten — a published "

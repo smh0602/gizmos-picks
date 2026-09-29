@@ -22,6 +22,15 @@ WHAT IS PINNED:
   3. a league that FAILS does not skip the next one
   4. `verify_freshness` is graded ONCE PER LEAGUE, not once per run
   5. MLB's verifiers can never be reached by a football run
+
+⚠️ `[2026-09-28]` The step is driven from a FILE: it is 11K characters, and
+on Windows `bash -c` cut it short with no error, so 16 of 21 checks here
+were red on correct code there. The freshness gate below sits 11K in.
+
+# @vacuity 🔴 the drive reaches the END of the step (freshness per league)
+#   file: .github/workflows/collect.yml
+#   find: LEAGUE="$LG" python verify_freshness.py \
+#   with: LEAGUE="$LG" true verify_freshness.py \
 """
 import os
 import re
@@ -124,7 +133,14 @@ def drive(leagues, modes="live-probe", fail_for=None):
                # script's last line redirects into an empty filename —
                # a fault in this harness, not in the workflow.
                GITHUB_OUTPUT=f"{tmp}/gh_output")
-    r = subprocess.run(["bash", "-c", SCRIPT], cwd=tmp, env=env,
+    # ⚠️ FROM A FILE, NOT `bash -c` `[2026-09-28]`: on Windows a `bash -c`
+    #    script past about 8K characters is cut short with no error, and
+    #    this step is past it ("unexpected end of file" on line 166 -- a
+    #    drive of half a step). A file is read whole everywhere.
+    step = f"{tmp}/step.sh"
+    with open(step, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(SCRIPT)
+    r = subprocess.run(["bash", step], cwd=tmp, env=env,
                        capture_output=True, text=True, timeout=120)
     calls = open(log).read().splitlines() if os.path.exists(log) else []
     # ⚠️ THE STEP'S REAL VERDICT IS `rc` IN $GITHUB_OUTPUT, NOT ITS EXIT

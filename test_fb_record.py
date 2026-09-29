@@ -97,6 +97,11 @@ IDX = os.path.join(ROOT, "index.html")
 #   find: ${saidAs || 'we said'}
 #   file: index.html
 #   with: ${saidAs || 'the record claimed'}
+#
+# @vacuity the grader WRITES each league's own detail_file (planted tree, not the stored record)
+#   file: record_fb.py
+#   find: "detail_file": f"{LATEST}/record-detail.json.gz",
+#   with: "detail_file": None,
 # ══════════════════════════════════════════════════════════════════════
 
 
@@ -184,31 +189,42 @@ for _n in ("fbDetailLoad", "fbDayDetailHtml"):
        "nothing reaches is a blank box")
 
 section("1. 🔴🔴 THE BANDS RENDER THROUGH bandRow — AND NOT A TABLE")
-_r = out("const h = fbCalBlock(%s);"
-         "console.log(JSON.stringify({bands:(h.match(/class=\"band\"/g)||[]).length,"
-         "tables:(h.match(/<table/g)||[]).length,"
-         "verdicts:[...h.matchAll(/class=\"verd [^\"]*\">([^<]*)</g)].map(m=>m[1]).length,"
-         "pts:(h.match(/pts</g)||[]).length, html:h}));"
-         % json.dumps(BANDS["nfl"]))
-ck(len(BANDS["nfl"]) >= 3,
-   "⚠️ the real nfl record has bands to draw (%d)" % len(BANDS["nfl"]),
-   "⛔ one `.band` per bucket over zero buckets is the emptiest pass there "
-   "is — and it is exactly what this section did the day `calibration` "
-   "went empty")
-eq(_r.get("bands"), len(BANDS["nfl"]),
-   "🔴 one `.band` per bucket, off the REAL nfl record")
-eq(_r.get("tables"), 0,
-   "⛔ AND NOT ONE `<table>` — the bare table is gone, not hidden beside "
-   "the bars")
-eq(_r.get("verdicts"), len(BANDS["nfl"]),
-   "   every band carries MLB's one-word verdict",
-   )
-# ⚠️ COUNTED INSIDE THE `verd` DIV, not anywhere on the page. The legend
-#    repeats "Beat the claim" as a key, so a loose match counted 8 for 7
-#    bands — a check that would have stayed green if a band lost its
-#    verdict and the legend kept its label.
-eq(_r.get("pts"), len(BANDS["nfl"]),
-   "   ...and the gap in points")
+_BANDS_PROBE = ("const h = fbCalBlock(%s);"
+                "console.log(JSON.stringify({bands:(h.match(/class=\"band\"/g)||[]).length,"
+                "tables:(h.match(/<table/g)||[]).length,"
+                "verdicts:[...h.matchAll(/class=\"verd [^\"]*\">([^<]*)</g)].map(m=>m[1]).length,"
+                "pts:(h.match(/pts</g)||[]).length, html:h}));")
+# 🔴 `[2026-09-28]` ~~driven ONLY on the live nfl record, with a ck that it
+#    held 3+ bands~~ (pattern P3): a season start, a method switch or a
+#    reset leaves a correct record with fewer, and the section went red —
+#    or, the day `calibration` went empty, passed over nothing. ✅ Driven
+#    every run on PLANTED football bands (four, one a -53 point miss); the
+#    live record is an extra, asserted when it has bands to draw.
+_PLANT_FB = [{"bucket": "80-90%", "stated": 84.1, "w": 11, "n": 23, "pct": 47.8},
+             {"bucket": "60-70%", "stated": 65.1, "w": 14, "n": 32, "pct": 43.8},
+             {"bucket": "70-80%", "stated": 74.0, "w": 16, "n": 20, "pct": 80.0},
+             {"bucket": "90-100%", "stated": 94.2, "w": 12, "n": 30, "pct": 40.0}]
+for _what, _bl in (("PLANTED", _PLANT_FB), ("the real nfl record", BANDS["nfl"])):
+    if _bl is BANDS["nfl"] and len(_bl) < 3:
+        note("⚠️ NOT EXERCISED ON THE LIVE RECORD: the real nfl record has %d "
+             "band(s) — a new season, a method switch or a reset. The planted "
+             "bands above asked every question." % len(_bl))
+        continue
+    _r = out(_BANDS_PROBE % json.dumps(_bl))
+    eq(_r.get("bands"), len(_bl),
+       "🔴 one `.band` per bucket, off %s (%d)" % (_what, len(_bl)))
+    eq(_r.get("tables"), 0,
+       "⛔ AND NOT ONE `<table>` — the bare table is gone, not hidden beside "
+       "the bars (%s)" % _what)
+    eq(_r.get("verdicts"), len(_bl),
+       "   every band carries MLB's one-word verdict (%s)" % _what,
+       )
+    # ⚠️ COUNTED INSIDE THE `verd` DIV, not anywhere on the page. The legend
+    #    repeats "Beat the claim" as a key, so a loose match counted 8 for 7
+    #    bands — a check that would have stayed green if a band lost its
+    #    verdict and the legend kept its label.
+    eq(_r.get("pts"), len(_bl),
+       "   ...and the gap in points (%s)" % _what)
 
 section("2. 🔴🔴 THE CLAIMED FIGURE COMES FROM `stated`, NEVER 0")
 # ⛔ THE MUTATION THAT MATTERS MOST. A record carrying `stated` and NO
@@ -221,9 +237,15 @@ ck(all("predicted" not in b for b in _SYN),
    "⚠️ the fixture carries NO `predicted` key at all",
    "⛔ if it carried one, MLB's mapping would work here and this section "
    "would prove nothing (rule 67)")
-ck(BANDS["nfl"] and all("predicted" not in c for c in BANDS["nfl"]),
-   "⚠️ ...and neither does the real record",
-   "🔴 this is why the verbatim copy fails: the key simply is not there")
+# ⚠️ `[2026-09-28]` ~~ck(BANDS["nfl"] and ...)~~ demanded the LIVE record
+#    hold a band (P3); the planted `_SYN` above carries the case every run.
+if BANDS["nfl"]:
+    ck(all("predicted" not in c for c in BANDS["nfl"]),
+       "⚠️ ...and neither does the real record",
+       "🔴 this is why the verbatim copy fails: the key simply is not there")
+else:
+    note("⚠️ the real nfl record has no band to read — the planted fixture "
+         "above carries the no-`predicted` case")
 _r2 = out("const h = fbCalBlock(%s);"
           "const said=[...h.matchAll(/left:([^%%;\"]*)%%/g)].map(m=>m[1]);"
           "const wide=[...h.matchAll(/width:([^%%;\"]*)%%/g)].map(m=>m[1]);"
@@ -342,10 +364,26 @@ _r6b = out(
     extra="async function jgetGz(p){ return {who:p}; }")
 eq(_r6b.get("path"), "data/nfl/latest/record-detail.json.gz",
    "   ⚠️ ...and a record with no detail_file falls back to the league path")
+# 🔴 `[2026-09-28]` ~~eq(REAL[_lg]["detail_file"], ...)~~ read a field off
+#    the STORED record (P2: a fact about the last grader run, not about the
+#    grader — rule 181). ✅ The WRITER is driven instead: `record_fb.py` run
+#    in an empty tree for each league must write `detail_file` naming that
+#    league's drill-down. The stored value is reported.
+import shutil as _sh  # noqa: E402
 for _lg in ("nfl", "ncaaf"):
-    eq(REAL[_lg].get("detail_file"),
-       "data/%s/latest/record-detail.json.gz" % _lg,
-       "   the real %s record carries its own detail_file" % _lg)
+    _t = tempfile.mkdtemp(prefix="fbrec-writer-")
+    try:
+        _p = subprocess.run([sys.executable, os.path.join(ROOT, "record_fb.py")],
+                            cwd=_t, env=dict(os.environ, LEAGUE=_lg),
+                            capture_output=True, text=True, timeout=300)
+        _rp = os.path.join(_t, "data", _lg, "latest", "record.json")
+        _w = json.load(open(_rp, encoding="utf-8")) if os.path.exists(_rp) else {}
+    finally:
+        _sh.rmtree(_t, ignore_errors=True)
+    eq(_w.get("detail_file"), "data/%s/latest/record-detail.json.gz" % _lg,
+       "   record_fb.py writes the %s record's OWN detail_file (planted tree)" % _lg)
+    note("the stored %s record says detail_file=%r"
+         % (_lg, REAL[_lg].get("detail_file")))
 
 section("7. ⛔ A MISSING DETAIL FILE DEGRADES TO A NOTE, NOT AN EXCEPTION")
 _r7 = out(
@@ -448,30 +486,51 @@ ck(bool(_CALL), "⚠️ MLB's own bandRow call site was found in renderRecord",
    "to render and the licence for this change evaporates")
 _MLBREC = json.load(open(os.path.join(ROOT, "data", "latest", "record.json"),
                          encoding="utf-8"))
-ck(len(_MLBREC.get("calibration") or []) >= 3,
-   "⚠️ ...and MLB has real bands to diff (%d)"
-   % len(_MLBREC.get("calibration") or []),
-   "⛔ diffing two empty strings is the emptiest possible pass")
-_r9 = out(
-    "const oldFn = new Function(FROZEN + '; return bandRow;')();"
-    "const newFn = NEWBAND;"
-    "const render = fn => new Function('R','bandRow','return ' + CALL)(REC, fn);"
-    "const a = render(oldFn), b = render(newFn);"
-    "console.log(JSON.stringify({same: a === b, alen: a.length, blen: b.length,"
-    " weSaid: (b.match(/we said/g)||[]).length}));",
-    extra=("const FROZEN = " + json.dumps(_frozen_src) + ";\n"
-           "const CALL = " + json.dumps(_CALL.group(0) if _CALL else "''") + ";\n"
-           "const REC = " + json.dumps(_MLBREC) + ";\n"
-           "const NEWBAND = bandRow;"))
-ck(_r9.get("same") is True,
-   "🔴🔴 MLB'S RENDERED BANDS ARE BYTE-IDENTICAL, OLD FUNCTION VS NEW",
-   "⛔ THIS IS THE WHOLE LICENCE FOR TOUCHING A COMPONENT MLB DEPENDS "
-   "ON. Not 'I did not change the MLB call site' — the strings. Got "
-   "old=%s new=%s chars" % (_r9.get("alen"), _r9.get("blen")))
-ck((_r9.get("weSaid") or 0) == len(_MLBREC["calibration"]),
-   "   ✅ ...and MLB still says \"we said\" on every band",
-   "the default is what keeps MLB unchanged; %s of %d bands carried it"
-   % (_r9.get("weSaid"), len(_MLBREC["calibration"])))
+
+
+def _mlb_diff(rec):
+    """MLB's own call site over `rec`, through the frozen bandRow and the live one."""
+    return out(
+        "const oldFn = new Function(FROZEN + '; return bandRow;')();"
+        "const newFn = NEWBAND;"
+        "const render = fn => new Function('R','bandRow','return ' + CALL)(REC, fn);"
+        "const a = render(oldFn), b = render(newFn);"
+        "console.log(JSON.stringify({same: a === b, alen: a.length, blen: b.length,"
+        " weSaid: (b.match(/we said/g)||[]).length}));",
+        extra=("const FROZEN = " + json.dumps(_frozen_src) + ";\n"
+               "const CALL = " + json.dumps(_CALL.group(0) if _CALL else "''") + ";\n"
+               "const REC = " + json.dumps(rec) + ";\n"
+               "const NEWBAND = bandRow;"))
+
+
+# 🔴 `[2026-09-28]` ~~ck("MLB has real bands to diff") on the LIVE record
+#    only~~ (P3): a new MLB season, a regrade or a band-scheme change leaves
+#    a correct record with fewer than three bands, and the licence below
+#    went red — or diffed nothing. ✅ The diff runs every time on a PLANTED
+#    MLB-shaped record (four bands, gaps both ways, MLB's own field names);
+#    the live record is diffed as well whenever it has bands.
+_MLB_PLANT = {"calibration": [
+    {"bucket": "50-60%", "predicted": 56.5, "w": 99, "n": 205, "pct": 48.3},
+    {"bucket": "60-70%", "predicted": 64.2, "w": 200, "n": 395, "pct": 50.6},
+    {"bucket": "70-80%", "predicted": 74.8, "w": 71, "n": 90, "pct": 78.9},
+    {"bucket": "80-90%", "predicted": 84.3, "w": 9, "n": 16, "pct": 56.3}]}
+for _what, _rec in (("PLANTED", _MLB_PLANT), ("LIVE", _MLBREC)):
+    _nb = len(_rec.get("calibration") or [])
+    if _rec is _MLBREC and _nb < 3:
+        note("⚠️ NOT EXERCISED ON THE LIVE MLB RECORD: %d band(s) — the "
+             "planted record above carried the diff" % _nb)
+        continue
+    _r9 = _mlb_diff(_rec)
+    ck(_nb >= 3 and _r9.get("same") is True,
+       "🔴🔴 MLB'S RENDERED BANDS ARE BYTE-IDENTICAL, OLD FUNCTION VS NEW (%s, %d bands)"
+       % (_what, _nb),
+       "⛔ THIS IS THE WHOLE LICENCE FOR TOUCHING A COMPONENT MLB DEPENDS "
+       "ON. Not 'I did not change the MLB call site' — the strings. Got "
+       "old=%s new=%s chars" % (_r9.get("alen"), _r9.get("blen")))
+    ck((_r9.get("weSaid") or 0) == _nb,
+       "   ✅ ...and MLB still says \"we said\" on every band (%s)" % _what,
+       "the default is what keeps MLB unchanged; %s of %d bands carried it"
+       % (_r9.get("weSaid"), _nb))
 
 _r9b = out("console.log(JSON.stringify({"
            "dflt: bandRow({name:'x',n:1,said:35,hit:40}),"
@@ -496,11 +555,18 @@ for _lg in ("nfl", "ncaaf"):
                "bands:(h.match(/class=\"band\"/g)||[]).length}));"
                % json.dumps(REAL[_lg]))
     _t = _r9c.get("titles") or []
-    ck(_t and not any("we said" in x for x in _t),
-       "🔴🔴 NO %s BAND SAYS \"we said\" — driven on the real record, every method" % _lg,
-       "⛔ `record.json`'s own no_model_note: \"No number here is a model "
-       "output.\" Attributing it to \"we\" is a DESCRIPTIVE number in a "
-       "MODEL voice. Got %s" % _t[:3])
+    # ⚠️ `[2026-09-28]` ~~ck(_t and ...)~~ demanded the LIVE record hold a
+    #    band (P3) while the note below says an empty method is "reported,
+    #    not failed". The planted two-method record in §9b asks it every run.
+    if BANDS[_lg]:
+        ck(bool(_t) and not any("we said" in x for x in _t),
+           "🔴🔴 NO %s BAND SAYS \"we said\" — driven on the real record, every method" % _lg,
+           "⛔ `record.json`'s own no_model_note: \"No number here is a model "
+           "output.\" Attributing it to \"we\" is a DESCRIPTIVE number in a "
+           "MODEL voice. Got %s" % _t[:3])
+    else:
+        note("⚠️ NOT EXERCISED ON THE LIVE %s RECORD: no graded band under any "
+             "method — §9b's planted records carry the case" % _lg)
     ck(len(_t) == len(BANDS[_lg]) and all("the record claimed" in x for x in _t),
        "   ...every one of the %d band(s) names the record instead" % len(BANDS[_lg]),
        "Got %d titles %s" % (len(_t), _t[:3]))

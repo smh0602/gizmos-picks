@@ -7,6 +7,71 @@ and the gate must catch it. ⛔ If any case says CAUGHT where it should say
 MISSED, the fix is not doing what it claims.
 
 Run:  python test_freshness.py        (exit 0 = every case behaved)
+
+════════════════════════════════════════════════════════════════════════
+🔴 `[2026-09-28]` THE CONTROL AND THE CASCADE HAD BEEN FAILING, AND THE
+FILE STILL SAID "✅ all 5 checks passed".
+════════════════════════════════════════════════════════════════════════
+Cases 7-9 and the converge, workflow and midnight sections appended to a
+local FAIL list that NOTHING gated (tcheck gates only `ck`). Run on
+2026-09-28 it printed "[FALSE ALARM] control ... wrongly flagged:
+[pitchers, record, runs]" and "[BROKEN] cascade" — and exited 0.
+Three causes, all fixed together (any one alone turns the file red):
+  1. `build()` wrote a hand list of files that went STALE when the MLB
+     contract gained the pitcher tables, the drill-down and run status.
+     ✅ It now writes every row `F.contract` returns for the tree it builds.
+  2. The synthetic tree was judged against a row set read from the LIVE
+     repo (`runs_writer_deployed()` reads the checked-out runs.yml): a
+     synthetic tree and a live fact — never one of each. ✅ Pinned, and
+     every case is driven in BOTH states of the run watcher.
+  3. ✅ Every verdict goes through `ck`. The day-rollover case is PINNED to
+     00:30Z (it used the real clock and only reached the rollover branch
+     between 00:00Z and 04:30Z, about 19% of runs).
+
+# @vacuity the CONTROL: a tree built inside every deadline flags nothing
+#   file: freshness.py
+#   find: stale = built is None or (due is not None and built < due)
+#   with: stale = built is None or (due is not None and built <= now)
+#
+# @vacuity the CASCADE: a late props pull drags the join with it
+#   file: freshness.py
+#   find: "props-pitcher": ["props-board"],
+#   with: "props-pitcher": [],
+#
+# @vacuity the DAY ROLLOVER: yesterday's snapshot directory is still read
+#   file: freshness.py
+#   find: dirs.append("/".join(y))
+#   with: pass
+#
+# @vacuity converge runs the modes its plan names
+#   file: collect.py
+#   find: if not modes:
+#   with: if True:
+#
+# @vacuity a failed HARD mode turns the converge run red
+#   file: collect.py
+#   find: return 1 if failed else 0
+#   with: return 0
+#
+# @vacuity a failed SOFT mode does not
+#   file: collect.py
+#   find: return 1 if failed else 0
+#   with: return 1
+#
+# @vacuity the published freshness report carries every field the page reads
+#   file: collect.py
+#   find: "artifacts": rows,
+#   with: "artifacts": [{"mode": r["mode"]} for r in rows],
+#
+# @vacuity the workflow guards: the gate surveys the league it is asked about
+#   file: verify_freshness.py
+#   find: _DATA = "data" if _LEAGUE == "mlb" else f"data/{_LEAGUE}"
+#   with: _DATA = "data"
+#
+# @vacuity the card is dated by its DEADLINE, never by a clock that rolls
+#   file: freshness.py
+#   find: ("card",     ("file", f"{picks}/{due_date(CARD, now)}.json"), CARD, False,
+#   with: ("card",     ("file", f"{picks}/{slate_date(now)}.json"), CARD, False,
 """
 import contextlib, datetime, gzip, io, json, os, re, shutil, sys, tempfile, time
 import freshness as F
@@ -16,58 +81,68 @@ UTC = datetime.timezone.utc
 PASS, FAIL = [], []
 
 
-def build(root, ages_min, no_stamp=(), corrupt=()):
-    """ages_min: minutes ago each artifact was last built."""
-    """A synthetic repo where each artifact is `ages_min` minutes old."""
-    now = datetime.datetime.now(UTC)
-    day, uday = F.et_date(now), now.strftime("%Y-%m-%d")
+@contextlib.contextmanager
+def watcher(deployed):
+    """Pin the run-status row: a synthetic tree is never judged against
+    the checked-out repo's runs.yml (`runs_writer_deployed` reads it)."""
+    live = F.runs_writer_deployed
+    F.runs_writer_deployed = lambda root=None, _v=deployed: _v
+    try:
+        yield
+    finally:
+        F.runs_writer_deployed = live
+
+
+def build(root, ages_min, no_stamp=(), corrupt=(), now=None):
+    """A synthetic repo where each artifact is `ages_min` minutes old.
+
+    ✅ THE FILES ARE THE CONTRACT'S. Every row `F.contract` returns for
+    this tree at `now` is written: a `file` row at its path, stamped
+    `ages_min[mode]` minutes old; a `dir` row as one snapshot in the
+    directory for the UTC DAY IT WAS WRITTEN. ⛔ A hand list here went
+    stale three times as the MLB contract grew, and the control case then
+    flagged the rows nobody had added.
+    """
+    now = now or datetime.datetime.now(UTC)
     os.makedirs(f"{root}/data/latest", exist_ok=True)
     os.makedirs(f"{root}/picks", exist_ok=True)
-    # 🔴 THE SLATE DATE, NOT THE UTC DATE — see freshness.slate_date.
-    os.makedirs(f"{root}/data/{F.slate_date(now)}/results", exist_ok=True)
 
     def ts(mode):
         return (now - datetime.timedelta(minutes=ages_min.get(mode, 0))
                 ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def put(path, mode):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         body = {} if mode in no_stamp else {"pulled_at": ts(mode)}
         op = gzip.open if path.endswith(".gz") else open
         with op(path, "wt") as fh:
             fh.write("{not json" if mode in corrupt else json.dumps(body))
 
-    L = f"{root}/data/latest"
-    put(f"{L}/scores.json.gz", "scores")
-    put(f"{L}/pitchers.json.gz", "pitchers")
-    put(f"{L}/hitters.json.gz", "hitters")
-    put(f"{L}/board.json", "gamelines")
-    put(f"{L}/props.json.gz", "props-board")
-    put(f"{L}/lineups.json.gz", "lineups")
-    put(f"{L}/weather.json.gz", "weather")
-    put(f"{L}/news.json", "news")
-    put(f"{L}/record.json", "record")
-    put(f"{root}/data/{F.slate_date(now)}/results/final.json.gz", "results")
-    # 🔴 THE CARD IS DATED BY ITS DEADLINE, NOT BY THE WALL CLOCK.
-    # ⛔ This harness wrote `picks/<et_date>.json` and therefore ENCODED
-    # THE BUG IT WAS SUPPOSED TO CATCH -- inside the midnight-to-10am
-    # window it built the file the broken contract asked for, so the
+    # 🔴 THE CARD IS DATED BY ITS DEADLINE, NOT BY THE WALL CLOCK, and the
+    # results by the SLATE date: both come from the contract's own paths.
+    # ⛔ This harness once wrote `picks/<et_date>.json` and therefore
+    # ENCODED THE BUG IT WAS SUPPOSED TO CATCH -- inside the midnight-to-
+    # 10am window it built the file the broken contract asked for, so the
     # control case passed while production went red every night.
-    put(f"{root}/picks/{F.due_date(F.CARD, now)}.json", "card")
-
-    for kind in ("props-pitcher", "props-batter"):
+    for mode, (kind, path), _t, _pd, _w in F.contract(
+            data=f"{root}/data", picks=f"{root}/picks", now=now):
+        if kind == "file":
+            put(path, mode)
+            continue
         # 🔴 A snapshot lands in the directory for the UTC DAY IT WAS
         # WRITTEN, so an artifact older than today belongs in an earlier
         # directory. Modelling that correctly is what exposed the
         # day-rollover bug in newest_age_minutes.
-        when = now - datetime.timedelta(minutes=ages_min.get(kind, 0))
-        d = f"{root}/data/{when.strftime('%Y-%m-%d')}/{kind}"
+        when = now - datetime.timedelta(minutes=ages_min.get(mode, 0))
+        d = os.path.join(os.path.dirname(os.path.dirname(path)),
+                         when.strftime("%Y-%m-%d"), os.path.basename(path))
         os.makedirs(d, exist_ok=True)
         with gzip.open(f"{d}/{when.strftime('%H%M')}.json.gz", "wt") as fh:
             fh.write("{}")
     return root
 
 
-def check(name, root, must_flag, mtime_now=True):
+def check(name, root, must_flag, mtime_now=True, now=None):
     """`must_flag` = set of modes the survey MUST report stale."""
     if mtime_now:
         # 🔴 SIMULATE A FRESH `git checkout`: every mtime becomes now.
@@ -75,12 +150,9 @@ def check(name, root, must_flag, mtime_now=True):
         for dp, _, fs in os.walk(root):
             for f in fs:
                 os.utime(os.path.join(dp, f), None)
-    rows = F.survey(data=f"{root}/data", picks=f"{root}/picks")
+    rows = F.survey(data=f"{root}/data", picks=f"{root}/picks", now=now)
     stale = {r["mode"] for r in rows if r["stale"]}
     ok = must_flag <= stale
-    # ⚠️ Routed through the shared harness so the gate is `tcheck`'s, not
-    # this file's. The local PASS/FAIL lists are kept because later
-    # sections still read them for their own reporting.
     (PASS if ok else FAIL).append(name)
     ck(name, ok,
        "" if ok else f"expected stale {sorted(must_flag)}, "
@@ -91,78 +163,95 @@ def check(name, root, must_flag, mtime_now=True):
 tmp = tempfile.mkdtemp()
 try:
     print("FAULT INJECTION — each case must be CAUGHT\n")
+    for _dep in (False, True):
+        _w = " (run watcher %s)" % ("deployed" if _dep else "not deployed")
+        with watcher(_dep):
+            # 1 — the actual 2026-08-28 defect
+            r = build(f"{tmp}/{_dep}f1", {"props-pitcher": 900, "props-batter": 900})
+            check("props 15 hours old (the live defect)" + _w, r,
+                  {"props-pitcher", "props-batter"})
 
-    # 1 — the actual 2026-08-28 defect
-    r = build(f"{tmp}/f1", {"props-pitcher": 900, "props-batter": 900})
-    check("props 15 hours old (the live defect)", r,
-          {"props-pitcher", "props-batter"})
+            # 2 — the same, stated as the mechanism that hid it
+            print("       ^ mtimes were reset to 'now' before every check above,")
+            print("         which is exactly what defeated os.path.getmtime.\n")
 
-    # 2 — the same, stated as the mechanism that hid it
-    print("       ^ mtimes were reset to 'now' before every check above,")
-    print("         which is exactly what defeated os.path.getmtime.\n")
+            # 3 — the card missed its 10:00am build
+            r = build(f"{tmp}/{_dep}f3", {"card": 24*60})
+            check("card not rebuilt since yesterday (due 10:00am)" + _w, r, {"card"})
 
-    # 3 — the card missed its 10:00am build
-    r = build(f"{tmp}/f3", {"card": 24*60})
-    check("card not rebuilt since yesterday (due 10:00am)", r, {"card"})
+            # 4 — an artifact carrying NO timestamp must never read as fresh
+            r = build(f"{tmp}/{_dep}f4", {}, no_stamp=("record",))
+            check("artifact with no timestamp at all" + _w, r, {"record"})
 
-    # 4 — an artifact carrying NO timestamp must never read as fresh
-    r = build(f"{tmp}/f4", {}, no_stamp=("record",))
-    check("artifact with no timestamp at all", r, {"record"})
+            # 5 — a corrupt artifact must fail loudly, not crash or pass
+            r = build(f"{tmp}/{_dep}f5", {}, corrupt=("board.json", "gamelines"))
+            check("unreadable/corrupt artifact" + _w, r, {"gamelines"})
 
-    # 5 — a corrupt artifact must fail loudly, not crash or pass
-    r = build(f"{tmp}/f5", {}, corrupt=("board.json", "gamelines"))
-    check("unreadable/corrupt artifact", r, {"gamelines"})
+            # 6 — the track-record hole: results stale
+            r = build(f"{tmp}/{_dep}f6", {"results": 5000, "scores": 5000})
+            check("results + scores 3.5 days old (missed 6:00am)" + _w, r,
+                  {"results", "scores"})
 
-    # 6 — the track-record hole: results stale
-    r = build(f"{tmp}/f6", {"results": 5000, "scores": 5000})
-    check("results + scores 3.5 days old (missed 6:00am)", r, {"results", "scores"})
+            # 7 — CONTROL: everything built since its deadline -> NOTHING flagged
+            r = build(f"{tmp}/{_dep}f7", {})
+            rows = F.survey(data=f"{r}/data", picks=f"{r}/picks")
+            stale = {x["mode"] for x in rows if x["stale"]}
+            (PASS if not stale else FAIL).append("control" + _w)
+            ck("🔴 control: everything current reports NOTHING stale" + _w,
+               not stale and len(rows) >= 16,
+               "⛔ a false alarm here is a banner nobody can clear. wrongly "
+               "flagged: %s; rows surveyed: %d" % (sorted(stale), len(rows)))
 
-    # 7 — CONTROL: everything built since its deadline -> NOTHING flagged
-    r = build(f"{tmp}/f7", {})
-    rows = F.survey(data=f"{tmp}/f7/data", picks=f"{tmp}/f7/picks")
-    stale = {x["mode"] for x in rows if x["stale"]}
-    ok = not stale
-    (PASS if ok else FAIL).append("control: all fresh -> silent")
-    print(f"  [{'CORRECT' if ok else 'FALSE ALARM'}] control: everything "
-          f"current reports nothing stale")
-    if not ok:
-        print(f"           wrongly flagged: {sorted(stale)}")
+            # 8 — the cascade
+            r = build(f"{tmp}/{_dep}f8", {"props-pitcher": 24*60})
+            modes, _ = F.plan(data=f"{r}/data", picks=f"{r}/picks")
+            (PASS if modes == ["props-pitcher", "props-board"] else FAIL).append(
+                "cascade" + _w)
+            ck("🔴 cascade: a late props pull drags the join with it — and "
+               "NOT the card" + _w,
+               modes == ["props-pitcher", "props-board"],
+               "⛔ the 10am card is the 10am card, so the 4pm odds pull must "
+               "not quietly rebuild it. plan -> %s" % modes)
 
-    # 8 — the cascade
-    r = build(f"{tmp}/f8", {"props-pitcher": 24*60})
-    modes, _ = F.plan(data=f"{tmp}/f8/data", picks=f"{tmp}/f8/picks")
-    ok = modes == ["props-pitcher", "props-board"]
-    (PASS if ok else FAIL).append("cascade")
-    print(f"  [{'CORRECT' if ok else 'BROKEN'}] cascade: a late props pull "
-          f"drags the join with it -> {modes}")
-    print( "            ⛔ and NOT the card: the 10am card is the 10am card,")
-    print( "               so the 4pm odds pull must not quietly rebuild it.")
+            # 9 — THE DAY-ROLLOVER CASE, added after the suite caught it.
+            #     At 00:30Z (8:30pm ET) yesterday's 4pm pull is 4.5h old and
+            #     STILL SATISFIES the 4pm deadline. It must NOT be re-bought.
+            # 🔴 `[2026-09-28]` PINNED TO 00:30Z. It used the real clock, so
+            #    the snapshot only landed in YESTERDAY's directory when the
+            #    suite ran between 00:00Z and 04:30Z; the rest of the day the
+            #    rollover branch was never reached and the case passed on a
+            #    broken rollover. The tree and the clock are pinned together.
+            #    ⚠️ 265 minutes, not 270: the pull lands at 20:05Z (4:05pm
+            #    ET), five minutes after the 4pm deadline rather than on it.
+            roll = datetime.datetime(2026, 8, 31, 0, 30, tzinfo=UTC)
+            r = build(f"{tmp}/{_dep}f10", {"props-pitcher": 265, "props-batter": 265},
+                      now=roll)
+            rows = F.survey(data=f"{r}/data", picks=f"{r}/picks", now=roll)
+            pp = [x for x in rows if x["mode"] == "props-pitcher"][0]
+            _yday = os.path.isdir(f"{r}/data/2026-08-30/props-pitcher") and \
+                not os.path.isdir(f"{r}/data/2026-08-31/props-pitcher")
+            (PASS if not pp["missing"] else FAIL).append("day rollover" + _w)
+            ck("🔴 day rollover: a pull from the previous UTC day is still "
+               "visible at 00:30Z" + _w,
+               _yday and not pp["missing"] and not pp["stale"],
+               "⛔ MISSING here re-buys a paid pull every night. snapshot only "
+               "in yesterday's directory: %s; age %sm, missing %s, stale %s"
+               % (_yday, pp["age_min"], pp["missing"], pp["stale"]))
 
-    # 9 — THE DAY-ROLLOVER CASE, added after the suite caught it.
-    #     At 00:30Z (8:30pm ET) yesterday's 4pm pull is 4.5h old and
-    #     STILL SATISFIES the 4pm deadline. It must NOT be re-bought.
-    roll = datetime.datetime.now(UTC).replace(hour=0, minute=30)
-    r = build(f"{tmp}/f10", {"props-pitcher": 270, "props-batter": 270})
-    rows = F.survey(data=f"{tmp}/f10/data", picks=f"{tmp}/f10/picks")
-    pp = [x for x in rows if x["mode"] == "props-pitcher"][0]
-    ok = not pp["missing"]
-    (PASS if ok else FAIL).append("day rollover")
-    print(f"  [{'CORRECT' if ok else 'BROKEN'}] day rollover: a pull from "
-          f"the previous UTC day is still visible "
-          f"(age {pp['age_min']}m, not MISSING)")
-
-    # 10 — a FUTURE timestamp (clock skew) must not read as infinitely fresh
-    #     in a way that hides a real problem. Age floors at 0, which is the
-    #     safe direction ONLY if the writer is trustworthy; recorded here so
-    #     the behaviour is known rather than discovered.
-    r = build(f"{tmp}/f9", {"card": -600})
-    rows = F.survey(data=f"{tmp}/f9/data", picks=f"{tmp}/f9/picks")
-    card = [x for x in rows if x["mode"] == "card"][0]
-    print(f"\n  [KNOWN] a future timestamp reads as age "
-          f"{card['age_min']}m (floored at 0), i.e. FRESH.")
-    print( "          ⚠️ Clock skew on the runner would therefore hide")
-    print( "             staleness. Not a defect today (one writer, UTC),")
-    print( "             but it is the blind spot of a content-based clock.")
+            # 10 — a FUTURE timestamp (clock skew) must not read as infinitely
+            #     fresh in a way that hides a real problem. Age floors at 0,
+            #     which is the safe direction ONLY if the writer is
+            #     trustworthy; recorded here so the behaviour is known rather
+            #     than discovered.
+            r = build(f"{tmp}/{_dep}f9", {"card": -600})
+            rows = F.survey(data=f"{r}/data", picks=f"{r}/picks")
+            card = [x for x in rows if x["mode"] == "card"][0]
+            if _dep:
+                print(f"\n  [KNOWN] a future timestamp reads as age "
+                      f"{card['age_min']}m (floored at 0), i.e. FRESH.")
+                print( "          ⚠️ Clock skew on the runner would therefore hide")
+                print( "             staleness. Not a defect today (one writer, UTC),")
+                print( "             but it is the blind spot of a content-based clock.")
 
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
@@ -329,65 +418,74 @@ def check_converge():
     # than no suite — it teaches you to ignore red.**
     os.environ["LEAGUE"] = "mlb"
     root = tempfile.mkdtemp()
-    build(f"{root}/x", {"props-pitcher": 900, "card": 24 * 60})
     cwd = os.getcwd()
     ok = True
-    try:
-        os.chdir(f"{root}/x")
-        import collect
-        importlib.reload(collect)
-        ran = []
-        collect.run_mode = lambda m: ran.append(m)
-        collect.daily_spend = lambda: 0
+    # 🔴 `[2026-09-28]` PINNED, AND GATED. The tree is synthetic, so the
+    #    run-status row is pinned rather than read off the checked-out
+    #    runs.yml, and every verdict below is a `ck` — before this they
+    #    only printed, and a FAIL list nothing read carried the result.
+    with watcher(True):
+        # ⛔ a SOFT mode is what `soft_fail` below makes fail, and its
+        #    artifact must be stale for converge to run it at all.
+        build(f"{root}/x", {"props-pitcher": 900, "card": 24 * 60,
+                            "news": 24 * 60})
+        try:
+            os.chdir(f"{root}/x")
+            import collect
+            importlib.reload(collect)
+            ran = []
+            collect.run_mode = lambda m: ran.append(m)
+            collect.daily_spend = lambda: 0
 
-        def converge():
-            # ⚠️ CAPTURED, THEN PRINTED THROUGH `shown()`. converge writes
-            #    `::error::` for a failed mode, and printed raw from here
-            #    that was an ERROR annotation on every collect run
-            #    `[2026-09-26]` (tcheck's watcher now fails the file).
-            buf = io.StringIO()
-            with contextlib.redirect_stdout(buf):
-                c = collect.converge()
-            print(shown(buf.getvalue()), end="")
-            return c
-        code = converge()          # 🔴 the real thing
-        print(f"  [{'OK  ' if ran else 'DEAD'}] converge ran {len(ran)} mode(s) "
-              f"and returned {code}")
-        ok &= bool(ran)
+            def converge():
+                # ⚠️ CAPTURED, THEN PRINTED THROUGH `shown()`. converge writes
+                #    `::error::` for a failed mode, and printed raw from here
+                #    that was an ERROR annotation on every collect run
+                #    `[2026-09-26]` (tcheck's watcher now fails the file).
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    c = collect.converge()
+                print(shown(buf.getvalue()), end="")
+                return c
+            code = converge()          # 🔴 the real thing
+            ok &= ck("converge ran the modes its plan names",
+                     "props-pitcher" in ran and "card" in ran,
+                     "ran %s and returned %s" % (ran, code))
 
-        # a HARD mode failing must turn the run red
-        def hard_fail(m):
-            if m == "card":
-                raise RuntimeError("card blew up")
-        collect.run_mode = hard_fail
-        code = converge()
-        print(f"  [{'OK  ' if code else 'WRONG'}] a failed CARD returns {code} "
-              f"(non-zero = the run goes red)")
-        ok &= bool(code)
+            # a HARD mode failing must turn the run red
+            def hard_fail(m):
+                if m == "card":
+                    raise RuntimeError("card blew up")
+            collect.run_mode = hard_fail
+            code = converge()
+            ok &= ck("🔴 a failed CARD returns non-zero — the run goes red",
+                     bool(code), "returned %s" % code)
 
-        # a SOFT mode failing must not
-        def soft_fail(m):
-            if m in ("news", "weather", "lineups"):
-                raise RuntimeError("feed down")
-        collect.run_mode = soft_fail
-        code = converge()
-        print(f"  [{'OK  ' if not code else 'WRONG'}] a failed NEWS returns "
-              f"{code} (zero = headlines are not worth a red run)")
-        ok &= not code
+            # a SOFT mode failing must not
+            _soft = []
 
-        # the published report must carry every field the page reads
-        rep = json.load(open("data/latest/freshness.json"))
-        need = {"mode", "stale", "missing", "late_min", "due_et", "age_min"}
-        miss = need - set(rep["artifacts"][0])
-        print(f"  [{'OK  ' if not miss else 'GONE'}] freshness.json carries "
-              f"every field the banner reads{'' if not miss else ' — MISSING ' + str(miss)}")
-        ok &= not miss
-    except Exception as e:
-        print(f"  [CRASH] converge raised {type(e).__name__}: {e}")
-        ok = False
-    finally:
-        os.chdir(cwd)
-        shutil.rmtree(root, ignore_errors=True)
+            def soft_fail(m):
+                if m in ("news", "weather", "lineups"):
+                    _soft.append(m)
+                    raise RuntimeError("feed down")
+            collect.run_mode = soft_fail
+            code = converge()
+            ok &= ck("⛔ a failed NEWS returns zero — headlines are not worth "
+                     "a red run", "news" in _soft and not code,
+                     "soft modes that failed: %s; returned %s" % (_soft, code))
+
+            # the published report must carry every field the page reads
+            rep = json.load(open("data/latest/freshness.json"))
+            need = {"mode", "stale", "missing", "late_min", "due_et", "age_min"}
+            miss = need - set(rep["artifacts"][0])
+            ok &= ck("freshness.json carries every field the banner reads",
+                     not miss, "missing %s" % sorted(miss))
+        except Exception as e:
+            ok &= ck("converge ran without raising", False,
+                     "%s: %s" % (type(e).__name__, e))
+        finally:
+            os.chdir(cwd)
+            shutil.rmtree(root, ignore_errors=True)
     return ok
 
 
@@ -397,8 +495,12 @@ if not check_converge():
     FAIL.append("converge")
 
 print("\nWORKFLOW TRIGGERS")
-if not check_workflow():
-    print("  ⛔ a trigger is missing — uploads or schedules would be silent")
+_wf_ok = check_workflow()
+ck("🔴 the workflow still reacts to uploads and schedules, and every guard "
+   "above holds", _wf_ok,
+   "⛔ a missing trigger is invisible: nothing errors, the run simply never "
+   "happens. See the [GONE]/[LOOSE]/[WRONG] lines above.")
+if not _wf_ok:
     FAIL.append("workflow triggers")
 
 # ══════════════════════════════════════════════════════════════════════
@@ -431,6 +533,9 @@ for _t, _want, _why in _win:
         _bad += 1
         print(f"         expected {_want}; a card is dated by its DEADLINE, "
               f"never by the wall clock")
+ck("🔴 the card is dated by its DEADLINE across the midnight-to-10am window",
+   not _bad, "%d of %d instants filed the card under the wrong day (the run "
+   "went red every night the last time)" % (_bad, len(_win)))
 if _bad:
     FAIL.append("card date rolls with the clock instead of the deadline")
 
@@ -447,6 +552,9 @@ _moved = [x[0] for x, y in zip(_a, _b)
           .fromisoformat("2026-08-30T13:00:00").replace(tzinfo=_UTC))]
 print(f"  [{'OK  ' if not _moved else 'FAIL'}] no artifact path moves while "
       f"its deadline has not{'' if not _moved else ': ' + str(_moved)}")
+ck("⛔ no artifact path moves while its own deadline has not",
+   not _moved and len(_a) == len(_b) >= 16,
+   "moved: %s (%d/%d rows compared)" % (_moved, len(_a), len(_b)))
 if _moved:
     FAIL.append(f"paths move without their deadline: {_moved}")
 

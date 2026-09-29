@@ -256,6 +256,17 @@ if _BROWSER and os.path.exists(FIX):
     pg = br.new_page(viewport={"width": 1100, "height": 620})
     errs = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
+    # ⛔ NO REQUEST LEAVES THIS MACHINE. `[2026-09-28]` Sam: "A test must
+    #    not depend on the network." Every page load boots the MLB tab
+    #    (statsapi.mlb.com) and asks mlbstatic/espncdn for logos; none of
+    #    that was stubbed, so a live third-party answer could reach the "no
+    #    page error" checks. Registered FIRST — Playwright tries the newest
+    #    route first — so the ESPN stubs below still answer their own URLs;
+    #    anything else off this machine is aborted (the page already copes
+    #    with a feed it cannot reach) and counted. test_live_scores.py §0
+    #    fails if a browser test loses this line.
+    _offsite = []
+    pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
 
     STATE = {"key": "cfb", "hits": 0, "live": False}
 
@@ -438,6 +449,8 @@ if _BROWSER and os.path.exists(FIX):
     ck("⛔ ONE refusal is enough — it does not ask again this session",
        REF["n"] == first, f"{first} -> {REF['n']} requests")
     ck("no page error", not errs, str(errs[:1]))
+    note("%d off-machine request(s) blocked, none answered by the network: "
+         "%s" % (len(_offsite), sorted({u.split("/")[2] for u in _offsite})))
 
     br.close()
 elif _BROWSER:

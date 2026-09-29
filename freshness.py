@@ -1139,8 +1139,14 @@ def runs_rows(latest, root=None):
 # 🔴 THE CONDITION THAT IS A REAL FAILURE IS **DIVERGENCE**, not absence:
 #    `latest/news.json` fresh while the day's archive is empty means the
 #    archive silently stopped. A staleness deadline cannot express "fresh
-#    but only one of the two", so that condition is asserted as a CHECK
-#    (`test_news_archive.py`) rather than pretended into a contract row.
+#    but only one of the two", so the CODE that decides divergence is
+#    asserted as a CHECK (`test_news_archive.py`) rather than pretended
+#    into a contract row. ~~asserted as a CHECK~~ on the live tree — struck
+#    `[2026-09-28]`: that made the suite's verdict a fact about production
+#    that day. The check now runs on planted trees pinned to the real
+#    clock, and what the live tree shows is a note; in production this is
+#    watched only by the soft dated-archive row. ⚠️ A hard production
+#    alarm for divergence would be a contract change: Sam's call.
 #    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
 #    reads STALE.
 SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}

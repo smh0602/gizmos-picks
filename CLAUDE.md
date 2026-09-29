@@ -108,6 +108,16 @@ that mistake twice (rules 246, 130). ➡️ **Ask what CLASS the defect
 belongs to and guard the class** where the class is answerable; guard the
 instance only when it is not, and say which you did.
 
+⛔ **A TEST ASKS THE CODE, NEVER PRODUCTION.** `[Sam, 2026-09-28]` Collect
+was red 09-26 → 09-28 on tests whose verdict was a fact about that day's
+data. No frozen clock against the live tree (the real clock, or a tree
+pinned to NOW — never one of each). No assertion that another guard is
+silent on production data (build the case; the live line is a `note()`).
+No rule-67 case waited for from the live board (plant it, as #156 did; the
+live check is an extra). A `collect.py` run from a test passes
+`converge-off` with the keys blank (`test_collect_subprocess.py`). Every
+instance found: `docs/HANDOFF-2026-09-29-live-tree-tests.md`.
+
 ⚠️ **A GUARD THAT CANNOT FAIL IS NOT A GUARD.** Prove it bites before you
 call it done — an empty match, a stripped comment, a fixture missing the
 file under test, and a check that asserts its own prose have all passed

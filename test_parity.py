@@ -21,6 +21,39 @@ THE TWO ASYMMETRIES ARE NAMED, JUSTIFIED AND CHECKED AGAINST THE DATA:
                          CFBD because realignment moves them every year.
 ⛔ ANYTHING ELSE THAT DIVERGES IS A BUG, and this file says so by name.
 """
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-09-28]` §4 and §5 ask a PLANTED tree pinned to its own clock
+# first; the live tree on the real clock is the extra.
+# @vacuity §4 planted: every conditional row is governed there (the case exists)
+#   file: freshness.py
+#   find: if not _props_warranted(league, latest, now):
+#   with: if True:
+#
+# @vacuity §4 planted: a governed mode nothing schedules or drives is an orphan
+#   file: freshness.py
+#   find: ("card-fb", ("file", f"{latest}/agreement.json"), T["card"], False,
+#   with: ("agreement-x", ("file", f"{latest}/agreement.json"), T["card"], False,
+#
+# @vacuity §4 planted: with every precondition met only diagnostics are ungoverned
+#   file: freshness.py
+#   find: if not os.path.exists(f"{latest}/props.json.gz"):
+#   with: if True:
+#
+# @vacuity §5 planted: a kickoff inside the window ARMS the props row
+#   file: freshness.py
+#   find: return any(due <= k <= end for k in ks)
+#   with: return False
+#
+# @vacuity §5 planted: a deadline with no kickoff in its window does NOT
+#   file: freshness.py
+#   find: return any(due <= k <= end for k in ks)
+#   with: return True
+#
+# @vacuity §5 live: a stored schedule that yields no kickoffs is red
+#   file: freshness.py
+#   find: for g in doc.get("games") or []:
+#   with: for g in []:
+# ══════════════════════════════════════════════════════════════════════
 import collections
 import datetime
 import os
@@ -96,19 +129,88 @@ ck("⛔ ...and the NFL's source really is weekly, per the collector",
    "(rule 112) — this is a data fact, not a gap")
 
 print("\n═══ 4. EVERY GOVERNED ARTIFACT HAS SOMETHING DRIVING IT ═══")
-gov = {}
-for lg in ("ncaaf", "nfl"):
-    rows = F.contract(data=f"data/{lg}", picks="picks")
-    gov[lg] = {r[0] for r in rows}
-    orphan = []
-    for m in gov[lg]:
+# 🔴 `[2026-09-28]` A PLANTED TREE FIRST, PINNED TO ITS OWN CLOCK. The live
+#    contract on the real clock only governs the props, alt-line and grader
+#    rows on a day production warrants them, so on most weekdays losing
+#    `alt-lines` from DRIVEN_BY would have passed here and failed on a game
+#    day. The planted tree holds a props board, a dated card and a kickoff
+#    inside the window of the deadline before PIN: every conditional row is
+#    governed, every run. The live tree below is the extra it always was.
+import contextlib  # noqa: E402
+import gzip        # noqa: E402
+import json        # noqa: E402
+import shutil      # noqa: E402
+import tempfile    # noqa: E402
+PIN = datetime.datetime(2026, 9, 19, 20, 0, tzinfo=datetime.timezone.utc)
+
+
+def _start(lg, t):
+    """A kickoff in the league's OWN stored format (freshness.kickoffs_utc):
+    college real UTC with a Z; NFL ET wall-clock, no zone (EDT in Sep)."""
+    if lg == "ncaaf":
+        return t.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    return (t - datetime.timedelta(hours=4)).strftime("%Y-%m-%dT%H:%M")
+
+
+@contextlib.contextmanager
+def planted(lg, kicks, board=True):
+    """cwd = a temp tree for `lg`: the kickoffs given, a props board and a
+    dated card. ⚠️ cwd: the grader's gate globs `picks/` relative to it."""
+    tmp, cwd = tempfile.mkdtemp(), os.getcwd()
+    try:
+        os.chdir(tmp)
+        os.makedirs("data/%s/latest" % lg)
+        os.makedirs("picks")
+        if board:
+            open("data/%s/latest/props.json.gz" % lg, "wb").close()
+            open("picks/fb-%s-2026-09-01.json" % lg, "w").close()
+        with gzip.open("data/%s/latest/schedule-%d.json.gz"
+                       % (lg, F.current_football_season(PIN)), "wt") as fh:
+            json.dump({"games": [{"start": _start(lg, k), "home_class": "fbs",
+                                  "away_class": "fbs"} for k in kicks]}, fh)
+        yield
+    finally:
+        os.chdir(cwd)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _orphans(lg, governed):
+    out = []
+    for m in governed:
         if SCHED[lg].get(m):
             continue
         parent = DRIVEN_BY.get(m)
         if parent and SCHED[lg].get(parent):
             continue
-        orphan.append(m)
-    ck(f"🔴 {lg}: nothing in the contract is left undriven", not orphan,
+        out.append(m)
+    return sorted(out)
+
+
+_COND ={"props-player", "props-board", "alt-lines", "card-fb", "fb-record"}
+for lg in ("ncaaf", "nfl"):
+    _k = F.last_due(F.FB_TIMES[lg]["props"], PIN) + datetime.timedelta(hours=2)
+    with planted(lg, [_k]):
+        _pg = {r[0] for r in F.contract(data="data/%s" % lg, picks="picks",
+                                        now=PIN)}
+    ck(f"🔴 {lg}: nothing in the contract is left undriven (planted tree, "
+       f"every conditional row governed)",
+       _COND <= _pg and not _orphans(lg, _pg),
+       "missing conditional rows: %s; orphans: %s"
+       % (sorted(_COND - _pg), _orphans(lg, _pg)))
+    # ✅ AND WITH EVERY PRECONDITION MET, ONLY THE DIAGNOSTICS STAY
+    #    UNGOVERNED — the live check below has to excuse PRECONDITIONED
+    #    modes; here there is nothing to excuse, so it is asked exactly.
+    ck(f"⚠️ {lg}: with every precondition met, ONLY the diagnostics are "
+       f"ungoverned (planted tree)",
+       set(SCHED[lg]) - _pg == {"live-probe", "halftime-probe"},
+       "ungoverned: %s" % sorted(set(SCHED[lg]) - _pg))
+gov = {}
+for lg in ("ncaaf", "nfl"):
+    rows = F.contract(data=f"data/{lg}", picks="picks")
+    gov[lg] = {r[0] for r in rows}
+    orphan = _orphans(lg, gov[lg])
+    ck(f"🔴 {lg}: nothing in the contract is left undriven (live tree)",
+       not orphan,
        str(orphan) or f"{len(gov[lg])} governed artifact(s), all driven")
     extra = sorted(set(SCHED[lg]) - gov[lg])
     note(f"{lg}: scheduled but not governed — {extra or 'none'}")
@@ -213,17 +315,44 @@ print("\n═══ 5. 🔴 THE NFL ARMS INTO THE SAME CONTRACT COLLEGE HAS ═�
 #    before kickoff -> nothing inside 14h -> not armed.
 #    ➡️ **BOTH ASSERTIONS WERE BACKWARDS, AND THE CODE WAS RIGHT.**
 # ✅ SO THE PROBES ARE DERIVED FROM THE DEADLINE GRID AND THE REAL
-#    SCHEDULE. Nothing here is an offset anyone chose, so the season
-#    moving on cannot falsify it (rule 166).
-import json  # noqa: E402
+#    SCHEDULE. Nothing here is an offset anyone chose, so ~~the season
+#    moving on cannot falsify it (rule 166)~~ — it could: the file is
+#    named by the real clock's season (see the planted case below).
+# 🔴 `[2026-09-28]` THE PLANTED CASE FIRST, AND THE TREE AND ITS CLOCK
+#    ARE PINNED TOGETHER. The live derivation below needs the CURRENT
+#    season's schedule, and the season comes from the real clock: from
+#    1 August each year it names a file the collector has not written yet,
+#    and this section went red on correct code (or, lacking both states,
+#    ran nothing). ✅ One planted Sunday kickoff: the Sunday 11am-ET
+#    deadline's window holds it, Friday's does not. Asked every run; the
+#    live schedule is the extra.
+_pk = datetime.datetime(2026, 9, 20, 17, 0, tzinfo=datetime.timezone.utc)
+_pa = datetime.datetime(2026, 9, 20, 15, 1, tzinfo=datetime.timezone.utc)
+_pq = datetime.datetime(2026, 9, 18, 15, 1, tzinfo=datetime.timezone.utc)
+with planted("nfl", [_pk], board=False):
+    _m_pa = {r[0] for r in F.contract(data="data/nfl", picks="picks", now=_pa)}
+    _m_pq = {r[0] for r in F.contract(data="data/nfl", picks="picks", now=_pq)}
+ck("🔴 a deadline with a kickoff inside its window ARMS the props row "
+   "(planted)", "props-player" in _m_pa,
+   "⛔ the contract must govern a pull that WOULD buy something. %s"
+   % sorted(_m_pa))
+ck("⛔ ...and a deadline with NO kickoff inside it does NOT (planted)",
+   "props-player" not in _m_pq,
+   "🔴 RULE 86 — a pull that would buy nothing is not a late pull. %s"
+   % sorted(_m_pq))
 LAT = "data/nfl/latest"
+_live_sched = "%s/schedule-%s.json.gz" % (LAT, F.current_football_season(None))
 try:
-    _ks = F.kickoffs_utc("nfl", "%s/schedule-%s.json.gz"
-                         % (LAT, F.current_football_season(None)))
+    _ks = F.kickoffs_utc("nfl", _live_sched)
 except Exception:
     _ks = None
-ck("the NFL schedule names kickoffs to reason from", bool(_ks),
-   "%s kickoff(s)" % (len(_ks) if _ks else 0))
+if os.path.exists(_live_sched):
+    ck("the NFL schedule names kickoffs to reason from", bool(_ks),
+       "%s kickoff(s)" % (len(_ks) if _ks else 0))
+else:
+    note("⚠️ no stored NFL schedule for the current season yet (%s) — the "
+         "live derivation below is not exercised; the planted case above "
+         "was" % _live_sched)
 
 _armed = _quiet = None
 if _ks:

@@ -26,6 +26,11 @@ only way to see PASS before the real data can reach the floor.
 #   file: t60r.py
 #   find:     return "".join(ch for ch in str(name or "").lower() if ch.isalnum())
 #   with:     return str(name or "")
+#
+# @vacuity every provider spelling CFBD has returned ranks inside the order
+#   file: t60r.py
+#   find: PROVIDER_ORDER = ("consensus", "DraftKings", "Bovada", "ESPN Bet",
+#   with: PROVIDER_ORDER = ("consensus", "DraftKings", "Bovada",
 """
 import gzip
 import json
@@ -266,17 +271,39 @@ ck("⛔ 'Draft Kings' and 'DraftKings' rank as one book",
    < len(t60r.PROVIDER_ORDER))
 ck("⛔ ...and a book the order never named still ranks LAST, not first",
    t60r.provider_rank("Some New Book") == len(t60r.PROVIDER_ORDER))
+# 🔴 `[2026-09-28]` ~~ck: every provider in the LIVE stored pull is
+#    recognised~~ asserted that the recogniser is SILENT on production data:
+#    the weekly pull is rewritten by `t60r.py lines`, so a new spelling
+#    CFBD starts returning (an event in the world, not a change to this
+#    code) would have turned every collect and pr-tests run red until Sam
+#    acted. ✅ The code question is now asked of the spellings CFBD HAS
+#    returned, recorded here with their date — every one must rank inside
+#    the order, and a name the order never listed must still rank last.
+#    The live pull is reported as a note, loudly when it holds a name the
+#    order does not know. ⚠️ The alarm itself belongs where production
+#    data is judged (`t60r.py lines` already stores `unknown_providers`);
+#    raising a ::warning:: there is outside this file.
+RECORDED_PROVIDERS = {"measured": "the 2026-09-22 pull",
+                      "names": ("ESPN Bet", "DraftKings", "Bovada", "Draft Kings")}
+_rec_unknown = [p for p in RECORDED_PROVIDERS["names"]
+                if t60r.provider_rank(p) >= len(t60r.PROVIDER_ORDER)]
+ck("🔴🔴 every provider spelling CFBD has returned (recorded %s) is "
+   "recognised" % RECORDED_PROVIDERS["measured"],
+   not _rec_unknown and t60r.provider_rank("Some New Book") == len(t60r.PROVIDER_ORDER),
+   "⛔ unrecognised: %r. ⛔ Do NOT add a name to the order after grading "
+   "without Sam — a new spelling of a KNOWN book is an alias; a genuinely "
+   "new book changes which price games are graded at, and that is his "
+   "call." % (_rec_unknown,))
 if os.path.exists(_lines):
     with gzip.open(_lines, "rt", encoding="utf-8") as f:
         _seen = json.load(f).get("providers_seen") or {}
     _unknown = sorted(p for p in _seen
                       if t60r.provider_rank(p) == len(t60r.PROVIDER_ORDER))
-    ck("🔴🔴 every provider in the stored CFBD pull is recognised",
-       bool(_seen) and not _unknown,
-       "⛔ unrecognised: %r (seen %r). ⛔ Do NOT add a name to the order "
-       "after grading without Sam — a new spelling of a KNOWN book is an "
-       "alias; a genuinely new book changes which price games are graded "
-       "at, and that is his call." % (_unknown, _seen))
+    note(("⚠️ THE LIVE CFBD PULL HOLDS %s NAME(S) THE PROVIDER ORDER DOES NOT "
+          "RECOGNISE: %r (seen %r) — games quoted by them are graded at a "
+          "lower-ranked price until Sam decides. ⛔ Do NOT add a name without "
+          "him." % (len(_unknown), _unknown, _seen)) if _unknown or not _seen
+         else "⚪ live CFBD pull: every provider recognised (%r)" % (_seen,))
 else:
     note("⚪ data/t60r/cfbd-lines.json.gz not in this tree yet; the "
-         "provider check runs once the weekly job has pulled lines.")
+         "live provider report runs once the weekly job has pulled lines.")

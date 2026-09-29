@@ -21,6 +21,23 @@ available), rule 76 (reconstruct, don't count what the artifact says
 about itself), rule 88 (a check enumerating what is PRESENT cannot see
 what is ABSENT -- hence the "every view that filters also draws the bar"
 check, which is written from the FILTER sites, not from the bar sites).
+
+`[2026-09-28]` Section 3 plants its cases: a directory for the behaviour,
+recorded real names for the coverage; the live files are the extras.
+# @vacuity planted: either side of a game in the selection keeps it
+#   file: index.html
+#   find: return fbConfTeamPass(away) || fbConfTeamPass(home);
+#   with: return fbConfTeamPass(away) && fbConfTeamPass(home);
+#
+# @vacuity planted: a lit chip keeps exactly its own conference's schools
+#   file: index.html
+#   find: return !!(c && fbConf.has(c));
+#   with: return !!c;
+#
+# @vacuity recorded: a board name carrying its mascot still resolves
+#   file: index.html
+#   find: if (rest.length > 2) continue;
+#   with: if (rest.length > 0) continue;
 """
 import gzip
 import json
@@ -253,8 +270,12 @@ NAMES = names_ncaaf()
 TEAMS = load(os.path.join(ROOT, "data/ncaaf/latest/teams.json"))["teams"]
 
 # Build a node program out of the PAGE'S OWN SOURCE.
-harness = "\n".join([
-    "const FBTEAMS = { ncaaf: %s, nfl: {} };" % json.dumps(TEAMS),
+# ⚠️ `[2026-09-28]` A FUNCTION OF (directory, names), run three times: the
+#    PLANTED directory (behaviour), the RECORDED names and directory
+#    (coverage), and today's LIVE files (the extras they always were).
+def _harness(teams, names):
+  return "\n".join([
+    "const FBTEAMS = { ncaaf: %s, nfl: {} };" % json.dumps(teams),
     "let LEAGUE = 'ncaaf';",
     js_const(r"const FB_TNORM = \{\}.*?const FB_TCACHE = \{\};"),
     js_block("fbNorm"),
@@ -264,7 +285,7 @@ harness = "\n".join([
     "let fbConf = new Set();",
     conf_of, team_pass, game_pass,
     js_block("fbConfList"),
-    "const NAMES = %s;" % json.dumps(NAMES),
+    "const NAMES = %s;" % json.dumps(names),
     r"""
 const out = { coverage: {}, confs: fbConfList() };
 for (const src in NAMES){
@@ -299,21 +320,81 @@ out.nflUnfiltered = fbConfPass('Detroit Lions','Chicago Bears') && fbConfTeamPas
 LEAGUE = 'ncaaf';
 console.log(JSON.stringify(out));
 """,
-])
+  ])
 
-tmp = tempfile.mkdtemp()
-jsp = os.path.join(tmp, "h.js")
-open(jsp, "w", encoding="utf-8").write(harness)
-r = subprocess.run(["node", jsp], capture_output=True, text=True)
-shutil.rmtree(tmp, ignore_errors=True)
-if r.returncode != 0:
-    print(shown(r.stderr[-2000:]))
-    ck("the page's own resolver runs", False)
-    R = None
-else:
-    R = json.loads(r.stdout.strip().splitlines()[-1])
-    ck("the page's own resolver runs", True,
-       "%d conferences in the directory" % len(R["confs"]))
+
+def _run(teams, names, what):
+    tmp = tempfile.mkdtemp()
+    jsp = os.path.join(tmp, "h.js")
+    open(jsp, "w", encoding="utf-8").write(_harness(teams, names))
+    r = subprocess.run(["node", jsp], capture_output=True, text=True)
+    shutil.rmtree(tmp, ignore_errors=True)
+    if r.returncode != 0:
+        print(shown(r.stderr[-2000:]))
+        ck("the page's own resolver runs (%s)" % what, False)
+        return None
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    ck("the page's own resolver runs (%s)" % what, True,
+       "%d conferences in the directory" % len(out["confs"]))
+    return out
+
+
+def _behaviour(R, what):
+    ck("empty selection shows everything (%s)" % what, R["emptyMeansAll"] is True)
+    ck("selecting %s keeps exactly its %d schools (%s)"
+       % (R["sec"], R["secTotal"], what),
+       R["secTeams"] == R["secTotal"] and R["secTotal"] > 0,
+       "kept %d" % R["secTeams"])
+    ck("either side of a game is enough to keep it (%s)" % what,
+       R["eitherSide"] == [True, True, False],
+       str(R["eitherSide"]))
+    ck("a game with neither side in the selection is dropped (%s)" % what,
+       R["unknownDropped"] is True)
+    ck("the NFL is never filtered, even with chips lit (%s)" % what,
+       R["nflUnfiltered"] is True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🔴 `[2026-09-28]` THE CASES ARE PLANTED FIRST.
+# ═══════════════════════════════════════════════════════════════
+# ⛔ The behaviour checks took their schools from the LIVE teams.json and
+#    the coverage checks their names from the LIVE board and card, so each
+#    had its case only because production held it (a directory refresh
+#    with one conference, or a board with no FBS names, left them asking
+#    nothing or red on correct page code).
+# ✅ BEHAVIOUR: a planted directory with two conferences, every run.
+# ✅ COVERAGE: 423 real names as the feeds spelled them on 2026-09-28 —
+#    board, card, schedule and trends, every one classed FBS — and CFBD's
+#    directory as it stood, RECORDED in research/, so "every FBS name
+#    resolves" is asked of real spellings every run. The live files below
+#    are asked the same questions as the extras they always were.
+print("\n   — planted directory (behaviour) —")
+PLANTED = {"Alpha State": {"conference": "SEC"},
+           "Beta Tech": {"conference": "SEC"},
+           "Gamma University": {"conference": "Big Ten"},
+           "Delta College": {"conference": "Big Ten"},
+           "Epsilon A&M": {"conference": "Sun Belt"}}
+_RP = _run(PLANTED, {}, "planted directory")
+if _RP:
+    _behaviour(_RP, "planted directory")
+
+print("\n   — recorded names and directory (coverage) —")
+_REC = json.load(open(os.path.join(ROOT, "research",
+                                   "conf_filter_names_20260928.json"),
+                      encoding="utf-8"))
+_RR = _run(_REC["teams"], _REC["names"], "recorded 2026-09-28")
+if _RR:
+    _cov = _RR["coverage"]
+    _n = sum(c["n"] for c in _cov.values())
+    _miss = {s: c["examples"] for s, c in _cov.items() if c["miss"]}
+    ck("🔴 every recorded FBS name resolves to a conference (%d names, %d "
+       "sources)" % (_n, len(_cov)),
+       _n >= 400 and len(_cov) == 4 and not _miss,
+       "⛔ an unresolved FBS name is a school that vanishes from the tab "
+       "the moment any chip is lit. unresolved: %s" % _miss)
+
+print("\n   — today's live files (the extras) —")
+R = _run(TEAMS, NAMES, "live files")
 
 if R:
     for src, c in sorted(R["coverage"].items()):
@@ -382,17 +463,15 @@ if R:
             note("%s: %d schools, no conference — with a chip lit their "
                  "game survives only if the FBS side is selected" % (src, c["n"]))
 
-    ck("empty selection shows everything", R["emptyMeansAll"] is True)
-    ck("selecting %s keeps exactly its %d schools" % (R["sec"], R["secTotal"]),
-       R["secTeams"] == R["secTotal"] and R["secTotal"] > 0,
-       "kept %d" % R["secTeams"])
-    ck("either side of a game is enough to keep it",
-       R["eitherSide"] == [True, True, False],
-       str(R["eitherSide"]))
-    ck("a game with neither side in the selection is dropped",
-       R["unknownDropped"] is True)
-    ck("the NFL is never filtered, even with chips lit",
-       R["nflUnfiltered"] is True)
+    # ⚠️ THE LIVE DIRECTORY'S BEHAVIOUR IS THE EXTRA: asked when it holds
+    #    two conferences or more (the case "either side" needs), reported
+    #    otherwise. The planted directory above asks it every run.
+    if len(R["confs"]) >= 2:
+        _behaviour(R, "live directory")
+    else:
+        note("⚠️ the live directory holds %d conference(s), so the live "
+             "behaviour checks were not asked; the planted directory above "
+             "was" % len(R["confs"]))
     note("conferences offered: " + ", ".join(R["confs"]))
 
 # ───────────────────────────────────────────────────────────────

@@ -51,6 +51,21 @@ covered by the same line.
 #   file: verify_nfl.py
 #   find:     complete = sorted(w for w in frac if st is None or (st.get(w) or (False,))[0])
 #   with:     complete = sorted(frac)
+#
+# @vacuity 🔴 the exit code follows the failures (planted failing tree, not the live one)
+#   file: verify_nfl.py
+#   find:     return 1 if FAIL else 0
+#   with:     return 0
+#
+# @vacuity 🔴 every FAILED line is an ::error:: annotation (planted failing tree)
+#   file: verify_nfl.py
+#   find:     for f in FAIL:  print(f"::error::{f}")
+#   with:     for f in []:  print(f"::error::{f}")
+#
+# @vacuity ⚠️ the summary names all four states (planted trees)
+#   file: verify_nfl.py
+#   find:     print(f"{len(PASS)} passed, {len(NYM)} not yet measurable, "
+#   with:     print(f"{len(PASS)} ok, {len(NYM)} not yet measurable, "
 """
 import glob
 import io
@@ -248,25 +263,115 @@ ps, ny, fl = _drive({1: _FULL, 2: (100, 6)}, None, "2099-09-22T07:52:00Z")
 ck("⛔ with no schedule artifact, every week is judged — nothing excused",
    bool(fl) and not ny, "FAIL=%s NYM=%s" % (fl, ny))
 
-# the live tree: only what holds in every week of every season
-r = subprocess.run([sys.executable, "-B", os.path.join(ROOT, "verify_nfl.py"),
-                    "--current"], cwd=ROOT, capture_output=True, text=True,
-                   timeout=600)
-out = (r.stdout or "") + (r.stderr or "")
-m = re.search(r"(\d+) passed, (\d+) not yet measurable, (\d+) warnings, "
-              r"(\d+) FAILED", out)
-ck("⚠️ the verifier reports all four states in its summary",
-   m is not None,
-   "⛔ a state that is not printed is a state nobody can audit. "
-   "tail=%r" % out[-220:])
-if m:
-    npass, nnym, _nwarn, nfail = (int(x) for x in m.groups())
-    ck("🔴 ...and the exit code follows the FAILURES only",
-       (r.returncode == 1) == (nfail > 0),
-       "⛔ the job gates on this number. rc=%s fails=%d"
-       % (r.returncode, nfail))
-    ck("🔴 ...and every FAILED line is also an ::error:: annotation",
-       nfail == out.count("::error::"),
-       "⛔ a failure the Actions page does not show is a failure Sam "
-       "cannot find. %d failed, %d annotated" % (nfail, out.count("::error::")))
-    note("verify_nfl --current on this tree: %s" % m.group(0))
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE SUMMARY, EXIT-CODE AND ANNOTATION CONTRACT, ON PLANTED TREES.
+#    `[2026-09-28]` ~~asserted on the live tree only~~ (pattern P3): every
+#    August 1st the season number rolls over and `--current` asks for a
+#    `players-<season>` file nflverse has not published yet, so the summary
+#    was never printed and this went red on correct code until week 1. And
+#    the live tree held 0 failures, so "the exit code follows the failures"
+#    and "every FAILED is an ::error::" only ever compared 0 with 0.
+# ✅ So `verify_nfl.py --current` — the exact command collect.yml runs — is
+#    driven in a tree PINNED TO NOW (its season is today's season, from the
+#    same clock the verifier reads), once clean, once with a real failure,
+#    once with no log at all. The live run stays as an extra.
+# ══════════════════════════════════════════════════════════════════════
+import gzip as _gz        # noqa: E402
+import json as _json      # noqa: E402
+import shutil as _sh      # noqa: E402
+import tempfile as _tf    # noqa: E402
+import freshness as _F    # noqa: E402
+
+_SUMMARY = re.compile(r"(\d+) passed, (\d+) not yet measurable, (\d+) warnings, "
+                      r"(\d+) FAILED")
+
+
+def _verify_current(cwd):
+    r = subprocess.run([sys.executable, "-B", os.path.join(ROOT, "verify_nfl.py"),
+                        "--current"], cwd=cwd, capture_output=True, text=True,
+                       timeout=600)
+    return r, (r.stdout or "") + (r.stderr or "")
+
+
+def _plant_nfl(root, season, vs_position=True):
+    """A two-week, two-receiver log in which every column varies and every
+    snap clears the floor — the smallest tree `verify_nfl` can pass."""
+    d = os.path.join(root, "data", "nfl", "latest")
+    os.makedirs(d, exist_ok=True)
+    players = {}
+    for i in range(2):
+        players["p%d" % i] = {"name": "Planted %s" % "AB"[i], "pos": "WR", "g": [
+            {"week": w, "d": "%d-09-%02d" % (season, 7 * w), "rec": w + i,
+             "rec_yds": 10 * w + i, "snap_pct": 0.6 + 0.1 * w, "ol_out": w,
+             "opp_dl_out": i + 1, "ahead_out": w, "wx": w + i,
+             "team": "MIA", "o": "BUF"} for w in (1, 2)]}
+    with _gz.open(os.path.join(d, "players-%d.json.gz" % season), "wt") as fh:
+        _json.dump({"season": season, "players": players,
+                    "pulled_at": "%d-09-20T07:00:00Z" % season}, fh)
+    if vs_position:
+        with _gz.open(os.path.join(d, "vs-position-%d.json.gz" % season), "wt") as fh:
+            _json.dump({"snap_floor": V.SNAP_FLOOR,
+                        "defences": {"BUF": {"WR": {"1": [{"snap_pct": 0.7}]}}}}, fh)
+
+
+_S = _F.current_football_season()
+_pt = _tf.mkdtemp(prefix="verify-nfl-")
+try:
+    _cases = {}
+    for _name, _kw in (("clean", {}), ("failing", {"vs_position": False}),
+                       ("empty", None)):
+        _t = os.path.join(_pt, _name)
+        os.makedirs(_t)
+        if _kw is not None:
+            _plant_nfl(_t, _S, **_kw)
+        _cases[_name] = _verify_current(_t)
+    for _name in ("clean", "failing"):
+        _r, _out = _cases[_name]
+        _m = _SUMMARY.search(_out)
+        ck("⚠️ %s planted tree (season %d): the summary reports all four states"
+           % (_name, _S), _m is not None,
+           "⛔ a state that is not printed is a state nobody can audit. "
+           "tail=%r" % _out[-220:])
+        _nf = int(_m.group(4)) if _m else -1
+        ck("🔴 %s planted tree: the exit code follows the FAILURES only" % _name,
+           _m is not None and (_r.returncode == 1) == (_nf > 0)
+           and (_nf > 0) == (_name == "failing"),
+           "⛔ the job gates on this number. rc=%s fails=%d" % (_r.returncode, _nf))
+        ck("🔴 %s planted tree: every FAILED line is also an ::error:: annotation"
+           % _name,
+           _m is not None and _nf == _out.count("::error::"),
+           "⛔ a failure the Actions page does not show is a failure Sam "
+           "cannot find. %d failed, %d annotated" % (_nf, _out.count("::error::")))
+    _r, _out = _cases["empty"]
+    ck("🔴 a tree with no log for the season: exit 1 and ONE ::error::, no summary",
+       _r.returncode == 1 and _out.count("::error::") == 1
+       and "no players-" in _out and not _SUMMARY.search(_out),
+       "rc=%s tail=%r" % (_r.returncode, _out[-220:]))
+finally:
+    _sh.rmtree(_pt, ignore_errors=True)
+
+# the live tree: an EXTRA, asserted whenever it holds the current season's log
+r, out = _verify_current(ROOT)
+m = _SUMMARY.search(out)
+_live_log = os.path.join(ROOT, "data", "nfl", "latest", "players-%d.json.gz" % _S)
+if not os.path.exists(_live_log):
+    note("⚠️ NOT EXERCISED ON THE LIVE TREE: no players-%d.json.gz yet — the "
+         "season has rolled over and nflverse has not published week 1. "
+         "verify_nfl said: %r. The planted trees above ask every question."
+         % (_S, out.strip().splitlines()[-1][:160] if out.strip() else ""))
+else:
+    ck("⚠️ the verifier reports all four states in its summary (live tree)",
+       m is not None,
+       "⛔ a state that is not printed is a state nobody can audit. "
+       "tail=%r" % out[-220:])
+    if m:
+        npass, nnym, _nwarn, nfail = (int(x) for x in m.groups())
+        ck("🔴 ...and the exit code follows the FAILURES only (live tree)",
+           (r.returncode == 1) == (nfail > 0),
+           "⛔ the job gates on this number. rc=%s fails=%d"
+           % (r.returncode, nfail))
+        ck("🔴 ...and every FAILED line is also an ::error:: annotation (live tree)",
+           nfail == out.count("::error::"),
+           "⛔ a failure the Actions page does not show is a failure Sam "
+           "cannot find. %d failed, %d annotated" % (nfail, out.count("::error::")))
+        note("verify_nfl --current on this tree: %s" % m.group(0))

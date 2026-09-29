@@ -18,8 +18,8 @@ is live — and shows the `tests` job's loop cannot see it while the
 
 # @vacuity the staged job must actually apply the staged files
 #   file: .github/workflows/pr-tests.yml
-#   find: .join(wfparse.apply_staged('.')))" > /tmp/staged.txt
-#   with: .join([]))" > /tmp/staged.txt
+#   find: .join(wfparse.apply_staged('.')))" > "$staged"
+#   with: .join([]))" > "$staged"
 #
 # @vacuity an UPDATE to a live workflow is a staged change, not only a new file
 #   file: wfparse.py
@@ -28,8 +28,18 @@ is live — and shows the `tests` job's loop cannot see it while the
 #
 # @vacuity the staged job must run the tests job's own loop, not nothing
 #   file: .github/workflows/pr-tests.yml
-#   find:           bash -e /tmp/loop.sh
+#   find:           bash -e "$loop"
 #   with:           true
+#
+# @vacuity 🔴 two copies must not share the apply step's answer file
+#   file: .github/workflows/pr-tests.yml
+#   find: staged=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/staged.XXXXXX")
+#   with: staged=/tmp/staged.txt
+#
+# @vacuity 🔴 two copies must not share the loop they run
+#   file: .github/workflows/pr-tests.yml
+#   find: loop=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/loop.XXXXXX")
+#   with: loop=/tmp/loop.sh
 #
 # @vacuity a declaration must also resolve in a pending upload's staged copy
 #   file: vacuity.py
@@ -43,6 +53,15 @@ sweep checks declarations against the live file, and the `staged` job runs
 the `rest` shard, which has no sweep. Sam uploaded; the declaration rotted;
 collect went red. `vacuity.rotted` now checks a declaration naming a
 workflow with a pending upload against the staged copy too. Section 4.
+
+🔴 AND TWO COPIES AT ONCE `[2026-09-28]`. The job's two shell steps wrote
+FIXED files in /tmp. Two copies on one machine (two suites, or the vacuity
+sweep's parallel trees) read each other's answer and a correct case
+failed; alone it passed. Section 5 replays that collision step by step,
+not by timing. The class (any step a test runs) is test_step_tmp.py.
+⚠️ Section 4's real-tree rot line is a note(): test_vacuity.py asks it as
+a hard check, and asked here it turned every mutation declared above red
+by construction, so the sweep could never call one of them VACUOUS.
 """
 import os
 import shutil
@@ -130,8 +149,17 @@ def repo(staged_text):
 
 def sh(d, body, out=None):
     env = dict(os.environ, SUITE_SHARD="rest", GITHUB_OUTPUT=out or os.devnull)
-    p = subprocess.run(["bash", "-e", "-c", body], cwd=d, env=env,
-                       capture_output=True, text=True, timeout=600)
+    # ⚠️ from a file, never `bash -c`: on Windows a -c script past about 8K
+    #    characters is cut short with no error, and the tests job's loop is
+    #    already 6K. The file sits outside the repo the tree check reads.
+    sd = tempfile.mkdtemp(prefix="staged-sh-")
+    try:
+        step = os.path.join(sd, "step.sh")
+        open(step, "w", encoding="utf-8", newline="\n").write(body)
+        p = subprocess.run(["bash", "-e", step], cwd=d, env=env,
+                           capture_output=True, text=True, timeout=600)
+    finally:
+        shutil.rmtree(sd, ignore_errors=True)
     return p.returncode, p.stdout + p.stderr
 
 
@@ -208,8 +236,115 @@ for why, staged, want in (
            "   ...and it names the STAGED copy, so the fix is made before the upload",
            "%r" % (_r,))
 _real = V.rotted(ROOT)
-ck(not _real, "🔴 no real declaration rots in the live files OR in a pending upload",
-   "%r" % (_real,))
+# ⚠️ A NOTE, NOT A CHECK `[2026-09-28]`. The question is unchanged and is
+#    still asked as a hard check, in the file that owns it:
+#    test_vacuity.py ("NO DECLARED MUTATION HAS ROTTED AWAY"), through the
+#    same V.rotted, pending uploads included. The three planted trees
+#    above ask it here every run. Asked of the real tree HERE, it failed
+#    under every mutation this file declares (each one removes its own
+#    `find`), so all of them went red whatever the check they name did.
+note("real tree: %d rotted declaration(s)%s (the hard check is test_vacuity.py)"
+     % (len(_real), (": %r" % (_real,)) if _real else ""))
+
+# ══════════════════════════════════════════════════════════════════════
+section("5. 🔴🔴 TWO COPIES AT ONCE MUST NOT READ EACH OTHER'S FILES")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-09-28]` Both staged steps wrote a FIXED path in /tmp. Two copies
+# on one machine read each other's answer and a correct case failed.
+# ✅ REPLAYED, NOT RACED: copy A runs its REAL step up to the line that
+# writes its file and WAITS; copy B runs its whole step; A is released.
+# The only line added is the wait. ⛔ A race left to timing would pass most
+# runs and prove nothing.
+import time  # noqa: E402
+
+PAUSE = 'while [ ! -e "$PAUSE_GO" ]; do sleep 0.05; done'
+
+
+def replay(dA, bodyA, after, dB, bodyB):
+    """A runs to the one live line containing `after` and waits, B runs
+    whole, then A finishes. -> ((rcA, logA, outA), (rcB, logB, outB))"""
+    lines = bodyA.split("\n")
+    k = [i for i, l in enumerate(lines)
+         if after in l and not l.lstrip().startswith("#")]
+    if len(k) != 1:
+        return ((None, "pause point %r found %d times" % (after, len(k)), {}),
+                (None, "", {}))
+    # ⛔ control files in their own dir, never in the repo: the tree check
+    #    would see them.
+    ctl = tempfile.mkdtemp(prefix="staged-ctl-")
+    pA = None
+    try:
+        at, go, oA, oB = (os.path.join(ctl, x).replace(os.sep, "/")
+                          for x in ("at", "go", "oA", "oB"))
+        for o in (oA, oB):
+            open(o, "w").close()
+        # ⚠️ from a file, never `bash -c` (Windows cuts a long -c script short)
+        sA, sB = os.path.join(ctl, "a.sh"), os.path.join(ctl, "b.sh")
+        open(sA, "w", newline="\n").write("\n".join(
+            lines[:k[0] + 1] + [': > "$PAUSE_AT"', PAUSE] + lines[k[0] + 1:]))
+        open(sB, "w", newline="\n").write(bodyB)
+        env = dict(os.environ, SUITE_SHARD="rest", PAUSE_AT=at, PAUSE_GO=go)
+        pA = subprocess.Popen(["bash", "-e", sA], cwd=dA, text=True,
+                              env=dict(env, GITHUB_OUTPUT=oA),
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        t0 = time.time()
+        while not os.path.exists(at) and pA.poll() is None and time.time() - t0 < 120:
+            time.sleep(0.05)
+        reached = os.path.exists(at)
+        pB = subprocess.run(["bash", "-e", sB], cwd=dB, text=True, timeout=600,
+                            env=dict(env, GITHUB_OUTPUT=oB), capture_output=True)
+        open(go, "w").close()
+        logA = pA.communicate(timeout=600)[0]
+
+        def out(o):
+            return dict(l.split("=", 1) for l in open(o).read().split() if "=" in l)
+        return ((pA.returncode if reached else None, logA, out(oA)),
+                (pB.returncode, pB.stdout + pB.stderr, out(oB)))
+    finally:
+        # ⛔ never leave copy A waiting on a file that will not come
+        if pA is not None and pA.poll() is None:
+            pA.kill()
+            pA.wait()
+        shutil.rmtree(ctl, ignore_errors=True)
+
+
+# 5a. the apply step: A has a staged change, B has none
+dA, dB = repo("on: push\n# SWITCHES_ON_A_17TH_ROW\n"), repo("on: push\n")
+try:
+    (rA, lA, oA), (rB, lB, oB) = replay(dA, APPLY.run, "apply_staged(", dB, APPLY.run)
+    ck(rA == 0 and oA.get("n") == "1",
+       "🔴🔴 copy A still sees ITS staged change while copy B ran beside it",
+       "rc=%r n=%r %s" % (rA, oA.get("n"), shown(lA[-300:])))
+    ck(rB == 0 and oB.get("n") == "0",
+       "   ...and copy B still sees nothing staged, and stays green",
+       "rc=%r n=%r %s" % (rB, oB.get("n"), shown(lB[-300:])))
+finally:
+    shutil.rmtree(dA, ignore_errors=True)
+    shutil.rmtree(dB, ignore_errors=True)
+
+# 5b. the tests step: A's planted test fails once applied; B's loop is green
+dA, dB = repo("on: push\n# SWITCHES_ON_A_17TH_ROW\n"), repo("on: push\n")
+try:
+    OTHER = "THE OTHER COPY'S LOOP"
+    open(os.path.join(dB, ".github", "workflows", "pr-tests.yml"), "w").write(
+        "jobs:\n  tests:\n    steps:\n      - name: Tests\n        run: |\n"
+        "          run_one() { :; }\n          echo \"%s\"\n" % OTHER)
+    _o0 = tempfile.mkdtemp(prefix="staged-o-")
+    try:
+        rc0, log0 = sh(dA, APPLY.run, os.path.join(_o0, "o"))
+    finally:
+        shutil.rmtree(_o0, ignore_errors=True)
+    (rA, lA, _oA), (rB, lB, _oB) = replay(dA, TESTS.run, "step_run(", dB, TESTS.run)
+    ck(rc0 == 0 and rA not in (0, None) and "test_live.py" in lA and OTHER not in lA,
+       "🔴🔴 copy A runs ITS OWN loop, and is red on its planted test, while "
+       "copy B ran a green one beside it",
+       "apply rc=%r tests rc=%r other_loop_ran_in_A=%s %s"
+       % (rc0, rA, OTHER in lA, shown(lA[-300:])))
+    ck(rB == 0 and OTHER in lB,
+       "   ...and copy B ran its own green loop", "rc=%r %s" % (rB, shown(lB[-200:])))
+finally:
+    shutil.rmtree(dA, ignore_errors=True)
+    shutil.rmtree(dB, ignore_errors=True)
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that an uploaded file matches its staged "
      "copy. runs_report.stale_uploads times a pending upload, and "

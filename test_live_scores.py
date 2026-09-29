@@ -24,6 +24,48 @@ WHAT IS PINNED, each one a way this could ship wrong:
 `period`, `competitors[].score`, `homeAway`. **All seven fields this code
 reads were confirmed present in both leagues**, so this is a capture, not
 a guess.
+
+# `[2026-09-28]` §0b2: the page's merge on planted games, every run.
+# @vacuity §0b2: the lifted merge actually runs
+#   file: index.html
+#   find: function fbMerge(g){
+#   with: function fbMerge(g){ throw new Error('mutated');
+#
+# @vacuity §0b2: in progress shows the FEED's score
+#   file: index.html
+#   find: return { home: L.home, away: L.away, final: false, live: true,
+#   with: return { home: g.home_score, away: g.away_score, final: false, live: true,
+#
+# @vacuity §0b2: a disagreeing final is carried out as a conflict
+#   file: index.html
+#   find: (L.home !== g.home_score || L.away !== g.away_score);
+#   with: false;
+#
+# @vacuity §0b2: an agreeing final is NOT a conflict
+#   file: index.html
+#   find: (L.home !== g.home_score || L.away !== g.away_score);
+#   with: true;
+#
+# @vacuity §0b2: a feed-only final shows the feed's score
+#   file: index.html
+#   find: : { home: L.home, away: L.away, final: true, live: false,
+#   with: : { home: g.home_score, away: g.away_score, final: true, live: false,
+#
+# @vacuity §0b2: a game the feed does not carry is unchanged
+#   file: index.html
+#   find: if (!L) return { home: g.home_score, away: g.away_score, final: !!g.final,
+#   with: if (!L) return { home: null, away: null, final: !!g.final,
+#
+# `[2026-09-28]` §0c: every browser test blocks the network (the class).
+# @vacuity §0c: a browser test that loses its catch-all is caught
+#   file: test_box_live.py
+#   find: pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
+#   with: pass
+#
+# @vacuity §0c: a catch-all left only in a COMMENT does not count
+#   file: test_nfl_opener.py
+#   find: pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
+#   with: # pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
 """
 import http.server
 import json
@@ -32,7 +74,7 @@ import socketserver
 import threading
 
 from jsblock import calls, js_block, source   # the ONE js reader
-from tcheck import ck, note   # the shared gate — see tcheck.py
+from tcheck import ck, note, shown   # the shared gate — see tcheck.py
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT = 8913
@@ -176,6 +218,108 @@ ck("🔴 one bad STATUS keeps the other division; a REFUSAL still turns it off",
    "rs.filter(r => r.ok)" in _ll and "if (!oks.length) throw" in _ll,
    "CORS is decided per origin, not per query string")
 
+# ───────────────────────────────────────────────────────────────
+print("\n═══ 0b2. THE MERGE, DRIVEN ON PLANTED GAMES — EVERY RUN ═══")
+# 🔴 `[2026-09-28]` THE BROWSER SECTIONS TAKE THEIR GAMES FROM THE LIVE
+#    SCHEDULE, so section 3 (a stored final the feed disagrees with) only
+#    runs when this week's view happens to hold a final — from a Sunday
+#    until the next midweek game it does not, and it says so. ✅ The rule it
+#    drives lives in `fbMerge`, a pure function of the stored game and the
+#    feed, so it is lifted out of the page and run in node on planted games
+#    — in progress, a disagreeing final, an agreeing final, a feed-only
+#    final, and a game the feed does not carry — whatever the week holds.
+import subprocess as _sp  # noqa: E402
+import tempfile as _tf    # noqa: E402
+_mjs = "\n".join([
+    "let FB_DAY = null;",
+    "let FB_LIVE = { byId: {",
+    "  '1': { state: 'in', clock: '7:21', period: 3, home: 24, away: 17 },",
+    "  '2': { state: 'post', home: 98, away: 99 },",
+    "  '3': { state: 'post', home: 30, away: 10 },",
+    "  '4': { state: 'post', home: 21, away: 20 } } };",
+    js_block("fbLiveOf", HTML), js_block("fbMerge", HTML),
+    "const G = [",
+    "  { espn: '1', final: false, home_score: null, away_score: null },",
+    "  { espn: '2', final: true, home_score: 31, away_score: 28 },",
+    "  { espn: '3', final: true, home_score: 30, away_score: 10 },",
+    "  { espn: '4', final: false, home_score: null, away_score: null },",
+    "  { espn: '5', final: true, home_score: 7, away_score: 3 } ];",
+    "console.log(JSON.stringify(G.map(fbMerge)));",
+])
+_md = _tf.mkdtemp()
+try:
+    _mp = os.path.join(_md, "merge.js")
+    open(_mp, "w", encoding="utf-8").write(_mjs)
+    _mr = _sp.run(["node", _mp], capture_output=True, text=True)
+finally:
+    import shutil as _sh  # noqa: E402
+    _sh.rmtree(_md, ignore_errors=True)
+_M = json.loads(_mr.stdout.strip().splitlines()[-1]) if _mr.returncode == 0 else None
+ck("the page's own merge runs on planted games", _M is not None,
+   shown(_mr.stderr[-300:]) if _mr.returncode else "")
+if _M:
+    ck("🔴 in progress: the FEED's score and clock, marked live",
+       (_M[0]["home"], _M[0]["away"], _M[0]["live"], _M[0].get("clock"))
+       == (24, 17, True, "7:21"), str(_M[0]))
+    ck("🔴 a stored FINAL keeps OUR score when the feed disagrees — and the "
+       "disagreement is carried out, with the feed's numbers",
+       (_M[1]["home"], _M[1]["away"], _M[1]["final"], _M[1]["conflict"],
+        _M[1].get("theirs")) == (31, 28, True, True, "99-98"), str(_M[1]))
+    ck("⛔ ...an agreeing final is not a disagreement",
+       (_M[2]["home"], _M[2]["conflict"]) == (30, False), str(_M[2]))
+    ck("a final only the feed has shows the feed's, marked as from the feed",
+       (_M[3]["home"], _M[3]["away"], _M[3]["final"], _M[3].get("fromFeed"))
+       == (21, 20, True, True), str(_M[3]))
+    ck("⛔ a game the feed does not carry is returned UNCHANGED",
+       (_M[4]["home"], _M[4]["away"], _M[4]["covered"], _M[4]["live"])
+       == (7, 3, False, False), str(_M[4]))
+
+# ───────────────────────────────────────────────────────────────
+print("\n═══ 0c. 🔴 NO BROWSER TEST REACHES THE NETWORK — THE CLASS ═══")
+# ⛔ `[2026-09-28]` Sam: "A test must not depend on the network; use
+#    recorded fixtures." All five browser tests routed ONLY site.api.espn.com,
+#    while every page load boots the MLB tab (statsapi.mlb.com) and asks
+#    mlbstatic/espncdn for logos — real third-party answers reaching the
+#    "no page error" checks. Each now registers a catch-all FIRST that lets
+#    this machine through and aborts everything else (the page copes with a
+#    feed it cannot reach), so the stubs registered after it still win.
+# ✅ THE CLASS, NOT THE FIVE: every test file that imports Playwright must
+#    carry that line, on code (not a comment), before its first other
+#    route — a new browser test without it fails here. Runs without a
+#    browser, so the collector's runner asks it too.
+# ⚠️ The pattern is assembled from two pieces so this file's own guard text
+#    can never be the match that satisfies it (rules 67, 244).
+import glob as _glob  # noqa: E402
+import re as _re      # noqa: E402
+_CATCH_ALL = ('.route("**/*", lambda r: r.continue_() if r.request.url.startswith('
+              + '("http://127.0.0.1:", "http://localhost:")) else (')
+_A_ROUTE = _re.compile(r"\bpg\.route\(")      # a real call, not this text
+
+
+def _first(lines, pred):
+    return next((i for i, l in enumerate(lines)
+                 if not l.lstrip().startswith("#") and pred(l)), None)
+
+
+_net = {}
+for _p in sorted(_glob.glob(os.path.join(ROOT, "test_*.py"))):
+    _s = open(_p, encoding="utf-8").read()
+    if "sync_playwright" not in _s:
+        continue
+    _ls = _s.splitlines()
+    _ic = _first(_ls, lambda l: _CATCH_ALL in l)
+    _io = _first(_ls, lambda l: _A_ROUTE.search(l) and _CATCH_ALL not in l)
+    _net[os.path.basename(_p)] = (_ic is not None
+                                  and (_io is None or _ic < _io))
+ck("⚠️ the browser tests were found to ask about", len(_net) >= 5,
+   "⛔ a sweep over no files passes having asked nothing (rule 67). "
+   "found: %s" % sorted(_net))
+ck("🔴 every browser test blocks the network before its first stub",
+   _net and all(_net.values()),
+   "without it a third party's answer decides a check. missing or out of "
+   "order: %s" % sorted(k for k, v in _net.items() if not v))
+OFFSITE = []
+
 srv, PORT = serve()
 try:
     from playwright.sync_api import sync_playwright
@@ -195,6 +339,16 @@ class Page:
         self.hits = [0]
         self.pg = br.new_page(viewport={"width": 1400, "height": 1100})
         self.pg.on("pageerror", lambda e: self.errs.append(str(e)))
+        # ⛔ NO REQUEST LEAVES THIS MACHINE. `[2026-09-28]` Sam: "A test
+        #    must not depend on the network." Every page boots the MLB tab
+        #    (statsapi.mlb.com) and asks mlbstatic/espncdn for logos; only
+        #    ESPN was stubbed. Registered FIRST — Playwright tries the
+        #    newest route first — so the ESPN handler below still answers
+        #    its own URLs; anything else off this machine is aborted (the
+        #    page already copes with a feed it cannot reach) and counted.
+        #    §0 of this file fails if a browser test loses this line.
+        _offsite = OFFSITE
+        self.pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
 
         def handler(route):
             self.hits[0] += 1
@@ -378,6 +532,9 @@ if _BROWSER:
       ck("⛔ an unmatched NFL key is a no-op, not a broken row",
          not any(g["live"] for g in n_shown) and not nfl.errs)
       nfl.close()
+      note("%d off-machine request(s) blocked, none answered by the "
+           "network: %s" % (len(OFFSITE),
+                            sorted({u.split("/")[2] for u in OFFSITE})))
 
       br.close()
 srv.shutdown()

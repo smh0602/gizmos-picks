@@ -47,6 +47,24 @@ different question and `ast` cannot answer it honestly.
 #   file: freshness.py
 #   find: SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
 #   with: SOFT = {"news", "weather", "lineups", "cfb-teams", "runs", "news-archive"}
+#
+# `[2026-09-28]` §3 reads a PLANTED tree at each fixed instant (the live
+# tree only at the real clock). These prove the planted trees hold their
+# case and that §3 catches a bad mode on its own, before section 4.
+# @vacuity every planted football instant names the conditional rows
+#   file: freshness.py
+#   find: if not _props_warranted(league, latest, now):
+#   with: if True:
+#
+# @vacuity MLB's planted run-status row appears when its writer is deployed
+#   file: freshness.py
+#   find: if not runs_writer_deployed(root):
+#   with: if True:
+#
+# @vacuity §3 alone: a card-run row renamed to a mode nobody runs
+#   file: freshness.py
+#   find: ("card-fb", ("file", f"{latest}/agreement.json"), T["card"], False,
+#   with: ("agreement-x", ("file", f"{latest}/agreement.json"), T["card"], False,
 """
 import ast
 import datetime
@@ -252,21 +270,77 @@ section("3. 🔴 EVERY MODE THE CONTRACT NAMES, EVERY LEAGUE, IS DISPATCHED")
 # ══════════════════════════════════════════════════════════════════════
 # ⚠️ Rows are filtered by what is on disk and by the clock (a props row
 #    before a props board, a season not started), so the contract is read
-#    at today and at seven fixed instants across a week, and section 4
-#    sweeps the source for the rows none of them returned.
-_INSTANTS = [None] + [datetime.datetime(2026, 9, 26, 17, 0, tzinfo=UTC)
-                      + datetime.timedelta(days=d) for d in range(7)]
+#    on the live tree at the REAL clock, and on a PLANTED tree at seven
+#    fixed instants across a week; section 4 sweeps the source for the
+#    rows none of them returned.
+# 🔴 `[2026-09-28]` ~~the live tree at seven FROZEN instants~~ — a frozen
+#    clock against a live tree (Sam: "a real clock, or a tree pinned to
+#    NOW — never one of each"). Which rows those instants brought into
+#    view was decided by the live schedule and the live props board, not
+#    by the test. ✅ Each instant now gets a tree planted FOR it: a props
+#    board, a dated card, and a kickoff two hours after the props deadline
+#    before it, so every conditional football row is named at every
+#    instant; MLB's run-status row is planted in both states.
+_INSTANTS = [datetime.datetime(2026, 9, 26, 17, 0, tzinfo=UTC)
+             + datetime.timedelta(days=d) for d in range(7)]
+_FB_COND = {"props-player", "props-board", "alt-lines", "card-fb", "fb-record"}
+
+
+def _planted_contract(lg, t, runs):
+    """F.contract on a temp tree planted for league `lg` at instant `t`."""
+    import gzip
+    import json
+    import shutil
+    import tempfile
+    tmp, cwd = tempfile.mkdtemp(), os.getcwd()
+    live = F.runs_writer_deployed
+    F.runs_writer_deployed = lambda root=None, _v=runs: _v
+    try:
+        os.chdir(tmp)
+        d = "data" if lg == "mlb" else "data/%s" % lg
+        os.makedirs(d + "/latest")
+        os.makedirs("picks")
+        if lg != "mlb":
+            open(d + "/latest/props.json.gz", "wb").close()
+            open("picks/fb-%s-2026-09-01.json" % lg, "w").close()
+            k = (F.last_due(F.FB_TIMES[lg]["props"], t)
+                 + datetime.timedelta(hours=2))
+            # the league's own stored format (freshness.kickoffs_utc):
+            # college UTC with a Z, the NFL ET wall-clock (EDT in Sep/Oct)
+            s = (k.strftime("%Y-%m-%dT%H:%M:%S.000Z") if lg == "ncaaf" else
+                 (k - datetime.timedelta(hours=4)).strftime("%Y-%m-%dT%H:%M"))
+            with gzip.open("%s/latest/schedule-%d.json.gz"
+                           % (d, F.current_football_season(t)), "wt") as fh:
+                json.dump({"games": [{"start": s, "home_class": "fbs",
+                                      "away_class": "fbs"}]}, fh)
+        return F.contract(data=d, picks="picks", now=t)
+    finally:
+        F.runs_writer_deployed = live
+        os.chdir(cwd)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 RUNTIME = set()
 for _d in LEAGUE_DATA:
     _lg = "mlb" if _d == "data" else _d.split("/")[-1]
-    _modes, _rows = set(), 0
+    _live = F.contract(data=_d, picks="picks", now=None)     # real clock
+    _modes, _rows, _short = {r[0] for r in _live}, len(_live), []
     for _t in _INSTANTS:
-        _c = F.contract(data=_d, picks="picks", now=_t)
-        _rows = max(_rows, len(_c))
-        _modes |= {r[0] for r in _c}
+        for _runs in ((False, True) if _lg == "mlb" else (True,)):
+            _c = _planted_contract(_lg, _t, _runs)
+            _rows = max(_rows, len(_c))
+            _got = {r[0] for r in _c}
+            _modes |= _got
+            _want = ({"runs"} if _runs else set()) if _lg == "mlb" else _FB_COND
+            if not _want <= _got:
+                _short.append((_t.strftime("%a %d"), sorted(_want - _got)))
     RUNTIME |= _modes
     ck("%s: the contract returned rows to check" % _lg, _rows > 0,
        "⛔ an empty contract makes every mode 'dispatched'. rows=%d" % _rows)
+    ck("%s: every planted instant names every conditional row" % _lg,
+       not _short,
+       "⛔ a row the planted tree does not bring into view is a row this "
+       "section never asks about (rule 67). short: %s" % (_short,))
     _bad = sorted(_modes - DISPATCHED)
     ck("🔴 %s: every mode freshness.contract() names is one run_mode runs"
        % _lg, not _bad,

@@ -54,8 +54,41 @@ reader SEES is made against rendered HTML.
 #   file: index.html
 #   find: li('Books with a moneyline', L.n_books);
 #   with: li('Books priced', L.n_books);   // the label that read "priced 0"
+#
+# ── [2026-09-28] THE PLANTED BOARD'S OWN QUESTIONS. Each one has its case
+#    on every run, whatever today's slate holds (see section 3). ────────
+# @vacuity a PLANTED section that cannot answer is drawn AS A GAP
+#   file: index.html
+#   find: <div class="dossec${gap ? ' gap' : ''}">
+#   with: <div class="dossec">
+#
+# @vacuity a PLANTED refusal is the builder's own sentence, verbatim
+#   file: index.html
+#   find: <p class="dw">${s.why || ''}</p>
+#   with: <p class="dw">${(s.why || '').slice(0, 40)}</p>
+#
+# @vacuity a PLANTED one-sided game is described, not dropped
+#   file: dossier_fb.py
+#   find: if not home and not away:
+#   with: if not home or not away:
+#
+# @vacuity the builder NAMES the planted side we hold no record for
+#   file: dossier_fb.py
+#   find: "unresolved_side": missing,
+#   with: "unresolved_side": None,
+#
+# @vacuity the jargon bar reads the builder's own refusal prose (planted)
+#   file: dossier_fb.py
+#   find: "in it. The price above is real; this comparison is not "
+#   with: "in it (T23, measured null). The price above is real; this comparison is not "
+#
+# @vacuity every PLANTED college game renders a market section
+#   file: dossier_fb.py
+#   find: d = {"n": 1, "name": "Market", "state": "OK", "basis": MARKET,
+#   with: d = {"n": 1, "name": "Markets", "state": "OK", "basis": MARKET,
 # ══════════════════════════════════════════════════════════════════════
 
+import datetime
 import gzip
 import json
 import os
@@ -67,6 +100,8 @@ import tempfile
 
 from jsblock import calls, js_block
 from tcheck import ck, note, section
+
+import dossier_fb as D          # noqa: E402  (nfl_table: the ONE parse)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PAGE = os.path.join(ROOT, "index.html")
@@ -90,24 +125,86 @@ OPERATOR = re.compile(r"`[^`]+`|[\w./-]+\.json(?:\.gz)?|nfl-logs|cfb-probe"
                       r"|props-board|card-fb|data/")
 
 
-def build(lg):
-    """The real builder, on the real board, in a throwaway tree.
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE CASE IS PLANTED, NEVER WAITED FOR. `[2026-09-28]`
+# Monday's NFL board held 7 games, mostly finished, and every head-to-head
+# on it could answer. So "7 game(s) rendered through the shipped panel
+# code" and "every section that cannot answer is DRAWN (0 of 0)" went red
+# on CORRECT code (collect 36444412810, and three runs before it), and
+# went green again on their own when the next week's odds posted. A floor
+# that reads today's slate is a claim about the slate, not about the code.
+# ⛔ And an EMPTY board — college from January to August — did worse: the
+#    file DIED on `_doc["dossiers"][0]`, with its temp tree left behind.
+# ✅ So every floor below is asked of a board THIS FILE WRITES into the
+#    throwaway tree (the way #156 planted its case): 12 games named from
+#    the league's OWN resolver table — `dossier_fb.nfl_table()` for NFL,
+#    `teams.json` for college — and one away side no table holds, so the
+#    REAL builder must refuse that game's pair-wise sections BY NAME on
+#    every run. Today's board is still rendered, as an EXTRA: its checks
+#    are asserted when it has the case, and reported when it does not.
+# ⚠️ The kickoff is the REAL clock plus two days (a live tree gets the real
+#    clock, never a frozen one); nothing asserted depends on the date.
+# ══════════════════════════════════════════════════════════════════════
+UNHELD = "Slippery Rock Aardvarks"   # a side no team table holds
+PLANTED_N = 12                       # games planted; the floor is 10
+
+
+def planted_board(lg, tree):
+    """12 games from the league's own name table, one side unheld."""
+    if lg == "nfl":
+        names = sorted(D.nfl_table(tree))
+    else:
+        try:
+            names = sorted(json.load(open(os.path.join(
+                tree, "data", lg, "latest", "teams.json"),
+                encoding="utf-8")).get("teams") or {})
+        except (OSError, ValueError):
+            names = []          # ⛔ the planted count check goes red, loudly
+    names = names[:2 * PLANTED_N]
+    now = datetime.datetime.now(datetime.timezone.utc)
+    kick = (now + datetime.timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    games = [{"id": "planted-%s-%02d" % (lg, i), "commence": kick,
+              "away": names[2 * i], "home": names[2 * i + 1],
+              "total": 44.5, "run_line": -3.5,
+              "run_line_team": names[2 * i + 1], "n_books": 4,
+              "best_ml": {}, "vig_pct": 4.1}
+             for i in range(len(names) // 2)]
+    if games:
+        games[0]["away"] = UNHELD
+    return {"kind": "BOARD", "pulled_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "games": games}
+
+
+def build(lg, planted=False):
+    """The real builder, in a throwaway tree — on the PLANTED board, or
+    (`planted=False`) on today's real one.
 
     ⛔ NOT THE COMMITTED ARTIFACT. `data/nfl/latest/dossiers.json.gz` on
     disk was written before `board_id` existed, so a check reading it
-    would be asking about yesterday's builder."""
+    would be asking about yesterday's builder.
+    ⚠️ The tree is removed if anything here raises; the caller removes it
+    otherwise (it leaked on every crash before 2026-09-28)."""
     d = tempfile.mkdtemp(prefix="dospage-")
-    for f in os.listdir(ROOT):
-        if f.endswith(".py") or f.endswith(".json"):
-            shutil.copy(os.path.join(ROOT, f), d)
-    shutil.copytree(os.path.join(ROOT, "data", lg), os.path.join(d, "data", lg))
-    p = os.path.join(d, "data", lg, "latest", "dossiers.json.gz")
-    if os.path.exists(p):
-        os.remove(p)
-    r = subprocess.run([sys.executable, "-B", "dossier_fb.py"], cwd=d,
-                       timeout=600, capture_output=True, text=True,
-                       env=dict(os.environ, LEAGUE=lg))
-    doc = json.load(gzip.open(p, "rt")) if os.path.exists(p) else None
+    try:
+        for f in os.listdir(ROOT):
+            if f.endswith(".py") or f.endswith(".json"):
+                shutil.copy(os.path.join(ROOT, f), d)
+        shutil.copytree(os.path.join(ROOT, "data", lg),
+                        os.path.join(d, "data", lg))
+        if planted:
+            with open(os.path.join(d, "data", lg, "latest", "board.json"),
+                      "w", encoding="utf-8") as fh:
+                json.dump(planted_board(lg, d), fh)
+        p = os.path.join(d, "data", lg, "latest", "dossiers.json.gz")
+        if os.path.exists(p):
+            os.remove(p)
+        r = subprocess.run([sys.executable, "-B", "dossier_fb.py"], cwd=d,
+                           timeout=600, capture_output=True, text=True,
+                           env=dict(os.environ, LEAGUE=lg))
+        doc = json.load(gzip.open(p, "rt")) if os.path.exists(p) else None
+    except BaseException:
+        shutil.rmtree(d, ignore_errors=True)
+        raise
     return d, doc, (r.stdout or "") + (r.stderr or "")
 
 
@@ -206,56 +303,96 @@ ck("board_id" in _by,
    "in `board.json` — they are different namespaces, so a page given "
    "only `game_id` cannot join at all")
 
-section("3. 🔴🔴 IT RENDERS THE REAL ARTIFACT, BOTH LEAGUES")
-_seen = []
-for _lg in ("nfl", "ncaaf"):
-    _tree, _doc, _log = build(_lg)
-    ck(_doc is not None,
-       "⚠️ %s: the builder produced a dossier to render" % _lg,
-       "⛔ every check below would pass over nothing (rule 67). %s"
-       % _log[-300:])
-    if _doc is None:
-        shutil.rmtree(_tree, ignore_errors=True)
-        continue
-    _R = drive(_doc, _tree)
-    _rows = _R["rows"]
-    ck(len(_rows) >= 10,
-       "   %s: %d game(s) rendered through the shipped panel code"
-       % (_lg, len(_rows)),
-       "⛔ rule 67: a sweep over one game proves nothing about a board")
-    ck(_R["n_indexed"] == len(_rows) and all(r["matched"] for r in _rows),
+section("3. 🔴🔴 IT RENDERS THE REAL ARTIFACT, BOTH LEAGUES — ON A PLANTED "
+        "BOARD EVERY RUN, AND ON TODAY'S AS AN EXTRA")
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ ONE SWEEP, RUN TWICE PER LEAGUE. On the PLANTED board every floor is a
+# ck(): the case is there by construction, so a floor that fails is the
+# code. On TODAY'S board the same checks run, but a floor that needs a
+# case the slate lacks is REPORTED with note(), never failed — and every
+# check that compares something the slate DOES hold is still asserted.
+# ⚠️ Nothing was lowered: each bar below is the one this file had, and the
+# planted twin adds three it never had (rendered == games on the board,
+# the builder names the unheld side, and a count beside every sweep).
+# ══════════════════════════════════════════════════════════════════════
+_META = {"n", "name", "state", "basis"}
+_PROSE = {"why", "remedy", "scale", "verdict", "open_gap", "known_gap",
+          "coverage_note", "weather_note", "closing_note", "note"}
+
+
+def sweep(tag, doc, R, planted):
+    """Every section-3 question over one rendered document.
+
+    -> (tag, games rendered, sections that could not answer, partial games).
+    """
+    rows = R["rows"]
+
+    def floor(cond, label, why):
+        """A rule-67 floor: ck() on the planted board, note() on today's."""
+        if planted:
+            ck(cond, label, why)
+        else:
+            note(label + ("" if cond else
+                          " — not on today's board; the PLANTED board "
+                          "carries this case on every run"))
+        return bool(cond)
+
+    if planted:
+        ck(len(rows) == doc.get("n_board_games") and len(rows) >= 10,
+           "   %s: %d game(s) rendered through the shipped panel code "
+           "(%s on the board)" % (tag, len(rows), doc.get("n_board_games")),
+           "⛔ rule 67: a sweep over one game proves nothing about a board, "
+           "and a planted game that did not render was DROPPED")
+        ck(any(r["unresolved_side"] == UNHELD for r in rows),
+           "   %s: ...one of them a side we hold no record for, NAMED by "
+           "the builder" % tag,
+           "⛔ without it no section is guaranteed to refuse, and every "
+           "gap check below would compare 0 with 0. Named: %s"
+           % sorted({str(r["unresolved_side"]) for r in rows}))
+    else:
+        note("   %s: %d game(s) rendered through the shipped panel code — "
+             "a fact about today's slate; the PLANTED board carries the "
+             "floor" % (tag, len(rows)))
+    ck("No signals stored" in R["miss_html"],
+       "   %s: ...and a board id no game has matches NOTHING" % tag,
+       "🔴 the fallback must be an honest empty state, never a "
+       "neighbouring game. Got: %s" % text(R["miss_html"])[:120])
+    if not rows:
+        return (tag, 0, 0, 0)
+    ck(R["n_indexed"] == len(rows) and all(r["matched"] for r in rows),
        "🔴 %s: EVERY game joins on `board_id` (%d of %d)"
-       % (_lg, _R["n_indexed"], len(_rows)),
+       % (tag, R["n_indexed"], len(rows)),
        "⛔ a game with no panel is a gap; a game shown ANOTHER game's "
        "panel is misinformation. Unmatched: %s"
-       % [r["board_id"] for r in _rows if not r["matched"]][:4])
-    ck("No signals stored" in _R["miss_html"],
-       "   %s: ...and a board id no game has matches NOTHING" % _lg,
-       "🔴 the fallback must be an honest empty state, never a "
-       "neighbouring game. Got: %s" % text(_R["miss_html"])[:120])
+       % [r["board_id"] for r in rows if not r["matched"]][:4])
     # ── EVERY SECTION IS ON THE PAGE, AVAILABLE OR NOT ────────────────
-    _names = [s["name"] for s in _doc["dossiers"][0]["sections"]]
-    # ⚠️ The artifact's own declared count; files built before signal 9 (9th
-    #    section, 2026-09-24) declared nothing and carry eight.
-    ck(len(_names) == _doc.get("sections_declared", 8) and len(_names) >= 8,
-       "   %s: the artifact carries every section it declares (%d)" % (_lg, len(_names)),
+    names = [s["name"] for s in doc["dossiers"][0]["sections"]]
+    # ⚠️ The artifact's own declared count; files built before signal 9
+    #    (9th section, 2026-09-24) declared nothing and carry eight.
+    ck(len(names) == doc.get("sections_declared", 8) and len(names) >= 8,
+       "   %s: the artifact carries every section it declares (%d)"
+       % (tag, len(names)),
        "⛔ rule 67 again — eight is the premise of every check below. "
-       "Got %s" % _names)
-    _missing = [(r["board_id"], n) for r in _rows for n in _names
-                if n not in r["html"]]
-    ck(not _missing,
-       "🔴🔴 %s: ALL EIGHT SECTIONS APPEAR FOR EVERY GAME" % _lg,
+       "Got %s" % names)
+    missing = [(r["board_id"], n) for r in rows for n in names
+               if n not in r["html"]]
+    ck(not missing,
+       "🔴🔴 %s: ALL %d SECTIONS APPEAR FOR EVERY GAME" % (tag, len(names)),
        "⛔ HIDING A SECTION THAT CANNOT ANSWER IS THE WHOLE FAILURE THIS "
        "ARTIFACT EXISTS AGAINST — it would show a board where every game "
-       "looks fully analysed. Missing: %s" % _missing[:4])
-    _gaps = sum(1 for r in _rows for _ in re.findall(r'dossec gap', r["html"]))
-    _dgaps = sum(1 for x in _doc["dossiers"] for s in x["sections"]
-                 if s["state"] != "OK")
-    ck(_dgaps >= 1 and _gaps == _dgaps,
-       "   %s: every section that cannot answer is DRAWN (%d of %d)"
-       % (_lg, _gaps, _dgaps),
-       "⛔ the refusals are the honesty. Artifact says %d, page drew %d"
-       % (_dgaps, _gaps))
+       "looks fully analysed. Missing: %s" % missing[:4])
+    gaps = sum(len(re.findall(r'dossec gap', r["html"])) for r in rows)
+    dgaps = sum(1 for x in doc["dossiers"] for s in x["sections"]
+                if s["state"] != "OK")
+    if floor(dgaps >= 1,
+             "   %s: the artifact carries %d section(s) that cannot answer"
+             % (tag, dgaps),
+             "⛔ rule 67: the next check would compare 0 with 0"):
+        ck(gaps == dgaps,
+           "   %s: every section that cannot answer is DRAWN (%d of %d)"
+           % (tag, gaps, dgaps),
+           "⛔ the refusals are the honesty. Artifact says %d, page drew %d"
+           % (dgaps, gaps))
     # ══════════════════════════════════════════════════════════════════
     # 🔴🔴 AND A SECTION THAT CAN ANSWER MUST SHOW ONE OF THE BUILDER'S
     # OWN VALUES, NOT ONLY ITS SENTENCE. `[2026-09-17 — the first draft
@@ -271,88 +408,130 @@ for _lg in ("nfl", "ncaaf"):
     # that legitimately has nothing but its sentence, which is the other
     # failure CLAUDE.md names.
     # ══════════════════════════════════════════════════════════════════
-    _META = {"n", "name", "state", "basis"}
-    _PROSE = {"why", "remedy", "scale", "verdict", "open_gap", "known_gap",
-              "coverage_note", "weather_note", "closing_note", "note"}
-    _mute = []
-    for _r, _x in zip(_rows, _doc["dossiers"]):
-        _frags = _r["html"].split('<div class="dossec')
-        for _s in _x["sections"]:
-            if _s["state"] != "OK":
+    mute, owed = [], 0
+    for r, x in zip(rows, doc["dossiers"]):
+        frags = r["html"].split('<div class="dossec')
+        for s in x["sections"]:
+            if s["state"] != "OK":
                 continue
-            _pay = {k: v for k, v in _s.items()
-                    if k not in _META and k not in _PROSE
-                    and v not in (None, {}, [], "")}
-            if not _pay:
+            pay = {k: v for k, v in s.items()
+                   if k not in _META and k not in _PROSE
+                   and v not in (None, {}, [], "")}
+            if not pay:
                 continue
-            _f = [g for g in _frags if ">%s<" % _s["name"] in g]
-            if not _f or "<li>" not in _f[0]:
-                _mute.append((_r["board_id"], _s["name"], sorted(_pay)))
-    ck(not _mute,
-       "🔴 %s: every section that CAN answer shows a stored value, not "
-       "just a sentence" % _lg,
-       "⛔ a heading and a paragraph over data the artifact is holding is "
-       "a section that looks empty while knowing something. Silent: %s"
-       % _mute[:4])
-    _reasons = [(r["board_id"], s["name"]) for r, x
-                in zip(_rows, _doc["dossiers"])
-                for s in x["sections"]
-                if s["state"] != "OK" and s.get("why")
-                and s["why"] not in r["html"]]
-    ck(not _reasons,
-       "   %s: ...carrying the BUILDER'S OWN reason, verbatim" % _lg,
-       "⛔ a second sentence written in JavaScript is a second copy of "
-       "the reasoning (rule 132). Reworded: %s" % _reasons[:3])
-    _seen.append((_lg, len(_rows), _dgaps,
-                  sum(1 for r in _rows if r["unresolved_side"])))
+            owed += 1
+            f = [g for g in frags if ">%s<" % s["name"] in g]
+            if not f or "<li>" not in f[0]:
+                mute.append((r["board_id"], s["name"], sorted(pay)))
+    if floor(owed >= 1,
+             "   %s: %d section(s) that CAN answer hold a stored value"
+             % (tag, owed),
+             "⛔ rule 67: the next check would sweep nothing"):
+        ck(not mute,
+           "🔴 %s: every section that CAN answer shows a stored value, not "
+           "just a sentence (%d)" % (tag, owed),
+           "⛔ a heading and a paragraph over data the artifact is holding "
+           "is a section that looks empty while knowing something. "
+           "Silent: %s" % mute[:4])
+    owed_why = [(r, s) for r, x in zip(rows, doc["dossiers"])
+                for s in x["sections"] if s["state"] != "OK" and s.get("why")]
+    if floor(len(owed_why) >= 1,
+             "   %s: %d refusal reason(s) to compare" % (tag, len(owed_why)),
+             "⛔ rule 67: the next check would compare nothing"):
+        reworded = [(r["board_id"], s["name"]) for r, s in owed_why
+                    if s["why"] not in r["html"]]
+        ck(not reworded,
+           "   %s: ...carrying the BUILDER'S OWN reason, verbatim (%d)"
+           % (tag, len(owed_why)),
+           "⛔ a second sentence written in JavaScript is a second copy of "
+           "the reasoning (rule 132). Reworded: %s" % reworded[:3])
     # ── THE REGISTER ─────────────────────────────────────────────────
-    _all = text(" ".join(r["html"] for r in _rows))
-    _hits = sorted({j for j in JARGON if j in _all})
-    ck(not _hits,
+    # ⚠️ On the planted board this reads the builder's REFUSAL prose too
+    #    (`no_opponent`), which today's board carries only on a one-sided
+    #    game — none on 2026-09-28 in either league.
+    alltext = text(" ".join(r["html"] for r in rows))
+    hits = sorted({j for j in JARGON if j in alltext})
+    ck(not hits,
        "🔴 %s: ZERO jargon in the rendered panel (%d term(s) checked)"
-       % (_lg, len(JARGON)),
+       % (tag, len(JARGON)),
        "⛔ THE LIST IS `verify_card.py`'s OWN and the football panel does "
-       "not get an easier one. Found %s" % _hits)
-    _ops = sorted(set(OPERATOR.findall(_all)))
-    ck(not _ops,
-       "   %s: ...and nothing operator-facing either" % _lg,
+       "not get an easier one. Found %s" % hits)
+    ops = sorted(set(OPERATOR.findall(alltext)))
+    ck(not ops,
+       "   %s: ...and nothing operator-facing either" % tag,
        "⛔ no filename, path, backticked code or collector mode name. A "
-       "reader does not run the jobs. Found %s" % _ops[:6])
-    ck("MODEL" not in _all and not re.search(r"\d{1,3}\s*%\s*(conf|chance)",
-                                             _all, re.I),
-       "   %s: ...and no Gizmo's confidence anywhere on it (rule 55)"
-       % _lg,
+       "reader does not run the jobs. Found %s" % ops[:6])
+    ck("MODEL" not in alltext and not re.search(
+           r"\d{1,3}\s*%\s*(conf|chance)", alltext, re.I),
+       "   %s: ...and no Gizmo's confidence anywhere on it (rule 55)" % tag,
        "⛔ every number in this artifact is the market's or a record; "
        "none is a model output, and none may sit beside one")
-    shutil.rmtree(_tree, ignore_errors=True)
-note("   league / games rendered / sections that could not answer / "
+    return (tag, len(rows), dgaps,
+            sum(1 for r in rows if r["unresolved_side"]))
+
+
+# ⚠️ FOUR BUILDS, THE SAME AS BEFORE: sections 4 and 5 take their frames
+#    from these documents instead of building again.
+DOCS = {}
+_seen = []
+for _lg in ("nfl", "ncaaf"):
+    for _planted in (True, False):
+        _tag = ("planted " if _planted else "live ") + _lg
+        _tree, _doc, _log = build(_lg, _planted)
+        try:
+            ck(_doc is not None,
+               "⚠️ %s: the builder produced a dossier to render" % _tag,
+               "⛔ every check below would pass over nothing (rule 67). %s"
+               % _log[-300:])
+            if _doc is not None:
+                _R = drive(_doc, _tree)
+                _seen.append(sweep(_tag, _doc, _R, _planted))
+                DOCS[(_lg, _planted)] = (_doc, _R)
+        finally:
+            shutil.rmtree(_tree, ignore_errors=True)
+note("   board / games rendered / sections that could not answer / "
      "partial games: %s" % (_seen,))
 
 section("4. 🔴🔴 A PARTIAL GAME LOOKS PARTIAL — DRIVEN, NOT HOPED FOR")
 # ══════════════════════════════════════════════════════════════════════
-# ⛔ SYNTHETIC ON PURPOSE, AND UNCONDITIONALLY. 16 of the 90 college
+# ⛔ PLANTED ON PURPOSE, AND UNCONDITIONALLY. 16 of the 90 college
 # games on today's board carry an opponent the season files do not cover
 # — but that is a fact about THE BOARD: measured across 36 stored college
 # boards it runs 0 to 41, and 2 of them carried ZERO. Asserting the real
 # board holds one would redden this suite on a mid-Saturday board that is
 # perfectly good, which is the other failure CLAUDE.md names.
-# ✅ So the case is INJECTED and the check is true every day.
+# ✅ So the case comes from the PLANTED board of section 3, and the check
+# is true every day. `[2026-09-28]` ~~Carved out of the LIVE build and
+# injected by hand~~ — that needed two live games (it died on a 1-game
+# board) and wrote the one-sided frame itself. The frame is now the REAL
+# BUILDER's own one-sided game, which is the stronger claim.
 # ══════════════════════════════════════════════════════════════════════
-_tree4, _doc4, _log4 = build("nfl")
-ck(_doc4 is not None, "⚠️ there is a document to inject into", _log4[-200:])
-if _doc4 is not None:
-    _g4 = _doc4["dossiers"][0]
-    _g4["unresolved_side"] = "Slippery Rock Aardvarks"
-    _g4["away_name"] = "Slippery Rock Aardvarks"
-    _g4["away"] = None
+_src4 = (DOCS.get(("nfl", True)) or (None, None))[0]
+ck(_src4 is not None, "⚠️ there is a PLANTED document to render from",
+   "⛔ section 3 already failed the planted NFL build")
+if _src4 is not None:
+    _doc4 = json.loads(json.dumps(_src4))
+    _one4 = [x for x in _doc4["dossiers"] if x.get("unresolved_side") == UNHELD]
+    _two4 = [x for x in _doc4["dossiers"]
+             if x.get("board_id") and not x.get("unresolved_side")]
+    ck(bool(_one4) and bool(_two4),
+       "⚠️ ...holding the builder's own one-sided game and a second frame "
+       "(%d + %d)" % (len(_one4), len(_two4)),
+       "⛔ rule 67: every check below would pass over nothing")
+if _src4 is not None and _one4 and _two4:
+    _g4 = _one4[0]
     # ⛔ AND A SECOND FRAME WITH NO `board_id` AT ALL, to prove the index
     #    SKIPS it rather than reaching for another key.
-    _g5 = dict(_doc4["dossiers"][1])
+    _g5 = dict(_two4[0])
     _g5.pop("board_id", None)
     _doc4["dossiers"] = [_g4, _g5]
-    _R4 = drive(_doc4, _tree4)
+    _tree4 = tempfile.mkdtemp(prefix="dospage-")
+    try:
+        _R4 = drive(_doc4, _tree4)
+    finally:
+        shutil.rmtree(_tree4, ignore_errors=True)
     _h4 = _R4["rows"][0]["html"]
-    ck("Slippery Rock Aardvarks" in _h4,
+    ck(UNHELD in _h4,
        "🔴🔴 THE SIDE WITH NO SEASON RECORD IS NAMED ON THE PANEL",
        "⛔ NEVER RENDER A BLANK WHERE A TEAM NAME BELONGS. The board has "
        "the name and the builder carries it through — publishing nothing "
@@ -370,7 +549,6 @@ if _doc4 is not None:
        "way (%d indexed of 2)" % _R4["n_indexed"],
        "⛔ this is the check that stops a name or time fallback creeping "
        "back in. Matched: %s" % [r["matched"] for r in _R4["rows"]])
-    shutil.rmtree(_tree4, ignore_errors=True)
 section("5. 🔴🔴 THE BOOK COUNT SAYS WHAT IT COUNTS")
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 "Books priced 0" SAT DIRECTLY BESIDE A TOTAL OF 67.5 THAT A NAMED
@@ -413,57 +591,91 @@ def market_of(html):
     return ""
 
 
-_tree5, _doc5, _log5 = build("ncaaf")
-ck(_doc5 is not None, "⚠️ there is a college document to render", _log5[-200:])
-if _doc5 is not None:
-    # ── 1. THE REAL BOARD. ⛔ It asserts an ABSENCE, so it cannot
-    #    false-alarm on a board that happens to carry no zero — the
-    #    board-dependent floor is the mistake #51 just fixed. The
-    #    NON-VACUOUS drive is the injected row below.
-    _R5 = drive(_doc5, _tree5)
-    _mkts = [(r["board_id"], market_of(r["html"])) for r in _R5["rows"]]
-    ck(all(m for _b, m in _mkts),
-       "⚠️ every game rendered a market section (%d)" % len(_mkts),
-       "⛔ rule 67: the sweep below would pass over nothing. Missing: %s"
-       % [b for b, m in _mkts if not m][:4])
-    _contra = [b for b, m in _mkts if _PRICED0.search(m)]
-    ck(not _contra,
-       "🔴 no game on the real board reads as 'nothing is priced' beside "
-       "a price",
+def market_sweep(tag, R, planted):
+    """The book-count sweep over one rendered board.
+
+    ⛔ It asserts ABSENCES, so it cannot false-alarm on a board that
+    happens to carry no zero — the board-dependent floor is the mistake
+    #51 fixed. ✅ Its rule-67 floor is asked of the PLANTED board, where
+    every game has a market section by construction; today's board is an
+    extra, swept when it has games and reported when it has none."""
+    mkts = [(r["board_id"], market_of(r["html"])) for r in R["rows"]]
+    if planted:
+        ck(len(mkts) >= 10 and all(m for _b, m in mkts),
+           "⚠️ %s: every game rendered a market section (%d)"
+           % (tag, len(mkts)),
+           "⛔ rule 67: the sweep below would pass over nothing. Missing: %s"
+           % [b for b, m in mkts if not m][:4])
+    elif not mkts:
+        note("   %s: no games on today's board — nothing to sweep; the "
+             "PLANTED board carries the case" % tag)
+        return
+    else:
+        ck(all(m for _b, m in mkts),
+           "⚠️ %s: every game rendered a market section (%d)"
+           % (tag, len(mkts)),
+           "⛔ the Market section is built for every game. Missing: %s"
+           % [b for b, m in mkts if not m][:4])
+    contra = [b for b, m in mkts if _PRICED0.search(m)]
+    ck(not contra,
+       "🔴 %s: no game reads as 'nothing is priced' beside a price" % tag,
        "⛔ THIS IS THE DEFECT: 'Books priced 0' next to a total of 67.5 "
        "that Hard Rock was showing. A reader who sees 0 beside a number "
-       "they can bet stops trusting the page. Games: %s" % _contra[:4])
-    _zeros = [(b, m) for b, m in _mkts if "moneyline</b> <b>0<" in
-              m.replace("moneyline", "moneyline</b>")]
-    _nolabel = [b for b, m in _mkts if "Books" in m
-                and "moneyline" not in m]
-    ck(not _nolabel,
-       "   ⛔ ...and every book count on it NAMES what it counts",
+       "they can bet stops trusting the page. Games: %s" % contra[:4])
+    nolabel = [b for b, m in mkts if "Books" in m and "moneyline" not in m]
+    ck(not nolabel,
+       "   ⛔ %s: ...and every book count on it NAMES what it counts" % tag,
        "🔴 the count is of books showing a two-sided MONEYLINE, and a "
        "bare 'Books' is the reading that was wrong. Games: %s"
-       % _nolabel[:4])
+       % nolabel[:4])
+
+
+for _planted in (True, False):
+    _src5 = DOCS.get(("ncaaf", _planted))
+    if _src5 is None:
+        # ⚠️ section 3 already asserted the build; a planted miss is red
+        #    there, and this line says why section 5 is thinner.
+        note("   %s ncaaf: no document to sweep (section 3 says why)"
+             % ("planted" if _planted else "live"))
+        continue
+    market_sweep(("planted " if _planted else "live ") + "ncaaf",
+                 _src5[1], _planted)
+if DOCS.get(("ncaaf", False)):
+    _live5 = DOCS[("ncaaf", False)][0]
     note("   %d of %d real college games carry a zero book count — "
          "reported, NOT asserted (it is a fact about today's board)."
-         % (len([1 for x in _doc5["dossiers"]
+         % (len([1 for x in _live5["dossiers"]
                  for s_ in x["sections"]
                  if s_.get("n") == 1
                  and (s_.get("live") or {}).get("n_books") == 0]),
-            len(_doc5["dossiers"])))
+            len(_live5["dossiers"])))
 
-    # ── 2. AND DRIVEN ON AN INJECTED ROW, unconditionally. ⛔ The real
-    #    board carried 15 today and could carry none tomorrow; the case
-    #    this file exists for must be driven either way.
+# ── AND DRIVEN ON AN INJECTED ROW, unconditionally. ⛔ The real board
+#    carried 15 today and could carry none tomorrow; the case this file
+#    exists for must be driven either way. `[2026-09-28]` The frame is
+#    taken from the PLANTED college document, never today's board, which
+#    is empty from January to August (this line died on it).
+_src6 = (DOCS.get(("ncaaf", True)) or (None, None))[0]
+ck(_src6 is not None and bool(_src6.get("dossiers")),
+   "⚠️ there is a PLANTED college frame to inject into",
+   "⛔ rule 67: every check below would pass over nothing")
+if _src6 is not None and _src6.get("dossiers"):
+    _doc5 = json.loads(json.dumps(_src6))
     _g5 = _doc5["dossiers"][0]
     _m5 = [x for x in _g5["sections"] if x["n"] == 1][0]
     _m5.setdefault("live", {})
     _m5["live"]["n_books"] = 0
     _m5["live"]["total"] = 67.5
     _m5["live"]["run_line"] = -56.5
-    _g6 = json.loads(json.dumps(_doc5["dossiers"][0]))
+    _g6 = json.loads(json.dumps(_g5))
     _g6["board_id"] = "second-frame-for-the-positive-control"
     [x for x in _g6["sections"] if x["n"] == 1][0]["live"]["n_books"] = 4
     _doc5["dossiers"] = [_g5, _g6]
-    _R6 = drive(_doc5, _tree5)
+    _tree5 = tempfile.mkdtemp(prefix="dospage-")
+    try:
+        _R6 = drive(_doc5, _tree5)
+    finally:
+        shutil.rmtree(_tree5, ignore_errors=True)
     _z = market_of(_R6["rows"][0]["html"])
     _p = market_of(_R6["rows"][1]["html"])
     ck(bool(_z) and bool(_p),
@@ -504,7 +716,6 @@ if _doc5 is not None:
        "🔴 a sentence about a missing moneyline under a count of 4 is "
        "noise, and noise is what the clean-look rule is about. Got: %s"
        % text(_p)[:200])
-    shutil.rmtree(_tree5, ignore_errors=True)
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the panel is well designed, "
      "or that a reader finds it useful. It claims the eight signals "
      "REACH A READER, every section is shown whether or not it could "
