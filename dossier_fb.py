@@ -954,7 +954,10 @@ def s_possession(home, away, this_season, data=None, missing=None,
     if not out:
         return unavailable(6, "Time of possession",
                            "A possession file exists but carries neither "
-                           "%s nor %s with a readable share." % (home, away))
+                           "%s nor %s with a readable share." % (home, away),
+                           "it fills in once the season's log build stores a "
+                           "game for either team, played before this kickoff, "
+                           "whose clock could be read")
     return {"n": 6, "name": "Time of possession", "state": "OK",
             "basis": DESC, "by_team": out,
             "why": ("Share of the game clock each team held, averaged per "
