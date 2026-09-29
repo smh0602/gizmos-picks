@@ -46,3 +46,10 @@ Dated and it goes stale. Check it against `main` before acting on it.
 - **2026-09-23:** first version.
 - **2026-09-26:** headroom line struck; fail-fast red runs and cheaper
   tests (`HANDOFF-2026-09-26-annotations-sweep.md`).
+- **2026-09-28:** a sweep part now FAILS when a declaration in its share
+  does not bite (VACUOUS, RED_BOTH_WAYS, MALFORMED, TIMEOUT). Until then
+  `test_vacuity.py` ran the sweep and read only the share, the leak and
+  the two CFBD mutations, so only the nightly caught a vacuous guard.
+  A TIMEOUT alone now makes the nightly exit 2 ("could not look")
+  instead of printing "all bite". It adds no sweep time. Proof:
+  `test_vacuity_part.py`.
