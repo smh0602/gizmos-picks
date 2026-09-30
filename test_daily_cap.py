@@ -29,6 +29,11 @@ WHAT IS PINNED:
      hard ceiling
   5. the enforcement site spends against the allowance, not the old
      league-scoped constant
+
+# @vacuity the allowance's room is read off the API's balance, not our snapshots
+#   file: collect.py
+#   find:     spent_month = billed if billed is not None else sum(month_spend().values())
+#   with:     spent_month = sum(month_spend().values())
 """
 import collections
 import datetime
@@ -158,16 +163,28 @@ note(f"month to date {sum(C.month_spend().values())} of {C.MONTHLY_PLAN}; "
 # ⛔ DRIVEN, not reasoned about: a month that has banked a huge allowance
 #    still cannot pass the ceiling, and one that overspent still gets the
 #    flat cap.
-_real = C.month_spend
+# ⚠️ `[2026-09-29]` THE MONTH'S SPEND NOW COMES FROM THE API'S BALANCE
+#    (`month_billed`), with the stored sum (`month_spend`) only when no
+#    reading this month carries one. Both sources are driven, so neither
+#    check reads the live repo's balance.
+#    ⚠️ In the API cases the stored sum says the OPPOSITE, so only a room
+#    read off the balance gives the right answer.
+_real, _real_b = C.month_spend, C.month_billed
+_Z, _B = (lambda: {"x": 0}), (lambda: {"x": C.MONTHLY_PLAN * 2})
 try:
-    C.month_spend = lambda: {"x": 0}
-    ck("a month that has spent nothing is still capped at the ceiling",
-       C.daily_allowance() == C.HARD_DAY_CEIL, str(C.daily_allowance()))
-    C.month_spend = lambda: {"x": C.MONTHLY_PLAN * 2}
-    ck("a month that has blown the plan still gets the flat cap",
-       C.daily_allowance() == C.FLAT_DAILY_CAP, str(C.daily_allowance()))
+    for _src, _zero, _blown in (
+            ("the API's balance", ((lambda t=None: 0), _B),
+             ((lambda t=None: C.MONTHLY_PLAN * 2), _Z)),
+            ("the stored sum", ((lambda t=None: None), _Z),
+             ((lambda t=None: None), _B))):
+        C.month_billed, C.month_spend = _zero
+        ck("a month that has spent nothing is still capped at the ceiling (%s)" % _src,
+           C.daily_allowance() == C.HARD_DAY_CEIL, str(C.daily_allowance()))
+        C.month_billed, C.month_spend = _blown
+        ck("a month that has blown the plan still gets the flat cap (%s)" % _src,
+           C.daily_allowance() == C.FLAT_DAILY_CAP, str(C.daily_allowance()))
 finally:
-    C.month_spend = _real
+    C.month_spend, C.month_billed = _real, _real_b
 
 print("\n═══ 4. THE ENFORCEMENT SITE ACTUALLY USES IT ═══")
 src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()

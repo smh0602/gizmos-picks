@@ -59,9 +59,9 @@ the trap #51 fixed.
 #   with:     if getattr(rep, "note_credits", None) and rep.items:
 #
 # @vacuity ⛔ a snapshot with no balance is not read as a balance of None
-#   file: watchdog.py
-#   find:         if isinstance(credits, int):
-#   with:         if True:
+#   file: credits.py
+#   find:     have = [r for r in rows if isinstance(r[1], int) and r[0]]
+#   with:     have = [r for r in rows if r[0]]
 #
 # @vacuity ⚠️ rule 67: 6a's healthy tree really is JUDGED by the reconciliation
 #   file: watchdog.py

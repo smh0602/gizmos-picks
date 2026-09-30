@@ -55,6 +55,7 @@ by the collector's own modes, under the collector's own verification.
 watchdog must never stop data landing, so the runner calls it after the
 work, and a crash here is reported rather than fatal.
 """
+import ast
 import datetime
 import glob
 import gzip
@@ -67,6 +68,7 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import freshness as F  # noqa: E402
+import credits as C  # noqa: E402
 
 UTC = datetime.timezone.utc
 
@@ -149,11 +151,32 @@ DATA = {"mlb": "data", "ncaaf": "data/ncaaf", "nfl": "data/nfl"}
 # data root.
 SRCDIR = ROOT
 
+def _paid_kinds():
+    """`collect.PAID_KINDS`, READ from collect.py's source -- never imported,
+    never copied. `[2026-09-29]` ~~Matched on the STORAGE SHAPE
+    (`gamelines|props-*`) so a new paid mode is covered the day it writes~~
+    -- it was not: alt-lines (#168) is paid and matched nothing, so its
+    spend was invisible to the reconciliation. The registry every paid mode
+    writes through is the one list. ⚠️ Read from THIS checkout's collect.py
+    (the code's list), never the data tree's. None when unreadable.
+    """
+    try:
+        src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "collect.py"), encoding="utf-8").read()
+        for n in ast.parse(src).body:
+            if (isinstance(n, ast.Assign) and len(n.targets) == 1
+                    and getattr(n.targets[0], "id", "") == "PAID_KINDS"):
+                kinds = tuple(ast.literal_eval(n.value))
+                return kinds or None
+    except (OSError, SyntaxError, ValueError):
+        pass
+    return None
+
+
 # The dated, timed, PAID snapshot paths — the only files that carry a
-# balance. ⛔ Matched on the STORAGE SHAPE rather than a mode list, so a
-# new paid mode is covered the day it first writes one.
-PAID_SNAPSHOT = re.compile(
-    r"(\d{4}-\d{2}-\d{2})/(gamelines|props-[a-z-]+)/(\d{4})\.json\.gz$")
+# balance. One pattern, `credits.snapshot_re`, over the one registry.
+PAID_KINDS = _paid_kinds() or ()
+PAID_SNAPSHOT = C.snapshot_re(PAID_KINDS or ("(?!)",))
 
 
 def _reserve():
@@ -176,31 +199,16 @@ def _reserve():
 
 
 def _paid_readings(root=None):
-    """Every stored balance reading, newest first.
+    """Every stored balance reading, newest PATH first (`credits.readings`).
 
     -> [(pulled_at, credits_remaining, path)]  ⛔ read-only, zero spend.
+    ⛔ ORDERED BY THE PATH'S OWN DATE AND TIME, NEVER BY MTIME: a fresh
+    checkout rewrites every mtime. Which reading holds the NEWEST BALANCE
+    is a different question, answered by the chain (`credits.newest`).
     """
-    root = root or ROOT
-    rows = []
-    for f in glob.glob(os.path.join(root, "data", "**", "*.json.gz"),
-                       recursive=True):
-        m = PAID_SNAPSHOT.search(f.replace(os.sep, "/"))
-        if not m:
-            continue
-        rows.append((m.group(1) + "T" + m.group(3), f))
-    # ⛔ ORDERED BY THE PATH'S OWN DATE AND TIME, NEVER BY MTIME. A fresh
-    #    checkout rewrites every mtime, so on the runner mtime says when
-    #    CI cloned the repo and nothing about when a pull happened.
-    rows.sort(reverse=True)
-    out = []
-    for _key, f in rows:
-        # ⛔ `_read` ALREADY HANDLES `.gz` — one reader, not a second
-        #    copy of the same three lines (rule 117).
-        j = _read(f)
-        if not j:
-            continue
-        out.append((j.get("pulled_at"), j.get("credits_remaining"), f))
-    return out
+    return C.readings(os.path.join(root or ROOT, "data"), PAID_KINDS)
+
+
 PICKS = {"mlb": "picks", "ncaaf": "picks", "nfl": "picks"}
 
 
@@ -772,6 +780,12 @@ def check_credit_balance(rep, now):
                  "no `RESERVE = <n>` line was found in collect.py")
         return
 
+    if not PAID_KINDS:
+        rep.bad("credits:registry",
+                "the list of paid snapshot kinds could not be read, so no "
+                "balance can be judged",
+                "no `PAID_KINDS = (...)` tuple was found in collect.py")
+        return
     readings = _paid_readings()
     if not readings:
         # ⚠️ NO PAID SNAPSHOT AT ALL is a legitimate state in a fresh
@@ -789,11 +803,14 @@ def check_credit_balance(rep, now):
     #    the newest file. A snapshot written down an error path can lack
     #    the field, and taking `readings[0][1]` blindly would report
     #    `None` as a balance.
+    #    `credits.newest` keeps only integer balances (the one filter).
     bal, at, src = None, None, None
-    for pulled, credits, f in readings:
-        if isinstance(credits, int):
-            bal, at, src = credits, pulled, f
-            break
+    # 🔴 `[2026-09-29]` THE NEWEST BALANCE BY THE CHAIN, NOT THE FILE NAME.
+    #    Two paid pulls in one minute tie on the path: props-pitcher/1113
+    #    (3,848) sorted above props-batter/1113 (3,808), the newer reading.
+    _nb = C.newest(readings)
+    if _nb:
+        at, bal, src = _nb
     if bal is None:
         rep.warn("credits:unreadable",
                  "no stored pull carries a credit balance, so how close "
