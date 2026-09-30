@@ -1,7 +1,7 @@
 {
  "date": "2026-09-28",
  "league": "nfl",
- "generated_at": "2026-09-29T20:55:00Z",
+ "generated_at": "2026-09-30T14:23:10Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-09-28T21:40:51Z",
@@ -13,39 +13,26 @@
  "min_games": 6,
  "n_gated_by_measurement": 0,
  "rate_gates": null,
- "game_lines": [
-  {
-   "kind": "MARKET",
-   "game": "Pittsburgh Steelers @ Cleveland Browns",
-   "game_id": "d55cb69fed50a09170560b5b75d8de86",
-   "commence": "2026-10-02T00:15:00Z",
-   "market": "spreads",
-   "side": "Cleveland Browns",
-   "point": 2.5,
-   "best_price": 100,
-   "best_book": "draftkings",
-   "link": null,
-   "median_price": 1.9524,
-   "n_books": 4,
-   "gain_pct": 2.44
-  }
- ],
+ "game_lines": [],
  "game_lines_meta": {
   "games_seen": 1,
   "comparable_quotes": 2,
-  "games_with_an_edge": 1,
+  "games_with_an_edge": 0,
   "min_books": 3,
   "slate": "2026-10-01",
-  "off_day_games": 15,
+  "off_day_games": 30,
   "off_day_dates": [
    "2026-10-04",
-   "2026-10-05"
+   "2026-10-05",
+   "2026-10-08",
+   "2026-10-11",
+   "2026-10-12"
   ],
   "card_slate": "2026-09-28",
   "is_next_slate": true,
-  "snapshot": "data/nfl/2026-09-29/gamelines/1847.json.gz"
+  "snapshot": "data/nfl/2026-09-30/gamelines/1423.json.gz"
  },
- "game_lines_rule": "\ud83d\udcc5 2026-10-01 \u2014 the next day with games. This list follows the next slate rather than the card's, so it is never empty between slates. The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 2 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "No game lines for this slate yet. 1 game(s) are on the board and 2 quote(s) had 3+ books at the same signed number \u2014 not enough agreement to compare prices, which is a fact about the board and not a view about the games.",
  "top_plays": [
   {
    "kind": "fb",
@@ -291,7 +278,7 @@
  },
  "sgp_meta": {
   "games_with_rated_legs": 1,
-  "games_with_a_line_row": 1,
+  "games_with_a_line_row": 0,
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
@@ -303,7 +290,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
