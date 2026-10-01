@@ -166,6 +166,28 @@ mine, byday, bykind = {"w": 0, "n": 0}, {}, {"pitcher": {"w": 0, "n": 0},
 voids = {}
 # graded rows that carry a printed number, per kind (the printed-number table)
 byconf = {"pitcher": {"w": 0, "n": 0}, "hitter": {"w": 0, "n": 0}}
+
+# ⚠️ A NAMED, DATED EXCEPTION -- THREE PICKS, NOT A TOLERANCE. 9/25 BAL @ NYY
+#    was a doubleheader, and neither grader can tell its games apart (the
+#    results file lists both without start times): collect's grader read
+#    game 2's box score for both games' picks, this file reads game 1's.
+#    The published record STAYS (9/25 = 29/45) by Sam's decision. ✅ For
+#    exactly these picks this file counts the PUBLISHED grade, and only
+#    while its own re-grade still says what is written here. A fourth
+#    disagreement on 9/25, a change to any of these three, or a
+#    disagreement on any other day still fails. ⛔ Open for next season:
+#    the graders cannot tell doubleheader games apart.
+DH_EXCEPTION = {
+    "date": "2026-09-25",
+    "why": "2026-09-25 doubleheader, published 29/45, left by Sam's decision 2026-10-01",
+    # (game_id, pid, market, side, line): (published win, this file's re-grade)
+    "picks": {
+        ("3fe14d478bc1ffac17198c460085ca70", 669236, "batter_total_bases", "under", 1.5): (1, 0),
+        ("d4b069a134ec3ae75f0a644498b793c6", 671218, "batter_rbis", "under", 0.5): (0, 1),
+        ("3fe14d478bc1ffac17198c460085ca70", 671218, "batter_rbis", "under", 0.5): (0, 1),
+    },
+}
+dh_seen = {}
 # 🔴 THIS FILE NO LONGER READS `record.json`'s OWN `skipped` LIST, AND
 # THAT IS THE POINT OF THIS FILE. `[measured 2026-09-04]` the builder wrote
 # 2026-09-03 into `skipped` twice -- because two COLLEGE FOOTBALL cards in
@@ -201,6 +223,12 @@ for f in sorted(glob.glob("picks/*.json")):
             voids[date] = voids.get(date, 0) + 1
             continue
         win = int((a > line) if side == "over" else (a < line))
+        _x = (DH_EXCEPTION["picks"].get((row.get("game_id"), row.get("pid"), mk, side, line))
+              if date == DH_EXCEPTION["date"] else None)
+        if _x is not None:
+            dh_seen[(row.get("game_id"), row.get("pid"), mk, side, line)] = win
+            if win == _x[1]:
+                win = _x[0]               # counted as PUBLISHED, see above
         kind = "hitter" if row.get("kind") == "hitter" else "pitcher"
         for c in (mine, day, bykind[kind]):
             c["n"] += 1
@@ -210,6 +238,15 @@ for f in sorted(glob.glob("picks/*.json")):
             byconf[kind]["w"] += win
 
 print(f"\nRE-GRADED INDEPENDENTLY from {len(byday)} card(s) and the stored box scores")
+if DH_EXCEPTION["date"] in byday:
+    print(f"  NOTE  EXCEPTION {DH_EXCEPTION['why']}: {len(dh_seen)} pick(s) "
+          f"counted as published")
+    ck("the named exception covers exactly its three picks, each still "
+       "re-grading as written",
+       set(dh_seen) == set(DH_EXCEPTION["picks"])
+       and all(dh_seen[k] == DH_EXCEPTION["picks"][k][1] for k in dh_seen),
+       f"seen {dh_seen}; if the data or a grader changed, update or remove "
+       f"DH_EXCEPTION -- never widen it")
 ck(f"overall reproduces ({mine['w']}/{mine['n']})",
    (mine["w"], mine["n"]) == (REC["overall"]["w"], REC["overall"]["n"]),
    f"record.json says {REC['overall']['w']}/{REC['overall']['n']}")
