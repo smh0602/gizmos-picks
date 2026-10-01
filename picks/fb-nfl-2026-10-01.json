@@ -1,7 +1,7 @@
 {
  "date": "2026-10-01",
  "league": "nfl",
- "generated_at": "2026-10-01T17:56:02Z",
+ "generated_at": "2026-10-01T18:11:54Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-01T17:56:02Z",
@@ -13,27 +13,11 @@
  "min_games": 6,
  "n_gated_by_measurement": 0,
  "rate_gates": null,
- "game_lines": [
-  {
-   "kind": "MARKET",
-   "game": "Pittsburgh Steelers @ Cleveland Browns",
-   "game_id": "d55cb69fed50a09170560b5b75d8de86",
-   "commence": "2026-10-02T00:15:00Z",
-   "market": "totals",
-   "side": "Over",
-   "point": 38.5,
-   "best_price": -105,
-   "best_book": "draftkings",
-   "link": null,
-   "median_price": 1.9307,
-   "n_books": 4,
-   "gain_pct": 1.12
-  }
- ],
+ "game_lines": [],
  "game_lines_meta": {
   "games_seen": 1,
-  "comparable_quotes": 4,
-  "games_with_an_edge": 1,
+  "comparable_quotes": 2,
+  "games_with_an_edge": 0,
   "min_books": 3,
   "slate": "2026-10-01",
   "off_day_games": 30,
@@ -46,9 +30,9 @@
   ],
   "card_slate": "2026-10-01",
   "is_next_slate": false,
-  "snapshot": "data/nfl/2026-10-01/gamelines/1412.json.gz"
+  "snapshot": "data/nfl/2026-10-01/gamelines/1811.json.gz"
  },
- "game_lines_rule": "The 1 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 4 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
+ "game_lines_rule": "No game lines for this slate yet. 1 game(s) are on the board and 2 quote(s) had 3+ books at the same signed number \u2014 not enough agreement to compare prices, which is a fact about the board and not a view about the games.",
  "top_plays": [
   {
    "kind": "fb",
@@ -160,39 +144,8 @@
   "2": [
    {
     "legs": [
-     "Jerry Jeudy o14.5 rec yds",
-     "Over 38.5 total"
-    ],
-    "game": "Pittsburgh Steelers @ Cleveland Browns",
-    "game_id": "d55cb69fed50a09170560b5b75d8de86",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.569,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 84,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     84
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
      "Jerry Jeudy o1.5 rec",
-     "Over 38.5 total"
+     "Quinshon Judkins o1.5 rec"
     ],
     "game": "Pittsburgh Steelers @ Cleveland Browns",
     "game_id": "d55cb69fed50a09170560b5b75d8de86",
@@ -200,48 +153,13 @@
     "book": "hardrockbet",
     "prices": [
      115,
-     -110
+     -170
     ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 4.105,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 82,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     82
-    ],
-    "band_floor": 1.8
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "Jerry Jeudy o1.5 rec",
-     "Quinshon Judkins o1.5 rec",
-     "Over 38.5 total"
-    ],
-    "game": "Pittsburgh Steelers @ Cleveland Browns",
-    "game_id": "d55cb69fed50a09170560b5b75d8de86",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     115,
-     -170,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.519,
+    "n_line_legs": 0,
+    "multiplier": 3.415,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -254,13 +172,12 @@
      82,
      77
     ],
-    "band_floor": 3.0
+    "band_floor": 1.8
    },
    {
     "legs": [
      "Jerry Jeudy o14.5 rec yds",
-     "Quinshon Judkins o1.5 rec",
-     "Over 38.5 total"
+     "Quinshon Judkins o1.5 rec"
     ],
     "game": "Pittsburgh Steelers @ Cleveland Browns",
     "game_id": "d55cb69fed50a09170560b5b75d8de86",
@@ -268,14 +185,13 @@
     "book": "hardrockbet",
     "prices": [
      -115,
-     -170,
-     -110
+     -170
     ],
-    "line_best_book": "draftkings",
-    "line_best_price": -105,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 5.669,
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 2.969,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -288,17 +204,89 @@
      84,
      77
     ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Jerry Jeudy o1.5 rec",
+     "Quinshon Judkins o1.5 rec",
+     "Darnell Washington o17.5 rec yds"
+    ],
+    "game": "Pittsburgh Steelers @ Cleveland Browns",
+    "game_id": "d55cb69fed50a09170560b5b75d8de86",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     115,
+     -170,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 6.384,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 74,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     82,
+     77,
+     74
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Jerry Jeudy o14.5 rec yds",
+     "Quinshon Judkins o1.5 rec",
+     "Darnell Washington o17.5 rec yds"
+    ],
+    "game": "Pittsburgh Steelers @ Cleveland Browns",
+    "game_id": "d55cb69fed50a09170560b5b75d8de86",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -170,
+     -115
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 3,
+    "n_line_legs": 0,
+    "multiplier": 5.551,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 74,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     84,
+     77,
+     74
+    ],
     "band_floor": 3.0
    }
   ]
  },
  "sgp_meta": {
   "games_with_rated_legs": 1,
-  "games_with_a_line_row": 1,
+  "games_with_a_line_row": 0,
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 30,
+   "same_player": 27,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
@@ -306,7 +294,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
