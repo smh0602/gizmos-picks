@@ -1128,21 +1128,21 @@ def props_regions(kind):
     `regions` AND `credits_used` -- never the diff, never the write-up.
 
     ⚠️ The five-book set (ledger rule 48) doubles the per-game price, so
-    it cannot be what every routine pull uses. It runs ONCE, in the
-    morning window, before the day's first real card -- which is where
-    cross-book comparison is worth most, because early lines are softer
-    and the books disagree more. Sam, 2026-08-23: the five books stand;
-    this is about WHEN they are pulled, not WHETHER.
+    it cannot be what every routine pull uses. It runs ONCE a day per
+    kind: the day's FIRST pull, before the day's first real card when the
+    schedule holds -- which is where cross-book comparison is worth most,
+    because early lines are softer and the books disagree more. Sam,
+    2026-08-23: the five books stand; this is about WHEN they are pulled,
+    not WHETHER.
     """
-    # 🔴 THE 7:00am ET PULL IS THE FULL ONE (11:00Z), because it is the
-    # pull the 10:00am card is priced from -- cross-book comparison is
-    # worth most before the day's card, and early lines disagree more.
-    # The 4:00pm pull is Hard Rock only. ⚠️ Window is generous so a run
-    # that lands late still gets the full pull rather than silently
-    # downgrading the card's prices to one book.
-    hh = int(now().strftime("%H"))
-    if not (10 <= hh < 14):            # 6am-10am ET
-        return REGIONS_CHEAP
+    # 🔴 THE DAY'S FIRST PULL OF THIS KIND IS THE FULL ONE, WHATEVER THE
+    #    HOUR. `[Sam, 2026-10-01]` ~~Full only between 10:00Z and 14:00Z~~:
+    #    on 10/01 the first nfl props-player run landed at 14:12Z (college
+    #    at 14:10Z, nfl on 09-28 at 16:00Z), so every pull that day was
+    #    Hard Rock only and Thursday night's game had no FanDuel or
+    #    DraftKings props. MLB's first pull lands 11:01-12:08Z, so nothing
+    #    moves there. Still at most ONE full pull per kind per day; every
+    #    later pull is Hard Rock only.
     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
     # ⛔ THIS KIND'S DIRECTORY ONLY. Reading the sibling's is what made
     # the pitcher pull answer a question the batter side had asked.
