@@ -2031,6 +2031,16 @@ def et_date(iso):
             - timedelta(hours=4)).strftime("%Y-%m-%d")
 
 
+def on_day(rows, day):
+    """(the rows whose game is on `day`'s ET date, the rows on any other).
+
+    🔴 A CARD HOLDS ONLY GAMES ON ITS OWN ET DATE (ledger rule 101). The
+    board rolls forward and holds the next days' games too; this is the
+    one filter that keeps them off the card."""
+    return ([x for x in rows if et_date(x["commence"]) == day],
+            [x for x in rows if et_date(x["commence"]) != day])
+
+
 def et_today():
     """The slate date in ET. A 10pm PT first pitch is still tonight's card."""
     return (datetime.now(timezone.utc) - timedelta(hours=4)).strftime("%Y-%m-%d")
@@ -2671,6 +2681,20 @@ def main(dry=False):
     # has a model number never displays the fallback.
     _board_px.update(projection_index(plays_all + hitters, priced=True))
     _board_px.update(projection_index(_late, priced=True))
+    # 🔴 THE SINGLE-DAY FILTER (ledger rule 101), BEFORE EVERY SURFACE.
+    #    `[2026-10-01]` 10/01 had ONE game (PHI @ ATL) and the rolling board
+    #    already held the next round: 17 of the 29 picks and 2 of the top 10
+    #    were 10/03 games. card_fb.py has filtered this since 09-04; this
+    #    card never did. ✅ The pairs, the top 10, the parlays and the board
+    #    are all built from what this leaves, so a thin day shows fewer rows
+    #    and says so (`coverage`) -- it never fills a seat from another day.
+    #    ⛔ The projections above are built FIRST, from every game, on
+    #    purpose: the Player Props tab renders the whole slate.
+    plays_all, _ = on_day(plays_all, today)
+    plays, _off_p = on_day(plays, today)
+    hitters, _off_h = on_day(hitters, today)
+    off_day = _off_p + _off_h
+    off_dates = sorted({et_date(x["commence"]) for x in off_day})
     pairs = build_pairs(plays_all)
     top10, top10_drops = build_top10(plays_all, hitters)
     parlays, parlay_meta = build_parlays(plays_all, hitters)
@@ -2781,7 +2805,17 @@ def main(dry=False):
         "coverage": (f"{len(board)} plays across {len({x['game_id'] for x in board})} games, "
                      f"ranked by blend. {len(pairs)} pairs clear the 1.8x floor. "
                      f"Generated unattended from the collector's own data -- no human "
-                     f"chose which plays appear."),
+                     f"chose which plays appear. This card is {today} only"
+                     + (f": {len(off_day)} priced row(s) for {', '.join(off_dates)} "
+                        f"wait for that day's own card, so a thin day shows fewer "
+                        f"rows rather than filling seats from another day."
+                        if off_day else ".")),
+        # 🔴 THE SINGLE-DAY CONTRACT, written on the card the way card_fb.py
+        #    writes it, so nothing downstream has to re-derive the rule.
+        "single_day": True,
+        "slate_date": today,
+        "n_off_slate_day": len(off_day),
+        "off_slate_dates": off_dates,
         "coverage_detail": {"pitchers_with_logs": len(players), "plays": len(board),
                      "below_price_floor": len(below), "pairs": len(pairs),
                      "skipped": skipped},
