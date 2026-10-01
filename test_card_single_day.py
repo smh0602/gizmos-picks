@@ -45,6 +45,11 @@ published and stays as it was; editing a published pick is Sam's call.
 #   file: card.py
 #   find:         "n_off_slate_day": len(off_day),
 #   with:         "n_off_slate_day": 0,
+#
+# @vacuity the card records the rows it priced, which the priced-flag check reads
+#   file: card.py
+#   find:     LAST_PRICED_ROWS[:] = plays_all + hitters + _late
+#   with:     LAST_PRICED_ROWS[:] = []
 """
 import datetime
 import gzip
@@ -80,7 +85,10 @@ with contextlib.redirect_stdout(io.StringIO()):
     collect.collect_props_board()
     doc = card.main(dry=True)
 board = json.load(gzip.open("data/latest/props.json.gz", "rt"))
-json.dump({"board": board, "card": doc}, open(sys.argv[1], "w"), sort_keys=True)
+priced = [{k: r.get(k) for k in ("pid", "market", "side", "line", "projection")}
+          for r in card.LAST_PRICED_ROWS]
+json.dump({"board": board, "card": doc, "priced": priced}, open(sys.argv[1], "w"),
+          sort_keys=True)
 """
 
 
@@ -202,3 +210,25 @@ ck("...and the coverage line the page prints says it, with the number",
    ("This card is %s only" % DAY) in cov
    and ("%s priced row(s) for %s" % (n_off, ", ".join(LATER))) in cov,
    shown(cov[-260:]))
+
+section("5. 🔴 AN ALL-PRICED BOARD PASSES verify_card's PRICED-FLAG CHECK")
+# `[2026-10-01]` this planted board is the 20:11Z shape: every game still
+# to start, every prop priced. verify_card.py's own lines (as in
+# test_priced_flag.py) run on the REAL card and the rows card.main() says
+# it priced -- so the builder's half of the contract is driven too.
+_VS = open(os.path.join(ROOT, "verify_card.py"), encoding="utf-8").read()
+_A, _B = "_MKT_FEED = {", 'ck("the price gate actually excluded something'
+_got = {}
+if _A in _VS and _B in _VS:
+    exec(compile(_VS[_VS.index(_A):_VS.index(_B)], "verify_card.py#priced-flag", "exec"),
+         {"doc": C, "_t10": C.get("top10") or [],
+          "allrows": (C.get("picks") or []) + (C.get("below_price_floor") or []),
+          "print": lambda *a, **k: None,
+          "ck": lambda name, ok, detail="": _got.__setitem__(name.split(" (")[0], bool(ok)),
+          "C": __import__("types").SimpleNamespace(LAST_PRICED_ROWS=res.get("priced") or [])})
+_px = C.get("projections") or {}
+note("planted card: %d of %d projection entries flagged priced"
+     % (sum(1 for v in _px.values() if v.get("p")), len(_px)))
+ck("🔴 the flag sits on exactly the rows the real card priced, on an all-priced board",
+   _got.get("the priced flag sits on exactly the rows the card priced") is True
+   and _px and all(v.get("p") for v in _px.values()), str(_got))
