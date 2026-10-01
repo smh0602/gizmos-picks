@@ -1,24 +1,43 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-01T12:48:32Z",
+ "checked_at": "2026-10-01T14:13:46Z",
  "et_date": "2026-10-01",
- "healthy": true,
- "broken": 0,
+ "healthy": false,
+ "broken": 2,
  "degraded": 0,
- "findings": [],
- "repairs": [],
+ "findings": [
+  {
+   "key": "day:mlb:picks",
+   "severity": "BROKEN",
+   "what": "the mlb picks say 2026-10-01 and carry rows on 2026-10-03",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list",
+   "repair": "card",
+   "repair_attempts": 2
+  },
+  {
+   "key": "day:mlb:top10",
+   "severity": "BROKEN",
+   "what": "the mlb top10 say 2026-10-01 and carry rows on 2026-10-03",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list",
+   "repair": "card",
+   "repair_attempts": 2
+  }
+ ],
+ "repairs": [
+  "card"
+ ],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19942,
-  "pulled_at": "2026-10-01T11:02:35Z",
+  "balance": 19912,
+  "pulled_at": "2026-10-01T14:12:48Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 1.8,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-01T11:02:34Z",
-  "source": "data/2026-10-01/props-batter/1102.json.gz",
-  "readings_on_disk": 523,
+  "newest_paid_pull": "2026-10-01T14:12:48Z",
+  "source": "data/nfl/2026-10-01/props-player/1412.json.gz",
+  "readings_on_disk": 529,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
