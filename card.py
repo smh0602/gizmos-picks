@@ -2483,6 +2483,14 @@ def main(dry=False):
                 continue
         except Exception:
             pass
+        # 🔴 ONE ET DAY PER CARD. `[2026-10-01]` The board held 10-03 and
+        # 10-04 games beside tonight's, and a card dated 10-01 carried 27
+        # of their rows (the watchdog's rule-101 check, and every
+        # projection flagged priced). Projections below still cover the
+        # whole board; only ROWS are limited to the slate's own day.
+        if et_date(g["commence"]) != today:
+            skipped["another day"] = skipped.get("another day", 0) + 1
+            continue
         # 🔴 STEP 5: the alt ladder is part of the board, not an extra.
         # Walking a rung is the main tool for landing a pair inside 1.8x-2.1x,
         # so every Hard Rock rung becomes a play in its own right, priced
