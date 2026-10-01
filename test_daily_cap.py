@@ -34,6 +34,16 @@ WHAT IS PINNED:
 #   file: collect.py
 #   find:     spent_month = billed if billed is not None else sum(month_spend().values())
 #   with:     spent_month = sum(month_spend().values())
+#
+# @vacuity 🔴 day 1 earns one day's share, not two
+#   file: collect.py
+#   find:     entitled = FLAT_DAILY_CAP * t.day
+#   with:     entitled = FLAT_DAILY_CAP * (t.day + 1)
+#
+# @vacuity day 2 has earned two days, so the ceiling can bind
+#   file: collect.py
+#   find:     entitled = FLAT_DAILY_CAP * t.day
+#   with:     entitled = FLAT_DAILY_CAP * (t.day - 1)
 """
 import collections
 import datetime
@@ -169,22 +179,42 @@ note(f"month to date {sum(C.month_spend().values())} of {C.MONTHLY_PLAN}; "
 #    check reads the live repo's balance.
 #    ⚠️ In the API cases the stored sum says the OPPOSITE, so only a room
 #    read off the balance gives the right answer.
-_real, _real_b = C.month_spend, C.month_billed
+# 🔴 `[2026-10-01]` AND THE DATE IS PINNED. These checks read the real
+#    calendar, and on the 1st the month has entitled ONE day (600), so
+#    "spent nothing -> the 1,200 ceiling" failed on correct code (collect
+#    #2058, 10/01 06:01Z). The question is asked on the 15th, where the
+#    ceiling can bind; the bar is unchanged. Day 1 and day 2 are asked on
+#    purpose below.
+_real, _real_b, _real_now = C.month_spend, C.month_billed, C.now
 _Z, _B = (lambda: {"x": 0}), (lambda: {"x": C.MONTHLY_PLAN * 2})
+_at = lambda s: (lambda: datetime.datetime.strptime(s, "%Y-%m-%dT%H:%MZ").replace(
+    tzinfo=datetime.timezone.utc))
 try:
     for _src, _zero, _blown in (
             ("the API's balance", ((lambda t=None: 0), _B),
              ((lambda t=None: C.MONTHLY_PLAN * 2), _Z)),
             ("the stored sum", ((lambda t=None: None), _Z),
              ((lambda t=None: None), _B))):
+        C.now = _at("2026-09-15T12:00Z")
         C.month_billed, C.month_spend = _zero
         ck("a month that has spent nothing is still capped at the ceiling (%s)" % _src,
            C.daily_allowance() == C.HARD_DAY_CEIL, str(C.daily_allowance()))
         C.month_billed, C.month_spend = _blown
         ck("a month that has blown the plan still gets the flat cap (%s)" % _src,
            C.daily_allowance() == C.FLAT_DAILY_CAP, str(C.daily_allowance()))
+        # 🔴 THE BOUNDARY, ON PURPOSE: the 1st has earned one day and has
+        #    nothing banked to borrow, so it gets exactly one day's share;
+        #    the 2nd is the first day the ceiling can bind.
+        C.month_billed, C.month_spend = _zero
+        C.now = _at("2026-10-01T06:01Z")
+        ck("🔴 day 1 of a month gives exactly one day's share, nothing borrowed (%s)" % _src,
+           C.daily_allowance() == C.FLAT_DAILY_CAP * 1, str(C.daily_allowance()))
+        C.now = _at("2026-10-02T06:01Z")
+        ck("day 2, with nothing spent, reaches the ceiling (%s)" % _src,
+           C.daily_allowance() == min(C.HARD_DAY_CEIL, C.FLAT_DAILY_CAP * 2),
+           str(C.daily_allowance()))
 finally:
-    C.month_spend, C.month_billed = _real, _real_b
+    C.month_spend, C.month_billed, C.now = _real, _real_b, _real_now
 
 print("\n═══ 4. THE ENFORCEMENT SITE ACTUALLY USES IT ═══")
 src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
