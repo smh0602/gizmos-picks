@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-01T14:59:41Z",
+ "checked_at": "2026-10-01T15:15:00Z",
  "et_date": "2026-10-01",
  "healthy": false,
  "broken": 2,
@@ -10,7 +10,7 @@
    "key": "day:mlb:picks",
    "severity": "BROKEN",
    "what": "the mlb picks say 2026-10-01 and carry rows on 2026-10-03",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card"
@@ -19,7 +19,7 @@
    "key": "day:mlb:top10",
    "severity": "BROKEN",
    "what": "the mlb top10 say 2026-10-01 and carry rows on 2026-10-03",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card` was withdrawn after 3 failed attempt(s) and stays withdrawn while this finding persists.",
    "repair": null,
    "repair_attempts": 3,
    "repair_withdrawn": "card"
@@ -31,15 +31,15 @@
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19912,
-  "pulled_at": "2026-10-01T14:12:48Z",
+  "balance": 19904,
+  "pulled_at": "2026-10-01T15:14:42Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.8,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-01T14:12:48Z",
-  "source": "data/nfl/2026-10-01/props-player/1412.json.gz",
-  "readings_on_disk": 529,
+  "newest_paid_pull": "2026-10-01T15:14:39Z",
+  "source": "data/nfl/2026-10-01/alt-lines/1514.json.gz",
+  "readings_on_disk": 531,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
