@@ -1,32 +1,24 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-01T06:57:43Z",
+ "checked_at": "2026-10-01T12:48:32Z",
  "et_date": "2026-10-01",
- "healthy": false,
+ "healthy": true,
  "broken": 0,
- "degraded": 1,
- "findings": [
-  {
-   "key": "credits:stale",
-   "severity": "DEGRADED",
-   "what": "the credit balance we hold is not current, so how close the collector is to standing down is unknown",
-   "why": "we hold no reading newer than 2026-09-30T23:29:11Z, and a paid pull ran at 2026-09-30T23:33:24Z \u2014 0 hour(s) later. The last number we have is 3397 against a floor of 750, and spending since then is not reflected in it.",
-   "repair": null
-  }
- ],
+ "degraded": 0,
+ "findings": [],
  "repairs": [],
  "unrepairable": [],
  "credits": {
-  "state": "STALE",
-  "balance": 3397,
-  "pulled_at": "2026-09-30T23:29:11Z",
+  "state": "HEALTHY",
+  "balance": 19942,
+  "pulled_at": "2026-10-01T11:02:35Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 7.5,
-  "behind_newest_pull_hours": 0.1,
-  "newest_paid_pull": "2026-09-30T23:33:24Z",
-  "source": "data/ncaaf/2026-09-30/gamelines/2329.json.gz",
-  "readings_on_disk": 520,
+  "reading_age_hours": 1.8,
+  "behind_newest_pull_hours": 0.0,
+  "newest_paid_pull": "2026-10-01T11:02:34Z",
+  "source": "data/2026-10-01/props-batter/1102.json.gz",
+  "readings_on_disk": 523,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
