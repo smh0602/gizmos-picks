@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-01T14:13:46Z",
+ "checked_at": "2026-10-01T14:59:41Z",
  "et_date": "2026-10-01",
  "healthy": false,
  "broken": 2,
@@ -10,30 +10,32 @@
    "key": "day:mlb:picks",
    "severity": "BROKEN",
    "what": "the mlb picks say 2026-10-01 and carry rows on 2026-10-03",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list",
-   "repair": "card",
-   "repair_attempts": 2
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card"
   },
   {
    "key": "day:mlb:top10",
    "severity": "BROKEN",
    "what": "the mlb top10 say 2026-10-01 and carry rows on 2026-10-03",
-   "why": "the single-day filter (ledger rule 101) is not reaching this list",
-   "repair": "card",
-   "repair_attempts": 2
+   "why": "the single-day filter (ledger rule 101) is not reaching this list \u26d4 `card` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card"
   }
  ],
- "repairs": [
-  "card"
+ "repairs": [],
+ "unrepairable": [
+  "day"
  ],
- "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
   "balance": 19912,
   "pulled_at": "2026-10-01T14:12:48Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-01T14:12:48Z",
   "source": "data/nfl/2026-10-01/props-player/1412.json.gz",
