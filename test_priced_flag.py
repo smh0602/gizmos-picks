@@ -38,6 +38,16 @@ check says so -- it can never pass on nothing.
 #   file: verify_card.py
 #   find:    bool(_pexp) and not _stray and not _missed,
 #   with:    not _stray and not _missed,
+#
+# @vacuity a correct card with DESCRIPTIVE entries passes too (no "flag everything" rule)
+#   file: verify_card.py
+#   find:    bool(_pexp) and not _stray and not _missed,
+#   with:    bool(_pexp) and not _stray and not _missed and len(_pkeys) == len(_pxall),
+#
+# @vacuity the rule is found in verify_card.py by its own name
+#   file: verify_card.py
+#   find: ck(f"the priced flag sits on exactly the rows the card priced "
+#   with: ck(f"the priced flag is on the rows the card priced "
 """
 import copy
 import os
