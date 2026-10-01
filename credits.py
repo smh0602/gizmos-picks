@@ -62,3 +62,22 @@ def newest(rows):
     if not have:
         return None
     return max(have, key=lambda r: (str(r[0])[:16], -r[1]))
+
+
+def spent_nothing(path):
+    """True when a paid snapshot records that the run bought NOTHING:
+    `credits_used` is an explicit 0 and no balance header was read.
+    `[2026-09-30]` alt-lines writes such a file when every game is held or
+    out of window (data/ncaaf/2026-09-29/alt-lines/2344), and the watchdog
+    called the balance STALE against it: no credit was spent, so there is
+    nothing the held balance fails to reflect. ⚠️ Anything unreadable, or a
+    file that does not say 0, is treated as a real pull (stale stays loud)."""
+    try:
+        j = json.load(gzip.open(path, "rt"))
+    except Exception:
+        return False
+    if not isinstance(j, dict):
+        return False
+    used = j.get("credits_used")
+    return (used == 0 and not isinstance(used, bool)
+            and not isinstance(j.get("credits_remaining"), int))

@@ -798,7 +798,10 @@ def check_credit_balance(rep, now):
                                     "is no balance reading to report.")}
         return
 
-    newest_pull = readings[0][0]
+    # ⛔ A pull that bought nothing (`credits_used` 0, no balance) is not
+    #    spending the held balance fails to reflect (`[2026-09-30]`, #203).
+    newest_pull = next((r[0] for r in readings
+                        if not C.spent_nothing(r[2])), readings[0][0])
     # ⛔ THE NEWEST READING THAT ACTUALLY CARRIES A NUMBER — not simply
     #    the newest file. A snapshot written down an error path can lack
     #    the field, and taking `readings[0][1]` blindly would report

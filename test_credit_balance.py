@@ -364,6 +364,23 @@ with Tree(reserve=750) as t:
     ck("...and the newest of the two readings is the one reported",
        (cr or {}).get("balance") == 11990, "credits=%s" % (cr,))
 
+# 🔴 `[2026-09-30]` #203: A PULL THAT BOUGHT NOTHING IS NOT SPENDING. An
+#    alt-lines run that held every game wrote credits_used 0 and no balance;
+#    the watchdog called the last real reading stale against it.
+with Tree(reserve=750) as t:
+    t.pull(hours_ago(2), 3545)
+    t.pull(hours_ago(1), None, kind="alt-lines", field=False, used=0)
+    items, cr = run(t)
+    ck("⛔ a newer pull that spent 0 credits does not make the balance STALE",
+       (cr or {}).get("state") == "HEALTHY" and not items,
+       "credits=%s items=%s" % (cr, items))
+with Tree(reserve=750) as t:
+    t.pull(hours_ago(2), 3545)
+    t.pull(hours_ago(1), None, kind="alt-lines", field=False, used=8)
+    items, cr = run(t)
+    ck("🔴 ...but a newer pull that DID spend still does",
+       (cr or {}).get("state") == "STALE", "credits=%s" % (cr,))
+
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. ⛔ RESERVE IS READ FROM collect.py, NEVER COPIED")
