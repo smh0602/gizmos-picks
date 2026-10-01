@@ -174,10 +174,12 @@ t10 = C.get("top10") or []
 ck("🔴 every top-10 row is the one game on the card's day, and there is a top 10",
    C.get("date") == DAY and t10 and on_card_day(t10),
    "%d rows on %s" % (len(t10), sorted({W._etd(r.get("commence")) for r in t10})))
-ck("...and a one-game day builds no pair: a pair needs two games, and the "
-   "other games are on other days",
-   C.get("date") == DAY and not (C.get("pairs") or []),
-   "%d pair(s)" % len(C.get("pairs") or []))
+# ⚠️ NO PAIR OR PARLAY CHECK HERE, ON PURPOSE: this planted board builds none
+#    with or without the filter (no planted leg beats its price), so a check
+#    on them could not fail. They are built from the same filtered pool as
+#    the top 10, and the second mutation above proves that pool is filtered.
+note("pairs %d, parlays %s (none either way on this board)"
+     % (len(C.get("pairs") or []), {k: len(v) for k, v in (C.get("parlays") or {}).items()}))
 
 section("3. 🔴 EVERY DATED LIST, DISCOVERED -- NOT JUST THE TWO THAT BROKE")
 lists = W._dated_lists(C)
