@@ -212,7 +212,13 @@ failed recurring runs, i would like to avoid that"*. So:
    `[2026-09-25]` It runs it as five parallel jobs per image: `rest`, and
    the vacuity sweep in four parts (`SUITE_SHARD`, `VACUITY_PART`).
    `test_pr_shards.py` fails if a file or a declared mutation falls
-   between them. `collect.yml` leaves both unset and runs everything.
+   between them. ~~`collect.yml` leaves both unset and runs everything.~~
+   `[Sam, 2026-10-02]` `collect.yml` runs the `rest` share
+   (`SUITE_SHARD: rest` on its Tests step): the sweep checks the TESTS, not
+   the data, and took 33 minutes before every pull. It still runs in full
+   on every PR (four parts) and every night (`vacuity.yml`).
+   `test_pr_shards.py` fails if collect runs it again or the nightly stops
+   sweeping everything.
    `[2026-09-25]` One more job, `staged`, applies every workflow staged in
    `docs/upload/` to its own checkout and runs the `rest` shard again:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's
