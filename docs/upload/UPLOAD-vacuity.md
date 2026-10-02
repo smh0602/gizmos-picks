@@ -1,6 +1,40 @@
 # UPLOAD BY HAND: `vacuity.yml`
 
-## Current: the Ubuntu 26 / Node 24 update `[2026-09-24]`
+## Current: give the nightly sweep two hours `[2026-10-02]`
+
+**This file is uploaded together with `collect.yml`.** Follow
+**`docs/upload/UPLOAD-collect.md`** (the "Current" section): it has every
+click and the one commit message for both files. Do it after merging the
+pull request "collect/pr-tests: give the vacuity sweep 5400s".
+
+**Why:** the nightly "does every guard bite?" job runs the whole sweep
+(tier 1 and tier 2). Its limit was 60 minutes. Tier 2 alone now needs
+more than the old 40-minute test clock (collect #2093 timed out after
+#218 added about 140 guard checks), so the nightly would soon be cancelled
+and report nothing. The limit becomes **120 minutes**.
+`test_vacuity_pool.py` requires it to be at least the 5,400 seconds a
+pull request gives the same sweep.
+
+**No schedule, cron line, step or cost changes.** Only the job's time
+limit and its comment differ from the live file.
+
+If you upload only this one file: download
+https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/vacuity.yml
+with **Download raw file**, then in
+https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
+(breadcrumb **gizmos-picks / .github / workflows**) click **Add file** →
+**Upload files** → **choose your files**, pick `vacuity.yml`, and commit with:
+
+```
+vacuity.yml: give the nightly sweep 120 minutes (no cron change)
+```
+
+---
+
+## ~~Current:~~ Done: the Ubuntu 26 / Node 24 update `[2026-09-24]`
+
+✅ Uploaded: on 2026-10-02 the deployed `vacuity.yml` matched that staged
+copy byte for byte.
 
 **This file is one of 11 uploaded together.** Follow
 **`docs/upload/UPLOAD-runner-image.md`**: it has every click and the
@@ -106,3 +140,4 @@ same sweep.
 
 - **2026-09-23:** first version.
 - **2026-09-24:** the earlier upload was done; this file now describes the Ubuntu 26 / Node 24 update. The old steps are kept above, under "Earlier upload", as history — not deleted.
+- **2026-10-02:** the Ubuntu 26 / Node 24 upload was done. New current section: the nightly's limit goes from 60 to 120 minutes, uploaded with `collect.yml`. My mistake: PR #221 first raised the pull-request sweep clock to 5,400 s without raising this limit, and pr-tests failed on `test_vacuity_pool.py`, which I had not run.

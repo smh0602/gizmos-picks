@@ -12,7 +12,7 @@ Claude Code: "it did end up causing alot of failed recurring runs".
 #
 # @vacuity 🔴🔴 the PR loop is the collector's loop, not a weaker copy
 #   file: .github/workflows/pr-tests.yml
-#   find:               test_vacuity.py) echo 2400 ;;
+#   find:               test_vacuity.py) echo 5400 ;;
 #   with:               test_vacuity.py) echo 1 ;;
 #
 # @vacuity 🔴🔴 the loop is compared with collect.yml AS IT WILL BE LIVE
