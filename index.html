@@ -488,7 +488,7 @@ table.fbt tr:hover td{ background:#f7f9fb; }
 <header>
   <div class="wrap mast">
     <div class="logo">Gizmo's<span>Picks</span></div>
-    <div class="tagline" id="tagline">MLB model &amp; live board</div>
+    <div class="tagline" id="tagline">MLB &mdash; live board</div>
   </div>
   <nav class="lgnav"><div class="wrap"><ul>
     <li><a data-lg="mlb" class="on">MLB</a></li>
@@ -2182,7 +2182,7 @@ function splitStarted(all){
 function startedToggle(n, id, allDone){
   if (!n || allDone) return '';
   return `<div style="margin:10px 0"><a id="${id}" style="color:var(--accent);font-weight:700;cursor:pointer">${
-    showStarted ? 'Hide them' : 'Show anyway'}</a></div>`;
+    showStarted ? 'Hide' : 'Show'} ${n} started game${n === 1 ? '' : 's'}</a></div>`;
 }
 const PMARKETS = [
   ['batter_hits','Hits'],['batter_total_bases','Total bases'],
@@ -4128,7 +4128,7 @@ function fbGlRecordHtml(R){
 function fbGameLinesHtml(G, R, games, st){
   /* 🔴 `[Sam, 2026-09-25]` THE BOOKS' CHANCE LEADS; the model's % sits beside it.
      [Sam, 2026-10-01] no explanation boxes or tags on the page. */
-  return `<div style="margin-bottom:10px"><h2 style="margin:0 0 4px;font-size:16px">Game Lines</h2></div>
+  return `<div style="margin-bottom:10px"><h2 style="margin:0 0 4px;font-size:16px">Game Lines${G && G.slate_date ? ' &mdash; ' + fbDayName(G.slate_date) : ''}</h2></div>
     ${games.map(g => fbGlGame(g, G, st)).join('') || '<div class="msg">No games on this slate match the filters.</div>'}
     ${fbGlParlays(G)}${fbGlRecordHtml(R)}`;
 }
@@ -4247,7 +4247,7 @@ function fbDayName(d){
 /* A heading for the tabs that have nothing to draw under it. */
 function fbDayHead(C, title){
   return `<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">${title}</h2>
+      <h2 style="margin:0 0 4px;font-size:16px">${title}${C && C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
     </div>`;
 }
 
@@ -4545,7 +4545,7 @@ async function fbPicks(){
   const AG = await fbAgLoad();
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks</h2>
+      <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks${C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
       <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>
     </div>
     ${fbConfBar()}
@@ -4645,7 +4645,7 @@ async function fbParlays(){
                   '3': 'Three-leg &mdash; pays 3x or more',
                   '4': 'Four-leg &mdash; pays 3x or more'};
   const head = `<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Parlays</h2>
+      <h2 style="margin:0 0 4px;font-size:16px">Parlays${C && C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
     </div>`;
   /* ⛔ THE TWO KINDS ARE COUNTED SEPARATELY, and that is not tidiness.
      `[caught 2026-09-11 by rendering the page]` the first form added the
