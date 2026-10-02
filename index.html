@@ -651,129 +651,15 @@ function betControl(url, label){
   return '';
 }
 
+// [Sam, 2026-10-01] no staleness bar on the page; FRESH stays for the refresh loop (FRESH.built_at).
+let FRESH = null;
+
 /* How old is a price?
    A stale quote is not a wrong quote — but shown without its age it
    becomes one. Every price on this site is exactly what the feed returned
    at a moment in time, and lines move constantly, so the moment is part
-   of the number. Green under ten minutes, amber under thirty-five, red
-   and loud after that. */
-/* ══════════════════════════════════════════════════════════════════
-   THE STALENESS BANNER
-   ══════════════════════════════════════════════════════════════════
-   🔴 ON 2026-08-28 THIS PAGE SERVED 15-HOUR-OLD PROPS, A CARD PRICED
-   OFF THE PREVIOUS NIGHT'S ODDS AND A TRACK RECORD MISSING THREE
-   SLATES -- AND LOOKED EXACTLY AS IT DOES WHEN EVERYTHING IS CURRENT.
-   Sam had to notice and ask. ⛔ A stale page that looks fresh is worse
-   than an outage, because a reader acts on it.
-
-   The contract lives in freshness.py and is PUBLISHED to
-   data/latest/freshness.json by the converge pass. This function only
-   renders it. ⛔ Do not hard-code a max age here -- two copies of one
-   number is the drift this project has been bitten by repeatedly. */
-let FRESH = null;
-
-/* ⛔ ~~function ageText(m){ ... }~~ DELETED 2026-09-14. **A RENDERER
-   NOBODY CALLED** — ledger rule 130. Measured: `ageText` appeared in
-   `index.html` exactly ONCE, at its own definition.
-
-   ⚠️ AND THE CHECK NAMED AFTER RULE 130 WAS PASSING NEXT TO IT.
-   `test_scores_live.py` asserts `"${ageNote}" in H` with the comment
-   *"rule 130 — this repo has shipped a renderer nobody called"* — but
-   `ageNote` is a DIFFERENT, football-side variable. **The guard was
-   green on a live symbol while a dead one sat twenty lines away.**
-   ➡️ A check that names ONE symbol proves nothing about the other 126.
-
-   ✅ The football freshness line uses `fbAge`; MLB's staleness banner
-   reads the contract directly. Nothing lost. */
-
-function renderStaleBanner(){
-  const bar = document.getElementById('stalebar');
-  if (!bar) return;
-  if (!FRESH || !Array.isArray(FRESH.artifacts)){
-    bar.className = 'stalebar warn';
-    bar.innerHTML = "<b>Freshness unknown.</b> This page could not read " +
-      "its own update report, so it cannot promise anything below is " +
-      "current. Treat every number as possibly stale.";
-    return;
-  }
-  /* ⛔ `page: false` marks a row no tab reads (the run-status file): it
-     reaches Sam through the watchdog, never a reader through this bar. */
-  const bad = FRESH.artifacts.filter(a => a.stale && a.page !== false);
-  /* 🔴 A BLOCKED CARD MUST SHOW EVEN WHEN NOTHING READS AS STALE.
-     `[measured 2026-08-29]` `card_blocked` was set and the banner still
-     went hidden, because this early return only looked at `stale`. The
-     page served a five-hour-old card and said nothing. ⛔ Being refused
-     is its own condition and does not depend on any age. */
-  if (!bad.length && !FRESH.card_blocked && !FRESH.card_caveat){
-    bar.className = 'stalebar'; bar.innerHTML = ''; return;
-  }
-  /* 🔴 NAMED BY TAB, NOT BY MODE. A reader does not know what
-     "props-batter" is; they know which tab they are looking at. */
-  const TAB_OF = {
-    scores:'Track Record', results:'Track Record', record:'Track Record',
-    pitchers:'Trends', hitters:'Trends',
-    gamelines:'Odds', 'props-pitcher':'Player Props',
-    'props-batter':'Player Props', 'props-board':'Player Props',
-    card:"Gizmo's Picks", lineups:"Gizmo's Picks", weather:"Gizmo's Picks",
-    news:'News'
-  };
-  const tabs = {};
-  bad.forEach(a => {
-    const t = TAB_OF[a.mode] || a.mode;
-    const late = a.missing ? Infinity : (a.late_min || 0);
-    if (!tabs[t] || late > tabs[t].late) tabs[t] = {late, due: a.due_et, missing: a.missing};
-  });
-  const list = Object.keys(tabs).sort().map(t => {
-    const v = tabs[t];
-    const how = v.missing ? 'never built'
-              : v.late >= 60 ? `${(v.late/60).toFixed(1)} hr late`
-              : `${Math.round(v.late)} min late`;
-    return `<span class="sb-item"><b>${t}</b> ${how} (due ${v.due} ET)</span>`;
-  }).join('');
-  /* 🔴 A BLOCKED CARD IS NOT A LATE CARD, AND SAYING "late" WHEN THE
-     REAL ANSWER IS "it failed its own checks" MISLEADS THE READER.
-     `[measured 2026-08-29]` Gizmo's Picks sat 140 minutes past its
-     deadline because verify_card was REFUSING it every pass, and the
-     banner reported only slowness. ⛔ The reader deserves the difference:
-     one means wait, the other means the number was not trustworthy and
-     we declined to show it. */
-  const blocked = FRESH.card_blocked;
-  /* 🔴 A CAVEATED CARD IS A THIRD STATE AND IT IS NOT THE SAME AS EITHER
-     OF THE OTHER TWO.
-       card_blocked  the card failed a check NOBODY accepted -> reverted,
-                     and you are looking at an older one.
-       card_caveat   the card failed a check SAM HAS SIGNED OFF -> it IS
-                     today's card, published deliberately, with the reason
-                     stated.
-     ⛔ Before 2026-09-04 an accepted failure still reverted the card,
-     which made acceptance worthless and froze the board for days. **The
-     card now publishes, and THIS SENTENCE is the entire justification for
-     letting it.** A caveated card the reader can see the caveat on is
-     honest; a silently-published failing card is not. ⚠️ Do not remove
-     this branch without also restoring the revert. */
-  const caveat = FRESH.card_caveat;
-  bar.className = 'stalebar warn';
-  bar.innerHTML =
-    (blocked
-      ? `<b>Gizmo's Picks is showing an earlier version.</b> Today's card ` +
-        `did not pass its own checks, so it was not published — you are ` +
-        `looking at the last one that did. ` +
-        `<span class="sb-item">${blocked}</span> `
-      : '') +
-    (caveat
-      ? `<b>Today's card is published with a known caveat.</b> It did not ` +
-        `pass one of its own checks, and that failure has been reviewed ` +
-        `and accepted rather than fixed — so this is today's board, and ` +
-        `here is what it is carrying. ` +
-        `<span class="sb-item">${caveat}</span> `
-      : '') +
-    (bad.length
-      ? `<b>Some of this has not updated on schedule.</b> ` +
-        `These tabs have missed their scheduled build, so the numbers on ` +
-        `them may not reflect the current board: ${list}`
-      : '');
-}
-
+   of the number. The age band is a class (f-ok / f-mid / f-old); its
+   colouring lives in the CSS. */
 function freshness(iso){
   if (!iso) return '';
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
@@ -995,12 +881,9 @@ function inflate(src, pos){
 async function loadBoard(){
   try { BOARD = await jget('data/latest/board.json'); }
   catch(e){ BOARD = null; }
-  /* 🔴 ALWAYS ATTEMPTED, AND A FAILURE IS ITSELF REPORTED. If the page
-     cannot read its own freshness report it says so rather than
-     rendering silently, which is the exact failure of 2026-08-28. */
+  // ⛔ Keep this fetch: the 3-minute refresh loop reads FRESH.built_at.
   try { FRESH = await jget('data/latest/freshness.json'); }
   catch(e){ FRESH = null; }
-  renderStaleBanner();
 }
 
 /* Home/road splits and last-10 come from standings, not the schedule. */
@@ -1173,14 +1056,12 @@ function gameCard(g){
   // ---- market strip
   if (b && (b.total != null || b.run_line != null)){
     const bar = el('div','bar');
-    bar.append(el('span', null, `<span class="kind k-market">Market</span>`));
+    // [Sam, 2026-10-01] no explanation boxes or tags on the page.
     /* 🔴 NAME THE TEAM. "RL +1.5" beside two team names tells the reader
        nothing about WHOSE line it is, and an inverted one is invisible.
        `run_line` is the HOME team's point and now says so on its face. */
     const rlTeam = b.run_line_team ? ab(b.run_line_team) + ' ' : '';
-    bar.append(el('span', null, `O/U <b>${b.total ?? '—'}</b> &nbsp; RL <b>${rlTeam}${sgn(b.run_line)}</b>`
-      + (b.run_line_conflicted_with_moneyline
-         ? ` <span class="bandchip bad" title="The books split on which side they show laying the runs. This one was re-oriented to agree with the moneyline, which is unambiguous.">RE-ORIENTED</span>` : '')));
+    bar.append(el('span', null, `O/U <b>${b.total ?? '—'}</b> &nbsp; RL <b>${rlTeam}${sgn(b.run_line)}</b>`));
     bar.append(el('span', null, `<b>${b.n_books}</b> books`));
     c.append(bar);
   }
@@ -1287,10 +1168,9 @@ function gameCard(g){
   // ---- implied team totals (the T25 input)
   if (b && b.team_total && b.team_total[away] != null){
     c.append(el('div','tt',
-      `<span>Implied runs <span class="kind k-market">Market</span></span>
+      `<span>Implied runs</span>
        <span>${ab(away)} <b>${b.team_total[away]}</b> &nbsp; ${ab(home)} <b>${b.team_total[home]}</b></span>`));
   }
-  c.append(el('div','tapme','Click for the full box score'));
   return c;
 }
 
