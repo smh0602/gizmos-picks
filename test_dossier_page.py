@@ -40,10 +40,18 @@ reader SEES is made against rendered HTML.
 #   find: const gap = s.state !== 'OK';
 #   with: const gap = s.state !== 'OK'; if (gap) return '';
 #
-# @vacuity a partial game NAMES the side with no season record
+# [Sam, 2026-10-01] ~~a partial game NAMES the side on a `dospart` flag~~ —
+# no per-row flag on any tab: the header must be the two names and nothing
+# else, and the refused sections are what still show the game is partial.
+# @vacuity a partial game's header carries NO flag, only the two names
 #   file: index.html
-#   find: u ? `<span class="dospart">no season record for ${u}</span>` : ''
-#   with: ''
+#   find: return `<div class="doshd">${x.away_name || ''} at ${x.home_name || ''}</div>
+#   with: return `<div class="doshd">${x.away_name || ''} at ${x.home_name || ''}${x.unresolved_side ? `<span class="dospart">no season record for ${x.unresolved_side}</span>` : ''}</div>
+#
+# @vacuity a partial game still LOOKS partial: its refused sections are drawn as gaps
+#   file: index.html
+#   find: const secs = (x.sections || []).map(s => fbDosSection(s)).join('');
+#   with: const secs = (x.sections || []).filter(s => !x.unresolved_side || s.state === 'OK').map(s => fbDosSection(s)).join('');
 #
 # @vacuity a section that CAN answer shows a stored value, not a sentence
 #   file: index.html
@@ -54,6 +62,13 @@ reader SEES is made against rendered HTML.
 #   file: index.html
 #   find: li('Books with a moneyline', L.n_books);
 #   with: li('Books priced', L.n_books);   // the label that read "priced 0"
+#
+# [Sam, 2026-10-01] ~~the zero is explained in a sentence under the count~~
+# — no warning line under a number on any tab; the label carries it alone.
+# @vacuity a zero book count carries NO warning sentence under it
+#   file: index.html
+#   find: if (L.n_books != null) li('Books with a moneyline', L.n_books);
+#   with: if (L.n_books != null){ li('Books with a moneyline', L.n_books); if (!L.n_books && (L.total != null || L.run_line != null)) f.push(`<li>&#9888;&#65039; <b>That zero is about the moneyline only.</b> None is stored for this game, so there is no win&nbsp;% to show &mdash; the total and spread above are real prices a book is showing.</li>`); }
 #
 # ── [2026-09-28] THE PLANTED BOARD'S OWN QUESTIONS. Each one has its case
 #    on every run, whatever today's slate holds (see section 3). ────────
@@ -536,10 +551,33 @@ if _src4 is not None and _one4 and _two4:
        "⛔ NEVER RENDER A BLANK WHERE A TEAM NAME BELONGS. The board has "
        "the name and the builder carries it through — publishing nothing "
        "throws away the one thing we did know. Got: %s" % text(_h4)[:160])
-    ck("dospart" in _h4,
-       "   ...and the game is MARKED partial, not quietly short",
+    # ══════════════════════════════════════════════════════════════════
+    # [Sam, 2026-10-01] ~~"...and the game is MARKED partial, not quietly
+    # short" — a `span.dospart` on the header reading "no season record
+    # for <side>"~~. Sam removed every per-row flag from every tab ("i
+    # just want what's supposed to be in each tab to be in each tab"), so
+    # the flag is now REQUIRED ABSENT: the header is the two names and
+    # nothing else. ✅ THE GAME STILL LOOKS PARTIAL, through what still
+    # renders: every section the builder refused is drawn as a gap, and
+    # the refusals carry the builder's own sentence naming the side.
+    # ══════════════════════════════════════════════════════════════════
+    _hd4 = _h4.split('<div class="dosg">')[0]
+    ck("dospart" not in _h4 and text(_hd4) == "%s at %s"
+       % (_g4.get("away_name"), _g4.get("home_name")),
+       "   ⛔ ...and the header is the two names, with NO partial flag "
+       "[Sam, 2026-10-01]",
+       "🔴 a flag on the game header is the per-row flag Sam removed from "
+       "every tab. Got: %s" % text(_hd4)[:160])
+    _ref4 = [s.get("why") or "" for s in _g4["sections"]
+             if s["state"] != "OK"]
+    ck(len(_ref4) >= 1 and _h4.count("dossec gap") == len(_ref4)
+       and any(UNHELD in w and w in _h4 for w in _ref4),
+       "   ...and the game still LOOKS partial: its %d refused section(s) "
+       "are drawn as gaps, the builder's sentence naming the side"
+       % len(_ref4),
        "⛔ 16 of 90 college games are like this. A panel that looks "
-       "complete on one of them is the failure the eight exist against")
+       "complete on one of them is the failure the eight exist against. "
+       "Drew %d gap(s)" % _h4.count("dossec gap"))
     ck(" at </div>" not in _h4 and " at <span" not in _h4,
        "   ⛔ ...and the header has no empty team slot",
        "🔴 `X at ` with nothing after it is exactly the `Oregon vs None` "
@@ -575,6 +613,9 @@ section("5. 🔴🔴 THE BOOK COUNT SAYS WHAT IT COUNTS")
 # ⚠️ "we hold none", not "no book will quote one" — CLAUDE.md: an absence
 # in an API response is evidence about the API, never about the
 # sportsbook, and this project has got that backwards five times.
+# [Sam, 2026-10-01] ~~and a sentence under the zero says so~~ — the page
+# draws no explanation under a number on any tab, so the label is the
+# whole statement and the sentence is asked for its ABSENCE below.
 # ══════════════════════════════════════════════════════════════════════
 # ⛔ THE CONTRADICTION SHAPE, not the old literal. A label that reads as
 #    "nothing is priced" beside a price is the defect whatever word it
@@ -703,10 +744,19 @@ if _src6 is not None and _src6.get("dossiers"):
     #    fails on how the source is WRAPPED is a check that reddens on
     #    correct code.
     _ztxt = text(_z)
-    ck("moneyline only" in _ztxt and "real prices" in _ztxt,
-       "   ✅ ...and the zero is explained in words a reader can use",
-       "⛔ the count alone still invites the wrong reading; the sentence "
-       "says what is missing and what is real. Got: %s" % _ztxt[:240])
+    # [Sam, 2026-10-01] ~~"✅ ...and the zero is explained in words a reader
+    #    can use" — "That zero is about the moneyline only ... the total and
+    #    spread above are real prices a book is showing", under the count~~.
+    #    A warning line under a number is the explanation box Sam removed
+    #    from every tab, so it is now REQUIRED ABSENT. ✅ The zero still
+    #    reads right through what still renders: the label names the
+    #    moneyline and the 0 is shown, not suppressed (the checks above).
+    ck(bool(_z) and "moneyline only" not in _ztxt
+       and "real prices" not in _ztxt and "&#9888;" not in _z,
+       "   ⛔ ...and NO sentence explains the zero: the label carries it "
+       "[Sam, 2026-10-01]",
+       "🔴 a warning sentence under the count is the explanation box Sam "
+       "removed from every tab. Got: %s" % _ztxt[:240])
     ck("moneyline" in _p and not _PRICED0.search(_p),
        "   ⚠️ ...and a NON-zero count is labelled the same way",
        "🔴 one label, both cases — a special case for zero would be two "

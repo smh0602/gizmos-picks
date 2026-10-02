@@ -14,7 +14,8 @@ writes the last 48 hours of every workflow into the repo.
   2. it covers 48 hours, not the watcher's 24, by the same paging rule;
   3. `collect.py runs` is the one writer, free of Odds credits;
   4. its freshness row: stale only when TWO hourly runs are missing, SOFT,
-     off the reader's banner — and absent until the watcher is deployed;
+     off the reader's banner — and absent until the watcher is deployed.
+     [Sam, 2026-10-01] the page has no banner at all now: no row reaches it;
   5. the staged runs.yml writes it from its OWN job, so the watcher job
      stays read-only, and changes no cron line.
 
@@ -46,10 +47,25 @@ writes the last 48 hours of every workflow into the repo.
 #   find: LATE_GRACE_MIN = {"runs": 100}
 #   with: LATE_GRACE_MIN = {}
 #
-# @vacuity a monitoring file stays off the reader's stale banner
+# @vacuity [Sam, 2026-10-01] a monitoring file reaches no stale banner: the page has none
 #   file: index.html
-#   find: const bad = FRESH.artifacts.filter(a => a.stale && a.page !== false);
-#   with: const bad = FRESH.artifacts.filter(a => a.stale);
+#   find: let FRESH = null;
+#   with: let FRESH = null; function renderStaleBanner(){ const bar = document.getElementById('stalebar'); }
+#
+# @vacuity [Sam, 2026-10-01] ...nor the bar's element
+#   file: index.html
+#   find: <header>
+#   with: <div id="stalebar" class="stalebar"></div><header>
+#
+# @vacuity [Sam, 2026-10-01] no freshness row reaches the page: it reads only built_at
+#   file: index.html
+#   find: try { FRESH = await jget('data/latest/freshness.json'); }
+#   with: try { FRESH = await jget('data/latest/freshness.json'); const bad = FRESH.artifacts.filter(a => a.stale && a.page !== false); }
+#
+# @vacuity the absence checks read real code: loadBoard and FRESH.built_at are found
+#   file: index.html
+#   find: const built  = (FRESH && FRESH.built_at) || '';
+#   with: const built  = '';
 #
 # @vacuity the row must not exist before the watcher that writes it
 #   file: freshness.py
@@ -61,11 +77,9 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 
-from jsblock import js_block
 from tcheck import ck, eq, note, section
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -307,27 +321,27 @@ ck(_one and _one[0]["page"] is False and "runs" in F.SOFT,
 ck(all(r["page"] for r in F.survey() if r["mode"] != "runs"),
    "  ...and every other row still reaches the banner")
 
-# the banner itself, run in node with the page's own code
-_banner = js_block("renderStaleBanner", os.path.join(ROOT, "index.html"))
-
-
-def banner(rows):
-    js = ("const el={className:'',innerHTML:''};"
-          "const document={getElementById:()=>el};"
-          "let FRESH=%s;%s;renderStaleBanner();"
-          "process.stdout.write(el.innerHTML);" % (json.dumps({"artifacts": rows}), _banner))
-    p = subprocess.run(["node", "-e", js], capture_output=True, text=True, timeout=60)
-    if p.returncode:
-        raise SystemExit("renderStaleBanner did not run: " + p.stderr[-400:])
-    return p.stdout
-
-
-_runs_row = dict(_two[0]) if _two else {}
-ck(banner([_runs_row]) == "", "🔴 a stale run list alone shows the reader NOTHING")
-_card = {"mode": "card", "stale": True, "missing": False, "late_min": 90,
-         "due_et": "10:00", "page": True}
-ck("Gizmo" in banner([_runs_row, _card]) and "runs" not in banner([_runs_row, _card]),
-   "  ...while a stale card beside it still shows, without the run list")
+# 🔴 [Sam, 2026-10-01] THE PAGE HAS NO STALE BAR, SO NO ROW REACHES IT.
+#    Until today this ran the page's own renderStaleBanner in node and
+#    required a stale run list alone to show the reader NOTHING, while a
+#    stale card beside it still showed. Sam removed the bar with every
+#    other note on every tab: "i just want what's supposed to be in each
+#    tab to be in each tab"; asked what stays, he chose: remove everything.
+#    Staleness reaches Sam through the watchdog, health.json and the GitHub
+#    issue. So the run list still shows the reader nothing, and now so does
+#    every other row. ⛔ The `page` field above is still written and still
+#    checked; it decides nothing on the page now. Asked of the shipped
+#    page's CODE: this repo strikes deleted code in a comment.
+_code = re.sub(r"<!--.*?-->|/\*.*?\*/", "",
+               open(os.path.join(ROOT, "index.html"), encoding="utf-8").read(), flags=re.S)
+_code = "\n".join(l for l in _code.splitlines() if not l.strip().startswith("//"))
+ck("function loadBoard(" in _code and "FRESH.built_at" in _code,
+   "  (control: comments stripped, the page's code is still there to ask)")
+ck(not re.search(r"\brenderStaleBanner\b|stalebar", _code),
+   "🔴 a stale run list shows the reader NOTHING: the page has no stale bar to show it on",
+   str(re.findall(r"[^\n]{0,40}(?:renderStaleBanner|stalebar)[^\n]{0,40}", _code)[:2]))
+eq(sorted(set(re.findall(r"\bFRESH\s*(?:\??\.\s*|\[\s*['\"])(\w+)", _code))), ["built_at"],
+   "  ...and neither does a stale card: the page reads the report's built_at and nothing else")
 
 # ══════════════════════════════════════════════════════════════════════
 section("5. ⛔ THE STAGED runs.yml: ITS OWN JOB WRITES, THE WATCHER STAYS READ-ONLY")

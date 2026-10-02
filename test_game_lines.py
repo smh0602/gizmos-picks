@@ -28,6 +28,37 @@ allowed to carry a number when nothing else here is.
 ATL −1.5 while two posted the same game inverted, and matching on |point|
 paired **opposite bets**. Every comparison group here is keyed on
 `(market, side, SIGNED point)`.
+
+`[Sam, 2026-10-01]` The page shows each tab's content, not notes about it:
+§9 and §10 asked for a model-count sentence, a MARKET badge, a glyph note
+and a styled badge class on the page; they now ask for their ABSENCE, and
+§10 still asks that the list itself is drawn. The card side (§1–§7, and
+the builder's own sentence in §9) is unchanged.
+
+# @vacuity the page states no model count: the FOUR went with its note boxes [Sam, 2026-10-01]
+#   file: index.html
+#   find: <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
+#   with: <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2><p>Four pre-registered football models were tested and every one lost.</p>
+#
+# @vacuity the game-lines panel carries no MARKET badge [Sam, 2026-10-01]
+#   file: index.html
+#   find: <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
+#   with: <h2>Game lines &mdash; the ${g.length} biggest price gaps <span class="kind k-market">Market</span></h2>
+#
+# @vacuity ...and no note under it, in either glyph [Sam, 2026-10-01]
+#   file: index.html
+#   find: style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div></div>`;
+#   with: style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div><div class="note">&#128309; <b>Market, not a model.</b></div></div>`;
+#
+# @vacuity ...and the stylesheet styles no badge class [Sam, 2026-10-01]
+#   file: index.html
+#   find: .glr.nofloor{opacity:.62}
+#   with: .glr.nofloor{opacity:.62} .k-market{background:#e6eefc;color:#1a4b9c}
+#
+# @vacuity ...and the list itself is still drawn, every number [Sam, 2026-10-01]
+#   file: index.html
+#   find: <div class="p">${sgn(r.best_price)}<div class="rec"
+#   with: <div class="p"><div class="rec"
 """
 import gzip
 import json
@@ -35,6 +66,7 @@ import os
 import re
 import sys
 
+from jsblock import css_rules
 from tcheck import ck, eq, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -200,17 +232,27 @@ ck("⛔ the page does not re-rank or re-compute the gap",
    "of the selection rule is a second thing to drift")
 
 print("\n═══ 9. ⚠️ THE MODEL COUNT IS FOUR NOW, NOT THREE ═══")
-ck("🔴 the page says FOUR pre-registered models were tested",
+# [Sam, 2026-10-01] ~~the page says FOUR pre-registered models were tested~~
+#    The sentence lived in two note boxes (the props tab's footer and
+#    fbNoModelNote), and every explanation box is gone. So the page states
+#    NO count now: not the stale THREE, and not the FOUR either. The
+#    builder still writes its own sentence (next check, unchanged).
+ck("🔴 the page states no model count — never the stale THREE, and since 2026-10-01 not the FOUR either",
    "Three pre-registered football models" not in html
-   and "Three football models were tested" not in html,
+   and "Three football models were tested" not in html
+   and "Four pre-registered football models" not in html
+   and "Four football models were tested" not in html,
    "⛔ T57 closed FAILED on 2026-09-11, so 'three' became false the "
    "moment it did. A stale count on a page about honesty is the wrong "
-   "sentence to leave standing")
+   "sentence to leave standing. [Sam, 2026-10-01] the boxes that said "
+   "'four' are gone with every other explanation box")
+# Card side, unchanged. [Sam, 2026-10-01] "the page prints it" below is
+#    history: the card still writes the sentence, the page no longer shows it.
 ck("...and so does the builder's own note",
    "Three pre-registered" not in src,
    "the card writes this sentence; the page prints it")
 
-print("\n═══ 10. \U0001f534 THE SECTION LABELS ITSELF THE WAY THE PAGE LABELS ═══")
+print("\n═══ 10. \U0001f534 THE SECTION IS AS PLAIN AS THE PAGE: NO BADGE, NO NOTE ═══")
 # \U0001f534 FOUND 2026-09-11 BY READING THE RENDERED DOM, NOT THE SOURCE —
 #    the THIRD instance of rule 197's shape. §6 above asserts no row
 #    carries a confidence and §8 asserts the section DRAWS. ⛔ Neither
@@ -220,24 +262,50 @@ print("\n═══ 10. \U0001f534 THE SECTION LABELS ITSELF THE WAY THE PAGE LAB
 #    badge on the picks tab read "Record", belonging to the block ABOVE
 #    a numbered list of percentages. ➡️ ASSERTING A WRONG THING IS
 #    ABSENT IS NOT ASSERTING THE RIGHT THING IS PRESENT.
+# [Sam, 2026-10-01] ~~THE SECTION LABELS ITSELF THE WAY THE PAGE LABELS~~
+#    — and it still does, because the page labels nothing now. Sam: "i
+#    just want what's supposed to be in each tab to be in each tab"; asked
+#    what stays, he chose: remove everything. The MARKET badge, the 🔵
+#    "Market, not a model." note and the badge's stylesheet rule that were
+#    REQUIRED here are now required ABSENT, and so is the builder's rule
+#    sentence the panel used to print. Every row still carries kind MARKET
+#    in the card (§6, unchanged). ⛔ And per the line above, three absences
+#    pass on an EMPTY renderer, so the last check asks that the list
+#    itself is still drawn.
 _gl = html[html.index("function fbGameLines(C){"):]
 _gl = _gl[:_gl.index("\nfunction ", 1)]
-ck("\U0001f534 the panel carries the page's own MARKET badge",
-   'class="kind k-market">Market' in _gl,
-   "⛔ LEDGER RULE 55 — every number on the surface is labelled MODEL, "
-   "MARKET or DESCRIPTIVE. A prose sentence is not the badge the rest "
-   "of the page trained the reader to scan for")
-ck("⛔ ...and the note uses the MARKET glyph, not the DESCRIPTIVE one",
-   "&#128309;" in _gl and "&#9898;" not in _gl,
-   "\U0001f534 THE ORIGINAL SHIPPED `&#9898;` — the glyph this page uses "
-   "FOUR other times to introduce the word 'Descriptive.' — against the "
-   "words 'Market, not a model.' ⚠️ `&#128309;` is what it uses twice "
-   "for 'these are the sportsbooks' numbers, not ours', which is "
-   "exactly this claim. One vocabulary, or it is not a vocabulary")
-ck("✅ the badge classes referenced here are the ones the stylesheet defines",
-   ".k-market{" in html,
+# ~~the panel carries the page's own MARKET badge~~
+ck("\U0001f534 the panel carries no badge: its heading is the bare title",
+   "<h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>" in _gl
+   and 'class="kind' not in _gl and "k-market" not in _gl,
+   "[Sam, 2026-10-01] no MODEL / MARKET / DESCRIPTIVE tag on any tab. "
+   "~~LEDGER RULE 55 — every number on the surface is labelled MODEL, "
+   "MARKET or DESCRIPTIVE~~ on the page; the row's MARKET kind stays in "
+   "the card")
+# ~~the note uses the MARKET glyph, not the DESCRIPTIVE one~~
+ck("⛔ ...and no note under it, in either glyph, and no rule sentence",
+   "&#128309;" not in _gl and "&#9898;" not in _gl
+   and 'class="note"' not in _gl and "game_lines_rule" not in _gl,
+   "\U0001f534 THE ORIGINAL SHIPPED `&#9898;` — the glyph for "
+   "'Descriptive.' — against the words 'Market, not a model.' "
+   "[Sam, 2026-10-01] the note is gone with every explanation box, so "
+   "neither glyph returns; the rule sentence stays in the card (§6, §7)")
+# ~~the badge classes referenced here are the ones the stylesheet defines~~
+_badge_css = [s for s, d in css_rules("index.html").items()
+              if re.search(r"\.(?:kind|k-market)(?![\w-])", s + "{" + d)]
+ck("✅ ...and the stylesheet styles neither badge class, so no tag can render as one",
+   not _badge_css,
    "rule 66 — a class name invented in one place and styled in none "
-   "renders as unstyled text, which is worse than no badge at all")
+   "renders as unstyled text. [Sam, 2026-10-01] the panel references "
+   "neither `kind` nor `k-market` now, and a class styled with nothing "
+   "drawing it is the same drift from the other side. Styled: %s"
+   % (_badge_css or "none"))
+ck("✅ ...and the list itself is still drawn: rank, wager, the gain, the best price and its book",
+   all(s in _gl for s in ('<div class="t10">', '<div class="r">${i + 1}</div>',
+                          '<div class="c">+${r.gain_pct}%</div>',
+                          '${sgn(r.best_price)}', '${bookName(r.best_book)}')),
+   "[Sam, 2026-10-01] kept: tables and cards with every number. Asserting "
+   "a wrong thing is absent is not asserting the right thing is present")
 
 
 note("⛔ WHAT THIS LIST IS NOT: a view about who wins. It ranks the gap "

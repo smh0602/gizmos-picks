@@ -66,6 +66,18 @@ a guess.
 #   file: test_nfl_opener.py
 #   find: pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
 #   with: # pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) else (_offsite.append(r.request.url), r.abort()))
+#
+# `[Sam, 2026-10-01]` The tab prints no note about itself: fbLiveNote and
+# the footer box it sat in are gone, so §0 and §4 require their ABSENCE.
+# @vacuity §0: the Scores tab makes no claim about itself
+#   file: index.html
+#   find: <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups</h2>
+#   with: <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups</h2>${fbLiveNote(shown)}
+#
+# @vacuity §0 + §4 (browser): a refused feed prints no 'unavailable' note
+#   file: index.html
+#   find: <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups</h2>
+#   with: <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups</h2><div class="note">Live scores are not available in this browser.</div>
 """
 import http.server
 import json
@@ -182,11 +194,19 @@ ck("a game the feed does not carry is returned UNCHANGED",
 # check firing on prose about the change rather than the change. Rule 69,
 # in the test I wrote to enforce rule 132.
 _scores = js_block("fbScores", HTML)
-ck("the tab's claim about itself is COMPUTED, not written",
-   "${fbLiveNote(shown)}" in _scores
-   and "Not a live scoreboard." not in _scores,
+# [Sam, 2026-10-01] ~~"the tab's claim about itself is COMPUTED, not
+#    written" (`${fbLiveNote(shown)}`)~~ — the tab makes NO claim about
+#    itself any more: Sam removed every explanation box, and fbLiveNote went
+#    with the footer note it filled. ✅ The old fixed sentence stays gone,
+#    and the live state reaches the reader through the cards themselves —
+#    LIVE, the feed's clock and score (sections 2-3).
+ck("the tab makes no claim about itself, computed or written",
+   "fbLiveNote(" not in _scores and calls("fbLiveNote", HTML) == 0
+   and "Not a live scoreboard." not in _scores
+   and "not available in this browser" not in _scores
+   and 'class="note"' not in _scores,
    "the old fixed sentence was true when written and false the day ESPN "
-   "was wired in (rule 132)")
+   "was wired in (rule 132); since 2026-10-01 the tab prints neither")
 ck("the football poll reuses MLB's own 45s, not a second number",
    "const FB_LIVE_MS = 45000;" in source(HTML), "one value, one meaning")
 
@@ -504,9 +524,16 @@ if _BROWSER:
          "%d cells" % len(base_cells))
       ck("no page error escaped", not off.errs, str(off.errs[:1]))
       ck("nothing is marked live", not any(g["live"] for g in off.shown()))
-      ck("the page says live scores are unavailable IN THIS BROWSER",
-         "not available in this browser" in off.pg.inner_text("#fbview").lower(),
-         "the reader is told, rather than shown a tab that looks broken")
+      # [Sam, 2026-10-01] ~~"the page says live scores are unavailable IN
+      #    THIS BROWSER"~~ — that sentence was fbLiveNote's, in the tab's note
+      #    box, and the page prints no notes any more. ✅ What it protected is
+      #    kept: the reader is shown today's tab exactly (the checks above),
+      #    and the page itself knows the feed is off.
+      ck("the page prints no 'unavailable' note — and knows the feed is off",
+         "not available in this browser" not in off.pg.inner_text("#fbview").lower()
+         and off.pg.locator("#fbview .note").count() == 0
+         and off.pg.evaluate("() => FB_LIVE_OFF") is True,
+         "the reader sees the stored tab, unchanged, with no note about it")
       hits_after_render = off.hits[0]
       off.pg.wait_for_timeout(3000)
       ck("⛔ and it STOPS ASKING after one refusal",

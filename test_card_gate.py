@@ -23,6 +23,31 @@ was not. The run stayed red and nobody could see why.
      rather than guessing
 
 ⚠️ No network, no repo state: every case writes its own file.
+
+# @vacuity [Sam, 2026-10-01] the page no longer reads card_caveat (no stale bar)
+#   file: index.html
+#   find: catch(e){ FRESH = null; }
+#   with: catch(e){ FRESH = null; } if (FRESH && FRESH.card_caveat) document.title = FRESH.card_caveat;
+#
+# @vacuity [Sam, 2026-10-01] ...nor card_blocked, anywhere on the page
+#   file: index.html
+#   find: catch(e){ FRESH = null; }
+#   with: catch(e){ FRESH = null; } if (FRESH && FRESH.card_blocked) document.title = FRESH.card_blocked;
+#
+# @vacuity [Sam, 2026-10-01] neither card sentence is on the page
+#   file: index.html
+#   find: let FRESH = null;
+#   with: let FRESH = null; const CARD_NOTE = "Today's card is published with a known caveat.";
+#
+# @vacuity [Sam, 2026-10-01] ...nor the refused card's sentence
+#   file: index.html
+#   find: let FRESH = null;
+#   with: let FRESH = null; const CARD_NOTE = "Gizmo's Picks is showing an earlier version.";
+#
+# @vacuity the absence checks read real code: the refresh loop's FRESH.built_at is found
+#   file: index.html
+#   find: const built  = (FRESH && FRESH.built_at) || '';
+#   with: const built  = '';
 """
 import os
 import shutil
@@ -148,20 +173,43 @@ ck(_else > 0 and _rev > _else,
 ck("card-accepted-now.txt" in _after,
    "  and the accepted path leaves a marker the page can read")
 
-print("\n9. ⛔ AND THE PAGE MUST SAY WHAT THE CARD IS CARRYING")
-print("   That sentence is the ENTIRE justification for publishing a")
-print("   card that failed one of its own checks. A caveated card the")
-print("   reader can see the caveat on is honest; a silent one is not.")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 [Sam, 2026-10-01] THE CAVEAT IS STILL PUBLISHED; THE PAGE NO LONGER
+#    PRINTS IT. Until today this section also required index.html to read
+#    FRESH.card_caveat and print it in the stale bar ("Today's card is
+#    published with a known caveat"), worded apart from a refused card
+#    ("showing an earlier version"), because that sentence was the stated
+#    justification for publishing a card that failed one of its own
+#    checks. Sam removed the bar with every other note on every tab: "i
+#    just want what's supposed to be in each tab to be in each tab"; asked
+#    what stays, he chose: remove everything. So the page checks now
+#    require the ABSENCE of the field and both sentences. ⛔ The DATA side
+#    is unchanged: collect.py still publishes card_caveat (and
+#    card_blocked) into freshness.json from the workflow's marker.
+#    Asked of the page's CODE: this repo strikes deleted code in a comment.
+# ══════════════════════════════════════════════════════════════════════
+print("\n9. ⛔ THE CARD STILL PUBLISHES WHAT IT IS CARRYING")
+print("   ...into freshness.json. [Sam, 2026-10-01] the page no longer")
+print("   prints it: no stale bar, no caveat line, on any tab.")
 _col = open(os.path.join(REPO, "collect.py"), encoding="utf-8").read()
 ck('"card_caveat"' in _col,
    "collect.py publishes `card_caveat` into freshness.json")
 ck("card-accepted-now.txt" in _col,
    "  derived from the marker the workflow leaves")
 _idx = open(os.path.join(REPO, "index.html"), encoding="utf-8").read()
-ck("FRESH.card_caveat" in _idx, "index.html reads it")
-ck(_idx.count("card_caveat") >= 2,
-   "  and uses it in more than one place (guard + message)",
-   str(_idx.count("card_caveat")))
-# ⛔ REFUSED AND CAVEATED MUST BE DIFFERENT SENTENCES, NOT ONE REUSED.
-ck("known caveat" in _idx and "earlier version" in _idx,
-   "🔴 refused and caveated read as two different things")
+_code = _re.sub(r"<!--.*?-->|/\*.*?\*/", "", _idx, flags=_re.S)
+_code = "\n".join(l for l in _code.splitlines() if not l.strip().startswith("//"))
+ck("FRESH.built_at" in _code,
+   "  (control: comments stripped, the page's code is still there to ask)")
+ck("FRESH.card_caveat" not in _code,
+   "🔴 index.html no longer reads it (no stale bar)")
+ck(_code.count("card_caveat") == 0 and _code.count("card_blocked") == 0,
+   "  ...nor the refused-card field, anywhere on the page",
+   str((_code.count("card_caveat"), _code.count("card_blocked"))))
+# ⛔ ~~REFUSED AND CAVEATED MUST BE DIFFERENT SENTENCES~~ -> NEITHER IS SHOWN.
+ck("known caveat" not in _code and "showing an earlier version" not in _code,
+   "🔴 neither the caveated nor the refused sentence is on the page")
+note("⚠️ WHAT THIS LEAVES OPEN: with the sentence off the page, a card "
+     "published under an accepted failure says so only in freshness.json "
+     "and in card_gate's ::warning line in the run log. Whether that is "
+     "enough is Sam's call; this file does not decide it.")

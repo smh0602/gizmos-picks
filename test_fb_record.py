@@ -58,10 +58,33 @@ IDX = os.path.join(ROOT, "index.html")
 #   find: const key = lg;
 #   with: const key = 'one';
 #
-# @vacuity a missing detail file degrades to a note, never an exception
+# [Sam, 2026-10-01] ~~degrades to a note~~: the catch now writes ONE plain
+#   line. ⚠️ That line is byte-identical to renderRecord's, so the find is the
+#   comment that opens fbWireDayRows' catch, which occurs once on the page.
+# @vacuity a missing detail file degrades to ONE plain line, never an exception
 #   file: index.html
-#   find: cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The grader
-#   with: cell.innerHTML = `<div class="x"><b>nothing at all</b> The grader
+#   find: /* ⛔ DEGRADES TO ONE PLAIN LINE, NEVER A BROKEN TAB. Before the
+#   with: throw e; /* ⛔ DEGRADES TO ONE PLAIN LINE, NEVER A BROKEN TAB. Before the
+#
+# @vacuity [Sam, 2026-10-01] the missing-detail degrade draws NO note box naming the file
+#   file: index.html
+#   find: /* ⛔ DEGRADES TO ONE PLAIN LINE, NEVER A BROKEN TAB. Before the
+#   with: cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The grader writes <code>${(rec && rec.detail_file) || `${LG_DATA[lg]}/latest/record-detail.json.gz`}</code> on its next run.</div>`; return; /* ⛔ DEGRADES TO ONE PLAIN LINE, NEVER A BROKEN TAB. Before the
+#
+# @vacuity [Sam, 2026-10-01] MLB's dayDetailHtml is pinned WITHOUT its note box
+#   file: index.html
+#   find: if (!rows || !rows.length) return '<div class="msg">No picks stored for that card.</div>';
+#   with: if (!rows || !rows.length) return '<div class="msg">No picks stored for that card.</div>'; if (rows.some(r => r.void)) return '<div class="note"><b>Actual</b> is what the player really did, read off the stored box score.</div>';
+#
+# @vacuity [Sam, 2026-10-01] MLB's renderRecord is pinned WITHOUT its MODEL tag
+#   file: index.html
+#   find: <h2>Automatic card</h2>
+#   with: <h2>Automatic card <span class="kind k-model">Model</span></h2>
+#
+# @vacuity [Sam, 2026-10-01] no tab renders the calibration_warning pop-up
+#   file: index.html
+#   find: head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2>`;
+#   with: head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2><div class="note"><b>Read the confidence number honestly.</b> ${P.calibration_warning}</div>`;
 #
 # @vacuity the football bands must not speak in MLB's first person
 #   file: index.html
@@ -385,7 +408,9 @@ for _lg in ("nfl", "ncaaf"):
     note("the stored %s record says detail_file=%r"
          % (_lg, REAL[_lg].get("detail_file")))
 
-section("7. ⛔ A MISSING DETAIL FILE DEGRADES TO A NOTE, NOT AN EXCEPTION")
+# `[Sam, 2026-10-01]` ~~DEGRADES TO A NOTE~~ — no explanation box on any tab;
+#    the degrade is now ONE plain line, and is driven through the click handler.
+section("7. ⛔ A MISSING DETAIL FILE DEGRADES TO ONE PLAIN LINE, NOT AN EXCEPTION")
 _r7 = out(
     "let msg='';"
     "try { await fbDetailLoad('nfl', {detail_file:'gone'}); msg='NO THROW'; }"
@@ -398,12 +423,49 @@ ck((_r7.get("msg") or "").startswith("threw:"),
    "league's detail forever. Got %r" % _r7.get("msg"))
 _WIRE = js_block("fbWireDayRows", IDX)
 ck("catch" in _WIRE and "No detail file yet" in _WIRE,
-   "🔴 ...and the CALLER catches it and writes the note",
+   "🔴 ...and the CALLER catches it and writes one plain line",
    "⛔ before the first graded card there is no detail file and that is "
    "not an error — a broken tab would say the product is broken when it "
    "is merely new")
-ck("record-detail.json.gz" in _WIRE,
-   "   ...naming the file the grader will write")
+# 🔴 `[Sam, 2026-10-01]` ~~ck("record-detail.json.gz" in _WIRE, "   ...naming
+#    the file the grader will write")~~. The degrade was a cream note box
+#    naming the file the grader would write on its next run. Sam: no
+#    explanation, caveat or warning box on any tab ("i just want what's
+#    supposed to be in each tab to be in each tab"; asked what stays, he
+#    chose: remove everything). So the box and its sentence are required
+#    ABSENT, asked of the same function; and because a source read cannot
+#    see what a click draws, the handler is DRIVEN: a click on a graded day
+#    whose detail file is gone must leave exactly one plain line in the cell.
+ck('class="note"' not in _WIRE and "record-detail.json.gz" not in _WIRE
+   and "<code>" not in _WIRE,
+   "⛔ [Sam, 2026-10-01] ...and NO note box naming the file the grader will write",
+   "the file name and 'on its next run' were the box's sentence; the "
+   "plain line says only that there is no file")
+# ⚠️ THE SMALLEST DOM THE HANDLER TOUCHES, NOT A COPY OF IT: one row, one
+#    detail box, one cell. fbWireDayRows itself is pulled from the page.
+_DOM = ("const CELL = {dataset:{}, innerHTML:''};"
+        "const BOX = {hidden:true, querySelector: () => CELL};"
+        "let CLICK = null;"
+        "const TR = {dataset:{date:'2026-09-09'}, classList:{add(){}, remove(){}},"
+        "  addEventListener: (ev, fn) => { CLICK = fn; }};"
+        "const document = {querySelectorAll: () => [TR], querySelector: () => BOX};"
+        "async function jgetGz(p){ throw new Error(p + ' -> 404'); }\n"
+        + js_block("fbWireDayRows", IDX))
+_r7c = out("fbWireDayRows('nfl', {detail_file:'data/nfl/latest/record-detail.json.gz'});"
+           "if (!CLICK) throw new Error('no click handler was wired');"
+           "await CLICK();"
+           "console.log(JSON.stringify({html: CELL.innerHTML}));", extra=_DOM)
+_h7 = _r7c.get("html")
+ck(isinstance(_h7, str)
+   and bool(_re.fullmatch(r'\s*<p class="plain">[^<]*</p>\s*', _h7))
+   and "No detail file yet" in _h7,
+   "🔴 [Sam, 2026-10-01] DRIVEN: the click draws ONE plain line, not a broken tab",
+   "⛔ a rejected handler leaves 'Loading…' in the cell for good. Got %r"
+   % (_h7 if _h7 is not None else _r7c))
+ck(isinstance(_h7, str) and 'class="note"' not in _h7
+   and "record-detail.json.gz" not in _h7 and "<code>" not in _h7,
+   "⛔ [Sam, 2026-10-01] DRIVEN: ...and the cell holds no note box and no file name",
+   "the record passed in names its detail_file, which the old box printed")
 _r7b = out("const h = fbDayDetailHtml(null);"
            "const g = fbDayDetailHtml([]);"
            "console.log(JSON.stringify({h, g}));")
@@ -431,8 +493,19 @@ section("8. ⛔⛔ MLB IS UNTOUCHED — BYTE-IDENTICAL, NOT 'I DIDN'T MEAN TO'")
 #    instruction — MLB unfrozen 2026-09-22, and his MLB learning task puts the
 #    labelled champion-vs-challenger panel on this tab. The same amendment is
 #    recorded in research/mlb_render_frozen.json's `_why`.
-_MAIN = {"renderRecord": "0975b831faa24360",
-         "dayDetailHtml": "cf90d3ea7c684cf9",
+# ⚠️ `[Sam, 2026-10-01]` renderRecord (~~0975b831faa24360~~) and
+#    dayDetailHtml (~~cf90d3ea7c684cf9~~) RE-BASELINED on Sam's instruction:
+#    "i just want what's supposed to be in each tab to be in each tab ... do
+#    this for all 3 leagues", and asked what stays he chose: remove
+#    everything. Diffed against caa9a69e, each lost ONLY its cream note boxes
+#    (renderRecord also its MODEL tag and its explanatory sentences; each
+#    empty state is now one plain line); every table, band and figure
+#    outside those boxes is unchanged. Pinned at the old bytes these
+#    hashes REQUIRED the boxes; pinned at the new bytes they require their
+#    ABSENCE. The same amendment is in research/mlb_render_frozen.json's
+#    `_why` (c698d885). loadRecordDetail did not change and keeps its hash.
+_MAIN = {"renderRecord": "961ab07b215a4018",
+         "dayDetailHtml": "93671bc164e26a96",
          "loadRecordDetail": "a6fff37555f03ce7"}
 for _n, _want in sorted(_MAIN.items()):
     _got = hashlib.sha256(js_block(_n, IDX).encode()).hexdigest()[:16]
@@ -449,8 +522,21 @@ for _k in ("stated", "pct", "bucket"):
 ck("said" in _BR and "hit" in _BR,
    "   ...and still takes MLB's own `said`/`hit`")
 _IDXSRC = open(IDX, encoding="utf-8").read()
-eq(_IDXSRC.count("${P.calibration_warning}"), 1,
-   "⛔ the MLB card's own render is still exactly one occurrence")
+# 🔴 `[Sam, 2026-10-01]` ~~eq(_IDXSRC.count("${P.calibration_warning}"), 1,
+#    "⛔ the MLB card's own render is still exactly one occurrence")~~. The
+#    MLB card printed its calibration_warning in a cream "Read the confidence
+#    number honestly" box, and this pinned that render at exactly one, with
+#    no football copy beside it. Sam removed every confidence pop-up on every
+#    tab ("we have a track record for a reason"), so the page now reads the
+#    field NOWHERE: not MLB's `P.`, not football's `C.` (fbCalNote is
+#    deleted). ⚠️ card.py and card_fb.py still WRITE it; this asks only the
+#    page. Comments are stripped first: a dated note naming the field is not
+#    a render, and a guard that fired on one would fire on correct code.
+_IDXCODE = _re.sub(r"(?m)^\s*//.*$", "",
+                   _re.sub(r"/\*.*?\*/|<!--.*?-->", "", _IDXSRC, flags=_re.S))
+eq(_IDXCODE.count(".calibration_warning"), 0,
+   "⛔ [Sam, 2026-10-01] no tab renders the calibration_warning pop-up — "
+   "not MLB's `P.`, not football's `C.`")
 eq(_IDXSRC.count("said: c.predicted"), 1,
    "⛔ ...and `said: c.predicted` appears ONCE — MLB's call site only",
    )
@@ -621,7 +707,9 @@ note("📌 THE CLASS, SWEPT AND REPORTED `[2026-09-17]`: of the renderers "
      "the row's own `confidence_basis` and prints 'RECORD — no model' "
      "where that is what the row is. `cardStaleNote` says 'projections' "
      "but is called only by MLB's renderPicks and renderParlays, so its "
-     "voice matches its only callers. ⛔ Nothing else was fixed here.")
+     "voice matches its only callers. ⛔ Nothing else was fixed here. "
+     "`[2026-10-01]` cardStaleNote no longer exists: Sam removed the "
+     "stale notes from every tab.")
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that the tab LOOKS right. It claims the "
      "bands come from bandRow with football's own numbers, that a graded "

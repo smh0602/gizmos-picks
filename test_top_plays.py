@@ -69,6 +69,16 @@ whatever the live college board holds that day:
 #   file: card_fb.py
 #   find: board = rows[:BOARD_MAX] if rated else fill_board(rows, BOARD_MAX)
 #   with: board = rows[:BOARD_MAX] if rated else []
+#
+# @vacuity [Sam, 2026-10-01] the page no longer prints the top plays' rule sentence
+#   file: index.html
+#   find: <h2>Top ${t.length} play${t.length === 1 ? '' : 's'} of the day</h2>
+#   with: <h2>Top ${t.length} play${t.length === 1 ? '' : 's'} of the day</h2><p>${C.top_plays_rule || ''}</p>
+#
+# @vacuity [Sam, 2026-10-01] the top plays carry no explanation box
+#   file: index.html
+#   find: <div class="p">${sgn(x.price)}</div>`).join('')}</div></div>`;
+#   with: <div class="p">${sgn(x.price)}</div>`).join('')}</div><div class="note">Every number here is the player's own record.</div></div>`;
 """
 import gzip
 import json
@@ -610,7 +620,15 @@ i = h.index("function fbTopPlays(")
 j = h.index("\nfunction ", i + 10)
 blk = h[i:j]
 ck("the page renders top_plays from the card", "C.top_plays" in blk)
-ck("and prints the card's own rule sentence", "top_plays_rule" in blk)
+# `[Sam, 2026-10-01]` THIS USED TO REQUIRE the card's own rule sentence
+#    (`top_plays_rule`) under the heading, beside a note box explaining the
+#    one-play-per-game rule from `top_plays_excluded`. Sam removed every
+#    explanation from every tab, so the list is now required WITHOUT them.
+#    ⛔ card_fb.py still writes `top_plays_rule` and `top_plays_excluded`,
+#    and §2-§4 above still check the sentence the builder writes.
+ck("[Sam, 2026-10-01] and no longer prints the card's rule sentence or its note box",
+   "top_plays_rule" not in blk and "top_plays_excluded" not in blk and 'class="note"' not in blk,
+   "Sam: 'i just want what's supposed to be in each tab to be in each tab'")
 ck("the page does NOT re-rank or re-gate",
    ".sort(" not in blk and "-400" not in blk and "confidence >" not in blk,
    "a second copy of the selection rule is a second thing to drift")

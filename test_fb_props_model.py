@@ -76,6 +76,16 @@ in `research/fb_props_design.md` (Sam, 2026-09-24).
 #   file: index.html
 #   find:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM) + fbLedgerHtml(LD));
 #   with:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbLedgerHtml(LD));
+#
+# @vacuity [Sam, 2026-10-01] the props model's section wears no MODEL tag
+#   file: index.html
+#   find:   if (!M) return `<div class="panel"><h2>Prop model picks</h2>
+#   with:   if (!M) return `<div class="panel"><h2>Prop model picks <span class="kind k-model">Model</span></h2>
+#
+# @vacuity [Sam, 2026-10-01] the props model's section carries no note box
+#   file: index.html
+#   find:   : '<p class="plain">No prop picks this week.</p>'}
+#   with:   : '<div class="note">No prop this week clears the break-even of the best available price.</div>'}
 """
 import gzip
 import json
@@ -219,15 +229,24 @@ ck(_one["verdict"].startswith("INCOMPLETE"),
    "⛔ found 2026-09-24: college alone read as the pooled verdict. got %r" % _one["verdict"])
 
 # ══════════════════════════════════════════════════════════════════════
-# 7. THE PAGE: its own MODEL section, after the card, record per market
+# 7. THE PAGE: its own section, after the card, record per market
+#    (`[Sam, 2026-10-01]` no longer tagged MODEL)
 # ══════════════════════════════════════════════════════════════════════
 _html = os.path.join(ROOT, "index.html")
 _app = jsblock.js_block("fbModelAppend", _html)
 _pm = jsblock.js_block("fbPropModelHtml", _html)
-ck("fbPropModelHtml(PM)" in _app and "k-model" in _pm and "labN(r.hit_rate" in _pm
-   and "labN(r.break_even" in _pm and "board_max" not in _pm and ".slice(" not in _pm,
-   "🔴 the page shows the props model as its own MODEL section with picks, hit rate and break-even",
-   "⛔ Sam: 'their own section, labelled MODEL ... picks, hit rate and break-even'")
+# `[Sam, 2026-10-01]` This USED TO REQUIRE the section's MODEL tag
+#    (`k-model`, Sam 2026-09-24: "their own section, labelled MODEL"). Sam
+#    has since removed every MODEL / MARKET / DESCRIPTIVE / RECORD tag and
+#    every explanation box from the page, so the section is now required
+#    under its own heading with NO tag and NO note box -- and still with
+#    its picks, hit rate and break-even, uncapped.
+ck("fbPropModelHtml(PM)" in _app and "<h2>Prop model picks</h2>" in _pm
+   and 'class="kind' not in _pm and "k-model" not in _pm and 'class="note"' not in _pm
+   and "labN(r.hit_rate" in _pm and "labN(r.break_even" in _pm and "board_max" not in _pm and ".slice(" not in _pm,
+   "🔴 the page shows the props model as its own section (\"Prop model picks\") with picks, hit rate and "
+   "break-even, and [Sam, 2026-10-01] no MODEL tag or note box (the tag used to be required)",
+   "⛔ Sam, 2026-09-24: 'their own section ... picks, hit rate and break-even'; 2026-10-01: no tags, no boxes")
 # ~~🔴 the BUILDER caps the page at the card's BOARD_MAX (25), the rest in the file~~
 # 🔴 STRUCK 2026-09-24 BY SAM: "No cap on model picks. Only the Gizmo's Picks
 #    card keeps its limit." Driven through build() on 40 fake picks.

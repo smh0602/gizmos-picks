@@ -35,6 +35,13 @@ WHAT IS PINNED:
 #   file: card_fb.py
 #   find: if med >= MIN_GAMES:
 #   with: if True:
+#
+# `[Sam, 2026-10-01]` The page draws no explanation: the no-card state is one
+# plain line, and §4 requires the "why" sentence and its box to be ABSENT.
+# @vacuity §4: the no-card state is one plain line, with no explanation
+#   file: index.html
+#   find: return `<div class="msg">No ${LG_NAME[LEAGUE]} ${what} published yet.</div>`;
+#   with: return `<div class="note">No ${LG_NAME[LEAGUE]} ${what} published yet. The board is built from the player-prop pull; the slate has not been priced yet.</div>`;
 """
 import datetime
 import glob
@@ -289,8 +296,15 @@ ck("⚠️ ...and the struck original is still visible in the source",
    "superseded content is struck, never deleted — that is why this "
    "check reads the executable half rather than the file")
 nc = js_block("fbNoCard", HTML)
-ck("...and what replaced it still says why the board is absent",
-   "player-prop pull" in nc and "not been priced" in nc)
+# [Sam, 2026-10-01] ~~"...and what replaced it still says why the board is
+#    absent" ("built from the player-prop pull ... the slate has not been
+#    priced yet")~~ — Sam removed every explanation from the page, so the
+#    no-card state is ONE plain line naming the absence, in no box.
+ck("...and what replaced it is one plain line naming the absence",
+   '<div class="msg">No ${LG_NAME[LEAGUE]} ${what} published yet.</div>' in nc
+   and "player-prop pull" not in nc and "not been priced" not in nc
+   and "'note'" not in nc and 'class="note' not in nc,
+   "no schedule, no cause, no box — the absence itself is the line")
 
 
 # ───────────────────────────────────────────────────────────────

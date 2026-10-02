@@ -475,6 +475,10 @@ def check_converge():
                      "soft modes that failed: %s; returned %s" % (_soft, code))
 
             # the published report must carry every field the page reads
+            # [Sam, 2026-10-01] the page has no stale bar now and reads only
+            # `built_at`. This is a DATA check and stands unchanged: the
+            # report keeps every field (CLAUDE.md), and the watchdog reads
+            # `mode` and `stale` off these same rows.
             rep = json.load(open("data/latest/freshness.json"))
             need = {"mode", "stale", "missing", "late_min", "due_et", "age_min"}
             miss = need - set(rep["artifacts"][0])

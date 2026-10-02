@@ -55,6 +55,11 @@ point of shipping the archive first.
 #   file: freshness.py
 #   find: STAMP_FIELDS = ("pulled_at", "built_at", "generated_at", "written_at")
 #   with: STAMP_FIELDS = ("built_at", "generated_at", "written_at")
+#
+# @vacuity [Sam, 2026-10-01] first_seen reaches the page nowhere: the news-flag door stays shut
+#   file: index.html
+#   find: function fbFlagsRecordHtml(FL){
+#   with: function fbFlagOne(f){ return `<span class="fbflag" title="first seen ${f.first_seen || ''}">&#9873; <b>${f.status}</b></span>`; } function fbFlagsRecordHtml(FL){
 """
 import ast
 import datetime
@@ -686,16 +691,33 @@ _page = io.open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
 for _t in ("link_key", "news/", "revision"):
     ck("⛔ %r does not reach the page" % _t, _t not in _page,
        "nothing is joined to a player and nothing is on the surface")
-# ⚠️ `[Sam, 2026-09-25]` ONE FIELD NOW HAS ONE DOOR. A news FLAG on a board
+# ⚠️ `[Sam, 2026-09-25]` ~~ONE FIELD NOW HAS ONE DOOR. A news FLAG on a board
 #    row shows when the reviewer first saw it — Sam asked for exactly that
 #    ("the source, the headline or status, its link, and first_seen"). ⛔ It
 #    may appear ONLY inside the flag renderer, read off a flag; anywhere
-#    else on the page (the archive's own field reaching the surface) is red.
+#    else on the page (the archive's own field reaching the surface) is red.~~
+# 🔴 `[Sam, 2026-10-01]` NO DOOR AT ALL. ~~ck("⛔ 'first_seen' reaches the page
+#    ONLY through the news-flag renderer", _page.count("first_seen") ==
+#    _door.count("first_seen") >= 1 and "f.first_seen" in _door)~~. Sam
+#    removed every per-row flag from every tab, the news flags with them ("i
+#    just want what's supposed to be in each tab to be in each tab"; asked
+#    what stays, he chose: remove everything). fbFlagOne, the one door, is
+#    deleted, so `first_seen` must reach the page NOWHERE now: not the flag's
+#    copy, not the archive's. Asked the same two ways: the page's own count,
+#    and the same reader for the door. ⚠️ news_flags_fb.py still WRITES
+#    first_seen on every flag and this archive still writes its own; only
+#    the page stopped reading it.
 from jsblock import js_block as _jsb  # noqa: E402
-_door = _jsb("fbFlagOne", os.path.join(ROOT, "index.html"))
-ck("⛔ 'first_seen' reaches the page ONLY through the news-flag renderer",
-   _page.count("first_seen") == _door.count("first_seen") >= 1 and "f.first_seen" in _door,
-   "page %d, fbFlagOne %d" % (_page.count("first_seen"), _door.count("first_seen")))
+try:
+    _jsb("fbFlagOne", os.path.join(ROOT, "index.html"))
+    _door_gone = False
+except AssertionError:
+    _door_gone = True
+ck("⛔ [Sam, 2026-10-01] 'first_seen' reaches the page NOWHERE — its one "
+   "door, the news-flag renderer, is gone",
+   _page.count("first_seen") == 0 and _door_gone,
+   "page %d, fbFlagOne still defined: %s"
+   % (_page.count("first_seen"), not _door_gone))
 # ⛔ ORDER INSIDE THE FUNCTION, NOT POSITION IN THE FILE. My first form
 #    compared `CSRC.index(...)` and matched the `def archive_news` that
 #    sits ABOVE the writer — a check that reddened on correct code

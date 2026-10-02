@@ -33,10 +33,15 @@ scored exactly as `research/fb_card_calibration_spec.md` fixes it
 #   find:              "actual": L(b["actual"], "DESCRIPTIVE"), "flag": b["state"]}
 #   with:              "actual": L(b["actual"], "DESCRIPTIVE"), "flag": "OK"}
 #
-# @vacuity the page shows the band table next to the card
+# @vacuity [Sam, 2026-10-01] the page shows NO band table or raw-numbers warning next to the card
 #   file: index.html
-#   find:       ${fbCardCalHtml(CC)}
-#   with:       ${''}
+#   find:   <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>
+#   with:   <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>${fbCardCalHtml(CC)}
+#
+# @vacuity [Sam, 2026-10-01] the page no longer loads card-calibration.json at all
+#   file: index.html
+#   find:   const AG = await fbAgLoad();
+#   with:   const AG = await fbAgLoad(); const CC = await jget(`${LG_DATA[LEAGUE]}/latest/card-calibration.json`);
 """
 import datetime
 import gzip
@@ -110,7 +115,8 @@ ck(K.verdict(600, 0.1, 0.01) == "QUALIFIES" and K.verdict(600, 0.1, 0.2) == "DOE
    "✅ QUALIFIES needs n ≥ 500, a lower loss and one-sided p < 0.05")
 
 # ══════════════════════════════════════════════════════════════════════
-# 4. THE PAGE: calibration.py's band verdicts, next to the card
+# 4. THE BANDS: calibration.py's verdicts, still written for the page;
+#    `[Sam, 2026-10-01]` the page itself draws none of them
 # ══════════════════════════════════════════════════════════════════════
 _tmp = tempfile.mkdtemp()
 try:
@@ -125,10 +131,20 @@ ck(_b["80-90%"]["flag"] == "UNDER" and _b["60-70%"]["flag"] == "OK"
    and _b["80-90%"]["actual"] == {"value": 40.8, "basis": "DESCRIPTIVE"},
    "🔴 the page's bands carry calibration.py's own per-band verdict, labelled DESCRIPTIVE",
    "got %r" % _b)
+# `[Sam, 2026-10-01]` This USED TO REQUIRE the stated-vs-actual table per
+#    band next to the football props card (`fbCardCalHtml`, after the
+#    `fbCalNote` pop-up) and its "these are the card's raw numbers" warning
+#    (Sam, 2026-09-24). Sam has since removed every confidence pop-up from
+#    the page -- *"we have a track record for a reason"* -- so it now
+#    requires that NEITHER is drawn, nor even loaded. ⛔ The bands are still
+#    built and still carry calibration.py's verdicts (the check above, and
+#    `research/fb_card_calibration_spec.md`'s test is unchanged).
 _html = os.path.join(ROOT, "index.html")
 _pk_js = jsblock.js_block("fbPicks", _html)
-_cc_js = jsblock.js_block("fbCardCalHtml", _html)
-ck("${fbCardCalHtml(CC)}" in _pk_js and _pk_js.index("${fbCalNote(C)}") < _pk_js.index("${fbCardCalHtml(CC)}")
-   and "labN(b.stated" in _cc_js and "labN(b.actual" in _cc_js and "raw" in _cc_js,
-   "🔴 the page shows stated vs actual per band next to the card, and says the numbers are raw",
-   "⛔ Sam: 'next to the football props card ... labelled DESCRIPTIVE' and a visible warning")
+_blocks = jsblock.top_level_blocks(_html)
+ck("fbCardCalHtml" not in _pk_js and "fbCalNote" not in _pk_js
+   and not ({"fbCardCalHtml", "fbCardCalLoad", "fbCalNote"} & set(_blocks))
+   and "card-calibration.json" not in jsblock.source(_html),
+   "🔴 [Sam, 2026-10-01] the page shows NO stated-vs-actual band table and no raw-numbers warning next to "
+   "the card, and loads nothing from card-calibration.json (both used to be required)",
+   "⛔ Sam: 'we have a track record for a reason' -- the bands stay in the data, never on the page")

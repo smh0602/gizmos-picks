@@ -59,6 +59,16 @@ and a feed can change:
 #   file: card_fb.py
 #   find: "player_pass_tds":      (lambda g: float(g.get("pass_td") or 0),  "pass TD"),
 #   with: "player_pass_tdz":      (lambda g: float(g.get("pass_td") or 0),  "pass TD"),
+#
+# @vacuity [Sam, 2026-10-01] the record tab prints no coverage sentence
+#   file: index.html
+#   find: <tbody>${dayRows}</tbody></table>`);
+#   with: <tbody>${dayRows}</tbody></table>${R && R.coverage_note ? `<div class="fnote"><b>What is and is not counted.</b> ${R.coverage_note}<br><br>${R.over_bias_note || ''}</div>` : ''}`);
+#
+# @vacuity [Sam, 2026-10-01] ...and no concentration warning
+#   file: index.html
+#   find: ${hero}
+#   with: ${hero}${graded && R.distinct_players ? `<div class="fnote"><b>${O.n} graded rows came from ${R.distinct_players} players.</b></div>` : ''}
 # ══════════════════════════════════════════════════════════════════════
 import glob
 import gzip
@@ -811,9 +821,24 @@ for _lg, _logmode in (("ncaaf", "cfb-probe"), ("nfl", "nfl-logs")):
 
 h = open(f"{ROOT}/index.html").read()
 ck("the page reads record.json", "latest/record.json" in h)
-ck("the page prints the builder's own coverage sentence, not its own",
-   "R.coverage_note" in h and "R.over_bias_note" in h)
-ck("the page prints the concentration warning", "distinct_players" in h)
+# 🔴 `[Sam, 2026-10-01]` ~~ck("the page prints the builder's own coverage
+#    sentence, not its own", "R.coverage_note" in h and "R.over_bias_note" in
+#    h)~~ and ~~ck("the page prints the concentration warning",
+#    "distinct_players" in h)~~. The football record tab printed record_fb.py's
+#    coverage and over-bias sentences, and an "N rows came from M players"
+#    warning, in footnote boxes. Sam: no explanation, caveat or warning box on
+#    any tab ("i just want what's supposed to be in each tab to be in each
+#    tab"; asked what stays, he chose: remove everything). So both are
+#    required ABSENT, asked of the page the same way. ⚠️ record_fb.py still
+#    WRITES coverage_note, over_bias_note and distinct_players, and the checks
+#    above still assert them on the grader's own sandbox output, unchanged;
+#    only the page stopped printing them.
+ck("⛔ [Sam, 2026-10-01] the page prints no coverage sentence — not the "
+   "builder's, not one of its own",
+   "coverage_note" not in h and "over_bias_note" not in h
+   and "What is and is not counted" not in h)
+ck("⛔ [Sam, 2026-10-01] ...and no concentration warning",
+   "distinct_players" not in h)
 ck("an em-dash is still used for 'nothing graded'",
    "nothing graded yet" in h,
    "'nothing graded' and 'graded 0%' are different facts")
