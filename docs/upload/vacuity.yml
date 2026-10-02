@@ -52,9 +52,11 @@ jobs:
     # minutes on 09-22 and 09-23, so two nights reported nothing. The sweep
     # now runs in parallel worktrees — tier 2 measured 1054s on a slow
     # runner — but the slowest runner seen is ~1.4x slower again.
-    # ⛔ `test_vacuity_pool.py` requires this to be at least the 2400s
-    # pr-tests gives `test_vacuity.py`, which runs LESS of the same sweep.
-    timeout-minutes: 60
+    # ⛔ `test_vacuity_pool.py` requires this to be at least the ~~2400s~~
+    # 5400s pr-tests gives `test_vacuity.py`, which runs LESS of the same sweep.
+    # `[2026-10-02]` ~~60~~ 120: tier 2 alone outran 2400s in collect #2093
+    # once #218 added ~140 declarations, and this job runs tier 1 as well.
+    timeout-minutes: 120
     permissions:
       contents: read
       issues: write

@@ -45,7 +45,7 @@ declarations of its own — the nightly sweep proves each check here bites.
 #
 # @vacuity 🔴 the nightly job's clock may not fall below the PR's sweep clock
 #   file: docs/upload/vacuity.yml
-#   find:     timeout-minutes: 60
+#   find:     timeout-minutes: 120
 #   with:     timeout-minutes: 30
 """
 import glob

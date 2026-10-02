@@ -3,8 +3,8 @@
 ## Current: give the mutation sweep enough time `[2026-10-02]`
 
 **Do this after you merge the pull request "collect/pr-tests: give the
-vacuity sweep 5400s" (its description links to this file).** It is one
-file and one change.
+vacuity sweep 5400s" (its description links to this file).** It is two
+files uploaded together, `collect.yml` and `vacuity.yml`, in one commit.
 
 **Why:** every collect run since #218 merged has gone red in its Tests
 step: `test_vacuity.py TIMED OUT after 2400s`. Nothing failed; the sweep
@@ -13,20 +13,26 @@ took 33 minutes before #218 (collect #2092) and #218 added about 140
 guard checks. The new limit, 5400 seconds (90 minutes), is the same
 margin as the last raise. The sweep itself is not shortened or skipped.
 `pr-tests.yml` already carries the same number from the merge; this
-upload brings the collector in line.
+upload brings the collector in line. The nightly sweep (`vacuity.yml`)
+runs the whole sweep, so its job limit goes from 60 to 120 minutes;
+`test_vacuity_pool.py` requires it to be at least 5,400 seconds.
 
 **No schedule, cron line or cost changes. The cron count does not
-change.** Only one number and its comment differ from the live file.
+change.** In each file only one number and its comment differ from the
+live file.
 
 ### Click by click (Windows)
 
 1. Open **File Explorer**, click **Downloads**, and delete any old
-   `collect.yml` there (otherwise Windows saves `collect (1).yml`).
+   `collect.yml` or `vacuity.yml` there (otherwise Windows saves
+   `collect (1).yml`).
 2. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/collect.yml
    and check the breadcrumb reads **gizmos-picks / docs / upload /
    collect.yml**.
 3. Click **Download raw file** (the small downward-arrow icon on the
-   right, above the file's contents).
+   right, above the file's contents). Then do the same for
+   https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/vacuity.yml
+   (breadcrumb **gizmos-picks / docs / upload / vacuity.yml**).
 4. Open https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
    and check the breadcrumb reads **gizmos-picks / .github / workflows**.
    ⛔ Not the repo's front page: a file uploaded there lands in the top
@@ -34,13 +40,14 @@ change.** Only one number and its comment differ from the live file.
 5. Click **Add file** (top right, next to the green **Code** button),
    then **Upload files**.
 6. Click **choose your files** (the blue link in the middle of the box).
-   ⛔ Do not drag a folder in. In **Downloads** pick `collect.yml` and
-   click **Open**.
-7. Check the page lists exactly **1 file**, `collect.yml`.
+   ⛔ Do not drag a folder in. In **Downloads** click `collect.yml`,
+   hold **Ctrl** and click `vacuity.yml`, then click **Open**.
+7. Check the page lists exactly **2 files**, `collect.yml` and
+   `vacuity.yml`.
 8. In the **Commit changes** box paste this as the first line:
 
    ```
-   collect.yml: give test_vacuity.py 5400s (the sweep outgrew 2400s; no cron change)
+   collect.yml + vacuity.yml: give the vacuity sweep 5400s and the nightly 120 min (no cron change)
    ```
 
 9. Leave **Commit directly to the main branch** selected and click the
@@ -48,9 +55,10 @@ change.** Only one number and its comment differ from the live file.
 
 **What you should see afterwards:** the next collect run's Tests step
 finishes instead of stopping at `test_vacuity.py TIMED OUT after 2400s`,
-and collect runs go green again. Until you upload, the nightly "runs"
-report lists `collect.yml` as waiting, and after 48 hours it says so in
-an issue.
+and collect runs go green again; the next nightly vacuity run (06:47 UTC)
+finishes inside its new limit. Until you upload, the nightly "runs"
+report lists both files as waiting, and after 48 hours it says so in an
+issue.
 
 ---
 
