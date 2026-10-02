@@ -1,7 +1,7 @@
 {
  "date": "2026-10-02",
  "league": "ncaaf",
- "generated_at": "2026-10-02T13:31:46Z",
+ "generated_at": "2026-10-02T17:25:02Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-02T13:31:42Z",
@@ -30,10 +30,10 @@
    "game_id": "e61c74f0e28b46ad83270a6234b425f4",
    "commence": "2026-10-02T23:00:00Z",
    "market": "spreads",
-   "side": "Virginia Tech Hokies",
-   "point": -2.5,
+   "side": "Pittsburgh Panthers",
+   "point": 2.5,
    "best_price": -110,
-   "best_book": "fanduel",
+   "best_book": "hardrockbet",
    "link": null,
    "median_price": 1.8696,
    "n_books": 3,
@@ -45,14 +45,14 @@
    "game_id": "0469a451e58ca81723a7760d4bede173",
    "commence": "2026-10-03T00:00:00Z",
    "market": "totals",
-   "side": "Under",
+   "side": "Over",
    "point": 45.5,
-   "best_price": -105,
-   "best_book": "fanduel",
+   "best_price": -110,
+   "best_book": "hardrockbet",
    "link": null,
-   "median_price": 1.9259,
+   "median_price": 1.8696,
    "n_books": 3,
-   "gain_pct": 1.37
+   "gain_pct": 2.11
   },
   {
    "kind": "MARKET",
@@ -60,14 +60,14 @@
    "game_id": "a39f3695781e9b2f76011e921d63b124",
    "commence": "2026-10-02T23:00:00Z",
    "market": "totals",
-   "side": "Over",
+   "side": "Under",
    "point": 49.5,
-   "best_price": -112,
+   "best_price": -108,
    "best_book": "draftkings",
    "link": null,
-   "median_price": 1.8772,
+   "median_price": 1.9091,
    "n_books": 3,
-   "gain_pct": 0.83
+   "gain_pct": 0.88
   }
  ],
  "game_lines_meta": {
@@ -86,7 +86,7 @@
   ],
   "card_slate": "2026-10-02",
   "is_next_slate": false,
-  "snapshot": "data/ncaaf/2026-10-02/gamelines/1331.json.gz"
+  "snapshot": "data/ncaaf/2026-10-02/gamelines/1720.json.gz"
  },
  "game_lines_rule": "The 3 biggest PRICE differences on the board, one per game, richest first \u2014 how much more the best book pays than a typical one on the SAME wager. \u26a0\ufe0f This is not a prediction and it does not say who wins. It is arithmetic on 12 quotes that 3+ of the five books priced at the identical signed number. Football carries no Gizmo's rating and no row here has one.",
  "top_plays": [
@@ -853,7 +853,7 @@
    {
     "legs": [
      "Luke Reynolds u58.5 rec yds",
-     "Virginia Tech Hokies -2.5 spread"
+     "Pittsburgh Panthers +2.5 spread"
     ],
     "game": "Pittsburgh Panthers @ Virginia Tech Hokies",
     "game_id": "e61c74f0e28b46ad83270a6234b425f4",
@@ -861,13 +861,13 @@
     "book": "hardrockbet",
     "prices": [
      -115,
-     -115
+     -110
     ],
-    "line_best_book": "fanduel",
+    "line_best_book": "hardrockbet",
     "line_best_price": -110,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.495,
+    "multiplier": 3.569,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -883,8 +883,8 @@
    },
    {
     "legs": [
-     "Luke Reynolds u58.5 rec yds",
-     "Jeffrey Overton Jr. u85.5 rush yds"
+     "Jeffrey Overton Jr. u85.5 rush yds",
+     "Pittsburgh Panthers +2.5 spread"
     ],
     "game": "Pittsburgh Panthers @ Virginia Tech Hokies",
     "game_id": "e61c74f0e28b46ad83270a6234b425f4",
@@ -892,13 +892,13 @@
     "book": "hardrockbet",
     "prices": [
      -115,
-     -115
+     -110
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.495,
+    "n_line_legs": 1,
+    "multiplier": 3.569,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -908,7 +908,6 @@
     "weakest_leg_basis": "RECORD",
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     84,
      80
     ],
     "band_floor": 1.8
@@ -916,7 +915,7 @@
    {
     "legs": [
      "Griffin Wilde u66.5 rec yds",
-     "Under 45.5 total"
+     "Over 45.5 total"
     ],
     "game": "Penn State Nittany Lions @ Northwestern Wildcats",
     "game_id": "0469a451e58ca81723a7760d4bede173",
@@ -926,8 +925,8 @@
      -115,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 2,
     "n_line_legs": 1,
     "multiplier": 3.569,
@@ -947,7 +946,7 @@
    {
     "legs": [
      "James Peoples u47.5 rush yds",
-     "Under 45.5 total"
+     "Over 45.5 total"
     ],
     "game": "Penn State Nittany Lions @ Northwestern Wildcats",
     "game_id": "0469a451e58ca81723a7760d4bede173",
@@ -957,8 +956,8 @@
      -120,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 2,
     "n_line_legs": 1,
     "multiplier": 3.5,
@@ -978,7 +977,7 @@
    {
     "legs": [
      "Kam Davis TD",
-     "Over 49.5 total"
+     "Under 49.5 total"
     ],
     "game": "Liberty Flames @ Delaware Blue Hens",
     "game_id": "a39f3695781e9b2f76011e921d63b124",
@@ -986,13 +985,13 @@
     "book": "draftkings",
     "prices": [
      -170,
-     -112
+     -108
     ],
     "line_best_book": "draftkings",
-    "line_best_price": -112,
+    "line_best_price": -108,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.006,
+    "multiplier": 3.059,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1009,7 +1008,7 @@
    {
     "legs": [
      "Viron Ellison Jr. TD",
-     "Over 49.5 total"
+     "Under 49.5 total"
     ],
     "game": "Liberty Flames @ Delaware Blue Hens",
     "game_id": "a39f3695781e9b2f76011e921d63b124",
@@ -1017,13 +1016,13 @@
     "book": "draftkings",
     "prices": [
      140,
-     -112
+     -108
     ],
     "line_best_book": "draftkings",
-    "line_best_price": -112,
+    "line_best_price": -108,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 4.543,
+    "multiplier": 4.622,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1043,7 +1042,7 @@
     "legs": [
      "Luke Reynolds u58.5 rec yds",
      "Jeffrey Overton Jr. u85.5 rush yds",
-     "Virginia Tech Hokies -2.5 spread"
+     "Pittsburgh Panthers +2.5 spread"
     ],
     "game": "Pittsburgh Panthers @ Virginia Tech Hokies",
     "game_id": "e61c74f0e28b46ad83270a6234b425f4",
@@ -1052,13 +1051,13 @@
     "prices": [
      -115,
      -115,
-     -115
+     -110
     ],
-    "line_best_book": "fanduel",
+    "line_best_book": "hardrockbet",
     "line_best_price": -110,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.535,
+    "multiplier": 6.673,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1076,8 +1075,8 @@
    {
     "legs": [
      "Luke Reynolds u58.5 rec yds",
-     "Jeffrey Overton Jr. u85.5 rush yds",
-     "Ethan Grunkemeyer u243.5 pass yds"
+     "Ethan Grunkemeyer u243.5 pass yds",
+     "Pittsburgh Panthers +2.5 spread"
     ],
     "game": "Pittsburgh Panthers @ Virginia Tech Hokies",
     "game_id": "e61c74f0e28b46ad83270a6234b425f4",
@@ -1086,13 +1085,13 @@
     "prices": [
      -115,
      -115,
-     -115
+     -110
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 6.535,
+    "n_line_legs": 1,
+    "multiplier": 6.673,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1103,7 +1102,6 @@
     "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      84,
-     80,
      74
     ],
     "band_floor": 3.0
@@ -1112,7 +1110,7 @@
     "legs": [
      "Griffin Wilde u66.5 rec yds",
      "James Peoples u47.5 rush yds",
-     "Under 45.5 total"
+     "Over 45.5 total"
     ],
     "game": "Penn State Nittany Lions @ Northwestern Wildcats",
     "game_id": "0469a451e58ca81723a7760d4bede173",
@@ -1123,8 +1121,8 @@
      -120,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 3,
     "n_line_legs": 1,
     "multiplier": 6.543,
@@ -1146,7 +1144,7 @@
     "legs": [
      "Griffin Wilde u66.5 rec yds",
      "Carson Hansen o32.5 rush yds",
-     "Under 45.5 total"
+     "Over 45.5 total"
     ],
     "game": "Penn State Nittany Lions @ Northwestern Wildcats",
     "game_id": "0469a451e58ca81723a7760d4bede173",
@@ -1157,8 +1155,8 @@
      -110,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": "hardrockbet",
+    "line_best_price": -110,
     "n_legs": 3,
     "n_line_legs": 1,
     "multiplier": 6.814,
@@ -1180,7 +1178,7 @@
     "legs": [
      "Kam Davis TD",
      "Viron Ellison Jr. TD",
-     "Over 49.5 total"
+     "Under 49.5 total"
     ],
     "game": "Liberty Flames @ Delaware Blue Hens",
     "game_id": "a39f3695781e9b2f76011e921d63b124",
@@ -1189,13 +1187,13 @@
     "prices": [
      -170,
      140,
-     -112
+     -108
     ],
     "line_best_book": "draftkings",
-    "line_best_price": -112,
+    "line_best_price": -108,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 7.215,
+    "multiplier": 7.341,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1214,7 +1212,7 @@
     "legs": [
      "Viron Ellison Jr. TD",
      "Terron Kellman TD",
-     "Over 49.5 total"
+     "Under 49.5 total"
     ],
     "game": "Liberty Flames @ Delaware Blue Hens",
     "game_id": "a39f3695781e9b2f76011e921d63b124",
@@ -1223,13 +1221,13 @@
     "prices": [
      140,
      350,
-     -112
+     -108
     ],
     "line_best_book": "draftkings",
-    "line_best_price": -112,
+    "line_best_price": -108,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 20.443,
+    "multiplier": 20.8,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1646,7 +1644,7 @@
  "empty_reason": null,
  "short_reason": null,
  "coverage": "88 priced football rows for 2026-10-02 across 3 board games; 25 shown.",
- "calibration_warning": "\u26a0\ufe0f These confidence numbers are running high. On this card's own record, when it said 80-90%, those plays hit 59.3% (27 graded). Treat every confidence below as overstated. This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 45.8% against a claimed 39.5% (+6.3 pts, n=24); 80-plus hit 59.3% against a claimed 84.5% (-25.2 pts, n=27). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 51 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
+ "calibration_warning": "\u26a0\ufe0f These confidence numbers are running high. On this card's own record, when it said 70-80%, those plays hit 33.3% (12 graded); when it said 80-90%, those plays hit 58.6% (29 graded). Treat every confidence below as overstated. This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 47.6% against a claimed 42.2% (+5.4 pts, n=42); 80-plus hit 58.6% against a claimed 84.4% (-25.8 pts, n=29). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 71 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by the player's own record at that exact line, highest first \u2014 the same order the MLB board uses. Rows with no record sit below every row that has one.",
  "no_model_note": "\ud83d\udd34 No row on this board carries a Gizmo's confidence rating and none ever will on today's evidence. Four pre-registered football models were tested and every one lost to a player's own season average. What is shown is his OWN RECORD and the market's price \u2014 both labelled.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
