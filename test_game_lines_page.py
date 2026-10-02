@@ -66,6 +66,11 @@ an absence can never pass because the data stopped carrying the thing.
 #   find:   if (FBTAB === 'gamelines' && !document.querySelector('#fbview [data-gl]')) { fbGameLinesTab(); return; }
 #   with:   if (false) { fbGameLinesTab(); return; }
 #
+# @vacuity the Game Lines tab sits beside Player Props
+#   file: index.html
+#   find: ['props', 'Player Props'], ['gamelines', 'Game Lines'], ['parlays', 'Parlays'],
+#   with: ['props', 'Player Props'], ['parlays', 'Parlays'], ['gamelines', 'Game Lines'],
+#
 # @vacuity the books' chance is drawn on every rung, ahead of the model's %
 #   file: index.html
 #   find:     <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b></div>
@@ -264,8 +269,13 @@ ck("Over" not in re.sub(r"<[^>]+>", " ", _lad) and len(re.findall(r'data-l="Edge
    "   ✅ the market filter shows spreads only")
 
 section("4. WIRED, AND IT FITS A PHONE")
-ck("'props','gamelines'" in js_block("fbShell", PAGE).replace(" ", ""),
-   "   ✅ the tab sits beside Player Props")
+# `[2026-10-02]` ~~fbShell's own tab list~~ -- the header's one bar draws
+#    every league's tabs from `TABS` (test_tab_bar.py), so ask that list.
+_tl = re.search(r"const TABS = \[(.*?)\];", HTML, re.S)
+_tabs = re.findall(r"\['([a-z]+)',", _tl.group(1)) if _tl else []
+ck("gamelines" in _tabs and "props" in _tabs
+   and _tabs.index("gamelines") == _tabs.index("props") + 1,
+   "   ✅ the tab sits beside Player Props", "tabs: %s" % _tabs)
 _wire = js_block("fbWire", PAGE)
 _tab = js_block("fbGameLinesTab", PAGE)
 ck("FBTAB === 'gamelines'" in _wire and "fbGameLinesTab()" in _wire and calls("fbGameLinesHtml", PAGE) >= 1
