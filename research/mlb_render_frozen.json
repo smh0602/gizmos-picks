@@ -12,12 +12,13 @@
   "2026-09-25 (C8): pickCard RE-BASELINED, and ONLY it, on Sam's instruction the same day: pitcher props keep their own 25 seats on Gizmo's Picks, and when fewer than 25 beat their price the rest are the best remaining pitcher rows, \"each clearly labelled that it loses to its price on the corrected number (show the printed %, the break-even and the edge)\". The only change is the `below_price` note: it now states the printed confidence, the break-even and the card's own `edge`, and keeps the old sentence when any of the three is missing. Driven in node by test_card_seats.py. Digest 3a8155bd0c2b4a50b4b7972b -> 6a955910383e69c62cfd946f. Every other frozen digest is unchanged and still pinned at the source commit.",
   "2026-10-01: on Sam's instruction the same day (\"i don't want any of the yellow boxes explaining each tab in any tab anymore ... do this for all 3 leagues\"; asked what stays, he chose: remove everything, including the per-row flags and the confidence pop-ups). REMOVED, because the page no longer draws them: functions cardStaleNote, renderStaleBanner; CSS rules .bandchip, .bandchip.bad, .bandchip.mdl, .bandchip.ok, .bandchip.rec, .bxsrc, .domnote, .domrow, .f-old, .fl-danger, .fl-info, .fl-warn, .fnote, .fnote b, .k-desc, .k-live, .k-market, .k-model, .kind, .note, .proj.m, .stalebar, .stalebar .sb-item, .stalebar.warn, .stalebar.warn b, .tapme, footer. RE-BASELINED, and ONLY these: functions dayDetailHtml, gameCard, labN, loadBoard, openBox, parlayTable, pickCard, projChip, refitPanel, renderFootball, renderNews, renderOdds, renderParlays, renderPicks, renderProps, renderRecord, renderScores, renderTrends, setLeague, startedToggle (each lost a note box, a MODEL/MARKET/DESCRIPTIVE tag, a row flag or the stale bar; no number, pick or control changed); CSS rules .altchip, .cell.plain, .f-mid i, .f-old i (.altchip neutral instead of cream, .cell.plain margin:0 beside the new .plain, the age dot muted instead of amber/red). Every other digest was equal to the live page before this edit and is unchanged.",
   "2026-10-01 (second pass, same instruction): the adversarial review of every tab found explanation and flag text the first pass left. RE-BASELINED, and ONLY these: functions betControl, pickCard, priceCell, refitPanel, renderFootball, renderOdds, renderParlays, renderPicks, renderProps, renderRecord, startedToggle (the alt-rung confidence breakdown in a hover title, the ⚑ glyph and state-site hover texts, the hitter badge's record outline, the shadow 'Flagged estimate' line, 'no game log matched' / 'one-sided' notes now a dash, 'market' after the implied %, the 'machine cards only' caption, 'Surprise' without its added clause, true one-line empty states on Picks / Odds / Parlays, and the started-games toggle that stays drawn after it is clicked); CSS rules #st.pulse, .betbtn.needs, .cell.best.needs, .res.v (amber and cream made neutral); REMOVED, unused: .betbtn.needs:hover, .conf.rec. Every other digest is unchanged.",
-  "2026-10-02: on Sam's instruction of 2026-10-01 (\"lets have the colors of the tabs and the layout be the same for each league, mlb looks different than the other 2 leagues. we need same order of tab from left to right, same colors, etc.\"): RE-BASELINED, and ONLY these: renderFootball, setLeague, show — the header's .subnav becomes the one tab bar for all three leagues (drawTabs, one order, 'Scores' everywhere), switching league keeps the tab (nextTab), the tools row follows one rule (setTools), football draws no bar of its own, and setLeague hides the MLB ticker by its real id (#tick). No CSS rule changed. Every other digest is unchanged."
+  "2026-10-02: on Sam's instruction of 2026-10-01 (\"lets have the colors of the tabs and the layout be the same for each league, mlb looks different than the other 2 leagues. we need same order of tab from left to right, same colors, etc.\"): RE-BASELINED, and ONLY these: renderFootball, setLeague, show — the header's .subnav becomes the one tab bar for all three leagues (drawTabs, one order, 'Scores' everywhere), switching league keeps the tab (nextTab), the tools row follows one rule (setTools), football draws no bar of its own, and setLeague hides the MLB ticker by its real id (#tick). No CSS rule changed. Every other digest is unchanged.",
+  "2026-10-02: on Sam's instruction of 2026-10-01 (\"the news at the bottom of the page isn't slowly moving at the bottom, we need to fix that and include news from across all 3 leagues on the bottom\"): RE-BASELINED, and ONLY setLeague (it no longer hides the ticker on football). REMOVED, because the page no longer has them: CSS rules #tick .tag (the one fixed 'MLB' tag; each headline now carries its own league mark, the added selector #tick .lg) and @media (prefers-reduced-motion:reduce) (it froze the ticker; reduced motion now gets half speed, tickSpeed). Every other digest is unchanged."
  ],
  "_source_commit": "407afad",
  "_counts": {
   "functions": 49,
-  "css_rules": 294
+  "css_rules": 292
  },
  "functions": {
   "bandRow": "e9a1a607b7b579d6d3956231",
@@ -61,7 +62,7 @@
   "renderScores": "74c121898bc78f50ff0beb5c",
   "renderTrends": "bbf03595ebee43696ac5abb3",
   "setBetState": "ce3d07c60f85a99d0fd4b1af",
-  "setLeague": "38c0402f6f50f94d1cb3926e",
+  "setLeague": "7382df4bcc0bc011a31f2068",
   "setTagline": "758952c7b11af7f8e2a4b64f",
   "show": "828040a78e68d8c7a554ac88",
   "splitStarted": "3034dbab4419fb8cd9b29c40",
@@ -76,7 +77,6 @@
   "#tick .rail": "9cbd88a3e439b56dcb9b6aac",
   "#tick .run": "2dddcdd95b25de37702da0a2",
   "#tick .src": "f6bb61eeb6845db81afe2d9b",
-  "#tick .tag": "d09167eafd4b1c0c8dc135aa",
   "#tick a": "0e6d88ac21b7345b51a5437c",
   "#tick a:hover": "127b564b4845af3daf1fbb2e",
   "#tick:hover .run": "b628efefcc8641c5cfb6e035",
@@ -337,7 +337,6 @@
   ":root": "a5305d62f27beaf2c6c430fc",
   "@keyframes fblive": "664bf0099f880dfbd514936c",
   "@keyframes tickmove": "1e0578811f52db1ab16a60b8",
-  "@media (prefers-reduced-motion:reduce)": "46553715da7376d5d7ca0836",
   "@media(max-width:520px)": "1936e9be382e3ff5885819a5",
   "a": "fe48d76ca4de45e9db6fcc1e",
   "a.cell.best:hover": "86dee14aef6d446d184e94bf",
