@@ -176,7 +176,6 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 /* 🔴 The batter badge keeps the SAME colour scale as the pitcher one.
    An earlier version greyed it out, which read as "this number is worth
    less". [Sam, 2026-10-01] no provenance chip beside the play name. */
-.conf.rec{box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 .kindbar{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
 .kchip{padding:6px 13px;border-radius:20px;border:1px solid var(--line);background:#fff;
   font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#46525f}
@@ -187,10 +186,9 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .betbtn{display:inline-block;margin-top:6px;padding:4px 9px;border-radius:6px;background:#14181f;
         color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none}
 .betbtn:hover{background:#2a323d}
-.betbtn.needs{background:#8a5a12;border:0;cursor:pointer;font-family:inherit}
-.betbtn.needs:hover{background:#a86c16}
-.cell.best.needs{cursor:pointer;color:#8a5a12}
-#st.pulse{outline:3px solid #e0a72a;outline-offset:2px;border-radius:6px}
+.betbtn.needs{border:0;cursor:pointer;font-family:inherit}
+.cell.best.needs{cursor:pointer}
+#st.pulse{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
 .nwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
 .nwc{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;
      text-decoration:none;color:inherit;background:#fff;transition:border-color .12s}
@@ -267,7 +265,7 @@ tr.dosrow.open .caret{transform:rotate(90deg)}
 .res{font-weight:800;font-size:11px;padding:1px 7px;border-radius:20px;border:1px solid}
 .res.w{color:#1f7a4d;border-color:#bfe0cd;background:#f2fbf6}
 .res.l{color:#9a2c2c;border-color:#e8c4c4;background:#fdf3f3}
-.res.v{color:#8a5f14;border-color:#f0dcb8;background:#fdf7ec}
+.res.v{color:#46525f;border-color:var(--line);background:var(--chip)}
 /* TOP 10 -- a compact ranked strip, visually distinct from the pick cards
    so nobody reads it as "the first ten of the board". It is a different
    list built from a different pool. */
@@ -511,7 +509,7 @@ table.fbt tr:hover td{ background:#f7f9fb; }
   <div class="tools">
     <h1 id="ttl">Scores &amp; Matchups</h1>
     <input type="date" id="dt">
-    <select id="st" title="Some sportsbooks run a separate site per state. Set yours and their bet links start working.">
+    <select id="st">
       <option value="">Bet links: pick your state</option>
       ${''}
     </select>
@@ -646,8 +644,7 @@ window.focusState = focusState;
 function betControl(url, label){
   const u = betLink(url);
   if (u) return `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">${label || 'BET'} →</a>`;
-  if (needsState(url)) return `<button class="betbtn needs" onclick="focusState()"
-      title="This book runs a separate site per state. Set yours once and the link works.">SET STATE</button>`;
+  if (needsState(url)) return `<button class="betbtn needs" onclick="focusState()">SET STATE</button>`;
   return '';
 }
 
@@ -1358,8 +1355,8 @@ function pickCard(p){
      and no rate on purpose -- printing "undefined" where a confidence
      goes is exactly the kind of thing a reader reads as a broken site. */
   h.append(p.confidence == null
-    ? el('div', 'conf norate', '<div class="n">&mdash;</div><div class="l">NO RATE</div>')
-    : el('div', 'conf ' + confClass(p.confidence) + (isH ? ' rec' : ''),
+    ? el('div', 'conf norate', '<div class="n">&mdash;</div><div class="l">CONF</div>')
+    : el('div', 'conf ' + confClass(p.confidence),
         `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
 
   if (p.pid) h.insertAdjacentHTML('beforeend',
@@ -1488,9 +1485,7 @@ function pickCard(p){
       const href = betLink(r.link);
       const node = href ? el('a', cls, inner) : el('span', cls, inner);
       if (href){ node.href = href; node.target = '_blank'; node.rel = 'noopener'; }
-      node.title = (r.app_label ? r.app_label + ' — ' : '')
-                 + `model ${r.model}% · own record ${r.raw} · blend ${r.blend}%`
-                 + (r.clears_price_floor ? '' : ' · shorter than the -700 floor');
+      if (r.app_label) node.title = r.app_label;
       L.append(node);
     });
     c.append(L);
@@ -1514,8 +1509,6 @@ function pickCard(p){
     if (p.class && p.class.all) bits.push(`Similar arms <b>${p.class.all}</b>`
       + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
     if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
-    if (p.carried != null && Math.abs(p.carried - p.blend) >= 0.5)
-      bits.push(`Flagged estimate <b>${p.carried}%</b>`);
   }
   if (p.break_even != null) bits.push(`Break-even <b>${p.break_even}%</b>`);
   if (p.other_side)
@@ -1551,16 +1544,17 @@ async function renderPicks(){
      Filter on the ISO kickoff where the card carries one; a card without
      that field is shown whole rather than silently half-hidden. */
   const dated = P.picks.filter(p => p.commence);
-  let live = showStarted ? P.picks
-             : (dated.length === P.picks.length
-                ? P.picks.filter(p => new Date(p.commence) > new Date())
-                : P.picks);
-  const hidden = P.picks.length - live.length;
+  /* [2026-10-01] counted whether or not they are shown, so the control
+     stays and can hide them again after "Show started games". */
+  const startedN = dated.length === P.picks.length
+    ? P.picks.filter(p => new Date(p.commence) <= new Date()).length : 0;
+  let live = (showStarted || !startedN) ? P.picks
+             : P.picks.filter(p => new Date(p.commence) > new Date());
   // Same rule: if every pick on the card is on a started game, hiding them
   // all leaves an empty board, so show them.
-  const pkAllDone = hidden > 0 && live.length === 0;
+  const pkAllDone = startedN > 0 && startedN === P.picks.length;
   if (pkAllDone) { live = P.picks; }
-  if (hidden) v.append(el('div', null, startedToggle(hidden, 'pk-started', pkAllDone)));
+  if (startedN) v.append(el('div', null, startedToggle(startedN, 'pk-started', pkAllDone)));
 
   /* The card already ranked itself -- band first, then edge. Re-sorting on
      `confidence` here would drop every hitter to the bottom, because a
@@ -1587,8 +1581,8 @@ async function renderPicks(){
   const shown = PICKKIND === 'all' ? live
               : live.filter(p => (PICKKIND === 'hitter') === (p.kind === 'hitter'));
   shown.sort((a,b) => (a.rank||999) - (b.rank||999)).forEach(p => v.append(pickCard(p)));
-  if (!shown.length) v.append(el('div','msg','No plays of that kind on this card.'));
-  if (!live.length) v.append(el('div','msg','Every game on this card has started.'));
+  if (!live.length) v.append(el('div','msg','No plays on this card.'));
+  else if (!shown.length) v.append(el('div','msg','No plays of that kind on this card.'));
   setTimeout(() => {
     const t = $('#pk-started');
     if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderPicks(); });
@@ -1653,8 +1647,7 @@ function priceCell(v, label){
   const body = `<b>${label}</b> ${sgn(v.price)}`;
   if (u) return `<a class="cell best" href="${u}" target="_blank" rel="noopener nofollow"
          title="${bookName(v.book)}">${body} →</a>`;
-  if (needsState(v.link)) return `<span class="cell best needs" onclick="focusState()"
-         title="${bookName(v.book)} runs a separate site per state — set yours to enable this link">${body} ⚑</span>`;
+  if (needsState(v.link)) return `<span class="cell best needs" onclick="focusState()">${body}</span>`;
   return `<span class="cell best" title="${bookName(v.book)}">${body}</span>`;
 }
 
@@ -1747,7 +1740,7 @@ async function renderOdds(){
       <p style="color:var(--mut);margin:0">${freshness(BOARD.pulled_at)}</p>
     </div>
     ${startedToggle(nStarted, 'ob-started', allDone)}
-    ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">Every game on the board has started.</div>'}`;
+    ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">No games on the board.</div>'}`;
 }
 
 /* Track Record — read from data/latest/record.json, not hardcoded.
@@ -1851,7 +1844,7 @@ function refitPanel(F){
     <h2>Is v5.0 still the best version?</h2>
     <p class="stamp"><span class="rec">built ${F.built_at}</span></p>
     <p><b>${verdictWord}</b></p>
-    <table class="ob" style="margin-top:12px"><thead><tr><th></th><th>Predictions</th><th>Surprise (lower is better)</th>
+    <table class="ob" style="margin-top:12px"><thead><tr><th></th><th>Predictions</th><th>Surprise</th>
       <th>Strikeouts</th><th>Outs</th></tr></thead><tbody>
       ${rec('v5.0 (on the card)', D.champion || {})}${rec('Re-fitted', D.challenger || {})}</tbody></table>
     <p style="margin-top:10px">Side by side: ${labN(P.predictions)} predictions. Average improvement from
@@ -1890,7 +1883,7 @@ async function renderRecord(){
         <div class="tr-box"><div class="k">Auto card</div><div class="v">${M.w}<span style="font-size:18px;color:var(--mut)">/${M.n}</span></div><div class="s">${M.pct}% hit rate</div></div>
         <div class="tr-box"><div class="k">Pitchers</div><div class="v">${(R.by_kind.pitcher.pct ?? '—')}%</div><div class="s">${R.by_kind.pitcher.w}/${R.by_kind.pitcher.n}</div></div>
         <div class="tr-box"><div class="k">Hitters</div><div class="v">${(R.by_kind.hitter.pct ?? '—')}%</div><div class="s">${R.by_kind.hitter.w}/${R.by_kind.hitter.n}</div></div>
-        <div class="tr-box"><div class="k">Cards graded</div><div class="v">${R.days_graded}</div><div class="s">machine cards only</div></div>
+        <div class="tr-box"><div class="k">Cards graded</div><div class="v">${R.days_graded}</div></div>
        </div>`
     : '<p class="plain">The automatic card has not been graded yet.</p>';
 
@@ -2182,7 +2175,7 @@ function splitStarted(all){
 function startedToggle(n, id, allDone){
   if (!n || allDone) return '';
   return `<div style="margin:10px 0"><a id="${id}" style="color:var(--accent);font-weight:700;cursor:pointer">${
-    showStarted ? 'Hide' : 'Show'} ${n} started game${n === 1 ? '' : 's'}</a></div>`;
+    showStarted ? 'Hide' : 'Show'} started games</a></div>`;
 }
 const PMARKETS = [
   ['batter_hits','Hits'],['batter_total_bases','Total bases'],
@@ -2261,11 +2254,11 @@ async function renderProps(){
       <div class="pr2"><div class="v2">${sgn(p.price)}</div>${bookChip(p.book)}
         ${(() => { const u = betLink(p.link); return u
           ? `<a class="betbtn" href="${u}" target="_blank" rel="noopener nofollow">Bet →</a>` : ''; })()}</div>
-      <div class="ev2">${bits.join(' &nbsp;·&nbsp; ') || '<span style="opacity:.6">no game log matched</span>'}
+      <div class="ev2">${bits.join(' &nbsp;·&nbsp; ') || '&mdash;'}
         ${(() => { const w = propWhy(p); return w ? `<div class="why2">${w}</div>` : ''; })()}</div>
       <div class="imp">${p.implied != null
-        ? `<b>${p.implied}%</b>market${p.n_books ? `<br><span style="font-size:10px">${p.n_books} book${p.n_books>1?'s':''}</span>` : ''}`
-        : '<span style="font-size:10px;opacity:.6">one-sided<br>no fair price</span>'}</div>
+        ? `<b>${p.implied}%</b>${p.n_books ? `<br><span style="font-size:10px">${p.n_books} book${p.n_books>1?'s':''}</span>` : ''}`
+        : '&mdash;'}</div>
     </div>`;
   };
 
@@ -2378,7 +2371,10 @@ async function renderParlays(){
     v.append(parlayTable(TITLES[size], rows));
   });
 
-  if (!any) v.append(el('div','msg','No parlay in those bands on this card.'));
+  const total = ['2','3','4'].reduce((n, k) => n + (PL[k] || []).length, 0);
+  if (!any) v.append(el('div','msg', total
+    ? 'No parlays left: every one has a leg in a game that has started.'
+    : 'No parlays on this card.'));
 }
 
 function show(tab){
@@ -2424,14 +2420,14 @@ const LG_TAG = { mlb:'MLB &mdash; live board',
 
 const TAB_TAG = {
   mlb: {
-    scores:'Live scores &amp; matchups', picks:'Picks, graded daily',
-    odds:'Live board, vig removed', record:'Every published pick, graded',
+    scores:'Live scores &amp; matchups', picks:'Picks board',
+    odds:'Live board', record:'Every published pick',
     trends:'Team form &amp; splits', news:'Around the league',
     parlays:'Parlays', props:'Player props &mdash; best price'
   },
   fb: {
     scores:'Schedule, scores &amp; box scores', picks:'Picks board',
-    odds:'Live board, vig removed', record:'Every published row, graded',
+    odds:'Live board', record:'Every published pick',
     trends:'Defensive &amp; offensive trends', news:'Around the league',
     parlays:'Parlays', props:'Player props &mdash; best price',
     gamelines:'Alt lines &mdash; three books'
@@ -2985,10 +2981,11 @@ function fbDosFacts(s){
 function fbDosSection(s){
   const gap = s.state !== 'OK';
   /* ⛔ `s.why` VERBATIM. Not summarised, not reworded, not truncated.
-     [Sam, 2026-10-01] no caveat line under the facts. */
+     [Sam, 2026-10-01] only a section with nothing to show prints it, as
+     its one-line empty state; a section that answers shows its facts. */
   return `<div class="dossec${gap ? ' gap' : ''}">
       <div class="dn">${s.name}</div>
-      <p class="dw">${s.why || ''}</p>
+      ${gap ? `<p class="dw">${s.why || ''}</p>` : ''}
       ${fbDosFacts(s)}
     </div>`;
 }
@@ -3054,7 +3051,7 @@ function fbOddsTable(list){
        MLB is left alone -- all three of its tabs use local time, so it is
        internally consistent; changing it is a separate decision. */
     const t = new Date(g.commence).toLocaleTimeString([], {hour:'numeric',
-      minute:'2-digit', timeZone:'America/New_York'});
+      minute:'2-digit', timeZone:'America/New_York'}) + ' ET';
     /* 🔴 LOGO + NAME, the way an MLB odds row reads. The logo falls back
        to the team's abbreviation if the image 404s, so a bad URL is
        cosmetic and never leaves a hole in the table. */
@@ -3115,7 +3112,7 @@ function fbOddsTable(list){
         const other = (g.best_total && Object.keys(g.best_total).length)
                    || (g.best_spread && Object.keys(g.best_spread).length);
         return other
-          ? `<div class="sub" style="line-height:1.35">no moneyline<br>posted</div>`
+          ? `<div class="big" style="font-size:13px;color:var(--mut)">&mdash;</div>`
           : `<div class="big" style="font-size:13px;color:var(--mut)">&mdash;</div>`;
       })()}</td>
     </tr>
@@ -3166,9 +3163,8 @@ async function fbOdds(){
     ${fbConfBar()}
     ${startedToggle(nStarted, 'fb-ob-started', allDone)}
     ${blocks || `<div class="msg">${fbConf.size && _oList.length
-      ? `No board game involves ${[...fbConf].join(', ')}. Clear the conference
-         filter to see the other <b>${_oList.length}</b>.`
-      : 'Every game on the board has kicked off.'}</div>`}`);
+      ? `No board game involves ${[...fbConf].join(', ')}.`
+      : 'No games on the board.'}</div>`}`);
   fbWire();
   /* 🔴 WIRED HERE, AFTER THE innerHTML THAT DREW THE ROWS. `#fbview` is
      rebuilt from scratch by every football renderer, so a listener bound
@@ -3878,7 +3874,7 @@ async function fbProps(){
       <div class="ev2"></div>
       <div class="imp">${sd && sd.n_books
         ? `<b>${sd.n_books}</b>book${sd.n_books > 1 ? 's' : ''}`
-        : '<span style="font-size:10px;opacity:.6">one-sided<br>no fair price</span>'}</div>
+        : '&mdash;'}</div>
     </div>`;
   };
 
@@ -3989,12 +3985,12 @@ function fbFlagsRecordHtml(FL){
   const R = FL.record || {}, a = R.absence || {}, c = R.caution || {};
   return `<div class="panel" style="margin-top:18px"><h2>News flags &mdash; how often they were right</h2>
     <div class="glwrap"><table class="glmain"><tr><th></th><th>Graded</th><th>Did not play</th><th>Played</th><th>Right</th></tr>
-      <tr><td><b>Should sit</b> (out, IR, doubtful, ruled out, inactive, suspended, traded, released, benched)</td>
+      <tr><td><b>Should sit</b></td>
         <td>${a.graded || 0}</td><td>${a.did_not_play || 0}</td><td>${a.played || 0}</td>
         <td>${a.right_pct == null ? '&mdash;' : a.right_pct + '%'}</td></tr>
-      <tr><td><b>Might sit</b> (questionable, limited, illness)</td>
+      <tr><td><b>Might sit</b></td>
         <td>${c.graded || 0}</td><td>${c.did_not_play || 0}</td><td>${c.played || 0}</td><td>&mdash;</td></tr>
-    </table></div><p style="font-size:12px;color:var(--mut)">${(FL.flags || []).length} flag(s) on today's board.</p></div>`;
+    </table></div></div>`;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -4050,8 +4046,7 @@ function fbGlRung(r, g, books){
                                : (r.side === 'over' ? 'Over' : 'Under');
   return `<div class="glr${r.floor ? '' : ' nofloor'}">
     <div class="glw"><b>${who} ${fbGlPt(r)}</b></div>
-    <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b>${(r.mkt_one_side || []).length
-      ? ` <span class="rec" title="Only one side posted at ${r.mkt_one_side.join(', ')} &mdash; that price's break-even, no vig removed">one side</span>` : ''}</div>
+    <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b></div>
     ${books.map(b => `<div data-l="${b}">${(r.prices || {})[b] == null ? '&mdash;' : sgn(r.prices[b])}</div>`).join('')}
     <div data-l="Best">${sgn(r.best)} <span class="rec">${r.book}</span></div>
     <div data-l="Break-even">${r.be}%</div>
@@ -4700,14 +4695,14 @@ async function fbParlays(){
   const emptyMsg = !C
     ? fbNoCard('parlays', 'msg')
     : (!(C.picks || []).length && C.empty_reason)
-      ? `<div class="msg">No parlays for ${fbDayName(C.date)} &mdash; there is
+      ? `<div class="msg">No parlays across games for ${fbDayName(C.date)} &mdash; there is
          no board to build them from.</div>`
     : nGames < 2
-      ? `<div class="msg">No parlays for ${fbDayName(C.date)} &mdash; this card's slate is ${
+      ? `<div class="msg">No parlays across games for ${fbDayName(C.date)} &mdash; this card's slate is ${
           nGames === 1 ? 'a single game' : 'empty'} and every leg must come from a different game${
           sameGame ? ` (${sameGame.toLocaleString()} combinations shared a game)` : ''}.</div>`
     : (outBand === 0 && sameGame > 0)
-      ? `<div class="msg">No parlays on this card &mdash; ${sameGame.toLocaleString()}
+      ? `<div class="msg">No parlays across games on this card &mdash; ${sameGame.toLocaleString()}
          combinations had two legs in the same game${Number(rj.mixed_book || 0)
            ? ` and ${Number(rj.mixed_book).toLocaleString()} needed two sportsbooks` : ''}.</div>`
       : `<div class="msg">No parlay on this card lands inside the payout bands.</div>`;
@@ -6157,21 +6152,16 @@ async function renderFootball(){
     ${ageNote}
     ${fbConfBar()}
     <table class="fbt"><thead><tr>
-      <th class="rk" title="Rank 1 ${fbSide==='off'?'produces':'allows'} the most${
-        floor > 1 ? ` — ranks are withheld below ${floor} games` : ''}">${
+      <th class="rk" style="white-space:normal">${
         fbSide==='off' ? 'Rk' : 'Rank (1 = most allowed)'}</th>
       <th>${fbSide==='off'?'Offense':'Defense'}</th>
       <th class="n fbsort" data-fbsort="1" title="Click to flip most/least"
-          style="cursor:pointer;user-select:none">${LEAGUE === 'ncaaf' && doc.per_game_scope
+          style="cursor:pointer;user-select:none;white-space:normal">${LEAGUE === 'ncaaf' && doc.per_game_scope
           ? 'Per game vs FBS' : 'Per gm'} ${sortArrow}</th>
       <th class="fbsort" data-fbsort="1" title="Click to flip most/least"
           style="width:32%;cursor:pointer;user-select:none">${metricLabel}
           ${fbSide==='off'?'produced':'allowed'} ${sortArrow}</th>
-      <th class="n"${LEAGUE === 'ncaaf' && doc.per_game_scope
-        ? ' title="Games against an FBS opponent. A game against an FCS'
-          + ' opponent contributes neither yards nor a game, so this reads'
-          + ' one lower than the team&#39;s record for most teams."' : ''
-        }>Gm</th>
+      <th class="n">Gm</th>
     </tr></thead><tbody>
     ${ranked.map(r => { const t = (r.v-lo)/rng; return `<tr>
         <td class="rk">${rankOf.get(r.team) ?? '&mdash;'}</td>

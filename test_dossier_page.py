@@ -79,8 +79,13 @@ reader SEES is made against rendered HTML.
 #
 # @vacuity a PLANTED refusal is the builder's own sentence, verbatim
 #   file: index.html
-#   find: <p class="dw">${s.why || ''}</p>
-#   with: <p class="dw">${(s.why || '').slice(0, 40)}</p>
+#   find: ${gap ? `<p class="dw">${s.why || ''}</p>` : ''}
+#   with: ${gap ? `<p class="dw">${(s.why || '').slice(0, 40)}</p>` : ''}
+#
+# @vacuity [Sam, 2026-10-01] a section that answers shows its facts and no prose
+#   file: index.html
+#   find: ${gap ? `<p class="dw">${s.why || ''}</p>` : ''}
+#   with: <p class="dw">${s.why || ''}</p>
 #
 # @vacuity a PLANTED one-sided game is described, not dropped
 #   file: dossier_fb.py
@@ -460,6 +465,17 @@ def sweep(tag, doc, R, planted):
            % (tag, len(owed_why)),
            "⛔ a second sentence written in JavaScript is a second copy of "
            "the reasoning (rule 132). Reworded: %s" % reworded[:3])
+    # 🔴 `[Sam, 2026-10-01]` AND A SECTION THAT ANSWERS PRINTS NO PROSE: its
+    #    facts are the content, its `why` was an explanation of the check.
+    #    Only a section with nothing to show keeps its sentence (above).
+    ok_why = [(r, s) for r, x in zip(rows, doc["dossiers"])
+              for s in x["sections"] if s["state"] == "OK" and s.get("why")]
+    printed = [(r["board_id"], s["name"]) for r, s in ok_why if s["why"] in r["html"]]
+    ck(len(ok_why) >= 1 and not printed,
+       "🔴 %s: a section that answers shows its facts and no explanation (%d)"
+       % (tag, len(ok_why)),
+       "⛔ the builder's `why` under a section that has data is a note about "
+       "the tab, which Sam removed. Printed: %s" % printed[:3])
     # ── THE REGISTER ─────────────────────────────────────────────────
     # ⚠️ On the planted board this reads the builder's REFUSAL prose too
     #    (`no_opponent`), which today's board carries only on a one-sided

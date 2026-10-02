@@ -100,7 +100,7 @@ server-side check on them stays -- this file asks only what is DRAWN.
 #
 # @vacuity the started-games control names what it shows
 #   file: index.html
-#   find: showStarted ? 'Hide' : 'Show'} ${n} started game${n === 1 ? '' : 's'}</a></div>`;
+#   find: showStarted ? 'Hide' : 'Show'} started games</a></div>`;
 #   with: showStarted ? 'Hide them' : 'Show anyway'}</a></div>`;
 """
 import json
@@ -269,10 +269,11 @@ _pop = [w for w in ("calibration_warning", "Read the confidence number honestly"
 ck("🔴 no confidence pop-up (either league)", READ and not _pop, "found %s" % _pop)
 _leg = [w for w in ("How to read the badges", "Model is ours", "<footer") if w in LIVE]
 ck("no badge legend", READ and not _leg, "found %s" % _leg)
-_fl = hits(LIVE, FLAGS) + [w for w in (".actionable", "Lineup risk", "RE-ORIENTED") if w in LIVE]
+_fl = hits(LIVE, FLAGS) + [w for w in (".actionable", "Lineup risk", "RE-ORIENTED", "Flagged estimate",
+                                       "⚑", ">one side<") if w in LIVE]
 ck("🔴 no per-row flag in the shipped code (Hard Rock, lineup risk, re-oriented, row chips)",
    READ and not _fl, "found %s" % _fl)
-_yel = [c for c in ("#fff9ec", "#f0dfb8") if c in CSS.lower()]
+_yel = [c for c in ("#fff9ec", "#f0dfb8", "#fdf7ec", "#f0dcb8") if c in CSS.lower()]
 ck("nothing in the yellow box palette", READ and not _yel, "found %s" % _yel)
 
 # ══════════════════════════════════════════════════════════════════════
@@ -391,8 +392,8 @@ ck("...and a hitter row draws no RECORD chip either",
 ck("a rendered labelled number is the number alone",
    R["lab"] == ["62.5%", "3", "—", "7"], "got %s" % R["lab"])
 ck("the started-games control names what it shows, and is gone when every game started",
-   R["toggle"][0].endswith(">Show 3 started games</a></div>")
-   and ">Hide 1 started game</a>" in R["toggle"][1] and R["toggle"][2] == ""
+   R["toggle"][0].endswith(">Show started games</a></div>")
+   and R["toggle"][1].endswith(">Hide started games</a></div>") and R["toggle"][2] == ""
    and "note" not in "".join(R["toggle"]), "got %s" % R["toggle"])
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that a number on the page is right, or that "

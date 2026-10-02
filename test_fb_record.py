@@ -504,7 +504,10 @@ section("8. ⛔⛔ MLB IS UNTOUCHED — BYTE-IDENTICAL, NOT 'I DIDN'T MEAN TO'")
 #    hashes REQUIRED the boxes; pinned at the new bytes they require their
 #    ABSENCE. The same amendment is in research/mlb_render_frozen.json's
 #    `_why` (c698d885). loadRecordDetail did not change and keeps its hash.
-_MAIN = {"renderRecord": "961ab07b215a4018",
+#    Second pass the same day (~~961ab07b215a4018~~): the "machine cards
+#    only" caption under the Cards graded tile went too; recorded in the
+#    oracle's second 2026-10-01 `_why` entry.
+_MAIN = {"renderRecord": "d854430216da3fdc",
          "dayDetailHtml": "93671bc164e26a96",
          "loadRecordDetail": "a6fff37555f03ce7"}
 for _n, _want in sorted(_MAIN.items()):
