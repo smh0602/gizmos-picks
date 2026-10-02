@@ -68,8 +68,8 @@ an absence can never pass because the data stopped carrying the thing.
 #
 # @vacuity the books' chance is drawn on every rung, ahead of the model's %
 #   file: index.html
-#   find:     <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b>${(r.mkt_one_side || []).length
-#   with:     <div>${(r.mkt_one_side || []).length
+#   find:     <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b></div>
+#   with:     <div></div>
 """
 import datetime
 import gzip
