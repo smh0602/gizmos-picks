@@ -405,7 +405,7 @@ if _BROWSER and os.path.exists(FIX):
         pg.wait_for_timeout(1200)
         pg.get_by_text(tab_text, exact=True).first.click()
         pg.wait_for_timeout(600)
-        pg.locator("#fbview a[data-fbtab='scores']").click()
+        pg.locator("nav.subnav a[data-tab='scores']").click()
         pg.wait_for_function(
             "() => window.__fbShown && window.__fbShown.length > 0",
             timeout=30000)

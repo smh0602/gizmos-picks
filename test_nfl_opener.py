@@ -376,7 +376,7 @@ if _BROWSER:
         pg.wait_for_timeout(1200)
         pg.get_by_text("NFL", exact=True).first.click()
         pg.wait_for_timeout(500)
-        pg.locator("#fbview a[data-fbtab=\'parlays\']").click()
+        pg.locator("nav.subnav a[data-tab=\'parlays\']").click()
         pg.wait_for_timeout(900)
         txt = pg.inner_text("#fbview")
         low = txt.lower()

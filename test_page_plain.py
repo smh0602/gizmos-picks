@@ -294,11 +294,17 @@ def closure(fn):
     return seen
 
 
-_mlb_tabs = sorted(set(re.findall(r'data-tab="([a-z]+)"', BODY)))
+# `[2026-10-02]` ONE tab list for every league (`TABS`, minus `TABS_OFF[lg]`),
+#    drawn into the header's one bar -- read out of the page, never typed here.
+_tl = re.search(r"const TABS = \[(.*?)\];", JS, re.S)
+_all_tabs = re.findall(r"\['([a-z]+)',", _tl.group(1)) if _tl else []
+_off = re.search(r"const TABS_OFF = \{([^}]*)\}", JS)
+_off = {lg: re.findall(r"'([a-z]+)'", v) for lg, v in
+        re.findall(r"(\w+)\s*:\s*\[([^\]]*)\]", _off.group(1))} if _off else {}
+_mlb_tabs = [t for t in _all_tabs if t not in _off.get("mlb", [])]
 _m = re.search(r"\(\{(\s*scores\s*:\s*renderScores[^}]*)\}\)", JS)
 _mlb_fn = dict(re.findall(r"(\w+)\s*:\s*(render\w+)", _m.group(1))) if _m else {}
-_fb_tabs = re.search(r"const tabs = \[([^\]]*)\];", BLOCKS.get("fbNav", "") or JS)
-_fb_tabs = re.findall(r"'([a-z]+)'", _fb_tabs.group(1)) if _fb_tabs else []
+_fb_tabs = [t for t in _all_tabs if t not in _off.get("nfl", [])]
 _fb_fn = dict(re.findall(r"FBTAB === '([a-z]+)'\) return (fb\w+)\(\)", BLOCKS.get("renderFootball", "")))
 _gl = re.search(r"FBTAB === 'gamelines'[^;]*?(fb\w+)\(\)", JS)
 if _gl:
