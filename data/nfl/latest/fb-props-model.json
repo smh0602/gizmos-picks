@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "MODEL",
- "built_at": "2026-10-02T13:33:23Z",
+ "built_at": "2026-10-02T15:31:00Z",
  "design": "research/fb_props_design.md",
  "books": [
   "DraftKings",
@@ -160,15 +160,15 @@
   },
   "player_reception_yds": {
    "picks": {
-    "value": 221,
+    "value": 222,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 106,
+    "value": 107,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 48.0,
+    "value": 48.2,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -181,13 +181,13 @@
    },
    "interval_95": {
     "value": [
-     41.3,
-     54.6
+     41.6,
+     54.8
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 217.0,
+    "value": 218.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -200,24 +200,24 @@
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT YET MEASURABLE",
-    "picks": 221,
+    "picks": 222,
     "min_picks": 300,
-    "p": 0.9509,
+    "p": 0.945,
     "games": 40,
-    "edge_points": -5.5
+    "edge_points": -5.2
    }
   },
   "player_receptions": {
    "picks": {
-    "value": 263,
+    "value": 264,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 125,
+    "value": 126,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 47.5,
+    "value": 47.7,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -230,13 +230,13 @@
    },
    "interval_95": {
     "value": [
-     39.6,
-     55.4
+     40.0,
+     55.5
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 154.3,
+    "value": 158.8,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -249,11 +249,11 @@
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT YET MEASURABLE",
-    "picks": 263,
+    "picks": 264,
     "min_picks": 300,
-    "p": 0.8841,
+    "p": 0.8775,
     "games": 46,
-    "edge_points": -4.9
+    "edge_points": -4.7
    }
   },
   "player_anytime_td": {
@@ -318,13 +318,13 @@
   "2026-09-21": true,
   "2026-09-28": true
  },
- "graded_rungs": 2448,
+ "graded_rungs": 2452,
  "calibration": {
   "model": [
    {
     "bucket": "0-10%",
     "n": {
-     "value": 267,
+     "value": 269,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -332,7 +332,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 14.2,
+     "value": 14.1,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -384,7 +384,7 @@
    {
     "bucket": "40-50%",
     "n": {
-     "value": 633,
+     "value": 635,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -392,7 +392,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 49.4,
+     "value": 49.3,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -629,32 +629,32 @@
   "player_pass_yds": {
    "n": 83,
    "card": 0.7145721062370537,
-   "model": 0.7539051527717581
+   "model": 0.7538069821660185
   },
   "player_pass_tds": {
    "n": 83,
    "card": 0.7026329976016105,
-   "model": 0.6914799947365392
+   "model": 0.6914572237727479
   },
   "player_rush_yds": {
    "n": 185,
    "card": 0.8077141367906193,
-   "model": 0.8079486254407109
+   "model": 0.8079470723481316
   },
   "player_reception_yds": {
    "n": 404,
    "card": 0.7609546838870722,
-   "model": 0.7391327027738346
+   "model": 0.7391234158479847
   },
   "player_receptions": {
    "n": 399,
    "card": 0.7417872992330673,
-   "model": 0.7384378929373592
+   "model": 0.7384361611273697
   },
   "player_anytime_td": {
    "n": 543,
    "card": 0.5573401268833162,
-   "model": 0.519118237739365
+   "model": 0.5191177494671897
   }
  },
  "card_logs_season": 2025,
@@ -673,9 +673,9 @@
  },
  "league_only": {
   "n": 1697,
-  "mean_d": 0.016808871692430533,
-  "t": 0.9240154750829748,
-  "p": 0.1800501232256596,
+  "mean_d": 0.016817730569518678,
+  "t": 0.924496858973203,
+  "p": 0.17992611723193735,
   "clusters": 49
  },
  "paired_rows": [
@@ -12346,225 +12346,225 @@
    "player_anytime_td",
    0,
    0.06,
-   0.043047
+   0.043062
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    1,
    0.39,
-   0.337505
+   0.337519
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    1,
    0.15,
-   0.143973
+   0.144
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    0,
    0.42,
-   0.199153
+   0.199172
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    0,
    0.14,
-   0.105666
+   0.105684
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    0,
    0.45,
-   0.412217
+   0.412232
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    1,
    0.15,
-   0.186959
+   0.186976
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    0,
    0.08,
-   0.061896
+   0.061907
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    0,
    0.44,
-   0.254495
+   0.254509
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_anytime_td",
    1,
    0.34,
-   0.21768
+   0.217693
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_pass_tds",
    1,
    0.36,
-   0.390534
+   0.391273
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_pass_yds",
    1,
    0.47,
-   0.474428
+   0.478309
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    0,
    0.65,
-   0.475174
+   0.475974
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    1,
    0.45,
-   0.487255
+   0.488055
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    0,
    0.53,
-   0.489471
+   0.49027
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    1,
    0.85,
-   0.47182
+   0.472624
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    1,
    0.39,
-   0.47621
+   0.477027
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    0,
    0.53,
-   0.484251
+   0.485051
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    1,
    0.86,
-   0.474769
+   0.47557
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_reception_yds",
    1,
    0.5,
-   0.482511
+   0.483311
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    0,
    0.35,
-   0.489764
+   0.490384
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    0,
    0.15,
-   0.405797
+   0.406369
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    1,
    0.5,
-   0.544322
+   0.544956
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    1,
    0.5,
-   0.521445
+   0.521949
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    0,
    0.64,
-   0.444777
+   0.445411
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    1,
    0.95,
-   0.553009
+   0.55369
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    0,
    0.41,
-   0.476201
+   0.476717
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_receptions",
    1,
    0.81,
-   0.418008
+   0.418692
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_rush_yds",
    1,
    0.15,
-   0.502766
+   0.502602
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_rush_yds",
    0,
    0.42,
-   0.472412
+   0.472252
   ],
   [
    "nfl:d55cb69fed50a09170560b5b75d8de86",
    "player_rush_yds",
    0,
    0.83,
-   0.497484
+   0.497329
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
   "n": 3713,
-  "mean_d": 0.038079640206490094,
-  "t": 3.214436943369333,
-  "p": 0.0007608257299100779,
+  "mean_d": 0.038083688493709626,
+  "t": 3.214782584510797,
+  "p": 0.0007599552924637714,
   "clusters": 203,
   "verdict": "QUALIFIES",
   "leagues": [
