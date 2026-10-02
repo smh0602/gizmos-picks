@@ -55,8 +55,23 @@ page's own `pickCard` in node for the label.
 #
 # @vacuity the page states the edge on a row below its price
 #   file: index.html
-#   find: (edge <b>${p.edge > 0 ? '+' : ''}${p.edge}%</b>).
-#   with: .
+#   find: break-even (edge ${p.edge > 0 ? '+' : ''}${p.edge}%)`
+#   with: break-even`
+#
+# @vacuity [Sam, 2026-10-01] the below-price line is numbers only: the sentence must not come back
+#   file: index.html
+#   find: ? `Below its price: ${p.confidence}%
+#   with: ? `<b>Loses to its price.</b> Below its price: ${p.confidence}%
+#
+# @vacuity a row that beats its price carries no below-price line
+#   file: index.html
+#   find: if (p.below_price)
+#   with: if (true)
+#
+# @vacuity a row missing a number shows the bare label, never 'null'
+#   file: index.html
+#   find: (p.confidence != null && p.break_even != null && p.edge != null)
+#   with: (p.confidence != null && p.break_even != null)
 """
 ROWS_FIXTURE = [
     ('p', 'a85710fa', 605280, 'outs', 15.5, 'over', 47, -5.7, 52.4),
@@ -388,14 +403,33 @@ try:
     T = json.loads(r.stdout) if r.returncode == 0 else ["", "", ""]
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
-ck("Loses to its price" in T[0] and "66%" in T[0] and "67.7%" in T[0] and "-2%" in T[0]
-   and "fill the board out" in T[0],
-   "🔴 a row below its price says it loses to it, with the printed 66%, the 67.7% break-even "
-   "and the -2 edge", T[0][-260:])
-ck("Loses to its price" not in T[1] and "fill the board out" not in T[1],
+# 🔴 [Sam, 2026-10-01] NUMBERS ONLY, NO SENTENCE. Until today these checks
+#    required the row to say "Loses to its price. ... It's here to fill the
+#    board out, not because it beats the price." (and, missing a number,
+#    "This one doesn't have an edge at the price shown -- it's here to fill
+#    the board out."). Sam removed every explanation from the page: "i just
+#    want what's supposed to be in each tab to be in each tab"; asked what
+#    stays, he chose: remove everything. C8's numbers stay, so the checks
+#    now require the printed %, the break-even and the edge ON THE LINE
+#    ITSELF (the row's "Break-even" figure below it does not count), and
+#    the sentences' absence.
+_GONE = ("Loses to its price", "fill the board out")
+
+
+def _line(t):
+    """The below-price line's own text: from its label to the next tag."""
+    i = t.find("Below its price")
+    return t[i:].split("<")[0] if i >= 0 else ""
+
+
+ck(all(n in _line(T[0]) for n in ("66%", "67.7%", "-2%")) and not any(g in T[0] for g in _GONE),
+   "🔴 a row below its price says so with the printed 66%, the 67.7% break-even and the -2 "
+   "edge, and no sentence", T[0][-260:])
+ck("Below its price" not in T[1] and not any(g in T[1] for g in _GONE),
    "   a row that beats its price carries no such label")
-ck("fill the board out" in T[2] and "undefined" not in T[2] and "null" not in T[2],
-   "   a row missing a number keeps the plain sentence, never 'undefined'", T[2][-300:])
+ck("Below its price" in T[2] and not any(g in T[2] for g in _GONE)
+   and "undefined" not in T[2] and "null" not in T[2],
+   "   a row missing a number shows the bare label, never 'undefined'", T[2][-300:])
 note("⛔ WHAT THIS DOES NOT CLAIM: which pitcher rows the model SHOULD like. The "
      "corrected number (C2) is unchanged; this only decides who gets a seat. "
      "verify_card.py section 7c checks the same caps on every live card.")

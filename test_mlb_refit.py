@@ -53,6 +53,26 @@ guards; `vacuity.py` drives the declarations:
 #   file: mlb_refit.py
 #   find:                                  else _post_starters(season)).items()):
 #   with:                                  else _starters(season, api_gt)).items()):
+#
+# @vacuity the page draws the report's numbers only through labN
+#   file: index.html
+#   find: Side by side: ${labN(P.predictions)} predictions.
+#   with: Side by side: ${P.predictions.value} predictions.
+#
+# @vacuity [Sam, 2026-10-01] labN prints the number alone: no Model / Market / Record tag
+#   file: index.html
+#   find: return x.value == null ? `—${unit || ''}` : fmt(x.value);
+#   with: return (x.value == null ? `—${unit || ''}` : fmt(x.value)) + ' <span class="kind k-model">Model</span>';
+#
+# @vacuity [Sam, 2026-10-01] the refit panel carries no tag and no note box
+#   file: index.html
+#   find: <p><b>${verdictWord}</b></p>
+#   with: <div class="note"><b>${verdictWord}</b><br>${F.rule}</div>
+#
+# @vacuity [Sam, 2026-10-01] ...and no Model tag on its heading
+#   file: index.html
+#   find: <h2>Is v5.0 still the best version?</h2>
+#   with: <h2>Is v5.0 still the best version? <span class="kind k-model">Model</span></h2>
 """
 import datetime
 import json
@@ -187,6 +207,7 @@ ck(M.verdict(*M.paired_test(_worse)[:2], M.paired_test(_worse)[3]) == "DOES NOT 
 
 # ══════════════════════════════════════════════════════════════════════
 # 6. RULE 55 — every number the page shows carries MODEL/MARKET/DESCRIPTIVE
+#    in the DATA. [Sam, 2026-10-01] the page itself prints the number alone.
 # ══════════════════════════════════════════════════════════════════════
 def _bare(node, path="display"):
     out = []
@@ -212,10 +233,26 @@ ck(not _nolabel,
    "⛔ Sam's rule 55. Bare numbers: %s" % _nolabel[:6])
 _page = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
 _m6 = re.search(r"function refitPanel\(F\)\{(.*?)\n\}", _page, re.S)
+# 🔴 [Sam, 2026-10-01] THE PAGE PRINTS THE NUMBER, NOT ITS LABEL. Until today
+#    `labN` printed every number with a Model / Market / Record tag
+#    (span.kind), and the panel carried a "Model" tag and two note boxes.
+#    Sam removed every tag and note from every tab: "i just want what's
+#    supposed to be in each tab to be in each tab"; asked what stays, he
+#    chose: remove everything. ✅ The basis stays in the DATA (checked just
+#    above, unchanged), so the page checks now require the tags' ABSENCE.
+#    `labN` is still the panel's one formatter: it unwraps {value, basis}
+#    and prints a dash for a missing value.
+_lab = re.search(r"\nfunction labN\([^)]*\)\{(.*?)\n\}", _page, re.S)
+_TAG = re.compile(r'class="kind|\bk-(?:model|market|desc|live|record)\b')
 ck(_m6 and "labN(" in _m6.group(1) and "function labN(" in _page
    and not re.search(r"\$\{[A-Za-z_.]+\.value\}", _m6.group(1)),
-   "⚠️ ...and the page draws them only through `labN`, which prints the label",
-   "⛔ a `${x.value}` in the panel would print a number with no label")
+   "⚠️ ...and the page draws them only through `labN`, its one formatter",
+   "⛔ a `${x.value}` in the panel would skip it and print 'undefined' for a missing value")
+ck(_lab and not _TAG.search(_lab.group(1)),
+   "🔴 ...which prints the number alone: no Model / Market / Record tag",
+   _lab and str(_TAG.findall(_lab.group(1))))
+ck(_m6 and not _TAG.search(_m6.group(1)) and 'class="note"' not in _m6.group(1),
+   "🔴    and the panel carries no tag and no note box")
 
 # ══════════════════════════════════════════════════════════════════════
 # 7. THE WEEKLY PR — only on QUALIFIES, and never a second one

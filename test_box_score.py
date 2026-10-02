@@ -14,9 +14,17 @@ cannot import fails the whole suite and BLOCKS a push (rule 133).
 WHAT IS PINNED:
   1. the numbers in the modal are the ones in the stored log — checked
      against the file, player by player, not "a table appeared"
-  2. a game we hold NO log for says so, and says it is an ABSENCE
+  2. a game we hold NO log for says so~~, and says it is an ABSENCE~~ — in
+     one plain line `[Sam, 2026-10-01]: the page draws no explanation boxes,
+     so the "absence, not a zero" note is gone and §0 / §2 require its
+     absence`
   3. 🔴 a re-render KEEPS THE READER'S SCROLL POSITION
   4. the live poll does not redraw when the feed has not moved
+
+# @vacuity §0 + §2 (browser): a game with no stored log is one plain line, no note box
+#   file: index.html
+#   find: if (!rows.length) return '<p class="plain">No player log for this game.</p>';
+#   with: if (!rows.length) return '<div class="note"><b>No player log for this game.</b> That is an absence, not a zero.</div>';
 """
 import glob
 import gzip
@@ -76,8 +84,14 @@ for lg, season in (("ncaaf", 2026), ("nfl", 2025)):
 box = js_block("fbBoxStored", HTML)
 ck("the stored box score is keyed on the game id, never a name",
    "by[String(g.id)]" in box, "rule 54")
-ck("a game with no stored log says ABSENCE, not zero",
-   "That is an absence, not a zero" in box,
+# [Sam, 2026-10-01] ~~"a game with no stored log says ABSENCE, not zero"
+#    ("That is an absence, not a zero")~~ — that sentence lived in a note box,
+#    and the page draws no explanation boxes any more. ✅ What it protected is
+#    kept: an empty game is still SAID, in one plain line, never left as an
+#    empty table.
+ck("a game with no stored log says so in one plain line, not a note box",
+   "'<p class=\"plain\">No player log for this game.</p>'" in box
+   and "absence, not a zero" not in box and 'class="note"' not in box,
    "⛔ an empty table with no reason reads as a bug")
 ck("...and it is reachable from the modal",
    calls("fbBoxScore", HTML) >= 1, "%d call site(s)" % calls("fbBoxScore", HTML))
@@ -226,8 +240,14 @@ if _BROWSER:
     if none_g:
         pg.wait_for_timeout(900)
         t2 = pg.inner_text("#fbbox").lower()
-        ck("⛔ it names the absence rather than showing an empty table",
-           "absence" in t2 and "not a zero" in t2, t2[:90])
+        # [Sam, 2026-10-01] ~~"⛔ it names the absence rather than showing an
+        #    empty table" ("absence" / "not a zero")~~ — that sentence was a
+        #    note box, and the boxes are gone. ✅ Kept: the panel still SAYS
+        #    there is no log, in one plain line, and draws no empty table.
+        ck("⛔ it says there is no log, in one plain line, not an empty table",
+           "no player log" in t2 and "not a zero" not in t2
+           and pg.locator("#fbbox table").count() == 0
+           and pg.locator("#fbbox .note").count() == 0, t2[:90])
         pg.keyboard.press("Escape")
         pg.wait_for_timeout(300)
     else:

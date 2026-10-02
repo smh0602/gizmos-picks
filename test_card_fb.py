@@ -691,10 +691,20 @@ ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
 #   find: if total < MIN_N else
 #   with: if False else
 #
-# @vacuity the page must actually RENDER it
+# @vacuity [Sam, 2026-10-01] the football header must NOT render the confidence pop-up
 #   file: index.html
-#   find: ${fbCalNote(C)}
-#   with: ${'' /* not rendered */}
+#   find: <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>
+#   with: <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>${fbCalNote(C)}
+#
+# @vacuity [Sam, 2026-10-01] no card, with or without the field, gets calibration_warning drawn
+#   file: index.html
+#   find: function fbConfBar(){
+#   with: function fbCalNote(C){ if (!C || !C.calibration_warning) return ''; return C.calibration_warning; } function fbConfBar(){
+#
+# @vacuity [Sam, 2026-10-01] the MLB card must NOT render the confidence pop-up either
+#   file: index.html
+#   find: head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2>`;
+#   with: head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2><div class="note"><b>Read the confidence number honestly.</b> ${P.calibration_warning}</div>`;
 # ══════════════════════════════════════════════════════════════════════
 print("\n17. 🔴🔴 A BOARD THAT STATES A CONFIDENCE MUST STATE HOW THAT")
 print("    CONFIDENCE HAS PERFORMED.")
@@ -827,24 +837,41 @@ eq(_drop_low, 0, "   no sub-50 row is dropped")
 eq(_cal_low.get("under-60", {}).get("n"), 26,
    "   all 26 roll into under-60")
 
-print("\n17e. ⛔ THE PAGE SAYS 'Read the confidence number honestly.' ONCE")
+print("\n17e. ⛔ THE BUILDER'S SENTENCE CARRIES NO BOLD PREFIX, AND")
+print("     `[Sam, 2026-10-01]` THE PAGE NO LONGER PRINTS IT AT ALL")
+# ⚠️ `[Sam, 2026-10-01]` The next check is DATA-SIDE and stays exactly as it
+#    was. Its reason ("index.html renders that phrase in bold") is history
+#    now -- the page prints no banner (the three checks after it) -- but the
+#    builder's sentence must still never carry the prefix itself.
 _s_live = _C17.calibration_sentence_fb(*_C17.load_calibration_fb(_HOT))
 ck("Read the confidence number honestly" not in _s_live,
    "   the builder's string does NOT carry the bold prefix",
    "🔴 index.html renders that phrase in bold immediately before this "
    "string. MLB's first draft carried it too and the banner said it "
    "TWICE (caught 2026-09-01 by rendering the page)")
+# `[Sam, 2026-10-01]` THESE THREE USED TO REQUIRE THE BANNER ON THE PAGE:
+#    the football header rendering `fbCalNote(C)` once, its guard for a card
+#    without the field, and MLB's `${P.calibration_warning}` exactly once.
+#    Sam removed every confidence pop-up from every league -- *"we have a
+#    track record for a reason"* -- so they now require it NOWHERE on the
+#    page. ⛔ The DATA half above is unchanged: every builder that states a
+#    confidence still publishes `calibration_warning`, derived from its
+#    record; it reaches Sam in the card JSON, never in a box on the page.
 _IDX = open(os.path.join(_ROOT17, "index.html"), encoding="utf-8").read()
-ck(_IDX.count("${fbCalNote(C)}") == 1,
-   "   the football header renders it, once",
-   "⛔ the props board is the only place a CONF cell appears")
-ck("!C.calibration_warning) return ''" in _IDX,
-   "   ⚠️ ...and a card without the field renders NOTHING, not 'undefined'",
-   "🔴 older dated cards predate the field and this tab renders whatever "
-   "is there")
-ck(_IDX.count("${P.calibration_warning}") == 1,
-   "   ⛔ and the MLB render is untouched — still exactly one",
-   "MLB is frozen. This task copies FROM it and does not edit it.")
+ck(_IDX.count("${fbCalNote(C)}") == 0 and "\nfunction fbCalNote(" not in _IDX
+   and "Read the confidence number honestly" not in _IDX,
+   "   [Sam, 2026-10-01] the football header renders NO confidence pop-up "
+   "(it used to render fbCalNote(C) once)",
+   "⛔ Sam: 'we have a track record for a reason'")
+ck("calibration_warning" not in _IDX,
+   "   ⚠️ ...and no card, with or without the field, has it drawn: the page "
+   "reads calibration_warning nowhere",
+   "🔴 older dated cards predate the field; since 2026-10-01 no card's "
+   "field reaches the page at all, so none can print 'undefined' either")
+ck(_IDX.count("${P.calibration_warning}") == 0,
+   "   ⛔ and the MLB card renders none either (it used to render exactly one)",
+   "[Sam, 2026-10-01] 'do this for all 3 leagues' -- MLB is unfrozen "
+   "(2026-09-22) and loses its pop-up with the other two")
 
 print("\n17f. 🔴🔴 UNDER THIS PROJECT'S OWN BAR, THE BANNER NAMES THE BAR")
 print("     `[measured 2026-09-16]` CFB's readable bands total 71 graded")

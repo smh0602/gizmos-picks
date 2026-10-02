@@ -38,7 +38,10 @@ wrong once.** Do not relax one because it looks over-cautious.
    vice versa.
 7. Sam gets the data and decides the plays. Never hide a play because you
    dislike it; label it instead. (The one exception is his own rule:
-   parlays below their payout floor are never shown.)
+   parlays below their payout floor are never shown.) `[Sam, 2026-10-01]`
+   On the page a play's label is its own numbers (%, price, book,
+   break-even, edge), never a chip, flag or note box; the labels stay in
+   the data files.
 8. Tell Sam plainly when you got something wrong. Never defend an earlier
    claim over the evidence.
 9. Every lasting doc keeps a dated changelog; strike superseded text
@@ -249,6 +252,12 @@ card" — a strictly stronger question. **If you make that argument, make it
 explicitly in the PR body, and make the new check harder to pass than the
 old one, not easier.**
 
+✅ `[Sam, 2026-10-01]` The other legitimate reason: **Sam changes the
+requirement itself.** The check is rewritten to the NEW requirement in the
+same PR, never deleted; the PR body quotes him; the new form still goes red
+under its own `@vacuity` mutation. First use: the page tests that required
+note boxes, tags and the stale bar now require their absence.
+
 ---
 
 ## What must never change without Sam saying so
@@ -273,7 +282,23 @@ old one, not easier.**
 
 ## Things that are true and easy to get wrong
 
-- 🔴 **THE PAGE RENDERS ONLY FLAGS MARKED `actionable`.** Sam,
+- 🔴 **THE PAGE SHOWS EACH TAB'S CONTENT, NOT NOTES ABOUT IT.** `[Sam,
+  2026-10-01]` *"i just want what's supposed to be in each tab to be in
+  each tab. do this for all 3 leagues"*; asked what stays, he chose:
+  remove everything. ⛔ On every MLB, NFL and college tab: no explanation,
+  caveat or warning box (`note`, `fnote`, `fbnotes`, `glwarn`, `domnote`
+  or anything like them), no confidence pop-up (*"we have a track record
+  for a reason"*), no badge legend, no MODEL / MARKET / DESCRIPTIVE /
+  RECORD / LIVE tag (`span.kind`), no per-row flag, no stale-data bar or
+  "out of date" note, nothing yellow. ✅ Kept: tables and cards with every
+  number, headings, controls, the last-updated time where a tab shows one,
+  and a one-line plain empty state. Two Trends headers carry their own
+  meaning ("Rank (1 = most allowed)", "Per game vs FBS"). ⚠️ The DATA keeps
+  every `kind`, `basis`, flag and note field, and every server-side check
+  on them stays; staleness reaches Sam through the watchdog, health.json
+  and the GitHub issue. `test_page_plain.py` fails if any of it returns.
+- 🔴 ~~**THE PAGE RENDERS ONLY FLAGS MARKED `actionable`.**~~ **THE PAGE
+  RENDERS NO FLAGS** `[Sam, 2026-10-01]`, not even actionable ones. Sam,
   2026-08-26: *"we have to advertise a clean look to the website that
   doesnt include nonsense users dont need to read and cant understand."*
   T21, T22, rule 15 and STEP 4B are notes the model writes to ITSELF.
@@ -282,9 +307,10 @@ old one, not easier.**
   must never become a card that stopped writing its diagnostics.
   `verify_card.py` checks both halves: nothing internal is marked for
   display, and the diagnostics are still being written. A flag only earns
-  `actionable` if it changes what the reader can DO — today the only one
+  `actionable` if it changes what the reader can DO ~~— today the only one
   is "Hard Rock didn't post this", because the price on screen is then
-  one they cannot bet.
+  one they cannot bet~~. `actionable` is still written and checked; since
+  2026-10-01 it decides nothing on the page.
 - 🔴 **THE "WHY" IS WRITTEN FOR A READER, NOT FOR THE LEDGER.** Sam,
   2026-08-26: *"lose the technical wording ... all of these things that a
   casual fine wont know about has to go."* ⛔ No test IDs (T23, T24, STEP
@@ -370,8 +396,9 @@ old one, not easier.**
   provenance.** ~~"carries NO confidence rating"~~ — **changed 2026-08-24**:
   a board with two different headline numbers is unreadable, so both kinds
   of row show one CONF number and the board sorts strictly by it. What
-  rule 55 requires is that the number be **labelled**, not hidden. So:
-  every row carries `confidence_basis`, which is `MODEL` for pitchers and
+  rule 55 requires is that the number be **labelled**, not hidden —
+  `[Sam, 2026-10-01]` in the DATA only: the page prints no MODEL / RECORD /
+  MARKET chip any more. So: every row carries `confidence_basis`, which is `MODEL` for pitchers and
   **`RECORD`** for hitters, and a hitter row must never carry a `blend` or
   a calibration `band`. ⛔ Do not relabel a hitter row `MODEL` until a
   hitter model exists and has passed a pre-registered test. **T27, T28 and
@@ -388,7 +415,8 @@ old one, not easier.**
   ✅ `card.select_board`: hitters up to 25 that beat the price; pitchers
   that beat it first, then the best remaining pitcher rows by the
   corrected number, marked `below_price` (the page prints the %, the
-  break-even and the edge). Never both sides of one prop, keyed by GAME
+  break-even and the edge — `[Sam, 2026-10-01]` as plain numbers on the
+  row, no sentence). Never both sides of one prop, keyed by GAME
   ID. ⛔ Do not let one kind take the other's seats again.
   `test_card_seats.py`, `verify_card.py` section 7c.
 - 🔴 **A CARD IS MATCHED TO A BOARD RECORD ON NEAREST FIRST PITCH, NEVER
@@ -421,7 +449,9 @@ old one, not easier.**
   shipped the implied runs to the wrong team on 3 of 19 games. The
   moneyline is the authority: it is a single unambiguous market and the
   favourite lays the runs. A row re-oriented against its spread label
-  carries `run_line_conflicted_with_moneyline` and says so on the page.
+  carries `run_line_conflicted_with_moneyline` ~~and says so on the page~~
+  (`[Sam, 2026-10-01]` no RE-ORIENTED chip on the page; the line shown is
+  already the corrected one, and `verify_board.py` still checks it).
   ⚠️ **`team_total` is owed-test T25's predictor**, so an inverted row is a
   corrupted observation in a test that has not been run yet.
 - 🔴 **THE OPPONENT'S RECENT STARTER LOG IS DESCRIPTIVE AND MUST STAY THAT
@@ -551,7 +581,8 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   logistic per league x market on signals 1-8, walk-
                   forward weekly, graded ONLY at Hard Rock / FanDuel /
                   DraftKings prices archived before kickoff. Rides
-                  `card-fb`; its own MODEL section on the page. ⛔ Never
+                  `card-fb`; its own model section on the page (no
+                  chip since 2026-10-01). ⛔ Never
                   touches the card. Design: research/fb_model_design.md.
                   ⛔ Its SECOND record (closing lines, college at an
                   assumed -110, labelled) is kept apart from the headline
@@ -567,7 +598,10 @@ fb_card_calibration.py  the football props card's stated-vs-actual bands
                   and Sam's pre-registered calibration test
                   (`research/fb_card_calibration_spec.md`, frozen).
                   ⛔ Never changes what the card prints; a QUALIFIES
-                  waits for Sam. Rides `card-fb`.
+                  waits for Sam. Rides `card-fb`. `[Sam, 2026-10-01]`
+                  Not shown on the page, nor either league's "Read the
+                  confidence number honestly" note; still built and
+                  scored.
 fb_card_fix.py    scores the football props card's season fix (reads 2026
                   first, 2025 as the start, shrunk toward the position
                   average) against the card as it was, by Sam's ship rule
@@ -607,7 +641,9 @@ game_lines_fb.py  THE GAME LINES TAB (Sam, 2026-09-24): every alt spread
                   the game model's % and edge; frozen before kickoff
                   (daystore), graded once, its own record; alt-only
                   parlays through card_fb.build_parlays_fb's rules,
-                  built and RANKED ON THE BOOKS' OWN CHANCE (de-vigged
+                  built and RANKED ON THE BOOKS' OWN CHANCE (stored
+                  basis MARKET; no chip, box or ⚠ on the page since
+                  2026-10-01) (de-vigged
                   per book, MARKET) — ⛔ never the model's % [Sam,
                   2026-09-25: the check failed; NFL points the wrong way].
                   ⛔ Never touches the card. Data: the paid `alt-lines`
@@ -618,7 +654,9 @@ fb_agreement.py   card vs props model (Sam, 2026-09-25): every card row and
                   against its break-even, frozen per card run, graded
                   once, its own record; scores the pre-registered
                   question in research/fb_agreement_spec.md (frozen).
-                  ⛔ A note on the row — changes no pick, rank or price.
+                  ⛔ ~~A note on the row~~ Not printed on the row since
+                  2026-10-01 (still labelled, frozen and graded; the
+                  record table stays) — changes no pick, rank or price.
 news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a
                   day on the news run, NFL injury-report status (the
                   injury rows nfl.py stores for signal 7) and stored
@@ -626,10 +664,13 @@ news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a
                   word. Exact full names only. ⛔ FLAGS, NEVER PICKS:
                   hides, re-ranks, re-prices nothing; feeds no model.
                   College is headlines only (no injury reports).
+                  `[Sam, 2026-10-01]` Not printed on board rows or
+                  parlay legs; the file and its record are still kept.
 fb_alt_lines.py   the pre-registered check (research/fb_alt_lines_spec.md,
                   frozen): is the game model calibrated 3/7/10 points off
-                  the main line? ⛔ Decides the tab's LABEL, never whether
-                  a number shows. Called by fb_model.build on its rows.
+                  the main line? ⛔ Decides the tab's LABEL (stored in
+                  game-lines.json; no box or ⚠ on the page since
+                  2026-10-01), never whether a number shows. Called by fb_model.build on its rows.
 liveprobe.py      can the football scores tab ever be live?
 verify_nfl.py     the football data-layer verifier
 
@@ -639,7 +680,10 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `[2026-09-26]` `classify` is the gate's one hard/soft
                   verdict; `judge_failures` decides whether a failed
                   converge mode turns the run red (see FAIL LOUD above).
-verify_freshness.py  fails the run when the site is not current
+verify_freshness.py  fails the run when the site is not current.
+                  `[Sam, 2026-10-01]` The page shows no stale-data bar
+                  and no "out of date" note; staleness reaches Sam
+                  through this, the watchdog, health.json and the issue.
 cfbd_budget.py    projected CFBD call volume, derived from the workflow
 cfbd_watch.py     ...and the watcher that asks whether it will run out
 budget_watch.py   the same question for the Odds API spend
@@ -661,6 +705,8 @@ credits.py        THE CREDIT BALANCE CHAIN: the one reader of stored
                   kinds come from ONE registry, `collect.PAID_KINDS`.
 calibration.py    is the product still winning? the automatic answer.
 card_gate.py      did the card fail for a reason Sam already accepted?
+                  ⚠️ `[2026-10-01]` the page no longer says a card was
+                  published past an accepted check (the stale bar went).
 
 OWED TESTS (pre-registered, not adopted)
 t54.py            should a record against a line never faced be RANKED?

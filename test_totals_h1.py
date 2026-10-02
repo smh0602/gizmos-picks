@@ -60,6 +60,35 @@ one-book line sit in the same style as a five-book best price.
 #   file: dossier_fb.py
 #   find:             "shopping": "ONE BOOK",
 #   with:             "shopping": "BEST OF FIVE",
+#
+# ── [Sam, 2026-10-01] §7's page checks now ask for ABSENCES: no caveat
+#    bullet, no gap sentence and no absent-half sentence under §1's
+#    numbers. The value alone names its one book. They are asked of the
+#    code with comments removed, and the first check anchors that strip.
+# @vacuity the panel still reads the half total, asked of the comment-free code
+#   file: index.html
+#   find: const H = s.first_half;
+#   with: const H = null;
+#
+# @vacuity the half total carries NO "Not shopped" caveat bullet under it
+#   file: index.html
+#   find: + `${H.book || 'one book'} only</span>`);
+#   with: + `${H.book || 'one book'} only</span>`); f.push(`<li>&#9888;&#65039; <b>Not shopped.</b> That half total is one book&rsquo;s own line.</li>`);
+#
+# @vacuity ...and the value itself still names the one book
+#   file: index.html
+#   find: li('First-half total', `${H.total} <span class="donebook">`
+#   with: li('First-half total', `${H.total} <span>`
+#
+# @vacuity the builder's gap sentence is NOT printed on the page
+#   file: index.html
+#   find: const c = s.closing;
+#   with: const c = s.closing; if (s.known_gap) f.push(`<li>${s.known_gap}</li>`);
+#
+# @vacuity the absent half is NOT announced on the page
+#   file: index.html
+#   find: if (c && c.closing_spread != null) li('Closing spread', c.closing_spread);
+#   with: if (s.first_half_note) f.push(`<li>${s.first_half_note}</li>`); if (c && c.closing_spread != null) li('Closing spread', c.closing_spread);
 """
 import ast
 import io
@@ -365,28 +394,47 @@ for _bad in ("us2", "HALF_LIVE", "totals_h1", "credits", "regions",
 
 
 # ══════════════════════════════════════════════════════════════════════
-section("7. 🔴 THE PAGE PRINTS THE BUILDER'S STRING, AND FLAGS ONE BOOK")
+section("7. 🔴 THE PAGE FLAGS ONE BOOK ON THE VALUE, AND PRINTS NO CAVEAT "
+        "UNDER IT")
 # ══════════════════════════════════════════════════════════════════════
+# 🔴 [Sam, 2026-10-01] "i just want what's supposed to be in each tab to be
+#    in each tab. do this for all 3 leagues"; asked what stays, he chose:
+#    remove everything. ~~This section REQUIRED three sentences under §1's
+#    numbers: the "Not shopped" caveat bullet, the builder's gap sentence
+#    (`known_gap`, printed verbatim) and its absent-half sentence
+#    (`first_half_note`).~~ Each is now REQUIRED ABSENT, asked of the same
+#    function body. ✅ What still tells a reader the half total is one
+#    book's line is the value itself ("21.5 Hard Rock only", `donebook`):
+#    a number's own label, not a note. ⛔ The BUILDER still writes all
+#    three — section 6 asks it, unchanged.
+# ⚠️ THE ABSENCES ARE ASKED OF THE CODE, COMMENTS REMOVED: a dated comment
+#    naming a field is not the page printing it, and a check that reddened
+#    on one would fire on correct code. `s.first_half` is asked of the same
+#    text, so a strip that ate code goes red rather than passing blind.
 import jsblock                                          # noqa: E402
 _js = jsblock.js_block("fbDosFacts", os.path.join(ROOT, "index.html"))
+_code = re.sub(r"/\*.*?\*/|^[ \t]*//[^\n]*", "", _js, flags=re.S | re.M)
 ck("the panel reads the half total from the section",
-   "s.first_half" in _js, "it renders what the builder wrote")
-ck("🔴 ...and marks it as one book rather than styling it like the rest",
-   "Not shopped" in _js and "donebook" in _js,
-   "⛔ a bare li() would tell the reader it was shopped the same way")
-ck("🔴 the gap sentence is printed VERBATIM — no regex edit in the page",
-   "s.known_gap}" in _js.replace(" ", "")
-   or "${s.known_gap}" in _js,
-   "rule 132: print the builder's own string. My first version "
-   "sentence-cased it here with .replace(), which is the page editing "
-   "the model's words.")
+   "s.first_half" in _code, "it renders what the builder wrote")
+ck("🔴 ...and marks it as one book ON THE VALUE rather than styling it like "
+   "the rest — with no caveat bullet under it [Sam, 2026-10-01]",
+   "donebook" in _code and "not shopped" not in _code.lower()
+   and "&#9888;" not in _code and "⚠" not in _code,
+   "⛔ a bare li() would tell the reader it was shopped the same way. "
+   "~~The 'Not shopped' bullet~~ is the caveat box Sam removed from every "
+   "tab; the label on the value carries it alone")
+ck("🔴 the builder's gap sentence is NOT printed [Sam, 2026-10-01]",
+   "known_gap" not in _code,
+   "~~printed VERBATIM (rule 132)~~ — the page prints no caveat line; the "
+   "builder still writes it (section 6)")
 ck("⛔ ...and nothing in the panel rewrites that string",
    "known_gap.replace" not in _js,
    "found a transform on the builder's prose")
-ck("the absent case is SHOWN, not hidden",
-   "first_half_note" in _js,
-   "an unavailable reading is displayed, the same as an UNAVAILABLE "
-   "section")
+ck("the absent case is NOT announced on the page [Sam, 2026-10-01]",
+   "first_half_note" not in _code,
+   "~~an unavailable reading is displayed~~ — the page draws no "
+   "explanation line; the builder still writes the note (section 6), and "
+   "a game with no half total simply has no first-half row")
 _css = io.open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
 ck("the one new class is actually defined",
    ".donebook{" in _css, "an undefined class styles nothing")

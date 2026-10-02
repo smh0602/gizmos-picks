@@ -31,18 +31,65 @@ WHAT IS PINNED:
   3. a REFUSAL turns the layer off for the session; a 404 does not
   4. the live poll refreshes the panel and NEVER moves the reader
   5. ESPN strings are escaped before they reach innerHTML
+
+`[Sam, 2026-10-01]` *"i just want what's supposed to be in each tab to be
+in each tab"* — the panel draws no note and no tag any more: no source
+note, no ESPN / LIVE tag, no refusal / id / HTTP note, no "absence, not a
+zero" sentence. The checks that required them now require their ABSENCE,
+and each declares the edit that puts back what it guards. A browser check
+(sections 4, 5, 7) shares its declaration with the section-1 check that
+asks the same thing without a browser — the sweep runs where there is none.
+
+# @vacuity §1: a block with more values than headings carries no note
+#   file: index.html
+#   find: return `<h4 class="bxh">${nm.charAt(0).toUpperCase() + nm.slice(1)}</h4>
+#   with: return `<h4 class="bxh">${nm.charAt(0).toUpperCase() + nm.slice(1)}</h4><div class="note">Only the columns both sides carry are shown.</div>
+#
+# @vacuity §1 + §4 (browser): the Division II case is one plain line, no 'absence' sentence
+#   file: index.html
+#   find: ? `<p class="plain">ESPN carries this game but publishes no
+#   with: ? `<div class="note">An absence, not a zero.</div><p class="plain">ESPN carries this game but publishes no
+#
+# @vacuity §1: the ESPN panel carries no source note
+#   file: index.html
+#   find: return `<p class="plain">${fbEsc(box.detail || (box.live ? 'in progress' : 'final'))}</p>
+#   with: return `<div class="note bxsrc">The Track Record grades against our own stored logs, not against this.</div><p class="plain">${fbEsc(box.detail || (box.live ? 'in progress' : 'final'))}</p>
+#
+# @vacuity §1 + §5 (browser): a live panel carries no LIVE tag
+#   file: index.html
+#   find: return `<p class="plain">${fbEsc(box.detail || (box.live ? 'in progress' : 'final'))}</p>
+#   with: return `<p class="plain">${box.live ? '<span class="kind k-live">LIVE</span> ' : ''}${fbEsc(box.detail || (box.live ? 'in progress' : 'final'))}</p>
+#
+# @vacuity §1: an id-less request prints no note
+#   file: index.html
+#   find: const why = (box && box.state === 'pre')
+#   with: const why = (box && box.noid) ? '<div class="note">We do not hold ESPN&#39;s id for this season.</div>' : (box && box.state === 'pre')
+#
+# @vacuity §1 + §7 (browser): a refused request prints no note
+#   file: index.html
+#   find: const why = (box && box.state === 'pre')
+#   with: const why = FB_BOX_OFF ? '<div class="note">Your browser could not reach ESPN&#39;s game summary.</div>' : (box && box.state === 'pre')
+#
+# @vacuity §1 (driven) + §7 (browser): a refused request still falls back to the stored log
+#   file: index.html
+#   find: const stored = fbBoxStored(g, by);
+#   with: const stored = box ? fbBoxStored(g, by) : '';
 """
 import glob
 import gzip
 import http.server
 import json
 import os
+import re
+import shutil
 import socketserver
+import subprocess
+import tempfile
 import threading
 import datetime
 
 from jsblock import calls, js_block, source
-from tcheck import ck, note
+from tcheck import ck, note, shown
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 HTML = os.path.join(ROOT, "index.html")
@@ -155,6 +202,9 @@ blk = js_block("fbBoxBlock", HTML)
 srt = js_block("fbBoxSort", HTML)
 chooser = js_block("fbBoxScore", HTML)
 src = source(HTML)
+# `[Sam, 2026-10-01]` THE BOXES AND TAGS THE PAGE NO LONGER DRAWS, asked of
+#    one renderer's body at a time (test_page_plain.py asks the whole page).
+_BOXED = re.compile(r"""class=["'][^"']*\b(?:note|fnote|fbnotes|glwarn|domnote|kind)\b""")
 
 ck("🔴 the columns are read from the payload, never hard-coded",
    "s.labels" in parse and "b.labels" in blk,
@@ -162,9 +212,14 @@ ck("🔴 the columns are read from the payload, never hard-coded",
 ck("...and no positional column name is written into the renderer",
    not any(w in blk for w in ("'C/ATT'", '"C/ATT"', "'SACKS'", '"RTG"')),
    "a literal here is an assumption about a schema we do not own")
+# [Sam, 2026-10-01] ~~"...and says the rest arrived"~~ — that was a note box
+#    ("This block arrived with N column headings ...") and the page draws no
+#    explanation boxes any more. The rule beside it is kept: only the
+#    columns both sides carry are rendered, and nothing is shifted.
 ck("a row with more values than headings is NOT shifted left to fit",
-   "Math.min(b.labels.length, wide)" in blk and "odd" in blk,
-   "it renders the columns both sides carry and says the rest arrived")
+   "Math.min(b.labels.length, wide)" in blk and not _BOXED.search(blk),
+   "it renders the columns both sides carry — and, since 2026-10-01, no "
+   "note about the rest")
 ck("the sort finds its column by LABEL, not by index",
    "b.labels.indexOf('YDS')" in srt and "if (i < 0) return b.rows" in srt,
    "and keeps the feed's own order when there is no such column")
@@ -182,9 +237,13 @@ ck("the poll reuses the live layer's own 45s, not a second number",
 ck("🔴 ESPN is preferred and the stored log is the FALLBACK",
    chooser.index("fbBoxEspn(box)") < chooser.index("fbBoxStored(g, by)"),
    "preferring the stored log would keep the empty panel Sam reported")
-ck("a game ESPN carries with no players says so, and says ABSENCE",
-   "publishes no\n            player stats" in chooser
-   or "publishes no" in chooser and "absence, not a zero" in chooser.lower(),
+# [Sam, 2026-10-01] ~~"...and says ABSENCE"~~ — "An absence, not a zero" was
+#    a sentence in a note box, and the boxes are gone: the Division II case
+#    is ONE plain line now. (The old form accepted the line OR the sentence;
+#    this requires the line AND the sentence gone.)
+ck("a game ESPN carries with no players says so, in one plain line",
+   '<p class="plain">ESPN carries this game but publishes no' in chooser
+   and "absence, not a zero" not in chooser.lower(),
    "the Division II case in the fixtures")
 ck("🔴 an unplayed game is NOT reported as 'no player stats'",
    "box.state === 'pre'" in chooser and "has not kicked off" in chooser,
@@ -194,10 +253,18 @@ ck("🔴 an unplayed game is NOT reported as 'no player stats'",
 ck("...and a game under way with no stats yet says THAT instead",
    "box.live" in chooser and "not posted any player stats yet" in chooser,
    "three different facts, three different sentences")
-ck("...and the panel names WHICH source it is showing",
-   "grades\n      against our own stored logs" in js_block("fbBoxEspn", HTML)
-   or "stored logs, not against this" in js_block("fbBoxEspn", HTML),
-   "two numbers must never look like one number changing its mind")
+# [Sam, 2026-10-01] ~~"...and the panel names WHICH source it is showing"~~ —
+#    that was a note box ("player stats from ESPN's public game summary ...
+#    The Track Record grades against our own stored logs, not against this")
+#    under an ESPN / LIVE tag, and the page draws neither any more. ✅ Kept:
+#    the PAGE still records which source drew the panel
+#    (`window.__fbBoxShown.source`), which section 2 reads in a browser.
+_espn = js_block("fbBoxEspn", HTML)
+ck("...and the panel carries no source note and no tag — the page keeps the source",
+   not _BOXED.search(_espn) and "stored logs, not against this" not in _espn
+   and "(box && box.sides) ? 'espn'" in js_block("fbOpenBox", HTML),
+   "two numbers must never look like one number changing its mind — the "
+   "source is the page's own record now, not a sentence")
 
 esc = js_block("fbEsc", HTML)
 ck("🔴 there is a real escaper and it covers all five characters",
@@ -229,9 +296,56 @@ ck("🔴 it refuses to ask when the id is not ESPN's own",
    "/^\\d+$/.test(String(id))" in fetch and "noid" in fetch,
    "NFL 2025 keys are nflverse's (2025_01_DAL_PHI) — measured 0 of 285 "
    "carry an espn column, so asking would be a guaranteed 404")
-ck("...and the panel says that rather than showing an HTTP error",
-   "do not hold ESPN&#39;s id" in chooser or "do not hold ESPN's id" in chooser,
-   "a 404 the page caused itself is not news to the reader")
+# [Sam, 2026-10-01] ~~"...and the panel says that rather than showing an HTTP
+#    error"~~ — "We do not hold ESPN's id for this season" was a note box, as
+#    were "Your browser could not reach ESPN's game summary" and "ESPN
+#    returned no summary (HTTP n)", and the page draws no explanation boxes
+#    any more. ✅ Kept: none of the three has a branch of its own in the
+#    chooser, so each falls through to the stored log — and still no HTTP
+#    error reaches the reader.
+ck("...and the panel prints nothing for it but the stored log",
+   not any(s in chooser for s in ("box.noid", "box.http", "FB_BOX_OFF",
+                                  "do not hold ESPN", "could not reach"))
+   and not _BOXED.search(chooser),
+   "a 404 the page caused itself is not news to the reader — nor, since "
+   "2026-10-01, is a refusal or a failed status")
+# [Sam, 2026-10-01] THE SILENT FALLBACK, DRIVEN ON EVERY RUNNER. Section 7
+#    drives a refusal in a browser and the collector's runner has none, so
+#    the page's own renderers are lifted into node (as test_live_scores.py
+#    §0b2 lifts fbMerge): a refused, id-less or failed request must render
+#    EXACTLY what the stored log renders — its tables, or its own line.
+_lift = "\n".join([
+    "let LEAGUE = 'ncaaf', fbScSeason = 2026, FB_BOX_OFF = false;",
+    "const FB_BOX_MAIN = ['passing', 'rushing', 'receiving'];",
+    "const fbMark = () => '', fbAb = x => x;",
+    "const fbBoxTable = (m, k, l) => k === 'pass'"
+    " ? '<table class=\"bs bx\"><tr><td>' + l + m.length + '</td></tr></table>' : '';",
+    *[js_block(f, HTML) for f in ("fbEsc", "fbBoxSort", "fbBoxBlock", "fbBoxSide",
+                                  "fbBoxEspn", "fbBoxStored", "fbBoxScore")],
+    "const g = { id: 7, away: 'A', home: 'H' };",
+    "const by = { '7': [{ r: { team: 'A' } }, { r: { team: 'H' } }] };",
+    "const out = [];",
+    "for (const [off, box] of [[true, null], [false, { noid: true }], [false, { http: 404 }]])",
+    "  for (const b of [by, {}, null]) {",
+    "    FB_BOX_OFF = off;",
+    "    out.push([fbBoxScore(g, b, box), fbBoxStored(g, b)]);",
+    "  }",
+    "console.log(JSON.stringify(out));",
+])
+_ld = tempfile.mkdtemp()
+try:
+    open(os.path.join(_ld, "fallback.js"), "w", encoding="utf-8").write(_lift)
+    _lr = subprocess.run(["node", os.path.join(_ld, "fallback.js")],
+                         capture_output=True, text=True, encoding="utf-8")
+finally:
+    shutil.rmtree(_ld, ignore_errors=True)
+_FB = (json.loads(_lr.stdout.strip().splitlines()[-1])
+       if _lr.returncode == 0 and _lr.stdout.strip() else None)
+ck("🔴 ...and each of them renders EXACTLY the stored log — driven, not read",
+   bool(_FB) and all(got == want for got, want in _FB) and "<table" in _FB[0][1],
+   shown(_lr.stderr[-300:]) if _lr.returncode
+   else "%d of %d case(s) differ from the stored log"
+        % (sum(1 for got, want in (_FB or []) if got != want), len(_FB or [])))
 ck("the join is keyed on the id, never a team name",
    "fbBoxFetch(g.espn || g.id" in js_block("fbOpenBox", HTML), "rule 54")
 
@@ -369,8 +483,16 @@ if _BROWSER and os.path.exists(FIX):
     t4 = pg.inner_text("#fbbox").lower()
     ck("⛔ it says ESPN publishes no player stats for this game",
        "publishes no" in t4 and "player stats" in t4, t4[:110])
-    ck("...and calls it an absence rather than showing zeros",
-       "absence" in t4 and "not a zero" in t4, t4[:110])
+    # [Sam, 2026-10-01] ~~"...and calls it an absence rather than showing
+    #    zeros" ("absence" / "not a zero")~~ — that sentence was in a note
+    #    box, and the page draws no explanation boxes any more. What it
+    #    protected is read off what renders: the empty payload is never the
+    #    panel's source, so no table of zeros can come from it.
+    s4 = pg.evaluate("() => window.__fbBoxShown || {}")
+    ck("...and draws nothing from the empty payload, with no 'absence' note",
+       s4.get("source") in ("stored", "none") and "not a zero" not in t4
+       and pg.locator("#fbbox .note").count() == 0,
+       "%s — %s" % (s4.get("source"), t4[:110]))
     ck("no page error", not errs, str(errs[:1]))
     pg.keyboard.press("Escape")
     pg.wait_for_timeout(250)
@@ -382,8 +504,13 @@ if _BROWSER and os.path.exists(FIX):
     pg.wait_for_function("() => document.querySelector('#fbbox table.bx')",
                          timeout=30000)
     t5 = pg.inner_text("#fbbox")
-    ck("a live game is badged LIVE with the feed's own clock",
-       "LIVE" in t5 and "2nd Quarter" in t5, t5[:90])
+    # [Sam, 2026-10-01] ~~"a live game is badged LIVE with the feed's own
+    #    clock"~~ — the LIVE badge was a tag (`span.kind k-live`), and the page
+    #    draws no tags any more. ✅ Kept: the feed's own clock is the panel's
+    #    first line, and the page still knows the game is live (next check).
+    ck("a live game shows the feed's own clock, with no LIVE tag",
+       "2nd Quarter" in t5 and pg.locator("#fbbox .kind").count() == 0,
+       t5[:90])
     live_flag = pg.evaluate("() => (window.__fbBoxShown||{}).live")
     ck("...and the page knows it is live", live_flag is True, str(live_flag))
     # Scroll the MODAL BODY down, wait for one poll, and check it stayed.
@@ -430,13 +557,27 @@ if _BROWSER and os.path.exists(FIX):
 
     pg.route("**/site.api.espn.com/**", refuse)
     gid = open_first("ncaaf", "College Football")
-    pg.wait_for_timeout(1600)
+    # ⚠️ `[2026-10-01]` WAIT FOR THE PANEL, NOT A CLOCK: the first check below
+    #    asserts an ABSENCE, and an absence read before the panel has drawn
+    #    is true of nothing (rule 116).
+    pg.wait_for_function("() => window.__fbBoxShown", timeout=30000)
     t7 = pg.inner_text("#fbbox").lower()
-    ck("🔴 a refused fetch says so in plain words",
-       "could not reach" in t7, t7[:110])
-    ck("...and it falls back to the stored logs rather than an empty box",
-       "stored player log" in t7 or "absence" in t7 or "no player log" in t7,
+    s7 = pg.evaluate("() => window.__fbBoxShown || {}")
+    # [Sam, 2026-10-01] ~~"🔴 a refused fetch says so in plain words" ("could
+    #    not reach")~~ — that sentence was a note box, and the page draws no
+    #    explanation boxes any more: a refusal prints nothing and the stored
+    #    log shows. (Section 1 drives the same rule in node, every run.)
+    ck("🔴 a refused fetch prints no note of its own",
+       "could not reach" not in t7 and pg.locator("#fbbox .note").count() == 0,
        t7[:110])
+    # [Sam, 2026-10-01] THE FALLBACK IS UNCHANGED. It was read off the note's
+    #    wording ("stored player log") and is now read off what renders: the
+    #    stored log's tables, or the stored log's own one-line empty state.
+    n7 = pg.locator("#fbbox table").count()
+    ck("...and it falls back to the stored logs rather than an empty box",
+       (s7.get("source") == "stored" and n7 > 0)
+       or (s7.get("source") == "none" and "no player log" in t7),
+       "%s, %d table(s): %s" % (s7.get("source"), n7, t7[:110]))
     first = REF["n"]
     pg.keyboard.press("Escape")
     pg.wait_for_timeout(200)

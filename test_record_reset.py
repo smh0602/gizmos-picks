@@ -19,21 +19,39 @@ earlier period can be graded again by moving ONE date.
 WHAT IS PINNED:
   1. MLB's record is NOT touched — it is graded against the ledger
   2. the floor is applied before grading, and what it set aside is COUNTED
-  3. the tab still renders, and says a reset happened rather than 0-0
-  4. a product that simply never graded anything must NOT claim a reset
+  3. the tab still renders~~, and says a reset happened rather than 0-0~~
+  4. ~~a product that simply never graded anything must NOT claim a reset~~
+     the tab claims no reset at all
 
 `[2026-09-28]` Item 1 is DRIVEN in the sandbox (an MLB record planted
 beside the football tree must come out byte-identical), no longer read
 off the live MLB record.
 
+`[Sam, 2026-10-01]` Items 3 and 4: no explanation box on any tab ("i just
+want what's supposed to be in each tab to be in each tab"; asked what
+stays, he chose: remove everything). The reset banner is gone, so the tab
+states no reset for anyone. record.json still carries the date, the count
+and the sentence (item 2, unchanged).
+
 # @vacuity 🔴 the football grader never writes where MLB's record lives (planted sandbox)
 #   file: record_fb.py
 #   find: LATEST = f"{DATA}/latest"
 #   with: LATEST = "data/latest"
+#
+# @vacuity [Sam, 2026-10-01] the reset banner stays gone: fbRecord reads neither of its fields
+#   file: index.html
+#   find: v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2>
+#   with: v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2>${(R && R.record_from_note && (R.cards_before_record_from || 0) > 0) ? R.record_from_note : ''}
+#
+# @vacuity [Sam, 2026-10-01] ...and the tab claims no reset, in no box
+#   file: index.html
+#   find: v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2>
+#   with: v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2><div class="fnote"><b>The record was reset.</b></div>
 """
 import gzip
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -217,17 +235,32 @@ ck("🔴 MLB's record is byte-identical after BOTH football grading runs",
    "feed on. rc=%s/%s" % (r.returncode, r2.returncode))
 shutil.rmtree(tmp, ignore_errors=True)
 
-print("\n═══ 5. THE TAB SURVIVES AND EXPLAINS ITSELF ═══")
+# `[Sam, 2026-10-01]` ~~AND EXPLAINS ITSELF~~ — no explanation box on any tab.
+print("\n═══ 5. THE TAB SURVIVES, AND CLAIMS NO RESET ═══")
 blk = js_block("fbRecord", os.path.join(ROOT, "index.html"))
 ck("🔴 the tab is still rendered — not removed", bool(blk) and "fbShell" in blk,
    "Sam: 'dont get rid of the tab completley'")
-ck("the reset banner is built from the file's own fields",
-   "R.record_from_note" in blk and "R.cards_before_record_from" in blk,
-   "rule 132 — the page prints computed numbers, it does not carry the "
-   "sentence")
-ck("⛔ a product that never graded anything does NOT claim a reset",
-   "(R.cards_before_record_from || 0) > 0" in blk,
-   "'reset' and 'brand new' are different facts")
+# 🔴 `[Sam, 2026-10-01]` ~~ck("the reset banner is built from the file's own
+#    fields", "R.record_from_note" in blk and "R.cards_before_record_from" in
+#    blk)~~ and ~~ck("⛔ a product that never graded anything does NOT claim a
+#    reset", "(R.cards_before_record_from || 0) > 0" in blk)~~. The tab
+#    explained the reset in a footnote box printed from record.json's own
+#    fields, and only when cards had really been set aside. Sam: no
+#    explanation, caveat or warning box on any tab; asked what stays, he
+#    chose: remove everything. So the banner is required ABSENT, asked of the
+#    same function. Comments are stripped first: a dated note saying the
+#    banner went is not the banner. ⚠️ record_fb.py still WRITES both fields,
+#    and section 3 drives that, unchanged; only the page stopped printing them.
+_code = re.sub(r"(?m)^\s*//.*$", "", re.sub(r"/\*.*?\*/", "", blk, flags=re.S))
+ck("⛔ [Sam, 2026-10-01] the reset banner is GONE — fbRecord reads neither of its fields",
+   not re.search(r"\.\s*(?:record_from_note|cards_before_record_from)\b", _code),
+   "rule 132 still holds in the file: record.json computes the sentence; "
+   "the page no longer prints it")
+ck("⛔ [Sam, 2026-10-01] ...and the tab claims no reset at all, for a new product or a reset one",
+   not re.search(r"was\s+reset", _code, re.I)
+   and 'class="fnote"' not in _code and 'class="note"' not in _code,
+   "'reset' and 'brand new' are still different facts — record.json keeps "
+   "both; the page states neither")
 # ⚠️ ~~`"Nothing graded since ${R.record_from}" in blk`~~ — the markup
 #    moved into `fbDayRows()` on 2026-09-16 when the day rows became
 #    clickable, and its variable is `rec` there, not `R`. ⛔ The question

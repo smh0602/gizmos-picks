@@ -20,6 +20,21 @@ Every one of those fields is asserted ABSENT here, by name.
 below the product of its legs. That discount is in no pull this project
 stores, so the product is published as the most the slip can pay and is
 labelled so. This file asserts the label as well as the number.
+
+# @vacuity [Sam, 2026-10-01] the payout label is the RENDERED header, not a comment
+#   file: index.html
+#   find: <th class="n">Pays at most</th><th class="n">Weakest leg</th></tr></thead>
+#   with: <th class="n">Payout</th><th class="n">Weakest leg</th></tr></thead>
+#
+# @vacuity [Sam, 2026-10-01] the Parlays tab renders no MODEL / RECORD tag
+#   file: index.html
+#   find: <h2 style="margin:0 0 4px;font-size:16px">Parlays${C && C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
+#   with: <h2 style="margin:0 0 4px;font-size:16px">Parlays <span class="kind k-record">Record</span>${C && C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
+#
+# @vacuity [Sam, 2026-10-01] the Track Record tab renders no footnote box
+#   file: index.html
+#   find: <tbody>${dayRows}</tbody></table>`);
+#   with: <tbody>${dayRows}</tbody></table><div class="fnote"><b>This is the board's record and nothing else.</b></div>`);
 """
 import glob
 import itertools
@@ -209,8 +224,13 @@ ck("🔴 the page reads C.sgp, a separate key from C.parlays",
    "C.sgp" in html and "fbSgpTable" in html,
    "⛔ merging the two would put two different row shapes under one "
    "name, and the shape difference is the entire point")
+# 🔴 `[Sam, 2026-10-01]` ~~"PAYS AT MOST" in html.upper()~~ — anywhere in the
+#    file. The Parlays footnote that also said "Pays at most" is gone (no
+#    explanation box on any tab), which left a source COMMENT as the only
+#    other match: deleting the header itself would have stayed green. The
+#    label that still renders is the column header, so that is what is asked.
 ck("⛔ the same-game table has no 'All hit' or EV column",
-   "PAYS AT MOST" in html.upper()
+   re.search(r"<th[^>]*>\s*Pays at most\s*</th>", html, re.I)
    and "All hit" not in html[html.index("function fbSgpTable"):
                              html.index("async function fbParlays")],
    "an empty column reads as a missing number; a filled one would be "
@@ -218,17 +238,29 @@ ck("⛔ the same-game table has no 'All hit' or EV column",
 
 # ⛔ ASKED OF THE RENDERED TAB'S OWN FUNCTION, not of the file. Sam,
 #    2026-09-11: "remove all yellow boxes in the parlays tab" and
-#    "remove yellow boxes in track record tab". index.html carries
-#    `class="note"` in a dozen other tabs and must keep them.
+#    "remove yellow boxes in track record tab". ~~index.html carries
+#    `class="note"` in a dozen other tabs and must keep them.~~
+# 🔴 `[Sam, 2026-10-01]` ~~"⚠️ the SENTENCES survive as .fnote footnotes and
+#    .kind chips — rule 55 wants every number labelled, not boxed. What must
+#    not come back is the box."~~ No longer: Sam removed every explanation
+#    box, footnote and MODEL / RECORD tag from every tab ("i just want what's
+#    supposed to be in each tab to be in each tab"; asked what stays, he
+#    chose: remove everything). So these two tabs must render none of the
+#    three. ⚠️ The ROWS keep their labels in the data (`weakest_leg_basis`,
+#    `multiplier_basis`, `joint_basis`, asserted above); only the page
+#    stopped printing them.
 for fn, label in (("fbParlays", "Parlays"), ("fbRecord", "Track Record")):
     body = html[html.index("async function %s(){" % fn):]
     body = body[:body.index("\n}\n")]
     body = re.sub(r"/\*.*?\*/", "", body, flags=re.S)
     ck("🔴 the %s tab renders no cream .note box" % label,
        'class="note"' not in body and "fbNoModelNote" not in body,
-       "⚠️ the SENTENCES survive as .fnote footnotes and .kind chips — "
-       "rule 55 wants every number labelled, not boxed. What must not "
-       "come back is the box.")
+       "what must not come back is the box")
+    ck("⛔ [Sam, 2026-10-01] ...and no .fnote footnote and no MODEL / "
+       "RECORD tag on the %s tab" % label,
+       'class="fnote"' not in body and not re.search(r'class="kind\b', body),
+       "`class=\"kindbar\"` is the props / game-lines switch, a control, "
+       "and is not a tag")
 
 print("\n═══ 8. 🔴 THE LIVE CARDS ═══")
 

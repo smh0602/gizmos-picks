@@ -72,6 +72,21 @@ confidence, a rank or a pick, and `audit()` must stay empty.
 #   file: dossier_fb.py
 #   find: return no_opponent(5, "Versus position", missing)
 #   with: return unavailable(5, "Versus position", "We cannot compare these defences.")
+#
+# ── [Sam, 2026-10-01] section 5 asks for the not-shown note's ABSENCE: the
+#    page says nothing about a position it leaves out. The builder still
+#    names it in the file (section 2's declaration above, unchanged).
+# @vacuity the page does NOT print the not-shown note
+#   file: index.html
+#   find: /* [Sam, 2026-10-01] a position this page leaves out is not announced. */
+#   with: if (s.positions_not_shown_note) f.push(`<li>${s.positions_not_shown_note}</li>`);
+#
+# ── The field name is split on purpose: the source scan cannot see it, so
+#    the RENDERED check has to catch this one on its own.
+# @vacuity ...and the rendered §5 never says the file holds a fifth
+#   file: index.html
+#   find: const order = s.positions || [];
+#   with: const order = s.positions || []; (s['positions_not' + '_shown'] || []).forEach(p => f.push(`<li>The file also holds ${p}, which this page does not show.</li>`));
 """
 import io
 import os
@@ -258,9 +273,20 @@ ck("⛔ ...and no longer walks the data's keys for §5",
 ck("a refusal is printed VERBATIM from the builder (rule 132)",
    "r.why}" in _js.replace(" ", "") or "${r.why}" in _js,
    "the page places the sentence; it does not write one")
-ck("the not-shown note is printed too",
-   "positions_not_shown_note" in _js,
-   "a dropped position is named on the page, not only in the file")
+# [Sam, 2026-10-01] ~~"the not-shown note is printed too"~~ — Sam removed
+#    every explanation line from every tab ("i just want what's supposed to
+#    be in each tab to be in each tab"), so the page now says NOTHING about
+#    a position it leaves out, and the note is REQUIRED ABSENT from the
+#    same function body. ⛔ The builder still names it in the file
+#    (section 2, unchanged).
+# ⚠️ Asked of the CODE, comments removed: a dated comment naming the field
+#    is not the page printing it. `s.positions` is asked of the same text,
+#    so a strip that ate code goes red rather than passing blind.
+_code = re.sub(r"/\*.*?\*/|^[ \t]*//[^\n]*", "", _js, flags=re.S | re.M)
+ck("the not-shown note is NOT printed [Sam, 2026-10-01]",
+   "s.positions" in _code and "positions_not_shown" not in _code,
+   "~~a dropped position is named on the page~~ — an explanation line is "
+   "what Sam removed from every tab; the file still names it")
 
 
 def render(sec):
@@ -284,8 +310,14 @@ ck("the rendered panel names all four positions",
 ck("🔴 ...and the fifth NEVER reaches the page",
    "vs FB" not in _h,
    "⛔ html=%r" % (_h[:400],))
-ck("...while the page still SAYS the file holds it",
-   "also holds FB" in _h, "html=%r" % (_h[:400],))
+# [Sam, 2026-10-01] ~~"...while the page still SAYS the file holds it"
+#    ("The file also holds FB, which this page does not show.")~~ — now
+#    REQUIRED ABSENT on the same rendered panel: §5 names no position
+#    outside the four in any form, shown or announced.
+ck("...and the page no longer SAYS the file holds it [Sam, 2026-10-01]",
+   "vs QB" in _h and "also holds" not in _h and "FB" not in _h,
+   "⛔ the not-shown note is an explanation line, and Sam removed those "
+   "from every tab. html=%r" % (_h[:400],))
 
 _h3 = render(s3)
 ck("🔴 a missing position renders its refusal, in its own place",

@@ -36,6 +36,25 @@ WHAT IS PINNED HERE:
   5. `scores` is due on every day the league actually plays
   6. `fb-scores` stands down behind the same CFBD back-off as `cfb-probe`
   7. a CFBD failure records its HTTP STATUS, not just "HTTPError"
+
+`[Sam, 2026-10-01]` The page draws no out-of-date note and quotes no
+rebuild cadence: §9-10 require their ABSENCE, and keep the build time (the
+Trends tab's last-updated line) and the one-line empty state.
+
+# @vacuity §9: no 'late' threshold — the build time is always the one line
+#   file: index.html
+#   find: ageNote = `<p class="sub"><span class="rec">table built ${when}</span></p>`;
+#   with: const lateAfter = LEAGUE === 'ncaaf' ? 48 : 216; ageNote = (hrs > lateAfter) ? '<div class="note">This table is late.</div>' : `<p class="sub"><span class="rec">table built ${when}</span></p>`;
+#
+# @vacuity §9: no out-of-date note on the Trends tab
+#   file: index.html
+#   find: ${ageNote}
+#   with: ${ageNote}<div class="note"><b>This table has not rebuilt since 2026-09-04</b>. The numbers below are real, and they are that old.</div>
+#
+# @vacuity §10: the Trends empty state quotes no cadence
+#   file: index.html
+#   find: `<div class="msg">No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</div>`);
+#   with: `<div class="msg">No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</div><div class="note">The ${fbSeason} season rebuilds ${LEAGUE==='ncaaf'?'every morning at 3am ET':'every Tuesday at noon ET'}.</div>`);
 """
 import os
 import re
@@ -277,19 +296,41 @@ ck("🔴 the table's build date is read from the file",
 ck("...and it is actually RENDERED, not just computed",
    "${ageNote}" in H,
    "rule 130 — this repo has shipped a renderer nobody called")
-ck("⚠️ the 'late' threshold is each league's own cadence",
-   "LEAGUE === 'ncaaf' ? 48 : 216" in H,
-   "college rebuilds daily and the NFL weekly — one threshold would be "
-   "wrong for one of them")
-ck("⛔ and a late table says so plainly, with the date",
-   "has not rebuilt since" in H and "they are that old" in H,
-   "a stale number that announces itself is a different product")
+# [Sam, 2026-10-01] ~~"⚠️ the 'late' threshold is each league's own cadence"
+#    (`LEAGUE === 'ncaaf' ? 48 : 216`, which switched this line to an
+#    out-of-date note)~~ — the page draws no stale-data note any more
+#    ("remove everything"); staleness reaches Sam through the watchdog,
+#    health.json and the GitHub issue. ✅ Kept: the build time, as the tab's
+#    last-updated line — now UNCONDITIONAL: between its declaration and the
+#    table code, `ageNote` is given exactly one value, the plain line.
+_age = (H[H.index("let ageNote = '';"):H.index("const D = doc.defences")]
+        if "let ageNote = '';" in H and "const D = doc.defences" in H else "")
+ck("⚠️ no 'late' threshold: the build time is always the one plain line",
+   _age.count("ageNote") == 2
+   and 'ageNote = `<p class="sub"><span class="rec">table built ${when}</span></p>`;' in _age
+   and "lateAfter" not in H and "LEAGUE === 'ncaaf' ? 48 : 216" not in H,
+   "college rebuilds daily and the NFL weekly — and since 2026-10-01 the "
+   "page shows the age, never a verdict on it")
+# [Sam, 2026-10-01] ~~"⛔ and a late table says so plainly, with the date"
+#    ("This table has not rebuilt since ... they are that old")~~ — that was
+#    a note box, and it went with every out-of-date note on the page.
+ck("⛔ and no out-of-date note, with or without the date",
+   "has not rebuilt since" not in H and "they are that old" not in H,
+   "a stale table reaches Sam through the watchdog and the GitHub issue, "
+   "not the reader through a box")
 
 print("\n═══ 10. ⛔ THE PAGE NEVER ASKS FOR A MANUAL RUN (rule 125) ═══")
 # Sam's standing instruction: the only manual work is uploading files.
 ck("🔴 no tab tells the reader to dispatch anything by hand",
    "dispatch <code>" not in H and "One free dispatch" not in H,
    "the Trends empty-state used to say 'dispatch cfb-probe once'")
-ck("...and the cadence it quotes is the one that actually runs",
-   "every morning at 3am ET" in H and "Sunday morning, after Saturday" not in H,
-   "it advertised a Sunday rebuild after the cron moved to 3am daily")
+# [Sam, 2026-10-01] ~~"...and the cadence it quotes is the one that actually
+#    runs" ("every morning at 3am ET")~~ — the Trends empty state quotes NO
+#    cadence now: schedule sentences went with the explanation boxes, and it
+#    is one plain line naming the missing table.
+ck("...and it quotes no cadence at all, true or stale",
+   not any(s in H for s in ("every morning at 3am ET", "every Tuesday at noon ET",
+                            "Sunday morning, after Saturday"))
+   and "table for ${LG_NAME[LEAGUE]} yet.</div>" in H,
+   "it advertised a Sunday rebuild after the cron moved to 3am daily — a "
+   "cadence written into a sentence goes stale, so there is none")
