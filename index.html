@@ -3234,16 +3234,18 @@ function fbKickTime(s){
      three most common values across 272 games are 13:00 (149), 16:25
      (37) and 20:15 (33), which are the classic ET early, late and
      primetime slots and nothing else. So converting CFBD's zoned stamp
-     to ET puts both leagues on one clock. */
+     to ET puts both leagues on one clock.
+     `[Sam, 2026-10-01]` The "All times Eastern" note is gone, so the
+     time carries " ET" itself. */
   if (/[Zz]|[+\-]\d\d:?\d\d$/.test(s))
     return new Date(s).toLocaleTimeString([], {hour:'numeric', minute:'2-digit',
-                                               timeZone: 'America/New_York'});
+                                               timeZone: 'America/New_York'}) + ' ET';
   const t = s.slice(11, 16);
   if (!t) return '';
   /* ⚠️ Unzoned = nflverse, already Eastern. Rendered as written. */
   const [h, m] = t.split(':').map(Number);
   const ap = h >= 12 ? 'PM' : 'AM';
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2,'0')} ${ap}`;
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2,'0')} ${ap} ET`;
 }
 
 /* 🔴 SCORES OWNS ITS OWN SEASON. ⛔ IT USED TO SHARE `fbSeason` WITH
@@ -3293,13 +3295,13 @@ let fbScSeason = null;
      1. WHETHER THE BROWSER IS ALLOWED TO FETCH IT. A server request
         sends no `Origin`, so the probe could not settle CORS. **This
         code does not need the answer in advance: it tries once, and if
-        the browser refuses it falls back to exactly today's tab and says
-        so.** The reader gets the truth either way.
+        the browser refuses it falls back to exactly today's tab.**
      2. HOW MANY OF OUR GAMES ESPN RETURNS. The first probe saw 25 events
         on a day our schedule held 206 college games. ⛔ So a game ESPN
         does NOT return is left EXACTLY as it is today -- never blanked,
-        never marked "not started" -- and the tab publishes how many of
-        the day's games it is actually live for.
+        never marked "not started".
+   `[Sam, 2026-10-01]` No explanation boxes on the page: the tab no longer
+   prints a note about either.
    ══════════════════════════════════════════════════════════════════════ */
 const FB_LIVE_PATH = { ncaaf: 'football/college-football', nfl: 'football/nfl' };
 /* 🔴 ESPN'S SCOREBOARD SENDS A QUARTER OF THE SLATE UNLESS YOU ASK FOR
@@ -3328,14 +3330,13 @@ const FB_LIVE_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
 const FB_LIVE_MS = 45000;
 
 let FB_LIVE = null;        /* {byId, events, at} for the current league   */
-let FB_LIVE_ERR = null;    /* the reason, once, if the browser is refused */
 let FB_LIVE_OFF = false;   /* ⛔ set after ONE failure — see below        */
 
 /* 🔴 ONE FAILURE TURNS IT OFF FOR THE SESSION, AND THAT IS DELIBERATE.
    If the browser is not allowed to reach ESPN, every poll would throw
    the same error every 45 seconds for as long as the tab is open --
    console noise that hides real problems, and a request storm aimed at
-   somebody else's server. ⛔ One attempt, one honest sentence, stop. */
+   somebody else's server. ⛔ One attempt, then stop. */
 /* ══════════════════════════════════════════════════════════════════════
    🔴 THE LIVE LAYER ONLY EVER SAW ESPN'S **CURRENT WEEK**, AND I HAD
    WRITTEN IT DOWN AS "TODAY".
@@ -3450,14 +3451,10 @@ async function fbLiveLoad(){
     const d = { events: ds.reduce((a, x) => a.concat(x.events || []), []) };
     const byId = fbLiveParse(d.events);
     FB_LIVE = { byId, events: (d.events || []).length, at: new Date() };
-    FB_LIVE_ERR = null;
     return FB_LIVE;
   } catch (e) {
-    /* ⚠️ A BROWSER CORS REFUSAL IS A TypeError WITH NO DETAIL — the
-       message is deliberately uninformative for security reasons, so the
-       page must NOT claim to know which cause it was. */
+    /* `[Sam, 2026-10-01]` Off for the session; the page prints no note. */
     FB_LIVE_OFF = true;
-    FB_LIVE_ERR = (e && e.message) || 'blocked';
     FB_LIVE = null;
     return null;
   }
@@ -3566,59 +3563,9 @@ function fbMerge(g){
            live: false, covered: true, conflict: false };
 }
 
-
-/* 🔴 WHAT THE TAB IS ALLOWED TO CLAIM, AND IT IS COMPUTED, NOT WRITTEN.
-   ⛔ The old note said flatly "Not a live scoreboard. Neither football
-   source carries in-game state." That was TRUE when it was written and
-   is now FALSE — and a sentence that outlives its measurement is exactly
-   what this project keeps getting caught by. ✅ So the note is derived
-   from what actually happened on THIS render. */
-function fbLiveNote(shown){
-  const nCov  = shown.filter(g => fbLiveOf(g)).length;
-  const nLive = shown.filter(g => { const m = fbMerge(g); return m.live; }).length;
-
-  if (FB_LIVE_OFF)
-    return `<br><br>&#9888; <b>Live scores are not available in this browser.</b>
-      The page asks ESPN's public scoreboard directly &mdash; the same way the
-      MLB tab polls its own free feed &mdash; and the request was refused
-      (<code>${FB_LIVE_ERR || 'blocked'}</code>). &#9940; <b>Everything below is
-      the stored schedule and final scores, exactly as before</b>, refreshed on
-      game days. Nothing here is invented and nothing is missing.`;
-
-  if (!FB_LIVE)
-    return `<br><br>&#9888; <b>Live scores are not being polled for this
-      season.</b> The feed only carries the season being played; you are looking
-      at ${fbScSeason}.`;
-
-  if (!nCov)
-    return `<br><br>&#9888; <b>The live feed reached, and it is not carrying any
-      of these games.</b> It returned ${FB_LIVE.events} game${FB_LIVE.events===1?'':'s'}
-      and none of them are in this week's view. &#9940; <b>The rows below are the
-      stored schedule and final scores</b> &mdash; not a live scoreboard, and not
-      an error either.`;
-
-  return `<br><br>&#128308; <b>Live.</b> ${nLive
-      ? `<b>${nLive}</b> game${nLive===1?' is':'s are'} in progress right now, with the
-         clock and score straight from ESPN's public scoreboard.`
-      : `No game in this view is in progress at the moment.`}
-    The page asks that feed directly every 45 seconds, the same way the MLB tab
-    polls its own &mdash; <b>no collector, no stored file, nothing to go stale.</b>
-    <br><br>&#9888; <b>It is live for ${nCov} of the ${shown.length} game${shown.length===1?'':'s'}
-    shown.</b> ${nCov < shown.length
-      ? `The feed did not return the other ${shown.length - nCov}, so
-         <b>those rows are unchanged</b> &mdash; the stored schedule and final score,
-         never blanked and never marked "not started" on the strength of an
-         absence.`
-      : `Every game in this view is covered.`}
-    <br><br>&#9898; <b>A final score stays OURS once we have it.</b> The stored
-    result is what the Track Record grades against, so it is the one that renders
-    &mdash; and if the live feed disagrees with it, <b>the row says so</b> rather
-    than quietly picking one.`;
-}
-
 async function fbScores(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const avail = await fbSeasonsAvailableSched();
   /* ⚠️ Default to the newest season that has a SCHEDULE, and only on
@@ -3627,12 +3574,7 @@ async function fbScores(){
     fbScSeason = avail.length ? Math.max.apply(null, avail) : fbSeason;
   const doc = await fbSchedLoad(fbScSeason);
   if (!doc || !(doc.games || []).length){
-    v.innerHTML = fbShell(`<div class="note">
-      <b>No ${LG_NAME[LEAGUE]} schedule stored for ${fbScSeason}.</b><br>
-      It is built by the weekly rebuild &mdash;
-      ${LEAGUE === 'ncaaf' ? 'Sunday morning' : 'Tuesday morning'} &mdash;
-      from a free source. Nothing is missing if the season has not been
-      collected yet.</div>`);
+    v.innerHTML = fbShell(`<div class="msg">No ${LG_NAME[LEAGUE]} schedule stored for ${fbScSeason}.</div>`);
     fbWire(); return;
   }
 
@@ -3748,8 +3690,7 @@ async function fbScores(){
 
   const nFinal = shown.filter(g => g.final).length;
   v.innerHTML = fbShell(`<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups
-        <span class="kind k-desc">Descriptive</span></h2>
+      <h2 style="margin:0 0 4px;font-size:16px">Scores &amp; Matchups</h2>
       <p style="color:var(--mut);margin:0">${doc.games.length.toLocaleString()} games
         in ${fbScSeason}${LEAGUE==='ncaaf' && hasClass
           ? (fbDiv==='fbs' ? `, showing games involving an FBS team`
@@ -3772,25 +3713,8 @@ async function fbScores(){
     ${fbConfBar()}
     ${blocks || `<div class="msg">${fbConf.size && nWeek
       ? `None of the <b>${nWeek}</b> games in week ${fbWeek} involve
-         ${[...fbConf].join(', ')}. The week has not changed &mdash; clear the
-         conference filter to see the rest of it.`
-      : 'No games in this week.'}</div>`}
-    <div class="note" style="margin-top:18px">
-      &#128337; <b>All times Eastern</b>, and the days are grouped on the ET
-      date, so the two always agree.
-      <br><br>&#9898; <b>Descriptive.</b> These are the published schedule and final
-      scores &mdash; measured facts, no projection, no confidence number.
-      ${fbLiveNote(shown)}
-      ${LEAGUE==='ncaaf' ? `<br><br>&#9888; <b>Every game here has a Division&nbsp;I team in it.</b>
-      CFBD returns every level it covers &mdash; ${doc.games.length.toLocaleString()}
-      games across dozens of conferences this season. <b>FBS games</b> keeps a game
-      if <b>either</b> side is FBS, so an FBS team's opponent still appears whatever
-      division it is from; <b>All Division I</b> widens that to FCS as well.
-      &#9940; <b>A game with no Division&nbsp;I team on either side &mdash; D2 against
-      D2, D2 against D3 &mdash; never appears under either option.</b> The filter uses
-      the feed's own classification rather than a list of conference names, so it
-      survives realignment.` : ''}
-    </div>`);
+         ${[...fbConf].join(', ')}.`
+      : 'No games in this week.'}</div>`}`);
   fbWire();
 
   /* 🔴 THE CARDS ARE APPENDED AS NODES, NOT INTERPOLATED AS HTML, because
@@ -3872,23 +3796,18 @@ async function fbPropsLoad(){
 
 async function fbProps(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const B = await fbPropsLoad();
-  const FL = await fbFlagsLoad();
   /* ⚠️ LOADED BEFORE THE ROWS ARE BUILT, and a failure is not an error:
      on a day with no published card there are simply no projections, and
      the tab renders exactly as it did before. */
   try { FBPROJ = ((await fbCardLoad()) || {}).projections || {}; }
   catch(e){ FBPROJ = {}; }
   if (!B || !(B.games || []).length){
-    v.innerHTML = fbShell(`<div class="note">
-      <b>No ${LG_NAME[LEAGUE]} player props stored yet.</b><br>
-      ${LEAGUE === 'nfl'
-        ? 'The first NFL pull runs Thursday evening, then Sunday morning.'
-        : 'The first college pull runs Thursday evening, then Friday and Saturday.'}
-      Nothing is missing &mdash; the season has not reached its first game day.
-    </div>`);
+    /* `[Sam, 2026-10-01]` One plain line. The pull-schedule sentence that
+       stood here ("Thursday evening, then Sunday morning") is gone. */
+    v.innerHTML = fbShell(`<div class="msg">No ${LG_NAME[LEAGUE]} player props stored yet.</div>`);
     fbWire(); return;
   }
 
@@ -3931,6 +3850,18 @@ async function fbProps(){
     /* ⛔ NO HEADSHOT SLOT. MLB has player ids and a photo host; football
        has neither, and an empty grey circle on every row is worse than
        not having the column -- it reads as an image that failed. */
+    /* 🔴 THE PROJECTION, JOINED FROM THE PUBLISHED CARD.
+       Exactly how the MLB props tab does it: the number lives on
+       the card so there is ONE writer, and this tab formats it
+       through the SAME projChip. A miss renders nothing -- an
+       absent projection means the market was never measured or he
+       has too few games, and it never means guess.
+       ⚠️ Keyed by NAME because football has no player ids. That is
+       safe only because both files are built by this repo from the
+       same snapshot, so the strings are identical by construction
+       (50 of 50 on the live board) rather than by name matching.
+       `[Sam, 2026-10-01]` `.ev2` stays as the row's empty spacer; the
+       sentence it held is gone (no explanations on the page). */
     return `<div class="prow fbprow">
       <div class="who">
         <div class="nm2">${p.player}</div>
@@ -3939,26 +3870,12 @@ async function fbProps(){
       <div class="bet">
         <div class="ln">${word}${ln}</div>
         <div class="mk">${p.unit || p.label || ''}</div>
-        <!-- 🔴 THE PROJECTION, JOINED FROM THE PUBLISHED CARD.
-             Exactly how the MLB props tab does it: the number lives on
-             the card so there is ONE writer, and this tab formats it
-             through the SAME projChip. A miss renders nothing -- an
-             absent projection means the market was never measured or he
-             has too few games, and it never means guess.
-             ⚠️ Keyed by NAME because football has no player ids. That is
-             safe only because both files are built by this repo from the
-             same snapshot, so the strings are identical by construction
-             (50 of 50 on the live board) rather than by name matching. -->
         ${(() => { const j = (FBPROJ || {})[
              `${p.player}|${p.market}|${side}|${p.line}`];
            return j ? projChip(j.v, j.u, j.b, j.n) : ''; })()}
       </div>
       <div class="pr2">${priceCell(sd)}</div>
-      <!-- ⚠️ ONE SENTENCE FOR BOTH LEAGUES. It stopped being
-           league-specific on 2026-09-04 when college rows started
-           carrying a record; two copies of one fact is two things to
-           drift (rule 66). -->
-      <div class="ev2"><span style="opacity:.6">market price &mdash; his own record is on the Gizmo&rsquo;s Picks tab</span></div>
+      <div class="ev2"></div>
       <div class="imp">${sd && sd.n_books
         ? `<b>${sd.n_books}</b>book${sd.n_books > 1 ? 's' : ''}`
         : '<span style="font-size:10px;opacity:.6">one-sided<br>no fair price</span>'}</div>
@@ -3971,10 +3888,8 @@ async function fbProps(){
       fbPf.market === 'all' || p.market === fbPf.market);
     if (!list.length) return;
     let rows = '';
-    const flagged = new Set();
     list.forEach(p => {
       const sides = p.sides || {};
-      if (!flagged.has(p.player)){ flagged.add(p.player); rows += fbFlagHtml(fbFlagsFor(FL, 'player', p.player, g.id)); }
       ['over', 'under', 'yes'].forEach(k => {
         if (!sides[k]) return;
         if (fbPf.side !== 'all' && k !== 'yes' && k !== fbPf.side) return;
@@ -4007,16 +3922,8 @@ async function fbProps(){
     ${startedToggle(nStarted, 'fb-pr-started', allDone)}
     ${body || `<div class="msg">${fbConf.size && !shown.length && games.length
       ? `None of the <b>${games.length}</b> games with props involve
-         ${[...fbConf].join(', ')}. Clear the conference filter to see them.`
-      : 'No lines in this market.'}</div>`}
-    <div class="note" style="margin-top:18px">
-      <b>Every price with a Bet button is clickable</b> and opens that book's
-      bet slip. Set your state at the top or half the links will not resolve.
-      <br><br>&#128309; <b>These are the sportsbooks' numbers, not ours.</b>
-      <br>&#9940; <b>No row carries a Gizmo's confidence rating, and none ever
-      will on this tab.</b> Four pre-registered football models were tested
-      and every one lost to a player's own season average.
-    </div>`);
+         ${[...fbConf].join(', ')}.`
+      : 'No lines in this market.'}</div>`}`);
   fbWire();
   const on = (id, fn) => { const e = $('#' + id); if (e) e.addEventListener('change', fn); };
   on('fb-pf-game', e => { fbPf.game = e.target.value; fbProps(); });
@@ -4032,9 +3939,7 @@ async function fbProps(){
    ⛔ BOTH ARE NOTES, NEVER LEVERS. Neither removes, hides, re-ranks or
       re-prices a row; the builders (`fb_agreement.py`, `news_flags_fb.py`)
       decide everything and this page only prints what they wrote.
-   ⛔ RULE 55: the label and every flag are Descriptive; the props model's
-      % is Model; the card's % keeps the card's own basis (Record); the
-      break-even is Market.
+   `[Sam, 2026-10-01]` No explanation boxes, tags or per-row flags on the page.
    ══════════════════════════════════════════════════════════════════ */
 const FBAG = {}, FBFLAGS = {};
 async function fbAgLoad(){
