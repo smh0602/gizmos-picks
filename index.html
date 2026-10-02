@@ -5733,33 +5733,20 @@ function fbBoxScore(g, by, box){
 }
 
 function fbBoxStored(g, by){
-  if (!by) return `<div class="note"><b>No player logs stored for
-    ${fbScSeason}.</b> They are built by the weekly rebuild &mdash;
-    ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} morning &mdash; from a free
-    source.</div>`;
+  // [Sam, 2026-10-01] no explanation boxes on the page: each empty state is one plain line.
+  if (!by) return `<p class="plain">No player logs stored for ${fbScSeason}.</p>`;
   const rows = by[String(g.id)] || [];
-  if (!rows.length) return `<div class="note">
-    <b>No player log for this game.</b> ${LEAGUE === 'ncaaf'
-      ? 'The college logs cover the teams this product tracks rather than '
-        + 'every school playing, so most games have none. '
-      : ''}⛔ <b>That is an absence, not a zero</b> &mdash; nothing here is
-    being reported as having happened.</div>`;
+  if (!rows.length) return '<p class="plain">No player log for this game.</p>';
   const side = nm => {
     const mine = rows.filter(x => x.r.team === nm);
     if (!mine.length) return `<div class="bxteam"><h3 class="bxt">${fbMark(nm, 20)}
-      ${fbAb(nm)}</h3><div class="note">No log stored for this side.</div></div>`;
+      ${fbAb(nm)}</h3><p class="plain">No log stored for this side.</p></div>`;
     const tables = ['pass', 'rush', 'rec'].map(k => fbBoxTable(mine, k,
       k === 'pass' ? 'Passing' : k === 'rush' ? 'Rushing' : 'Receiving')).join('');
     return `<div class="bxteam"><h3 class="bxt">${fbMark(nm, 20)} ${fbAb(nm)}</h3>
-      ${tables || '<div class="note">No passing, rushing or receiving recorded.</div>'}</div>`;
+      ${tables || '<p class="plain">No passing, rushing or receiving recorded.</p>'}</div>`;
   };
-  const n = new Set(rows.map(x => x.r.team)).size;
-  return side(g.away) + side(g.home) + (n < 2
-    ? `<div class="note">⚠️ <b>Only one side of this game has a stored
-        log.</b> ${LEAGUE === 'ncaaf'
-        ? 'That is normal here: an FBS team playing a school this product '
-          + 'does not track has a log on one side only.' : ''}</div>`
-    : '');
+  return side(g.away) + side(g.home);
 }
 
 async function fbOpenBox(g){
@@ -5781,36 +5768,19 @@ async function fbOpenBox(g){
       <td class="n"><b>${total == null ? '' : total}</b></td>
     </tr>`;
 
+  /* [Sam, 2026-10-01] no explanation boxes on the page: the empty state is one plain line.
+     🔴 "Not kicked off" is derived from the kickoff time, never from a
+     missing score: it once said so about a game that had kicked off three
+     and a half hours earlier `[Sam's screenshot, UCLA @ California,
+     2026-09-06]`. ⛔ Rule 132. */
   const quarters = n
     ? `<table class="bs" style="width:100%">
          <thead><tr><th>Team</th>${head}<th class="n">T</th></tr></thead>
          <tbody>${row(g.away, al, g.away_score)}${row(g.home, hl, g.home_score)}</tbody>
        </table>`
-    : `<div class="note">${g.final
-        ? (LEAGUE === 'nfl'
-           ? '<b>No quarter scores stored for this game.</b> The NFL schedule '
-             + 'feed carries only the final, so quarters are rebuilt from the '
-             + 'play-by-play each week &mdash; they appear after the next '
-             + 'rebuild. A game is also left blank on purpose when its '
-             + 'quarters do not add up to its own final score, because a '
-             + 'split that does not reconcile would be worse than none.'
-           : '<b>No quarter scores stored for this game yet.</b> They arrive '
-             + 'with the next schedule rebuild.')
-        : fbKickedOff(g)
-          /* 🔴 IT SAID "THIS GAME HAS NOT KICKED OFF" ABOUT A GAME THAT
-             KICKED OFF THREE AND A HALF HOURS EARLIER. `[Sam's
-             screenshot, UCLA @ California, 2026-09-06]` The sentence
-             asserted A FACT THE STORED DATA DOES NOT CARRY: our file
-             knows only that there is no score yet, which is a different
-             thing from the game not having started. ⛔ Rule 132.
-             ✅ Derived from the kickoff time now. */
-          ? '<b>No score stored for this game yet.</b> It kicked off at '
-            + (fbKickTime(g.start) || 'its scheduled time')
-            + ', and the stored schedule is rebuilt on game days, so the '
-            + 'result appears at the next refresh. Quarter scores follow '
-            + 'once it is final.'
-          : '<b>This game has not kicked off.</b> Quarter scores appear once it is final.'}
-      </div>`;
+    : `<p class="plain">${g.final ? 'No quarter scores stored for this game.'
+        : fbKickedOff(g) ? 'No score stored for this game yet.'
+        : 'This game has not kicked off.'}</p>`;
 
   const line = (label, val) => val == null || val === ''
     ? '' : `<div><span class="lab">${label}</span> <b>${val}</b></div>`;
@@ -5826,7 +5796,7 @@ async function fbOpenBox(g){
                 ? sgn(b.best_ml[nameOf(g.home)].price) : '')}
          ${line('Books', b.n_books)}
        </div>`
-    : '<div class="note" style="margin-top:4px">No live odds stored for this game.</div>';
+    : '<p class="plain">No live odds stored for this game.</p>';
 
   const venue = [g.venue, g.roof, g.surface].filter(Boolean).join(' &middot; ');
   const wx = [g.temp != null ? g.temp + '&deg;F' : '',
@@ -5848,14 +5818,11 @@ async function fbOpenBox(g){
     <div class="modal-b">
       <h3 style="margin:0 0 8px;font-size:13px">Score by quarter</h3>
       ${quarters}
-      <h3 style="margin:18px 0 4px;font-size:13px">Betting lines
-        <span class="kind k-market">Market</span></h3>
+      <h3 style="margin:18px 0 4px;font-size:13px">Betting lines</h3>
       ${market}
-      ${venue || wx ? `<div class="note" style="margin-top:16px">
-        ${venue}${venue && wx ? '<br>' : ''}${wx}</div>` : ''}
-      <h3 style="margin:18px 0 4px;font-size:13px">Box score
-        <span class="kind k-desc">Descriptive</span></h3>
-      <div id="fbbox"><div class="note">Loading the player log&hellip;</div></div>
+      ${venue || wx ? `<p class="plain">${venue}${venue && wx ? '<br>' : ''}${wx}</p>` : ''}
+      <h3 style="margin:18px 0 4px;font-size:13px">Box score</h3>
+      <div id="fbbox"><p class="plain">Loading the player log&hellip;</p></div>
     </div></div>`;
   document.body.append(ovl);
   /* ⚠️ THE LOG IS FETCHED AFTER THE MODAL IS ON SCREEN, and that file is
@@ -5998,17 +5965,11 @@ function fbNewsLogo(title){
 
 async function fbNews(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const N = await fbNewsLoad();
   if (!N || !(N.items || []).length){
-    v.innerHTML = fbShell(`<div class="note">
-      <b>No ${LG_NAME[LEAGUE]} headlines yet.</b><br>
-      A news feed is only added here once it has been fetched, parsed and
-      its headlines read to confirm they are the right sport &mdash; a feed
-      can parse perfectly and still be about something else. Until then
-      this tab stays empty rather than showing you a guess.
-    </div>`);
+    v.innerHTML = fbShell(`<div class="msg">No ${LG_NAME[LEAGUE]} headlines yet.</div>`);
     fbWire(); return;
   }
   const ago = iso => {
@@ -6018,9 +5979,9 @@ async function fbNews(){
     if (m < 1440) return Math.round(m/60) + 'h ago';
     return Math.round(m/1440) + 'd ago';
   };
-  v.innerHTML = fbShell(`<h2>Around the league <span class="kind k-desc">Live</span></h2>
-    <p>Headlines from ${[...new Set(N.items.map(i => i.source))].join(', ')}.
-       ${freshness(N.pulled_at)}</p>
+  // [Sam, 2026-10-01] no explanation boxes or tags on the page; the last-updated time stays.
+  v.innerHTML = fbShell(`<h2>Around the league</h2>
+    <p>${freshness(N.pulled_at)}</p>
     <div class="nwgrid">
     ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener nofollow">
         ${(() => { const art = i.image || fbNewsLogo(i.title); return art
@@ -6034,12 +5995,6 @@ async function fbNews(){
           <div class="mt">${i.source}${i.published ? ' &middot; ' + ago(i.published) : ''}</div>
           ${i.summary ? `<div class="sm">${i.summary}</div>` : ''}
         </div></a>`).join('')}
-    </div>
-    <div class="note" style="margin-top:14px">
-      Headlines and links only, credited to the publisher. Click through to
-      read the story at the source.
-      <br><br>&#9940; <b>Nothing on this tab feeds a number anywhere on the
-      site.</b> It is here to read, not to bet from.
     </div>`);
   v.insertAdjacentHTML('beforeend', fbFlagsRecordHtml(await fbFlagsLoad()));
   fbWire();
@@ -6067,23 +6022,22 @@ async function renderFootball(){
   if (FBTAB === 'parlays') return fbParlays();
   if (FBTAB === 'record') return fbRecord();
   if (FBTAB !== 'trends'){
-    const [title, why] = FB_EMPTY[FBTAB];
+    // [Sam, 2026-10-01] no explanation boxes on the page: one plain line.
+    const [title] = FB_EMPTY[FBTAB];
     v.innerHTML = fbShell(
-      `<div class="note"><b>${title} &mdash; not built for ${LG_NAME[LEAGUE]} yet.</b><br>${why}</div>`);
+      `<div class="msg">${title} &mdash; not built for ${LG_NAME[LEAGUE]} yet.</div>`);
     fbWire(); return;
   }
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   /* 🔴 ASK WHAT EXISTS BEFORE DRAWING THE PICKER, and snap to a season
      that does. `[measured 2026-09-01]` switching College from defence to
      offence on any year before 2025 left the reader on a season with no
      file -- the control said 2023 and the table said nothing.
-     ✅ Snapping is announced, never silent: a picker that quietly moves
-     under you is its own defect. */
+     [Sam, 2026-10-01] no explanation boxes on the page: the picker itself
+     shows the season it moved to. */
   const avail = await fbSeasonsAvailable();
-  let snapped = null;
   if (avail.length && avail.indexOf(fbSeason) === -1){
-    snapped = fbSeason;
     fbSeason = Math.max.apply(null, avail);
   }
   const doc = await fbLoad(fbSeason);
@@ -6093,11 +6047,7 @@ async function renderFootball(){
        against — fbControls falls back to the full list, which is right:
        the picker should still work on a page that has no table yet. */
     v.innerHTML = fbShell(fbControls(avail, null) +
-      `<div class="note"><b>No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</b><br>
-       ${fbSeason >= 2026 ? `The ${fbSeason} season rebuilds
-       ${LEAGUE==='ncaaf'?'every morning at 3am ET':'every Tuesday at noon ET'}.
-       Until the first slate is final there is nothing to show.<br>` : ''}
-       The collector writes <code>${fbPath(fbSeason)}</code> on its next scheduled run.</div>`);
+      `<div class="msg">No ${fbSeason} ${fbSide==='off'?'offense':'defense'} table for ${LG_NAME[LEAGUE]} yet.</div>`);
     fbWire(); return;
   }
 
@@ -6105,28 +6055,17 @@ async function renderFootball(){
      🔴 SAY HOW OLD THIS TABLE IS. Sam, 2026-09-08: *"the trends tab is
      still not updated."* ⛔ HE COULD NOT HAVE KNOWN FROM THE PAGE — it
      drew a full, confident table of numbers built on **2026-09-04** and
-     said nothing about the date. `[measured 2026-09-08]` CFBD had been
-     answering **429 on every endpoint** for four days.
-     ⚠️ A STALE NUMBER THAT ANNOUNCES ITSELF IS A DIFFERENT PRODUCT FROM
-     A STALE NUMBER THAT DOES NOT. The fix for the source is in the
-     collector; the fix for the READER is this line.
-     ⛔ The threshold is the league's own rebuild cadence, not a guess:
-     college rebuilds daily and the NFL weekly, so "late" is 2 days and
-     9 days respectively. */
+     said nothing about the date. ✅ The build age is ALWAYS shown, as the
+     tab's last-updated time.
+     [Sam, 2026-10-01] no out-of-date alert box on the page. */
   const builtAt = doc.built_at || null;
   let ageNote = '';
   if (builtAt){
     const hrs = (Date.now() - new Date(builtAt).getTime()) / 3600000;
-    const lateAfter = LEAGUE === 'ncaaf' ? 48 : 216;
     const when = isNaN(hrs) ? '' :
       hrs < 36 ? `${Math.max(0, Math.round(hrs))}h ago`
                : `${Math.round(hrs / 24)} days ago`;
-    ageNote = (hrs > lateAfter)
-      ? `<div class="note"><b>This table has not rebuilt since ${builtAt.slice(0, 10)}</b>
-         &mdash; ${when}. It should rebuild ${LEAGUE === 'ncaaf'
-         ? 'every morning at 3am ET' : 'every Tuesday'}. The numbers below
-         are real, and they are that old.</div>`
-      : `<p class="sub"><span class="rec">table built ${when}</span></p>`;
+    ageNote = `<p class="sub"><span class="rec">table built ${when}</span></p>`;
   }
 
   const D = doc.defences || doc.offences || {};
@@ -6152,7 +6091,6 @@ async function renderFootball(){
      moves as the season fills up, and a page that hardcoded 8 would
      silently disagree with the data it is drawing. */
   const floor = doc.min_games_for_rank || FB_MIN_GAMES;
-  const floorFull = doc.rank_floor_is_full !== false;
   const rows = [];
   for (const team in D){
     const e = D[team][fbPos];
@@ -6208,67 +6146,27 @@ async function renderFootball(){
     ? '<span style="color:#7c8794;font-size:10px">&#9660;</span>'
     : '<span style="color:#7c8794;font-size:10px">&#9650;</span>';
 
-  const qbRush = (LEAGUE === 'ncaaf' && fbPos === 'QB' &&
-                  (fbMetric === 'rush_yds' || fbMetric === 'car'));
-
+  /* [Sam, 2026-10-01] no explanation boxes or tags on the page.
+     The rank direction rides the header itself: on defence rank 1 ALLOWS
+     the most, i.e. the SOFTEST defence, not the best one. Both value
+     columns sort and name the SELECTED metric, never a fixed "yards".
+     "vs FBS" and the Gm tooltip are gated on the builder's own
+     doc.per_game_scope flag (rule 132). */
   v.innerHTML = fbShell(`
     ${fbControls(avail, mets)}
     ${ageNote}
-    ${snapped ? `<div class="note" style="margin:0 0 12px;padding:9px 12px">
-      <b>No ${snapped} ${fbSide === 'off' ? 'offense' : 'defense'} table for
-      ${LG_NAME[LEAGUE]}</b> &mdash; showing <b>${fbSeason}</b> instead.
-      ${LEAGUE === 'ncaaf' && fbSide === 'off'
-        ? 'The college offensive board was added after the historical back-fill ran, so only 2025 is built. The scheduled back-fill fills the rest.'
-        : 'Only the seasons with a table are offered in the picker.'}</div>` : ''}
-    ${qbRush ? `<div class="note"><b>College charges sack yardage to rushing.</b>
-       CFB quarterback rushing reaches &minus;73 with 23.5% of rows negative; the NFL
-       bottoms out at &minus;10 with 11.6%. So this column is largely a
-       <b>pass-rush</b> measure &mdash; a low or negative figure means the defense sacks
-       people &mdash; and it is <b>not comparable to the NFL column</b>.</div>` : ''}
-    <!-- 🔴 ~~TWO CREAM NOTE BOXES STOOD HERE~~ REMOVED 2026-09-11 on Sam's
-         instruction: "the yellow boxes with text in it in the trends tab, i
-         want both of those gone completley." They were the FBS-opponent
-         scope box and the "Power 4 offenses only" box, and they sat between
-         the controls and the table on every college Trends view.
-         ⚠️ THE FACTS THEY CARRIED ARE NOT DELETED, ONLY UN-BOXED:
-           • the FBS-opponent scope now rides the <b>Gm</b> column's own
-             tooltip, sourced from the same doc.per_game_scope flag, so
-             the page still cannot assert it on a table that isn't scoped
-             that way;
-           • "ranks are withheld below N games" was always VISIBLE as the
-             em-dash in the Rk column and is restated by the footer note;
-           • the Power-4 sample restriction is a property of the DATA and
-             is stated in the builder's own doc, which is where a reader
-             who wants it can find it.
-         ⛔ Do not re-add either box without Sam asking. This is the same
-            instruction as CLAUDE.md's "doesnt include nonsense users dont
-            need to read and cant understand" — the third time it has been
-            given about this page. -->
     ${fbConfBar()}
     <table class="fbt"><thead><tr>
-      <!-- ⚠️ THE DIRECTION IS ON THE HEADER, not only in the footnote
-           below. It is the one fact a reader cannot guess and cannot
-           read off the table: rank 1 is the SOFTEST defence, not the
-           best one. -->
       <th class="rk" title="Rank 1 ${fbSide==='off'?'produces':'allows'} the most${
-        floor > 1 ? ` — ranks are withheld below ${floor} games` : ''}">Rk</th>
+        floor > 1 ? ` — ranks are withheld below ${floor} games` : ''}">${
+        fbSide==='off' ? 'Rk' : 'Rank (1 = most allowed)'}</th>
       <th>${fbSide==='off'?'Offense':'Defense'}</th>
-      <!-- 🔴 BOTH COLUMNS SORT, AND THE HEADER SAYS WHAT IT HOLDS.
-           ⛔ ~~"Vs. league range"~~ told the reader how the BAR was drawn
-           and never what the number WAS. It now names the metric on
-           screen and which side of the ball it describes.
-           ⚠️ It uses the SELECTED metric's own label rather than a fixed
-           "yards", so the header cannot say "yards" while the column
-           shows receptions. -->
       <th class="n fbsort" data-fbsort="1" title="Click to flip most/least"
-          style="cursor:pointer;user-select:none">Per gm ${sortArrow}</th>
+          style="cursor:pointer;user-select:none">${LEAGUE === 'ncaaf' && doc.per_game_scope
+          ? 'Per game vs FBS' : 'Per gm'} ${sortArrow}</th>
       <th class="fbsort" data-fbsort="1" title="Click to flip most/least"
           style="width:32%;cursor:pointer;user-select:none">${metricLabel}
           ${fbSide==='off'?'produced':'allowed'} ${sortArrow}</th>
-      <!-- ⚠️ THE SCOPE SENTENCE LIVES HERE NOW, not in a box above the
-           table. It is still gated on the builder's own per_game_scope
-           flag, so the page cannot claim FBS-only scoping on a table that
-           was not built that way (rule 132). -->
       <th class="n"${LEAGUE === 'ncaaf' && doc.per_game_scope
         ? ' title="Games against an FBS opponent. A game against an FCS'
           + ' opponent contributes neither yards nor a game, so this reads'
@@ -6290,38 +6188,8 @@ async function renderFootball(){
     ${(!ranked.length && !thin.length && fbConf.size) ? `<tr><td colspan="5"
         style="padding:16px;color:var(--mut)">No team in
         ${[...fbConf].join(', ')} has a ${fbSeason} ${fbPos} row in this table
-        yet. The data is there for the other conferences &mdash; clear the
-        filter to see it.</td></tr>` : ''}
-    </tbody></table>
-    <!-- 🔴 ~~THE THIRD CREAM BOX~~ UN-BOXED 2026-09-12. Sam had already
-         asked for the two ABOVE the table to go; this one sits BELOW a
-         143-row table, which is why he said "both of those" and why it
-         was left alone until he named it.
-         ⛔ THE BOX GOES, THE FACTS DO NOT — same treatment as Parlays and
-         Track Record. Rule 55 wants every number LABELLED, not boxed, and
-         one of these sentences is load-bearing: without "rank 1 allows
-         the most" a reader seeing rank 1 beside the HIGHEST yards allowed
-         would reasonably read it as the BEST defence, which is the exact
-         opposite of what the column means.
-         ✅ So the direction ALSO rides the Rk header's own tooltip, and
-         the rest survives as small muted type under a hairline. -->
-    <div class="fnote">
-      <b>${ranked.length}</b> ranked teams${fbConf.size ? ` of <b>${rankedAll.length}</b>` : ''}${thin.length ? ` &middot; <b>${thin.length}</b> below the ${floor}-game threshold, listed unranked` : ''}
-      &middot; <b>rank 1 ${fbSide==='off'?'produces':'allows'} the most</b>.
-      ${fbConf.size ? `<br>&#9888; <b>The rank and the bar are national, not
-      within ${[...fbConf].join(', ')}.</b> The filter changes which rows you
-      see and nothing else &mdash; a team ranked 41st still reads 41st here, and
-      the bar is still measured against all <b>${rankedAll.length}</b> ranked
-      teams. A rank that changed meaning when you clicked a chip would be a
-      different number wearing the same label.` : ''}
-      ${floorFull ? '' : `<br>&#9888; <b>Early season.</b> Ranks are standing on as few as
-      <b>${floor}</b> game${floor===1?'':'s'}. The threshold rises on its own as the season
-      fills up &mdash; a rank off one game is honest only if you can see it is one game.`}
-      <br>&#9898; <b>Descriptive.</b> These are measured facts, not projections, and nothing here
-      carries a confidence number. A wide spread is <b>not</b> evidence that it predicts &mdash;
-      strength-of-schedule adjustment was tested on this data and made player projections
-      <b>worse</b> in both sports, both positions, both held-out seasons.
-    </div>`);
+        yet.</td></tr>` : ''}
+    </tbody></table>`);
   fbWire();
 }
 
@@ -6411,10 +6279,7 @@ function setLeague(lg){
   const stmp = $('#stamp'); if (stmp) stmp.style.display = mlb ? '' : 'none';
   $('#view').style.display   = mlb ? '' : 'none';
   $('#fbview').style.display = mlb ? 'none' : '';
-  /* ⛔ The stale banner reads MLB's freshness contract. Football has no
-     contract yet, so showing it under a football league would be an
-     alarm about a different sport. */
-  const sb = $('#stalebar'); if (sb) sb.style.display = mlb ? '' : 'none';
+  // [Sam, 2026-10-01] no stale bar on the page, in either league.
   const tk = document.querySelector('#ticker'); if (tk) tk.style.display = mlb ? '' : 'none';
   if (mlb) show(TAB); else renderFootball();
   if (history.replaceState) history.replaceState(null, '', mlb ? '#' : '#' + lg);
