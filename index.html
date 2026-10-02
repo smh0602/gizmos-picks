@@ -1188,7 +1188,7 @@ async function openBox(pk){
   try { bx = await jget(`${S}/game/${pk}/boxscore`); }
   catch(e){
     ovl.querySelector('.modal-b').innerHTML =
-      `<div class="note">Couldn't load the box score. ${e.message}</div>`;
+      `<p class="plain">Couldn't load the box score.</p>`;
     return;
   }
 
@@ -1256,7 +1256,7 @@ async function renderScores(){
   try{
     data = await jget(`${S}/schedule?sportId=1&date=${d}&hydrate=probablePitcher,linescore,team`);
   }catch(e){
-    v.innerHTML = `<div class="note"><b>Couldn't reach the MLB feed.</b> ${e.message}</div>`; return;
+    v.innerHTML = `<div class="msg">Couldn't reach the MLB feed.</div>`; return;
   }
   let games = (data.dates||[]).flatMap(x => x.games||[]);
   const f = $('#filt').value;
@@ -1293,14 +1293,9 @@ const confClass = c => c >= 70 ? 'c-hi' : c >= 60 ? 'c-mid' : 'c-lo';
    FORMATS a number card.py already produced. Nothing more.
    ⛔ If there is no projection, render nothing. An absent projection means
    there was no game log to build one from -- it does not mean guess. */
-function projChip(v, unit, basis, title){
+function projChip(v, unit){
   if (v == null) return '';
-  const model = basis === 'MODEL' || basis === 'M';
-  const t = title || (model
-    ? 'Gizmo\u2019s projection \u2014 what the model expects him to record '
-      + 'today. The same number at every line on this site.'
-    : 'DESCRIPTIVE \u2014 his own per-game average this season, not a '
-      + 'forecast. There is no hitter model in this project.');
+  // [Sam, 2026-10-01] the number alone: no explanation tooltip, no model/record tint.
   /* ONE DECIMAL. JSON turns 1.0 into 1, and "PROJ 1 H" next to a line of
      1.5 reads like a different kind of number than "PROJ 1.0 H".
      🔴 EXCEPT WHEN card.py DELIBERATELY KEPT A SECOND ONE. It does that
@@ -1310,7 +1305,7 @@ function projChip(v, unit, basis, title){
      away and put the contradiction straight back on the page. */
   const shown = (typeof v !== 'number') ? v
     : (Math.abs(v - Number(v.toFixed(1))) > 1e-9 ? v.toFixed(2) : v.toFixed(1));
-  return `<span class="proj ${model ? 'm' : ''}" title="${t.replace(/"/g,'&quot;')}">`
+  return `<span class="proj">`
        + `PROJ <span class="pv">${shown}</span>${unit ? ' ' + unit : ''}</span>`;
 }
 
@@ -1351,22 +1346,14 @@ function pickCard(p){
        RECORD  an MLB hitter, or an NFL row -- the player's OWN rate
        MARKET  a college row -- a price and no rate at all (see fbPicks)
      🔴 `isH` HAS ALWAYS MEANT "not a model number", so everything that is
-     not MODEL takes that branch. ⛔ Before this, a MARKET row fell to the
-     pitcher branch and rendered the chip "MODEL" -- a rule 55 violation
-     printed on the page, found by driving it. */
+     not MODEL takes that branch.
+     [Sam, 2026-10-01] no explanation boxes or tags on the page. */
   const basis = p.confidence_basis || (p.kind === 'hitter' ? 'RECORD' : 'MODEL');
   const isH = basis !== 'MODEL';
   const c = el('div','pk');
   const h = el('div','pk-h');
 
-  /* 🔴 A HITTER ROW CARRIES NO CONFIDENCE NUMBER. There is no hitter model
-     in this project and ledger rule 55 forbids a MARKET number from
-     wearing a Gizmo's rating. It shows its EDGE over the price instead,
-     and says on the card that the figure is his own record. */
-  /* 🔴 ONE NUMBER IN ONE PLACE, so the board reads top to bottom. What
-     differs is where the number CAME FROM, and that is on the row as a
-     chip rather than hidden in two different badge labels. Ledger rule 55
-     wants every number labelled, not every number hidden. */
+  // One number in one place. [Sam, 2026-10-01] no explanation boxes or tags on the page.
   /* ⚠️ A ROW CAN HAVE NO NUMBER. A college football row carries a price
      and no rate on purpose -- printing "undefined" where a confidence
      goes is exactly the kind of thing a reader reads as a broken site. */
@@ -1393,20 +1380,15 @@ function pickCard(p){
      on screen before this guard. */
   const lineTxt = p.line == null ? '' : ` ${p.line}`;
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
+  /* ⛔ The calibration BAND chip ("70-80", "60-70") is gone from the row.
+     Sam, 2026-08-26. It is a bucket label from the calibration table and
+     means nothing to a reader; the confidence number beside it already
+     says the same thing more precisely. ✅ The band is STILL on the row
+     in the data and the Track Record tab still reports by band -- this
+     removes a chip, not a measurement.
+     [Sam, 2026-10-01] the MODEL / RECORD / MARKET chip is gone too. */
   t.append(el('div','play', `${who} — ${sideWord}${lineTxt} ${unit}`
-    + '&nbsp;' + projChip(p.projection, p.projection_unit, p.projection_basis,
-                          p.projection_note)
-    /* ⛔ The calibration BAND chip ("70-80", "60-70") is gone from the row.
-       Sam, 2026-08-26. It is a bucket label from the calibration table and
-       means nothing to a reader; the confidence number beside it already
-       says the same thing more precisely. ✅ The band is STILL on the row
-       in the data and the Track Record tab still reports by band -- this
-       removes a chip, not a measurement. */
-    + (basis === 'MARKET'
-        ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">MARKET &mdash; price only</span>`
-        : basis === 'RECORD'
-        ? `<span class="bandchip rec" title="${(p.confidence_note||'').replace(/"/g,'')}">RECORD &mdash; no model</span>`
-        : `<span class="bandchip mdl" title="${(p.confidence_note||'').replace(/"/g,'')}">MODEL</span>`)));
+    + '&nbsp;' + projChip(p.projection, p.projection_unit)));
 
   /* 🔴 THREE CASES, NOT TWO.
        MLB  -- team ids, so mark() by id.
@@ -1442,31 +1424,23 @@ function pickCard(p){
      ⛔ THEY ARE STILL COMPUTED AND STILL STORED in picks/<date>.json.
      This hides them from the PAGE; it does not stop recording them, and
      the calibration record still depends on every one of them.
-     ✅ The exception is a flag that changes what the reader can DO --
-     right now that is only "Hard Rock didn't post this", because the
-     price on screen is then one they cannot actually bet. */
-  (p.flags||[]).filter(f => f.actionable).forEach(f =>
-    c.append(el('div', 'fl fl-warn', f.text)));
+     [Sam, 2026-10-01] no per-row flags either (actionable flags, lineup
+     risk): still written to the card, not shown on the page. */
 
-  if (p.lineup_risk)
-    c.append(el('div','fl fl-flag',
-      `<b>Lineup risk</b> &middot; batted in only ${p.lineup_share}% of his team's games. If he is not in
-       today's lineup this is usually a VOID, not a win. Check the card before you bet it.`));
   /* 🔴 A ROW SEATED BELOW ITS PRICE SAYS SO WITH ITS NUMBERS. Sam,
      2026-09-25 (C8): pitchers keep their own 25 seats, and when fewer than
      25 beat their price the rest are the best pitcher rows that do NOT --
      "clearly labelled that it loses to its price on the corrected number
      (show the printed %, the break-even and the edge)". ⛔ The edge is the
      card's own (`edge`, from the unrounded number), never recomputed here.
-     ⚠️ Each number is guarded on its own field; a row missing one keeps
-     the plain sentence rather than printing "undefined". */
+     [Sam, 2026-10-01] numbers only, no sentence.
+     ⚠️ Each number is guarded on its own field; a row missing one shows
+     the bare label rather than printing "undefined". */
   if (p.below_price)
     c.append(el('div','fl fl-note',
       (p.confidence != null && p.break_even != null && p.edge != null)
-        ? `<b>Loses to its price.</b> The ${p.confidence}% shown is under the
-           ${p.break_even}% this price needs to break even (edge <b>${p.edge > 0 ? '+' : ''}${p.edge}%</b>).
-           It's here to fill the board out, not because it beats the price.`
-        : `This one doesn't have an edge at the price shown — it's here to fill the board out.`));
+        ? `Below its price: ${p.confidence}% vs ${p.break_even}% break-even (edge ${p.edge > 0 ? '+' : ''}${p.edge}%)`
+        : 'Below its price'));
 
   /* 🔴 WHAT THIS OPPONENT HAS DONE TO STARTERS LATELY.
      Sam's idea, 2026-08-26. Built from our OWN pitcher logs -- every one of
@@ -1504,7 +1478,7 @@ function pickCard(p){
   /* Alt ladder — pitchers only; hitters have no rungs in the feed. */
   if (p.ladder && p.ladder.length){
     const L = el('div','lad');
-    L.append(el('div','lb', 'HARD ROCK ALT LADDER &mdash; the app labels these "To Record N+"'));
+    L.append(el('div','lb', 'HARD ROCK ALT LADDER'));
     p.ladder.forEach(r => {
       const star = p.ladder_pick && r.line === p.ladder_pick.line && r.side === p.ladder_pick.side;
       const cls = 'rung' + (star ? ' star' : '') + (r.clears_price_floor ? '' : ' dim');
@@ -1541,7 +1515,7 @@ function pickCard(p){
       + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
     if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
     if (p.carried != null && Math.abs(p.carried - p.blend) >= 0.5)
-      bits.push(`Flagged estimate <b>${p.carried}%</b> (shadow — not the carded number)`);
+      bits.push(`Flagged estimate <b>${p.carried}%</b>`);
   }
   if (p.break_even != null) bits.push(`Break-even <b>${p.break_even}%</b>`);
   if (p.other_side)
@@ -1558,10 +1532,8 @@ async function renderPicks(){
   // data/ is what the collector writes, picks/ is what we publish.
   try { P = await loadCard(); }
   catch(e){
-    v.innerHTML = `<div class="panel"><h2>Gizmo's Picks <span class="kind k-model">Model</span></h2>
-      <div class="note"><b>No card published for ${d} yet</b>, and none in the
-      last ${CARD_MAX_BACK} days either. Cards are written to
-      <code>picks/&lt;date&gt;.json</code>; this tab renders whatever is there.</div></div>`;
+    v.innerHTML = `<div class="panel"><h2>Gizmo's Picks</h2>
+      <p class="plain">No card published for ${d} yet.</p></div>`;
     return;
   }
 
@@ -1570,10 +1542,7 @@ async function renderPicks(){
   /* ⛔ THE DATE IN THE HEADING IS THE CARD'S OWN, NEVER `todayET()`. A
      heading that says today over yesterday's rows is the misinformation
      this fallback exists to avoid. */
-  head.innerHTML = `<h2>Gizmo's Picks <span class="kind k-model">Model</span> &mdash; ${CARD_DATE}</h2>
-    ${cardStaleNote()}
-    <p>${P.coverage}</p>
-    <div class="note"><b>Read the confidence number honestly.</b> ${P.calibration_warning}</div>`;
+  head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2>`;
   v.append(head);
 
   // Rank by confidence -- what a reader expects from a picks page, and it
@@ -1588,13 +1557,10 @@ async function renderPicks(){
                 : P.picks);
   const hidden = P.picks.length - live.length;
   // Same rule: if every pick on the card is on a started game, hiding them
-  // all leaves an empty board, so show them and say why.
+  // all leaves an empty board, so show them.
   const pkAllDone = hidden > 0 && live.length === 0;
   if (pkAllDone) { live = P.picks; }
   if (hidden) v.append(el('div', null, startedToggle(hidden, 'pk-started', pkAllDone)));
-  if (!dated.length && P.picks.length)
-    v.append(el('div','note','This card has no kickoff times on it, so nothing can be retired '
-      + 'automatically. Cards written from here on carry them.'));
 
   /* The card already ranked itself -- band first, then edge. Re-sorting on
      `confidence` here would drop every hitter to the bottom, because a
@@ -1642,26 +1608,17 @@ async function renderPicks(){
                       : x.market === 'outs' ? 'Outs'
                       : (x.market_label || x.market);
     tn.innerHTML = `<h2>Top 10 plays of the day</h2>
-      <p>${P.top10_rule || ''}</p>
       <div class="t10">${t10.map((x,i) => {
         const who = x.pitcher || x.player;
         const side = x.side === 'over' ? 'Over' : 'Under';
         return `<div class="r">${i+1}</div>
           <div class="w"><b>${who}</b> — ${side} ${x.line} ${unitOf(x)}
             ${x.alt_rung ? '<span class="altchip">ALT RUNG</span>' : ''}
-            ${projChip(x.projection, x.projection_unit, x.projection_basis, x.projection_note)}
+            ${projChip(x.projection, x.projection_unit)}
             <div class="rec" style="font-size:11px">${x.game || ''}${x.first_pitch ? ' · ' + x.first_pitch : ''}</div></div>
           <div class="c ${confClass(x.confidence)}">${x.confidence}%</div>
           <div class="p">${sgn(x.price)}</div>`;
-      }).join('')}</div>
-      <div class="note" style="margin-top:10px"><b>This is not the top of the board.</b>
-        The board is ranked by confidence and capped at 50, so its first ten rows are just
-        its first ten rows. This list is drawn from every priced row <i>and</i> every alt
-        ladder rung — which never appear on the board at all — then gated at
-        ${P.top10_excluded ? P.top10_excluded.price_floor : -400} so nothing lands here
-        that wins reliably and pays nothing.
-        ${P.top10_excluded ? `<b>${P.top10_excluded.below_payable_floor}</b> row(s) were
-        excluded by that price gate.` : ''}</div>`;
+      }).join('')}</div>`;
     v.append(tn);
   }
 
@@ -1669,7 +1626,6 @@ async function renderPicks(){
   if (pairs.length){
     const pn = el('div','panel');
     pn.innerHTML = `<h2>Pairs</h2>
-      <p>Two legs, different games, ranked by the chance both land. Nothing below 1.8x is shown.</p>
       <div style="overflow-x:auto"><table class="pairs">
       <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th><th class="n">Both hit</th></tr></thead>
       <tbody>${pairs.map(x => `<tr>
@@ -1708,7 +1664,7 @@ async function renderOdds(){
     const t = $('#ob-started');
     if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderOdds(); });
   }, 0);
-  if (!BOARD){ v.innerHTML = '<div class="note"><b>No odds file yet.</b> The collector writes <code>data/latest/board.json</code> on its next run.</div>'; return; }
+  if (!BOARD){ v.innerHTML = '<div class="msg">No odds yet.</div>'; return; }
 
   const allG = BOARD.games || [];
   const {list: _oddsList, nStarted, allDone} = splitStarted(allG);
@@ -1787,18 +1743,11 @@ async function renderOdds(){
   };
 
   v.innerHTML = `<div style="margin-bottom:6px">
-      <h2 style="margin:0 0 4px;font-size:16px">Odds <span class="kind k-market">Market</span></h2>
-      <p style="color:var(--mut);margin:0">Consensus across ${BOARD.n_books_seen} books with the vig removed,
-        and the best available price on each side. ${freshness(BOARD.pulled_at)}</p>
+      <h2 style="margin:0 0 4px;font-size:16px">Odds</h2>
+      <p style="color:var(--mut);margin:0">${freshness(BOARD.pulled_at)}</p>
     </div>
     ${startedToggle(nStarted, 'ob-started', allDone)}
-    ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">Every game on the board has started.</div>'}
-    <div class="note" style="margin-top:18px"><b>Every price with an arrow is clickable</b> and opens that
-      book's bet slip — moneyline, total and run line alike. Prices without one are real, but the book did not
-      hand back a link, so nothing is guessed. Set your state at the top right or half the links will not resolve.
-      <br><br>Every number on this page belongs to the sportsbooks, not to us.
-      A win&nbsp;% here is what the market thinks once the house margin is stripped out — genuinely hard to beat,
-      and still not a Gizmo's projection. It never carries a Gizmo's confidence rating.</div>`;
+    ${Object.keys(byDate).sort().map(block).join('') || '<div class="msg">Every game on the board has started.</div>'}`;
 }
 
 /* Track Record — read from data/latest/record.json, not hardcoded.
@@ -1868,24 +1817,16 @@ function dayDetailHtml(rows, date){
       <td class="n">${r.actual == null ? '—' : r.actual}</td>
       <td><span class="res ${res[0]}">${res[1]}</span></td></tr>`;
   }).join('');
-  const nv = rows.filter(r => r.void).length;
   return `<div style="overflow-x:auto"><table class="ddtab">
       <thead><tr><th>Player</th><th>Pick</th><th class="n">Conf</th>
         <th class="n">Price</th><th class="n">Actual</th><th>Result</th></tr></thead>
-      <tbody>${body}</tbody></table></div>
-    <div class="note" style="margin:0 0 8px;padding:7px 10px;font-size:11.5px">
-      <b>Actual</b> is what the player really did, read off the stored box score.
-      ${nv ? `<b>${nv} void</b> — the player never took the field, which is usually a refund
-       at the book, not a loss. Voids are shown here and excluded from every percentage.`
-       : 'Every pick on this card was settled.'}</div>`;
+      <tbody>${body}</tbody></table></div>`;
 }
 
 /* 🔴 IS v5.0 STILL THE BEST VERSION? `[Sam, 2026-09-23]` The weekly
    champion-vs-challenger check (`mlb_refit.py`, research/mlb_refit_spec.md).
-   ⛔ RULE 55, BY CONSTRUCTION: every number reaches the page through
-   `labN`, which prints its MODEL / MARKET / DESCRIPTIVE chip beside it. A
-   number the report sends without a basis is shown as "unlabelled" rather
-   than passed off as either. `test_mlb_refit.py` checks both halves. */
+   [Sam, 2026-10-01] no explanation boxes or tags on the page: `labN`
+   prints the value alone. */
 function labN(x, unit){
   if (!x || typeof x !== 'object' || !('basis' in x))
     return '<span class="kind k-desc">unlabelled</span>';
