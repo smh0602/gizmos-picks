@@ -209,8 +209,8 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 /* Headline ticker, pinned to the bottom of every tab. */
 #tick{position:fixed;left:0;right:0;bottom:0;height:34px;background:#14181f;color:#e8eef6;
       display:flex;align-items:center;overflow:hidden;z-index:40;font-size:12.5px}
-#tick .tag{flex:0 0 auto;padding:0 12px;height:100%;display:flex;align-items:center;
-      background:var(--accent2,#1f7a4d);font-weight:800;letter-spacing:.06em;font-size:11px}
+#tick .lg{display:inline-block;padding:1px 6px;margin-right:7px;border-radius:3px;
+      background:var(--accent2,#1f7a4d);font-weight:800;letter-spacing:.06em;font-size:10.5px}
 #tick .rail{flex:1;overflow:hidden;white-space:nowrap;position:relative}
 #tick .run{display:inline-block;padding-left:100%;animation:tickmove 180s linear infinite}
 #tick a{color:#e8eef6;text-decoration:none;margin:0 26px}
@@ -219,7 +219,6 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 #tick:hover .run{animation-play-state:paused}
 @keyframes tickmove{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 body{padding-bottom:44px}
-@media (prefers-reduced-motion:reduce){#tick .run{animation:none;padding-left:0}}
 .pairs{width:100%;border-collapse:collapse;font-size:13px}
 .pairs th,.pairs td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
 .pairs th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
@@ -527,12 +526,11 @@ table.fbt tr:hover td{ background:#f7f9fb; }
        in it runs until a league button is clicked. -->
   <div id="fbview" style="display:none"></div>
 
-  <!-- Headline ticker. Lives OUTSIDE #view so it survives every tab
-       switch, and is filled once from the same news.json the News tab
-       reads. Pauses on hover, and stops entirely for anyone who has
-       asked their system for reduced motion. -->
+  <!-- Headline ticker. Lives OUTSIDE #view and #fbview so it shows on
+       every league and every tab; filled from all three leagues' news
+       files (loadTicker). Pauses on hover; slower, never stopped, for
+       anyone whose system asks for reduced motion. -->
   <div id="tick" hidden>
-    <div class="tag">MLB</div>
     <div class="rail"><div class="run" id="tickrun"></div></div>
   </div>
 </main>
@@ -753,6 +751,48 @@ const todayET = () => {
 };
 
 async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
+
+/* 🔴 THE TICKER CARRIES EVERY LEAGUE, ON EVERY TAB. `[Sam, 2026-10-01]` "include news from
+   across all 3 leagues on the bottom": newest first, mixed, each headline wearing its own
+   league; a missing or empty file is skipped (test_ticker.py). */
+const TICK_SRC = [['MLB', 'data/latest/news.json'], ['NFL', 'data/nfl/latest/news.json'],
+                  ['CFB', 'data/ncaaf/latest/news.json']];
+function tickTime(i){ return Date.parse(i.published) || 0; }
+function tickItems(docs){
+  const all = [];
+  // each league's own 10 newest (30 in all, the old bar's length): no league crowds out another
+  docs.forEach(([mark, N]) => ((N && N.items) || []).filter(i => i && i.title && i.link)
+    .sort((a, b) => tickTime(b) - tickTime(a)).slice(0, 10)
+    .forEach(i => all.push(Object.assign({}, i, {mark}))));
+  return all.sort((a, b) => tickTime(b) - tickTime(a));
+}
+function tickHtml(items){
+  return items.map(i => `<a href="${i.link}" target="_blank" rel="noopener"><span class="lg">${
+    i.mark}</span>${i.title} <span class="src">— ${i.source || ''}</span></a>`).join('');
+}
+/* About 55 px a second, measured off the real width. ⚠️ It MOVES for everyone (Sam):
+   a system set to reduce motion gets half speed, never a frozen bar. */
+function tickSpeed(){
+  const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  return reduce ? 27.5 : 55;
+}
+let TICK_HTML = '';
+async function loadTicker(){
+  const docs = await Promise.all(TICK_SRC.map(([mark, path]) =>
+    jget(path).then(N => [mark, N], () => [mark, null])));
+  const items = tickItems(docs);
+  if (!items.length) return;
+  const html = tickHtml(items);
+  if (html === TICK_HTML) return;   // 🔴 an unchanged refresh leaves the bar where it is
+  TICK_HTML = html;
+  const run = $('#tickrun');
+  run.innerHTML = html + html;    // duplicated so the loop has no visible gap when it wraps
+  requestAnimationFrame(() => {
+    const px = run.scrollWidth || 6000;
+    run.style.animationDuration = Math.round(px / tickSpeed()) + 's';
+  });
+  $('#tick').hidden = false;
+}
 
 /* Gzipped JSON. A full props board is ~2.5MB raw and ~90KB compressed,
    which is the difference between a page that loads and one that doesn't.
@@ -6283,8 +6323,8 @@ function setLeague(lg){
   setTools(mlb ? TAB : FBTAB);
   $('#view').style.display   = mlb ? '' : 'none';
   $('#fbview').style.display = mlb ? 'none' : '';
-  // [Sam, 2026-10-01] no stale bar on the page, in either league.
-  const tk = document.querySelector('#tick'); if (tk) tk.style.display = mlb ? '' : 'none';
+  // [Sam, 2026-10-01] no stale bar on the page, in either league; the
+  // headline ticker stays up in every league (it carries all three).
   if (mlb) show(TAB); else renderFootball();
   if (history.replaceState) history.replaceState(null, '', mlb ? '#' : '#' + lg);
 }
@@ -6316,33 +6356,11 @@ $('#filt').addEventListener('change', renderScores);
   await Promise.all([loadBoard(), loadSplits()]);
   show('scores');
 
-  /* Fill the ticker once, then refresh it with the news file every 10
+  /* Fill the ticker once, then refresh it with the news files every 10
      minutes. Failure is silent and the bar simply stays hidden -- a
      broken ticker must never take the rest of the page with it. */
-  async function loadTicker(){
-    try {
-      const N = await jget('data/latest/news.json');
-      const items = (N.items || []).slice(0, 30);
-      if (!items.length) return;
-      const html = items.map(i =>
-        `<a href="${i.link}" target="_blank" rel="noopener">${i.title}
-          <span class="src">— ${i.source}</span></a>`).join('');
-      // Duplicated so the loop has no visible gap when it wraps.
-      const run = $('#tickrun');
-      run.innerHTML = html + html;
-      /* 🔴 Pace it so it is READABLE. A fixed 80s made a 30-headline rail
-         sprint past. Roughly 55 pixels a second -- about walking pace for
-         the eye -- measured off the real rendered width rather than
-         guessed from the item count. */
-      requestAnimationFrame(() => {
-        const px = run.scrollWidth || 6000;
-        run.style.animationDuration = Math.round(px / 55) + 's';
-      });
-      $('#tick').hidden = false;
-    } catch(e){ /* no news file yet -- leave the bar hidden */ }
-  }
-  loadTicker();
-  setInterval(loadTicker, 600000);
+  loadTicker().catch(() => {});
+  setInterval(() => loadTicker().catch(() => {}), 600000);
   /* Keep the board honest without a reload.
      The scoreboard is cheap and refreshes often. The odds and props files
      are re-fetched less often -- the collector only rewrites them every
