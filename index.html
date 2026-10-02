@@ -2654,16 +2654,16 @@ function fbControls(avail, mets){
   /* ⚠️ Only offer a season that has a file. An empty option is a dead
      end, and a dead end is worse than an empty table. */
   const yrs = (avail && avail.length) ? avail : FB_SEASONS;
+  /* 🔴 OFFENCE IS LISTED FIRST. Sam, 2026-09-11: "i want the side tab
+     in trends for formatted with offense-produced on top of
+     defense-alllowed yardage tab."
+     ⛔ THE ORDER OF THE LIST IS NOT THE DEFAULT SELECTION. fbSide
+        still defaults to 'def', so a reader who opens Trends sees the
+        same table they saw yesterday — only the order inside the
+        picker changed. Flipping the default would silently change
+        what every existing link and screenshot shows, which is a
+        different request from the one that was made. */
   return `<div class="fbctl">
-      <!-- 🔴 OFFENCE IS LISTED FIRST. Sam, 2026-09-11: "i want the side tab
-           in trends for formatted with offense-produced on top of
-           defense-alllowed yardage tab."
-           ⛔ THE ORDER OF THE LIST IS NOT THE DEFAULT SELECTION. fbSide
-              still defaults to 'def', so a reader who opens Trends sees the
-              same table they saw yesterday — only the order inside the
-              picker changed. Flipping the default would silently change
-              what every existing link and screenshot shows, which is a
-              different request from the one that was made. -->
       <label>Side<select id="fb-side">
         <option value="off"${fbSide==='off'?' selected':''}>Offense &mdash; produced</option>
         <option value="def"${fbSide==='def'?' selected':''}>Defense &mdash; allowed</option>
@@ -2825,7 +2825,7 @@ function fbDosFacts(s){
       if (e.off_roster_targets != null) li(`${t} targets gone from the roster`, `${e.off_roster_targets}%`);
       if (e.arrivals_changed_teams != null) li(`${t} arrivals from other teams`, e.arrivals_changed_teams);
     }
-    return f.length ? `<ul class="dosf">${f.join('')}</ul><span class="kind k-desc">Record</span>` : '';
+    return f.length ? `<ul class="dosf">${f.join('')}</ul>` : '';
   }
   if (s.n === 1){
     /* ⚠️ THE BOARD'S OWN FIGURES AS THE DOSSIER STORED THEM — a
@@ -2860,27 +2860,13 @@ function fbDosFacts(s){
        one the value was keyed to.
        ⛔ THE COUNT IS NOT SUPPRESSED. A game we hold no moneyline for
        is a real and useful fact about a mismatch this size, and hiding
-       it would make these 15 look like the other 75. ⚠️ Note the wording
-       even here: "we hold none", not "no book will quote one" — the
-       inference the rule below forbids is easy to make in a comment two
-       lines above the rule itself.
-       ⛔ AND THE ZERO SENTENCE CLAIMS NOTHING ABOUT THE SPORTSBOOKS.
-       CLAUDE.md: an absence in an API response is evidence about the
-       API, never about the book — this project has written down "the
-       feed has no X" as "the book has no X" five times and been wrong
-       every time. So it says what we DO NOT HOLD, not what nobody will
-       take.
+       it would make these 15 look like the other 75.
+       [Sam, 2026-10-01] no explanation boxes or tags on the page: no
+       warning sentence under a zero; the label says what it counts.
        ══════════════════════════════════════════════════════════════ */
-    if (L.n_books != null){
-      li('Books with a moneyline', L.n_books);
-      if (!L.n_books && (L.total != null || L.run_line != null))
-        f.push(`<li>&#9888;&#65039; <b>That zero is about the moneyline
-          only.</b> None is stored for this game, so there is no
-          win&nbsp;% to show &mdash; the total and spread above are real
-          prices a book is showing.</li>`);
-    }
+    if (L.n_books != null) li('Books with a moneyline', L.n_books);
     /* ══════════════════════════════════════════════════════════════
-       🔴 THE FIRST-HALF TOTAL IS ONE BOOK'S LINE, AND THE PAGE SAYS SO.
+       🔴 THE FIRST-HALF TOTAL IS ONE BOOK'S LINE, AND THE VALUE SAYS SO.
        `[Sam, 2026-09-18]` The live pull asks ONE market in ONE region,
        and `us2` is the region Hard Rock lives in. ⛔ Every other price
        in this section is the best of five books; this one is not
@@ -2888,34 +2874,15 @@ function fbDosFacts(s){
        ⛔ SO IT DOES NOT GET THE BARE `li()` THE SHOPPED PRICES GET. A
        reader who sees "First-half total 21.5" in the same style as
        "Total 45.5" has been told it was shopped the same way, which is
-       false. The book is named on the value itself, not in a footnote
-       they might not reach.
-       ⚠️ AND THE ABSENT CASE IS SHOWN, NOT HIDDEN — same rule as an
-       UNAVAILABLE section. It says what we did not buy, never what a
-       book will not quote (CLAUDE.md: an absence in a response is
-       evidence about the request).
+       false. The book is named on the value itself.
+       [Sam, 2026-10-01] no explanation boxes or tags on the page: no
+       caveat bullet under the value, and the builder's absent-half and
+       missing-market sentences are not printed (they stay in the file).
        ══════════════════════════════════════════════════════════════ */
     const H = s.first_half;
-    if (H && H.total != null){
+    if (H && H.total != null)
       li('First-half total', `${H.total} <span class="donebook">`
          + `${H.book || 'one book'} only</span>`);
-      f.push(`<li>&#9888;&#65039; <b>Not shopped.</b> That half total is
-        ${H.book || 'one book'}&rsquo;s own line &mdash; the only book we
-        ask for it &mdash; so it may not be the best price available.
-        The full-game numbers above are the best of ${L.n_books || 'several'}.</li>`);
-    } else if (s.first_half_note){
-      f.push(`<li>${s.first_half_note}</li>`);
-    }
-    /* ⛔ AND THE HALF WE DO NOT BUY IS NAMED, not left as silence.
-       ⛔ THE BUILDER'S OWN STRING, VERBATIM (rule 132). My first version
-       sentence-cased it here with a regex, which is the page quietly
-       editing the model's words — the same defect Task 28 was written
-       to stop. The register is written in reader English in
-       `dossier_fb.py`; this only places it. */
-    if (s.known_gap)
-      f.push(`<li>${s.known_gap}`
-             + (s.known_gap_remedy ? ` &mdash; ${s.known_gap_remedy}.` : '')
-             + `</li>`);
     const c = s.closing;
     if (c && c.closing_spread != null) li('Closing spread', c.closing_spread);
     if (c && c.closing_total  != null) li('Closing total',  c.closing_total);
@@ -2980,8 +2947,7 @@ function fbDosFacts(s){
         }
       });
     });
-    if (s.positions_not_shown_note)
-      f.push(`<li>${s.positions_not_shown_note}</li>`);
+    /* [Sam, 2026-10-01] a position this page leaves out is not announced. */
   }
   if (s.n === 6 && s.by_team)
     Object.keys(s.by_team).forEach(t => {
@@ -3018,31 +2984,28 @@ function fbDosFacts(s){
 
 function fbDosSection(s){
   const gap = s.state !== 'OK';
-  /* ⛔ `s.why` VERBATIM. Not summarised, not reworded, not truncated. */
+  /* ⛔ `s.why` VERBATIM. Not summarised, not reworded, not truncated.
+     [Sam, 2026-10-01] no caveat line under the facts. */
   return `<div class="dossec${gap ? ' gap' : ''}">
       <div class="dn">${s.name}</div>
       <p class="dw">${s.why || ''}</p>
       ${fbDosFacts(s)}
-      ${s.weather_note ? `<p class="dw" style="margin-top:5px;color:var(--mut)">${s.weather_note}</p>` : ''}
     </div>`;
 }
 
-/* 🔴 A PARTIAL GAME MUST LOOK PARTIAL. 16 of the 90 college games on the
-   board carry an opponent the season files do not cover. ⛔ The name is
-   NEVER a blank: the board always has it and the builder carries it
-   through as `away_name`/`home_name`, with the side it could not resolve
-   named in `unresolved_side`. */
+/* 16 of the 90 college games on the board carry an opponent the season
+   files do not cover. ⛔ The name is NEVER a blank: the board always has
+   it and the builder carries it through as `away_name`/`home_name`.
+   [Sam, 2026-10-01] no flag on the header; that side's checks render as
+   gaps. */
 function fbDossierHtml(x){
-  if (!x) return `<div class="msg" style="padding:18px 0">No signals stored for
-    this game yet. They are written on the next card build.</div>`;
+  if (!x) return '<p class="plain">No signals stored for this game yet.</p>';
   /* ⚠️ CALLED, NOT PASSED. `.map(fbDosSection)` reads identically and
      `jsblock.calls()` cannot see it — and "who calls it" is the only
      question that catches a renderer that is defined and never reached
      (rule 130). ⛔ A guard blinded by a style choice is a guard. */
   const secs = (x.sections || []).map(s => fbDosSection(s)).join('');
-  const u = x.unresolved_side;
-  return `<div class="doshd">${x.away_name || ''} at ${x.home_name || ''}${
-      u ? `<span class="dospart">no season record for ${u}</span>` : ''}</div>
+  return `<div class="doshd">${x.away_name || ''} at ${x.home_name || ''}</div>
     <div class="dosg">${secs}</div>`;
 }
 
@@ -3068,12 +3031,9 @@ function fbWireDossierRows(lg){
       cell.innerHTML = '<div class="msg" style="padding:18px 0">Loading&hellip;</div>';
       const D = await fbDossierLoad(lg);
       if (!D){
-        /* ⛔ DEGRADES TO A NOTE, NEVER A BROKEN TAB. Before the first
-           `card-fb` arm of a league there is no file, and that is the
-           calendar rather than an error. */
-        cell.innerHTML = `<div class="note">The eight signals are written by the
-          card build. <code>${LG_DATA[lg]}/latest/dossiers.json.gz</code> is not
-          on disk yet, so there is nothing to open for this game.</div>`;
+        /* No file before a league's first `card-fb` arm: one plain line,
+           never a broken tab [Sam, 2026-10-01]. */
+        cell.innerHTML = '<p class="plain">No signals stored for this game yet.</p>';
         return;
       }
       cell.innerHTML = fbDossierHtml(fbDossierBy(D).get(id));
@@ -3171,20 +3131,13 @@ function fbOddsTable(list){
 
 async function fbOdds(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const B = await fbBoardLoad();
   if (!B || !(B.games||[]).length){
-    /* ⛔ AN EMPTY BOARD IS NOT AN ERROR. Each league's first pull is on
-       its own cron, and odds history cannot be back-filled -- which is
-       why collection was stood up before this page existed. Say WHEN. */
-    v.innerHTML = fbShell(`<div class="note">
-      <b>No ${LG_NAME[LEAGUE]} odds stored yet.</b><br>
-      ${LEAGUE === 'nfl'
-        ? 'The first NFL pull runs Thursday evening, and again Sunday morning.'
-        : 'The first college pull runs Thursday evening, then Friday and Saturday.'}
-      Nothing is missing &mdash; the season has not reached its first game day.
-    </div>`);
+    /* ⛔ AN EMPTY BOARD IS NOT AN ERROR: one plain line, no schedule
+       sentence [Sam, 2026-10-01]. */
+    v.innerHTML = fbShell(`<div class="msg">No ${LG_NAME[LEAGUE]} odds stored yet.</div>`);
     fbWire(); return;
   }
   const {list: _oList, nStarted, allDone} = splitStarted(B.games);
@@ -3207,31 +3160,15 @@ async function fbOdds(){
       ${fbOddsTable(games)}`;
   }).join('');
   v.innerHTML = fbShell(`<div style="margin-bottom:6px">
-      <h2 style="margin:0 0 4px;font-size:16px">Odds
-        <span class="kind k-market">Market</span></h2>
-      <p style="color:var(--mut);margin:0">Consensus across ${B.n_books_seen} books with the
-        vig removed, and the best available price on each side. ${freshness(B.pulled_at)}</p>
+      <h2 style="margin:0 0 4px;font-size:16px">Odds</h2>
+      <p style="color:var(--mut);margin:0">${freshness(B.pulled_at)}</p>
     </div>
     ${fbConfBar()}
     ${startedToggle(nStarted, 'fb-ob-started', allDone)}
     ${blocks || `<div class="msg">${fbConf.size && _oList.length
       ? `No board game involves ${[...fbConf].join(', ')}. Clear the conference
          filter to see the other <b>${_oList.length}</b>.`
-      : 'Every game on the board has kicked off.'}</div>`}
-    <div class="note" style="margin-top:18px">
-      <b>Every price with an arrow is clickable</b> and opens that book's bet slip.
-      Prices without one are real, but the book did not hand back a link, so nothing
-      is guessed. Set your state at the top right or half the links will not resolve.
-      <br><br>&#128309; <b>Every number on this page belongs to the sportsbooks, not to us.</b>
-      A win&nbsp;% here is what the market thinks once the house margin is stripped out.
-      <br><br>&#9888; <b>A row with no win&nbsp;% has no moneyline posted</b> &mdash; on a big
-      mismatch no book will take the favourite, so there is no price to de-vig. The
-      spread and total on those games are real and clickable.
-      <br>&#9940; <b>It is not a Gizmo's projection and never will be on this tab.</b>
-      There is no football model &mdash; three pre-registered specifications were tested
-      and every one lost to a player's own season average &mdash; so nothing on the
-      football side of this site carries a confidence rating.
-    </div>`);
+      : 'Every game on the board has kicked off.'}</div>`}`);
   fbWire();
   /* 🔴 WIRED HERE, AFTER THE innerHTML THAT DREW THE ROWS. `#fbview` is
      rebuilt from scratch by every football renderer, so a listener bound
