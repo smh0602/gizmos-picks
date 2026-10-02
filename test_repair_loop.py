@@ -128,8 +128,19 @@ ck(_wd and not converging(_wd, all_calls=True),
 section("3. 🔴🔴 THE WATCHDOG STEP, RUN WHOLE, ONCE PER FREE REPAIR")
 # ══════════════════════════════════════════════════════════════════════
 _now = datetime.datetime.now(UTC)
+# 🔴 `[2026-10-02]` MLB IS ASKED OF AN EMPTY TREE, NOT THE REPO. `no_games_day`
+#    reads stored schedules, so in the off-season the live tree dropped MLB's
+#    `card` row and "mlb owns card" went false. No reading fails closed: every
+#    row is owed, which is the contract this test is about.
+_cwd, _empty = os.getcwd(), tempfile.mkdtemp(prefix="repair-owns-")
 OWNS = {lg: {r[0] for r in freshness.contract(data=watchdog.DATA[lg], picks="picks", now=_now)}
-        for lg in watchdog.LEAGUES}
+        for lg in watchdog.LEAGUES if lg != "mlb"}
+os.chdir(_empty)
+try:
+    OWNS["mlb"] = {r[0] for r in freshness.contract(data=watchdog.DATA["mlb"], picks="picks", now=_now)}
+finally:
+    os.chdir(_cwd)
+    shutil.rmtree(_empty, ignore_errors=True)
 ck(all(any(m in OWNS[lg] for lg in watchdog.LEAGUES)
        and not all(m in OWNS[lg] for lg in watchdog.LEAGUES)
        for m in watchdog.SAFE_REPAIRS),
