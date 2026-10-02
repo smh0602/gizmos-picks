@@ -514,6 +514,10 @@ verify_record.py  re-grades EVERY published pick from the stored box
                   runs `collect.py record converge-off`), so a grading-rule
                   change cannot turn runs red; a current-stamped record
                   that disagrees still fails.
+                  `[Sam, 2026-10-01]` ONE named exception, `DH_EXCEPTION`:
+                  the three 9/25 doubleheader picks count as published
+                  (29/45 stays). ⛔ Never widen it; the graders cannot
+                  tell doubleheader games apart (open, next season).
 record_grader.py  the fingerprint of the MLB grading code: collect_record
                   and every top-level name it reaches, parsed with ast,
                   comments ignored. collect.py stamps it, verify_record

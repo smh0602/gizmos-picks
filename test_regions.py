@@ -16,6 +16,16 @@ was the patch and not the next day's stored `regions`.
 the fix cannot tell you the fix was needed. This one asserts the SHAPE
 that made the bug impossible to have: the pitcher's snapshot must not
 change the batter's answer.
+
+# @vacuity 🔴 the day's first pull takes both regions, whatever the hour
+#   file: collect.py
+#   find:     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
+#   with:     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"; return REGIONS_CHEAP if int(now().strftime("%H")) >= 14 else REGIONS_FULL
+#
+# @vacuity the second pull of the day stays Hard Rock only
+#   file: collect.py
+#   find:                         return REGIONS_CHEAP      # already had the full pull
+#   with:                         pass
 """
 import gzip, json, os, shutil, sys, tempfile
 from tcheck import ck, note   # the shared gate — see tcheck.py
@@ -70,13 +80,39 @@ try:
         snap(root, day, "props-batter", "1108", "us,us2")
         ck("batter stands down after its OWN full pull (no double spend)",
            collect.props_regions("batter") == collect.REGIONS_CHEAP)
-    # ⛔ AND PROVE THE CLOCK GUARD STILL WORKS, so pinning it above did
-    # not quietly disable the 4pm Hard-Rock-only rule.
+    # ~~"outside the morning window BOTH sides are Hard Rock only"~~
+    # `[Sam, 2026-10-01]` there is no window any more; what keeps the 4pm
+    # pull cheap is that the day's full pull has already been taken.
     collect.now = lambda: _dt.datetime(2026, 8, 31, 20, 13,
                                        tzinfo=_dt.timezone.utc)
-    ck("outside the morning window BOTH sides are Hard Rock only",
+    ck("after the day's full pull, a 4pm pull is Hard Rock only on BOTH sides",
        collect.props_regions("pitcher") == collect.REGIONS_CHEAP
        and collect.props_regions("batter") == collect.REGIONS_CHEAP)
+
+    # ── 5. 🔴 THE FIRST PULL OF THE DAY IS THE FULL ONE, WHATEVER THE HOUR
+    # `[2026-10-01]` the first nfl props-player run landed at 14:12Z, the
+    # old 10:00-14:00Z window said "Hard Rock only", and all four pulls
+    # that day were us2. Asked for every kind (MLB pitcher and batter,
+    # football player) and for two football leagues' directories apart.
+    collect.now = lambda: _dt.datetime(2026, 10, 1, 14, 12,
+                                       tzinfo=_dt.timezone.utc)
+    day = collect.now().strftime("%Y-%m-%d")
+    late = {}
+    for lg, kind in (("mlb", "pitcher"), ("mlb", "batter"),
+                     ("nfl", "player"), ("ncaaf", "player")):
+        collect.DATA = os.path.join(root, lg)
+        late[(lg, kind)] = collect.props_regions(kind)
+    ck("🔴 a FIRST props pull at 14:12Z takes both regions, for every kind and league",
+       all(v == collect.REGIONS_FULL for v in late.values()), str(late))
+    after = {}
+    for lg, kind in (("mlb", "pitcher"), ("mlb", "batter"),
+                     ("nfl", "player"), ("ncaaf", "player")):
+        collect.DATA = os.path.join(root, lg)
+        snap(collect.DATA, day, "props-" + kind, "1412", collect.props_regions(kind))
+        after[(lg, kind)] = collect.props_regions(kind)
+    ck("🔴 ...and the SECOND pull that day does not: one full pull per kind per day",
+       all(v == collect.REGIONS_CHEAP for v in after.values()), str(after))
+    collect.DATA = root
     collect.now = _real_now
 
     # ── 4. THE SHAPE, CHECKABLE AT ANY HOUR ───────────────────────────

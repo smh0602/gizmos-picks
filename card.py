@@ -283,6 +283,9 @@ PCAL = {}
 # Hitter stated-vs-actual on the printed number, from record.json.
 HCAL = []
 LAST_PITCHER_ROWS = []
+# ⚠️ In memory only, never published: every row main() indexed as PRICED,
+# so verify_card.py can ask whether the "p" flag sits on exactly those.
+LAST_PRICED_ROWS = []
 
 
 def hitter_band(conf):
@@ -2679,6 +2682,7 @@ def main(dry=False):
     # ⛔ ORDER IS LOAD-BEARING. The descriptive board pass goes down first;
     # anything card.py actually priced then overwrites it, so a row that
     # has a model number never displays the fallback.
+    LAST_PRICED_ROWS[:] = plays_all + hitters + _late
     _board_px.update(projection_index(plays_all + hitters, priced=True))
     _board_px.update(projection_index(_late, priced=True))
     # 🔴 THE SINGLE-DAY FILTER (ledger rule 101), BEFORE EVERY SURFACE.

@@ -973,8 +973,23 @@ _unflagged = [(r.get('pitcher') or r.get('player'), r.get('market'))
               for r in allrows if _pxkey(r) in _pxall and _pxkey(r) not in _pkeys]
 ck("every carded row is flagged priced in the index", not _unflagged,
    str(_unflagged[:3]))
-ck(f"the priced flag is a subset, not a rubber stamp "
-   f"({len(_pkeys)} of {len(_pxall)})", 0 < len(_pkeys) < len(_pxall))
+# 🔴 `[Sam, 2026-10-01]` ~~"the priced flag is a subset, not a rubber stamp:
+#    0 < flagged < whole index"~~ ASKED ABOUT THE BOARD, NOT THE CARD. From
+#    20:11Z on 10/01 the board held only games that had not started, every
+#    prop on it was priced, 436 of 436 entries were CORRECTLY flagged, and
+#    every rebuild was reverted. ✅ The question now: the flag sits on
+#    EXACTLY the rows main() priced (`C.LAST_PRICED_ROWS`, in memory) --
+#    no stray flag, no missing one, and at least one priced row. It fails
+#    on everything the old form failed on except a correct all-priced
+#    board, and on two shapes the old form passed: a few stray flags, and
+#    a priced row that lost its flag.
+_pexp = {_pxkey(r) for r in C.LAST_PRICED_ROWS
+         if r.get('projection') is not None and r.get('pid') is not None}
+_stray, _missed = sorted(_pkeys - _pexp), sorted(_pexp - _pkeys)
+ck(f"the priced flag sits on exactly the rows the card priced "
+   f"({len(_pkeys)} flagged, {len(_pexp)} priced, {len(_pxall)} in the index)",
+   bool(_pexp) and not _stray and not _missed,
+   f"flagged but never priced {_stray[:3]}; priced but unflagged {_missed[:3]}")
 ck("the price gate actually excluded something, and the card says how much",
    'below_payable_floor' in _tx,
    f"{_tx.get('below_payable_floor')} row(s) excluded")
