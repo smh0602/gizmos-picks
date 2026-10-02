@@ -1,6 +1,63 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: the watchdog's repairs stop converging `[2026-09-28]`
+## Current: give the mutation sweep enough time `[2026-10-02]`
+
+**Do this after you merge the pull request "collect/pr-tests: give the
+vacuity sweep 5400s" (its description links to this file).** It is one
+file and one change.
+
+**Why:** every collect run since #218 merged has gone red in its Tests
+step: `test_vacuity.py TIMED OUT after 2400s`. Nothing failed; the sweep
+that proves every test's guards still bite simply needs longer now. It
+took 33 minutes before #218 (collect #2092) and #218 added about 140
+guard checks. The new limit, 5400 seconds (90 minutes), is the same
+margin as the last raise. The sweep itself is not shortened or skipped.
+`pr-tests.yml` already carries the same number from the merge; this
+upload brings the collector in line.
+
+**No schedule, cron line or cost changes. The cron count does not
+change.** Only one number and its comment differ from the live file.
+
+### Click by click (Windows)
+
+1. Open **File Explorer**, click **Downloads**, and delete any old
+   `collect.yml` there (otherwise Windows saves `collect (1).yml`).
+2. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/collect.yml
+   and check the breadcrumb reads **gizmos-picks / docs / upload /
+   collect.yml**.
+3. Click **Download raw file** (the small downward-arrow icon on the
+   right, above the file's contents).
+4. Open https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
+   and check the breadcrumb reads **gizmos-picks / .github / workflows**.
+   ⛔ Not the repo's front page: a file uploaded there lands in the top
+   level, where it never runs.
+5. Click **Add file** (top right, next to the green **Code** button),
+   then **Upload files**.
+6. Click **choose your files** (the blue link in the middle of the box).
+   ⛔ Do not drag a folder in. In **Downloads** pick `collect.yml` and
+   click **Open**.
+7. Check the page lists exactly **1 file**, `collect.yml`.
+8. In the **Commit changes** box paste this as the first line:
+
+   ```
+   collect.yml: give test_vacuity.py 5400s (the sweep outgrew 2400s; no cron change)
+   ```
+
+9. Leave **Commit directly to the main branch** selected and click the
+   green **Commit changes** button.
+
+**What you should see afterwards:** the next collect run's Tests step
+finishes instead of stopping at `test_vacuity.py TIMED OUT after 2400s`,
+and collect runs go green again. Until you upload, the nightly "runs"
+report lists `collect.yml` as waiting, and after 48 hours it says so in
+an issue.
+
+---
+
+## ~~Current:~~ Done: the watchdog's repairs stop converging `[2026-09-28]`
+
+✅ Uploaded: on 2026-10-02 the deployed `collect.yml` matched that staged
+copy byte for byte.
 
 **Do this after you merge the pull request that changed
 `docs/upload/collect.yml` on 2026-09-28 (its description links to this

@@ -29,8 +29,8 @@ old one was a bare number nothing checked. This file DRIVES the deployed
 
 # @vacuity 🔴🔴 a clock below the default is caught
 #   file: .github/workflows/collect.yml
-#   find:               test_vacuity.py) echo 2400 ;;
-#   with:               test_vacuity.py) echo 60 ;;
+#   find:           budget_for() {   # $1 = file
+#   with:           budget_for() { [ "$1" = test_vacuity.py ] && { echo 60; return; }   # $1 = file
 #
 # @vacuity 🔴 the timeout verdict stays distinct from a failure
 #   file: .github/workflows/collect.yml

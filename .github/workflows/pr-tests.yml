@@ -127,15 +127,19 @@ jobs:
           #    inside 5x the slowest UNIT test" is the wrong question to
           #    ask a mutation sweep.
           # ⛔ THE SWEEP ITSELF IS UNTOUCHED — not shortened, not
-          #    sampled, not skipped. 2400s is 2.2x its measured cost,
-          #    the same margin 600 gave the file it was fitted to.
+          #    sampled, not skipped. ~~2400s is 2.2x its measured cost,~~
+          #    ~~the same margin 600 gave the file it was fitted to.~~
+          #    `[2026-10-02]` 5400s: the sweep took 33m06s in collect #2092
+          #    and outran 2400s in #2093 once #218 added ~140 declarations
+          #    (pr-tests' four parts ran 10.2-11.0 min each, ~40 min in
+          #    all). 5400 is the same ~2.2x margin; the sweep is untouched.
           # ⚠️ AND NO BUDGET MAY BE LOWERED. `test_suite_clock.py` drives
           #    this function and fails if any file's clock drops below
           #    the default, so this cannot become a way to let a slow
           #    file off.
           budget_for() {   # $1 = file
             case "$1" in
-              test_vacuity.py) echo 2400 ;;
+              test_vacuity.py) echo 5400 ;;
               *)               echo "$PER_FILE" ;;
             esac
           }
