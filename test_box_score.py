@@ -184,7 +184,7 @@ if _BROWSER:
         pg.wait_for_timeout(1200)
         pg.get_by_text("College Football", exact=True).first.click()
         pg.wait_for_timeout(600)
-        pg.locator("#fbview a[data-fbtab='scores']").click()
+        pg.locator("nav.subnav a[data-tab='scores']").click()
         pg.wait_for_function("() => window.__fbShown && window.__fbShown.length > 0",
                              timeout=30000)
         # open the modal for that exact game, through the page's own code
@@ -292,7 +292,7 @@ if _BROWSER:
         pg.wait_for_timeout(1200)
         pg.get_by_text("NFL", exact=True).first.click()
         pg.wait_for_timeout(600)
-        pg.locator("#fbview a[data-fbtab='scores']").click()
+        pg.locator("nav.subnav a[data-tab='scores']").click()
         pg.wait_for_function("() => window.__fbShown && window.__fbShown.length > 0",
                              timeout=30000)
         # ⚠️ 2025, because the 2026 NFL logs do not exist until the season

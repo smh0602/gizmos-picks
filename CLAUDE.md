@@ -297,6 +297,16 @@ note boxes, tags and the stale bar now require their absence.
   every `kind`, `basis`, flag and note field, and every server-side check
   on them stays; staleness reaches Sam through the watchdog, health.json
   and the GitHub issue. `test_page_plain.py` fails if any of it returns.
+- 🔴 **ONE TAB BAR FOR ALL THREE LEAGUES.** `[Sam, 2026-10-01]` *"lets have
+  the colors of the tabs and the layout be the same for each league ... same
+  order of tab from left to right, same colors"*. The header's `.subnav` is
+  the only tab bar (`drawTabs`); one list, `TABS`, gives every league the
+  order Scores, Gizmo's Picks, Odds, Player Props, Game Lines, Parlays,
+  Trends, Track Record, News; a league without a tab leaves its slot out
+  (`TABS_OFF`: MLB has no Game Lines yet). Every league opens on Scores and
+  a league switch keeps the tab (`nextTab`). ⛔ Never draw a league's own bar
+  again. `test_tab_bar.py`; the computed style is measured in a browser by
+  `test_league_switch.py`.
 - 🔴 ~~**THE PAGE RENDERS ONLY FLAGS MARKED `actionable`.**~~ **THE PAGE
   RENDERS NO FLAGS** `[Sam, 2026-10-01]`, not even actionable ones. Sam,
   2026-08-26: *"we have to advertise a clean look to the website that

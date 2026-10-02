@@ -97,7 +97,7 @@ if _BROWSER:
         pg.wait_for_timeout(1200)
         # 🔴 SCORES IS OPENED IN **EVERY** LEAGUE ON THE WALK, NOT ONLY
         #    THE LAST. `fbWeek` is set by the Scores renderer and nothing
-        #    else — the default tab is Trends — so a walk that only
+        #    else — the default tab was Trends until 2026-10-02 — so a walk that only
         #    clicked Scores at the end never set the variable in the
         #    FIRST league and therefore had nothing to carry across.
         # ⛔ THAT FORM PASSED WITH THE FIX DELETED. A test that cannot
@@ -106,7 +106,7 @@ if _BROWSER:
         for lg in order:
             pg.evaluate("setLeague('%s')" % lg)
             pg.wait_for_timeout(1600)
-            pg.locator("#fbview a[data-fbtab='scores']").click()
+            pg.locator("nav.subnav a[data-tab='scores']").click()
             pg.wait_for_timeout(2600)
         el = pg.locator("#fb-sc-week")
         return el.input_value() if el.count() else None
@@ -173,7 +173,7 @@ if _BROWSER:
                 pg.wait_for_timeout(1000)
                 pg.evaluate("setLeague('%s')" % lg)
                 pg.wait_for_timeout(1600)
-                pg.locator("#fbview a[data-fbtab='scores']").click()
+                pg.locator("nav.subnav a[data-tab='scores']").click()
                 pg.wait_for_timeout(2600)
                 txt = pg.inner_text("#fbview")
                 import re  # noqa: E402
@@ -189,6 +189,76 @@ if _BROWSER:
                 note("%s: week %s, %s final, %d weeks offered"
                      % (lg, pg.locator("#fb-sc-week").input_value(),
                         m.group(1) if m else "?", weeks))
+
+        # 🔴 `[Sam, 2026-10-01]` ONE TAB BAR, THE SAME LOOK, IN EVERY LEAGUE --
+        #    measured in the real browser: the bar's place on the page, its
+        #    order, and the COMPUTED style of the active and an inactive tab.
+        #    test_tab_bar.py asks the same of the code on every run; this is
+        #    the half only a browser can answer.
+        SHOT = """() => {
+          const bars = [...document.querySelectorAll('nav.subnav')];
+          const bar = bars[0];
+          const links = bar ? [...bar.querySelectorAll('a[data-tab]')] : [];
+          const st = a => { if (!a) return null; const c = getComputedStyle(a);
+            return ['color', 'backgroundColor', 'fontFamily', 'fontSize', 'fontWeight',
+                    'letterSpacing', 'textTransform', 'paddingTop', 'paddingRight',
+                    'paddingBottom', 'paddingLeft', 'boxShadow', 'borderBottomWidth',
+                    'borderBottomColor'].map(k => c[k]).join('|'); };
+          const on = links.find(a => a.classList.contains('on'));
+          const r = bar ? bar.getBoundingClientRect() : null;
+          return {n: bars.length, inHeader: !!(bar && bar.closest('header')),
+                  shown: !!(bar && bar.offsetParent !== null),
+                  order: links.map(a => a.dataset.tab), active: on ? on.dataset.tab : null,
+                  on: st(on), off: st(links.find(a => !a.classList.contains('on'))),
+                  top: r ? Math.round(r.top) : null, height: r ? Math.round(r.height) : null};
+        }"""
+        WANT = ['scores', 'picks', 'odds', 'props', 'gamelines', 'parlays', 'trends',
+                'record', 'news']
+        pg.goto(f"http://127.0.0.1:{PORT}/index.html",
+                wait_until="domcontentloaded", timeout=60000)
+        pg.wait_for_timeout(1200)
+        look = {}
+        for lg in ("mlb", "nfl", "ncaaf"):
+            pg.evaluate("setLeague('%s')" % lg)
+            pg.wait_for_timeout(1600)
+            look[lg] = pg.evaluate(SHOT)
+        ck("🔴 every league shows ONE tab bar, the header's, in the same place",
+           all(look[lg]["n"] == 1 and look[lg]["inHeader"] and look[lg]["shown"] for lg in look)
+           and len({(look[lg]["top"], look[lg]["height"]) for lg in look}) == 1,
+           str({lg: (look[lg]["n"], look[lg]["top"], look[lg]["height"]) for lg in look}))
+        ck("🔴 ...with the same computed style for the active and the inactive tabs",
+           len({look[lg]["on"] for lg in look}) == 1 and len({look[lg]["off"] for lg in look}) == 1
+           and look["mlb"]["on"] and look["mlb"]["on"] != look["mlb"]["off"],
+           str({lg: (look[lg]["on"], look[lg]["off"]) for lg in look}))
+        ck("🔴 ...and the same order, MLB without Game Lines",
+           look["nfl"]["order"] == WANT and look["ncaaf"]["order"] == WANT
+           and look["mlb"]["order"] == [t for t in WANT if t != "gamelines"],
+           str({lg: look[lg]["order"] for lg in look}))
+        # 🔴 THE TAB OPENS ON SCORES AND SURVIVES A SWITCH.
+        pg.goto(f"http://127.0.0.1:{PORT}/index.html",
+                wait_until="domcontentloaded", timeout=60000)
+        pg.wait_for_timeout(1200)
+        first = pg.evaluate(SHOT)["active"]
+        pg.evaluate("setLeague('ncaaf')")
+        pg.wait_for_timeout(1600)
+        first_fb = pg.evaluate(SHOT)["active"]
+        pg.evaluate("setLeague('mlb')")
+        pg.wait_for_timeout(1600)
+        pg.locator("nav.subnav a[data-tab='parlays']").click()
+        pg.wait_for_timeout(1200)
+        pg.evaluate("setLeague('nfl')")
+        pg.wait_for_timeout(1600)
+        kept = pg.evaluate(SHOT)["active"]
+        pg.locator("nav.subnav a[data-tab='gamelines']").click()
+        pg.wait_for_timeout(1600)
+        pg.evaluate("setLeague('mlb')")
+        pg.wait_for_timeout(1600)
+        back = pg.evaluate(SHOT)["active"]
+        ck("🔴 every league opens on Scores, and switching league keeps the tab "
+           "(Parlays MLB -> NFL), or lands on Scores when it has no such tab "
+           "(Game Lines NFL -> MLB)",
+           (first, first_fb, kept, back) == ("scores", "scores", "parlays", "scores"),
+           "got %s" % ((first, first_fb, kept, back),))
 
         ck("✅ no page error during any switch", not errs, str(errs[:3]))
         note("%d off-machine request(s) blocked, none answered by the "

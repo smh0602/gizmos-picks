@@ -388,7 +388,7 @@ class Page:
         self.pg.wait_for_timeout(1500)
         self.pg.get_by_text(league, exact=True).first.click()
         self.pg.wait_for_timeout(700)
-        self.pg.locator("#fbview a[data-fbtab='scores']").click()
+        self.pg.locator("nav.subnav a[data-tab='scores']").click()
         # 🔴 WAIT FOR A STATE, NOT A CLOCK. `[fixed 2026-09-06]` A fixed
         # 2.5s sleep passed twice and failed once on the SAME code — the
         # college schedule is 3,679 games and the render is not always
