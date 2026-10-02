@@ -5226,10 +5226,7 @@ function fbConfBar(){
       <a href="#" data-conf="*" class="cchip${fbConf.size ? '' : ' on'}">All</a>
       ${list.map(c => `<a href="#" data-conf="${c.replace(/"/g,'&quot;')}"
           class="cchip${fbConf.has(c) ? ' on' : ''}">${c}</a>`).join('')}
-    </div>${fbConf.size ? `<div style="font-size:11px;color:var(--mut);margin:-4px 0 10px">
-      &#9888; <b>The list is FBS only</b> &mdash; the team directory has no FCS in
-      it, so an FCS school cannot be selected. A game against one still shows
-      when its <b>FBS</b> side is in your selection.</div>` : ''}`;
+    </div>`;
 }
 
 /* ⛔ WIRED ONCE, BY THE SAME `fbWire` EVERY TAB ALREADY CALLS. A tab that
@@ -5404,7 +5401,6 @@ function fbGameCard(g){
   // ---- market strip, same component as MLB's
   if (b && (b.total != null || b.run_line != null)){
     const bar = el('div', 'bar');
-    bar.append(el('span', null, '<span class="kind k-market">Market</span>'));
     // 🔴 NAME THE TEAM the spread belongs to. "-3.5" between two names
     // says nothing about whose line it is.
     const sp = b.run_line_team ? fbAb(b.run_line_team) + ' ' : '';
@@ -5434,12 +5430,7 @@ function fbGameCard(g){
    285 of 285 for the NFL** — and every team named on a log row is one of
    that game's two sides. ⛔ No name matcher, keyed on the id (rule 54).
 
-   ⚠️ WHAT IT CANNOT DO, AND THE PANEL SAYS SO RATHER THAN LOOKING BROKEN:
-   the college logs cover the teams this product tracks, not all of FBS —
-   **17 games of that weekend's ~250** — and often only ONE SIDE of a
-   game (Utah's log exists, its FCS opponent's does not). ⛔ An empty
-   table with no explanation reads as a bug; a sentence naming the reason
-   does not. */
+   [Sam, 2026-10-01] no explanation boxes or tags on the page. */
 /* ══════════════════════════════════════════════════════════════════
    🔴 THE BOX SCORE COMES FROM ESPN, AND THE STORED LOG IS THE FALLBACK.
    `[Sam, 2026-09-06: "not all games in the scores tab have a full box
@@ -5475,13 +5466,12 @@ function fbGameCard(g){
        NFL     passing labels  C/ATT YDS AVG TD INT SACKS QBR RTG  (8)
    A positional parser would have printed a college QB's QBR under an NFL
    "SACKS" heading. So every table is built from `labels[]`, and a block
-   whose labels and stats disagree in length says so rather than shifting
-   the numbers left.
+   whose labels and stats disagree in length shows only the columns both
+   carry rather than shifting the numbers left.
 
    ⚠️ THE STORED LOG IS STILL THE GRADING AUTHORITY. Track Record grades
-   against `players-<season>.json.gz`, never against this. The panel names
-   which source it is showing so two different numbers can never look like
-   one number changing its mind.
+   against `players-<season>.json.gz`, never against this.
+   [Sam, 2026-10-01] the panel no longer names its source on the page.
    ══════════════════════════════════════════════════════════════════ */
 /* 🔴 EVERY ESPN STRING IS ESCAPED. This is the first third-party text
    this page has ever put into `innerHTML` — our own files are ours, a
@@ -5496,7 +5486,6 @@ function fbEsc(v){
 
 const FBBOX = {};            /* league|id -> parsed box, or a reason      */
 let FB_BOX_OFF = false;      /* ⛔ set ONLY by a refusal, never by a 404   */
-let FB_BOX_ERR = null;
 
 /* ⚠️ ONE REFUSAL IS A FACT ABOUT THE BROWSER; ONE 404 IS A FACT ABOUT ONE
    GAME. Merging them would let a single missing event silence the whole
@@ -5522,7 +5511,6 @@ async function fbBoxFetch(id, force){
     out = r.ok ? fbBoxParse(await r.json()) : {http: r.status};
   } catch (e) {
     FB_BOX_OFF = true;
-    FB_BOX_ERR = String((e && e.message) || e);
     return null;
   }
   FBBOX[key] = out;
@@ -5587,11 +5575,9 @@ function fbBoxBlock(b){
   if (!b.rows.length) return '';
   const rows = fbBoxSort(b);
   /* 🔴 A ROW WHOSE CELL COUNT DISAGREES WITH THE HEADER IS NOT SHIFTED
-     LEFT TO FIT. Render the columns both sides actually have and say the
-     rest arrived in a shape this table does not know. */
+     LEFT TO FIT. Render the columns both sides actually have. */
   const wide = rows.reduce((m, r) => Math.max(m, r.stats.length), 0);
   const n = Math.min(b.labels.length, wide);
-  const odd = b.labels.length !== wide;
   const nm = b.name.replace(/([A-Z])/g, ' $1');
   return `<h4 class="bxh">${nm.charAt(0).toUpperCase() + nm.slice(1)}</h4>
     <div style="overflow-x:auto"><table class="bs bx" style="width:100%">
@@ -5604,12 +5590,7 @@ function fbBoxBlock(b){
         ${Array.from({length: n}, (_, i) => `<td class="n">${
           (r.stats[i] === '' || r.stats[i] === undefined) ? '&mdash;' : fbEsc(r.stats[i])
         }</td>`).join('')}
-      </tr>`).join('')}</tbody></table></div>${
-    odd ? `<div class="note">⚠️ This block arrived with ${b.labels.length}
-      column heading${b.labels.length === 1 ? '' : 's'} and up to ${wide}
-      value${wide === 1 ? '' : 's'} per player. Only the columns both sides
-      carry are shown &mdash; nothing has been shifted to make them line
-      up.</div>` : ''}`;
+      </tr>`).join('')}</tbody></table></div>`;
 }
 
 function fbBoxSide(t){
@@ -5624,7 +5605,7 @@ function fbBoxSide(t){
     : '';
   return `<div class="bxteam"><h3 class="bxt">${fbMark(t.name, 20)} ${
     fbEsc(t.abbr || fbAb(t.name))}</h3>${
-    main || '<div class="note">No passing, rushing or receiving recorded yet.</div>'}${more}</div>`;
+    main || '<p class="plain">No passing, rushing or receiving recorded yet.</p>'}${more}</div>`;
 }
 
 /* The ESPN half of the panel. ⛔ Returns null when it has nothing, so the
@@ -5633,15 +5614,11 @@ function fbBoxSide(t){
 function fbBoxEspn(box){
   if (!box || box.http || !box.teams || !box.teams.length) return null;
   if (!box.sides) return null;
-  const src = box.live
-    ? `<span class="kind k-live">LIVE</span> ${fbEsc(box.detail || 'in progress')}`
-    : `<span class="kind k-desc">ESPN</span> ${fbEsc(box.detail || 'final')}`;
-  return `<div class="note bxsrc">${src} &mdash; player stats from ESPN's public
-      game summary, read by your browser. ⚠️ <b>The Track Record grades
-      against our own stored logs, not against this.</b></div>
-    ${box.teams.map(fbBoxSide).join('')}${box.sides < 2
-      ? '<div class="note">⚠️ <b>ESPN carries player stats for only one side of'
-        + ' this game.</b></div>' : ''}`;
+  /* [Sam, 2026-10-01] no explanation boxes or tags on the page: the feed's
+     own game status as one plain line, then each side (a side with no
+     stats prints fbBoxSide's own plain line). */
+  return `<p class="plain">${fbEsc(box.detail || (box.live ? 'in progress' : 'final'))}</p>
+    ${box.teams.map(fbBoxSide).join('')}`;
 }
 
 const FBLOG = {};
@@ -5729,38 +5706,28 @@ function fbBoxScore(g, by, box){
      panel Sam reported. */
   const live = fbBoxEspn(box);
   if (live) return live;
-  const why = FB_BOX_OFF
-    ? `<div class="note">⚠️ <b>Your browser could not reach ESPN's game
-        summary</b>${FB_BOX_ERR ? ' (' + fbEsc(FB_BOX_ERR) + ')' : ''}, so this
-        falls back to our own stored player logs.</div>`
-    : (box && box.noid)
-      ? `<div class="note">⚠️ <b>We do not hold ESPN's id for this
-          season</b>, so the live box score cannot be asked for. Showing our
-          own stored player log instead.</div>`
-      : (box && box.http)
-      ? `<div class="note">⚠️ <b>ESPN returned no summary for this game</b>
-          (HTTP ${box.http}).</div>`
-      /* 🔴 A GAME WITH NO PLAYERS IS THREE DIFFERENT FACTS AND THE FEED
-         SAYS WHICH. Measured against live ESPN 2026-09-06: the 2026 NFL
-         opener came back `state:"pre"` with 0 players and the kickoff
-         time in `detail`, while a Division II final came back `post`
-         with 0 players. ⛔ Calling both "publishes no player stats" would
-         repeat the exact mistake of the modal that told Sam a game had
-         not kicked off three and a half hours after kickoff — rule 134,
-         the page may only assert what its data carries. */
-      : (box && box.state === 'pre')
-        ? `<div class="note"><b>This game has not kicked off.</b>${
-            box.detail ? ' ESPN has it scheduled for ' + fbEsc(box.detail) + '.'
-                       : ''} The box score fills in live once it starts.</div>`
+  /* 🔴 A GAME WITH NO PLAYERS IS THREE DIFFERENT FACTS AND THE FEED
+     SAYS WHICH. Measured against live ESPN 2026-09-06: the 2026 NFL
+     opener came back `state:"pre"` with 0 players and the kickoff
+     time in `detail`, while a Division II final came back `post`
+     with 0 players. ⛔ Calling both "publishes no player stats" would
+     repeat the exact mistake of the modal that told Sam a game had
+     not kicked off three and a half hours after kickoff — rule 134,
+     the page may only assert what its data carries.
+     [Sam, 2026-10-01] each is one plain line; a refused, id-less or
+     failed ESPN request prints nothing and the stored log shows. */
+  const why = (box && box.state === 'pre')
+        ? '<p class="plain">This game has not kicked off.</p>'
       : (box && box.live)
-        ? `<div class="note"><b>Under way${box.detail ? ' — ' + fbEsc(box.detail) : ''},
-            and ESPN has not posted any player stats yet.</b> This panel
-            refreshes on its own while the game is on.</div>`
+        ? `<p class="plain">Under way${box.detail ? ' — ' + fbEsc(box.detail) : ''},
+            and ESPN has not posted any player stats yet.</p>`
       : (box && box.teams && box.teams.length && !box.sides)
-        ? `<div class="note">⚠️ <b>ESPN carries this game but publishes no
-            player stats for it.</b> That happens below Division I and on
-            some FCS games. ⛔ <b>An absence, not a zero.</b></div>`
+        ? `<p class="plain">ESPN carries this game but publishes no
+            player stats for it.</p>`
         : '';
+  /* One plain line: with nothing stored for this game the reason stands
+     alone, rather than above the stored log's own empty line. */
+  if (why && !(by && (by[String(g.id)] || []).length)) return why;
   const stored = fbBoxStored(g, by);
   return why + stored;
 }
