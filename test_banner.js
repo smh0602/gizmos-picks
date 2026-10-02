@@ -26,7 +26,9 @@
  *      reads its built_at) and touches nothing on the page;
  *   3. neither card field and neither card sentence is in the page.
  * ⛔ The DATA side is unchanged: collect.py still publishes card_blocked,
- * card_caveat and every row (test_card_gate.py, test_freshness.py).
+ * card_caveat and every row. card_caveat's publication is checked by
+ * test_card_gate.py and the rows by test_freshness.py; card_blocked has
+ * no data-side check of its own (none existed before this change either).
  *
  * ⚠️ vacuity.py reads `@vacuity` declarations from test_*.py only, so this
  * file's mutations are listed here; each was applied to a scratch copy of

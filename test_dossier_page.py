@@ -82,6 +82,11 @@ reader SEES is made against rendered HTML.
 #   find: ${gap ? `<p class="dw">${s.why || ''}</p>` : ''}
 #   with: ${gap ? `<p class="dw">${(s.why || '').slice(0, 40)}</p>` : ''}
 #
+# @vacuity signal 9's departed players stay on the page as a fact
+#   file: index.html
+#   find: if (gone.length) li(`${t} departed`, gone.join(', '));
+#   with: if (false) li(`${t} departed`, gone.join(', '));
+#
 # @vacuity [Sam, 2026-10-01] a section that answers shows its facts and no prose
 #   file: index.html
 #   find: ${gap ? `<p class="dw">${s.why || ''}</p>` : ''}
@@ -476,6 +481,17 @@ def sweep(tag, doc, R, planted):
        % (tag, len(ok_why)),
        "⛔ the builder's `why` under a section that has data is a note about "
        "the tab, which Sam removed. Printed: %s" % printed[:3])
+    # ✅ ...WHICH MUST NOT TAKE A FACT WITH IT: signal 9's departed players
+    #    were named only in that sentence; they are listed as a fact now.
+    dep = [(r["board_id"], p_) for r, x in zip(rows, doc["dossiers"])
+           for s in x["sections"] if str(s.get("n")) == "9"
+           for e in (s.get("teams") or {}).values()
+           for p_ in [(d or {}).get("player") for d in (e.get("departed") or [])] if p_]
+    lost = [(b, p_) for b, p_ in dep
+            if p_ not in next(r["html"] for r in rows if r["board_id"] == b)]
+    note("%s: %d departed player(s) carried by signal 9" % (tag, len(dep)))
+    ck(not lost, "   %s: every departed player signal 9 carries is shown as a fact (%d)"
+       % (tag, len(dep)), "lost with the prose: %s" % lost[:3])
     # ── THE REGISTER ─────────────────────────────────────────────────
     # ⚠️ On the planted board this reads the builder's REFUSAL prose too
     #    (`no_opponent`), which today's board carries only on a one-sided

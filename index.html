@@ -2820,6 +2820,9 @@ function fbDosFacts(s){
         e.i10 ? ` · inside-10 ${g('i10')}` : ''}`);
       if (e.off_roster_targets != null) li(`${t} targets gone from the roster`, `${e.off_roster_targets}%`);
       if (e.arrivals_changed_teams != null) li(`${t} arrivals from other teams`, e.arrivals_changed_teams);
+      /* [2026-10-01] the departures lived only in the section's prose. */
+      const gone = (e.departed || []).map(d => d && d.player).filter(Boolean);
+      if (gone.length) li(`${t} departed`, gone.join(', '));
     }
     return f.length ? `<ul class="dosf">${f.join('')}</ul>` : '';
   }
