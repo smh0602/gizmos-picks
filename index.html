@@ -3961,84 +3961,38 @@ function fbAgFind(AG, p){
     && ((r.line == null && ln(p.line) == null) || Number(r.line) === Number(ln(p.line))));
 }
 function fbAgHtml(r){
-  if (!r) return '';
   /* 🔴 `[2026-09-26]` ONCE A GAME KICKS OFF THE LABEL IS THE ONE FROZEN BEFORE
-     KICKOFF (fb_agreement.settle), and says so; a row never frozen says that
-     instead of showing a label. ⛔ Never a fresh ONE SOURCE on a started game. */
-  if (!r.label) return r.label_note
-    ? `<span class="agl">${fbEsc(r.label_note)} <span class="kind k-desc">Descriptive</span></span>` : '';
+     KICKOFF (fb_agreement.settle); a row never frozen shows no label.
+     ⛔ Never a fresh ONE SOURCE on a started game.
+     [Sam, 2026-10-01] no explanation boxes or tags on the page. */
+  if (!r || !r.label) return '';
   const pct = v => v == null ? '&mdash;' : v + '%';
-  return `<span class="agl"><span class="kind k-desc">${r.label}</span>${r.frozen_before_kickoff
-      ? ' <span class="rec">frozen before kickoff</span>' : ''}
-    card ${pct(r.card_p)}${r.card_p == null ? '' : ` <span class="kind k-desc">${r.card_basis === 'MODEL' ? 'Model' : 'Record'}</span>`}
-    &middot; props model ${pct(r.model_p)}${r.model_p == null ? '' : ' <span class="kind k-model">Model</span>'}
-    &middot; break-even ${pct(r.break_even)} <span class="kind k-market">Market</span></span>`;
-}
-function fbFlagsFor(FL, kind, name, gid){
-  return ((FL || {}).flags || []).filter(f => f.kind === kind && f.subject === name && f.game_id === gid);
-}
-function fbFlagOne(f){
-  const what = f.source === 'injury report'
-    ? `injury report${f.kind === 'team' && f.headline ? ': ' + fbEsc(f.headline) : ''}`
-    : `<a href="${f.link}" target="_blank" rel="noopener nofollow">${fbEsc(f.headline || '')}</a>`;
-  return `<span class="fbflag" title="first seen ${f.first_seen || ''}">&#9873; <b>${fbEsc(f.status)}</b> &mdash; ${what}
-    <span class="kind k-desc">Descriptive</span></span>`;
-}
-function fbFlagHtml(fs){
-  if (!fs || !fs.length) return '';
-  return fs.length > 3
-    ? `<details class="fbnotes"><summary>&#9873; ${fs.length} news flags</summary>${fs.map(fbFlagOne).join('')}</details>`
-    : `<div class="fbnotes">${fs.map(fbFlagOne).join('')}</div>`;
-}
-function fbRowNotes(p, AG, FL){
-  const a = fbAgHtml(fbAgFind(AG, p)), f = fbFlagsFor(FL, 'player', p.player, p.game_id);
-  return (a || f.length) ? `<div class="fbnotes">${a}${f.map(fbFlagOne).join('')}</div>` : '';
-}
-function fbParlayFlagsHtml(FL, src, P){
-  const hits = ((FL || {}).parlay_legs || []).filter(x => x.source === src);
-  if (!hits.length) return '';
-  const byKey = {};
-  ((FL || {}).flags || []).forEach(f => { byKey[f.key] = f; });
-  return `<div class="fbnotes"><b>News flags on parlay legs</b>${hits.map(x => {
-    const par = ((P || {})[x.size] || [])[x.index] || {};
-    return `<div>${x.size} legs, #${x.index + 1} &mdash; ${fbEsc((par.legs || [])[x.leg] || '')}:
-      ${x.flags.map(k => byKey[k] ? fbFlagOne(byKey[k]) : '').join('')}</div>`; }).join('')}</div>`;
+  return `<span class="agl"><b>${r.label}</b>
+    card ${pct(r.card_p)}
+    &middot; props model ${pct(r.model_p)}
+    &middot; break-even ${pct(r.break_even)}</span>`;
 }
 function fbAgRecordHtml(AG){
   if (!AG || !AG.record) return '';
-  const Q = AG.question || {}, v = (r, k) => ((r || {})[k] || {}).value;
+  const v = (r, k) => ((r || {})[k] || {}).value;
   const rows = ['AGREE', 'SPLIT', 'ONE SOURCE'].map(lb => { const r = AG.record[lb] || {};
     return `<tr><td><b>${lb}</b></td><td>${(AG.counts || {})[lb] || 0}</td><td>${v(r, 'picks') || 0}</td>
       <td>${v(r, 'hit_rate') == null ? '&mdash;' : v(r, 'hit_rate') + '%'}</td>
       <td>${v(r, 'break_even') == null ? '&mdash;' : v(r, 'break_even') + '%'}</td>
       <td>${v(r, 'effective_n') == null ? '&mdash;' : v(r, 'effective_n')}</td></tr>`; }).join('');
-  return `<div class="panel" style="margin-top:18px"><h2>Card vs props model &mdash; do they agree?
-      <span class="kind k-desc">Descriptive</span></h2>
-    <p style="font-size:12px">AGREE: both chances are on the same side of the row's break-even. SPLIT: one
-      above, one below. ONE SOURCE: only one of them rates the row. A note on the row &mdash; it changes no
-      pick, ranking or price.</p>
+  return `<div class="panel" style="margin-top:18px"><h2>Card vs props model &mdash; do they agree?</h2>
     <div class="glwrap"><table class="glmain"><tr><th></th><th>On this board</th><th>Graded</th><th>Hit</th>
-      <th>Break-even</th><th>Games (eff. n)</th></tr>${rows}</table></div>
-    ${AG.not_frozen ? `<p style="font-size:12px;color:var(--mut)">${AG.not_frozen} row(s) on games that have
-      kicked off were never labelled before kickoff &mdash; the game started before labelling began, or the
-      row reached the card after its last labelled build &mdash; so they carry no label.</p>` : ''}
-    <p style="font-size:12px">Pre-registered question &mdash; do AGREE rows beat their break-even by more than
-      SPLIT rows? <b>${Q.state || 'NOT YET MEASURABLE'}</b> (${Q.agree_graded || 0} of ${(Q.min || {}).agree || 300}
-      AGREE and ${Q.split_graded || 0} of ${(Q.min || {}).split || 100} SPLIT rows graded). ${Q.consequence || ''}</p></div>`;
+      <th>Break-even</th><th>Games (eff. n)</th></tr>${rows}</table></div></div>`;
 }
 function fbFlagsRecordHtml(FL){
   if (!FL) return '';
   const R = FL.record || {}, a = R.absence || {}, c = R.caution || {};
-  return `<div class="panel" style="margin-top:18px"><h2>News flags &mdash; how often they were right
-      <span class="kind k-desc">Descriptive</span></h2>
-    <p style="font-size:12px">Once a day every player and team on the board is checked against
-      ${(FL.sources || []).join(' and ')}. A flag is a note: it never hides, re-ranks or re-prices a row and
-      never feeds a model. Names match on the exact full name.${FL.college_note ? ' <b>' + FL.college_note + '</b>' : ''}</p>
+  return `<div class="panel" style="margin-top:18px"><h2>News flags &mdash; how often they were right</h2>
     <div class="glwrap"><table class="glmain"><tr><th></th><th>Graded</th><th>Did not play</th><th>Played</th><th>Right</th></tr>
       <tr><td><b>Should sit</b> (out, IR, doubtful, ruled out, inactive, suspended, traded, released, benched)</td>
         <td>${a.graded || 0}</td><td>${a.did_not_play || 0}</td><td>${a.played || 0}</td>
         <td>${a.right_pct == null ? '&mdash;' : a.right_pct + '%'}</td></tr>
-      <tr><td><b>Might sit</b> (questionable, limited, illness) &mdash; no right answer, shown as played</td>
+      <tr><td><b>Might sit</b> (questionable, limited, illness)</td>
         <td>${c.graded || 0}</td><td>${c.did_not_play || 0}</td><td>${c.played || 0}</td><td>&mdash;</td></tr>
     </table></div><p style="font-size:12px;color:var(--mut)">${(FL.flags || []).length} flag(s) on today's board.</p></div>`;
 }
@@ -4052,9 +4006,7 @@ function fbFlagsRecordHtml(FL){
       Sam gets the data and decides. `game_lines_fb.py` computes every
       number; this page sorts and prints, it never prices anything (a price
       computed here would be a second copy of the model).
-   ⛔ RULE 55: prices and break-evens wear Market, the model's % and edge
-      wear Model — and a rung that failed the pre-registered alt-lines check
-      carries its warning ON THE ROW, not in a footnote.
+   [Sam, 2026-10-01] no explanation boxes or tags on the page.
    ══════════════════════════════════════════════════════════════════ */
 const FBGL = {}, FBGLREC = {};
 const fbGl = {game:'all', market:'both', sort:'line'};
@@ -4086,26 +4038,24 @@ function fbGlPt(r){ return r.m === 'spread' ? (r.pt > 0 ? '+' + r.pt : '' + r.pt
 
 function fbGlHead(books){
   return `<div class="glr gh"><div>Line</div>
-    <div>Books&rsquo; chance <span class="kind k-market">Market</span></div>${books.map(b => `<div>${b}</div>`).join('')}
-    <div>Best <span class="kind k-market">Market</span></div>
-    <div>Break-even <span class="kind k-market">Market</span></div>
-    <div>Model % <span class="kind k-model">Model</span></div>
-    <div>Edge <span class="kind k-model">Model</span></div></div>`;
+    <div>Books&rsquo; chance</div>${books.map(b => `<div>${b}</div>`).join('')}
+    <div>Best</div>
+    <div>Break-even</div>
+    <div>Model %</div>
+    <div>Edge</div></div>`;
 }
 
 function fbGlRung(r, g, books){
   const who = r.m === 'spread' ? fbAb(r.side === 'home' ? g.home : g.away)
                                : (r.side === 'over' ? 'Over' : 'Under');
   return `<div class="glr${r.floor ? '' : ' nofloor'}">
-    <div class="glw"><b>${who} ${fbGlPt(r)}</b>${r.floor ? ''
-      : ' <span class="rec">below &minus;700 &middot; never paired</span>'}</div>
+    <div class="glw"><b>${who} ${fbGlPt(r)}</b></div>
     <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b>${(r.mkt_one_side || []).length
       ? ` <span class="rec" title="Only one side posted at ${r.mkt_one_side.join(', ')} &mdash; that price's break-even, no vig removed">one side</span>` : ''}</div>
     ${books.map(b => `<div data-l="${b}">${(r.prices || {})[b] == null ? '&mdash;' : sgn(r.prices[b])}</div>`).join('')}
     <div data-l="Best">${sgn(r.best)} <span class="rec">${r.book}</span></div>
     <div data-l="Break-even">${r.be}%</div>
-    <div data-l="Model %">${r.p == null ? '&mdash;' : r.p + '%'}${r.cal ? ''
-      : ` <span class="glwarn" title="${r.warn || ''}">&#9888;</span>`}</div>
+    <div data-l="Model %">${r.p == null ? '&mdash;' : r.p + '%'}</div>
     <div data-l="Edge">${r.edge == null ? '&mdash;' : (r.edge > 0 ? '+' : '') + r.edge + '%'}</div>
   </div>`;
 }
@@ -4117,19 +4067,16 @@ function fbGlMain(g, books){
       <td>${fbAb(g.away)} ${cell(m.spread && m.spread.away)}</td><td>${fbAb(g.home)} ${cell(m.spread && m.spread.home)}</td>
       <td>O ${cell(m.total && m.total.over)}</td><td>U ${cell(m.total && m.total.under)}</td>
       <td>${m.moneyline ? `${fbAb(g.away)} ${sgn(m.moneyline.away)} / ${fbAb(g.home)} ${sgn(m.moneyline.home)}` : '&mdash;'}</td></tr>`; }).join('');
-  return `<div class="glwrap"><table class="glmain"><tr><th>Main lines <span class="kind k-market">Market</span></th>
+  return `<div class="glwrap"><table class="glmain"><tr><th>Main lines</th>
     <th colspan="2">Spread</th><th colspan="2">Total</th><th>Moneyline</th></tr>${rows}</table></div>`;
 }
 
 function fbGlFair(g){
-  const one = (label, v, why, warn, fmt) => `<span style="margin-right:14px">${label}
-    <b>${v == null ? '&mdash;' : fmt(v)}</b> <span class="kind k-model">Model</span>
-    ${v == null && why ? `<span class="rec">${why}</span>` : ''}
-    ${warn ? ` <span class="glwarn" title="${warn}">&#9888; ${warn}</span>` : ''}</span>`;
+  const one = (label, v, fmt) => `<span style="margin-right:14px">${label}
+    <b>${v == null ? '&mdash;' : fmt(v)}</b></span>`;
   return `<div style="font-size:12px;margin:0 0 8px">
-    ${one("Model's fair spread", g.fair_spread, g.fair_spread_why, g.fair_spread_warn,
-          v => `${fbAb(g.home)} ${v > 0 ? '+' + v : v}`)}
-    ${one("Model's fair total", g.fair_total, g.fair_total_why, g.fair_total_warn, v => '' + v)}</div>`;
+    ${one("Model's fair spread", g.fair_spread, v => `${fbAb(g.home)} ${v > 0 ? '+' + v : v}`)}
+    ${one("Model's fair total", g.fair_total, v => '' + v)}</div>`;
 }
 
 function fbGlGame(g, G, st){
@@ -4137,8 +4084,7 @@ function fbGlGame(g, G, st){
   const mk = st.market === 'both' ? ['spread', 'total'] : [st.market];
   const lad = mk.map(m => {
     const list = fbGlSort(g[m] || [], st.sort);
-    if (!list.length) return `<div class="rec" style="margin:4px 0 10px">No alt ${m === 'spread' ? 'spreads' : 'totals'} stored for this game yet${
-      g.alt_pulled_at ? '' : ' &mdash; each game is priced once, at the last odds pull before kickoff'}.</div>`;
+    if (!list.length) return `<p class="plain">No alt ${m === 'spread' ? 'spreads' : 'totals'} stored for this game yet.</p>`;
     return `<div style="margin:8px 0 4px;font-weight:700">Alt ${m === 'spread' ? 'spreads' : 'totals'}
       <span class="rec">${list.length} rung${list.length === 1 ? '' : 's'}</span></div>
       ${fbGlHead(books)}${list.map(r => fbGlRung(r, g, books)).join('')}`;
@@ -4147,26 +4093,20 @@ function fbGlGame(g, G, st){
       ${fbMark(g.away, 20)} ${fbAb(g.away)} <span style="color:var(--line)">@</span>
       ${fbMark(g.home, 20)} ${fbAb(g.home)}
       <span class="tt2">${fbKickTime(g.commence) || ''}${g.alt_pulled_at ? ` &middot; alt prices ${fbKickTime(g.alt_pulled_at)}` : ''}</span></div>
-    ${fbGlMain(g, books)}${g.modelled ? fbGlFair(g) : '<div class="rec">The model has no row for this game, so its rungs carry no model %.</div>'}
+    ${fbGlMain(g, books)}${g.modelled ? fbGlFair(g) : ''}
     ${lad}</div>`;
 }
 
 function fbGlParlays(G){
   const P = G.parlays || {}, sizes = Object.keys(P).filter(k => (P[k] || []).length);
   if (!sizes.length) return '';
-  return `<div class="panel" style="margin-top:18px"><h2>Alt-line parlays
-      <span class="kind k-market">Market</span></h2>
-    <p style="font-size:12px">Built by the same parlay builder and rules as the Parlays tab &mdash;
-      2 legs 1.8x+, 3&ndash;4 legs 3x+, no ceiling, legs in different games at one book, nothing
-      below &minus;700 &mdash; from alt rungs only, ranked by <b>the books&rsquo; own chance</b> that
-      every leg lands. The model&rsquo;s % is not used here.</p>
+  return `<div class="panel" style="margin-top:18px"><h2>Alt-line parlays</h2>
     ${sizes.map(k => `<div style="margin:10px 0 4px;font-weight:700">${k} legs</div>` + P[k].map(p => `
       <div class="glr" style="grid-template-columns:minmax(0,3fr) repeat(3,minmax(0,1fr))">
         <div class="glw">${p.legs.join('<br>')}</div>
         <div data-l="Book">${p.book}</div>
         <div data-l="Pays">${p.multiplier}x</div>
-        <div data-l="Books&rsquo; chance all land">${p.joint}%</div></div>`).join('')).join('')}
-    <div class="note" style="margin-top:8px">${(G.parlays && sizes.length && P[sizes[0]][0].joint_note) || ''}</div></div>`;
+        <div data-l="Books&rsquo; chance all land">${p.joint}%</div></div>`).join('')).join('')}</div>`;
 }
 
 function fbGlRecordHtml(R){
@@ -4177,41 +4117,29 @@ function fbGlRecordHtml(R){
       <td>${x.pending}</td><td>${v('picks') || 0}</td><td>${v('hit_rate') == null ? '&mdash;' : v('hit_rate') + '%'}</td>
       <td>${v('break_even') == null ? '&mdash;' : v('break_even') + '%'}</td><td>${v('effective_n') == null ? '&mdash;' : v('effective_n')}</td></tr>`;
   };
-  return `<div class="panel" style="margin-top:18px"><h2>Track record &mdash; alt rungs
-      <span class="kind k-desc">Descriptive</span></h2>
+  return `<div class="panel" style="margin-top:18px"><h2>Track record &mdash; alt rungs</h2>
     <div class="glwrap"><table class="glmain"><tr><th></th><th>Shown</th><th>Graded</th><th>Pending</th>
       <th>Model edge &gt; 0</th><th>Hit</th><th>Break-even</th><th>Games (eff. n)</th></tr>
-      ${Object.entries(R.markets).map(([m, x]) => row(m, x)).join('')}</table></div>
-    <p style="font-size:12px;color:var(--mut)">${R.note || ''}</p></div>`;
+      ${Object.entries(R.markets).map(([m, x]) => row(m, x)).join('')}</table></div></div>`;
 }
 
 /* 🔴 PURE: data in, HTML out — `test_game_lines_page.py` renders the real
    artifact through exactly this in node. */
 function fbGameLinesHtml(G, R, games, st){
-  const chk = G.check || {};
-  const failed = Object.keys(chk).filter(m => (chk[m] || {}).state !== 'PASS');
-  /* 🔴 `[Sam, 2026-09-25]` THE BOOKS' CHANCE LEADS; the model's % sits beside
-     it, and this says in plain words what the check found. */
-  const warnNote = failed.length ? `<div class="note" style="margin:0 0 12px">&#9888; <b>Read the
-      books&rsquo; chance first.</b> The model&rsquo;s % is shown beside it, but a test run before
-      this tab was built found ${failed.map(m => `for alt ${m === 'spread' ? 'spreads' : 'totals'}
-      <b>${(chk[m] || {}).finding || G.warning}</b>`).join('; and ')}. The &#9888; on a row is that result.</div>` : '';
-  return `<div style="margin-bottom:10px"><h2 style="margin:0 0 4px;font-size:16px">Game Lines
-      <span class="kind k-market">Market</span> <span class="kind k-model">Model</span></h2>
-    ${fbDayLine(G)}</div>${warnNote}
+  /* 🔴 `[Sam, 2026-09-25]` THE BOOKS' CHANCE LEADS; the model's % sits beside it.
+     [Sam, 2026-10-01] no explanation boxes or tags on the page. */
+  return `<div style="margin-bottom:10px"><h2 style="margin:0 0 4px;font-size:16px">Game Lines</h2></div>
     ${games.map(g => fbGlGame(g, G, st)).join('') || '<div class="msg">No games on this slate match the filters.</div>'}
     ${fbGlParlays(G)}${fbGlRecordHtml(R)}`;
 }
 
 async function fbGameLinesTab(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note" data-gl>Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg" data-gl>Loading&hellip;</div>');
   fbWire();
   const [G, R] = await Promise.all([fbGlLoad(), fbGlRecLoad()]);
   if (!G || !(G.games || []).length){
-    v.innerHTML = fbShell(`<div class="note" data-gl><b>No ${LG_NAME[LEAGUE]} game lines stored yet.</b><br>
-      The tab fills after the next odds pull; each game's alt lines are bought once, at the last
-      pull before kickoff.</div>`);
+    v.innerHTML = fbShell(`<div class="msg" data-gl>No ${LG_NAME[LEAGUE]} game lines stored yet.</div>`);
     fbWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(G.games);
@@ -4234,14 +4162,6 @@ async function fbGameLinesTab(){
   on('fb-gl-game', e => { fbGl.game = e.target.value; fbGameLinesTab(); });
   on('fb-gl-mkt',  e => { fbGl.market = e.target.value; fbGameLinesTab(); });
   on('fb-gl-sort', e => { fbGl.sort = e.target.value; fbGameLinesTab(); });
-  const FLG = await fbFlagsLoad();
-  document.querySelectorAll('#fbview .glgame[data-game]').forEach(el => {
-    const g = G.games.find(x => x.id === el.dataset.game);
-    const fs = g ? fbFlagsFor(FLG, 'team', g.away, g.id).concat(fbFlagsFor(FLG, 'team', g.home, g.id)) : [];
-    const h = el.querySelector('.ghead');
-    if (fs.length && h) h.insertAdjacentHTML('afterend', fbFlagHtml(fs));
-  });
-  v.insertAdjacentHTML('beforeend', fbParlayFlagsHtml(FLG, 'game_lines', G.parlays));
   const t = $('#fb-gl-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbGameLinesTab(); });
 }
@@ -4259,7 +4179,8 @@ async function fbGameLinesTab(){
    pre-registered and all three LOST to a player's own season average.
    ⛔ Ledger rule 55 forbids a market number wearing a Gizmo's %. So a
    football row carries `RECORD` -- his own rate at that exact line --
-   exactly as an MLB HITTER row does, and the chip on the row says so.
+   exactly as an MLB HITTER row does.
+   [Sam, 2026-10-01] no explanation boxes or tags on the page.
 
    ⚠️ ~~COLLEGE ROWS CARRY NO RATE AT ALL~~ -- ⛔ STRUCK 2026-09-04,
    ledger rule 75. The comparison behind it put a SNAP-logged file beside
@@ -4268,8 +4189,7 @@ async function fbGameLinesTab(){
    over every game the player appears in, and the ONE cell whose error
    failed its pre-registered bar -- short reception lines -- is gated in
    `card_fb.py` and arrives here already stripped.
-   🔴 THE PAGE DOES NOT DECIDE ANY OF THAT AND MUST NOT LEARN TO. It
-   prints `confidence_basis` and the card's own `denominator` string. ⛔ A
+   🔴 THE PAGE DOES NOT DECIDE ANY OF THAT AND MUST NOT LEARN TO. ⛔ A
    second copy of the rule in JavaScript is a second thing to drift.
    ══════════════════════════════════════════════════════════════════ */
 const FBCARD = {};
@@ -4289,24 +4209,10 @@ async function fbCardLoad(){
 
 /* The empty state every football card tab shares, so the three of them
    cannot drift into saying different things about the same absence. */
-function fbNoCard(what, cls){
-  /* ⚠️ `cls` LETS A TAB ASK FOR THE UN-BOXED FORM. Sam, 2026-09-11 asked
-     for no cream boxes on Parlays or Track Record; the SENTENCE is the
-     same one every tab shows, so it stays shared rather than being
-     copied — only its dress changes. ⛔ Do not fork this function. */
-  return `<div class="${cls || 'note'}">
-    <b>No ${LG_NAME[LEAGUE]} ${what} published yet.</b><br>
-    The board is built from the player-prop pull, which runs on the days
-    this league plays.
-    <!-- 🔴 ~~"Thursday evening, then Sunday morning" / "Thursday, Friday
-         and Saturday"~~ STRUCK 2026-09-06. It was a SCHEDULE WRITTEN INTO
-         A SENTENCE, and it was already wrong: the 2026 NFL season opens
-         on WEDNESDAY 9 September, not Thursday. The page does not hold
-         the freshness contract, so it cannot compute the answer — and a
-         sentence that cannot be computed must not be asserted (rule
-         132). It now says the true, weaker thing. -->
-    Nothing is missing; the slate has not been priced yet.
-  </div>`;
+function fbNoCard(what){
+  // [Sam, 2026-10-01] one plain line, no box. ⛔ Do not fork this function.
+  // Struck 2026-09-06 (rule 132): "Thursday evening, then Sunday morning", a schedule written into a sentence.
+  return `<div class="msg">No ${LG_NAME[LEAGUE]} ${what} published yet.</div>`;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -4320,11 +4226,9 @@ function fbNoCard(what, cls){
    number either way; it prints the card's own board_max. This note
    exists so a reader of the quote does not take 50 as current.
 
-   ⛔ THE PAGE DECIDES NOTHING HERE. The builder writes `slate_date`,
-   `single_day_rule`, `short_reason` and `empty_reason`; these functions
-   print them. A reader must never be told a different story by the page
-   than the card tells, and the way that happens is the page re-deriving
-   a rule the builder already applied.
+   ⛔ THE PAGE DECIDES NOTHING HERE. It never re-derives a rule the
+   builder already applied. [Sam, 2026-10-01] no explanation boxes or
+   tags on the page.
 
    ⚠️ `date` IS ALREADY AN ET DATE. Parsing it as a Date and formatting
    it would re-open the wrong-day bug from the other end -- `new
@@ -4340,38 +4244,11 @@ function fbDayName(d){
   } catch(e){ return d; }
 }
 
-/* The one-line "which day is this" under a tab's coverage sentence. */
-function fbDayLine(C){
-  if (!C || !C.single_day) return '';
-  return `<p style="color:var(--mut);margin:4px 0 0;font-size:12px">
-      &#128197; <b>${fbDayName(C.date)} only.</b>
-      ${C.n_off_slate_day ? `<b>${C.n_off_slate_day}</b> priced row${
-        C.n_off_slate_day === 1 ? '' : 's'} for ${
-        (C.off_slate_dates || []).map(fbDayName).join(' and ')}
-        ${C.n_off_slate_day === 1 ? 'is' : 'are'} not on this card &mdash;
-        a board dated one day and half-filled with the next is two facts
-        under one label.` : `Every row here is a game on that day.`}</p>`;
-}
-
 /* A heading for the tabs that have nothing to draw under it. */
 function fbDayHead(C, title){
   return `<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">${title}
-        <span class="kind k-desc">Descriptive</span></h2>
-      ${fbDayLine(C)}
+      <h2 style="margin:0 0 4px;font-size:16px">${title}</h2>
     </div>`;
-}
-
-/* ⚠️ A SHORT BOARD IS STATED, NOT QUIETLY SHIPPED. Five is Sam's floor,
-   and the only way to force it is to lower a bar -- so the page says the
-   board is short and says it was not padded. ⛔ Never a silent thin card
-   that reads as a broken one. */
-function fbShortNote(C){
-  if (!C || !C.short_of_min || !C.short_reason) return '';
-  return `<div class="note" style="margin:0 0 12px">
-      &#9888;&#65039; <b>Only ${(C.picks || []).length} pick${
-        (C.picks || []).length === 1 ? '' : 's'} for ${fbDayName(C.date)}</b>
-      &mdash; below the minimum of <b>${C.board_min}</b>. ${C.short_reason}</div>`;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -4381,11 +4258,7 @@ function fbShortNote(C){
    because Sam's standing goal is that the two halves of the site are the
    same product. ⛔ Not a second stylesheet and not a second component.
 
-   🔴 IT SAYS WHAT IT IS, AND ON FOOTBALL THAT IS A HIGHLIGHT RATHER THAN
-   A SECOND OPINION. `card_fb.py` measures the overlap with the board's
-   head and writes it into `top_plays_rule`; the page PRINTS that rather
-   than composing its own claim. ⛔ A page that describes a selection rule
-   in its own words is a second copy of the rule.
+   [Sam, 2026-10-01] no explanation boxes or tags on the page.
 
    ⚠️ IT FOLLOWS THE SAME TWO FILTERS THE BOARD DOES. A top play whose
    game has kicked off, or whose conference is filtered out, would
@@ -4403,9 +4276,9 @@ function fbShortNote(C){
       and there is no team model at all — so a "best 15 by likelihood"
       would be invented. What is ranked is the shoppable gap between
       books, which is arithmetic on quotes we already store.
-   ⛔ THE PAGE PRINTS THE BUILDER'S OWN SENTENCE (rule 132) and does not
-      re-rank, re-filter or re-compute the gap. A second copy of the
-      selection rule is a second thing to drift. */
+   ⛔ The page does not re-rank, re-filter or re-compute the gap. A second
+      copy of the selection rule is a second thing to drift.
+   [Sam, 2026-10-01] no explanation boxes or tags on the page. */
 function fbGameLines(C){
   const g = (C && C.game_lines) || [];
   if (!g.length) return '';
@@ -4416,9 +4289,7 @@ function fbGameLines(C){
     draftkings: 'DraftKings', fanduel: 'FanDuel',
     williamhill_us: 'Caesars', betmgm: 'BetMGM' }[b] || b);
   return `<div class="panel" style="margin-top:18px">
-      <h2>Game lines &mdash; the ${g.length} biggest price gaps
-        <span class="kind k-market">Market</span></h2>
-      <p>${C.game_lines_rule || ''}</p>
+      <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
       <div class="t10">${g.map((r, i) => `
         <div class="r">${i + 1}</div>
         <div class="w"><b>${r.side}</b> ${pt(r)}
@@ -4426,15 +4297,7 @@ function fbGameLines(C){
           <div class="rec" style="font-size:11px">${r.game || ''}</div></div>
         <div class="c">+${r.gain_pct}%</div>
         <div class="p">${sgn(r.best_price)}<div class="rec"
-          style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div>
-      <div class="note" style="margin-top:10px">
-        &#128309; <b>Market, not a model.</b> The percentage is how much more
-        the best book pays than a typical one on the identical wager &mdash;
-        it is not a chance of winning and it does not say who wins.
-        <b>Every row is compared at the exact signed number</b>, because
-        books split on which side lays the points and matching on the
-        number alone would pair opposite bets.
-      </div></div>`;
+          style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div></div>`;
 }
 
 function fbTopPlays(C, shownPicks){
@@ -4446,11 +4309,9 @@ function fbTopPlays(C, shownPicks){
   const live = new Set((shownPicks || []).map(p => p.game_id));
   const t = all.filter(x => !x.game_id || live.has(x.game_id));
   if (!t.length) return '';
-  const m = C.top_plays_excluded || {};
   const sideWord = s => s === 'over' ? 'Over' : s === 'under' ? 'Under' : 'Yes';
   return `<div class="panel" style="margin-top:18px">
       <h2>Top ${t.length} play${t.length === 1 ? '' : 's'} of the day</h2>
-      <p>${C.top_plays_rule || ''}</p>
       <div class="t10">${t.map((x, i) => `
         <div class="r">${i + 1}</div>
         <div class="w"><b>${x.player}</b> &mdash; ${sideWord(x.side)}
@@ -4459,104 +4320,7 @@ function fbTopPlays(C, shownPicks){
                      x.projection_note)}
           <div class="rec" style="font-size:11px">${x.game || ''}</div></div>
         <div class="c ${confClass(x.confidence)}">${x.confidence}%</div>
-        <div class="p">${sgn(x.price)}</div>`).join('')}</div>
-      <div class="note" style="margin-top:10px">
-        &#9898; <b>Every number here is the player's own record</b>, exactly
-        as on the board above &mdash; not a projection and not a model
-        output. ${m.one_per_game ? `<b>One play per game</b>, so these
-        ${t.length} come from <b>${t.length}</b> different game${
-          t.length === 1 ? '' : 's'} &mdash; no game appears twice.
-        &#9888;&#65039; That is why the list is <b>${t.length}</b> and not
-        ${m.cap}: with one per game the cap is a ceiling a slate rarely
-        reaches, and <b>nothing is padded to fill it</b>.`
-        : (m.distinct_games ? `These ${t.length} plays come from
-        <b>${m.distinct_games}</b> game${m.distinct_games === 1 ? '' : 's'};
-        that is concentration worth seeing before you treat the list as
-        ${m.cap} independent bets.` : '')}
-        ${(m.same_player_already_listed || m.same_game_already_listed)
-          ? `<br><b>${m.same_game_already_listed || 0}</b> row(s) were held
-             back because their game was already on the list, and
-             <b>${m.same_player_already_listed || 0}</b> because the player
-             was.` : ''}
-      </div></div>`;
-}
-
-/* 🔴 THE ONE HEADER ALL THREE TABS USE. It states the provenance ONCE,
-   in English, and every tab shows it -- so a reader cannot land on
-   Parlays and miss what they were told on Picks. */
-/* 🔴 HOW THE NUMBER IN THE CONF CELL HAS ACTUALLY PERFORMED.
-   `[added 2026-09-16]` The MLB board has carried this banner since
-   2026-09-01 and football carried NONE — so the better-calibrated board
-   warned and the worse one did not. NFL's 80-90 bucket claimed 84.1 and
-   delivered 47.8 over 23 graded plays, and nothing on the page said so.
-   ⛔ THE SENTENCE IS THE BUILDER'S, NOT THIS FUNCTION'S. `card_fb.py`
-   derives it from that league's own record.json every build. A second
-   copy of that reasoning in JavaScript is a second thing to drift — the
-   same rule `empty_reason` and `board_rule` already follow.
-   ⚠️ A CARD WITHOUT THE FIELD RENDERS NOTHING, not "undefined". Older
-   dated cards predate it, and this tab renders whatever is there. */
-function fbCalNote(C){
-  if (!C || !C.calibration_warning) return '';
-  return `<div class="note" style="margin-top:10px"><b>Read the confidence
-    number honestly.</b> ${C.calibration_warning}</div>`;
-}
-
-/* 🔴 STATED VS ACTUAL, EVERY 10-POINT BAND, NEXT TO THE CARD.
-   `[Sam, 2026-09-24]` "On the page, next to the football props card, show
-   stated vs actual hit rate for each 10-point band, labelled DESCRIPTIVE."
-   The bands, their flags and the test's verdict all come from
-   card-calibration.json — ⛔ none of the rule is re-computed here. */
-const FBCARDCAL = {};
-async function fbCardCalLoad(lg){
-  if (FBCARDCAL[lg] !== undefined) return FBCARDCAL[lg];
-  try { FBCARDCAL[lg] = await jget(`${LG_DATA[lg]}/latest/card-calibration.json`); }
-  catch(e){ FBCARDCAL[lg] = null; }
-  return FBCARDCAL[lg];
-}
-function fbCardCalHtml(K){
-  const before = Object.entries((K && K.bands_before) || {});
-  if (!K || (!(K.bands || []).length && !before.length)) return '';
-  const tbl = bands => bands.map(b => `<tr${b.flag === 'UNDER' ? ' style="color:var(--bad,#c0392b)"' : ''}>
-      <td>${fbEsc(b.bucket)}</td><td>${labN(b.graded)}</td><td>${labN(b.stated, '%')}</td>
-      <td>${labN(b.actual, '%')}</td><td>${b.flag === 'UNDER' ? '&#9888; running high' : ''}</td></tr>`).join('');
-  const head = `<thead><tr><th>Card said</th><th>Graded</th><th>Average said</th>
-      <th>Actually hit</th><th></th></tr></thead>`;
-  /* ⛔ EACH METHOD IN ITS OWN TABLE, NEVER POOLED. `[Sam, 2026-09-24]` */
-  const rows = (K.bands || []).length ? tbl(K.bands)
-    : '<tr><td colspan="5">No play rated this way has been graded yet.</td></tr>';
-  const old = before.map(([m, b]) => `<div style="margin-top:10px;font-size:13px"><b>Before the fix</b>
-      (${m === '2025-only' ? 'last season only' : fbEsc(m)}) &mdash; kept apart, not counted above</div>
-    <table class="ob" style="margin-top:4px">${head}<tbody>${tbl(b)}</tbody></table>`).join('');
-  const T = K.test || {};
-  const status = T.applied ? '' : `<div class="note" style="margin-top:8px">&#9888; <b>These are the card's raw
-      numbers.</b> A correction replaces them only if it passes a test fixed in advance${
-      T.verdict === 'NOT YET MEASURABLE' ? ` &mdash; not yet measurable: ${T.n} of the ${T.min_n} graded plays it needs`
-      : T.verdict === 'QUALIFIES' ? ' &mdash; it has passed, and is waiting for Sam to decide'
-      : ` &mdash; it did not pass (${T.n} graded plays)`}.</div>`;
-  return `<details style="margin-top:10px" open><summary><b>How this card's confidence has held up</b>
-      <span class="kind k-desc">Record</span></summary>
-    ${before.length ? `<div style="margin-top:8px;font-size:13px"><b>Since the fix</b> (reads this season first)</div>` : ''}
-    <table class="ob" style="margin-top:8px">${head}<tbody>${rows}</tbody></table>${status}${old}</details>`;
-}
-
-function fbNoModelNote(C){
-  return `<div class="note" style="margin-top:16px">
-    &#9940; <b>No row here carries a Gizmo's confidence rating, and none
-    ever will on today's evidence.</b> Four football models were tested
-    against held-out weeks and every one lost to a player's own season
-    average, so there is nothing of ours to put beside these lines.
-    <b>The Model picks section below is separate:</b> it prices game lines
-    (spread, total, moneyline), not these player rows.
-    ${C && C.rates_available
-      ? `What each number IS: <b>his own record at that exact line</b> over
-         ${C.logs_season}, counted over ${C.denominator || 'his logged games'}.
-         That is history, not a forecast &mdash; and rosters and roles
-         change between seasons.`
-      : `<b>These rows carry a price and no record.</b> There is not enough
-         game history behind them yet to read a rate from.`}
-    ${C && C.college_note
-      ? `<br><br>&#9888;&#65039; ${C.college_note}` : ''}
-  </div>`;
+        <div class="p">${sgn(x.price)}</div>`).join('')}</div></div>`;
 }
 
 /* 🔴 THE CHIP ROW RENDERS IN EVERY BRANCH, INCLUDING THE EMPTY ONES.
@@ -4589,13 +4353,13 @@ function fbKindWire(){
   });
 }
 
-/* 🔴 THE PICK MODEL, ITS OWN SECTION, LABELLED MODEL. `[Sam, 2026-09-23]`
+/* 🔴 THE PICK MODEL, ITS OWN SECTION. `[Sam, 2026-09-23]`
    "Show the model's picks on the football page as their own section,
    labelled MODEL. Next to them, show the walk-forward record per league and
    market: picks, hit rate, and the break-even rate at the price. Do not
    remove the existing card."
    ⛔ It is appended AFTER the card on every path out of fbPicks and never
-   touches it. Every number goes through labN, so it carries its basis. */
+   touches it. [Sam, 2026-10-01] no explanation boxes or tags on the page. */
 const FBMODEL = {};
 async function fbModelLoad(lg){
   if (FBMODEL[lg] !== undefined) return FBMODEL[lg];
@@ -4604,8 +4368,8 @@ async function fbModelLoad(lg){
   return FBMODEL[lg];
 }
 function fbModelHtml(M){
-  if (!M) return `<div class="panel"><h2>Model picks <span class="kind k-model">Model</span></h2>
-    <div class="note">The model's file has not been built yet. It is rebuilt with the card.</div></div>`;
+  if (!M) return `<div class="panel"><h2>Model picks</h2>
+    <p class="plain">The model's file has not been built yet.</p></div>`;
   const mk = {spread: 'Spread', total: 'Total', moneyline: 'Moneyline'};
   /* ONE row renderer, two records. ⛔ The records are never summed or
      interleaved: each table reads only its own key. A row priced at an
@@ -4626,30 +4390,24 @@ function fbModelHtml(M){
       <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
       <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
   return `<div class="panel">
-    <h2>Model picks <span class="kind k-model">Model</span></h2>
-    <p class="stamp">A separate model trained on all eight checks, retrained every week on games
-      already played. It picks a side only when its chance beats the break-even of the best
-      ${(M.books || []).join(', ')} price. It does not change the card above.
-      <span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
+    <h2>Model picks</h2>
+    <p class="stamp"><span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
     <h3 style="margin:14px 0 8px;font-size:14px">This week</h3>
     ${picks ? `<table class="ob"><thead><tr><th>Game</th><th>Market</th><th>Pick</th><th>Line</th>
       <th>Price</th><th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
-      : '<div class="note">No pick this week clears the break-even of the best available price.</div>'}
+      : '<p class="plain">No model picks this week.</p>'}
     <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
     <table class="ob">${recHead}<tbody>${rec}</tbody></table>
-    <div class="note" style="margin-top:12px">${fbEsc(M.note || '')} The 95% range counts each
-      game once, so two picks from one game are not treated as two independent results.</div>
     ${M.closing_record ? `<h3 style="margin:18px 0 8px;font-size:14px">${fbEsc(M.closing_title || '')}</h3>
-    <table class="ob">${recHead}<tbody>${recRows(M.closing_record)}</tbody></table>
-    <div class="note" style="margin-top:12px">${fbEsc(M.closing_note || '')}</div>` : ''}
+    <table class="ob">${recHead}<tbody>${recRows(M.closing_record)}</tbody></table>` : ''}
   </div>`;
 }
-/* 🔴 THE PROPS MODEL, ITS OWN SECTION, LABELLED MODEL. `[Sam, 2026-09-24]`
+/* 🔴 THE PROPS MODEL, ITS OWN SECTION. `[Sam, 2026-09-24]`
    "Show the model's prop picks on the football page as their own section,
    labelled MODEL. Next to them, show the walk-forward record per market:
    picks, hit rate and break-even. Use the same price floors as the existing
    card. Do not remove the existing card." ⛔ Appended after the card, never
-   inside it; every number goes through labN. */
+   inside it. [Sam, 2026-10-01] no explanation boxes or tags on the page. */
 /* 🔴 THE VERDICT LABEL, BESIDE EVERY RECORD. `[Sam, 2026-09-24]` "It is
    information only; nothing is hidden." The label is computed by
    fb_model.verdict() — ⛔ never re-derived here. */
