@@ -1828,12 +1828,13 @@ function dayDetailHtml(rows, date){
    [Sam, 2026-10-01] no explanation boxes or tags on the page: `labN`
    prints the value alone. */
 function labN(x, unit){
-  if (!x || typeof x !== 'object' || !('basis' in x))
-    return '<span class="kind k-desc">unlabelled</span>';
-  const cls = {MODEL: 'k-model', MARKET: 'k-market', DESCRIPTIVE: 'k-desc'}[x.basis] || 'k-desc';
-  const word = {MODEL: 'Model', MARKET: 'Market', DESCRIPTIVE: 'Record'}[x.basis] || x.basis;
-  const v = x.value == null ? '—' : (Array.isArray(x.value) ? x.value.join(' / ') : x.value);
-  return `${v}${unit || ''} <span class="kind ${cls}">${word}</span>`;
+  // [Sam, 2026-10-01] no explanation boxes or tags on the page: the formatted value alone.
+  const fmt = val => `${Array.isArray(val) ? val.join(' / ') : val}${unit || ''}`;
+  if (!x || typeof x !== 'object' || !('basis' in x)){
+    const raw = (x && typeof x === 'object') ? x.value : x;
+    return raw == null ? '' : fmt(raw);
+  }
+  return x.value == null ? `—${unit || ''}` : fmt(x.value);
 }
 
 function refitPanel(F){
@@ -1847,12 +1848,10 @@ function refitPanel(F){
   const cal = (rows) => (rows || []).filter(r => r.rows && r.rows.value)
     .map(r => `<tr><td>${r.bucket}</td><td>${labN(r.model_said, '%')}</td><td>${labN(r.it_hit, '%')}</td><td>${labN(r.rows)}</td></tr>`).join('');
   return `<div class="panel">
-    <h2>Is v5.0 still the best version? <span class="kind k-model">Model</span></h2>
-    <p class="stamp">Checked every week. Each week is predicted twice: by v5.0's frozen numbers, and by
-      the same model re-fitted on every game played before that week. Lower "surprise" is better.
-      <span class="rec">built ${F.built_at}</span></p>
-    <div class="note"><b>${verdictWord}</b><br>${F.rule}</div>
-    <table class="ob" style="margin-top:12px"><thead><tr><th></th><th>Predictions</th><th>Surprise</th>
+    <h2>Is v5.0 still the best version?</h2>
+    <p class="stamp"><span class="rec">built ${F.built_at}</span></p>
+    <p><b>${verdictWord}</b></p>
+    <table class="ob" style="margin-top:12px"><thead><tr><th></th><th>Predictions</th><th>Surprise (lower is better)</th>
       <th>Strikeouts</th><th>Outs</th></tr></thead><tbody>
       ${rec('v5.0 (on the card)', D.champion || {})}${rec('Re-fitted', D.challenger || {})}</tbody></table>
     <p style="margin-top:10px">Side by side: ${labN(P.predictions)} predictions. Average improvement from
@@ -1860,8 +1859,6 @@ function refitPanel(F){
     <h3 style="margin:18px 0 8px;font-size:14px">When v5.0 says a number, how often does it happen?</h3>
     <table class="ob"><thead><tr><th>It said</th><th>On average</th><th>It happened</th><th>Rows</th></tr></thead>
       <tbody>${cal((D.calibration || {}).champion)}</tbody></table>
-    <div class="note" style="margin-top:12px">Each start is checked at every half-line, so the rows in a band
-      are not independent — read the bands as a shape, not as exact odds.</div>
   </div>`;
 }
 
@@ -1872,8 +1869,7 @@ async function renderRecord(){
     try { RECORD = await jget('data/latest/record.json'); }
     catch(e){
       v.innerHTML = `<div class="panel"><h2>Track Record</h2>
-        <div class="note"><b>No record file yet.</b> The collector writes
-        <code>data/latest/record.json</code> on its next nightly run.</div></div>`;
+        <p class="plain">No record file yet.</p></div>`;
       return;
     }
   }
@@ -1896,10 +1892,7 @@ async function renderRecord(){
         <div class="tr-box"><div class="k">Hitters</div><div class="v">${(R.by_kind.hitter.pct ?? '—')}%</div><div class="s">${R.by_kind.hitter.w}/${R.by_kind.hitter.n}</div></div>
         <div class="tr-box"><div class="k">Cards graded</div><div class="v">${R.days_graded}</div><div class="s">machine cards only</div></div>
        </div>`
-    : `<div class="note"><b>The automatic card has not been graded yet.</b>
-        ${(R.skipped||[]).map(x => `<br><code>${x.date}</code> — ${x.why}`).join('')}
-        <br><br>The first machine card grades the morning after its games finish. Until then this
-        section is empty on purpose rather than showing a number it has not earned.</div>`;
+    : '<p class="plain">The automatic card has not been graded yet.</p>';
 
   /* 🔴 EVERY DAY IS CLICKABLE. Sam, 2026-08-26: he wants to open a date
      and see which props hit and which missed. The per-pick detail is a
@@ -1931,9 +1924,7 @@ async function renderRecord(){
             cell.innerHTML = dayDetailHtml((D.days || {})[date], date);
             cell.dataset.loaded = '1';
           } catch(e){
-            cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The collector
-              writes <code>data/latest/record-detail.json.gz</code> on its next
-              <code>record</code> run.</div>`;
+            cell.innerHTML = '<p class="plain">No detail file yet.</p>';
           }
         }
       });
@@ -1947,33 +1938,23 @@ async function renderRecord(){
 
   v.innerHTML = `
     <div class="panel">
-      <h2>Automatic card <span class="kind k-model">Model</span></h2>
-      <p>Every play the model published, graded from stored box scores — not from anyone's memory.
-         Updates itself nightly. <span class="rec">built ${R.built_at}</span></p>
+      <h2>Automatic card</h2>
+      <p><span class="rec">built ${R.built_at}</span></p>
       ${machine}
       ${mkRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${mkRows}</tbody></table>` : ''}
       ${dayRows ? `<h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
         <table class="ob"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${dayRows}</tbody></table>` : ''}
-      <div class="note" style="margin-top:14px"><b>This is the model's record and nothing else.</b>
-        Every play it published, graded from stored box scores. Uncurated — it prints everything that
-        clears the filter, so it will score worse than a board someone picked over by hand. That is a
-        different question, not a worse model.</div>
     </div>
 
     <div class="panel">
       <h2>Does the confidence number mean anything?</h2>
-      <p class="stamp">Built from the model's own graded plays. ${M.n ? `${M.n} plays so far —
-         every figure here will move.` : 'Nothing graded yet.'}</p>
+      <p class="stamp">${M.n ? `${M.n} plays so far.` : 'Nothing graded yet.'}</p>
       ${bands}
       <div class="legend">
         <span><i style="background:var(--accent2)"></i>Beat the claim</span>
         <span><i style="background:#d9534f"></i>Fell short of it</span>
         <span><i style="background:#14181f;width:3px;border-radius:0"></i>What we claimed</span>
       </div>
-      <div class="note" style="margin-top:16px"><b>Read this before you act on anything else here.</b>
-        Only the <b>70–80%</b> band has a record that supports its own number. At <b>60–70%</b> the model has
-        been badly wrong, and <b>80%+</b> is running hot. Small samples throughout — every figure here will move.<br><br>
-        Nothing is removed after the fact. A losing pick stays logged even when there is a good excuse for it.</div>
     </div>
     ${refitPanel(REFIT)}`;
 }
@@ -2004,9 +1985,7 @@ async function renderNews(){
   try { N = await jget('data/latest/news.json'); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>News</h2>
-      <div class="note"><b>No news file yet.</b> The collector writes
-      <code>data/latest/news.json</code> three times a day. Run the
-      <code>news</code> job once to seed it.</div></div>`;
+      <p class="plain">No news file yet.</p></div>`;
     return;
   }
   const ago = iso => {
@@ -2017,9 +1996,8 @@ async function renderNews(){
     return Math.round(m/1440) + 'd ago';
   };
   v.innerHTML = `<div class="panel">
-    <h2>Around the league <span class="kind k-desc">Live</span></h2>
-    <p>Headlines from ${[...new Set(N.items.map(i=>i.source))].join(', ')}.
-       Updated ${N.pulled_at.slice(11,16)}Z.</p>
+    <h2>Around the league</h2>
+    <p>Updated ${N.pulled_at.slice(11,16)}Z.</p>
     <div class="nwgrid">
     ${N.items.map(i => `<a class="nwc" href="${i.link}" target="_blank" rel="noopener">
         ${(i.image || newsLogo(i.title))
@@ -2034,8 +2012,6 @@ async function renderNews(){
           ${i.summary ? `<div class="sm">${i.summary}</div>` : ''}
         </div></a>`).join('')}
     </div>
-    <div class="note" style="margin-top:14px">Headlines and links only, credited to the publisher.
-      Click through to read the story at the source.</div>
   </div>`;
 }
 
@@ -2048,8 +2024,7 @@ function renderTrends(){
     const t = $('#tr-started');
     if (t) t.addEventListener('click', () => { showStarted = !showStarted; renderTrends(); });
   }, 0);
-  if (!BOARD){ v.innerHTML = '<div class="note">No odds file yet — trends need the market board.</div>'; return; }
-  const haveSplits = Object.keys(SPLITS).length > 0;
+  if (!BOARD){ v.innerHTML = '<div class="msg">No odds file yet.</div>'; return; }
 
   const teamLine = (t, tt) => {
     const s = SPLITS[t] || {};
@@ -2106,8 +2081,7 @@ function renderTrends(){
 
     if (!bits.length) return '';
     return `<div class="why2" style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line);
-              font-size:12.5px;line-height:1.55;color:#46525f">${bits.join(' ')}
-            <br><span style="color:var(--mut)">Descriptive only — none of this is in the model.</span></div>`;
+              font-size:12.5px;line-height:1.55;color:#46525f">${bits.join(' ')}</div>`;
   };
 
   const allT = BOARD.games || [];
@@ -2115,12 +2089,9 @@ function renderTrends(){
   const games = _trList
     .slice().sort((a,b) => a.commence < b.commence ? -1 : 1);
   v.innerHTML = `<div style="margin-bottom:8px">
-      <h2 style="margin:0 0 4px;font-size:16px">Trends <span class="kind k-desc">Descriptive</span></h2>
-      <p style="color:var(--mut);margin:0">Form and splits from the MLB feed, next to what the market implies.
-        Nothing here is a projection.</p></div>
-    ${!haveSplits ? '<div class="note">Standings did not load, so records are missing. Refresh in a moment.</div>' : ''}
+      <h2 style="margin:0 0 4px;font-size:16px">Trends</h2></div>
     ${startedToggle(nStarted, 'tr-started', allDone)}
-    ${games.length ? '' : '<div class="msg">Every game on the board has started. Tomorrow\'s lines appear as the books post them.</div>'}
+    ${games.length ? '' : '<div class="msg">No games on the board.</div>'}
     ${games.map(g => `<div class="panel" style="padding:14px 16px;margin:10px 0">
         <div style="font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
           ${new Date(g.commence).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})}
@@ -2140,8 +2111,8 @@ let PROPS = null;
    on the card has actually moved. */
 let CARD = null, CARD_DATE = null, CARD_ASKED = null, CARD_BACK = 0;
 
-/* 🔴🔴 THE CARD FALLS BACK TO THE MOST RECENT PUBLISHED ONE, AND THE PAGE
-   SAYS SO. [Sam, 2026-09-14: "gizmos picks did not load today and did not
+/* 🔴🔴 THE CARD FALLS BACK TO THE MOST RECENT PUBLISHED ONE.
+   [Sam, 2026-09-14: "gizmos picks did not load today and did not
    deliver any picks for the mlb slate as well as didnt provide
    projections, thats one of our main builds"]
 
@@ -2155,15 +2126,11 @@ let CARD = null, CARD_DATE = null, CARD_ASKED = null, CARD_BACK = 0;
    on the Player Props tab, because all three ask for today's date and
    give up on a 404.
 
-   ➡️ SO THE RULE IS: A MISSING CARD IS A REASON TO SHOW AN OLDER ONE,
-   LABELLED — NEVER A REASON TO SHOW NOTHING.
-
-   ⚠️ AND THE LABEL IS NOT OPTIONAL, IT IS THE WHOLE LICENCE FOR DOING
-   THIS. CLAUDE.md: a card missing a line is a card missing a line; a card
-   showing another game's line is misinformation. Yesterday's card
-   presented as today's would be exactly that — so `CARD_BACK` carries how
-   many days back it came from and every surface that renders it draws the
-   banner. A silent fallback would be worse than the blank page. */
+   ➡️ SO THE RULE IS: A MISSING CARD IS A REASON TO SHOW AN OLDER ONE
+   UNDER ITS OWN DATE — NEVER A REASON TO SHOW NOTHING. `CARD_BACK` still
+   counts how many days back it came from.
+   [Sam, 2026-10-01] no explanation boxes on the page: a fallback card is
+   labelled only by its own date (`CARD_DATE`) in the headings. */
 const CARD_MAX_BACK = 7;
 async function loadCard(){
   const d = todayET();
@@ -2185,20 +2152,6 @@ async function loadCard(){
   }
   CARD = null; CARD_DATE = null; CARD_BACK = 0;
   throw err || new Error('no card in the last ' + CARD_MAX_BACK + ' days');
-}
-
-/* The banner. ⛔ Returns '' on a current card so it cannot become
-   decoration that a reader learns to skip. */
-function cardStaleNote(){
-  if (!CARD_BACK) return '';
-  const n = CARD_BACK;
-  return `<div class="note" style="border-left:3px solid #f0a500">
-    <b>This is the card for ${CARD_DATE} — ${n} day${n > 1 ? 's' : ''} ago, not today.</b>
-    Today's card has not been published yet; it is built each morning and
-    this tab will switch to it on its own as soon as it lands. Every game
-    below has already been played, so nothing here is a live recommendation
-    — it is shown so the board, the parlays and the projections are still
-    readable rather than blank.</div>`;
 }
 
 /* A game that has started is not a betting board any more.
@@ -2224,17 +2177,12 @@ function splitStarted(all){
    games are all concluded this shouldnt even be an option." He is right --
    when EVERY game has started, hiding them empties the tab, so the toggle
    stops being a filter and becomes the only way to see anything. In that
-   state the games are shown and the box just says why the lines are stale. */
+   state the games are shown and no toggle is drawn.
+   [Sam, 2026-10-01] no explanation boxes on the page: the toggle is a plain link. */
 function startedToggle(n, id, allDone){
-  if (!n) return '';
-  if (allDone) return `<div class="note" style="margin:10px 0;padding:9px 12px">
-    <b>Every game on this slate has started.</b> These lines are off the board and
-    are shown for reference — tomorrow's board replaces them as soon as it posts.</div>`;
-  return `<div class="note" style="margin:10px 0;padding:9px 12px">
-    <b>${n} game${n>1?'s':''} already underway</b> — ${showStarted ? 'shown below' : 'hidden'},
-    because those lines are off the board.
-    <a id="${id}" style="color:var(--accent);font-weight:700;cursor:pointer;margin-left:6px">
-      ${showStarted ? 'Hide them' : 'Show anyway'}</a></div>`;
+  if (!n || allDone) return '';
+  return `<div style="margin:10px 0"><a id="${id}" style="color:var(--accent);font-weight:700;cursor:pointer">${
+    showStarted ? 'Hide them' : 'Show anyway'}</a></div>`;
 }
 const PMARKETS = [
   ['batter_hits','Hits'],['batter_total_bases','Total bases'],
@@ -2273,9 +2221,7 @@ async function renderProps(){
     try { PROPS = await jgetGz('data/latest/props.json.gz'); }
     catch(e){
       v.innerHTML = `<div class="panel"><h2>Player Props</h2>
-        <div class="note"><b>No props board yet.</b> It is built by joining the batter odds to the
-        hitter game logs. Run the <code>hitters</code> job, then <code>props-batter</code>, then
-        <code>props-board</code> — after that this tab fills itself every morning.</div></div>`;
+        <p class="plain">No props board yet.</p></div>`;
       return;
     }
   }
@@ -2358,18 +2304,7 @@ async function renderProps(){
         ${freshness(pFilter.market.startsWith('pitcher') ? PROPS.pitcher_odds_at : PROPS.batter_odds_at)}</span>
     </div>
     ${startedToggle(nStarted, 'pf-started', allDone)}
-    <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>
-    <div class="note"><b>These are the books' prices and each player's own record — nothing more.</b>
-      There is no hitter model in this project yet, so no pick here carries a Gizmo's confidence rating.
-      The percentages on the right are the market's, with the house margin removed.
-      <br><br><b>About the PROJ number.</b> It is the outcome that would produce the confidence
-      on that row, read back through the same distribution the row assumes — so a projection can
-      never argue with the pick beside it. Green means it came from the model (pitchers).
-      Grey means it inverts the player's own record and is <b>descriptive, not a forecast</b>.
-      <b>Total bases and Hits+Runs+RBIs carry no projection at all.</b> Three distributions were
-      fitted and none of them reproduced a player's real per-game average to the quarter-unit bar
-      set before any were tried — a Poisson misses by 0.67 bases at the tail. A precise-looking
-      number that wrong is worse than no number, so there is no number.</div>`;
+    <div class="panel" style="padding:0;overflow:hidden">${body || '<div class="msg">Nothing for that combination.</div>'}</div>`;
 
   const tg = $('#pf-started');
   if (tg) tg.addEventListener('click', () => {
@@ -2401,15 +2336,13 @@ function parlayTable(title, rows){
       <thead><tr><th>Bet</th><th>Games</th><th class="n">Pays</th>
         <th class="n">All hit</th><th class="n">$30 EV</th></tr></thead>
       <tbody>${rows.map(x => `
-        <tr class="${x.dominated_by ? 'domrow' : ''}">
+        <tr>
           <td><b>${x.legs.join('</b> + <b>')}</b></td>
           <td class="rec">${x.games.join(' · ')}</td>
           <td class="n">${x.multiplier.toFixed(2)}x</td>
           <td class="n"><b>${x.joint}%</b></td>
           <td class="n">${x.ev_30 > 0 ? '+' : ''}${x.ev_30}</td>
-        </tr>
-        ${x.dominated_by ? `<tr class="domrow"><td colspan="5" class="domnote">
-           ⚠️ ${x.dominated_by.text}</td></tr>` : ''}`).join('')}
+        </tr>`).join('')}
       </tbody></table></div>`;
   return pn;
 }
@@ -2421,16 +2354,13 @@ async function renderParlays(){
   try { P = await loadCard(); }
   catch(e){
     v.innerHTML = `<div class="panel"><h2>Parlays</h2>
-      <div class="note"><b>No card published for ${d} yet</b>, and none in the
-      last ${CARD_MAX_BACK} days either. Parlays are built by
-      <code>card.py</code> alongside the daily card.</div></div>`;
+      <p class="plain">No card published for ${d} yet.</p></div>`;
     return;
   }
   v.innerHTML = '';
   const PL = P.parlays || {};
   const head = el('div','panel');
-  head.innerHTML = `<h2>Parlays &mdash; ${CARD_DATE}</h2>${cardStaleNote()}
-    <p>${P.parlay_rule || ''}</p>`;
+  head.innerHTML = `<h2>Parlays &mdash; ${CARD_DATE}</h2>`;
   v.append(head);
 
   const live = new Set((P.picks || [])
@@ -2449,19 +2379,6 @@ async function renderParlays(){
   });
 
   if (!any) v.append(el('div','msg','No parlay in those bands on this card.'));
-
-  const m = P.parlay_meta || {};
-  const foot = el('div','panel');
-  foot.innerHTML = `<div class="note">
-    <b>How these are built.</b> Every leg is priced at Hard Rock — the only one of the
-    five books that lets you combine props. No leg is shorter than −700, and the two legs
-    are always in <b>different games</b>.
-    <br><br><b>About the "all hit" number.</b> It's the two chances multiplied together.
-    Pitcher legs come from the model; hitter legs come from that player's own record, so a
-    parlay with a hitter in it leans more on history than on the model. We also treat the
-    two games as unrelated, which is close to true but not exactly true.
-    ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}</div>`;
-  v.append(foot);
 }
 
 function show(tab){
@@ -2487,10 +2404,7 @@ function show(tab){
    🔴 MLB IS THE DEFAULT AND ITS PATH IS UNCHANGED. Selecting MLB restores
    exactly the page that existed before this block. Everything football
    lives in #fbview and touches no MLB state.
-   ⛔ WHAT FOOTBALL HONESTLY HAS TODAY IS TRENDS AND NOTHING ELSE. Zero
-   football odds had ever been collected before 2026-08-31, so there is no
-   board, no card, no model and no record. The page SAYS SO on each tab
-   rather than showing an empty shell that looks broken.
+   [Sam, 2026-10-01] no explanation boxes or tags on the page.
    ══════════════════════════════════════════════════════════════════════ */
 const LG_DATA  = { mlb:'data', nfl:'data/nfl', ncaaf:'data/ncaaf' };
 const LG_NAME  = { mlb:'MLB', nfl:'NFL', ncaaf:'College Football' };
@@ -2502,25 +2416,25 @@ const LG_NAME  = { mlb:'MLB', nfl:'NFL', ncaaf:'College Football' };
    line contradicted the page under it: "Power 4 — defensive trends" sat
    above the Gizmo's Picks board, and the college one still said POWER 4
    after the collection had been widened to all of FBS.
-   ⚠️ Football taglines never say "model" -- there is no football model,
-   and the header is not the place to imply one. */
-const LG_TAG = { mlb:'MLB model &amp; live board',
+   [Sam, 2026-10-01] a tagline names what the tab holds, never where its
+   numbers come from. */
+const LG_TAG = { mlb:'MLB &mdash; live board',
                  nfl:'NFL &mdash; live board',
                  ncaaf:'College football &mdash; live board' };
 
 const TAB_TAG = {
   mlb: {
-    scores:'Live scores &amp; matchups', picks:'Model picks, graded daily',
+    scores:'Live scores &amp; matchups', picks:'Picks, graded daily',
     odds:'Live board, vig removed', record:'Every published pick, graded',
     trends:'Team form &amp; splits', news:'Around the league',
-    parlays:'Model parlays', props:'Player props &mdash; best price'
+    parlays:'Parlays', props:'Player props &mdash; best price'
   },
   fb: {
-    scores:'Schedule, scores &amp; box scores', picks:'Market board &mdash; no model',
+    scores:'Schedule, scores &amp; box scores', picks:'Picks board',
     odds:'Live board, vig removed', record:'Every published row, graded',
     trends:'Defensive &amp; offensive trends', news:'Around the league',
-    parlays:'Market only &mdash; no model', props:'Player props &mdash; best price',
-    gamelines:'Alt lines &mdash; three books, the model&rsquo;s price'
+    parlays:'Parlays', props:'Player props &mdash; best price',
+    gamelines:'Alt lines &mdash; three books'
   }
 };
 
@@ -2615,16 +2529,15 @@ const FB_METRICS = [
 ];
 const FB_MIN_GAMES = 8;
 
-/* ⛔ Each of these states a REASON. "Coming soon" tells a reader nothing
-   and quietly implies the data exists. */
+/* [Sam, 2026-10-01] one plain line per empty tab, no explanation. */
 const FB_EMPTY = {
-  scores:  ['Scores &amp; Matchups', 'No football schedule feed is collected yet. MLB uses statsapi, which is baseball-only; football needs its own source and it has not been wired up.'],
-  picks:   ["Gizmo's Picks", 'There is no football model. The first one &mdash; NFL receiving yards &mdash; was pre-registered and <b>failed its bar</b> (Brier +0.0010 against +0.0050, and worse than a season average on MAE). A pick with no tested model behind it would be exactly the thing this site exists not to be.'],
-  odds:    ['Odds', 'Football odds collection started <b>2026-08-31</b>. Nothing has been stored yet &mdash; the first pull is this weekend. Odds history cannot be backfilled, which is why collection was stood up before the page.'],
-  props:   ['Player Props', 'Same as Odds: the collector is live as of 2026-08-31, the board is empty until the first weekend pull lands.'],
-  parlays: ['Parlays', 'Parlays are built from carded plays. There are no football picks yet, so there is nothing to pair.'],
-  record:  ['Track Record', 'Nothing has been carded, so nothing has been graded. An empty record is the honest state, not a bug.'],
-  news:    ['News', 'The news feed is MLB-only today.'],
+  scores:  ['Scores &amp; Matchups', 'No games yet.'],
+  picks:   ["Gizmo's Picks", 'No picks yet.'],
+  odds:    ['Odds', 'No odds yet.'],
+  props:   ['Player Props', 'No player props yet.'],
+  parlays: ['Parlays', 'No parlays yet.'],
+  record:  ['Track Record', 'Nothing graded yet.'],
+  news:    ['News', 'No news yet.'],
   gamelines: ['Game Lines', 'Loading&hellip;'],
 };
 
