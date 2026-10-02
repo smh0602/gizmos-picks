@@ -4413,10 +4413,9 @@ function fbModelHtml(M){
    fb_model.verdict() — ⛔ never re-derived here. */
 function fbVerdictTag(v){
   if (!v || !v.label) return '';
-  const col = {'PROVEN': '#1e8449', 'LOSING': '#c0392b', 'NOT PROVEN': '#b9770e'}[v.label] || 'var(--mut)';
   const why = v.label === 'NOT YET MEASURABLE' ? `${v.picks} of ${v.min_picks} picks` :
               `${v.picks} picks${v.edge_points != null ? `, ${v.edge_points > 0 ? '+' : ''}${v.edge_points} pts vs break-even` : ''}`;
-  return ` <span class="rec" style="color:${col};font-weight:600;white-space:nowrap">${fbEsc(v.label)}</span>
+  return ` <span class="rec" style="font-weight:600;white-space:nowrap">${fbEsc(v.label)}</span>
     <span class="rec">(${why})</span>`;
 }
 const FBLEDGER = {};
@@ -4427,8 +4426,8 @@ async function fbLedgerLoad(lg){
   return FBLEDGER[lg];
 }
 function fbLedgerHtml(LD){
-  if (!LD) return `<div class="panel"><h2>What the model showed, graded <span class="kind k-desc">Record</span></h2>
-    <div class="note">Nothing saved yet. The models' picks are saved before each kickoff from ${'2026-09-24'} on.</div></div>`;
+  if (!LD) return `<div class="panel"><h2>What the model showed, graded</h2>
+    <p class="plain">Nothing saved yet.</p></div>`;
   const name = {game_model: 'Game model', props_model: 'Props model'};
   const rec = Object.entries(LD.record || {}).flatMap(([m, mks]) => Object.entries(mks).map(([mk, r]) =>
     `<tr><td>${name[m] || m}</td><td>${fbEsc(mk.replace('player_', '').replace(/_/g, ' '))}${fbVerdictTag(r.verdict)}</td>
@@ -4442,12 +4441,11 @@ function fbLedgerHtml(LD){
      <td>${labN(p.price)} <span class="rec">${fbEsc(p.book || '')}</span></td><td>${labN(p.model_probability, '%')}</td>
      <td>${p.state === 'graded' ? (p.won ? '<b style="color:#1e8449">Hit</b>' : '<b style="color:#c0392b">Miss</b>') : res(p.state)}</td></tr>`).join('');
   return `<div class="panel">
-    <h2>What the model showed, graded <span class="kind k-desc">Record</span></h2>
-    <p class="stamp">Every pick the two models showed before kickoff, saved and frozen from ${fbEsc(LD.from || '')},
-      then graded once. Nothing here is recalculated after it is graded. <span class="rec">built ${fbEsc(LD.built_at || '')}</span></p>
+    <h2>What the model showed, graded</h2>
+    <p class="stamp"><span class="rec">built ${fbEsc(LD.built_at || '')}</span></p>
     ${rec ? `<table class="ob"><thead><tr><th>Model</th><th>Market</th><th>Picks</th><th>Hits</th><th>Hit rate</th>
       <th>Break-even</th><th>Pending</th></tr></thead><tbody>${rec}</tbody></table>`
-      : '<div class="note">No pick has been saved yet.</div>'}
+      : '<p class="plain">No pick has been saved yet.</p>'}
     ${picks ? `<h3 style="margin:18px 0 8px;font-size:14px">Every pick, newest first</h3>
     <table class="ob"><thead><tr><th>Date</th><th>Model</th><th>Who</th><th>Pick</th><th>Price</th><th>Model</th>
       <th>Result</th></tr></thead><tbody>${picks}</tbody></table>` : ''}
@@ -4461,8 +4459,8 @@ async function fbPropModelLoad(lg){
   return FBPROPMODEL[lg];
 }
 function fbPropModelHtml(M){
-  if (!M) return `<div class="panel"><h2>Prop model picks <span class="kind k-model">Model</span></h2>
-    <div class="note">The props model's file has not been built yet. It is rebuilt with the card.</div></div>`;
+  if (!M) return `<div class="panel"><h2>Prop model picks</h2>
+    <p class="plain">The props model has not been built yet.</p></div>`;
   const shown = M.picks || [], total = M.picks_total || shown.length;
   const side = s => ({over: 'Over', under: 'Under', yes: 'Yes'}[s] || s);
   const picks = shown.map(p => `<tr><td>${fbEsc(p.player)}<br><span class="rec">${fbEsc(p.game)} · ${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
@@ -4477,20 +4475,15 @@ function fbPropModelHtml(M){
       <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td><td>${r.first_graded || '—'}</td></tr>`;
   }).join('');
   return `<div class="panel">
-    <h2>Prop model picks <span class="kind k-model">Model</span></h2>
-    <p class="stamp">A separate model of each player's likely stat line, trained on the stored player logs
-      and retrained every week on games already played. It picks a side only when its chance beats the
-      break-even of the best ${(M.books || []).join(', ')} price, inside the card's own price limits
-      (${M.price_floor} to +${M.price_ceiling}). It does not change the card above.
-      <span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
+    <h2>Prop model picks</h2>
+    <p class="stamp"><span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
     <h3 style="margin:14px 0 8px;font-size:14px">This week${total > shown.length ? ` — top ${shown.length} of ${total} by the model's chance` : ''}</h3>
     ${picks ? `<table class="ob"><thead><tr><th>Player</th><th>Market</th><th>Pick</th><th>Price</th>
       <th>Model</th><th>Break-even</th><th>Card vs model</th></tr></thead><tbody>${picks}</tbody></table>`
-      : '<div class="note">No prop this week clears the break-even of the best available price.</div>'}
+      : '<p class="plain">No prop picks this week.</p>'}
     <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
     <table class="ob"><thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
       <th>95% range</th><th>Graded since</th></tr></thead><tbody>${rec}</tbody></table>
-    <div class="note" style="margin-top:12px">${fbEsc(M.note || '')}</div>
   </div>`;
 }
 async function fbModelAppend(v, lg){
@@ -4502,16 +4495,16 @@ async function fbModelAppend(v, lg){
 
 async function fbPicks(){
   const v = $('#fbview');
-  v.innerHTML = fbShell('<div class="note">Loading&hellip;</div>');
+  v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
   const C = await fbCardLoad();
   /* 🔴 AN EMPTY CARD AND A MISSING CARD ARE DIFFERENT FACTS, AND SAYING
      "not published yet" ABOUT AN EMPTY ONE IS A LIE. Sam's rule is that a
      day with no games shows an EMPTY board and that is CORRECT — so the
-     builder writes the card anyway, with `empty_reason` in it, and the
-     page prints the builder's own sentence rather than deciding for
-     itself why the board is bare. ⛔ A second copy of that reasoning in
-     JavaScript is a second thing to drift. */
+     builder writes the card anyway, with `empty_reason` in it, and this
+     branch keys on that field rather than deciding for itself why the
+     board is bare. [Sam, 2026-10-01] no explanation boxes: one plain line
+     here; the card keeps its own sentence. */
   if (C && !(C.picks || []).length && C.empty_reason){
     /* 🔴 GAME LINES STILL RENDER ON AN EMPTY PROPS BOARD.
        ⛔ THIS BRANCH USED TO RETURN BEFORE REACHING THEM, AND THE BUG WAS
@@ -4524,19 +4517,18 @@ async function fbPicks(){
           empty tells the reader nothing is there when plenty is. */
     v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") + fbKindBar(C) +
       (FBPICKKIND === 'lines' ? '' :
-       `<div class="note"><b>No player props for ${fbDayName(C.date)}.</b><br>
-        ${C.empty_reason}</div>` + fbNoModelNote(C)));
+       `<div class="msg">No player props for ${fbDayName(C.date)}.</div>`));
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
-        '<div class="note">No game lines on this board yet.</div>');
+        '<div class="msg">No game lines on this board yet.</div>');
     await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   if (!C || !(C.picks || []).length){
     v.innerHTML = fbShell(fbKindBar(C) +
-      (FBPICKKIND === 'lines' ? '' : fbNoCard('picks')));
+      (FBPICKKIND === 'lines' ? '' : fbNoCard('picks', 'msg')));
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
-        '<div class="note">No game lines on this board yet.</div>');
+        '<div class="msg">No game lines on this board yet.</div>');
     await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   /* ⛔ THE GAME-LINE BOARD IS ITS OWN TAB AND RETURNS HERE. It shares
@@ -4546,44 +4538,34 @@ async function fbPicks(){
   if (FBPICKKIND === 'lines'){
     v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") + fbKindBar(C));
     v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
-      '<div class="note">No game lines on this board yet.</div>');
+      '<div class="msg">No game lines on this board yet.</div>');
     await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
-  const CC = await fbCardCalLoad(LEAGUE);
-  const [AG, FL] = await Promise.all([fbAgLoad(), fbFlagsLoad()]);
+  const AG = await fbAgLoad();
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks
-        <span class="kind ${C.rates_available ? 'k-desc' : 'k-market'}">${
-          C.rates_available ? 'Record' : 'Market'}</span></h2>
-      <p style="color:var(--mut);margin:0">${C.coverage}
-         ${freshness(C.odds_pulled_at)}</p>
-      ${fbDayLine(C)}
-      ${fbCalNote(C)}
-      ${fbCardCalHtml(CC)}
+      <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks</h2>
+      <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>
     </div>
-    ${fbShortNote(C)}
     ${fbConfBar()}
     ${startedToggle(nStarted, 'fb-pk-started', allDone)}`;
   const host = document.createElement('div');
   const pool = allDone ? C.picks : list;
   const kept = pool.filter(p => fbConfPass(p.away, p.home));
-  kept.forEach(p => { host.append(pickCard(p)); host.insertAdjacentHTML('beforeend', fbRowNotes(p, AG, FL)); });
+  kept.forEach(p => host.append(pickCard(p)));
   /* ⛔ AN EMPTY BOARD AND AN EMPTY FILTER LOOK IDENTICAL unless the page
      says which one happened. A reader who clicks a conference with no
      picks on it must not be left reading "no card". */
   if (!kept.length && pool.length)
     host.innerHTML = `<div class="msg">None of the <b>${pool.length}</b> picks
-      on this card involve ${[...fbConf].join(', ')}. The card is there &mdash;
-      clear the conference filter to see it.</div>`;
+      on this card involve ${[...fbConf].join(', ')}.</div>`;
   v.innerHTML = fbShell(fbKindBar(C));
   v.append(wrap, host);
   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
   /* ⛔ NO `fbGameLines(C)` HERE ANY MORE — it has its own chip above.
      Rendering it in both places would put a MARKET board underneath a
      RECORD board again, which is the mixing Sam asked to end. */
-  v.insertAdjacentHTML('beforeend', fbNoModelNote(C));
   v.insertAdjacentHTML('beforeend', fbAgRecordHtml(AG));
   await fbModelAppend(v, LEAGUE);
   fbWire(); fbKindWire();
@@ -4613,8 +4595,9 @@ async function fbPicks(){
 
    ⚠️ "PAYS AT MOST" IS NOT A PRICE AND THE HEADER SAYS SO. A book prices
    a correlated slip BELOW the product of its legs, and that discount is
-   in no pull this project stores — so the column is an upper bound and
-   is labelled MARKET, never quoted as what you will be paid.
+   in no pull this project stores — so the column is an upper bound,
+   never quoted as what you will be paid.
+   [Sam, 2026-10-01] no explanation boxes or tags on the page.
 
    ⚠️ "WEAKEST LEG" IS NOT A CHANCE THE PARLAY HITS. It is the lowest of
    the slip's own player records, each measured at that exact line. It is
@@ -4625,15 +4608,13 @@ function fbSgpTable(title, rows){
   const bookName = b => ({ hardrockbet: 'Hard Rock', hardrockbet_oh: 'Hard Rock',
     draftkings: 'DraftKings', fanduel: 'FanDuel',
     williamhill_us: 'Caesars', betmgm: 'BetMGM' }[b] || b);
-  pn.innerHTML = `<h2>${title}
-      <span class="kind k-desc">Record</span></h2>
+  pn.innerHTML = `<h2>${title}</h2>
       <div style="overflow-x:auto"><table class="pairs">
       <thead><tr><th>Bet</th><th>Game</th><th class="n">Book</th>
         <th class="n">Pays at most</th><th class="n">Weakest leg</th></tr></thead>
       <tbody>${rows.map(x => `
         <tr>
-          <td><b>${x.legs.join('</b> + <b>')}</b>${
-            x.n_line_legs ? ` <span class="kind k-market">Market leg</span>` : ''}</td>
+          <td><b>${x.legs.join('</b> + <b>')}</b></td>
           <td class="rec">${x.game || ''}</td>
           <td class="n rec">${bookName(x.book)}</td>
           <td class="n">&le;&nbsp;${x.multiplier.toFixed(2)}x</td>
@@ -4657,16 +4638,14 @@ async function fbParlays(){
        MLB had already solved it: NO TWO LEGS IN THE SAME GAME ID.
      ⛔ WHAT HAS NOT CHANGED: there is still no football model, so every
      number here is the player's OWN RECORD and the combined figure is
-     those records multiplied. It is labelled RECORD, never MODEL. */
+     those records multiplied. [Sam, 2026-10-01] no explanation boxes or
+     tags on the page. */
   const PL = (C && C.parlays) || {};
   const TITLES = {'2': 'Two-leg &mdash; pays 1.8x or more',
                   '3': 'Three-leg &mdash; pays 3x or more',
                   '4': 'Four-leg &mdash; pays 3x or more'};
   const head = `<div style="margin-bottom:10px">
-      <h2 style="margin:0 0 4px;font-size:16px">Parlays
-        <span class="kind k-record">Record</span></h2>
-      <div class="sub">${(C && C.parlay_rule) || ''}</div>
-      ${fbDayLine(C)}
+      <h2 style="margin:0 0 4px;font-size:16px">Parlays</h2>
     </div>`;
   /* ⛔ THE TWO KINDS ARE COUNTED SEPARATELY, and that is not tidiness.
      `[caught 2026-09-11 by rendering the page]` the first form added the
@@ -4676,14 +4655,12 @@ async function fbParlays(){
      (100 combinations outside Sam's bands, the rest in one game) simply
      never drew. ⚠️ An absent explanation reads as an absent feature. */
   let body = '', crossAny = 0;
-  const FL = await fbFlagsLoad();
   ['2','3','4'].forEach(size => {
     const rows = PL[size] || [];
     if (!rows.length) return;
     crossAny += rows.length;
     body += parlayTable(TITLES[size], rows).outerHTML;
   });
-  body += fbParlayFlagsHtml(FL, 'card', PL);
   /* 🔴 SAME-GAME PARLAYS, AFTER the cross-game ones and in their own
      tables. ⛔ They are read off `C.sgp`, a SEPARATE key — merging them
      into `C.parlays` would put two different row shapes under one name,
@@ -4692,40 +4669,13 @@ async function fbParlays(){
   let sgpBody = '';
   const SG = (C && C.sgp) || {};
   const SGT = {'2': 'Same game, two legs', '3': 'Same game, three legs'};
-  let sgAny = 0;
   ['2','3'].forEach(size => {
     const rows = SG[size] || [];
     if (!rows.length) return;
-    sgAny += rows.length;
     sgpBody += fbSgpTable(SGT[size], rows).outerHTML;
   });
   const m = (C && C.parlay_meta) || {};
-  /* ⛔ NO `.note` BOX HERE ANY MORE. Sam, 2026-09-11: "remove all yellow
-     boxes in the parlays tab." The sentences stay as a footnote because
-     every one of them says what a number on this screen IS — and a table
-     of parlays whose payout column is an upper bound, with nothing on
-     screen saying so, would be the page asserting a price it does not
-     have. ⚠️ ~~a cream .note box~~ → `.fnote`, small muted type. */
-  const sgm = (C && C.sgp_meta) || {};
-  const foot = `<div class="fnote">
-      <b>Different games.</b> Every leg is the player&rsquo;s own rate at that
-      exact line &mdash; not a projection and not a model output. The legs
-      are in different games, which is what makes multiplying them
-      defensible, and at one sportsbook, because a parlay is one slip. The
-      &ldquo;all hit&rdquo; figure is those records multiplied; treating two
-      games as unrelated is close to true and not exactly true, and that
-      assumption has never been tested here.
-      ${sgAny ? `<br><br><b>Same game.</b> These publish
-      <b>no combined chance and no EV</b> &mdash; two players in one game are
-      not independent, so multiplying their records would state something
-      false. <b>Pays at most</b> is the straight product of the prices: a
-      book prices a correlated slip <b>below</b> that, so the real slip pays
-      less. <b>Weakest leg</b> is the lowest player record on the slip, not
-      the chance it hits. A <b>market leg</b> is that game&rsquo;s line, quoted
-      at the same book as the props rather than at the book with the best
-      price &mdash; a slip priced across two books is one nobody can bet.` : ''}
-      ${m.note ? `<br><br><b>Coverage.</b> ${m.note}` : ''}
-      ${sgAny && sgm.note ? `<br><br>${sgm.note}` : ''}</div>`;
+  // [Sam, 2026-10-01] no explanation boxes or tags on the page.
   /* ⛔ THREE DIFFERENT EMPTINESSES AND THEY MUST NOT SHARE A SENTENCE.
      NO CARD  — nothing has been published for this league yet.
      NO BOARD — a card exists and its day has no games. Correct, not broken.
@@ -4750,40 +4700,18 @@ async function fbParlays(){
   const emptyMsg = !C
     ? fbNoCard('parlays', 'msg')
     : (!(C.picks || []).length && C.empty_reason)
-      ? `<div class="msg"><b>No parlays for ${fbDayName(C.date)}
-         &mdash; there is no board to build them from.</b><br>
-         ${C.empty_reason}</div>`
+      ? `<div class="msg">No parlays for ${fbDayName(C.date)} &mdash; there is
+         no board to build them from.</div>`
     : nGames < 2
-      ? `<div class="msg"><b>No parlays for ${fbDayName(C.date)} &mdash;
-         this card's slate is ${nGames === 1 ? 'a single game' : 'empty'}.</b><br>
-         Every leg of a parlay here must come from a <b>different game</b>,
-         which is the only thing that makes multiplying two records
-         defensible at all. ⛔ <b>With ${nGames === 1 ? 'one game' : 'no games'}
-         there is nothing to pair against</b>, so this is arithmetic rather
-         than a thin board${sameGame ? ` &mdash; ${sameGame.toLocaleString()}
-         candidate combinations were rejected for sharing a game and
-         ${outBand.toLocaleString()} for the payout bands` : ''}.</div>`
+      ? `<div class="msg">No parlays for ${fbDayName(C.date)} &mdash; this card's slate is ${
+          nGames === 1 ? 'a single game' : 'empty'} and every leg must come from a different game${
+          sameGame ? ` (${sameGame.toLocaleString()} combinations shared a game)` : ''}.</div>`
     : (outBand === 0 && sameGame > 0)
-      ? `<div class="msg"><b>No parlays on this card.</b> ⛔ <b>It is not
-         the payout bands</b> &mdash; not one combination was rejected for
-         being outside them. ${sameGame.toLocaleString()} were rejected for
-         putting two legs in the same game${
-           Number(rj.mixed_book || 0) ? `, and ${Number(rj.mixed_book).toLocaleString()}
-           for needing two different sportsbooks` : ''}. ${m.note || ''}</div>`
-      : `<div class="msg"><b>No parlay on this card lands inside the
-         bands.</b> The board is priced and rated &mdash; it is the payout
-         bands that nothing fits today, which is a fact about the prices
-         rather than a failure. ${m.note || ''}${sgAny ? `<br><br>⚠️ <b>The
-         ${sgAny.toLocaleString()} same-game slips below are not affected
-         by this.</b> The count above rejects a combination for putting two
-         legs in one game, which is the rule for THESE parlays &mdash; the
-         same-game tables are built under different rules and are shown
-         separately.` : ''}</div>`;
-  /* ⛔ `fbNoModelNote(C)` IS NOT CALLED HERE. It is a cream .note box and
-     Sam asked for none on this tab. ⚠️ What it said that matters — every
-     number is a record, never a model — is carried by the .kind chips on
-     each table heading and restated in the footnote above, so the claim
-     survives and only the box is gone. */
+      ? `<div class="msg">No parlays on this card &mdash; ${sameGame.toLocaleString()}
+         combinations had two legs in the same game${Number(rj.mixed_book || 0)
+           ? ` and ${Number(rj.mixed_book).toLocaleString()} needed two sportsbooks` : ''}.</div>`
+      : `<div class="msg">No parlay on this card lands inside the payout bands.</div>`;
+  // [Sam, 2026-10-01] each emptiness is one plain line with its computed cause; no box, no tag.
   /* ⛔ THE CROSS-GAME EXPLANATION DRAWS EVEN WHEN SAME-GAME PARLAYS DO.
      The two answer different questions and a reader who sees only one
      kind is owed the reason the other is missing. ⚠️ The "no card" and
@@ -4792,8 +4720,7 @@ async function fbParlays(){
   const noBoard = !C || (!(C.picks || []).length && C.empty_reason);
   v.innerHTML = fbShell(head
       + (noBoard ? emptyMsg
-                 : (crossAny ? body : emptyMsg) + sgpBody)
-      + (noBoard ? '' : foot));
+                 : (crossAny ? body : emptyMsg) + sgpBody));
   fbWire();
 }
 
@@ -4857,16 +4784,10 @@ function fbDayDetailHtml(rows){
       <td class="n">${r.actual == null ? '&mdash;' : r.actual}</td>
       <td><span class="res ${res[0]}">${res[1]}</span></td></tr>`;
   }).join('');
-  const nu = rows.filter(r => r.won == null).length;
   return `<div style="overflow-x:auto"><table class="ddtab">
       <thead><tr><th>Player</th><th>Pick</th><th class="n">Conf</th>
         <th class="n">Price</th><th class="n">Actual</th><th>Result</th></tr></thead>
-      <tbody>${body}</tbody></table></div>
-    <div class="note" style="margin:0 0 8px;padding:7px 10px;font-size:11.5px">
-      <b>Actual</b> is what the player really did, read off the stored game log.
-      ${nu ? `<b>${nu} unsettled</b> — the log does not reach that game yet.
-        Unsettled rows are shown here and excluded from every percentage.`
-       : 'Every row on this card was settled.'}</div>`;
+      <tbody>${body}</tbody></table></div>`;
 }
 
 /* 🔴 THE SAME BANDS MLB DRAWS, THROUGH THE SAME `bandRow()`. Sam saw the
@@ -4892,8 +4813,7 @@ function fbCalBlock(cal, label){
     label ? ` <span class="sub" style="font-weight:400">&mdash; ${label}</span>` : ''}</h3>`;
   if (!cal || !cal.length)
     return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">No graded
-      picks under the ${label} yet &mdash; its rows appear here once their
-      games are in the stored log.</div>` : '';
+      picks under the ${label} yet.</div>` : '';
   /* ⚠️ FOOTBALL PASSES ITS OWN WORDING. The figure is the mean of the
      players' own records at those lines, so nobody "said" it. */
   const band = c => bandRow({ name: c.bucket, n: c.n, said: c.stated, hit: c.n ? c.pct : null }, 'the record claimed');
@@ -4972,11 +4892,10 @@ function fbWireDayRows(lg, rec){
         cell.innerHTML = fbDayDetailHtml(((D || {}).days || {})[date]);
         cell.dataset.loaded = '1';
       } catch(e){
-        /* ⛔ DEGRADES TO A NOTE, NEVER A BROKEN TAB. Before the first
-           graded card there is no detail file and that is not an error. */
-        cell.innerHTML = `<div class="note"><b>No detail file yet.</b> The grader
-          writes <code>${(rec && rec.detail_file)
-            || `${LG_DATA[lg]}/latest/record-detail.json.gz`}</code> on its next run.</div>`;
+        /* ⛔ DEGRADES TO ONE PLAIN LINE, NEVER A BROKEN TAB. Before the
+           first graded card there is no detail file and that is not an
+           error. */
+        cell.innerHTML = '<p class="plain">No detail file yet.</p>';
       }
     });
   });
@@ -5045,40 +4964,15 @@ async function fbRecord(){
      bucket is the player's OWN RECORD at that line -- ledger rule 55.
      ~~a bare table headed Stated / Said / Actual / Rows / Gap~~ —
      **REPLACED 2026-09-16**: the same data now renders through MLB's own
-     `bandRow()`, which Sam asked for after seeing both side by side. The
-     honesty the column heading carried is KEPT — it is the `Descriptive`
-     chip beside this tab's heading that says these are records, not model
-     outputs, and nothing here says "predicted". */
+     `bandRow()`, which Sam asked for after seeing both side by side, and
+     nothing here says "predicted". [Sam, 2026-10-01] no explanation boxes
+     or tags on the page. */
   const calBlock = fbCalMethods(R);
 
-  /* 🔴 A RESET IS NOT THE SAME FACT AS A NEW PRODUCT, AND THE TAB MUST
-     NOT LET A READER CONFUSE THEM. Sam, 2026-09-06: *"wipe the track
-     record, dont get rid of the tab completley"* — so the tab stands, the
-     boxes still draw em-dashes, and this says WHY.
-     ⛔ EVERY WORD COMES OFF `record.json`, which computes the date and the
-     count in `record_fb.py` (rule 132). The page prints those numbers; it
-     does not carry a sentence of its own that could go stale.
-     ⚠️ It appears ONLY when something was actually set aside — a product
-     that has simply never graded anything must not claim a reset. */
-  const resetNote = (R && R.record_from && R.record_from_note
-                     && (R.cards_before_record_from || 0) > 0)
-    ? `<div class="fnote" style="margin:10px 0 0;border-top:0;padding-top:0"><b>The record was
-         reset.</b> ${R.record_from_note}</div>`
-    : '';
-
-  v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record
-      <span class="kind k-desc">Descriptive</span></h2>
-    ${resetNote}
-    <p>Every row the board publishes, graded from the stored player game
-       log &mdash; not from anyone's memory.
-       ${R ? `<span class="rec">graded ${freshness(R.built_at)}</span>` : ''}</p>
+  // [Sam, 2026-10-01] no reset note, intro or footnotes on the page; record.json keeps their fields.
+  v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2>
+    ${R ? `<p><span class="rec">graded ${freshness(R.built_at)}</span></p>` : ''}
     ${hero}
-    ${graded && R.distinct_players ? `<div class="fnote" style="margin:0 0 14px;border-top:0;padding-top:0">
-      &#9888;&#65039; <b>${O.n} graded row${O.n === 1 ? '' : 's'} came from
-      <b>${R.distinct_players}</b> player${R.distinct_players === 1 ? '' : 's'}
-      across ${R.distinct_games} game${R.distinct_games === 1 ? '' : 's'}.</b>
-      Rows are not independent observations when the same player is carded
-      twice &mdash; read the sample as its players, not its rows.</div>` : ''}
     <table class="ob" style="margin-top:14px">
       <thead><tr><th>Market</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th></tr></thead>
       <tbody>${mkRows}</tbody></table>
@@ -5087,36 +4981,11 @@ async function fbRecord(){
     <table class="ob">
       <thead><tr><th>Date</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th>
         <th class="n">Carded</th><th class="n">Unsettled</th></tr></thead>
-      <tbody>${dayRows}</tbody></table>
-    ${R && R.coverage_note ? `<div class="fnote">
-      <b>What is and is not counted.</b> ${R.coverage_note}
-      <br><br>${R.over_bias_note || ''}
-      ${R.join_note ? `<br><br><b>How a pick finds its result.</b> ${R.join_note}` : ''}
-      ${(R.skipped || []).length ? `<br><br><b>Waiting:</b> ${
-        R.skipped.map(x => `${x.date} &mdash; ${x.why}`).join(' · ')}` : ''}
-    </div>` : ''}
-    <div class="fnote">
-      <b>This is the board's record and nothing else.</b> Every row it
-      published, graded from the final box score. Uncurated &mdash; it prints
-      everything that clears the filter, so it will score worse than a board
-      someone picked over by hand. That is a different question, not a worse
-      board.
-      <br><br>Nothing is removed after the fact. A losing row stays logged
-      even when there is a good excuse for it.
-      ${!R ? `<br><br>&#9888;&#65039; <b>No graded record yet.</b> The grader runs
-      after the weekly player-log rebuild &mdash;
-      ${LEAGUE === 'ncaaf' ? 'Monday' : 'Tuesday'} &mdash; so a slate is graded
-      the week after it is played.` : ''}
-    </div>`);
+      <tbody>${dayRows}</tbody></table>`);
   /* ⚠️ WIRED AFTER THE MARKUP IS IN THE DOM, not before — the rows do
      not exist until `fbShell` has been assigned above. */
   fbWireDayRows(LEAGUE, R);
-  /* ⛔ `fbNoModelNote(C)` IS NOT CALLED HERE EITHER — it is a cream box
-     and Sam asked for none on this tab (2026-09-11). ⚠️ Its claim, that
-     no row carries a Gizmo's rating, is already carried by the
-     DESCRIPTIVE chip beside this tab's own heading and by the
-     calibration table being headed "Stated" rather than "Predicted". The
-     box went; the labelling did not. */
+  // [Sam, 2026-10-01] no explanation boxes or tags on the page.
   fbWire();
 }
 
