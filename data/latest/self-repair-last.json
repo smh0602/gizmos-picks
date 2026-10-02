@@ -1,17 +1,21 @@
 {
- "issue": 211,
+ "issue": 212,
  "opened_pr": false,
  "outcome": "no_pr",
- "at": "2026-10-02T02:21:13Z",
- "streak": 1,
+ "at": "2026-10-02T11:13:36Z",
+ "streak": 2,
  "tried": [
-  211
+  211,
+  212
  ],
  "queue": [
   211,
   212
  ],
- "down_since": null,
- "told": [],
+ "down_since": "2026-10-02T11:13:36Z",
+ "told": [
+  211,
+  212
+ ],
  "note": "\u26d4 The next pass skips `issue` ONLY if opened_pr is false, and only for that one pass (rule 238). After 2 passes in a row that could not finish, `down_since` is set and the agent is not started until a PR merges to main or a new watcher issue opens (one not in `queue`)."
 }
