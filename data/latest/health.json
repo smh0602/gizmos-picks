@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-03T19:37:19Z",
+ "checked_at": "2026-10-03T21:09:07Z",
  "et_date": "2026-10-03",
  "healthy": false,
  "broken": 0,
- "degraded": 2,
+ "degraded": 3,
  "findings": [
+  {
+   "key": "fresh:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb tabs are showing data older than promised (gamelines, props-batter, props-pitcher)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "fresh:ncaaf",
    "severity": "DEGRADED",
@@ -29,7 +36,7 @@
   "pulled_at": "2026-10-03T16:46:56Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.8,
+  "reading_age_hours": 4.4,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-03T16:46:56Z",
   "source": "data/ncaaf/2026-10-03/props-player/1646.json.gz",
