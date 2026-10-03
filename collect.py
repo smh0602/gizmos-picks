@@ -3423,6 +3423,33 @@ def et_slate_date(back=0):
     return (et - timedelta(hours=6 + 24 * back)).strftime("%Y-%m-%d")
 
 
+def results_slates(gap_cap):
+    """The slates `collect_results` pulls: the two newest always, and every
+    older one inside `gap_cap` whose stored file is MISSING or NOT SETTLED.
+
+    🔴 `[Sam, 2026-10-02]` NOT SETTLED TOO. 10-01's one game was stored 14
+    hours before first pitch, 10-02 had no games so nothing re-pulled it,
+    and two slates back only a MISSING file was ever fetched again: 29
+    picks and 10 top-10 rows off the Track Record for good. ⚠️ A settled
+    file further back than 1 is still left alone.
+    """
+    want = []
+    for back in range(gap_cap, -1, -1):
+        day = et_slate_date(back)
+        p = f"data/{day}/results/final.json.gz"
+        if back <= 1 or not os.path.exists(p) or not _stored_settled(p):
+            want.append(day)
+    return sorted(set(want))
+
+
+def _stored_settled(path):
+    """`slate_settled` of one stored results file; unreadable is not settled."""
+    try:
+        return bool(slate_settled(json.load(gzip.open(path, "rt")))[0])
+    except Exception:
+        return False
+
+
 def collect_results():
     from datetime import timedelta
 
@@ -3437,18 +3464,18 @@ def collect_results():
     # heals itself on the next run. The 0/1 slates are always re-pulled on
     # top of that, because finals arrive late and suspended games resume.
     # ⚠️ Capped so a cold start cannot walk the whole season in one job.
-    from datetime import datetime as _dt
+    # ✅ `[2026-10-02]` and a stored slate that never settled is re-pulled
+    #    too (`results_slates`), so a hole closes on the next run.
     GAP_CAP = 14
-    want, d0 = [], _dt.strptime(et_slate_date(0), "%Y-%m-%d")
-    for back in range(GAP_CAP, -1, -1):
-        day = et_slate_date(back)
-        if back <= 1 or not os.path.exists(f"data/{day}/results/final.json.gz"):
-            want.append(day)
-    want = sorted(set(want))
+    want = results_slates(GAP_CAP)
     missing = [x for x in want if not os.path.exists(f"data/{x}/results/final.json.gz")]
     if missing:
         log(f"results: BACK-FILLING {len(missing)} missing slate(s): "
             f"{' '.join(missing)}")
+    unsettled = [x for x in want if x not in missing and x < et_slate_date(1)]
+    if unsettled:
+        log(f"results: RE-PULLING {len(unsettled)} unsettled slate(s): "
+            f"{' '.join(unsettled)}")
     for d in want:
         sched, _ = get(
             f"{STATS}/schedule?sportId=1&date={d}&hydrate=linescore,team"

@@ -11,6 +11,8 @@ with 0 MLB games. The postseason has more off-days coming.
 contract leaves out the MLB `card` and `results` rows for a day every
 schedule reading says had 0 games. ⛔ Fail closed: no reading, an unreadable
 one, one without `totalGames`, or any reading with a game means they are due.
+`[Sam, 2026-10-02]` results only once the slate BEFORE is settled or also had
+no games (test_slate_graded.py): this off-day's 09-27 is planted settled.
 Driven on a tree pinned to #1983's own clock, never on production data.
 
 Also here: nothing in the product code still says MLB is frozen (Sam lifted
@@ -65,14 +67,21 @@ from tcheck import ck, note, section  # noqa: E402
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 9, 29, 4, 42, tzinfo=UTC)   # collect #1983
 DAY = "2026-09-28"                                          # 0 MLB games
+PREV = "2026-09-27"                                         # its slate before, settled
 
 
-def survey(readings):
-    """Survey a fresh tree holding only the given schedule readings for DAY.
+def survey(readings, prev_settled=False):
+    """Survey a fresh tree holding only the given schedule readings for DAY
+    (and, if asked, a settled results file for the slate before it).
     `readings`: list of (name, doc | bytes). -> {mode: [rows]}."""
     t = tempfile.mkdtemp(prefix="mlb-offday-")
     try:
         data = t.replace("\\", "/") + "/data"
+        if prev_settled:
+            p = os.path.join(t, "data", PREV, "results", "final.json.gz")
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with gzip.open(p, "wt") as fh:
+                json.dump({"pulled_at": "2026-09-28T10:20:00Z", "games": [{"state": "Final"}]}, fh)
         for name, doc in readings:
             p = os.path.join(t, "data", DAY, "schedule", name)
             os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -99,7 +108,7 @@ section("1. 🔴 AN OFF-DAY RAISES NOTHING FOR CARD OR RESULTS")
 ck("⚠️ the clock is #1983's: the card's day and the results' slate are both %s" % DAY,
    F.due_date(F.CARD, NOW) == DAY and F.slate_date(NOW) == DAY,
    "card %s, slate %s" % (F.due_date(F.CARD, NOW), F.slate_date(NOW)))
-off = survey([("0900.json.gz", games(0)), ("2100.json.gz", games(0))])
+off = survey([("0900.json.gz", games(0)), ("2100.json.gz", games(0))], prev_settled=True)
 ck("🔴 a day every reading says had 0 games owes no card",
    "card" not in off, "card rows: %s" % off.get("card"))
 ck("🔴 ...and no results", "results" not in off, "results rows: %s" % off.get("results"))
@@ -114,8 +123,9 @@ on = survey([("0900.json.gz", games(0)), ("2100.json.gz", games(3))])
 ck("⛔ any reading with a game: the missing card is due and stale",
    bool(on.get("card")) and all(r["stale"] for r in on["card"]),
    "card rows: %s" % on.get("card"))
-ck("⛔ ...and the missing results are too",
-   bool(on.get("results")) and all(r["stale"] for r in on["results"]),
+ck("⛔ ...and the missing results are too, judged on the day's own slate",
+   bool(on.get("results")) and all(r["stale"] and r["path"].endswith(DAY + "/results/final.json.gz")
+                                   for r in on["results"]),
    "results rows: %s" % on.get("results"))
 
 # ══════════════════════════════════════════════════════════════════════
