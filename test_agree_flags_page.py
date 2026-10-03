@@ -116,7 +116,7 @@ DRIVER = r"""
 const fs = require('fs');
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const a = html.indexOf('const FBAG = {}, FBFLAGS = {};');
-const b = html.indexOf('const FBGL = {}, FBGLREC = {};');
+const b = html.indexOf('const WINNERS = {};');   // [Sam, 2026-10-01] ~~const FBGL~~: the Game Lines tab's first line
 if (a < 0 || b < 0 || b <= a){ console.error('CODE_NOT_FOUND'); process.exit(2); }
 const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const d = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));

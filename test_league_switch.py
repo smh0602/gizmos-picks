@@ -230,9 +230,9 @@ if _BROWSER:
            len({look[lg]["on"] for lg in look}) == 1 and len({look[lg]["off"] for lg in look}) == 1
            and look["mlb"]["on"] and look["mlb"]["on"] != look["mlb"]["off"],
            str({lg: (look[lg]["on"], look[lg]["off"]) for lg in look}))
-        ck("🔴 ...and the same order, MLB without Game Lines",
-           look["nfl"]["order"] == WANT and look["ncaaf"]["order"] == WANT
-           and look["mlb"]["order"] == [t for t in WANT if t != "gamelines"],
+        # `[Sam, 2026-10-01]` ~~MLB without Game Lines~~: every league has it.
+        ck("🔴 ...and the same order, Game Lines in every league",
+           all(look[lg]["order"] == WANT for lg in look),
            str({lg: look[lg]["order"] for lg in look}))
         # 🔴 THE TAB OPENS ON SCORES AND SURVIVES A SWITCH.
         pg.goto(f"http://127.0.0.1:{PORT}/index.html",
@@ -255,9 +255,8 @@ if _BROWSER:
         pg.wait_for_timeout(1600)
         back = pg.evaluate(SHOT)["active"]
         ck("🔴 every league opens on Scores, and switching league keeps the tab "
-           "(Parlays MLB -> NFL), or lands on Scores when it has no such tab "
-           "(Game Lines NFL -> MLB)",
-           (first, first_fb, kept, back) == ("scores", "scores", "parlays", "scores"),
+           "(Parlays MLB -> NFL, and Game Lines NFL -> MLB, which has it now)",
+           (first, first_fb, kept, back) == ("scores", "scores", "parlays", "gamelines"),
            "got %s" % ((first, first_fb, kept, back),))
 
         ck("✅ no page error during any switch", not errs, str(errs[:3]))

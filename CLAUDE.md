@@ -309,7 +309,8 @@ note boxes, tags and the stale bar now require their absence.
   the only tab bar (`drawTabs`); one list, `TABS`, gives every league the
   order Scores, Gizmo's Picks, Odds, Player Props, Game Lines, Parlays,
   Trends, Track Record, News; a league without a tab leaves its slot out
-  (`TABS_OFF`: MLB has no Game Lines yet). Every league opens on Scores and
+  (`TABS_OFF`; ~~MLB has no Game Lines yet~~ `[Sam, 2026-10-01]` every league
+  has Game Lines now, so it is empty). Every league opens on Scores and
   a league switch keeps the tab (`nextTab`). ⛔ Never draw a league's own bar
   again. `test_tab_bar.py`; the computed style is measured in a browser by
   `test_league_switch.py`.
@@ -445,6 +446,37 @@ note boxes, tags and the stale bar now require their absence.
   card. `record_fb` grades the alternate spreads in their own line
   (`alt_spreads`); the model's picks keep fb-model.json's record.
   `test_fb_game_picks.py`.
+- 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
+  LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
+  tab with moneyline predictions, in this tab you will simply just give the
+  models pick on whos going to win the game outright. do this for all
+  leagues"*. `winners.py`: one row per slate game (the teams, the start, the
+  side with the higher chance, that chance as a whole number, the best
+  moneyline at the league's books), by start time; ⛔ no price floor and no
+  edge rule. MLB reads `win` in mlb-game-model.json (no pick until both
+  starters are named); football reads fb-model.json `win_chances` for
+  `card_fb.next_line_slate`'s day. Frozen at the start, graded once, ONE
+  record per league in winners.json (top of the tab and the league's Track
+  Record), never mixed into another; verify_record.py re-grades it.
+  ~~The alt ladders, fair lines, rung tables and alt parlays~~ left the page;
+  their files are still built (the card's alternate spreads read the ladder).
+  `test_game_lines_page.py`.
+- 🔴 **THE MLB CARD'S GAME LINES ARE THE GAME MODEL'S MONEYLINE AND RUN LINE
+  PICKS, AND ⛔ NEVER ITS TOTALS.** `[Sam, 2026-10-03]` *"go on with moneyline
+  and run line only. Totals stay in mlb-game-model.json with both records
+  (uncorrected and corrected) and keep being graded there, but they never
+  appear on the card, the page or the record's game-line line."* (The total's
+  50%+ sides won under half in the model's check.) ⛔ **Totals come onto the
+  card only by Sam's decision**, never because a later check looks better.
+  `card.game_line_rows`: one row per market in `GL_MARKETS`, the side at 50%
+  or more (`GL_MIN_CONF`) and −400 or longer at board.json's best of the five
+  books (a run line only at its exact signed point), both starters named,
+  the card's own day, at most 25 (`GAME_LINES_MAX`), whole-number confidence
+  that is the model's OWN chance on both markets `[2026-10-03]`, `kind` mlb-line, drawn by `pickCard` under Gizmo's Picks' Player props /
+  Game lines switch, frozen at first pitch (`freeze_game_lines`). Graded in
+  their own line (record.json `game_lines`, `collect.GAME_LINE_MARKETS`),
+  re-graded by verify_record.py, never in a props count.
+  `test_mlb_game_lines.py`.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
   other kind~~, and after C2 (#166) few pitcher rows beat their price.
@@ -567,6 +599,26 @@ collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card, record, refresh, lineups
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
+winners.py        THE GAME LINES TAB, ALL THREE LEAGUES (Sam, 2026-10-01):
+                  the model's pick to win each slate game, the best
+                  moneyline at the league's books; frozen at the start
+                  (daystore), graded once, ONE record per league ->
+                  winners.json; verify_record.py re-grades it. Rides the
+                  MLB card / record runs and football's `card-fb`.
+mlb_game_model.py THE MLB GAME MODEL (Sam, 2026-10-02): each side's runs
+                  from the opposing starter (start logs), its bullpen (scores
+                  minus starters), the side's usual nine (hitter logs), park
+                  and home field; negative-binomial runs -> win, run-line and
+                  total chances. Starters from the schedule saved BEFORE first
+                  pitch; ⛔ nothing dated at or after first pitch is read (no
+                  stored file holds a posted lineup, so `confirmed` is false).
+                  Built in the card run (free) -> data/latest/mlb-game-model.json
+                  with its walk-forward check. The total carries C2's
+                  correction in the file only (~~run line and total~~):
+                  `[2026-10-03]` the run line's fit weighted the model's own
+                  chance NEGATIVELY (the books' number tilted against it), so
+                  it is MEASURED in the check and never applied. ⛔ Totals
+                  never reach the card (see MLB GAME LINES below).
 budget.py         projected Odds API spend, derived from the deployed
                   cron schedule and market lists. Run it after ANY change
                   to the schedule or the markets.
@@ -618,7 +670,9 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   forward weekly, graded ONLY at Hard Rock / FanDuel /
                   DraftKings prices archived before kickoff. Rides
                   `card-fb`; its own model section on the page (no
-                  chip since 2026-10-01). ⛔ Never
+                  chip since 2026-10-01). `[2026-10-01]` `win_chances`:
+                  both teams' chance for every priced game, the Game
+                  Lines tab's input (winners.py). ⛔ Never
                   touches the card. Design: research/fb_model_design.md.
                   ⛔ Its SECOND record (closing lines, college at an
                   assumed -110, labelled) is kept apart from the headline
@@ -671,7 +725,9 @@ fb_signal9.py     scores signal 9's three uses by Sam's keep rule (mean
                   log-loss difference >= 0, clustered by game). ⛔ The
                   per-league switches are constants set from the recorded
                   run; test_signal9.py fails if they disagree.
-game_lines_fb.py  THE GAME LINES TAB (Sam, 2026-09-24): every alt spread
+game_lines_fb.py  THE ALT LADDERS (~~THE GAME LINES TAB~~: `[Sam, 2026-10-01]`
+                  no longer drawn; the tab is winners.py, and the card's
+                  alternate spreads still read this file) (Sam, 2026-09-24): every alt spread
                   and total Hard Rock / FanDuel / DraftKings post for the
                   slate, each rung's price per book, best, break-even,
                   the game model's % and edge; frozen before kickoff

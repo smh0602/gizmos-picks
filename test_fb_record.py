@@ -507,7 +507,18 @@ section("8. ⛔⛔ MLB IS UNTOUCHED — BYTE-IDENTICAL, NOT 'I DIDN'T MEAN TO'")
 #    Second pass the same day (~~961ab07b215a4018~~): the "machine cards
 #    only" caption under the Cards graded tile went too; recorded in the
 #    oracle's second 2026-10-01 `_why` entry.
-_MAIN = {"renderRecord": "d854430216da3fdc",
+# ⚠️ `[Sam, 2026-10-02]` renderRecord (~~d854430216da3fdc~~) RE-BASELINED on
+#    his MLB game-lines instruction: "game-line picks graded once from the
+#    final score in their own line of the MLB Track Record, never mixed with
+#    props". ONE line added, `${mlbGameLineRecord(R)}` under the props hero;
+#    nothing else in the function moved. Recorded in the oracle's 2026-10-03
+#    `_why` entry.
+# ⚠️ `[Sam, 2026-10-01]` renderRecord (~~981c51d929ac4e9c~~) RE-BASELINED on his Game
+#    Lines instruction ("just give the models pick on whos going to win the
+#    game outright. do this for all leagues"): ONE line, the winners' own
+#    record (`winnersRecordLine(W)`), and the file it is read from. Recorded
+#    in the oracle's 2026-10-03 `_why` entry.
+_MAIN = {"renderRecord": "52ae9c56871ead09",
          "dayDetailHtml": "93671bc164e26a96",
          "loadRecordDetail": "a6fff37555f03ce7"}
 for _n, _want in sorted(_MAIN.items()):
