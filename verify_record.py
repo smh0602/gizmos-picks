@@ -188,6 +188,7 @@ DH_EXCEPTION = {
     },
 }
 dh_seen = {}
+glm, gl_void = {"moneyline": {"w": 0, "n": 0}, "run_line": {"w": 0, "n": 0}}, 0
 # 🔴 THIS FILE NO LONGER READS `record.json`'s OWN `skipped` LIST, AND
 # THAT IS THE POINT OF THIS FILE. `[measured 2026-09-04]` the builder wrote
 # 2026-09-03 into `skipped` twice -- because two COLLEGE FOOTBALL cards in
@@ -236,6 +237,20 @@ for f in sorted(glob.glob("picks/*.json")):
         if isinstance(row.get("confidence"), (int, float)):
             byconf[kind]["n"] += 1
             byconf[kind]["w"] += win
+    # 🔴 THE GAME MODEL'S LINES, A SECOND WAY: the final run DIFFERENCE from the
+    #    team's side, by MLB's game id, counted apart from every props number.
+    _games = {g.get("gamePk"): g for g in BY_SLATE[date]["games"]}
+    for row in doc.get("game_lines") or []:
+        if row.get("kind") != "mlb-line" or row.get("market") not in glm:
+            continue
+        g = _games.get(row.get("game_pk")) or {}
+        sc = g.get("score") or {}
+        if g.get("state") != "Final" or None in (sc.get("home"), sc.get("away")):
+            gl_void += 1
+            continue
+        diff = (sc["home"] - sc["away"]) * (1 if row.get("side") == "home" else -1)
+        glm[row["market"]]["n"] += 1
+        glm[row["market"]]["w"] += int(diff + (row.get("line") or 0) > 0)
 
 print(f"\nRE-GRADED INDEPENDENTLY from {len(byday)} card(s) and the stored box scores")
 if DH_EXCEPTION["date"] in byday:
@@ -260,6 +275,21 @@ bad = [(d, f"{v['w']}/{v['n']}", f"{recday.get(d,{}).get('w')}/{recday.get(d,{})
        for d, v in byday.items()
        if (v["w"], v["n"]) != (recday.get(d, {}).get("w"), recday.get(d, {}).get("n"))]
 ck(f"every graded day reproduces ({len(byday)} days)", not bad, str(bad[:3]))
+
+# 🔴 THE GAME-LINE LINE: its own, re-graded above, never in a props count.
+_gl = REC.get("game_lines") or {}
+_gw, _gn = sum(v["w"] for v in glm.values()), sum(v["n"] for v in glm.values())
+ck(f"the game lines reproduce in their own line ({_gw}/{_gn}, {gl_void} void)",
+   (_gw, _gn, gl_void) == (_gl.get("w"), _gl.get("n"), _gl.get("voids")),
+   f"record.json says {_gl.get('w')}/{_gl.get('n')}, {_gl.get('voids')} void")
+for _m, _v in glm.items():
+    _t = (_gl.get("by_market") or {}).get(_m) or {}
+    ck(f"game lines, {_m}, reproduce ({_v['w']}/{_v['n']})",
+       (_v["w"], _v["n"]) == (_t.get("w"), _t.get("n")),
+       f"record.json says {_t.get('w')}/{_t.get('n')}")
+ck("the game-line line names only moneyline and run line",
+   set(_gl.get("by_market") or {}) == set(glm),
+   f"by_market holds {sorted(_gl.get('by_market') or {})} -- totals only by Sam's decision")
 
 # 🔴 THE PRINTED-NUMBER TABLE (C2, audit B) MUST HOLD EVERY GRADED ROW,
 # checked against THIS file's own re-grade, not against record.json.

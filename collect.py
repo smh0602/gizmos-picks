@@ -3649,6 +3649,9 @@ BATTER_RESULT = {
 # not import the builder it checks); test_record_postponed.py fails if
 # the two copies ever differ.
 VOID_STATES = frozenset({"Postponed", "Cancelled"})
+# `[Sam, 2026-10-03]` the record's game-line line: the MLB game model's
+#    moneyline and run line picks. ⛔ Totals only by Sam's decision.
+GAME_LINE_MARKETS = ("moneyline", "run_line")
 
 
 def slate_settled(R):
@@ -3765,8 +3768,29 @@ def collect_record():
                 legs.append(None)
             pairs.append(q)
 
+        # 🔴 THE GAME MODEL'S LINES ARE THEIR OWN ROWS, never in `rows` or a
+        #    props tally, graded from the final score by MLB's game id.
+        #    ⛔ Moneyline and run line only: `[Sam, 2026-10-03]` totals are
+        #    never in this line (`GAME_LINE_MARKETS`).
+        _final = {g.get("gamePk"): g for g in R["games"]}
+        lines = []
+        for p in card.get("game_lines") or []:
+            if p.get("kind") != "mlb-line" or p.get("market") not in GAME_LINE_MARKETS:
+                continue
+            g = _final.get(p.get("game_pk")) or {}
+            sc = g.get("score") or {}
+            w = None                        # postponed, cancelled or missing: a VOID
+            if g.get("state") == "Final" and None not in (sc.get("home"), sc.get("away")):
+                us, them = ((sc["home"], sc["away"]) if p.get("side") == "home"
+                            else (sc["away"], sc["home"]))
+                w = us + (p.get("line") or 0) > them
+            lines.append({"market": p["market"], "team": p.get("player"),
+                          "line": p.get("line"), "price": p.get("price"),
+                          "confidence": p.get("confidence"), "game": p.get("game"),
+                          "won": w, "void": w is None})
+
         graded = [r for r in rows if r["won"] is not None]
-        days.append({"date": date, "rows": rows, "graded": graded,
+        days.append({"date": date, "rows": rows, "graded": graded, "lines": lines,
                      "n": len(graded), "w": sum(1 for r in graded if r["won"]),
                      "voids": sum(1 for r in rows if r["won"] is None),
                      "void_games": _void_games})
@@ -3778,6 +3802,7 @@ def collect_record():
 
     # ⛔ TALLIES SEE GRADED ROWS ONLY. `rows` now carries voids too.
     allrows = [r for d in days for r in d["graded"]]
+    gl_rows = [r for d in days for r in d["lines"] if r["won"] is not None]
     buckets = {}
     for r in allrows:
         if r["kind"] != "pitcher" or r["blend"] is None:
@@ -3834,6 +3859,15 @@ def collect_record():
                          "predicted": round(sum(r["blend"] for r in v) / len(v), 1),
                          **tally(v)} for b, v in sorted(buckets.items())],
         "calibration_printed": {k: printed_buckets(k) for k in ("pitcher", "hitter")},
+        # 🔴 THE GAME MODEL'S LINES, IN THEIR OWN LINE: never in `overall`,
+        #    `by_kind` or any table above. verify_record re-grades it.
+        "game_lines": {**tally(gl_rows),
+                       "voids": sum(1 for d in days for r in d["lines"] if r["won"] is None),
+                       "by_market": {m: tally([r for r in gl_rows if r["market"] == m])
+                                     for m in GAME_LINE_MARKETS},
+                       "by_day": [{"date": d["date"],
+                                   **tally([r for r in d["lines"] if r["won"] is not None])}
+                                  for d in days if d["lines"]]},
         "by_day": [{"date": d["date"], "w": d["w"], "n": d["n"],
                      "voids": d["voids"],
                      **({"void_games": d["void_games"]} if d["void_games"] else {})}
@@ -3861,7 +3895,8 @@ def collect_record():
                     "`won` is null on a VOID -- a player who never took the "
                     "field -- and those are excluded from every percentage in "
                     "record.json."),
-           "days": {d["date"]: d["rows"] for d in days}},
+           "days": {d["date"]: d["rows"] for d in days},
+           "game_lines": {d["date"]: d["lines"] for d in days if d["lines"]}},
           compress=True)
     log(f"record: {len(days)} card(s) graded, {doc['overall']['w']}/{doc['overall']['n']} plays")
     for a, b in skipped:
