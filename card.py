@@ -89,6 +89,10 @@ def select_board(plays, hitters, seats=None):
     cap = dict(seats or SEATS)
     seats = dict(cap)
     by_conf = lambda x: -(x.get("confidence") or 0)
+    # `[Sam, 2026-10-01]` nothing shorter than PRICE_FLOOR takes a seat, in
+    #    any pass (~~2026-08-25: below-floor rows seated and labelled~~).
+    plays = [x for x in plays if x.get("clears_price_floor", True)]
+    hitters = [x for x in hitters if x.get("clears_price_floor", True)]
     liked = sorted([x for x in plays + hitters
                     if x.get("edge") is not None and x["edge"] > 0], key=by_conf)
     board, on, used = [], set(), set()
@@ -199,7 +203,11 @@ REMATCH_DAYS = 30
 #    disagree with the card, so a SECOND COPY of the rule inside it is
 #    the most expensive place in this repo for a copy to drift.
 # ✅ One constant. Both halves import it. They cannot disagree again.
-PRICE_FLOOR = -700
+# 🔴 `[Sam, 2026-10-01]` ~~-700~~ -400, and it is the floor for EVERY Gizmo's
+#    Picks row now, not only legs and starred rungs: "ideally props/game
+#    lines at -400 is the lowest we should go". Board picks, the top 10 and
+#    pair legs all read it; -400 itself clears. card_fb.py holds football's.
+PRICE_FLOOR = -400
 
 
 def h2h_gap_days(h2h, today):
@@ -1644,7 +1652,8 @@ FLOOR, TARGET = 1.80, 2.10
 # all win and pay nothing. Sam chose "likely AND payable" over "safest,
 # full stop" explicitly. It is HIS number, like the -700 and 1.8x floors,
 # and it is not a judgment Claude re-litigates per slate.
-TOP10_PRICE_FLOOR = -400
+# `[Sam, 2026-10-01]` ~~TOP10_PRICE_FLOOR = -400~~: the one PRICE_FLOOR now
+#    (-400 itself clears, as -700 did).
 TOP10_N = 10
 
 
@@ -1654,7 +1663,7 @@ def build_top10(plays, hitters, n=TOP10_N):
     for x in plays + hitters:
         if x is None or x.get("price") is None or x.get("confidence") is None:
             continue
-        if x["price"] <= TOP10_PRICE_FLOOR:
+        if x["price"] < PRICE_FLOOR:
             dropped_price += 1
             continue
         pool.append(x)
@@ -1672,7 +1681,7 @@ def build_top10(plays, hitters, n=TOP10_N):
             break
     return out, {"below_payable_floor": dropped_price,
                  "same_player_already_listed": dropped_dupe,
-                 "price_floor": TOP10_PRICE_FLOOR,
+                 "price_floor": PRICE_FLOOR,
                  "pool_after_price_gate": len(pool)}
 
 
@@ -2853,8 +2862,8 @@ def main(dry=False):
         # 🔴 A DIFFERENT LIST FROM picks[], DELIBERATELY. See build_top10().
         "top10": top10,
         "top10_rule": (
-            f"Most likely to hit, among rows priced better than "
-            f"{TOP10_PRICE_FLOOR}. Sam's instruction, 2026-08-26: likely AND "
+            f"Most likely to hit, among rows priced at "
+            f"{PRICE_FLOOR} or longer. Sam's instruction, 2026-08-26: likely AND "
             f"payable. The pool is EVERY priced row plus EVERY alt ladder "
             f"rung -- rungs never reach picks[] at all -- deduped to one row "
             f"per player, then ranked by the confidence that row already "

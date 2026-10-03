@@ -32,13 +32,13 @@ whatever the live college board holds that day:
 #
 # @vacuity the -400 payable floor is enforced on the planted card
 #   file: card_fb.py
-#   find: if x["price"] <= TOP_PRICE_FLOOR:
+#   find: if x["price"] < PRICE_FLOOR:
 #   with: if False:
 #
-# @vacuity the payable floor drops the row AT -400, not only below it
+# @vacuity the floor keeps the row AT -400 and drops the one below it (Sam, 2026-10-01)
 #   file: card_fb.py
-#   find: if x["price"] <= TOP_PRICE_FLOOR:
-#   with: if x["price"] < TOP_PRICE_FLOOR:
+#   find: if x["price"] < PRICE_FLOOR:
+#   with: if x["price"] <= PRICE_FLOOR:
 #
 # @vacuity build_top_plays sorts its own pool (the caller's sort hides it end to end)
 #   file: card_fb.py
@@ -109,12 +109,14 @@ ck("the cap is 20", card_fb.TOP_N == 20, "TOP_N=%s" % card_fb.TOP_N)
 #    whether or not the two currently agree — the parlay bands are checked
 #    the same way, for the same reason.
 csrc = open(os.path.join(ROOT, "card.py")).read()
-m = re.search(r"^TOP10_PRICE_FLOOR\s*=\s*(-?\d+)", csrc, re.M)
-ck("card.py still declares TOP10_PRICE_FLOOR", m is not None)
+# `[Sam, 2026-10-01]` ~~TOP10_PRICE_FLOOR / TOP_PRICE_FLOOR~~: ONE floor per
+#    league file, PRICE_FLOOR, for every row (test_price_floor.py §5).
+m = re.search(r"^PRICE_FLOOR\s*=\s*(-?\d+)", csrc, re.M)
+ck("card.py declares PRICE_FLOOR", m is not None)
 if m:
-    ck("football's payable floor equals MLB's, to the dollar",
-       card_fb.TOP_PRICE_FLOOR == int(m.group(1)),
-       "football %s vs mlb %s" % (card_fb.TOP_PRICE_FLOOR, m.group(1)))
+    ck("football's floor equals MLB's, to the dollar",
+       card_fb.PRICE_FLOOR == int(m.group(1)),
+       "football %s vs mlb %s" % (card_fb.PRICE_FLOOR, m.group(1)))
 
 fsrc = open(os.path.join(ROOT, "card_fb.py")).read()
 i_top = fsrc.index("top_plays, top_meta = build_top_plays(")
@@ -207,8 +209,8 @@ def planted_board(one_per_game=False):
     g1  Alpha One 73 (plus a second, weaker market) and Alpha Two 68
         -> Alpha Two is HELD BACK for a repeat game, Alpha One's second
            row for a repeat PLAYER.
-    g2  Bravo One 73 at -450 (clears the -700 board floor, NOT the -400
-        payable floor) and Bravo Two 64 -> Bravo Two is g2's play.
+    g2  Bravo One 73 at -450 (shorter than the -400 floor, so on neither
+        list) and Bravo Two 64 -> Bravo Two is g2's play.
     g3  Charlie One 68.   g4  Delta One 59 at +120.
     g5  Echo One 73 on the NEXT day -> never on this card.
     """
@@ -329,8 +331,8 @@ if ck("the builder produces a card", C is not None):
            len(T) <= min(card_fb.TOP_N, len(set(gids))),
            "%d play(s) from %d game(s), cap %d"
            % (len(T), len(set(gids)), card_fb.TOP_N))
-        ck("nothing is priced at or worse than the payable floor",
-           all(x["price"] > card_fb.TOP_PRICE_FLOOR for x in T),
+        ck("nothing is priced shorter than the floor",
+           all(x["price"] >= card_fb.PRICE_FLOOR for x in T),
            "shortest price on the list %+d" % min(x["price"] for x in T))
         ck("the list is in descending confidence order",
            all(T[i]["confidence"] >= T[i + 1]["confidence"] for i in range(len(T) - 1)))
@@ -411,10 +413,9 @@ if ck("🔴 the builder produces a card from the planted board", PC is not None)
        and len({x["game_id"] for x in PT}) == len(PT),
        "%s" % [(x["player"], x["game_id"]) for x in PT])
     ck("🔴 the -450 row (the best in its game) is NOT listed: payable floor",
-       bool(PT) and all(x["price"] > card_fb.TOP_PRICE_FLOOR for x in PT)
+       bool(PT) and all(x["price"] >= card_fb.PRICE_FLOOR for x in PT)
        and "Bravo One" not in {x["player"] for x in PT},
-       "⛔ it clears the -700 board floor and must still miss the -400 "
-       "payable one. got %s" % [(x["player"], x["price"]) for x in PT])
+       "⛔ it is shorter than the -400 floor. got %s" % [(x["player"], x["price"]) for x in PT])
     ck("🔴 descending confidence order",
        len(PT) >= 2
        and all(PT[i]["confidence"] >= PT[i + 1]["confidence"] for i in range(len(PT) - 1)),
@@ -425,16 +426,18 @@ if ck("🔴 the builder produces a card from the planted board", PC is not None)
        and "Echo One" not in {x["player"] for x in PT},
        "⛔ Echo One is 73%% on 2026-09-13; card %s, list %s"
        % (PC.get("date"), [(x["player"], x.get("commence")) for x in PT]))
-    _want = {"below_payable_floor": 1, "same_player_already_listed": 1,
+    # `[Sam, 2026-10-01]` Bravo One at -450 is off the BOARD now (the -400
+    #    floor), so the top-plays gate never sees it (~~1 below, head of 7~~).
+    _want = {"below_payable_floor": 0, "same_player_already_listed": 1,
              "same_game_already_listed": 1, "pool_after_price_gate": 6,
              "distinct_games": 4, "shared_with_board_head": 4,
-             "board_head_size": 7}
+             "board_head_size": 6}
     ck("🔴 the counts the card publishes are the planted board's own",
        {k: PM.get(k) for k in _want} == _want,
        "want %s, got %s" % (_want, {k: PM.get(k) for k in _want}))
     _rule = PC.get("top_plays_rule") or ""
     ck("🔴 the rule sentence carries THIS card's overlap and its held-back count",
-       "It is now 4 of 7, over 4 game(s)" in _rule
+       "It is now 4 of 6, over 4 game(s)" in _rule
        and "ONE PLAY PER GAME" in _rule
        and "1 row(s) were held back because their game was already represented" in _rule
        and "No row was held back for a repeat game" not in _rule,
@@ -460,12 +463,12 @@ ck("🔴 build_top_plays puts an ASCENDING pool in strictly descending order",
    [x["confidence"] for x in _ord] == [55, 54, 53, 52, 51, 50],
    "got %s" % [x["confidence"] for x in _ord])
 _fl, _flm = card_fb.build_top_plays(
-    [{"player": "F1", "price": card_fb.TOP_PRICE_FLOOR - 50, "confidence": 99, "game_id": "f1"},
-     {"player": "F2", "price": card_fb.TOP_PRICE_FLOOR, "confidence": 98, "game_id": "f2"},
-     {"player": "F3", "price": card_fb.TOP_PRICE_FLOOR + 1, "confidence": 60, "game_id": "f3"}], [])
-ck("🔴 the payable floor drops the row AT %d and below, and keeps %d"
-   % (card_fb.TOP_PRICE_FLOOR, card_fb.TOP_PRICE_FLOOR + 1),
-   [x["player"] for x in _fl] == ["F3"] and _flm["below_payable_floor"] == 2,
+    [{"player": "F1", "price": card_fb.PRICE_FLOOR - 50, "confidence": 99, "game_id": "f1"},
+     {"player": "F2", "price": card_fb.PRICE_FLOOR, "confidence": 98, "game_id": "f2"},
+     {"player": "F3", "price": card_fb.PRICE_FLOOR + 1, "confidence": 60, "game_id": "f3"}], [])
+# `[Sam, 2026-10-01]` -400 itself clears now, as -700 did (~~drops the row AT -400~~).
+ck("🔴 the floor keeps the row AT %d and drops the one below it" % card_fb.PRICE_FLOOR,
+   [x["player"] for x in _fl] == ["F2", "F3"] and _flm["below_payable_floor"] == 1,
    "got %s, %s dropped" % ([x["player"] for x in _fl], _flm["below_payable_floor"]))
 
 # ⛔ THE EMPTY-LIST SENTENCES, THROUGH THE BUILDER: a MARKET-only board, a
@@ -474,7 +477,7 @@ ck("🔴 the payable floor drops the row AT %d and below, and keeps %d"
 PMK = run_planted(rename_all_but(None)(planted_board()))
 if ck("the builder produces a card from the planted MARKET-only board", PMK is not None):
     ck("🔴 the planted MARKET-only board HAS rows, and every one is MARKET",
-       len(PMK["picks"]) == 7
+       len(PMK["picks"]) == 6
        and {x.get("confidence_basis") for x in PMK["picks"]} == {"MARKET"},
        "⛔ rule 67: a MARKET-only board of 0 rows is an EMPTY board. %d rows, %s"
        % (len(PMK["picks"]), sorted({x.get("confidence_basis") for x in PMK["picks"]})))

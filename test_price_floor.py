@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-SAM'S -700 FLOOR IS INCLUSIVE, AND BOTH HALVES MUST AGREE ABOUT IT.
+SAM'S ~~-700~~ -400 FLOOR IS INCLUSIVE, AND BOTH HALVES MUST AGREE ABOUT IT.
+
+`[Sam, 2026-10-01]` "ideally props/game lines at -400 is the lowest we
+should go": -400 is now the floor for EVERY Gizmo's Picks row in all three
+leagues (section 5). The history below is kept as it happened at -700.
 
 🔴 THE FAILURE, LIVE ON 2026-09-12 (run 932, converge pass 3):
 
@@ -44,6 +48,36 @@ equivalent of, and this file did not exist at all.
 #   file: verify_card.py
 #   find:         if any(a < C.PRICE_FLOOR for a in p['prices'])])
 #   with:         if any(a <= C.PRICE_FLOOR for a in p['prices'])])
+#
+# @vacuity 🔒 both league files hold Sam's -400
+#   file: card_fb.py
+#   find: PRICE_FLOOR = -400
+#   with: PRICE_FLOOR = -700
+#
+# @vacuity 🔴 the MLB board seats nothing shorter than the floor
+#   file: card.py
+#   find: plays = [x for x in plays if x.get("clears_price_floor", True)]
+#   with: plays = list(plays)
+#
+# @vacuity 🔴 the MLB top 10 holds nothing shorter than the floor
+#   file: card.py
+#   find: if x["price"] < PRICE_FLOOR:
+#   with: if x["price"] < -1000:
+#
+# @vacuity 🔴 the football top plays: -400 itself clears
+#   file: card_fb.py
+#   find: if x["price"] < PRICE_FLOOR:
+#   with: if x["price"] <= PRICE_FLOOR:
+#
+# @vacuity 🔴 the football game-line rows hold nothing shorter than the floor
+#   file: card_fb.py
+#   find: if None in (v["price"], pr) or v["price"] < PRICE_FLOOR or pr < GL_MIN_CONF:
+#   with: if None in (v["price"], pr) or pr < GL_MIN_CONF:
+#
+# @vacuity 🔴 a same-game parlay's line leg clears the floor too
+#   file: card_fb.py
+#   find: if line_px < PRICE_FLOOR:
+#   with: if False:
 """
 import gzip
 import json
@@ -60,12 +94,17 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import card as C  # noqa: E402
 
-print("═══ 1. 🔒 IT IS SAM'S NUMBER AND IT HAS NOT MOVED ═══")
-ck("🔒 PRICE_FLOOR is -700",
-   C.PRICE_FLOOR == -700,
+print("═══ 1. 🔒 IT IS SAM'S NUMBER: ~~-700~~ -400 SINCE 2026-10-01 ═══")
+# ⚠️ LEAGUE only for this import: the live subprocess below builds the MLB
+#    card, and an inherited LEAGUE=nfl ends it before it reaches a parlay.
+_lg, os.environ["LEAGUE"] = os.environ.get("LEAGUE"), "nfl"
+import card_fb as FB  # noqa: E402
+os.environ.pop("LEAGUE") if _lg is None else os.environ.update(LEAGUE=_lg)
+ck("🔒 PRICE_FLOOR is -400 in both league files (card.py, card_fb.py)",
+   C.PRICE_FLOOR == -400 and FB.PRICE_FLOOR == -400,
    "⛔ CLAUDE.md lists this beside the 1.8x pair floor as a thing that "
    "must not change without Sam saying so. It is HIS number, chosen by "
-   "hand, not a tolerance of ours to tune. Got %r" % C.PRICE_FLOOR)
+   "hand, not a tolerance of ours to tune. Got %r / %r" % (C.PRICE_FLOOR, FB.PRICE_FLOOR))
 
 src = open(os.path.join(ROOT, "card.py"), encoding="utf-8").read()
 ck("⛔ ...and it is NOT in the model fingerprint",
@@ -96,8 +135,8 @@ vsrc = open(os.path.join(ROOT, "verify_card.py"), encoding="utf-8").read()
 #    this repo.
 _live = "\n".join(ln for ln in vsrc.splitlines()
                   if not ln.lstrip().startswith("#"))
-_bad = re.findall(r"<=\s*-700|<\s*-700|>=\s*-700|>\s*-700", _live)
-ck("🔴 no live line in verify_card.py compares against a -700 LITERAL",
+_bad = re.findall(r"[<>]=?\s*-(?:700|400)\b", _live)
+ck("🔴 no live line in verify_card.py compares against a floor LITERAL (-700 or -400)",
    not _bad,
    "⛔ a literal is a second copy of Sam's number, and the two copies "
    "drifted for a day and took a live run red with them (rule 207). "
@@ -241,6 +280,52 @@ else:
        "injected=%d rc=%d verdict=%r" % (_injected, _p.returncode, _lv))
     note("injected %d leg(s) at %d into today's card and the verifier exited %d"
          % (_injected, C.PRICE_FLOOR - 1, _p.returncode))
+
+print("\n═══ 5. 🔴 NO ROW ANYWHERE ON A CARD IS SHORTER THAN -400, IN ANY LEAGUE ═══")
+# `[Sam, 2026-10-01]` board picks, top plays, game-line rows, parlay and
+# same-game legs. Driven on planted rows priced around the floor; -400 itself
+# clears, -401 does not.
+PX = (-399, C.PRICE_FLOOR, C.PRICE_FLOOR - 1, -700)
+_mlb = [dict(kind=k, game_id="g%d" % i, pid=i + (0 if k == "pitcher" else 50), market="m",
+             line=0.5, side="over", confidence=70 - i, edge=5.0, break_even=60.0, price=px,
+             clears_price_floor=px >= C.PRICE_FLOOR)
+        for k in ("pitcher", "hitter") for i, px in enumerate(PX)]
+_brd = C.select_board([r for r in _mlb if r["kind"] == "pitcher"],
+                      [r for r in _mlb if r["kind"] == "hitter"])[0]
+ck("🔴 the MLB board seats nothing shorter than the floor, and -400 itself",
+   _brd and min(r["price"] for r in _brd) >= C.PRICE_FLOOR
+   and C.PRICE_FLOOR in [r["price"] for r in _brd], str([r["price"] for r in _brd]))
+_t10 = C.build_top10([r for r in _mlb if r["kind"] == "pitcher"],
+                     [r for r in _mlb if r["kind"] == "hitter"])[0]
+ck("🔴 the MLB top 10 holds nothing shorter than the floor",
+   _t10 and min(r["price"] for r in _t10) >= C.PRICE_FLOOR, str([r["price"] for r in _t10]))
+_fbr = [dict(player="P%d" % i, game_id="g%d" % i, market="player_receptions", side="over",
+             line=3.5, confidence=70 - i, price=px) for i, px in enumerate(PX)]
+_tp = FB.build_top_plays(_fbr, [])[0]
+ck("🔴 the football top plays: nothing shorter than the floor, and -400 itself clears",
+   sorted(r["price"] for r in _tp) == [C.PRICE_FLOOR, -399], str([r["price"] for r in _tp]))
+_g = {"id": "e1", "away": "A", "home": "H", "commence": "2026-10-04T17:00:00Z"}
+_mp = [{"game": "A at H", "commence": _g["commence"], "market": mk, "side": "home", "team": "H",
+        "book": "FanDuel", "line": {"value": ln}, "price": {"value": px},
+        "model_probability": {"value": 90.0}, "break_even": {"value": 80.0}}
+       for mk, px, ln in (("moneyline", C.PRICE_FLOOR - 1, None), ("total", C.PRICE_FLOOR, 47.5))]
+_gl = FB.card_game_lines(_mp, [_g], {}, "2026-10-04")
+ck("🔴 the football game-line rows hold nothing shorter than the floor",
+   [r["price"] for r in _gl] == [C.PRICE_FLOOR], str([r["price"] for r in _gl]))
+_leg = lambda i: dict(player="Q%d" % i, game_id="e1", game="A @ H", market="player_receptions",
+                      side="over", line=2.5, confidence=80, price=-150, book="hardrockbet",
+                      clears_price_floor=True)
+_sg = {"game_id": "e1", "market": "spreads", "side": "H", "point": -3.5, "best_price": -110,
+       "best_book": "fanduel"}
+_sgp = {px: FB.build_sgp_fb([_leg(1), _leg(2)], [_sg],
+                            line_quotes={("e1", "spreads", "H", -3.5): {"hardrockbet": px}})
+        for px in (C.PRICE_FLOOR - 1, C.PRICE_FLOOR)}
+_px3 = {px: [x for v in sg[0].values() for x in v if x.get("n_legs") == 3]
+        for px, sg in _sgp.items()}
+ck("🔴 a same-game parlay's line leg clears the floor too",
+   not _px3[C.PRICE_FLOOR - 1] and _sgp[C.PRICE_FLOOR - 1][1]["rejected"]["leg_below_price_floor"]
+   and _px3[C.PRICE_FLOOR], "3-leg slips at -401: %d, at -400: %d"
+   % (len(_px3[C.PRICE_FLOOR - 1]), len(_px3[C.PRICE_FLOOR])))
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that -700 is a good floor. It is "
      "Sam's number and nothing here measures it. What is owned is that "

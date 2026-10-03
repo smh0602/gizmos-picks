@@ -35,30 +35,34 @@ and a styled badge class on the page; they now ask for their ABSENCE, and
 §10 still asks that the list itself is drawn. The card side (§1–§7, and
 the builder's own sentence in §9) is unchanged.
 
+`[Sam, 2026-10-01]` the card SHOWS the game model's picks now
+(test_fb_game_picks.py); `build_game_lines` is the same-game parlays' line
+legs, and the page draws each game-line row with pickCard (§8–§10).
+
 # @vacuity the page states no model count: the FOUR went with its note boxes [Sam, 2026-10-01]
 #   file: index.html
-#   find: <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
-#   with: <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2><p>Four pre-registered football models were tested and every one lost.</p>
+#   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
+#   with: <p>Four pre-registered football models were tested and every one lost.</p><h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
 #
 # @vacuity the game-lines panel carries no MARKET badge [Sam, 2026-10-01]
 #   file: index.html
-#   find: <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
-#   with: <h2>Game lines &mdash; the ${g.length} biggest price gaps <span class="kind k-market">Market</span></h2>
+#   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
+#   with: <h2 style="margin:18px 0 8px;font-size:16px">Game lines <span class="kind k-market">Market</span> &mdash; ${
 #
 # @vacuity ...and no note under it, in either glyph [Sam, 2026-10-01]
 #   file: index.html
-#   find: style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div></div>`;
-#   with: style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div><div class="note">&#128309; <b>Market, not a model.</b></div></div>`;
+#   find: + g.map(p => pickCard(p).outerHTML).join('');
+#   with: + g.map(p => pickCard(p).outerHTML).join('') + '<div class="note">&#128309; <b>Market, not a model.</b></div>';
 #
 # @vacuity ...and the stylesheet styles no badge class [Sam, 2026-10-01]
 #   file: index.html
 #   find: .glr.nofloor{opacity:.62}
 #   with: .glr.nofloor{opacity:.62} .k-market{background:#e6eefc;color:#1a4b9c}
 #
-# @vacuity ...and the list itself is still drawn, every number [Sam, 2026-10-01]
+# @vacuity ...and every row is still drawn, by pickCard [Sam, 2026-10-01]
 #   file: index.html
-#   find: <div class="p">${sgn(r.best_price)}<div class="rec"
-#   with: <div class="p"><div class="rec"
+#   find: + g.map(p => pickCard(p).outerHTML).join('');
+#   with: + g.slice(0, 1).map(p => p.player).join('');
 """
 import gzip
 import json
@@ -226,8 +230,11 @@ ck("🔴 ...and it is CALLED from the empty-props branch too",
    "never drew — invisible in the source, obvious on the page (rule 197). "
    "⚠️ A props board and a game-line board are DIFFERENT MARKETS. Found "
    "%d call site(s)" % html.count("fbGameLines(C)"))
-ck("⛔ the page does not re-rank or re-compute the gap",
-   "gain_pct" in html and "median_price" not in html,
+_glf = html[html.index("function fbGameLines(C){"):]
+_glf = _glf[:_glf.index("\nfunction ", 1)]
+ck("⛔ the page does not re-rank or re-compute the rows: it draws the card's own order",
+   "pickCard(p)" in _glf and ".sort(" not in _glf
+   and _glf.count(".filter(") == 1 and ".filter(p => p.kind === 'fb-line')" in _glf,
    "rule 132 — the page prints what the builder computed; a second copy "
    "of the selection rule is a second thing to drift")
 
@@ -276,7 +283,7 @@ _gl = html[html.index("function fbGameLines(C){"):]
 _gl = _gl[:_gl.index("\nfunction ", 1)]
 # ~~the panel carries the page's own MARKET badge~~
 ck("\U0001f534 the panel carries no badge: its heading is the bare title",
-   "<h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>" in _gl
+   ">Game lines &mdash; ${" in _gl
    and 'class="kind' not in _gl and "k-market" not in _gl,
    "[Sam, 2026-10-01] no MODEL / MARKET / DESCRIPTIVE tag on any tab. "
    "~~LEDGER RULE 55 — every number on the surface is labelled MODEL, "
@@ -300,10 +307,10 @@ ck("✅ ...and the stylesheet styles neither badge class, so no tag can render a
    "neither `kind` nor `k-market` now, and a class styled with nothing "
    "drawing it is the same drift from the other side. Styled: %s"
    % (_badge_css or "none"))
-ck("✅ ...and the list itself is still drawn: rank, wager, the gain, the best price and its book",
-   all(s in _gl for s in ('<div class="t10">', '<div class="r">${i + 1}</div>',
-                          '<div class="c">+${r.gain_pct}%</div>',
-                          '${sgn(r.best_price)}', '${bookName(r.best_book)}')),
+# `[Sam, 2026-10-01]` ~~rank, wager, the gain, the best price and its book~~:
+#    each row is the prop row's own card (test_fb_game_picks.py renders it).
+ck("✅ ...and every row is still drawn, by pickCard, the prop rows' own markup",
+   "+ g.map(p => pickCard(p).outerHTML).join('');" in _gl,
    "[Sam, 2026-10-01] kept: tables and cards with every number. Asserting "
    "a wrong thing is absent is not asserting the right thing is present")
 

@@ -22,6 +22,11 @@ change the batter's answer.
 #   find:     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
 #   with:     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"; return REGIONS_CHEAP if int(now().strftime("%H")) >= 14 else REGIONS_FULL
 #
+# @vacuity 🔴 a props pull before 10:00Z is never the full pull
+#   file: collect.py
+#   find:     if now().hour < FULL_PULL_FROM_HOUR:
+#   with:     if False:
+#
 # @vacuity the second pull of the day stays Hard Rock only
 #   file: collect.py
 #   find:                         return REGIONS_CHEAP      # already had the full pull
@@ -112,6 +117,19 @@ try:
         after[(lg, kind)] = collect.props_regions(kind)
     ck("🔴 ...and the SECOND pull that day does not: one full pull per kind per day",
        all(v == collect.REGIONS_CHEAP for v in after.values()), str(after))
+    # ── 6. 🔴 `[2026-10-02, #217's review]` NEVER THE FULL PULL BEFORE 10:00Z:
+    #    the lines are not posted yet, so the first pull at or after 10:00Z
+    #    takes it. Asked of a fresh day with nothing pulled.
+    collect.DATA = os.path.join(root, "early")
+    early = {}
+    for hh, mm in ((2, 20), (9, 59), (10, 0)):
+        collect.now = (lambda h, m: lambda: _dt.datetime(2026, 10, 2, h, m,
+                                                       tzinfo=_dt.timezone.utc))(hh, mm)
+        early["%02d:%02dZ" % (hh, mm)] = (collect.props_regions("player"),
+                                          collect.props_regions("pitcher"))
+    ck("🔴 a props pull before 10:00Z is never the full pull; the first at or after 10:00Z is",
+       early["02:20Z"] == early["09:59Z"] == (collect.REGIONS_CHEAP,) * 2
+       and early["10:00Z"] == (collect.REGIONS_FULL,) * 2, str(early))
     collect.DATA = root
     collect.now = _real_now
 

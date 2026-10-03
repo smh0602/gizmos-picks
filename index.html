@@ -1411,11 +1411,13 @@ function pickCard(p){
   const sideWord = p.side === 'over' ? 'Over'
                  : p.side === 'yes'  ? 'Yes'
                  : 'Under';
-  const unit = isH ? p.market_label
+  const gl = p.kind === 'fb-line';      // [Sam, 2026-10-01] a game-line pick, same row
+  const unit = isH || gl ? p.market_label
              : (p.market === 'strikeouts' ? 'K' : 'Outs');
   /* ⚠️ A one-sided market (Anytime TD) has NO LINE. "Under null Outs" was
      on screen before this guard. */
-  const lineTxt = p.line == null ? '' : ` ${p.line}`;
+  const lineTxt = p.line == null ? ''
+    : ` ${gl && /spread/.test(p.market) && p.line > 0 ? '+' : ''}${p.line}`;
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
   /* ⛔ The calibration BAND chip ("70-80", "60-70") is gone from the row.
      Sam, 2026-08-26. It is a bucket label from the calibration table and
@@ -1424,7 +1426,7 @@ function pickCard(p){
      in the data and the Track Record tab still reports by band -- this
      removes a chip, not a measurement.
      [Sam, 2026-10-01] the MODEL / RECORD / MARKET chip is gone too. */
-  t.append(el('div','play', `${who} — ${sideWord}${lineTxt} ${unit}`
+  t.append(el('div','play', `${who}${gl ? '' : ' — ' + sideWord}${lineTxt} ${unit}`
     + '&nbsp;' + projChip(p.projection, p.projection_unit)));
 
   /* 🔴 THREE CASES, NOT TWO.
@@ -4333,25 +4335,18 @@ function fbDayHead(C, title){
    ⛔ The page does not re-rank, re-filter or re-compute the gap. A second
       copy of the selection rule is a second thing to drift.
    [Sam, 2026-10-01] no explanation boxes or tags on the page. */
+/* 🔴 `[Sam, 2026-10-01]` THE GAME MODEL'S PICKS, IN THE PROP ROW'S FORMAT:
+   "make the models gizmo picks game line picks the same format as the player
+   prop picks". Each row is drawn by pickCard, the prop rows' own markup.
+   ~~the N biggest price gaps~~. */
 function fbGameLines(C){
-  const g = (C && C.game_lines) || [];
+  /* [2026-10-03] only the model's own rows (kind fb-line): a price-gap row of
+     an older card is never drawn. The heading names the list's own day. */
+  const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
   if (!g.length) return '';
-  const mk = { h2h: 'Moneyline', spreads: 'Spread', totals: 'Total' };
-  const pt = r => r.point == null ? ''
-    : (r.market === 'spreads' && r.point > 0 ? '+' + r.point : '' + r.point);
-  const bookName = b => ({ hardrockbet: 'Hard Rock', hardrockbet_oh: 'Hard Rock',
-    draftkings: 'DraftKings', fanduel: 'FanDuel',
-    williamhill_us: 'Caesars', betmgm: 'BetMGM' }[b] || b);
-  return `<div class="panel" style="margin-top:18px">
-      <h2>Game lines &mdash; the ${g.length} biggest price gaps</h2>
-      <div class="t10">${g.map((r, i) => `
-        <div class="r">${i + 1}</div>
-        <div class="w"><b>${r.side}</b> ${pt(r)}
-          <span class="rec">${mk[r.market] || r.market}</span>
-          <div class="rec" style="font-size:11px">${r.game || ''}</div></div>
-        <div class="c">+${r.gain_pct}%</div>
-        <div class="p">${sgn(r.best_price)}<div class="rec"
-          style="font-size:10px">${bookName(r.best_book)}</div></div>`).join('')}</div></div>`;
+  return `<h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
+    fbDayName((C.game_lines_meta || {}).slate)}</h2>`
+    + g.map(p => pickCard(p).outerHTML).join('');
 }
 
 function fbTopPlays(C, shownPicks){
@@ -4387,7 +4382,7 @@ function fbTopPlays(C, shownPicks){
       with a 0 rather than removed. */
 function fbKindBar(C){
   const nProps = ((C && C.picks) || []).length;
-  const nLines = ((C && C.game_lines) || []).length;
+  const nLines = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line').length;
   const chip = (k, label, n) =>
     `<button class="kchip${FBPICKKIND===k?' on':''}" data-fbkind="${k}"
       >${label} <span>${n}</span></button>`;

@@ -55,8 +55,8 @@ started.
 #
 # @vacuity 🔴🔴 a game line from a slate the list has left is not frozen back into it
 #   file: card_fb.py
-#   find:             if d and d != _gl_day:
-#   with:             if d and d != _gl_day and False:
+#   find:             if (d and d != _gl_day) or not ours:
+#   with:             if (d and d != _gl_day and False) or not ours:
 """
 import ast
 import copy
@@ -218,6 +218,7 @@ section("3. 🔴🔴 A MERGE OF TWO CAPPED LISTS IS NOT A CAPPED LIST")
 #    listed — `parlays` and `sgp` had no live assertion at all, which is
 #    why nothing caught them.
 
+# `[Sam, 2026-10-03]` ~~game_lines uncapped~~: GAME_LINES_MAX model picks.
 CAPS = {sec: C.freeze_cap(sec) for sec in C.FREEZE_SECTIONS}
 ck("⚠️ every frozen section declares a cap, and none is None",
    all(isinstance(v, int) and v > 0 for v in CAPS.values()),
@@ -361,8 +362,8 @@ SAT = "2026-09-19T20:00:00Z"            # started at NOW
 SAT_LATE = "2026-09-20T02:30:00Z"       # a Saturday 10:30pm ET kickoff
 THU = "2026-09-24T23:30:00Z"            # not started at NOW
 NOW = "2026-09-21T19:00:00Z"
-def gl(gid, when, price):
-    return {"game_id": gid, "commence": when, "market": "h2h",
+def gl(gid, when, price):     # `[2026-10-03]` the model's own row format
+    return {"kind": "fb-line", "game_id": gid, "commence": when, "market": "moneyline",
             "side": "home", "label": gid, "price": price}
 OLDGL = {"date": "2026-09-19",
          "game_lines_meta": {"slate": "2026-09-19"},

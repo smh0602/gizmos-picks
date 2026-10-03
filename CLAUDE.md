@@ -275,9 +275,9 @@ note boxes, tags and the stale bar now require their absence.
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The payout bands have FLOORS ONLY** | `[Sam, 2026-09-22]` Two-leg 1.8x and up; three- and four-leg 3x and up; **no ceiling** (~~1.8–2.2x / 3–6x~~). Every list is ranked by its chance to land, highest first — Sam: "we still have to make sure the bets we provide have a high % to hit". `PARLAY_BANDS` in `card.py` and `card_fb.py` hold `(floor, None)`; read them through `band_ok()`. |
-| **The −700 price floor** | Sam's own instruction. Rungs below it are shown but never starred and never paired. |
+| **The −400 price floor** ~~(−700)~~ | `[Sam, 2026-10-01]` "ideally props/game lines at -400 is the lowest we should go": the floor for EVERY Gizmo's Picks row in all three leagues — board picks, top plays, game-line rows, parlay and same-game legs; −400 itself clears. ~~Rungs below −700 are shown but never starred and never paired~~; a ladder rung below −400 is still drawn, dimmed, never starred. One constant per league file (`card.PRICE_FLOOR`, `card_fb.PRICE_FLOOR`), read by `verify_card.py`; `test_price_floor.py`. Published cards and graded records are not rebuilt. |
 | **The parlay candidate pool is STRATIFIED BY PRICE** | ⛔ Do not "simplify" it to the N highest-confidence legs. Confidence and price move together, so a confidence-ranked pool of 100 legs had decimal odds of 1.154–1.571 — all short favourites — and the three-leg search returned **zero** parlays on a slate with 2,396 priced legs. Measured 2026-08-26. The pool takes the best legs from each price band for exactly this reason. |
-| **The top-10 price gate (−400)** | Sam's own instruction, 2026-08-26: "likely AND payable". Without it the list fills with −2000 alt rungs that always win and pay nothing. It is a floor like the other two, not a judgment call per slate. |
+| **The top-10 price gate (−400)** | Sam's own instruction, 2026-08-26: "likely AND payable". Without it the list fills with −2000 alt rungs that always win and pay nothing. It is a floor like the other two, not a judgment call per slate. `[2026-10-01]` It IS `PRICE_FLOOR` now, the one constant, and −400 itself clears (~~`TOP10_PRICE_FLOOR`, `<= −400` dropped~~). |
 | **ONE projection per player per stat, the same everywhere** | ~~A projection is an INVERSION of the displayed confidence... do not print `central`~~ — **BOTH RETIRED 2026-08-27, ledger rule 66.** Inversion made the projection a property of the ROW, so every rung of one ladder implied a different number: 51 of 608 player-market combos disagreed with themselves, worst 2.1 K. Sam: *"you should have the same numbers across the entire website."* ✅ Pitchers now show the model's own `central` (E[K] / mu), hitters their own per-game mean — both line-independent by construction. `apply_projections()` is the ONLY writer of the field. ⛔ Still do not compute one in JavaScript; that is a second copy of the model. |
 | **THE REGION IS THE PRICE, NOT THE BOOK LIST** | Cost is `markets × REGIONS × games` and **books are FREE inside a region** — one `us,us2` pull returned **18 books for 6 credits** (measured 2026-08-26). `BOOKS` is applied AFTER the response arrives; it is a display filter and saves nothing. ⛔ Do not try to cut credits by dropping books. Only dropping a REGION halves a pull, and `us2` is the region Hard Rock lives in. |
 | **The budget is DERIVED, not written down** | `python budget.py` reads the cron schedule out of the workflow and the market lists out of `collect.py` and computes the spend. ⛔ Do not put a credit total in a comment — this project has done it three times and been wrong twice. Run the script. |
@@ -425,6 +425,26 @@ note boxes, tags and the stale bar now require their absence.
   just no longer decides the order. ⛔ Do not reintroduce band-first or
   edge-first ordering — it made the page look broken to anyone reading
   down the numbers.
+- 🔴 **THE FOOTBALL CARD'S GAME LINES ARE THE GAME MODEL'S PICKS.** `[Sam,
+  2026-10-01]` *"make the models gizmo picks game line picks the same format
+  as the player prop picks"*. `card_fb.card_game_lines`: fb-model.json's
+  picks for ONE day, the next slate with an unstarted game (`next_line_slate`,
+  ~~the card's own slate day~~ `[2026-10-03]`: that props day had started),
+  one row per pick in the prop row's fields (team or Over/Under where a prop
+  has the player), drawn by `pickCard`; ~~the N biggest price gaps~~
+  (`build_game_lines` is now only the same-game parlays' line legs).
+  `[Sam, 2026-10-03]` only picks at 50% or more (`GL_MIN_CONF`), the 25
+  highest (`GAME_LINES_MAX` = the props board's `BOARD_MAX`), whole-number
+  confidence; a row that is not `kind` fb-line never stays in `game_lines`
+  (archived) and is never drawn. Each spread pick is followed directly by
+  ONE alternate spread when the books' ladder is pulled: the model's side,
+  the highest books' chance (`mkt`) at −400 or longer and 50% or more, off
+  the main line; it shows only under a listed pick. ⛔ Its confidence is the books' chance and its
+  basis stays MARKET (the model failed its alt-line check; Sam chose the
+  books' odds). `card-fb` builds `fb_model` and `game_lines_fb` BEFORE the
+  card. `record_fb` grades the alternate spreads in their own line
+  (`alt_spreads`); the model's picks keep fb-model.json's record.
+  `test_fb_game_picks.py`.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
   other kind~~, and after C2 (#166) few pitcher rows beat their price.

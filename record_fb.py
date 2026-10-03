@@ -367,6 +367,37 @@ def grade_card(card, P, idx, covers_through):
     return rows
 
 
+def grade_alt_spreads(cards, sched, grade):
+    """`[Sam, 2026-10-01]` the card's alternate-spread rows, each graded from
+    its game's final score, in their OWN line: never mixed into the props
+    record. `sched` = {schedule id: game}, `grade` = game_lines_fb.grade_rung
+    (the one rule). A pure function of the frozen row and the final score."""
+    rows = []
+    for _f, card in cards:
+        for r in card.get("game_lines") or []:
+            if r.get("market") != "alternate_spread":
+                continue
+            g = sched.get(str(r.get("sched_id"))) or {}
+            won, state = None, "pending"
+            if g.get("final") and None not in (g.get("home_score"), g.get("away_score")):
+                won = grade("spread", r.get("side"), r.get("line"),
+                            g["home_score"], g["away_score"])
+                state = "void" if won is None else "graded"
+            rows.append({"date": card.get("date"), "player": r.get("player"),
+                         "side": r.get("side"), "line": r.get("line"),
+                         "price": r.get("price"), "book": r.get("book"),
+                         "confidence": r.get("confidence"),
+                         "break_even": r.get("break_even"), "game": r.get("game"),
+                         "commence": r.get("commence"), "won": won, "state": state})
+    graded = [x for x in rows if x["state"] == "graded"]
+    return {"basis": "MARKET", "overall": tally(graded), "shown": len(rows),
+            "voids": sum(1 for x in rows if x["state"] == "void"),
+            "pending": sum(1 for x in rows if x["state"] == "pending"),
+            "note": ("The card's alternate spreads, priced at the books' own chance, each "
+                     "graded once from the final score. Kept apart from the props record."),
+            "rows": rows}
+
+
 def tally(rows):
     n = len(rows)
     w = sum(1 for r in rows if r["won"])
@@ -449,6 +480,15 @@ def main():
                      if r.get("card_method")), METHOD_BEFORE)
     _cal_now, _cal_by = calibration_by_method(A, _current)
 
+    # ⛔ A failure here never costs the props record.
+    try:
+        import game_lines_fb as _glf
+        _alt = grade_alt_spreads([(f, c) for f, c in cards
+                                  if (c.get("league") or "").lower() == LEAGUE],
+                                 _glf.schedule_by_id(LEAGUE), _glf.grade_rung)
+    except Exception as e:
+        log(f"  ⚠️ the alternate spreads were not graded ({type(e).__name__}: {e})")
+        _alt = {"basis": "MARKET", "error": f"{type(e).__name__}: {e}"}
     unresolved = sum(d["unresolved"] for d in days)
     voids = sum(d["voids"] for d in days)
     carded = sum(d["carded"] for d in days)
@@ -468,6 +508,7 @@ def main():
             "these rows are bucketed by is the player's OWN RECORD at that "
             "line, and this page measures how that did."),
         "overall": tally(A),
+        "alt_spreads": _alt,
         "by_market": {m: tally([r for r in A if r["market"] == m])
                       for m in sorted({r["market"] for r in A})},
         "by_side": {s: tally([r for r in A if r["side"] == s])
