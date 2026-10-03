@@ -218,7 +218,7 @@ failed recurring runs, i would like to avoid that"*. So:
    the data, and took 33 minutes before every pull. It still runs in full
    on every PR (four parts) and every night (`vacuity.yml`).
    `test_pr_shards.py` fails if collect runs it again or the nightly stops
-   sweeping everything.
+   sweeping everything (the nightly step itself: `test_vacuity_pool.py`).
    `[2026-09-25]` One more job, `staged`, applies every workflow staged in
    `docs/upload/` to its own checkout and runs the `rest` shard again:
    the suite as it will be AFTER Sam's upload. Sam's upload of PR #174's

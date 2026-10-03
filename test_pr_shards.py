@@ -20,17 +20,13 @@ REAL workflows and the REAL declarations:
   4. `vacuity.tier2` really sweeps only its part (driven on a planted tree);
   4b. `[Sam, 2026-10-02]` collect runs the `rest` share and NOT the sweep (it
      checks the tests, not the data, and held every pull back 33+ minutes),
-     while the nightly `vacuity.yml` still sweeps everything.
+     while the nightly `vacuity.yml` still sweeps everything (its step is
+     read in test_vacuity_pool.py: a step this file names counts as driven).
 
 # @vacuity 🔴🔴 collect's Tests step skips the sweep
 #   file: docs/upload/collect.yml
 #   find:           SUITE_SHARD: rest
 #   with:           SUITE_SHARD: all
-#
-# @vacuity 🔴 the nightly runs vacuity.py's main, once, with no part
-#   file: docs/upload/vacuity.yml
-#   find: python vacuity.py > /tmp/vacuity.md 2>/tmp/vacuity.err
-#   with: python -c 'import vacuity as V; V.tier1()' > /tmp/vacuity.md 2>/tmp/vacuity.err
 #
 # @vacuity 🔴 vacuity.main() sweeps both tiers whole
 #   file: vacuity.py
@@ -139,22 +135,21 @@ FIX = ["test_a.py", "test_b.py", "test_vacuity.py", "test_c.js", "test_d.js"]
 SHIM = '#!/bin/sh\necho "$1" >> "$RAN_LOG"\nexit 0\n'
 
 
-def drive(body, shard, files=FIX, shim=SHIM):
-    """-> (rc, [what the step ran], output)."""
+def drive(body, shard, files=FIX):
+    """-> (rc, [files the step ran], output)."""
     d = tempfile.mkdtemp(prefix="shards-")
     try:
         b = os.path.join(d, "bin")
         os.makedirs(b)
         for exe in ("python", "node"):
             with open(os.path.join(b, exe), "w") as fh:
-                fh.write(shim)
+                fh.write(SHIM)
             os.chmod(os.path.join(b, exe), 0o755)
         for f in files:
             open(os.path.join(d, f), "w").write("")
         env = dict(os.environ, PATH=b + os.pathsep + os.environ["PATH"],
                    RAN_LOG=os.path.join(d, "ran.log"),
                    GITHUB_OUTPUT=os.path.join(d, "out"))
-        body = body.replace("/tmp/", d.replace(chr(92), "/") + "/")    # the nightly writes its report there
         env.pop("SUITE_SHARD", None)
         if shard is not None:
             env["SUITE_SHARD"] = shard
@@ -284,12 +279,6 @@ ck("🔴🔴 collect's Tests step, with its own env, runs every file but test_va
    rc_c == 0 and sorted(ran_c) == sorted(f for f in FIX if f != "test_vacuity.py"),
    "⛔ the sweep in collect holds every data pull back by its whole length. "
    "env=%r ran=%r %s" % (_cenv, ran_c, shown(o_c[-200:])))
-ARGV = '#!/bin/sh\necho "$*|${VACUITY_PART-}" >> "$RAN_LOG"\nexit 0\n'
-_nbody = W.step_run(_wf["vacuity.yml"], step_id="look") or ""
-rc_n, ran_n, o_n = drive(_nbody, None, files=[], shim=ARGV)
-ck("🔴 the nightly runs vacuity.py's main, once, with no part",
-   bool(_nbody) and ran_n == ["vacuity.py|"],
-   "⛔ the nightly is the one full sweep left outside a PR. ran=%r" % ran_n)
 _calls, _keep = [], (V._porcelain, V.tier1, V.tier2, V.leaked)
 try:
     V._porcelain, V.leaked = (lambda *a, **k: ""), (lambda *a, **k: (True, ""))
@@ -299,7 +288,7 @@ try:
         V.main()
 finally:
     V._porcelain, V.tier1, V.tier2, V.leaked = _keep
-ck("🔴 ...and vacuity.main() sweeps both tiers whole: no part, no subset",
+ck("🔴 the nightly's vacuity.main() sweeps both tiers whole: no part, no subset",
    [c[0] for c in _calls] == ["tier1", "tier2"]
    and all(not a and set(k) <= {"leaks", "jobs"} for _t, a, k in _calls),
    "⛔ a nightly that sweeps a share is a share nobody checks. got %r" % _calls)
