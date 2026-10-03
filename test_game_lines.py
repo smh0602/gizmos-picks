@@ -41,13 +41,13 @@ legs, and the page draws each game-line row with pickCard (§8–§10).
 
 # @vacuity the page states no model count: the FOUR went with its note boxes [Sam, 2026-10-01]
 #   file: index.html
-#   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines</h2>
-#   with: <h2 style="margin:18px 0 8px;font-size:16px">Game lines</h2><p>Four pre-registered football models were tested and every one lost.</p>
+#   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
+#   with: <p>Four pre-registered football models were tested and every one lost.</p><h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
 #
 # @vacuity the game-lines panel carries no MARKET badge [Sam, 2026-10-01]
 #   file: index.html
-#   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines</h2>
-#   with: <h2 style="margin:18px 0 8px;font-size:16px">Game lines</h2><span class="kind k-market">Market</span>
+#   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
+#   with: <h2 style="margin:18px 0 8px;font-size:16px">Game lines <span class="kind k-market">Market</span> &mdash; ${
 #
 # @vacuity ...and no note under it, in either glyph [Sam, 2026-10-01]
 #   file: index.html
@@ -233,7 +233,8 @@ ck("🔴 ...and it is CALLED from the empty-props branch too",
 _glf = html[html.index("function fbGameLines(C){"):]
 _glf = _glf[:_glf.index("\nfunction ", 1)]
 ck("⛔ the page does not re-rank or re-compute the rows: it draws the card's own order",
-   "pickCard(p)" in _glf and ".sort(" not in _glf and ".filter(" not in _glf,
+   "pickCard(p)" in _glf and ".sort(" not in _glf
+   and _glf.count(".filter(") == 1 and ".filter(p => p.kind === 'fb-line')" in _glf,
    "rule 132 — the page prints what the builder computed; a second copy "
    "of the selection rule is a second thing to drift")
 
@@ -282,7 +283,7 @@ _gl = html[html.index("function fbGameLines(C){"):]
 _gl = _gl[:_gl.index("\nfunction ", 1)]
 # ~~the panel carries the page's own MARKET badge~~
 ck("\U0001f534 the panel carries no badge: its heading is the bare title",
-   ">Game lines</h2>`" in _gl
+   ">Game lines &mdash; ${" in _gl
    and 'class="kind' not in _gl and "k-market" not in _gl,
    "[Sam, 2026-10-01] no MODEL / MARKET / DESCRIPTIVE tag on any tab. "
    "~~LEDGER RULE 55 — every number on the surface is labelled MODEL, "

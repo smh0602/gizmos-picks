@@ -428,13 +428,18 @@ note boxes, tags and the stale bar now require their absence.
 - 🔴 **THE FOOTBALL CARD'S GAME LINES ARE THE GAME MODEL'S PICKS.** `[Sam,
   2026-10-01]` *"make the models gizmo picks game line picks the same format
   as the player prop picks"*. `card_fb.card_game_lines`: fb-model.json's
-  picks for the card's own slate day, one row per pick in the prop row's
-  fields (team or Over/Under where a prop has the player), ranked by
-  confidence, drawn by `pickCard`; ~~the N biggest price gaps~~
-  (`build_game_lines` is now only the same-game parlays' line legs). Plus
-  ONE alternate spread per game with a pulled ladder and a model spread
-  pick: the model's side, the highest books' chance (`mkt`) at −400 or
-  longer, off the main line. ⛔ Its confidence is the books' chance and its
+  picks for ONE day, the next slate with an unstarted game (`next_line_slate`,
+  ~~the card's own slate day~~ `[2026-10-03]`: that props day had started),
+  one row per pick in the prop row's fields (team or Over/Under where a prop
+  has the player), drawn by `pickCard`; ~~the N biggest price gaps~~
+  (`build_game_lines` is now only the same-game parlays' line legs).
+  `[Sam, 2026-10-03]` only picks at 50% or more (`GL_MIN_CONF`), the 25
+  highest (`GAME_LINES_MAX` = the props board's `BOARD_MAX`), whole-number
+  confidence; a row that is not `kind` fb-line never stays in `game_lines`
+  (archived) and is never drawn. Each spread pick is followed directly by
+  ONE alternate spread when the books' ladder is pulled: the model's side,
+  the highest books' chance (`mkt`) at −400 or longer and 50% or more, off
+  the main line; it shows only under a listed pick. ⛔ Its confidence is the books' chance and its
   basis stays MARKET (the model failed its alt-line check; Sam chose the
   books' odds). `card-fb` builds `fb_model` and `game_lines_fb` BEFORE the
   card. `record_fb` grades the alternate spreads in their own line

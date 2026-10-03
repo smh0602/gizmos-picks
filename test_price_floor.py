@@ -71,8 +71,8 @@ equivalent of, and this file did not exist at all.
 #
 # @vacuity 🔴 the football game-line rows hold nothing shorter than the floor
 #   file: card_fb.py
-#   find: if None in (v["price"], v["model_probability"]) or v["price"] < PRICE_FLOOR:
-#   with: if None in (v["price"], v["model_probability"]):
+#   find: if None in (v["price"], pr) or v["price"] < PRICE_FLOOR or pr < GL_MIN_CONF:
+#   with: if None in (v["price"], pr) or pr < GL_MIN_CONF:
 #
 # @vacuity 🔴 a same-game parlay's line leg clears the floor too
 #   file: card_fb.py

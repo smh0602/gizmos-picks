@@ -4340,9 +4340,12 @@ function fbDayHead(C, title){
    prop picks". Each row is drawn by pickCard, the prop rows' own markup.
    ~~the N biggest price gaps~~. */
 function fbGameLines(C){
-  const g = (C && C.game_lines) || [];
+  /* [2026-10-03] only the model's own rows (kind fb-line): a price-gap row of
+     an older card is never drawn. The heading names the list's own day. */
+  const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
   if (!g.length) return '';
-  return `<h2 style="margin:18px 0 8px;font-size:16px">Game lines</h2>`
+  return `<h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
+    fbDayName((C.game_lines_meta || {}).slate)}</h2>`
     + g.map(p => pickCard(p).outerHTML).join('');
 }
 
@@ -4379,7 +4382,7 @@ function fbTopPlays(C, shownPicks){
       with a 0 rather than removed. */
 function fbKindBar(C){
   const nProps = ((C && C.picks) || []).length;
-  const nLines = ((C && C.game_lines) || []).length;
+  const nLines = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line').length;
   const chip = (k, label, n) =>
     `<button class="kchip${FBPICKKIND===k?' on':''}" data-fbkind="${k}"
       >${label} <span>${n}</span></button>`;

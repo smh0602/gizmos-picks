@@ -1253,12 +1253,14 @@ def game_lines_rule(rows, meta):
     if meta.get("source") == "fb-model.json":
         n_alt = sum(1 for r in rows if r.get("market") == "alternate_spread")
         if not rows:
-            return ("No game-model picks for %s at %d or longer."
-                    % (meta.get("slate") or "this slate", PRICE_FLOOR))
-        return ("The game model's own %d pick(s) for %s at %d or longer, by its chance "
-                "to win; plus %d alternate spread(s) on the model's side, priced at the "
-                "books' own chance." % (len(rows) - n_alt, meta.get("slate"),
-                                        PRICE_FLOOR, n_alt))
+            return ("No game-model picks for %s at %d%% or more and %d or longer."
+                    % (meta.get("slate") or "this slate", GL_MIN_CONF, PRICE_FLOOR))
+        return ("The game model's own %d pick(s) for %s it gives %d%% or more, at %d or "
+                "longer, by its chance to win (at most %d, like the props board); each "
+                "spread pick is followed by its alternate spread when the books have one "
+                "%d or longer, priced at their own chance (%d listed)."
+                % (len(rows) - n_alt, meta.get("slate"), GL_MIN_CONF, PRICE_FLOOR,
+                   GAME_LINES_MAX, PRICE_FLOOR, n_alt))
     if not rows:
         # 🔴 TWO DIFFERENT EMPTY STATES WITH TWO DIFFERENT CAUSES, AND
         #    COLLAPSING THEM WOULD BE RULE 222 AGAIN. "The books have not
@@ -1313,6 +1315,12 @@ def game_lines_rule(rows, meta):
 GL_LABEL = {"spread": "Spread", "total": "Total", "moneyline": "Moneyline",
             "alternate_spread": "Alternate spread"}
 GL_BOOK_KEY = {v: k for k, v in reversed(list(GL_BOOK_NAME.items()))}
+# `[Sam, 2026-10-03]` "only picks the model gives 50% or more" and "the top 25,
+#    like the props board": a game-line row needs confidence >= GL_MIN_CONF,
+#    and at most GAME_LINES_MAX model picks are listed (an alternate spread
+#    rides under its own pick and does not count).
+GL_MIN_CONF = 50
+GAME_LINES_MAX = BOARD_MAX
 
 
 def model_game_rows(model_picks, games, slate):
@@ -1329,13 +1337,14 @@ def model_game_rows(model_picks, games, slate):
             continue
         v = {k: (p.get(k) or {}).get("value") if isinstance(p.get(k), dict) else p.get(k)
              for k in ("line", "price", "model_probability", "break_even")}
-        if None in (v["price"], v["model_probability"]) or v["price"] < PRICE_FLOOR:
+        pr = v["model_probability"]
+        if None in (v["price"], pr) or v["price"] < PRICE_FLOOR or pr < GL_MIN_CONF:
             continue
         away, _, home = (p.get("game") or "").partition(" at ")
         mk, line = p.get("market"), v["line"]
         if mk == "spread" and line is not None:
             line = -line if p.get("side") == "home" else line   # the team's own point
-        conf, be = v["model_probability"], v["break_even"]
+        conf, be = int(round(pr)), v["break_even"]      # a whole number, like the prop rows
         who = p.get("team")
         what = ("to cover %+g" % line if mk == "spread" else
                 "to win" if mk == "moneyline" else "at %g" % line)
@@ -1349,8 +1358,8 @@ def model_game_rows(model_picks, games, slate):
             "book": GL_BOOK_KEY.get(p.get("book"), p.get("book")), "price": v["price"],
             "link": None, "clears_price_floor": True, "confidence_basis": "MODEL",
             "confidence": conf, "break_even": be,
-            "edge": round(conf - be, 1) if be is not None else None,
-            "why": ["The game model gives %s %s%% %s; the price %+d needs %s%%."
+            "edge": round(pr - be, 1) if be is not None else None,
+            "why": ["The game model gives %s %d%% %s; the price %+d needs %s%%."
                     % (who, conf, what, v["price"], be)],
             "priced_at": p.get("priced_at")})
     return rows
@@ -1375,31 +1384,52 @@ def alt_spread_rows(model_rows, ladder):
         main = r["line"] if main is None else (main if r["side"] == "home" else -main)
         ok = [x for x in g.get("spread") or [] if x.get("side") == r["side"]
               and x.get("best") is not None and x["best"] >= PRICE_FLOOR
-              and x.get("mkt") is not None and x.get("pt") != main]
+              and x.get("mkt") is not None and x.get("pt") != main
+              and x["mkt"] >= GL_MIN_CONF]
         if not ok:
             continue
         x = max(ok, key=lambda x: (x["mkt"], x["best"]))
         out.append(dict(r, kind="fb-line", basis="MARKET — the books' own chance",
                         market="alternate_spread", market_label=GL_LABEL["alternate_spread"],
                         line=x["pt"], book=GL_BOOK_KEY.get(x.get("book"), x.get("book")),
-                        price=x["best"], confidence_basis="MARKET", confidence=x["mkt"],
+                        price=x["best"], confidence_basis="MARKET", confidence=int(round(x["mkt"])),
                         break_even=x.get("be"),
                         edge=round(x["mkt"] - x["be"], 1) if x.get("be") is not None else None,
                         main_line=main, sched_id=g.get("sched_id"),
                         why=["The books price %s %+g at a %s%% chance; the best price, %+d "
-                             "at %s, needs %s%%." % (r["player"], x["pt"], x["mkt"], x["best"],
+                             "at %s, needs %s%%." % (r["player"], x["pt"], int(round(x["mkt"])), x["best"],
                                                      x.get("book"), x.get("be"))]))
     return out
 
 
-def card_game_lines(model_picks, games, ladder, slate):
-    """The card's `game_lines`: the model's rows plus the alternate spreads,
-    ranked by confidence like the prop rows. The one composition main uses."""
-    rows = model_game_rows(model_picks, games, slate)
-    rows = sorted(rows + alt_spread_rows(rows, ladder), key=lambda r: -r["confidence"])
-    for i, r in enumerate(rows, 1):
+def order_game_lines(rows, frozen=()):
+    """The GAME_LINES_MAX highest-confidence model picks (a frozen row is
+    always kept), each spread pick followed directly by its own game's
+    alternate spread. An alternate spread whose pick is not listed is not."""
+    keep = {id(r) for r in frozen}
+    model = sorted([r for r in rows if r.get("market") != "alternate_spread"],
+                   key=lambda r: (-(r.get("confidence") or 0), -(r.get("edge") or 0)))
+    pinned = [r for r in model if id(r) in keep]
+    chosen = {id(r) for r in pinned} | {id(r) for r in [r for r in model if id(r) not in keep]
+                                        [:max(0, GAME_LINES_MAX - len(pinned))]}
+    alt = {(r.get("game"), r.get("side")): r for r in rows if r.get("market") == "alternate_spread"}
+    out = []
+    for r in model:
+        if id(r) in chosen:
+            out.append(r)
+            a = alt.pop((r.get("game"), r.get("side")), None) if r.get("market") == "spread" else None
+            if a:
+                out.append(a)
+    out += [a for a in alt.values() if id(a) in keep]    # published, never dropped
+    for i, r in enumerate(out, 1):
         r["rank"] = i
-    return rows
+    return out
+
+
+def card_game_lines(model_picks, games, ladder, slate):
+    """The card's `game_lines` for ET day `slate`. The one composition main uses."""
+    rows = model_game_rows(model_picks, games, slate)
+    return order_game_lines(rows + alt_spread_rows(rows, ladder))
 
 
 def build_top_plays(rows, board, n=TOP_N):
@@ -1547,8 +1577,11 @@ GL_EARLIER = "game_lines_earlier_slates"
 #    dict here raises NameError on import — which it did, once, and the
 #    whole collector would not have started. A name is only a name when
 #    the line runs.
-# `[Sam, 2026-10-01]` no cap on `game_lines`: one row per model pick.
+# `[Sam, 2026-10-03]` `game_lines` is capped at GAME_LINES_MAX MODEL picks
+#    (~~no cap~~); its alternate spreads ride under their picks
+#    (`order_game_lines`, applied after the merge).
 FREEZE_CAP_NAMES = {"picks": "BOARD_MAX", "top_plays": "TOP_N",
+                    "game_lines": "GAME_LINES_MAX",
                     "parlays": "PARLAY_PER_SIZE", "sgp": "SGP_PER_SIZE"}
 
 
@@ -1643,9 +1676,13 @@ def freeze_published(new, path, now_iso, log=print):
                           if isinstance(r, dict)}
         for r in old["game_lines"]:
             d = et_date(r.get("commence")) if isinstance(r, dict) else None
-            if d and d != _gl_day:
-                if _started(r, kicks, now_iso) and _key(r) not in seen:
-                    archive.setdefault(d, []).append(r)
+            # 🔴 `[2026-10-03]` A ROW THAT IS NOT THE MODEL'S (`kind` fb-line)
+            #    NEVER STAYS: the price-gap rows of older cards go to the
+            #    archive untouched, like an earlier slate's.
+            ours = isinstance(r, dict) and r.get("kind") == "fb-line"
+            if (d and d != _gl_day) or not ours:
+                if isinstance(r, dict) and _started(r, kicks, now_iso) and _key(r) not in seen:
+                    archive.setdefault(d or "undated", []).append(r)
                     seen.add(_key(r))
                 continue
             stay.append(r)
@@ -1662,6 +1699,12 @@ def freeze_published(new, path, now_iso, log=print):
         cap = freeze_cap(sec)
         if sec == "picks":
             cap = new.get("board_max") or old.get("board_max") or cap
+        if sec == "game_lines":
+            merged, c = _merge_list(o or [], n or [], kicks, now_iso)
+            new[sec] = order_game_lines(merged, [r for r in merged
+                                                 if _started(r, kicks, now_iso)])
+            frozen_total += c
+            continue
         if isinstance(o, dict) or isinstance(n, dict):
             keys = sorted(set(list(o or {})) | set(list(n or {})))
             merged = {}
@@ -2134,15 +2177,19 @@ def main():
         _ladder = json.load(gzip.open(f"{DATA}/latest/game-lines.json.gz", "rt"))
     except Exception:
         _ladder = {}
+    # 🔴 `[2026-10-03]` THE NEXT SLATE WITH AN UNSTARTED GAME, ONE DAY ONLY
+    #    (`next_line_slate`, the old list's own rule): ~~the card's slate~~,
+    #    which is a props day and had started (0 rows for 10-01, 37 picks on 10-04).
     game_lines = card_game_lines(_model.get("picks"), (B.get("games") or [])
-                                 + ((_gl_snap or {}).get("games") or []), _ladder, slate)
-    gl_meta = {"source": "fb-model.json", "slate": slate, "card_slate": slate,
-               "is_next_slate": False, "price_floor": PRICE_FLOOR,
+                                 + ((_gl_snap or {}).get("games") or []), _ladder, _gl_slate)
+    gl_meta = {"source": "fb-model.json", "slate": _gl_slate, "card_slate": slate,
+               "is_next_slate": _gl_slate != slate, "price_floor": PRICE_FLOOR,
+               "min_confidence": GL_MIN_CONF, "model_cap": GAME_LINES_MAX,
                "model_built_at": _model.get("built_at"),
                "ladder_built_at": _ladder.get("built_at"),
                "alt_spreads": sum(1 for r in game_lines if r["market"] == "alternate_spread")}
     log(f"  game lines: {len(game_lines)} row(s), {gl_meta['alt_spreads']} of them "
-        f"alternate spreads, from the game model's picks for {slate}")
+        f"alternate spreads, from the game model's picks for {_gl_slate}")
 
     # 🔴 SAME-GAME PARLAYS, AND THEY ARE BUILT LAST ON PURPOSE -- they are
     # the only thing on this card that needs BOTH the prop rows and the
