@@ -22,6 +22,11 @@ decision." Planted data throughout; the page in node.
 #   find:     out = {"win": {"home": 100 * win_h, "away": 100 * (1 - win_h)},
 #   with:     out = {"win": {"home": 100 * win_h, "away": 100 * sum(w for h, a, w in joint if a > h)},
 #
+# @vacuity 🔴 a run-line row's confidence is the model's own chance
+#   file: mlb_game_model.py
+#   find: CORRECTED = ("total",)
+#   with: CORRECTED = ("run_line", "total")
+#
 # @vacuity 🔴 a better starter raises his own side's chance
 #   file: mlb_game_model.py
 #   find:     lh = pa_away * lineup_factor(st, R, lu_home) * v * R["home"]
@@ -221,7 +226,7 @@ def bg(pk, ml_h, ml_a, rl_h, rl_a, pt=-1.5, at=AT):
                             "Away %d" % pk: {"book": "fanduel", "price": rl_a, "pt": -pt}}}
 
 
-MODEL = {"corrected": ["run_line"], "games": [
+MODEL = {"corrected": ["total"], "games": [
     mg(1, 50.1, rl=40.0), mg(2, 60.0, rl=40.0), mg(3, 49.9, rl=45.0),
     mg(4, 55.0, rl=40.0), mg(5, 70.0, sp=False), mg(6, 70.0, at="2026-09-03T23:05:00Z"),
     mg(7, 58.0, rl=35.0, extra={"total": {"point": -1.5, "home": 90.0, "away": 10.0}}), mg(8, 70.0)]}
@@ -243,6 +248,26 @@ ck("⛔ TOTALS NEVER REACH THE CARD, even at 90% (Sam, 2026-10-03)",
 ck("  every row is in the prop row's format, confidence a whole number",
    all(r["kind"] == "mlb-line" and isinstance(r["confidence"], int) and r["confidence_basis"] == "MODEL"
        and r["why"] and r["break_even"] == round(100 * CA.implied(r["price"]), 1) for r in ROWS))
+
+# `[2026-10-03]` the run line is the model's OWN chance: its correction is a
+#   measurement in the check, never applied where a person reads it.
+_x = {"game_pk": 9, "commence": AT, "away": A, "home": H, "away_id": 2, "home_id": 1, "venue": 7,
+      "sp_home": "good", "sp_away": "bad", "sp_home_name": "G", "sp_away_name": "B"}
+_b = {"win_home": 60.0, "rl_home_pt": -1.5, "rl_home": 45.0, "total": 8.5, "over": 50.0}
+_tilt = {"mu": [0.0, 0.0], "sd": [1.0, 1.0], "w": [0.0, -0.2, 0.6]}   # books' number, tilted against the model
+_g = M.slate_game(st, _x, _b, {"run_line": _tilt, "total": _tilt})
+_own = M.predict(st, H, A, "good", "bad", [], [], 7, 8.5)["run_line"]["home -1.5"]
+_rl = CA.game_line_rows({"games": [_g]}, {"games": [{
+    "id": "ev9", "commence": AT, "away": A, "home": H, "best_ml": {},
+    "best_spread": {H: {"book": "fanduel", "price": 150, "pt": -1.5},
+                    A: {"book": "fanduel", "price": -170, "pt": 1.5}}}]}, D1)
+_side_own = max(_own, 100 - _own)
+ck("🔴 a run-line row's confidence is the model's OWN chance, never the books' number tilted by a fit",
+   abs(_g["card"]["run_line"]["home"] - _own) < 1e-9 and abs(M.corrected(_tilt, _own, 45.0) - _own) > 1
+   and len(_rl) == 1 and _rl[0]["confidence_value"] == round(_side_own, 1)
+   and "%d%%" % _rl[0]["confidence"] in _rl[0]["why"][0]
+   and M.CORRECTED == ("total",) and "run_line" in M.MEASURED,
+   "own %.1f, card %s, rows %s" % (_own, _g["card"]["run_line"], [(r["player"], r["confidence_value"]) for r in _rl]))
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. 🔴 AT MOST 25, AND FROZEN AT FIRST PITCH")

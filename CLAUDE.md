@@ -455,8 +455,8 @@ note boxes, tags and the stale bar now require their absence.
   `card.game_line_rows`: one row per market in `GL_MARKETS`, the side at 50%
   or more (`GL_MIN_CONF`) and −400 or longer at board.json's best of the five
   books (a run line only at its exact signed point), both starters named,
-  the card's own day, at most 25 (`GAME_LINES_MAX`), whole-number confidence,
-  `kind` mlb-line, drawn by `pickCard` under Gizmo's Picks' Player props /
+  the card's own day, at most 25 (`GAME_LINES_MAX`), whole-number confidence
+  that is the model's OWN chance on both markets `[2026-10-03]`, `kind` mlb-line, drawn by `pickCard` under Gizmo's Picks' Player props /
   Game lines switch, frozen at first pitch (`freeze_game_lines`). Graded in
   their own line (record.json `game_lines`, `collect.GAME_LINE_MARKETS`),
   re-graded by verify_record.py, never in a props count.
@@ -591,9 +591,12 @@ mlb_game_model.py THE MLB GAME MODEL (Sam, 2026-10-02): each side's runs
                   pitch; ⛔ nothing dated at or after first pitch is read (no
                   stored file holds a posted lineup, so `confirmed` is false).
                   Built in the card run (free) -> data/latest/mlb-game-model.json
-                  with its walk-forward check; run line and total carry C2's
-                  correction (Sam's 5-point rule). ⛔ Totals never reach the
-                  card (see MLB GAME LINES below).
+                  with its walk-forward check. The total carries C2's
+                  correction in the file only (~~run line and total~~):
+                  `[2026-10-03]` the run line's fit weighted the model's own
+                  chance NEGATIVELY (the books' number tilted against it), so
+                  it is MEASURED in the check and never applied. ⛔ Totals
+                  never reach the card (see MLB GAME LINES below).
 budget.py         projected Odds API spend, derived from the deployed
                   cron schedule and market lists. Run it after ANY change
                   to the schedule or the markets.

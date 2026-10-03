@@ -2491,10 +2491,9 @@ def game_line_rows(model, board, day):
                 "book": q.get("book"), "price": q["price"], "link": q.get("link"),
                 "clears_price_floor": True, "confidence_basis": "MODEL",
                 "confidence": int(round(pr)), "confidence_value": round(pr, 1),
-                "confidence_note": (
-                    "The model's chance, corrected against the books' own odds on earlier "
-                    "graded games." if mk in (model.get("corrected") or ()) else
-                    "The model's own chance."),
+                # `[2026-10-03]` the model's OWN chance on both markets
+                #    (~~the run line corrected against the books~~).
+                "confidence_note": "The game model's own chance.",
                 "break_even": be, "edge": round(pr - be, 1),
                 "why": ["The game model gives %s %d%% %s. It expects %s runs to %s, with %s "
                         "starting against %s. The price %+d needs %s%%."
@@ -3006,7 +3005,7 @@ def main(dry=False):
         "game_lines_meta": {"source": "data/latest/mlb-game-model.json", "slate": today,
                             "markets": list(GL_MARKETS), "min_confidence": GL_MIN_CONF,
                             "price_floor": PRICE_FLOOR, "cap": GAME_LINES_MAX,
-                            "corrected": _gmod.get("corrected"), "error": _gerr,
+                            "confidence": "the game model's own chance", "error": _gerr,
                             "totals": "not on the card (Sam, 2026-10-03); mlb-game-model.json only"},
         "game_lines_rule": (
             f"The game model's side of each {today} game with both starters named, for "

@@ -356,18 +356,28 @@ def off_bands(table):
 #   MEASURED 2026-10-03 (`python mlb_game_model.py check`; every game with a
 #   schedule saved before first pitch, 08-22 on):
 #     moneyline  no band off
-#     run line   50-55: 102 games said 52.7, won 58.8 -> CORRECTED
+#     run line   50-55: 102 games said 52.7, won 58.8 -> MEASURED ONLY
 #     total      55-60: 152 said 57.1, won 48.7; 60-70: 102 said 63.1,
 #                won 48.0 -> CORRECTED, and ⛔ NOT ON THE CARD (below)
-#   A market is corrected by this constant, set from that run; the file's
-#   `check.<market>.off_bands` says whether the newest games still agree.
+# 🔴 THE RUN LINE IS THE MODEL'S OWN CHANCE. `[2026-10-03]` ~~corrected~~:
+#   its fit put a NEGATIVE weight on the model's chance on every day it was
+#   fitted (-0.03 to -0.25) and +0.45 to +0.72 on the books', so the
+#   "corrected" number was the books' tilted against the model. On the same
+#   326 games the model's own side won 59.8%, the corrected 60.1%, the
+#   books' 61.7%, and it picked the OTHER side on 47 (14%) while its row
+#   said "the game model gives". ✅ Its corrected table stays in the check
+#   as a measurement (MEASURED); nothing a person reads uses it.
+#   CORRECTED: the corrections the file applies. MEASURED: the corrections
+#   the check measures. `check.<market>.off_bands` says whether the newest
+#   games still agree.
 # ⛔ TOTALS NEVER REACH THE CARD, THE PAGE OR THE RECORD'S GAME-LINE LINE.
 #   `[Sam, 2026-10-03]` "go on with moneyline and run line only. Totals stay
 #   in mlb-game-model.json with both records (uncorrected and corrected) and
 #   keep being graded there". Only Sam's decision brings them onto the card
 #   (`card.GL_MARKETS`, test_mlb_game_lines.py).
 # ══════════════════════════════════════════════════════════════════════
-CORRECTED = ("run_line", "total")
+CORRECTED = ("total",)
+MEASURED = ("run_line", "total")
 MARKETS = ("moneyline", "run_line", "total")
 
 
@@ -422,7 +432,7 @@ def check(recs, B):
         t = {"model": _table([_side(p, w, bk) for _, p, bk, w in rows]),
              "books": _table([_side(bk, w) for _, p, bk, w in rows])}
         t["off_bands"] = off_bands(t["model"])
-        if mk in CORRECTED:
+        if mk in MEASURED:
             maps, corr = {}, []
             for d, p, bk, w in rows:
                 if d not in maps:
@@ -446,7 +456,7 @@ def _r1(v):
 
 def slate_game(st, x, b, maps):
     """One slate game's numbers. `card` holds what a card row reads: the model's
-    chance, corrected where the market is in CORRECTED."""
+    own chance for the moneyline and the run line (neither is in CORRECTED)."""
     b = b or {}
     lu_h, lu_a = st.usual(x["home"]), st.usual(x["away"])
     m = predict(st, x["home"], x["away"], x["sp_home"], x["sp_away"], lu_h, lu_a,
@@ -494,7 +504,7 @@ def build(day, root=ROOT, write=True):
                       "and total chances. Starters are the ones a schedule saved before first "
                       "pitch named; no stored file holds a lineup posted before first pitch, so "
                       "every lineup is the usual one."),
-           "corrected": list(CORRECTED),
+           "corrected": list(CORRECTED), "measured": list(MEASURED),
            "correction_maps": {mk: None if m is None else {k: m[k] for k in ("mu", "sd", "w", "n_train", "before")}
                                for mk, m in maps.items()},
            "totals_on_card": False,
@@ -523,7 +533,7 @@ def _print_check(c):
               % (c[mk]["books"][-1]["n"], c[mk]["books"][-1]["won"], c[mk]["off_bands"],
                  "; corrected from %s, still off: %s" % (c[mk]["corrected_from"],
                                                           c[mk]["corrected_off_bands"])
-                 if mk in CORRECTED else ""))
+                 if mk in MEASURED else ""))
 
 
 if __name__ == "__main__":
