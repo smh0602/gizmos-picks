@@ -453,6 +453,12 @@ jobs:
       - name: Tests
         id: tests
         continue-on-error: ${{ github.event_name != 'push' }}
+        # 🔴 `[Sam, 2026-10-02]` COLLECT RUNS THE `rest` SHARE: EVERY TEST
+        # FILE BUT test_vacuity.py. Its tier-2 sweep checks the TESTS, not the
+        # data, and took 33m06s here (#2092) before a single pull. It runs in
+        # full on every PR (pr-tests, four parts) and every night (vacuity.yml).
+        env:
+          SUITE_SHARD: rest
         run: |
           # 🔴 THIS STEP NAMED ONE TEST FILE AND THE REPO HELD SIX.
           # `[measured 2026-09-01]` test_cfb.py, test_p4.py,
