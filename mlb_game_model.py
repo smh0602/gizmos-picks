@@ -2,27 +2,21 @@
 """
 MLB GAME MODEL: each side's runs from what the prop models read. `[Sam, 2026-10-02]`
 *"use what we use for our pitcher and hitter props to predict game outcomes for mlb"*.
-
 ONE FUNCTION FROM STORED FILES TO NUMBERS (`predict`), no fitted black box:
 
-  expected runs for a side = the OPPOSING pitching to an average lineup
-        (its starter's earned runs per out over his projected outs, from his
-         prior starts in the start logs; its bullpen's runs per out over the
-         rest of 27 outs, from stored scores minus its starters' runs)
-      x the side's LINEUP (its nine starters' total bases + walks per plate
-         appearance from the hitter logs, against the league; the confirmed
-         lineup, else the usual one from its last 10 games)
+  a side's expected runs = the OPPOSING staff to an average lineup (its starter's
+      earned runs per out over his projected outs, from his prior starts; its
+      bullpen's runs per out over the rest of 27, from stored scores minus its
+      starters' runs) x the side's usual NINE (total bases + walks per plate
+      appearance against the league, its most-used nine of its last 10 games)
       x the VENUE (runs per game there against the league) x HOME / AWAY.
 
-Two run figures -> negative-binomial run distributions (their spread from this
-season's team runs) -> the win chance (a tie after nine is split by the run
-ratio), the chance to cover -1.5 / +1.5, and over / under a posted total.
-Every rate is shrunk toward the league by a FIXED amount (K_*), set before the
-walk-forward check and never tuned on it.
-
-⛔ NO LOOK-AHEAD. A game reads only logs dated BEFORE its own day (`State` is
-advanced a whole day after that day's games are predicted). The starters and
-the lineup named for the day are posted before first pitch. Stdlib only.
+Negative-binomial runs give the win chance (a tie after nine split by the run
+ratio), the -1.5 / +1.5 cover and over / under a posted total. Every rate is
+shrunk toward the league by a FIXED amount (K_*), never tuned on the check.
+⛔ NO LOOK-AHEAD: a game reads logs dated before its own day only, and the
+starters a schedule saved BEFORE its first pitch named. No stored file holds a
+lineup posted before first pitch, so every lineup is the usual one. Stdlib only.
 """
 import collections
 import datetime
@@ -89,7 +83,7 @@ def pitching(st, R, pid, team):
     s_rate = (p["er"] + K_START_OUTS * R["s_rate"]) / (p["outs"] + K_START_OUTS)
     s_outs = min(OUTS, (p["outs"] + K_START_N * R["s_outs"]) / (p["n"] + K_START_N))
     b_rate = (b["runs"] + K_PEN_OUTS * R["b_rate"]) / (b["outs"] + K_PEN_OUTS)
-    return s_outs * s_rate + (OUTS - s_outs) * b_rate, s_outs
+    return s_outs * s_rate + (OUTS - s_outs) * b_rate
 
 
 def lineup_factor(st, R, pids):
@@ -134,14 +128,13 @@ def predict(st, home, away, sp_home, sp_away, lu_home, lu_away, venue, total=Non
     """THE one function: state + the day's named starters and lineups -> numbers."""
     R = st.rates()
     v = venue_factor(st, R, venue)
-    pa_home, outs_h = pitching(st, R, sp_home, home)       # what HOME's pitching allows
-    pa_away, outs_a = pitching(st, R, sp_away, away)
+    pa_home = pitching(st, R, sp_home, home)       # what HOME's pitching allows
+    pa_away = pitching(st, R, sp_away, away)
     lh = pa_away * lineup_factor(st, R, lu_home) * v * R["home"]
     la = pa_home * lineup_factor(st, R, lu_away) * v * R["away"]
     out = chances(lh, la, R["r"], total)
     out["expected_runs"] = {"home": round(lh, 2), "away": round(la, 2)}
     out["total_at"] = lambda t: chances(lh, la, R["r"], t)["total"]
-    out["starter_outs"] = {"home": round(outs_h, 1), "away": round(outs_a, 1)}
     return out
 
 
@@ -167,8 +160,7 @@ def inputs(root=ROOT):
             if x.get("started") and not x.get("sub"):
                 t[x["team"]].append(str(x["pid"]))
         lus[day] = dict(t)
-    return {"scores": S.get("days") or {}, "starts": starts, "hits": hits, "lineups": lus,
-            "names": {pid: p.get("name") for pid, p in (P.get("players") or {}).items()}}
+    return {"scores": S.get("days") or {}, "starts": starts, "hits": hits, "lineups": lus}
 
 
 def starter(I, day, team_home, opp, home_side):
@@ -221,8 +213,7 @@ def pregame(g, at):
             "home_id": team("home").get("id"), "away_id": team("away").get("id"),
             "sp_home": sp("home").get("id"), "sp_away": sp("away").get("id"),
             "sp_home_name": sp("home").get("fullName"), "sp_away_name": sp("away").get("fullName"),
-            "venue": (g.get("venue") or {}).get("id"), "game_type": g.get("gameType"),
-            "game_number": g.get("gameNumber")}
+            "venue": (g.get("venue") or {}).get("id"), "game_type": g.get("gameType")}
 
 
 def schedules(root=ROOT):
@@ -241,15 +232,13 @@ def schedules(root=ROOT):
     return {pk: pregame(g, at) for pk, (at, g) in best.items()}
 
 
-def walk(I, S, through=None):
+def walk(I, S):
     """Predict every finished game that a schedule snapshot named BEFORE its first
     pitch, from the days before it: the starters that snapshot named and each
     side's usual nine (no stored file holds a lineup posted before first pitch).
     -> (state, records)."""
     st, recs = State(), []
     for day in sorted(I["scores"]):
-        if through and day > through:
-            break
         games = [g for g in I["scores"][day] if g.get("gameType") in GAME_TYPES]
         pairs = collections.Counter((g["away"], g["home"]) for g in games)
         for g in games:
