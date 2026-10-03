@@ -281,7 +281,8 @@ section("2. ⛔ IT REPORTS. IT NEVER EDITS.")
 _swept_root, _wt = None, None
 # ⚠️ WHICH SHARE OF THE SWEEP THIS RUN OWNS. `[2026-09-25]` pr-tests.yml
 #    splits the one sweep across parallel jobs (`vacuity.part_of`);
-#    unset — collect.yml, a laptop — sweeps everything, as before.
+#    unset — a laptop, the nightly — sweeps everything, as before.
+#    `[Sam, 2026-10-02]` collect.yml no longer runs this file (`rest`).
 #    ⛔ A malformed value RAISES here and the file goes red: it must never
 #    be read as some other part.
 _PART = V.parse_part(os.environ.get("VACUITY_PART"))

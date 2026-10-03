@@ -47,6 +47,16 @@ declarations of its own — the nightly sweep proves each check here bites.
 #   file: docs/upload/vacuity.yml
 #   find:     timeout-minutes: 120
 #   with:     timeout-minutes: 30
+#
+# @vacuity 🔴 the nightly runs vacuity.py's main, once, with no part
+#   file: docs/upload/vacuity.yml
+#   find: python vacuity.py > /tmp/vacuity.md 2>/tmp/vacuity.err
+#   with: python -c 'import vacuity as V; V.tier1()' > /tmp/vacuity.md 2>/tmp/vacuity.err
+#
+# @vacuity 🔴 ...and no VACUITY_PART anywhere in the nightly workflow
+#   file: docs/upload/vacuity.yml
+#   find: GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#   with: VACUITY_PART: 1/4
 """
 import glob
 import os
@@ -309,6 +319,22 @@ else:
        "⛔ the nightly runs tier 1 AND tier 2; a job limit below what a PR "
        "gives tier 2 alone is cancelled before it can report. deployed=%ss "
        "pr=%ss" % (_job_secs(_dep), _pr_clock))
+
+# 🔴 `[Sam, 2026-10-02]` collect no longer sweeps, so the nightly is the one
+#    full sweep outside a PR. ⚠️ READ by its unique name, never run: this file
+#    starts no bash, so the step is not one a test drives (test_step_tmp.py).
+import wfparse as W  # noqa: E402
+_nwf = W.effective_workflows(ROOT)["vacuity.yml"]
+_nbody = W.step_run(_nwf, step_name="Does every guard actually bite?") or ""
+_py = [l.strip() for l in _nbody.splitlines()
+       if not l.lstrip().startswith("#") and re.search(r"\bpython3?\b", l)]
+ck("🔴 the nightly runs vacuity.py's main, once, with no part and nothing else",
+   len(_py) == 1 and re.fullmatch(r"python3?\s+vacuity\.py(\s+\d?>>?\s*\S+)*", _py[0]),
+   "⛔ the nightly is the one full sweep left outside a PR. python lines: %r" % _py)
+_part = [l.strip() for l in _text(_nwf).splitlines()
+         if "VACUITY_PART" in l and not l.lstrip().startswith("#")]
+ck("🔴 ...and no VACUITY_PART anywhere in the nightly workflow",
+   bool(_nbody) and not _part, "⛔ a part set here sweeps a share. %r" % _part)
 
 shutil.rmtree(_d, ignore_errors=True)
 shutil.rmtree(LOG, ignore_errors=True)

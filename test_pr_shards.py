@@ -17,7 +17,21 @@ REAL workflows and the REAL declarations:
   2. the Tests loop — driven, not read — runs rest + sweep = every file,
      none twice, refuses an unknown shard and a shard that ran nothing;
   3. the N parts cover every declared mutation exactly once;
-  4. `vacuity.tier2` really sweeps only its part (driven on a planted tree).
+  4. `vacuity.tier2` really sweeps only its part (driven on a planted tree);
+  4b. `[Sam, 2026-10-02]` collect runs the `rest` share and NOT the sweep (it
+     checks the tests, not the data, and held every pull back 33+ minutes),
+     while the nightly `vacuity.yml` still sweeps everything (its step is
+     read in test_vacuity_pool.py: a step this file names counts as driven).
+
+# @vacuity 🔴🔴 collect's Tests step skips the sweep
+#   file: docs/upload/collect.yml
+#   find:           SUITE_SHARD: rest
+#   with:           SUITE_SHARD: all
+#
+# @vacuity 🔴 vacuity.main() sweeps both tiers whole
+#   file: vacuity.py
+#   find:     t2 = tier2(leaks=wleaks)
+#   with:     t2 = tier2(leaks=wleaks, part=(1, 4))
 
 # @vacuity 🔴🔴 a sweep part missing from the matrix is caught
 #   file: .github/workflows/pr-tests.yml
@@ -58,6 +72,8 @@ REAL workflows and the REAL declarations:
 #    file green (VACUOUS, pr-tests sweep 1/4 on PR #187). `DEFUSED` is
 #    the one spelling both read, so this still breaks what protects §5.
 """
+import contextlib
+import io
 import os
 import re
 import shutil
@@ -160,7 +176,8 @@ for _name, _body in _bodies.items():
     rc_all, ran_all, o_all = drive(_body, None)
     ck("🔴 %s: unset runs EVERY file, as before the split" % _name,
        rc_all == 0 and sorted(ran_all) == sorted(FIX),
-       "⛔ collect.yml runs the loop unset; this is its whole suite. "
+       "⛔ unset is the loop's whole suite (a laptop, `all`); collect runs "
+       "`rest` since 2026-10-02 (section 4b). "
        "rc=%s ran=%r %s" % (rc_all, ran_all, shown(o_all[-200:])))
     rc_r, ran_r, o_r = drive(_body, "rest")
     rc_s, ran_s, o_s = drive(_body, "sweep")
@@ -245,6 +262,36 @@ try:
        "⛔ the unsplit sweep is the baseline the parts must add up to")
 finally:
     shutil.rmtree(_d, ignore_errors=True)
+
+# ════════════════════════════════════════════════════════════════════════
+section("4b. 🔴🔴 COLLECT SKIPS THE SWEEP; EVERY PR AND EVERY NIGHT STILL RUN IT")
+# ════════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-02]` collect's Tests step runs before "Decide what this run
+# collects", and test_vacuity.py's sweep took 33m06s of it in #2092 (timed
+# out at 2400s in #2093): every pull started 35+ minutes late. The sweep is
+# a check on the TESTS, not the data. Sections 1 and 3 hold every PR to all
+# of it; this holds collect to the rest and the nightly to the whole.
+_wf = W.effective_workflows(ROOT)
+_cenv = W.step_env(_wf["collect.yml"], step_name="Tests") or {}
+_cbody = _bodies["collect.yml (as it will be live)"] or ""
+rc_c, ran_c, o_c = drive(_cbody, _cenv.get("SUITE_SHARD"))
+ck("🔴🔴 collect's Tests step, with its own env, runs every file but test_vacuity.py",
+   rc_c == 0 and sorted(ran_c) == sorted(f for f in FIX if f != "test_vacuity.py"),
+   "⛔ the sweep in collect holds every data pull back by its whole length. "
+   "env=%r ran=%r %s" % (_cenv, ran_c, shown(o_c[-200:])))
+_calls, _keep = [], (V._porcelain, V.tier1, V.tier2, V.leaked)
+try:
+    V._porcelain, V.leaked = (lambda *a, **k: ""), (lambda *a, **k: (True, ""))
+    V.tier1 = lambda *a, **k: _calls.append(("tier1", a, sorted(k))) or []
+    V.tier2 = lambda *a, **k: _calls.append(("tier2", a, sorted(k))) or []
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        V.main()
+finally:
+    V._porcelain, V.tier1, V.tier2, V.leaked = _keep
+ck("🔴 the nightly's vacuity.main() sweeps both tiers whole: no part, no subset",
+   [c[0] for c in _calls] == ["tier1", "tier2"]
+   and all(not a and set(k) <= {"leaks", "jobs"} for _t, a, k in _calls),
+   "⛔ a nightly that sweeps a share is a share nobody checks. got %r" % _calls)
 
 # ════════════════════════════════════════════════════════════════════════
 section("5. 🔴 A GREEN RUN OF THIS FILE PRINTS NO ERROR COMMAND")

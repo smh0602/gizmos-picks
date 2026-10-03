@@ -452,7 +452,8 @@ def tier2(root=ROOT, only=None, jobs=None, leaks=None, part=None):
     """Apply each declared mutation: must go RED, then GREEN on revert.
 
     `part` = (k, n) sweeps only this runner's share (`part_of`); None, the
-    default and what `main()` and `collect.yml` use, sweeps everything.
+    default and what `main()` (the nightly `vacuity.yml`) uses, sweeps
+    everything. ~~and `collect.yml`~~: collect runs no sweep since 2026-10-02.
     """
     ds = [d for d in declarations(root) if not (only and d["test"] not in only)]
     return _pool(root, JOBS if jobs is None else jobs, part_of(ds, part),

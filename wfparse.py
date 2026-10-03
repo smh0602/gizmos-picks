@@ -249,6 +249,30 @@ def step_run(src, step_id=None, step_name=None, job=None):
     return None
 
 
+def step_env(src, step_id=None, step_name=None, job=None):
+    """One step's OWN `env:` block as {name: value}, found like `step_run`.
+
+    ⛔ Only the step's block: a job- or workflow-level `env:` is not merged
+    in. Returns None when the step is not found, {} when it has no `env:`.
+    The child column is derived from the first entry, never assumed.
+    """
+    lines = read(src).splitlines()
+    want = [st for st in steps(src, job) if step_id is not None and st.id == step_id]         or [st for st in steps(src, job) if step_name is not None and st.name == step_name]
+    if not want:
+        return None
+    st = want[0]
+    entries = [e for e in _scan(lines) if st.start <= e[0] < st.end]
+    col, out, inside, child = entries[0][1], {}, False, None
+    for _ln, indent, key, val, _body in entries:
+        if indent <= col:
+            inside, child = (indent == col and key == "env"), None
+        elif inside:
+            child = indent if child is None else child
+            if indent == child:
+                out[key] = val.strip().strip('"').strip("'")
+    return out
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE CRON TOTAL COUNTS STAGED UPLOADS TOO — SO IT NEVER GOES RED IN
 #    THE GAP BETWEEN A PR MERGING AND SAM UPLOADING. `[Sam, 2026-09-23]`

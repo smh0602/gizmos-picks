@@ -1,6 +1,64 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: give the mutation sweep enough time `[2026-10-02]`
+## Current: collect stops running the guard sweep `[2026-10-02]`
+
+**Do this after you merge the pull request "collect: run the tests
+without the 33-minute guard sweep" (its description links to this
+file).** It is one file and one change.
+
+**Why:** your decision of 2026-10-02. collect's Tests step runs before it
+pulls any data, and it ran the whole guard sweep (`test_vacuity.py`):
+33 minutes in collect #2092, and it timed out at 40 minutes in #2093. So
+every data pull started 35+ minutes into its run. The sweep checks the
+tests, not the data, and it still runs in full on every pull request and
+every night. With it out, collect's Tests step takes about 7 minutes
+(measured from #2092 and #2095).
+
+**No schedule, cron line or cost changes. The cron count does not
+change.** The only difference from the live file is six added lines on
+the Tests step: a comment and `SUITE_SHARD: rest`.
+
+### Click by click (Windows)
+
+1. Open **File Explorer**, click **Downloads**, and delete any old
+   `collect.yml` there (otherwise Windows saves `collect (1).yml`).
+2. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/collect.yml
+   and check the breadcrumb reads **gizmos-picks / docs / upload /
+   collect.yml**.
+3. Click **Download raw file** (the small downward-arrow icon on the
+   right, above the file's contents).
+4. Open https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
+   and check the breadcrumb reads **gizmos-picks / .github / workflows**.
+   ⛔ Not the repo's front page: a file uploaded there lands in the top
+   level, where it never runs.
+5. Click **Add file** (top right, next to the green **Code** button),
+   then **Upload files**.
+6. Click **choose your files** (the blue link in the middle of the box).
+   ⛔ Do not drag a folder in. In **Downloads** pick `collect.yml` and
+   click **Open**.
+7. Check the page lists exactly **1 file**, `collect.yml`.
+8. In the **Commit changes** box paste this as the first line:
+
+   ```
+   collect.yml: run the rest share of the tests, not the guard sweep (Sam, 2026-10-02; no cron change)
+   ```
+
+9. Leave **Commit directly to the main branch** selected and click the
+   green **Commit changes** button.
+
+**What you should see afterwards:** the next collect run's Tests step
+takes about 7 minutes instead of about 40, and its log says `ran 163 of
+164 test file(s) (shard rest)` (the counts grow as tests are added). The
+data steps start that much sooner. The sweep keeps running on every pull
+request and in the nightly vacuity run. Until you upload, the nightly
+"runs" report lists `collect.yml` as waiting.
+
+---
+
+## ~~Current:~~ Done: give the mutation sweep enough time `[2026-10-02]`
+
+✅ Uploaded: commit c8ba424c on 2026-10-02 made the live `collect.yml` and
+`vacuity.yml` match these staged copies byte for byte.
 
 **Do this after you merge the pull request "collect/pr-tests: give the
 vacuity sweep 5400s" (its description links to this file).** It is two
