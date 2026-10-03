@@ -1,288 +1,236 @@
 #!/usr/bin/env python3
-"""test_game_lines_page.py — the Game Lines tab DRAWS what the builder wrote.
+"""test_game_lines_page.py — THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME.
 
-It builds a real `game-lines.json.gz` with `game_lines_fb.py` from a small
-stored pull, slices the tab's renderer out of the SHIPPED `index.html`,
-runs it in node and asks the rendered HTML: every rung drawn, every book's
-price labelled for a phone, the heading, no chip / warning / note, and the
-sort. ⛔ Not a copy of the page — the page itself.
+`[Sam, 2026-10-01]` *"remove the game lines standalone tab with moneyline
+predictions, in this tab you will simply just give the models pick on whos
+going to win the game outright. do this for all leagues"*; asked what the tab
+becomes: *"replace it with moneyline predictions and just have the models
+picks for who wins outright"*.
 
-[Sam, 2026-10-01] "i just want what's supposed to be in each tab to be in
-each tab"; asked what stays, he chose: remove everything. The checks that
-REQUIRED the Market / Model chips, the ⚠ on a rung that failed the
-alt-lines check, the "read the books' chance first" note, the "below
-−700 · never paired" chip and the parlays' chip now require their ABSENCE
-from the same render — and each first confirms the builder still WRITES
-what used to be drawn (`cal`, `warn`, `check`, `floor`, `joint_note`), so
-an absence can never pass because the data stopped carrying the thing.
+⚠️ REWRITTEN TO THE NEW REQUIREMENT, not deleted (CLAUDE.md: Sam changed the
+requirement). ~~This file rendered the alt ladders, books' chance, fair lines,
+rung sort and the alt-rung record~~; those left the page. It now asks, on
+planted data and through the SHIPPED page code in node: one row per slate
+game with the higher-chance side picked; an MLB game missing a starter has no
+pick; no ladder, box or tag in any league; a pick frozen at the start and
+graded once; the winners' record its own, re-computed by the verifier. (The
+same tab order in every league, Game Lines included: test_tab_bar.py.)
 
-# @vacuity no rung of a market that failed the check carries a warning ON THE ROW [Sam, 2026-10-01]
-#   file: index.html
-#   find: <div data-l="Model %">${r.p == null ? '&mdash;' : r.p + '%'}</div>
-#   with: <div data-l="Model %">${r.p == null ? '&mdash;' : r.p + '%'}${r.cal ? '' : ` <span class="glwarn" title="${r.warn || ''}">&#9888;</span>`}</div>
+# @vacuity 🔴 the pick is the side with the higher chance
+#   file: winners.py
+#   find:     side = "home" if p_home >= 100 - p_home else "away"
+#   with:     side = "home"
 #
-# @vacuity no other line shows one either: a rung that PASSED (an inverted flag) [Sam, 2026-10-01]
-#   file: index.html
-#   find: <div data-l="Edge">${r.edge == null ? '&mdash;' : (r.edge > 0 ? '+' : '') + r.edge + '%'}</div>
-#   with: <div data-l="Edge">${r.edge == null ? '&mdash;' : (r.edge > 0 ? '+' : '') + r.edge + '%'}${r.cal ? ' <span class="glwarn">&#9888;</span>' : ''}</div>
+# @vacuity 🔴 football lists one day only, the slate's
+#   file: winners.py
+#   find:             for g in (model or {}).get("win_chances") or [] if et_date(g["commence"]) == slate]
+#   with:             for g in (model or {}).get("win_chances") or []]
 #
-# @vacuity no other line shows one either: the model's fair total [Sam, 2026-10-01]
-#   file: index.html
-#   find: ${one("Model's fair total", g.fair_total, v => '' + v)}</div>`;
-#   with: ${one("Model's fair total", g.fair_total, v => '' + v)}${g.fair_total_warn ? ` <span class="glwarn" title="${g.fair_total_warn}">${g.fair_total_warn}</span>` : ''}</div>`;
+# @vacuity 🔴 an MLB game missing a starter has no pick
+#   file: winners.py
+#   find:                             (g.get("win") or {}).get("home") if named else None,
+#   with:                             (g.get("win") or {}).get("home"),
 #
-# @vacuity no column header wears a Market / Model chip [Sam, 2026-10-01]
+# @vacuity 🔴 the page draws every slate game, one row each
 #   file: index.html
-#   find: <div>Model %</div>
-#   with: <div>Model % <span class="kind k-model">Model</span></div>
+#   find:   const rows = ((W && W.rows) || []).slice()
+#   with:   const rows = ((W && W.rows) || []).slice(0, 1)
 #
-# @vacuity no note on the tab says what the alt-lines check found [Sam, 2026-10-01]
+# @vacuity 🔴 the tab draws no tag
 #   file: index.html
-#   find: ${games.map(g => fbGlGame(g, G, st)).join('') || '<div class="msg">No games on this slate match the filters.</div>'}
-#   with: <div class="note"><b>Read the books&rsquo; chance first.</b> ${((G.check || {}).total || {}).finding}</div>${games.map(g => fbGlGame(g, G, st)).join('') || '<div class="msg">No games on this slate match the filters.</div>'}
+#   find:       <td>${r.away} @ ${r.home}</td><td>${when(r.commence)}</td>
+#   with:       <td>${r.away} @ ${r.home} <span class="kind">MODEL</span></td><td>${when(r.commence)}</td>
 #
-# @vacuity the alt parlays wear no chip [Sam, 2026-10-01]
-#   file: index.html
-#   find: <div class="panel" style="margin-top:18px"><h2>Alt-line parlays</h2>
-#   with: <div class="panel" style="margin-top:18px"><h2>Alt-line parlays <span class="kind k-market">Market</span></h2>
+# @vacuity 🔴 a started game shows its frozen pick, never a rebuilt one
+#   file: winners.py
+#   find:     rows = [fz.get(r["game_id"], r) if r["commence"] <= now else r for r in rows]
+#   with:     rows = rows
 #
-# @vacuity ...and the builder's joint note is not drawn under them [Sam, 2026-10-01]
-#   file: index.html
-#   find: <div data-l="Books&rsquo; chance all land">${p.joint}%</div></div>`).join('')).join('')}</div>`;
-#   with: <div data-l="Books&rsquo; chance all land">${p.joint}%</div></div>`).join('')).join('')}<div style="margin-top:8px">${P[sizes[0]][0].joint_note || ''}</div></div>`;
+# @vacuity 🔴 a save taken after the start never sets the pick
+#   file: winners.py
+#   find:             if t < (r.get("commence") or "") and t > best.get(r["game_id"], ("",))[0]:
+#   with:             if t > best.get(r["game_id"], ("",))[0]:
 #
-# @vacuity a rung below -700 is drawn with no chip on it [Sam, 2026-10-01]
-#   file: index.html
-#   find: <div class="glw"><b>${who} ${fbGlPt(r)}</b></div>
-#   with: <div class="glw"><b>${who} ${fbGlPt(r)}</b>${r.floor ? '' : ' <span class="rec">below &minus;700 &middot; never paired</span>'}</div>
+# @vacuity 🔴 graded once: the first stored grade stands
+#   file: winners.py
+#   find:             out.setdefault(g["game_id"], g)
+#   with:             out[g["game_id"]] = g
 #
-# @vacuity the heading carries the slate's day [Sam, 2026-10-01]
-#   file: index.html
-#   find: Game Lines${G && G.slate_date ? ' &mdash; ' + fbDayName(G.slate_date) : ''}</h2></div>
-#   with: Game Lines</h2></div>
+# @vacuity 🔴 the winners' record is its own file
+#   file: winners.py
+#   find:     with open(os.path.join(latest, "winners.json"), "w", encoding="utf-8") as fh:
+#   with:     with open(os.path.join(latest, "record.json"), "w", encoding="utf-8") as fh:
 #
-# @vacuity the Game Lines tab is dispatched, not merely defined
-#   file: index.html
-#   find:   if (FBTAB === 'gamelines' && !document.querySelector('#fbview [data-gl]')) { fbGameLinesTab(); return; }
-#   with:   if (false) { fbGameLinesTab(); return; }
-#
-# @vacuity the Game Lines tab sits beside Player Props
-#   file: index.html
-#   find: ['props', 'Player Props'], ['gamelines', 'Game Lines'], ['parlays', 'Parlays'],
-#   with: ['props', 'Player Props'], ['parlays', 'Parlays'], ['gamelines', 'Game Lines'],
-#
-# @vacuity the books' chance is drawn on every rung, ahead of the model's %
-#   file: index.html
-#   find:     <div data-l="Books&rsquo; chance"><b>${r.mkt == null ? '&mdash;' : r.mkt + '%'}</b></div>
-#   with:     <div></div>
+# @vacuity 🔴 the verifier re-computes the winners' record
+#   file: verify_record.py
+#   find:        not _bad and tuple(_tally) == (_wr.get("w"), _wr.get("n"), _wr.get("voids")),
+#   with:        True,
 """
 import datetime
 import gzip
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
 import tempfile
 
-from jsblock import calls, js_block
-from tcheck import ck, section
-
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
-import fb_model as F  # noqa: E402
-import game_lines_fb as G  # noqa: E402
+os.environ.setdefault("LEAGUE", "mlb")
+import collect as CO  # noqa: E402
+import winners as W  # noqa: E402
+from jsblock import js_block  # noqa: E402
+from tcheck import ck, section  # noqa: E402
 
 PAGE = os.path.join(ROOT, "index.html")
-HTML = open(PAGE, encoding="utf-8").read()
+SRC = open(PAGE, encoding="utf-8").read()
 UTC = datetime.timezone.utc
+DAY, T1, T2 = "2026-09-02", "2026-09-02T17:05:00Z", "2026-09-02T23:05:00Z"
 
 
-def wgz(path, obj):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with gzip.open(path, "wt", encoding="utf-8") as fh:
+def put(root, rel, obj):
+    p = os.path.join(root, *rel.split("/"))
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    with (gzip.open(p, "wt") if p.endswith(".gz") else open(p, "w")) as fh:
         json.dump(obj, fh)
 
 
-def wjs(path, obj):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(obj, fh)
+def mg(pk, at, p_home, sp_away=2):
+    return {"game_pk": pk, "commence": at, "away": "Away %d" % pk, "home": "Home %d" % pk,
+            "starters": {"home": {"id": 1}, "away": {"id": sp_away}},
+            "win": {"home": p_home, "away": 100 - p_home}}
 
 
-# ── a real artifact from a small stored pull ──────────────────────────
-H, A_ = "Buffalo Bills", "Los Angeles Chargers"
-KICK = "2026-09-27T17:00:00Z"
-tree = tempfile.mkdtemp(prefix="glpage-")
-lg = os.path.join(tree, "data", "nfl")
-sig = {k: None for k in ("h2h_m", "h2h_t", "form_m", "form_t", "def", "poss", "out", "vac_h", "vac_a")}
-sig.update(neutral=0.0, dome=0.0)
-prow = {"id": "S1", "lg": "nfl", "season": 2026, "day": KICK[:10], "kick": KICK, "week": 4,
-        "home": H, "away": A_, "M": 6.5, "T": 47.5, "pml": 0.7, "sig": sig,
-        "names": [H, A_], "commence": KICK}
-H2, A2, KICK2 = "Detroit Lions", "New York Jets", "2026-09-27T20:25:00Z"
-prow2 = dict(prow, id="S2", home=H2, away=A2, kick=KICK2, names=[H2, A2], commence=KICK2)
-ks, kt = len(F.features(prow, "spread")), len(F.features(prow, "total"))
-wjs(os.path.join(lg, "latest", "fb-model.json"), {"pricing": {"games": [prow, prow2], "models": {
-    "spread": {"mu": [0.0] * ks, "sd": [1.0] * ks, "w": [0.0, -1.0] + [0.0] * (ks - 1)},
-    "total": {"mu": [0.0] * kt, "sd": [1.0] * kt, "w": [0.0, -1.0] + [0.0] * (kt - 1)}}}})
-wjs(os.path.join(lg, "latest", "alt-lines-check.json"),
-    {"markets": {"spread": {"state": "PASS", "bands": []},
-                 "total": {"state": "FAIL", "bands": [{"stated": 64.0, "n": 40, "w": 10}]}}})
-book = {"spreads": {H: {"pt": -6.5, "px": -110}, A_: {"pt": 6.5, "px": -110}},
-        "totals": {"Over": {"pt": 47.5, "px": -110}, "Under": {"pt": 47.5, "px": -110}},
-        "h2h": {H: -280, A_: 230}}
-wgz(os.path.join(lg, "2026-09-26", "gamelines", "1400.json.gz"),
-    {"pulled_at": "2026-09-26T14:00:00Z", "games": [{"id": "g1", "commence": KICK, "home": H, "away": A_,
-                                                     "books": {"hardrockbet": book, "draftkings": book,
-                                                               "fanduel": book}},
-                                                    {"id": "g2", "commence": KICK2, "home": H2, "away": A2,
-                                                     "books": {}}]})
-o = lambda n, pt, px: {"name": n, "point": pt, "price": px}  # noqa: E731
-wgz(os.path.join(lg, "2026-09-26", "alt-lines", "1500.json.gz"), {"pulled_at": "2026-09-26T15:00:00Z", "events": [
-    {"id": "g1", "commence": KICK, "home": H, "away": A_, "bookmakers": [
-        {"key": "hardrockbet", "markets": [
-            {"key": "alternate_spreads", "outcomes": [o(H, -3.5, -150), o(A_, 3.5, 125), o(H, -10.5, 250),
-                                                      o(A_, 10.5, -320), o(A_, 24.5, -2000)]},
-            {"key": "alternate_totals", "outcomes": [o("Over", 44.5, -160), o("Under", 44.5, 130),
-                                                     o("Over", 50.5, 140), o("Under", 50.5, -170)]}]},
-        {"key": "draftkings", "markets": [
-            {"key": "alternate_spreads", "outcomes": [o(H, -3.5, -145), o(A_, 3.5, 120)]}]}]},
-    {"id": "g2", "commence": KICK2, "home": H2, "away": A2, "bookmakers": [
-        {"key": "hardrockbet", "markets": [
-            {"key": "alternate_spreads", "outcomes": [o(H2, -2.5, -140), o(A2, 2.5, 118)]}]}]}]})
-DOC = G.build("nfl", root=tree, now=datetime.datetime(2026, 9, 26, 16, 0, tzinfo=UTC), log=lambda m: None)
+def bg(pk, at, ml_h, ml_a):
+    return {"id": "ev%d" % pk, "commence": at, "away": "Away %d" % pk, "home": "Home %d" % pk,
+            "best_ml": {"Home %d" % pk: {"book": "fanduel", "price": ml_h},
+                        "Away %d" % pk: {"book": "draftkings", "price": ml_a}}}
 
+
+# ══════════════════════════════════════════════════════════════════════
+section("1. 🔴 ONE ROW PER SLATE GAME, THE HIGHER-CHANCE SIDE PICKED")
+# ══════════════════════════════════════════════════════════════════════
+MODEL = {"slate": DAY, "games": [mg(1, T1, 61.0), mg(2, T2, 42.0), mg(3, T2, 70.0, sp_away=None)]}
+BOARD = {"games": [bg(1, T1, -150, 130), bg(2, T2, 120, -140), bg(3, T2, -200, 170)]}
+MLB = W.mlb_rows(MODEL, BOARD)
+ck("🔴 MLB: every game in the model's file has exactly one row, the pick the higher-chance side, "
+   "priced at the board's best for that team",
+   [(r["game_id"], r["pick"], r["chance"], r["price"]) for r in MLB]
+   == [("1", "Home 1", 61, -150), ("2", "Away 2", 58, -140), ("3", None, None, None)],
+   str([(r["game_id"], r["pick"], r["chance"], r["price"]) for r in MLB]))
+ck("🔴 MLB: a game whose two starters are not both named shows the game with no pick yet",
+   MLB[2]["pick"] is None and MLB[2]["away"] == "Away 3")
+et = lambda c: (datetime.datetime.strptime(c, "%Y-%m-%dT%H:%M:%SZ")   # noqa: E731
+                - datetime.timedelta(hours=4)).strftime("%Y-%m-%d")
+FBM = {"win_chances": [
+    {"game_id": "g1", "commence": "2026-09-27T17:00:00Z", "away": "Jets", "home": "Bills",
+     "p_home": 64.2, "best_ml": {"home": {"price": -190, "book": "fanduel"}}},
+    {"game_id": "g2", "commence": "2026-09-27T20:25:00Z", "away": "Lions", "home": "Bears",
+     "p_home": 33.0, "best_ml": {"away": {"price": -180, "book": "hardrockbet"}}},
+    {"game_id": "g3", "commence": "2026-09-29T00:15:00Z", "away": "Rams", "home": "Saints",
+     "p_home": 55.0, "best_ml": {}}]}
+FB = W.fb_rows(FBM, "2026-09-27", et)
+ck("🔴 football: every game of the slate's ONE day, both teams' chances in, the higher one picked",
+   [(r["game_id"], r["pick"], r["chance"], r["price"]) for r in FB]
+   == [("g1", "Bills", 64, -190), ("g2", "Lions", 67, -180)],
+   str([(r["game_id"], r["pick"], r["chance"]) for r in FB]))
+
+# ══════════════════════════════════════════════════════════════════════
+section("2. 🔴 THE SHIPPED PAGE DRAWS EACH ROW, AND NO LADDER, BOX OR TAG, IN ANY LEAGUE")
+# ══════════════════════════════════════════════════════════════════════
 DRIVER = r"""
-const fs = require('fs');
-const html = fs.readFileSync(process.argv[2], 'utf8');
-const a = html.indexOf('const FBGL = {}, FBGLREC = {};');
-const b = html.indexOf('async function fbGameLinesTab(){');
-if (a < 0 || b < 0 || b <= a){ console.error('TAB_CODE_NOT_FOUND'); process.exit(2); }
-const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : '' + v);
-// [Sam, 2026-10-01] fbDayLine is deleted; the heading calls fbDayName(G.slate_date).
-// Stubbed to echo its input, so the heading check can see WHICH date the page passed.
-const fn = new Function('sgn', 'fbAb', 'fbMark', 'fbKickTime', 'fbDayName', 'jget', 'jgetGz', 'LG_DATA', 'LEAGUE',
-  html.slice(a, b) + '\nreturn {fbGameLinesHtml, fbGlSort};');
-const M = fn(sgn, n => n.split(' ').pop().slice(0, 3).toUpperCase(), () => '', () => '1:00 PM',
-             d => 'DAY(' + d + ')', async () => null, async () => null, {nfl: 'data/nfl'}, 'nfl');
-const doc = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
-const out = {};
-for (const [k, st] of Object.entries({line: {market: 'both', sort: 'line'}, p: {market: 'both', sort: 'p'},
-                                      sp: {market: 'spread', sort: 'edge'}}))
-  out[k] = M.fbGameLinesHtml(doc, {markets: {}}, doc.games, st);
-process.stdout.write(JSON.stringify(out));
+const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
+const fn = new Function('sgn', 'bookName', S.rl + '\n' + S.wh + '\nreturn winnersHtml;');
+const winnersHtml = fn(x => (x > 0 ? '+' : '') + x, k => k);
+process.stdout.write(JSON.stringify(S.docs.map(d => winnersHtml(d).replace(/\s+/g, ' '))));
 """
+DOCS = [{"league": "mlb", "rows": MLB, "record": {"w": 3, "n": 5, "pct": 60.0}},
+        {"league": "nfl", "rows": FB, "record": {"w": 0, "n": 0}},
+        {"league": "ncaaf", "rows": list(reversed(FB)), "record": {}}]
+tmp = tempfile.mkdtemp(prefix="winpage-")
 try:
-    dp, jp = os.path.join(tree, "drive.js"), os.path.join(tree, "doc.json")
-    open(dp, "w", encoding="utf-8").write(DRIVER)
-    json.dump(DOC, open(jp, "w", encoding="utf-8"))
-    r = subprocess.run(["node", dp, PAGE, jp], cwd=tree, timeout=300, capture_output=True, text=True)
-    ck(r.returncode == 0, "⚠️ the shipped tab code ran in node", (r.stderr or "")[-400:])
-    R = json.loads(r.stdout) if r.returncode == 0 else {"line": "", "p": "", "sp": ""}
+    open(os.path.join(tmp, "d.js"), "w", encoding="utf-8").write(DRIVER)
+    json.dump({"rl": js_block("winnersRecordLine", PAGE), "wh": js_block("winnersHtml", PAGE),
+               "docs": DOCS}, open(os.path.join(tmp, "d.json"), "w"))
+    r = subprocess.run(["node", os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")],
+                       capture_output=True, text=True, timeout=300)
+    OUT = json.loads(r.stdout) if r.returncode == 0 else ["", "", ""]
 finally:
-    shutil.rmtree(tree, ignore_errors=True)
+    shutil.rmtree(tmp, ignore_errors=True)
+_rows = [h.count("<tr>") - 1 for h in OUT]          # minus the header row
+ck("🔴 the shipped page draws one row per slate game in every league",
+   r.returncode == 0 and _rows == [3, 2, 2], "%s %s" % (_rows, (r.stderr or "")[-200:]))
+ck("🔴 ...the pick, its chance and its price; an MLB game missing a starter reads 'No pick yet'",
+   "<b>Home 1</b>" in OUT[0] and "61%" in OUT[0] and "-150 fanduel" in OUT[0]
+   and "No pick yet" in OUT[0] and "<b>Lions</b>" in OUT[1] and "67%" in OUT[1], OUT[0][:300])
+ck("🔴 ...sorted by start time, whatever order the file holds",
+   OUT[2].index("Bills") < OUT[2].index("Lions"), OUT[2][:200])
+ck("🔴 the winners' own record line at the top, only when something is graded",
+   OUT[0].startswith("<p data-wrec>") and "3 won, 2 lost" in OUT[0] and "data-wrec" not in OUT[1])
+_BANNED = ("glr", "glgame", "ladder", "rung", "Alt ", "fair", "class=\"kind", "note", "warn",
+           "⚠", "Model %", "Books&rsquo; chance")
+ck("⛔ no ladder, box or tag in the tab, in any league",
+   all(not any(b in h for b in _BANNED) for h in OUT), str([b for h in OUT for b in _BANNED if b in h]))
+_gone = [f for f in ("fbGlRung", "fbGlMain", "fbGlFair", "fbGlGame", "fbGlParlays",
+                     "fbGlRecordHtml", "fbGameLinesHtml") if ("function %s(" % f) in SRC]
+ck("⛔ ...and the ladder renderers are gone from the shipped page; both tabs draw winnersHtml",
+   not _gone and "winnersHtml(W)" in js_block("fbGameLinesTab", PAGE)
+   and "winnersHtml(W)" in js_block("renderGameLines", PAGE)
+   and "gamelines:renderGameLines" in js_block("show", PAGE), "still defined: %s" % _gone)
 
-section("1. EVERY RUNG IS DRAWN, EACH BOOK NAMED FOR A PHONE")
-rows = re.findall(r'<div class="glr(?: nofloor)?">(.*?)\n  </div>', R["line"], re.S)
-n = DOC["n_rungs"]
-ck(n == 11 and len(rows) == n,
-   "🔴🔴 all %d rungs the books posted are drawn — no cap, no filter (%d rows)" % (n, len(rows)))
-ck(all(all('data-l="%s"' % b in x for b in ("DraftKings", "FanDuel", "Hard Rock", "Best", "Break-even",
-                                            "Books&rsquo; chance", "Model %", "Edge")) for x in rows)
-   and all(x.index('data-l="Books&rsquo; chance"') < x.index('data-l="Model %"') for x in rows),
-   "🔴 every row names each cell, so on a phone no price loses its label")
-# [Sam, 2026-10-01] ~~a rung below -700 is drawn, marked as never paired~~ — the
-#    "below −700 · never paired" chip was a per-row flag and is gone with the
-#    rest. The rung is still DRAWN (no play is hidden), and the −700 floor still
-#    decides pairing in the builder: the rung carries `floor: false`.
-_low = [r for g in DOC["games"] for m in ("spread", "total") for r in g.get(m, []) if not r["floor"]]
-ck(len(_low) == 1 and len(rows) == n
-   and "&minus;700" not in R["line"] and "never paired" not in R["line"],
-   "   ✅ a rung below -700 is still drawn, and carries no chip saying so",
-   "rungs below the floor in the data: %d, rows drawn: %d of %d" % (len(_low), len(rows), n))
-
-# [Sam, 2026-10-01] ~~2. RULE 55 AND THE CHECK'S LABEL, ON THE ROW~~ — the page
-#    carries no MODEL / MARKET tag and no ⚠ on any tab now. Every check below
-#    used to REQUIRE the chip, the warning or the note; each now requires it
-#    ABSENT, asked of the same render, after confirming the builder still
-#    writes it (the data keeps every kind, check and warning field).
-section("2. THE HEADING AND THE NUMBERS — NO CHIP, NO WARNING, NO NOTE")
-_h2 = re.search(r"<h2[^>]*>(.*?)</h2>", R["line"], re.S)
-ck(_h2 is not None and DOC.get("slate_date")
-   and _h2.group(1) == "Game Lines &mdash; DAY(%s)" % DOC["slate_date"],
-   "✅ the heading names the tab and the slate's day, and nothing else",
-   "the day sits in the heading in place of the deleted fbDayLine sentence: %r"
-   % (_h2.group(1) if _h2 else None))
-_hd = re.search(r'<div class="glr gh">(.*?)</div></div>', R["line"], re.S)
-head = _hd.group(1) if _hd else ""
-_cells = re.findall(r"<div>(.*?)</div>", head + "</div>")   # the match ate the last cell's close
-# ~~prices and break-evens wear Market, the model's % and edge wear Model~~
-ck(_cells == ["Line", "Books&rsquo; chance"] + list(DOC["books"]) + ["Best", "Break-even", "Model %", "Edge"]
-   and 'class="kind' not in R["line"],
-   "🔴 no column wears a chip — each header cell names its column and nothing else, and no chip anywhere on the tab",
-   "header cells: %r" % _cells)
-tot_rows = [x for x in rows if ("Over" in x or "Under" in x)]
-sp_rows = [x for x in rows if x not in tot_rows]
-_warned = lambda x: "glwarn" in x or "&#9888;" in x or "⚠" in x or G.A.WARNING in x  # noqa: E731
-_rungs = [(m, r) for g in DOC["games"] for m in ("spread", "total") for r in g.get(m, [])]
-_failed = [r for m, r in _rungs if (DOC["check"].get(m) or {}).get("state") != "PASS"]
-# ~~every rung of a market that failed the check shows the warning ON ITS ROW~~
-ck(tot_rows and _failed and all(r["cal"] is False and r.get("warn") for r in _failed)
-   and not any(_warned(x) for x in tot_rows),
-   "🔴🔴 no rung of a market that failed the check shows a warning on its row",
-   "rows: %d, failed-market rungs the builder still marks cal=false with a warning: %d"
-   % (len(tot_rows), len(_failed)))
-# ~~and a rung that passed does not (the warning is the result, not decoration)~~
-ck(sp_rows and any(r["cal"] for m, r in _rungs) and any(g.get("fair_total_warn") for g in DOC["games"])
-   and not _warned(R["line"]),
-   "   ✅ and no other line shows one either — not a rung that passed, not the model's fair lines")
-# ~~the books' chance comes first, labelled Market, and the note says the model points the wrong way~~
-_finding = ((DOC.get("check") or {}).get("total") or {}).get("finding") or ""
-ck("Books&rsquo; chance" in head and "Model %" in head
-   and head.index("Books&rsquo; chance") < head.index("Model %")
-   and "points the wrong way away from the main line" in _finding
-   and "points the wrong way away from the main line" not in R["line"]
-   and 'class="note"' not in R["line"],
-   "🔴 the books' chance still comes first, and no note says what the check found",
-   "the finding stays in the data (check.total.finding): %r" % _finding[:90])
-_par = R["line"][R["line"].find("Alt-line parlays"):]
-_par = _par[:_par.find("Track record")] if "Track record" in _par else _par
-_pl = [p for k in sorted(DOC.get("parlays") or {}) for p in (DOC["parlays"][k] or [])]
-# ~~the alt parlays are drawn, wear Market, and show no model number~~
-ck("Alt-line parlays" in R["line"] and 'class="kind' not in _par
-   and 'k-market' not in _par and 'k-model' not in _par
-   and "Model %" not in _par and "data-l=\"Books&rsquo; chance all land\"" in _par
-   and 'class="note"' not in _par and not re.search(r"<p[\s>]", _par)
-   and _pl and all(p.get("joint_note") for p in _pl) and not any(p["joint_note"] in _par for p in _pl),
-   "🔴 the alt parlays are drawn with no chip, no note and no model number",
-   R["line"][R["line"].find("Alt-line parlays")-100:][:1800])
-
-section("3. THE SORT AND THE MARKET FILTER")
-ps = [float(v) for v in re.findall(r'data-l="Model %">([\d.]+)%', R["p"])]
-sp_ps = ps[:5]                      # the first game's spread ladder
-ck(sp_ps == sorted(sp_ps, reverse=True) and len(sp_ps) == 5,
-   "🔴 sorted by model %: each ladder reads highest first", "got %r" % sp_ps)
-_lad = R["sp"].split("Alt-line parlays")[0]     # the parlays list is not filtered by market
-ck("Over" not in re.sub(r"<[^>]+>", " ", _lad) and len(re.findall(r'data-l="Edge"', _lad)) == len(sp_rows),
-   "   ✅ the market filter shows spreads only")
-
-section("4. WIRED, AND IT FITS A PHONE")
-# `[2026-10-02]` ~~fbShell's own tab list~~ -- the header's one bar draws
-#    every league's tabs from `TABS` (test_tab_bar.py), so ask that list.
-_tl = re.search(r"const TABS = \[(.*?)\];", HTML, re.S)
-_tabs = re.findall(r"\['([a-z]+)',", _tl.group(1)) if _tl else []
-ck("gamelines" in _tabs and "props" in _tabs
-   and _tabs.index("gamelines") == _tabs.index("props") + 1,
-   "   ✅ the tab sits beside Player Props", "tabs: %s" % _tabs)
-_wire = js_block("fbWire", PAGE)
-_tab = js_block("fbGameLinesTab", PAGE)
-ck("FBTAB === 'gamelines'" in _wire and "fbGameLinesTab()" in _wire and calls("fbGameLinesHtml", PAGE) >= 1
-   and "gamelines:" in HTML[HTML.index("const FB_EMPTY = {"):HTML.index("const FB_EMPTY = {") + 2500],
-   "🔴 the tab is ROUTED (every football render ends in fbWire) and its renderer CALLED — rule 130")
-ck(_tab.count("data-gl") >= 3,
-   "   ✅ every shell the tab draws carries data-gl, so its own fbWire() cannot loop")
-_mq = re.search(r"@media\(max-width:600px\)\{(.*?)\n\}", HTML, re.S)
-ck(bool(_mq) and ".glr.gh{display:none}" in _mq.group(1) and "content:attr(data-l)" in _mq.group(1),
-   "🔴 on a phone the header folds away and every cell carries its own label")
+# ══════════════════════════════════════════════════════════════════════
+section("3. 🔴 FROZEN AT THE START, GRADED ONCE, ITS OWN RECORD, RE-COMPUTED")
+# ══════════════════════════════════════════════════════════════════════
+at = lambda hh, mm=0: datetime.datetime(2026, 9, 2, hh, mm, tzinfo=UTC)   # noqa: E731
+FINAL = lambda h, a: {"slate_date": DAY, "n_games": 1, "n_final": 1, "games": [   # noqa: E731
+    {"gamePk": 1, "state": "Final", "score": {"home": h, "away": a}, "pitchers": [], "batters": []}]}
+t, cwd = tempfile.mkdtemp(prefix="winrec-"), os.getcwd()
+try:
+    put(t, "data/latest/board.json", BOARD)
+    put(t, "picks/%s.json" % DAY, {"date": DAY, "kind": "gizmos-card", "picks": []})
+    put(t, "data/latest/mlb-game-model.json", {"slate": DAY, "games": [mg(1, T1, 61.0)]})
+    W.build("mlb", root=t, when=at(14), log=lambda *a: None)          # before the start: home
+    put(t, "data/latest/mlb-game-model.json", {"slate": DAY, "games": [mg(1, T1, 30.0)]})
+    put(t, "data/2026-09-02/winner-picks/1800.json.gz",                 # a save AFTER the start
+        {"league": "mlb", "taken_at": "2026-09-02T18:00:00Z",
+         "rows": [dict(W.make_row(1, T1, "Away 1", "Home 1", 30.0, None, None))]})
+    _mid = W.build("mlb", root=t, when=at(18, 30), log=lambda *a: None)
+    put(t, "data/%s/results/final.json.gz" % DAY, FINAL(5, 3))       # filed under its slate
+    _g1 = W.build("mlb", root=t, when=at(23), log=lambda *a: None)
+    put(t, "data/2026-09-03/winner-grades/0100.json.gz",               # a LATER grade, flipped
+        {"league": "mlb", "grades": [{"game_id": "1", "state": "graded", "won": False}]})
+    _g2 = W.build("mlb", root=t, when=at(23, 30), log=lambda *a: None)
+    _latest = sorted(os.listdir(os.path.join(t, "data", "latest")))
+    os.chdir(t)
+    CO.collect_record()                                                 # the props record, beside it
+    _rec = json.load(open("data/latest/record.json"))
+    for f in ("verify_record.py", "collect.py", "record_grader.py"):
+        shutil.copy(os.path.join(ROOT, f), t)
+    _v1 = subprocess.run([sys.executable, "verify_record.py"], cwd=t, capture_output=True,
+                         text=True, env=dict(os.environ, PYTHONUTF8="1"))
+    _wj = json.load(open("data/latest/winners.json"))
+    _wj["record"]["w"] = 0
+    json.dump(_wj, open("data/latest/winners.json", "w"))
+    _v2 = subprocess.run([sys.executable, "verify_record.py"], cwd=t, capture_output=True,
+                         text=True, env=dict(os.environ, PYTHONUTF8="1"))
+finally:
+    os.chdir(cwd)
+    shutil.rmtree(t, ignore_errors=True)
+ck("🔴 a started game shows the pick saved before its start (Home 1), not the model's newer "
+   "number, and a save taken after the start never sets it",
+   [(r["pick"], r["chance"]) for r in _mid["rows"]] == [("Home 1", 61)], str(_mid["rows"]))
+ck("🔴 graded once from the final score: won 5-3, and a later, different grade never replaces it",
+   (_g1["record"]["w"], _g1["record"]["n"]) == (1, 1)
+   and (_g2["record"]["w"], _g2["record"]["n"]) == (1, 1), "%s / %s" % (_g1["record"], _g2["record"]))
+ck("🔴 the winners' record is its own file: winners.json beside an untouched props record",
+   "winners.json" in _latest and _rec.get("overall", {}).get("n") == 0
+   and "winners" not in json.dumps(_rec), "%s %s" % (_latest, _rec.get("overall")))
+ck("✅ verify_record re-computes the winners' record a second way and agrees",
+   _v1.returncode == 0 and "the mlb winners reproduce in their own line (1/1, 0 void)" in _v1.stdout,
+   (_v1.stdout + _v1.stderr)[-400:])
+ck("🔴 ...and fails a winners record that is wrong",
+   _v2.returncode == 1 and "the mlb winners reproduce" in _v2.stdout, _v2.stdout[-300:])
+ck("🔴 each league's Track Record shows the winners' line from winners.json, never from record.json",
+   "winnersRecordLine(W)" in js_block("renderRecord", PAGE) and "winnersRecordLine(W)" in js_block("fbRecord", PAGE)
+   and "winnersLoad('mlb')" in js_block("renderRecord", PAGE) and "winnersLoad(LEAGUE)" in js_block("fbRecord", PAGE))

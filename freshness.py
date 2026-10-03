@@ -992,14 +992,21 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/model-ledger.json"), T["card"], False,
          "What the model showed, graded"))
-    # `[Sam, 2026-09-24]` the Game Lines tab and its alt-rung record, rebuilt
-    #    by the same run (and right after every alt-line pull).
+    # `[Sam, 2026-09-24]` the alt ladders and their alt-rung record, rebuilt
+    #    by the same run (and right after every alt-line pull). `[Sam,
+    #    2026-10-01]` no longer drawn on the Game Lines tab; the card's
+    #    alternate spreads still read the ladder.
     rows.append(
         ("card-fb", ("file", f"{latest}/game-lines.json.gz"), T["card"], False,
-         "Game Lines — alt ladders with the model's prices"))
+         "Gizmo's Picks — the alt ladders the card's alternate spreads read"))
     rows.append(
         ("card-fb", ("file", f"{latest}/game-lines-record.json"), T["card"], False,
-         "Game Lines — the alt-rung track record"))
+         "Alt ladders — the alt-rung track record"))
+    # `[Sam, 2026-10-01]` the Game Lines tab: the model's pick to win each
+    #    game and its record (winners.py), rebuilt by the same run.
+    rows.append(
+        ("card-fb", ("file", f"{latest}/winners.json"), T["card"], False,
+         "Game Lines — the model's pick to win each game"))
     # `[Sam, 2026-09-25]` card vs props-model agreement labels and their record.
     rows.append(
         ("card-fb", ("file", f"{latest}/agreement.json"), T["card"], False,

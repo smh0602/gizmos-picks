@@ -291,6 +291,55 @@ ck("the game-line line names only moneyline and run line",
    set(_gl.get("by_market") or {}) == set(glm),
    f"by_market holds {sorted(_gl.get('by_market') or {})} -- totals only by Sam's decision")
 
+# 🔴 THE MODEL'S WINNERS (the Game Lines tab), EVERY LEAGUE, A SECOND WAY.
+#    `[Sam, 2026-10-01]` one record per league, never mixed into another. Each
+#    stored grade is re-derived from the pick in the last save before the
+#    game's start and the sign of the final margin, then summed against
+#    winners.json. A game finished but not yet graded is the builder's next
+#    run, not a disagreement.
+for _lg, _dd in (("mlb", "data"), ("nfl", "data/nfl"), ("ncaaf", "data/ncaaf")):
+    if not os.path.exists(os.path.join(_dd, "latest", "winners.json")):
+        continue
+    _wr = _read_json(os.path.join(_dd, "latest", "winners.json"), "the %s winners" % _lg).get("record") or {}
+    _pick = {}
+    for _p in glob.glob(os.path.join(_dd, "*", "winner-picks", "*.json.gz")):
+        _s = json.load(gzip.open(_p, "rt"))
+        for _r in _s.get("rows") or []:
+            if _s["taken_at"] < _r["commence"] and _s["taken_at"] > _pick.get(_r["game_id"], ("",))[0]:
+                _pick[_r["game_id"]] = (_s["taken_at"], _r["side"])
+    _fin = {}
+    _src = (glob.glob("data/*/results/final.json.gz") if _lg == "mlb"
+            else glob.glob(os.path.join(_dd, "latest", "schedule-*.json.gz")))
+    for _p in _src:
+        for _g in json.load(gzip.open(_p, "rt")).get("games") or []:
+            _sc = _g.get("score") or {}
+            _fin[str(_g.get("gamePk") if _lg == "mlb" else _g.get("id"))] = (
+                (_g.get("state"), _sc.get("home"), _sc.get("away")) if _lg == "mlb" else
+                ("Final" if _g.get("final") else None, _g.get("home_score"), _g.get("away_score")))
+    _seen, _tally, _bad = set(), [0, 0, 0], []
+    for _p in sorted(glob.glob(os.path.join(_dd, "*", "winner-grades", "*.json.gz"))):
+        for _gr in json.load(gzip.open(_p, "rt")).get("grades") or []:
+            _id = _gr["game_id"]
+            if _id in _seen or _id not in _pick:
+                continue
+            _seen.add(_id)
+            _st, _h, _a = _fin.get(_id, (None, None, None))
+            if _st in VOID_STATES or (_st == "Final" and _h is not None and _h == _a):
+                _mine = ("void", None)
+            elif _st == "Final" and None not in (_h, _a):
+                _mine = ("graded", ((_h - _a) > 0) == (_pick[_id][1] == "home"))
+            else:
+                _mine = ("pending", None)
+            if _mine != (_gr.get("state"), _gr.get("won")):
+                _bad.append((_id, _mine, _gr.get("state"), _gr.get("won")))
+            _tally[0] += _mine[1] is True
+            _tally[1] += _mine[0] == "graded"
+            _tally[2] += _mine[0] == "void"
+    ck(f"the {_lg} winners reproduce in their own line ({_tally[0]}/{_tally[1]}, {_tally[2]} void)",
+       not _bad and tuple(_tally) == (_wr.get("w"), _wr.get("n"), _wr.get("voids")),
+       f"winners.json says {_wr.get('w')}/{_wr.get('n')}, {_wr.get('voids')} void; "
+       f"disagreeing grades {_bad[:3]}")
+
 # 🔴 THE PRINTED-NUMBER TABLE (C2, audit B) MUST HOLD EVERY GRADED ROW,
 # checked against THIS file's own re-grade, not against record.json.
 _cp = REC.get("calibration_printed")

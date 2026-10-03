@@ -523,13 +523,17 @@ for lg in ("nfl", "ncaaf"):
     ck(all(p.endswith(("dossiers.json.gz", "fb-model.json", "fb-props-model.json",
                        "card-calibration.json", "model-ledger.json",
                        "game-lines.json.gz", "game-lines-record.json",
-                       "agreement.json")) for p in extra),
+                       "agreement.json", "winners.json")) for p in extra),
        f"   ⚠️ {lg}: `card-fb`'s other files are the ones it builds",
        f"unexpected non-picks files under card-fb: {extra}")
     _cfb = open("collect.py", encoding="utf-8").read()
     _cfb = _cfb[_cfb.index('elif mode == "card-fb":'):_cfb.index('elif mode == "halftime-probe":')]
     ck(("fb-model.json" not in " ".join(extra)) or "_fm.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds fb-model.json",
+       "⛔ a contract row on a file its mode never writes is late for ever")
+    # `[Sam, 2026-10-01]` the Game Lines tab's winners, built by the same run.
+    ck(("winners.json" not in " ".join(extra)) or "build_winners()" in _cfb,
+       f"   🔴 {lg}: ...and card-fb really builds winners.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("fb-props-model.json" not in " ".join(extra)) or "_fpm.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds fb-props-model.json",
