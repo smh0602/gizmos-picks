@@ -218,9 +218,15 @@ section("3. 🔴🔴 A MERGE OF TWO CAPPED LISTS IS NOT A CAPPED LIST")
 #    listed — `parlays` and `sgp` had no live assertion at all, which is
 #    why nothing caught them.
 
-CAPS = {sec: C.freeze_cap(sec) for sec in C.FREEZE_SECTIONS}
-ck("⚠️ every frozen section declares a cap, and none is None",
-   all(isinstance(v, int) and v > 0 for v in CAPS.values()),
+# `[Sam, 2026-10-01]` ONE NAMED EXCEPTION: `game_lines` holds one row per
+#    game-model pick, so it declares no cap (~~GAME_LINES_N~~). Its rows are
+#    still frozen and never duplicated (§1); every OTHER section keeps one.
+UNCAPPED = {"game_lines"}
+CAPS = {sec: C.freeze_cap(sec) for sec in C.FREEZE_SECTIONS if sec not in UNCAPPED}
+ck("⚠️ every frozen section declares a cap, and none is None (game_lines alone excepted)",
+   all(isinstance(v, int) and v > 0 for v in CAPS.values())
+   and set(C.FREEZE_SECTIONS) - set(CAPS) == UNCAPPED
+   and C.freeze_cap("game_lines") is None,
    "⛔ rule 67: a section with no cap makes every check below vacuous "
    "FOR THAT SECTION and says nothing about it. Got %s" % CAPS)
 

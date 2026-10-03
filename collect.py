@@ -273,6 +273,7 @@ FB_ALT_LEAD_MIN = 30
 # One region (us2) is Hard Rock only and costs half.
 REGIONS_FULL = "us,us2"
 REGIONS_CHEAP = "us2"
+FULL_PULL_FROM_HOUR = 10      # UTC; props_regions: no full pull before the lines are up
 
 # 🔴 THE FIVE BOOKS, AND ONLY THESE FIVE.
 # Sam, 2026-08-23: "lets just only use the top 5 sportsbooks in the USA,
@@ -1143,6 +1144,11 @@ def props_regions(kind):
     #    DraftKings props. MLB's first pull lands 11:01-12:08Z, so nothing
     #    moves there. Still at most ONE full pull per kind per day; every
     #    later pull is Hard Rock only.
+    # ⛔ `[2026-10-02, #217's review]` ...BUT NEVER BEFORE 10:00Z: the day's
+    #    lines are not posted yet, so the full pull waits for the first pull
+    #    at or after 10:00Z (FULL_PULL_FROM_HOUR).
+    if now().hour < FULL_PULL_FROM_HOUR:
+        return REGIONS_CHEAP
     root = f"{DATA}/{now().strftime('%Y-%m-%d')}"
     # ⛔ THIS KIND'S DIRECTORY ONLY. Reading the sibling's is what made
     # the pitcher pull answer a question the batter side had asked.
@@ -4397,22 +4403,23 @@ def run_mode(mode):
             # 🔴 AND CARD IT, in its own try for the same reason. ⛔ A card
             # failure must not lose the paid snapshot OR the board built
             # from it -- both are already on disk by this point.
-            try:
-                build_card_fb()
-            except Exception as _ce:
-                log(f"  football card FAILED: {type(_ce).__name__}: {_ce}")
-                log("  ⚠️ the board is safe; the card can be rebuilt")
             # 🔴 `[Sam, 2026-09-24]` AND THE ALT LINES, ON THE SAME DEADLINE.
             #    It buys only the games this deadline owns (the last one
             #    before each kickoff) and spends nothing otherwise; converge
             #    repairs a missed one through its own `alt-lines` row.
             #    ⛔ A failure here never loses the props already bought.
+            #    `[2026-10-01]` before the card, which reads the ladder.
             try:
                 collect_alt_lines()
                 import game_lines_fb as _glf
                 _glf.build(LEAGUE)
             except Exception as _ae:
                 log(f"  alt lines FAILED: {type(_ae).__name__}: {_ae}")
+            try:
+                build_card_fb()
+            except Exception as _ce:
+                log(f"  football card FAILED: {type(_ce).__name__}: {_ce}")
+                log("  ⚠️ the board is safe; the card can be rebuilt")
         # The cheap refreshes. Hard Rock's region only, half the price.
         # Same storage directory as the full pull -- the stored file
         # records which regions it used, so the two never get confused.
@@ -4472,6 +4479,23 @@ def run_mode(mode):
             #    exited 1. A football mode under MLB now does nothing.
             if LEAGUE == "mlb":
                 return log("card-fb is football only; under mlb its card, T54, dossier and shadow record are skipped. Nothing done.")
+            # 🔴 `[Sam, 2026-10-01]` THE GAME MODEL AND THE LADDER FILE FIRST: the
+            #    card's game-line rows are the model's picks and its alternate
+            #    spreads come from the ladder, so both are rebuilt before the
+            #    card reads them. ⛔ A failure is logged and the card is built
+            #    from the files already on disk.
+            try:
+                import fb_model as _fm
+                _fm.build(LEAGUE)
+            except Exception as e:
+                log(f"  ⚠️ the pick model did not build "
+                    f"({type(e).__name__}: {e}) — the card uses the file on disk.")
+            try:
+                import game_lines_fb as _glf
+                _glf.build(LEAGUE)
+            except Exception as e:
+                log(f"  ⚠️ the game lines tab did not build "
+                    f"({type(e).__name__}: {e}) — the card uses the file on disk.")
             left = build_card_fb()
             # ══════════════════════════════════════════════════════════
             # 🔴 AND THE GRADER RUNS RIGHT BEHIND IT. `[2026-09-06]`
@@ -4603,13 +4627,6 @@ def run_mode(mode):
             # ⛔ A failure here is logged and the card stands.
             # ══════════════════════════════════════════════════════════
             if LEAGUE in ("nfl", "ncaaf"):
-                try:
-                    import fb_model as _fm
-                    _fm.build(LEAGUE)
-                except Exception as e:
-                    log(f"  ⚠️ the pick model did not build "
-                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
-                        f"is not rolled back.")
                 # 🔴 AND THE PROPS MODEL, THE SAME WAY. `[Sam, 2026-09-24]`
                 #    "Retrain automatically inside the existing card-fb run.
                 #    No cron changes." ⛔ It never touches the card either.
@@ -4648,16 +4665,6 @@ def run_mode(mode):
                     _fl.build(LEAGUE)
                 except Exception as e:
                     log(f"  ⚠️ the model ledger did not build "
-                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
-                        f"is not rolled back.")
-                # `[Sam, 2026-09-24]` the Game Lines tab: alt ladders priced
-                #    by the model just refitted above, frozen, graded, and
-                #    its own record. ⛔ It never touches the card.
-                try:
-                    import game_lines_fb as _glf
-                    _glf.build(LEAGUE)
-                except Exception as e:
-                    log(f"  ⚠️ the game lines tab did not build "
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back.")
         elif mode == "halftime-probe":

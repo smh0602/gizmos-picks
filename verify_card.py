@@ -342,10 +342,14 @@ print("\n8. BAND / FLOOR / LADDER")
 # rule 187 fixed the builder, so this half of the drift was still latent
 # when its twin below went red. ⛔ A latent boundary error is the same
 # defect as a live one; it is waiting for a price, not for a fix.
+# 🔴 `[Sam, 2026-10-01]` THE REQUIREMENT CHANGED AGAIN, AND THIS FORM IS
+#    STRICTER: "ideally props/game lines at -400 is the lowest we should go".
+#    ~~every below-floor row is LABELLED~~ (2026-08-25) -> NO board row is
+#    shorter than the floor. A labelled row now fails.
 _bf = [r for r in doc['picks']
        if r.get('price') is not None and r['price'] < C.PRICE_FLOOR]
-ck(f"every below-floor row is LABELLED as such ({len(_bf)} on this card)",
-   all(r.get('clears_price_floor') is False for r in _bf))
+ck(f"no board row is shorter than the {C.PRICE_FLOOR} floor ({len(_bf)} found)",
+   not _bf, str([(r.get('pitcher') or r.get('player'), r['price']) for r in _bf][:3]))
 _pair_legs = {l for p in doc['pairs'] for l in p['legs']}
 def _leg_label(r):
     # Rebuilt to match card.py's own construction, not approximated.
@@ -910,7 +914,7 @@ _t10 = doc.get('top10') or []
 _tx = doc.get('top10_excluded') or {}
 # 🔴 ~~_gate = _tx.get('price_floor', -400)~~ and ~~len(_t10) <= 10~~ —
 #    BOTH STRUCK 2026-09-14. Two more second copies of Sam's numbers
-#    (`card.TOP10_PRICE_FLOOR` and `card.TOP10_N`), in the file that must
+#    (~~`card.TOP10_PRICE_FLOOR`~~ `card.PRICE_FLOOR` and `card.TOP10_N`), in the file that must
 #    not hold any. ⚠️ The -400 was only a FALLBACK default, which is the
 #    quietest possible place for a copy to rot: it is used exactly when
 #    the card fails to report its own gate, i.e. on the one card whose
@@ -924,16 +928,18 @@ ck("the card states the top-10 price gate it applied",
    _gate is not None,
    "⛔ without it this section would be checking the card against a "
    "number the verifier made up")
-_gate = C.TOP10_PRICE_FLOOR if _gate is None else _gate
-ck(f"...and it is the builder's own constant ({C.TOP10_PRICE_FLOOR})",
-   _gate == C.TOP10_PRICE_FLOOR,
+# `[Sam, 2026-10-01]` ~~card.TOP10_PRICE_FLOOR~~: the one PRICE_FLOOR.
+_gate = C.PRICE_FLOOR if _gate is None else _gate
+ck(f"...and it is the builder's own constant ({C.PRICE_FLOOR})",
+   _gate == C.PRICE_FLOOR,
    "rule 207 — one constant, both readers. Card said %r" % _gate)
 ck(f"the top 10 is at most {C.TOP10_N} rows ({len(_t10)})",
    len(_t10) <= C.TOP10_N)
-ck(f"every row is priced better than the payable floor ({_gate})",
-   all(r.get('price') is not None and r['price'] > _gate for r in _t10),
+# `[Sam, 2026-10-01]` -400 itself clears, as -700 did (~~`> _gate`~~).
+ck(f"every row is priced at the payable floor or longer ({_gate})",
+   all(r.get('price') is not None and r['price'] >= _gate for r in _t10),
    str([(r.get('pitcher') or r.get('player'), r.get('price'))
-        for r in _t10 if r.get('price') is None or r['price'] <= _gate][:3]))
+        for r in _t10 if r.get('price') is None or r['price'] < _gate][:3]))
 _who = [r.get('pid') or r.get('pitcher') or r.get('player') for r in _t10]
 ck("no player appears twice", len(_who) == len(set(_who)),
    str([w for w, n in collections.Counter(_who).items() if n > 1][:3]))

@@ -327,8 +327,10 @@ print("\n═══ 5. ⛔ NOTHING ELSE MOVED ═══")
 #    pass, and the neighbouring temptation here is to loosen a threshold
 #    so 25 "good" rows can always be found. These are the bars as they
 #    stood before this change.
+# `[Sam, 2026-10-01]` PRICE_FLOOR moved legitimately, ~~-700~~ -400: "ideally
+#    props/game lines at -400 is the lowest we should go" (test_price_floor.py).
 for name, want in (("MIN_GAMES", 6), ("PRICE_CEIL", 400),
-                   ("PRICE_FLOOR", -700)):
+                   ("PRICE_FLOOR", -400)):
     got = getattr(card_fb, name, None)
     ck("⛔ %s is untouched at %r" % (name, want),
        got == want,

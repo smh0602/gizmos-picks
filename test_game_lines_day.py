@@ -35,15 +35,15 @@ thing and show another.
 #   find: if d and d != _gl_day:
 #   with: if False:
 #
-# @vacuity §5: a list that never moves to the next slate cannot be marked as moved
+# @vacuity §5: the shown list holds only the card's own day [Sam, 2026-10-01]
 #   file: card_fb.py
-#   find: return min(days) if days else None
-#   with: return None
+#   find: if et_date(p.get("commence")) != slate:
+#   with: if False:
 #
-# @vacuity §5: main must mark a list that is on another day than its card
+# @vacuity §5: main keeps the shown list on the card's own day [Sam, 2026-10-01]
 #   file: card_fb.py
-#   find: gl_meta["is_next_slate"] = (_gl_slate != slate)
-#   with: gl_meta["is_next_slate"] = False
+#   find: gl_meta = {"source": "fb-model.json", "slate": slate, "card_slate": slate,
+#   with: gl_meta = {"source": "fb-model.json", "slate": _gl_slate, "card_slate": slate,
 """
 import datetime
 import gzip
@@ -204,50 +204,48 @@ def _marks_its_day(d):
 
 import tempfile  # noqa: E402
 _card_day = "2026-09-19"                                   # a Saturday card
-_snap5 = _snap([("sat", "2026-09-19T17:00:00Z"),           # started by NOW
-                ("thu", "2026-09-24T17:00:00Z"),           # the next slate
-                ("sat2", "2026-09-26T17:00:00Z")])         # a later one
-_now5 = datetime.datetime(2026, 9, 21, 19, 0, tzinfo=datetime.timezone.utc)
-# the card as it was published on Saturday: its own day's lines, started now
-_old_rows, _old_meta = C.build_game_lines(_snap5, n=None, slate=_card_day)
-_pubcard = {"date": _card_day, "game_lines_meta": _old_meta, "game_lines": _old_rows}
-# the rebuild on Monday, composed as `card_fb.main` composes it
-_gl_slate = C.next_line_slate(_snap5, _now5) or _card_day
-_rows5, _meta5 = C.build_game_lines(_snap5, n=None, slate=_gl_slate)
-_meta5["card_slate"] = _card_day
-_meta5["is_next_slate"] = (_gl_slate != _card_day)
-_new = {"date": _card_day, "game_lines_meta": _meta5, "game_lines": _rows5}
+# 🔴 `[Sam, 2026-10-01]` the card SHOWS the game model's picks for ITS OWN day
+#    (~~the next slate's price gaps~~), composed the way `card_fb.main` now
+#    composes them. ⚠️ The first rebuild after that change still meets cards
+#    built the old way: a published list on ANOTHER day, started. It must go
+#    to the archive, never back into the list.
+_now5 = "2026-09-19T19:00:00Z"
+_mp = lambda gid, at: {"game": "Away %s at Home %s" % (gid, gid), "commence": at,
+                       "market": "spread", "side": "home", "team": "Home %s" % gid,
+                       "book": "FanDuel", "line": {"value": -3.5}, "price": {"value": -110},
+                       "model_probability": {"value": 55.0}, "break_even": {"value": 52.4}}
+_picks5 = [_mp("fri", "2026-09-18T17:00:00Z"), _mp("sat", "2026-09-19T17:00:00Z"),
+           _mp("sat3", "2026-09-19T23:30:00Z"), _mp("thu", "2026-09-24T17:00:00Z")]
+_old_rows = C.card_game_lines(_picks5, [], {}, "2026-09-18")    # an old card's other-day list
+_pubcard = {"date": _card_day, "game_lines_meta": {"slate": "2026-09-18"}, "game_lines": _old_rows}
+_new = {"date": _card_day, "game_lines": C.card_game_lines(_picks5, [], {}, _card_day),
+        "game_lines_meta": {"source": "fb-model.json", "slate": _card_day,
+                            "card_slate": _card_day, "is_next_slate": False}}
 _tmp5 = tempfile.mkdtemp()
 try:
     _pub = os.path.join(_tmp5, "fb-ncaaf-latest.json")
     with open(_pub, "w", encoding="utf-8") as fh:
         json.dump(_pubcard, fh)
-    _built, _ = C.freeze_published(_new, _pub, "2026-09-21T19:00:00Z",
-                                   log=lambda *a, **k: None)
+    _built, _ = C.freeze_published(_new, _pub, _now5, log=lambda *a, **k: None)
 finally:
     import shutil  # noqa: E402
     shutil.rmtree(_tmp5, ignore_errors=True)
 ck("🔴 a card built here puts every game line on the list's own day, "
    "across a slate change and a freeze",
    bool(_old_rows) and bool(_built.get("game_lines"))
-   and not _foreign_days(_built),
+   and not _foreign_days(_built) and _built.get(C.GL_EARLIER),
    "⛔ the list prints ONE date and every row must be on it. slate %s; "
    "foreign days present: %s (published rows %d, built rows %d)"
    % ((_built.get("game_lines_meta") or {}).get("slate"),
       _foreign_days(_built), len(_old_rows), len(_built.get("game_lines") or [])))
-ck("⛔ ...and that card says so when its list is on another day than it is",
-   (_built.get("game_lines_meta") or {}).get("slate") != _card_day
-   and _marks_its_day(_built),
-   "a list on a different day than the header MUST be marked, or it is the "
-   "contradiction Sam reported with a different date. meta %s"
-   % (_built.get("game_lines_meta") or {}))
+ck("⛔ ...and the list's day IS the card's day",
+   (_built.get("game_lines_meta") or {}).get("slate") == _card_day
+   and _marks_its_day(_built), "meta %s" % (_built.get("game_lines_meta") or {}))
 _main = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
 _main = _main[_main.index("\ndef main("):]
 ck("🔴 ...and `card_fb.main` still composes the list exactly that way",
-   "_gl_slate = (next_line_slate(_gl_snap) or slate) if _gl_snap else slate"
-   in _main
-   and "build_game_lines(_gl_snap, n=None, slate=_gl_slate)" in _main
-   and 'gl_meta["is_next_slate"] = (_gl_slate != slate)' in _main
+   "game_lines = card_game_lines(" in _main
+   and 'gl_meta = {"source": "fb-model.json", "slate": slate, "card_slate": slate,' in _main
    and "freeze_published(" in _main,
    "⛔ a built card composed differently from main's would prove nothing "
    "about the card main writes")
