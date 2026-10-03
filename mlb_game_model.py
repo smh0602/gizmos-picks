@@ -211,8 +211,41 @@ def advance(st, I, day):
             st.lineups[team].append(lu)
 
 
-def walk(I, through=None):
-    """Predict every finished game from the days before it. -> (state, records)."""
+def pregame(g, at):
+    """One game as a schedule snapshot named it before first pitch."""
+    t = g.get("teams") or {}
+    team = lambda s: (t.get(s) or {}).get("team") or {}
+    sp = lambda s: (t.get(s) or {}).get("probablePitcher") or {}
+    return {"game_pk": g.get("gamePk"), "commence": g.get("gameDate"), "pulled_at": at,
+            "home": team("home").get("name"), "away": team("away").get("name"),
+            "home_id": team("home").get("id"), "away_id": team("away").get("id"),
+            "sp_home": sp("home").get("id"), "sp_away": sp("away").get("id"),
+            "sp_home_name": sp("home").get("fullName"), "sp_away_name": sp("away").get("fullName"),
+            "venue": (g.get("venue") or {}).get("id"), "game_type": g.get("gameType"),
+            "game_number": g.get("gameNumber")}
+
+
+def schedules(root=ROOT):
+    """gamePk -> that game as the LAST schedule snapshot pulled BEFORE its own first
+    pitch listed it. ⛔ The starters, teams and venue a prediction reads come from
+    here, never from the game's own box score or start log (both written after it)."""
+    best = {}
+    for p in glob.glob(os.path.join(root, "data", "[0-9]*", "schedule", "*.json.gz")):
+        d = _load(p)
+        at = d.get("pulled_at") or ""
+        for dd in (d.get("schedule") or {}).get("dates") or []:
+            for g in dd.get("games") or []:
+                fp, pk = g.get("gameDate") or "", g.get("gamePk")
+                if at and fp and at < fp and (pk not in best or best[pk][0] < at):
+                    best[pk] = (at, g)
+    return {pk: pregame(g, at) for pk, (at, g) in best.items()}
+
+
+def walk(I, S, through=None):
+    """Predict every finished game that a schedule snapshot named BEFORE its first
+    pitch, from the days before it: the starters that snapshot named and each
+    side's usual nine (no stored file holds a lineup posted before first pitch).
+    -> (state, records)."""
     st, recs = State(), []
     for day in sorted(I["scores"]):
         if through and day > through:
@@ -220,17 +253,13 @@ def walk(I, through=None):
         games = [g for g in I["scores"][day] if g.get("gameType") in GAME_TYPES]
         pairs = collections.Counter((g["away"], g["home"]) for g in games)
         for g in games:
-            if g.get("home_r") is None or pairs[(g["away"], g["home"])] > 1:
+            x = S.get(g.get("gamePk"))
+            if (g.get("home_r") is None or pairs[(g["away"], g["home"])] > 1 or not x
+                    or not (x["sp_home"] and x["sp_away"])):
                 continue
-            sh = starter(I, day, g["home"], g["away"], True)
-            sa = starter(I, day, g["away"], g["home"], False)
-            if not (sh and sa):
-                continue
-            lu = I["lineups"].get(day) or {}
-            lh = lu.get(g["home"]) if len(lu.get(g["home"]) or []) == 9 else st.usual(g["home"])
-            la = lu.get(g["away"]) if len(lu.get(g["away"]) or []) == 9 else st.usual(g["away"])
-            recs.append(dict(day=day, game=g, model=predict(st, g["home"], g["away"], sh, sa,
-                                                            lh, la, g.get("venue_id"))))
+            recs.append(dict(day=day, game=g, inputs=x, model=predict(
+                st, x["home"], x["away"], x["sp_home"], x["sp_away"],
+                st.usual(x["home"]), st.usual(x["away"]), x["venue"])))
         advance(st, I, day)
     return st, recs
 
@@ -325,112 +354,191 @@ def off_bands(table):
 
 
 # ══════════════════════════════════════════════════════════════════════
-# THE TOTALS CORRECTION. `[Sam, 2026-10-02]` "If a band is off by more than
-# 5 points on 100 or more games, correct it the way the pitcher correction
+# THE CORRECTION. `[Sam, 2026-10-02]` "If a band is off by more than 5
+# points on 100 or more games, correct it the way the pitcher correction
 # (C2) does, fitted walk-forward, and say so. ... Do not tune on it beyond
 # that correction."
-#   MEASURED 2026-10-03 (`python mlb_game_model.py check`, games 03-25 ->
-#   09-27): the total had two such bands (55-60: 145 games said 57.2, won
-#   44.8; 60-70: 106 said 63.0, won 47.2; every 50%+ side together 49.1% on
-#   460). Moneyline and run line had none. Corrected, walk-forward from
-#   09-03 (the first 150 priced games only train it): 52.9% on 310 games,
-#   the books' favoured side 52.6% on the same games.
 #   C2's form exactly: `fb_model.fit` (ridge logistic, its own RIDGE and
-#   MIN_TRAIN) on [logit(model's chance), logit(the market's chance)], refitted
-#   each day on earlier graded games only. ONE change of input, said here:
-#   the market's chance is the books' NO-VIG over chance, not one side's
-#   break-even, so over and under still sum to 100.
+#   MIN_TRAIN) on [logit(model's chance), logit(the market's chance)],
+#   refitted each day on earlier graded games only. ONE change of input,
+#   said here: the market's chance is the books' NO-VIG chance for the home
+#   side / the over, not one side's break-even, so the two sides still sum
+#   to 100.
+#   MEASURED 2026-10-03 (`python mlb_game_model.py check`; every game with a
+#   schedule saved before first pitch, 08-22 on):
+#     moneyline  no band off
+#     run line   50-55: 102 games said 52.7, won 58.8 -> CORRECTED
+#     total      55-60: 152 said 57.1, won 48.7; 60-70: 102 said 63.1,
+#                won 48.0 -> CORRECTED, and ⛔ NOT ON THE CARD (below)
+#   A market is corrected by this constant, set from that run; the file's
+#   `check.<market>.off_bands` says whether the newest games still agree.
+# ⛔ TOTALS NEVER REACH THE CARD, THE PAGE OR THE RECORD'S GAME-LINE LINE.
+#   `[Sam, 2026-10-03]` "go on with moneyline and run line only. Totals stay
+#   in mlb-game-model.json with both records (uncorrected and corrected) and
+#   keep being graded there". Only Sam's decision brings them onto the card
+#   (`card.GL_MARKETS`, test_mlb_game_lines.py).
 # ══════════════════════════════════════════════════════════════════════
-CORRECTED = ("total",)
+CORRECTED = ("run_line", "total")
+MARKETS = ("moneyline", "run_line", "total")
 
 
-def total_features(model_over, books_over):
-    return [logit(model_over / 100.0), logit(books_over / 100.0)]
+def features(model_pct, books_pct):
+    return [logit(model_pct / 100.0), logit(books_pct / 100.0)]
 
 
-def total_mapping(graded, before):
+def mapping(rows, before):
     """The fit on every graded game dated before `before`; None below MIN_TRAIN.
-    graded: [(day, model over %, books over %, went over)]."""
-    tr = [g for g in graded if g[0] < before]
-    m = fb_model.fit([total_features(g[1], g[2]) for g in tr], [1 if g[3] else 0 for g in tr])
+    rows: [(day, model %, books %, the home side / the over won)]."""
+    tr = [g for g in rows if g[0] < before]
+    m = fb_model.fit([features(g[1], g[2]) for g in tr], [1 if g[3] else 0 for g in tr])
     return None if m is None else dict(m, n_train=len(tr), before=before)
 
 
-def corrected_over(m, model_over, books_over):
-    """The corrected over chance (percent), or None with no mapping."""
-    if m is None or model_over is None or books_over is None:
+def corrected(m, model_pct, books_pct):
+    """The corrected chance (percent, unrounded), or None with no mapping."""
+    if m is None or model_pct is None or books_pct is None:
         return None
-    return 100.0 * fb_model.predict(m, total_features(model_over, books_over))
+    return 100.0 * fb_model.predict(m, features(model_pct, books_pct))
 
 
-def graded_totals(recs, B):
-    """[(day, model over %, books over %, went over)] for every priced game, pushes left out."""
-    out = []
+def graded(recs, B):
+    """market -> [(day, model %, books %, won)] for the HOME side (moneyline, run
+    line at the books' point) and the OVER, on priced games; pushes left out."""
+    out = {mk: [] for mk in MARKETS}
     for r in recs:
-        g, b = r["game"], B.get((r["day"], r["game"]["away"], r["game"]["home"]))
-        if b and b["over"] is not None and g["home_r"] + g["away_r"] != b["total"]:
-            out.append((r["day"], r["model"]["total_at"](b["total"])["over"], b["over"],
-                        g["home_r"] + g["away_r"] > b["total"]))
+        g, m = r["game"], r["model"]
+        b = B.get((r["day"], g["away"], g["home"]))
+        if not b:
+            continue
+        margin, runs = g["home_r"] - g["away_r"], g["home_r"] + g["away_r"]
+        if b["win_home"] is not None:
+            out["moneyline"].append((r["day"], m["win"]["home"], b["win_home"], margin > 0))
+        if b["rl_home"] is not None:
+            pt = b["rl_home_pt"]
+            out["run_line"].append((r["day"], m["run_line"]["home %+.1f" % pt], b["rl_home"],
+                                    margin + pt > 0))
+        if b["over"] is not None and runs != b["total"]:
+            out["total"].append((r["day"], m["total_at"](b["total"])["over"], b["over"],
+                                 runs > b["total"]))
     return out
 
 
 def check(recs, B):
-    """The walk-forward record: the side given 50%+ by band, with the books' own
-    no-vig chance for that same side on the same games beside it."""
-    ml, ml_same, ml_books, rl, rl_books = ([] for _ in range(5))
-    for r in recs:
-        g, m = r["game"], r["model"]
-        margin = g["home_r"] - g["away_r"]
-        ml.append(_side(m["win"]["home"], margin > 0))
-        b = B.get((r["day"], g["away"], g["home"]))
-        if not b:
-            continue
-        if b["win_home"] is not None:
-            ml_same.append(_side(m["win"]["home"], margin > 0, b["win_home"]))
-            ml_books.append(_side(b["win_home"], margin > 0))
-        if b["rl_home"] is not None:
-            pt = b["rl_home_pt"]
-            pm = m["run_line"]["home %+.1f" % pt]
-            rl.append(_side(pm, margin + pt > 0, b["rl_home"]))
-            rl_books.append(_side(b["rl_home"], margin + pt > 0))
-    graded = graded_totals(recs, B)
-    to = [_side(po, over, bo) for _, po, bo, over in graded]
-    to_books = [_side(bo, over) for _, po, bo, over in graded]
-    to_corr, maps = [], {}
-    for d, po, bo, over in graded:                      # walk-forward: earlier days only
-        if d not in maps:
-            maps[d] = total_mapping(graded, d)
-        c = corrected_over(maps[d], po, bo)
-        if c is not None:
-            to_corr.append(_side(c, over, bo))
-    out = {"moneyline": {"model": _table(ml), "model_on_priced_games": _table(ml_same),
-                         "books_on_priced_games": _table(ml_books)},
-           "run_line": {"model": _table(rl), "books": _table(rl_books)},
-           "total": {"model": _table(to), "books": _table(to_books),
-                     "corrected": _table(to_corr),
-                     "corrected_from": min((d for d, m in maps.items() if m), default=None)}}
-    out["off_bands"] = {k: off_bands(out[k]["model"]) for k in ("moneyline", "run_line", "total")}
-    out["off_bands"]["total_corrected"] = off_bands(out["total"]["corrected"])
+    """THE WALK-FORWARD RECORD, per market: the side given 50%+ by band, with the
+    books' own no-vig chance for that same side on the same games beside it,
+    and (for a corrected market) the same after the correction."""
+    out = {"games": len(recs), "from": min((r["day"] for r in recs), default=None),
+           "through": max((r["day"] for r in recs), default=None)}
+    for mk, rows in graded(recs, B).items():
+        t = {"model": _table([_side(p, w, bk) for _, p, bk, w in rows]),
+             "books": _table([_side(bk, w) for _, p, bk, w in rows])}
+        t["off_bands"] = off_bands(t["model"])
+        if mk in CORRECTED:
+            maps, corr = {}, []
+            for d, p, bk, w in rows:
+                if d not in maps:
+                    maps[d] = mapping(rows, d)
+                c = corrected(maps[d], p, bk)
+                if c is not None:
+                    corr.append(_side(c, w, bk))
+            t["corrected"] = _table(corr)
+            t["corrected_off_bands"] = off_bands(t["corrected"])
+            t["corrected_from"] = min((d for d, x in maps.items() if x), default=None)
+        out[mk] = t
     return out
 
 
+# ══════════════════════════════════════════════════════════════════════
+# THE SLATE -> data/latest/mlb-game-model.json (built by the card run, free)
+# ══════════════════════════════════════════════════════════════════════
+def _r1(v):
+    return None if v is None else round(v, 1)
+
+
+def slate_game(st, x, b, maps):
+    """One slate game's numbers. `card` holds what a card row reads: the model's
+    chance, corrected where the market is in CORRECTED."""
+    b = b or {}
+    lu_h, lu_a = st.usual(x["home"]), st.usual(x["away"])
+    m = predict(st, x["home"], x["away"], x["sp_home"], x["sp_away"], lu_h, lu_a,
+                x["venue"], b.get("total"))
+    fix = lambda mk, p, bk: corrected(maps.get(mk), p, bk) if mk in CORRECTED else p
+    pt = b.get("rl_home_pt")
+    ml = fix("moneyline", m["win"]["home"], b.get("win_home"))
+    rl = fix("run_line", m["run_line"]["home %+.1f" % pt], b.get("rl_home")) if pt is not None else None
+    ov = fix("total", m["total"]["over"], b.get("over")) if "total" in m else None
+    out = {k: x[k] for k in ("game_pk", "commence", "away", "home", "away_id", "home_id", "venue")}
+    out.update({
+        "starters": {s: {"id": x["sp_" + s], "name": x["sp_%s_name" % s]} for s in ("home", "away")},
+        "lineup": {"home": {"confirmed": False, "players": lu_h},
+                   "away": {"confirmed": False, "players": lu_a}},
+        "expected_runs": m["expected_runs"],
+        "win": {k: _r1(v) for k, v in m["win"].items()},
+        "run_line": {k: _r1(v) for k, v in m["run_line"].items()},
+        "total": None if "total" not in m else {
+            "line": b["total"], "over": _r1(m["total"]["over"]), "under": _r1(m["total"]["under"]),
+            "over_corrected": _r1(ov), "under_corrected": None if ov is None else _r1(100 - ov)},
+        "books": {k: (v if k in ("rl_home_pt", "total") else _r1(v)) for k, v in b.items()},
+        "card": {"moneyline": None if ml is None else {"home": ml, "away": 100 - ml},
+                 "run_line": None if rl is None else {"point": pt, "home": rl, "away": 100 - rl}},
+    })
+    return out
+
+
+def build(day, root=ROOT, write=True):
+    """Every game on ET day `day` that a schedule saved before first pitch names,
+    with its numbers, its inputs and the check's record. -> the doc."""
+    I, S, B = inputs(root), schedules(root), books(root)
+    st, recs = walk(I, S)
+    G = graded(recs, B)
+    maps = {mk: mapping(G[mk], day) for mk in CORRECTED}
+    games = [slate_game(st, x, B.get((day, x["away"], x["home"])), maps)
+             for x in sorted(S.values(), key=lambda x: x["commence"] or "")
+             if x["commence"] and _et_day(x["commence"]) == day
+             and x.get("game_type") in GAME_TYPES and x["home"] and x["away"]]
+    doc = {"generated_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+           "kind": "mlb-game-model", "slate": day, "generated_by": "mlb_game_model.py, in the card run",
+           "method": ("Each side's runs: the opposing starter's earned runs per out over his "
+                      "projected outs and its bullpen's runs per out over the rest, times the "
+                      "side's usual nine's bases per plate appearance against the league, times "
+                      "the park and home field; negative-binomial runs give the win, run-line "
+                      "and total chances. Starters are the ones a schedule saved before first "
+                      "pitch named; no stored file holds a lineup posted before first pitch, so "
+                      "every lineup is the usual one."),
+           "corrected": list(CORRECTED),
+           "correction_maps": {mk: None if m is None else {k: m[k] for k in ("mu", "sd", "w", "n_train", "before")}
+                               for mk, m in maps.items()},
+           "totals_on_card": False,
+           "totals_rule": ("Sam, 2026-10-03: totals stay in this file with both records and are "
+                           "never on the card, the page or the record's game-line line until he "
+                           "decides otherwise."),
+           "games": games, "check": check(recs, B)}
+    if write:
+        os.makedirs(os.path.join(root, "data", "latest"), exist_ok=True)
+        with open(os.path.join(root, "data", "latest", "mlb-game-model.json"), "w", encoding="utf-8") as fh:
+            json.dump(doc, fh, separators=(",", ":"))
+    return doc
+
+
 def _print_check(c):
-    for name, key in (("MONEYLINE, the season", ("moneyline", "model")),
-                      ("MONEYLINE, priced games", ("moneyline", "model_on_priced_games")),
-                      ("RUN LINE (1.5), priced games", ("run_line", "model")),
-                      ("TOTAL, priced games, raw", ("total", "model")),
-                      ("TOTAL, priced games, corrected", ("total", "corrected"))):
-        print(name)
-        for b in c[key[0]][key[1]]:
-            print("  %-6s n %4d  model %5s  won %5s  books %5s"
-                  % (b["band"], b["n"], b["chance"], b["won"], b["books"]))
-    print("off by more than 5 on 100+ games:", c["off_bands"])
-    print("correction fitted from:", c["total"]["corrected_from"])
+    print("games %s, %s -> %s" % (c["games"], c["from"], c["through"]))
+    for mk in MARKETS:
+        for key in ("model", "corrected"):
+            if key not in c[mk]:
+                continue
+            print("%s, %s" % (mk.upper(), key))
+            for b in c[mk][key]:
+                print("  %-6s n %4d  said %5s  won %5s  books %5s"
+                      % (b["band"], b["n"], b["chance"], b["won"], b["books"]))
+        print("  books' own side: all %s won %s%%; off by 5+ on 100+: %s%s"
+              % (c[mk]["books"][-1]["n"], c[mk]["books"][-1]["won"], c[mk]["off_bands"],
+                 "; corrected from %s, still off: %s" % (c[mk]["corrected_from"],
+                                                          c[mk]["corrected_off_bands"])
+                 if mk in CORRECTED else ""))
 
 
 if __name__ == "__main__":
     import sys
     if sys.argv[1:2] == ["check"]:
-        I = inputs()
-        _st, _recs = walk(I)
+        _st, _recs = walk(inputs(), schedules())
         _print_check(check(_recs, books()))

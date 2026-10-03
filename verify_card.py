@@ -1366,5 +1366,36 @@ ck("the stored hitter band table is calibration.band_flags' own verdict",
        [{'bucket': b['bucket'], 'n': b['n'], 'w': b['w'], 'stated': b['stated']}
         for b in _rest])] == [b['state'] for b in _rest])
 
+# 🔴 GAME LINES: THE MLB GAME MODEL'S PICKS. `[Sam, 2026-10-01..03]` moneyline
+#    and run line only, 50% or more, -400 or longer at the best of the five
+#    books, at most 25, whole numbers. Each row not yet started is traced to
+#    board.json (a started row is frozen as it was published) and its
+#    break-even recomputed from the price.
+print("\nGAME LINES -- traced to the stored odds board")
+_gl = doc.get('game_lines') or []
+_bd = {g.get('id'): g for g in (json.load(open('data/latest/board.json')).get('games') or [])}
+_now = C.datetime.now(C.timezone.utc)
+_glbad = []
+for r in _gl:
+    a = float(r['price'])
+    _be = 100 * (100 / (a + 100) if a > 0 else -a / (100 - a))
+    _ok = (r.get('kind') == 'mlb-line' and r.get('market') in C.GL_MARKETS
+           and a >= C.PRICE_FLOOR and r['confidence_value'] >= C.GL_MIN_CONF
+           and isinstance(r['confidence'], int) and abs(r['confidence'] - r['confidence_value']) <= 0.5
+           and abs(_be - r['break_even']) < 0.06)
+    if _ok and C._iso(r['commence']) > _now:
+        g = _bd.get(r.get('game_id')) or {}
+        q = ((g.get('best_ml') if r['market'] == 'moneyline' else g.get('best_spread'))
+             or {}).get(r['player']) or {}
+        _ok = ((q.get('price'), q.get('book')) == (r['price'], r['book'])
+               and (r['market'] == 'moneyline' or q.get('pt') == r['line']))
+    if not _ok:
+        _glbad.append((r.get('player'), r.get('market'), r.get('line'), r.get('price')))
+ck(f"every game-line row is a moneyline or run line at 50%+ and -400 or longer, "
+   f"at the board's own best price ({len(_gl)} rows)", not _glbad, str(_glbad[:3]))
+ck("at most 25 game-line rows, ranked by confidence",
+   len(_gl) <= C.GAME_LINES_MAX and [r.get('rank') for r in _gl] == list(range(1, len(_gl) + 1))
+   and all(x['confidence_value'] >= y['confidence_value'] for x, y in zip(_gl, _gl[1:])))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

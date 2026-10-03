@@ -445,6 +445,22 @@ note boxes, tags and the stale bar now require their absence.
   card. `record_fb` grades the alternate spreads in their own line
   (`alt_spreads`); the model's picks keep fb-model.json's record.
   `test_fb_game_picks.py`.
+- 🔴 **THE MLB CARD'S GAME LINES ARE THE GAME MODEL'S MONEYLINE AND RUN LINE
+  PICKS, AND ⛔ NEVER ITS TOTALS.** `[Sam, 2026-10-03]` *"go on with moneyline
+  and run line only. Totals stay in mlb-game-model.json with both records
+  (uncorrected and corrected) and keep being graded there, but they never
+  appear on the card, the page or the record's game-line line."* (The total's
+  50%+ sides won under half in the model's check.) ⛔ **Totals come onto the
+  card only by Sam's decision**, never because a later check looks better.
+  `card.game_line_rows`: one row per market in `GL_MARKETS`, the side at 50%
+  or more (`GL_MIN_CONF`) and −400 or longer at board.json's best of the five
+  books (a run line only at its exact signed point), both starters named,
+  the card's own day, at most 25 (`GAME_LINES_MAX`), whole-number confidence,
+  `kind` mlb-line, drawn by `pickCard` under Gizmo's Picks' Player props /
+  Game lines switch, frozen at first pitch (`freeze_game_lines`). Graded in
+  their own line (record.json `game_lines`, `collect.GAME_LINE_MARKETS`),
+  re-graded by verify_record.py, never in a props count.
+  `test_mlb_game_lines.py`.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
   other kind~~, and after C2 (#166) few pitcher rows beat their price.
@@ -567,6 +583,17 @@ collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card, record, refresh, lineups
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
+mlb_game_model.py THE MLB GAME MODEL (Sam, 2026-10-02): each side's runs
+                  from the opposing starter (start logs), its bullpen (scores
+                  minus starters), the side's usual nine (hitter logs), park
+                  and home field; negative-binomial runs -> win, run-line and
+                  total chances. Starters from the schedule saved BEFORE first
+                  pitch; ⛔ nothing dated at or after first pitch is read (no
+                  stored file holds a posted lineup, so `confirmed` is false).
+                  Built in the card run (free) -> data/latest/mlb-game-model.json
+                  with its walk-forward check; run line and total carry C2's
+                  correction (Sam's 5-point rule). ⛔ Totals never reach the
+                  card (see MLB GAME LINES below).
 budget.py         projected Odds API spend, derived from the deployed
                   cron schedule and market lists. Run it after ANY change
                   to the schedule or the markets.
