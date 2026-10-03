@@ -282,6 +282,26 @@ def no_games_day(day, data="data"):
     return bool(seen) and all(n == 0 for n in seen)
 
 
+# ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE (verify_record keeps
+#    one too): importing collect runs its league and argv checks, which can
+#    sys.exit in another process. test_slate_graded.py fails if they differ.
+VOID_STATES = frozenset({"Postponed", "Cancelled"})
+
+
+def results_settled(day, data="data"):
+    """True only when ET `day`'s stored results would be GRADED: the file
+    reads, lists games, and each is Final or VOID_STATES (the grader's
+    `collect.slate_settled`). ⛔ Fails closed: missing or unreadable is not."""
+    try:
+        games = json.load(gzip.open(os.path.join(data, day, "results", "final.json.gz"),
+                                    "rt")).get("games")
+    except Exception:
+        return False
+    return bool(games) and all(isinstance(g, dict) and (g.get("state") == "Final"
+                                                        or g.get("state") in VOID_STATES)
+                               for g in games)
+
+
 def last_due(times_et, now=None):
     """The most recent scheduled build time that has already passed.
 
@@ -1107,7 +1127,20 @@ def contract(data="data", picks="picks", now=None):
     if no_games_day(due_date(CARD, now), data):
         rows = [r for r in rows if r[0] != "card"]
     if no_games_day(slate_date(now), data):
-        rows = [r for r in rows if r[0] != "results"]
+        # 🔴 `[Sam, 2026-10-02]` ...BUT `results` IS JUDGED ON THE SLATE IT
+        #    GRADES. 10-02 had no games, the row went, and nothing re-pulled
+        #    10-01, stored 14 hours before first pitch and never settled: 29
+        #    picks off the Track Record. Owed while the previous slate had
+        #    games (fail closed) and is not settled, probing THAT file.
+        prev = (datetime.date.fromisoformat(slate_date(now))
+                - datetime.timedelta(days=1)).isoformat()
+        if no_games_day(prev, data) or results_settled(prev, data):
+            rows = [r for r in rows if r[0] != "results"]
+        else:
+            rows = [r if r[0] != "results" else
+                    ("results", ("file", f"{data}/{prev}/results/final.json.gz"), GRADING,
+                     False, "Track Record — the previous slate, not settled yet")
+                    for r in rows]
     return rows
 
 
