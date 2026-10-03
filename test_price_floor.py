@@ -95,8 +95,11 @@ sys.path.insert(0, ROOT)
 import card as C  # noqa: E402
 
 print("═══ 1. 🔒 IT IS SAM'S NUMBER: ~~-700~~ -400 SINCE 2026-10-01 ═══")
-os.environ.setdefault("LEAGUE", "nfl")
+# ⚠️ LEAGUE only for this import: the live subprocess below builds the MLB
+#    card, and an inherited LEAGUE=nfl ends it before it reaches a parlay.
+_lg, os.environ["LEAGUE"] = os.environ.get("LEAGUE"), "nfl"
 import card_fb as FB  # noqa: E402
+os.environ.pop("LEAGUE") if _lg is None else os.environ.update(LEAGUE=_lg)
 ck("🔒 PRICE_FLOOR is -400 in both league files (card.py, card_fb.py)",
    C.PRICE_FLOOR == -400 and FB.PRICE_FLOOR == -400,
    "⛔ CLAUDE.md lists this beside the 1.8x pair floor as a thing that "
