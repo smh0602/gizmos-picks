@@ -586,16 +586,21 @@ def _pool(root, jobs, tasks, work, leaks=None):
             leaks.extend(dirty)
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE STATES THAT MAKE A SWEEP RED. ONE TUPLE, read by `verdict()`
+#      and `render()`, so the exit code and the issue cannot disagree.
+# ══════════════════════════════════════════════════════════════════════
+BAD = ("VACUOUS", "RED_BOTH_WAYS", "MALFORMED")
+
+
 def render(t1, t2, unmapped_files):
-    bad1 = [r for r in t1 if r["state"] in ("VACUOUS",)]
-    bad2 = [r for r in t2 if r["state"] in ("VACUOUS", "RED_BOTH_WAYS",
-                                            "MALFORMED")]
+    bad = [r for r in t1 + t2 if r["state"] in BAD]
     odd = [r for r in t1 + t2 if r["state"] in ("NO_FUNCS", "TIMEOUT",
                                                 "UNREADABLE")]
     o = []
-    if bad1 or bad2:
+    if bad:
         o.append("**These guards pass while proving nothing.**\n")
-        for r in bad1 + bad2:
+        for r in bad:
             o.append("- **`%s`** (tier %d) — %s" % (r["test"], r["tier"],
                                                     r["why"]))
         o.append("")
@@ -685,10 +690,73 @@ def verdict(results, leak_ok):
         # ⛔ NOT A PASS. A sweep that checked nothing is "I could not
         #    look", and CLAUDE.md's watcher family never closes on that.
         return EXIT_UNREADABLE
-    if any(r["state"] in ("VACUOUS", "RED_BOTH_WAYS", "MALFORMED")
-           for r in results):
+    if any(r["state"] in BAD for r in results):
         return EXIT_VACUOUS
+    # 🔴 `[2026-09-28]` A TIMEOUT IS NOT A PASS, AND IT IS NOT AN
+    #    ACCUSATION. The red run never answered, so `_tier2_one` returned
+    #    before the green-on-revert run: NEITHER half of "red under the
+    #    mutation, green on the revert" was measured. Until this line it
+    #    fell through to EXIT_OK and the nightly printed "all bite" about
+    #    a guard nobody had seen bite. ⚠️ It is "I could not look" (exit
+    #    2), like an empty sweep, not VACUOUS: a hang under a mutation
+    #    may well be the guard working, and a detector that cries wolf
+    #    is worse than none. A real finding still outranks it (above).
+    if any(r["state"] == "TIMEOUT" for r in results):
+        return EXIT_UNREADABLE
     return EXIT_OK
+
+
+def offenders(results):
+    """The results that stop a sweep passing, in sweep order.
+
+    ⛔ NOT A SECOND CLASSIFICATION. A result is listed exactly when
+    `verdict()` would fail a sweep holding it alone, so this list and the
+    exit code cannot drift apart.
+    """
+    return [r for r in results if verdict([r], True) != EXIT_OK]
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 EACH SWEEP PART FAILS ON ITS OWN SHARE. `[2026-09-28]`
+# ══════════════════════════════════════════════════════════════════════
+# `test_vacuity.py` ran the real sweep in every pr-tests `sweep k/4` job
+# (and unsplit in collect.yml) and never read the answer: it asserted
+# only that the part swept its whole share, that nothing leaked, and that
+# the two named CFBD mutations bite. `git log -S'_real2'` shows no version
+# that did more. A PR adding a VACUOUS declaration passed all four parts;
+# only the nightly (issue #188) noticed, a day later.
+# ✅ The part's verdict IS `verdict()`, so it cannot disagree with the
+#    nightly. `PART_GATE` names the check, so `test_vacuity_part.py` can
+#    find it in a real run's output and prove it goes red.
+PART_GATE = "🔴🔴 EVERY DECLARATION THIS RUN SWEPT BITES"
+
+
+def part_gate(results, leak_ok):
+    """One sweep run's verdict on its own share -> (ok, what to print)."""
+    if verdict(results, leak_ok) == EXIT_OK:
+        return True, "all %d declaration(s) in this share bite" % len(results)
+    o = []
+    if not leak_ok:
+        o.append("the sweep left changes behind (see the leak check), so "
+                 "no result from it can count as a pass")
+    if not results:
+        o.append("nothing was swept, and a sweep that checked nothing "
+                 "is not a pass")
+    bad = offenders(results)
+    if bad:
+        o.append("%d of %d declaration(s) in this share are not proven to "
+                 "bite:" % (len(bad), len(results)))
+        o += ["   %-13s %s:%s  %s" % (r["state"], r["test"], r.get("line", "?"),
+                                      r.get("why", ""))
+              for r in bad]
+        o.append("⛔ Do not delete or weaken a declaration to clear this. "
+                 "VACUOUS: the test passes under the edit it declares, so "
+                 "make the test check it. RED_BOTH_WAYS: the test is red "
+                 "on this tree with no mutation; fix that first. "
+                 "MALFORMED: re-point `find:`. TIMEOUT: the test never "
+                 "answered under the mutation (%ds), so nothing was proven."
+                 % PER_TEST)
+    return False, "\n".join(o)
 
 
 def main():
