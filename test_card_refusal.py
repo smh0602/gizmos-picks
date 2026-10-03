@@ -48,8 +48,18 @@ def build(tmp, card_age_h, refused, now=None):
     fresh = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     old = (now - datetime.timedelta(hours=card_age_h)).strftime(
         "%Y-%m-%dT%H:%M:%SZ")
-    for m, (kind, path), _t, _p, _w in F.contract(data="data", picks="picks",
-                                                  now=now):
+    # 🔴 `[2026-10-02]` THE CONTRACT IS READ FROM THE EMPTY TREE, NOT THE REPO.
+    #    `no_games_day` reads stored schedules: once the season ended the live
+    #    tree said 0 games and the contract dropped `card`, so this fixture
+    #    built no card and 7 checks went red on production data. An empty
+    #    tree has no reading, which fails closed: the rows are owed.
+    cwd = os.getcwd()
+    os.chdir(tmp)
+    try:
+        rows = F.contract(data="data", picks="picks", now=now)
+    finally:
+        os.chdir(cwd)
+    for m, (kind, path), _t, _p, _w in rows:
         full = os.path.join(tmp, path)
         os.makedirs(os.path.dirname(full), exist_ok=True)
         stamp = old if m == "card" else fresh

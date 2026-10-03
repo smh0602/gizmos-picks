@@ -135,7 +135,22 @@ def planted_contract(lg, picks="picks"):
 
 
 print("\n1. ⛔ MLB IS NOT TOUCHED BY ANY OF THIS")
-mlb = F.contract(data="data", picks="picks")
+# 🔴 `[2026-10-02]` EVERY MLB CONTRACT BELOW IS ASKED OF AN EMPTY TREE. The
+#    contract drops `card`/`results` on a day the STORED schedule says 0 games
+#    (`no_games_day`), so against the repo the off-season made this pin read
+#    14, not 16. No reading fails closed: every row is owed.
+import contextlib
+@contextlib.contextmanager
+def _empty_tree():
+    _cwd, _t = os.getcwd(), tempfile.mkdtemp()
+    os.chdir(_t)
+    try:
+        yield
+    finally:
+        os.chdir(_cwd)
+        shutil.rmtree(_t, ignore_errors=True)
+with _empty_tree():
+    mlb = F.contract(data="data", picks="picks")
 # 🔴 `[2026-09-22]` 13 -> 14, DELIBERATELY: MLB was unfrozen by Sam and the
 #    Track Record drill-down (`record-detail.json.gz`) gained its row. The
 #    pin still exists so any OTHER change to MLB's contract is a decision.
@@ -155,7 +170,8 @@ _live = F.runs_writer_deployed
 for _on in (False, True):
     F.runs_writer_deployed = lambda root=None, _v=_on: _v
     try:
-        _rows = F.contract(data="data", picks="picks")
+        with _empty_tree():
+            _rows = F.contract(data="data", picks="picks")
     finally:
         F.runs_writer_deployed = _live
     eq(len([r for r in _rows if r[0] != "runs"]), 16,
