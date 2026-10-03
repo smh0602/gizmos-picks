@@ -1373,7 +1373,11 @@ ck("the stored hitter band table is calibration.band_flags' own verdict",
 #    break-even recomputed from the price.
 print("\nGAME LINES -- traced to the stored odds board")
 _gl = doc.get('game_lines') or []
-_bd = {g.get('id'): g for g in (json.load(open('data/latest/board.json')).get('games') or [])}
+try:
+    _bd = ({g.get('id'): g for g in (json.load(open('data/latest/board.json')).get('games') or [])}
+           if _gl else {})
+except (OSError, ValueError):
+    _bd = {}      # no board: every unstarted row fails its trace below
 _now = C.datetime.now(C.timezone.utc)
 _glbad = []
 for r in _gl:
