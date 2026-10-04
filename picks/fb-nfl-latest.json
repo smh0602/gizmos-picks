@@ -1,7 +1,7 @@
 {
  "date": "2026-10-04",
  "league": "nfl",
- "generated_at": "2026-10-04T16:59:30Z",
+ "generated_at": "2026-10-04T17:30:25Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-04T15:53:56Z",
@@ -1053,11 +1053,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-04T16:59:24Z",
-  "ladder_built_at": "2026-10-04T16:59:25Z",
-  "alt_spreads": 10
+  "model_built_at": "2026-10-04T17:30:21Z",
+  "ladder_built_at": "2026-10-04T17:30:21Z",
+  "alt_spreads": 5
  },
- "game_lines_rule": "The game model's own 25 pick(s) for 2026-10-04 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (10 listed).",
+ "game_lines_rule": "The game model's own 12 pick(s) for 2026-10-04 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (5 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -1449,7 +1449,7 @@
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
    ],
-   "rank": 17
+   "rank": 18
   },
   {
    "kind": "fb",
@@ -1914,6 +1914,38 @@
    },
    {
     "legs": [
+     "Theo Johnson o0.5 rec",
+     "Adam Trautman o0.5 rec"
+    ],
+    "games": [
+     "Arizona Cardinals @ New York Giants",
+     "Denver Broncos @ San Francisco 49ers"
+    ],
+    "game_ids": [
+     "664e6bda5721dc63be16bcf7d962a436",
+     "a7e7efb75a9792ac63480ae6328dca18"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -250,
+     -175
+    ],
+    "multiplier": 2.2,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 88.3,
+    "joint_basis": "RECORD",
+    "joint_note": "The legs' own records multiplied together. \u26d4 Every leg is the player's OWN RATE at that exact line \u2014 DESCRIPTIVE, never a model output, because this project has no football model. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     96,
+     92
+    ],
+    "break_even": 45.5,
+    "edge": 42.9,
+    "ev_30": 28.29
+   },
+   {
+    "legs": [
      "Troy Franklin o0.5 rec",
      "Brock Wright o4.5 rec yds"
     ],
@@ -1975,38 +2007,6 @@
     "break_even": 39.1,
     "edge": 49.9,
     "ev_30": 38.25
-   },
-   {
-    "legs": [
-     "Theo Johnson o0.5 rec",
-     "Adam Trautman o0.5 rec"
-    ],
-    "games": [
-     "Arizona Cardinals @ New York Giants",
-     "Denver Broncos @ San Francisco 49ers"
-    ],
-    "game_ids": [
-     "664e6bda5721dc63be16bcf7d962a436",
-     "a7e7efb75a9792ac63480ae6328dca18"
-    ],
-    "book": "hardrockbet",
-    "prices": [
-     -250,
-     -175
-    ],
-    "multiplier": 2.2,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 88.3,
-    "joint_basis": "RECORD",
-    "joint_note": "The legs' own records multiplied together. \u26d4 Every leg is the player's OWN RATE at that exact line \u2014 DESCRIPTIVE, never a model output, because this project has no football model. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     96,
-     92
-    ],
-    "break_even": 45.5,
-    "edge": 42.9,
-    "ev_30": 28.29
    }
   ],
   "3": [
@@ -2603,6 +2603,37 @@
    },
    {
     "legs": [
+     "Keon Coleman o1.5 rec",
+     "Over 49.5 total"
+    ],
+    "game": "New England Patriots @ Buffalo Bills",
+    "game_id": "573cc0ef39631a4f6673ec843a8bedd4",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     100,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.818,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 87,
+    "weakest_leg_basis": "RECORD",
+    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     87
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
      "Troy Franklin o5.5 rec yds",
      "Adam Trautman o0.5 rec"
     ],
@@ -2662,37 +2693,6 @@
     "leg_confidences": [
      100,
      92
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Keon Coleman o1.5 rec",
-     "Over 49.5 total"
-    ],
-    "game": "New England Patriots @ Buffalo Bills",
-    "game_id": "573cc0ef39631a4f6673ec843a8bedd4",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     100,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -108,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.818,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 87,
-    "weakest_leg_basis": "RECORD",
-    "weakest_leg_note": "The lowest of this slip's player records \u2014 each one that player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     87
     ],
     "band_floor": 1.8
    }
@@ -8808,55 +8808,6 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "RECORD + MARKET \u2014 his own rate, no model",
-   "player": "Tyquan Thornton",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "over",
-   "line": 1.5,
-   "game": "Kansas City Chiefs @ Las Vegas Raiders",
-   "game_id": "e0cbd266dcf997089203a1b33ba0333d",
-   "away": "Kansas City Chiefs",
-   "home": "Las Vegas Raiders",
-   "commence": "2026-10-04T20:25:00Z",
-   "book": "hardrockbet",
-   "price": -105,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/108755898993869189",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "RECORD",
-   "confidence": 84,
-   "raw": "5 of 6",
-   "record": "5 of 6",
-   "rate": 84,
-   "break_even": 51.2,
-   "edge": 32.8,
-   "season_detail": {
-    "h25": 4,
-    "n25": 4,
-    "h26": 1,
-    "n26": 2,
-    "w25": 0.667,
-    "p0": 0.863,
-    "weighted_n": 4.67
-   },
-   "confidence_note": "His record at this exact line, reading this season first: 1 of 2 in 2026, with his 2025 record (4 of 4) counting 0.667 per game, pulled toward the 86% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
-   "own_mean": 2.75,
-   "projection": 2.8,
-   "projection_unit": "rec",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 6 games this record is built from \u2014 2.8 rec a game. That is what he has actually been doing, not a forecast.",
-   "why": [
-    "<b>Tyquan Thornton</b> went over 1.5 rec in <b>5 of 6 games</b> in 2025 (83%) when he played at least half the snaps.",
-    "He averaged <b>2.8 rec a game</b> over those 6 games, against a line of 1.5.",
-    "That is a small sample \u2014 too few games to read much into on its own.",
-    "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
-   ],
-   "rank": 17
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "RECORD + MARKET \u2014 his own rate, no model",
    "player": "Tez Johnson",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
@@ -8898,6 +8849,55 @@
     "<b>Tez Johnson</b> went over 9.5 rec yds in <b>5 of 7 games</b> in 2025 (71%) when he played at least half the snaps.",
     "He averaged <b>31.4 rec yds a game</b> over those 7 games, against a line of 9.5.",
     "\u26a0\ufe0f That line is a long way from what he actually did last season, which usually means his role has changed. His record is history; it is not evidence about a line he never faced.",
+    "That is a small sample \u2014 too few games to read much into on its own.",
+    "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
+   ],
+   "rank": 17
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "RECORD + MARKET \u2014 his own rate, no model",
+   "player": "Tyquan Thornton",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 1.5,
+   "game": "Kansas City Chiefs @ Las Vegas Raiders",
+   "game_id": "e0cbd266dcf997089203a1b33ba0333d",
+   "away": "Kansas City Chiefs",
+   "home": "Las Vegas Raiders",
+   "commence": "2026-10-04T20:25:00Z",
+   "book": "hardrockbet",
+   "price": -105,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/108755898993869189",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "RECORD",
+   "confidence": 84,
+   "raw": "5 of 6",
+   "record": "5 of 6",
+   "rate": 84,
+   "break_even": 51.2,
+   "edge": 32.8,
+   "season_detail": {
+    "h25": 4,
+    "n25": 4,
+    "h26": 1,
+    "n26": 2,
+    "w25": 0.667,
+    "p0": 0.863,
+    "weighted_n": 4.67
+   },
+   "confidence_note": "His record at this exact line, reading this season first: 1 of 2 in 2026, with his 2025 record (4 of 4) counting 0.667 per game, pulled toward the 86% of games in which players at his position clear this line. Fewer than 10 games' worth never shows 90% or more. There is no football model in this project, so this is DESCRIPTIVE \u2014 not a projection.",
+   "own_mean": 2.75,
+   "projection": 2.8,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 6 games this record is built from \u2014 2.8 rec a game. That is what he has actually been doing, not a forecast.",
+   "why": [
+    "<b>Tyquan Thornton</b> went over 1.5 rec in <b>5 of 6 games</b> in 2025 (83%) when he played at least half the snaps.",
+    "He averaged <b>2.8 rec a game</b> over those 6 games, against a line of 1.5.",
     "That is a small sample \u2014 too few games to read much into on its own.",
     "This is his own record from last season, not a forecast. Rosters and roles change between seasons, so read it as history rather than a prediction."
    ],
