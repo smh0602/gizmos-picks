@@ -1,46 +1,24 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-03T23:46:06Z",
+ "checked_at": "2026-10-04T00:50:18Z",
  "et_date": "2026-10-03",
- "healthy": false,
+ "healthy": true,
  "broken": 0,
- "degraded": 3,
- "findings": [
-  {
-   "key": "fresh:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb tabs are showing data older than promised (gamelines, props-batter, props-pitcher)",
-   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
-  {
-   "key": "fresh:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf tabs are showing data older than promised (alt-lines, gamelines, props-board, props-player)",
-   "why": "the freshness contract says 4 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
-  {
-   "key": "fresh:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl tabs are showing data older than promised (gamelines)",
-   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  }
- ],
+ "degraded": 0,
+ "findings": [],
  "repairs": [],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 18831,
-  "pulled_at": "2026-10-03T16:46:56Z",
+  "balance": 18737,
+  "pulled_at": "2026-10-04T00:50:16Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 7.0,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-03T16:46:56Z",
-  "source": "data/ncaaf/2026-10-03/props-player/1646.json.gz",
-  "readings_on_disk": 587,
+  "newest_paid_pull": "2026-10-04T00:50:16Z",
+  "source": "data/nfl/2026-10-04/gamelines/0050.json.gz",
+  "readings_on_disk": 594,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
