@@ -1,7 +1,7 @@
 {
  "date": "2026-10-05",
  "league": "nfl",
- "generated_at": "2026-10-05T19:53:02Z",
+ "generated_at": "2026-10-05T20:50:51Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-05T16:12:11Z",
@@ -14,6 +14,34 @@
  "n_gated_by_measurement": 0,
  "rate_gates": null,
  "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 48.5,
+   "game": "Atlanta Falcons @ New Orleans Saints",
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "away": "Atlanta Falcons",
+   "home": "New Orleans Saints",
+   "commence": "2026-10-06T00:15:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 51.9,
+   "edge": 3.2,
+   "why": [
+    "The game model gives Over 55% at 48.5; the price -108 needs 51.9%."
+   ],
+   "priced_at": "2026-10-05T20:40:33Z",
+   "rank": 1
+  },
   {
    "kind": "fb-line",
    "league": "nfl",
@@ -39,35 +67,7 @@
    "why": [
     "The game model gives Atlanta Falcons 54% to win; the price +102 needs 49.5%."
    ],
-   "priced_at": "2026-10-05T19:52:58Z",
-   "rank": 1
-  },
-  {
-   "kind": "fb-line",
-   "league": "nfl",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "Over",
-   "market": "total",
-   "market_label": "Total",
-   "side": "over",
-   "line": 47.5,
-   "game": "Atlanta Falcons @ New Orleans Saints",
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "away": "Atlanta Falcons",
-   "home": "New Orleans Saints",
-   "commence": "2026-10-06T00:15:00Z",
-   "book": "fanduel",
-   "price": -110,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "break_even": 52.4,
-   "edge": 1.4,
-   "why": [
-    "The game model gives Over 54% at 47.5; the price -110 needs 52.4%."
-   ],
-   "priced_at": "2026-10-05T19:52:58Z",
+   "priced_at": "2026-10-05T20:40:33Z",
    "rank": 2
   }
  ],
@@ -79,8 +79,8 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-05T19:53:01Z",
-  "ladder_built_at": "2026-10-05T19:53:01Z",
+  "model_built_at": "2026-10-05T20:50:50Z",
+  "ladder_built_at": "2026-10-05T20:50:50Z",
   "alt_spreads": 0
  },
  "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-05 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
@@ -196,7 +196,7 @@
    {
     "legs": [
      "Austin Hooper o0.5 rec",
-     "Over 47.5 total"
+     "New Orleans Saints -1.5 spread"
     ],
     "game": "Atlanta Falcons @ New Orleans Saints",
     "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -204,13 +204,13 @@
     "book": "hardrockbet",
     "prices": [
      -240,
-     -115
+     -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 2.649,
+    "multiplier": 2.705,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -227,7 +227,7 @@
    {
     "legs": [
      "Olamide Zaccheaus o1.5 rec",
-     "Over 47.5 total"
+     "New Orleans Saints -1.5 spread"
     ],
     "game": "Atlanta Falcons @ New Orleans Saints",
     "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -237,8 +237,8 @@
      148,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
     "n_legs": 2,
     "n_line_legs": 1,
     "multiplier": 4.735,
@@ -261,7 +261,7 @@
     "legs": [
      "Olamide Zaccheaus o1.5 rec",
      "Austin Hooper o7.5 rec yds",
-     "Over 47.5 total"
+     "New Orleans Saints -1.5 spread"
     ],
     "game": "Atlanta Falcons @ New Orleans Saints",
     "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -272,8 +272,8 @@
      -106,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
     "n_legs": 3,
     "n_line_legs": 1,
     "multiplier": 9.201,
@@ -295,7 +295,7 @@
     "legs": [
      "Olamide Zaccheaus o7.5 rec yds",
      "Austin Hooper o7.5 rec yds",
-     "Over 47.5 total"
+     "New Orleans Saints -1.5 spread"
     ],
     "game": "Atlanta Falcons @ New Orleans Saints",
     "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -306,8 +306,8 @@
      -106,
      -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_book": "draftkings",
+    "line_best_price": -108,
     "n_legs": 3,
     "n_line_legs": 1,
     "multiplier": 6.993,
