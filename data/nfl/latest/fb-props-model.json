@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "MODEL",
- "built_at": "2026-10-05T16:12:32Z",
+ "built_at": "2026-10-05T19:53:08Z",
  "design": "research/fb_props_design.md",
  "books": [
   "DraftKings",
@@ -160,7 +160,7 @@
   },
   "player_reception_yds": {
    "picks": {
-    "value": 232,
+    "value": 231,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
@@ -168,7 +168,7 @@
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 48.7,
+    "value": 48.9,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -181,13 +181,13 @@
    },
    "interval_95": {
     "value": [
-     42.2,
-     55.2
+     42.4,
+     55.4
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 228.0,
+    "value": 227.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -200,24 +200,24 @@
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT YET MEASURABLE",
-    "picks": 232,
+    "picks": 231,
     "min_picks": 300,
-    "p": 0.9325,
+    "p": 0.9227,
     "games": 47,
-    "edge_points": -4.7
+    "edge_points": -4.5
    }
   },
   "player_receptions": {
    "picks": {
-    "value": 294,
+    "value": 295,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
-    "value": 139,
+    "value": 140,
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 47.3,
+    "value": 47.5,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -230,13 +230,13 @@
    },
    "interval_95": {
     "value": [
-     40.2,
-     54.4
+     40.4,
+     54.5
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 189.3,
+    "value": 191.1,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -249,11 +249,11 @@
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT YET MEASURABLE",
-    "picks": 294,
+    "picks": 295,
     "min_picks": 300,
-    "p": 0.8862,
+    "p": 0.877,
     "games": 59,
-    "edge_points": -4.5
+    "edge_points": -4.3
    }
   },
   "player_anytime_td": {
@@ -320,28 +320,28 @@
   "2026-09-28": true,
   "2026-10-05": true
  },
- "graded_rungs": 3185,
+ "graded_rungs": 3223,
  "calibration": {
   "model": [
    {
     "bucket": "0-10%",
     "n": {
-     "value": 317,
+     "value": 343,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 6.2,
+     "value": 6.1,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 14.2,
+     "value": 13.1,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "10-20%",
     "n": {
-     "value": 534,
+     "value": 539,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -349,7 +349,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 20.6,
+     "value": 20.4,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -371,7 +371,7 @@
    {
     "bucket": "30-40%",
     "n": {
-     "value": 292,
+     "value": 293,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -379,29 +379,29 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 38.7,
+     "value": 38.6,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "40-50%",
     "n": {
-     "value": 999,
+     "value": 1004,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
-     "value": 46.8,
+     "value": 46.9,
      "basis": "MODEL"
     },
     "observed": {
-     "value": 48.7,
+     "value": 48.4,
      "basis": "DESCRIPTIVE"
     }
    },
    {
     "bucket": "50-60%",
     "n": {
-     "value": 609,
+     "value": 610,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -409,7 +409,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 47.6,
+     "value": 47.7,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -631,32 +631,32 @@
   "player_pass_yds": {
    "n": 110,
    "card": 0.7611512181716503,
-   "model": 0.7363819185456858
+   "model": 0.736533473370181
   },
   "player_pass_tds": {
    "n": 106,
    "card": 0.7037878744648232,
-   "model": 0.6913841331815239
+   "model": 0.6913754488867995
   },
   "player_rush_yds": {
    "n": 237,
    "card": 0.7889266320993364,
-   "model": 0.781642264559939
+   "model": 0.7815918174304973
   },
   "player_reception_yds": {
    "n": 520,
    "card": 0.7506753051597403,
-   "model": 0.7299014365726068
+   "model": 0.729910490241653
   },
   "player_receptions": {
    "n": 510,
    "card": 0.742437743604541,
-   "model": 0.7316401378435206
+   "model": 0.731700155158193
   },
   "player_anytime_td": {
    "n": 688,
    "card": 0.5548744575758137,
-   "model": 0.5212608781884163
+   "model": 0.5211965714376742
   }
  },
  "card_logs_season": 2025,
@@ -677,9 +677,9 @@
  },
  "league_only": {
   "n": 2171,
-  "mean_d": 0.02082042738999649,
-  "t": 1.3807514724818957,
-  "p": 0.08615635264782873,
+  "mean_d": 0.020822791176430166,
+  "t": 1.381071319242939,
+  "p": 0.08610741067388045,
   "clusters": 63
  },
  "paired_rows": [
@@ -12567,511 +12567,511 @@
    "player_anytime_td",
    1,
    0.58,
-   0.655036
+   0.655053
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_anytime_td",
    0,
    0.31,
-   0.320326
+   0.320356
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_anytime_td",
    0,
    0.32,
-   0.320919
+   0.320959
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_anytime_td",
    0,
    0.32,
-   0.270972
+   0.271
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_anytime_td",
    0,
    0.09,
-   0.187255
+   0.187297
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_anytime_td",
    0,
    0.17,
-   0.181857
+   0.181904
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_anytime_td",
    1,
    0.35,
-   0.176122
+   0.176165
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_tds",
    0,
    0.5,
-   0.452886
+   0.453482
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_tds",
    0,
    0.39,
-   0.356869
+   0.357413
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_yds",
    0,
    0.65,
-   0.475087
+   0.477632
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_yds",
    0,
    0.72,
-   0.471108
+   0.473684
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.04,
-   0.495975
+   0.496534
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.36,
-   0.497652
+   0.49821
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.38,
-   0.495921
+   0.496475
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.59,
-   0.489457
+   0.489999
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.36,
-   0.468304
+   0.468842
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_receptions",
    0,
    0.04,
-   0.481178
+   0.481582
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_receptions",
    0,
    0.14,
-   0.441029
+   0.44139
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_receptions",
    0,
    0.38,
-   0.497477
+   0.497894
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_receptions",
    0,
    0.47,
-   0.45402
+   0.454523
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_receptions",
    0,
    0.64,
-   0.506282
+   0.5067
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    1,
    0.36,
-   0.49232
+   0.492232
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    1,
    0.61,
-   0.530551
+   0.53045
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    0,
    0.42,
-   0.496371
+   0.496283
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_yds",
    0,
    0.72,
-   0.468524
+   0.471103
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_yds",
    0,
    0.65,
-   0.476186
+   0.478733
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.66,
-   0.487235
+   0.487775
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.38,
-   0.495022
+   0.495574
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.53,
-   0.47602
+   0.476562
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.36,
-   0.495868
+   0.496422
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.04,
-   0.49714
+   0.497697
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_receptions",
    0,
    0.19,
-   0.538201
+   0.538537
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    0,
    0.42,
-   0.494338
+   0.494251
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    1,
    0.61,
-   0.525071
+   0.524966
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    1,
    0.36,
-   0.49036
+   0.490273
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_yds",
    0,
    0.65,
-   0.476769
+   0.479316
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_pass_yds",
    0,
    0.72,
-   0.468831
+   0.471408
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_reception_yds",
    0,
    0.36,
-   0.496762
+   0.497318
   ],
   [
    "nfl:c9d8ed8aa4889486eaf10a630138ede0",
    "player_rush_yds",
    1,
    0.36,
-   0.492333
+   0.492246
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.14,
-   0.217535
+   0.217778
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.64,
-   0.489716
+   0.489943
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.53,
-   0.329843
+   0.330092
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.36,
-   0.253169
+   0.253415
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    1,
    0.41,
-   0.191477
+   0.191895
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.12,
-   0.148857
+   0.149146
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    1,
    0.28,
-   0.117483
+   0.117778
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.1,
-   0.134709
+   0.135041
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_anytime_td",
    0,
    0.25,
-   0.11792
+   0.118603
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_pass_tds",
    1,
    0.81,
-   0.425254
+   0.427068
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_pass_yds",
    0,
    0.81,
-   0.484262
+   0.488518
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    0,
    0.68,
-   0.49713
+   0.498205
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    0,
    0.58,
-   0.490113
+   0.49115
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    1,
    0.36,
-   0.484264
+   0.485302
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    1,
    0.23,
-   0.481889
+   0.482926
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    0,
    0.5,
-   0.485562
+   0.486602
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    0,
    0.57,
-   0.475102
+   0.47614
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_reception_yds",
    1,
    0.84,
-   0.483517
+   0.484558
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    1,
    0.58,
-   0.513879
+   0.51455
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    0,
    0.68,
-   0.479751
+   0.481008
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    1,
    0.19,
-   0.410731
+   0.411465
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    1,
    0.14,
-   0.40659
+   0.40743
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    0,
    0.5,
-   0.494846
+   0.496033
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    0,
    0.7,
-   0.507283
+   0.508491
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_receptions",
    1,
    0.91,
-   0.612006
+   0.61333
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_rush_yds",
    0,
    0.36,
-   0.482423
+   0.482459
   ],
   [
    "nfl:664e6bda5721dc63be16bcf7d962a436",
    "player_rush_yds",
    1,
    0.58,
-   0.488106
+   0.488141
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    0,
    0.19,
-   0.244308
+   0.244524
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    0,
    0.36,
-   0.053102
+   0.053299
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    1,
    0.54,
-   0.584639
+   0.58475
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    1,
    0.32,
-   0.270554
+   0.270726
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    1,
    0.3,
-   0.312698
+   0.312997
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    0,
    0.26,
-   0.116351
+   0.116524
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    0,
    0.15,
-   0.151843
+   0.152092
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
@@ -13085,882 +13085,882 @@
    "player_anytime_td",
    0,
    0.09,
-   0.12987
+   0.130009
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    1,
    0.31,
-   0.361192
+   0.361424
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    1,
    0.26,
-   0.15318
+   0.153346
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_anytime_td",
    0,
    0.18,
-   0.233327
+   0.233568
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_pass_tds",
    1,
    0.68,
-   0.555508
+   0.55687
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_pass_tds",
    1,
    0.5,
-   0.519474
+   0.520857
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_pass_yds",
    1,
    0.56,
-   0.474401
+   0.477231
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_pass_yds",
    1,
    0.42,
-   0.478072
+   0.480895
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    1,
    0.18,
-   0.477514
+   0.478205
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    0,
    0.65,
-   0.480803
+   0.481501
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    1,
    0.62,
-   0.473198
+   0.473893
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    0,
    0.62,
-   0.483301
+   0.483992
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    0,
    0.17,
-   0.477155
+   0.477849
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    0,
    0.68,
-   0.470224
+   0.470913
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    0,
    0.46,
-   0.472106
+   0.472802
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_reception_yds",
    1,
    0.47,
-   0.492892
+   0.493598
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    0,
    0.79,
-   0.526025
+   0.526804
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    0,
    0.11,
-   0.376887
+   0.377514
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    1,
    0.42,
-   0.443888
+   0.44454
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    0,
    0.74,
-   0.551147
+   0.551711
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    0,
    0.55,
-   0.521895
+   0.522582
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    1,
    0.3,
-   0.549421
+   0.55003
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    1,
    0.54,
-   0.52543
+   0.526231
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_receptions",
    1,
    0.29,
-   0.367104
+   0.367958
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_rush_yds",
    0,
    0.46,
-   0.4845
+   0.484524
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_rush_yds",
    0,
    0.42,
-   0.478199
+   0.478223
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_rush_yds",
    0,
    0.68,
-   0.473121
+   0.473145
   ],
   [
    "nfl:f01589b0e7e6dd4f4ac1220a1db81f53",
    "player_rush_yds",
    1,
    0.26,
-   0.482557
+   0.482581
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    1,
    0.44,
-   0.477115
+   0.477269
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.36,
-   0.251831
+   0.252006
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.34,
-   0.237782
+   0.238138
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.23,
-   0.248097
+   0.248399
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    1,
    0.5,
-   0.469184
+   0.46934
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.2,
-   0.162468
+   0.1627
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.18,
-   0.138356
+   0.138579
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.38,
-   0.330827
+   0.331081
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    1,
    0.31,
-   0.227799
+   0.228133
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    0,
    0.16,
-   0.226797
+   0.227111
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    1,
    0.32,
-   0.179922
+   0.180188
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_anytime_td",
    1,
    0.3,
-   0.324957
+   0.325158
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_pass_tds",
    0,
    0.55,
-   0.549978
+   0.551555
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_pass_tds",
    1,
    0.61,
-   0.422866
+   0.424924
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_pass_yds",
    1,
    0.55,
-   0.483148
+   0.48782
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_pass_yds",
    1,
    0.66,
-   0.485437
+   0.490127
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.7,
-   0.490888
+   0.491984
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.86,
-   0.475122
+   0.476229
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.47,
-   0.483679
+   0.48476
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.66,
-   0.487851
+   0.48894
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    0,
    0.5,
-   0.485742
+   0.486826
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    0,
    0.42,
-   0.504357
+   0.505516
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.43,
-   0.475597
+   0.476678
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.58,
-   0.491243
+   0.49234
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    0,
    0.68,
-   0.459648
+   0.460739
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_reception_yds",
    1,
    0.96,
-   0.476245
+   0.477326
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.43,
-   0.467655
+   0.468684
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    0,
    0.64,
-   0.394754
+   0.396312
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    0,
    0.47,
-   0.487668
+   0.488559
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.77,
-   0.547734
+   0.548727
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.47,
-   0.439375
+   0.440532
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.43,
-   0.443265
+   0.444395
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.95,
-   0.430508
+   0.431552
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.68,
-   0.47083
+   0.472022
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    0,
    0.52,
-   0.560282
+   0.561192
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_receptions",
    1,
    0.75,
-   0.366966
+   0.368171
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_rush_yds",
    1,
    0.48,
-   0.492135
+   0.492099
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_rush_yds",
    0,
    0.55,
-   0.477608
+   0.477572
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_rush_yds",
    1,
    0.7,
-   0.480943
+   0.480908
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_rush_yds",
    1,
    0.79,
-   0.481568
+   0.481533
   ],
   [
    "nfl:573cc0ef39631a4f6673ec843a8bedd4",
    "player_rush_yds",
    0,
    0.56,
-   0.476939
+   0.476903
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.37,
-   0.211413
+   0.211187
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.21,
-   0.146191
+   0.14596
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    1,
    0.07,
-   0.17816
+   0.177802
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.64,
-   0.340573
+   0.340396
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.5,
-   0.42101
+   0.420886
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.19,
-   0.275598
+   0.275395
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.03,
-   0.088924
+   0.088789
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.32,
-   0.260025
+   0.259703
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_anytime_td",
    0,
    0.05,
-   0.053936
+   0.05372
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_pass_tds",
    0,
    0.34,
-   0.373504
+   0.37287
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_pass_yds",
    0,
    0.41,
-   0.481398
+   0.481736
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    1,
    0.7,
-   0.48879
+   0.48875
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    1,
    0.74,
-   0.480897
+   0.480857
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    1,
    0.44,
-   0.473073
+   0.473032
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    0,
    0.5,
-   0.494268
+   0.494227
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    1,
    0.62,
-   0.503101
+   0.503058
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    1,
    0.31,
-   0.487435
+   0.487394
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_reception_yds",
    1,
    0.79,
-   0.476609
+   0.476568
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    1,
    0.5,
-   0.485205
+   0.485007
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    1,
    0.62,
-   0.541612
+   0.541399
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    1,
    0.62,
-   0.391778
+   0.391484
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    0,
    0.36,
-   0.473873
+   0.473725
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    0,
    0.19,
-   0.457582
+   0.457416
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    1,
    0.56,
-   0.477013
+   0.476759
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_receptions",
    0,
    0.64,
-   0.500501
+   0.500289
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_rush_yds",
    0,
    0.44,
-   0.474203
+   0.474051
   ],
   [
    "nfl:164e6eb68f31bac190381903c3cccd31",
    "player_rush_yds",
    0,
    0.22,
-   0.484895
+   0.484743
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.46,
-   0.343088
+   0.34299
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.34,
-   0.200356
+   0.200239
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.36,
-   0.497726
+   0.497655
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    1,
    0.06,
-   0.089605
+   0.08953
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.59,
-   0.375858
+   0.375758
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.21,
-   0.244687
+   0.244584
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    1,
    0.28,
-   0.216897
+   0.216737
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.27,
-   0.236396
+   0.236261
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_anytime_td",
    0,
    0.38,
-   0.462679
+   0.462591
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_pass_tds",
    0,
    0.5,
-   0.53809
+   0.53795
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_pass_tds",
    0,
    0.69,
-   0.61495
+   0.614822
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_pass_yds",
    1,
    0.44,
-   0.486046
+   0.487088
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_pass_yds",
    0,
    0.29,
-   0.487878
+   0.488923
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    1,
    0.28,
-   0.48376
+   0.483917
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    0,
    0.56,
-   0.491463
+   0.491622
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    0,
    0.46,
-   0.501826
+   0.501991
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    0,
    0.62,
-   0.501593
+   0.501758
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    1,
    0.58,
-   0.476479
+   0.476635
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    0,
    0.78,
-   0.486729
+   0.486886
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_reception_yds",
    1,
    0.65,
-   0.498716
+   0.498874
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    1,
    0.47,
-   0.434371
+   0.434402
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    0,
    0.38,
-   0.45861
+   0.458638
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    1,
    0.41,
-   0.472747
+   0.472774
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    0,
    0.44,
-   0.446858
+   0.446885
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    0,
    0.85,
-   0.515677
+   0.51571
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    0,
    0.66,
-   0.406033
+   0.406069
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_receptions",
    1,
    0.5,
-   0.476081
+   0.476118
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_rush_yds",
    0,
    0.47,
-   0.47866
+   0.478547
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_rush_yds",
    0,
    0.19,
-   0.48095
+   0.480837
   ],
   [
    "nfl:2ea94ddf20f66432b9024fe2e2eaba5f",
    "player_rush_yds",
    0,
    0.61,
-   0.489507
+   0.489393
   ],
   [
    "nfl:daf55e2df5341c007fee5a0fc5bbc2d4",
@@ -14247,462 +14247,462 @@
    "player_anytime_td",
    1,
    0.69,
-   0.238367
+   0.237755
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.28,
-   0.147813
+   0.147337
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    1,
    0.41,
-   0.144518
+   0.144151
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.35,
-   0.304297
+   0.303932
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    1,
    0.06,
-   0.257872
+   0.257311
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.21,
-   0.108669
+   0.107876
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.03,
-   0.133434
+   0.132214
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.56,
-   0.117637
+   0.117104
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.5,
-   0.307801
+   0.30739
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.09,
-   0.14081
+   0.140388
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_anytime_td",
    0,
    0.31,
-   0.217586
+   0.217141
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_pass_tds",
    1,
    0.53,
-   0.430114
+   0.428094
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_pass_yds",
    0,
    0.47,
-   0.479606
+   0.478579
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    0,
    0.17,
-   0.480493
+   0.479962
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    0,
    0.65,
-   0.450196
+   0.449639
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    1,
    0.5,
-   0.472617
+   0.472082
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    1,
    0.59,
-   0.469797
+   0.469239
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    0,
    0.58,
-   0.480629
+   0.480091
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    0,
    0.41,
-   0.485183
+   0.48465
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    1,
    0.69,
-   0.485697
+   0.485164
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    1,
    0.54,
-   0.457326
+   0.456761
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    1,
    0.77,
-   0.467427
+   0.466884
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_reception_yds",
    1,
    0.69,
-   0.474697
+   0.474164
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    0,
    0.58,
-   0.431346
+   0.430633
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    1,
    0.83,
-   0.486212
+   0.48539
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    1,
    0.56,
-   0.545442
+   0.544628
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    0,
    0.17,
-   0.487088
+   0.486397
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    1,
    0.72,
-   0.536056
+   0.535286
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    0,
    0.55,
-   0.47122
+   0.47043
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    0,
    0.23,
-   0.532893
+   0.532227
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    0,
    0.62,
-   0.320042
+   0.319142
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    1,
    0.95,
-   0.534744
+   0.533778
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_receptions",
    1,
    0.56,
-   0.335697
+   0.3345
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_rush_yds",
    0,
    0.66,
-   0.511652
+   0.511273
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_rush_yds",
    1,
    0.75,
-   0.487242
+   0.486882
   ],
   [
    "nfl:99a9bae4dc0dc2590496bd3102b211f2",
    "player_rush_yds",
    0,
    0.77,
-   0.48666
+   0.486299
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.66,
-   0.379676
+   0.379965
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.02,
-   0.036434
+   0.036551
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.36,
-   0.311757
+   0.312118
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    1,
    0.64,
-   0.427208
+   0.427462
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.15,
-   0.114692
+   0.115196
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.35,
-   0.225781
+   0.226207
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.32,
-   0.163151
+   0.163505
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.47,
-   0.384638
+   0.384982
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    1,
    0.53,
-   0.341001
+   0.341317
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_anytime_td",
    0,
    0.06,
-   0.08254
+   0.082565
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_pass_tds",
    0,
    0.83,
-   0.50815
+   0.509956
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_pass_tds",
    1,
    0.75,
-   0.620497
+   0.622239
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_pass_yds",
    1,
    0.69,
-   0.484629
+   0.488986
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_pass_yds",
    0,
    0.42,
-   0.476422
+   0.480756
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_reception_yds",
    0,
    0.34,
-   0.482292
+   0.483364
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_reception_yds",
    1,
    0.69,
-   0.486758
+   0.487836
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_reception_yds",
    0,
    0.42,
-   0.491703
+   0.492794
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_reception_yds",
    1,
    0.55,
-   0.465505
+   0.466602
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_reception_yds",
    0,
    0.68,
-   0.485289
+   0.486363
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_reception_yds",
    1,
    0.55,
-   0.494229
+   0.495328
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_receptions",
    0,
    0.47,
-   0.51994
+   0.520756
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_receptions",
    1,
    0.69,
-   0.49463
+   0.49547
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_receptions",
    0,
    0.47,
-   0.42467
+   0.426239
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_receptions",
    1,
    0.31,
-   0.404559
+   0.405605
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_receptions",
    0,
    0.75,
-   0.455548
+   0.456625
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_receptions",
    1,
    0.35,
-   0.431591
+   0.432649
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_rush_yds",
    1,
    0.74,
-   0.48142
+   0.48147
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_rush_yds",
    0,
    0.53,
-   0.496883
+   0.496934
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_rush_yds",
    0,
    0.42,
-   0.508568
+   0.508623
   ],
   [
    "nfl:1b4f2e60ce83fa1d63a5dff83769d27c",
    "player_rush_yds",
    1,
    0.36,
-   0.437156
+   0.43721
   ],
   [
    "nfl:c327223d76a3b7b0db8c6c104442f44b",
@@ -14835,280 +14835,280 @@
    "player_anytime_td",
    0,
    0.5,
-   0.247926
+   0.247443
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    1,
    0.41,
-   0.282729
+   0.28208
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.24,
-   0.175249
+   0.174803
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.5,
-   0.36773
+   0.36715
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.12,
-   0.107744
+   0.107052
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.44,
-   0.279347
+   0.278793
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    1,
    0.41,
-   0.289537
+   0.288967
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    1,
    0.5,
-   0.31989
+   0.319392
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.42,
-   0.270301
+   0.269625
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.15,
-   0.189583
+   0.188946
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.21,
-   0.185729
+   0.185236
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    1,
    0.68,
-   0.536752
+   0.536382
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_anytime_td",
    0,
    0.05,
-   0.117961
+   0.117424
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_pass_tds",
    1,
    0.62,
-   0.505644
+   0.503953
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_pass_tds",
    0,
    0.39,
-   0.456312
+   0.454317
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_pass_yds",
    0,
    0.5,
-   0.483456
+   0.482833
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_pass_yds",
    0,
    0.54,
-   0.475708
+   0.475084
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    1,
    0.59,
-   0.502136
+   0.501671
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    1,
    0.61,
-   0.470322
+   0.469877
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    1,
    0.55,
-   0.48295
+   0.48251
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    0,
    0.68,
-   0.494693
+   0.494252
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    0,
    0.62,
-   0.495524
+   0.495082
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    0,
    0.47,
-   0.500917
+   0.500455
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    0,
    0.73,
-   0.466719
+   0.46625
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    0,
    0.66,
-   0.484539
+   0.484098
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_reception_yds",
    1,
    0.44,
-   0.489673
+   0.489229
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    1,
    0.45,
-   0.418187
+   0.4173
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    1,
    0.61,
-   0.457156
+   0.456465
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    1,
    0.59,
-   0.482727
+   0.481995
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    0,
    0.78,
-   0.544502
+   0.54381
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    0,
    0.68,
-   0.425456
+   0.424712
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    0,
    0.59,
-   0.541201
+   0.540459
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    0,
    0.81,
-   0.534663
+   0.53368
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    1,
    0.66,
-   0.417015
+   0.416195
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_receptions",
    1,
    0.69,
-   0.51101
+   0.51027
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_rush_yds",
    0,
    0.55,
-   0.499936
+   0.499554
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_rush_yds",
    0,
    0.79,
-   0.497444
+   0.497066
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_rush_yds",
    0,
    0.42,
-   0.495242
+   0.494867
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_rush_yds",
    1,
    0.46,
-   0.485491
+   0.485124
   ],
   [
    "nfl:a7e7efb75a9792ac63480ae6328dca18",
    "player_rush_yds",
    1,
    0.94,
-   0.47516
+   0.474794
   ],
   [
    "nfl:e0cbd266dcf997089203a1b33ba0333d",
@@ -15353,540 +15353,540 @@
    "player_anytime_td",
    0,
    0.18,
-   0.211176
+   0.211233
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.14,
-   0.125268
+   0.125316
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.27,
-   0.181771
+   0.181834
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.02,
-   0.092105
+   0.092158
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.5,
-   0.197222
+   0.19727
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.36,
-   0.210477
+   0.210531
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.17,
-   0.151759
+   0.151817
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    1,
    0.56,
-   0.357792
+   0.357829
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.45,
-   0.477724
+   0.477757
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.38,
-   0.230228
+   0.230276
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    1,
    0.41,
-   0.050732
+   0.050758
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    1,
    0.15,
-   0.22849
+   0.228562
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_anytime_td",
    0,
    0.21,
-   0.041159
+   0.041184
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_pass_tds",
    1,
    0.86,
-   0.631637
+   0.632015
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_pass_tds",
    1,
    0.45,
-   0.52428
+   0.524678
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_pass_yds",
    0,
    0.69,
-   0.481182
+   0.482399
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_pass_yds",
    0,
    0.55,
-   0.507093
+   0.508419
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    0,
    0.42,
-   0.501528
+   0.501809
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    0,
    0.61,
-   0.484816
+   0.485092
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    0,
    0.82,
-   0.474589
+   0.474865
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    0,
    0.42,
-   0.483217
+   0.483492
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    1,
    0.63,
-   0.487177
+   0.487454
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    1,
    0.58,
-   0.496196
+   0.49648
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    1,
    0.17,
-   0.492195
+   0.492471
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    0,
    0.85,
-   0.482309
+   0.482584
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_reception_yds",
    1,
    0.81,
-   0.481067
+   0.481342
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.36,
-   0.420731
+   0.420973
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.28,
-   0.412159
+   0.412404
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.52,
-   0.422409
+   0.42266
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.61,
-   0.417189
+   0.417344
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.57,
-   0.405005
+   0.40525
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    1,
    0.58,
-   0.541872
+   0.542193
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.17,
-   0.41752
+   0.417757
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    0,
    0.68,
-   0.397575
+   0.397835
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_receptions",
    1,
    0.69,
-   0.439336
+   0.439702
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_rush_yds",
    0,
    0.56,
-   0.471205
+   0.471187
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_rush_yds",
    1,
    0.69,
-   0.491169
+   0.491151
   ],
   [
    "nfl:96d2373cda647873b971f268482bced0",
    "player_rush_yds",
    1,
    0.45,
-   0.494086
+   0.494068
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    1,
    0.35,
-   0.2911
+   0.290589
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    1,
    0.61,
-   0.454921
+   0.45888
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.03,
-   0.091242
+   0.087554
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    1,
    0.29,
-   0.375754
+   0.378252
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.21,
-   0.176268
+   0.173229
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.19,
-   0.169411
+   0.166176
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.42,
-   0.288861
+   0.288742
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.64,
-   0.177386
+   0.1746
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.36,
-   0.142342
+   0.139335
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    1,
    0.58,
-   0.649015
+   0.657503
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.44,
-   0.454824
+   0.458758
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_anytime_td",
    0,
    0.28,
-   0.163035
+   0.159617
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_pass_tds",
    0,
    0.58,
-   0.585864
+   0.586586
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_pass_tds",
    1,
    0.42,
-   0.51207
+   0.510111
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_pass_yds",
    1,
    0.47,
-   0.4919
+   0.490485
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_pass_yds",
    1,
    0.25,
-   0.484589
+   0.481324
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    1,
    0.58,
-   0.493954
+   0.492936
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    0,
    0.31,
-   0.486866
+   0.484046
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    0,
    0.61,
-   0.479782
+   0.476965
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    1,
    0.39,
-   0.494875
+   0.4941
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    0,
    0.5,
-   0.493644
+   0.492536
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    1,
    0.79,
-   0.48938
+   0.487207
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    1,
    0.55,
-   0.498808
+   0.497231
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    0,
    0.54,
-   0.491168
+   0.48767
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_reception_yds",
    1,
    0.93,
-   0.497184
+   0.495213
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.64,
-   0.462362
+   0.45872
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.58,
-   0.473506
+   0.470854
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    0,
    0.36,
-   0.504594
+   0.502652
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    0,
    0.39,
-   0.549044
+   0.548656
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.55,
-   0.443134
+   0.439802
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.62,
-   0.540494
+   0.54003
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.29,
-   0.444932
+   0.44266
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.46,
-   0.537652
+   0.535476
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_receptions",
    1,
    0.93,
-   0.526739
+   0.52444
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_rush_yds",
    0,
    0.19,
-   0.49184
+   0.490219
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_rush_yds",
    0,
    0.42,
-   0.500597
+   0.501198
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_rush_yds",
    1,
    0.28,
-   0.49505
+   0.49425
   ],
   [
    "nfl:a73a76599a4f3422803e57bd8f61b626",
    "player_rush_yds",
    0,
    0.36,
-   0.478313
+   0.473252
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
   "n": 4520,
-  "mean_d": 0.037598959583464736,
-  "t": 3.6997667568616075,
-  "p": 0.00013312271061430192,
+  "mean_d": 0.03760009900310048,
+  "t": 3.7001071514821575,
+  "p": 0.00013295373927392032,
   "clusters": 247,
   "verdict": "QUALIFIES",
   "leagues": [
@@ -15913,7 +15913,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 47.4,
+    "value": 47.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -15921,7 +15921,38 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.5,
+    "value": 1.8,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-05T16:12:11Z"
+  },
+  {
+   "game": "Atlanta Falcons at New Orleans Saints",
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "commence": "2026-10-06T00:15:00Z",
+   "player": "Zachariah Branch",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": {
+    "value": 0.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 112,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 47.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 47.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.0,
     "basis": "MODEL"
    },
    "priced_at": "2026-10-05T16:12:11Z"
@@ -15944,7 +15975,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 45.3,
+    "value": 45.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -15952,7 +15983,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.1,
+    "value": 1.3,
     "basis": "MODEL"
    },
    "priced_at": "2026-10-05T16:12:11Z"
@@ -15975,7 +16006,7 @@
    },
    "book": "Hard Rock",
    "model_probability": {
-    "value": 44.1,
+    "value": 44.2,
     "basis": "MODEL"
    },
    "break_even": {
@@ -15983,7 +16014,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.3,
+    "value": 1.6,
     "basis": "MODEL"
    },
    "priced_at": "2026-10-05T16:12:11Z"
@@ -16006,7 +16037,7 @@
    },
    "book": "Hard Rock",
    "model_probability": {
-    "value": 43.8,
+    "value": 43.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -16014,7 +16045,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 2.9,
+    "value": 3.2,
     "basis": "MODEL"
    },
    "priced_at": "2026-10-05T16:12:11Z"
@@ -16037,7 +16068,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 42.7,
+    "value": 42.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -16045,7 +16076,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 0.4,
+    "value": 0.1,
     "basis": "MODEL"
    },
    "priced_at": "2026-10-05T16:12:11Z"
@@ -16068,7 +16099,7 @@
    },
    "book": "Hard Rock",
    "model_probability": {
-    "value": 39.3,
+    "value": 39.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -16076,7 +16107,7 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 6.1,
+    "value": 6.4,
     "basis": "MODEL"
    },
    "priced_at": "2026-10-05T16:12:11Z"
@@ -16089,7 +16120,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 54.9
+   "p": 55.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16097,7 +16128,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 38.1
+   "p": 38.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16105,7 +16136,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 36.1
+   "p": 36.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16113,7 +16144,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 33.5
+   "p": 33.7
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16121,7 +16152,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 26.0
+   "p": 25.8
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16129,7 +16160,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 24.7
+   "p": 24.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16137,7 +16168,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 23.5
+   "p": 23.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16145,7 +16176,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 22.3
+   "p": 22.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16153,7 +16184,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 22.0
+   "p": 21.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16161,7 +16192,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.5
+   "p": 19.2
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16169,7 +16200,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 17.8
+   "p": 17.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16177,7 +16208,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 16.6
+   "p": 16.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16185,7 +16216,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 14.8
+   "p": 14.4
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16193,7 +16224,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 13.2
+   "p": 12.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16201,7 +16232,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 12.4
+   "p": 12.0
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16209,19 +16240,11 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 11.9
+   "p": 11.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Michael Penix Jr.",
-   "market": "player_anytime_td",
-   "line": null,
-   "side": "yes",
-   "p": 10.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Zachariah Branch",
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
@@ -16229,15 +16252,15 @@
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Oscar Delp",
+   "player": "Zachariah Branch",
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 9.5
+   "p": 9.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kevin Austin",
+   "player": "Oscar Delp",
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
@@ -16245,11 +16268,19 @@
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kevin Austin",
+   "market": "player_anytime_td",
+   "line": null,
+   "side": "yes",
+   "p": 8.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Treyton Welch",
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 9.5
+   "p": 9.2
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16257,7 +16288,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 9.5
+   "p": 9.2
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16265,7 +16296,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 7.1
+   "p": 6.8
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16273,7 +16304,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 4.2
+   "p": 3.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16281,7 +16312,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 3.3
+   "p": 3.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16289,7 +16320,7 @@
    "market": "player_pass_tds",
    "line": 1.5,
    "side": "over",
-   "p": 51.6
+   "p": 51.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16297,7 +16328,7 @@
    "market": "player_pass_tds",
    "line": 1.5,
    "side": "under",
-   "p": 48.4
+   "p": 48.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16305,7 +16336,7 @@
    "market": "player_pass_tds",
    "line": 1.5,
    "side": "over",
-   "p": 45.5
+   "p": 45.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16313,7 +16344,7 @@
    "market": "player_pass_tds",
    "line": 1.5,
    "side": "under",
-   "p": 54.5
+   "p": 54.7
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16321,7 +16352,7 @@
    "market": "player_pass_yds",
    "line": 261.5,
    "side": "over",
-   "p": 48.9
+   "p": 48.7
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16329,7 +16360,7 @@
    "market": "player_pass_yds",
    "line": 261.5,
    "side": "under",
-   "p": 51.1
+   "p": 51.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16337,7 +16368,7 @@
    "market": "player_pass_yds",
    "line": 224.5,
    "side": "over",
-   "p": 49.3
+   "p": 49.2
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16345,7 +16376,7 @@
    "market": "player_pass_yds",
    "line": 224.5,
    "side": "under",
-   "p": 50.7
+   "p": 50.8
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16353,7 +16384,7 @@
    "market": "player_reception_yds",
    "line": 84.5,
    "side": "over",
-   "p": 49.3
+   "p": 49.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16361,7 +16392,7 @@
    "market": "player_reception_yds",
    "line": 84.5,
    "side": "under",
-   "p": 50.7
+   "p": 50.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16385,7 +16416,7 @@
    "market": "player_reception_yds",
    "line": 44.5,
    "side": "over",
-   "p": 49.1
+   "p": 48.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16393,7 +16424,7 @@
    "market": "player_reception_yds",
    "line": 44.5,
    "side": "under",
-   "p": 50.9
+   "p": 51.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16401,7 +16432,7 @@
    "market": "player_reception_yds",
    "line": 44.5,
    "side": "over",
-   "p": 48.8
+   "p": 48.6
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16409,7 +16440,7 @@
    "market": "player_reception_yds",
    "line": 44.5,
    "side": "under",
-   "p": 51.2
+   "p": 51.4
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16417,7 +16448,7 @@
    "market": "player_reception_yds",
    "line": 37.5,
    "side": "over",
-   "p": 49.1
+   "p": 48.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16425,7 +16456,7 @@
    "market": "player_reception_yds",
    "line": 37.5,
    "side": "under",
-   "p": 50.9
+   "p": 51.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16449,7 +16480,7 @@
    "market": "player_reception_yds",
    "line": 17.5,
    "side": "over",
-   "p": 48.8
+   "p": 48.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16457,7 +16488,7 @@
    "market": "player_reception_yds",
    "line": 17.5,
    "side": "under",
-   "p": 51.2
+   "p": 51.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16465,7 +16496,7 @@
    "market": "player_reception_yds",
    "line": 15.5,
    "side": "over",
-   "p": 49.5
+   "p": 49.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16473,47 +16504,47 @@
    "market": "player_reception_yds",
    "line": 15.5,
    "side": "under",
-   "p": 50.5
+   "p": 50.7
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Alvin Kamara",
    "market": "player_reception_yds",
    "line": 15.5,
+   "side": "over",
+   "p": 48.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Alvin Kamara",
+   "market": "player_reception_yds",
+   "line": 15.5,
+   "side": "under",
+   "p": 51.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bryce Lance",
+   "market": "player_reception_yds",
+   "line": 13.5,
    "side": "over",
    "p": 49.0
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
+   "player": "Bryce Lance",
    "market": "player_reception_yds",
-   "line": 15.5,
+   "line": 13.5,
    "side": "under",
    "p": 51.0
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bryce Lance",
-   "market": "player_reception_yds",
-   "line": 13.5,
-   "side": "over",
-   "p": 49.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bryce Lance",
-   "market": "player_reception_yds",
-   "line": 13.5,
-   "side": "under",
-   "p": 50.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Olamide Zaccheaus",
    "market": "player_reception_yds",
    "line": 8.5,
    "side": "over",
-   "p": 48.4
+   "p": 48.2
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16521,7 +16552,7 @@
    "market": "player_reception_yds",
    "line": 8.5,
    "side": "under",
-   "p": 51.6
+   "p": 51.8
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16529,7 +16560,7 @@
    "market": "player_reception_yds",
    "line": 7.5,
    "side": "over",
-   "p": 47.4
+   "p": 47.0
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16537,7 +16568,7 @@
    "market": "player_reception_yds",
    "line": 7.5,
    "side": "under",
-   "p": 52.6
+   "p": 53.0
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16545,7 +16576,7 @@
    "market": "player_reception_yds",
    "line": 3.5,
    "side": "over",
-   "p": 49.3
+   "p": 49.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16553,7 +16584,7 @@
    "market": "player_reception_yds",
    "line": 3.5,
    "side": "under",
-   "p": 50.7
+   "p": 50.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16561,7 +16592,7 @@
    "market": "player_receptions",
    "line": 6.5,
    "side": "over",
-   "p": 52.6
+   "p": 52.4
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16569,7 +16600,7 @@
    "market": "player_receptions",
    "line": 6.5,
    "side": "under",
-   "p": 47.4
+   "p": 47.6
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16577,7 +16608,7 @@
    "market": "player_receptions",
    "line": 5.5,
    "side": "over",
-   "p": 54.0
+   "p": 54.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16585,7 +16616,7 @@
    "market": "player_receptions",
    "line": 5.5,
    "side": "under",
-   "p": 46.0
+   "p": 45.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16593,7 +16624,7 @@
    "market": "player_receptions",
    "line": 4.5,
    "side": "over",
-   "p": 47.3
+   "p": 47.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16601,7 +16632,7 @@
    "market": "player_receptions",
    "line": 4.5,
    "side": "under",
-   "p": 52.7
+   "p": 52.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16609,7 +16640,7 @@
    "market": "player_receptions",
    "line": 4.5,
    "side": "over",
-   "p": 42.0
+   "p": 41.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16617,7 +16648,7 @@
    "market": "player_receptions",
    "line": 4.5,
    "side": "under",
-   "p": 58.0
+   "p": 58.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16625,7 +16656,7 @@
    "market": "player_receptions",
    "line": 3.5,
    "side": "over",
-   "p": 54.7
+   "p": 54.6
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16633,7 +16664,7 @@
    "market": "player_receptions",
    "line": 3.5,
    "side": "under",
-   "p": 45.3
+   "p": 45.4
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16641,7 +16672,7 @@
    "market": "player_receptions",
    "line": 2.5,
    "side": "over",
-   "p": 57.3
+   "p": 57.4
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16649,7 +16680,7 @@
    "market": "player_receptions",
    "line": 2.5,
    "side": "under",
-   "p": 42.7
+   "p": 42.6
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16657,7 +16688,7 @@
    "market": "player_receptions",
    "line": 2.5,
    "side": "over",
-   "p": 54.8
+   "p": 54.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16665,7 +16696,7 @@
    "market": "player_receptions",
    "line": 2.5,
    "side": "under",
-   "p": 45.2
+   "p": 45.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16673,7 +16704,7 @@
    "market": "player_receptions",
    "line": 1.5,
    "side": "over",
-   "p": 56.2
+   "p": 56.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16681,7 +16712,7 @@
    "market": "player_receptions",
    "line": 1.5,
    "side": "under",
-   "p": 43.8
+   "p": 43.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16689,7 +16720,7 @@
    "market": "player_receptions",
    "line": 1.5,
    "side": "over",
-   "p": 51.5
+   "p": 51.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
@@ -16697,552 +16728,552 @@
    "market": "player_receptions",
    "line": 1.5,
    "side": "under",
+   "p": 48.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bryce Lance",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "over",
+   "p": 41.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bryce Lance",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "under",
+   "p": 58.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Olamide Zaccheaus",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "over",
+   "p": 38.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Olamide Zaccheaus",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "under",
+   "p": 61.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Austin Hooper",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "over",
+   "p": 33.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Austin Hooper",
+   "market": "player_receptions",
+   "line": 1.5,
+   "side": "under",
+   "p": 66.3
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Zachariah Branch",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 52.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Zachariah Branch",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 47.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bijan Robinson",
+   "market": "player_rush_yds",
+   "line": 87.5,
+   "side": "over",
    "p": 48.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bryce Lance",
-   "market": "player_receptions",
-   "line": 1.5,
-   "side": "over",
-   "p": 42.4
+   "player": "Bijan Robinson",
+   "market": "player_rush_yds",
+   "line": 87.5,
+   "side": "under",
+   "p": 51.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bryce Lance",
-   "market": "player_receptions",
-   "line": 1.5,
+   "player": "Alvin Kamara",
+   "market": "player_rush_yds",
+   "line": 37.5,
+   "side": "over",
+   "p": 50.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Alvin Kamara",
+   "market": "player_rush_yds",
+   "line": 37.5,
    "side": "under",
-   "p": 57.6
+   "p": 49.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Brian Robinson Jr.",
+   "market": "player_rush_yds",
+   "line": 30.5,
+   "side": "over",
+   "p": 48.3
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Brian Robinson Jr.",
+   "market": "player_rush_yds",
+   "line": 30.5,
+   "side": "under",
+   "p": 51.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kendre Miller",
+   "market": "player_rush_yds",
+   "line": 24.5,
+   "side": "over",
+   "p": 49.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kendre Miller",
+   "market": "player_rush_yds",
+   "line": 24.5,
+   "side": "under",
+   "p": 50.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_rush_yds",
+   "line": 15.5,
+   "side": "over",
+   "p": 49.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_rush_yds",
+   "line": 15.5,
+   "side": "under",
+   "p": 50.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Michael Penix Jr.",
+   "market": "player_rush_yds",
+   "line": 4.5,
+   "side": "over",
+   "p": 49.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Michael Penix Jr.",
+   "market": "player_rush_yds",
+   "line": 4.5,
+   "side": "under",
+   "p": 50.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_pass_yds",
+   "line": 257.5,
+   "side": "over",
+   "p": 48.6
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_pass_yds",
+   "line": 257.5,
+   "side": "under",
+   "p": 51.4
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Juwan Johnson",
+   "market": "player_reception_yds",
+   "line": 45.5,
+   "side": "over",
+   "p": 48.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Juwan Johnson",
+   "market": "player_reception_yds",
+   "line": 45.5,
+   "side": "under",
+   "p": 51.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Jahan Dotson",
+   "market": "player_reception_yds",
+   "line": 19.5,
+   "side": "over",
+   "p": 48.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Jahan Dotson",
+   "market": "player_reception_yds",
+   "line": 19.5,
+   "side": "under",
+   "p": 51.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Drake London",
+   "market": "player_reception_yds",
+   "line": 79.5,
+   "side": "over",
+   "p": 49.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Drake London",
+   "market": "player_reception_yds",
+   "line": 79.5,
+   "side": "under",
+   "p": 50.3
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Olamide Zaccheaus",
-   "market": "player_receptions",
-   "line": 1.5,
+   "market": "player_reception_yds",
+   "line": 7.5,
    "side": "over",
-   "p": 39.4
+   "p": 49.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Olamide Zaccheaus",
-   "market": "player_receptions",
-   "line": 1.5,
+   "market": "player_reception_yds",
+   "line": 7.5,
    "side": "under",
+   "p": 50.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Alvin Kamara",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "over",
+   "p": 49.6
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Alvin Kamara",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "under",
+   "p": 50.4
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Noah Fant",
+   "market": "player_reception_yds",
+   "line": 16.5,
+   "side": "over",
+   "p": 48.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Noah Fant",
+   "market": "player_reception_yds",
+   "line": 16.5,
+   "side": "under",
+   "p": 51.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kyle Pitts",
+   "market": "player_reception_yds",
+   "line": 29.5,
+   "side": "over",
+   "p": 49.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kyle Pitts",
+   "market": "player_reception_yds",
+   "line": 29.5,
+   "side": "under",
+   "p": 50.3
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bryce Lance",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "over",
+   "p": 48.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bryce Lance",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "under",
+   "p": 51.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Chris Olave",
+   "market": "player_reception_yds",
+   "line": 83.5,
+   "side": "over",
+   "p": 48.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Chris Olave",
+   "market": "player_reception_yds",
+   "line": 83.5,
+   "side": "under",
+   "p": 51.3
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Alvin Kamara",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "over",
+   "p": 41.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Alvin Kamara",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "under",
+   "p": 58.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Devaughn Vele",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "over",
+   "p": 55.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Devaughn Vele",
+   "market": "player_receptions",
+   "line": 3.5,
+   "side": "under",
+   "p": 44.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Brian Robinson Jr.",
+   "market": "player_rush_yds",
+   "line": 28.5,
+   "side": "over",
+   "p": 48.0
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Brian Robinson Jr.",
+   "market": "player_rush_yds",
+   "line": 28.5,
+   "side": "under",
+   "p": 52.0
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_rush_yds",
+   "line": 16.5,
+   "side": "over",
+   "p": 49.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_rush_yds",
+   "line": 16.5,
+   "side": "under",
+   "p": 50.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kendre Miller",
+   "market": "player_rush_yds",
+   "line": 23.5,
+   "side": "over",
+   "p": 49.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Kendre Miller",
+   "market": "player_rush_yds",
+   "line": 23.5,
+   "side": "under",
+   "p": 50.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_pass_yds",
+   "line": 260.5,
+   "side": "over",
+   "p": 48.7
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Tyler Shough",
+   "market": "player_pass_yds",
+   "line": 260.5,
+   "side": "under",
+   "p": 51.3
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Michael Penix Jr.",
+   "market": "player_pass_yds",
+   "line": 225.5,
+   "side": "over",
+   "p": 49.1
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Michael Penix Jr.",
+   "market": "player_pass_yds",
+   "line": 225.5,
+   "side": "under",
+   "p": 50.9
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Jahan Dotson",
+   "market": "player_reception_yds",
+   "line": 18.5,
+   "side": "over",
+   "p": 48.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Jahan Dotson",
+   "market": "player_reception_yds",
+   "line": 18.5,
+   "side": "under",
+   "p": 51.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Austin Hooper",
+   "market": "player_reception_yds",
+   "line": 6.5,
+   "side": "over",
+   "p": 48.8
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Austin Hooper",
+   "market": "player_reception_yds",
+   "line": 6.5,
+   "side": "under",
+   "p": 51.2
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bijan Robinson",
+   "market": "player_reception_yds",
+   "line": 38.5,
+   "side": "over",
+   "p": 49.0
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Bijan Robinson",
+   "market": "player_reception_yds",
+   "line": 38.5,
+   "side": "under",
+   "p": 51.0
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Juwan Johnson",
+   "market": "player_reception_yds",
+   "line": 43.5,
+   "side": "over",
+   "p": 49.6
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Juwan Johnson",
+   "market": "player_reception_yds",
+   "line": 43.5,
+   "side": "under",
+   "p": 50.4
+  },
+  {
+   "game_id": "8bd90781e17e6d97df3941063cedae1e",
+   "player": "Austin Hooper",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
    "p": 60.6
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Austin Hooper",
    "market": "player_receptions",
-   "line": 1.5,
-   "side": "over",
-   "p": 34.4
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Austin Hooper",
-   "market": "player_receptions",
-   "line": 1.5,
-   "side": "under",
-   "p": 65.6
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Zachariah Branch",
-   "market": "player_receptions",
-   "line": 0.5,
-   "side": "over",
-   "p": 53.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Zachariah Branch",
-   "market": "player_receptions",
    "line": 0.5,
    "side": "under",
-   "p": 47.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bijan Robinson",
-   "market": "player_rush_yds",
-   "line": 87.5,
-   "side": "over",
-   "p": 48.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bijan Robinson",
-   "market": "player_rush_yds",
-   "line": 87.5,
-   "side": "under",
-   "p": 51.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
-   "market": "player_rush_yds",
-   "line": 37.5,
-   "side": "over",
-   "p": 50.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
-   "market": "player_rush_yds",
-   "line": 37.5,
-   "side": "under",
-   "p": 49.9
+   "p": 39.4
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Brian Robinson Jr.",
    "market": "player_rush_yds",
-   "line": 30.5,
+   "line": 29.5,
    "side": "over",
-   "p": 48.7
+   "p": 48.1
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
    "player": "Brian Robinson Jr.",
    "market": "player_rush_yds",
-   "line": 30.5,
-   "side": "under",
-   "p": 51.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kendre Miller",
-   "market": "player_rush_yds",
-   "line": 24.5,
-   "side": "over",
-   "p": 49.9
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kendre Miller",
-   "market": "player_rush_yds",
-   "line": 24.5,
-   "side": "under",
-   "p": 50.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_rush_yds",
-   "line": 15.5,
-   "side": "over",
-   "p": 49.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_rush_yds",
-   "line": 15.5,
-   "side": "under",
-   "p": 50.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Michael Penix Jr.",
-   "market": "player_rush_yds",
-   "line": 4.5,
-   "side": "over",
-   "p": 49.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Michael Penix Jr.",
-   "market": "player_rush_yds",
-   "line": 4.5,
-   "side": "under",
-   "p": 50.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_pass_yds",
-   "line": 257.5,
-   "side": "over",
-   "p": 48.9
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_pass_yds",
-   "line": 257.5,
-   "side": "under",
-   "p": 51.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Juwan Johnson",
-   "market": "player_reception_yds",
-   "line": 45.5,
-   "side": "over",
-   "p": 49.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Juwan Johnson",
-   "market": "player_reception_yds",
-   "line": 45.5,
-   "side": "under",
-   "p": 51.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Jahan Dotson",
-   "market": "player_reception_yds",
-   "line": 19.5,
-   "side": "over",
-   "p": 49.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Jahan Dotson",
-   "market": "player_reception_yds",
-   "line": 19.5,
-   "side": "under",
-   "p": 51.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Drake London",
-   "market": "player_reception_yds",
-   "line": 79.5,
-   "side": "over",
-   "p": 49.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Drake London",
-   "market": "player_reception_yds",
-   "line": 79.5,
-   "side": "under",
-   "p": 50.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Olamide Zaccheaus",
-   "market": "player_reception_yds",
-   "line": 7.5,
-   "side": "over",
-   "p": 49.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Olamide Zaccheaus",
-   "market": "player_reception_yds",
-   "line": 7.5,
-   "side": "under",
-   "p": 50.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
-   "market": "player_reception_yds",
-   "line": 14.5,
-   "side": "over",
-   "p": 49.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
-   "market": "player_reception_yds",
-   "line": 14.5,
-   "side": "under",
-   "p": 50.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Noah Fant",
-   "market": "player_reception_yds",
-   "line": 16.5,
-   "side": "over",
-   "p": 49.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Noah Fant",
-   "market": "player_reception_yds",
-   "line": 16.5,
-   "side": "under",
-   "p": 51.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kyle Pitts",
-   "market": "player_reception_yds",
-   "line": 29.5,
-   "side": "over",
-   "p": 49.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kyle Pitts",
-   "market": "player_reception_yds",
    "line": 29.5,
    "side": "under",
-   "p": 50.3
+   "p": 51.9
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bryce Lance",
-   "market": "player_reception_yds",
-   "line": 14.5,
+   "player": "Bijan Robinson",
+   "market": "player_rush_yds",
+   "line": 89.5,
    "side": "over",
    "p": 48.5
   },
   {
    "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bryce Lance",
-   "market": "player_reception_yds",
-   "line": 14.5,
+   "player": "Bijan Robinson",
+   "market": "player_rush_yds",
+   "line": 89.5,
    "side": "under",
    "p": 51.5
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Chris Olave",
-   "market": "player_reception_yds",
-   "line": 83.5,
-   "side": "over",
-   "p": 48.9
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Chris Olave",
-   "market": "player_reception_yds",
-   "line": 83.5,
-   "side": "under",
-   "p": 51.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
-   "market": "player_receptions",
-   "line": 3.5,
-   "side": "over",
-   "p": 41.5
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Alvin Kamara",
-   "market": "player_receptions",
-   "line": 3.5,
-   "side": "under",
-   "p": 58.5
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Devaughn Vele",
-   "market": "player_receptions",
-   "line": 3.5,
-   "side": "over",
-   "p": 55.9
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Devaughn Vele",
-   "market": "player_receptions",
-   "line": 3.5,
-   "side": "under",
-   "p": 44.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Brian Robinson Jr.",
-   "market": "player_rush_yds",
-   "line": 28.5,
-   "side": "over",
-   "p": 48.4
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Brian Robinson Jr.",
-   "market": "player_rush_yds",
-   "line": 28.5,
-   "side": "under",
-   "p": 51.6
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_rush_yds",
-   "line": 16.5,
-   "side": "over",
-   "p": 49.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_rush_yds",
-   "line": 16.5,
-   "side": "under",
-   "p": 50.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kendre Miller",
-   "market": "player_rush_yds",
-   "line": 23.5,
-   "side": "over",
-   "p": 49.9
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Kendre Miller",
-   "market": "player_rush_yds",
-   "line": 23.5,
-   "side": "under",
-   "p": 50.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_pass_yds",
-   "line": 260.5,
-   "side": "over",
-   "p": 48.9
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Tyler Shough",
-   "market": "player_pass_yds",
-   "line": 260.5,
-   "side": "under",
-   "p": 51.1
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Michael Penix Jr.",
-   "market": "player_pass_yds",
-   "line": 225.5,
-   "side": "over",
-   "p": 49.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Michael Penix Jr.",
-   "market": "player_pass_yds",
-   "line": 225.5,
-   "side": "under",
-   "p": 50.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Jahan Dotson",
-   "market": "player_reception_yds",
-   "line": 18.5,
-   "side": "over",
-   "p": 49.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Jahan Dotson",
-   "market": "player_reception_yds",
-   "line": 18.5,
-   "side": "under",
-   "p": 51.0
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Austin Hooper",
-   "market": "player_reception_yds",
-   "line": 6.5,
-   "side": "over",
-   "p": 49.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Austin Hooper",
-   "market": "player_reception_yds",
-   "line": 6.5,
-   "side": "under",
-   "p": 50.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bijan Robinson",
-   "market": "player_reception_yds",
-   "line": 38.5,
-   "side": "over",
-   "p": 49.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bijan Robinson",
-   "market": "player_reception_yds",
-   "line": 38.5,
-   "side": "under",
-   "p": 50.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Juwan Johnson",
-   "market": "player_reception_yds",
-   "line": 43.5,
-   "side": "over",
-   "p": 49.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Juwan Johnson",
-   "market": "player_reception_yds",
-   "line": 43.5,
-   "side": "under",
-   "p": 50.2
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Austin Hooper",
-   "market": "player_receptions",
-   "line": 0.5,
-   "side": "over",
-   "p": 60.7
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Austin Hooper",
-   "market": "player_receptions",
-   "line": 0.5,
-   "side": "under",
-   "p": 39.3
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Brian Robinson Jr.",
-   "market": "player_rush_yds",
-   "line": 29.5,
-   "side": "over",
-   "p": 48.4
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Brian Robinson Jr.",
-   "market": "player_rush_yds",
-   "line": 29.5,
-   "side": "under",
-   "p": 51.6
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bijan Robinson",
-   "market": "player_rush_yds",
-   "line": 89.5,
-   "side": "over",
-   "p": 48.8
-  },
-  {
-   "game_id": "8bd90781e17e6d97df3941063cedae1e",
-   "player": "Bijan Robinson",
-   "market": "player_rush_yds",
-   "line": 89.5,
-   "side": "under",
-   "p": 51.2
   }
  ],
- "picks_total": 6
+ "picks_total": 7
 }
