@@ -41,6 +41,11 @@ same tab order in every league, Game Lines included: test_tab_bar.py.)
 #   find:       <td>${r.away} @ ${r.home}</td><td>${when(r.commence)}</td>
 #   with:       <td>${r.away} @ ${r.home} <span class="kind">MODEL</span></td><td>${when(r.commence)}</td>
 #
+# @vacuity 🔴 the MLB tab's heading names the day like football's [Sam, 2026-10-06]
+#   file: index.html
+#   find:   v.innerHTML = `<div class="panel"><h2>Game Lines${W && W.slate ? ' &mdash; ' + fbDayName(W.slate) : ''}</h2>
+#   with:   v.innerHTML = `<div class="panel"><h2>Game Lines${W && W.slate ? ' &mdash; ' + W.slate : ''}</h2>
+#
 # @vacuity 🔴 a started game shows its frozen pick, never a rebuilt one
 #   file: winners.py
 #   find:     rows = [fz.get(r["game_id"], r) if r["commence"] <= now else r for r in rows]
@@ -178,6 +183,33 @@ ck("⛔ ...and the ladder renderers are gone from the shipped page; both tabs dr
    not _gone and "winnersHtml(W)" in js_block("fbGameLinesTab", PAGE)
    and "winnersHtml(W)" in js_block("renderGameLines", PAGE)
    and "gamelines:renderGameLines" in js_block("show", PAGE), "still defined: %s" % _gone)
+
+# `[Sam, 2026-10-06]` the MLB heading read the raw date ("2026-10-03"); it is
+#    drawn through football's own day helper, rendered here by the shipped code.
+HEAD = r"""
+const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
+const view = {innerHTML: ''};
+const fn = new Function('$', 'winnersLoad', 'winnersHtml',
+  S.dn + '\n' + S.gl + '\nreturn renderGameLines;');
+fn(() => view, async () => ({slate: '2026-10-03', rows: []}), () => '')()
+  .then(() => process.stdout.write(JSON.stringify(view.innerHTML)));
+"""
+tmp = tempfile.mkdtemp(prefix="winhead-")
+try:
+    open(os.path.join(tmp, "h.js"), "w", encoding="utf-8").write(HEAD)
+    json.dump({"dn": js_block("fbDayName", PAGE), "gl": js_block("renderGameLines", PAGE)},
+              open(os.path.join(tmp, "h.json"), "w"))
+    _h = subprocess.run(["node", os.path.join(tmp, "h.js"), os.path.join(tmp, "h.json")],
+                        capture_output=True, text=True, timeout=300)
+    _head = json.loads(_h.stdout) if _h.returncode == 0 else ""
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+ck("🔴 the MLB tab's heading names the day the way football's does (\"Saturday, October 3\"), "
+   "through the same helper, never the raw date",
+   all(w in _head for w in ("Game Lines", "Saturday", "October", " 3"))
+   and "2026-10-03" not in _head and "fbDayName(W.slate)" in js_block("renderGameLines", PAGE)
+   and "fbDayName(W.slate)" in js_block("fbGameLinesTab", PAGE),
+   (_head or _h.stderr)[-300:])
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 FROZEN AT THE START, GRADED ONCE, ITS OWN RECORD, RE-COMPUTED")

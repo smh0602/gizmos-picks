@@ -71,6 +71,41 @@ Every case is planted in a throwaway tree; nothing reads production data.
 #   find:     spent_month = billed if billed is not None else sum(month_spend().values())
 #   with:     spent_month = sum(month_spend().values())
 #
+# @vacuity 🔴 today is not in the allowance: day 3 with 434 before today is not stopped at 700
+#   file: collect.py
+#   find:     return max(0, spent_month - daily_spend(t.strftime("%Y-%m-%d")))
+#   with:     return spent_month
+#
+# @vacuity 🔴 ...and is stopped at 1,200: the ceiling still binds
+#   file: collect.py
+#   find:     return max(FLAT_DAILY_CAP, min(HARD_DAY_CEIL, room))
+#   with:     return max(FLAT_DAILY_CAP, room)
+#
+# @vacuity 🔴 a day that has spent nothing has its full allowance
+#   file: collect.py
+#   find:     return max(FLAT_DAILY_CAP, min(HARD_DAY_CEIL, room))
+#   with:     return max(FLAT_DAILY_CAP, min(FLAT_DAILY_CAP, room))
+#
+# @vacuity 🔴 a month already over its entitlement still gets 600
+#   file: collect.py
+#   find:     return max(FLAT_DAILY_CAP, min(HARD_DAY_CEIL, room))
+#   with:     return max(0, min(HARD_DAY_CEIL, room))
+#
+# @vacuity 🔴 a balance that lags today's pulls never gives day 1 more than one day's share
+#   file: collect.py
+#   find:     return max(0, spent_month - daily_spend(t.strftime("%Y-%m-%d")))
+#   with:     return spent_month - daily_spend(t.strftime("%Y-%m-%d"))
+#
+# @vacuity 🔴 converge counts today once
+#   file: collect.py
+#   find:             if spent >= cap_today:
+#   with:             if spent >= cap_today - spent:
+#
+# @vacuity 🔴 the alt-lines buyer counts today once
+#   file: collect.py
+#   find:     room_d = daily_allowance() - daily_spend()
+#   with:     room_d = daily_allowance() - 2 * daily_spend()
+#
 # @vacuity 🔴 on the 1st, last month's balance is not this month's
 #   file: collect.py
 #   find:     if not nb or str(nb[0])[:7] != t.strftime("%Y-%m"):
@@ -288,8 +323,11 @@ with Sandbox("2026-09-26T20:00:00Z"):
     reading(".", "data/2026-09-26/gamelines/1900.json.gz", "2026-09-26T19:00:00Z",
             PLAN - 16000, 1000)
     eq(C.month_billed(), 16000, "the month's spend is MONTHLY_PLAN minus the newest balance")
-    eq(C.daily_allowance(), max(FLAT, min(HARD, FLAT * 26 - 16000)),
-       "🔴 the allowance's room uses the API's spend, not the 1,000 our snapshots hold")
+    # `[Sam, 2026-10-06]` ~~`FLAT * 26 - 16000`~~: the room is what was spent
+    #    BEFORE today, 16,000 billed less today's own 1,000 (section 5).
+    eq(C.daily_allowance(), max(FLAT, min(HARD, FLAT * 26 - (16000 - 1000))),
+       "🔴 the allowance's room uses the API's spend before today, not the 0 our "
+       "snapshots hold for the days before")
 with Sandbox("2026-09-30T23:50:00Z"):
     reading(".", "data/2026-09-30/gamelines/2300.json.gz", "2026-09-30T23:00:00Z", 1500, 50)
     eq(C.month_billed(), PLAN - 1500, "   09-30: September's own balance counts")
@@ -329,3 +367,93 @@ try:
 finally:
     W.ROOT, W.SRCDIR = _saved
     shutil.rmtree(_t, ignore_errors=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("5. 🔴🔴 TODAY IS COUNTED ONCE: THE ALLOWANCE IS SPEND BEFORE TODAY")
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-06]` ~~the allowance subtracted the month's spend~~, which
+#    INCLUDES today, and converge and the alt-lines buyer then compare it
+#    with today's spend again. On 10-03 the guard stopped near 683 of a
+#    printed 1,200 (the day billed 735); on 10-04 near 616 (623). ✅ Planted
+#    readings, the date pinned to 2026-10-03, the real callers driven.
+
+
+def _day3(before=434, today=0, at_="2026-10-03T14:00:00Z"):
+    """Readings for 10-01 and 10-02 adding to `before`, and `today` spent on 10-03."""
+    reading(".", "data/2026-10-01/gamelines/1200.json.gz", "2026-10-01T12:00:00Z",
+            PLAN - 200, 200)
+    reading(".", "data/2026-10-02/gamelines/1200.json.gz", "2026-10-02T12:00:00Z",
+            PLAN - before, before - 200)
+    if today:
+        reading(".", "data/2026-10-03/props-pitcher/1400.json.gz", at_,
+                PLAN - before - today, today)
+
+
+def _converge(today, before=434):
+    """Drive converge with one paid mode due -> (ran it?, its log)."""
+    with Sandbox("2026-10-03T15:00:00Z") as box:
+        _day3(before, today)
+        _rows = [{"mode": "props-pitcher", "paid": True, "stale": True, "missing": False,
+                  "age_min": 300.0, "due_et": "10:00", "late_min": 60}]
+        C._fresh.plan = lambda **kw: (["props-pitcher"], _rows)
+        _ran = []
+        C.run_mode = _ran.append
+        C.converge()
+        return bool(_ran), "\n".join(box.logs)
+
+
+def _alt_bought(today, before=434):
+    """Drive the alt-lines buyer -> how many games it bought."""
+    with Sandbox("2026-10-03T15:00:00Z", league="nfl") as box:
+        _day3(before, today)
+        box.calls = []
+
+        def _odds(path, params):
+            box.calls.append(path)
+            return {"bookmakers": [{"key": "draftkings", "markets": []}]}, 4, 15000
+        C.odds_get, C.alt_plan = _odds, _planner
+        put(".", "data/nfl/2026-10-03/gamelines/1200.json.gz", {"games": _GAMES})
+        C.collect_alt_lines()
+        return len(box.calls)
+
+
+with Sandbox("2026-10-03T15:00:00Z"):
+    _day3(434, 700)
+    eq((C.spent_before_today(), C.daily_spend()), (434, 700),
+       "   the planted day: 434 billed before today, 700 spent today")
+    eq(C.daily_allowance(), HARD,
+       "🔴 day 3 with 434 billed before today: the allowance is 1,200 "
+       "(min(1,200, 3 x 600 - 434)), not 666 (today counted twice)")
+_ran700, _log700 = _converge(700)
+ck("🔴🔴 ...so converge is NOT stopped at 700 spent today: the paid mode runs",
+   _ran700, _log700[-400:])
+ck("   ...and its log prints the allowance it compares with, and how it was made",
+   "of a 1200 allowance (day 3 x 600 less 434 spent before today)" in _log700,
+   _log700[:400])
+_ran1200, _log1200 = _converge(1200)
+ck("🔴 ...and IS stopped at 1,200 spent today: SKIPPING, nothing spent",
+   not _ran1200 and "SKIPPING props-pitcher: 1200 credits spent today, cap is 1200" in _log1200,
+   _log1200[-400:])
+eq(_alt_bought(700), len(_GAMES),
+   "🔴🔴 the alt-lines buyer, with 700 spent today, still has 500 of day room and buys "
+   "all %d games" % len(_GAMES))
+with Sandbox("2026-10-03T15:00:00Z"):
+    _day3(434, 0)
+    eq((C.daily_allowance(), C.daily_allowance() - C.daily_spend()), (HARD, HARD),
+       "🔴 a day that has spent nothing has its full allowance (1,200) and all of it as room")
+with Sandbox("2026-10-03T15:00:00Z"):
+    _day3(2500, 100)
+    eq(C.daily_allowance(), FLAT,
+       "🔴 a month already over its entitlement (2,500 before today, 1,800 earned) still "
+       "gets 600")
+_ranover, _logover = _converge(100, before=2500)
+ck("   ...and converge, at 100 spent today, still buys", _ranover, _logover[-300:])
+with Sandbox("2026-10-01T15:00:00Z"):
+    # a balance read at 12:00 that lags a pull stored at 14:00: 60 billed, 100 stored
+    reading(".", "data/2026-10-01/gamelines/1200.json.gz", "2026-10-01T12:00:00Z", PLAN - 60, 60)
+    put(".", "data/2026-10-01/props-batter/1400.json.gz", {"pulled_at": "2026-10-01T14:00:00Z",
+                                                        "credits_used": 40})
+    eq(C.daily_allowance(), FLAT,
+       "🔴 day 1 with a balance that lags today's pulls is still one day's share (600), "
+       "as #202 left it: nothing spent before today is never less than 0")
