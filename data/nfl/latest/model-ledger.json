@@ -3,40 +3,40 @@
  "kind": "DESCRIPTIVE",
  "title": "What the model showed, graded",
  "from": "2026-09-24",
- "built_at": "2026-10-05T22:15:30Z",
- "snapshots": 102,
+ "built_at": "2026-10-06T14:20:07Z",
+ "snapshots": 103,
  "spec": "research/fb_model_live_spec.md",
  "record": {
   "game_model": {
    "moneyline": {
     "picks": {
-     "value": 25,
+     "value": 26,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 15,
+     "value": 16,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 60.0,
+     "value": 61.5,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 52.2,
+     "value": 52.1,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 14,
+     "value": 15,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 138,
+     "picks": 139,
      "min_picks": 300,
-     "p": 0.4746,
-     "games": 138,
-     "edge_points": 0.3
+     "p": 0.44,
+     "games": 139,
+     "edge_points": 0.6
     }
    },
    "spread": {
@@ -57,30 +57,30 @@
      "basis": "MARKET"
     },
     "pending": {
-     "value": 10,
+     "value": 11,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 125,
+     "picks": 126,
      "min_picks": 300,
-     "p": 0.9214,
-     "games": 125,
-     "edge_points": -6.3
+     "p": 0.933,
+     "games": 126,
+     "edge_points": -6.7
     }
    },
    "total": {
     "picks": {
-     "value": 25,
+     "value": 26,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
-     "value": 14,
+     "value": 15,
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 56.0,
+     "value": 57.7,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
@@ -88,17 +88,17 @@
      "basis": "MARKET"
     },
     "pending": {
-     "value": 13,
+     "value": 11,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 150,
+     "picks": 151,
      "min_picks": 300,
-     "p": 0.7436,
-     "games": 150,
-     "edge_points": -2.7
+     "p": 0.7177,
+     "games": 151,
+     "edge_points": -2.4
     }
    }
   },
@@ -198,7 +198,7 @@
    },
    "player_receptions": {
     "picks": {
-     "value": 57,
+     "value": 60,
      "basis": "DESCRIPTIVE"
     },
     "hits": {
@@ -206,25 +206,25 @@
      "basis": "DESCRIPTIVE"
     },
     "hit_rate": {
-     "value": 38.6,
+     "value": 36.7,
      "basis": "DESCRIPTIVE"
     },
     "break_even": {
-     "value": 46.1,
+     "value": 45.9,
      "basis": "MARKET"
     },
     "pending": {
-     "value": 11,
+     "value": 8,
      "basis": "DESCRIPTIVE"
     },
     "verdict": {
      "basis": "DESCRIPTIVE",
      "label": "NOT YET MEASURABLE",
-     "picks": 295,
+     "picks": 298,
      "min_picks": 300,
-     "p": 0.877,
-     "games": 59,
-     "edge_points": -4.3
+     "p": 0.8976,
+     "games": 60,
+     "edge_points": -4.7
     }
    },
    "player_rush_yds": {
@@ -263,31 +263,91 @@
  "picks": [
   {
    "model": "game_model",
-   "market": "spread",
-   "market_label": "spread",
-   "game": "Baltimore Ravens at Atlanta Falcons",
+   "market": "total",
+   "market_label": "total",
+   "game": "Buffalo Bills at Los Angeles Rams",
    "player": null,
-   "team": "Atlanta Falcons",
-   "side": "home",
+   "team": "Over",
+   "side": "over",
    "line": {
-    "value": -3.0,
+    "value": 54.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.9,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-13T00:15:00Z",
+   "shown_at": "2026-10-06T14:20:07Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Buffalo Bills at Los Angeles Rams",
+   "player": null,
+   "team": "Buffalo Bills",
+   "side": "away",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-13T00:15:00Z",
+   "shown_at": "2026-10-06T14:20:07Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Buffalo Bills at Los Angeles Rams",
+   "player": null,
+   "team": "Buffalo Bills",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 135,
     "basis": "MARKET"
    },
    "book": "Hard Rock",
    "model_probability": {
-    "value": 52.0,
+    "value": 53.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 42.6,
     "basis": "MARKET"
    },
-   "commence": "2026-10-12T00:20:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "commence": "2026-10-13T00:15:00Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -304,20 +364,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 145,
+    "value": -145,
     "basis": "MARKET"
    },
    "book": "Hard Rock",
    "model_probability": {
-    "value": 44.0,
+    "value": 60.4,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 40.8,
+    "value": 59.2,
     "basis": "MARKET"
    },
    "commence": "2026-10-12T00:20:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -330,16 +390,16 @@
    "team": "Over",
    "side": "over",
    "line": {
-    "value": 54.0,
+    "value": 54.5,
     "basis": "MARKET"
    },
    "price": {
     "value": -110,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 61.1,
+    "value": 62.0,
     "basis": "MODEL"
    },
    "break_even": {
@@ -347,7 +407,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:25:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -369,7 +429,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 59.3,
+    "value": 60.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -377,7 +437,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:25:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -390,24 +450,24 @@
    "team": "Arizona Cardinals",
    "side": "home",
    "line": {
-    "value": -4.0,
+    "value": -4.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -108,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 54.8,
+    "value": 55.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 51.9,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:25:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -429,7 +489,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 56.4,
+    "value": 55.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -437,7 +497,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:25:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -454,20 +514,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 185,
+    "value": 198,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 39.8,
+    "value": 38.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 35.1,
+    "value": 33.6,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:25:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -489,7 +549,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 63.6,
+    "value": 63.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -497,7 +557,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:25:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -519,7 +579,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 58.5,
+    "value": 57.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -527,7 +587,67 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T20:05:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "spread",
+   "market_label": "spread",
+   "game": "Denver Broncos at Los Angeles Chargers",
+   "player": null,
+   "team": "Denver Broncos",
+   "side": "away",
+   "line": {
+    "value": -3.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 52.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-11T20:05:00Z",
+   "shown_at": "2026-10-06T14:20:07Z",
+   "state": "pending",
+   "won": null
+  },
+  {
+   "model": "game_model",
+   "market": "moneyline",
+   "market_label": "moneyline",
+   "game": "Denver Broncos at Los Angeles Chargers",
+   "player": null,
+   "team": "Denver Broncos",
+   "side": "away",
+   "line": {
+    "value": null,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -185,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 65.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 64.9,
+    "basis": "MARKET"
+   },
+   "commence": "2026-10-11T20:05:00Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -547,9 +667,9 @@
     "value": -105,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 57.9,
+    "value": 58.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -557,7 +677,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -574,20 +694,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 54.4,
+    "value": 52.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -604,20 +724,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -102,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.0,
+    "value": 53.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -639,7 +759,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 54.6,
+    "value": 54.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -647,7 +767,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -669,7 +789,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.0,
+    "value": 52.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -677,7 +797,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -699,7 +819,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 53.5,
+    "value": 54.1,
     "basis": "MODEL"
    },
    "break_even": {
@@ -707,37 +827,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
-  },
-  {
-   "model": "game_model",
-   "market": "total",
-   "market_label": "total",
-   "game": "Minnesota Vikings at New Orleans Saints",
-   "player": null,
-   "team": "Under",
-   "side": "under",
-   "line": {
-    "value": 41.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": -105,
-    "basis": "MARKET"
-   },
-   "book": "DraftKings",
-   "model_probability": {
-    "value": 51.5,
-    "basis": "MODEL"
-   },
-   "break_even": {
-    "value": 51.2,
-    "basis": "MARKET"
-   },
-   "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -754,20 +844,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -115,
+    "value": -110,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 54.1,
+    "value": 53.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 53.5,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -789,7 +879,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 57.5,
+    "value": 56.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -797,7 +887,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -810,24 +900,24 @@
    "team": "New York Jets",
    "side": "home",
    "line": {
-    "value": 1.5,
+    "value": 2.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -112,
+    "value": -108,
     "basis": "MARKET"
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.7,
+    "value": 53.3,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.8,
+    "value": 51.9,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -849,7 +939,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 60.5,
+    "value": 60.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -857,7 +947,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -879,7 +969,7 @@
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 54.4,
+    "value": 54.3,
     "basis": "MODEL"
    },
    "break_even": {
@@ -887,7 +977,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -900,24 +990,24 @@
    "team": "Minnesota Vikings",
    "side": "away",
    "line": {
-    "value": -1.5,
+    "value": -2.0,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 55.2,
+    "value": 56.8,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -934,20 +1024,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 136,
+    "value": 130,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
-    "value": 46.4,
+    "value": 45.3,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 42.4,
+    "value": 43.5,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -964,20 +1054,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 300,
+    "value": 295,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 28.8,
+    "value": 29.2,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 25.0,
+    "value": 25.3,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -999,7 +1089,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 57.0,
+    "value": 56.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -1007,7 +1097,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1024,20 +1114,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 275,
+    "value": 265,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 28.3,
+    "value": 27.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 26.7,
+    "value": 27.4,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1059,7 +1149,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 60.4,
+    "value": 60.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -1067,7 +1157,7 @@
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1084,20 +1174,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 172,
+    "value": 176,
     "basis": "MARKET"
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 38.9,
+    "value": 38.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 36.8,
+    "value": 36.2,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1114,20 +1204,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -118,
+    "value": -130,
     "basis": "MARKET"
    },
-   "book": "FanDuel",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 62.8,
+    "value": 67.3,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 54.1,
+    "value": 56.5,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1144,20 +1234,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 154,
+    "value": 164,
     "basis": "MARKET"
    },
    "book": "FanDuel",
    "model_probability": {
-    "value": 40.0,
+    "value": 39.4,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 39.4,
+    "value": 37.9,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T17:00:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1170,24 +1260,24 @@
    "team": "Jacksonville Jaguars",
    "side": "home",
    "line": {
-    "value": 5.0,
+    "value": 6.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -108,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 55.8,
+    "value": 54.7,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 51.9,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T13:30:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1204,50 +1294,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -240,
+    "value": -285,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "DraftKings",
    "model_probability": {
-    "value": 78.6,
+    "value": 80.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 70.6,
+    "value": 74.0,
     "basis": "MARKET"
    },
    "commence": "2026-10-11T13:30:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
-  },
-  {
-   "model": "game_model",
-   "market": "total",
-   "market_label": "total",
-   "game": "Tampa Bay Buccaneers at Dallas Cowboys",
-   "player": null,
-   "team": "Over",
-   "side": "over",
-   "line": {
-    "value": 47.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": -104,
-    "basis": "MARKET"
-   },
-   "book": "FanDuel",
-   "model_probability": {
-    "value": 51.7,
-    "basis": "MODEL"
-   },
-   "break_even": {
-    "value": 51.0,
-    "basis": "MARKET"
-   },
-   "commence": "2026-10-09T00:15:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1260,24 +1320,24 @@
    "team": "Dallas Cowboys",
    "side": "home",
    "line": {
-    "value": 10.0,
+    "value": 9.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -102,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 52.9,
+    "value": 53.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "commence": "2026-10-09T00:15:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1294,20 +1354,20 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 425,
+    "value": 385,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
-    "value": 20.8,
+    "value": 23.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 19.0,
+    "value": 20.6,
     "basis": "MARKET"
    },
    "commence": "2026-10-09T00:15:00Z",
-   "shown_at": "2026-10-05T22:15:30Z",
+   "shown_at": "2026-10-06T14:20:07Z",
    "state": "pending",
    "won": null
   },
@@ -1338,8 +1398,8 @@
    },
    "commence": "2026-10-06T00:15:00Z",
    "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1368,8 +1428,8 @@
    },
    "commence": "2026-10-06T00:15:00Z",
    "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "props_model",
@@ -1428,8 +1488,8 @@
    },
    "commence": "2026-10-06T00:15:00Z",
    "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": false
   },
   {
    "model": "game_model",
@@ -1458,8 +1518,8 @@
    },
    "commence": "2026-10-06T00:15:00Z",
    "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "game_model",
@@ -1488,8 +1548,8 @@
    },
    "commence": "2026-10-06T00:15:00Z",
    "shown_at": "2026-10-05T22:15:30Z",
-   "state": "pending",
-   "won": null
+   "state": "graded",
+   "won": true
   },
   {
    "model": "props_model",
