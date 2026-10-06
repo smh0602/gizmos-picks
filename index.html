@@ -1411,13 +1411,13 @@ function pickCard(p){
   const sideWord = p.side === 'over' ? 'Over'
                  : p.side === 'yes'  ? 'Yes'
                  : 'Under';
-  const gl = p.kind === 'fb-line';      // [Sam, 2026-10-01] a game-line pick, same row
+  const gl = p.kind === 'fb-line' || p.kind === 'mlb-line';   // [Sam, 2026-10-01] a game-line pick, same row
   const unit = isH || gl ? p.market_label
              : (p.market === 'strikeouts' ? 'K' : 'Outs');
   /* ⚠️ A one-sided market (Anytime TD) has NO LINE. "Under null Outs" was
      on screen before this guard. */
   const lineTxt = p.line == null ? ''
-    : ` ${gl && /spread/.test(p.market) && p.line > 0 ? '+' : ''}${p.line}`;
+    : ` ${gl && /spread|run_line/.test(p.market) && p.line > 0 ? '+' : ''}${p.line}`;
   const bc = p.band === '70-80' ? 'ok' : (p.band ? 'bad' : '');
   /* ⛔ The calibration BAND chip ("70-80", "60-70") is gone from the row.
      Sam, 2026-08-26. It is a bucket label from the calibration table and
@@ -1559,6 +1559,22 @@ function pickCard(p){
   return c;
 }
 
+/* [Sam, 2026-10-01] MLB's Gizmo's Picks gets football's "Player props / Game
+   lines" switch. A game-line row is the game model's own (kind mlb-line) and
+   is drawn by pickCard, the prop rows' own markup. */
+function mlbKindBar(P){
+  const n = k => (k === 'props' ? (P.picks || [])
+                  : (P.game_lines || []).filter(p => p.kind === 'mlb-line')).length;
+  const chip = (k, label) => `<button class="kchip${MLBPICKKIND === k ? ' on' : ''}"
+    data-mlbkind="${k}">${label} <span>${n(k)}</span></button>`;
+  return `<div class="kindbar">${chip('props', 'Player props')}${chip('lines', 'Game lines')}</div>`;
+}
+
+function mlbGameLines(P){
+  return (P.game_lines || []).filter(p => p.kind === 'mlb-line')
+    .sort((a, b) => (a.rank || 999) - (b.rank || 999)).map(p => pickCard(p));
+}
+
 async function renderPicks(){
   const v = $('#view'); v.innerHTML = '<div class="msg">Loading…</div>';
   const d = todayET();
@@ -1579,6 +1595,20 @@ async function renderPicks(){
      this fallback exists to avoid. */
   head.innerHTML = `<h2>Gizmo's Picks &mdash; ${CARD_DATE}</h2>`;
   v.append(head);
+  const kb = el('div', null, mlbKindBar(P));
+  v.append(kb);
+  kb.addEventListener('click', e => {
+    const b = e.target.closest('.kchip');
+    if (!b) return;
+    MLBPICKKIND = b.dataset.mlbkind;
+    renderPicks();
+  });
+  if (MLBPICKKIND === 'lines'){
+    const gl = mlbGameLines(P);
+    gl.forEach(c => v.append(c));
+    if (!gl.length) v.append(el('div', 'msg', 'No game lines on this card.'));
+    return;
+  }
 
   // Rank by confidence -- what a reader expects from a picks page, and it
   // keeps the badge column monotonic instead of jumping around.
@@ -1897,6 +1927,16 @@ function refitPanel(F){
   </div>`;
 }
 
+/* [Sam, 2026-10-02] the game model's lines, graded in their OWN line of the
+   record (record.json `game_lines`), never mixed into the props above. */
+function mlbGameLineRecord(R){
+  const G = R.game_lines || {}, M = G.by_market || {};
+  const box = (k, t) => t && t.n ? `<div class="tr-box"><div class="k">${k}</div>
+    <div class="v">${t.pct}%</div><div class="s">${t.w}/${t.n}</div></div>` : '';
+  return G.n ? `<div class="tr-hero">${box('Game lines', G)}${box('Moneyline', M.moneyline)}${
+    box('Run line', M.run_line)}</div>` : '';
+}
+
 async function renderRecord(){
   const v = $('#view');
   if (!RECORD){
@@ -1976,6 +2016,7 @@ async function renderRecord(){
       <h2>Automatic card</h2>
       <p><span class="rec">built ${R.built_at}</span></p>
       ${machine}
+      ${mlbGameLineRecord(R)}
       ${mkRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${mkRows}</tbody></table>` : ''}
       ${dayRows ? `<h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
         <table class="ob"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${dayRows}</tbody></table>` : ''}
@@ -2197,6 +2238,7 @@ async function loadCard(){
    props sitting in front of 416 live ones. */
 let showStarted = false;
 let PICKKIND = 'all';
+let MLBPICKKIND = 'props';
 const hasStarted = g => new Date(g.commence) <= new Date();
 
 /* The started/upcoming split, decided once. `allDone` means filtering

@@ -2417,6 +2417,114 @@ def projection_index(rows, priced=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════════════
+# GAME LINES: THE MLB GAME MODEL'S PICKS, IN THE PROP ROW'S FORMAT.
+# `[Sam, 2026-10-01]` "add gizmos picks gamelines to mlb ... the same format
+# as the player prop picks"; `[2026-10-02]` "use what we use for our pitcher
+# and hitter props to predict game outcomes". `mlb_game_model.build` makes the
+# numbers in this same run (free); this turns each game's side into a row.
+# ⛔ GL_MARKETS IS MONEYLINE AND RUN LINE ONLY. `[Sam, 2026-10-03]` the
+#    total's 50%+ sides won under half in the model's check: totals stay in
+#    mlb-game-model.json, and only Sam's decision puts them on the card.
+# ══════════════════════════════════════════════════════════════════════
+GL_MARKETS = ("moneyline", "run_line")
+GL_MIN_CONF = 50
+GAME_LINES_MAX = 25
+GL_LABEL = {"moneyline": "Moneyline", "run_line": "Run line"}
+
+
+def _iso(t):
+    return datetime.fromisoformat(t.replace("Z", "+00:00"))
+
+
+def _r1(v):
+    return None if v is None else round(v, 1)
+
+
+def board_game(board, g):
+    """The board record for a model game: the same two teams, first pitch
+    within 90 minutes, and exactly one. ⛔ None on none or two (fails closed)."""
+    c = [b for b in (board or {}).get("games") or []
+         if (b.get("away"), b.get("home")) == (g["away"], g["home"]) and b.get("commence")
+         and abs((_iso(b["commence"]) - _iso(g["commence"])).total_seconds()) <= 5400]
+    return c[0] if len(c) == 1 else None
+
+
+def game_line_rows(model, board, day):
+    """The model's side of each game on ET day `day` that names both starters:
+    one row per market in GL_MARKETS, at GL_MIN_CONF or more and PRICE_FLOOR
+    or longer, at board.json's best price among Sam's five books (a run line
+    only at the EXACT signed point)."""
+    rows = []
+    for g in (model or {}).get("games") or []:
+        sp = g.get("starters") or {}
+        if (et_date(g["commence"]) != day
+                or not all((sp.get(s) or {}).get("id") for s in ("home", "away"))):
+            continue
+        b = board_game(board, g)
+        for mk in GL_MARKETS if b else ():
+            ch = (g.get("card") or {}).get(mk)
+            if not ch:
+                continue
+            side = "home" if ch["home"] >= ch["away"] else "away"
+            other = "away" if side == "home" else "home"
+            team, pr, line = g[side], ch[side], None
+            if mk == "moneyline":
+                q = (b.get("best_ml") or {}).get(team)
+            else:
+                line = ch["point"] if side == "home" else -ch["point"]
+                q = (b.get("best_spread") or {}).get(team)
+                q = q if q and q.get("pt") == line else None
+            if not q or q.get("price") is None or q["price"] < PRICE_FLOOR or pr < GL_MIN_CONF:
+                continue
+            be = round(100 * implied(q["price"]), 1)
+            er = g.get("expected_runs") or {}
+            what = "to win" if mk == "moneyline" else "to cover %+g" % line
+            rows.append({
+                "kind": "mlb-line", "league": "mlb", "basis": "MODEL — the game model's chance",
+                "player": team, "market": mk, "market_label": GL_LABEL.get(mk, mk),
+                "side": side, "line": line,
+                "game": f"{ab(g['away'])} @ {ab(g['home'])}", "game_id": b.get("id"),
+                "game_pk": g.get("game_pk"), "away": g["away"], "home": g["home"],
+                "away_id": g.get("away_id"), "home_id": g.get("home_id"),
+                "commence": b["commence"], "first_pitch": et(b["commence"]),
+                "book": q.get("book"), "price": q["price"], "link": q.get("link"),
+                "clears_price_floor": True, "confidence_basis": "MODEL",
+                "confidence": int(round(pr)), "confidence_value": round(pr, 1),
+                # `[2026-10-03]` the model's OWN chance on both markets
+                #    (~~the run line corrected against the books~~).
+                "confidence_note": "The game model's own chance.",
+                "break_even": be, "edge": round(pr - be, 1),
+                "why": ["The game model gives %s %d%% %s. It expects %s runs to %s, with %s "
+                        "starting against %s. The price %+d needs %s%%."
+                        % (team, int(round(pr)), what, _r1(er.get(side)), _r1(er.get(other)),
+                           sp[side].get("name"), sp[other].get("name"), q["price"], be)]})
+    return rows
+
+
+def order_game_lines(rows, frozen=()):
+    """The GAME_LINES_MAX highest-confidence rows (a frozen row always stays),
+    by confidence, ranked."""
+    keep = {id(r) for r in frozen}
+    srt = sorted(rows, key=lambda r: (-(r.get("confidence_value") or r.get("confidence") or 0),
+                                      -(r.get("edge") or 0)))
+    room = max(0, GAME_LINES_MAX - len(keep))
+    chosen = keep | {id(r) for r in [r for r in srt if id(r) not in keep][:room]}
+    out = [r for r in srt if id(r) in chosen]
+    for i, r in enumerate(out, 1):
+        r["rank"] = i
+    return out
+
+
+def freeze_game_lines(rows, published, now):
+    """⛔ FROZEN AT FIRST PITCH: a published row whose game has started stays as
+    published, and nothing new is listed for a game that has started."""
+    keep = [r for r in published or [] if r.get("commence") and _iso(r["commence"]) <= now]
+    gone = {r.get("game_pk") for r in keep}
+    fresh = [r for r in rows if _iso(r["commence"]) > now and r.get("game_pk") not in gone]
+    return order_game_lines(fresh + keep, keep)
+
+
 def main(dry=False):
     root = os.path.dirname(os.path.abspath(__file__))
     os.chdir(root)
@@ -2771,6 +2879,25 @@ def main(dry=False):
 
     for i, x in enumerate(board, 1):
         x["rank"] = i
+
+    # ---- GAME LINES (the MLB game model, built here, free) -------------
+    # ⚠️ A failure here costs the game lines and never the props card; it is
+    #    written on the card (`game_lines_meta.error`) and printed.
+    import mlb_game_model as _gm
+    try:
+        _gmod = _gm.build(today, root=root, write=not dry)
+        try:
+            _pub = (json.load(open(f"{PICKS}/{today}.json")).get("game_lines") or [])
+        except (OSError, ValueError):
+            _pub = []
+        game_lines, _gerr = freeze_game_lines(
+            game_line_rows(_gmod, load(f"{LATEST}/board.json"), today), _pub, now), None
+    except Exception as e:
+        _gmod, game_lines, _gerr = {}, [], f"{type(e).__name__}: {e}"
+        print(f"[card] 🔴 GAME MODEL FAILED ({_gerr}) -- no game lines on this card")
+    print(f"[card] game lines: {len(game_lines)} from the game model for {today} "
+          f"({sum(r['market'] == 'moneyline' for r in game_lines)} moneyline, "
+          f"{sum(r['market'] == 'run_line' for r in game_lines)} run line)")
     # Kept for the doc's own accounting and for anything still reading it,
     # but these rows are now ON the board rather than exiled to it.
     below = [x for x in plays + hitters if not x.get("clears_price_floor", True)]
@@ -2872,6 +2999,19 @@ def main(dry=False):
         "top10_excluded": top10_drops,
         "parlays": parlays,
         "parlay_meta": parlay_meta,
+        # 🔴 THE GAME MODEL'S PICKS, ITS OWN LIST: never in picks[], the top 10,
+        #    the pairs or the parlays, and graded in their own record line.
+        "game_lines": game_lines,
+        "game_lines_meta": {"source": "data/latest/mlb-game-model.json", "slate": today,
+                            "markets": list(GL_MARKETS), "min_confidence": GL_MIN_CONF,
+                            "price_floor": PRICE_FLOOR, "cap": GAME_LINES_MAX,
+                            "confidence": "the game model's own chance", "error": _gerr,
+                            "totals": "not on the card (Sam, 2026-10-03); mlb-game-model.json only"},
+        "game_lines_rule": (
+            f"The game model's side of each {today} game with both starters named, for "
+            f"the moneyline and the run line, at {GL_MIN_CONF}% or more and {PRICE_FLOOR} "
+            f"or longer at the best of the five books, by its chance, at most "
+            f"{GAME_LINES_MAX}. A row is frozen once its game starts."),
         "parlay_rule": (
             "Two-leg combinations pay 1.8x or more and three- and four-leg "
             "combinations pay 3x or more, with no upper limit -- Sam's "

@@ -151,7 +151,12 @@ def run_verifier(mutate):
                "by_day": [{"date": "2026-09-03", "w": 2, "n": 2, "voids": 0}],
                "by_side": {"over": {"w": 1, "n": 1}, "under": {"w": 1, "n": 1}},
                "skipped": [], "days_graded": 1,
-               "detail_file": "data/latest/record-detail.json.gz"}
+               "detail_file": "data/latest/record-detail.json.gz",
+               # `[Sam, 2026-10-02]` the builder writes the game model's
+               #    lines in their own line; this tree has none to grade.
+               "game_lines": {"w": 0, "n": 0, "pct": None, "voids": 0, "by_day": [],
+                              "by_market": {"moneyline": {"w": 0, "n": 0, "pct": None},
+                                            "run_line": {"w": 0, "n": 0, "pct": None}}}}
         mutate(rec)
         json.dump(rec, open(f"{t}/data/latest/record.json", "w"))
         # `days` is a MAP of date -> rows, matching the real file. ⚠️ Got
