@@ -73,7 +73,7 @@ Every case is planted in a throwaway tree; nothing reads production data.
 #
 # @vacuity 🔴 today is not in the allowance: day 3 with 434 before today is not stopped at 700
 #   file: collect.py
-#   find:     return max(0, spent_month - daily_spend(t.strftime("%Y-%m-%d")))
+#   find:     return max(0, spent_month - daily_spend())
 #   with:     return spent_month
 #
 # @vacuity 🔴 ...and is stopped at 1,200: the ceiling still binds
@@ -93,8 +93,8 @@ Every case is planted in a throwaway tree; nothing reads production data.
 #
 # @vacuity 🔴 a balance that lags today's pulls never gives day 1 more than one day's share
 #   file: collect.py
-#   find:     return max(0, spent_month - daily_spend(t.strftime("%Y-%m-%d")))
-#   with:     return spent_month - daily_spend(t.strftime("%Y-%m-%d"))
+#   find:     return max(0, spent_month - daily_spend())
+#   with:     return spent_month - daily_spend()
 #
 # @vacuity 🔴 converge counts today once
 #   file: collect.py

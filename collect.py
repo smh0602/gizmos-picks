@@ -1067,7 +1067,7 @@ def month_billed(t=None):
     return MONTHLY_PLAN - nb[1]
 
 
-def spent_before_today(t=None):
+def spent_before_today():
     """What this calendar month spent BEFORE today (UTC): the month's spend
     (the API's balance, `month_billed`; else the stored sum) less today's own
     stored spend.
@@ -1082,10 +1082,9 @@ def spent_before_today(t=None):
     lags them, and no month spends less than nothing (day 1 stays one day's
     share, as #202 left it).
     """
-    t = t or now()
-    billed = month_billed(t)
+    billed = month_billed()
     spent_month = billed if billed is not None else sum(month_spend().values())
-    return max(0, spent_month - daily_spend(t.strftime("%Y-%m-%d")))
+    return max(0, spent_month - daily_spend())
 
 
 def daily_allowance():
@@ -1121,7 +1120,7 @@ def daily_allowance():
     #    the 1st, before the first pull, last month's low balance is not
     #    this month's -- the stored sum (0) is. (`spent_before_today`)
     entitled = FLAT_DAILY_CAP * t.day
-    room = entitled - spent_before_today(t)
+    room = entitled - spent_before_today()
     # ⚠️ NEVER BELOW THE FLAT CAP: a month that has already overspent
     # must still be able to buy today's slate, or one bad day locks the
     # product out for the rest of the month.
