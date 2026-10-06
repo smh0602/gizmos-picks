@@ -299,7 +299,10 @@ _KNOWN = {"scores", "results", "pitchers", "hitters", "record", "gamelines",
           # `[Sam, 2026-09-25]` the run-status file: an arm in `run_mode`
           # (test_runs_status.py §3), run hourly by runs.yml. Its row exists
           # only once that watcher is deployed.
-          "runs"}
+          "runs",
+          # `[Sam, 2026-10-06]` the MLB game model's own row: an arm in
+          # `run_mode`, free (test_mlb_model_schedule.py).
+          "game-model"}
 # ⚠️ THIS LIST IS TYPED BY HAND, AND IT ONCE CARRIED `news-archive` — a
 #    mode with no arm in `run_mode` — so this check passed while converge
 #    printed "unknown mode" on every football pass. The question "does the

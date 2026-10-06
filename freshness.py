@@ -1114,6 +1114,12 @@ def contract(data="data", picks="picks", now=None):
          "Player Props — hitter markets"),
         ("props-board", ("file", f"{latest}/props.json.gz"),       ODDS, False,
          "Player Props — the join that puts props on the board"),
+        # 🔴 `[Sam, 2026-10-06]` THE GAME LINES TAB'S MODEL, ON ITS OWN DEADLINES.
+        #    ~~built only inside the card~~ (one deadline a day): after a
+        #    deploy nothing built it, and a starter named after 10:00 ET read
+        #    "No pick yet" all day. Free; dropped on a no-games day below.
+        ("game-model", ("file", f"{latest}/mlb-game-model.json"), ODDS, False,
+         "Game Lines — the MLB game model's pick to win each game"),
         # ── 10:00am — the card
         ("lineups",  ("file", f"{latest}/lineups.json.gz"),        CARD, False,
          "Gizmo's Picks — confirmed lineups the card needs"),
@@ -1133,6 +1139,9 @@ def contract(data="data", picks="picks", now=None):
     #    date says 0 games -- fail closed otherwise (`no_games_day`).
     if no_games_day(due_date(CARD, now), data):
         rows = [r for r in rows if r[0] != "card"]
+    # `[Sam, 2026-10-06]` the game model by the same rule, on its own deadline's day.
+    if no_games_day(due_date(ODDS, now), data):
+        rows = [r for r in rows if r[0] != "game-model"]
     if no_games_day(slate_date(now), data):
         # 🔴 `[Sam, 2026-10-02]` ...BUT `results` IS JUDGED ON THE SLATE IT
         #    GRADES. 10-02 had no games, the row went, and nothing re-pulled

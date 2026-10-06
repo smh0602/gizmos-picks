@@ -631,7 +631,10 @@ mlb_game_model.py THE MLB GAME MODEL (Sam, 2026-10-02): each side's runs
                   pitch; ⛔ nothing dated at or after first pitch is read (no
                   stored file holds a posted lineup, so `confirmed` is false).
                   Built in the card run (free) -> data/latest/mlb-game-model.json
-                  with its walk-forward check. The total carries C2's
+                  with its walk-forward check, AND `[Sam, 2026-10-06]` on its
+                  own contract row (`game-model`, free): when missing and at
+                  the Odds deadlines, on game days, for the next slate, then
+                  MLB winners.json. ⛔ That build never builds the card. The total carries C2's
                   correction in the file only (~~run line and total~~):
                   `[2026-10-03]` the run line's fit weighted the model's own
                   chance NEGATIVELY (the books' number tilted against it), so
