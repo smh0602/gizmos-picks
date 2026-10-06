@@ -50,8 +50,9 @@ routing step lets a relay link hold, and one new last step.
 **What you should see afterwards:** on a game day, when an MLB collect run
 finishes its hold, a new run titled **collect [relay mlb]** starts within a
 minute on the Actions page, and its log's last step says `relay:
-dispatching a successor`. On a no-games day the last step says `the MLB
-contract owes no card` and no relay run starts. Until you upload, the
+dispatching a successor`. When neither the last card's day nor the next
+one has MLB games (the off-season), the last step says `no MLB games on`
+and no relay run starts; one off-day between game days does not stop it. Until you upload, the
 nightly "runs" report lists `collect.yml` as waiting.
 
 ---

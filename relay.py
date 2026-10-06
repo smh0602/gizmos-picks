@@ -18,10 +18,13 @@ queue per cron, so a holding football chain could buy a pull twice.
   - this is not the run's first attempt (a re-run);
   - another MLB run is queued or in progress: that one carries on;
   - RELAY_DAY_CAP links have started today (UTC);
-  - `[Sam, 2026-10-06]` the MLB contract owes no card: on a no-games day and
-    in the off-season the contract drops its card row (its own no-games
-    rule, `freshness.no_games_day`), the chain ends by itself and the crons
-    restart it.
+  - `[Sam, 2026-10-06]` no MLB card is owed: every stored schedule reading
+    says BOTH the last card deadline's day AND the next one's have no games
+    (`freshness.no_games_day`, fail closed: no reading = owed). The
+    off-season ends the chain by itself and the crons restart it.
+    ~~the contract's card row~~: it follows the LAST deadline's day until
+    14:00Z, so after every off-day the chain was dead through the next
+    morning (Cowork, on 10-02 -> 10-03), the card it exists for.
 ⛔ IT MUST NOT SPEND: a link runs `converge` and buys only what the contract
 says is due, under the same daily guard (test_relay.py).
 Stdlib only. Exit 0 = dispatch the successor, 1 = do not.
@@ -57,18 +60,17 @@ def leagues_of(title, routes):
     return None
 
 
-def card_owed(now=None, data="data", picks="picks"):
-    """(owed?, why): does the MLB contract carry its card row right now?"""
-    rows = F.contract(data, picks, now)
-    day = F.due_date(F.CARD, now)
-    if any(r[0] == "card" for r in rows):
-        return True, "the MLB card for %s is owed" % day
-    return False, ("the MLB contract owes no card for %s (no games): the chain ends "
-                   "and the crons restart it" % day)
+def card_owed(now=None, data="data"):
+    """(owed?, why): is an MLB card due at the last card deadline or the next?"""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    last, nxt = F.due_date(F.CARD, now), F.et_date(F.next_due(F.CARD, now))
+    if F.no_games_day(last, data) and F.no_games_day(nxt, data):
+        return False, ("no MLB games on %s or %s by every stored schedule: the chain ends "
+                       "and the crons restart it" % (last, nxt))
+    return True, "an MLB card is owed for %s or %s" % (last, nxt)
 
 
-def decide(runs, me, attempt=1, league="mlb", now=None, wf_text="", data="data",
-           picks="picks"):
+def decide(runs, me, attempt=1, league="mlb", now=None, wf_text="", data="data"):
     """(dispatch?, why) for the run `me` at the end of its hold."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     if int(attempt or 1) != 1:
@@ -87,7 +89,7 @@ def decide(runs, me, attempt=1, league="mlb", now=None, wf_text="", data="data",
              and str(r.get("createdAt") or "")[:10] == today]
     if len(links) >= RELAY_DAY_CAP:
         return False, "%d relay links already started today (cap %d)" % (len(links), RELAY_DAY_CAP)
-    owed, why = card_owed(now, data, picks)
+    owed, why = card_owed(now, data)
     if not owed:
         return False, why
     return True, "%s; no other %s run is queued or running; link %d of %d today" % (

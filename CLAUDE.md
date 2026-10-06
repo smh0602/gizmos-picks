@@ -566,9 +566,10 @@ note boxes, tags and the stale bar now require their absence.
   scheduled MLB run, a push and a relay link each dispatch ONE successor
   (`workflow_dispatch`, `relay=true`) that holds 320 minutes and only ever
   `converge`s. ⛔ None when another MLB run is queued or running, past
-  `RELAY_DAY_CAP` (5) links a UTC day, on a re-run, or when the MLB contract
-  owes no card (a no-games day, the off-season): the chain ends and the
-  crons, unchanged, restart it. A relay link WAITS for the run that started
+  `RELAY_DAY_CAP` (5) links a UTC day, on a re-run, or when every stored
+  schedule says neither the last card deadline's day nor the next one's has
+  MLB games (the off-season; fail closed, so one off-day between game days
+  does not stop it): the chain ends and the crons, unchanged, restart it. A relay link WAITS for the run that started
   it (`cancel-in-progress` is false only for it), so a red run stays red.
   MLB only: football runs are one pass in a queue per cron. And LATENESS
   LEAVES A RECORD: every converge pass writes `latest/lateness.json`
@@ -816,7 +817,8 @@ calibration.py    is the product still winning? the automatic answer.
 relay.py          THE RELAY (Sam, 2026-10-06): at the end of an MLB run's
                   hold, may it dispatch one successor? ⛔ Not while another
                   MLB run is queued or running, past 5 links a UTC day, on a
-                  re-run, or when the MLB contract owes no card. Run by
+                  re-run, or when no MLB card is owed for the last or the
+                  next card deadline's day. Run by
                   collect.yml's last step; exit 0 = dispatch.
 card_gate.py      did the card fail for a reason Sam already accepted?
                   ⚠️ `[2026-10-01]` the page no longer says a card was

@@ -27,10 +27,25 @@ copy wins).
 #   find:     if len(links) >= RELAY_DAY_CAP:
 #   with:     if False:
 #
-# @vacuity 🔴 none when the MLB contract owes no card (a no-games day, the off-season)
+# @vacuity 🔴 two no-games days in a row (the off-season): no successor
 #   file: relay.py
-#   find:     if any(r[0] == "card" for r in rows):
-#   with:     if True:
+#   find:     if F.no_games_day(last, data) and F.no_games_day(nxt, data):
+#   with:     if False:
+#
+# @vacuity 🔴 the morning of a game day after a no-games day hands over
+#   file: relay.py
+#   find:     if F.no_games_day(last, data) and F.no_games_day(nxt, data):
+#   with:     if F.no_games_day(last, data):
+#
+# @vacuity 🔴 the evening of a no-games day before a game day hands over
+#   file: relay.py
+#   find:     last, nxt = F.due_date(F.CARD, now), F.et_date(F.next_due(F.CARD, now))
+#   with:     last, nxt = F.due_date(F.CARD, now), F.et_date(now)
+#
+# @vacuity 🔴 no reading for the next day hands over (fail closed)
+#   file: freshness.py
+#   find:     return bool(seen) and all(n == 0 for n in seen)
+#   with:     return all(n == 0 for n in seen)
 #
 # @vacuity 🔴 a re-run attempt starts no successor
 #   file: relay.py
@@ -192,12 +207,38 @@ _old = [dict(r, createdAt="2001-01-01T00:00:00Z") for r in _links]
 eq(len(relay([ME] + _old)[0]), 1, "   ...and yesterday's links do not count against today")
 
 # ══════════════════════════════════════════════════════════════════════
-section("4. ⛔ ONLY WHILE THE MLB CONTRACT OWES A CARD [Sam, 2026-10-06]")
+section("4. ⛔ ONLY WHILE AN MLB CARD IS OWED, THE LAST OR THE NEXT [Sam, 2026-10-06]")
 # ══════════════════════════════════════════════════════════════════════
 _d, _out = relay([ME], games=0)
-eq(_d, [], "🔴 a no-games day (and the off-season, every day one): the contract owes no card, "
-   "so no successor; the chain ends by itself and the crons restart it")
-ck("   ...and the step says so", "owes no card" in _out, _out[-300:])
+eq(_d, [], "🔴 no games on the last card's day nor the next one's (the off-season): no "
+   "successor; the chain ends by itself and the crons restart it")
+ck("   ...and the step says so", "no MLB games on" in _out, _out[-300:])
+# `[2026-10-06]` ~~the contract's card row~~ follows the LAST deadline's day
+#    until 14:00Z, so after an off-day the chain died until that morning's card
+#    was due (Cowork). Planted days, pinned clocks:
+_TT = lambda s: datetime.datetime.strptime(s, "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)  # noqa: E731
+
+
+def owed(at, games):
+    """card_owed at a pinned clock, on a tree holding one schedule reading per day."""
+    t = tempfile.mkdtemp(prefix="relay-days-")
+    try:
+        for d, n in games.items():
+            put(t, "data/%s/schedule/1200.json.gz" % d,
+                {"pulled_at": d + "T12:00:00Z", "date": d, "schedule": {"totalGames": n}})
+        return R.card_owed(_TT(at), os.path.join(t, "data"))[0]
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+
+
+ck("🔴 the evening of a no-games day before a game day hands over (10-02 19:00 ET)",
+   owed("2026-10-02T23:00Z", {"2026-10-02": 0, "2026-10-03": 4}))
+ck("🔴 the morning of a game day after a no-games day hands over (10-03 08:42 ET)",
+   owed("2026-10-03T12:42Z", {"2026-10-02": 0, "2026-10-03": 4}))
+ck("🔴 two no-games days in a row do not", not owed("2026-10-02T23:00Z",
+                                                    {"2026-10-02": 0, "2026-10-03": 0}))
+ck("🔴 no reading yet for the next day hands over (fail closed)",
+   owed("2026-10-02T23:00Z", {"2026-10-02": 0}))
 eq(relay([ME], attempt="2")[0], [], "⛔ a re-run attempt starts no successor")
 
 # ══════════════════════════════════════════════════════════════════════
