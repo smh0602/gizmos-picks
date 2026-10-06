@@ -1067,8 +1067,28 @@ def month_billed(t=None):
     return MONTHLY_PLAN - nb[1]
 
 
+def spent_before_today():
+    """What this calendar month spent BEFORE today (UTC): the month's spend
+    (the API's balance, `month_billed`; else the stored sum) less today's own
+    stored spend.
+
+    🔴 `[Sam, 2026-10-06]` ~~the allowance subtracted the month's spend~~,
+    which INCLUDES today, and both callers then compare the allowance with
+    today's spend again: today counted twice. On 10-03 the guard stopped
+    near 683 of a printed 1,200 (the day billed 735), on 10-04 near 600, and
+    college gamelines missed 15:00 ET by 99-285 minutes. ✅ Today is left to
+    the callers, who count it once (`test_credit_ledger.py` section 5).
+    ⚠️ Never below 0: a balance read before some of today's stored pulls
+    lags them, and no month spends less than nothing (day 1 stays one day's
+    share, as #202 left it).
+    """
+    billed = month_billed()
+    spent_month = billed if billed is not None else sum(month_spend().values())
+    return max(0, spent_month - daily_spend())
+
+
 def daily_allowance():
-    """Today's cap: the pro-rata entitlement, BORROWING FROM QUIET DAYS.
+    """Today's TOTAL cap: the pro-rata entitlement, BORROWING FROM QUIET DAYS.
 
     🔴 A FLAT DAILY CAP IS THE WRONG SHAPE FOR THIS SCHEDULE, and the
     calendar says so. `[measured 2026-09-06 against the Odds API's own
@@ -1085,7 +1105,9 @@ def daily_allowance():
     days, with 17,295 left for 24.
 
     ✅ SO THE CAP IS PRO-RATA WITH BORROWING: you may spend up to what the
-    month has entitled you to so far, minus what you have already spent.
+    month has entitled you to so far, minus what you spent BEFORE today.
+    ⛔ Today's own spend is not in it: the callers compare this with
+    `daily_spend()` (`[2026-10-06]`, `spent_before_today`).
     ⛔ AND IT IS STILL A CAP: `HARD_DAY_CEIL` stops a runaway in a single
     day no matter how much the month has banked. A loop that starts
     spending cannot drain the plan before anyone sees it.
@@ -1096,11 +1118,9 @@ def daily_allowance():
     #    room was 592-761 credits too generous and 09-26 billed 1,342
     #    against the 1,200 ceiling. ⚠️ Only a reading from THIS month: on
     #    the 1st, before the first pull, last month's low balance is not
-    #    this month's -- the stored sum (0) is.
-    billed = month_billed(t)
-    spent_month = billed if billed is not None else sum(month_spend().values())
+    #    this month's -- the stored sum (0) is. (`spent_before_today`)
     entitled = FLAT_DAILY_CAP * t.day
-    room = entitled - spent_month
+    room = entitled - spent_before_today()
     # ⚠️ NEVER BELOW THE FLAT CAP: a month that has already overspent
     # must still be able to buy today's slate, or one bad day locks the
     # product out for the rest of the month.
@@ -5627,8 +5647,12 @@ def converge(explicit=(), allow_paid=True):
     cap_today = daily_allowance()
     _mspent = sum(month_spend().values())
     _mbilled = month_billed()
+    # ⚠️ `cap_today` IS the number the guard below compares with today's
+    #    spend, and the line shows how it was made: today's day of the month
+    #    times the flat cap, less what was spent before today.
     log(f"credits spent today: {spent} (ACCOUNT, all leagues) of a "
-        f"{cap_today} allowance — flat cap {FLAT_DAILY_CAP}, ceiling "
+        f"{cap_today} allowance (day {now().day} x {FLAT_DAILY_CAP} less "
+        f"{spent_before_today()} spent before today) — flat cap {FLAT_DAILY_CAP}, ceiling "
         f"{HARD_DAY_CEIL}, month to date "
         f"{_mbilled if _mbilled is not None else _mspent} of {MONTHLY_PLAN} "
         f"(the API's balance; stored snapshots record {_mspent})")

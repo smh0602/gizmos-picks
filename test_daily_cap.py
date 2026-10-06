@@ -186,6 +186,11 @@ note(f"month to date {sum(C.month_spend().values())} of {C.MONTHLY_PLAN}; "
 #    ceiling can bind; the bar is unchanged. Day 1 and day 2 are asked on
 #    purpose below.
 _real, _real_b, _real_now = C.month_spend, C.month_billed, C.now
+# `[2026-10-06]` the allowance now subtracts today's own spend from the
+#    month's (`spent_before_today`): pinned to 0 here, so these checks ask
+#    the code and never read the live tree's spend for the pinned day.
+_real_d = C.daily_spend
+C.daily_spend = lambda day=None: 0
 _Z, _B = (lambda: {"x": 0}), (lambda: {"x": C.MONTHLY_PLAN * 2})
 _at = lambda s: (lambda: datetime.datetime.strptime(s, "%Y-%m-%dT%H:%MZ").replace(
     tzinfo=datetime.timezone.utc))
@@ -215,6 +220,7 @@ try:
            str(C.daily_allowance()))
 finally:
     C.month_spend, C.month_billed, C.now = _real, _real_b, _real_now
+    C.daily_spend = _real_d
 
 print("\n═══ 4. THE ENFORCEMENT SITE ACTUALLY USES IT ═══")
 src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()

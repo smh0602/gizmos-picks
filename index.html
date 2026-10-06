@@ -4149,7 +4149,7 @@ async function renderGameLines(){
   const v = $('#view');
   v.innerHTML = '<div class="msg">Loading…</div>';
   const W = await winnersLoad('mlb');
-  v.innerHTML = `<div class="panel"><h2>Game Lines${W && W.slate ? ' &mdash; ' + W.slate : ''}</h2>
+  v.innerHTML = `<div class="panel"><h2>Game Lines${W && W.slate ? ' &mdash; ' + fbDayName(W.slate) : ''}</h2>
     ${winnersHtml(W)}</div>`;
 }
 
