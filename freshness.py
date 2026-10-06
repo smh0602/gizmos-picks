@@ -1528,6 +1528,55 @@ def survey(data="data", picks="picks", now=None):
     return rows
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 LATENESS LEAVES A RECORD (the audit's rule 301). `[Sam, 2026-10-06]`
+# ══════════════════════════════════════════════════════════════════════
+# The MLB card was due 14:00Z on 10-06 and built 16:02Z, and nothing said so:
+# the run that built it repaired the staleness before the watchdog looked.
+# ✅ Every converge pass writes, for each artifact with a deadline, the FIRST
+#    build seen after that deadline: when it was due, when it was built (the
+#    artifact's own stamp) and how many minutes late. A later rebuild for the
+#    same deadline leaves the record alone (a same-day rebuild must not hide a
+#    late card); the next deadline's build replaces it. The watchdog reports
+#    DEGRADED (never BROKEN, no repair) while a last build was more than
+#    GRACE_MIN late, so it clears on the next on-time build.
+# ⚠️ GRACE_MIN is above one heartbeat sleep (15 min) plus a pass plus a cron's
+#    usual 10-15 minute delay; 10-06's card was 122 minutes late.
+# ⛔ A row whose deadline is a MAXIMUM AGE (`LATE_GRACE_MIN`: the hourly run
+#    list) has no time it was due, so it is not recorded.
+GRACE_MIN = 60
+LATENESS_FILE = "lateness.json"
+
+
+def record_builds(rows, path, now=None):
+    """Update `path` from a survey's rows. -> the document written."""
+    now = now or datetime.datetime.now(UTC)
+    try:
+        with open(path, encoding="utf-8") as fh:
+            arts = json.load(fh).get("artifacts") or {}
+    except (OSError, ValueError, AttributeError):
+        arts = {}
+    for r in rows:
+        if (r.get("due_at") is None or r.get("stale") or r.get("age_min") is None
+                or r.get("mode") in LATE_GRACE_MIN):
+            continue
+        key = re.sub(r"\d{4}-\d{2}-\d{2}", "{date}", r["path"])   # picks/{date}.json is ONE artifact
+        old = arts.get(key) or {}
+        if old.get("due_at") == r["due_at"]:
+            continue                       # the first build for this deadline stands
+        due = datetime.datetime.strptime(r["due_at"], "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
+        built = now - datetime.timedelta(minutes=r["age_min"])
+        arts[key] = {"mode": r["mode"], "path": r["path"], "due_at": r["due_at"],
+                           "built_at": built.strftime("%Y-%m-%dT%H:%MZ"),
+                           "late_min": round(max(0.0, (built - due).total_seconds() / 60.0), 1)}
+    doc = {"written_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "grace_min": GRACE_MIN,
+           "artifacts": arts}
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=1, sort_keys=True)
+    return doc
+
+
 def plan(data="data", picks="picks", now=None, allow_paid=True):
     """The ordered list of modes needed to meet every deadline that has
     passed. Order is the contract's order, which is dependency order."""

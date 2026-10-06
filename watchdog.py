@@ -688,6 +688,29 @@ def check_freshness(rep, now):
                  % len(stale))
 
 
+def check_late_builds(rep, now):
+    """`[Sam, 2026-10-06]` A BUILD THAT LANDED LATE IS REPORTED, EVEN AFTER IT
+    LANDED. The 10-06 card was 122 minutes late and nothing said so: the run
+    that built it repaired the staleness before this report was written.
+    ⛔ DEGRADED, NEVER BROKEN, AND NO REPAIR: the artifact is current; what
+    was wrong is when GitHub started the run. It clears on the next on-time
+    build (`freshness.record_builds`)."""
+    for lg, d in DATA.items():
+        f = _read(os.path.join(ROOT, d, "latest", F.LATENESS_FILE)) or {}
+        worst = {}
+        for r in (f.get("artifacts") or {}).values():
+            late = r.get("late_min")
+            if isinstance(late, (int, float)) and late > F.GRACE_MIN:
+                if late > (worst.get(r.get("mode")) or {}).get("late_min", -1):
+                    worst[r.get("mode")] = r
+        for mode, r in sorted(worst.items()):
+            rep.warn("late:%s:%s" % (mode, lg),
+                     "%s %s was built %d minutes after it was due" % (lg, mode, round(r["late_min"])),
+                     "due %s, built %s. GitHub started the run late; there is nothing to "
+                     "repair, and this clears when the next %s build is on time (within "
+                     "%d minutes)." % (r.get("due_at"), r.get("built_at"), mode, F.GRACE_MIN))
+
+
 def _published(lg):
     """How many cards this league has published — the evidence that a
     Track Record is OWED.
@@ -1122,7 +1145,7 @@ def check_record_ungraded(rep, now):
 CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_verify_failure, check_card_day_agreement,
           check_board_not_empty, check_record_sane,
-          check_freshness, check_record_written,
+          check_freshness, check_late_builds, check_record_written,
           # 🔴 A card that never reaches the record (audit Proposal A).
           check_record_ungraded,
           # 💰 THE TENTH. ⛔ Not a second reporting channel — it writes

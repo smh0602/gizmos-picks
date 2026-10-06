@@ -5587,6 +5587,16 @@ def write_freshness(rows=None, still=None):
     })
 
 
+def _record_lateness(rows):
+    """`[Sam, 2026-10-06]` LATENESS LEAVES A RECORD (freshness.record_builds):
+    when each deadline's first build landed, read by the watchdog. Written on
+    every pass, a pass with nothing to do included. ⛔ Never costs the pass."""
+    try:
+        _fresh.record_builds(rows, f"{LATEST}/{_fresh.LATENESS_FILE}")
+    except Exception as e:
+        log(f"⚠️ the lateness record was not written ({type(e).__name__}: {e})")
+
+
 def converge(explicit=(), allow_paid=True):
     """Bring every artifact back inside its contract. Returns exit code."""
     modes, rows = _fresh.plan(data=DATA, picks=PICKS, allow_paid=allow_paid)
@@ -5606,6 +5616,7 @@ def converge(explicit=(), allow_paid=True):
     if not modes:
         log("everything inside contract — nothing to do")
         log("=" * 66)
+        _record_lateness(rows)
         return 0
 
     log(f"PLAN: {' '.join(modes)}")
@@ -5669,6 +5680,7 @@ def converge(explicit=(), allow_paid=True):
                             source=_fresh.outside_source(e))
 
     rows2 = _fresh.survey(data=DATA, picks=PICKS)
+    _record_lateness(rows2)
     after = {r["mode"]: r for r in rows2}
     still = [m for m, r in after.items() if r["stale"]]
     write_freshness(rows2, still)

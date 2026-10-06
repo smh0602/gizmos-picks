@@ -191,8 +191,17 @@ else:
        "   the group's MLB list IS the set of unrouted crons",
        f"only-in-group={sorted(_listed - _unrouted)} "
        f"only-unrouted={sorted(_unrouted - _listed)}")
-    ck("cancel-in-progress: true" in wf,
-       "   and the newest MLB run still replaces the heartbeat loop")
+    # `[Sam, 2026-10-06]` ~~`"cancel-in-progress: true" in wf`~~: every run but
+    #    a relay link still replaces the heartbeat loop, and a relay link WAITS
+    #    for the run that dispatched it, so that run keeps its red or green
+    #    (test_relay.py). Read off the workflow as it will be live: a staged
+    #    copy wins.
+    import wfparse as _wfp  # noqa: E402
+    _eff = open(_wfp.effective_workflows(".")["collect.yml"], encoding="utf-8").read()
+    ck("cancel-in-progress: ${{ github.event.inputs.relay != 'true' }}" in _eff
+       and "cancel-in-progress: true" not in _eff,
+       "   and the newest MLB run still replaces the heartbeat loop; only a relay "
+       "link waits for the run that started it")
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 EVERY MODE THE DISPATCH FORM OFFERS MUST ACTUALLY EXIST.
