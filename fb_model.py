@@ -683,6 +683,35 @@ def pricing(rows, now=None):
     return {"models": models, "games": games, "ridge": RIDGE}
 
 
+def win_chances(rows, now=None):
+    """`[Sam, 2026-10-01]` THE GAME LINES TAB: the moneyline model's chance for
+    BOTH teams of every priced game not yet played (this week's), with the best
+    moneyline at Sam's three books. ⛔ The same fit `current_picks` makes; no
+    pick and no model changes."""
+    now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    horizon = (datetime.datetime.fromisoformat(now.replace("Z", "+00:00"))
+               + datetime.timedelta(days=PRICING_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    data = [(features(r, "moneyline"), label(r, "moneyline")) for r in rows
+            if label(r, "moneyline") is not None]
+    m = fit([x for x, _ in data], [y for _, y in data])
+    out = []
+    for r in rows:
+        c = (r.get("snap") or {}).get("commence")
+        if r["final"] or not m or not c or not (now < c <= horizon):
+            continue
+        p = predict(m, features(r, "moneyline"))
+        best = {}
+        for b, _ln, hp, ap, _as in book_quotes(r, "moneyline"):
+            for side, px in (("home", hp), ("away", ap)):
+                if px is not None and (side not in best or px > best[side]["price"]):
+                    best[side] = {"price": px, "book": b}
+        hname, aname = r["snap"]["names"]
+        out.append({"game_id": r["id"], "commence": c, "home": hname, "away": aname,
+                    "p_home": round(100 * p, 1), "p_away": round(100 * (1 - p), 1),
+                    "best_ml": best})
+    return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
+
+
 def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
     lg = (lg or LEAGUE).lower()
     rows = build_rows(lg, root, extra_top, extra_players)
@@ -720,7 +749,8 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
                     "clustered by game."),
            "graded": {mk: wf["books"][mk] for mk in MARKETS},
            "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS},
-           "pricing": pricing(rows)}
+           "pricing": pricing(rows),
+           "win_chances": win_chances(rows)}
     for mk in MARKETS:
         v = verdict(wf["closing"][mk])
         doc["record"][mk]["verdict"] = doc["closing_record"][mk]["verdict"] = v

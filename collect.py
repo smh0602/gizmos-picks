@@ -3671,6 +3671,17 @@ def _won(val, line, side):
     return (val > line) if side == "over" else (val < line)
 
 
+def build_winners():
+    """`[Sam, 2026-10-01]` the Game Lines tab: the model's pick to win every game
+    (winners.py), frozen and graded once. ⛔ Free, and a failure never costs
+    the card or the record it rides behind."""
+    try:
+        import winners as _w
+        _w.build(LEAGUE, log=log)
+    except Exception as e:
+        log(f"  ⚠️ the winners did not build ({type(e).__name__}: {e})")
+
+
 def collect_record():
     import glob
 
@@ -4532,6 +4543,7 @@ def run_mode(mode):
                 log(f"  ⚠️ the game lines tab did not build "
                     f"({type(e).__name__}: {e}) — the card uses the file on disk.")
             left = build_card_fb()
+            build_winners()
             # ══════════════════════════════════════════════════════════
             # 🔴 AND THE GRADER RUNS RIGHT BEHIND IT. `[2026-09-06]`
             # ⛔ THE FIRST ATTEMPT GAVE `fb-record` ITS OWN CRONS AND THE
@@ -4792,6 +4804,7 @@ def run_mode(mode):
             import card as _card
             _card.main()
             collect_record()
+            build_winners()
             left = None
         elif mode == "lineups":
             collect_lineups()
@@ -4813,6 +4826,7 @@ def run_mode(mode):
             if LEAGUE != "mlb":
                 return log(f"record is the MLB grader; {LEAGUE} is graded by card-fb. Nothing done.")
             collect_record()
+            build_winners()
             left = None
         elif mode == "runs":
             # 🔴 RUN STATUS, READABLE WITHOUT A GITHUB LOGIN. `[2026-09-25]`
@@ -4837,6 +4851,7 @@ def run_mode(mode):
             collect_props_board()
             import card as _card
             _card.main()
+            build_winners()
             left = None
         elif mode == "props":
             # 🔴 THE FOOTBALL PROPS PULL. ⛔ MLB must not use this -- it has

@@ -10,8 +10,9 @@ inside its own view, in another order, opening on Trends.
 
 ✅ Now the header's `.subnav` is the ONLY tab bar. One list (`TABS`) gives
 every league the same order and names -- Scores, Gizmo's Picks, Odds,
-Player Props, Game Lines, Parlays, Trends, Track Record, News -- with MLB
-leaving out Game Lines until it has one. Every league opens on Scores, and
+Player Props, Game Lines, Parlays, Trends, Track Record, News -- ~~with MLB
+leaving out Game Lines until it has one~~ `[Sam, 2026-10-01]` with Game
+Lines in every league, the model's pick to win each game. Every league opens on Scores, and
 switching league keeps the tab when the new league has it.
 
 ASKED OF THE SHIPPED PAGE: `drawTabs`, `tabsFor`, `nextTab`, `tabName` and
@@ -55,10 +56,10 @@ in a browser, is measured by test_league_switch.py on pr-tests' render job.
 #   find: .subnav a.on{color:#fff;box-shadow:inset 0 -3px 0 var(--accent2)}
 #   with: .subnav a.on{color:#fff;box-shadow:inset 0 -3px 0 var(--accent2)} body.fb .subnav a.on{color:#f0a500}
 #
-# @vacuity 🔴 MLB shows no Game Lines tab yet; football does
+# @vacuity 🔴 every league has the Game Lines tab, MLB included [Sam, 2026-10-01]
 #   file: index.html
-#   find: const TABS_OFF = { mlb: ['gamelines'] };
-#   with: const TABS_OFF = { mlb: [] };
+#   find: const TABS_OFF = {};
+#   with: const TABS_OFF = { mlb: ['gamelines'] };
 #
 # @vacuity 🔴 every league opens on Scores
 #   file: index.html
@@ -188,14 +189,12 @@ ck("🔴 switching to football never hides the one bar",
 section("2. 🔴 THE SAME ORDER, NAMES AND MARKUP IN ALL THREE LEAGUES")
 _keys = {lg: [k for k, _l, _a in BAR[lg]] for lg in LEAGUES}
 _want = [k for k, _ in WANT]
-ck("🔴 the same left-to-right order in every league (Sam's order; MLB without Game Lines)",
-   _keys["nfl"] == _want and _keys["ncaaf"] == _want
-   and _keys["mlb"] == [k for k in _want if k != "gamelines"],
-   "got %s" % _keys)
+ck("🔴 the same left-to-right order in every league, Game Lines in each (Sam's order)",
+   all(_keys[lg] == _want for lg in LEAGUES), "got %s" % _keys)
 _names = {lg: {k: lab for k, lab, _a in BAR[lg]} for lg in LEAGUES}
 ck("🔴 the same tab names in every league (\"Scores\", not \"Scores & Matchups\")",
-   all(_names[lg].get(k) == lab for lg in LEAGUES for k, lab in WANT
-       if not (lg == "mlb" and k == "gamelines")) and R["names"].get("scores") == "Scores",
+   all(_names[lg].get(k) == lab for lg in LEAGUES for k, lab in WANT)
+   and R["names"].get("scores") == "Scores",
    "got %s" % _names)
 
 
@@ -229,9 +228,13 @@ ck("🔴 no CSS rule styles the bar differently for one league (%d rule(s) name 
    len(_rules) >= 5 and not _bad, "league-scoped: %s" % _bad)
 
 # ══════════════════════════════════════════════════════════════════════
-section("3. 🔴 MLB HAS NO GAME LINES TAB YET; FOOTBALL DOES")
-ck("🔴 MLB shows no Game Lines tab yet; NFL and college show it",
-   "gamelines" not in _keys["mlb"] and all("gamelines" in _keys[lg] for lg in ("nfl", "ncaaf")),
+# `[Sam, 2026-10-01]` "remove the game lines standalone tab with moneyline predictions,
+#    in this tab you will simply just give the models pick on whos going to win the game
+#    outright. do this for all leagues" (~~MLB has no Game Lines tab yet~~).
+section("3. 🔴 EVERY LEAGUE HAS THE GAME LINES TAB, MLB INCLUDED")
+ck("🔴 MLB, NFL and college all show the Game Lines tab, in the same slot",
+   all(_keys[lg].index("gamelines") == _want.index("gamelines") for lg in LEAGUES
+       if "gamelines" in _keys[lg]) and all("gamelines" in _keys[lg] for lg in LEAGUES),
    "got %s" % _keys)
 
 # ══════════════════════════════════════════════════════════════════════
@@ -240,7 +243,7 @@ ck("🔴 every league opens on Scores",
    re.search(r"\blet FBTAB\s*=\s*'scores';", SRC) is not None
    and re.search(r"\bTAB = 'scores';", SRC) is not None and "show('scores');" in SRC,
    "MLB's TAB, football's FBTAB and the first paint must all start on Scores")
-_want_next = {"parlays>nfl": "parlays", "gamelines>mlb": "scores", "trends>ncaaf": "trends",
+_want_next = {"parlays>nfl": "parlays", "gamelines>mlb": "gamelines", "trends>ncaaf": "trends",
               "gamelines>ncaaf": "gamelines", "news>mlb": "news", "props>nfl": "props"}
 ck("🔴 switching league keeps the tab when the new league has it, else Scores",
    R["next"] == _want_next, "got %s" % R["next"])
