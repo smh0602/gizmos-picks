@@ -1,7 +1,7 @@
 {
  "date": "2026-10-06",
  "league": "ncaaf",
- "generated_at": "2026-10-06T17:13:18Z",
+ "generated_at": "2026-10-06T17:29:35Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-06T14:16:17Z",
@@ -23,7 +23,64 @@
   ],
   "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
  },
- "game_lines": [],
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Troy Trojans",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Southern Mississippi Golden Eagles @ Troy Trojans",
+   "game_id": "57ad14afc7db1843fd56f5971dadb058",
+   "away": "Southern Mississippi Golden Eagles",
+   "home": "Troy Trojans",
+   "commence": "2026-10-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -375,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 82,
+   "break_even": 78.9,
+   "edge": 3.3,
+   "why": [
+    "The game model gives Troy Trojans 82% to win; the price -375 needs 78.9%."
+   ],
+   "priced_at": "2026-10-06T17:13:33Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Troy Trojans",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -10.5,
+   "game": "Southern Mississippi Golden Eagles @ Troy Trojans",
+   "game_id": "57ad14afc7db1843fd56f5971dadb058",
+   "away": "Southern Mississippi Golden Eagles",
+   "home": "Troy Trojans",
+   "commence": "2026-10-07T00:00:00Z",
+   "book": "fanduel",
+   "price": -102,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "break_even": 50.5,
+   "edge": 1.1,
+   "why": [
+    "The game model gives Troy Trojans 52% to cover -10.5; the price -102 needs 50.5%."
+   ],
+   "priced_at": "2026-10-06T17:13:33Z",
+   "rank": 2
+  }
+ ],
  "game_lines_meta": {
   "source": "fb-model.json",
   "slate": "2026-10-06",
@@ -32,11 +89,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-06T17:13:15Z",
-  "ladder_built_at": "2026-10-06T17:13:17Z",
+  "model_built_at": "2026-10-06T17:29:33Z",
+  "ladder_built_at": "2026-10-06T17:29:35Z",
   "alt_spreads": 0
  },
- "game_lines_rule": "No game-model picks for 2026-10-06 at 50% or more and -400 or longer.",
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-06 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
  "top_plays": [],
  "top_plays_excluded": {
   "below_payable_floor": 0,
