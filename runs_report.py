@@ -171,7 +171,7 @@ def scheduled_workflows(root="."):
     """
     out = {}
     for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
-        if os.path.basename(p) in DISABLED:
+        if os.path.basename(p) in DISABLED:   # no runs are owed
             continue                     # switched off by Sam: not expected to fire
         try:
             t = open(p, encoding="utf-8").read()

@@ -49,8 +49,8 @@ workflow Sam switched off no longer fires. Planted trees, pinned clocks.
 #
 # @vacuity 🔴 a workflow Sam switched off is not a workflow that must show runs
 #   file: runs_report.py
-#   find:         if os.path.basename(p) in DISABLED:
-#   with:         if False:
+#   find:         if os.path.basename(p) in DISABLED:   # no runs are owed
+#   with:         if False:   # no runs are owed
 #
 # @vacuity 🔴 ...nor one whose crons must fire
 #   file: runs_report.py
