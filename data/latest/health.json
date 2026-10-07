@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-07T08:55:08Z",
+ "checked_at": "2026-10-07T12:24:40Z",
  "et_date": "2026-10-07",
  "healthy": false,
  "broken": 0,
- "degraded": 17,
+ "degraded": 15,
  "findings": [
   {
    "key": "late:card:mlb",
@@ -14,24 +14,10 @@
    "repair": null
   },
   {
-   "key": "late:game-model:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb game-model was built 259 minutes after it was due",
-   "why": "due 2026-10-06T20:00Z, built 2026-10-07T00:18Z. GitHub started the run late; there is nothing to repair, and this clears when the next game-model build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:lineups:mlb",
    "severity": "DEGRADED",
    "what": "mlb lineups was built 122 minutes after it was due",
    "why": "due 2026-10-06T14:00Z, built 2026-10-06T16:02Z. GitHub started the run late; there is nothing to repair, and this clears when the next lineups build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:record:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb record was built 439 minutes after it was due",
-   "why": "due 2026-10-06T10:00Z, built 2026-10-06T17:18Z. GitHub started the run late; there is nothing to repair, and this clears when the next record build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -130,15 +116,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17852,
-  "pulled_at": "2026-10-06T23:14:34Z",
+  "balance": 17788,
+  "pulled_at": "2026-10-07T11:10:44Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 9.7,
+  "reading_age_hours": 1.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-06T23:14:34Z",
-  "source": "data/ncaaf/2026-10-06/props-player/2314.json.gz",
-  "readings_on_disk": 658,
+  "newest_paid_pull": "2026-10-07T11:10:42Z",
+  "source": "data/2026-10-07/props-batter/1110.json.gz",
+  "readings_on_disk": 661,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
