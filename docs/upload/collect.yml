@@ -1235,6 +1235,7 @@ jobs:
       # filtered alert is the same as no alert — which is the state this
       # whole step exists to leave behind.
       - name: Tell Sam
+        id: tell
         if: always()
         continue-on-error: true
         env:

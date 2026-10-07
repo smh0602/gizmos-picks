@@ -46,6 +46,46 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #   file: watchdog.py
 #   find:     broken = [i for i in out["findings"] if i["severity"] == "BROKEN"]
 #   with:     broken = []
+#
+# @vacuity 🔴 only a BROKEN finding opens the watchdog's issue (Sam, 2026-10-07)
+#   file: watchdog.py
+#   find:     return any(f.get("severity") == "BROKEN" for f in (out or {}).get("findings") or [])
+#   with:     return any(f.get("severity") for f in (out or {}).get("findings") or [])
+#
+# @vacuity 🔴 ...and collect.yml's step asks it, closing the issue otherwise
+#   file: docs/upload/collect.yml
+#   find:           if [ "$ALERT" != "True" ]; then
+#   with:           if false; then
+#
+# @vacuity 🔴 an artifact's first entry is a sighting, never a measurement
+#   file: freshness.py
+#   find:                            "measured": bool(old)}
+#   with:                            "measured": True}
+#
+# @vacuity 🔴 ...never reported by the watchdog
+#   file: watchdog.py
+#   find:             late = r.get("late_min") if r.get("measured") else None    # a first sighting is not
+#   with:             late = r.get("late_min")    # a first sighting is not
+#
+# @vacuity 🔴 ...and never counted by the weekly status
+#   file: status.py
+#   find:             if r.get("measured") and (r.get("late_min") or 0) > F.GRACE_MIN and str(r.get("due_at")) >= since:
+#   with:             if (r.get("late_min") or 0) > F.GRACE_MIN and str(r.get("due_at")) >= since:
+#
+# @vacuity 🔴 Monday posts the week; any other day only a dead collector
+#   file: status.py
+#   find:     if now.weekday() == 0:
+#   with:     if now.weekday() != 0:
+#
+# @vacuity 🔴 ...which it does post on a Tuesday
+#   file: status.py
+#   find:     if not old:
+#   with:     if True:
+#
+# @vacuity 🔴 a day with nothing to say posts nothing
+#   file: docs/upload/status.yml
+#   find:           if [ ! -s "$BODY" ]; then
+#   with:           if false; then
 """
 import atexit
 import datetime
@@ -102,7 +142,9 @@ def tree(findings=(), health_at="2026-10-12T10:41:00Z", runs_at="2026-10-12T11:0
                          ("2026-10-07T15:00Z", "2026-10-07", 50)):    # 10-05 first: a sighting, not measured
         F.record_builds([{"mode": "card", "path": "picks/%s.json" % day, "due_at": day + "T14:00Z",
                           "stale": False, "age_min": age}], os.path.join(t, "data", "latest", F.LATENESS_FILE), T(at))
-    put(t, "data/nfl/latest/lateness.json", {"late": [
+    put(t, "data/nfl/latest/lateness.json", {"artifacts": {"r": {   # a first sighting, never counted
+        "mode": "record-fb", "path": "data/nfl/latest/record.json", "due_at": "2026-10-06T13:00Z",
+        "late_min": 9100.0, "measured": False}}, "late": [
         {"mode": "card-fb", "path": "picks/fb-nfl-latest.json", "due_at": "2026-10-09T13:30Z", "late_min": 75.0,
          "measured": True},
         {"mode": "card-fb", "path": "picks/fb-nfl-latest.json", "due_at": "2026-10-03T13:30Z", "late_min": 300.0,
@@ -161,8 +203,9 @@ ck("the two steps are read from the workflow as it will be live (%s)" % os.path.
    and (wfparse.step_env(WF, step_name=SEND) or {}).get("BODY") == "${{ steps.%s.outputs.body }}" % _ids.get(WRITE))
 
 
-def drive(issues, closed=()):
-    """Both steps, run as GitHub runs them, in a planted tree. -> the gh calls made."""
+def drive(issues, closed=(), empty=False):
+    """Both steps, run as GitHub runs them, in a planted tree (`empty`: the send step
+    alone, given an empty body). -> the gh calls made."""
     t = tree(health_at="2020-01-01T00:00:00Z")      # too old to read: something is posted on any day
     copy_module("status", t, ROOT)
     put(t, "all.json", [{"number": n, "title": s} for n, s in issues])
@@ -176,7 +219,10 @@ def drive(issues, closed=()):
     env = dict(os.environ, GITHUB_OUTPUT=out, TMPDIR=t.replace("\\", "/"), PYTHONUTF8="1",
                PATH=os.path.join(t, "bin") + os.pathsep + os.environ["PATH"])
     env.pop("RUNNER_TEMP", None)
-    for i, body in enumerate(STEPS):
+    if empty:
+        open(os.path.join(t, "empty.md"), "w").close()
+        open(out, "w").write("body=%s/empty.md\n" % t.replace("\\", "/"))
+    for i, body in enumerate(STEPS[1:] if empty else STEPS, 1 if empty else 0):
         if i:
             env["BODY"] = open(out, encoding="utf-8").read().split("body=", 1)[1].strip()
         with open(os.path.join(t, "step.sh"), "w", encoding="utf-8", newline="\n") as fh:
@@ -197,6 +243,7 @@ for _closed in ((), (31,)):
        and any(c.startswith("issue edit 31 --add-label gizmo-watch --add-assignee smh0602") for c in _c)
        and any(c.startswith("issue comment 31 --body-file") for c in _c)
        and (not _closed or "issue reopen 31" in _c), _c)
+eq(drive([(31, TITLE)], empty=True), [], "🔴 a day with nothing to say (an empty body) posts nothing and calls nothing")
 
 section("4. 🔴 THE WATCHDOG'S ALERT ENDS WITH WHAT TO DO")
 _out = {"healthy": False, "checked_at": "2026-10-12T10:41Z", "repairs": [], "unrepairable": ["record-verify:mlb"],
@@ -211,3 +258,68 @@ ck("🔴 the alert ENDS with what is wrong, whether the site is updating and the
    and "verify_record.py" in _tail and W.USAGE_CHECK in _tail, _tail[:160])
 eq(W.site_updating([{"key": "stopped:mlb", "severity": "BROKEN", "what": "mlb has not updated since Tue 11:11Z"}]),
    "No: mlb has not updated since Tue 11:11Z.", "🔴 ...and it says the site is NOT updating while a league has stopped")
+
+section("5. 🔴 ONLY A BROKEN FINDING EMAILS SAM (collect.yml's step, a stub gh) [Sam, 2026-10-07]")
+TELL = (wfparse.step_run(wfparse.effective_workflows(ROOT)["collect.yml"], step_id="tell") or "").replace("\r", "")
+
+
+def tell(findings, num=""):
+    """collect.yml's issue step on a planted health report; `num`: the issue already open."""
+    t = tempfile.mkdtemp(prefix="tell-")
+    TREES.append(t)
+    copy_module("watchdog", t, ROOT)
+    put(t, "data/latest/health.json", {"healthy": not findings, "checked_at": "2026-10-12T10:41Z", "repairs": [],
+                                       "unrepairable": [], "findings": [dict(f, why="w", repair=None) for f in findings]})
+    os.makedirs(os.path.join(t, "bin"))
+    with open(os.path.join(t, "bin", "gh"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write('#!/bin/bash\nprintf "%s\\n" "$*" >> gh.log\n[ "$1 $2" = "issue list" ] && echo "' + num + '"\nexit 0\n')
+    os.chmod(os.path.join(t, "bin", "gh"), 0o755)
+    with open(os.path.join(t, "step.sh"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(TELL)
+    subprocess.run(["bash", "step.sh"], cwd=t, capture_output=True, timeout=300, env=dict(
+        os.environ, TMPDIR=t.replace("\\", "/"), PYTHONUTF8="1", PATH=os.path.join(t, "bin") + os.pathsep + os.environ["PATH"]))
+    log = os.path.join(t, "gh.log")
+    return [c.split(" --")[0] for c in open(log, encoding="utf-8").read().splitlines()] if os.path.exists(log) else []
+
+
+ck("the step is read from collect.yml as it will be live", "watchdog.alerting" in TELL)
+_d = tell([DEG])
+ck("🔴 a DEGRADED-only health report opens no issue", not [c for c in _d if c.startswith(("issue create", "issue edit"))], _d)
+ck("🔴 ...and closes one that is open", "issue close 9" in tell([DEG], "9"))
+eq([c for c in tell([DEG, BRK]) if c.startswith("issue create")], ["issue create"], "🔴 a BROKEN one opens it, once")
+
+section("6. 🔴 A FIRST SIGHTING IS NOT A MEASUREMENT [Sam, 2026-10-07]")
+_t = tree()
+_lf = os.path.join(_t, "data", "nfl", "latest", F.LATENESS_FILE)
+os.remove(_lf)
+
+
+def seen(at, due):
+    """NFL record.json recorded at `at` (built then) for deadline `due`. -> (entry, `late`, findings)."""
+    d = F.record_builds([{"mode": "record-fb", "path": "data/nfl/latest/record.json", "due_at": due,
+                          "stale": False, "age_min": 0}], _lf, T(at))
+    W.ROOT, saved = _t, W.ROOT
+    try:
+        rep = W.Report()
+        W.check_late_builds(rep, T(at))
+    finally:
+        W.ROOT = saved
+    return d["artifacts"]["data/nfl/latest/record.json"], d["late"], [i["key"] for i in rep.items if i["key"].endswith(":nfl")]
+
+
+_e1 = seen("2026-10-06T20:40Z", "2026-09-30T13:00Z")       # first seen: 9100 minutes "late"
+ck("🔴 an artifact's first entry is never late: not measured, not kept, not reported",
+   _e1[0]["measured"] is False and _e1[1] == [] and _e1[2] == [], _e1)
+_e2 = seen("2026-10-07T14:15Z", "2026-10-07T13:00Z")       # its next deadline: 75 minutes
+ck("🔴 ...and its second is measured, kept and reported",
+   _e2[0]["measured"] is True and [x["late_min"] for x in _e2[1]] == [75.0] and _e2[2] == ["late:record-fb:nfl"], _e2)
+
+section("7. 🔴 EVERY DAY: MONDAY THE WEEK, ANY OTHER DAY ONLY A DEAD COLLECTOR [Sam, 2026-10-07]")
+_tue = T("2026-10-13T11:17Z")
+eq(S.today(tree(health_at="2026-10-13T10:41:00Z"), _tue), "", "🔴 on a Tuesday with a fresh health report nothing is posted")
+_b8 = S.today(tree(health_at="2026-10-12T22:00:00Z"), _tue)
+ck("🔴 ...with a 13-hour-old one it is: \"Needs you\" and the what-to-do block",
+   _b8.startswith("Needs you: the health check has not run for 13 hours.") and _b8.endswith("```\n")
+   and "check `watchdog:health`" in _b8, _b8[:120])
+ck("🔴 on a Monday it always is: the week, with a fresh health report too",
+   S.today(tree(), NOW).startswith("Nothing needs you this week."))
