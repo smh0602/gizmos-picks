@@ -1549,6 +1549,8 @@ def survey(data="data", picks="picks", now=None):
 #    late card); the next deadline's build replaces it. The watchdog reports
 #    DEGRADED (never BROKEN, no repair) while a last build was more than
 #    GRACE_MIN late, so it clears on the next on-time build.
+# ✅ `[Sam, 2026-10-07]` A build over GRACE_MIN late is also kept 8 days in
+#    `late`: the weekly status (status.py) counts the week's, not the latest.
 # ⚠️ GRACE_MIN is above one heartbeat sleep (15 min) plus a pass plus a cron's
 #    usual 10-15 minute delay; 10-06's card was 122 minutes late.
 # ⛔ A row whose deadline is a MAXIMUM AGE (`LATE_GRACE_MIN`: the hourly run
@@ -1562,9 +1564,10 @@ def record_builds(rows, path, now=None):
     now = now or datetime.datetime.now(UTC)
     try:
         with open(path, encoding="utf-8") as fh:
-            arts = json.load(fh).get("artifacts") or {}
+            prev = json.load(fh)
+        arts, late = prev.get("artifacts") or {}, prev.get("late") or []
     except (OSError, ValueError, AttributeError):
-        arts = {}
+        arts, late = {}, []
     for r in rows:
         if (r.get("due_at") is None or r.get("stale") or r.get("age_min") is None
                 or r.get("mode") in LATE_GRACE_MIN):
@@ -1578,8 +1581,11 @@ def record_builds(rows, path, now=None):
         arts[key] = {"mode": r["mode"], "path": r["path"], "due_at": r["due_at"],
                            "built_at": built.strftime("%Y-%m-%dT%H:%MZ"),
                            "late_min": round(max(0.0, (built - due).total_seconds() / 60.0), 1)}
+        if arts[key]["late_min"] > GRACE_MIN:
+            late.append(arts[key])
+    week = (now - datetime.timedelta(days=8)).strftime("%Y-%m-%dT%H:%MZ")
     doc = {"written_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "grace_min": GRACE_MIN,
-           "artifacts": arts}
+           "artifacts": arts, "late": [x for x in late if str(x.get("due_at")) >= week]}
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1, sort_keys=True)

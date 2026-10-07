@@ -1329,6 +1329,56 @@ def run(now=None):
     return out
 
 
+# 🔴 EVERY ALERT ENDS WITH WHAT TO DO. `[Sam, 2026-10-07]` What is wrong, whether
+#    the site is still updating, and a Claude Code prompt ready to paste (the
+#    check, the files to read first, Sam's USAGE CHECK): the watchdog's issue
+#    (`render`) and the weekly one (status.py). test_status.py.
+FILES_FIRST = {    # the finding key's first part -> the files to read first
+    "card": "card.py, card_fb.py, collect.py", "cardfile": "card.py, card_fb.py",
+    "empty": "card.py, card_fb.py", "proj": "card.py, verify_card.py", "day": "card_fb.py, card.py",
+    "verify": "verify_card.py, card.py, card_fb.py", "record": "collect.py, record_fb.py",
+    "record-verify": "verify_record.py, collect.py, record_grader.py", "page": "index.html",
+    "fresh": "freshness.py, collect.py", "late": "freshness.py, relay.py",
+    "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
+    "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
+}
+USAGE_CHECK = "\n".join((
+    "USAGE CHECK",
+    "- Before writing code, post a short plan: the files you expect to touch and roughly how many "
+    "lines. No sub-agents or parallel agents without asking Sam first. Stop and ask Sam if it needs "
+    "more than about 8 files or about 450 changed lines.",
+    "- If it grows past that while you are in it, stop at a clean point, commit what you have, and "
+    "tell Sam what is left.",
+    "- Read job logs with grep, not whole. Run the full suite locally at most once; pr-tests runs it "
+    "on the PR.",
+    "- At the end, report the PR's diff size (files, lines added and removed)."))
+
+
+def site_updating(findings):
+    """Is the site still updating? Not while a league has stopped (`stopped:`)."""
+    stopped = [f["what"] for f in findings or [] if str(f.get("key")).startswith("stopped:")]
+    return ("No: %s." % "; ".join(stopped) if stopped else "Yes: no league has gone more than "
+            "%d minutes past a deadline without a run." % STOPPED_GRACE_MIN)
+
+
+def what_to_do(findings, updating):
+    """The block an alert ends with, for its first BROKEN finding (else its first)."""
+    f = next((x for x in findings if x.get("severity") == "BROKEN"), findings[0])
+    key = str(f.get("key"))
+    files = ", ".join(x for x in ("watchdog.py (the check that raised `%s`)" % key,
+                                  FILES_FIRST.get(key.split(":")[0])) if x)
+    prompt = ("Read CLAUDE.md first and follow every rule in it. Gizmo's Picks reports %s: \"%s\" "
+              "(check `%s`). Read these files first: %s. Find the cause and fix it in one pull "
+              "request, with a guard test that is red under its own @vacuity mutation. Never "
+              "commit to main. No API spend.\n\n%s\n\n⛔ Do not tell Sam it is done until the "
+              "pr-tests check shows GREEN on GitHub."
+              % (f.get("severity"), f.get("what"), key, files, USAGE_CHECK))
+    more = " (and %d more above)" % (len(findings) - 1) if len(findings) > 1 else ""
+    return "\n".join(["", "---", "**What is wrong:** %s%s." % (f.get("what"), more),
+                      "**Is the site still updating?** %s" % updating, "",
+                      "**To fix it, paste this into Claude Code:**", "", "```text", prompt, "```"])
+
+
 def render(out):
     """The issue body. Written for Sam on a phone, not for a log."""
     if out["healthy"]:
@@ -1402,6 +1452,7 @@ def render(out):
     L.append("")
     L.append("_Checked %s. This issue is updated in place and closes itself "
              "when the site is healthy._" % out["checked_at"])
+    L.append(what_to_do(out["findings"], site_updating(out["findings"])))
     return "\n".join(L)
 
 

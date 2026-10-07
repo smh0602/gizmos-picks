@@ -150,7 +150,7 @@ its way in.**
 changed the workflow's `cron:` block.** Every one of them depends on that
 user staying a human with write access.
 
-<!-- CRON TOTAL: 57 -->
+<!-- CRON TOTAL: 58 -->
 ⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
 counts every `- cron:` line in `.github/workflows/` **and in files staged
 under `docs/upload/`**, one per file name (`wfparse.cron_total`), and
@@ -586,7 +586,10 @@ note boxes, tags and the stale bar now require their absence.
   hours old", no verdict). ✅ verify_record writes `record-verify-failure.txt`
   on a failure (removed on a pass) and the watchdog reports it. ✅ A workflow
   GitHub reports switched off (`runs_report.DISABLED`) is not expected to fire.
-  `test_watchdog_stopped.py`.
+  `test_watchdog_stopped.py`. ✅ Every Monday `status.py` (staged `status.yml`)
+  posts ONE fixed-title issue to smh0602, and every alert ends with
+  `watchdog.what_to_do` (what is wrong, is the site updating, a prompt ready to
+  paste). lateness.json keeps 8 days of `late`. `test_status.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -834,6 +837,9 @@ relay.py          THE RELAY (Sam, 2026-10-06): at the end of an MLB run's
                   re-run, or when no MLB card is owed for the last or the
                   next card deadline's day. Run by
                   collect.yml's last step; exit 0 = dispatch.
+status.py         THE WEEKLY STATUS EMAIL (Sam, 2026-10-07): one issue, updated
+                  and commented each Monday (status.yml) from the repo's own
+                  files. ⛔ A report, never a task (`self_repair.COUNTER`).
 card_gate.py      did the card fail for a reason Sam already accepted?
                   ⚠️ `[2026-10-01]` the page no longer says a card was
                   published past an accepted check (the stale bar went).
