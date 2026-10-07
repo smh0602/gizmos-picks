@@ -1,6 +1,66 @@
 # UPLOAD BY HAND: `collect.yml`
 
-## Current: collect stops running the guard sweep `[2026-10-02]`
+## Current: the relay keeps an MLB run alive across deadlines `[2026-10-06]`
+
+**Do this after you merge the pull request "collect: an MLB run hands the
+hold to its successor, and a late build leaves a record" (its description
+links to this file).** It is one file.
+
+**Why:** your decision of 2026-10-06. On 10-06 the MLB card was due at
+14:00Z and built at 16:02Z: the only MLB run of the morning ended its hold
+at 12:42Z and GitHub started the next one at 15:52Z. With this upload, an
+MLB run that reaches the end of its hold starts one successor, so an MLB
+run is alive at every deadline even when the crons are hours late.
+
+**No schedule, cron line or cost changes. The cron count does not
+change.** Every `cron:` line is byte-identical. What differs from the live
+file: the run title names a relay link (`collect [relay mlb]`), a hidden
+`relay` input only the relay sets, `actions: write` permission, a relay
+link waits for the run that started it instead of cancelling it, the
+routing step lets a relay link hold, and one new last step.
+
+### Click by click (Windows)
+
+1. Open **File Explorer**, click **Downloads**, and delete any old
+   `collect.yml` there (otherwise Windows saves `collect (1).yml`).
+2. Open https://github.com/smh0602/gizmos-picks/blob/main/docs/upload/collect.yml
+   and check the breadcrumb reads **gizmos-picks / docs / upload /
+   collect.yml**.
+3. Click **Download raw file** (the small downward-arrow icon on the
+   right, above the file's contents).
+4. Open https://github.com/smh0602/gizmos-picks/tree/main/.github/workflows
+   and check the breadcrumb reads **gizmos-picks / .github / workflows**.
+   ⛔ Not the repo's front page: a file uploaded there lands in the top
+   level, where it never runs.
+5. Click **Add file** (top right, next to the green **Code** button),
+   then **Upload files**.
+6. Click **choose your files** (the blue link in the middle of the box).
+   ⛔ Do not drag a folder in. In **Downloads** pick `collect.yml` and
+   click **Open**.
+7. Check the page lists exactly **1 file**, `collect.yml`.
+8. In the **Commit changes** box paste this as the first line:
+
+   ```
+   collect.yml: the relay hands an MLB run's hold to its successor (Sam, 2026-10-06; no cron change)
+   ```
+
+9. Leave **Commit directly to the main branch** selected and click the
+   green **Commit changes** button.
+
+**What you should see afterwards:** on a game day, when an MLB collect run
+finishes its hold, a new run titled **collect [relay mlb]** starts within a
+minute on the Actions page, and its log's last step says `relay:
+dispatching a successor`. When neither the last card's day nor the next
+one has MLB games (the off-season), the last step says `no MLB games on`
+and no relay run starts; one off-day between game days does not stop it. Until you upload, the
+nightly "runs" report lists `collect.yml` as waiting.
+
+---
+
+## ~~Current:~~ Done: collect stops running the guard sweep `[2026-10-02]`
+
+✅ Uploaded: commit 3873e7fe on 2026-10-02 made the live `collect.yml`
+match this staged copy byte for byte.
 
 **Do this after you merge the pull request "collect: run the tests
 without the 33-minute guard sweep" (its description links to this

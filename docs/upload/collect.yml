@@ -8,7 +8,10 @@ name: collect
 # ✅ `run-name:` is read back as `name` in `gh run list` — free, no
 # commit, and it is recorded even when the run FAILS BEFORE COMMITTING
 # or has nothing to commit, which a git-log trailer never would be.
-run-name: ${{ github.event.schedule && format('collect [cron {0}]', github.event.schedule) || format('collect [{0}]', github.event_name) }}
+# 🔴 `[2026-10-06]` A RELAY LINK AND A HAND-DISPATCH NAME THEIR LEAGUE, so the
+# relay (relay.py) can tell whether another run for its league is queued or
+# running: `collect [relay mlb]`, `collect [workflow_dispatch nfl]`.
+run-name: ${{ github.event.inputs.relay == 'true' && format('collect [relay {0}]', github.event.inputs.league) || github.event.schedule && format('collect [cron {0}]', github.event.schedule) || github.event.inputs.league && format('collect [{0} {1}]', github.event_name, github.event.inputs.league) || format('collect [{0}]', github.event_name) }}
 
 # Times are UTC. The MLB slate runs roughly 16:00Z (noon ET) to 05:00Z.
 #
@@ -379,6 +382,13 @@ on:
         description: "converge (default — build everything overdue) | or: card | record | gamelines | props-pitcher | props-batter | results | pitchers | hitters | lineups | news | news-probe | card-fb | fb-scores | fb-record | live-probe | nfl-logs converge-off"
         required: true
         default: converge
+      relay:
+        # 🔴 `[Sam, 2026-10-06]` SET ONLY BY THE RELAY STEP AT THE END OF THIS
+        # JOB. ⛔ Leave it empty on a hand-run: a hand-dispatched run stays a
+        # one-shot, exactly as before.
+        description: "internal: set only by the relay (leave empty)"
+        required: false
+        default: ""
 
 # One queue PER MODE, not one queue for everything.
 # ⚠️ GitHub keeps a single pending run per concurrency group and CANCELS
@@ -410,7 +420,11 @@ on:
 # asserts the two sets are identical, so this cannot drift.
 concurrency:
   group: collect-${{ github.event.inputs.league || (github.event.schedule && !contains(fromJSON('["4 10 * * *","4 11 * * *","4 14 * * *","4 20 * * *","5 13,19,1 * * *","9 */3 * * *"]'), github.event.schedule) && github.event.schedule) || 'mlb' }}
-  cancel-in-progress: true
+  # 🔴 `[Sam, 2026-10-06]` EVERY RUN BUT A RELAY LINK STILL CANCELS AND CARRIES
+  #    ON (newest wins). A relay link is dispatched by a run in its last
+  #    step: it WAITS for that run to finish instead of cancelling it, so a
+  #    run that failed keeps its red result rather than reading "cancelled".
+  cancel-in-progress: ${{ github.event.inputs.relay != 'true' }}
 
 jobs:
   collect:
@@ -422,6 +436,9 @@ jobs:
     timeout-minutes: 350
     permissions:
       contents: write
+      # 🔴 `[Sam, 2026-10-06]` THE RELAY: `gh run list` and `gh workflow run`
+      #    (relay.py). A dispatch made with this token does start a run.
+      actions: write
       # 📣 THE WATCHDOG OPENS, UPDATES AND CLOSES ONE ISSUE. ⛔ Without
       # this the alert half is silently a no-op — `gh issue create` fails
       # with 403 and `continue-on-error` swallows it, which would be a
@@ -640,6 +657,8 @@ jobs:
 
       - name: Decide what this run collects
         id: mode
+        env:
+          RELAY: ${{ github.event.inputs.relay }}
         run: |
           # 🔴 THERE IS NO LONGER A SCHEDULE-TO-MODE TABLE, AND ITS
           # ABSENCE IS THE FIX. That table was the cron-owns-artifact
@@ -759,6 +778,15 @@ jobs:
           fi
           echo "season=${SEASON:-2025}" >> "$GITHUB_OUTPUT"
           echo "league=${LEAGUE:-mlb}" >> "$GITHUB_OUTPUT"
+          # 🔴 `[Sam, 2026-10-06]` WHO HANDS OVER AT THE END (relay.py): an MLB
+          # run that holds (scheduled), a push (it cancelled the holder), and
+          # a relay link. ⛔ Never football, never a plain hand-dispatch.
+          if [ "${LEAGUE:-mlb}" = "mlb" ] && { [ "$RELAY" = "true" ] \
+               || [ "${{ github.event_name }}" != "workflow_dispatch" ]; }; then
+            echo "relay=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "relay=no" >> "$GITHUB_OUTPUT"
+          fi
           if [ "$LEAGUE" != "mlb" ] && [ -n "$MODES" ] \
              && [ "${{ github.event_name }}" = "schedule" ]; then
             # 🔴 FOOTBALL CONVERGES NOW. ~~`converge-off`~~ REMOVED
@@ -779,6 +807,12 @@ jobs:
             # the cron asked for AND repairs whatever else is past due.
             echo "mode=$MODES" >> "$GITHUB_OUTPUT"
             echo "loop_minutes=0" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "$RELAY" = "true" ]; then
+            # 🔴 `[Sam, 2026-10-06]` A RELAY LINK HOLDS LIKE A SCHEDULED MLB
+            # RUN, and it is ALWAYS `converge`: it buys only what the
+            # contract says is due, under the same daily guard.
+            echo "mode=converge" >> "$GITHUB_OUTPUT"      # a relay link: converge only
+            echo "loop_minutes=320" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ github.event.inputs.mode || 'converge' }}" >> "$GITHUB_OUTPUT"
             # A hand-dispatched job is a one-shot: no heartbeat loop, so
@@ -1390,3 +1424,37 @@ jobs:
             echo "::error::at least one converge pass failed -- see the log"
           fi
           exit 1
+
+      # ══════════════════════════════════════════════════════════════
+      # 🔴🔴 THE RELAY. `[Sam, 2026-10-06]` "a card is on time even when
+      # GitHub starts a scheduled run hours late." On 10-06 the only MLB
+      # run of the morning ended its hold at 12:42Z, the next started at
+      # 15:52Z, and the card due 14:00Z was built 16:02Z. ✅ An MLB run
+      # that reaches the end of its hold dispatches ONE successor that
+      # holds like it. relay.py decides; ⛔ none when another MLB run is
+      # queued or running, past 5 links a day, on a re-run, or when the
+      # MLB contract owes no card (a no-games day, the off-season): the
+      # chain ends and the crons restart it. LAST, and `!cancelled()`: a
+      # cancelled run hands over nothing (the run that cancelled it carries
+      # on); a failed run still hands over, and keeps its red result
+      # because a relay link waits for it (`cancel-in-progress` above).
+      # ══════════════════════════════════════════════════════════════
+      - name: Relay — hand the hold to the next MLB run
+        if: ${{ !cancelled() && steps.mode.outputs.relay == 'yes' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          RUNS=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/relay.XXXXXX")
+          if ! gh run list --workflow collect.yml --limit 200 \
+               --json databaseId,status,displayTitle,createdAt > "$RUNS"; then
+            echo "::warning::relay: the run list could not be read — no successor; the crons restart the chain"
+            exit 0
+          fi
+          if python relay.py "$RUNS" --league mlb --run-id "${GITHUB_RUN_ID:-0}" \
+               --attempt "${GITHUB_RUN_ATTEMPT:-1}"; then
+            gh workflow run collect.yml --ref main \
+              -f league=mlb -f mode=converge -f season= -f relay=true \
+              || echo "::warning::relay: the dispatch was refused — the crons restart the chain"
+          fi
