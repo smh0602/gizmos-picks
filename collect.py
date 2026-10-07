@@ -3691,13 +3691,13 @@ def _won(val, line, side):
     return (val > line) if side == "over" else (val < line)
 
 
-def build_winners():
+def build_winners(root=None, when=None):
     """`[Sam, 2026-10-01]` the Game Lines tab: the model's pick to win every game
     (winners.py), frozen and graded once. ⛔ Free, and a failure never costs
     the card or the record it rides behind."""
     try:
         import winners as _w
-        _w.build(LEAGUE, log=log)
+        _w.build(LEAGUE, root=root, when=when, log=log)
     except Exception as e:
         log(f"  ⚠️ the winners did not build ({type(e).__name__}: {e})")
 
@@ -4417,7 +4417,7 @@ def run_mode(mode):
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
             "coaches-probe",
             "fb-scores", "fb-record", "live-probe",
-            "card-fb", "nfl-teams", "cfb-teams", "runs")
+            "card-fb", "nfl-teams", "cfb-teams", "runs", "game-model")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -4855,6 +4855,22 @@ def run_mode(mode):
             #    GitHub API, no Odds credit.
             import runs_report as _rr
             _rr.write_status("data/latest/runs.json")
+            left = None
+        elif mode == "game-model":
+            # 🔴 `[Sam, 2026-10-06]` THE GAME LINES TAB'S MODEL ON ITS OWN SCHEDULE
+            #    (the contract's `game-model` row: missing, and the Odds
+            #    deadlines, on game days). ~~Built only inside the card~~, so
+            #    after a deploy nothing built it and a starter named after
+            #    10:00 ET read "No pick yet" all day. ✅ Free: stored files
+            #    only. The next slate with a game not yet started, then MLB's
+            #    winners.json (a started game keeps its frozen pick).
+            #    ⛔ The card is NOT built: a published card's `game_lines`
+            #    stay as built with it.
+            if LEAGUE != "mlb":
+                return log(f"game-model is MLB's; {LEAGUE} has none. Nothing done.")
+            import mlb_game_model as _gm
+            _gm.build(_gm.next_slate(root=".", now=now()), root=".")
+            build_winners(root=".", when=now())
             left = None
         elif mode == "card":
             # Rebuild the board FIRST, from the snapshots already on disk.

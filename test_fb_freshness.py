@@ -174,14 +174,19 @@ for _on in (False, True):
             _rows = F.contract(data="data", picks="picks")
     finally:
         F.runs_writer_deployed = _live
-    eq(len([r for r in _rows if r[0] != "runs"]), 16,
-       "MLB has exactly its 16 rows besides run status (watcher %s)"
+    # `[Sam, 2026-10-06]` ~~16~~ 17: the game model's own row (`game-model`,
+    #    test_mlb_model_schedule.py), on a game day like this tree's.
+    eq(len([r for r in _rows if r[0] != "runs"]), 17,
+       "MLB has exactly its 17 rows besides run status (watcher %s)"
        % ("deployed" if _on else "not deployed"))
     eq([r[1][1] for r in _rows if r[0] == "runs"],
        ["data/latest/runs.json"] if _on else [],
        "   ...and the run-status row exists exactly when its writer is deployed")
-eq(len(mlb), 16 + (1 if _live() else 0),
-   "MLB has exactly its %d rows today" % (16 + (1 if _live() else 0)))
+# 🔴 `[Sam, 2026-10-06]` 16 -> 17, DELIBERATELY: the MLB game model's own row
+#    (`game-model`). The empty tree has no schedule, so the card's and the
+#    model's no-games rule keeps both rows (fail closed).
+eq(len(mlb), 17 + (1 if _live() else 0),
+   "MLB has exactly its %d rows today" % (17 + (1 if _live() else 0)))
 ck(any(p == "data/latest/record-detail.json.gz" for _m, (_k, p), *_ in mlb),
    "   ...and the MLB drill-down is one of them")
 for _tab in ("pitcher-table.json", "opponent-table.json"):

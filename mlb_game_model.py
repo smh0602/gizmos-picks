@@ -484,6 +484,16 @@ def slate_game(st, x, b, maps):
     return out
 
 
+def next_slate(root=ROOT, now=None):
+    """The ET day of the earliest scheduled game not yet started (today's ET
+    date when none is stored): the slate the Game Lines tab shows next."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    at = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    days = [_et_day(x["commence"]) for x in schedules(root).values()
+            if (x.get("commence") or "") > at and x.get("game_type") in GAME_TYPES]
+    return min(days) if days else _et_day(at)
+
+
 def build(day, root=ROOT, write=True):
     """Every game on ET day `day` that a schedule saved before first pitch names,
     with its numbers, its inputs and the check's record. -> the doc."""
