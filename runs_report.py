@@ -116,6 +116,51 @@ def _dt(s):
         return None
 
 
+# 🔴 `[Sam, 2026-10-07]` A WORKFLOW SAM SWITCHED OFF IS NOT EXPECTED TO FIRE.
+#    He disables self-repair.yml in GitHub's Actions page (a smaller Claude
+#    plan); its cron then never fires, and a watcher still expecting it would
+#    alert on a decision, not an outage. ✅ main() fills this from GitHub's own
+#    workflow list (state not `active`) and the report names every one. ⛔ An
+#    unreadable list leaves it empty: ignorance never buys silence.
+DISABLED = set()
+
+
+def gh_disabled():
+    """{workflow FILE basename} GitHub reports as not `active`. Empty on failure."""
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not repo:
+        return set()
+    out = subprocess.run(
+        ["gh", "api", "-H", "Accept: application/vnd.github+json", "--paginate",
+         "/repos/%s/actions/workflows" % repo, "--jq", ".workflows[] | [.path, .state] | @tsv"],
+        capture_output=True, text=True, timeout=120)
+    if out.returncode != 0:
+        return set()
+    return {os.path.basename(ln.split("\t")[0]) for ln in (out.stdout or "").splitlines()
+            if ln.count("\t") == 1 and ln.split("\t")[1] != "active"}
+
+
+def run_list(path=os.path.join("data", "latest", "runs.json"), now=None):
+    """(runs.json, None) or (None, why): THE ONE READER of runs.json for a verdict.
+    `[Sam, 2026-10-07]` its age is read FIRST (10-06: 5 hours old; its hourly
+    cron is the kind GitHub drops most). Stale by the contract's own rule for
+    this file (the last top of the hour less `LATE_GRACE_MIN["runs"]`), it gives
+    "the run list is N hours old" and no verdict."""
+    import freshness as F
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    try:
+        doc = json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return None, "there is no run list"
+    born = _dt(doc.get("generated_at"))
+    due = F.last_due(F.RUNS_DUE, now) - datetime.timedelta(minutes=F.LATE_GRACE_MIN["runs"])
+    if born is None or born < due:
+        hours = (now - born).total_seconds() / 3600.0 if born else None
+        return None, ("the run list is %d hours old" % round(hours) if hours is not None
+                      else "the run list has no time on it")
+    return doc, None
+
+
 def scheduled_workflows(root="."):
     """Workflow NAMES that declare a cron — the ones that must show runs.
 
@@ -126,6 +171,8 @@ def scheduled_workflows(root="."):
     """
     out = {}
     for p in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+        if os.path.basename(p) in DISABLED:
+            continue                     # switched off by Sam: not expected to fire
         try:
             t = open(p, encoding="utf-8").read()
         except OSError:
@@ -241,6 +288,8 @@ def declared_crons(root=".", pattern=".github/workflows/*.yml"):
     """
     out = {}
     for p in sorted(glob.glob(os.path.join(root, pattern))):
+        if os.path.basename(p) in DISABLED:   # no fire is owed
+            continue
         try:
             t = open(p, encoding="utf-8").read()
         except OSError:
@@ -1117,6 +1166,10 @@ def main(argv=None):
         sys.stderr.write("could not read the workflow registry: %s: %s\n"
                          % (type(e).__name__, e))
         registered = {}
+    # `[Sam, 2026-10-07]` a workflow switched off in GitHub is not expected to fire
+    DISABLED.update(gh_disabled())
+    if DISABLED:
+        print("switched off in GitHub, not expected to fire: %s" % ", ".join(sorted(DISABLED)))
     broken, flapping, seen, truncated, missing = analyse(runs, None, ".",
                                                          registered)
     _by = sorted({(r or {}).get("workflowName") or (r or {}).get("name") or ""

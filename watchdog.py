@@ -366,6 +366,21 @@ def check_verify_failure(rep, now):
                 "repair is possible or wanted. The guard is doing its job "
                 "by publishing nothing."
                 % ("; ".join(fails[:3]) or txt[:200]))
+    # 🔴 `[Sam, 2026-10-07]` AND THE RECORD'S RE-CHECK: verify_record.py writes
+    #    this file when the published record does not add up (until then only
+    #    the run went red), and removes it when it does.
+    p = os.path.join(ROOT, "data", "latest", "record-verify-failure.txt")
+    if os.path.exists(p):
+        try:
+            txt = open(p, encoding="utf-8").read()
+        except Exception:
+            txt = "(unreadable)"
+        fails = [ln.strip()[5:] for ln in txt.splitlines() if ln.strip().startswith("FAIL ")]
+        rep.bad("record-verify:mlb",
+                "the MLB Track Record does not add up",
+                "re-grading every published pick from the box scores disagreed with the "
+                "published record: %s. The site still shows the old record." % (
+                    "; ".join(fails[:3]) or txt[:200]))
 
 
 def _dated_lists(doc):
@@ -709,6 +724,52 @@ def check_late_builds(rep, now):
                      "due %s, built %s. GitHub started the run late; there is nothing to "
                      "repair, and this clears when the next %s build is on time (within "
                      "%d minutes)." % (r.get("due_at"), r.get("built_at"), mode, F.GRACE_MIN))
+
+
+# 🔴 `[Sam, 2026-10-07]` A LEAGUE THAT STOPS IS VISIBLE. MEASURED 2026-10-06
+#    15:52Z: MLB's freshness.json was 4h41m old and said ok:true while five
+#    rows (lineups, weather, card, news, runs) had gone past due since it was
+#    written; `check_freshness` carries the file's verdict up, so nothing was
+#    reported. ⚠️ THE GRACE IS ON HOW LONG THE ROW HAS BEEN PAST DUE, never on
+#    the file's age: that day the file-age test fired on NFL 22 minutes after
+#    a deadline on a healthy 45-minute-old contract, and any grace between 23
+#    and 112 minutes reported MLB and stayed silent on NFL. 90 also clears
+#    football's hourly pass plus a usual cron delay.
+STOPPED_GRACE_MIN = 90
+
+
+def _when(s):
+    try:
+        return datetime.datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def check_stopped_league(rep, now):
+    """A row whose deadline fell AFTER the league's freshness.json was written
+    was never judged by it. Re-judged now (the contract's own `survey`, the
+    artifacts' own stamps): past due with no pass for over STOPPED_GRACE_MIN
+    -> BROKEN for a card, DEGRADED otherwise. ⛔ No repair: converge can spend."""
+    grace = datetime.timedelta(minutes=STOPPED_GRACE_MIN)
+    for lg, d in DATA.items():          # every league, whichever league's run this is
+        built = _when((_read(os.path.join(ROOT, d, "latest", "freshness.json")) or {})
+                      .get("built_at"))
+        if built is None:
+            continue
+        late = [r for r in F.survey(os.path.join(ROOT, d), os.path.join(ROOT, "picks"), now)
+                if r.get("stale") and _when(r.get("due_at")) is not None
+                and _when(r["due_at"]) > built and now - _when(r["due_at"]) > grace]
+        if not late:
+            continue
+        card = any(r["mode"] in ("card", "card-fb") for r in late)
+        first = min(late, key=lambda r: r["due_at"])
+        (rep.bad if card else rep.warn)(
+            "stopped:%s" % lg,
+            "%s has not updated since %s" % (lg, built.strftime("%a %H:%MZ")),
+            "%s %s past due with no collect run for %s since then (oldest: %s, due %s). "
+            "Nothing repairs this on its own; the next run that lands will." % (
+                ", ".join(sorted({r["mode"] for r in late})),
+                "is" if len(late) == 1 else "are", lg, first["mode"], first["due_at"]))
 
 
 def _published(lg):
@@ -1145,7 +1206,7 @@ def check_record_ungraded(rep, now):
 CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_verify_failure, check_card_day_agreement,
           check_board_not_empty, check_record_sane,
-          check_freshness, check_late_builds, check_record_written,
+          check_freshness, check_stopped_league, check_late_builds, check_record_written,
           # 🔴 A card that never reaches the record (audit Proposal A).
           check_record_ungraded,
           # 💰 THE TENTH. ⛔ Not a second reporting channel — it writes

@@ -576,6 +576,17 @@ note boxes, tags and the stale bar now require their absence.
   (`freshness.record_builds`, the first build after each deadline); the
   watchdog reports DEGRADED, no repair, while a last build was more than
   `GRACE_MIN` (60) late, until the next on-time build. `test_relay.py`.
+- 🔴 **THE REPO NOTICES ITS OWN PROBLEMS; NO CLAUDE AUDIT DOES.** `[Sam, 2026-10-07]`
+  *"the website should do all of them themselves"* (scheduled Claude tasks and
+  self-repair are switched off). ✅ `watchdog.check_stopped_league`: a row whose
+  deadline fell after its league's freshness.json was written, past due with no
+  pass for over `STOPPED_GRACE_MIN` (90; the grace is on the ROW, never the
+  file's age) -> BROKEN for a card, DEGRADED otherwise, no repair. ✅ runs.json
+  is read only through `runs_report.run_list`, age first ("the run list is N
+  hours old", no verdict). ✅ verify_record writes `record-verify-failure.txt`
+  on a failure (removed on a pass) and the watchdog reports it. ✅ A workflow
+  GitHub reports switched off (`runs_report.DISABLED`) is not expected to fire.
+  `test_watchdog_stopped.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
