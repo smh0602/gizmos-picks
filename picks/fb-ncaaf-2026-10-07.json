@@ -1,10 +1,10 @@
 {
  "date": "2026-10-07",
  "league": "ncaaf",
- "generated_at": "2026-10-07T20:56:08Z",
+ "generated_at": "2026-10-07T23:45:45Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
- "odds_pulled_at": "2026-10-07T19:03:35Z",
+ "odds_pulled_at": "2026-10-07T23:45:42Z",
  "logs_season": 2025,
  "card_method": "season-blend",
  "rates_available": true,
@@ -178,7 +178,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-07T20:56:06Z",
-  "ladder_built_at": "2026-10-07T20:56:07Z",
+  "ladder_built_at": "2026-10-07T23:45:45Z",
   "alt_spreads": 2
  },
  "game_lines_rule": "The game model's own 3 pick(s) for 2026-10-07 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (2 listed).",
@@ -284,17 +284,17 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 5,
-  "same_game_already_listed": 15,
+  "same_player_already_listed": 2,
+  "same_game_already_listed": 9,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 22,
+  "pool_after_price_gate": 12,
   "cap": 20,
-  "distinct_games": 2,
-  "shared_with_board_head": 2,
+  "distinct_games": 1,
+  "shared_with_board_head": 1,
   "board_head_size": 20
  },
- "top_plays_rule": "The 2 most likely to hit for 2026-10-07 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 20, over 2 game(s). 15 row(s) were held back because their game was already represented and 5 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-10-07 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 20, over 1 game(s). 9 row(s) were held back because their game was already represented and 2 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -558,8 +558,8 @@
   "4": []
  },
  "parlay_meta": {
-  "pool": 15,
-  "rated_legs": 22,
+  "pool": 12,
+  "rated_legs": 12,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -573,8 +573,8 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 19,
-    "taken": 12
+    "available": 8,
+    "taken": 8
    },
    {
     "decimal": "2-3",
@@ -583,17 +583,17 @@
    },
    {
     "decimal": "3-99",
-    "available": 1,
-    "taken": 1
+    "available": 2,
+    "taken": 2
    }
   ],
   "rejected": {
-   "same_game": 1875,
+   "same_game": 781,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "22 rated legs, 15 in the stratified pool. Rejected: 1875 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "12 rated legs, 12 in the stratified pool. Rejected: 781 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -862,12 +862,12 @@
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 2,
-  "games_with_a_line_row": 2,
-  "games_used": 2,
+  "games_with_rated_legs": 1,
+  "games_with_a_line_row": 1,
+  "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 146,
+   "same_player": 76,
    "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
@@ -876,102 +876,42 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "2 game(s) on this card carry a rated leg and 2 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. \u26d4 Every number is the player's own record \u2014 nothing here is a model output, and the combined figure is those records multiplied, which assumes the games are unrelated.",
  "projections": {
-  "Caden Creel|player_anytime_td|yes|None": {
-   "v": 0.5,
+  "Anthony Carrie|player_anytime_td|yes|None": {
+   "v": 0.4,
    "u": "TD",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game. That is what he has actually been doing, not a forecast."
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game. That is what he has actually been doing, not a forecast."
   },
-  "Jalen Likely|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.0 TD a game. That is what he has actually been doing, not a forecast."
-  },
-  "Lucas Farrington|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.0 TD a game. That is what he has actually been doing, not a forecast."
-  },
-  "Rickie Collins|player_anytime_td|yes|None": {
+  "Devonte Lyons|player_anytime_td|yes|None": {
    "v": 0.1,
    "u": "TD",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 0.1 TD a game. That is what he has actually been doing, not a forecast."
+   "n": "His own average over the 15 games this record is built from \u2014 0.1 TD a game. That is what he has actually been doing, not a forecast."
   },
-  "Caden Creel|player_pass_yds|over|204.5": {
-   "v": 108.1,
-   "u": "pass yds",
+  "JoJo Stone|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 108.1 pass yds a game. That is what he has actually been doing, not a forecast."
+   "n": "His own average over the 13 games this record is built from \u2014 0.2 TD a game. That is what he has actually been doing, not a forecast."
   },
-  "Caden Creel|player_pass_yds|under|204.5": {
-   "v": 108.1,
-   "u": "pass yds",
+  "Maguire Anderson|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 108.1 pass yds a game. That is what he has actually been doing, not a forecast."
+   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game. That is what he has actually been doing, not a forecast."
   },
-  "Rickie Collins|player_pass_yds|over|194.5": {
-   "v": 148.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 148.9 pass yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Rickie Collins|player_pass_yds|under|194.5": {
-   "v": 148.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 148.9 pass yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Caden Creel|player_rush_yds|over|77.5": {
-   "v": 76.8,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 76.8 rush yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Caden Creel|player_rush_yds|under|77.5": {
-   "v": 76.8,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 76.8 rush yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Jalen Likely|player_rush_yds|over|30.5": {
-   "v": 13.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 13.0 rush yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Jalen Likely|player_rush_yds|under|30.5": {
-   "v": 13.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 13.0 rush yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Rickie Collins|player_rush_yds|over|39.5": {
-   "v": 18.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 18.0 rush yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Rickie Collins|player_rush_yds|under|39.5": {
-   "v": 18.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 18.0 rush yds a game. That is what he has actually been doing, not a forecast."
-  },
-  "Adam Damante|player_pass_yds|over|210.5": {
+  "Adam Damante|player_pass_yds|over|207.5": {
    "v": 177.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 7 games this record is built from \u2014 177.8 pass yds a game. That is what he has actually been doing, not a forecast."
   },
-  "Adam Damante|player_pass_yds|under|210.5": {
+  "Adam Damante|player_pass_yds|under|207.5": {
    "v": 177.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -1014,20 +954,20 @@
    "n": "His own average over the 17 games this record is built from \u2014 36.1 rush yds a game. That is what he has actually been doing, not a forecast."
   }
  },
- "name_match_rate": 0.609,
- "n_priced": 47,
+ "name_match_rate": 0.667,
+ "n_priced": 26,
  "single_day": true,
  "slate_date": "2026-10-07",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 47,
+ "n_on_slate_day": 26,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-07 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "47 priced football rows for 2026-10-07 across 2 board games; 25 shown.",
+ "coverage": "26 priced football rows for 2026-10-07 across 1 board games; 25 shown.",
  "calibration_warning": "\u26a0\ufe0f These confidence numbers are running high. On this card's own record, when it said 70-80%, those plays hit 44% (25 graded); when it said 80-90%, those plays hit 59.1% (44 graded). Treat every confidence below as overstated. This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 50.9% against a claimed 44.5% (+6.4 pts, n=57); 60-70 hit 61.9% against a claimed 64.5% (-2.6 pts, n=21); 70-80 hit 44% against a claimed 75.8% (-31.8 pts, n=25); 80-plus hit 59.1% against a claimed 84% (-24.9 pts, n=44). The 60-70 band is currently the closest to its own claim. 147 graded College Football plays behind these figures and small samples throughout -- every one of them will move.",
  "board_rule": "Sorted by the player's own record at that exact line, highest first \u2014 the same order the MLB board uses. Rows with no record sit below every row that has one.",
  "no_model_note": "\ud83d\udd34 No row on this board carries a Gizmo's confidence rating and none ever will on today's evidence. Four pre-registered football models were tested and every one lost to a player's own season average. What is shown is his OWN RECORD and the market's price \u2014 both labelled.",
@@ -2195,7 +2135,7 @@
    "rank": 25
   }
  ],
- "n_longshots_excluded": 4,
+ "n_longshots_excluded": 3,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
