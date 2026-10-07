@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-07T18:56:45Z",
+ "checked_at": "2026-10-07T19:01:05Z",
  "et_date": "2026-10-07",
  "healthy": false,
  "broken": 0,
- "degraded": 10,
+ "degraded": 11,
  "findings": [
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (alt-lines, gamelines, news, props-board, props-player)",
+   "why": "the freshness contract says 6 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:alt-lines:ncaaf",
    "severity": "DEGRADED",
@@ -85,7 +92,7 @@
   "pulled_at": "2026-10-07T18:56:43Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-07T18:56:43Z",
   "source": "data/nfl/2026-10-07/gamelines/1856.json.gz",
