@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""THE WEEKLY STATUS EMAIL. `[Sam, 2026-10-07]` Every Monday status.yml posts this
-to ONE issue assigned to Sam, built only from the repo's own files. Free. "Needs
+"""THE WEEKLY STATUS EMAIL. `[Sam, 2026-10-07]` status.yml runs daily and posts
+`today()` to ONE issue assigned to Sam: Mondays the week, other days only a
+health check too old to read. Built only from the repo's own files. Free. "Needs
 you: ..." (a BROKEN finding, a health check too old to read) ends with
 `watchdog.what_to_do`. ⛔ A report, never a task (`self_repair.COUNTER`).
-Usage: python status.py <body file>"""
+Usage: python status.py <body file>    (an empty file: nothing to post today)"""
 import datetime
 import json
 import os
@@ -20,6 +21,16 @@ LEAGUES = (("MLB", "data"), ("NFL", "data/nfl"), ("College", "data/ncaaf"))
 # ⚠️ MEASURED 2026-10-07: 528 health reports on main 09-23 -> 10-07, the longest
 #    gap 5.85 hours. Older than this, "right now" is not supported.
 HEALTH_MAX_H = 12
+NOT_UPDATING = "No: %s, so no collect run has finished since."
+
+
+def stale_health(health, now):
+    """None while health.json is recent enough to read; else why not, in words."""
+    seen = W._when(health.get("checked_at"))
+    if seen and now - seen <= datetime.timedelta(hours=HEALTH_MAX_H):
+        return None
+    return ("the health check has not run for %d hours" % ((now - seen).total_seconds() // 3600)
+            if seen else "the health check has never run")
 
 
 def _read(p):
@@ -67,10 +78,7 @@ def build(root=ROOT, now=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     since = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
     health = _read(os.path.join(root, "data", "latest", "health.json"))
-    seen = W._when(health.get("checked_at"))
-    old = (None if seen and now - seen <= datetime.timedelta(hours=HEALTH_MAX_H) else
-           "the health check has not run for %d hours" % ((now - seen).total_seconds() // 3600)
-           if seen else "the health check has never run")
+    old = stale_health(health, now)
     findings = [] if old else health.get("findings") or []
     runs, stale = R.run_list(os.path.join(root, "data", "latest", "runs.json"), now)
     wf = (runs or {}).get("by_workflow") or {}
@@ -96,7 +104,7 @@ def build(root=ROOT, now=None):
     for name, d in LEAGUES:
         f = _read(os.path.join(root, d, "latest", F.LATENESS_FILE))
         for r in (f.get("late") or []) + list((f.get("artifacts") or {}).values()):
-            if (r.get("late_min") or 0) > F.GRACE_MIN and str(r.get("due_at")) >= since:
+            if r.get("measured") and (r.get("late_min") or 0) > F.GRACE_MIN and str(r.get("due_at")) >= since:
                 late[(name, r.get("path"), r.get("due_at"))] = (r["late_min"], name, r)
     L += ["", "## Late builds (last 7 days)"]
     if late:
@@ -115,11 +123,24 @@ def build(root=ROOT, now=None):
           or ["- Nothing is broken or degraded."])
     L += ["", self_repair.COUNTER]
     if broken:
-        L.append(W.what_to_do(broken, "No: %s, so no collect run has finished since." % old
-                              if old else W.site_updating(findings)))
+        L.append(W.what_to_do(broken, NOT_UPDATING % old if old else W.site_updating(findings)))
     return "\n".join(L) + "\n", needs
+
+
+def today(root=ROOT, now=None):
+    """`[Sam, 2026-10-07]` THE DAILY DEAD-MAN CHECK: the watchdog runs inside collect,
+    so a collect that stops entirely says nothing. Monday (UTC): the week. Any other
+    day: only a health check too old to read; otherwise "" (nothing is posted)."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    if now.weekday() == 0:
+        return build(root, now)[0]
+    old = stale_health(_read(os.path.join(root, "data", "latest", "health.json")), now)
+    if not old:
+        return ""
+    return "Needs you: %s.\n\n%s\n%s\n" % (old, self_repair.COUNTER, W.what_to_do(
+        [{"key": "watchdog:health", "severity": "BROKEN", "what": old}], NOT_UPDATING % old))
 
 
 if __name__ == "__main__":
     with open(sys.argv[1], "w", encoding="utf-8") as fh:
-        fh.write(build()[0])
+        fh.write(today())

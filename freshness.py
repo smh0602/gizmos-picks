@@ -1187,6 +1187,9 @@ RUNS_DUE = [(h, 0) for h in range(24)]
 LATE_GRACE_MIN = {"runs": 100}
 OFF_PAGE = {"runs"}
 RUNS_WRITER = "python collect.py runs"
+# ⛔ `[2026-10-07]` Rows another workflow builds: no collect run ever does, so
+#    their age cannot say a league stopped (watchdog.check_stopped_league).
+BUILT_ELSEWHERE = {"runs": "runs.yml"}
 
 
 def runs_writer_deployed(root=None):
@@ -1551,6 +1554,11 @@ def survey(data="data", picks="picks", now=None):
 #    GRACE_MIN late, so it clears on the next on-time build.
 # ✅ `[Sam, 2026-10-07]` A build over GRACE_MIN late is also kept 8 days in
 #    `late`: the weekly status (status.py) counts the week's, not the latest.
+# 🔴 `[Sam, 2026-10-07]` A FIRST SIGHTING IS NOT A MEASUREMENT. An artifact seen
+#    for the first time is recorded with its CURRENT stamp: NFL record.json read
+#    9100 minutes late `[Cowork replay, 2026-10-07]`. An entry is `measured` only
+#    when its artifact already had one; only a measured entry is reported, kept
+#    in `late` or counted.
 # ⚠️ GRACE_MIN is above one heartbeat sleep (15 min) plus a pass plus a cron's
 #    usual 10-15 minute delay; 10-06's card was 122 minutes late.
 # ⛔ A row whose deadline is a MAXIMUM AGE (`LATE_GRACE_MIN`: the hourly run
@@ -1580,8 +1588,9 @@ def record_builds(rows, path, now=None):
         built = now - datetime.timedelta(minutes=r["age_min"])
         arts[key] = {"mode": r["mode"], "path": r["path"], "due_at": r["due_at"],
                            "built_at": built.strftime("%Y-%m-%dT%H:%MZ"),
-                           "late_min": round(max(0.0, (built - due).total_seconds() / 60.0), 1)}
-        if arts[key]["late_min"] > GRACE_MIN:
+                           "late_min": round(max(0.0, (built - due).total_seconds() / 60.0), 1),
+                           "measured": bool(old)}
+        if arts[key]["measured"] and arts[key]["late_min"] > GRACE_MIN:
             late.append(arts[key])
     week = (now - datetime.timedelta(days=8)).strftime("%Y-%m-%dT%H:%MZ")
     doc = {"written_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "grace_min": GRACE_MIN,

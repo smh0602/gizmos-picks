@@ -122,22 +122,25 @@ def _dt(s):
 #    alert on a decision, not an outage. ✅ main() fills this from GitHub's own
 #    workflow list (state not `active`) and the report names every one. ⛔ An
 #    unreadable list leaves it empty: ignorance never buys silence.
+# 🔴 `[Sam, 2026-10-07]` ⛔ BUT NEVER ONE THE SITE CANNOT RUN WITHOUT: collect,
+#    the run list and the daily status check switched off are an OUTAGE, still
+#    expected to fire. Sam disables workflows by hand; one wrong row buys no silence.
 DISABLED = set()
+ALWAYS_ON = {"collect.yml", "runs.yml", "status.yml"}
 
 
-def gh_disabled():
-    """{workflow FILE basename} GitHub reports as not `active`. Empty on failure."""
+def gh_disabled(listing=None):
+    """{workflow FILE basename} GitHub reports as not `active`, never one in
+    ALWAYS_ON. `listing`: the API's path<TAB>state lines (read when None). Empty on failure."""
     repo = os.environ.get("GITHUB_REPOSITORY")
-    if not repo:
-        return set()
-    out = subprocess.run(
-        ["gh", "api", "-H", "Accept: application/vnd.github+json", "--paginate",
-         "/repos/%s/actions/workflows" % repo, "--jq", ".workflows[] | [.path, .state] | @tsv"],
-        capture_output=True, text=True, timeout=120)
-    if out.returncode != 0:
-        return set()
-    return {os.path.basename(ln.split("\t")[0]) for ln in (out.stdout or "").splitlines()
-            if ln.count("\t") == 1 and ln.split("\t")[1] != "active"}
+    if listing is None and repo:
+        out = subprocess.run(
+            ["gh", "api", "-H", "Accept: application/vnd.github+json", "--paginate",
+             "/repos/%s/actions/workflows" % repo, "--jq", ".workflows[] | [.path, .state] | @tsv"],
+            capture_output=True, text=True, timeout=120)
+        listing = out.stdout if out.returncode == 0 else ""
+    return {os.path.basename(ln.split("\t")[0]) for ln in (listing or "").splitlines()
+            if ln.count("\t") == 1 and ln.split("\t")[1] != "active"} - ALWAYS_ON
 
 
 def run_list(path=os.path.join("data", "latest", "runs.json"), now=None):

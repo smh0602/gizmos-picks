@@ -2,12 +2,14 @@ name: status
 # 🔴 THE WEEKLY STATUS EMAIL. `[Sam, 2026-10-07]` Every Monday status.py writes
 # Sam ONE issue with a fixed title, updated in place and assigned to smh0602; the
 # week is also posted as a comment (a comment is what GitHub emails). Free.
+# 🔴 AND A DAILY DEAD-MAN CHECK: any other day it posts only when the health check
+#    is too old to read (collect has stopped), else nothing, and stays green.
 # ⛔ NEVER OPENED TWICE: found by exact title among open AND closed issues.
 run-name: ${{ github.event.schedule && format('status [cron {0}]', github.event.schedule) || format('status [{0}]', github.event_name) }}
 
 on:
   schedule:
-    - cron: "17 11 * * 1"     # Monday 7:17am EDT / 6:17am EST; off :00 and :30
+    - cron: "17 11 * * *"     # daily 7:17am EDT / 6:17am EST; off :00 and :30
   workflow_dispatch:
 
 concurrency:
@@ -41,6 +43,10 @@ jobs:
           BODY: ${{ steps.weekly.outputs.body }}
         run: |
           TITLE="Gizmo's Picks - weekly status"
+          if [ ! -s "$BODY" ]; then
+            echo "nothing to post today"
+            exit 0
+          fi
           gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
           NUM=$(gh issue list --state all --limit 1000 --json number,title \
                   | python -c "import json,sys; print(next((str(i['number']) for i in json.load(sys.stdin) if i['title'] == sys.argv[1]), ''))" "$TITLE")

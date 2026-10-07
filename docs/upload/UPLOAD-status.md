@@ -8,9 +8,11 @@ and every alert says what to do".** It is one new file.
 **Why:** your decision of 2026-10-07. With the scheduled Claude tasks off,
 the repo writes to you itself: every Monday at 7:17am (6:17am in winter) it
 updates the issue **Gizmo's Picks - weekly status**, assigned to you, and
-posts the week as a comment, so GitHub emails you. Free. **One new cron
-line (`17 11 * * 1`): the cron count goes from 57 to 58. No existing
-workflow changes.**
+posts the week as a comment, so GitHub emails you. On every other day it
+runs at the same time and writes only if the site has stopped updating (the
+health check is over 12 hours old). Free. **One new cron line
+(`17 11 * * *`): the cron count goes from 57 to 58.** collect.yml's update
+in the same pull request has its own instructions.
 
 ### Click by click (Windows)
 
@@ -33,14 +35,14 @@ workflow changes.**
 8. In the **Commit changes** box paste this as the first line:
 
    ```
-   status.yml: the weekly status email (Sam, 2026-10-07; one new cron, Monday 11:17Z)
+   status.yml: the weekly status email and daily dead-man check (Sam, 2026-10-07; one new cron, 11:17Z daily)
    ```
 
 9. Leave **Commit directly to the main branch** selected and click the
    green **Commit changes** button.
 
-**Afterwards:** for the first email now instead of Monday, open
-**Actions**, click **status** on the left, then **Run workflow** (right)
-and the green **Run workflow** button. Within a minute the issue exists,
-starting "Nothing needs you this week." or "Needs you: ...". Not uploaded
-within 48 hours of the merge, the runs report flags it.
+**Afterwards:** **status** appears in the Actions page's left-hand list and
+runs every morning. Its first email comes on Monday, starting "Nothing needs
+you this week." or "Needs you: ...". Other days' runs stay green and post
+nothing unless the site has stopped. Not uploaded within 48 hours of the
+merge, the runs report flags it.

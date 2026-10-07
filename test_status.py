@@ -24,8 +24,8 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #
 # @vacuity 🔴 ...and a health check too old to read, which gives no "right now"
 #   file: status.py
-#   find:     old = (None if seen and now - seen <= datetime.timedelta(hours=HEALTH_MAX_H) else
-#   with:     old = (None if seen else
+#   find:     if seen and now - seen <= datetime.timedelta(hours=HEALTH_MAX_H):
+#   with:     if seen:
 #
 # @vacuity 🔴 the issue is updated in place, never opened twice: a closed one is found too
 #   file: docs/upload/status.yml
@@ -39,13 +39,13 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #
 # @vacuity 🔴 the watchdog's alert ends with what to do
 #   file: watchdog.py
-#   find:     L.append(what_to_do(out["findings"], site_updating(out["findings"])))
+#   find:     L.append(what_to_do(broken or out["findings"], site_updating(out["findings"])))
 #   with:     pass
 #
 # @vacuity 🔴 ...for its own (first BROKEN) finding
 #   file: watchdog.py
-#   find:     f = next((x for x in findings if x.get("severity") == "BROKEN"), findings[0])
-#   with:     f = findings[0]
+#   find:     broken = [i for i in out["findings"] if i["severity"] == "BROKEN"]
+#   with:     broken = []
 """
 import atexit
 import datetime
@@ -98,12 +98,15 @@ def tree(findings=(), health_at="2026-10-12T10:41:00Z", runs_at="2026-10-12T11:0
         {"game_id": "a", "state": "graded", "won": True, "graded_at": "2026-10-11T23:00:00Z"},
         {"game_id": "b", "state": "void", "won": None, "graded_at": "2026-10-11T23:00:00Z"}]})
     # MLB's card 122 minutes late on 10-06 and on time on 10-07, written by the real recorder
-    for at, day, age in (("2026-10-06T17:00Z", "2026-10-06", 58), ("2026-10-07T15:00Z", "2026-10-07", 50)):
+    for at, day, age in (("2026-10-05T15:00Z", "2026-10-05", 55), ("2026-10-06T17:00Z", "2026-10-06", 58),
+                         ("2026-10-07T15:00Z", "2026-10-07", 50)):    # 10-05 first: a sighting, not measured
         F.record_builds([{"mode": "card", "path": "picks/%s.json" % day, "due_at": day + "T14:00Z",
                           "stale": False, "age_min": age}], os.path.join(t, "data", "latest", F.LATENESS_FILE), T(at))
     put(t, "data/nfl/latest/lateness.json", {"late": [
-        {"mode": "card-fb", "path": "picks/fb-nfl-latest.json", "due_at": "2026-10-09T13:30Z", "late_min": 75.0},
-        {"mode": "card-fb", "path": "picks/fb-nfl-latest.json", "due_at": "2026-10-03T13:30Z", "late_min": 300.0}]})
+        {"mode": "card-fb", "path": "picks/fb-nfl-latest.json", "due_at": "2026-10-09T13:30Z", "late_min": 75.0,
+         "measured": True},
+        {"mode": "card-fb", "path": "picks/fb-nfl-latest.json", "due_at": "2026-10-03T13:30Z", "late_min": 300.0,
+         "measured": True}]})
     put(t, "data/latest/health.json", {"checked_at": health_at, "findings": list(findings),
                                        "credits": {"balance": 14568, "pulled_at": "2026-10-12T04:08:00Z"}})
     put(t, "data/latest/runs.json", {"generated_at": runs_at, "window_hours": 48, "by_workflow": {
@@ -160,7 +163,7 @@ ck("the two steps are read from the workflow as it will be live (%s)" % os.path.
 
 def drive(issues, closed=()):
     """Both steps, run as GitHub runs them, in a planted tree. -> the gh calls made."""
-    t = tree()
+    t = tree(health_at="2020-01-01T00:00:00Z")      # too old to read: something is posted on any day
     copy_module("status", t, ROOT)
     put(t, "all.json", [{"number": n, "title": s} for n, s in issues])
     put(t, "open.json", [{"number": n, "title": s} for n, s in issues if n not in closed])
@@ -203,7 +206,7 @@ _body = W.render(_out)
 _tail = _body[_body.rfind("\n---\n"):]
 ck("🔴 the alert ENDS with what is wrong, whether the site is updating and the prompt, for its "
    "first BROKEN finding", _body.endswith("```")
-   and "**What is wrong:** the MLB Track Record does not add up (and 1 more above)." in _tail
+   and "**What is wrong:** the MLB Track Record does not add up." in _tail    # BROKEN only
    and "**Is the site still updating?** Yes" in _tail and "check `record-verify:mlb`" in _tail
    and "verify_record.py" in _tail and W.USAGE_CHECK in _tail, _tail[:160])
 eq(W.site_updating([{"key": "stopped:mlb", "severity": "BROKEN", "what": "mlb has not updated since Tue 11:11Z"}]),
