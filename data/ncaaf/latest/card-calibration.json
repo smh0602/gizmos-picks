@@ -1,7 +1,7 @@
 {
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-10-07T20:56:22Z",
+ "built_at": "2026-10-08T14:40:28Z",
  "spec": "research/fb_card_calibration_spec.md",
  "bands": [
   {
@@ -23,23 +23,23 @@
   {
    "bucket": "20-30%",
    "graded": {
-    "value": 6,
+    "value": 10,
     "basis": "DESCRIPTIVE"
    },
    "stated": {
-    "value": 26.0,
+    "value": 25.6,
     "basis": "DESCRIPTIVE"
    },
    "actual": {
-    "value": 16.7,
+    "value": 10.0,
     "basis": "DESCRIPTIVE"
    },
-   "flag": "NOT_MEASURABLE"
+   "flag": "OK"
   },
   {
    "bucket": "30-40%",
    "graded": {
-    "value": 9,
+    "value": 16,
     "basis": "DESCRIPTIVE"
    },
    "stated": {
@@ -47,23 +47,23 @@
     "basis": "DESCRIPTIVE"
    },
    "actual": {
-    "value": 44.4,
+    "value": 62.5,
     "basis": "DESCRIPTIVE"
    },
-   "flag": "NOT_MEASURABLE"
+   "flag": "OK"
   },
   {
    "bucket": "40-50%",
    "graded": {
-    "value": 12,
+    "value": 13,
     "basis": "DESCRIPTIVE"
    },
    "stated": {
-    "value": 45.1,
+    "value": 45.4,
     "basis": "DESCRIPTIVE"
    },
    "actual": {
-    "value": 50.0,
+    "value": 46.2,
     "basis": "DESCRIPTIVE"
    },
    "flag": "OK"
@@ -71,15 +71,15 @@
   {
    "bucket": "50-60%",
    "graded": {
-    "value": 28,
+    "value": 29,
     "basis": "DESCRIPTIVE"
    },
    "stated": {
-    "value": 53.5,
+    "value": 53.4,
     "basis": "DESCRIPTIVE"
    },
    "actual": {
-    "value": 64.3,
+    "value": 65.5,
     "basis": "DESCRIPTIVE"
    },
    "flag": "OK"
@@ -87,15 +87,15 @@
   {
    "bucket": "60-70%",
    "graded": {
-    "value": 21,
+    "value": 25,
     "basis": "DESCRIPTIVE"
    },
    "stated": {
-    "value": 64.5,
+    "value": 64.7,
     "basis": "DESCRIPTIVE"
    },
    "actual": {
-    "value": 61.9,
+    "value": 56.0,
     "basis": "DESCRIPTIVE"
    },
    "flag": "OK"
@@ -103,7 +103,7 @@
   {
    "bucket": "70-80%",
    "graded": {
-    "value": 25,
+    "value": 28,
     "basis": "DESCRIPTIVE"
    },
    "stated": {
@@ -111,7 +111,7 @@
     "basis": "DESCRIPTIVE"
    },
    "actual": {
-    "value": 44.0,
+    "value": 50.0,
     "basis": "DESCRIPTIVE"
    },
    "flag": "UNDER"
@@ -310,13 +310,13 @@
   "applied": false
  },
  "test_after_fix": {
-  "n": 25,
-  "mean_d": 0.11765993981899775,
-  "t": null,
-  "p": null,
-  "clusters": 1,
+  "n": 45,
+  "mean_d": 0.0681342390193689,
+  "t": 0.96125423474231,
+  "p": 0.21892717051214172,
+  "clusters": 3,
   "verdict": "NOT YET MEASURABLE",
-  "graded_picks": 278,
+  "graded_picks": 298,
   "min_n": 500,
   "method": "season-blend"
  },
