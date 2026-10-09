@@ -1,16 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-09T20:14:52Z",
+ "checked_at": "2026-10-09T20:25:30Z",
  "et_date": "2026-10-09",
  "healthy": false,
  "broken": 0,
- "degraded": 1,
+ "degraded": 2,
  "findings": [
   {
-   "key": "fresh:ncaaf",
+   "key": "late:props-board:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf tabs are showing data older than promised (props-board, props-player)",
-   "why": "the freshness contract says 2 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "what": "ncaaf props-board was built 85 minutes after it was due",
+   "why": "due 2026-10-09T19:00Z, built 2026-10-09T20:24Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-player:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf props-player was built 84 minutes after it was due",
+   "why": "due 2026-10-09T19:00Z, built 2026-10-09T20:23Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -18,15 +25,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17259,
-  "pulled_at": "2026-10-09T20:07:37Z",
+  "balance": 17236,
+  "pulled_at": "2026-10-09T20:24:40Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.1,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-09T20:07:36Z",
-  "source": "data/2026-10-09/props-batter/2007.json.gz",
-  "readings_on_disk": 728,
+  "newest_paid_pull": "2026-10-09T20:24:40Z",
+  "source": "data/ncaaf/2026-10-09/props-player/2024.json.gz",
+  "readings_on_disk": 730,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
