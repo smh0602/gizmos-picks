@@ -1235,6 +1235,7 @@ jobs:
       # filtered alert is the same as no alert — which is the state this
       # whole step exists to leave behind.
       - name: Tell Sam
+        id: tell
         if: always()
         continue-on-error: true
         env:
@@ -1264,16 +1265,21 @@ jobs:
           NUM=$(gh issue list --state open --limit 100 --json number,title \
                   --jq ".[] | select(.title == \"$TITLE\") | .number" \
                 2>/dev/null | head -1 | tr -dc '0-9')
-          HEALTHY=$(python -c "import json;print(json.load(open('data/latest/health.json'))['healthy'])")
-          python -c "import json,watchdog;open('/tmp/body.md','w').write(watchdog.render(json.load(open('data/latest/health.json'))))"
-          if [ "$HEALTHY" = "True" ]; then
+          # 🔴 `[Sam, 2026-10-07]` ONLY A BROKEN FINDING EMAILS SAM (`watchdog.alerting`).
+          # `[Cowork replay, 2026-10-07]` any finding opened this issue, and a football
+          # build over 60 minutes late (DEGRADED) on 3 of 8 days would have kept it
+          # opening. DEGRADED stays in health.json and the weekly status.
+          ALERT=$(python -c "import json,watchdog;print(watchdog.alerting(json.load(open('data/latest/health.json'))))")
+          BODY=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/body.XXXXXX")
+          python -c "import json,sys,watchdog;open(sys.argv[1],'w').write(watchdog.render(json.load(open('data/latest/health.json'))))" "$BODY"
+          if [ "$ALERT" != "True" ]; then
             # ✅ IT CLOSES ITSELF. An alert channel that needs tidying by
             # hand becomes a list of stale issues, and then it is ignored.
             if [ -n "$NUM" ]; then
               gh issue comment "$NUM" --body "✅ Resolved — the watchdog now reports the site healthy."
               gh issue close "$NUM"
             fi
-            echo "healthy; nothing to report"
+            echo "nothing BROKEN; nothing to report"
             exit 0
           fi
           # 🔴🔴 THE LABEL IS ENSURED HERE, ABOVE THE BRANCH, NOT INSIDE IT.
@@ -1292,15 +1298,15 @@ jobs:
           # needs it too.
           gh label create gizmo-watch --color 5319e7 --description "filed by a Gizmo's Picks watcher; self-repair triages these" 2>/dev/null || true
           if [ -n "$NUM" ]; then
-            gh issue edit "$NUM" --add-label gizmo-watch --body-file /tmp/body.md
+            gh issue edit "$NUM" --add-label gizmo-watch --body-file "$BODY"
             echo "::warning::the watchdog is still reporting the site wrong — issue #$NUM"
           else
             # ⚠️ THE ASSIGNEE IS TRIED AND THEN DROPPED. A create that
             # fails because a username changed would mean NO alert at all,
             # and the notification matters more than the assignment.
-            gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/body.md --assignee smh0602 \
-              || gh issue create --label gizmo-watch --title "$TITLE" --body-file /tmp/body.md \
-              || gh issue create --title "$TITLE" --body-file /tmp/body.md
+            gh issue create --label gizmo-watch --title "$TITLE" --body-file "$BODY" --assignee smh0602 \
+              || gh issue create --label gizmo-watch --title "$TITLE" --body-file "$BODY" \
+              || gh issue create --title "$TITLE" --body-file "$BODY"
           fi
           exit 0
 
