@@ -122,12 +122,16 @@ print("   CONSTANT IS NO LONGER THE THING BEING TESTED")
 # that DIRECTLY, against the real schedule and the deployed crons.
 # ⛔ That is strictly harder: the old form could pass with a correct
 # constant and a broken schedule.
-eq(run("nfl", board(5, hours_out=C.FB_PROPS_WINDOW_H - 1)), 5,
-   "just inside the window -> priced")
-eq(run("nfl", board(5, hours_out=C.FB_PROPS_WINDOW_H + 1)), 0,
-   "just outside -> not priced")
+# `[Sam, 2026-10-09]` ~~the NFL boundary is FB_PROPS_WINDOW_H~~: "NFL props for the
+#    next slate with an unstarted game are pulled every day once that slate is within
+#    72 hours (Tue/Wed: Thursday's game; Fri/Sat: Sunday's games)". College keeps 14h.
+_H = C._fresh.FB_NEXT_SLATE_H["nfl"]
+eq(run("nfl", board(5, hours_out=_H - 1)), 5,
+   "NFL: the next slate just inside 72 hours -> priced")
+eq(run("nfl", board(5, hours_out=_H + 1)), 0,
+   "NFL: just outside -> not priced")
 ck(C.FB_PROPS_WINDOW_H <= 24,
-   "⚠️ a window over 24h means two daily pulls buy the same games twice",
+   "⚠️ college's window over 24h means two daily pulls buy the same games twice",
    f"{C.FB_PROPS_WINDOW_H}h")
 
 print("\n3b. 🔴 EVERY REAL GAME IS CAUGHT BY SOME DEPLOYED PULL")

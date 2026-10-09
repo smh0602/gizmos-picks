@@ -1756,21 +1756,29 @@ def _merge_list(old_rows, new_rows, kicks, now_iso, cap=None):
     return out, len(keep)
 
 
-def slate_date(B):
+def slate_date(B, now=None):
     """The ET date of the earliest game on the board (ledger rule 60).
 
+    🔴 `[Sam, 2026-10-09]` THE EARLIEST UNSTARTED ONE: a finished slate is never
+    the current card (Friday's card showed Thursday's TB @ DAL, final 24-16, for
+    three days). ⚠️ A board whose games have ALL started keeps its day until the
+    hourly pass rebuilds it (`freshness.slate_moves`), and an EMPTY board — the
+    rebuild before the next slate is priced — takes the next slate with lines,
+    so a rebuild never lands back on the played day.
     ⚠️ Falls back to today in ET -- never UTC -- so the page's `todayET()`
     lookup and this writer can never disagree about which day it is.
     """
-    ts = [g.get("commence") for g in B.get("games", []) if g.get("commence")]
-    if ts:
+    now = now or datetime.now(timezone.utc)
+    ts = []
+    for x in (g.get("commence") for g in B.get("games", []) if g.get("commence")):
         try:
-            t = min(datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ").replace(
-                tzinfo=timezone.utc) for x in ts)
-            return et(t).strftime("%Y-%m-%d")
+            ts.append(datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc))
         except Exception:
             pass
-    return et(datetime.now(timezone.utc)).strftime("%Y-%m-%d")
+    if ts:
+        return et(min([t for t in ts if t > now] or ts)).strftime("%Y-%m-%d")
+    gls = latest_gamelines_snapshot()[0]
+    return (gls and next_line_slate(gls, now)) or et(now).strftime("%Y-%m-%d")
 
 
 def et_date(commence):

@@ -324,11 +324,11 @@ print("\n═══ 5. 🔴 THE NFL ARMS INTO THE SAME CONTRACT COLLEGE HAS ═�
 #    1 August each year it names a file the collector has not written yet,
 #    and this section went red on correct code (or, lacking both states,
 #    ran nothing). ✅ One planted Sunday kickoff: the Sunday 11am-ET
-#    deadline's window holds it, Friday's does not. Asked every run; the
-#    live schedule is the extra.
+#    deadline's window holds it, ~~Friday's~~ Thursday's does not (74 hours
+#    out, past the NFL next-slate 72, `[Sam, 2026-10-09]`). Asked every run.
 _pk = datetime.datetime(2026, 9, 20, 17, 0, tzinfo=datetime.timezone.utc)
 _pa = datetime.datetime(2026, 9, 20, 15, 1, tzinfo=datetime.timezone.utc)
-_pq = datetime.datetime(2026, 9, 18, 15, 1, tzinfo=datetime.timezone.utc)
+_pq = datetime.datetime(2026, 9, 17, 15, 1, tzinfo=datetime.timezone.utc)   # 74h out: past the NFL next-slate 72h
 with planted("nfl", [_pk], board=False):
     _m_pa = {r[0] for r in F.contract(data="data/nfl", picks="picks", now=_pa)}
     _m_pq = {r[0] for r in F.contract(data="data/nfl", picks="picks", now=_pq)}
@@ -340,68 +340,14 @@ ck("⛔ ...and a deadline with NO kickoff inside it does NOT (planted)",
    "props-player" not in _m_pq,
    "🔴 RULE 86 — a pull that would buy nothing is not a late pull. %s"
    % sorted(_m_pq))
-LAT = "data/nfl/latest"
-_live_sched = "%s/schedule-%s.json.gz" % (LAT, F.current_football_season(None))
-try:
-    _ks = F.kickoffs_utc("nfl", _live_sched)
-except Exception:
-    _ks = None
-if os.path.exists(_live_sched):
-    ck("the NFL schedule names kickoffs to reason from", bool(_ks),
-       "%s kickoff(s)" % (len(_ks) if _ks else 0))
-else:
-    note("⚠️ no stored NFL schedule for the current season yet (%s) — the "
-         "live derivation below is not exercised; the planted case above "
-         "was" % _live_sched)
-
-_armed = _quiet = None
-if _ks:
-    _t0 = min(_ks) - datetime.timedelta(days=2)
-    for _d in range(0, 30):
-        for _hh, _mm in F.FB_TIMES["nfl"]["props"][:2]:
-            _probe = (_t0 + datetime.timedelta(days=_d)).replace(
-                hour=0, minute=0, second=0, microsecond=0) \
-                + datetime.timedelta(hours=_hh + 5, minutes=_mm + 1)
-            _due = F.last_due(F.FB_TIMES["nfl"]["props"], _probe)
-            if _due is None:
-                continue
-            _end = _due + datetime.timedelta(hours=F.FB_PROPS_WINDOW_H)
-            _hit = any(_due <= k <= _end for k in _ks)
-            if _hit and _armed is None:
-                _armed = _probe
-            if not _hit and _quiet is None:
-                _quiet = _probe
-        if _armed and _quiet:
-            break
-
-if _armed and _quiet:
-    note("probes DERIVED: armed=%s · quiet=%s (window %sh from the "
-         "deadline that just passed)"
-         % (_armed.isoformat(), _quiet.isoformat(), F.FB_PROPS_WINDOW_H))
-    m_armed = {r[0] for r in F.contract(data="data/nfl", picks="picks",
-                                        now=_armed)}
-    m_quiet = {r[0] for r in F.contract(data="data/nfl", picks="picks",
-                                        now=_quiet)}
-    ck("🔴 a deadline with a kickoff inside its window ARMS the props row",
-       "props-player" in m_armed,
-       "⛔ the contract must govern a pull that WOULD buy something. %s"
-       % sorted(m_armed))
-    ck("⛔ ...and a deadline with NO kickoff inside it does NOT",
-       "props-player" not in m_quiet,
-       "🔴 RULE 86 — a pull that would buy nothing is not a late pull, "
-       "and marking it late asks for a repair no run can make. %s"
-       % sorted(m_quiet))
-    ck("✅ the two probes really are different states, not the same one twice",
-       ("props-player" in m_armed) != ("props-player" in m_quiet),
-       "⛔ RULE 202 — a check that cannot tell its two cases apart is not "
-       "the check it claims to be")
-else:
-    # ⚠️ NOT EXERCISED, AND SAID OUT LOUD. A check that quietly stops
-    #    running is the same false cover as a test the runner never
-    #    discovers (rule 182).
-    note("⚠️ NOT EXERCISED — the stored schedule does not contain both an "
-         "armed and a quiet deadline in the probed range. armed=%s "
-         "quiet=%s" % (_armed, _quiet))
+ck("✅ the two planted probes really are different states, not the same one twice",
+   ("props-player" in _m_pa) != ("props-player" in _m_pq),
+   "⛔ RULE 202 — a check that cannot tell its two cases apart is not the check it "
+   "claims to be")
+# `[Sam, 2026-10-09]` ~~THE LIVE SCHEDULE'S DERIVED PROBES (the extra)~~: "No new or
+#    changed test may read the live data tree" (collect went red for a day on two that
+#    did, #251/#252). The planted probes above ask the same three questions, armed,
+#    quiet and different, at the NFL rule: the next slate within 72 hours.
 ck("...and nobody has to do anything for that to happen",
    "props-player" in SCHED["nfl"],
    "the crons already exist; only the contract row was waiting")

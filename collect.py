@@ -1572,7 +1572,7 @@ def collect_props(kind, regions=None):
     if LEAGUE in ("nfl", "ncaaf"):
         before = len(events)
         cutoff = now() + timedelta(hours=FB_PROPS_WINDOW_H)
-        kept = []
+        timed = []
         for e in events:
             t = e.get("commence_time")
             if not t:
@@ -1582,16 +1582,23 @@ def collect_props(kind, regions=None):
                     tzinfo=timezone.utc)
             except Exception:
                 continue
-            if when <= cutoff:
-                kept.append(e)
-        events = kept
+            timed.append((when, e))
+        if LEAGUE in _fresh.FB_NEXT_SLATE_H:
+            # 🔴 `[Sam, 2026-10-09]` NFL: THE NEXT SLATE, every day once it is
+            #    within 72 hours (freshness.FB_NEXT_SLATE_H, the one rule).
+            ks = _fresh.next_slate([w for w, _e in timed], now())
+            if ks and ks[0] > now() + timedelta(hours=_fresh.FB_NEXT_SLATE_H[LEAGUE]):
+                ks = []
+            events = [e for w, e in timed if w in ks]
+        else:
+            events = [e for w, e in timed if w <= cutoff]
         log(f"  slate window: {before} events on the board -> {len(events)} "
-            f"within {FB_PROPS_WINDOW_H}h. Saved "
+            f"in the next slate / within {FB_PROPS_WINDOW_H}h. Saved "
             f"{(before - len(events)) * len(markets) * len(regions.split(','))} "
             f"credits.")
         if not events:
-            log(f"SKIPPING {kind} props: no game kicks off within "
-                f"{FB_PROPS_WINDOW_H}h. Nothing spent.")
+            log(f"SKIPPING {kind} props: no game in the window (NFL: the next "
+                f"slate within 72h; college: {FB_PROPS_WINDOW_H}h). Nothing spent.")
             return left
 
     # ⛔ CFB ONLY. MLB and NFL are untouched by this branch.
@@ -1961,39 +1968,52 @@ def collect_props_board_fb(league=None):
     # and the board would have come back empty on a night the data
     # arrived. ⚠️ Two date conventions for one path is the same class of
     # defect as two copies of a coefficient.
-    day = now().strftime("%Y-%m-%d")
-    src = sorted(_g.glob(f"{DATA}/{day}/props-player/*.json.gz"))
-    if not src:
-        # ⚠️ A pull just before midnight UTC lands under yesterday.
-        # Looking back one day is cheap and cannot pick up a stale board:
-        # the file records its own `pulled_at` and the page shows the age.
-        prev = (now() - timedelta(days=1)).strftime("%Y-%m-%d")
-        src = sorted(_g.glob(f"{DATA}/{prev}/props-player/*.json.gz"))
-        if src:
-            day = prev
-            log(f"  using the {prev} snapshot (pull landed before midnight UTC)")
-    if not src:
-        log(f"  no props-player snapshot for {day} -- nothing to join")
-        return None
-    # ⚠️ NEWEST SNAPSHOT WINS. Several pulls a day land in the same
-    # directory; the board describes the most recent one and says when.
-    doc = None
+    # 🔴 `[Sam, 2026-10-09]` A REFRESH NEVER REMOVES A BOOK OR A GAME, AND A
+    #    FINISHED SLATE NEVER STAYS. ~~NEWEST SNAPSHOT WINS~~: a us2 refresh
+    #    carries Hard Rock only, so it replaced FanDuel and DraftKings (the live
+    #    NFL tab: 94 props, all Hard Rock) and dropped the games it lacked
+    #    (college 10/09: 3 of 5). ✅ Every pull of the last four UTC days is read
+    #    (a slate is bought up to 72 hours ahead), each BOOK's latest view of each
+    #    game wins, with the minute it was pulled, and the board holds the next
+    #    slate with an unstarted game (`freshness.next_slate`, the card's rule).
+    t0 = now()
+    src = sorted(p for k in range(4) for p in _g.glob(
+        f"{DATA}/{(t0 - timedelta(days=k)).strftime('%Y-%m-%d')}/props-player/*.json.gz"))
+    latest_by, event_meta, newest = {}, {}, {}
     for f in src:
         try:
             with gzip.open(f, "rt", encoding="utf-8") as fh:
                 d = json.load(fh)
-            if doc is None or (d.get("pulled_at") or "") > (doc.get("pulled_at") or ""):
-                doc = d
         except Exception as e:
             log(f"  skipping {f}: {type(e).__name__}: {e}")
-    if not doc:
+            continue
+        at = d.get("pulled_at") or ""
+        newest = d if at >= (newest.get("pulled_at") or "") else newest
+        for ev in d.get("events") or []:
+            if at >= (event_meta.get(ev.get("id")) or ("",))[0]:
+                event_meta[ev.get("id")] = (at, ev)
+            for bk in ev.get("bookmakers") or []:
+                if at >= (latest_by.get((ev.get("id"), bk.get("key"))) or ("",))[0]:
+                    latest_by[(ev.get("id"), bk.get("key"))] = (at, bk)
+    if not event_meta:
+        log("  no props-player snapshot in the last four days -- nothing to join")
         return None
 
+    def _ko(ev):
+        try:
+            return datetime.strptime(ev.get("commence_time") or "", "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc)
+        except ValueError:
+            return None
+    nxt = _fresh.next_slate([k for k in (_ko(ev) for _a, ev in event_meta.values()) if k], t0)
+    slate = _fresh._et_day(nxt[0]) if nxt else None
     books_seen, games = set(), []
-    for ev in doc.get("events") or []:
+    for eid, (_at, ev) in event_meta.items():
+        if slate is None or _ko(ev) is None or _fresh._et_day(_ko(ev)) != slate:
+            continue
         # rung -> the best price on each side, plus how many books have it
         rungs = {}
-        for bk in ev.get("bookmakers") or []:
+        for bat, bk in (v for (e2, _b), v in latest_by.items() if e2 == eid):
             key = bk.get("key")
             books_seen.add(key)
             # ⛔ Sam's football books only (Hard Rock, FanDuel, DraftKings).
@@ -2017,8 +2037,9 @@ def collect_props_board_fb(league=None):
                         "unit": FB_MARKET_LABEL[m][1],
                         "line": pt, "sides": {}})
                     sd = r["sides"].setdefault(side, {"n_books": 0, "price": None,
-                                                      "book": None, "link": None})
+                                                      "book": None, "link": None, "books": {}})
                     sd["n_books"] += 1
+                    sd["books"][key] = {"price": price, "pulled_at": bat[:16] + "Z"}
                     # ⚠️ BEST = LEAST NEGATIVE / MOST POSITIVE. American
                     # odds do not order numerically for a bettor.
                     if sd["price"] is None or price > sd["price"]:
@@ -2043,8 +2064,9 @@ def collect_props_board_fb(league=None):
                  "Sam's football books (Hard Rock, FanDuel, DraftKings). NOT a Gizmo's projection (rule 55) -- "
                  "football has no model, so no row carries a confidence %."),
         "league": lg,
-        "pulled_at": doc.get("pulled_at"),
-        "regions": doc.get("regions"),
+        "slate": slate,
+        "pulled_at": newest.get("pulled_at"),
+        "regions": newest.get("regions"),
         "books_seen": sorted(books_seen),
         "n_games": len(games),
         "n_props": sum(g["n_props"] for g in games),
