@@ -917,7 +917,9 @@ mlb_refit.py      MLB champion vs challenger, as Sam approved it on
 mlb_tables.py     the MLB pitcher + opponent tables, rebuilt after every
                   `pitchers` pull from the FULL starter population.
                   ⛔ card.py reads `model_pitchers()`, never the widened
-                  pool, so the card's numbers do not move.
+                  pool, so the card's ~~numbers~~ PROP numbers do not move.
+                  `[2026-10-09]` Its game lines come from mlb_game_model,
+                  which counts every start by design (test_mlb_tables.py).
 mlb_pitcher_cal.py  audit C/D, scored to `research/mlb_pitcher_cal_spec.md`
                   (frozen). C2 shipped `[2026-09-25]`: a pitcher row
                   PRINTS its blend mixed with its price, refitted each

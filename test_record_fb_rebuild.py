@@ -182,20 +182,28 @@ def dated_cards(pdir, lg):
 
 
 def add_next_method_card(lg):
-    """Tomorrow's card, under a method nothing has graded yet."""
+    """The night a new method goes live: a card dated after every other one,
+    under a method nothing has graded yet.
+    ⚠️ `[2026-10-09]` BUILT, NOT BORROWED. It was a copy of the newest stored
+    card, and ncaaf's 10-08 card held 0 picks (10 game lines): the copy had no
+    rows, the record dropped it, the new method never became current, and
+    collect went red 10-08 -> 10-09. So a games-only card is ALWAYS planted
+    newest first, and the new card takes the picks of the newest card that
+    has some. Nothing here reads a clock: record_fb grades on the stored logs."""
     def m(pdir):
-        newest = dated_cards(pdir, lg)[-1]
-        card = json.load(open(newest, encoding="utf-8"))
-        d = card.get("date") or os.path.basename(newest)[len("fb-%s-" % lg):-5]
-        nxt = (datetime.strptime(d, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
-        card["date"] = nxt
-        card["card_method"] = PROBE_NEXT
+        fs = dated_cards(pdir, lg)
+        last = datetime.strptime(os.path.basename(fs[-1])[len("fb-%s-" % lg):-5], "%Y-%m-%d")
+
+        def put(k, card):
+            d = (last + timedelta(days=k)).strftime("%Y-%m-%d")
+            json.dump(dict(card, date=d), open(os.path.join(pdir, "fb-%s-%s.json" % (lg, d)),
+                                               "w", encoding="utf-8"))
+        put(1, dict(json.load(open(fs[-1], encoding="utf-8")), picks=[]))     # games only
+        src = [c for c in (json.load(open(f, encoding="utf-8")) for f in dated_cards(pdir, lg)) if c.get("picks")][-1]
         # ⚠️ Kickoffs beyond any log, so nothing on it can settle — the
         #    state of a card the night it is published.
-        for p in card.get("picks") or []:
-            p["commence"] = "2099-12-31T00:00:00Z"
-        json.dump(card, open(os.path.join(pdir, "fb-%s-%s.json" % (lg, nxt)),
-                             "w", encoding="utf-8"))
+        put(2, dict(src, card_method=PROBE_NEXT,
+                    picks=[dict(p, commence="2099-12-31T00:00:00Z") for p in src["picks"]]))
     return m
 
 
