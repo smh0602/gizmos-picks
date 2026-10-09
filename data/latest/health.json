@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-09T07:11:49Z",
+ "checked_at": "2026-10-09T08:08:24Z",
  "et_date": "2026-10-09",
  "healthy": false,
  "broken": 0,
- "degraded": 8,
+ "degraded": 6,
  "findings": [
   {
    "key": "late:card-fb:ncaaf",
@@ -16,8 +16,8 @@
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 133 minutes after it was due",
-   "why": "due 2026-10-08T07:00Z, built 2026-10-08T09:12Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
+   "what": "ncaaf cfb-probe was built 68 minutes after it was due",
+   "why": "due 2026-10-09T07:00Z, built 2026-10-09T08:08Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -35,24 +35,10 @@
    "repair": null
   },
   {
-   "key": "late:fb-scores:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf fb-scores was built 73 minutes after it was due",
-   "why": "due 2026-10-08T08:00Z, built 2026-10-08T09:12Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-record:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-record was built 99 minutes after it was due",
    "why": "due 2026-10-07T13:00Z, built 2026-10-07T14:38Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-record build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:fb-scores:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl fb-scores was built 73 minutes after it was due",
-   "why": "due 2026-10-08T08:00Z, built 2026-10-08T09:13Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -71,7 +57,7 @@
   "pulled_at": "2026-10-08T23:52:57Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 7.3,
+  "reading_age_hours": 8.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-08T23:52:20Z",
   "source": "data/ncaaf/2026-10-08/gamelines/2352.json.gz",
