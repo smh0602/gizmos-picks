@@ -387,4 +387,16 @@ else:
     print("  NOTE  no record-detail.json.gz yet -- the page will show a message")
 
 print(f"\n{'THE TRACK RECORD RECONCILES' if not fails else 'FAILURES: ' + ', '.join(fails)}")
+# 🔴 `[Sam, 2026-10-07]` A FAILED RE-CHECK REACHES HEALTH, not only a red run:
+#    the watchdog reads this file (check_verify_failure). Written in plain words
+#    on a failure, removed when the record reconciles again.
+_MARK = os.path.join("data", "latest", "record-verify-failure.txt")
+if fails:
+    os.makedirs(os.path.dirname(_MARK), exist_ok=True)
+    with open(_MARK, "w", encoding="utf-8") as _fh:
+        _fh.write("The MLB Track Record does not add up when every published pick is "
+                  "re-graded from the box scores. Failing checks:\n"
+                  + "".join("FAIL %s\n" % f for f in fails))
+elif os.path.exists(_MARK):
+    os.remove(_MARK)
 sys.exit(1 if fails else 0)
