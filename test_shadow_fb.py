@@ -64,14 +64,13 @@ a pre-registration condition of T60, not a refinement.
 #
 # @vacuity the published card is still capped at TOP_N top plays
 #   file: card_fb.py
-#   find: TOP_N = 20
-#   with: TOP_N = 19
-#   ⚠️ ...and that mutation TIGHTENS rather than loosens, deliberately.
-#      One published card sits EXACTLY at 20, so lowering the bar is the
-#      only edit that can prove the comparison is live against the real
-#      cards. ⛔ Loosening it could not: there is no committed card above
-#      20 for a bigger cap to admit, so a raised bar would change
-#      nothing and the "mutation" would prove nothing (rule 244).
+#   find:         if len(out) >= n:
+#   with:         if False:
+#   ~~⚠️ ...and that mutation TIGHTENS rather than loosens (TOP_N 20 -> 19),
+#      deliberately: one published card sits EXACTLY at 20~~ `[2026-10-09]` it
+#      bit only while a real card sat at 20, a fact about the day's data. ✅ The
+#      cap itself is removed instead, and the card the code builds from
+#      TOP_N + 5 candidates (section 6) goes over it every time.
 #
 # @vacuity 🔴 a POSITIONAL join is caught even on a thin day: the planted archive lists a decoy FIRST
 #   file: shadow_fb.py
@@ -578,13 +577,20 @@ for _f in _cards:
     except Exception:
         continue
     _tops.append((os.path.basename(_f), len(_c.get("top_plays") or [])))
-ck(len(_tops) >= 3,
-   "⚠️ published cards to check (%d)" % len(_tops),
-   "⛔ rule 67 — a sweep over no cards proves nothing")
-ck(max([n for _n, n in _tops] or [0]) >= card_fb.TOP_N,
-   "   ⚠️ ...and one of them sits EXACTLY at the cap (%d), so the bar "
-   "below is a live comparison" % max([n for _n, n in _tops] or [0]),
-   "⛔ rule 67 again: a cap no card approaches is a cap nothing tests")
+note("published cards swept: %d, the most top plays on one: %d"
+     % (len(_tops), max([n for _n, n in _tops] or [0])))
+# 🔴 `[Sam, 2026-10-09]` THE PRECONDITIONS ARE PLANTED; THE DEFECT CHECK STAYS LIVE.
+#    "3 or more cards" and "one EXACTLY at the cap" were facts about picks/, so the
+#    day's data could turn them red. The sweep now always holds a card the CODE
+#    builds from TOP_N + 5 candidates in as many games: it sits at the cap
+#    whatever main holds, and the bar below still reads every published card.
+_cand = [{"player": "Plant %d" % i, "game_id": "plant-%d" % i, "price": -110,
+          "confidence": 90.0 - i} for i in range(card_fb.TOP_N + 5)]
+_tops.append(("planted (build_top_plays)", len(card_fb.build_top_plays(_cand, _cand)[0])))
+ck(_tops[-1][1] == card_fb.TOP_N,
+   "⚠️ the sweep holds a card EXACTLY at the cap: the code built %d top plays from "
+   "%d candidates, so the bar below is a live comparison" % (_tops[-1][1], len(_cand)),
+   "⛔ rule 67: a cap no card reaches is a cap nothing tests")
 _over = [x for x in _tops if x[1] > card_fb.TOP_N]
 ck(not _over,
    "   ⛔ ...and not one publishes more than TOP_N=%d top play(s)"
