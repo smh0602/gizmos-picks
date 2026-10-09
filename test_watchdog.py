@@ -63,6 +63,11 @@ itself, and section 2 drives that exact clock.
 #   file: watchdog.py
 #   find:             L.append("MLB is fixed like any other finding: a failing test "
 #   with:             L.append("MLB is frozen; nothing changes until you lift it. A failing test "
+#
+# @vacuity 🔴 the issue leads with what is BROKEN (Sam, 2026-10-07)
+#   file: watchdog.py
+#   find:     L = ["**Broken right now: %s.**" % "; ".join(i["what"] for i in broken) if broken
+#   with:     L = ["**The site is showing something wrong right now.**" if broken
 """
 import datetime
 import json
@@ -388,9 +393,12 @@ with Tree() as t:
             "FAIL no parlay leg is shorter than the -700 floor\n")
     out = W.run(now)
     body = W.render(out)
-ck("📣 the body leads with what a READER would see",
-   body.startswith("**The site is showing something wrong right now.**"),
-   "not with a stack trace, a job name or an exit code")
+# `[Sam, 2026-10-07]` ~~leads with "The site is showing something wrong right now."~~
+#    The issue opens only for a BROKEN finding, and it leads with what is BROKEN.
+ck("📣 the body leads with what is BROKEN, as a READER would see it",
+   body.startswith("**Broken right now: %s" % [i["what"] for i in out["findings"]
+                                                if i["severity"] == "BROKEN"][0]),
+   "not with a stack trace, a job name or an exit code. Got: %r" % body[:120])
 ck("⛔ an unrepairable finding says so in words",
    "needs a code change" in body,
    "⚠️ Sam must be able to tell 'the system is retrying' from 'this is "

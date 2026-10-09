@@ -332,6 +332,9 @@ try:
                if v["mode"] == "card"][0]
         return rec, [i for i in rep.items if i["key"] == "late:card:mlb"]
 
+    # `[Sam, 2026-10-07]` an earlier entry first: an artifact's FIRST entry is a sighting,
+    #    not a measurement, so 10-06's card is measured only once the card was seen before
+    look("2026-10-05T15:00Z", "2026-10-05", "2026-10-05T14:05:00Z")
     _r1, _f1 = look("2026-10-06T17:00Z", "2026-10-06", "2026-10-06T16:02:00Z")
     eq((_r1["due_at"], _r1["built_at"], _r1["late_min"]), ("2026-10-06T14:00Z", "2026-10-06T16:02Z", 122.0),
        "🔴 10-06's card: due 14:00Z, built 16:02Z, 122 minutes late, written down")

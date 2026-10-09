@@ -714,8 +714,8 @@ def check_late_builds(rep, now):
         f = _read(os.path.join(ROOT, d, "latest", F.LATENESS_FILE)) or {}
         worst = {}
         for r in (f.get("artifacts") or {}).values():
-            late = r.get("late_min")
-            if isinstance(late, (int, float)) and late > F.GRACE_MIN:
+            late = r.get("late_min") if r.get("measured") else None    # a first sighting is not
+            if isinstance(late, (int, float)) and late > F.GRACE_MIN:      # a measurement (freshness)
                 if late > (worst.get(r.get("mode")) or {}).get("late_min", -1):
                     worst[r.get("mode")] = r
         for mode, r in sorted(worst.items()):
@@ -732,10 +732,20 @@ def check_late_builds(rep, now):
 #    written; `check_freshness` carries the file's verdict up, so nothing was
 #    reported. ⚠️ THE GRACE IS ON HOW LONG THE ROW HAS BEEN PAST DUE, never on
 #    the file's age: that day the file-age test fired on NFL 22 minutes after
-#    a deadline on a healthy 45-minute-old contract, and any grace between 23
+#    a deadline on a healthy 45-minute-old contract~~, and any grace between 23
 #    and 112 minutes reported MLB and stayed silent on NFL. 90 also clears
-#    football's hourly pass plus a usual cron delay.
-STOPPED_GRACE_MIN = 90
+#    football's hourly pass plus a usual cron delay~~.
+# ⛔ `[Cowork replay, 2026-10-07]` THAT WAS ONE MOMENT, AND A WEEK SAYS OTHERWISE.
+#    At each of the 257 health reports on main 09-30 -> 10-07, 90 raised at 38
+#    (44 findings, 2 BROKEN) on all 7 days, and not one was a real stop: 23 were
+#    the `runs` row alone, which no collect run builds, and the 2 BROKEN were
+#    NFL's card when GitHub started the football run 103 minutes late. Without
+#    that row: 90 -> 21 findings (2 BROKEN), 180 -> 8 (0), 240 -> 8 (0), 360 -> 2,
+#    480 -> 1. The first commit after a card deadline was at most 154 minutes late
+#    (football) and 122 (MLB), 09-29 -> 10-06. So 240, and a row another workflow
+#    builds (`freshness.BUILT_ELSEWHERE`) is skipped: the run list's age has its
+#    own sentence (`runs_report.run_list`).
+STOPPED_GRACE_MIN = 240
 
 
 def _when(s):
@@ -745,20 +755,27 @@ def _when(s):
         return None
 
 
+def stopped_rows(rows, built, now):
+    """The rows `built` (a league's freshness.json) never judged, past due with no
+    pass for over STOPPED_GRACE_MIN, that a collect run builds."""
+    grace = datetime.timedelta(minutes=STOPPED_GRACE_MIN)
+    return [r for r in rows if r.get("stale") and r.get("mode") not in F.BUILT_ELSEWHERE
+            and _when(r.get("due_at")) is not None
+            and _when(r["due_at"]) > built and now - _when(r["due_at"]) > grace]
+
+
 def check_stopped_league(rep, now):
     """A row whose deadline fell AFTER the league's freshness.json was written
     was never judged by it. Re-judged now (the contract's own `survey`, the
     artifacts' own stamps): past due with no pass for over STOPPED_GRACE_MIN
     -> BROKEN for a card, DEGRADED otherwise. ⛔ No repair: converge can spend."""
-    grace = datetime.timedelta(minutes=STOPPED_GRACE_MIN)
     for lg, d in DATA.items():          # every league, whichever league's run this is
         built = _when((_read(os.path.join(ROOT, d, "latest", "freshness.json")) or {})
                       .get("built_at"))
         if built is None:
             continue
-        late = [r for r in F.survey(os.path.join(ROOT, d), os.path.join(ROOT, "picks"), now)
-                if r.get("stale") and _when(r.get("due_at")) is not None
-                and _when(r["due_at"]) > built and now - _when(r["due_at"]) > grace]
+        late = stopped_rows(F.survey(os.path.join(ROOT, d), os.path.join(ROOT, "picks"), now),
+                            built, now)
         if not late:
             continue
         card = any(r["mode"] in ("card", "card-fb") for r in late)
@@ -1329,11 +1346,70 @@ def run(now=None):
     return out
 
 
+# 🔴 EVERY ALERT ENDS WITH WHAT TO DO. `[Sam, 2026-10-07]` What is wrong, whether
+#    the site is still updating, and a Claude Code prompt ready to paste (the
+#    check, the files to read first, Sam's USAGE CHECK): the watchdog's issue
+#    (`render`) and the weekly one (status.py). test_status.py.
+FILES_FIRST = {    # the finding key's first part -> the files to read first
+    "card": "card.py, card_fb.py, collect.py", "cardfile": "card.py, card_fb.py",
+    "empty": "card.py, card_fb.py", "proj": "card.py, verify_card.py", "day": "card_fb.py, card.py",
+    "verify": "verify_card.py, card.py, card_fb.py", "record": "collect.py, record_fb.py",
+    "record-verify": "verify_record.py, collect.py, record_grader.py", "page": "index.html",
+    "fresh": "freshness.py, collect.py", "late": "freshness.py, relay.py",
+    "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
+    "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
+}
+USAGE_CHECK = "\n".join((
+    "USAGE CHECK",
+    "- Before writing code, post a short plan: the files you expect to touch and roughly how many "
+    "lines. No sub-agents or parallel agents without asking Sam first. Stop and ask Sam if it needs "
+    "more than about 8 files or about 450 changed lines.",
+    "- If it grows past that while you are in it, stop at a clean point, commit what you have, and "
+    "tell Sam what is left.",
+    "- Read job logs with grep, not whole. Run the full suite locally at most once; pr-tests runs it "
+    "on the PR.",
+    "- At the end, report the PR's diff size (files, lines added and removed)."))
+
+
+def site_updating(findings):
+    """Is the site still updating? Not while a league has stopped (`stopped:`)."""
+    stopped = [f["what"] for f in findings or [] if str(f.get("key")).startswith("stopped:")]
+    return ("No: %s." % "; ".join(stopped) if stopped else "Yes: no league has gone more than "
+            "%d minutes past a deadline without a run." % STOPPED_GRACE_MIN)
+
+
+def what_to_do(findings, updating):
+    """The block an alert ends with, for its first finding: callers pass the BROKEN ones."""
+    f = findings[0]
+    key = str(f.get("key"))
+    files = ", ".join(x for x in ("watchdog.py (the check that raised `%s`)" % key,
+                                  FILES_FIRST.get(key.split(":")[0])) if x)
+    prompt = ("Read CLAUDE.md first and follow every rule in it. Gizmo's Picks reports %s: \"%s\" "
+              "(check `%s`). Read these files first: %s. Find the cause and fix it in one pull "
+              "request, with a guard test that is red under its own @vacuity mutation. Never "
+              "commit to main. No API spend.\n\n%s\n\n⛔ Do not tell Sam it is done until the "
+              "pr-tests check shows GREEN on GitHub."
+              % (f.get("severity"), f.get("what"), key, files, USAGE_CHECK))
+    more = " (and %d more above)" % (len(findings) - 1) if len(findings) > 1 else ""
+    return "\n".join(["", "---", "**What is wrong:** %s%s." % (f.get("what"), more),
+                      "**Is the site still updating?** %s" % updating, "",
+                      "**To fix it, paste this into Claude Code:**", "", "```text", prompt, "```"])
+
+
+def alerting(out):
+    """`[Sam, 2026-10-07]` ONLY A BROKEN FINDING EMAILS SAM: collect.yml's "Tell Sam"
+    keeps the watchdog's issue open while this is true and closes it otherwise.
+    DEGRADED stays in health.json and the weekly status; `healthy` is unchanged."""
+    return any(f.get("severity") == "BROKEN" for f in (out or {}).get("findings") or [])
+
+
 def render(out):
     """The issue body. Written for Sam on a phone, not for a log."""
     if out["healthy"]:
         return "Everything the watchdog checks is currently healthy."
-    L = ["**The site is showing something wrong right now.**", ""]
+    broken = [i for i in out["findings"] if i["severity"] == "BROKEN"]
+    L = ["**Broken right now: %s.**" % "; ".join(i["what"] for i in broken) if broken
+         else "**The site is showing something wrong right now.**", ""]
     for sev, head in (("BROKEN", "### Broken"), ("DEGRADED", "### Degraded")):
         rows = [i for i in out["findings"] if i["severity"] == sev]
         if not rows:
@@ -1402,6 +1478,7 @@ def render(out):
     L.append("")
     L.append("_Checked %s. This issue is updated in place and closes itself "
              "when the site is healthy._" % out["checked_at"])
+    L.append(what_to_do(broken or out["findings"], site_updating(out["findings"])))
     return "\n".join(L)
 
 

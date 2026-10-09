@@ -22,10 +22,20 @@ workflow Sam switched off no longer fires. Planted trees, pinned clocks.
 #   find:     grace = datetime.timedelta(minutes=STOPPED_GRACE_MIN)
 #   with:     grace = datetime.timedelta(0)
 #
+# @vacuity 🔴 ...and the grace is 240: a card 200 minutes past due is not a stopped league
+#   file: watchdog.py
+#   find: STOPPED_GRACE_MIN = 240
+#   with: STOPPED_GRACE_MIN = 90
+#
 # @vacuity 🔴 a healthy league 22 minutes past a deadline is silent: only rows the file never judged
 #   file: watchdog.py
-#   find:                 and _when(r["due_at"]) > built and now - _when(r["due_at"]) > grace]
-#   with:                 and now - _when(r["due_at"]) > grace]
+#   find:             and _when(r["due_at"]) > built and now - _when(r["due_at"]) > grace]
+#   with:             and now - _when(r["due_at"]) > grace]
+#
+# @vacuity 🔴 the run list's row (runs.yml builds it, never collect) never makes a league stopped
+#   file: watchdog.py
+#   find:     return [r for r in rows if r.get("stale") and r.get("mode") not in F.BUILT_ELSEWHERE
+#   with:     return [r for r in rows if r.get("stale")
 #
 # @vacuity 🔴 a stale run list is named as stale and gives no verdict
 #   file: runs_report.py
@@ -56,6 +66,11 @@ workflow Sam switched off no longer fires. Planted trees, pinned clocks.
 #   file: runs_report.py
 #   find:         if os.path.basename(p) in DISABLED:   # no fire is owed
 #   with:         if False:   # no fire is owed
+#
+# @vacuity 🔴 collect.yml switched off in GitHub is still expected to fire
+#   file: runs_report.py
+#   find:             if ln.count("\t") == 1 and ln.split("\t")[1] != "active"} - ALWAYS_ON
+#   with:             if ln.count("\t") == 1 and ln.split("\t")[1] != "active"}
 """
 import datetime
 import gzip
@@ -113,23 +128,32 @@ def stopped(built, at):
 # ══════════════════════════════════════════════════════════════════════
 section("1. 🔴 A LEAGUE THAT STOPS IS VISIBLE, IN EACH OF THE THREE LEAGUES")
 # ══════════════════════════════════════════════════════════════════════
-# 2026-10-06 15:52Z, every league's last pass at 11:11Z (MLB's real one).
-_s = stopped("2026-10-06T11:11:55Z", "2026-10-06T15:52Z")
+# 2026-10-06 19:20Z, every league's last pass at 11:11Z (MLB's real one on 10-06).
+_s = stopped("2026-10-06T11:11:55Z", "2026-10-06T19:20Z")
 ck("🔴 each league with rows past due and no pass since is reported",
    set(_s) == {"mlb", "ncaaf", "nfl"}, str(_s))
 eq({lg: sev for lg, (sev, _w) in _s.items()},
    {"mlb": "BROKEN", "ncaaf": "BROKEN", "nfl": "DEGRADED"},
-   "🔴 BROKEN where a card is past due (MLB 14:00Z, college 13:30Z); DEGRADED for NFL, "
-   "whose card is only 22 minutes past due")
+   "🔴 BROKEN where a card is over %d minutes past due (MLB 14:00Z, college 13:30Z); "
+   "DEGRADED for NFL, whose card is 230" % W.STOPPED_GRACE_MIN)
 ck("   ...in plain words, with the time of the last pass",
    _s.get("mlb", ("", ""))[1] == "mlb has not updated since Tue 11:11Z", str(_s.get("mlb")))
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. ⛔ INSIDE THE GRACE, AND A HEALTHY LEAGUE, ARE SILENT")
 # ══════════════════════════════════════════════════════════════════════
-eq(stopped("2026-10-06T13:10:00Z", "2026-10-06T14:30Z"), {},
-   "🔴 rows past due for less than %d minutes (MLB's card 30, college's card 60) are not "
-   "reported" % W.STOPPED_GRACE_MIN)
+# `[Cowork replay, 2026-10-07]` ~~any grace between 23 and 112 minutes~~: at 90 a week of
+#    ordinary GitHub lateness raised 44 findings and no real stop; football's first commit
+#    after a card deadline came up to 154 minutes late. MLB's last pass at 13:59Z.
+_one = lambda at: stopped({"data": "2026-10-06T13:59:00Z", "data/ncaaf": at, "data/nfl": at}, at[:16] + "Z")
+eq(_one("2026-10-06T17:20:00Z"), {}, "🔴 a card 200 minutes past due is not reported")
+eq(_one("2026-10-06T18:10:00Z").get("mlb", ("",))[0], "BROKEN", "🔴 ...and one 250 minutes past due is BROKEN")
+# at 240 the run list's row is at most 160 minutes past due by its own rule (an hourly deadline
+# less 100 minutes), so its skip is shown on planted rows the grace alone would report
+_rows = [{"mode": m, "stale": True, "due_at": "2026-10-06T12:00Z"} for m in ("runs", "news")]
+eq([r["mode"] for r in W.stopped_rows(_rows, T("2026-10-06T11:00Z"), T("2026-10-06T18:10Z"))], ["news"],
+   "🔴 the `runs` row (runs.yml builds it, never collect) past due does not make a league "
+   "stopped; the same row from a collect-built artifact does")
 # the 10-06 measurement: NFL 22 minutes past its card on a healthy 45-minute-old contract
 eq(stopped({"data": "2026-10-06T11:11:55Z", "data/ncaaf": "2026-10-06T15:07:50Z",
             "data/nfl": "2026-10-06T15:07:56Z"}, "2026-10-06T15:52Z").get("nfl"), None,
@@ -203,13 +227,21 @@ section("5. ⛔ A WORKFLOW SAM SWITCHED OFF IS NOT EXPECTED TO FIRE")
 _names0 = R.scheduled_workflows(ROOT)
 ck("   (self-repair is a scheduled workflow while it is on)",
    "self-repair.yml" in _names0.values(), str(sorted(_names0.values())))
-R.DISABLED.add("self-repair.yml")
+# GitHub's own list, as the runs watcher reads it: Sam has switched off self-repair AND,
+# by a wrong click, collect. `[Sam, 2026-10-07]` one wrong row must not buy silence.
+_off = R.gh_disabled(".github/workflows/self-repair.yml\tdisabled_manually\n"
+                     ".github/workflows/collect.yml\tdisabled_manually\n"
+                     ".github/workflows/runs.yml\tactive\n")
+eq(_off, {"self-repair.yml"}, "🔴 collect.yml switched off is still an outage: never counted as off")
+R.DISABLED.update(_off)
 try:
     _names1, _decl1 = R.scheduled_workflows(ROOT), R.declared_crons(ROOT)
 finally:
-    R.DISABLED.discard("self-repair.yml")
-ck("🔴 switched off in GitHub, it is not a workflow that must show runs",
-   "self-repair.yml" not in _names1.values(), str(sorted(_names1.values())))
-ck("🔴 ...nor one whose crons must fire, so the runs watcher stays quiet about it",
-   all(v.get("file") != "self-repair.yml" for v in _decl1.values()),
+    R.DISABLED.clear()
+ck("🔴 switched off in GitHub, it is not a workflow that must show runs; collect.yml still is",
+   "self-repair.yml" not in _names1.values() and "collect.yml" in _names1.values(),
+   str(sorted(_names1.values())))
+ck("🔴 ...nor one whose crons must fire, so the runs watcher stays quiet about it; collect's must",
+   all(v.get("file") != "self-repair.yml" for v in _decl1.values())
+   and any(v.get("file") == "collect.yml" for v in _decl1.values()),
    str(sorted(v.get("file") for v in _decl1.values())))

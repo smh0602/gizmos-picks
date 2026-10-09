@@ -150,7 +150,7 @@ its way in.**
 changed the workflow's `cron:` block.** Every one of them depends on that
 user staying a human with write access.
 
-<!-- CRON TOTAL: 57 -->
+<!-- CRON TOTAL: 58 -->
 ⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
 counts every `- cron:` line in `.github/workflows/` **and in files staged
 under `docs/upload/`**, one per file name (`wfparse.cron_total`), and
@@ -576,17 +576,27 @@ note boxes, tags and the stale bar now require their absence.
   (`freshness.record_builds`, the first build after each deadline); the
   watchdog reports DEGRADED, no repair, while a last build was more than
   `GRACE_MIN` (60) late, until the next on-time build. `test_relay.py`.
+  `[Sam, 2026-10-07]` Only a `measured` entry counts: an artifact's first entry
+  is a sighting (NFL record.json read 9100 minutes late), not a measurement.
 - 🔴 **THE REPO NOTICES ITS OWN PROBLEMS; NO CLAUDE AUDIT DOES.** `[Sam, 2026-10-07]`
   *"the website should do all of them themselves"* (scheduled Claude tasks and
   self-repair are switched off). ✅ `watchdog.check_stopped_league`: a row whose
   deadline fell after its league's freshness.json was written, past due with no
-  pass for over `STOPPED_GRACE_MIN` (90; the grace is on the ROW, never the
-  file's age) -> BROKEN for a card, DEGRADED otherwise, no repair. ✅ runs.json
+  pass for over `STOPPED_GRACE_MIN` (~~90~~ 240 `[Cowork replay, 2026-10-07]`:
+  90 raised 44 findings in a week, none a real stop; the grace is on the ROW,
+  never the file's age; a row another workflow builds, `runs`, is skipped)
+  -> BROKEN for a card, DEGRADED otherwise, no repair. ✅ runs.json
   is read only through `runs_report.run_list`, age first ("the run list is N
   hours old", no verdict). ✅ verify_record writes `record-verify-failure.txt`
   on a failure (removed on a pass) and the watchdog reports it. ✅ A workflow
-  GitHub reports switched off (`runs_report.DISABLED`) is not expected to fire.
-  `test_watchdog_stopped.py`.
+  GitHub reports switched off (`runs_report.DISABLED`) is not expected to fire,
+  ⛔ never collect, runs or status (`ALWAYS_ON`). `test_watchdog_stopped.py`.
+  ✅ Every Monday `status.py` (staged `status.yml`, daily) posts ONE fixed-title
+  issue to smh0602; other days only a health check over 12 hours old. ✅ Only a
+  BROKEN finding opens the watchdog's issue (`watchdog.alerting`); DEGRADED stays
+  in health.json and the weekly. Every alert ends with `watchdog.what_to_do`
+  (what is wrong, is the site updating, a prompt ready to paste). lateness.json
+  keeps 8 days of measured `late`. `test_status.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -834,6 +844,10 @@ relay.py          THE RELAY (Sam, 2026-10-06): at the end of an MLB run's
                   re-run, or when no MLB card is owed for the last or the
                   next card deadline's day. Run by
                   collect.yml's last step; exit 0 = dispatch.
+status.py         THE WEEKLY STATUS EMAIL (Sam, 2026-10-07): one issue, updated
+                  and commented each Monday, and any day the health check is
+                  too old (status.yml, daily), from the repo's own files.
+                  ⛔ A report, never a task (`self_repair.COUNTER`).
 card_gate.py      did the card fail for a reason Sam already accepted?
                   ⚠️ `[2026-10-01]` the page no longer says a card was
                   published past an accepted check (the stale bar went).
