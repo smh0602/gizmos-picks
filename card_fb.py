@@ -869,6 +869,7 @@ def rate_for(games, market, line, side):
 METHOD_CURRENT = "2025-only"
 METHOD_FIXED = "season-blend"
 METHOD_FIXED_S9 = "season-blend+signal9"
+TEAM_UNIT = re.compile(r" (?:D/ST|Defense)$")    # a team's defense, never a player
 # ⛔ SET BY THE RECORDED KEEP-RULE RESULT (fb_signal9.py), never by hand.
 #    NFL OFF 2026-09-24: worse, mean log-loss difference −0.0042 over 198
 #    graded published props. College OFF until scored.
@@ -1841,10 +1842,18 @@ def main():
             if mk not in MARKETS:
                 continue
             who = pr.get("player") or ""
-            seen_players.add(who)
-            pids = idx.get(norm(who), [])
+            # 🔴 `[Sam, 2026-10-09]` THE NAME CHECK COUNTS PLAYERS ONLY. A team
+            #    defense ("<Team> D/ST", "<Team> Defense": FanDuel and DraftKings,
+            #    Anytime TD) can never match a player log: 20 of the 55 unmatched
+            #    names on 10-09, when the gate read 55.6% and stripped every rate
+            #    (players only, 66.0%). ⛔ The row stays, with no rate; the 60% bar
+            #    is unchanged.
+            unit = bool(TEAM_UNIT.search(who))
+            if not unit:
+                seen_players.add(who)
+            pids = [] if unit else idx.get(norm(who), [])
             plog = None
-            if RATES_OK:
+            if RATES_OK and not unit:
                 if len(pids) > 1:
                     ambiguous.add(who)
                 elif not pids:

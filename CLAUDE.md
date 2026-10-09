@@ -455,7 +455,9 @@ note boxes, tags and the stale bar now require their absence.
   only the next slate. The card's day is the earliest unstarted game's
   (`card_fb.slate_date`); once every game a board or card holds has started, the
   hourly pass rebuilds both (`freshness.slate_moves`: planned, never marked stale).
-  `test_fb_next_slate.py`.
+  The card's name check counts PLAYERS ONLY (Sam's choice): a team defense
+  (`card_fb.TEAM_UNIT`, "<Team> D/ST" / "Defense") never counts; the 60% bar is
+  unchanged. `test_fb_next_slate.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the

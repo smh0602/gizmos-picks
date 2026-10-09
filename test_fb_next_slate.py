@@ -6,6 +6,7 @@ Planted trees and pinned clocks only; nothing here reads the live data tree.
   2. A us2 refresh keeps FanDuel and DraftKings from the earlier pull, with their
      minute, and keeps a game it lacks; a started slate leaves the board.
   3. A finished slate is never the current card, and the next slate is.
+  4. The name check counts players only: a team defense never counts.
 
 # @vacuity 🔴 the pull buys ONE slate: Friday prices Sunday, never Monday too
 #   file: freshness.py
@@ -51,6 +52,11 @@ Planted trees and pinned clocks only; nothing here reads the live data tree.
 #   file: freshness.py
 #   find:     if lg not in FB_TIMES or not any(k > now for k in _kickoffs_in(f"{data}/latest/board.json", ("games",))):
 #   with:     if lg not in FB_TIMES:
+#
+# @vacuity 🔴 the name check counts players only, never a team defense
+#   file: card_fb.py
+#   find:             unit = bool(TEAM_UNIT.search(who))
+#   with:             unit = False
 """
 import atexit
 import datetime
@@ -178,3 +184,33 @@ put(os.path.join(_d, "latest", "props.json.gz"), {"games": [{"commence": SUN[0]}
 eq(F.slate_moves(_d, _p, _fri), {"card-fb"}, "   ...and a board already on Sunday is left alone")
 put(os.path.join(_d, "latest", "board.json"), {"games": [{"commence": TNF}]})
 eq(F.slate_moves(_d, _p, _fri), set(), "⛔ ...and with no next game to move to, nothing is planned")
+
+section("4. 🔴 THE NAME CHECK COUNTS PLAYERS ONLY `[Sam, 2026-10-09]`")
+# Three logged receivers and four team defenses (FanDuel and DraftKings list
+# "<Team> D/ST" and "<Team> Defense" under Anytime TD), on the real clock.
+_k = (datetime.datetime.now(UTC) + datetime.timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
+_who = ["Rec One", "Rec Two", "Rec Three"]
+_units = ["A Defense", "A D/ST", "H Defense", "H D/ST"]
+_t3 = mktree()
+put(os.path.join(_t3, "data", "nfl", "latest", "props.json.gz"), {"pulled_at": "2026-10-09T14:25:00Z", "games": [{
+    "id": "g1", "away": "A", "home": "H", "commence": _k, "props":
+        [{"player": w, "market": "player_receptions", "line": 3.5,
+          "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 3}}} for w in _who]
+        + [{"player": w, "market": "player_anytime_td", "line": None,
+            "sides": {"yes": {"price": 300, "book": "draftkings", "n_books": 2}}} for w in _units]}]})
+put(os.path.join(_t3, "data", "nfl", "latest", "players-2025.json.gz"), {"season": 2025, "players": {
+    str(i): {"name": w, "pos": "WR", "g": [{"d": "2025-09-%02d" % (j + 7), "snap_pct": 0.9, "rec": 5}
+                                           for j in range(10)]} for i, w in enumerate(_who)}})
+_cwd = os.getcwd()
+try:
+    os.chdir(_t3)
+    CF.main()
+    _card = json.load(open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8"))
+finally:
+    os.chdir(_cwd)
+_rows = {r["player"]: r for r in _card.get("picks") or []}
+eq((_card.get("name_match_rate"), [(_rows.get(w) or {}).get("confidence_basis") for w in _who]),
+   (1.0, ["RECORD"] * 3), "🔴 the three players are rated: four team defenses never count in the check "
+   "(3 of 7 would be 43%, under the 60% bar, and strip every rate)")
+eq([(w in _rows, (_rows.get(w) or {}).get("confidence")) for w in _units], [(True, None)] * 4,
+   "   ...and each defense row stays on the card, with no rate")
