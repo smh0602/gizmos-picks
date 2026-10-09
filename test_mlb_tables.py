@@ -310,11 +310,18 @@ def c_drive(tree, fix, orig, tag, players_json=None):
     return open(out, encoding="utf-8").read()
 
 
-def salted(orig, board, flag):
+def salted(orig, board, flag, day0):
     """The pull plus low-IP starters: a same-name same-team double for
     every board pitcher (would make `resolve()` refuse the join), one entry
     per name the board could not match (would newly join), and a heavy
-    striker against every team (would move the centering constant)."""
+    striker against every team (would move the centering constant).
+    ⚠️ `[2026-10-09]` Their starts are dated from `day0`, before the first
+    scored day: the MLB game model (on the card since #235) folds EVERY start
+    of every scored day into its league starter averages by design, so the
+    heavy striker's 30 made-up June starts moved the live card's moneyline,
+    Cleveland 56 -> 55 (78065e9), and collect went red 10-08 -> 10-09. Before
+    any scored day they still reach the prop model (it reads every start
+    before today) and never the game model's ledger."""
     S = json.load(gzip.open(io.BytesIO(orig), "rt"))
     S["starter_pool"] = "complete"
     teams = sorted({r["o"] for q in S["players"].values() for r in q.get("g") or []
@@ -329,17 +336,17 @@ def salted(orig, board, flag):
         if flag:
             e["below_min_ip"] = True
         extra["99%07d" % i] = e
-    row = lambda d, o, k=12: {"d": d, "o": o, "h": 0, "gs": 1, "outs": 5, "k": k,
+    row = lambda j, o, k=12: {"d": (day0 + datetime.timedelta(days=j)).isoformat(), "o": o,
+                              "h": 0, "gs": 1, "outs": 5, "k": k,
                               "er": 0, "hit": 1, "bb": 0, "np": 45, "bf": 8}
     games = board.get("games") or []
     for g in games:
         for pr in g["props"]:
             if pr.get("kind") == "pitcher":
-                add(pr["player"], pr.get("team"), [row("2026-06-01", g["away"])])
+                add(pr["player"], pr.get("team"), [row(0, g["away"])])
     for nm in (board.get("unmatched") or []) if games else []:
-        add(nm, games[0]["home"], [row("2026-06-02", games[0]["away"])])
-    add("Heavy Striker", teams[0], [row("2026-06-%02d" % (j % 28 + 1), t, 20)
-                                     for j, t in enumerate(teams)])
+        add(nm, games[0]["home"], [row(1, games[0]["away"])])
+    add("Heavy Striker", teams[0], [row(j % 28, t, 20) for j, t in enumerate(teams)])
     S["players"].update(extra)
     S["n_below_min_ip"] = len(extra)
     return S, len(extra)
@@ -370,13 +377,16 @@ def c_run(who, tree, fix):
        "pitcher rows on the board, %d pitcher projections, %d pairs) — a card "
        "without it would make the comparison below pass blind"
        % (who, ncard, npit, npj, npair))
-    s1, nx = salted(orig, bd.get("board") or {}, flag=True)
+    sp = os.path.join(tree, "data", "latest", "scores.json.gz")
+    scored = (json.load(gzip.open(sp, "rt")).get("days") or {}) if os.path.exists(sp) else {}
+    day0 = datetime.date.fromisoformat(min(scored) if scored else "2026-03-01") - datetime.timedelta(days=30)
+    s1, nx = salted(orig, bd.get("board") or {}, flag=True, day0=day0)
     flagged = c_drive(tree, fix, orig, who + "-flagged", s1)
     ck(nx >= 3, "   %s: the salt adds %d below_min_ip starter(s)" % (who, nx))
     ck(flagged is not None and flagged == base,
        "🔴🔴 %s: board AND card are BYTE-IDENTICAL with the below_min_ip starters "
        "present" % who, "the widening moved a model number")
-    s0, _ = salted(orig, bd.get("board") or {}, flag=False)
+    s0, _ = salted(orig, bd.get("board") or {}, flag=False, day0=day0)
     unflagged = c_drive(tree, fix, orig, who + "-unflagged", s0)
     ck(unflagged is not None and unflagged != base,
        "   %s: positive control: the SAME salt unflagged DOES change them — so "
