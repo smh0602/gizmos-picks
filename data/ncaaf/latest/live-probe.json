@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-10-06T08:19:20Z",
+ "written_at": "2026-10-09T08:10:51Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -21,15 +21,15 @@
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261006&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261009&limit=400",
    "http": 200,
-   "events": 1
+   "events": 5
   },
   {
    "variant": "groups=80 + dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261006&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261009&limit=400",
    "http": 200,
-   "events": 1
+   "events": 5
   }
  ],
  "variant_used": "groups=80 (FBS)",
@@ -122,6 +122,7 @@
    "links",
    "location",
    "logo",
+   "logoDark",
    "name",
    "shortDisplayName",
    "uid",
@@ -139,7 +140,8 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "pre": 58
+  "pre": 51,
+  "post": 7
  },
  "in_progress": 0,
  "live_sample": [],
@@ -194,11 +196,12 @@
    {
     "et_date": "2026-10-09",
     "espn_events": 5,
-    "our_games": 7,
+    "our_games": 8,
     "ours_that_espn_returned": 5,
-    "ours_MISSING_from_espn": 2,
-    "pct_of_ours_present": 71.4,
+    "ours_MISSING_from_espn": 3,
+    "pct_of_ours_present": 62.5,
     "missing_examples": [
+     "Florida A&M @ Alabama State",
      "Framingham State @ Bridgewater State",
      "Columbia @ Marist"
     ]
@@ -206,10 +209,10 @@
    {
     "et_date": "2026-10-10",
     "espn_events": 46,
-    "our_games": 263,
+    "our_games": 262,
     "ours_that_espn_returned": 46,
-    "ours_MISSING_from_espn": 217,
-    "pct_of_ours_present": 17.5,
+    "ours_MISSING_from_espn": 216,
+    "pct_of_ours_present": 17.6,
     "missing_examples": [
      "Misericordia @ Alvernia",
      "Bryant @ Brown",
@@ -219,8 +222,8 @@
     ]
    }
   ],
-  "worst_pct_of_ours_present": 17.5,
-  "verdict": "\ud83d\udd34 PARTIAL \u2014 as low as 17.5% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so",
+  "worst_pct_of_ours_present": 17.6,
+  "verdict": "\ud83d\udd34 PARTIAL \u2014 as low as 17.6% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so",
   "note": "\u26a0\ufe0f ET SLATE DAY, NOT UTC. A Saturday 8pm ET kickoff is Sunday in UTC and dating it by UTC splits one slate across two days (rule 107)."
  },
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
@@ -228,9 +231,9 @@
  "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=5",
+  "cache_control": "max-age=1",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "58 events via [groups=80 (FBS)], 0 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 17.5% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "58 events via [groups=80 (FBS)], 0 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 17.6% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }

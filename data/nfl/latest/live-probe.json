@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
- "written_at": "2026-10-06T08:18:35Z",
+ "written_at": "2026-10-09T08:10:42Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -11,17 +11,17 @@
    "variant": "default (what run 1 used)",
    "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?limit=400",
    "http": 200,
-   "events": 16
+   "events": 15
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261006&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20261009&limit=400",
    "http": 200,
    "events": 0
   }
  ],
  "variant_used": "default (what run 1 used)",
- "events": 16,
+ "events": 15,
  "payload_shape": {
   "top_level": [
    "events",
@@ -39,7 +39,6 @@
    "season",
    "shortName",
    "status",
-   "tuneInPrompt",
    "uid",
    "week"
   ],
@@ -107,6 +106,7 @@
    "links",
    "location",
    "logo",
+   "logoDark",
    "name",
    "shortDisplayName",
    "uid",
@@ -124,7 +124,8 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "post": 16
+  "post": 1,
+  "pre": 14
  },
  "in_progress": 0,
  "live_sample": [],
@@ -133,12 +134,12 @@
  "join": {
   "our_schedule_season": 2026,
   "our_games": 272,
-  "espn_events": 16,
+  "espn_events": 15,
   "join_field": "our `espn` vs ESPN `events[].id`",
   "matched_on_our_id": 0,
-  "matched_on_our_espn_column": 16,
+  "matched_on_our_espn_column": 15,
   "our_games_carrying_an_espn_column": 272,
-  "ids_in_common": 16,
+  "ids_in_common": 15,
   "pct_of_espn_events_matched": 100.0,
   "verdict": "EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all",
   "n_unmatched": 0,
@@ -150,7 +151,7 @@
   "counted_on": "our `espn`, ET slate day",
   "per_date": [
    {
-    "et_date": "2026-10-01",
+    "et_date": "2026-10-08",
     "espn_events": 1,
     "our_games": 1,
     "ours_that_espn_returned": 1,
@@ -159,16 +160,16 @@
     "missing_examples": []
    },
    {
-    "et_date": "2026-10-04",
-    "espn_events": 14,
-    "our_games": 14,
-    "ours_that_espn_returned": 14,
+    "et_date": "2026-10-11",
+    "espn_events": 13,
+    "our_games": 13,
+    "ours_that_espn_returned": 13,
     "ours_MISSING_from_espn": 0,
     "pct_of_ours_present": 100.0,
     "missing_examples": []
    },
    {
-    "et_date": "2026-10-05",
+    "et_date": "2026-10-12",
     "espn_events": 1,
     "our_games": 1,
     "ours_that_espn_returned": 1,
@@ -186,9 +187,9 @@
  "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=86",
+  "cache_control": "max-age=56",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "16 events via [default (what run 1 used)], 0 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
+ "conclusion": "15 events via [default (what run 1 used)], 0 in progress. JOIN: EXACT \u2014 our `espn` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: FULL \u2014 ESPN returned every game we have on these days, so a live tab can cover the whole slate"
 }
