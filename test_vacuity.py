@@ -42,6 +42,10 @@ and only the second half catches that.
 # before anything mutates the tree, and asserts the set is non-empty —
 # so a `blind()` that returns nothing fails here on the next ordinary
 # suite run. That is exactly how the corruption was caught, twice.
+# ✅ `[2026-09-28]` AND ANOTHER FILE MAY MUTATE THIS ONE. Only a
+# declaration whose TEST is this file recurses. `test_vacuity_part.py`
+# runs this file against a planted tree and declares mutations on its
+# section 2b gate, so that gate is proven to bite.
 # ══════════════════════════════════════════════════════════════════════
 
 import atexit
@@ -286,6 +290,7 @@ _swept_root, _wt = None, None
 #    ⛔ A malformed value RAISES here and the file goes red: it must never
 #    be read as some other part.
 _PART = V.parse_part(os.environ.get("VACUITY_PART"))
+_LABEL = "all" if _PART is None else "part %d of %d" % _PART
 
 
 def _drop_wt():
@@ -499,6 +504,25 @@ try:
 except Exception:
     pass
 
+section("2b. 🔴🔴 AND EVERY DECLARATION THIS RUN SWEPT BITES")
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THIS FILE RAN THE REAL SWEEP AND NEVER READ THE ANSWER.
+# ══════════════════════════════════════════════════════════════════════
+# `[measured 2026-09-28, git log -S'_real2']` No version of this file
+# failed on a VACUOUS, RED_BOTH_WAYS or MALFORMED declaration. It checked
+# the share, the leak and the two CFBD mutations in section 4, so a PR
+# that added a vacuous declaration passed all four `sweep k/4` jobs and
+# only the nightly `vacuity.yml` (issue #188) said so.
+# ✅ The judgement is `V.verdict()`, the nightly's own exit code, applied
+#    to THIS run's share (`V.part_gate`). A TIMEOUT fails it too: nothing
+#    was measured (see `verdict()`). Unsplit (collect.yml), the share is
+#    every declaration.
+# ⛔ Proven by `test_vacuity_part.py`, which runs this file on a planted
+#    tree: the part holding a vacuous declaration fails here and names
+#    it, and the part without one passes.
+_gate_ok, _gate_why = V.part_gate(_real2, _ok)
+ck(V.PART_GATE + " (%s)" % _LABEL, _gate_ok, _gate_why)
+
 section("3. 🔴 THE MAPPING IS NAME-ONLY, AND THAT WAS MEASURED")
 # ⛔ A looser rule ("the one non-test module this file imports") produced
 #    FOUR accusations on 2026-09-15 and ALL FOUR WERE WRONG.
@@ -609,6 +633,16 @@ ck("⛔ a leak OUTRANKS a finding — an unverifiable restore is not a restore",
    "🔴 the harness rewrites source files. If the tree cannot be shown "
    "clean, every result above it is suspect. Got %s"
    % V.verdict([_R("VACUOUS")], False))
+ck("🔴 `[2026-09-28]` a TIMEOUT among passes is exit 2, not a pass",
+   V.verdict([_R("BITES"), _R("TIMEOUT")], True) == V.EXIT_UNREADABLE,
+   "⛔ a declaration that never answered was never seen to bite. It fell "
+   "through to exit 0 and the nightly said \"all bite\". Got %s"
+   % V.verdict([_R("BITES"), _R("TIMEOUT")], True))
+ck("⚠️ ...and a real finding still outranks it",
+   V.verdict([_R("TIMEOUT"), _R("VACUOUS")], True) == V.EXIT_VACUOUS,
+   "⛔ one declaration that could not be read must not hide another that "
+   "was read and is vacuous. Got %s"
+   % V.verdict([_R("TIMEOUT"), _R("VACUOUS")], True))
 
 _VSRC = open(os.path.join(ROOT, "vacuity.py"), encoding="utf-8").read()
 _MAIN = _VSRC.split("def main")[1]

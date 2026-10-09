@@ -935,6 +935,11 @@ vacuity.py        does each guard actually bite? `VACUITY_PART=k/n`
                   RED run stops at the first failed check
                   (`TCHECK_FAIL_FAST`); the green-on-revert run is
                   always a full run (test_fail_fast.py).
+                  `[2026-09-28]` Each part (and collect's unsplit run)
+                  FAILS when a declaration in its share is VACUOUS,
+                  RED_BOTH_WAYS, MALFORMED or TIMEOUT (`part_gate`,
+                  which is the nightly's own `verdict()`). Before, only
+                  the nightly noticed (test_vacuity_part.py).
 ```
 
 ⚠️ **THAT LIST IS CHECKED, NOT MAINTAINED BY HOPE.** `test_claude_md_map.py`
