@@ -79,9 +79,9 @@
    "path": "data/ncaaf/latest/news-flags.json"
   },
   "data/ncaaf/latest/news.json": {
-   "built_at": "2026-10-09T19:01Z",
-   "due_at": "2026-10-09T19:00Z",
-   "late_min": 1.6,
+   "built_at": "2026-10-09T20:24Z",
+   "due_at": "2026-10-09T20:00Z",
+   "late_min": 24.8,
    "measured": true,
    "mode": "news",
    "path": "data/ncaaf/latest/news.json"
@@ -101,9 +101,10 @@
    "path": "data/ncaaf/latest/players-2026.json.gz"
   },
   "data/ncaaf/latest/props.json.gz": {
-   "built_at": "2026-10-09T14:25Z",
-   "due_at": "2026-10-09T12:30Z",
-   "late_min": 116.0,
+   "built_at": "2026-10-09T20:24Z",
+   "due_at": "2026-10-09T19:00Z",
+   "late_min": 84.7,
+   "measured": true,
    "mode": "props-board",
    "path": "data/ncaaf/latest/props.json.gz"
   },
@@ -158,17 +159,18 @@
    "path": "data/ncaaf/2026-10-09/alt-lines"
   },
   "data/ncaaf/{date}/news": {
-   "built_at": "2026-10-09T19:00Z",
-   "due_at": "2026-10-09T19:00Z",
-   "late_min": 1.0,
+   "built_at": "2026-10-09T20:23Z",
+   "due_at": "2026-10-09T20:00Z",
+   "late_min": 24.0,
    "measured": true,
    "mode": "news",
    "path": "data/ncaaf/2026-10-09/news"
   },
   "data/ncaaf/{date}/props-player": {
-   "built_at": "2026-10-09T14:24Z",
-   "due_at": "2026-10-09T12:30Z",
-   "late_min": 115.0,
+   "built_at": "2026-10-09T20:23Z",
+   "due_at": "2026-10-09T19:00Z",
+   "late_min": 84.0,
+   "measured": true,
    "mode": "props-player",
    "path": "data/ncaaf/2026-10-09/props-player"
   },
@@ -181,6 +183,23 @@
   }
  },
  "grace_min": 60,
- "late": [],
- "written_at": "2026-10-09T19:02:22Z"
+ "late": [
+  {
+   "built_at": "2026-10-09T20:23Z",
+   "due_at": "2026-10-09T19:00Z",
+   "late_min": 84.0,
+   "measured": true,
+   "mode": "props-player",
+   "path": "data/ncaaf/2026-10-09/props-player"
+  },
+  {
+   "built_at": "2026-10-09T20:24Z",
+   "due_at": "2026-10-09T19:00Z",
+   "late_min": 84.7,
+   "measured": true,
+   "mode": "props-board",
+   "path": "data/ncaaf/latest/props.json.gz"
+  }
+ ],
+ "written_at": "2026-10-09T20:25:27Z"
 }
