@@ -2091,6 +2091,14 @@ def main():
     if off_day:
         log(f"  single-day board: {len(off_day)} priced row(s) dropped for "
             f"{', '.join(off_dates)} — this card is {slate} only")
+    # 🔴 `[2026-10-09]` A STARTED GAME TAKES NO NEW SEAT. The board keeps a slate's
+    #    started games (a refresh never removes a game) and `freeze_published` puts
+    #    back what was published for them, so their fresh rows must not take seats
+    #    on the board, the parlays or the top plays: on 10-09 a started game's took
+    #    21 of the college card's 25 and left the night's other games 4.
+    if os.path.exists(f"picks/fb-{LEAGUE}-{slate}.json"):
+        _now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows = [r for r in rows if not _started(r, {}, _now)]
 
     # 🔴 THE -700 FLOOR IS SAM'S STANDING INSTRUCTION AND IT APPLIES HERE
     # TOO. Rows below it are kept and reported, but they are NOT the board.

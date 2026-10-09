@@ -7,6 +7,7 @@ Planted trees and pinned clocks only; nothing here reads the live data tree.
      minute, and keeps a game it lacks; a started slate leaves the board.
   3. A finished slate is never the current card, and the next slate is.
   4. The name check counts players only: a team defense never counts.
+  5. A started game takes no new seat once its card is published.
 
 # @vacuity 🔴 the pull buys ONE slate: Friday prices Sunday, never Monday too
 #   file: freshness.py
@@ -57,6 +58,11 @@ Planted trees and pinned clocks only; nothing here reads the live data tree.
 #   file: card_fb.py
 #   find:             unit = bool(TEAM_UNIT.search(who))
 #   with:             unit = False
+#
+# @vacuity 🔴 a started game takes no new seat once its card is published
+#   file: card_fb.py
+#   find:         rows = [r for r in rows if not _started(r, {}, _now)]
+#   with:         rows = rows
 """
 import atexit
 import datetime
@@ -214,3 +220,38 @@ eq((_card.get("name_match_rate"), [(_rows.get(w) or {}).get("confidence_basis") 
    "(3 of 7 would be 43%, under the 60% bar, and strip every rate)")
 eq([(w in _rows, (_rows.get(w) or {}).get("confidence")) for w in _units], [(True, None)] * 4,
    "   ...and each defense row stays on the card, with no rate")
+
+section("5. 🔴 A STARTED GAME TAKES NO NEW SEAT ONCE ITS CARD IS PUBLISHED")
+# The real clock: gA kicked off 2 minutes ago, gB kicks off in 2. A two-seat board.
+_n = datetime.datetime.now(UTC)
+_ka, _kb = [(_n + datetime.timedelta(minutes=m)).strftime("%Y-%m-%dT%H:%M:%SZ") for m in (-2, 2)]
+_day = CF.et(datetime.datetime.strptime(_kb, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)).strftime("%Y-%m-%d")
+_hits = {"Early One": 10, "Early Two": 10, "Early Three": 10, "Late One": 7}
+_t4 = mktree()
+put(os.path.join(_t4, "data", "nfl", "latest", "props.json.gz"), {"pulled_at": "2026-10-09T14:25:00Z", "games": [
+    {"id": gid, "away": "A", "home": "H", "commence": k, "props": [
+        {"player": w, "market": "player_receptions", "line": 3.5,
+         "sides": {"over": {"price": -110, "book": "fanduel", "n_books": 3}}} for w in ws]}
+    for gid, k, ws in (("gA", _ka, ["Early One", "Early Two", "Early Three"]), ("gB", _kb, ["Late One"]))]})
+put(os.path.join(_t4, "data", "nfl", "latest", "players-2025.json.gz"), {"season": 2025, "players": {
+    str(i): {"name": w, "pos": "WR", "g": [{"d": "2025-09-%02d" % (j + 7), "snap_pct": 0.9,
+                                            "rec": 5 if j < h else 1} for j in range(10)]}
+    for i, (w, h) in enumerate(_hits.items())}})
+# What the card published before gA kicked off: one gA row.
+put(os.path.join(_t4, "picks", "fb-nfl-%s.json" % _day), {"date": _day, "picks": [
+    {"game_id": "gA", "player": "Early One", "market": "player_receptions", "side": "over",
+     "line": 3.5, "commence": _ka, "confidence": 90}]})
+_old = (os.getcwd(), CF.BOARD_MAX)
+try:
+    os.chdir(_t4)
+    CF.BOARD_MAX = 2
+    CF.main()
+    _card = json.load(open(os.path.join("picks", "fb-nfl-latest.json"), encoding="utf-8"))
+finally:
+    os.chdir(_old[0])
+    CF.BOARD_MAX = _old[1]
+_P = {r["player"]: r for r in _card.get("picks") or []}
+eq(sorted(_P), ["Early One", "Late One"],
+   "🔴 the second seat goes to gB, still to play (gA's two fresh rows would have taken both "
+   "seats and then been dropped for the published one)")
+eq((_P.get("Early One") or {}).get("confidence"), 90, "   ...and gA's row is the one published, verbatim")

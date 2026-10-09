@@ -457,7 +457,9 @@ note boxes, tags and the stale bar now require their absence.
   hourly pass rebuilds both (`freshness.slate_moves`: planned, never marked stale).
   The card's name check counts PLAYERS ONLY (Sam's choice): a team defense
   (`card_fb.TEAM_UNIT`, "<Team> D/ST" / "Defense") never counts; the 60% bar is
-  unchanged. `test_fb_next_slate.py`.
+  unchanged. Once a slate's card is published, a started game takes no new seat
+  (board, parlays, top plays): `freeze_published` keeps what was published for it.
+  `test_fb_next_slate.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
