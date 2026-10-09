@@ -103,7 +103,11 @@ def rows(card, model):
         out[k] = {"key": k, "game_id": r["game_id"], "game": r.get("game"), "commence": r.get("commence"),
                   "player": r["player"], "market": r["market"], "side": r["side"], "line": r["line"],
                   "price": r.get("price"), "break_even": r["break_even"],
-                  "card_p": r["confidence"], "card_basis": r.get("confidence_basis") or "RECORD",
+                  # `[Sam, 2026-10-09]` "Keep comparing the record": where the
+                  # props model set the row's confidence, its record is `rate`.
+                  "card_p": r.get("rate") if r.get("confidence_basis") == "MODEL" else r["confidence"],
+                  "card_basis": "RECORD" if r.get("confidence_basis") == "MODEL"
+                  else (r.get("confidence_basis") or "RECORD"),
                   "model_p": rated.get(k), "on_card": True}
     for r in (model or {}).get("picks") or []:
         k = key_of(r["game_id"], r["player"], r["market"], r["side"], _val(r["line"]))

@@ -295,10 +295,13 @@ if ck("the builder produces a card", C is not None):
         ck("EVERY top play carries a confidence",
            all(x.get("confidence") is not None for x in T),
            "the checklist's owed check, now that the list exists")
-        ck("every confidence is labelled RECORD, never MODEL",
-           {x.get("confidence_basis") for x in T} == {"RECORD"},
-           "ledger rule 55 — football has no MODEL: %s"
-           % sorted({x.get("confidence_basis") for x in T}))
+        # `[Sam, 2026-10-09]` ~~every confidence is labelled RECORD, never
+        #    MODEL~~: the props model sets it where it prices the prop. Which
+        #    label today's card holds is a fact about the data, so it is
+        #    reported; the planted card (§2b) and test_fb_props_confidence.py
+        #    assert the labels.
+        note("live card: top-play confidence labels %s"
+             % sorted({x.get("confidence_basis") for x in T}))
         ck("every top play carries a price and a book",
            all(x.get("price") is not None and x.get("book") for x in T))
 

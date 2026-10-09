@@ -531,8 +531,12 @@ for lg in ("nfl", "ncaaf"):
                        "agreement.json", "winners.json")) for p in extra),
        f"   ⚠️ {lg}: `card-fb`'s other files are the ones it builds",
        f"unexpected non-picks files under card-fb: {extra}")
-    _cfb = open("collect.py", encoding="utf-8").read()
-    _cfb = _cfb[_cfb.index('elif mode == "card-fb":'):_cfb.index('elif mode == "halftime-probe":')]
+    _src = open("collect.py", encoding="utf-8").read()
+    _cfb = _src[_src.index('elif mode == "card-fb":'):_src.index('elif mode == "halftime-probe":')]
+    # `[Sam, 2026-10-09]` the props model is built inside `build_card_fb()`,
+    #    before the card, on both card paths; card-fb reaches it by that call.
+    _bcf = _src[_src.index("def build_card_fb():"):]
+    _bcf = _bcf[:_bcf.index("\ndef ", 1)]
     ck(("fb-model.json" not in " ".join(extra)) or "_fm.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds fb-model.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
@@ -540,7 +544,8 @@ for lg in ("nfl", "ncaaf"):
     ck(("winners.json" not in " ".join(extra)) or "build_winners()" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds winners.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
-    ck(("fb-props-model.json" not in " ".join(extra)) or "_fpm.build(LEAGUE)" in _cfb,
+    ck(("fb-props-model.json" not in " ".join(extra))
+       or ("build_card_fb()" in _cfb and "_fpm.build(LEAGUE)" in _bcf),
        f"   🔴 {lg}: ...and card-fb really builds fb-props-model.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
     ck(("card-calibration.json" not in " ".join(extra)) or "_fcc.build(LEAGUE)" in _cfb,

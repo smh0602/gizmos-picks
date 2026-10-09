@@ -2826,6 +2826,17 @@ def build_card_fb():
     if LEAGUE == "mlb":
         log("card-fb is a FOOTBALL mode; MLB uses card.py. Nothing done.")
         return None
+    # 🔴 `[Sam, 2026-10-09]` "The card and the props model read the same props
+    #    snapshot in the same pass": the props model prices the board on disk
+    #    first, and both card paths (the props pull and `card-fb`) come through
+    #    here. ⛔ A failure is logged; its stamp then no longer matches the
+    #    board, so the card is the player's record for this build.
+    try:
+        import fb_props_model as _fpm
+        _fpm.build(LEAGUE)
+    except Exception as e:
+        log(f"  ⚠️ the props model did not build ({type(e).__name__}: {e}) "
+            f"— the card uses the player's record.")
     import subprocess
     env = dict(os.environ, LEAGUE=LEAGUE)
     r = subprocess.run([sys.executable, "card_fb.py"], env=env,
@@ -4718,14 +4729,10 @@ def run_mode(mode):
             if LEAGUE in ("nfl", "ncaaf"):
                 # 🔴 AND THE PROPS MODEL, THE SAME WAY. `[Sam, 2026-09-24]`
                 #    "Retrain automatically inside the existing card-fb run.
-                #    No cron changes." ⛔ It never touches the card either.
-                try:
-                    import fb_props_model as _fpm
-                    _fpm.build(LEAGUE)
-                except Exception as e:
-                    log(f"  ⚠️ the props model did not build "
-                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
-                        f"is not rolled back.")
+                #    No cron changes." `[Sam, 2026-10-09]` ~~It never touches
+                #    the card~~: it sets the card's confidence where it prices
+                #    a prop, so `build_card_fb()` above builds it first, from
+                #    the same board.
                 # `[Sam, 2026-09-25]` card vs props-model agreement: labelled,
                 #    frozen, graded. ⛔ A note on the row; it changes no pick.
                 try:
