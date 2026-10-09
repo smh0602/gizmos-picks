@@ -352,17 +352,26 @@ def plant(d, extras=False):
     for n, c in sorted(_DFX.nfl_table(d).items()):
         name.setdefault(c, n)           # code -> a board name the builder resolves
     info = {"pick": [], "season": None, "meeting": None, "no_row_id": None}
+    # ⚠️ `[Sam, 2026-10-09]` THE NEWEST SCHEDULE THAT CAN HOLD THE FIXTURE, not
+    #    merely the newest file: a season published before its games (or one too
+    #    short) would turn the check below red on correct code. The builder reads
+    #    every stored season (`dossier_fb.seasons`), so an earlier one is as real.
     sps = sorted(glob.glob(os.path.join(
         lat, "schedule-[0-9][0-9][0-9][0-9].json.gz")))
-    S = _load(sps[-1]) if sps else {}
+    S, pick = {}, []
+    for sp in reversed(sps):
+        S = _load(sp) or {}
+        sg = sorted((x for x in (S.get("games") or [])
+                     if x.get("start") and x.get("week") is not None
+                     and x.get("home") in name and x.get("away") in name),
+                    key=lambda x: x["start"])
+        weeks = sorted({x["week"] for x in sg})
+        pick = [x for x in sg if len(weeks) > 1 and x["week"] == weeks[1]][:FIXTURE_N]
+        if len(pick) == FIXTURE_N:
+            break
+    sps = [sp] if sps else []
     if sps:
         info["season"] = int(re.search(r"(\d{4})\.json\.gz$", sps[-1]).group(1))
-    sg = sorted((x for x in (S.get("games") or [])
-                 if x.get("start") and x.get("week") is not None
-                 and x.get("home") in name and x.get("away") in name),
-                key=lambda x: x["start"])
-    weeks = sorted({x["week"] for x in sg})
-    pick = [x for x in sg if len(weeks) > 1 and x["week"] == weeks[1]][:FIXTURE_N]
     info["pick"] = pick
     rows = [{"id": "fixture-%s" % x["id"], "home": name[x["home"]],
              "away": name[x["away"]], "commence": x["start"][:16] + ":00Z"}

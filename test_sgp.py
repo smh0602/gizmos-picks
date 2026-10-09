@@ -35,6 +35,11 @@ labelled so. This file asserts the label as well as the number.
 #   file: index.html
 #   find: <tbody>${dayRows}</tbody></table>`);
 #   with: <tbody>${dayRows}</tbody></table><div class="fnote"><b>This is the board's record and nothing else.</b></div>`);
+#
+# @vacuity 🔴 [Sam, 2026-10-09] a same-game row never carries a joint probability, on every card swept
+#   file: card_fb.py
+#   find:                         "joint": None,
+#   with:                         "joint": 50.0,
 """
 import glob
 import itertools
@@ -264,13 +269,17 @@ for fn, label in (("fbParlays", "Parlays"), ("fbRecord", "Track Record")):
 
 print("\n═══ 8. 🔴 THE LIVE CARDS ═══")
 
-cards = sorted(glob.glob(os.path.join(ROOT, "picks", "fb-*-latest.json")))
-if not cards:
-    note("⚠️ NOT EXERCISED: no latest-card pointers on this machine.")
-for p in cards:
-    c = json.load(open(p, encoding="utf-8"))
+# 🔴 `[Sam, 2026-10-09]` THE CHECKS BELOW ALWAYS HAVE ROWS TO READ. A slate with no
+#    same-game parlays left them asking nothing, so the card section 1 built with
+#    the REAL builder is swept with the live ones; a defect on a live card still
+#    turns them red. No clock is read.
+cards = [("planted card (build_sgp_fb, section 1)", {"sgp": sgp})] + [
+    (os.path.basename(p), json.load(open(p, encoding="utf-8")))
+    for p in sorted(glob.glob(os.path.join(ROOT, "picks", "fb-*-latest.json")))]
+if len(cards) == 1:
+    note("⚠️ no latest-card pointers on this machine: the planted card was swept alone.")
+for nm, c in cards:
     live = [r for v in (c.get("sgp") or {}).values() for r in v]
-    nm = os.path.basename(p)
     if not live:
         note("⚠️ %s carries no same-game parlays. That is a fact about "
              "the slate, not a failure — %s"
