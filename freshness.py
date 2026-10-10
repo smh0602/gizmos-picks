@@ -616,6 +616,31 @@ FB_TIMES = {
 # ⚠️ IF THE PULL EVER GOES BACK TO ONCE A DAY THIS NUMBER MUST GO BACK UP;
 # the argument is written out in full at its old home in `collect.py`.
 FB_PROPS_WINDOW_H = 14
+# 🔴 `[Sam, 2026-10-09]` NFL PROPS FOR THE NEXT SLATE, EVERY DAY ONCE IT IS
+#    WITHIN 72 HOURS (Tue/Wed: Thursday's game; Fri/Sat: Sunday's games). The
+#    14-hour window above left a Friday with nothing for Sunday's 13 games, and
+#    the card showed Thursday's finished one for three days. ✅ One slate, the
+#    ET day of the earliest unstarted kickoff, bought on the existing crons.
+#    💰 Measured from the stored pulls' own credits_used (12 a game on a day's
+#    first us,us2 pull, 6 on each us2 refresh): about +540 credits a week.
+#    ⛔ College keeps the 14-hour window: its slates are daily and a 72-hour
+#    window would buy 40-game Saturdays three times over.
+FB_NEXT_SLATE_H = {"nfl": 72}
+
+
+def _et_day(k):
+    try:
+        from zoneinfo import ZoneInfo
+        return k.astimezone(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+    except Exception:
+        return (k - ET_OFFSET).strftime("%Y-%m-%d")
+
+
+def next_slate(kickoffs, now):
+    """The next slate's UNSTARTED kickoffs: those on the ET day of the earliest
+    one after `now`, sorted. [] when nothing is unstarted."""
+    later = sorted(k for k in kickoffs if k > now)
+    return [k for k in later if _et_day(k) == _et_day(later[0])] if later else []
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -727,6 +752,9 @@ def _props_warranted(league, latest, now):
                       f"{latest}/schedule-{current_football_season(now)}.json.gz")
     if ks is None:
         return True
+    if league in FB_NEXT_SLATE_H:
+        ks = next_slate(ks, due)
+        return bool(ks) and ks[0] <= due + datetime.timedelta(hours=FB_NEXT_SLATE_H[league])
     end = due + datetime.timedelta(hours=FB_PROPS_WINDOW_H)
     return any(due <= k <= end for k in ks)
 
@@ -1601,6 +1629,36 @@ def record_builds(rows, path, now=None):
     return doc
 
 
+def _kickoffs_in(path, keys):
+    try:
+        d = json.load(gzip.open(path, "rt") if path.endswith(".gz") else open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    out = []
+    for x in (y for k in keys for y in (d.get(k) or [])):
+        try:
+            out.append(datetime.datetime.strptime(x.get("commence") or "", "%Y-%m-%dT%H:%M:%SZ")
+                       .replace(tzinfo=UTC))
+        except ValueError:
+            pass
+    return out
+
+
+def slate_moves(data="data", picks="picks", now=None):
+    """`[Sam, 2026-10-09]` A FINISHED SLATE IS NEVER THE CURRENT CARD. -> the free
+    modes that move the football board and card on: every game they hold has
+    started and the odds board has one that has not. ⛔ PLANNED, NEVER MARKED
+    STALE: a run that straddles a last kickoff cannot go red over it."""
+    lg = data.rstrip("/").split("/")[-1]
+    now = now or datetime.datetime.now(UTC)
+    if lg not in FB_TIMES or not any(k > now for k in _kickoffs_in(f"{data}/latest/board.json", ("games",))):
+        return set()
+    return {mode for mode, path, keys in (
+        ("props-board", f"{data}/latest/props.json.gz", ("games",)),
+        ("card-fb", f"{picks}/fb-{lg}-latest.json", ("picks", "game_lines")))
+        if (lambda ks: bool(ks) and max(ks) <= now)(_kickoffs_in(path, keys))}
+
+
 def plan(data="data", picks="picks", now=None, allow_paid=True):
     """The ordered list of modes needed to meet every deadline that has
     passed. Order is the contract's order, which is dependency order."""
@@ -1615,7 +1673,7 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
     need = {r["mode"] for r in rows if r["stale"]
-            and (allow_paid or not r["paid"])}
+            and (allow_paid or not r["paid"])} | slate_moves(data, picks, now)
     changed = True
     while changed:
         changed = False

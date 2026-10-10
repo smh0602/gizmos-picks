@@ -47,7 +47,9 @@ def snapshot(bookmakers):
             "n_events": 1,
             "events": [{"id": "g1", "home_team": "Rutgers",
                         "away_team": "UMass",
-                        "commence_time": "2026-09-03T22:00:00Z",
+                        # `[2026-10-09]` after the pinned 23:00Z clock: the
+                        #    board holds the next slate with an unstarted game
+                        "commence_time": "2026-09-04T00:00:00Z",
                         "bookmakers": bookmakers}]}
 
 

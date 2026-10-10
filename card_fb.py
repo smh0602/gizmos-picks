@@ -869,6 +869,7 @@ def rate_for(games, market, line, side):
 METHOD_CURRENT = "2025-only"
 METHOD_FIXED = "season-blend"
 METHOD_FIXED_S9 = "season-blend+signal9"
+TEAM_UNIT = re.compile(r" (?:D/ST|Defense)$")    # a team's defense, never a player
 # ⛔ SET BY THE RECORDED KEEP-RULE RESULT (fb_signal9.py), never by hand.
 #    NFL OFF 2026-09-24: worse, mean log-loss difference −0.0042 over 198
 #    graded published props. College OFF until scored.
@@ -1756,21 +1757,29 @@ def _merge_list(old_rows, new_rows, kicks, now_iso, cap=None):
     return out, len(keep)
 
 
-def slate_date(B):
+def slate_date(B, now=None):
     """The ET date of the earliest game on the board (ledger rule 60).
 
+    🔴 `[Sam, 2026-10-09]` THE EARLIEST UNSTARTED ONE: a finished slate is never
+    the current card (Friday's card showed Thursday's TB @ DAL, final 24-16, for
+    three days). ⚠️ A board whose games have ALL started keeps its day until the
+    hourly pass rebuilds it (`freshness.slate_moves`), and an EMPTY board — the
+    rebuild before the next slate is priced — takes the next slate with lines,
+    so a rebuild never lands back on the played day.
     ⚠️ Falls back to today in ET -- never UTC -- so the page's `todayET()`
     lookup and this writer can never disagree about which day it is.
     """
-    ts = [g.get("commence") for g in B.get("games", []) if g.get("commence")]
-    if ts:
+    now = now or datetime.now(timezone.utc)
+    ts = []
+    for x in (g.get("commence") for g in B.get("games", []) if g.get("commence")):
         try:
-            t = min(datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ").replace(
-                tzinfo=timezone.utc) for x in ts)
-            return et(t).strftime("%Y-%m-%d")
+            ts.append(datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc))
         except Exception:
             pass
-    return et(datetime.now(timezone.utc)).strftime("%Y-%m-%d")
+    if ts:
+        return et(min([t for t in ts if t > now] or ts)).strftime("%Y-%m-%d")
+    gls = latest_gamelines_snapshot()[0]
+    return (gls and next_line_slate(gls, now)) or et(now).strftime("%Y-%m-%d")
 
 
 def et_date(commence):
@@ -1833,10 +1842,18 @@ def main():
             if mk not in MARKETS:
                 continue
             who = pr.get("player") or ""
-            seen_players.add(who)
-            pids = idx.get(norm(who), [])
+            # 🔴 `[Sam, 2026-10-09]` THE NAME CHECK COUNTS PLAYERS ONLY. A team
+            #    defense ("<Team> D/ST", "<Team> Defense": FanDuel and DraftKings,
+            #    Anytime TD) can never match a player log: 20 of the 55 unmatched
+            #    names on 10-09, when the gate read 55.6% and stripped every rate
+            #    (players only, 66.0%). ⛔ The row stays, with no rate; the 60% bar
+            #    is unchanged.
+            unit = bool(TEAM_UNIT.search(who))
+            if not unit:
+                seen_players.add(who)
+            pids = [] if unit else idx.get(norm(who), [])
             plog = None
-            if RATES_OK:
+            if RATES_OK and not unit:
                 if len(pids) > 1:
                     ambiguous.add(who)
                 elif not pids:
@@ -2074,6 +2091,14 @@ def main():
     if off_day:
         log(f"  single-day board: {len(off_day)} priced row(s) dropped for "
             f"{', '.join(off_dates)} — this card is {slate} only")
+    # 🔴 `[2026-10-09]` A STARTED GAME TAKES NO NEW SEAT. The board keeps a slate's
+    #    started games (a refresh never removes a game) and `freeze_published` puts
+    #    back what was published for them, so their fresh rows must not take seats
+    #    on the board, the parlays or the top plays: on 10-09 a started game's took
+    #    21 of the college card's 25 and left the night's other games 4.
+    if os.path.exists(f"picks/fb-{LEAGUE}-{slate}.json"):
+        _now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows = [r for r in rows if not _started(r, {}, _now)]
 
     # 🔴 THE -700 FLOOR IS SAM'S STANDING INSTRUCTION AND IT APPLIES HERE
     # TOO. Rows below it are kept and reported, but they are NOT the board.

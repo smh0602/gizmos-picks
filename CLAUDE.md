@@ -446,6 +446,20 @@ note boxes, tags and the stale bar now require their absence.
   card. `record_fb` grades the alternate spreads in their own line
   (`alt_spreads`); the model's picks keep fb-model.json's record.
   `test_fb_game_picks.py`.
+- 🔴 **THE FOOTBALL TABS ARE ABOUT THE NEXT GAMES, WITH ALL THREE BOOKS.** `[Sam,
+  2026-10-09]` NFL props for the next slate with an unstarted game are bought every
+  day once it is within 72 hours (`freshness.FB_NEXT_SLATE_H`, `next_slate`; college
+  keeps its 14-hour window): about +540 credits a week, measured from the stored
+  pulls. The props board keeps each book's latest price per game with the minute it
+  was pulled, so a us2 refresh never drops FanDuel, DraftKings or a game, and holds
+  only the next slate. The card's day is the earliest unstarted game's
+  (`card_fb.slate_date`); once every game a board or card holds has started, the
+  hourly pass rebuilds both (`freshness.slate_moves`: planned, never marked stale).
+  The card's name check counts PLAYERS ONLY (Sam's choice): a team defense
+  (`card_fb.TEAM_UNIT`, "<Team> D/ST" / "Defense") never counts; the 60% bar is
+  unchanged. Once a slate's card is published, a started game takes no new seat
+  (board, parlays, top plays): `freeze_published` keeps what was published for it.
+  `test_fb_next_slate.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
