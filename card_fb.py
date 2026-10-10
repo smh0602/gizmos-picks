@@ -870,6 +870,28 @@ METHOD_CURRENT = "2025-only"
 METHOD_FIXED = "season-blend"
 METHOD_FIXED_S9 = "season-blend+signal9"
 TEAM_UNIT = re.compile(r" (?:D/ST|Defense)$")    # a team's defense, never a player
+METHOD_PROPS_MODEL = "+props-model"     # `[Sam, 2026-10-09]` appended to the record's method
+
+
+def pm_key(gid, who, mk, line, side):
+    """One prop side, the way the props model and the card both name it."""
+    return (gid, who, mk, None if (line is None or mk == "player_anytime_td") else float(line), side)
+
+
+def props_model_rated(B, path=None):
+    """{pm_key: the props model's %} when fb-props-model.json priced THIS board
+    (`board_pulled_at` is the board's `pulled_at`), else None: `[Sam, 2026-10-09]`
+    "if it is older than the board the card falls back to the record for that build"."""
+    try:
+        M = json.load(open(path or f"{DATA}/latest/fb-props-model.json", encoding="utf-8"))
+    except (OSError, ValueError):
+        M = {}
+    if not B.get("pulled_at") or M.get("board_pulled_at") != B.get("pulled_at"):
+        log(f"  props model: priced the board pulled {M.get('board_pulled_at')}, this board was "
+            f"pulled {B.get('pulled_at')} — every row keeps the player's own rate this build")
+        return None
+    return {pm_key(r.get("game_id"), r.get("player"), r.get("market"), r.get("line"), r.get("side")):
+            r.get("p") for r in M.get("rated") or [] if r.get("p") is not None}
 # ⛔ SET BY THE RECORDED KEEP-RULE RESULT (fb_signal9.py), never by hand.
 #    NFL OFF 2026-09-24: worse, mean log-loss difference −0.0042 over 198
 #    graded published props. College OFF until scored.
@@ -1832,6 +1854,7 @@ def main():
     _opp9 = signal9.load(LEAGUE, CUR_SEASON) if (S9_CARD.get(LEAGUE) and CUR_SEASON) else None
     _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
               if CARD_METHOD == METHOD_FIXED else None)
+    _pm = props_model_rated(B)
 
     rows, unmatched, ambiguous, thin, gated = [], set(), set(), 0, 0
     seen_players = set()
@@ -1895,7 +1918,7 @@ def main():
                     "kind": "fb",
                     "league": LEAGUE,
                     # 🔴 rule 55, said on the row itself
-                    "basis": ("RECORD + MARKET — his own rate, no model"
+                    "basis": ("RECORD + MARKET — his own rate"
                               if conf is not None
                               else "MARKET — price only, no rate available"),
                     "player": who,
@@ -1940,21 +1963,17 @@ def main():
                         f"{_d['w25']:g} per game, pulled toward the "
                         f"{round(100 * _d['p0'])}% of games in which players at his "
                         f"position clear this line. Fewer than 10 games' worth never "
-                        f"shows 90% or more. There is no football model in this "
-                        f"project, so this is DESCRIPTIVE — not a projection."
+                        f"shows 90% or more."
                     ) if _d else (
                         f"His own rate at this exact line over {n} games in "
                         f"{season} where he played at least half his team's "
-                        f"snaps, smoothed. There is no football model in this "
-                        f"project, so this is DESCRIPTIVE — not a projection."
+                        f"snaps, smoothed."
                         if LEAGUE == "nfl" else
                         f"His own rate at this exact line over the {n} games "
                         f"in {season} he appears in, smoothed. College box "
                         f"scores list a player only when he did something, so "
                         f"a game he played quietly can be missing — which "
-                        f"nudges an over slightly high. There is no football "
-                        f"model in this project, so this is DESCRIPTIVE — not "
-                        f"a projection.")
+                        f"nudges an over slightly high.")
                     row["own_mean"] = (None if r[3] is None
                                        else round(r[3], 2))
                     # ══════════════════════════════════════════════════
@@ -1992,15 +2011,28 @@ def main():
                         row["projection_note"] = (
                             f"His own average over the {r[2]} games this "
                             f"record is built from — {r[3]:.1f} {unit} a "
-                            f"game. That is what he has actually been doing, "
-                            f"not a forecast.")
+                            f"game.")
                     row["why"] = build_why(who, mk, pr.get("line"), sideword,
-                                           hits, n, season, unit,
-                                           mean=r[3])
+                                           hits, n, season, unit, _d)
                 else:
                     row["why"] = [gate_why] if (plog is not None
                                                  and not gate_ok) else [
                         no_rate_reason(RATES_OK, plog, who, mk, season)]
+                # 🔴 `[Sam, 2026-10-09]` "Where fb_props_model prices a prop on the
+                #    card ... the row's confidence is the model's probability and the
+                #    card ranks by it. A prop it does not price keeps the player's own
+                #    rate. The data keeps which one each row used": `confidence_basis`
+                #    MODEL or RECORD; the record stays in `rate` / `record`.
+                _mp = (_pm or {}).get(pm_key(g.get("id"), who, mk, pr.get("line"), sideword))
+                if _mp is not None:
+                    _be = 100 * american_break_even(price)
+                    row.update(confidence=int(round(_mp)), model_p=_mp, confidence_basis="MODEL",
+                               basis="MODEL + MARKET — the props model's chance",
+                               confidence_note=("The props model's chance for this exact side "
+                                                "and line, priced on this card's own board."),
+                               break_even=round(_be, 1), edge=round(int(round(_mp)) - _be, 1))
+                    if conf is None:
+                        row["why"] = []
                 rows.append(row)
 
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.
@@ -2038,7 +2070,7 @@ def main():
             f"({len(unmatched)} unmatched, {len(ambiguous)} ambiguous)")
         if match_rate < 0.60:
             log(f"🔴 JOIN TOO WEAK ({match_rate:.1%} < 60%) — stripping every "
-                f"rate and shipping a MARKET-only board.")
+                f"record rate; rows the props model priced keep its %.")
             # 🔴 SAY *WHY* IT IS WEAK, NOT JUST THAT IT IS.
             # `[measured 2026-09-04]` the college join read 58.2% and the
             # matcher was fine: `players-2025.json.gz` still declares
@@ -2065,6 +2097,12 @@ def main():
                         "rebuild the logs at FBS scope; ⛔ do NOT lower "
                         "the gate.")
             for r in rows:
+                # `[Sam, 2026-10-09]` "Keep the model's %": the props model matched
+                #    this player itself (it refuses an ambiguous name and checks his
+                #    team is in this game), so only this join's record is withheld.
+                if r.get("confidence_basis") == "MODEL":
+                    r["why"] = []
+                    continue
                 r.pop("confidence", None)
                 r.pop("edge", None)
                 r["confidence_basis"] = "MARKET"
@@ -2255,13 +2293,17 @@ def main():
         "league": LEAGUE,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generated_by": "card_fb.py",
-        "kind": "RECORD + MARKET" if RATES_OK else "MARKET",
+        "kind": ("MODEL + " if _pm else "") + ("RECORD + MARKET" if RATES_OK else "MARKET"),
         "odds_pulled_at": B.get("pulled_at"),
         "logs_season": season,
         # `[Sam, 2026-09-24]` which way this card rated its rows, so the
         # record reports each method apart and never mixes them.
+        # `[Sam, 2026-10-09]` "The Track Record starts a new method from the
+        # switch": every card from it, a record-only build included, so the
+        # old bands stay as they were graded.
         "card_method": (METHOD_FIXED_S9 if (CARD_METHOD == METHOD_FIXED and S9_CARD.get(LEAGUE))
-                        else CARD_METHOD),
+                        else CARD_METHOD) + METHOD_PROPS_MODEL,
+        "props_model_used": _pm is not None,
         "rates_available": RATES_OK,
         # ⚠️ THE SNAP FLOOR IS AN NFL FACT. ⛔ Reporting it on a college
         # card would advertise a filter that cannot exist there.
@@ -2364,10 +2406,11 @@ def main():
             f"straight product of the prices, which is the MOST a book "
             f"pays for a correlated slip."),
         "parlay_rule": (
-            "Legs are in DIFFERENT GAMES and at the SAME BOOK. ⛔ Every "
-            "number is the player's own record — nothing here is a model "
-            "output, and the combined figure is those records multiplied, "
-            "which assumes the games are unrelated."),
+            "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's "
+            "number is the props model's chance where it priced that prop and "
+            "the player's own record otherwise (the leg's confidence_basis); "
+            "the combined figure multiplies them, which assumes the games are "
+            "unrelated."),
         "projections": projections,
         "name_match_rate": round(match_rate, 3) if match_rate is not None else None,
         "n_priced": len(rows),
@@ -2422,17 +2465,12 @@ def main():
         #    "Read the confidence number honestly.", exactly as MLB does.
         "calibration_warning": calibration_sentence_fb(),
         "board_rule": (
-            "Sorted by the player's own record at that exact line, highest "
-            "first — the same order the MLB board uses. Rows with no record "
-            "sit below every row that has one."
+            "Sorted by confidence, highest first — the same order the MLB "
+            "board uses: the props model's chance where it priced the prop, "
+            "the player's own record at that exact line otherwise. Rows with "
+            "neither sit below every row that has one."
             if RATES_OK else
-            "Sorted by price. No row carries a rate — see the note."),
-        "no_model_note": (
-            "🔴 No row on this board carries a Gizmo's confidence rating and "
-            "none ever will on today's evidence. Four pre-registered "
-            "football models were tested and every one lost to a player's "
-            "own season average. What is shown is his OWN RECORD and the "
-            "market's price — both labelled."),
+            "Sorted by price. No row carries a rate."),
         "college_note": None if LEAGUE == "nfl" else COLLEGE_NOTE,
         "picks": board,
         "n_longshots_excluded": len(longshots),
@@ -2444,8 +2482,8 @@ def main():
                                "price", "book") if k in r} for r in below],
         "price_floor": PRICE_FLOOR,
         "schema_note": ("Renders through the same pickCard component as the "
-                        "MLB board. confidence_basis is RECORD or MARKET, "
-                        "never MODEL."),
+                        "MLB board. confidence_basis is MODEL (the props "
+                        "model's chance), RECORD (his own rate) or MARKET."),
     }
     # 🔴 TWO FILES, AND THE REASON IS THAT FOOTBALL IS WEEKLY.
     #   fb-<lg>-<date>.json  the PERMANENT record of what was published,
@@ -2647,21 +2685,20 @@ def decimal_odds(american):
 
 
 _RECORD_NOTE = (
-    "The legs' own records multiplied together. ⛔ Every leg "
-    "is the player's OWN RATE at that exact line — "
-    "DESCRIPTIVE, never a model output, because this project "
-    "has no football model. Legs are in different games, so "
+    "The legs' own confidences multiplied together: each is the props "
+    "model's chance where it priced that prop and the player's own rate "
+    "at that exact line otherwise. Legs are in different games, so "
     "they are treated as independent; that assumption is not "
     "free and has never been tested here.")
 
 
 def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE, leg_text=None,
-                     joint_basis="RECORD", joint_note=_RECORD_NOTE):
+                     joint_basis=None, joint_note=_RECORD_NOTE):
     """Combinations of 2, 3 and 4 legs from RATED football rows.
 
-    ⛔ EVERY NUMBER HERE IS DESCRIPTIVE. A leg's confidence is the
-    player's own record, so their product is a product of records --
-    never a model output, and the note says so on the card.
+    `[Sam, 2026-10-09]` A leg's confidence is the props model's chance or
+    the player's own record, so the card's `joint_basis` is its legs' bases
+    (RECORD, MODEL, or MODEL + RECORD).
     `[2026-09-24]` The Game Lines tab calls the SAME builder for alt rungs
     alone, under the same rules, passing its own leg text and a MODEL basis
     (its legs are the game model's %). ⛔ The card's call is unchanged.
@@ -2724,7 +2761,8 @@ def build_parlays_fb(rows, per_size=PARLAY_PER_SIZE, leg_text=None,
                 "n_legs": size,
                 "band": band_text((lo, hi)),
                 "joint": round(100 * joint, 1),
-                "joint_basis": joint_basis,
+                "joint_basis": joint_basis or " + ".join(sorted(
+                    {c.get("confidence_basis") or "RECORD" for c in combo})),
                 "joint_note": joint_note,
                 "leg_confidences": [c["confidence"] for c in combo],
                 "break_even": round(be, 1),
@@ -2971,11 +3009,12 @@ def build_sgp_fb(rows, game_lines, line_quotes=None,
                             "yards and his receiver's receiving yards are "
                             "close to the same event."),
                         "weakest_leg": round(min(rated), 1),
-                        "weakest_leg_basis": "RECORD",
+                        "weakest_leg_basis": min(combo, key=lambda c: c["confidence"]).get(
+                            "confidence_basis") or "RECORD",
                         "weakest_leg_note": (
-                            "The lowest of this slip's player records — "
-                            "each one that player's own rate at that exact "
-                            "line. ⛔ It is NOT the chance the parlay hits; "
+                            "The lowest of this slip's leg confidences — "
+                            "the props model's chance or the player's own "
+                            "rate at that exact line. ⛔ It is NOT the chance the parlay hits; "
                             "it is the leg most likely to break it."),
                         "leg_confidences": rated,
                         "band_floor": lo,
@@ -3013,82 +3052,34 @@ def build_sgp_fb(rows, game_lines, line_quotes=None,
     return out, meta
 
 
-def build_why(who, mk, line, side, hits, n, season, unit, mean=None):
-    """Plain English, with the numbers in it. ⛔ No test IDs, no jargon.
+def build_why(who, mk, line, side, hits, n, season, unit, detail=None):
+    """The row's one sentence: the player's record at this exact line, this
+    season first. ⛔ No test IDs, no jargon (Sam, 2026-08-26).
 
-    Sam, 2026-08-26: "lose the technical wording ... all of these things
-    that a casual [fan] wont know about has to go."
-
-    🔴 THE ROW NOW STATES THE PLAYER'S OWN PER-GAME AVERAGE BESIDE THE
-    LINE, AND THAT IS NOT COSMETIC. `[measured 2026-09-04 on the first
-    rated college board]` the number two row was **Alberto Mendoza,
-    passing UNDER 204.5, "8 of 8", 94%** -- and his 2025 average was
-    **35.8 yards a game.** He was a backup; the book has priced him as a
-    starter. **The record is factually correct and tells you nothing
-    about this line.**
-    ⛔ NOTHING HERE FILTERS A ROW. A cutoff at which a row is SUPPRESSED
-    would be picking a number to make a board look better, and this
-    project does not do that -- that question is pre-registered as T54 in
-    `claude/owed-tests.md` instead of being decided at the keyboard.
-    ✅ **ADDING INFORMATION IS ALWAYS SAFE. REMOVING ROWS IS NOT.** The
-    reader sees "he averaged 35.8 a game" next to "under 204.5" and can
-    judge the gap themselves.
-    ⚠️ Mean over the SAME games the rate was computed over, so the two
-    numbers can never describe different samples.
+    `[Sam, 2026-10-09]` "The football prop rows say what the pick is, its
+    confidence, the player's record at the line (this season first) and the
+    price. Remove the caveat sentences ..." The pick, the confidence and the
+    price are the row's own numbers; this is the sentence beside them.
+    ~~His average beside the line, the far-line warning, the small sample,
+    the college box-score note and "not a forecast"~~ left the row; his
+    average is still its PROJ number, and every count stays in the data
+    (`season_detail`, `record`, `own_mean`).
     """
-    pct = round(100 * hits / n) if n else 0
-    # ⚠️ THE SENTENCE MUST DESCRIBE THE DENOMINATOR THAT WAS ACTUALLY
-    # USED. ⛔ The snap-share clause is TRUE OF THE NFL ONLY -- CFBD
-    # publishes no snap counts, and saying it anyway would put a claim on
-    # the page the data cannot support (rule 55's plain-English half).
+    # ⚠️ THE SENTENCE MUST DESCRIBE THE DENOMINATOR THAT WAS ACTUALLY USED.
+    # ⛔ The snap-share clause is TRUE OF THE NFL ONLY: CFBD publishes no
+    # snap counts.
     when = ("when he played at least half the snaps" if LEAGUE == "nfl"
-            else "across the games he appears in")
-    if mk == "player_anytime_td":
-        head = (f"<b>{who}</b> scored in <b>{hits} of {n} games</b> in "
-                f"{season} ({pct}%) {when}.")
-    else:
-        word = "over" if side == "over" else "under"
-        head = (f"<b>{who}</b> went {word} {line} {unit} in "
-                f"<b>{hits} of {n} games</b> in {season} ({pct}%) {when}.")
-    out = [head]
-    # 🔴 THE KNOWN LIMIT, SAID ON THE ROW, IN ENGLISH, EVERY TIME.
-    # ⚠️ It is one-directional and the reader is entitled to know which
-    # way: college box scores drop a player's quiet games, so an OVER
-    # reads slightly high. Measured at a median of 0.2 points and a 90th
-    # percentile of 3.8 -- small, but never hidden.
-    if LEAGUE != "nfl":
-        out.append("College box scores list a player only when he did "
-                   "something, so a game he played quietly can be missing "
-                   "from that count — which nudges an over slightly high.")
-    # 🔴 HIS OWN AVERAGE, BESIDE THE LINE. ⛔ Over the same games the
-    # rate used -- two numbers from one sample, never two samples.
-    if mean is not None and mk != "player_anytime_td" and line is not None:
-        out.append(f"He averaged <b>{mean:.1f} {unit} a game</b> over those "
-                   f"{n} games, against a line of {line}.")
-        # ⚠️ THIS IS A THRESHOLD AND CALLING IT ANYTHING ELSE WOULD BE
-        # DISHONEST -- but it is a threshold for SHOWING A SENTENCE, never
-        # for removing a row, and those carry very different risk.
-        # ⛔ 2x IS A BRIGHT LINE -- "double, or half" -- chosen because it
-        # is the point at which a line stops being a variation on what the
-        # player did and becomes a different question. It was NOT found by
-        # trying values until the right number of rows lit up.
-        # 📊 On the first rated college board it marks 3 of 43 rows.
-        # ⚠️ IF IT IS WRONG IT GETS A TEST, NOT AN ADJUSTMENT -- and the
-        # real question, whether such a row should be RANKED at all, is
-        # pre-registered as T54 rather than decided here.
-        if mean > 0 and (line / mean >= 2.0 or mean / max(line, 0.5) >= 2.0):
-            out.append("⚠️ That line is a long way from what he actually "
-                       "did last season, which usually means his role has "
-                       "changed. His record is history; it is not evidence "
-                       "about a line he never faced.")
-    if n < 10:
-        out.append("That is a small sample — too few games to read much "
-                   "into on its own.")
-    out.append(f"This is his own record from last season, not a forecast. "
-               f"Rosters and roles change between seasons, so read it as "
-               f"history rather than a prediction.")
-    return out
-
+            else "in the games he appears in")
+    recs = ([(detail["h26"], detail["n26"], CUR_SEASON), (detail["h25"], detail["n25"], season)]
+            if detail else [(hits, n, season)])
+    recs = [(h, k, s) for h, k, s in recs if k]
+    if not recs:
+        return []
+    did = ("scored" if mk == "player_anytime_td"
+           else f"went {'over' if side == 'over' else 'under'} {line} {unit}")
+    rec = " and ".join(f"<b>{h} of {k} games</b> in {s}" if i == 0 else f"{h} of {k} in {s}"
+                       for i, (h, k, s) in enumerate(recs))
+    return [f"<b>{who}</b> {did} in {rec}, {when}."]
 
 if __name__ == "__main__":
     sys.exit(main())

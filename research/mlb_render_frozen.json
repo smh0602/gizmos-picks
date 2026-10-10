@@ -16,7 +16,8 @@
   "2026-10-02: on Sam's instruction of 2026-10-01 (\"the news at the bottom of the page isn't slowly moving at the bottom, we need to fix that and include news from across all 3 leagues on the bottom\"): RE-BASELINED, and ONLY setLeague (it no longer hides the ticker on football). REMOVED, because the page no longer has them: CSS rules #tick .tag (the one fixed 'MLB' tag; each headline now carries its own league mark, the added selector #tick .lg) and @media (prefers-reduced-motion:reduce) (it froze the ticker; reduced motion now gets half speed, tickSpeed). Every other digest is unchanged.",
   "2026-10-02: on Sam's instruction of 2026-10-01 (\"make the models gizmo picks game line picks the same format as the player prop picks\"): RE-BASELINED, and ONLY pickCard. A football game-line row (kind 'fb-line') is drawn by the same component: it names its team or Over/Under where a prop names the player, so it carries no side word, its unit is its market_label, and a spread's line is signed. Every MLB row renders as before. No CSS rule changed. Every other digest is unchanged.",
   "2026-10-03: on Sam's instructions of 2026-10-01/02 (\"add gizmos picks gamelines to mlb ... the same format as the player prop picks\"; \"use what we use for our pitcher and hitter props to predict game outcomes for mlb\") and 2026-10-03 (\"go on with moneyline and run line only\"): RE-BASELINED, and ONLY pickCard (an MLB game-line row, kind 'mlb-line', takes the football game-line branch; a run line shows its sign), renderPicks (the Player props / Game lines switch, the lines drawn by the new mlbGameLines before the props board) and renderRecord (the game lines' own line, from the new mlbGameLineRecord). The new functions are not frozen.",
-  "2026-10-03: on Sam's instruction of 2026-10-01 (\"remove the game lines standalone tab with moneyline predictions, in this tab you will simply just give the models pick on whos going to win the game outright. do this for all leagues\"): RE-BASELINED, and ONLY renderRecord, show. show dispatches MLB's new Game Lines tab (renderGameLines); renderRecord adds the winners' own line (winnersRecordLine). The new functions (winnersLoad, winnersRecordLine, winnersHtml, renderGameLines) are not frozen."
+  "2026-10-03: on Sam's instruction of 2026-10-01 (\"remove the game lines standalone tab with moneyline predictions, in this tab you will simply just give the models pick on whos going to win the game outright. do this for all leagues\"): RE-BASELINED, and ONLY renderRecord, show. show dispatches MLB's new Game Lines tab (renderGameLines); renderRecord adds the winners' own line (winnersRecordLine). The new functions (winnersLoad, winnersRecordLine, winnersHtml, renderGameLines) are not frozen.",
+  "2026-10-09: on Sam's instruction the same day (\"Where fb_props_model prices a prop on the card ... the row's confidence is the model's probability\"): RE-BASELINED, and ONLY pickCard. A football prop row (kind 'fb') whose confidence the props model set is labelled MODEL, so its unit is its market_label (the MLB pitcher branch would have printed 'Outs'). Every MLB row renders as before: no MLB row has kind 'fb'. Driven in node by test_fb_props_confidence.py. Digest ff35f8f34213feeb72e18c13 -> dfe0247dd06a48fdecddeb39. No CSS rule changed. Every other digest is unchanged."
  ],
  "_source_commit": "407afad",
  "_counts": {
@@ -51,7 +52,7 @@
   "nflDirectory": "8938a0bec5ea6b9c45a9769d",
   "openBox": "9358184cbfcebfc0ad6d7877",
   "parlayTable": "d892e0c0443f00add94ec7e7",
-  "pickCard": "ff35f8f34213feeb72e18c13",
+  "pickCard": "dfe0247dd06a48fdecddeb39",
   "priceCell": "a6c6920f0b12b9f92c0713bf",
   "projChip": "dad030a290a21573bcd37e5e",
   "propWhy": "f522af6abad85a597f4770f3",

@@ -460,6 +460,22 @@ note boxes, tags and the stale bar now require their absence.
   unchanged. Once a slate's card is published, a started game takes no new seat
   (board, parlays, top plays): `freeze_published` keeps what was published for it.
   `test_fb_next_slate.py`.
+- 🔴 **THE PROPS MODEL SETS THE FOOTBALL CARD'S CONFIDENCE.** `[Sam, 2026-10-09]`
+  *"Where fb_props_model prices a prop on the card ... the row's confidence is the
+  model's probability and the card ranks by it. A prop it does not price keeps the
+  player's own rate."* A priced row is `confidence_basis` MODEL (`model_p`, whole-number
+  `confidence`), an unpriced one RECORD; the record stays in `rate` / `record`.
+  `collect.build_card_fb` builds the props model first on BOTH card paths (the props
+  pull and `card-fb`); it prices the props board itself and stamps `board_pulled_at`,
+  and a model that priced another board leaves the whole build on the record
+  (`card_fb.props_model_rated`). Every card from the switch is method `…+props-model`
+  (record-only builds too), so the old bands stay as graded. When the name check
+  fails, only the records are withheld: a MODEL row keeps its % (Sam's choice; the
+  model matched the player itself). A row's one sentence is
+  its record at the line, this season first (~~the average, the far-line warning, the
+  small sample, the college note, "not a forecast", "no football model"~~).
+  `fb_agreement` still compares the RECORD with the model (Sam's choice).
+  `test_fb_props_confidence.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -738,8 +754,11 @@ fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   market line folded in from EARLIER priced weeks only,
                   walk-forward at the three books' prices, and scored
                   against the props card's OWN recomputed probabilities.
-                  Rides `card-fb`. ⛔ Never touches the card; the switch
-                  is Sam's. Design: research/fb_props_design.md.
+                  Rides `card-fb`. ~~⛔ Never touches the card; the switch
+                  is Sam's.~~ `[Sam, 2026-10-09]` Sets the card's
+                  confidence where it prices a prop; built first in
+                  `build_card_fb`, from the props board. Design:
+                  research/fb_props_design.md.
 fb_card_calibration.py  the football props card's stated-vs-actual bands
                   and Sam's pre-registered calibration test
                   (`research/fb_card_calibration_spec.md`, frozen).
@@ -805,6 +824,8 @@ fb_agreement.py   card vs props model (Sam, 2026-09-25): every card row and
                   ⛔ ~~A note on the row~~ Not printed on the row since
                   2026-10-01 (still labelled, frozen and graded; the
                   record table stays) — changes no pick, rank or price.
+                  `[Sam, 2026-10-09]` Where the model set a row's
+                  confidence, the card's side is the row's record (`rate`).
 news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a
                   day on the news run, NFL injury-report status (the
                   injury rows nfl.py stores for signal 7) and stored

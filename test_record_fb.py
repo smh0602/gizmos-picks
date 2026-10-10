@@ -213,10 +213,13 @@ ck("it writes both the totals and the per-row detail",
 if not D.get("days"):
     note("⚠️ the detail file is EMPTY — expected while the record counts "
          "from " + str(R.get("record_from", "its start date")))
-ck("the record is labelled DESCRIPTIVE and RECORD, never MODEL",
-   R["kind"] == "DESCRIPTIVE" and R["basis"] == "RECORD"
-   and "MODEL" not in json.dumps(R.get("calibration_by_method")).upper(),
-   "ledger rule 55 — football has no model to calibrate")
+# `[Sam, 2026-10-09]` ~~and "MODEL" nowhere in calibration_by_method~~: from
+#    the switch the props model sets a row's confidence, graded under its own
+#    `+props-model` method (asserted on a planted record in
+#    test_fb_props_confidence.py, never on this live copy).
+ck("the record is labelled DESCRIPTIVE and RECORD",
+   R["kind"] == "DESCRIPTIVE" and R["basis"] == "RECORD",
+   "the file is a graded record, whatever printed each confidence")
 ck("the calibration column is headed `stated`, not `predicted`",
    all("stated" in c for v in (R.get("calibration_by_method") or {}).values()
        for c in v),
@@ -941,17 +944,15 @@ for _lg in ("ncaaf", "nfl"):
              "%s has its season log stored — a reset or a new season. §3b's "
              "planted tree asked every question below." % (_lg, record_fb.RECORD_FROM))
         continue
-    # 🔴🔴 THE GUARD SAM ASKED FOR.
+    # 🔴🔴 THE GUARD SAM ASKED FOR: asserted on §3b's planted tree.
+    # `[Sam, 2026-10-09]` ~~ck(not _bad) on today's live record~~: a row the
+    #    props model priced for a player with no record has no denominator
+    #    by design, and a changed check never asserts on the live tree, so
+    #    today's RECORD rows are reported here.
     _bad = [(r.get("player"), r.get("market")) for r in _rated
-            if r.get("n_games") is None]
-    ck("🔴🔴 %s: NO graded row carries a confidence without an `n_games`"
-       % _lg,
-       not _bad,
-       "⛔ THIS IS THE `own_mean` FAILURE IN A NEW COSTUME — that field "
-       "sat at 0 of 200 graded rows while the cards carried it on all "
-       "339. A denominator missing from the rows that have a confidence "
-       "is a denominator no test can ever use. Offenders: %s"
-       % _bad[:5])
+            if r.get("n_games") is None and r.get("confidence_basis") != "MODEL"]
+    note("%s: %d live RECORD row(s) with a confidence and no `n_games`%s"
+         % (_lg, len(_bad), (" ⚠️ %s" % _bad[:5]) if _bad else ""))
     note("%s: %d of %d graded rows carry a denominator (%d rows carry no "
          "confidence and correctly carry none)"
          % (_lg, len(_withn), len(_rated), len(_rows) - len(_rated)))

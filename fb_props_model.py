@@ -812,10 +812,33 @@ def schedule_ctx(lg, root=None):
     return out
 
 
-def current_picks(lg, wf, root=None, now=None, rated=None):
+def board_path(lg, root=None):
+    return os.path.join(root or ROOT, "data", lg, "latest", "props.json.gz")
+
+
+def board_event(g):
+    """`[Sam, 2026-10-09]` A props-board game back in the feed's shape, each
+    book's latest price, so `rungs_of` prices exactly the board the card reads."""
+    bk = {}
+    for pr in g.get("props") or []:
+        for side, sd in (pr.get("sides") or {}).items():
+            for b, q in (sd.get("books") or {}).items():
+                bk.setdefault(b, {}).setdefault(pr.get("market"), []).append(
+                    {"name": side, "description": pr.get("player"), "point": pr.get("line"),
+                     "price": q.get("price")})
+    return {"id": g.get("id"), "commence_time": g.get("commence"), "home_team": g.get("home"),
+            "away_team": g.get("away"), "bookmakers": [
+                {"key": b, "markets": [{"key": m, "outcomes": o} for m, o in ms.items()]}
+                for b, ms in bk.items()]}
+
+
+def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
     """This week's picks. `[2026-09-25]` When `rated` is a list, EVERY side of
     every rung the model prices is appended to it (`research/fb_agreement_spec.md`
-    §3a) — the picks themselves are unchanged."""
+    §3a) — the picks themselves are unchanged.
+    `[Sam, 2026-10-09]` "The card and the props model read the same props
+    snapshot in the same pass": it prices the props board (`board`, else
+    data/<lg>/latest/props.json.gz), never the raw pulls the board merged."""
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     models = {mk: s.solve() for mk, s in wf["final"].items()}
     s2 = F.fit([x for x, _ in wf["s2_train"]], [y for _, y in wf["s2_train"]]) if wf["s2_train"] else None
@@ -823,8 +846,9 @@ def current_picks(lg, wf, root=None, now=None, rated=None):
     sched = schedule_ctx(lg, root)
     H, logs, idx = wf["H"], wf["logs"], wf["idx"]
     best = {}
-    for eid, (pulled, ev) in prop_snapshots(lg, root).items():
-        c = ev.get("commence_time") or ""
+    B = board if board is not None else (jz(board_path(lg, root)) or {})
+    for ev in map(board_event, B.get("games") or []):
+        eid, pulled, c = ev["id"], B.get("pulled_at"), ev.get("commence_time") or ""
         if c <= now:
             continue
         home, away = resolve_team(ev.get("home_team")), resolve_team(ev.get("away_team"))
@@ -925,10 +949,13 @@ def build(lg=None, root=None, out=None, logs=None):
     # 🔴 NO CAP ON MODEL PICKS `[Sam, 2026-09-24]`: "Only the Gizmo's Picks
     #    card keeps its limit." Every pick the model makes is shown.
     rated = []
-    live = current_picks(lg, wf, root, rated=rated)
+    B = jz(board_path(lg, root)) or {}
+    live = current_picks(lg, wf, root, rated=rated, board=B)
     doc["picks"] = live
     # `[Sam, 2026-09-25]` every side the model rates, for the agreement label.
     doc["rated"] = rated
+    # `[Sam, 2026-10-09]` the board it priced: the card takes these % only for it.
+    doc["board_pulled_at"] = B.get("pulled_at")
     doc["picks_total"] = len(live)
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-props-model.json")
     with open(path, "w", encoding="utf-8") as fh:

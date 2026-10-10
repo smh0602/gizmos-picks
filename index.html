@@ -1412,7 +1412,7 @@ function pickCard(p){
                  : p.side === 'yes'  ? 'Yes'
                  : 'Under';
   const gl = p.kind === 'fb-line' || p.kind === 'mlb-line';   // [Sam, 2026-10-01] a game-line pick, same row
-  const unit = isH || gl ? p.market_label
+  const unit = isH || gl || p.kind === 'fb' ? p.market_label   // [Sam, 2026-10-09] a football MODEL row too
              : (p.market === 'strikeouts' ? 'K' : 'Outs');
   /* ⚠️ A one-sided market (Anytime TD) has NO LINE. "Under null Outs" was
      on screen before this guard. */

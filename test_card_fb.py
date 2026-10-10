@@ -372,12 +372,12 @@ finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
 
-print("\n14. 🔴 THE ROW STATES THE PLAYER'S OWN AVERAGE BESIDE THE LINE")
-print("    `[measured 2026-09-04 on the first rated college board]` the")
-print("    number-two row was Alberto Mendoza, passing UNDER 204.5,")
-print("    '8 of 8', 94% -- and his 2025 average was 35.8 yards a game.")
-print("    The record is factually correct and tells you nothing about")
-print("    this line. ⛔ The answer is MORE INFORMATION, not a filter.")
+print("\n14. 🔴 THE ROW SAYS ITS RECORD AT THE LINE, THIS SEASON FIRST")
+print("    `[Sam, 2026-10-09]` \"The football prop rows say what the pick is,")
+print("    its confidence, the player's record at the line (this season")
+print("    first) and the price. Remove the caveat sentences\" -- ~~his")
+print("    average and a 2x role warning beside the line~~. The average is")
+print("    still the row's PROJ number, and the row is never filtered.")
 C = load("ncaaf")
 
 
@@ -395,27 +395,15 @@ eq(len(r), 4, "rate_for now returns the mean it computed too")
 eq(r[3], 15.0, "  and it is the mean over the SAME games as the rate")
 eq((r[1], r[2]), (8, 8), "  record unchanged: 8 of 8")
 
-why = C.build_why("KD", "player_rush_yds", 34.5, "under", 8, 8, 2025,
-                  "rush yds", mean=r[3])
-joined = " ".join(why)
-ck("averaged" in joined and "15.0" in joined,
-   "🔴 the average is stated on the row", "15.0 rush yds a game")
-ck("34.5" in joined, "  next to the line it is being judged against")
-ck("role has changed" in joined,
-   "⛔ and a 2.3x gap says so plainly", "line/mean = 2.3")
-
-# ⚠️ 2x IS A BRIGHT LINE AND IT IS PINNED, so it cannot drift to suit a board
-w19 = " ".join(C.build_why("X", "player_rush_yds", 28.5, "under", 8, 8,
-                           2025, "rush yds", mean=15.0))
-ck("role has changed" not in w19,
-   "   1.9x does NOT trip it -- the line is 2x, not 'looks far'")
-w20 = " ".join(C.build_why("X", "player_rush_yds", 30.0, "under", 8, 8,
-                           2025, "rush yds", mean=15.0))
-ck("role has changed" in w20, "   exactly 2.0x DOES")
-# the other direction too: a line far BELOW his record
-wlow = " ".join(C.build_why("X", "player_rush_yds", 30.0, "over", 8, 8,
-                            2025, "rush yds", mean=120.0))
-ck("role has changed" in wlow, "   and 4x the other way trips it as well")
+C.CUR_SEASON = 2026
+_when = ", in the games he appears in."
+eq(C.build_why("KD", "player_rush_yds", 34.5, "under", 8, 8, 2025, "rush yds"),
+   ["<b>KD</b> went under 34.5 rush yds in <b>8 of 8 games</b> in 2025" + _when],
+   "🔴 one sentence: his record at the line, and no caveat beside it")
+eq(C.build_why("KD", "player_rush_yds", 34.5, "under", 11, 12, 2025, "rush yds",
+               {"h26": 3, "n26": 4, "h25": 8, "n25": 8}),
+   ["<b>KD</b> went under 34.5 rush yds in <b>3 of 4 games</b> in 2026 and 8 of 8 in 2025" + _when],
+   "🔴 ...this season first, then last season")
 
 # ⛔ AND IT MUST NEVER REMOVE A ROW.
 print("   ⛔ IT IS A SENTENCE, NOT A FILTER — the row still ships:")
@@ -447,8 +435,8 @@ try:
     eq(len(out["picks"]), 1, "   the stretched row is STILL on the board")
     eq(out["picks"][0]["own_mean"], 15.0, "   carrying its own mean")
     eq(out["picks"][0]["confidence_basis"], "RECORD", "   still a RECORD row")
-    ck(any("role has changed" in w for w in out["picks"][0]["why"]),
-       "   with the warning attached, not instead of the row")
+    eq(out["picks"][0]["why"], ["<b>KD</b> went under 34.5 rush yds in <b>8 of 8 games</b> "
+                                "in 2025" + _when], "   saying only its record at the line")
 finally:
     os.chdir(cwd)
     import shutil
@@ -518,8 +506,9 @@ if _p:
        "  ⛔ DESCRIPTIVE, and rule 55 forbids anything else here")
     eq(_p[0]["projection_unit"], "rush yds",
        "  it carries the market's own unit")
-    ck("not a forecast" in (_p[0].get("projection_note") or ""),
-       "  and the note says plainly it is not a forecast")
+    # `[Sam, 2026-10-09]` ~~"and the note says plainly it is not a forecast"~~
+    ck("forecast" not in (_p[0].get("projection_note") or ""),
+       "  and its note carries no caveat sentence")
 ck(not any(r.get("projection_basis") == "MODEL" for r in _rows),
    "⛔ NOTHING on the board claims MODEL")
 
