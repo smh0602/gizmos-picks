@@ -1,25 +1,25 @@
 {
- "built_at": "2026-10-09T20:25:18Z",
+ "built_at": "2026-10-10T13:11:48Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 184,
-  "n": 355,
-  "pct": 51.8
+  "w": 194,
+  "n": 380,
+  "pct": 51.1
  },
  "alt_spreads": {
   "basis": "MARKET",
   "overall": {
-   "w": 3,
-   "n": 3,
+   "w": 5,
+   "n": 5,
    "pct": 100.0
   },
-  "shown": 5,
+  "shown": 6,
   "voids": 0,
-  "pending": 2,
+  "pending": 1,
   "note": "The card's alternate spreads, priced at the books' own chance, each graded once from the final score. Kept apart from the props record.",
   "rows": [
    {
@@ -75,8 +75,8 @@
     "break_even": 79.6,
     "game": "Washington State Cougars @ Utah State Aggies",
     "commence": "2026-10-10T01:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-10-09",
@@ -89,6 +89,20 @@
     "break_even": 78.7,
     "game": "Wyoming Cowboys @ San Jose State Spartans",
     "commence": "2026-10-10T01:00:00Z",
+    "won": true,
+    "state": "graded"
+   },
+   {
+    "date": "2026-10-10",
+    "player": "Missouri Tigers",
+    "side": "home",
+    "line": 6.5,
+    "price": -390,
+    "book": "fanduel",
+    "confidence": 76,
+    "break_even": 79.6,
+    "game": "Texas A&M Aggies @ Missouri Tigers",
+    "commence": "2026-10-10T16:00:00Z",
     "won": null,
     "state": "pending"
    }
@@ -101,14 +115,14 @@
    "pct": 47.1
   },
   "player_pass_yds": {
-   "w": 23,
-   "n": 47,
-   "pct": 48.9
+   "w": 26,
+   "n": 52,
+   "pct": 50.0
   },
   "player_reception_yds": {
-   "w": 44,
-   "n": 81,
-   "pct": 54.3
+   "w": 49,
+   "n": 92,
+   "pct": 53.3
   },
   "player_receptions": {
    "w": 24,
@@ -116,21 +130,21 @@
    "pct": 50.0
   },
   "player_rush_yds": {
-   "w": 61,
-   "n": 111,
-   "pct": 55.0
+   "w": 63,
+   "n": 120,
+   "pct": 52.5
   }
  },
  "by_side": {
   "over": {
    "w": 44,
-   "n": 93,
-   "pct": 47.3
+   "n": 96,
+   "pct": 45.8
   },
   "under": {
-   "w": 108,
-   "n": 194,
-   "pct": 55.7
+   "w": 118,
+   "n": 216,
+   "pct": 54.6
   },
   "yes": {
    "w": 32,
@@ -150,9 +164,9 @@
    "pct": 60.0
   },
   "hardrockbet": {
-   "w": 177,
-   "n": 342,
-   "pct": 51.8
+   "w": 187,
+   "n": 367,
+   "pct": 51.0
   },
   "williamhill_us": {
    "w": 1,
@@ -160,65 +174,8 @@
    "pct": 50.0
   }
  },
- "calibration": [
-  {
-   "bucket": "10-20%",
-   "stated": 18.0,
-   "w": 0,
-   "n": 2,
-   "pct": 0.0
-  },
-  {
-   "bucket": "20-30%",
-   "stated": 25.6,
-   "w": 1,
-   "n": 10,
-   "pct": 10.0
-  },
-  {
-   "bucket": "30-40%",
-   "stated": 33.8,
-   "w": 10,
-   "n": 16,
-   "pct": 62.5
-  },
-  {
-   "bucket": "40-50%",
-   "stated": 45.4,
-   "w": 6,
-   "n": 13,
-   "pct": 46.2
-  },
-  {
-   "bucket": "50-60%",
-   "stated": 53.4,
-   "w": 19,
-   "n": 29,
-   "pct": 65.5
-  },
-  {
-   "bucket": "60-70%",
-   "stated": 64.7,
-   "w": 14,
-   "n": 25,
-   "pct": 56.0
-  },
-  {
-   "bucket": "70-80%",
-   "stated": 75.8,
-   "w": 14,
-   "n": 28,
-   "pct": 50.0
-  },
-  {
-   "bucket": "80-90%",
-   "stated": 84.0,
-   "w": 26,
-   "n": 44,
-   "pct": 59.1
-  }
- ],
- "card_method_current": "season-blend",
+ "calibration": [],
+ "card_method_current": "season-blend+props-model",
  "calibration_by_method": {
   "2025-only": [
    {
@@ -316,30 +273,30 @@
    },
    {
     "bucket": "40-50%",
-    "stated": 45.4,
+    "stated": 45.6,
     "w": 6,
-    "n": 13,
-    "pct": 46.2
+    "n": 14,
+    "pct": 42.9
    },
    {
     "bucket": "50-60%",
-    "stated": 53.4,
-    "w": 19,
-    "n": 29,
-    "pct": 65.5
+    "stated": 53.7,
+    "w": 21,
+    "n": 34,
+    "pct": 61.8
    },
    {
     "bucket": "60-70%",
-    "stated": 64.7,
-    "w": 14,
-    "n": 25,
-    "pct": 56.0
+    "stated": 64.8,
+    "w": 19,
+    "n": 38,
+    "pct": 50.0
    },
    {
     "bucket": "70-80%",
-    "stated": 75.8,
-    "w": 14,
-    "n": 28,
+    "stated": 75.3,
+    "w": 17,
+    "n": 34,
     "pct": 50.0
    },
    {
@@ -358,9 +315,9 @@
    "pct": 50.6
   },
   "season-blend": {
-   "w": 99,
-   "n": 187,
-   "pct": 52.9
+   "w": 109,
+   "n": 212,
+   "pct": 51.4
   }
  },
  "by_day": [
@@ -478,6 +435,14 @@
   },
   {
    "date": "2026-10-09",
+   "w": 10,
+   "n": 25,
+   "carded": 25,
+   "voids": 0,
+   "unresolved": 0
+  },
+  {
+   "date": "2026-10-10",
    "w": 0,
    "n": 0,
    "carded": 25,
@@ -485,17 +450,17 @@
    "unresolved": 25
   }
  ],
- "days_graded": 14,
- "cards_seen": 15,
+ "days_graded": 15,
+ "cards_seen": 16,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 153,
- "distinct_games": 77,
- "carded_rows": 399,
+ "distinct_players": 163,
+ "distinct_games": 80,
+ "carded_rows": 424,
  "voids": 0,
  "unresolved": 44,
- "coverage_note": "355 of 399 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 44 could not be settled at all.",
+ "coverage_note": "380 of 424 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 44 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -508,7 +473,7 @@
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   },
   {
-   "date": "2026-10-09",
+   "date": "2026-10-10",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
