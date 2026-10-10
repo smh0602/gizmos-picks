@@ -1,7 +1,7 @@
 {
  "date": "2026-10-10",
  "league": "ncaaf",
- "generated_at": "2026-10-10T16:30:56Z",
+ "generated_at": "2026-10-10T17:28:24Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-10-10T13:10:17Z",
@@ -764,8 +764,8 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-10T16:30:41Z",
-  "ladder_built_at": "2026-10-10T16:30:43Z",
+  "model_built_at": "2026-10-10T17:28:08Z",
+  "ladder_built_at": "2026-10-10T17:28:10Z",
   "alt_spreads": 0
  },
  "game_lines_rule": "The game model's own 25 pick(s) for 2026-10-10 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
@@ -1693,16 +1693,16 @@
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 0,
-  "same_game_already_listed": 2,
+  "same_game_already_listed": 5,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 1182,
+  "pool_after_price_gate": 1090,
   "cap": 20,
   "distinct_games": 20,
   "shared_with_board_head": 18,
   "board_head_size": 20
  },
- "top_plays_rule": "The 20 most likely to hit for 2026-10-10 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 18 of 20, over 20 game(s). 2 row(s) were held back because their game was already represented. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 20 most likely to hit for 2026-10-10 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 18 of 20, over 20 game(s). 5 row(s) were held back because their game was already represented. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -1867,6 +1867,38 @@
    },
    {
     "legs": [
+     "Jeremiah Smith TD",
+     "Jadan Baugh TD"
+    ],
+    "games": [
+     "Maryland Terrapins @ Ohio State Buckeyes",
+     "South Carolina Gamecocks @ Florida Gators"
+    ],
+    "game_ids": [
+     "031164b8d704599d8023a3e104f9a6c0",
+     "9383cbbbb905d9ee50a3341f6945eae7"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -300,
+     -275
+    ],
+    "multiplier": 1.818,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 53.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     74,
+     72
+    ],
+    "break_even": 55.0,
+    "edge": -1.7,
+    "ev_30": -0.94
+   },
+   {
+    "legs": [
      "Dylan Riley TD",
      "Darius Taylor u68.5 rush yds"
     ],
@@ -1928,38 +1960,6 @@
     "break_even": 40.6,
     "edge": 13.1,
     "ev_30": 9.71
-   },
-   {
-    "legs": [
-     "Jeremiah Smith TD",
-     "Jadan Baugh TD"
-    ],
-    "games": [
-     "Maryland Terrapins @ Ohio State Buckeyes",
-     "South Carolina Gamecocks @ Florida Gators"
-    ],
-    "game_ids": [
-     "031164b8d704599d8023a3e104f9a6c0",
-     "9383cbbbb905d9ee50a3341f6945eae7"
-    ],
-    "book": "hardrockbet",
-    "prices": [
-     -300,
-     -275
-    ],
-    "multiplier": 1.818,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 53.3,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     74,
-     72
-    ],
-    "break_even": 55.0,
-    "edge": -1.7,
-    "ev_30": -0.94
    }
   ],
   "3": [
@@ -2601,7 +2601,7 @@
  },
  "parlay_meta": {
   "pool": 52,
-  "rated_legs": 1182,
+  "rated_legs": 1090,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -2610,32 +2610,32 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 34,
+    "available": 30,
     "taken": 12
    },
    {
     "decimal": "1.6-2",
-    "available": 744,
+    "available": 687,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 163,
+    "available": 147,
     "taken": 12
    },
    {
     "decimal": "3-99",
-    "available": 237,
+    "available": 222,
     "taken": 12
    }
   ],
   "rejected": {
-   "same_game": 56320,
+   "same_game": 57549,
    "same_player": 0,
-   "mixed_book": 224738,
-   "out_of_band": 277
+   "mixed_book": 225218,
+   "out_of_band": 307
   },
-  "note": "1182 rated legs, 52 in the stratified pool. Rejected: 56320 same game, 0 same player, 224738 would need two books, 277 outside Sam's bands."
+  "note": "1090 rated legs, 52 in the stratified pool. Rejected: 57549 same game, 0 same player, 225218 would need two books, 307 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -3034,13 +3034,13 @@
   ]
  },
  "sgp_meta": {
-  "games_with_rated_legs": 37,
+  "games_with_rated_legs": 34,
   "games_with_a_line_row": 29,
-  "games_used": 37,
+  "games_used": 34,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 757,
-   "mixed_book": 1580,
+   "same_player": 739,
+   "mixed_book": 1493,
    "below_floor": 2,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -3048,7 +3048,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "37 game(s) on this card carry a rated leg and 29 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "34 game(s) on this card carry a rated leg and 29 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
@@ -10249,19 +10249,19 @@
   }
  },
  "name_match_rate": 0.701,
- "n_priced": 1255,
+ "n_priced": 1153,
  "single_day": true,
  "slate_date": "2026-10-10",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 1255,
+ "n_on_slate_day": 1153,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-10 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "1,255 priced football rows for 2026-10-10 across 46 board games; 25 shown.",
+ "coverage": "1,153 priced football rows for 2026-10-10 across 46 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. There are not enough graded College Football plays yet to say whether these confidence numbers hold up. Treat every one as unproven.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -11419,7 +11419,7 @@
    "rank": 25
   }
  ],
- "n_longshots_excluded": 373,
+ "n_longshots_excluded": 341,
  "price_ceiling": 400,
  "market_max_share": null,
  "board_mixed": false,
