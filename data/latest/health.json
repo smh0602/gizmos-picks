@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-10T16:17:59Z",
+ "checked_at": "2026-10-10T16:23:24Z",
  "et_date": "2026-10-10",
  "healthy": false,
  "broken": 0,
@@ -23,8 +23,8 @@
   {
    "key": "late:alt-lines:nfl",
    "severity": "DEGRADED",
-   "what": "nfl alt-lines was built 132 minutes after it was due",
-   "why": "due 2026-10-10T11:00Z, built 2026-10-10T13:11Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "what": "nfl alt-lines was built 82 minutes after it was due",
+   "why": "due 2026-10-10T15:00Z, built 2026-10-10T16:21Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -44,15 +44,15 @@
   {
    "key": "late:props-board:nfl",
    "severity": "DEGRADED",
-   "what": "nfl props-board was built 132 minutes after it was due",
-   "why": "due 2026-10-10T11:00Z, built 2026-10-10T13:12Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "what": "nfl props-board was built 83 minutes after it was due",
+   "why": "due 2026-10-10T15:00Z, built 2026-10-10T16:22Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:props-player:nfl",
    "severity": "DEGRADED",
-   "what": "nfl props-player was built 132 minutes after it was due",
-   "why": "due 2026-10-10T11:00Z, built 2026-10-10T13:11Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "what": "nfl props-player was built 82 minutes after it was due",
+   "why": "due 2026-10-10T15:00Z, built 2026-10-10T16:21Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -60,15 +60,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 16494,
-  "pulled_at": "2026-10-10T16:17:57Z",
+  "balance": 16416,
+  "pulled_at": "2026-10-10T16:22:46Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-10T16:17:57Z",
-  "source": "data/ncaaf/2026-10-10/gamelines/1617.json.gz",
-  "readings_on_disk": 746,
+  "newest_paid_pull": "2026-10-10T16:22:46Z",
+  "source": "data/nfl/2026-10-10/props-player/1622.json.gz",
+  "readings_on_disk": 748,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
