@@ -87,9 +87,9 @@
    "path": "data/nfl/latest/news-flags.json"
   },
   "data/nfl/latest/news.json": {
-   "built_at": "2026-10-10T01:05Z",
-   "due_at": "2026-10-10T01:00Z",
-   "late_min": 5.2,
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-10T02:00Z",
+   "late_min": 52.9,
    "measured": true,
    "mode": "news",
    "path": "data/nfl/latest/news.json"
@@ -109,9 +109,10 @@
    "path": "data/nfl/latest/players-2026.json.gz"
   },
   "data/nfl/latest/props.json.gz": {
-   "built_at": "2026-10-08T15:41Z",
-   "due_at": "2026-10-08T15:00Z",
-   "late_min": 41.2,
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-09T15:00Z",
+   "late_min": 712.7,
+   "measured": true,
    "mode": "props-board",
    "path": "data/nfl/latest/props.json.gz"
   },
@@ -152,26 +153,28 @@
    "path": "data/nfl/latest/winners.json"
   },
   "data/nfl/{date}/alt-lines": {
-   "built_at": "2026-10-08T15:41Z",
-   "due_at": "2026-10-08T15:00Z",
-   "late_min": 41.0,
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-09T15:00Z",
+   "late_min": 712.0,
+   "measured": true,
    "mode": "alt-lines",
-   "path": "data/nfl/2026-10-08/alt-lines"
+   "path": "data/nfl/2026-10-10/alt-lines"
   },
   "data/nfl/{date}/news": {
-   "built_at": "2026-10-10T01:05Z",
-   "due_at": "2026-10-10T01:00Z",
-   "late_min": 5.0,
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-10T02:00Z",
+   "late_min": 52.0,
    "measured": true,
    "mode": "news",
    "path": "data/nfl/2026-10-10/news"
   },
   "data/nfl/{date}/props-player": {
-   "built_at": "2026-10-08T15:41Z",
-   "due_at": "2026-10-08T15:00Z",
-   "late_min": 41.0,
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-09T15:00Z",
+   "late_min": 712.0,
+   "measured": true,
    "mode": "props-player",
-   "path": "data/nfl/2026-10-08/props-player"
+   "path": "data/nfl/2026-10-10/props-player"
   },
   "picks/fb-nfl-latest.json": {
    "built_at": "2026-10-09T16:22Z",
@@ -183,6 +186,31 @@
   }
  },
  "grace_min": 60,
- "late": [],
- "written_at": "2026-10-10T01:05:13Z"
+ "late": [
+  {
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-09T15:00Z",
+   "late_min": 712.0,
+   "measured": true,
+   "mode": "props-player",
+   "path": "data/nfl/2026-10-10/props-player"
+  },
+  {
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-09T15:00Z",
+   "late_min": 712.7,
+   "measured": true,
+   "mode": "props-board",
+   "path": "data/nfl/latest/props.json.gz"
+  },
+  {
+   "built_at": "2026-10-10T02:52Z",
+   "due_at": "2026-10-09T15:00Z",
+   "late_min": 712.0,
+   "measured": true,
+   "mode": "alt-lines",
+   "path": "data/nfl/2026-10-10/alt-lines"
+  }
+ ],
+ "written_at": "2026-10-10T02:53:02Z"
 }
