@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-10T01:43:45Z",
+ "checked_at": "2026-10-10T02:53:17Z",
  "et_date": "2026-10-09",
  "healthy": false,
  "broken": 0,
- "degraded": 2,
+ "degraded": 5,
  "findings": [
   {
    "key": "late:props-board:ncaaf",
@@ -19,21 +19,42 @@
    "what": "ncaaf props-player was built 84 minutes after it was due",
    "why": "due 2026-10-09T19:00Z, built 2026-10-09T20:23Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
+  },
+  {
+   "key": "late:alt-lines:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl alt-lines was built 712 minutes after it was due",
+   "why": "due 2026-10-09T15:00Z, built 2026-10-10T02:52Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-board:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl props-board was built 713 minutes after it was due",
+   "why": "due 2026-10-09T15:00Z, built 2026-10-10T02:52Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-player:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl props-player was built 712 minutes after it was due",
+   "why": "due 2026-10-09T15:00Z, built 2026-10-10T02:52Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "repair": null
   }
  ],
  "repairs": [],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 17200,
-  "pulled_at": "2026-10-09T23:28:23Z",
+  "balance": 17122,
+  "pulled_at": "2026-10-10T02:52:46Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.3,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-09T23:28:23Z",
-  "source": "data/ncaaf/2026-10-09/props-player/2328.json.gz",
-  "readings_on_disk": 734,
+  "newest_paid_pull": "2026-10-10T02:52:46Z",
+  "source": "data/nfl/2026-10-10/props-player/0252.json.gz",
+  "readings_on_disk": 736,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
