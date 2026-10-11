@@ -1,9 +1,42 @@
 {
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-10-10T19:39:37Z",
+ "built_at": "2026-10-11T13:40:44Z",
  "spec": "research/fb_card_calibration_spec.md",
- "bands": [],
+ "bands": [
+  {
+   "bucket": "60-70%",
+   "graded": {
+    "value": 15,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 66.2,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 80.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  },
+  {
+   "bucket": "70-80%",
+   "graded": {
+    "value": 4,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 72.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 100.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "NOT_MEASURABLE"
+  }
+ ],
  "bands_before": {
   "2025-only": [
    {
@@ -166,9 +199,139 @@
     },
     "flag": "UNDER"
    }
+  ],
+  "season-blend": [
+   {
+    "bucket": "10-20%",
+    "graded": {
+     "value": 2,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 18.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 0.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "NOT_MEASURABLE"
+   },
+   {
+    "bucket": "20-30%",
+    "graded": {
+     "value": 10,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 25.6,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 10.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "30-40%",
+    "graded": {
+     "value": 16,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 33.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 62.5,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "40-50%",
+    "graded": {
+     "value": 14,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 45.6,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 42.9,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "50-60%",
+    "graded": {
+     "value": 34,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 53.7,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 61.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "60-70%",
+    "graded": {
+     "value": 38,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 64.8,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 50.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "70-80%",
+    "graded": {
+     "value": 34,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 75.3,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 50.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "UNDER"
+   },
+   {
+    "bucket": "80-90%",
+    "graded": {
+     "value": 44,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 84.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 59.1,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "UNDER"
+   }
   ]
  },
- "method_now": "season-blend",
+ "method_now": "season-blend+props-model",
  "test": {
   "n": 157,
   "mean_d": 0.24654293565026483,

@@ -1,25 +1,25 @@
 {
- "built_at": "2026-10-10T19:39:35Z",
+ "built_at": "2026-10-11T13:40:41Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 194,
-  "n": 380,
-  "pct": 51.1
+  "w": 210,
+  "n": 399,
+  "pct": 52.6
  },
  "alt_spreads": {
   "basis": "MARKET",
   "overall": {
-   "w": 5,
-   "n": 5,
-   "pct": 100.0
+   "w": 7,
+   "n": 8,
+   "pct": 87.5
   },
   "shown": 8,
   "voids": 0,
-  "pending": 3,
+  "pending": 0,
   "note": "The card's alternate spreads, priced at the books' own chance, each graded once from the final score. Kept apart from the props record.",
   "rows": [
    {
@@ -103,8 +103,8 @@
     "break_even": 78.7,
     "game": "Boise State Broncos @ Fresno State Bulldogs",
     "commence": "2026-10-11T02:30:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    },
    {
     "date": "2026-10-10",
@@ -117,8 +117,8 @@
     "break_even": 79.6,
     "game": "Coastal Carolina Chanticleers @ Marshall Thundering Herd",
     "commence": "2026-10-10T23:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-10-10",
@@ -131,16 +131,16 @@
     "break_even": 79.6,
     "game": "Texas A&M Aggies @ Missouri Tigers",
     "commence": "2026-10-10T16:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": true,
+    "state": "graded"
    }
   ]
  },
  "by_market": {
   "player_anytime_td": {
-   "w": 32,
-   "n": 68,
-   "pct": 47.1
+   "w": 48,
+   "n": 87,
+   "pct": 55.2
   },
   "player_pass_yds": {
    "w": 26,
@@ -175,9 +175,9 @@
    "pct": 54.6
   },
   "yes": {
-   "w": 32,
-   "n": 68,
-   "pct": 47.1
+   "w": 48,
+   "n": 87,
+   "pct": 55.2
   }
  },
  "by_book": {
@@ -186,15 +186,20 @@
    "n": 1,
    "pct": 0.0
   },
+  "draftkings": {
+   "w": 8,
+   "n": 9,
+   "pct": 88.9
+  },
   "fanduel": {
-   "w": 6,
-   "n": 10,
-   "pct": 60.0
+   "w": 8,
+   "n": 13,
+   "pct": 61.5
   },
   "hardrockbet": {
-   "w": 187,
-   "n": 367,
-   "pct": 51.0
+   "w": 193,
+   "n": 374,
+   "pct": 51.6
   },
   "williamhill_us": {
    "w": 1,
@@ -202,7 +207,22 @@
    "pct": 50.0
   }
  },
- "calibration": [],
+ "calibration": [
+  {
+   "bucket": "60-70%",
+   "stated": 66.2,
+   "w": 12,
+   "n": 15,
+   "pct": 80.0
+  },
+  {
+   "bucket": "70-80%",
+   "stated": 72.0,
+   "w": 4,
+   "n": 4,
+   "pct": 100.0
+  }
+ ],
  "card_method_current": "season-blend+props-model",
  "calibration_by_method": {
   "2025-only": [
@@ -334,6 +354,22 @@
     "n": 44,
     "pct": 59.1
    }
+  ],
+  "season-blend+props-model": [
+   {
+    "bucket": "60-70%",
+    "stated": 66.2,
+    "w": 12,
+    "n": 15,
+    "pct": 80.0
+   },
+   {
+    "bucket": "70-80%",
+    "stated": 72.0,
+    "w": 4,
+    "n": 4,
+    "pct": 100.0
+   }
   ]
  },
  "by_method": {
@@ -346,6 +382,11 @@
    "w": 109,
    "n": 212,
    "pct": 51.4
+  },
+  "season-blend+props-model": {
+   "w": 16,
+   "n": 19,
+   "pct": 84.2
   }
  },
  "by_day": [
@@ -471,24 +512,24 @@
   },
   {
    "date": "2026-10-10",
-   "w": 0,
-   "n": 0,
+   "w": 16,
+   "n": 19,
    "carded": 25,
    "voids": 0,
-   "unresolved": 25
+   "unresolved": 6
   }
  ],
- "days_graded": 15,
+ "days_graded": 16,
  "cards_seen": 16,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 163,
- "distinct_games": 80,
+ "distinct_players": 177,
+ "distinct_games": 98,
  "carded_rows": 424,
  "voids": 0,
- "unresolved": 44,
- "coverage_note": "380 of 424 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 44 could not be settled at all.",
+ "unresolved": 25,
+ "coverage_note": "399 of 424 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 25 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -501,7 +542,7 @@
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   },
   {
-   "date": "2026-10-10",
+   "date": "2026-10-13",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
