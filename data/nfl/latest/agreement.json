@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_agreement_spec.md",
- "built_at": "2026-10-11T18:25:29Z",
+ "built_at": "2026-10-11T19:50:57Z",
  "bases": {
   "label": "DESCRIPTIVE",
   "model_p": "MODEL",
@@ -298,19 +298,19 @@
    "label": "AGREE"
   },
   {
-   "key": "d1d408fdfd272046fb517fe992a1c5a0|Oronde Gadsden II|player_receptions|over|3.5",
+   "key": "d1d408fdfd272046fb517fe992a1c5a0|Oronde Gadsden II|player_receptions|under|3.5",
    "game_id": "d1d408fdfd272046fb517fe992a1c5a0",
    "game": "Denver Broncos at Los Angeles Chargers",
    "commence": "2026-10-11T20:05:00Z",
    "player": "Oronde Gadsden II",
    "market": "player_receptions",
-   "side": "over",
+   "side": "under",
    "line": 3.5,
-   "price": 108,
-   "break_even": 48.1,
+   "price": -110,
+   "break_even": 52.4,
    "card_p": null,
    "card_basis": null,
-   "model_p": 48.1,
+   "model_p": 52.8,
    "on_card": false,
    "label": "ONE SOURCE"
   },
@@ -327,9 +327,43 @@
    "break_even": 43.5,
    "card_p": null,
    "card_basis": null,
-   "model_p": 44.2,
+   "model_p": 44.0,
    "on_card": false,
    "label": "ONE SOURCE"
+  },
+  {
+   "key": "8e5d515b10d8a5ffb324640ed60bcc55|Emanuel Wilson|player_receptions|under|1.5",
+   "game_id": "8e5d515b10d8a5ffb324640ed60bcc55",
+   "game": "San Francisco 49ers at Seattle Seahawks",
+   "commence": "2026-10-11T20:25:00Z",
+   "player": "Emanuel Wilson",
+   "market": "player_receptions",
+   "side": "under",
+   "line": 1.5,
+   "price": 135,
+   "break_even": 42.6,
+   "card_p": null,
+   "card_basis": null,
+   "model_p": 43.0,
+   "on_card": false,
+   "label": "ONE SOURCE"
+  },
+  {
+   "key": "f8e7f43f73aa983c5c99c189587f0118|Isaac TeSlaa|player_receptions|under|2.5",
+   "game_id": "f8e7f43f73aa983c5c99c189587f0118",
+   "game": "Detroit Lions @ Arizona Cardinals",
+   "commence": "2026-10-11T20:25:00Z",
+   "player": "Isaac TeSlaa",
+   "market": "player_receptions",
+   "side": "under",
+   "line": 2.5,
+   "price": -177,
+   "break_even": 63.9,
+   "card_p": 45,
+   "card_basis": "RECORD",
+   "model_p": 59.8,
+   "on_card": true,
+   "label": "AGREE"
   },
   {
    "key": "f8e7f43f73aa983c5c99c189587f0118|Isaac TeSlaa|player_receptions|under|1.5",
@@ -361,7 +395,7 @@
    "break_even": 38.8,
    "card_p": null,
    "card_basis": null,
-   "model_p": 39.0,
+   "model_p": 39.2,
    "on_card": false,
    "label": "ONE SOURCE"
   },
@@ -378,7 +412,7 @@
    "break_even": 64.0,
    "card_p": 76,
    "card_basis": "RECORD",
-   "model_p": 61.0,
+   "model_p": 60.8,
    "on_card": true,
    "label": "SPLIT"
   },
@@ -412,7 +446,7 @@
    "break_even": 46.3,
    "card_p": null,
    "card_basis": null,
-   "model_p": 46.9,
+   "model_p": 46.8,
    "on_card": false,
    "label": "ONE SOURCE"
   },
@@ -446,26 +480,9 @@
    "break_even": 40.2,
    "card_p": null,
    "card_basis": null,
-   "model_p": 40.3,
+   "model_p": 40.7,
    "on_card": false,
    "label": "ONE SOURCE"
-  },
-  {
-   "key": "8e5d515b10d8a5ffb324640ed60bcc55|Rashid Shaheed|player_receptions|under|2.5",
-   "game_id": "8e5d515b10d8a5ffb324640ed60bcc55",
-   "game": "San Francisco 49ers @ Seattle Seahawks",
-   "commence": "2026-10-11T20:25:00Z",
-   "player": "Rashid Shaheed",
-   "market": "player_receptions",
-   "side": "under",
-   "line": 2.5,
-   "price": -160,
-   "break_even": 61.5,
-   "card_p": 37,
-   "card_basis": "RECORD",
-   "model_p": 59.7,
-   "on_card": true,
-   "label": "AGREE"
   },
   {
    "key": "8e5d515b10d8a5ffb324640ed60bcc55|Tory Horton|player_receptions|under|1.5",
@@ -514,7 +531,7 @@
    "break_even": 44.2,
    "card_p": null,
    "card_basis": null,
-   "model_p": 44.7,
+   "model_p": 44.6,
    "on_card": false,
    "label": "ONE SOURCE"
   },
@@ -544,11 +561,11 @@
    "market": "player_receptions",
    "side": "under",
    "line": 1.5,
-   "price": -190,
-   "break_even": 65.5,
+   "price": -195,
+   "break_even": 66.1,
    "card_p": 33,
    "card_basis": "RECORD",
-   "model_p": 60.7,
+   "model_p": 60.9,
    "on_card": true,
    "label": "AGREE"
   },
@@ -760,7 +777,7 @@
  "counts": {
   "AGREE": 12,
   "SPLIT": 3,
-  "ONE SOURCE": 26
+  "ONE SOURCE": 27
  },
  "not_frozen": 0,
  "record": {
