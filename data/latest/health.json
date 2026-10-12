@@ -1,23 +1,37 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-12T16:07:35Z",
+ "checked_at": "2026-10-12T16:54:26Z",
  "et_date": "2026-10-12",
  "healthy": false,
  "broken": 0,
- "degraded": 2,
+ "degraded": 4,
  "findings": [
-  {
-   "key": "stopped:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf has not updated since Mon 08:13Z",
-   "why": "gamelines is past due with no collect run for ncaaf since then (oldest: gamelines, due 2026-10-12T11:00Z). Nothing repairs this on its own; the next run that lands will.",
-   "repair": null
-  },
   {
    "key": "stopped:nfl",
    "severity": "DEGRADED",
    "what": "nfl has not updated since Mon 08:13Z",
    "why": "gamelines is past due with no collect run for nfl since then (oldest: gamelines, due 2026-10-12T12:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
+   "key": "late:card-fb:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf card-fb was built 203 minutes after it was due",
+   "why": "due 2026-10-12T13:30Z, built 2026-10-12T16:53Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:gamelines:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf gamelines was built 351 minutes after it was due",
+   "why": "due 2026-10-12T11:00Z, built 2026-10-12T16:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:news:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf news was built 168 minutes after it was due",
+   "why": "due 2026-10-12T14:05Z, built 2026-10-12T16:53Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -25,15 +39,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 15473,
-  "pulled_at": "2026-10-12T11:02:54Z",
+  "balance": 15467,
+  "pulled_at": "2026-10-12T16:50:58Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 5.1,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-12T11:02:53Z",
-  "source": "data/2026-10-12/props-batter/1102.json.gz",
-  "readings_on_disk": 787,
+  "newest_paid_pull": "2026-10-12T16:50:58Z",
+  "source": "data/ncaaf/2026-10-12/gamelines/1650.json.gz",
+  "readings_on_disk": 788,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
