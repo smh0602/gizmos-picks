@@ -1,26 +1,11 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-12T07:36:47Z",
+ "checked_at": "2026-10-12T08:13:28Z",
  "et_date": "2026-10-12",
- "healthy": false,
+ "healthy": true,
  "broken": 0,
- "degraded": 2,
- "findings": [
-  {
-   "key": "late:fb-scores:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf fb-scores was built 68 minutes after it was due",
-   "why": "due 2026-10-11T08:00Z, built 2026-10-11T09:08Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:fb-scores:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl fb-scores was built 68 minutes after it was due",
-   "why": "due 2026-10-11T08:00Z, built 2026-10-11T09:08Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  }
- ],
+ "degraded": 0,
+ "findings": [],
  "repairs": [],
  "unrepairable": [],
  "credits": {
@@ -29,7 +14,7 @@
   "pulled_at": "2026-10-11T22:54:09Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 8.7,
+  "reading_age_hours": 9.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-11T22:54:09Z",
   "source": "data/ncaaf/2026-10-11/gamelines/2254.json.gz",
