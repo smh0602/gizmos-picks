@@ -51,10 +51,12 @@ BASES = ("MODEL", "MARKET", "DESCRIPTIVE")
 CLOSING_TITLE = "graded at closing lines — not your books"
 ASSUMED_PX = -110
 ASSUMED_NOTE = "price assumed -110"
+# `[Sam, 2026-10-11]` the first input of each fit is the model's OWN rating
+#    (~~the books' line / the books' moneyline chance~~); see `own_ratings`.
 FEATURES = {
-    "spread": ["line", "h2h", "form", "possession", "personnel", "neutral", "dome"],
-    "total": ["line", "h2h", "form", "defence", "neutral", "dome"],
-    "moneyline": ["market", "h2h", "form", "possession", "personnel", "neutral", "dome"],
+    "spread": ["own_margin", "h2h", "form", "possession", "personnel", "neutral", "dome"],
+    "total": ["own_total", "h2h", "form", "defence", "neutral", "dome"],
+    "moneyline": ["own_margin", "h2h", "form", "possession", "personnel", "neutral", "dome"],
 }
 # 🔴 SIGNAL 9 `[Sam, 2026-09-24]` — the team-level vacated share as one more
 #    input (research/fb_signal9_spec.md §3). ⛔ ON/OFF IS SET BY THE RECORDED
@@ -274,6 +276,111 @@ def training_line(g, snap, cfb):
     return m, t, p
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE MODEL'S OWN TEAM RATINGS `[Sam, 2026-10-11]`: "our model needs to know
+#    the data and know these teams better than they know themselves". They
+#    replace the books' number in every fit (`features`).
+# ⛔ FROZEN SETTINGS (Cowork chose them from five tried, 2026-10-11; the Track
+#    Record from the switch is the test, so they are never re-tuned on this data):
+#    every final game in every stored schedule, all divisions; weight
+#    0.5 ** (days before the row's Monday / 150); ridge 1 on every team term,
+#    none on the base or a home edge.
+#      margin  = home edge x (0 neutral, else 1) + R_home - R_away
+#      points  = base + home-points edge x (that side at home, not neutral)
+#                + O_team - D_opponent            (one equation per side)
+# ⛔ POINT IN TIME: a row's ratings read only games dated before its own week's
+#    Monday (`monday`), the cut the walk-forward trains on.
+# ══════════════════════════════════════════════════════════════════════
+RATING_HALF_LIFE = 150.0
+RATING_RIDGE = 1.0
+RATING_TOL = 1e-10
+RATING_SWEEPS = 5000
+
+
+def rating_games(lg, root=None):
+    """Every final game of every stored schedule, oldest first:
+    (day, home, away, home flag 0/1, home points, away points)."""
+    out = []
+    for p in sorted(glob.glob(os.path.join(root or ROOT, "data", lg, "latest", "schedule-*.json.gz"))):
+        for g in (jz(p) or {}).get("games") or []:
+            if (g.get("final") and t60r.kick(g) is not None and g.get("home") and g.get("away")
+                    and g.get("home_score") is not None and g.get("away_score") is not None):
+                out.append((g["start"][:10], g["home"], g["away"], 0.0 if g.get("neutral") else 1.0,
+                            float(g["home_score"]), float(g["away_score"])))
+    return sorted(out)
+
+
+def solve_ratings(G, wk, warm=None, tol=RATING_TOL, sweeps=RATING_SWEEPS):
+    """The weighted ridge margin and points fits on games G (all dated before
+    Monday `wk`), by Gauss-Seidel from `warm` (last week's answer). Pure Python."""
+    d0 = datetime.date.fromisoformat(wk)
+    w = [0.5 ** ((d0 - datetime.date.fromisoformat(g[0])).days / RATING_HALF_LIFE) for g in G]
+    s = {"hfa": 0.0, "base": 0.0, "hpe": 0.0, "R": {}, "O": {}, "D": {}}
+    if warm:
+        s = {k: (dict(v) if isinstance(v, dict) else v) for k, v in warm.items()}
+    s["base"] = s["base"] or (sum(g[4] + g[5] for g in G) / (2.0 * len(G)) if G else 0.0)
+    adj = collections.defaultdict(list)
+    for i, g in enumerate(G):
+        adj[g[1]].append(i)
+        adj[g[2]].append(i)
+    for t in adj:
+        for k in ("R", "O", "D"):
+            s[k].setdefault(t, 0.0)
+    R, O, D = s["R"], s["O"], s["D"]
+    sw_h = sum(wi * g[3] for wi, g in zip(w, G))
+    sw = sum(w)
+    for n in range(sweeps):
+        old = (s["hfa"], s["base"], s["hpe"], dict(R), dict(O), dict(D))
+        s["hfa"] = (sum(wi * g[3] * (g[4] - g[5] - R[g[1]] + R[g[2]]) for wi, g in zip(w, G)) / sw_h
+                    if sw_h else 0.0)
+        for t, ix in adj.items():
+            num = sum(w[i] * ((G[i][4] - G[i][5] - s["hfa"] * G[i][3] + R[G[i][2]]) if G[i][1] == t
+                              else -(G[i][4] - G[i][5] - s["hfa"] * G[i][3] - R[G[i][1]])) for i in ix)
+            R[t] = num / (sum(w[i] for i in ix) + RATING_RIDGE)
+        s["base"] = sum(wi * ((g[4] - s["hpe"] * g[3] - O[g[1]] + D[g[2]]) + (g[5] - O[g[2]] + D[g[1]]))
+                        for wi, g in zip(w, G)) / (2.0 * sw) if sw else 0.0
+        s["hpe"] = (sum(wi * g[3] * (g[4] - s["base"] - O[g[1]] + D[g[2]]) for wi, g in zip(w, G)) / sw_h
+                    if sw_h else 0.0)
+        for t, ix in adj.items():
+            num = sum(w[i] * ((G[i][4] - s["base"] - s["hpe"] * G[i][3] + D[G[i][2]]) if G[i][1] == t
+                              else (G[i][5] - s["base"] + D[G[i][1]])) for i in ix)
+            O[t] = num / (sum(w[i] for i in ix) + RATING_RIDGE)
+        for t, ix in adj.items():
+            num = sum(w[i] * ((s["base"] + O[G[i][2]] - G[i][5]) if G[i][1] == t
+                              else (s["base"] + s["hpe"] * G[i][3] + O[G[i][1]] - G[i][4])) for i in ix)
+            D[t] = num / (sum(w[i] for i in ix) + RATING_RIDGE)
+        moved = max([abs(s["hfa"] - old[0]), abs(s["base"] - old[1]), abs(s["hpe"] - old[2])]
+                    + [abs(R[t] - old[3].get(t, 0.0)) + abs(O[t] - old[4].get(t, 0.0))
+                       + abs(D[t] - old[5].get(t, 0.0)) for t in adj])
+        if moved < tol:
+            break
+    s["teams"] = set(adj)
+    s["sweeps"] = n + 1 if G else 0
+    return s
+
+
+def own_ratings(G, weeks):
+    """{Monday: ratings} for every Monday in `weeks`, solved once each, oldest
+    first, each warm-started from the week before (G sorted by day)."""
+    out, warm, j = {}, None, 0
+    for wk in sorted(weeks):
+        while j < len(G) and G[j][0] < wk:
+            j += 1
+        warm = out[wk] = solve_ratings(G[:j], wk, warm)
+    return out
+
+
+def own_numbers(s, home, away, neutral):
+    """(own margin, own total) for one game, or (None, None) when either team
+    has no earlier stored game."""
+    if not s or home not in s["teams"] or away not in s["teams"]:
+        return None, None
+    h = 0.0 if neutral else 1.0
+    return (s["hfa"] * h + s["R"][home] - s["R"][away],
+            (s["base"] + s["hpe"] * h + s["O"][home] - s["D"][away])
+            + (s["base"] + s["O"][away] - s["D"][home]))
+
+
 def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     """Every game with its line, label and point-in-time signals.
 
@@ -344,32 +451,41 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
                     "neutral": 1.0 if g.get("neutral") else 0.0,
                     "dome": 1.0 if (g.get("roof") or "") in ("dome", "closed") else 0.0},
         })
+    # `[Sam, 2026-10-11]` each row's own margin and total, from its own week's
+    #    ratings (games dated before that week's Monday only).
+    own = own_ratings(rating_games(lg, root), {monday(r["day"]) for r in rows})
+    for r in rows:
+        r["sig"]["own_m"], r["sig"]["own_t"] = own_numbers(
+            own.get(monday(r["day"])), r["home"], r["away"], r["sig"]["neutral"])
     return rows
 
 
 def features(r, market, M=None, T=None):
-    """The design-§1 inputs for one row at a given line. Missing -> 0."""
+    """The design-§1 inputs for one row at a given line. Missing -> 0.
+    `[Sam, 2026-10-11]` the first input is the model's OWN number:
+    ~~z(M)/7, (T-45)/10, logit(the books' moneyline chance)~~ -> (own margin -
+    line)/10, (own total - line)/10, own margin/10. ⛔ A line only sets the
+    threshold being priced; no price or books' chance is ever an input."""
     s = r["sig"]
     M = r["M"] if M is None else M
     T = r["T"] if T is None else T
     z = lambda x: 0.0 if x is None else float(x)  # noqa: E731
     vh, va = s.get("vac_h"), s.get("vac_a")
     s9 = (lambda x: [x] if S9_GAME.get(r.get("lg")) else [])  # noqa: E731
+    om, ot = s.get("own_m"), s.get("own_t")
     if market == "spread":
-        return [z(M) / 7.0,
+        return [z(None if om is None or M is None else om - M) / 10.0,
                 z(None if s["h2h_m"] is None else s["h2h_m"] - M) / 10.0,
                 z(None if s["form_m"] is None else s["form_m"] - M) / 10.0,
                 z(s["poss"]) * 10.0, z(s["out"]) / 3.0, s["neutral"], s["dome"]] + s9(
             (vh - va) if vh is not None and va is not None else 0.0)
     if market == "total":
-        return [(z(T) - 45.0) / 10.0,
+        return [z(None if ot is None or T is None else ot - T) / 10.0,
                 z(None if s["h2h_t"] is None else s["h2h_t"] - T) / 10.0,
                 z(None if s["form_t"] is None else s["form_t"] - T) / 10.0,
                 z(None if s["def"] is None else s["def"] - 0.5) * 4.0, s["neutral"], s["dome"]] + s9(
             (vh + va) if vh is not None and va is not None else 0.0)
-    p = r["pml"]
-    lo = math.log(p / (1 - p)) if p and 0 < p < 1 else 0.0
-    return [lo, z(s["h2h_m"]) / 10.0, z(s["form_m"]) / 10.0,
+    return [z(om) / 10.0, z(s["h2h_m"]) / 10.0, z(s["form_m"]) / 10.0,
             z(s["poss"]) * 10.0, z(s["out"]) / 3.0, s["neutral"], s["dome"]] + s9(
         (vh - va) if vh is not None and va is not None else 0.0)
 

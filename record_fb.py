@@ -387,14 +387,21 @@ def grade_alt_spreads(cards, sched, grade):
                          "side": r.get("side"), "line": r.get("line"),
                          "price": r.get("price"), "book": r.get("book"),
                          "confidence": r.get("confidence"),
+                         "confidence_basis": r.get("confidence_basis") or "MARKET",
                          "break_even": r.get("break_even"), "game": r.get("game"),
                          "commence": r.get("commence"), "won": won, "state": state})
     graded = [x for x in rows if x["state"] == "graded"]
-    return {"basis": "MARKET", "overall": tally(graded), "shown": len(rows),
+    return {"basis": " + ".join(sorted({x["confidence_basis"] for x in rows})) or "MODEL",
+            "overall": tally(graded), "shown": len(rows),
+            # `[Sam, 2026-10-11]` from the switch a row is the model's own chance
+            #    (MODEL); each basis is graded apart, so the old stays as graded.
+            "by_basis": {b: tally([x for x in graded if x["confidence_basis"] == b])
+                         for b in sorted({x["confidence_basis"] for x in rows})},
             "voids": sum(1 for x in rows if x["state"] == "void"),
             "pending": sum(1 for x in rows if x["state"] == "pending"),
-            "note": ("The card's alternate spreads, priced at the books' own chance, each "
-                     "graded once from the final score. Kept apart from the props record."),
+            "note": ("The card's alternate spreads, each graded once from the final score: "
+                     "the books' own chance until 2026-10-11, the model's own after "
+                     "(by_basis). Kept apart from the props record."),
             "rows": rows}
 
 

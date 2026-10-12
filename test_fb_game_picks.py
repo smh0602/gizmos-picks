@@ -6,14 +6,17 @@
 format as the player prop picks for gizmos picks"*, and *"include alternate
 spreads ... that the model likes, now not a -1000 or anything that is a
 gimme, ideally props/game lines at -400 is the lowest we should go"*; ranked
-on the books' own odds. `[Sam, 2026-10-03]` *only picks the model gives 50%
-or more*, and *the top 25, like the props board*.
+on the books' own odds (~~`[Sam, 2026-10-01]`~~: `[Sam, 2026-10-11]` the
+alternate spread is the model's own chance at its rung, never the books').
+`[Sam, 2026-10-03]` *only picks the model gives 50% or more*, and *the top 25,
+like the props board*.
 
 ✅ `card_fb.card_game_lines`: fb-model.json's picks for ONE day (main passes
 `next_line_slate`'s: test_game_lines_day.py §5), 50% or more, -400 or longer,
 whole-number confidence, the 25 highest; each spread pick followed by ONE
-alternate spread (model's side, highest books' chance at -400 or longer and
-50% or more, off the main line, basis MARKET). A row that is not the model's
+alternate spread (model's side, the highest value above zero at -400 or
+longer where the model's own chance at that rung is 50% or more, off the main
+line, basis MODEL). A row that is not the model's
 never stays in `game_lines` and is never drawn. record_fb grades the
 alternate spreads once, in their own line. Planted data; the page in node.
 
@@ -24,8 +27,8 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 the model rows are the highest-confidence ones, in order
 #   file: card_fb.py
-#   find: key=lambda r: (-(r.get("confidence") or 0), -(r.get("edge") or 0)))
-#   with: key=lambda r: ((r.get("confidence") or 0), (r.get("edge") or 0)))
+#   find: key=lambda r: (-(r.get("confidence") or 0), str(r.get("game")), r.get("market") or ""))
+#   with: key=lambda r: ((r.get("confidence") or 0), str(r.get("game")), r.get("market") or ""))
 #
 # @vacuity 🔴 only one day
 #   file: card_fb.py
@@ -44,13 +47,18 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 ...off the main line
 #   file: card_fb.py
-#   find: and x.get("mkt") is not None and x.get("pt") != main
-#   with: and x.get("mkt") is not None
+#   find: and x.get("p") is not None and x.get("pt") != main
+#   with: and x.get("p") is not None
 #
-# @vacuity 🔴 ...with the highest books' chance
+# @vacuity 🔴 ...with the highest value above zero (never the books' chance)
 #   file: card_fb.py
-#   find: x = max(ok, key=lambda x: (x["mkt"], x["best"]))
-#   with: x = min(ok, key=lambda x: (x["mkt"], x["best"]))
+#   find: x = max(ok, key=lambda x: (x["edge"], x["p"]))
+#   with: x = max(ok, key=lambda x: (x["mkt"], x["best"]))
+#
+# @vacuity 🔴 ...and only a rung with value above zero
+#   file: card_fb.py
+#   find: and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
+#   with: and x["p"] >= GL_MIN_CONF]
 #
 # @vacuity 🔴 no model row under 50%
 #   file: card_fb.py
@@ -59,8 +67,8 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 no alternate spread under 50%
 #   file: card_fb.py
-#   find: and x["mkt"] >= GL_MIN_CONF]
-#   with: ]
+#   find: and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
+#   with: and (x.get("edge") or 0) > 0]
 #
 # @vacuity 🔴 at most 25 model rows
 #   file: card_fb.py
@@ -139,9 +147,12 @@ def pick(g, mk, side, team, line, price, prob, be):
             "price": L(price), "model_probability": L(prob), "break_even": L(be)}
 
 
-def rung(side, pt, best, mkt):
+def rung(side, pt, best, mkt, p):
+    """A ladder rung: the books' chance `mkt` (a label now) and the model's own `p`."""
+    dec = 1 + (100.0 / -best if best < 0 else best / 100.0)
     return {"m": "spread", "side": side, "pt": pt, "best": best, "book": "DraftKings",
-            "mkt": mkt, "be": round(100 * C.american_break_even(best), 1)}
+            "mkt": mkt, "be": round(100 * C.american_break_even(best), 1),
+            "p": p, "edge": round(100 * (p / 100.0 * dec - 1.0), 1)}
 
 
 G1, G2, G3, G4 = game("A"), game("B"), game("C"), game("D")
@@ -156,13 +167,15 @@ PICKS = [pick(G1, "spread", "home", "Home A", -3.5, 100, 56.0, 50.0),     # M -3
               commence="2026-10-06T00:15:00Z")]                             # another day
 LADDER = {"games": [
     dict(G1, sched_id="S1", main_spread_home=3.5,
-         spread=[rung("home", 3.5, -110, 52), rung("home", 7.5, -300, 75),
-                 rung("home", 8.5, -400, 77), rung("home", 9.5, -401, 78),
-                 rung("away", -0.5, 100, 95)]),
-    dict(G2, sched_id="S2", main_spread_home=-6.5,
-         spread=[rung("away", 6.5, -110, 51), rung("away", 13.5, -500, 85)]),
-    dict(G4, sched_id="S4", main_spread_home=-1.5,
-         spread=[rung("away", 1.5, -110, 51), rung("away", -2.5, 150, 38)])]}
+         # the books' chance is highest at 8.5; the model's value is highest at 7.5
+         spread=[rung("home", 3.5, -110, 52, 66), rung("home", 7.5, -300, 75, 79),
+                 rung("home", 8.5, -400, 77, 83), rung("home", 9.5, -401, 78, 90),
+                 rung("away", -0.5, 100, 95, 60)]),
+    dict(G2, sched_id="S2", main_spread_home=-6.5,           # 50%+ but no value; below the floor
+         spread=[rung("away", 6.5, -110, 51, 56), rung("away", 9.5, -350, 80, 70),
+                 rung("away", 13.5, -500, 85, 90)]),
+    dict(G4, sched_id="S4", main_spread_home=-1.5,           # value, but under 50%
+         spread=[rung("away", 1.5, -110, 51, 55), rung("away", -2.5, 150, 38, 45)])]}
 ROWS = C.card_game_lines(PICKS, [G1, G2, G3, G4], LADDER, SLATE)
 MODEL = [r for r in ROWS if r["market"] != "alternate_spread"]
 ALT = [r for r in ROWS if r["market"] == "alternate_spread"]
@@ -194,10 +207,11 @@ section("2. 🔴 ONE ALTERNATE SPREAD, DIRECTLY UNDER ITS OWN PICK")
 # ══════════════════════════════════════════════════════════════════════
 _a = ALT[0] if len(ALT) == 1 else {}
 ck("🔴 an alternate-spread row is on the model's side, at -400 or longer, off the main line, "
-   "with the highest books' chance of the eligible rungs; none without one or a ladder",
+   "with the highest value above zero where the model's own chance is 50%+ (never the "
+   "books' chance); none without one or a ladder",
    len(ALT) == 1 and (_a["player"], _a["side"], _a["line"], _a["price"], _a["confidence"]) ==
-   ("Home A", "home", 8.5, -400, 77) and _a["confidence_basis"] == "MARKET"
-   and _a["basis"].startswith("MARKET") and _a["book"] == "draftkings",
+   ("Home A", "home", 7.5, -300, 79) and _a["confidence_basis"] == "MODEL"
+   and _a["basis"].startswith("MODEL") and _a["book"] == "draftkings",
    "alt rows %s" % [(r["player"], r["line"], r["price"], r["confidence"]) for r in ALT])
 _order = [(r["player"], r["market"]) for r in ROWS]
 ck("🔴 model rows by confidence, each spread pick followed directly by its alternate",
@@ -208,7 +222,7 @@ _many = [game(i) for i in range(30)]
 _big = C.card_game_lines(
     [pick(g, "spread", "home", g["home"], -3.5, -110, 60.0 + i + 0.1, 52.4)
      for i, g in enumerate(_many)], _many,
-    {"games": [dict(g, main_spread_home=3.5, spread=[rung("home", 7.5, -300, 75)]) for g in _many]},
+    {"games": [dict(g, main_spread_home=3.5, spread=[rung("home", 7.5, -300, 75, 79)]) for g in _many]},
     SLATE)
 _bm = [r for r in _big if r["market"] == "spread"]
 ck("🔴 at most 25 model rows, the highest-confidence ones",
@@ -271,7 +285,7 @@ finally:
     shutil.rmtree(tmp, ignore_errors=True)
 ck("🔴 ...and the page never draws one", r.returncode == 0 and "undefined" not in HTML
    and HTML.count("<pk>") == len(ROWS), (r.stderr or "")[-200:] + HTML[:200])
-_plays = ["Home A +8.5 Alternate spread", "Home A +3.5 Spread", "Over 47.5 Total",
+_plays = ["Home A +7.5 Alternate spread", "Home A +3.5 Spread", "Over 47.5 Total",
           "Away B +6.5 Spread", "Home C -2.5 Spread", "Away D +1.5 Spread"]
 ck("🔴 the page draws each game-line row with pickCard under a heading naming its day: "
    "its team or Over/Under, no side word",
@@ -287,5 +301,6 @@ _rec = R.grade_alt_spreads([("f", {"date": SLATE, "league": "nfl", "game_lines":
 ck("🔴 the alternate spreads are graded once from the final score, in their own line, "
    "and nothing else on the card is",
    _rec["shown"] == 1 and _rec["overall"]["w"] == 1 and _rec["overall"]["n"] == 1
-   and _rec["rows"][0]["won"] is True and _rec["basis"] == "MARKET",
-   "Home A +8.5, lost 15-20 by 5: covers. got %s" % {k: _rec[k] for k in ("shown", "overall")})
+   and _rec["rows"][0]["won"] is True and _rec["basis"] == "MODEL"
+   and _rec["by_basis"] == {"MODEL": {"w": 1, "n": 1, "pct": 100.0}},
+   "Home A +7.5, lost 15-20 by 5: covers. got %s" % {k: _rec[k] for k in ("shown", "overall", "by_basis")})
