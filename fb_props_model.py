@@ -607,14 +607,17 @@ def logit(p):
     return math.log(p / (1 - p))
 
 
-def s2_features(market, p1, pm):
-    return [logit(p1), logit(pm), 1.0 if market == TD_MARKET else 0.0]
+def s2_features(market, p1):
+    """`[Sam, 2026-10-11]` stage 1 corrected by its own past misses, NO price:
+    ~~[logit(p1), logit(the books' chance), TD]~~ -> [logit(p1), TD]."""
+    return [logit(p1), 1.0 if market == TD_MARKET else 0.0]
 
 
-def final_probs(market, p1_over, p1_under, pm, s2):
-    """Stage 2 where it exists and the market price does; else stage 1."""
-    if s2 is not None and pm is not None:
-        p = F.predict(s2, s2_features(market, p1_over, pm))
+def final_probs(market, p1_over, p1_under, s2):
+    """Stage 2 wherever it exists, ~~and the market price does~~ priced or not
+    `[Sam, 2026-10-11]`; else stage 1."""
+    if s2 is not None:
+        p = F.predict(s2, s2_features(market, p1_over))
         return p, (None if market == TD_MARKET else 1.0 - p)
     return p1_over, p1_under
 
@@ -690,8 +693,8 @@ def _weeks(lg, weeks, by_week, models, kept, logs, idx, cseason, cplayers, cidx,
                 p1o, p1u = s1_probs(mk, m, x, line)
                 if p1o is None:
                     continue
-                pm = market_prob(mk, rung)
-                po, pu = final_probs(mk, p1o, p1u, pm, s2)
+                pm = market_prob(mk, rung)           # for the record only
+                po, pu = final_probs(mk, p1o, p1u, s2)
                 pc, cpid = champion_prob(lg, cplayers, cidx, floor, who, mk, line)
                 row = {"league": lg, "game": "%s:%s" % (lg, eid), "event": eid, "week": w,
                        "player": who, "market": mk, "line": line, "y": y,
@@ -724,8 +727,8 @@ def _weeks(lg, weeks, by_week, models, kept, logs, idx, cseason, cplayers, cidx,
                               state="graded" if won is not None else "void"))
         # this week's graded rungs train stage 2 for LATER weeks only
         for r in week_rows:
-            if r["y"] is not None and r["p_market"] is not None:
-                s2_train.append((s2_features(r["market"], r["p_stage1"], r["p_market"]), r["y"]))
+            if r["y"] is not None:
+                s2_train.append((s2_features(r["market"], r["p_stage1"]), r["y"]))
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -880,7 +883,7 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
             p1o, p1u = s1_probs(mk, m, x, line)
             if p1o is None:
                 continue
-            po, pu = final_probs(mk, p1o, p1u, market_prob(mk, rung), s2)
+            po, pu = final_probs(mk, p1o, p1u, s2)
             if rated is not None:
                 for _side, _p in ((("yes", po),) if mk == TD_MARKET else (("over", po), ("under", pu))):
                     if _p is not None:

@@ -468,8 +468,13 @@ note boxes, tags and the stale bar now require their absence.
   `collect.build_card_fb` builds the props model first on BOTH card paths (the props
   pull and `card-fb`); it prices the props board itself and stamps `board_pulled_at`,
   and a model that priced another board leaves the whole build on the record
-  (`card_fb.props_model_rated`). Every card from the switch is method `…+props-model`
-  (record-only builds too), so the old bands stay as graded. When the name check
+  (`card_fb.props_model_rated`). Every card from the switch is method ~~`…+props-model`~~
+  `[Sam, 2026-10-11]` `…+props-own` (record-only builds too), so the old bands stay
+  as graded. `[Sam, 2026-10-11]` The model's chance is its OWN: stage 2 is stage 1
+  corrected by its own past misses (`fb_props_model.s2_features` = [logit(p1), TD],
+  ~~with the books' chance~~), trained on every graded rung and applied priced or
+  not; `p_market` stays in the data for the record only. Expect the low 50s and few
+  −200 favourites: that is the model being honest. `test_fb_props_own.py`. When the name check
   fails, only the records are withheld: a MODEL row keeps its % (Sam's choice; the
   model matched the player itself). A row's one sentence is
   its record at the line, this season first (~~the average, the far-line warning, the
@@ -757,7 +762,8 @@ fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   Rides `card-fb`. ~~⛔ Never touches the card; the switch
                   is Sam's.~~ `[Sam, 2026-10-09]` Sets the card's
                   confidence where it prices a prop; built first in
-                  `build_card_fb`, from the props board. Design:
+                  `build_card_fb`, from the props board. `[Sam, 2026-10-11]`
+                  Its stage 2 takes no price. Design:
                   research/fb_props_design.md.
 fb_card_calibration.py  the football props card's stated-vs-actual bands
                   and Sam's pre-registered calibration test

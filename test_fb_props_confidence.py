@@ -197,7 +197,8 @@ ck(bool(_rows) and not _bad, "🔴 every row, priced or not: one sentence, and n
    str(_bad[:3]))
 
 section("4. 🔴 THE TRACK RECORD STARTS A NEW METHOD FROM THE SWITCH")
-eq((DOC.get("card_method"), STALE.get("card_method")), (CF.METHOD_FIXED + "+props-model",) * 2,
+# `[Sam, 2026-10-11]` ~~"+props-model"~~ -> "+props-own": the model's own chance, no price.
+eq((DOC.get("card_method"), STALE.get("card_method")), (CF.METHOD_FIXED + "+props-own",) * 2,
    "🔴 every card from the switch carries the new method, a record-only build included, so the "
    "old bands stay as they were graded")
 
