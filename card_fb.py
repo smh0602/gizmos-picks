@@ -1390,12 +1390,12 @@ def model_game_rows(model_picks, games, slate):
 
 def alt_spread_rows(model_rows, ladder):
     """ONE alternate spread per game whose ladder is pulled and whose model
-    pick includes a spread: on the model's side, the rung with the highest
-    books' chance (`mkt`) at PRICE_FLOOR or longer, off the main line.
-
-    `[Sam, 2026-10-01]` ranked on the books' own odds: the model failed its
-    alt-line check, so the row's confidence is the books' chance and its
-    basis stays MARKET. No eligible rung, or no ladder yet: no row."""
+    pick includes a spread: on the model's side, off the main line, at
+    PRICE_FLOOR or longer, ~~the rung with the highest books' chance (`mkt`)~~
+    `[Sam, 2026-10-11]` the rung with the highest value above zero (`edge`)
+    where the spread fit, priced at that rung's own line (`p`), gives 50%+.
+    Its confidence is the model's own and its basis MODEL; a rung the model
+    cannot price gets no row. No eligible rung, or no ladder yet: no row."""
     lad = {(g.get("away"), g.get("home"), et_date(g.get("commence"))): g
            for g in (ladder or {}).get("games") or []}
     out = []
@@ -1407,20 +1407,20 @@ def alt_spread_rows(model_rows, ladder):
         main = r["line"] if main is None else (main if r["side"] == "home" else -main)
         ok = [x for x in g.get("spread") or [] if x.get("side") == r["side"]
               and x.get("best") is not None and x["best"] >= PRICE_FLOOR
-              and x.get("mkt") is not None and x.get("pt") != main
-              and x["mkt"] >= GL_MIN_CONF]
+              and x.get("p") is not None and x.get("pt") != main
+              and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
         if not ok:
             continue
-        x = max(ok, key=lambda x: (x["mkt"], x["best"]))
-        out.append(dict(r, kind="fb-line", basis="MARKET — the books' own chance",
+        x = max(ok, key=lambda x: (x["edge"], x["p"]))
+        out.append(dict(r, kind="fb-line", basis="MODEL — the game model's chance at this line",
                         market="alternate_spread", market_label=GL_LABEL["alternate_spread"],
                         line=x["pt"], book=GL_BOOK_KEY.get(x.get("book"), x.get("book")),
-                        price=x["best"], confidence_basis="MARKET", confidence=int(round(x["mkt"])),
+                        price=x["best"], confidence_basis="MODEL", confidence=int(round(x["p"])),
                         break_even=x.get("be"),
-                        edge=round(x["mkt"] - x["be"], 1) if x.get("be") is not None else None,
+                        edge=round(int(round(x["p"])) - x["be"], 1) if x.get("be") is not None else None,
                         main_line=main, sched_id=g.get("sched_id"),
-                        why=["The books price %s %+g at a %s%% chance; the best price, %+d "
-                             "at %s, needs %s%%." % (r["player"], x["pt"], int(round(x["mkt"])), x["best"],
+                        why=["The game model gives %s %d%% to cover %+g; the best price, %+d "
+                             "at %s, needs %s%%." % (r["player"], int(round(x["p"])), x["pt"], x["best"],
                                                      x.get("book"), x.get("be"))]))
     return out
 
@@ -1430,8 +1430,9 @@ def order_game_lines(rows, frozen=()):
     always kept), each spread pick followed directly by its own game's
     alternate spread. An alternate spread whose pick is not listed is not."""
     keep = {id(r) for r in frozen}
+    # `[Sam, 2026-10-11]` a tie is broken by the game, ~~by edge~~ (a price).
     model = sorted([r for r in rows if r.get("market") != "alternate_spread"],
-                   key=lambda r: (-(r.get("confidence") or 0), -(r.get("edge") or 0)))
+                   key=lambda r: (-(r.get("confidence") or 0), str(r.get("game")), r.get("market") or ""))
     pinned = [r for r in model if id(r) in keep]
     chosen = {id(r) for r in pinned} | {id(r) for r in [r for r in model if id(r) not in keep]
                                         [:max(0, GAME_LINES_MAX - len(pinned))]}

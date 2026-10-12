@@ -460,13 +460,37 @@ note boxes, tags and the stale bar now require their absence.
   confidence; a row that is not `kind` fb-line never stays in `game_lines`
   (archived) and is never drawn. Each spread pick is followed directly by
   ONE alternate spread when the books' ladder is pulled: the model's side,
-  the highest books' chance (`mkt`) at −400 or longer and 50% or more, off
-  the main line; it shows only under a listed pick. ⛔ Its confidence is the books' chance and its
-  basis stays MARKET (the model failed its alt-line check; Sam chose the
-  books' odds). `card-fb` builds `fb_model` and `game_lines_fb` BEFORE the
-  card. `record_fb` grades the alternate spreads in their own line
-  (`alt_spreads`); the model's picks keep fb-model.json's record.
-  `test_fb_game_picks.py`.
+  ~~the highest books' chance (`mkt`)~~ `[Sam, 2026-10-11]` the rung with the
+  highest value above zero where the spread fit, priced at that rung's own
+  line, gives 50% or more, at −400 or longer, off the main line; it shows only
+  under a listed pick. ~~⛔ Its confidence is the books' chance and its basis
+  stays MARKET~~: its confidence is the model's own and its basis MODEL; a rung
+  the model cannot price gets no row. `card-fb` builds `fb_model` and
+  `game_lines_fb` BEFORE the card. `record_fb` grades the alternate spreads in
+  their own line (`alt_spreads`, `by_basis` keeps the books'-chance rows apart);
+  the model's picks keep fb-model.json's record. `test_fb_game_picks.py`.
+- 🔴 **THE FOOTBALL GAME MODEL READS ITS OWN TEAM RATINGS, NEVER THE BOOKS'.** `[Sam,
+  2026-10-11]` *"our model needs to know the data and know these teams better than
+  they know themselves"*. `fb_model.own_ratings`: per row, every final game of every
+  stored `schedule-<season>.json.gz` (all divisions, FCS and below too) dated
+  before the row's own week's Monday. Margin = home edge × (0 neutral, else 1) +
+  R_home − R_away; points (one equation per side) = base + home-points edge × (at
+  home, not neutral) + O_team − D_opponent. ⛔ FROZEN SETTINGS (Cowork chose them
+  from five tried on the same games; the Track Record from the switch is the test,
+  so never re-tuned on this data): weight 0.5 ^ (days before that Monday / 150),
+  ridge 1 on every team term, none on the base or a home edge; pure-Python
+  Gauss-Seidel, warm-started each week (matches a direct solve to 1e-6). The fits'
+  first input: moneyline own margin / 10 (~~logit of the books' chance~~), spread
+  (own margin − line) / 10 (~~line / 7~~), total (own total − line) / 10
+  (~~(line − 45) / 10~~); every other input unchanged; no earlier game → 0.
+  `[2026-10-12]` Every game-market fit caps each standardised input at ±5, in training
+  and prediction (`fb_model.ZMAX`; head-to-head inputs 197–224 SD out printed
+  0.000000%); a fit without `zmax` (props, MLB) is unchanged. `pml`,
+  `M` and `T` stay for labels, grading, the break-even and the value check. Cowork's
+  walk-forward at closing prices (2026-10-11): NFL moneyline +1.1% → +15.8%
+  (12 → 39 underdogs); college moneyline +4.6% → −0.5% (it says 66% on picks that
+  win 54.5%); spreads NFL −12.4% → −8.0%, college −1.1% → +2.7%.
+  `test_fb_own_ratings.py`.
 - 🔴 **THE FOOTBALL TABS ARE ABOUT THE NEXT GAMES, WITH ALL THREE BOOKS.** `[Sam,
   2026-10-09]` NFL props for the next slate with an unstarted game are bought every
   day once it is within 72 hours (`freshness.FB_NEXT_SLATE_H`, `next_slate`; college
@@ -767,6 +791,8 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   both teams' chance for every priced game, the Game
                   Lines tab's input (winners.py). ⛔ Never
                   touches the card. Design: research/fb_model_design.md.
+                  `[Sam, 2026-10-11]` Its fits read the model's OWN team
+                  ratings (`own_ratings`), never the books' line or chance.
                   ⛔ Its SECOND record (closing lines, college at an
                   assumed -110, labelled) is kept apart from the headline
                   and shown under it, never mixed in [Sam, 2026-09-23].

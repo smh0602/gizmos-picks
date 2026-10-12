@@ -300,7 +300,9 @@ section("3. THE TAB: every rung, exact signed prices, the label, the slate")
 _r = tempfile.mkdtemp(prefix="gl-")
 _lg = os.path.join(_r, "data", "nfl")
 _sig = {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None, "def": None, "poss": None,
-        "out": None, "vac_h": None, "vac_a": None, "neutral": 0.0, "dome": 0.0}
+        "out": None, "vac_h": None, "vac_a": None, "neutral": 0.0, "dome": 0.0,
+        # `[Sam, 2026-10-11]` the model's own numbers: the line enters as (own - line) / 10
+        "own_m": 0.0, "own_t": 45.0}
 
 
 def _prow(gid, sid, commence, home, away):
@@ -311,8 +313,8 @@ def _prow(gid, sid, commence, home, away):
 
 _k_sp = len(F.features(_prow("g1", "S1", GAMES[0][1], BUF, LAC), "spread"))
 _k_to = len(F.features(_prow("g1", "S1", GAMES[0][1], BUF, LAC), "total"))
-_models = {"spread": {"mu": [0.0] * _k_sp, "sd": [1.0] * _k_sp, "w": [0.0, -1.0] + [0.0] * (_k_sp - 1)},
-           "total": {"mu": [0.0] * _k_to, "sd": [1.0] * _k_to, "w": [0.0, -1.0] + [0.0] * (_k_to - 1)}}
+_models = {"spread": {"mu": [0.0] * _k_sp, "sd": [1.0] * _k_sp, "w": [0.0, 1.0] + [0.0] * (_k_sp - 1)},
+           "total": {"mu": [0.0] * _k_to, "sd": [1.0] * _k_to, "w": [0.0, 1.0] + [0.0] * (_k_to - 1)}}
 wjs(os.path.join(_lg, "latest", "fb-model.json"),
     {"pricing": {"models": _models, "games": [_prow(g[0], "S" + g[0][1:], g[1], g[2], g[3]) for g in GAMES]}})
 wjs(os.path.join(_lg, "latest", "alt-lines-check.json"), _chk)

@@ -131,8 +131,10 @@ ck(L.paired([dict(s, p_self=None) for s in _better])["n"] == 0,
 # ══════════════════════════════════════════════════════════════════════
 _r = {"id": "g", "final": True, "hs": 24, "as": 20, "M": 10.0, "T": 44.5, "pml": 0.6,
       "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None, "def": None,
-              "poss": None, "out": None, "neutral": 0.0, "dome": 0.0}}
-ck(L.closing_features(_r, "spread", 3.0)[0] == 3.0 / 7.0,
+              "poss": None, "out": None, "neutral": 0.0, "dome": 0.0, "own_m": 5.0, "own_t": 47.0}}
+# `[Sam, 2026-10-11]` the line enters through the model's own margin: (own - line) / 10
+#    (~~line / 7~~).
+ck(L.closing_features(_r, "spread", 3.0)[0] == (5.0 - 3.0) / 10.0,
    "🔴 the spread probability is taken AT the closing line (3), not the training line (10)",
    "got %r" % L.closing_features(_r, "spread", 3.0))
 ck(L.closing_outcome(_r, "spread", 3.0) == 1 and L.closing_outcome(_r, "spread", 4.0) is None
