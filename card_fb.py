@@ -870,7 +870,9 @@ METHOD_CURRENT = "2025-only"
 METHOD_FIXED = "season-blend"
 METHOD_FIXED_S9 = "season-blend+signal9"
 TEAM_UNIT = re.compile(r" (?:D/ST|Defense)$")    # a team's defense, never a player
-METHOD_PROPS_MODEL = "+props-model"     # `[Sam, 2026-10-09]` appended to the record's method
+# `[Sam, 2026-10-09]` appended to the record's method: ~~"+props-model"~~ (stage 2 with the
+#    price) -> `[Sam, 2026-10-11]` "+props-own", the props model's own chance, no price.
+METHOD_PROPS_MODEL = "+props-own"
 
 
 def pm_key(gid, who, mk, line, side):
