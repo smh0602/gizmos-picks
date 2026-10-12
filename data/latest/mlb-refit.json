@@ -1,74 +1,74 @@
 {
  "spec": "research/mlb_refit_spec.md",
- "built_at": "2026-10-05T19:50:12Z",
+ "built_at": "2026-10-12T20:26:05Z",
  "verdict": "DOES NOT QUALIFY",
  "rule": "The challenger replaces v5.0 only if its per-prediction log loss is lower with one-sided p < 0.05 (paired test, every prediction from one pitcher treated as one cluster) over at least 500 predictions. [Sam, 2026-09-23]",
  "display": {
   "champion": {
    "predictions": {
-    "value": 15312,
+    "value": 15356,
     "basis": "DESCRIPTIVE"
    },
    "mean_log_loss": {
-    "value": 2.57987,
+    "value": 2.58122,
     "basis": "DESCRIPTIVE"
    },
    "strikeouts_mean_log_loss": {
-    "value": 2.22142,
+    "value": 2.22165,
     "basis": "DESCRIPTIVE"
    },
    "outs_mean_log_loss": {
-    "value": 2.93833,
+    "value": 2.94079,
     "basis": "DESCRIPTIVE"
    },
    "name": "v5.0 (frozen coefficients)"
   },
   "challenger": {
    "predictions": {
-    "value": 13304,
+    "value": 13348,
     "basis": "DESCRIPTIVE"
    },
    "mean_log_loss": {
-    "value": 2.5847,
+    "value": 2.58625,
     "basis": "DESCRIPTIVE"
    },
    "strikeouts_mean_log_loss": {
-    "value": 2.21968,
+    "value": 2.21995,
     "basis": "DESCRIPTIVE"
    },
    "outs_mean_log_loss": {
-    "value": 2.94972,
+    "value": 2.95255,
     "basis": "DESCRIPTIVE"
    },
    "name": "re-fitted each week on earlier games"
   },
   "paired": {
    "predictions": {
-    "value": 13304,
+    "value": 13348,
     "basis": "DESCRIPTIVE"
    },
    "pitchers": {
-    "value": 326,
+    "value": 328,
     "basis": "DESCRIPTIVE"
    },
    "mean_improvement": {
-    "value": -0.0214,
+    "value": -0.02135,
     "basis": "DESCRIPTIVE"
    },
    "t": {
-    "value": -2.763,
+    "value": -2.765,
     "basis": "DESCRIPTIVE"
    },
    "p_one_sided": {
-    "value": 0.996975,
+    "value": 0.996994,
     "basis": "DESCRIPTIVE"
    },
    "strikeouts_mean_improvement": {
-    "value": -0.00058,
+    "value": -0.00057,
     "basis": "DESCRIPTIVE"
    },
    "outs_mean_improvement": {
-    "value": -0.04222,
+    "value": -0.04212,
     "basis": "DESCRIPTIVE"
    }
   },
@@ -77,7 +77,7 @@
     {
      "bucket": "0-10%",
      "rows": {
-      "value": 56830,
+      "value": 57011,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -92,7 +92,7 @@
     {
      "bucket": "10-20%",
      "rows": {
-      "value": 18631,
+      "value": 18691,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -107,7 +107,7 @@
     {
      "bucket": "20-30%",
      "rows": {
-      "value": 13577,
+      "value": 13617,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -115,14 +115,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 25.8,
+      "value": 25.7,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "30-40%",
      "rows": {
-      "value": 11251,
+      "value": 11280,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -130,14 +130,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 37.6,
+      "value": 37.5,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "40-50%",
      "rows": {
-      "value": 10394,
+      "value": 10421,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -145,14 +145,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 48.6,
+      "value": 48.5,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "50-60%",
      "rows": {
-      "value": 10303,
+      "value": 10335,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -167,7 +167,7 @@
     {
      "bucket": "60-70%",
      "rows": {
-      "value": 10754,
+      "value": 10780,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -175,14 +175,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 67.7,
+      "value": 67.6,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "70-80%",
      "rows": {
-      "value": 12239,
+      "value": 12276,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -197,7 +197,7 @@
     {
      "bucket": "80-90%",
      "rows": {
-      "value": 15864,
+      "value": 15909,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -212,7 +212,7 @@
     {
      "bucket": "90-100%",
      "rows": {
-      "value": 39213,
+      "value": 39308,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -229,7 +229,7 @@
     {
      "bucket": "0-10%",
      "rows": {
-      "value": 48013,
+      "value": 48196,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -244,7 +244,7 @@
     {
      "bucket": "10-20%",
      "rows": {
-      "value": 16061,
+      "value": 16118,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -259,7 +259,7 @@
     {
      "bucket": "20-30%",
      "rows": {
-      "value": 11866,
+      "value": 11902,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -274,7 +274,7 @@
     {
      "bucket": "30-40%",
      "rows": {
-      "value": 9780,
+      "value": 9814,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -289,7 +289,7 @@
     {
      "bucket": "40-50%",
      "rows": {
-      "value": 9166,
+      "value": 9198,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -297,14 +297,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 45.8,
+      "value": 45.7,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "50-60%",
      "rows": {
-      "value": 8898,
+      "value": 8923,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -312,14 +312,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 57.0,
+      "value": 56.9,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "60-70%",
      "rows": {
-      "value": 9496,
+      "value": 9525,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -327,14 +327,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 66.0,
+      "value": 65.9,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "70-80%",
      "rows": {
-      "value": 10702,
+      "value": 10738,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -342,14 +342,14 @@
       "basis": "MODEL"
      },
      "it_hit": {
-      "value": 75.5,
+      "value": 75.4,
       "basis": "DESCRIPTIVE"
      }
     },
     {
      "bucket": "80-90%",
      "rows": {
-      "value": 14083,
+      "value": 14129,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -364,7 +364,7 @@
     {
      "bucket": "90-100%",
      "rows": {
-      "value": 34887,
+      "value": 34981,
       "basis": "DESCRIPTIVE"
      },
      "model_said": {
@@ -417,11 +417,11 @@
     },
     "P": {
      "finals": {
-      "value": 15,
+      "value": 26,
       "basis": "DESCRIPTIVE"
      },
      "starts": {
-      "value": 30,
+      "value": 52,
       "basis": "DESCRIPTIVE"
      },
      "complete": true
@@ -431,52 +431,52 @@
   "latest_challenger_coefficients": {
    "strikeouts": {
     "b0": {
-     "value": 4.898,
+     "value": 4.8994,
      "basis": "MODEL"
     },
     "trail": {
-     "value": 0.6453,
+     "value": 0.6444,
      "basis": "MODEL"
     },
     "c": {
-     "value": 4.9274,
+     "value": 4.9306,
      "basis": "MODEL"
     },
     "opp": {
-     "value": 0.6733,
+     "value": 0.6731,
      "basis": "MODEL"
     },
     "home": {
-     "value": 0.172,
+     "value": 0.1742,
      "basis": "MODEL"
     }
    },
    "outs": {
     "a0": {
-     "value": 15.8537,
+     "value": 15.8488,
      "basis": "MODEL"
     },
     "c": {
-     "value": 15.9654,
+     "value": 15.9694,
      "basis": "MODEL"
     },
     "np": {
-     "value": 0.0405,
+     "value": 0.0409,
      "basis": "MODEL"
     },
     "cnp": {
-     "value": 87.2256,
+     "value": 87.2228,
      "basis": "MODEL"
     },
     "home": {
-     "value": 0.2098,
+     "value": 0.2138,
      "basis": "MODEL"
     },
     "tiers": {
      "value": [
-      0.5849,
-      0.6693,
-      0.4994
+      0.5843,
+      0.6616,
+      0.4951
      ],
      "basis": "MODEL"
     }
@@ -860,6 +860,12 @@
    "week": "2026-09-28",
    "starts": 24,
    "train": 7632,
+   "challenger": true
+  },
+  {
+   "week": "2026-10-05",
+   "starts": 22,
+   "train": 7656,
    "challenger": true
   }
  ],
