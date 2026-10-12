@@ -613,12 +613,30 @@ def s2_features(market, p1):
     return [logit(p1), 1.0 if market == TD_MARKET else 0.0]
 
 
+def s2_rows(market, p1_over, y):
+    """`[2026-10-12]` Stage 2's training rows for one graded rung: BOTH sides of a
+    two-sided rung (~~the over side only~~: that fit learned a lean toward one side
+    from the early weeks, and it did not hold); an anytime-TD rung's one side."""
+    rows = [(s2_features(market, p1_over), y)]
+    if market != TD_MARKET:
+        rows.append((s2_features(market, 1.0 - p1_over), 1 - y))
+    return rows
+
+
 def final_probs(market, p1_over, p1_under, s2):
     """Stage 2 wherever it exists, ~~and the market price does~~ priced or not
-    `[Sam, 2026-10-11]`; else stage 1."""
+    `[Sam, 2026-10-11]`; else stage 1. `[2026-10-12]` Applied PER SIDE (~~the under
+    as 1 - the corrected over~~), so an over and an under at the same stage-1 chance
+    get the same corrected chance. The fit's ridge on the TD term leaves the two sides
+    up to 0.05 points off summing to 1 (4.8e-4 measured), so the pair is rescaled."""
     if s2 is not None:
         p = F.predict(s2, s2_features(market, p1_over))
-        return p, (None if market == TD_MARKET else 1.0 - p)
+        if market == TD_MARKET:
+            return p, None
+        q = F.predict(s2, s2_features(market, 1.0 - p1_over))
+        p, q = p / (p + q), q / (p + q)
+        assert abs(p + q - 1.0) < 1e-9, "stage 2: over %r + under %r != 1" % (p, q)
+        return p, q
     return p1_over, p1_under
 
 
@@ -725,10 +743,10 @@ def _weeks(lg, weeks, by_week, models, kept, logs, idx, cseason, cplayers, cidx,
             picks.append(dict(pk, game_id=r["game"], market=r["market"], player=r["player"],
                               line=r["line"], week=w, day=r["day"], won=won,
                               state="graded" if won is not None else "void"))
-        # this week's graded rungs train stage 2 for LATER weeks only
+        # this week's graded rungs train stage 2 for LATER weeks only, both sides
         for r in week_rows:
             if r["y"] is not None:
-                s2_train.append((s2_features(r["market"], r["p_stage1"]), r["y"]))
+                s2_train.extend(s2_rows(r["market"], r["p_stage1"], r["y"]))
 
 
 # ══════════════════════════════════════════════════════════════════════

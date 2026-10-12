@@ -473,7 +473,9 @@ note boxes, tags and the stale bar now require their absence.
   as graded. `[Sam, 2026-10-11]` The model's chance is its OWN: stage 2 is stage 1
   corrected by its own past misses (`fb_props_model.s2_features` = [logit(p1), TD],
   ~~with the books' chance~~), trained on every graded rung and applied priced or
-  not; `p_market` stays in the data for the record only. Expect the low 50s and few
+  not; `[2026-10-12]` trained on BOTH sides of every two-sided rung (`s2_rows`) and
+  applied per side (~~the under as 1 − the corrected over~~), the pair rescaled to
+  sum to 1; `p_market` stays in the data for the record only. Expect the low 50s and few
   −200 favourites: that is the model being honest. `test_fb_props_own.py`. When the name check
   fails, only the records are withheld: a MODEL row keeps its % (Sam's choice; the
   model matched the player itself). A row's one sentence is

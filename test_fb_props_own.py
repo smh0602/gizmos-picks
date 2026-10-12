@@ -9,6 +9,8 @@ here reads the live data tree.
   1. Changing every price leaves every rated side's chance unchanged.
   2. That chance is stage 1 corrected by its own misses, never stage 1 raw.
   3. The Track Record opens a new method and keeps the old bands as graded.
+  4. `[2026-10-12]` An over and an under at the same stage-1 chance get the same
+     corrected chance, and stage 2 trains on both sides of every two-sided rung.
 
 # @vacuity 🔴 a shown chance never reads the books' chance
 #   file: fb_props_model.py
@@ -24,6 +26,16 @@ here reads the live data tree.
 #   file: card_fb.py
 #   find: METHOD_PROPS_MODEL = "+props-own"
 #   with: METHOD_PROPS_MODEL = "+props-model"
+#
+# @vacuity 🔴 the under is corrected on its own side, never 1 - the corrected over
+#   file: fb_props_model.py
+#   find: q = F.predict(s2, s2_features(market, 1.0 - p1_over))
+#   with: q = 1.0 - p
+#
+# @vacuity 🔴 stage 2 trains on both sides of a two-sided rung
+#   file: fb_props_model.py
+#   find: rows.append((s2_features(market, 1.0 - p1_over), 1 - y))
+#   with: pass
 """
 import os
 import random
@@ -45,7 +57,7 @@ MK = "player_reception_yds"
 WHO = ["Wide One", "Wide Two", "Wide Three"]
 # Stage 1 runs hot: it says 86% on rungs that hit about half the time.
 _rnd = random.Random(9)
-S2_TRAIN = [(M.s2_features(MK, 0.86), 1 if _rnd.random() < 0.5 else 0) for _ in range(400)]
+S2_TRAIN = [row for _ in range(400) for row in M.s2_rows(MK, 0.86, 1 if _rnd.random() < 0.5 else 0)]
 WF = {"final": {MK: types.SimpleNamespace(solve=lambda: "m")}, "s2_train": S2_TRAIN,
       "H": types.SimpleNamespace(player={str(i): [(2026, {"team": "HOM"})] for i in range(3)},
                                  features=lambda pid, season, mk, ctx: [1.0]),
@@ -91,10 +103,30 @@ ck(len(_a) == 6 and _a == _b, "🔴 every rated side keeps its chance when every
 section("2. 🔴 ...AND IT IS STAGE 1 CORRECTED BY ITS OWN MISSES")
 # ══════════════════════════════════════════════════════════════════════
 _fit = M.F.fit([x for x, _ in S2_TRAIN], [y for _, y in S2_TRAIN])
-_want = round(100 * M.F.predict(_fit, M.s2_features(MK, 0.86)), 1)
+_po, _pu = (M.F.predict(_fit, M.s2_features(MK, s)) for s in (0.86, 1.0 - 0.86))
+_want = round(100 * _po / (_po + _pu), 1)
 eq({p for _w, s, p in _a if s == "over"}, {_want},
    "🔴 stage 1 says 86%%; corrected by its own past misses (about half hit) the card shows %s%%" % _want)
 ck(abs(_want - 86.0) > 20, "⚠️ the correction really moves the number, so the check asks something")
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴 AN OVER AND AN UNDER AT THE SAME STAGE-1 CHANCE GET THE SAME CHANCE")
+# ══════════════════════════════════════════════════════════════════════
+# A stage 2 that leans toward the over, the way the over-side-only fit did.
+_lean = {"mu": [0.0, 0.0], "sd": [1.0, 1.0], "w": [0.5, 0.6, 0.0]}
+_over70, _under30 = M.final_probs(MK, 0.7, 0.3, _lean)
+_over30, _under70 = M.final_probs(MK, 0.3, 0.7, _lean)
+ck(abs(_over70 - _under70) < 1e-12 and abs(_over30 - _under30) < 1e-12,
+   "🔴 stage 1 at 70%%: the over and the under both show %.4f; at 30%%: %.4f / %.4f"
+   % (_over70, _over30, _under30), "%.6f vs %.6f" % (_over70, _under70))
+ck(abs(_over70 + _under30 - 1.0) < 1e-9, "🔴 the two sides of one rung sum to 1")
+_old = 1.0 - M.F.predict(_lean, M.s2_features(MK, 0.3))
+ck(abs(_old - _over70) > 0.05, "⚠️ the old form (1 - the corrected over) differs here, so the check asks something",
+   "%.4f vs %.4f" % (_old, _over70))
+eq(M.s2_rows(MK, 0.7, 1), [(M.s2_features(MK, 0.7), 1), (M.s2_features(MK, 1.0 - 0.7), 0)],
+   "🔴 a graded rung trains stage 2 on both sides: the over at 70% won, the under at 30% lost")
+eq(M.s2_rows(M.TD_MARKET, 0.3, 1), [(M.s2_features(M.TD_MARKET, 0.3), 1)],
+   "an anytime-TD rung trains on its one side")
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 THE TRACK RECORD OPENS A NEW METHOD; THE OLD BANDS STAY AS GRADED")
