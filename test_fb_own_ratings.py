@@ -15,6 +15,8 @@ leagues and rows only; nothing here reads the live data tree.
   5. Changing every price leaves the Game Lines tab's chances and every
      alternate-spread rung's chance unchanged.
   6. The alternate-spread record keeps the books'-chance rows apart.
+  7. `[2026-10-12]` Every game-market fit caps each standardised input at ±5, in
+     training and in prediction; a fit made without the cap is unchanged.
 
 # @vacuity 🔴 the Gauss-Seidel margin fit is the direct solve
 #   file: fb_model.py
@@ -55,6 +57,26 @@ leagues and rows only; nothing here reads the live data tree.
 #   file: record_fb.py
 #   find: "confidence_basis": r.get("confidence_basis") or "MARKET",
 #   with: "confidence_basis": "MARKET",
+#
+# @vacuity 🔴 a prediction caps each standardised input at zmax
+#   file: fb_model.py
+#   find: z = [1.0] + [max(-zmax, min(zmax, v)) for v in z[1:]]
+#   with: pass
+#
+# @vacuity 🔴 ...and so does the training
+#   file: fb_model.py
+#   find: Z = [[1.0] + [max(-zmax, min(zmax, v)) for v in z[1:]] for z in Z]
+#   with: pass
+#
+# @vacuity 🔴 a fit made without zmax is unchanged
+#   file: fb_model.py
+#   find: def fit(X, y, ridge=RIDGE, iters=50, zmax=None):
+#   with: def fit(X, y, ridge=RIDGE, iters=50, zmax=5.0):
+#
+# @vacuity 🔴 every game-market fit passes zmax
+#   file: fb_model.py
+#   find: model = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
+#   with: model = fit([x for x, _ in data], [y for _, y in data])
 """
 import atexit
 import datetime
@@ -252,3 +274,46 @@ _rec = R.grade_alt_spreads(
      "S3": {"final": True, "home_score": 3, "away_score": 30}}, GLF.grade_rung)
 eq(_rec["by_basis"], {"MARKET": {"w": 1, "n": 2, "pct": 50.0}, "MODEL": {"w": 0, "n": 1, "pct": 0.0}},
    "🔴 the books'-chance rows keep their record as graded, and the model's own open theirs")
+
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴 THE GAME FITS CAP EACH STANDARDISED INPUT AT ±5")
+# ══════════════════════════════════════════════════════════════════════
+# 240 games on two inputs; then one more whose second input sits far out in training
+# (head-to-head inputs 197-224 SD out on 8569375b printed 0.000000%).
+_rnd = random.Random(12)
+_X = [[_rnd.uniform(-12, 12), _rnd.gauss(0, 1)] for _ in range(240)] + [[2.0, 60.0]]
+_Y = [1 if a + 0.1 * b + _rnd.gauss(0, 4) > 0 else 0 for a, b in _X]
+
+
+def grad(m, cap):
+    """The ridge-logistic gradient at m's weights, inputs standardised by m and
+    capped at `cap` (None: not capped). Zero at the fit's optimum."""
+    g = [0.0] * len(m["w"])
+    for x, t in zip(_X, _Y):
+        z = [1.0] + [(x[j] - m["mu"][j]) / m["sd"][j] for j in range(len(x))]
+        z = [1.0] + [max(-cap, min(cap, v)) if cap else v for v in z[1:]]
+        p = 1.0 / (1.0 + math.exp(-sum(a * b for a, b in zip(m["w"], z))))
+        g = [gi + (p - t) * zi for gi, zi in zip(g, z)]
+    return max(abs(gi + (F.RIDGE * wi if i else 0.0)) for i, (gi, wi) in enumerate(zip(g, m["w"])))
+
+
+_pz, _p0 = F.fit(_X[:240], _Y[:240], zmax=F.ZMAX), F.fit(_X[:240], _Y[:240])
+_mz, _m0 = F.fit(_X, _Y, zmax=F.ZMAX), F.fit(_X, _Y)
+_at = lambda m, k: F.predict(m, [0.0, m["mu"][1] + k * m["sd"][1]])  # noqa: E731
+ck(_at(_pz, 200) == _at(_pz, 5) and abs(_at(_p0, 200) - _at(_p0, 5)) > 0.2,
+   "🔴 a game 200 SD out on one input gets the same chance as at 5 SD: %.4f (uncapped %.4f vs %.4f)"
+   % (_at(_pz, 200), _at(_p0, 200), _at(_p0, 5)), "%.4f vs %.4f" % (_at(_pz, 200), _at(_pz, 5)))
+ck(_mz["zmax"] == 5.0 and grad(_mz, 5.0) < 1e-6 and grad(_mz, None) > 1e-3,
+   "🔴 the capped fit is trained on the capped inputs (it stores zmax 5)", "%.2e" % grad(_mz, 5.0))
+ck(set(_m0) == {"mu", "sd", "w"} and grad(_m0, None) < 1e-6 and grad(_m0, 5.0) > 1e-3,
+   "🔴 a fit made without zmax is the plain fit on the raw inputs, as before (props, MLB pitcher, "
+   "MLB game model)", "%s %.2e" % (sorted(_m0), grad(_m0, None)))
+_seen, _real = [], F.fit
+F.fit = lambda X, y, *a, **kw: _seen.append(kw.get("zmax")) or _real(X, y, *a, **kw)
+try:
+    _rows = [dict(r, day="2026-10-05", snap=None) for r in TRAIN]
+    F.walk_forward(_rows), F.current_picks("nfl", _rows, now=_now), F.pricing(_rows, _now), F.win_chances(_rows, _now)
+finally:
+    F.fit = _real
+eq(_seen, [5.0] * 9, "🔴 every game-market fit caps at ±5: walk-forward 3, current picks 3, "
+                     "the Game Lines tab and alternate rungs' pricing 2, win chances 1")

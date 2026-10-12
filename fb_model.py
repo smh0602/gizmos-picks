@@ -44,6 +44,7 @@ SEASONS = (2025, 2026)
 MARKETS = ("spread", "total", "moneyline")
 RIDGE = 1.0                  # ⛔ design §2
 MIN_TRAIN = 150              # ⛔ design §4
+ZMAX = 5.0                   # `[2026-10-12]` the game fits cap each standardised input at ±5
 PICK_WINDOW_DAYS = 7         # the page shows the coming week's slate only
 Z95 = 1.959964
 BASES = ("MODEL", "MARKET", "DESCRIPTIVE")
@@ -531,15 +532,19 @@ def _solve(A, b):
     return [M[i][n] for i in range(n)]
 
 
-def fit(X, y, ridge=RIDGE, iters=50):
+def fit(X, y, ridge=RIDGE, iters=50, zmax=None):
     """-> {"mu", "sd", "w"} or None. Inputs standardised on the training set;
-    the intercept (w[0]) is not penalised."""
+    the intercept (w[0]) is not penalised. `[2026-10-12]` With `zmax` (stored in
+    the model), each standardised input is capped at ±zmax here and in `predict`;
+    mu and sd still come from the raw inputs. Without it, nothing changes."""
     if len(X) < MIN_TRAIN or len(set(y)) < 2:
         return None
     k = len(X[0])
     mu = [sum(x[j] for x in X) / len(X) for j in range(k)]
     sd = [math.sqrt(sum((x[j] - mu[j]) ** 2 for x in X) / len(X)) or 1.0 for j in range(k)]
     Z = [[1.0] + [(x[j] - mu[j]) / sd[j] for j in range(k)] for x in X]
+    if zmax is not None:
+        Z = [[1.0] + [max(-zmax, min(zmax, v)) for v in z[1:]] for z in Z]
     w = [0.0] * (k + 1)
     for _ in range(iters):
         g = [0.0] * (k + 1)
@@ -563,11 +568,14 @@ def fit(X, y, ridge=RIDGE, iters=50):
         w = [a - b for a, b in zip(w, step)]
         if max(abs(s) for s in step) < 1e-8:
             break
-    return {"mu": mu, "sd": sd, "w": w}
+    return {"mu": mu, "sd": sd, "w": w} | ({"zmax": zmax} if zmax is not None else {})
 
 
 def predict(m, x):
     z = [1.0] + [(x[j] - m["mu"][j]) / m["sd"][j] for j in range(len(x))]
+    zmax = m.get("zmax")
+    if zmax is not None:
+        z = [1.0] + [max(-zmax, min(zmax, v)) for v in z[1:]]
     e = sum(a * b for a, b in zip(m["w"], z))
     return 1.0 / (1.0 + math.exp(-max(-35.0, min(35.0, e))))
 
@@ -666,7 +674,7 @@ def walk_forward(rows):
         train = [r for r in rows if r["day"] < wk]
         for mk in MARKETS:
             data = [(features(r, mk), label(r, mk)) for r in train if label(r, mk) is not None]
-            model = fit([x for x, _ in data], [y for _, y in data])
+            model = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
             if not model:
                 continue
             for r in weeks[wk]:
@@ -749,7 +757,7 @@ def current_picks(lg, rows, root=None, now=None):
     models = {}
     for mk in MARKETS:
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
-        models[mk] = fit([x for x, _ in data], [y for _, y in data])
+        models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
     out = []
     for r in rows:
         snap = r["snap"]
@@ -786,7 +794,7 @@ def pricing(rows, now=None):
     models = {}
     for mk in ("spread", "total"):
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
-        models[mk] = fit([x for x, _ in data], [y for _, y in data])
+        models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
     games = []
     for r in rows:
         if r["final"] or r["day"] < now[:10] or r["day"] > horizon:
@@ -809,7 +817,7 @@ def win_chances(rows, now=None):
                + datetime.timedelta(days=PRICING_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     data = [(features(r, "moneyline"), label(r, "moneyline")) for r in rows
             if label(r, "moneyline") is not None]
-    m = fit([x for x, _ in data], [y for _, y in data])
+    m = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
     out = []
     for r in rows:
         c = (r.get("snap") or {}).get("commence")

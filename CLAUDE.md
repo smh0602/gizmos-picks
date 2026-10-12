@@ -461,7 +461,10 @@ note boxes, tags and the stale bar now require their absence.
   Gauss-Seidel, warm-started each week (matches a direct solve to 1e-6). The fits'
   first input: moneyline own margin / 10 (~~logit of the books' chance~~), spread
   (own margin − line) / 10 (~~line / 7~~), total (own total − line) / 10
-  (~~(line − 45) / 10~~); every other input unchanged; no earlier game → 0. `pml`,
+  (~~(line − 45) / 10~~); every other input unchanged; no earlier game → 0.
+  `[2026-10-12]` Every game-market fit caps each standardised input at ±5, in training
+  and prediction (`fb_model.ZMAX`; head-to-head inputs 197–224 SD out printed
+  0.000000%); a fit without `zmax` (props, MLB) is unchanged. `pml`,
   `M` and `T` stay for labels, grading, the break-even and the value check. Cowork's
   walk-forward at closing prices (2026-10-11): NFL moneyline +1.1% → +15.8%
   (12 → 39 underdogs); college moneyline +4.6% → −0.5% (it says 66% on picks that
