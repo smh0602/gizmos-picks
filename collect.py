@@ -3817,6 +3817,7 @@ def collect_record():
                          "blend": p.get("blend"), "band": p.get("band"),
                          "confidence": p.get("confidence"),
                          "confidence_basis": p.get("confidence_basis"),
+                         "confidence_method": p.get("confidence_method"),
                          "implied": p.get("break_even") or p.get("implied"),
                          "edge": p.get("edge"),
                          "won": None if w is None else bool(w),
@@ -3880,11 +3881,13 @@ def collect_record():
     # a pitcher row can print a corrected number, and hitter rows never had
     # a table at all (audit Proposal B). ⛔ Built from `confidence`, which
     # every machine card row carries; a row without one has no bucket.
-    def printed_buckets(kind):
+    def printed_buckets(kind, method=None):
         bk = {}
         for r in allrows:
             c = r.get("confidence")
             if r["kind"] != kind or not isinstance(c, (int, float)):
+                continue
+            if method is not None and (r.get("confidence_method") or "BLEND") != method:
                 continue
             bk.setdefault(min(90, int(c // 10) * 10), []).append(r)
         return [{"bucket": f"{b}-{b+10}%",
@@ -3923,6 +3926,14 @@ def collect_record():
                          "predicted": round(sum(r["blend"] for r in v) / len(v), 1),
                          **tally(v)} for b, v in sorted(buckets.items())],
         "calibration_printed": {k: printed_buckets(k) for k in ("pitcher", "hitter")},
+        # `[Sam, 2026-10-11]` a pitcher row prints the model's own number from
+        #    the switch (C1, no price): its printed bands are kept apart by the
+        #    method that printed them (C2 with the price, BLEND before or
+        #    without a mapping), so the old bands stay as they were graded.
+        "calibration_printed_by_method": {
+            m: printed_buckets("pitcher", m)
+            for m in sorted({r.get("confidence_method") or "BLEND" for r in allrows
+                             if r["kind"] == "pitcher" and isinstance(r.get("confidence"), (int, float))})},
         # 🔴 THE GAME MODEL'S LINES, IN THEIR OWN LINE: never in `overall`,
         #    `by_kind` or any table above. verify_record re-grades it.
         "game_lines": {**tally(gl_rows),
