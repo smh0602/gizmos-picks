@@ -1,24 +1,39 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-12T10:38:58Z",
+ "checked_at": "2026-10-12T16:07:35Z",
  "et_date": "2026-10-12",
- "healthy": true,
+ "healthy": false,
  "broken": 0,
- "degraded": 0,
- "findings": [],
+ "degraded": 2,
+ "findings": [
+  {
+   "key": "stopped:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf has not updated since Mon 08:13Z",
+   "why": "gamelines is past due with no collect run for ncaaf since then (oldest: gamelines, due 2026-10-12T11:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Mon 08:13Z",
+   "why": "gamelines is past due with no collect run for nfl since then (oldest: gamelines, due 2026-10-12T12:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  }
+ ],
  "repairs": [],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 15511,
-  "pulled_at": "2026-10-11T22:54:09Z",
+  "balance": 15473,
+  "pulled_at": "2026-10-12T11:02:54Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 11.7,
+  "reading_age_hours": 5.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-11T22:54:09Z",
-  "source": "data/ncaaf/2026-10-11/gamelines/2254.json.gz",
-  "readings_on_disk": 784,
+  "newest_paid_pull": "2026-10-12T11:02:53Z",
+  "source": "data/2026-10-12/props-batter/1102.json.gz",
+  "readings_on_disk": 787,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
