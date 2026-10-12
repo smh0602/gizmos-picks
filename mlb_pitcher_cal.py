@@ -136,11 +136,15 @@ def load_rows(root=ROOT):
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 🔴 WHAT SHIPPED `[scored 2026-09-25]`: C2, the blend with the price.
+# 🔴 WHAT SHIPPED: ~~`[scored 2026-09-25]` C2, the blend with the price~~.
+# `[Sam, 2026-10-11]` C1, the blend corrected by its own past misses, NO
+# price: "only show confidence score on each pick that the model picks,
+# BASED ON THE MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS." C1 qualified
+# under the same frozen bar (research/mlb_pitcher_cal_run_2026-09-25.json).
 # card.py reads THESE two functions and nothing else, so the number the
 # card prints is fitted by exactly the code the test scored (rule 117).
 # ══════════════════════════════════════════════════════════════════════
-SHIPPED = "C2"
+SHIPPED = "C1"
 
 
 def graded_rows(root=ROOT, before=None):
@@ -178,14 +182,15 @@ def mappings(before, root=ROOT):
     return out
 
 
-def corrected(maps, market, blend_pct, be_pct):
-    """The printed confidence (0-100), or None when there is no mapping."""
+def corrected(maps, market, blend_pct, be_pct=None):
+    """The printed confidence (0-100), or None when there is no mapping.
+    ⛔ Under C1 the price is never read: a row with no price is corrected too."""
     # ⛔ SAM'S OFF SWITCH: `SHIPPED = None` prints the plain blend again.
     m = (maps or {}).get(market) if SHIPPED else None
-    if m is None or blend_pct is None or be_pct is None:
+    if m is None or blend_pct is None or (SHIPPED != "C1" and be_pct is None):
         return None
-    return 100.0 * fb_model.predict(
-        m, features({"blend": blend_pct / 100.0, "be": be_pct / 100.0}, SHIPPED))
+    return 100.0 * fb_model.predict(m, features(
+        {"blend": blend_pct / 100.0, "be": None if be_pct is None else be_pct / 100.0}, SHIPPED))
 
 
 def smoothed(r):

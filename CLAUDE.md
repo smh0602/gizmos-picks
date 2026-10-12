@@ -271,7 +271,7 @@ note boxes, tags and the stale bar now require their absence.
 | | |
 |---|---|
 | **Model coefficients in `card.py`** | Fitted, re-fit monthly. ⛔ Do not "tune" one, round one, or tier a term that ships pooled. |
-| **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. `[2026-09-25]` ~~A pitcher row prints its blend~~ — it now PRINTS `confidence` = the blend corrected against the price (C2, `mlb_pitcher_cal.py`, pre-registered and passed). `blend` itself is unchanged and still stored. |
+| **`blend` = plain 50/50 of model and raw** | This is the number that enters the permanent calibration record. Changing how it is computed silently invalidates every historical row. `[2026-09-25]` ~~A pitcher row prints its blend~~ — it now PRINTS `confidence` = the blend corrected ~~against the price (C2, `mlb_pitcher_cal.py`, pre-registered and passed)~~ `[Sam, 2026-10-11]` by its own past misses, no price (C1, the same pre-registered run, also passed). `blend` itself is unchanged and still stored. |
 | **`carried`** | A shadow column for two PRE-REGISTERED, NOT ADOPTED tests. ⛔ It must never feed `blend`, a probability, or a pair. |
 | **The 1.8x pair floor** | Sam's own instruction. A pair below it is never shown — not printed, not labelled, not listed as declined. |
 | **The payout bands have FLOORS ONLY** | `[Sam, 2026-09-22]` Two-leg 1.8x and up; three- and four-leg 3x and up; **no ceiling** (~~1.8–2.2x / 3–6x~~). Every list is ranked by its chance to land, highest first — Sam: "we still have to make sure the bets we provide have a high % to hit". `PARLAY_BANDS` in `card.py` and `card_fb.py` hold `(floor, None)`; read them through `band_ok()`. |
@@ -288,6 +288,27 @@ note boxes, tags and the stale bar now require their absence.
 
 ## Things that are true and easy to get wrong
 
+- 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
+  *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
+  ... only show confidence score on each pick that the model picks, BASED ON THE
+  MODELS CONFIDENCE SCORE NOT THE SPORTSBOOKS"*; *"we can't just be a lapdog to
+  sportsbooks"*. ⛔ Every % or chance shown, and every ranking or pick built on it,
+  comes only from the data the model was built to read and its own record of past
+  misses. A price, a de-vigged chance, a break-even or a line is NEVER an input. A
+  price or line only says WHICH bet is priced: the side, the threshold, the
+  break-even printed beside the row, and the value check (chance above what the
+  price needs). Everything else stays: tabs, layout, lists, the top 25, the 50%+
+  rule for game lines, the −400 floor, the parlays (their price strata are the
+  payout bands), the Track Record. Each league's Track Record opens a new method at
+  the switch, so old bands stay as graded. It supersedes ~~2026-09-25's C2 for
+  pitcher rows~~ (now C1, `mlb_pitcher_cal.SHIPPED`), ~~2026-10-09's props-model
+  stage 2 with the price~~ and ~~2026-10-01's alternate spreads at the books'
+  chance~~. MLB: a thin board's top-up and a game-line tie are ordered by the
+  model's number, never by edge; hitter rows (his own record) and the game model's
+  moneyline and run line never read a price (`CORRECTED` is totals only, and totals
+  are not on the card); pitcher rows' printed bands are kept per
+  `confidence_method` in record.json (`calibration_printed_by_method`).
+  `test_mlb_own_number.py`.
 - 🔴 **THE PAGE SHOWS EACH TAB'S CONTENT, NOT NOTES ABOUT IT.** `[Sam,
   2026-10-01]` *"i just want what's supposed to be in each tab to be in
   each tab. do this for all 3 leagues"*; asked what stays, he chose:
@@ -956,9 +977,10 @@ mlb_tables.py     the MLB pitcher + opponent tables, rebuilt after every
                   `[2026-10-09]` Its game lines come from mlb_game_model,
                   which counts every start by design (test_mlb_tables.py).
 mlb_pitcher_cal.py  audit C/D, scored to `research/mlb_pitcher_cal_spec.md`
-                  (frozen). C2 shipped `[2026-09-25]`: a pitcher row
-                  PRINTS its blend mixed with its price, refitted each
-                  card on earlier graded rows. ⛔ `blend` is unchanged;
+                  (frozen). ~~C2 shipped `[2026-09-25]`: a pitcher row
+                  PRINTS its blend mixed with its price~~ `[Sam, 2026-10-11]`
+                  C1 ships: the blend corrected by its own past misses, no
+                  price, refitted each card on earlier graded rows. ⛔ `blend` is unchanged;
                   card.py reads `mappings()`/`corrected()` from here and
                   never imports `fb_model` (it drags in card_fb, which
                   exits under LEAGUE=mlb). Off switch: `SHIPPED = None`.

@@ -3,14 +3,17 @@
 
 `[2026-09-25]` research/mlb_pitcher_cal_spec.md was committed and hashed
 before any scoring. C2 (the printed number mixed with the price) qualified
-and shipped. This file pins what that means:
+and shipped; `[Sam, 2026-10-11]` C1 (the number corrected by its own past
+misses, no price), which qualified in the same run, replaces it: "only show
+confidence score on each pick that the model picks, BASED ON THE MODELS
+CONFIDENCE SCORE NOT THE SPORTSBOOKS." This file pins what that means:
 
   1. the card's mapping for card date D is EXACTLY the scorer's walk-forward
      mapping for D: same rows (earlier card dates only), same fit;
   2. a market below 150 graded rows has no mapping and prints its blend;
   3. Sam's off switch (`SHIPPED = None`) puts the plain blend back;
-  4. the corrected number is really used: a mapping that says "the price
-     is right" moves a row's number toward the price.
+  4. the corrected number is really used: a card running hot is moved
+     toward what its rows actually hit (~~toward the price~~).
 
 Everything is built in a temp tree; the repo's record is never read.
 
@@ -88,7 +91,7 @@ try:
     card_maps = M.mappings(D, t)
     for mk in M.MARKETS:
         test_rows = [r for r in rows if r["date"] == D and r["market"] == mk]
-        sc = {id(r): p for r, p in _wf["C2"] if r["date"] == D and r["market"] == mk}
+        sc = {id(r): p for r, p in _wf[M.SHIPPED] if r["date"] == D and r["market"] == mk}
         live = [M.corrected(card_maps, mk, 100 * r["blend"], 100 * r["be"]) / 100
                 for r in test_rows]
         ck(len(sc) == len(test_rows) and
@@ -99,9 +102,10 @@ try:
     r0 = [r for r in rows if r["date"] == D][0]
     p_card = r0["blend"]
     p_fix = M.corrected(card_maps, r0["market"], 100 * r0["blend"], 100 * r0["be"]) / 100
-    ck(abs(p_fix - r0["be"]) < abs(p_card - r0["be"]),
-       "  a card running 12 points hot is pulled toward the price",
-       "blend %.3f  corrected %.3f  price %.3f" % (p_card, p_fix, r0["be"]))
+    _hit = r0["be"] - 0.03                 # what the fixture's rows really hit
+    ck(abs(p_fix - _hit) < abs(p_card - _hit),
+       "  a card running 15 points hot is pulled toward what its rows hit",
+       "blend %.3f  corrected %.3f  hit %.3f" % (p_card, p_fix, _hit))
 
     print("\n3. ⏳ BELOW 150 GRADED ROWS A MARKET HAS NO MAPPING")
     few = M.mappings(dates[5], t)          # 5 days x 12 = 60 per market
@@ -119,8 +123,9 @@ try:
     finally:
         M.SHIPPED = _old
     ck(M.corrected(card_maps, "outs", 70.0, 55.0) is not None,
-       "  ...and with C2 shipped the row is corrected")
-    eq(M.SHIPPED, "C2", "  the shipped candidate is the one the spec's run chose")
+       "  ...and with C1 shipped the row is corrected")
+    # `[Sam, 2026-10-11]` ~~the shipped candidate is the one the spec's run chose (C2)~~
+    eq(M.SHIPPED, "C1", "  the shipped candidate is the model's own correction, no price")
 finally:
     shutil.rmtree(t, ignore_errors=True)
 
@@ -130,8 +135,10 @@ _runs = sorted(f for f in os.listdir(os.path.join(ROOT, "research"))
 ck(bool(_runs), "  a scored run is committed beside the spec")
 if _runs:
     _r = json.load(open(os.path.join(ROOT, "research", _runs[0])))
-    eq(_r.get("ships"), M.SHIPPED,
-       "🔴 what the card applies is what the FIRST committed run chose")
+    # `[Sam, 2026-10-11]` ~~what the card applies is what the FIRST committed
+    #    run chose~~: the run chose C2; Sam's decision ships C1.
+    eq((_r.get("ships"), M.SHIPPED), ("C2", "C1"),
+       "🔴 the run chose C2 and the card applies C1, by Sam's decision")
     ck(_r["candidates"][M.SHIPPED]["verdict"] == "QUALIFIES",
        "  ...and that candidate QUALIFIED under the frozen bar")
 

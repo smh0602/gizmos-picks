@@ -131,13 +131,15 @@ def select_board(plays, hitters, seats=None):
             break
         seat(x, below=True)
     if len(board) < BOARD_MIN:
-        # Not enough plays. Top up by edge, and SAY SO on the row rather
+        # Not enough plays. Top up by confidence, and SAY SO on the row rather
         # than quietly padding the board -- now inside each kind's own seats.
         # ⚠️ Only rows with an edge: a row seated below its price must be
         # able to state it (printed %, break-even, edge).
-        rest = sorted([x for x in plays + hitters if id(x) not in used
-                       and x.get("edge") is not None and x.get("break_even") is not None],
-                      key=lambda x: -x["edge"])
+        # `[Sam, 2026-10-11]` ranked by the model's own number, ~~by edge~~:
+        #    the price says which bet and whether it pays, never the order.
+        rest = [x for x in plays + hitters if id(x) not in used
+                and x.get("edge") is not None and x.get("break_even") is not None]
+        rest.sort(key=by_conf)
         for x in rest:
             if len(board) >= BOARD_MIN:
                 break
@@ -1074,13 +1076,14 @@ def build_play(prop, p, players, oppK, centerC, oppn, game, today, oppRank=None)
 
     be = 100.0 * implied(price) if price is not None else None
     # 🔴 THE PRINTED NUMBER IS CORRECTED, `blend` IS NOT. `[2026-09-25,
-    # research/mlb_pitcher_cal_spec.md, C2 QUALIFIED]` Pitcher rows printed
-    # ~65% and hit ~50%, and the price alone predicted better. The printed
-    # `confidence` (so `edge`, the board, top 10, pairs and parlays) is now
-    # the walk-forward mix of this number and the price, fitted per market
-    # on every graded pitcher row from EARLIER cards (mlb_pitcher_cal.py,
-    # the same code the test scored). ⛔ `blend` keeps its definition and
-    # is still written: it is the permanent calibration column.
+    # research/mlb_pitcher_cal_spec.md]` Pitcher rows printed ~65% and hit
+    # ~50%. The printed `confidence` (so `edge`, the board, top 10, pairs and
+    # parlays) is ~~the walk-forward mix of this number and the price (C2)~~
+    # `[Sam, 2026-10-11]` this number corrected by its OWN past misses (C1),
+    # fitted per market on every graded pitcher row from EARLIER cards
+    # (mlb_pitcher_cal.py, the same code the test scored). ⛔ The price only
+    # gives the break-even and the edge beside it. ⛔ `blend` keeps its
+    # definition and is still written: it is the permanent calibration column.
     # ⚠️ Below 150 graded rows for the market there is no mapping, and the
     # row prints its blend exactly as before.
     shown = pcal.corrected(PCAL, market, blend, be)
@@ -2506,8 +2509,9 @@ def order_game_lines(rows, frozen=()):
     """The GAME_LINES_MAX highest-confidence rows (a frozen row always stays),
     by confidence, ranked."""
     keep = {id(r) for r in frozen}
+    # `[Sam, 2026-10-11]` a tie is broken by the game, ~~by edge~~ (a price).
     srt = sorted(rows, key=lambda r: (-(r.get("confidence_value") or r.get("confidence") or 0),
-                                      -(r.get("edge") or 0)))
+                                      str(r.get("game_id")), r.get("market") or ""))
     room = max(0, GAME_LINES_MAX - len(keep))
     chosen = keep | {id(r) for r in [r for r in srt if id(r) not in keep][:room]}
     out = [r for r in srt if id(r) in chosen]
@@ -2589,7 +2593,7 @@ def main(dry=False):
     today = min(et_date(g["commence"]) for g in upcoming)
     PCAL.clear()
     PCAL.update(pcal.mappings(today))
-    print("[card] pitcher correction (C2) fitted on: "
+    print(f"[card] pitcher correction ({pcal.SHIPPED}) fitted on: "
           + ", ".join(f"{mk} {m['n_train'] if m else 'none (<150)'}"
                       for mk, m in PCAL.items()))
 
