@@ -1,5 +1,5 @@
 {
- "built_at": "2026-10-12T22:47:35Z",
+ "built_at": "2026-10-13T15:05:19Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -222,23 +222,8 @@
    "pct": 50.0
   }
  },
- "calibration": [
-  {
-   "bucket": "60-70%",
-   "stated": 66.2,
-   "w": 12,
-   "n": 15,
-   "pct": 80.0
-  },
-  {
-   "bucket": "70-80%",
-   "stated": 72.0,
-   "w": 4,
-   "n": 4,
-   "pct": 100.0
-  }
- ],
- "card_method_current": "season-blend+props-model",
+ "calibration": [],
+ "card_method_current": "season-blend+props-own",
  "calibration_by_method": {
   "2025-only": [
    {
@@ -532,19 +517,27 @@
    "carded": 25,
    "voids": 0,
    "unresolved": 6
+  },
+  {
+   "date": "2026-10-13",
+   "w": 0,
+   "n": 0,
+   "carded": 25,
+   "voids": 0,
+   "unresolved": 25
   }
  ],
  "days_graded": 16,
- "cards_seen": 16,
+ "cards_seen": 17,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
  "distinct_players": 177,
  "distinct_games": 98,
- "carded_rows": 424,
+ "carded_rows": 449,
  "voids": 0,
- "unresolved": 25,
- "coverage_note": "399 of 424 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 25 could not be settled at all.",
+ "unresolved": 50,
+ "coverage_note": "399 of 449 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 50 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
