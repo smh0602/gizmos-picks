@@ -1,7 +1,7 @@
 {
  "date": "2026-10-15",
  "league": "nfl",
- "generated_at": "2026-10-13T15:16:37Z",
+ "generated_at": "2026-10-13T16:01:00Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-10-13T15:16:02Z",
@@ -80,8 +80,8 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-13T15:16:25Z",
-  "ladder_built_at": "2026-10-13T15:16:26Z",
+  "model_built_at": "2026-10-13T16:00:54Z",
+  "ladder_built_at": "2026-10-13T16:00:54Z",
   "alt_spreads": 0
  },
  "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-15 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
@@ -317,8 +317,8 @@
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 52,
-   "mixed_book": 68,
+   "same_player": 43,
+   "mixed_book": 71,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -886,7 +886,7 @@
  "empty_reason": null,
  "short_reason": null,
  "coverage": "111 priced football rows for 2026-10-15 across 1 board games; 25 shown.",
- "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. There are not enough graded NFL plays yet to say whether these confidence numbers hold up. Treat every one as unproven.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 63.6% against a claimed 53.7% (+9.9 pts, n=22). The under-60 band is currently the closest to its own claim. 22 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
  "picks": [
@@ -969,7 +969,7 @@
    "confidence": 54,
    "raw": "10 of 20",
    "record": "10 of 20",
-   "rate": 59,
+   "rate": 58,
    "break_even": 52.6,
    "edge": 1.4,
    "season_detail": {
@@ -978,7 +978,7 @@
     "h26": 4,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.598,
+    "p0": 0.597,
     "weighted_n": 11.67
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1081,7 +1081,7 @@
     "h26": 2,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.658,
+    "p0": 0.657,
     "weighted_n": 13.44
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1095,53 +1095,6 @@
    ],
    "model_p": 53.7,
    "rank": 6
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jaylen Waddle",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 4.5,
-   "game": "Seattle Seahawks @ Denver Broncos",
-   "game_id": "855f58fad5f0f14b239f4f63df27998b",
-   "away": "Seattle Seahawks",
-   "home": "Denver Broncos",
-   "commence": "2026-10-16T00:15:00Z",
-   "book": "draftkings",
-   "price": -114,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378202772%232317701969_13L88808Q1-2138696Q20",
-   "n_books": 3,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "raw": "9 of 20",
-   "record": "9 of 20",
-   "rate": 58,
-   "break_even": 53.3,
-   "edge": 0.7,
-   "season_detail": {
-    "h25": 6,
-    "n25": 15,
-    "h26": 3,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.674,
-    "weighted_n": 11.67
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 4.27,
-   "projection": 4.3,
-   "projection_unit": "rec",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 20 games this record is built from \u2014 4.3 rec a game.",
-   "why": [
-    "<b>Jaylen Waddle</b> went under 4.5 rec in <b>3 of 5 games</b> in 2026 and 6 of 15 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 53.5,
-   "rank": 7
   },
   {
    "kind": "fb",
@@ -1169,7 +1122,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 0.7,
-   "rank": 8
+   "rank": 7
   },
   {
    "kind": "fb",
@@ -1203,7 +1156,7 @@
     "h26": 2,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.611,
+    "p0": 0.609,
     "weighted_n": 13.44
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1215,8 +1168,8 @@
    "why": [
     "<b>AJ Barner</b> went over 2.5 rec in <b>2 of 5 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 52.7,
-   "rank": 9
+   "model_p": 52.6,
+   "rank": 8
   },
   {
    "kind": "fb",
@@ -1250,7 +1203,7 @@
     "h26": 1,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.644,
+    "p0": 0.643,
     "weighted_n": 13.44
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1263,7 +1216,7 @@
     "<b>AJ Barner</b> went over 20.5 rec yds in <b>1 of 5 games</b> in 2026 and 13 of 19 in 2025, when he played at least half the snaps."
    ],
    "model_p": 53.4,
-   "rank": 10
+   "rank": 9
   },
   {
    "kind": "fb",
@@ -1297,7 +1250,7 @@
     "h26": 1,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.861,
+    "p0": 0.86,
     "weighted_n": 13.0
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1310,7 +1263,7 @@
     "<b>Jaxon Smith-Njigba</b> went under 89.5 rec yds in <b>1 of 5 games</b> in 2026 and 6 of 18 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.6,
-   "rank": 11
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -1344,7 +1297,7 @@
     "h26": 1,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.866,
+    "p0": 0.865,
     "weighted_n": 13.0
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1357,7 +1310,7 @@
     "<b>Jaxon Smith-Njigba</b> went under 90.5 rec yds in <b>1 of 5 games</b> in 2026 and 6 of 18 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.8,
-   "rank": 12
+   "rank": 11
   },
   {
    "kind": "fb",
@@ -1385,6 +1338,53 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -0.3,
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jaylen Waddle",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "draftkings",
+   "price": -114,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378202772%232317701969_13L88808Q1-2138696Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "9 of 20",
+   "record": "9 of 20",
+   "rate": 58,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 6,
+    "n25": 15,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.673,
+    "weighted_n": 11.67
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.27,
+   "projection": 4.3,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 4.3 rec a game.",
+   "why": [
+    "<b>Jaylen Waddle</b> went under 4.5 rec in <b>3 of 5 games</b> in 2026 and 6 of 15 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.4,
    "rank": 13
   },
   {
@@ -1419,7 +1419,7 @@
     "h26": 1,
     "n26": 1,
     "w25": 0.8,
-    "p0": 0.65,
+    "p0": 0.651,
     "weighted_n": 5.8
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1466,7 +1466,7 @@
     "h26": 1,
     "n26": 1,
     "w25": 0.8,
-    "p0": 0.66,
+    "p0": 0.661,
     "weighted_n": 5.8
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1478,7 +1478,7 @@
    "why": [
     "<b>J.K. Dobbins</b> went over 46.5 rush yds in <b>1 of 1 games</b> in 2026 and 5 of 6 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 52.9,
+   "model_p": 52.8,
    "rank": 15
   },
   {
@@ -1541,7 +1541,7 @@
     "h26": 2,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.87,
+    "p0": 0.869,
     "weighted_n": 13.0
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -1860,7 +1860,7 @@
     "h26": 3,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.389,
+    "p0": 0.391,
     "weighted_n": 5.5
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
