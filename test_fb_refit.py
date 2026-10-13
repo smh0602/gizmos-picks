@@ -80,8 +80,8 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 ...and a freshness row for the file behind it
 #   file: freshness.py
-#   find:     for mode, fname, due in champion_inputs(league):
-#   with:     for mode, fname, due in []:
+#   find:     for fname, due in champion_inputs(league):
+#   with:     for fname, due in []:
 #
 # @vacuity 🔴 the Monday email shows the section
 #   file: status.py

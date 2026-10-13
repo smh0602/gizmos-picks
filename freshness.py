@@ -776,8 +776,11 @@ def has_contract(league):
 
 def _literal(module, name):
     """A module's top-level literal, PARSED (⛔ never imported: fb_model drags in
-    card_fb, which exits under LEAGUE=mlb)."""
-    src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), module), encoding="utf-8").read()
+    card_fb, which exits under LEAGUE=mlb). A tree without the file names no champion."""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), module)
+    if not os.path.exists(p):
+        return {}
+    src = open(p, encoding="utf-8").read()
     for node in ast.parse(src).body:
         if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == name for t in node.targets):
             return ast.literal_eval(node.value)
@@ -785,7 +788,8 @@ def _literal(module, name):
 
 
 def champion_inputs(league, champion=None):
-    """[(mode, file pattern, deadline key)] behind fb_model.CHAMPION[league]."""
+    """[(file pattern, deadline key)] behind fb_model.CHAMPION[league]; its writer is
+    `nfl-logs` (NFL) or `cfb-probe` (college), the league's logs / CFBD run."""
     name = (champion or _literal("fb_model.py", "CHAMPION")).get(league)
     return [_literal("fb_challengers.py", "CHALLENGERS")[name]["input"]] if name else []
 
@@ -1028,8 +1032,9 @@ def _football_contract(league, data, picks, now):
     # `[Sam, 2026-10-12]` T65: once Sam names a game-model CHAMPION, the file
     #    behind its input is a row like the others (talent: once a season,
     #    so only a missing season's file is late).
-    for mode, fname, due in champion_inputs(league):
-        rows.append((mode, ("file", f"{latest}/{fname.format(s=season)}"),
+    for fname, due in champion_inputs(league):
+        rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
+                     ("file", f"{latest}/{fname.format(s=season)}"),
                      T[due] if due else [], False, "Game model champion's input"))
     # `[Sam, 2026-09-24]` the props model's file, rebuilt by the same run.
     rows.append(

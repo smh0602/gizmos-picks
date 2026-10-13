@@ -30,14 +30,14 @@ TOL, SWEEPS = FM.RATING_TOL, FM.RATING_SWEEPS
 CHALLENGERS = {
     "E": {"league": "nfl", "what": "EPA", "markets": ("spread", "moneyline"),
           "files": ("def-epa-{s}.json.gz",), "key": "epa_m", "withdrawable": False,
-          "input": ("nfl-logs", "def-epa-{s}.json.gz", "possession")},
+          "input": ("def-epa-{s}.json.gz", "possession")},
     "P": {"league": "ncaaf", "what": "PPA", "markets": ("spread", "moneyline"),
           "files": ("ppa-{s}.json.gz",), "key": "ppa_m", "withdrawable": True,
-          "input": ("cfb-probe", "ppa-{s}.json.gz", "possession")},
+          "input": ("ppa-{s}.json.gz", "possession")},
     "T": {"league": "ncaaf", "what": "talent", "markets": ("spread", "moneyline"),
           "files": ("talent-{s}.json.gz",), "key": "tal_m", "withdrawable": True,
           # written once a season: stale only when the season's file is missing
-          "input": ("cfb-probe", "talent-{s}.json.gz", None)},
+          "input": ("talent-{s}.json.gz", None)},
 }
 
 
