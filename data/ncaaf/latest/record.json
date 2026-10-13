@@ -1,5 +1,5 @@
 {
- "built_at": "2026-10-13T18:40:32Z",
+ "built_at": "2026-10-13T19:20:11Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -11,22 +11,27 @@
   "pct": 52.6
  },
  "alt_spreads": {
-  "basis": "MARKET",
+  "basis": "MARKET + MODEL",
   "overall": {
    "w": 7,
    "n": 8,
    "pct": 87.5
   },
-  "shown": 8,
+  "shown": 10,
   "by_basis": {
    "MARKET": {
     "w": 7,
     "n": 8,
     "pct": 87.5
+   },
+   "MODEL": {
+    "w": 0,
+    "n": 0,
+    "pct": null
    }
   },
   "voids": 0,
-  "pending": 0,
+  "pending": 2,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -148,6 +153,36 @@
     "commence": "2026-10-10T16:00:00Z",
     "won": true,
     "state": "graded"
+   },
+   {
+    "date": "2026-10-13",
+    "player": "Jacksonville State Gamecocks",
+    "side": "home",
+    "line": -29.5,
+    "price": 1700,
+    "book": "fanduel",
+    "confidence": 55,
+    "confidence_basis": "MODEL",
+    "break_even": 5.6,
+    "game": "Florida International Panthers @ Jacksonville State Gamecocks",
+    "commence": "2026-10-14T00:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-13",
+    "player": "Delaware Blue Hens",
+    "side": "away",
+    "line": -28.5,
+    "price": 1700,
+    "book": "fanduel",
+    "confidence": 53,
+    "confidence_basis": "MODEL",
+    "break_even": 5.6,
+    "game": "Delaware Blue Hens @ Middle Tennessee Blue Raiders",
+    "commence": "2026-10-13T23:00:00Z",
+    "won": null,
+    "state": "pending"
    }
   ]
  },
