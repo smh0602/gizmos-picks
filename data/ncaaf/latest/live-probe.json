@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-10-12T00:06:41Z",
+ "written_at": "2026-10-13T08:39:08Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -11,29 +11,29 @@
    "variant": "default (what run 1 used)",
    "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=400",
    "http": 200,
-   "events": 19
+   "events": 16
   },
   {
    "variant": "groups=80 (FBS)",
    "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
    "http": 200,
-   "events": 58
+   "events": 62
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261011&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261013&limit=400",
    "http": 200,
-   "events": 0
+   "events": 2
   },
   {
    "variant": "groups=80 + dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261011&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261013&limit=400",
    "http": 200,
-   "events": 0
+   "events": 2
   }
  ],
  "variant_used": "groups=80 (FBS)",
- "events": 58,
+ "events": 62,
  "payload_shape": {
   "top_level": [
    "events",
@@ -53,6 +53,7 @@
    "shortName",
    "status",
    "uid",
+   "weather",
    "week"
   ],
   "competition": [
@@ -66,16 +67,17 @@
    "format",
    "geoBroadcasts",
    "groups",
-   "headlines",
    "highlights",
    "id",
    "leaders",
    "neutralSite",
    "notes",
+   "odds",
    "playByPlayAvailable",
    "recent",
    "startDate",
    "status",
+   "tickets",
    "timeValid",
    "type",
    "uid",
@@ -100,15 +102,14 @@
    "curatedRank",
    "homeAway",
    "id",
-   "linescores",
+   "leaders",
    "order",
    "records",
    "score",
    "statistics",
    "team",
    "type",
-   "uid",
-   "winner"
+   "uid"
   ],
   "team": [
    "abbreviation",
@@ -139,7 +140,7 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "post": 58
+  "pre": 62
  },
  "in_progress": 0,
  "live_sample": [],
@@ -148,12 +149,12 @@
  "join": {
   "our_schedule_season": 2026,
   "our_games": 3679,
-  "espn_events": 58,
+  "espn_events": 62,
   "join_field": "our `id` vs ESPN `events[].id`",
-  "matched_on_our_id": 58,
-  "matched_on_our_espn_column": 58,
+  "matched_on_our_id": 62,
+  "matched_on_our_espn_column": 62,
   "our_games_carrying_an_espn_column": 3679,
-  "ids_in_common": 58,
+  "ids_in_common": 62,
   "pct_of_espn_events_matched": 100.0,
   "verdict": "EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all",
   "n_unmatched": 0,
@@ -165,16 +166,7 @@
   "counted_on": "our `id`, ET slate day",
   "per_date": [
    {
-    "et_date": "2026-10-06",
-    "espn_events": 1,
-    "our_games": 1,
-    "ours_that_espn_returned": 1,
-    "ours_MISSING_from_espn": 0,
-    "pct_of_ours_present": 100.0,
-    "missing_examples": []
-   },
-   {
-    "et_date": "2026-10-07",
+    "et_date": "2026-10-13",
     "espn_events": 2,
     "our_games": 2,
     "ours_that_espn_returned": 2,
@@ -183,42 +175,51 @@
     "missing_examples": []
    },
    {
-    "et_date": "2026-10-08",
-    "espn_events": 4,
-    "our_games": 4,
-    "ours_that_espn_returned": 4,
+    "et_date": "2026-10-14",
+    "espn_events": 2,
+    "our_games": 2,
+    "ours_that_espn_returned": 2,
     "ours_MISSING_from_espn": 0,
     "pct_of_ours_present": 100.0,
     "missing_examples": []
    },
    {
-    "et_date": "2026-10-09",
-    "espn_events": 5,
-    "our_games": 14,
-    "ours_that_espn_returned": 5,
-    "ours_MISSING_from_espn": 9,
-    "pct_of_ours_present": 35.7,
+    "et_date": "2026-10-15",
+    "espn_events": 3,
+    "our_games": 6,
+    "ours_that_espn_returned": 3,
+    "ours_MISSING_from_espn": 3,
+    "pct_of_ours_present": 50.0,
     "missing_examples": [
-     "Florida A&M @ Alabama State",
-     "Ferrum @ Shorter",
-     "Methodist @ LaGrange",
-     "Framingham State @ Bridgewater State",
-     "Centre @ Millsaps"
+     "Albion @ Trine",
+     "East Central @ Oklahoma Baptist",
+     "Southern Nazarene @ Southwestern Oklahoma State"
     ]
    },
    {
-    "et_date": "2026-10-10",
-    "espn_events": 46,
-    "our_games": 254,
-    "ours_that_espn_returned": 46,
-    "ours_MISSING_from_espn": 208,
+    "et_date": "2026-10-16",
+    "espn_events": 3,
+    "our_games": 4,
+    "ours_that_espn_returned": 3,
+    "ours_MISSING_from_espn": 1,
+    "pct_of_ours_present": 75.0,
+    "missing_examples": [
+     "Columbia @ Pennsylvania"
+    ]
+   },
+   {
+    "et_date": "2026-10-17",
+    "espn_events": 52,
+    "our_games": 287,
+    "ours_that_espn_returned": 52,
+    "ours_MISSING_from_espn": 235,
     "pct_of_ours_present": 18.1,
     "missing_examples": [
-     "Norwich @ Maine Maritime",
-     "Misericordia @ Alvernia",
-     "Bryant @ Brown",
-     "Rensselaer @ Buffalo State",
-     "Johns Hopkins @ Carnegie Mellon"
+     "Alvernia @ Albright",
+     "SUNY Cortland @ Alfred",
+     "Brockport @ Alfred State",
+     "Southwestern U @ Berry",
+     "Kalamazoo @ Calvin"
     ]
    }
   ],
@@ -231,9 +232,9 @@
  "refresh_note": "\u26d4 NOT MEASURED, ON PURPOSE. Nothing was in progress, and two identical pulls of a board of finals measure nothing.",
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=10",
+  "cache_control": "max-age=1",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "58 events via [groups=80 (FBS)], 0 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.1% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "62 events via [groups=80 (FBS)], 0 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.1% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
