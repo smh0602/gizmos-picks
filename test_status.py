@@ -14,8 +14,8 @@ Planted trees and a pinned clock; the real workflow steps driven with a stub gh.
 #
 # @vacuity 🔴 a clean week reads "Nothing needs you this week."
 #   file: status.py
-#   find:     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week.",
-#   with:     L = ["Needs you: %s." % "; ".join(needs) if True else "Nothing needs you this week.",
+#   find:     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
+#   with:     L = ["Needs you: %s." % "; ".join(needs) if True else "Nothing needs you this week."]
 #
 # @vacuity 🔴 a BROKEN finding puts it under "Needs you"
 #   file: status.py

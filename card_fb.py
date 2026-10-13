@@ -875,6 +875,12 @@ TEAM_UNIT = re.compile(r" (?:D/ST|Defense)$")    # a team's defense, never a pla
 METHOD_PROPS_MODEL = "+props-own"
 
 
+def game_method(model):
+    """`[Sam, 2026-10-12]` T65: the card's method gains "+game-<name>" once
+    fb-model.json was built by a named champion, so the record opens a new method."""
+    return "+game-%s" % model["champion"] if (model or {}).get("champion") else ""
+
+
 def pm_key(gid, who, mk, line, side):
     """One prop side, the way the props model and the card both name it."""
     return (gid, who, mk, None if (line is None or mk == "player_anytime_td") else float(line), side)
@@ -2305,7 +2311,8 @@ def main():
         # switch": every card from it, a record-only build included, so the
         # old bands stay as they were graded.
         "card_method": (METHOD_FIXED_S9 if (CARD_METHOD == METHOD_FIXED and S9_CARD.get(LEAGUE))
-                        else CARD_METHOD) + METHOD_PROPS_MODEL,
+                        else CARD_METHOD) + METHOD_PROPS_MODEL
+                       + game_method(_model),
         "props_model_used": _pm is not None,
         "rates_available": RATES_OK,
         # ⚠️ THE SNAP FLOOR IS AN NFL FACT. ⛔ Reporting it on a college

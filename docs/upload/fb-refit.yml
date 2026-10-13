@@ -1,0 +1,62 @@
+# ══════════════════════════════════════════════════════════════════════
+# FOOTBALL GAME MODEL: CHAMPION VS CHALLENGER AND THE SCOREBOARD, EVERY WEEK.
+# `[Sam, 2026-10-12; research/fb_refit_spec.md, T65]`
+# ⛔ SAM UPLOADS THIS FILE BY HAND. It carries a `cron:` block, and GitHub
+# attributes every scheduled run in the repository to whoever last changed
+# one. CLAUDE.md, "IF YOU CAN PUSH TO THIS REPO".
+# ⛔ IT CHANGES NO MODEL. It writes a report, and when a challenger WINS it
+# pushes ONE branch fb/champion-<lg>-<name>-<date> (only the CHAMPION line).
+# It never opens a PR and never touches main; Sam merges or closes it.
+# 💰 Reads only the repo's own files. No Odds API, no CFBD, no Claude.
+# ⚠️ Minute is off :00 and :30 on purpose: those slots get dropped.
+# ══════════════════════════════════════════════════════════════════════
+name: fb-refit
+# ⛔ THE STAMP — every cron workflow writes its schedule into the run name
+#    so `runs_report.py` can tell a missed fire from a landed one.
+run-name: ${{ github.event.schedule && format('fb-refit [cron {0}]', github.event.schedule) || format('fb-refit [{0}]', github.event_name) }}
+
+on:
+  schedule:
+    # Monday 09:47 UTC — Sunday and Monday-morning finals are in, and it is
+    # written before status.yml's 11:17 email reads it.
+    - cron: "47 9 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: fb-refit
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refit:
+    # ⚠️ PINNED, NOT `ubuntu-latest`. test_runner_image.py fails on a floating label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # the full history: a challenger's registration reads the day its
+          # data first reached the repo (git log)
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Score the contest and the scoreboard, push a WINS branch
+        run: python fb_refit.py weekly
+
+      - name: Commit the report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/*/latest/fb-refit.json
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "fb-refit: weekly champion vs challenger $(date -u +%Y-%m-%dT%H:%MZ)"
+            # ⛔ THE ONE WAY A WORKFLOW LANDS ITS COMMITS (CLAUDE.md).
+            bash push_retry.sh fb-refit
+          fi

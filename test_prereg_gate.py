@@ -134,6 +134,10 @@ FROZEN = {
     # definitions, bar, minimum and consequence in section 3 fixed by Claude
     # before any scoring code.
     "fb_agreement_spec.md": "3f93f64cf7ce66cabf023b7792a594614199acfaa77d57744c9ae5eb4ce1d880",
+    # [Sam, 2026-10-12] T65: the champion, challengers E/P/T, scoring and
+    # withdrawal in section 2, the verdict in section 3, pre-registered by
+    # Cowork 2026-10-12 05:48Z before any challenger result.
+    "fb_refit_spec.md": "9791de9992d67fa9d4fa7b09f32b7cff8e69752584d9df4d7f56ccb40ccd967c",
 }
 
 
