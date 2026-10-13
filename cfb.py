@@ -261,6 +261,8 @@ def record_quota(data, log=log, when=None):
     one, and a series that cannot be differenced is not a measurement.
     """
     doc = dict(cost_block())
+    if SPENT:                            # T65's one-off sweeps, by purpose
+        doc["calls_by_purpose"] = dict(SPENT)
     doc["kind"] = "DIAGNOSTIC"
     doc["recorded_at"] = (when or datetime.datetime.now(
         datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -1492,6 +1494,83 @@ def fetch_signal9(season, log=log):
     return out
 
 
+# 🔴 T65 (research/fb_refit_spec.md) — challenger P's 2025 ppa and challenger
+#    T's /talent. `[Sam, 2026-10-12]` ~25 CFBD calls in all, priced first.
+PPA_HISTORY = (2025,)
+TALENT_RETRY_DAYS = 7
+SPENT = {}            # purpose -> calls, into the quota record (record_quota)
+
+
+def backfill_ppa(season, log=log):
+    """ONE /plays sweep for a history season's ppa, only while its file is
+    missing. ⛔ A partial sweep (any week failed) writes nothing: retried next run."""
+    import cfbd_budget as _cb
+    if os.path.exists(os.path.join(OUT, f"ppa-{season}.json.gz")):
+        return "already stored"
+    price = _cb.preflight(_cb.plays_sweep_max(), "ppa back-fill %d" % season, OUT)
+    if not price["allowed"]:
+        return "refused: %s" % price["why"]
+    doc = {}
+    try:
+        build_pace(season, log, ppa=doc)
+    finally:
+        SPENT["ppa back-fill %d" % season] = doc.get("cfbd_calls", "failed before counting")
+    if doc.get("fetch_failures") or not doc.get("games"):
+        return "not written: %d week(s) failed" % len(doc.get("fetch_failures") or [])
+    write_stamped(f"ppa-{season}.json.gz", doc, log)
+    return "written (%d calls)" % doc["cfbd_calls"]
+
+
+def fetch_talent(season, log=log, now=None):
+    """CFBD /talent for one season, once, ONE request (`_counted_get`).
+    ⛔ NEVER RAISES. A refusal, a missing endpoint or an empty answer writes a
+    DIAGNOSTIC `talent-probe-<season>.json` and fails closed (T reports "no
+    data"); it is asked again after TALENT_RETRY_DAYS."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    fn, probe_fn = f"talent-{season}.json.gz", f"talent-probe-{season}.json"
+    try:
+        if os.path.exists(os.path.join(OUT, fn)):
+            return "already stored"
+        old = _read_json(os.path.join(OUT, probe_fn)).get("checked_at") or ""
+        if old > (now - datetime.timedelta(days=TALENT_RETRY_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ"):
+            return "refused on %s; asked again after %d days" % (old, TALENT_RETRY_DAYS)
+        import cfbd_budget as _cb
+        if not _cb.preflight(1, "talent %d" % season, OUT)["allowed"]:
+            return "not priced in this run"
+        SPENT["talent %d" % season] = 1
+        rows = _counted_get("/talent", {"year": str(season)})
+        teams = {}
+        for r in rows or []:
+            try:
+                teams[r.get("school") or r.get("team")] = float(r.get("talent"))
+            except (TypeError, ValueError):
+                continue
+        teams.pop(None, None)
+        if not teams:
+            raise ValueError("CFBD /talent returned no team ratings")
+        write_stamped(fn, {"season": season, "kind": "DESCRIPTIVE", "endpoint": "/talent",
+                           "spec": "research/fb_refit_spec.md", "teams": teams,
+                           "built_at": now.strftime("%Y-%m-%dT%H:%M:%SZ")}, log)
+        return "written (%d teams)" % len(teams)
+    except Exception as e:
+        why = "%s: %s" % (type(e).__name__, str(e)[:300])
+        try:
+            write_stamped(probe_fn, {"season": season, "kind": "DIAGNOSTIC", "endpoint": "/talent",
+                                     "usable": False, "error": why,
+                                     "checked_at": now.strftime("%Y-%m-%dT%H:%M:%SZ")}, log)
+        except Exception:
+            pass
+        return "DIAGNOSTIC: %s" % why
+
+
+def _read_json(p):
+    try:
+        with open(p, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
 def backfill_possession(season, log=log):
     """ONE priced `/plays` sweep for a history season's per-game possession.
 
@@ -1782,9 +1861,12 @@ def possession_from_plays(plays, season, log=log, dates=None):
              "unparsed_drives": rep["negative"] + rep["over_max"],
              "teams": teams}, rep)
 
-def build_pace(season, log=log):
-    """Offensive plays per team-game, plus a targets-from-text report."""
+def build_pace(season, log=log, ppa=None):
+    """Offensive plays per team-game, plus a targets-from-text report.
+    `[Sam, 2026-10-12]` T65's P: with a dict as `ppa`, it is filled with the
+    ppa document (`ppa_doc`) from the SAME rows. 💰 Zero extra calls."""
     per = collections.defaultdict(lambda: {"plays": 0, "pass": 0, "rush": 0})
+    ppa_sum = collections.defaultdict(lambda: [0.0, 0])   # (game, offence) -> [sum, plays with one]
     named = collections.Counter()          # pass plays where a name parsed
     ptypes = collections.Counter()
     samples, tgt = [], collections.Counter()
@@ -1852,6 +1934,10 @@ def build_pace(season, log=log):
                 if off and gid:
                     k = (off, gid)
                     per[k]["plays"] += 1
+                    v = p.get("ppa")
+                    if isinstance(v, (int, float)) and not isinstance(v, bool):
+                        ppa_sum[(str(gid), off)][0] += v
+                        ppa_sum[(str(gid), off)][1] += 1
                     low = pt.lower()
                     if "pass" in low:
                         per[k]["pass"] += 1
@@ -1939,6 +2025,8 @@ def build_pace(season, log=log):
                              "usable": False,
                              "error": f"{type(_te).__name__}: {_te}"}
     toprep["cfbd_calls_for_possession"] = 0
+    if ppa is not None:
+        ppa.update(ppa_doc(season, ppa_sum, calls, fails))
     log(f"    possession: {toprep.get('teams', 0)} team(s), "
         f"{toprep.get('seconds_per_game', 0)}s per game, "
         f"{'WRITING' if top else 'writing NOTHING'}"
@@ -1979,6 +2067,19 @@ def build_pace(season, log=log):
             "top_targets_if_usable": [
                 [t[2], t[0], n] for t, n in tgt.most_common(15)],
             }, (top, toprep)
+
+
+def ppa_doc(season, sums, calls, fails):
+    """{game_id: {offence: {"ppa_sum", "plays_with_ppa"}}} with the stamped header."""
+    games = {}
+    for (gid, off), (tot, n) in sorted(sums.items()):
+        games.setdefault(gid, {})[off] = {"ppa_sum": round(tot, 6), "plays_with_ppa": n}
+    return {"season": season, "kind": "DESCRIPTIVE", "source": "CFBD /plays ppa",
+            "spec": "research/fb_refit_spec.md",
+            "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "note": "Per offence per game: the sum of CFBD's predicted points added over the plays "
+                    "that carry one, and how many did. Challenger P's input (T65).",
+            "cfbd_calls": calls, "fetch_failures": [list(f) for f in fails], "games": games}
 
 
 def build_allowed(doc, log=None):
@@ -2780,9 +2881,9 @@ def probe(log=log):
             # ⚠️ A pace failure must NOT lose the box-score boards that
             # already succeeded -- they are the ones on the page.
             pace, tgtprobe = None, None
-            top, toprep = None, None
+            top, toprep, ppa = None, None, {}
             try:
-                pace, tgtprobe, (top, toprep) = build_pace(season, log)
+                pace, tgtprobe, (top, toprep) = build_pace(season, log, ppa=ppa)
             except Exception as _pe:
                 log(f"    pace/{season} FAILED: {type(_pe).__name__}: {_pe}")
                 log("    ⚠️ the box-score boards are unaffected and still write")
@@ -2803,6 +2904,8 @@ def probe(log=log):
                          ((f"pace-{season}.json.gz", pace),
                           (f"targets-probe-{season}.json", tgtprobe))
                          if pace else ()) + (
+                         # `[Sam, 2026-10-12]` T65's P, from the same sweep
+                         ((f"ppa-{season}.json.gz", ppa),) if pace and ppa else ()) + (
                          ((f"schedule-{season}.json.gz", sched),)
                          if sched else ()) + (
                          # ⛔ THE PROBE IS WRITTEN EITHER WAY. A
@@ -2944,6 +3047,16 @@ def probe(log=log):
             except Exception as _be:
                 log(f"    possession back-fill {_hs} FAILED: "
                     f"{type(_be).__name__}: {_be}")
+    # 🔴 `[Sam, 2026-10-12]` T65: 2025's ppa (one sweep, only while its file
+    #    is missing) and /talent, once per season. ⛔ Neither raises.
+    for _hs in PPA_HISTORY:
+        if _hs not in seasons:
+            try:
+                log(f"    ppa back-fill {_hs}: {backfill_ppa(_hs, log)}")
+            except Exception as _pe:
+                log(f"    ppa back-fill {_hs} FAILED: {type(_pe).__name__}: {_pe}")
+    for _ts in sorted(set(_fr6.FOOTBALL_HISTORY) | {_fr6.current_football_season()}):
+        log(f"    talent {_ts}: {fetch_talent(_ts, log)}")
     # 🔴 SIGNAL 9: returning production + the portal, once per season.
     for _hs in _fr6.FOOTBALL_HISTORY:
         try:

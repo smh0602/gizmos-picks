@@ -37,8 +37,8 @@ declarations are what `vacuity.py` drives:
 #
 # @vacuity every CFBD back-fill call is priced first, and a refusal fetches nothing
 #   file: cfb.py
-#   find:     if not price["allowed"]:
-#   with:     if False:
+#   find:         return {"season": season, "refused": price}
+#   with:         pass
 
 # @vacuity a past season whose schedule lacks a field the builder now writes is rebuilt
 #   file: nfl.py

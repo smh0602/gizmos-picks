@@ -804,6 +804,11 @@ picks/            published cards. append-only once a slate starts.
 FOOTBALL (not frozen)
 card_fb.py        the football picks board -> picks/fb-<lg>-<date>.json
 cfb.py            college: probe, back-fill and verify, one dispatch
+                  `[Sam, 2026-10-12]` T65's college data: ppa-<season>
+                  (per offence per game, from the /plays sweep it already
+                  makes; 2025 swept once while missing) and talent-<season>
+                  (CFBD /talent once a season; a refusal writes a DIAGNOSTIC
+                  talent-probe and never raises). test_cfb_ppa.py.
 nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
 record_fb.py      the football grader -> data/<lg>/latest/record.json
 dossier_fb.py     Sam's eight per-game checks, every board game.
