@@ -66,6 +66,11 @@ FEATURES = {
 #    460 closing-line predictions in 154 games (research/fb_signal9_run_2026-09-24.json).
 #    ⛔ College stays OFF until its CFBD data is stored and scored (spec §3).
 S9_GAME = {"nfl": True, "ncaaf": False}
+# 🔴 THE CHAMPION, NAMED PER LEAGUE IN ONE PLACE (T65, research/fb_refit_spec.md).
+#    None is the model above, unchanged. A name is a frozen challenger in
+#    fb_challengers.py whose input the fits then carry; only Sam's merge of the
+#    weekly job's fb/champion-* branch changes it.
+CHAMPION = {"nfl": None, "ncaaf": None}
 
 
 def log(m):
@@ -458,10 +463,22 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     for r in rows:
         r["sig"]["own_m"], r["sig"]["own_t"] = own_numbers(
             own.get(monday(r["day"])), r["home"], r["away"], r["sig"]["neutral"])
+    if CHAMPION.get(lg):                 # ⛔ None reads none of the challengers' files
+        import fb_challengers
+        fb_challengers.attach(CHAMPION[lg], lg, rows, root)
     return rows
 
 
 def features(r, market, M=None, T=None):
+    """The fits' inputs: `base_features`, plus the CHAMPION's when one is named."""
+    x = base_features(r, market, M, T)
+    if CHAMPION.get(r.get("lg")):
+        import fb_challengers
+        x = fb_challengers.extend(CHAMPION[r["lg"]], r, market, x, M)
+    return x
+
+
+def base_features(r, market, M=None, T=None):
     """The design-§1 inputs for one row at a given line. Missing -> 0.
     `[Sam, 2026-10-11]` the first input is the model's OWN number:
     ~~z(M)/7, (T-45)/10, logit(the books' moneyline chance)~~ -> (own margin -
@@ -875,6 +892,8 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
            "closing_graded": {mk: wf["closing"][mk] for mk in MARKETS},
            "pricing": pricing(rows),
            "win_chances": win_chances(rows)}
+    if CHAMPION.get(lg):                 # the card's method reads it ("+game-<name>")
+        doc["champion"] = CHAMPION[lg]
     for mk in MARKETS:
         v = verdict(wf["closing"][mk])
         doc["record"][mk]["verdict"] = doc["closing_record"][mk]["verdict"] = v

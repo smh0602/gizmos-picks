@@ -150,7 +150,7 @@ its way in.**
 changed the workflow's `cron:` block.** Every one of them depends on that
 user staying a human with write access.
 
-<!-- CRON TOTAL: 58 -->
+<!-- CRON TOTAL: 59 -->
 ⚠️ **THE COUNT ABOVE IS DERIVED, NOT REMEMBERED.** `test_watchdog.py`
 counts every `- cron:` line in `.github/workflows/` **and in files staged
 under `docs/upload/`**, one per file name (`wfparse.cron_total`), and
@@ -288,6 +288,25 @@ note boxes, tags and the stale bar now require their absence.
 
 ## Things that are true and easy to get wrong
 
+- 🔴🔴 **NOTHING RECURRING RUNS IN CLAUDE.** `[Sam, 2026-10-12]` *"we can't have
+  any recurring tasks or weekly checks or anything in Claude ... What we can do is
+  set something up in GitHub ... we can't have anything running in Claude
+  anymore."* ⛔ Every recurring job is a GitHub Actions workflow that reads only the
+  repo's own files and never calls Claude.
+- 🔴 **THE FOOTBALL GAME MODEL LEARNS EVERY WEEK, BY A FROZEN CONTEST.** `[Sam,
+  2026-10-12]` *"how do we make sure the model knows these teams better than they
+  do or in the least is learning how to do so"*; he chose all three: a weekly
+  scoreboard against the books, better data, and a weekly champion-vs-challenger
+  contest. T65 (`research/fb_refit_spec.md`, frozen by `test_prereg_gate.py`):
+  `fb_model.CHAMPION` names each league's champion in ONE place (None = today's
+  model); challengers E (NFL EPA), P (college PPA) and T (college talent) live in
+  `fb_challengers.py` (⛔ R, returning production, was withdrawn: never build
+  it). `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
+  `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
+  `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
+  main; the Monday email's "Is the football model learning?" section and "Needs
+  you" tell Sam. ⛔ Merging is Sam's; a champion adds "+game-<name>" to the card's
+  method. A report over 8 days old is DEGRADED. `test_fb_refit.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
   *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
   ... only show confidence score on each pick that the model picks, BASED ON THE
@@ -855,6 +874,14 @@ fb_signal9.py     scores signal 9's three uses by Sam's keep rule (mean
                   log-loss difference >= 0, clustered by game). ⛔ The
                   per-league switches are constants set from the recorded
                   run; test_signal9.py fails if they disagree.
+fb_challengers.py T65's frozen challengers to the football game model
+                  (Sam, 2026-10-12): E (NFL opponent-adjusted EPA margin), P
+                  (college PPA, the same solve), T (college talent in the
+                  margin solve). fb_model reads it only for a named CHAMPION.
+fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
+                  the scoreboard against the books -> data/<lg>/latest/
+                  fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No
+                  PR, never main. status.py and the watchdog never import it.
 game_lines_fb.py  THE ALT LADDERS (~~THE GAME LINES TAB~~: `[Sam, 2026-10-01]`
                   no longer drawn; the tab is winners.py, and the card's
                   alternate spreads still read this file) (Sam, 2026-09-24): every alt spread

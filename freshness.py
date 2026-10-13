@@ -49,6 +49,7 @@ import gzip
 import os
 import re
 import datetime
+import ast
 
 UTC = datetime.timezone.utc
 
@@ -773,6 +774,22 @@ def has_contract(league):
     return league == "mlb" or league in FB_TIMES
 
 
+def _literal(module, name):
+    """A module's top-level literal, PARSED (⛔ never imported: fb_model drags in
+    card_fb, which exits under LEAGUE=mlb)."""
+    src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), module), encoding="utf-8").read()
+    for node in ast.parse(src).body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == name for t in node.targets):
+            return ast.literal_eval(node.value)
+    raise KeyError(name)
+
+
+def champion_inputs(league, champion=None):
+    """[(mode, file pattern, deadline key)] behind fb_model.CHAMPION[league]."""
+    name = (champion or _literal("fb_model.py", "CHAMPION")).get(league)
+    return [_literal("fb_challengers.py", "CHALLENGERS")[name]["input"]] if name else []
+
+
 def _football_contract(league, data, picks, now):
     """The same shape as MLB's, for one football league."""
     latest = f"{data}/latest"
@@ -1008,6 +1025,12 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-model.json"), T["card"], False,
          "Model picks + walk-forward record"))
+    # `[Sam, 2026-10-12]` T65: once Sam names a game-model CHAMPION, the file
+    #    behind its input is a row like the others (talent: once a season,
+    #    so only a missing season's file is late).
+    for mode, fname, due in champion_inputs(league):
+        rows.append((mode, ("file", f"{latest}/{fname.format(s=season)}"),
+                     T[due] if due else [], False, "Game model champion's input"))
     # `[Sam, 2026-09-24]` the props model's file, rebuilt by the same run.
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-props-model.json"), T["card"], False,

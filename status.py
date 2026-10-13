@@ -21,6 +21,8 @@ LEAGUES = (("MLB", "data"), ("NFL", "data/nfl"), ("College", "data/ncaaf"))
 # ⚠️ MEASURED 2026-10-07: 528 health reports on main 09-23 -> 10-07, the longest
 #    gap 5.85 hours. Older than this, "right now" is not supported.
 HEALTH_MAX_H = 12
+FB = (("NFL", "data/nfl"), ("College", "data/ncaaf"))
+REPO = "https://github.com/smh0602/gizmos-picks"
 NOT_UPDATING = "No: %s, so no collect run has finished since."
 
 
@@ -73,6 +75,66 @@ def records(root, d, since):
     return out
 
 
+def refit_summary(doc, name, now):
+    """`[Sam, 2026-10-12]` One football league's "is the model learning?"
+    paragraph from its fb-refit.json (fb_refit.py), or why there is none."""
+    if not doc:
+        return "%s: no weekly report yet." % name
+    age = W.fb_refit_age_days(doc, now)
+    if age is None or age > W.FB_REFIT_STALE_DAYS:
+        return "%s: the weekly report is %s days old (built %s), so there is no current reading." % (
+            name, "?" if age is None else int(age), doc.get("built_at"))
+    ms, lm = doc.get("miss") or {}, doc.get("line_moves") or {}
+    out = [("%s: our predicted margins miss by %.1f points on average, the books' line by %.1f; totals "
+            "%.1f against %.1f (%d games)." % (name, ms["margin_model"], ms["margin_books"], ms["total_model"],
+                                               ms["total_books"], ms["games"]))
+           if ms.get("games") else "%s: no finished games to measure yet." % name]
+    for mk, title in (("spread", "Spread"), ("moneyline", "Moneyline"), ("total", "Totals")):
+        g, m = (doc.get("scoreboard") or {}).get(mk) or {}, lm.get(mk) or {}
+        if not g.get("predictions"):
+            out.append("%s: nothing to score yet." % title)
+            continue
+        n = (m.get("toward") or 0) + (m.get("against") or 0)
+        out.append("%s: %s the books (log loss %.3f against %.3f), %s; %s; when it favours a side it says "
+                   "%.1f%% and that side wins %.1f%%." % (
+                       title, {"ahead": "ahead of", "behind": "behind"}.get(g["state"], "level with"),
+                       g["model_log_loss"], g["books_log_loss"], {
+                           "closer": "getting closer over the last 4 weeks",
+                           "further": "falling further back over the last 4 weeks"}.get(
+                           g["trend"]["state"], g["trend"]["state"]),
+                       "lines moved our way in %d of %d games (%d%%; 50%% means no edge)" % (
+                           m["toward"], n, round(m["toward_share"])) if n else "no line moves to read yet",
+                       g["said"], g["hit"]))
+    for x in doc.get("challengers") or []:
+        v, s = x["verdict"], x.get("scored") or {}
+        out.append("Challenger %s (%s): %s." % (x["name"], x["what"], {
+            "NO DATA": "its data is not stored yet",
+            "WITHDRAWN": "withdrawn, it was worse on past games"}.get(v, "%d of %d scored predictions, %s" % (
+                s.get("predictions") or 0, 300, {"NOT YET MEASURABLE": "not yet measurable",
+                                                 "NOT YET": "not better yet", "WINS": "it WINS"}.get(v, v)))))
+    return " ".join(out)
+
+
+def refit_wins(doc, name):
+    """[(the "Needs you" item, its clicks)] for every challenger that WINS."""
+    out = []
+    for x in (doc or {}).get("challengers") or []:
+        if x.get("verdict") != "WINS" or not x.get("branch"):
+            continue
+        s = x["scored"]
+        out.append(("%s challenger %s (%s) beat the current game model: log loss %.4f against %.4f over %d "
+                    "scored predictions in %d games, one-sided p = %.4g (it needed under %.4g)" % (
+                        name, x["name"], x["what"], s["challenger_log_loss"], s["champion_log_loss"],
+                        s["predictions"], s["games"], s["p"], x["alpha"]),
+                    ["1. Open %s/compare/main...%s?expand=1" % (REPO, x["branch"]),
+                     "2. Click the green \"Create pull request\" button (twice: once on the page, once under "
+                     "the title box).",
+                     "3. Wait until the box at the bottom says \"All checks have passed\".",
+                     "4. Click \"Merge pull request\", then \"Confirm merge\" (or \"Close pull request\" to "
+                     "keep the current model)."]))
+    return out
+
+
 def build(root=ROOT, now=None):
     """-> (body, needs): the weekly issue's text and what needs Sam (empty: nothing)."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
@@ -84,12 +146,18 @@ def build(root=ROOT, now=None):
     wf = (runs or {}).get("by_workflow") or {}
     broken = ([{"key": "watchdog:health", "severity": "BROKEN", "what": old}] if old else []) + [
         f for f in findings if f.get("severity") == "BROKEN"]
-    needs = [f["what"] for f in broken]
-    L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week.",
-         "", "## Records (last 7 days / overall)"]
+    refit = [(name, _read(os.path.join(root, d, "latest", "fb-refit.json"))) for name, d in FB]
+    won = [w for name, doc in refit for w in refit_wins(doc, name)]
+    needs = [f["what"] for f in broken] + [w[0] for w in won]
+    L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
+    for what, clicks in won:
+        L += ["", "**%s.**" % what] + clicks
+    L += ["", "## Records (last 7 days / overall)"]
     for name, d in LEAGUES:
         L.append("**%s**" % name)
         L += ["- %s: %s / %s" % (k, _rate(*wk), _rate(*al)) for k, wk, al in records(root, d, since)]
+    L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now)
+                                                         for name, doc in refit]
     c = health.get("credits") or {}
     bal, at = c.get("balance"), str(c.get("pulled_at"))
     L += ["", "## Odds API credits"]

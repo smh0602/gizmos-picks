@@ -1220,6 +1220,30 @@ def check_record_ungraded(rep, now):
 #    is ever broken, the verifier refuses the card and this file reports
 #    the refusal within one collector run.
 
+FB_REFIT_STALE_DAYS = 8      # `[Sam, 2026-10-12]` T65's weekly report, read by status.py too
+
+
+def fb_refit_age_days(doc, now):
+    """Days since a fb-refit.json was built, or None when it says nothing usable."""
+    seen = _when((doc or {}).get("built_at"))
+    return None if seen is None else (now - seen).total_seconds() / 86400.0
+
+
+def check_fb_refit(rep, now):
+    """`[Sam, 2026-10-12]` The football model's weekly contest (fb_refit.py, its own
+    Monday workflow) more than 8 days old -> DEGRADED, no repair (only its run
+    rebuilds it). ⛔ Not yet written is not late: the workflow is Sam's upload."""
+    for lg in ("nfl", "ncaaf"):
+        doc = _read(os.path.join(ROOT, "data", lg, "latest", "fb-refit.json"))
+        age = fb_refit_age_days(doc, now) if doc else None
+        if doc and (age is None or age > FB_REFIT_STALE_DAYS):
+            rep.warn("fb-refit:%s" % lg,
+                     "the %s game model's weekly scoreboard is %s days old" % (
+                         lg.upper(), "?" if age is None else int(age)),
+                     "fb-refit.yml has not written data/%s/latest/fb-refit.json since %s." % (
+                         lg, doc.get("built_at")))
+
+
 CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_verify_failure, check_card_day_agreement,
           check_board_not_empty, check_record_sane,
@@ -1232,7 +1256,9 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_credit_balance,
           # 💰 THE ELEVENTH: the balance header must reconcile with what
           #    the stored snapshots say was spent.
-          check_credit_reconciliation)
+          check_credit_reconciliation,
+          # `[Sam, 2026-10-12]` the football model's weekly contest, DEGRADED only.
+          check_fb_refit)
 
 
 def _previous():
