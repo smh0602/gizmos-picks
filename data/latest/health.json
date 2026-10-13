@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-13T15:17:08Z",
+ "checked_at": "2026-10-13T16:01:31Z",
  "et_date": "2026-10-13",
  "healthy": false,
  "broken": 0,
- "degraded": 10,
+ "degraded": 9,
  "findings": [
   {
    "key": "late:alt-lines:ncaaf",
@@ -56,13 +56,6 @@
    "repair": null
   },
   {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 137 minutes after it was due",
-   "why": "due 2026-10-13T13:00Z, built 2026-10-13T15:16Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:gamelines:nfl",
    "severity": "DEGRADED",
    "what": "nfl gamelines was built 196 minutes after it was due",
@@ -85,7 +78,7 @@
   "pulled_at": "2026-10-13T15:16:02Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-13T15:16:02Z",
   "source": "data/nfl/2026-10-13/props-player/1516.json.gz",
