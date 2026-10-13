@@ -19,6 +19,11 @@ written under data/ (cfb.OUT is a temp directory).
 #   find:     if os.path.exists(os.path.join(OUT, f"ppa-{season}.json.gz")):
 #   with:     if False:
 #
+# @vacuity 🔴 ...priced first: a refused 2025 sweep fetches nothing
+#   file: cfb.py
+#   find:         return "refused: %s" % price["why"]
+#   with:         pass
+#
 # @vacuity 🔴 ...and a partial sweep writes nothing
 #   file: cfb.py
 #   find:     if doc.get("fetch_failures") or not doc.get("games"):
@@ -97,6 +102,13 @@ ck(doc["season"] == 2026 and doc["kind"] == "DESCRIPTIVE" and bool(doc["built_at
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 2025: ONE SWEEP, ONLY WHILE ppa-2025 IS MISSING")
 # ══════════════════════════════════════════════════════════════════════
+_allow = cfbd_budget.preflight
+cfbd_budget.preflight = lambda calls, purpose, latest, root=None: {"allowed": False, "why": "planted refusal"}
+del CALLS[:]
+got = cfb.backfill_ppa(2025, QUIET)
+cfbd_budget.preflight = _allow
+ck(got.startswith("refused") and not CALLS and not os.path.exists(os.path.join(TMP, "ppa-2025.json.gz")),
+   "🔴 a 2025 sweep the budget refuses makes no call and writes nothing", (got, len(CALLS)))
 del CALLS[:]
 got = cfb.backfill_ppa(2025, QUIET)
 n1 = len(CALLS)
