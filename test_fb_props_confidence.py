@@ -47,8 +47,8 @@ to the real clock; nothing here reads the live data tree.
 #
 # @vacuity 🔴 the Track Record starts a new method from the switch
 #   file: card_fb.py
-#   find:                         else CARD_METHOD) + METHOD_PROPS_MODEL,
-#   with:                         else CARD_METHOD),
+#   find:                         else CARD_METHOD) + METHOD_PROPS_MODEL
+#   with:                         else CARD_METHOD)
 #
 # @vacuity 🔴 the props model is built before the card
 #   file: collect.py
