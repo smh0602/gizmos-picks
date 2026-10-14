@@ -1,10 +1,10 @@
 {
  "date": "2026-10-14",
  "league": "ncaaf",
- "generated_at": "2026-10-14T18:19:43Z",
+ "generated_at": "2026-10-14T19:47:43Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-14T17:51:58Z",
+ "odds_pulled_at": "2026-10-14T19:46:24Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -50,7 +50,7 @@
    "why": [
     "The game model gives Under 66% at 51.5; the price -110 needs 52.4%."
    ],
-   "priced_at": "2026-10-14T15:51:42Z",
+   "priced_at": "2026-10-14T19:46:24Z",
    "rank": 1
   },
   {
@@ -61,25 +61,55 @@
    "market": "spread",
    "market_label": "Spread",
    "side": "away",
-   "line": -3.0,
+   "line": -2.5,
    "game": "Kennesaw State Owls @ Missouri State Bears",
    "game_id": "7ebcab7b97620342a9205b32139222d1",
    "away": "Kennesaw State Owls",
    "home": "Missouri State Bears",
    "commence": "2026-10-14T23:30:00Z",
-   "book": "draftkings",
-   "price": -108,
+   "book": "fanduel",
+   "price": -110,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 55,
-   "break_even": 51.9,
-   "edge": 2.7,
+   "break_even": 52.4,
+   "edge": 2.2,
    "why": [
-    "The game model gives Kennesaw State Owls 55% to cover -3; the price -108 needs 51.9%."
+    "The game model gives Kennesaw State Owls 55% to cover -2.5; the price -110 needs 52.4%."
    ],
-   "priced_at": "2026-10-14T15:51:42Z",
+   "priced_at": "2026-10-14T19:46:24Z",
    "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Kennesaw State Owls",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "away",
+   "line": -29.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "fanduel",
+   "price": 1700,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "break_even": 5.6,
+   "edge": 51.4,
+   "why": [
+    "The game model gives Kennesaw State Owls 57% to cover -29.5; the best price, +1700 at FanDuel, needs 5.6%."
+   ],
+   "priced_at": "2026-10-14T19:46:24Z",
+   "main_line": -2.5,
+   "sched_id": "401871054",
+   "rank": 3
   },
   {
    "kind": "fb-line",
@@ -96,18 +126,18 @@
    "home": "Sam Houston State Bearkats",
    "commence": "2026-10-15T00:00:00Z",
    "book": "hardrockbet",
-   "price": -105,
+   "price": -110,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 54,
-   "break_even": 51.2,
-   "edge": 3.2,
+   "break_even": 52.4,
+   "edge": 2.0,
    "why": [
-    "The game model gives Under 54% at 52.5; the price -105 needs 51.2%."
+    "The game model gives Under 54% at 52.5; the price -110 needs 52.4%."
    ],
-   "priced_at": "2026-10-14T15:51:42Z",
-   "rank": 3
+   "priced_at": "2026-10-14T19:46:24Z",
+   "rank": 4
   },
   {
    "kind": "fb-line",
@@ -123,19 +153,19 @@
    "away": "Western Kentucky Hilltoppers",
    "home": "Sam Houston State Bearkats",
    "commence": "2026-10-15T00:00:00Z",
-   "book": "fanduel",
-   "price": 100,
+   "book": "draftkings",
+   "price": -102,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 53,
-   "break_even": 50.0,
-   "edge": 3.1,
+   "break_even": 50.5,
+   "edge": 2.6,
    "why": [
-    "The game model gives Sam Houston State Bearkats 53% to win; the price +100 needs 50.0%."
+    "The game model gives Sam Houston State Bearkats 53% to win; the price -102 needs 50.5%."
    ],
-   "priced_at": "2026-10-14T15:51:42Z",
-   "rank": 4
+   "priced_at": "2026-10-14T19:46:24Z",
+   "rank": 5
   }
  ],
  "game_lines_meta": {
@@ -146,11 +176,11 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-14T18:19:29Z",
-  "ladder_built_at": "2026-10-14T18:19:31Z",
-  "alt_spreads": 0
+  "model_built_at": "2026-10-14T19:47:36Z",
+  "ladder_built_at": "2026-10-14T19:47:37Z",
+  "alt_spreads": 1
  },
- "game_lines_rule": "The game model's own 4 pick(s) for 2026-10-14 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 4 pick(s) for 2026-10-14 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -207,40 +237,40 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
-   "line": 58.5,
+   "line": 55.5,
    "game": "Kennesaw State Owls @ Missouri State Bears",
    "game_id": "7ebcab7b97620342a9205b32139222d1",
    "away": "Kennesaw State Owls",
    "home": "Missouri State Bears",
    "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615762145&selectionId=103593088",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/9019166540720898460",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 54,
-   "model_p": 54.5,
+   "model_p": 53.8,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": 0.7,
+   "break_even": 52.4,
+   "edge": 1.6,
    "rank": 5
   }
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 8,
-  "same_game_already_listed": 61,
+  "same_player_already_listed": 10,
+  "same_game_already_listed": 73,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 71,
+  "pool_after_price_gate": 85,
   "cap": 20,
   "distinct_games": 2,
   "shared_with_board_head": 2,
   "board_head_size": 20
  },
- "top_plays_rule": "The 2 most likely to hit for 2026-10-14 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 20, over 2 game(s). 61 row(s) were held back because their game was already represented and 8 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 2 most likely to hit for 2026-10-14 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 2 of 20, over 2 game(s). 73 row(s) were held back because their game was already represented and 10 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -373,38 +403,6 @@
    },
    {
     "legs": [
-     "Brock Glenn u216.5 pass yds",
-     "Javon Rogers u36.5 rec yds"
-    ],
-    "games": [
-     "Western Kentucky Hilltoppers @ Sam Houston State Bearkats",
-     "Kennesaw State Owls @ Missouri State Bears"
-    ],
-    "game_ids": [
-     "2bbbf3488a5d57c9c13ae578bad17a9d",
-     "7ebcab7b97620342a9205b32139222d1"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 33.1,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     65,
-     51
-    ],
-    "break_even": 28.4,
-    "edge": 4.8,
-    "ev_30": 5.04
-   },
-   {
-    "legs": [
      "Jmariyae Robinson u4.5 rec",
      "Brock Glenn u216.5 pass yds"
     ],
@@ -498,6 +496,38 @@
     "break_even": 22.2,
     "edge": 9.7,
     "ev_30": 13.05
+   },
+   {
+    "legs": [
+     "Brayden Munroe u4.5 rec",
+     "Ajay Allen u67.5 rush yds"
+    ],
+    "games": [
+     "Kennesaw State Owls @ Missouri State Bears",
+     "Western Kentucky Hilltoppers @ Sam Houston State Bearkats"
+    ],
+    "game_ids": [
+     "7ebcab7b97620342a9205b32139222d1",
+     "2bbbf3488a5d57c9c13ae578bad17a9d"
+    ],
+    "book": "fanduel",
+    "prices": [
+     -180,
+     -114
+    ],
+    "multiplier": 2.92,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 30.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     54,
+     56
+    ],
+    "break_even": 34.2,
+    "edge": -4.0,
+    "ev_30": -3.51
    }
   ],
   "3": [],
@@ -505,7 +535,7 @@
  },
  "parlay_meta": {
   "pool": 40,
-  "rated_legs": 71,
+  "rated_legs": 85,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -519,7 +549,7 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 42,
+    "available": 56,
     "taken": 12
    },
    {
@@ -534,46 +564,15 @@
    }
   ],
   "rejected": {
-   "same_game": 101654,
+   "same_game": 101651,
    "same_player": 0,
-   "mixed_book": 138,
+   "mixed_book": 171,
    "out_of_band": 0
   },
-  "note": "71 rated legs, 40 in the stratified pool. Rejected: 101654 same game, 0 same player, 138 would need two books, 0 outside Sam's bands."
+  "note": "85 rated legs, 40 in the stratified pool. Rejected: 101651 same game, 0 same player, 171 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
-   {
-    "legs": [
-     "Brock Glenn u216.5 pass yds",
-     "Sam Houston State Bearkats +1.5 spread"
-    ],
-    "game": "Western Kentucky Hilltoppers @ Sam Houston State Bearkats",
-    "game_id": "2bbbf3488a5d57c9c13ae578bad17a9d",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -110,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.524,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 65,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     65
-    ],
-    "band_floor": 1.8
-   },
    {
     "legs": [
      "Brock Glenn u216.5 pass yds",
@@ -608,11 +607,11 @@
    },
    {
     "legs": [
-     "Brayden Munroe u58.5 rec yds",
-     "Jmariyae Robinson o39.5 rec yds"
+     "Ajay Allen u67.5 rush yds",
+     "Brock Glenn u54.5 rush yds"
     ],
-    "game": "Kennesaw State Owls @ Missouri State Bears",
-    "game_id": "7ebcab7b97620342a9205b32139222d1",
+    "game": "Western Kentucky Hilltoppers @ Sam Houston State Bearkats",
+    "game_id": "2bbbf3488a5d57c9c13ae578bad17a9d",
     "same_game": true,
     "book": "fanduel",
     "prices": [
@@ -629,44 +628,74 @@
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 52,
+    "weakest_leg": 56,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     54,
-     52
+     56,
+     56
     ],
     "band_floor": 1.8
    },
    {
     "legs": [
-     "Brayden Munroe u4.5 rec",
-     "Jmariyae Robinson o39.5 rec yds"
+     "Brayden Munroe u55.5 rec yds",
+     "Missouri State Bears +2.5 spread"
+    ],
+    "game": "Kennesaw State Owls @ Missouri State Bears",
+    "game_id": "7ebcab7b97620342a9205b32139222d1",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -110,
+     -110
+    ],
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.645,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Brayden Munroe u58.5 rec yds",
+     "Missouri State Bears +2.5 spread"
     ],
     "game": "Kennesaw State Owls @ Missouri State Bears",
     "game_id": "7ebcab7b97620342a9205b32139222d1",
     "same_game": true,
     "book": "fanduel",
     "prices": [
-     -180,
-     -114
+     -114,
+     -110
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 2.92,
+    "n_line_legs": 1,
+    "multiplier": 3.584,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 52,
+    "weakest_leg": 54,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     54,
-     52
+     54
     ],
     "band_floor": 1.8
    }
@@ -676,7 +705,7 @@
     "legs": [
      "Brock Glenn u216.5 pass yds",
      "Ajay Allen u67.5 rush yds",
-     "Sam Houston State Bearkats +1.5 spread"
+     "Chris Reed u51.5 rec yds"
     ],
     "game": "Western Kentucky Hilltoppers @ Sam Houston State Bearkats",
     "game_id": "2bbbf3488a5d57c9c13ae578bad17a9d",
@@ -687,22 +716,23 @@
      -114,
      -114
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -110,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 3,
-    "n_line_legs": 1,
+    "n_line_legs": 0,
     "multiplier": 6.615,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
+    "weakest_leg": 55,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      65,
-     56
+     56,
+     55
     ],
     "band_floor": 3.0
    },
@@ -710,7 +740,7 @@
     "legs": [
      "Ajay Allen u67.5 rush yds",
      "Brock Glenn u54.5 rush yds",
-     "Sam Houston State Bearkats +1.5 spread"
+     "Chris Reed u51.5 rec yds"
     ],
     "game": "Western Kentucky Hilltoppers @ Sam Houston State Bearkats",
     "game_id": "2bbbf3488a5d57c9c13ae578bad17a9d",
@@ -721,92 +751,91 @@
      -114,
      -114
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": -110,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 3,
-    "n_line_legs": 1,
+    "n_line_legs": 0,
     "multiplier": 6.615,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
+    "weakest_leg": 55,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      56,
-     56
+     56,
+     55
     ],
     "band_floor": 3.0
    },
    {
     "legs": [
-     "Brayden Munroe u58.5 rec yds",
-     "Jmariyae Robinson o39.5 rec yds",
-     "Javon Rogers u36.5 rec yds"
+     "Brayden Munroe u55.5 rec yds",
+     "Skyler Locklear u196.5 pass yds",
+     "Missouri State Bears +2.5 spread"
     ],
     "game": "Kennesaw State Owls @ Missouri State Bears",
     "game_id": "7ebcab7b97620342a9205b32139222d1",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -114,
-     -114,
-     -114
+     -110,
+     -115,
+     -110
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 6.615,
+    "n_line_legs": 1,
+    "multiplier": 6.814,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 51,
+    "weakest_leg": 52,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      54,
-     52,
-     51
+     52
     ],
     "band_floor": 3.0
    },
    {
     "legs": [
-     "Brayden Munroe u4.5 rec",
-     "Jmariyae Robinson o39.5 rec yds",
-     "Javon Rogers u36.5 rec yds"
+     "Brayden Munroe u55.5 rec yds",
+     "Jmariyae Robinson o38.5 rec yds",
+     "Missouri State Bears +2.5 spread"
     ],
     "game": "Kennesaw State Owls @ Missouri State Bears",
     "game_id": "7ebcab7b97620342a9205b32139222d1",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -180,
-     -114,
-     -114
+     -110,
+     -115,
+     -110
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 5.482,
+    "n_line_legs": 1,
+    "multiplier": 6.814,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 51,
+    "weakest_leg": 52,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      54,
-     52,
-     51
+     52
     ],
     "band_floor": 3.0
    }
@@ -818,8 +847,8 @@
   "games_used": 2,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 65,
-   "mixed_book": 0,
+   "same_player": 66,
+   "mixed_book": 100,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -892,6 +921,42 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 12 games this record is built from \u2014 148.9 pass yds a game."
   },
+  "Rickie Collins|player_pass_yds|over|219.5": {
+   "v": 148.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 148.9 pass yds a game."
+  },
+  "Rickie Collins|player_pass_yds|under|219.5": {
+   "v": 148.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 148.9 pass yds a game."
+  },
+  "Skyler Locklear|player_pass_yds|over|196.5": {
+   "v": 157.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 157.6 pass yds a game."
+  },
+  "Skyler Locklear|player_pass_yds|under|196.5": {
+   "v": 157.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 157.6 pass yds a game."
+  },
+  "Jmariyae Robinson|player_reception_yds|over|38.5": {
+   "v": 52.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 52.7 rec yds a game."
+  },
+  "Jmariyae Robinson|player_reception_yds|under|38.5": {
+   "v": 52.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 52.7 rec yds a game."
+  },
   "Jmariyae Robinson|player_reception_yds|over|39.5": {
    "v": 52.7,
    "u": "rec yds",
@@ -927,6 +992,30 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 21.4 rush yds a game."
+  },
+  "Ramone Green Jr.|player_rush_yds|over|42.5": {
+   "v": 21.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 21.4 rush yds a game."
+  },
+  "Ramone Green Jr.|player_rush_yds|under|42.5": {
+   "v": 21.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 21.4 rush yds a game."
+  },
+  "Rickie Collins|player_rush_yds|over|48.5": {
+   "v": 18.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 18.0 rush yds a game."
+  },
+  "Rickie Collins|player_rush_yds|under|48.5": {
+   "v": 18.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 18.0 rush yds a game."
   },
   "Rickie Collins|player_rush_yds|over|49.5": {
    "v": 18.0,
@@ -1062,19 +1151,19 @@
   }
  },
  "name_match_rate": 0.755,
- "n_priced": 77,
+ "n_priced": 91,
  "single_day": true,
  "slate_date": "2026-10-14",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 77,
+ "n_on_slate_day": 91,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-14 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "77 priced football rows for 2026-10-14 across 2 board games; 25 shown.",
+ "coverage": "91 priced football rows for 2026-10-14 across 2 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 54.5% against a claimed 52% (+2.5 pts, n=22). The under-60 band is currently the closest to its own claim. 22 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -1256,6 +1345,34 @@
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
    "side": "under",
+   "line": 55.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/9019166540720898460",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 54,
+   "model_p": 53.8,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 1.6,
+   "rank": 5
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brayden Munroe",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
    "line": 58.5,
    "game": "Kennesaw State Owls @ Missouri State Bears",
    "game_id": "7ebcab7b97620342a9205b32139222d1",
@@ -1274,7 +1391,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 0.7,
-   "rank": 5
+   "rank": 6
   },
   {
    "kind": "fb",
@@ -1302,7 +1419,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 64.3,
    "edge": -10.3,
-   "rank": 6
+   "rank": 7
   },
   {
    "kind": "fb",
@@ -1349,7 +1466,7 @@
     "<b>Jmariyae Robinson</b> went over 39.5 rec yds in <b>2 of 4 games</b> in 2026 and 7 of 12 in 2025, in the games he appears in."
    ],
    "model_p": 51.5,
-   "rank": 7
+   "rank": 8
   },
   {
    "kind": "fb",
@@ -1396,7 +1513,7 @@
     "<b>Grady O'Neill</b> went under 49.5 rec yds in <b>3 of 5 games</b> in 2026 and 7 of 11 in 2025, in the games he appears in."
    ],
    "model_p": 51.6,
-   "rank": 8
+   "rank": 9
   },
   {
    "kind": "fb",
@@ -1424,7 +1541,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -1.3,
-   "rank": 9
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -1452,7 +1569,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -1.3,
-   "rank": 10
+   "rank": 11
   },
   {
    "kind": "fb",
@@ -1480,7 +1597,101 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -1.3,
-   "rank": 11
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Skyler Locklear",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 196.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3229386214364807599",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "9 of 14",
+   "record": "9 of 14",
+   "rate": 62,
+   "break_even": 53.5,
+   "edge": -1.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 9,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.605,
+    "weighted_n": 9.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 157.56,
+   "projection": 157.6,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 157.6 pass yds a game.",
+   "why": [
+    "<b>Skyler Locklear</b> went under 196.5 pass yds in <b>3 of 5 games</b> in 2026 and 6 of 9 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.3,
+   "rank": 13
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jmariyae Robinson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 38.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7926847333898256806",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "10 of 16",
+   "record": "10 of 16",
+   "rate": 51,
+   "break_even": 53.5,
+   "edge": -1.5,
+   "season_detail": {
+    "h25": 7,
+    "n25": 12,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.389,
+    "weighted_n": 10.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 52.67,
+   "projection": 52.7,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 52.7 rec yds a game.",
+   "why": [
+    "<b>Jmariyae Robinson</b> went over 38.5 rec yds in <b>3 of 4 games</b> in 2026 and 7 of 12 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.8,
+   "rank": 14
   },
   {
    "kind": "fb",
@@ -1508,7 +1719,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 59.7,
    "edge": -7.7,
-   "rank": 12
+   "rank": 15
   },
   {
    "kind": "fb",
@@ -1536,7 +1747,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -2.3,
-   "rank": 13
+   "rank": 16
   },
   {
    "kind": "fb",
@@ -1583,7 +1794,7 @@
     "<b>Landyn Locke</b> went under 245.5 pass yds in <b>2 of 5 games</b> in 2026 and 5 of 6 in 2025, in the games he appears in."
    ],
    "model_p": 51.4,
-   "rank": 14
+   "rank": 17
   },
   {
    "kind": "fb",
@@ -1611,7 +1822,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -2.3,
-   "rank": 15
+   "rank": 18
   },
   {
    "kind": "fb",
@@ -1639,7 +1850,129 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -2.3,
-   "rank": 16
+   "rank": 19
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rickie Collins",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 219.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7618086876632711599",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "7 of 12",
+   "record": "7 of 12",
+   "rate": 64,
+   "break_even": 53.5,
+   "edge": -2.5,
+   "season_detail": {
+    "h25": 4,
+    "n25": 7,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.68,
+    "weighted_n": 8.11
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 148.86,
+   "projection": 148.9,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 148.9 pass yds a game.",
+   "why": [
+    "<b>Rickie Collins</b> went under 219.5 pass yds in <b>3 of 5 games</b> in 2026 and 4 of 7 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.7,
+   "rank": 20
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Javon Rogers",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 35.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1187657649173430700",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 50.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.5,
+   "edge": -2.5,
+   "rank": 21
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ramone Green Jr.",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 42.5,
+   "game": "Kennesaw State Owls @ Missouri State Bears",
+   "game_id": "7ebcab7b97620342a9205b32139222d1",
+   "away": "Kennesaw State Owls",
+   "home": "Missouri State Bears",
+   "commence": "2026-10-14T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7624175387911782799",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "14 of 18",
+   "record": "14 of 18",
+   "rate": 68,
+   "break_even": 54.5,
+   "edge": -3.5,
+   "season_detail": {
+    "h25": 11,
+    "n25": 13,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.64,
+    "weighted_n": 10.78
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 21.38,
+   "projection": 21.4,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 21.4 rush yds a game.",
+   "why": [
+    "<b>Ramone Green Jr.</b> went under 42.5 rush yds in <b>3 of 5 games</b> in 2026 and 11 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 50.6,
+   "rank": 22
   },
   {
    "kind": "fb",
@@ -1667,7 +2000,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 65.3,
    "edge": -14.3,
-   "rank": 17
+   "rank": 23
   },
   {
    "kind": "fb",
@@ -1714,7 +2047,7 @@
     "<b>Jmariyae Robinson</b> went over 4.5 rec in <b>2 of 4 games</b> in 2026 and 3 of 12 in 2025, in the games he appears in."
    ],
    "model_p": 49.7,
-   "rank": 18
+   "rank": 24
   },
   {
    "kind": "fb",
@@ -1742,250 +2075,6 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 51.9,
    "edge": -1.9,
-   "rank": 19
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Rickie Collins",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "over",
-   "line": 216.5,
-   "game": "Kennesaw State Owls @ Missouri State Bears",
-   "game_id": "7ebcab7b97620342a9205b32139222d1",
-   "away": "Kennesaw State Owls",
-   "home": "Missouri State Bears",
-   "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615761114&selectionId=102903935",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 50,
-   "raw": "5 of 12",
-   "record": "5 of 12",
-   "rate": 36,
-   "break_even": 53.3,
-   "edge": -3.3,
-   "season_detail": {
-    "h25": 3,
-    "n25": 7,
-    "h26": 2,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.331,
-    "weighted_n": 8.11
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 148.86,
-   "projection": 148.9,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 12 games this record is built from \u2014 148.9 pass yds a game.",
-   "why": [
-    "<b>Rickie Collins</b> went over 216.5 pass yds in <b>2 of 5 games</b> in 2026 and 3 of 7 in 2025, in the games he appears in."
-   ],
-   "model_p": 49.6,
-   "rank": 20
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Rickie Collins",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 216.5,
-   "game": "Kennesaw State Owls @ Missouri State Bears",
-   "game_id": "7ebcab7b97620342a9205b32139222d1",
-   "away": "Kennesaw State Owls",
-   "home": "Missouri State Bears",
-   "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615761114&selectionId=102903927",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 50,
-   "raw": "7 of 12",
-   "record": "7 of 12",
-   "rate": 64,
-   "break_even": 53.3,
-   "edge": -3.3,
-   "season_detail": {
-    "h25": 4,
-    "n25": 7,
-    "h26": 3,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.669,
-    "weighted_n": 8.11
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 148.86,
-   "projection": 148.9,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 12 games this record is built from \u2014 148.9 pass yds a game.",
-   "why": [
-    "<b>Rickie Collins</b> went under 216.5 pass yds in <b>3 of 5 games</b> in 2026 and 4 of 7 in 2025, in the games he appears in."
-   ],
-   "model_p": 50.4,
-   "rank": 21
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Isaiah Myers",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 70.5,
-   "game": "Kennesaw State Owls @ Missouri State Bears",
-   "game_id": "7ebcab7b97620342a9205b32139222d1",
-   "away": "Kennesaw State Owls",
-   "home": "Missouri State Bears",
-   "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615762499&selectionId=103656669",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 50,
-   "model_p": 49.8,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": -3.3,
-   "rank": 22
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Isaiah Myers",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 70.5,
-   "game": "Kennesaw State Owls @ Missouri State Bears",
-   "game_id": "7ebcab7b97620342a9205b32139222d1",
-   "away": "Kennesaw State Owls",
-   "home": "Missouri State Bears",
-   "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615762499&selectionId=103656668",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 50,
-   "model_p": 50.2,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": -3.3,
-   "rank": 23
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Ramone Green Jr.",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 40.5,
-   "game": "Kennesaw State Owls @ Missouri State Bears",
-   "game_id": "7ebcab7b97620342a9205b32139222d1",
-   "away": "Kennesaw State Owls",
-   "home": "Missouri State Bears",
-   "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615762494&selectionId=103656493",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 50,
-   "raw": "4 of 18",
-   "record": "4 of 18",
-   "rate": 33,
-   "break_even": 53.3,
-   "edge": -3.3,
-   "season_detail": {
-    "h25": 2,
-    "n25": 13,
-    "h26": 2,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.377,
-    "weighted_n": 10.78
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 21.38,
-   "projection": 21.4,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 18 games this record is built from \u2014 21.4 rush yds a game.",
-   "why": [
-    "<b>Ramone Green Jr.</b> went over 40.5 rush yds in <b>2 of 5 games</b> in 2026 and 2 of 13 in 2025, in the games he appears in."
-   ],
-   "model_p": 50.0,
-   "rank": 24
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Ramone Green Jr.",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 40.5,
-   "game": "Kennesaw State Owls @ Missouri State Bears",
-   "game_id": "7ebcab7b97620342a9205b32139222d1",
-   "away": "Kennesaw State Owls",
-   "home": "Missouri State Bears",
-   "commence": "2026-10-14T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615762494&selectionId=103656468",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 50,
-   "raw": "14 of 18",
-   "record": "14 of 18",
-   "rate": 67,
-   "break_even": 53.3,
-   "edge": -3.3,
-   "season_detail": {
-    "h25": 11,
-    "n25": 13,
-    "h26": 3,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.623,
-    "weighted_n": 10.78
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 21.38,
-   "projection": 21.4,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 18 games this record is built from \u2014 21.4 rush yds a game.",
-   "why": [
-    "<b>Ramone Green Jr.</b> went under 40.5 rush yds in <b>3 of 5 games</b> in 2026 and 11 of 13 in 2025, in the games he appears in."
-   ],
-   "model_p": 50.0,
    "rank": 25
   }
  ],
