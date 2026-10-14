@@ -1,18 +1,11 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-14T13:04:49Z",
+ "checked_at": "2026-10-14T13:49:27Z",
  "et_date": "2026-10-14",
  "healthy": false,
  "broken": 0,
- "degraded": 12,
+ "degraded": 11,
  "findings": [
-  {
-   "key": "late:card-fb:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf card-fb was built 95 minutes after it was due",
-   "why": "due 2026-10-13T13:30Z, built 2026-10-13T15:05Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
@@ -99,7 +92,7 @@
   "pulled_at": "2026-10-14T12:56:11Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.1,
+  "reading_age_hours": 0.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-14T12:56:11Z",
   "source": "data/ncaaf/2026-10-14/props-player/1256.json.gz",
