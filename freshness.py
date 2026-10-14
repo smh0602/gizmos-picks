@@ -1036,6 +1036,24 @@ def _football_contract(league, data, picks, now):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{fname.format(s=season)}"),
                      T[due] if due else [], False, "Game model champion's input"))
+    # `[Sam, 2026-10-14]` NEW DATA, STORED ONLY (see STORED_ONLY): the daily
+    #    NWS forecasts and, by league, injuries / advanced stats, venues and CFBD
+    #    weather. History seasons and once-a-season files are late only when
+    #    missing; CFBD weather has a row once its file exists (only when the
+    #    key's tier has /games/weather).
+    _yrs = sorted(set(FOOTBALL_HISTORY) | {season})
+    _store = [(f"weather-{season}", T["possession"])]
+    if league == "nfl":
+        _store += [(f"injuries-{s}", T["possession"] if s == season else []) for s in _yrs]
+    else:
+        _store += [(f"adv-{s}", T["possession"] if s == season else []) for s in _yrs]
+        _store += [(f"venues-{season}", [])]
+        _store += [(f"cfbd-weather-{s}", []) for s in _yrs
+                   if os.path.exists(f"{latest}/cfbd-weather-{s}.json.gz")]
+    for _stem, _due in _store:
+        rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
+                     ("file", f"{latest}/{_stem}.json.gz"), _due, False,
+                     "Stored only — no tab or model reads it yet"))
     # `[Sam, 2026-09-24]` the props model's file, rebuilt by the same run.
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-props-model.json"), T["card"], False,
@@ -1298,6 +1316,16 @@ def runs_rows(latest, root=None):
 #    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
 #    reads STALE.
 SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
+# 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
+#    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
+#    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
+#    daily CFBD / nflverse mode, and re-running cfb-probe every pass for a file
+#    nothing reads is how September's CFBD quota went (13+ calls a build).
+STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather)-\d{4}\.json\.gz$")
+
+
+def stored_only(r):
+    return bool(STORED_ONLY.search(r.get("path") or ""))
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.
@@ -1437,6 +1465,9 @@ def classify(rows, data="data", refused=None, block=None):
     hard, soft = [], []
     for r in rows:
         if not r["stale"]:
+            continue
+        if stored_only(r):
+            soft.append(r)
             continue
         if (r["mode"] in SOURCE_BACKED and block["state"]
                 and not r["missing"]):
@@ -1700,7 +1731,7 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    credits. ⚠️ `dict.fromkeys` keeps the contract's order, which is
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
-    need = {r["mode"] for r in rows if r["stale"]
+    need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
             and (allow_paid or not r["paid"])} | slate_moves(data, picks, now)
     changed = True
     while changed:

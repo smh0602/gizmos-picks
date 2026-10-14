@@ -44,6 +44,7 @@ import gzip
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -301,8 +302,16 @@ ck("⚠️ ...and the measured block is printed either way",
    "MEASURED" in _wrong and "MEASURED" in _right,
    "⛔ the readings are the evidence; printing them only when they "
    "disagree would hide the basis of the agreement")
-ck("✅ the real plan reads 30%, not 91%",
-   "against a 3000 plan — 30%" in _right
-   and "against a 1000 plan — 91%" in _wrong,
+# `[2026-10-14]` ~~"30%" / "91%" typed in~~: they are the DERIVED monthly
+#    calls over each plan (906, then 914, then 949 with the daily advanced
+#    stats), so the percentages are recomputed from the figure printed, and
+#    the arithmetic itself is now checked too.
+_m = re.search(r"(\d+)/month against a 3000 plan", _right)
+_mon = int(_m.group(1)) if _m else -1
+ck("✅ the real plan reads %.0f%%, not %.0f%% (the same %d calls/month)"
+   % (100.0 * _mon / 3000, 100.0 * _mon / 1000, _mon),
+   _m is not None and "%d/month against a 3000 plan — %.0f%%" % (_mon, 100.0 * _mon / 3000) in _right
+   and "%d/month against a 1000 plan — %.0f%%" % (_mon, 100.0 * _mon / 1000) in _wrong
+   and 100.0 * _mon / 3000 < 50 <= 100.0 * _mon / 1000,
    "⛔ the same 906 calls. The urgency was manufactured by a default "
    "nobody set.")

@@ -115,7 +115,12 @@ def calls_per_build(weeks_played=3):
     # build_season: /teams/fbs + /roster + /games x2 + /games/players per
     # played week + postseason
     season = 1 + 1 + 2 + (weeks_played + 1)
-    return {"cfb-probe": plays + season, "fb-scores": 2,
+    # `[Sam, 2026-10-14]` the stored-only advanced stats: one call for the
+    # newest played week, once a UTC day — counted on EVERY build, so the
+    # reserve overstates it rather than missing it. (Venues, the 2025 season,
+    # the Elo re-pull and the weekly /info + CFBD weather are priced one-offs.)
+    adv = 1 if "def fetch_adv(" in src else 0
+    return {"cfb-probe": plays + season + adv, "fb-scores": 2,
             "cfb-teams": 1, "_early_stop": early_stop}
 
 

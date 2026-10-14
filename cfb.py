@@ -263,6 +263,8 @@ def record_quota(data, log=log, when=None):
     doc = dict(cost_block())
     if SPENT:                            # T65's one-off sweeps, by purpose
         doc["calls_by_purpose"] = dict(SPENT)
+    if NOTES:
+        doc["notes"] = dict(NOTES)
     doc["kind"] = "DIAGNOSTIC"
     doc["recorded_at"] = (when or datetime.datetime.now(
         datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -1143,6 +1145,9 @@ def build_schedule(season, log=log):
             # whatever we do for one league we do for the other.
             # CFBD /games carries no weather at all.
             "roof": None, "surface": None, "temp": None, "wind": None,
+            # `[Sam, 2026-10-14]` CFBD's PREGAME Elo, kept from the same /games
+            #    call (stored only: no model reads it yet).
+            "home_elo": g.get("homePregameElo"), "away_elo": g.get("awayPregameElo"),
             # ✅ DERIVED, NOT FABRICATED: more than four quarters on the
             # line score IS overtime. None when we have no line score,
             # because "no data" and "no overtime" are different facts.
@@ -1499,6 +1504,7 @@ def fetch_signal9(season, log=log):
 PPA_HISTORY = (2025,)
 TALENT_RETRY_DAYS = 7
 SPENT = {}            # purpose -> calls, into the quota record (record_quota)
+NOTES = {}            # `[Sam, 2026-10-14]` purpose -> what was skipped and why, into the same record
 
 
 def backfill_ppa(season, log=log):
@@ -1561,6 +1567,212 @@ def fetch_talent(season, log=log, now=None):
         except Exception:
             pass
         return "DIAGNOSTIC: %s" % why
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 NEW DATA, STORED ONLY. `[Sam, 2026-10-14]`
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ NO FIT, INPUT, PICK OR CHANCE READS THESE FILES YET. Cowork tests each on
+#    past games once it lands; only what helps becomes a challenger (T65).
+#  - venues-<season>   CFBD /venues (lat/long, dome), once a season: fb_weather's
+#                      college venues
+#  - adv-<season>      /stats/game/advanced, garbage time EXCLUDED: 2025 once
+#                      while missing, the current season's latest week daily
+#  - schedule rows     keep /games' pregame Elo (no extra call this season;
+#                      2025 is re-pulled once, priced)
+#  - cfbd-weather-<s>  /games/weather, ONLY if /info says the key's tier has it
+# 💰 EVERY CALL IS PRICED FIRST by `cfbd_budget.preflight`; ⛔ a refusal fetches
+#    nothing and writes nothing, so it is asked again next run. ⛔ None raises.
+ADV_HISTORY = (2025,)
+ADV_KEYS = ("plays", "successRate", "explosiveness", "ppa")
+INFO_RETRY_DAYS = 7
+WEATHER_REFRESH_DAYS = 7
+
+
+def _priced(calls, purpose, log=log):
+    """True when cfbd_budget allows `calls` more; logged, and booked in SPENT."""
+    import cfbd_budget as _cb
+    q = _cb.preflight(calls, purpose, OUT)
+    log(f"    💰 CFBD PRICE — {purpose}: {'ALLOWED' if q['allowed'] else 'REFUSED'} — {q['why']}")
+    if q["allowed"]:
+        SPENT[purpose] = SPENT.get(purpose, 0) + calls
+    return q["allowed"]
+
+
+def _stamp(now=None):
+    return (now or datetime.datetime.now(datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def fetch_venues(season, log=log, now=None):
+    """CFBD /venues, ONE call a season. -> outcome."""
+    fn = f"venues-{season}.json.gz"
+    if os.path.exists(os.path.join(OUT, fn)):
+        return "already stored"
+    if not _priced(1, "venues %d" % season, log):
+        return "refused"
+    out = {}
+    for v in _counted_get("/venues", {}) or []:
+        loc = v.get("location") or {}
+        lat = v.get("latitude", loc.get("x"))
+        lon = v.get("longitude", loc.get("y"))
+        if v.get("name"):
+            out[v["name"]] = {"id": v.get("id"), "lat": lat, "lon": lon, "dome": v.get("dome"),
+                              "country": v.get("countryCode") or v.get("country_code"),
+                              "state": v.get("state"), "city": v.get("city")}
+    if not out:
+        return "not written: CFBD /venues returned none"
+    write_stamped(fn, {"season": season, "kind": "DESCRIPTIVE", "endpoint": "/venues",
+                       "built_at": _stamp(now), "venues": out}, log)
+    return "written (%d venues)" % len(out)
+
+
+def _adv_side(d):
+    d = d or {}
+    snake = lambda k: re.sub(r"([A-Z])", lambda m: "_" + m.group(1).lower(), k)  # noqa: E731
+    return {k: d.get(k, d.get(snake(k))) for k in ADV_KEYS}
+
+
+def adv_games(rows, games=None):
+    """CFBD's per-team rows -> {game id: {team: {opponent, week, offense, defense}}}."""
+    games = games if games is not None else {}
+    for r in rows or []:
+        gid, team = r.get("gameId", r.get("game_id")), r.get("team")
+        if gid is None or not team:
+            continue
+        games.setdefault(str(gid), {})[team] = {
+            "opponent": r.get("opponent"), "week": r.get("week"),
+            "offense": _adv_side(r.get("offense")), "defense": _adv_side(r.get("defense"))}
+    return games
+
+
+def latest_played_week(season):
+    """(season type, week) of the newest FINAL game in the stored schedule, or None."""
+    doc = _read_gz(os.path.join(OUT, "schedule-%d.json.gz" % season))
+    done = [g for g in (doc.get("games") or []) if g.get("final") and g.get("week") is not None]
+    if not done:
+        return None
+    g = max(done, key=lambda g: g.get("start") or "")
+    return (g.get("season_type") or "regular", int(g["week"]))
+
+
+def fetch_adv(season, current, log=log, now=None):
+    """History: the season once while missing (regular + postseason, 2 calls).
+    Current: the newest played week, once a UTC day (1 call), merged in."""
+    fn = f"adv-{season}.json.gz"
+    path = os.path.join(OUT, fn)
+    old = _read_gz(path)
+    params = {"year": str(season), "excludeGarbageTime": "true"}
+    if not current:
+        if old:
+            return "already stored"
+        if not _priced(2, "advanced stats %d" % season, log):
+            return "refused"
+        games, weeks = {}, ["regular", "postseason"]
+        for st in weeks:
+            adv_games(_counted_get("/stats/game/advanced", dict(params, seasonType=st)), games)
+    else:
+        if (old.get("built_at") or "")[:10] == _stamp(now)[:10]:
+            return "already refreshed today"
+        wk = latest_played_week(season)
+        if wk is None:
+            return "no played week yet"
+        if not _priced(1, "advanced stats %d week %d" % (season, wk[1]), log):
+            return "refused"
+        games = adv_games(_counted_get("/stats/game/advanced",
+                                       dict(params, seasonType=wk[0], week=str(wk[1]))),
+                          dict(old.get("games") or {}))
+        weeks = sorted(set(old.get("weeks_pulled") or []) | {"%s %d" % wk})
+    if not games:
+        return "not written: CFBD returned no rows"
+    write_stamped(fn, {"season": season, "kind": "DESCRIPTIVE", "endpoint": "/stats/game/advanced",
+                       "exclude_garbage_time": True, "built_at": _stamp(now), "weeks_pulled": weeks,
+                       "games": games}, log)
+    return "written (%d games)" % len(games)
+
+
+def backfill_elo(season, log=log):
+    """A stored schedule written before the Elo columns: ONE priced re-pull
+    (/games regular + postseason). -> outcome."""
+    doc = _read_gz(os.path.join(OUT, "schedule-%d.json.gz" % season))
+    rows = doc.get("games") or []
+    if not rows or "home_elo" in rows[0]:
+        return "already stored" if rows else "no stored schedule"
+    if not _priced(2, "Elo re-pull %d" % season, log):
+        return "refused"
+    sched, _rep = build_schedule(season, log)
+    write_stamped(f"schedule-{season}.json.gz", sched, log)
+    return "written (%d games)" % len(sched.get("games") or [])
+
+
+def fetch_cfbd_weather(seasons, log=log, now=None):
+    """/games/weather for each season, ONLY if /info says the key's tier has it.
+    The tier is asked at most once every INFO_RETRY_DAYS; a history season is
+    pulled once, the current one refreshed weekly. -> outcome."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    probe_fn = "cfbd-weather-probe.json"
+    week_ago = _stamp(now - datetime.timedelta(days=WEATHER_REFRESH_DAYS))
+    need = [s for s in seasons
+            if (_read_gz(os.path.join(OUT, f"cfbd-weather-{s}.json.gz")).get("built_at") or "")
+            < (week_ago if s == max(seasons) else "0")]
+    if not need:
+        return "already stored"
+    probe = _read_json(os.path.join(OUT, probe_fn))
+    if (probe.get("checked_at") or "") < _stamp(now - datetime.timedelta(days=INFO_RETRY_DAYS)):
+        if not _priced(1, "CFBD /info tier", log):
+            return "refused"
+        info = _counted_get("/info", {}) or {}
+        level = info.get("patronLevel", info.get("patron_level"))
+        probe = {"kind": "DIAGNOSTIC", "endpoint": "/info", "checked_at": _stamp(now),
+                 "patron_level": level, "weather_available": bool(level and level >= 1)}
+        write_stamped(probe_fn, probe, log)
+    if not probe.get("weather_available"):
+        NOTES["cfbd weather"] = ("skipped: CFBD /info reports patronLevel %s, and /games/weather "
+                                 "needs a Patreon tier (checked %s)" % (probe.get("patron_level"),
+                                                                       probe.get("checked_at")))
+        return NOTES["cfbd weather"]
+    done = []
+    for s in need:
+        if not _priced(2, "CFBD weather %d" % s, log):
+            done.append("%d refused" % s)
+            continue
+        games = {}
+        for st in ("regular", "postseason"):
+            for r in _counted_get("/games/weather", {"year": str(s), "seasonType": st}) or []:
+                if r.get("id") is not None:
+                    games[str(r["id"])] = r
+        if games:
+            write_stamped(f"cfbd-weather-{s}.json.gz", {"season": s, "kind": "DESCRIPTIVE",
+                                                        "endpoint": "/games/weather",
+                                                        "built_at": _stamp(now), "games": games}, log)
+        done.append("%d %d games" % (s, len(games)))
+    return "; ".join(done)
+
+
+def store_new_data(seasons, current, log=log, now=None):
+    """The daily pass over everything above, then the college NWS forecasts.
+    ⛔ NEVER RAISES: each piece is caught on its own."""
+    steps = [("venues %d" % current, lambda: fetch_venues(current, log, now))]
+    steps += [("advanced stats %d" % s, (lambda s=s: fetch_adv(s, s == current, log, now))) for s in seasons]
+    steps += [("Elo %d" % s, (lambda s=s: backfill_elo(s, log))) for s in seasons if s != current]
+    steps += [("CFBD weather", lambda: fetch_cfbd_weather(seasons, log, now))]
+    for name, fn in steps:
+        try:
+            log(f"    {name}: {fn()}")
+        except Exception as e:
+            log(f"    {name} FAILED: {type(e).__name__}: {str(e)[:200]}")
+    try:
+        import fb_weather as _fw
+        _fw.run("ncaaf", log=log, base=OUT, season=current, now=now)
+    except Exception as e:
+        log(f"    weather FAILED: {type(e).__name__}: {e}")
+
+
+def _read_gz(p):
+    try:
+        with gzip.open(p, "rt", encoding="utf-8") as fh:
+            return json.load(fh) or {}
+    except (OSError, ValueError):
+        return {}
 
 
 def _read_json(p):
@@ -3057,6 +3269,10 @@ def probe(log=log):
                 log(f"    ppa back-fill {_hs} FAILED: {type(_pe).__name__}: {_pe}")
     for _ts in sorted(set(_fr6.FOOTBALL_HISTORY) | {_fr6.current_football_season()}):
         log(f"    talent {_ts}: {fetch_talent(_ts, log)}")
+    # 🔴 `[Sam, 2026-10-14]` STORED ONLY: venues, advanced stats, Elo, CFBD
+    #    weather (tier permitting) and NWS forecasts. ⛔ Never raises.
+    store_new_data(sorted(set(_fr6.FOOTBALL_HISTORY) | {_fr6.current_football_season()}),
+                   _fr6.current_football_season(), log)
     # 🔴 SIGNAL 9: returning production + the portal, once per season.
     for _hs in _fr6.FOOTBALL_HISTORY:
         try:

@@ -195,9 +195,11 @@ def _gate(age_days, state="refused"):
     #    and every cfb-probe artifact is aged — written as a stamped stub
     #    when the live tree does not hold it.
     _built = (NOW - datetime.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # `[2026-10-14]` ⛔ stored-only files (F.STORED_ONLY) are never judged hard,
+    #    so the source block never applies to them: they are left out here.
     _probe_arts = sorted({r["path"] for r in F.survey(
         data=f"{d}/data/ncaaf", picks=f"{d}/picks", now=NOW)
-        if r["mode"] == "cfb-probe" and r["kind"] == "file"})
+        if r["mode"] == "cfb-probe" and r["kind"] == "file" and not F.stored_only(r)})
     for _art in _probe_arts:
         _gz = _art.endswith(".gz")
         _doc = {}
@@ -219,7 +221,7 @@ def _gate(age_days, state="refused"):
             with io.open(_art, "w", encoding="utf-8") as _fh:
                 json.dump(_doc, _fh)
     _after = [r for r in F.survey(data=f"{d}/data/ncaaf", picks=f"{d}/picks",
-                                  now=NOW) if r["mode"] == "cfb-probe"]
+                                  now=NOW) if r["mode"] == "cfb-probe" and not F.stored_only(r)]
     _AGED.append((len(_probe_arts), len(_after),
                   all(r["stale"] and not r["missing"] for r in _after)))
     # 🔴 `[2026-09-28]` AND AN UNBLOCKED STALE ROW IS PLANTED, not borrowed.
