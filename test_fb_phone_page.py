@@ -11,8 +11,9 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
   2. "Above their price only" hides exactly the rows with edge <= 0, and nothing
      while off (the default, also when storage throws)
   3. Game Lines lists every planted game of the week, grouped by ET day, "ET" times
-  4. the predicted score is (own total +- own margin) / 2, and the picks and
-     chances are byte-identical with and without it
+  4. the predicted score is the FULL model's (margin = sigma x NormalInverse of
+     the chance shown): the higher score is always the pick's, 50% is a tie, a
+     bigger chance a bigger margin; picks and chances byte-identical without it
   5. the phone layout's rules are in the page (the WEAK half; the 390 px
      measurement is test_league_switch.py §3, in a browser)
 
@@ -56,15 +57,30 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:       <td>${r.away} @ ${r.home}</td><td>${fbKickTime(r.commence)}</td>
 #   with:       <td>${r.away} @ ${r.home}</td><td>${new Date(r.commence).toLocaleTimeString()}</td>
 #
-# @vacuity 🔴 the predicted score is (own total +- own margin) / 2
+# @vacuity 🔴 the higher predicted score is the pick's team
 #   file: fb_model.py
-#   find:     return {"home": round((ot + om) / 2.0, 1), "away": round((ot - om) / 2.0, 1)}
-#   with:     return {"home": round((ot - om) / 2.0, 1), "away": round((ot + om) / 2.0, 1)}
+#   find:     margin = sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
+#   with:     margin = -sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
+#
+# @vacuity 🔴 a 50% chance is a tied score
+#   file: fb_model.py
+#   find:     return {"home": round((ot + margin) / 2.0, 1), "away": round((ot - margin) / 2.0, 1)}
+#   with:     return {"home": round((ot + margin) / 2.0 + 0.5, 1), "away": round((ot - margin) / 2.0, 1)}
+#
+# @vacuity 🔴 a larger chance gives a larger margin
+#   file: fb_model.py
+#   find:     margin = sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
+#   with:     margin = sigma * (0.3 if p_home > 0.5 else -0.3 if p_home < 0.5 else 0.0)
+#
+# @vacuity 🔴 sigma is the root-mean-square miss of the own margin
+#   file: fb_model.py
+#   find:     return math.sqrt(sum(x * x for x in d) / len(d)) if d else None
+#   with:     return statistics.pstdev(d) if d else None
 #
 # @vacuity 🔴 the predicted score never touches a chance
 #   file: fb_model.py
-#   find:             out[-1]["score"] = predicted_score(r)
-#   with:             out[-1].update(score=predicted_score(r), p_home=50.0)
+#   find:             out[-1]["score"] = predicted_score(r, out[-1]["p_home"] / 100.0, sigma)
+#   with:             out[-1].update(score=predicted_score(r, out[-1]["p_home"] / 100.0, sigma), p_home=50.0)
 #
 # @vacuity 🔴 a football prop row wraps on a phone
 #   file: index.html
@@ -253,14 +269,29 @@ def row(i, final, om, ot, day):
 
 
 ROWS4 = [row(i, True, (i % 11) - 5.0, 44.0, "2026-09-%02d" % (1 + i % 28)) for i in range(200)]
-ROWS4 += [row(900, False, 3.3, 44.5, "2026-10-18"), row(901, False, None, 41.0, "2026-10-19")]
-ck("🔴 home = (own total + own margin) / 2, away = (own total - own margin) / 2",
-   FM.predicted_score(ROWS4[-2]) == {"home": 23.9, "away": 20.6}, str(FM.predicted_score(ROWS4[-2])))
-ck("🔴 no own margin: no score (never a guess)", FM.predicted_score(ROWS4[-1]) is None)
+ROWS4 += [row(900 + i, False, 3.3 - i, 44.5, "2026-10-18") for i in range(12)]
+ROWS4 += [row(990, False, None, None, "2026-10-19")]
+_miss = [r["hs"] - r["as"] - r["sig"]["own_m"] for r in ROWS4 if r["final"]]
+SIG = FM.score_sigma(ROWS4)
+ck("🔴 sigma = the root-mean-square of (final margin - own margin) over the final rows",
+   abs(SIG - (sum(x * x for x in _miss) / len(_miss)) ** 0.5) < 1e-12, (SIG, sum(_miss) / len(_miss)))
+_r = ROWS4[-2]
+_s = {p: FM.predicted_score(_r, p, 13.4) for p in (0.3, 0.5, 0.52, 0.6, 0.75, 0.9)}
+_mg = [_s[p]["home"] - _s[p]["away"] for p in (0.52, 0.6, 0.75, 0.9)]
+ck("🔴 a 50% chance gives equal scores; the totals stay the own total",
+   _s[0.5]["home"] == _s[0.5]["away"] and all(abs(v["home"] + v["away"] - 44.5) < 0.11 for v in _s.values()),
+   _s)
+ck("🔴 a larger chance gives a larger margin (52% < 60% < 75% < 90%), and 30% favours the away side",
+   all(a < b for a, b in zip(_mg, _mg[1:])) and _mg[0] > 0 and _s[0.3]["away"] > _s[0.3]["home"], (_mg, _s[0.3]))
+ck("🔴 no own total: no score (never a guess)", FM.predicted_score(ROWS4[-1], 0.6, 13.4) is None)
 A = FM.win_chances(copy.deepcopy(ROWS4), now=NOW)
 B = FM.win_chances(copy.deepcopy(ROWS4), now=NOW, scores=False)
-ck("🔴 both planted games priced, each with its score", [(x["game_id"], x.get("score")) for x in A]
-   == [("r900", {"home": 23.9, "away": 20.6}), ("r901", None)], str([x.get("score") for x in A]))
+_scored = [x for x in A if x.get("score")]
+_wrong = [(x["game_id"], x["p_home"], x["score"]) for x in _scored
+          if (x["score"]["home"] > x["score"]["away"]) != (x["p_home"] > 50)
+          and not (x["p_home"] == 50 and x["score"]["home"] == x["score"]["away"])]
+ck("🔴 in every priced row the higher predicted score is the pick's team (%d rows)" % len(_scored),
+   len(_scored) == 12 and not _wrong and len({x["p_home"] for x in _scored}) > 3, _wrong or len(_scored))
 ck("🔴 the picks and chances are byte-identical with and without it",
    json.dumps([{k: v for k, v in x.items() if k != "score"} for x in A], sort_keys=True)
    == json.dumps(B, sort_keys=True) and all("score" not in x for x in B))

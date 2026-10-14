@@ -23,6 +23,11 @@ red. Adding a season, or grading more games, touches neither.
 It also recomputes T60R's power table, because a number written down is a
 claim that can be wrong (rule 166).
 
+# @vacuity 🔴 a reworded Status keeps a fingerprinted spec in the gate
+#   file: research/fb_refit_spec.md
+#   find: Status: Sam approved the plan 2026-10-12 (all three parts
+#   with: Status: Sam OK'd the plan 2026-10-12 (all three parts
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -39,7 +44,9 @@ from statistics import NormalDist
 from tcheck import ck, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-APPROVED = re.compile(r"APPROVED BY SAM \d{4}-\d\d-\d\d")
+# `[Sam, 2026-10-14]` fb_refit_spec's Status now reads "Sam approved the plan
+#    <date> ..." (his wording); the same approval, so the same gate.
+APPROVED = re.compile(r"APPROVED BY SAM \d{4}-\d\d-\d\d|Sam approved the plan \d{4}-\d\d-\d\d")
 
 
 def blocked(root):
@@ -172,6 +179,14 @@ for _spec_path in sorted(glob.glob(os.path.join(ROOT, "research", "*_spec.md")))
        "⛔ Sam froze this on approval. Do NOT paste the new hash in — put "
        "the rule back, or register a new test with a new id. want %s, got "
        "%s" % (FROZEN.get(_name), _got))
+
+# 🔴 A FINGERPRINTED SPEC NEVER DROPS OUT OF THE GATE: a reworded Status that
+#    stops matching APPROVED would skip its hash check above without a sound.
+_out = [n for n in FROZEN if not (os.path.exists(os.path.join(ROOT, "research", n)) and APPROVED.search(
+    (re.search(r"(?m)^Status:(.*)$", open(os.path.join(ROOT, "research", n), encoding="utf-8").read())
+     or re.match("()", "")).group(1)))]
+ck("🔴🔴 every fingerprinted spec still reads as approved, so its hash is checked", not _out,
+   "⛔ these would no longer be checked at all: %s" % _out)
 
 for _name, (_stop, _want) in FROZEN_BEFORE.items():
     _txt = open(os.path.join(ROOT, "research", _name), encoding="utf-8").read()

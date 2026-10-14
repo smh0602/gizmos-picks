@@ -1,6 +1,6 @@
 # T65 — the football game model's weekly champion vs challenger
 
-Status: APPROVED BY SAM 2026-10-12 — pre-registered by Cowork 2026-10-12 05:48Z, before any challenger result; sections 2 and 3 copied unchanged; §3a (T66) pre-registered by Cowork 2026-10-14 and added at Sam's request 2026-10-14, §2 and §3 unchanged
+Status: Sam approved the plan 2026-10-12 (all three parts; 'go ahead') and asked for more on 2026-10-14. The definitions in sections 2, 3 and 3a are Cowork's, pre-registered (T65 2026-10-12 05:48Z, T66 2026-10-14) and disclosed for Sam to overrule.
 
 ## 1. What it asks
 
@@ -131,3 +131,4 @@ for information only.
   Cowork's reference numbers reproduced on commit 8581f138 before the PR.
 - 2026-10-14 — §3a T66 (S, TS) added from Cowork's pre-registration; §2 and §3
   unchanged (test_prereg_gate.py hashes them on their own too).
+- 2026-10-14 — Status line reworded (~~"APPROVED BY SAM 2026-10-12 — ..."~~): Sam approved the plan, not each definition; the definitions are Cowork's, pre-registered and disclosed for him to overrule. Sections 2, 3 and 3a and their hashes are unchanged.

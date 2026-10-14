@@ -824,15 +824,29 @@ def pricing(rows, now=None):
     return {"models": models, "games": games, "ridge": RIDGE}
 
 
-def predicted_score(r):
+def score_sigma(rows):
+    """The spread of real margins around the own margin: root-mean-square of
+    (final margin - own margin) over every final row that has one. None if none."""
+    d = [float(r["hs"]) - float(r["as"]) - r["sig"]["own_m"] for r in rows
+         if r["final"] and r.get("hs") is not None and r.get("as") is not None
+         and r["sig"].get("own_m") is not None]
+    return math.sqrt(sum(x * x for x in d) / len(d)) if d else None
+
+
+def predicted_score(r, p_home, sigma):
     """`[Sam, 2026-10-14]` "predict outcomes of football games by predicted
-    scores": the row's own week's ratings, home = (own total + own margin) / 2,
-    away = (own total - own margin) / 2. None when either number is missing.
-    ⛔ Output only: no fit, pick or chance reads it."""
-    om, ot = r["sig"].get("own_m"), r["sig"].get("own_t")
-    if om is None or ot is None:
+    scores", from the FULL model: margin = sigma x NormalInverse(p_home), where
+    p_home is the moneyline chance the row shows (0-1) and sigma is
+    `score_sigma`; total = the own total; home = (total + margin) / 2, away =
+    (total - margin) / 2. ~~home/away from the own margin alone~~: that score
+    contradicted the pick in 3 of 14 NFL and 3 of 58 college games (Cowork,
+    2026-10-14). None when a number is missing. ⛔ Output only: no fit, pick or
+    chance reads it."""
+    ot = r["sig"].get("own_t")
+    if ot is None or p_home is None or not sigma:
         return None
-    return {"home": round((ot + om) / 2.0, 1), "away": round((ot - om) / 2.0, 1)}
+    margin = sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
+    return {"home": round((ot + margin) / 2.0, 1), "away": round((ot - margin) / 2.0, 1)}
 
 
 def win_chances(rows, now=None, scores=True):
@@ -847,6 +861,7 @@ def win_chances(rows, now=None, scores=True):
     data = [(features(r, "moneyline"), label(r, "moneyline")) for r in rows
             if label(r, "moneyline") is not None]
     m = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
+    sigma = score_sigma(rows) if scores else None
     out = []
     for r in rows:
         c = (r.get("snap") or {}).get("commence")
@@ -863,7 +878,7 @@ def win_chances(rows, now=None, scores=True):
                     "p_home": round(100 * p, 1), "p_away": round(100 * (1 - p), 1),
                     "best_ml": best})
         if scores:
-            out[-1]["score"] = predicted_score(r)
+            out[-1]["score"] = predicted_score(r, out[-1]["p_home"] / 100.0, sigma)
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 

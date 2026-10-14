@@ -1657,19 +1657,29 @@ def latest_played_week(season):
 
 def fetch_adv(season, current, log=log, now=None):
     """History: the season once while missing (regular + postseason, 2 calls).
-    Current: the newest played week, once a UTC day (1 call), merged in."""
+    Current, file missing: the season to date once (regular, plus postseason once
+    it has started; no week). After that: the newest played week, once a UTC
+    day (1 call), merged in. `[2026-10-14]` ~~newest week only~~ never held
+    weeks 1 to 7 of 2026."""
     fn = f"adv-{season}.json.gz"
     path = os.path.join(OUT, fn)
     old = _read_gz(path)
     params = {"year": str(season), "excludeGarbageTime": "true"}
-    if not current:
-        if old:
-            return "already stored"
-        if not _priced(2, "advanced stats %d" % season, log):
+    if not old:
+        if current:
+            wk = latest_played_week(season)
+            if wk is None:
+                return "no played week yet"
+            weeks = ["regular"] + (["postseason"] if wk[0] == "postseason" else [])
+        else:
+            weeks = ["regular", "postseason"]
+        if not _priced(len(weeks), "advanced stats %d to date" % season, log):
             return "refused"
-        games, weeks = {}, ["regular", "postseason"]
+        games = {}
         for st in weeks:
             adv_games(_counted_get("/stats/game/advanced", dict(params, seasonType=st)), games)
+    elif not current:
+        return "already stored"
     else:
         if (old.get("built_at") or "")[:10] == _stamp(now)[:10]:
             return "already refreshed today"

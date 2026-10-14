@@ -41,10 +41,25 @@ makes no network call, writes nothing under data/.
 #   find:     if not _priced(1, "venues %d" % season, log):
 #   with:     if False:
 #
-# @vacuity 🔴 a refused CFBD call fetches nothing (advanced stats)
+# @vacuity 🔴 a refused CFBD call fetches nothing (advanced stats, season to date)
+#   file: cfb.py
+#   find:         if not _priced(len(weeks), "advanced stats %d to date" % season, log):
+#   with:         if False:
+#
+# @vacuity 🔴 a refused CFBD call fetches nothing (advanced stats, newest week)
 #   file: cfb.py
 #   find:         if not _priced(1, "advanced stats %d week %d" % (season, wk[1]), log):
 #   with:         if False:
+#
+# @vacuity 🔴 a missing current-season file is pulled whole, once
+#   file: cfb.py
+#   find:             weeks = ["regular"] + (["postseason"] if wk[0] == "postseason" else [])
+#   with:             weeks = ["regular", "postseason"]
+#
+# @vacuity 🔴 after that only the newest played week is pulled
+#   file: cfb.py
+#   find:     if not old:
+#   with:     if not old or current:
 #
 # @vacuity 🔴 the current season's advanced stats are asked once a UTC day
 #   file: cfb.py
@@ -277,15 +292,25 @@ try:
     del asked[:]
     cfb.fetch_adv(2026, True, quiet, NOW)
     A = jz(out + "/adv-2026.json.gz")
+    # `[2026-10-14]` ~~the newest week only~~: that never held weeks 1 to 7 of 2026.
     eq((asked, A["games"]["7"]["Iowa"]["offense"], A["games"]["7"]["Iowa"]["defense"]["successRate"]),
-       ([("/stats/game/advanced", {"year": "2026", "excludeGarbageTime": "true", "seasonType": "regular",
-                                   "week": "6"})],
+       ([("/stats/game/advanced", {"year": "2026", "excludeGarbageTime": "true", "seasonType": "regular"})],
         {"plays": 61, "successRate": 0.41, "explosiveness": 1.2, "ppa": 0.18}, 0.45),
-       "🔴 advanced stats: the newest PLAYED week, garbage time excluded, the four named fields per side")
+       "🔴 advanced stats, current season's file missing: exactly ONE whole-season pull (no week; no "
+       "postseason before it starts), garbage time excluded, the four named fields per side")
     eq(cfb.fetch_adv(2026, True, quiet, NOW + datetime.timedelta(hours=3)), "already refreshed today",
        "🔴 ...asked once a UTC day")
     eq(len(asked), 1, "   ...so the second pass made no call")
     del asked[:]
+    cfb.fetch_adv(2026, True, quiet, NOW + datetime.timedelta(days=1))
+    eq(asked, [("/stats/game/advanced", {"year": "2026", "excludeGarbageTime": "true", "seasonType": "regular",
+                                         "week": "6"})],
+       "🔴 the next day's run pulls only the newest played week")
+    del asked[:]
+    allow["v"] = False
+    eq((cfb.fetch_adv(2026, True, quiet, NOW + datetime.timedelta(days=2)), asked), ("refused", []),
+       "🔴 ...and a refused newest-week pull fetches nothing")
+    allow["v"] = True
     w = cfb.fetch_cfbd_weather([2025, 2026], quiet, NOW)
     ck(w.startswith("skipped") and [p for p, _ in asked] == ["/info"]
        and "patronLevel 0" in cfb.NOTES.get("cfbd weather", ""),
