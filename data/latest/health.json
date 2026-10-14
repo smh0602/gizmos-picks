@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-14T22:27:10Z",
+ "checked_at": "2026-10-14T22:32:01Z",
  "et_date": "2026-10-14",
  "healthy": false,
  "broken": 0,
- "degraded": 7,
+ "degraded": 8,
  "findings": [
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (cfb-probe)",
+   "why": "the freshness contract says 4 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
@@ -60,15 +67,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14991,
-  "pulled_at": "2026-10-14T22:20:01Z",
+  "balance": 14981,
+  "pulled_at": "2026-10-14T22:31:43Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.7,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-14T22:20:01Z",
-  "source": "data/ncaaf/2026-10-14/gamelines/2220.json.gz",
-  "readings_on_disk": 862,
+  "newest_paid_pull": "2026-10-14T22:31:43Z",
+  "source": "data/ncaaf/2026-10-14/props-player/2231.json.gz",
+  "readings_on_disk": 864,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
