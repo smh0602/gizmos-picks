@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_agreement_spec.md",
- "built_at": "2026-10-14T13:04:20Z",
+ "built_at": "2026-10-14T15:59:50Z",
  "bases": {
   "label": "DESCRIPTIVE",
   "model_p": "MODEL",
@@ -44,23 +44,6 @@
    "model_p": 53.0,
    "on_card": true,
    "label": "AGREE"
-  },
-  {
-   "key": "855f58fad5f0f14b239f4f63df27998b|AJ Barner|player_reception_yds|over|22.5",
-   "game_id": "855f58fad5f0f14b239f4f63df27998b",
-   "game": "Seattle Seahawks @ Denver Broncos",
-   "commence": "2026-10-16T00:15:00Z",
-   "player": "AJ Barner",
-   "market": "player_reception_yds",
-   "side": "over",
-   "line": 22.5,
-   "price": -115,
-   "break_even": 53.5,
-   "card_p": 56,
-   "card_basis": "RECORD",
-   "model_p": 52.7,
-   "on_card": true,
-   "label": "SPLIT"
   },
   {
    "key": "855f58fad5f0f14b239f4f63df27998b|AJ Barner|player_reception_yds|over|23.5",
@@ -326,8 +309,8 @@
    "market": "player_rush_yds",
    "side": "over",
    "line": 12.5,
-   "price": -110,
-   "break_even": 52.4,
+   "price": -114,
+   "break_even": 53.3,
    "card_p": null,
    "card_basis": "RECORD",
    "model_p": 52.4,
@@ -505,6 +488,23 @@
    "label": "ONE SOURCE"
   },
   {
+   "key": "855f58fad5f0f14b239f4f63df27998b|Marvin Mims Jr.|player_receptions|under|1.5",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "player": "Marvin Mims Jr.",
+   "market": "player_receptions",
+   "side": "under",
+   "line": 1.5,
+   "price": -155,
+   "break_even": 60.8,
+   "card_p": null,
+   "card_basis": "RECORD",
+   "model_p": 51.9,
+   "on_card": true,
+   "label": "ONE SOURCE"
+  },
+  {
    "key": "855f58fad5f0f14b239f4f63df27998b|Rashid Shaheed|player_receptions|over|2.5",
    "game_id": "855f58fad5f0f14b239f4f63df27998b",
    "game": "Seattle Seahawks at Denver Broncos",
@@ -581,8 +581,8 @@
    "market": "player_receptions",
    "side": "over",
    "line": 0.5,
-   "price": -155,
-   "break_even": 60.8,
+   "price": -160,
+   "break_even": 61.5,
    "card_p": null,
    "card_basis": "RECORD",
    "model_p": 57.3,
@@ -609,8 +609,8 @@
  ],
  "counts": {
   "AGREE": 8,
-  "SPLIT": 7,
-  "ONE SOURCE": 20
+  "SPLIT": 6,
+  "ONE SOURCE": 21
  },
  "not_frozen": 0,
  "record": {
@@ -729,11 +729,11 @@
  "question": {
   "basis": "DESCRIPTIVE",
   "state": "NOT YET MEASURABLE",
-  "agree_graded": 129,
-  "split_graded": 426,
+  "agree_graded": 141,
+  "split_graded": 434,
   "weeks": 4,
-  "delta_points": 2.7,
-  "p": 0.2843,
+  "delta_points": 0.4,
+  "p": 0.4704,
   "min": {
    "agree": 300,
    "split": 100,
@@ -748,10 +748,10 @@
     "p": 0.0645
    },
    "ncaaf": {
-    "agree": 72,
-    "split": 223,
-    "delta_points": -3.6,
-    "p": 0.6954
+    "agree": 84,
+    "split": 231,
+    "delta_points": -6.8,
+    "p": 0.8374
    }
   },
   "consequence": "Nothing changes on its own. Whether the label may ever touch a pick, a ranking or a price is Sam's decision, in a separate PR he asks for."
