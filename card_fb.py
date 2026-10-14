@@ -1672,6 +1672,19 @@ def _key(row):
             tuple(row.get("game_ids") or ()), tuple(row.get("legs") or ()))
 
 
+def mark_below_price(rows):
+    """`[Sam, 2026-10-14]` MLB's C8 rule for football: a row that does not beat
+    its price (the card's own `edge` <= 0, as `card.select_board`) carries
+    `below_price`, and the page prints its %, break-even and edge. ⛔ Run before
+    `freeze_published`, so a published row is never relabelled."""
+    for r in rows:
+        if r.get("edge") is not None and r["edge"] <= 0:
+            r["below_price"] = True
+        else:
+            r.pop("below_price", None)
+    return rows
+
+
 def freeze_published(new, path, now_iso, log=print):
     """Merge a freshly built card onto the one already published.
 
@@ -2511,6 +2524,8 @@ def main():
     # See `freeze_published` above for the measurement. ⛔ This runs
     # BEFORE either write, so the dated record and the pointer the page
     # reads can never disagree about a row.
+    mark_below_price(out.get("picks") or [])
+    mark_below_price(out.get("game_lines") or [])
     out, _frozen = freeze_published(
         out, path, datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         log)
