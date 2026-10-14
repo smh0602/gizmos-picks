@@ -488,6 +488,14 @@ note boxes, tags and the stale bar now require their absence.
   `game_lines_fb` BEFORE the card. `record_fb` grades the alternate spreads in
   their own line (`alt_spreads`, `by_basis` keeps the books'-chance rows apart);
   the model's picks keep fb-model.json's record. `test_fb_game_picks.py`.
+- 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`
+  NWS kickoff forecasts (`fb_weather.py`), CFBD venues / advanced stats (garbage
+  time excluded) / pregame Elo / weather if the key's tier allows (`cfb.py`
+  `store_new_data`), NFL injuries + starting QBs (`nfl.store_injuries`). ⛔ No fit,
+  input, pick or chance reads them until a challenger is registered. Every CFBD
+  call is priced by `cfbd_budget.preflight`. Their freshness rows are
+  `freshness.STORED_ONLY`: stale is a warning, ⛔ never a red run and never a
+  planned rebuild of a CFBD mode. `test_fb_new_data.py`.
 - 🔴 **THE FOOTBALL GAME MODEL READS ITS OWN TEAM RATINGS, NEVER THE BOOKS'.** `[Sam,
   2026-10-11]` *"our model needs to know the data and know these teams better than
   they know themselves"*. `fb_model.own_ratings`: per row, every final game of every
@@ -887,6 +895,11 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No
                   PR, never main. status.py and the watchdog never import it.
+fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
+                  and FBS-vs-FBS college games within 7 days at outdoor US
+                  venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
+                  never overwritten, "last" only before kickoff). Rides
+                  `nfl-logs` / `cfb-probe`. ⛔ No model reads it yet; never raises.
 game_lines_fb.py  THE ALT LADDERS (~~THE GAME LINES TAB~~: `[Sam, 2026-10-01]`
                   no longer drawn; the tab is winners.py, and the card's
                   alternate spreads still read this file) (Sam, 2026-09-24): every alt spread

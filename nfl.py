@@ -887,6 +887,73 @@ def _stored_json(path):
         return None
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 INJURIES AND STARTING QBS, STORED ONLY. `[Sam, 2026-10-14]`
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ NO FIT, INPUT, PICK OR CHANCE READS injuries-<season>.json.gz YET: Cowork
+#    tests it on past games first, and only what helps becomes a challenger.
+# Per team per week: every player nflverse's injury report lists (position,
+# report_status, practice_status, as nflverse publishes them), and the starting
+# QB from OUR stored player stats (players-<season>: most pass attempts).
+# 💰 Free (nflverse); refreshed by the daily `nfl-logs` run. ⛔ Never raises.
+INJURY_FIELDS = ("gsis_id", "full_name", "position", "report_status", "practice_status")
+
+
+def injuries_doc(season, inj_rows, players_doc, built_at):
+    teams, updated = {}, None
+    slot = lambda tm, wk: teams.setdefault(tm, {}).setdefault(  # noqa: E731
+        wk, {"players": [], "starting_qb": None})
+    for r in inj_rows or []:
+        tm, wk = r.get("team"), str(r.get("week") or "")
+        if not tm or not wk:
+            continue
+        slot(tm, wk)["players"].append({k: r.get(k) for k in INJURY_FIELDS})
+        dm = r.get("date_modified")
+        if dm and (updated is None or dm > updated):
+            updated = dm
+    best = {}
+    for gid, pl in sorted(((players_doc or {}).get("players") or {}).items()):
+        for g in pl.get("g") or []:
+            att, key = g.get("att") or 0, (g.get("team"), str(g.get("week") or ""))
+            if att > 0 and key[0] and key[1] and (key not in best or att > best[key]["att"]):
+                best[key] = {"gsis_id": gid, "name": pl.get("name"), "att": att,
+                             "game_id": g.get("game_id")}
+    for (tm, wk), qb in best.items():
+        slot(tm, wk)["starting_qb"] = qb
+    return {"season": season, "kind": "DESCRIPTIVE", "source": "nflverse injuries_%d" % season,
+            "built_at": built_at, "nflverse_updated": updated,
+            "note": ("STORED ONLY: no model reads this file. Players as nflverse's injury "
+                     "report lists them; nflverse_updated is the newest date_modified in it. "
+                     "starting_qb is the most pass attempts in our stored player stats."),
+            "teams": teams}
+
+
+def store_injuries(base, seasons, log=print, now=None, fetch_rows=None):
+    """Write injuries-<season>.json.gz for each season. -> {season: outcome}.
+    ⛔ NEVER RAISES: a season that fails is named and the run goes on."""
+    out, seen = {}, None
+    stamp = (now or datetime.datetime.now(datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for season in seasons:
+        try:
+            if fetch_rows is None:
+                if seen is None:
+                    seen = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
+                                            for a in (r.get("assets") or [])] for r in _releases(log)}
+                rows = _rows(seen, "injuries", FILES["injuries"].format(y=season), log)
+            else:
+                rows = fetch_rows(season)
+            doc = injuries_doc(season, rows, _stored_json(os.path.join(base, "players-%d.json.gz" % season)),
+                               stamp)
+            os.makedirs(base, exist_ok=True)
+            with gzip.open(os.path.join(base, "injuries-%d.json.gz" % season), "wt", encoding="utf-8") as fh:
+                json.dump(doc, fh, separators=(",", ":"))
+            out[season] = "written (%d team(s))" % len(doc["teams"])
+        except Exception as e:
+            out[season] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
+        log("  injuries %s: %s" % (season, out[season]))
+    return out
+
+
 def schedule_dates(season, root=None):
     """{game id: "YYYY-MM-DD"} from the committed NFL schedule. No fetch.
 
@@ -1900,6 +1967,7 @@ def build_schedule(season, seen=None, log=print, lines=None, rows=None, root=Non
             "venue": g.get("stadium"),
             "roof": g.get("roof"), "surface": g.get("surface"),
             "temp": _i(g.get("temp")), "wind": _i(g.get("wind")),
+            "home_elo": None, "away_elo": None,     # college's CFBD Elo; same keys, one renderer
             "overtime": bool(_i(g.get("overtime")) or 0),
             "div_game": bool(_i(g.get("div_game")) or 0),
             # 🔵 MARKET, from the schedule file itself. ⛔ These are

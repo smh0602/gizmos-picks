@@ -5246,6 +5246,15 @@ def run_mode(mode):
                     log(f"  schedule {season}: {_srep.get('games')} games, "
                         f"{_srep.get('final')} final")
 
+            # 🔴 `[Sam, 2026-10-14]` STORED ONLY (no model reads them yet):
+            #    injuries + starting QBs from nflverse (free), and NWS kickoff
+            #    forecasts. ⛔ Neither raises; a failure is written, never red.
+            if seasons:                  # empty while standing down after a failure
+                _nfl.store_injuries(base, sorted(set(_fr7.FOOTBALL_HISTORY)
+                                                 | {_fresh.current_football_season()}), log)
+            import fb_weather as _fw
+            _fw.run("nfl", log=log, base=base)
+
             log("=" * 60)
             log(f"BACK-FILL RESULT: {len(done)} season(s) written "
                 f"{done or '(none)'}")
