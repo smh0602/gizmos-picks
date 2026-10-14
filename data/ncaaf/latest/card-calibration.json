@@ -1,9 +1,26 @@
 {
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
- "built_at": "2026-10-13T21:00:07Z",
+ "built_at": "2026-10-14T13:49:06Z",
  "spec": "research/fb_card_calibration_spec.md",
- "bands": [],
+ "bands": [
+  {
+   "bucket": "50-60%",
+   "graded": {
+    "value": 22,
+    "basis": "DESCRIPTIVE"
+   },
+   "stated": {
+    "value": 52.0,
+    "basis": "DESCRIPTIVE"
+   },
+   "actual": {
+    "value": 54.5,
+    "basis": "DESCRIPTIVE"
+   },
+   "flag": "OK"
+  }
+ ],
  "bands_before": {
   "2025-only": [
    {
@@ -296,9 +313,43 @@
     },
     "flag": "UNDER"
    }
+  ],
+  "season-blend+props-model": [
+   {
+    "bucket": "60-70%",
+    "graded": {
+     "value": 15,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 66.2,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 80.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "OK"
+   },
+   {
+    "bucket": "70-80%",
+    "graded": {
+     "value": 4,
+     "basis": "DESCRIPTIVE"
+    },
+    "stated": {
+     "value": 72.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "actual": {
+     "value": 100.0,
+     "basis": "DESCRIPTIVE"
+    },
+    "flag": "NOT_MEASURABLE"
+   }
   ]
  },
- "method_now": "season-blend+props-model",
+ "method_now": "season-blend+props-own",
  "test": {
   "n": 157,
   "mean_d": 0.24654293565026483,
