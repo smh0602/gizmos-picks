@@ -108,12 +108,18 @@ def first_added(paths, root=ROOT):
 
 
 def registration(name, root=ROOT, added=None):
-    """§2: the later of REGISTERED_FROM and the first Monday on or after the day
-    its data first exists for every season it reads. None: no data yet."""
-    paths = [os.path.join(FC.latest(FC.CHALLENGERS[name]["league"], root), f.format(s=s))
-             for s in FM.SEASONS for f in FC.CHALLENGERS[name]["files"]]
+    """§2: the later of its registration Monday (REGISTERED_FROM; T66's carry
+    their own, §3a) and the first Monday on or after the day its data first
+    exists for every season it reads. None: no data yet. A challenger that
+    reads no new file (S) is registered on its Monday."""
+    c = FC.CHALLENGERS[name]
+    start = c.get("registered_from", REGISTERED_FROM)
+    paths = [os.path.join(FC.latest(c["league"], root), f.format(s=s))
+             for s in FM.SEASONS for f in c["files"]]
+    if not paths:
+        return start
     day = (added or {}).get(name) if added and name in added else first_added(paths, root)
-    return max(REGISTERED_FROM, monday_on_or_after(day)) if day else None
+    return max(start, monday_on_or_after(day)) if day else None
 
 
 def test(pairs):

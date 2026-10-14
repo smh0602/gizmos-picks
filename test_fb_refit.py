@@ -25,7 +25,7 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 registration is the later of 2026-10-19 and the data's first Monday
 #   file: fb_refit.py
-#   find:     return max(REGISTERED_FROM, monday_on_or_after(day)) if day else None
+#   find:     return max(start, monday_on_or_after(day)) if day else None
 #   with:     return monday_on_or_after(day) if day else None
 #
 # @vacuity 🔴 299 scored predictions is NOT YET MEASURABLE
@@ -92,6 +92,31 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   file: status.py
 #   find:     needs = [f["what"] for f in broken] + [w[0] for w in won]
 #   with:     needs = [f["what"] for f in broken]
+#
+# @vacuity 🔴 T66: S keeps the champion's inputs without head-to-head and signal 9
+#   file: fb_challengers.py
+#   find: KEEP = {"S": {"spread": (0, 2, 3, 4, 5, 6), "moneyline": (0, 2, 3, 4, 5, 6), "total": (0, 2, 3, 4, 5)},
+#   with: KEEP = {"S": {"spread": (0, 1, 2, 3, 4, 5, 6), "moneyline": (0, 2, 3, 4, 5, 6), "total": (0, 2, 3, 4, 5)},
+#
+# @vacuity 🔴 T66: TS keeps only the line, neutral and dome
+#   file: fb_challengers.py
+#   find:         "TS": {"spread": (0, 5, 6), "moneyline": (0, 5, 6), "total": (0, 4, 5)}}
+#   with:         "TS": {"spread": (0, 5, 6), "moneyline": (0, 5, 6), "total": (0, 3, 4, 5)}}
+#
+# @vacuity 🔴 T66: TS's first spread and moneyline input is T's talent margin
+#   file: fb_challengers.py
+#   find:         if name == "S" or market == "total":
+#   with:         if True:
+#
+# @vacuity 🔴 T66: S, which reads no file, is registered on its Monday
+#   file: fb_refit.py
+#   find:         return start
+#   with:         return None
+#
+# @vacuity 🔴 T66: a champion with no file of its own has no input row
+#   file: freshness.py
+#   find:     return [inp] if inp else []          # T66's S reads no file of its own
+#   with:     return [inp]          # T66's S reads no file of its own
 #
 # @vacuity 🔴 a report over 8 days old is said, and DEGRADED in health
 #   file: watchdog.py
@@ -439,3 +464,55 @@ finally:
     W.ROOT = _root
 eq([(i["key"], i["severity"]) for i in rep.items], [("fb-refit:nfl", "DEGRADED")],
    "🔴 ...and it is a DEGRADED finding in health, not BROKEN")
+
+# ══════════════════════════════════════════════════════════════════════
+section("8. 🔴 T66 (§3a): S AND TS, FROZEN INPUTS, ALL THREE MARKETS")
+# ══════════════════════════════════════════════════════════════════════
+X = row("x", "nfl", "2026-10-25", "AAA", "CCC", M=3.0, T=45.0)
+X["sig"].update(own_m=5.0, h2h_m=9.0, form_m=4.0, poss=0.1, out=2.0, dome=1.0, vac_h=0.3, vac_a=0.1,
+                own_t=47.0, h2h_t=50.0, form_t=44.0)
+X["sig"]["def"] = 0.6
+r6 = lambda v: [round(a, 6) for a in v]  # noqa: E731
+S_X = {mk: r6(R.challenger_feat("S")(X, mk)) for mk in FM.MARKETS}
+eq(S_X, {"spread": [0.2, 0.1, 1.0, 0.666667, 0.0, 1.0], "moneyline": [0.5, 0.4, 1.0, 0.666667, 0.0, 1.0],
+         "total": [0.2, -0.1, 0.4, 0.0, 1.0]},
+   "🔴 S (NFL): own, form, possession, out, neutral, dome (total: own, form, defence, neutral, dome); "
+   "no head-to-head, no signal 9")
+ck(len(FM.features(X, "spread")) == 8, "   ...beside a champion that still has both (8 inputs on NFL)")
+Y = row("y", "ncaaf", "2026-10-25", "AAA", "CCC", M=3.0, T=45.0)
+Y["sig"].update(own_m=5.0, h2h_m=9.0, form_m=4.0, poss=0.1, dome=1.0, own_t=47.0, tal_m=7.0)
+eq({mk: r6(R.challenger_feat("TS")(Y, mk)) for mk in FM.MARKETS},
+   {"spread": [0.4, 0.0, 1.0], "moneyline": [0.7, 0.0, 1.0], "total": [0.2, 0.0, 1.0]},
+   "🔴 TS (college): (T margin - line)/10 or T margin/10, neutral, dome; total (own total - line)/10, "
+   "neutral, dome")
+_t = [row("z", "ncaaf", "2026-10-01", "AAA", "CCC")]
+_u = [row("z", "ncaaf", "2026-10-01", "AAA", "CCC")]
+FC.attach("T", "ncaaf", _t, T1)
+FC.attach("TS", "ncaaf", _u, T1)
+ck(_u[0]["sig"]["tal_m"] is not None and _u[0]["sig"]["tal_m"] == _t[0]["sig"]["tal_m"],
+   "🔴 TS's margin is T's own talent solve, from the same Monday cut", (_t[0]["sig"], _u[0]["sig"]))
+_v = [row("z", "nfl", "2026-10-01", "AAA", "CCC")]
+FC.attach("S", "nfl", _v, T1)
+ck(_v[0]["sig"] == row("z", "nfl", "2026-10-01", "AAA", "CCC")["sig"], "   ...and S attaches nothing")
+eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS.items() if n in ("S", "TS")},
+   {"S": ("nfl", ("spread", "total", "moneyline"), False),
+    "TS": ("ncaaf", ("spread", "total", "moneyline"), False)},
+   "🔴 S is NFL, TS college, both on all three markets, neither withdrawable")
+eq({lg: sum(1 for c in FC.CHALLENGERS.values() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
+   {"nfl": 2, "ncaaf": 3}, "🔴 so alpha divides by 2 in the NFL (E, S) and 3 in college (P, T, TS)")
+eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
+    R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
+   ["2026-10-19", "2026-10-19", "2026-10-26", None],
+   "🔴 registration: S on 2026-10-19 (no file of its own); TS the later of that and its talent file's Monday")
+ok_s = Planted({mk: dict(preds(HIST, lambda y: 0.3 if y else 0.7), **preds(LIVE, lambda y: 0.75 if y else 0.35,
+                                                                           start=40))
+                for mk in FM.MARKETS})
+champ3 = Planted({mk: dict(preds(HIST, lambda y: 0.6), **preds(LIVE, lambda y: 0.6, start=40))
+                  for mk in FM.MARKETS})
+ts = R.contest([], champ3, "TS", "2026-10-19", "2026-10-19", fits=ok_s)
+ck(not ts["withdrawn"] and ts["history"]["predictions"] == 120 and ts["scored"]["predictions"] == 120,
+   "🔴 TS: worse on its history and still never withdrawn; only weeks from 2026-10-19 are scored, "
+   "on all three markets", (ts["withdrawn"], ts["history"]["predictions"], ts["scored"]["predictions"]))
+eq((F.champion_inputs("nfl", {"nfl": "S"}), F.champion_inputs("ncaaf", {"ncaaf": "TS"})),
+   ([], [("talent-{s}.json.gz", None)]),
+   "🔴 a champion S adds no freshness row (it reads no file of its own); TS adds talent's")
