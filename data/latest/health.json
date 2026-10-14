@@ -1,11 +1,25 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-14T06:22:34Z",
+ "checked_at": "2026-10-14T11:20:32Z",
  "et_date": "2026-10-14",
  "healthy": false,
  "broken": 0,
- "degraded": 4,
+ "degraded": 6,
  "findings": [
+  {
+   "key": "stopped:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf has not updated since Wed 06:22Z",
+   "why": "cfb-probe are past due with no collect run for ncaaf since then (oldest: cfb-probe, due 2026-10-14T07:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Wed 06:22Z",
+   "why": "nfl-logs is past due with no collect run for nfl since then (oldest: nfl-logs, due 2026-10-14T07:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
   {
    "key": "late:card-fb:ncaaf",
    "severity": "DEGRADED",
@@ -39,15 +53,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 15181,
-  "pulled_at": "2026-10-13T23:28:51Z",
+  "balance": 15143,
+  "pulled_at": "2026-10-14T11:06:01Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 6.9,
+  "reading_age_hours": 0.2,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-13T23:28:51Z",
-  "source": "data/ncaaf/2026-10-13/props-player/2328.json.gz",
-  "readings_on_disk": 835,
+  "newest_paid_pull": "2026-10-14T11:06:00Z",
+  "source": "data/2026-10-14/props-batter/1106.json.gz",
+  "readings_on_disk": 838,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
