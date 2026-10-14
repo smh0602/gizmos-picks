@@ -791,7 +791,8 @@ def champion_inputs(league, champion=None):
     """[(file pattern, deadline key)] behind fb_model.CHAMPION[league]; its writer is
     `nfl-logs` (NFL) or `cfb-probe` (college), the league's logs / CFBD run."""
     name = (champion or _literal("fb_model.py", "CHAMPION")).get(league)
-    return [_literal("fb_challengers.py", "CHALLENGERS")[name]["input"]] if name else []
+    inp = _literal("fb_challengers.py", "CHALLENGERS")[name]["input"] if name else None
+    return [inp] if inp else []          # T66's S reads no file of its own
 
 
 def _football_contract(league, data, picks, now):

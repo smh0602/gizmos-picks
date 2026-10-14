@@ -137,8 +137,15 @@ FROZEN = {
     # [Sam, 2026-10-12] T65: the champion, challengers E/P/T, scoring and
     # withdrawal in section 2, the verdict in section 3, pre-registered by
     # Cowork 2026-10-12 05:48Z before any challenger result.
-    "fb_refit_spec.md": "9791de9992d67fa9d4fa7b09f32b7cff8e69752584d9df4d7f56ccb40ccd967c",
+    # ~~"9791de9992d67fa9d4fa7b09f32b7cff8e69752584d9df4d7f56ccb40ccd967c"~~
+    # [Sam, 2026-10-14] T66 (S, TS) added as section 3a, pre-registered by
+    # Cowork 2026-10-14; T65's sections 2 and 3 are pinned on their own below.
+    "fb_refit_spec.md": "52f0c88ba35a891332bb3693da006deff1cebb9644687ddfe40312933d4e8d9d",
 }
+# 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
+#    the text from `## 2. ` up to the added heading still hashes to the hash Sam
+#    approved first.
+FROZEN_BEFORE = {"fb_refit_spec.md": ("\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b7cff8e69752584d9df4d7f56ccb40ccd967c")}
 
 
 def frozen_region(text):
@@ -165,6 +172,13 @@ for _spec_path in sorted(glob.glob(os.path.join(ROOT, "research", "*_spec.md")))
        "⛔ Sam froze this on approval. Do NOT paste the new hash in — put "
        "the rule back, or register a new test with a new id. want %s, got "
        "%s" % (FROZEN.get(_name), _got))
+
+for _name, (_stop, _want) in FROZEN_BEFORE.items():
+    _txt = open(os.path.join(ROOT, "research", _name), encoding="utf-8").read()
+    _i, _j = _txt.find("\n## 2. "), _txt.find(_stop)
+    ck("🔴🔴 %s: the rule frozen before %r was added is unchanged" % (_name, _stop.strip()),
+       0 <= _i < _j and hashlib.sha256(_txt[_i:_j].encode("utf-8")).hexdigest() == _want,
+       "⛔ the earlier test's rule moved when a new one was added beside it")
 
 # 🔴 T60R's power table, recomputed from the formula T60 used.
 _spec = os.path.join(ROOT, "research", "t60r_spec.md")

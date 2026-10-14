@@ -301,7 +301,10 @@ note boxes, tags and the stale bar now require their absence.
   `fb_model.CHAMPION` names each league's champion in ONE place (None = today's
   model); challengers E (NFL EPA), P (college PPA) and T (college talent) live in
   `fb_challengers.py` (⛔ R, returning production, was withdrawn: never build
-  it). `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
+  it). `[Sam, 2026-10-14]` T66 (§3a, Cowork's pre-registration) adds S (NFL: the
+  champion without head-to-head and signal 9) and TS (college: T's talent margin,
+  the line, neutral and dome only), all three markets, registered 2026-10-19, no
+  withdrawal; only games after registration count. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
@@ -890,7 +893,8 @@ fb_signal9.py     scores signal 9's three uses by Sam's keep rule (mean
 fb_challengers.py T65's frozen challengers to the football game model
                   (Sam, 2026-10-12): E (NFL opponent-adjusted EPA margin), P
                   (college PPA, the same solve), T (college talent in the
-                  margin solve). fb_model reads it only for a named CHAMPION.
+                  margin solve); T66 adds S (NFL, fewer inputs) and TS (college,
+                  talent, few inputs). fb_model reads it only for a named CHAMPION.
 fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No

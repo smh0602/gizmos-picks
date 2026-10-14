@@ -1,6 +1,6 @@
 # T65 — the football game model's weekly champion vs challenger
 
-Status: APPROVED BY SAM 2026-10-12 — pre-registered by Cowork 2026-10-12 05:48Z, before any challenger result; sections 2 and 3 copied unchanged
+Status: APPROVED BY SAM 2026-10-12 — pre-registered by Cowork 2026-10-12 05:48Z, before any challenger result; sections 2 and 3 copied unchanged; §3a (T66) pre-registered by Cowork 2026-10-14 and added at Sam's request 2026-10-14, §2 and §3 unchanged
 
 ## 1. What it asks
 
@@ -78,6 +78,35 @@ only the repo's own files and never calls Claude. Code: `fb_challengers.py`,
   the Track Record and T64 open a new method, and every remaining challenger's
   scored weeks restart at the next Monday against the new champion.
 
+## 3a. T66 — two more challengers (frozen)
+
+Pre-registered by Cowork 2026-10-14 (claude/pro-plan-readiness-2026-10-06.md,
+T66). ⚠️ Unlike T65's, these two were designed AFTER Cowork saw their history
+(inputs that added noise on past games were dropped), so ONLY games played after
+registration count, exactly as §2 already requires; their history is reported
+for information only.
+
+- **S (NFL):** the champion's inputs WITHOUT head-to-head and WITHOUT signal 9.
+  Spread and moneyline keep: own rating term, form, possession, personnel (out),
+  neutral, dome. Total keeps: own total term, form, defence, neutral, dome. All
+  three markets. (Index form, today's champion lists: spread and moneyline
+  [own, h2h, form, poss, out, neutral, dome, +s9 NFL] -> keep [0,2,3,4,5,6];
+  total [own_t, h2h_t, form_t, def, neutral, dome, +s9 NFL] -> keep [0,2,3,4,5].)
+- **TS (college):** challenger T's talent margin in place of the own margin, and
+  ONLY these inputs. Spread: (T margin - line) / 10, neutral, dome. Moneyline:
+  T margin / 10, neutral, dome. Total: (own total - line) / 10, neutral, dome.
+  All three markets. (Index form: spread and moneyline keep [0,5,6] with T's
+  margin in slot 0; total keeps [0,4,5].)
+- **Registration:** the first Monday after the PR that adds them is last
+  committed (2026-10-19 if before then); for TS also no earlier than the first
+  Monday its talent files exist on main (§2).
+- **Everything else as §2 and §3:** a prediction is one final priced game x one
+  market S or TS changes (all three); fitted by `fb_model.fit(..., zmax=ZMAX)` on
+  rows before that week's Monday; d, the clustered one-sided test, at least 300
+  scored predictions, p < 0.01 / (challengers registered and not withdrawn in
+  that league: NFL E and S = 2, college P, T and TS = 3), the WINS branch and
+  Sam's merge. ⛔ No withdrawal rule for S or TS.
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
@@ -100,3 +129,5 @@ only the repo's own files and never calls Claude. Code: `fb_challengers.py`,
 
 - 2026-10-12 — written from the rule as pre-registered by Cowork 05:48Z, with
   Cowork's reference numbers reproduced on commit 8581f138 before the PR.
+- 2026-10-14 — §3a T66 (S, TS) added from Cowork's pre-registration; §2 and §3
+  unchanged (test_prereg_gate.py hashes them on their own too).

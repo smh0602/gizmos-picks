@@ -6,6 +6,9 @@
     P  college  the same, from CFBD /plays `ppa` (ppa-<season>, cfb.py)
     T  college  CFBD /talent, z-scored per season, one unpenalised term in
                 the champion's margin solve (talent-<season>, cfb.py)
+    S  NFL      T66: the champion's inputs WITHOUT head-to-head and signal 9
+    TS college  T66: T's talent margin in place of the own margin, and only
+                the line, neutral and dome beside it
 
 ⛔ FROZEN. Any change is a NEW challenger with a new name.
 ⛔ POINT IN TIME: a row's input reads only entries / games dated (UTC kickoff
@@ -38,7 +41,23 @@ CHALLENGERS = {
           "files": ("talent-{s}.json.gz",), "key": "tal_m", "withdrawable": True,
           # written once a season: stale only when the season's file is missing
           "input": ("talent-{s}.json.gz", None)},
+    # `[2026-10-14]` T66 (research/fb_refit_spec.md §3a), pre-registered by Cowork.
+    #    ⚠️ Designed AFTER Cowork saw their history, so only games after
+    #    `registered_from` count, as for every challenger. No withdrawal rule.
+    "S": {"league": "nfl", "what": "fewer inputs", "markets": ("spread", "total", "moneyline"),
+          "files": (), "key": None, "withdrawable": False, "input": None,
+          "registered_from": "2026-10-19"},
+    "TS": {"league": "ncaaf", "what": "talent, few inputs", "markets": ("spread", "total", "moneyline"),
+           "files": ("talent-{s}.json.gz",), "key": "tal_m", "withdrawable": False,
+           "input": ("talent-{s}.json.gz", None), "registered_from": "2026-10-19"},
 }
+# ⛔ T66 §3a, FROZEN: which of the champion's inputs S and TS keep, by index into
+#    today's lists (spread / moneyline: own, h2h, form, poss, out, neutral, dome
+#    [+ s9 NFL]; total: own_t, h2h_t, form_t, def, neutral, dome [+ s9 NFL]).
+#    TS's slot 0 on spread and moneyline is T's talent margin, not the own margin.
+KEEP = {"S": {"spread": (0, 2, 3, 4, 5, 6), "moneyline": (0, 2, 3, 4, 5, 6), "total": (0, 2, 3, 4, 5)},
+        "TS": {"spread": (0, 5, 6), "moneyline": (0, 5, 6), "total": (0, 4, 5)}}
+
 
 
 def latest(lg, root=None):
@@ -235,8 +254,10 @@ def weekly(items, weeks, solve):
 def attach(name, lg, rows, root=None):
     """Write challenger `name`'s number into every row's `sig` (None: no number)."""
     c = CHALLENGERS[name]
+    if c["key"] is None:                 # S reads only the champion's own inputs
+        return rows
     weeks = {FM.monday(r["day"]) for r in rows}
-    if name == "T":
+    if name in ("T", "TS"):
         z = talent_z(root)
         sol = weekly(talent_games(root, z), weeks, solve_talent)
         for r in rows:
@@ -253,13 +274,19 @@ def attach(name, lg, rows, root=None):
 def extend(name, r, market, x, M=None):
     """The inputs with challenger `name` applied. E, P: appended after the
     champion's (spread (margin - line) / 10, moneyline margin / 10). T: its own
-    margin replaces the champion's in the first input. Totals unchanged."""
+    margin replaces the champion's in the first input. Totals unchanged.
+    S, TS (T66): only the KEEP inputs; TS's first spread / moneyline input is
+    T's margin (spread (margin - line) / 10, moneyline margin / 10)."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
         return x
+    if name in KEEP:
+        x = [x[i] for i in KEEP[name][market]]
+        if name == "S" or market == "total":
+            return x
     m = r["sig"].get(c["key"])
     M = r["M"] if M is None else M
     v = (0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else \
         (0.0 if m is None else m / 10.0)
-    return [v] + list(x[1:]) if name == "T" else list(x) + [v]
+    return [v] + list(x[1:]) if name in ("T", "TS") else list(x) + [v]
 
