@@ -824,11 +824,23 @@ def pricing(rows, now=None):
     return {"models": models, "games": games, "ridge": RIDGE}
 
 
-def win_chances(rows, now=None):
+def predicted_score(r):
+    """`[Sam, 2026-10-14]` "predict outcomes of football games by predicted
+    scores": the row's own week's ratings, home = (own total + own margin) / 2,
+    away = (own total - own margin) / 2. None when either number is missing.
+    ⛔ Output only: no fit, pick or chance reads it."""
+    om, ot = r["sig"].get("own_m"), r["sig"].get("own_t")
+    if om is None or ot is None:
+        return None
+    return {"home": round((ot + om) / 2.0, 1), "away": round((ot - om) / 2.0, 1)}
+
+
+def win_chances(rows, now=None, scores=True):
     """`[Sam, 2026-10-01]` THE GAME LINES TAB: the moneyline model's chance for
     BOTH teams of every priced game not yet played (this week's), with the best
     moneyline at Sam's three books. ⛔ The same fit `current_picks` makes; no
-    pick and no model changes."""
+    pick and no model changes. `[Sam, 2026-10-14]` each row also carries the
+    model's predicted score (`predicted_score`); `scores=False` leaves it off."""
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     horizon = (datetime.datetime.fromisoformat(now.replace("Z", "+00:00"))
                + datetime.timedelta(days=PRICING_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -850,6 +862,8 @@ def win_chances(rows, now=None):
         out.append({"game_id": r["id"], "commence": c, "home": hname, "away": aname,
                     "p_home": round(100 * p, 1), "p_away": round(100 * (1 - p), 1),
                     "best_ml": best})
+        if scores:
+            out[-1]["score"] = predicted_score(r)
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 

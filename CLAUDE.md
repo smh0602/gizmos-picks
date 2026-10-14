@@ -573,6 +573,18 @@ note boxes, tags and the stale bar now require their absence.
   ~~The alt ladders, fair lines, rung tables and alt parlays~~ left the page;
   their files are still built (the card's alternate spreads read the ladder).
   `test_game_lines_page.py`.
+- 🔴 **FOOTBALL ON A PHONE, BELOW ITS PRICE, AND THE WEEK.** `[Sam, 2026-10-14]`
+  *"look at every aspect ... and your only goal is to do anything to make it
+  better"*; *"the way i want you to predict outcomes of football games is by
+  predicted scores"*. C8's rule now covers football props and game-line rows
+  (`card_fb.mark_below_price`: the card's own `edge` <= 0, before the freeze); a
+  row above its price prints "Break-even 53.7% · edge +1.3". "Above their price
+  only" (kind bar, OFF by default, localStorage) hides exactly edge <= 0. Under
+  600 px the tab bar is two rows, a prop row stacks its price under the player and
+  a table scrolls in its own box. Football Game Lines shows winners.json's `week`
+  (every game in `win_chances`, by ET day, "ET" times) with the model's predicted
+  score (`fb_model.predicted_score`, output only); `rows` stays the graded record.
+  `test_fb_phone_page.py`; 390 px measured by `test_league_switch.py` §3.
 - 🔴 **THE MLB CARD'S GAME LINES ARE THE GAME MODEL'S MONEYLINE AND RUN LINE
   PICKS, AND ⛔ NEVER ITS TOTALS.** `[Sam, 2026-10-03]` *"go on with moneyline
   and run line only. Totals stay in mlb-game-model.json with both records

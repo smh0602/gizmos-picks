@@ -51,8 +51,8 @@ legs, and the page draws each game-line row with pickCard (§8–§10).
 #
 # @vacuity ...and no note under it, in either glyph [Sam, 2026-10-01]
 #   file: index.html
-#   find: + g.map(p => pickCard(p).outerHTML).join('');
-#   with: + g.map(p => pickCard(p).outerHTML).join('') + '<div class="note">&#128309; <b>Market, not a model.</b></div>';
+#   find: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
+#   with: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('') + '<div class="note">&#128309; <b>Market, not a model.</b></div>';
 #
 # @vacuity ...and the stylesheet styles no badge class [Sam, 2026-10-01]
 #   file: index.html
@@ -61,7 +61,7 @@ legs, and the page draws each game-line row with pickCard (§8–§10).
 #
 # @vacuity ...and every row is still drawn, by pickCard [Sam, 2026-10-01]
 #   file: index.html
-#   find: + g.map(p => pickCard(p).outerHTML).join('');
+#   find: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
 #   with: + g.slice(0, 1).map(p => p.player).join('');
 """
 import gzip
@@ -234,7 +234,10 @@ _glf = html[html.index("function fbGameLines(C){"):]
 _glf = _glf[:_glf.index("\nfunction ", 1)]
 ck("⛔ the page does not re-rank or re-compute the rows: it draws the card's own order",
    "pickCard(p)" in _glf and ".sort(" not in _glf
-   and _glf.count(".filter(") == 1 and ".filter(p => p.kind === 'fb-line')" in _glf,
+   and _glf.count(".filter(") == 1
+   # [Sam, 2026-10-14] the one filter also takes "Above their price only" (a reader's
+   # switch, off by default): it hides rows, it never re-ranks or re-computes one.
+   and ".filter(p => p.kind === 'fb-line' && fbAbovePass(p))" in _glf,
    "rule 132 — the page prints what the builder computed; a second copy "
    "of the selection rule is a second thing to drift")
 
@@ -310,7 +313,7 @@ ck("✅ ...and the stylesheet styles neither badge class, so no tag can render a
 # `[Sam, 2026-10-01]` ~~rank, wager, the gain, the best price and its book~~:
 #    each row is the prop row's own card (test_fb_game_picks.py renders it).
 ck("✅ ...and every row is still drawn, by pickCard, the prop rows' own markup",
-   "+ g.map(p => pickCard(p).outerHTML).join('');" in _gl,
+   "+ g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');" in _gl,
    "[Sam, 2026-10-01] kept: tables and cards with every number. Asserting "
    "a wrong thing is absent is not asserting the right thing is present")
 

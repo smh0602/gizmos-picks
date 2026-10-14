@@ -23,8 +23,8 @@ same tab order in every league, Game Lines included: test_tab_bar.py.)
 #
 # @vacuity 🔴 football lists one day only, the slate's
 #   file: winners.py
-#   find:             for g in (model or {}).get("win_chances") or [] if et_date(g["commence"]) == slate]
-#   with:             for g in (model or {}).get("win_chances") or []]
+#   find:             if slate is None or et_date(g["commence"]) == slate]
+#   with:             if slate is None or True]
 #
 # @vacuity 🔴 an MLB game missing a starter has no pick
 #   file: winners.py
@@ -180,7 +180,8 @@ ck("⛔ no ladder, box or tag in the tab, in any league",
 _gone = [f for f in ("fbGlRung", "fbGlMain", "fbGlFair", "fbGlGame", "fbGlParlays",
                      "fbGlRecordHtml", "fbGameLinesHtml") if ("function %s(" % f) in SRC]
 ck("⛔ ...and the ladder renderers are gone from the shipped page; both tabs draw winnersHtml",
-   not _gone and "winnersHtml(W)" in js_block("fbGameLinesTab", PAGE)
+   not _gone and "winnersWeekHtml(W)" in js_block("fbGameLinesTab", PAGE)
+   and "winnersHtml(W)" in js_block("winnersWeekHtml", PAGE)
    and "winnersHtml(W)" in js_block("renderGameLines", PAGE)
    and "gamelines:renderGameLines" in js_block("show", PAGE), "still defined: %s" % _gone)
 

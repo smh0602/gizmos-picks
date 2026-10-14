@@ -97,8 +97,8 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 ...and the page never draws one
 #   file: index.html
-#   find: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
-#   with: const g = (C && C.game_lines) || [];
+#   find: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && fbAbovePass(p));
+#   with: const g = ((C && C.game_lines) || []).filter(p => fbAbovePass(p));
 #
 # @vacuity 🔴 a game-line row names its team, with no side word
 #   file: index.html
@@ -107,7 +107,7 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 the page draws game-line rows with pickCard
 #   file: index.html
-#   find: + g.map(p => pickCard(p).outerHTML).join('');
+#   find: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
 #   with: + g.map(p => '<div class="r">' + p.player + '</div>').join('');
 #
 # @vacuity 🔴 the alternate spreads are graded in their own line
@@ -266,7 +266,8 @@ const document = {createElement: () => node()};
 const stub = () => '';
 const fn = new Function('document', 'confClass', 'headUrl', 'projChip', 'mark', 'ab', 'sgn',
   'bookChip', 'betControl', 'betLink', 'fbMark', 'fbAb', 'FBTEAMS', 'LEAGUE',
-  S.el + '\n' + S.dn + '\n' + S.pc + '\n' + S.gl + '\nreturn fbGameLines;');
+  S.el + '\n' + S.dn + '\n' + S.pc + '\n' + S.gl
+  + '\nconst FBABOVE = false;\n' + S.ab + '\n' + S.ed + '\nreturn fbGameLines;');   // the filter (off), the edge line
 const fbGameLines = fn(document, stub, stub, stub, stub, stub, x => (x > 0 ? '+' : '') + x,
   stub, stub, stub, stub, stub, {}, 'nfl');
 process.stdout.write(JSON.stringify(fbGameLines(S.card).replace(/\s+/g, ' ')));
@@ -275,7 +276,7 @@ tmp = tempfile.mkdtemp(prefix="fbgl-")
 try:
     open(os.path.join(tmp, "d.js"), "w", encoding="utf-8").write(DRIVER)
     json.dump({"el": _el, "dn": js_block("fbDayName", PAGE), "pc": js_block("pickCard", PAGE),
-               "gl": js_block("fbGameLines", PAGE),
+               "gl": js_block("fbGameLines", PAGE), "ab": js_block("fbAbovePass", PAGE), "ed": js_block("fbEdgeLine", PAGE),
                "card": {"game_lines": ROWS + [OLD], "game_lines_meta": {"slate": SLATE}}},
               open(os.path.join(tmp, "d.json"), "w"))
     r = subprocess.run(["node", os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")],

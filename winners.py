@@ -88,10 +88,14 @@ def mlb_rows(model, board):
 
 
 def fb_rows(model, slate, et_date):
-    """Every game of ET day `slate` in the model's win chances."""
-    return [make_row(g["game_id"], g["commence"], g["away"], g["home"], g.get("p_home"),
-                     (g.get("best_ml") or {}).get("home"), (g.get("best_ml") or {}).get("away"))
-            for g in (model or {}).get("win_chances") or [] if et_date(g["commence"]) == slate]
+    """Every game of ET day `slate` in the model's win chances; `slate` None:
+    every game in them (the page's week, `[Sam, 2026-10-14]`), each with the
+    model's predicted score."""
+    return [dict(make_row(g["game_id"], g["commence"], g["away"], g["home"], g.get("p_home"),
+                          (g.get("best_ml") or {}).get("home"), (g.get("best_ml") or {}).get("away")),
+                 score=g.get("score"))
+            for g in (model or {}).get("win_chances") or []
+            if slate is None or et_date(g["commence"]) == slate]
 
 
 def frozen(data):
@@ -154,7 +158,10 @@ def build(lg=None, root=None, when=None, log=print):
         VOID_STATES = ()
         snap = card_fb.latest_gamelines_snapshot()[0]
         slate = card_fb.next_line_slate(snap) if snap else None
-        rows = fb_rows(_json(os.path.join(latest, "fb-model.json")), slate, card_fb.et_date)
+        fbm = _json(os.path.join(latest, "fb-model.json"))
+        rows = fb_rows(fbm, slate, card_fb.et_date)
+        # `[Sam, 2026-10-14]` the tab shows the week; ⛔ only `rows` is frozen and graded.
+        week = fb_rows(fbm, None, card_fb.et_date)
     live = [r for r in rows if r["pick"] and r["commence"] > now]
     if live:
         daystore.archive({"league": lg, "taken_at": now, "rows": live}, data, SNAP, log=log, when=when)
@@ -179,6 +186,8 @@ def build(lg=None, root=None, when=None, log=print):
            "rows": sorted(rows, key=lambda r: (r["commence"], r["game_id"])),
            "record": {"w": w, "l": n - w, "n": n, "pct": round(100.0 * w / n, 1) if n else None,
                       "voids": sum(1 for x in g if x["state"] == "void")}}
+    if lg != "mlb":
+        doc["week"] = week
     os.makedirs(latest, exist_ok=True)
     with open(os.path.join(latest, "winners.json"), "w", encoding="utf-8") as fh:
         json.dump(doc, fh, separators=(",", ":"))

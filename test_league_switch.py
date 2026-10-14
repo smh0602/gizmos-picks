@@ -259,6 +259,63 @@ if _BROWSER:
            (first, first_fb, kept, back) == ("scores", "scores", "parlays", "gamelines"),
            "got %s" % ((first, first_fb, kept, back),))
 
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 3. NOTHING WIDER THAN A PHONE, EVERY TAB REACHABLE `[Sam, 2026-10-14]`
+        # ══════════════════════════════════════════════════════════════
+        # Measured 2026-10-14 at 390 px before the fix: Player Props 180 /
+        # 260 px wider than the screen (price and BET cut off), Gizmo's Picks
+        # 186 / 195, Trends 48 / 112, Game Lines 6 / 14; 4 of 9 tabs showed.
+        # ⚠️ The stored tree with the REAL clock (CLAUDE.md's allowed form),
+        #    and then the same tabs with PLANTED wide content injected, so the
+        #    check bites whatever today's data holds.
+        PLANT = """() => {
+          const v = document.querySelector('#fbview');
+          const row = `<div class="prow fbprow"><div class="who"><div class="nm2">Christian
+            McCaffrey-Longername Jr.</div><div class="tm2">Rushing + receiving yards</div></div>
+            <div class="bet"><div class="ln">Over 112.5</div><div class="mk">rush+rec yds</div></div>
+            <div class="pr2"><div class="v2">-115</div><span class="bk-chip">DraftKings</span>
+            <a class="betbtn" data-planted>Bet &rarr;</a></div><div class="ev2"></div>
+            <div class="imp"><b>3</b>books</div></div>`;
+          const tr = '<tr>' + Array.from({length: 14}, (_, i) =>
+            `<td>Planted column ${i} wide</td>`).join('') + '</tr>';
+          v.insertAdjacentHTML('beforeend', `<div class="panel">${row}${row}
+            <table class="ob">${tr}</table><table class="fbt">${tr}</table>
+            <div class="glwrap"><table class="glmain">${tr}</table></div></div>`);
+          const cw = document.documentElement.clientWidth;
+          const bet = [...document.querySelectorAll('[data-planted]')];
+          return {over: document.documentElement.scrollWidth - cw,
+                  betIn: bet.length > 0 && bet.every(b => b.getBoundingClientRect().right <= cw)};
+        }"""
+        WIDE = "() => document.documentElement.scrollWidth - document.documentElement.clientWidth"
+        pg.set_viewport_size({"width": 390, "height": 844})
+        pg.goto(f"http://127.0.0.1:{PORT}/index.html",
+                wait_until="domcontentloaded", timeout=60000)
+        pg.wait_for_timeout(1200)
+        stored, planted = {}, {}
+        for lg in ("nfl", "ncaaf"):
+            pg.evaluate("setLeague('%s')" % lg)
+            pg.wait_for_timeout(1600)
+            for tab in WANT:
+                pg.locator("nav.subnav a[data-tab='%s']" % tab).click()
+                pg.wait_for_timeout(1800)
+                stored["%s/%s" % (lg, tab)] = pg.evaluate(WIDE)
+                planted["%s/%s" % (lg, tab)] = pg.evaluate(PLANT)
+        ck("🔴 at 390 px no football tab is wider than the screen (stored tree)",
+           all(v <= 0 for v in stored.values()),
+           str({k: v for k, v in stored.items() if v > 0}))
+        ck("🔴 ...nor with planted wide rows and tables, and the planted BET buttons are on screen",
+           all(v["over"] <= 0 and v["betIn"] for v in planted.values()),
+           str({k: v for k, v in planted.items() if v["over"] > 0 or not v["betIn"]}))
+        tabs = pg.evaluate("""() => { const cw = document.documentElement.clientWidth;
+          const a = [...document.querySelectorAll('nav.subnav a[data-tab]')];
+          return {n: a.length, inside: a.every(x => { const r = x.getBoundingClientRect();
+                    return r.left >= 0 && r.right <= cw && r.width > 0; }),
+                  rows: [...new Set(a.map(x => Math.round(x.getBoundingClientRect().top)))].length,
+                  order: a.map(x => x.dataset.tab)}; }""")
+        ck("🔴 ...and all 9 tabs are on screen, on two rows, in the same order",
+           tabs["n"] == 9 and tabs["inside"] and tabs["rows"] == 2 and tabs["order"] == WANT, str(tabs))
+        pg.set_viewport_size({"width": 1280, "height": 900})
+
         ck("✅ no page error during any switch", not errs, str(errs[:3]))
         note("%d off-machine request(s) blocked, none answered by the "
              "network: %s" % (len(_offsite),
