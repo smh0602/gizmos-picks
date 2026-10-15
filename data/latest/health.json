@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-15T21:43:32Z",
+ "checked_at": "2026-10-15T21:44:02Z",
  "et_date": "2026-10-15",
  "healthy": false,
  "broken": 0,
- "degraded": 7,
+ "degraded": 8,
  "findings": [
+  {
+   "key": "fresh:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl tabs are showing data older than promised (nfl-logs)",
+   "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
