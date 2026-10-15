@@ -1569,7 +1569,7 @@ def build_top_plays(rows, board, n=TOP_N):
 # is about a row whose game has started, and that is what freezes.
 # ⛔ A STARTED ROW IS ALSO NEVER ADDED. Publishing a new "pick" on a game
 # already in progress is the same misinformation in the other direction.
-FREEZE_SECTIONS = ("picks", "top_plays", "game_lines", "parlays", "sgp")
+FREEZE_SECTIONS = ("picks", "top_plays", "game_lines", "parlays", "sgp", "liked", "game_lines_liked")
 # Started game lines from a slate the list has since moved past — kept
 # verbatim as record, never displayed. See `freeze_published`.
 GL_EARLIER = "game_lines_earlier_slates"
@@ -1614,7 +1614,8 @@ GL_EARLIER = "game_lines_earlier_slates"
 #    (`order_game_lines`, applied after the merge).
 FREEZE_CAP_NAMES = {"picks": "BOARD_MAX", "top_plays": "TOP_N",
                     "game_lines": "GAME_LINES_MAX",
-                    "parlays": "PARLAY_PER_SIZE", "sgp": "SGP_PER_SIZE"}
+                    "parlays": "PARLAY_PER_SIZE", "sgp": "SGP_PER_SIZE",
+                    "liked": "BOARD_MAX", "game_lines_liked": "GAME_LINES_MAX"}
 
 
 def freeze_cap(sec):
@@ -1670,6 +1671,28 @@ def _key(row):
     return (row.get("game_id"), row.get("player"), row.get("market"),
             row.get("side"), row.get("line"), row.get("label"),
             tuple(row.get("game_ids") or ()), tuple(row.get("legs") or ()))
+
+
+LIKED_MIN_CONF = 50
+
+
+def best_liked(rows, who, cap=BOARD_MAX):
+    """`[Sam, 2026-10-15]` "i just want you to have the best plays our model likes
+    simple as that": rows whose own chance is LIKED_MIN_CONF or more AND above
+    their price (the card's own `edge` > 0), by edge then chance, highest first,
+    ONE per `who` (a player, or a game for game lines: never two lines of one
+    stat, never both sides), at most `cap`. Copies, ranked 1..n; fewer is fine.
+    ~~25 by chance~~: J.K. Dobbins 4 times, Humphrey over 0.5 AND under 1.5,
+    16 of 25 below their price (NFL card, 2026-10-15)."""
+    ok = sorted((r for r in rows if r.get("confidence") is not None and r["confidence"] >= LIKED_MIN_CONF
+                 and r.get("edge") is not None and r["edge"] > 0),
+                key=lambda r: (-r["edge"], -r["confidence"]))
+    seen, out = set(), []
+    for r in ok:
+        if who(r) not in seen:
+            seen.add(who(r))
+            out.append(dict(r, rank=len(out) + 1))
+    return out[:cap]
 
 
 def mark_below_price(rows):
@@ -2383,6 +2406,11 @@ def main():
         #    by likelihood would be invented. What is ranked instead is the
         #    shoppable gap between books, which is arithmetic.
         "game_lines": game_lines,
+        # `[Sam, 2026-10-15]` what the board shows (and what record_fb grades): the
+        #    game lines the model likes, one per game. `game_lines` stays today's
+        #    list, for the page's "Above their price only" OFF view.
+        "game_lines_liked": best_liked([r for r in game_lines if r.get("kind") == "fb-line"],
+                                       lambda r: r.get("game"), GAME_LINES_MAX),
         "game_lines_meta": gl_meta,
         "game_lines_rule": game_lines_rule(game_lines, gl_meta),
         "top_plays": top_plays,
@@ -2496,6 +2524,8 @@ def main():
             "Sorted by price. No row carries a rate."),
         "college_note": None if LEAGUE == "nfl" else COLLEGE_NOTE,
         "picks": board,
+        # `[Sam, 2026-10-15]` the same for props: one per player, by edge.
+        "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player"))),
         "n_longshots_excluded": len(longshots),
         "price_ceiling": PRICE_CEIL,
         "market_max_share": MARKET_MAX_SHARE if not rated else None,

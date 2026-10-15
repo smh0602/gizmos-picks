@@ -315,5 +315,6 @@ try:
     F.walk_forward(_rows), F.current_picks("nfl", _rows, now=_now), F.pricing(_rows, _now), F.win_chances(_rows, _now)
 finally:
     F.fit = _real
-eq(_seen, [5.0] * 9, "🔴 every game-market fit caps at ±5: walk-forward 3, current picks 3, "
-                     "the Game Lines tab and alternate rungs' pricing 2, win chances 1")
+# `[Sam, 2026-10-15]` win chances also fits the total (the predicted score's total).
+eq(_seen, [5.0] * 10, "🔴 every game-market fit caps at ±5: walk-forward 3, current picks 3, "
+                     "the Game Lines tab and alternate rungs' pricing 2, win chances 2 (moneyline, total)")

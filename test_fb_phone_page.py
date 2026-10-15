@@ -37,10 +37,10 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:   return !FBABOVE || !(p && p.edge != null && p.edge <= 0);
 #   with:   return !FBABOVE || !(p && p.edge != null && p.edge < 0);
 #
-# @vacuity 🔴 the filter is off by default
+# @vacuity 🔴 the filter is ON by default [Sam, 2026-10-15]
 #   file: index.html
-#   find: let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') === '1'; }
-#   with: let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') !== '1'; }
+#   find: let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') !== '0'; }
+#   with: let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') === '1'; }
 #
 # @vacuity 🔴 the props board runs through the filter
 #   file: index.html
@@ -79,8 +79,8 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #
 # @vacuity 🔴 the predicted score never touches a chance
 #   file: fb_model.py
-#   find:             out[-1]["score"] = predicted_score(r, out[-1]["p_home"] / 100.0, sigma)
-#   with:             out[-1].update(score=predicted_score(r, out[-1]["p_home"] / 100.0, sigma), p_home=50.0)
+#   find:             out[-1]["score"] = predicted_score(
+#   with:             out[-1]["p_home"] = 50.0; out[-1]["score"] = predicted_score(
 #
 # @vacuity 🔴 a football prop row wraps on a phone
 #   file: index.html
@@ -190,15 +190,18 @@ const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
 const run = (store, on) => new Function('localStorage', 'ROWS', 'ON',
   S.init + '\n' + S.fn + '\nif (ON !== null) FBABOVE = ON;'
   + '\nreturn [FBABOVE, ROWS.map(r => fbAbovePass(r))];')(store, S.rows, on);
-const empty = {getItem: () => null}, set = {getItem: () => '1'},
+const empty = {getItem: () => null}, set = {getItem: () => '0'},
       boom = {getItem: () => { throw new Error('blocked'); }};
 process.stdout.write(JSON.stringify([run(empty, null), run(boom, null), run(set, null),
                                      run(empty, true), run(empty, false)]));
 """
 F = node(FILT, {"init": _init, "fn": js_block("fbAbovePass", PAGE), "rows": ROWS}) or [[None, []]] * 5
-ck("🔴 off by default, and off when storage throws; on when the browser remembered it",
-   [F[0][0], F[1][0], F[2][0]] == [False, False, True], str(F[:3]))
-ck("🔴 off: every row shows", F[0][1] == [True] * len(ROWS), str(F[0][1]))
+# `[Sam, 2026-10-15]` ~~off by default~~: "i just want you to have the best plays our
+#    model likes simple as that" -- ON by default, and when storage throws; OFF only
+#    when this browser remembered it switched off.
+ck("🔴 ON by default and when storage throws; off when the browser remembered off",
+   [F[0][0], F[1][0], F[2][0]] == [True, True, False], str(F[:3]))
+ck("🔴 off: every row shows", F[4][1] == [True] * len(ROWS), str(F[4][1]))
 ck("🔴 on: hidden are exactly the rows with edge <= 0 (-3.8 and 0.0); +1.3, +3.0 and no edge stay",
    F[3][1] == [False, False, True, True, True], str(F[3][1]))
 _pk, _gl = js_block("fbPicks", PAGE), js_block("fbGameLines", PAGE)
