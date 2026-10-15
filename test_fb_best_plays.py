@@ -34,8 +34,8 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #
 # @vacuity 🔴 a liked play is above its price
 #   file: card_fb.py
-#   find:                  and r.get("edge") is not None and r["edge"] > 0),
-#   with:                  and r.get("edge") is not None),
+#   find:                  and r.get("edge") is not None and r["edge"] > 0
+#   with:                  and r.get("edge") is not None
 #
 # @vacuity 🔴 a liked play is 50% or more
 #   file: card_fb.py
@@ -56,6 +56,31 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #   file: card_fb.py
 #   find:             merged.sort(key=lambda r: (-(r.get("edge") or 0), -(r.get("confidence") or 0)))
 #   with:             pass
+#
+# @vacuity 🔴 a liked prop is priced under +150
+#   file: card_fb.py
+#   find:     if (r.get("price") or 0) >= LIKED_PROP_MAX_PRICE:
+#   with:     if (r.get("price") or 0) > LIKED_PROP_MAX_PRICE:
+#
+# @vacuity 🔴 a liked prop's side agrees with its printed projection
+#   file: card_fb.py
+#   find:     return v > r["line"] if r["side"] == "over" else v < r["line"]
+#   with:     return True
+#
+# @vacuity 🔴 a projection equal to the line is no lean
+#   file: card_fb.py
+#   find:     return v > r["line"] if r["side"] == "over" else v < r["line"]
+#   with:     return v > r["line"] if r["side"] == "over" else v <= r["line"]
+#
+# @vacuity 🔴 a row with no projection keeps today's rule
+#   file: card_fb.py
+#   find:     if v is None or r.get("line") is None or r.get("side") not in ("over", "under"):
+#   with:     if r.get("line") is None or r.get("side") not in ("over", "under"):
+#
+# @vacuity 🔴 the card's liked props are checked against its own projections
+#   file: card_fb.py
+#   find:         "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
+#   with:         "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player"))),
 #
 # @vacuity 🔴 the record grades what the card shows
 #   file: record_fb.py
@@ -191,6 +216,28 @@ eq([(r["player"], r["rank"]) for r in _doc["liked"]], [(r["player"], r["rank"]) 
    "🔴 ...and it stays in edge order through the freeze (a published card with no liked list yet)")
 card = {"liked": [ROWS[1]], "picks": ROWS}
 eq(len(RF.grade_card(card, {}, {}, None)), 1, "🔴 a card with a liked list is graded on what it shows")
+
+# `[Sam, 2026-10-15]` PROPS: under +150, and never against the row's own PROJ.
+P2 = [dict(prop("At 150", "rush", "over", 0.5, 56, 9.0), price=150),
+      dict(prop("At 149", "rush", "over", 0.5, 56, 9.0), price=149),
+      dict(prop("Proj Above", "rec", "under", 1.5, 52, 6.0), price=107),
+      dict(prop("Proj Equal", "rec", "under", 2.5, 52, 6.0), price=-110),
+      dict(prop("Proj Below Over", "yds", "over", 2.5, 52, 6.0), price=-110),
+      dict(prop("No Proj", "rec", "under", 3.5, 52, 6.0), price=-110),
+      dict(prop("Agrees", "rec", "over", 3.5, 52, 5.0), price=-120),
+      dict(prop("Anytime", "td", "yes", None, 52, 5.0), price=120)]
+PROJ = {"Proj Above|rec|under|1.5": {"v": 4.1}, "Proj Equal|rec|under|2.5": {"v": 2.5},
+        "Proj Below Over|yds|over|2.5": {"v": 2.2}, "Agrees|rec|over|3.5": {"v": 4.4},
+        "Anytime|td|yes|None": {"v": 0.4}}
+eq(sorted(r["player"] for r in CF.best_liked(P2, lambda r: r["player"], proj=PROJ)),
+   ["Agrees", "Anytime", "At 149", "No Proj"],
+   "🔴 props: +150 is not liked and +149 is; an under with PROJ above (or equal to) its line and an over "
+   "with PROJ below it are not; no projection, or no line, keeps today's rule")
+eq(sorted(r["player"] for r in CF.best_liked(P2, lambda r: r["player"])), sorted(r["player"] for r in P2),
+   "   ...and without `proj` (game lines) nothing extra is dropped")
+ck('"liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),'
+   in open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read(),
+   "🔴 the card's liked props are checked against the card's own projections map")
 eq(len(RF.grade_card({"picks": ROWS[:3]}, {}, {}, None)), 3, "   ...and a card from before the switch as it was")
 
 PG = r"""

@@ -1674,18 +1674,36 @@ def _key(row):
 
 
 LIKED_MIN_CONF = 50
+LIKED_PROP_MAX_PRICE = 150       # `[Sam, 2026-10-15]` a liked prop is priced under +150
 
 
-def best_liked(rows, who, cap=BOARD_MAX):
+def _prop_consistent(r, proj):
+    """`[Sam, 2026-10-15]` PROPS: priced under +150, and the side agrees with the
+    projection the card prints for the row (over: PROJ > line; under: PROJ <
+    line; equal is no lean). No projection or no line: no such check. ⛔ A
+    consistency rule for what the board shows, never a model input."""
+    if (r.get("price") or 0) >= LIKED_PROP_MAX_PRICE:
+        return False
+    v = (proj.get("%s|%s|%s|%s" % (r.get("player"), r.get("market"), r.get("side"), r.get("line"))) or {}).get("v")
+    if v is None or r.get("line") is None or r.get("side") not in ("over", "under"):
+        return True
+    return v > r["line"] if r["side"] == "over" else v < r["line"]
+
+
+def best_liked(rows, who, cap=BOARD_MAX, proj=None):
     """`[Sam, 2026-10-15]` "i just want you to have the best plays our model likes
     simple as that": rows whose own chance is LIKED_MIN_CONF or more AND above
     their price (the card's own `edge` > 0), by edge then chance, highest first,
     ONE per `who` (a player, or a game for game lines: never two lines of one
     stat, never both sides), at most `cap`. Copies, ranked 1..n; fewer is fine.
     ~~25 by chance~~: J.K. Dobbins 4 times, Humphrey over 0.5 AND under 1.5,
-    16 of 25 below their price (NFL card, 2026-10-15)."""
+    16 of 25 below their price (NFL card, 2026-10-15). `proj` (props only, the
+    card's projections map): also `_prop_consistent` — ~~Smith-Njigba over 0.5
+    rush yds at +310, 51%, his record 5 of 23~~ at #1; liked props at +150 or
+    longer hit 1 of 10 on past NFL weeks (Cowork, 2026-10-15)."""
     ok = sorted((r for r in rows if r.get("confidence") is not None and r["confidence"] >= LIKED_MIN_CONF
-                 and r.get("edge") is not None and r["edge"] > 0),
+                 and r.get("edge") is not None and r["edge"] > 0
+                 and (proj is None or _prop_consistent(r, proj))),
                 key=lambda r: (-r["edge"], -r["confidence"]))
     seen, out = set(), []
     for r in ok:
@@ -2545,7 +2563,7 @@ def main():
         "college_note": None if LEAGUE == "nfl" else COLLEGE_NOTE,
         "picks": board,
         # `[Sam, 2026-10-15]` the same for props: one per player, by edge.
-        "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player"))),
+        "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
         "n_longshots_excluded": len(longshots),
         "price_ceiling": PRICE_CEIL,
         "market_max_share": MARKET_MAX_SHARE if not rated else None,
