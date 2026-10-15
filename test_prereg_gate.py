@@ -150,13 +150,18 @@ FROZEN = {
     # ~~"52f0c88ba35a891332bb3693da006deff1cebb9644687ddfe40312933d4e8d9d"~~
     # [Sam, 2026-10-15] T68 (AV, AVC, WX, WXC) added as section 3b, pre-registered
     # by Cowork 2026-10-15; everything before it is pinned on its own below.
-    "fb_refit_spec.md": "85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de",
+    # ~~"85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de"~~
+    # [Sam, 2026-10-15] T69 (IN, AT, ATC, RS, RSC) added as section 3c at Sam's
+    # instruction, defined before any result; everything before it pinned below.
+    # ~~"5339c1da77967c61b08efacda26d690a44caa73c62a64e2f75050d8a04915cb3"~~ (§3c corrected before any result: defensive snap share)
+    "fb_refit_spec.md": "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
 #    approved first.
 FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b7cff8e69752584d9df4d7f56ccb40ccd967c"),
-                 ("fb_refit_spec.md", "\n## 3b. ", "52f0c88ba35a891332bb3693da006deff1cebb9644687ddfe40312933d4e8d9d")]
+                 ("fb_refit_spec.md", "\n## 3b. ", "52f0c88ba35a891332bb3693da006deff1cebb9644687ddfe40312933d4e8d9d"),
+                 ("fb_refit_spec.md", "\n## 3c. ", "85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de")]
 
 
 def frozen_region(text):

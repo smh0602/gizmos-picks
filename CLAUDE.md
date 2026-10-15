@@ -304,7 +304,11 @@ note boxes, tags and the stale bar now require their absence.
   it). `[Sam, 2026-10-14]` T66 (§3a, Cowork's pre-registration) adds S (NFL: the
   champion without head-to-head and signal 9) and TS (college: T's talent margin,
   the line, neutral and dome only), all three markets, registered 2026-10-19, no
-  withdrawal; only games after registration count. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
+  withdrawal; only games after registration count. `[Sam, 2026-10-15]` T68 (§3b) adds AV/AVC
+  (Sam's averages) and WX/WXC (wind); T69 (§3c, "do all changes") adds IN (NFL injuries on BOTH
+  sides of the ball: Out/Doubtful weighted by offensive or DEFENSIVE snap share, starting QB
+  out), AT/ATC (Sam's averages blended into totals) and RS/RSC (rest): 7 challengers a league,
+  so p < 0.01/7. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
@@ -906,7 +910,8 @@ fb_challengers.py T65's frozen challengers to the football game model
                   (Sam, 2026-10-12): E (NFL opponent-adjusted EPA margin), P
                   (college PPA, the same solve), T (college talent in the
                   margin solve); T66 adds S (NFL, fewer inputs) and TS (college,
-                  talent, few inputs). fb_model reads it only for a named CHAMPION.
+                  talent, few inputs); T68 AV/AVC, WX/WXC; T69 IN (NFL injuries both
+                  sides), AT/ATC, RS/RSC. fb_model reads it only for a named CHAMPION.
 fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No
