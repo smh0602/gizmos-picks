@@ -1,10 +1,10 @@
 {
  "date": "2026-10-15",
  "league": "nfl",
- "generated_at": "2026-10-15T13:33:11Z",
+ "generated_at": "2026-10-15T15:14:31Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-15T12:51:42Z",
+ "odds_pulled_at": "2026-10-15T15:14:20Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -46,6 +46,36 @@
   {
    "kind": "fb-line",
    "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Denver Broncos",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": -23.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "fanduel",
+   "price": 2000,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 4.8,
+   "edge": 49.2,
+   "why": [
+    "The game model gives Denver Broncos 54% to cover -23.5; the best price, +2000 at FanDuel, needs 4.8%."
+   ],
+   "priced_at": "2026-10-15T12:51:41Z",
+   "main_line": 2.5,
+   "sched_id": "2026_06_SEA_DEN",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
    "basis": "MODEL \u2014 the game model's probability",
    "player": "Under",
    "market": "total",
@@ -69,7 +99,7 @@
     "The game model gives Under 53% at 40.5; the price -105 needs 51.2%."
    ],
    "priced_at": "2026-10-15T12:51:41Z",
-   "rank": 2
+   "rank": 3
   }
  ],
  "game_lines_meta": {
@@ -81,10 +111,10 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-15T13:33:01Z",
-  "ladder_built_at": "2026-10-15T13:33:01Z",
-  "alt_spreads": 0
+  "ladder_built_at": "2026-10-15T15:14:22Z",
+  "alt_spreads": 1
  },
- "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-15 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-15 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -101,7 +131,7 @@
    "home": "Denver Broncos",
    "commence": "2026-10-16T00:15:00Z",
    "book": "hardrockbet",
-   "price": -140,
+   "price": -130,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/8653879806808687008",
    "n_books": 3,
    "clears_price_floor": true,
@@ -110,25 +140,24 @@
    "confidence": 57,
    "model_p": 57.3,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 58.3,
-   "edge": -1.3,
-   "rank": 1,
-   "below_price": true
+   "break_even": 56.5,
+   "edge": 0.5,
+   "rank": 1
   }
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 5,
-  "same_game_already_listed": 119,
+  "same_game_already_listed": 125,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 125,
+  "pool_after_price_gate": 131,
   "cap": 20,
   "distinct_games": 1,
   "shared_with_board_head": 1,
   "board_head_size": 20
  },
- "top_plays_rule": "The 1 most likely to hit for 2026-10-15 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 20, over 1 game(s). 119 row(s) were held back because their game was already represented and 5 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-10-15 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 20, over 1 game(s). 125 row(s) were held back because their game was already represented and 5 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
  "parlays": {
   "2": [],
   "3": [],
@@ -136,7 +165,7 @@
  },
  "parlay_meta": {
   "pool": 36,
-  "rated_legs": 125,
+  "rated_legs": 131,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -150,7 +179,7 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 92,
+    "available": 98,
     "taken": 12
    },
    {
@@ -170,7 +199,7 @@
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "125 rated legs, 36 in the stratified pool. Rejected: 66675 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "131 rated legs, 36 in the stratified pool. Rejected: 66675 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -184,14 +213,14 @@
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -140,
+     -130,
      -110
     ],
     "line_best_book": "draftkings",
     "line_best_price": -108,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.273,
+    "multiplier": 3.378,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -240,24 +269,24 @@
   "3": [
    {
     "legs": [
-     "Tory Horton o4.5 rec yds",
      "Emanuel Wilson u66.5 rush yds",
+     "J.K. Dobbins o2.5 rec yds",
      "Denver Broncos +2.5 spread"
     ],
     "game": "Seattle Seahawks @ Denver Broncos",
     "game_id": "855f58fad5f0f14b239f4f63df27998b",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -113,
-     -113,
+     -110,
+     -115,
      -110
     ],
     "line_best_book": "draftkings",
     "line_best_price": -108,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.783,
+    "multiplier": 6.814,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -267,7 +296,7 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     55,
+     54,
      54
     ],
     "band_floor": 3.0
@@ -275,7 +304,7 @@
    {
     "legs": [
      "Tory Horton o0.5 rec",
-     "Lil'Jordan Humphrey o0.5 rec",
+     "Emanuel Wilson u66.5 rush yds",
      "Denver Broncos +2.5 spread"
     ],
     "game": "Seattle Seahawks @ Denver Broncos",
@@ -283,15 +312,15 @@
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -140,
-     -250,
+     -130,
+     -110,
      -110
     ],
     "line_best_book": "draftkings",
     "line_best_price": -108,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 4.582,
+    "multiplier": 6.448,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -315,7 +344,7 @@
   "per_game_cap": 2,
   "rejected": {
    "same_player": 48,
-   "mixed_book": 132,
+   "mixed_book": 128,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -460,13 +489,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 236.0 pass yds a game."
   },
-  "Sam Darnold|player_pass_yds|over|221.5": {
+  "Sam Darnold|player_pass_yds|over|223.5": {
    "v": 236.0,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 236.0 pass yds a game."
   },
-  "Sam Darnold|player_pass_yds|under|221.5": {
+  "Sam Darnold|player_pass_yds|under|223.5": {
    "v": 236.0,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -508,6 +537,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 39.5 rec yds a game."
   },
+  "Cooper Kupp|player_reception_yds|over|22.5": {
+   "v": 39.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 39.5 rec yds a game."
+  },
+  "Cooper Kupp|player_reception_yds|under|22.5": {
+   "v": 39.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 39.5 rec yds a game."
+  },
   "Courtland Sutton|player_reception_yds|over|30.5": {
    "v": 57.2,
    "u": "rec yds",
@@ -544,6 +585,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 7 games this record is built from \u2014 40.3 rec yds a game."
   },
+  "J.K. Dobbins|player_reception_yds|over|2.5": {
+   "v": 4.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 4.5 rec yds a game."
+  },
+  "J.K. Dobbins|player_reception_yds|under|2.5": {
+   "v": 4.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 4.5 rec yds a game."
+  },
   "J.K. Dobbins|player_reception_yds|over|4.5": {
    "v": 4.5,
    "u": "rec yds",
@@ -568,13 +621,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 100.2 rec yds a game."
   },
-  "Jaxon Smith-Njigba|player_reception_yds|over|93.5": {
+  "Jaxon Smith-Njigba|player_reception_yds|over|94.5": {
    "v": 100.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 100.2 rec yds a game."
   },
-  "Jaxon Smith-Njigba|player_reception_yds|under|93.5": {
+  "Jaxon Smith-Njigba|player_reception_yds|under|94.5": {
    "v": 100.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -591,6 +644,18 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 60.7 rec yds a game."
+  },
+  "Lil'Jordan Humphrey|player_reception_yds|over|5.5": {
+   "v": 26.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 26.3 rec yds a game."
+  },
+  "Lil'Jordan Humphrey|player_reception_yds|under|5.5": {
+   "v": 26.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 26.3 rec yds a game."
   },
   "Lil'Jordan Humphrey|player_reception_yds|over|6.5": {
    "v": 26.3,
@@ -647,6 +712,18 @@
    "n": "His own average over the 19 games this record is built from \u2014 46.6 rec yds a game."
   },
   "Rashid Shaheed|player_reception_yds|under|20.5": {
+   "v": 46.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 46.6 rec yds a game."
+  },
+  "Rashid Shaheed|player_reception_yds|over|21.5": {
+   "v": 46.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 46.6 rec yds a game."
+  },
+  "Rashid Shaheed|player_reception_yds|under|21.5": {
    "v": 46.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -954,19 +1031,19 @@
   }
  },
  "name_match_rate": 0.897,
- "n_priced": 125,
+ "n_priced": 131,
  "single_day": true,
  "slate_date": "2026-10-15",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 125,
+ "n_on_slate_day": 131,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-15 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "125 priced football rows for 2026-10-15 across 1 board games; 25 shown.",
+ "coverage": "131 priced football rows for 2026-10-15 across 1 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 63.6% against a claimed 53.7% (+9.9 pts, n=22). The under-60 band is currently the closest to its own claim. 22 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -986,7 +1063,7 @@
    "home": "Denver Broncos",
    "commence": "2026-10-16T00:15:00Z",
    "book": "hardrockbet",
-   "price": -140,
+   "price": -130,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/8653879806808687008",
    "n_books": 3,
    "clears_price_floor": true,
@@ -995,10 +1072,9 @@
    "confidence": 57,
    "model_p": 57.3,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 58.3,
-   "edge": -1.3,
-   "rank": 1,
-   "below_price": true
+   "break_even": 56.5,
+   "edge": 0.5,
+   "rank": 1
   },
   {
    "kind": "fb",
@@ -1017,7 +1093,7 @@
    "book": "draftkings",
    "price": -111,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378203521%232317849411_13L88808Q11853835131Q20",
-   "n_books": 1,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1045,7 +1121,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615756914&selectionId=49171248",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1070,9 +1146,9 @@
    "away": "Seattle Seahawks",
    "home": "Denver Broncos",
    "commence": "2026-10-16T00:15:00Z",
-   "book": "fanduel",
-   "price": -113,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615642719&selectionId=60677663",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/772922852428087685",
    "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -1080,9 +1156,56 @@
    "confidence": 54,
    "model_p": 53.6,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.1,
-   "edge": 0.9,
+   "break_even": 52.4,
+   "edge": 1.6,
    "rank": 4
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "J.K. Dobbins",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 2.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/673320606019748273",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "5 of 7",
+   "record": "5 of 7",
+   "rate": 85,
+   "break_even": 53.5,
+   "edge": 0.5,
+   "season_detail": {
+    "h25": 4,
+    "n25": 6,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.913,
+    "weighted_n": 5.8
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.5,
+   "projection": 4.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 4.5 rec yds a game.",
+   "why": [
+    "<b>J.K. Dobbins</b> went over 2.5 rec yds in <b>1 of 1 games</b> in 2026 and 4 of 6 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.7,
+   "rank": 5
   },
   {
    "kind": "fb",
@@ -1099,7 +1222,7 @@
    "home": "Denver Broncos",
    "commence": "2026-10-16T00:15:00Z",
    "book": "hardrockbet",
-   "price": -250,
+   "price": -230,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/2099344475942945181",
    "n_books": 1,
    "clears_price_floor": true,
@@ -1108,8 +1231,8 @@
    "raw": "5 of 6",
    "record": "5 of 6",
    "rate": 89,
-   "break_even": 71.4,
-   "edge": -17.4,
+   "break_even": 69.7,
+   "edge": -15.7,
    "season_detail": {
     "h25": 5,
     "n25": 6,
@@ -1129,7 +1252,7 @@
     "<b>Lil'Jordan Humphrey</b> went over 0.5 rec in <b>5 of 6 games</b> in 2025, when he played at least half the snaps."
    ],
    "model_p": 53.7,
-   "rank": 5,
+   "rank": 6,
    "below_price": true
   },
   {
@@ -1177,53 +1300,6 @@
     "<b>J.K. Dobbins</b> went over 47.5 rush yds in <b>1 of 1 games</b> in 2026 and 5 of 6 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.6,
-   "rank": 6
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jaxon Smith-Njigba",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 93.5,
-   "game": "Seattle Seahawks @ Denver Broncos",
-   "game_id": "855f58fad5f0f14b239f4f63df27998b",
-   "away": "Seattle Seahawks",
-   "home": "Denver Broncos",
-   "commence": "2026-10-16T00:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1520177342943723953",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 53,
-   "raw": "8 of 23",
-   "record": "8 of 23",
-   "rate": 58,
-   "break_even": 52.4,
-   "edge": 0.6,
-   "season_detail": {
-    "h25": 7,
-    "n25": 18,
-    "h26": 1,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.875,
-    "weighted_n": 13.0
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 100.17,
-   "projection": 100.2,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 23 games this record is built from \u2014 100.2 rec yds a game.",
-   "why": [
-    "<b>Jaxon Smith-Njigba</b> went under 93.5 rec yds in <b>1 of 5 games</b> in 2026 and 7 of 18 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 53.2,
    "rank": 7
   },
   {
@@ -1353,6 +1429,54 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jaxon Smith-Njigba",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 94.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4442732026130465201",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "8 of 23",
+   "record": "8 of 23",
+   "rate": 59,
+   "break_even": 53.5,
+   "edge": -0.5,
+   "season_detail": {
+    "h25": 7,
+    "n25": 18,
+    "h26": 1,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.876,
+    "weighted_n": 13.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 100.17,
+   "projection": 100.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 23 games this record is built from \u2014 100.2 rec yds a game.",
+   "why": [
+    "<b>Jaxon Smith-Njigba</b> went under 94.5 rec yds in <b>1 of 5 games</b> in 2026 and 7 of 18 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.4,
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Rashid Shaheed",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -1394,7 +1518,7 @@
     "<b>Rashid Shaheed</b> went over 0.5 rush yds in <b>2 of 3 games</b> in 2026 and 4 of 16 in 2025, when he played at least half the snaps."
    ],
    "model_p": 53.2,
-   "rank": 11,
+   "rank": 12,
    "below_price": true
   },
   {
@@ -1423,7 +1547,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 54.5,
    "edge": -1.5,
-   "rank": 12,
+   "rank": 13,
    "below_price": true
   },
   {
@@ -1471,7 +1595,7 @@
     "<b>AJ Barner</b> went over 2.5 rec in <b>2 of 5 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.6,
-   "rank": 13,
+   "rank": 14,
    "below_price": true
   },
   {
@@ -1519,7 +1643,7 @@
     "<b>Jaylen Waddle</b> went under 4.5 rec in <b>3 of 5 games</b> in 2026 and 6 of 15 in 2025, when he played at least half the snaps."
    ],
    "model_p": 53.4,
-   "rank": 14,
+   "rank": 15,
    "below_price": true
   },
   {
@@ -1567,7 +1691,7 @@
     "<b>Lil'Jordan Humphrey</b> went under 1.5 rec in <b>2 of 6 games</b> in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.8,
-   "rank": 15,
+   "rank": 16,
    "below_price": true
   },
   {
@@ -1615,7 +1739,7 @@
     "<b>Jaxon Smith-Njigba</b> went under 6.5 rec in <b>2 of 5 games</b> in 2026 and 5 of 18 in 2025, when he played at least half the snaps."
    ],
    "model_p": 51.6,
-   "rank": 16
+   "rank": 17
   },
   {
    "kind": "fb",
@@ -1662,7 +1786,7 @@
     "<b>Troy Franklin</b> went under 17.5 rec yds in <b>1 of 1 games</b> in 2026 and 1 of 14 in 2025, when he played at least half the snaps."
    ],
    "model_p": 51.8,
-   "rank": 17,
+   "rank": 18,
    "below_price": true
   },
   {
@@ -1682,7 +1806,7 @@
    "book": "draftkings",
    "price": -111,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378203285%232317737637_13L88808Q1-111707543Q20",
-   "n_books": 2,
+   "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1691,7 +1815,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 52.6,
    "edge": -0.6,
-   "rank": 18,
+   "rank": 19,
    "below_price": true
   },
   {
@@ -1739,7 +1863,7 @@
     "<b>AJ Barner</b> went over 23.5 rec yds in <b>1 of 5 games</b> in 2026 and 12 of 19 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.4,
-   "rank": 19,
+   "rank": 20,
    "below_price": true
   },
   {
@@ -1759,7 +1883,7 @@
    "book": "draftkings",
    "price": -113,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378203155%232321491599_13L88808Q11070302869Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 52,
@@ -1787,7 +1911,7 @@
     "<b>J.K. Dobbins</b> went over 4.5 rec yds in <b>1 of 1 games</b> in 2026 and 4 of 6 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.2,
-   "rank": 20,
+   "rank": 21,
    "below_price": true
   },
   {
@@ -1816,7 +1940,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.1,
    "edge": -1.1,
-   "rank": 21,
+   "rank": 22,
    "below_price": true
   },
   {
@@ -1836,7 +1960,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615642714&selectionId=41331177",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 52,
@@ -1864,7 +1988,7 @@
     "<b>Bo Nix</b> went under 15.5 rush yds in <b>5 of 5 games</b> in 2026 and 7 of 18 in 2025, when he played at least half the snaps."
    ],
    "model_p": 51.9,
-   "rank": 22,
+   "rank": 23,
    "below_price": true
   },
   {
@@ -1893,7 +2017,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.1,
    "edge": -1.1,
-   "rank": 23,
+   "rank": 24,
    "below_price": true
   },
   {
@@ -1941,54 +2065,6 @@
     "<b>J.K. Dobbins</b> went over 48.5 rush yds in <b>1 of 1 games</b> in 2026 and 5 of 6 in 2025, when he played at least half the snaps."
    ],
    "model_p": 52.3,
-   "rank": 24,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "AJ Barner",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 24.5,
-   "game": "Seattle Seahawks @ Denver Broncos",
-   "game_id": "855f58fad5f0f14b239f4f63df27998b",
-   "away": "Seattle Seahawks",
-   "home": "Denver Broncos",
-   "commence": "2026-10-16T00:15:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3544453222628458921",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "12 of 24",
-   "record": "12 of 24",
-   "rate": 50,
-   "break_even": 53.5,
-   "edge": -1.5,
-   "season_detail": {
-    "h25": 11,
-    "n25": 19,
-    "h26": 1,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.575,
-    "weighted_n": 13.44
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 30.84,
-   "projection": 30.8,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 24 games this record is built from \u2014 30.8 rec yds a game.",
-   "why": [
-    "<b>AJ Barner</b> went over 24.5 rec yds in <b>1 of 5 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 52.2,
    "rank": 25,
    "below_price": true
   }
