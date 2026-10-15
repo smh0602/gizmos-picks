@@ -163,8 +163,8 @@ ck(R.challenger_feat("RS")(rs[0], "total") == FM.features(rs[0], "total"), "   t
 section("3. 🔴 COUNTS, REGISTRATION, FRESHNESS AND THE NFL DEFENSIVE SNAPS")
 # ══════════════════════════════════════════════════════════════════════
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AT", "AV", "E", "IN", "RS", "S", "WX"], "ncaaf": ["ATC", "AVC", "P", "RSC", "T", "TS", "WXC"]},
-   "🔴 7 challengers a league, so alpha is 0.01 / 7")
+   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "WX"], "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "T", "TS", "WXC"]},
+   "🔴 8 challengers a league (T70 adds H, HC), so alpha is 0.01 / 8")
 eq([R.registration("IN", T1, {"IN": "2026-10-15"}), R.registration("AT", T1), R.registration("RSC", T1)],
    ["2026-10-19"] * 3, "🔴 registered 2026-10-19 (IN after its injuries files exist)")
 import freshness as F  # noqa: E402

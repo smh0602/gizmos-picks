@@ -85,6 +85,12 @@ class Fits:
         return out
 
 
+def challenger_fits(rows, name, lg, root=ROOT):
+    """A challenger's walk-forward fits; §3d's H / HC also train on the history rows."""
+    extra = FC.history_rows(lg, root) if FC.CHALLENGERS[name].get("history") else []
+    return Fits(list(rows) + extra, challenger_feat(name))
+
+
 def challenger_feat(name):
     return lambda r, mk, M=None, T=None: FC.extend(name, r, mk, FM.features(r, mk, M=M, T=T), M, T)
 
@@ -307,7 +313,8 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     res = []
     for n in names:
         reg = registration(n, root, added)
-        res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg))
+        res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
+                           fits=challenger_fits(rows, n, lg, root) if reg else None))
     sb = {mk: gap(list(champ.predictions(mk, lambda r: r["season"] == SEASON).values()), mk)
           for mk in FM.MARKETS}
     return {"league": lg, "kind": "DESCRIPTIVE", "spec": "research/fb_refit_spec.md",

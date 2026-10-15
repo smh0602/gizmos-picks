@@ -13,6 +13,7 @@
                            weighted by snap share; starting QB out)
     AT NFL / ATC college   T69: Sam's averages blended into the total
     RS NFL / RSC college   T69: rest days
+    H NFL / HC college     T70: own ratings, neutral, dome, trained on more seasons
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
 
@@ -86,7 +87,17 @@ CHALLENGERS = {
            "key": "rest_d", "withdrawable": False, "input": None, "registered_from": "2026-10-19"},
     "RSC": {"league": "ncaaf", "what": "rest", "markets": ("spread", "moneyline"), "files": (),
             "key": "rest_d", "withdrawable": False, "input": None, "registered_from": "2026-10-19"},
+    # `[Sam, 2026-10-15]` T70 (§3d): trained on the history seasons too (fb_history.py).
+    "H": {"league": "nfl", "what": "more seasons", "markets": ("spread", "total", "moneyline"),
+          "files": ("../history/schedule-{s}.json.gz",), "seasons": (2018, 2019, 2020, 2021, 2022, 2023, 2024),
+          "key": "h_own", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
+          "history": True},
+    "HC": {"league": "ncaaf", "what": "more seasons", "markets": ("spread", "total", "moneyline"),
+           "files": ("../history/schedule-{s}.json.gz", "../history/lines-{s}.json.gz"), "seasons": (2023, 2024),
+           "key": "h_own", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
+           "history": True},
 }
+HIST = ("H", "HC")
 SAM = ("AV", "AVC")
 AT = ("AT", "ATC")
 RS = ("RS", "RSC")
@@ -404,11 +415,61 @@ def team_out(reports, logs, team_qb, season, team, week, day):
     return qb_out, off, dfn
 
 
+def history_rating_games(lg, root=None):
+    """fb_model.rating_games' tuples for the history seasons (fb_history.py)."""
+    import fb_history
+    out = []
+    for g in fb_history.games(lg, root):
+        if (g.get("final") and FM.t60r.kick(g) is not None and g.get("home_score") is not None
+                and g.get("away_score") is not None):
+            out.append((g["start"][:10], g["home"], g["away"], 0.0 if g.get("neutral") else 1.0,
+                        float(g["home_score"]), float(g["away_score"])))
+    return out
+
+
+def h_own(lg, rows, root=None):
+    """§3d: each row's own margin and total from the frozen own-ratings solve over
+    `latest/` AND `history/` (one copy per date, home, away)."""
+    G = sorted(set(FM.rating_games(lg, root)) | set(history_rating_games(lg, root)))
+    own = FM.own_ratings(G, {FM.monday(r["day"]) for r in rows})
+    for r in rows:
+        r["sig"]["h_own"] = FM.own_numbers(own.get(FM.monday(r["day"])), r["home"], r["away"],
+                                           r["sig"]["neutral"])
+    return rows
+
+
+def history_rows(lg, root=None):
+    """§3d: one training row per final history game (college FBS vs FBS), labelled
+    at its closing line by fb_model.training_line, with its own numbers."""
+    import fb_history
+    cfb = fb_history.lines(root) if lg == "ncaaf" else None
+    out = []
+    for g in fb_history.games(lg, root):
+        k = FM.t60r.kick(g)
+        if (k is None or not g.get("final") or g.get("home_score") is None or g.get("away_score") is None
+                or (lg == "ncaaf" and not (g.get("home_class") == "fbs" and g.get("away_class") == "fbs"))):
+            continue
+        M, T, pml = FM.training_line(g, None, cfb)
+        out.append({"id": "hist:%s" % g.get("id"), "lg": lg, "season": g.get("season"),
+                    "day": k.strftime("%Y-%m-%d"), "kick": g["start"], "week": g.get("week"),
+                    "home": g["home"], "away": g["away"], "final": True,
+                    "hs": g["home_score"], "as": g["away_score"], "M": M, "T": T, "pml": pml,
+                    "snap": None, "dk_ml": None, "close": {},
+                    "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None, "def": None,
+                            "poss": None, "out": None, "vac_h": None, "vac_a": None,
+                            "neutral": 1.0 if g.get("neutral") else 0.0,
+                            "dome": 1.0 if (g.get("roof") or "") in ("dome", "closed") else 0.0,
+                            "own_m": None, "own_t": None}})
+    return h_own(lg, sorted(out, key=lambda r: r["kick"]), root)
+
+
 def attach(name, lg, rows, root=None):
     """Write challenger `name`'s number into every row's `sig` (None: no number)."""
     c = CHALLENGERS[name]
     if c["key"] is None:                 # S reads only the champion's own inputs
         return rows
+    if name in HIST:
+        return h_own(lg, rows, root)
     if name in RS:
         days = rest_days(lg, root)
         for r in rows:
@@ -473,10 +534,19 @@ def extend(name, r, market, x, M=None, T=None):
     only, wind / 10. A missing number is 0.
     T69: IN appends (away - home) qb/off/def outs on spread and moneyline, their
     sums on totals; AT, ATC replace the first total input with ((own total +
-    sam_t) / 2 - T) / 10 (unchanged without sam_t); RS, RSC append rest / 7."""
+    sam_t) / 2 - T) / 10 (unchanged without sam_t); RS, RSC append rest / 7.
+    T70: H, HC are [own term (history ratings), neutral, dome] in every market."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
         return x
+    if name in HIST:
+        om, ot = r["sig"].get("h_own") or (None, None)
+        M = r["M"] if M is None else M
+        T = r["T"] if T is None else T
+        v = ((0.0 if om is None or M is None else (om - M) / 10.0) if market == "spread" else
+             (0.0 if ot is None or T is None else (ot - T) / 10.0) if market == "total" else
+             (0.0 if om is None else om / 10.0))
+        return [v, r["sig"]["neutral"], r["sig"]["dome"]]
     if name in KEEP:
         x = [x[i] for i in KEEP[name][market]]
         if name == "S" or market == "total":

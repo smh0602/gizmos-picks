@@ -1051,6 +1051,14 @@ def _football_contract(league, data, picks, now):
         _store += [(f"venues-{season}", [])]
         _store += [(f"cfbd-weather-{s}", []) for s in _yrs
                    if os.path.exists(f"{latest}/cfbd-weather-{s}.json.gz")]
+    # `[Sam, 2026-10-15]` T70's history seasons, written once (late only when missing).
+    _hist = ((2018, 2019, 2020, 2021, 2022, 2023, 2024), ("schedule",)) if league == "nfl" else \
+        ((2023, 2024), ("schedule", "lines"))
+    for _y in _hist[0]:
+        for _k in _hist[1]:
+            rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
+                         ("file", f"{data}/history/{_k}-{_y}.json.gz"), [], False,
+                         "Stored only — older seasons for a challenger"))
     for _stem, _due in _store:
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{_stem}.json.gz"), _due, False,
@@ -1322,7 +1330,8 @@ SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
 #    daily CFBD / nflverse mode, and re-running cfb-probe every pass for a file
 #    nothing reads is how September's CFBD quota went (13+ calls a build).
-STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather)-\d{4}\.json\.gz$")
+STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather)-\d{4}\.json\.gz$"
+                         r"|/history/(schedule|lines)-\d{4}\.json\.gz$")
 
 
 def stored_only(r):

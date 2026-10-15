@@ -377,7 +377,8 @@ try:
     for lg, writer in (("nfl", "nfl-logs"), ("ncaaf", "cfb-probe")):
         P = tree()
         rows = F.contract(P + "/data/" + lg, P + "/picks", NOW)
-        got = {r[1][1].split("/")[-1][:-8]: r[0] for r in rows if F.STORED_ONLY.search(r[1][1])}
+        got = {r[1][1].split("/")[-1][:-8]: r[0] for r in rows
+               if F.STORED_ONLY.search(r[1][1]) and "/history/" not in r[1][1]}   # T70's are test_fb_history's
         eq(got, {k: writer for k in want[lg]},
            "🔴 %s: every new file has a row, written by the league's daily %s run" % (lg, writer))
     put(P + "/data/ncaaf/latest/cfbd-weather-2026.json.gz", {"games": {}})
