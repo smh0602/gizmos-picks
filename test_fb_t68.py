@@ -10,6 +10,11 @@ planted rows. ⛔ Reads no live data; writes only to temporary trees.
 #   find:     cur = cur[:bisect.bisect_left(cur, (wk,))]
 #   with:     cur = cur[:bisect.bisect_right(cur, (wk + "~",))]
 #
+# @vacuity 🔴 a top-up with fewer earlier games than needed keeps them all
+#   file: fb_challengers.py
+#   find:         cur = prev[max(0, len(prev) - (SAM_MIN_GAMES - len(cur))):] + cur if prev else cur
+#   with:         cur = prev[len(prev) - (SAM_MIN_GAMES - len(cur)):] + cur if prev else cur
+#
 # @vacuity 🔴 fewer than 3 games are topped up from the earlier season
 #   file: fb_challengers.py
 #   find:     if len(cur) < SAM_MIN_GAMES:
@@ -155,6 +160,11 @@ ck(abs(got[1][0] - float(WANT_M)) < 1e-9 and abs(got[1][1] - float(WANT_T)) < 1e
 eq(got[2], (None, None), "🔴 a team with no earlier game at all has no number")
 plant(T1, LATE)
 eq(sam(T1, X)[0], got[0], "🔴 games on (09-28) and after (09-30) the row's Monday never enter its averages")
+# `[2026-10-15]` Cowork's review: two earlier games and a need of three kept only the LAST.
+TG = {(2025, "TWO"): [("2025-11-01", 10.0, 20.0), ("2025-12-01", 30.0, 40.0)],
+      (2025, "FOUR"): [("2025-10-%02d" % (i + 1), 10.0 * i, 10.0 * i) for i in range(4)]}
+eq([FC.sam_rates(TG, 2026, t, "2026-09-28") for t in ("TWO", "FOUR")], [(20.0, 30.0), (20.0, 20.0)],
+   "🔴 a top-up keeps every earlier-season game when there are fewer than needed; 3+ keep only the latest 3")
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 AV APPENDS ONE INPUT; WX CHANGES TOTALS ONLY; THE LINE PASSES THROUGH")

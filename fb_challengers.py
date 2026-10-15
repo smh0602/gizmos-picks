@@ -299,7 +299,7 @@ def sam_rates(TG, season, team, wk):
     cur = cur[:bisect.bisect_left(cur, (wk,))]
     if len(cur) < SAM_MIN_GAMES:
         prev = [x for x in TG.get((season - 1, team)) or [] if x[0] < wk]
-        cur = prev[len(prev) - (SAM_MIN_GAMES - len(cur)):] + cur if prev else cur
+        cur = prev[max(0, len(prev) - (SAM_MIN_GAMES - len(cur))):] + cur if prev else cur
     if not cur:
         return None
     return sum(x[1] for x in cur) / len(cur), sum(x[2] for x in cur) / len(cur)
