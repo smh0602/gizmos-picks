@@ -821,7 +821,10 @@ def pricing(rows, now=None):
                                             "away", "M", "T", "pml", "sig")}
                      | {"names": list(snap.get("names") or []) or None,
                         "commence": snap.get("commence")})
-    return {"models": models, "games": games, "ridge": RIDGE}
+    # `[Sam, 2026-10-15]` the spread of real margins and totals around the model's
+    #    own numbers: game_lines_fb prices every OFF-MAIN rung on one normal curve.
+    return {"models": models, "games": games, "ridge": RIDGE,
+            "sigma": {"spread": score_sigma(rows), "total": total_sigma(rows)}}
 
 
 def score_sigma(rows):
@@ -833,7 +836,16 @@ def score_sigma(rows):
     return math.sqrt(sum(x * x for x in d) / len(d)) if d else None
 
 
-def predicted_score(r, p_home, sigma):
+def total_sigma(rows):
+    """The spread of real totals around the own total: root-mean-square of
+    (final total - own total) over every final row that has one. None if none."""
+    d = [float(r["hs"]) + float(r["as"]) - r["sig"]["own_t"] for r in rows
+         if r["final"] and r.get("hs") is not None and r.get("as") is not None
+         and r["sig"].get("own_t") is not None]
+    return math.sqrt(sum(t * t for t in d) / len(d)) if d else None
+
+
+def predicted_score(r, p_home, sigma, p_over=None, sigma_t=None):
     """`[Sam, 2026-10-14]` "predict outcomes of football games by predicted
     scores", from the FULL model: margin = sigma x NormalInverse(p_home), where
     p_home is the moneyline chance the row shows (0-1) and sigma is
@@ -841,8 +853,13 @@ def predicted_score(r, p_home, sigma):
     (total - margin) / 2. ~~home/away from the own margin alone~~: that score
     contradicted the pick in 3 of 14 NFL and 3 of 58 college games (Cowork,
     2026-10-14). None when a number is missing. ⛔ Output only: no fit, pick or
-    chance reads it."""
-    ot = r["sig"].get("own_t")
+    chance reads it. `[Sam, 2026-10-15]` With a total line T the total fit prices
+    (p_over, at T), total = T + sigma_t x NormalInverse(p_over), so the score sits
+    on the over/under's side (~~the own total~~: SEA 22.5 - DEN 20.6, 43.1, beside
+    "Under 40.5"); with none, the own total as before."""
+    T = r.get("T")
+    ot = (T + sigma_t * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_over)))
+          if T is not None and p_over is not None and sigma_t else r["sig"].get("own_t"))
     if ot is None or p_home is None or not sigma:
         return None
     margin = sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
@@ -862,6 +879,9 @@ def win_chances(rows, now=None, scores=True):
             if label(r, "moneyline") is not None]
     m = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
     sigma = score_sigma(rows) if scores else None
+    sigma_t = total_sigma(rows) if scores else None
+    dt = [(features(r, "total"), label(r, "total")) for r in rows if scores and label(r, "total") is not None]
+    mt = fit([x for x, _ in dt], [y for _, y in dt], zmax=ZMAX) if dt else None
     out = []
     for r in rows:
         c = (r.get("snap") or {}).get("commence")
@@ -878,7 +898,9 @@ def win_chances(rows, now=None, scores=True):
                     "p_home": round(100 * p, 1), "p_away": round(100 * (1 - p), 1),
                     "best_ml": best})
         if scores:
-            out[-1]["score"] = predicted_score(r, out[-1]["p_home"] / 100.0, sigma)
+            out[-1]["score"] = predicted_score(
+                r, out[-1]["p_home"] / 100.0, sigma,
+                predict(mt, features(r, "total")) if mt and r.get("T") is not None else None, sigma_t)
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 

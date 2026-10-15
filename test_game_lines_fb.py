@@ -316,7 +316,8 @@ _k_to = len(F.features(_prow("g1", "S1", GAMES[0][1], BUF, LAC), "total"))
 _models = {"spread": {"mu": [0.0] * _k_sp, "sd": [1.0] * _k_sp, "w": [0.0, 1.0] + [0.0] * (_k_sp - 1)},
            "total": {"mu": [0.0] * _k_to, "sd": [1.0] * _k_to, "w": [0.0, 1.0] + [0.0] * (_k_to - 1)}}
 wjs(os.path.join(_lg, "latest", "fb-model.json"),
-    {"pricing": {"models": _models, "games": [_prow(g[0], "S" + g[0][1:], g[1], g[2], g[3]) for g in GAMES]}})
+    {"pricing": {"models": _models, "games": [_prow(g[0], "S" + g[0][1:], g[1], g[2], g[3]) for g in GAMES],
+                 "sigma": {"spread": 13.4, "total": 13.0}}})
 wjs(os.path.join(_lg, "latest", "alt-lines-check.json"), _chk)
 wgz(os.path.join(_lg, "latest", "schedule-2026.json.gz"),
     {"games": [{"id": "S" + g[0][1:], "home": g[2], "away": g[3], "final": False} for g in GAMES]})
@@ -368,9 +369,16 @@ try:
        and r["book"] == "DraftKings" and r["be"] == round(100 / F.decimal(-145), 1),
        "🔴 each book's price, the best of them and its break-even (Hard Rock's Ohio skin never counted twice)",
        "got %r" % r)
-    _p = F.predict(_models["spread"], F.features(_prow("g1", "S1", GAMES[0][1], BUF, LAC), "spread", M=3.5))
+    # `[Sam, 2026-10-15]` ~~the LIVE model at that exact line~~: the fit is read at the
+    #    MAIN line only (p0) and every rung sits on the normal curve through it.
+    from statistics import NormalDist as _ND
+    _M0 = -g1["main_spread_home"]
+    _p0 = F.predict(_models["spread"], F.features(_prow("g1", "S1", GAMES[0][1], BUF, LAC), "spread", M=_M0))
+    _mu = _M0 + 13.4 * _ND().inv_cdf(_p0)
+    _p = _ND().cdf((_mu - 3.5) / 13.4)
     ck(r["p"] == round(100 * _p, 1) and r["edge"] == round(100 * (_p * F.decimal(-145) - 1.0), 1),
-       "🔴 the model's % is the LIVE model at that exact line, and the edge is priced at the best price")
+       "🔴 the model's % is the curve through the main line's fit at that rung, and the edge is priced at "
+       "the best price", (r["p"], round(100 * _p, 1)))
     ck(r["cal"] is True and sp[("home", -10.5)]["dist"] == 4.0
        and doc["games"][0]["total"][0]["cal"] is False
        and doc["games"][0]["total"][0]["warn"].startswith(A.WARNING),
@@ -380,9 +388,10 @@ try:
     ck(set(G.BASES) >= {"pt", "prices", "best", "be", "p", "edge", "dist"}
        and G.BASES["p"] == "MODEL" and G.BASES["be"] == "MARKET" and G.BASES["prices"] == "MARKET",
        "🔴 rule 55: every number on a rung names its basis; a price never wears a model %")
-    ck(g1["fair_spread"] == 0.0 and doc["games"][0]["main"]["Hard Rock"]["moneyline"] == {"home": -280, "away": 230}
+    ck(g1["fair_spread"] == -round(_mu, 1) and doc["games"][0]["main"]["Hard Rock"]["moneyline"] == {"home": -280, "away": 230}
        and "BetMGM" not in doc["games"][0]["main"],
-       "   ✅ the fair line is where the model says 50%, and the main lines are the three books only")
+       "   ✅ the fair line is the curve's centre (where the model says 50%), and the main lines are the "
+       "three books only", g1["fair_spread"])
 
     # ── the books' own chance `[Sam, 2026-09-25]` ──────────────────────
     dv = lambda a, b: F.devig(a, b)  # noqa: E731

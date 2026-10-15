@@ -4332,7 +4332,7 @@ function fbGameLines(C){
   /* [2026-10-03] only the model's own rows (kind fb-line): a price-gap row of
      an older card is never drawn. The heading names the list's own day. */
   const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && fbAbovePass(p));
-  if (!g.length) return '';
+  if (!g.length) return fbNoLiked(C, 'game_lines');
   return `<h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
     fbDayName((C.game_lines_meta || {}).slate)}</h2>`
     + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
@@ -4381,12 +4381,27 @@ function fbKindBar(C){
       data-fbabove>Above their price only</button></div>`;
 }
 
-/* 🔴 "ABOVE THEIR PRICE ONLY" `[Sam, 2026-10-14]`. OFF by default: Sam decides
-   the plays, so it only hides rows while switched on, and only the rows whose
-   card `edge` is zero or below. Remembered per browser; ⛔ storage can throw
-   (private window, blocked site data), so every read and write is caught. */
-let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') === '1'; }
-                       catch(e){ return false; } })();
+/* 🔴 "ABOVE THEIR PRICE ONLY" `[Sam, 2026-10-14]`. ~~OFF by default~~ `[Sam,
+   2026-10-15]` ON by default ("i just want you to have the best plays our model
+   likes simple as that"): ON shows the card's own liked lists (`liked`,
+   `game_lines_liked`: chance 50%+ above its price, one per player / game, by
+   edge — card_fb.best_liked, ⛔ never re-decided here); OFF shows today's full
+   lists (`picks`, `game_lines`) in today's order. A card from before the switch
+   has no liked list and is filtered as on 10-14. Remembered per browser; ⛔
+   storage can throw (private window, blocked site data), so every read and
+   write is caught. */
+let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') !== '0'; }
+                       catch(e){ return true; } })();
+function fbView(C){
+  return (C && FBABOVE && C.liked) ? Object.assign({}, C, {
+    picks: C.liked, game_lines: C.game_lines_liked || [], picks_all: C.picks,
+    game_lines_all: C.game_lines}) : C;
+}
+function fbNoLiked(C, k){
+  const all = ((C && C[k + '_all']) || []).length;
+  return FBABOVE && all ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
+    } it likes for ${fbDayName(k === 'picks' ? C.date : (C.game_lines_meta || {}).slate)}.</div>` : '';
+}
 function fbAbovePass(p){
   return !FBABOVE || !(p && p.edge != null && p.edge <= 0);
 }
@@ -4412,7 +4427,7 @@ function fbKindWire(){
     if (!b) return;
     if (b.hasAttribute('data-fbabove')){
       FBABOVE = !FBABOVE;
-      try { FBABOVE ? localStorage.setItem('gp_fb_above', '1') : localStorage.removeItem('gp_fb_above'); }
+      try { localStorage.setItem('gp_fb_above', FBABOVE ? '1' : '0'); }
       catch(e){}
     } else FBPICKKIND = b.dataset.fbkind;
     fbPicks();
@@ -4563,7 +4578,7 @@ async function fbPicks(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
-  const C = await fbCardLoad();
+  const C = fbView(await fbCardLoad());
   /* 🔴 AN EMPTY CARD AND A MISSING CARD ARE DIFFERENT FACTS, AND SAYING
      "not published yet" ABOUT AN EMPTY ONE IS A LIE. Sam's rule is that a
      day with no games shows an EMPTY board and that is CORRECT — so the
@@ -4590,8 +4605,8 @@ async function fbPicks(){
     await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
   }
   if (!C || !(C.picks || []).length){
-    v.innerHTML = fbShell(fbKindBar(C) +
-      (FBPICKKIND === 'lines' ? '' : fbNoCard('picks', 'msg')));
+    v.innerHTML = fbShell((fbNoLiked(C, 'picks') ? fbDayHead(C, "Gizmo's Picks") : '') + fbKindBar(C) +
+      (FBPICKKIND === 'lines' ? '' : (fbNoLiked(C, 'picks') || fbNoCard('picks', 'msg'))));
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
         '<div class="msg">No game lines on this board yet.</div>');

@@ -234,7 +234,8 @@ def calibration_by_method(rows, current):
 def grade_card(card, P, idx, covers_through):
     """One card -> a list of graded rows, each carrying its own verdict."""
     rows = []
-    for p in card.get("picks", []):
+    # `[Sam, 2026-10-15]` a card that carries `liked` is graded on what it shows.
+    for p in card["liked"] if "liked" in card else card.get("picks", []):
         mk, side, line = p.get("market"), p.get("side"), p.get("line")
         who = p.get("player")
         # ⚠️ ONE PARSE, TWO NUMBERS. `hits` costs nothing extra once the
@@ -374,7 +375,7 @@ def grade_alt_spreads(cards, sched, grade):
     (the one rule). A pure function of the frozen row and the final score."""
     rows = []
     for _f, card in cards:
-        for r in card.get("game_lines") or []:
+        for r in (card["game_lines_liked"] if "game_lines_liked" in card else card.get("game_lines") or []):
             if r.get("market") != "alternate_spread":
                 continue
             g = sched.get(str(r.get("sched_id"))) or {}

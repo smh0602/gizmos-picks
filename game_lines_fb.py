@@ -206,35 +206,49 @@ def match_row(pricing, g, resolve):
 # ══════════════════════════════════════════════════════════════════════
 # THE MODEL'S PRICE — the live fit, at any line
 # ══════════════════════════════════════════════════════════════════════
-def model_p(models, row, market, side, pt):
-    """P(this side wins) at this exact line. ⛔ The live model, never a copy."""
+# 🔴 ONE CURVE THROUGH THE MAIN PICK `[Sam, 2026-10-15]`: "the player props and
+#    the game lines on gizmo picks genuinly makes no sense". ~~The fit evaluated
+#    at every rung~~: it predicts "does home cover the BOOK's line", close to 50%
+#    by construction, so its chance barely moved (48.8% at +10, 57.3% at -35 on
+#    a college row) and the biggest-edge rung was the absurd far one (Denver
+#    -23.5 at +2000, 54%, beside 44% to win). ✅ The fit is read at the MAIN line
+#    only (p0, unchanged); every other line is priced on the normal curve through
+#    it: mu = main + sigma x NormalInverse(p0), P(home covers M) =
+#    Normal((mu - M) / sigma), sigma the league's fb_model score/total sigma.
+ND = statistics.NormalDist()
+
+
+def curve(models, row, market, main, sigma):
+    """mu, the line where the model's chance is 50%, or None."""
     m = (models or {}).get(market)
-    if not m or row is None:
+    s = (sigma or {}).get(market)
+    if not m or row is None or main is None or not s:
         return None
+    p0 = F.predict(m, F.features(row, market, **({"M": main} if market == "spread" else {"T": main})))
+    return main + s * ND.inv_cdf(min(1 - 1e-9, max(1e-9, p0)))
+
+
+def model_p(models, row, market, side, pt, main=None, sigma=None):
+    """P(this side wins) at this exact line, on the curve through the main line.
+    Spread: home covers when margin > M (fb_model's convention); a home rung's
+    point is -M, an away rung's is +M."""
+    mu = curve(models, row, market, main, sigma)
+    if mu is None:
+        return None
+    s = sigma[market]
     if market == "spread":
-        if side == "home":
-            return F.predict(m, F.features(row, "spread", M=-pt))
-        return 1.0 - F.predict(m, F.features(row, "spread", M=pt))
-    p = F.predict(m, F.features(row, "total", T=pt))
-    return p if side == "over" else 1.0 - p
+        ph = ND.cdf((mu - (-pt if side == "home" else pt)) / s)
+        return ph if side == "home" else 1.0 - ph
+    po = ND.cdf((mu - pt) / s)
+    return po if side == "over" else 1.0 - po
 
 
-def fair_line(models, row, market, main):
-    """(line, why) — where the model's probability is 50%. The model is
-    linear in the line on the logit scale, so two points fix it.
-    ⛔ If its probability does not FALL as the line rises it has no fair
-    line, and it says so rather than printing one."""
-    m = (models or {}).get(market)
-    if not m or row is None or main is None:
-        return None, "no model or no main line"
-    kw = (lambda x: {"M": x}) if market == "spread" else (lambda x: {"T": x})
-    p0 = F.predict(m, F.features(row, market, **kw(main)))
-    p1 = F.predict(m, F.features(row, market, **kw(main + 1.0)))
-    lg0, lg1 = math.log(p0 / (1 - p0)), math.log(p1 / (1 - p1))
-    slope = lg1 - lg0
-    if slope >= -1e-6:
-        return None, "the model's probability does not fall as the line rises"
-    return round(main - lg0 / slope, 1), None
+def fair_line(models, row, market, main, sigma=None):
+    """(line, why) — where the model's chance is 50%: mu, the curve's centre."""
+    mu = curve(models, row, market, main, sigma)
+    if mu is None:
+        return None, "no model, main line or sigma"
+    return round(mu, 1), None
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -264,7 +278,7 @@ def market_chance(lad, market, side, pt, prices):
     return chance, sorted(one)
 
 
-def rungs_for(lad, market, main, models, row, check):
+def rungs_for(lad, market, main, models, row, check, sigma=None):
     out = []
     finding = A.finding(((check or {}).get("markets") or {}).get(market))
     for (side, pt), prices in sorted(lad.items(), key=lambda kv: (kv[0][0], kv[0][1])):
@@ -272,7 +286,7 @@ def rungs_for(lad, market, main, models, row, check):
         best = prices[best_book]
         be = 1.0 / F.decimal(best)
         chance, one = market_chance(lad, market, side, pt, prices)
-        p = model_p(models, row, market, side, pt)
+        p = model_p(models, row, market, side, pt, main, sigma)
         line = (-pt if side == "home" else pt) if market == "spread" else pt
         dist = abs(line - main) if main is not None else None
         cal, warn = A.label(check, market, p, dist)
@@ -299,6 +313,7 @@ def build_doc(lg, root=None, now=None):
     fm = _json(os.path.join(latest, "fb-model.json")) or {}
     pricing = (fm.get("pricing") or {})
     models, prow = pricing.get("models") or {}, pricing.get("games") or []
+    sigma = pricing.get("sigma") or {}
     check = _json(os.path.join(latest, "alt-lines-check.json"))
     alts = alt_events(lg, root, now)
     resolve = D.team_codes(lg)
@@ -317,8 +332,8 @@ def build_doc(lg, root=None, now=None):
         row = match_row(prow, g, resolve)
         pulled, ev = alts.get(g.get("id"), (None, {}))
         lad = ladders(ev or {}, names, g.get("home"), g.get("away"))
-        fs, fs_why = fair_line(models, row, "spread", M)
-        ft, ft_why = fair_line(models, row, "total", T)
+        fs, fs_why = fair_line(models, row, "spread", M, sigma)
+        ft, ft_why = fair_line(models, row, "total", T, sigma)
         s_cal, s_warn = A.label(check, "spread", None, 0.0)
         t_cal, t_warn = A.label(check, "total", None, 0.0)
         games.append({
@@ -331,8 +346,8 @@ def build_doc(lg, root=None, now=None):
             "fair_spread_warn": s_warn, "fair_total_warn": t_warn,
             "modelled": row is not None,
             "alt_pulled_at": pulled,
-            "spread": rungs_for(lad["spread"], "spread", M, models, row, check),
-            "total": rungs_for(lad["total"], "total", T, models, row, check),
+            "spread": rungs_for(lad["spread"], "spread", M, models, row, check, sigma),
+            "total": rungs_for(lad["total"], "total", T, models, row, check, sigma),
         })
     games.sort(key=lambda x: (x["commence"] or "", x["home"] or ""))
     doc = {"league": lg, "kind": "MARKET + MODEL", "built_at": _iso(now), "slate_date": slate,
