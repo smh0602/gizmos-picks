@@ -52,6 +52,11 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #   find:                 key=lambda r: (-r["edge"], -r["confidence"]))
 #   with:                 key=lambda r: (-r["confidence"], -r["edge"]))
 #
+# @vacuity 🔴 the published liked list stays in edge order through the freeze
+#   file: card_fb.py
+#   find:             merged.sort(key=lambda r: (-(r.get("edge") or 0), -(r.get("confidence") or 0)))
+#   with:             pass
+#
 # @vacuity 🔴 the record grades what the card shows
 #   file: record_fb.py
 #   find:     for p in card["liked"] if "liked" in card else card.get("picks", []):
@@ -172,6 +177,18 @@ GL = [{"game": "SEA @ DEN", "market": "spread", "confidence": 60, "edge": 2.0, "
 eq([(r["game"], r["market"]) for r in CF.best_liked(GL, lambda r: r["game"])], [("SEA @ DEN", "total")],
    "🔴 game lines: one per game, its best liked line")
 eq(CF.freeze_cap("liked"), CF.BOARD_MAX, "🔴 the liked list is frozen at kickoff like the board it replaces")
+# `[2026-10-15]` caught on the rebuilt NFL card: the freeze re-sorted it by confidence.
+_ft = tempfile.mkdtemp(prefix="bpfreeze-")
+try:
+    _fut = [dict(r, commence="2026-10-18T17:00:00Z") for r in L]
+    _old = os.path.join(_ft, "old.json")
+    json.dump({"picks": [], "game_lines": []}, open(_old, "w"))
+    _doc, _n = CF.freeze_published({"liked": [dict(r) for r in _fut], "picks": []}, _old,
+                                   "2026-10-15T12:00:00Z", log=lambda m: None)
+finally:
+    shutil.rmtree(_ft, ignore_errors=True)
+eq([(r["player"], r["rank"]) for r in _doc["liked"]], [(r["player"], r["rank"]) for r in L],
+   "🔴 ...and it stays in edge order through the freeze (a published card with no liked list yet)")
 card = {"liked": [ROWS[1]], "picks": ROWS}
 eq(len(RF.grade_card(card, {}, {}, None)), 1, "🔴 a card with a liked list is graded on what it shows")
 eq(len(RF.grade_card({"picks": ROWS[:3]}, {}, {}, None)), 3, "   ...and a card from before the switch as it was")

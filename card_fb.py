@@ -1767,6 +1767,26 @@ def freeze_published(new, path, now_iso, log=print):
         cap = freeze_cap(sec)
         if sec == "picks":
             cap = new.get("board_max") or old.get("board_max") or cap
+        if sec in ("liked", "game_lines_liked"):
+            # `[Sam, 2026-10-15]` by edge, never by confidence (`_merge_list`'s
+            #    board order); a started row stays as published, and the
+            #    lowest-edge FRESH rows are the ones trimmed past the cap.
+            merged, c = _merge_list(o or [], n or [], kicks, now_iso)
+            merged.sort(key=lambda r: (-(r.get("edge") or 0), -(r.get("confidence") or 0)))
+            frozen = {id(r) for r in merged if _started(r, kicks, now_iso)}
+            room, kept = max(0, (cap or len(merged)) - len(frozen)), []
+            for r in merged:
+                if id(r) in frozen:
+                    kept.append(r)
+                elif room:
+                    kept.append(r)
+                    room -= 1
+            for i, r in enumerate(kept, 1):
+                if id(r) not in frozen:
+                    r["rank"] = i
+            new[sec] = kept
+            frozen_total += c
+            continue
         if sec == "game_lines":
             merged, c = _merge_list(o or [], n or [], kicks, now_iso)
             new[sec] = order_game_lines(merged, [r for r in merged
