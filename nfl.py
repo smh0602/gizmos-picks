@@ -1161,6 +1161,8 @@ def history_gap(base, season):
                 return "players-%d predates the players-out count" % season
             if "opportunity_report" not in _pl:
                 return "players-%d predates signal 9" % season
+            if "def_snaps_logged" not in _pl:
+                return "players-%d predates the defensive snap shares (T69)" % season
     except FileNotFoundError:
         return "no players-%d" % season
     except Exception as e:
@@ -2349,6 +2351,9 @@ def build_logs(season, log=print):
         if sn:
             row["snaps"] = int(_num(sn.get("offense_snaps")))
             row["snap_pct"] = round(_num(sn.get("offense_pct")), 3)
+            # `[Sam, 2026-10-15]` "injuries ... on both sides of the ball": a
+            #    defender's own share of his defence's snaps (T69's IN weights).
+            row["def_pct"] = round(_num(sn.get("defense_pct")), 3)
         row["inj"] = inj.get((pid, wk), 0)
         # 🔴 ROUTE PARTICIPATION IS NOT PUBLISHED. `[measured 2026-08-28,
         # run #205]` the nflverse releases carry only `pfr_rosters` and
@@ -2505,6 +2510,7 @@ def build_logs(season, log=print):
             "injury_report": inj_rows,
             # 🔴 SIGNAL 9 — None (with its reason) rather than silent zeros.
             "opportunity": opportunity, "opportunity_report": opportunity_rep,
+            "def_snaps_logged": True,
             "source_assets": dict(USED),
             "substituted": {k: v for k, v in USED.items() if k != v},
             "bridge_ok": bridge_ok, "bridge_coverage": bridge_cov,

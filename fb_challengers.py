@@ -9,6 +9,10 @@
     S  NFL      T66: the champion's inputs WITHOUT head-to-head and signal 9
     AV NFL / AVC college   T68: Sam's averages (points for and against per game)
     WX NFL / WXC college   T68: the NWS kickoff wind, totals only
+    IN NFL                 T69: injuries on both sides of the ball (Out/Doubtful,
+                           weighted by snap share; starting QB out)
+    AT NFL / ATC college   T69: Sam's averages blended into the total
+    RS NFL / RSC college   T69: rest days
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
 
@@ -69,8 +73,27 @@ CHALLENGERS = {
     "WXC": {"league": "ncaaf", "what": "weather", "markets": ("total",), "files": ("weather-{s}.json.gz",),
             "seasons": (2026,), "key": "wx_wind", "withdrawable": False,
             "input": ("weather-{s}.json.gz", "possession"), "registered_from": "2026-10-19"},
+    # `[Sam, 2026-10-15]` T69 (research/fb_refit_spec.md §3c): "do all changes";
+    #    "injuries should've always been a factor on both sides of the ball".
+    "IN": {"league": "nfl", "what": "injuries, both sides", "markets": ("spread", "total", "moneyline"),
+           "files": ("injuries-{s}.json.gz",), "key": "inj", "withdrawable": False,
+           "input": ("injuries-{s}.json.gz", "possession"), "registered_from": "2026-10-19"},
+    "AT": {"league": "nfl", "what": "Sam's averages, totals", "markets": ("total",), "files": (),
+           "key": "sam_t", "withdrawable": False, "input": None, "registered_from": "2026-10-19"},
+    "ATC": {"league": "ncaaf", "what": "Sam's averages, totals", "markets": ("total",), "files": (),
+            "key": "sam_t", "withdrawable": False, "input": None, "registered_from": "2026-10-19"},
+    "RS": {"league": "nfl", "what": "rest", "markets": ("spread", "moneyline"), "files": (),
+           "key": "rest_d", "withdrawable": False, "input": None, "registered_from": "2026-10-19"},
+    "RSC": {"league": "ncaaf", "what": "rest", "markets": ("spread", "moneyline"), "files": (),
+            "key": "rest_d", "withdrawable": False, "input": None, "registered_from": "2026-10-19"},
 }
 SAM = ("AV", "AVC")
+AT = ("AT", "ATC")
+RS = ("RS", "RSC")
+REST_CAP = 14                # ⛔ §3c: days, and the rest of a team with no earlier game
+OUT_STATUSES = ("out", "doubtful")       # ⛔ §3c: Questionable is not counted
+OFF_POS = {"RB", "FB", "HB", "WR", "TE", "T", "OT", "G", "OG", "C", "OL", "LT", "RT", "LG", "RG"}
+DEF_POS = {"DE", "DT", "NT", "DL", "EDGE", "LB", "ILB", "OLB", "MLB", "CB", "S", "SAF", "FS", "SS", "DB"}
 WX = ("WX", "WXC")
 SAM_MIN_GAMES = 3            # ⛔ §3b: fewer are topped up from the earlier season
 SAM_HOME = 1.5               # ⛔ §3b: Sam's home edge, points
@@ -324,12 +347,97 @@ def wx_wind(lg, root=None, season=2026):
     return out
 
 
+def rest_days(lg, root=None):
+    """{team: sorted game days} over every stored schedule, any season (§3c)."""
+    out = {}
+    for g in schedule_by_id(lg, root).values():
+        for t in (g["home"], g["away"]):
+            out.setdefault(t, []).append(g["start"][:10])
+    return {t: sorted(set(v)) for t, v in out.items()}
+
+
+def rest_of(days, team, day):
+    prev = [d for d in days.get(team) or [] if d < day]
+    if not prev:
+        return REST_CAP
+    gap = (datetime.date.fromisoformat(day) - datetime.date.fromisoformat(prev[-1])).days
+    return min(REST_CAP, gap)
+
+
+def injury_tables(root=None):
+    """(reports, logs): reports {(season, team, week): [players]}, logs {gsis:
+    [(day, team, snap_pct, att, def_pct)] by day} — §3c's two inputs."""
+    reports, logs = {}, {}
+    for s in FM.SEASONS:
+        doc = FM.jz(os.path.join(latest("nfl", root), "injuries-%d.json.gz" % s)) or {}
+        for team, weeks in (doc.get("teams") or {}).items():
+            for wk, v in weeks.items():
+                reports[(s, team, str(wk))] = v.get("players") or []
+        P = (FM.jz(os.path.join(latest("nfl", root), "players-%d.json.gz" % s)) or {}).get("players") or {}
+        for gid, p in P.items():
+            for g in p.get("g") or []:
+                logs.setdefault(gid, []).append((g.get("d") or "", g.get("team"), g.get("snap_pct") or 0.0,
+                                                 g.get("att") or 0.0, g.get("def_pct") or 0.0))
+    for v in logs.values():
+        v.sort()
+    return reports, logs
+
+
+def team_out(reports, logs, team_qb, season, team, week, day):
+    """(qb_out, off_out, def_out) for one team and game: §3c."""
+    listed = [p for p in reports.get((season, team, str(week))) or []
+              if (p.get("report_status") or "").strip().lower() in OUT_STATUSES]
+    qb = team_qb(team, day)
+    qb_out, off, dfn = 0.0, 0.0, 0.0
+    for p in listed:
+        gid, pos = p.get("gsis_id"), (p.get("position") or "").upper()
+        if pos == "QB":
+            qb_out = 1.0 if gid and gid == qb else qb_out
+            continue
+        k = 4 if pos in DEF_POS else 2   # a defender's DEFENSIVE snap share
+        last = [x[k] for x in logs.get(gid) or [] if x[1] == team and x[0] < day][-3:]
+        w = sum(last) / len(last) if last else 0.0
+        if pos in OFF_POS:
+            off += w
+        elif pos in DEF_POS:
+            dfn += w
+    return qb_out, off, dfn
+
+
 def attach(name, lg, rows, root=None):
     """Write challenger `name`'s number into every row's `sig` (None: no number)."""
     c = CHALLENGERS[name]
     if c["key"] is None:                 # S reads only the champion's own inputs
         return rows
-    if name in SAM:
+    if name in RS:
+        days = rest_days(lg, root)
+        for r in rows:
+            r["sig"]["rest_d"] = rest_of(days, r["home"], r["day"]) - rest_of(days, r["away"], r["day"])
+        return rows
+    if name == "IN":
+        reports, logs = injury_tables(root)
+        games = {}                       # (team, day) -> [(gsis, att)]
+        for gid, v in logs.items():
+            for d, t, _sp, att, _dp in v:
+                games.setdefault((t, d), []).append((gid, att))
+        by_team = {}
+        for t, d in games:
+            by_team.setdefault(t, []).append(d)
+        for v in by_team.values():
+            v.sort()
+
+        def team_qb(team, day):
+            prev = [d for d in by_team.get(team) or [] if d < day]
+            if not prev:
+                return None
+            best = max(games[(team, prev[-1])], key=lambda x: x[1])
+            return best[0] if best[1] > 0 else None
+        for r in rows:
+            h = team_out(reports, logs, team_qb, r["season"], r["home"], r.get("week"), r["day"])
+            a = team_out(reports, logs, team_qb, r["season"], r["away"], r.get("week"), r["day"])
+            r["sig"]["inj"] = {"qb": (h[0], a[0]), "off": (h[1], a[1]), "def": (h[2], a[2])}
+        return rows
+    if name in SAM or name in AT:
         TG = team_games(lg, root)
         for r in rows:
             r["sig"]["sam_m"], r["sig"]["sam_t"] = sam_numbers(TG, r)
@@ -362,7 +470,10 @@ def extend(name, r, market, x, M=None, T=None):
     T's margin (spread (margin - line) / 10, moneyline margin / 10).
     AV, AVC (T68): one input appended, spread (sam_m - line) / 10, moneyline
     sam_m / 10, total (sam_t - T) / 10 at the total line priced. WX, WXC: totals
-    only, wind / 10. A missing number is 0."""
+    only, wind / 10. A missing number is 0.
+    T69: IN appends (away - home) qb/off/def outs on spread and moneyline, their
+    sums on totals; AT, ATC replace the first total input with ((own total +
+    sam_t) / 2 - T) / 10 (unchanged without sam_t); RS, RSC append rest / 7."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
         return x
@@ -376,6 +487,18 @@ def extend(name, r, market, x, M=None, T=None):
     if name in SAM and market == "total":
         t = r["sig"].get("sam_t")
         return list(x) + [0.0 if t is None or T is None else (t - T) / 10.0]
+    if name in AT:
+        t, ot = r["sig"].get("sam_t"), r["sig"].get("own_t")
+        if t is None or ot is None or T is None:
+            return x
+        return [((ot + t) / 2.0 - T) / 10.0] + list(x[1:])
+    if name in RS:
+        return list(x) + [0.0 if m is None else m / 7.0]
+    if name == "IN":
+        j = m or {"qb": (0.0, 0.0), "off": (0.0, 0.0), "def": (0.0, 0.0)}
+        if market == "total":
+            return list(x) + [sum(j["qb"]), sum(j["off"]), sum(j["def"])]
+        return list(x) + [j["qb"][1] - j["qb"][0], j["off"][1] - j["off"][0], j["def"][1] - j["def"][0]]
     v = (0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else \
         (0.0 if m is None else m / 10.0)
     return [v] + list(x[1:]) if name in ("T", "TS") else list(x) + [v]

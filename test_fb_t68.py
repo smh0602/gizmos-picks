@@ -60,7 +60,7 @@ planted rows. ⛔ Reads no live data; writes only to temporary trees.
 #   find:              for s in c.get("seasons", FM.SEASONS) for f in c["files"]]
 #   with:              for s in FM.SEASONS for f in c["files"]]
 #
-# @vacuity 🔴 alpha counts 4 NFL and 5 college challengers
+# @vacuity 🔴 alpha counts every registered challenger in the league (7 and 7 since T69)
 #   file: fb_challengers.py
 #   find:     "WXC": {"league": "ncaaf", "what": "weather",
 #   with:     "WXC": {"league": "nfl", "what": "weather",
@@ -239,8 +239,9 @@ def res(name):
 
 al = {lg: R.verdicts([res(n) for n, c in FC.CHALLENGERS.items() if c["league"] == lg])[0]["alpha"]
       for lg in ("nfl", "ncaaf")}
-ck(abs(al["nfl"] - 0.0025) < 1e-12 and abs(al["ncaaf"] - 0.002) < 1e-12,
-   "🔴 alpha: 0.01/4 in the NFL (E, S, AV, WX) and 0.01/5 in college (P, T, TS, AVC, WXC)", al)
+# `[Sam, 2026-10-15]` ~~0.01/4 and 0.01/5~~: T69 (§3c) adds IN, AT, RS and ATC, RSC.
+ck(abs(al["nfl"] - 0.01 / 7) < 1e-12 and abs(al["ncaaf"] - 0.01 / 7) < 1e-12,
+   "🔴 alpha: 0.01/7 in the NFL (E, S, AV, WX, IN, AT, RS) and 0.01/7 in college (P, T, TS, AVC, WXC, ATC, RSC)", al)
 eq((F.champion_inputs("nfl", {"nfl": "WX"}), F.champion_inputs("ncaaf", {"ncaaf": "WXC"}),
     F.champion_inputs("nfl", {"nfl": "AV"})),
    ([("weather-{s}.json.gz", "possession")], [("weather-{s}.json.gz", "possession")], []),
