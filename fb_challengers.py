@@ -7,6 +7,8 @@
     T  college  CFBD /talent, z-scored per season, one unpenalised term in
                 the champion's margin solve (talent-<season>, cfb.py)
     S  NFL      T66: the champion's inputs WITHOUT head-to-head and signal 9
+    AV NFL / AVC college   T68: Sam's averages (points for and against per game)
+    WX NFL / WXC college   T68: the NWS kickoff wind, totals only
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
 
@@ -21,6 +23,7 @@ all of them weekly. Stdlib only, pure-Python Gauss-Seidel like
 import collections
 import datetime
 import glob
+import bisect
 import os
 import statistics
 
@@ -50,7 +53,27 @@ CHALLENGERS = {
     "TS": {"league": "ncaaf", "what": "talent, few inputs", "markets": ("spread", "total", "moneyline"),
            "files": ("talent-{s}.json.gz",), "key": "tal_m", "withdrawable": False,
            "input": ("talent-{s}.json.gz", None), "registered_from": "2026-10-19"},
+    # `[Sam, 2026-10-15]` T68 (research/fb_refit_spec.md §3b), pre-registered by
+    #    Cowork: Sam's predicted-scores formula and the weather, "just apart of the
+    #    model". Only games after `registered_from` count. No withdrawal rule.
+    "AV": {"league": "nfl", "what": "Sam's averages", "markets": ("spread", "total", "moneyline"),
+           "files": (), "key": "sam_m", "withdrawable": False, "input": None,
+           "registered_from": "2026-10-19"},
+    "AVC": {"league": "ncaaf", "what": "Sam's averages", "markets": ("spread", "total", "moneyline"),
+            "files": (), "key": "sam_m", "withdrawable": False, "input": None,
+            "registered_from": "2026-10-19"},
+    # no 2025 forecasts exist: registration looks only at `seasons`
+    "WX": {"league": "nfl", "what": "weather", "markets": ("total",), "files": ("weather-{s}.json.gz",),
+           "seasons": (2026,), "key": "wx_wind", "withdrawable": False,
+           "input": ("weather-{s}.json.gz", "possession"), "registered_from": "2026-10-19"},
+    "WXC": {"league": "ncaaf", "what": "weather", "markets": ("total",), "files": ("weather-{s}.json.gz",),
+            "seasons": (2026,), "key": "wx_wind", "withdrawable": False,
+            "input": ("weather-{s}.json.gz", "possession"), "registered_from": "2026-10-19"},
 }
+SAM = ("AV", "AVC")
+WX = ("WX", "WXC")
+SAM_MIN_GAMES = 3            # ⛔ §3b: fewer are topped up from the earlier season
+SAM_HOME = 1.5               # ⛔ §3b: Sam's home edge, points
 # ⛔ T66 §3a, FROZEN: which of the champion's inputs S and TS keep, by index into
 #    today's lists (spread / moneyline: own, h2h, form, poss, out, neutral, dome
 #    [+ s9 NFL]; total: own_t, h2h_t, form_t, def, neutral, dome [+ s9 NFL]).
@@ -251,10 +274,70 @@ def weekly(items, weeks, solve):
     return out
 
 
+# ══════════════════════════════════════════════════════════════════════
+# AV AND WX (T68 §3b) — Sam's averages, and the kickoff wind
+# ══════════════════════════════════════════════════════════════════════
+def team_games(lg, root=None):
+    """{(season, team): [(day, points for, points against)]} over every final
+    scored game in the stored schedules, any opponent, every division, by day."""
+    out = {}
+    for g in schedule_by_id(lg, root).values():
+        if not g.get("final") or g.get("home_score") is None or g.get("away_score") is None:
+            continue
+        d, h, a = g["start"][:10], float(g["home_score"]), float(g["away_score"])
+        out.setdefault((g["season"], g["home"]), []).append((d, h, a))
+        out.setdefault((g["season"], g["away"]), []).append((d, a, h))
+    for v in out.values():
+        v.sort()
+    return out
+
+
+def sam_rates(TG, season, team, wk):
+    """(PF, PA) per game from games dated before `wk` in `season`, topped up to
+    SAM_MIN_GAMES with the team's latest games of the earlier season. None: none."""
+    cur = TG.get((season, team)) or []
+    cur = cur[:bisect.bisect_left(cur, (wk,))]
+    if len(cur) < SAM_MIN_GAMES:
+        prev = [x for x in TG.get((season - 1, team)) or [] if x[0] < wk]
+        cur = prev[max(0, len(prev) - (SAM_MIN_GAMES - len(cur))):] + cur if prev else cur
+    if not cur:
+        return None
+    return sum(x[1] for x in cur) / len(cur), sum(x[2] for x in cur) / len(cur)
+
+
+def sam_numbers(TG, r):
+    """(sam_m, sam_t) for one row, or (None, None): §3b."""
+    wk = FM.monday(r["day"])
+    h, a = sam_rates(TG, r["season"], r["home"], wk), sam_rates(TG, r["season"], r["away"], wk)
+    if h is None or a is None:
+        return None, None
+    hf = 0.0 if r["sig"]["neutral"] else 1.0
+    return ((h[0] + a[1] - a[0] - h[1]) / 2.0 + SAM_HOME * hf, (h[0] + a[1] + a[0] + h[1]) / 2.0)
+
+
+def wx_wind(lg, root=None, season=2026):
+    """{game id: wind mph} from weather-<season>'s "last" forecast; indoor -> 0."""
+    p = os.path.join(latest(lg, root), "weather-%d.json.gz" % season)
+    out = {}
+    for gid, e in ((FM.jz(p) or {}).get("games") or {}).items():
+        out[str(gid)] = 0.0 if e.get("indoor") else (e.get("last") or {}).get("wind")
+    return out
+
+
 def attach(name, lg, rows, root=None):
     """Write challenger `name`'s number into every row's `sig` (None: no number)."""
     c = CHALLENGERS[name]
     if c["key"] is None:                 # S reads only the champion's own inputs
+        return rows
+    if name in SAM:
+        TG = team_games(lg, root)
+        for r in rows:
+            r["sig"]["sam_m"], r["sig"]["sam_t"] = sam_numbers(TG, r)
+        return rows
+    if name in WX:
+        w = wx_wind(lg, root)
+        for r in rows:
+            r["sig"]["wx_wind"] = w.get(str(r["id"]))
         return rows
     weeks = {FM.monday(r["day"]) for r in rows}
     if name in ("T", "TS"):
@@ -271,12 +354,15 @@ def attach(name, lg, rows, root=None):
     return rows
 
 
-def extend(name, r, market, x, M=None):
+def extend(name, r, market, x, M=None, T=None):
     """The inputs with challenger `name` applied. E, P: appended after the
     champion's (spread (margin - line) / 10, moneyline margin / 10). T: its own
     margin replaces the champion's in the first input. Totals unchanged.
     S, TS (T66): only the KEEP inputs; TS's first spread / moneyline input is
-    T's margin (spread (margin - line) / 10, moneyline margin / 10)."""
+    T's margin (spread (margin - line) / 10, moneyline margin / 10).
+    AV, AVC (T68): one input appended, spread (sam_m - line) / 10, moneyline
+    sam_m / 10, total (sam_t - T) / 10 at the total line priced. WX, WXC: totals
+    only, wind / 10. A missing number is 0."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
         return x
@@ -286,6 +372,10 @@ def extend(name, r, market, x, M=None):
             return x
     m = r["sig"].get(c["key"])
     M = r["M"] if M is None else M
+    T = r["T"] if T is None else T
+    if name in SAM and market == "total":
+        t = r["sig"].get("sam_t")
+        return list(x) + [0.0 if t is None or T is None else (t - T) / 10.0]
     v = (0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else \
         (0.0 if m is None else m / 10.0)
     return [v] + list(x[1:]) if name in ("T", "TS") else list(x) + [v]

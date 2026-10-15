@@ -70,7 +70,7 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 a named champion adds its input
 #   file: fb_model.py
-#   find:         x = fb_challengers.extend(CHAMPION[r["lg"]], r, market, x, M)
+#   find:         x = fb_challengers.extend(CHAMPION[r["lg"]], r, market, x, M, T)
 #   with:         pass
 #
 # @vacuity 🔴 ...and "+game-<name>" to the card's method
@@ -498,8 +498,10 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
    {"S": ("nfl", ("spread", "total", "moneyline"), False),
     "TS": ("ncaaf", ("spread", "total", "moneyline"), False)},
    "🔴 S is NFL, TS college, both on all three markets, neither withdrawable")
-eq({lg: sum(1 for c in FC.CHALLENGERS.values() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": 2, "ncaaf": 3}, "🔴 so alpha divides by 2 in the NFL (E, S) and 3 in college (P, T, TS)")
+# `[Sam, 2026-10-15]` ~~2 and 3~~: T68 (§3b) adds AV and WX in each league.
+eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
+   {"nfl": ["AV", "E", "S", "WX"], "ncaaf": ["AVC", "P", "T", "TS", "WXC"]},
+   "🔴 so alpha divides by 4 in the NFL (E, S, AV, WX) and 5 in college (P, T, TS, AVC, WXC)")
 eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
     R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
    ["2026-10-19", "2026-10-19", "2026-10-26", None],

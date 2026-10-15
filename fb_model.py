@@ -474,7 +474,7 @@ def features(r, market, M=None, T=None):
     x = base_features(r, market, M, T)
     if CHAMPION.get(r.get("lg")):
         import fb_challengers
-        x = fb_challengers.extend(CHAMPION[r["lg"]], r, market, x, M)
+        x = fb_challengers.extend(CHAMPION[r["lg"]], r, market, x, M, T)
     return x
 
 

@@ -86,7 +86,7 @@ class Fits:
 
 
 def challenger_feat(name):
-    return lambda r, mk, M=None: FC.extend(name, r, mk, FM.features(r, mk, M=M), M)
+    return lambda r, mk, M=None, T=None: FC.extend(name, r, mk, FM.features(r, mk, M=M, T=T), M, T)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -115,7 +115,7 @@ def registration(name, root=ROOT, added=None):
     c = FC.CHALLENGERS[name]
     start = c.get("registered_from", REGISTERED_FROM)
     paths = [os.path.join(FC.latest(c["league"], root), f.format(s=s))
-             for s in FM.SEASONS for f in c["files"]]
+             for s in c.get("seasons", FM.SEASONS) for f in c["files"]]
     if not paths:
         return start
     day = (added or {}).get(name) if added and name in added else first_added(paths, root)
