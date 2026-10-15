@@ -59,8 +59,8 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #
 # @vacuity 🔴 a liked prop is priced under +150
 #   file: card_fb.py
-#   find:     if (r.get("price") or 0) >= LIKED_PROP_MAX_PRICE:
-#   with:     if (r.get("price") or 0) > LIKED_PROP_MAX_PRICE:
+#   find:     if (r.get("price") or 0) >= LIKED_PROP_MAX_PRICE or not role_ok(r):
+#   with:     if (r.get("price") or 0) > LIKED_PROP_MAX_PRICE or not role_ok(r):
 #
 # @vacuity 🔴 a liked prop's side agrees with its printed projection
 #   file: card_fb.py
@@ -81,6 +81,31 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #   file: card_fb.py
 #   find:         "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
 #   with:         "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player"))),
+#
+# @vacuity 🔴 a low-role player's over is never liked (snap share)
+#   file: card_fb.py
+#   find:     if role["snap"] < ROLE_MIN_SNAP:
+#   with:     if False:
+#
+# @vacuity 🔴 a receiving over needs a real target share
+#   file: card_fb.py
+#   find:     if r.get("market") in RECEIVING and role["tgt_share"] < ROLE_MIN_TGT_SHARE:
+#   with:     if False:
+#
+# @vacuity 🔴 the role check never blocks an under
+#   file: card_fb.py
+#   find:     if not role or r.get("side") not in ("over", "yes"):
+#   with:     if not role:
+#
+# @vacuity 🔴 the card stores each NFL row's role
+#   file: card_fb.py
+#   find:                     row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
+#   with:                     row["role"] = None and ((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
+#
+# @vacuity 🔴 the role is this season's, not the rated season's
+#   file: card_fb.py
+#   find:                     row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
+#   with:                     row["role"] = role_of((None if CUR_P and CUR_SEASON != season
 #
 # @vacuity 🔴 the record grades what the card shows
 #   file: record_fb.py
@@ -235,6 +260,30 @@ eq(sorted(r["player"] for r in CF.best_liked(P2, lambda r: r["player"], proj=PRO
    "with PROJ below it are not; no projection, or no line, keeps today's rule")
 eq(sorted(r["player"] for r in CF.best_liked(P2, lambda r: r["player"])), sorted(r["player"] for r in P2),
    "   ...and without `proj` (game lines) nothing extra is dropped")
+# `[Sam, 2026-10-15]` "we can't be betting on guys like tory horton ... he's a wr4".
+R3 = [dict(prop("WR4", "player_reception_yds", "over", 3.5, 56, 3.4), price=-111,
+           role={"snap": 0.195, "tgt_share": 0.058, "car": 0.0}),
+      dict(prop("Low Target RB", "player_receptions", "over", 1.5, 55, 1.5), price=-115,
+           role={"snap": 0.44, "tgt_share": 0.069, "car": 15.3}),
+      dict(prop("Lead RB", "player_rush_yds", "under", 66.5, 54, 0.9), price=-113,
+           role={"snap": 0.52, "tgt_share": 0.09, "car": 16.7}),
+      dict(prop("QB Under", "player_rush_yds", "under", 13.5, 55, 2.0), price=-115,
+           role={"snap": 0.99, "tgt_share": 0.0, "car": 3.3}),
+      dict(prop("WR1", "player_reception_yds", "over", 92.5, 55, 2.0), price=-113,
+           role={"snap": 0.86, "tgt_share": 0.30, "car": 0.3}),
+      dict(prop("College", "player_reception_yds", "over", 22.5, 55, 5.0), price=-118),
+      dict(prop("Part-time RB", "player_rush_yds", "over", 20.5, 55, 2.0), price=-110,
+           role={"snap": 0.30, "tgt_share": 0.05, "car": 10.0})]
+eq(sorted(r["player"] for r in CF.best_liked(R3, lambda r: r["player"], proj={})),
+   ["College", "Lead RB", "QB Under", "WR1"],
+   "🔴 role: a WR4's over (19% of snaps), a part-time RB's rushing over (30% of snaps, 10 carries) and an "
+   "RB's receptions over (7% of targets) are never liked; an "
+   "under is never blocked by a small role; a row with no role (college) keeps today's rule")
+src = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
+ck('row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season' in src and CF.role_of({"g": [{"d": "2026-10-0%d" % i, "snap_pct": 0.5, "tgt_share": 0.2,
+                                                                 "car": 3} for i in range(1, 6)]})
+   == {"snap": 0.5, "tgt_share": 0.2, "car": 3.0},
+   "🔴 the card stores each NFL row's role: means over his last 3 games")
 ck('"liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),'
    in open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read(),
    "🔴 the card's liked props are checked against the card's own projections map")
