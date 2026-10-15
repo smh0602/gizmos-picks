@@ -1036,7 +1036,7 @@ def _football_contract(league, data, picks, now):
     for fname, due in champion_inputs(league):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{fname.format(s=season)}"),
-                     T[due] if due else [], False, "Game model champion's input"))
+                     T[due] if due else [], False, CHAMPION_INPUT))
     # `[Sam, 2026-10-14]` NEW DATA, STORED ONLY (see STORED_ONLY): the daily
     #    NWS forecasts and, by league, injuries / advanced stats, venues and CFBD
     #    weather. History seasons and once-a-season files are late only when
@@ -1326,7 +1326,11 @@ STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather)-\d{4}\.js
 
 
 def stored_only(r):
-    return bool(STORED_ONLY.search(r.get("path") or ""))
+    """⛔ Not once a CHAMPION reads it (T68's WX): then it is an input like E's."""
+    return bool(STORED_ONLY.search(r.get("path") or "")) and r.get("why") != CHAMPION_INPUT
+
+
+CHAMPION_INPUT = "Game model champion's input"
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.

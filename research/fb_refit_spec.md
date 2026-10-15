@@ -107,6 +107,44 @@ for information only.
   that league: NFL E and S = 2, college P, T and TS = 3), the WINS branch and
   Sam's merge. ⛔ No withdrawal rule for S or TS.
 
+## 3b. T68 — Sam's averages and weather (frozen)
+
+Sam, 2026-10-15, about his predicted-scores formula (a team's points per game
+averaged with its opponent's points allowed per game, plus weather, plus about
+1.5 points for the home team): *"should be just apart of the model and system we
+have now, learn to implement this as well"*. Pre-registered by Cowork 2026-10-15
+(claude/pro-plan-readiness-2026-10-06.md, T68 and T68b). On its own the formula
+is less accurate than the model (T67) and as one more input it changes almost
+nothing on past games (T68 RESULTS), so it joins as frozen challengers and the
+weekly fit learns its weight. Only games after registration count (§2).
+
+- **AV (NFL) and AVC (college):** the champion's inputs exactly as they are,
+  PLUS one appended input: spread (sam_m - line) / 10, moneyline sam_m / 10,
+  total (sam_t - line) / 10, each at the line being priced; no sam number -> 0.
+  All three markets. They read only the stored schedules (no file of their own).
+  - Per row, point in time: only games dated (start[:10]) before the row's
+    Monday count. For each team, points scored (PF) and allowed (PA) per game
+    over every final scored game in the stored schedules of the row's season,
+    any opponent, every division stored. Fewer than 3 such games: topped up to 3
+    with the team's latest games of the earlier season. No earlier game at all:
+    None.
+  - h = 0 at a neutral site, else 1.
+    sam_m = (PF_home + PA_away - PF_away - PA_home) / 2 + 1.5 x h;
+    sam_t = (PF_home + PA_away + PF_away + PA_home) / 2.
+- **WX (NFL) and WXC (college):** TOTALS ONLY: the champion's total inputs PLUS
+  wind / 10, wind = the "wind" (mph) of the "last" forecast stored for that game
+  id in data/<lg>/latest/weather-2026.json.gz (fb_weather.py). An indoor entry,
+  no entry, no "last" or no wind -> 0. Spread and moneyline unchanged. They read
+  weather-2026 only (no 2025 forecasts exist), so registration looks for that
+  file alone.
+- **Registration:** the first Monday after the PR that adds them is last
+  committed (2026-10-19 if before then); for WX and WXC also no earlier than the
+  first Monday weather-2026 exists on main (§2). ⛔ No withdrawal rule.
+- **Counts and bar:** NFL E, S, AV, WX = 4 -> p < 0.01 / 4 = 0.0025; college P,
+  T, TS, AVC, WXC = 5 -> p < 0.01 / 5 = 0.002 (fewer if any is withdrawn, §3).
+  Everything else as §2 and §3: at least 300 scored predictions, the WINS branch
+  and Sam's merge.
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
@@ -132,3 +170,4 @@ for information only.
 - 2026-10-14 — §3a T66 (S, TS) added from Cowork's pre-registration; §2 and §3
   unchanged (test_prereg_gate.py hashes them on their own too).
 - 2026-10-14 — Status line reworded (~~"APPROVED BY SAM 2026-10-12 — ..."~~): Sam approved the plan, not each definition; the definitions are Cowork's, pre-registered and disclosed for him to overrule. Sections 2, 3 and 3a and their hashes are unchanged.
+- 2026-10-15 — §3b T68 (AV, AVC, WX, WXC) added from Cowork's pre-registration of Sam's averages and weather; §2, §3 and §3a unchanged (test_prereg_gate.py pins everything before §3a and before §3b on its own).
