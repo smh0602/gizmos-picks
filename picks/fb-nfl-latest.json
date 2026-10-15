@@ -1,7 +1,7 @@
 {
  "date": "2026-10-15",
  "league": "nfl",
- "generated_at": "2026-10-15T19:30:51Z",
+ "generated_at": "2026-10-15T21:43:56Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-10-15T19:16:27Z",
@@ -40,7 +40,7 @@
    "why": [
     "The game model gives Denver Broncos 60% to cover +2.5; the price -105 needs 51.2%."
    ],
-   "priced_at": "2026-10-15T18:02:00Z",
+   "priced_at": "2026-10-15T21:29:05Z",
    "rank": 1
   },
   {
@@ -51,24 +51,24 @@
    "market": "alternate_spread",
    "market_label": "Alternate spread",
    "side": "home",
-   "line": -23.5,
+   "line": 1.5,
    "game": "Seattle Seahawks @ Denver Broncos",
    "game_id": "855f58fad5f0f14b239f4f63df27998b",
    "away": "Seattle Seahawks",
    "home": "Denver Broncos",
    "commence": "2026-10-16T00:15:00Z",
-   "book": "fanduel",
-   "price": 2000,
+   "book": "hardrockbet",
+   "price": 105,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 54,
-   "break_even": 4.8,
-   "edge": 49.2,
+   "confidence": 57,
+   "break_even": 48.8,
+   "edge": 8.2,
    "why": [
-    "The game model gives Denver Broncos 54% to cover -23.5; the best price, +2000 at FanDuel, needs 4.8%."
+    "The game model gives Denver Broncos 57% to cover +1.5; the best price, +105 at Hard Rock, needs 48.8%."
    ],
-   "priced_at": "2026-10-15T18:02:00Z",
+   "priced_at": "2026-10-15T21:29:05Z",
    "main_line": 2.5,
    "sched_id": "2026_06_SEA_DEN",
    "rank": 2
@@ -87,7 +87,7 @@
    "away": "Seattle Seahawks",
    "home": "Denver Broncos",
    "commence": "2026-10-16T00:15:00Z",
-   "book": "draftkings",
+   "book": "fanduel",
    "price": -105,
    "link": null,
    "clears_price_floor": true,
@@ -98,8 +98,38 @@
    "why": [
     "The game model gives Under 53% at 40.5; the price -105 needs 51.2%."
    ],
-   "priced_at": "2026-10-15T18:02:00Z",
+   "priced_at": "2026-10-15T21:29:05Z",
    "rank": 3
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Denver Broncos",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": 2.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 51.2,
+   "edge": 9.0,
+   "why": [
+    "The game model gives Denver Broncos 60% to cover +2.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-15T21:29:05Z",
+   "rank": 1
   }
  ],
  "game_lines_meta": {
@@ -110,8 +140,8 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-15T19:30:42Z",
-  "ladder_built_at": "2026-10-15T19:30:43Z",
+  "model_built_at": "2026-10-15T21:43:49Z",
+  "ladder_built_at": "2026-10-15T21:43:49Z",
   "alt_spreads": 1
  },
  "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-15 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
@@ -206,7 +236,7 @@
    {
     "legs": [
      "Tory Horton o2.5 rec yds",
-     "Seattle Seahawks -2.5 spread"
+     "Under 40.5 total"
     ],
     "game": "Seattle Seahawks @ Denver Broncos",
     "game_id": "855f58fad5f0f14b239f4f63df27998b",
@@ -214,13 +244,13 @@
     "book": "hardrockbet",
     "prices": [
      -120,
-     -115
+     -110
     ],
     "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_price": -105,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.428,
+    "multiplier": 3.5,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -237,7 +267,7 @@
    {
     "legs": [
      "Tory Horton o0.5 rec",
-     "Seattle Seahawks -2.5 spread"
+     "Under 40.5 total"
     ],
     "game": "Seattle Seahawks @ Denver Broncos",
     "game_id": "855f58fad5f0f14b239f4f63df27998b",
@@ -245,13 +275,13 @@
     "book": "hardrockbet",
     "prices": [
      -120,
-     -115
+     -110
     ],
     "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_price": -105,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.428,
+    "multiplier": 3.5,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -271,7 +301,7 @@
     "legs": [
      "Tory Horton o2.5 rec yds",
      "J.K. Dobbins o1.5 rec yds",
-     "Seattle Seahawks -2.5 spread"
+     "Under 40.5 total"
     ],
     "game": "Seattle Seahawks @ Denver Broncos",
     "game_id": "855f58fad5f0f14b239f4f63df27998b",
@@ -280,13 +310,13 @@
     "prices": [
      -120,
      -115,
-     -115
+     -110
     ],
     "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_price": -105,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.408,
+    "multiplier": 6.543,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -305,7 +335,7 @@
     "legs": [
      "Tory Horton o0.5 rec",
      "J.K. Dobbins o1.5 rec yds",
-     "Seattle Seahawks -2.5 spread"
+     "Under 40.5 total"
     ],
     "game": "Seattle Seahawks @ Denver Broncos",
     "game_id": "855f58fad5f0f14b239f4f63df27998b",
@@ -314,13 +344,13 @@
     "prices": [
      -120,
      -115,
-     -115
+     -110
     ],
     "line_best_book": "fanduel",
-    "line_best_price": -110,
+    "line_best_price": -105,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.408,
+    "multiplier": 6.543,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -2081,6 +2111,111 @@
    "edge": -1.1,
    "rank": 25,
    "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Tory Horton",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 3.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378203521%232317849411_13L88808Q11853835131Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 56,
+   "model_p": 55.9,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.6,
+   "edge": 3.4,
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "J.K. Dobbins",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 1.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/653986793556935089",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "5 of 7",
+   "record": "5 of 7",
+   "rate": 87,
+   "break_even": 53.5,
+   "edge": 1.5,
+   "season_detail": {
+    "h25": 4,
+    "n25": 6,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.936,
+    "weighted_n": 5.8
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.5,
+   "projection": 4.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 4.5 rec yds a game.",
+   "why": [
+    "<b>J.K. Dobbins</b> went over 1.5 rec yds in <b>1 of 1 games</b> in 2026 and 4 of 6 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 54.7,
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Emanuel Wilson",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 66.5,
+   "game": "Seattle Seahawks @ Denver Broncos",
+   "game_id": "855f58fad5f0f14b239f4f63df27998b",
+   "away": "Seattle Seahawks",
+   "home": "Denver Broncos",
+   "commence": "2026-10-16T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615642719&selectionId=60677663",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 54,
+   "model_p": 53.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": 0.9,
+   "rank": 3
   }
  ],
  "n_longshots_excluded": 25,
