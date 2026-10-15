@@ -1,16 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-14T23:05:20Z",
+ "checked_at": "2026-10-15T00:08:47Z",
  "et_date": "2026-10-14",
  "healthy": false,
  "broken": 0,
- "degraded": 8,
+ "degraded": 9,
  "findings": [
   {
    "key": "fresh:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf tabs are showing data older than promised (cfb-probe)",
    "why": "the freshness contract says 4 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
+  {
+   "key": "fresh:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl tabs are showing data older than promised (nfl-logs)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   },
   {
@@ -71,7 +78,7 @@
   "pulled_at": "2026-10-14T22:31:43Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.6,
+  "reading_age_hours": 1.6,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-14T22:31:43Z",
   "source": "data/ncaaf/2026-10-14/props-player/2231.json.gz",
