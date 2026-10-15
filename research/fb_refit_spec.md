@@ -157,9 +157,11 @@ count (§2).
 - **IN (NFL only), injuries on both sides of the ball.** For each team and game
   (season, week): the players its own injury report for that week lists **Out or
   Doubtful** (data/nfl/latest/injuries-<season>.json.gz; Questionable is not
-  counted). Each player's weight = his mean snap share (snap_pct) over his last 3
-  games logged for that team (data/nfl/latest/players-<season>.json.gz) dated
-  before the game day; no such game -> 0.
+  counted). Each player's weight = his mean snap share over his last 3 games
+  logged for that team (data/nfl/latest/players-<season>.json.gz) dated before
+  the game day: his offensive share (snap_pct) for an offensive player, his
+  defensive share (def_pct, nflverse's defense_pct) for a defensive player; no
+  such game -> 0.
   - qb_out = 1 when the team's starting QB in its most recent game before this
     one (most pass attempts) is listed Out or Doubtful, else 0.
   - off_out = the summed weights of listed offensive players other than QBs
@@ -214,3 +216,4 @@ count (§2).
 - 2026-10-14 — Status line reworded (~~"APPROVED BY SAM 2026-10-12 — ..."~~): Sam approved the plan, not each definition; the definitions are Cowork's, pre-registered and disclosed for him to overrule. Sections 2, 3 and 3a and their hashes are unchanged.
 - 2026-10-15 — §3b T68 (AV, AVC, WX, WXC) added from Cowork's pre-registration of Sam's averages and weather; §2, §3 and §3a unchanged (test_prereg_gate.py pins everything before §3a and before §3b on its own).
 - 2026-10-15 — §3c T69 (IN, AT, ATC, RS, RSC) added at Sam's instruction ("do all changes"), defined before any of their results; §2 to §3b unchanged and pinned.
+- 2026-10-15 — §3c corrected BEFORE any result: the stored logs held only offensive snap shares, so every defender weighed 0; defenders are weighed by their defensive share (def_pct, now stored by nfl.py; 2025 rebuilt once by the daily run).

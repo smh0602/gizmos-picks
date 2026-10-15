@@ -153,7 +153,8 @@ FROZEN = {
     # ~~"85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de"~~
     # [Sam, 2026-10-15] T69 (IN, AT, ATC, RS, RSC) added as section 3c at Sam's
     # instruction, defined before any result; everything before it pinned below.
-    "fb_refit_spec.md": "5339c1da77967c61b08efacda26d690a44caa73c62a64e2f75050d8a04915cb3",
+    # ~~"5339c1da77967c61b08efacda26d690a44caa73c62a64e2f75050d8a04915cb3"~~ (§3c corrected before any result: defensive snap share)
+    "fb_refit_spec.md": "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
