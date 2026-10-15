@@ -2150,7 +2150,10 @@ def main():
                     if conf is None:
                         row["why"] = []
                 if LEAGUE == "nfl" and plog is not None:
-                    row["role"] = role_of(plog)
+                    # ⛔ THIS season's role: `P` is the rated season, which can be last
+                    #    year's (caught 10-15: Wilson read 36% snaps, 7 carries).
+                    row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
+                                           else None) or plog)
                 rows.append(row)
 
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.
