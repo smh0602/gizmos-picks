@@ -5253,7 +5253,7 @@ def run_mode(mode):
                 _nfl.store_injuries(base, sorted(set(_fr7.FOOTBALL_HISTORY)
                                                  | {_fresh.current_football_season()}), log)
                 import fb_history as _fh     # T70: 2018-2024, once while missing (free)
-                _fh.store_nfl(log)
+                _fh.store_nfl(log, root=".")  # ⛔ this run's own tree (a test runs it from a copy)
             import fb_weather as _fw
             _fw.run("nfl", log=log, base=base)
 

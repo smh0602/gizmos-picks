@@ -3286,7 +3286,7 @@ def probe(log=log):
     # 🔴 `[Sam, 2026-10-15]` T70: 2023-2024 schedules and lines, once, priced.
     try:
         import fb_history as _fh
-        _fh.store_cfb(log)
+        _fh.store_cfb(log, root=".")   # ⛔ this run's own tree, like OUT
     except Exception as _he:
         log(f"    history FAILED: {type(_he).__name__}: {_he}")
     # 🔴 SIGNAL 9: returning production + the portal, once per season.

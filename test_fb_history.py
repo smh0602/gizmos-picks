@@ -43,6 +43,11 @@ challengers. `[Sam, 2026-10-15]` "do all changes". Planted trees and fake source
 #   find:     extra = FC.history_rows(lg, root) if FC.CHALLENGERS[name].get("history") else []
 #   with:     extra = []
 #
+# @vacuity 🔴 the daily runs write history into their own tree, never the module's folder
+#   file: collect.py
+#   find:                 _fh.store_nfl(log, root=".")  # ⛔ this run's own tree (a test runs it from a copy)
+#   with:                 _fh.store_nfl(log)  # ⛔ this run's own tree (a test runs it from a copy)
+#
 # @vacuity 🔴 a history file is stored-only for freshness
 #   file: freshness.py
 #   find:                          r"|/history/(schedule|lines)-\d{4}\.json\.gz$")
@@ -170,6 +175,11 @@ put(CC, "data/ncaaf/history/schedule-2024.json.gz", {"season": 2024, "games": [
     g("f1", "2024-09-07", "A", "B", 30, 20, home_class="fbs", away_class="fbs"),
     g("f2", "2024-09-07", "C", "D", 50, 0, home_class="fbs", away_class="fcs")]})
 eq([r["id"] for r in FC.history_rows("ncaaf", CC)], ["hist:f1"], "🔴 college history rows are FBS vs FBS only")
+# `[2026-10-15]` caught by the sweep's leak check: a test running `collect.py nfl-logs` from a
+#    copy wrote data/nfl/history/ into the repo, because the writer defaulted to its own folder.
+ck('_fh.store_nfl(log, root=".")' in open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
+   and '_fh.store_cfb(log, root=".")' in open(os.path.join(ROOT, "cfb.py"), encoding="utf-8").read(),
+   "🔴 the daily runs write the history into their own tree (the collector's working directory)")
 ck('if fb_challengers.CHALLENGERS[CHAMPION[lg]].get("history"):' in open(os.path.join(ROOT, "fb_model.py"),
                                                                          encoding="utf-8").read(),
    "   a champion H trains on the history rows too (fb_model.build_rows)")
