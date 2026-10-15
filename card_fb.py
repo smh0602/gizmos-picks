@@ -1675,6 +1675,39 @@ def _key(row):
 
 LIKED_MIN_CONF = 50
 LIKED_PROP_MAX_PRICE = 150       # `[Sam, 2026-10-15]` a liked prop is priced under +150
+# `[Sam, 2026-10-15]` "we can't be betting on guys like tory horton because he's had 2
+#    good games ... he's a wr4 on the depth chart". NFL props: the player's role over
+#    his last 3 games (snap share; target share for receiving props; carries a game for
+#    rushing props). College logs carry no snaps or targets, so no role check there.
+ROLE_MIN_SNAP = 0.40
+ROLE_MIN_TGT_SHARE = 0.12
+ROLE_MIN_CARRIES = 8.0
+RECEIVING = ("player_receptions", "player_reception_yds")
+RUSHING = ("player_rush_yds", "player_rush_attempts")
+
+
+def role_of(plog):
+    """{snap, tgt_share, car}: means over his last 3 logged games, or None."""
+    g = sorted((plog or {}).get("g") or [], key=lambda x: x.get("d") or "")[-3:]
+    if not g:
+        return None
+    m = lambda k: sum(float(x.get(k) or 0.0) for x in g) / len(g)  # noqa: E731
+    return {"snap": round(m("snap_pct"), 3), "tgt_share": round(m("tgt_share"), 3), "car": round(m("car"), 1)}
+
+
+def role_ok(r):
+    """The NFL role check, for an OVER (or anytime TD) only: a small role argues
+    FOR an under. A row with no role (college, unmatched) passes."""
+    role = r.get("role")
+    if not role or r.get("side") not in ("over", "yes"):
+        return True
+    if role["snap"] < ROLE_MIN_SNAP:
+        return False
+    if r.get("market") in RECEIVING and role["tgt_share"] < ROLE_MIN_TGT_SHARE:
+        return False
+    if r.get("market") in RUSHING and role["car"] < ROLE_MIN_CARRIES:
+        return False
+    return True
 
 
 def _prop_consistent(r, proj):
@@ -1682,7 +1715,7 @@ def _prop_consistent(r, proj):
     projection the card prints for the row (over: PROJ > line; under: PROJ <
     line; equal is no lean). No projection or no line: no such check. ⛔ A
     consistency rule for what the board shows, never a model input."""
-    if (r.get("price") or 0) >= LIKED_PROP_MAX_PRICE:
+    if (r.get("price") or 0) >= LIKED_PROP_MAX_PRICE or not role_ok(r):
         return False
     v = (proj.get("%s|%s|%s|%s" % (r.get("player"), r.get("market"), r.get("side"), r.get("line"))) or {}).get("v")
     if v is None or r.get("line") is None or r.get("side") not in ("over", "under"):
@@ -2116,6 +2149,8 @@ def main():
                                break_even=round(_be, 1), edge=round(int(round(_mp)) - _be, 1))
                     if conf is None:
                         row["why"] = []
+                if LEAGUE == "nfl" and plog is not None:
+                    row["role"] = role_of(plog)
                 rows.append(row)
 
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.
