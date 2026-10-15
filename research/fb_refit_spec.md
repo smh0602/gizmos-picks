@@ -145,6 +145,48 @@ weekly fit learns its weight. Only games after registration count (§2).
   Everything else as §2 and §3: at least 300 scored predictions, the WINS branch
   and Sam's merge.
 
+## 3c. T69 — injuries on both sides, Sam's averages for totals, rest (frozen)
+
+Sam, 2026-10-15, after the measured breakdown of his averages (NFL moneyline
+worse, NFL totals slightly better, college margins worse; the NFL game model
+trains on about 361 games): *"do all changes"*, and on injuries: *"injuries
+should've always been a factor on both sides of the ball"*. Defined here before
+any of these challengers' results were computed. Only games after registration
+count (§2).
+
+- **IN (NFL only), injuries on both sides of the ball.** For each team and game
+  (season, week): the players its own injury report for that week lists **Out or
+  Doubtful** (data/nfl/latest/injuries-<season>.json.gz; Questionable is not
+  counted). Each player's weight = his mean snap share (snap_pct) over his last 3
+  games logged for that team (data/nfl/latest/players-<season>.json.gz) dated
+  before the game day; no such game -> 0.
+  - qb_out = 1 when the team's starting QB in its most recent game before this
+    one (most pass attempts) is listed Out or Doubtful, else 0.
+  - off_out = the summed weights of listed offensive players other than QBs
+    (RB, FB, WR, TE, T, G, C and their variants).
+  - def_out = the summed weights of listed defensive players (DE, DT, NT, LB and
+    variants, CB, S and variants, DB).
+  - Inputs appended after the champion's: spread and moneyline (qb_out_away -
+    qb_out_home), (off_out_away - off_out_home), (def_out_away - def_out_home);
+    total (qb_out_home + qb_out_away), (off_out_home + off_out_away),
+    (def_out_home + def_out_away). No report for a team-week -> 0 for that team.
+  - ⚠️ College: no injury report exists in any data this repo stores (CFBD
+    publishes none), so there is no college injury challenger.
+- **AT (NFL) and ATC (college), Sam's averages for totals.** TOTALS ONLY: the
+  champion's first total input becomes ((own total + sam_t) / 2 - line) / 10,
+  sam_t as §3b defines it; when sam_t is None the champion's inputs are
+  unchanged. Spread and moneyline unchanged.
+- **RS (NFL) and RSC (college), rest.** Each team's rest = days from its
+  previous stored game (any season, start[:10]) to this game's day, capped at
+  14; no previous game -> 14. Spread and moneyline: one input appended,
+  (rest_home - rest_away) / 7. Totals unchanged.
+- **Registration:** the first Monday after the PR that adds them is last
+  committed (2026-10-19 if before then); for IN also no earlier than the first
+  Monday its injuries files exist on main (§2). ⛔ No withdrawal rule.
+- **Counts and bar:** NFL E, S, AV, WX, IN, AT, RS = 7 -> p < 0.01 / 7; college
+  P, T, TS, AVC, WXC, ATC, RSC = 7 -> p < 0.01 / 7 (fewer if any is withdrawn,
+  §3). Everything else as §2 and §3.
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
@@ -171,3 +213,4 @@ weekly fit learns its weight. Only games after registration count (§2).
   unchanged (test_prereg_gate.py hashes them on their own too).
 - 2026-10-14 — Status line reworded (~~"APPROVED BY SAM 2026-10-12 — ..."~~): Sam approved the plan, not each definition; the definitions are Cowork's, pre-registered and disclosed for him to overrule. Sections 2, 3 and 3a and their hashes are unchanged.
 - 2026-10-15 — §3b T68 (AV, AVC, WX, WXC) added from Cowork's pre-registration of Sam's averages and weather; §2, §3 and §3a unchanged (test_prereg_gate.py pins everything before §3a and before §3b on its own).
+- 2026-10-15 — §3c T69 (IN, AT, ATC, RS, RSC) added at Sam's instruction ("do all changes"), defined before any of their results; §2 to §3b unchanged and pinned.
