@@ -1,10 +1,10 @@
 {
  "date": "2026-10-15",
  "league": "ncaaf",
- "generated_at": "2026-10-15T18:01:46Z",
+ "generated_at": "2026-10-15T19:19:56Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-15T17:26:59Z",
+ "odds_pulled_at": "2026-10-15T19:19:47Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -108,6 +108,36 @@
    ],
    "priced_at": "2026-10-15T15:38:37Z",
    "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "Georgia Southern Eagles",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "away",
+   "line": -22.5,
+   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
+   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
+   "away": "Georgia Southern Eagles",
+   "home": "Old Dominion Monarchs",
+   "commence": "2026-10-15T23:30:00Z",
+   "book": "draftkings",
+   "price": 860,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 50,
+   "break_even": 10.4,
+   "edge": 39.6,
+   "why": [
+    "The game model gives Georgia Southern Eagles 50% to cover -22.5; the best price, +860 at DraftKings, needs 10.4%."
+   ],
+   "priced_at": "2026-10-15T15:38:37Z",
+   "main_line": -3.5,
+   "sched_id": "401869950",
+   "rank": 4
   }
  ],
  "game_lines_meta": {
@@ -119,56 +149,56 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-15T18:01:36Z",
-  "ladder_built_at": "2026-10-15T18:01:37Z",
-  "alt_spreads": 0
+  "ladder_built_at": "2026-10-15T19:19:49Z",
+  "alt_spreads": 1
  },
- "game_lines_rule": "The game model's own 3 pick(s) for 2026-10-15 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 3 pick(s) for 2026-10-15 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Emory Williams",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 191.5,
+   "player": "Ryder Burton",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 5.5,
    "game": "East Carolina Pirates @ UAB Blazers",
    "game_id": "4bf071db691beaf54158c801a6cf093b",
    "away": "East Carolina Pirates",
    "home": "UAB Blazers",
    "commence": "2026-10-15T23:30:00Z",
    "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2671745185997783441",
-   "n_books": 2,
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6640952932869210526",
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "7 of 8",
-   "record": "7 of 8",
-   "rate": 67,
-   "break_even": 52.4,
-   "edge": 4.6,
+   "confidence": 58,
+   "raw": "4 of 14",
+   "record": "4 of 14",
+   "rate": 51,
+   "break_even": 54.5,
+   "edge": 3.5,
    "season_detail": {
-    "h25": 4,
-    "n25": 4,
+    "h25": 1,
+    "n25": 8,
     "h26": 3,
-    "n26": 4,
-    "w25": 0.5,
-    "p0": 0.59,
-    "weighted_n": 6.0
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.619,
+    "weighted_n": 9.2
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 39.0,
-   "projection": 39.0,
-   "projection_unit": "pass yds",
+   "own_mean": -0.5,
+   "projection": -0.5,
+   "projection_unit": "rush yds",
    "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 8 games this record is built from \u2014 39.0 pass yds a game.",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 -0.5 rush yds a game.",
    "why": [
-    "<b>Emory Williams</b> went under 191.5 pass yds in <b>3 of 4 games</b> in 2026 and 4 of 4 in 2025, in the games he appears in."
+    "<b>Ryder Burton</b> went over 5.5 rush yds in <b>3 of 6 games</b> in 2026 and 1 of 8 in 2025, in the games he appears in."
    ],
-   "model_p": 56.7,
+   "model_p": 57.6,
    "rank": 1
   },
   {
@@ -188,7 +218,7 @@
    "book": "fanduel",
    "price": -114,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616463521&selectionId=103916350",
-   "n_books": 1,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -197,7 +227,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 2.7,
-   "rank": 2
+   "rank": 3
   },
   {
    "kind": "fb",
@@ -249,50 +279,146 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 11,
-  "same_game_already_listed": 109,
+  "same_player_already_listed": 13,
+  "same_game_already_listed": 121,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 123,
+  "pool_after_price_gate": 137,
   "cap": 20,
   "distinct_games": 3,
   "shared_with_board_head": 3,
   "board_head_size": 20
  },
- "top_plays_rule": "The 3 most likely to hit for 2026-10-15 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 20, over 3 game(s). 109 row(s) were held back because their game was already represented and 11 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 3 most likely to hit for 2026-10-15 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 20, over 3 game(s). 121 row(s) were held back because their game was already represented and 13 because the player was. \u26d4 Nothing is padded back to 20: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
     "legs": [
-     "Emory Williams u191.5 pass yds",
-     "Josh Rodriguez u33.5 rec yds"
+     "Ryder Burton o5.5 rush yds",
+     "Beau Sparks u68.5 rec yds"
     ],
     "games": [
      "East Carolina Pirates @ UAB Blazers",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
+     "Colorado State Rams @ Texas State Bobcats"
     ],
     "game_ids": [
      "4bf071db691beaf54158c801a6cf093b",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
+     "f00195614a0c305207222ba2044a9c24"
     ],
     "book": "hardrockbet",
     "prices": [
-     -110,
-     -115
+     -120,
+     -110
     ],
-    "multiplier": 3.569,
+    "multiplier": 3.5,
     "n_legs": 2,
     "band": "1.8x+",
     "joint": 31.9,
     "joint_basis": "MODEL",
     "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
     "leg_confidences": [
-     57,
-     56
+     58,
+     55
     ],
-    "break_even": 28.0,
-    "edge": 3.9,
-    "ev_30": 4.18
+    "break_even": 28.6,
+    "edge": 3.3,
+    "ev_30": 3.5
+   },
+   {
+    "legs": [
+     "Ryder Burton o5.5 rush yds",
+     "Kylen Evans o23.5 rec yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     100
+    ],
+    "multiplier": 3.667,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     55
+    ],
+    "break_even": 27.3,
+    "edge": 4.6,
+    "ev_30": 5.09
+   },
+   {
+    "legs": [
+     "Emory Williams u191.5 pass yds",
+     "Beau Sparks u68.5 rec yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -105,
+     -110
+    ],
+    "multiplier": 3.727,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.4,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     55
+    ],
+    "break_even": 26.8,
+    "edge": 4.5,
+    "ev_30": 5.06
+   },
+   {
+    "legs": [
+     "Emory Williams u191.5 pass yds",
+     "Kylen Evans o23.5 rec yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -105,
+     100
+    ],
+    "multiplier": 3.905,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.4,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     55
+    ],
+    "break_even": 25.6,
+    "edge": 5.7,
+    "ev_30": 6.72
    },
    {
     "legs": [
@@ -328,8 +454,40 @@
    },
    {
     "legs": [
-     "Emory Williams u191.5 pass yds",
-     "Quinn Henicle u161.5 pass yds"
+     "Ryder Burton o5.5 rush yds",
+     "Torrance Burgess Jr. u116.5 rush yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -105
+    ],
+    "multiplier": 3.579,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     54
+    ],
+    "break_even": 27.9,
+    "edge": 3.4,
+    "ev_30": 3.63
+   },
+   {
+    "legs": [
+     "Ryder Burton o5.5 rush yds",
+     "Quinn Henicle u158.5 pass yds"
     ],
     "games": [
      "East Carolina Pirates @ UAB Blazers",
@@ -341,10 +499,42 @@
     ],
     "book": "hardrockbet",
     "prices": [
-     -110,
+     -120,
      -115
     ],
-    "multiplier": 3.569,
+    "multiplier": 3.428,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 31.3,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     54
+    ],
+    "break_even": 29.2,
+    "edge": 2.1,
+    "ev_30": 2.21
+   },
+   {
+    "legs": [
+     "Emory Williams u191.5 pass yds",
+     "Torrance Burgess Jr. u116.5 rush yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -105,
+     -105
+    ],
+    "multiplier": 3.812,
     "n_legs": 2,
     "band": "1.8x+",
     "joint": 30.8,
@@ -354,172 +544,86 @@
      57,
      54
     ],
-    "break_even": 28.0,
-    "edge": 2.8,
-    "ev_30": 2.96
-   },
+    "break_even": 26.2,
+    "edge": 4.5,
+    "ev_30": 5.2
+   }
+  ],
+  "3": [
    {
     "legs": [
-     "Josh Rodriguez u32.5 rec yds",
-     "Beau Sparks u67.5 rec yds"
-    ],
-    "games": [
-     "Georgia Southern Eagles @ Old Dominion Monarchs",
-     "Colorado State Rams @ Texas State Bobcats"
-    ],
-    "game_ids": [
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-     "f00195614a0c305207222ba2044a9c24"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.8,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     56,
-     55
-    ],
-    "break_even": 28.4,
-    "edge": 2.4,
-    "ev_30": 2.56
-   },
-   {
-    "legs": [
-     "Josh Rodriguez u32.5 rec yds",
-     "Torrance Burgess Jr. u119.5 rush yds"
-    ],
-    "games": [
-     "Georgia Southern Eagles @ Old Dominion Monarchs",
-     "Colorado State Rams @ Texas State Bobcats"
-    ],
-    "game_ids": [
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-     "f00195614a0c305207222ba2044a9c24"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.8,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     56,
-     55
-    ],
-    "break_even": 28.4,
-    "edge": 2.4,
-    "ev_30": 2.56
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Josh Rodriguez u32.5 rec yds"
+     "Ryder Burton o5.5 rush yds",
+     "Beau Sparks u68.5 rec yds",
+     "Quinn Henicle u158.5 pass yds"
     ],
     "games": [
      "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats",
      "Georgia Southern Eagles @ Old Dominion Monarchs"
     ],
     "game_ids": [
      "4bf071db691beaf54158c801a6cf093b",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -114
-    ],
-    "multiplier": 2.845,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     56
-    ],
-    "break_even": 35.2,
-    "edge": -4.9,
-    "ev_30": -4.19
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Kylen Evans o22.5 rec yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Colorado State Rams @ Texas State Bobcats"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
-     "f00195614a0c305207222ba2044a9c24"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -118
-    ],
-    "multiplier": 2.8,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     56
-    ],
-    "break_even": 35.7,
-    "edge": -5.5,
-    "ev_30": -4.6
-   },
-   {
-    "legs": [
-     "Emory Williams u191.5 pass yds",
-     "Josh Dallas u57.5 rec yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24",
      "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
     ],
     "book": "hardrockbet",
     "prices": [
+     -120,
      -110,
-     -110
+     -115
     ],
-    "multiplier": 3.645,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 30.2,
+    "multiplier": 6.543,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 17.2,
     "joint_basis": "MODEL",
     "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
     "leg_confidences": [
-     57,
-     53
+     58,
+     55,
+     54
     ],
-    "break_even": 27.4,
-    "edge": 2.8,
-    "ev_30": 3.03
-   }
-  ],
-  "3": [
+    "break_even": 15.3,
+    "edge": 1.9,
+    "ev_30": 3.82
+   },
+   {
+    "legs": [
+     "Ryder Burton o5.5 rush yds",
+     "Quinn Henicle u158.5 pass yds",
+     "Kylen Evans o23.5 rec yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Georgia Southern Eagles @ Old Dominion Monarchs",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -115,
+     100
+    ],
+    "multiplier": 6.855,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 17.2,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     54,
+     55
+    ],
+    "break_even": 14.6,
+    "edge": 2.6,
+    "ev_30": 5.43
+   },
    {
     "legs": [
      "EJ Reid u2.5 rec",
@@ -559,6 +663,117 @@
    },
    {
     "legs": [
+     "Ryder Burton o5.5 rush yds",
+     "Torrance Burgess Jr. u116.5 rush yds",
+     "Quinn Henicle u158.5 pass yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats",
+     "Georgia Southern Eagles @ Old Dominion Monarchs"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24",
+     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -105,
+     -115
+    ],
+    "multiplier": 6.692,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 16.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     58,
+     54,
+     54
+    ],
+    "break_even": 14.9,
+    "edge": 2.0,
+    "ev_30": 3.95
+   },
+   {
+    "legs": [
+     "Emory Williams u191.5 pass yds",
+     "Beau Sparks u68.5 rec yds",
+     "Quinn Henicle u158.5 pass yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Colorado State Rams @ Texas State Bobcats",
+     "Georgia Southern Eagles @ Old Dominion Monarchs"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "f00195614a0c305207222ba2044a9c24",
+     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -105,
+     -110,
+     -115
+    ],
+    "multiplier": 6.968,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 16.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     55,
+     54
+    ],
+    "break_even": 14.4,
+    "edge": 2.6,
+    "ev_30": 5.39
+   },
+   {
+    "legs": [
+     "Emory Williams u191.5 pass yds",
+     "Quinn Henicle u158.5 pass yds",
+     "Kylen Evans o23.5 rec yds"
+    ],
+    "games": [
+     "East Carolina Pirates @ UAB Blazers",
+     "Georgia Southern Eagles @ Old Dominion Monarchs",
+     "Colorado State Rams @ Texas State Bobcats"
+    ],
+    "game_ids": [
+     "4bf071db691beaf54158c801a6cf093b",
+     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
+     "f00195614a0c305207222ba2044a9c24"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -105,
+     -115,
+     100
+    ],
+    "multiplier": 7.3,
+    "n_legs": 3,
+    "band": "3x+",
+    "joint": 16.9,
+    "joint_basis": "MODEL",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     57,
+     54,
+     55
+    ],
+    "break_even": 13.7,
+    "edge": 3.2,
+    "ev_30": 7.08
+   },
+   {
+    "legs": [
      "EJ Reid u2.5 rec",
      "Josh Rodriguez u32.5 rec yds",
      "Beau Sparks u67.5 rec yds"
@@ -630,198 +845,13 @@
     "break_even": 18.7,
     "edge": -2.1,
     "ev_30": -3.35
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Kylen Evans o22.5 rec yds",
-     "Quinn Henicle u156.5 pass yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Colorado State Rams @ Texas State Bobcats",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
-     "f00195614a0c305207222ba2044a9c24",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -118,
-     -114
-    ],
-    "multiplier": 5.256,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 16.3,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     56,
-     54
-    ],
-    "break_even": 19.0,
-    "edge": -2.7,
-    "ev_30": -4.25
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Kylen Evans o22.5 rec yds",
-     "Josh Dallas u59.5 rec yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Colorado State Rams @ Texas State Bobcats",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
-     "f00195614a0c305207222ba2044a9c24",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -118,
-     -114
-    ],
-    "multiplier": 5.256,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 16.3,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     56,
-     54
-    ],
-    "break_even": 19.0,
-    "edge": -2.7,
-    "ev_30": -4.25
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Beau Sparks u67.5 rec yds",
-     "Quinn Henicle u156.5 pass yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Colorado State Rams @ Texas State Bobcats",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
-     "f00195614a0c305207222ba2044a9c24",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -114,
-     -114
-    ],
-    "multiplier": 5.34,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 16.0,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     55,
-     54
-    ],
-    "break_even": 18.7,
-    "edge": -2.7,
-    "ev_30": -4.31
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Beau Sparks u67.5 rec yds",
-     "Josh Dallas u59.5 rec yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Colorado State Rams @ Texas State Bobcats",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
-     "f00195614a0c305207222ba2044a9c24",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -114,
-     -114
-    ],
-    "multiplier": 5.34,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 16.0,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     55,
-     54
-    ],
-    "break_even": 18.7,
-    "edge": -2.7,
-    "ev_30": -4.31
-   },
-   {
-    "legs": [
-     "EJ Reid u2.5 rec",
-     "Torrance Burgess Jr. u119.5 rush yds",
-     "Quinn Henicle u156.5 pass yds"
-    ],
-    "games": [
-     "East Carolina Pirates @ UAB Blazers",
-     "Colorado State Rams @ Texas State Bobcats",
-     "Georgia Southern Eagles @ Old Dominion Monarchs"
-    ],
-    "game_ids": [
-     "4bf071db691beaf54158c801a6cf093b",
-     "f00195614a0c305207222ba2044a9c24",
-     "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -194,
-     -114,
-     -114
-    ],
-    "multiplier": 5.34,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 16.0,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     54,
-     55,
-     54
-    ],
-    "break_even": 18.7,
-    "edge": -2.7,
-    "ev_30": -4.31
    }
   ],
   "4": []
  },
  "parlay_meta": {
   "pool": 38,
-  "rated_legs": 123,
+  "rated_legs": 137,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -835,12 +865,12 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 87,
+    "available": 97,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 12,
+    "available": 16,
     "taken": 12
    },
    {
@@ -850,33 +880,65 @@
    }
   ],
   "rejected": {
-   "same_game": 80458,
+   "same_game": 80497,
    "same_player": 0,
-   "mixed_book": 1979,
+   "mixed_book": 2001,
    "out_of_band": 0
   },
-  "note": "123 rated legs, 38 in the stratified pool. Rejected: 80458 same game, 0 same player, 1979 would need two books, 0 outside Sam's bands."
+  "note": "137 rated legs, 38 in the stratified pool. Rejected: 80497 same game, 0 same player, 2001 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
    {
     "legs": [
-     "Josh Rodriguez u33.5 rec yds",
-     "Georgia Southern Eagles -3.5 spread"
+     "Ryder Burton o5.5 rush yds",
+     "Emory Williams u191.5 pass yds"
+    ],
+    "game": "East Carolina Pirates @ UAB Blazers",
+    "game_id": "4bf071db691beaf54158c801a6cf093b",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -105
+    ],
+    "line_best_book": null,
+    "line_best_price": null,
+    "n_legs": 2,
+    "n_line_legs": 0,
+    "multiplier": 3.579,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     58,
+     57
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Josh Rodriguez u32.5 rec yds",
+     "Over 46.5 total"
     ],
     "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
     "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
     "same_game": true,
-    "book": "hardrockbet",
+    "book": "fanduel",
     "prices": [
-     -115,
-     100
+     -114,
+     -106
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": 100,
+    "line_best_book": "fanduel",
+    "line_best_price": -106,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.739,
+    "multiplier": 3.648,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -901,44 +963,13 @@
     "book": "fanduel",
     "prices": [
      -118,
-     -104
-    ],
-    "line_best_book": "fanduel",
-    "line_best_price": -104,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.624,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     56
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Josh Rodriguez u32.5 rec yds",
-     "Georgia Southern Eagles -3.5 spread"
-    ],
-    "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
-    "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
      -110
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": 100,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.584,
+    "multiplier": 3.527,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -954,22 +985,22 @@
    },
    {
     "legs": [
-     "Beau Sparks u67.5 rec yds",
-     "Colorado State Rams +14.5 spread"
+     "Kylen Evans o23.5 rec yds",
+     "Beau Sparks u68.5 rec yds"
     ],
     "game": "Colorado State Rams @ Texas State Bobcats",
     "game_id": "f00195614a0c305207222ba2044a9c24",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -114,
-     -104
+     100,
+     -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -104,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.682,
+    "n_line_legs": 0,
+    "multiplier": 3.818,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -979,28 +1010,29 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
+     55,
      55
     ],
     "band_floor": 1.8
    },
    {
     "legs": [
-     "Emory Williams u191.5 pass yds",
-     "Jeremiah Melvin o28.5 rec yds"
+     "Quinn Henicle u156.5 pass yds",
+     "Over 46.5 total"
     ],
-    "game": "East Carolina Pirates @ UAB Blazers",
-    "game_id": "4bf071db691beaf54158c801a6cf093b",
+    "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
+    "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
     "same_game": true,
-    "book": "hardrockbet",
+    "book": "fanduel",
     "prices": [
-     -110,
-     -115
+     -114,
+     -106
     ],
-    "line_best_book": null,
-    "line_best_price": null,
+    "line_best_book": "fanduel",
+    "line_best_price": -106,
     "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.569,
+    "n_line_legs": 1,
+    "multiplier": 3.648,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1010,7 +1042,6 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     57,
      54
     ],
     "band_floor": 1.8
@@ -1018,21 +1049,21 @@
    {
     "legs": [
      "Emory Williams u191.5 pass yds",
-     "Ryder Burton o10.5 rush yds"
+     "Jeremiah Melvin o27.5 rec yds"
     ],
     "game": "East Carolina Pirates @ UAB Blazers",
     "game_id": "4bf071db691beaf54158c801a6cf093b",
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -110,
-     -115
+     -105,
+     -120
     ],
     "line_best_book": null,
     "line_best_price": null,
     "n_legs": 2,
     "n_line_legs": 0,
-    "multiplier": 3.569,
+    "multiplier": 3.579,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1051,24 +1082,24 @@
   "3": [
    {
     "legs": [
-     "Beau Sparks u67.5 rec yds",
-     "Torrance Burgess Jr. u119.5 rush yds",
+     "Kylen Evans o23.5 rec yds",
+     "Beau Sparks u68.5 rec yds",
      "Colorado State Rams +14.5 spread"
     ],
     "game": "Colorado State Rams @ Texas State Bobcats",
     "game_id": "f00195614a0c305207222ba2044a9c24",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -114,
-     -114,
-     -104
+     100,
+     -110,
+     -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -104,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.912,
+    "multiplier": 7.289,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1085,8 +1116,8 @@
    },
    {
     "legs": [
-     "Kylen Evans o22.5 rec yds",
      "Beau Sparks u67.5 rec yds",
+     "Torrance Burgess Jr. u119.5 rush yds",
      "Colorado State Rams +14.5 spread"
     ],
     "game": "Colorado State Rams @ Texas State Bobcats",
@@ -1094,15 +1125,15 @@
     "same_game": true,
     "book": "fanduel",
     "prices": [
-     -118,
      -114,
-     -104
+     -114,
+     -110
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -104,
+    "line_best_book": "draftkings",
+    "line_best_price": -105,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.803,
+    "multiplier": 6.727,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1112,31 +1143,31 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     56,
+     55,
      55
     ],
     "band_floor": 3.0
    },
    {
     "legs": [
-     "Josh Rodriguez u33.5 rec yds",
-     "Quinn Henicle u161.5 pass yds",
-     "Georgia Southern Eagles -3.5 spread"
+     "Josh Rodriguez u32.5 rec yds",
+     "Quinn Henicle u156.5 pass yds",
+     "Over 46.5 total"
     ],
     "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
     "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
     "same_game": true,
-    "book": "hardrockbet",
+    "book": "fanduel",
     "prices": [
-     -115,
-     -115,
-     100
+     -114,
+     -114,
+     -106
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": 100,
+    "line_best_book": "fanduel",
+    "line_best_price": -106,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.991,
+    "multiplier": 6.848,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1154,8 +1185,8 @@
    {
     "legs": [
      "Josh Rodriguez u32.5 rec yds",
-     "Quinn Henicle u156.5 pass yds",
-     "Georgia Southern Eagles -3.5 spread"
+     "Josh Dallas u59.5 rec yds",
+     "Over 46.5 total"
     ],
     "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
     "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
@@ -1164,13 +1195,13 @@
     "prices": [
      -114,
      -114,
-     -110
+     -106
     ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": 100,
+    "line_best_book": "fanduel",
+    "line_best_price": -106,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.727,
+    "multiplier": 6.848,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1187,24 +1218,24 @@
    },
    {
     "legs": [
+     "Ryder Burton o5.5 rush yds",
      "Emory Williams u191.5 pass yds",
-     "Jeremiah Melvin o28.5 rec yds",
-     "Ryder Burton o10.5 rush yds"
+     "Jeremiah Melvin o27.5 rec yds"
     ],
     "game": "East Carolina Pirates @ UAB Blazers",
     "game_id": "4bf071db691beaf54158c801a6cf093b",
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -110,
-     -115,
-     -115
+     -120,
+     -105,
+     -120
     ],
     "line_best_book": null,
     "line_best_price": null,
     "n_legs": 3,
     "n_line_legs": 0,
-    "multiplier": 6.673,
+    "multiplier": 6.562,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1214,32 +1245,32 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
+     58,
      57,
-     54,
      54
     ],
     "band_floor": 3.0
    },
    {
     "legs": [
+     "Ryder Burton o5.5 rush yds",
      "Emory Williams u191.5 pass yds",
-     "Jeremiah Melvin o28.5 rec yds",
-     "TJ Engleman Jr. u76.5 rush yds"
+     "TJ Engleman Jr. u75.5 rush yds"
     ],
     "game": "East Carolina Pirates @ UAB Blazers",
     "game_id": "4bf071db691beaf54158c801a6cf093b",
     "same_game": true,
     "book": "hardrockbet",
     "prices": [
-     -110,
-     -115,
+     -120,
+     -105,
      -115
     ],
     "line_best_book": null,
     "line_best_price": null,
     "n_legs": 3,
     "n_line_legs": 0,
-    "multiplier": 6.673,
+    "multiplier": 6.692,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -1249,8 +1280,8 @@
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
+     58,
      57,
-     54,
      53
     ],
     "band_floor": 3.0
@@ -1263,8 +1294,8 @@
   "games_used": 3,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 130,
-   "mixed_book": 181,
+   "same_player": 174,
+   "mixed_book": 259,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -1325,13 +1356,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 39.0 pass yds a game."
   },
-  "Ryder Burton|player_pass_yds|over|148.5": {
+  "Ryder Burton|player_pass_yds|over|152.5": {
    "v": 88.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 88.5 pass yds a game."
   },
-  "Ryder Burton|player_pass_yds|under|148.5": {
+  "Ryder Burton|player_pass_yds|under|152.5": {
    "v": 88.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -1409,13 +1440,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 7.3 rush yds a game."
   },
-  "Ryder Burton|player_rush_yds|over|10.5": {
+  "Ryder Burton|player_rush_yds|over|5.5": {
    "v": -0.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 -0.5 rush yds a game."
   },
-  "Ryder Burton|player_rush_yds|under|10.5": {
+  "Ryder Burton|player_rush_yds|under|5.5": {
    "v": -0.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -1433,13 +1464,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 -0.5 rush yds a game."
   },
-  "TJ Engleman Jr.|player_rush_yds|over|76.5": {
+  "TJ Engleman Jr.|player_rush_yds|over|75.5": {
    "v": 34.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 34.0 rush yds a game."
   },
-  "TJ Engleman Jr.|player_rush_yds|under|76.5": {
+  "TJ Engleman Jr.|player_rush_yds|under|75.5": {
    "v": 34.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -1535,13 +1566,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 10 games this record is built from \u2014 109.2 pass yds a game."
   },
-  "Max Johnson|player_pass_yds|over|252.5": {
+  "Max Johnson|player_pass_yds|over|251.5": {
    "v": 109.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 10 games this record is built from \u2014 109.2 pass yds a game."
   },
-  "Max Johnson|player_pass_yds|under|252.5": {
+  "Max Johnson|player_pass_yds|under|251.5": {
    "v": 109.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -1559,13 +1590,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 12 games this record is built from \u2014 26.3 pass yds a game."
   },
-  "Quinn Henicle|player_pass_yds|over|161.5": {
+  "Quinn Henicle|player_pass_yds|over|158.5": {
    "v": 26.3,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 12 games this record is built from \u2014 26.3 pass yds a game."
   },
-  "Quinn Henicle|player_pass_yds|under|161.5": {
+  "Quinn Henicle|player_pass_yds|under|158.5": {
    "v": 26.3,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -1739,6 +1770,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 247.9 pass yds a game."
   },
+  "Brad Jackson|player_pass_yds|over|275.5": {
+   "v": 247.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 247.9 pass yds a game."
+  },
+  "Brad Jackson|player_pass_yds|under|275.5": {
+   "v": 247.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 247.9 pass yds a game."
+  },
   "Chris Dawn Jr.|player_reception_yds|over|56.5": {
    "v": 83.9,
    "u": "rec yds",
@@ -1746,6 +1789,18 @@
    "n": "His own average over the 17 games this record is built from \u2014 83.9 rec yds a game."
   },
   "Chris Dawn Jr.|player_reception_yds|under|56.5": {
+   "v": 83.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 83.9 rec yds a game."
+  },
+  "Chris Dawn Jr.|player_reception_yds|over|59.5": {
+   "v": 83.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 83.9 rec yds a game."
+  },
+  "Chris Dawn Jr.|player_reception_yds|under|59.5": {
    "v": 83.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -1775,6 +1830,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 30.1 rec yds a game."
   },
+  "Kylen Evans|player_reception_yds|over|23.5": {
+   "v": 30.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 30.1 rec yds a game."
+  },
+  "Kylen Evans|player_reception_yds|under|23.5": {
+   "v": 30.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 30.1 rec yds a game."
+  },
   "Chris Dawn Jr.|player_receptions|over|4.5": {
    "v": 5.4,
    "u": "rec",
@@ -1799,6 +1866,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 57.2 rush yds a game."
   },
+  "Brad Jackson|player_rush_yds|over|47.5": {
+   "v": 57.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 57.2 rush yds a game."
+  },
+  "Brad Jackson|player_rush_yds|under|47.5": {
+   "v": 57.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 57.2 rush yds a game."
+  },
   "Durell Robinson|player_rush_yds|over|45.5": {
    "v": 28.5,
    "u": "rush yds",
@@ -1810,6 +1889,30 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 7 games this record is built from \u2014 28.5 rush yds a game."
+  },
+  "Durell Robinson|player_rush_yds|over|46.5": {
+   "v": 28.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 28.5 rush yds a game."
+  },
+  "Durell Robinson|player_rush_yds|under|46.5": {
+   "v": 28.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 28.5 rush yds a game."
+  },
+  "Torrance Burgess Jr.|player_rush_yds|over|116.5": {
+   "v": 23.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 23.8 rush yds a game."
+  },
+  "Torrance Burgess Jr.|player_rush_yds|under|116.5": {
+   "v": 23.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 23.8 rush yds a game."
   },
   "Torrance Burgess Jr.|player_rush_yds|over|119.5": {
    "v": 23.8,
@@ -1825,23 +1928,70 @@
   }
  },
  "name_match_rate": 0.607,
- "n_priced": 150,
+ "n_priced": 166,
  "single_day": true,
  "slate_date": "2026-10-15",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 150,
+ "n_on_slate_day": 166,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-15 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "150 priced football rows for 2026-10-15 across 3 board games; 25 shown.",
+ "coverage": "166 priced football rows for 2026-10-15 across 3 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 65.9% against a claimed 52% (+13.9 pts, n=41). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 41 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
  "picks": [
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Ryder Burton",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 5.5,
+   "game": "East Carolina Pirates @ UAB Blazers",
+   "game_id": "4bf071db691beaf54158c801a6cf093b",
+   "away": "East Carolina Pirates",
+   "home": "UAB Blazers",
+   "commence": "2026-10-15T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6640952932869210526",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 58,
+   "raw": "4 of 14",
+   "record": "4 of 14",
+   "rate": 51,
+   "break_even": 54.5,
+   "edge": 3.5,
+   "season_detail": {
+    "h25": 1,
+    "n25": 8,
+    "h26": 3,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.619,
+    "weighted_n": 9.2
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": -0.5,
+   "projection": -0.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 14 games this record is built from \u2014 -0.5 rush yds a game.",
+   "why": [
+    "<b>Ryder Burton</b> went over 5.5 rush yds in <b>3 of 6 games</b> in 2026 and 1 of 8 in 2025, in the games he appears in."
+   ],
+   "model_p": 57.6,
+   "rank": 1
+  },
   {
    "kind": "fb",
    "league": "ncaaf",
@@ -1857,7 +2007,7 @@
    "home": "UAB Blazers",
    "commence": "2026-10-15T23:30:00Z",
    "book": "hardrockbet",
-   "price": -110,
+   "price": -105,
    "link": "https://app.hardrock.bet/?deep_link_value=betslip/2671745185997783441",
    "n_books": 2,
    "clears_price_floor": true,
@@ -1866,8 +2016,8 @@
    "raw": "7 of 8",
    "record": "7 of 8",
    "rate": 67,
-   "break_even": 52.4,
-   "edge": 4.6,
+   "break_even": 51.2,
+   "edge": 5.8,
    "season_detail": {
     "h25": 4,
     "n25": 4,
@@ -1887,7 +2037,7 @@
     "<b>Emory Williams</b> went under 191.5 pass yds in <b>3 of 4 games</b> in 2026 and 4 of 4 in 2025, in the games he appears in."
    ],
    "model_p": 56.7,
-   "rank": 1
+   "rank": 2
   },
   {
    "kind": "fb",
@@ -1906,7 +2056,7 @@
    "book": "fanduel",
    "price": -114,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616463521&selectionId=103916350",
-   "n_books": 1,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1915,34 +2065,6 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 2.7,
-   "rank": 2
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Josh Rodriguez",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 33.5,
-   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
-   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-   "away": "Georgia Southern Eagles",
-   "home": "Old Dominion Monarchs",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4575728899408920989",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 56,
-   "model_p": 56.0,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.5,
-   "edge": 2.5,
    "rank": 3
   },
   {
@@ -1996,6 +2118,81 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kylen Evans",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 23.5,
+   "game": "Colorado State Rams @ Texas State Bobcats",
+   "game_id": "f00195614a0c305207222ba2044a9c24",
+   "away": "Colorado State Rams",
+   "home": "Texas State Bobcats",
+   "commence": "2026-10-16T00:00:00Z",
+   "book": "hardrockbet",
+   "price": 100,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7518759246473855409",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "raw": "7 of 11",
+   "record": "7 of 11",
+   "rate": 61,
+   "break_even": 50.0,
+   "edge": 5.0,
+   "season_detail": {
+    "h25": 4,
+    "n25": 7,
+    "h26": 3,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.571,
+    "weighted_n": 7.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 30.14,
+   "projection": 30.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 30.1 rec yds a game.",
+   "why": [
+    "<b>Kylen Evans</b> went over 23.5 rec yds in <b>3 of 4 games</b> in 2026 and 4 of 7 in 2025, in the games he appears in."
+   ],
+   "model_p": 55.4,
+   "rank": 5
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Beau Sparks",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Colorado State Rams @ Texas State Bobcats",
+   "game_id": "f00195614a0c305207222ba2044a9c24",
+   "away": "Colorado State Rams",
+   "home": "Texas State Bobcats",
+   "commence": "2026-10-16T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/829271816651538833",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 55,
+   "model_p": 55.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": 2.6,
+   "rank": 6
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Beau Sparks",
    "market": "player_reception_yds",
    "market_label": "Receiving yards",
@@ -2018,7 +2215,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": 1.7,
-   "rank": 5
+   "rank": 7
   },
   {
    "kind": "fb",
@@ -2065,7 +2262,54 @@
     "<b>Torrance Burgess Jr.</b> went under 119.5 rush yds in <b>2 of 5 games</b> in 2026 and 4 of 4 in 2025, in the games he appears in."
    ],
    "model_p": 54.7,
-   "rank": 6
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Torrance Burgess Jr.",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 116.5,
+   "game": "Colorado State Rams @ Texas State Bobcats",
+   "game_id": "f00195614a0c305207222ba2044a9c24",
+   "away": "Colorado State Rams",
+   "home": "Texas State Bobcats",
+   "commence": "2026-10-16T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -105,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/5913763365624349102",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "6 of 9",
+   "record": "6 of 9",
+   "rate": 81,
+   "break_even": 51.2,
+   "edge": 2.8,
+   "season_detail": {
+    "h25": 4,
+    "n25": 4,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.945,
+    "weighted_n": 6.78
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 23.75,
+   "projection": 23.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 23.8 rush yds a game.",
+   "why": [
+    "<b>Torrance Burgess Jr.</b> went under 116.5 rush yds in <b>2 of 5 games</b> in 2026 and 4 of 4 in 2025, in the games he appears in."
+   ],
+   "model_p": 54.1,
+   "rank": 9
   },
   {
    "kind": "fb",
@@ -2112,7 +2356,7 @@
     "<b>Quinn Henicle</b> went under 156.5 pass yds in <b>4 of 5 games</b> in 2026 and 7 of 7 in 2025, in the games he appears in."
    ],
    "model_p": 54.0,
-   "rank": 7
+   "rank": 10
   },
   {
    "kind": "fb",
@@ -2159,82 +2403,7 @@
     "<b>Josh Dallas</b> went under 59.5 rec yds in <b>5 of 6 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
    ],
    "model_p": 53.9,
-   "rank": 8
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jeremiah Melvin",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 28.5,
-   "game": "East Carolina Pirates @ UAB Blazers",
-   "game_id": "4bf071db691beaf54158c801a6cf093b",
-   "away": "East Carolina Pirates",
-   "home": "UAB Blazers",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1022961529450004901",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 54,
-   "model_p": 53.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.5,
-   "edge": 0.5,
-   "rank": 9
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Ryder Burton",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 10.5,
-   "game": "East Carolina Pirates @ UAB Blazers",
-   "game_id": "4bf071db691beaf54158c801a6cf093b",
-   "away": "East Carolina Pirates",
-   "home": "UAB Blazers",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2653707096448696711",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "raw": "3 of 14",
-   "record": "3 of 14",
-   "rate": 43,
-   "break_even": 53.5,
-   "edge": 0.5,
-   "season_detail": {
-    "h25": 0,
-    "n25": 8,
-    "h26": 3,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.515,
-    "weighted_n": 9.2
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": -0.5,
-   "projection": -0.5,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 14 games this record is built from \u2014 -0.5 rush yds a game.",
-   "why": [
-    "<b>Ryder Burton</b> went over 10.5 rush yds in <b>3 of 6 games</b> in 2026 and 0 of 8 in 2025, in the games he appears in."
-   ],
-   "model_p": 53.6,
-   "rank": 10
+   "rank": 11
   },
   {
    "kind": "fb",
@@ -2244,7 +2413,7 @@
    "market": "player_pass_yds",
    "market_label": "Passing yards",
    "side": "under",
-   "line": 161.5,
+   "line": 158.5,
    "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
    "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
    "away": "Georgia Southern Eagles",
@@ -2252,14 +2421,14 @@
    "commence": "2026-10-15T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6939657802247963049",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8378352416252363144",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 54,
    "raw": "11 of 12",
    "record": "11 of 12",
-   "rate": 66,
+   "rate": 65,
    "break_even": 53.5,
    "edge": 0.5,
    "season_detail": {
@@ -2268,7 +2437,7 @@
     "h26": 4,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.509,
+    "p0": 0.5,
     "weighted_n": 8.11
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -2278,10 +2447,39 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 12 games this record is built from \u2014 26.3 pass yds a game.",
    "why": [
-    "<b>Quinn Henicle</b> went under 161.5 pass yds in <b>4 of 5 games</b> in 2026 and 7 of 7 in 2025, in the games he appears in."
+    "<b>Quinn Henicle</b> went under 158.5 pass yds in <b>4 of 5 games</b> in 2026 and 7 of 7 in 2025, in the games he appears in."
    ],
-   "model_p": 54.4,
-   "rank": 11
+   "model_p": 54.1,
+   "rank": 12
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jeremiah Melvin",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 27.5,
+   "game": "East Carolina Pirates @ UAB Blazers",
+   "game_id": "4bf071db691beaf54158c801a6cf093b",
+   "away": "East Carolina Pirates",
+   "home": "UAB Blazers",
+   "commence": "2026-10-15T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2722974267414282646",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 54,
+   "model_p": 54.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": -0.5,
+   "rank": 13,
+   "below_price": true
   },
   {
    "kind": "fb",
@@ -2309,55 +2507,8 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 66.0,
    "edge": -12.0,
-   "rank": 12,
+   "rank": 14,
    "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Josh Dallas",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 57.5,
-   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
-   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-   "away": "Georgia Southern Eagles",
-   "home": "Old Dominion Monarchs",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6464761447263109538",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 53,
-   "raw": "7 of 8",
-   "record": "7 of 8",
-   "rate": 80,
-   "break_even": 52.4,
-   "edge": 0.6,
-   "season_detail": {
-    "h25": 2,
-    "n25": 2,
-    "h26": 5,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.766,
-    "weighted_n": 6.8
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 34.0,
-   "projection": 34.0,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 8 games this record is built from \u2014 34.0 rec yds a game.",
-   "why": [
-    "<b>Josh Dallas</b> went under 57.5 rec yds in <b>5 of 6 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
-   ],
-   "model_p": 53.4,
-   "rank": 13
   },
   {
    "kind": "fb",
@@ -2385,7 +2536,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -0.3,
-   "rank": 14,
+   "rank": 15,
    "below_price": true
   },
   {
@@ -2433,7 +2584,7 @@
     "<b>TJ Engleman Jr.</b> went under 78.5 rush yds in <b>2 of 5 games</b> in 2026 and 9 of 9 in 2025, in the games he appears in."
    ],
    "model_p": 53.4,
-   "rank": 15,
+   "rank": 16,
    "below_price": true
   },
   {
@@ -2481,7 +2632,7 @@
     "<b>Devin Roche</b> went under 64.5 rush yds in <b>4 of 6 games</b> in 2026 and 8 of 11 in 2025, in the games he appears in."
    ],
    "model_p": 52.8,
-   "rank": 16,
+   "rank": 17,
    "below_price": true
   },
   {
@@ -2492,7 +2643,7 @@
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
    "side": "under",
-   "line": 76.5,
+   "line": 75.5,
    "game": "East Carolina Pirates @ UAB Blazers",
    "game_id": "4bf071db691beaf54158c801a6cf093b",
    "away": "East Carolina Pirates",
@@ -2500,7 +2651,7 @@
    "commence": "2026-10-15T23:30:00Z",
    "book": "hardrockbet",
    "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2419811080248361355",
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7835404269409927584",
    "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -2516,7 +2667,7 @@
     "h26": 2,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.837,
+    "p0": 0.833,
     "weighted_n": 9.0
    },
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
@@ -2526,10 +2677,58 @@
    "projection_basis": "DESCRIPTIVE",
    "projection_note": "His own average over the 14 games this record is built from \u2014 34.0 rush yds a game.",
    "why": [
-    "<b>TJ Engleman Jr.</b> went under 76.5 rush yds in <b>2 of 5 games</b> in 2026 and 8 of 9 in 2025, in the games he appears in."
+    "<b>TJ Engleman Jr.</b> went under 75.5 rush yds in <b>2 of 5 games</b> in 2026 and 8 of 9 in 2025, in the games he appears in."
    ],
-   "model_p": 52.9,
-   "rank": 17,
+   "model_p": 52.6,
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Josh Dallas",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 57.5,
+   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
+   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
+   "away": "Georgia Southern Eagles",
+   "home": "Old Dominion Monarchs",
+   "commence": "2026-10-15T23:30:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6464761447263109538",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "7 of 8",
+   "record": "7 of 8",
+   "rate": 80,
+   "break_even": 53.5,
+   "edge": -0.5,
+   "season_detail": {
+    "h25": 2,
+    "n25": 2,
+    "h26": 5,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.766,
+    "weighted_n": 6.8
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 34.0,
+   "projection": 34.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 8 games this record is built from \u2014 34.0 rec yds a game.",
+   "why": [
+    "<b>Josh Dallas</b> went under 57.5 rec yds in <b>5 of 6 games</b> in 2026 and 2 of 2 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.4,
+   "rank": 19,
    "below_price": true
   },
   {
@@ -2577,8 +2776,151 @@
     "<b>Devin Roche</b> went under 63.5 rush yds in <b>4 of 6 games</b> in 2026 and 8 of 11 in 2025, in the games he appears in."
    ],
    "model_p": 52.6,
-   "rank": 18,
+   "rank": 20,
    "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brad Jackson",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 275.5,
+   "game": "Colorado State Rams @ Texas State Bobcats",
+   "game_id": "f00195614a0c305207222ba2044a9c24",
+   "away": "Colorado State Rams",
+   "home": "Texas State Bobcats",
+   "commence": "2026-10-16T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2823460050268455327",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "13 of 18",
+   "record": "13 of 18",
+   "rate": 80,
+   "break_even": 53.5,
+   "edge": -0.5,
+   "season_detail": {
+    "h25": 9,
+    "n25": 13,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.843,
+    "weighted_n": 10.78
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 247.92,
+   "projection": 247.9,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 247.9 pass yds a game.",
+   "why": [
+    "<b>Brad Jackson</b> went under 275.5 pass yds in <b>4 of 5 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 53.2,
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brad Jackson",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 47.5,
+   "game": "Colorado State Rams @ Texas State Bobcats",
+   "game_id": "f00195614a0c305207222ba2044a9c24",
+   "away": "Colorado State Rams",
+   "home": "Texas State Bobcats",
+   "commence": "2026-10-16T00:00:00Z",
+   "book": "hardrockbet",
+   "price": -130,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7296864227892003216",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "9 of 18",
+   "record": "9 of 18",
+   "rate": 71,
+   "break_even": 56.5,
+   "edge": -3.5,
+   "season_detail": {
+    "h25": 5,
+    "n25": 13,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.826,
+    "weighted_n": 10.78
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 57.23,
+   "projection": 57.2,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 57.2 rush yds a game.",
+   "why": [
+    "<b>Brad Jackson</b> went under 47.5 rush yds in <b>4 of 5 games</b> in 2026 and 5 of 13 in 2025, in the games he appears in."
+   ],
+   "model_p": 52.9,
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Alex Taylor",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 43.5,
+   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
+   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
+   "away": "Georgia Southern Eagles",
+   "home": "Old Dominion Monarchs",
+   "commence": "2026-10-15T23:30:00Z",
+   "book": "hardrockbet",
+   "price": 105,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4875287818739515797",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "7 of 9",
+   "record": "7 of 9",
+   "rate": 68,
+   "break_even": 48.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 3,
+    "n25": 3,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.661,
+    "weighted_n": 7.2
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 9.0,
+   "projection": 9.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 9.0 rec yds a game.",
+   "why": [
+    "<b>Alex Taylor</b> went under 43.5 rec yds in <b>4 of 6 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
+   ],
+   "model_p": 51.8,
+   "rank": 23
   },
   {
    "kind": "fb",
@@ -2606,7 +2948,7 @@
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 53.3,
    "edge": -1.3,
-   "rank": 19,
+   "rank": 24,
    "below_price": true
   },
   {
@@ -2654,227 +2996,6 @@
     "<b>Ryder Burton</b> went over 12.5 rush yds in <b>3 of 6 games</b> in 2026 and 0 of 8 in 2025, in the games he appears in."
    ],
    "model_p": 52.3,
-   "rank": 20,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Alex Taylor",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 42.5,
-   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
-   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-   "away": "Georgia Southern Eagles",
-   "home": "Old Dominion Monarchs",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616463522&selectionId=103916361",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "7 of 9",
-   "record": "7 of 9",
-   "rate": 68,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 3,
-    "n25": 3,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.65,
-    "weighted_n": 7.2
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 9.0,
-   "projection": 9.0,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 9.0 rec yds a game.",
-   "why": [
-    "<b>Alex Taylor</b> went under 42.5 rec yds in <b>4 of 6 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
-   ],
-   "model_p": 51.6,
-   "rank": 21,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Andre Greene Jr.",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 28.5,
-   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
-   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-   "away": "Georgia Southern Eagles",
-   "home": "Old Dominion Monarchs",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616463667&selectionId=103916416",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 52.5,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": -1.3,
-   "rank": 22,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Brad Jackson",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 264.5,
-   "game": "Colorado State Rams @ Texas State Bobcats",
-   "game_id": "f00195614a0c305207222ba2044a9c24",
-   "away": "Colorado State Rams",
-   "home": "Texas State Bobcats",
-   "commence": "2026-10-16T00:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616197313&selectionId=102191176",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "12 of 18",
-   "record": "12 of 18",
-   "rate": 74,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 9,
-    "n25": 13,
-    "h26": 3,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.816,
-    "weighted_n": 10.78
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 247.92,
-   "projection": 247.9,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 18 games this record is built from \u2014 247.9 pass yds a game.",
-   "why": [
-    "<b>Brad Jackson</b> went under 264.5 pass yds in <b>3 of 5 games</b> in 2026 and 9 of 13 in 2025, in the games he appears in."
-   ],
-   "model_p": 52.4,
-   "rank": 23,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Brad Jackson",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 44.5,
-   "game": "Colorado State Rams @ Texas State Bobcats",
-   "game_id": "f00195614a0c305207222ba2044a9c24",
-   "away": "Colorado State Rams",
-   "home": "Texas State Bobcats",
-   "commence": "2026-10-16T00:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616197321&selectionId=102191176",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "9 of 18",
-   "record": "9 of 18",
-   "rate": 70,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 5,
-    "n25": 13,
-    "h26": 4,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.814,
-    "weighted_n": 10.78
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 57.23,
-   "projection": 57.2,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 18 games this record is built from \u2014 57.2 rush yds a game.",
-   "why": [
-    "<b>Brad Jackson</b> went under 44.5 rush yds in <b>4 of 5 games</b> in 2026 and 5 of 13 in 2025, in the games he appears in."
-   ],
-   "model_p": 51.9,
-   "rank": 24,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Alex Taylor",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 43.5,
-   "game": "Georgia Southern Eagles @ Old Dominion Monarchs",
-   "game_id": "84fb3ff9d04d9f8c6aeb5c8cadf6fbb5",
-   "away": "Georgia Southern Eagles",
-   "home": "Old Dominion Monarchs",
-   "commence": "2026-10-15T23:30:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4875287818739515797",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "7 of 9",
-   "record": "7 of 9",
-   "rate": 68,
-   "break_even": 53.5,
-   "edge": -1.5,
-   "season_detail": {
-    "h25": 3,
-    "n25": 3,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.661,
-    "weighted_n": 7.2
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 9.0,
-   "projection": 9.0,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 9.0 rec yds a game.",
-   "why": [
-    "<b>Alex Taylor</b> went under 43.5 rec yds in <b>4 of 6 games</b> in 2026 and 3 of 3 in 2025, in the games he appears in."
-   ],
-   "model_p": 51.8,
    "rank": 25,
    "below_price": true
   }
