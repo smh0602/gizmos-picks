@@ -307,8 +307,10 @@ note boxes, tags and the stale bar now require their absence.
   withdrawal; only games after registration count. `[Sam, 2026-10-15]` T68 (§3b) adds AV/AVC
   (Sam's averages) and WX/WXC (wind); T69 (§3c, "do all changes") adds IN (NFL injuries on BOTH
   sides of the ball: Out/Doubtful weighted by offensive or DEFENSIVE snap share, starting QB
-  out), AT/ATC (Sam's averages blended into totals) and RS/RSC (rest): 7 challengers a league,
-  so p < 0.01/7. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
+  out), AT/ATC (Sam's averages blended into totals) and RS/RSC (rest); T70 (§3d) adds H/HC
+  (own ratings, neutral, dome, trained on NFL 2018-2024 / college 2023-2024 too, stored in
+  `data/<lg>/history/` by `fb_history.py`, never in `latest/`): 8 challengers a league, so
+  p < 0.01/8. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
@@ -916,6 +918,10 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No
                   PR, never main. status.py and the watchdog never import it.
+fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
+                  (nflverse, free; OAK stored as LV) and college 2023-2024 schedules
+                  + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
+                  `nfl-logs` / `cfb-probe`. ⛔ Never in latest/; never raises.
 fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   and FBS-vs-FBS college games within 7 days at outdoor US
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"

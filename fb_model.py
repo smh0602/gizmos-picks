@@ -466,6 +466,8 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     if CHAMPION.get(lg):                 # ⛔ None reads none of the challengers' files
         import fb_challengers
         fb_challengers.attach(CHAMPION[lg], lg, rows, root)
+        if fb_challengers.CHALLENGERS[CHAMPION[lg]].get("history"):     # T70: more seasons
+            rows = rows + fb_challengers.history_rows(lg, root)
     return rows
 
 

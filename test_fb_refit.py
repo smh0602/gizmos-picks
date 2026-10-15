@@ -501,8 +501,8 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
 # `[Sam, 2026-10-15]` ~~2 and 3~~: T68 (§3b) adds AV and WX in each league; T69 (§3c)
 #    adds IN, AT, RS (NFL) and ATC, RSC (college).
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AT", "AV", "E", "IN", "RS", "S", "WX"], "ncaaf": ["ATC", "AVC", "P", "RSC", "T", "TS", "WXC"]},
-   "🔴 so alpha divides by 7 in the NFL and 7 in college")
+   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "WX"], "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "T", "TS", "WXC"]},
+   "🔴 so alpha divides by 8 in the NFL and 8 in college (T70 adds H, HC)")
 eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
     R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
    ["2026-10-19", "2026-10-19", "2026-10-26", None],

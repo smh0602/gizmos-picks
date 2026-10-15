@@ -189,6 +189,38 @@ count (§2).
   P, T, TS, AVC, WXC, ATC, RSC = 7 -> p < 0.01 / 7 (fewer if any is withdrawn,
   §3). Everything else as §2 and §3.
 
+## 3d. T70 — more seasons (frozen)
+
+Sam, 2026-10-15, *"do all changes"*: the NFL game model learns from about 361
+games (2025-26, the only seasons stored) and college from about 1,040. Defined
+here before any result.
+
+- **History data** (written once while missing by the daily run, never into
+  `latest/`, so the champion's ratings are untouched):
+  - NFL 2018-2024: `data/nfl/history/schedule-<season>.json.gz`, built by
+    `nfl.build_schedule` from nflverse's games file (free); Oakland's `OAK` is
+    stored as `LV`.
+  - College 2023-2024: `data/ncaaf/history/schedule-<season>.json.gz`
+    (`cfb.build_schedule`, CFBD /games) and `lines-<season>.json.gz` (CFBD
+    /lines, regular season, one line per game chosen by t60r's PROVIDER_ORDER,
+    stored in t60r's shape). Every CFBD call priced first by
+    `cfbd_budget.preflight` (2 + 1 per season).
+- **H (NFL) and HC (college):** inputs, every market: spread (own margin - line)
+  / 10, moneyline own margin / 10, total (own total - line) / 10, then neutral and
+  dome. Own margin and total by fb_model's frozen own-ratings solve
+  (`own_ratings`, `own_numbers`) over every final game in `latest/` AND
+  `history/` (one copy per date, home, away), dated before the row's Monday.
+  Trained on the 2025-26 rows plus one row per final history game (college FBS vs
+  FBS only), each labelled at its closing line by `fb_model.training_line`
+  (NFL: nflverse's closing lines; college: the lines file). Only these inputs,
+  because the champion's other inputs do not exist for the history seasons.
+- **Registration:** the first Monday after the PR that adds them is last
+  committed (2026-10-19 if before then), and no earlier than the first Monday its
+  history files exist on main for every history season (§2). ⛔ No withdrawal
+  rule.
+- **Counts and bar:** NFL 8, college 8 -> p < 0.01 / 8 (fewer if any is
+  withdrawn, §3).
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
@@ -217,3 +249,4 @@ count (§2).
 - 2026-10-15 — §3b T68 (AV, AVC, WX, WXC) added from Cowork's pre-registration of Sam's averages and weather; §2, §3 and §3a unchanged (test_prereg_gate.py pins everything before §3a and before §3b on its own).
 - 2026-10-15 — §3c T69 (IN, AT, ATC, RS, RSC) added at Sam's instruction ("do all changes"), defined before any of their results; §2 to §3b unchanged and pinned.
 - 2026-10-15 — §3c corrected BEFORE any result: the stored logs held only offensive snap shares, so every defender weighed 0; defenders are weighed by their defensive share (def_pct, now stored by nfl.py; 2025 rebuilt once by the daily run).
+- 2026-10-15 — §3d T70 (H, HC: more seasons) added at Sam's instruction, defined before any result; §2 to §3c unchanged and pinned.
