@@ -559,11 +559,23 @@ note boxes, tags and the stale bar now require their absence.
   sum to 1; `p_market` stays in the data for the record only. Expect the low 50s and few
   −200 favourites: that is the model being honest. `test_fb_props_own.py`. When the name check
   fails, only the records are withheld: a MODEL row keeps its % (Sam's choice; the
-  model matched the player itself). A row's one sentence is
+  model matched the player itself). A board row's one sentence is
   its record at the line, this season first (~~the average, the far-line warning, the
   small sample, the college note, "not a forecast", "no football model"~~).
   `fb_agreement` still compares the RECORD with the model (Sam's choice).
   `test_fb_props_confidence.py`.
+- 🔴 **EVERY FOOTBALL GIZMO'S PICKS PICK CARRIES ITS WHY.** `[Sam, 2026-10-15]`
+  *"i also want a "why" behind the picks underneath each gizmo picks pick"*.
+  `fb_why.explain` writes `why` on the liked lists only (`liked`,
+  `game_lines_liked`, copies of board rows): a prop gets his role (NFL: snaps,
+  targets or carries over his last 3 games), his record at the line this season,
+  what the opponent allows his position and its rank, the opponent's Out /
+  Doubtful defenders who guard him (NFL, latest report), and the model's chance
+  against the break-even; a game line keeps its sentence and adds the model's
+  predicted score and each team's points for and against. ⛔ It explains and
+  changes no pick, chance, rank or price. A fact it cannot find (an ambiguous
+  name, a team it cannot resolve) is left out, never guessed; a row whose why
+  fails keeps its old one. `test_fb_why.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -927,6 +939,11 @@ fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
                   never overwritten, "last" only before kickoff). Rides
                   `nfl-logs` / `cfb-probe`. ⛔ No model reads it yet; never raises.
+fb_why.py         THE WHY UNDER EACH FOOTBALL GIZMO'S PICKS PICK (Sam,
+                  2026-10-15): reader sentences from the stored logs,
+                  opponent tables, injury reports, schedule and
+                  fb-model.json, on the liked lists only. ⛔ Changes no
+                  pick, chance, rank or price; never raises.
 game_lines_fb.py  THE ALT LADDERS (~~THE GAME LINES TAB~~: `[Sam, 2026-10-01]`
                   no longer drawn; the tab is winners.py, and the card's
                   alternate spreads still read this file) (Sam, 2026-09-24): every alt spread

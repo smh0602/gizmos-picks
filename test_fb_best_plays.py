@@ -79,8 +79,8 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #
 # @vacuity 🔴 the card's liked props are checked against its own projections
 #   file: card_fb.py
-#   find:         "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
-#   with:         "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player"))),
+#   find:             best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
+#   with:             best_liked(rows, lambda r: (r.get("game_id"), r.get("player"))),
 #
 # @vacuity 🔴 a low-role player's over is never liked (snap share)
 #   file: card_fb.py
@@ -284,7 +284,7 @@ ck('row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season'
                                                                  "car": 3} for i in range(1, 6)]})
    == {"snap": 0.5, "tgt_share": 0.2, "car": 3.0},
    "🔴 the card stores each NFL row's role: means over his last 3 games")
-ck('"liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),'
+ck('best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),'
    in open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read(),
    "🔴 the card's liked props are checked against the card's own projections map")
 eq(len(RF.grade_card({"picks": ROWS[:3]}, {}, {}, None)), 3, "   ...and a card from before the switch as it was")
