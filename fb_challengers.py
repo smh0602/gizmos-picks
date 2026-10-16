@@ -15,7 +15,7 @@
     RS NFL / RSC college   T69: rest days
     H NFL / HC college     T70: own ratings, neutral, dome, trained on more seasons
     SM NFL / SMC college   T71: the score-first model's predicted margin and total
-                           (fb_score_model.py), the only input
+                           (the score-first model), the only input
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
 
