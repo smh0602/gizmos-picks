@@ -134,6 +134,10 @@ def plant(lg, tmp):
         card = {"date": d, "league": lg, "logs_season": 2025, "picks": picks}
         if d in PLANT_METHOD:
             card["card_method"] = PLANT_METHOD[d]
+            # `[2026-10-16]` the newest planted card carries a `liked` list, as every card has
+            #    since #267 (record_fb grades it in place of `picks`): the list the NEXT METHOD
+            #    probe once left settle-able (collect went red 10-16).
+            card["liked"] = [dict(x) for x in picks if x.get("confidence") is not None]
         json.dump(card, open(os.path.join(tmp, "picks", "fb-%s-%s.json" % (lg, d)),
                              "w", encoding="utf-8"))
 
@@ -181,6 +185,18 @@ def dated_cards(pdir, lg):
                   if not f.endswith("-latest.json"))
 
 
+UNSETTLED = "2099-12-31T00:00:00Z"
+
+
+def unsettled(card):
+    """`card` with every row of EVERY list kicking off beyond any log, so nothing on it can
+    settle. `[2026-10-16]` ~~only `picks`~~: since #267 record_fb grades a card's `liked`
+    list, and the copy's liked props (Thursday's, settled by the 07:29Z log) were graded
+    under the new method, so its record was no longer empty (collect red 10-16)."""
+    return {k: ([dict(r, commence=UNSETTLED) if isinstance(r, dict) and "commence" in r else r for r in v]
+                if isinstance(v, list) else v) for k, v in card.items()}
+
+
 def add_next_method_card(lg):
     """The night a new method goes live: a card dated after every other one,
     under a method nothing has graded yet.
@@ -198,12 +214,11 @@ def add_next_method_card(lg):
             d = (last + timedelta(days=k)).strftime("%Y-%m-%d")
             json.dump(dict(card, date=d), open(os.path.join(pdir, "fb-%s-%s.json" % (lg, d)),
                                                "w", encoding="utf-8"))
-        put(1, dict(json.load(open(fs[-1], encoding="utf-8")), picks=[]))     # games only
+        put(1, dict(json.load(open(fs[-1], encoding="utf-8")), picks=[], liked=[]))     # games only
         src = [c for c in (json.load(open(f, encoding="utf-8")) for f in dated_cards(pdir, lg)) if c.get("picks")][-1]
         # ⚠️ Kickoffs beyond any log, so nothing on it can settle — the
         #    state of a card the night it is published.
-        put(2, dict(src, card_method=PROBE_NEXT,
-                    picks=[dict(p, commence="2099-12-31T00:00:00Z") for p in src["picks"]]))
+        put(2, dict(unsettled(src), card_method=PROBE_NEXT))
     return m
 
 
