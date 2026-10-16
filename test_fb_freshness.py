@@ -525,7 +525,7 @@ for lg in ("nfl", "ncaaf"):
     # ⚠️ `[2026-09-23]` card-fb now also builds the pick model's file
     #    (fb_model.build, chained after the shadow record) — so it is one of
     #    "the ones it builds", and the check below proves the chain exists.
-    ck(all(p.endswith(("dossiers.json.gz", "fb-model.json", "fb-props-model.json",
+    ck(all(p.endswith(("dossiers.json.gz", "fb-model.json", "fb-props-model.json", "fb-score-model.json",
                        "card-calibration.json", "model-ledger.json",
                        "game-lines.json.gz", "game-lines-record.json",
                        "agreement.json", "winners.json")) for p in extra),
@@ -539,6 +539,9 @@ for lg in ("nfl", "ncaaf"):
     _bcf = _bcf[:_bcf.index("\ndef ", 1)]
     ck(("fb-model.json" not in " ".join(extra)) or "_fm.build(LEAGUE)" in _cfb,
        f"   🔴 {lg}: ...and card-fb really builds fb-model.json",
+       "⛔ a contract row on a file its mode never writes is late for ever")
+    ck(("fb-score-model.json" not in " ".join(extra)) or "_fsm.build(LEAGUE)" in _cfb,
+       f"   🔴 {lg}: ...and card-fb really builds fb-score-model.json",
        "⛔ a contract row on a file its mode never writes is late for ever")
     # `[Sam, 2026-10-01]` the Game Lines tab's winners, built by the same run.
     ck(("winners.json" not in " ".join(extra)) or "build_winners()" in _cfb,
