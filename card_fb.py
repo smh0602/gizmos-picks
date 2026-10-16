@@ -118,6 +118,7 @@ from datetime import datetime, timezone
 #    loudly rather than quietly publish a bar nobody chose.
 from calibration import MIN_N, band_flags
 import signal9                          # the ONE expected-share formula (signal 9)
+import fb_why                           # the why under each liked pick (Sam, 2026-10-15)
 
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
@@ -2485,8 +2486,9 @@ def main():
         # `[Sam, 2026-10-15]` what the board shows (and what record_fb grades): the
         #    game lines the model likes, one per game. `game_lines` stays today's
         #    list, for the page's "Above their price only" OFF view.
-        "game_lines_liked": best_liked([r for r in game_lines if r.get("kind") == "fb-line"],
-                                       lambda r: r.get("game"), GAME_LINES_MAX),
+        "game_lines_liked": fb_why.explain(
+            best_liked([r for r in game_lines if r.get("kind") == "fb-line"], lambda r: r.get("game"),
+                       GAME_LINES_MAX), LEAGUE, f"{DATA}/latest", kind="lines"),
         "game_lines_meta": gl_meta,
         "game_lines_rule": game_lines_rule(game_lines, gl_meta),
         "top_plays": top_plays,
@@ -2601,7 +2603,9 @@ def main():
         "college_note": None if LEAGUE == "nfl" else COLLEGE_NOTE,
         "picks": board,
         # `[Sam, 2026-10-15]` the same for props: one per player, by edge.
-        "liked": best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
+        "liked": fb_why.explain(       # `[Sam, 2026-10-15]` the why under each pick
+            best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
+            LEAGUE, f"{DATA}/latest"),
         "n_longshots_excluded": len(longshots),
         "price_ceiling": PRICE_CEIL,
         "market_max_share": MARKET_MAX_SHARE if not rated else None,

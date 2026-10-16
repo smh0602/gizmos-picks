@@ -153,6 +153,13 @@ def _imports_of(src):
                 names.extend(a.name for a in n.names)
             elif isinstance(n, ast.ImportFrom) and not n.level and n.module:
                 names.append(n.module)
+            elif (isinstance(n, ast.Call) and n.args and isinstance(n.args[0], ast.Constant)
+                  and isinstance(n.args[0].value, str)
+                  and ((isinstance(n.func, ast.Name) and n.func.id == "__import__")
+                       or (isinstance(n.func, ast.Attribute) and n.func.attr == "import_module"))):
+                # `[2026-10-15]` card_fb's `__import__("fb_why")` was invisible
+                #    here, and every isolated card tree went red without it.
+                names.append(n.args[0].value)
         _IMPORTS[key] = names
     return _IMPORTS[key]
 
