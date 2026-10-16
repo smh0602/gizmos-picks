@@ -69,13 +69,13 @@ file. ⛔ Reads no live data.
 #
 # @vacuity 🔴 a spread's score agrees when the margin beats ITS line
 #   file: fb_why.py
-#   find:         return r.get("line") is not None and m + float(r["line"]) > 0
+#   find:         return r.get("line") is not None and round(m + float(r["line"]), 6) > 0
 #   with:         return m > 0
 #
 # @vacuity 🔴 an under agrees when the total is BELOW the line
 #   file: fb_why.py
-#   find:         return t > r["line"] if side == "over" else t < r["line"]
-#   with:         return t > r["line"]
+#   find:         return d > 0 if side == "over" else d < 0
+#   with:         return d > 0
 #
 # @vacuity 🔴 a January game belongs to the season before
 #   file: fb_why.py

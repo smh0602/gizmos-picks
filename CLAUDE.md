@@ -508,8 +508,11 @@ note boxes, tags and the stale bar now require their absence.
   -3.5 beside "Purdue by 1.2"). Sam chose *"Must match the score: A spread or total pick, and a
   parlay's line leg, shows only when the predicted score lands on its side."* `one_side.score_keep`
   runs in `fb_model.current_picks` (after the one-team filter, on exactly `win_chances`' score),
-  `card_fb.card_game_lines` (the alternate spreads too) and `build_game_lines` (the same-game
-  parlays' line legs). Landing ON the number is not its side; no score, no pick. ⛔ Never inside
+  `card_fb.card_game_lines` (the alternate spread is the best rung the score COVERS, never a
+  richer one it does not) and `build_game_lines` (the same-game parlays' line legs: each game's
+  best leg on the score's side). Landing ON the number is not its side, compared after rounding
+  (21.1 - 14.1 - 7 is 1.8e-15 in binary); `fb_why.score_agrees` does the same; no score, no
+  pick. ⛔ Never inside
   `best_pick`: `walk_forward`'s record is unchanged. The Game Lines tab prints the score to one
   decimal (~~whole numbers~~), the precision picks are judged on. `test_one_side_score.py`.
 - 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`

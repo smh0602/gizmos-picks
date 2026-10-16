@@ -120,11 +120,13 @@ def score_side_ok(row, score, point):
     if not score or score.get("home") is None or score.get("away") is None or point is None:
         return False
     h, a = float(score["home"]), float(score["away"])
+    # ⚠️ compared after rounding: 21.1 - 14.1 - 7 is 1.8e-15 in binary, which is ON the number
     if total:
         s = str(row.get("side") or "").lower()
-        return (h + a > point) if s == "over" else (h + a < point) if s == "under" else False
+        d = round(h + a - point, 6)
+        return d > 0 if s == "over" else d < 0 if s == "under" else False
     b = backs(row)
-    return b in ("home", "away") and ((h - a) if b == "home" else (a - h)) + point > 0
+    return b in ("home", "away") and round(((h - a) if b == "home" else (a - h)) + point, 6) > 0
 
 
 def score_keep(rows, score, point=lambda r: r.get("line")):

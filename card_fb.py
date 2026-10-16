@@ -1422,14 +1422,17 @@ def model_game_rows(model_picks, games, slate):
     return rows
 
 
-def alt_spread_rows(model_rows, ladder):
+def alt_spread_rows(model_rows, ladder, score=None):
     """ONE alternate spread per game whose ladder is pulled and whose model
     pick includes a spread: on the model's side, off the main line, at
     PRICE_FLOOR or longer, ~~the rung with the highest books' chance (`mkt`)~~
     `[Sam, 2026-10-11]` the rung with the highest value above zero (`edge`)
     where the spread fit, priced at that rung's own line (`p`), gives 50%+.
     Its confidence is the model's own and its basis MODEL; a rung the model
-    cannot price gets no row. No eligible rung, or no ladder yet: no row."""
+    cannot price gets no row. No eligible rung, or no ladder yet: no row.
+    `[Sam, 2026-10-16]` Given `score` (one_side.scores_by_names), only a rung the
+    model's predicted score covers is eligible, so the best COVERED rung is chosen
+    (a richer rung past the predicted margin never hides it)."""
     lad = {(g.get("away"), g.get("home"), et_date(g.get("commence"))): g
            for g in (ladder or {}).get("games") or []}
     out = []
@@ -1442,7 +1445,9 @@ def alt_spread_rows(model_rows, ladder):
         ok = [x for x in g.get("spread") or [] if x.get("side") == r["side"]
               and x.get("best") is not None and x["best"] >= PRICE_FLOOR
               and x.get("p") is not None and x.get("pt") != main
-              and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
+              and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0
+              and (score is None or one_side.score_side_ok(
+                  {"market": "spread", "side": r["side"]}, score(r), x.get("pt")))]
         if not ok:
             continue
         x = max(ok, key=lambda x: (x["edge"], x["p"]))
@@ -1495,7 +1500,8 @@ def card_game_lines(model_picks, games, ladder, slate, win_chances=None):
     rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
     # `[Sam, 2026-10-16]` "Must match the score": every spread, alternate spread and total
     #    row lands on the side of the model's predicted score (win_chances' `score`).
-    rows, _ = one_side.score_keep(rows + alt_spread_rows(rows, ladder), one_side.scores_by_names(win_chances))
+    _score = one_side.scores_by_names(win_chances)
+    rows, _ = one_side.score_keep(rows + alt_spread_rows(rows, ladder, _score), _score)
     return order_game_lines(rows)
 
 

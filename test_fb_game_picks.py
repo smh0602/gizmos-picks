@@ -57,8 +57,8 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 ...and only a rung with value above zero
 #   file: card_fb.py
-#   find: and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
-#   with: and x["p"] >= GL_MIN_CONF]
+#   find: and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0
+#   with: and x["p"] >= GL_MIN_CONF
 #
 # @vacuity 🔴 no model row under 50%
 #   file: card_fb.py
@@ -67,8 +67,8 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #
 # @vacuity 🔴 no alternate spread under 50%
 #   file: card_fb.py
-#   find: and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
-#   with: and (x.get("edge") or 0) > 0]
+#   find: and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0
+#   with: and (x.get("edge") or 0) > 0
 #
 # @vacuity 🔴 at most 25 model rows
 #   file: card_fb.py
