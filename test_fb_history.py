@@ -189,8 +189,9 @@ section("3. 🔴 REGISTRATION, COUNTS, FRESHNESS")
 # ══════════════════════════════════════════════════════════════════════
 eq(R.registration("H", T), None, "🔴 H is not registered while any history season's file is missing (2019 here)")
 eq(R.registration("H", T, {"H": "2026-10-20"}), "2026-10-26", "   ...and once they all exist, the next Monday")
+# `[Sam, 2026-10-16]` ~~8 challengers a league, p < 0.01 / 8~~: T71 (§3e) adds SM, SMC.
 eq({lg: sum(1 for c in FC.CHALLENGERS.values() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": 8, "ncaaf": 8}, "🔴 8 challengers a league, p < 0.01 / 8")
+   {"nfl": 9, "ncaaf": 9}, "🔴 9 challengers a league, p < 0.01 / 9")
 P = tree()
 rows = F.contract(P + "/data/nfl", P + "/picks", None)
 hist = [r for r in rows if "/history/" in r[1][1]]

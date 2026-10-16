@@ -309,8 +309,12 @@ note boxes, tags and the stale bar now require their absence.
   sides of the ball: Out/Doubtful weighted by offensive or DEFENSIVE snap share, starting QB
   out), AT/ATC (Sam's averages blended into totals) and RS/RSC (rest); T70 (§3d) adds H/HC
   (own ratings, neutral, dome, trained on NFL 2018-2024 / college 2023-2024 too, stored in
-  `data/<lg>/history/` by `fb_history.py`, never in `latest/`): 8 challengers a league, so
-  p < 0.01/8. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
+  `data/<lg>/history/` by `fb_history.py`, never in `latest/`): ~~8 challengers a league, so
+  p < 0.01/8~~. `[Sam, 2026-10-16]` T71 (§3e) adds SM/SMC, the score-first model
+  (`fb_score_model.py`'s predicted margin and total, the only input; registered from the
+  first Monday ~~on or after~~ AFTER its merge day (a Monday merge counts from the next
+  Monday), no earlier than 2026-10-19, read from git): 9 challengers a league, so
+  p < 0.01/9. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
@@ -962,7 +966,9 @@ fb_challengers.py T65's frozen challengers to the football game model
                   (college PPA, the same solve), T (college talent in the
                   margin solve); T66 adds S (NFL, fewer inputs) and TS (college,
                   talent, few inputs); T68 AV/AVC, WX/WXC; T69 IN (NFL injuries both
-                  sides), AT/ATC, RS/RSC. fb_model reads it only for a named CHAMPION.
+                  sides), AT/ATC, RS/RSC; T70 H/HC; `[2026-10-16]` T71 SM/SMC (the
+                  score-first model's margin and total, the only input). fb_model
+                  reads it only for a named CHAMPION.
 fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No

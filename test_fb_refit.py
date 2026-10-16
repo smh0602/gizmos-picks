@@ -118,6 +118,101 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:     return [inp] if inp else []          # T66's S reads no file of its own
 #   with:     return [inp]          # T66's S reads no file of its own
 #
+# @vacuity 🔴 T71: SM's spread input is (predicted margin - line) / 10
+#   file: fb_challengers.py
+#   find:         return [(0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else
+#   with:         return [(0.0 if m is None or M is None else m / 10.0) if market == "spread" else
+#
+# @vacuity 🔴 T71: SM's number is the score model's own predicted margin AND total
+#   file: fb_challengers.py
+#   find:         got = {id(p["row"]): (p["margin"], p["total"]) for p in done}
+#   with:         got = {id(p["row"]): (p["margin"], p["margin"]) for p in done}
+#
+# @vacuity 🔴 T71: the merge day comes from main's first-parent line, not the PR's own commit
+#   file: fb_refit.py
+#   find:     r = subprocess.run(["git", "log", "--first-parent", "--format=%cs", "-S", needle, "--", "fb_challengers.py"],
+#   with:     r = subprocess.run(["git", "log", "--format=%cs", "-S", needle, "--", "fb_challengers.py"],
+#
+# @vacuity 🔴 T71: registration is the later of 2026-10-19 and the Monday after the merge day
+#   file: fb_refit.py
+#   find:         return max(start, monday_on_or_after(after)) if after else None
+#   with:         return start
+#
+# @vacuity 🔴 T71: ...AFTER it: a Monday merge counts from the next Monday
+#   file: fb_refit.py
+#   find:         after = (datetime.date.fromisoformat(merged) + datetime.timedelta(days=1)).isoformat() if merged else None
+#   with:         after = merged
+#
+# @vacuity 🔴 T71: a challenger that cannot be built against the champion is NOT APPLICABLE, never a crash
+#   file: fb_challengers.py
+#   find:     return all(max(KEEP[name][mk]) < len(FM.features(r, mk)) for mk in CHALLENGERS[name]["markets"])
+#   with:     return True
+#
+# @vacuity 🔴 T71: ...and league() reports it so instead of fitting it
+#   file: fb_refit.py
+#   find:         if reg and rows and not FC.applies(n, rows[0]):
+#   with:         if False:
+#
+# @vacuity 🔴 T71: SM / SMC's numbers are pinned: the matchup layer
+#   file: fb_score_model.py
+#   find:             home = b[0] + sum(c * x for c, x in zip(beta, f[0]))
+#   with:             home = b[0]
+#
+# @vacuity 🔴 T71: ...and what fb_matchups counts as passing yards
+#   file: fb_matchups.py
+#   find:                 c["pass_yds"] += float(g.get("pass_yds") or 0)
+#   with:                 c["pass_yds"] += float(g.get("pass_yds") or 0) * (pos == "QB")
+#
+# @vacuity 🔴 T71: ...and what fb_matchups counts as rushing yards
+#   file: fb_matchups.py
+#   find:                 c["rush_yds"] += float(g.get("rush_yds") or 0)
+#   with:                 c["rush_yds"] += float(g.get("rush_yds") or 0) * (pos == "RB")
+#
+# @vacuity 🔴 T71: ...and carries
+#   file: fb_matchups.py
+#   find:                 c["rush_car"] += float(g.get("car") or 0)
+#   with:                 c["rush_car"] += float(g.get("car") or 0) * (pos == "RB")
+#
+# @vacuity 🔴 T71: ...and plays (pace)
+#   file: fb_matchups.py
+#   find:             c["plays"] = c["pass_att"] + c["rush_car"]
+#   with:             c["plays"] = c["pass_att"]
+#
+# @vacuity 🔴 T71: league() itself builds SM's input
+#   file: fb_refit.py
+#   find:         FC.attach(n, lg, rows, root)
+#   with:         FC.attach(n, lg, rows, root) if n != "SM" else None
+#
+# @vacuity 🔴 T71: ...for SMC too (league() is run for college as well)
+#   file: fb_refit.py
+#   find:         FC.attach(n, lg, rows, root)
+#   with:         FC.attach(n, lg, rows, root) if n != "SMC" else None
+#
+# @vacuity 🔴 T71: ...and SM is fitted on the input built BEFORE the contest, never on zeros
+#   file: fb_refit.py
+#   find:                            fits=challenger_fits(rows, n, lg, root) if reg else None))
+#   with:                            fits=challenger_fits([dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in rows], n, lg, root) if reg else None))
+#
+# @vacuity 🔴 T71: the pins see rushing by every position, not QBs and RBs only
+#   file: fb_matchups.py
+#   find:                 c["rush_yds"] += float(g.get("rush_yds") or 0)
+#   with:                 c["rush_yds"] += float(g.get("rush_yds") or 0) * (pos in ("QB", "RB"))
+#
+# @vacuity 🔴 T71: ...and pass attempts by every position, not QBs only
+#   file: fb_matchups.py
+#   find:                 c["pass_att"] += float(g.get("att") or 0)
+#   with:                 c["pass_att"] += float(g.get("att") or 0) * (pos == "QB")
+#
+# @vacuity 🔴 T71: the Monday email says NOT APPLICABLE in words
+#   file: status.py
+#   find:             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
+#   with:             "NOT APPLICABLE ": "not applicable against the current champion (how it should read is yours "
+#
+# @vacuity 🔴 T71: the Monday job checks out full history
+#   file: .github/workflows/fb-refit.yml
+#   find:           fetch-depth: 0
+#   with:           fetch-depth: 1
+#
 # @vacuity 🔴 a report over 8 days old is said, and DEGRADED in health
 #   file: watchdog.py
 #   find:         if doc and (age is None or age > FB_REFIT_STALE_DAYS):
@@ -500,9 +595,11 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
    "🔴 S is NFL, TS college, both on all three markets, neither withdrawable")
 # `[Sam, 2026-10-15]` ~~2 and 3~~: T68 (§3b) adds AV and WX in each league; T69 (§3c)
 #    adds IN, AT, RS (NFL) and ATC, RSC (college).
+# `[Sam, 2026-10-16]` ~~8 and 8~~: T71 (§3e) adds SM and SMC.
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "WX"], "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "T", "TS", "WXC"]},
-   "🔴 so alpha divides by 8 in the NFL and 8 in college (T70 adds H, HC)")
+   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "SM", "WX"],
+    "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "SMC", "T", "TS", "WXC"]},
+   "🔴 so alpha divides by 9 in the NFL and 9 in college (T71 adds SM, SMC)")
 eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
     R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
    ["2026-10-19", "2026-10-19", "2026-10-26", None],
@@ -519,3 +616,210 @@ ck(not ts["withdrawn"] and ts["history"]["predictions"] == 120 and ts["scored"][
 eq((F.champion_inputs("nfl", {"nfl": "S"}), F.champion_inputs("ncaaf", {"ncaaf": "TS"})),
    ([], [("talent-{s}.json.gz", None)]),
    "🔴 a champion S adds no freshness row (it reads no file of its own); TS adds talent's")
+
+# ══════════════════════════════════════════════════════════════════════
+section("9. 🔴 T71 (§3e): SM AND SMC, THE SCORE-FIRST MODEL, ONE INPUT, ALL THREE MARKETS")
+# ══════════════════════════════════════════════════════════════════════
+import fb_matchups as MT  # noqa: E402
+import fb_score_model as SCM  # noqa: E402
+T9 = tree()
+plant(T9, GAMES)
+_sm = {}
+for _t in (T9, T1):                      # T1 also holds games dated 09-28 and 09-30
+    _rs = [row("x", "nfl", "2026-10-01", "AAA", "CCC")]
+    FC.attach("SM", "nfl", _rs, _t)
+    _sm[_t] = _rs[0]["sig"]["score"]
+_want = [(p["margin"], p["total"]) for p in
+         SCM.walk_forward([row("x", "nfl", "2026-10-01", "AAA", "CCC")], MT.Tables("nfl", T9))][0]
+ck(_sm[T9] is not None and _sm[T9] == _want,
+   "🔴 SM's number is fb_score_model's own predicted margin and total", (_sm[T9], _want))
+eq(_sm[T1], _sm[T9], "🔴 ...and games dated on or after the row's Monday (09-28, 09-30) change nothing")
+Z = row("z", "nfl", "2026-10-25", "AAA", "CCC", M=3.0, T=45.0)
+Z["sig"]["score"] = (5.0, 47.0)
+eq({mk: r6(R.challenger_feat("SM")(Z, mk)) for mk in FM.MARKETS},
+   {"spread": [0.2], "moneyline": [0.5], "total": [0.2]},
+   "🔴 SM: ONLY (m - line) / 10, m / 10, (t - line) / 10, none of the champion's inputs")
+eq(r6(R.challenger_feat("SMC")(Z, "spread", M=7.0)), [-0.2], "   ...at the line being priced")
+eq({mk: R.challenger_feat("SMC")(dict(Z, sig=dict(Z["sig"], score=None)), mk) for mk in FM.MARKETS},
+   {mk: [0.0] for mk in FM.MARKETS}, "   ...and no prediction is 0")
+eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS.items() if n in ("SM", "SMC")},
+   {"SM": ("nfl", ("spread", "total", "moneyline"), False),
+    "SMC": ("ncaaf", ("spread", "total", "moneyline"), False)},
+   "🔴 SM is NFL, SMC college, both on all three markets, neither withdrawable")
+for _n in ("SM", "SMC"):
+    _c = R.contest([], champ3, _n, "2026-10-19", "2026-10-19", fits=ok_s)
+    ck(not _c["withdrawn"] and _c["history"]["predictions"] == 120 and _c["scored"]["predictions"] == 120,
+       "🔴 %s is scored like every challenger: only weeks from its registration, all three markets" % _n)
+_al = {lg: R.verdicts([dict(scored(300, 0.05, 0.001), name=n) for n, c in FC.CHALLENGERS.items()
+                       if c["league"] == lg])[0]["alpha"] for lg in ("nfl", "ncaaf")}
+ck(all(abs(a - 0.01 / 9) < 1e-12 and a < 0.01 / 8 for a in _al.values()),
+   "🔴 the divisor is 9 in each league: every bar is stricter than 0.01 / 8, never looser", _al)
+# `[2026-10-16]` ~~the first Monday on or after the merge day (10-19 -> 10-19)~~: AFTER it (§3e).
+eq([R.registration("SM", T1, {"SM": d}) for d in ("2026-10-16", "2026-10-19", "2026-10-21", "2026-10-26", None)],
+   ["2026-10-19", "2026-10-26", "2026-10-26", "2026-11-02", None],
+   "🔴 registration: the later of 2026-10-19 and the first Monday AFTER the merge day (a Monday merge "
+   "counts from the next Monday)")
+G9 = tree()
+
+
+def _git(*a, date="2026-10-10T12:00:00Z"):
+    env = dict(os.environ, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date)
+    return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+                          + list(a), cwd=G9, env=env, capture_output=True, text=True, check=True)
+
+
+_git("init", "-q", "-b", "main")
+open(os.path.join(G9, "fb_challengers.py"), "w", encoding="utf-8").write("CHALLENGERS = {}\n")
+_git("add", "-A")
+_git("commit", "-q", "-m", "base")
+_git("checkout", "-q", "-b", "pr")
+open(os.path.join(G9, "fb_challengers.py"), "w", encoding="utf-8").write(
+    'CHALLENGERS = {\n    "SM": {"league": "nfl", "what": "score model"},\n}\n')
+_git("commit", "-q", "-am", "the PR's own commit", date="2026-10-16T02:00:00Z")
+_git("checkout", "-q", "main")
+_git("merge", "-q", "--no-ff", "pr", "-m", "merge", date="2026-10-21T15:00:00Z")
+eq((R.merged_on("SM", G9), R.registration("SM", G9), R.merged_on("SM", T9)), ("2026-10-21", "2026-10-26", None),
+   "🔴 the merge day is read from main's first-parent line (the PR's own commit was 10-16); no git, no date")
+eq(F.champion_inputs("nfl", {"nfl": "SM"}) + F.champion_inputs("ncaaf", {"ncaaf": "SMC"}), [],
+   "a champion SM or SMC adds no freshness row (it reads no file of its own)")
+
+# ══════════════════════════════════════════════════════════════════════
+section("10. 🔴 AGAINST EVERY CHAMPION, EVERY CHALLENGER BUILDS OR IS NOT APPLICABLE")
+# ══════════════════════════════════════════════════════════════════════
+_na, _crash = [], []
+for _lg in ("nfl", "ncaaf"):
+    _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == _lg]
+    _r = row("p", _lg, "2026-10-25", "AAA", "CCC")
+    _old = FM.CHAMPION[_lg]
+    try:
+        for _ch in _names:
+            FM.CHAMPION[_lg] = _ch
+            for _o in _names:
+                if _o == _ch:
+                    continue
+                if not FC.applies(_o, _r):
+                    _na.append((_ch, _o))
+                    continue
+                for _mk in FM.MARKETS:
+                    try:
+                        R.challenger_feat(_o)(_r, _mk)
+                    except Exception as _e:  # noqa: BLE001
+                        _crash.append((_ch, _o, _mk, type(_e).__name__))
+    finally:
+        FM.CHAMPION[_lg] = _old
+eq(_crash, [], "🔴 against every champion, every other challenger's inputs build in all three markets")
+eq(sorted(_na), [("H", "S"), ("HC", "TS"), ("SM", "S"), ("SMC", "TS")],
+   "🔴 ...or it is NOT APPLICABLE: exactly S and TS against a champion with shorter lists (H, HC, SM, SMC)")
+
+# ══════════════════════════════════════════════════════════════════════
+section("11. 🔴 SM AND SMC ARE PINNED: #275's NUMBERS ON A PLANTED LEAGUE WITH PLAYER LOGS")
+# ══════════════════════════════════════════════════════════════════════
+T11 = tree()
+_rr = random.Random(71)
+_tm = ["T%d" % i for i in range(8)]
+_rot, _rounds = _tm[:], []
+for _ in range(7):
+    _rounds.append([(_rot[i], _rot[-1 - i]) for i in range(4)])
+    _rot = [_rot[0], _rot[-1]] + _rot[1:-1]
+_sch, _logs = [], {}
+for _w in range(42):                     # 168 final games, 336 sides, before the pinned Sunday
+    _day = (datetime.date(2025, 9, 7) + datetime.timedelta(weeks=_w)).isoformat()
+    for _j, (_h, _a) in enumerate(_rounds[_w % 7]):
+        _h, _a = (_a, _h) if _w % 2 else (_h, _a)
+        _gid, _pts = "g%d_%d" % (_w, _j), {}
+        for _o in (_h, _a):
+            _pa, _ru, _pl = _rr.randint(150, 330), _rr.randint(60, 190), _rr.randint(52, 72)
+            # each its own draw, so a rushing, carry or pace edit moves the numbers
+            _qc, _qr, _rc = _rr.randint(0, 9), _rr.randint(-5, 60), _rr.randint(16, 34)
+            _wc, _tp = _rr.choice((0, 0, 1, 2)), _rr.choice((0, 0, 0, 40))   # WR carries, trick passes
+            _wy = _wc * _rr.randint(-2, 9)
+            _pts[_o] = _rr.randint(3, 45) + (_pa - 240) // 25 + (_ru + _qr - 125) // 30
+            for _pos, _st in (("QB", {"att": _pl // 2, "pass_yds": _pa - 20, "car": _qc, "rush_yds": _qr}),
+                              ("RB", {"car": _rc, "rush_yds": _ru - 10, "rec_yds": 15, "tgt": 4}),
+                              ("WR", {"rec_yds": _pa - 50, "tgt": 18, "pass_yds": _tp,
+                                      "att": 1 if _tp else 0, "car": _wc, "rush_yds": _wy}),
+                              ("TE", {"rec_yds": 35, "tgt": 6})):
+                _logs.setdefault(_o + _pos, {"name": _o + _pos, "pos": _pos, "g": []})["g"].append(
+                    dict(_st, d=_day, game_id=_gid, team=_o))
+        _sch.append({"id": _gid, "start": _day + "T17:00", "home": _h, "away": _a, "final": True,
+                     "neutral": _j == 3 and _w % 5 == 0, "home_score": max(0, _pts[_h]),
+                     "away_score": max(0, _pts[_a])})
+_rows11 = {}
+for _lg in ("nfl", "ncaaf"):
+    put(T11, "data/%s/latest/schedule-2025.json.gz" % _lg, {"season": 2025, "games": _sch})
+    put(T11, "data/%s/latest/players-2025.json.gz" % _lg, {"players": _logs})
+    _rs = [row(g["id"], _lg, g["start"][:10], g["home"], g["away"], season=2025, hs=g["home_score"],
+               **{"as": g["away_score"]}) for g in _sch]
+    for _x, g in zip(_rs, _sch):
+        _x["sig"]["neutral"] = 1.0 if g["neutral"] else 0.0
+    _rs += [row("pin1", _lg, "2026-06-28", "T1", "T2", final=False, hs=None, **{"as": None}),
+            row("pin2", _lg, "2026-06-28", "T3", "T4", final=False, hs=None, **{"as": None})]
+    _rs[-1]["sig"]["neutral"] = 1.0
+    FC.attach("SM" if _lg == "nfl" else "SMC", _lg, _rs, T11)
+    _rows11[_lg] = _rs
+_got = {lg: [tuple(round(v, 6) for v in r["sig"]["score"]) for r in _rows11[lg][-2:]] for lg in _rows11}
+_beta = SCM.walk_forward(_rows11["nfl"], MT.Tables("nfl", T11))[-1]["beta"]
+ck(all(abs(b) > 1e-6 for b in _beta), "the planted logs run the pass, rush and pace tables and fit all three weights",
+   _beta)
+PIN = [(5.998657, 37.615287), (2.586446, 47.162239)]   # recorded from #275's code, 2026-10-16
+ck(all(abs(a - b) < 1e-6 for lg in _got for x, y in zip(_got[lg], PIN) for a, b in zip(x, y)),
+   "🔴 SM's and SMC's predicted (margin, total) are the numbers #275's code gives (a change is a new challenger)",
+   _got)
+
+# ══════════════════════════════════════════════════════════════════════
+section("12. 🔴 THE MONDAY JOB READS FULL GIT HISTORY (REGISTRATION DATES COME FROM IT)")
+# ══════════════════════════════════════════════════════════════════════
+import re  # noqa: E402
+import wfparse  # noqa: E402
+_deep = {}
+for _f in (".github/workflows/fb-refit.yml", "docs/upload/fb-refit.yml"):
+    _p = os.path.join(ROOT, _f)
+    if not os.path.exists(_p):
+        continue
+    _src = open(_p, encoding="utf-8").read()
+    _ln = _src.splitlines()
+    _co = [s for s in wfparse.steps(_src) if any("actions/checkout@" in x for x in _ln[s.start:s.end])]
+    _deep[_f] = bool(_co) and all(re.search(r"(?m)^\s*fetch-depth:\s*0\s*$", "\n".join(_ln[s.start:s.end]))
+                                  for s in _co)
+ck(".github/workflows/fb-refit.yml" in _deep and all(_deep.values()),
+   "🔴 every copy of fb-refit.yml checks out with fetch-depth: 0 (a shallow clone gives the tip's date)", _deep)
+
+# ══════════════════════════════════════════════════════════════════════
+section("13. 🔴 league() SCORES EVERY REGISTERED CHALLENGER; ONE IT CANNOT BUILD IS NOT APPLICABLE")
+# ══════════════════════════════════════════════════════════════════════
+for _lg, _sm in (("nfl", "SM"), ("ncaaf", "SMC")):
+    _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == _lg]
+    _bare = [dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in _rows11[_lg]]
+    _lgd = R.league(_lg, T11, NOW, rows=_bare, added={n: "2025-01-01" for n in _names})
+    ck([r["sig"].get("score") for r in _bare] == [r["sig"]["score"] for r in _rows11[_lg]]
+       and sum(1 for r in _bare if r["sig"].get("score")) > 100,
+       "🔴 %s: league() builds %s's input itself: rows handed in without it get the score model's own "
+       "numbers" % (_lg, _sm))
+    _byn = {x["name"]: x for x in _lgd["challengers"]}
+    ck(sorted(_byn) == sorted(_names) and all(x["history"]["predictions"] > 0 for x in _byn.values()),
+       "🔴 %s: every challenger, %s included, is fitted and scored by league()" % (_lg, _sm),
+       {n: (x.get("verdict"), x.get("history", {}).get("predictions")) for n, x in _byn.items()})
+    _pre = [dict(r, sig=dict(r["sig"])) for r in _rows11[_lg]]       # already carry the score
+    _want = R.contest(_pre, R.Fits(_pre, FM.features), _sm, "2026-10-19", "2026-10-19",
+                      fits=R.Fits(_pre, R.challenger_feat(_sm)))["history"]
+    eq(_byn[_sm]["history"], _want, "🔴 %s: league() scores %s on the numbers it built BEFORE the contest, "
+       "not on zeros" % (_lg, _sm))
+_names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == "nfl"]
+_old = FM.CHAMPION["nfl"]
+try:
+    FM.CHAMPION["nfl"] = "SM"
+    _lgs = R.league("nfl", T11, NOW, rows=[dict(r, sig=dict(r["sig"])) for r in _rows11["nfl"]],
+                    added={n: "2025-01-01" for n in _names})
+finally:
+    FM.CHAMPION["nfl"] = _old
+_bys = {x["name"]: x for x in _lgs["challengers"]}
+ck(_bys["S"]["verdict"] == "NOT APPLICABLE" and _bys["S"]["alpha"] == 0.01 / 8
+   and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n != "S"),
+   "🔴 with SM champion, S is NOT APPLICABLE (still in the divisor) and the rest are scored, no crash",
+   {n: x.get("verdict") for n, x in _bys.items()})
+_sum = S.refit_summary(_lgs, "NFL", NOW)
+_s_line = _sum[_sum.find("Challenger S (fewer inputs):"):].split(". Challenger")[0]
+ck(_s_line.startswith("Challenger S (fewer inputs): not applicable against the current champion")
+   and "scored predictions" not in _s_line,
+   "🔴 the Monday email says S is not applicable, in words, and claims no scored predictions", _s_line)
+eq(S.refit_wins(_lgs, "NFL"), [], "   ...and puts nothing under \"Needs you\"")

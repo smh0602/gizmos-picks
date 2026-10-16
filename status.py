@@ -109,7 +109,9 @@ def refit_summary(doc, name, now):
         v, s = x["verdict"], x.get("scored") or {}
         out.append("Challenger %s (%s): %s." % (x["name"], x["what"], {
             "NO DATA": "its data is not stored yet",
-            "WITHDRAWN": "withdrawn, it was worse on past games"}.get(v, "%d of %d scored predictions, %s" % (
+            "WITHDRAWN": "withdrawn, it was worse on past games",
+            "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
+                              "to decide)"}.get(v, "%d of %d scored predictions, %s" % (
                 s.get("predictions") or 0, 300, {"NOT YET MEASURABLE": "not yet measurable",
                                                  "NOT YET": "not better yet", "WINS": "it WINS"}.get(v, v)))))
     return " ".join(out)

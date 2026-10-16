@@ -14,6 +14,8 @@
     AT NFL / ATC college   T69: Sam's averages blended into the total
     RS NFL / RSC college   T69: rest days
     H NFL / HC college     T70: own ratings, neutral, dome, trained on more seasons
+    SM NFL / SMC college   T71: the score-first model's predicted margin and total
+                           (the score-first model), the only input
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
 
@@ -96,8 +98,18 @@ CHALLENGERS = {
            "files": ("../history/schedule-{s}.json.gz", "../history/lines-{s}.json.gz"), "seasons": (2023, 2024),
            "key": "h_own", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
            "history": True},
+    # `[Sam, 2026-10-16]` T71 (§3e): the score-first model, registered from the first
+    #    Monday AFTER the day its entry reaches main (a Monday merge counts from the next
+    #    Monday), no earlier than 2026-10-19 (fb_refit.registration).
+    "SM": {"league": "nfl", "what": "score model", "markets": ("spread", "total", "moneyline"),
+           "files": (), "key": "score", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
+           "on_merge": True},
+    "SMC": {"league": "ncaaf", "what": "score model", "markets": ("spread", "total", "moneyline"),
+            "files": (), "key": "score", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
+            "on_merge": True},
 }
 HIST = ("H", "HC")
+SCORE = ("SM", "SMC")
 SAM = ("AV", "AVC")
 AT = ("AT", "ATC")
 RS = ("RS", "RSC")
@@ -470,6 +482,14 @@ def attach(name, lg, rows, root=None):
         return rows
     if name in HIST:
         return h_own(lg, rows, root)
+    if name in SCORE:                    # §3e: fb_score_model's own walk-forward, as merged in #275
+        import fb_matchups
+        import fb_score_model
+        done = fb_score_model.walk_forward(rows, fb_matchups.Tables(lg, root))
+        got = {id(p["row"]): (p["margin"], p["total"]) for p in done}
+        for r in rows:
+            r["sig"]["score"] = got.get(id(r))
+        return rows
     if name in RS:
         days = rest_days(lg, root)
         for r in rows:
@@ -523,6 +543,16 @@ def attach(name, lg, rows, root=None):
     return rows
 
 
+def applies(name, r):
+    """`[2026-10-16]` Can challenger `name`'s frozen inputs be built against the current
+    CHAMPION? S's and TS's (§3a) are indexes into today's champion's lists; H, HC, SM
+    and SMC as champion have shorter ones, so there they cannot (fb_refit reports NOT
+    APPLICABLE; how S and TS should read then is Sam's to decide)."""
+    if name not in KEEP:
+        return True
+    return all(max(KEEP[name][mk]) < len(FM.features(r, mk)) for mk in CHALLENGERS[name]["markets"])
+
+
 def extend(name, r, market, x, M=None, T=None):
     """The inputs with challenger `name` applied. E, P: appended after the
     champion's (spread (margin - line) / 10, moneyline margin / 10). T: its own
@@ -535,7 +565,9 @@ def extend(name, r, market, x, M=None, T=None):
     T69: IN appends (away - home) qb/off/def outs on spread and moneyline, their
     sums on totals; AT, ATC replace the first total input with ((own total +
     sam_t) / 2 - T) / 10 (unchanged without sam_t); RS, RSC append rest / 7.
-    T70: H, HC are [own term (history ratings), neutral, dome] in every market."""
+    T70: H, HC are [own term (history ratings), neutral, dome] in every market.
+    T71: SM, SMC are ONLY the score model's term: spread (m - line) / 10, moneyline
+    m / 10, total (t - line) / 10."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
         return x
@@ -547,6 +579,13 @@ def extend(name, r, market, x, M=None, T=None):
              (0.0 if ot is None or T is None else (ot - T) / 10.0) if market == "total" else
              (0.0 if om is None else om / 10.0))
         return [v, r["sig"]["neutral"], r["sig"]["dome"]]
+    if name in SCORE:
+        m, t = r["sig"].get("score") or (None, None)
+        M = r["M"] if M is None else M
+        T = r["T"] if T is None else T
+        return [(0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else
+                (0.0 if t is None or T is None else (t - T) / 10.0) if market == "total" else
+                (0.0 if m is None else m / 10.0)]
     if name in KEEP:
         x = [x[i] for i in KEEP[name][market]]
         if name == "S" or market == "total":

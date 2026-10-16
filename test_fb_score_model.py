@@ -85,6 +85,11 @@ planted leagues with a pinned clock; nothing here reads the live data tree.
 #   find: import unicodedata
 #   with: import unicodedata  # fb_score_model
 #
+# @vacuity 🔴 ...and the contest names it only inside SM / SMC's own branch
+#   file: fb_challengers.py
+#   find: import statistics
+#   with: import statistics  # fb_score_model
+#
 # @vacuity 🔴 a build writes its own file and nothing else
 #   file: fb_score_model.py
 #   find: path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-score-model.json")
@@ -366,8 +371,18 @@ for f in sorted(glob.glob(os.path.join(ROOT, "*.py")) + glob.glob(os.path.join(R
     src = open(f, encoding="utf-8").read()
     if re.search(r"fb-score-model|\bfb_score_model\b", src):
         _named.append(b)
-eq(_named, ["collect.py", "fb_score_model.py", "freshness.py"],
-   "🔴 only collect.py's card-fb run, freshness and the module itself name the score model")
+# `[Sam, 2026-10-16]` "write the registration that enters the score-first model in the weekly
+#    contest": ~~collect.py, the module and freshness only~~, plus the contest's SM / SMC
+#    (fb_challengers.py), and there only inside their own `attach` branch. ⛔ Still no card,
+#    pick or page module; the card reads it only if Sam merges a champion branch naming SM.
+eq(_named, ["collect.py", "fb_challengers.py", "fb_score_model.py", "freshness.py"],
+   "🔴 only collect.py's card-fb run, freshness, the module itself and the contest name the score model")
+_fc = open(os.path.join(ROOT, "fb_challengers.py"), encoding="utf-8").read()
+_blk = _fc[_fc.index("    if name in SCORE:"):]
+_blk = _blk[:_blk.index("return rows")]
+_hits = lambda t: len(re.findall(r"fb-score-model|\bfb_score_model\b", t))  # noqa: E731
+ck(_hits(_blk) > 0 and _hits(_fc) == _hits(_blk),
+   "🔴 ...and fb_challengers.py names it only inside SM / SMC's attach branch", (_hits(_fc), _hits(_blk)))
 _src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
 _cfb = _src[_src.index('elif mode == "card-fb":'):_src.index('elif mode == "halftime-probe":')]
 ck(_cfb.index("left = build_card_fb()") < _cfb.index("_fsm.build(LEAGUE)"),

@@ -113,13 +113,29 @@ def first_added(paths, root=ROOT):
     return max(days) if days else None
 
 
+def merged_on(name, root=ROOT):
+    """§3e: the day challenger `name`'s entry first reached this checkout's
+    first-parent line (on main: its PR's merge day), or None without git history."""
+    needle = '"%s": {"league": "%s"' % (name, FC.CHALLENGERS[name]["league"])
+    r = subprocess.run(["git", "log", "--first-parent", "--format=%cs", "-S", needle, "--", "fb_challengers.py"],
+                       capture_output=True, text=True, cwd=root)
+    got = r.stdout.split() if r.returncode == 0 else []
+    return got[-1] if got else None
+
+
 def registration(name, root=ROOT, added=None):
     """§2: the later of its registration Monday (REGISTERED_FROM; T66's carry
     their own, §3a) and the first Monday on or after the day its data first
     exists for every season it reads. None: no data yet. A challenger that
-    reads no new file (S) is registered on its Monday."""
+    reads no new file (S) is registered on its Monday. §3e (T71): an `on_merge`
+    challenger, the later of its Monday and the first Monday AFTER its merge day
+    (~~on or after~~: a Monday-evening merge would score that night's game)."""
     c = FC.CHALLENGERS[name]
     start = c.get("registered_from", REGISTERED_FROM)
+    if c.get("on_merge"):
+        merged = (added or {}).get(name) if added and name in added else merged_on(name, root)
+        after = (datetime.date.fromisoformat(merged) + datetime.timedelta(days=1)).isoformat() if merged else None
+        return max(start, monday_on_or_after(after)) if after else None
     paths = [os.path.join(FC.latest(c["league"], root), f.format(s=s))
              for s in c.get("seasons", FM.SEASONS) for f in c["files"]]
     if not paths:
@@ -168,6 +184,8 @@ def verdicts(results):
         if not x["registered"]:
             continue
         x["alpha"] = ALPHA / k if k else None
+        if x.get("verdict") == "NOT APPLICABLE":      # §4: counted in k, never scored
+            continue
         s = x["scored"]
         if x["withdrawn"]:
             x["verdict"] = "WITHDRAWN"
@@ -313,6 +331,12 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     res = []
     for n in names:
         reg = registration(n, root, added)
+        if reg and rows and not FC.applies(n, rows[0]):
+            c = FC.CHALLENGERS[n]           # §4 `[2026-10-16]`: never a crash, never scored
+            res.append({"name": n, "what": c["what"], "markets": list(c["markets"]), "registered": reg,
+                        "scored_from": None, "withdrawn": False, "verdict": "NOT APPLICABLE",
+                        "why": "its frozen inputs cannot be built against champion %s" % champion})
+            continue
         res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
                            fits=challenger_fits(rows, n, lg, root) if reg else None))
     sb = {mk: gap(list(champ.predictions(mk, lambda r: r["season"] == SEASON).values()), mk)
