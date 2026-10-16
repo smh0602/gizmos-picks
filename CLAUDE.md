@@ -876,6 +876,11 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   ⛔ Its SECOND record (closing lines, college at an
                   assumed -110, labelled) is kept apart from the headline
                   and shown under it, never mixed in [Sam, 2026-09-23].
+                  ⚠️ `[2026-10-16]` A spread pick's `line` is M, the
+                  threshold on the HOME margin (= -home point), so a HOME
+                  pick's own point is -M. The page prints every model
+                  line through `fbPointText` (Cleveland +3.5 had shown
+                  "-3.5"); `test_fb_line_sign.py`.
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   stat distribution from the stored logs 2021-26, the
                   market line folded in from EARLIER priced weeks only,
