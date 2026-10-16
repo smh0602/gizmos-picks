@@ -4448,6 +4448,19 @@ async function fbModelLoad(lg){
   catch(e){ FBMODEL[lg] = null; }
   return FBMODEL[lg];
 }
+/* [2026-10-16] A model pick's line as the bettor reads it. ⛔ A game-model SPREAD pick
+   stores `line` as the threshold on the HOME margin (fb_model.book_lines: M = -home
+   point), so a HOME pick's own point is -M: Cleveland +3.5 printed "-3.5" and Kansas
+   City -8.5 printed "8.5" in Model picks and the ledger. The team's own point, signed,
+   exactly as the card prints it (card_fb.model_game_rows); anything else as stored.
+   Every model table prints a line through this, never the stored value raw. */
+function fbPointText(p){
+  const v = p && p.line != null && typeof p.line === 'object' ? p.line.value : (p ? p.line : null);
+  if (v == null) return null;
+  if (!/spread/.test(String(p.market || ''))) return String(v);
+  const pt = p.side === 'home' ? -v : v;
+  return (pt > 0 ? '+' : '') + String(pt === 0 ? 0 : pt);
+}
 function fbModelHtml(M){
   if (!M) return `<div class="panel"><h2>Model picks</h2>
     <p class="plain">The model's file has not been built yet.</p></div>`;
@@ -4467,7 +4480,7 @@ function fbModelHtml(M){
       <th>95% range</th><th>Graded since</th></tr></thead>`;
   const picks = (M.picks || []).map(p => `<tr><td>${fbEsc(p.game)}<br><span class="rec">${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
       <td>${mk[p.market]}</td><td><b>${fbEsc(p.team)}</b></td>
-      <td>${p.line && p.line.value != null ? labN(p.line) : ''}</td>
+      <td>${fbPointText(p) ?? ''}</td>
       <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
       <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
   return `<div class="panel">
@@ -4506,6 +4519,7 @@ async function fbLedgerLoad(lg){
   catch(e){ FBLEDGER[lg] = null; }
   return FBLEDGER[lg];
 }
+const fbLedgerPoint = p => fbPointText(p) != null ? ' ' + fbPointText(p) : '';   // the ledger's line, signed
 function fbLedgerHtml(LD){
   if (!LD) return `<div class="panel"><h2>What the model showed, graded</h2>
     <p class="plain">Nothing saved yet.</p></div>`;
@@ -4517,8 +4531,7 @@ function fbLedgerHtml(LD){
   const res = s => ({graded: '', void: 'Void', pending: 'Pending'})[s] ?? s;
   const picks = (LD.picks || []).map(p => `<tr><td>${fbKickDate(p.commence)}</td><td>${name[p.model] || p.model}</td>
      <td>${fbEsc(p.player || p.team || '')}<br><span class="rec">${fbEsc(p.game || '')}</span></td>
-     <td>${fbEsc(p.market_label || p.market || '')} <b>${fbEsc(String(p.side || '').replace(/^./, c => c.toUpperCase()))}${
-       p.line && p.line.value != null ? ' ' + p.line.value : ''}</b></td>
+     <td>${fbEsc(p.market_label || p.market || '')} <b>${fbEsc(String(p.side || '').replace(/^./, c => c.toUpperCase()))}${fbLedgerPoint(p)}</b></td>
      <td>${labN(p.price)} <span class="rec">${fbEsc(p.book || '')}</span></td><td>${labN(p.model_probability, '%')}</td>
      <td>${p.state === 'graded' ? (p.won ? '<b style="color:#1e8449">Hit</b>' : '<b style="color:#c0392b">Miss</b>') : res(p.state)}</td></tr>`).join('');
   return `<div class="panel">
@@ -4546,7 +4559,7 @@ function fbPropModelHtml(M){
   const side = s => ({over: 'Over', under: 'Under', yes: 'Yes'}[s] || s);
   const picks = shown.map(p => `<tr><td>${fbEsc(p.player)}<br><span class="rec">${fbEsc(p.game)} · ${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
       <td>${fbEsc(p.market_label || p.market)}</td>
-      <td><b>${side(p.side)}${p.line && p.line.value != null ? ' ' + p.line.value : ''}</b></td>
+      <td><b>${side(p.side)}${fbPointText(p) != null ? ' ' + fbPointText(p) : ''}</b></td>
       <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
       <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td>
       <td>${fbAgHtml(fbAgFind(FBAG[LEAGUE], p))}</td></tr>`).join('');
