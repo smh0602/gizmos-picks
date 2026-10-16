@@ -111,7 +111,7 @@ def keep_props(rows, key, value):
         if v is not None:
             best.setdefault(key(r), {})
             s = best[key(r)]
-            s[r["side"]] = max(v, s.get(r["side"], v))
+            s[r.get("side")] = max(v, s.get(r.get("side"), v))
     kept, dropped = [], []
     for r in rows or []:
         s = best.get(key(r)) if r.get("side") in TWO_SIDED else None
