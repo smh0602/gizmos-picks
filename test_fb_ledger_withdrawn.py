@@ -12,6 +12,21 @@ kept a pick "unless the game had no pick in any later snapshot". Planted snapsho
 #   find:                     chosen[(model, gid)] = (s["taken_at"], [])        # withdrawn: nothing graded
 #   with:                     pass
 #
+# @vacuity 🔴 each model withdraws on its OWN looks (never the other model's)
+#   file: fb_ledger.py
+#   find:             for gid, commence in ((s.get("looked_at") or {}).get(model) or {}).items():
+#   with:             for gid, commence in ((s.get("looked_at") or {}).get("game_model") or {}).items():
+#
+# @vacuity 🔴 the props model withdraws too
+#   file: fb_ledger.py
+#   find:                 if gid not in by_game and s["taken_at"] < (commence or ""):
+#   with:                 if model == "game_model" and gid not in by_game and s["taken_at"] < (commence or ""):
+#
+# @vacuity 🔴 a graded pick keeps its stored grade (never re-graded)
+#   file: fb_ledger.py
+#   find:             if p["key"] in stored:
+#   with:             if False:
+#
 # @vacuity 🔴 a look AFTER kickoff never withdraws a pick
 #   file: fb_ledger.py
 #   find:                 if gid not in by_game and s["taken_at"] < (commence or ""):
@@ -43,6 +58,7 @@ kept a pick "unless the game had no pick in any later snapshot". Planted snapsho
 #   with:                              },
 """
 import datetime
+import glob
 import gzip
 import json
 import os
@@ -113,6 +129,14 @@ S6 = {"taken_at": "2026-10-16T16:40:52Z", "game_model": [], "props_model": [pp("
       "looked_at": {"game_model": {"g1": K1}, "props_model": {"g1": K1}}}
 eq((picked([S5, S6]), picked([S5, S6], "props_model")), ([], [("g1", "2026-10-16T16:40:52Z")]),
    "🔴 each model is judged on its own: the game model withdrew g1, the props model still shows its pick")
+S7 = {"taken_at": "2026-10-16T16:40:52Z", "game_model": [gp("g1")], "props_model": [],
+      "looked_at": {"game_model": {"g1": K1}, "props_model": {"g1": K1}}}
+S8 = {"taken_at": "2026-10-16T16:40:52Z", "game_model": [], "props_model": [],
+      "looked_at": {"game_model": {"g1": K1}}}
+eq((picked([S5, S7], "props_model"), picked([S5, S7]), picked([S5, S8], "props_model")),
+   ([], [("g1", "2026-10-16T16:40:52Z")], [("g1", "2026-10-16T15:37:06Z")]),
+   "🔴 ...and the other way round: the PROPS model rated g1 and shows no pick, so its 15:37 pick is withdrawn "
+   "while the game model's newer pick stands; and when only the game model looked, the props pick is kept")
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 THE SNAPSHOT RECORDS EVERY UNSTARTED GAME EACH MODEL LOOKED AT")
@@ -147,8 +171,10 @@ try:
     # the pre-amendment 15:37 snapshot: g1 (not started yet) and gF (already final, graded once)
     _w(os.path.join(lg, "2026-10-10", "model-picks", "1500.json.gz"),
        {"taken_at": "2026-10-10T15:00:00Z", "game_model": [gp("gF", commence="2026-10-11T16:00:00Z")]}, gz=True)
+    # ⚠️ the stored grade says it WON, while the schedule below says the away pick lost:
+    #    only a ledger that never re-grades shows True
     _w(os.path.join(lg, "2026-10-11", "ledger-grades", "2300.json.gz"),
-       {"grades": [{"key": "game_model|gF|moneyline", "state": "graded", "won": False}]}, gz=True)
+       {"grades": [{"key": "game_model|gF|moneyline", "state": "graded", "won": True}]}, gz=True)
     _w(os.path.join(lg, "2026-10-16", "model-picks", "1537.json.gz"),
        {"taken_at": "2026-10-16T15:37:06Z", "game_model": [gp("g1")]}, gz=True)
     # the 16:40 build: the model still prices g1 but (one team per game) holds no pick for it
@@ -159,11 +185,14 @@ try:
         {"id": "gF", "final": True, "home_score": 30, "away_score": 20}]}, gz=True)
     _before = sorted((p["game_id"], p["snapshot"]) for p in LG.ledger_picks(LG.snapshots("ncaaf", _r)))
     _after = LG.build("ncaaf", _r, out=os.path.join(_r, "b.json"), when=T("2026-10-16T16:40:52Z"), log=Q)
+    _gf = [g for f in sorted(glob.glob(os.path.join(lg, "*", "ledger-grades", "*.json.gz")))
+           for g in json.load(gzip.open(f, "rt", encoding="utf-8"))["grades"] if g["key"] == "game_model|gF|moneyline"]
 finally:
     shutil.rmtree(_r, ignore_errors=True)
 _rows = lambda d: sorted((r["game"][:5], r["market"], r["state"], r["won"], r["shown_at"]) for r in d["picks"])  # noqa: E731
 eq(_before, [("g1", "2026-10-16T15:37:06Z"), ("gF", "2026-10-10T15:00:00Z")],
    "⚠️ the case exists: before the 16:40 build the ledger holds the old 15:37 g1 pick and the graded gF pick")
-eq(_rows(_after), [("North", "moneyline", "graded", False, "2026-10-10T15:00:00Z")],
+eq(_rows(_after), [("North", "moneyline", "graded", True, "2026-10-10T15:00:00Z")],
    "🔴🔴 the real build: the withdrawn g1 pick is gone from the ledger, and the pick graded on 10-11 "
-   "keeps its stored grade exactly")
+   "keeps its stored grade exactly (a win, though today's schedule would grade it a loss)")
+eq([g["won"] for g in _gf], [True], "🔴 ...and it is never graded a second time (no new grade is written for it)")
