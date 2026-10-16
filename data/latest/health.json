@@ -1,23 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-16T12:32:33Z",
+ "checked_at": "2026-10-16T12:40:19Z",
  "et_date": "2026-10-16",
  "healthy": false,
  "broken": 0,
- "degraded": 8,
+ "degraded": 11,
  "findings": [
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
    "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
-  {
-   "key": "stopped:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl has not updated since Fri 07:29Z",
-   "why": "fb-scores is past due with no collect run for nfl since then (oldest: fb-scores, due 2026-10-16T08:00Z). Nothing repairs this on its own; the next run that lands will.",
    "repair": null
   },
   {
@@ -49,10 +42,24 @@
    "repair": null
   },
   {
+   "key": "late:alt-lines:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl alt-lines was built 99 minutes after it was due",
+   "why": "due 2026-10-16T11:00Z, built 2026-10-16T12:38Z. GitHub started the run late; there is nothing to repair, and this clears when the next alt-lines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:card-fb:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl card-fb was built 70 minutes after it was due",
+   "why": "due 2026-10-16T11:30Z, built 2026-10-16T12:39Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:fb-scores:nfl",
    "severity": "DEGRADED",
-   "what": "nfl fb-scores was built 133 minutes after it was due",
-   "why": "due 2026-10-15T08:00Z, built 2026-10-15T10:12Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "what": "nfl fb-scores was built 280 minutes after it was due",
+   "why": "due 2026-10-16T08:00Z, built 2026-10-16T12:40Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -61,21 +68,35 @@
    "what": "nfl news was built 70 minutes after it was due",
    "why": "due 2026-10-15T14:05Z, built 2026-10-15T15:14Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
+  },
+  {
+   "key": "late:props-board:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl props-board was built 99 minutes after it was due",
+   "why": "due 2026-10-16T11:00Z, built 2026-10-16T12:38Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-player:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl props-player was built 98 minutes after it was due",
+   "why": "due 2026-10-16T11:00Z, built 2026-10-16T12:37Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "repair": null
   }
  ],
  "repairs": [],
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14700,
-  "pulled_at": "2026-10-16T12:31:18Z",
+  "balance": 14550,
+  "pulled_at": "2026-10-16T12:38:59Z",
   "reserve": 750,
   "warn_at": 2250,
   "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-16T12:31:18Z",
-  "source": "data/ncaaf/2026-10-16/props-player/1231.json.gz",
-  "readings_on_disk": 899,
+  "newest_paid_pull": "2026-10-16T12:38:59Z",
+  "source": "data/nfl/2026-10-16/props-player/1238.json.gz",
+  "readings_on_disk": 902,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
