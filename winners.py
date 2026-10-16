@@ -33,6 +33,7 @@ import json
 import os
 
 import daystore
+import one_side                  # expected_side: the ONE pick-to-win rule, read by every pick list
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SNAP, GRADES = "winner-picks", "winner-grades"
@@ -66,7 +67,7 @@ def make_row(gid, commence, away, home, p_home, px_home, px_away):
          "pick": None, "side": None, "chance": None, "price": None, "book": None}
     if p_home is None:
         return r
-    side = "home" if p_home >= 100 - p_home else "away"
+    side = one_side.expected_side(p_home)
     q = (px_home if side == "home" else px_away) or {}
     p = p_home if side == "home" else 100 - p_home
     r.update(side=side, pick=home if side == "home" else away, chance=int(round(p)),

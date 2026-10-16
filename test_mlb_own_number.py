@@ -144,8 +144,12 @@ def gl_rows(prices):
     games, board = [], []
     for i, (team, px) in enumerate(zip(("NYY", "BOS"), prices)):
         c = "2026-10-12T%02d:05:00Z" % (17 + 3 * i)
-        games.append({"home": team, "away": "TOR%d" % i, "commence": c, "home_id": i, "away_id": 9 + i,
+        # `[2026-10-16]` + game_pk and `win`, as every mlb-game-model.json game carries them
+        #    (the card keeps a side only on `win`'s expected winner, Sam 2026-10-16).
+        games.append({"game_pk": 500 + i, "home": team, "away": "TOR%d" % i, "commence": c,
+                      "home_id": i, "away_id": 9 + i,
                       "starters": {"home": {"id": 1, "name": "A"}, "away": {"id": 2, "name": "B"}},
+                      "win": {"home": 58.0, "away": 42.0},
                       "card": {"moneyline": {"home": 58.0, "away": 42.0}},
                       "expected_runs": {"home": 4.6, "away": 3.9}})
         board.append({"home": team, "away": "TOR%d" % i, "commence": c, "id": "b%d" % i,

@@ -47,6 +47,7 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (C2)
 import calibration as _calib  # noqa: E402  the ONE per-band "runs hot" rule
+import one_side  # noqa: E402  one team per game: the expected winner (Sam, 2026-10-16)
 
 MODEL_VERSION = "v5.0"
 
@@ -296,6 +297,10 @@ LAST_PITCHER_ROWS = []
 # ⚠️ In memory only, never published: every row main() indexed as PRICED,
 # so verify_card.py can ask whether the "p" flag sits on exactly those.
 LAST_PRICED_ROWS = []
+# ⚠️ In memory only: the game model main() built its game lines from (a dry run
+# never writes mlb-game-model.json), so verify_card.py judges one team per game
+# against THAT model's `win`, not a file on disk that may be older.
+LAST_GAME_MODEL = {}
 
 
 def hitter_band(conf):
@@ -2502,6 +2507,12 @@ def game_line_rows(model, board, day):
                         "starting against %s. The price %+d needs %s%%."
                         % (team, int(round(pr)), what, _r1(er.get(side)), _r1(er.get(other)),
                            sp[side].get("name"), sp[other].get("name"), q["price"], be)]})
+    # 🔴 `[Sam, 2026-10-16]` ONE TEAM PER GAME: "we can't have our model choosing both sides
+    #    at once". A moneyline or run line stays only on the team the Game Lines tab picks
+    #    to win (`win`, winners.mlb_rows' number): the favourite's moneyline beside the
+    #    underdog's +1.5 was listed in 6 of 11 games.
+    win = expected_by_game(model)
+    rows, _ = one_side.keep(rows, lambda r: win.get(r.get("game_pk")))
     return rows
 
 
@@ -2518,6 +2529,38 @@ def order_game_lines(rows, frozen=()):
     for i, r in enumerate(out, 1):
         r["rank"] = i
     return out
+
+
+def expected_by_game(model):
+    """{game_pk: 'home' / 'away' / None}: each game's expected winner by the game model's
+    `win`, the Game Lines tab's own number (winners.mlb_rows)."""
+    return {g.get("game_pk"): one_side.expected_side((g.get("win") or {}).get("home"))
+            for g in (model or {}).get("games") or []}
+
+
+def refilter_game_lines(path, model, now):
+    """`[Sam, 2026-10-16]` ONE TEAM PER GAME after the card is published: the game model
+    is also rebuilt on its own (collect.py `game-model`), and the Game Lines tab then
+    follows it while the card stays as built. A published row whose game has NOT started,
+    is in the rebuilt model, and is no longer on that model's expected winner is removed;
+    a started row stays exactly as published, a game the model does not hold is left
+    alone, and nothing is ever added or re-priced. -> rows removed (0: file untouched)."""
+    try:
+        doc = json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return 0
+    rows = doc.get("game_lines") or []
+    win = expected_by_game(model)
+    started = [r for r in rows if r.get("commence") and _iso(r["commence"]) <= now]
+    judged = [r for r in rows if r not in started and r.get("game_pk") in win]
+    kept, gone = one_side.keep(judged, lambda r: win.get(r.get("game_pk")))
+    if not gone:
+        return 0
+    rest = [r for r in rows if r not in started and r not in judged]
+    doc["game_lines"] = order_game_lines(kept + rest + started, started)
+    with open(path, "w") as f:
+        json.dump(doc, f, separators=(",", ":"))
+    return len(gone)
 
 
 def freeze_game_lines(rows, published, now):
@@ -2890,6 +2933,8 @@ def main(dry=False):
     import mlb_game_model as _gm
     try:
         _gmod = _gm.build(today, root=root, write=not dry)
+        LAST_GAME_MODEL.clear()
+        LAST_GAME_MODEL.update(_gmod or {})
         try:
             _pub = (json.load(open(f"{PICKS}/{today}.json")).get("game_lines") or [])
         except (OSError, ValueError):

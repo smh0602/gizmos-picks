@@ -497,6 +497,7 @@ note boxes, tags and the stale bar now require their absence.
   `game_lines_fb` BEFORE the card. `record_fb` grades the alternate spreads in
   their own line (`alt_spreads`, `by_basis` keeps the books'-chance rows apart);
   the model's picks keep fb-model.json's record. `test_fb_game_picks.py`.
+  `[Sam, 2026-10-16]` Only on the game's expected winner: see ONE TEAM PER GAME.
 - 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`
   NWS kickoff forecasts (`fb_weather.py`), CFBD venues / advanced stats (garbage
   time excluded) / pregame Elo / weather if the key's tier allows (`cfb.py`
@@ -584,6 +585,28 @@ note boxes, tags and the stale bar now require their absence.
   its old one; the card's sentence is kept in `why_card`. `[2026-10-16]` Its
   first version was checked sentence by sentence against the raw files (225) and
   six defects were fixed. `test_fb_why.py`.
+- 🔴🔴 **ONE TEAM PER GAME: EVERY SIDE PICK IS ON THE MODEL'S EXPECTED WINNER, ALL THREE
+  LEAGUES.** `[Sam, 2026-10-16]` *"the model picked huskies on the moneyline for college
+  foootbal but also picked the -3.5 spread for purdue; the huskies opponent ... we can't
+  have our model choosing both sides at once"*; asked which side stays, he chose the
+  expected winner. `one_side.py` holds the ONE rule (`expected_side`, which winners.py
+  reads, so the Game Lines tab and every list agree) and keeps a moneyline, spread,
+  alternate spread or run-line pick only on the team the tab picks to win; a total is
+  never touched; no win chance, no side pick. It runs AFTER each market's own pick in
+  `fb_model.current_picks` (the Model picks table, the ledger's snapshots, the card's
+  source), `card_fb.card_game_lines` (before the alternate spreads, so they follow), the
+  same-game parlays' line legs (`build_game_lines`: each game's best ALLOWED leg), and
+  `card.game_line_rows` (MLB, by `win`); when the MLB game model is rebuilt on its own
+  (`game-model`), `card.refilter_game_lines` removes a published, unstarted row no longer
+  on the new expected winner (~~the card's game lines stay as built~~). ⛔ Never inside
+  `fb_model.best_pick`: `walk_forward`'s graded record replays it per market and stays as
+  it was. ⛔ It only removes; a published or frozen row is never edited (the ledger keeps
+  what it showed). `verify_card.py` fails an MLB card whose unstarted game lines back both
+  teams or the other team (judged on the model main() built them from, `LAST_GAME_MODEL`).
+  ⚠️ The Model picks panel's record tables and verdict (`walk_forward`) still grade the old
+  per-market rule, both sides included: changing what they grade is Sam's call. Measured that day: 18 of 55 college and 5 of 13 NFL games in the
+  model's list, 6 of 11 MLB games with game lines. `test_one_side.py`,
+  `test_mlb_game_lines.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -626,7 +649,8 @@ note boxes, tags and the stale bar now require their absence.
   Game lines switch, frozen at first pitch (`freeze_game_lines`). Graded in
   their own line (record.json `game_lines`, `collect.GAME_LINE_MARKETS`),
   re-graded by verify_record.py, never in a props count.
-  `test_mlb_game_lines.py`.
+  `test_mlb_game_lines.py`. `[Sam, 2026-10-16]` And only on the expected winner
+  (`win`): see ONE TEAM PER GAME.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
   other kind~~, and after C2 (#166) few pitcher rows beat their price.
@@ -1081,6 +1105,10 @@ tcheck.py         the one check harness every test file uses.
                   output through `shown()`; annotate on purpose only
                   with `annotate()` (test_workflow_commands.py).
 ranking.py        the one tie-aware ranker, both leagues
+one_side.py       ONE TEAM PER GAME (Sam, 2026-10-16): the expected winner
+                  (the Game Lines tab's rule, read by winners.py), the filter
+                  every list of side picks runs, and the guard verify_card.py
+                  runs. ⛔ Only removes; stdlib only.
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
                   ⛔ Never `import yaml`: PyYAML is NOT on the CI

@@ -16,8 +16,8 @@ built and a started game keeps its frozen winner. Planted trees, pinned clock.
 #
 # @vacuity 🔴 ...and converge builds it without building the card
 #   file: collect.py
-#   find:             _gm.build(_gm.next_slate(root=".", now=now()), root=".")
-#   with:             import card as _card; _card.main()
+#   find:             _gmod = _gm.build(_slate, root=".")
+#   with:             _gmod = _gm.build(_slate, root="."); import card as _cardx; _cardx.main()
 #
 # @vacuity 🔴 on a no-games day it is not owed
 #   file: freshness.py
@@ -36,8 +36,8 @@ built and a started game keeps its frozen winner. Planted trees, pinned clock.
 #
 # @vacuity 🔴 the build makes no paid call
 #   file: collect.py
-#   find:             _gm.build(_gm.next_slate(root=".", now=now()), root=".")
-#   with:             collect_gamelines(); _gm.build(_gm.next_slate(root=".", now=now()), root=".")
+#   find:             _gmod = _gm.build(_slate, root=".")
+#   with:             collect_gamelines(); _gmod = _gm.build(_slate, root=".")
 """
 import datetime
 import gzip

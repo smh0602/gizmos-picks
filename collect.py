@@ -4919,7 +4919,16 @@ def run_mode(mode):
             if LEAGUE != "mlb":
                 return log(f"game-model is MLB's; {LEAGUE} has none. Nothing done.")
             import mlb_game_model as _gm
-            _gm.build(_gm.next_slate(root=".", now=now()), root=".")
+            _slate = _gm.next_slate(root=".", now=now())
+            _gmod = _gm.build(_slate, root=".")
+            # 🔴 `[Sam, 2026-10-16]` ~~stay as built~~ ONE TEAM PER GAME: the tab follows this
+            #    model, so a published, not-yet-started game line no longer on its expected
+            #    winner is removed (started rows untouched; nothing added).
+            import card as _card
+            _gone = _card.refilter_game_lines(os.path.join(PICKS, "%s.json" % _slate), _gmod, now())
+            if _gone:
+                log(f"  one team per game: {_gone} published game line(s) left the card "
+                    f"after the game model moved")
             build_winners(root=".", when=now())
             left = None
         elif mode == "card":
