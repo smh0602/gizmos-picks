@@ -542,6 +542,16 @@ def attach(name, lg, rows, root=None):
     return rows
 
 
+def applies(name, r):
+    """`[2026-10-16]` Can challenger `name`'s frozen inputs be built against the current
+    CHAMPION? S's and TS's (§3a) are indexes into today's champion's lists; H, HC, SM
+    and SMC as champion have shorter ones, so there they cannot (fb_refit reports NOT
+    APPLICABLE; how S and TS should read then is Sam's to decide)."""
+    if name not in KEEP:
+        return True
+    return all(max(KEEP[name][mk]) < len(FM.features(r, mk)) for mk in CHALLENGERS[name]["markets"])
+
+
 def extend(name, r, market, x, M=None, T=None):
     """The inputs with challenger `name` applied. E, P: appended after the
     champion's (spread (margin - line) / 10, moneyline margin / 10). T: its own

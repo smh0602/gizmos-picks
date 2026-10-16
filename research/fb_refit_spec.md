@@ -239,7 +239,11 @@ not the test.
   site, and not Sam's fixed 1.5, which is AV / AVC. Add the matchup layer, ON: pass
   gap, rush gap and combined pace, its weights fitted by ridge 100 on earlier final
   games' sides, all 0 under 200 sides. Point in time: tables and weights read only
-  games dated before the row's Monday.
+  games dated before the row's Monday. ⛔ What SM / SMC read is frozen with them:
+  `fb_score_model.py` and `fb_matchups.py` as merged in #275. A later change to what
+  those compute (the props model may want one) goes into a copy or a new function,
+  never into what SM / SMC read; `test_fb_refit.py` pins their numbers on a planted
+  league.
 - **Inputs, ONLY this one, every market:** spread (m - line) / 10, moneyline
   m / 10, total (t - line) / 10, at the line being priced; no prediction (a team
   with no earlier game) -> 0. §2's fit (`fb_model.fit(..., zmax=ZMAX)` on rows
@@ -248,13 +252,19 @@ not the test.
   k grid (1.00-3.00) and that grid's 3.0 cap are NOT used. This is neither the raw
   score curve nor the k-calibrated one; it is the predicted score fed to §2's fit.
 - ⚠️ All three markets start from one predicted score, but §2 fits each market on
-  its own, so SM's spread and win chances can still disagree in a rare game.
-  Pricing all three from one curve with no per-market fit would mean changing §2.
+  its own, so SM's spread and win chances can disagree, ~~in a rare game~~ and often
+  do `[2026-10-16, measured on the history after this section was first written]`:
+  over games graded on both markets, the side laying points was likelier to cover
+  than to win in 65 of 198 NFL games and 86 of 863 college games (today's champion:
+  52 of 198 and 137 of 863). Pricing all three from one curve with no per-market fit
+  would mean changing §2.
 - **Training window:** the champion's: every labelled 2025-2026 row
   (`fb_model.build_rows`, `fb_model.SEASONS`) dated before the Monday. The score
   model reads the stored schedules and player logs of those seasons.
-- **Registration:** the first Monday on or after the day this section reaches main
-  (the merge day), and no earlier than 2026-10-19. `fb_refit.registration` reads the
+- **Registration:** the first Monday ~~on or after~~ AFTER the day this section
+  reaches main (the merge day), and no earlier than 2026-10-19: a Monday merge counts
+  from the next Monday, so no game that kicked off before the merge is ever scored
+  (§2's own "the first Monday after"). `fb_refit.registration` reads the
   merge day from git: the first commit on main's first-parent line whose
   `fb_challengers.py` adds the entry. ⛔ No withdrawal rule.
 - **Counts and bar:** NFL E, S, AV, WX, IN, AT, RS, H, SM = 9; college P, T, TS,
@@ -280,6 +290,11 @@ not the test.
   average miss in points; lines moved toward the model (only snapshots pulled on
   or after the row's Monday 00:00Z, at least two; first vs last); said vs hit.
 - T's talent z uses each season file's population SD.
+- `[2026-10-16]` A challenger whose frozen definition cannot be built against the
+  current champion is reported NOT APPLICABLE that week (still counted in §3's
+  divisor, so every bar stays as strict), never a crash: S's and TS's §3a inputs are
+  indexes into today's champion's lists, and H, HC, SM and SMC have shorter lists.
+  How S and TS should read against another champion is Sam's to decide.
 
 ## Changelog
 
@@ -293,3 +308,4 @@ not the test.
 - 2026-10-15 — §3c corrected BEFORE any result: the stored logs held only offensive snap shares, so every defender weighed 0; defenders are weighed by their defensive share (def_pct, now stored by nfl.py; 2025 rebuilt once by the daily run).
 - 2026-10-15 — §3d T70 (H, HC: more seasons) added at Sam's instruction, defined before any result; §2 to §3c unchanged and pinned.
 - 2026-10-16 — §3e T71 (SM, SMC: the score-first model) added at Sam's instruction, defined before any contest result for them; §2 to §3d unchanged and pinned. Named SM / SMC, not SF: SF is the 49ers' code in this repo.
+- 2026-10-16 — §3e corrected before Sam's approval, after an independent review: registration is the first Monday AFTER the merge day (a Monday-evening merge would have scored that night's game after kickoff); the coherence sentence was wrong ("a rare game") and now gives the measured numbers; SM / SMC's code is frozen with them. §4 gains the NOT APPLICABLE stopgap. §2 to §3d unchanged.

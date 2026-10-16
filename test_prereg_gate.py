@@ -165,7 +165,9 @@ FROZEN = {
     # ~~"81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb"~~
     # [Sam, 2026-10-16] T71 (SM, SMC: the score-first model) added as section 3e,
     # defined before any contest result; everything before it pinned below.
-    "fb_refit_spec.md": "bffa3effc3a7a33fba8a58dccd4e1010ef0fd52281ed3d3f7e03212858b82c87",
+    # ~~"bffa3effc3a7a33fba8a58dccd4e1010ef0fd52281ed3d3f7e03212858b82c87"~~ (§3e corrected
+    # before Sam's approval: the Monday AFTER the merge, the measured coherence, frozen code)
+    "fb_refit_spec.md": "0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
