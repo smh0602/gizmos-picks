@@ -965,9 +965,23 @@ def rate_blend(g25, g26, market, line, side, p0, r=1.0):
     if N < THIN_N:
         conf = min(conf, THIN_CAP)
     mean = (sum(v25) / n25) if n25 else ((sum(v26) / n26) if n26 else None)
+    # `[2026-10-16]` the PROJ is his average over EVERY game the record is built
+    #    from, as its note says; `mean` (-> `own_mean`) stays T54's registered input.
+    mean_all = (sum(v25) + sum(v26)) / (n25 + n26) if n25 + n26 else None
     return (round(100 * conf), h25 + h26, n25 + n26, mean,
             {"h25": h25, "n25": n25, "h26": h26, "n26": n26, "w25": round(w, 3),
-             "p0": round(p0, 3), "weighted_n": round(N, 2)})
+             "p0": round(p0, 3), "weighted_n": round(N, 2),
+             "mean_all": None if mean_all is None else round(mean_all, 3)})
+
+
+def projection_of(r):
+    """The PROJ a rated row prints: his average over EVERY game its record is
+    built from (`r[2]` of them). `[2026-10-16]` ~~`r[3]`, the 2025 games only~~:
+    Burgess printed PROJ 23.8 under "His own average over the 9 games this record
+    is built from" while his 2026 games averaged 122.8, and `_prop_consistent`
+    read that 23.8. ⛔ `own_mean` stays `r[3]`: T54's pre-registered input."""
+    d = r[4] if len(r) > 4 and r[4] else {}
+    return d["mean_all"] if "mean_all" in d else r[3]
 
 
 def american_break_even(price):
@@ -2121,13 +2135,14 @@ def main():
                     # a different statistic from a rate, but a cell we have
                     # declared unmeasurable does not get a number by the
                     # back door.
-                    if r[3] is not None:
-                        row["projection"] = round(r[3], 1)
+                    _pj = projection_of(r)
+                    if _pj is not None:
+                        row["projection"] = round(_pj, 1)
                         row["projection_unit"] = unit
                         row["projection_basis"] = "DESCRIPTIVE"
                         row["projection_note"] = (
                             f"His own average over the {r[2]} games this "
-                            f"record is built from — {r[3]:.1f} {unit} a "
+                            f"record is built from — {_pj:.1f} {unit} a "
                             f"game.")
                     row["why"] = build_why(who, mk, pr.get("line"), sideword,
                                            hits, n, season, unit, _d)
