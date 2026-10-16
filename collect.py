@@ -4774,6 +4774,16 @@ def run_mode(mode):
                     log(f"  ⚠️ the model ledger did not build "
                         f"({type(e).__name__}: {e}) — the CARD IS FINE and "
                         f"is not rolled back.")
+                # `[Sam, 2026-10-15]` the score-first game model: predicted scores
+                #    and its walk-forward backtest. ⛔ REPORT ONLY, after the card:
+                #    no pick, chance, card row or page reads it.
+                try:
+                    import fb_score_model as _fsm
+                    _fsm.build(LEAGUE)
+                except Exception as e:
+                    log(f"  ⚠️ the score model did not build "
+                        f"({type(e).__name__}: {e}) — the CARD IS FINE and "
+                        f"is not rolled back.")
         elif mode == "halftime-probe":
             # 💰 THE ONLY PAID PROBE IN THE COLLECTOR, and it is single
             # digits: 2 credits for the bulk ask, 2 more only if that

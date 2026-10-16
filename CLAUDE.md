@@ -952,6 +952,17 @@ fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
                   never overwritten, "last" only before kickoff). Rides
                   `nfl-logs` / `cfb-probe`. ⛔ No model reads it yet; never raises.
+fb_matchups.py    THE SHARED TEAM-UNIT TABLES (Sam, 2026-10-15): points,
+                  pass / rush / receiving yards by position, plays, NFL
+                  targets, FOR and ALLOWED per team and Monday, opponent-
+                  adjusted by fb_model.solve_ratings (reused). ⛔ Games
+                  before the Monday only. The props model's weaknesses.
+fb_score_model.py THE SCORE-FIRST GAME MODEL, ⛔ REPORT ONLY (Sam,
+                  2026-10-15): both teams' points + a measured home edge + a
+                  pass / rush / pace layer, chances from the score curve;
+                  backtest -> data/<lg>/latest/fb-score-model.json after the
+                  card in `card-fb`. ⛔ Nothing reads it; the switch is Sam's.
+                  Design: research/fb_score_model_design.md.
 fb_why.py         THE WHY UNDER EACH FOOTBALL GIZMO'S PICKS PICK (Sam,
                   2026-10-15): reader sentences from the stored logs,
                   opponent tables, injury reports, schedule and

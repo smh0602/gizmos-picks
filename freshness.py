@@ -1030,6 +1030,10 @@ def _football_contract(league, data, picks, now):
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-model.json"), T["card"], False,
          "Model picks + walk-forward record"))
+    # `[Sam, 2026-10-15]` the score-first model's report, built by the same run.
+    rows.append(
+        ("card-fb", ("file", f"{latest}/fb-score-model.json"), T["card"], False,
+         "Score model: predicted scores + backtest (report only)"))
     # `[Sam, 2026-10-12]` T65: once Sam names a game-model CHAMPION, the file
     #    behind its input is a row like the others (talent: once a season,
     #    so only a missing season's file is late).
