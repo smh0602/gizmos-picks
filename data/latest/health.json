@@ -1,30 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-16T06:45:58Z",
+ "checked_at": "2026-10-16T07:29:58Z",
  "et_date": "2026-10-16",
  "healthy": false,
  "broken": 0,
- "degraded": 9,
+ "degraded": 6,
  "findings": [
-  {
-   "key": "fresh:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf tabs are showing data older than promised (cfb-probe)",
-   "why": "the freshness contract says 4 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
    "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
-  {
-   "key": "late:cfb-probe:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 191 minutes after it was due",
-   "why": "due 2026-10-15T07:00Z, built 2026-10-15T10:11Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -61,13 +47,6 @@
    "what": "nfl news was built 70 minutes after it was due",
    "why": "due 2026-10-15T14:05Z, built 2026-10-15T15:14Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
-  },
-  {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 192 minutes after it was due",
-   "why": "due 2026-10-15T07:00Z, built 2026-10-15T10:12Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
-   "repair": null
   }
  ],
  "repairs": [],
@@ -78,7 +57,7 @@
   "pulled_at": "2026-10-15T22:35:28Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 8.2,
+  "reading_age_hours": 8.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-15T22:35:28Z",
   "source": "data/ncaaf/2026-10-15/props-player/2235.json.gz",
