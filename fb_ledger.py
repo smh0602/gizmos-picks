@@ -82,10 +82,20 @@ def snapshot(lg, root=None, when=None, log=log):
     pm = _json(os.path.join(latest, "fb-props-model.json"))
     game = [p for p in gm.get("picks") or [] if (p.get("commence") or "") > now]
     props = [p for p in pm.get("picks") or [] if (p.get("commence") or "") > now]
-    if not game and not props:
+    # spec §3a [Sam, 2026-10-16]: every unstarted game each model LOOKED AT, picked or not:
+    # the game model priced its chance to win; the props model rated its props (kickoff from
+    # the props board). ⛔ A game with no known kickoff is not listed (the old rule applies).
+    kick = {str(g.get("id")): g.get("commence")
+            for g in (_gz(os.path.join(latest, "props.json.gz")) or {}).get("games") or []}
+    kick.update({str(p.get("game_id")): p.get("commence") for p in pm.get("picks") or []})
+    looked = {"game_model": {str(w.get("game_id")): w.get("commence") for w in gm.get("win_chances") or []
+                             if (w.get("commence") or "") > now},
+              "props_model": {g: kick[g] for g in sorted({str(r.get("game_id")) for r in pm.get("rated") or []})
+                              if (kick.get(g) or "") > now}}
+    if not game and not props and not any(looked.values()):
         return None
     doc = {"league": lg, "taken_at": now, "game_model": game, "props_model": props,
-           "spec": "research/fb_model_live_spec.md"}
+           "looked_at": looked, "spec": "research/fb_model_live_spec.md"}
     return daystore.archive(doc, _data(lg, root), "model-picks", log=log, when=when)
 
 
@@ -109,17 +119,23 @@ def pick_key(model, p):
 
 
 def ledger_picks(snaps):
-    """spec §3: for each game and model, the picks from the LAST snapshot
-    taken before its kickoff in which that game had a pick."""
+    """spec §3, amended §3a [Sam, 2026-10-16]: for each game and model, the
+    picks from the LAST snapshot taken before its kickoff that LOOKED AT that
+    game. A snapshot looked at a game when it held a pick for it, or listed it
+    in `looked_at` (written from 2026-10-16). When that last snapshot holds no
+    pick for the game, the model withdrew it and nothing is graded."""
     chosen = {}
     for s in snaps:
         for model in MODELS:
             by_game = {}
             for p in s.get(model) or []:
-                by_game.setdefault(p.get("game_id"), []).append(p)
+                by_game.setdefault(str(p.get("game_id")), []).append(p)
             for gid, ps in by_game.items():
                 if s["taken_at"] < (ps[0].get("commence") or ""):
                     chosen[(model, gid)] = (s["taken_at"], ps)
+            for gid, commence in ((s.get("looked_at") or {}).get(model) or {}).items():
+                if gid not in by_game and s["taken_at"] < (commence or ""):
+                    chosen[(model, gid)] = (s["taken_at"], [])        # withdrawn: nothing graded
     out = []
     for (model, _gid), (taken, ps) in chosen.items():
         for p in ps:

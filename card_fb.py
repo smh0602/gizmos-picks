@@ -654,9 +654,10 @@ def load_logs():
     #    carry a percentage. ✅ But one game is plenty to say "the season
     #    this record is built from describes a different job", which is
     #    the question Sam actually asked.
-    global CUR_SEASON, CUR_P
+    global CUR_SEASON, CUR_P, _CUR_IDX
     if thinner is not None:
         CUR_SEASON, CUR_P = thinner[0], thinner[1]
+        _CUR_IDX = None                      # the name index is CUR_P's own, rebuilt on first use
     best = usable or thinner
     if not best:
         log("FATAL: no player log with any games")
@@ -1727,8 +1728,34 @@ def role_of(plog):
     if not g:
         return None
     m = lambda k: sum(float(x.get(k) or 0.0) for x in g) / len(g)  # noqa: E731
-    return {"snap": round(m("snap_pct"), 3), "tgt_share": round(m("tgt_share"), 3), "car": round(m("car"), 1),
+    # `[2026-10-16]` 4 decimals, ~~3~~: a share stored at 3 was rounded twice on the page
+    #    (Jalen Royals' 5.47% of targets stored 0.055, printed 6%).
+    return {"snap": round(m("snap_pct"), 4), "tgt_share": round(m("tgt_share"), 4), "car": round(m("car"), 1),
             "n": len(g)}
+
+
+def current_role(who, pids, plog, rated_season):
+    """`[2026-10-16]` THIS season's role for an NFL row: what role_ok checks and fb_why
+    prints. ~~His rated-season log when this season has none~~ (Tanner McKee, no 2026 snap,
+    printed 2025's 44% of snaps) ~~and none at all for a rookie~~ (no 2025 log: 4 of 25
+    liked NFL props had no role on 10-16, so an over on a rookie skipped the role check).
+    By his id in this season's log, else by a unique name there (never a guess). A player
+    with a rated-season log and no game this season has NO role this season: every share
+    0, n 0, so an over on him fails the check and no role sentence prints. Same season as
+    the rated one: his rated log."""
+    global _CUR_IDX
+    if not CUR_P or CUR_SEASON == rated_season:
+        return role_of(plog)
+    if len(pids) == 1 and pids[0] in CUR_P:
+        return role_of(CUR_P[pids[0]])
+    if _CUR_IDX is None:
+        _CUR_IDX = index_by_name(CUR_P)
+    cur = _CUR_IDX.get(norm(who)) or []
+    if len(cur) == 1:
+        return role_of(CUR_P[cur[0]])
+    if len(cur) > 1:
+        return None                          # ⛔ ambiguous: never guessed
+    return {"snap": 0.0, "tgt_share": 0.0, "car": 0.0, "n": 0} if plog is not None else None
 
 
 def role_ok(r):
@@ -2186,11 +2213,11 @@ def main():
                                break_even=round(_be, 1), edge=round(int(round(_mp)) - _be, 1))
                     if conf is None:
                         row["why"] = []
-                if LEAGUE == "nfl" and plog is not None:
+                if LEAGUE == "nfl" and not TEAM_UNIT.search(who):        # never a team defense
                     # ⛔ THIS season's role: `P` is the rated season, which can be last
-                    #    year's (caught 10-15: Wilson read 36% snaps, 7 carries).
-                    row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
-                                           else None) or plog)
+                    #    year's (caught 10-15: Wilson read 36% snaps, 7 carries); a rookie
+                    #    and a player with no game this season too (current_role, 10-16).
+                    row["role"] = current_role(who, pids, plog, season)
                 rows.append(row)
 
     # 🔴 A NAME GATE THAT FAILS CLOSED, exactly like the Power 4 gate.

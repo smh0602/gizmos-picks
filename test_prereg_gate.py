@@ -132,7 +132,11 @@ FROZEN = {
     "fb_card_fix_spec.md": "8162387a90aaae4228a661e898cbe72c9e8cd3ee4d6ed2ebbbfcfed7f05715a1",
     # [Sam, 2026-09-24] ledger, no cap and verdict rules in section 2;
     # definitions in section 3 fixed by Claude before any scoring code.
-    "fb_model_live_spec.md": "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398",
+    # ~~"04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398"~~
+    # [Sam, 2026-10-16] §3a added ON SAM'S APPROVAL ("Don't grade withdrawn"): the
+    # last snapshot that LOOKED AT a game decides, even with no pick. §2 and §3 are
+    # pinned on their own below. ⛔ It moved because SAM changed the rule.
+    "fb_model_live_spec.md": "b5b17c79ea3156af8969f6d33567881f3bdba19c8207810142b79147a6f82a90",
     # [Sam, 2026-09-25] audit proposals C and D in section 2; the bar in
     # section 3 fixed by Claude before any scoring code existed.
     "mlb_pitcher_cal_spec.md": "4b8a9a77f13cdab57a88340f70399f189c2b9b7b00fe63bee7b8f38036935e12",
@@ -176,7 +180,8 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3b. ", "52f0c88ba35a891332bb3693da006deff1cebb9644687ddfe40312933d4e8d9d"),
                  ("fb_refit_spec.md", "\n## 3c. ", "85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de"),
                  ("fb_refit_spec.md", "\n## 3d. ", "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999"),
-                 ("fb_refit_spec.md", "\n## 3e. ", "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb")]
+                 ("fb_refit_spec.md", "\n## 3e. ", "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb"),
+                 ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 
 def frozen_region(text):
