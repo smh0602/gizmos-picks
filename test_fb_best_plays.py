@@ -282,7 +282,7 @@ eq(sorted(r["player"] for r in CF.best_liked(R3, lambda r: r["player"], proj={})
 src = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
 ck('row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season' in src and CF.role_of({"g": [{"d": "2026-10-0%d" % i, "snap_pct": 0.5, "tgt_share": 0.2,
                                                                  "car": 3} for i in range(1, 6)]})
-   == {"snap": 0.5, "tgt_share": 0.2, "car": 3.0},
+   == {"snap": 0.5, "tgt_share": 0.2, "car": 3.0, "n": 3},
    "🔴 the card stores each NFL row's role: means over his last 3 games")
 ck('best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),'
    in open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read(),

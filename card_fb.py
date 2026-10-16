@@ -1688,12 +1688,14 @@ RUSHING = ("player_rush_yds", "player_rush_attempts")
 
 
 def role_of(plog):
-    """{snap, tgt_share, car}: means over his last 3 logged games, or None."""
+    """{snap, tgt_share, car, n}: means over his last 3 logged games (n of them:
+    fewer when he has fewer), or None."""
     g = sorted((plog or {}).get("g") or [], key=lambda x: x.get("d") or "")[-3:]
     if not g:
         return None
     m = lambda k: sum(float(x.get(k) or 0.0) for x in g) / len(g)  # noqa: E731
-    return {"snap": round(m("snap_pct"), 3), "tgt_share": round(m("tgt_share"), 3), "car": round(m("car"), 1)}
+    return {"snap": round(m("snap_pct"), 3), "tgt_share": round(m("tgt_share"), 3), "car": round(m("car"), 1),
+            "n": len(g)}
 
 
 def role_ok(r):
