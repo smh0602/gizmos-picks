@@ -1403,14 +1403,11 @@ ck("at most 25 game-line rows, ranked by confidence",
 
 # 🔴 ONE TEAM PER GAME. `[Sam, 2026-10-16]` "we can't have our model choosing both sides
 #    at once": every game line not yet started is on the team the Game Lines tab picks to
-#    win (mlb-game-model.json `win`), and no game backs both teams. A started row is frozen
-#    as it was published.
+#    win (`win` of the game model main() built these rows from, `C.LAST_GAME_MODEL`: a dry
+#    run never writes mlb-game-model.json, so the file on disk can be older), and no game
+#    backs both teams. A started row is frozen as it was published.
 import one_side as _one
-try:
-    _gw = ({g.get('game_pk'): g for g in (json.load(open('data/latest/mlb-game-model.json')).get('games') or [])}
-           if _gl else {})
-except (OSError, ValueError):
-    _gw = {}      # no model file: every unstarted side row fails below
+_gw = {g.get('game_pk'): g for g in (C.LAST_GAME_MODEL.get('games') or [])}   # none: every unstarted side row fails
 _glive = [r for r in _gl if C._iso(r['commence']) > _now]
 _gcf = _one.conflicts(_glive, winner=lambda r: _one.expected_side(
     ((_gw.get(r.get('game_pk')) or {}).get('win') or {}).get('home')), game=lambda r: r.get('game_pk'))

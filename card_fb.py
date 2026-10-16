@@ -1146,8 +1146,11 @@ def latest_gamelines_snapshot():
     return None, None
 
 
-def build_game_lines(snapshot, n=GAME_LINES_N, slate=None):
+def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None):
     """Top `n` shoppable game-line edges, ONE PER GAME, richest first.
+    `[Sam, 2026-10-16]` given `winner` (one_side.by_names over the model's
+    win chances), each game's row is its best ALLOWED one: a total, or a row
+    on the expected winner (never the other team).
 
     `snapshot` is a raw `gamelines` pull — the file the collector already
     writes — because `board.json` keeps only the BEST price and the whole
@@ -1225,6 +1228,8 @@ def build_game_lines(snapshot, n=GAME_LINES_N, slate=None):
                    "best_price": px, "best_book": bk, "link": o.get("link"),
                    "median_price": round(median, 4), "n_books": len(quotes),
                    "gain_pct": round(gain, 2)}
+            if winner is not None and not one_side.keep([row], winner)[0]:
+                continue                     # one team per game (Sam, 2026-10-16)
             if best_row is None or row["gain_pct"] > best_row["gain_pct"]:
                 best_row = row
         if best_row:
@@ -2366,7 +2371,15 @@ def main():
     #    disagree with the card's. A section on a different day than the
     #    header MUST say so or it is the contradiction again.
     _gl_slate = (next_line_slate(_gl_snap) or slate) if _gl_snap else slate
-    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=_gl_slate)
+    # 🔴 `[2026-10-03]` / `[Sam, 2026-10-16]` the game model's file: its picks are the card's
+    #    game lines below, and its win chances name each game's expected winner, which the
+    #    same-game parlays' line legs keep to as well (one team per game).
+    try:
+        _model = json.load(open(f"{DATA}/latest/fb-model.json", encoding="utf-8"))
+    except Exception:
+        _model = {}
+    _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=_gl_slate,
+                                         winner=one_side.by_names(_model.get("win_chances") or []))
                         if _gl_snap
                         else ([], {"games_seen": 0, "comparable_quotes": 0,
                                    "games_with_an_edge": 0,
@@ -2378,10 +2391,6 @@ def main():
     # 🔴 `[Sam, 2026-10-01]` WHAT THE CARD SHOWS: the game model's own picks
     #    for the card's slate day, plus one alternate spread per game.
     try:
-        _model = json.load(open(f"{DATA}/latest/fb-model.json", encoding="utf-8"))
-    except Exception:
-        _model = {}
-    try:
         _ladder = json.load(gzip.open(f"{DATA}/latest/game-lines.json.gz", "rt"))
     except Exception:
         _ladder = {}
@@ -2391,9 +2400,6 @@ def main():
     game_lines = card_game_lines(_model.get("picks"), (B.get("games") or [])
                                  + ((_gl_snap or {}).get("games") or []), _ladder, _gl_slate,
                                  win_chances=_model.get("win_chances") or [])
-    # `[Sam, 2026-10-16]` one team per game: a same-game parlay's line leg, too, is a
-    #    total or on the game's expected winner.
-    _gl_all, _ = one_side.keep(_gl_all, one_side.by_names(_model.get("win_chances") or []))
     gl_meta = {"source": "fb-model.json", "slate": _gl_slate, "card_slate": slate,
                "is_next_slate": _gl_slate != slate, "price_floor": PRICE_FLOOR,
                "min_confidence": GL_MIN_CONF, "model_cap": GAME_LINES_MAX,

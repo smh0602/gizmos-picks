@@ -595,11 +595,16 @@ note boxes, tags and the stale bar now require their absence.
   never touched; no win chance, no side pick. It runs AFTER each market's own pick in
   `fb_model.current_picks` (the Model picks table, the ledger's snapshots, the card's
   source), `card_fb.card_game_lines` (before the alternate spreads, so they follow), the
-  same-game parlays' line legs, and `card.game_line_rows` (MLB, by `win`). ⛔ Never inside
+  same-game parlays' line legs (`build_game_lines`: each game's best ALLOWED leg), and
+  `card.game_line_rows` (MLB, by `win`); when the MLB game model is rebuilt on its own
+  (`game-model`), `card.refilter_game_lines` removes a published, unstarted row no longer
+  on the new expected winner (~~the card's game lines stay as built~~). ⛔ Never inside
   `fb_model.best_pick`: `walk_forward`'s graded record replays it per market and stays as
   it was. ⛔ It only removes; a published or frozen row is never edited (the ledger keeps
   what it showed). `verify_card.py` fails an MLB card whose unstarted game lines back both
-  teams or the other team. Measured that day: 18 of 55 college and 5 of 13 NFL games in the
+  teams or the other team (judged on the model main() built them from, `LAST_GAME_MODEL`).
+  ⚠️ The Model picks panel's record tables and verdict (`walk_forward`) still grade the old
+  per-market rule, both sides included: changing what they grade is Sam's call. Measured that day: 18 of 55 college and 5 of 13 NFL games in the
   model's list, 6 of 11 MLB games with game lines. `test_one_side.py`,
   `test_mlb_game_lines.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
@@ -644,8 +649,8 @@ note boxes, tags and the stale bar now require their absence.
   Game lines switch, frozen at first pitch (`freeze_game_lines`). Graded in
   their own line (record.json `game_lines`, `collect.GAME_LINE_MARKETS`),
   re-graded by verify_record.py, never in a props count.
-  `test_mlb_game_lines.py`. `[Sam, 2026-10-16]` ~~the side at 50% or more~~ per
-  market, and only on the expected winner (`win`): see ONE TEAM PER GAME.
+  `test_mlb_game_lines.py`. `[Sam, 2026-10-16]` And only on the expected winner
+  (`win`): see ONE TEAM PER GAME.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
   other kind~~, and after C2 (#166) few pitcher rows beat their price.

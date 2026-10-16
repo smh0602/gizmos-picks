@@ -50,6 +50,11 @@ published and stays as it was; editing a published pick is Sam's call.
 #   file: card.py
 #   find:     LAST_PRICED_ROWS[:] = plays_all + hitters + _late
 #   with:     LAST_PRICED_ROWS[:] = []
+#
+# @vacuity 🔴 [Sam, 2026-10-16] the card keeps the game model it built its game lines from
+#   file: card.py
+#   find:         LAST_GAME_MODEL.update(_gmod or {})
+#   with:         LAST_GAME_MODEL.update({})
 """
 import datetime
 import gzip
@@ -87,7 +92,8 @@ with contextlib.redirect_stdout(io.StringIO()):
 board = json.load(gzip.open("data/latest/props.json.gz", "rt"))
 priced = [{k: r.get(k) for k in ("pid", "market", "side", "line", "projection")}
           for r in card.LAST_PRICED_ROWS]
-json.dump({"board": board, "card": doc, "priced": priced}, open(sys.argv[1], "w"),
+json.dump({"board": board, "card": doc, "priced": priced,
+           "game_model": card.LAST_GAME_MODEL}, open(sys.argv[1], "w"),
           sort_keys=True)
 """
 
@@ -232,3 +238,10 @@ note("planted card: %d of %d projection entries flagged priced"
 ck("🔴 the flag sits on exactly the rows the real card priced, on an all-priced board",
    _got.get("the priced flag sits on exactly the rows the card priced") is True
    and _px and all(v.get("p") for v in _px.values()), str(_got))
+# `[Sam, 2026-10-16]` ONE TEAM PER GAME: verify_card.py judges the card's game lines against the
+#    game model main() built them from (a dry run never writes mlb-game-model.json).
+_gmk = res.get("game_model") or {}
+ck("🔴 the REAL card keeps, in memory, the game model it built its game lines from (verify_card's input "
+   "for one team per game)",
+   "games" in _gmk and _gmk.get("slate") == (C.get("game_lines_meta") or {}).get("slate"),
+   str(sorted(_gmk)[:8]))
