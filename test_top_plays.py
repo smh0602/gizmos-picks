@@ -67,8 +67,8 @@ whatever the live college board holds that day:
 #
 # @vacuity a MARKET-only board keeps its rows (and its "rows are priced" sentence)
 #   file: card_fb.py
-#   find: board = rows[:BOARD_MAX] if rated else fill_board(rows, BOARD_MAX)
-#   with: board = rows[:BOARD_MAX] if rated else []
+#   find: board = _brows[:BOARD_MAX] if rated else fill_board(_brows, BOARD_MAX)
+#   with: board = _brows[:BOARD_MAX] if rated else []
 #
 # @vacuity [Sam, 2026-10-01] the page no longer prints the top plays' rule sentence
 #   file: index.html

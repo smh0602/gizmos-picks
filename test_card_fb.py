@@ -275,8 +275,10 @@ try:
                 "pass_yds": 0, "pass_td": 0, "team": "T", "game_id": "x"}
 
     props = []
-    for line, mk in ((4.5, "player_receptions"), (2.5, "player_receptions")):
-        props.append({"player": "Cee Bee", "market": mk, "line": line,
+    # `[Sam, 2026-10-16]` one line per player per market on the board: the gated 2.5 line is a
+    #    second receiver's (Cee Two, the same log) on the SAME card (~~Cee Bee's own second line~~)
+    for who, line, mk in (("Cee Bee", 4.5, "player_receptions"), ("Cee Two", 2.5, "player_receptions")):
+        props.append({"player": who, "market": mk, "line": line,
                       "sides": {"over": {"price": -110, "book": "fd",
                                          "n_books": 3, "link": "x"}}})
     props.append({"player": "Cee Bee", "market": "player_pass_tds",
@@ -294,7 +296,8 @@ try:
     # receiving-only denominator they would not exist.
     gs = [cg(rec=5) for _ in range(6)] + [cg(rec=0, car=3) for _ in range(4)]
     logs = {"season": 2025, "scope": "all FBS conferences",
-            "players": {"1": {"name": "Cee Bee", "pos": "WR", "g": gs}}}
+            "players": {"1": {"name": "Cee Bee", "pos": "WR", "g": gs},
+                        "2": {"name": "Cee Two", "pos": "WR", "g": gs}}}
     with _gz.open("data/ncaaf/latest/players-2025.json.gz", "wt") as fh:
         json.dump(logs, fh)
     C = load("ncaaf")
@@ -318,7 +321,7 @@ try:
 
     r25 = by[("player_receptions", 2.5)]
     eq(r25["confidence_basis"], "MARKET",
-       "🔴 receptions o2.5 is GATED on the SAME card, same player")
+       "🔴 receptions o2.5 is GATED on the SAME card, the same log")
     eq("confidence" in r25, False, "   and carries no number at all")
     eq("quiet" in " ".join(r25["why"]), True, "   the row says why in English")
 

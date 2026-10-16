@@ -560,6 +560,15 @@ note boxes, tags and the stale bar now require their absence.
   PRINTED number; the board keeps blend's side only when it agrees, e.g. Nick Martinez outs, blend
   86% Over, printed Over 51 / Under 53: no pick). The starred ladder rung needs 50%+ too.
   `verify_card.py` runs `card.one_side_problems` on every MLB card. `test_one_side_props.py`.
+- 🔴 **ONE ROW PER PLAYER PER MARKET ON THE GIZMO'S PICKS BOARD, ALL LEAGUES.** `[Sam,
+  2026-10-16]` *"i dont want to see multiple of the same players in the gizmos picks ... marvin
+  harrison jr with 3 different receiving props ... receiving prop and reception prop is good but
+  both receiving yards prop is a no go."* That day: NFL MHJ x2, McKee x3; college six repeats;
+  MLB two. Football: `card_fb.one_per_player_market` (his first row of each market in the board's
+  order, before the 25-row cap). MLB: `card.select_board` never seats one player's market twice
+  (`_playermarket`, which also keeps out a seated prop's other side). The liked list and top
+  plays were already one per player; the parlays are unchanged. `verify_card.py` runs
+  `card.player_market_repeats`. `test_one_per_player.py`.
 - 🔴 **THE PROPS MODEL SETS THE FOOTBALL CARD'S CONFIDENCE.** `[Sam, 2026-10-09]`
   *"Where fb_props_model prices a prop on the card ... the row's confidence is the
   model's probability and the card ranks by it. A prop it does not price keeps the

@@ -990,6 +990,18 @@ def american_break_even(price):
     return (-price) / ((-price) + 100) if price < 0 else 100 / (price + 100)
 
 
+def one_per_player_market(rows):
+    """`[Sam, 2026-10-16]` The first row of each (game, player, market) in this order: one
+    line per player per market on the board, never three receiving-yards lines."""
+    seen, out = set(), []
+    for r in rows:
+        k = (r.get("game_id"), r.get("player"), r.get("market"))
+        if k not in seen:
+            seen.add(k)
+            out.append(r)
+    return out
+
+
 def fill_board(rows, cap):
     """Take the best rows, ROUND-ROBIN ACROSS MARKETS.
 
@@ -2370,7 +2382,12 @@ def main():
     # ➡️ If a RATED board ever comes out market-heavy, that is a finding
     # to measure, not a reason to override the ranking here.
     rated = any(r.get("confidence") is not None for r in rows)
-    board = rows[:BOARD_MAX] if rated else fill_board(rows, BOARD_MAX)
+    # 🔴 `[Sam, 2026-10-16]` "keep it to one per player unless your using a different prop":
+    #    the board holds ONE row per player per market (his best in this order: Marvin Harrison
+    #    Jr. sat at three receiving-yards lines); another market of his is fine. The parlays,
+    #    top plays and liked list read `rows` as before.
+    _brows = one_per_player_market(rows)
+    board = _brows[:BOARD_MAX] if rated else fill_board(_brows, BOARD_MAX)
     for i, r in enumerate(board, 1):
         r["rank"] = i
 
