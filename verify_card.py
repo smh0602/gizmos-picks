@@ -1401,5 +1401,21 @@ ck("at most 25 game-line rows, ranked by confidence",
    len(_gl) <= C.GAME_LINES_MAX and [r.get('rank') for r in _gl] == list(range(1, len(_gl) + 1))
    and all(x['confidence_value'] >= y['confidence_value'] for x, y in zip(_gl, _gl[1:])))
 
+# 🔴 ONE TEAM PER GAME. `[Sam, 2026-10-16]` "we can't have our model choosing both sides
+#    at once": every game line not yet started is on the team the Game Lines tab picks to
+#    win (mlb-game-model.json `win`), and no game backs both teams. A started row is frozen
+#    as it was published.
+import one_side as _one
+try:
+    _gw = ({g.get('game_pk'): g for g in (json.load(open('data/latest/mlb-game-model.json')).get('games') or [])}
+           if _gl else {})
+except (OSError, ValueError):
+    _gw = {}      # no model file: every unstarted side row fails below
+_glive = [r for r in _gl if C._iso(r['commence']) > _now]
+_gcf = _one.conflicts(_glive, winner=lambda r: _one.expected_side(
+    ((_gw.get(r.get('game_pk')) or {}).get('win') or {}).get('home')), game=lambda r: r.get('game_pk'))
+ck(f"one team per game: every unstarted game line is on the model's expected winner ({len(_glive)} rows)",
+   not _gcf, str(_gcf[:3]))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

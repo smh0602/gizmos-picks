@@ -119,6 +119,7 @@ from datetime import datetime, timezone
 from calibration import MIN_N, band_flags
 import signal9                          # the ONE expected-share formula (signal 9)
 import fb_why                           # the why under each liked pick (Sam, 2026-10-15)
+import one_side                         # one team per game: the expected winner (Sam, 2026-10-16)
 
 LEAGUE = os.environ.get("LEAGUE", "nfl")
 if LEAGUE not in ("nfl", "ncaaf"):
@@ -1473,9 +1474,14 @@ def order_game_lines(rows, frozen=()):
     return out
 
 
-def card_game_lines(model_picks, games, ladder, slate):
-    """The card's `game_lines` for ET day `slate`. The one composition main uses."""
+def card_game_lines(model_picks, games, ladder, slate, win_chances=None):
+    """The card's `game_lines` for ET day `slate`. The one composition main uses.
+    `[Sam, 2026-10-16]` one team per game: given fb-model.json's `win_chances`, a
+    moneyline or spread row stays only on the game's expected winner (the Game Lines
+    tab's pick to win), BEFORE its alternate spread is added, so the alternate follows."""
     rows = model_game_rows(model_picks, games, slate)
+    if win_chances is not None:
+        rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
     return order_game_lines(rows + alt_spread_rows(rows, ladder))
 
 
@@ -2383,7 +2389,11 @@ def main():
     #    (`next_line_slate`, the old list's own rule): ~~the card's slate~~,
     #    which is a props day and had started (0 rows for 10-01, 37 picks on 10-04).
     game_lines = card_game_lines(_model.get("picks"), (B.get("games") or [])
-                                 + ((_gl_snap or {}).get("games") or []), _ladder, _gl_slate)
+                                 + ((_gl_snap or {}).get("games") or []), _ladder, _gl_slate,
+                                 win_chances=_model.get("win_chances") or [])
+    # `[Sam, 2026-10-16]` one team per game: a same-game parlay's line leg, too, is a
+    #    total or on the game's expected winner.
+    _gl_all, _ = one_side.keep(_gl_all, one_side.by_names(_model.get("win_chances") or []))
     gl_meta = {"source": "fb-model.json", "slate": _gl_slate, "card_slate": slate,
                "is_next_slate": _gl_slate != slate, "price_floor": PRICE_FLOOR,
                "min_confidence": GL_MIN_CONF, "model_cap": GAME_LINES_MAX,

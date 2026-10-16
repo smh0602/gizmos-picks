@@ -47,6 +47,7 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mlb_pitcher_cal as pcal  # noqa: E402  the printed pitcher number (C2)
 import calibration as _calib  # noqa: E402  the ONE per-band "runs hot" rule
+import one_side  # noqa: E402  one team per game: the expected winner (Sam, 2026-10-16)
 
 MODEL_VERSION = "v5.0"
 
@@ -2502,6 +2503,13 @@ def game_line_rows(model, board, day):
                         "starting against %s. The price %+d needs %s%%."
                         % (team, int(round(pr)), what, _r1(er.get(side)), _r1(er.get(other)),
                            sp[side].get("name"), sp[other].get("name"), q["price"], be)]})
+    # 🔴 `[Sam, 2026-10-16]` ONE TEAM PER GAME: "we can't have our model choosing both sides
+    #    at once". A moneyline or run line stays only on the team the Game Lines tab picks
+    #    to win (`win`, winners.mlb_rows' number): the favourite's moneyline beside the
+    #    underdog's +1.5 was listed in 6 of 11 games.
+    win = {g.get("game_pk"): one_side.expected_side((g.get("win") or {}).get("home"))
+           for g in (model or {}).get("games") or []}
+    rows, _ = one_side.keep(rows, lambda r: win.get(r.get("game_pk")))
     return rows
 
 

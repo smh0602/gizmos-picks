@@ -17,9 +17,9 @@ graded once; the winners' record its own, re-computed by the verifier. (The
 same tab order in every league, Game Lines included: test_tab_bar.py.)
 
 # @vacuity 🔴 the pick is the side with the higher chance
-#   file: winners.py
-#   find:     side = "home" if p_home >= 100 - p_home else "away"
-#   with:     side = "home"
+#   file: one_side.py
+#   find:     return "home" if p_home >= 100 - p_home else "away"
+#   with:     return "home"
 #
 # @vacuity 🔴 football lists one day only, the slate's
 #   file: winners.py

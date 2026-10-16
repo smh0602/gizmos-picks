@@ -37,6 +37,7 @@ import possession as P              # share_before: signal 6 from EARLIER games 
 import shadow_fb                    # cluster: effective n by game
 import t60r                         # point-in-time §2, §4, §5 — read, never edited
 import signal9                      # the ONE opportunity table reader (signal 9)
+import one_side                     # one team per game: the expected winner (Sam, 2026-10-16)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -777,12 +778,16 @@ def current_picks(lg, rows, root=None, now=None):
     for mk in MARKETS:
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
         models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
-    out = []
+    out, exp = [], {}
     for r in rows:
         snap = r["snap"]
         if r["final"] or not snap or not (now < snap["commence"] <= horizon):
             continue
         hname, aname = snap["names"]
+        # `[Sam, 2026-10-16]` the Game Lines tab's pick to win: `win_chances`' number from
+        #    the same moneyline fit, rounded the same way.
+        exp[r["id"]] = (one_side.expected_side(round(100 * predict(models["moneyline"], features(r, "moneyline")), 1))
+                        if models.get("moneyline") else None)
         for mk in MARKETS:
             pk = best_pick(r, mk, models[mk])
             if pk:
@@ -796,6 +801,11 @@ def current_picks(lg, rows, root=None, now=None):
                             "break_even": L(round(100 * pk["break_even"], 1), "MARKET"),
                             "edge": L(round(100 * pk["ev"], 1), "MODEL"),
                             "priced_at": snap["pulled_at"]})
+    # 🔴 `[Sam, 2026-10-16]` ONE TEAM PER GAME. "we can't have our model choosing both
+    #    sides at once" (Washington moneyline +150 beside Purdue -3.5): a moneyline or
+    #    spread pick stays only on the team the Game Lines tab picks to win. ⛔ AFTER each
+    #    market's own pick, never inside best_pick: walk_forward's graded record replays it.
+    out, _ = one_side.keep(out, lambda p: exp.get(p["game_id"]))
     return sorted(out, key=lambda x: (x["commence"], x["game"], x["market"]))
 
 

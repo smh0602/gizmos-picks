@@ -57,6 +57,16 @@ decision." Planted data throughout; the page in node.
 #   find: GL_MARKETS = ("moneyline", "run_line")
 #   with: GL_MARKETS = ("moneyline", "run_line", "total")
 #
+# @vacuity 🔴 [Sam, 2026-10-16] one team per game: a side only on the model's expected winner
+#   file: card.py
+#   find:     rows, _ = one_side.keep(rows, lambda r: win.get(r.get("game_pk")))
+#   with:     pass
+#
+# @vacuity 🔴 ...the expected winner is `win`, the Game Lines tab's number
+#   file: card.py
+#   find:     win = {g.get("game_pk"): one_side.expected_side((g.get("win") or {}).get("home"))
+#   with:     win = {g.get("game_pk"): one_side.expected_side(100 - ((g.get("win") or {}).get("home") or 0))
+#
 # @vacuity 🔴 at most 25
 #   file: card.py
 #   find: GAME_LINES_MAX = 25
@@ -113,6 +123,7 @@ os.environ.setdefault("LEAGUE", "mlb")
 import card as CA  # noqa: E402
 import collect as CO  # noqa: E402
 import mlb_game_model as M  # noqa: E402
+import one_side  # noqa: E402
 from jsblock import js_block  # noqa: E402
 from tcheck import ck, section  # noqa: E402
 
@@ -209,7 +220,11 @@ AT = "2026-09-02T23:05:00Z"
 
 
 def mg(pk, ml, rl=40.0, at=AT, sp=True, pt=-1.5, extra=None):
+    # `[2026-10-16]` + `win`, which every mlb-game-model.json game carries (the card's
+    #    moneyline chance rounded to 0.1): the Game Lines tab's pick to win, and the
+    #    only side the card may list (Sam, 2026-10-16).
     g = {"game_pk": pk, "commence": at, "away": "Away %d" % pk, "home": "Home %d" % pk,
+         "win": {"home": round(ml, 1), "away": round(100 - ml, 1)},
          "starters": {"home": {"id": 1 if sp else None, "name": "H"}, "away": {"id": 2, "name": "A"}},
          "expected_runs": {"home": 4.4, "away": 3.9},
          "card": {"moneyline": {"home": ml, "away": 100 - ml},
@@ -229,20 +244,38 @@ def bg(pk, ml_h, ml_a, rl_h, rl_a, pt=-1.5, at=AT):
 MODEL = {"corrected": ["total"], "games": [
     mg(1, 50.1, rl=40.0), mg(2, 60.0, rl=40.0), mg(3, 49.9, rl=45.0),
     mg(4, 55.0, rl=40.0), mg(5, 70.0, sp=False), mg(6, 70.0, at="2026-09-03T23:05:00Z"),
-    mg(7, 58.0, rl=35.0, extra={"total": {"point": -1.5, "home": 90.0, "away": 10.0}}), mg(8, 70.0)]}
+    mg(7, 58.0, rl=35.0, extra={"total": {"point": -1.5, "home": 90.0, "away": 10.0}}), mg(8, 70.0),
+    # `[2026-10-16]` the expected winner's OWN -1.5 at 55% (listed), and an expected winner whose
+    #    run line the board posts at another point (never listed): the run-line cases that survive
+    #    one team per game.
+    mg(10, 62.0, rl=55.0), mg(11, 65.0, rl=56.0)]}
 MODEL["games"][2]["card"]["moneyline"]["away"] = 49.9           # neither side reaches 50
 MODEL["games"][2]["card"]["run_line"]["away"] = 45.0
+# `[2026-10-16]` a 50/50 tie makes Home 3 the expected winner (home on a tie), so its 49.9
+#    moneyline and 45% run line are left off by the 50% floor alone, not by one team per game.
+MODEL["games"][2]["win"] = {"home": 50.0, "away": 50.0}
 BOARD = {"games": [bg(1, -400, 300, 150, -401), bg(2, -401, 300, 150, -150),
                    bg(3, -110, -110, 150, -170), bg(4, -130, 110, 150, -170, pt=1.5),
                    bg(5, -200, 170, 150, -170), bg(6, -200, 170, 150, -170, at="2026-09-03T23:05:00Z"),
-                   bg(7, -140, 120, 160, -180)]}
+                   bg(7, -140, 120, 160, -180), bg(10, -160, 140, -110, -110),
+                   bg(11, -180, 150, -105, -115, pt=-2.5)]}
 ROWS = CA.game_line_rows(MODEL, BOARD, D1)
 _got = sorted((r["player"], r["market"], r["line"], r["price"]) for r in ROWS)
-ck("🔴 exactly the sides at 50%+ and -400 or longer: -400 itself in, -401 out, "
-   "a side under 50 out, a run line off its signed point out",
-   _got == [("Away 2", "run_line", 1.5, -150), ("Away 7", "run_line", 1.5, -180),
-            ("Home 1", "moneyline", None, -400), ("Home 4", "moneyline", None, -130),
-            ("Home 7", "moneyline", None, -140)], str(_got))
+# `[Sam, 2026-10-16]` ~~("Away 2", "run_line", 1.5, -150), ("Away 7", "run_line", 1.5, -180)~~:
+#    "we can't have our model choosing both sides at once" — asked which side stays, he
+#    chose the expected winner. Home 2 (60%) and Home 7 (58%) are the picks to win, so the
+#    Away +1.5 rows beside them are gone (Home 7's moneyline stays; Home 2's is -401).
+ck("🔴 exactly the sides at 50%+ and -400 or longer, ON THE EXPECTED WINNER: -400 itself in, -401 out, "
+   "a side under 50 out, a run line off its signed point out, the underdog's +1.5 beside the "
+   "favourite out",
+   _got == [("Home 1", "moneyline", None, -400), ("Home 10", "moneyline", None, -160),
+            ("Home 10", "run_line", -1.5, -110), ("Home 11", "moneyline", None, -180),
+            ("Home 4", "moneyline", None, -130), ("Home 7", "moneyline", None, -140)], str(_got))
+ck("🔴 [Sam, 2026-10-16] one team per game: no game lists both teams, and every row is on the "
+   "model's expected winner (`win`)",
+   not one_side.conflicts(ROWS, winner=lambda r: one_side.expected_side(
+       next(g["win"]["home"] for g in MODEL["games"] if g["game_pk"] == r["game_pk"])),
+       game=lambda r: r["game_pk"]), str(_got))
 ck("⛔ TOTALS NEVER REACH THE CARD, even at 90% (Sam, 2026-10-03)",
    CA.GL_MARKETS == ("moneyline", "run_line") and not any(r["market"] == "total" for r in ROWS))
 ck("  every row is in the prop row's format, confidence a whole number",
@@ -334,11 +367,13 @@ ck("🔴 every MLB game-line row is a pickCard card, and nothing else in game_li
    r.returncode == 0 and len(OUT["rows"]) == len(ROWS) and all(h.startswith("<pk>") for h in OUT["rows"])
    and "Old Row" not in _html, (r.stderr or "")[-300:] + _html[:200])
 ck("🔴 ...naming its team with no side word, a run line with its sign",
-   "Home 1 Moneyline" in _html and "Away 2 +1.5 Run line" in _html
+   # `[2026-10-16]` ~~"Away 2 +1.5 Run line"~~: that underdog +1.5 sat beside the favourite's
+   #    moneyline and is gone (one team per game); the favourite's own -1.5 carries the sign now.
+   "Home 1 Moneyline" in _html and "Home 10 -1.5 Run line" in _html
    and " — Under" not in _html and " — Over" not in _html, _html[:300])
 _rp = js_block("renderPicks", PAGE)
 ck("🔴 Gizmo's Picks carries the Player props / Game lines switch, the lines drawn before the props board",
-   "Player props <span>3</span>" in OUT["bar"] and "Game lines <span>5</span>" in OUT["bar"]
+   "Player props <span>3</span>" in OUT["bar"] and "Game lines <span>6</span>" in OUT["bar"]
    and "mlbKindBar(P)" in _rp and _rp.index("mlbGameLines(P)") < _rp.index("const dated = P.picks"),
    OUT["bar"][:200])
 ck("⛔ the page never reads mlb-game-model.json: the card is its only source of game lines, so a total "
