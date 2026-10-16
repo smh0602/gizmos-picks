@@ -1,14 +1,14 @@
 {
- "built_at": "2026-10-16T06:40:03Z",
+ "built_at": "2026-10-16T12:39:28Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 215,
-  "n": 397,
-  "pct": 54.2
+  "w": 216,
+  "n": 399,
+  "pct": 54.1
  },
  "alt_spreads": {
   "basis": "MARKET + MODEL",
@@ -363,21 +363,21 @@
    "pct": 60.4
   },
   "player_rush_yds": {
-   "w": 25,
-   "n": 56,
-   "pct": 44.6
+   "w": 26,
+   "n": 58,
+   "pct": 44.8
   }
  },
  "by_side": {
   "over": {
    "w": 120,
-   "n": 234,
-   "pct": 51.3
+   "n": 235,
+   "pct": 51.1
   },
   "under": {
-   "w": 87,
-   "n": 145,
-   "pct": 60.0
+   "w": 88,
+   "n": 146,
+   "pct": 60.3
   },
   "yes": {
    "w": 8,
@@ -388,13 +388,13 @@
  "by_book": {
   "draftkings": {
    "w": 16,
-   "n": 19,
-   "pct": 84.2
+   "n": 20,
+   "pct": 80.0
   },
   "fanduel": {
-   "w": 8,
-   "n": 12,
-   "pct": 66.7
+   "w": 9,
+   "n": 13,
+   "pct": 69.2
   },
   "hardrockbet": {
    "w": 191,
@@ -406,9 +406,9 @@
   {
    "bucket": "50-60%",
    "stated": 53.7,
-   "w": 14,
-   "n": 22,
-   "pct": 63.6
+   "w": 15,
+   "n": 24,
+   "pct": 62.5
   }
  ],
  "card_method_current": "season-blend+props-own",
@@ -535,9 +535,9 @@
    {
     "bucket": "50-60%",
     "stated": 53.7,
-    "w": 14,
-    "n": 22,
-    "pct": 63.6
+    "w": 15,
+    "n": 24,
+    "pct": 62.5
    }
   ]
  },
@@ -558,9 +558,9 @@
    "pct": 71.4
   },
   "season-blend+props-own": {
-   "w": 14,
-   "n": 22,
-   "pct": 63.6
+   "w": 15,
+   "n": 24,
+   "pct": 62.5
   }
  },
  "by_day": [
@@ -694,31 +694,35 @@
   },
   {
    "date": "2026-10-15",
-   "w": 0,
-   "n": 0,
+   "w": 1,
+   "n": 2,
    "carded": 2,
    "voids": 0,
-   "unresolved": 2
+   "unresolved": 0
+  },
+  {
+   "date": "2026-10-18",
+   "w": 0,
+   "n": 0,
+   "carded": 25,
+   "voids": 0,
+   "unresolved": 25
   }
  ],
- "days_graded": 16,
- "cards_seen": 17,
+ "days_graded": 17,
+ "cards_seen": 18,
  "record_from": "2026-09-07",
  "cards_before_record_from": 0,
  "record_from_note": "Counting from 2026-09-07. No earlier cards were set aside.",
- "distinct_players": 145,
- "distinct_games": 60,
- "carded_rows": 411,
+ "distinct_players": 146,
+ "distinct_games": 61,
+ "carded_rows": 436,
  "voids": 0,
- "unresolved": 14,
- "coverage_note": "397 of 411 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 14 could not be settled at all.",
+ "unresolved": 37,
+ "coverage_note": "399 of 436 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 37 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
  "skipped": [
-  {
-   "date": "2026-10-15",
-   "why": "nothing settled yet \u2014 the log does not reach this slate"
-  },
   {
    "date": "2026-10-18",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
