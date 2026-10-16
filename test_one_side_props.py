@@ -17,10 +17,15 @@ live.
 #   find:         ok = len(sides) == 1 and sides[0] == r["side"] and top >= 50 and v is not None and v >= 50
 #   with:         ok = sides[0] == r["side"] and top >= 50 and v is not None and v >= 50
 #
-# @vacuity 🔴 a one-sided market (anytime TD) is never touched
+# @vacuity 🔴 an anytime TD "yes" needs 50% like every side (~~a one-sided market is never touched~~)
 #   file: one_side.py
-#   find:         s = best.get(key(r)) if r.get("side") in TWO_SIDED else None
-#   with:         s = best.get(key(r))
+#   find:         s = best.get(key(r))
+#   with:         s = best.get(key(r)) if r.get("side") in ("over", "under") else None
+#
+# @vacuity 🔴 a prop with no number on either side never shows both ways
+#   file: one_side.py
+#   find:         (dropped if k in seen else kept).append(r)
+#   with:         kept.append(r)
 #
 # @vacuity 🔴 the favourite must reach 50%
 #   file: one_side.py
@@ -32,15 +37,20 @@ live.
 #   find:                 po, pu = (po if _fav == "over" else None), (pu if _fav == "under" else None)
 #   with:                 pass
 #
-# @vacuity 🔴 ...and its anytime-TD picks are left alone
+# @vacuity 🔴 ...an anytime TD "yes" only at 50% or more
 #   file: fb_props_model.py
-#   find:             if mk != TD_MARKET:
-#   with:             if True:
+#   find:                 po = po if (po or 0) >= 0.5 else None
+#   with:                 pass
 #
 # @vacuity 🔴 the football card's pool keeps one side per prop, before every list
 #   file: card_fb.py
 #   find:     rows, _wrong_side = one_side.keep_props(rows, prop_key, prop_value)
 #   with:     _wrong_side = []
+#
+# @vacuity 🔴 the football card's pool never shows an unrated prop both ways
+#   file: card_fb.py
+#   find:     rows, _ = one_side.one_per_wager(rows, prop_key)
+#   with:     pass
 #
 # @vacuity 🔴 a MODEL row is judged on the model's unrounded chance (49.8 never ties 50.2)
 #   file: card_fb.py
@@ -115,10 +125,15 @@ _rows = [R("Tipton", "over", 45.2), R("Tipton", "under", 54.8),
          R("Half", "over", 60.0), R("Half", "under", None)]
 _k, _d = O.keep_props(_rows, key, val)
 eq(sorted((r["player"], r["side"]) for r in _k),
-   [("Both", "under"), ("Half", "over"), ("Td", "yes"), ("Tipton", "under"), ("Unrated", "over"), ("Unrated", "under")],
+   [("Both", "under"), ("Half", "over"), ("Tipton", "under"), ("Unrated", "over"), ("Unrated", "under")],
    "🔴 kept: Tipton's Under (54.8, never his 45.2 Over); neither side of a 50/50 tie; nothing for a lone Over at "
-   "46%; the higher of two sides both over 50 (53 > 51); the anytime TD untouched; a wager with no number on any "
-   "side left as it is; and an unpriced side never rides along with a priced favourite")
+   "46%; the higher of two sides both over 50 (53 > 51); an anytime TD 'yes' at 30% goes like any side under "
+   "50% (`[Sam, 2026-10-16]`, he declined 'Keep value picks'); a wager with no number on any side left as it is "
+   "here; and an unpriced side never rides along with a priced favourite")
+eq([(r["player"], r["side"]) for r in O.one_per_wager([R("Ghost", "over", None), R("Ghost", "under", None),
+                                                        R("Other", "under", None)], key)[0]],
+   [("Ghost", "over"), ("Other", "under")],
+   "🔴 ...and one_per_wager never shows a wager with no number both ways: the first in the list's order stays")
 eq(O.prop_conflicts([r for r in _k if r["player"] != "Unrated"], key, val), [],
    "   ...and the guard finds nothing left to flag among the rows that carry a number (a wager with no number "
    "on either side has nothing to choose a side by, and is left as the card built it)")
@@ -134,7 +149,8 @@ MK, TD = "player_receptions", M.TD_MARKET
 WHO = {0: ("Value Over", MK, 3.5, 162, -220, (0.45, 0.55)),   # the Tipton case: +EV only on the 45% side
        1: ("Fav Under", MK, 3.5, 162, 105, (0.45, 0.55)),      # both +EV; the old pick took the richer Over
        2: ("Coin Flip", MK, 3.5, 110, 110, (0.50, 0.50)),      # no favourite
-       3: ("Td Scorer", TD, None, 400, None, (0.30, 0.70))}    # one-sided: yes at 30%, +EV
+       3: ("Td Scorer", TD, None, 400, None, (0.30, 0.70)),    # yes at 30%, +EV: the value side under 50%
+       4: ("Td Star", TD, None, 110, None, (0.60, 0.40))}      # yes at 60%
 WF = {"final": {MK: types.SimpleNamespace(solve=lambda: "m"), TD: types.SimpleNamespace(solve=lambda: "m")},
       "s2_train": [],
       "H": types.SimpleNamespace(player={str(i): [(2026, {"team": "HOM"})] for i in WHO},
@@ -162,10 +178,11 @@ try:
 finally:
     M.s1_probs, M.D.team_codes = _old
     shutil.rmtree(_t, ignore_errors=True)
-eq(sorted((p["player"], p["side"]) for p in _picks), [("Fav Under", "under"), ("Td Scorer", "yes")],
+eq(sorted((p["player"], p["side"]) for p in _picks), [("Fav Under", "under"), ("Td Star", "yes")],
    "🔴 the live pick list: no pick on Value Over's 45% Over (+162) — its 55% Under does not pay; Fav Under's "
-   "Under (55%, +105), never the richer 45% Over; nothing on a 50/50 prop; the anytime TD left as it was")
-ck(len(_rated) == 7 and ("Value Over", "over", 45.0) in {(r["player"], r["side"], r["p"]) for r in _rated},
+   "Under (55%, +105), never the richer 45% Over; nothing on a 50/50 prop; an anytime TD only at 50%+ (the "
+   "60% one, never the 30% one at +400)")
+ck(len(_rated) == 8 and ("Value Over", "over", 45.0) in {(r["player"], r["side"], r["p"]) for r in _rated},
    "   ✅ every side is still RATED as it was (the card and the agreement label read these)",
    str(sorted((r["player"], r["side"], r["p"]) for r in _rated)))
 
@@ -199,16 +216,24 @@ try:
         {"id": gid, "away": a, "home": h, "commence": _K, "props": [
             {"player": who(gi, w), "market": MK, "line": ln,
              "sides": {"over": {"price": ov, "book": "fanduel", "n_books": 3},
-                       "under": {"price": un, "book": "fanduel", "n_books": 3}}} for w, ln, ov, un, _o, _u in _PL]}
+                       "under": {"price": un, "book": "fanduel", "n_books": 3}}} for w, ln, ov, un, _o, _u in _PL]
+            # an anytime TD the model rates 'yes' at 30% (+250), and a player no log or model knows
+            + [{"player": who(gi, "Tdguy"), "market": TD, "line": None,
+                "sides": {"yes": {"price": 250, "book": "fanduel", "n_books": 3}}},
+               {"player": who(gi, "Ghost"), "market": MK, "line": 4.5,
+                "sides": {"over": {"price": 110, "book": "fanduel", "n_books": 3},
+                          "under": {"price": -130, "book": "fanduel", "n_books": 3}}}]}
         for gi, (gid, a, h) in enumerate(_GAMES)]})
     put(os.path.join(_L, "players-2025.json.gz"), {"season": 2025, "players": {
         "%d-%d" % (gi, i): {"name": who(gi, w), "pos": "WR", "team": "T%d" % gi,
                             "g": [{"d": "2025-09-%02d" % (j + 6), "rec": 4, "rec_yds": 50} for j in range(8)]}
-        for gi in range(2) for i, (w, *_x) in enumerate(_PL)}})
+        for gi in range(2) for i, (w, *_x) in enumerate(_PL + [("Tdguy",)])}})
     put(os.path.join(_L, "fb-props-model.json"), {"board_pulled_at": _P, "picks": [], "rated": [
         {"game_id": gid, "player": who(gi, w), "market": MK, "line": ln, "side": s, "p": p}
         for gi, (gid, _a, _h) in enumerate(_GAMES) for w, ln, _ov, _un, po, pu in _PL
-        for s, p in (("over", po), ("under", pu))]})
+        for s, p in (("over", po), ("under", pu))]
+        + [{"game_id": gid, "player": who(gi, "Tdguy"), "market": TD, "line": None, "side": "yes", "p": 30.0}
+           for gi, (gid, _a, _h) in enumerate(_GAMES)]})
     _q = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, %r); import card_fb; card_fb.main()" % ROOT],
                         cwd=_T, capture_output=True, text=True, encoding="utf-8", timeout=900,
                         env=dict(os.environ, PYTHONUTF8="1", LEAGUE="ncaaf"))
@@ -220,7 +245,8 @@ try:
 finally:
     shutil.rmtree(_T, ignore_errors=True)
 _ck = lambda r: (r.get("game_id"), r.get("player"), r.get("market"), r.get("line"))  # noqa: E731
-_shown = {(r.get("player"), r.get("side")) for k in ("picks", "liked", "top_plays") for r in CARD.get(k) or []}
+_shown = {(r.get("player"), r.get("side")) for k in ("picks", "liked", "top_plays") for r in CARD.get(k) or []
+          if not r.get("player", "").startswith("Ghost")}        # the unrated prop is checked below
 _legs = [leg for v in list((CARD.get("parlays") or {}).values()) + list((CARD.get("sgp") or {}).values())
          if isinstance(v, list) for p in v for leg in p.get("legs") or []]
 ck(bool(CARD.get("picks")) and bool(_legs), "⚠️ the planted card was built, with a board and parlay legs",
@@ -234,6 +260,12 @@ ck(any(r.get("player", "").startswith("Robinson") and r.get("side") == "under" f
 _wrong = [leg for leg in _legs for gi in range(2) for w, side in (("Tipton", "o"), ("Robinson", "o"), ("Starter", "u"))
           if leg.startswith("%s %s" % (who(gi, w), side))]
 eq(_wrong, [], "🔴 ...and no cross-game or same-game parlay leg is on a side under 50%")
+ck(not any("Tdguy" in str(x) for k in ("picks", "liked", "top_plays") for x in CARD.get(k) or [])
+   and not any(leg.startswith("Tdguy") for leg in _legs),
+   "🔴 the anytime TD the model gives 30% is on no list and in no parlay leg (it needs 50% like any side)")
+_ghost = sorted((r["player"], r["side"]) for r in CARD.get("picks") or [] if r.get("player", "").startswith("Ghost"))
+ck(bool(_ghost) and len({p for p, _s in _ghost}) == len(_ghost),
+   "🔴 a prop no log or model rates shows one side only (never both ways), and it does show", str(_ghost))
 eq(O.prop_conflicts([r for k in ("picks", "liked", "top_plays") for r in CARD.get(k) or []], _ck,
                     lambda r: r.get("model_p")), [],
    "🔴 the guard on the built card: no list shows a side under 50% or a prop both ways")

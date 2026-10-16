@@ -551,9 +551,10 @@ note boxes, tags and the stale bar now require their absence.
   (the card's Hunter Tipton Under 3.5 at 55%, its pick list's Over 3.5 at 45% because +162 paid).
   Sam chose *"Model's 50%+ side only: Every list shows only the side the model gives 50% or
   more."* `one_side.keep_props`: per over/under wager (one game, player, market and line), only
-  the side whose number is 50+ AND above the other side's; an exact tie keeps neither; a wager
-  with no number on any side is left as built; a one-sided market (anytime TD "yes") is never
-  touched. Where: `fb_props_model.current_picks` (live picks only; its walk-forward record is
+  the side whose number is 50+ AND above the other side's; an exact tie keeps neither; an anytime
+  TD "yes" needs 50% too (~~a one-sided market is never touched~~: a 22% TD at +400 is the value
+  side Sam declined); a wager with no number on either side never shows both ways
+  (`one_per_wager`, MLB's rule). Where: `fb_props_model.current_picks` (live picks only; its walk-forward record is
   unchanged), the football card's pool before the price rules (`card_fb.prop_value`: the model's
   unrounded chance on a MODEL row, so 49.8 never ties 50.2), and MLB's `card.one_side_pools` (the
   PRINTED number; the board keeps blend's side only when it agrees, e.g. Nick Martinez outs, blend

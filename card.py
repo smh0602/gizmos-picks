@@ -99,7 +99,7 @@ def one_side_problems(doc):
     top = [r for r in doc.get("top10") or [] if isinstance(r, dict)]
     out = [(w, k) for k, w in one_side.prop_conflicts(rows, _propkey, lambda r: r.get("confidence"))]
     out += [("top 10 under 50%", _propkey(r)) for r in top
-            if r.get("side") in one_side.TWO_SIDED and (r.get("confidence") or 0) < 50]
+            if r.get("confidence") is not None and r["confidence"] < 50]
     legs = (doc.get("pairs") or []) + [x for v in (doc.get("parlays") or {}).values()
                                        if isinstance(v, list) for x in v]
     out += [("a leg under 50%", p.get("label") or p.get("legs")) for p in legs

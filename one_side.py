@@ -27,12 +27,13 @@ from the repo.
 props that day (the card's Hunter Tipton Under 3.5 at 55%, its own pick list's Over
 3.5 at 45%, because +162 paid). Asked, Sam chose "Model's 50%+ side only: Every list
 shows only the side the model gives 50% or more." `prop_side` / `keep_props`: for each
-over/under wager (one game, player, market and line) only the side whose number is 50
-or more AND above the other side's; an exact tie keeps neither. A one-sided market
-(anytime TD "yes") has no other side and is left alone.
+wager (one game, player, market and line) only the side whose number is 50 or more AND
+above the other side's; an exact tie keeps neither. ~~A one-sided market (anytime TD "yes")
+has no other side and is left alone~~: an anytime TD "yes" at 22% is the plus-money value
+side Sam declined ("Keep value picks"), so it needs 50% too. `one_per_wager`: a wager with
+no number on either side still never shows both ways (the first in the list's own order).
 """
 TOTAL_WORDS = ("total",)          # total, totals, alternate_total(s), team totals: no team side
-TWO_SIDED = ("over", "under")     # the prop sides that have an opposite
 
 
 def expected_side(p_home):
@@ -103,8 +104,8 @@ def keep_props(rows, key, value):
     """-> (kept, dropped). `key(row)`: the wager (one game, player, market and line);
     `value(row)`: the model's number for the row's side (0-100), or None. Per wager, only
     the rows on the side with the highest number, when that number is 50 or more and no
-    other side ties it. A wager with no number on any side is left as it is, and a
-    one-sided row (not over/under) is never touched."""
+    other side ties it (a one-sided "yes" needs 50% as well). A wager with no number on
+    any side is left as it is (`one_per_wager` then keeps one side)."""
     best = {}
     for r in rows or []:
         v = value(r)
@@ -114,7 +115,7 @@ def keep_props(rows, key, value):
             s[r.get("side")] = max(v, s.get(r.get("side"), v))
     kept, dropped = [], []
     for r in rows or []:
-        s = best.get(key(r)) if r.get("side") in TWO_SIDED else None
+        s = best.get(key(r))
         if s is None:
             kept.append(r)
             continue
@@ -126,16 +127,26 @@ def keep_props(rows, key, value):
     return kept, dropped
 
 
+def one_per_wager(rows, key):
+    """-> (kept, dropped): never both sides of one wager, the first row of each in the
+    list's own order kept (MLB's select_board rule). For rows that carry no number."""
+    seen, kept, dropped = set(), [], []
+    for r in rows or []:
+        k = key(r)
+        (dropped if k in seen else kept).append(r)
+        seen.add(k)
+    return kept, dropped
+
+
 def prop_conflicts(rows, key, value=None):
-    """The guard: wagers shown on BOTH sides, and (given `value`) an over/under row the
-    model gives under 50% -> [(wager, why)]."""
+    """The guard: wagers shown on BOTH sides, and (given `value`) a row the model gives
+    under 50% -> [(wager, why)]."""
     sides, out = {}, []
     for r in rows or []:
-        if r.get("side") in TWO_SIDED:
-            sides.setdefault(key(r), set()).add(r["side"])
-            v = value(r) if value else None
-            if v is not None and v < 50:
-                out.append((key(r), "a side the model gives under 50%"))
+        sides.setdefault(key(r), set()).add(r.get("side"))
+        v = value(r) if value else None
+        if v is not None and v < 50:
+            out.append((key(r), "a side the model gives under 50%"))
     out += [(k, "both sides") for k, s in sides.items() if len(s) > 1]
     return out
 

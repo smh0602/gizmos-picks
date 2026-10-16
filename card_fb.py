@@ -2328,6 +2328,9 @@ def main():
     rows.sort(key=lambda r: (r.get("confidence") is None,
                              -(r.get("confidence") or 0),
                              -(r.get("price") or -10000)))
+    # `[Sam, 2026-10-16]` and a prop with no number on either side never shows both ways:
+    #    the first in this order stays (MLB select_board's rule).
+    rows, _ = one_side.one_per_wager(rows, prop_key)
 
     # 🔴 ROUND-ROBIN ONLY WHEN THERE IS NOTHING TO RANK BY.
     # ⚠️ Sam's standing rule is that the board sorts STRICTLY by

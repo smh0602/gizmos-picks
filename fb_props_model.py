@@ -909,9 +909,11 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
                         rated.append({"game_id": eid, "player": who, "market": mk, "line": line,
                                       "side": _side, "p": round(100 * _p, 1)})
             # `[Sam, 2026-10-16]` only the side the model gives 50% or more (one_side):
-            #    the value side under 50% is never picked. ⛔ Live picks only; the
-            #    walk-forward's graded picks are history and keep their own rule.
-            if mk != TD_MARKET:
+            #    the value side under 50% is never picked, an anytime TD "yes" included.
+            #    ⛔ Live picks only; the walk-forward's graded picks keep their own rule.
+            if mk == TD_MARKET:
+                po = po if (po or 0) >= 0.5 else None
+            else:
                 _fav = one_side.prop_side(po, pu)
                 po, pu = (po if _fav == "over" else None), (pu if _fav == "under" else None)
             pk = pick_for(mk, rung, po, pu)
