@@ -568,14 +568,22 @@ note boxes, tags and the stale bar now require their absence.
   *"i also want a "why" behind the picks underneath each gizmo picks pick"*.
   `fb_why.explain` writes `why` on the liked lists only (`liked`,
   `game_lines_liked`, copies of board rows): a prop gets his role (NFL: snaps,
-  targets or carries over his last 3 games), his record at the line this season,
-  what the opponent allows his position and its rank, the opponent's Out /
-  Doubtful defenders who guard him (NFL, latest report), and the model's chance
-  against the break-even; a game line keeps its sentence and adds the model's
-  predicted score and each team's points for and against. ⛔ It explains and
-  changes no pick, chance, rank or price. A fact it cannot find (an ambiguous
-  name, a team it cannot resolve) is left out, never guessed; a row whose why
-  fails keeps its old one. `test_fb_why.py`.
+  targets or carries over his last ~~3~~ games, saying how many), ~~his record at
+  the line this season~~ the card's OWN record sentence (its half-the-snaps and
+  6-game gates; none when the card shows none), what the opponent allows his
+  position and its rank (ties read from the right end), the opponent's Out /
+  Doubtful defenders who guard him (NFL, ~~latest report~~ THIS game's week's
+  report), and the chance against the break-even ("the model's" on a MODEL row,
+  "his record's" on a RECORD row); a game line keeps its sentence and adds the
+  model's predicted score (`[2026-10-16]` only when it lands on the pick's side:
+  the score comes from the moneyline and total fits, the spread fit is separate)
+  and each team's points for and against. The season is the kickoff's, never the
+  newest file. ⛔ It explains and changes no pick, chance, rank or price. A fact
+  it cannot find (an ambiguous name, a team it cannot resolve, a season or week
+  with no stored file) is left out, never guessed; a row whose why fails keeps
+  its old one; the card's sentence is kept in `why_card`. `[2026-10-16]` Its
+  first version was checked sentence by sentence against the raw files (225) and
+  six defects were fixed. `test_fb_why.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
