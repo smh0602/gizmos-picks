@@ -72,6 +72,21 @@ result, and disclosed so Sam can overrule any of it.**
 | The 95% range | The record's own `interval_95`, which is clustered by game (`fb_model.record`). |
 | Order | Taken in Sam's order, and the first that applies wins. (1) **PROVEN**: at least 300 picks, mean d > 0 and p < 0.05. (2) **LOSING**: the range's top is below the mean break-even. This can apply under 300 picks, since the range already accounts for the sample. (3) **NOT PROVEN**: at least 300 picks. (4) **NOT YET MEASURABLE**: fewer than 300. |
 
+## 3a. A pick the model withdrew is not graded `[Sam, 2026-10-16]`
+
+**Approved by Sam on 2026-10-16**, asked after the one-team-per-game rule
+(#278) removed picks on the team each model expects to lose. Eight picks
+from the morning's snapshots stayed pending, because §3's "Which snapshot
+counts" keeps a pick "unless the game had no pick in any later snapshot".
+Sam chose: *"Don't grade withdrawn: change the rule: the last snapshot that
+looked at a game decides, even when it holds no pick."*
+
+| | |
+|---|---|
+| Which snapshot counts | **This row replaces §3's row of the same name.** For each game, and for each model separately, the ledger holds the picks from the **last snapshot taken before that game's kickoff that looked at that game**. If that snapshot holds no pick for the game, the model withdrew it and **nothing is graded** for that game and model. |
+| Looked at | A snapshot looked at a game when it holds a pick for it, or lists it in `looked_at`. From 2026-10-16 every snapshot lists, per model, every unstarted game the model priced: the game model, each game in `fb-model.json` `win_chances`; the props model, each game with a rated prop in `fb-props-model.json` `rated` (kickoff from the props board). A game with no known kickoff is not listed. |
+| Earlier snapshots | A snapshot written before this amendment has no `looked_at`, so it looked only at the games it holds a pick for. Every pick graded before 2026-10-16 keeps its grade, and the past is not recalculated. |
+
 ## 4. What runs
 
 - `fb_ledger.py` snapshots, grades and writes
@@ -86,3 +101,8 @@ result, and disclosed so Sam can overrule any of it.**
 ## Changelog
 
 - **2026-09-24:** written and committed before any scoring code.
+- **2026-10-16:** §3a added on Sam's approval: a pick the model withdrew
+  before kickoff is not graded. Cause: §3's fallback kept 8 pre-#278 picks
+  on teams the model now expects to lose (Houston ML and +2.5; Missouri,
+  Georgia Tech, Michigan State ML and +7, Mississippi State, Cincinnati).
+  §2 and §3 are unchanged and pinned on their own by `test_prereg_gate.py`.

@@ -939,6 +939,12 @@ fb_ledger.py      "What the model showed, graded": both football models'
                   market (fb_model.verdict) beside every record
                   (`research/fb_model_live_spec.md`, frozen). Rides
                   `card-fb`. ⛔ Never recalculates a graded pick.
+                  `[Sam, 2026-10-16]` spec §3a: a pick the model withdrew
+                  before kickoff is NOT graded. Each snapshot lists the
+                  games each model looked at (`looked_at`), and the last
+                  snapshot before kickoff that looked at a game decides,
+                  even with no pick (~~kept "unless the game had no pick in
+                  any later snapshot"~~). `test_fb_ledger_withdrawn.py`.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule
