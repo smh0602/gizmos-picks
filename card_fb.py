@@ -1146,11 +1146,13 @@ def latest_gamelines_snapshot():
     return None, None
 
 
-def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None):
+def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None, score=None):
     """Top `n` shoppable game-line edges, ONE PER GAME, richest first.
     `[Sam, 2026-10-16]` given `winner` (one_side.by_names over the model's
     win chances), each game's row is its best ALLOWED one: a total, or a row
-    on the expected winner (never the other team).
+    on the expected winner (never the other team). Given `score`
+    (one_side.scores_by_names), a spread or total row must also land on the
+    side of the model's predicted score.
 
     `snapshot` is a raw `gamelines` pull — the file the collector already
     writes — because `board.json` keeps only the BEST price and the whole
@@ -1230,6 +1232,8 @@ def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None):
                    "gain_pct": round(gain, 2)}
             if winner is not None and not one_side.keep([row], winner)[0]:
                 continue                     # one team per game (Sam, 2026-10-16)
+            if score is not None and not one_side.score_keep([row], score, lambda r: r.get("point"))[0]:
+                continue                     # on the predicted score's side (Sam, 2026-10-16)
             if best_row is None or row["gain_pct"] > best_row["gain_pct"]:
                 best_row = row
         if best_row:
@@ -1485,9 +1489,13 @@ def card_game_lines(model_picks, games, ladder, slate, win_chances=None):
     moneyline or spread row stays only on the game's expected winner (the Game Lines
     tab's pick to win), BEFORE its alternate spread is added, so the alternate follows."""
     rows = model_game_rows(model_picks, games, slate)
-    if win_chances is not None:
-        rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
-    return order_game_lines(rows + alt_spread_rows(rows, ladder))
+    if win_chances is None:
+        return order_game_lines(rows + alt_spread_rows(rows, ladder))
+    rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
+    # `[Sam, 2026-10-16]` "Must match the score": every spread, alternate spread and total
+    #    row lands on the side of the model's predicted score (win_chances' `score`).
+    rows, _ = one_side.score_keep(rows + alt_spread_rows(rows, ladder), one_side.scores_by_names(win_chances))
+    return order_game_lines(rows)
 
 
 def build_top_plays(rows, board, n=TOP_N):
@@ -2379,7 +2387,8 @@ def main():
     except Exception:
         _model = {}
     _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=_gl_slate,
-                                         winner=one_side.by_names(_model.get("win_chances") or []))
+                                         winner=one_side.by_names(_model.get("win_chances") or []),
+                                         score=one_side.scores_by_names(_model.get("win_chances") or []))
                         if _gl_snap
                         else ([], {"games_seen": 0, "comparable_quotes": 0,
                                    "games_with_an_edge": 0,

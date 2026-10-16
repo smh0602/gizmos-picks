@@ -778,16 +778,23 @@ def current_picks(lg, rows, root=None, now=None):
     for mk in MARKETS:
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
         models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
-    out, exp = [], {}
+    out, exp, sc = [], {}, {}
+    sigma, sigma_t = score_sigma(rows), total_sigma(rows)
     for r in rows:
         snap = r["snap"]
         if r["final"] or not snap or not (now < snap["commence"] <= horizon):
             continue
         hname, aname = snap["names"]
         # `[Sam, 2026-10-16]` the Game Lines tab's pick to win: `win_chances`' number from
-        #    the same moneyline fit, rounded the same way.
-        exp[r["id"]] = (one_side.expected_side(round(100 * predict(models["moneyline"], features(r, "moneyline")), 1))
-                        if models.get("moneyline") else None)
+        #    the same moneyline fit, rounded the same way...
+        _ph = (round(100 * predict(models["moneyline"], features(r, "moneyline")), 1)
+               if models.get("moneyline") else None)
+        exp[r["id"]] = one_side.expected_side(_ph)
+        # ...and its predicted score, exactly as `win_chances` makes it (the same fits)
+        sc[r["id"]] = (predicted_score(r, _ph / 100.0, sigma,
+                                       predict(models["total"], features(r, "total"))
+                                       if models.get("total") and r.get("T") is not None else None, sigma_t)
+                       if _ph is not None and isinstance(r.get("sig"), dict) else None)
         for mk in MARKETS:
             pk = best_pick(r, mk, models[mk])
             if pk:
@@ -806,7 +813,21 @@ def current_picks(lg, rows, root=None, now=None):
     #    spread pick stays only on the team the Game Lines tab picks to win. ⛔ AFTER each
     #    market's own pick, never inside best_pick: walk_forward's graded record replays it.
     out, _ = one_side.keep(out, lambda p: exp.get(p["game_id"]))
+    # 🔴 `[Sam, 2026-10-16]` "Must match the score": a spread or total pick stays only when
+    #    the model's predicted score lands on its side (a spread's `line` is M on the home
+    #    margin, so the team's own point is -M at home, +M away).
+    out, _ = one_side.score_keep(out, lambda p: sc.get(p["game_id"]), own_point)
     return sorted(out, key=lambda x: (x["commence"], x["game"], x["market"]))
+
+
+def own_point(p):
+    """A pick's own number for one_side.score_keep: the team's own point on a spread (the
+    stored `line` is M, the threshold on the HOME margin), the line on a total."""
+    v = p.get("line")
+    v = v.get("value") if isinstance(v, dict) else v
+    if v is None or p.get("market") != "spread":
+        return v
+    return -v if p.get("side") == "home" else v
 
 
 PRICING_DAYS = 8           # the Game Lines tab prices this week's slate

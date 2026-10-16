@@ -221,7 +221,10 @@ _picks5 = [_mp(g, at) for g, at in (("sat", "2026-09-19T17:00:00Z"),
                                     ("sat2", "2026-09-26T17:00:00Z"))]
 # `[2026-10-16]` main hands the list the model file's win chances (one team per game, Sam);
 #    every planted pick is the home side, so the home team is each game's expected winner.
-_wc5 = [{"away": "Away %s" % g, "home": "Home %s" % g, "p_home": 60.0} for g in ("sat", "thu", "sat2")]
+#    `[Sam, 2026-10-16]` "Must match the score": each game also carries the model's predicted
+#    score, on the home side (home by 4), so every planted spread stays and the day is what is asked.
+_wc5 = [{"away": "Away %s" % g, "home": "Home %s" % g, "p_home": 60.0, "score": {"home": 24.0, "away": 20.0}}
+        for g in ("sat", "thu", "sat2")]
 # the card as it was published on Saturday: its own day's rows, started now
 _old_rows = C.card_game_lines(_picks5, [], {}, _card_day, win_chances=_wc5)
 _pubcard = {"date": _card_day, "game_lines_meta": {"slate": _card_day}, "game_lines": _old_rows}

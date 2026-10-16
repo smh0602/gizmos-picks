@@ -4185,8 +4185,11 @@ function winnersWeekHtml(W){
   rows.forEach(r => { const d = fbKickDate(r.commence);
     if (!days.length || days[days.length - 1].d !== d) days.push({d, rows: []});
     days[days.length - 1].rows.push(r); });
+  // `[Sam, 2026-10-16]` a spread or total pick shows only on the predicted score's side, judged
+  // to one decimal, so the score is printed to one decimal (whole numbers made Baylor -5.5 on a
+  // predicted 5.6 read "18 - 23").
   const sc = r => r.score && r.score.home != null && r.score.away != null
-    ? `${fbAb(r.away)} ${Math.round(r.score.away)} &ndash; ${fbAb(r.home)} ${Math.round(r.score.home)}`
+    ? `${fbAb(r.away)} ${Number(r.score.away).toFixed(1)} &ndash; ${fbAb(r.home)} ${Number(r.score.home).toFixed(1)}`
     : '&mdash;';
   return winnersRecordLine(W) + days.map(g => `<h3 style="margin:14px 0 6px;font-size:14px"
     data-day="${g.d}">${fbDayName(g.d)}</h3><table class="ob" data-winners>

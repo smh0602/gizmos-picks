@@ -62,6 +62,11 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:     margin = sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
 #   with:     margin = -sigma * statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, p_home)))
 #
+# @vacuity 🔴 [Sam, 2026-10-16] the predicted score is printed to the decimal its picks are judged on
+#   file: index.html
+#   find:     ? `${fbAb(r.away)} ${Number(r.score.away).toFixed(1)} &ndash; ${fbAb(r.home)} ${Number(r.score.home).toFixed(1)}`
+#   with:     ? `${fbAb(r.away)} ${Math.round(r.score.away)} &ndash; ${fbAb(r.home)} ${Math.round(r.score.home)}`
+#
 # @vacuity 🔴 a 50% chance is a tied score
 #   file: fb_model.py
 #   find:     return {"home": round((ot + margin) / 2.0, 1), "away": round((ot - margin) / 2.0, 1)}
@@ -252,7 +257,9 @@ ck("🔴 every planted game listed once, under its ET day, earliest day first",
 ck("🔴 kickoff in ET with \"ET\" written (a 00:15Z kickoff is 8:15 PM ET the day before)",
    "8:15 PM ET" in H and "1:00 PM ET" in H and "8:20 PM ET" in H, H[:600])
 ck("🔴 the model's predicted score, away then home; none printed as a dash",
-   "SEA 24 &ndash; DEN 21" in H and "LAS 18 &ndash; KAN 27" in H and H.count("<td data-score>&mdash;</td>") == 1,
+   # `[Sam, 2026-10-16]` "Must match the score": picks are judged on the score to one decimal,
+   #    so it is printed to one decimal (~~"SEA 24 &ndash; DEN 21"~~).
+   "SEA 23.9 &ndash; DEN 20.6" in H and "LAS 17.6 &ndash; KAN 27.2" in H and H.count("<td data-score>&mdash;</td>") == 1,
    re.findall(r"<td data-score>[^<]*</td>", H))
 ck("🔴 the graded record line stays at the top", H.startswith("<p data-wrec>") and "5 won, 3 lost" in H)
 ck("🔴 the football tab draws the week", "winnersWeekHtml(W)" in js_block("fbGameLinesTab", PAGE))

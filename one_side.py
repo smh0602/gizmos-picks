@@ -22,6 +22,7 @@ and it runs AFTER each market's own pick (never inside fb_model.best_pick, whose
 walk-forward record is graded history). No expected winner (no win chance) means no
 side pick, as the Game Lines tab then names no winner. Stdlib only; imports nothing
 from the repo.
+
 """
 TOTAL_WORDS = ("total",)          # total, totals, alternate_total(s), team totals: no team side
 
@@ -98,3 +99,53 @@ def conflicts(rows, winner=None, game=lambda r: r.get("game_id") or r.get("game"
         elif winner is not None and any(b == "?" or b != winner(r) for b, r in picks):
             out.append((g, "a pick on the team the model does not expect to win"))
     return out
+
+
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-16]` AND ON THE PREDICTED SCORE'S SIDE. The football model's predicted score
+# comes from its moneyline and total fits, each spread pick from a separate fit: 13 of 66
+# college spread and total picks sat on the side the model's own score said loses (Purdue -3.5
+# beside "Purdue by 1.2"). Sam chose "Must match the score".
+# ══════════════════════════════════════════════════════════════════════
+def score_side_ok(row, score, point):
+    """`[Sam, 2026-10-16]` "Must match the score: A spread or total pick, and a parlay's
+    line leg, shows only when the predicted score lands on its side." -> True / False, or
+    None for a row that is neither a spread nor a total (a moneyline is the expected
+    winner's, `keep`). `score`: {"home", "away"} (fb_model.predicted_score, as the Game
+    Lines tab prints it); `point`: the team's OWN point on a spread, the line on a total.
+    Landing ON the number is not its side; no score or no point is never its side."""
+    mk = str(row.get("market") or "").lower()
+    total = any(w in mk for w in TOTAL_WORDS)
+    if not total and "spread" not in mk:
+        return None
+    if not score or score.get("home") is None or score.get("away") is None or point is None:
+        return False
+    h, a = float(score["home"]), float(score["away"])
+    if total:
+        s = str(row.get("side") or "").lower()
+        return (h + a > point) if s == "over" else (h + a < point) if s == "under" else False
+    b = backs(row)
+    return b in ("home", "away") and ((h - a) if b == "home" else (a - h)) + point > 0
+
+
+def score_keep(rows, score, point=lambda r: r.get("line")):
+    """-> (kept, dropped): every spread and total row whose predicted score (`score(row)`)
+    lands on its side; every other row as it is."""
+    kept, dropped = [], []
+    for r in rows or []:
+        ok = score_side_ok(r, score(r), point(r))
+        (kept if ok is None or ok else dropped).append(r)
+    return kept, dropped
+
+
+def scores_by_names(win_chances):
+    """A `score(row)` from football fb-model.json `win_chances`, joined on the two team
+    names, as `by_names` joins the expected winner."""
+    sc = {(w.get("away"), w.get("home")): w.get("score") for w in win_chances or []}
+
+    def score(r):
+        away, home = r.get("away"), r.get("home")
+        if (away is None or home is None) and " @ " in str(r.get("game") or ""):
+            away, home = str(r["game"]).split(" @ ", 1)
+        return sc.get((away, home))
+    return score

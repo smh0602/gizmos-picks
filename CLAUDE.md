@@ -502,6 +502,16 @@ note boxes, tags and the stale bar now require their absence.
   their own line (`alt_spreads`, `by_basis` keeps the books'-chance rows apart);
   the model's picks keep fb-model.json's record. `test_fb_game_picks.py`.
   `[Sam, 2026-10-16]` Only on the game's expected winner: see ONE TEAM PER GAME.
+- 🔴 **A FOOTBALL SPREAD OR TOTAL PICK SITS ON THE PREDICTED SCORE'S SIDE.** `[Sam, 2026-10-16]`
+  The predicted score comes from the moneyline and total fits, each spread pick from a separate fit:
+  13 of 66 college spread and total picks sat on the side the model's own score said loses (Purdue
+  -3.5 beside "Purdue by 1.2"). Sam chose *"Must match the score: A spread or total pick, and a
+  parlay's line leg, shows only when the predicted score lands on its side."* `one_side.score_keep`
+  runs in `fb_model.current_picks` (after the one-team filter, on exactly `win_chances`' score),
+  `card_fb.card_game_lines` (the alternate spreads too) and `build_game_lines` (the same-game
+  parlays' line legs). Landing ON the number is not its side; no score, no pick. ⛔ Never inside
+  `best_pick`: `walk_forward`'s record is unchanged. The Game Lines tab prints the score to one
+  decimal (~~whole numbers~~), the precision picks are judged on. `test_one_side_score.py`.
 - 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`
   NWS kickoff forecasts (`fb_weather.py`), CFBD venues / advanced stats (garbage
   time excluded) / pregame Elo / weather if the key's tier allows (`cfb.py`
