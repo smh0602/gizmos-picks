@@ -102,6 +102,20 @@ unplayed game in the next 8 days beside fb_model's chances at the same lines,
 this week's settings (home edge, b's, sigmas, k's), and the backtest. A
 freshness row keeps it current. ⛔ No pick, chance, card row or page reads it.
 
+## 5. Added after the first run `[2026-10-16]`
+
+Asked for after the first run, when a recheck found fb_model's live spread chances
+contradicting its own win chances (Purdue −3.5: 55.8% to cover, 51.2% to win). These are
+measurements only, and no setting above changed.
+- **Coherence**, per version: final games where the side laying points is likelier to cover
+  than to win, at each game's own line.
+- **ml_curve**: fb_model's own win chance carried to the spread line on the normal curve,
+  Φ(Φ⁻¹(win) − line / sigma), sigma = `fb_model.score_sigma` on earlier games. It is scored
+  beside the others for spreads. ⛔ fb_model's live spread is unchanged; switching it is Sam's call.
+- **Opposite-side picks**: games where fb_model picks one team on the spread and the other to
+  win, at chances adding up to more than 100%. Counted in the walk-forward and in this week's picks.
+
 ## Changelog
 
-- 2026-10-15 — written before any code (this commit).
+- 2026-10-15 — written before any code.
+- 2026-10-16 — §5 added after the first run (measurements only; §1–§4 unchanged).

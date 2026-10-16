@@ -147,6 +147,7 @@ def fb_model_fits(rows):
         for mk in F.MARKETS:
             data = [(F.features(r, mk), y) for r in train if (y := F.label(r, mk)) is not None]
             out[(wk, mk)] = F.fit([x for x, _ in data], [y for _, y in data], zmax=F.ZMAX)
+        out[(wk, "sigma")] = F.score_sigma(train)          # = pricing.sigma.spread, earlier games
     return out
 
 
@@ -159,10 +160,60 @@ def fb_chance(model, r, mk, line=None):
                                                   {"T": ln} if mk == "total" else {})))
 
 
+def ml_curve(p_win, line, sigma):
+    """`[2026-10-16]` fb_model's own WIN chance carried to a spread line on the normal curve
+    game_lines_fb prices alternate spreads with: Phi(PhiInv(p_win) - line / sigma). ⛔ Measured
+    here only; fb_model's live spread still comes from its own spread fit."""
+    if p_win is None or line is None or not sigma:
+        return None
+    return PHI.cdf(PHI.inv_cdf(min(1 - 1e-9, max(1e-9, p_win))) - line / sigma)
+
+
 def versions(p, fits, mk, line=None):
     m = fits.get((p["week"], mk))
-    return {"score_curve": chance(p, mk, line), "calibrated": chance(p, mk, line, cal=True),
-            "fb_model": fb_chance(m, p["row"], mk, line)}
+    out = {"score_curve": chance(p, mk, line), "calibrated": chance(p, mk, line, cal=True),
+           "fb_model": fb_chance(m, p["row"], mk, line)}
+    if mk == "spread":
+        out["ml_curve"] = ml_curve(fb_chance(fits.get((p["week"], "moneyline")), p["row"], "moneyline"),
+                                   p["row"].get("M") if line is None else line, fits.get((p["week"], "sigma")))
+    return out
+
+
+def coherence(done, fits):
+    """`[2026-10-16]` Per version: games where the side laying points is likelier to COVER
+    than to WIN (impossible: covering is winning by more), at each final game's own line."""
+    out = {}
+    for p in done:
+        M = p["row"].get("M")
+        if not p["sides"] or not M:
+            continue
+        sp, ml = versions(p, fits, "spread"), versions(p, fits, "moneyline")
+        for v, q in sp.items():
+            w = ml["fb_model" if v == "ml_curve" else v]
+            if q is None or w is None:
+                continue
+            cover, win = (q, w) if M > 0 else (1.0 - q, 1.0 - w)
+            c = out.setdefault(v, [0, 0])
+            c[0], c[1] = c[0] + 1, c[1] + (cover > win + 1e-9)
+    return {v: {"games": n, "cover_above_win": bad} for v, (n, bad) in out.items()}
+
+
+def opposite_picks(picks):
+    """`[2026-10-16]` Games where fb_model picks the side LAYING points (or a pick'em) on the
+    spread and the OTHER team to win, at chances adding up to more than 100%: both cannot hit.
+    ⚠️ A side GETTING points and the other team to win can both hit (the favourite wins by
+    less than the line), so that pair is never counted. `line` is the home margin line."""
+    by = collections.defaultdict(dict)
+    for k in picks:
+        by[k["game_id"]][k["market"]] = k
+    both = [g for g in by.values() if "spread" in g and "moneyline" in g]
+    lays = lambda k: k["line"] == 0 or (k["line"] > 0) == (k["side"] == "home")  # noqa: E731
+    bad = [g for g in both if g["spread"]["side"] != g["moneyline"]["side"] and lays(g["spread"])
+           and g["spread"]["p"] + g["moneyline"]["p"] > 1.0 + 1e-9]
+    return {"games_with_both": len(both), "cannot_both_hit": len(bad),
+            "games": [{"game_id": g["spread"]["game_id"], "spread": [g["spread"]["side"], g["spread"].get("line"),
+                                                                     round(100 * g["spread"]["p"], 1)],
+                       "moneyline": [g["moneyline"]["side"], round(100 * g["moneyline"]["p"], 1)]} for g in bad]}
 
 
 def rms(xs):
@@ -193,7 +244,7 @@ def scored(done, fits, mk):
     for p in done:
         y = F.label(p["row"], mk) if p["sides"] else None
         v = versions(p, fits, mk) if y is not None else None
-        if v and all(q is not None for q in v.values()):
+        if v and all(v[x] is not None for x in VERSIONS):
             out.append((p["row"], y, v))
     return out
 
@@ -246,14 +297,22 @@ def backtest(done, fits):
            "coin_flip_log_loss": round(math.log(2), 4)}
     for mk in F.MARKETS:
         items = scored(done, fits, mk)
+        vs = VERSIONS + (("ml_curve",) if mk == "spread" else ())
         ll = {v: round(sum(logloss(x[2][v], x[1]) for x in items) / len(items), 4) if items else None
               for v in VERSIONS}
+        if mk == "spread":                # fb_model's win chance on the curve, on the games it prices
+            sub = [x for x in items if x[2]["ml_curve"] is not None]
+            ll["ml_curve"], ll["ml_curve_games"] = (round(sum(logloss(x[2]["ml_curve"], x[1]) for x in sub)
+                                                          / len(sub), 4) if sub else None), len(sub)
+            ll["fb_model_on_ml_curve_games"] = (round(sum(logloss(x[2]["fb_model"], x[1]) for x in sub)
+                                                      / len(sub), 4) if sub else None)
         if mk == "moneyline":
             ll["books_devigged"] = round(sum(logloss(r["pml"], y) for r, y, _v in items) / len(items), 4) \
                 if items else None
         out["log_loss"][mk] = dict(ll, games=len(items))
-        out["calibration"][mk] = {v: calibration(items, v) for v in VERSIONS}
-        out["roi"][mk] = {rec: {v: roi(done, fits, mk, v, q) for v in VERSIONS} for rec, q in F.RECORDS}
+        out["calibration"][mk] = {v: calibration([x for x in items if x[2][v] is not None], v) for v in vs}
+        out["roi"][mk] = {rec: {v: roi(done, fits, mk, v, q) for v in vs} for rec, q in F.RECORDS}
+    out["coherence"] = coherence(done, fits)
     return out
 
 
@@ -261,7 +320,7 @@ def upcoming(done, rows, now):
     """Every unplayed game in the next `PRICING_DAYS`: the predicted score and
     chances at its lines, beside fb_model's chances from today's fit."""
     horizon = (datetime.date.fromisoformat(now[:10]) + datetime.timedelta(days=F.PRICING_DAYS)).isoformat()
-    live = {}
+    live = {"sigma": F.score_sigma(rows)}
     for mk in F.MARKETS:
         data = [(F.features(r, mk), y) for r in rows if (y := F.label(r, mk)) is not None]
         live[mk] = F.fit([x for x, _ in data], [y for _, y in data], zmax=F.ZMAX)
@@ -278,7 +337,9 @@ def upcoming(done, rows, now):
                     "line": {"spread": r.get("M"), "total": r.get("T")},
                     "score_curve": {mk: pct(chance(p, mk)) for mk in F.MARKETS},
                     "calibrated": {mk: pct(chance(p, mk, cal=True)) for mk in F.MARKETS},
-                    "fb_model": {mk: pct(fb_chance(live[mk], r, mk)) for mk in F.MARKETS}})
+                    "fb_model": {mk: pct(fb_chance(live[mk], r, mk)) for mk in F.MARKETS},
+                    "fb_model_ml_curve_spread": pct(ml_curve(fb_chance(live["moneyline"], r, "moneyline"),
+                                                             r.get("M"), live["sigma"]))})
     return sorted(out, key=lambda g: (g["kick"], g["game_id"]))
 
 
@@ -302,6 +363,12 @@ def build(lg=None, root=None, out=None, now=None):
            "upcoming": upcoming(done, rows, now),
            "backtest": backtest(done, fits),
            "tables_reconcile": FM.reconcile(tables, lg, season, root) if season else None}
+    wf = F.walk_forward(rows)
+    doc["fb_model_opposite_picks"] = dict(
+        {name: opposite_picks([dict(k, market=mk) for mk in F.MARKETS for k in wf[name][mk]])
+         for name, _q in F.RECORDS},
+        this_week=opposite_picks([dict(k, p=k["model_probability"]["value"] / 100.0, line=k["line"]["value"])
+                                  for k in F.current_picks(lg, rows, root, now)]))
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-score-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)

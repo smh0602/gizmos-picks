@@ -12,6 +12,8 @@ planted leagues with a pinned clock; nothing here reads the live data tree.
   6. No card change: only collect.py's card-fb run (after the card) names the
      model, and a build writes its one file and nothing else.
   7. The code runs the settings research/fb_score_model_design.md fixed.
+  8. `[2026-10-16]` Coherence: a side laying points is never likelier to cover than to
+     win, and fb_model's opposite-side picks that cannot both hit are counted.
 
 # @vacuity 🔴 a table reads only games before its Monday
 #   file: fb_matchups.py
@@ -92,6 +94,26 @@ planted leagues with a pinned clock; nothing here reads the live data tree.
 #   file: fb_score_model.py
 #   find: MATCH_RIDGE = 100.0
 #   with: MATCH_RIDGE = 50.0
+#
+# @vacuity 🔴 the win chance on the curve lays the line's points
+#   file: fb_score_model.py
+#   find: return PHI.cdf(PHI.inv_cdf(min(1 - 1e-9, max(1e-9, p_win))) - line / sigma)
+#   with: return PHI.cdf(PHI.inv_cdf(min(1 - 1e-9, max(1e-9, p_win))) + line / sigma)
+#
+# @vacuity 🔴 a cover chance above the win chance is counted
+#   file: fb_score_model.py
+#   find: c[0], c[1] = c[0] + 1, c[1] + (cover > win + 1e-9)
+#   with: c[0], c[1] = c[0] + 1, c[1]
+#
+# @vacuity 🔴 opposite-side picks that cannot both hit are counted
+#   file: fb_score_model.py
+#   find: bad = [g for g in both if g["spread"]["side"] != g["moneyline"]["side"]
+#   with: bad = [g for g in both if g["spread"]["side"] == g["moneyline"]["side"]
+#
+# @vacuity 🔴 ...only when the spread pick LAYS the points
+#   file: fb_score_model.py
+#   find: lays = lambda k: k["line"] == 0 or (k["line"] > 0) == (k["side"] == "home")  # noqa: E731
+#   with: lays = lambda k: True  # noqa: E731
 """
 import ast
 import atexit
@@ -387,3 +409,30 @@ for _claim, _ok in (("ridge 100", S.MATCH_RIDGE == 100.0), ("under 200 earlier s
                     ("`pass_yds`; rush", S.MATCH_UNITS == ("pass_yds", "rush_yds", "plays")),
                     ("65–70, 70+", S.BANDS == (0.50, 0.55, 0.60, 0.65, 0.70))):
     ck(_claim in _des and _ok, "design says %r and the code runs it" % _claim)
+
+section("8. 🔴 COHERENCE: COVERING IS WINNING BY MORE")
+_N = statistics.NormalDist()
+eq(round(S.ml_curve(0.7, 3.0, 13.0), 9), round(_N.cdf(_N.inv_cdf(0.7) - 3 / 13), 9),
+   "🔴 fb_model's win chance carried to a spread line on the normal curve")
+_bad = [(q, m) for q in (0.2, 0.45, 0.55, 0.8) for m in (-7.5, -3, 3, 7.5)
+        if ((S.ml_curve(q, m, 13.0), q) if m > 0 else (1 - S.ml_curve(q, m, 13.0), 1 - q))[0] > (
+            (S.ml_curve(q, m, 13.0), q) if m > 0 else (1 - S.ml_curve(q, m, 13.0), 1 - q))[1]]
+eq(_bad, [], "🔴 on that curve the side laying points is never likelier to cover than to win")
+_coh = S.coherence(DONE, S.fb_model_fits(ROWS))
+ck(_coh["score_curve"]["games"] > 50 and _coh["score_curve"]["cover_above_win"] == 0,
+   "🔴 the score curve is coherent in every planted game", str(_coh["score_curve"]))
+_odd = {"row": {"M": 3.0, "final": True, "hs": 0, "as": 10}, "week": "w", "sides": [1], "margin": -10.0,
+        "total": 40.0, "sigma": {"margin": 13.0, "total": 14.0}, "k": {"spread": 3.0, "total": 1.0, "moneyline": 1.1}}
+_c1 = S.coherence([_odd], {})
+eq((_c1["score_curve"]["cover_above_win"], _c1["calibrated"]["cover_above_win"]), (0, 1),
+   "a calibrated curve with its own k per market CAN break it, and is counted when it does")
+_pk = [{"game_id": "g1", "market": "spread", "side": "away", "p": 0.523, "line": -1.5},   # away -1.5
+       {"game_id": "g1", "market": "moneyline", "side": "home", "p": 0.51},
+       {"game_id": "g2", "market": "spread", "side": "home", "p": 0.55, "line": 3.0},
+       {"game_id": "g2", "market": "moneyline", "side": "home", "p": 0.60},
+       {"game_id": "g3", "market": "spread", "side": "away", "p": 0.58, "line": 7.0},     # away +7
+       {"game_id": "g3", "market": "moneyline", "side": "home", "p": 0.805}]
+_op = S.opposite_picks(_pk)
+eq((_op["games_with_both"], _op["cannot_both_hit"], [g["game_id"] for g in _op["games"]]), (3, 1, ["g1"]),
+   "🔴 away -1.5 beside home to win at 103% is counted; away +7 beside home to win (both can hit) is not")
+ck("fb_model_opposite_picks" in _doc and "coherence" in _doc["backtest"], "...and both counts are in the report")
