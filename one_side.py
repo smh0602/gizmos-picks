@@ -22,8 +22,17 @@ and it runs AFTER each market's own pick (never inside fb_model.best_pick, whose
 walk-forward record is graded history). No expected winner (no win chance) means no
 side pick, as the Game Lines tab then names no winner. Stdlib only; imports nothing
 from the repo.
+
+`[Sam, 2026-10-16]` AND ONE SIDE PER PROP. The same props model took both sides of 5
+props that day (the card's Hunter Tipton Under 3.5 at 55%, its own pick list's Over
+3.5 at 45%, because +162 paid). Asked, Sam chose "Model's 50%+ side only: Every list
+shows only the side the model gives 50% or more." `prop_side` / `keep_props`: for each
+over/under wager (one game, player, market and line) only the side whose number is 50
+or more AND above the other side's; an exact tie keeps neither. A one-sided market
+(anytime TD "yes") has no other side and is left alone.
 """
 TOTAL_WORDS = ("total",)          # total, totals, alternate_total(s), team totals: no team side
+TWO_SIDED = ("over", "under")     # the prop sides that have an opposite
 
 
 def expected_side(p_home):
@@ -79,6 +88,56 @@ def by_names(win_chances):
             away, home = str(r["game"]).split(" @ ", 1)
         return side.get((away, home))
     return winner
+
+
+def prop_side(p_over, p_under, half=0.5):
+    """'over' / 'under': the side the model gives 50% or more AND more than the other, or
+    None (an exact tie, or no number). `half` is 0.5 for chances, 50 for percents."""
+    if p_over is None or p_under is None or p_over == p_under:
+        return None
+    side, p = ("over", p_over) if p_over > p_under else ("under", p_under)
+    return side if p >= half else None
+
+
+def keep_props(rows, key, value):
+    """-> (kept, dropped). `key(row)`: the wager (one game, player, market and line);
+    `value(row)`: the model's number for the row's side (0-100), or None. Per wager, only
+    the rows on the side with the highest number, when that number is 50 or more and no
+    other side ties it. A wager with no number on any side is left as it is, and a
+    one-sided row (not over/under) is never touched."""
+    best = {}
+    for r in rows or []:
+        v = value(r) if r.get("side") in TWO_SIDED else None
+        if v is not None:
+            best.setdefault(key(r), {})
+            s = best[key(r)]
+            s[r["side"]] = max(v, s.get(r["side"], v))
+    kept, dropped = [], []
+    for r in rows or []:
+        s = best.get(key(r)) if r.get("side") in TWO_SIDED else None
+        if s is None:
+            kept.append(r)
+            continue
+        top = max(s.values())
+        sides = [x for x, v in s.items() if v == top]
+        v = value(r)
+        ok = len(sides) == 1 and sides[0] == r["side"] and top >= 50 and v is not None and v >= 50
+        (kept if ok else dropped).append(r)
+    return kept, dropped
+
+
+def prop_conflicts(rows, key, value=None):
+    """The guard: wagers shown on BOTH sides, and (given `value`) an over/under row the
+    model gives under 50% -> [(wager, why)]."""
+    sides, out = {}, []
+    for r in rows or []:
+        if r.get("side") in TWO_SIDED:
+            sides.setdefault(key(r), set()).add(r["side"])
+            v = value(r) if value else None
+            if v is not None and v < 50:
+                out.append((key(r), "a side the model gives under 50%"))
+    out += [(k, "both sides") for k, s in sides.items() if len(s) > 1]
+    return out
 
 
 def conflicts(rows, winner=None, game=lambda r: r.get("game_id") or r.get("game")):

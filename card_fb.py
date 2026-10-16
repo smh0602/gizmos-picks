@@ -1985,6 +1985,17 @@ def et(dt):
 CARD_METHOD = METHOD_FIXED
 
 
+def prop_key(r):
+    """One prop wager, either side: the same game, player, market and line."""
+    return (r.get("game_id"), r.get("player"), r.get("market"), r.get("line"))
+
+
+def prop_value(r):
+    """The number a row's side carries, for one_side.keep_props: the props model's own
+    chance on a MODEL row (unrounded, so 49.8 and 50.2 never tie), else the card's."""
+    return r.get("model_p") if r.get("confidence_basis") == "MODEL" else r.get("confidence")
+
+
 def main():
     try:
         B = json.load(gzip.open(f"{DATA}/latest/props.json.gz", "rt"))
@@ -2287,6 +2298,15 @@ def main():
     if os.path.exists(f"picks/fb-{LEAGUE}-{slate}.json"):
         _now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         rows = [r for r in rows if not _started(r, {}, _now)]
+    # 🔴 `[Sam, 2026-10-16]` "Every list shows only the side the model gives 50% or more":
+    #    per over/under wager, only the side whose number (the props model's chance, else
+    #    his record) is 50+ and above the other side's; a tie keeps neither. BEFORE the
+    #    price rules, so a favoured side priced off the board never hands its seat to the
+    #    other side. The board, liked list, top plays and both parlay builders read `rows`.
+    rows, _wrong_side = one_side.keep_props(rows, prop_key, prop_value)
+    if _wrong_side:
+        log(f"  one side per prop: {len(_wrong_side)} row(s) the model gives under 50% "
+            f"or that tie their other side left the pool")
 
     # 🔴 THE -700 FLOOR IS SAM'S STANDING INSTRUCTION AND IT APPLIES HERE
     # TOO. Rows below it are kept and reported, but they are NOT the board.
