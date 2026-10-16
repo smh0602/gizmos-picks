@@ -183,6 +183,26 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:         FC.attach(n, lg, rows, root)
 #   with:         FC.attach(n, lg, rows, root) if n != "SM" else None
 #
+# @vacuity 🔴 T71: ...for SMC too (league() is run for college as well)
+#   file: fb_refit.py
+#   find:         FC.attach(n, lg, rows, root)
+#   with:         FC.attach(n, lg, rows, root) if n != "SMC" else None
+#
+# @vacuity 🔴 T71: ...and SM is fitted on the input built BEFORE the contest, never on zeros
+#   file: fb_refit.py
+#   find:                            fits=challenger_fits(rows, n, lg, root) if reg else None))
+#   with:                            fits=challenger_fits([dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in rows], n, lg, root) if reg else None))
+#
+# @vacuity 🔴 T71: the pins see rushing by every position, not QBs and RBs only
+#   file: fb_matchups.py
+#   find:                 c["rush_yds"] += float(g.get("rush_yds") or 0)
+#   with:                 c["rush_yds"] += float(g.get("rush_yds") or 0) * (pos in ("QB", "RB"))
+#
+# @vacuity 🔴 T71: ...and pass attempts by every position, not QBs only
+#   file: fb_matchups.py
+#   find:                 c["pass_att"] += float(g.get("att") or 0)
+#   with:                 c["pass_att"] += float(g.get("att") or 0) * (pos == "QB")
+#
 # @vacuity 🔴 T71: the Monday email says NOT APPLICABLE in words
 #   file: status.py
 #   find:             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
@@ -711,11 +731,13 @@ for _w in range(42):                     # 168 final games, 336 sides, before th
             _pa, _ru, _pl = _rr.randint(150, 330), _rr.randint(60, 190), _rr.randint(52, 72)
             # each its own draw, so a rushing, carry or pace edit moves the numbers
             _qc, _qr, _rc = _rr.randint(0, 9), _rr.randint(-5, 60), _rr.randint(16, 34)
+            _wc, _tp = _rr.choice((0, 0, 1, 2)), _rr.choice((0, 0, 0, 40))   # WR carries, trick passes
+            _wy = _wc * _rr.randint(-2, 9)
             _pts[_o] = _rr.randint(3, 45) + (_pa - 240) // 25 + (_ru + _qr - 125) // 30
             for _pos, _st in (("QB", {"att": _pl // 2, "pass_yds": _pa - 20, "car": _qc, "rush_yds": _qr}),
                               ("RB", {"car": _rc, "rush_yds": _ru - 10, "rec_yds": 15, "tgt": 4}),
-                              ("WR", {"rec_yds": _pa - 50, "tgt": 18,          # trick passes, some games
-                                      "pass_yds": _rr.choice((0, 0, 0, 40))}),
+                              ("WR", {"rec_yds": _pa - 50, "tgt": 18, "pass_yds": _tp,
+                                      "att": 1 if _tp else 0, "car": _wc, "rush_yds": _wy}),
                               ("TE", {"rec_yds": 35, "tgt": 6})):
                 _logs.setdefault(_o + _pos, {"name": _o + _pos, "pos": _pos, "g": []})["g"].append(
                     dict(_st, d=_day, game_id=_gid, team=_o))
@@ -739,7 +761,7 @@ _got = {lg: [tuple(round(v, 6) for v in r["sig"]["score"]) for r in _rows11[lg][
 _beta = SCM.walk_forward(_rows11["nfl"], MT.Tables("nfl", T11))[-1]["beta"]
 ck(all(abs(b) > 1e-6 for b in _beta), "the planted logs run the pass, rush and pace tables and fit all three weights",
    _beta)
-PIN = [(-1.041649, 52.42573), (-6.158078, 44.127875)]   # recorded from #275's code, 2026-10-16
+PIN = [(5.998657, 37.615287), (2.586446, 47.162239)]   # recorded from #275's code, 2026-10-16
 ck(all(abs(a - b) < 1e-6 for lg in _got for x, y in zip(_got[lg], PIN) for a, b in zip(x, y)),
    "🔴 SM's and SMC's predicted (margin, total) are the numbers #275's code gives (a change is a new challenger)",
    _got)
@@ -765,16 +787,24 @@ ck(".github/workflows/fb-refit.yml" in _deep and all(_deep.values()),
 # ══════════════════════════════════════════════════════════════════════
 section("13. 🔴 league() SCORES EVERY REGISTERED CHALLENGER; ONE IT CANNOT BUILD IS NOT APPLICABLE")
 # ══════════════════════════════════════════════════════════════════════
+for _lg, _sm in (("nfl", "SM"), ("ncaaf", "SMC")):
+    _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == _lg]
+    _bare = [dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in _rows11[_lg]]
+    _lgd = R.league(_lg, T11, NOW, rows=_bare, added={n: "2025-01-01" for n in _names})
+    ck([r["sig"].get("score") for r in _bare] == [r["sig"]["score"] for r in _rows11[_lg]]
+       and sum(1 for r in _bare if r["sig"].get("score")) > 100,
+       "🔴 %s: league() builds %s's input itself: rows handed in without it get the score model's own "
+       "numbers" % (_lg, _sm))
+    _byn = {x["name"]: x for x in _lgd["challengers"]}
+    ck(sorted(_byn) == sorted(_names) and all(x["history"]["predictions"] > 0 for x in _byn.values()),
+       "🔴 %s: every challenger, %s included, is fitted and scored by league()" % (_lg, _sm),
+       {n: (x.get("verdict"), x.get("history", {}).get("predictions")) for n, x in _byn.items()})
+    _pre = [dict(r, sig=dict(r["sig"])) for r in _rows11[_lg]]       # already carry the score
+    _want = R.contest(_pre, R.Fits(_pre, FM.features), _sm, "2026-10-19", "2026-10-19",
+                      fits=R.Fits(_pre, R.challenger_feat(_sm)))["history"]
+    eq(_byn[_sm]["history"], _want, "🔴 %s: league() scores %s on the numbers it built BEFORE the contest, "
+       "not on zeros" % (_lg, _sm))
 _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == "nfl"]
-_bare = [dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in _rows11["nfl"]]
-_lgd = R.league("nfl", T11, NOW, rows=_bare, added={n: "2025-01-01" for n in _names})
-ck([r["sig"].get("score") for r in _bare] == [r["sig"]["score"] for r in _rows11["nfl"]]
-   and sum(1 for r in _bare if r["sig"].get("score")) > 100,
-   "🔴 league() builds SM's input itself: rows handed in without it get the score model's own numbers")
-_byn = {x["name"]: x for x in _lgd["challengers"]}
-ck(sorted(_byn) == sorted(_names) and all(x["history"]["predictions"] > 0 for x in _byn.values()),
-   "🔴 every NFL challenger, SM included, is fitted and scored by league()",
-   {n: (x.get("verdict"), x.get("history", {}).get("predictions")) for n, x in _byn.items()})
 _old = FM.CHAMPION["nfl"]
 try:
     FM.CHAMPION["nfl"] = "SM"
