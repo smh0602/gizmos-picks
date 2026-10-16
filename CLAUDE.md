@@ -546,6 +546,19 @@ note boxes, tags and the stale bar now require their absence.
   unchanged. Once a slate's card is published, a started game takes no new seat
   (board, parlays, top plays): `freeze_published` keeps what was published for it.
   `test_fb_next_slate.py`.
+- 🔴 **ONE SIDE PER PROP: ONLY THE SIDE THE MODEL GIVES 50% OR MORE, ALL LEAGUES.** `[Sam,
+  2026-10-16]` A sweep after one-team-per-game found the same props model on both sides of 5 props
+  (the card's Hunter Tipton Under 3.5 at 55%, its pick list's Over 3.5 at 45% because +162 paid).
+  Sam chose *"Model's 50%+ side only: Every list shows only the side the model gives 50% or
+  more."* `one_side.keep_props`: per over/under wager (one game, player, market and line), only
+  the side whose number is 50+ AND above the other side's; an exact tie keeps neither; a wager
+  with no number on any side is left as built; a one-sided market (anytime TD "yes") is never
+  touched. Where: `fb_props_model.current_picks` (live picks only; its walk-forward record is
+  unchanged), the football card's pool before the price rules (`card_fb.prop_value`: the model's
+  unrounded chance on a MODEL row, so 49.8 never ties 50.2), and MLB's `card.one_side_pools` (the
+  PRINTED number; the board keeps blend's side only when it agrees, e.g. Nick Martinez outs, blend
+  86% Over, printed Over 51 / Under 53: no pick). The starred ladder rung needs 50%+ too.
+  `verify_card.py` runs `card.one_side_problems` on every MLB card. `test_one_side_props.py`.
 - 🔴 **THE PROPS MODEL SETS THE FOOTBALL CARD'S CONFIDENCE.** `[Sam, 2026-10-09]`
   *"Where fb_props_model prices a prop on the card ... the row's confidence is the
   model's probability and the card ranks by it. A prop it does not price keeps the
