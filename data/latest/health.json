@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-16T12:42:44Z",
+ "checked_at": "2026-10-16T13:32:07Z",
  "et_date": "2026-10-16",
  "healthy": false,
  "broken": 0,
  "degraded": 11,
  "findings": [
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (card-fb)",
+   "why": "the freshness contract says 11 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
@@ -49,13 +56,6 @@
    "repair": null
   },
   {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 70 minutes after it was due",
-   "why": "due 2026-10-16T11:30Z, built 2026-10-16T12:39Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-scores:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-scores was built 280 minutes after it was due",
@@ -92,7 +92,7 @@
   "pulled_at": "2026-10-16T12:38:59Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.1,
+  "reading_age_hours": 0.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-16T12:38:59Z",
   "source": "data/nfl/2026-10-16/props-player/1238.json.gz",
