@@ -312,7 +312,8 @@ note boxes, tags and the stale bar now require their absence.
   `data/<lg>/history/` by `fb_history.py`, never in `latest/`): ~~8 challengers a league, so
   p < 0.01/8~~. `[Sam, 2026-10-16]` T71 (§3e) adds SM/SMC, the score-first model
   (`fb_score_model.py`'s predicted margin and total, the only input; registered from the
-  first Monday on or after its merge day, read from git): 9 challengers a league, so
+  first Monday ~~on or after~~ AFTER its merge day (a Monday merge counts from the next
+  Monday), no earlier than 2026-10-19, read from git): 9 challengers a league, so
   p < 0.01/9. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never

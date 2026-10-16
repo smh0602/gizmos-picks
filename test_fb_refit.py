@@ -163,6 +163,31 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:                 c["pass_yds"] += float(g.get("pass_yds") or 0)
 #   with:                 c["pass_yds"] += float(g.get("pass_yds") or 0) * (pos == "QB")
 #
+# @vacuity 🔴 T71: ...and what fb_matchups counts as rushing yards
+#   file: fb_matchups.py
+#   find:                 c["rush_yds"] += float(g.get("rush_yds") or 0)
+#   with:                 c["rush_yds"] += float(g.get("rush_yds") or 0) * (pos == "RB")
+#
+# @vacuity 🔴 T71: ...and carries
+#   file: fb_matchups.py
+#   find:                 c["rush_car"] += float(g.get("car") or 0)
+#   with:                 c["rush_car"] += float(g.get("car") or 0) * (pos == "RB")
+#
+# @vacuity 🔴 T71: ...and plays (pace)
+#   file: fb_matchups.py
+#   find:             c["plays"] = c["pass_att"] + c["rush_car"]
+#   with:             c["plays"] = c["pass_att"]
+#
+# @vacuity 🔴 T71: league() itself builds SM's input
+#   file: fb_refit.py
+#   find:         FC.attach(n, lg, rows, root)
+#   with:         FC.attach(n, lg, rows, root) if n != "SM" else None
+#
+# @vacuity 🔴 T71: the Monday email says NOT APPLICABLE in words
+#   file: status.py
+#   find:             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
+#   with:             "NOT APPLICABLE ": "not applicable against the current champion (how it should read is yours "
+#
 # @vacuity 🔴 T71: the Monday job checks out full history
 #   file: .github/workflows/fb-refit.yml
 #   find:           fetch-depth: 0
@@ -684,9 +709,11 @@ for _w in range(42):                     # 168 final games, 336 sides, before th
         _gid, _pts = "g%d_%d" % (_w, _j), {}
         for _o in (_h, _a):
             _pa, _ru, _pl = _rr.randint(150, 330), _rr.randint(60, 190), _rr.randint(52, 72)
-            _pts[_o] = _rr.randint(3, 45) + (_pa - 240) // 25 + (_ru - 125) // 30
-            for _pos, _st in (("QB", {"att": _pl // 2, "pass_yds": _pa - 20, "car": 3, "rush_yds": 10}),
-                              ("RB", {"car": _pl // 2 - 3, "rush_yds": _ru - 10, "rec_yds": 15, "tgt": 4}),
+            # each its own draw, so a rushing, carry or pace edit moves the numbers
+            _qc, _qr, _rc = _rr.randint(0, 9), _rr.randint(-5, 60), _rr.randint(16, 34)
+            _pts[_o] = _rr.randint(3, 45) + (_pa - 240) // 25 + (_ru + _qr - 125) // 30
+            for _pos, _st in (("QB", {"att": _pl // 2, "pass_yds": _pa - 20, "car": _qc, "rush_yds": _qr}),
+                              ("RB", {"car": _rc, "rush_yds": _ru - 10, "rec_yds": 15, "tgt": 4}),
                               ("WR", {"rec_yds": _pa - 50, "tgt": 18,          # trick passes, some games
                                       "pass_yds": _rr.choice((0, 0, 0, 40))}),
                               ("TE", {"rec_yds": 35, "tgt": 6})):
@@ -712,7 +739,7 @@ _got = {lg: [tuple(round(v, 6) for v in r["sig"]["score"]) for r in _rows11[lg][
 _beta = SCM.walk_forward(_rows11["nfl"], MT.Tables("nfl", T11))[-1]["beta"]
 ck(all(abs(b) > 1e-6 for b in _beta), "the planted logs run the pass, rush and pace tables and fit all three weights",
    _beta)
-PIN = [(6.684636, 39.330847), (0.595148, 51.602037)]   # recorded from #275's code, 2026-10-16
+PIN = [(-1.041649, 52.42573), (-6.158078, 44.127875)]   # recorded from #275's code, 2026-10-16
 ck(all(abs(a - b) < 1e-6 for lg in _got for x, y in zip(_got[lg], PIN) for a, b in zip(x, y)),
    "🔴 SM's and SMC's predicted (margin, total) are the numbers #275's code gives (a change is a new challenger)",
    _got)
@@ -739,8 +766,11 @@ ck(".github/workflows/fb-refit.yml" in _deep and all(_deep.values()),
 section("13. 🔴 league() SCORES EVERY REGISTERED CHALLENGER; ONE IT CANNOT BUILD IS NOT APPLICABLE")
 # ══════════════════════════════════════════════════════════════════════
 _names = [n for n, c in FC.CHALLENGERS.items() if c["league"] == "nfl"]
-_lgd = R.league("nfl", T11, NOW, rows=[dict(r, sig=dict(r["sig"])) for r in _rows11["nfl"]],
-                added={n: "2025-01-01" for n in _names})
+_bare = [dict(r, sig={k: v for k, v in r["sig"].items() if k != "score"}) for r in _rows11["nfl"]]
+_lgd = R.league("nfl", T11, NOW, rows=_bare, added={n: "2025-01-01" for n in _names})
+ck([r["sig"].get("score") for r in _bare] == [r["sig"]["score"] for r in _rows11["nfl"]]
+   and sum(1 for r in _bare if r["sig"].get("score")) > 100,
+   "🔴 league() builds SM's input itself: rows handed in without it get the score model's own numbers")
 _byn = {x["name"]: x for x in _lgd["challengers"]}
 ck(sorted(_byn) == sorted(_names) and all(x["history"]["predictions"] > 0 for x in _byn.values()),
    "🔴 every NFL challenger, SM included, is fitted and scored by league()",
@@ -757,3 +787,9 @@ ck(_bys["S"]["verdict"] == "NOT APPLICABLE" and _bys["S"]["alpha"] == 0.01 / 8
    and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n != "S"),
    "🔴 with SM champion, S is NOT APPLICABLE (still in the divisor) and the rest are scored, no crash",
    {n: x.get("verdict") for n, x in _bys.items()})
+_sum = S.refit_summary(_lgs, "NFL", NOW)
+_s_line = _sum[_sum.find("Challenger S (fewer inputs):"):].split(". Challenger")[0]
+ck(_s_line.startswith("Challenger S (fewer inputs): not applicable against the current champion")
+   and "scored predictions" not in _s_line,
+   "🔴 the Monday email says S is not applicable, in words, and claims no scored predictions", _s_line)
+eq(S.refit_wins(_lgs, "NFL"), [], "   ...and puts nothing under \"Needs you\"")

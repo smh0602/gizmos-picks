@@ -99,7 +99,8 @@ CHALLENGERS = {
            "key": "h_own", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
            "history": True},
     # `[Sam, 2026-10-16]` T71 (§3e): the score-first model, registered from the first
-    #    Monday on or after the day its entry reaches main (fb_refit.registration).
+    #    Monday AFTER the day its entry reaches main (a Monday merge counts from the next
+    #    Monday), no earlier than 2026-10-19 (fb_refit.registration).
     "SM": {"league": "nfl", "what": "score model", "markets": ("spread", "total", "moneyline"),
            "files": (), "key": "score", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
            "on_merge": True},
