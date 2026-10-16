@@ -28,6 +28,11 @@ claim that can be wrong (rule 166).
 #   find: Status: Sam approved the plan 2026-10-12 (all three parts
 #   with: Status: Sam OK'd the plan 2026-10-12 (all three parts
 #
+# @vacuity 🔴 T71 (§3e): any edit to the score-model registration goes red
+#   file: research/fb_refit_spec.md
+#   find:   AVC, WXC, ATC, RSC, HC, SMC = 9 -> p < 0.01 / 9 (fewer if any is withdrawn, §3).
+#   with:   AVC, WXC, ATC, RSC, HC, SMC = 9 -> p < 0.02 / 9 (fewer if any is withdrawn, §3).
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -157,7 +162,10 @@ FROZEN = {
     # ~~"551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999"~~
     # [Sam, 2026-10-15] T70 (H, HC: more seasons) added as section 3d, defined
     # before any result; everything before it pinned below.
-    "fb_refit_spec.md": "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb",
+    # ~~"81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb"~~
+    # [Sam, 2026-10-16] T71 (SM, SMC: the score-first model) added as section 3e,
+    # defined before any contest result; everything before it pinned below.
+    "fb_refit_spec.md": "bffa3effc3a7a33fba8a58dccd4e1010ef0fd52281ed3d3f7e03212858b82c87",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -165,7 +173,8 @@ FROZEN = {
 FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b7cff8e69752584d9df4d7f56ccb40ccd967c"),
                  ("fb_refit_spec.md", "\n## 3b. ", "52f0c88ba35a891332bb3693da006deff1cebb9644687ddfe40312933d4e8d9d"),
                  ("fb_refit_spec.md", "\n## 3c. ", "85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de"),
-                 ("fb_refit_spec.md", "\n## 3d. ", "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999")]
+                 ("fb_refit_spec.md", "\n## 3d. ", "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999"),
+                 ("fb_refit_spec.md", "\n## 3e. ", "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb")]
 
 
 def frozen_region(text):

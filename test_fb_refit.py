@@ -118,6 +118,26 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:     return [inp] if inp else []          # T66's S reads no file of its own
 #   with:     return [inp]          # T66's S reads no file of its own
 #
+# @vacuity 🔴 T71: SM's spread input is (predicted margin - line) / 10
+#   file: fb_challengers.py
+#   find:         return [(0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else
+#   with:         return [(0.0 if m is None or M is None else m / 10.0) if market == "spread" else
+#
+# @vacuity 🔴 T71: SM's number is the score model's own predicted margin AND total
+#   file: fb_challengers.py
+#   find:         got = {id(p["row"]): (p["margin"], p["total"]) for p in done}
+#   with:         got = {id(p["row"]): (p["margin"], p["margin"]) for p in done}
+#
+# @vacuity 🔴 T71: the merge day comes from main's first-parent line, not the PR's own commit
+#   file: fb_refit.py
+#   find:     r = subprocess.run(["git", "log", "--first-parent", "--format=%cs", "-S", needle, "--", "fb_challengers.py"],
+#   with:     r = subprocess.run(["git", "log", "--format=%cs", "-S", needle, "--", "fb_challengers.py"],
+#
+# @vacuity 🔴 T71: registration is the later of 2026-10-19 and the merge day's Monday
+#   file: fb_refit.py
+#   find:         return max(start, monday_on_or_after(merged)) if merged else None
+#   with:         return start
+#
 # @vacuity 🔴 a report over 8 days old is said, and DEGRADED in health
 #   file: watchdog.py
 #   find:         if doc and (age is None or age > FB_REFIT_STALE_DAYS):
@@ -500,9 +520,11 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
    "🔴 S is NFL, TS college, both on all three markets, neither withdrawable")
 # `[Sam, 2026-10-15]` ~~2 and 3~~: T68 (§3b) adds AV and WX in each league; T69 (§3c)
 #    adds IN, AT, RS (NFL) and ATC, RSC (college).
+# `[Sam, 2026-10-16]` ~~8 and 8~~: T71 (§3e) adds SM and SMC.
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "WX"], "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "T", "TS", "WXC"]},
-   "🔴 so alpha divides by 8 in the NFL and 8 in college (T70 adds H, HC)")
+   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "SM", "WX"],
+    "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "SMC", "T", "TS", "WXC"]},
+   "🔴 so alpha divides by 9 in the NFL and 9 in college (T71 adds SM, SMC)")
 eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
     R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
    ["2026-10-19", "2026-10-19", "2026-10-26", None],
@@ -519,3 +541,67 @@ ck(not ts["withdrawn"] and ts["history"]["predictions"] == 120 and ts["scored"][
 eq((F.champion_inputs("nfl", {"nfl": "S"}), F.champion_inputs("ncaaf", {"ncaaf": "TS"})),
    ([], [("talent-{s}.json.gz", None)]),
    "🔴 a champion S adds no freshness row (it reads no file of its own); TS adds talent's")
+
+# ══════════════════════════════════════════════════════════════════════
+section("9. 🔴 T71 (§3e): SM AND SMC, THE SCORE-FIRST MODEL, ONE INPUT, ALL THREE MARKETS")
+# ══════════════════════════════════════════════════════════════════════
+import fb_matchups as MT  # noqa: E402
+import fb_score_model as SCM  # noqa: E402
+T9 = tree()
+plant(T9, GAMES)
+_sm = {}
+for _t in (T9, T1):                      # T1 also holds games dated 09-28 and 09-30
+    _rs = [row("x", "nfl", "2026-10-01", "AAA", "CCC")]
+    FC.attach("SM", "nfl", _rs, _t)
+    _sm[_t] = _rs[0]["sig"]["score"]
+_want = [(p["margin"], p["total"]) for p in
+         SCM.walk_forward([row("x", "nfl", "2026-10-01", "AAA", "CCC")], MT.Tables("nfl", T9))][0]
+ck(_sm[T9] is not None and _sm[T9] == _want,
+   "🔴 SM's number is fb_score_model's own predicted margin and total", (_sm[T9], _want))
+eq(_sm[T1], _sm[T9], "🔴 ...and games dated on or after the row's Monday (09-28, 09-30) change nothing")
+Z = row("z", "nfl", "2026-10-25", "AAA", "CCC", M=3.0, T=45.0)
+Z["sig"]["score"] = (5.0, 47.0)
+eq({mk: r6(R.challenger_feat("SM")(Z, mk)) for mk in FM.MARKETS},
+   {"spread": [0.2], "moneyline": [0.5], "total": [0.2]},
+   "🔴 SM: ONLY (m - line) / 10, m / 10, (t - line) / 10, none of the champion's inputs")
+eq(r6(R.challenger_feat("SMC")(Z, "spread", M=7.0)), [-0.2], "   ...at the line being priced")
+eq({mk: R.challenger_feat("SMC")(dict(Z, sig=dict(Z["sig"], score=None)), mk) for mk in FM.MARKETS},
+   {mk: [0.0] for mk in FM.MARKETS}, "   ...and no prediction is 0")
+eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS.items() if n in ("SM", "SMC")},
+   {"SM": ("nfl", ("spread", "total", "moneyline"), False),
+    "SMC": ("ncaaf", ("spread", "total", "moneyline"), False)},
+   "🔴 SM is NFL, SMC college, both on all three markets, neither withdrawable")
+for _n in ("SM", "SMC"):
+    _c = R.contest([], champ3, _n, "2026-10-19", "2026-10-19", fits=ok_s)
+    ck(not _c["withdrawn"] and _c["history"]["predictions"] == 120 and _c["scored"]["predictions"] == 120,
+       "🔴 %s is scored like every challenger: only weeks from its registration, all three markets" % _n)
+_al = {lg: R.verdicts([dict(scored(300, 0.05, 0.001), name=n) for n, c in FC.CHALLENGERS.items()
+                       if c["league"] == lg])[0]["alpha"] for lg in ("nfl", "ncaaf")}
+ck(all(abs(a - 0.01 / 9) < 1e-12 and a < 0.01 / 8 for a in _al.values()),
+   "🔴 the divisor is 9 in each league: every bar is stricter than 0.01 / 8, never looser", _al)
+eq([R.registration("SM", T1, {"SM": d}) for d in ("2026-10-16", "2026-10-19", "2026-10-21", None)],
+   ["2026-10-19", "2026-10-19", "2026-10-26", None],
+   "🔴 registration: the later of 2026-10-19 and the first Monday on or after the merge day")
+G9 = tree()
+
+
+def _git(*a, date="2026-10-10T12:00:00Z"):
+    env = dict(os.environ, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date)
+    return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+                          + list(a), cwd=G9, env=env, capture_output=True, text=True, check=True)
+
+
+_git("init", "-q", "-b", "main")
+open(os.path.join(G9, "fb_challengers.py"), "w", encoding="utf-8").write("CHALLENGERS = {}\n")
+_git("add", "-A")
+_git("commit", "-q", "-m", "base")
+_git("checkout", "-q", "-b", "pr")
+open(os.path.join(G9, "fb_challengers.py"), "w", encoding="utf-8").write(
+    'CHALLENGERS = {\n    "SM": {"league": "nfl", "what": "score model"},\n}\n')
+_git("commit", "-q", "-am", "the PR's own commit", date="2026-10-16T02:00:00Z")
+_git("checkout", "-q", "main")
+_git("merge", "-q", "--no-ff", "pr", "-m", "merge", date="2026-10-21T15:00:00Z")
+eq((R.merged_on("SM", G9), R.registration("SM", G9), R.merged_on("SM", T9)), ("2026-10-21", "2026-10-26", None),
+   "🔴 the merge day is read from main's first-parent line (the PR's own commit was 10-16); no git, no date")
+eq(F.champion_inputs("nfl", {"nfl": "SM"}) + F.champion_inputs("ncaaf", {"ncaaf": "SMC"}), [],
+   "a champion SM or SMC adds no freshness row (it reads no file of its own)")

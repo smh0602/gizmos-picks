@@ -113,13 +113,27 @@ def first_added(paths, root=ROOT):
     return max(days) if days else None
 
 
+def merged_on(name, root=ROOT):
+    """§3e: the day challenger `name`'s entry first reached this checkout's
+    first-parent line (on main: its PR's merge day), or None without git history."""
+    needle = '"%s": {"league": "%s"' % (name, FC.CHALLENGERS[name]["league"])
+    r = subprocess.run(["git", "log", "--first-parent", "--format=%cs", "-S", needle, "--", "fb_challengers.py"],
+                       capture_output=True, text=True, cwd=root)
+    got = r.stdout.split() if r.returncode == 0 else []
+    return got[-1] if got else None
+
+
 def registration(name, root=ROOT, added=None):
     """§2: the later of its registration Monday (REGISTERED_FROM; T66's carry
     their own, §3a) and the first Monday on or after the day its data first
     exists for every season it reads. None: no data yet. A challenger that
-    reads no new file (S) is registered on its Monday."""
+    reads no new file (S) is registered on its Monday. §3e (T71): an `on_merge`
+    challenger, the later of its Monday and the first Monday on or after its merge day."""
     c = FC.CHALLENGERS[name]
     start = c.get("registered_from", REGISTERED_FROM)
+    if c.get("on_merge"):
+        merged = (added or {}).get(name) if added and name in added else merged_on(name, root)
+        return max(start, monday_on_or_after(merged)) if merged else None
     paths = [os.path.join(FC.latest(c["league"], root), f.format(s=s))
              for s in c.get("seasons", FM.SEASONS) for f in c["files"]]
     if not paths:
