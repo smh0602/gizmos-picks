@@ -19,8 +19,8 @@ live.
 #
 # @vacuity 🔴 a one-sided market (anytime TD) is never touched
 #   file: one_side.py
-#   find:         v = value(r) if r.get("side") in TWO_SIDED else None
-#   with:         v = value(r)
+#   find:         s = best.get(key(r)) if r.get("side") in TWO_SIDED else None
+#   with:         s = best.get(key(r))
 #
 # @vacuity 🔴 the favourite must reach 50%
 #   file: one_side.py

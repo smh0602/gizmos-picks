@@ -107,7 +107,7 @@ def keep_props(rows, key, value):
     one-sided row (not over/under) is never touched."""
     best = {}
     for r in rows or []:
-        v = value(r) if r.get("side") in TWO_SIDED else None
+        v = value(r)
         if v is not None:
             best.setdefault(key(r), {})
             s = best[key(r)]

@@ -14,6 +14,10 @@ to the real clock; nothing here reads the live data tree.
   6. The agreement label still compares the RECORD with the model (Sam's choice).
   7. The page prints a football MODEL row's market, never "Outs".
   8. A failed name check strips the records and keeps the model's % (Sam's choice).
+`[Sam, 2026-10-16]` "Model's 50%+ side only: Every list shows only the side the model gives
+50% or more": ~~Model Guy's over priced at 41.6%~~ the priced over is now 51% (still under the
+record's 52 and the 52.4% break-even, so the ranking, the edge and the SPLIT label still bite),
+and Low Guy's over at 41.6% must never reach the card (test_one_side_props.py holds the rule).
 
 # @vacuity 🔴 a priced prop takes the model's %
 #   file: card_fb.py
@@ -117,10 +121,11 @@ def side(px):
 BOARD = {"pulled_at": PULLED, "games": [{
     "id": "g1", "away": "A", "home": "H", "commence": ISO(NOW + datetime.timedelta(days=2)),
     "props": [{"player": who, "market": MK, "line": 3.5, "sides": {"over": side(-110)}}
-              for who in ("Model Guy", "Record Guy")]}]}
+              for who in ("Model Guy", "Record Guy", "Low Guy")]}]}
 # The model prices Model Guy's over at 3.5, and Record Guy only at a line the board lacks.
-RATED = [{"game_id": "g1", "player": "Model Guy", "market": MK, "line": 3.5, "side": "over", "p": 41.6},
-         {"game_id": "g1", "player": "Record Guy", "market": MK, "line": 4.5, "side": "over", "p": 30.0}]
+RATED = [{"game_id": "g1", "player": "Model Guy", "market": MK, "line": 3.5, "side": "over", "p": 51.0},
+         {"game_id": "g1", "player": "Record Guy", "market": MK, "line": 4.5, "side": "over", "p": 30.0},
+         {"game_id": "g1", "player": "Low Guy", "market": MK, "line": 3.5, "side": "over", "p": 41.6}]
 
 
 def games(season, hits, n):
@@ -139,10 +144,12 @@ def card(model_board_at, board=BOARD):
     for name, doc in (("props.json.gz", board),
                       ("players-2025.json.gz", {"season": 2025, "players": {
                           "1": {"name": "Model Guy", "pos": "WR", "g": games(2025, 10, 10)},
-                          "2": {"name": "Record Guy", "pos": "WR", "g": games(2025, 6, 10)}}}),
+                          "2": {"name": "Record Guy", "pos": "WR", "g": games(2025, 6, 10)},
+                          "3": {"name": "Low Guy", "pos": "WR", "g": games(2025, 8, 10)}}}),
                       ("players-2026.json.gz", {"season": 2026, "players": {
                           "1": {"name": "Model Guy", "pos": "WR", "g": games(2026, 4, 4)},
-                          "2": {"name": "Record Guy", "pos": "WR", "g": games(2026, 2, 4)}}})):
+                          "2": {"name": "Record Guy", "pos": "WR", "g": games(2026, 2, 4)},
+                          "3": {"name": "Low Guy", "pos": "WR", "g": games(2026, 3, 4)}}})):
         with gzip.open(os.path.join(lat, name), "wt", encoding="utf-8") as fh:
             json.dump(doc, fh)
     with open(os.path.join(lat, "fb-props-model.json"), "w", encoding="utf-8") as fh:
@@ -166,18 +173,20 @@ P = {r["player"]: r for r in DOC.get("picks") or []}
 M_, R_ = P.get("Model Guy") or {}, P.get("Record Guy") or {}
 
 section("1. 🔴 A PRICED PROP TAKES THE MODEL'S %, RANKED BY IT; AN UNPRICED ONE THE RECORD")
-eq((M_.get("confidence"), M_.get("model_p"), M_.get("confidence_basis")), (42, 41.6, "MODEL"),
-   "🔴 Model Guy's over is priced by the model: 41.6% shows as 42, labelled MODEL")
-eq((M_.get("rate"), M_.get("record"), M_.get("break_even"), M_.get("edge")), (71, "14 of 14", 52.4, -10.4),
+eq((M_.get("confidence"), M_.get("model_p"), M_.get("confidence_basis")), (51, 51.0, "MODEL"),
+   "🔴 Model Guy's over is priced by the model: 51.0% shows as 51, labelled MODEL")
+ck("Low Guy" not in P, "🔴 [Sam, 2026-10-16] Low Guy's over, which the model gives 41.6%, never reaches the card",
+   str(P.get("Low Guy")))
+eq((M_.get("rate"), M_.get("record"), M_.get("break_even"), M_.get("edge")), (71, "14 of 14", 52.4, -1.4),
    "   ...his own record stays in the data, and the edge is the model's % less the break-even")
 eq((R_.get("confidence"), R_.get("confidence_basis"), "model_p" in R_), (52, "RECORD", False),
    "🔴 Record Guy's 3.5 is not priced by the model (only his 4.5 is): his own rate, labelled RECORD")
 eq([r["player"] for r in DOC.get("picks") or []], ["Record Guy", "Model Guy"],
-   "🔴 the card ranks by it: the model's 42 sits under the record's 52")
+   "🔴 the card ranks by it: the model's 51 sits under the record's 52")
 
 section("2. 🔴 A PROPS MODEL THAT PRICED AN OLDER BOARD FALLS BACK TO THE RECORD")
 eq({r["player"]: (r.get("confidence"), r.get("confidence_basis"), "model_p" in r)
-    for r in STALE.get("picks") or []},
+    for r in STALE.get("picks") or [] if r["player"] != "Low Guy"},
    {"Model Guy": (71, "RECORD", False), "Record Guy": (52, "RECORD", False)},
    "🔴 the model priced the board pulled 4 hours earlier: every row is the record this build")
 eq((DOC.get("props_model_used"), STALE.get("props_model_used")), (True, False),
@@ -239,14 +248,14 @@ try:
     _doc = FPM.build("nfl", root=_t, out=os.path.join(_t, "fbp.json"))
 finally:
     FPM.walk_forward, FPM.current_picks, FPM.log = _o
-eq((_doc.get("board_pulled_at"), len(_doc.get("rated") or [])), (PULLED, 2),
+eq((_doc.get("board_pulled_at"), len(_doc.get("rated") or [])), (PULLED, len(RATED)),
    "🔴 ...and fb-props-model.json is stamped with the board it priced, which the card checks")
 
 section("6. 🔴 THE AGREEMENT LABEL STILL COMPARES THE RECORD WITH THE MODEL")
 import fb_agreement as AG  # noqa: E402
 _ag = AG.rows({"picks": [M_]}, {"rated": RATED})
-eq([(a["card_p"], a["model_p"], a["label"]) for a in _ag], [(71, 41.6, "SPLIT")],
-   "🔴 Sam's choice: the card's side is his record (71), not the model's own 42, so a priced "
+eq([(a["card_p"], a["model_p"], a["label"]) for a in _ag], [(71, 51.0, "SPLIT")],
+   "🔴 Sam's choice: the card's side is his record (71), not the model's own 51, so a priced "
    "row is not AGREE by construction")
 
 section("7. 🔴 THE PAGE PRINTS A FOOTBALL MODEL ROW'S MARKET, NEVER \"Outs\"")
@@ -275,17 +284,17 @@ _js = subprocess.run(["node", os.path.join(_d, "d.js"), os.path.join(_d, "d.json
                      capture_output=True, text=True, timeout=300)
 HTML = json.loads(_js.stdout) if _js.returncode == 0 else ""
 ck(_js.returncode == 0 and "Over 3.5 Receptions" in HTML and "Outs" not in HTML,
-   "🔴 Model Guy's row reads \"Over 3.5 Receptions\" with its 42", (_js.stderr or "")[-200:] + HTML[:200])
+   "🔴 Model Guy's row reads \"Over 3.5 Receptions\" with its 51", (_js.stderr or "")[-200:] + HTML[:200])
 
 section("8. 🔴 A FAILED NAME CHECK STRIPS THE RECORDS AND KEEPS THE MODEL'S %")
-# Three more names no log holds: 2 of 5 match, under the 60% bar.
+# Three more names no log holds: 3 of 6 match, under the 60% bar.
 WEAK = dict(BOARD, games=[dict(BOARD["games"][0], props=BOARD["games"][0]["props"] + [
     {"player": "Nobody %d" % i, "market": MK, "line": 3.5, "sides": {"over": side(-110)}} for i in range(3)])])
 _w, _ = card(PULLED, WEAK)
 _W = {r["player"]: r for r in _w.get("picks") or []}
 eq((_w.get("name_match_rate"), (_W.get("Model Guy") or {}).get("confidence"),
     (_W.get("Model Guy") or {}).get("confidence_basis"), (_W.get("Model Guy") or {}).get("why")),
-   (0.4, 42, "MODEL", []), "🔴 Sam's choice: Model Guy keeps the model's 42 (the model matched him "
+   (0.5, 51, "MODEL", []), "🔴 Sam's choice: Model Guy keeps the model's 51 (the model matched him "
    "itself), with no record sentence")
 eq(((_W.get("Record Guy") or {}).get("confidence"), (_W.get("Record Guy") or {}).get("confidence_basis")),
    (None, "MARKET"), "   ...and Record Guy's record, from the failed join, is withheld")
