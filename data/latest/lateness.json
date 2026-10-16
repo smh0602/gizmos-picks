@@ -1,9 +1,9 @@
 {
  "artifacts": {
   "data/latest/board.json": {
-   "built_at": "2026-10-16T11:03Z",
-   "due_at": "2026-10-16T11:00Z",
-   "late_min": 3.4,
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.1,
    "measured": true,
    "mode": "gamelines",
    "path": "data/latest/board.json"
@@ -25,17 +25,17 @@
    "path": "data/latest/lineups.json.gz"
   },
   "data/latest/mlb-game-model.json": {
-   "built_at": "2026-10-16T11:03Z",
-   "due_at": "2026-10-16T11:00Z",
-   "late_min": 3.4,
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.2,
    "measured": true,
    "mode": "game-model",
    "path": "data/latest/mlb-game-model.json"
   },
   "data/latest/news.json": {
-   "built_at": "2026-10-16T13:13Z",
-   "due_at": "2026-10-16T13:05Z",
-   "late_min": 8.3,
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T19:05Z",
+   "late_min": 130.2,
    "measured": true,
    "mode": "news",
    "path": "data/latest/news.json"
@@ -65,9 +65,9 @@
    "path": "data/latest/pitchers.json.gz"
   },
   "data/latest/props.json.gz": {
-   "built_at": "2026-10-16T11:03Z",
-   "due_at": "2026-10-16T11:00Z",
-   "late_min": 3.4,
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.1,
    "measured": true,
    "mode": "props-board",
    "path": "data/latest/props.json.gz"
@@ -105,17 +105,17 @@
    "path": "data/latest/weather.json.gz"
   },
   "data/{date}/props-batter": {
-   "built_at": "2026-10-16T11:03Z",
-   "due_at": "2026-10-16T11:00Z",
-   "late_min": 3.0,
+   "built_at": "2026-10-16T21:14Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.0,
    "measured": true,
    "mode": "props-batter",
    "path": "data/2026-10-16/props-batter"
   },
   "data/{date}/props-pitcher": {
-   "built_at": "2026-10-16T11:03Z",
-   "due_at": "2026-10-16T11:00Z",
-   "late_min": 3.0,
+   "built_at": "2026-10-16T21:14Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.0,
    "measured": true,
    "mode": "props-pitcher",
    "path": "data/2026-10-16/props-pitcher"
@@ -138,6 +138,55 @@
   }
  },
  "grace_min": 60,
- "late": [],
- "written_at": "2026-10-16T18:55:25Z"
+ "late": [
+  {
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.1,
+   "measured": true,
+   "mode": "gamelines",
+   "path": "data/latest/board.json"
+  },
+  {
+   "built_at": "2026-10-16T21:14Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.0,
+   "measured": true,
+   "mode": "props-pitcher",
+   "path": "data/2026-10-16/props-pitcher"
+  },
+  {
+   "built_at": "2026-10-16T21:14Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.0,
+   "measured": true,
+   "mode": "props-batter",
+   "path": "data/2026-10-16/props-batter"
+  },
+  {
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.1,
+   "measured": true,
+   "mode": "props-board",
+   "path": "data/latest/props.json.gz"
+  },
+  {
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T20:00Z",
+   "late_min": 75.2,
+   "measured": true,
+   "mode": "game-model",
+   "path": "data/latest/mlb-game-model.json"
+  },
+  {
+   "built_at": "2026-10-16T21:15Z",
+   "due_at": "2026-10-16T19:05Z",
+   "late_min": 130.2,
+   "measured": true,
+   "mode": "news",
+   "path": "data/latest/news.json"
+  }
+ ],
+ "written_at": "2026-10-16T21:15:11Z"
 }
