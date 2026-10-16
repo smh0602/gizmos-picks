@@ -49,6 +49,16 @@ THE TWO ASYMMETRIES ARE NAMED, JUSTIFIED AND CHECKED AGAINST THE DATA:
 #   find: return any(due <= k <= end for k in ks)
 #   with: return True
 #
+# @vacuity §5 planted: an NFL deadline with the next slate inside 72 hours ARMS the props row
+#   file: freshness.py
+#   find:         return bool(ks) and ks[0] <= due + datetime.timedelta(hours=FB_NEXT_SLATE_H[league])
+#   with:         return False
+#
+# @vacuity §5 planted: ...and one with the next slate over 72 hours out does NOT
+#   file: freshness.py
+#   find:         return bool(ks) and ks[0] <= due + datetime.timedelta(hours=FB_NEXT_SLATE_H[league])
+#   with:         return bool(ks)
+#
 # @vacuity §5 live: a stored schedule that yields no kickoffs is red
 #   file: freshness.py
 #   find: for g in doc.get("games") or []:
@@ -344,6 +354,27 @@ ck("✅ the two planted probes really are different states, not the same one twi
    ("props-player" in _m_pa) != ("props-player" in _m_pq),
    "⛔ RULE 202 — a check that cannot tell its two cases apart is not the check it "
    "claims to be")
+# 🔴 `[2026-10-16]` ...AND THE SAME TWO STATES AT THE COLLEGE RULE. Since 10-09 the NFL
+#    takes the next-slate branch of `_props_warranted`, so the probes above never reached
+#    the 14-hour window, and the nightly sweep showed this section passing with that window
+#    mutated to "always armed" (#249). One planted Saturday kickoff: Saturday's first
+#    deadline holds it, Thursday's last does not.
+_ck = datetime.datetime(2026, 9, 19, 16, 0, tzinfo=datetime.timezone.utc)
+_ca = datetime.datetime(2026, 9, 19, 12, 31, tzinfo=datetime.timezone.utc)
+_cq = datetime.datetime(2026, 9, 17, 19, 1, tzinfo=datetime.timezone.utc)
+_cw = datetime.timedelta(hours=F.FB_PROPS_WINDOW_H)
+_da, _dq = (F.last_due(F.FB_TIMES["ncaaf"]["props"], t) for t in (_ca, _cq))
+ck("⚠️ college: the kickoff lies inside the first deadline's window and outside the second's",
+   "ncaaf" not in F.FB_NEXT_SLATE_H and _da <= _ck <= _da + _cw and not (_dq <= _ck <= _dq + _cw),
+   "⛔ otherwise the two probes below are not the states they claim. %s %s" % (_da, _dq))
+with planted("ncaaf", [_ck], board=False):
+    _m_ca = {r[0] for r in F.contract(data="data/ncaaf", picks="picks", now=_ca)}
+    _m_cq = {r[0] for r in F.contract(data="data/ncaaf", picks="picks", now=_cq)}
+ck("🔴 college: a deadline with a kickoff inside its 14-hour window ARMS the props row "
+   "(planted)", "props-player" in _m_ca, sorted(_m_ca))
+ck("⛔ ...and a college deadline with NO kickoff inside it does NOT (planted)",
+   "props-player" not in _m_cq,
+   "🔴 RULE 86 — a pull that would buy nothing is not a late pull. %s" % sorted(_m_cq))
 # `[Sam, 2026-10-09]` ~~THE LIVE SCHEDULE'S DERIVED PROBES (the extra)~~: "No new or
 #    changed test may read the live data tree" (collect went red for a day on two that
 #    did, #251/#252). The planted probes above ask the same three questions, armed,
