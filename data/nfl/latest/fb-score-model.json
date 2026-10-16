@@ -1,0 +1,1570 @@
+{
+ "league": "nfl",
+ "kind": "MODEL",
+ "report_only": true,
+ "built_at": "2026-10-16T06:34:59Z",
+ "design": "research/fb_score_model_design.md",
+ "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
+ "settings": {
+  "home_edge_points": 1.39,
+  "matchup_points_per_unit": {
+   "pass_yds": -0.0237,
+   "rush_yds": -0.0385,
+   "plays": 0.1844
+  },
+  "sigma": {
+   "margin": 13.35,
+   "total": 14.18
+  },
+  "k": {
+   "spread": 3.0,
+   "total": 3.0,
+   "moneyline": 1.1
+  }
+ },
+ "upcoming": [
+  {
+   "game_id": "2026_06_HOU_JAX",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T09:30",
+   "home": "JAX",
+   "away": "HOU",
+   "neutral": true,
+   "score": {
+    "home": 22.7,
+    "away": 16.6
+   },
+   "margin": 6.2,
+   "total": 39.3,
+   "line": {
+    "spread": 2.5,
+    "total": 42.5
+   },
+   "score_curve": {
+    "spread": 60.8,
+    "total": 41.2,
+    "moneyline": 67.8
+   },
+   "calibrated": {
+    "spread": 53.6,
+    "total": 47.0,
+    "moneyline": 66.3
+   },
+   "fb_model": {
+    "spread": 37.1,
+    "total": 49.1,
+    "moneyline": 54.8
+   },
+   "fb_model_ml_curve_spread": 47.3
+  },
+  {
+   "game_id": "2026_06_BAL_CLE",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "CLE",
+   "away": "BAL",
+   "neutral": false,
+   "score": {
+    "home": 20.8,
+    "away": 22.5
+   },
+   "margin": -1.8,
+   "total": 43.3,
+   "line": {
+    "spread": -3.75,
+    "total": 41.0
+   },
+   "score_curve": {
+    "spread": 55.9,
+    "total": 56.5,
+    "moneyline": 44.8
+   },
+   "calibrated": {
+    "spread": 52.0,
+    "total": 52.2,
+    "moneyline": 45.3
+   },
+   "fb_model": {
+    "spread": 60.8,
+    "total": 48.3,
+    "moneyline": 48.1
+   },
+   "fb_model_ml_curve_spread": 59.2
+  },
+  {
+   "game_id": "2026_06_CAR_PHI",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "PHI",
+   "away": "CAR",
+   "neutral": false,
+   "score": {
+    "home": 23.2,
+    "away": 21.1
+   },
+   "margin": 2.1,
+   "total": 44.2,
+   "line": {
+    "spread": -3.5,
+    "total": 38.75
+   },
+   "score_curve": {
+    "spread": 66.2,
+    "total": 65.1,
+    "moneyline": 56.2
+   },
+   "calibrated": {
+    "spread": 55.5,
+    "total": 55.1,
+    "moneyline": 55.6
+   },
+   "fb_model": {
+    "spread": 49.3,
+    "total": 46.6,
+    "moneyline": 48.0
+   },
+   "fb_model_ml_curve_spread": 58.4
+  },
+  {
+   "game_id": "2026_06_CHI_ATL",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "ATL",
+   "away": "CHI",
+   "neutral": false,
+   "score": {
+    "home": 22.0,
+    "away": 24.1
+   },
+   "margin": -2.2,
+   "total": 46.1,
+   "line": {
+    "spread": -1.25,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 47.3,
+    "total": 35.2,
+    "moneyline": 43.6
+   },
+   "calibrated": {
+    "spread": 49.1,
+    "total": 45.0,
+    "moneyline": 44.1
+   },
+   "fb_model": {
+    "spread": 60.3,
+    "total": 59.2,
+    "moneyline": 51.8
+   },
+   "fb_model_ml_curve_spread": 55.5
+  },
+  {
+   "game_id": "2026_06_NO_NYG",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "NYG",
+   "away": "NO",
+   "neutral": false,
+   "score": {
+    "home": 25.3,
+    "away": 21.2
+   },
+   "margin": 4.0,
+   "total": 46.5,
+   "line": {
+    "spread": -1.25,
+    "total": 45.5
+   },
+   "score_curve": {
+    "spread": 65.4,
+    "total": 52.9,
+    "moneyline": 61.9
+   },
+   "calibrated": {
+    "spread": 55.2,
+    "total": 51.0,
+    "moneyline": 60.8
+   },
+   "fb_model": {
+    "spread": 54.0,
+    "total": 52.4,
+    "moneyline": 67.7
+   },
+   "fb_model_ml_curve_spread": 70.9
+  },
+  {
+   "game_id": "2026_06_NYJ_NE",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "NE",
+   "away": "NYJ",
+   "neutral": false,
+   "score": {
+    "home": 24.5,
+    "away": 14.1
+   },
+   "margin": 10.4,
+   "total": 38.6,
+   "line": {
+    "spread": 7.25,
+    "total": 43.5
+   },
+   "score_curve": {
+    "spread": 59.3,
+    "total": 36.4,
+    "moneyline": 78.2
+   },
+   "calibrated": {
+    "spread": 53.1,
+    "total": 45.4,
+    "moneyline": 76.0
+   },
+   "fb_model": {
+    "spread": 42.2,
+    "total": 50.8,
+    "moneyline": 80.5
+   },
+   "fb_model_ml_curve_spread": 62.5
+  },
+  {
+   "game_id": "2026_06_PIT_TB",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "TB",
+   "away": "PIT",
+   "neutral": false,
+   "score": {
+    "home": 19.7,
+    "away": 21.6
+   },
+   "margin": -1.9,
+   "total": 41.3,
+   "line": {
+    "spread": -2.5,
+    "total": 39.5
+   },
+   "score_curve": {
+    "spread": 51.7,
+    "total": 55.1,
+    "moneyline": 44.3
+   },
+   "calibrated": {
+    "spread": 50.6,
+    "total": 51.7,
+    "moneyline": 44.8
+   },
+   "fb_model": {
+    "spread": 55.4,
+    "total": 54.6,
+    "moneyline": 58.7
+   },
+   "fb_model_ml_curve_spread": 65.7
+  },
+  {
+   "game_id": "2026_06_TEN_IND",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T13:00",
+   "home": "IND",
+   "away": "TEN",
+   "neutral": false,
+   "score": {
+    "home": 28.5,
+    "away": 18.8
+   },
+   "margin": 9.8,
+   "total": 47.3,
+   "line": {
+    "spread": 7.0,
+    "total": 44.5
+   },
+   "score_curve": {
+    "spread": 58.2,
+    "total": 57.9,
+    "moneyline": 76.7
+   },
+   "calibrated": {
+    "spread": 52.7,
+    "total": 52.6,
+    "moneyline": 74.7
+   },
+   "fb_model": {
+    "spread": 47.1,
+    "total": 55.6,
+    "moneyline": 80.5
+   },
+   "fb_model_ml_curve_spread": 63.2
+  },
+  {
+   "game_id": "2026_06_ARI_LA",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T16:05",
+   "home": "LA",
+   "away": "ARI",
+   "neutral": false,
+   "score": {
+    "home": 32.3,
+    "away": 21.7
+   },
+   "margin": 10.6,
+   "total": 54.0,
+   "line": {
+    "spread": 12.5,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 44.3,
+    "total": 56.9,
+    "moneyline": 78.6
+   },
+   "calibrated": {
+    "spread": 48.1,
+    "total": 52.3,
+    "moneyline": 76.4
+   },
+   "fb_model": {
+    "spread": 42.5,
+    "total": 48.9,
+    "moneyline": 80.7
+   },
+   "fb_model_ml_curve_spread": 47.4
+  },
+  {
+   "game_id": "2026_06_BUF_LV",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T16:25",
+   "home": "LV",
+   "away": "BUF",
+   "neutral": false,
+   "score": {
+    "home": 25.1,
+    "away": 30.5
+   },
+   "margin": -5.4,
+   "total": 55.6,
+   "line": {
+    "spread": -5.0,
+    "total": 53.5
+   },
+   "score_curve": {
+    "spread": 48.9,
+    "total": 56.0,
+    "moneyline": 34.4
+   },
+   "calibrated": {
+    "spread": 49.6,
+    "total": 52.0,
+    "moneyline": 35.7
+   },
+   "fb_model": {
+    "spread": 55.8,
+    "total": 44.7,
+    "moneyline": 27.5
+   },
+   "fb_model_ml_curve_spread": 41.1
+  },
+  {
+   "game_id": "2026_06_LAC_KC",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T16:25",
+   "home": "KC",
+   "away": "LAC",
+   "neutral": false,
+   "score": {
+    "home": 23.5,
+    "away": 15.6
+   },
+   "margin": 7.8,
+   "total": 39.1,
+   "line": {
+    "spread": 8.0,
+    "total": 41.5
+   },
+   "score_curve": {
+    "spread": 49.5,
+    "total": 43.4,
+    "moneyline": 72.1
+   },
+   "calibrated": {
+    "spread": 49.8,
+    "total": 47.8,
+    "moneyline": 70.3
+   },
+   "fb_model": {
+    "spread": 57.5,
+    "total": 49.0,
+    "moneyline": 76.1
+   },
+   "fb_model_ml_curve_spread": 54.5
+  },
+  {
+   "game_id": "2026_06_DAL_GB",
+   "day": "2026-10-18",
+   "kick": "2026-10-18T20:20",
+   "home": "GB",
+   "away": "DAL",
+   "neutral": false,
+   "score": {
+    "home": 28.2,
+    "away": 26.1
+   },
+   "margin": 2.1,
+   "total": 54.3,
+   "line": {
+    "spread": 1.5,
+    "total": 53.0
+   },
+   "score_curve": {
+    "spread": 51.7,
+    "total": 53.7,
+    "moneyline": 56.2
+   },
+   "calibrated": {
+    "spread": 50.6,
+    "total": 51.2,
+    "moneyline": 55.6
+   },
+   "fb_model": {
+    "spread": 50.6,
+    "total": 61.8,
+    "moneyline": 59.7
+   },
+   "fb_model_ml_curve_spread": 55.3
+  },
+  {
+   "game_id": "2026_06_WAS_SF",
+   "day": "2026-10-19",
+   "kick": "2026-10-19T20:15",
+   "home": "SF",
+   "away": "WAS",
+   "neutral": false,
+   "score": {
+    "home": 31.5,
+    "away": 20.1
+   },
+   "margin": 11.4,
+   "total": 51.7,
+   "line": {
+    "spread": 7.5,
+    "total": 51.5
+   },
+   "score_curve": {
+    "spread": 61.4,
+    "total": 50.5,
+    "moneyline": 80.3
+   },
+   "calibrated": {
+    "spread": 53.8,
+    "total": 50.2,
+    "moneyline": 78.0
+   },
+   "fb_model": {
+    "spread": 51.3,
+    "total": 54.7,
+    "moneyline": 78.4
+   },
+   "fb_model_ml_curve_spread": 58.9
+  },
+  {
+   "game_id": "2026_07_NE_CHI",
+   "day": "2026-10-22",
+   "kick": "2026-10-22T20:15",
+   "home": "CHI",
+   "away": "NE",
+   "neutral": false,
+   "score": {
+    "home": 19.9,
+    "away": 22.0
+   },
+   "margin": -2.1,
+   "total": 41.9,
+   "line": {
+    "spread": 2.0,
+    "total": 49.0
+   },
+   "score_curve": {
+    "spread": 37.9,
+    "total": 30.9,
+    "moneyline": 43.7
+   },
+   "calibrated": {
+    "spread": 45.9,
+    "total": 43.4,
+    "moneyline": 44.3
+   },
+   "fb_model": {
+    "spread": 57.4,
+    "total": 58.5,
+    "moneyline": 49.0
+   },
+   "fb_model_ml_curve_spread": 43.1
+  }
+ ],
+ "backtest": {
+  "games_predicted": 346,
+  "first": "2025-09-11",
+  "last": "2026-10-12",
+  "point_error": {
+   "games": 345,
+   "margin": {
+    "score_model": {
+     "mae": 10.63,
+     "rmse": 13.37
+    },
+    "fb_model_own_ratings": {
+     "mae": 10.71,
+     "rmse": 13.42
+    },
+    "closing_line": {
+     "mae": 9.81,
+     "rmse": 12.37
+    }
+   },
+   "total": {
+    "score_model": {
+     "mae": 11.06,
+     "rmse": 14.1
+    },
+    "fb_model_own_ratings": {
+     "mae": 11.12,
+     "rmse": 14.18
+    },
+    "closing_line": {
+     "mae": 10.26,
+     "rmse": 12.99
+    }
+   }
+  },
+  "log_loss": {
+   "spread": {
+    "score_curve": 0.7036,
+    "calibrated": 0.6893,
+    "fb_model": 0.7189,
+    "ml_curve": 0.7033,
+    "ml_curve_games": 199,
+    "fb_model_on_ml_curve_games": 0.7189,
+    "games": 199
+   },
+   "total": {
+    "score_curve": 0.7133,
+    "calibrated": 0.7001,
+    "fb_model": 0.7058,
+    "games": 201
+   },
+   "moneyline": {
+    "score_curve": 0.6349,
+    "calibrated": 0.6353,
+    "fb_model": 0.6364,
+    "books_devigged": 0.6244,
+    "games": 200
+   }
+  },
+  "calibration": {
+   "spread": {
+    "score_curve": [
+     {
+      "band": "50-55",
+      "games": 67,
+      "stated": 52.4,
+      "hit": 43.3
+     },
+     {
+      "band": "55-60",
+      "games": 62,
+      "stated": 57.3,
+      "hit": 58.1
+     },
+     {
+      "band": "60-65",
+      "games": 43,
+      "stated": 62.6,
+      "hit": 48.8
+     },
+     {
+      "band": "65-70",
+      "games": 16,
+      "stated": 67.3,
+      "hit": 62.5
+     },
+     {
+      "band": "70+",
+      "games": 11,
+      "stated": 75.9,
+      "hit": 54.5
+     }
+    ],
+    "calibrated": [
+     {
+      "band": "50-55",
+      "games": 139,
+      "stated": 52.3,
+      "hit": 48.2
+     },
+     {
+      "band": "55-60",
+      "games": 45,
+      "stated": 56.8,
+      "hit": 57.8
+     },
+     {
+      "band": "60-65",
+      "games": 13,
+      "stated": 62.5,
+      "hit": 53.8
+     },
+     {
+      "band": "65-70",
+      "games": 1,
+      "stated": 65.6,
+      "hit": 100.0
+     },
+     {
+      "band": "70+",
+      "games": 1,
+      "stated": 77.6,
+      "hit": 100.0
+     }
+    ],
+    "fb_model": [
+     {
+      "band": "50-55",
+      "games": 78,
+      "stated": 52.6,
+      "hit": 44.9
+     },
+     {
+      "band": "55-60",
+      "games": 51,
+      "stated": 57.2,
+      "hit": 45.1
+     },
+     {
+      "band": "60-65",
+      "games": 48,
+      "stated": 62.0,
+      "hit": 54.2
+     },
+     {
+      "band": "65-70",
+      "games": 9,
+      "stated": 66.8,
+      "hit": 66.7
+     },
+     {
+      "band": "70+",
+      "games": 13,
+      "stated": 73.2,
+      "hit": 38.5
+     }
+    ],
+    "ml_curve": [
+     {
+      "band": "50-55",
+      "games": 67,
+      "stated": 52.4,
+      "hit": 49.3
+     },
+     {
+      "band": "55-60",
+      "games": 62,
+      "stated": 57.2,
+      "hit": 53.2
+     },
+     {
+      "band": "60-65",
+      "games": 30,
+      "stated": 62.6,
+      "hit": 66.7
+     },
+     {
+      "band": "65-70",
+      "games": 18,
+      "stated": 67.6,
+      "hit": 44.4
+     },
+     {
+      "band": "70+",
+      "games": 22,
+      "stated": 76.0,
+      "hit": 59.1
+     }
+    ]
+   },
+   "total": {
+    "score_curve": [
+     {
+      "band": "50-55",
+      "games": 62,
+      "stated": 52.5,
+      "hit": 46.8
+     },
+     {
+      "band": "55-60",
+      "games": 62,
+      "stated": 57.2,
+      "hit": 61.3
+     },
+     {
+      "band": "60-65",
+      "games": 41,
+      "stated": 62.1,
+      "hit": 58.5
+     },
+     {
+      "band": "65-70",
+      "games": 20,
+      "stated": 67.7,
+      "hit": 50.0
+     },
+     {
+      "band": "70+",
+      "games": 16,
+      "stated": 74.2,
+      "hit": 37.5
+     }
+    ],
+    "calibrated": [
+     {
+      "band": "50-55",
+      "games": 132,
+      "stated": 52.2,
+      "hit": 52.3
+     },
+     {
+      "band": "55-60",
+      "games": 42,
+      "stated": 56.8,
+      "hit": 57.1
+     },
+     {
+      "band": "60-65",
+      "games": 17,
+      "stated": 61.9,
+      "hit": 58.8
+     },
+     {
+      "band": "65-70",
+      "games": 4,
+      "stated": 68.0,
+      "hit": 50.0
+     },
+     {
+      "band": "70+",
+      "games": 6,
+      "stated": 74.0,
+      "hit": 33.3
+     }
+    ],
+    "fb_model": [
+     {
+      "band": "50-55",
+      "games": 124,
+      "stated": 52.5,
+      "hit": 54.8
+     },
+     {
+      "band": "55-60",
+      "games": 51,
+      "stated": 56.8,
+      "hit": 54.9
+     },
+     {
+      "band": "60-65",
+      "games": 14,
+      "stated": 61.7,
+      "hit": 35.7
+     },
+     {
+      "band": "65-70",
+      "games": 7,
+      "stated": 66.4,
+      "hit": 57.1
+     },
+     {
+      "band": "70+",
+      "games": 5,
+      "stated": 72.9,
+      "hit": 20.0
+     }
+    ]
+   },
+   "moneyline": {
+    "score_curve": [
+     {
+      "band": "50-55",
+      "games": 41,
+      "stated": 52.4,
+      "hit": 48.8
+     },
+     {
+      "band": "55-60",
+      "games": 39,
+      "stated": 56.9,
+      "hit": 48.7
+     },
+     {
+      "band": "60-65",
+      "games": 35,
+      "stated": 62.4,
+      "hit": 45.7
+     },
+     {
+      "band": "65-70",
+      "games": 30,
+      "stated": 67.6,
+      "hit": 66.7
+     },
+     {
+      "band": "70+",
+      "games": 55,
+      "stated": 78.0,
+      "hit": 81.8
+     }
+    ],
+    "calibrated": [
+     {
+      "band": "50-55",
+      "games": 49,
+      "stated": 52.5,
+      "hit": 46.9
+     },
+     {
+      "band": "55-60",
+      "games": 43,
+      "stated": 57.4,
+      "hit": 48.8
+     },
+     {
+      "band": "60-65",
+      "games": 32,
+      "stated": 62.8,
+      "hit": 53.1
+     },
+     {
+      "band": "65-70",
+      "games": 29,
+      "stated": 67.3,
+      "hit": 65.5
+     },
+     {
+      "band": "70+",
+      "games": 47,
+      "stated": 77.4,
+      "hit": 85.1
+     }
+    ],
+    "fb_model": [
+     {
+      "band": "50-55",
+      "games": 41,
+      "stated": 52.7,
+      "hit": 63.4
+     },
+     {
+      "band": "55-60",
+      "games": 38,
+      "stated": 57.3,
+      "hit": 52.6
+     },
+     {
+      "band": "60-65",
+      "games": 34,
+      "stated": 62.7,
+      "hit": 67.6
+     },
+     {
+      "band": "65-70",
+      "games": 29,
+      "stated": 67.4,
+      "hit": 65.5
+     },
+     {
+      "band": "70+",
+      "games": 58,
+      "stated": 77.2,
+      "hit": 74.1
+     }
+    ]
+   }
+  },
+  "roi": {
+   "spread": {
+    "books": {
+     "score_curve": {
+      "picks": 76,
+      "wins": 33,
+      "hit_rate": 43.4,
+      "roi": -15.7,
+      "price_assumed": 0
+     },
+     "calibrated": {
+      "picks": 76,
+      "wins": 33,
+      "hit_rate": 43.4,
+      "roi": -15.2,
+      "price_assumed": 0
+     },
+     "fb_model": {
+      "picks": 78,
+      "wins": 42,
+      "hit_rate": 53.8,
+      "roi": 4.6,
+      "price_assumed": 0
+     },
+     "ml_curve": {
+      "picks": 77,
+      "wins": 43,
+      "hit_rate": 55.8,
+      "roi": 8.0,
+      "price_assumed": 0
+     }
+    },
+    "closing": {
+     "score_curve": {
+      "picks": 236,
+      "wins": 116,
+      "hit_rate": 49.2,
+      "roi": -6.5,
+      "price_assumed": 0
+     },
+     "calibrated": {
+      "picks": 236,
+      "wins": 116,
+      "hit_rate": 49.2,
+      "roi": -6.5,
+      "price_assumed": 0
+     },
+     "fb_model": {
+      "picks": 194,
+      "wins": 95,
+      "hit_rate": 49.0,
+      "roi": -6.4,
+      "price_assumed": 0
+     },
+     "ml_curve": {
+      "picks": 194,
+      "wins": 106,
+      "hit_rate": 54.6,
+      "roi": 4.2,
+      "price_assumed": 0
+     }
+    }
+   },
+   "total": {
+    "books": {
+     "score_curve": {
+      "picks": 79,
+      "wins": 40,
+      "hit_rate": 50.6,
+      "roi": -2.7,
+      "price_assumed": 0
+     },
+     "calibrated": {
+      "picks": 78,
+      "wins": 39,
+      "hit_rate": 50.0,
+      "roi": -3.4,
+      "price_assumed": 0
+     },
+     "fb_model": {
+      "picks": 78,
+      "wins": 43,
+      "hit_rate": 55.1,
+      "roi": 6.9,
+      "price_assumed": 0
+     }
+    },
+    "closing": {
+     "score_curve": {
+      "picks": 244,
+      "wins": 121,
+      "hit_rate": 49.6,
+      "roi": -5.4,
+      "price_assumed": 0
+     },
+     "calibrated": {
+      "picks": 244,
+      "wins": 121,
+      "hit_rate": 49.6,
+      "roi": -5.4,
+      "price_assumed": 0
+     },
+     "fb_model": {
+      "picks": 201,
+      "wins": 105,
+      "hit_rate": 52.2,
+      "roi": -0.0,
+      "price_assumed": 0
+     }
+    }
+   },
+   "moneyline": {
+    "books": {
+     "score_curve": {
+      "picks": 78,
+      "wins": 46,
+      "hit_rate": 59.0,
+      "roi": -8.2,
+      "price_assumed": 0
+     },
+     "calibrated": {
+      "picks": 78,
+      "wins": 46,
+      "hit_rate": 59.0,
+      "roi": -8.2,
+      "price_assumed": 0
+     },
+     "fb_model": {
+      "picks": 78,
+      "wins": 51,
+      "hit_rate": 65.4,
+      "roi": 8.7,
+      "price_assumed": 0
+     }
+    },
+    "closing": {
+     "score_curve": {
+      "picks": 243,
+      "wins": 146,
+      "hit_rate": 60.1,
+      "roi": -9.4,
+      "price_assumed": 0
+     },
+     "calibrated": {
+      "picks": 243,
+      "wins": 146,
+      "hit_rate": 60.1,
+      "roi": -9.4,
+      "price_assumed": 0
+     },
+     "fb_model": {
+      "picks": 200,
+      "wins": 131,
+      "hit_rate": 65.5,
+      "roi": 2.8,
+      "price_assumed": 0
+     }
+    }
+   }
+  },
+  "coin_flip_log_loss": 0.6931,
+  "coherence": {
+   "score_curve": {
+    "games": 243,
+    "cover_above_win": 0
+   },
+   "calibrated": {
+    "games": 243,
+    "cover_above_win": 18
+   },
+   "fb_model": {
+    "games": 201,
+    "cover_above_win": 53
+   },
+   "ml_curve": {
+    "games": 201,
+    "cover_above_win": 0
+   }
+  }
+ },
+ "tables_reconcile": {
+  "pass_yds": {
+   "defences": 32,
+   "max_gap": 0.0,
+   "median_gap": 0.0
+  },
+  "rush_yds": {
+   "defences": 32,
+   "max_gap": 2.4,
+   "median_gap": 0.0
+  }
+ },
+ "fb_model_opposite_picks": {
+  "books": {
+   "games_with_both": 66,
+   "cannot_both_hit": 8,
+   "games": [
+    {
+     "game_id": "2026_01_TB_CIN",
+     "spread": [
+      "home",
+      4.0,
+      61.0
+     ],
+     "moneyline": [
+      "away",
+      42.5
+     ]
+    },
+    {
+     "game_id": "2026_01_BUF_HOU",
+     "spread": [
+      "away",
+      -1.5,
+      55.2
+     ],
+     "moneyline": [
+      "home",
+      52.5
+     ]
+    },
+    {
+     "game_id": "2026_01_MIA_LV",
+     "spread": [
+      "home",
+      3.0,
+      58.3
+     ],
+     "moneyline": [
+      "away",
+      49.3
+     ]
+    },
+    {
+     "game_id": "2026_02_JAX_DEN",
+     "spread": [
+      "home",
+      2.5,
+      53.8
+     ],
+     "moneyline": [
+      "away",
+      69.5
+     ]
+    },
+    {
+     "game_id": "2026_04_JAX_CIN",
+     "spread": [
+      "home",
+      2.5,
+      70.3
+     ],
+     "moneyline": [
+      "away",
+      55.8
+     ]
+    },
+    {
+     "game_id": "2026_05_IND_PIT",
+     "spread": [
+      "home",
+      3.0,
+      58.3
+     ],
+     "moneyline": [
+      "away",
+      46.5
+     ]
+    },
+    {
+     "game_id": "2026_05_NYG_WAS",
+     "spread": [
+      "home",
+      3.5,
+      54.2
+     ],
+     "moneyline": [
+      "away",
+      54.7
+     ]
+    },
+    {
+     "game_id": "2026_05_BAL_ATL",
+     "spread": [
+      "home",
+      3.5,
+      61.4
+     ],
+     "moneyline": [
+      "away",
+      51.9
+     ]
+    }
+   ]
+  },
+  "closing": {
+   "games_with_both": 147,
+   "cannot_both_hit": 30,
+   "games": [
+    {
+     "game_id": "2025_11_DAL_LV",
+     "spread": [
+      "away",
+      -3.5,
+      64.1
+     ],
+     "moneyline": [
+      "home",
+      45.4
+     ]
+    },
+    {
+     "game_id": "2025_12_BUF_HOU",
+     "spread": [
+      "away",
+      -5.5,
+      81.2
+     ],
+     "moneyline": [
+      "home",
+      42.0
+     ]
+    },
+    {
+     "game_id": "2025_13_GB_DET",
+     "spread": [
+      "home",
+      2.5,
+      76.9
+     ],
+     "moneyline": [
+      "away",
+      52.2
+     ]
+    },
+    {
+     "game_id": "2025_13_ATL_NYJ",
+     "spread": [
+      "away",
+      -3.0,
+      55.3
+     ],
+     "moneyline": [
+      "home",
+      46.1
+     ]
+    },
+    {
+     "game_id": "2025_14_WAS_MIN",
+     "spread": [
+      "away",
+      -1.5,
+      61.2
+     ],
+     "moneyline": [
+      "home",
+      51.4
+     ]
+    },
+    {
+     "game_id": "2025_14_HOU_KC",
+     "spread": [
+      "home",
+      4.5,
+      63.8
+     ],
+     "moneyline": [
+      "away",
+      39.1
+     ]
+    },
+    {
+     "game_id": "2025_15_BAL_CIN",
+     "spread": [
+      "away",
+      -2.5,
+      67.1
+     ],
+     "moneyline": [
+      "home",
+      54.6
+     ]
+    },
+    {
+     "game_id": "2025_15_LAC_KC",
+     "spread": [
+      "home",
+      5.5,
+      61.6
+     ],
+     "moneyline": [
+      "away",
+      42.8
+     ]
+    },
+    {
+     "game_id": "2025_15_BUF_NE",
+     "spread": [
+      "away",
+      -2.5,
+      59.1
+     ],
+     "moneyline": [
+      "home",
+      53.9
+     ]
+    },
+    {
+     "game_id": "2025_15_CAR_NO",
+     "spread": [
+      "away",
+      -2.5,
+      63.9
+     ],
+     "moneyline": [
+      "home",
+      45.4
+     ]
+    },
+    {
+     "game_id": "2025_16_LAC_DAL",
+     "spread": [
+      "home",
+      1.5,
+      55.6
+     ],
+     "moneyline": [
+      "away",
+      57.3
+     ]
+    },
+    {
+     "game_id": "2025_16_CIN_MIA",
+     "spread": [
+      "away",
+      -3.5,
+      60.5
+     ],
+     "moneyline": [
+      "home",
+      58.7
+     ]
+    },
+    {
+     "game_id": "2025_16_JAX_DEN",
+     "spread": [
+      "home",
+      3.5,
+      59.6
+     ],
+     "moneyline": [
+      "away",
+      60.5
+     ]
+    },
+    {
+     "game_id": "2025_16_NE_BAL",
+     "spread": [
+      "home",
+      3.5,
+      58.4
+     ],
+     "moneyline": [
+      "away",
+      51.9
+     ]
+    },
+    {
+     "game_id": "2025_17_DEN_KC",
+     "spread": [
+      "away",
+      -13.5,
+      73.8
+     ],
+     "moneyline": [
+      "home",
+      43.0
+     ]
+    },
+    {
+     "game_id": "2025_17_NO_TEN",
+     "spread": [
+      "away",
+      -1.5,
+      53.8
+     ],
+     "moneyline": [
+      "home",
+      50.5
+     ]
+    },
+    {
+     "game_id": "2025_18_GB_MIN",
+     "spread": [
+      "home",
+      12.5,
+      75.5
+     ],
+     "moneyline": [
+      "away",
+      40.4
+     ]
+    },
+    {
+     "game_id": "2025_18_DET_CHI",
+     "spread": [
+      "home",
+      3.5,
+      70.7
+     ],
+     "moneyline": [
+      "away",
+      40.6
+     ]
+    },
+    {
+     "game_id": "2025_18_LAC_DEN",
+     "spread": [
+      "home",
+      14.5,
+      60.0
+     ],
+     "moneyline": [
+      "away",
+      52.1
+     ]
+    },
+    {
+     "game_id": "2025_19_SF_PHI",
+     "spread": [
+      "home",
+      6.0,
+      61.8
+     ],
+     "moneyline": [
+      "away",
+      40.9
+     ]
+    },
+    {
+     "game_id": "2025_20_BUF_DEN",
+     "spread": [
+      "home",
+      1.5,
+      53.3
+     ],
+     "moneyline": [
+      "away",
+      52.1
+     ]
+    },
+    {
+     "game_id": "2026_01_TB_CIN",
+     "spread": [
+      "home",
+      3.5,
+      60.8
+     ],
+     "moneyline": [
+      "away",
+      42.5
+     ]
+    },
+    {
+     "game_id": "2026_01_BUF_HOU",
+     "spread": [
+      "away",
+      -1.5,
+      55.2
+     ],
+     "moneyline": [
+      "home",
+      52.5
+     ]
+    },
+    {
+     "game_id": "2026_01_MIA_LV",
+     "spread": [
+      "home",
+      3.0,
+      58.3
+     ],
+     "moneyline": [
+      "away",
+      49.3
+     ]
+    },
+    {
+     "game_id": "2026_02_JAX_DEN",
+     "spread": [
+      "home",
+      2.5,
+      53.8
+     ],
+     "moneyline": [
+      "away",
+      69.5
+     ]
+    },
+    {
+     "game_id": "2026_04_JAX_CIN",
+     "spread": [
+      "home",
+      2.5,
+      70.3
+     ],
+     "moneyline": [
+      "away",
+      55.8
+     ]
+    },
+    {
+     "game_id": "2026_04_ATL_NO",
+     "spread": [
+      "home",
+      1.5,
+      50.2
+     ],
+     "moneyline": [
+      "away",
+      50.6
+     ]
+    },
+    {
+     "game_id": "2026_05_IND_PIT",
+     "spread": [
+      "home",
+      3.0,
+      58.3
+     ],
+     "moneyline": [
+      "away",
+      46.5
+     ]
+    },
+    {
+     "game_id": "2026_05_NYG_WAS",
+     "spread": [
+      "home",
+      3.5,
+      54.2
+     ],
+     "moneyline": [
+      "away",
+      54.7
+     ]
+    },
+    {
+     "game_id": "2026_05_BAL_ATL",
+     "spread": [
+      "home",
+      3.5,
+      61.4
+     ],
+     "moneyline": [
+      "away",
+      51.9
+     ]
+    }
+   ]
+  },
+  "this_week": {
+   "games_with_both": 11,
+   "cannot_both_hit": 1,
+   "games": [
+    {
+     "game_id": "2026_07_NE_CHI",
+     "spread": [
+      "home",
+      2.5,
+      57.4
+     ],
+     "moneyline": [
+      "away",
+      51.0
+     ]
+    }
+   ]
+  }
+ }
+}
