@@ -619,6 +619,41 @@ def closing_quotes(r, market):
     return [("closing",) + tuple(q) for q in (r.get("close") or {}).get(market) or []]
 
 
+def score_pick(r, market, score, sigma, quotes=None):
+    """`[Sam, 2026-10-16]` "we need our gizmo picks to directly correlate to what our predicted
+    scores are, so if your saying that purdue will win 25-23, that means gizmos picks should
+    like the +3.5 spread for washington" -> "Yes, everywhere". A spread or total pick comes
+    FROM the predicted score: at each quoted line the side the score covers (landing ON the
+    number is neither), its chance from that same score, Normal(predicted margin or total,
+    sigma) -- `sigma` is the spread `predicted_score` turns a win chance into a margin with
+    (`score_sigma`), or `total_sigma` -- then the best value among them, EV > 0, exactly as
+    `best_pick` chooses. -> best_pick's dict, or None. ⛔ Live picks only; `walk_forward`
+    grades the fits' own `best_pick`."""
+    if market not in ("spread", "total") or not score or not sigma:
+        return None
+    if score.get("home") is None or score.get("away") is None:
+        return None
+    h, a = float(score["home"]), float(score["away"])
+    mu = (h - a) if market == "spread" else (h + a)
+    hi, lo = ("home", "away") if market == "spread" else ("over", "under")
+    best = None
+    for b, ln, pa, pb, assumed in (quotes or book_quotes)(r, market) or []:
+        if ln is None:
+            continue
+        d = round(mu - ln, 6)                     # the spread's line is M on the HOME margin
+        if d == 0:
+            continue
+        p_hi = statistics.NormalDist().cdf(d / sigma)
+        side, px, p = (hi, pa, p_hi) if d > 0 else (lo, pb, 1.0 - p_hi)
+        if px is None:
+            continue
+        ev = p * decimal(px) - 1.0
+        if best is None or ev > best["ev"]:
+            best = {"side": side, "book": b, "line": ln, "price": px, "p": p, "ev": ev,
+                    "break_even": 1.0 / decimal(px), "assumed": assumed}
+    return best if best is not None and best["ev"] > 0 else None    # the value rule, as best_pick
+
+
 def best_pick(r, market, model, quotes=book_quotes):
     """-> {"side", "book", "line", "price", "p", "ev", "break_even",
     "assumed"} or None. The ONE pick rule, whichever prices it is given."""
@@ -796,7 +831,10 @@ def current_picks(lg, rows, root=None, now=None):
                                        if models.get("total") and r.get("T") is not None else None, sigma_t)
                        if _ph is not None and isinstance(r.get("sig"), dict) else None)
         for mk in MARKETS:
-            pk = best_pick(r, mk, models[mk])
+            # `[Sam, 2026-10-16]` "Yes, everywhere": a spread or total pick comes FROM the
+            #    predicted score (`score_pick`), never from the separate spread / total fits
+            pk = (score_pick(r, mk, sc[r["id"]], sigma if mk == "spread" else sigma_t)
+                  if mk in ("spread", "total") else best_pick(r, mk, models[mk]))
             if pk:
                 out.append({"game": "%s at %s" % (aname, hname), "game_id": r["id"],
                             "commence": snap["commence"], "market": mk, "side": pk["side"],
@@ -809,25 +847,15 @@ def current_picks(lg, rows, root=None, now=None):
                             "edge": L(round(100 * pk["ev"], 1), "MODEL"),
                             "priced_at": snap["pulled_at"]})
     # 🔴 `[Sam, 2026-10-16]` ONE TEAM PER GAME. "we can't have our model choosing both
-    #    sides at once" (Washington moneyline +150 beside Purdue -3.5): a moneyline or
-    #    spread pick stays only on the team the Game Lines tab picks to win. ⛔ AFTER each
-    #    market's own pick, never inside best_pick: walk_forward's graded record replays it.
-    out, _ = one_side.keep(out, lambda p: exp.get(p["game_id"]))
-    # 🔴 `[Sam, 2026-10-16]` "Must match the score": a spread or total pick stays only when
-    #    the model's predicted score lands on its side (a spread's `line` is M on the home
-    #    margin, so the team's own point is -M at home, +M away).
-    out, _ = one_side.score_keep(out, lambda p: sc.get(p["game_id"]), own_point)
+    #    sides at once" (Washington moneyline +150 beside Purdue -3.5): a moneyline stays
+    #    only on the team the Game Lines tab picks to win. ⛔ AFTER each market's own pick,
+    #    never inside best_pick: walk_forward's graded record replays it. ~~or spread~~: a
+    #    spread follows the predicted score (Purdue 25-23 => Washington +3.5, Sam).
+    _ml, _rest = [p for p in out if p["market"] == "moneyline"], [p for p in out if p["market"] != "moneyline"]
+    out = one_side.keep(_ml, lambda p: exp.get(p["game_id"]))[0] + _rest
+    # `[Sam, 2026-10-16]` every spread or total pick sits on the predicted score's side by
+    #    construction (`score_pick`), ~~filtered after the fits' own picks~~.
     return sorted(out, key=lambda x: (x["commence"], x["game"], x["market"]))
-
-
-def own_point(p):
-    """A pick's own number for one_side.score_keep: the team's own point on a spread (the
-    stored `line` is M, the threshold on the HOME margin), the line on a total."""
-    v = p.get("line")
-    v = v.get("value") if isinstance(v, dict) else v
-    if v is None or p.get("market") != "spread":
-        return v
-    return -v if p.get("side") == "home" else v
 
 
 PRICING_DAYS = 8           # the Game Lines tab prices this week's slate

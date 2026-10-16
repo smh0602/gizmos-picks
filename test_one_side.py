@@ -45,25 +45,25 @@ only; ⛔ reads nothing live.
 #   find:     side = one_side.expected_side(p_home)
 #   with:     side = "home"
 #
-# @vacuity 🔴 the football model's pick list keeps only the expected winner's side picks
+# @vacuity 🔴 the football model's pick list keeps only the expected winner's moneyline
 #   file: fb_model.py
-#   find:     out, _ = one_side.keep(out, lambda p: exp.get(p["game_id"]))
-#   with:     pass
+#   find:     out = one_side.keep(_ml, lambda p: exp.get(p["game_id"]))[0] + _rest
+#   with:     out = _ml + _rest
 #
 # @vacuity 🔴 ...and a game with no win chance keeps no side pick
 #   file: card_fb.py
-#   find:     rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
-#   with:     rows, _ = one_side.keep(rows, lambda r: one_side.by_names(win_chances)(r) or r.get("side"))
+#   find:     rows = one_side.keep(_ml, one_side.by_names(win_chances))[0] + [r for r in rows if r.get("market") != "moneyline"]
+#   with:     rows = one_side.keep(_ml, lambda r: one_side.by_names(win_chances)(r) or r.get("side"))[0] + [r for r in rows if r.get("market") != "moneyline"]
 #
 # @vacuity 🔴 ...and the expected winner is the MONEYLINE fit's pick to win, as win_chances'
 #   file: fb_model.py
 #   find:         _ph = (round(100 * predict(models["moneyline"], features(r, "moneyline")), 1)
 #   with:         _ph = (round(100 * predict(models["spread"], features(r, "spread")), 1)
 #
-# @vacuity 🔴 the card's game lines keep only the expected winner's side, BEFORE the alternate spreads
+# @vacuity 🔴 the card's game lines keep only the expected winner's moneyline
 #   file: card_fb.py
-#   find:         rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
-#   with:         pass
+#   find:     rows = one_side.keep(_ml, one_side.by_names(win_chances))[0] + [r for r in rows if r.get("market") != "moneyline"]
+#   with:     rows = _ml + [r for r in rows if r.get("market") != "moneyline"]
 #
 # @vacuity 🔴 ...an empty win-chance list (no expected winner) keeps no side row
 #   file: card_fb.py
@@ -73,16 +73,16 @@ only; ⛔ reads nothing live.
 # @vacuity 🔴 ...and the filter runs before the 25-row cap and the ranks
 #   file: card_fb.py
 #   find:     return order_game_lines(rows)
-#   with:     return one_side.keep(order_game_lines(one_side.score_keep(model_game_rows(model_picks, games, slate), one_side.scores_by_names(win_chances))[0]), one_side.by_names(win_chances))[0]
+#   with:     return one_side.score_keep(order_game_lines(model_game_rows(model_picks, games, slate)), one_side.scores_by_names(win_chances))[0]
 #
 # @vacuity 🔴 the card is given the model file's win chances
 #   file: card_fb.py
-#   find:                                  win_chances=_model.get("win_chances") or [])
-#   with:                                  win_chances=None)
+#   find:                                  win_chances=_model.get("win_chances") or [],
+#   with:                                  win_chances=None,
 #
 # @vacuity 🔴 a same-game parlay's line leg is each game's best ALLOWED row
 #   file: card_fb.py
-#   find:             if winner is not None and not one_side.keep([row], winner)[0]:
+#   find:             if winner is not None and market == "h2h" and not one_side.keep([row], winner)[0]:
 #   with:             if False:
 #
 # @vacuity 🔴 ...and the card hands the leg builder the expected winners
@@ -204,16 +204,20 @@ def _bp(r, mk, model, quotes=None):
             "break_even": 1 / dec, "assumed": False}
 
 
+# `[Sam, 2026-10-16]` the spread and total picks come FROM the predicted score at these quotes
+QUOTES = {("g1", "spread"): [("fanduel", 3.5, -110, -110, False)], ("g1", "total"): [("fanduel", 50.5, -110, -110, False)],
+          ("g2", "spread"): [("fanduel", -6.5, -110, 100, False)]}
 _saved = {n: getattr(FM, n) for n in ("features", "label", "fit", "predict", "best_pick", "book_quotes",
-                                      "predicted_score")}
+                                      "predicted_score", "score_sigma", "total_sigma")}
 try:
     FM.features = lambda r, mk, **k: (r["id"], mk)
     FM.label = lambda r, mk: 1
     FM.fit = lambda xs, ys, **k: {"n": len(xs)}
     FM.predict = lambda m, x: P_FIT[x]
     FM.best_pick = _bp
-    FM.book_quotes = lambda r, mk: []
+    FM.book_quotes = lambda r, mk: QUOTES.get((r["id"], mk), [])
     FM.predicted_score = lambda r, p, sigma, p_over=None, sigma_t=None: SCORE[r["id"]]
+    FM.score_sigma = FM.total_sigma = lambda rows: 13.0
     CUR = FM.current_picks("ncaaf", ROWS, now=NOW)
     WCH = FM.win_chances(ROWS, now=NOW, scores=False)
     FM.fit = lambda xs, ys, **k: None if xs and xs[0][1] == "moneyline" else {"n": len(xs)}
@@ -224,9 +228,10 @@ finally:
 _tab = {w["game_id"]: O.expected_side(w["p_home"]) for w in WCH}
 eq(_tab, {"g1": "home", "g2": "away"}, "⚠️ the Game Lines tab's numbers (win_chances): Purdue, and Florida at 70%")
 eq(sorted((p["game_id"], p["market"], p["team"]) for p in CUR),
-   [("g1", "spread", PUR), ("g1", "total", "Under"), ("g2", "moneyline", FLA)],
-   "🔴 Washington ML +150 beside Purdue -3.5 (Sam's game): Washington's moneyline is gone, Purdue -3.5 and "
-   "the Under stay; Florida, the expected winner at 70%, keeps its moneyline and Texas -6.5 goes")
+   [("g1", "spread", PUR), ("g1", "total", "Under"), ("g2", "moneyline", FLA), ("g2", "spread", FLA)],
+   "🔴 Washington ML +150 beside Purdue -3.5 (Sam's game): Washington's moneyline is gone (Purdue is the "
+   "expected winner); Purdue -3.5 and the Under come from the predicted score (Purdue by 5, 49 points); "
+   "Florida keeps its moneyline, and its -6.5 comes from the score too (Florida by 7)")
 eq(O.conflicts(CUR, winner=lambda p: _tab.get(p["game_id"])), [],
    "🔴 the guard on the real builder's output, against the tab's own win chances: no game backs both "
    "teams or the team the tab does not pick")
@@ -261,20 +266,23 @@ LADDER = {"games": [{"away": WASH, "home": PUR, "commence": KICK, "main_spread_h
 GL = CF.card_game_lines(MODEL_PICKS, [], LADDER, CF.et_date(KICK), win_chances=WIN)
 eq(sorted((r["player"], r["market"], r["line"]) for r in GL),
    sorted([(PUR, "spread", -3.5), (PUR, "alternate_spread", -1.5), ("Under", "total", 50.5),
-           (TEX, "moneyline", None)]),
-   "🔴 Purdue -3.5 and its alternate -1.5, the Under, Texas to win; never Washington's moneyline, Florida "
-   "+11.5, or Florida's alternate rung (the filter runs BEFORE the alternates are added)")
-eq(O.conflicts(GL, winner=O.by_names(WIN), game=lambda r: r["game"]), [],
-   "🔴 the guard on the card's real output: one team per game, the expected winner's")
+           (TEX, "moneyline", None), (FLA, "spread", 11.5), (FLA, "alternate_spread", 17.5)]),
+   "🔴 Purdue -3.5 and its alternate -1.5, the Under, Texas to win, never Washington's moneyline; and "
+   "`[Sam, 2026-10-16]` 'Yes, everywhere': a spread follows the predicted score (Purdue 25-23 => Washington "
+   "+3.5): Texas is predicted by 11, so Florida +11.5 (and its +17.5) STAYS (~~Florida +11.5 goes~~)")
+_bad = [r for r in GL if O.score_side_ok(r, O.scores_by_names(WIN)(r), r["line"]) is False
+        or (r["market"] == "moneyline" and O.backs(r) != O.by_names(WIN)(r))]
+eq(_bad, [], "🔴 the guard on the card's real output: every moneyline on the expected winner, every spread "
+   "and total on the predicted score's side (~~one team per game~~: a Texas win and Florida +11.5 both land)")
 eq(sorted(r["market"] for r in CF.card_game_lines(MODEL_PICKS, [], LADDER, CF.et_date(KICK), win_chances=[])),
    [], "🔴 an empty win-chance list names no expected winner and no predicted score: `[Sam, 2026-10-16]` "
    "~~only the total stays~~ nothing stays")
 # 40 games, the home team expected in each; every 4th spread pick (the highest-confidence ones
 # among them) is on the away team. 30 survive: the cap must be filled from those, ranked 1..25.
-#    `[2026-10-16]` home by 2: every away +3.5 is on the predicted score's side (so only the one-team
-#    filter can remove it), and every home pick is -1.5, which the score covers too.
+#    `[2026-10-16]` home by 2: every away +1.5 is OFF the predicted score's side (the score filter
+#    removes it; ~~the one-team filter~~ no longer judges a spread), every home -1.5 on it.
 _many = [mp("A%02d" % i, "H%02d" % i, "spread", "away" if i % 4 == 0 else "home",
-            ("A%02d" % i) if i % 4 == 0 else ("H%02d" % i), 3.5 if i % 4 == 0 else 1.5, -110, 90.0 - i * 0.5)
+            ("A%02d" % i) if i % 4 == 0 else ("H%02d" % i), 1.5, -110, 90.0 - i * 0.5)
          for i in range(40)]
 _mwin = [{"away": "A%02d" % i, "home": "H%02d" % i, "p_home": 60.0, "score": {"home": 22.0, "away": 20.0}}
          for i in range(40)]
@@ -287,23 +295,25 @@ eq((len(_cap), [r["rank"] for r in _cap], sorted({r["side"] for r in _cap})),
 section("5. 🔴 A SAME-GAME PARLAY'S LINE LEG: EACH GAME'S BEST ALLOWED ROW")
 # ══════════════════════════════════════════════════════════════════════
 def snap_game(gid, away, home, at):
-    """Three books. The richest price gap is AWAY +3.5 (+120 against -110); home's moneyline
-    has a smaller one; the totals have none."""
+    """Three books. The richest price gap is AWAY +3.5 (+120 against -110), then the away
+    moneyline (+170 against +150), then home's moneyline; the totals have none."""
     books = {}
     for bk, ap in (("fanduel", 120), ("draftkings", -110), ("hardrockbet", -110)):
         books[bk] = {"spreads": {away: {"px": ap, "pt": 3.5}, home: {"px": -110, "pt": -3.5}},
-                     "h2h": {away: {"px": 150}, home: {"px": -160 if bk == "fanduel" else -170}},
+                     "h2h": {away: {"px": 170 if bk == "fanduel" else 150},
+                             home: {"px": -160 if bk == "fanduel" else -170}},
                      "totals": {"Over": {"px": -110, "pt": 40.5}, "Under": {"px": -110, "pt": 40.5}}}
     return {"id": gid, "away": away, "home": home, "commence": at, "books": books}
 
 
 _snap = {"games": [snap_game("ev1", WASH, PUR, KICK)]}
 _free, _ = CF.build_game_lines(_snap, n=None, slate=CF.et_date(KICK))
-_ruled, _ = CF.build_game_lines(_snap, n=None, slate=CF.et_date(KICK), winner=O.by_names(WIN))
+_ruled, _ = CF.build_game_lines(_snap, n=None, slate=CF.et_date(KICK), winner=O.by_names(WIN),
+                                score=O.scores_by_names(WIN))
 eq(([(r["market"], r["side"]) for r in _free], [(r["market"], r["side"]) for r in _ruled]),
    ([("spreads", WASH)], [("h2h", PUR)]),
-   "🔴 the richest leg is Washington +3.5; under the rule the game keeps its best ALLOWED leg (Purdue to "
-   "win), never no leg and never Washington's")
+   "🔴 the richest leg is Washington +3.5, which a predicted Purdue-by-5 does not cover; the next, "
+   "Washington to win, is not the expected winner; so the game keeps its best ALLOWED leg, Purdue to win")
 
 # ══════════════════════════════════════════════════════════════════════
 section("6. 🔴 THE MLB VERIFIER FAILS A CARD THAT BACKS BOTH TEAMS")
@@ -433,9 +443,9 @@ try:
         mp(SEA, DEN, "spread", "home", DEN, 3.5, -110, 55.8, at=_K),
         mp(SEA, DEN, "total", "under", "Under", 40.5, -110, 56.2, at=_K)],
         "win_chances": [{"game_id": "s1", "commence": _K, "away": SEA, "home": DEN, "p_home": 51.2, "p_away": 48.8,
-                         # `[2026-10-16]` Denver by 2, 38 points: Seattle +3.5 is on the predicted score's
-                         # side, so only the one-team filter keeps it off the parlays; the Under stays
-                         "best_ml": {}, "score": {"home": 20.0, "away": 18.0}}]})
+                         # `[2026-10-16]` Denver by 5, 40 points: Seattle +3.5 is OFF the predicted
+                         # score's side, Seattle's moneyline off the expected winner; the Under stays
+                         "best_ml": {}, "score": {"home": 22.5, "away": 17.5}}]})
     put(os.path.join(_T8, "data", "nfl", _n.strftime("%Y-%m-%d"), "gamelines", "0100.json.gz"),
         {"pulled_at": _n.strftime("%Y-%m-%dT%H:%M:%SZ"), "games": [snap_game("ev1", SEA, DEN, _K)]})
     _q = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, %r); import card_fb; card_fb.main()" % ROOT],
@@ -454,9 +464,13 @@ ck(bool(_lines) and bool(_sgp_line_legs),
    "⚠️ the planted card really was built, with game lines and same-game parlays that carry a line leg",
    "%d line rows, %d parlays with a line leg; rc %s" % (len(_lines), len(_sgp_line_legs), _q.returncode))
 _sides = O.by_names([{"away": SEA, "home": DEN, "p_home": 51.2}])
+_sc8 = O.scores_by_names([{"away": SEA, "home": DEN, "score": {"home": 22.5, "away": 17.5}}])
 _all = _lines + list(CARD.get("game_lines_liked") or [])
-eq(O.conflicts(_all, winner=_sides, game=lambda r: r.get("game")), [],
-   "🔴 the built card's game lines and liked lines: Denver's side and the Under only, never Seattle's moneyline")
+eq([r for r in _all if O.score_side_ok(r, _sc8(r), r.get("line")) is False
+    or (r.get("market") == "moneyline" and O.backs(r) != _sides(r))], [],
+   "🔴 the built card's game lines and liked lines: every moneyline on Denver (the expected winner), every "
+   "spread and total on the predicted score's side; never Seattle's moneyline")
 ck(not any(SEA in leg for x in _sgp_line_legs for leg in x.get("legs") or []),
-   "🔴 ...and no same-game parlay's line leg is on Seattle (its richest price gap, +3.5 at +120)",
+   "🔴 ...and no same-game parlay's line leg is on Seattle: its +3.5 (the richest gap) is off a predicted "
+   "Denver-by-5, its moneyline (the next) off the expected winner",
    str([x.get("legs") for x in _sgp_line_legs][:3]))

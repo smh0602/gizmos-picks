@@ -261,9 +261,11 @@ _main = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
 _main = _main[_main.index("\ndef main("):]
 ck("🔴 ...and `card_fb.main` still composes the list exactly that way",
    "_gl_slate = (next_line_slate(_gl_snap) or slate) if _gl_snap else slate" in _main
-   # `[2026-10-16]` ~~"_ladder, _gl_slate)"~~: main now also passes the win chances.
+   # `[2026-10-16]` ~~"_ladder, _gl_slate)"~~: main now also passes the win chances,
+   # and the score's spread (sigma) the alternates are priced with ("Yes, everywhere", Sam)
    and "game_lines = card_game_lines(" in _main and "_ladder, _gl_slate," in _main
-   and 'win_chances=_model.get("win_chances") or [])' in _main
+   and 'win_chances=_model.get("win_chances") or [],' in _main
+   and 'sigma=((_model.get("pricing") or {}).get("sigma") or {}).get("spread"))' in _main
    and '"is_next_slate": _gl_slate != slate' in _main and "freeze_published(" in _main,
    "⛔ a built card composed differently from main's would prove nothing "
    "about the card main writes")

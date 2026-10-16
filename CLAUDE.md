@@ -502,19 +502,24 @@ note boxes, tags and the stale bar now require their absence.
   their own line (`alt_spreads`, `by_basis` keeps the books'-chance rows apart);
   the model's picks keep fb-model.json's record. `test_fb_game_picks.py`.
   `[Sam, 2026-10-16]` Only on the game's expected winner: see ONE TEAM PER GAME.
-- 🔴 **A FOOTBALL SPREAD OR TOTAL PICK SITS ON THE PREDICTED SCORE'S SIDE.** `[Sam, 2026-10-16]`
-  The predicted score comes from the moneyline and total fits, each spread pick from a separate fit:
-  13 of 66 college spread and total picks sat on the side the model's own score said loses (Purdue
-  -3.5 beside "Purdue by 1.2"). Sam chose *"Must match the score: A spread or total pick, and a
-  parlay's line leg, shows only when the predicted score lands on its side."* `one_side.score_keep`
-  runs in `fb_model.current_picks` (after the one-team filter, on exactly `win_chances`' score),
-  `card_fb.card_game_lines` (the alternate spread is the best rung the score COVERS, never a
-  richer one it does not) and `build_game_lines` (the same-game parlays' line legs: each game's
-  best leg on the score's side). Landing ON the number is not its side, compared after rounding
-  (21.1 - 14.1 - 7 is 1.8e-15 in binary); `fb_why.score_agrees` does the same; no score, no
-  pick. ⛔ Never inside
-  `best_pick`: `walk_forward`'s record is unchanged. The Game Lines tab prints the score to one
-  decimal (~~whole numbers~~), the precision picks are judged on. `test_one_side_score.py`.
+- 🔴 **A FOOTBALL SPREAD OR TOTAL PICK COMES FROM THE PREDICTED SCORE** (~~SITS ON THE
+  PREDICTED SCORE'S SIDE~~). `[Sam, 2026-10-16]` The predicted score comes from the moneyline and
+  total fits, each spread pick came from a separate fit: 13 of 66 college spread and total picks
+  sat on the side the model's own score said loses (Purdue -3.5 beside "Purdue by 1.2"). Sam chose
+  *"Must match the score"*, then: *"if your saying that purdue will win 25-23, that means gizmos
+  picks should like the +3.5 spread for washington"* and *"Yes, everywhere"*.
+  `fb_model.score_pick` makes `current_picks`' spread and total picks (the Model picks table, the
+  ledger's snapshots, the card's source): at each quote, the side the predicted margin or total
+  covers, its chance Normal(that margin or total, `score_sigma` / `total_sigma`), the best value
+  above zero (~~the spread and total fits' `best_pick`, then `one_side.score_keep` after the
+  one-team filter~~). The card's alternate spread is priced from the same score with fb-model.json's
+  `pricing.sigma.spread` and is the best rung the score COVERS; `one_side.score_keep` still runs in
+  `card_fb.card_game_lines` and `build_game_lines` (each game's best same-game-parlay line leg on
+  the score's side). Landing ON the number is not its side, compared after rounding (21.1 - 14.1 -
+  7 is 1.8e-15 in binary); `fb_why.score_agrees` does the same; no score, no pick. ⛔ Never inside
+  `best_pick`: `walk_forward`'s graded record and verdict still grade the spread and total fits
+  (changing what they grade is Sam's call). The Game Lines tab prints the score to one decimal
+  (~~whole numbers~~), the precision picks are judged on. `test_one_side_score.py`.
 - 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`
   NWS kickoff forecasts (`fb_weather.py`), CFBD venues / advanced stats (garbage
   time excluded) / pregame Elo / weather if the key's tier allows (`cfb.py`
@@ -616,12 +621,15 @@ note boxes, tags and the stale bar now require their absence.
   foootbal but also picked the -3.5 spread for purdue; the huskies opponent ... we can't
   have our model choosing both sides at once"*; asked which side stays, he chose the
   expected winner. `one_side.py` holds the ONE rule (`expected_side`, which winners.py
-  reads, so the Game Lines tab and every list agree) and keeps a moneyline, spread,
-  alternate spread or run-line pick only on the team the tab picks to win; a total is
-  never touched; no win chance, no side pick. It runs AFTER each market's own pick in
+  reads, so the Game Lines tab and every list agree) and keeps a moneyline, ~~spread,
+  alternate spread~~ or run-line pick only on the team the tab picks to win; a total is
+  never touched; no win chance, no side pick. `[Sam, 2026-10-16]` A football spread and its
+  alternate follow the predicted score instead, which can back the expected loser (Purdue
+  25-23 => Washington +3.5): see A FOOTBALL SPREAD OR TOTAL PICK COMES FROM THE PREDICTED SCORE. It runs AFTER each market's own pick in
   `fb_model.current_picks` (the Model picks table, the ledger's snapshots, the card's
-  source), `card_fb.card_game_lines` (before the alternate spreads, so they follow), the
-  same-game parlays' line legs (`build_game_lines`: each game's best ALLOWED leg), and
+  source), `card_fb.card_game_lines` (~~before the alternate spreads, so they follow~~
+  moneylines only), the same-game parlays' line legs (`build_game_lines`: each game's best
+  ALLOWED leg; a moneyline leg on the winner, a spread leg on the score's side), and
   `card.game_line_rows` (MLB, by `win`); when the MLB game model is rebuilt on its own
   (`game-model`), `card.refilter_game_lines` removes a published, unstarted row no longer
   on the new expected winner (~~the card's game lines stay as built~~). ⛔ Never inside
