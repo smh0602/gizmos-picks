@@ -216,7 +216,10 @@ def planted_board(one_per_game=False):
     """
     g1 = [_pprop("Alpha One", -110)]
     if not one_per_game:
-        g1 += [_pprop("Alpha One", -110, "player_receptions", 3.5),
+        # `[Sam, 2026-10-16]` one side per prop at 50%+: his 3-a-game record makes Over 3.5 a
+        #    side it gives ~5% (now never listed), so the repeat-player row is his UNDER 3.5
+        g1 += [dict(_pprop("Alpha One", -110, "player_receptions", 3.5),
+                    sides={"under": {"price": -110, "book": "fanduel", "n_books": 3, "link": "x"}}),
                _pprop("Alpha Two", -110)]
     g2 = ([_pprop("Bravo One", -450)] if not one_per_game else []) \
         + [_pprop("Bravo Two", -120)]

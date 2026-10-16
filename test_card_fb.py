@@ -164,11 +164,20 @@ try:
                                           "n_books": 3, "link": "x"},
                                  # ⛔ below the -700 floor -> off the board
                                  "under": {"price": -900, "book": "fanduel",
-                                           "n_books": 3, "link": "x"}}}]}]}
+                                           "n_books": 3, "link": "x"}}},
+                            # `[Sam, 2026-10-16]` one side per prop at 50%+: Real Guy's under
+                            #    (his record ~5%) now never reaches the floor, so the -900 row
+                            #    is Short Guy's OVER, the side his own record favours
+                            {"player": "Short Guy", "market": "player_receptions",
+                             "line": 3.5, "sides": {
+                                 "over": {"price": -900, "book": "fanduel",
+                                          "n_books": 3, "link": "x"}}}]}]}
     with gzip.open("data/nfl/latest/props.json.gz", "wt") as fh:
         json.dump(board, fh)
     logs = {"season": 2025, "players": {"1": {
         "name": "Real Guy", "pos": "WR",
+        "g": [game(0.9, rec=5) for _ in range(10)]}, "2": {
+        "name": "Short Guy", "pos": "WR",
         "g": [game(0.9, rec=5) for _ in range(10)]}}}
     with gzip.open("data/nfl/latest/players-2025.json.gz", "wt") as fh:
         json.dump(logs, fh)
