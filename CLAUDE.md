@@ -583,6 +583,15 @@ note boxes, tags and the stale bar now require their absence.
   small sample, the college note, "not a forecast", "no football model"~~).
   `fb_agreement` still compares the RECORD with the model (Sam's choice).
   `test_fb_props_confidence.py`.
+- 🔴 **A LIKED NFL OVER NEEDS A REAL ROLE THIS SEASON.** `[Sam, 2026-10-15]` *"we can't be
+  betting on guys like tory horton because he's had 2 good games ... he's a wr4"*: an over or
+  anytime TD is liked only at 40%+ of snaps over his last 3 games, 12%+ of targets on a
+  receiving prop, 8+ carries on a rushing prop (`card_fb.role_ok`); an under is never blocked.
+  `[2026-10-16]` The role is `card_fb.current_role`: THIS season's log, by id or a unique name.
+  ~~A rookie had none (the check skipped him); a player with no game this season used last
+  season's~~. A player with no game this season now has a zero role (n 0), so his over fails.
+  Shares are stored at 4 decimals and rounded once on the page. `test_fb_best_plays.py`,
+  `test_fb_role_season.py`.
 - 🔴 **EVERY FOOTBALL GIZMO'S PICKS PICK CARRIES ITS WHY.** `[Sam, 2026-10-15]`
   *"i also want a "why" behind the picks underneath each gizmo picks pick"*.
   `fb_why.explain` writes `why` on the liked lists only (`liked`,
@@ -953,6 +962,12 @@ fb_ledger.py      "What the model showed, graded": both football models'
                   market (fb_model.verdict) beside every record
                   (`research/fb_model_live_spec.md`, frozen). Rides
                   `card-fb`. ⛔ Never recalculates a graded pick.
+                  `[Sam, 2026-10-16]` spec §3a: a pick the model withdrew
+                  before kickoff is NOT graded. Each snapshot lists the
+                  games each model looked at (`looked_at`), and the last
+                  snapshot before kickoff that looked at a game decides,
+                  even with no pick (~~kept "unless the game had no pick in
+                  any later snapshot"~~). `test_fb_ledger_withdrawn.py`.
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule

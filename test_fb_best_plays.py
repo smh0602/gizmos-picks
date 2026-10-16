@@ -99,13 +99,11 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #
 # @vacuity 🔴 the card stores each NFL row's role
 #   file: card_fb.py
-#   find:                     row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
-#   with:                     row["role"] = None and ((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
+#   find:                     row["role"] = current_role(who, pids, plog, season)
+#   with:                     row["role"] = None
 #
-# @vacuity 🔴 the role is this season's, not the rated season's
-#   file: card_fb.py
-#   find:                     row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season
-#   with:                     row["role"] = role_of((None if CUR_P and CUR_SEASON != season
+# `[2026-10-16]` "the role is this season's, not the rated season's" is declared in
+#    test_fb_role_season.py, which builds this season's log (current_role).
 #
 # @vacuity 🔴 the record grades what the card shows
 #   file: record_fb.py
@@ -280,7 +278,7 @@ eq(sorted(r["player"] for r in CF.best_liked(R3, lambda r: r["player"], proj={})
    "RB's receptions over (7% of targets) are never liked; an "
    "under is never blocked by a small role; a row with no role (college) keeps today's rule")
 src = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
-ck('row["role"] = role_of((CUR_P.get(pids[0]) if CUR_P and CUR_SEASON != season' in src and CF.role_of({"g": [{"d": "2026-10-0%d" % i, "snap_pct": 0.5, "tgt_share": 0.2,
+ck('row["role"] = current_role(who, pids, plog, season)' in src and CF.role_of({"g": [{"d": "2026-10-0%d" % i, "snap_pct": 0.5, "tgt_share": 0.2,
                                                                  "car": 3} for i in range(1, 6)]})
    == {"snap": 0.5, "tgt_share": 0.2, "car": 3.0, "n": 3},
    "🔴 the card stores each NFL row's role: means over his last 3 games")
