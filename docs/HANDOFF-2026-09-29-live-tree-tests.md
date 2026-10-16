@@ -279,3 +279,14 @@ CI alone would not have shown the above. It is offered as its own task.
 ## Changelog
 
 - **2026-09-29:** first version.
+- **2026-10-16:** a new instance, the same class. `test_record_fb_rebuild.py`'s NEXT
+  METHOD probe turned pr-tests and collect red on 10-16, on main as on every branch.
+  **Root cause:** the probe copies the newest stored card, and it pushed only `picks`
+  past every log ("nothing on it can settle"). Since #267, `record_fb` grades a card's
+  `liked` list instead of its picks. So once the 07:29Z NFL log settled Thursday's
+  liked props, the probe's "new" method had graded rows. The verdict turned on that
+  day's data. **Fix:** `unsettled()` pushes every row of every list past every log, so
+  any list record_fb grades later is covered too. The games-only copy empties `liked`
+  as well as `picks`. **Guard:** the newest PLANTED card now carries a `liked` list, so a
+  probe that leaves any list settle-able goes red on planted data, not only on a day the
+  stored data happens to settle.
