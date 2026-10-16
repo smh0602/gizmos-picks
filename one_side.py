@@ -22,7 +22,6 @@ and it runs AFTER each market's own pick (never inside fb_model.best_pick, whose
 walk-forward record is graded history). No expected winner (no win chance) means no
 side pick, as the Game Lines tab then names no winner. Stdlib only; imports nothing
 from the repo.
-
 """
 TOTAL_WORDS = ("total",)          # total, totals, alternate_total(s), team totals: no team side
 
