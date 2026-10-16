@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """fb_matchups.py — THE SHARED FOOTBALL TEAM-UNIT TABLES. `[Sam, 2026-10-15]`
 
-"you should be looking at how teams play against certain stats like passing
-rushing receiving etc ... this can tie directly into player props, finding out
-opposing teams weaknesses". Per league, per team, per week: points, passing,
-rushing and receiving yards by position, plays (pace) and, for the NFL, targets
-by position — each FOR and ALLOWED, adjusted for the opponents faced.
-Settings: research/fb_score_model_design.md §1 (fixed before any backtest).
-
+"how teams play against certain stats like passing rushing receiving ... this can
+tie directly into player props, finding out opposing teams weaknesses". Per league,
+team and week: points, passing, rushing and receiving yards by position, plays
+(pace), NFL targets by position, each FOR and ALLOWED, adjusted for the opponents
+faced. Settings: research/fb_score_model_design.md §1 (fixed before any backtest).
     tables = fb_matchups.load("nfl")
     tables.unit_for("KC", "pass_yds", "2026-10-15")      # per game vs an average defence
     tables.unit_allowed("KC", "pass_yds", "2026-10-15")  # per game vs an average offence
@@ -137,17 +135,16 @@ class Tables:
     def table(self, as_of):
         """{unit: {team: {for, allowed, games, raw_for, raw_allowed}}} as of a day:
         the adjusted numbers beside the plain per-game averages they come from."""
-        wk = F.monday(as_of[:10])
-        out = {}
+        cut, out = F.monday(as_of[:10]), {}
         for u in self.G:
             raw = collections.defaultdict(lambda: [0, 0.0, 0.0])
-            for _d, h, a, _f, vh, va in (g for g in self.G[u] if g[0] < wk):
+            for _d, h, a, _f, vh, va in (g for g in self.G[u] if g[0] < cut):
                 for team, got, gave in ((h, vh, va), (a, va, vh)):
                     raw[team][0] += 1
                     raw[team][1] += got
                     raw[team][2] += gave
-            out[u] = {t: {"for": round(self.unit_for(t, u, wk), 2),
-                          "allowed": round(self.unit_allowed(t, u, wk), 2),
+            out[u] = {t: {"for": round(self.unit_for(t, u, cut), 2),
+                          "allowed": round(self.unit_allowed(t, u, cut), 2),
                           "games": n, "raw_for": round(f / n, 2), "raw_allowed": round(al / n, 2)}
                       for t, (n, f, al) in sorted(raw.items())}
         return out

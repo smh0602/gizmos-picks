@@ -939,21 +939,16 @@ fb_weather.py     NWS KICKOFF FORECASTS, STORED ONLY (Sam, 2026-10-14): NFL
                   venues -> data/<lg>/latest/weather-<season>.json.gz ("first"
                   never overwritten, "last" only before kickoff). Rides
                   `nfl-logs` / `cfb-probe`. ⛔ No model reads it yet; never raises.
-fb_matchups.py    THE SHARED TEAM-UNIT TABLES (Sam, 2026-10-15): per league,
-                  team and Monday, points, passing / rushing / receiving
-                  yards by position, plays (pace), NFL targets, each FOR
-                  and ALLOWED, opponent-adjusted by fb_model.solve_ratings
-                  (reused, never copied); `unit_for` / `unit_allowed` /
-                  `expect`. ⛔ Point in time: games before the Monday only.
-                  What the props model will read for opponent weaknesses.
+fb_matchups.py    THE SHARED TEAM-UNIT TABLES (Sam, 2026-10-15): points,
+                  pass / rush / receiving yards by position, plays, NFL
+                  targets, FOR and ALLOWED per team and Monday, opponent-
+                  adjusted by fb_model.solve_ratings (reused). ⛔ Games
+                  before the Monday only. The props model's weaknesses.
 fb_score_model.py THE SCORE-FIRST GAME MODEL, ⛔ REPORT ONLY (Sam,
-                  2026-10-15): both teams' points (fb_matchups + a MEASURED
-                  home edge) + a pass / rush / pace matchup layer; chances
-                  from the score's normal curve, a calibrated sigma x k
-                  beside it; walk-forward backtest vs fb_model and closing
-                  lines -> data/<lg>/latest/fb-score-model.json, after the
-                  card in `card-fb`. ⛔ No pick, chance, card row or page
-                  reads it; the switch is Sam's.
+                  2026-10-15): both teams' points + a measured home edge + a
+                  pass / rush / pace layer, chances from the score curve;
+                  backtest -> data/<lg>/latest/fb-score-model.json after the
+                  card in `card-fb`. ⛔ Nothing reads it; the switch is Sam's.
                   Design: research/fb_score_model_design.md.
 fb_why.py         THE WHY UNDER EACH FOOTBALL GIZMO'S PICKS PICK (Sam,
                   2026-10-15): reader sentences from the stored logs,

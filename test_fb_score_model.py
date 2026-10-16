@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """THE SCORE-FIRST FOOTBALL GAME MODEL AND ITS TEAM-UNIT TABLES. `[Sam, 2026-10-15]`
 
-"your trying to predict the score of both team ... how teams play against certain
-stats like passing rushing receiving". `fb_matchups.py` (the shared tables) and
-`fb_score_model.py` (report only). Planted leagues and a pinned clock only;
-nothing here reads the live data tree.
+`fb_matchups.py` (the shared tables) and `fb_score_model.py` (report only), on
+planted leagues with a pinned clock; nothing here reads the live data tree.
   1. Point in time: a table as of a day reads only games before its Monday, and a
      prediction's weights, sigmas and k's read only earlier weeks.
   2. Opponent adjustment: yards against soft defences count for less.
@@ -171,13 +169,13 @@ def plant(home_edge=5.0, seed=11):
         em = home_edge * hf + lat[h]["pts"] - lat[a]["dpts"] - lat[a]["pts"] + lat[h]["dpts"]
         M = (round(2 * em) / 2) or 1.0
         gid = "%d_%02d_%s_%s" % (season, wk, a, h)
-        sched[season].append({
-            "id": gid, "week": wk, "start": day.isoformat() + "T17:00", "home": h, "away": a,
-            "neutral": neutral, "final": final, "home_score": u[h]["pts"] if final else None,
-            "away_score": u[a]["pts"] if final else None, "closing_spread": str(M),
-            "closing_total": str(round(2 * (42 + 0.0)) / 2), "closing_ml_home": -150 if M > 0 else 130,
-            "closing_ml_away": 130 if M > 0 else -150, "closing_spread_odds_home": -110,
-            "closing_spread_odds_away": -110, "closing_over_odds": -110, "closing_under_odds": -110})
+        sched[season].append(dict({"id": gid, "week": wk, "start": day.isoformat() + "T17:00", "home": h,
+                                    "away": a, "neutral": neutral, "final": final, "closing_spread": str(M),
+                                    "home_score": u[h]["pts"] if final else None, "closing_total": "42.0",
+                                    "away_score": u[a]["pts"] if final else None,
+                                    "closing_ml_home": -150 if M > 0 else 130, "closing_ml_away": 130 if M > 0 else -150},
+                                   **{k: -110 for k in ("closing_spread_odds_home", "closing_spread_odds_away",
+                                                        "closing_over_odds", "closing_under_odds")}))
         if not final:
             continue
         for t in (h, a):
@@ -195,14 +193,7 @@ def plant(home_edge=5.0, seed=11):
     return root
 
 
-class _Allowed:
-    def __init__(self, lg):
-        pass
-
-    def fraction(self, g):
-        return None
-
-
+_Allowed = type("_Allowed", (), {"__init__": lambda self, lg: None, "fraction": lambda self, g: None})
 _OLD = (F.board_prices, F.t60r.history, F.t60r.Allowed)
 F.board_prices = lambda lg, resolve, root=None: {}
 F.t60r.history = lambda lg: []
@@ -213,9 +204,7 @@ TB = FM.Tables("nfl", LG)
 ROWS = [r for r in F.build_rows("nfl", root=LG) if r["final"] or r["day"] <= "2026-11-27"]
 DONE = S.walk_forward(ROWS, TB)
 
-# ══════════════════════════════════════════════════════════════════════
 section("1. 🔴 POINT IN TIME")
-# ══════════════════════════════════════════════════════════════════════
 _G = TB.G["pass_yds"]
 ck(any(g[0] == "2026-11-02" for g in _G) and any(g[0] == "2026-10-29" for g in _G),
    "the planted league has a Thursday (10-29) and a Monday (11-02) game")
@@ -248,9 +237,7 @@ eq(_redo(_thu, 30), _key(_sun), "🔴 Sunday's prediction ignores that week's Th
 ck(_redo(_prev, 30) != _key(_sun), "...and an earlier week's result does move it")
 ck(all(p["week"] == F.monday(p["row"]["day"]) for p in DONE), "every prediction is made as of its own Monday")
 
-# ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 OPPONENT ADJUSTMENT")
-# ══════════════════════════════════════════════════════════════════════
 _tb = FM.Tables.__new__(FM.Tables)
 _tb.lg, _tb._solved = "nfl", {"pass_yds": {}}
 _d0, _rows = datetime.date(2026, 9, 6), []
@@ -269,9 +256,7 @@ ck(_tb.gap("X", "W", "pass_yds", "2026-12-01") > _tb.gap("X", "S", "pass_yds", "
    "🔴 a matchup gap reads the defence too: X vs W is worth far more than X vs S")
 ck(TB.table(NOW)["rec_yds_WR"]["T0"]["games"] > 0, "the tables carry receiving yards by position")
 
-# ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 THE HOME EDGE IS MEASURED, AND A NEUTRAL SITE GETS NONE")
-# ══════════════════════════════════════════════════════════════════════
 _he = TB.home_edge("points", NOW)
 ck(3.5 < _he < 6.5, "🔴 the points table measures the planted +5 home edge", "measured %.2f" % _he)
 _up = next(r for r in ROWS if not r["final"] and not r["sig"]["neutral"])
@@ -282,9 +267,7 @@ ck(abs((_bh[0] - _bh[1]) - (_bn[0] - _bn[1]) - TB.home_edge("points", _up["day"]
    "home %.2f, neutral %.2f" % (_bh[0] - _bh[1], _bn[0] - _bn[1]))
 ck(abs(_bh[1] - _bn[1]) < 1e-12 and abs(_bh[0] - _bn[0]) > 1.0, "a neutral site moves the home side's points, never the away side's")
 
-# ══════════════════════════════════════════════════════════════════════
 section("4. 🔴 THE MATCHUP LAYER MOVES THE TOTAL")
-# ══════════════════════════════════════════════════════════════════════
 _rnd = random.Random(5)
 _sides = [([_rnd.gauss(0, 30), _rnd.gauss(0, 20), _rnd.gauss(0, 6)], 0.0) for _ in range(1000)]
 _sides = [(x, 0.05 * x[0] + 0.1 * x[1] + 0.5 * x[2]) for x, _ in _sides]
@@ -330,9 +313,7 @@ _want = sum(0.04 * _gaps[k][0] + 0.1 * _gaps[k][1] + 0.2 * (_gaps[_hi][2] + _gap
 ck(_want > 5 and 0.5 * _want < _pn["total"] - 42.0 <= _want,
    "🔴 a fast, pass-heavy matchup moves the predicted total up by what earlier games showed",
    "moved %.2f, earlier games say %.2f" % (_pn["total"] - 42.0, _want))
-# ══════════════════════════════════════════════════════════════════════
 section("5. 🔴 EVERY CHANCE COMES FROM THE PREDICTED SCORE'S CURVE")
-# ══════════════════════════════════════════════════════════════════════
 _p = {"row": {"M": 3.0, "T": 44.5}, "margin": 7.0, "total": 47.0, "sigma": {"margin": 13.0, "total": 14.0},
       "k": {"spread": 1.5, "total": 1.2, "moneyline": 2.0}}
 _N = statistics.NormalDist()
@@ -353,9 +334,7 @@ ck(1.6 <= S.pick_k(_past, "spread") <= 2.4, "an overconfident curve is widened b
    "k = %s" % S.pick_k(_past, "spread"))
 eq(S.pick_k(_past[:S.MIN_CAL - 1], "spread"), 1.0, "under 100 earlier games k = 1")
 
-# ══════════════════════════════════════════════════════════════════════
 section("6. 🔴 NO CARD CHANGE: REPORT ONLY")
-# ══════════════════════════════════════════════════════════════════════
 _named = []
 for f in sorted(glob.glob(os.path.join(ROOT, "*.py")) + glob.glob(os.path.join(ROOT, "*.html"))
                 + glob.glob(os.path.join(ROOT, "*.js")) + glob.glob(os.path.join(ROOT, ".github", "workflows", "*.yml"))):
@@ -397,9 +376,7 @@ ck(_doc["report_only"] is True and _doc["upcoming"] and all(
 ck(_doc["backtest"]["games_predicted"] > 100 and _doc["backtest"]["log_loss"]["spread"]["games"] > 0,
    "...and the walk-forward backtest")
 
-# ══════════════════════════════════════════════════════════════════════
 section("7. THE CODE RUNS THE SETTINGS THE DESIGN FIXED")
-# ══════════════════════════════════════════════════════════════════════
 _des = open(os.path.join(ROOT, S.DESIGN), encoding="utf-8").read()
 for _claim, _ok in (("ridge 100", S.MATCH_RIDGE == 100.0), ("under 200 earlier sides", S.MIN_SIDES == 200),
                     ("under 100 such games, no chance", S.MIN_SIGMA == 100),

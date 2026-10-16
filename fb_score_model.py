@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 """fb_score_model.py — THE SCORE-FIRST FOOTBALL GAME MODEL, REPORT ONLY. `[Sam, 2026-10-15]`
 
-"your goal is to predict the outcome of each game, your trying to predict the
-score of both team. this directly results in predicting the spread, point total,
-moneyline." Settings: research/fb_score_model_design.md (fixed before the run).
-
+"your trying to predict the score of both team. this directly results in predicting
+the spread, point total, moneyline." Settings: research/fb_score_model_design.md.
     LEAGUE=nfl python fb_score_model.py    # -> data/<lg>/latest/fb-score-model.json
-
-1. Base score: each side's points from the opponent-adjusted points table
-   (`fb_matchups`), plus the home edge that table MEASURES (Sam's fixed +1.5 is
-   challenger AV in the weekly contest and is not touched here).
-2. Matchup layer: pass offence vs pass defence, rush vs rush and both teams'
-   pace move each side's points, by weights fitted on earlier weeks only.
-3. Chances from the score curve: normal errors, sigma measured walk-forward;
-   a calibrated version (sigma x k, k from earlier weeks) is shown beside it.
+1. Each side's points from `fb_matchups`' points table plus the home edge it
+   MEASURES (Sam's fixed +1.5 is challenger AV in the weekly contest, untouched).
+2. A matchup layer (pass vs pass, rush vs rush, both teams' pace), its weights
+   fitted on earlier weeks only.
+3. Chances from the predicted score's normal curve (sigma measured walk-forward),
+   a calibrated sigma x k beside it.
 ⛔ REPORT ONLY: no pick, chance, card row or page reads this file or module.
-⛔ POINT IN TIME: a game is predicted only from games dated before its Monday.
-⚠️ STDLIB ONLY.
+⛔ POINT IN TIME: games dated before the Monday only. ⚠️ STDLIB ONLY.
 """
 import collections
 import datetime
@@ -44,10 +39,6 @@ PHI = statistics.NormalDist()
 SIDES = {"spread": ("home", "away"), "total": ("over", "under"), "moneyline": ("home", "away")}
 NOTE = ("Report only. No pick, chance, card row or page reads this file; switching the "
         "game-line picks to the score model is Sam's decision after he sees the backtest.")
-
-
-def log(m):
-    print(m, flush=True)
 
 
 def base_score(tables, r):
@@ -315,9 +306,9 @@ def build(lg=None, root=None, out=None, now=None):
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)
     bt = doc["backtest"]
-    log("%s score model: %d games predicted %s to %s; home edge %s; log loss %s" % (
+    print("%s score model: %d games predicted %s to %s; home edge %s; log loss %s" % (
         lg, bt["games_predicted"], bt["first"], bt["last"], doc["settings"]["home_edge_points"],
-        {mk: {v: bt["log_loss"][mk][v] for v in VERSIONS} for mk in F.MARKETS}))
+        {mk: {v: bt["log_loss"][mk][v] for v in VERSIONS} for mk in F.MARKETS}), flush=True)
     return doc
 
 
