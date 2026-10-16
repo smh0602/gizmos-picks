@@ -687,7 +687,8 @@ for _w in range(42):                     # 168 final games, 336 sides, before th
             _pts[_o] = _rr.randint(3, 45) + (_pa - 240) // 25 + (_ru - 125) // 30
             for _pos, _st in (("QB", {"att": _pl // 2, "pass_yds": _pa - 20, "car": 3, "rush_yds": 10}),
                               ("RB", {"car": _pl // 2 - 3, "rush_yds": _ru - 10, "rec_yds": 15, "tgt": 4}),
-                              ("WR", {"rec_yds": _pa - 50, "tgt": 18, "pass_yds": 20}),   # a trick pass
+                              ("WR", {"rec_yds": _pa - 50, "tgt": 18,          # trick passes, some games
+                                      "pass_yds": _rr.choice((0, 0, 0, 40))}),
                               ("TE", {"rec_yds": 35, "tgt": 6})):
                 _logs.setdefault(_o + _pos, {"name": _o + _pos, "pos": _pos, "g": []})["g"].append(
                     dict(_st, d=_day, game_id=_gid, team=_o))
@@ -711,7 +712,7 @@ _got = {lg: [tuple(round(v, 6) for v in r["sig"]["score"]) for r in _rows11[lg][
 _beta = SCM.walk_forward(_rows11["nfl"], MT.Tables("nfl", T11))[-1]["beta"]
 ck(all(abs(b) > 1e-6 for b in _beta), "the planted logs run the pass, rush and pace tables and fit all three weights",
    _beta)
-PIN = [(0.63416, 41.793579), (-1.772569, 52.975173)]   # recorded from #275's code, 2026-10-16
+PIN = [(6.684636, 39.330847), (0.595148, 51.602037)]   # recorded from #275's code, 2026-10-16
 ck(all(abs(a - b) < 1e-6 for lg in _got for x, y in zip(_got[lg], PIN) for a, b in zip(x, y)),
    "🔴 SM's and SMC's predicted (margin, total) are the numbers #275's code gives (a change is a new challenger)",
    _got)
