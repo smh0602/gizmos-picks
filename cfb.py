@@ -131,6 +131,31 @@ SPLIT = {("passing", "c/att"): ("cmp", "att"),
 IGNORE = {("passing", "avg"), ("passing", "qbr"), ("rushing", "avg"),
           ("rushing", "long"), ("receiving", "avg"), ("receiving", "long")}
 
+# 🔴 `[2026-10-17]` THE DEFENSIVE BOX SCORE AND THE JERSEYS, KEPT IN THEIR OWN
+#    FILES (research/cfb_injuries_design.md §1 item 4). `/games/players` and
+#    `/roster` are fetched on every build and these columns were thrown away;
+#    a college injury report names a defender by team + jersey + name.
+#    💰 ZERO extra calls for the season being built.
+#  - defense-<season>.json.gz  {players: {id: {name, team, g: [{game_id, d, week,
+#                              wk_i, seasonType, <the fields below>}]}}}
+#  - roster-<season>.json.gz   {teams: {team: [{id, name, jersey, position}]}}
+# ⛔ NEVER INTO players-<season>: `card_fb.load_logs`' median-games test and
+#    `index_by_name`'s ambiguity counts read that file, and it stays exactly what
+#    it was (so does the UNMAPPED count, which is about MAP, the players file).
+# ⛔ Each is rewritten only when its content changed (`write_if_changed`).
+DEFENSE_MAP = {
+    ("defensive", "tot"): "tot",
+    ("defensive", "solo"): "solo",
+    ("defensive", "sacks"): "sacks",
+    ("defensive", "tfl"): "tfl",
+    ("defensive", "pd"): "pd",
+    ("defensive", "qb hur"): "qb_hur",
+    ("interceptions", "int"): "int",
+}
+# 2025 is filled ONCE, while either file is missing, priced first
+# (`backfill_defense`). ⛔ It never rewrites players-2025 or any other file.
+DEFENSE_HISTORY = (2025,)
+
 
 class SourceUnavailable(RuntimeError):
     """The fetch FAILED. ⛔ NOT the same fact as an empty season.
@@ -325,13 +350,15 @@ def get(path, params, timeout=90, tries=4):
 FBS_MIN_TEAMS = 100      # ~134-138 in practice; below this the fetch failed
 
 
-def fbs_conferences(season, log=log):
+def fbs_conferences(season, log=log, directory=True):
     """Every conference that fields an FBS team, from CFBD, for a season.
 
     ⚠️ Returns a SET OF CONFERENCE NAMES because that is what the box-score
     rows carry (`r["conf"]`). ⛔ FAILS CLOSED to an empty set, and the
     caller must treat that as "do not narrow" rather than "collect
     nothing" -- see build_season.
+    ⛔ `directory=False` writes NO teams.json: a history season's fill
+    (`backfill_defense`) must never replace this season's directory.
     """
     try:
         rows = get("/teams/fbs", {"year": season})
@@ -346,6 +373,8 @@ def fbs_conferences(season, log=log):
         return set(), set()
     log(f"  FBS scope {season}: {len(teams)} schools across "
         f"{len(confs)} conferences")
+    if not directory:
+        return confs, teams
 
     # 🔴 WRITE THE TEAM DIRECTORY WHILE WE HAVE IT -- logo, abbreviation
     # and conference, keyed by the school name the rest of our data uses.
@@ -493,19 +522,111 @@ def run_probe(log=log):
 # ══════════════════════════════════════════════════════════════════════
 # 2. BUILD
 # ══════════════════════════════════════════════════════════════════════
-def positions(season, log=log):
+def positions(season, log=log, keep=None):
     """Listed position per player id.
     ⚠️ A position is a static ATTRIBUTE, not a performance outcome, so
-    taking it season-wide is not lookahead. ⛔ A season STAT would be."""
-    pos = {}
+    taking it season-wide is not lookahead. ⛔ A season STAT would be.
+    `keep` (a dict) also receives `keep["roster"]` from the SAME call
+    (`roster_doc`); a failed or empty /roster leaves it out."""
+    pos, got = {}, None
     try:
-        for r in get("/roster", {"year": str(season)}) or []:
+        got = get("/roster", {"year": str(season)}) or []
+        for r in got:
             p = (r.get("position") or "").upper()
             if r.get("id") is not None and p:
                 pos[str(r["id"])] = p
     except Exception as e:
         log(f"    roster {season}: {type(e).__name__} — positions unavailable")
+    if keep is not None:
+        try:
+            doc = roster_doc(season, got)
+            if doc["teams"]:
+                keep["roster"] = doc
+            else:
+                keep.setdefault("why_not", {})["roster"] = (
+                    "/roster failed" if got is None else "/roster returned no players")
+        except Exception as e:
+            keep.setdefault("why_not", {})["roster"] = "%s: %s" % (type(e).__name__, str(e)[:120])
     return pos
+
+
+def roster_doc(season, rows):
+    """CFBD /roster rows -> {teams: {team: [{id, name, jersey, position}]}}.
+    Every team CFBD lists (FCS too); a row with no id or no team is left out,
+    and one id twice on a team is kept once. name = firstName + lastName;
+    position upper-cased as `positions` reads it; jersey as CFBD sends it."""
+    teams = collections.defaultdict(dict)
+    for r in rows or []:
+        if not isinstance(r, dict) or r.get("id") is None or not r.get("team"):
+            continue
+        name = " ".join(str(x).strip() for x in (r.get("firstName"), r.get("lastName"))
+                        if x is not None and str(x).strip())
+        teams[r["team"]].setdefault(str(r["id"]), {
+            "id": str(r["id"]), "name": name or None,
+            "jersey": r.get("jersey"),
+            "position": (r.get("position") or "").upper() or None})
+    return {"season": season, "kind": "DESCRIPTIVE", "source": "CFBD /roster",
+            "spec": "research/cfb_injuries_design.md §1 item 4",
+            "teams": {t: [ps[k] for k in sorted(ps)] for t, ps in sorted(teams.items())}}
+
+
+def _is_team_row(a):
+    """🔴 NOT A PLAYER. `[measured 2026-08-30]` the college box score files
+    TEAM AGGREGATES as a pseudo-athlete named " Team" with a NEGATIVE id.
+    ⛔ ONE copy of the rule, read by the players log AND the defense log."""
+    return str(a.get("id")).startswith("-") or not (a.get("name") or "").strip()
+
+
+def _wk_i(week, st):
+    """🔴 A MONOTONIC WEEK INDEX: postseason week 1 is not regular week 1."""
+    return (week or 0) + (100 if st == "postseason" else 0)
+
+
+def _keep_defense(dfn, athletes, field, gid, team, is_home, m, st):
+    """One defensive box-score type into `dfn[(player id, game id)]`.
+    ⚠️ A stat the box score does not list for a player stays ABSENT, never 0
+    (CFBD's interceptions table lists only the players who made one)."""
+    for a in athletes or []:
+        if not isinstance(a, dict) or _is_team_row(a):
+            continue
+        k = (str(a.get("id")), gid)
+        if k not in dfn:
+            dfn[k] = {"name": a.get("name"), "team": team,
+                      "conf": m["homeConf"] if is_home else m["awayConf"],
+                      "row": {"game_id": gid, "d": m["d"], "week": m["week"],
+                              "wk_i": _wk_i(m["week"], st), "seasonType": st}}
+        v = num(a.get("stat"))
+        if v is not None:
+            dfn[k]["row"][field] = v
+
+
+def defense_doc(season, dfn, scope_confs):
+    """`dfn` -> {players: {id: {name, team, g: [...]}}}, in the players file's
+    scope: the player's own team's conference must be FBS (an empty scope, a
+    failed /teams/fbs, narrows nothing, as there). name and team are his
+    latest game's; g is sorted by week index, then game id."""
+    by_pid = collections.defaultdict(list)
+    out_of_scope = 0
+    for (pid, _gid), e in dfn.items():
+        if scope_confs and e["conf"] not in scope_confs:
+            out_of_scope += 1
+            continue
+        by_pid[pid].append(e)
+    players = {}
+    for pid, es in sorted(by_pid.items()):
+        es.sort(key=lambda e: (e["row"]["wk_i"], e["row"]["game_id"]))
+        players[pid] = {"name": es[-1]["name"], "team": es[-1]["team"],
+                        "g": [e["row"] for e in es]}
+    return {"season": season, "kind": "DESCRIPTIVE",
+            "source": "CFBD /games/players (defensive, interceptions)",
+            "spec": "research/cfb_injuries_design.md §1 item 4",
+            "fields": sorted(set(DEFENSE_MAP.values())),
+            "absent_means": "the box score did not list that stat for that player in that game",
+            "scope": ("all FBS conferences, from CFBD /teams/fbs" if scope_confs else
+                      "UNFILTERED -- /teams/fbs failed, every conference kept"),
+            "scope_conferences": sorted(scope_confs) if scope_confs else None,
+            "rows_out_of_scope": out_of_scope,
+            "players": players}
 
 
 def usage_of(row, pos):
@@ -540,7 +661,13 @@ def _stored_finals(season):
     return 0
 
 
-def build_season(season, log=log):
+def build_season(season, log=log, keep=None, directory=True):
+    """-> (players doc, unmapped, player-weeks). ⛔ The doc is the same with or
+    without `keep`. `keep` (a dict) also receives, from the SAME calls,
+    `keep["roster"]` and `keep["defense"]` (`roster_doc`, `defense_doc`);
+    ⛔ no defense doc when any week's /games/players failed (a season missing
+    a week would replace a complete file), named in `keep["box_failures"]`.
+    `directory=False`: no teams.json (see fbs_conferences)."""
     meta, weeks_seen = {}, set()
     # 💡 WHICH WEEKS HAVE ACTUALLY BEEN PLAYED, ACCORDING TO THE SOURCE.
     #    `[2026-09-10]` The build failed with *"depth_rank is CONSTANT None
@@ -617,10 +744,12 @@ def build_season(season, log=log):
         raise SeasonNotStarted(f"no games returned for {season}")
     log(f"    {len(meta):,} games, regular weeks {min(weeks_seen)}–{max(weeks_seen)}")
 
-    pos_of = positions(season, log)
+    pos_of = positions(season, log, keep)
     rows = collections.defaultdict(dict)   # (pid, gameid) -> row
     names, unmapped = {}, collections.Counter()
     team_rows = [0]   # team-aggregate pseudo-athletes, excluded at source
+    dfn = {} if keep is not None else None   # (pid, gameid) -> defensive row
+    box_failures = []
 
     plan = [("regular", w) for w in sorted(weeks_seen)] + [("postseason", 1)]
     for st, wk in plan:
@@ -629,6 +758,7 @@ def build_season(season, log=log):
                                          "seasonType": st})
         except Exception as e:
             log(f"    box {season} {st} wk{wk}: {type(e).__name__} — skipped")
+            box_failures.append(f"{st} week {wk}: {type(e).__name__}")
             continue
         for g in box or []:
             gid = str(g.get("id"))
@@ -643,6 +773,17 @@ def build_season(season, log=log):
                     c = norm(cat.get("name"))
                     for typ in cat.get("types", []) or []:
                         s = norm(typ.get("name"))
+                        # ⚠️ BESIDE the players log, never in it: the
+                        #    defensive types still count as UNMAPPED below.
+                        #    ⛔ And it can never fail the season: a row it
+                        #    cannot read only stops the defense doc.
+                        if dfn is not None and (c, s) in DEFENSE_MAP:
+                            try:
+                                _keep_defense(dfn, typ.get("athletes"), DEFENSE_MAP[(c, s)],
+                                              gid, team, is_home, m, st)
+                            except Exception as e:
+                                box_failures.append(f"{st} week {wk} game {gid}: unreadable "
+                                                    f"{c}/{s} row ({type(e).__name__})")
                         if (c, s) in IGNORE:
                             continue
                         dest = MAP.get((c, s))
@@ -662,8 +803,7 @@ def build_season(season, log=log):
                             # real coverage was 99.9-100%. A metric that
                             # cries wolf by three points is a metric nobody
                             # will believe on the day it is right.
-                            if pid.startswith("-") or not (
-                                    a.get("name") or "").strip():
+                            if _is_team_row(a):
                                 team_rows[0] += 1
                                 continue
                             names[pid] = a.get("name")
@@ -677,8 +817,7 @@ def build_season(season, log=log):
                             # and regular week 1 are DIFFERENT POINTS IN
                             # TIME; keying trailing form on the raw week
                             # would let a bowl game inform week 1.
-                            r.setdefault("wk_i", (m["week"] or 0)
-                                         + (100 if st == "postseason" else 0))
+                            r.setdefault("wk_i", _wk_i(m["week"], st))
                             r.setdefault("d", m["d"])
                             r.setdefault("game_id", gid)
                             r.setdefault("seasonType", st)
@@ -723,7 +862,18 @@ def build_season(season, log=log):
     # EVERY row rather than silently narrowing to nothing. A too-wide
     # table is a cosmetic problem; a table missing 71 schools is the bug
     # Sam reported.
-    scope_confs, _scope_teams = fbs_conferences(season, log)
+    scope_confs, _scope_teams = fbs_conferences(season, log, directory=directory)
+    if keep is not None:
+        keep["box_failures"] = list(box_failures)
+        if box_failures:
+            keep.setdefault("why_not", {})["defense"] = (
+                "/games/players failed for " + "; ".join(box_failures))
+        else:
+            try:
+                keep["defense"] = defense_doc(season, dfn, scope_confs)
+            except Exception as e:
+                keep.setdefault("why_not", {})["defense"] = "%s: %s" % (
+                    type(e).__name__, str(e)[:120])
     for (pid, gid), r in rows.items():
         if scope_confs and r.get("conf") not in scope_confs:
             dropped["not FBS"] += 1
@@ -832,7 +982,14 @@ def build_season(season, log=log):
         log(f"      dropped {v:,} — {k}")
     if unmapped:
         for (c, s), v in unmapped.most_common():
-            log(f"      🔴 UNMAPPED STAT {c}/{s}: {v:,} rows NOT collected")
+            log(f"      🔴 UNMAPPED STAT {c}/{s}: {v:,} rows NOT collected"
+                + (f" in players-{season} (kept in defense-{season})"
+                   if dfn is not None and (c, s) in DEFENSE_MAP else ""))
+    if keep is not None:
+        _dd = keep.get("defense")
+        log(f"    defense: {len(_dd['players']):,} players, "
+            f"{sum(len(p['g']) for p in _dd['players'].values()):,} player-games"
+            if _dd else f"    defense: NOT built — {(keep.get('why_not') or {}).get('defense')}")
     doc["coverage"] = cov
     return doc, dict(unmapped), n
 
@@ -1442,6 +1599,79 @@ def write_stamped(f, o, log=log):
         with open(f"{OUT}/{f}", "w", encoding="utf-8") as fh:
             json.dump(o, fh, indent=1)
     log(f"    wrote {OUT}/{f}")
+
+
+def write_if_changed(f, o, log=log):
+    """`write_stamped`, but only when the content differs from the stored file
+    (`written_at` aside). -> "written" | "unchanged".
+    ⚠️ Git cannot delta a gzip, so an identical rewrite is a full copy kept for
+    ever (`repo_watch.py` flags gzips rewritten in place). An unreadable stored
+    file counts as changed."""
+    p = os.path.join(OUT, f)
+    try:
+        stored = _read_gz(p) if f.endswith(".gz") else _read_json(p)
+    except Exception:
+        stored = None
+    if isinstance(stored, dict) and stored:
+        same = {k: v for k, v in stored.items() if k != "written_at"} == \
+               {k: v for k, v in o.items() if k != "written_at"}
+        if same:
+            log(f"    unchanged {OUT}/{f} (not rewritten)")
+            return "unchanged"
+    write_stamped(f, o, log)
+    return "written"
+
+
+def store_kept(season, keep, log=log, only_missing=False):
+    """Write `build_season`'s roster-<season> and defense-<season> from `keep`,
+    each only when changed; `only_missing` (the history fill) writes only a file
+    that is not stored yet. ⛔ NEVER RAISES. -> one line per file."""
+    out = []
+    for key in ("roster", "defense"):
+        f = f"{key}-{season}.json.gz"
+        try:
+            if only_missing and os.path.exists(os.path.join(OUT, f)):
+                out.append(f"{f} already stored")
+            elif not (keep or {}).get(key):
+                out.append(f"{f} not built: "
+                           f"{((keep or {}).get('why_not') or {}).get(key, 'no data')}")
+            else:
+                out.append(f"{f} {write_if_changed(f, keep[key], log)}")
+        except Exception as e:
+            out.append(f"{f} FAILED: {type(e).__name__}: {str(e)[:160]}")
+    return "; ".join(out)
+
+
+def season_build_max(season):
+    """Ceiling on one `build_season`'s CFBD calls: /teams/fbs, /roster, /games
+    (regular + postseason), then /games/players per regular week + the
+    postseason. ⚠️ The weeks are the stored schedule's, never fewer than
+    REG_WEEKS + 1 (CFBD used a week 16 in 2025), so the price can only
+    overstate."""
+    sched = _read_gz(os.path.join(OUT, "schedule-%d.json.gz" % int(season)))
+    weeks = {g.get("week") for g in (sched.get("games") or [])
+             if (g.get("season_type") or "regular") == "regular" and g.get("week") is not None}
+    return 4 + max(len(weeks), len(REG_WEEKS) + 1) + 1
+
+
+def backfill_defense(season, log=log):
+    """A history season's roster-<season> + defense-<season>, ONCE, while
+    either is missing: the same /games + /roster + /games/players calls as the
+    season's build, priced by `cfbd_budget.preflight` before any call.
+    ⛔ Writes only the missing file(s) of those two: never players-<season>,
+    never teams.json, nothing else. ⛔ A week that failed writes no defense
+    file, so it is asked again next run. ⛔ NEVER RAISES."""
+    try:
+        if all(os.path.exists(os.path.join(OUT, f"{k}-{season}.json.gz"))
+               for k in ("roster", "defense")):
+            return "already stored"
+        if not _priced(season_build_max(season), "roster + defense back-fill %d" % season, log):
+            return "refused"
+        keep = {}
+        build_season(season, log, keep=keep, directory=False)
+        return store_kept(season, keep, log, only_missing=True)
+    except Exception as e:
+        return "not written: %s: %s" % (type(e).__name__, str(e)[:200])
 
 
 def possession_gap(season):
@@ -3087,7 +3317,8 @@ def probe(log=log):
     for season in seasons:
         log(f"\n=== {season} ===")
         try:
-            doc, unmapped, n = build_season(season, log)
+            keep = {}    # roster + defense, from the same calls
+            doc, unmapped, n = build_season(season, log, keep=keep)
             bad = verify(doc, log)
             if bad:
                 # 🔴 THE SEASON IS NOT WRITTEN. Bad data on disk is worse
@@ -3175,6 +3406,10 @@ def probe(log=log):
                 #    the DATA is from — because `written_at` is last in
                 #    `freshness.STAMP_FIELDS`.
                 write_stamped(f, o, log)
+            # 🔴 `[2026-10-17]` ROSTER + DEFENSE (research/cfb_injuries_design.md
+            #    §1 item 4), each only when changed. ⛔ Never raises, so it can
+            #    never change what this season's outcome is.
+            log(f"    roster + defense {season}: {store_kept(season, keep, log)}")
             done.append(season)
             if season in T37_FIT_SEASONS:
                 t37_pool += [g["trailing_usage"]
@@ -3279,6 +3514,11 @@ def probe(log=log):
                 log(f"    ppa back-fill {_hs} FAILED: {type(_pe).__name__}: {_pe}")
     for _ts in sorted(set(_fr6.FOOTBALL_HISTORY) | {_fr6.current_football_season()}):
         log(f"    talent {_ts}: {fetch_talent(_ts, log)}")
+    # 🔴 `[2026-10-17]` 2025's roster + defense, once while missing, priced
+    #    first. ⛔ Never raises; never rewrites players-2025 or any other file.
+    for _ds in DEFENSE_HISTORY:
+        if _ds not in seasons:
+            log(f"    roster + defense back-fill {_ds}: {backfill_defense(_ds, log)}")
     # 🔴 `[Sam, 2026-10-14]` STORED ONLY: venues, advanced stats, Elo, CFBD
     #    weather (tier permitting) and NWS forecasts. ⛔ Never raises.
     store_new_data(sorted(set(_fr6.FOOTBALL_HISTORY) | {_fr6.current_football_season()}),
