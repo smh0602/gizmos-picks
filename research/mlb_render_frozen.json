@@ -18,11 +18,11 @@
   "2026-10-03: on Sam's instructions of 2026-10-01/02 (\"add gizmos picks gamelines to mlb ... the same format as the player prop picks\"; \"use what we use for our pitcher and hitter props to predict game outcomes for mlb\") and 2026-10-03 (\"go on with moneyline and run line only\"): RE-BASELINED, and ONLY pickCard (an MLB game-line row, kind 'mlb-line', takes the football game-line branch; a run line shows its sign), renderPicks (the Player props / Game lines switch, the lines drawn by the new mlbGameLines before the props board) and renderRecord (the game lines' own line, from the new mlbGameLineRecord). The new functions are not frozen.",
   "2026-10-03: on Sam's instruction of 2026-10-01 (\"remove the game lines standalone tab with moneyline predictions, in this tab you will simply just give the models pick on whos going to win the game outright. do this for all leagues\"): RE-BASELINED, and ONLY renderRecord, show. show dispatches MLB's new Game Lines tab (renderGameLines); renderRecord adds the winners' own line (winnersRecordLine). The new functions (winnersLoad, winnersRecordLine, winnersHtml, renderGameLines) are not frozen.",
   "2026-10-09: on Sam's instruction the same day (\"Where fb_props_model prices a prop on the card ... the row's confidence is the model's probability\"): RE-BASELINED, and ONLY pickCard. A football prop row (kind 'fb') whose confidence the props model set is labelled MODEL, so its unit is its market_label (the MLB pitcher branch would have printed 'Outs'). Every MLB row renders as before: no MLB row has kind 'fb'. Driven in node by test_fb_props_confidence.py. Digest ff35f8f34213feeb72e18c13 -> dfe0247dd06a48fdecddeb39. No CSS rule changed. Every other digest is unchanged.",
-  "2026-10-17: on Sam's instruction the same day (\"i only want the board hit % to be shown ... all in all wed have 3 different hit rate % shows at the top of the track record tab, board(all picks), player props(only player props), and game line(only game lines)\"; asked about MLB's panels he chose \"Remove both\" and, below the three, \"Just the by-date lists\"): RE-BASELINED renderRecord (three hit rates, the props by day, the game lines by day) and REMOVED bandRow and refitPanel, whose panels ('Does the confidence number mean anything?', 'Is v5.0 still the best version?') left the page. record.json, its calibration and mlb-refit.json are still built."
+  "2026-10-17: on Sam's instruction the same day (\"i only want the board hit % to be shown ... all in all wed have 3 different hit rate % shows at the top of the track record tab, board(all picks), player props(only player props), and game line(only game lines)\"; asked about MLB's panels he chose \"Remove both\" and, below the three, \"Just the by-date lists\"): RE-BASELINED renderRecord (three hit rates, the props by day, the game lines by day) and REMOVED bandRow, refitPanel and labN (the number helper refitPanel and football's model panels printed through, left with them), whose panels ('Does the confidence number mean anything?', 'Is v5.0 still the best version?') left the page. record.json, its calibration and mlb-refit.json are still built."
  ],
  "_source_commit": "407afad",
  "_counts": {
-  "functions": 47,
+  "functions": 46,
   "css_rules": 292
  },
  "functions": {
@@ -71,8 +71,7 @@
   "show": "a1332cc6b3dd298d6617c5a0",
   "splitStarted": "3034dbab4419fb8cd9b29c40",
   "startedToggle": "902c08bfe759f66b555e596b",
-  "starterLabel": "f15ca80c05e6b7beb71e6c0e",
-  "labN": "ea2eabdad16eddce82ff6312"
+  "starterLabel": "f15ca80c05e6b7beb71e6c0e"
  },
  "css": {
   "#st.pulse": "0212e01ed4e3ff402286c4a9",

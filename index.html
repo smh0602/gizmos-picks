@@ -1872,20 +1872,6 @@ function dayDetailHtml(rows, date){
       <tbody>${body}</tbody></table></div>`;
 }
 
-/* 🔴 IS v5.0 STILL THE BEST VERSION? `[Sam, 2026-09-23]` The weekly
-   champion-vs-challenger check (`mlb_refit.py`, research/mlb_refit_spec.md).
-   [Sam, 2026-10-01] no explanation boxes or tags on the page: `labN`
-   prints the value alone. */
-function labN(x, unit){
-  // [Sam, 2026-10-01] no explanation boxes or tags on the page: the formatted value alone.
-  const fmt = val => `${Array.isArray(val) ? val.join(' / ') : val}${unit || ''}`;
-  if (!x || typeof x !== 'object' || !('basis' in x)){
-    const raw = (x && typeof x === 'object') ? x.value : x;
-    return raw == null ? '' : fmt(raw);
-  }
-  return x.value == null ? `—${unit || ''}` : fmt(x.value);
-}
-
 /* 🔴 THE TRACK RECORD, ALL THREE LEAGUES `[Sam, 2026-10-17]`: "i only want the board hit % to be
    shown(this is the 25 player props and all the game lines hit %) and i want both hit % to be
    shown ... all in all wed have 3 different hit rate % shows at the top of the track record tab,

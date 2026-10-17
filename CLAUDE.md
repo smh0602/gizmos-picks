@@ -792,8 +792,12 @@ note boxes, tags and the stale bar now require their absence.
   built). Football's game lines are graded by `record_fb.grade_game_lines`: every fb-line row a
   card SHOWED (its liked list, else its list plus `card_fb.GL_EARLIER`'s archive: 5 NFL and 35
   college archived rows had never been graded), the LAST card that showed a game decides, a push
-  or tie is void, joined to the schedule by `sched_id` or the snapshots' names (`line_ids`). MLB's
-  `board` is collect_record's, checked by verify_record (board = overall + game lines). Football's
+  or tie is void, joined to the schedule by `sched_id` or the snapshots' names (`line_ids`); its
+  record.json `game_lines` carries the tally at the TOP, MLB's shape, which the box reads, and the
+  grader reads the schedule from its working tree like every other file it reads (beside
+  game_lines_fb.py, tests' planted cards were graded on the live schedule). MLB's
+  `board` is collect_record's, checked by verify_record (board = overall + game lines); each MLB
+  game-line row keeps its final score, as football's does. Football's
   by-day detail prints an anytime TD as "Yes" (~~"Under null"~~). `test_track_record.py`.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the

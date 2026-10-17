@@ -59,10 +59,10 @@ guards; `vacuity.py` drives the declarations:
 #   find: const R = RECORD, G = R.game_lines || {};
 #   with: const R = RECORD, G = R.game_lines || {}; let REFIT = null; try { REFIT = await jget('data/latest/mlb-refit.json'); } catch(e){ REFIT = null; }
 #
-# @vacuity [Sam, 2026-10-01] labN prints the number alone: no Model / Market / Record tag
+# @vacuity [2026-10-17] the panel's number helper left with it (~~[Sam, 2026-10-01] labN prints the number alone: no Model / Market / Record tag~~)
 #   file: index.html
-#   find: return x.value == null ? `—${unit || ''}` : fmt(x.value);
-#   with: return (x.value == null ? `—${unit || ''}` : fmt(x.value)) + ' <span class="kind k-model">Model</span>';
+#   find: function trBox(k, t){
+#   with: function labN(x){ return x.value + ' <span class="kind k-model">Model</span>'; } function trBox(k, t){
 #
 # @vacuity [Sam, 2026-10-17] nothing calls refitPanel (~~the refit panel carries no tag and no note box~~)
 #   file: index.html
@@ -243,13 +243,15 @@ _page = open(PAGE, encoding="utf-8").read()
 #    supposed to be in each tab to be in each tab"; asked what stays, he
 #    chose: remove everything. ✅ The basis stays in the DATA (checked just
 #    above, unchanged), so the page checks require the tags' ABSENCE.
-#    `labN` unwraps {value, basis} and prints a dash for a missing value;
-#    the football model panels still print through it.
-_lab = re.search(r"\nfunction labN\([^)]*\)\{(.*?)\n\}", _page, re.S)
-_TAG = re.compile(r'class="kind|\bk-(?:model|market|desc|live|record)\b')
-ck(_lab and not _TAG.search(_lab.group(1)),
-   "🔴 `labN` prints the number alone: no Model / Market / Record tag",
-   _lab and str(_TAG.findall(_lab.group(1))))
+#    ~~`labN` unwraps {value, basis} and prints a dash for a missing value;
+#    the football model panels still print through it.~~ `[2026-10-17]` `labN` left the
+#    page with the last panels that printed through it (this one, and football's model
+#    panels, Sam 2026-10-17): no helper that could carry a tag is left to print the report.
+_lab = re.search(r"\nfunction labN\(", _page)
+ck(_lab is None,
+   "🔴 [2026-10-17] the report's number helper is gone with its panel (~~`labN` prints the "
+   "number alone: no Model / Market / Record tag~~)",
+   _lab and "labN is defined again")
 # 🔴 `[Sam, 2026-10-17]` THE PANEL LEFT THE PAGE. Asked about MLB's Track
 #    Record panels, Sam chose "Remove both" ("Does the confidence number mean
 #    anything?" and "Is v5.0 still the best version?") and, below the three hit
