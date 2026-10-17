@@ -1,5 +1,5 @@
 {
- "built_at": "2026-10-17T07:13:15Z",
+ "built_at": "2026-10-17T13:57:32Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -17,7 +17,7 @@
    "n": 13,
    "pct": 53.8
   },
-  "shown": 13,
+  "shown": 18,
   "by_basis": {
    "MARKET": {
     "w": 7,
@@ -31,7 +31,7 @@
    }
   },
   "voids": 0,
-  "pending": 0,
+  "pending": 5,
   "note": "The card's alternate spreads, each graded once from the final score: the books' own chance until 2026-10-11, the model's own after (by_basis). Kept apart from the props record.",
   "rows": [
    {
@@ -228,6 +228,81 @@
     "commence": "2026-10-17T00:00:00Z",
     "won": false,
     "state": "graded"
+   },
+   {
+    "date": "2026-10-17",
+    "player": "Army Black Knights",
+    "side": "home",
+    "line": -9.5,
+    "price": 300,
+    "book": "hardrockbet",
+    "confidence": 60,
+    "confidence_basis": "MODEL",
+    "break_even": 25.0,
+    "game": "Florida Atlantic Owls @ Army Black Knights",
+    "commence": "2026-10-17T16:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-17",
+    "player": "Virginia Cavaliers",
+    "side": "away",
+    "line": 2.5,
+    "price": 250,
+    "book": "hardrockbet",
+    "confidence": 53,
+    "confidence_basis": "MODEL",
+    "break_even": 28.6,
+    "game": "Virginia Cavaliers @ SMU Mustangs",
+    "commence": "2026-10-17T16:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-17",
+    "player": "Indiana Hoosiers",
+    "side": "home",
+    "line": -6.5,
+    "price": 276,
+    "book": "draftkings",
+    "confidence": 51,
+    "confidence_basis": "MODEL",
+    "break_even": 26.6,
+    "game": "Ohio State Buckeyes @ Indiana Hoosiers",
+    "commence": "2026-10-17T16:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-17",
+    "player": "James Madison Dukes",
+    "side": "home",
+    "line": -18.5,
+    "price": 261,
+    "book": "draftkings",
+    "confidence": 51,
+    "confidence_basis": "MODEL",
+    "break_even": 27.7,
+    "game": "Georgia State Panthers @ James Madison Dukes",
+    "commence": "2026-10-17T16:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-17",
+    "player": "Pittsburgh Panthers",
+    "side": "away",
+    "line": -11.5,
+    "price": 190,
+    "book": "hardrockbet",
+    "confidence": 54,
+    "confidence_basis": "MODEL",
+    "break_even": 34.5,
+    "game": "Pittsburgh Panthers @ Boston College Eagles",
+    "commence": "2026-10-17T16:00:00Z",
+    "won": null,
+    "state": "pending"
    }
   ]
  },
@@ -665,19 +740,27 @@
    "carded": 10,
    "voids": 0,
    "unresolved": 1
+  },
+  {
+   "date": "2026-10-17",
+   "w": 0,
+   "n": 0,
+   "carded": 25,
+   "voids": 0,
+   "unresolved": 25
   }
  ],
  "days_graded": 20,
- "cards_seen": 20,
+ "cards_seen": 21,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
  "distinct_players": 212,
  "distinct_games": 108,
- "carded_rows": 496,
+ "carded_rows": 521,
  "voids": 0,
- "unresolved": 35,
- "coverage_note": "461 of 496 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 35 could not be settled at all.",
+ "unresolved": 60,
+ "coverage_note": "461 of 521 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 60 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
