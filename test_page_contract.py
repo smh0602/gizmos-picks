@@ -74,11 +74,11 @@ EXEMPT = {
         "MLB. ⛔ FROZEN, and already covered by the `card` row for the "
         "current slate; older days are the permanent record, which is "
         "never rewritten and therefore never late",
-    "data/latest/mlb-refit.json":
-        "written WEEKLY by its own workflow (`mlb-refit.yml`), not by "
-        "collect.py — a contract row would send `converge` to rebuild it "
-        "through a mode the collector does not have. Its Monday cron is "
-        "stamped, so `runs_report.py` reports a missed fire",
+    # `[Sam, 2026-10-17]` ~~"data/latest/mlb-refit.json"~~ (written weekly by
+    #    mlb-refit.yml) is no longer fetched: the Track Record's "Is v5.0
+    #    still the best version?" panel left the page (Sam: "Remove both"),
+    #    so its exemption went with it, as §2 below requires. The file is
+    #    still built weekly; `runs_report.py` still reports a missed fire.
     "data/nfl/latest/teams.json":
         "fetched by the page for BOTH leagues and NOTHING WRITES IT — "
         "only college has a `cfb-teams` writer. A row would be red "

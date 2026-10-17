@@ -78,10 +78,10 @@ server-side check on them stays -- this file asks only what is DRAWN.
 #   find: c.append(el('div','pk-b', '<ul>' + p.why.map(w => `<li>${w}</li>`).join('') + '</ul>'));
 #   with: c.append(el('div','pk-b', '<ul>' + p.why.map(w => `<li>${w}</li>`).join('') + '</ul>')); (p.flags||[]).filter(f => f.actionable).forEach(f => c.append(el('div', 'fl fl-warn', f.text)));
 #
-# @vacuity a rendered labelled number is the number alone
+# @vacuity [2026-10-17] no number helper with a tag returns (~~a rendered labelled number is the number alone~~: labN left with its panels)
 #   file: index.html
-#   find: return x.value == null ? `—${unit || ''}` : fmt(x.value);
-#   with: return x.value == null ? `—${unit || ''}` : fmt(x.value) + ` <span class="kind k-${x.basis.toLowerCase()}">${x.basis}</span>`;
+#   find: function trBox(k, t){
+#   with: function labN(x){ return x.value + ' <span class="kind k-model">Model</span>'; } function trBox(k, t){
 #
 # @vacuity the tab list is read out of the page, every tab mapped to its renderer
 #   file: index.html
@@ -353,13 +353,10 @@ const pc = new Function('document', 'confClass', 'headUrl', 'projChip', 'mark', 
   'bookChip', 'betControl', 'betLink', 'fbMark', 'fbAb', 'FBTEAMS', 'LEAGUE',
   S.el + '\n' + S.pickCard + '\nreturn pickCard;')(
   document, stub, stub, stub, stub, stub, String, stub, stub, stub, stub, stub, {}, 'mlb');
-const labN = new Function(S.labN + '\nreturn labN;')();
 let showStarted = false;
 const st = new Function('showStarted', S.toggle + '\nreturn startedToggle;');
 process.stdout.write(JSON.stringify({
   cards: S.rows.map(r => html(pc(r)).replace(/\s+/g, ' ')),
-  lab: [labN({value: 62.5, basis: 'MODEL'}, '%'), labN({value: 3, basis: 'MARKET'}),
-        labN({value: null, basis: 'DESCRIPTIVE'}), labN(7)],
   toggle: [st(false)(3, 'x', false), st(true)(1, 'x', false), st(false)(3, 'x', true)]}));
 """
 _flagged = dict(kind="pitcher", pitcher="Trevor Rogers", game="MIA @ WSH", market="outs",
@@ -375,15 +372,13 @@ tmp = tempfile.mkdtemp(prefix="plain-")
 try:
     open(os.path.join(tmp, "d.js"), "w", encoding="utf-8").write(DRIVER)
     json.dump({"el": _el, "pickCard": jsblock.js_block("pickCard", PAGE),
-               "labN": jsblock.js_block("labN", PAGE),
                "toggle": jsblock.js_block("startedToggle", PAGE),
                "rows": [_flagged, _hitter]}, open(os.path.join(tmp, "d.json"), "w"))
     r = subprocess.run(["node", os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")],
                        capture_output=True, text=True, timeout=300)
-    ck(r.returncode == 0, "the page's own pickCard, labN and startedToggle ran in node",
+    ck(r.returncode == 0, "the page's own pickCard and startedToggle ran in node",
        (r.stderr or "")[-300:])
-    R = json.loads(r.stdout) if r.returncode == 0 else {"cards": ["", ""], "lab": [""] * 4,
-                                                        "toggle": [""] * 3}
+    R = json.loads(r.stdout) if r.returncode == 0 else {"cards": ["", ""], "toggle": [""] * 3}
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 _card = R["cards"][0]
@@ -395,8 +390,15 @@ ck("🔴 a rendered pick card shows its numbers and no flag",
    "flags drawn %s; card %r" % (_bad, _card[-300:]))
 ck("...and a hitter row draws no RECORD chip either",
    not [w for w in ("RECORD", "bandchip", "kind") if w in R["cards"][1]], R["cards"][1][-200:])
-ck("a rendered labelled number is the number alone",
-   R["lab"] == ["62.5%", "3", "—", "7"], "got %s" % R["lab"])
+# `[2026-10-17]` ~~a rendered labelled number is the number alone (`labN`, which unwrapped
+#    {value, basis} and dropped the basis)~~: `labN` left the page with the last panels that
+#    printed through it (Sam, 2026-10-17: football's model panels, "lose everything in the
+#    gizmos picks tab after the model picks gameliones tab", and MLB's "Is v5.0 still the best
+#    version?", "Remove both"). A number is printed as itself; the tag check above stands.
+ck("labN" not in jsblock.top_level_blocks(PAGE) and jsblock.calls("labN", PAGE) == 0,
+   "[2026-10-17] no number helper that could carry a tag is left (~~labN~~, gone with its panels)",
+   "labN defined: %s, called %d time(s)" % ("labN" in jsblock.top_level_blocks(PAGE),
+                                            jsblock.calls("labN", PAGE)))
 ck("the started-games control names what it shows, and is gone when every game started",
    R["toggle"][0].endswith(">Show started games</a></div>")
    and R["toggle"][1].endswith(">Hide started games</a></div>") and R["toggle"][2] == ""

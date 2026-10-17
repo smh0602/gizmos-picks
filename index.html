@@ -1841,40 +1841,6 @@ async function renderOdds(){
    measure neither. Both carry the date they were last true. */
 let RECORD = null;
 
-/* ⚠️ A SHARED COMPONENT CARRIES ITS FIRST CALLER'S VOICE, AND NOTHING
-   WAS CHECKING THAT. `[Sam, 2026-09-17]` This was written for the MLB
-   MODEL and its first person was correct there and only there. Football
-   renders through it too, where the number is the player's OWN 2025
-   record — `record.json` says outright "No number here is a model
-   output" — so "we said" is a DESCRIPTIVE number wearing a MODEL voice,
-   which is rule 55 in a tooltip.
-   🔴 AND IT IS NOT ONLY FOOTBALL. `[measured 2026-09-16]` today's MLB
-   card is 25 MODEL rows and 25 RECORD rows, passing through these same
-   buckets. MLB's own RECORD rows still read "we said"; that is Sam's
-   call, reported and left.
-   ✅ THE PARAMETER IS OPTIONAL AND THE DEFAULT IS THE OLD STRING, so MLB's
-   rendered output is unchanged — proven byte-for-byte against a frozen
-   copy of this function in `research/bandrow_pre_saidas.js`, not merely
-   asserted. ⛔ Reuse is right (rule 66); a component's WORDS are an
-   assumption about its caller, and this one now takes it as an argument. */
-function bandRow(b, saidAs){
-  const gap = b.hit == null ? null : b.hit - b.said;
-  const cls = gap == null ? 'v-none' : (gap >= 0 ? 'v-good' : 'v-bad');
-  const verdict = gap == null ? 'No sample'
-                : gap >= 0 ? 'Beat the claim'
-                : gap > -10 ? 'Slightly hot' : 'Overconfident';
-  return `<div class="band">
-    <div class="bn">${b.name}<small>${b.n} pick${b.n===1?'':'s'}</small></div>
-    <div class="track">
-      ${b.hit != null ? `<div class="hit ${gap >= 0 ? 'good' : 'bad'}" style="width:${b.hit}%"></div>` : ''}
-      <div class="said" style="left:${b.said}%" title="${saidAs || 'we said'} ${b.said}%"></div>
-      <div class="lbl">hit ${b.hit != null ? b.hit + '%' : '—'} &nbsp;·&nbsp; claimed ${b.said}%</div>
-    </div>
-    <div class="verd ${cls}">${verdict}${gap != null ? `<br><span style="font-weight:600;color:var(--mut)">${
-      gap > 0 ? '+' : ''}${gap.toFixed(1)} pts</span>` : ''}</div>
-  </div>`;
-}
-
 /* The per-pick detail, fetched once and cached for the session. */
 let RECDETAIL = null;
 async function loadRecordDetail(){
@@ -1906,53 +1872,42 @@ function dayDetailHtml(rows, date){
       <tbody>${body}</tbody></table></div>`;
 }
 
-/* 🔴 IS v5.0 STILL THE BEST VERSION? `[Sam, 2026-09-23]` The weekly
-   champion-vs-challenger check (`mlb_refit.py`, research/mlb_refit_spec.md).
-   [Sam, 2026-10-01] no explanation boxes or tags on the page: `labN`
-   prints the value alone. */
-function labN(x, unit){
-  // [Sam, 2026-10-01] no explanation boxes or tags on the page: the formatted value alone.
-  const fmt = val => `${Array.isArray(val) ? val.join(' / ') : val}${unit || ''}`;
-  if (!x || typeof x !== 'object' || !('basis' in x)){
-    const raw = (x && typeof x === 'object') ? x.value : x;
-    return raw == null ? '' : fmt(raw);
-  }
-  return x.value == null ? `—${unit || ''}` : fmt(x.value);
+/* 🔴 THE TRACK RECORD, ALL THREE LEAGUES `[Sam, 2026-10-17]`: "i only want the board hit % to be
+   shown(this is the 25 player props and all the game lines hit %) and i want both hit % to be
+   shown ... all in all wed have 3 different hit rate % shows at the top of the track record tab,
+   board(all picks), player props(only player props), and game line(only game lines)"; below them
+   only the by-date lists (his choice), and ~~"Was the record right?" / "Does the confidence number
+   mean anything?" / "Is v5.0 still the best version?"~~ left the page. Every number is the
+   grader's (record.json `board`, `overall`, `game_lines`), ⛔ never computed here. */
+function trBox(k, t){
+  return `<div class="tr-box"><div class="k">${k}</div>
+    <div class="v">${t && t.n ? t.pct.toFixed(1) + '%' : '&mdash;'}</div>
+    <div class="s">${t && t.n ? `${t.w} of ${t.n} graded` : 'nothing graded yet'}</div></div>`;
 }
-
-function refitPanel(F){
-  if (!F || !F.display) return '';
-  const D = F.display, P = D.paired || {};
-  const verdictWord = {QUALIFIES: 'The re-fitted version qualifies — a pull request is waiting for your decision.',
-    'DOES NOT QUALIFY': 'The re-fitted version has not beaten v5.0 by your rule. v5.0 stays.',
-    'NOT YET MEASURABLE': 'Not enough side-by-side predictions yet to decide.'}[F.verdict] || F.verdict;
-  const rec = (name, R) => `<tr><td>${name}</td><td>${labN(R.predictions)}</td>
-      <td>${labN(R.mean_log_loss)}</td><td>${labN(R.strikeouts_mean_log_loss)}</td><td>${labN(R.outs_mean_log_loss)}</td></tr>`;
-  const cal = (rows) => (rows || []).filter(r => r.rows && r.rows.value)
-    .map(r => `<tr><td>${r.bucket}</td><td>${labN(r.model_said, '%')}</td><td>${labN(r.it_hit, '%')}</td><td>${labN(r.rows)}</td></tr>`).join('');
-  return `<div class="panel">
-    <h2>Is v5.0 still the best version?</h2>
-    <p class="stamp"><span class="rec">built ${F.built_at}</span></p>
-    <p><b>${verdictWord}</b></p>
-    <table class="ob" style="margin-top:12px"><thead><tr><th></th><th>Predictions</th><th>Surprise</th>
-      <th>Strikeouts</th><th>Outs</th></tr></thead><tbody>
-      ${rec('v5.0 (on the card)', D.champion || {})}${rec('Re-fitted', D.challenger || {})}</tbody></table>
-    <p style="margin-top:10px">Side by side: ${labN(P.predictions)} predictions. Average improvement from
-      re-fitting ${labN(P.mean_improvement)}, and the chance of seeing that by luck alone ${labN(P.p_one_sided)}.</p>
-    <h3 style="margin:18px 0 8px;font-size:14px">When v5.0 says a number, how often does it happen?</h3>
-    <table class="ob"><thead><tr><th>It said</th><th>On average</th><th>It happened</th><th>Rows</th></tr></thead>
-      <tbody>${cal((D.calibration || {}).champion)}</tbody></table>
-  </div>`;
-}
-
-/* [Sam, 2026-10-02] the game model's lines, graded in their OWN line of the
-   record (record.json `game_lines`), never mixed into the props above. */
-function mlbGameLineRecord(R){
-  const G = R.game_lines || {}, M = G.by_market || {};
-  const box = (k, t) => t && t.n ? `<div class="tr-box"><div class="k">${k}</div>
-    <div class="v">${t.pct}%</div><div class="s">${t.w}/${t.n}</div></div>` : '';
-  return G.n ? `<div class="tr-hero">${box('Game lines', G)}${box('Moneyline', M.moneyline)}${
-    box('Run line', M.run_line)}</div>` : '';
+/* One day's game lines with their results: MLB's rows name the `team`, football's the `player`
+   (a team, or Over / Under on a total); a void is a push or a tie. */
+function lineDetailHtml(rows){
+  if (!rows || !rows.length) return '<div class="msg">No game lines stored for that day.</div>';
+  const pick = r => {
+    const who = r.team || r.player || '';
+    if (r.market === 'moneyline') return `${who} to win`;
+    if (r.market === 'total') return `${who} ${r.line == null ? '' : r.line}`;
+    return `${who} ${r.line == null ? '' : sgn(r.line)}${r.market === 'alternate_spread' ? ' (alternate)' : ''}`;
+  };
+  const body = rows.map(r => {
+    const res = (r.void || r.state === 'void') ? ['v', 'VOID'] : r.won == null ? ['v', 'UNSETTLED']
+              : r.won ? ['w', 'HIT'] : ['l', 'MISS'];
+    const fin = (r.home_score != null && r.away_score != null) ? `${r.away_score}&ndash;${r.home_score}` : '&mdash;';
+    return `<tr>
+      <td><b>${pick(r)}</b> <span class="rec">${r.game || ''}</span></td>
+      <td class="n">${r.confidence != null ? r.confidence + '%' : '&mdash;'}</td>
+      <td class="n">${r.price != null ? sgn(r.price) : '&mdash;'}</td>
+      <td class="n">${fin}</td>
+      <td><span class="res ${res[0]}">${res[1]}</span></td></tr>`;
+  }).join('');
+  return `<div style="overflow-x:auto"><table class="ddtab">
+      <thead><tr><th>Pick</th><th class="n">Conf</th><th class="n">Price</th><th class="n">Final</th>
+        <th>Result</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
 async function renderRecord(){
@@ -1966,27 +1921,10 @@ async function renderRecord(){
       return;
     }
   }
-  const R = RECORD, M = R.overall || {};
-  /* ⚠️ OPTIONAL: the model check writes its own file weekly. Missing is
-     not an error on this tab — the panel simply does not draw. */
-  let REFIT = null;
-  try { REFIT = await jget('data/latest/mlb-refit.json'); } catch(e){ REFIT = null; }
-  const W = await winnersLoad('mlb');
-  const cal = R.calibration_meta || {};
-  /* Bands now come from the MODEL's own graded rows, not from a copied
-     ledger snapshot. Empty until enough cards are graded, and that is the
-     honest state rather than a borrowed number. */
-  const bands = (R.calibration || []).map(c => bandRow({
-      name: c.bucket, n: c.n, said: c.predicted, hit: c.pct })).join('');
-
-  const machine = M.n
-    ? `<div class="tr-hero">
-        <div class="tr-box"><div class="k">Auto card</div><div class="v">${M.w}<span style="font-size:18px;color:var(--mut)">/${M.n}</span></div><div class="s">${M.pct}% hit rate</div></div>
-        <div class="tr-box"><div class="k">Pitchers</div><div class="v">${(R.by_kind.pitcher.pct ?? '—')}%</div><div class="s">${R.by_kind.pitcher.w}/${R.by_kind.pitcher.n}</div></div>
-        <div class="tr-box"><div class="k">Hitters</div><div class="v">${(R.by_kind.hitter.pct ?? '—')}%</div><div class="s">${R.by_kind.hitter.w}/${R.by_kind.hitter.n}</div></div>
-        <div class="tr-box"><div class="k">Cards graded</div><div class="v">${R.days_graded}</div></div>
-       </div>`
-    : '<p class="plain">The automatic card has not been graded yet.</p>';
+  const R = RECORD, G = R.game_lines || {};
+  // `[Sam, 2026-10-17]` three hit rates on top: Board, Player props, Game lines
+  const hero = `<div class="tr-hero">${trBox('Board', R.board)}${trBox('Player props', R.overall)}${
+    trBox('Game lines', G)}</div>`;
 
   /* 🔴 EVERY DAY IS CLICKABLE. Sam, 2026-08-26: he wants to open a date
      and see which props hit and which missed. The per-pick detail is a
@@ -1999,13 +1937,20 @@ async function renderRecord(){
        <td><b>${d.w}/${d.n}</b>${d.voids ? ` <span class="rec" style="font-size:11px">+${d.voids} void</span>` : ''}</td>
        <td>${(100*d.w/d.n).toFixed(0)}%</td></tr>
      <tr class="daydetail" id="dd-${d.date}" hidden><td colspan="3"></td></tr>`).join('');
+  // `[Sam, 2026-10-17]` and the game-lines tracker, the same way (record-detail `game_lines`)
+  const lineRows = (G.by_day || []).map(d =>
+    `<tr class="dayrow" data-gldate="${d.date}" title="Click to see every game line from this day">
+       <td>${d.date} <span class="caret">▸</span></td>
+       <td><b>${d.w}/${d.n}</b></td>
+       <td>${d.n ? (100*d.w/d.n).toFixed(0) + '%' : '&mdash;'}</td></tr>
+     <tr class="daydetail" id="gl-${d.date}" hidden><td colspan="3"></td></tr>`).join('');
 
   /* Wire the day rows after the table is in the DOM. */
   setTimeout(() => {
     document.querySelectorAll('tr.dayrow').forEach(tr => {
       tr.addEventListener('click', async () => {
-        const date = tr.dataset.date;
-        const box = document.querySelector('#dd-' + date);
+        const gl = tr.dataset.gldate, date = gl || tr.dataset.date;
+        const box = document.querySelector((gl ? '#gl-' : '#dd-') + date);
         if (!box) return;
         if (!box.hidden){ box.hidden = true; tr.classList.remove('open'); return; }
         tr.classList.add('open');
@@ -2015,7 +1960,8 @@ async function renderRecord(){
           cell.innerHTML = '<div class="msg">Loading…</div>';
           try {
             const D = await loadRecordDetail();
-            cell.innerHTML = dayDetailHtml((D.days || {})[date], date);
+            cell.innerHTML = gl ? lineDetailHtml((D.game_lines || {})[date])
+                                : dayDetailHtml((D.days || {})[date], date);
             cell.dataset.loaded = '1';
           } catch(e){
             cell.innerHTML = '<p class="plain">No detail file yet.</p>';
@@ -2025,34 +1971,16 @@ async function renderRecord(){
     });
   }, 0);
 
-  const mk = R.by_market || {};
-  const mkRows = Object.keys(mk).map(k =>
-    `<tr><td>${k.replace(/_/g,' ')}</td><td><b>${mk[k].w}/${mk[k].n}</b></td>
-      <td>${mk[k].pct ?? '—'}%</td></tr>`).join('');
-
   v.innerHTML = `
     <div class="panel">
       <h2>Automatic card</h2>
       <p><span class="rec">built ${R.built_at}</span></p>
-      ${machine}
-      ${mlbGameLineRecord(R)}
-      ${winnersRecordLine(W)}
-      ${mkRows ? `<table class="ob" style="margin-top:14px"><thead><tr><th>Market</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${mkRows}</tbody></table>` : ''}
-      ${dayRows ? `<h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
+      ${hero}
+      ${dayRows ? `<h3 style="margin:18px 0 8px;font-size:14px">Player props by day</h3>
         <table class="ob"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${dayRows}</tbody></table>` : ''}
-    </div>
-
-    <div class="panel">
-      <h2>Does the confidence number mean anything?</h2>
-      <p class="stamp">${M.n ? `${M.n} plays so far.` : 'Nothing graded yet.'}</p>
-      ${bands}
-      <div class="legend">
-        <span><i style="background:var(--accent2)"></i>Beat the claim</span>
-        <span><i style="background:#d9534f"></i>Fell short of it</span>
-        <span><i style="background:#14181f;width:3px;border-radius:0"></i>What we claimed</span>
-      </div>
-    </div>
-    ${refitPanel(REFIT)}`;
+      ${lineRows ? `<h3 style="margin:18px 0 8px;font-size:14px">Game lines by day</h3>
+        <table class="ob"><thead><tr><th>Date</th><th>Record</th><th>Hit&nbsp;rate</th></tr></thead><tbody>${lineRows}</tbody></table>` : ''}
+    </div>`;
 }
 
 /* 🔴 A HEADLINE WITHOUT ART STILL HAS A SUBJECT.
@@ -4683,7 +4611,8 @@ function fbDayDetailHtml(rows){
       ? `${r.hits} of ${r.n_games}${r.logs_season ? ' · ' + r.logs_season : ''}` : '';
     return `<tr>
       <td><b>${r.player}</b> <span class="rec">${r.game || ''}</span></td>
-      <td>${r.side === 'over' ? 'Over' : 'Under'} ${r.line} ${r.market_label || r.market}</td>
+      <td>${r.side === 'over' ? 'Over' : r.side === 'under' ? 'Under' : 'Yes'}${
+        r.line == null ? '' : ' ' + r.line} ${r.market_label || r.market}</td>
       <td class="n">${r.confidence != null ? r.confidence + '%' : '&mdash;'}${
         rec ? `<br><span class="rec" style="font-size:10px">${rec}</span>` : ''}</td>
       <td class="n">${r.price != null ? sgn(r.price) : '&mdash;'}</td>
@@ -4694,62 +4623,6 @@ function fbDayDetailHtml(rows){
       <thead><tr><th>Player</th><th>Pick</th><th class="n">Conf</th>
         <th class="n">Price</th><th class="n">Actual</th><th>Result</th></tr></thead>
       <tbody>${body}</tbody></table></div>`;
-}
-
-/* 🔴 THE SAME BANDS MLB DRAWS, THROUGH THE SAME `bandRow()`. Sam saw the
-   bare table and the bars side by side on 2026-09-16 and asked for MLB's
-   exactly: a bar, a marker for the claimed rate, the gap in points and a
-   one-word verdict.
-   🔴🔴 `stated`, NOT `predicted`, AND THE MAPPING HAPPENS HERE. MLB calls
-   `bandRow` with `said` taken from its OWN `predicted` key; football's
-   `record.json` names
-   that figure `stated`. ⛔ Copied verbatim it publishes bars claiming 0% —
-   the identical mismatch `card_fb.py` was bitten by on 2026-09-16, one
-   file over.
-   ⛔ AND `bandRow` ITSELF IS NOT TOUCHED. It is shared and MLB depends on
-   it; teaching it about `stated` would be editing MLB through the back
-   door, which the freeze forbids as surely as editing the card.
-   ⚠️ `hit: null` ON AN EMPTY BUCKET, never 0. `bandRow` draws "No sample"
-   for null and a bar sitting at zero for 0 — a bucket nobody bet is not a
-   bucket that lost. */
-function fbCalBlock(cal, label){
-  /* ⚠️ A LABELLED METHOD WITH NOTHING GRADED SAYS SO. Unlabelled, an empty
-     list still draws nothing — that is the old call shape. */
-  const head = `<h3 style="margin:18px 0 8px;font-size:14px">Was the record right?${
-    label ? ` <span class="sub" style="font-weight:400">&mdash; ${label}</span>` : ''}</h3>`;
-  if (!cal || !cal.length)
-    return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">No graded
-      picks under the ${label} yet.</div>` : '';
-  /* ⚠️ FOOTBALL PASSES ITS OWN WORDING. The figure is the mean of the
-     players' own records at those lines, so nobody "said" it. */
-  const band = c => bandRow({ name: c.bucket, n: c.n, said: c.stated, hit: c.n ? c.pct : null }, 'the record claimed');
-  return `${head}
-    ${cal.map(band).join('')}
-    <div class="legend">
-      <span><i style="background:var(--accent2)"></i>Beat the claim</span>
-      <span><i style="background:#d9534f"></i>Fell short of it</span>
-      <span><i style="background:#14181f;width:3px;border-radius:0"></i>What the record claimed</span>
-    </div>`;
-}
-
-/* 🔴🔴 ONE LABELLED TABLE PER CARD METHOD, NEVER POOLED. `[Sam, 2026-09-24]`
-   `record.json` keeps each method's buckets apart in
-   `calibration_by_method`; `calibration` alone is only the CURRENT
-   method's, and the day the new method went live it was EMPTY — so the tab
-   drew no football bands at all while every graded row sat beside it.
-   ✅ The current method is drawn first and ALWAYS, saying so when nothing
-   under it is graded yet; every other method follows under its own name.
-   ⛔ An older record with no `calibration_by_method` is read as the one
-   method it names — never guessed into two. */
-const FB_METHOD_BEFORE = '2025-only';
-function fbCalMethods(R){
-  if (!R) return '';
-  const cur = R.card_method_current || FB_METHOD_BEFORE;
-  const by = R.calibration_by_method || { [cur]: R.calibration || [] };
-  const label = m => m === cur ? 'current method'
-    : (m === FB_METHOD_BEFORE ? '2025-only method' : `earlier method (${m})`);
-  const order = [cur, ...Object.keys(by).filter(m => m !== cur)];
-  return order.map(m => fbCalBlock(by[m] || [], label(m))).join('');
 }
 
 /* 🔴 EVERY GRADED DAY IS CLICKABLE, the same as MLB's. Sam, 2026-08-26:
@@ -4775,6 +4648,22 @@ function fbDayRows(days, rec){
       + (open ? `<tr class="daydetail" id="fbdd-${d.date}" hidden><td colspan="5"></td></tr>` : '');
   }).join('');
 }
+/* `[Sam, 2026-10-17]` the game-lines tracker by ET kickoff day (record.json `game_lines.by_day`),
+   newest first like the props, each graded day opening its rows (record-detail `game_lines`). */
+function fbLineDayRows(days){
+  if (!days || !days.length)
+    return `<tr><td colspan="4" class="sub" style="text-align:center;padding:14px">No game lines graded yet.</td></tr>`;
+  return days.slice().reverse().map(d => {
+    const open = d.n > 0 || d.voids > 0;
+    return `<tr class="${open ? 'dayrow' : ''}"${open ? ` data-gldate="${d.date}"` : ''}${
+        open ? ' title="Click to see every game line from this day"' : ''}>
+      <td>${d.date}${open ? ' <span class="caret">&#9656;</span>' : ''}</td>
+      <td class="n">${d.n ? `${d.w}/${d.n}` : '&mdash;'}</td>
+      <td class="n">${d.n ? `${(100*d.w/d.n).toFixed(1)}%` : '&mdash;'}</td>
+      <td class="n sub">${(d.voids || 0) + (d.pending || 0)}</td></tr>`
+      + (open ? `<tr class="daydetail" id="fbgl-${d.date}" hidden><td colspan="4"></td></tr>` : '');
+  }).join('');
+}
 
 /* ⚠️ SCOPED TO `#fbview`. MLB wires `document.querySelectorAll('tr.dayrow')`
    unscoped; a second unscoped sweep would double-bind whichever tab drew
@@ -4784,8 +4673,8 @@ function fbDayRows(days, rec){
 function fbWireDayRows(lg, rec){
   document.querySelectorAll('#fbview tr.dayrow').forEach(tr => {
     tr.addEventListener('click', async () => {
-      const date = tr.dataset.date;
-      const box = document.querySelector('#fbdd-' + date);
+      const gl = tr.dataset.gldate, date = gl || tr.dataset.date;
+      const box = document.querySelector((gl ? '#fbgl-' : '#fbdd-') + date);
       if (!box) return;
       if (!box.hidden){ box.hidden = true; tr.classList.remove('open'); return; }
       tr.classList.add('open');
@@ -4795,7 +4684,8 @@ function fbWireDayRows(lg, rec){
       cell.innerHTML = '<div class="msg">Loading&hellip;</div>';
       try {
         const D = await fbDetailLoad(lg, rec);
-        cell.innerHTML = fbDayDetailHtml(((D || {}).days || {})[date]);
+        cell.innerHTML = gl ? lineDetailHtml(((D || {}).game_lines || {})[date])
+                            : fbDayDetailHtml(((D || {}).days || {})[date]);
         cell.dataset.loaded = '1';
       } catch(e){
         /* ⛔ DEGRADES TO ONE PLAIN LINE, NEVER A BROKEN TAB. Before the
@@ -4807,88 +4697,34 @@ function fbWireDayRows(lg, rec){
   });
 }
 
-const fbPct = t => (t && t.n) ? `${t.pct.toFixed(1)}%` : '&mdash;';
-const fbWL  = t => (t && t.n) ? `${t.w}/${t.n}` : '0/0';
-
 async function fbRecord(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
   fbWire();
-  const [C, R, W] = await Promise.all([fbCardLoad(), fbRecordLoad(), winnersLoad(LEAGUE)]);
-  const n = C && C.picks ? C.picks.length : 0;
-  const O = (R && R.overall) || null;
-  const graded = O && O.n;
-
-  /* 🔴 THE SAME FOUR STAT BOXES MLB SHOWS, and the same two tables --
-     drawn EMPTY rather than replaced by a paragraph. Sam, 2026-09-03:
-     "i literallt want eveyrhtug to look exaclty the same the only
-     difference is that its filled with nfl data".
-     ⚠️ Every figure reads em-dash, never 0% -- "nothing graded" and
-     "graded 0%" are different facts, and that distinction is the reason
-     this tab could sit empty for two days without lying. */
-  const hero = `<div class="tr-hero">
-      <div class="tr-box"><div class="k">Board</div>
-        <div class="v">${graded ? O.pct.toFixed(1) + '%' : '&mdash;'}<span
-          style="font-size:18px;color:var(--mut)">${graded ? '' : '/0'}</span></div>
-        <div class="s">${graded ? `${O.w} of ${O.n} graded`
-                                : 'nothing graded yet'}</div></div>
-      <div class="tr-box"><div class="k">${LEAGUE === 'nfl' ? 'NFL rows' : 'College rows'}</div>
-        <div class="v">${graded ? O.w : '&mdash;'}</div>
-        <div class="s">${fbWL(O)}</div></div>
-      <div class="tr-box"><div class="k">On the board today</div>
-        <div class="v">${n}</div><div class="s">${n ? 'gradeable after kickoff' : 'no card yet'}</div></div>
-      <div class="tr-box"><div class="k">Cards graded</div>
-        <div class="v">${R ? (R.days_graded || 0) : 0}</div>
-        <div class="s">football only</div></div>
-    </div>`;
-
-  /* ⚠️ THE MARKET LIST COMES FROM THE RECORD WHEN THERE IS ONE, and from
-     a fixed list only when there is not. ⛔ A hardcoded list would hide a
-     market the board started carrying, which is exactly how a table goes
-     quietly wrong. */
-  const NAMES = {player_pass_yds:'Passing yards', player_pass_tds:'Passing TDs',
-                 player_rush_yds:'Rushing yards', player_reception_yds:'Receiving yards',
-                 player_receptions:'Receptions', player_anytime_td:'Anytime TD'};
-  const MKfallback = LEAGUE === 'nfl'
-    ? ['player_pass_yds','player_pass_tds','player_rush_yds',
-       'player_reception_yds','player_receptions','player_anytime_td']
-    : ['player_pass_yds','player_rush_yds','player_reception_yds',
-       'player_receptions','player_anytime_td'];
-  const BM = (R && R.by_market) || {};
-  const mkKeys = Object.keys(BM).length ? Object.keys(BM).sort() : MKfallback;
-  const mkRows = mkKeys.map(k => {
-    const t = BM[k];
-    return `<tr><td>${NAMES[k] || k}</td>
-      <td class="n">${t ? fbWL(t) : '&mdash;'}</td>
-      <td class="n">${t ? fbPct(t) : '&mdash;'}</td></tr>`;
-  }).join('');
-
+  const R = await fbRecordLoad();
+  /* 🔴 `[Sam, 2026-10-17]` THE SAME THREE HIT RATES IN EVERY LEAGUE (trBox): Board (every graded
+     pick: the player props and the game lines), Player props, Game lines; ~~four boxes, the
+     winners' line, the market table and "Was the record right?"~~. Below them the by-date lists
+     only. ⚠️ An empty one reads em-dash, never 0%. */
+  const hero = `<div class="tr-hero">${trBox('Board', R && R.board)}${trBox('Player props', R && R.overall)}${
+    trBox('Game lines', R && R.game_lines)}</div>`;
   const days = (R && R.by_day) || [];
   const dayRows = fbDayRows(days, R);
-
-  /* 🔴 CALIBRATION, AND THE WORD "MODEL" APPEARS NOWHERE IN IT. The
-     bucket is the player's OWN RECORD at that line -- ledger rule 55.
-     ~~a bare table headed Stated / Said / Actual / Rows / Gap~~ —
-     **REPLACED 2026-09-16**: the same data now renders through MLB's own
-     `bandRow()`, which Sam asked for after seeing both side by side, and
-     nothing here says "predicted". [Sam, 2026-10-01] no explanation boxes
-     or tags on the page. */
-  const calBlock = fbCalMethods(R);
-
+  const lineRows = fbLineDayRows(((R && R.game_lines) || {}).by_day || []);
   // [Sam, 2026-10-01] no reset note, intro or footnotes on the page; record.json keeps their fields.
   v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2>
     ${R ? `<p><span class="rec">graded ${freshness(R.built_at)}</span></p>` : ''}
     ${hero}
-    ${winnersRecordLine(W)}
-    <table class="ob" style="margin-top:14px">
-      <thead><tr><th>Market</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th></tr></thead>
-      <tbody>${mkRows}</tbody></table>
-    ${calBlock}
-    <h3 style="margin:18px 0 8px;font-size:14px">By day</h3>
+    <h3 style="margin:18px 0 8px;font-size:14px">Player props by day</h3>
     <table class="ob">
       <thead><tr><th>Date</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th>
         <th class="n">Carded</th><th class="n">Unsettled</th></tr></thead>
-      <tbody>${dayRows}</tbody></table>`);
+      <tbody>${dayRows}</tbody></table>
+    <h3 style="margin:18px 0 8px;font-size:14px">Game lines by day</h3>
+    <table class="ob">
+      <thead><tr><th>Date</th><th class="n">Record</th><th class="n">Hit&nbsp;rate</th>
+        <th class="n">Unsettled</th></tr></thead>
+      <tbody>${lineRows}</tbody></table>`);
   /* ⚠️ WIRED AFTER THE MARKUP IS IN THE DOM, not before — the rows do
      not exist until `fbShell` has been assigned above. */
   fbWireDayRows(LEAGUE, R);
