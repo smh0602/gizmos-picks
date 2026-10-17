@@ -213,7 +213,8 @@ def fake_push(fail=False):
 
 
 _saved = (B.measure, fb_refit.push_change)
-_PASS, _FAIL = E(0.719, 0.720, -3.0, -3.5), E(0.722, 0.720, -3.0, -3.5)
+_FIT = {"fitted_last": ["2026-10-12", [1.0, 0.2, 0.3]]}     # a real fit: the test can say something
+_PASS, _FAIL = dict(E(0.719, 0.720, -3.0, -3.5), **_FIT), dict(E(0.722, 0.720, -3.0, -3.5), **_FIT)
 _trees = []
 try:
     B.measure, fb_refit.push_change = fake_measure(_PASS), fake_push()
