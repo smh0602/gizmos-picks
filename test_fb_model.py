@@ -52,12 +52,22 @@
 #   find:                     price_note=ASSUMED_NOTE if any(p.get("assumed") for p in graded) else None)
 #   with:                     price_note=None)
 #
-# @vacuity the page's closing table reads the closing record, not the headline
+# @vacuity [Sam, 2026-10-17] ~~the page's closing table reads the closing record, not the headline~~ the game model's panel (its record and the closing record under it) is never appended to Gizmo's Picks
 #   file: index.html
-#   find:     <table class="ob">${recHead}<tbody>${recRows(M.closing_record)}</tbody></table>
-#   with:     <table class="ob">${recHead}<tbody>${recRows(M.record)}</tbody></table>
+#   find:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
+#   with:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept)); await fbModelAppend(v, LEAGUE);
 #
-# @vacuity every number the page shows carries MODEL, MARKET or DESCRIPTIVE
+# @vacuity [Sam, 2026-10-17] the page never loads the game model's file, whatever draws it
+#   file: index.html
+#   find: const FBFLAGS = {};
+#   with: const FBFLAGS = {}, FBMODEL = {}; const fbModelUrl = lg => `${LG_DATA[lg]}/latest/fb-model.json`;
+#
+# @vacuity [Sam, 2026-10-17] nothing is drawn below the top plays on the football Gizmo's Picks
+#   file: index.html
+#   find:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
+#   with:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept)); v.insertAdjacentHTML('beforeend', fbAgRecordHtml(AG));
+#
+# @vacuity every number ~~the page shows~~ in the record carries MODEL, MARKET or DESCRIPTIVE ([Sam, 2026-10-17] the page no longer draws the record; the data keeps every basis)
 #   file: fb_model.py
 #   find:             "hit_rate": L(round(100 * rate, 1) if rate is not None else None, "DESCRIPTIVE"),
 #   with:             "hit_rate": round(100 * rate, 1) if rate is not None else None,
@@ -327,13 +337,74 @@ for _rule in F.RULES:
        "the headline record never" % _rule,
        {mk: (_hb[mk]["picks"]["value"], _hc[mk]["picks"]["value"]) for mk in F.MARKETS})
 
-# the page: its own table, UNDER the headline, reading only its own key
+# ══════════════════════════════════════════════════════════════════════
+# 6. THE PAGE: the model's panel and both its records are GONE from Gizmo's Picks
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-17]` "lose everything in the gizmos picks tab after the model picks gameliones
+#    tab, so this means ot lose its record, week by week, on games it had not seen and eveyrhting
+#    below that. it should be as simple as the mlb gizmos picks." and "in the mlb gizmos picks we
+#    have the picks the why underneath each pick, and then the top 10 plays of the day, we should
+#    do the same for both football leagues."
+#    ~~the page shows the closing record as its OWN table, under the headline, with its label
+#    (Sam, 2026-09-23: "Show it under the headline record, never mixed with it")~~: the "Model
+#    picks" panel, its record and the closing record under it left the football Gizmo's Picks
+#    tab, and the tab is the card's own lists, the top plays last.
+#    ⛔ THE DATA IS UNCHANGED: fb-model.json still carries both records, apart, under Sam's label
+#    and graded at their own prices -- section 5 above checks every part of that, as before.
+import re  # noqa: E402
 import jsblock  # noqa: E402
-_js = jsblock.js_block("fbModelHtml", os.path.join(ROOT, "index.html"))
-_i_head = _js.find("recRows(M.record)")
-_i_close = _js.find("recRows(M.closing_record)")
-ck(0 <= _i_head < _i_close and "M.closing_title" in _js and "r.price_note" in _js,
-   "🔴 the page shows the closing record as its OWN table, under the headline, with its label",
-   "⛔ Sam: 'Show it under the headline record, never mixed with it'. "
-   "headline at %d, closing at %d" % (_i_head, _i_close))
+_html = os.path.join(ROOT, "index.html")
+_src = jsblock.source(_html)
+_top = jsblock.top_level_blocks(_html)
+_gone = ("fbModelHtml", "fbModelLoad", "fbModelAppend")
+ck(not [n for n in _gone if n in _top or jsblock.calls(n, _html)],
+   "🔴 [Sam, 2026-10-17] the game model's panel is gone: fbModelHtml, fbModelLoad and "
+   "fbModelAppend are neither defined nor called anywhere on the page",
+   "⛔ Sam: 'lose everything in the gizmos picks tab after the model picks gameliones tab'. "
+   "still there: %r" % {n: (n in _top, jsblock.calls(n, _html)) for n in _gone})
+# 🔴 THE CLASS, NOT THE NAMES: whatever function draws the model's record has to load the file
+#    and read the record out of it. ⛔ Code patterns only (the URL, a property read, a heading),
+#    never the bare words: the page's own dated comments quote "fb-model.json" and "its record".
+_reads = {pat: [_src.count("\n", 0, m.start()) + 1 for m in re.finditer(pat, _src)]
+          for pat in (r"latest/fb-model\.json", r"\.closing_record\b", r"\.closing_title\b",
+                      r">\s*Model picks\b", r">\s*Its record, week by week")}
+ck(not any(_reads.values()),
+   "🔴 [Sam, 2026-10-17] ...and the page never loads fb-model.json, never reads its record or "
+   "closing record, and draws neither heading (the Game Lines tab reads the model via winners.json)",
+   "lines: %r" % {k: v for k, v in _reads.items() if v})
+_fp = jsblock.js_block("fbPicks", _html)
 
+
+def _args_of(body, i):
+    """The text inside the parenthesis that opens at body[i]."""
+    depth = 0
+    for j in range(i, len(body)):
+        if body[j] == "(":
+            depth += 1
+        elif body[j] == ")":
+            depth -= 1
+            if depth == 0:
+                return body[i + 1:j]
+    raise AssertionError("unbalanced parenthesis in fbPicks")
+
+
+def _card_list(arg):
+    """Is one insertAdjacentHTML(...) the card's game lines or its top plays, alone or
+    followed by a one-line plain empty state? ⛔ Any other call, panel or tag fails."""
+    m = re.match(r"'beforeend',\s*(?:fbGameLines|fbTopPlays)\([^()]*\)(.*)$", " ".join(arg.split()))
+    rest = m.group(1).strip() if m else None
+    return rest is not None and (rest == "" or re.fullmatch(r"\|\|\s*'<div class=\"msg\">[^<]*</div>'", rest))
+
+
+_inserts = [_args_of(_fp, m.end() - 1) for m in re.finditer(r"\binsertAdjacentHTML\s*\(", _fp)]
+_awaits = set(re.findall(r"\bawait\s+([A-Za-z_$][\w$]*)", _fp))
+_tail = _fp.split("fbTopPlays(C, kept)", 1)[1] if "fbTopPlays(C, kept)" in _fp else ""
+_after = re.findall(r"insertAdjacentHTML|\.append\s*\(|innerHTML\s*=|\bawait\b", _tail)
+ck(_inserts and all(_card_list(a) for a in _inserts) and _awaits == {"fbCardLoad"}
+   and "fbTopPlays(C, kept)" in _fp and not _after,
+   "🔴 [Sam, 2026-10-17] the football Gizmo's Picks tab loads only its card, and every block it "
+   "adds is the card's game lines or its top plays (or a one-line empty state), the top plays "
+   "last with nothing drawn below them",
+   "⛔ Sam: 'it should be as simple as the mlb gizmos picks' (~~2026-09-23: 'Show the model's "
+   "picks on the football page as their own section'~~). not a card list: %r; awaited %r; drawn "
+   "after the top plays: %r" % ([a for a in _inserts if not _card_list(a)], sorted(_awaits), _after))

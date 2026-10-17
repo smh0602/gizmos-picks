@@ -555,7 +555,9 @@ BOARD_MIN = 5
 # AS A COINCIDENCE. `test_top_plays.py` asserts the two files agree, the
 # same way the parlay bands are cross-checked -- restating a number in two
 # files is the rule 66 hazard, whether or not it currently matches.
-TOP_N = 20
+# `[Sam, 2026-10-17]` "the top 10 plays of the day, we should do the same for both football
+#    leagues": ~~20~~ 10, as MLB's `card.TOP10_N`.
+TOP_N = 10
 
 # market -> (how to read it out of a game row, unit, higher-is-a-hit)
 def _td(g):

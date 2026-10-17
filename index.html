@@ -4061,49 +4061,15 @@ async function fbProps(){
       re-prices a row; the builders (`fb_agreement.py`, `news_flags_fb.py`)
       decide everything and this page only prints what they wrote.
    `[Sam, 2026-10-01]` No explanation boxes, tags or per-row flags on the page.
+   `[Sam, 2026-10-17]` ~~the "Card vs props model" record panel~~ left Gizmo's Picks ("it
+   should be as simple as the mlb gizmos picks"); agreement.json is still built and graded.
    ══════════════════════════════════════════════════════════════════ */
-const FBAG = {}, FBFLAGS = {};
-async function fbAgLoad(){
-  if (FBAG[LEAGUE] !== undefined) return FBAG[LEAGUE];
-  try { FBAG[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/agreement.json`); }
-  catch(e){ FBAG[LEAGUE] = null; }
-  return FBAG[LEAGUE];
-}
+const FBFLAGS = {};
 async function fbFlagsLoad(){
   if (FBFLAGS[LEAGUE] !== undefined) return FBFLAGS[LEAGUE];
   try { FBFLAGS[LEAGUE] = await jget(`${LG_DATA[LEAGUE]}/latest/news-flags.json`); }
   catch(e){ FBFLAGS[LEAGUE] = null; }
   return FBFLAGS[LEAGUE];
-}
-function fbAgFind(AG, p){
-  const ln = v => (v && typeof v === 'object') ? v.value : v;
-  return ((AG || {}).rows || []).find(r => r.game_id === p.game_id && r.player === p.player
-    && r.market === p.market && r.side === p.side
-    && ((r.line == null && ln(p.line) == null) || Number(r.line) === Number(ln(p.line))));
-}
-function fbAgHtml(r){
-  /* 🔴 `[2026-09-26]` ONCE A GAME KICKS OFF THE LABEL IS THE ONE FROZEN BEFORE
-     KICKOFF (fb_agreement.settle); a row never frozen shows no label.
-     ⛔ Never a fresh ONE SOURCE on a started game.
-     [Sam, 2026-10-01] no explanation boxes or tags on the page. */
-  if (!r || !r.label) return '';
-  const pct = v => v == null ? '&mdash;' : v + '%';
-  return `<span class="agl"><b>${r.label}</b>
-    card ${pct(r.card_p)}
-    &middot; props model ${pct(r.model_p)}
-    &middot; break-even ${pct(r.break_even)}</span>`;
-}
-function fbAgRecordHtml(AG){
-  if (!AG || !AG.record) return '';
-  const v = (r, k) => ((r || {})[k] || {}).value;
-  const rows = ['AGREE', 'SPLIT', 'ONE SOURCE'].map(lb => { const r = AG.record[lb] || {};
-    return `<tr><td><b>${lb}</b></td><td>${(AG.counts || {})[lb] || 0}</td><td>${v(r, 'picks') || 0}</td>
-      <td>${v(r, 'hit_rate') == null ? '&mdash;' : v(r, 'hit_rate') + '%'}</td>
-      <td>${v(r, 'break_even') == null ? '&mdash;' : v(r, 'break_even') + '%'}</td>
-      <td>${v(r, 'effective_n') == null ? '&mdash;' : v(r, 'effective_n')}</td></tr>`; }).join('');
-  return `<div class="panel" style="margin-top:18px"><h2>Card vs props model &mdash; do they agree?</h2>
-    <div class="glwrap"><table class="glmain"><tr><th></th><th>On this board</th><th>Graded</th><th>Hit</th>
-      <th>Break-even</th><th>Games (eff. n)</th></tr>${rows}</table></div></div>`;
 }
 function fbFlagsRecordHtml(FL){
   if (!FL) return '';
@@ -4337,7 +4303,7 @@ function fbDayHead(C, title){
 function fbGameLines(C){
   /* [2026-10-03] only the model's own rows (kind fb-line): a price-gap row of
      an older card is never drawn. The heading names the list's own day. */
-  const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && fbAbovePass(p));
+  const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
   if (!g.length) return fbNoLiked(C, 'game_lines');
   return `<h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
     fbDayName((C.game_lines_meta || {}).slate)}</h2>`
@@ -4347,11 +4313,13 @@ function fbGameLines(C){
 function fbTopPlays(C, shownPicks){
   const all = (C && C.top_plays) || [];
   if (!all.length) return '';
-  /* ⛔ Keyed on game_id, which is what the board rows carry — never on a
-     team name. Ledger rule 54: two opponent strings that differ are not
-     two games that differ. */
-  const live = new Set((shownPicks || []).map(p => p.game_id));
-  const t = all.filter(x => !x.game_id || live.has(x.game_id));
+  /* `[2026-10-17]` EACH PLAY IS FILTERED ON ITS OWN GAME: hidden once its game has started
+     (unless every one has, the board's own rule, `splitStarted`) or when neither team is in the
+     conference filter, the board's `fbConfPass`. ~~Only plays in a game the shown picks cover,
+     keyed on game_id~~: with Sam's top 10 (~~20~~), "the top 10 plays of the day", and a liked
+     list that covers fewer games than the top plays, that hid the 10th play of 2026-10-18's NFL
+     card ("Top 9"). `shownPicks` is no longer read. */
+  const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
   if (!t.length) return '';
   const sideWord = s => s === 'over' ? 'Over' : s === 'under' ? 'Under' : 'Yes';
   return `<div class="panel" style="margin-top:18px">
@@ -4383,33 +4351,23 @@ function fbKindBar(C){
       >${label} <span>${n}</span></button>`;
   return `<div class="kindbar">${
     chip('props', 'Player props', nProps)}${
-    chip('lines', 'Game lines', nLines)}<button class="kchip${FBABOVE ? ' on' : ''}"
-      data-fbabove>Above their price only</button></div>`;
+    chip('lines', 'Game lines', nLines)}</div>`;
 }
 
-/* 🔴 "ABOVE THEIR PRICE ONLY" `[Sam, 2026-10-14]`. ~~OFF by default~~ `[Sam,
-   2026-10-15]` ON by default ("i just want you to have the best plays our model
-   likes simple as that"): ON shows the card's own liked lists (`liked`,
-   `game_lines_liked`: chance 50%+ above its price, one per player / game, by
-   edge — card_fb.best_liked, ⛔ never re-decided here); OFF shows today's full
-   lists (`picks`, `game_lines`) in today's order. A card from before the switch
-   has no liked list and is filtered as on 10-14. Remembered per browser; ⛔
-   storage can throw (private window, blocked site data), so every read and
-   write is caught. */
-let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') !== '0'; }
-                       catch(e){ return true; } })();
+/* 🔴 THE CARD'S OWN LISTS. `[Sam, 2026-10-17]` "no above their price only button in gizmos
+   picks not needed": ~~an "Above their price only" switch (`[Sam, 2026-10-14]` off by default,
+   `[2026-10-15]` on)~~; the page always shows the card's liked lists (`liked`, `game_lines_liked`:
+   chance 50%+ above its price, one per player / game, by edge -- card_fb.best_liked, ⛔ never
+   re-decided here) wherever the card has them; a card from before they existed shows its lists. */
 function fbView(C){
-  return (C && FBABOVE && C.liked) ? Object.assign({}, C, {
+  return (C && C.liked) ? Object.assign({}, C, {
     picks: C.liked, game_lines: C.game_lines_liked || [], picks_all: C.picks,
     game_lines_all: C.game_lines}) : C;
 }
 function fbNoLiked(C, k){
   const all = ((C && C[k + '_all']) || []).length;
-  return FBABOVE && all ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
+  return all ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
     } it likes for ${fbDayName(k === 'picks' ? C.date : (C.game_lines_meta || {}).slate)}.</div>` : '';
-}
-function fbAbovePass(p){
-  return !FBABOVE || !(p && p.edge != null && p.edge <= 0);
 }
 
 /* 🔴 THE EDGE ON THE BREAK-EVEN LINE `[Sam, 2026-10-14]`: a football row above
@@ -4431,168 +4389,17 @@ function fbKindWire(){
   bar.addEventListener('click', e => {
     const b = e.target.closest('.kchip');
     if (!b) return;
-    if (b.hasAttribute('data-fbabove')){
-      FBABOVE = !FBABOVE;
-      try { localStorage.setItem('gp_fb_above', FBABOVE ? '1' : '0'); }
-      catch(e){}
-    } else FBPICKKIND = b.dataset.fbkind;
+    FBPICKKIND = b.dataset.fbkind;
     fbPicks();
   });
 }
 
-/* 🔴 THE PICK MODEL, ITS OWN SECTION. `[Sam, 2026-09-23]`
-   "Show the model's picks on the football page as their own section,
-   labelled MODEL. Next to them, show the walk-forward record per league and
-   market: picks, hit rate, and the break-even rate at the price. Do not
-   remove the existing card."
-   ⛔ It is appended AFTER the card on every path out of fbPicks and never
-   touches it. [Sam, 2026-10-01] no explanation boxes or tags on the page. */
-const FBMODEL = {};
-async function fbModelLoad(lg){
-  if (FBMODEL[lg] !== undefined) return FBMODEL[lg];
-  try { FBMODEL[lg] = await jget(`${LG_DATA[lg]}/latest/fb-model.json`); }
-  catch(e){ FBMODEL[lg] = null; }
-  return FBMODEL[lg];
-}
-/* [2026-10-16] A model pick's line as the bettor reads it. ⛔ A game-model SPREAD pick
-   stores `line` as the threshold on the HOME margin (fb_model.book_lines: M = -home
-   point), so a HOME pick's own point is -M: Cleveland +3.5 printed "-3.5" and Kansas
-   City -8.5 printed "8.5" in Model picks and the ledger. The team's own point, signed,
-   exactly as the card prints it (card_fb.model_game_rows); anything else as stored.
-   Every model table prints a line through this, never the stored value raw. */
-function fbPointText(p){
-  const v = p && p.line != null && typeof p.line === 'object' ? p.line.value : (p ? p.line : null);
-  if (v == null) return null;
-  if (!/spread/.test(String(p.market || ''))) return String(v);
-  const pt = p.side === 'home' ? -v : v;
-  return (pt > 0 ? '+' : '') + String(pt === 0 ? 0 : pt);
-}
-function fbModelHtml(M){
-  if (!M) return `<div class="panel"><h2>Model picks</h2>
-    <p class="plain">The model's file has not been built yet.</p></div>`;
-  const mk = {spread: 'Spread', total: 'Total', moneyline: 'Moneyline'};
-  /* ONE row renderer, two records. ⛔ The records are never summed or
-     interleaved: each table reads only its own key. A row priced at an
-     ASSUMED -110 says so beside its market name. [Sam, 2026-09-23] */
-  const recRows = R => Object.keys(mk).map(k => {
-    const r = (R || {})[k] || {};
-    return `<tr><td>${mk[k]}${fbVerdictTag(r.verdict)}${r.price_note ? `<br><span class="rec">${fbEsc(r.price_note)}</span>` : ''}</td>
-      <td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
-      <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td>
-      <td>${r.first_graded || '—'}</td></tr>`;
-  }).join('');
-  const rec = recRows(M.record);
-  const recHead = `<thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
-      <th>95% range</th><th>Graded since</th></tr></thead>`;
-  const picks = (M.picks || []).map(p => `<tr><td>${fbEsc(p.game)}<br><span class="rec">${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
-      <td>${mk[p.market]}</td><td><b>${fbEsc(p.team)}</b></td>
-      <td>${fbPointText(p) ?? ''}</td>
-      <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
-      <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td></tr>`).join('');
-  return `<div class="panel">
-    <h2>Model picks</h2>
-    <p class="stamp"><span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
-    <h3 style="margin:14px 0 8px;font-size:14px">This week</h3>
-    ${picks ? `<table class="ob"><thead><tr><th>Game</th><th>Market</th><th>Pick</th><th>Line</th>
-      <th>Price</th><th>Model</th><th>Break-even</th></tr></thead><tbody>${picks}</tbody></table>`
-      : '<p class="plain">No model picks this week.</p>'}
-    <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
-    <table class="ob">${recHead}<tbody>${rec}</tbody></table>
-    ${M.closing_record ? `<h3 style="margin:18px 0 8px;font-size:14px">${fbEsc(M.closing_title || '')}</h3>
-    <table class="ob">${recHead}<tbody>${recRows(M.closing_record)}</tbody></table>` : ''}
-  </div>`;
-}
-/* 🔴 THE PROPS MODEL, ITS OWN SECTION. `[Sam, 2026-09-24]`
-   "Show the model's prop picks on the football page as their own section,
-   labelled MODEL. Next to them, show the walk-forward record per market:
-   picks, hit rate and break-even. Use the same price floors as the existing
-   card. Do not remove the existing card." ⛔ Appended after the card, never
-   inside it. [Sam, 2026-10-01] no explanation boxes or tags on the page. */
-/* 🔴 THE VERDICT LABEL, BESIDE EVERY RECORD. `[Sam, 2026-09-24]` "It is
-   information only; nothing is hidden." The label is computed by
-   fb_model.verdict() — ⛔ never re-derived here. */
-function fbVerdictTag(v){
-  if (!v || !v.label) return '';
-  const why = v.label === 'NOT YET MEASURABLE' ? `${v.picks} of ${v.min_picks} picks` :
-              `${v.picks} picks${v.edge_points != null ? `, ${v.edge_points > 0 ? '+' : ''}${v.edge_points} pts vs break-even` : ''}`;
-  return ` <span class="rec" style="font-weight:600;white-space:nowrap">${fbEsc(v.label)}</span>
-    <span class="rec">(${why})</span>`;
-}
-const FBLEDGER = {};
-async function fbLedgerLoad(lg){
-  if (FBLEDGER[lg] !== undefined) return FBLEDGER[lg];
-  try { FBLEDGER[lg] = await jget(`${LG_DATA[lg]}/latest/model-ledger.json`); }
-  catch(e){ FBLEDGER[lg] = null; }
-  return FBLEDGER[lg];
-}
-const fbLedgerPoint = p => fbPointText(p) != null ? ' ' + fbPointText(p) : '';   // the ledger's line, signed
-function fbLedgerHtml(LD){
-  if (!LD) return `<div class="panel"><h2>What the model showed, graded</h2>
-    <p class="plain">Nothing saved yet.</p></div>`;
-  const name = {game_model: 'Game model', props_model: 'Props model'};
-  const rec = Object.entries(LD.record || {}).flatMap(([m, mks]) => Object.entries(mks).map(([mk, r]) =>
-    `<tr><td>${name[m] || m}</td><td>${fbEsc(mk.replace('player_', '').replace(/_/g, ' '))}${fbVerdictTag(r.verdict)}</td>
-     <td>${labN(r.picks)}</td><td>${labN(r.hits)}</td><td>${labN(r.hit_rate, '%')}</td>
-     <td>${labN(r.break_even, '%')}</td><td>${labN(r.pending)}</td></tr>`)).join('');
-  const res = s => ({graded: '', void: 'Void', pending: 'Pending'})[s] ?? s;
-  const picks = (LD.picks || []).map(p => `<tr><td>${fbKickDate(p.commence)}</td><td>${name[p.model] || p.model}</td>
-     <td>${fbEsc(p.player || p.team || '')}<br><span class="rec">${fbEsc(p.game || '')}</span></td>
-     <td>${fbEsc(p.market_label || p.market || '')} <b>${fbEsc(String(p.side || '').replace(/^./, c => c.toUpperCase()))}${fbLedgerPoint(p)}</b></td>
-     <td>${labN(p.price)} <span class="rec">${fbEsc(p.book || '')}</span></td><td>${labN(p.model_probability, '%')}</td>
-     <td>${p.state === 'graded' ? (p.won ? '<b style="color:#1e8449">Hit</b>' : '<b style="color:#c0392b">Miss</b>') : res(p.state)}</td></tr>`).join('');
-  return `<div class="panel">
-    <h2>What the model showed, graded</h2>
-    <p class="stamp"><span class="rec">built ${fbEsc(LD.built_at || '')}</span></p>
-    ${rec ? `<table class="ob"><thead><tr><th>Model</th><th>Market</th><th>Picks</th><th>Hits</th><th>Hit rate</th>
-      <th>Break-even</th><th>Pending</th></tr></thead><tbody>${rec}</tbody></table>`
-      : '<p class="plain">No pick has been saved yet.</p>'}
-    ${picks ? `<h3 style="margin:18px 0 8px;font-size:14px">Every pick, newest first</h3>
-    <table class="ob"><thead><tr><th>Date</th><th>Model</th><th>Who</th><th>Pick</th><th>Price</th><th>Model</th>
-      <th>Result</th></tr></thead><tbody>${picks}</tbody></table>` : ''}
-  </div>`;
-}
-const FBPROPMODEL = {};
-async function fbPropModelLoad(lg){
-  if (FBPROPMODEL[lg] !== undefined) return FBPROPMODEL[lg];
-  try { FBPROPMODEL[lg] = await jget(`${LG_DATA[lg]}/latest/fb-props-model.json`); }
-  catch(e){ FBPROPMODEL[lg] = null; }
-  return FBPROPMODEL[lg];
-}
-function fbPropModelHtml(M){
-  if (!M) return `<div class="panel"><h2>Prop model picks</h2>
-    <p class="plain">The props model has not been built yet.</p></div>`;
-  const shown = M.picks || [], total = M.picks_total || shown.length;
-  const side = s => ({over: 'Over', under: 'Under', yes: 'Yes'}[s] || s);
-  const picks = shown.map(p => `<tr><td>${fbEsc(p.player)}<br><span class="rec">${fbEsc(p.game)} · ${fbKickDate(p.commence)} ${fbKickTime(p.commence)}</span></td>
-      <td>${fbEsc(p.market_label || p.market)}</td>
-      <td><b>${side(p.side)}${fbPointText(p) != null ? ' ' + fbPointText(p) : ''}</b></td>
-      <td>${labN(p.price)} <span class="rec">${fbEsc(p.book)}</span></td>
-      <td>${labN(p.model_probability, '%')}</td><td>${labN(p.break_even, '%')}</td>
-      <td>${fbAgHtml(fbAgFind(FBAG[LEAGUE], p))}</td></tr>`).join('');
-  const rec = Object.keys(M.record || {}).map(k => {
-    const r = M.record[k] || {};
-    return `<tr><td>${fbEsc(r.market_label || k)}${fbVerdictTag(r.verdict)}</td><td>${labN(r.picks)}</td><td>${labN(r.hit_rate, '%')}</td>
-      <td>${labN(r.break_even, '%')}</td><td>${labN(r.interval_95, '%')}</td><td>${r.first_graded || '—'}</td></tr>`;
-  }).join('');
-  return `<div class="panel">
-    <h2>Prop model picks</h2>
-    <p class="stamp"><span class="rec">built ${fbEsc(M.built_at || '')}</span></p>
-    <h3 style="margin:14px 0 8px;font-size:14px">This week${total > shown.length ? ` — top ${shown.length} of ${total} by the model's chance` : ''}</h3>
-    ${picks ? `<table class="ob"><thead><tr><th>Player</th><th>Market</th><th>Pick</th><th>Price</th>
-      <th>Model</th><th>Break-even</th><th>Card vs model</th></tr></thead><tbody>${picks}</tbody></table>`
-      : '<p class="plain">No prop picks this week.</p>'}
-    <h3 style="margin:18px 0 8px;font-size:14px">Its record, week by week, on games it had not seen</h3>
-    <table class="ob"><thead><tr><th></th><th>Picks</th><th>Hit rate</th><th>Break-even</th>
-      <th>95% range</th><th>Graded since</th></tr></thead><tbody>${rec}</tbody></table>
-  </div>`;
-}
-async function fbModelAppend(v, lg){
-  const M = await fbModelLoad(lg);
-  const PM = await fbPropModelLoad(lg);
-  const LD = await fbLedgerLoad(lg);
-  if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM) + fbLedgerHtml(LD));
-}
-
+/* `[Sam, 2026-10-17]` "lose everything in the gizmos picks tab after the model picks gamelines
+   tab, so this means to lose its record, week by week, on games it had not seen and everything
+   below that. it should be as simple as the mlb gizmos picks": ~~the Model picks, Prop model
+   picks and "What the model showed, graded" panels (fbModelAppend)~~ left the page.
+   fb-model.json, fb-props-model.json and model-ledger.json are still built and graded, and the
+   Game Lines tab still reads fb-model.json through winners.json. */
 async function fbPicks(){
   const v = $('#fbview');
   v.innerHTML = fbShell('<div class="msg">Loading&hellip;</div>');
@@ -4621,7 +4428,7 @@ async function fbPicks(){
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
         '<div class="msg">No game lines on this board yet.</div>');
-    await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
+    fbWire(); fbKindWire(); return;
   }
   if (!C || !(C.picks || []).length){
     v.innerHTML = fbShell((fbNoLiked(C, 'picks') ? fbDayHead(C, "Gizmo's Picks") : '') + fbKindBar(C) +
@@ -4629,7 +4436,7 @@ async function fbPicks(){
     if (FBPICKKIND === 'lines')
       v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
         '<div class="msg">No game lines on this board yet.</div>');
-    await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
+    fbWire(); fbKindWire(); return;
   }
   /* ⛔ THE GAME-LINE BOARD IS ITS OWN TAB AND RETURNS HERE. It shares
      nothing with the props board below -- not the conference filter, not
@@ -4639,10 +4446,9 @@ async function fbPicks(){
     v.innerHTML = fbShell(fbDayHead(C, "Gizmo's Picks") + fbKindBar(C));
     v.insertAdjacentHTML('beforeend', fbGameLines(C) ||
       '<div class="msg">No game lines on this board yet.</div>');
-    await fbModelAppend(v, LEAGUE); fbWire(); fbKindWire(); return;
+    fbWire(); fbKindWire(); return;
   }
   const {list, nStarted, allDone} = splitStarted(C.picks);
-  const AG = await fbAgLoad();
   const wrap = document.createElement('div');
   wrap.innerHTML = `<div style="margin-bottom:10px">
       <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks${C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
@@ -4653,16 +4459,13 @@ async function fbPicks(){
   const host = document.createElement('div');
   const pool = allDone ? C.picks : list;
   const inConf = pool.filter(p => fbConfPass(p.away, p.home));
-  const kept = inConf.filter(fbAbovePass);
+  const kept = inConf;
   kept.forEach(p => host.append(pickCard(p)));
   [...host.children].forEach((c, i) => fbEdgeLine(c, kept[i]));
   /* ⛔ AN EMPTY BOARD AND AN EMPTY FILTER LOOK IDENTICAL unless the page
      says which one happened. A reader who clicks a conference with no
      picks on it must not be left reading "no card". */
-  if (!kept.length && inConf.length)
-    host.innerHTML = `<div class="msg">None of the <b>${inConf.length}</b> picks
-      shown are above their price.</div>`;
-  else if (!kept.length && pool.length)
+  if (!kept.length && pool.length)
     host.innerHTML = `<div class="msg">None of the <b>${pool.length}</b> picks
       on this card involve ${[...fbConf].join(', ')}.</div>`;
   v.innerHTML = fbShell(fbKindBar(C));
@@ -4671,8 +4474,6 @@ async function fbPicks(){
   /* ⛔ NO `fbGameLines(C)` HERE ANY MORE — it has its own chip above.
      Rendering it in both places would put a MARKET board underneath a
      RECORD board again, which is the mixing Sam asked to end. */
-  v.insertAdjacentHTML('beforeend', fbAgRecordHtml(AG));
-  await fbModelAppend(v, LEAGUE);
   fbWire(); fbKindWire();
   const t = $('#fb-pk-started');
   if (t) t.addEventListener('click', () => { showStarted = !showStarted; fbPicks(); });

@@ -52,10 +52,20 @@ labels keep the rules in `research/fb_model_live_spec.md` (Sam, 2026-09-24).
 #   find:     _n, mean, _t, pval, G = mlb_refit.paired_test_clustered(d, [p["game_id"] for p in graded])
 #   with:     _n, mean, _t, pval, G = mlb_refit.paired_test_clustered(d, list(range(n)))
 #
-# @vacuity the page shows the ledger after the models
+# @vacuity [Sam, 2026-10-17] ~~the page shows the ledger after the models~~ the ledger ("What the model showed, graded") is never drawn on Gizmo's Picks
 #   file: index.html
-#   find:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM) + fbLedgerHtml(LD));
-#   with:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM));
+#   find:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
+#   with:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept) + fbLedgerHtml(FBLEDGER[LEAGUE]));
+#
+# @vacuity [Sam, 2026-10-17] the page never loads the ledger's file, whatever draws it
+#   file: index.html
+#   find: const FBFLAGS = {};
+#   with: const FBFLAGS = {}, FBLEDGER = {}; const fbLedgerUrl = lg => `${LG_DATA[lg]}/latest/model-ledger.json`;
+#
+# @vacuity [Sam, 2026-10-17] ~~the verdict label sits next to every record~~ no verdict label is drawn on Gizmo's Picks
+#   file: index.html
+#   find:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
+#   with:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept) + fbVerdictTag(((C.record || {}).spread || {}).verdict));
 """
 import datetime
 import glob
@@ -219,14 +229,36 @@ ck(_clu["games"] == 100,
 ck(_win.get("basis") == "DESCRIPTIVE", "   ⚠️ ...and the label is labelled DESCRIPTIVE (rule 55)")
 
 # ══════════════════════════════════════════════════════════════════════
-# 5. THE PAGE
+# 5. THE PAGE: the ledger and every verdict label are GONE from Gizmo's Picks
 # ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-17]` "lose everything in the gizmos picks tab after the model picks gameliones
+#    tab, so this means ot lose its record, week by week, on games it had not seen and eveyrhting
+#    below that. it should be as simple as the mlb gizmos picks."
+#    ~~the page shows 'What the model showed, graded', every pick marked hit or miss, after the
+#    models~~ and ~~the verdict label sits next to every record: game model, props model and the
+#    ledger (Sam, 2026-09-24: "It is information only; nothing is hidden.")~~: the ledger sat
+#    below the models' records, so it left the page with them, and so did every verdict label
+#    beside them. ⛔ THE DATA IS UNCHANGED: model-ledger.json is still saved before kickoff,
+#    graded once and frozen, and fb_model.verdict still labels every record -- sections 1-4 above
+#    ask that exactly as before. (`research/fb_model_live_spec.md` is frozen and unedited; the
+#    page change is Sam's, quoted here.)
+import re  # noqa: E402
 _html = os.path.join(ROOT, "index.html")
-_app = jsblock.js_block("fbModelAppend", _html)
-_lh = jsblock.js_block("fbLedgerHtml", _html)
-_mh = jsblock.js_block("fbModelHtml", _html)
-_ph = jsblock.js_block("fbPropModelHtml", _html)
-ck("fbLedgerHtml(LD)" in _app and "What the model showed, graded" in _lh and "Hit" in _lh and "Miss" in _lh,
-   "🔴 the page shows 'What the model showed, graded', every pick marked hit or miss, after the models")
-ck("fbVerdictTag(r.verdict)" in _mh and "fbVerdictTag(r.verdict)" in _ph and "fbVerdictTag(r.verdict)" in _lh,
-   "🔴 the verdict label sits next to every record: game model, props model and the ledger")
+_src = jsblock.source(_html)
+_top = jsblock.top_level_blocks(_html)
+_gone = ("fbLedgerHtml", "fbLedgerLoad", "fbVerdictTag")
+ck(not [n for n in _gone if n in _top or jsblock.calls(n, _html)],
+   "🔴 [Sam, 2026-10-17] the ledger and the verdict label are gone: fbLedgerHtml, fbLedgerLoad and "
+   "fbVerdictTag are neither defined nor called anywhere on the page",
+   "⛔ Sam: 'lose its record, week by week, on games it had not seen and eveyrhting below that'. "
+   "still there: %r" % {n: (n in _top, jsblock.calls(n, _html)) for n in _gone})
+# 🔴 THE CLASS, NOT THE NAMES: whatever function draws the ledger has to load its file.
+#    ⛔ Code patterns only (the URL, the heading): the page's own dated comments name
+#    "model-ledger.json" and "What the model showed, graded" in prose.
+_reads = {pat: [_src.count("\n", 0, m.start()) + 1 for m in re.finditer(pat, _src)]
+          for pat in (r"latest/model-ledger\.json", r">\s*What the model showed, graded",
+                      r">\s*Every pick, newest first")}
+ck(not any(_reads.values()),
+   "🔴 [Sam, 2026-10-17] ...and the page never loads model-ledger.json and draws neither of the "
+   "ledger's headings",
+   "lines: %r" % {k: v for k, v in _reads.items() if v})
