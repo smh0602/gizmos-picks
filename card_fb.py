@@ -103,6 +103,7 @@ import itertools
 import json
 import os
 import re
+import statistics
 import sys
 import unicodedata
 from datetime import datetime, timezone
@@ -1159,11 +1160,13 @@ def latest_gamelines_snapshot():
     return None, None
 
 
-def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None):
+def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None, score=None):
     """Top `n` shoppable game-line edges, ONE PER GAME, richest first.
     `[Sam, 2026-10-16]` given `winner` (one_side.by_names over the model's
-    win chances), each game's row is its best ALLOWED one: a total, or a row
-    on the expected winner (never the other team).
+    win chances), each game's row is its best ALLOWED one: a moneyline only on
+    the expected winner (never the other team). Given `score`
+    (one_side.scores_by_names), a spread or total row must also land on the
+    side of the model's predicted score.
 
     `snapshot` is a raw `gamelines` pull — the file the collector already
     writes — because `board.json` keeps only the BEST price and the whole
@@ -1241,8 +1244,10 @@ def build_game_lines(snapshot, n=GAME_LINES_N, slate=None, winner=None):
                    "best_price": px, "best_book": bk, "link": o.get("link"),
                    "median_price": round(median, 4), "n_books": len(quotes),
                    "gain_pct": round(gain, 2)}
-            if winner is not None and not one_side.keep([row], winner)[0]:
-                continue                     # one team per game (Sam, 2026-10-16)
+            if winner is not None and market == "h2h" and not one_side.keep([row], winner)[0]:
+                continue                     # one team per game: a moneyline leg (Sam, 2026-10-16)
+            if score is not None and not one_side.score_keep([row], score, lambda r: r.get("point"))[0]:
+                continue                     # on the predicted score's side (Sam, 2026-10-16)
             if best_row is None or row["gain_pct"] > best_row["gain_pct"]:
                 best_row = row
         if best_row:
@@ -1430,14 +1435,20 @@ def model_game_rows(model_picks, games, slate):
     return rows
 
 
-def alt_spread_rows(model_rows, ladder):
+def alt_spread_rows(model_rows, ladder, score=None, sigma=None):
     """ONE alternate spread per game whose ladder is pulled and whose model
     pick includes a spread: on the model's side, off the main line, at
     PRICE_FLOOR or longer, ~~the rung with the highest books' chance (`mkt`)~~
     `[Sam, 2026-10-11]` the rung with the highest value above zero (`edge`)
     where the spread fit, priced at that rung's own line (`p`), gives 50%+.
     Its confidence is the model's own and its basis MODEL; a rung the model
-    cannot price gets no row. No eligible rung, or no ladder yet: no row."""
+    cannot price gets no row. No eligible rung, or no ladder yet: no row.
+    `[Sam, 2026-10-16]` Given `score` (one_side.scores_by_names), only a rung the
+    model's predicted score covers is eligible, so the best COVERED rung is chosen
+    (a richer rung past the predicted margin never hides it). With `sigma` too, each
+    rung's chance comes FROM that score ("Yes, everywhere", Sam): Normal(the team's
+    predicted margin, sigma), ~~the spread fit's `p`~~, and its value (`edge`, EV %) from
+    that chance at the rung's best price, so the rung is still the highest VALUE."""
     lad = {(g.get("away"), g.get("home"), et_date(g.get("commence"))): g
            for g in (ladder or {}).get("games") or []}
     out = []
@@ -1447,10 +1458,23 @@ def alt_spread_rows(model_rows, ladder):
             continue
         main = g.get("main_spread_home")
         main = r["line"] if main is None else (main if r["side"] == "home" else -main)
+        sc = score(r) if (score is not None and sigma) else None
+        if sc:
+            # the chance FROM the predicted score at each rung's own point
+            tm = (sc["home"] - sc["away"]) if r["side"] == "home" else (sc["away"] - sc["home"])
+            _q = lambda x: statistics.NormalDist().cdf(round(tm + x["pt"], 6) / sigma)  # noqa: E731
+            # `edge` stays VALUE in the ladder's own units (game_lines_fb.rungs_for: EV %), so the
+            # rung is still "the highest value above zero" (Sam, 2026-10-11), as score_pick ranks
+            g = dict(g, spread=[dict(x, p=round(100 * _q(x), 1),
+                                     edge=(round(100 * (_q(x) * decimal_odds(x["best"]) - 1.0), 1)
+                                           if x.get("best") is not None else None))
+                                for x in g.get("spread") or [] if x.get("pt") is not None])
         ok = [x for x in g.get("spread") or [] if x.get("side") == r["side"]
               and x.get("best") is not None and x["best"] >= PRICE_FLOOR
               and x.get("p") is not None and x.get("pt") != main
-              and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0]
+              and x["p"] >= GL_MIN_CONF and (x.get("edge") or 0) > 0
+              and (score is None or one_side.score_side_ok(
+                  {"market": "spread", "side": r["side"]}, score(r), x.get("pt")))]
         if not ok:
             continue
         x = max(ok, key=lambda x: (x["edge"], x["p"]))
@@ -1492,15 +1516,23 @@ def order_game_lines(rows, frozen=()):
     return out
 
 
-def card_game_lines(model_picks, games, ladder, slate, win_chances=None):
+def card_game_lines(model_picks, games, ladder, slate, win_chances=None, sigma=None):
     """The card's `game_lines` for ET day `slate`. The one composition main uses.
     `[Sam, 2026-10-16]` one team per game: given fb-model.json's `win_chances`, a
-    moneyline or spread row stays only on the game's expected winner (the Game Lines
-    tab's pick to win), BEFORE its alternate spread is added, so the alternate follows."""
+    moneyline row stays only on the game's expected winner (the Game Lines tab's pick to
+    win). ~~or spread~~: a spread (and its alternate, priced from the same score with
+    `sigma`) follows the predicted score, which can back the expected loser (Purdue
+    25-23 => Washington +3.5, Sam)."""
     rows = model_game_rows(model_picks, games, slate)
-    if win_chances is not None:
-        rows, _ = one_side.keep(rows, one_side.by_names(win_chances))
-    return order_game_lines(rows + alt_spread_rows(rows, ladder))
+    if win_chances is None:
+        return order_game_lines(rows + alt_spread_rows(rows, ladder))
+    _ml = [r for r in rows if r.get("market") == "moneyline"]
+    rows = one_side.keep(_ml, one_side.by_names(win_chances))[0] + [r for r in rows if r.get("market") != "moneyline"]
+    # `[Sam, 2026-10-16]` "Must match the score": every spread, alternate spread and total
+    #    row lands on the side of the model's predicted score (win_chances' `score`).
+    _score = one_side.scores_by_names(win_chances)
+    rows, _ = one_side.score_keep(rows + alt_spread_rows(rows, ladder, _score, sigma), _score)
+    return order_game_lines(rows)
 
 
 def build_top_plays(rows, board, n=TOP_N):
@@ -2446,7 +2478,8 @@ def main():
     except Exception:
         _model = {}
     _gl_all, gl_meta = (build_game_lines(_gl_snap, n=None, slate=_gl_slate,
-                                         winner=one_side.by_names(_model.get("win_chances") or []))
+                                         winner=one_side.by_names(_model.get("win_chances") or []),
+                                         score=one_side.scores_by_names(_model.get("win_chances") or []))
                         if _gl_snap
                         else ([], {"games_seen": 0, "comparable_quotes": 0,
                                    "games_with_an_edge": 0,
@@ -2466,7 +2499,8 @@ def main():
     #    which is a props day and had started (0 rows for 10-01, 37 picks on 10-04).
     game_lines = card_game_lines(_model.get("picks"), (B.get("games") or [])
                                  + ((_gl_snap or {}).get("games") or []), _ladder, _gl_slate,
-                                 win_chances=_model.get("win_chances") or [])
+                                 win_chances=_model.get("win_chances") or [],
+                                 sigma=((_model.get("pricing") or {}).get("sigma") or {}).get("spread"))
     gl_meta = {"source": "fb-model.json", "slate": _gl_slate, "card_slate": slate,
                "is_next_slate": _gl_slate != slate, "price_floor": PRICE_FLOOR,
                "min_confidence": GL_MIN_CONF, "model_cap": GAME_LINES_MAX,

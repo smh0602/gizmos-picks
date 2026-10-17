@@ -221,7 +221,10 @@ _picks5 = [_mp(g, at) for g, at in (("sat", "2026-09-19T17:00:00Z"),
                                     ("sat2", "2026-09-26T17:00:00Z"))]
 # `[2026-10-16]` main hands the list the model file's win chances (one team per game, Sam);
 #    every planted pick is the home side, so the home team is each game's expected winner.
-_wc5 = [{"away": "Away %s" % g, "home": "Home %s" % g, "p_home": 60.0} for g in ("sat", "thu", "sat2")]
+#    `[Sam, 2026-10-16]` "Must match the score": each game also carries the model's predicted
+#    score, on the home side (home by 4), so every planted spread stays and the day is what is asked.
+_wc5 = [{"away": "Away %s" % g, "home": "Home %s" % g, "p_home": 60.0, "score": {"home": 24.0, "away": 20.0}}
+        for g in ("sat", "thu", "sat2")]
 # the card as it was published on Saturday: its own day's rows, started now
 _old_rows = C.card_game_lines(_picks5, [], {}, _card_day, win_chances=_wc5)
 _pubcard = {"date": _card_day, "game_lines_meta": {"slate": _card_day}, "game_lines": _old_rows}
@@ -258,9 +261,11 @@ _main = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
 _main = _main[_main.index("\ndef main("):]
 ck("🔴 ...and `card_fb.main` still composes the list exactly that way",
    "_gl_slate = (next_line_slate(_gl_snap) or slate) if _gl_snap else slate" in _main
-   # `[2026-10-16]` ~~"_ladder, _gl_slate)"~~: main now also passes the win chances.
+   # `[2026-10-16]` ~~"_ladder, _gl_slate)"~~: main now also passes the win chances,
+   # and the score's spread (sigma) the alternates are priced with ("Yes, everywhere", Sam)
    and "game_lines = card_game_lines(" in _main and "_ladder, _gl_slate," in _main
-   and 'win_chances=_model.get("win_chances") or [])' in _main
+   and 'win_chances=_model.get("win_chances") or [],' in _main
+   and 'sigma=((_model.get("pricing") or {}).get("sigma") or {}).get("spread"))' in _main
    and '"is_next_slate": _gl_slate != slate' in _main and "freeze_published(" in _main,
    "⛔ a built card composed differently from main's would prove nothing "
    "about the card main writes")

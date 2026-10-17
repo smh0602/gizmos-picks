@@ -205,11 +205,12 @@ def score_agrees(r, s):
     if mk in SPREADS + ("moneyline",) and side in ("home", "away"):
         m = s[side] - s["away" if side == "home" else "home"]
         if mk == "moneyline":
-            return m > 0
-        return r.get("line") is not None and m + float(r["line"]) > 0
+            return round(m, 6) > 0
+        # ⚠️ rounded: 21.1 - 14.1 - 7 is 1.8e-15 in binary, which is ON the number
+        return r.get("line") is not None and round(m + float(r["line"]), 6) > 0
     if mk in TOTALS and side in ("over", "under") and r.get("line") is not None:
-        t = s["home"] + s["away"]
-        return t > r["line"] if side == "over" else t < r["line"]
+        d = round(s["home"] + s["away"] - float(r["line"]), 6)
+        return d > 0 if side == "over" else d < 0
     return False
 
 
