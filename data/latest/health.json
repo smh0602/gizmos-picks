@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-17T00:51:51Z",
+ "checked_at": "2026-10-17T01:11:05Z",
  "et_date": "2026-10-16",
  "healthy": false,
  "broken": 0,
- "degraded": 14,
+ "degraded": 13,
  "findings": [
   {
    "key": "fresh:nfl",
@@ -25,13 +25,6 @@
    "severity": "DEGRADED",
    "what": "mlb gamelines was built 75 minutes after it was due",
    "why": "due 2026-10-16T20:00Z, built 2026-10-16T21:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:news:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb news was built 130 minutes after it was due",
-   "why": "due 2026-10-16T19:05Z, built 2026-10-16T21:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -113,7 +106,7 @@
   "pulled_at": "2026-10-16T22:22:32Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.5,
+  "reading_age_hours": 2.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-16T22:22:07Z",
   "source": "data/ncaaf/2026-10-16/gamelines/2222.json.gz",
