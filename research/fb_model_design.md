@@ -85,10 +85,20 @@ drifting toward whatever the first record happens to reward.
   model is trained on games that kicked off **before that Monday**, then
   asked about the week.
 - **The challenger starts** only once ≥ 150 labelled games precede the week,
-  per league and market.
+  ~~per league and market~~ `[Sam, 2026-10-16]` per league on the MONEYLINE fit:
+  a spread or total pick comes from the predicted score, which needs only the win
+  chance (the total fit is used when it exists, the row's own total when it does
+  not), so a spread pick never needs the spread fit. Rule "fits" (the signal-9
+  report) keeps the per-market start.
 - **Pick rule:** for each side, take the best price among the three books,
   and compute EV = p × decimal − 1. Pick the side with the higher EV if it
   is above 0. At most one pick per game per market.
+  `[Sam, 2026-10-16]` For a spread or total, p comes FROM the predicted score
+  (Normal(predicted margin or total, the spread of results around the model's
+  own numbers, from the training games)) and the side is the one the score
+  covers, ~~p from that market's own fit~~; a moneyline pick stays only on the
+  expected winner. The live list and the walk-forward record use this one rule
+  (`fb_model.shown_pick`).
 - **The record** per league × market shows:
   - picks and hits (a push is void and left out);
   - hit rate, and the mean break-even of the prices taken;
@@ -148,3 +158,9 @@ Rock, FanDuel and DraftKings only. Add a SEPARATE record, labelled
 - **2026-09-23:** §4b added on Sam's instruction: a second, separate
   record graded at closing lines. The headline record is unchanged, and
   its numbers were re-checked identical after the change.
+- **2026-10-16:** §4's pick rule amended on Sam's instruction ("Yes,
+  everywhere", "lets do both"): spreads and totals from the predicted score,
+  moneylines only on the expected winner, in the live list AND the
+  walk-forward record. The old rule is kept only for the pre-registered
+  signal-9 report. §4's start rule amended with it (the moneyline fit starts
+  every market's picks).

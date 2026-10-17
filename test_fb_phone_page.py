@@ -84,8 +84,8 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #
 # @vacuity 🔴 the predicted score never touches a chance
 #   file: fb_model.py
-#   find:             out[-1]["score"] = predicted_score(
-#   with:             out[-1]["p_home"] = 50.0; out[-1]["score"] = predicted_score(
+#   find:             out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt}, sigma, sigma_t)[1]
+#   with:             out[-1]["p_home"] = 50.0; out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt}, sigma, sigma_t)[1]
 #
 # @vacuity 🔴 a football prop row wraps on a phone
 #   file: index.html

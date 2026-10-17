@@ -61,6 +61,11 @@
 #   file: fb_model.py
 #   find:             "hit_rate": L(round(100 * rate, 1) if rate is not None else None, "DESCRIPTIVE"),
 #   with:             "hit_rate": round(100 * rate, 1) if rate is not None else None,
+#
+# @vacuity BOTH rules grade each record at its own prices (the "fits" rule: signal 9's report)
+#   file: fb_model.py
+#   find:                     pk = (best_pick(r, mk, models[mk], quotes) if rule == "fits"
+#   with:                     pk = (best_pick(r, mk, models[mk], book_quotes) if rule == "fits"
 """
 import datetime
 import json
@@ -273,8 +278,12 @@ for i in range(230):
                  "close": {"spread": [(3.0, -110, -110, True)],
                            "total": [(44.5, -110, -110, True)],
                            "moneyline": [(None, -150, 130, False)]},
+                 # `[Sam, 2026-10-16]` the record grades the SHOWN rule: a spread or total comes
+                 #    from the predicted score, which needs the own margin / total every real row
+                 #    has carried since 2026-10-11 (~~none: the spread fit priced it alone~~)
                  "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None,
-                         "def": None, "poss": None, "out": None, "neutral": 0.0, "dome": 0.0}})
+                         "def": None, "poss": None, "out": None, "neutral": 0.0, "dome": 0.0,
+                         "own_m": 5.0, "own_t": 44.0}})
 _orig_rows, _orig_cur, _orig_log = F.build_rows, F.current_picks, F.log
 _tmp = os.path.join(tempfile.mkdtemp(), "fb-model.json")
 try:
@@ -305,6 +314,18 @@ _bare2 = [k for k, v in _cs.items()
           if k not in ("first_graded", "last_graded", "price_note")
           and not (isinstance(v, dict) and v.get("basis") in F.BASES)]
 ck(not _bare2, "   ⚠️ ...and every number in it carries its basis", "unlabelled: %s" % _bare2)
+# `[2026-10-16]` the record above is the SHOWN rule; the "fits" rule (each fit's own pick, kept
+#    for the pre-registered signal-9 report) keeps the same two-record guarantee
+for _rule in F.RULES:
+    _w = F.walk_forward(_syn, rule=_rule)
+    _hb = {mk: F.record(_w["books"][mk]) for mk in F.MARKETS}
+    _hc = {mk: F.record(_w["closing"][mk]) for mk in F.MARKETS}
+    ck(all(_hb[mk]["picks"]["value"] == 0 for mk in F.MARKETS)
+       and all(_hc[mk]["picks"]["value"] > 0 for mk in F.MARKETS)
+       and all(p.get("assumed") for p in _w["closing"]["spread"]),
+       "🔴 rule %r: the closing record is graded at closing prices (spreads at the assumed -110), "
+       "the headline record never" % _rule,
+       {mk: (_hb[mk]["picks"]["value"], _hc[mk]["picks"]["value"]) for mk in F.MARKETS})
 
 # the page: its own table, UNDER the headline, reading only its own key
 import jsblock  # noqa: E402

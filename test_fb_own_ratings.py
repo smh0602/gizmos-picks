@@ -75,8 +75,8 @@ leagues and rows only; nothing here reads the live data tree.
 #
 # @vacuity 🔴 every game-market fit passes zmax
 #   file: fb_model.py
-#   find: model = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
-#   with: model = fit([x for x, _ in data], [y for _, y in data])
+#   find: models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)    # the week's fit
+#   with: models[mk] = fit([x for x, _ in data], [y for _, y in data])    # the week's fit
 """
 import atexit
 import datetime
