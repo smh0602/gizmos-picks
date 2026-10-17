@@ -47,8 +47,8 @@ only; ⛔ reads nothing live.
 #
 # @vacuity 🔴 the football model's pick list keeps only the expected winner's moneyline
 #   file: fb_model.py
-#   find:     out = one_side.keep(_ml, lambda p: exp.get(p["game_id"]))[0] + _rest
-#   with:     out = _ml + _rest
+#   find:     return pk if pk and pk["side"] == one_side.expected_side(ph) else None
+#   with:     return pk
 #
 # @vacuity 🔴 ...and a game with no win chance keeps no side pick
 #   file: card_fb.py
@@ -57,8 +57,8 @@ only; ⛔ reads nothing live.
 #
 # @vacuity 🔴 ...and the expected winner is the MONEYLINE fit's pick to win, as win_chances'
 #   file: fb_model.py
-#   find:         _ph = (round(100 * predict(models["moneyline"], features(r, "moneyline")), 1)
-#   with:         _ph = (round(100 * predict(models["spread"], features(r, "spread")), 1)
+#   find:     ph = round(100 * predict(m, features(r, "moneyline")), 1) if m else None
+#   with:     ph = round(100 * predict(models["spread"], features(r, "spread")), 1) if models.get("spread") else None
 #
 # @vacuity 🔴 the card's game lines keep only the expected winner's moneyline
 #   file: card_fb.py

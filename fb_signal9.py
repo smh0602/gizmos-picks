@@ -124,6 +124,8 @@ def score_game(lg, rows):
     pairs = [(logloss(p, y), logloss(p1[k][0], y), "%s:%s" % (lg, k[0])) for k, (p, y) in p0.items() if k in p1]
     rec = {}
     for v, flag in (("without", False), ("with", True)):
-        wf = _with_flag(F, "S9_GAME", flag, lambda: F.walk_forward(rows), lg)
+        # `[2026-10-16]` the fits' own picks (rule "fits"), as when signal 9 was scored:
+        #    the Model picks record switched to the shown rule, this pre-registered report did not
+        wf = _with_flag(F, "S9_GAME", flag, lambda: F.walk_forward(rows, rule="fits"), lg)
         rec[v] = {name: {mk: F.record(wf[name][mk]) for mk in F.MARKETS} for name in ("books", "closing")}
     return keep_rule(pairs), rec

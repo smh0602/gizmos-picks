@@ -273,8 +273,12 @@ for i in range(230):
                  "close": {"spread": [(3.0, -110, -110, True)],
                            "total": [(44.5, -110, -110, True)],
                            "moneyline": [(None, -150, 130, False)]},
+                 # `[Sam, 2026-10-16]` the record grades the SHOWN rule: a spread or total comes
+                 #    from the predicted score, which needs the own margin / total every real row
+                 #    has carried since 2026-10-11 (~~none: the spread fit priced it alone~~)
                  "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None,
-                         "def": None, "poss": None, "out": None, "neutral": 0.0, "dome": 0.0}})
+                         "def": None, "poss": None, "out": None, "neutral": 0.0, "dome": 0.0,
+                         "own_m": 5.0, "own_t": 44.0}})
 _orig_rows, _orig_cur, _orig_log = F.build_rows, F.current_picks, F.log
 _tmp = os.path.join(tempfile.mkdtemp(), "fb-model.json")
 try:

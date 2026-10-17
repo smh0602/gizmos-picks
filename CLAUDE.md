@@ -513,7 +513,7 @@ note boxes, tags and the stale bar now require their absence.
   *"Must match the score"*, then: *"if your saying that purdue will win 25-23, that means gizmos
   picks should like the +3.5 spread for washington"* and *"Yes, everywhere"*.
   `fb_model.score_pick` makes `current_picks`' spread and total picks (the Model picks table, the
-  ledger's snapshots, the card's source): at each quote, the side the predicted margin or total
+  ledger's snapshots, the card's source) through `fb_model.shown_pick`: at each quote, the side the predicted margin or total
   covers, its chance Normal(that margin or total, `score_sigma` / `total_sigma`), the best value
   above zero (~~the spread and total fits' `best_pick`, then `one_side.score_keep` after the
   one-team filter~~). The card's alternate spread is priced from the same score with fb-model.json's
@@ -521,8 +521,10 @@ note boxes, tags and the stale bar now require their absence.
   `card_fb.card_game_lines` and `build_game_lines` (each game's best same-game-parlay line leg on
   the score's side). Landing ON the number is not its side, compared after rounding (21.1 - 14.1 -
   7 is 1.8e-15 in binary); `fb_why.score_agrees` does the same; no score, no pick. ⛔ Never inside
-  `best_pick`: `walk_forward`'s graded record and verdict still grade the spread and total fits
-  (changing what they grade is Sam's call). The Game Lines tab prints the score to one decimal
+  `best_pick`: ~~`walk_forward`'s graded record and verdict still grade the spread and total fits
+  (changing what they grade is Sam's call)~~ `[Sam, 2026-10-16]` *"lets do both"*: the graded
+  record and verdict replay the shown rule too (see THE MODEL PICKS RECORD GRADES WHAT THE SITE
+  SHOWS). The Game Lines tab prints the score to one decimal
   (~~whole numbers~~), the precision picks are judged on. `test_one_side_score.py`.
 - 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`
   NWS kickoff forecasts (`fb_weather.py`), CFBD venues / advanced stats (garbage
@@ -656,20 +658,38 @@ note boxes, tags and the stale bar now require their absence.
   alternate follow the predicted score instead, which can back the expected loser (Purdue
   25-23 => Washington +3.5): see A FOOTBALL SPREAD OR TOTAL PICK COMES FROM THE PREDICTED SCORE. It runs AFTER each market's own pick in
   `fb_model.current_picks` (the Model picks table, the ledger's snapshots, the card's
-  source), `card_fb.card_game_lines` (~~before the alternate spreads, so they follow~~
+  source; `[2026-10-16]` inside `fb_model.shown_pick`, which the graded record replays too), `card_fb.card_game_lines` (~~before the alternate spreads, so they follow~~
   moneylines only), the same-game parlays' line legs (`build_game_lines`: each game's best
   ALLOWED leg; a moneyline leg on the winner, a spread leg on the score's side), and
   `card.game_line_rows` (MLB, by `win`); when the MLB game model is rebuilt on its own
   (`game-model`), `card.refilter_game_lines` removes a published, unstarted row no longer
   on the new expected winner (~~the card's game lines stay as built~~). ⛔ Never inside
-  `fb_model.best_pick`: `walk_forward`'s graded record replays it per market and stays as
-  it was. ⛔ It only removes; a published or frozen row is never edited (the ledger keeps
+  `fb_model.best_pick` (the pre-registered lambda test reads it): ~~`walk_forward`'s graded
+  record replays it per market and stays as it was~~ `[Sam, 2026-10-16]` the graded record
+  replays `shown_pick`. ⛔ It only removes; a published or frozen row is never edited (the ledger keeps
   what it showed). `verify_card.py` fails an MLB card whose unstarted game lines back both
   teams or the other team (judged on the model main() built them from, `LAST_GAME_MODEL`).
-  ⚠️ The Model picks panel's record tables and verdict (`walk_forward`) still grade the old
-  per-market rule, both sides included: changing what they grade is Sam's call. Measured that day: 18 of 55 college and 5 of 13 NFL games in the
+  ~~⚠️ The Model picks panel's record tables and verdict (`walk_forward`) still grade the old
+  per-market rule, both sides included: changing what they grade is Sam's call.~~ `[Sam,
+  2026-10-16]` They grade the shown rule now: see THE MODEL PICKS RECORD GRADES WHAT THE SITE
+  SHOWS. Measured that day: 18 of 55 college and 5 of 13 NFL games in the
   model's list, 6 of 11 MLB games with game lines. `test_one_side.py`,
   `test_mlb_game_lines.py`.
+- 🔴 **THE MODEL PICKS RECORD GRADES WHAT THE SITE SHOWS.** `[Sam, 2026-10-16]` Offered a
+  switch of the record from the old fits to the score-based picks and a backtest of them, he
+  said *"lets do both"* and *"i want whatever the models score predictions are to directly
+  correlate with any gameline picks the model chooses"*. `fb_model.shown_pick` is the ONE pick
+  rule: a spread or total FROM the predicted score (`score_pick`), a moneyline only on the
+  expected winner. `current_picks` (the live list) and `walk_forward` (the Model picks record,
+  its closing-line record and the verdict, `fb_model_live_spec.md`'s rule unchanged) both call
+  it; each week's score uses that week's fits and a spread of results (`score_sigma`,
+  `total_sigma`) from its TRAINING games only. `fb_model.game_score` is the one place the win
+  chance and score are made (the Game Lines tab, the list, the record). ⛔ `walk_forward(rows,
+  rule="fits")` (each fit's own `best_pick`, both sides) stays ONLY for the pre-registered
+  signal-9 report (`fb_signal9`), which must score what it scored; `best_pick` is unchanged
+  (the lambda test). The record is recomputed each build, so its past numbers changed with the
+  switch (Sam's choice). `test_fb_model_record.py` builds the same games once upcoming and once
+  played and fails if the record and the list ever pick differently.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the

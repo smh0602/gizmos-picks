@@ -684,6 +684,38 @@ def best_pick(r, market, model, quotes=book_quotes):
     return best if best and best["ev"] > 0 else None
 
 
+def game_score(r, models, sigma, sigma_t):
+    """`[Sam, 2026-10-16]` -> (p_home %, predicted score or None): the ONE place a game's
+    win chance and predicted score are made, read by the Game Lines tab (`win_chances`),
+    the live pick list (`current_picks`) and the graded record (`walk_forward`), so all
+    three print and pick on the same score. p_home is the moneyline fit's chance rounded to
+    0.1 (the tab's number); the score is `predicted_score` with the total fit's chance at
+    the row's own line."""
+    m, mt = models.get("moneyline"), models.get("total")
+    ph = round(100 * predict(m, features(r, "moneyline")), 1) if m else None
+    sc = (predicted_score(r, ph / 100.0, sigma,
+                          predict(mt, features(r, "total")) if mt and r.get("T") is not None else None,
+                          sigma_t)
+          if ph is not None and isinstance(r.get("sig"), dict) else None)
+    return ph, sc
+
+
+def shown_pick(r, market, models, sigma, sigma_t, quotes=None):
+    """`[Sam, 2026-10-16]` "i want whatever the models score predictions are to directly
+    correlate with any gameline picks the model chooses": the ONE pick rule the site shows,
+    read by the live pick list (`current_picks`) AND the graded record (`walk_forward`), so
+    the record grades exactly what is shown. A spread or total comes FROM the predicted
+    score (`score_pick`, "Yes, everywhere"); a moneyline is `best_pick`'s and stays only on
+    the expected winner, the team the score has winning (one_side, "one team per game").
+    -> best_pick's dict, or None."""
+    q = quotes or book_quotes
+    ph, sc = game_score(r, models, sigma, sigma_t)
+    if market in ("spread", "total"):
+        return score_pick(r, market, sc, sigma if market == "spread" else sigma_t, q)
+    pk = best_pick(r, market, models.get(market), q)
+    return pk if pk and pk["side"] == one_side.expected_side(ph) else None
+
+
 def grade(r, market, pick):
     """True / False / None (push or not final)."""
     if not r["final"] or r["hs"] is None:
@@ -713,30 +745,44 @@ def monday(day):
 
 
 RECORDS = (("books", book_quotes), ("closing", closing_quotes))
+RULES = ("shown", "fits")
 
 
-def walk_forward(rows):
+def walk_forward(rows, rule="shown"):
     """-> {"books": {market: [pick rows]}, "closing": {...}} graded week by
     week, trained only on games that kicked off before each week's Monday.
 
     Both records come from the SAME weekly model and the SAME pick rule;
-    only the prices differ. ⛔ They are kept apart, never summed."""
+    only the prices differ. ⛔ They are kept apart, never summed.
+
+    `[Sam, 2026-10-16]` rule "shown" (the default: the Model picks record and its
+    verdict) replays the ONE rule the site shows, `shown_pick`: spreads and totals FROM
+    that week's predicted score, a moneyline only on its expected winner. The score's
+    spread (`score_sigma`, `total_sigma`) comes from that week's TRAINING games only, as
+    every fit does. ~~each market's own fit through `best_pick`, both sides~~ is rule
+    "fits", kept only for the pre-registered signal-9 scoring (fb_signal9) and the
+    backtest beside it. ⛔ `best_pick` itself is unchanged (the lambda test reads it)."""
+    assert rule in RULES, rule
     weeks = collections.defaultdict(list)
     for r in rows:
         weeks[monday(r["day"])].append(r)
     out = {name: {mk: [] for mk in MARKETS} for name, _q in RECORDS}
     for wk in sorted(weeks):
         train = [r for r in rows if r["day"] < wk]
+        models = {}
         for mk in MARKETS:
             data = [(features(r, mk), label(r, mk)) for r in train if label(r, mk) is not None]
-            model = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
-            if not model:
+            models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)    # the week's fit
+        sigma, sigma_t = score_sigma(train), total_sigma(train)      # ⛔ training games only
+        for mk in MARKETS:
+            if not models[mk if rule == "fits" else "moneyline"]:     # the score needs the win chance
                 continue
             for r in weeks[wk]:
                 if not r["final"]:
                     continue
                 for name, quotes in RECORDS:
-                    pk = best_pick(r, mk, model, quotes)
+                    pk = (best_pick(r, mk, models[mk], quotes) if rule == "fits"
+                          else shown_pick(r, mk, models, sigma, sigma_t, quotes))
                     if not pk:
                         continue
                     won = grade(r, mk, pk)
@@ -813,28 +859,18 @@ def current_picks(lg, rows, root=None, now=None):
     for mk in MARKETS:
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
         models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
-    out, exp, sc = [], {}, {}
+    out = []
     sigma, sigma_t = score_sigma(rows), total_sigma(rows)
     for r in rows:
         snap = r["snap"]
         if r["final"] or not snap or not (now < snap["commence"] <= horizon):
             continue
         hname, aname = snap["names"]
-        # `[Sam, 2026-10-16]` the Game Lines tab's pick to win: `win_chances`' number from
-        #    the same moneyline fit, rounded the same way...
-        _ph = (round(100 * predict(models["moneyline"], features(r, "moneyline")), 1)
-               if models.get("moneyline") else None)
-        exp[r["id"]] = one_side.expected_side(_ph)
-        # ...and its predicted score, exactly as `win_chances` makes it (the same fits)
-        sc[r["id"]] = (predicted_score(r, _ph / 100.0, sigma,
-                                       predict(models["total"], features(r, "total"))
-                                       if models.get("total") and r.get("T") is not None else None, sigma_t)
-                       if _ph is not None and isinstance(r.get("sig"), dict) else None)
         for mk in MARKETS:
-            # `[Sam, 2026-10-16]` "Yes, everywhere": a spread or total pick comes FROM the
-            #    predicted score (`score_pick`), never from the separate spread / total fits
-            pk = (score_pick(r, mk, sc[r["id"]], sigma if mk == "spread" else sigma_t)
-                  if mk in ("spread", "total") else best_pick(r, mk, models[mk]))
+            # `[Sam, 2026-10-16]` the ONE rule the site shows and the record grades
+            #    (`shown_pick`): spreads and totals FROM the predicted score the Game Lines
+            #    tab prints (`game_score`), a moneyline only on its expected winner
+            pk = shown_pick(r, mk, models, sigma, sigma_t)
             if pk:
                 out.append({"game": "%s at %s" % (aname, hname), "game_id": r["id"],
                             "commence": snap["commence"], "market": mk, "side": pk["side"],
@@ -846,15 +882,9 @@ def current_picks(lg, rows, root=None, now=None):
                             "break_even": L(round(100 * pk["break_even"], 1), "MARKET"),
                             "edge": L(round(100 * pk["ev"], 1), "MODEL"),
                             "priced_at": snap["pulled_at"]})
-    # 🔴 `[Sam, 2026-10-16]` ONE TEAM PER GAME. "we can't have our model choosing both
-    #    sides at once" (Washington moneyline +150 beside Purdue -3.5): a moneyline stays
-    #    only on the team the Game Lines tab picks to win. ⛔ AFTER each market's own pick,
-    #    never inside best_pick: walk_forward's graded record replays it. ~~or spread~~: a
-    #    spread follows the predicted score (Purdue 25-23 => Washington +3.5, Sam).
-    _ml, _rest = [p for p in out if p["market"] == "moneyline"], [p for p in out if p["market"] != "moneyline"]
-    out = one_side.keep(_ml, lambda p: exp.get(p["game_id"]))[0] + _rest
-    # `[Sam, 2026-10-16]` every spread or total pick sits on the predicted score's side by
-    #    construction (`score_pick`), ~~filtered after the fits' own picks~~.
+    # 🔴 `[Sam, 2026-10-16]` ONE TEAM PER GAME and "Yes, everywhere" both live in
+    #    `shown_pick` (~~a one_side.keep pass here, after each market's own pick~~), the
+    #    rule walk_forward's graded record replays too. ⛔ Never inside best_pick.
     return sorted(out, key=lambda x: (x["commence"], x["game"], x["market"]))
 
 
@@ -962,9 +992,7 @@ def win_chances(rows, now=None, scores=True):
                     "p_home": round(100 * p, 1), "p_away": round(100 * (1 - p), 1),
                     "best_ml": best})
         if scores:
-            out[-1]["score"] = predicted_score(
-                r, out[-1]["p_home"] / 100.0, sigma,
-                predict(mt, features(r, "total")) if mt and r.get("T") is not None else None, sigma_t)
+            out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt}, sigma, sigma_t)[1]
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 

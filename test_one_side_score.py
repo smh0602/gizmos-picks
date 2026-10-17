@@ -62,8 +62,8 @@ rows; the real predicted_score, score_sigma and total_sigma; ⛔ reads nothing l
 #
 # @vacuity 🔴 the live pick list takes its spreads and totals from the score, never the fits
 #   file: fb_model.py
-#   find:             pk = (score_pick(r, mk, sc[r["id"]], sigma if mk == "spread" else sigma_t)
-#   with:             pk = (best_pick(r, mk, models[mk])
+#   find:         return score_pick(r, market, sc, sigma if market == "spread" else sigma_t, q)
+#   with:         return best_pick(r, market, models.get(market), q)
 #
 # @vacuity 🔴 the card's game lines and alternate spreads are judged by the score
 #   file: card_fb.py
