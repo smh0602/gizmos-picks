@@ -19,12 +19,12 @@
   "2026-10-03: on Sam's instruction of 2026-10-01 (\"remove the game lines standalone tab with moneyline predictions, in this tab you will simply just give the models pick on whos going to win the game outright. do this for all leagues\"): RE-BASELINED, and ONLY renderRecord, show. show dispatches MLB's new Game Lines tab (renderGameLines); renderRecord adds the winners' own line (winnersRecordLine). The new functions (winnersLoad, winnersRecordLine, winnersHtml, renderGameLines) are not frozen.",
   "2026-10-09: on Sam's instruction the same day (\"Where fb_props_model prices a prop on the card ... the row's confidence is the model's probability\"): RE-BASELINED, and ONLY pickCard. A football prop row (kind 'fb') whose confidence the props model set is labelled MODEL, so its unit is its market_label (the MLB pitcher branch would have printed 'Outs'). Every MLB row renders as before: no MLB row has kind 'fb'. Driven in node by test_fb_props_confidence.py. Digest ff35f8f34213feeb72e18c13 -> dfe0247dd06a48fdecddeb39. No CSS rule changed. Every other digest is unchanged.",
   "2026-10-17: on Sam's instruction the same day (\"i only want the board hit % to be shown ... all in all wed have 3 different hit rate % shows at the top of the track record tab, board(all picks), player props(only player props), and game line(only game lines)\"; asked about MLB's panels he chose \"Remove both\" and, below the three, \"Just the by-date lists\"): RE-BASELINED renderRecord (three hit rates, the props by day, the game lines by day) and REMOVED bandRow, refitPanel and labN (the number helper refitPanel and football's model panels printed through, left with them), whose panels ('Does the confidence number mean anything?', 'Is v5.0 still the best version?') left the page. record.json, its calibration and mlb-refit.json are still built.",
-  "2026-10-17: on Sam's instruction the same day (\"i like the light blue on i think that oone is good\", choosing design I of the layouts he was shown: a white page, a navy side panel holding the logo, the league switch and the one tab bar, royal blue #2449B8 as the second colour, IBM Plex; the same look for all three leagues, so MLB's page changes with football's on purpose): RE-BASELINED, and ONLY these: functions pickCard, renderPicks, renderProps; CSS rules #tick, .bxh, .c-hi, .c-lo, .c-mid, .cell.best, .conf, .conf .n, .conf.norate, .ev, .fbctl label, .fbctl select, .fl, .kchip, .kchip.on, .kchip.on span, .kchip:hover, .lgnav, .lgnav a, .lgnav a.on, .lgnav a:hover, .lgnav ul, .logo, .logo span, .mast, .panel, .panel h2, .pk, .pk-b, .pk-b li, .pk-b ul, .pk-h, .pk-px, .pk-px .bk, .pk-px .px, .pk-t .meta, .pk-t .play, .rung.star, .subnav, .subnav a, .subnav a.off, .subnav a.off:hover, .subnav a.on, .subnav a:hover, .t10, .t10 .c, .t10 .p, .t10 .r, .t10 .w, .t10 .w b, .tagline, .tools, .tools h1, .warmbadge, :root, a.cell.best:hover, body, table.bx th, table.fbt th; REMOVED .conf .l, .t10 > div:nth-last-child(-n+4); ADDED, pinned from birth: .conf .cb, .conf .cb i, .pk-be, .pk-be b, .pk-be b.eg-pos, .pk-px .bklink, .pk-px .bklink .bk-chip, .pk-t .play .pl, .pk-t .play .pn, .t10 .tg, .t10 .tl, .t10 .tl::before, .t10 .tr, .t10 > div:last-child, @media(max-width:820px), @media(min-width:821px). The look changes, and the rows say what they said in a new arrangement: the confidence is a number and a bar, the pick line sits under the player, the book is the bet link (SET STATE kept), and every row above its price prints \"Break-even x%\" and \"Edge +y\" (the card's own edge, green only above zero; a row below its price keeps its C8 line). No number, pick, rank, price or control is added, dropped or recomputed. Every other digest is unchanged."
+  "2026-10-17: on Sam's instruction the same day (\"i like the light blue on i think that oone is good\", choosing design I of the layouts he was shown: a white page, a navy side panel holding the logo, the league switch and the one tab bar, royal blue #2449B8 as the second colour, IBM Plex; the same look for all three leagues, so MLB's page changes with football's on purpose): RE-BASELINED, and ONLY these: functions pickCard, renderFootball, renderPicks, renderProps; CSS rules #tick, .bxh, .c-hi, .c-lo, .c-mid, .cell.best, .conf, .conf .n, .conf.norate, .ev, .fbctl label, .fbctl select, .fbt .rk, .fbthin td, .fl, .kchip, .kchip.on, .kchip.on span, .kchip:hover, .lgnav, .lgnav a, .lgnav a.on, .lgnav a:hover, .lgnav ul, .logo, .logo span, .mast, .panel, .panel h2, .pk, .pk-b, .pk-b li, .pk-b ul, .pk-h, .pk-px, .pk-px .bk, .pk-px .px, .pk-t .meta, .pk-t .play, .rung.star, .subnav, .subnav a, .subnav a.off, .subnav a.off:hover, .subnav a.on, .subnav a:hover, .t10, .t10 .c, .t10 .p, .t10 .r, .t10 .w, .t10 .w b, .tagline, .tools, .tools h1, .warmbadge, :root, a.cell.best:hover, body, table.bx th, table.fbt th; REMOVED .conf .l, .t10 > div:nth-last-child(-n+4); ADDED, pinned from birth: .conf .cb, .conf .cb i, .pk-be, .pk-be b, .pk-be b.eg-pos, .pk-px .bklink, .pk-px .bklink .bk-chip, .pk-t .play .pl, .pk-t .play .pn, .t10 .tg, .t10 .tl, .t10 .tl::before, .t10 .tp, .t10 .tr, .t10 > div:last-child, @media(max-width:820px), @media(min-width:821px). The look changes, and the rows say what they said in a new arrangement: the confidence is a number and a bar, the pick line sits under the player, the book is the bet link (SET STATE kept), and every row above its price prints \"Break-even x%\" and \"Edge +y\" (the card's own edge, green only above zero; a row below its price keeps its C8 line). Two things show that did not: an MLB row prints the card's own edge beside its break-even (football rows already did, through the retired fbEdgeLine), and a football row prints its kickoff time. Text that measured under 4.5:1 now reads (the '@' between teams, Trends' rank column, sort arrows and thin-sample rows). Nothing is recomputed, and no pick, rank, price or control is added or dropped. Every other digest is unchanged."
  ],
  "_source_commit": "407afad",
  "_counts": {
   "functions": 46,
-  "css_rules": 306
+  "css_rules": 307
  },
  "functions": {
   "betControl": "1dbd04fb361b332ce4182d82",
@@ -57,11 +57,11 @@
   "priceCell": "a6c6920f0b12b9f92c0713bf",
   "projChip": "dad030a290a21573bcd37e5e",
   "propWhy": "f522af6abad85a597f4770f3",
-  "renderFootball": "c5fcfb0fcc727b53bf9268c4",
+  "renderFootball": "dc75cc0e477bac7ab646b089",
   "renderNews": "8492d62c439207cad438e104",
   "renderOdds": "7fd5f13d10cbdc7d3f71bfe3",
   "renderParlays": "edfb86d4d31da133cdaf1f8a",
-  "renderPicks": "5d36131a34868428c3334c81",
+  "renderPicks": "e7dce8f4b739c4efc20ea5b5",
   "renderProps": "f3d1bdf4a999e19f1d103cbf",
   "renderRecord": "8163724c0ee7fb04cb50720f",
   "renderScores": "74c121898bc78f50ff0beb5c",
@@ -135,8 +135,8 @@
   ".fbctl label": "e707776b8a716b9c095caf63",
   ".fbctl select": "1ace631672a547ffd0da7968",
   ".fbt .n": "558fdb206e7c074d3ec787e6",
-  ".fbt .rk": "eb09c63416d82b7ebbf35892",
-  ".fbthin td": "5cb54e1ee832812c99b33f39",
+  ".fbt .rk": "afae50a49a2730d8f85f2a5d",
+  ".fbthin td": "c9786da08f41b2c12a508ce9",
   ".fl": "fc804d027e67f754e592df6d",
   ".fresh": "da35649c6a3dbd7690ea3f93",
   ".fresh i": "d122ac897e891cdda73df646",
@@ -374,9 +374,10 @@
   ".pk-px .bklink .bk-chip": "cae9cf46d199e967dbf45e7f",
   ".pk-t .play .pl": "b53f8d95aa4cdd259fa66bde",
   ".pk-t .play .pn": "a8e3232c8a4c9f91cc58c3ef",
-  ".t10 .tg": "ea11922ce3cd0fe4cbc03a64",
+  ".t10 .tg": "5f3ad9a3173d4f12ca46bd4c",
   ".t10 .tl": "885779ded4c795c7fba11fe9",
   ".t10 .tl::before": "df4517b0a8f4c2bdb6a870a2",
+  ".t10 .tp": "eb99a4c193ede15d668aa34c",
   ".t10 .tr": "c727696ce3930a85378fac26",
   ".t10 > div:last-child": "94d299f9fceca265fa9b9a41",
   "@media(max-width:820px)": "4b1c8488c4055177c21366ba",
