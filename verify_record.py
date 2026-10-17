@@ -287,6 +287,12 @@ for _m, _v in glm.items():
     ck(f"game lines, {_m}, reproduce ({_v['w']}/{_v['n']})",
        (_v["w"], _v["n"]) == (_t.get("w"), _t.get("n")),
        f"record.json says {_t.get('w')}/{_t.get('n')}")
+# `[Sam, 2026-10-17]` the Board = the props + the game lines, never computed on the page
+_b = REC.get("board") or {}
+ck("the board is the props plus the game lines (%s/%s)" % (_b.get("w"), _b.get("n")),
+   (_b.get("w"), _b.get("n")) == (REC["overall"]["w"] + (_gl.get("w") or 0), REC["overall"]["n"] + (_gl.get("n") or 0))
+   and (not _b.get("n") or abs(round(100 * _b["w"] / _b["n"], 1) - _b["pct"]) < 0.05),
+   f"board {_b}, props {REC['overall']}, game lines {_gl.get('w')}/{_gl.get('n')}")
 ck("the game-line line names only moneyline and run line",
    set(_gl.get("by_market") or {}) == set(glm),
    f"by_market holds {sorted(_gl.get('by_market') or {})} -- totals only by Sam's decision")

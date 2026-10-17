@@ -18,10 +18,29 @@ for BOTH leagues, and asks the record and the page's own renderer the
 questions `test_record_fb.py` and `test_fb_record.py` ask:
   1. every graded row with a confidence is in exactly one method's buckets
   2. `calibration` is the current method's buckets, never a pool
-  3. the tab draws one labelled table per method, current first
-  4. no band on any table says "we said"
-  5. a method with nothing graded is REPORTED and says so on the page —
-     never a failure, never a blank
+  3. ~~the tab draws one labelled table per method, current first~~
+     the tab draws three hit rates, Board / Player props / Game lines, each
+     the rebuilt record's own (Board = every graded pick: props AND lines)
+  4. ~~no band on any table says "we said"~~ no band, no "Was the record
+     right?" and no method table on the tab at all; below the boxes only
+     the two by-date lists, each opening exactly the record's graded days
+  5. ~~a method with nothing graded is REPORTED and says so on the page~~
+     a method with nothing graded is still REPORTED (the record keeps its
+     buckets); on the page a box with nothing graded says so, never 0%
+
+`[Sam, 2026-10-17]` Questions 3-5 were rewritten to Sam's new Track Record,
+in all three leagues: *"in track record we should have a game lines tracker
+so we an track how the model does for game lines. lose the was the record
+right? section of it. i only want the board hit % to be shown(this is the 25
+player props and all the game lines hit %) and i want both hit % to be
+shown ... all in all wed have 3 different hit rate % shows at the top of the
+track record tab, board(all picks), player props(only player props), and
+game line(only game lines)"*; below the three he chose "Just the by-date
+lists". ⚠️ The DATA is unchanged and still checked: every method's buckets
+(questions 1-2) are still built and kept apart; only the page stopped
+drawing them. And the planted tree now carries game lines too, so the
+game-lines tracker is asked on every run, not only when the stored cards
+hold graded lines.
 
 ⚠️ THREE STATES OF THE STORED DATA, because the defect lived in a state
 the stored data was not in when the PR was tested:
@@ -44,7 +63,7 @@ import sys
 import tempfile
 from datetime import datetime, timedelta
 
-from tcheck import ck, eq, note, section
+from tcheck import ck, copy_module, eq, note, section
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from jsblock import js_block  # noqa: E402
@@ -72,15 +91,29 @@ PROBE_GRADED = "probe-second-method"
 #   find: _current = next((r.get("card_method") for d in reversed(days) for r in d["rows"]
 #   with: _current = next((r.get("card_method") for d in days for r in d["rows"]
 #
-# @vacuity the page must draw every method, not `calibration` alone
+# `[Sam, 2026-10-17]` ~~the page must draw every method, not `calibration`
+#    alone (`const order = [cur]`)~~ and ~~an empty method says so on the page
+#    (`fb-cal-empty`)~~: fbCalMethods and fbCalBlock left the page with "Was the
+#    record right?". Both declarations are re-aimed at the boxes that replaced it.
+# @vacuity 🔴 [Sam, 2026-10-17] the Board box reads the BOARD (props + game lines), not the props alone
 #   file: index.html
-#   find: const order = [cur, ...Object.keys(by).filter(m => m !== cur)];
-#   with: const order = [cur];
+#   find: const hero = `<div class="tr-hero">${trBox('Board', R && R.board)}${trBox('Player props', R && R.overall)}${
+#   with: const hero = `<div class="tr-hero">${trBox('Board', R && R.overall)}${trBox('Player props', R && R.overall)}${
 #
-# @vacuity an empty method says so on the page
+# @vacuity [Sam, 2026-10-17] a box with nothing graded says so, never "0 of 0"
 #   file: index.html
-#   find: return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">No graded
-#   with: return label ? `${head}<div class="fb-cal-empty" style="margin:0 0 8px;font-size:12.5px;color:var(--mut)">
+#   find: <div class="s">${t && t.n ? `${t.w} of ${t.n} graded` : 'nothing graded yet'}</div></div>`;
+#   with: <div class="s">${t && t.n ? `${t.w} of ${t.n} graded` : '0 of 0 graded'}</div></div>`;
+#
+# @vacuity 🔴 [Sam, 2026-10-17] the record's board counts the game lines as well as the props
+#   file: record_fb.py
+#   find: "board": tally(A + _gl_graded),
+#   with: "board": tally(A),
+#
+# @vacuity [Sam, 2026-10-17] the planted game lines are the ones the card SHOWED (its liked list)
+#   file: record_fb.py
+#   find: if "game_lines_liked" in card:
+#   with: if False:
 #
 # @vacuity 🔴 rule 67 on the planted tree: its three cards really are graded (the join settles them)
 #   file: record_fb.py
@@ -106,12 +139,63 @@ PLANT_METHOD = {"2026-09-26": "season-blend"}
 PLANT_FLOOR = "2026-09-01"
 PLANT_NAMES = ("Plant Alpha", "Plant Bravo", "Plant Charlie")
 
+# `[Sam, 2026-10-17]` THE PLANTED GAME LINES, for the game-lines tracker Sam asked for. Three
+#    final games in a planted schedule (schedule id -> away, home, kickoff, away pts, home pts)
+#    and the rows the first two cards showed, each with the result a hand reads off the final:
+#    True a hit, False a miss, None a push (void), "unshown" a row on the card's full list that
+#    its liked list (the page's) left out, which is never graded.
+PLANT_GAMES = {"PL1": ("Line Away 1", "Line Home 1", "2026-09-12T20:00:00Z", 20, 27),
+               "PL2": ("Line Away 2", "Line Home 2", "2026-09-19T20:00:00Z", 17, 21),
+               "PL3": ("Line Away 3", "Line Home 3", "2026-09-19T23:30:00Z", 20, 24)}
+PLANT_LINES = (
+    # card date,   game,  market,             side,   line, the result off the final
+    ("2026-09-12", "PL1", "moneyline",        "home", None, True),       # 27-20, home wins
+    ("2026-09-12", "PL1", "total",            "over", 44.5, True),       # 47 > 44.5
+    ("2026-09-19", "PL2", "spread",           "away", 3.5,  False),      # away by -4, +3.5 short
+    ("2026-09-19", "PL2", "alternate_spread", "home", -2.5, True),       # home by 4 covers -2.5
+    ("2026-09-19", "PL3", "total",            "over", 44.0, None),       # 44 on 44: a push
+    ("2026-09-19", "PL2", "moneyline",        "away", None, "unshown"),  # not on the liked list
+)
+PLANT_LIKED = "2026-09-19"          # the card whose game lines come from `game_lines_liked`
+
+
+def plant_line(lg, gid, mk, side, line):
+    away, home, ko = PLANT_GAMES[gid][:3]
+    row = {"kind": "fb-line", "league": lg, "market": mk, "market_label": mk.replace("_", " "),
+           "player": (home if side == "home" else away) if side in ("home", "away")
+           else side.title(), "side": side, "line": line, "game": "%s @ %s" % (away, home),
+           "away": away, "home": home, "commence": ko, "book": "fanduel", "price": -110,
+           "confidence": 60, "confidence_basis": "MODEL", "break_even": 52.4}
+    if mk == "alternate_spread":
+        row["sched_id"] = gid          # as a stored card's alternate spread carries it
+    return row
+
+
+def plant_lines_want():
+    """The planted game lines' hand-read record: (won, graded, voids)."""
+    res = [x[5] for x in PLANT_LINES if x[5] != "unshown"]
+    return (sum(1 for r in res if r is True), sum(1 for r in res if r is not None),
+            sum(1 for r in res if r is None))
+
 
 def plant(lg, tmp):
     """Write the planted cards and the log that grades them into `tmp`."""
     lat = os.path.join(tmp, "data", lg, "latest")
     os.makedirs(lat)
     os.makedirs(os.path.join(tmp, "picks"))
+    # `[Sam, 2026-10-17]` the schedule that settles the planted game lines, and the model's
+    #    snapshot that names each game's schedule id (`record_fb.line_ids`), as the stored
+    #    tree has them.
+    with gzip.open(os.path.join(lat, "schedule-2026.json.gz"), "wt") as fh:
+        json.dump({"season": 2026, "games": [
+            {"id": gid, "away": a, "home": h, "start": ko, "final": True,
+             "away_score": ap, "home_score": hp}
+            for gid, (a, h, ko, ap, hp) in PLANT_GAMES.items()]}, fh)
+    snap = os.path.join(tmp, "data", lg, PLANT_DATES[0], "model-picks")
+    os.makedirs(snap)
+    with gzip.open(os.path.join(snap, "plant.json.gz"), "wt") as fh:
+        json.dump({"game_model": [{"away": a, "home": h, "game_id": gid, "commence": ko}
+                                  for gid, (a, h, ko, _ap, _hp) in PLANT_GAMES.items()]}, fh)
     players = {"p%d" % k: {"name": nm, "pos": "WR", "g": [
         {"d": d, "week": i + 1, "rec": 3 + k, "rec_yds": 30 + 20 * k, "car": 1,
          "rush_yds": 5, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0,
@@ -132,6 +216,14 @@ def plant(lg, tmp):
                       "book": "fanduel", "confidence_basis": "MARKET",
                       "commence": d + "T17:00:00Z", "game": "A0 @ H0"})
         card = {"date": d, "league": lg, "logs_season": 2025, "picks": picks}
+        lines = [(plant_line(lg, gid, mk, side, ln), res)
+                 for cd, gid, mk, side, ln, res in PLANT_LINES if cd == d]
+        if lines:
+            # `[Sam, 2026-10-17]` the card's full list, and on PLANT_LIKED the liked list the
+            #    page shows (every card has one since #267), which leaves the "unshown" row out.
+            card["game_lines"] = [r for r, _res in lines]
+            if d == PLANT_LIKED:
+                card["game_lines_liked"] = [dict(r) for r, res in lines if res != "unshown"]
         if d in PLANT_METHOD:
             card["card_method"] = PLANT_METHOD[d]
             # `[2026-10-16]` the newest planted card carries a `liked` list, as every card has
@@ -166,7 +258,15 @@ def rebuild(lg, mutate=None, planted=False):
     if planted:
         # ⛔ the planted cards are graded whatever the source's floor is set to
         env["FB_RECORD_FROM"] = PLANT_FLOOR
-    p = subprocess.run([sys.executable, os.path.join(ROOT, "record_fb.py")],
+    # 🔴 `[2026-10-17]` THE CODE SITS IN THE TREE IT GRADES. ~~ROOT's record_fb.py run with
+    #    cwd=tmp~~: record_fb reads the cards and logs from its working directory, but the game
+    #    lines' schedule through `game_lines_fb.schedule_by_id`, which reads beside its OWN
+    #    file. Run from ROOT, the planted game lines were looked up in the checkout's stored
+    #    schedule (production) and found no game. ✅ This checkout's record_fb.py and every
+    #    repo-local module it imports are COPIED into the tree (`copy_module`, the harness
+    #    test_record_fb.py uses), so the same code reads only this tree, as it does in the repo.
+    copy_module("record_fb.py", tmp)
+    p = subprocess.run([sys.executable, os.path.join(tmp, "record_fb.py")],
                        cwd=tmp, env=env, capture_output=True, text=True,
                        timeout=900)
     R = D = None
@@ -192,8 +292,16 @@ def unsettled(card):
     """`card` with every row of EVERY list kicking off beyond any log, so nothing on it can
     settle. `[2026-10-16]` ~~only `picks`~~: since #267 record_fb grades a card's `liked`
     list, and the copy's liked props (Thursday's, settled by the 07:29Z log) were graded
-    under the new method, so its record was no longer empty (collect red 10-16)."""
-    return {k: ([dict(r, commence=UNSETTLED) if isinstance(r, dict) and "commence" in r else r for r in v]
+    under the new method, so its record was no longer empty (collect red 10-16).
+    `[2026-10-17]` and with no schedule id: record_fb now grades the game lines a card
+    showed, and an alternate spread's `sched_id` settles it from the final score whatever
+    its kickoff says."""
+    def off(r):
+        r = dict(r, commence=UNSETTLED)
+        if "sched_id" in r:
+            r["sched_id"] = None
+        return r
+    return {k: ([off(r) if isinstance(r, dict) and "commence" in r else r for r in v]
                 if isinstance(v, list) else v) for k, v in card.items()}
 
 
@@ -232,35 +340,61 @@ def restamp_graded_card(lg, date):
     return m
 
 
-def page(R):
-    """The tab's own `fbCalMethods`, run under node on record `R`."""
-    src = "\n".join(js_block(n, IDX) for n in ("bandRow", "fbCalBlock",
-                                               "fbCalMethods"))
-    decl = re.search(r"^const FB_METHOD_BEFORE = '[^']*';",
+BOX = re.compile(r'<div class="tr-box"><div class="k">([^<]*)</div>\s*'
+                 r'<div class="v">([^<]*)</div>\s*<div class="s">([^<]*)</div></div>')
+# `[Sam, 2026-10-17]` what the old tab drew and the new one must not: the bands, their
+#    heading and every method's label (fbCalMethods / fbCalBlock / bandRow are gone).
+GONE = ("Was the record right?", 'class="band"', "we said", "the record claimed",
+        "fb-cal-empty", "current method", "earlier method", "2025-only method")
+
+
+def page(R, lg="nfl"):
+    """The tab's own `fbRecord`, run under node on record `R` (None: no record file yet).
+    `[Sam, 2026-10-17]` ~~`fbCalMethods` alone~~: the whole tab, three hit rates and two
+    by-date lists. Only the loader, the shell and the DOM are stubbed; `trBox`, `fbDayRows`,
+    `fbLineDayRows` and `fbRecord` are the page's own. -> what it drew."""
+    src = "\n".join(js_block(n, IDX) for n in ("trBox", "fbDayRows", "fbLineDayRows",
+                                               "fbRecord"))
+    decl = re.search(r"^const LG_NAME\s*=\s*\{[^\n]*\};",
                      open(IDX, encoding="utf-8").read(), re.M)
-    assert decl, "index.html no longer declares FB_METHOD_BEFORE"
+    assert decl, "index.html no longer declares LG_NAME"
     prog = (decl.group(0) + "\n"
-            "const sgn = v => v == null ? '-' : (v > 0 ? '+' + v : '' + v);\n"
+            "const LEAGUE = " + json.dumps(lg) + ";\n"
+            "const VIEW = {innerHTML: ''};\n"
+            "const $ = s => (s === '#fbview' ? VIEW : null);\n"
+            "const fbShell = x => x, fbWire = () => {}, fbWireDayRows = () => {};\n"
+            "const freshness = s => String(s);\n"
             + src + "\nconst REC = " + json.dumps(R) + ";\n"
-            "const h = fbCalMethods(REC);"
-            "const heads=[...h.matchAll(/Was the record right\\? <span[^>]*>&mdash; ([^<]*)</g)].map(m=>m[1]);"
-            "const parts=h.split('Was the record right?').slice(1).map(x=>(x.match(/class=\"band\"/g)||[]).length);"
-            "const empties=[...h.matchAll(/No graded\\s+picks under the ([^<]*?) yet/g)].map(m=>m[1]);"
-            "console.log(JSON.stringify({heads, parts, empties,"
-            " weSaid:(h.match(/we said/g)||[]).length,"
-            " claimed:(h.match(/title=\"the record claimed/g)||[]).length}));")
+            "const fbRecordLoad = async () => REC;\n"
+            "fbRecord().then(() => console.log(JSON.stringify({h: VIEW.innerHTML})),"
+            " e => console.log(JSON.stringify({err: String(e)})));")
     d = tempfile.mkdtemp(prefix="recfb-page-")
     f = os.path.join(d, "probe.js")
     open(f, "w", encoding="utf-8").write(prog)
     p = subprocess.run(["node", f], capture_output=True, text=True, timeout=120)
     shutil.rmtree(d, ignore_errors=True)
-    for line in (p.stdout or "").splitlines():
-        if line.startswith("{"):
-            return json.loads(line)
-    return {"__rc": p.returncode, "__out": ((p.stdout or "") + (p.stderr or ""))[-400:]}
+    out = next((json.loads(x) for x in (p.stdout or "").splitlines() if x.startswith("{")), None)
+    if not out or "h" not in out:
+        return {"__rc": p.returncode, "__out": (out or {}).get("err")
+                or ((p.stdout or "") + (p.stderr or ""))[-400:]}
+    h = out["h"]
+    return {"boxes": [list(m) for m in BOX.findall(h)],
+            "heads": re.findall(r"<h3[^>]*>([^<]*)</h3>", h),
+            "tables": h.count("<table"),
+            "dates": re.findall(r'data-date="([^"]*)"', h),
+            "gldates": re.findall(r'data-gldate="([^"]*)"', h),
+            "gone": [g for g in GONE if g in h]}
 
 
-def check(lg, tag, R, D, rc, log, expect_methods=None, expect_current=None):
+def box(k, rows):
+    """The box the tab must draw for `rows` (graded detail rows): the grader's numbers."""
+    n, w = len(rows), sum(1 for r in rows if r["won"])
+    return ([k, "%.1f%%" % round(100 * w / n, 1), "%d of %d graded" % (w, n)] if n
+            else [k, "&mdash;", "nothing graded yet"])
+
+
+def check(lg, tag, R, D, rc, log, expect_methods=None, expect_current=None,
+          expect_lines=None):
     """The record and the page questions, asked of one rebuilt record."""
     ok = rc == 0 and R is not None and D is not None
     ck(ok, "%s %s: this checkout's record_fb.py rebuilt both files" % (lg, tag),
@@ -293,29 +427,59 @@ def check(lg, tag, R, D, rc, log, expect_methods=None, expect_current=None):
     if expect_methods is not None:
         eq(sorted(got), sorted(expect_methods),
            "   %s: the methods holding graded rows are the ones stamped" % tag)
-
-    P = page(R)
-    order = [cur] + [m for m in by if m != cur]
-    label = {m: ("current method" if m == cur else
-                 "2025-only method" if m == BEFORE else
-                 "earlier method (%s)" % m) for m in order}
-    eq(P.get("heads"), [label[m] for m in order],
-       "🔴 %s %s: the tab draws one labelled table per method, current first"
-       % (lg, tag))
-    eq(P.get("parts"), [len(by.get(m) or []) for m in order],
-       "   %s: each table holds exactly its own method's bands" % tag)
-    eq(P.get("claimed"), sum(len(v) for v in by.values()),
-       "   %s: every band names the record as the claimant" % tag)
-    eq(P.get("weSaid"), 0,
-       "🔴🔴 %s %s: NO band on any table says \"we said\"" % (lg, tag))
-    empty = [label[m] for m in order if not by.get(m)]
-    eq(P.get("empties"), empty,
-       "🔴 %s %s: a method with nothing graded says so — and only that one"
-       % (lg, tag))
-    for m in order:
+    for m in [cur] + [m for m in by if m != cur]:
         if not by.get(m):
             note("⚠️ %s %s: method %r has no graded picks yet — reported, "
-                 "not failed" % (lg, tag, m))
+                 "not failed (the record keeps its buckets; the tab no longer "
+                 "draws them)" % (lg, tag, m))
+
+    # 🔴 `[Sam, 2026-10-17]` THE BOARD AND THE GAME-LINES TRACKER, asked of the DETAIL rows
+    #    the grader wrote, never of its own summary: "board(all picks), player props(only
+    #    player props), and game line(only game lines)".
+    props = [r for rows in (D.get("days") or {}).values() for r in rows
+             if r.get("won") is not None]
+    gld = D.get("game_lines")
+    ck(isinstance(gld, dict),
+       "   %s: the detail file carries the game lines by day" % tag,
+       "got %s" % type(gld).__name__)
+    gld = gld if isinstance(gld, dict) else {}
+    lines = [r for rows in gld.values() for r in rows if r.get("won") is not None]
+    B = R.get("board") or {}
+    eq((B.get("w"), B.get("n")),
+       (sum(1 for r in props + lines if r["won"]), len(props) + len(lines)),
+       "🔴 %s %s: the record's board is every graded pick, its player props AND its "
+       "game lines" % (lg, tag))
+    G = R.get("game_lines") or {}
+    eq({d.get("date"): (d.get("w"), d.get("n")) for d in G.get("by_day") or []},
+       {d: (sum(1 for r in rows if r.get("won")),
+            sum(1 for r in rows if r.get("won") is not None)) for d, rows in gld.items()},
+       "   %s: the game lines' days reconcile with the detail rows, day by day" % tag)
+    if expect_lines is not None:
+        eq((sum(1 for r in lines if r["won"]), len(lines),
+            sum(1 for rows in gld.values() for r in rows if r.get("state") == "void")),
+           expect_lines,
+           "🔴 %s %s: the planted game lines grade as a hand reads the finals "
+           "(won, graded, void), the liked list's rows only" % (lg, tag))
+
+    P = page(R, lg)
+    eq(P.get("boxes"),
+       [box("Board", props + lines), box("Player props", props), box("Game lines", lines)],
+       "🔴🔴 %s %s: [Sam, 2026-10-17] the tab draws three hit rates, Board / Player "
+       "props / Game lines, each the rebuilt record's own (~~one band table per "
+       "method~~)" % (lg, tag))
+    eq(P.get("gone"), [],
+       "🔴🔴 %s %s: [Sam, 2026-10-17] NO band, no \"Was the record right?\" and no "
+       "method table on the tab (~~no band says \"we said\"~~)" % (lg, tag))
+    eq((P.get("heads"), P.get("tables")),
+       (["Player props by day", "Game lines by day"], 2),
+       "   %s: below the boxes only the two by-date lists (his choice)" % tag)
+    eq(P.get("dates"), [d["date"] for d in reversed(R.get("by_day") or []) if d.get("n")],
+       "   %s: the props list opens exactly the record's graded days, newest first" % tag)
+    eq(P.get("gldates"),
+       [d["date"] for d in reversed(G.get("by_day") or [])
+        if d.get("n") or d.get("voids")],
+       "   %s: the game-lines list opens exactly the record's graded days, newest first"
+       % tag)
 
 
 def graded_dates_of(D):
@@ -329,9 +493,11 @@ def three_states(lg, planted):
     """STORED, NEXT METHOD and TWO GRADED, on the planted tree or the stored data."""
     src = "PLANTED" if planted else "STORED DATA"
     R, D, rc, log = rebuild(lg, planted=planted)
+    # `[Sam, 2026-10-17]` every planted state holds the planted game lines unchanged
+    lines = plant_lines_want() if planted else None
     check(lg, "%s" % src, R, D, rc, log,
           expect_methods=(sorted({BEFORE, "season-blend"}) if planted else None),
-          expect_current=("season-blend" if planted else None))
+          expect_current=("season-blend" if planted else None), expect_lines=lines)
     graded_dates = graded_dates_of(D)
     if planted:
         # ⚠️ RULE 67, ON THE TREE THIS FILE WROTE: the case must exist.
@@ -346,7 +512,8 @@ def three_states(lg, planted):
              "asked every question." % (lg, len(graded_dates)))
         return
     R2, D2, rc2, log2 = rebuild(lg, add_next_method_card(lg), planted=planted)
-    check(lg, "%s + NEXT METHOD" % src, R2, D2, rc2, log2, expect_current=PROBE_NEXT)
+    check(lg, "%s + NEXT METHOD" % src, R2, D2, rc2, log2, expect_current=PROBE_NEXT,
+          expect_lines=lines)
     if R2 is not None:
         ck(R2.get("calibration") == [] and any(
                v for v in (R2.get("calibration_by_method") or {}).values()),
@@ -361,8 +528,21 @@ def three_states(lg, planted):
                      if r.get("won") is not None
                      and r.get("confidence") is not None})
     check(lg, "%s + TWO GRADED" % src, R3, D3, rc3, log3,
-          expect_methods=sorted(set(before) | {PROBE_GRADED}))
+          expect_methods=sorted(set(before) | {PROBE_GRADED}), expect_lines=lines)
 
+
+section("THE TAB BEFORE ANYTHING IS GRADED")
+# `[Sam, 2026-10-17]` ~~a method with nothing graded says so on the page~~: no method is
+#    drawn now. The empty state that is left is a box with nothing behind it, the night a
+#    league has no record file yet (the loader returns null): "nothing graded" and "graded
+#    0%" are different facts, so every box reads em-dash and says so.
+for lg in ("nfl", "ncaaf"):
+    P0 = page(None, lg)
+    eq(P0.get("boxes"), [box(k, []) for k in ("Board", "Player props", "Game lines")],
+       "🔴 %s: [Sam, 2026-10-17] with no record, each of the three boxes says nothing is "
+       "graded, never 0%%" % lg)
+    eq((P0.get("gone"), P0.get("dates"), P0.get("gldates")), ([], [], []),
+       "   %s: ...and draws no band and no clickable day" % lg)
 
 for lg in ("nfl", "ncaaf"):
     section("%s — REBUILT FROM THIS CHECKOUT'S record_fb.py" % lg.upper())
@@ -373,4 +553,6 @@ note("⛔ WHAT THIS DOES NOT CLAIM: that the stored data is correct, or that "
      "the tab LOOKS right in a browser. It claims the record this "
      "checkout's code WOULD write — today, the night a new method goes "
      "live, and once two methods both hold graded rows — keeps every "
-     "method apart, and that the tab draws each one under its own label.")
+     "method apart, ~~and that the tab draws each one under its own label~~ "
+     "[Sam, 2026-10-17] and that the tab draws the three hit rates (Board, "
+     "Player props, Game lines) from it and no method's bands.")

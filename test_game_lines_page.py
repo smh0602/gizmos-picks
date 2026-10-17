@@ -16,6 +16,11 @@ pick; no ladder, box or tag in any league; a pick frozen at the start and
 graded once; the winners' record its own, re-computed by the verifier. (The
 same tab order in every league, Game Lines included: test_tab_bar.py.)
 
+`[Sam, 2026-10-17]` ~~each league's Track Record shows the winners' line~~:
+below the Track Record's three hit rates Sam chose "Just the by-date lists",
+so the winners' line is drawn on the Game Lines tab only, and this file now
+requires its absence from both Track Records.
+
 # @vacuity 🔴 the pick is the side with the higher chance
 #   file: one_side.py
 #   find:     return "home" if p_home >= 100 - p_home else "away"
@@ -70,6 +75,21 @@ same tab order in every league, Game Lines included: test_tab_bar.py.)
 #   file: verify_record.py
 #   find:        not _bad and tuple(_tally) == (_wr.get("w"), _wr.get("n"), _wr.get("voids")),
 #   with:        True,
+#
+# @vacuity [Sam, 2026-10-17] MLB's Track Record draws no winners' line (~~it shows the winners' line~~)
+#   file: index.html
+#   find: trBox('Game lines', G)}</div>`;
+#   with: trBox('Game lines', G)}</div>${winnersRecordLine(await winnersLoad('mlb'))}`;
+#
+# @vacuity [Sam, 2026-10-17] ...nor football's
+#   file: index.html
+#   find: trBox('Game lines', R && R.game_lines)}</div>`;
+#   with: trBox('Game lines', R && R.game_lines)}</div>${winnersRecordLine(await winnersLoad(LEAGUE))}`;
+#
+# @vacuity [Sam, 2026-10-17] ...while football's Game Lines tab still draws it
+#   file: index.html
+#   find: return winnersRecordLine(W) + days.map(g =>
+#   with: return days.map(g =>
 """
 import datetime
 import gzip
@@ -264,6 +284,21 @@ ck("✅ verify_record re-computes the winners' record a second way and agrees",
    (_v1.stdout + _v1.stderr)[-400:])
 ck("🔴 ...and fails a winners record that is wrong",
    _v2.returncode == 1 and "the mlb winners reproduce" in _v2.stdout, _v2.stdout[-300:])
-ck("🔴 each league's Track Record shows the winners' line from winners.json, never from record.json",
-   "winnersRecordLine(W)" in js_block("renderRecord", PAGE) and "winnersRecordLine(W)" in js_block("fbRecord", PAGE)
-   and "winnersLoad('mlb')" in js_block("renderRecord", PAGE) and "winnersLoad(LEAGUE)" in js_block("fbRecord", PAGE))
+# 🔴 `[Sam, 2026-10-17]` THE TRACK RECORD IS THREE HIT RATES AND THE BY-DATE LISTS.
+#    Asked what stays below Board / Player props / Game lines, Sam chose "Just
+#    the by-date lists", so the winners' line left both Track Records. ~~each
+#    league's Track Record shows the winners' line from winners.json~~: the
+#    check now requires its ABSENCE there, and that the Game Lines tab, MLB's
+#    and football's, still draws it from winners.json. ✅ winners.json and its
+#    record are unchanged (graded and re-computed above).
+_TR = {f: js_block(f, PAGE) for f in ("renderRecord", "fbRecord")}
+_still = [f for f, b in _TR.items() if "winnersRecordLine(" in b or "winnersLoad(" in b]
+ck("🔴 [Sam, 2026-10-17] neither league's Track Record draws the winners' line or loads "
+   "winners.json; the Game Lines tab, in every league, still draws it from winners.json",
+   not _still
+   and "winnersRecordLine(W)" in js_block("winnersHtml", PAGE)
+   and "winnersRecordLine(W)" in js_block("winnersWeekHtml", PAGE)
+   and "winnersLoad('mlb')" in js_block("renderGameLines", PAGE)
+   and "winnersLoad(LEAGUE)" in js_block("fbGameLinesTab", PAGE)
+   and "/latest/winners.json" in js_block("winnersLoad", PAGE),
+   "⛔ Sam: \"Just the by-date lists\". still in the Track Record: %s" % _still)

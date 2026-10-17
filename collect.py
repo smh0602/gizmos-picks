@@ -3852,6 +3852,9 @@ def collect_record():
             lines.append({"market": p["market"], "team": p.get("player"),
                           "line": p.get("line"), "price": p.get("price"),
                           "confidence": p.get("confidence"), "game": p.get("game"),
+                          # `[2026-10-17]` the final, for the Track Record's day rows
+                          "home_score": sc.get("home") if w is not None else None,
+                          "away_score": sc.get("away") if w is not None else None,
                           "won": w, "void": w is None})
 
         graded = [r for r in rows if r["won"] is not None]
@@ -3914,6 +3917,10 @@ def collect_record():
                  "only -- the hand-built cards live in the ledger and are a different, "
                  "CURATED population that must never share a denominator with this one."),
         "overall": tally(allrows),
+        # `[Sam, 2026-10-17]` the Track Record's first hit rate: the BOARD, every graded pick
+        #    the card showed, its player props (`overall`) AND its game lines (`game_lines`).
+        #    ⛔ `overall` stays the props alone; verify_record checks board = overall + game lines.
+        "board": tally(allrows + gl_rows),
         "by_kind": {k: tally([r for r in allrows if r["kind"] == k])
                     for k in ("pitcher", "hitter")},
         "by_market": {m: tally([r for r in allrows if r["market"] == m])

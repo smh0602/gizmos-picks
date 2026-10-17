@@ -406,6 +406,107 @@ def grade_alt_spreads(cards, sched, grade):
             "rows": rows}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-17]` THE GAME-LINES TRACKER. "in track record we should have a game lines
+# tracker so we an track how the model does for game lines"; the Track Record shows three hit
+# rates: Board (props + game lines), Player props, Game lines. Every game line the card SHOWED
+# (kind fb-line: moneyline, spread, alternate spread, total) graded once from the final score.
+# ══════════════════════════════════════════════════════════════════════
+GL_GRADED = ("moneyline", "spread", "alternate_spread", "total")
+
+
+def line_ids(lg, root="."):
+    """(away, home, kickoff to the minute) -> schedule id, from the stored model-picks and
+    winner-picks snapshots: both carry the schedule id beside the odds feed's team names, which
+    is what a card row names its game by."""
+    out = {}
+    for sub_, key in (("model-picks", "game_model"), ("winner-picks", "rows")):
+        for path in sorted(glob.glob(os.path.join(root, "data", lg, "*", sub_, "*.json.gz"))):
+            try:
+                with gzip.open(path, "rt", encoding="utf-8") as fh:
+                    doc = json.load(fh)
+            except (OSError, ValueError, EOFError):
+                continue
+            for r in doc.get(key) or []:
+                away, home = r.get("away"), r.get("home")
+                if (away is None or home is None) and " at " in str(r.get("game") or ""):
+                    away, home = str(r["game"]).split(" at ", 1)
+                if away and home and r.get("game_id") and r.get("commence"):
+                    out[(away, home, str(r["commence"])[:16])] = str(r["game_id"])
+    return out
+
+
+def shown_lines(card):
+    """The game lines a card SHOWED: its liked list where it has one (the page's list, which
+    keeps its started rows), else today's list plus every earlier slate's archived rows
+    (`card_fb.GL_EARLIER`); the model's own rows only (kind fb-line)."""
+    if "game_lines_liked" in card:
+        rows = list(card.get("game_lines_liked") or [])
+    else:
+        rows = list(card.get("game_lines") or [])
+        for v in (card.get(card_fb.GL_EARLIER) or {}).values():
+            rows += [r for r in v or [] if isinstance(r, dict)]
+    return [r for r in rows if isinstance(r, dict) and r.get("kind") == "fb-line"
+            and r.get("market") in GL_GRADED]
+
+
+def grade_game_lines(cards, sched, ids, grade):
+    """-> the game-lines record: every row a card showed, graded once from its game's final
+    score. The same game in several cards: the LAST card (by generated_at) that showed it
+    decides, as the model ledger's rule (spec §3a). A spread or alternate spread at the team's
+    own point and a total by `grade` (game_lines_fb.grade_rung, the one rule); a moneyline by
+    the margin's sign; a tie or push is void. `sched` = {schedule id: game}; `ids` = line_ids."""
+    last = {}
+    for _f, card in sorted(cards, key=lambda fc: fc[1].get("generated_at") or ""):
+        by_game = {}
+        for r in shown_lines(card):
+            k = (r.get("away"), r.get("home"), str(r.get("commence") or "")[:16])
+            by_game.setdefault(k, []).append(r)
+        last.update(by_game)                       # a later card replaces the game's rows
+    rows = []
+    for k, rs in last.items():
+        for r in rs:
+            sid = str(r.get("sched_id") or ids.get(k) or "")
+            g = sched.get(sid) or {}
+            won, state = None, ("pending" if sid in sched else "no game found")
+            if g.get("final") and None not in (g.get("home_score"), g.get("away_score")):
+                hs, as_ = g["home_score"], g["away_score"]
+                mk = r.get("market")
+                if mk == "moneyline":
+                    m = float(hs) - float(as_)
+                    won = None if m == 0 else (m > 0) == (r.get("side") == "home")
+                else:
+                    won = grade("total" if mk == "total" else "spread", r.get("side"), r.get("line"), hs, as_)
+                state = "void" if won is None else "graded"
+            done = state in ("graded", "void")
+            rows.append({"date": card_fb.et_date(r.get("commence")), "market": r.get("market"),
+                         "market_label": r.get("market_label"), "player": r.get("player"),
+                         "side": r.get("side"), "line": r.get("line"), "price": r.get("price"),
+                         "book": r.get("book"), "confidence": r.get("confidence"),
+                         "confidence_basis": r.get("confidence_basis") or "MODEL",
+                         "game": r.get("game"), "commence": r.get("commence"),
+                         "home_score": g.get("home_score") if done else None,
+                         "away_score": g.get("away_score") if done else None,
+                         "won": won, "state": state})
+    rows.sort(key=lambda x: (x["date"] or "", x["game"] or "", x["market"] or ""))
+    graded = [x for x in rows if x["state"] == "graded"]
+    days = sorted({x["date"] for x in rows if x["date"]})
+    return {"overall": tally(graded), "shown": len(rows),
+            "voids": sum(1 for x in rows if x["state"] == "void"),
+            "pending": sum(1 for x in rows if x["state"] == "pending"),
+            "unresolved": sum(1 for x in rows if x["state"] == "no game found"),
+            "from": days[0] if days else None,
+            "by_market": {m: tally([x for x in graded if x["market"] == m]) for m in GL_GRADED
+                          if any(x["market"] == m for x in rows)},
+            "by_basis": {b: tally([x for x in graded if x["confidence_basis"] == b])
+                         for b in sorted({x["confidence_basis"] for x in rows})},
+            "by_day": [dict(tally([x for x in graded if x["date"] == d]), date=d,
+                            voids=sum(1 for x in rows if x["date"] == d and x["state"] == "void"),
+                            pending=sum(1 for x in rows if x["date"] == d and x["state"] == "pending"))
+                       for d in days],
+            "rows": rows}
+
+
 def tally(rows):
     n = len(rows)
     w = sum(1 for r in rows if r["won"])
@@ -493,10 +594,22 @@ def main():
         import game_lines_fb as _glf
         _alt = grade_alt_spreads([(f, c) for f, c in cards
                                   if (c.get("league") or "").lower() == LEAGUE],
-                                 _glf.schedule_by_id(LEAGUE), _glf.grade_rung)
+                                 _glf.schedule_by_id(LEAGUE, "."), _glf.grade_rung)
     except Exception as e:
         log(f"  ⚠️ the alternate spreads were not graded ({type(e).__name__}: {e})")
         _alt = {"basis": "MARKET", "error": f"{type(e).__name__}: {e}"}
+    # `[Sam, 2026-10-17]` the game-lines tracker. ⛔ A failure here never costs the props record.
+    # ⛔ Every file this grader reads comes from ONE tree, the working directory (the cards,
+    #    the logs, the snapshots and, with root ".", the schedule): beside game_lines_fb.py, a
+    #    test's planted cards were graded against the checkout's live schedule.
+    try:
+        import game_lines_fb as _glf
+        _gl = grade_game_lines([(f, c) for f, c in cards if (c.get("league") or "").lower() == LEAGUE],
+                               _glf.schedule_by_id(LEAGUE, "."), line_ids(LEAGUE), _glf.grade_rung)
+    except Exception as e:
+        log(f"  ⚠️ the game lines were not graded ({type(e).__name__}: {e})")
+        _gl = {"overall": tally([]), "error": f"{type(e).__name__}: {e}", "rows": [], "by_day": []}
+    _gl_graded = [x for x in _gl.get("rows") or [] if x["state"] == "graded"]
     unresolved = sum(d["unresolved"] for d in days)
     voids = sum(d["voids"] for d in days)
     carded = sum(d["carded"] for d in days)
@@ -516,6 +629,13 @@ def main():
             "these rows are bucketed by is the player's OWN RECORD at that "
             "line, and this page measures how that did."),
         "overall": tally(A),
+        # `[Sam, 2026-10-17]` three hit rates: Board = every graded pick the board showed (its
+        #    player props AND its game lines), Player props = `overall`, Game lines = `game_lines`.
+        #    ⛔ `overall` stays the props alone (its invariants against the detail stand).
+        "board": tally(A + _gl_graded),
+        # ⛔ The tally sits at the TOP (w / n / pct), MLB's shape, which the page's box reads;
+        #    `overall` is kept beside it. (Nested only, the football box always read "—".)
+        "game_lines": {**(_gl.get("overall") or {}), **{k: v for k, v in _gl.items() if k != "rows"}},
         "alt_spreads": _alt,
         "by_market": {m: tally([r for r in A if r["market"] == m])
                       for m in sorted({r["market"] for r in A})},
@@ -599,7 +719,10 @@ def main():
                    "note": ("Every published row with its verdict and the "
                             "actual number. `won` is null on anything not "
                             "settled, and those are in no percentage."),
-                   "days": {d["date"]: d["rows"] for d in days}}, fh)
+                   "days": {d["date"]: d["rows"] for d in days},
+                   # `[Sam, 2026-10-17]` the game-lines tracker's rows, by ET kickoff day
+                   "game_lines": {d: [x for x in _gl.get("rows") or [] if x["date"] == d]
+                                  for d in sorted({x["date"] for x in _gl.get("rows") or [] if x["date"]})}}, fh)
 
     log(f"record_fb[{LEAGUE}]: {len(days)} card(s), {len(A)}/{carded} rows "
         f"graded, {doc['overall']['w']}/{doc['overall']['n']} won, "

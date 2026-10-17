@@ -60,15 +60,19 @@ and a feed can change:
 #   find: "player_pass_tds":      (lambda g: float(g.get("pass_td") or 0),  "pass TD"),
 #   with: "player_pass_tdz":      (lambda g: float(g.get("pass_td") or 0),  "pass TD"),
 #
+# `[Sam, 2026-10-17]` the next two are RE-AIMED, their question unchanged: the record tab's
+#    last line is now the game-lines list (~~`<tbody>${dayRows}</tbody></table>`);`~~, gone)
+#    and `${hero}` is drawn by MLB's tab too (two matches), so each mutation re-introduces its
+#    sentence at a line only the football tab has.
 # @vacuity [Sam, 2026-10-01] the record tab prints no coverage sentence
 #   file: index.html
-#   find: <tbody>${dayRows}</tbody></table>`);
-#   with: <tbody>${dayRows}</tbody></table>${R && R.coverage_note ? `<div class="fnote"><b>What is and is not counted.</b> ${R.coverage_note}<br><br>${R.over_bias_note || ''}</div>` : ''}`);
+#   find: <tbody>${lineRows}</tbody></table>`);
+#   with: <tbody>${lineRows}</tbody></table>${R && R.coverage_note ? `<div class="fnote"><b>What is and is not counted.</b> ${R.coverage_note}<br><br>${R.over_bias_note || ''}</div>` : ''}`);
 #
 # @vacuity [Sam, 2026-10-01] ...and no concentration warning
 #   file: index.html
-#   find: ${hero}
-#   with: ${hero}${graded && R.distinct_players ? `<div class="fnote"><b>${O.n} graded rows came from ${R.distinct_players} players.</b></div>` : ''}
+#   find: ${R ? `<p><span class="rec">graded ${freshness(R.built_at)}</span></p>` : ''}
+#   with: ${R ? `<p><span class="rec">graded ${freshness(R.built_at)}</span></p>` : ''}${R && R.distinct_players ? `<div class="fnote"><b>${R.overall.n} graded rows came from ${R.distinct_players} players.</b></div>` : ''}
 # ══════════════════════════════════════════════════════════════════════
 import glob
 import gzip

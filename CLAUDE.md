@@ -738,8 +738,9 @@ note boxes, tags and the stale bar now require their absence.
   edge rule. MLB reads `win` in mlb-game-model.json (no pick until both
   starters are named); football reads fb-model.json `win_chances` for
   `card_fb.next_line_slate`'s day. Frozen at the start, graded once, ONE
-  record per league in winners.json (top of the tab and the league's Track
-  Record), never mixed into another; verify_record.py re-grades it.
+  record per league in winners.json (top of the tab ~~and the league's Track
+  Record~~; `[Sam, 2026-10-17]` the Track Record shows only its three hit rates and the
+  by-date lists), never mixed into another; verify_record.py re-grades it.
   ~~The alt ladders, fair lines, rung tables and alt parlays~~ left the page;
   their files are still built (the card's alternate spreads read the ladder).
   `test_game_lines_page.py`.
@@ -772,9 +773,28 @@ note boxes, tags and the stale bar now require their absence.
   that is the model's OWN chance on both markets `[2026-10-03]`, `kind` mlb-line, drawn by `pickCard` under Gizmo's Picks' Player props /
   Game lines switch, frozen at first pitch (`freeze_game_lines`). Graded in
   their own line (record.json `game_lines`, `collect.GAME_LINE_MARKETS`),
-  re-graded by verify_record.py, never in a props count.
+  re-graded by verify_record.py, never in a props count (`[Sam, 2026-10-17]` the
+  Track Record's Board is props + game lines, `board`, beside both, never in `overall`).
   `test_mlb_game_lines.py`. `[Sam, 2026-10-16]` And only on the expected winner
   (`win`): see ONE TEAM PER GAME.
+- 🔴 **THE TRACK RECORD: THREE HIT RATES, THEN THE DAYS, ALL THREE LEAGUES.** `[Sam, 2026-10-17]`
+  *"in track record we should have a game lines tracker ... lose the was the record right?
+  section of it. i only want the board hit % to be shown(this is the 25 player props and all the
+  game lines hit %) and i want both hit % to be shown ... board(all picks), player props(only
+  player props), and game line(only game lines)"*; for MLB he chose "Remove both" and, below the
+  three, "Just the by-date lists". ✅ Every league's Track Record draws three `trBox` boxes:
+  Board (record.json `board` = every graded pick the card showed, props + game lines), Player
+  props (`overall`, the props alone, unchanged) and Game lines (`game_lines`); then "Player props
+  by day" and "Game lines by day", each day opening its rows (record-detail `days` /
+  `game_lines`, `lineDetailHtml`). ⛔ ~~Four boxes, the winners' line, the market table, "Was the
+  record right?" (football), "Does the confidence number mean anything?" and "Is v5.0 still the
+  best version?" (MLB)~~: gone (`bandRow`, `refitPanel`, `fbCalBlock` deleted; their data is still
+  built). Football's game lines are graded by `record_fb.grade_game_lines`: every fb-line row a
+  card SHOWED (its liked list, else its list plus `card_fb.GL_EARLIER`'s archive: 5 NFL and 35
+  college archived rows had never been graded), the LAST card that showed a game decides, a push
+  or tie is void, joined to the schedule by `sched_id` or the snapshots' names (`line_ids`). MLB's
+  `board` is collect_record's, checked by verify_record (board = overall + game lines). Football's
+  by-day detail prints an anytime TD as "Yes" (~~"Under null"~~). `test_track_record.py`.
 - 🔴 **EACH KIND KEEPS ITS OWN 25 SEATS.** `[Sam, 2026-09-25, C8]` The
   card showed 1 pitcher and 49 hitters: ~~an unused half spills to the
   other kind~~, and after C2 (#166) few pitcher rows beat their price.
@@ -1008,6 +1028,8 @@ cfb.py            college: probe, back-fill and verify, one dispatch
                   talent-probe and never raises). test_cfb_ppa.py.
 nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
 record_fb.py      the football grader -> data/<lg>/latest/record.json
+                  `[Sam, 2026-10-17]` also the game lines every card showed
+                  (`grade_game_lines`) and the Board (props + game lines).
 dossier_fb.py     Sam's eight per-game checks, every board game.
                   ⛔ Combines nothing, ranks nothing, scores nothing.
 fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge

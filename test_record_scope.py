@@ -26,6 +26,15 @@ record could not be reproduced.
 ⚠️ Everything is constructed in a temp tree. No network, and nothing
 asserts on the repo's real record.json — which this commit has not
 rebuilt yet, and which a test may never require it to have.
+
+`[Sam, 2026-10-17]` the record also carries the Track Record's Board (the
+props plus the game lines), and the verifier checks it adds up, so the
+planted record carries a correct one and §5 plants a wrong one.
+
+# @vacuity [Sam, 2026-10-17] a Board that is not the props plus the game lines is caught
+#   file: verify_record.py
+#   find: (_b.get("w"), _b.get("n")) == (REC["overall"]["w"] + (_gl.get("w") or 0), REC["overall"]["n"] + (_gl.get("n") or 0))
+#   with: True
 """
 import gzip
 import json
@@ -146,6 +155,11 @@ def run_verifier(mutate):
         rec = {"built_at": "2026-09-04T00:00:00Z", "kind": "DESCRIPTIVE",
                "grader": record_grader.fingerprint(os.path.join(REPO, "collect.py")),
                "overall": {"w": 2, "n": 2, "pct": 100.0},
+               # `[Sam, 2026-10-17]` the builder writes the Track Record's
+               #    Board (the props plus the game lines) and the verifier
+               #    checks it adds up; this tree's game lines are 0/0, so the
+               #    Board is the props' 2/2.
+               "board": {"w": 2, "n": 2, "pct": 100.0},
                "by_kind": {"pitcher": {"w": 1, "n": 1},
                            "hitter": {"w": 1, "n": 1}},
                "by_day": [{"date": "2026-09-03", "w": 2, "n": 2, "voids": 0}],
@@ -187,7 +201,14 @@ ck("2/2" in out2 or "reproduces (2/2)" in out2,
 
 print("\n5. ⛔ AND IT IS NOT TOOTHLESS — a wrong total still fails")
 rc3, out3 = run_verifier(lambda r: r["overall"].update({"w": 2, "n": 3}))
-ck(rc3 != 0, "an inflated denominator is caught", f"rc={rc3}")
+# ⚠️ `[2026-10-17]` named, not just red: the planted Board stays 2/2, so the
+#    Board check fails here too, and a red run must still be the OVERALL's.
+ck(rc3 != 0 and "FAIL overall reproduces" in out3,
+   "an inflated denominator is caught", f"rc={rc3}")
+rc5, out5 = run_verifier(lambda r: r["board"].update({"w": 1, "n": 2, "pct": 50.0}))
+ck(rc5 != 0 and "FAIL the board is the props plus the game lines" in out5,
+   "`[Sam, 2026-10-17]` a Board that is not the props plus the game lines is caught",
+   f"rc={rc5}")
 rc4, out4 = run_verifier(lambda r: r["by_day"].__setitem__(
     0, {"date": "2026-09-03", "w": 1, "n": 2, "voids": 0}))
 ck(rc4 != 0, "a wrong day is caught", f"rc={rc4}")

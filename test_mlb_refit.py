@@ -24,7 +24,7 @@ guards; `vacuity.py` drives the declarations:
 #   find:     return {"k": {"b0": card.K_INTERCEPT, "trail": card.K_TRAIL_B, "c": card.K_TRAIL_C,
 #   with:     return {"k": {"b0": 4.9292, "trail": card.K_TRAIL_B, "c": card.K_TRAIL_C,
 #
-# @vacuity every number the page shows carries a rule-55 label
+# @vacuity every number the report displays carries a rule-55 label
 #   file: mlb_refit.py
 #   find:             "mean_log_loss": L(_mean(allx), "DESCRIPTIVE"),
 #   with:             "mean_log_loss": _mean(allx),
@@ -54,25 +54,25 @@ guards; `vacuity.py` drives the declarations:
 #   find:                                  else _post_starters(season)).items()):
 #   with:                                  else _starters(season, api_gt)).items()):
 #
-# @vacuity the page draws the report's numbers only through labN
+# @vacuity [Sam, 2026-10-17] renderRecord no longer fetches mlb-refit.json (~~the page draws the report's numbers only through labN~~)
 #   file: index.html
-#   find: Side by side: ${labN(P.predictions)} predictions.
-#   with: Side by side: ${P.predictions.value} predictions.
+#   find: const R = RECORD, G = R.game_lines || {};
+#   with: const R = RECORD, G = R.game_lines || {}; let REFIT = null; try { REFIT = await jget('data/latest/mlb-refit.json'); } catch(e){ REFIT = null; }
 #
 # @vacuity [Sam, 2026-10-01] labN prints the number alone: no Model / Market / Record tag
 #   file: index.html
 #   find: return x.value == null ? `—${unit || ''}` : fmt(x.value);
 #   with: return (x.value == null ? `—${unit || ''}` : fmt(x.value)) + ' <span class="kind k-model">Model</span>';
 #
-# @vacuity [Sam, 2026-10-01] the refit panel carries no tag and no note box
+# @vacuity [Sam, 2026-10-17] nothing calls refitPanel (~~the refit panel carries no tag and no note box~~)
 #   file: index.html
-#   find: <p><b>${verdictWord}</b></p>
-#   with: <div class="note"><b>${verdictWord}</b><br>${F.rule}</div>
+#   find: <p><span class="rec">built ${R.built_at}</span></p>
+#   with: <p><span class="rec">built ${R.built_at}</span></p>${refitPanel(REFIT)}
 #
-# @vacuity [Sam, 2026-10-01] ...and no Model tag on its heading
+# @vacuity [Sam, 2026-10-17] ...and no function draws its heading (~~no Model tag on its heading~~)
 #   file: index.html
-#   find: <h2>Is v5.0 still the best version?</h2>
-#   with: <h2>Is v5.0 still the best version? <span class="kind k-model">Model</span></h2>
+#   find: <h2>Automatic card</h2>
+#   with: <h2>Automatic card</h2></div><div class="panel"><h2>Is v5.0 still the best version?</h2>
 """
 import datetime
 import json
@@ -87,6 +87,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import card  # noqa: E402
 import mlb_refit as M  # noqa: E402
+import jsblock  # noqa: E402
+
+PAGE = os.path.join(ROOT, "index.html")
 
 SPEC = open(os.path.join(ROOT, "research", "mlb_refit_spec.md"), encoding="utf-8").read()
 
@@ -206,8 +209,9 @@ ck(M.verdict(*M.paired_test(_worse)[:2], M.paired_test(_worse)[3]) == "DOES NOT 
    "⛔ ...and a challenger that is WORSE never qualifies")
 
 # ══════════════════════════════════════════════════════════════════════
-# 6. RULE 55 — every number the page shows carries MODEL/MARKET/DESCRIPTIVE
-#    in the DATA. [Sam, 2026-10-01] the page itself prints the number alone.
+# 6. RULE 55 — every number the report displays carries MODEL/MARKET/DESCRIPTIVE
+#    in the DATA. [Sam, 2026-10-01] the page itself prints the number alone;
+#    [Sam, 2026-10-17] and the refit panel left the page ("Remove both").
 # ══════════════════════════════════════════════════════════════════════
 def _bare(node, path="display"):
     out = []
@@ -229,30 +233,50 @@ def _bare(node, path="display"):
 _rep = M.report([_doc(_st)], M.walk_forward(_rows))
 _nolabel = _bare(_rep["display"])
 ck(not _nolabel,
-   "🔴🔴 every number in the page's report is labelled MODEL, MARKET or DESCRIPTIVE",
+   "🔴🔴 every number in the report's display block is labelled MODEL, MARKET or DESCRIPTIVE",
    "⛔ Sam's rule 55. Bare numbers: %s" % _nolabel[:6])
-_page = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
-_m6 = re.search(r"function refitPanel\(F\)\{(.*?)\n\}", _page, re.S)
-# 🔴 [Sam, 2026-10-01] THE PAGE PRINTS THE NUMBER, NOT ITS LABEL. Until today
+_page = open(PAGE, encoding="utf-8").read()
+# 🔴 [Sam, 2026-10-01] THE PAGE PRINTS THE NUMBER, NOT ITS LABEL. Until then
 #    `labN` printed every number with a Model / Market / Record tag
 #    (span.kind), and the panel carried a "Model" tag and two note boxes.
 #    Sam removed every tag and note from every tab: "i just want what's
 #    supposed to be in each tab to be in each tab"; asked what stays, he
 #    chose: remove everything. ✅ The basis stays in the DATA (checked just
-#    above, unchanged), so the page checks now require the tags' ABSENCE.
-#    `labN` is still the panel's one formatter: it unwraps {value, basis}
-#    and prints a dash for a missing value.
+#    above, unchanged), so the page checks require the tags' ABSENCE.
+#    `labN` unwraps {value, basis} and prints a dash for a missing value;
+#    the football model panels still print through it.
 _lab = re.search(r"\nfunction labN\([^)]*\)\{(.*?)\n\}", _page, re.S)
 _TAG = re.compile(r'class="kind|\bk-(?:model|market|desc|live|record)\b')
-ck(_m6 and "labN(" in _m6.group(1) and "function labN(" in _page
-   and not re.search(r"\$\{[A-Za-z_.]+\.value\}", _m6.group(1)),
-   "⚠️ ...and the page draws them only through `labN`, its one formatter",
-   "⛔ a `${x.value}` in the panel would skip it and print 'undefined' for a missing value")
 ck(_lab and not _TAG.search(_lab.group(1)),
-   "🔴 ...which prints the number alone: no Model / Market / Record tag",
+   "🔴 `labN` prints the number alone: no Model / Market / Record tag",
    _lab and str(_TAG.findall(_lab.group(1))))
-ck(_m6 and not _TAG.search(_m6.group(1)) and 'class="note"' not in _m6.group(1),
-   "🔴    and the panel carries no tag and no note box")
+# 🔴 `[Sam, 2026-10-17]` THE PANEL LEFT THE PAGE. Asked about MLB's Track
+#    Record panels, Sam chose "Remove both" ("Does the confidence number mean
+#    anything?" and "Is v5.0 still the best version?") and, below the three hit
+#    rates, "Just the by-date lists". ~~The panel draws the report's numbers
+#    only through `labN`, with no tag and no note box~~: the page checks now
+#    require the panel's ABSENCE. ✅ The DATA is unchanged: mlb-refit.json is
+#    still built weekly (`mlb-refit.yml`), the champion-vs-challenger rule
+#    above still decides, and a QUALIFIES still opens its one PR (section 7).
+#    ⚠️ Read from the FUNCTION BODIES (`jsblock`), never the raw page: the
+#    page's comments name the panel to record that it left, and a check that
+#    reddened on a comment would fire on correct code.
+_blocks = jsblock.top_level_blocks(PAGE)
+_rr = jsblock.js_block("renderRecord", PAGE)
+_calls = sorted(k for k, v in _blocks.items() if re.search(r"\brefitPanel\s*\(", v))
+ck("refitPanel" not in _blocks and not _calls,
+   "🔴 [Sam, 2026-10-17] the refit panel is gone: nothing on the page defines or calls "
+   "~~refitPanel~~",
+   "⛔ Sam: \"Remove both\". defined=%s called in %s" % ("refitPanel" in _blocks, _calls))
+_head = sorted(k for k, v in _blocks.items() if "is v5.0 still the best version" in v.lower())
+ck(not _head,
+   "🔴 ...and no function on the page draws ~~\"Is v5.0 still the best version?\"~~",
+   "drawn by %s" % _head)
+_fetch = re.findall(r"""(?:jgetGz|jget|fetch)\(\s*['"`][^'"`]*mlb-refit[^'"`]*['"`]""", _page)
+ck("mlb-refit" not in _rr and not _fetch,
+   "🔴 ...and renderRecord no longer fetches data/latest/mlb-refit.json (nothing on the page "
+   "does); the file is still built weekly for the rule, not for the page",
+   "renderRecord names it: %s; fetches: %s" % ("mlb-refit" in _rr, _fetch))
 
 # ══════════════════════════════════════════════════════════════════════
 # 7. THE WEEKLY PR — only on QUALIFIES, and never a second one

@@ -31,10 +31,13 @@ labelled so. This file asserts the label as well as the number.
 #   find: <h2 style="margin:0 0 4px;font-size:16px">Parlays${C && C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
 #   with: <h2 style="margin:0 0 4px;font-size:16px">Parlays <span class="kind k-record">Record</span>${C && C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
 #
+# `[Sam, 2026-10-17]` RE-AIMED, its question unchanged: the football Track Record now ends
+#    with the game-lines list (~~`<tbody>${dayRows}</tbody></table>`);`~~, gone with the
+#    old layout), so the footnote is re-introduced after it, inside fbRecord.
 # @vacuity [Sam, 2026-10-01] the Track Record tab renders no footnote box
 #   file: index.html
-#   find: <tbody>${dayRows}</tbody></table>`);
-#   with: <tbody>${dayRows}</tbody></table><div class="fnote"><b>This is the board's record and nothing else.</b></div>`);
+#   find: <tbody>${lineRows}</tbody></table>`);
+#   with: <tbody>${lineRows}</tbody></table><div class="fnote"><b>This is the board's record and nothing else.</b></div>`);
 #
 # @vacuity 🔴 [Sam, 2026-10-09] a same-game row never carries a joint probability, on every card swept
 #   file: card_fb.py

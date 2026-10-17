@@ -47,6 +47,11 @@ and the sentence (item 2, unchanged).
 #   file: index.html
 #   find: v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2>
 #   with: v.innerHTML = fbShell(`<h2>${LG_NAME[LEAGUE]} record</h2><div class="fnote"><b>The record was reset.</b></div>
+#
+# @vacuity [Sam, 2026-10-17] the tab draws all three hit rates (here the Player props box is dropped)
+#   file: index.html
+#   find: const hero = `<div class="tr-hero">${trBox('Board', R && R.board)}${trBox('Player props', R && R.overall)}${
+#   with: const hero = `<div class="tr-hero">${trBox('Board', R && R.board)}${
 """
 import gzip
 import json
@@ -278,5 +283,17 @@ ck("   ...and fbRecord still calls the function that draws it",
    "fbDayRows(" in blk and calls("fbDayRows", os.path.join(ROOT, "index.html")) >= 1,
    "🔴 a renderer nobody calls looks exactly like the one that renders "
    "the page — rule 130")
-ck("the stat boxes still draw", "tr-hero" in blk and "tr-box" in blk,
-   "Sam, 2026-09-03: 'i literally want everything to look exactly the same'")
+# 🔴 `[Sam, 2026-10-17]` ~~ck("the stat boxes still draw", "tr-hero" in blk and "tr-box" in
+#    blk)~~: the boxes are no longer written out in fbRecord. Sam: "all in all wed have 3
+#    different hit rate % shows at the top of the track record tab, board(all picks), player
+#    props(only player props), and game line(only game lines)", the same in all three leagues,
+#    so ONE shared `trBox` draws each box and fbRecord calls it for exactly those three, in that
+#    order. Asked of the code with the comments stripped, so a note naming them is not a box.
+_trbox = js_block("trBox", os.path.join(ROOT, "index.html"))
+_boxes = re.findall(r"\btrBox\(\s*'([^']*)'", _code)
+ck("the stat boxes still draw: [Sam, 2026-10-17] Board, Player props and Game lines, "
+   "each through the shared trBox",
+   "tr-hero" in _code and _boxes == ["Board", "Player props", "Game lines"]
+   and 'class="tr-box"' in _trbox,
+   "fbRecord draws %s; trBox carries tr-box: %s. Sam, 2026-09-03: 'i literally want "
+   "everything to look exactly the same'" % (_boxes, 'class="tr-box"' in _trbox))
