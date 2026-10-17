@@ -41,11 +41,17 @@ lazy regeneration looks like.
 #   file: index.html
 #   find: .msg{padding:40px 0;text-align:center;color:var(--mut)}
 #   with: .msg{padding:41px 0;text-align:center;color:var(--mut)}
+#
+# @vacuity 🔴 [2026-10-17] ...nor a NEW @media block that restyles a frozen rule
+#   file: index.html
+#   find: .msg{padding:40px 0;text-align:center;color:var(--mut)}
+#   with: .msg{padding:40px 0;text-align:center;color:var(--mut)} @media(min-width:2000px){.msg{padding:41px 0}}
 # ══════════════════════════════════════════════════════════════════════
 
 import hashlib
 import json
 import os
+import re
 
 from jsblock import css_rules, top_level_blocks
 from tcheck import ck, note, section
@@ -108,6 +114,26 @@ ck(not (set(_added) & set(_cz)),
    "RENDER AS SURELY AS EDITING IT. Colliding: %s"
    % sorted(set(_added) & set(_cz)))
 note("   added selector(s): %s" % (_added or "none"))
+
+
+def inner_selectors(block):
+    """The selectors an @media / @container block restyles, one level deep."""
+    return {s.strip() for m in re.finditer(r"([^{}]+)\{[^{}]*\}", block)
+            for s in m.group(1).split(",") if s.strip()}
+
+
+# 🔴 `[2026-10-17]` THE CHECK ABOVE CANNOT FAIL: `_added` excludes the frozen keys by
+#    construction. The real back door is a NEW at-rule block (keyed by its query, so never
+#    frozen) that restyles a frozen selector inside it -- design I's layout blocks do exactly
+#    that, which is why they are pinned in the oracle from birth with a dated _why. ⛔ An
+#    UNPINNED one is a silent MLB change.
+_at = {k: sorted(inner_selectors(_cnow[k]) & set(_cz))
+       for k in _cnow if k.startswith("@") and k not in _cz}
+_at = {k: v for k, v in _at.items() if v}
+ck(not _at,
+   "🔴 ...and no NEW, unpinned @media / @container block restyles a frozen rule",
+   "⛔ a frozen rule restyled inside a new at-rule is an MLB change the digests cannot see; "
+   "pin the block with a dated _why. Found %s" % _at)
 note("   football functions on the page: %d, and none of them is frozen "
      "— the freeze is on MLB, not on football."
      % len([k for k in _now if k.startswith("fb")]))

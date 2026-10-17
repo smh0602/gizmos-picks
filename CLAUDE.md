@@ -371,17 +371,25 @@ note boxes, tags and the stale bar now require their absence.
 - 🔴 **ONE LOOK FOR ALL THREE LEAGUES: DESIGN I.** `[Sam, 2026-10-17]` *"i like the
   light blue on i think that oone is good"*, choosing design I of the layouts he was
   shown: a white page; the ONE `<header>` is a navy side panel (logo, league switch,
-  the one `.subnav`) above 820 px and a top header up to 820 px (tabs five over four,
+  the one `.subnav`) from 1024 px and a top header below 1024 px (tabs five over four,
   every tab visible); royal blue #2449B8 the second colour; IBM Plex. ⛔ Green only for
   what is green on purpose (a positive edge, a hit, the projection chip, Sam 2026-08-26);
   no amber or yellow anywhere. A Gizmo's Picks row (pickCard, every league): the
   confidence as a number and a bar; the player, then the bet in blue; the game and its
-  time (football's kickoff from `commence`); the price with the book as the bet link
-  (SET STATE kept); and every row above its price prints "Break-even x%" and "Edge +y"
-  (the card's own edge, green only above zero; ~~football only, by `fbEdgeLine`~~). A
-  Top 10 row is one element: name, % and price on line one of a phone. ⛔ MLB changed
-  with it on purpose: `research/mlb_render_frozen.json`'s 2026-10-17 `_why` lists every
-  digest. Contrast measured on every tab at 1280, 768 and 390 px.
+  time (football's kickoff from `commence`) in their own column; the price with the book
+  as the bet link (SET STATE kept); and every row not marked `below_price` prints
+  "Break-even x%" and "Edge ±y" (the card's own edge, never recomputed, green only above
+  zero; an MLB game line has no edge gate, so it can read "Edge -8" in plain ink; ~~football
+  only, by `fbEdgeLine`~~); a row below its price keeps its C8 line. ⚠️ A row lays out by
+  ITS OWN width (`@container`, about 840 px), never the screen's: keyed to the screen, the
+  first build squeezed the player to 10 px at 601-690 and 821-960 px
+  (`test_league_switch.py` §4). A Top 10 row is one element: name, % and price on line
+  one of a phone. ⛔ MLB changed with it on purpose: `research/mlb_render_frozen.json`'s
+  2026-10-17 `_why` lists every digest. ✅ Guarded: every word on every tab of every
+  league reads at 4.5:1 (`test_league_switch.py` §5); nothing yellow or amber, by hue
+  (`test_page_plain.py`); a pick row never squeezes its player from 601 to 1280 px and no
+  tab is wider than the screen beside the panel (§4) or at 390 px, MLB included (§3); a
+  NEW @media block that restyles a frozen rule fails `test_mlb_untouched.py`.
 - 🔴 ~~**THE PAGE RENDERS ONLY FLAGS MARKED `actionable`.**~~ **THE PAGE
   RENDERS NO FLAGS** `[Sam, 2026-10-01]`, not even actionable ones. Sam,
   2026-08-26: *"we have to advertise a clean look to the website that
