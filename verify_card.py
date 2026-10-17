@@ -1414,5 +1414,12 @@ _gcf = _one.conflicts(_glive, winner=lambda r: _one.expected_side(
 ck(f"one team per game: every unstarted game line is on the model's expected winner ({len(_glive)} rows)",
    not _gcf, str(_gcf[:3]))
 
+# 🔴 ONE SIDE PER PROP. `[Sam, 2026-10-16]` "Every list shows only the side the model gives
+#    50% or more": no board or top-10 row prints under 50% on an over/under, no prop shows
+#    both sides, no pair or parlay leg is under 50%, and no starred ladder rung either.
+_osp = C.one_side_problems(doc)
+ck(f"one side per prop: no board or top-10 row under 50% or on both sides, no leg or starred rung "
+   f"under 50% ({len(doc.get('picks') or []) + len(doc.get('top10') or [])} rows)", not _osp, str(_osp[:3]))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

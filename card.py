@@ -73,6 +73,42 @@ def _propkey(x):
             x.get("market"), x.get("line"))
 
 
+def one_side_pools(plays, plays_all, hitters):
+    """`[Sam, 2026-10-16]` "Every list shows only the side the model gives 50% or more."
+    -> (plays, plays_all, hitters, dropped). Per over/under wager, only the side whose
+    PRINTED number (`confidence`) is 50+ and above the other side's (one_side.keep_props;
+    a tie keeps neither). `plays` (the board's pitcher pool, one side per prop by blend)
+    keeps a row only when the printed number agrees; `plays_all` (the pairs, the top 10
+    and the parlays) keeps the board's own side on each main line and the same rule on
+    each alt rung; `hitters` the same rule on their records."""
+    conf = lambda x: x.get("confidence")  # noqa: E731
+    ok = {id(x) for x in one_side.keep_props(plays_all + hitters, _propkey, conf)[0]}
+    main = {id(x) for x in plays if id(x) in ok}
+    out = ([x for x in plays if id(x) in main],
+           [x for x in plays_all if id(x) in ok and (x.get("alt_rung") or id(x) in main)],
+           [x for x in hitters if id(x) in ok])
+    kept = {id(x) for x in out[0] + out[1] + out[2]}
+    return out + ([x for x in plays + hitters if id(x) not in kept],)
+
+
+def one_side_problems(doc):
+    """The card-level guard verify_card.py runs on the card main() built -> [(what, detail)]:
+    a board row printing under 50% on an over/under, a prop shown both ways, a top-10 row
+    under 50%, a pair or parlay leg under 50%, a starred ladder rung under 50%."""
+    rows = [r for r in doc.get("picks") or [] if isinstance(r, dict)]
+    top = [r for r in doc.get("top10") or [] if isinstance(r, dict)]
+    out = [(w, k) for k, w in one_side.prop_conflicts(rows, _propkey, lambda r: r.get("confidence"))]
+    out += [("top 10 under 50%", _propkey(r)) for r in top
+            if r.get("confidence") is not None and r["confidence"] < 50]
+    legs = (doc.get("pairs") or []) + [x for v in (doc.get("parlays") or {}).values()
+                                       if isinstance(v, list) for x in v]
+    out += [("a leg under 50%", p.get("label") or p.get("legs")) for p in legs
+            if any(c is not None and c < 50 for c in p.get("leg_confidences") or [])]
+    out += [("a starred rung under 50%", (r.get("pitcher") or r.get("player"), r["ladder_pick"].get("line")))
+            for r in rows + top if r.get("ladder_pick") and (r["ladder_pick"].get("blend") or 0) < 50]
+    return out
+
+
 def select_board(plays, hitters, seats=None):
     """The Gizmo's Picks board. -> (board, accounting). Pure: reads rows,
     sets `below_price` on the rows it seats below their price.
@@ -2775,7 +2811,9 @@ def main(dry=False):
         x["ladder"] = rungs
         # ★ the rung this card would take: the safest one that still clears
         # Sam's -700 floor. At a flat-ish payout, climbing is a donation.
-        ok = [r for r in rungs if r["clears_price_floor"] and r["side"] == x["side"]]
+        # `[Sam, 2026-10-16]` and only a rung the model gives 50% or more (the % it prints)
+        ok = [r for r in rungs if r["clears_price_floor"] and r["side"] == x["side"]
+              and (r.get("blend") or 0) >= 50]
         x["ladder_pick"] = (min(ok, key=lambda r: -r["blend"]) if ok else None)
 
     # The under of a 90% over is the same number written backwards. Both
@@ -2863,6 +2901,11 @@ def main(dry=False):
     hitters, _off_h = on_day(hitters, today)
     off_day = _off_p + _off_h
     off_dates = sorted({et_date(x["commence"]) for x in off_day})
+    # ⛔ After LAST_PITCHER_ROWS / LAST_PRICED_ROWS, so verify_card still sees every row.
+    plays, plays_all, hitters, _wrong = one_side_pools(plays, plays_all, hitters)
+    if _wrong:
+        print(f"[card] one side per prop: {len(_wrong)} row(s) under 50%, or not the side "
+              f"its printed number favours, left every list")
     pairs = build_pairs(plays_all)
     top10, top10_drops = build_top10(plays_all, hitters)
     parlays, parlay_meta = build_parlays(plays_all, hitters)

@@ -305,10 +305,12 @@ def plant(tmp, games):
         return json.load(fh)
 
 
+# `[Sam, 2026-10-16]` one side per prop at 50%+: each planted prop shows ONE side now
+#    (~~both, 8 rows today~~), so today's two games plant three receivers each: 6 rows.
 _PG = [("planted-a", PLANT_DAY + "T19:00:00Z", "Alpha U", "Beta U",
-        [("Planted Aone", "Alpha U"), ("Planted Bone", "Beta U")]),
+        [("Planted Aone", "Alpha U"), ("Planted Bone", "Beta U"), ("Planted Atwo", "Alpha U")]),
        ("planted-b", PLANT_DAY + "T23:30:00Z", "Gamma U", "Delta U",
-        [("Planted Cone", "Gamma U"), ("Planted Done", "Delta U")]),
+        [("Planted Cone", "Gamma U"), ("Planted Done", "Delta U"), ("Planted Ctwo", "Gamma U")]),
        ("planted-c", PLANT_NEXT + "T17:00:00Z", "Eps U", "Zeta U",
         [("Planted Eone", "Eps U"), ("Planted Fone", "Zeta U")]),
        ("planted-d", PLANT_NEXT + "T20:00:00Z", "Eta U", "Theta U",
@@ -495,14 +497,16 @@ finally:
     shutil.rmtree(_stmp, ignore_errors=True)
 scard = scard or {"picks": [], "n_on_slate_day": 0}
 _sn = len(scard["picks"])
-ck("🔴 PLANTED: a 2-row board under the minimum is shipped, not suppressed",
-   _sn == 2 and 0 < _sn < card_fb.BOARD_MIN, "%d pick(s)" % _sn)
+# `[Sam, 2026-10-16]` one side per prop at 50%+: his over and under are 2 priced rows, and the
+#    board shows the ONE his record favours (~~a 2-row board~~).
+ck("🔴 PLANTED: a 1-row board under the minimum is shipped, not suppressed",
+   _sn == 1 and 0 < _sn < card_fb.BOARD_MIN, "%d pick(s)" % _sn)
 ck("🔴 PLANTED: ...FLAGGED as short, with a sentence saying it was NOT padded",
    scard.get("short_of_min") is True and "NOT padded" in (scard.get("short_reason") or ""),
    "short_of_min=%r reason=%r" % (scard.get("short_of_min"),
                                   (scard.get("short_reason") or "")[:80]))
-ck("   PLANTED: ...and nothing was invented to reach the minimum",
-   _sn <= scard["n_on_slate_day"] == 2,
+ck("   PLANTED: ...and nothing was invented to reach the minimum (the day's pool is his one 50%+ side)",
+   _sn <= scard["n_on_slate_day"] == 1,
    "%d shown of %d priced" % (_sn, scard["n_on_slate_day"]))
 
 # 5b. the live-derived short board — the extra

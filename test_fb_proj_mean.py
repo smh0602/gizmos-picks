@@ -61,9 +61,11 @@ try:
     with gzip.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
         json.dump({"pulled_at": "2026-10-16T12:00:00Z", "n_games": 1, "books_seen": ["fd"],
                    "games": [{"id": "g1", "away": "A", "home": "H", "commence": "2026-10-17T17:00:00Z",
+                              # `[Sam, 2026-10-16]` one side per prop at 50%+: the OVER, the side
+                              # his record (2026 first) favours (~~the under~~, now never listed)
                               "props": [{"player": "Two Season", "market": "player_rush_yds", "line": 60.5,
-                                         "sides": {"under": {"price": -110, "book": "fd", "n_books": 3,
-                                                             "link": "x"}}}]}]}, fh)
+                                         "sides": {"over": {"price": -110, "book": "fd", "n_books": 3,
+                                                            "link": "x"}}}]}]}, fh)
     with gzip.open("data/ncaaf/latest/players-2025.json.gz", "wt") as fh:
         json.dump({"season": 2025, "scope": "all FBS conferences",
                    "players": {"1": {"name": "Two Season", "pos": "RB", "g": [g(v) for v in V25]}}}, fh)
@@ -89,6 +91,6 @@ r = rows[0] if rows else {}
 eq(r.get("projection"), ALL, "🔴 PROJ = the plain average of all 13 games (~~15.0, the 2025 games only~~)")
 eq(r.get("projection_note"), "His own average over the 13 games this record is built from — %.1f rush yds a game." % ALL,
    "🔴 ...which is what its note says")
-eq((doc.get("projections") or {}).get("Two Season|player_rush_yds|under|60.5", {}).get("v"), ALL,
+eq((doc.get("projections") or {}).get("Two Season|player_rush_yds|over|60.5", {}).get("v"), ALL,
    "🔴 the projections map (what the liked list's PROJ check reads) carries the same number")
 eq(r.get("own_mean"), 15.0, "⛔ own_mean, T54's pre-registered input, is unchanged")

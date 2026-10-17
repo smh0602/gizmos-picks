@@ -33,7 +33,8 @@ import collect                      # PROP_MARKETS, league_books: what is pulled
 import dossier_fb as D              # team_codes: book team names -> log team codes
 import fb_model as F                # fit, predict, record, devig, implied, decimal, monday, L
 import mlb_refit                    # paired_test_clustered: the ONE cluster-robust paired test
-import possession as P              # share_before: signal 6 from EARLIER games only
+import one_side                     # prop_side: only the side the model gives 50% or more
+import possession as P             # share_before: signal 6 from EARLIER games only
 import record_fb                    # _val, _won, _played, JOIN_WINDOW_DAYS: the card's own grader
 import signal9                      # the ONE expected-share formula (signal 9)
 
@@ -907,6 +908,14 @@ def current_picks(lg, wf, root=None, now=None, rated=None, board=None):
                     if _p is not None:
                         rated.append({"game_id": eid, "player": who, "market": mk, "line": line,
                                       "side": _side, "p": round(100 * _p, 1)})
+            # `[Sam, 2026-10-16]` only the side the model gives 50% or more (one_side):
+            #    the value side under 50% is never picked, an anytime TD "yes" included.
+            #    ⛔ Live picks only; the walk-forward's graded picks keep their own rule.
+            if mk == TD_MARKET:
+                po = po if (po or 0) >= 0.5 else None
+            else:
+                _fav = one_side.prop_side(po, pu)
+                po, pu = (po if _fav == "over" else None), (pu if _fav == "under" else None)
             pk = pick_for(mk, rung, po, pu)
             if not pk:
                 continue
