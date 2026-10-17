@@ -38,7 +38,11 @@ above the other side's; an exact tie keeps neither. ~~A one-sided market (anytim
 has no other side and is left alone~~: an anytime TD "yes" at 22% is the plus-money value
 side Sam declined ("Keep value picks"), so it needs 50% too. `one_per_wager`: a wager with
 no number on either side still never shows both ways (the first in the list's own order).
+
+`[Sam, 2026-10-17]` AND WHOLE NUMBERS THAT NEVER CONTRADICT A PICK: `shown_score`.
 """
+import math
+
 TOTAL_WORDS = ("total",)          # total, totals, alternate_total(s), team totals: no team side
 
 
@@ -226,3 +230,40 @@ def scores_by_names(win_chances):
             away, home = str(r["game"]).split(" @ ", 1)
         return sc.get((away, home))
     return score
+
+
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-17]` WHOLE NUMBERS THAT NEVER CONTRADICT A PICK. "we need to not have decimal
+# places in the predicted scores and make them only whole numbers"; asked how to round, he chose
+# "Round, stay consistent": the nearest whole-number score that still agrees with every pick
+# shown for that game (plain rounding would read Texas -6 on a predicted 6.3 as a push).
+# ══════════════════════════════════════════════════════════════════════
+SHOWN_REACH = 3              # how far (points per team) from the model's score a whole score may go
+
+
+def shown_score(score, rows=(), winner=None, point=lambda r: r.get("line")):
+    """-> {"home", "away"} in whole numbers, or None. The integer score nearest the model's
+    (by squared distance, then the margin's, then the total's) such that the expected `winner`
+    ('home' / 'away') leads, every moneyline row's team leads, and every spread and total row
+    the model's own score agrees with (`score_side_ok`) still agrees. A row the model's score
+    does not agree with (a frozen, published row) constrains nothing. None without a score, or
+    when no whole score within SHOWN_REACH points a team agrees with them all."""
+    if not score or score.get("home") is None or score.get("away") is None:
+        return None
+    h0, a0 = float(score["home"]), float(score["away"])
+    need = [r for r in rows or [] if score_side_ok(r, score, point(r))]
+    mls = [backs(r) for r in rows or [] if score_side_ok(r, score, point(r)) is None
+           and backs(r) in ("home", "away")]
+    best = None
+    for h in range(max(0, int(math.floor(h0)) - SHOWN_REACH), int(math.ceil(h0)) + SHOWN_REACH + 1):
+        for a in range(max(0, int(math.floor(a0)) - SHOWN_REACH), int(math.ceil(a0)) + SHOWN_REACH + 1):
+            s = {"home": h, "away": a}
+            lead = "home" if h > a else "away" if a > h else None
+            if winner in ("home", "away") and lead != winner:
+                continue
+            if any(lead != b for b in mls) or not all(score_side_ok(r, s, point(r)) for r in need):
+                continue
+            key = ((h - h0) ** 2 + (a - a0) ** 2, abs((h - a) - (h0 - a0)), abs((h + a) - (h0 + a0)), -h)
+            if best is None or key < best[0]:
+                best = (key, s)
+    return best[1] if best else None

@@ -88,13 +88,15 @@ def mlb_rows(model, board):
     return out
 
 
-def fb_rows(model, slate, et_date):
+def fb_rows(model, slate, et_date, shown=None):
     """Every game of ET day `slate` in the model's win chances; `slate` None:
     every game in them (the page's week, `[Sam, 2026-10-14]`), each with the
-    model's predicted score."""
+    model's predicted score and `[Sam, 2026-10-17]` its whole-number form that
+    never contradicts a shown pick (`shown`: the card's `scores_shown`)."""
+    whole = {(x.get("away"), x.get("home")): x.get("score") for x in shown or []}
     return [dict(make_row(g["game_id"], g["commence"], g["away"], g["home"], g.get("p_home"),
                           (g.get("best_ml") or {}).get("home"), (g.get("best_ml") or {}).get("away")),
-                 score=g.get("score"))
+                 score=g.get("score"), score_shown=whole.get((g["away"], g["home"])))
             for g in (model or {}).get("win_chances") or []
             if slate is None or et_date(g["commence"]) == slate]
 
@@ -160,9 +162,10 @@ def build(lg=None, root=None, when=None, log=print):
         snap = card_fb.latest_gamelines_snapshot()[0]
         slate = card_fb.next_line_slate(snap) if snap else None
         fbm = _json(os.path.join(latest, "fb-model.json"))
-        rows = fb_rows(fbm, slate, card_fb.et_date)
+        shown = (_json(os.path.join(root or ROOT, "picks", "fb-%s-latest.json" % lg)) or {}).get("scores_shown")
+        rows = fb_rows(fbm, slate, card_fb.et_date, shown)
         # `[Sam, 2026-10-14]` the tab shows the week; ⛔ only `rows` is frozen and graded.
-        week = fb_rows(fbm, None, card_fb.et_date)
+        week = fb_rows(fbm, None, card_fb.et_date, shown)
     live = [r for r in rows if r["pick"] and r["commence"] > now]
     if live:
         daystore.archive({"league": lg, "taken_at": now, "rows": live}, data, SNAP, log=log, when=when)

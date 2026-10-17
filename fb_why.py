@@ -233,11 +233,13 @@ def line_why(r, ctx):
     return out
 
 
-def explain(rows, lg, latest, kind="props", ctx=None):
+def explain(rows, lg, latest, kind="props", ctx=None, scores=None):
     """The liked rows with `why` written; the card's own sentence is kept in
     `why_card`, so a second pass rebuilds the same why. The season is the
     kickoff's. ⛔ Never raises: a row whose why fails keeps the why it had, and
-    the other rows still get theirs."""
+    the other rows still get theirs. `[Sam, 2026-10-17]` `scores`: {(away, home):
+    whole-number score} (card_fb.shown_scores), printed instead of the model's
+    one-decimal score, so the why and the Game Lines tab show the same numbers."""
     try:
         if ctx is None:
             season = next((season_of(r.get("commence")) for r in rows if season_of(r.get("commence"))), None)
@@ -247,6 +249,8 @@ def explain(rows, lg, latest, kind="props", ctx=None):
     except Exception as e:
         print("  ⚠️ the picks' why was not written: %s: %s" % (type(e).__name__, e), flush=True)
         return rows
+    if scores:
+        ctx.scores = {**ctx.scores, **scores}
     for r in rows:
         try:
             why = prop_why(r, ctx) if kind == "props" else line_why(r, ctx)

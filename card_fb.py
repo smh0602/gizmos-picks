@@ -1535,6 +1535,33 @@ def card_game_lines(model_picks, games, ladder, slate, win_chances=None, sigma=N
     return order_game_lines(rows)
 
 
+def shown_scores(win_chances, model_picks, game_lines, legs):
+    """`[Sam, 2026-10-17]` whole-number predicted scores that never contradict a pick shown for
+    the game -> [{"away", "home", "score": {"home", "away"} or None}], one per game in the model's
+    win chances (the Game Lines tab's week). The picks each game's whole score must agree with:
+    the model's own picks (fb-model.json, its line turned into the team's own point), the card's
+    game lines and alternate spreads, and the same-game parlays' line legs; and the expected
+    winner leads (`one_side.shown_score`). None: no whole score agrees with them all."""
+    v = lambda x: x.get("value") if isinstance(x, dict) else x  # noqa: E731
+    out = []
+    for w in win_chances or []:
+        away, home = w.get("away"), w.get("home")
+        g = "%s @ %s" % (away, home)
+        rows = []
+        for p in model_picks or []:
+            if (p.get("game") or "") != "%s at %s" % (away, home):
+                continue
+            ln = v(p.get("line"))
+            if p.get("market") == "spread" and ln is not None:
+                ln = -ln if p.get("side") == "home" else ln   # M on the home margin -> own point
+            rows.append({"market": p.get("market"), "side": p.get("side"), "line": ln, "game": g})
+        rows += [r for r in game_lines or [] if r.get("game") == g]
+        rows += [dict(r, line=r.get("point")) for r in legs or [] if r.get("game") == g]
+        out.append({"away": away, "home": home,
+                    "score": one_side.shown_score(w.get("score"), rows, one_side.expected_side(w.get("p_home")))})
+    return out
+
+
 def build_top_plays(rows, board, n=TOP_N):
     """Most likely to hit, among rows a person is actually paid on.
 
@@ -2538,6 +2565,11 @@ def main():
             f"day filter, {len(below)} below the floor, {len(off_day)} on "
             f"another day. An empty board on a gameless day is CORRECT.")
 
+    # `[Sam, 2026-10-17]` the predicted scores in whole numbers, never against a shown pick
+    scores_shown = shown_scores(_model.get("win_chances") or [], _model.get("picks") or [],
+                                game_lines, _gl_all)
+    _whole = {(x["away"], x["home"]): x["score"] for x in scores_shown if x["score"]}
+
     # 🔴 LEDGER RULE 60: THE CARD IS DATED BY THE SLATE, NOT THE WALL
     # CLOCK -- the ET date of the earliest game that has not kicked off.
     # ⛔ A UTC date is not a game's date. Written UTC and read ET, a card
@@ -2622,8 +2654,9 @@ def main():
         #    list, for the page's "Above their price only" OFF view.
         "game_lines_liked": fb_why.explain(
             best_liked([r for r in game_lines if r.get("kind") == "fb-line"], lambda r: r.get("game"),
-                       GAME_LINES_MAX), LEAGUE, f"{DATA}/latest", kind="lines"),
+                       GAME_LINES_MAX), LEAGUE, f"{DATA}/latest", kind="lines", scores=_whole),
         "game_lines_meta": gl_meta,
+        "scores_shown": scores_shown,
         "game_lines_rule": game_lines_rule(game_lines, gl_meta),
         "top_plays": top_plays,
         "top_plays_excluded": top_meta,

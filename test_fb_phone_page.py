@@ -67,6 +67,16 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:     ? `${fbAb(r.away)} ${Number(r.score.away).toFixed(1)} &ndash; ${fbAb(r.home)} ${Number(r.score.home).toFixed(1)}`
 #   with:     ? `${fbAb(r.away)} ${Math.round(r.score.away)} &ndash; ${fbAb(r.home)} ${Math.round(r.score.home)}`
 #
+# @vacuity 🔴 [Sam, 2026-10-17] the tab prints the whole-number score that never contradicts a pick
+#   file: index.html
+#   find:     ? `${fbAb(r.away)} ${r.score_shown.away} &ndash; ${fbAb(r.home)} ${r.score_shown.home}`
+#   with:     ? `${fbAb(r.away)} ${Math.round(r.score.away)} &ndash; ${fbAb(r.home)} ${Math.round(r.score.home)}`
+#
+# @vacuity 🔴 ...which winners.json carries from the card for every game of the week
+#   file: winners.py
+#   find:                  score=g.get("score"), score_shown=whole.get((g["away"], g["home"])))
+#   with:                  score=g.get("score"), score_shown=None)
+#
 # @vacuity 🔴 a 50% chance is a tied score
 #   file: fb_model.py
 #   find:     return {"home": round((ot + margin) / 2.0, 1), "away": round((ot - margin) / 2.0, 1)}
@@ -228,7 +238,15 @@ FBM = {"win_chances": [
      "p_home": 34.0, "best_ml": {}, "score": None}]}
 et = lambda c: (datetime.datetime.strptime(c, "%Y-%m-%dT%H:%M:%SZ")   # noqa: E731
                 - datetime.timedelta(hours=4)).strftime("%Y-%m-%d")     # EDT, as test_game_lines_page
-WEEK = W.fb_rows(FBM, None, et)
+# `[Sam, 2026-10-17]` the card's whole-number scores (card_fb.shown_scores): Seattle's is 24-20,
+#    not the plain 24-21, because a planted pick needs it; Kansas City's has none (no whole score
+#    agrees with all its picks), so the tab falls back to the model's one decimal
+SHOWN = [{"away": "Seattle Seahawks", "home": "Denver Broncos", "score": {"home": 20, "away": 24}},
+         {"away": "Las Vegas Raiders", "home": "Kansas City Chiefs", "score": None}]
+WEEK = W.fb_rows(FBM, None, et, SHOWN)
+ck("🔴 winners carries the card's whole-number score beside the model's own, game by game",
+   {r["game_id"]: r["score_shown"] for r in WEEK} == {"g1": {"home": 20, "away": 24}, "g2": None, "g3": None},
+   str([(r["game_id"], r["score_shown"]) for r in WEEK]))
 ck("🔴 winners: the week holds every game in the win chances, each with its predicted score",
    sorted(r["game_id"] for r in WEEK) == ["g1", "g2", "g3"]
    and {r["game_id"]: r["score"] for r in WEEK}["g1"] == {"home": 20.6, "away": 23.9})
@@ -236,7 +254,9 @@ ck("⛔ ...while the graded rows stay the slate's one day",
    [r["game_id"] for r in W.fb_rows(FBM, "2026-10-15", et)] == ["g1"])
 _wsrc = open(os.path.join(ROOT, "winners.py"), encoding="utf-8").read()
 ck("🔴 winners.json carries the week for football (built from the same fb-model.json)",
-   'week = fb_rows(fbm, None, card_fb.et_date)' in _wsrc and 'doc["week"] = week' in _wsrc)
+   # `[2026-10-17]` ~~'week = fb_rows(fbm, None, card_fb.et_date)'~~: with the card's whole scores
+   'week = fb_rows(fbm, None, card_fb.et_date, shown)' in _wsrc and 'doc["week"] = week' in _wsrc
+   and '"picks", "fb-%s-latest.json" % lg)) or {}).get("scores_shown")' in _wsrc)
 WK = r"""
 const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
 const fbAb = n => n.slice(0, 3).toUpperCase();
@@ -256,10 +276,12 @@ ck("🔴 every planted game listed once, under its ET day, earliest day first",
    and H.index("DAY:2026-10-15") < H.index('data-game="g1"') < H.index("DAY:2026-10-18"), str(_days))
 ck("🔴 kickoff in ET with \"ET\" written (a 00:15Z kickoff is 8:15 PM ET the day before)",
    "8:15 PM ET" in H and "1:00 PM ET" in H and "8:20 PM ET" in H, H[:600])
-ck("🔴 the model's predicted score, away then home; none printed as a dash",
-   # `[Sam, 2026-10-16]` "Must match the score": picks are judged on the score to one decimal,
-   #    so it is printed to one decimal (~~"SEA 24 &ndash; DEN 21"~~).
-   "SEA 23.9 &ndash; DEN 20.6" in H and "LAS 17.6 &ndash; KAN 27.2" in H and H.count("<td data-score>&mdash;</td>") == 1,
+ck("🔴 the model's predicted score, away then home, in WHOLE numbers; none printed as a dash",
+   # `[Sam, 2026-10-17]` "we need to not have decimal places in the predicted scores and make them
+   #    only whole numbers", rounded so they never contradict a pick ("Round, stay consistent"):
+   #    Seattle prints the card's 24-20 (~~"SEA 23.9 &ndash; DEN 20.6"~~, `[2026-10-16]` one
+   #    decimal), never plain rounding's 24-21; a game with no agreeing whole score keeps one decimal.
+   "SEA 24 &ndash; DEN 20" in H and "LAS 17.6 &ndash; KAN 27.2" in H and H.count("<td data-score>&mdash;</td>") == 1,
    re.findall(r"<td data-score>[^<]*</td>", H))
 ck("🔴 the graded record line stays at the top", H.startswith("<p data-wrec>") and "5 won, 3 lost" in H)
 ck("🔴 the football tab draws the week", "winnersWeekHtml(W)" in js_block("fbGameLinesTab", PAGE))
