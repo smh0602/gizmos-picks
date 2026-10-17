@@ -70,7 +70,8 @@ LEAGUES = {
 # still a thing a tired operator has to read at 4am, whereas a forced path
 # CANNOT be wrong.
 MODE_LEAGUE = {"nfl-probe": "nfl", "nfl-logs": "nfl",
-               "cfb-probe": "ncaaf", "coaches-probe": "ncaaf"}
+               "cfb-probe": "ncaaf", "coaches-probe": "ncaaf",
+               "cfb-injuries": "ncaaf"}
 LEAGUE = os.environ.get("LEAGUE", "mlb").strip().lower() or "mlb"
 _forced = {MODE_LEAGUE[m] for m in MODE_LEAGUE
            if m in " ".join(sys.argv[1:]).split()}
@@ -4461,7 +4462,8 @@ def run_mode(mode):
             "nfl-probe", "nfl-logs", "freshness", "cfb-probe", "news-probe",
             "coaches-probe",
             "fb-scores", "fb-record", "live-probe",
-            "card-fb", "nfl-teams", "cfb-teams", "runs", "game-model")
+            "card-fb", "nfl-teams", "cfb-teams", "runs", "game-model",
+            "cfb-injuries")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
         sys.exit(1)
@@ -4579,6 +4581,38 @@ def run_mode(mode):
             # to text. It is its own mode now, and converge calls it.
             import cfb as _cfb
             _cfb.fbs_conferences(_fresh.current_football_season(), log)
+            left = None
+        elif mode == "cfb-injuries":
+            # 🔴 `[Sam, 2026-10-17]` COLLEGE INJURY REPORTS: *"use the college
+            #    injury source as long as it's accurate and up to date, we
+            #    wouldn't want misinformation ruining our bets."* The conference
+            #    availability reports, fetched, checked and stored by
+            #    cfb_injuries.py (research/cfb_injuries_design.md).
+            #    💰 FREE: no key and no Odds credit, and ⛔ never through
+            #    `cfb.get` or the CFBD budget. No cron names it: converge plans
+            #    it on the college passes from its probe's contract row.
+            #    ⛔ COLLEGE ONLY. The NFL's injuries come from nflverse in
+            #    `nfl-logs`; MODE_LEAGUE pins a run that names this mode.
+            #    ⛔ `run` never raises: what went wrong is written in its probe.
+            #    The mode is SOFT, so anything else raised here is a
+            #    `::warning::` and the pass goes on to the card.
+            if LEAGUE != "ncaaf":
+                return log(f"cfb-injuries is college only; {LEAGUE} has no conference "
+                           f"injury reports (the NFL's come from nfl-logs). Nothing done.")
+            import cfb_injuries as _ci
+            _res = _ci.run(root=".", log=log)   # ⛔ this run's own tree (a test runs it from a copy)
+            _src = _res.get("sources") or {}
+            _down = sorted(s for s, v in _src.items() if not (v or {}).get("ok"))
+            if _res.get("error") or not _src or len(_down) == len(_src):
+                # ⚠️ ONLY WHEN THIS PASS STORED NOTHING (the reader did not
+                #    start, the snapshot step failed, or every source was
+                #    down). One source down is in the probe, and its reports
+                #    are simply not shown, so it is no annotation.
+                #    print, not log(): GitHub reads an annotation only at the
+                #    start of a line, and log() prefixes a timestamp.
+                print(f"::warning::cfb-injuries read nothing for {LEAGUE} this pass ("
+                      + (_res.get("error") or "every source failed: " + ", ".join(_down))
+                      + f"); see {_res.get('probe')}", flush=True)
             left = None
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.

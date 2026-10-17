@@ -814,6 +814,31 @@ def _football_contract(league, data, picks, now):
         #    correctly buys nothing still writes its snapshot, so it is not late.
         ("alt-lines", ("dir", f"{data}/{utc_day}/alt-lines"), T["props"], True,
          "Game Lines — the paid alt-line pull"),
+    ]
+    # 🔴 `[Sam, 2026-10-17]` COLLEGE INJURY REPORTS (cfb_injuries.py, design
+    #    research/cfb_injuries_design.md §1 item 2): the conference availability
+    #    reports, read on the college passes that already run. ⛔ NO CRON CHANGE:
+    #    converge plans the mode from this row.
+    #    ✅ THE ROW IS ON THE PROBE, which the reader writes on EVERY attempt. A
+    #    stale probe means the reader did not run, which converge repairs. A
+    #    source that refused is not this row's business: the probe names it,
+    #    and `cfb_injuries.report_for` shows no report its source has not
+    #    confirmed within FETCH_MAX_AGE_H (§2 (b)).
+    #    ⚠️ HOURLY, EVERY DAY: `T["news"]`, the list the hourly college cron
+    #    already answers (test_fb_freshness §4 holds every FB_TIMES list to a
+    #    cron). The first pass after each top of the hour plans it: every
+    #    college pass, every day (Wed-Sat and the weekday games alike), unless
+    #    two passes land in one hour. An hourly deadline can never be built
+    #    more than GRACE_MIN late, so a delayed cron leaves no `late:` finding
+    #    (record_builds).
+    #    ⛔ BEFORE THE CARD ROWS: plan() runs modes in contract order, so a
+    #    card built in the same pass reads this pass's reports.
+    #    ✅ SOFT (see SOFT): a failed read costs a why sentence, never a card.
+    if league == "ncaaf":          # college only: the NFL's injuries ride nfl-logs
+        rows.append(
+            ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
+             "College injury reports — the reader's probe, written on every attempt"))
+    rows += [
         # ⛔ ONE ROW FOR THE CARD FILE. Picks, Parlays and Track Record all
         # read it; three rows would be three chances to disagree.
         # 🔴 THE CARD PATH IS NOT `{picks}` AND MUST NOT BE. `card_fb.py`
@@ -1067,6 +1092,27 @@ def _football_contract(league, data, picks, now):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{_stem}.json.gz"), _due, False,
                      "Stored only — no tab or model reads it yet"))
+    # `[Sam, 2026-10-17]` COLLEGE INJURIES' STORED FILES (STORED_ONLY; design §1):
+    #    the conference archives (written by cfb-injuries) and CFBD's roster
+    #    jerseys and defensive box score (written by cfb-probe, at no extra call;
+    #    2025 is filled once). No model reads them unless §4's backtest passes.
+    #    ⛔ LATE ONLY WHEN MISSING, every season: each is rewritten only when its
+    #    content changes, so its age says nothing (a quiet week, the off-season),
+    #    and a deadline on it would be a warning nobody can clear.
+    #    ⛔ NO ROW ON THE DATED SNAPSHOTS (data/ncaaf/<day>/injury-reports/), for
+    #    the same reason: one is written only when a report changed, so a quiet
+    #    Monday has none and a `dir` row would read MISSING. Their writer is
+    #    watched by the probe row above, the probe records the newest
+    #    snapshot's age, and a report whose source has not been confirmed
+    #    recently is never shown (§2 (b)). STORED_ONLY still names them, so a
+    #    row added later can never plan a run or turn one red.
+    if league == "ncaaf":
+        for _y in _yrs:
+            rows.append(("cfb-injuries", ("file", f"{data}/history/injury-archive-{_y}.json.gz"), [], False,
+                         "Stored only — the conference injury archives (no model reads them yet)"))
+            for _k in ("roster", "defense"):
+                rows.append(("cfb-probe", ("file", f"{latest}/{_k}-{_y}.json.gz"), [], False,
+                             "Stored only — college injuries' CFBD inputs (no model reads them yet)"))
     # `[Sam, 2026-09-24]` the props model's file, rebuilt by the same run.
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-props-model.json"), T["card"], False,
@@ -1329,12 +1375,24 @@ def runs_rows(latest, root=None):
 #    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
 #    reads STALE.
 SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
+# `[Sam, 2026-10-17]` THE COLLEGE INJURY READER (cfb_injuries.py). What a reader
+#    loses when it fails is one why sentence about an opponent's injuries,
+#    never a number they bet on: the card, its odds and its record stay hard.
+#    `cfb_injuries.run` never raises; SOFT covers the rest (its import, the
+#    arm), so a failed read is a `::warning::` and the pass goes on to the card.
+SOFT |= {"cfb-injuries"}
 # 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
 #    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
 #    daily CFBD / nflverse mode, and re-running cfb-probe every pass for a file
 #    nothing reads is how September's CFBD quota went (13+ calls a build).
-STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather)-\d{4}\.json\.gz$"
+#    `[Sam, 2026-10-17]` and college injuries' stored files (design §1): CFBD's
+#    roster jerseys and defensive box score, the conference archives, and the
+#    dated report snapshots. ⛔ NOT the reader's probe (`injuries-probe-<s>`):
+#    that row exists to plan the reader.
+STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather|roster|defense)-\d{4}\.json\.gz$"
+                         r"|/history/injury-archive-\d{4}\.json\.gz$"
+                         r"|/\d{4}-\d{2}-\d{2}/injury-reports(/\d{4}\.json\.gz)?$"
                          r"|/history/(schedule|lines)-\d{4}\.json\.gz$")
 
 
