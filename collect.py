@@ -4613,6 +4613,16 @@ def run_mode(mode):
                 print(f"::warning::cfb-injuries read nothing for {LEAGUE} this pass ("
                       + (_res.get("error") or "every source failed: " + ", ".join(_down))
                       + f"); see {_res.get('probe')}", flush=True)
+            # 🔴 A SOURCE DOWN FOR LONG ENOUGH TO MATTER, NAMED. `[2026-10-17]`
+            #    The probe's own verdict (`freshness.health`, ⛔ the one copy):
+            #    a source unread past FETCH_MAX_AGE_H while a game is close has
+            #    taken its reports off the page, and one down while the others
+            #    answer printed nothing at all. The row it makes stale also
+            #    reaches freshness.json and the watchdog.
+            _sick = _fresh.health(_res.get("probe") or "")
+            if _sick:
+                print(f"::warning::cfb-injuries for {LEAGUE}: {_sick}; see {_res.get('probe')}",
+                      flush=True)
             left = None
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.
@@ -5748,7 +5758,8 @@ def converge(explicit=(), allow_paid=True):
         mark = "DUE  " if r["stale"] else " ok  "
         late = f"  {r['late_min']:.0f}m LATE" if r["late_min"] else ""
         log(f"  {mark}  {r['mode']:<14} built {age:>12}  "
-            f"due {r['due_et']:<20} {'PAID' if r['paid'] else 'free'}{late}")
+            f"due {r['due_et']:<20} {'PAID' if r['paid'] else 'free'}{late}"
+            + (f"  UNHEALTHY: {r['unhealthy']}" if r.get("unhealthy") else ""))
 
     for m in explicit:
         if m not in modes:
@@ -5825,8 +5836,12 @@ def converge(explicit=(), allow_paid=True):
 
     rows2 = _fresh.survey(data=DATA, picks=PICKS)
     _record_lateness(rows2)
-    after = {r["mode"]: r for r in rows2}
-    still = [m for m, r in after.items() if r["stale"]]
+    # 🔴 EVERY STALE ROW COUNTS, NOT EACH MODE'S LAST ONE. `[2026-10-17]`
+    #    ~~`{mode: row}`~~ kept one row per mode, the last in the contract, so
+    #    a stale college injury probe hid behind its fresh stored archive row:
+    #    "every artifact is inside contract" and freshness.json `ok: true`
+    #    while the gate warned. The same rule as `write_freshness`'s default.
+    still = list(dict.fromkeys(r["mode"] for r in rows2 if r["stale"]))
     write_freshness(rows2, still)
 
     # 🔴 THE PAGE MUST BE ABLE TO SAY HOW OLD IT IS. Sam had to ask why
