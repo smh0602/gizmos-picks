@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "MODEL",
- "built_at": "2026-10-16T19:08:09Z",
+ "built_at": "2026-10-17T01:10:28Z",
  "design": "research/fb_model_design.md",
  "books": [
   "DraftKings",
@@ -311,13 +311,73 @@
  "closing_note": "The same weekly model and pick rule, graded at nflverse's closing lines with their own prices instead of your books.",
  "picks": [
   {
+   "game": "Houston Texans at Jacksonville Jaguars",
+   "game_id": "2026_06_HOU_JAX",
+   "commence": "2026-10-18T13:30:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "Houston Texans",
+   "book": "DraftKings",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.3,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.5,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Baltimore Ravens at Cleveland Browns",
+   "game_id": "2026_06_BAL_CLE",
+   "commence": "2026-10-18T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Cleveland Browns",
+   "book": "Hard Rock",
+   "line": {
+    "value": -3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 57.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 12.1,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
    "game": "Baltimore Ravens at Cleveland Browns",
    "game_id": "2026_06_BAL_CLE",
    "commence": "2026-10-18T17:00:00Z",
    "market": "total",
    "side": "under",
    "team": "Under",
-   "book": "FanDuel",
+   "book": "Hard Rock",
    "line": {
     "value": 39.5,
     "basis": "MARKET"
@@ -327,7 +387,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 52.6,
+    "value": 52.8,
     "basis": "MODEL"
    },
    "break_even": {
@@ -335,10 +395,40 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 2.7,
+    "value": 3.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Carolina Panthers at Philadelphia Eagles",
+   "game_id": "2026_06_CAR_PHI",
+   "commence": "2026-10-18T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Philadelphia Eagles",
+   "book": "DraftKings",
+   "line": {
+    "value": -3.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 57.4,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 13.7,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Carolina Panthers at Philadelphia Eagles",
@@ -347,13 +437,13 @@
    "market": "total",
    "side": "under",
    "team": "Under",
-   "book": "FanDuel",
+   "book": "Hard Rock",
    "line": {
-    "value": 38.5,
+    "value": 39.0,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
     "basis": "MARKET"
    },
    "model_probability": {
@@ -361,14 +451,14 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 5.9,
+    "value": 3.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Chicago Bears at Atlanta Falcons",
@@ -398,7 +488,7 @@
     "value": 4.2,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Chicago Bears at Atlanta Falcons",
@@ -407,28 +497,28 @@
    "market": "spread",
    "side": "home",
    "team": "Atlanta Falcons",
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "line": {
-    "value": -1.0,
+    "value": -1.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -115,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 60.5,
+    "value": 56.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 53.5,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 15.5,
+    "value": 5.7,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Chicago Bears at Atlanta Falcons",
@@ -447,7 +537,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 59.5,
+    "value": 59.4,
     "basis": "MODEL"
    },
    "break_even": {
@@ -458,7 +548,7 @@
     "value": 13.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "New Orleans Saints at New York Giants",
@@ -488,7 +578,7 @@
     "value": 33.2,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "New Orleans Saints at New York Giants",
@@ -497,28 +587,28 @@
    "market": "spread",
    "side": "home",
    "team": "New York Giants",
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "line": {
-    "value": -1.0,
+    "value": -1.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -110,
+    "value": -122,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 54.2,
+    "value": 72.0,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 52.4,
+    "value": 55.0,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 3.5,
+    "value": 31.0,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "New Orleans Saints at New York Giants",
@@ -527,28 +617,28 @@
    "market": "total",
    "side": "over",
    "team": "Over",
-   "book": "DraftKings",
+   "book": "FanDuel",
    "line": {
-    "value": 46.5,
+    "value": 45.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 52.8,
+    "value": 53.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 3.0,
+    "value": 2.9,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "New York Jets at New England Patriots",
@@ -578,7 +668,37 @@
     "value": 3.9,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "New York Jets at New England Patriots",
+   "game_id": "2026_06_NYJ_NE",
+   "commence": "2026-10-18T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "New England Patriots",
+   "book": "FanDuel",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -102,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 61.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 22.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Pittsburgh Steelers at Tampa Bay Buccaneers",
@@ -608,7 +728,7 @@
     "value": 33.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Pittsburgh Steelers at Tampa Bay Buccaneers",
@@ -627,7 +747,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 55.7,
+    "value": 66.2,
     "basis": "MODEL"
    },
    "break_even": {
@@ -635,10 +755,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 8.8,
+    "value": 29.3,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Pittsburgh Steelers at Tampa Bay Buccaneers",
@@ -647,28 +767,28 @@
    "market": "total",
    "side": "over",
    "team": "Over",
-   "book": "DraftKings",
+   "book": "FanDuel",
    "line": {
-    "value": 39.5,
+    "value": 38.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -108,
+    "value": -115,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 54.3,
+    "value": 55.6,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.9,
+    "value": 53.5,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 4.6,
+    "value": 3.9,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Tennessee Titans at Indianapolis Colts",
@@ -698,7 +818,37 @@
     "value": 5.2,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Tennessee Titans at Indianapolis Colts",
+   "game_id": "2026_06_TEN_IND",
+   "commence": "2026-10-18T17:00:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Indianapolis Colts",
+   "book": "DraftKings",
+   "line": {
+    "value": 7.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 63.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 23.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Tennessee Titans at Indianapolis Colts",
@@ -717,7 +867,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 55.7,
+    "value": 55.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -725,10 +875,40 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 8.7,
+    "value": 8.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Arizona Cardinals at Los Angeles Rams",
+   "game_id": "2026_06_ARI_LA",
+   "commence": "2026-10-18T20:05:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "Arizona Cardinals",
+   "book": "Hard Rock",
+   "line": {
+    "value": 13.0,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 53.6,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Arizona Cardinals at Los Angeles Rams",
@@ -737,28 +917,28 @@
    "market": "total",
    "side": "under",
    "team": "Under",
-   "book": "DraftKings",
+   "book": "FanDuel",
    "line": {
     "value": 51.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -102,
+    "value": -105,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 51.3,
+    "value": 51.4,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 50.5,
+    "value": 51.2,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.6,
+    "value": 0.4,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Buffalo Bills at Las Vegas Raiders",
@@ -788,7 +968,37 @@
     "value": 3.6,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Buffalo Bills at Las Vegas Raiders",
+   "game_id": "2026_06_BUF_LV",
+   "commence": "2026-10-18T20:25:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "Buffalo Bills",
+   "book": "Hard Rock",
+   "line": {
+    "value": -4.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 60.0,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 14.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Buffalo Bills at Las Vegas Raiders",
@@ -807,7 +1017,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 55.5,
+    "value": 55.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -815,10 +1025,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 8.3,
+    "value": 8.5,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Los Angeles Chargers at Kansas City Chiefs",
@@ -837,7 +1047,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 57.4,
+    "value": 55.6,
     "basis": "MODEL"
    },
    "break_even": {
@@ -845,10 +1055,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 12.0,
+    "value": 8.6,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Los Angeles Chargers at Kansas City Chiefs",
@@ -857,28 +1067,28 @@
    "market": "total",
    "side": "under",
    "team": "Under",
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "line": {
-    "value": 41.0,
+    "value": 41.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -110,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 51.8,
+    "value": 52.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.4,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.0,
+    "value": 0.3,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Dallas Cowboys at Green Bay Packers",
@@ -908,7 +1118,37 @@
     "value": 10.4,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Dallas Cowboys at Green Bay Packers",
+   "game_id": "2026_06_DAL_GB",
+   "commence": "2026-10-19T00:20:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "Green Bay Packers",
+   "book": "DraftKings",
+   "line": {
+    "value": 1.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -105,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 54.5,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.2,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 6.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Dallas Cowboys at Green Bay Packers",
@@ -917,28 +1157,58 @@
    "market": "total",
    "side": "over",
    "team": "Over",
-   "book": "DraftKings",
+   "book": "FanDuel",
    "line": {
-    "value": 53.5,
+    "value": 52.5,
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -112,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 62.4,
+    "value": 63.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.8,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 21.8,
+    "value": 20.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "Washington Commanders at San Francisco 49ers",
+   "game_id": "2026_06_WAS_SF",
+   "commence": "2026-10-20T00:15:00Z",
+   "market": "spread",
+   "side": "home",
+   "team": "San Francisco 49ers",
+   "book": "DraftKings",
+   "line": {
+    "value": 7.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 59.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 13.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "Washington Commanders at San Francisco 49ers",
@@ -953,22 +1223,22 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": -105,
+    "value": -112,
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 54.6,
+    "value": 56.4,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 51.2,
+    "value": 52.8,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 6.7,
+    "value": 6.8,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -998,7 +1268,37 @@
     "value": 5.7,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
+  },
+  {
+   "game": "New England Patriots at Chicago Bears",
+   "game_id": "2026_07_NE_CHI",
+   "commence": "2026-10-23T00:15:00Z",
+   "market": "spread",
+   "side": "away",
+   "team": "New England Patriots",
+   "book": "FanDuel",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -115,
+    "basis": "MARKET"
+   },
+   "model_probability": {
+    "value": 57.7,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.5,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 7.9,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-16T21:13:38Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -1017,7 +1317,7 @@
     "basis": "MARKET"
    },
    "model_probability": {
-    "value": 58.7,
+    "value": 60.5,
     "basis": "MODEL"
    },
    "break_even": {
@@ -1025,10 +1325,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 14.6,
+    "value": 18.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-16T19:01:33Z"
+   "priced_at": "2026-10-16T21:13:38Z"
   }
  ],
  "games_trained": {
@@ -13258,7 +13558,7 @@
     "home": "CLE",
     "away": "BAL",
     "M": -3.0,
-    "T": 40.0,
+    "T": 39.5,
     "pml": 0.3955624968587692,
     "sig": {
      "h2h_m": -7.0,
@@ -13292,7 +13592,7 @@
     "away": "TEN",
     "M": 7.0,
     "T": 44.5,
-    "pml": 0.7368816406151277,
+    "pml": 0.7372069667061747,
     "sig": {
      "h2h_m": 24.0,
      "h2h_t": 52.0,
@@ -13356,9 +13656,9 @@
     "week": 6,
     "home": "NYG",
     "away": "NO",
-    "M": -1.0,
+    "M": -1.5,
     "T": 46.0,
-    "pml": 0.4901281420636324,
+    "pml": 0.5,
     "sig": {
      "h2h_m": null,
      "h2h_t": null,
@@ -13391,7 +13691,7 @@
     "away": "CAR",
     "M": -3.5,
     "T": 39.0,
-    "pml": 0.3805597478845303,
+    "pml": 0.39110397066926195,
     "sig": {
      "h2h_m": null,
      "h2h_t": null,
@@ -13457,7 +13757,7 @@
     "away": "ARI",
     "M": 12.75,
     "T": 51.5,
-    "pml": 0.8586572438162543,
+    "pml": 0.8583005845249496,
     "sig": {
      "h2h_m": 22.5,
      "h2h_t": 59.5,
@@ -13588,8 +13888,8 @@
     "home": "SF",
     "away": "WAS",
     "M": 7.5,
-    "T": 51.5,
-    "pml": 0.7815394425627227,
+    "T": 52.0,
+    "pml": 0.7691725013307129,
     "sig": {
      "h2h_m": null,
      "h2h_t": null,
@@ -13643,6 +13943,402 @@
      "New England Patriots"
     ],
     "commence": "2026-10-23T00:15:00Z"
+   },
+   {
+    "id": "2026_07_PIT_NO",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T09:30",
+    "week": 7,
+    "home": "NO",
+    "away": "PIT",
+    "M": -2.0,
+    "T": 44.5,
+    "pml": 0.44372434611122213,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": -3.375,
+     "form_t": 49.375,
+     "def": 0.55859375,
+     "poss": -0.003699999999999981,
+     "out": -3,
+     "vac_h": 0.402,
+     "vac_a": 0.4499,
+     "neutral": 1.0,
+     "dome": 1.0,
+     "own_m": -5.173181187743068,
+     "own_t": 44.15089815094366
+    },
+    "names": [
+     "New Orleans Saints",
+     "Pittsburgh Steelers"
+    ],
+    "commence": "2026-10-25T13:30:00Z"
+   },
+   {
+    "id": "2026_07_SF_ATL",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "ATL",
+    "away": "SF",
+    "M": -4.5,
+    "T": 49.5,
+    "pml": 0.34061039706307794,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": -4.625,
+     "form_t": 52.625,
+     "def": 0.578125,
+     "poss": 0.004500000000000004,
+     "out": 6,
+     "vac_h": 0.3464,
+     "vac_a": 0.3909,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": -6.949784875290099,
+     "own_t": 48.98255876015406
+    },
+    "names": [
+     "Atlanta Falcons",
+     "San Francisco 49ers"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_CIN_BAL",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "BAL",
+    "away": "CIN",
+    "M": 3.5,
+    "T": 51.0,
+    "pml": 0.6169934714854537,
+    "sig": {
+     "h2h_m": 3.0,
+     "h2h_t": 35.0,
+     "form_m": -0.5,
+     "form_t": 47.25,
+     "def": 0.3359375,
+     "poss": -0.010700000000000043,
+     "out": 0,
+     "vac_h": 0.1947,
+     "vac_a": 1.0,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": 2.2205987443542563,
+     "own_t": 54.22858020424221
+    },
+    "names": [
+     "Baltimore Ravens",
+     "Cincinnati Bengals"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_TB_CAR",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "CAR",
+    "away": "TB",
+    "M": 2.75,
+    "T": 44.0,
+    "pml": 0.586179664569688,
+    "sig": {
+     "h2h_m": 0.5,
+     "h2h_t": 36.5,
+     "form_m": 2.25,
+     "form_t": 47.75,
+     "def": 0.5,
+     "poss": -0.03899999999999998,
+     "out": -9,
+     "vac_h": 0.4591,
+     "vac_a": 0.3228,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": 3.1498096552616826,
+     "own_t": 45.51673878801501
+    },
+    "names": [
+     "Carolina Panthers",
+     "Tampa Bay Buccaneers"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_NYG_HOU",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "HOU",
+    "away": "NYG",
+    "M": 7.25,
+    "T": 41.5,
+    "pml": 0.7596655431162473,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": 1.0,
+     "form_t": 40.25,
+     "def": 0.46484375,
+     "poss": 0.005099999999999993,
+     "out": -3,
+     "vac_h": 0.3521,
+     "vac_a": 0.3945,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": 6.539944060333946,
+     "own_t": 38.42193942881988
+    },
+    "names": [
+     "Houston Texans",
+     "New York Giants"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_IND_MIN",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "MIN",
+    "away": "IND",
+    "M": 5.0,
+    "T": 43.5,
+    "pml": 0.6798999520586289,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": 3.0,
+     "form_t": 38.75,
+     "def": 0.5078125,
+     "poss": 0.0017000000000000348,
+     "out": -6,
+     "vac_h": 1.0,
+     "vac_a": 0.2675,
+     "neutral": 0.0,
+     "dome": 1.0,
+     "own_m": 5.011071196086302,
+     "own_t": 43.6025896773007
+    },
+    "names": [
+     "Minnesota Vikings",
+     "Indianapolis Colts"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_MIA_NYJ",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "NYJ",
+    "away": "MIA",
+    "M": 4.5,
+    "T": 39.0,
+    "pml": 0.6617283633547401,
+    "sig": {
+     "h2h_m": -24.0,
+     "h2h_t": 44.0,
+     "form_m": 4.0,
+     "form_t": 39.75,
+     "def": 0.5625,
+     "poss": 0.00030000000000002247,
+     "out": 4,
+     "vac_h": 0.2866,
+     "vac_a": 1.0,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": 2.31316199903704,
+     "own_t": 38.749138828331866
+    },
+    "names": [
+     "New York Jets",
+     "Miami Dolphins"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_CLE_TEN",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T13:00",
+    "week": 7,
+    "home": "TEN",
+    "away": "CLE",
+    "M": -1.5,
+    "T": 37.5,
+    "pml": 0.4760678350331702,
+    "sig": {
+     "h2h_m": 2.0,
+     "h2h_t": 60.0,
+     "form_m": -5.375,
+     "form_t": 36.875,
+     "def": 0.765625,
+     "poss": -0.01699999999999996,
+     "out": 1,
+     "vac_h": 0.1971,
+     "vac_a": 0.3733,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": -4.306564644714842,
+     "own_t": 35.906168835321196
+    },
+    "names": [
+     "Tennessee Titans",
+     "Cleveland Browns"
+    ],
+    "commence": "2026-10-25T17:00:00Z"
+   },
+   {
+    "id": "2026_07_DEN_ARI",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T16:05",
+    "week": 7,
+    "home": "ARI",
+    "away": "DEN",
+    "M": -5.0,
+    "T": 45.5,
+    "pml": 0.3259626314293833,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": -8.625,
+     "form_t": 49.375,
+     "def": 0.57421875,
+     "poss": 0.0021000000000000463,
+     "out": 2,
+     "vac_h": 0.5025,
+     "vac_a": 0.1,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": -9.153694987641979,
+     "own_t": 46.15511790962999
+    },
+    "names": [
+     "Arizona Cardinals",
+     "Denver Broncos"
+    ],
+    "commence": "2026-10-25T20:05:00Z"
+   },
+   {
+    "id": "2026_07_GB_DET",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T16:25",
+    "week": 7,
+    "home": "DET",
+    "away": "GB",
+    "M": 3.25,
+    "T": 52.5,
+    "pml": 0.628005475162775,
+    "sig": {
+     "h2h_m": -7.0,
+     "h2h_t": 55.0,
+     "form_m": 0.75,
+     "form_t": 50.75,
+     "def": 0.47265625,
+     "poss": 0.02240000000000003,
+     "out": -4,
+     "vac_h": 1.0,
+     "vac_a": 0.7626,
+     "neutral": 0.0,
+     "dome": 1.0,
+     "own_m": 3.528972560767835,
+     "own_t": 54.73270357002634
+    },
+    "names": [
+     "Detroit Lions",
+     "Green Bay Packers"
+    ],
+    "commence": "2026-10-25T20:25:00Z"
+   },
+   {
+    "id": "2026_07_LA_LV",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T16:25",
+    "week": 7,
+    "home": "LV",
+    "away": "LA",
+    "M": -6.75,
+    "T": 48.5,
+    "pml": 0.2747630817188184,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": -3.75,
+     "form_t": 53.25,
+     "def": 0.4296875,
+     "poss": -0.03489999999999999,
+     "out": 1,
+     "vac_h": 0.2978,
+     "vac_a": 0.065,
+     "neutral": 0.0,
+     "dome": 1.0,
+     "own_m": -8.807427666684546,
+     "own_t": 52.18360585412003
+    },
+    "names": [
+     "Las Vegas Raiders",
+     "Los Angeles Rams"
+    ],
+    "commence": "2026-10-25T20:25:00Z"
+   },
+   {
+    "id": "2026_07_KC_SEA",
+    "lg": "nfl",
+    "season": 2026,
+    "day": "2026-10-25",
+    "kick": "2026-10-25T20:20",
+    "week": 7,
+    "home": "SEA",
+    "away": "KC",
+    "M": 2.5,
+    "T": 44.5,
+    "pml": 0.5628377115953298,
+    "sig": {
+     "h2h_m": null,
+     "h2h_t": null,
+     "form_m": -5.25,
+     "form_t": 50.5,
+     "def": 0.34375,
+     "poss": 0.012400000000000022,
+     "out": -7,
+     "vac_h": 0.501,
+     "vac_a": 0.5271,
+     "neutral": 0.0,
+     "dome": 0.0,
+     "own_m": 5.409576181533932,
+     "own_t": 43.79281926515805
+    },
+    "names": [
+     "Seattle Seahawks",
+     "Kansas City Chiefs"
+    ],
+    "commence": "2026-10-26T00:20:00Z"
    }
   ],
   "ridge": 1.0,
@@ -13688,12 +14384,12 @@
     },
     "away": {
      "price": -162,
-     "book": "draftkings"
+     "book": "fanduel"
     }
    },
    "score": {
-    "home": 19.3,
-    "away": 19.8
+    "home": 19.0,
+    "away": 19.5
    }
   },
   {
@@ -13705,12 +14401,12 @@
    "p_away": 51.5,
    "best_ml": {
     "home": {
-     "price": 155,
+     "price": 150,
      "book": "hardrockbet"
     },
     "away": {
-     "price": -175,
-     "book": "draftkings"
+     "price": -164,
+     "book": "fanduel"
     }
    },
    "score": {
@@ -13820,7 +14516,7 @@
     },
     "away": {
      "price": 275,
-     "book": "draftkings"
+     "book": "fanduel"
     }
    },
    "score": {
@@ -13841,7 +14537,7 @@
      "book": "fanduel"
     },
     "away": {
-     "price": 600,
+     "price": 575,
      "book": "draftkings"
     }
    },
@@ -13925,17 +14621,17 @@
    "p_away": 21.4,
    "best_ml": {
     "home": {
-     "price": -430,
-     "book": "fanduel"
+     "price": -400,
+     "book": "hardrockbet"
     },
     "away": {
-     "price": 340,
+     "price": 330,
      "book": "draftkings"
     }
    },
    "score": {
-    "home": 31.9,
-    "away": 21.3
+    "home": 32.2,
+    "away": 21.6
    }
   },
   {
