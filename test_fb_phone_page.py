@@ -94,8 +94,8 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #
 # @vacuity 🔴 the predicted score never touches a chance
 #   file: fb_model.py
-#   find:             out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt}, sigma, sigma_t)[1]
-#   with:             out[-1]["p_home"] = 50.0; out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt}, sigma, sigma_t)[1]
+#   find:             _ph, out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt, "injury": inj}, sigma, sigma_t)
+#   with:             _ph, out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt, "injury": inj}, sigma, sigma_t); out[-1]["p_home"] = 50.0
 #
 # @vacuity 🔴 a football prop row wraps on a phone
 #   file: index.html
@@ -325,7 +325,9 @@ _wrong = [(x["game_id"], x["p_home"], x["score"]) for x in _scored
 ck("🔴 in every priced row the higher predicted score is the pick's team (%d rows)" % len(_scored),
    len(_scored) == 12 and not _wrong and len({x["p_home"] for x in _scored}) > 3, _wrong or len(_scored))
 ck("🔴 the picks and chances are byte-identical with and without it",
-   json.dumps([{k: v for k, v in x.items() if k != "score"} for x in A], sort_keys=True)
+   # `[2026-10-17]` ~~k != "score"~~: the 10,000-run simulation rides the score (fb_sim), and
+   #    neither moves a pick or a chance
+   json.dumps([{k: v for k, v in x.items() if k not in ("score", "sim")} for x in A], sort_keys=True)
    == json.dumps(B, sort_keys=True) and all("score" not in x for x in B))
 
 # ══════════════════════════════════════════════════════════════════════

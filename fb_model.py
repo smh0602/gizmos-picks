@@ -23,6 +23,7 @@ interval is ever taken on raw rows.
 """
 import collections
 import datetime
+import functools
 import glob
 import gzip
 import json
@@ -38,6 +39,7 @@ import shadow_fb                    # cluster: effective n by game
 import t60r                         # point-in-time §2, §4, §5 — read, never edited
 import signal9                      # the ONE opportunity table reader (signal 9)
 import one_side                     # one team per game: the expected winner (Sam, 2026-10-16)
+import fb_sim                       # the game simulation: 10,000 runs a game (Sam, 2026-10-17)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LEAGUE = os.environ.get("LEAGUE", "nfl")
@@ -72,6 +74,21 @@ S9_GAME = {"nfl": True, "ncaaf": False}
 #    fb_challengers.py whose input the fits then carry; only Sam's merge of the
 #    weekly job's fb/champion-* branch changes it.
 CHAMPION = {"nfl": None, "ncaaf": None}
+# 🔴 `[Sam, 2026-10-17]` THE SIMULATION SETS A LEAGUE'S SPREAD AND TOTAL CHANCES only after its
+#    backtest passed the bar fixed in research/fb_sim_design.md §3 BEFORE the run (log loss at
+#    most the smooth curve's AND return at least the smooth curve's, on the closing-line record).
+#    False: every game is still simulated and stored (`win_chances`' `sim`); the picks keep the
+#    smooth curve. ⛔ Set only from the recorded backtest (test_fb_sim.py reads it).
+SIM = {"nfl": False, "ncaaf": False}
+# 🔴 `[Sam, 2026-10-17]` NFL INJURIES MOVE THE PREDICTED SCORE once their backtest passed
+#    (research/fb_sim_design.md §3, the injury bar, fixed before any injury number): each team's
+#    points move by its starting QB out, its offensive starters out and the opponent's defensive
+#    starters out (T69 IN's measures), sized each week on earlier games only (`injury_fit`); the
+#    win chance moves with the margin. College has no injury data stored. ⛔ Set only from the
+#    recorded backtest (test_fb_injuries.py reads it).
+INJURIES = {"nfl": False, "ncaaf": False}
+INJ_RIDGE = 25.0          # the injury fit's ridge (points per unit), no penalty on its intercept
+INJ_MIN = 200             # team-games with an injury reading before a week's fit is made
 
 
 def log(m):
@@ -464,6 +481,9 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     for r in rows:
         r["sig"]["own_m"], r["sig"]["own_t"] = own_numbers(
             own.get(monday(r["day"])), r["home"], r["away"], r["sig"]["neutral"])
+    if INJURIES.get(lg):                 # `[Sam, 2026-10-17]` T69 IN's injury readings
+        import fb_challengers
+        fb_challengers.attach("IN", lg, rows, root)
     if CHAMPION.get(lg):                 # ⛔ None reads none of the challengers' files
         import fb_challengers
         fb_challengers.attach(CHAMPION[lg], lg, rows, root)
@@ -688,6 +708,99 @@ def best_pick(r, market, model, quotes=book_quotes):
     return best if best and best["ev"] > 0 else None
 
 
+def sim_pick(r, market, score, sim, quotes=None):
+    """`[Sam, 2026-10-17]` A spread or total pick from the SIMULATION: the side the predicted
+    score covers (exactly as `score_pick`: the picks correlate with the printed score), its
+    chance and its push chance from the 10,000 simulated games (`fb_sim.cover`), and the best
+    value among the quotes, a push returning the stake: EV = p x decimal + push - 1 > 0."""
+    if market not in ("spread", "total") or not score or not sim:
+        return None
+    if score.get("home") is None or score.get("away") is None:
+        return None
+    h, a = float(score["home"]), float(score["away"])
+    mu = (h - a) if market == "spread" else (h + a)
+    hi, lo = ("home", "away") if market == "spread" else ("over", "under")
+    best = None
+    for b, ln, pa, pb, assumed in (quotes or book_quotes)(r, market) or []:
+        if ln is None:
+            continue
+        d = round(mu - ln, 6)                     # the score's side, as score_pick
+        if d == 0:
+            continue
+        win_hi, push = fb_sim.cover(sim, ln, market)
+        side, px, p = (hi, pa, win_hi) if d > 0 else (lo, pb, 1.0 - win_hi - push)
+        if px is None:
+            continue
+        ev = p * decimal(px) + push - 1.0
+        if best is None or ev > best["ev"]:
+            best = {"side": side, "book": b, "line": ln, "price": px, "p": p, "push": push, "ev": ev,
+                    "break_even": 1.0 / decimal(px), "assumed": assumed}
+    return best if best is not None and best["ev"] > 0 else None
+
+
+@functools.lru_cache(maxsize=50000)
+def _sim(lg, gid, home, away, sigma, sigma_t):
+    return fb_sim.simulate(lg, home, away, sigma, sigma_t, key=gid)
+
+
+def game_sim(r, score, sigma, sigma_t):
+    """The game's 10,000 simulated runs from its predicted score (`game_score`), cached."""
+    if not score or score.get("home") is None or score.get("away") is None or not sigma or not sigma_t:
+        return None
+    return _sim(r.get("lg"), r.get("id"), float(score["home"]), float(score["away"]), sigma, sigma_t)
+
+
+def injury_fit(train):
+    """`[Sam, 2026-10-17]` -> [b_qb, b_off, b_def] or None, from the TRAINING games: each team's
+    points beyond its own rating's ((own total +/- own margin) / 2), explained by its own starting
+    QB out (0/1), its own offensive starters out (snap-weighted) and the OPPONENT's defensive
+    starters out (snap-weighted), both sides of every final game with an injury reading; ridge
+    INJ_RIDGE on the three, an unpenalised intercept that is never applied."""
+    X, y = [], []
+    for r in train:
+        s = r.get("sig") or {}
+        inj = s.get("inj")
+        if (not r.get("final") or not inj or r.get("hs") is None or r.get("as") is None
+                or s.get("own_m") is None or s.get("own_t") is None):
+            continue
+        oh, oa = (s["own_t"] + s["own_m"]) / 2.0, (s["own_t"] - s["own_m"]) / 2.0
+        X.append([1.0, inj["qb"][0], inj["off"][0], inj["def"][1]])
+        y.append(float(r["hs"]) - oh)
+        X.append([1.0, inj["qb"][1], inj["off"][1], inj["def"][0]])
+        y.append(float(r["as"]) - oa)
+    if len(X) < INJ_MIN:
+        return None
+    k = 4
+    A = [[sum(x[i] * x[j] for x in X) + (INJ_RIDGE if i == j and i > 0 else 0.0) for j in range(k)]
+         for i in range(k)]
+    b = [sum(x[i] * t for x, t in zip(X, y)) for i in range(k)]
+    w = _solve(A, b)
+    return w[1:] if w else None
+
+
+def injury_shift(r, b):
+    """(home points, away points) the injuries move the score by, or (0, 0)."""
+    inj = (r.get("sig") or {}).get("inj")
+    if not b or not inj:
+        return 0.0, 0.0
+    return (b[0] * inj["qb"][0] + b[1] * inj["off"][0] + b[2] * inj["def"][1],
+            b[0] * inj["qb"][1] + b[1] * inj["off"][1] + b[2] * inj["def"][0])
+
+
+def ml_pick(r, p_home, quotes=None):
+    """The moneyline pick at a GIVEN home chance (0-1): best_pick's value rule over the quotes."""
+    best = None
+    for b, _ln, pa, pb, assumed in (quotes or book_quotes)(r, "moneyline") or []:
+        for side, px, p in (("home", pa, p_home), ("away", pb, 1.0 - p_home)):
+            if px is None:
+                continue
+            ev = p * decimal(px) - 1.0
+            if best is None or ev > best["ev"]:
+                best = {"side": side, "book": b, "line": None, "price": px, "p": p, "ev": ev,
+                        "break_even": 1.0 / decimal(px), "assumed": assumed}
+    return best if best is not None and best["ev"] > 0 else None
+
+
 def game_score(r, models, sigma, sigma_t):
     """`[Sam, 2026-10-16]` -> (p_home %, predicted score or None): the ONE place a game's
     predicted score is made, read by the Game Lines tab (`win_chances`), the live pick list
@@ -702,6 +815,12 @@ def game_score(r, models, sigma, sigma_t):
                           predict(mt, features(r, "total")) if mt and r.get("T") is not None else None,
                           sigma_t)
           if ph is not None and isinstance(r.get("sig"), dict) else None)
+    if sc and INJURIES.get(r.get("lg")) and models.get("injury") and sigma:
+        # `[Sam, 2026-10-17]` the injuries move each team's points, and the win chance with the margin
+        dh, da = injury_shift(r, models["injury"])
+        sc = {"home": round(sc["home"] + dh, 1), "away": round(sc["away"] + da, 1)}
+        z = statistics.NormalDist().inv_cdf(min(1 - 1e-9, max(1e-9, ph / 100.0)))
+        ph = round(100 * statistics.NormalDist().cdf(z + (dh - da) / sigma), 1)
     return ph, sc
 
 
@@ -716,8 +835,13 @@ def shown_pick(r, market, models, sigma, sigma_t, quotes=None):
     q = quotes or book_quotes
     ph, sc = game_score(r, models, sigma, sigma_t)
     if market in ("spread", "total"):
+        if SIM.get(r.get("lg")):                  # `[Sam, 2026-10-17]` once its backtest passed
+            return sim_pick(r, market, sc, game_sim(r, sc, sigma, sigma_t), q)
         return score_pick(r, market, sc, sigma if market == "spread" else sigma_t, q)
-    pk = best_pick(r, market, models.get(market), q)
+    if INJURIES.get(r.get("lg")) and models.get("injury") and ph is not None:
+        pk = ml_pick(r, ph / 100.0, q)           # the injury-moved win chance
+    else:
+        pk = best_pick(r, market, models.get(market), q)
     return pk if pk and pk["side"] == one_side.expected_side(ph) else None
 
 
@@ -779,6 +903,8 @@ def walk_forward(rows, rule="shown"):
             data = [(features(r, mk), label(r, mk)) for r in train if label(r, mk) is not None]
             models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)    # the week's fit
         sigma, sigma_t = score_sigma(train), total_sigma(train)      # ⛔ training games only
+        if rule == "shown" and INJURIES.get((weeks[wk][0] or {}).get("lg")):
+            models["injury"] = injury_fit(train)                      # ⛔ training games only
         for mk in MARKETS:
             if not models[mk if rule == "fits" else "moneyline"]:     # the score needs the win chance
                 continue
@@ -864,6 +990,8 @@ def current_picks(lg, rows, root=None, now=None):
     for mk in MARKETS:
         data = [(features(r, mk), label(r, mk)) for r in rows if label(r, mk) is not None]
         models[mk] = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
+    if INJURIES.get(lg):
+        models["injury"] = injury_fit(rows)
     out = []
     sigma, sigma_t = score_sigma(rows), total_sigma(rows)
     for r in rows:
@@ -979,6 +1107,7 @@ def win_chances(rows, now=None, scores=True):
             if label(r, "moneyline") is not None]
     m = fit([x for x, _ in data], [y for _, y in data], zmax=ZMAX)
     sigma = score_sigma(rows) if scores else None
+    inj = (injury_fit(rows) if scores and rows and INJURIES.get(rows[0].get("lg")) else None)
     sigma_t = total_sigma(rows) if scores else None
     dt = [(features(r, "total"), label(r, "total")) for r in rows if scores and label(r, "total") is not None]
     mt = fit([x for x, _ in dt], [y for _, y in dt], zmax=ZMAX) if dt else None
@@ -998,7 +1127,11 @@ def win_chances(rows, now=None, scores=True):
                     "p_home": round(100 * p, 1), "p_away": round(100 * (1 - p), 1),
                     "best_ml": best})
         if scores:
-            out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt}, sigma, sigma_t)[1]
+            _ph, out[-1]["score"] = game_score(r, {"moneyline": m, "total": mt, "injury": inj}, sigma, sigma_t)
+            if inj:                     # `[Sam, 2026-10-17]` the injury-moved win chance
+                out[-1]["p_home"], out[-1]["p_away"] = _ph, round(100 - _ph, 1)
+            # `[Sam, 2026-10-17]` the game's 10,000 simulated runs, every game, every build
+            out[-1]["sim"] = fb_sim.summary(game_sim(r, out[-1]["score"], sigma, sigma_t))
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 

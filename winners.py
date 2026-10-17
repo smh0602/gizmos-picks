@@ -75,6 +75,15 @@ def make_row(gid, commence, away, home, p_home, px_home, px_away):
     return r
 
 
+def sim_win(row, sim):
+    """`[Sam, 2026-10-17]` the share of the game's 10,000 simulated runs (fb_sim) the PICKED team
+    wins, as a whole percent (`sim_win`), and the runs (`sim_runs`); None without a pick or a sim."""
+    if not row.get("side") or not sim or sim.get("home_win") is None:
+        return dict(row, sim_win=None, sim_runs=None)
+    w = sim["home_win"] if row["side"] == "home" else 1.0 - sim["home_win"] - (sim.get("tie") or 0.0)
+    return dict(row, sim_win=int(round(100 * w)), sim_runs=sim.get("runs"))
+
+
 def mlb_rows(model, board):
     """Every game in the model's file; no pick until both starters are named."""
     import card
@@ -94,9 +103,9 @@ def fb_rows(model, slate, et_date, shown=None):
     model's predicted score and `[Sam, 2026-10-17]` its whole-number form that
     never contradicts a shown pick (`shown`: the card's `scores_shown`)."""
     whole = {(x.get("away"), x.get("home")): x.get("score") for x in shown or []}
-    return [dict(make_row(g["game_id"], g["commence"], g["away"], g["home"], g.get("p_home"),
-                          (g.get("best_ml") or {}).get("home"), (g.get("best_ml") or {}).get("away")),
-                 score=g.get("score"), score_shown=whole.get((g["away"], g["home"])))
+    return [sim_win(dict(make_row(g["game_id"], g["commence"], g["away"], g["home"], g.get("p_home"),
+                                  (g.get("best_ml") or {}).get("home"), (g.get("best_ml") or {}).get("away")),
+                         score=g.get("score"), score_shown=whole.get((g["away"], g["home"]))), g.get("sim"))
             for g in (model or {}).get("win_chances") or []
             if slate is None or et_date(g["commence"]) == slate]
 

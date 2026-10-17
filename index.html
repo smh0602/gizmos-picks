@@ -4196,12 +4196,13 @@ function winnersWeekHtml(W){
   return winnersRecordLine(W) + days.map(g => `<h3 style="margin:14px 0 6px;font-size:14px"
     data-day="${g.d}">${fbDayName(g.d)}</h3><table class="ob" data-winners>
     <thead><tr><th>Game</th><th>Kickoff</th><th>Pick to win</th><th class="n">Chance</th>
-      <th>Predicted score</th><th class="n">Best price</th></tr></thead>
+      <th>Predicted score</th><th class="n">Wins in 10,000 sims</th><th class="n">Best price</th></tr></thead>
     <tbody>${g.rows.map(r => `<tr data-game="${r.game_id}">
       <td>${r.away} @ ${r.home}</td><td>${fbKickTime(r.commence)}</td>
       <td>${r.pick ? `<b>${r.pick}</b>` : 'No pick yet'}</td>
       <td class="n">${r.chance == null ? '&mdash;' : r.chance + '%'}</td>
       <td data-score>${sc(r)}</td>
+      <td class="n" data-sim>${r.sim_win == null ? '&mdash;' : r.sim_win + '%'}</td>
       <td class="n">${r.price == null ? '&mdash;' : sgn(r.price) + ' ' + bookName(r.book)}</td>
     </tr>`).join('')}</tbody></table>`).join('');
 }
