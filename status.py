@@ -137,6 +137,27 @@ def refit_wins(doc, name):
     return out
 
 
+def injury_branch(doc, name):
+    """`[Sam, 2026-10-17]` [(the "Needs you" item, its clicks)] when the injury test fixed in advance
+    (research/cfb_injuries_design.md §4, fb_inj_backtest.auto) has run and its branch waits for Sam."""
+    st = (doc or {}).get("injury_backtest") or {}
+    if st.get("state") != "measured" or not st.get("branch"):
+        return []
+    e = st.get("entry") or {}
+    ll, cr = e.get("logloss") or {}, e.get("closing_return") or {}
+    what = ("%s injuries took the test fixed in advance and %s it: log loss %s with them against %s without, "
+            "closing-line return %s%% against %s%%, on %s questions (%s)" % (
+                name, "PASSED" if st.get("passes") else "FAILED", ll.get("with"), ll.get("without"),
+                cr.get("with"), cr.get("without"), e.get("questions"),
+                "merging switches them on in the picks" if st.get("passes")
+                else "merging only records the result; they stay off"))
+    return [(what, ["1. Open %s/compare/main...%s?expand=1" % (REPO, st["branch"]),
+                    "2. Click the green \"Create pull request\" button (twice: once on the page, once under "
+                    "the title box).",
+                    "3. Wait until the box at the bottom says \"All checks have passed\".",
+                    "4. Click \"Merge pull request\", then \"Confirm merge\"."])]
+
+
 def build(root=ROOT, now=None):
     """-> (body, needs): the weekly issue's text and what needs Sam (empty: nothing)."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
@@ -149,7 +170,7 @@ def build(root=ROOT, now=None):
     broken = ([{"key": "watchdog:health", "severity": "BROKEN", "what": old}] if old else []) + [
         f for f in findings if f.get("severity") == "BROKEN"]
     refit = [(name, _read(os.path.join(root, d, "latest", "fb-refit.json"))) for name, d in FB]
-    won = [w for name, doc in refit for w in refit_wins(doc, name)]
+    won = [w for name, doc in refit for w in refit_wins(doc, name) + injury_branch(doc, name)]
     needs = [f["what"] for f in broken] + [w[0] for w in won]
     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
     for what, clicks in won:

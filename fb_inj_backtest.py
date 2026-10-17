@@ -135,6 +135,79 @@ def record(lg, entry, path=RECORD):
     return True
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 IT RUNS ITSELF. `[Sam, 2026-10-17]` "nothing running in Claude": the weekly fb-refit job
+# (fb_refit.weekly, Mondays) calls `auto` per league. ONCE the data the bar needs is stored, it
+# measures, keeps the result in data/<lg>/latest/fb-refit.json, and pushes ONE branch for Sam that
+# records the entry in research/fb_sim_backtest.json and, only when it passes, switches
+# fb_model.INJURIES[lg] on. ⛔ Never main, never a PR, never a second measurement: the first
+# measured result stands until the record reaches main.
+# ══════════════════════════════════════════════════════════════════════
+def needed(lg, root=ROOT, now=None):
+    """The stored files the bar needs before it may run (design §1): college, both seasons' defence
+    and roster logs and injury archives. -> [missing paths]."""
+    if lg != "ncaaf":
+        return []
+    import freshness
+    cur = freshness.current_football_season(now)
+    lat = os.path.join(root, "data", "ncaaf", "latest")
+    his = os.path.join(root, "data", "ncaaf", "history")
+    want = [os.path.join(lat, "%s-%d.json.gz" % (k, s)) for s in (cur - 1, cur) for k in ("defense", "roster")]
+    want += [os.path.join(his, "injury-archive-%d.json.gz" % s) for s in (cur - 1, cur)]
+    return [os.path.relpath(p, root).replace(os.sep, "/") for p in want if not os.path.exists(p)]
+
+
+def set_injuries(src, lg):
+    """fb_model.py's source with INJURIES[lg] switched on. ⛔ Exactly one switch line, or it raises."""
+    import re
+    pat = re.compile(r'^(INJURIES = \{[^\n]*"%s": )False' % lg, re.M)
+    if len(pat.findall(src)) != 1:
+        raise RuntimeError("INJURIES line for %s not found once in fb_model.py" % lg)
+    return pat.sub(r"\g<1>True", src)
+
+
+def auto(lg, root=ROOT, now=None, run=None, prev=None):
+    """-> the state fb-refit.json keeps under "injury_backtest": recorded / waiting / measured."""
+    import datetime
+    import subprocess
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    run = run or subprocess.run
+    rec = (json.load(open(os.path.join(root, "research", "fb_sim_backtest.json"), encoding="utf-8"))
+           .get("injuries") or {})
+    if lg in rec:
+        return {"state": "recorded", "passes": passes(rec[lg]), "entry": rec[lg]}
+    if prev and prev.get("state") == "measured" and prev.get("entry"):
+        st = dict(prev)                    # ⛔ ONCE: the first measured result stands
+    else:
+        missing = needed(lg, root, now)
+        if missing:
+            return {"state": "waiting", "missing": missing, "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
+        entry = measure(lg, root)
+        st = {"state": "measured", "entry": entry, "passes": passes(entry),
+              "measured_at": now.strftime("%Y-%m-%dT%H:%MZ")}
+    if st.get("branch"):
+        return st
+    import fb_refit
+
+    def edit(tree):
+        record(lg, st["entry"], os.path.join(tree, "research", "fb_sim_backtest.json"))
+        if st["passes"]:
+            p = os.path.join(tree, "fb_model.py")
+            src = open(p, encoding="utf-8").read()
+            with open(p, "w", encoding="utf-8", newline="") as fh:
+                fh.write(set_injuries(src, lg))
+    try:
+        st["branch"], st["branch_pushed"] = fb_refit.push_change(
+            "fb/injuries-%s-" % lg, "fb/injuries-%s-%s" % (lg, now.strftime("%Y-%m-%d")), edit,
+            "fb: %s injuries %s the test fixed in advance — %s for Sam" % (
+                lg, "PASSED" if st["passes"] else "FAILED",
+                "switch on" if st["passes"] else "record only, they stay off"), root, run)
+        st.pop("branch_error", None)
+    except Exception as e:
+        st["branch_error"] = "%s: %s" % (type(e).__name__, e)
+    return st
+
+
 def main(argv):
     if not argv or argv[0] not in ("nfl", "ncaaf"):
         print(__doc__)

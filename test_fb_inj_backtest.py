@@ -41,6 +41,36 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #   file: fb_model.py
 #   find:     return fb_challengers.attach("IN", lg, rows, root)
 #   with:     return rows
+#
+# @vacuity ⛔ [2026-10-17] a league already recorded is never measured again
+#   file: fb_inj_backtest.py
+#   find:     if lg in rec:
+#   with:     if False:
+#
+# @vacuity ⛔ [2026-10-17] the FIRST measured result stands: never a second measurement
+#   file: fb_inj_backtest.py
+#   find:     if prev and prev.get("state") == "measured" and prev.get("entry"):
+#   with:     if False:
+#
+# @vacuity ⛔ [2026-10-17] it waits for the data the bar needs
+#   file: fb_inj_backtest.py
+#   find:         if missing:
+#   with:         if False:
+#
+# @vacuity ⛔ [2026-10-17] only a PASS switches injuries on in the branch
+#   file: fb_inj_backtest.py
+#   find:         if st["passes"]:
+#   with:         if True:
+#
+# @vacuity 🔴 [2026-10-17] the weekly job keeps the result in fb-refit.json
+#   file: fb_refit.py
+#   find:             doc["injury_backtest"] = fb_inj_backtest.auto(lg, root, now, run, prev=_was)
+#   with:             doc["injury_backtest"] = None
+#
+# @vacuity 🔴 [2026-10-17] the Monday email names a waiting injury branch
+#   file: status.py
+#   find:     if st.get("state") != "measured" or not st.get("branch"):
+#   with:     if True:
 """
 import json
 import os
@@ -120,3 +150,151 @@ finally:
 eq(_college, [("college", 2)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
    "(which read data/nfl: every college team would read zero)")
 eq(_nfl, [("IN", "nfl")], "🔴 an NFL row gets T69 IN's readings")
+
+# ══════════════════════════════════════════════════════════════════════
+section("4. 🔴 IT RUNS ITSELF: ONCE, WHEN ITS DATA IS STORED, ON A BRANCH FOR SAM")
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-17]` nothing recurring runs in Claude: the Monday fb-refit job calls `auto`.
+import datetime  # noqa: E402
+
+import fb_refit  # noqa: E402
+import status as ST  # noqa: E402
+
+NOW = datetime.datetime(2026, 10, 19, 9, 47, tzinfo=datetime.timezone.utc)
+SRC = open(os.path.join(ROOT, "fb_model.py"), encoding="utf-8").read()
+
+
+def tree(have_data=True, recorded=False):
+    t = tempfile.mkdtemp(prefix="injauto-")
+    os.makedirs(os.path.join(t, "research"))
+    rec = {"injuries": {"nfl": E(0.70281, 0.70259, 3.92, 1.85)}}
+    if recorded:
+        rec["injuries"]["ncaaf"] = E(0.71, 0.72, 1.0, 0.5)
+    json.dump(rec, open(os.path.join(t, "research", "fb_sim_backtest.json"), "w", encoding="utf-8"))
+    open(os.path.join(t, "fb_model.py"), "w", encoding="utf-8").write(SRC)
+    if have_data:
+        for rel in B.needed("ncaaf", t, NOW):
+            os.makedirs(os.path.dirname(os.path.join(t, rel)), exist_ok=True)
+            open(os.path.join(t, rel), "wb").close()
+    return t
+
+
+_measured, _pushed = [], []
+
+
+def fake_measure(entry):
+    def m(lg, root=None):
+        _measured.append(lg)
+        return dict(entry)
+    return m
+
+
+def fake_push(fail=False):
+    def push(prefix, branch, edit, message, root=None, run=None):
+        if fail:
+            raise RuntimeError("push refused")
+        t = tempfile.mkdtemp(prefix="injbranch-")
+        os.makedirs(os.path.join(t, "research"))
+        shutil.copy(os.path.join(root, "research", "fb_sim_backtest.json"), os.path.join(t, "research"))
+        shutil.copy(os.path.join(root, "fb_model.py"), t)
+        edit(t)
+        _pushed.append((prefix, branch, message,
+                        json.load(open(os.path.join(t, "research", "fb_sim_backtest.json"), encoding="utf-8")),
+                        [ln for ln in open(os.path.join(t, "fb_model.py"), encoding="utf-8").read().splitlines()
+                         if ln.startswith("INJURIES = ")]))
+        shutil.rmtree(t, ignore_errors=True)
+        return branch, True
+    return push
+
+
+_saved = (B.measure, fb_refit.push_change)
+_PASS, _FAIL = E(0.719, 0.720, -3.0, -3.5), E(0.722, 0.720, -3.0, -3.5)
+_trees = []
+try:
+    B.measure, fb_refit.push_change = fake_measure(_PASS), fake_push()
+    _trees.append(tree(recorded=True))
+    st = B.auto("ncaaf", _trees[-1], NOW)
+    ck("⛔ a league already recorded is never measured again",
+       st["state"] == "recorded" and not _measured and not _pushed, str(st))
+    st = B.auto("nfl", _trees[-1], NOW)
+    ck("✅ ...the NFL's recorded FAIL reads as recorded, not passed",
+       st["state"] == "recorded" and st["passes"] is False, str(st))
+
+    _trees.append(tree(have_data=False))
+    st = B.auto("ncaaf", _trees[-1], NOW)
+    ck("⛔ it waits while the data the bar needs is missing, and says which",
+       st["state"] == "waiting" and "data/ncaaf/latest/defense-2025.json.gz" in st["missing"]
+       and not _measured, str(st))
+
+    _trees.append(tree())
+    st = B.auto("ncaaf", _trees[-1], NOW)
+    _p = _pushed[-1] if _pushed else (None,) * 5
+    ck("🔴 with its data stored it measures ONCE and pushes ONE branch for Sam",
+       st["state"] == "measured" and _measured == ["ncaaf"] and st.get("branch") == "fb/injuries-ncaaf-2026-10-19"
+       and _p[0] == "fb/injuries-ncaaf-", str(st))
+    eq(((_p[3] or {}).get("injuries", {}).get("ncaaf"), _p[4]),
+       (_PASS, ['INJURIES = {"nfl": False, "ncaaf": True}']),
+       "🔴 a PASS: the branch records the entry AND switches college injuries on")
+    _again = B.auto("ncaaf", _trees[-1], NOW, prev=st)
+    ck("⛔ the next week keeps the first result: no second measurement, no second branch",
+       _measured == ["ncaaf"] and len(_pushed) == 1 and _again.get("entry") == _PASS, str(_again))
+
+    _measured.clear()
+    _pushed.clear()
+    B.measure = fake_measure(_FAIL)
+    _trees.append(tree())
+    st = B.auto("ncaaf", _trees[-1], NOW)
+    _p = _pushed[-1] if _pushed else (None,) * 5
+    eq((st.get("passes"), (_p[3] or {}).get("injuries", {}).get("ncaaf"), _p[4]),
+       (False, _FAIL, ['INJURIES = {"nfl": False, "ncaaf": False}']),
+       "⛔ a FAIL: the branch only records it; college injuries stay off")
+
+    _measured.clear()
+    _pushed.clear()
+    B.measure, fb_refit.push_change = fake_measure(_PASS), fake_push(fail=True)
+    _trees.append(tree())
+    st = B.auto("ncaaf", _trees[-1], NOW)
+    ck("✅ a refused push keeps the measured result, and says why, for the next week to push",
+       st["state"] == "measured" and "branch" not in st and "push refused" in st.get("branch_error", ""), str(st))
+    fb_refit.push_change = fake_push()
+    st2 = B.auto("ncaaf", _trees[-1], NOW, prev=st)
+    ck("✅ ...which pushes it without measuring again",
+       _measured == ["ncaaf"] and st2.get("branch") and "branch_error" not in st2, str(st2))
+finally:
+    B.measure, fb_refit.push_change = _saved
+    for t in _trees:
+        shutil.rmtree(t, ignore_errors=True)
+
+# ── the weekly job keeps it, and the Monday email names it ────────────
+_saved = (fb_refit.league, B.auto)
+_seen = []
+fb_refit.league = lambda lg, root=None, now=None, prev=None, added=None, rows=None: {"league": lg,
+                                                                                    "challengers": []}
+B.auto = lambda lg, root=None, now=None, run=None, prev=None: _seen.append((lg, prev)) or {"state": "waiting",
+                                                                                           "lg": lg}
+_t = tempfile.mkdtemp(prefix="injweekly-")
+try:
+    for lg in ("nfl", "ncaaf"):
+        os.makedirs(os.path.join(_t, "data", lg, "latest"))
+    json.dump({"injury_backtest": {"state": "measured", "x": 1}},
+              open(os.path.join(_t, "data", "ncaaf", "latest", "fb-refit.json"), "w", encoding="utf-8"))
+    fb_refit.weekly(root=_t, now=NOW)
+    _docs = {lg: json.load(open(os.path.join(_t, "data", lg, "latest", "fb-refit.json"), encoding="utf-8"))
+             for lg in ("nfl", "ncaaf")}
+finally:
+    fb_refit.league, B.auto = _saved
+    shutil.rmtree(_t, ignore_errors=True)
+eq({lg: d.get("injury_backtest") for lg, d in _docs.items()},
+   {"nfl": {"state": "waiting", "lg": "nfl"}, "ncaaf": {"state": "waiting", "lg": "ncaaf"}},
+   "🔴 the Monday job keeps each league's injury state in its fb-refit.json")
+eq(dict(_seen).get("ncaaf"), {"state": "measured", "x": 1},
+   "⛔ ...handing back last week's state, so a measured result is never measured again")
+
+_w = ST.injury_branch({"injury_backtest": {"state": "measured", "branch": "fb/injuries-ncaaf-2026-10-19",
+                                           "passes": True, "entry": dict(_PASS, questions=900)}}, "College")
+ck("🔴 the Monday email names a waiting injury branch, its result and its clicks",
+   len(_w) == 1 and "PASSED" in _w[0][0] and "switches them on" in _w[0][0]
+   and "compare/main...fb/injuries-ncaaf-2026-10-19" in _w[0][1][0], str(_w))
+ck("✅ ...and says nothing while it waits for data or once it is recorded",
+   ST.injury_branch({"injury_backtest": {"state": "waiting"}}, "College") == []
+   and ST.injury_branch({"injury_backtest": {"state": "recorded"}}, "College") == [])
