@@ -300,7 +300,8 @@ tr.dosrow.open .caret{transform:rotate(90deg)}
 .t10 .w b{font-weight:600}
 .t10 .tl{font-size:15px;min-width:0}
 .t10 .tl::before{content:'\00a0\00b7\00a0'}
-.t10 .tg{color:var(--mut)}
+.t10 .tg{color:var(--mut);white-space:nowrap}
+.t10 .tp{white-space:nowrap}
 .t10 .c{font:600 15px var(--mono);padding:0 14px;text-align:right}
 .t10 .p{font:500 14px var(--mono);font-variant-numeric:tabular-nums;text-align:right;min-width:48px}
 .t10 > div{border-bottom:1px solid var(--line)}
@@ -457,7 +458,7 @@ a.cell.best:hover{background:#dbe4fb}
 .g.clickable{cursor:pointer}
 .g.clickable:hover{border-color:#c4ccd6;box-shadow:0 2px 10px rgba(20,24,31,.09)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
-/* 🔴 THE SIDE PANEL IS THE ONE <header> `[Sam, 2026-10-17]` (design I): logo, league
+/* 🔴 THE SIDE PANEL IS THE ONE HEADER ELEMENT `[Sam, 2026-10-17]` (design I): logo, league
    switch and the ONE tab bar, fixed at the left on a screen wider than 820 px. ⛔ The
    header is fixed, never nav.subnav itself, and the document stays the scroller (the
    score tabs keep their place by window.scrollY). The tagline is one line of fixed
@@ -521,6 +522,8 @@ a.cell.best:hover{background:#dbe4fb}
   .fbprow .ev2{display:none}
   .fbprow .imp{margin-left:auto}
   .fbprow .pr2{order:3;flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:10px;text-align:left}
+  #view table.ob,#view table.pairs{display:block;overflow-x:auto;max-width:100%}
+  .panel{padding:16px 14px}
   .pk-h{flex-wrap:wrap;gap:10px 12px;padding:14px 16px}
   .pk-h .conf{flex:1 1 100%}
   .pk-t{flex:1 1 0}
@@ -564,10 +567,10 @@ table.fbt th{ font:600 10px/1 var(--sans); letter-spacing:.1em;
 table.fbt td{ padding:7px 10px; border-bottom:1px solid #eef1f4; }
 table.fbt tr:hover td{ background:#f7f9fb; }
 .fbt .n{ font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
-.fbt .rk{ font-variant-numeric:tabular-nums; color:#8a95a1; width:38px; }
+.fbt .rk{ font-variant-numeric:tabular-nums; color:var(--mut); width:38px; }
 .fbbar{ height:8px; border-radius:2px; background:#e7edf3; min-width:120px; }
 .fbbar i{ display:block; height:100%; border-radius:2px; }
-.fbthin td{ color:#a4adb8; }
+.fbthin td{ color:var(--mut); }
 </style>
 </head>
 <body>
@@ -1797,7 +1800,7 @@ async function renderPicks(){
         const gm = (x.game || '') + (x.first_pitch ? ' · ' + x.first_pitch : '');
         return `<div class="tr"><div class="r">${i+1}</div>
           <div class="w"><b>${who}</b></div>
-          <div class="tl">${side} ${x.line} ${unitOf(x)}
+          <div class="tl"><span class="tp">${side} ${x.line} ${unitOf(x)}</span>
             ${x.alt_rung ? '<span class="altchip">ALT RUNG</span>' : ''}
             ${projChip(x.projection, x.projection_unit)}
             ${gm ? `<span class="tg">&middot; ${gm}</span>` : ''}</div>
@@ -4363,8 +4366,8 @@ function fbTopPlays(C, shownPicks){
       <div class="t10">${t.map((x, i) => `<div class="tr">
         <div class="r">${i + 1}</div>
         <div class="w"><b>${x.player}</b></div>
-        <div class="tl">${sideWord(x.side)}
-          ${x.line == null ? '' : x.line} ${x.market_label || ''}
+        <div class="tl"><span class="tp">${sideWord(x.side)}
+          ${x.line == null ? '' : x.line} ${x.market_label || ''}</span>
           ${projChip(x.projection, x.projection_unit, x.projection_basis,
                      x.projection_note)}
           ${gameOf(x)}</div>
@@ -5984,8 +5987,8 @@ async function renderFootball(){
 
   const metricLabel = (mets.find(m => m.k === fbMetric) || {}).l || 'Value';
   const sortArrow = fbSortDir === 1
-    ? '<span style="color:#7c8794;font-size:10px">&#9660;</span>'
-    : '<span style="color:#7c8794;font-size:10px">&#9650;</span>';
+    ? '<span style="color:var(--mut);font-size:10px">&#9660;</span>'
+    : '<span style="color:var(--mut);font-size:10px">&#9650;</span>';
 
   /* [Sam, 2026-10-01] no explanation boxes or tags on the page.
      The rank direction rides the header itself: on defence rank 1 ALLOWS
