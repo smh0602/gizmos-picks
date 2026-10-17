@@ -791,7 +791,9 @@ note boxes, tags and the stale bar now require their absence.
   best version?" (MLB)~~: gone (`bandRow`, `refitPanel`, `fbCalBlock` deleted; their data is still
   built). Football's game lines are graded by `record_fb.grade_game_lines`: every fb-line row a
   card SHOWED (its liked list, else its list plus `card_fb.GL_EARLIER`'s archive: 5 NFL and 35
-  college archived rows had never been graded), the LAST card that showed a game decides, a push
+  college archived rows had never been graded), the LAST card that showed a game decides (a game
+  is its schedule id, whatever kickoff minute a card printed: 2026-10-04's 1pm NFL games at 17:00Z
+  on one card and 17:05Z on the next were graded twice, keyed on the minute), a push
   or tie is void, joined to the schedule by `sched_id` or the snapshots' names (`line_ids`); its
   record.json `game_lines` carries the tally at the TOP, MLB's shape, which the box reads, and the
   grader reads the schedule from its working tree like every other file it reads (beside

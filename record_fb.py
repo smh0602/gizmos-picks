@@ -456,17 +456,34 @@ def grade_game_lines(cards, sched, ids, grade):
     decides, as the model ledger's rule (spec §3a). A spread or alternate spread at the team's
     own point and a total by `grade` (game_lines_fb.grade_rung, the one rule); a moneyline by
     the margin's sign; a tie or push is void. `sched` = {schedule id: game}; `ids` = line_ids."""
+    def _sid(r):
+        return str(r.get("sched_id") or ids.get((r.get("away"), r.get("home"),
+                                                 str(r.get("commence") or "")[:16])) or "")
+
+    def _day(r):
+        return (r.get("away"), r.get("home"), card_fb.et_date(r.get("commence")))
+
+    # ⛔ ONE GAME, WHATEVER KICKOFF MINUTE A CARD PRINTED. `[2026-10-17]` On 2026-10-04 one NFL
+    #    card printed the 1pm games at 17:00Z and the next at 17:05Z; keyed on the minute, five
+    #    games were graded twice (55 of 89 where the rule gives 51 of 80). A row's game is its
+    #    schedule id; a row whose own minute does not resolve takes the id another row of the same
+    #    two teams on the same ET day resolved to (a team plays once a day), else (away, home, day).
+    alias = {}
+    for _f, card in cards:
+        for r in shown_lines(card):
+            if _sid(r):
+                alias.setdefault(_day(r), _sid(r))
+    game = lambda r: _sid(r) or alias.get(_day(r)) or _day(r)  # noqa: E731
     last = {}
     for _f, card in sorted(cards, key=lambda fc: fc[1].get("generated_at") or ""):
         by_game = {}
         for r in shown_lines(card):
-            k = (r.get("away"), r.get("home"), str(r.get("commence") or "")[:16])
-            by_game.setdefault(k, []).append(r)
+            by_game.setdefault(game(r), []).append(r)
         last.update(by_game)                       # a later card replaces the game's rows
     rows = []
     for k, rs in last.items():
+        sid = k if isinstance(k, str) else ""
         for r in rs:
-            sid = str(r.get("sched_id") or ids.get(k) or "")
             g = sched.get(sid) or {}
             won, state = None, ("pending" if sid in sched else "no game found")
             if g.get("final") and None not in (g.get("home_score"), g.get("away_score")):

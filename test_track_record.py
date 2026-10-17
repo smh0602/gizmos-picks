@@ -63,13 +63,23 @@ a temp tree; nothing reads `data/` or `picks/`. It asks:
 #
 # @vacuity 🔴 a row with a sched_id joins by it
 #   file: record_fb.py
-#   find: sid = str(r.get("sched_id") or ids.get(k) or "")
-#   with: sid = str(ids.get(k) or "")
+#   find: return str(r.get("sched_id") or ids.get((r.get("away"), r.get("home"),
+#   with: return str(ids.get((r.get("away"), r.get("home"),
 #
 # @vacuity 🔴 a row without one joins through line_ids' (away, home, kickoff) map
 #   file: record_fb.py
-#   find: sid = str(r.get("sched_id") or ids.get(k) or "")
-#   with: sid = str(r.get("sched_id") or "")
+#   find: return str(r.get("sched_id") or ids.get((r.get("away"), r.get("home"),
+#   with: return str(r.get("sched_id") or {}.get((r.get("away"), r.get("home"),
+#
+# @vacuity 🔴 [2026-10-17] one game whatever kickoff minute a card printed: graded once, from the later card
+#   file: record_fb.py
+#   find: game = lambda r: _sid(r) or alias.get(_day(r)) or _day(r)  # noqa: E731
+#   with: game = lambda r: (r.get("away"), r.get("home"), str(r.get("commence") or "")[:16])  # noqa: E731
+#
+# @vacuity 🔴 [2026-10-17] ...a minute no snapshot knows takes its day's id from the same two teams
+#   file: record_fb.py
+#   find: game = lambda r: _sid(r) or alias.get(_day(r)) or _day(r)  # noqa: E731
+#   with: game = lambda r: _sid(r) or _day(r)  # noqa: E731
 #
 # @vacuity 🔴 line_ids reads a model-picks row's "<away> at <home>"
 #   file: record_fb.py
@@ -458,6 +468,43 @@ BY_DAY = [dict(tally(1, 1), date="2026-10-05", voids=0, pending=0),
 eq(GL.get("by_day"), BY_DAY,
    "🔴 by ET kickoff day: Thursday's 00:15Z game is 10-08 and Monday's 00:15Z game 10-12, never "
    "their UTC dates")
+
+# ── `[2026-10-17]` A KICKOFF THAT MOVED BETWEEN TWO CARDS (found in review on the stored data:
+#    2026-10-04's NFL 1pm games printed at 17:00Z on one card and 17:05Z on the next, and were
+#    graded twice). Two cards, later first again; one schedule:
+#    K1 moved 17:00 -> 17:05 and BOTH minutes are in the snapshots under one id;
+#    K2 moved 17:00 -> 17:05 and only the EARLIER minute is in a snapshot.
+_K = {"K1": ("Away K1", "Home K1", "SK1", (10, 20)), "K2": ("Away K2", "Home K2", "SK2", (10, 20))}
+
+
+def _kgl(g, at, mk, side, line, who):
+    a, hm = _K[g][:2]
+    return {"kind": "fb-line", "league": "nfl", "market": mk, "market_label": LABEL[mk], "side": side,
+            "line": line, "player": who, "away": a, "home": hm, "commence": at, "game": "%s @ %s" % (a, hm),
+            "price": -110, "book": "fanduel", "confidence": 60, "confidence_basis": "MODEL", "sched_id": None}
+
+
+_E, _L = "2026-10-04T17:00:00Z", "2026-10-04T17:05:00Z"
+_KA = {"date": "2026-10-01", "league": "nfl", "generated_at": "2026-10-03T18:57:00Z",
+       "game_lines": [_kgl("K1", _E, "moneyline", "home", None, "Home K1"),
+                      _kgl("K1", _E, "spread", "home", -3.0, "Home K1"),
+                      _kgl("K2", _E, "moneyline", "home", None, "Home K2")]}
+_KB = {"date": "2026-10-04", "league": "nfl", "generated_at": "2026-10-04T12:59:00Z",
+       "game_lines_liked": [_kgl("K1", _L, "moneyline", "away", None, "Away K1"),
+                            _kgl("K2", _L, "moneyline", "away", None, "Away K2")]}
+_KS = {sid: {"id": sid, "final": True, "home_score": fin[0], "away_score": fin[1]}
+       for _a, _h, sid, fin in _K.values()}
+_KI = {("Away K1", "Home K1", _E[:16]): "SK1", ("Away K1", "Home K1", _L[:16]): "SK1",
+       ("Away K2", "Home K2", _E[:16]): "SK2"}
+_KG = RF.grade_game_lines([("b", _KB), ("a", _KA)], _KS, _KI, GLF.grade_rung)
+_kr = sorted((r["game"], r["market"], r["side"], r["state"], r["won"]) for r in _KG.get("rows") or [])
+eq(_kr, [("Away K1 @ Home K1", "moneyline", "away", "graded", True),
+         ("Away K2 @ Home K2", "moneyline", "away", "graded", True)],
+   "🔴 [2026-10-17] a game whose kickoff moved between two cards is graded ONCE, from the LATER card "
+   "(the road team won 20-10: Away K1 and Away K2 HIT; the earlier card's Home rows and its spread are "
+   "gone), whether the later minute is in a snapshot (K1) or only the earlier one is (K2, its id taken "
+   "from the same two teams on the same ET day)")
+eq(_KG.get("overall"), tally(2, 2), "✅ ...so the tally counts each game once: 2 of 2")
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 record_fb.main: THE BOARD IS THE PROPS PLUS THE GAME LINES (a planted tree)")
