@@ -235,7 +235,11 @@ routes = parse_routes(wf)
 def _unrunnable(lg, governed):
     scheduled = {m for _c, l, ms in routes if l == lg for m in ms.split()}
     drivers = {"props-board": "props-player", "fb-record": "card-fb",
-               "alt-lines": "props-player"}
+               "alt-lines": "props-player",
+               # `[Sam, 2026-10-17]` the college injury reader has no cron: its
+               #    probe row shares T["news"], so the hourly college news
+               #    cron's converge pass plans it (test_cfb_injuries_wiring.py §1).
+               "cfb-injuries": "news"}
     return sorted(m for m in governed
                   if m not in scheduled and drivers.get(m) not in scheduled)
 

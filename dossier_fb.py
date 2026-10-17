@@ -967,19 +967,20 @@ def s_possession(home, away, this_season, data=None, missing=None,
 
 
 # ─────────────────────────────────────────────── 7. PERSONNEL
-# ⛔ COLLEGE HAS NO SOURCE WE MAY USE, AND THE PAGE SAYS SO IN WORDS.
+# ~~⛔ COLLEGE HAS NO SOURCE WE MAY USE, AND THE PAGE SAYS SO IN WORDS.~~
 #    `[probed 2026-09-23]` The SEC, Big Ten and ACC do publish availability
 #    reports for conference games, but every one of their sites limits its
 #    content to personal, non-commercial use and forbids copying or
 #    republishing it (Big Ten, ACC/SIDEARM), or forbids automated access
-#    outright (SEC, under ESPN/Disney's terms). Sam: "Build it only if it
+#    outright (SEC, under ESPN/Disney's terms). Sam: ~~"Build it only if it
 #    is free and allowed by those sites' terms. Otherwise signal 7 is
-#    NFL-only, and the page says so."
+#    NFL-only, and the page says so."~~
+# `[Sam, 2026-10-17]` told of those terms, he chose to use the reports: "use the college injury
+#    source as long as it's accurate and up to date" (cfb_injuries.py, the why under each pick).
+#    This check (signal 7) stays NFL-only; its sentence no longer says they are not collected.
 PERSONNEL_COLLEGE = (
-    "Not covered for college games. The SEC, Big Ten and ACC publish "
-    "injury reports for conference games, but their websites only allow "
-    "personal use and do not allow the reports to be copied onto another "
-    "site, so we don't collect them. This check covers NFL games only.")
+    "Not covered for college games: this check covers NFL games only. College "
+    "injury reports appear in the why under each Gizmo's Picks pick.")
 
 
 def s_personnel(teams, players, this_season, missing=None, week=None,

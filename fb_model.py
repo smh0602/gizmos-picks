@@ -481,9 +481,8 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     for r in rows:
         r["sig"]["own_m"], r["sig"]["own_t"] = own_numbers(
             own.get(monday(r["day"])), r["home"], r["away"], r["sig"]["neutral"])
-    if INJURIES.get(lg):                 # `[Sam, 2026-10-17]` T69 IN's injury readings
-        import fb_challengers
-        fb_challengers.attach("IN", lg, rows, root)
+    if INJURIES.get(lg):                 # `[Sam, 2026-10-17]` the injury readings
+        injury_readings(lg, rows, root)
     if CHAMPION.get(lg):                 # ⛔ None reads none of the challengers' files
         import fb_challengers
         fb_challengers.attach(CHAMPION[lg], lg, rows, root)
@@ -748,6 +747,17 @@ def game_sim(r, score, sigma, sigma_t):
     if not score or score.get("home") is None or score.get("away") is None or not sigma or not sigma_t:
         return None
     return _sim(r.get("lg"), r.get("id"), float(score["home"]), float(score["away"]), sigma, sigma_t)
+
+
+def injury_readings(lg, rows, root=None):
+    """`[Sam, 2026-10-17]` r["sig"]["inj"] for every row: the NFL's from T69 IN's measures
+    (`fb_challengers.attach("IN")`, which reads data/nfl), college's from the conference reports
+    (`cfb_injuries.attach`, research/cfb_injuries_design.md §3). ⛔ Never the other league's."""
+    if lg == "ncaaf":
+        import cfb_injuries
+        return cfb_injuries.attach(rows, root)
+    import fb_challengers
+    return fb_challengers.attach("IN", lg, rows, root)
 
 
 def injury_fit(train):

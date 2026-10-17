@@ -358,28 +358,52 @@ def set_champion(src, lg, name):
 
 def push_branch(lg, name, day, root=ROOT, run=subprocess.run):
     """⛔ ONE branch per league while any fb/champion-<lg>-* is on origin; never main, never a PR."""
-    def git(*a, cwd=root):
-        r = run(["git"] + list(a), capture_output=True, text=True, cwd=cwd)
-        if r.returncode != 0:
-            raise RuntimeError("git %s failed: %s" % (" ".join(a), r.stderr.strip()))
-        return r.stdout
-    have = git("ls-remote", "--heads", "origin", "refs/heads/fb/champion-%s-*" % lg).split()
-    if have:
-        return have[1].replace("refs/heads/", ""), False
-    branch = "fb/champion-%s-%s-%s" % (lg, name, day)
-    tmp = tempfile.mkdtemp(prefix="fb-champion-")
-    os.rmdir(tmp)
-    git("fetch", "origin", "main")
-    git("worktree", "add", "-b", branch, tmp, "origin/main")
-    try:
+    def edit(tmp):
         p = os.path.join(tmp, "fb_model.py")
         with open(p, encoding="utf-8") as fh:
             src = fh.read()
         with open(p, "w", encoding="utf-8", newline="") as fh:
             fh.write(set_champion(src, lg, name))
+    return push_change("fb/champion-%s-" % lg, "fb/champion-%s-%s-%s" % (lg, name, day), edit,
+                       "fb: challenger %s won T65 (%s) — champion switch for Sam" % (name, lg), root, run)
+
+
+def _git(run, cwd, *a):
+    r = run(["git"] + list(a), capture_output=True, text=True, cwd=cwd)
+    if r.returncode != 0:
+        raise RuntimeError("git %s failed: %s" % (" ".join(a), (r.stderr or "").strip()))
+    return r.stdout
+
+
+def branch_file(prefix, path, root=ROOT, run=subprocess.run):
+    """-> (the first `<prefix>*` branch on origin, its `path` text) or (None, None).
+    ⛔ Raises when git cannot answer: an unknown never reads as "no branch"."""
+    have = _git(run, root, "ls-remote", "--heads", "origin", "refs/heads/%s*" % prefix).split()
+    if not have:
+        return None, None
+    branch = have[1].replace("refs/heads/", "")
+    _git(run, root, "fetch", "origin", branch)
+    return branch, _git(run, root, "show", "FETCH_HEAD:%s" % path)
+
+
+def push_change(prefix, branch, edit, message, root=ROOT, run=subprocess.run):
+    """`edit(tree)` applied to a fresh worktree of origin/main, committed and pushed as `branch`, for
+    Sam to merge. ⛔ ONE branch while any `<prefix>*` is on origin; never main, never a PR.
+    -> (the branch, pushed now?). `[2026-10-17]` also the injury backtest's (`fb_inj_backtest.auto`)."""
+    def git(*a, cwd=root):
+        return _git(run, cwd, *a)
+    have = git("ls-remote", "--heads", "origin", "refs/heads/%s*" % prefix).split()
+    if have:
+        return have[1].replace("refs/heads/", ""), False
+    tmp = tempfile.mkdtemp(prefix="fb-branch-")
+    os.rmdir(tmp)
+    git("fetch", "origin", "main")
+    git("worktree", "add", "-b", branch, tmp, "origin/main")
+    try:
+        edit(tmp)
         git("-c", "user.name=github-actions[bot]",
             "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-            "commit", "-am", "fb: challenger %s won T65 (%s) — champion switch for Sam" % (name, lg), cwd=tmp)
+            "commit", "-am", message, cwd=tmp)
         git("push", "origin", "%s:refs/heads/%s" % (branch, branch), cwd=tmp)
     finally:
         run(["git", "worktree", "remove", "--force", tmp], capture_output=True, text=True, cwd=root)
@@ -399,6 +423,14 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
         for x in doc["challengers"]:
             if x["verdict"] == "WINS":
                 x["branch"], x["branch_pushed"] = push_branch(lg, x["name"], now.strftime("%Y-%m-%d"), root, run)
+        # `[Sam, 2026-10-17]` the injury test fixed in advance (research/cfb_injuries_design.md §4),
+        #    run once its data is stored, its result kept here; ⛔ never raises, never switches main.
+        _was = (prev or {}).get("injury_backtest")
+        try:
+            import fb_inj_backtest
+            doc["injury_backtest"] = fb_inj_backtest.auto(lg, root, now, run, prev=_was)
+        except Exception as e:
+            doc["injury_backtest"] = dict(_was or {}, error="%s: %s" % (type(e).__name__, e))
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(doc, fh, indent=1)
         log("%s: %s (%.0fs)" % (lg, "; ".join("%s %s" % (x["name"], x["verdict"])

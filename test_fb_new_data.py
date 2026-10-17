@@ -101,6 +101,11 @@ makes no network call, writes nothing under data/.
 #   find:     _store = [(f"weather-{season}", T["possession"])]
 #   with:     _store = []
 #
+# @vacuity 🔴 college injuries' roster and defense files have a row each
+#   file: freshness.py
+#   find:             for _k in ("roster", "defense"):
+#   with:             for _k in ():
+#
 # @vacuity 🔴 the CFBD budget counts the daily advanced-stats call
 #   file: cfbd_budget.py
 #   find:     adv = 1 if "def fetch_adv(" in src else 0
@@ -372,15 +377,22 @@ try:
     # ══════════════════════════════════════════════════════════════════
     section("5. 🔴 FRESHNESS: A ROW EACH, A WARNING WHEN STALE, NEVER A RUN OR A RED")
     # ══════════════════════════════════════════════════════════════════
-    want = {"nfl": {"weather-2026", "injuries-2025", "injuries-2026"},
-            "ncaaf": {"weather-2026", "adv-2025", "adv-2026", "venues-2026"}}
-    for lg, writer in (("nfl", "nfl-logs"), ("ncaaf", "cfb-probe")):
+    # `[Sam, 2026-10-17]` ~~one writer a league ("written by the league's daily
+    #    run")~~: each file now names the mode that writes it. College injuries
+    #    (research/cfb_injuries_design.md §1 item 4) add CFBD's roster jerseys and
+    #    defensive box score, written by the same daily cfb-probe run; the
+    #    conference archives are in /history/ (test_cfb_injuries_wiring.py, with
+    #    the reader's own rows).
+    want = {"nfl": {k: "nfl-logs" for k in ("weather-2026", "injuries-2025", "injuries-2026")},
+            "ncaaf": {k: "cfb-probe" for k in ("weather-2026", "adv-2025", "adv-2026", "venues-2026",
+                                               "roster-2025", "roster-2026",
+                                               "defense-2025", "defense-2026")}}
+    for lg in ("nfl", "ncaaf"):
         P = tree()
         rows = F.contract(P + "/data/" + lg, P + "/picks", NOW)
         got = {r[1][1].split("/")[-1][:-8]: r[0] for r in rows
                if F.STORED_ONLY.search(r[1][1]) and "/history/" not in r[1][1]}   # T70's are test_fb_history's
-        eq(got, {k: writer for k in want[lg]},
-           "🔴 %s: every new file has a row, written by the league's daily %s run" % (lg, writer))
+        eq(got, want[lg], "🔴 %s: every new file has a row, under the mode that writes it" % lg)
     put(P + "/data/ncaaf/latest/cfbd-weather-2026.json.gz", {"games": {}})
     ck(any("cfbd-weather-2026" in r[1][1] for r in F.contract(P + "/data/ncaaf", P + "/picks", NOW)),
        "   ...and CFBD weather gets its row once its file exists (only when the tier has it)")

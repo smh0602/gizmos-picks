@@ -52,8 +52,11 @@ INJ_STATUS = {"out": "OUT", "doubtful": "DOUBTFUL", "questionable": "QUESTIONABL
 # a flag that says he should not play, against one that says he might not
 ABSENCE = {"OUT", "DOUBTFUL", "IR", "ruled out", "inactive", "suspended", "traded", "released",
            "benched"}
-COLLEGE_NOTE = ("College football has no public injury reports we may use — the conferences' "
-                "terms forbid scraping them — so college flags come from headlines only.")
+# `[Sam, 2026-10-17]` ~~"College football has no public injury reports we may use — the conferences'
+#    terms forbid scraping them"~~: Sam chose to use the conference reports (cfb_injuries.py, the
+#    why). This reviewer still reads headlines only for college.
+COLLEGE_NOTE = ("College flags here come from headlines only; the conference injury reports are read "
+                "by cfb_injuries.py (the why under each pick), not by this reviewer.")
 
 
 def log(m):
