@@ -768,7 +768,12 @@ const todayET = () => {
   return d.toISOString().slice(0,10);
 };
 
-async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
+/* 🔴 EVERY READ ASKS THE SERVER. `[2026-10-17]` GitHub Pages sends max-age=600, and a plain
+   fetch kept drawing the 16:36Z college card for minutes after the 16:54Z rebuild. 'no-cache'
+   revalidates every time: an unchanged file is a 304 by its ETag, a new one arrives at once.
+   ⛔ Never a query-string buster, which defeats the ETag. test_fetch_fresh.py holds EVERY
+   fetch on the page to this, not only these two loaders. */
+async function jget(u){ const r = await fetch(u, {cache: 'no-cache'}); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
 
 /* 🔴 THE TICKER CARRIES EVERY LEAGUE, ON EVERY TAB. `[Sam, 2026-10-01]` "include news from
    across all 3 leagues on the bottom": newest first, mixed, each headline wearing its own
@@ -817,7 +822,7 @@ async function loadTicker(){
    DecompressionStream is native in every current browser; if it is missing
    we say so rather than showing an empty tab. */
 async function jgetGz(u){
-  const r = await fetch(u);
+  const r = await fetch(u, {cache: 'no-cache'});   // revalidated, as jget's (test_fetch_fresh.py)
   if (!r.ok) throw new Error(u + ' -> ' + r.status);
   const buf = new Uint8Array(await r.arrayBuffer());
   /* Prefer the native path where it exists. DecompressionStream landed in
@@ -2630,7 +2635,7 @@ async function fbSeasonsAvailable(side){
   const k = LEAGUE + '|' + sd;
   if (FBHAVE[k]) return FBHAVE[k];
   const got = await Promise.all(FB_SEASONS.map(async y => {
-    try { const r = await fetch(fbPath(y, sd), {method: 'HEAD'}); return r.ok ? y : null; }
+    try { const r = await fetch(fbPath(y, sd), {method: 'HEAD', cache: 'no-cache'}); return r.ok ? y : null; }
     catch(e){ return null; }
   }));
   FBHAVE[k] = got.filter(y => y !== null);
@@ -3796,7 +3801,7 @@ async function fbSeasonsAvailableSched(){
   const got = await Promise.all(FB_SEASONS.map(async y => {
     try {
       const r = await fetch(`${LG_DATA[LEAGUE]}/latest/schedule-${y}.json.gz`,
-                            {method: 'HEAD'});
+                            {method: 'HEAD', cache: 'no-cache'});
       return r.ok ? y : null;
     } catch(e){ return null; }
   }));

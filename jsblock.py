@@ -126,3 +126,188 @@ def css_rules(path):
             else:
                 buf.append(c)
     return {k: "\n".join(v) for k, v in out.items()}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE PAGE'S CODE WITHOUT ITS COMMENTS, AND EVERY CALL OF ONE NAME.
+# ⛔ `strip_js` was test_page_plain.py's own until `[2026-10-17]`, when
+# test_fetch_fresh.py needed the same question asked of every fetch on the
+# page; a second copy of a parser is rule 117 again.
+# ══════════════════════════════════════════════════════════════════════
+def strip_js(js):
+    """JavaScript with every comment removed. Strings, template literals and
+    regex literals are kept as code; an HTML comment inside a template
+    literal (emitted into innerHTML, never seen) is removed too."""
+    out, i, n = [], 0, len(js)
+    frames = [["code", 0]]
+    prev = ""
+    while i < n:
+        kind, c = frames[-1][0], js[i]
+        if kind == "code":
+            if js.startswith("/*", i):
+                j = js.find("*/", i + 2)
+                i = n if j < 0 else j + 2
+                out.append(" ")
+                continue
+            if js.startswith("//", i):
+                j = js.find("\n", i)
+                i = n if j < 0 else j
+                continue
+            if c == "/" and (prev == "" or prev in "(,=:[!&|?{};+-*%<>~^"):
+                j, cls = i + 1, False                     # a regex literal
+                while j < n and js[j] != "\n":
+                    if js[j] == "\\":
+                        j += 2
+                        continue
+                    if js[j] == "[":
+                        cls = True
+                    elif js[j] == "]":
+                        cls = False
+                    elif js[j] == "/" and not cls:
+                        break
+                    j += 1
+                out.append(js[i:j + 1])
+                i, prev = j + 1, "/"
+                continue
+            if c in "\"'":
+                j = i + 1
+                while j < n and js[j] != c and js[j] != "\n":
+                    j += 2 if js[j] == "\\" else 1
+                out.append(js[i:j + 1])
+                i, prev = j + 1, c
+                continue
+            if c == "`":
+                frames.append(["tpl", 0])
+                out.append(c)
+                i += 1
+                continue
+            if c == "{":
+                frames[-1][1] += 1
+            elif c == "}":
+                if frames[-1][1] == 0 and len(frames) > 1:
+                    frames.pop()
+                    out.append(c)
+                    i += 1
+                    prev = "}"
+                    continue
+                frames[-1][1] -= 1
+            out.append(c)
+            if not c.isspace():
+                prev = c
+            i += 1
+            continue
+        if c == "\\":
+            out.append(js[i:i + 2])
+            i += 2
+            continue
+        if js.startswith("<!--", i):
+            j = js.find("-->", i + 4)
+            i = n if j < 0 else j + 3
+            continue
+        if c == "`":
+            frames.pop()
+            out.append(c)
+            i, prev = i + 1, "`"
+            continue
+        if js.startswith("${", i):
+            frames.append(["code", 0])
+            out.append("${")
+            i += 2
+            prev = "{"
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def script_code(path):
+    """The code of every `<script>` block on the page, comments removed.
+
+    ⚠️ This repo strikes deleted code in a comment rather than removing it,
+    so a whole-page question about CODE reads this, never the raw file: a
+    struck `fetch(u)` in a comment is not a fetch the page makes."""
+    src = source(path)
+    blocks = re.findall(r"<script\b[^>]*>(.*?)</script>", src, re.S)
+    return "\n".join(strip_js(b) for b in blocks)
+
+
+def _skip_quoted(code, i):
+    """Index just past the '...' or "..." string that starts at `i`."""
+    q, j, n = code[i], i + 1, len(code)
+    while j < n and code[j] != q:
+        j += 2 if code[j] == "\\" else 1
+    return j + 1
+
+
+def _skip_template(code, i):
+    """Index just past the `...` template literal that starts at `i`, its
+    `${...}` substitutions included (they may hold strings and templates)."""
+    j, n = i + 1, len(code)
+    while j < n:
+        c = code[j]
+        if c == "\\":
+            j += 2
+            continue
+        if c == "`":
+            return j + 1
+        if code.startswith("${", j):
+            j = _skip_code(code, j + 2)
+            continue
+        j += 1
+    raise AssertionError("unterminated template literal at %d" % i)
+
+
+def _skip_code(code, j):
+    """Index just past the bracket that closes the code starting at `j`."""
+    depth, n = 0, len(code)
+    while j < n:
+        c = code[j]
+        if c in "\"'":
+            j = _skip_quoted(code, j)
+            continue
+        if c == "`":
+            j = _skip_template(code, j)
+            continue
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            if depth == 0:
+                return j + 1
+            depth -= 1
+        j += 1
+    raise AssertionError("nothing closes the code at %d" % j)
+
+
+def call_sites(code, name):
+    """[(the call's text, [its top-level arguments])] for every `name(` in
+    `code`, which should already be comment-free (`script_code`).
+
+    ⛔ ARGUMENTS SPLIT ON TOP-LEVEL COMMAS ONLY: strings, template literals
+    and nested brackets are skipped, so `fetch(u, {method: 'HEAD', cache:
+    'no-cache'})` is two arguments, not three. `window.fetch(` is a call of
+    `fetch`; `prefetch(` and `fbFetch(` are not."""
+    out = []
+    for m in re.finditer(r"(?<![\w$])" + re.escape(name) + r"\s*\(", code):
+        end = _skip_code(code, m.end())
+        inner = code[m.end():end - 1]
+        args, start, j = [], 0, 0
+        depth = 0
+        while j < len(inner):
+            c = inner[j]
+            if c in "\"'":
+                j = _skip_quoted(inner, j)
+                continue
+            if c == "`":
+                j = _skip_template(inner, j)
+                continue
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                depth -= 1
+            elif c == "," and depth == 0:
+                args.append(inner[start:j].strip())
+                start = j + 1
+            j += 1
+        args.append(inner[start:].strip())
+        out.append((code[m.start():end], [a for a in args if a]))
+    return out
