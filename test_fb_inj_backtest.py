@@ -64,8 +64,8 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #
 # @vacuity ⛔ [2026-10-17] no fit, no test: a measurement with no injury fit is never recorded
 #   file: fb_inj_backtest.py
-#   find:         if not entry.get("fitted_last"):
-#   with:         if False:
+#   find:         if not entry.get("fitted_last") or not entry.get("questions_moved"):
+#   with:         if not entry.get("questions_moved"):
 #
 # @vacuity ⛔ [2026-10-17, review] an archive file is not a season: every reading conference must be in it
 #   file: fb_inj_backtest.py
