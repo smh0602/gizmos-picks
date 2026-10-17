@@ -663,7 +663,10 @@ note boxes, tags and the stale bar now require their absence.
   football leagues"*; *"lose everything in the gizmos picks tab after the model picks gameliones
   tab ... it should be as simple as the mlb gizmos picks"*. ✅ The tab draws the Player props /
   Game lines switch, the card's liked list (`fbView`: `liked`, `game_lines_liked` whenever the card
-  has them) with the why under each pick, and `fbTopPlays`, the top 10 (`card_fb.TOP_N` = 10, as
+  has them; `[Sam, 2026-10-17]` *"we need to sort our gizmos picks by confidence score, the highest at
+  the top and working down"*: each list SHOWN by confidence, a tie by edge, the same rows CHOSEN as
+  before (`card_fb.best_liked`, one per player or game, by edge; the freeze trims by edge, then shows
+  by confidence); `test_top_plays.py` holds every list the card shows to it) with the why under each pick, and `fbTopPlays`, the top 10 (`card_fb.TOP_N` = 10, as
   MLB's `card.TOP10_N`; ~~20~~), each play filtered on its OWN game (started, conference), ~~only
   in a game the liked list covers~~ (that hid 2026-10-18's 10th NFL play). ⛔ No "Above their price only" button (~~`FBABOVE`,
   `fbAbovePass`~~), no Model picks / Prop model picks / "What the model showed, graded" panels

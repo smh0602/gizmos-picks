@@ -87,6 +87,11 @@ whatever the live college board holds that day:
 #   find: <div class="p">${sgn(x.price)}</div>`).join('')}</div></div>`;
 #   with: <div class="p">${sgn(x.price)}</div>`).join('')}</div><div class="note">Every number here is the player's own record.</div></div>`;
 #
+# @vacuity [Sam, 2026-10-17] every list the card shows is in confidence order (the liked props, built end to end)
+#   file: card_fb.py
+#   find:     out.sort(key=lambda r: (-r["confidence"], -r["edge"]))
+#   with:     out.sort(key=lambda r: (-r["edge"], -r["confidence"]))
+#
 # @vacuity [2026-10-17] a top play whose game has no liked pick is still one of the 10
 #   file: index.html
 #   find: const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
@@ -463,6 +468,16 @@ if ck("🔴 the builder produces a card from the planted board", PC is not None)
        len(PT) >= 2
        and all(PT[i]["confidence"] >= PT[i + 1]["confidence"] for i in range(len(PT) - 1)),
        "%s" % [x.get("confidence") for x in PT])
+    # `[Sam, 2026-10-17]` "we need to sort our gizmos picks by confidence score, the highest at the top
+    #    and working down": EVERY list Gizmo's Picks shows, read off the card the builder wrote (the
+    #    class: a list added later is held to it too). ~~the liked lists by edge~~.
+    _shown = {k: PC.get(k) for k in ("liked", "game_lines_liked", "picks", "top_plays")}
+    _out = {k: [x.get("confidence") for x in v or []] for k, v in _shown.items()
+            if any((v or [])[i].get("confidence") is not None and (v or [])[i + 1].get("confidence") is not None
+                   and v[i]["confidence"] < v[i + 1]["confidence"] for i in range(len(v or []) - 1))}
+    ck("🔴 [Sam, 2026-10-17] every list Gizmo's Picks shows is in confidence order, highest first "
+       "(liked %d rows, top plays %d, board %d)" % (len(_shown["liked"] or []), len(PT), len(_shown["picks"] or [])),
+       len(_shown["liked"] or []) >= 2 and not _out, "out of order: %s" % _out)
     ck("🔴 the next day's game never reaches the card's own list",
        bool(PT) and PC.get("date") == "2026-09-12"
        and all(card_fb.et_date(x.get("commence")) == "2026-09-12" for x in PT)

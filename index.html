@@ -4285,7 +4285,7 @@ function fbKindBar(C){
 /* 🔴 THE CARD'S OWN LISTS. `[Sam, 2026-10-17]` "no above their price only button in gizmos
    picks not needed": ~~an "Above their price only" switch (`[Sam, 2026-10-14]` off by default,
    `[2026-10-15]` on)~~; the page always shows the card's liked lists (`liked`, `game_lines_liked`:
-   chance 50%+ above its price, one per player / game, by edge -- card_fb.best_liked, ⛔ never
+   chance 50%+ above its price, one per player / game, chosen by edge and `[Sam, 2026-10-17]` shown by confidence, highest first -- card_fb.best_liked, ⛔ never
    re-decided here) wherever the card has them; a card from before they existed shows its lists. */
 function fbView(C){
   return (C && C.liked) ? Object.assign({}, C, {

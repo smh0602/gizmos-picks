@@ -9,7 +9,10 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
      and a Denver -23.5 at +2000 rung is under 5% and gets no row
   2. the predicted total sits on the over/under's side of its line
   3. the board lists the plays the model likes: chance 50%+, above its price,
-     one per player (or game), by edge; graded on what it shows; the page ~~starts
+     one per player (or game), chosen by edge and `[Sam, 2026-10-17]` SHOWN BY
+     CONFIDENCE, highest first ("we need to sort our gizmos picks by confidence
+     score, the highest at the top and working down"; ~~by edge~~); graded on
+     what it shows; the page ~~starts
      on them, says so when there are none, and shows today's full list when off~~
      `[Sam, 2026-10-17]` ("no above their price only button in gizmos pikcs not
      needed") always shows them when the card has them, says so when there are
@@ -50,12 +53,22 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #   find:         if who(r) not in seen:
 #   with:         if True:
 #
-# @vacuity 🔴 ordered by edge, then chance
+# @vacuity 🔴 each player's line is CHOSEN by edge, then chance (his best-value liked line)
 #   file: card_fb.py
 #   find:                 key=lambda r: (-r["edge"], -r["confidence"]))
 #   with:                 key=lambda r: (-r["confidence"], -r["edge"]))
 #
-# @vacuity 🔴 the published liked list stays in edge order through the freeze
+# @vacuity 🔴 [Sam, 2026-10-17] the list is SHOWN by confidence, highest first (~~by edge~~)
+#   file: card_fb.py
+#   find:     out.sort(key=lambda r: (-r["confidence"], -r["edge"]))
+#   with:     pass
+#
+# @vacuity 🔴 [Sam, 2026-10-17] ...and stays in confidence order through the freeze (~~edge order~~)
+#   file: card_fb.py
+#   find:             kept.sort(key=lambda r: (-(r.get("confidence") or 0), -(r.get("edge") or 0)))
+#   with:             pass
+#
+# @vacuity 🔴 the freeze trims the lowest-EDGE fresh rows past the cap, never the lowest-confidence
 #   file: card_fb.py
 #   find:             merged.sort(key=lambda r: (-(r.get("edge") or 0), -(r.get("confidence") or 0)))
 #   with:             pass
@@ -211,7 +224,7 @@ eq(FM.predicted_score(dict(ROW, T=None), 0.45, 13.4, None, 13.0)["home"]
    "   no total line: the own total, as before")
 
 # ══════════════════════════════════════════════════════════════════════
-section("3. 🔴 THE BEST PLAYS THE MODEL LIKES, ONE PER PLAYER, BY EDGE")
+section("3. 🔴 THE BEST PLAYS THE MODEL LIKES, ONE PER PLAYER, SHOWN BY CONFIDENCE")
 # ══════════════════════════════════════════════════════════════════════
 def prop(player, mk, side, line, conf, edge, game="g1"):
     return {"player": player, "market": mk, "side": side, "line": line, "confidence": conf, "edge": edge,
@@ -224,9 +237,18 @@ ROWS = [prop("J.K. Dobbins", "rush", "over", 49.5, 58, 3.1), prop("J.K. Dobbins"
         prop("Low Chance", "rec", "under", 3.5, 48, 9.0), prop("Tie A", "yds", "over", 30.5, 66, 2.2, "g2"),
         prop("No Edge", "yds", "over", 30.5, 70, 0.0, "g2")]
 L = CF.best_liked(ROWS, lambda r: (r["game_id"], r["player"]))
-eq([(r["player"], r["line"], r["rank"]) for r in L],
-   [("J.K. Dobbins", 54.5, 1), ("Tie A", 30.5, 2), ("Tory Horton", 2.5, 3), ("Lil'Jordan Humphrey", 1.5, 4)],
-   "🔴 one row per player (his best liked line), by edge then chance; nothing at edge <= 0 or under 50%")
+# `[Sam, 2026-10-17]` "we need to sort our gizmos picks by confidence score, the highest at the top
+#    and working down": ~~[("J.K. Dobbins", 54.5, 1), ("Tie A", 30.5, 2), ("Tory Horton", 2.5, 3),
+#    ("Lil'Jordan Humphrey", 1.5, 4)], by edge then chance~~. The same four rows (each player's line
+#    still chosen by edge: Dobbins' 54.5 at +4.0, not his 49.5 at 58%), now shown 66, 61, 55, 52.
+eq([(r["player"], r["line"], r["confidence"], r["rank"]) for r in L],
+   [("Tie A", 30.5, 66, 1), ("Tory Horton", 2.5, 61, 2), ("J.K. Dobbins", 54.5, 55, 3),
+    ("Lil'Jordan Humphrey", 1.5, 52, 4)],
+   "🔴 [Sam, 2026-10-17] one row per player (his best-value liked line), SHOWN by confidence, highest "
+   "first; nothing at edge <= 0 or under 50%")
+_tie = CF.best_liked([prop("Lo Edge", "rec", "over", 2.5, 60, 1.0), prop("Hi Edge", "rec", "over", 3.5, 60, 5.0)],
+                     lambda r: r["player"])
+eq([r["player"] for r in _tie], ["Hi Edge", "Lo Edge"], "   ...a tie in confidence is broken by edge")
 ck(all(r["edge"] > 0 and r["confidence"] >= 50 for r in L) and len({r["player"] for r in L}) == len(L),
    "   ...no player twice, no row at or below its price, none under 50%")
 eq(len(CF.best_liked([dict(r, player="P%d" % i) for i, r in enumerate(ROWS * 6)], lambda r: r["player"], 25)), 25,
@@ -248,7 +270,24 @@ try:
 finally:
     shutil.rmtree(_ft, ignore_errors=True)
 eq([(r["player"], r["rank"]) for r in _doc["liked"]], [(r["player"], r["rank"]) for r in L],
-   "🔴 ...and it stays in edge order through the freeze (a published card with no liked list yet)")
+   "🔴 ...and it stays in confidence order through the freeze (~~edge order~~; a published card with no "
+   "liked list yet)")
+# `[2026-10-17]` the freeze still TRIMS by edge (the cap keeps the best-value fresh rows), then shows the
+#    kept ones by confidence: one row too many, the lowest edge and the highest confidence, is the one cut.
+_ft = tempfile.mkdtemp(prefix="bpfreeze2-")
+try:
+    _many = [dict(prop("P%02d" % i, "rec", "over", 2.5, 55, 5.0 + i), commence="2026-10-18T17:00:00Z")
+             for i in range(CF.BOARD_MAX)]
+    _many.append(dict(prop("High Chance Low Edge", "rec", "over", 2.5, 80, 0.5), commence="2026-10-18T17:00:00Z"))
+    _old2 = os.path.join(_ft, "old.json")
+    json.dump({"picks": [], "game_lines": []}, open(_old2, "w"))
+    _doc2, _n2 = CF.freeze_published({"liked": sorted(_many, key=lambda r: -r["confidence"]), "picks": []}, _old2,
+                                     "2026-10-15T12:00:00Z", log=lambda m: None)
+finally:
+    shutil.rmtree(_ft, ignore_errors=True)
+_names2 = [r["player"] for r in _doc2["liked"]]
+ck(len(_names2) == CF.BOARD_MAX and "High Chance Low Edge" not in _names2,
+   "🔴 the freeze trims the lowest-EDGE fresh row past the cap, never the lowest-confidence one", str(_names2[:3]))
 card = {"liked": [ROWS[1]], "picks": ROWS}
 eq(len(RF.grade_card(card, {}, {}, None)), 1, "🔴 a card with a liked list is graded on what it shows")
 
