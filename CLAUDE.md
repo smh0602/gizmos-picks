@@ -524,8 +524,15 @@ note boxes, tags and the stale bar now require their absence.
   `best_pick`: ~~`walk_forward`'s graded record and verdict still grade the spread and total fits
   (changing what they grade is Sam's call)~~ `[Sam, 2026-10-16]` *"lets do both"*: the graded
   record and verdict replay the shown rule too (see THE MODEL PICKS RECORD GRADES WHAT THE SITE
-  SHOWS). The Game Lines tab prints the score to one decimal
-  (~~whole numbers~~), the precision picks are judged on. `test_one_side_score.py`.
+  SHOWS). ~~The Game Lines tab prints the score to one decimal (~~whole numbers~~), the
+  precision picks are judged on.~~ `[Sam, 2026-10-17]` *"we need to not have decimal places in the
+  predicted scores and make them only whole numbers"*, rounded so they never contradict a pick
+  ("Round, stay consistent"): `one_side.shown_score`, the nearest whole score the expected winner
+  leads and every pick the model's score agrees with still agrees with; `card_fb.shown_scores`
+  applies it to every game of the week (the model's picks, the card's game lines and alternates,
+  the parlay legs), writes `scores_shown` on the card, and the why and winners.json's `score_shown`
+  (the Game Lines tab) print it; no agreeing whole score: one decimal. Picks are still judged on
+  the model's own 0.1 score. `test_one_side_score.py`, `test_whole_scores.py`.
 - 🔴 **NEW FOOTBALL DATA IS STORED ONLY UNTIL COWORK TESTS IT.** `[Sam, 2026-10-14]`
   NWS kickoff forecasts (`fb_weather.py`), CFBD venues / advanced stats (garbage
   time excluded) / pregame Elo / weather if the key's tier allows (`cfb.py`
@@ -1202,7 +1209,8 @@ ranking.py        the one tie-aware ranker, both leagues
 one_side.py       ONE TEAM PER GAME (Sam, 2026-10-16): the expected winner
                   (the Game Lines tab's rule, read by winners.py), the filter
                   every list of side picks runs, and the guard verify_card.py
-                  runs. ⛔ Only removes; stdlib only.
+                  runs. ⛔ Only removes; stdlib only. `[Sam, 2026-10-17]` also
+                  `shown_score`: whole-number scores that never contradict a pick.
 wfparse.py        the one HAND parser for a workflow file -- jobs,
                   steps, `run:` bodies and `permissions:` blocks.
                   ⛔ Never `import yaml`: PyYAML is NOT on the CI

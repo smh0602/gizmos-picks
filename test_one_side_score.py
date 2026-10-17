@@ -105,6 +105,11 @@ rows; the real predicted_score, score_sigma and total_sigma; ⛔ reads nothing l
 #   find:                                  sigma=((_model.get("pricing") or {}).get("sigma") or {}).get("spread"))
 #   with:                                  sigma=None)
 #
+# @vacuity 🔴 `[2026-10-17]` the real card writes the week's whole-number scores
+#   file: card_fb.py
+#   find:         "scores_shown": scores_shown,
+#   with:         "scores_shown": None,
+#
 # @vacuity 🔴 the why prints a predicted score only when it lands on the pick's side, never on the number
 #   file: fb_why.py
 #   find:         return r.get("line") is not None and round(m + float(r["line"]), 6) > 0
@@ -426,6 +431,9 @@ ck(any(DEN in leg for leg in _legs5),
 ck(not any("-3.5" in leg and DEN in leg for leg in _legs5),
    "🔴 the real card's same-game parlays never carry Denver -3.5 (its richest price gap) on a predicted "
    "Denver-by-2: main hands the leg builder the model's own scores", str(_legs5[:6]))
+eq(CARD5.get("scores_shown"), [{"away": SEA, "home": DEN, "score": {"home": 20, "away": 18}}],
+   "🔴 `[Sam, 2026-10-17]` the real card writes the game's whole-number score (20-18, Denver ahead), "
+   "the one the Game Lines tab prints")
 _gl5 = sorted((r.get("market"), r.get("player"), r.get("line"), r.get("confidence")) for r in CARD5.get("game_lines") or [])
 eq(_gl5, sorted([("spread", SEA, 3.5, 56),
                  ("alternate_spread", SEA, 6.5, int(round(round(100 * N.cdf(round(-2.0 + 6.5, 6) / 13.0), 1))))]),
