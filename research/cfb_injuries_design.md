@@ -83,6 +83,7 @@ The rules that apply to all three:
 - A report player is matched to a CFBD player by team + jersey (the roster) with the same last name, else by a unique name on the team (`card_fb.norm`). ⛔ An ambiguous name is not matched.
 - **Counted:** Out, Out for Season and Doubtful only.
 - **No report for that game → no reading (None), never zero.** College reports cover conference games only.
+- `[2026-10-17, review]` **A team with no stored game before this one (a season opener) → no reading too**: nothing is known about who matters, so a starting QB listed Out must not read 0.
 
 **The report known at pick time:**
 - For a stored snapshot: the newest report fetched before 9:00 am ET on the game's own ET day, the morning card.
@@ -113,3 +114,4 @@ Rules for the run:
 ## Changelog
 
 - **2026-10-17:** written, with §4 fixed before any college injury number was computed.
+- **2026-10-17 (review, before any number):** §3 adds the season-opener rule. §4's bar is unchanged; how it is applied is made exact: the comparison uses unrounded numbers, a measurement whose injury fit moved no scored question is not a test, and a result already on a branch is never measured again.

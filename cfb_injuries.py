@@ -1288,7 +1288,6 @@ class Roles:
         self.off = (_jz(os.path.join(lat, "players-%d.json.gz" % season)) or {}).get("players") or {}
         self.dfn = (_jz(os.path.join(lat, "defense-%d.json.gz" % season)) or {}).get("players") or {}
         self.roster = (_jz(os.path.join(lat, "roster-%d.json.gz" % season)) or {}).get("teams") or {}
-        self.has_defense = bool(self.dfn)
         self.by_team = {}              # team -> {"off": [(pid, g)], "def": [(pid, g)], "names": {fold: {pid}}}
         for side, src in (("off", self.off), ("def", self.dfn)):
             for pid, p in src.items():
@@ -1320,9 +1319,7 @@ class Roles:
     def team_out(self, team, players, day):
         """(QB out 0/1, offence share out, defence share out) for `team` on `day` from the listed
         Out / Out for Season / Doubtful players, sized on this season's games before `day`;
-        None when the defence log is not stored."""
-        if not self.has_defense:
-            return None
+        None when the defence log is not stored or the team has no game before `day`."""
         t = self.by_team.get(team) or {"off": [], "def": [], "names": {}}
         out = {self.match(team, p) for p in players or []
                if (p.get("status") or "").strip().lower() in OUT_STATUSES}
@@ -1339,9 +1336,13 @@ class Roles:
                 qb = 1.0 if att > 0 and pid in out else 0.0
         yds = lambda g: (g.get("rush_yds") or 0) + (g.get("rec_yds") or 0)  # noqa: E731
         tot_off = sum(yds(g) for _p, g in off)
+        tot_def = sum(g.get("tot") or 0 for _p, g in dfn)
+        if not off or not dfn or tot_off <= 0 or tot_def <= 0:
+            # ⛔ NO GAME BEFORE THIS ONE (a season opener): nothing is known, so no reading, never
+            #    "nobody out" (design §3). A starting QB listed Out would otherwise read 0.
+            return None
         o = (sum(yds(g) for pid, g in off if pid in out
                  and (self.off.get(pid) or {}).get("pos") != "QB") / tot_off) if tot_off > 0 else 0.0
-        tot_def = sum(g.get("tot") or 0 for _p, g in dfn)
         d = (sum(g.get("tot") or 0 for pid, g in dfn if pid in out) / tot_def) if tot_def > 0 else 0.0
         return qb, round(o, 4), round(d, 4)
 

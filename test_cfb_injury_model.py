@@ -61,9 +61,9 @@ PLANTED DATA ONLY: players / defense / roster logs in a temp root; `pick_time_ou
 #   find:             if r["home"] not in rep or r["away"] not in rep:
 #   with:             if False:
 #
-# @vacuity ⛔ no stored defence log is no reading
+# @vacuity ⛔ [2026-10-17, review] no game before this one (or no stored defence log) is no reading
 #   file: cfb_injuries.py
-#   find:         if not self.has_defense:
+#   find:         if not off or not dfn or tot_off <= 0 or tot_def <= 0:
 #   with:         if False:
 """
 import gzip
@@ -103,8 +103,10 @@ PLAYERS = {"players": {
     "r1": {"name": "Cameron Runner", "pos": "RB", "g": [g("Home U", "2026-10-03", car=20, rush_yds=150),
                                                         g("Home U", "2026-10-10", car=18, rush_yds=150),
                                                         g("Home U", "2026-10-17", car=30, rush_yds=999)]},
-    "w1": {"name": "John Smith", "pos": "WR", "g": [g("Home U", "2026-10-10", rec=8, rec_yds=200)]},
-    "w2": {"name": "John Smith", "pos": "WR", "g": [g("Home U", "2026-10-10", rec=0, rec_yds=0)]},
+    # ⚠️ both John Smiths hold yards: a mutant that matched EITHER (set order follows the hash seed)
+    #    reads 100 / 600, never the 0 that the right answer reads.
+    "w1": {"name": "John Smith", "pos": "WR", "g": [g("Home U", "2026-10-10", rec=4, rec_yds=100)]},
+    "w2": {"name": "John Smith", "pos": "WR", "g": [g("Home U", "2026-10-10", rec=4, rec_yds=100)]},
     "a1": {"name": "Al Away", "pos": "RB", "g": [g("Away St.", "2026-10-10", car=10, rush_yds=80)]}}}
 DEFENSE = {"players": {
     "d1": {"name": "Larry Linebacker", "team": "Home U", "g": [g("Home U", "2026-10-03", tot=20),
@@ -169,6 +171,16 @@ eq((inj or {}).get("off"), (0.0, 0.0), "⛔ the same jersey with another last na
 inj = run({"G1": {"Home U": [P("John Smith")], "Away St.": []}})
 eq((inj or {}).get("off"), (0.0, 0.0), "⛔ two John Smiths on the team and no jersey: no match, never the "
    "first one")
+
+# ══════════════════════════════════════════════════════════════════════
+section("2b. ⛔ A SEASON OPENER IS NO READING, NEVER 'NOBODY OUT'")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-10-17, review]` a team with no stored game before this one: nothing is known about who
+#    matters, so a starting QB listed Out must not read 0 (design §3: no reading, never zero).
+eq(run({"G1": {"Home U": [P("Quinn Starter", 1)], "Away St.": []}}, day="2026-10-03"), None,
+   "⛔ Home U's first game (10-03, nothing before it): None, not QB out 0")
+eq((run({"G1": {"Home U": [P("Quinn Starter", 1)], "Away St.": []}}, day="2026-10-04") or {}).get("qb"), None,
+   "⛔ ...and Away St. has no game before 10-04 either, so the whole game reads None")
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. ⛔ NO REPORT IS NO READING, NEVER ZERO")

@@ -67,6 +67,31 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #   find:         if not entry.get("fitted_last"):
 #   with:         if False:
 #
+# @vacuity ⛔ [2026-10-17, review] an archive file is not a season: every reading conference must be in it
+#   file: fb_inj_backtest.py
+#   find:             if CI.night_before(s, c) and (c not in have or ((owed.get(str(s)) or {}).get(c) or {}).get("due")):
+#   with:             if False:
+#
+# @vacuity ⛔ [2026-10-17, review] a result already on a branch is never measured again
+#   file: fb_inj_backtest.py
+#   find:         if branch:
+#   with:         if False:
+#
+# @vacuity ⛔ [2026-10-17, review] git that cannot answer never reads as "no branch"
+#   file: fb_refit.py
+#   find:     if r.returncode != 0:
+#   with:     if False:
+#
+# @vacuity ⛔ [2026-10-17, review] a fit that moved no scored question is not a test
+#   file: fb_inj_backtest.py
+#   find:         if not entry.get("fitted_last") or not entry.get("questions_moved"):
+#   with:         if not entry.get("fitted_last"):
+#
+# @vacuity ⛔ [2026-10-17, review] the bar is decided on the exact numbers
+#   file: fb_inj_backtest.py
+#   find:     ex = entry.get("exact") or {}
+#   with:     ex = {}
+#
 # @vacuity 🔴 [2026-10-17] the weekly job keeps the result in fb-refit.json
 #   file: fb_refit.py
 #   find:             doc["injury_backtest"] = fb_inj_backtest.auto(lg, root, now, run, prev=_was)
@@ -166,10 +191,19 @@ import fb_refit  # noqa: E402
 import status as ST  # noqa: E402
 
 NOW = datetime.datetime(2026, 10, 19, 9, 47, tzinfo=datetime.timezone.utc)
-SRC = open(os.path.join(ROOT, "fb_model.py"), encoding="utf-8").read()
+import re  # noqa: E402
+
+import cfb_injuries as CI  # noqa: E402
+# `[2026-10-17, review]` ⛔ the planted fb_model.py has college injuries OFF, whatever the live switch
+#    says: on the branch a PASS pushes (ncaaf True), this test must still be green.
+SRC = re.sub(r'^(INJURIES = \{[^\n]*"ncaaf": )True', r"\g<1>False",
+             open(os.path.join(ROOT, "fb_model.py"), encoding="utf-8").read(), flags=re.M)
 
 
-def tree(have_data=True, recorded=False):
+def tree(have_data=True, recorded=False, drop=None, due=None):
+    """A planted tree: the record, fb_model.py, and (have_data) every file the bar needs, each
+    archive holding every conference that gives a pick-time reading, except `drop`=(season, conf);
+    `due`=(season, conf) is still owed a refresh in the probe."""
     t = tempfile.mkdtemp(prefix="injauto-")
     os.makedirs(os.path.join(t, "research"))
     rec = {"injuries": {"nfl": E(0.70281, 0.70259, 3.92, 1.85)}}
@@ -178,12 +212,46 @@ def tree(have_data=True, recorded=False):
     json.dump(rec, open(os.path.join(t, "research", "fb_sim_backtest.json"), "w", encoding="utf-8"))
     open(os.path.join(t, "fb_model.py"), "w", encoding="utf-8").write(SRC)
     if have_data:
-        for rel in B.needed("ncaaf", t, NOW):
-            os.makedirs(os.path.dirname(os.path.join(t, rel)), exist_ok=True)
-            open(os.path.join(t, rel), "wb").close()
+        for s in (2025, 2026):
+            for k in ("defense", "roster"):
+                p = os.path.join(t, "data", "ncaaf", "latest", "%s-%d.json.gz" % (k, s))
+                os.makedirs(os.path.dirname(p), exist_ok=True)
+                open(p, "wb").close()
+            confs = CI.HDI_LEGACY if s == CI.LEGACY_SEASON else CI.HDI_ARCHIVE
+            p = CI.archive_path(s, t)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            import gzip as _gz
+            with _gz.open(p, "wt", encoding="utf-8") as fh:
+                json.dump({"conferences": {c: {"rows": []} for c in confs if (s, c) != drop}}, fh)
+        pp = CI.probe_path(2026, t)
+        os.makedirs(os.path.dirname(pp), exist_ok=True)
+        json.dump({"archives": {str(due[0]): {due[1]: {"due": True}}} if due else {}},
+                  open(pp, "w", encoding="utf-8"))
     return t
 
 
+class _Done:
+    def __init__(self, rc=0, out="", err=""):
+        self.returncode, self.stdout, self.stderr = rc, out, err
+
+
+def fake_git(branch=None, entry=None, broken=False):
+    """`run` for fb_refit's git calls: origin holds `branch` (whose research/fb_sim_backtest.json
+    records `entry` for college) or nothing; `broken`: git cannot answer at all."""
+    def run(cmd, **kw):
+        if broken:
+            return _Done(128, "", "fatal: not a git repository")
+        if cmd[1] == "ls-remote":
+            return _Done(0, ("abc123\trefs/heads/%s\n" % branch) if branch else "")
+        if cmd[1] == "fetch":
+            return _Done(0)
+        if cmd[1] == "show":
+            return _Done(0, json.dumps({"injuries": {"ncaaf": entry} if entry else {}}))
+        return _Done(1, "", "unexpected %s" % cmd)
+    return run
+
+
+GIT = fake_git()
 _measured, _pushed = [], []
 
 
@@ -212,28 +280,48 @@ def fake_push(fail=False):
     return push
 
 
+def fresh():
+    _measured.clear()
+    _pushed.clear()
+
+
 _saved = (B.measure, fb_refit.push_change)
-_FIT = {"fitted_last": ["2026-10-12", [1.0, 0.2, 0.3]]}     # a real fit: the test can say something
+# a real fit that moved scored questions: the test can say something
+_FIT = {"fitted_last": ["2026-10-12", [1.0, 0.2, 0.3]], "questions_moved": 640}
 _PASS, _FAIL = dict(E(0.719, 0.720, -3.0, -3.5), **_FIT), dict(E(0.722, 0.720, -3.0, -3.5), **_FIT)
 _trees = []
 try:
     B.measure, fb_refit.push_change = fake_measure(_PASS), fake_push()
     _trees.append(tree(recorded=True))
-    st = B.auto("ncaaf", _trees[-1], NOW)
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
     ck("⛔ a league already recorded is never measured again",
        st["state"] == "recorded" and not _measured and not _pushed, str(st))
-    st = B.auto("nfl", _trees[-1], NOW)
+    st = B.auto("nfl", _trees[-1], NOW, run=GIT)
     ck("✅ ...the NFL's recorded FAIL reads as recorded, not passed",
        st["state"] == "recorded" and st["passes"] is False, str(st))
 
     _trees.append(tree(have_data=False))
-    st = B.auto("ncaaf", _trees[-1], NOW)
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
     ck("⛔ it waits while the data the bar needs is missing, and says which",
        st["state"] == "waiting" and "data/ncaaf/latest/defense-2025.json.gz" in st["missing"]
        and not _measured, str(st))
+    _trees.append(tree(drop=(2025, "SEC")))
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
+    ck("⛔ [review] an archive file is not a season: 2025's archive without SEC waits, naming SEC",
+       st["state"] == "waiting" and any(m.endswith("injury-archive-2025.json.gz#SEC") for m in st.get("missing", []))
+       and not _measured, str(st))
+    _trees.append(tree(due=(2026, "ACC")))
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
+    ck("⛔ [review] ...nor while a conference's archive is still owed a refresh (ACC 2026)",
+       st["state"] == "waiting" and any(m.endswith("injury-archive-2026.json.gz#ACC") for m in st.get("missing", []))
+       and not _measured, str(st))
+    ck("✅ ...and a conference that gives no pick-time reading never blocks it (B10 2025: game day only)",
+       not any("#B10" in m or "#CFP" in m for m in B.needed("ncaaf", _trees[-1], NOW)),
+       str(B.needed("ncaaf", _trees[-1], NOW)))
 
+    fresh()
     _trees.append(tree())
-    st = B.auto("ncaaf", _trees[-1], NOW)
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
     _p = _pushed[-1] if _pushed else (None,) * 5
     ck("🔴 with its data stored it measures ONCE and pushes ONE branch for Sam",
        st["state"] == "measured" and _measured == ["ncaaf"] and st.get("branch") == "fb/injuries-ncaaf-2026-10-19"
@@ -241,38 +329,63 @@ try:
     eq(((_p[3] or {}).get("injuries", {}).get("ncaaf"), _p[4]),
        (_PASS, ['INJURIES = {"nfl": False, "ncaaf": True}']),
        "🔴 a PASS: the branch records the entry AND switches college injuries on")
-    _again = B.auto("ncaaf", _trees[-1], NOW, prev=st)
+    _again = B.auto("ncaaf", _trees[-1], NOW, run=GIT, prev=st)
     ck("⛔ the next week keeps the first result: no second measurement, no second branch",
        _measured == ["ncaaf"] and len(_pushed) == 1 and _again.get("entry") == _PASS, str(_again))
 
-    _measured.clear()
-    _pushed.clear()
+    fresh()
+    _trees.append(tree())
+    st = B.auto("ncaaf", _trees[-1], NOW, run=fake_git("fb/injuries-ncaaf-2026-10-12", _FAIL))
+    ck("⛔ [review] last week's fb-refit.json lost but its branch on origin: the BRANCH's result stands "
+       "(FAIL), never a second measurement and never a new branch",
+       st["state"] == "measured" and st.get("entry") == _FAIL and st.get("passes") is False
+       and st.get("branch") == "fb/injuries-ncaaf-2026-10-12" and not _measured and not _pushed, str(st))
+    st = B.auto("ncaaf", _trees[-1], NOW, run=fake_git(broken=True))
+    ck("⛔ [review] git cannot answer: it waits, never measures blind", st["state"] == "waiting"
+       and "could not ask origin" in st.get("why", "") and not _measured and not _pushed, str(st))
+
+    fresh()
     B.measure = fake_measure(dict(_PASS, fitted_last=None, rows_with_injury_reading=12))
     _trees.append(tree())
-    st = B.auto("ncaaf", _trees[-1], NOW)
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
     ck("⛔ no fit, no test: too few readings to size an injury ('with' would equal 'without' and pass "
        "while proving nothing) is not recorded and pushes nothing; it waits for next week",
        st["state"] == "waiting" and "too few injury readings" in st.get("why", "") and not _pushed, str(st))
+    fresh()
+    B.measure = fake_measure(dict(_PASS, questions_moved=0))
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
+    ck("⛔ [review] ...nor a fit only for weeks not yet played, which moves no scored question (a tie that "
+       "would PASS)", st["state"] == "waiting" and not _pushed, str(st))
 
-    _measured.clear()
-    _pushed.clear()
+    fresh()
     B.measure = fake_measure(_FAIL)
     _trees.append(tree())
-    st = B.auto("ncaaf", _trees[-1], NOW)
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
     _p = _pushed[-1] if _pushed else (None,) * 5
     eq((st.get("passes"), (_p[3] or {}).get("injuries", {}).get("ncaaf"), _p[4]),
        (False, _FAIL, ['INJURIES = {"nfl": False, "ncaaf": False}']),
        "⛔ a FAIL: the branch only records it; college injuries stay off")
 
-    _measured.clear()
-    _pushed.clear()
+    fresh()
+    _NEAR = dict(E(0.72088, 0.72088, -3.88, -3.88), **_FIT,
+                 exact={"logloss": {"with": 0.7208843, "without": 0.7208801},
+                        "closing_return": {"with": -3.884, "without": -3.880}})
+    B.measure = fake_measure(_NEAR)
+    _trees.append(tree())
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
+    _p = _pushed[-1] if _pushed else (None,) * 5
+    ck("⛔ [review] decided on the EXACT numbers: a slightly worse 'with' that ties after rounding FAILS, "
+       "and injuries stay off", B.passes(_NEAR) is False and st.get("passes") is False
+       and _p[4] == ['INJURIES = {"nfl": False, "ncaaf": False}'], str(st))
+
+    fresh()
     B.measure, fb_refit.push_change = fake_measure(_PASS), fake_push(fail=True)
     _trees.append(tree())
-    st = B.auto("ncaaf", _trees[-1], NOW)
+    st = B.auto("ncaaf", _trees[-1], NOW, run=GIT)
     ck("✅ a refused push keeps the measured result, and says why, for the next week to push",
        st["state"] == "measured" and "branch" not in st and "push refused" in st.get("branch_error", ""), str(st))
     fb_refit.push_change = fake_push()
-    st2 = B.auto("ncaaf", _trees[-1], NOW, prev=st)
+    st2 = B.auto("ncaaf", _trees[-1], NOW, run=GIT, prev=st)
     ck("✅ ...which pushes it without measuring again",
        _measured == ["ncaaf"] and st2.get("branch") and "branch_error" not in st2, str(st2))
 finally:

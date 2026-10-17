@@ -368,15 +368,30 @@ def push_branch(lg, name, day, root=ROOT, run=subprocess.run):
                        "fb: challenger %s won T65 (%s) — champion switch for Sam" % (name, lg), root, run)
 
 
+def _git(run, cwd, *a):
+    r = run(["git"] + list(a), capture_output=True, text=True, cwd=cwd)
+    if r.returncode != 0:
+        raise RuntimeError("git %s failed: %s" % (" ".join(a), (r.stderr or "").strip()))
+    return r.stdout
+
+
+def branch_file(prefix, path, root=ROOT, run=subprocess.run):
+    """-> (the first `<prefix>*` branch on origin, its `path` text) or (None, None).
+    ⛔ Raises when git cannot answer: an unknown never reads as "no branch"."""
+    have = _git(run, root, "ls-remote", "--heads", "origin", "refs/heads/%s*" % prefix).split()
+    if not have:
+        return None, None
+    branch = have[1].replace("refs/heads/", "")
+    _git(run, root, "fetch", "origin", branch)
+    return branch, _git(run, root, "show", "FETCH_HEAD:%s" % path)
+
+
 def push_change(prefix, branch, edit, message, root=ROOT, run=subprocess.run):
     """`edit(tree)` applied to a fresh worktree of origin/main, committed and pushed as `branch`, for
     Sam to merge. ⛔ ONE branch while any `<prefix>*` is on origin; never main, never a PR.
     -> (the branch, pushed now?). `[2026-10-17]` also the injury backtest's (`fb_inj_backtest.auto`)."""
     def git(*a, cwd=root):
-        r = run(["git"] + list(a), capture_output=True, text=True, cwd=cwd)
-        if r.returncode != 0:
-            raise RuntimeError("git %s failed: %s" % (" ".join(a), r.stderr.strip()))
-        return r.stdout
+        return _git(run, cwd, *a)
     have = git("ls-remote", "--heads", "origin", "refs/heads/%s*" % prefix).split()
     if have:
         return have[1].replace("refs/heads/", ""), False

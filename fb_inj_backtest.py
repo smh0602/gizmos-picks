@@ -32,14 +32,16 @@ RECORD = os.path.join(ROOT, "research", "fb_sim_backtest.json")
 
 
 def logloss_pair(F, rows, lg):
-    """(log losses without, with, the last few weekly fits): the smooth curve at each final
-    game's main closing spread and total, from the score without and with injuries."""
+    """(log losses without, with, the weekly fits, how many scored questions the injuries MOVED):
+    the smooth curve at each final game's main closing spread and total, from the score without
+    and with injuries."""
     weeks = collections.defaultdict(list)
     for r in rows:
         weeks[F.monday(r["day"])].append(r)
     N = statistics.NormalDist()
     ll = {"without": [], "with": []}
     fits = []
+    moved = 0
     for wk in sorted(weeks):
         train = [r for r in rows if r["day"] < wk]
         models = {}
@@ -70,12 +72,16 @@ def logloss_pair(F, rows, lg):
                 y = F.label(r, mk, **({"M": ln} if mk == "spread" else {"T": ln}))
                 if y is None:
                     continue
+                ps = {}
                 for tag, sc in scs.items():
                     h, a = float(sc["home"]), float(sc["away"])
                     mu, s = ((h - a), sigma) if mk == "spread" else ((h + a), sigma_t)
                     p = min(1 - 1e-6, max(1e-6, N.cdf((mu - ln) / s)))
+                    ps[tag] = p
                     ll[tag].append(-(y * math.log(p) + (1 - y) * math.log(1 - p)))
-    return ll, fits
+                if ps["with"] != ps["without"]:
+                    moved += 1
+    return ll, fits, moved
 
 
 def returns(F, rows, lg, on):
@@ -87,7 +93,7 @@ def returns(F, rows, lg, on):
         ps = [p for mk in ("spread", "total") for p in wf[name][mk]]
         units = sum((F.decimal(p["price"]) - 1.0) if p["won"] else (0.0 if p["won"] is None else -1.0)
                     for p in ps)
-        out[name] = round(100 * units / len(ps), 2) if ps else None
+        out[name] = 100.0 * units / len(ps) if ps else None      # ⛔ unrounded: the bar is decided on it
     return out
 
 
@@ -100,22 +106,30 @@ def measure(lg, root=None):
         F.INJURIES[lg] = True
         rows = F.build_rows(lg, root)
         n_inj = sum(1 for r in rows if (r.get("sig") or {}).get("inj"))
-        ll, fits = logloss_pair(F, rows, lg)
+        ll, fits, moved = logloss_pair(F, rows, lg)
         off, on = returns(F, rows, lg, False), returns(F, rows, lg, True)
     finally:
         F.INJURIES.clear()
         F.INJURIES.update(saved)
-    return {"questions": len(ll["with"]), "rows_with_injury_reading": n_inj,
-            "logloss": {k: round(statistics.mean(v), 5) if v else None for k, v in ll.items()},
-            "closing_return": {"without": off["closing"], "with": on["closing"]},
-            "books_return": {"without": off["books"], "with": on["books"]},
+    lle = {k: statistics.mean(v) if v else None for k, v in ll.items()}
+    r2 = lambda x: None if x is None else round(x, 2)  # noqa: E731
+    return {"questions": len(ll["with"]), "questions_moved": moved, "rows_with_injury_reading": n_inj,
+            "logloss": {k: None if v is None else round(v, 5) for k, v in lle.items()},
+            "closing_return": {"without": r2(off["closing"]), "with": r2(on["closing"])},
+            "books_return": {"without": r2(off["books"]), "with": r2(on["books"])},
+            # `[2026-10-17, review]` the bar is decided on these, never on the rounded display
+            "exact": {"logloss": lle, "closing_return": {"without": off["closing"], "with": on["closing"]}},
             "fitted_last": list(fits[-1]) if fits else None,
             "seconds": round(time.time() - t0)}
 
 
 def passes(entry):
-    """The bar: log loss with <= without AND closing return with >= without."""
-    ll, cr = entry.get("logloss") or {}, entry.get("closing_return") or {}
+    """The bar: log loss with <= without AND closing return with >= without, on the EXACT numbers
+    where the entry carries them (`[2026-10-17, review]`: a slightly worse "with" must not tie
+    after rounding), else the recorded ones (the NFL's entry, which fails by a clear margin)."""
+    ex = entry.get("exact") or {}
+    ll = ex.get("logloss") or entry.get("logloss") or {}
+    cr = ex.get("closing_return") or entry.get("closing_return") or {}
     if None in (ll.get("with"), ll.get("without"), cr.get("with"), cr.get("without")):
         return False
     return ll["with"] <= ll["without"] and cr["with"] >= cr["without"]
@@ -144,17 +158,33 @@ def record(lg, entry, path=RECORD):
 # measured result stands until the record reaches main.
 # ══════════════════════════════════════════════════════════════════════
 def needed(lg, root=ROOT, now=None):
-    """The stored files the bar needs before it may run (design §1): college, both seasons' defence
-    and roster logs and injury archives. -> [missing paths]."""
+    """The stored data the bar needs before it may run (design §1): college, both seasons' defence
+    and roster logs and injury archives, and in each archive every conference that gives a
+    pick-time reading, none of them still owed a refresh. -> [what is missing]."""
     if lg != "ncaaf":
         return []
+    import cfb_injuries as CI
     import freshness
     cur = freshness.current_football_season(now)
     lat = os.path.join(root, "data", "ncaaf", "latest")
     his = os.path.join(root, "data", "ncaaf", "history")
     want = [os.path.join(lat, "%s-%d.json.gz" % (k, s)) for s in (cur - 1, cur) for k in ("defense", "roster")]
     want += [os.path.join(his, "injury-archive-%d.json.gz" % s) for s in (cur - 1, cur)]
-    return [os.path.relpath(p, root).replace(os.sep, "/") for p in want if not os.path.exists(p)]
+    rel = lambda p: os.path.relpath(p, root).replace(os.sep, "/")  # noqa: E731
+    out = [rel(p) for p in want if not os.path.exists(p)]
+    # `[2026-10-17, review]` ⛔ A FILE IS NOT A SEASON: an archive that answered for some
+    #    conferences only would make the one measurement without the rest.
+    try:
+        with open(CI.probe_path(cur, root), encoding="utf-8") as fh:
+            owed = json.load(fh).get("archives") or {}
+    except (OSError, ValueError):
+        owed = {}
+    for s in (cur - 1, cur):
+        have = (CI._jz(CI.archive_path(s, root)) or {}).get("conferences") or {}
+        for c in (CI.HDI_LEGACY if s == CI.LEGACY_SEASON else CI.HDI_ARCHIVE):
+            if CI.night_before(s, c) and (c not in have or ((owed.get(str(s)) or {}).get(c) or {}).get("due")):
+                out.append("%s#%s" % (rel(CI.archive_path(s, root)), c))
+    return out
 
 
 def set_injuries(src, lg):
@@ -179,15 +209,32 @@ def auto(lg, root=ROOT, now=None, run=None, prev=None):
     if prev and prev.get("state") == "measured" and prev.get("entry"):
         st = dict(prev)                    # ⛔ ONCE: the first measured result stands
     else:
+        # `[2026-10-17, review]` ⛔ ...and a result already on a branch is never measured again,
+        #    even if last week's fb-refit.json never landed: the branch's own entry is the result.
+        import fb_refit
+        try:
+            branch, text = fb_refit.branch_file("fb/injuries-%s-" % lg, "research/fb_sim_backtest.json", root, run)
+        except Exception as e:
+            return {"state": "waiting", "why": "could not ask origin for an injury branch (%s: %s)"
+                    % (type(e).__name__, e), "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
+        if branch:
+            e0 = ((json.loads(text or "{}").get("injuries") or {}).get(lg))
+            if not e0:
+                return {"state": "waiting", "branch": branch,
+                        "why": "the branch %s holds no injuries.%s entry" % (branch, lg)}
+            return {"state": "measured", "entry": e0, "passes": passes(e0), "branch": branch,
+                    "branch_pushed": False, "measured_at": now.strftime("%Y-%m-%dT%H:%MZ")}
         missing = needed(lg, root, now)
         if missing:
             return {"state": "waiting", "missing": missing, "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
         entry = measure(lg, root)
-        if not entry.get("fitted_last"):
-            # ⛔ NO FIT, NO TEST: too few games carry a reading to size an injury, so "with" equals
-            #    "without" and would pass while proving nothing. Not recorded; asked again next week.
-            return {"state": "waiting", "why": "too few injury readings to fit (%s rows)"
-                    % entry.get("rows_with_injury_reading"), "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
+        if not entry.get("fitted_last") or not entry.get("questions_moved"):
+            # ⛔ NO FIT, NO TEST: too few games carry a reading to size an injury (or the only fits
+            #    are for weeks not yet played), so no scored question moves, "with" equals "without"
+            #    and would pass while proving nothing. Not recorded; asked again next week.
+            return {"state": "waiting", "why": "too few injury readings to fit (%s rows, %s questions "
+                    "moved)" % (entry.get("rows_with_injury_reading"), entry.get("questions_moved")),
+                    "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
         st = {"state": "measured", "entry": entry, "passes": passes(entry),
               "measured_at": now.strftime("%Y-%m-%dT%H:%MZ")}
     if st.get("branch"):

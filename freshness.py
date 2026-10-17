@@ -846,11 +846,13 @@ def _football_contract(league, data, picks, now):
     #    hour's pass while a card is built in this one. ⛔ Planned, never marked
     #    stale: a five-minute deadline would read stale at the end of any pass
     #    that ran longer than five minutes.
-    #    ⛔ BEFORE THE CARD ROWS: plan() runs modes in contract order, so a
-    #    card built in the same pass reads this pass's reports.
+    #    ⛔ FIRST OF ALL THE ROWS (~~before the card rows~~): plan() runs modes in contract
+    #    order, and the card is built by `props-player` as well as `card-fb`, so a card built
+    #    in the same pass reads this pass's reports. `[2026-10-17, review]` placed before the
+    #    card rows only, a props pass built the card on the previous pass's reports.
     #    ✅ SOFT (see SOFT): a failed read costs a why sentence, never a card.
     if league == "ncaaf":          # college only: the NFL's injuries ride nfl-logs
-        rows.append(
+        rows.insert(0,
             ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
              "College injury reports — the reader's probe, written on every attempt"))
     rows += [

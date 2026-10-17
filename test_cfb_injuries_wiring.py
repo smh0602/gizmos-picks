@@ -177,6 +177,21 @@ data, makes no network call, writes nothing under data/.
 #   find:         elif mode == "cfb-injuries":
 #   with:         elif mode == "cfb-injuries-DISABLED":
 #
+# @vacuity 🔴 [2026-10-17, review] the college injury read is the FIRST row, before every card-building mode
+#   file: freshness.py
+#   find:         rows.insert(0,
+#   with:         rows.append(
+#
+# @vacuity ⛔ [2026-10-17, review] the dossier's college line never says the reports are not collected
+#   file: dossier_fb.py
+#   find:     "Not covered for college games: this check covers NFL games only. College "
+#   with:     "Not covered for college games, so we don't collect them: this check covers NFL games only. College "
+#
+# @vacuity ⛔ [2026-10-17, review] ...nor the news flags' college note
+#   file: news_flags_fb.py
+#   find: COLLEGE_NOTE = ("College flags here come from headlines only; the conference injury reports are read "
+#   with: COLLEGE_NOTE = ("College football has no public injury reports we may use; the conference injury reports are read "
+#
 # @vacuity 🔴 every stale row counts at the end of a pass, not each mode's last one
 #   file: collect.py
 #   find:     still = list(dict.fromkeys(r["mode"] for r in rows2 if r["stale"]))
@@ -297,6 +312,20 @@ try:
     _probe = [r for r in ROWS if r[0] == "cfb-injuries" and not is_stored(r)]
     eq(len(_probe), 1, "🔴 college has ONE row that plans `cfb-injuries`: its probe, not a stored-only file")
     PROBE = _probe[0] if _probe else ("cfb-injuries", ("file", ""), [], False, "")
+    # `[2026-10-17, review]` THE READ COMES BEFORE EVERY MODE THAT BUILDS THE CARD: `props-player`
+    #    builds it as well as `card-fb` (~~before the card rows~~ was not enough). Read from
+    #    collect.run_mode's own arms, never listed here.
+    _src = open(os.path.join(ROOT, "collect.py"), encoding="utf-8").read()
+    _body = _src[_src.index("\ndef run_mode("):]
+    _body = _body[:_body.index("\ndef ", 1)]
+    _arms = re.split(r'(?m)^        (?:el)?if mode == "([^"]+)":', _body)
+    CARD_MODES = {_arms[i] for i in range(1, len(_arms) - 1, 2) if "build_card_fb(" in _arms[i + 1]}
+    _modes = [r[0] for r in ROWS]
+    _first = _modes.index("cfb-injuries") if "cfb-injuries" in _modes else len(_modes)
+    _late = sorted(m for m in CARD_MODES if m in _modes and _modes.index(m) < _first)
+    ck(CARD_MODES >= {"props-player", "card-fb"} and not _late,
+       "🔴 the college injury read comes before EVERY mode that builds the card (%s), so a card built "
+       "in a pass reads that pass's reports" % ", ".join(sorted(CARD_MODES)), "built before it: %s" % _late)
     ck(PROBE[1][0] == "file" and norm(PROBE[1][1]) == norm(CI.probe_path(SEASON, P)),
        "   ...on the file the reader writes on EVERY attempt (cfb_injuries.probe_path), never one typed here",
        PROBE[1])
@@ -718,9 +747,11 @@ try:
     #    and its probe says no source was ever read, so the probe row is the one
     #    stale row of the mode: the end-of-pass report must still name it.
     _tx = datetime.datetime.now(UTC)
-    for _y in YEARS:
-        put(CI.archive_path(_y, X), {"built_at": stamp(_tx)})
     _sx = F.current_football_season(_tx)
+    # ⛔ ONE CLOCK: the contract's own years at the clock the pass runs on (~~the pinned
+    #    YEARS~~: from 2027-08-01 a 2027 archive row would be the mode's last row, stale).
+    for _y in sorted(set(F.FOOTBALL_HISTORY) | {_sx}):
+        put(CI.archive_path(_y, X), {"built_at": stamp(_tx)})
     put(CI.probe_path(_sx, X), probe(_tx, season=_sx, ok_at=None))
     RAN = []
     _real_mode, _real_spend = C.run_mode, C.daily_spend
@@ -754,6 +785,25 @@ try:
         ck(bool(_unh), "   ...and the pass's survey prints why the probe is due (UNHEALTHY: ...)", shown(_unh[:1]))
     else:
         note("the top of an hour fell inside the pass, so the probe read LATE first; the UNHEALTHY line was not asked")
+
+    # ══════════════════════════════════════════════════════════════════
+    section("8. ⛔ NOTHING THE READER SEES SAYS THE COLLEGE REPORTS ARE NOT COLLECTED")
+    # ══════════════════════════════════════════════════════════════════
+    # `[Sam, 2026-10-17]` he chose to use the conference reports; every reader-facing college
+    #    sentence about injuries must then be true (the dossier's §7 still said "we don't collect
+    #    them" on the college Odds tab). The class: the dossier's college Personnel line and the
+    #    news flags' college note.
+    import dossier_fb  # noqa: E402
+    import news_flags_fb  # noqa: E402
+    _says = {"dossier §7, college": ((dossier_fb.s_personnel(["Texas Longhorns"], {2026: {"players": {}}}, 2026,
+                                                             None, 8, "ncaaf") or {}).get("why") or ""),
+             "news flags, college": news_flags_fb.COLLEGE_NOTE or ""}
+    _false = re.compile(r"don.t collect|do not collect|not collected|no public injury report|forbid|"
+                        r"do not allow the reports", re.I)
+    _bad = {k: v for k, v in _says.items() if _false.search(v)}
+    ck(all(_says.values()) and not _bad,
+       "⛔ no college sentence says the conference injury reports are not collected or may not be used",
+       shown(str(_bad)))
 finally:
     CI.run, CI._post, CI._get = _REAL_RUN, _REAL_POST, _REAL_GET
     F.HEALTH = _REAL_HEALTH

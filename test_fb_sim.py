@@ -141,10 +141,17 @@ _sim_pass = {lg: v["logloss"]["sim"] <= v["logloss"]["smooth"]
              and v["closing_return"]["sim"] >= v["closing_return"]["smooth"] for lg, v in REC["simulation"].items()}
 eq({lg: FM.SIM.get(lg) for lg in ("nfl", "ncaaf")}, {lg: _sim_pass.get(lg, False) for lg in ("nfl", "ncaaf")},
    "🔴 fb_model.SIM is exactly what the recorded run earned (both numbers, per league): %s" % _sim_pass)
-_inj_pass = {lg: v["logloss"]["with"] <= v["logloss"]["without"]
+# `[2026-10-17, review]` read through the runner's own bar (exact numbers where recorded), so the
+#    switch check and fb_inj_backtest can never disagree. ~~the comparison retyped on the rounded fields~~
+import fb_inj_backtest as _IB  # noqa: E402
+_inj_pass = {lg: _IB.passes(v) for lg, v in REC["injuries"].items()}
+_inj_retyped = {lg: v["logloss"]["with"] <= v["logloss"]["without"]
              and v["closing_return"]["with"] >= v["closing_return"]["without"] for lg, v in REC["injuries"].items()}
 eq({lg: FM.INJURIES.get(lg) for lg in ("nfl", "ncaaf")}, {lg: _inj_pass.get(lg, False) for lg in ("nfl", "ncaaf")},
    "🔴 fb_model.INJURIES is exactly what the recorded injury run earned: %s" % _inj_pass)
+_old = [lg for lg, v in REC["injuries"].items() if "exact" not in v]
+eq({lg: _inj_pass[lg] for lg in _old}, {lg: _inj_retyped[lg] for lg in _old},
+   "✅ ...and an entry recorded without exact numbers reads exactly as the rounded comparison did")
 
 # ══════════════════════════════════════════════════════════════════════
 section("4. 🔴 EVERY GAME'S RUNS REACH THE GAME LINES TAB")
