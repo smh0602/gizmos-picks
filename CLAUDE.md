@@ -314,7 +314,8 @@ note boxes, tags and the stale bar now require their absence.
   (`fb_score_model.py`'s predicted margin and total, the only input; registered from the
   first Monday ~~on or after~~ AFTER its merge day (a Monday merge counts from the next
   Monday), no earlier than 2026-10-19, read from git): 9 challengers a league, so
-  p < 0.01/9. College has no injury data stored. `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
+  p < 0.01/9. ~~College has no injury data stored.~~ (`[Sam, 2026-10-17]` it is now: see COLLEGE
+  INJURIES.) `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
@@ -540,7 +541,9 @@ note boxes, tags and the stale bar now require their absence.
   input, pick or chance reads them until a challenger is registered. Every CFBD
   call is priced by `cfbd_budget.preflight`. Their freshness rows are
   `freshness.STORED_ONLY`: stale is a warning, ⛔ never a red run and never a
-  planned rebuild of a CFBD mode. `test_fb_new_data.py`.
+  planned rebuild of a CFBD mode. `test_fb_new_data.py`. `[Sam, 2026-10-17]` The college
+  injury reports, archives, rosters and defensive logs are stored the same way; the why reads a
+  CURRENT report, and the model reads them only once its test passes (COLLEGE INJURIES).
 - 🔴 **THE FOOTBALL GAME MODEL READS ITS OWN TEAM RATINGS, NEVER THE BOOKS'.** `[Sam,
   2026-10-11]` *"our model needs to know the data and know these teams better than
   they know themselves"*. `fb_model.own_ratings`: per row, every final game of every
@@ -641,7 +644,7 @@ note boxes, tags and the stale bar now require their absence.
   6-game gates; none when the card shows none), what the opponent allows his
   position and its rank (ties read from the right end), the opponent's Out /
   Doubtful defenders who guard him (NFL, ~~latest report~~ THIS game's week's
-  report), and the chance against the break-even ("the model's" on a MODEL row,
+  report; `[Sam, 2026-10-17]` college, this game's CURRENT conference report), and the chance against the break-even ("the model's" on a MODEL row,
   "his record's" on a RECORD row); a game line keeps its sentence and adds the
   model's predicted score (`[2026-10-16]` only when it lands on the pick's side:
   the score comes from the moneyline and total fits, ~~the spread fit is separate~~
@@ -727,7 +730,28 @@ note boxes, tags and the stale bar now require their absence.
   `injury_fit`, the win chance moving with the margin): 0.70281 v 0.70259, so `INJURIES` is off
   too (its fitted QB-out size pointed the wrong way). ⛔ A switch moves only with a new recorded
   run in research/fb_sim_backtest.json that passes the bar; test_fb_sim.py fails otherwise.
-  College has no injury data stored.
+  ~~College has no injury data stored.~~ `[Sam, 2026-10-17]` College injuries: see COLLEGE INJURIES.
+- 🔴 **COLLEGE INJURIES COME FROM THE CONFERENCE REPORTS: CHECKED, STORED, SHOWN WHEN CURRENT,
+  TEST-GATED FOR THE MODEL.** `[Sam, 2026-10-17]` *"use the college injury source as long as it's
+  accurate and up to date, we wouldn't want misinformation ruining our bets."* He was told the
+  conference sites' terms limit automated reading; this supersedes ~~his 2026-09-23 "Build it only
+  if it is free and allowed by those sites' terms"~~ (`dossier_fb.PERSONNEL_COLLEGE`; its signal 7
+  stays NFL-only). `cfb_injuries.py` (`cfb-injuries` mode, planned by its probe row on every college
+  pass, no cron change): HD Intelligence's public reports for SEC, ACC, Big Ten, Big 12 and MAC and
+  the Sun Belt / Pac-12 feeds, images stripped, written once per change (daystore
+  `injury-reports`), the past seasons' archives once (`data/ncaaf/history/injury-archive-<s>`).
+  ⛔ ACCURATE: both teams known (an explicit alias table, never fuzzy, never the display names),
+  exactly one stored schedule game, the kickoff equal to the minute, parsed rows only, known
+  statuses only (Exempt is unknown, never healthy); anything else is refused and named in the
+  probe. ⛔ UP TO DATE: a report is current only when published at most 36 hours before kickoff
+  and our snapshot of it is at most 6 hours old; only a current report is shown (the why) or read.
+  `cfb.py` keeps the jerseys and defensive stats CFBD already sends (`roster-<s>`, `defense-<s>`,
+  zero extra calls; 2025 once, priced). The model (`fb_model.injury_readings` ->
+  `cfb_injuries.attach`, design §3: QB out, offence share, defence share; no report = no reading)
+  moves only if `research/cfb_injuries_design.md` §4 passes, the NFL's bar, fixed before any
+  number: `fb_inj_backtest.py` runs it ONCE, by itself, in the Monday fb-refit job once the data
+  is stored, and pushes one `fb/injuries-ncaaf-<date>` branch for Sam (the switch only on a PASS);
+  the Monday email names it. ⛔ Merging is Sam's. `test_cfb_injuries.py`, `test_fb_inj_backtest.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -1006,6 +1030,22 @@ cfb.py            college: probe, back-fill and verify, one dispatch
                   makes; 2025 swept once while missing) and talent-<season>
                   (CFBD /talent once a season; a refusal writes a DIAGNOSTIC
                   talent-probe and never raises). test_cfb_ppa.py.
+                  `[Sam, 2026-10-17]` also roster-<season> (jerseys) and
+                  defense-<season> (tackles, sacks, ...), from the calls it
+                  already makes; 2025 once while missing. test_cfb_defense.py.
+cfb_injuries.py   COLLEGE INJURIES (Sam, 2026-10-17): the conference
+                  availability reports (HD Intelligence: SEC, ACC, Big Ten,
+                  Big 12, MAC; Sun Belt; Pac-12), checked (one game, known
+                  teams and statuses) and dated (current = published <=36h
+                  before kickoff, snapshot <=6h old), stored by the
+                  `cfb-injuries` mode; `report_for` (the why), `attach` (the
+                  model, only once its test passes). Stdlib only, never
+                  raises. Design: research/cfb_injuries_design.md.
+fb_inj_backtest.py THE INJURY TEST'S RUNNER, both leagues: the bar fixed
+                  before it ran (fb_sim_design.md §3, cfb_injuries_design.md
+                  §4), recorded ONCE in research/fb_sim_backtest.json; `auto`
+                  runs it by itself in the Monday fb-refit job and pushes one
+                  fb/injuries-<lg>-* branch. test_fb_inj_backtest.py.
 nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
 record_fb.py      the football grader -> data/<lg>/latest/record.json
 dossier_fb.py     Sam's eight per-game checks, every board game.
@@ -1102,6 +1142,8 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No
                   PR, never main. status.py and the watchdog never import it.
+                  `[2026-10-17]` also the injury test, once (fb_inj_backtest.auto),
+                  through the one branch pusher, `push_change`.
 fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   (nflverse, free; OAK stored as LV) and college 2023-2024 schedules
                   + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
@@ -1172,7 +1214,7 @@ news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a
                   headlines naming a board player/team with a status
                   word. Exact full names only. ⛔ FLAGS, NEVER PICKS:
                   hides, re-ranks, re-prices nothing; feeds no model.
-                  College is headlines only (no injury reports).
+                  College is headlines only (~~no injury reports~~ `[Sam, 2026-10-17]` the conference reports are read by cfb_injuries, not here).
                   `[Sam, 2026-10-01]` Not printed on board rows or
                   parlay legs; the file and its record are still kept.
 fb_alt_lines.py   the pre-registered check (research/fb_alt_lines_spec.md,

@@ -1265,5 +1265,107 @@ def _write_probe(root, now, season, out, refused, tally, prev_probe, state):
     _write_json(out["probe"], probe)
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE MODEL'S READING (design §3): how much of a team is missing, from games BEFORE the game.
+# ══════════════════════════════════════════════════════════════════════
+# `fb_model.build_rows` calls `attach` only while `fb_model.INJURIES["ncaaf"]` is on, and that switch
+# moves only with a recorded backtest that passes design §4 (`fb_inj_backtest.py`, test_fb_sim.py §3).
+# ⛔ It never reads data/nfl (the NFL's `fb_challengers.attach("IN")` is the NFL's), never writes into
+#    players-<season> (t60r's frozen Personnel reads those), and is not a challenger (fb_refit).
+
+def norm(n):
+    """card_fb.norm, the ONE name fold (rule 117), imported when first needed."""
+    from card_fb import norm as _norm
+    return _norm(n)
+
+
+class Roles:
+    """One season's stored college roles: the offence log (players-<season>), the defence log
+    (defense-<season>) and the roster (roster-<season>), each from data/ncaaf/latest."""
+
+    def __init__(self, season, root=None):
+        lat = os.path.join(root or ROOT, "data", "ncaaf", "latest")
+        self.off = (_jz(os.path.join(lat, "players-%d.json.gz" % season)) or {}).get("players") or {}
+        self.dfn = (_jz(os.path.join(lat, "defense-%d.json.gz" % season)) or {}).get("players") or {}
+        self.roster = (_jz(os.path.join(lat, "roster-%d.json.gz" % season)) or {}).get("teams") or {}
+        self.has_defense = bool(self.dfn)
+        self.by_team = {}              # team -> {"off": [(pid, g)], "def": [(pid, g)], "names": {fold: {pid}}}
+        for side, src in (("off", self.off), ("def", self.dfn)):
+            for pid, p in src.items():
+                for g in p.get("g") or []:
+                    t = self.by_team.setdefault(g.get("team") or p.get("team"),
+                                                {"off": [], "def": [], "names": {}})
+                    t[side].append((str(pid), g))
+                    t["names"].setdefault(norm(p.get("name")), set()).add(str(pid))
+        for team, people in self.roster.items():
+            t = self.by_team.setdefault(team, {"off": [], "def": [], "names": {}})
+            for e in people or []:
+                t["names"].setdefault(norm(e.get("name")), set()).add(str(e.get("id")))
+
+    def match(self, team, player):
+        """A report player -> one CFBD athlete id, or None. ⛔ Never a guess: team + jersey with the
+        same last name on the roster, else a name that is unique on the team."""
+        fold = norm(player.get("name"))
+        last = fold.split()[-1] if fold else None
+        num = player.get("number")
+        if num is not None and last:
+            hits = {str(e.get("id")) for e in self.roster.get(team) or []
+                    if e.get("jersey") is not None and str(e.get("jersey")) == str(num)
+                    and (norm(e.get("name")).split() or [None])[-1] == last}
+            if len(hits) == 1:
+                return hits.pop()
+        ids = ((self.by_team.get(team) or {}).get("names") or {}).get(fold) or set()
+        return next(iter(ids)) if len(ids) == 1 else None
+
+    def team_out(self, team, players, day):
+        """(QB out 0/1, offence share out, defence share out) for `team` on `day` from the listed
+        Out / Out for Season / Doubtful players, sized on this season's games before `day`;
+        None when the defence log is not stored."""
+        if not self.has_defense:
+            return None
+        t = self.by_team.get(team) or {"off": [], "def": [], "names": {}}
+        out = {self.match(team, p) for p in players or []
+               if (p.get("status") or "").strip().lower() in OUT_STATUSES}
+        out.discard(None)
+        off = [(pid, g) for pid, g in t["off"] if (g.get("d") or "") < day]
+        dfn = [(pid, g) for pid, g in t["def"] if (g.get("d") or "") < day]
+        qb = 0.0
+        if off:
+            last = max(g.get("d") or "" for _p, g in off)
+            qbs = [(g.get("att") or 0, pid) for pid, g in off
+                   if (g.get("d") or "") == last and (self.off.get(pid) or {}).get("pos") == "QB"]
+            if qbs:
+                att, pid = max(qbs)
+                qb = 1.0 if att > 0 and pid in out else 0.0
+        yds = lambda g: (g.get("rush_yds") or 0) + (g.get("rec_yds") or 0)  # noqa: E731
+        tot_off = sum(yds(g) for _p, g in off)
+        o = (sum(yds(g) for pid, g in off if pid in out
+                 and (self.off.get(pid) or {}).get("pos") != "QB") / tot_off) if tot_off > 0 else 0.0
+        tot_def = sum(g.get("tot") or 0 for _p, g in dfn)
+        d = (sum(g.get("tot") or 0 for pid, g in dfn if pid in out) / tot_def) if tot_def > 0 else 0.0
+        return qb, round(o, 4), round(d, 4)
+
+
+def attach(rows, root=None):
+    """`fb_model.build_rows`' college rows -> r["sig"]["inj"] = {"qb": (h, a), "off": (h, a),
+    "def": (h, a)}, or None when the game has no pick-time report for BOTH teams (design §3: no
+    report is no reading, never zero) or the season's defence log is not stored."""
+    seasons = {}
+    for r in rows:
+        seasons.setdefault(r["season"], []).append(r)
+    for season, rs in seasons.items():
+        outs, roles = pick_time_outs(season, root), Roles(season, root)
+        for r in rs:
+            rep = outs.get(str(r.get("id"))) or {}
+            if r["home"] not in rep or r["away"] not in rep:
+                r["sig"]["inj"] = None
+                continue
+            h = roles.team_out(r["home"], rep[r["home"]], r["day"])
+            a = roles.team_out(r["away"], rep[r["away"]], r["day"])
+            r["sig"]["inj"] = (None if h is None or a is None else
+                               {"qb": (h[0], a[0]), "off": (h[1], a[1]), "def": (h[2], a[2])})
+    return rows
+
+
 if __name__ == "__main__":
     run()                      # ⛔ never an exit code: the probe says what happened
