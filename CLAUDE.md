@@ -368,6 +368,20 @@ note boxes, tags and the stale bar now require their absence.
   a league switch keeps the tab (`nextTab`). ⛔ Never draw a league's own bar
   again. `test_tab_bar.py`; the computed style is measured in a browser by
   `test_league_switch.py`.
+- 🔴 **ONE LOOK FOR ALL THREE LEAGUES: DESIGN I.** `[Sam, 2026-10-17]` *"i like the
+  light blue on i think that oone is good"*, choosing design I of the layouts he was
+  shown: a white page; the ONE `<header>` is a navy side panel (logo, league switch,
+  the one `.subnav`) above 820 px and a top header up to 820 px (tabs five over four,
+  every tab visible); royal blue #2449B8 the second colour; IBM Plex. ⛔ Green only for
+  what is green on purpose (a positive edge, a hit, the projection chip, Sam 2026-08-26);
+  no amber or yellow anywhere. A Gizmo's Picks row (pickCard, every league): the
+  confidence as a number and a bar; the player, then the bet in blue; the game and its
+  time (football's kickoff from `commence`); the price with the book as the bet link
+  (SET STATE kept); and every row above its price prints "Break-even x%" and "Edge +y"
+  (the card's own edge, green only above zero; ~~football only, by `fbEdgeLine`~~). A
+  Top 10 row is one element: name, % and price on line one of a phone. ⛔ MLB changed
+  with it on purpose: `research/mlb_render_frozen.json`'s 2026-10-17 `_why` lists every
+  digest. Contrast measured on every tab at 1280, 768 and 390 px.
 - 🔴 ~~**THE PAGE RENDERS ONLY FLAGS MARKED `actionable`.**~~ **THE PAGE
   RENDERS NO FLAGS** `[Sam, 2026-10-01]`, not even actionable ones. Sam,
   2026-08-26: *"we have to advertise a clean look to the website that
@@ -776,7 +790,8 @@ note boxes, tags and the stale bar now require their absence.
   better"*; *"the way i want you to predict outcomes of football games is by
   predicted scores"*. C8's rule now covers football props and game-line rows
   (`card_fb.mark_below_price`: the card's own `edge` <= 0, before the freeze); a
-  row above its price prints "Break-even 53.7% · edge +1.3". ~~"Above their price
+  row above its price prints ~~"Break-even 53.7% · edge +1.3"~~ `[Sam, 2026-10-17]`
+  "Break-even 53.7%" and "Edge +1.3", in every league (DESIGN I). ~~"Above their price
   only" (kind bar, OFF by default, localStorage) hides exactly edge <= 0.~~ `[Sam,
   2026-10-17]` "no above their price only button in gizmos pikcs not needed": gone; the
   page always shows the card's liked lists. Under
