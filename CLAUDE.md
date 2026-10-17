@@ -699,6 +699,18 @@ note boxes, tags and the stale bar now require their absence.
   (the lambda test). The record is recomputed each build, so its past numbers changed with the
   switch (Sam's choice). `test_fb_model_record.py` builds the same games once upcoming and once
   played and fails if the record and the list ever pick differently.
+- 🔴 **EVERY FOOTBALL GAME IS SIMULATED 10,000 TIMES, EVERY BUILD.** `[Sam, 2026-10-17]`
+  *"we shoudl be setting up the 10000 game simulations for each game every week"*; he chose
+  "Backtest, then switch" and overrode two rules for it (looking at results first; skipping the
+  Monday contest). `fb_sim.py` plays every game in `win_chances` 10,000 times; the Game Lines tab
+  shows how often the pick wins. The bar (research/fb_sim_design.md §3, committed before the run):
+  log loss at most the smooth curve's AND closing-line return at least its. Result (§4): NFL
+  0.70221 v 0.70259 but +1.23% v +1.85%; college 0.72217 v 0.72074; so `fb_model.SIM` is off in
+  both and the picks keep the smooth curve. NFL injuries (T69 IN's measures, sized weekly by
+  `injury_fit`, the win chance moving with the margin): 0.70281 v 0.70259, so `INJURIES` is off
+  too (its fitted QB-out size pointed the wrong way). ⛔ A switch moves only with a new recorded
+  run in research/fb_sim_backtest.json that passes the bar; test_fb_sim.py fails otherwise.
+  College has no injury data stored.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -1082,6 +1094,18 @@ fb_matchups.py    THE SHARED TEAM-UNIT TABLES (Sam, 2026-10-15): points,
                   targets, FOR and ALLOWED per team and Monday, opponent-
                   adjusted by fb_model.solve_ratings (reused). ⛔ Games
                   before the Monday only. The props model's weaknesses.
+fb_sim.py         THE GAME SIMULATION (Sam, 2026-10-17): every NFL and college
+                  game played out 10,000 times, possession by possession (TD,
+                  FG, nothing; the last drive played to the score; overtime),
+                  from the model's own predicted score and spread of results,
+                  with each margin's share corrected to the stored final
+                  scores (`MARGIN_FIX`). Stdlib only, seeded per game. Every
+                  game's runs are in fb-model.json `win_chances[].sim` and the
+                  Game Lines tab ("Wins in 10,000 sims"). ⛔ It sets no chance
+                  while `fb_model.SIM` is off: its backtest failed the bar
+                  fixed before the run (research/fb_sim_design.md §3-§4,
+                  research/fb_sim_backtest.json); so did NFL injuries
+                  (`fb_model.INJURIES`). test_fb_sim.py.
 fb_score_model.py THE SCORE-FIRST GAME MODEL, ⛔ REPORT ONLY (Sam,
                   2026-10-15): both teams' points + a measured home edge + a
                   pass / rush / pace layer, chances from the score curve;
