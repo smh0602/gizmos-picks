@@ -627,8 +627,12 @@ def score_pick(r, market, score, sigma, quotes=None):
     number is neither), its chance from that same score, Normal(predicted margin or total,
     sigma) -- `sigma` is the spread `predicted_score` turns a win chance into a margin with
     (`score_sigma`), or `total_sigma` -- then the best value among them, EV > 0, exactly as
-    `best_pick` chooses. -> best_pick's dict, or None. ⛔ Live picks only; `walk_forward`
-    grades the fits' own `best_pick`."""
+    `best_pick` chooses. -> best_pick's dict, or None. ~~⛔ Live picks only; `walk_forward`
+    grades the fits' own `best_pick`.~~ `[Sam, 2026-10-16]` "lets do both": read through
+    `shown_pick` by the live list (`current_picks`) AND the graded record, its closing-line
+    record and verdict (`walk_forward`, rule "shown"); only rule "fits" (fb_signal9's
+    pre-registered report) grades `best_pick`. A change to its sigma, rounding or value rule
+    moves the graded record: Sam's call."""
     if market not in ("spread", "total") or not score or not sigma:
         return None
     if score.get("home") is None or score.get("away") is None:
@@ -686,10 +690,11 @@ def best_pick(r, market, model, quotes=book_quotes):
 
 def game_score(r, models, sigma, sigma_t):
     """`[Sam, 2026-10-16]` -> (p_home %, predicted score or None): the ONE place a game's
-    win chance and predicted score are made, read by the Game Lines tab (`win_chances`),
-    the live pick list (`current_picks`) and the graded record (`walk_forward`), so all
-    three print and pick on the same score. p_home is the moneyline fit's chance rounded to
-    0.1 (the tab's number); the score is `predicted_score` with the total fit's chance at
+    predicted score is made, read by the Game Lines tab (`win_chances`), the live pick list
+    (`current_picks`) and the graded record (`walk_forward`), so all three print and pick
+    on the same score; the lists' expected winner is its p_home. p_home is the moneyline
+    fit's chance rounded to 0.1, the same fit and rounding the tab prints (`win_chances`
+    computes its printed p_home itself, identically); the score is `predicted_score` with the total fit's chance at
     the row's own line."""
     m, mt = models.get("moneyline"), models.get("total")
     ph = round(100 * predict(m, features(r, "moneyline")), 1) if m else None
@@ -945,7 +950,8 @@ def predicted_score(r, p_home, sigma, p_over=None, sigma_t=None):
     contradicted the pick in 3 of 14 NFL and 3 of 58 college games (Cowork,
     2026-10-14). None when a number is missing. ~~⛔ Output only: no fit, pick or
     chance reads it.~~ `[Sam, 2026-10-16]` ⛔ Every football spread and total pick comes
-    from it ("Yes, everywhere"): `current_picks` via `score_pick`, and the card's
+    from it ("Yes, everywhere"): `current_picks` and the graded record (`walk_forward`)
+    via `game_score` / `shown_pick` / `score_pick`, and the card's
     alternate spreads via card_fb; a change to its rounding or its total is a model
     change, Sam's call. `[Sam, 2026-10-15]` With a total line T the total fit prices
     (p_over, at T), total = T + sigma_t x NormalInverse(p_over), so the score sits

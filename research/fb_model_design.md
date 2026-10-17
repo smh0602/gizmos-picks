@@ -85,7 +85,11 @@ drifting toward whatever the first record happens to reward.
   model is trained on games that kicked off **before that Monday**, then
   asked about the week.
 - **The challenger starts** only once ≥ 150 labelled games precede the week,
-  per league and market.
+  ~~per league and market~~ `[Sam, 2026-10-16]` per league on the MONEYLINE fit:
+  a spread or total pick comes from the predicted score, which needs only the win
+  chance (the total fit is used when it exists, the row's own total when it does
+  not), so a spread pick never needs the spread fit. Rule "fits" (the signal-9
+  report) keeps the per-market start.
 - **Pick rule:** for each side, take the best price among the three books,
   and compute EV = p × decimal − 1. Pick the side with the higher EV if it
   is above 0. At most one pick per game per market.
@@ -158,4 +162,5 @@ Rock, FanDuel and DraftKings only. Add a SEPARATE record, labelled
   everywhere", "lets do both"): spreads and totals from the predicted score,
   moneylines only on the expected winner, in the live list AND the
   walk-forward record. The old rule is kept only for the pre-registered
-  signal-9 report.
+  signal-9 report. §4's start rule amended with it (the moneyline fit starts
+  every market's picks).

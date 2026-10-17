@@ -22,8 +22,10 @@ college games and 5 of 13 NFL games in the model's pick list, and 6 of 11 MLB ga
 with game-line picks, backed both teams.
 
 ⛔ It only REMOVES a pick. It never adds one, re-ranks, re-prices or changes a chance,
-and it runs AFTER each market's own pick (never inside fb_model.best_pick, whose
-walk-forward record is graded history). No expected winner (no win chance) means no
+and it runs AFTER each market's own pick (never inside fb_model.best_pick, ~~whose
+walk-forward record is graded history~~ `[Sam, 2026-10-16]` which stays filter-free for
+the pre-registered lambda test and walk_forward's rule "fits"; the graded record now
+replays the shown rule, fb_model.shown_pick, this filter included). No expected winner (no win chance) means no
 side pick, as the Game Lines tab then names no winner. Stdlib only; imports nothing
 from the repo.
 

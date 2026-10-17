@@ -683,8 +683,10 @@ note boxes, tags and the stale bar now require their absence.
   expected winner. `current_picks` (the live list) and `walk_forward` (the Model picks record,
   its closing-line record and the verdict, `fb_model_live_spec.md`'s rule unchanged) both call
   it; each week's score uses that week's fits and a spread of results (`score_sigma`,
-  `total_sigma`) from its TRAINING games only. `fb_model.game_score` is the one place the win
-  chance and score are made (the Game Lines tab, the list, the record). ⛔ `walk_forward(rows,
+  `total_sigma`) from its TRAINING games only; a week's picks start once the MONEYLINE fit
+  exists (a spread pick never needs the spread fit). `fb_model.game_score` is the one place
+  the predicted score is made (the Game Lines tab, the list, the record), from the same
+  rounded win chance the tab prints. ⛔ `walk_forward(rows,
   rule="fits")` (each fit's own `best_pick`, both sides) stays ONLY for the pre-registered
   signal-9 report (`fb_signal9`), which must score what it scored; `best_pick` is unchanged
   (the lambda test). The record is recomputed each build, so its past numbers changed with the

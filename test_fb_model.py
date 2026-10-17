@@ -61,6 +61,11 @@
 #   file: fb_model.py
 #   find:             "hit_rate": L(round(100 * rate, 1) if rate is not None else None, "DESCRIPTIVE"),
 #   with:             "hit_rate": round(100 * rate, 1) if rate is not None else None,
+#
+# @vacuity BOTH rules grade each record at its own prices (the "fits" rule: signal 9's report)
+#   file: fb_model.py
+#   find:                     pk = (best_pick(r, mk, models[mk], quotes) if rule == "fits"
+#   with:                     pk = (best_pick(r, mk, models[mk], book_quotes) if rule == "fits"
 """
 import datetime
 import json
@@ -309,6 +314,18 @@ _bare2 = [k for k, v in _cs.items()
           if k not in ("first_graded", "last_graded", "price_note")
           and not (isinstance(v, dict) and v.get("basis") in F.BASES)]
 ck(not _bare2, "   ⚠️ ...and every number in it carries its basis", "unlabelled: %s" % _bare2)
+# `[2026-10-16]` the record above is the SHOWN rule; the "fits" rule (each fit's own pick, kept
+#    for the pre-registered signal-9 report) keeps the same two-record guarantee
+for _rule in F.RULES:
+    _w = F.walk_forward(_syn, rule=_rule)
+    _hb = {mk: F.record(_w["books"][mk]) for mk in F.MARKETS}
+    _hc = {mk: F.record(_w["closing"][mk]) for mk in F.MARKETS}
+    ck(all(_hb[mk]["picks"]["value"] == 0 for mk in F.MARKETS)
+       and all(_hc[mk]["picks"]["value"] > 0 for mk in F.MARKETS)
+       and all(p.get("assumed") for p in _w["closing"]["spread"]),
+       "🔴 rule %r: the closing record is graded at closing prices (spreads at the assumed -110), "
+       "the headline record never" % _rule,
+       {mk: (_hb[mk]["picks"]["value"], _hc[mk]["picks"]["value"]) for mk in F.MARKETS})
 
 # the page: its own table, UNDER the headline, reading only its own key
 import jsblock  # noqa: E402
