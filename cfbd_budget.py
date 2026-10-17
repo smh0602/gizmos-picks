@@ -96,6 +96,17 @@ def signal9_one_time(root=ROOT):
     return {"endpoints": [ep for ep, _stem in eps], "owed": owed, "calls": len(owed)}
 
 
+def season_build_calls(weeks_played):
+    """CFBD calls ONE `cfb.build_season` makes for a season of `weeks_played`
+    regular weeks: /teams/fbs + /roster + /games x2 (both season types) +
+    /games/players per regular week + the postseason.
+    ⛔ THE ONE COPY (rule 117): the schedule's reserve (`calls_per_build`) and
+    the 2025 roster + defense fill's price (`cfb.season_build_max`) both read
+    it. `test_cfb_defense.py` drives a planted 16-week build with no slack and
+    fails if the build makes one call more than this says."""
+    return 1 + 1 + 2 + (weeks_played + 1)
+
+
 def calls_per_build(weeks_played=3):
     """CFBD calls one build of each mode makes, READ OFF `cfb.py`.
 
@@ -112,9 +123,7 @@ def calls_per_build(weeks_played=3):
     lo, hi = (int(m.group(1)), int(m.group(2))) if m else (1, 17)
     span = hi - lo
     plays = ((weeks_played + 2) + 2) if early_stop else (span * 2)
-    # build_season: /teams/fbs + /roster + /games x2 + /games/players per
-    # played week + postseason
-    season = 1 + 1 + 2 + (weeks_played + 1)
+    season = season_build_calls(weeks_played)
     # `[Sam, 2026-10-14]` the stored-only advanced stats: one call for the
     # newest played week, once a UTC day — counted on EVERY build, so the
     # reserve overstates it rather than missing it. (Venues, the 2025 season,

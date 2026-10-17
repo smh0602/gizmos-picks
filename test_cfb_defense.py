@@ -4,9 +4,10 @@ sends, kept (research/cfb_injuries_design.md §1 item 4).
 
 `roster-<season>.json.gz` and `defense-<season>.json.gz` come from the SAME
 /roster and /games/players calls every build already makes; 2025 is filled once
-while missing, priced first. Planted CFBD responses (`cfb.get` replaced), a temp
-`cfb.OUT`, a stubbed `cfbd_budget.preflight`. ⛔ No network, no key, nothing
-written under data/, nothing read from production.
+while missing, priced first, and only from a complete build. Planted CFBD
+responses (`cfb.get` replaced), a temp `cfb.OUT`, a stubbed
+`cfbd_budget.preflight`. ⛔ No network, no key, nothing written under data/,
+nothing read from production.
 
 # @vacuity 🔴 the defensive TOT column is kept
 #   file: cfb.py
@@ -73,10 +74,25 @@ written under data/, nothing read from production.
 #   find: same = {k: v for k, v in stored.items() if k != "written_at"} == \
 #   with: same = dict(stored) == \
 #
-# @vacuity 🔴 a season with a failed /games/players week writes no defense file
+# @vacuity 🔴 a season with any failed CFBD call builds no defense doc
 #   file: cfb.py
-#   find: if box_failures:
+#   find: if keep["call_failures"]:
 #   with: if False:
+#
+# @vacuity 🔴 ...and a failed /games call (the bowls) is a failed call, not only /games/players
+#   file: cfb.py
+#   find: keep["call_failures"] = (["/games " + e for e in fetch_errors]
+#   with: keep["call_failures"] = ([]
+#
+# @vacuity 🔴 the log says "kept in defense" only when the defense doc was built
+#   file: cfb.py
+#   find: if (keep or {}).get("defense") and (c, s) in DEFENSE_MAP else ""))
+#   with: if dfn is not None and (c, s) in DEFENSE_MAP else ""))
+#
+# @vacuity 🔴 ...and a fill, which never writes players-<season>, prints no players-file lines
+#   file: cfb.py
+#   find: if unmapped and not fill:
+#   with: if unmapped:
 #
 # @vacuity 🔴 the 2025 fill runs only while a file is missing
 #   file: cfb.py
@@ -93,15 +109,60 @@ written under data/, nothing read from production.
 #   find: if not _priced(season_build_max(season), "roster + defense back-fill %d" % season, log):
 #   with: if False:
 #
-# @vacuity 🔴 ...at a ceiling that covers every call it makes
+# @vacuity 🔴 ...at a ceiling that covers every call it makes, on a 16-week season with no slack
 #   file: cfb.py
-#   find: return 4 + max(len(weeks), len(REG_WEEKS) + 1) + 1
-#   with: return 4
+#   find: return _cb.season_build_calls(max(len(weeks), len(REG_WEEKS) + 1))
+#   with: return _cb.season_build_calls(len(REG_WEEKS))
+#
+# @vacuity 🔴 ...counted by the ONE build_season call count, which matches the build
+#   file: cfbd_budget.py
+#   find: return 1 + 1 + 2 + (weeks_played + 1)
+#   with: return 1 + 1 + 2 + weeks_played
+#
+# @vacuity 🔴 ...and the schedule's reserve reads that same count (no second copy)
+#   file: cfbd_budget.py
+#   find: season = season_build_calls(weeks_played)
+#   with: season = 1 + 1 + 2 + (weeks_played + 1)
 #
 # @vacuity 🔴 ...and never writes teams.json (this season's directory)
 #   file: cfb.py
-#   find: build_season(season, log, keep=keep, directory=False)
-#   with: build_season(season, log, keep=keep)
+#   find: doc, _unmapped, _n = build_season(season, log, keep=keep, fill=True)
+#   with: doc, _unmapped, _n = build_season(season, log, keep=keep)
+#
+# @vacuity 🔴 ...because a fill's build asks /teams/fbs for no directory
+#   file: cfb.py
+#   find: scope_confs, _scope_teams = fbs_conferences(season, log, directory=not fill)
+#   with: scope_confs, _scope_teams = fbs_conferences(season, log)
+#
+# @vacuity 🔴 ...stores nothing from a build with any gap
+#   file: cfb.py
+#   find: return "not written, asked again next run: " + "; ".join(gaps)[:600]
+#   with: pass
+#
+# @vacuity 🔴 gap: a doc not built (a failed /games postseason: no bowls)
+#   file: cfb.py
+#   find: gaps.append(f"no {key} doc ({(keep.get('why_not') or {}).get(key, 'not built')})")
+#   with: pass
+#
+# @vacuity 🔴 gap: no FBS scope (/teams/fbs failed or short)
+#   file: cfb.py
+#   find: gaps.append("no FBS scope: /teams/fbs failed or listed under %d schools" % FBS_MIN_TEAMS)
+#   with: pass
+#
+# @vacuity 🔴 gap: anything the probe's own verify names
+#   file: cfb.py
+#   find: gaps += ["verify: " + b for b in verify(doc, log)]
+#   with: gaps += []
+#
+# @vacuity 🔴 gap: a completed week (here the bowls) answered with no defensive rows
+#   file: cfb.py
+#   find: gaps.append(f"completed week(s) with no defensive rows: {empty}")
+#   with: pass
+#
+# @vacuity 🔴 ...the completed weeks are /games' own finals
+#   file: cfb.py
+#   find: finals[str(g.get("id"))] = (st, g.get("week"))
+#   with: pass
 #
 # @vacuity 🔴 ...and never raises
 #   file: cfb.py
@@ -117,15 +178,20 @@ written under data/, nothing read from production.
 #   file: cfb.py
 #   find: log(f"    roster + defense {season}: {store_kept(season, keep, log)}")
 #   with: pass
+#
+# @vacuity 🔴 ...from the keep its own build filled (driven, not read as text)
+#   file: cfb.py
+#   find: keep = {}    # roster + defense, from the same calls
+#   with: keep = None
 """
 import atexit
 import copy
 import gzip
 import hashlib
-import inspect
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib.error
@@ -135,6 +201,7 @@ sys.path.insert(0, ROOT)
 os.environ.setdefault("CFBD_API_KEY", "x")
 import cfb  # noqa: E402
 import cfbd_budget  # noqa: E402
+import fb_history  # noqa: E402
 from tcheck import ck, eq, section  # noqa: E402
 
 TMP = tempfile.mkdtemp(prefix="cfbdef-")
@@ -143,21 +210,25 @@ cfb.time.sleep = lambda s: None
 QUIET = lambda *a, **k: None  # noqa: E731
 EVENTS = []          # ("get", path, params) and ("price", calls, purpose), in order
 FAIL = {"fn": None}  # (path, params) -> True to answer that call with HTTP 503
-ALLOW = {"v": True}
+EMPTY = {"fn": None}  # (path, params) -> True to answer that call with HTTP 200 and []
+ALLOW = {"fn": lambda purpose: True}
+UNPLANTED = {"probe": False}   # a probe run answers an unplanted path as CFBD down
 
 
 def _price(calls, purpose, latest, root=None):
     EVENTS.append(("price", calls, purpose))
-    return {"allowed": ALLOW["v"], "why": "planted", "purpose": purpose, "calls": calls}
+    return {"allowed": ALLOW["fn"](purpose), "why": "planted", "purpose": purpose, "calls": calls}
 
 
 cfbd_budget.preflight = _price
 
 # ── FIXTURE BEGIN ────────────────────────────────────────────────────────
-# ⚠️ GOLDEN below is the players-file digest of THIS fixture, computed with
-#    cfb.py as it was before roster/defense existed (4461f3657).
+# ⚠️ GOLDEN below is the players-file digest of THIS fixture (at its defaults:
+#    two regular weeks, Elo on every game), computed with cfb.py as it was
+#    before roster/defense existed (4461f3657).
 LAWSON = ("7", "4", "1", "1.5", "1", "2", "0")
 DTYPES = ("TOT", "SOLO", "SACKS", "TFL", "PD", "QB HUR", "TD")
+GAMES = {"weeks": 2, "no_elo": False}   # regular weeks /games lists; Elo stripped from game 101
 
 
 def game(gid, week, home, away, hconf, aconf, start, hcls="fbs", acls="fbs"):
@@ -168,16 +239,21 @@ def game(gid, week, home, away, hconf, aconf, start, hcls="fbs", acls="fbs"):
 
 
 def games_of(y):
-    return {"regular": [game(101, 1, "Alabama", "Georgia", "SEC", "SEC", "%d-08-29T19:00:00.000Z" % y),
-                        game(102, 1, "Montana", "Idaho", "Big Sky", "Big Sky", "%d-08-29T23:00:00.000Z" % y,
-                             "fcs", "fcs"),
-                        game(103, 2, "Alabama", "Mercer", "SEC", "Southern", "%d-09-05T23:00:00.000Z" % y,
-                             "fbs", "fcs")],
+    reg = [game(101, 1, "Alabama", "Georgia", "SEC", "SEC", "%d-08-29T19:00:00.000Z" % y),
+           game(102, 1, "Montana", "Idaho", "Big Sky", "Big Sky", "%d-08-29T23:00:00.000Z" % y, "fcs", "fcs"),
+           game(103, 2, "Alabama", "Mercer", "SEC", "Southern", "%d-09-05T23:00:00.000Z" % y, "fbs", "fcs")]
+    reg += [game(300 + w, w, "Alabama", "Georgia", "SEC", "SEC", "%d-09-%02dT19:00:00.000Z" % (y, w))
+            for w in range(3, GAMES["weeks"] + 1)]
+    if GAMES["no_elo"]:
+        reg[0].update(homePregameElo=None, awayPregameElo=None, homeClassification=None,
+                      awayClassification=None)
+    return {"regular": reg,
             "postseason": [game(201, 1, "Georgia", "Alabama", "SEC", "SEC", "%d-01-01T20:00:00.000Z" % (y + 1))]}
 
 
 FBS = ([{"school": "Alabama", "conference": "SEC"}, {"school": "Georgia", "conference": "SEC"}]
        + [{"school": "Filler %d" % i, "conference": "Sun Belt"} for i in range(100)])
+FBS_V = {"v": FBS}
 ROSTER = [
     {"id": 1, "firstName": "Jalen", "lastName": "Milroe", "team": "Alabama", "jersey": 4, "position": "QB"},
     {"id": 2, "firstName": "Ryan", "lastName": "Williams", "team": "Alabama", "jersey": 2, "position": "WR"},
@@ -242,6 +318,14 @@ def box_of(lawson=LAWSON):
     }
 
 
+def week_box(w):
+    """Regular week 3+ (GAMES["weeks"] > 2): one SEC game, offence and defence."""
+    return [{"id": 300 + w, "teams": [
+        side("Alabama", [cat("passing", [("YDS", [(1, "Jalen Milroe", "200")])]),
+                         defensive([(3, "Deontae Lawson", ("5", "3", "0", "0", "0", "0", "0"))])]),
+        side("Georgia", [defensive([(5, "Malaki Starks", ("4", "2", "0", "0", "1", "0", "0"))])])]}]
+
+
 BOX = {"v": box_of()}
 
 
@@ -250,14 +334,22 @@ def fake_get(path, params=None, timeout=90, tries=4):
     EVENTS.append(("get", path, params))
     if FAIL["fn"] and FAIL["fn"](path, params):
         raise urllib.error.HTTPError("https://cfbd" + path, 503, "Service Unavailable", {}, None)
+    if EMPTY["fn"] and EMPTY["fn"](path, params):
+        return []
     if path == "/games":
         return copy.deepcopy(games_of(int(params["year"]))[params["seasonType"]])
     if path == "/teams/fbs":
-        return copy.deepcopy(FBS)
+        return copy.deepcopy(FBS_V["v"])
     if path == "/roster":
         return copy.deepcopy(ROSTER)
     if path == "/games/players":
-        return copy.deepcopy(BOX["v"].get((params["seasonType"], params["week"]), []))
+        key = (params["seasonType"], params["week"])
+        if key in BOX["v"]:
+            return copy.deepcopy(BOX["v"][key])
+        w = int(params["week"])
+        return week_box(w) if params["seasonType"] == "regular" and 3 <= w <= GAMES["weeks"] else []
+    if UNPLANTED["probe"]:
+        raise urllib.error.HTTPError("https://cfbd" + path, 503, "Service Unavailable", {}, None)
     raise AssertionError("unplanted CFBD path %s" % path)
 
 
@@ -286,22 +378,46 @@ def jz(p):
         return json.load(fh)
 
 
+def gz(p, o):
+    with gzip.open(p, "wt", encoding="utf-8") as fh:
+        json.dump(o, fh)
+
+
 def snapshot(d):
     out = {}
     for f in sorted(os.listdir(d)):
-        with open(os.path.join(d, f), "rb") as fh:
-            out[f] = fh.read()
+        if os.path.isfile(os.path.join(d, f)):
+            with open(os.path.join(d, f), "rb") as fh:
+                out[f] = fh.read()
     return out
 
 
-def build(season=2026, keep=None, out="b"):
+def build(season=2026, keep=None, out="b", log=QUIET):
     d = fresh(out)
-    doc, unmapped, n = cfb.build_season(season, QUIET, keep=keep)
+    doc, unmapped, n = cfb.build_season(season, log, keep=keep)
     teams = {}
     if os.path.exists(os.path.join(d, "teams.json")):    # absent when /teams/fbs failed
         with open(os.path.join(d, "teams.json"), encoding="utf-8") as fh:
             teams = json.load(fh)
     return doc, unmapped, n, teams
+
+
+def schedule_doc(season, weeks):
+    return {"season": season, "games": [
+        {"id": w, "week": w, "season_type": "regular", "start": "%d-09-%02dT19:00:00.000Z" % (season, w)}
+        for w in range(1, weeks + 1)]}
+
+
+def plant_2025(d, weeks=2):
+    """2025's other stored files, which no fill may touch, and this season's teams.json."""
+    files = {"players-2025.json.gz": {"season": 2025, "players": {"1": {"name": "old", "g": []}}},
+             "schedule-2025.json.gz": schedule_doc(2025, weeks),
+             "ppa-2025.json.gz": {"season": 2025, "games": {}}}
+    for f, o in files.items():
+        gz(os.path.join(d, f), o)
+    with open(os.path.join(d, "teams.json"), "w", encoding="utf-8") as fh:
+        json.dump({"season": 2026, "teams": {"Alabama": {"conference": "SEC"}}}, fh)
+    return snapshot(d)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -335,8 +451,10 @@ eq(P.get("2", {}).get("g", [{}])[0].get("tot"), 1,
 eq(sorted(P), ["2", "3", "5"],
    "🔴 nobody else: no team aggregate (-1, ' Team'), no blank name, no FCS-vs-FCS game (Montana), no FCS team "
    "(Mercer), no box-score game /games did not list (999)")
-eq(KEEP.get("box_failures"), [], "   ...and a defensive row that is not a player record ('junk') is skipped, "
+eq(KEEP.get("call_failures"), [], "   ...and a defensive row that is not a player record ('junk') is skipped, "
    "never a reason to lose the doc (or the season)")
+eq(KEEP.get("completed_units"), [["postseason", 1], ["regular", 1], ["regular", 2]],
+   "   the completed weeks /games lists with an in-scope game (Montana-Idaho alone would not count)")
 eq((DEF.get("season"), DEF.get("kind"), DEF.get("fields"), DEF.get("scope_conferences")),
    (2026, "DESCRIPTIVE", ["int", "pd", "qb_hur", "sacks", "solo", "tfl", "tot"], ["SEC", "Sun Belt"]),
    "   the header names its season, kind, fields and the FBS scope it kept")
@@ -346,8 +464,8 @@ build(keep=_FAIL_OPEN, out="s1-open")
 FAIL["fn"] = None
 ck(sorted((_FAIL_OPEN.get("defense") or {}).get("players") or {}) == ["2", "3", "5", "6", "7"]
    and (_FAIL_OPEN["defense"].get("scope") or "").startswith("UNFILTERED"),
-   "   a failed /teams/fbs narrows nothing, exactly as the players file (fail open, and says so)",
-   sorted((_FAIL_OPEN.get("defense") or {}).get("players") or {}))
+   "   a failed /teams/fbs narrows nothing in this season's file, exactly as the players file (fail open, "
+   "and says so; rebuilt the next run)", sorted((_FAIL_OPEN.get("defense") or {}).get("players") or {}))
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 THE ROSTER KEEPS JERSEY, NAME AND POSITION")
@@ -408,19 +526,28 @@ eq(cfb.write_if_changed("roster-2026.json.gz", KEEP["roster"], QUIET), "written"
    "   an unreadable stored file counts as changed")
 
 # ══════════════════════════════════════════════════════════════════════
-section("5. 🔴 A FAILED /games/players WEEK WRITES NO DEFENSE FILE")
+section("5. 🔴 ANY FAILED CALL BUILDS NO DEFENSE DOC (IT WOULD REPLACE A COMPLETE FILE)")
 # ══════════════════════════════════════════════════════════════════════
 K5 = {}
 FAIL["fn"] = lambda path, params: path == "/games/players" and params.get("week") == "2" \
     and params.get("seasonType") == "regular"
 build(keep=K5, out="s5")
 FAIL["fn"] = None
-ck("defense" not in K5 and K5.get("box_failures") == ["regular week 2: HTTPError"],
-   "🔴 a season missing a week builds no defense doc (it would replace a complete file), and names the week",
-   K5.get("box_failures"))
+ck("defense" not in K5 and K5.get("call_failures") == ["/games/players regular week 2: HTTPError"],
+   "🔴 a season missing a week builds no defense doc, and names the week", K5.get("call_failures"))
 eq(cfb.store_kept(2026, K5, QUIET),
-   "roster-2026.json.gz written; defense-2026.json.gz not built: /games/players failed for regular week 2: "
-   "HTTPError", "   ...so only the roster is written, and the line says why the defense was not")
+   "roster-2026.json.gz written; defense-2026.json.gz not built: a CFBD call failed: /games/players "
+   "regular week 2: HTTPError", "   ...so only the roster is written, and the line says why the defense was not")
+K5p = {}
+FAIL["fn"] = lambda path, params: path == "/games" and params.get("seasonType") == "postseason"
+build(keep=K5p, out="s5-p")
+FAIL["fn"] = None
+ck("defense" not in K5p and K5p.get("call_failures") == ["/games postseason: HTTPError 503"],
+   "🔴 a failed postseason /games (every bowl and CFP game gone from the build) is a failed call too: no "
+   "defense doc", K5p.get("call_failures"))
+eq(cfb.store_kept(2026, K5p, QUIET),
+   "roster-2026.json.gz written; defense-2026.json.gz not built: a CFBD call failed: /games postseason: "
+   "HTTPError 503", "   ...so this season's stored defense file keeps its bowls until a complete build")
 K5r = {}
 FAIL["fn"] = lambda path, params: path == "/roster"
 build(keep=K5r, out="s5-r")
@@ -430,72 +557,80 @@ ck("roster" not in K5r and K5r.get("why_not", {}).get("roster") == "/roster fail
    K5r.get("why_not"))
 
 # ══════════════════════════════════════════════════════════════════════
-section("6. 🔴 2025: FILLED ONCE WHILE MISSING, PRICED FIRST, NOTHING ELSE TOUCHED")
+section("6. 🔴 THE LOG SAYS ONLY WHAT IS TRUE")
 # ══════════════════════════════════════════════════════════════════════
-d6 = fresh("s6")
-PLANTED = {"players-2025.json.gz": {"season": 2025, "players": {"1": {"name": "old", "g": []}}},
-           "schedule-2025.json.gz": {"season": 2025, "games": [
-               {"id": w, "week": w, "season_type": "regular", "start": "2025-09-0%dT19:00:00.000Z" % w}
-               for w in (1, 2)]},
-           "ppa-2025.json.gz": {"season": 2025, "games": {}}}
-for f, o in PLANTED.items():
-    with gzip.open(os.path.join(d6, f), "wt", encoding="utf-8") as fh:
-        json.dump(o, fh)
-with open(os.path.join(d6, "teams.json"), "w", encoding="utf-8") as fh:
-    json.dump({"season": 2026, "teams": {"Alabama": {"conference": "SEC"}}}, fh)
-SNAP = snapshot(d6)
+LINES = []
+build(keep={}, out="s6-ok", log=LINES.append)
+ck(any("UNMAPPED STAT defensive/tot: 10 rows NOT collected in players-2026 (kept in defense-2026)" in ln
+       for ln in LINES),
+   "the season build's UNMAPPED line says the defensive stat is kept in defense-2026 when it was",
+   [ln for ln in LINES if "UNMAPPED" in ln][:2])
+del LINES[:]
+FAIL["fn"] = lambda path, params: path == "/games/players" and params.get("week") == "2"
+build(keep={}, out="s6-fail", log=LINES.append)
+FAIL["fn"] = None
+ck(not any("kept in defense" in ln for ln in LINES)
+   and any("UNMAPPED STAT defensive/tot" in ln for ln in LINES),
+   "🔴 ...and never when the defense doc was not built (a week failed)",
+   [ln for ln in LINES if "kept in defense" in ln][:2])
+d6 = fresh("s6-fill")
+plant_2025(d6)
+del LINES[:]
+eq(cfb.backfill_defense(2025, LINES.append), "roster-2025.json.gz written; defense-2025.json.gz written",
+   "   (a 2025 fill that built and wrote both files, so the line below is asked of a real run)")
+ck(any("defense: 3 players" in ln for ln in LINES)
+   and not any("NOT collected" in ln or "players-2025" in ln for ln in LINES),
+   "🔴 the 2025 fill, which never writes players-2025, prints no players-file line",
+   [ln for ln in LINES if "NOT collected" in ln or "players-2025" in ln][:2])
 
-ALLOW["v"] = False
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴 2025: FILLED ONCE WHILE MISSING, PRICED FIRST, NOTHING ELSE TOUCHED")
+# ══════════════════════════════════════════════════════════════════════
+d7 = fresh("s7")
+SNAP = plant_2025(d7)
+
+ALLOW["fn"] = lambda purpose: False
 del EVENTS[:]
 eq(cfb.backfill_defense(2025, QUIET), "refused", "🔴 a fill the budget refuses...")
 eq([e[0] for e in EVENTS], ["price"], "   ...makes no CFBD call at all")
-eq(snapshot(d6), SNAP, "   ...and writes nothing")
-ALLOW["v"] = True
+ck(snapshot(d7) == SNAP, "   ...and writes nothing", sorted(set(snapshot(d7)) - set(SNAP)))
+ALLOW["fn"] = lambda purpose: True
 
 del EVENTS[:]
 got = cfb.backfill_defense(2025, QUIET)
 eq(got, "roster-2025.json.gz written; defense-2025.json.gz written", "🔴 allowed: both files are written")
 gets = [e for e in EVENTS if e[0] == "get"]
-ck(EVENTS and EVENTS[0][0] == "price" and EVENTS[0][2] == "roster + defense back-fill 2025",
-   "🔴 ...priced by cfbd_budget.preflight BEFORE the first call", EVENTS[:2])
-ck(EVENTS and EVENTS[0][1] >= len(gets) and EVENTS[0][1] == cfb.season_build_max(2025),
-   "   ...at a ceiling covering every call it made (%s priced, %d made)" % (EVENTS[0][1] if EVENTS else None,
-                                                                          len(gets)))
+ck(EVENTS and EVENTS[0][0] == "price" and EVENTS[0][2] == "roster + defense back-fill 2025"
+   and EVENTS[0][1] == cfb.season_build_max(2025),
+   "🔴 ...priced by cfbd_budget.preflight BEFORE the first call, at season_build_max", EVENTS[:2])
 eq(sorted({e[1] for e in gets}), ["/games", "/games/players", "/roster", "/teams/fbs"],
    "   the same /games + /roster + /games/players calls as a season build (and /teams/fbs for its scope)")
 ck(gets and all(str(e[2].get("year")) == "2025" for e in gets), "   ...for 2025 only",
    sorted({str(e[2].get("year")) for e in gets}))
-after = snapshot(d6)
+after = snapshot(d7)
 ck(all(after.get(f) == b for f, b in SNAP.items()),
    "🔴 players-2025, schedule-2025, ppa-2025 and teams.json are byte-for-byte untouched (teams.json stays "
    "this season's directory)", [f for f, b in SNAP.items() if after.get(f) != b])
 eq(sorted(set(after) - set(SNAP)), ["defense-2025.json.gz", "roster-2025.json.gz"],
    "   ...and no other file appears")
-eq(sorted(jz(d6 + "/defense-2025.json.gz")["players"]), ["2", "3", "5"], "   the 2025 defense is built by the same rules")
-eq(jz(d6 + "/defense-2025.json.gz")["players"]["3"]["g"][0]["d"], "2025-08-29", "   ...from 2025's games")
+eq(sorted(jz(d7 + "/defense-2025.json.gz")["players"]), ["2", "3", "5"], "   the 2025 defense is built by the same rules")
+eq(jz(d7 + "/defense-2025.json.gz")["players"]["3"]["g"][0]["d"], "2025-08-29", "   ...from 2025's games")
 del EVENTS[:]
 eq((cfb.backfill_defense(2025, QUIET), EVENTS), ("already stored", []),
    "🔴 once both are stored it is never asked again (no price, no call)")
 
-os.remove(d6 + "/defense-2025.json.gz")
-with gzip.open(d6 + "/roster-2025.json.gz", "wt", encoding="utf-8") as fh:
-    json.dump({"season": 2025, "teams": {"Alabama": [{"id": "1", "name": "an older roster"}]}}, fh)
-SNAP_R = snapshot(d6)["roster-2025.json.gz"]
+os.remove(d7 + "/defense-2025.json.gz")
+gz(d7 + "/roster-2025.json.gz", {"season": 2025, "teams": {"Alabama": [{"id": "1", "name": "an older roster"}]}})
+SNAP_R = snapshot(d7)["roster-2025.json.gz"]
 eq(cfb.backfill_defense(2025, QUIET), "roster-2025.json.gz already stored; defense-2025.json.gz written",
    "🔴 one file missing: only that one is written")
-eq(snapshot(d6)["roster-2025.json.gz"], SNAP_R, "   ...a stored 2025 file, even an older one, is never rewritten")
+ck(snapshot(d7)["roster-2025.json.gz"] == SNAP_R, "   ...a stored 2025 file, even an older one, is never rewritten")
 
-os.remove(d6 + "/defense-2025.json.gz")
-FAIL["fn"] = lambda path, params: path == "/games/players" and params.get("week") == "1"
-got = cfb.backfill_defense(2025, QUIET)
-FAIL["fn"] = None
-ck(not os.path.exists(d6 + "/defense-2025.json.gz") and "defense-2025.json.gz not built" in got,
-   "🔴 a fill with a failed week writes no defense file, so the next run asks again", got)
-
+os.remove(d7 + "/defense-2025.json.gz")
 FAIL["fn"] = lambda path, params: True
 got = cfb.backfill_defense(2025, QUIET)
 FAIL["fn"] = None
-ck(got.startswith("not written: SourceUnavailable") and not os.path.exists(d6 + "/defense-2025.json.gz"),
+ck(got.startswith("not written: SourceUnavailable") and not os.path.exists(d7 + "/defense-2025.json.gz"),
    "🔴 CFBD refusing everything: the fill returns a line, never raises, writes nothing", got)
 _pf = cfbd_budget.preflight
 cfbd_budget.preflight = lambda *a, **k: (_ for _ in ()).throw(OSError("budget unreadable"))
@@ -503,15 +638,154 @@ got = cfb.backfill_defense(2025, QUIET)
 cfbd_budget.preflight = _pf
 ck(got.startswith("not written: OSError"), "   ...nor when the price itself cannot be read", got)
 
-with gzip.open(d6 + "/schedule-2025.json.gz", "wt", encoding="utf-8") as fh:
-    json.dump({"games": [{"week": w, "season_type": "regular"} for w in range(1, 21)]}, fh)
-eq(cfb.season_build_max(2025), 4 + 20 + 1, "   a stored season with 20 regular weeks raises the ceiling to match")
+# ══════════════════════════════════════════════════════════════════════
+section("8. 🔴 THE FILL IS WRITTEN ONCE, SO IT STORES ONLY A COMPLETE SEASON")
+# ══════════════════════════════════════════════════════════════════════
+# Each case: the fill writes NOTHING (neither file), says why, and the next
+# run asks again (not "already stored"). ⚠️ The current season's file is
+# rebuilt tomorrow; a history season's is never asked for again.
+
+
+def gap_case(name, label, want, fail=None, empty=None, fbs=None, no_elo=False):
+    d = fresh("s8-" + name)
+    snap = plant_2025(d)
+    FAIL["fn"], EMPTY["fn"], GAMES["no_elo"] = fail, empty, no_elo
+    if fbs is not None:
+        FBS_V["v"] = fbs
+    try:
+        got = cfb.backfill_defense(2025, QUIET)
+    finally:
+        FAIL["fn"], EMPTY["fn"], GAMES["no_elo"], FBS_V["v"] = None, None, False, FBS
+    wrote = sorted(set(snapshot(d)) - set(snap))
+    ck(got.startswith("not written, asked again next run: ") and want in got and not wrote,
+       label, "%s | wrote %s" % (got[:300], wrote))
+    return d
+
+
+_d8a = gap_case("bowls", "🔴 a failed postseason /games: no bowls in the build, so nothing is stored (not even "
+                "the complete roster)", "a CFBD call failed: /games postseason: HTTPError 503",
+                fail=lambda path, params: path == "/games" and params.get("seasonType") == "postseason")
+cfb.OUT = _d8a
+del EVENTS[:]
+_again = cfb.backfill_defense(2025, QUIET)
+ck(EVENTS and EVENTS[0][0] == "price" and _again == "roster-2025.json.gz written; defense-2025.json.gz written"
+   and [g["game_id"] for g in jz(_d8a + "/defense-2025.json.gz")["players"]["5"]["g"]] == ["101", "201"],
+   "   ...and the next run asks again (priced again) and stores the season with its bowl", _again)
+gap_case("week1", "🔴 a completed regular week answered HTTP 200 with no rows: not stored",
+         "completed week(s) with no defensive rows: [['regular', 1]]",
+         empty=lambda path, params: path == "/games/players" and params.get("week") == "1"
+         and params.get("seasonType") == "regular")
+gap_case("week1v", "   ...which the probe's own verify names too (a week missing below the log's latest)",
+         "THE PLAYER LOG IS MISSING COMPLETED WEEK(S) [1]",
+         empty=lambda path, params: path == "/games/players" and params.get("week") == "1"
+         and params.get("seasonType") == "regular")
+gap_case("post", "🔴 the bowls answered HTTP 200 with no rows (verify reads regular weeks only): not stored",
+         "completed week(s) with no defensive rows: [['postseason', 1]]",
+         empty=lambda path, params: path == "/games/players" and params.get("seasonType") == "postseason")
+gap_case("fbsfail", "🔴 /teams/fbs failed: an UNFILTERED file is not stored for good",
+         "no FBS scope", fail=lambda path, params: path == "/teams/fbs")
+gap_case("fbsshort", "   ...nor when /teams/fbs lists under 100 schools",
+         "no FBS scope", fbs=FBS[:5])
+gap_case("elo", "🔴 anything the probe's verify names stops the fill (here: rows with no Elo and no "
+         "classification, which the probe would never write)", "verify: ", no_elo=True)
+gap_case("roster", "   a failed /roster: no roster doc, nothing stored", "no roster doc (/roster failed)",
+         fail=lambda path, params: path == "/roster")
+gap_case("week2", "   a failed /games/players week: nothing stored",
+         "no defense doc (a CFBD call failed: /games/players regular week 2: HTTPError)",
+         fail=lambda path, params: path == "/games/players" and params.get("week") == "2")
 
 # ══════════════════════════════════════════════════════════════════════
-section("7. 🔴 cfb-probe WIRES BOTH IN")
+section("9. 💰 THE PRICE COVERS EVERY CALL, ON A FULL SEASON WITH NO SLACK")
 # ══════════════════════════════════════════════════════════════════════
-_src = "\n".join(ln.split("#")[0] for ln in inspect.getsource(cfb.probe).splitlines())
-ck("build_season(season, log, keep=keep)" in _src and "store_kept(season, keep, log)" in _src,
-   "🔴 the season build keeps the roster + defense and writes them (each only when changed)")
-ck("for _ds in DEFENSE_HISTORY:" in _src and "backfill_defense(_ds, log)" in _src and cfb.DEFENSE_HISTORY == (2025,),
-   "🔴 ...and the probe runs 2025's one-time fill", cfb.DEFENSE_HISTORY)
+
+
+def priced_vs_made(weeks):
+    d = fresh("s9-%d" % weeks)
+    plant_2025(d, weeks=weeks)
+    GAMES["weeks"] = weeks
+    del EVENTS[:]
+    try:
+        got = cfb.backfill_defense(2025, QUIET)
+    finally:
+        GAMES["weeks"] = 2
+    priced = [e[1] for e in EVENTS if e[0] == "price"]
+    made = sum(1 for e in EVENTS if e[0] == "get")
+    return got, (priced[0] if priced else None), made
+
+
+# ⚠️ At the price's own floor (REG_WEEKS + 1 = 16 today; 2025 had regular weeks
+#    1-16), so the planted season leaves the price no room to hide a call.
+_W = max(16, len(cfb.REG_WEEKS) + 1)
+_got16, _p16, _m16 = priced_vs_made(_W)
+eq(_got16, "roster-2025.json.gz written; defense-2025.json.gz written",
+   "a planted %d-week season is filled" % _W)
+ck(_p16 is not None and _p16 >= _m16 and _p16 - _m16 == 0,
+   "🔴 ...priced at exactly the calls it made, NO slack, so one call more in build_season fails this "
+   "(%s priced, %d made)" % (_p16, _m16))
+_got20, _p20, _m20 = priced_vs_made(20)
+ck(_got20.endswith("defense-2025.json.gz written") and _p20 is not None and _p20 >= _m20,
+   "   a stored season with 20 regular weeks raises the price to cover them (%s priced, %d made)" % (_p20, _m20))
+_real = cfbd_budget.season_build_calls
+cfbd_budget.season_build_calls = lambda w: _real(w) + 1000
+try:
+    _bumped = cfbd_budget.calls_per_build(3)["cfb-probe"]
+finally:
+    cfbd_budget.season_build_calls = _real
+eq(_bumped - cfbd_budget.calls_per_build(3)["cfb-probe"], 1000,
+   "🔴 the schedule's reserve (calls_per_build) reads the SAME count as the fill's price: one copy")
+
+# ══════════════════════════════════════════════════════════════════════
+section("10. 🔴 cfb-probe, RUN: THIS SEASON'S AND 2025's ROSTER + DEFENSE")
+# ══════════════════════════════════════════════════════════════════════
+d10 = fresh("s10")
+SNAP10 = plant_2025(d10)
+_cwd = os.path.join(TMP, "cwd")       # ⛔ nothing relative to the cwd lands in the repo
+os.makedirs(_cwd)
+_saved = (os.environ.get("SEASON"), cfb.store_new_data, fb_history.store_cfb, subprocess.run, os.getcwd())
+_selftest = []
+
+
+def _run(args, *a, **k):
+    if isinstance(args, (list, tuple)) and str(args[-1]).endswith("test_cfb.py"):
+        _selftest.append(args[-1])
+        return subprocess.CompletedProcess(args, 0, "planted self-test: passed", "")
+    return _saved[3](args, *a, **k)
+
+
+os.environ["SEASON"] = "2026"
+cfb.store_new_data = lambda *a, **k: None          # NWS + the stored-only CFBD extras
+fb_history.store_cfb = lambda *a, **k: None        # T70's older seasons
+subprocess.run = _run                              # the probe's own self-test (test_cfb.py runs on its own)
+ALLOW["fn"] = lambda purpose: purpose.startswith("roster + defense back-fill")
+UNPLANTED["probe"] = True
+PLOG = []
+os.chdir(_cwd)
+try:
+    _ok = cfb.probe(log=PLOG.append)
+finally:
+    os.chdir(_saved[4])
+    if _saved[0] is None:
+        os.environ.pop("SEASON", None)
+    else:
+        os.environ["SEASON"] = _saved[0]
+    cfb.store_new_data, fb_history.store_cfb, subprocess.run = _saved[1], _saved[2], _saved[3]
+    ALLOW["fn"] = lambda purpose: True
+    UNPLANTED["probe"] = False
+_a10 = snapshot(d10)
+ck(_ok is True and _selftest, "the probe ran (self-test, season 2026, the history steps) and reported success",
+   [ln for ln in PLOG if "FAILED" in ln][:3])
+eq(sorted(f for f in ("roster-2026.json.gz", "defense-2026.json.gz", "roster-2025.json.gz",
+                      "defense-2025.json.gz") if f in _a10),
+   ["defense-2025.json.gz", "defense-2026.json.gz", "roster-2025.json.gz", "roster-2026.json.gz"],
+   "🔴 one cfb-probe writes this season's roster + defense AND 2025's one-time fill")
+ck(jz(d10 + "/defense-2026.json.gz")["players"] == P and "players-2026.json.gz" in _a10,
+   "   ...this season's from its own build (the same doc the build kept), beside its players file")
+eq(jz(d10 + "/defense-2025.json.gz")["players"]["3"]["g"][0]["d"], "2025-08-29", "   ...2025's from 2025's games")
+with open(d10 + "/teams.json", encoding="utf-8") as fh:
+    _tj = json.load(fh)
+eq(_tj.get("season"), 2026, "🔴 teams.json is this season's directory after the 2025 fill ran")
+ck(all(_a10.get(f) == b for f, b in SNAP10.items() if f != "teams.json"),
+   "🔴 players-2025, schedule-2025 and ppa-2025 are byte-for-byte untouched by the probe",
+   [f for f, b in SNAP10.items() if f != "teams.json" and _a10.get(f) != b])
+ck(os.listdir(_cwd) == [], "   (and nothing was written relative to the working directory)", os.listdir(_cwd))
+eq(cfb.DEFENSE_HISTORY, (2025,), "   the one-time fill's seasons")

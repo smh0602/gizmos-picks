@@ -582,6 +582,14 @@ def _wk_i(week, st):
     return (week or 0) + (100 if st == "postseason" else 0)
 
 
+def _is_final(g):
+    """A /games row that has been PLAYED: flagged completed, or both scores in.
+    ⛔ ONE copy, read by the calendar (`weeks_completed`) and the fill's
+    completeness check (`completed_units`)."""
+    return bool(g.get("completed") or (g.get("homePoints") is not None
+                                       and g.get("awayPoints") is not None))
+
+
 def _keep_defense(dfn, athletes, field, gid, team, is_home, m, st):
     """One defensive box-score type into `dfn[(player id, game id)]`.
     ⚠️ A stat the box score does not list for a player stays ABSENT, never 0
@@ -661,13 +669,17 @@ def _stored_finals(season):
     return 0
 
 
-def build_season(season, log=log, keep=None, directory=True):
+def build_season(season, log=log, keep=None, fill=False):
     """-> (players doc, unmapped, player-weeks). ⛔ The doc is the same with or
     without `keep`. `keep` (a dict) also receives, from the SAME calls,
     `keep["roster"]` and `keep["defense"]` (`roster_doc`, `defense_doc`);
-    ⛔ no defense doc when any week's /games/players failed (a season missing
-    a week would replace a complete file), named in `keep["box_failures"]`.
-    `directory=False`: no teams.json (see fbs_conferences)."""
+    ⛔ no defense doc when ANY /games or /games/players call failed (a season
+    missing a week or its bowls would replace a complete file), named in
+    `keep["call_failures"]`; `keep["completed_units"]` lists every
+    [seasonType, week] in which /games has a completed in-scope game.
+    `fill=True` is a history season's write-once fill (`backfill_defense`): no
+    teams.json (fbs_conferences directory=False), and no players-file log
+    lines, since a fill never writes the players file."""
     meta, weeks_seen = {}, set()
     # 💡 WHICH WEEKS HAVE ACTUALLY BEEN PLAYED, ACCORDING TO THE SOURCE.
     #    `[2026-09-10]` The build failed with *"depth_rank is CONSTANT None
@@ -683,6 +695,7 @@ def build_season(season, log=log, keep=None, directory=True):
     # other — but FORGETTING it turns "the source refused" into "the
     # season has not been played", which is a different fact entirely.
     fetch_errors = []
+    finals = {}    # game id -> (seasonType, week), every completed game /games lists
     for st in ("regular", "postseason"):
         try:
             games = get("/games", {"year": str(season), "seasonType": st})
@@ -721,13 +734,14 @@ def build_season(season, log=log, keep=None, directory=True):
                 "homeClass": g.get("homeClassification"),
                 "awayClass": g.get("awayClassification"),
             }
+            if _is_final(g):
+                finals[str(g.get("id"))] = (st, g.get("week"))
             if st == "regular" and g.get("week"):
                 weeks_seen.add(g["week"])
                 # ⚠️ COMPLETED, not "in the past". A postponed game is not
                 #    a missing week; a finished one that produced no
                 #    player rows IS a gap worth naming.
-                if g.get("completed") or (g.get("homePoints") is not None
-                                          and g.get("awayPoints") is not None):
+                if _is_final(g):
                     weeks_completed.add(g["week"])
     if not meta:
         # 🔴 TYPED, so the caller can tell "this season has not been
@@ -862,12 +876,22 @@ def build_season(season, log=log, keep=None, directory=True):
     # EVERY row rather than silently narrowing to nothing. A too-wide
     # table is a cosmetic problem; a table missing 71 schools is the bug
     # Sam reported.
-    scope_confs, _scope_teams = fbs_conferences(season, log, directory=directory)
+    scope_confs, _scope_teams = fbs_conferences(season, log, directory=not fill)
     if keep is not None:
-        keep["box_failures"] = list(box_failures)
-        if box_failures:
+        # 🔴 EVERY failed call, /games as well as /games/players: a failed
+        #    postseason /games drops the bowls exactly as a failed week drops
+        #    that week (`[2026-10-17]` review of P2: the 2025 fill stored a
+        #    season with no bowls). ⛔ Either one builds no defense doc.
+        keep["call_failures"] = (["/games " + e for e in fetch_errors]
+                                 + ["/games/players " + e for e in box_failures])
+        keep["completed_units"] = [list(u) for u in sorted(
+            {finals[gid] for gid in finals
+             if not scope_confs or meta[gid]["homeConf"] in scope_confs
+             or meta[gid]["awayConf"] in scope_confs},
+            key=lambda u: (str(u[0]), str(u[1]).zfill(4)))]
+        if keep["call_failures"]:
             keep.setdefault("why_not", {})["defense"] = (
-                "/games/players failed for " + "; ".join(box_failures))
+                "a CFBD call failed: " + "; ".join(keep["call_failures"]))
         else:
             try:
                 keep["defense"] = defense_doc(season, dfn, scope_confs)
@@ -980,11 +1004,13 @@ def build_season(season, log=log, keep=None, directory=True):
             f"e.g. {[k for k, _ in unbridged.most_common(5)]}")
     for k, v in dropped.items():
         log(f"      dropped {v:,} — {k}")
-    if unmapped:
+    # ⚠️ ABOUT THE PLAYERS FILE, so a fill (which never writes it) prints none,
+    #    and "kept in defense" only when the defense doc was built.
+    if unmapped and not fill:
         for (c, s), v in unmapped.most_common():
             log(f"      🔴 UNMAPPED STAT {c}/{s}: {v:,} rows NOT collected"
                 + (f" in players-{season} (kept in defense-{season})"
-                   if dfn is not None and (c, s) in DEFENSE_MAP else ""))
+                   if (keep or {}).get("defense") and (c, s) in DEFENSE_MAP else ""))
     if keep is not None:
         _dd = keep.get("defense")
         log(f"    defense: {len(_dd['players']):,} players, "
@@ -1643,15 +1669,46 @@ def store_kept(season, keep, log=log, only_missing=False):
 
 
 def season_build_max(season):
-    """Ceiling on one `build_season`'s CFBD calls: /teams/fbs, /roster, /games
-    (regular + postseason), then /games/players per regular week + the
-    postseason. ⚠️ The weeks are the stored schedule's, never fewer than
-    REG_WEEKS + 1 (CFBD used a week 16 in 2025), so the price can only
+    """Ceiling on one `build_season`'s CFBD calls for `season`, priced by
+    `cfbd_budget.season_build_calls` (the ONE count, also the schedule's
+    reserve). ⚠️ The weeks are the stored schedule's regular weeks, never fewer
+    than REG_WEEKS + 1 (CFBD used a week 16 in 2025), so the price can only
     overstate."""
+    import cfbd_budget as _cb
     sched = _read_gz(os.path.join(OUT, "schedule-%d.json.gz" % int(season)))
     weeks = {g.get("week") for g in (sched.get("games") or [])
              if (g.get("season_type") or "regular") == "regular" and g.get("week") is not None}
-    return 4 + max(len(weeks), len(REG_WEEKS) + 1) + 1
+    return _cb.season_build_calls(max(len(weeks), len(REG_WEEKS) + 1))
+
+
+def fill_gaps(doc, keep, log=log):
+    """Why a write-once fill must NOT store this build; [] = store it.
+    🔴 A history season's roster + defense are written ONCE and never asked
+    for again (`[2026-10-17]` review of P2: a fill with no bowls, one with an
+    empty week and one with no FBS scope were each stored for good), so the
+    fill keeps a build only when the probe's own season loop would have
+    written it AND nothing in it could come out differently next run:
+    - both docs built: any failed /roster, /games or /games/players call
+      builds none (`build_season`);
+    - the FBS scope known: a failed or short /teams/fbs keeps every
+      conference, right for a file rebuilt tomorrow, wrong for one kept;
+    - defensive rows in every [seasonType, week] where /games lists a
+      completed in-scope game (an empty 200 answer is not a played week);
+    - nothing `verify` names (the probe's own bar for writing a season)."""
+    gaps = []
+    for key in ("roster", "defense"):
+        if not keep.get(key):
+            gaps.append(f"no {key} doc ({(keep.get('why_not') or {}).get(key, 'not built')})")
+    dd = keep.get("defense") or {}
+    if dd and not dd.get("scope_conferences"):
+        gaps.append("no FBS scope: /teams/fbs failed or listed under %d schools" % FBS_MIN_TEAMS)
+    have = {(g.get("seasonType"), g.get("week"))
+            for p in (dd.get("players") or {}).values() for g in p.get("g") or []}
+    empty = [u for u in keep.get("completed_units") or [] if dd and tuple(u) not in have]
+    if empty:
+        gaps.append(f"completed week(s) with no defensive rows: {empty}")
+    gaps += ["verify: " + b for b in verify(doc, log)]
+    return gaps
 
 
 def backfill_defense(season, log=log):
@@ -1659,8 +1716,8 @@ def backfill_defense(season, log=log):
     either is missing: the same /games + /roster + /games/players calls as the
     season's build, priced by `cfbd_budget.preflight` before any call.
     ⛔ Writes only the missing file(s) of those two: never players-<season>,
-    never teams.json, nothing else. ⛔ A week that failed writes no defense
-    file, so it is asked again next run. ⛔ NEVER RAISES."""
+    never teams.json, nothing else. ⛔ A build with any gap (`fill_gaps`)
+    writes NOTHING, so it is asked again next run. ⛔ NEVER RAISES."""
     try:
         if all(os.path.exists(os.path.join(OUT, f"{k}-{season}.json.gz"))
                for k in ("roster", "defense")):
@@ -1668,7 +1725,10 @@ def backfill_defense(season, log=log):
         if not _priced(season_build_max(season), "roster + defense back-fill %d" % season, log):
             return "refused"
         keep = {}
-        build_season(season, log, keep=keep, directory=False)
+        doc, _unmapped, _n = build_season(season, log, keep=keep, fill=True)
+        gaps = fill_gaps(doc, keep, log)
+        if gaps:
+            return "not written, asked again next run: " + "; ".join(gaps)[:600]
         return store_kept(season, keep, log, only_missing=True)
     except Exception as e:
         return "not written: %s: %s" % (type(e).__name__, str(e)[:200])
