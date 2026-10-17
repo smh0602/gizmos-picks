@@ -43,6 +43,16 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:   + (p.edge != null ? `<div>Edge <b${p.edge > 0 ? ' class="eg-pos"' : ''}>${
 #   with:   + (p.edge != null ? `<div>Edge <b${p.edge != null ? ' class="eg-pos"' : ''}>${
 #
+# @vacuity 🔴 [Sam, 2026-10-17] no board patches a row afterwards: the props board draws pickCard's own row
+#   file: index.html
+#   find:   kept.forEach(p => host.append(pickCard(p)));
+#   with:   kept.forEach(p => host.append(fbEdgeLine(pickCard(p), p)));
+#
+# @vacuity 🔴 [Sam, 2026-10-17] ...and the game lines draw it too
+#   file: index.html
+#   find:   + g.map(p => pickCard(p).outerHTML).join('');
+#   with:   + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
+#
 # `[Sam, 2026-10-17]` the next three were ~~"the filter hides exactly the rows with edge <= 0"~~,
 #    ~~"the filter is ON by default [Sam, 2026-10-15]"~~ and ~~"the props board runs through the
 #    filter"~~; each now re-adds the removed filter or button, and section 2 must go red.
@@ -206,8 +216,9 @@ ck("🔴 [Sam, 2026-10-17] a football row above its price: \"Break-even 53.7%\" 
    "Break-even <b>53.7%</b>" in OUT[1] and 'Edge <b class="eg-pos">+1.3</b>' in OUT[1]
    and "Below its price" not in OUT[1], OUT[1][-300:])
 ck("🔴 ...a game-line row the same", 'Edge <b class="eg-pos">+3</b>' in OUT[3], OUT[3][-200:])
-ck("🔴 [Sam, 2026-10-17] MLB the same: design I is one row for all three leagues (~~MLB unchanged, "
-   "no edge~~)", "Break-even <b>53.7%</b>" in OUT[2] and 'Edge <b class="eg-pos">+1.3</b>' in OUT[2],
+ck("🔴 [Sam, 2026-10-17] MLB the same: design I is one row for all three leagues, and \"lets have "
+   "the colors of the tabs and the layout be the same for each league\" (Sam, 2026-10-01) "
+   "(~~MLB unchanged, no edge~~)", "Break-even <b>53.7%</b>" in OUT[2] and 'Edge <b class="eg-pos">+1.3</b>' in OUT[2],
    OUT[2][-200:])
 ck("🔴 [Sam, 2026-10-17] an edge at or below zero on a row not marked below its price is plain ink, "
    "never green", "Edge <b>-1.2</b>" in OUT[4] and "eg-pos" not in OUT[4], OUT[4][-200:])

@@ -306,6 +306,18 @@ if _BROWSER:
         ck("🔴 ...nor with planted wide rows and tables, and the planted BET buttons are on screen",
            all(v["over"] <= 0 and v["betIn"] for v in planted.values()),
            str({k: v for k, v in planted.items() if v["over"] > 0 or not v["betIn"]}))
+        # `[2026-10-17]` MLB too: its Game Lines table made the page 17 px wider than a 390 px
+        #    screen (it never had football's scroll-in-its-own-box rule). The stored tree.
+        mlb_wide = {}
+        pg.evaluate("setLeague('mlb')")
+        pg.wait_for_timeout(1600)
+        for tab in WANT:
+            pg.locator("nav.subnav a[data-tab='%s']" % tab).click()
+            pg.wait_for_timeout(1500)
+            over = pg.evaluate(WIDE)
+            if over > 0:
+                mlb_wide[tab] = over
+        ck("🔴 ...and no MLB tab is wider than the screen either (stored tree)", not mlb_wide, str(mlb_wide))
         tabs = pg.evaluate("""() => { const cw = document.documentElement.clientWidth;
           const a = [...document.querySelectorAll('nav.subnav a[data-tab]')];
           return {n: a.length, inside: a.every(x => { const r = x.getBoundingClientRect();
@@ -314,7 +326,118 @@ if _BROWSER:
                   order: a.map(x => x.dataset.tab)}; }""")
         ck("🔴 ...and all 9 tabs are on screen, on two rows, in the same order",
            tabs["n"] == 9 and tabs["inside"] and tabs["rows"] == 2 and tabs["order"] == WANT, str(tabs))
+
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 4. A PICK ROW NEVER SQUEEZES ITS PLAYER, AT ANY WIDTH `[Sam, 2026-10-17]` (design I)
+        # ══════════════════════════════════════════════════════════════
+        # Measured on the first design I build, MLB's 2026-10-17 card: at 601-690 px and
+        # 821-960 px the player column shrank to 10-55 px and its words ran 5-100 px into the
+        # price ("Junior / Caminero / Over / 0.5 / Hits" one word a line, "Hits" through
+        # "Hard Rock"), on 24 of 25 rows; the page was no wider than the screen, so section 3
+        # stayed green (`.pk` clips its overflow). ⛔ PLANTED rows through the page's own
+        # pickCard (the worst case: an MLB hitter with a headshot and a long name, and a
+        # football row), so the check asks the code, not today's card.
+        SQUEEZE = """() => {
+          const rows = [
+            {kind: 'hitter', confidence_basis: 'RECORD', player: 'Christian Bethancourt-Longername Jr.',
+             pid: 660271, side: 'under', line: 1.5, market: 'total_bases', market_label: 'Total bases',
+             projection: 1.3, projection_unit: 'TB', away: 'Tampa Bay Rays', home: 'Cleveland Guardians',
+             away_id: 139, home_id: 114, game: 'TB @ CLE', first_pitch: '8:00pm', price: -350,
+             book: 'hardrockbet', link: 'https://example.invalid/slip', confidence: 79,
+             break_even: 77.8, edge: 0.8, why: ['A planted reason.'], raw: '38/48', rate: 79},
+            {kind: 'fb', confidence_basis: 'MODEL', player: 'Marvin Harrison Jr.', side: 'over', line: 1.5,
+             market: 'player_receptions', market_label: 'Receptions', projection: 3.1, projection_unit: 'rec',
+             away: 'Houston Texans', home: 'Jacksonville Jaguars', game: 'Houston Texans @ Jacksonville Jaguars',
+             commence: '2026-10-18T13:30:00Z', price: -148, book: 'fanduel', link: 'https://example.invalid/slip',
+             confidence: 75, break_even: 59.7, edge: 15.3, why: ['A planted reason.']}];
+          const v = document.querySelector('#view');
+          v.querySelectorAll('[data-sq]').forEach(n => n.remove());
+          rows.forEach(r => { const c = pickCard(r); c.dataset.sq = '1'; v.prepend(c); });
+          return [...v.querySelectorAll('[data-sq]')].map(c => {
+            const t = c.querySelector('.pk-t'), px = c.querySelector('.pk-px');
+            const tr = t.getBoundingClientRect(), pr = px.getBoundingClientRect();
+            const same = tr.top < pr.bottom && pr.top < tr.bottom;
+            let right = tr.left;
+            for (const e of t.querySelectorAll('*')) right = Math.max(right, e.getBoundingClientRect().right);
+            return {w: Math.round(tr.width), over: same ? Math.round(right - pr.left) : 0};
+          });
+        }"""
+        pg.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="domcontentloaded", timeout=60000)
+        pg.wait_for_timeout(1200)
+        squeezed = {}
+        for w in (601, 640, 700, 768, 821, 844, 900, 960, 1024, 1280):
+            pg.set_viewport_size({"width": w, "height": 900})
+            pg.wait_for_timeout(250)
+            got = pg.evaluate(SQUEEZE)
+            bad = [g for g in got if g["w"] < 120 or g["over"] > 0]
+            if bad or len(got) != 2:
+                squeezed[w] = got
+        ck("🔴 at every width from 601 to 1280 px a pick row keeps its player readable: the column "
+           "at least 120 px, and nothing in it runs into the price",
+           not squeezed, str(squeezed))
+        # ⚠️ The side panel takes 240 px. Shown from 821 px (the first build), it left 600 px at
+        #    844 and NFL Game Lines ran 93 px, Player Props 6 px, wider than the screen. From
+        #    1024 px it leaves at least 784. The stored tree, as section 3's first half.
+        wide_mid = {}
+        for w in (844, 900, 1024):
+            pg.set_viewport_size({"width": w, "height": 900})
+            for lg in ("nfl", "ncaaf"):
+                pg.evaluate("setLeague('%s')" % lg)
+                pg.wait_for_timeout(1600)
+                for tab in ("props", "gamelines"):
+                    pg.locator("nav.subnav a[data-tab='%s']" % tab).click()
+                    pg.wait_for_timeout(1800)
+                    over = pg.evaluate(WIDE)
+                    if over > 0:
+                        wide_mid["%d/%s/%s" % (w, lg, tab)] = over
+        ck("🔴 ...and beside the side panel, football's Player Props and Game Lines are no wider "
+           "than the screen (844, 900 and 1024 px; college was 99 / 113 px over at 821)",
+           not wide_mid, str(wide_mid))
         pg.set_viewport_size({"width": 1280, "height": 900})
+
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 5. EVERY WORD ON EVERY TAB IS READABLE `[Sam, 2026-10-17]` (design I)
+        # ══════════════════════════════════════════════════════════════
+        # Measured on the first design I build: the "@" between two teams at 1.24:1 (it was
+        # drawn in the border colour), Trends' rank column 3.05, its sort arrows 3.65 and its
+        # thin-sample rows 2.27. ⛔ WCAG's bar: 4.5:1, 3:1 for large text (24 px, or 18.66 px
+        # bold). Text over an image is skipped (its background cannot be read).
+        CONTRAST = """() => {
+          const parse = c => { const m = c && c.match(/rgba?\\(([^)]+)\\)/); if (!m) return null;
+            const p = m[1].split(',').map(Number); return {r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1}; };
+          const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+          const L = c => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+          const mix = (f, b) => ({r: f.r * f.a + b.r * (1 - f.a), g: f.g * f.a + b.g * (1 - f.a), b: f.b * f.a + b.b * (1 - f.a), a: 1});
+          const bg = el => { const st = []; for (let e = el; e; e = e.parentElement){ const cs = getComputedStyle(e);
+              if (cs.backgroundImage && cs.backgroundImage !== 'none') return null;
+              const c = parse(cs.backgroundColor); if (c && c.a > 0) st.push(c); if (c && c.a === 1) break; }
+            let acc = {r: 255, g: 255, b: 255, a: 1}; for (let i = st.length - 1; i >= 0; i--) acc = mix(st[i], acc); return acc; };
+          const out = [];
+          for (const el of document.body.querySelectorAll('*')){
+            if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+            const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
+            const cs = getComputedStyle(el); if (cs.visibility === 'hidden') continue;
+            const b = bg(el), f = parse(cs.color); if (!b || !f) continue;
+            let o = 1; for (let e = el; e; e = e.parentElement) o *= Number(getComputedStyle(e).opacity);
+            const t = mix({...f, a: f.a * o}, b), a = L(t), c = L(b);
+            const ratio = (Math.max(a, c) + 0.05) / (Math.min(a, c) + 0.05);
+            const size = parseFloat(cs.fontSize), large = size >= 24 || (size >= 18.66 && parseInt(cs.fontWeight) >= 700);
+            if (ratio < (large ? 3 : 4.5)) out.push(el.textContent.trim().slice(0, 30) + ' ' + ratio.toFixed(2));
+          }
+          return [...new Set(out)].slice(0, 6);
+        }"""
+        faint = {}
+        for lg in ("mlb", "nfl", "ncaaf"):
+            pg.evaluate("setLeague('%s')" % lg)
+            pg.wait_for_timeout(1600)
+            for tab in WANT:
+                pg.locator("nav.subnav a[data-tab='%s']" % tab).click()
+                pg.wait_for_timeout(1500)
+                got = pg.evaluate(CONTRAST)
+                if got:
+                    faint["%s/%s" % (lg, tab)] = got
+        ck("🔴 every word on every tab of every league reads at 4.5:1 or better (3:1 for large text)",
+           not faint, str(faint))
 
         ck("✅ no page error during any switch", not errs, str(errs[:3]))
         note("%d off-machine request(s) blocked, none answered by the "
