@@ -232,9 +232,14 @@ eq(sorted((p["game_id"], p["market"], p["team"]) for p in CUR),
    "🔴 Washington ML +150 beside Purdue -3.5 (Sam's game): Washington's moneyline is gone (Purdue is the "
    "expected winner); Purdue -3.5 and the Under come from the predicted score (Purdue by 5, 49 points); "
    "Florida keeps its moneyline, and its -6.5 comes from the score too (Florida by 7)")
-eq(O.conflicts(CUR, winner=lambda p: _tab.get(p["game_id"])), [],
-   "🔴 the guard on the real builder's output, against the tab's own win chances: no game backs both "
-   "teams or the team the tab does not pick")
+_v3 = lambda x: x.get("value") if isinstance(x, dict) else x  # noqa: E731
+_pt3 = lambda p: ((-_v3(p["line"]) if p["side"] == "home" else _v3(p["line"]))  # noqa: E731
+                  if p["market"] == "spread" else _v3(p["line"]))
+eq([p for p in CUR if (p["market"] == "moneyline" and p["side"] != _tab.get(p["game_id"]))
+    or O.score_side_ok(p, SCORE[p["game_id"]], _pt3(p)) is False], [],
+   "🔴 the guard on the real builder's output, against the tab's own win chances and score: every "
+   "moneyline on the expected winner, every spread and total on the predicted score's side "
+   "(`[Sam, 2026-10-16]` ~~no game backs both teams~~: Purdue 25-23 => Washington +3.5)")
 eq(sorted(p["market"] for p in CUR0), [],
    "🔴 with no moneyline fit there is no expected winner, so no side pick at all; and no predicted "
    "score either, so `[Sam, 2026-10-16]` ~~a total stays~~ the total goes too")

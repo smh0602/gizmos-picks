@@ -913,8 +913,11 @@ def predicted_score(r, p_home, sigma, p_over=None, sigma_t=None):
     `score_sigma`; total = the own total; home = (total + margin) / 2, away =
     (total - margin) / 2. ~~home/away from the own margin alone~~: that score
     contradicted the pick in 3 of 14 NFL and 3 of 58 college games (Cowork,
-    2026-10-14). None when a number is missing. ⛔ Output only: no fit, pick or
-    chance reads it. `[Sam, 2026-10-15]` With a total line T the total fit prices
+    2026-10-14). None when a number is missing. ~~⛔ Output only: no fit, pick or
+    chance reads it.~~ `[Sam, 2026-10-16]` ⛔ Every football spread and total pick comes
+    from it ("Yes, everywhere"): `current_picks` via `score_pick`, and the card's
+    alternate spreads via card_fb; a change to its rounding or its total is a model
+    change, Sam's call. `[Sam, 2026-10-15]` With a total line T the total fit prices
     (p_over, at T), total = T + sigma_t x NormalInverse(p_over), so the score sits
     on the over/under's side (~~the own total~~: SEA 22.5 - DEN 20.6, 43.1, beside
     "Under 40.5"); with none, the own total as before."""

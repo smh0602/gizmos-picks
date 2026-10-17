@@ -9,7 +9,11 @@ Asked which side stays, he chose the EXPECTED WINNER: every moneyline, spread,
 alternate spread and run-line pick, in all three leagues, is on the team the Game
 Lines tab picks to win (the higher model win chance; winners.py reads `expected_side`
 from here, so the tab and every list can never disagree). A total backs no team and
-is never touched.
+is never touched. `[Sam, 2026-10-16]` ~~spread, alternate spread~~ for FOOTBALL: a
+spread and its alternate follow the model's predicted score instead ("purdue will win
+25-23 ... gizmos picks should like the +3.5 spread for washington", "Yes, everywhere";
+fb_model.score_pick, `score_side_ok` below), so they can back the expected loser; the
+moneyline stays on the expected winner.
 
 Why the clash happened: each market is picked on its own (football: three separate
 fits, the moneyline taking the best-value side, often the underdog; MLB: the run line

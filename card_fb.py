@@ -1435,7 +1435,8 @@ def alt_spread_rows(model_rows, ladder, score=None, sigma=None):
     model's predicted score covers is eligible, so the best COVERED rung is chosen
     (a richer rung past the predicted margin never hides it). With `sigma` too, each
     rung's chance comes FROM that score ("Yes, everywhere", Sam): Normal(the team's
-    predicted margin, sigma), ~~the spread fit's `p`~~."""
+    predicted margin, sigma), ~~the spread fit's `p`~~, and its value (`edge`, EV %) from
+    that chance at the rung's best price, so the rung is still the highest VALUE."""
     lad = {(g.get("away"), g.get("home"), et_date(g.get("commence"))): g
            for g in (ladder or {}).get("games") or []}
     out = []
@@ -1449,10 +1450,12 @@ def alt_spread_rows(model_rows, ladder, score=None, sigma=None):
         if sc:
             # the chance FROM the predicted score at each rung's own point
             tm = (sc["home"] - sc["away"]) if r["side"] == "home" else (sc["away"] - sc["home"])
-            g = dict(g, spread=[dict(x, p=round(100 * statistics.NormalDist().cdf(
-                                    round(tm + x["pt"], 6) / sigma), 1),
-                                    edge=(round(100 * statistics.NormalDist().cdf(round(tm + x["pt"], 6) / sigma)
-                                                - x["be"], 1) if x.get("be") is not None else None))
+            _q = lambda x: statistics.NormalDist().cdf(round(tm + x["pt"], 6) / sigma)  # noqa: E731
+            # `edge` stays VALUE in the ladder's own units (game_lines_fb.rungs_for: EV %), so the
+            # rung is still "the highest value above zero" (Sam, 2026-10-11), as score_pick ranks
+            g = dict(g, spread=[dict(x, p=round(100 * _q(x), 1),
+                                     edge=(round(100 * (_q(x) * decimal_odds(x["best"]) - 1.0), 1)
+                                           if x.get("best") is not None else None))
                                 for x in g.get("spread") or [] if x.get("pt") is not None])
         ok = [x for x in g.get("spread") or [] if x.get("side") == r["side"]
               and x.get("best") is not None and x["best"] >= PRICE_FLOOR

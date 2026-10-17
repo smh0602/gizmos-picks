@@ -75,6 +75,16 @@ rows; the real predicted_score, score_sigma and total_sigma; ⛔ reads nothing l
 #   find:         sc = score(r) if (score is not None and sigma) else None
 #   with:         sc = None
 #
+# @vacuity 🔴 ...ranked by its VALUE at that chance (EV %, the ladder's own `edge`), never the points gap
+#   file: card_fb.py
+#   find:                                      edge=(round(100 * (_q(x) * decimal_odds(x["best"]) - 1.0), 1)
+#   with:                                      edge=(round(100 * _q(x) - x["be"], 1)
+#
+# @vacuity 🔴 a same-game parlay's SPREAD leg is never judged by the expected winner (it follows the score)
+#   file: card_fb.py
+#   find:             if winner is not None and market == "h2h" and not one_side.keep([row], winner)[0]:
+#   with:             if winner is not None and not one_side.keep([row], winner)[0]:
+#
 # @vacuity 🔴 the alternate spread is the best rung the predicted score COVERS
 #   file: card_fb.py
 #   find:               and (score is None or one_side.score_side_ok(
@@ -282,6 +292,16 @@ _alt = [r for r in GL2 if r["market"] == "alternate_spread"]
 eq([(r["line"], r["confidence"]) for r in _alt], [(-7.5, int(round(round(100 * N.cdf(round(10.8 - 7.5, 6) / 13.0), 1))))],
    "🔴 the alternate's chance is the predicted score's (Texas by 10.8 covers -7.5 about 60% of the time), "
    "never the ladder's 51%; and -12.5, which the score gives under half, never shows")
+# two covered rungs where the points gap and the VALUE disagree (Texas by 10.8, sigma 13): -1.5 at
+# -165 is 76.3% against 62.3 (14.0 points, value +22.5%); -7.5 at +113 is 60.0% against 46.9
+# (13.1 points, value +27.8%). Sam's rule is the highest VALUE (`[Sam, 2026-10-11]`).
+LAD3 = {"games": [{"away": FLA, "home": TEX, "commence": KICK, "main_spread_home": -6.5,
+                   "spread": [RUNG("home", -1.5, 0.0, p=0.0, best=-165, be=62.3),
+                              RUNG("home", -7.5, 0.0, p=0.0, best=113, be=46.9)]}]}
+GL3 = CF.card_game_lines(_picks, [], LAD3, CF.et_date(KICK), win_chances=WIN, sigma=13.0)
+eq([(r["line"], r["price"]) for r in GL3 if r["market"] == "alternate_spread"], [(-7.5, 113)],
+   "🔴 the alternate is the rung with the highest VALUE at the score's chance (-7.5 at +113, +27.8%), "
+   "never the bigger points gap (-1.5 at -165, +22.5%): the same value rule as the main pick")
 eq([O.score_side_ok(r, O.scores_by_names(WIN)(r), r["line"]) for r in GL + GL2], [True] * len(GL + GL2),
    "   ...the guard on the card's real output: every row on the predicted score's side")
 
@@ -308,6 +328,26 @@ eq(([(r["market"], r["side"], r["point"]) for r in _free], [(r["market"], r["sid
    ([("spreads", PUR, -3.5)], [("totals", "Under", 49.5)]),
    "🔴 the richest allowed leg is Purdue -3.5; on a predicted Purdue-by-1.2 it goes, the Over 49.5 (a "
    "predicted 46.8) cannot stand in, and the game's best leg ON the score's side, the Under 49.5, does")
+
+
+
+def snap_dog(gid, away, home):
+    """The richest gap is the AWAY spread +3.5 (+120 against -110), the expected LOSER's; the
+    away moneyline has a smaller one; the home side and the totals have none."""
+    books = {}
+    for bk, ap in (("fanduel", 120), ("draftkings", -110), ("hardrockbet", -110)):
+        books[bk] = {"spreads": {away: {"px": ap, "pt": 3.5}, home: {"px": -110, "pt": -3.5}},
+                     "h2h": {away: {"px": 170 if bk == "fanduel" else 150}, home: {"px": -170}},
+                     "totals": {"Over": {"px": -110, "pt": 47.5}, "Under": {"px": -110, "pt": 47.5}}}
+    return {"id": gid, "away": away, "home": home, "commence": KICK, "books": books}
+
+
+_WS = [{"away": WASH, "home": PUR, "p_home": 55.0, "score": {"home": 25.0, "away": 23.0}}]
+_dog, _ = CF.build_game_lines({"games": [snap_dog("ev2", WASH, PUR)]}, n=None, slate=CF.et_date(KICK),
+                              winner=O.by_names(_WS), score=O.scores_by_names(_WS))
+eq([(r["market"], r["side"], r["point"]) for r in _dog], [("spreads", WASH, 3.5)],
+   "🔴 Sam's game as a same-game parlay leg: Purdue 25-23 => Washington +3.5 (its richest gap) is the line "
+   "leg; a spread leg follows the score and is never judged by the expected winner (Purdue)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("5. 🔴 THE REAL card_fb.main HANDS THE PARLAY BUILDER THE SCORES, THE ALTERNATES THE SIGMA")

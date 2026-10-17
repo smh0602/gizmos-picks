@@ -265,7 +265,7 @@ ck("🔴 the graded record line stays at the top", H.startswith("<p data-wrec>")
 ck("🔴 the football tab draws the week", "winnersWeekHtml(W)" in js_block("fbGameLinesTab", PAGE))
 
 # ══════════════════════════════════════════════════════════════════════
-section("4. 🔴 THE PREDICTED SCORE: OUTPUT ONLY")
+section("4. 🔴 THE PREDICTED SCORE (`[Sam, 2026-10-16]` ~~OUTPUT ONLY~~: every football spread and total pick comes from it)")
 # ══════════════════════════════════════════════════════════════════════
 def row(i, final, om, ot, day):
     sig = {"h2h_m": None, "h2h_t": None, "form_m": (i % 7) - 3.0, "form_t": None, "def": None,
