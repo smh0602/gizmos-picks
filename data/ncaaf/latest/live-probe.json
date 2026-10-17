@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-10-17T19:06:54Z",
+ "written_at": "2026-10-17T22:51:32Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -139,78 +139,78 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "in": 17,
-  "pre": 35,
-  "post": 10
+  "in": 11,
+  "post": 30,
+  "pre": 21
  },
- "in_progress": 17,
+ "in_progress": 11,
  "live_sample": [
   {
-   "id": "401858488",
-   "away": "Ohio State Buckeyes",
-   "home": "Indiana Hoosiers",
-   "away_score": "19",
-   "home_score": "7",
-   "state": "in",
-   "detail": "11:55 - 4th",
-   "clock": "11:55",
-   "period": 4,
-   "start": "2026-10-17T16:00Z"
-  },
-  {
-   "id": "401856724",
-   "away": "Florida Gators",
-   "home": "Texas Longhorns",
-   "away_score": "27",
+   "id": "401856719",
+   "away": "Auburn Tigers",
+   "home": "Georgia Bulldogs",
+   "away_score": "24",
    "home_score": "24",
    "state": "in",
-   "detail": "4:21 - 4th",
-   "clock": "4:21",
+   "detail": "1:16 - 4th",
+   "clock": "1:16",
    "period": 4,
-   "start": "2026-10-17T16:00Z"
+   "start": "2026-10-17T19:30Z"
   },
   {
-   "id": "401856720",
-   "away": "Mississippi State Bulldogs",
-   "home": "LSU Tigers",
-   "away_score": "0",
+   "id": "401856723",
+   "away": "Alabama Crimson Tide",
+   "home": "Tennessee Volunteers",
+   "away_score": "10",
+   "home_score": "19",
+   "state": "in",
+   "detail": "5:54 - 4th",
+   "clock": "5:54",
+   "period": 4,
+   "start": "2026-10-17T19:30Z"
+  },
+  {
+   "id": "401856721",
+   "away": "Missouri Tigers",
+   "home": "Ole Miss Rebels",
+   "away_score": "3",
    "home_score": "31",
    "state": "in",
-   "detail": "5:25 - 4th",
-   "clock": "5:25",
+   "detail": "1:19 - 4th",
+   "clock": "1:19",
    "period": 4,
-   "start": "2026-10-17T16:00Z"
+   "start": "2026-10-17T19:30Z"
   },
   {
-   "id": "401858268",
-   "away": "Virginia Cavaliers",
-   "home": "SMU Mustangs",
-   "away_score": "13",
-   "home_score": "23",
+   "id": "401856828",
+   "away": "Arizona State Sun Devils",
+   "home": "Texas Tech Red Raiders",
+   "away_score": "17",
+   "home_score": "53",
    "state": "in",
-   "detail": "2:54 - 4th",
-   "clock": "2:54",
+   "detail": "6:32 - 4th",
+   "clock": "6:32",
    "period": 4,
-   "start": "2026-10-17T16:00Z"
+   "start": "2026-10-17T19:30Z"
   },
   {
-   "id": "401858491",
-   "away": "Northwestern Wildcats",
-   "home": "Michigan State Spartans",
-   "away_score": "21",
-   "home_score": "21",
+   "id": "401858266",
+   "away": "North Carolina Tar Heels",
+   "home": "Duke Blue Devils",
+   "away_score": "17",
+   "home_score": "20",
    "state": "in",
-   "detail": "3:29 - 4th",
-   "clock": "3:29",
+   "detail": "4:34 - 4th",
+   "clock": "4:34",
    "period": 4,
-   "start": "2026-10-17T16:00Z"
+   "start": "2026-10-17T19:30Z"
   }
  ],
  "live_state_fields": {
-  "with a running clock": 17,
-  "with a period": 17,
-  "with both scores": 17,
-  "of": 17
+  "with a running clock": 11,
+  "with a period": 11,
+  "with both scores": 11,
+  "of": 11
  },
  "join": {
   "our_schedule_season": 2026,
@@ -295,14 +295,14 @@
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
  "refresh_check": {
   "seconds_apart": 45,
-  "live_games_compared": 17,
-  "games_whose_clock_or_period_changed": 10,
+  "live_games_compared": 11,
+  "games_whose_clock_or_period_changed": 7,
   "example": {
-   "id": "401856720",
-   "was": "5:25 Q4",
-   "now": "4:52 Q4"
+   "id": "401856719",
+   "was": "1:16 Q4",
+   "now": "1:18 Q4"
   },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 10 of 17 live games in 45s, so the feed is live enough for a polling tab"
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 7 of 11 live games in 45s, so the feed is live enough for a polling tab"
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
@@ -310,5 +310,5 @@
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "62 events via [groups=80 (FBS)], 17 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.1% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "62 events via [groups=80 (FBS)], 11 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.1% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
