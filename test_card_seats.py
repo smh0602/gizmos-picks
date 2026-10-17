@@ -43,15 +43,15 @@ page's own `pickCard` in node for the label.
 #   find:             x["below_price"] = True
 #   with:             pass
 #
-# @vacuity never both sides of one prop
+# @vacuity never both sides of one prop (`[Sam, 2026-10-16]` nor two lines of one player's market)
 #   file: card.py
-#   find:         if _propkey(x) in on:
+#   find:         if _playermarket(x) in on_pm:
 #   with:         if False:
 #
 # @vacuity a doubleheader's game 2 is another prop, not the same one
 #   file: card.py
-#   find:     return (x.get("game_id"), (x.get("pid") or x.get("player") or x.get("pitcher")),
-#   with:     return (None, (x.get("pid") or x.get("player") or x.get("pitcher")),
+#   find:     return (x.get("game_id"), who, x.get("market"))
+#   with:     return (None, who, x.get("market"))
 #
 # @vacuity the page states the edge on a row below its price
 #   file: index.html
@@ -274,11 +274,15 @@ eq(sum(1 for x in B if x["kind"] == "pitcher" and not x.get("below_price")), 1,
    "   the one pitcher row that beats its price is on, unmarked")
 # The 24 others, derived HERE: the best remaining pitcher rows by the
 # corrected number, one side per prop.
-_want, _seen = [], {key(_beat[0])}
+# `[Sam, 2026-10-16]` and one line per pitcher per market ("one per player unless your using a
+#    different prop"), so a second outs line of a pitcher already seated never takes a seat.
+_pm = lambda x: (x["game_id"], x["pid"], x["market"])  # noqa: E731
+_want, _seen, _seen_pm = [], {key(_beat[0])}, {_pm(_beat[0])}
 for x in sorted([x for x in PLAYS if x["edge"] <= 0], key=lambda x: -x["confidence"]):
-    if key(x) not in _seen and len(_want) < 24:
+    if key(x) not in _seen and _pm(x) not in _seen_pm and len(_want) < 24:
         _want.append((key(x), x["side"]))
         _seen.add(key(x))
+        _seen_pm.add(_pm(x))
 _got = [(key(x), x["side"]) for x in B if x["kind"] == "pitcher" and x.get("below_price")]
 eq(sorted(_got), sorted(_want),
    "🔴 the other 24 are the best remaining pitcher props by the corrected number, one side each, "

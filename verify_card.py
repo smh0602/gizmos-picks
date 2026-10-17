@@ -1421,5 +1421,10 @@ _osp = C.one_side_problems(doc)
 ck(f"one side per prop: no board or top-10 row under 50% or on both sides, no leg or starred rung "
    f"under 50% ({len(doc.get('picks') or []) + len(doc.get('top10') or [])} rows)", not _osp, str(_osp[:3]))
 
+# 🔴 ONE ROW PER PLAYER PER MARKET. `[Sam, 2026-10-16]` "keep it to one per player unless your using
+#    a different prop": the board never holds two lines of one player's market.
+_rep = C.player_market_repeats(doc.get('picks') or [])
+ck(f"one row per player per market on the board ({len(doc.get('picks') or [])} rows)", not _rep, str(_rep[:3]))
+
 print(f"\n{'ALL CHECKS PASSED' if not fails else 'FAILURES: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

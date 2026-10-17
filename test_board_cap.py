@@ -30,8 +30,8 @@ planted board, every run; the live published cards are reported.
 
 # @vacuity the builder's card never carries more rows than its cap (planted board)
 #   file: card_fb.py
-#   find: board = rows[:BOARD_MAX] if rated else fill_board(rows, BOARD_MAX)
-#   with: board = rows if rated else fill_board(rows, BOARD_MAX)
+#   find: board = _brows[:BOARD_MAX] if rated else fill_board(_brows, BOARD_MAX)
+#   with: board = _brows if rated else fill_board(_brows, BOARD_MAX)
 #
 # @vacuity the builder's card declares the cap it was built to (planted board)
 #   file: card_fb.py
@@ -218,7 +218,9 @@ try:
     _board["n_games"] = len(_board["games"])
     _logs = {"season": 2025, "players": {
         str(i): {"name": _nm[i], "pos": "WR",
-                 "g": [{"rec": 5 if j < 3 + i % 7 else 2, "rec_yds": 30,
+                 # `[Sam, 2026-10-16]` every over the side his record favours (6-9 of 10), so all
+                 # 30 rows survive one-side-per-prop (~~3-9 of 10~~) and the cap is what bites
+                 "g": [{"rec": 5 if j < 6 + i % 4 else 2, "rec_yds": 30,
                         "snap_pct": 0.9, "team": "T", "game_id": "x",
                         "d": "2025-10-%02d" % (j + 1)} for j in range(10)]}
         for i in range(30)}}

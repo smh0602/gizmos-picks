@@ -109,6 +109,24 @@ def one_side_problems(doc):
     return out
 
 
+def player_market_repeats(rows):
+    """The guard verify_card.py runs: every (game, player, market) the board holds twice."""
+    held, out = set(), []
+    for r in rows or []:
+        if isinstance(r, dict):
+            k = _playermarket(r)
+            if k in held:
+                out.append(k)
+            held.add(k)
+    return out
+
+
+def _playermarket(x):
+    """One player's one market in one game, any line or side (`[Sam, 2026-10-16]`)."""
+    who = x.get("pid") or x.get("player") or x.get("pitcher")
+    return (x.get("game_id"), who, x.get("market"))
+
+
 def select_board(plays, hitters, seats=None):
     """The Gizmo's Picks board. -> (board, accounting). Pure: reads rows,
     sets `below_price` on the rows it seats below their price.
@@ -120,7 +138,8 @@ def select_board(plays, hitters, seats=None):
                 best remaining pitcher rows by that corrected number, each
                 flagged `below_price` — it loses to its price, and the row
                 shows its printed %, break-even and edge.
-      never     both sides of one prop, or one kind in the other's seats.
+      never     both sides of one prop, two lines of one player's market (`[Sam,
+                2026-10-16]`), or one kind in the other's seats.
     The union reads strictly by confidence, descending (Sam, 2026-08-24).
     """
     cap = dict(seats or SEATS)
@@ -132,7 +151,7 @@ def select_board(plays, hitters, seats=None):
     hitters = [x for x in hitters if x.get("clears_price_floor", True)]
     liked = sorted([x for x in plays + hitters
                     if x.get("edge") is not None and x["edge"] > 0], key=by_conf)
-    board, on, used = [], set(), set()
+    board, used, on_pm = [], set(), set()
 
     def seat(x, below):
         if seats.get(x["kind"], 0) <= 0 or id(x) in used:
@@ -142,7 +161,9 @@ def select_board(plays, hitters, seats=None):
         # 8 mirror pairs summing to 100 (Turang under 0.5 hits at 59 AND
         # over at 41). That is not a board. Checked in the positive-edge
         # pass too, since each side's price is shopped separately.
-        if _propkey(x) in on:
+        # `[Sam, 2026-10-16]` one row per player per market: never two lines of one prop type,
+        #    which also keeps out the other side of a seated prop (~~`_propkey(x) in on`~~)
+        if _playermarket(x) in on_pm:
             return False
         if below:
             x["below_price"] = True
@@ -150,7 +171,7 @@ def select_board(plays, hitters, seats=None):
             x.pop("below_price", None)
         seats[x["kind"]] -= 1
         used.add(id(x))
-        on.add(_propkey(x))
+        on_pm.add(_playermarket(x))
         board.append(x)
         return True
 
