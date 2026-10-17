@@ -173,6 +173,16 @@ is a tripwire; the repo's teams.json is never read).
 #   file: cfb_injuries.py
 #   find: OUT_STATUSES = ("out", "out for season", "doubtful")
 #   with: OUT_STATUSES = ("out", "out for season", "doubtful", "unknown")
+#
+# @vacuity 🔴 the card's own call (a RELATIVE data/ncaaf/latest) still finds THIS game's current report
+#   file: fb_why.py
+#   find: if os.path.normcase(os.path.abspath(CI.latest(root))) != os.path.normcase(os.path.abspath(self.latest)):
+#   with: if CI.latest(root) != self.latest:
+#
+# @vacuity 🔴 explain reads the reports at the build time it is given, never the real clock
+#   file: fb_why.py
+#   find: ctx = Context(lg, latest, season, now=now)
+#   with: ctx = Context(lg, latest, season)
 """
 import datetime
 import gzip
@@ -476,6 +486,23 @@ try:
            "no sentence, never a guess")
         D_AT = W.explain([dict(REC)], "ncaaf", CL, now=AT)
         eq(D_AT[0]["why"], [LIST_REC, CM], "🔴 explain reads the reports at the card's build time it is given")
+        D_LATE = W.explain([dict(REC)], "ncaaf", CL, now=LATE)
+        eq(D_LATE[0]["why"], [CM],
+           "🔴 ... and at a build time 6h15 after the reading, no sentence: the two cases together cannot both pass "
+           "on the real clock, at any hour")
+        # the card's OWN call: card_fb passes f"{DATA}/latest" (data/ncaaf/latest), relative to the repo root
+        csrc = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
+        ck('DATA = f"data/{LEAGUE}"' in csrc and csrc.count('LEAGUE, f"{DATA}/latest"') == 2,
+           "the card hands fb_why a RELATIVE data/<league>/latest (the form the next case drives)")
+        here = os.getcwd()
+        try:
+            os.chdir(CR)
+            D_REL = W.explain([dict(REC)], "ncaaf", "data/ncaaf/latest", now=AT)
+        finally:
+            os.chdir(here)
+        eq(D_REL[0]["why"], [LIST_REC, CM],
+           "🔴 the card's own call, run from the repo root with a RELATIVE data/ncaaf/latest, still finds THIS "
+           "game's current report")
 
         def boom(*a, **k):
             raise RuntimeError("planted")
