@@ -23,7 +23,7 @@ data/nfl/2026-09-13/props-player/]`
     raw priced outcomes                      21,413
     distinct (game, market, player, line)     2,081
     ...with a side, i.e. distinct wagers       3,731
-    `card_fb.TOP_N`                              20
+    `card_fb.TOP_N`                              20 (10 from 2026-10-17)
 
 The credits are spent. Grading the rest reads a stored snapshot and
 joins it to box scores the collector already fetches free. ⛔ Zero

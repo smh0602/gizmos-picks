@@ -9,8 +9,11 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
      and a Denver -23.5 at +2000 rung is under 5% and gets no row
   2. the predicted total sits on the over/under's side of its line
   3. the board lists the plays the model likes: chance 50%+, above its price,
-     one per player (or game), by edge; graded on what it shows; the page starts
-     on them, says so when there are none, and shows today's full list when off
+     one per player (or game), by edge; graded on what it shows; the page ~~starts
+     on them, says so when there are none, and shows today's full list when off~~
+     `[Sam, 2026-10-17]` ("no above their price only button in gizmos pikcs not
+     needed") always shows them when the card has them, says so when there are
+     none, and shows a card from before the liked lists as it is
 
 # @vacuity 🔴 every off-main rung is priced on the curve, never the fit at that line
 #   file: game_lines_fb.py
@@ -110,15 +113,24 @@ Planted rows, planted models, a pinned clock, the shipped page code in node.
 #   find:     for p in card["liked"] if "liked" in card else card.get("picks", []):
 #   with:     for p in card.get("picks", []):
 #
-# @vacuity 🔴 the page shows the liked list while the button is on
+# `[Sam, 2026-10-17]` ~~"the page shows the liked list while the button is on"~~: there is no
+#    button; the next one turns the liked list off (the old switch, stuck off).
+# @vacuity 🔴 the page always shows the liked list when the card has one
 #   file: index.html
-#   find:   return (C && FBABOVE && C.liked) ? Object.assign({}, C, {
+#   find:   return (C && C.liked) ? Object.assign({}, C, {
 #   with:   return (C && false && C.liked) ? Object.assign({}, C, {
 #
-# @vacuity 🔴 no liked play: the board says so
+# @vacuity 🔴 no liked play: the board says so (~~while the button is on~~ always)
 #   file: index.html
-#   find:   return FBABOVE && all ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
-#   with:   return FBABOVE && false ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
+#   find:   return all ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
+#   with:   return false ? `<div class="msg">The model has no ${k === 'picks' ? 'plays' : 'game lines'
+#
+# `[Sam, 2026-10-17]` ~~"the button starts ON, still remembered per browser"~~: nothing is
+#    remembered; the next one re-adds the button's click branch and its stored setting.
+# @vacuity 🔴 [Sam, 2026-10-17] the page remembers no "above their price" setting
+#   file: index.html
+#   find:     FBPICKKIND = b.dataset.fbkind;
+#   with:     if (b.hasAttribute('data-fbabove')) { try { localStorage.setItem('gp_fb_above', '1'); } catch(e){} } else FBPICKKIND = b.dataset.fbkind;
 """
 import json
 import math
@@ -287,15 +299,23 @@ ck('best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=project
    "🔴 the card's liked props are checked against the card's own projections map")
 eq(len(RF.grade_card({"picks": ROWS[:3]}, {}, {}, None)), 3, "   ...and a card from before the switch as it was")
 
+# `[Sam, 2026-10-17]` "no above their price only button in gizmos pikcs not needed": ~~run
+#    with FBABOVE on and off~~ -- fbView and fbNoLiked now take no switch (none is passed: one
+#    named in their code would throw here), and have ONE behaviour: the card's liked lists
+#    whenever it has them; a card from before the liked lists exactly as it is.
 PG = r"""
 const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
-const run = on => new Function('fbDayName', 'FBABOVE', S.v + '\n' + S.n + '\nreturn [fbView, fbNoLiked];')(d => d, on);
-const [vOn, nOn] = run(true), [vOff, nOff] = run(false);
+const [fbView, fbNoLiked] = new Function('fbDayName', S.v + '\n' + S.n + '\nreturn [fbView, fbNoLiked];')(d => d);
 const C = {date: '2026-10-18', liked: [], game_lines_liked: [], picks: [{player: 'A'}, {player: 'B'}],
            game_lines: [{game: 'x'}], game_lines_meta: {slate: '2026-10-18'}};
-const on = vOn(C), off = vOff(C), full = vOn(Object.assign({}, C, {liked: [{player: 'B'}]}));
-process.stdout.write(JSON.stringify([on.picks.length, nOn(on, 'picks'), nOn(on, 'game_lines'),
-  off.picks.length, nOff(off, 'picks'), full.picks.map(p => p.player)]));
+const OLD = {date: '2026-10-18', picks: [{player: 'A'}, {player: 'B'}], game_lines: [{game: 'x'}],
+             game_lines_meta: {slate: '2026-10-18'}};
+const none = fbView(C), old = fbView(OLD),
+      full = fbView(Object.assign({}, C, {liked: [{player: 'B'}], game_lines_liked: [{game: 'y'}]}));
+process.stdout.write(JSON.stringify([none.picks.length, fbNoLiked(none, 'picks'), fbNoLiked(none, 'game_lines'),
+  old.picks.length, fbNoLiked(old, 'picks'), full.picks.map(p => p.player),
+  old === OLD, (full.game_lines || []).map(g => g.game), (full.picks_all || []).length,
+  (full.game_lines_all || []).length]));
 """
 tmp = tempfile.mkdtemp(prefix="bestplays-")
 try:
@@ -304,14 +324,20 @@ try:
               open(os.path.join(tmp, "d.json"), "w"))
     r = subprocess.run(["node", os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")],
                        capture_output=True, text=True, timeout=300)
-    OUT = json.loads(r.stdout) if r.returncode == 0 else [None] * 6
+    OUT = json.loads(r.stdout) if r.returncode == 0 else [None] * 10
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 ck(r.returncode == 0, "⚠️ the page's own code ran in node", (r.stderr or "")[-300:])
 ck(OUT[0] == 0 and "has no plays it likes for 2026-10-18" in (OUT[1] or "")
    and "has no game lines it likes" in (OUT[2] or ""),
-   "🔴 button on, nothing liked: one plain line says the model has no plays it likes for that slate", OUT[:3])
+   "🔴 ~~button on,~~ nothing liked: one plain line says the model has no plays it likes for that slate", OUT[:3])
 eq((OUT[3], OUT[4], OUT[5]), (2, "", ["B"]),
-   "🔴 button off: today's full list returns (no line); on: the card's liked list")
-ck(re.search(r"localStorage\.getItem\('gp_fb_above'\) !== '0'", open(PAGE, encoding="utf-8").read()) is not None,
-   "   the button starts ON (Sam, 2026-10-15), still remembered per browser")
+   "🔴 ~~button off: today's full list returns (no line); on: the card's liked list~~ a card from before "
+   "the liked lists shows its full list (no line); a card with one, the card's liked list")
+eq((OUT[6], OUT[7], OUT[8], OUT[9]), (True, ["y"], 2, 1),
+   "   ...the old card untouched; the liked game lines replace the full list, which is kept beside them")
+_code = re.sub(r"/\*.*?\*/|<!--.*?-->", "", open(PAGE, encoding="utf-8").read(), flags=re.S)
+_left = [k for k in ("FBABOVE", "gp_fb_above", "fbAbovePass", "data-fbabove") if k in _code]
+ck(not _left,
+   "   ~~the button starts ON (Sam, 2026-10-15), still remembered per browser~~ `[Sam, 2026-10-17]` no "
+   "button: the page's code keeps no switch (FBABOVE) and remembers no setting (gp_fb_above)", _left)

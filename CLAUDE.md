@@ -699,6 +699,22 @@ note boxes, tags and the stale bar now require their absence.
   (the lambda test). The record is recomputed each build, so its past numbers changed with the
   switch (Sam's choice). `test_fb_model_record.py` builds the same games once upcoming and once
   played and fails if the record and the list ever pick differently.
+- 🔴 **FOOTBALL GIZMO'S PICKS IS AS SIMPLE AS MLB'S.** `[Sam, 2026-10-17]` *"no above their
+  price only button in gizmos pikcs not needed"*; *"i dont want to have past picks to show
+  outcomes it just makes the page way to long ... in the mlb gizmos picks we have the picks the
+  why underneath each pick, and then the top 10 plays of the day, we should do the same for both
+  football leagues"*; *"lose everything in the gizmos picks tab after the model picks gameliones
+  tab ... it should be as simple as the mlb gizmos picks"*. ✅ The tab draws the Player props /
+  Game lines switch, the card's liked list (`fbView`: `liked`, `game_lines_liked` whenever the card
+  has them) with the why under each pick, and `fbTopPlays`, the top 10 (`card_fb.TOP_N` = 10, as
+  MLB's `card.TOP10_N`; ~~20~~). ⛔ No "Above their price only" button (~~`FBABOVE`,
+  `fbAbovePass`~~), no Model picks / Prop model picks / "What the model showed, graded" panels
+  (~~`fbModelAppend`, `fbModelHtml`, `fbPropModelHtml`, `fbLedgerHtml`, `fbPointText`~~) and no
+  "Card vs props model" record (~~`fbAgRecordHtml`~~); fb-model.json, fb-props-model.json,
+  model-ledger.json and agreement.json are still built and graded, and past picks with their
+  outcomes live in the Track Record. `research/fb_model_live_spec.md` (frozen) still says the
+  ledger is shown: Sam changed that requirement here. `test_fb_phone_page.py`, `test_fb_line_sign.py`,
+  `test_fb_ledger.py`, `test_agree_flags_page.py`, `test_top_plays.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -719,8 +735,10 @@ note boxes, tags and the stale bar now require their absence.
   better"*; *"the way i want you to predict outcomes of football games is by
   predicted scores"*. C8's rule now covers football props and game-line rows
   (`card_fb.mark_below_price`: the card's own `edge` <= 0, before the freeze); a
-  row above its price prints "Break-even 53.7% · edge +1.3". "Above their price
-  only" (kind bar, OFF by default, localStorage) hides exactly edge <= 0. Under
+  row above its price prints "Break-even 53.7% · edge +1.3". ~~"Above their price
+  only" (kind bar, OFF by default, localStorage) hides exactly edge <= 0.~~ `[Sam,
+  2026-10-17]` "no above their price only button in gizmos pikcs not needed": gone; the
+  page always shows the card's liked lists. Under
   600 px the tab bar is two rows, a prop row stacks its price under the player and
   a table scrolls in its own box. Football Game Lines shows winners.json's `week`
   (every game in `win_chances`, by ET day, "ET" times) with the model's predicted
@@ -983,8 +1001,9 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   logistic per league x market on signals 1-8, walk-
                   forward weekly, graded ONLY at Hard Rock / FanDuel /
                   DraftKings prices archived before kickoff. Rides
-                  `card-fb`; its own model section on the page (no
-                  chip since 2026-10-01). `[2026-10-01]` `win_chances`:
+                  `card-fb`; ~~its own model section on the page (no
+                  chip since 2026-10-01)~~ `[Sam, 2026-10-17]` no section on
+                  the page (Gizmo's Picks is as simple as MLB's). `[2026-10-01]` `win_chances`:
                   both teams' chance for every priced game, the Game
                   Lines tab's input (winners.py). ⛔ Never
                   touches the card. Design: research/fb_model_design.md.
@@ -995,9 +1014,10 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   and shown under it, never mixed in [Sam, 2026-09-23].
                   ⚠️ `[2026-10-16]` A spread pick's `line` is M, the
                   threshold on the HOME margin (= -home point), so a HOME
-                  pick's own point is -M. The page prints every model
+                  pick's own point is -M. ~~The page prints every model
                   line through `fbPointText` (Cleveland +3.5 had shown
-                  "-3.5"); `test_fb_line_sign.py`.
+                  "-3.5")~~ `[2026-10-17]` the page prints no model line;
+                  `test_fb_line_sign.py` fails if one returns.
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   stat distribution from the stored logs 2021-26, the
                   market line folded in from EARLIER priced weeks only,
@@ -1024,7 +1044,8 @@ fb_card_fix.py    scores the football props card's season fix (reads 2026
                   switch is `card_fb.CARD_METHOD`.
 fb_ledger.py      "What the model showed, graded": both football models'
                   picks saved before kickoff via daystore, graded ONCE
-                  and frozen, listed pick by pick; the verdict label per
+                  and frozen, ~~listed pick by pick~~ (`[Sam, 2026-10-17]`
+                  not on the page any more); the verdict label per
                   market (fb_model.verdict) beside every record
                   (`research/fb_model_live_spec.md`, frozen). Rides
                   `card-fb`. ⛔ Never recalculates a graded pick.
@@ -1115,8 +1136,9 @@ fb_agreement.py   card vs props model (Sam, 2026-09-25): every card row and
                   once, its own record; scores the pre-registered
                   question in research/fb_agreement_spec.md (frozen).
                   ⛔ ~~A note on the row~~ Not printed on the row since
-                  2026-10-01 (still labelled, frozen and graded; the
-                  record table stays) — changes no pick, rank or price.
+                  2026-10-01 (still labelled, frozen and graded; ~~the
+                  record table stays~~ `[Sam, 2026-10-17]` the record table
+                  left the page too) — changes no pick, rank or price.
                   `[Sam, 2026-10-09]` Where the model set a row's
                   confidence, the card's side is the row's record (`rate`).
 news_flags_fb.py  the free news-flag reviewer (Sam, 2026-09-25): once a

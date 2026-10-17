@@ -3,7 +3,9 @@
 TOP PLAYS OF THE DAY.
 
 Sam: *"top plays of the day, at the bottom of Gizmo's Picks, same
-single-day rule, capped at 20."*
+single-day rule, capped at 20."* `[Sam, 2026-10-17]` ~~capped at 20~~ 10:
+*"the top 10 plays of the day, we should do the same for both football
+leagues"*, as MLB's `card.TOP10_N` (§1 cross-checks the two).
 
 🔴 AND THE OWED CHECK FROM THE CHECKLIST, WHICH IS THE POINT OF HALF THIS
 FILE. `claude/football-todo.md` says of the confidence item: *"Verify it
@@ -20,6 +22,11 @@ exist here. §4 measures that rather than trusting the docstring.
 `[2026-09-28]` Every mutation below is caught by the PLANTED board (§2b),
 whatever the live college board holds that day:
 
+# @vacuity [Sam, 2026-10-17] the football top plays are capped at 10, MLB's number (~~20~~)
+#   file: card_fb.py
+#   find: TOP_N = 10
+#   with: TOP_N = 20
+#
 # @vacuity a top play labelled MODEL is caught on the planted card
 #   file: card_fb.py
 #   find: out.append(x)
@@ -102,13 +109,27 @@ import card_fb  # noqa: E402
 
 # ───────────────────────────────────────────────────────────────
 print("\n═══ 1. SAM'S NUMBERS, AND THE ONE SHARED WITH card.py ═══")
-ck("the cap is 20", card_fb.TOP_N == 20, "TOP_N=%s" % card_fb.TOP_N)
+# `[Sam, 2026-10-17]` "in the mlb gizmos picks we have the picks the why underneath each
+#    pick, and then the top 10 plays of the day, we should do the same for both football
+#    leagues." The cap is ~~20~~ 10 now, MLB's number (cross-checked below).
+ck("the cap is 10 (~~20~~) [Sam, 2026-10-17]", card_fb.TOP_N == 10,
+   "TOP_N=%s; Sam: \"the top 10 plays of the day, we should do the same for both "
+   "football leagues\"" % card_fb.TOP_N)
 
 # 🔴 THE RULE 66 CROSS-CHECK. The payable floor is SAM'S number, stated
 #    once for the MLB list. Restating it in a second file is the hazard
 #    whether or not the two currently agree — the parlay bands are checked
 #    the same way, for the same reason.
 csrc = open(os.path.join(ROOT, "card.py")).read()
+# `[Sam, 2026-10-17]` "the same for both football leagues": the cap is MLB's too, so it is
+#    cross-checked against card.py's TOP10_N the way the floor is, never retyped as a
+#    coincidence. Read from the source: card.py is not importable under LEAGUE=ncaaf.
+m10 = re.search(r"^TOP10_N\s*=\s*(\d+)", csrc, re.M)
+ck("card.py declares TOP10_N", m10 is not None)
+if m10:
+    ck("football's top-plays cap equals MLB's top 10 [Sam, 2026-10-17]",
+       card_fb.TOP_N == int(m10.group(1)),
+       "football %s vs mlb %s" % (card_fb.TOP_N, m10.group(1)))
 # `[Sam, 2026-10-01]` ~~TOP10_PRICE_FLOOR / TOP_PRICE_FLOOR~~: ONE floor per
 #    league file, PRICE_FLOOR, for every row (test_price_floor.py §5).
 m = re.search(r"^PRICE_FLOOR\s*=\s*(-?\d+)", csrc, re.M)
@@ -354,8 +375,9 @@ if ck("the builder produces a card", C is not None):
     strays = [x for x in T
               if (x["player"], x["market"], x["side"], x["line"]) not in ids]
     note("%d of %d top plays are also rows on the 50-row board; %d are not "
-         "(a row can be top-20 by confidence and still miss a 50-row board "
-         "that is itself capped)" % (len(T) - len(strays), len(T), len(strays)))
+         "(a row can be top-%d by confidence and still miss a 50-row board "
+         "that is itself capped)" % (len(T) - len(strays), len(T), len(strays),
+                                     card_fb.TOP_N))
 
     # ⚠️ THE SENTENCE MUST CARRY THE *CURRENT* OVERLAP, NOT THE ONE THAT
     # PROMPTED THE CHANGE. A rule that quotes the number it was built to

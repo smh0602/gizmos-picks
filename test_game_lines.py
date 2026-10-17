@@ -39,6 +39,11 @@ the builder's own sentence in §9) is unchanged.
 (test_fb_game_picks.py); `build_game_lines` is the same-game parlays' line
 legs, and the page draws each game-line row with pickCard (§8–§10).
 
+`[Sam, 2026-10-17]` *"no above their price only button in gizmos pikcs not
+needed."* §8's one filter is now the model's own rows only (kind fb-line);
+~~it also took the "Above their price only" switch (`fbAbovePass`)~~, which
+must stay absent from the page.
+
 # @vacuity the page states no model count: the FOUR went with its note boxes [Sam, 2026-10-01]
 #   file: index.html
 #   find: <h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
@@ -63,6 +68,16 @@ legs, and the page draws each game-line row with pickCard (§8–§10).
 #   file: index.html
 #   find: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
 #   with: + g.slice(0, 1).map(p => p.player).join('');
+#
+# @vacuity [Sam, 2026-10-17] the game lines have no "Above their price only" filter (~~fbAbovePass~~)
+#   file: index.html
+#   find: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
+#   with: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && fbAbovePass(p));
+#
+# @vacuity [Sam, 2026-10-17] ...and no price or edge test hides a row the card listed
+#   file: index.html
+#   find: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
+#   with: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && !(p.edge != null && p.edge <= 0));
 """
 import gzip
 import json
@@ -235,11 +250,18 @@ _glf = _glf[:_glf.index("\nfunction ", 1)]
 ck("⛔ the page does not re-rank or re-compute the rows: it draws the card's own order",
    "pickCard(p)" in _glf and ".sort(" not in _glf
    and _glf.count(".filter(") == 1
-   # [Sam, 2026-10-14] the one filter also takes "Above their price only" (a reader's
-   # switch, off by default): it hides rows, it never re-ranks or re-computes one.
-   and ".filter(p => p.kind === 'fb-line' && fbAbovePass(p))" in _glf,
+   # ~~[Sam, 2026-10-14] the one filter also takes "Above their price only" (a reader's
+   # switch, off by default): it hides rows, it never re-ranks or re-computes one.~~
+   # `[Sam, 2026-10-17]` "no above their price only button in gizmos pikcs not needed."
+   #    The switch is gone, so the one filter is the model's own rows and nothing else:
+   #    ~~`.filter(p => p.kind === 'fb-line' && fbAbovePass(p))`~~, and no price or edge
+   #    test hides a row the card listed.
+   and ".filter(p => p.kind === 'fb-line')" in _glf
+   and "fbAbovePass" not in html and "p.edge" not in _glf,
    "rule 132 — the page prints what the builder computed; a second copy "
-   "of the selection rule is a second thing to drift")
+   "of the selection rule is a second thing to drift. [Sam, 2026-10-17] \"no above "
+   "their price only button in gizmos pikcs not needed\": ~~fbAbovePass~~ is gone, "
+   "and the one filter is kind fb-line only")
 
 print("\n═══ 9. ⚠️ THE MODEL COUNT IS FOUR NOW, NOT THREE ═══")
 # [Sam, 2026-10-01] ~~the page says FOUR pre-registered models were tested~~

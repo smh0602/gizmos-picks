@@ -38,10 +38,10 @@ scored exactly as `research/fb_card_calibration_spec.md` fixes it
 #   find:   <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>
 #   with:   <p style="color:var(--mut);margin:0">${freshness(C.odds_pulled_at)}</p>${fbCardCalHtml(CC)}
 #
-# @vacuity [Sam, 2026-10-01] the page no longer loads card-calibration.json at all
+# @vacuity [Sam, 2026-10-01] the page no longer loads card-calibration.json at all (`[Sam, 2026-10-17]` put back at fbPicks' splitStarted line: ~~const AG = await fbAgLoad();~~ left fbPicks with the agreement record)
 #   file: index.html
-#   find:   const AG = await fbAgLoad();
-#   with:   const AG = await fbAgLoad(); const CC = await jget(`${LG_DATA[LEAGUE]}/latest/card-calibration.json`);
+#   find:   const {list, nStarted, allDone} = splitStarted(C.picks);
+#   with:   const {list, nStarted, allDone} = splitStarted(C.picks); const CC = await jget(`${LG_DATA[LEAGUE]}/latest/card-calibration.json`);
 """
 import datetime
 import gzip

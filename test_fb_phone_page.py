@@ -8,8 +8,11 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
   1. a football row whose card edge is <= 0 carries `below_price`; the page prints
      its %, break-even and edge; a row above its price adds the edge to the
      break-even line; MLB's line is unchanged
-  2. "Above their price only" hides exactly the rows with edge <= 0, and nothing
-     while off (the default, also when storage throws)
+  2. ~~"Above their price only" hides exactly the rows with edge <= 0, and nothing
+     while off (the default, also when storage throws)~~ `[Sam, 2026-10-17]` "no above
+     their price only button in gizmos pikcs not needed": the button, its switch and its
+     storage are gone from the page; the board shows the card's liked lists whenever the
+     card has them, and every row the card lists, at any edge
   3. Game Lines lists every planted game of the week, grouped by ET day, "ET" times
   4. the predicted score is the FULL model's (margin = sigma x NormalInverse of
      the chance shown): the higher score is always the pick's, 50% is a tie, a
@@ -32,20 +35,23 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:   [...host.children].forEach((c, i) => fbEdgeLine(c, kept[i]));
 #   with:   [...host.children].forEach((c, i) => c);
 #
-# @vacuity 🔴 the filter hides exactly the rows with edge <= 0
+# `[Sam, 2026-10-17]` the next three were ~~"the filter hides exactly the rows with edge <= 0"~~,
+#    ~~"the filter is ON by default [Sam, 2026-10-15]"~~ and ~~"the props board runs through the
+#    filter"~~; each now re-adds the removed filter or button, and section 2 must go red.
+# @vacuity 🔴 [Sam, 2026-10-17] the game lines draw every row the card lists (re-adds the edge <= 0 filter)
 #   file: index.html
-#   find:   return !FBABOVE || !(p && p.edge != null && p.edge <= 0);
-#   with:   return !FBABOVE || !(p && p.edge != null && p.edge < 0);
+#   find:   const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
+#   with:   const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && !(p.edge != null && p.edge <= 0));
 #
-# @vacuity 🔴 the filter is ON by default [Sam, 2026-10-15]
+# @vacuity 🔴 [Sam, 2026-10-17] no "Above their price only" button in the kind bar (re-adds it)
 #   file: index.html
-#   find: let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') !== '0'; }
-#   with: let FBABOVE = (() => { try { return localStorage.getItem('gp_fb_above') === '1'; }
+#   find:     chip('lines', 'Game lines', nLines)}</div>`;
+#   with:     chip('lines', 'Game lines', nLines)}<button class="kchip on" data-fbabove>Above their price only</button></div>`;
 #
-# @vacuity 🔴 the props board runs through the filter
+# @vacuity 🔴 [Sam, 2026-10-17] the props board shows every row the card lists (re-adds the edge <= 0 filter)
 #   file: index.html
-#   find:   const kept = inConf.filter(fbAbovePass);
-#   with:   const kept = inConf;
+#   find:   const kept = inConf;
+#   with:   const kept = inConf.filter(p => !(p && p.edge != null && p.edge <= 0));
 #
 # @vacuity 🔴 the week lists every game in the win chances
 #   file: winners.py
@@ -197,33 +203,78 @@ ck("🔴 both football boards add it: the props board after each card, the game 
    and "fbEdgeLine(pickCard(p), p)" in js_block("fbGameLines", PAGE))
 
 # ══════════════════════════════════════════════════════════════════════
-section("2. 🔴 \"ABOVE THEIR PRICE ONLY\": OFF BY DEFAULT, HIDES EXACTLY EDGE <= 0")
+section("2. 🔴 ~~\"ABOVE THEIR PRICE ONLY\": OFF BY DEFAULT, HIDES EXACTLY EDGE <= 0~~ "
+        "`[Sam, 2026-10-17]` NO SUCH BUTTON: THE BOARD SHOWS EVERY ROW THE CARD LISTS")
 # ══════════════════════════════════════════════════════════════════════
-_init = re.search(r"\nlet FBABOVE = .*?\}\)\(\);", SRC, re.S).group(0)
-FILT = r"""
+# `[Sam, 2026-10-17]` "no above their price only button in gizmos pikcs not needed."
+#    ~~[Sam, 2026-10-14] off by default / [Sam, 2026-10-15] on by default, hides exactly the
+#    rows with edge <= 0, remembered per browser~~. The requirement is now its ABSENCE: no
+#    button, no switch, no stored setting, and no edge filter on either board. The card's own
+#    liked lists (card_fb.best_liked) are what the board shows whenever the card has them.
+_code = re.sub(r"/\*.*?\*/|<!--.*?-->", "", SRC, flags=re.S)     # comments may quote the old text
+_gone = {k: _code.count(k) for k in ("Above their price only", "FBABOVE", "fbAbovePass", "gp_fb_above",
+                                      "data-fbabove")}
+ck("🔴 the button, its switch (FBABOVE), its filter (fbAbovePass) and its stored setting "
+   "(gp_fb_above) are gone from the page's code (~~present, ON by default~~)",
+   not any(_gone.values()), str(_gone))
+KB = r"""
 const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
-const run = (store, on) => new Function('localStorage', 'ROWS', 'ON',
-  S.init + '\n' + S.fn + '\nif (ON !== null) FBABOVE = ON;'
-  + '\nreturn [FBABOVE, ROWS.map(r => fbAbovePass(r))];')(store, S.rows, on);
-const empty = {getItem: () => null}, set = {getItem: () => '0'},
-      boom = {getItem: () => { throw new Error('blocked'); }};
-process.stdout.write(JSON.stringify([run(empty, null), run(boom, null), run(set, null),
-                                     run(empty, true), run(empty, false)]));
+const fbKindBar = new Function('FBPICKKIND', S.fn + '\nreturn fbKindBar;')('props');
+process.stdout.write(JSON.stringify(fbKindBar(S.card).replace(/\s+/g, ' ')));
 """
-F = node(FILT, {"init": _init, "fn": js_block("fbAbovePass", PAGE), "rows": ROWS}) or [[None, []]] * 5
-# `[Sam, 2026-10-15]` ~~off by default~~: "i just want you to have the best plays our
-#    model likes simple as that" -- ON by default, and when storage throws; OFF only
-#    when this browser remembered it switched off.
-ck("🔴 ON by default and when storage throws; off when the browser remembered off",
-   [F[0][0], F[1][0], F[2][0]] == [True, True, False], str(F[:3]))
-ck("🔴 off: every row shows", F[4][1] == [True] * len(ROWS), str(F[4][1]))
-ck("🔴 on: hidden are exactly the rows with edge <= 0 (-3.8 and 0.0); +1.3, +3.0 and no edge stay",
-   F[3][1] == [False, False, True, True, True], str(F[3][1]))
-_pk, _gl = js_block("fbPicks", PAGE), js_block("fbGameLines", PAGE)
-ck("🔴 the props board and the game lines both run through it, and the button sits in the kind bar",
-   "const kept = inConf.filter(fbAbovePass);" in _pk and "fbAbovePass(p)" in _gl
-   and "Above their price only" in js_block("fbKindBar", PAGE)
-   and "localStorage.setItem('gp_fb_above'" in js_block("fbKindWire", PAGE))
+_kb = node(KB, {"fn": js_block("fbKindBar", PAGE),
+                "card": {"picks": ROWS[:4], "game_lines": ROWS[4:]}}) or ""
+ck("🔴 the kind bar holds exactly its two chips, Player props and Game lines, and nothing else",
+   _kb.count("<button") == 2 and _kb.count("data-fbkind=") == 2 and "Player props" in _kb
+   and "Game lines" in _kb and "price" not in _kb.lower(), _kb)
+
+# The shipped fbPicks, with the shipped fbView, fbNoLiked and fbGameLines; only the DOM and
+# the loaders are stubbed. Each drawn row prints its player and edge.
+PK = r"""
+const S = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
+const text = n => (n.innerHTML || '') + ' ' + (n.kids || []).map(text).join(' ');
+function node(){ return {className: '', innerHTML: '', kids: [],
+  get children(){ return this.kids; },
+  append(...k){ this.kids.push(...k); },
+  insertAdjacentHTML(_, h){ this.kids.push({innerHTML: h, kids: []}); },
+  get outerHTML(){ return text(this); } }; }
+const document = {createElement: () => node()};
+const row = p => { const n = node(); n.innerHTML = '<row>' + p.player + '|' + p.edge + '</row>'; return n; };
+const nil = () => '';
+async function run(card, kind){
+  const v = node();
+  const fbPicks = new Function('$', 'document', 'fbShell', 'fbWire', 'fbCardLoad', 'fbDayHead',
+    'fbKindBar', 'FBPICKKIND', 'fbDayName', 'fbNoCard', 'splitStarted', 'freshness', 'fbConfBar',
+    'startedToggle', 'fbConfPass', 'pickCard', 'fbEdgeLine', 'fbConf', 'fbTopPlays', 'fbKindWire',
+    'showStarted', S.blocks.join('\n') + '\nreturn fbPicks;')(
+    s => s === '#fbview' ? v : null, document, h => h, nil, async () => JSON.parse(JSON.stringify(card)),
+    nil, nil, kind, d => d, nil, ps => ({list: ps, nStarted: 0, allDone: false}), nil, nil, nil,
+    () => true, row, (c, p) => c, new Set(), nil, nil, false);
+  await fbPicks();
+  return text(v).match(/<row>[^<]*<\/row>/g) || [];
+}
+(async () => {
+  const out = [];
+  for (const [card, kind] of S.runs) out.push(await run(card, kind));
+  process.stdout.write(JSON.stringify(out));
+})().catch(e => { console.error(e && e.stack || e); process.exit(1); });
+"""
+PROPS = [dict(r, player="P%d" % i) for i, r in enumerate(ROWS[:4])]       # edges -3.8, 0.0, +1.3, none
+LINES = [dict(ROWS[4], player="Line below", edge=-1.0, below_price=True), dict(ROWS[4], player="Line above")]
+OLDC = {"date": "2026-10-18", "picks": PROPS, "game_lines": LINES, "game_lines_meta": {"slate": "2026-10-18"}}
+NEWC = dict(OLDC, liked=[PROPS[2]], game_lines_liked=[LINES[1]])
+PB = node(PK, {"blocks": [js_block(f, PAGE) for f in ("fbView", "fbNoLiked", "fbGameLines", "fbPicks")],
+               "runs": [[OLDC, "props"], [OLDC, "lines"], [NEWC, "props"], [NEWC, "lines"]]}) or [[]] * 4
+_rows = lambda rs: ["<row>%s|%s</row>" % (r["player"], "null" if r["edge"] is None  # noqa: E731
+                                            else "%g" % r["edge"]) for r in rs]           # as JS prints it
+ck("🔴 a card with no liked list: the props board draws every row it lists, edge -3.8, 0.0, +1.3 "
+   "and none alike, in the card's order (~~edge <= 0 hidden while the button was on~~)",
+   PB[0] == _rows(PROPS), str(PB[0]))
+ck("🔴 ...and its game lines every fb-line row, the one below its price too",
+   PB[1] == _rows(LINES), str(PB[1]))
+ck("🔴 a card with liked lists: the board always shows them (~~only while the button was on~~), "
+   "props and game lines, exactly as the card wrote them",
+   PB[2] == _rows([PROPS[2]]) and PB[3] == _rows([LINES[1]]), str(PB[2:]))
 
 # ══════════════════════════════════════════════════════════════════════
 section("3. 🔴 GAME LINES SHOWS THE WEEK, BY ET DAY, WITH \"ET\" TIMES")

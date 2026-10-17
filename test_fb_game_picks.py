@@ -95,10 +95,13 @@ alternate spreads once, in their own line. Planted data; the page in node.
 #   find: if (d and d != _gl_day) or not ours:
 #   with: if d and d != _gl_day:
 #
+# `[Sam, 2026-10-17]` re-aimed: the line it found also ran ~~`&& fbAbovePass(p)`~~, the
+#    "Above their price only" filter, which left the page ("no above their price only button
+#    in gizmos pikcs not needed"); the kind filter is the whole line now.
 # @vacuity 🔴 ...and the page never draws one
 #   file: index.html
-#   find: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line' && fbAbovePass(p));
-#   with: const g = ((C && C.game_lines) || []).filter(p => fbAbovePass(p));
+#   find: const g = ((C && C.game_lines) || []).filter(p => p.kind === 'fb-line');
+#   with: const g = ((C && C.game_lines) || []);
 #
 # @vacuity 🔴 a game-line row names its team, with no side word
 #   file: index.html
@@ -267,7 +270,7 @@ const stub = () => '';
 const fn = new Function('document', 'confClass', 'headUrl', 'projChip', 'mark', 'ab', 'sgn',
   'bookChip', 'betControl', 'betLink', 'fbMark', 'fbAb', 'FBTEAMS', 'LEAGUE',
   S.el + '\n' + S.dn + '\n' + S.pc + '\n' + S.gl
-  + '\nconst FBABOVE = false;\n' + S.ab + '\n' + S.ed + '\nreturn fbGameLines;');   // the filter (off), the edge line
+  + '\n' + S.ed + '\nreturn fbGameLines;');   // the edge line; [Sam, 2026-10-17] ~~the filter (off)~~: no filter left
 const fbGameLines = fn(document, stub, stub, stub, stub, stub, x => (x > 0 ? '+' : '') + x,
   stub, stub, stub, stub, stub, {}, 'nfl');
 process.stdout.write(JSON.stringify(fbGameLines(S.card).replace(/\s+/g, ' ')));
@@ -276,7 +279,7 @@ tmp = tempfile.mkdtemp(prefix="fbgl-")
 try:
     open(os.path.join(tmp, "d.js"), "w", encoding="utf-8").write(DRIVER)
     json.dump({"el": _el, "dn": js_block("fbDayName", PAGE), "pc": js_block("pickCard", PAGE),
-               "gl": js_block("fbGameLines", PAGE), "ab": js_block("fbAbovePass", PAGE), "ed": js_block("fbEdgeLine", PAGE),
+               "gl": js_block("fbGameLines", PAGE), "ed": js_block("fbEdgeLine", PAGE),
                "card": {"game_lines": ROWS + [OLD], "game_lines_meta": {"slate": SLATE}}},
               open(os.path.join(tmp, "d.json"), "w"))
     r = subprocess.run(["node", os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")],

@@ -118,6 +118,11 @@ a pre-registration condition of T60, not a refinement.
 #        counted 2 refused attempts (2 red);
 #      - #156's `[:1]` (one other day wiped): 2 red — a real archive left
 #        in place described 168 of the "calendar" rows.
+#    `[2026-10-17]` the per-card top-plays cap (section 6), run the same way:
+#      - `_top_problem` judging `len(top) > cap` (frozen rows ignored): the card
+#        the real `freeze_published` makes across the switch went red (1 red);
+#      - `_top_problem` judging `len(top) > OLD_TOP_N` (the loosest cap for every
+#        card): the planted card one row over its declared 10 passed (1 red).
 # ══════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -568,7 +573,55 @@ _cards = sorted(glob.glob(os.path.join(ROOT, "picks", "fb-*-*.json")))
 #    13 published cards: picks run 0-50 while top plays run 0-20, and one
 #    card sits EXACTLY at 20. A first draft of this checked the rated
 #    picks against `TOP_N` and reddened on four perfectly good cards.
-_tops = []
+# 🔴 `[Sam, 2026-10-17]` "the top 10 plays of the day, we should do the same for both
+#    football leagues": `TOP_N` is ~~20~~ 10. ⛔ A published card is a permanent record and
+#    is never rebuilt, so the cards built under 20 still hold up to 20. Each card is held
+#    to the cap IT DECLARES ("Nothing is padded back to N", the `TOP_N` of the code that
+#    built it), never one cap for every card (~~"not one publishes more than TOP_N"~~ went
+#    red on four correct pre-switch cards the day of the switch), and never the loosest
+#    cap for every card (that would wave through a new card at 20). Three bars, all hard:
+#      - no card holds more than OLD_TOP_N (20), the largest cap ever in force;
+#      - a declared cap is one that was in force: OLD_TOP_N or today's `TOP_N`;
+#      - a card holds no more than max(its declared cap, the rows whose game had
+#        already started when it was built). `_merge_list` never trims a FROZEN row, so a
+#        card first built under 20 and rebuilt under 10 after kickoff correctly keeps
+#        every started row (driven through `freeze_published` below, not assumed).
+#        "Started" is the code's own `_started` at the card's `generated_at`, plus
+#        `_TOP_BUILD_SLACK_MIN`: `generated_at` is stamped a little BEFORE the freeze's own
+#        clock, and a game kicking off in between is frozen by the code.
+OLD_TOP_N = 20              # the cap in force until 2026-10-17 (history, not a setting)
+_TOP_BUILD_SLACK_MIN = 10
+_TOP_CAP_RE = re.compile(r"Nothing is padded back to (\d+)")
+
+
+def _top_problem(c):
+    """None when a card keeps the cap it was built under, else why not."""
+    top = [t for t in (c.get("top_plays") or []) if isinstance(t, dict)]
+    if not top:
+        return None
+    m = _TOP_CAP_RE.findall(c.get("top_plays_rule") or "")
+    cap = int(m[-1]) if m else None
+    if cap is None:
+        return "%d top plays and no declared cap" % len(top)
+    if cap not in (OLD_TOP_N, card_fb.TOP_N):
+        return "declares a cap of %d, never in force" % cap
+    if len(top) > OLD_TOP_N:
+        return "%d top plays, over the largest cap ever in force (%d)" % (len(top), OLD_TOP_N)
+    built = c.get("generated_at") or ""
+    try:
+        when = (datetime.datetime.strptime(built, "%Y-%m-%dT%H:%M:%SZ")
+                + datetime.timedelta(minutes=_TOP_BUILD_SLACK_MIN)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        when = ""
+    kicks = card_fb._kickoffs(c)
+    frozen = sum(1 for t in top if when and card_fb._started(t, kicks, when))
+    if len(top) > max(cap, frozen):
+        return ("%d top plays against its declared cap of %d (%d already started when it "
+                "was built)" % (len(top), cap, frozen))
+    return None
+
+
+_tops, _judged = [], []
 for _f in _cards:
     if _f.endswith("-latest.json"):
         continue
@@ -577,24 +630,74 @@ for _f in _cards:
     except Exception:
         continue
     _tops.append((os.path.basename(_f), len(_c.get("top_plays") or [])))
+    _judged.append((os.path.basename(_f), _top_problem(_c)))
 note("published cards swept: %d, the most top plays on one: %d"
      % (len(_tops), max([n for _n, n in _tops] or [0])))
+# ⚠️ THE PARSE IS TIED TO THE CODE, not to the stored prose: the builder's own sentence
+#    must still declare the cap it builds under, or every new card reads "no declared cap".
+_fsrc = open(os.path.join(ROOT, "card_fb.py"), encoding="utf-8").read()
+ck("Nothing is padded back to {TOP_N}" in _fsrc,
+   "   ⚠️ the card's own sentence declares the cap it was built under (card_fb.py writes "
+   "\"Nothing is padded back to {TOP_N}\")",
+   "⛔ without it the per-card cap below could not be read off a card. [Sam, 2026-10-17] "
+   "the cap changed, so a card must say which one it was built under")
 # 🔴 `[Sam, 2026-10-09]` THE PRECONDITIONS ARE PLANTED; THE DEFECT CHECK STAYS LIVE.
 #    "3 or more cards" and "one EXACTLY at the cap" were facts about picks/, so the
 #    day's data could turn them red. The sweep now always holds a card the CODE
 #    builds from TOP_N + 5 candidates in as many games: it sits at the cap
 #    whatever main holds, and the bar below still reads every published card.
 _cand = [{"player": "Plant %d" % i, "game_id": "plant-%d" % i, "price": -110,
+          "commence": "2099-01-01T18:00:00Z",
           "confidence": 90.0 - i} for i in range(card_fb.TOP_N + 5)]
-_tops.append(("planted (build_top_plays)", len(card_fb.build_top_plays(_cand, _cand)[0])))
+_planted = card_fb.build_top_plays(_cand, _cand)[0]
+_tops.append(("planted (build_top_plays)", len(_planted)))
+_judged.append(("planted (build_top_plays)", _top_problem(
+    {"top_plays": _planted, "generated_at": "2026-10-17T12:00:00Z",
+     "top_plays_rule": "⛔ Nothing is padded back to %d." % card_fb.TOP_N})))
 ck(_tops[-1][1] == card_fb.TOP_N,
    "⚠️ the sweep holds a card EXACTLY at the cap: the code built %d top plays from "
    "%d candidates, so the bar below is a live comparison" % (_tops[-1][1], len(_cand)),
    "⛔ rule 67: a cap no card reaches is a cap nothing tests")
-_over = [x for x in _tops if x[1] > card_fb.TOP_N]
+# ✅ `[Sam, 2026-10-17]` THE JUDGE IS DRIVEN BOTH WAYS before it reads a published card.
+#    It must fail a card one row over the cap it declares...
+_one_over = _top_problem({"top_plays": _planted + [dict(_cand[-1], player="Over One",
+                                                        game_id="over-1")],
+                          "generated_at": "2026-10-17T12:00:00Z",
+                          "top_plays_rule": "Nothing is padded back to %d." % card_fb.TOP_N})
+ck(_one_over is not None,
+   "   🔴 ...and a planted card ONE row over the cap it declares is caught",
+   "⛔ a guard that cannot fail is not a guard. Got %r" % (_one_over,))
+# ...and pass the card the REAL merge makes when a pre-switch card (20 top plays, all
+#    started) is rebuilt under today's cap: `freeze_published` keeps every frozen row.
+_old_rows = [{"player": "Old %d" % i, "game_id": "old-%d" % i, "market": "m",
+              "side": "Over", "line": 0.5, "price": -110, "confidence": 80.0 - i,
+              "commence": "2026-10-17T16:00:00Z"} for i in range(OLD_TOP_N)]
+_tdir = tempfile.mkdtemp(prefix="shadow-top-")
+try:
+    _old_path = os.path.join(_tdir, "fb-nfl-2026-10-17.json")
+    with open(_old_path, "w", encoding="utf-8") as _fh:
+        json.dump({"top_plays": _old_rows, "generated_at": "2026-10-17T15:00:00Z",
+                   "top_plays_rule": "Nothing is padded back to %d." % OLD_TOP_N}, _fh)
+    _new = {"top_plays": [dict(r, commence="2026-10-18T17:00:00Z")
+                          for r in _planted],
+            "generated_at": "2026-10-17T20:00:00Z",
+            "top_plays_rule": "Nothing is padded back to %d." % card_fb.TOP_N}
+    _crossed, _ = card_fb.freeze_published(_new, _old_path, "2026-10-17T20:00:00Z",
+                                           log=lambda m: None)
+finally:
+    shutil.rmtree(_tdir, ignore_errors=True)
+_ncross = len(_crossed.get("top_plays") or [])
+ck(_ncross > card_fb.TOP_N and _top_problem(_crossed) is None,
+   "   ✅ ...while the card the real merge makes across the switch (%d frozen rows kept "
+   "under a cap of %d) is NOT flagged" % (_ncross, card_fb.TOP_N),
+   "⛔ a guard that fires on correct code is the other failure, not a safe one: "
+   "`_merge_list` never trims a frozen row. Got %d rows, %r"
+   % (_ncross, _top_problem(_crossed)))
+_over = [(n, why) for n, why in _judged if why]
 ck(not _over,
-   "   ⛔ ...and not one publishes more than TOP_N=%d top play(s)"
-   % card_fb.TOP_N,
+   "   ⛔ ...and not one publishes more top plays than the cap it was built under "
+   "(~~one TOP_N for every card~~: %d under today's code, %d under the code before "
+   "2026-10-17)" % (card_fb.TOP_N, OLD_TOP_N),
    "🔴 the shadow record grades the BOARD — 1,245 rows in one run — and "
    "the card still publishes its top %d. Over: %s"
    % (card_fb.TOP_N, _over[:4]))

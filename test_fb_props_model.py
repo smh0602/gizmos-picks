@@ -72,20 +72,20 @@ in `research/fb_props_design.md` (Sam, 2026-09-24).
 #   find:     doc["picks"] = live
 #   with:     doc["picks"] = live[:card_fb.BOARD_MAX]
 #
-# @vacuity the page shows the props model beside the card, after it
+# @vacuity [Sam, 2026-10-17] ~~the page shows the props model beside the card, after it~~ the props model's section is never drawn on Gizmo's Picks
 #   file: index.html
-#   find:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbPropModelHtml(PM) + fbLedgerHtml(LD));
-#   with:   if (v && v.isConnected !== false) v.insertAdjacentHTML('beforeend', fbModelHtml(M) + fbLedgerHtml(LD));
+#   find:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept));
+#   with:   v.insertAdjacentHTML('beforeend', fbTopPlays(C, kept) + fbPropModelHtml(FBPROPMODEL[LEAGUE]));
 #
-# @vacuity [Sam, 2026-10-01] the props model's section wears no MODEL tag
+# @vacuity [Sam, 2026-10-17] ~~[Sam, 2026-10-01] the props model's section wears no MODEL tag~~ no "Prop model picks" heading (tagged or not) is drawn anywhere on the page
 #   file: index.html
-#   find:   if (!M) return `<div class="panel"><h2>Prop model picks</h2>
-#   with:   if (!M) return `<div class="panel"><h2>Prop model picks <span class="kind k-model">Model</span></h2>
+#   find:       <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks${C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2>
+#   with:       <h2 style="margin:0 0 4px;font-size:16px">Gizmo's Picks${C.date ? ' &mdash; ' + fbDayName(C.date) : ''}</h2><h2>Prop model picks <span class="kind k-model">Model</span></h2>
 #
-# @vacuity [Sam, 2026-10-01] the props model's section carries no note box
+# @vacuity [Sam, 2026-10-17] ~~[Sam, 2026-10-01] the props model's section carries no note box~~ the page never loads the props model's file, whatever draws it
 #   file: index.html
-#   find:   : '<p class="plain">No prop picks this week.</p>'}
-#   with:   : '<div class="note">No prop this week clears the break-even of the best available price.</div>'}
+#   find: const FBFLAGS = {};
+#   with: const FBFLAGS = {}, FBPROPMODEL = {}; const fbPropModelUrl = lg => `${LG_DATA[lg]}/latest/fb-props-model.json`;
 """
 import gzip
 import json
@@ -94,7 +94,7 @@ import shutil
 import sys
 import tempfile
 
-from tcheck import ck
+from tcheck import ck, note
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -229,24 +229,39 @@ ck(_one["verdict"].startswith("INCOMPLETE"),
    "⛔ found 2026-09-24: college alone read as the pooled verdict. got %r" % _one["verdict"])
 
 # ══════════════════════════════════════════════════════════════════════
-# 7. THE PAGE: its own section, after the card, record per market
-#    (`[Sam, 2026-10-01]` no longer tagged MODEL)
+# 7. THE PAGE: the props model's section is GONE from Gizmo's Picks; the
+#    BUILDER still writes every pick, uncapped
+#    (~~its own section, after the card, record per market~~; `[Sam,
+#    2026-10-01]` no longer tagged MODEL)
 # ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-17]` "lose everything in the gizmos picks tab after the model picks gameliones
+#    tab, so this means ot lose its record, week by week, on games it had not seen and eveyrhting
+#    below that. it should be as simple as the mlb gizmos picks."
+#    ~~the page shows the props model as its own section ("Prop model picks") with picks, hit rate
+#    and break-even (Sam, 2026-09-24: "their own section ... picks, hit rate and break-even"), and
+#    [Sam, 2026-10-01] no MODEL tag or note box~~: the whole section left the page, its tag and
+#    note box with it. ⛔ THE DATA IS UNCHANGED: fb-props-model.json is still built, priced at the
+#    card's floors, walk-forward graded and uncapped -- sections 1-6 above and the build() check
+#    below ask that exactly as before.
 _html = os.path.join(ROOT, "index.html")
-_app = jsblock.js_block("fbModelAppend", _html)
-_pm = jsblock.js_block("fbPropModelHtml", _html)
-# `[Sam, 2026-10-01]` This USED TO REQUIRE the section's MODEL tag
-#    (`k-model`, Sam 2026-09-24: "their own section, labelled MODEL"). Sam
-#    has since removed every MODEL / MARKET / DESCRIPTIVE / RECORD tag and
-#    every explanation box from the page, so the section is now required
-#    under its own heading with NO tag and NO note box -- and still with
-#    its picks, hit rate and break-even, uncapped.
-ck("fbPropModelHtml(PM)" in _app and "<h2>Prop model picks</h2>" in _pm
-   and 'class="kind' not in _pm and "k-model" not in _pm and 'class="note"' not in _pm
-   and "labN(r.hit_rate" in _pm and "labN(r.break_even" in _pm and "board_max" not in _pm and ".slice(" not in _pm,
-   "🔴 the page shows the props model as its own section (\"Prop model picks\") with picks, hit rate and "
-   "break-even, and [Sam, 2026-10-01] no MODEL tag or note box (the tag used to be required)",
-   "⛔ Sam, 2026-09-24: 'their own section ... picks, hit rate and break-even'; 2026-10-01: no tags, no boxes")
+_src = jsblock.source(_html)
+_top = jsblock.top_level_blocks(_html)
+_gone = ("fbPropModelHtml", "fbPropModelLoad")
+ck(not [n for n in _gone if n in _top or jsblock.calls(n, _html)],
+   "🔴 [Sam, 2026-10-17] the props model's section is gone: fbPropModelHtml and fbPropModelLoad "
+   "are neither defined nor called anywhere on the page",
+   "⛔ Sam: 'it should be as simple as the mlb gizmos picks'. still there: %r"
+   % {n: (n in _top, jsblock.calls(n, _html)) for n in _gone})
+# 🔴 THE CLASS, NOT THE NAMES: whatever function draws the props model's picks or record has to
+#    load its file. ⛔ Code patterns only (the URL, a heading): the page's own dated comments name
+#    "fb-props-model.json" and "Prop model picks" in prose.
+import re  # noqa: E402
+_reads = {pat: [_src.count("\n", 0, m.start()) + 1 for m in re.finditer(pat, _src)]
+          for pat in (r"latest/fb-props-model\.json", r">\s*Prop model picks\b")}
+ck(not any(_reads.values()),
+   "🔴 [Sam, 2026-10-17] ...and the page never loads fb-props-model.json and draws no 'Prop model "
+   "picks' heading, tagged or not (~~[Sam, 2026-10-01] the heading without its MODEL tag~~)",
+   "lines: %r" % {k: v for k, v in _reads.items() if v})
 # ~~🔴 the BUILDER caps the page at the card's BOARD_MAX (25), the rest in the file~~
 # 🔴 STRUCK 2026-09-24 BY SAM: "No cap on model picks. Only the Gizmo's Picks
 #    card keeps its limit." Driven through build() on 40 fake picks.
