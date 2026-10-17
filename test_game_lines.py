@@ -56,8 +56,8 @@ must stay absent from the page.
 #
 # @vacuity ...and no note under it, in either glyph [Sam, 2026-10-01]
 #   file: index.html
-#   find: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
-#   with: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('') + '<div class="note">&#128309; <b>Market, not a model.</b></div>';
+#   find: + g.map(p => pickCard(p).outerHTML).join('');
+#   with: + g.map(p => pickCard(p).outerHTML).join('') + '<div class="note">&#128309; <b>Market, not a model.</b></div>';
 #
 # @vacuity ...and the stylesheet styles no badge class [Sam, 2026-10-01]
 #   file: index.html
@@ -66,7 +66,7 @@ must stay absent from the page.
 #
 # @vacuity ...and every row is still drawn, by pickCard [Sam, 2026-10-01]
 #   file: index.html
-#   find: + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
+#   find: + g.map(p => pickCard(p).outerHTML).join('');
 #   with: + g.slice(0, 1).map(p => p.player).join('');
 #
 # @vacuity [Sam, 2026-10-17] the game lines have no "Above their price only" filter (~~fbAbovePass~~)
@@ -335,7 +335,7 @@ ck("✅ ...and the stylesheet styles neither badge class, so no tag can render a
 # `[Sam, 2026-10-01]` ~~rank, wager, the gain, the best price and its book~~:
 #    each row is the prop row's own card (test_fb_game_picks.py renders it).
 ck("✅ ...and every row is still drawn, by pickCard, the prop rows' own markup",
-   "+ g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');" in _gl,
+   "+ g.map(p => pickCard(p).outerHTML).join('');" in _gl,   # [Sam, 2026-10-17] ~~fbEdgeLine(...)~~
    "[Sam, 2026-10-01] kept: tables and cards with every number. Asserting "
    "a wrong thing is absent is not asserting the right thing is present")
 

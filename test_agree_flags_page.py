@@ -37,8 +37,8 @@ what is DRAWN.
 #
 # @vacuity [Sam, 2026-10-17] no row draws a label span (~~[Sam, 2026-10-01] a started row never frozen draws nothing, not its label_note~~)
 #   file: index.html
-#   find:   [...host.children].forEach((c, i) => fbEdgeLine(c, kept[i]));
-#   with:   [...host.children].forEach((c, i) => { fbEdgeLine(c, kept[i]); if (kept[i].label_note) c.insertAdjacentHTML('beforeend', '<span class="agl">' + fbEsc(kept[i].label_note) + '</span>'); });
+#   find:   kept.forEach(p => host.append(pickCard(p)));
+#   with:   kept.forEach(p => { host.append(pickCard(p)); if (p.label_note) host.insertAdjacentHTML('beforeend', '<span class="agl">' + fbEsc(p.label_note) + '</span>'); });
 #
 # @vacuity [Sam, 2026-10-17] no label finder is defined anywhere on the page (~~a row with no label draws nothing~~)
 #   file: index.html

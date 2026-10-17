@@ -84,8 +84,8 @@ whatever the live college board holds that day:
 #
 # @vacuity [Sam, 2026-10-01] the top plays carry no explanation box
 #   file: index.html
-#   find: <div class="p">${sgn(x.price)}</div>`).join('')}</div></div>`;
-#   with: <div class="p">${sgn(x.price)}</div>`).join('')}</div><div class="note">Every number here is the player's own record.</div></div>`;
+#   find: <div class="p">${sgn(x.price)}</div></div>`).join('')}</div></div>`;
+#   with: <div class="p">${sgn(x.price)}</div></div>`).join('')}</div><div class="note">Every number here is the player's own record.</div></div>`;
 #
 # @vacuity [Sam, 2026-10-17] every list the card shows is in confidence order (the liked props, built end to end)
 #   file: card_fb.py
