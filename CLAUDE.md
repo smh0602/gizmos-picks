@@ -653,6 +653,22 @@ note boxes, tags and the stale bar now require their absence.
   its old one; the card's sentence is kept in `why_card`. `[2026-10-16]` Its
   first version was checked sentence by sentence against the raw files (225) and
   six defects were fixed. `test_fb_why.py`.
+- 🔴 **FOOTBALL GIZMO'S PICKS IS AS SIMPLE AS MLB'S.** `[Sam, 2026-10-17]` *"no above their
+  price only button in gizmos pikcs not needed"*; *"i dont want to have past picks to show
+  outcomes it just makes the page way to long ... in the mlb gizmos picks we have the picks the
+  why underneath each pick, and then the top 10 plays of the day, we should do the same for both
+  football leagues"*; *"lose everything in the gizmos picks tab after the model picks gameliones
+  tab ... it should be as simple as the mlb gizmos picks"*. ✅ The tab draws the Player props /
+  Game lines switch, the card's liked list (`fbView`: `liked`, `game_lines_liked` whenever the card
+  has them) with the why under each pick, and `fbTopPlays`, the top 10 (`card_fb.TOP_N` = 10, as
+  MLB's `card.TOP10_N`; ~~20~~). ⛔ No "Above their price only" button (~~`FBABOVE`,
+  `fbAbovePass`~~), no Model picks / Prop model picks / "What the model showed, graded" panels
+  (~~`fbModelAppend`, `fbModelHtml`, `fbPropModelHtml`, `fbLedgerHtml`, `fbPointText`~~) and no
+  "Card vs props model" record (~~`fbAgRecordHtml`~~); fb-model.json, fb-props-model.json,
+  model-ledger.json and agreement.json are still built and graded, and past picks with their
+  outcomes live in the Track Record. `research/fb_model_live_spec.md` (frozen) still says the
+  ledger is shown: Sam changed that requirement here. `test_fb_phone_page.py`, `test_fb_line_sign.py`,
+  `test_fb_ledger.py`, `test_agree_flags_page.py`, `test_top_plays.py`.
 - 🔴🔴 **ONE TEAM PER GAME: ~~EVERY SIDE PICK~~ EVERY MONEYLINE AND RUN-LINE PICK IS ON THE
   MODEL'S EXPECTED WINNER, ALL THREE LEAGUES** (`[Sam, 2026-10-16]` a football spread follows
   the predicted score). `[Sam, 2026-10-16]` *"the model picked huskies on the moneyline for college
@@ -699,22 +715,6 @@ note boxes, tags and the stale bar now require their absence.
   (the lambda test). The record is recomputed each build, so its past numbers changed with the
   switch (Sam's choice). `test_fb_model_record.py` builds the same games once upcoming and once
   played and fails if the record and the list ever pick differently.
-- 🔴 **FOOTBALL GIZMO'S PICKS IS AS SIMPLE AS MLB'S.** `[Sam, 2026-10-17]` *"no above their
-  price only button in gizmos pikcs not needed"*; *"i dont want to have past picks to show
-  outcomes it just makes the page way to long ... in the mlb gizmos picks we have the picks the
-  why underneath each pick, and then the top 10 plays of the day, we should do the same for both
-  football leagues"*; *"lose everything in the gizmos picks tab after the model picks gameliones
-  tab ... it should be as simple as the mlb gizmos picks"*. ✅ The tab draws the Player props /
-  Game lines switch, the card's liked list (`fbView`: `liked`, `game_lines_liked` whenever the card
-  has them) with the why under each pick, and `fbTopPlays`, the top 10 (`card_fb.TOP_N` = 10, as
-  MLB's `card.TOP10_N`; ~~20~~). ⛔ No "Above their price only" button (~~`FBABOVE`,
-  `fbAbovePass`~~), no Model picks / Prop model picks / "What the model showed, graded" panels
-  (~~`fbModelAppend`, `fbModelHtml`, `fbPropModelHtml`, `fbLedgerHtml`, `fbPointText`~~) and no
-  "Card vs props model" record (~~`fbAgRecordHtml`~~); fb-model.json, fb-props-model.json,
-  model-ledger.json and agreement.json are still built and graded, and past picks with their
-  outcomes live in the Track Record. `research/fb_model_live_spec.md` (frozen) still says the
-  ledger is shown: Sam changed that requirement here. `test_fb_phone_page.py`, `test_fb_line_sign.py`,
-  `test_fb_ledger.py`, `test_agree_flags_page.py`, `test_top_plays.py`.
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
