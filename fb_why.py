@@ -4,9 +4,9 @@
 `[Sam, 2026-10-15]` "i also want a "why" behind the picks underneath each gizmo
 picks pick". Written his way (his props standard): the player's role, his record
 at this line, what the opponent allows to his position, the opponent's injuries
-at the spots that guard him (NFL), and the chance against the price. Game lines:
-the pick's own sentence, the model's predicted score and each team's points for
-and against.
+at the spots that guard him (NFL; college since 2026-10-17, below), and the
+chance against the price. Game lines: the pick's own sentence, the model's
+predicted score and each team's points for and against.
 
 ⛔ Reader sentences, every one with a number, no jargon (CLAUDE.md "THE WHY IS
 WRITTEN FOR A READER"). ⛔ It explains; it changes no pick, chance, rank or
@@ -23,6 +23,18 @@ THIS game's week; the season is the kickoff's, never the newest file on disk;
 and the predicted score is printed only when it lands on the pick's side (today
 the score comes from the moneyline and total fits and the spread fit is
 separate, so a spread pick could sit beside a score that loses it).
+
+`[Sam, 2026-10-17]` *"use the college injury source as long as it's accurate and
+up to date, we wouldn't want misinformation ruining our bets."* A college prop's
+why names the opponent's Out / Out for Season / Doubtful defenders who guard him,
+in the NFL's sentence, ONLY from cfb_injuries' CURRENT report of THIS game
+(`report_for` at the card's build time: published at most 36 hours before
+kickoff, and our newest reading of its source at most 6 hours old; design
+research/cfb_injuries_design.md §2). THIS game is the ONE stored schedule row
+with these teams within a day of kickoff, by its id (a college team's week is not
+unique); none, or two, gives no sentence. College codes reach GUARDS through
+cfb_injuries.POSITION_MAP (EDG -> EDGE, STR -> DB ...). ⛔ The NFL path is
+unchanged, and college never reads the NFL's per-week report store.
 """
 import datetime
 import gzip
@@ -81,10 +93,13 @@ def season_of(when):
 class Context:
     """The files one card's whys read, loaded once, for ONE season."""
 
-    def __init__(self, lg, latest, season):
+    def __init__(self, lg, latest, season, now=None):
         import card_fb as C
         import dossier_fb as D
-        self.lg, self.season = lg, season
+        self.lg, self.season, self.latest = lg, season, latest
+        # the card's build time: the moment a college injury report must be current at
+        self.now = now if now is not None else datetime.datetime.now(datetime.timezone.utc)
+        self.cfb = {}                     # schedule game id -> cfb_injuries.report_for's answer
         P = (_jz(os.path.join(latest, "players-%s.json.gz" % season)) or {}).get("players") or {}
         self.P, self.idx, self.norm = P, C.index_by_name(P), C.norm
         self.allowed = (_jz(os.path.join(latest, "allowed-by-position-%s.json.gz" % season))
@@ -119,15 +134,48 @@ class Context:
         few = 1 + sum(1 for x in vals if x < v)
         return v, rk, few, len(vals)
 
-    def week_of(self, home, away, when):
-        """The schedule week of THIS game (its codes, kickoff within a day), or None."""
+    def games_of(self, home, away, when, key):
+        """The stored schedule rows of THIS game (its codes, kickoff within a day)
+        that carry `key`, in schedule order."""
         d = _day(when)
+        out = []
         for g in self.sched:
             gd = _day(g.get("start"))
-            if (g.get("home") == home and g.get("away") == away and g.get("week") is not None
+            if (g.get("home") == home and g.get("away") == away and g.get(key) is not None
                     and d is not None and gd is not None and abs((gd - d).days) <= 1):
-                return g["week"]
-        return None
+                out.append(g)
+        return out
+
+    def week_of(self, home, away, when):
+        """The schedule week of THIS game (its codes, kickoff within a day), or None."""
+        hits = self.games_of(home, away, when, "week")
+        return hits[0]["week"] if hits else None
+
+    def college_outs(self, team, guards, home, away, when):
+        """`[Sam, 2026-10-17]` `team`'s defenders listed Out / Out for Season /
+        Doubtful at `guards` on THIS game's college report, ONLY when
+        cfb_injuries judges it current at the card's build time (`out_players`
+        gives None otherwise). ⛔ THIS game is the ONE stored schedule row with
+        these teams within a day of kickoff, by its id (never its week); none,
+        or two that could be it -> nothing, never a guess. College codes reach
+        GUARDS through POSITION_MAP (EDG -> EDGE, STR -> DB)."""
+        import cfb_injuries as CI
+        hits = self.games_of(home, away, when, "id")
+        if len(hits) != 1:              # ⛔ two stored games could be this one: never a guess
+            return []
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(self.latest))))
+        if os.path.normcase(os.path.abspath(CI.latest(root))) != os.path.normcase(os.path.abspath(self.latest)):
+            return []                   # not a data/ncaaf/latest tree: no report can be THIS game's
+        gid = str(hits[0]["id"])
+        if gid not in self.cfb:
+            self.cfb[gid] = CI.report_for(gid, at=self.now, root=root, live=True)
+        out = []
+        for p in CI.out_players(self.cfb[gid], team) or []:     # ⛔ None unless the report is CURRENT
+            raw = str(p.get("position_raw") or p.get("position") or "").strip().upper()
+            pos = CI.POSITION_MAP.get(raw, raw)
+            if pos in guards:
+                out.append("%s %s (%s)" % (pos, p.get("name"), p.get("status")))
+        return out
 
     def out_list(self, team, guards, week):
         """`team`'s defenders listed Out/Doubtful on THIS game week's report, at
@@ -181,10 +229,13 @@ def prop_why(r, ctx):
                 "%s most of %d" % (ordinal(k), n) if k <= few else "%s fewest of %d" % (ordinal(few), n))
             out.append("The %s allow %s %s a game to %s%s." % (
                 name, num(round(v, 1)), WORD[stat], POS_WORD[pos], where))
-        if ctx.lg == "nfl":
+        outs = []
+        if ctx.lg == "nfl":         # THIS game's week's report
             outs = ctx.out_list(opp, GUARDS.get(stat, set()), ctx.week_of(home, away, r.get("commence")))
-            if outs:
-                out.append("The %s list %s." % (name, ", ".join(outs[:4])))
+        elif ctx.lg == "ncaaf":     # `[Sam, 2026-10-17]` only a CURRENT report of THIS game
+            outs = ctx.college_outs(opp, GUARDS.get(stat, set()), home, away, r.get("commence"))
+        if outs:
+            out.append("The %s list %s." % (name, ", ".join(outs[:4])))
     if r.get("confidence") is not None and r.get("break_even") is not None and r.get("price") is not None:
         basis = r.get("confidence_basis")
         if basis == "MODEL":
@@ -233,19 +284,21 @@ def line_why(r, ctx):
     return out
 
 
-def explain(rows, lg, latest, kind="props", ctx=None, scores=None):
+def explain(rows, lg, latest, kind="props", ctx=None, scores=None, now=None):
     """The liked rows with `why` written; the card's own sentence is kept in
     `why_card`, so a second pass rebuilds the same why. The season is the
     kickoff's. ⛔ Never raises: a row whose why fails keeps the why it had, and
     the other rows still get theirs. `[Sam, 2026-10-17]` `scores`: {(away, home):
     whole-number score} (card_fb.shown_scores), printed instead of the model's
-    one-decimal score, so the why and the Game Lines tab show the same numbers."""
+    one-decimal score, so the why and the Game Lines tab show the same numbers.
+    `now`: the card's build time (default: the clock), the moment a college
+    injury report must be current at."""
     try:
         if ctx is None:
             season = next((season_of(r.get("commence")) for r in rows if season_of(r.get("commence"))), None)
             if season is None:
                 return rows
-            ctx = Context(lg, latest, season)
+            ctx = Context(lg, latest, season, now=now)
     except Exception as e:
         print("  ⚠️ the picks' why was not written: %s: %s" % (type(e).__name__, e), flush=True)
         return rows
