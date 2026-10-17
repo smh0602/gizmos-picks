@@ -1587,12 +1587,13 @@ function pickCard(p){
      edge). ~~football only, added by fbEdgeLine, MLB printing no edge~~. ⛔ The card's own
      `edge`, never recomputed here; green only above zero, zero or below is plain ink. A row
      seated below its price says so with these numbers in its own line (C8, below). */
-  if (p.below_price) h.append(el('div','pk-be', ''));   // the column, so the prices line up
-  else if (p.break_even != null || p.edge != null)
+  if (!p.below_price && (p.break_even != null || p.edge != null))
     h.append(el('div','pk-be',
       (p.break_even != null ? `<div>Break-even <b>${p.break_even}%</b></div>` : '')
       + (p.edge != null ? `<div>Edge <b${p.edge > 0 ? ' class="eg-pos"' : ''}>${
           p.edge > 0 ? '+' : ''}${p.edge}</b></div>` : '')));
+  else h.append(el('div','pk-be', ''));   // the column stays, so the prices line up (a row below its
+                                          // price says its numbers in its own C8 line)
   c.append(h);
 
   if (p.why && p.why.length)
