@@ -1,51 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-17T10:34:41Z",
+ "checked_at": "2026-10-17T11:24:34Z",
  "et_date": "2026-10-17",
  "healthy": false,
  "broken": 0,
- "degraded": 13,
+ "degraded": 8,
  "findings": [
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
    "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
-  {
-   "key": "late:game-model:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb game-model was built 75 minutes after it was due",
-   "why": "due 2026-10-16T20:00Z, built 2026-10-16T21:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next game-model build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:gamelines:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb gamelines was built 75 minutes after it was due",
-   "why": "due 2026-10-16T20:00Z, built 2026-10-16T21:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-batter:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb props-batter was built 75 minutes after it was due",
-   "why": "due 2026-10-16T20:00Z, built 2026-10-16T21:14Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-batter build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-board:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb props-board was built 75 minutes after it was due",
-   "why": "due 2026-10-16T20:00Z, built 2026-10-16T21:15Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-pitcher:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb props-pitcher was built 75 minutes after it was due",
-   "why": "due 2026-10-16T20:00Z, built 2026-10-16T21:14Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-pitcher build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -102,15 +67,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 14227,
-  "pulled_at": "2026-10-16T22:22:32Z",
+  "balance": 14009,
+  "pulled_at": "2026-10-17T11:24:14Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 12.2,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-16T22:22:07Z",
-  "source": "data/ncaaf/2026-10-16/gamelines/2222.json.gz",
-  "readings_on_disk": 923,
+  "newest_paid_pull": "2026-10-17T11:24:14Z",
+  "source": "data/nfl/2026-10-17/props-player/1124.json.gz",
+  "readings_on_disk": 929,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
