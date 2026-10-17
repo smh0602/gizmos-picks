@@ -4312,11 +4312,13 @@ function fbGameLines(C){
 function fbTopPlays(C, shownPicks){
   const all = (C && C.top_plays) || [];
   if (!all.length) return '';
-  /* ⛔ Keyed on game_id, which is what the board rows carry — never on a
-     team name. Ledger rule 54: two opponent strings that differ are not
-     two games that differ. */
-  const live = new Set((shownPicks || []).map(p => p.game_id));
-  const t = all.filter(x => !x.game_id || live.has(x.game_id));
+  /* `[2026-10-17]` EACH PLAY IS FILTERED ON ITS OWN GAME: hidden once its game has started
+     (unless every one has, the board's own rule, `splitStarted`) or when neither team is in the
+     conference filter, the board's `fbConfPass`. ~~Only plays in a game the shown picks cover,
+     keyed on game_id~~: with Sam's top 10 (~~20~~), "the top 10 plays of the day", and a liked
+     list that covers fewer games than the top plays, that hid the 10th play of 2026-10-18's NFL
+     card ("Top 9"). `shownPicks` is no longer read. */
+  const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
   if (!t.length) return '';
   const sideWord = s => s === 'over' ? 'Over' : s === 'under' ? 'Under' : 'Yes';
   return `<div class="panel" style="margin-top:18px">

@@ -86,6 +86,21 @@ whatever the live college board holds that day:
 #   file: index.html
 #   find: <div class="p">${sgn(x.price)}</div>`).join('')}</div></div>`;
 #   with: <div class="p">${sgn(x.price)}</div>`).join('')}</div><div class="note">Every number here is the player's own record.</div></div>`;
+#
+# @vacuity [2026-10-17] a top play whose game has no liked pick is still one of the 10
+#   file: index.html
+#   find: const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
+#   with: const live = new Set((shownPicks || []).map(p => p.game_id)); const t = all.filter(x => !x.game_id || live.has(x.game_id));
+#
+# @vacuity [2026-10-17] a top play whose game has started is hidden while others have not
+#   file: index.html
+#   find: const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
+#   with: const t = all.filter(x => fbConfPass(x.away, x.home));
+#
+# @vacuity [2026-10-17] a top play outside the conference filter is hidden
+#   file: index.html
+#   find: const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
+#   with: const t = splitStarted(all).list;
 """
 import gzip
 import json
@@ -663,9 +678,14 @@ ck("[Sam, 2026-10-01] and no longer prints the card's rule sentence or its note 
 ck("the page does NOT re-rank or re-gate",
    ".sort(" not in blk and "-400" not in blk and "confidence >" not in blk,
    "a second copy of the selection rule is a second thing to drift")
-ck("it filters to the games the board is showing, by GAME ID",
-   "game_id" in blk and "team" not in blk.lower().split("game_id")[0][-200:],
-   "ledger rule 54 — never by opponent name")
+# `[2026-10-17]` ~~"it filters to the games the board is showing, by GAME ID"~~: with Sam's
+#    top 10 (~~20~~), *"the top 10 plays of the day, we should do the same for both football
+#    leagues"*, that filter hid the 10th play of 2026-10-18's NFL card, whose game had no liked
+#    pick ("Top 9"). Each play is now filtered on its OWN game, by the board's own two rules
+#    (started, conference), and the shipped function is DRIVEN below, not read.
+ck("[2026-10-17] it filters each play on its own game, by the board's own rules (~~the games "
+   "the board is showing~~)",
+   "splitStarted(all)" in blk and "fbConfPass(x.away, x.home)" in blk and "live.has(" not in blk)
 ck("it uses MLB's own .t10 grid rather than a second component",
    'class="t10"' in blk and '.t10{display:grid' in h)
 ck("an empty list renders nothing at all, not an empty panel",
@@ -673,6 +693,88 @@ ck("an empty list renders nothing at all, not an empty panel",
 ck("Gizmo's Picks calls it, at the bottom",
    "fbTopPlays(C, kept)" in h
    and h.index("fbTopPlays(C, kept)") > h.index("v.append(wrap, host)"))
+
+# ───────────────────────────────────────────────────────────────
+# `[2026-10-17]` §6 THE SHIPPED fbTopPlays, DRIVEN IN NODE: TEN PLAYS ARE TEN
+# ───────────────────────────────────────────────────────────────
+# Sam: "the top 10 plays of the day". Ten unstarted plays in ten games, the liked list covering
+# only nine of them, must draw "Top 10 plays of the day" with all ten; a started game's play is
+# hidden while others are not (and shown when every game has started); a college play with
+# neither team in the conference filter is hidden. Only the page's own helpers run: hasStarted,
+# showStarted, splitStarted, fbConfPass; fbConfTeamPass is the one stub (a team is "in" the
+# filter when its name says so).
+import jsblock  # noqa: E402
+
+_PAGE = os.path.join(ROOT, "index.html")
+_decl = lambda pat: re.search(pat, h, re.M).group(0)  # noqa: E731
+_DRV = r"""
+const fs = require('fs');
+const S = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+let LEAGUE = 'nfl';
+let fbConf = new Set();
+function fbConfTeamPass(name){ return /In Conf/.test(name || ''); }
+const projChip = () => '', confClass = () => '';
+%(decls)s
+%(fns)s
+const rows = h => [...h.matchAll(/<b>([^<]*)<\/b>/g)].map(m => m[1]);
+const head = h => ((h.match(/<h2>([^<]*)<\/h2>/) || [])[1] || '');
+const out = {};
+for (const [k, lg, conf, card, shown] of S.runs){
+  LEAGUE = lg; fbConf = new Set(conf);
+  const html = fbTopPlays(card, shown);
+  out[k] = {head: head(html), rows: rows(html)};
+}
+process.stdout.write(JSON.stringify(out));
+"""
+_FUT, _PAST = "2099-10-18T17:00:00Z", "2000-10-18T17:00:00Z"
+
+
+def _tp(i, when=_FUT, away="Away", home="Home"):
+    return {"player": "Play %02d" % i, "side": "over", "line": 4.5, "market_label": "Receptions",
+            "confidence": 70 - i, "price": -120, "game_id": "g%02d" % i, "commence": when,
+            "away": "%s %d" % (away, i), "home": "%s %d" % (home, i), "game": "A @ H"}
+
+
+_ten = [_tp(i) for i in range(1, 11)]
+_liked9 = [{"game_id": "g%02d" % i} for i in range(1, 10)]          # no liked pick in game 10
+_one_started = [dict(x, commence=_PAST) if x["player"] == "Play 03" else x for x in _ten]
+_all_started = [dict(x, commence=_PAST) for x in _ten]
+_conf = [_tp(i, away="In Conf" if i % 2 else "Out", home="Out") for i in range(1, 11)]
+_runs = [["ten", "nfl", [], {"top_plays": _ten}, _liked9],
+         ["started", "nfl", [], {"top_plays": _one_started}, _liked9],
+         ["all_started", "nfl", [], {"top_plays": _all_started}, _liked9],
+         ["conf", "ncaaf", ["SEC"], {"top_plays": _conf}, _liked9],
+         ["conf_off", "nfl", ["SEC"], {"top_plays": _conf}, _liked9]]
+_tmp6 = tempfile.mkdtemp(prefix="top10-")
+try:
+    open(os.path.join(_tmp6, "d.js"), "w", encoding="utf-8").write(_DRV % {
+        "decls": "\n".join([_decl(r"^const sgn = .*;$"), _decl(r"^let showStarted = .*;$"),
+                            _decl(r"^const hasStarted = .*;$")]),
+        "fns": "\n".join(jsblock.js_block(n, _PAGE) for n in ("splitStarted", "fbConfPass", "fbTopPlays"))})
+    json.dump({"runs": _runs}, open(os.path.join(_tmp6, "d.json"), "w", encoding="utf-8"))
+    _r6 = subprocess.run(["node", os.path.join(_tmp6, "d.js"), os.path.join(_tmp6, "d.json")],
+                         capture_output=True, text=True, timeout=300)
+    _O6 = json.loads(_r6.stdout) if _r6.returncode == 0 else {}
+finally:
+    shutil.rmtree(_tmp6, ignore_errors=True)
+ck("✅ the page's own fbTopPlays ran in node", _r6.returncode == 0, shown((_r6.stderr or "")[-400:]))
+_t = _O6.get("ten") or {}
+ck("🔴 [2026-10-17] ten unstarted plays draw \"Top 10 plays of the day\", all ten, the one whose "
+   "game has no liked pick included",
+   _t.get("head") == "Top 10 plays of the day" and _t.get("rows") == [x["player"] for x in _ten],
+   str(_t))
+_t = _O6.get("started") or {}
+ck("🔴 [2026-10-17] a play whose game has started is hidden while the others have not",
+   _t.get("head") == "Top 9 plays of the day" and "Play 03" not in (_t.get("rows") or [])
+   and len(_t.get("rows") or []) == 9, str(_t))
+_t = _O6.get("all_started") or {}
+ck("✅ ...and shown when every game has started (the board's own rule)",
+   _t.get("head") == "Top 10 plays of the day", str(_t))
+_t = _O6.get("conf") or {}
+ck("🔴 [2026-10-17] college: a play with neither team in the conference filter is hidden",
+   _t.get("rows") == ["Play %02d" % i for i in range(1, 11, 2)], str(_t))
+_t = _O6.get("conf_off") or {}
+ck("✅ ...and the NFL has no conference filter", len(_t.get("rows") or []) == 10, str(_t))
 
 # ───────────────────────────────────────────────────────────────
 # 🔴 THE FAILURE GATE IS THE LAST THING IN THIS FILE. Rule 97.

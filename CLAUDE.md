@@ -661,7 +661,8 @@ note boxes, tags and the stale bar now require their absence.
   tab ... it should be as simple as the mlb gizmos picks"*. ✅ The tab draws the Player props /
   Game lines switch, the card's liked list (`fbView`: `liked`, `game_lines_liked` whenever the card
   has them) with the why under each pick, and `fbTopPlays`, the top 10 (`card_fb.TOP_N` = 10, as
-  MLB's `card.TOP10_N`; ~~20~~). ⛔ No "Above their price only" button (~~`FBABOVE`,
+  MLB's `card.TOP10_N`; ~~20~~), each play filtered on its OWN game (started, conference), ~~only
+  in a game the liked list covers~~ (that hid 2026-10-18's 10th NFL play). ⛔ No "Above their price only" button (~~`FBABOVE`,
   `fbAbovePass`~~), no Model picks / Prop model picks / "What the model showed, graded" panels
   (~~`fbModelAppend`, `fbModelHtml`, `fbPropModelHtml`, `fbLedgerHtml`, `fbPointText`~~) and no
   "Card vs props model" record (~~`fbAgRecordHtml`~~); fb-model.json, fb-props-model.json,
