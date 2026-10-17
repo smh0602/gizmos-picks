@@ -91,7 +91,11 @@ CFB_ONLY = {"cfb-teams"}                    # NFL crests are embedded
 # 💰 `alt-lines` rides the props pull `[2026-09-24]`; the chain is asserted
 #    against collect.py's source in test_game_lines_fb.py.
 DRIVEN_BY = {"props-board": "props-player", "fb-record": "card-fb",
-             "alt-lines": "props-player"}
+             "alt-lines": "props-player",
+             # `[Sam, 2026-10-17]` the college injury reader has no cron: its
+             #    probe row shares T["news"], so the hourly college news
+             #    cron's converge pass plans it (test_cfb_injuries_wiring.py §1).
+             "cfb-injuries": "news"}
 
 print("\n═══ 1. EVERY FOOTBALL MODE IS ROUTED FOR BOTH LEAGUES ═══")
 c, n = set(SCHED["ncaaf"]), set(SCHED["nfl"])

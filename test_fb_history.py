@@ -198,5 +198,8 @@ hist = [r for r in rows if "/history/" in r[1][1]]
 ck(len(hist) == 7 and all(r[0] == "nfl-logs" and r[2] == [] and F.stored_only({"path": r[1][1]}) for r in hist),
    "🔴 a freshness row per NFL history season, by the daily nfl-logs run, late only when missing, stored-only "
    "(never a red run, never a planned rebuild)", [r[1][1] for r in hist][:2])
-eq(len([r for r in F.contract(P + "/data/ncaaf", P + "/picks", None) if "/history/" in r[1][1]]), 4,
+# `[2026-10-17]` ~~every /history/ row~~: college injuries' conference archives
+#    live there too (test_cfb_injuries_wiring.py); this counts T70's own.
+eq(len([r for r in F.contract(P + "/data/ncaaf", P + "/picks", None)
+        if "/history/schedule-" in r[1][1] or "/history/lines-" in r[1][1]]), 4,
    "   ...and college's 2 seasons x schedule and lines")

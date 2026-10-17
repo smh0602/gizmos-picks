@@ -700,6 +700,16 @@ def kickoffs_utc(league, path):
     Returns aware UTC datetimes, or **None if the schedule cannot be read**
     -- and None means *cannot tell*, never *nothing to do*.
     """
+    games = kickoff_games(league, path)
+    return None if games is None else [k for k, _g in games]
+
+
+def kickoff_games(league, path):
+    """`kickoffs_utc`'s reading WITH each game's row: [(real UTC kickoff, game)],
+    or None when the schedule cannot be read. ⛔ ONE copy of the reading (rule
+    117): `[2026-10-17]` the college injury checks (`health`) also need each
+    game's `final`, and a second reader would be a second chance to get the
+    two leagues' `start` wrong."""
     if not os.path.exists(path):
         return None
     try:
@@ -727,11 +737,12 @@ def kickoffs_utc(league, path):
         except Exception:
             continue
         if utc:
-            out.append(t.replace(tzinfo=UTC))
+            k = t.replace(tzinfo=UTC)
         elif zone is not None:
-            out.append(t.replace(tzinfo=zone).astimezone(UTC))
+            k = t.replace(tzinfo=zone).astimezone(UTC)
         else:
-            out.append(t.replace(tzinfo=UTC) + ET_OFFSET)
+            k = t.replace(tzinfo=UTC) + ET_OFFSET
+        out.append((k, g))
     return out
 
 
@@ -814,6 +825,35 @@ def _football_contract(league, data, picks, now):
         #    correctly buys nothing still writes its snapshot, so it is not late.
         ("alt-lines", ("dir", f"{data}/{utc_day}/alt-lines"), T["props"], True,
          "Game Lines — the paid alt-line pull"),
+    ]
+    # 🔴 `[Sam, 2026-10-17]` COLLEGE INJURY REPORTS (cfb_injuries.py, design
+    #    research/cfb_injuries_design.md §1 item 2): the conference availability
+    #    reports, read on the college passes that already run. ⛔ NO CRON CHANGE:
+    #    converge plans the mode from this row.
+    #    ✅ THE ROW IS ON THE PROBE, which the reader writes on EVERY attempt. A
+    #    stale probe means the reader did not run, which converge repairs.
+    #    ✅ AND A READER THAT RAN BUT READ NOTHING IS STALE TOO (`health`): a
+    #    source not confirmed within FETCH_MAX_AGE_H while a game is close, or
+    #    a conference archive no longer refreshed in season, makes the row
+    #    stale with its reason, so it is planned again and reaches Sam as a
+    #    soft warning, freshness.json and the watchdog's `fresh:` finding.
+    #    ⚠️ ITS DEADLINES ARE HOURLY, EVERY DAY: `T["news"]`, the list the hourly
+    #    college cron already answers (test_fb_freshness §4 holds every
+    #    FB_TIMES list to a cron). An hourly deadline is never built more than
+    #    GRACE_MIN late, so a delayed cron leaves no `late:` finding.
+    #    🔴 AND WED-SAT ET IT IS PLANNED ON EVERY COLLEGE PASS (`EVERY_PASS`),
+    #    fresh or not: a report posted at 17:20Z must not wait for the next
+    #    hour's pass while a card is built in this one. ⛔ Planned, never marked
+    #    stale: a five-minute deadline would read stale at the end of any pass
+    #    that ran longer than five minutes.
+    #    ⛔ BEFORE THE CARD ROWS: plan() runs modes in contract order, so a
+    #    card built in the same pass reads this pass's reports.
+    #    ✅ SOFT (see SOFT): a failed read costs a why sentence, never a card.
+    if league == "ncaaf":          # college only: the NFL's injuries ride nfl-logs
+        rows.append(
+            ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
+             "College injury reports — the reader's probe, written on every attempt"))
+    rows += [
         # ⛔ ONE ROW FOR THE CARD FILE. Picks, Parlays and Track Record all
         # read it; three rows would be three chances to disagree.
         # 🔴 THE CARD PATH IS NOT `{picks}` AND MUST NOT BE. `card_fb.py`
@@ -1067,6 +1107,42 @@ def _football_contract(league, data, picks, now):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{_stem}.json.gz"), _due, False,
                      "Stored only — no tab or model reads it yet"))
+    # `[Sam, 2026-10-17]` COLLEGE INJURIES' STORED FILES (STORED_ONLY; design §1):
+    #    the conference archives (written by cfb-injuries) and CFBD's roster
+    #    jerseys and defensive box score (written by cfb-probe, at no extra call;
+    #    2025 is filled once). No model reads them unless §4's backtest passes.
+    #    ⛔ NO DEADLINE, every season: each is rewritten only when its content
+    #    changes, so its age says nothing (a quiet week, the off-season), and a
+    #    clock deadline on it would be a warning nobody can clear.
+    #    ✅ BUT A FILE THAT STOPPED CHANGING IS STILL CAUGHT, by what should
+    #    have changed it, never by its age:
+    #      defense-<season>  `health`: last written before the kickoff of the
+    #                        newest final FBS game over DEFENSE_LAG_H old, so
+    #                        that game's box scores never reached it.
+    #      injury-archive    the probe row's `health`: a conference archive
+    #                        that answered before and has not been refreshed
+    #                        for 2 x ARCHIVE_REFRESH_H while the season is on.
+    #      roster-<season>   ⚠️ NOT JUDGED (an accepted gap): a roster does not
+    #                        change with a game, so nothing says when it should
+    #                        have. It rides the same daily CFBD build as
+    #                        defense-<season>, whose check proves that build
+    #                        runs; a /roster call failing alone leaves it as it
+    #                        was, which only cfb.py recording its own outcome
+    #                        could tell apart from a roster that did not change.
+    #    ⛔ NO ROW ON THE DATED SNAPSHOTS (data/ncaaf/<day>/injury-reports/), for
+    #    the same reason: one is written only when a report changed, so a quiet
+    #    Monday has none and a `dir` row would read MISSING. Their writer is
+    #    watched by the probe row above, the probe records the newest
+    #    snapshot's age, and a report whose source has not been confirmed
+    #    recently is never shown (§2 (b)). STORED_ONLY still names them, so a
+    #    row added later can never plan a run or turn one red.
+    if league == "ncaaf":
+        for _y in _yrs:
+            rows.append(("cfb-injuries", ("file", f"{data}/history/injury-archive-{_y}.json.gz"), [], False,
+                         "Stored only — the conference injury archives (no model reads them yet)"))
+            for _k in ("roster", "defense"):
+                rows.append(("cfb-probe", ("file", f"{latest}/{_k}-{_y}.json.gz"), [], False,
+                             "Stored only — college injuries' CFBD inputs (no model reads them yet)"))
     # `[Sam, 2026-09-24]` the props model's file, rebuilt by the same run.
     rows.append(
         ("card-fb", ("file", f"{latest}/fb-props-model.json"), T["card"], False,
@@ -1329,12 +1405,24 @@ def runs_rows(latest, root=None):
 #    ⛔ Soft here is not quiet: the gate prints `::warning::` and the row
 #    reads STALE.
 SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
+# `[Sam, 2026-10-17]` THE COLLEGE INJURY READER (cfb_injuries.py). What a reader
+#    loses when it fails is one why sentence about an opponent's injuries,
+#    never a number they bet on: the card, its odds and its record stay hard.
+#    `cfb_injuries.run` never raises; SOFT covers the rest (its import, the
+#    arm), so a failed read is a `::warning::` and the pass goes on to the card.
+SOFT |= {"cfb-injuries"}
 # 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
 #    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
 #    daily CFBD / nflverse mode, and re-running cfb-probe every pass for a file
 #    nothing reads is how September's CFBD quota went (13+ calls a build).
-STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather)-\d{4}\.json\.gz$"
+#    `[Sam, 2026-10-17]` and college injuries' stored files (design §1): CFBD's
+#    roster jerseys and defensive box score, the conference archives, and the
+#    dated report snapshots. ⛔ NOT the reader's probe (`injuries-probe-<s>`):
+#    that row exists to plan the reader.
+STORED_ONLY = re.compile(r"/(weather|injuries|adv|venues|cfbd-weather|roster|defense)-\d{4}\.json\.gz$"
+                         r"|/history/injury-archive-\d{4}\.json\.gz$"
+                         r"|/\d{4}-\d{2}-\d{2}/injury-reports(/\d{4}\.json\.gz)?$"
                          r"|/history/(schedule|lines)-\d{4}\.json\.gz$")
 
 
@@ -1344,6 +1432,145 @@ def stored_only(r):
 
 
 CHAMPION_INPUT = "Game model champion's input"
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A FILE WRITTEN ON TIME CAN STILL BE A FILE THAT SAYS NOTHING NEW.
+#    `[2026-10-17]` (college injuries, review of part P3)
+# ══════════════════════════════════════════════════════════════════════
+# The college injury reader writes its probe on EVERY attempt, so its row went
+# fresh on a pass where every source failed, and nothing in the repo read the
+# probe: a blocked HDI would have taken every injury line out of the college
+# whys for weeks, with no alarm. ✅ `health(path, now)` asks what the CONTENT
+# says. A reason makes the row stale (`survey`), with `late_min` left alone
+# (it was built on time; nothing was late), so converge plans its writer
+# again, the gate warns, freshness.json carries the reason and the watchdog's
+# `fresh:` finding (DEGRADED) reaches health.json and the weekly status.
+# ⛔ Only for the files named in HEALTH, and each judges a fact its writer
+#    controls, never the age of a file written only on a change.
+# ⛔ What it judges, it judges only while the season makes it matter, so the
+#    off-season and a quiet week are never a warning nobody can clear.
+# Read by `survey`; every row without a check reads None.
+#
+# The reader's limits, PARSED from cfb_injuries.py (⛔ one copy; never
+# imported, the `_literal` rule), cached until the file changes.
+_INJ_LIMITS = {}
+# A box score reaches the next daily `cfb-probe` build (07:04Z, and Sunday
+# 14:35Z); 48 hours is two daily builds, so ONE dropped or late run is not a
+# warning and two in a row are.
+DEFENSE_LAG_H = 48
+# "The season is on" for the archives: a final FBS game in the last 8 days (a
+# week of games and a day).
+IN_SEASON_D = 8
+
+
+def _injury_limits():
+    """-> (FETCH_MAX_AGE_H, MAX_AGE_H, ARCHIVE_REFRESH_H, LEGACY_SEASON) from
+    cfb_injuries.py, or None when the file or a name is missing."""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cfb_injuries.py")
+    try:
+        st = os.stat(p)
+    except OSError:
+        return None
+    key = (st.st_mtime_ns, st.st_size)
+    if _INJ_LIMITS.get("key") != key:
+        try:
+            vals = tuple(_literal("cfb_injuries.py", n) for n in
+                         ("FETCH_MAX_AGE_H", "MAX_AGE_H", "ARCHIVE_REFRESH_H", "LEGACY_SEASON"))
+        except Exception:
+            vals = None
+        _INJ_LIMITS.clear()
+        _INJ_LIMITS.update(key=key, vals=vals)
+    return _INJ_LIMITS["vals"]
+
+
+def _hours(td):
+    return td.total_seconds() / 3600.0
+
+
+def _injury_probe_health(path, now):
+    """The college injury reader's probe (cfb_injuries._write_probe).
+    🔴 LIVE SOURCES, while an FBS game kicks off within MAX_AGE_H (a report is
+       shown only then): each source the probe lists must have been confirmed
+       (`last_ok_at`) within FETCH_MAX_AGE_H, the age past which
+       `cfb_injuries.report_for` stops showing its reports (design §2 (b)). So
+       a source down this long has already taken its reports off the page.
+    🔴 THE CURRENT SEASON'S ARCHIVES, while the season is on: a conference
+       that answered before must have been refreshed within 2 x
+       ARCHIVE_REFRESH_H (the reader refreshes once a day). ⛔ One that never
+       answered is in the probe and is not judged: no clearable warning says
+       "this conference has no archive".
+    ⛔ No readable schedule is CANNOT TELL, and cannot-tell keeps both judged."""
+    doc = _load(path)
+    lim = _injury_limits()
+    if not isinstance(doc, dict) or lim is None:
+        return None                       # a missing probe already reads MISSING
+    fetch_h, age_h, arch_h, legacy = lim
+    season = doc.get("season")
+    games = kickoff_games("ncaaf", os.path.join(os.path.dirname(path),
+                                                f"schedule-{season}.json.gz"))
+    bad = []
+    if games is None or any(now < k <= now + datetime.timedelta(hours=age_h) for k, _g in games):
+        src = doc.get("sources") if isinstance(doc.get("sources"), dict) else {}
+        if not src:
+            bad.append("no source was read (%s)" % (doc.get("error") or "the probe lists none"))
+        for s, v in sorted(src.items()):
+            ok = _parse(v.get("last_ok_at")) if isinstance(v, dict) else None
+            if ok is None:
+                bad.append(f"{s} has never been read")
+            elif now - ok > datetime.timedelta(hours=fetch_h):
+                bad.append(f"{s} not read for {_hours(now - ok):.0f}h")
+    if str(season) != str(legacy) and (games is None or any(
+            g.get("final") and now - datetime.timedelta(days=IN_SEASON_D) <= k <= now
+            for k, g in games)):
+        arch = doc.get("archives") if isinstance(doc.get("archives"), dict) else {}
+        if arch.get("error"):
+            bad.append("the archive step failed (%s)" % str(arch["error"])[:120])
+        cur = arch.get(str(season)) if isinstance(arch.get(str(season)), dict) else {}
+        for conf, v in sorted(cur.items()):
+            c = _parse(v.get("checked_at")) if isinstance(v, dict) else None
+            if c is not None and now - c > datetime.timedelta(hours=2 * arch_h):
+                bad.append(f"the {season} {conf} archive not refreshed for {_hours(now - c):.0f}h")
+    return ("college injury reports: " + "; ".join(bad)) if bad else None
+
+
+def _defense_health(path, now):
+    """CFBD's defensive box score (cfb.store_kept, written only on a change).
+    🔴 Last written before the kickoff of the newest final FBS game that kicked
+       off over DEFENSE_LAG_H ago: that game's box scores have not reached it,
+       so the build that writes it has stopped (a failed /games/players week
+       builds no defense doc at all). ⛔ The file's AGE is never the question:
+       the off-season and a week between games ask nothing. No readable
+       schedule leaves the row to its own deadline (missing only)."""
+    built = stamp_of(path)
+    m = re.search(r"defense-(\d{4})\.json\.gz$", path.replace(os.sep, "/"))
+    if built is None or not m:
+        return None
+    games = kickoff_games("ncaaf", os.path.join(os.path.dirname(path),
+                                                f"schedule-{m.group(1)}.json.gz")) or []
+    edge = now - datetime.timedelta(hours=DEFENSE_LAG_H)
+    due = max((k for k, g in games if g.get("final") and k <= edge), default=None)
+    if due is not None and built < due:
+        return (f"last written {built:%a %d %b %H:%MZ}, before the newest final FBS game it should "
+                f"hold (kickoff {due:%a %d %b %H:%MZ}, over {DEFENSE_LAG_H}h ago): CFBD's box "
+                f"scores have stopped reaching it")
+    return None
+
+
+HEALTH = ((re.compile(r"/ncaaf/latest/injuries-probe-\d{4}\.json$"), _injury_probe_health),
+          (re.compile(r"/ncaaf/latest/defense-\d{4}\.json\.gz$"), _defense_health))
+
+
+def health(path, now=None):
+    """-> why a file that is on time is still not doing its job, or None.
+    ⛔ A check that cannot run says so (visible, soft), never a silent None."""
+    p = "/" + str(path).replace(os.sep, "/").lstrip("/")
+    for rx, fn in HEALTH:
+        if rx.search(p):
+            try:
+                return fn(path, now or datetime.datetime.now(UTC))
+            except Exception as e:
+                return f"its health check could not run ({type(e).__name__}: {str(e)[:120]})"
+    return None
 
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 A THIRD-PARTY SOURCE THAT WILL NOT SERVE US IS A KNOWN STATE.
@@ -1625,6 +1852,11 @@ def survey(data="data", picks="picks", now=None):
         if due is not None and mode in LATE_GRACE_MIN:
             due -= datetime.timedelta(minutes=LATE_GRACE_MIN[mode])
         stale = built is None or (due is not None and built < due)
+        late = stale
+        # `[2026-10-17]` ON TIME BUT SAYING NOTHING NEW (`health`): stale, with
+        # its reason, and never LATE (it was built after its deadline).
+        sick = None if late or kind != "file" else health(path, now)
+        stale = late or bool(sick)
         rows.append({
             "mode": mode, "path": path, "kind": kind, "why": why,
             "age_min": None if age >= MISSING else round(age, 1),
@@ -1636,9 +1868,10 @@ def survey(data="data", picks="picks", now=None):
                 (f"{t[0]}:{t[1]:02d}" if len(t) < 3 else
                  f"{'/'.join(_DOW[d] for d in sorted(t[2]))} {t[0]}:{t[1]:02d}")
                 for t in times),
-            "late_min": (None if (built is None or due is None or not stale)
+            "late_min": (None if (built is None or due is None or not late)
                          else round((now - due).total_seconds() / 60.0, 1)),
             "paid": paid, "stale": stale, "missing": age >= MISSING,
+            "unhealthy": sick,
             # ⛔ a row no tab reads stays off the reader's stale banner
             "page": mode not in OFF_PAGE,
         })
@@ -1736,6 +1969,28 @@ def slate_moves(data="data", picks="picks", now=None):
         if (lambda ks: bool(ks) and max(ks) <= now)(_kickoffs_in(path, keys))}
 
 
+# 🔴 `[Sam, 2026-10-17]` MODES PLANNED ON EVERY PASS ON THESE ET DAYS (Monday =
+#    0, the contract's fixed offset), fresh or not. The college injury reader
+#    (research/cfb_injuries_design.md §1 item 2: "converge runs the mode on
+#    every college pass"): Wednesday to Saturday, when the reports for the
+#    weekend's games are posted and replaced, a pass must read them before the
+#    card it builds, not wait for the next hour (`[2026-10-17]` review of P3:
+#    on Saturday 10-10 six college passes landed between 17:16Z and 17:55Z, and
+#    an hourly row read the reports in the first only). Other days its hourly
+#    row plans it.
+#    ⛔ PLANNED, NEVER MARKED STALE, like `slate_moves`: a deadline every few
+#    minutes would read stale at the end of any pass longer than that, and
+#    warn on a reader that had just run. 💰 Free; no key, no Odds credit.
+EVERY_PASS = {"ncaaf": {"cfb-injuries": frozenset({2, 3, 4, 5})}}     # Wed-Sat ET
+
+
+def every_pass(data="data", now=None):
+    """The modes `EVERY_PASS` plans for this league today (ET)."""
+    lg = data.replace(os.sep, "/").rstrip("/").split("/")[-1]
+    day = ((now or datetime.datetime.now(UTC)) - ET_OFFSET).weekday()
+    return {m for m, days in (EVERY_PASS.get(lg) or {}).items() if day in days}
+
+
 def plan(data="data", picks="picks", now=None, allow_paid=True):
     """The ordered list of modes needed to meet every deadline that has
     passed. Order is the contract's order, which is dependency order."""
@@ -1750,7 +2005,8 @@ def plan(data="data", picks="picks", now=None, allow_paid=True):
     #    dependency order and is what the return relies on.
     order = list(dict.fromkeys(r["mode"] for r in rows))
     need = {r["mode"] for r in rows if r["stale"] and not stored_only(r)
-            and (allow_paid or not r["paid"])} | slate_moves(data, picks, now)
+            and (allow_paid or not r["paid"])} | slate_moves(data, picks, now) \
+        | every_pass(data, now)
     changed = True
     while changed:
         changed = False
