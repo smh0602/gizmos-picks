@@ -68,8 +68,25 @@ Result on four test games:
 - The books record is reported beside it, never as it.
 - Otherwise `SIM[lg]` stays False: the simulation is built, stored and shown, and the picks keep the smooth curve. Sam is told plainly.
 
-**NFL injuries:** Sam chose "In the sim, backtest-gated". The same two numbers decide, simulation with injuries against the simulation without. Injuries go in only if both hold.
+**NFL injuries:** Sam chose "In the sim, backtest-gated". ~~The same two numbers decide, simulation with injuries against the simulation without.~~
+
+`[2026-10-17, written after §3's simulation result and before any injury number was computed]` The simulation did not switch on in either league (§4). So injuries are judged under the rule the picks actually use: the smooth curve fed the injury-adjusted predicted score, against the smooth curve without it. The same two numbers decide (log loss and closing-line return, spreads and totals). Injuries go in only if both hold.
+
+How the adjustment works:
+- Each team's predicted points move by b_qb × its starting QB out + b_off × its offensive starters out (snap-weighted) + b_def × the opponent's defensive starters out (snap-weighted). These are T69 IN's measures (`fb_challengers.attach("IN")`), Out/Doubtful only.
+- The b are fitted each week on that week's training games only: a ridge fit of each team's points beyond its own rating's.
+- The win chance moves with the margin.
+
+## 4. The simulation's backtest (2026-10-17)
+
+| | Log loss, smooth → sim | Closing-line return, smooth → sim | Result |
+|---|---|---|---|
+| NFL (397 questions, 320 → 305 bets) | 0.70259 → 0.70221 (passes) | +1.85% → +1.23% (fails) | stays off |
+| College (1,759 questions, 1,242 → 1,317 bets) | 0.72074 → 0.72217 (fails) | −3.87% → −3.40% (passes) | stays off |
+
+Both differences are tiny. Both curves score worse than a coin flip at closing lines (above 0.693), so the predicted score does not beat the closing line on spreads and totals.
 
 ## Changelog
 
 - **2026-10-17:** written, with §3 fixed before the backtest.
+- **2026-10-17:** §4 added: the simulation's backtest. It fails the bar in both leagues, so `SIM` stays off. The injury bar was amended to the live rule before any injury number was computed.
