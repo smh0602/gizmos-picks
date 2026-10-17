@@ -1,10 +1,10 @@
 {
  "date": "2026-10-18",
  "league": "nfl",
- "generated_at": "2026-10-17T13:59:29Z",
+ "generated_at": "2026-10-17T14:25:29Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-17T11:24:14Z",
+ "odds_pulled_at": "2026-10-17T14:25:15Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -1101,7 +1101,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-17T13:59:20Z",
-  "ladder_built_at": "2026-10-17T13:59:22Z",
+  "ladder_built_at": "2026-10-17T14:25:18Z",
   "alt_spreads": 0
  },
  "scores_shown": [
@@ -1401,7 +1401,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378326798%232321404538_13L88808Q1213993507Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -1631,17 +1631,17 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 9,
-  "same_game_already_listed": 28,
+  "same_player_already_listed": 10,
+  "same_game_already_listed": 29,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 564,
+  "pool_after_price_gate": 580,
   "cap": 10,
   "distinct_games": 10,
   "shared_with_board_head": 7,
   "board_head_size": 10
  },
- "top_plays_rule": "The 10 most likely to hit for 2026-10-18 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 7 of 10, over 10 game(s). 28 row(s) were held back because their game was already represented and 9 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 10 most likely to hit for 2026-10-18 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 7 of 10, over 10 game(s). 29 row(s) were held back because their game was already represented and 10 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -1774,6 +1774,38 @@
    },
    {
     "legs": [
+     "Marvin Harrison Jr. o22.5 rec yds",
+     "Dameon Pierce u56.5 rush yds"
+    ],
+    "games": [
+     "Houston Texans @ Jacksonville Jaguars",
+     "Carolina Panthers @ Philadelphia Eagles"
+    ],
+    "game_ids": [
+     "57418b2cf5aca558b3c98eafac1e264a",
+     "caca2d752fe1a1779029082e95332fcc"
+    ],
+    "book": "hardrockbet",
+    "prices": [
+     -120,
+     -115
+    ],
+    "multiplier": 3.428,
+    "n_legs": 2,
+    "band": "1.8x+",
+    "joint": 45.3,
+    "joint_basis": "MODEL + RECORD",
+    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
+    "leg_confidences": [
+     73,
+     62
+    ],
+    "break_even": 29.2,
+    "edge": 16.1,
+    "ev_30": 16.54
+   },
+   {
+    "legs": [
      "Marvin Harrison Jr. o1.5 rec",
      "Tanner McKee u198.5 pass yds"
     ],
@@ -1867,38 +1899,6 @@
     "break_even": 29.2,
     "edge": 14.6,
     "ev_30": 15.04
-   },
-   {
-    "legs": [
-     "Marvin Harrison Jr. o21.5 rec yds",
-     "Jalen Brooks u21.5 rec yds"
-    ],
-    "games": [
-     "Houston Texans @ Jacksonville Jaguars",
-     "Arizona Cardinals @ Los Angeles Rams"
-    ],
-    "game_ids": [
-     "57418b2cf5aca558b3c98eafac1e264a",
-     "3729ac6d2a66b642850caf2044cdc658"
-    ],
-    "book": "draftkings",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 43.7,
-    "joint_basis": "MODEL + RECORD",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     74,
-     59
-    ],
-    "break_even": 28.4,
-    "edge": 15.3,
-    "ev_30": 16.16
    }
   ],
   "3": [
@@ -2163,40 +2163,40 @@
    },
    {
     "legs": [
-     "Omar Cooper Jr. u2.5 rec",
-     "Marvin Harrison Jr. o1.5 rec",
-     "Jalen Brooks u20.5 rec yds"
+     "Marvin Harrison Jr. o21.5 rec yds",
+     "Dameon Pierce u58.5 rush yds",
+     "Jalen Brooks u21.5 rec yds"
     ],
     "games": [
-     "New York Jets @ New England Patriots",
      "Houston Texans @ Jacksonville Jaguars",
+     "Carolina Panthers @ Philadelphia Eagles",
      "Arizona Cardinals @ Los Angeles Rams"
     ],
     "game_ids": [
-     "0b0b582b32b09ab6ff6664ffae0c9653",
      "57418b2cf5aca558b3c98eafac1e264a",
+     "caca2d752fe1a1779029082e95332fcc",
      "3729ac6d2a66b642850caf2044cdc658"
     ],
-    "book": "fanduel",
+    "book": "draftkings",
     "prices": [
-     -220,
-     -148,
+     -114,
+     -112,
      -114
     ],
-    "multiplier": 4.575,
+    "multiplier": 6.67,
     "n_legs": 3,
     "band": "3x+",
-    "joint": 27.4,
+    "joint": 27.1,
     "joint_basis": "MODEL + RECORD",
     "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
     "leg_confidences": [
-     63,
-     75,
-     58
+     74,
+     62,
+     59
     ],
-    "break_even": 21.9,
-    "edge": 5.5,
-    "ev_30": 7.62
+    "break_even": 15.0,
+    "edge": 12.1,
+    "ev_30": 24.17
    }
   ],
   "4": [
@@ -2540,7 +2540,7 @@
  },
  "parlay_meta": {
   "pool": 36,
-  "rated_legs": 564,
+  "rated_legs": 580,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -2549,17 +2549,17 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 27,
+    "available": 28,
     "taken": 12
    },
    {
     "decimal": "1.6-2",
-    "available": 499,
+    "available": 512,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 38,
+    "available": 40,
     "taken": 12
    },
    {
@@ -2569,12 +2569,12 @@
    }
   ],
   "rejected": {
-   "same_game": 28502,
+   "same_game": 30293,
    "same_player": 0,
-   "mixed_book": 35009,
+   "mixed_book": 33526,
    "out_of_band": 3
   },
-  "note": "564 rated legs, 36 in the stratified pool. Rejected: 28502 same game, 0 same player, 35009 would need two books, 3 outside Sam's bands."
+  "note": "580 rated legs, 36 in the stratified pool. Rejected: 30293 same game, 0 same player, 33526 would need two books, 3 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -2736,32 +2736,33 @@
    },
    {
     "legs": [
-     "Jalen Brooks u21.5 rec yds",
-     "Under 51.5 total"
+     "Dameon Pierce u56.5 rush yds",
+     "Tanner McKee u200.5 pass yds"
     ],
-    "game": "Arizona Cardinals @ Los Angeles Rams",
-    "game_id": "3729ac6d2a66b642850caf2044cdc658",
+    "game": "Carolina Panthers @ Philadelphia Eagles",
+    "game_id": "caca2d752fe1a1779029082e95332fcc",
     "same_game": true,
-    "book": "draftkings",
+    "book": "hardrockbet",
     "prices": [
-     -114,
-     -108
+     -115,
+     -115
     ],
-    "line_best_book": "fanduel",
-    "line_best_price": -105,
+    "line_best_book": null,
+    "line_best_price": null,
     "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.615,
+    "n_line_legs": 0,
+    "multiplier": 3.495,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
     "joint_basis": "NOT PUBLISHED",
     "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 59,
+    "weakest_leg": 60,
     "weakest_leg_basis": "MODEL",
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
-     59
+     62,
+     60
     ],
     "band_floor": 1.8
    }
@@ -2980,8 +2981,8 @@
   "games_used": 12,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 690,
-   "mixed_book": 1043,
+   "same_player": 648,
+   "mixed_book": 1112,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -3654,13 +3655,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 21 games this record is built from \u2014 236.5 pass yds a game."
   },
-  "Caleb Williams|player_pass_yds|over|228.5": {
+  "Caleb Williams|player_pass_yds|over|229.5": {
    "v": 236.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 21 games this record is built from \u2014 236.5 pass yds a game."
   },
-  "Caleb Williams|player_pass_yds|under|228.5": {
+  "Caleb Williams|player_pass_yds|under|229.5": {
    "v": 236.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -4249,6 +4250,18 @@
    "n": "His own average over the 20 games this record is built from \u2014 42.9 rec yds a game."
   },
   "Harold Fannin Jr.|player_reception_yds|under|33.5": {
+   "v": 42.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 42.9 rec yds a game."
+  },
+  "Harold Fannin Jr.|player_reception_yds|over|34.5": {
+   "v": 42.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 42.9 rec yds a game."
+  },
+  "Harold Fannin Jr.|player_reception_yds|under|34.5": {
    "v": 42.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -4980,18 +4993,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 238.9 pass yds a game."
   },
-  "Daniel Jones|player_pass_yds|over|233.5": {
-   "v": 238.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 238.9 pass yds a game."
-  },
-  "Daniel Jones|player_pass_yds|under|233.5": {
-   "v": 238.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 238.9 pass yds a game."
-  },
   "Daniel Jones|player_pass_yds|over|234.5": {
    "v": 238.9,
    "u": "pass yds",
@@ -5436,6 +5437,12 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 67.2 rush yds a game."
   },
+  "A.J. Brown|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.4 TD a game."
+  },
   "Drake Maye|player_anytime_td|yes|None": {
    "v": 0.2,
    "u": "TD",
@@ -5550,6 +5557,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 205.4 pass yds a game."
   },
+  "Geno Smith|player_pass_yds|over|215.5": {
+   "v": 205.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 205.4 pass yds a game."
+  },
+  "Geno Smith|player_pass_yds|under|215.5": {
+   "v": 205.4,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 205.4 pass yds a game."
+  },
   "Geno Smith|player_pass_yds|over|216.5": {
    "v": 205.4,
    "u": "pass yds",
@@ -5561,6 +5580,18 @@
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 205.4 pass yds a game."
+  },
+  "A.J. Brown|player_reception_yds|over|50.5": {
+   "v": 64.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 64.2 rec yds a game."
+  },
+  "A.J. Brown|player_reception_yds|under|50.5": {
+   "v": 64.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 64.2 rec yds a game."
   },
   "Garrett Wilson|player_reception_yds|over|72.5": {
    "v": 69.9,
@@ -5598,6 +5629,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 69.9 rec yds a game."
   },
+  "Hunter Henry|player_reception_yds|over|29.5": {
+   "v": 40.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 40.7 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|under|29.5": {
+   "v": 40.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 40.7 rec yds a game."
+  },
   "Hunter Henry|player_reception_yds|over|30.5": {
    "v": 40.7,
    "u": "rec yds",
@@ -5622,6 +5665,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 40.7 rec yds a game."
   },
+  "Mason Taylor|player_reception_yds|over|13.5": {
+   "v": 26.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 26.1 rec yds a game."
+  },
+  "Mason Taylor|player_reception_yds|under|13.5": {
+   "v": 26.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 26.1 rec yds a game."
+  },
   "Rhamondre Stevenson|player_reception_yds|over|19.5": {
    "v": 25.5,
    "u": "rec yds",
@@ -5633,6 +5688,30 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 25.5 rec yds a game."
+  },
+  "Romeo Doubs|player_reception_yds|over|30.5": {
+   "v": 48.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 48.5 rec yds a game."
+  },
+  "Romeo Doubs|player_reception_yds|under|30.5": {
+   "v": 48.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 48.5 rec yds a game."
+  },
+  "A.J. Brown|player_receptions|over|3.5": {
+   "v": 5.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 5.1 rec a game."
+  },
+  "A.J. Brown|player_receptions|under|3.5": {
+   "v": 5.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 5.1 rec a game."
   },
   "Garrett Wilson|player_receptions|over|6.5": {
    "v": 6.1,
@@ -5646,6 +5725,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 6.1 rec a game."
   },
+  "Hunter Henry|player_receptions|over|2.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 3.2 rec a game."
+  },
+  "Hunter Henry|player_receptions|under|2.5": {
+   "v": 3.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 26 games this record is built from \u2014 3.2 rec a game."
+  },
   "Hunter Henry|player_receptions|over|3.5": {
    "v": 3.2,
    "u": "rec",
@@ -5658,6 +5749,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 26 games this record is built from \u2014 3.2 rec a game."
   },
+  "Mason Taylor|player_receptions|over|1.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Mason Taylor|player_receptions|under|1.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 3.3 rec a game."
+  },
   "Rhamondre Stevenson|player_receptions|over|2.5": {
    "v": 2.6,
    "u": "rec",
@@ -5669,6 +5772,18 @@
    "u": "rec",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 2.6 rec a game."
+  },
+  "Romeo Doubs|player_receptions|over|2.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Romeo Doubs|player_receptions|under|2.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 3.5 rec a game."
   },
   "Drake Maye|player_rush_yds|over|27.5": {
    "v": 30.3,
@@ -6894,13 +7009,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 25 games this record is built from \u2014 288.6 pass yds a game."
   },
-  "Matthew Stafford|player_pass_yds|over|281.5": {
+  "Matthew Stafford|player_pass_yds|over|282.5": {
    "v": 288.6,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 25 games this record is built from \u2014 288.6 pass yds a game."
   },
-  "Matthew Stafford|player_pass_yds|under|281.5": {
+  "Matthew Stafford|player_pass_yds|under|282.5": {
    "v": 288.6,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -7440,6 +7555,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 23 games this record is built from \u2014 238.0 pass yds a game."
   },
+  "Josh Allen|player_pass_yds|over|240.5": {
+   "v": 238.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 238.0 pass yds a game."
+  },
+  "Josh Allen|player_pass_yds|under|240.5": {
+   "v": 238.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 23 games this record is built from \u2014 238.0 pass yds a game."
+  },
   "Kirk Cousins|player_pass_yds|over|248.5": {
    "v": 224.1,
    "u": "pass yds",
@@ -7932,13 +8059,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 22 games this record is built from \u2014 219.2 pass yds a game."
   },
-  "Justin Herbert|player_pass_yds|over|194.5": {
+  "Justin Herbert|player_pass_yds|over|193.5": {
    "v": 219.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 22 games this record is built from \u2014 219.2 pass yds a game."
   },
-  "Justin Herbert|player_pass_yds|under|194.5": {
+  "Justin Herbert|player_pass_yds|under|193.5": {
    "v": 219.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -8972,19 +9099,19 @@
   }
  },
  "name_match_rate": 0.792,
- "n_priced": 565,
+ "n_priced": 581,
  "single_day": true,
  "slate_date": "2026-10-18",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 565,
+ "n_on_slate_day": 581,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-18 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "565 priced football rows for 2026-10-18 across 12 board games; 25 shown.",
+ "coverage": "581 priced football rows for 2026-10-18 across 12 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 62.5% against a claimed 53.7% (+8.8 pts, n=24). The under-60 band is currently the closest to its own claim. 24 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
@@ -9215,7 +9342,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378326798%232321404538_13L88808Q1213993507Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -9864,7 +9991,7 @@
    "book": "draftkings",
    "price": -175,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378325998%232323675822_13L88808Q1-1669482518Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
@@ -9994,32 +10121,32 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Braelon Allen",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
+   "player": "Germie Bernard",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
    "side": "under",
-   "line": 66.5,
-   "game": "New York Jets @ New England Patriots",
-   "game_id": "0b0b582b32b09ab6ff6664ffae0c9653",
-   "away": "New York Jets",
-   "home": "New England Patriots",
+   "line": 42.5,
+   "game": "Pittsburgh Steelers @ Tampa Bay Buccaneers",
+   "game_id": "27f3994841ce8081c0b7349cf3d1e3d7",
+   "away": "Pittsburgh Steelers",
+   "home": "Tampa Bay Buccaneers",
    "commence": "2026-10-18T17:00:00Z",
-   "book": "draftkings",
-   "price": -111,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378212292%232321129712_13L88808Q1-698452276Q20",
-   "n_books": 1,
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7238465033850716567",
+   "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 56,
-   "model_p": 56.3,
+   "model_p": 55.9,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.6,
-   "edge": 3.4,
+   "break_even": 52.4,
+   "edge": 3.6,
    "role": {
-    "snap": 0.7733,
-    "tgt_share": 0.1182,
-    "car": 14.0,
+    "snap": 0.53,
+    "tgt_share": 0.1278,
+    "car": 0.3,
     "n": 3
    },
    "rank": 25
@@ -10070,6 +10197,45 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Makai Lemon",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Carolina Panthers @ Philadelphia Eagles",
+   "game_id": "caca2d752fe1a1779029082e95332fcc",
+   "away": "Carolina Panthers",
+   "home": "Philadelphia Eagles",
+   "commence": "2026-10-18T17:00:00Z",
+   "book": "hardrockbet",
+   "price": 145,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1957631456096420266",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "Over his last 3 games he has played 75% of the snaps and 20% of the team's targets.",
+    "The Carolina Panthers allow 12 catches a game to wide receivers.",
+    "The model gives it <b>52%</b>; at +145 it needs 40.8% to pay."
+   ],
+   "confidence": 52,
+   "model_p": 52.3,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 40.8,
+   "edge": 11.2,
+   "role": {
+    "snap": 0.75,
+    "tgt_share": 0.1964,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 2,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Tyler Allgeier",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -10102,7 +10268,7 @@
     "car": 4.3,
     "n": 3
    },
-   "rank": 2,
+   "rank": 3,
    "why_card": []
   },
   {
@@ -10142,7 +10308,7 @@
     "car": 0.3,
     "n": 3
    },
-   "rank": 3,
+   "rank": 4,
    "why_card": []
   },
   {
@@ -10181,7 +10347,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 4,
+   "rank": 5,
    "why_card": []
   },
   {
@@ -10201,7 +10367,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378326798%232321404538_13L88808Q1213993507Q20",
-   "n_books": 3,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [
@@ -10220,7 +10386,7 @@
     "car": 11.0,
     "n": 1
    },
-   "rank": 5,
+   "rank": 6,
    "why_card": []
   },
   {
@@ -10260,7 +10426,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 6,
+   "rank": 7,
    "why_card": []
   },
   {
@@ -10318,7 +10484,7 @@
     "car": 3.3,
     "n": 3
    },
-   "rank": 7,
+   "rank": 8,
    "why_card": [
     "<b>Jacoby Brissett</b> went over 1.5 pass TD in <b>3 of 5 games</b> in 2026 and 10 of 12 in 2025, when he played at least half the snaps."
    ]
@@ -10379,7 +10545,7 @@
     "car": 1.3,
     "n": 3
    },
-   "rank": 8,
+   "rank": 9,
    "why_card": [
     "<b>Bryce Young</b> went over 1.5 pass TD in <b>3 of 4 games</b> in 2026 and 7 of 17 in 2025, when he played at least half the snaps."
    ]
@@ -10440,7 +10606,7 @@
     "car": 3.3,
     "n": 3
    },
-   "rank": 9,
+   "rank": 10,
    "why_card": [
     "<b>Trevor Lawrence</b> went over 1.5 pass TD in <b>3 of 5 games</b> in 2026 and 9 of 18 in 2025, when he played at least half the snaps."
    ]
@@ -10479,7 +10645,7 @@
     "car": 0.0,
     "n": 0
    },
-   "rank": 10,
+   "rank": 11,
    "why_card": []
   },
   {
@@ -10538,7 +10704,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 11,
+   "rank": 12,
    "why_card": [
     "<b>Jakobi Meyers</b> went over 3.5 rec in <b>1 of 5 games</b> in 2026 and 14 of 16 in 2025, when he played at least half the snaps."
    ]
@@ -10579,7 +10745,7 @@
     "car": 7.0,
     "n": 3
    },
-   "rank": 12,
+   "rank": 13,
    "why_card": []
   },
   {
@@ -10638,7 +10804,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 13,
+   "rank": 14,
    "why_card": [
     "<b>Cade Otton</b> went over 3.5 rec in <b>2 of 5 games</b> in 2026 and 8 of 15 in 2025, when he played at least half the snaps."
    ]
@@ -10698,7 +10864,7 @@
     "car": 0.7,
     "n": 3
    },
-   "rank": 14,
+   "rank": 15,
    "why_card": [
     "<b>DJ Moore</b> went under 3.5 rec in <b>0 of 2 games</b> in 2026 and 9 of 19 in 2025, when he played at least half the snaps."
    ]
@@ -10739,7 +10905,7 @@
     "car": 5.3,
     "n": 3
    },
-   "rank": 15,
+   "rank": 16,
    "why_card": []
   },
   {
@@ -10779,7 +10945,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 16,
+   "rank": 17,
    "why_card": []
   },
   {
@@ -10818,7 +10984,7 @@
     "car": 3.0,
     "n": 3
    },
-   "rank": 17,
+   "rank": 18,
    "why_card": []
   },
   {
@@ -10857,7 +11023,7 @@
     "car": 5.3,
     "n": 3
    },
-   "rank": 18,
+   "rank": 19,
    "why_card": []
   },
   {
@@ -10897,7 +11063,7 @@
     "car": 0.0,
     "n": 2
    },
-   "rank": 19,
+   "rank": 20,
    "why_card": []
   },
   {
@@ -10955,7 +11121,7 @@
     "car": 0.3,
     "n": 3
    },
-   "rank": 20,
+   "rank": 21,
    "why_card": [
     "<b>Oronde Gadsden II</b> went over 1.5 rec in <b>1 of 3 games</b> in 2026 and 8 of 12 in 2025, when he played at least half the snaps."
    ]
@@ -10996,7 +11162,7 @@
     "car": 14.0,
     "n": 3
    },
-   "rank": 21,
+   "rank": 22,
    "why_card": []
   },
   {
@@ -11055,7 +11221,7 @@
     "car": 0.7,
     "n": 3
    },
-   "rank": 22,
+   "rank": 23,
    "why_card": [
     "<b>Xavier Hutchinson</b> went over 14.5 rec yds in <b>3 of 3 games</b> in 2026 and 12 of 13 in 2025, when he played at least half the snaps."
    ]
@@ -11116,7 +11282,7 @@
     "car": 8.7,
     "n": 3
    },
-   "rank": 23,
+   "rank": 24,
    "why_card": [
     "<b>Woody Marks</b> went under 2.5 rec in <b>1 of 2 games</b> in 2026 and 8 of 10 in 2025, when he played at least half the snaps."
    ]
@@ -11177,70 +11343,9 @@
     "car": 15.7,
     "n": 3
    },
-   "rank": 24,
-   "why_card": [
-    "<b>Kyren Williams</b> went over 19.5 rec yds in <b>4 of 5 games</b> in 2026 and 6 of 20 in 2025, when he played at least half the snaps."
-   ]
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Nico Collins",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 5.5,
-   "game": "Houston Texans @ Jacksonville Jaguars",
-   "game_id": "57418b2cf5aca558b3c98eafac1e264a",
-   "away": "Houston Texans",
-   "home": "Jacksonville Jaguars",
-   "commence": "2026-10-18T13:30:00Z",
-   "book": "draftkings",
-   "price": 105,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378199301%232317768275_13L88808Q1491250762Q20",
-   "n_books": 3,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 51,
-   "raw": "13 of 19",
-   "record": "13 of 19",
-   "rate": 72,
-   "break_even": 48.8,
-   "edge": 2.2,
-   "season_detail": {
-    "h25": 12,
-    "n25": 16,
-    "h26": 1,
-    "n26": 3,
-    "w25": 0.571,
-    "p0": 0.789,
-    "weighted_n": 12.14,
-    "mean_all": 4.895
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 4.62,
-   "projection": 4.9,
-   "projection_unit": "rec",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 4.9 rec a game.",
-   "why": [
-    "Over his last 3 games he has played 71% of the snaps and 26% of the team's targets.",
-    "<b>Nico Collins</b> went under 5.5 rec in <b>1 of 3 games</b> in 2026 and 12 of 16 in 2025, when he played at least half the snaps.",
-    "The Jacksonville Jaguars allow 13.6 catches a game to wide receivers (7th most of 30).",
-    "The Jacksonville Jaguars list CB Montaric Brown (Out).",
-    "The model gives it <b>51%</b>; at +105 it needs 48.8% to pay."
-   ],
-   "model_p": 51.0,
-   "role": {
-    "snap": 0.7067,
-    "tgt_share": 0.2634,
-    "car": 0.3,
-    "n": 3
-   },
    "rank": 25,
    "why_card": [
-    "<b>Nico Collins</b> went under 5.5 rec in <b>1 of 3 games</b> in 2026 and 12 of 16 in 2025, when he played at least half the snaps."
+    "<b>Kyren Williams</b> went over 19.5 rec yds in <b>4 of 5 games</b> in 2026 and 6 of 20 in 2025, when he played at least half the snaps."
    ]
   }
  ],
