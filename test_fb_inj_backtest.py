@@ -62,6 +62,11 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #   find:         if st["passes"]:
 #   with:         if True:
 #
+# @vacuity ⛔ [2026-10-17] no fit, no test: a measurement with no injury fit is never recorded
+#   file: fb_inj_backtest.py
+#   find:         if not entry.get("fitted_last"):
+#   with:         if False:
+#
 # @vacuity 🔴 [2026-10-17] the weekly job keeps the result in fb-refit.json
 #   file: fb_refit.py
 #   find:             doc["injury_backtest"] = fb_inj_backtest.auto(lg, root, now, run, prev=_was)
@@ -238,6 +243,15 @@ try:
     _again = B.auto("ncaaf", _trees[-1], NOW, prev=st)
     ck("⛔ the next week keeps the first result: no second measurement, no second branch",
        _measured == ["ncaaf"] and len(_pushed) == 1 and _again.get("entry") == _PASS, str(_again))
+
+    _measured.clear()
+    _pushed.clear()
+    B.measure = fake_measure(dict(_PASS, fitted_last=None, rows_with_injury_reading=12))
+    _trees.append(tree())
+    st = B.auto("ncaaf", _trees[-1], NOW)
+    ck("⛔ no fit, no test: too few readings to size an injury ('with' would equal 'without' and pass "
+       "while proving nothing) is not recorded and pushes nothing; it waits for next week",
+       st["state"] == "waiting" and "too few injury readings" in st.get("why", "") and not _pushed, str(st))
 
     _measured.clear()
     _pushed.clear()

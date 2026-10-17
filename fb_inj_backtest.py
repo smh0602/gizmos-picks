@@ -183,6 +183,11 @@ def auto(lg, root=ROOT, now=None, run=None, prev=None):
         if missing:
             return {"state": "waiting", "missing": missing, "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
         entry = measure(lg, root)
+        if not entry.get("fitted_last"):
+            # ⛔ NO FIT, NO TEST: too few games carry a reading to size an injury, so "with" equals
+            #    "without" and would pass while proving nothing. Not recorded; asked again next week.
+            return {"state": "waiting", "why": "too few injury readings to fit (%s rows)"
+                    % entry.get("rows_with_injury_reading"), "checked_at": now.strftime("%Y-%m-%dT%H:%MZ")}
         st = {"state": "measured", "entry": entry, "passes": passes(entry),
               "measured_at": now.strftime("%Y-%m-%dT%H:%MZ")}
     if st.get("branch"):
