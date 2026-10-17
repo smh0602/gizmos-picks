@@ -1854,9 +1854,12 @@ def _prop_consistent(r, proj):
 def best_liked(rows, who, cap=BOARD_MAX, proj=None):
     """`[Sam, 2026-10-15]` "i just want you to have the best plays our model likes
     simple as that": rows whose own chance is LIKED_MIN_CONF or more AND above
-    their price (the card's own `edge` > 0), by edge then chance, highest first,
-    ONE per `who` (a player, or a game for game lines: never two lines of one
-    stat, never both sides), at most `cap`. Copies, ranked 1..n; fewer is fine.
+    their price (the card's own `edge` > 0), CHOSEN by edge then chance, ONE per
+    `who` (a player, or a game for game lines: never two lines of one stat, never
+    both sides), at most `cap`; `[Sam, 2026-10-17]` SHOWN by confidence, highest
+    first ("we need to sort our gizmos picks by confidence score, the highest at
+    the top and working down"), a tie by edge (~~shown by edge~~). Copies, ranked
+    1..n; fewer is fine.
     ~~25 by chance~~: J.K. Dobbins 4 times, Humphrey over 0.5 AND under 1.5,
     16 of 25 below their price (NFL card, 2026-10-15). `proj` (props only, the
     card's projections map): also `_prop_consistent` — ~~Smith-Njigba over 0.5
@@ -1870,8 +1873,10 @@ def best_liked(rows, who, cap=BOARD_MAX, proj=None):
     for r in ok:
         if who(r) not in seen:
             seen.add(who(r))
-            out.append(dict(r, rank=len(out) + 1))
-    return out[:cap]
+            out.append(r)
+    out = out[:cap]
+    out.sort(key=lambda r: (-r["confidence"], -r["edge"]))
+    return [dict(r, rank=i) for i, r in enumerate(out, 1)]
 
 
 def mark_below_price(rows):
@@ -1947,9 +1952,10 @@ def freeze_published(new, path, now_iso, log=print):
         if sec == "picks":
             cap = new.get("board_max") or old.get("board_max") or cap
         if sec in ("liked", "game_lines_liked"):
-            # `[Sam, 2026-10-15]` by edge, never by confidence (`_merge_list`'s
-            #    board order); a started row stays as published, and the
-            #    lowest-edge FRESH rows are the ones trimmed past the cap.
+            # `[Sam, 2026-10-15]` a started row stays as published, and the
+            #    lowest-edge FRESH rows are the ones trimmed past the cap;
+            #    `[Sam, 2026-10-17]` then shown by confidence, highest first
+            #    (~~by edge, never by confidence~~), as `best_liked`.
             merged, c = _merge_list(o or [], n or [], kicks, now_iso)
             merged.sort(key=lambda r: (-(r.get("edge") or 0), -(r.get("confidence") or 0)))
             frozen = {id(r) for r in merged if _started(r, kicks, now_iso)}
@@ -1960,6 +1966,7 @@ def freeze_published(new, path, now_iso, log=print):
                 elif room:
                     kept.append(r)
                     room -= 1
+            kept.sort(key=lambda r: (-(r.get("confidence") or 0), -(r.get("edge") or 0)))
             for i, r in enumerate(kept, 1):
                 if id(r) not in frozen:
                     r["rank"] = i
@@ -2771,7 +2778,8 @@ def main():
             "Sorted by price. No row carries a rate."),
         "college_note": None if LEAGUE == "nfl" else COLLEGE_NOTE,
         "picks": board,
-        # `[Sam, 2026-10-15]` the same for props: one per player, by edge.
+        # `[Sam, 2026-10-15]` the same for props: one per player, chosen by edge;
+        #    `[Sam, 2026-10-17]` shown by confidence, highest first.
         "liked": fb_why.explain(       # `[Sam, 2026-10-15]` the why under each pick
             best_liked(rows, lambda r: (r.get("game_id"), r.get("player")), proj=projections),
             LEAGUE, f"{DATA}/latest"),
