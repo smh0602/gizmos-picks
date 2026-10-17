@@ -36,9 +36,21 @@ ACCURATE (§2), or the report is refused and named in the probe:
      never healthy. "Report Pending" and an empty report are not reports.
 
 UP TO DATE (§2, `report_for`): the last report stored for the game, fetched at
-or before the moment asked and before kickoff, is `current` only if it was
-published no more than MAX_AGE_H before kickoff and, for a live read, our
-newest reading of its source is no more than FETCH_MAX_AGE_H old.
+or before the moment asked and before kickoff (and no more than SCAN_DAYS
+before that kickoff, never bounded by the moment asked), is `current` only if
+  (a) it was published no more than MAX_AGE_H before kickoff: its posted time,
+      or our FIRST fetch of that very report where the feed gives none, and
+      ⚠️ never a posted time later than that first fetch;
+  ⛔ its source still stands behind it: our newest snapshot before the moment
+      asked and before kickoff holds that very report (a source that answered
+      since and refused it, or dropped it, does not);
+  (b) for a live read, our newest reading of its source is no more than
+      FETCH_MAX_AGE_H old.
+⛔ A report that is not current is not shown and does not reach a model:
+`out_players` gives None for it.
+PICK TIME (§3, `pick_time_outs`): the archive's night-before column, ⛔ a
+weekday-named one only for a game on a later ET day; else the snapshot report
+current at 9:00 ET on the game's ET day.
 
 WHAT IS STORED (§1):
   data/ncaaf/<UTC day>/injury-reports/<hhmm>.json.gz   (daystore, write-once)
@@ -46,6 +58,7 @@ WHAT IS STORED (§1):
       a report keeps every listed player who is NOT "Available" (its
       `listed` says how many were on it), so a quiet roster change is not a
       new snapshot. A source that failed this pass keeps its last reports.
+      A report's `fetched_at` is when we FIRST fetched it as it reads.
   data/ncaaf/latest/injuries-probe-<season>.json        every attempt
   data/ncaaf/history/injury-archive-<season>.json.gz    the archives
 
@@ -88,7 +101,8 @@ MAX_CALLS = 20               # per run: 7 live + 5 archive + 5 legacy, with room
 ARCHIVE_REFRESH_H = 24       # the current season's archive: at most once a day
 MAX_AGE_H = 36               # §2 (a): published at most this long before kickoff
 FETCH_MAX_AGE_H = 6          # §2 (b): a live read needs a reading this recent
-SCAN_DAYS = 7                # a report fetched longer before the moment asked is never read
+SCAN_DAYS = 7                # a report fetched longer before ITS KICKOFF is never read (never bounded by `at`)
+HINT_SLACK_D = 7             # the stored schedule's kickoff bounds a scan, give or take this many days
 CARRY_H = 48                 # a failed source's reports are carried this long past kickoff
 PICK_HOUR_ET = 9             # §3: the morning card
 ARCHIVE_WINDOW_H = (8, 36)   # §2: an archive row's game starts within its date + 8h to + 36h UTC
@@ -103,8 +117,12 @@ _CANON = {s.lower(): s for s in STATUSES}
 # §3, the archives' night-before column. 2025's columns were named for days:
 # SEC and Big 12 "Friday", ACC "Thursday"; the 2025 Big Ten kept only a
 # game-day column (no reading) and the CFP column is not fixed (no reading).
+# ⛔ A column named for a weekday is read only for a game whose ET day comes
+# AFTER that weekday (`_column_known`): on a Friday game "Friday" is game day,
+# possibly posted after the 9:00 ET pick time (look-ahead), so no reading.
 NIGHT_BEFORE = {2025: {"SEC": "Friday", "B12": "Friday", "ACC": "Thursday"}}
 NIGHT_BEFORE_FROM_2026 = "Update 2"
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 # HDI / Sun Belt name -> the stored schedule's (CFBD) name. map_feed §4,
 # exactly. ⛔ Never fuzzy: a name neither exact nor here is refused.
@@ -584,37 +602,49 @@ def _week_date(s):
 
 
 def normalise_archive(source, payload, sched, tally):
-    """An HDI archive -> (report_days, rows, refused counts). Rows are
+    """An HDI archive -> (report_days, rows, refused). Rows are
     {game_id, team, opponent, date, player, number, columns:{day: status}};
-    "-" (not on that report, or not archived yet) is left out of columns."""
+    "-" (not on that report, or not archived yet) is left out of columns.
+    ⛔ A refused row is NAMED, never only counted (§2): `refused` is
+    [{team, opponent, date, reason, n}] as the feed wrote them, one entry per
+    team-game and reason, `n` its rows."""
     if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
         err = payload.get("error") if isinstance(payload, dict) else None
         raise FeedError("the feed said: %s" % _clean(err)[:120] if err else "no data list")
     days = [d for d in payload.get("report_days") or [] if isinstance(d, str)]
     rows, refused, seen = [], collections.Counter(), {}
+
+    def refuse(r, reason, day=None):
+        if not isinstance(r, dict):
+            refused[(None, None, None, reason)] += 1
+            return
+        key = (_clean(r.get("Team")), _clean(r.get("Opponent")),
+               day.isoformat() if day else _clean(r.get("Week")), reason)
+        refused[key] += 1
+
     for r in payload["data"]:
         if not isinstance(r, dict):
-            refused["not a row"] += 1
+            refuse(r, "not a row")
             continue
         team = team_name(r.get("Team"), sched.teams)
         m = OPP.match(_clean(r.get("Opponent")))
         opp = team_name(m.group(2), sched.teams) if m else None
+        day = _week_date(r.get("Week"))
         if team is None or (m and opp is None):
             for x, n in ((r.get("Team"), team), (m.group(2) if m else None, opp)):
                 if n is None and x is not None:
                     tally["names"].add("%s: %s" % (source, _clean(x)))
-            refused["unknown team name"] += 1
+            refuse(r, "unknown team name", day)
             continue
         if not m:
-            refused["opponent without 'at' or 'vs.'"] += 1
+            refuse(r, "opponent without 'at' or 'vs.'", day)
             continue
-        day = _week_date(r.get("Week"))
         if day is None:
-            refused["no date"] += 1
+            refuse(r, "no date")
             continue
         game, why = sched.join_archive(team, opp, m.group(1), day)
         if game is None:
-            refused[why] += 1
+            refuse(r, why, day)
             continue
         player = _clean(r.get("Player"))
         if not _has_letter(player):
@@ -638,24 +668,30 @@ def normalise_archive(source, payload, sched, tally):
         seen[(row["game_id"], team, num, fold(player))] = row
         rows.append(row)
     rows.sort(key=lambda x: (x["date"], x["game_id"], x["team"], x["number"] or "", x["player"]))
-    return days, rows, dict(refused)
+    named = [{"team": t, "opponent": o, "date": d, "reason": why, "n": n}
+             for (t, o, d, why), n in sorted(refused.items(), key=lambda kv: tuple(x or "" for x in kv[0]))]
+    return days, rows, named
 
 
 # ══════════════════════════════════════════════════════════════════════
-# the network (injectable; never used by a test)
+# the network (injectable; a test catches urlopen itself, never the network)
 # ══════════════════════════════════════════════════════════════════════
+def _fetch(req, timeout):
+    """The one place a request leaves: always with a timeout."""
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8-sig"))
+
+
 def _post(url, body, timeout=TIMEOUT):
     req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), method="POST",
                                  headers={"User-Agent": UA, "Content-Type": "application/json",
                                           "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8-sig"))
+    return _fetch(req, timeout)
 
 
 def _get(url, timeout=TIMEOUT):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8-sig"))
+    return _fetch(req, timeout)
 
 
 def _body(conf):
@@ -710,9 +746,9 @@ def _snapshot(path):
     return doc
 
 
-def newest_snapshot(root=None, until=None):
+def newest_snapshot(root=None, until=None, paths=None):
     """(path, doc) of the newest snapshot fetched at or before `until`."""
-    for st, p in reversed(snapshot_paths(root)):
+    for st, p in reversed(paths if paths is not None else snapshot_paths(root)):
         if until is not None and st > until:
             continue
         doc = _snapshot(p)
@@ -722,18 +758,102 @@ def newest_snapshot(root=None, until=None):
     return None, None
 
 
+def _one(rep):
+    """What one report SAYS: everything but the time we first fetched it."""
+    return json.dumps({k: v for k, v in rep.items() if k != "fetched_at"}, sort_keys=True, separators=(",", ":"))
+
+
 def _content(reports):
     """What a snapshot SAYS: its reports without the time we fetched them."""
     return json.dumps([{k: v for k, v in r.items() if k != "fetched_at"} for r in reports],
                       sort_keys=True, separators=(",", ":"))
 
 
+_IDS = {}
+_KICKS = {}
+
+
+def _ids(path):
+    """The game ids one snapshot holds (cached: a snapshot is written once)."""
+    try:
+        s = os.stat(path)
+    except OSError:
+        return frozenset()
+    key = (path, s.st_mtime_ns, s.st_size)
+    if key not in _IDS:
+        _IDS[key] = frozenset(str(r.get("game_id")) for r in (_snapshot(path) or {}).get("reports") or [])
+    return _IDS[key]
+
+
+def _schedule_kicks(p):
+    doc = _jz(p)
+    out = {}
+    for g in (doc.get("games") if isinstance(doc, dict) else None) or []:
+        try:
+            k = kickoff_utc(g.get("start"))
+        except (AttributeError, TypeError):
+            continue
+        if k is not None and g.get("id") is not None:
+            out[str(g["id"])] = k
+    return out
+
+
+def _kick_hint(gid, root=None):
+    """The stored schedules' kickoff for game `gid` (newest season first), or
+    None. It only BOUNDS a scan and dates an archive column; a report is
+    always judged on its own stored kickoff."""
+    pat = os.path.join(latest(root), "schedule-[0-9][0-9][0-9][0-9].json.gz")
+    for p in sorted(glob.glob(pat), reverse=True):
+        try:
+            s = os.stat(p)
+        except OSError:
+            continue
+        key = (p, s.st_mtime_ns, s.st_size)
+        if key not in _KICKS:
+            _KICKS[key] = _schedule_kicks(p)
+        k = _KICKS[key].get(str(gid))
+        if k is not None:
+            return k
+    return None
+
+
 def _eligible(rep, at):
     """§2: a stored report can answer for the moment `at` only if it was
-    fetched at or before `at` (and not more than SCAN_DAYS before it), and
-    ⛔ before its kickoff."""
+    fetched at or before `at`, ⛔ before its kickoff, and no more than
+    SCAN_DAYS before that kickoff. ⛔ Never bounded by `at`: a backtest or a
+    grading read a month later gets the same report a read on the day did."""
     f, k = _utc(rep.get("fetched_at")), _utc(rep.get("kickoff"))
-    return bool(f and k and at - datetime.timedelta(days=SCAN_DAYS) <= f <= at and f < k)
+    return bool(f and k and k - datetime.timedelta(days=SCAN_DAYS) <= f <= at and f < k)
+
+
+def _find(gid, at, root=None, paths=None):
+    """(path, doc, report): the last stored report for `gid` that is
+    `_eligible` at `at`, newest snapshot first, or None. The scan is bounded
+    by the GAME (the stored schedule's kickoff, else the first report of it
+    seen), never by `at`, so a read long after the game finds what one on the
+    day found, and a game with no report does not walk every snapshot."""
+    hint = _kick_hint(gid, root)
+    lo = hi = None
+    if hint is not None:
+        lo = hint - datetime.timedelta(days=SCAN_DAYS + HINT_SLACK_D)
+        hi = hint + datetime.timedelta(days=HINT_SLACK_D)
+    for st, p in reversed(paths if paths is not None else snapshot_paths(root)):
+        if st > at or (hi is not None and st > hi):
+            continue
+        if lo is not None and st < lo:
+            break
+        if gid not in _ids(p):
+            continue
+        doc = _snapshot(p) or {}
+        for r in doc.get("reports") or []:
+            if str(r.get("game_id")) != gid:
+                continue
+            k = _utc(r.get("kickoff"))
+            if lo is None and k is not None:            # no schedule hint: the report's own kickoff
+                lo = k - datetime.timedelta(days=SCAN_DAYS + 1)
+            if _eligible(r, at):
+                return p, doc, r
+    return None
 
 
 def _probe_ok_times(source, at, root):
@@ -753,7 +873,9 @@ def source_confirmed(source, at, root=None, newest=None):
     """The newest moment at or before `at` at which `source` answered and our
     stored snapshot held what it said: the newest snapshot's own reading of
     it, or the probe's `last_ok_at` (a pass whose content was unchanged
-    writes no snapshot but still confirms the newest one)."""
+    writes no snapshot but still confirms the newest one). ⚠️ It confirms a
+    REPORT only when that newest snapshot holds the report, which `_judge`
+    checks first (`_holds`); `at` is already capped at the kickoff there."""
     if newest is None:
         _p, newest = newest_snapshot(root, at)
     cands = _probe_ok_times(source, at, root)
@@ -763,18 +885,67 @@ def source_confirmed(source, at, root=None, newest=None):
     return max(cands) if cands else None
 
 
-def _judge(rep, at, live, root, newest=None):
-    """A stored report -> the dict report_for returns, with `current` and `why`."""
+def _published(rep):
+    """(time, word): when the report was published, for §2 (a). Published is
+    `posted_at`, or `fetched_at` (our FIRST fetch of this very report) where
+    the feed gives no time. ⚠️ A posted time LATER than our first fetch is
+    not when it was published, because we already held it (HDI's postedTime
+    reads like a scheduled release time): the earlier of the two is used, so
+    the 36-hour clock never starts late and a negative age cannot pass."""
+    posted, f = _utc(rep.get("posted_at")), _utc(rep.get("fetched_at"))
+    if posted is not None and (f is None or posted <= f):
+        return posted, "published"
+    if posted is not None:
+        return f, "first fetched (its posted time %s is later)" % _iso(posted)
+    return f, "first fetched"
+
+
+def _holds(snap, rep):
+    """Does `snap` hold this very report (the same source, game and words)?"""
+    want = _one(rep)
+    return any(_one(r) == want for r in (snap or {}).get("reports") or [])
+
+
+def _dropped(rep, snap):
+    """The `why` of a report its source no longer stands behind, with the
+    refusal that replaced it when that pass refused one for this game."""
+    src = rep.get("source")
+    if not snap:
+        return "no stored snapshot before kickoff holds it"
+    when = ((snap.get("sources") or {}).get(src) or {}).get("fetched_at") or snap.get("fetched_at")
+    why = "%s no longer stands behind it: our reading of %s at %s does not hold this report" % (src, src, when)
+    names = {rep.get("home"), rep.get("away")}
+    for x in snap.get("refused") or []:
+        got = [team_name(t, names) for t in x.get("teams") or []] if x.get("source") == src else []
+        if got and None not in got:
+            return "%s (refused: %s)" % (why, x.get("reason"))
+    return why
+
+
+def _judge(rep, at, live, root, paths=None):
+    """A stored report -> the dict report_for returns, with `current` and
+    `why`. Current needs all three:
+      (a) published no more than MAX_AGE_H before kickoff (`_published`);
+      ⛔ its source still stands behind it: our newest snapshot fetched at or
+         before `at` and before kickoff holds this very report. A source that
+         answered since and refused it (a moved kickoff) or dropped it did
+         not; a source that failed since carries it, so (b) decides;
+      (b) for a live read, that source answered within FETCH_MAX_AGE_H of
+         `at`, at or before the kickoff."""
     out = copy.deepcopy(rep)
     kick = _utc(rep.get("kickoff"))
-    pub = _utc(rep.get("posted_at")) or _utc(rep.get("fetched_at"))
+    pub, word = _published(rep)
     age = (kick - pub).total_seconds() / 3600.0
-    word = "published" if rep.get("posted_at") else "first fetched"
     if age > MAX_AGE_H:
         out["current"], out["why"] = False, "%s %.1f hours before kickoff, more than %d" % (word, age, MAX_AGE_H)
         return out
+    until = min(at, kick - datetime.timedelta(seconds=1))
+    _np, newest = newest_snapshot(root, until, paths)
+    if not _holds(newest, rep):
+        out["current"], out["why"] = False, _dropped(rep, newest)
+        return out
     if live:
-        conf = source_confirmed(rep.get("source"), at, root, newest)
+        conf = source_confirmed(rep.get("source"), until, root, newest)
         old = None if conf is None else (at - conf).total_seconds() / 3600.0
         if old is None or old > FETCH_MAX_AGE_H:
             out["current"] = False
@@ -788,36 +959,25 @@ def _judge(rep, at, live, root, newest=None):
 def report_for(game_id, at, root=None, live=True):
     """The last report stored for `game_id` fetched at or before `at` and
     before kickoff -> {game_id, home, away, kickoff, source, label, posted_at,
-    fetched_at, teams, listed, current, why}, or None. ⛔ Never raises."""
+    fetched_at, teams, listed, current, why}, or None. `fetched_at` is when we
+    FIRST fetched that very report. ⛔ Only a `current` one may be shown or
+    reach a model (`out_players` enforces it). ⛔ Never raises."""
     try:
         at = _when(at)
-        gid = str(game_id)
-        newest = None
-        for st, p in reversed(snapshot_paths(root)):
-            if st > at:
-                continue
-            if st < at - datetime.timedelta(days=SCAN_DAYS + 1):
-                break
-            doc = _snapshot(p)
-            if not doc:
-                continue
-            f = _utc(doc.get("fetched_at"))
-            if newest is None and f and f <= at:
-                newest = doc
-            for r in doc.get("reports") or []:
-                if str(r.get("game_id")) == gid and _eligible(r, at):
-                    return _judge(r, at, live, root, newest)
-        return None
+        paths = snapshot_paths(root)
+        hit = _find(str(game_id), at, root, paths)
+        return None if hit is None else _judge(hit[2], at, live, root, paths)
     except Exception:
         return None
 
 
 def out_players(report, team):
-    """The players of `team` in `report` who are Out, Out for Season or
-    Doubtful. ⛔ None (no reading, never zero) when there is no report or the
-    report does not carry that team."""
+    """The players of `team` in a CURRENT `report` who are Out, Out for
+    Season or Doubtful. ⛔ None (no reading, never zero) when there is no
+    report, the report is not current (§2: "not shown and does not reach the
+    model"), or it does not carry that team."""
     try:
-        if not report or team not in (report.get("teams") or {}):
+        if not report or report.get("current") is not True or team not in (report.get("teams") or {}):
             return None
         return [dict(p) for p in report["teams"][team]
                 if str(p.get("status") or "").lower() in OUT_STATUSES]
@@ -832,9 +992,25 @@ def night_before(season, conf):
     return NIGHT_BEFORE_FROM_2026 if season >= 2026 else None
 
 
+def _column_known(col, kickoff):
+    """§3: was archive column `col` posted before the pick time, 9:00 ET on
+    the game's ET day? A relative name ("Update 2") is the night before by its
+    own definition. ⛔ A column named for a weekday was posted on that day of
+    the game's week (Monday first), so it counts only when that weekday comes
+    BEFORE the game's ET day: on the game's own day it may have been posted
+    after 9:00 ET (look-ahead). No kickoff known: no reading."""
+    if col not in WEEKDAYS:
+        return True
+    k = _utc(kickoff)
+    if k is None:
+        return False
+    return WEEKDAYS.index(col) < _eastern(k).weekday()
+
+
 def pick_time_outs(season, root=None):
     """§3: {game_id: {team: [Out / Out for Season / Doubtful players]}} as
-    known at pick time. From the archive: its night-before column. From the
+    known at pick time. From the archive: its night-before column, when that
+    column was posted before the game's ET day (`_column_known`). From the
     snapshots: the report `report_for` would give for the last moment before
     9:00 am ET on the game's ET day, if it is current (not a live read). A
     snapshot's reading replaces the archive's for its teams. A team with no
@@ -852,6 +1028,8 @@ def pick_time_outs(season, root=None):
             for (gid, team), rows in groups.items():
                 if not any(col in (r.get("columns") or {}) for r in rows):
                     continue                              # that report was not archived
+                if not _column_known(col, _kick_hint(gid, root)):
+                    continue                              # posted on game day: look-ahead
                 out.setdefault(gid, {})[team] = [
                     {"name": r["player"], "number": r.get("number"), "position": None,
                      "position_raw": None, "status": r["columns"][col]}
@@ -859,8 +1037,9 @@ def pick_time_outs(season, root=None):
     except Exception:
         pass
     try:
+        paths = snapshot_paths(root)
         best = {}
-        for _st, p in reversed(snapshot_paths(root)):
+        for _st, p in reversed(paths):
             snap = _snapshot(p)
             if not snap or snap.get("season") != season:
                 continue
@@ -870,7 +1049,10 @@ def pick_time_outs(season, root=None):
                 if gid not in best and cut and _eligible(r, cut):
                     best[gid] = (r, cut)
         for gid, (r, cut) in best.items():
-            j = _judge(r, cut, False, root)
+            try:
+                j = _judge(r, cut, False, root, paths)
+            except Exception:
+                continue                                  # one bad report never costs the others
             if j["current"]:
                 for team in j["teams"]:
                     out.setdefault(gid, {})[team] = out_players(j, team)
@@ -916,12 +1098,12 @@ def _archives(root, now, season, call, post, scheds, prev_probe, tally, log):
                 out[conf] = dict(last, ok=False, error="%s: %s" % (type(ex).__name__, str(ex)[:160]), due=True)
                 continue
             old = have.get(conf) or {}
-            same = old.get("report_days") == days and old.get("rows") == rows
+            same = old.get("report_days") == days and old.get("rows") == rows and old.get("refused") == refused
             if not same:
                 have[conf] = {"fetched_at": _iso(now), "report_days": days, "rows": rows, "refused": refused}
                 changed = True
             out[conf] = {"ok": True, "checked_at": _iso(now), "rows": len(rows), "refused": refused,
-                         "wrote": not same, "due": False}
+                         "n_refused": sum(x["n"] for x in refused), "wrote": not same, "due": False}
         if changed:
             _write_gz(path, {"season": yr, "kind": "DESCRIPTIVE", "built_at": _iso(now),
                              "source": "HD Intelligence %s (images stripped)" % endpoint,
@@ -935,6 +1117,18 @@ def _archives(root, now, season, call, post, scheds, prev_probe, tally, log):
 # ══════════════════════════════════════════════════════════════════════
 # one pass
 # ══════════════════════════════════════════════════════════════════════
+def _first_seen(reports, prev):
+    """⛔ A report unchanged since the newest snapshot keeps the time we FIRST
+    fetched it (§2 (a)): a report whose feed gives no posted time must not
+    look newer than it is because some other report changed and a snapshot
+    was written."""
+    seen = {}
+    for r in prev or []:
+        seen.setdefault(_one(r), r.get("fetched_at"))
+    for r in reports:
+        r["fetched_at"] = seen.get(_one(r)) or r["fetched_at"]
+
+
 def run(root=None, now=None, post=None, get=None, log=log_):
     """One pass: every source, then the snapshot (only on change), the
     archives and the probe (always). -> {"ok", "sources", "snapshot",
@@ -942,7 +1136,8 @@ def run(root=None, now=None, post=None, get=None, log=log_):
     answered and the snapshot step finished. ⛔ Never raises."""
     root = root or ROOT
     post, get = post or _post, get or _get
-    out = {"ok": False, "sources": {}, "snapshot": None, "wrote": False, "probe": None, "archives": {}}
+    out = {"ok": False, "sources": {}, "snapshot": None, "wrote": False, "probe": None, "archives": {},
+           "posted_after_fetch": []}
     try:
         import freshness
         now = _utc(now) if now is not None else datetime.datetime.now(UTC)
@@ -997,6 +1192,11 @@ def run(root=None, now=None, post=None, get=None, log=log_):
         answered = [s for s in SOURCES if out["sources"][s]["ok"]]
         if answered:
             prev_path, prev = newest_snapshot(root)
+            _first_seen(reports, (prev or {}).get("reports"))
+            out["posted_after_fetch"] = [
+                {"source": r["source"], "game_id": r["game_id"], "posted_at": r["posted_at"],
+                 "fetched_at": r["fetched_at"]}
+                for r in reports if r.get("posted_at") and _utc(r["posted_at"]) > _utc(r["fetched_at"])]
             failed = set(SOURCES) - set(answered)
             keep = now - datetime.timedelta(hours=CARRY_H)
             carried = [r for r in (prev or {}).get("reports") or []
@@ -1014,6 +1214,11 @@ def run(root=None, now=None, post=None, get=None, log=log_):
                 p, wrote = daystore.archive(doc, os.path.join(root, "data", LG), "injury-reports",
                                             log=log, when=now)
                 out["snapshot"], out["wrote"] = p, wrote
+                if not wrote and _content((_snapshot(p) or {}).get("reports") or []) != _content(allrep):
+                    # ⛔ daystore keeps the minute's first file: what this pass read is NOT stored,
+                    #    so it must not confirm anything (the probe's last_ok_at stays put)
+                    raise FeedError("a snapshot from this same minute (%s) holds other reports; this "
+                                    "pass's reports are not stored" % _rel(p, root))
             state["snapshot_ok"] = True
     except Exception as ex:
         out["error"] = "%s: %s" % (type(ex).__name__, str(ex)[:200])
@@ -1049,6 +1254,7 @@ def _write_probe(root, now, season, out, refused, tally, prev_probe, state):
                     "statuses": dict(tally["statuses"]), "exempt": tally["exempt"]},
         "unparsed": {"count": tally["unparsed"], "examples": tally["unparsed_examples"]},
         "duplicates": tally["duplicates"],
+        "posted_after_fetch": out.get("posted_after_fetch") or [],
         "snapshot": {"path": _rel(np, root), "wrote": out["wrote"], "fetched_at": _iso(nf),
                      "age_h": None if nf is None else round((now - nf).total_seconds() / 3600.0, 2)},
         "archives": out.get("archives") or {},

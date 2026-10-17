@@ -182,8 +182,8 @@ replaced by a tripwire), no repo data/ read or written.
 #
 # @vacuity 🔴🔴 a report fetched after kickoff is never read
 #   file: cfb_injuries.py
-#   find: return bool(f and k and at - datetime.timedelta(days=SCAN_DAYS) <= f <= at and f < k)
-#   with: return bool(f and k and at - datetime.timedelta(days=SCAN_DAYS) <= f <= at)
+#   find: return bool(f and k and k - datetime.timedelta(days=SCAN_DAYS) <= f <= at and f < k)
+#   with: return bool(f and k and k - datetime.timedelta(days=SCAN_DAYS) <= f <= at)
 #
 # @vacuity 🔴 the snapshot known at pick time is the last one before 9:00 ET
 #   file: cfb_injuries.py
@@ -232,8 +232,103 @@ replaced by a tripwire), no repo data/ read or written.
 #
 # @vacuity 🔴 the archive is rewritten only when it changes
 #   file: cfb_injuries.py
-#   find: same = old.get("report_days") == days and old.get("rows") == rows
+#   find: same = old.get("report_days") == days and old.get("rows") == rows and old.get("refused") == refused
 #   with: same = False
+#
+# @vacuity 🔴 a refused archive row is NAMED (team, opponent, date), never only counted
+#   file: cfb_injuries.py
+#   find: key = (_clean(r.get("Team")), _clean(r.get("Opponent")),
+#   with: key = (None, None,
+#
+# @vacuity 🔴🔴 a report its source no longer lists (refused or dropped) is not current
+#   file: cfb_injuries.py
+#   find: if not _holds(newest, rep):
+#   with: if False:
+#
+# @vacuity 🔴 out_players gives no reading for a report that is not current
+#   file: cfb_injuries.py
+#   find: if not report or report.get("current") is not True or team not in (report.get("teams") or {}):
+#   with: if not report or team not in (report.get("teams") or {}):
+#
+# @vacuity 🔴 a read a month after the game finds the report a read on the day found
+#   file: cfb_injuries.py
+#   find: return bool(f and k and k - datetime.timedelta(days=SCAN_DAYS) <= f <= at and f < k)
+#   with: return bool(f and k and at - datetime.timedelta(days=SCAN_DAYS) <= f <= at and f < k)
+#
+# @vacuity 🔴 ...the scan is bounded by the game's kickoff, never by the moment asked
+#   file: cfb_injuries.py
+#   find: lo = hint - datetime.timedelta(days=SCAN_DAYS + HINT_SLACK_D)
+#   with: lo = at - datetime.timedelta(days=SCAN_DAYS + 1)
+#
+# @vacuity 🔴 ...and so it is with no schedule hint (the report's own kickoff)
+#   file: cfb_injuries.py
+#   find: lo = k - datetime.timedelta(days=SCAN_DAYS + 1)
+#   with: lo = at
+#
+# @vacuity 🔴🔴 a 2025 weekday column is read only for a game on a LATER ET day (no look-ahead)
+#   file: cfb_injuries.py
+#   find: return WEEKDAYS.index(col) < _eastern(k).weekday()
+#   with: return True
+#
+# @vacuity 🔴 an unchanged report keeps the time we first fetched it
+#   file: cfb_injuries.py
+#   find: r["fetched_at"] = seen.get(_one(r)) or r["fetched_at"]
+#   with: pass
+#
+# @vacuity 🔴 a posted time later than our first fetch never starts the 36-hour clock late
+#   file: cfb_injuries.py
+#   find: if posted is not None and (f is None or posted <= f):
+#   with: if posted is not None:
+#
+# @vacuity 🔴 ...and is listed in the probe
+#   file: cfb_injuries.py
+#   find: for r in reports if r.get("posted_at") and _utc(r["posted_at"]) > _utc(r["fetched_at"])]
+#   with: for r in reports if False]
+#
+# @vacuity 🔴 the call cap holds
+#   file: cfb_injuries.py
+#   find: if state["calls"] >= MAX_CALLS:
+#   with: if False:
+#
+# @vacuity 🔴 every POST carries the User-Agent
+#   file: cfb_injuries.py
+#   find: headers={"User-Agent": UA, "Content-Type": "application/json",
+#   with: headers={"Content-Type": "application/json",
+#
+# @vacuity 🔴 every GET carries the User-Agent
+#   file: cfb_injuries.py
+#   find: req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
+#   with: req = urllib.request.Request(url, headers={"Accept": "application/json"})
+#
+# @vacuity 🔴 every request has a timeout
+#   file: cfb_injuries.py
+#   find: with urllib.request.urlopen(req, timeout=timeout) as r:
+#   with: with urllib.request.urlopen(req) as r:
+#
+# @vacuity 🔴 a failed source's report is still carried just after kickoff
+#   file: cfb_injuries.py
+#   find: CARRY_H = 48
+#   with: CARRY_H = 0
+#
+# @vacuity 🔴 ...but never more than CARRY_H after it
+#   file: cfb_injuries.py
+#   find: if r.get("source") in failed and (_utc(r.get("kickoff")) or now) >= keep]
+#   with: if r.get("source") in failed]
+#
+# @vacuity 🔴 with no probe, the newest snapshot's own reading confirms its source
+#   file: cfb_injuries.py
+#   find: t = _utc((((newest or {}).get("sources") or {}).get(source) or {}).get("fetched_at"))
+#   with: t = None
+#
+# @vacuity 🔴 the probe's last_ok_at moves only when the snapshot step finished
+#   file: cfb_injuries.py
+#   find: last = v["fetched_at"] if v["ok"] and state["snapshot_ok"] else
+#   with: last = v["fetched_at"] if v["ok"] else
+#
+# @vacuity 🔴 a same-minute pass whose reports daystore did not store confirms nothing
+#   file: cfb_injuries.py
+#   find: if not wrote and _content((_snapshot(p) or {}).get("reports") or []) != _content(allrep):
+#   with: if False:
 """
 import copy
 import datetime
@@ -286,6 +381,7 @@ SCHED_2026 = [
     G("g8", "2026-10-17T22:00:00.000Z", "Oregon State", "Washington State"), # Pac-12
     G("g9", "2026-10-17T19:30:00.000Z", "Michigan", "Penn State"),           # the feed misspells Penn St.
     G("g11", "2026-10-17T16:00:00.000Z", "West Virginia", "Cincinnati"),     # an empty report
+    G("g12", "2026-10-18T00:00:00.000Z", "Troy", "South Alabama"),           # Sun Belt, mini-trees only
     # the 2026 archive
     G("a1", "2026-09-12T23:00:00.000Z", "Kentucky", "Alabama"),
     G("a2", "2026-09-20T03:30:00.000Z", "Texas Tech", "Utah"),               # date + 27.5h: in
@@ -305,6 +401,11 @@ SCHED_2025 = [
     G("b25", "2025-09-20T16:00:00.000Z", "Indiana", "Illinois"),
     G("x25", "2025-10-04T19:00:00.000Z", "Iowa State", "Kansas State"),
     G("c1", "2025-12-20T20:00:00.000Z", "Indiana", "Alabama"),                # CFP, on campus: Alabama away
+    # games on a day a 2025 night-before column is named for (Friday, Thursday)
+    G("fri25", "2025-09-12T23:30:00.000Z", "Houston", "Colorado"),            # B12, Friday 7:30 pm ET
+    G("thu25", "2025-09-11T23:30:00.000Z", "Wake Forest", "NC State"),        # ACC, Thursday 7:30 pm ET
+    G("fri25a", "2025-09-19T23:00:00.000Z", "Syracuse", "Clemson"),           # ACC, Friday: its Thursday is the day before
+    G("fri25s", "2025-11-28T20:30:00.000Z", "Mississippi State", "Ole Miss"), # SEC, Black Friday
 ]
 
 
@@ -352,19 +453,29 @@ class Feeds:
         self.fail = set()
         self.calls = []
         self.arch_rows_extra = []
+        self.kick = {}               # B10 report id -> the kickoff time the feed prints
+        self.drop = set()            # B10 report ids the feed no longer lists
+        self.pac_note = "Third Report"
+        self.sbc_games = None        # a planted Sun Belt game list, in place of the default
 
     def publish(self, conf):
         if conf == "B10":
-            return {
-                "3169": report("Update 2", "CT", "2026-10-17", "11:00:00", "2026-10-16", "19:00:00",
-                               team("Ohio St.", self.osu, "Ohio State"), team("Indiana", self.ind)),
-                "3170": report("Update 2", "CT", "2026-10-17", "14:30:00", "2026-10-16", "19:00:00",
-                               team("Penn St", [("QB #1 A Passer", "Out")]),
-                               team("Michigan", [("QB #2 B Passer", "Out")])),
-                "3171": report("Update 2", "CT", "2026-10-17", "11:30:00", "2026-10-16", "19:00:00",
-                               team("Rutgers", [("RB #3 Rutgers Back", "Out")]),
-                               team("Maryland", [("WR #4 Terp Wideout", "Doubtful")])),
-            }
+            return {k: v for k, v in self._b10().items() if k not in self.drop}
+        return self._other(conf)
+
+    def _b10(self):
+        return {
+            "3169": report("Update 2", "CT", "2026-10-17", self.kick.get("3169", "11:00:00"), "2026-10-16", "19:00:00",
+                           team("Ohio St.", self.osu, "Ohio State"), team("Indiana", self.ind)),
+            "3170": report("Update 2", "CT", "2026-10-17", "14:30:00", "2026-10-16", "19:00:00",
+                           team("Penn St", [("QB #1 A Passer", "Out")]),
+                           team("Michigan", [("QB #2 B Passer", "Out")])),
+            "3171": report("Update 2", "CT", "2026-10-17", "11:30:00", "2026-10-16", "19:00:00",
+                           team("Rutgers", [("RB #3 Rutgers Back", "Out")]),
+                           team("Maryland", [("WR #4 Terp Wideout", "Doubtful")])),
+        }
+
+    def _other(self, conf):
         if conf == "ACC":
             return {"3226": report("Update 2", "ET", "2026-10-17", "19:00:00", "2026-10-16", "20:00:00",
                                    team("Florida St.", [("QB #1 Nole Passer", "Out")], "Florida State"),
@@ -391,6 +502,8 @@ class Feeds:
         return {}                                                 # SEC: nothing this week
 
     def sbc(self):
+        if self.sbc_games is not None:
+            return {"config": {}, "games": self.sbc_games}
         return {"config": {"emptyPlayerMessage": "Report will be posted to the institution's conference website.",
                            "helmetBase": "https://example.invalid/helmets/"},
                 "games": [{"gameId": "2026-10-17-ULM-LA Tech", "dateISO": "2026-10-17",
@@ -406,7 +519,7 @@ class Feeds:
     def pac(self):
         return {"config": {}, "games": [{"gameId": "2026-10-17-Oregon State-Washington State",
                                          "updatedAtUTC": "2026-10-16T09:00:00.0256021Z",
-                                         "kickoffUTC": "2026-10-17T22:00:00Z", "notes": "Third Report",
+                                         "kickoffUTC": "2026-10-17T22:00:00Z", "notes": self.pac_note,
                                          "away": {"name": "Washington State", "players": [
                                              {"name": "Kyle Peterson", "position": "DB", "status": "Out"}]},
                                          "home": {"name": "Oregon State", "players": [
@@ -473,10 +586,16 @@ class Feeds:
                     {"Initial": "Out", "Thursday": "Out", "Friday": "Doubtful", "Gameday": "Out"}),
                 row("Florida", "vs. Florida", "Sat, 01 Nov 2025 00:00:00 GMT", "Two Games", "#12",
                     {"Initial": "Out", "Thursday": "Out", "Friday": "Out", "Gameday": "Out"}),
+                row("Ole Miss", "at Mississippi State", "Fri, 28 Nov 2025 00:00:00 GMT", "Egg Bowl", "#6",
+                    {"Initial": "Out", "Thursday": "Out", "Friday": "Out", "Gameday": "Out"}),
             ]}
         if conf == "ACC":
             return {"loaded": True, "report_days": ["Initial", "Thursday", "Gameday"], "data": [
                 row("Boston College", "at Stanford", "Sat, 13 Sep 2025 00:00:00 GMT", "McShane", "#35",
+                    {"Initial": "Out", "Thursday": "Out", "Gameday": "Out"}),
+                row("NC State", "at Wake Forest", "Thu, 11 Sep 2025 00:00:00 GMT", "Thursday Pack", "#4",
+                    {"Initial": "Out", "Thursday": "Out", "Gameday": "Out"}),
+                row("Clemson", "at Syracuse", "Fri, 19 Sep 2025 00:00:00 GMT", "Friday Tiger", "#5",
                     {"Initial": "Out", "Thursday": "Out", "Gameday": "Out"})]}
         if conf == "B10":
             return {"loaded": True, "report_days": ["Gameday"], "data": [
@@ -485,7 +604,9 @@ class Feeds:
         if conf == "B12":
             return {"loaded": True, "report_days": full, "data": [
                 row("Kansas St.", "at Iowa St.", "Sat, 04 Oct 2025 00:00:00 GMT", "Friday Doubt", "#7",
-                    {"Initial": "Questionable", "Thursday": "Doubtful", "Friday": "Doubtful", "Gameday": "Out"})]}
+                    {"Initial": "Questionable", "Thursday": "Doubtful", "Friday": "Doubtful", "Gameday": "Out"}),
+                row("Colorado", "at Houston", "Fri, 12 Sep 2025 00:00:00 GMT", "Friday Buff", "#9",
+                    {"Initial": "Out", "Thursday": "Out", "Friday": "Out", "Gameday": "Out"})]}
         if conf == "CFP":
             return {"loaded": True, "report_days": full, "data": [
                 row("#9 Alabama", "vs. #9 Alabama", "Sat, 20 Dec 2025 00:00:00 GMT", "Seeded Tide", "#20",
@@ -600,8 +721,14 @@ try:
        "pick time is the last second before 9:00 ET on the game's ET day (8pm ET Saturday is Saturday)")
     eq(CI.OUT_STATUSES, ("out", "out for season", "doubtful"), "counted as out: Out, Out for Season, Doubtful")
     eq((CI.MAX_AGE_H, CI.FETCH_MAX_AGE_H), (36, 6), "the up-to-date bars are the design's 36 h and 6 h")
-    eq((CI.out_players(None, "X"), CI.out_players({"teams": {"A": []}}, "B"), CI.out_players({"teams": {"A": []}}, "A")),
+    OUTP = {"name": "Gone Guy", "number": "1", "position": "QB", "position_raw": "QB", "status": "Out"}
+    eq((CI.out_players(None, "X"), CI.out_players({"teams": {"A": []}, "current": True}, "B"),
+        CI.out_players({"teams": {"A": []}, "current": True}, "A")),
        (None, None, []), "⛔ no report, or a team the report does not carry: None (no reading), never zero")
+    eq((CI.out_players({"teams": {"A": [OUTP]}, "current": False}, "A"), CI.out_players({"teams": {"A": [OUTP]}}, "A"),
+        [p["name"] for p in CI.out_players({"teams": {"A": [OUTP]}, "current": True}, "A") or []]),
+       (None, None, ["Gone Guy"]), "🔴 a report that is not current (or was never judged) gives no reading: "
+       "§2, it is not shown and does not reach the model")
 
     # ══════════════════════════════════════════════════════════════════
     section("2. ONE PASS: accepted, refused, and why")
@@ -655,15 +782,18 @@ try:
     ck("...and counted in the probe", pr["unknown"]["statuses"].get("Suspended") == 1, str(pr["unknown"]))
     ck("no player named from a row that did not parse", not any(n.startswith("#") for n in osu), sorted(osu))
     eq(pr["unparsed"]["count"], 2, "the two rows that do not parse (\"LB #12\", \"McShane\") are counted")
-    eq(sorted(p["name"] for p in CI.out_players(g1, "Ohio State") or []),
+    j1 = CI.report_for("g1", R1, root) or {}
+    eq(j1.get("current"), True, "the report, read live right after the pass, is current")
+    eq(sorted(p["name"] for p in CI.out_players(j1, "Ohio State") or []),
        sorted(["Earl Little Jr.", "Kenyatta Jackson Jr.", "Some Edge", "Kris Hughes", "Chase Belcher",
                'Karle "KJ" Lacey Jr.', "Earnest Greene, III", "Sherrod Covil, Jr."]),
        "out_players: Out and Doubtful only (Questionable, unknown and Exempt are not)")
     g7 = reps.get("g7") or {}
     eq(sorted(g7.get("teams") or {}), ["Louisiana Tech"], "⛔ Sun Belt: a team with nobody listed is absent, "
        "never an empty list (the feed posts it elsewhere)")
-    eq(CI.out_players(g7, "UL Monroe"), None, "...so it gives no reading")
-    eq(sorted(p["name"] for p in CI.out_players(g7, "Louisiana Tech") or []),
+    j7 = CI.report_for("g7", R1, root) or {}
+    eq((j7.get("current"), CI.out_players(j7, "UL Monroe")), (True, None), "...so it gives no reading")
+    eq(sorted(p["name"] for p in CI.out_players(j7, "Louisiana Tech") or []),
        ["Blank Position", "Jamari Miller", "Ryan Green"], "Out for Season and Doubtful count; the name is trimmed")
     eq((reps.get("g8") or {}).get("posted_at"), "2026-10-16T09:00:00Z", "Pac-12's updatedAtUTC is its posted time")
     leaks = [os.path.relpath(p, root) for p, txt in stored(root) if "data:" in txt]
@@ -695,6 +825,18 @@ try:
        pr["archives"]["2026"]["ACC"]["ok"] is False and {"SEC", "B12", "MAC"} <= set(A26.get("conferences") or {}),
        str(pr["archives"]["2026"].get("ACC")))
     eq(sorted(A25.get("conferences") or {}), ["ACC", "B10", "B12", "CFP", "SEC"], "the 2025 legacy archive, five parts")
+    sec26 = ((A26.get("conferences") or {}).get("SEC") or {}).get("refused")
+    eq(sec26, [{"team": "Kentucky", "opponent": "at Alabama", "date": "2026-09-12",
+                "reason": "no stored game in the window", "n": 1}],
+       "🔴 a refused archive row is NAMED (team, opponent, date, reason, rows), never only counted")
+    eq(((pr["archives"].get("2026") or {}).get("SEC") or {}).get("refused"), sec26, "...in the probe too")
+    eq(((pr["archives"].get("2026") or {}).get("B12") or {}).get("n_refused"), 2,
+       "...which also counts them (the two B12 rows outside the window)")
+    ck("...and a 2025 self-opponent row with two games is named with its reason",
+       {"team": "Florida", "opponent": "vs. Florida", "date": "2025-11-01",
+        "reason": "more than one stored game (names Florida as its own opponent)", "n": 1}
+       in (((A25.get("conferences") or {}).get("SEC") or {}).get("refused") or []),
+       str(((A25.get("conferences") or {}).get("SEC") or {}).get("refused")))
 
     # ══════════════════════════════════════════════════════════════════
     section("4. SNAPSHOTS: only on change; a failed source keeps its reports")
@@ -718,7 +860,8 @@ try:
     eq((r4["ok"], (r4["sources"].get("ACC") or {}).get("ok"), len(ok_others)), (False, False, 6),
        "🔴 one source failing: it is marked failed, every other source still answers")
     eq([(r["game_id"], r["fetched_at"]) for r in S3.get("reports", []) if r["source"] == "ACC"],
-       [("g2", "2026-10-17T09:15:00Z")], "the failed source's report is carried, with the time it was fetched")
+       [("g2", "2026-10-17T07:15:00Z")], "the failed source's report is carried, with the time it was first "
+       "fetched (07:15; unchanged at 08:15 and 09:15)")
     eq((S3.get("sources") or {}).get("ACC"), {"ok": False, "fetched_at": "2026-10-17T09:15:00Z"},
        "...and the snapshot says when that source last answered")
     eq(probe(root)["sources"]["ACC"].get("last_ok_at"), "2026-10-17T09:15:00Z", "the probe keeps its last good time")
@@ -739,7 +882,7 @@ try:
     CI.run(root=root, now=T("2026-10-17T13:30:00Z"), post=F.post, get=F.get, log=log)    # ACC still down
     late = T("2026-10-17T16:15:00Z")
     b = CI.report_for("g2", late, root)
-    eq(((b or {}).get("current"), (b or {}).get("fetched_at")), (False, "2026-10-17T09:15:00Z"),
+    eq(((b or {}).get("current"), (b or {}).get("fetched_at")), (False, "2026-10-17T07:15:00Z"),
        "⛔ a live read whose source was last read 7 h ago is not current")
     ck("...and says why", "ACC" in str((b or {}).get("why")) and "7.0 hours" in str((b or {}).get("why")),
        str((b or {}).get("why")))
@@ -786,6 +929,17 @@ try:
        "2025 Big 12: the \"Friday\" column")
     ck("⛔ the 2025 Big Ten (game day only) and the CFP give no reading", "b25" not in P25 and "c1" not in P25,
        sorted(P25))
+    eq([g for g in ("fri25", "thu25", "fri25s") if g in P25], [],
+       "🔴🔴 no look-ahead: a Friday game's \"Friday\" (B12, SEC) and a Thursday game's \"Thursday\" (ACC) are "
+       "its game day, posted perhaps after the 9:00 ET pick time, so they give no reading")
+    eq(sorted(p["name"] for p in (P25.get("fri25a") or {}).get("Clemson", [])), ["Friday Tiger"],
+       "...while an ACC Friday game reads its \"Thursday\", the day before")
+    eq((CI._column_known("Friday", "2025-09-13T16:00:00Z"), CI._column_known("Friday", "2025-09-14T17:00:00Z"),
+        CI._column_known("Thursday", "2025-09-01T23:00:00Z"), CI._column_known("Friday", None),
+        CI._column_known("Update 2", "2025-09-12T23:00:00Z")),
+       (True, True, False, False, True),
+       "a weekday column counts only before the game's ET day (a Saturday or Sunday game, not a Monday one); "
+       "no kickoff, no reading; a relative column (\"Update 2\") always")
 
     # ══════════════════════════════════════════════════════════════════
     section("7. THE CURRENT ARCHIVE A DAY LATER: refetched, rewritten only on change")
@@ -808,7 +962,218 @@ try:
        "%d bytes now" % os.path.getsize(path26))
 
     # ══════════════════════════════════════════════════════════════════
-    section("8. NEVER RAISES")
+    section("8. A READ LONG AFTER: bounded by the game, never by the moment asked")
+    # ══════════════════════════════════════════════════════════════════
+    day_of = CI.report_for("g1", T("2026-10-17T15:59:00Z"), root, live=False) or {}
+    month = CI.report_for("g1", T("2026-11-17T12:00:00Z"), root, live=False) or {}
+    eq(day_of.get("fetched_at"), "2026-10-17T13:30:00Z", "a read on the day: the last report fetched before kickoff")
+    eq((month.get("fetched_at"), month.get("current"), bool(day_of.get("teams")) and month.get("teams") == day_of.get("teams")),
+       (day_of.get("fetched_at"), True, True),
+       "🔴 a read a month after the game (a backtest, a grading run) finds the report a read on the day found")
+    sp = os.path.join(root, "data", "ncaaf", "latest", "schedule-2026.json.gz")
+    keep_sched = open(sp, "rb").read()
+    try:
+        with gzip.open(sp, "wt", encoding="utf-8") as fh:
+            json.dump({"season": 2026, "games": [g for g in SCHED_2026 if g["id"] != "g1"]}, fh)
+        eq(CI._kick_hint("g1", root), None, "(the stored schedule no longer lists g1)")
+        gone = CI.report_for("g1", T("2026-11-17T12:00:00Z"), root, live=False) or {}
+        eq(gone.get("fetched_at"), "2026-10-17T13:30:00Z",
+           "🔴 ...and so does one with no schedule to bound it (the report's own kickoff bounds the scan)")
+    finally:
+        with open(sp, "wb") as fh:
+            fh.write(keep_sched)
+
+    # ══════════════════════════════════════════════════════════════════
+    section("9. THE SOURCE STILL STANDS BEHIND IT: a refused or dropped report is not current")
+    # ══════════════════════════════════════════════════════════════════
+    rb_ = tempfile.mkdtemp(prefix="cfbinj-held-")
+    try:
+        plant(rb_)
+        H = Feeds()
+        CI.run(root=rb_, now=T("2026-10-17T02:00:00Z"), post=H.post, get=H.get, log=log)
+        h1 = CI.report_for("g1", T("2026-10-17T02:30:00Z"), rb_) or {}
+        eq((h1.get("current"), len(CI.out_players(h1, "Ohio State") or [])), (True, 8),
+           "stored at 02:00 with eight Ohio State outs, current at 02:30")
+        H.kick["3169"] = "14:30:00"            # the feed moves the kickoff; the stored schedule does not
+        H.osu = [x if x[0] != "S #1 Earl Little Jr." else (x[0], "Available") for x in OSU]
+        CI.run(root=rb_, now=T("2026-10-17T04:00:00Z"), post=H.post, get=H.get, log=log)
+        h2 = CI.report_for("g1", T("2026-10-17T04:30:00Z"), rb_) or {}
+        eq((h2.get("current"), h2.get("fetched_at")), (False, "2026-10-17T02:00:00Z"),
+           "🔴🔴 B10 answered at 04:00 and REFUSED the game (its kickoff moved): the 02:00 report is not current")
+        ck("...and says why, with the refusal",
+           "no longer stands behind it" in str(h2.get("why")) and "is not the schedule's" in str(h2.get("why")),
+           str(h2.get("why")))
+        eq(CI.out_players(h2, "Ohio State"), None, "...so it gives no reading (its Out safety is Available now)")
+        eq((CI.report_for("g1", T("2026-10-17T04:30:00Z"), rb_, live=False) or {}).get("current"), False,
+           "...for a read that is not live too: the snapshots alone say it")
+        H.kick.clear()
+        CI.run(root=rb_, now=T("2026-10-17T05:00:00Z"), post=H.post, get=H.get, log=log)
+        h3 = CI.report_for("g1", T("2026-10-17T05:30:00Z"), rb_) or {}
+        eq((h3.get("current"), h3.get("fetched_at")), (True, "2026-10-17T05:00:00Z"),
+           "the kickoff agrees again at 05:00: that report is current")
+        H.drop = {"3169"}
+        CI.run(root=rb_, now=T("2026-10-17T06:00:00Z"), post=H.post, get=H.get, log=log)
+        h4 = CI.report_for("g1", T("2026-10-17T06:30:00Z"), rb_) or {}
+        eq((h4.get("current"), "no longer stands behind it" in str(h4.get("why")), "refused" in str(h4.get("why"))),
+           (False, True, False), "🔴 B10 answered at 06:00 without the game at all: not current")
+        H.drop = set()
+        H.fail = {("get-publish-public", "B10")}
+        CI.run(root=rb_, now=T("2026-10-17T07:00:00Z"), post=H.post, get=H.get, log=log)
+        eq((CI.report_for("g1", T("2026-10-17T07:30:00Z"), rb_) or {}).get("current"), False,
+           "...and B10 failing afterwards does not bring the dropped report back")
+        eq(CI.pick_time_outs(2026, rb_).get("g1"), None,
+           "🔴 pick time (9:00 ET) gives no reading for it either: the morning card would not have shown it")
+    finally:
+        shutil.rmtree(rb_, ignore_errors=True)
+
+    # ══════════════════════════════════════════════════════════════════
+    section("10. THE 36-HOUR CLOCK: our first fetch, never a later posted time")
+    # ══════════════════════════════════════════════════════════════════
+    rc_ = tempfile.mkdtemp(prefix="cfbinj-clock-")
+    try:
+        plant(rc_)
+        C = Feeds()
+        C.sbc_games = [
+            {"gameId": "2026-10-17-ULM-LA Tech", "kickoffUTC": "2026-10-18T00:00:00Z", "notes": "Initial Report",
+             "away": {"name": "LA Tech", "players": [{"name": "No Clock", "position": "WR", "status": "Out"}]},
+             "home": {"name": "ULM", "players": []}},
+            {"gameId": "2026-10-17-Troy-South Alabama", "kickoffUTC": "2026-10-18T00:00:00Z",
+             "updatedAtUTC": "2026-10-16T18:00:00.0000000Z", "notes": "Initial Report",
+             "away": {"name": "South Alabama", "players": [{"name": "Early Bird", "position": "CB", "status": "Out"}]},
+             "home": {"name": "Troy", "players": []}}]
+        CI.run(root=rc_, now=T("2026-10-16T08:00:00Z"), post=C.post, get=C.get, log=log)   # 40 h before kickoff
+        early = CI.report_for("g12", T("2026-10-16T08:30:00Z"), rc_, live=False) or {}
+        eq((early.get("posted_at"), early.get("fetched_at"), early.get("current")),
+           ("2026-10-16T18:00:00Z", "2026-10-16T08:00:00Z", False),
+           "🔴 a report we held at 08:00 that says it was posted at 18:00 was published by 08:00: 40 h before "
+           "kickoff, not current (its posted time alone would say 30 h)")
+        ck("...and says so", "posted time 2026-10-16T18:00:00Z is later" in str(early.get("why")),
+           str(early.get("why")))
+        late_posts = [(x["source"], x["game_id"]) for x in
+                      json.load(open(CI.probe_path(2026, rc_), encoding="utf-8")).get("posted_after_fetch") or []]
+        ck("...and the probe lists it (a report with no posted time is not listed)",
+           ("SBC", "g12") in late_posts and ("SBC", "g7") not in late_posts, str(late_posts))
+        C.pac_note = "Fourth Report"            # another report changes: a new snapshot
+        rc2 = CI.run(root=rc_, now=T("2026-10-16T18:00:00Z"), post=C.post, get=C.get, log=log)
+        ck("(a new snapshot was written for the other report)", rc2["wrote"], str(rc2["wrote"]))
+        nc = CI.report_for("g7", T("2026-10-16T18:30:00Z"), rc_, live=False) or {}
+        eq((nc.get("posted_at"), nc.get("fetched_at"), nc.get("current")), (None, "2026-10-16T08:00:00Z", False),
+           "🔴 a report with no posted time keeps its FIRST fetch (08:00, 40 h before kickoff) when another "
+           "report changes: not current, never restamped to 18:00")
+    finally:
+        shutil.rmtree(rc_, ignore_errors=True)
+
+    # ══════════════════════════════════════════════════════════════════
+    section("11. THE WIRING: call cap, User-Agent, timeout")
+    # ══════════════════════════════════════════════════════════════════
+    rd_ = tempfile.mkdtemp(prefix="cfbinj-cap-")
+    cap = CI.MAX_CALLS
+    try:
+        plant(rd_)
+        D = Feeds()
+        CI.MAX_CALLS = 3
+        rcap = CI.run(root=rd_, now=R1, post=D.post, get=D.get, log=log)
+        capped = [s for s, v in rcap["sources"].items() if "call cap of 3" in str(v.get("error"))]
+        eq((len(D.calls), json.load(open(CI.probe_path(2026, rd_), encoding="utf-8"))["calls"], len(capped)),
+           (3, 3, 4), "🔴 the call cap holds: 3 calls made, the other 4 live sources recorded as stopped by it")
+    finally:
+        CI.MAX_CALLS = cap
+        shutil.rmtree(rd_, ignore_errors=True)
+    ck("...and the real cap covers a full pass (7 live, 5 + 5 archive calls)",
+       len(CI.SOURCES) + len(CI.HDI_ARCHIVE) + len(CI.HDI_LEGACY) <= CI.MAX_CALLS, str(CI.MAX_CALLS))
+    import fb_weather
+    sent = []
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return b'\xef\xbb\xbf{"ok": 1}'
+
+    def _capture(req, timeout=None):
+        sent.append((req, timeout))
+        return _Resp()
+
+    urllib.request.urlopen = _capture          # ⛔ still no network: every request is caught here
+    try:
+        got = (CI._post(CI.HDI + "get-publish-public", CI._body("SEC")), CI._get(CI.FEEDS["SBC"]))
+        re_ = tempfile.mkdtemp(prefix="cfbinj-ua-")
+        try:
+            plant(re_)
+            CI.run(root=re_, now=R1, log=log)          # the default post / get: the module's own helpers
+        finally:
+            shutil.rmtree(re_, ignore_errors=True)
+    finally:
+        urllib.request.urlopen = _tripwire
+    eq(got, ({"ok": 1}, {"ok": 1}), "the helpers read JSON (a byte-order mark allowed)")
+    eq([(r.get_method(), r.full_url) for r, _t in sent[:2]],
+       [("POST", CI.HDI + "get-publish-public"), ("GET", CI.FEEDS["SBC"])], "a POST to HDI, a GET to the Sun Belt")
+    eq(json.loads(sent[0][0].data.decode("utf-8")), CI._body("SEC"), "the POST body names the conference")
+    eq(len(sent), 2 + len(CI.SOURCES) + len(CI.HDI_ARCHIVE) + len(CI.HDI_LEGACY),
+       "a default run sends every call through those helpers")
+    eq(sorted({str(r.get_header("User-agent")) for r, _t in sent}), [fb_weather.UA],
+       "🔴 every request, POST and GET, carries the User-Agent")
+    ck("🔴 every request has a timeout", all(t == CI.TIMEOUT for _r, t in sent) and 0 < CI.TIMEOUT <= 60,
+       str(sorted({str(t) for _r, t in sent})))
+
+    # ══════════════════════════════════════════════════════════════════
+    section("12. THE CARRY WINDOW AND THE PROBE: what confirms a source")
+    # ══════════════════════════════════════════════════════════════════
+    rf_ = tempfile.mkdtemp(prefix="cfbinj-carry-")
+    real_archive = CI.daystore.archive
+    try:
+        plant(rf_)
+        K = Feeds()
+        CI.run(root=rf_, now=T("2026-10-17T10:00:00Z"), post=K.post, get=K.get, log=log)
+        pp = CI.probe_path(2026, rf_)
+        os.replace(pp, pp + ".aside")
+        try:
+            eq((CI.report_for("g1", T("2026-10-17T10:30:00Z"), rf_) or {}).get("current"), True,
+               "🔴 with no probe file, the newest snapshot's own reading of B10 (10:00) confirms a live read")
+        finally:
+            os.replace(pp + ".aside", pp)
+
+        def _full(*a, **k):
+            raise OSError("planted: the disk is full")
+        K.pac_note = "Fourth Report"
+        CI.daystore.archive = _full
+        try:
+            rbk = CI.run(root=rf_, now=T("2026-10-17T11:00:00Z"), post=K.post, get=K.get, log=log)
+        finally:
+            CI.daystore.archive = real_archive
+        eq((rbk["ok"], "disk is full" in str(rbk.get("error")),
+            json.load(open(pp, encoding="utf-8"))["sources"]["ACC"]["last_ok_at"]),
+           (False, True, "2026-10-17T10:00:00Z"),
+           "🔴 a pass whose snapshot could not be stored is not ok, and ACC's last_ok_at stays at 10:00")
+        eq((CI.report_for("g2", T("2026-10-17T16:30:00Z"), rf_) or {}).get("current"), False,
+           "...so that pass cannot keep a live read current 6.5 h after the last stored reading")
+        K.fail = {("get-publish-public", "B10")}
+        K.pac_note = "Fifth Report"
+        rk2 = CI.run(root=rf_, now=T("2026-10-17T17:00:00Z"), post=K.post, get=K.get, log=log)
+        eq(sorted(r["game_id"] for r in (CI._jz(rk2["snapshot"]) or {}).get("reports", []) if r["source"] == "B10"),
+           ["g1", "g6"], "🔴 B10 down an hour after kickoff: its last reports are still carried")
+        K.pac_note = "Sixth Report"
+        rsm = CI.run(root=rf_, now=T("2026-10-17T17:00:30Z"), post=K.post, get=K.get, log=log)
+        eq(("same minute" in str(rsm.get("error")),
+            json.load(open(pp, encoding="utf-8"))["sources"]["SEC"]["last_ok_at"], len(snaps(rf_))),
+           (True, "2026-10-17T17:00:00Z", 2),
+           "🔴 a second pass in the same minute, whose reports daystore kept out, is not stored and confirms "
+           "nothing (SEC's last_ok_at stays 17:00:00)")
+        K.pac_note = "Seventh Report"
+        rk3 = CI.run(root=rf_, now=T("2026-10-19T17:00:00Z"), post=K.post, get=K.get, log=log)
+        eq((rk3["wrote"], [r["game_id"] for r in (CI._jz(rk3["snapshot"]) or {}).get("reports", [])
+                           if r["source"] == "B10"]), (True, []),
+           "🔴 ...but not 49 hours after kickoff: a long outage carries nothing forever")
+    finally:
+        CI.daystore.archive = real_archive
+        shutil.rmtree(rf_, ignore_errors=True)
+
+    # ══════════════════════════════════════════════════════════════════
+    section("13. NEVER RAISES")
     # ══════════════════════════════════════════════════════════════════
     bare = tempfile.mkdtemp(prefix="cfbinj-bare-")
     try:
