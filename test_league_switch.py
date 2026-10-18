@@ -529,6 +529,11 @@ if _BROWSER:
                     seen = pg.evaluate(PICKER)
                     if not (n and hidden and seen["shown"] and seen["inView"] and seen["focused"]):
                         dead[case] = dict(seen, buttons=n, hidden_before=hidden)
+                    if not seen["shown"]:
+                        # ⛔ A reader cannot choose from a picker they cannot see (and Playwright
+                        #    waits 30 s for it, then kills the file): no state, no bet slip.
+                        slips[case] = "the picker never showed, so no state could be chosen"
+                        continue
                     pg.select_option("#st", "NJ")
                     pg.wait_for_timeout(1500)
                     got = pg.evaluate(AFTER, view)
