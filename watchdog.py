@@ -1273,6 +1273,9 @@ LANDING_ROOT = SRCDIR               # where the workflows are read: the code, no
 LANDING_SPAN_DAYS = 400             # the window a cron's fires are listed over
 # ⛔ NOT LEARNERS, each with the guard that already owns its file. test_learner_landing.py
 #    fails on an entry that is no longer a cron workflow committing data (a dead exclusion).
+# ⚠️ `runs_report.DISABLED` is empty in the watchdog's process (only runs_report's own main
+#    fills it from GitHub), so a learner Sam switches off in GitHub keeps reporting DEGRADED
+#    here until it is listed below or switched back on.
 NOT_LEARNERS = {
     "collect.yml": "the freshness contract judges every artifact it writes "
                    "(check_freshness, check_stopped_league)",

@@ -217,6 +217,41 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   file: watchdog.py
 #   find:         if doc and (age is None or age > FB_REFIT_STALE_DAYS):
 #   with:         if doc and (age is None or age > 99):
+#
+# @vacuity 🔴 R1: a report built before this Monday's run is said to be last week's
+#   file: status.py
+#   find:         name, due.strftime("%a %Y-%m-%d %H:%MZ")) if due is not None and (seen is None or seen < due) else None)
+#   with:         name, due.strftime("%a %Y-%m-%d %H:%MZ")) if False else None)
+#
+# @vacuity 🔴 R1: with a CHAMPION already named, push_branch pushes nothing
+#   file: fb_refit.py
+#   find:     if FM.CHAMPION.get(lg):
+#   with:     if False:
+#
+# @vacuity 🔴 R1: an older champion branch gets no merge link
+#   file: status.py
+#   find:         if not own_branch(br, x["name"]):
+#   with:         if False:
+#
+# @vacuity 🔴 R1: the challenger is asked only for the champion's games (no history Monday is fitted)
+#   file: fb_refit.py
+#   find:         for gid, (p_x, y, wk, _r) in fits.predictions(mk, lambda r: r["id"] in a).items():
+#   with:         for gid, (p_x, y, wk, _r) in fits.predictions(mk).items():
+#
+# @vacuity 🔴 R1: set_champion never replaces a named champion
+#   file: fb_refit.py
+#   find:     if re.search(r'(?m)^CHAMPION = \{.*"%s": "[A-Z]+"' % lg, src):
+#   with:     if False:
+#
+# @vacuity 🔴 R1: a WINS that pushed nothing carries the NEEDS SAM note
+#   file: fb_refit.py
+#   find:                     x["needs_sam"] = NEEDS_SAM % (c, lg.upper(), x["name"], c, x["name"])
+#   with:                     pass
+#
+# @vacuity 🔴 R1: a WINS with no branch still reaches "Needs you"
+#   file: status.py
+#   find:         if x.get("verdict") != "WINS":
+#   with:         if x.get("verdict") != "WINS" or not x.get("branch"):
 """
 import atexit
 import datetime
@@ -847,6 +882,8 @@ put(T7, "data/nfl/latest/fb-refit.json", DOC)                     # built 11-02 
 body = S.build(T7, NOW)[0]
 ck("- NFL: our predicted margins miss by 10.5" in body and "NFL: this week's contest has not reported" not in body,
    "   ...and one built after it is this week's")
+eq(S.refit_summary({}, "College", NOW), "College: no weekly report yet.",
+   "   ...and with no due run known (no fb-refit.yml cron to read), a missing report says only that")
 
 # ══════════════════════════════════════════════════════════════════════
 section("15. 🔴 R1: A SECOND SWITCH FAILS CLOSED; THE EMAIL LINKS ONLY THE WINNER'S OWN BRANCH")
