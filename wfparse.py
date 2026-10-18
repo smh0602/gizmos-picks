@@ -273,6 +273,45 @@ def step_env(src, step_id=None, step_name=None, job=None):
     return out
 
 
+# `[R1, 2026-10-18]` What a workflow COMMITS and how long its jobs may run:
+#    the watchdog's landing check (`watchdog.learners`) derives its class from
+#    these, so a new scheduled learner is covered the day it ships (rule 246).
+_GIT_ADD = re.compile(r"(?:^|[;&|(]\s*)git\s+add\s+([^;&|#]*)")
+
+
+def git_adds(src):
+    """Every path a `git add` in any step's `run:` body names, in order, once.
+    ⛔ Shell comments are not commands; flags and redirections are not paths."""
+    out = []
+    for st in steps(src):
+        for line in (st.run or "").splitlines():
+            s = line.strip()
+            if s.startswith("#"):
+                continue
+            for m in _GIT_ADD.finditer(s):
+                for tok in m.group(1).split():
+                    tok = tok.strip("\"'")
+                    if tok and not tok.startswith("-") and not any(ch in tok for ch in "<>$") \
+                            and tok not in out:
+                        out.append(tok)
+    return out
+
+
+def job_timeouts(src):
+    """{job: its `timeout-minutes` as an int, or None when the job sets none}."""
+    lines = read(src).splitlines()
+    out = {}
+    for jb in jobs(src):
+        out[jb.name] = None
+        for lineno, indent, key, val, _b in _scan(lines):
+            if jb.start <= lineno < jb.end and indent == 4 and key == "timeout-minutes":
+                try:
+                    out[jb.name] = int(val.strip().strip('"').strip("'"))
+                except ValueError:
+                    pass
+    return out
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 🔴 THE CRON TOTAL COUNTS STAGED UPLOADS TOO — SO IT NEVER GOES RED IN
 #    THE GAP BETWEEN A PR MERGING AND SAM UPLOADING. `[Sam, 2026-09-23]`

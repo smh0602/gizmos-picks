@@ -8,6 +8,7 @@ Usage: python status.py <body file>    (an empty file: nothing to post today)"""
 import datetime
 import json
 import os
+import re
 import sys
 
 import freshness as F
@@ -75,20 +76,27 @@ def records(root, d, since):
     return out
 
 
-def refit_summary(doc, name, now):
+def refit_summary(doc, name, now, due=None):
     """`[Sam, 2026-10-12]` One football league's "is the model learning?"
-    paragraph from its fb-refit.json (fb_refit.py), or why there is none."""
+    paragraph from its fb-refit.json (fb_refit.py), or why there is none.
+    `[R1, 2026-10-18]` `due`: the contest's latest scheduled run (watchdog.last_due_for).
+    A report built before it is LAST week's and is said to be, never shown as current:
+    Monday runs have started 7-9 hours late, after this email."""
+    seen = W._when((doc or {}).get("built_at"))
+    head = ("%s: this week's contest has not reported yet (its run was due %s)" % (
+        name, due.strftime("%a %Y-%m-%d %H:%MZ")) if due is not None and (seen is None or seen < due) else None)
     if not doc:
-        return "%s: no weekly report yet." % name
+        return head + ", and no weekly report has landed before." if head else "%s: no weekly report yet." % name
     age = W.fb_refit_age_days(doc, now)
     if age is None or age > W.FB_REFIT_STALE_DAYS:
-        return "%s: the weekly report is %s days old (built %s), so there is no current reading." % (
-            name, "?" if age is None else int(age), doc.get("built_at"))
+        return "%s the weekly report is %s days old (built %s), so there is no current reading." % (
+            head + ", and" if head else name + ":", "?" if age is None else int(age), doc.get("built_at"))
+    lead = ("%s. Last week's report, built %s, said: " % (head, doc.get("built_at")) if head else "%s: " % name)
     ms, lm = doc.get("miss") or {}, doc.get("line_moves") or {}
-    out = [("%s: our predicted margins miss by %.1f points on average, the books' line by %.1f; totals "
-            "%.1f against %.1f (%d games)." % (name, ms["margin_model"], ms["margin_books"], ms["total_model"],
-                                               ms["total_books"], ms["games"]))
-           if ms.get("games") else "%s: no finished games to measure yet." % name]
+    out = [lead + ("our predicted margins miss by %.1f points on average, the books' line by %.1f; totals "
+                   "%.1f against %.1f (%d games)." % (ms["margin_model"], ms["margin_books"], ms["total_model"],
+                                                      ms["total_books"], ms["games"])
+                   if ms.get("games") else "no finished games to measure yet.")]
     for mk, title in (("spread", "Spread"), ("moneyline", "Moneyline"), ("total", "Totals")):
         g, m = (doc.get("scoreboard") or {}).get(mk) or {}, lm.get(mk) or {}
         if not g.get("predictions"):
@@ -117,18 +125,44 @@ def refit_summary(doc, name, now):
     return " ".join(out)
 
 
+def own_branch(branch, name):
+    """`branch` is challenger `name`'s own fb/champion-<lg>-<name>-<date> (fb_refit.push_branch)."""
+    return bool(re.match(r"fb/champion-[a-z]+-%s-\d{4}-\d{2}-\d{2}$" % re.escape(name), branch or ""))
+
+
 def refit_wins(doc, name):
-    """[(the "Needs you" item, its clicks)] for every challenger that WINS."""
+    """[(the "Needs you" item, its clicks)] for every challenger that WINS.
+    `[R1, 2026-10-18]` A merge link only to the challenger's OWN branch: fb_refit pushes
+    nothing while another fb/champion-<lg>-* branch is on GitHub (a merged one stays
+    there), and nothing while the league already has a champion (`needs_sam`)."""
     out = []
     for x in (doc or {}).get("challengers") or []:
-        if x.get("verdict") != "WINS" or not x.get("branch"):
+        if x.get("verdict") != "WINS":
             continue
         s = x["scored"]
-        out.append(("%s challenger %s (%s) beat the current game model: log loss %.4f against %.4f over %d "
-                    "scored predictions in %d games, one-sided p = %.4g (it needed under %.4g)" % (
-                        name, x["name"], x["what"], s["challenger_log_loss"], s["champion_log_loss"],
-                        s["predictions"], s["games"], s["p"], x["alpha"]),
-                    ["1. Open %s/compare/main...%s?expand=1" % (REPO, x["branch"]),
+        what = ("%s challenger %s (%s) beat the current game model: log loss %.4f against %.4f over %d "
+                "scored predictions in %d games, one-sided p = %.4g (it needed under %.4g)" % (
+                    name, x["name"], x["what"], s["challenger_log_loss"], s["champion_log_loss"],
+                    s["predictions"], s["games"], s["p"], x["alpha"]))
+        br = x.get("branch")
+        if not br:
+            out.append((what + ". %s" % (x.get("needs_sam") or "NEEDS SAM: no branch was pushed for it"),
+                        ["Nothing to merge: no branch was pushed, so the site keeps the current model. "
+                         "How a second switch should work (CHAMPION as an ordered list, so the model put "
+                         "on the site is the one that was scored) is a frozen rule in "
+                         "research/fb_refit_spec.md §3, and it is yours to decide."]))
+            continue
+        if not own_branch(br, x["name"]):
+            out.append((what + ", but an older champion branch, %s, is still on GitHub, so no branch was "
+                        "pushed for %s: that older branch must be merged, or closed and deleted, first" % (
+                            br, x["name"]),
+                        ["1. On GitHub open Pull requests and find the one for %s (or Code, then Branches)." % br,
+                         "2. Merge it, or close it and delete the branch %s with its trash icon." % br,
+                         "3. If %s still wins on a later Monday, its own branch is pushed then and this "
+                         "email links it." % x["name"]]))
+            continue
+        out.append((what,
+                    ["1. Open %s/compare/main...%s?expand=1" % (REPO, br),
                      "2. Click the green \"Create pull request\" button (twice: once on the page, once under "
                      "the title box).",
                      "3. Wait until the box at the bottom says \"All checks have passed\".",
@@ -169,8 +203,8 @@ def build(root=ROOT, now=None):
     wf = (runs or {}).get("by_workflow") or {}
     broken = ([{"key": "watchdog:health", "severity": "BROKEN", "what": old}] if old else []) + [
         f for f in findings if f.get("severity") == "BROKEN"]
-    refit = [(name, _read(os.path.join(root, d, "latest", "fb-refit.json"))) for name, d in FB]
-    won = [w for name, doc in refit for w in refit_wins(doc, name) + injury_branch(doc, name)]
+    refit = [(name, d, _read(os.path.join(root, d, "latest", "fb-refit.json"))) for name, d in FB]
+    won = [w for name, _d, doc in refit for w in refit_wins(doc, name) + injury_branch(doc, name)]
     needs = [f["what"] for f in broken] + [w[0] for w in won]
     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
     for what, clicks in won:
@@ -179,8 +213,8 @@ def build(root=ROOT, now=None):
     for name, d in LEAGUES:
         L.append("**%s**" % name)
         L += ["- %s: %s / %s" % (k, _rate(*wk), _rate(*al)) for k, wk, al in records(root, d, since)]
-    L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now)
-                                                         for name, doc in refit]
+    L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now, W.last_due_for(
+        d + "/latest/fb-refit.json", now)) for name, d, doc in refit]
     c = health.get("credits") or {}
     bal, at = c.get("balance"), str(c.get("pulled_at"))
     L += ["", "## Odds API credits"]
