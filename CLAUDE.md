@@ -321,7 +321,10 @@ note boxes, tags and the stale bar now require their absence.
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
   main; the Monday email's "Is the football model learning?" section and "Needs
   you" tell Sam. ⛔ Merging is Sam's; a champion adds "+game-<name>" to the card's
-  method. A report over 8 days old is DEGRADED. `test_fb_refit.py`.
+  method. A report over 8 days old is DEGRADED. `[R1, 2026-10-18]` A report that never lands
+  is DEGRADED too (`watchdog.check_learner_landing`). While the league already names a
+  CHAMPION, a WINS pushes nothing and its report carries NEEDS SAM; a second switch (an
+  ordered CHAMPION list) is Sam's, §3 unchanged. `test_fb_refit.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
   *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
   ... only show confidence score on each pick that the model picks, BASED ON THE
@@ -971,7 +974,11 @@ note boxes, tags and the stale bar now require their absence.
   BROKEN finding opens the watchdog's issue (`watchdog.alerting`); DEGRADED stays
   in health.json and the weekly. Every alert ends with `watchdog.what_to_do`
   (what is wrong, is the site updating, a prompt ready to paste). lateness.json
-  keeps 8 days of measured `late`. `test_status.py`.
+  keeps 8 days of measured `late`. `test_status.py`. ✅ `[R1, 2026-10-18]`
+  `watchdog.check_learner_landing`: every cron workflow that `git add`s a data/ path must
+  land it; missing after its first run since first seen + 600 min + its timeout, or older
+  than 2 periods + grace -> DEGRADED, no repair; first-seen is carried in health.json
+  `learners`. `test_learner_landing.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
@@ -1199,6 +1206,8 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   PR, never main. status.py and the watchdog never import it.
                   `[2026-10-17]` also the injury test, once (fb_inj_backtest.auto),
                   through the one branch pusher, `push_change`.
+                  `[R1, 2026-10-18]` while CHAMPION is set, a WINS pushes no
+                  branch (NEEDS SAM); each league's `elapsed_seconds` is stored.
 fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   (nflverse, free; OAK stored as LV) and college 2023-2024 schedules
                   + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
