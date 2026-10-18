@@ -26,6 +26,7 @@ WHAT IS PINNED:
 #   find: if (!rows.length) return '<p class="plain">No player log for this game.</p>';
 #   with: if (!rows.length) return '<div class="note"><b>No player log for this game.</b> That is an absence, not a zero.</div>';
 """
+import collections
 import glob
 import gzip
 import http.server
@@ -256,6 +257,27 @@ if _BROWSER:
     print("\n═══ 3. 🔴 A RE-RENDER MUST NOT MOVE THE PAGE ═══")
     # ⛔ THE ANNOYANCE SAM REPORTED, MEASURED: scroll down, force the exact
     #    re-render the controls and the poll cause, and check the position.
+    # 🔴 `[2026-10-18]` PINNED TO THE 2026 FILE'S BUSIEST WEEK. ~~The page's own
+    #    default week~~ is the first with a game still to play, else the last
+    #    (`fbCurrentWeek`), and 2026's last week holds ONE game (Army-Navy). From
+    #    the week the championships go final (about 12-06) to the next season the
+    #    tab shows one card, the page cannot scroll to 700, and this check was red
+    #    on correct code on every PR's render job (measured: every 2026 game
+    #    marked final -> scrollY 0). The busiest stored week is a fact of the
+    #    season file, so the case exists every run.
+    _sc26 = json.load(gzip.open(f"{ROOT}/data/ncaaf/latest/schedule-2026.json.gz",
+                                "rt")).get("games") or []
+    _busy = collections.Counter(g.get("week") for g in _sc26
+                                if g.get("week") is not None).most_common(1)[0][0]
+    _wk = pg.evaluate("""async (w) => {
+        fbScSeason = 2026; fbWeek = w;
+        await renderFootball();
+        return fbWeek;
+    }""", _busy)
+    pg.wait_for_function("() => window.__fbShown && window.__fbShown.length > 0",
+                         timeout=30000)
+    ck("⚠️ the view is the busiest stored week, not the day's default",
+       _wk == _busy, "asked week %r, the page shows %r" % (_busy, _wk))
     pg.evaluate("window.scrollTo(0, 700)")
     pg.wait_for_timeout(200)
     before = pg.evaluate("() => window.scrollY")

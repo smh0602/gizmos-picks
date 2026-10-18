@@ -72,6 +72,11 @@ a pre-registration condition of T60, not a refinement.
 #      cap itself is removed instead, and the card the code builds from
 #      TOP_N + 5 candidates (section 6) goes over it every time.
 #
+# @vacuity 🔴 [2026-10-18] a last slate rebuilt after every game started keeps its published top plays
+#   file: card_fb.py
+#   find: FREEZE_SECTIONS = ("picks", "top_plays", "game_lines", "parlays", "sgp", "liked", "game_lines_liked")
+#   with: FREEZE_SECTIONS = ("picks", "game_lines", "parlays", "sgp", "liked", "game_lines_liked")
+#
 # @vacuity 🔴 a POSITIONAL join is caught even on a thin day: the planted archive lists a decoy FIRST
 #   file: shadow_fb.py
 #   find: got = sec.get(src["board_id"])
@@ -594,19 +599,17 @@ _TOP_BUILD_SLACK_MIN = 10
 _TOP_CAP_RE = re.compile(r"Nothing is padded back to (\d+)")
 
 
+_EMPTY_HEAD = card_fb.empty_top_plays_sentence("\0", 0).split("\0")[0]
+
+
 def _top_problem(c):
     """None when a card keeps the cap it was built under, else why not."""
     top = [t for t in (c.get("top_plays") or []) if isinstance(t, dict)]
     if not top:
         return None
-    m = _TOP_CAP_RE.findall(c.get("top_plays_rule") or "")
+    rule = c.get("top_plays_rule") or ""
+    m = _TOP_CAP_RE.findall(rule)
     cap = int(m[-1]) if m else None
-    if cap is None:
-        return "%d top plays and no declared cap" % len(top)
-    if cap not in (OLD_TOP_N, card_fb.TOP_N):
-        return "declares a cap of %d, never in force" % cap
-    if len(top) > OLD_TOP_N:
-        return "%d top plays, over the largest cap ever in force (%d)" % (len(top), OLD_TOP_N)
     built = c.get("generated_at") or ""
     try:
         when = (datetime.datetime.strptime(built, "%Y-%m-%dT%H:%M:%SZ")
@@ -615,6 +618,23 @@ def _top_problem(c):
         when = ""
     kicks = card_fb._kickoffs(c)
     frozen = sum(1 for t in top if when and card_fb._started(t, kicks, when))
+    if cap is None:
+        # 🔴 `[2026-10-18]` THE FREEZE'S OWN CARD, NOT A BREACH. A dated card rebuilt once
+        #    every game on it has started (a season's last slate: the board keeps its
+        #    day, and nothing moves it on) drops every started row, so the build has NO
+        #    top plays and writes the empty-list sentence, which declares no cap; then
+        #    `freeze_published` puts back what was published. Every row on it had started
+        #    when it was built, so this build published none of them. ⛔ Anything else
+        #    with no cap is still a breach: one new row, a sentence that is not the empty
+        #    list's, or more rows than any cap ever allowed.
+        if (frozen == len(top) and rule.startswith(_EMPTY_HEAD)
+                and len(top) <= OLD_TOP_N):
+            return None
+        return "%d top plays and no declared cap" % len(top)
+    if cap not in (OLD_TOP_N, card_fb.TOP_N):
+        return "declares a cap of %d, never in force" % cap
+    if len(top) > OLD_TOP_N:
+        return "%d top plays, over the largest cap ever in force (%d)" % (len(top), OLD_TOP_N)
     if len(top) > max(cap, frozen):
         return ("%d top plays against its declared cap of %d (%d already started when it "
                 "was built)" % (len(top), cap, frozen))
@@ -693,6 +713,41 @@ ck(_ncross > card_fb.TOP_N and _top_problem(_crossed) is None,
    "⛔ a guard that fires on correct code is the other failure, not a safe one: "
    "`_merge_list` never trims a frozen row. Got %d rows, %r"
    % (_ncross, _top_problem(_crossed)))
+# 🔴 `[2026-10-18]` ...and the card the real merge makes when a slate's dated card is
+#    rebuilt after EVERY game on it has started (a season's last slate): the build has no
+#    top plays, so its rule is the empty-list sentence, and the freeze puts the published
+#    ones back. Judged as "no declared cap", every such card would have turned this file
+#    red for good. Two controls keep the exception narrow.
+ck(len(_EMPTY_HEAD) >= 10 and all(card_fb.empty_top_plays_sentence("2027-01-19", n)
+                                  .startswith(_EMPTY_HEAD) for n in (0, 7)),
+   "   ⚠️ both empty-list sentences open with the head the judge reads (%r)" % _EMPTY_HEAD)
+_tdir = tempfile.mkdtemp(prefix="shadow-top-")
+try:
+    _end_path = os.path.join(_tdir, "fb-ncaaf-2027-01-19.json")
+    with open(_end_path, "w", encoding="utf-8") as _fh:
+        json.dump({"top_plays": [dict(r, commence="2027-01-20T00:30:00Z") for r in _planted],
+                   "generated_at": "2027-01-19T15:00:00Z",
+                   "top_plays_rule": "Nothing is padded back to %d." % card_fb.TOP_N}, _fh)
+    _rebuilt = {"top_plays": [], "generated_at": "2027-01-20T09:00:00Z",
+                "top_plays_rule": card_fb.empty_top_plays_sentence("2027-01-19", 12)}
+    _ended, _ = card_fb.freeze_published(_rebuilt, _end_path, "2027-01-20T09:00:00Z",
+                                         log=lambda m: None)
+finally:
+    shutil.rmtree(_tdir, ignore_errors=True)
+_nend = len(_ended.get("top_plays") or [])
+ck(_nend == card_fb.TOP_N and _top_problem(_ended) is None,
+   "   ✅ ...and the card the real merge makes when the last slate is rebuilt after every "
+   "game started (%d frozen rows under the empty-list sentence) is NOT flagged" % _nend,
+   "⛔ a guard that fires on correct code is the other failure. Got %d rows, %r"
+   % (_nend, _top_problem(_ended)))
+_one_new = dict(_ended, top_plays=list(_ended.get("top_plays") or [])
+                + [dict(_cand[-1], player="New One", game_id="new-1",
+                        commence="2099-01-01T18:00:00Z")])
+_other = dict(_ended, top_plays_rule="The top plays.")
+ck(_top_problem(_one_new) is not None and _top_problem(_other) is not None,
+   "   🔴 ...while the same card with ONE row not yet started, or with a rule that is not "
+   "the empty list's, still reads as having no declared cap",
+   "got %r / %r" % (_top_problem(_one_new), _top_problem(_other)))
 _over = [(n, why) for n, why in _judged if why]
 ck(not _over,
    "   ⛔ ...and not one publishes more top plays than the cap it was built under "

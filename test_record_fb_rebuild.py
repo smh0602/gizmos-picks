@@ -234,17 +234,18 @@ def plant(lg, tmp):
                              "w", encoding="utf-8"))
 
 
-def rebuild(lg, mutate=None, planted=False):
-    """Run THIS checkout's record_fb.py on a temp copy — of the stored data,
-    or of the planted tree. -> (R, D, rc, log)."""
+def rebuild(lg, mutate=None, planted=False, src=ROOT):
+    """Run THIS checkout's record_fb.py on a temp copy — of the stored data
+    (`src`, the repo unless a guard below hands it a tree of its own), or of
+    the planted tree. -> (R, D, rc, log)."""
     tmp = tempfile.mkdtemp(prefix="recfb-rebuild-")
     if planted:
         plant(lg, tmp)
     else:
-        shutil.copytree(os.path.join(ROOT, "data", lg),
+        shutil.copytree(os.path.join(src, "data", lg),
                         os.path.join(tmp, "data", lg))
         os.makedirs(os.path.join(tmp, "picks"))
-        for f in glob.glob(os.path.join(ROOT, "picks", "fb-%s-*.json" % lg)):
+        for f in glob.glob(os.path.join(src, "picks", "fb-%s-*.json" % lg)):
             shutil.copy(f, os.path.join(tmp, "picks"))
     # ⛔ THE COMMITTED OUTPUT IS REMOVED FIRST, so a run that writes
     #    nothing cannot be read as a run that wrote the old file.
@@ -285,6 +286,33 @@ def dated_cards(pdir, lg):
                   if not f.endswith("-latest.json"))
 
 
+def graded_list(card):
+    """The list record_fb grades a card on: `[Sam, 2026-10-15]` what it SHOWS, its
+    `liked` list whenever it has one, else its `picks`."""
+    return (card.get("liked") if "liked" in card else card.get("picks")) or []
+
+
+def probe_blocked(root, lg):
+    """Why the NEXT METHOD probe could not become current on this tree, or None.
+    ⛔ `[2026-10-18]` A TEST ASKS THE CODE, NEVER PRODUCTION. On the stored data the
+    probe borrows the newest card with rows and is dated two days after the newest
+    card. Two correct trees leave it nothing the grader can grade: no stored card
+    with rows in the list it is graded on, and a probe dated in a season whose log
+    is not stored (record_fb reads the log of the card's calendar year, so from
+    12-30 the probe lands in a 2027 nobody has a log for until August). The
+    planted tree asks the question every run either way."""
+    fs = dated_cards(os.path.join(root, "picks"), lg)
+    if not fs or not any(graded_list(json.load(open(f, encoding="utf-8"))) for f in fs):
+        return "no stored card carries rows in the list it is graded on"
+    last = datetime.strptime(os.path.basename(fs[-1])[len("fb-%s-" % lg):-5], "%Y-%m-%d")
+    season = (last + timedelta(days=2)).year
+    lp = os.path.join(root, "data", lg, "latest", "players-%d.json.gz" % season)
+    if not (os.path.exists(lp) and json.load(gzip.open(lp, "rt")).get("players")):
+        return ("the probe would be dated %s, and no %d log is stored to grade it"
+                % ((last + timedelta(days=2)).strftime("%Y-%m-%d"), season))
+    return None
+
+
 UNSETTLED = "2099-12-31T00:00:00Z"
 
 
@@ -323,7 +351,12 @@ def add_next_method_card(lg):
             json.dump(dict(card, date=d), open(os.path.join(pdir, "fb-%s-%s.json" % (lg, d)),
                                                "w", encoding="utf-8"))
         put(1, dict(json.load(open(fs[-1], encoding="utf-8")), picks=[], liked=[]))     # games only
-        src = [c for c in (json.load(open(f, encoding="utf-8")) for f in dated_cards(pdir, lg)) if c.get("picks")][-1]
+        # `[2026-10-18]` ~~the newest card with `picks`~~: the newest with rows in the
+        #    list record_fb GRADES. A card with 25 picks and an empty liked list
+        #    (`best_liked`: "fewer is fine") gave the probe no row, so it never became
+        #    current and the checks below went red on correct code.
+        src = [c for c in (json.load(open(f, encoding="utf-8")) for f in dated_cards(pdir, lg))
+               if graded_list(c)][-1]
         # ⚠️ Kickoffs beyond any log, so nothing on it can settle — the
         #    state of a card the night it is published.
         put(2, dict(unsettled(src), card_method=PROBE_NEXT))
@@ -489,10 +522,11 @@ def graded_dates_of(D):
                          and r.get("confidence") is not None for r in rows))
 
 
-def three_states(lg, planted):
-    """STORED, NEXT METHOD and TWO GRADED, on the planted tree or the stored data."""
+def three_states(lg, planted, root=ROOT):
+    """STORED, NEXT METHOD and TWO GRADED, on the planted tree or the stored data
+    (`root`'s; the guards below hand it trees of their own)."""
     src = "PLANTED" if planted else "STORED DATA"
-    R, D, rc, log = rebuild(lg, planted=planted)
+    R, D, rc, log = rebuild(lg, planted=planted, src=root)
     # `[Sam, 2026-10-17]` every planted state holds the planted game lines unchanged
     lines = plant_lines_want() if planted else None
     check(lg, "%s" % src, R, D, rc, log,
@@ -511,17 +545,22 @@ def three_states(lg, planted):
              "graded rows — a record reset or a new lane. The planted tree "
              "asked every question." % (lg, len(graded_dates)))
         return
-    R2, D2, rc2, log2 = rebuild(lg, add_next_method_card(lg), planted=planted)
-    check(lg, "%s + NEXT METHOD" % src, R2, D2, rc2, log2, expect_current=PROBE_NEXT,
-          expect_lines=lines)
-    if R2 is not None:
-        ck(R2.get("calibration") == [] and any(
-               v for v in (R2.get("calibration_by_method") or {}).values()),
-           "   %s %s NEXT METHOD: the new method is empty while earlier ones are "
-           "graded — the exact state main was in when #158 merged" % (lg, src),
-           "⛔ if this is not the state, the section above did not test it")
+    _why = None if planted else probe_blocked(root, lg)
+    if _why:
+        note("⚠️ NEXT METHOD NOT EXERCISED ON THE STORED DATA (%s): %s. The planted "
+             "tree asked it." % (lg, _why))
+    else:
+        R2, D2, rc2, log2 = rebuild(lg, add_next_method_card(lg), planted=planted, src=root)
+        check(lg, "%s + NEXT METHOD" % src, R2, D2, rc2, log2, expect_current=PROBE_NEXT,
+              expect_lines=lines)
+        if R2 is not None:
+            ck(R2.get("calibration") == [] and any(
+                   v for v in (R2.get("calibration_by_method") or {}).values()),
+               "   %s %s NEXT METHOD: the new method is empty while earlier ones are "
+               "graded — the exact state main was in when #158 merged" % (lg, src),
+               "⛔ if this is not the state, the section above did not test it")
     R3, D3, rc3, log3 = rebuild(lg, restamp_graded_card(lg, graded_dates[-1]),
-                                planted=planted)
+                                planted=planted, src=root)
     before = sorted({(r.get("card_method") or BEFORE)
                      for d, rows in D["days"].items()
                      if d != graded_dates[-1] for r in rows
@@ -548,6 +587,46 @@ for lg in ("nfl", "ncaaf"):
     section("%s — REBUILT FROM THIS CHECKOUT'S record_fb.py" % lg.upper())
     three_states(lg, planted=True)
     three_states(lg, planted=False)
+
+section("THE STORED-DATA PROBE ON TWO CORRECT TREES IT ONCE FAILED")
+# `[2026-10-18]` The guards for `probe_blocked` and the probe's source, built here
+# rather than waited for from picks/: the planted tree run as STORED DATA, plus one
+# card. (1) A newest card dated 12-31 puts the probe in 2027, with no 2027 log: the
+# stored path must note and add no failure. (2) A newest card with 25-style picks and
+# an EMPTY liked list: the probe must take the last card with rows in its graded list,
+# so NEXT METHOD runs and passes (taken by `picks`, it graded nothing and went red).
+import tcheck as _TC  # noqa: E402
+
+
+def _guard_tree(lg, date, liked_empty):
+    g = tempfile.mkdtemp(prefix="recfb-guard-")
+    plant(lg, g)
+    newest = json.load(open(os.path.join(g, "picks", "fb-%s-%s.json" % (lg, PLANT_DATES[-1])),
+                            encoding="utf-8"))
+    card = {k: v for k, v in unsettled(newest).items()
+            if k not in ("game_lines", "game_lines_liked")}
+    card["date"] = date
+    if liked_empty:
+        card["liked"] = []
+    json.dump(card, open(os.path.join(g, "picks", "fb-%s-%s.json" % (lg, date)), "w",
+                         encoding="utf-8"))
+    return g
+
+
+for _tag, _date, _empty, _want_note in (("YEAR TURN", "2026-12-31", False, True),
+                                         ("LIKED EMPTY", "2026-09-27", True, False)):
+    _g = _guard_tree("nfl", _date, _empty)
+    _nf0, _nn0 = len(_TC.FAILURES), len(_TC._NOTES)
+    try:
+        three_states("nfl", planted=False, root=_g)
+    finally:
+        shutil.rmtree(_g, ignore_errors=True)
+    _noted = any("NEXT METHOD NOT EXERCISED" in str(n) for n in _TC._NOTES[_nn0:])
+    ck(len(_TC.FAILURES) == _nf0 and _noted == _want_note,
+       "🔴 %s: a newest stored card dated %s%s %s, never a failure" % (
+           _tag, _date, " with an empty liked list" if _empty else "",
+           "NOTES the probe as not exercised" if _want_note else "still runs NEXT METHOD"),
+       "failures added %d, noted %s" % (len(_TC.FAILURES) - _nf0, _noted))
 
 note("⛔ WHAT THIS DOES NOT CLAIM: that the stored data is correct, or that "
      "the tab LOOKS right in a browser. It claims the record this "

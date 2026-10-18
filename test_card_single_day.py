@@ -109,6 +109,13 @@ tree = os.path.join(TMP, "tree")
 os.makedirs(os.path.join(tree, "data"))
 copy_module("card", tree)
 shutil.copytree(os.path.join(ROOT, "data", "latest"), os.path.join(tree, "data", "latest"))
+# 🔴 `[2026-10-18]` THE PULL IS PINNED: the complete 2026 season, as pulled 2026-10-17
+#    (`research/mlb_pitchers_20261017.json.gz`, written once). ~~The live pull~~ is
+#    rewritten for `now().year`: the first 2027 pull lands once ONE pitcher passes 20 IP
+#    (mid-April), when fewer than six teams have a five-start model arm, so the draw
+#    below came up short and this file died on an IndexError on correct code.
+PINNED_PULL = os.path.join(ROOT, "research", "mlb_pitchers_20261017.json.gz")
+shutil.copy(PINNED_PULL, os.path.join(tree, "data", "latest", "pitchers.json.gz"))
 open(os.path.join(tree, "driver.py"), "w").write(DRIVER)
 PD = json.load(gzip.open(os.path.join(tree, "data", "latest", "pitchers.json.gz"), "rt"))
 
@@ -126,6 +133,11 @@ for _pid, v in sorted(mp.items(), key=lambda kv: (-sum(1 for r in kv[1].get("g")
             and names[CM.norm_name(v["name"])] == 1):
         by_team[v["team"]] = v
 six = list(by_team.values())[:6]
+ck(len(six) == 6,
+   "⚠️ six starters from six different teams, each name unique in the model pool, "
+   "drawn from the pinned pull", "⛔ rule 67: got %d" % len(six))
+if len(six) < 6:
+    raise SystemExit(1)
 
 pull_at = datetime.datetime.strptime(PD["pulled_at"], "%Y-%m-%dT%H:%M:%SZ")
 FIX = (pull_at + datetime.timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ")

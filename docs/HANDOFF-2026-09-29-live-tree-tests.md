@@ -302,3 +302,60 @@ CI alone would not have shown the above. It is offered as its own task.
   starter under the innings bar, so the card is blind, and runs it as the extra: it must
   add no failure and say so. Watched both ways: with the fix undone it fails 3 checks;
   restored, all 52 pass. All 13 declared mutations still bite.
+- **2026-10-18, the off-season sweep.** After #298, every `test_*.py` was read end to end
+  (eight readers over 200 files, each asked which hard check a CORRECT tree can make
+  false: MLB off-season, a bye or thin week, a season's end, the 2027 rollover). The
+  whole suite was also run on today's tree and on a copy with all three props boards
+  emptied: no red but the known Windows ones. Six files were at risk, all P3 (a check
+  that needs the live data, or the newest card, to hold its case):
+  - `test_record_fb.py` §2. **Root cause:** it counted a card as graded when its `picks`
+    held rows, but since #267 the grader grades `liked`, which may be empty on a card with
+    25 picks (NFL 10-15 kept 2). The first such college card would have made it red for
+    good. **Fix:** `carded_files` counts the list the grader grades (and a log that holds
+    players). **Guard:** §3b plants a card with picks and an empty `liked`; the count must
+    agree with the grader. With the fix undone it fails. New declaration on record_fb's
+    `liked` line.
+  - `test_record_fb_rebuild.py`, the stored-data NEXT METHOD probe. **Root cause:** it
+    copied the newest card with `picks` (same `liked` trap), and it dates itself two days
+    after the newest card, so from 12-30 it lands in 2027, whose log does not exist until
+    August (record_fb reads the card's calendar year). **Fix:** the probe takes the newest
+    card with rows in its graded list; on stored data, a probe that cannot be graded is a
+    note. **Guard:** two planted trees run as stored data: one with a newest card on 12-31
+    must note and add no failure, one with a newest card whose `liked` is empty must still
+    run NEXT METHOD and pass. Each goes red with its half of the fix undone.
+  - `test_box_score.py` §3 (browser). **Root cause:** "the page is scrolled down" read the
+    page's default week, and 2026's last week holds one game (Army-Navy). From about 12-06
+    the tab cannot scroll and every PR's render job would go red. **Fix:** §3 pins the 2026
+    file's busiest week (and checks the page shows it). **Proof:** with every 2026 game
+    marked final it was red (scrollY 0); fixed, all 37 pass.
+  - `test_dossier_fb.py` §1d. **Root cause:** the "covered date" fixture used the
+    schedule's last date and then stripped `_homecode`'s home games near it. A last date
+    with one game hosted by that team (a Wild Card Monday, a Super Bowl) is left empty, and
+    three placement checks go red. **Fix:** the latest date that keeps a game someone else
+    hosts, plus a rule-67 check that the date survives the strip. **Proof:** with a
+    BUF-hosted last date added, the old file fails 3 of 139; fixed, 140 pass.
+  - `test_shadow_fb.py` §6. **Root cause:** a slate's dated card rebuilt after every game
+    started (a season's last slate) builds no top plays, writes the empty-list sentence
+    (no declared cap), and the freeze puts the published plays back; the judge called that
+    "no declared cap", and picks/ would have kept it red for good. **Fix:** a no-cap card
+    passes only when every top play had started when it was built, its rule is the empty
+    list's (the head read from `card_fb`), and it is within the largest cap ever in force.
+    **Guard:** the card the real `freeze_published` makes in that state must pass; one new
+    row, or another rule, must still be caught. Red with the fix undone. New declaration
+    on `FREEZE_SECTIONS`.
+  - `test_card_single_day.py` and `test_mlb_tables.py` (c1). **Root cause:** both drew six
+    real starters from the LIVE pitcher pull, which rolls to 2027 once one pitcher passes
+    20 IP (mid-April), with too few five-start arms: an IndexError, and a red (c1).
+    **Fix:** their planted trees use `research/mlb_pitchers_20261017.json.gz`, the
+    complete 2026 season as pulled 10-17 (written once); (c2) keeps the live pull.
+    **Proof:** on a thin 2027-style pull the old files died or failed; fixed, 8 and 46
+    pass.
+  - **Checked and safe:** `test_price_floor.py`'s LIVE EXTRA, driven on four states (no
+    card, a real card with 0 parlays, blind pitchers, 0 rows): the verifier always reaches
+    its summary and counts the floor failure.
+  - **Found, not changed (their own tasks):** `test_league_switch.py` §5 will be right to go
+    red the next time a card has a ladder rung below −400 (`.rung.dim` at opacity .45 is
+    under 4.5:1); the fb/champion branch the Monday contest may push fails
+    `test_fb_refit.py`'s pinned `CHAMPION`; record_fb grades a January card against the
+    next year's log; `collect_pitchers` raises on an empty 2027 pool from 01-01; on a
+    0-row MLB card verify_card fails two checks.

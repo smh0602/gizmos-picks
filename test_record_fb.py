@@ -25,6 +25,11 @@ and a feed can change:
 #   find: for m, bk in per.items()}
 #   with: for m, bk in per.items() if m == current}
 #
+# @vacuity 🔴 [2026-10-18] a card is graded on its LIKED list: one with picks and an empty liked list is not a card
+#   file: record_fb.py
+#   find: for p in card["liked"] if "liked" in card else card.get("picks", []):
+#   with: for p in card.get("picks", []):
+#
 # @vacuity `calibration` is the CURRENT method's buckets, not another's
 #   file: record_fb.py
 #   find: return out.get(current, []), out
@@ -250,14 +255,37 @@ _eligible = [h for h in _dated if h[len("fb-ncaaf-"):-len(".json")]
 #    `cards_seen` would be one HIGHER than the carded dated files — which
 #    this still catches. What is removed is a second, accidental claim
 #    that every dated file carries rows.
-_carded = []
-for _h in _eligible:
-    try:
-        with open(os.path.join(ROOT, "picks", _h)) as _fh:
-            if json.load(_fh).get("picks"):
-                _carded.append(_h)
-    except Exception:
-        _carded.append(_h)      # unreadable -> count it, never hide it
+def graded_list(card):
+    """The list record_fb grades a card on: `[Sam, 2026-10-15]` what it SHOWS, its
+    `liked` list whenever it has one, else its `picks`."""
+    return (card.get("liked") if "liked" in card else card.get("picks")) or []
+
+
+def carded_files(root, lg, floor):
+    """The dated cards record_fb CAN grade, derived from the TREE, never from the
+    grader's own skip list: on or after `floor`, carrying rows in the list it grades,
+    with a stored season log that holds players. Unreadable counts, never hides."""
+    pre = "fb-%s-" % lg
+    out, logs = [], {}
+    for f in sorted(glob.glob(os.path.join(root, "picks", pre + "*.json"))):
+        h = os.path.basename(f)
+        if h.endswith("-latest.json") or h[len(pre):-len(".json")] < floor:
+            continue
+        try:
+            with open(f, encoding="utf-8") as fh:
+                if not graded_list(json.load(fh)):
+                    continue
+        except Exception:
+            pass                # unreadable -> count it, never hide it
+        s = h[len(pre):len(pre) + 4]
+        if s not in logs:
+            lp = os.path.join(root, "data", lg, "latest", "players-%s.json.gz" % s)
+            logs[s] = os.path.exists(lp) and bool(load(lp).get("players"))
+        if logs[s]:
+            out.append(h)
+    return out
+
+
 # 🔴 `[2026-09-28]` ASKED OF THE LIVE TREE ONLY WHEN IT HOLDS THE CASE. The
 #    pointer question bites only if the pointer itself carries rows (a
 #    grader that graded an EMPTY pointer would drop it again), and a card
@@ -266,11 +294,15 @@ for _h in _eligible:
 #    code at every season rollover. ✅ The planted tree in §3b asks it every
 #    run; here the count is cards the grader CAN grade, derived from the
 #    tree (the log file exists), never from the grader's own skip list.
-_carded = [h for h in _carded
-           if os.path.exists(f"{ROOT}/data/ncaaf/latest/players-%s.json.gz"
-                             % h[len("fb-ncaaf-"):len("fb-ncaaf-") + 4])]
+# 🔴 `[2026-10-18]` ~~a card "carries rows" when its `picks` do~~: since #267 the
+#    grader grades a card's `liked` list, and `best_liked` may leave it empty on a
+#    card with 25 picks ("fewer is fine"; NFL 10-15 kept 2). Such a card is dropped
+#    by the grader and was counted here, so this check would have gone red on
+#    correct code, for good (cards are append-only). `carded_files` counts the list
+#    the grader grades, and §3b drives it on a planted card exactly like that.
+_carded = carded_files(ROOT, "ncaaf", _rfb.RECORD_FROM)
 _ptr = f"{ROOT}/picks/fb-ncaaf-latest.json"
-_ptr_rows = bool(os.path.exists(_ptr) and (load(_ptr).get("picks") or []))
+_ptr_rows = bool(os.path.exists(_ptr) and graded_list(load(_ptr)))
 if _ptr_rows:
     ck("`-latest.json` exists and is NOT counted as its own card",
        "fb-ncaaf-latest.json" in have and R["cards_seen"] == len(_carded),
@@ -491,6 +523,12 @@ def plant_fb(lg, root):
     # ⚠️ a card with NO rows is not a card the grader sees
     cards["2026-09-20"] = {"date": "2026-09-20", "league": lg, "logs_season": 2025,
                            "picks": []}
+    # 🔴 `[2026-10-18]` ...and nor is one whose LIKED list is empty: graded on what it
+    #    shows, 25 picks or not (`best_liked`: "fewer is fine").
+    cards["2026-09-21"] = {"date": "2026-09-21", "league": lg, "logs_season": 2025,
+                           "picks": [dict(cards[_PL_DATES[0]]["picks"][0],
+                                          commence="2026-09-21T17:00:00Z")],
+                           "liked": []}
     for d, c in cards.items():
         json.dump(c, open(os.path.join(root, "picks", "fb-%s-%s.json" % (lg, d)),
                           "w", encoding="utf-8"))
@@ -514,7 +552,7 @@ def graded_planted(lg):
         Dp = (load(os.path.join(lat, "record-detail.json.gz"))
               if os.path.exists(os.path.join(lat, "record-detail.json.gz")) else {})
         Pp = load(os.path.join(lat, "players-2026.json.gz"))["players"]
-        return p.returncode, Rp, Dp, cards, Pp
+        return p.returncode, Rp, Dp, cards, Pp, carded_files(t, lg, "2026-09-01")
     finally:
         shutil.rmtree(t, ignore_errors=True)
 
@@ -523,7 +561,7 @@ import subprocess  # noqa: E402
 _RAWRE_PL = re.compile(r"^\s*(\d+)\s+of\s+(\d+)\s*$")
 _PL_SEEN = {}
 for _lg in ("ncaaf", "nfl"):
-    _prc, _PR, _PD, _PC, _PP = graded_planted(_lg)
+    _prc, _PR, _PD, _PC, _PP, _PCARDED = graded_planted(_lg)
     _prows = [r for day in (_PD.get("days") or {}).values() for r in day]
     _prated = [r for r in _prows if r.get("confidence") is not None]
     ck("🔴 %s PLANTED: the grader ran and graded both carded days" % _lg,
@@ -535,7 +573,13 @@ for _lg in ("ncaaf", "nfl"):
        _PR.get("cards_seen") == 2,
        "⛔ the pointer is byte-for-byte the newest card; grading it would count "
        "that day twice. cards_seen=%s of 2 carded dated files (+1 empty, +1 "
-       "pointer on disk)" % _PR.get("cards_seen"))
+       "liked-empty, +1 pointer on disk)" % _PR.get("cards_seen"))
+    ck("🔴 %s PLANTED: §2's live count agrees with the grader on a tree holding a card "
+       "with picks and an EMPTY liked list" % _lg,
+       _PR.get("cards_seen") == len(_PCARDED) == 2,
+       "⛔ [2026-10-18] counted by `picks`, the live check would go red the first time a "
+       "stored card's liked list came back empty. cards_seen=%s, counted %s"
+       % (_PR.get("cards_seen"), _PCARDED))
     _pbad = [(r.get("player"), r.get("market")) for r in _prated
              if not isinstance(r.get("n_games"), int) or isinstance(r.get("n_games"), bool)]
     ck("🔴🔴 %s PLANTED: every rated row carries an INTEGER `n_games`" % _lg,
