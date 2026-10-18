@@ -3,7 +3,7 @@
  "kind": "DIAGNOSTIC",
  "note": "Can the football Scores tab be live? This writes a report and changes nothing. It is FREE \u2014 ESPN's public scoreboard, no key.",
  "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=400",
- "written_at": "2026-10-17T22:51:32Z",
+ "written_at": "2026-10-18T05:26:51Z",
  "usable": true,
  "http": 200,
  "variant_sweep": [
@@ -21,15 +21,15 @@
   },
   {
    "variant": "dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261017&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=20261018&limit=400",
    "http": 200,
-   "events": 52
+   "events": 0
   },
   {
    "variant": "groups=80 + dates=<today ET>",
-   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261017&limit=400",
+   "url": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261018&limit=400",
    "http": 200,
-   "events": 52
+   "events": 0
   }
  ],
  "variant_used": "groups=80 (FBS)",
@@ -53,7 +53,6 @@
    "shortName",
    "status",
    "uid",
-   "weather",
    "week"
   ],
   "competition": [
@@ -67,6 +66,7 @@
    "format",
    "geoBroadcasts",
    "groups",
+   "headlines",
    "highlights",
    "id",
    "leaders",
@@ -74,7 +74,6 @@
    "notes",
    "playByPlayAvailable",
    "recent",
-   "situation",
    "startDate",
    "status",
    "timeValid",
@@ -108,7 +107,8 @@
    "statistics",
    "team",
    "type",
-   "uid"
+   "uid",
+   "winner"
   ],
   "team": [
    "abbreviation",
@@ -139,78 +139,77 @@
  },
  "all_needed_fields_present": true,
  "by_state": {
-  "in": 11,
-  "post": 30,
-  "pre": 21
+  "post": 57,
+  "in": 5
  },
- "in_progress": 11,
+ "in_progress": 5,
  "live_sample": [
   {
-   "id": "401856719",
-   "away": "Auburn Tigers",
-   "home": "Georgia Bulldogs",
-   "away_score": "24",
-   "home_score": "24",
+   "id": "401856833",
+   "away": "Utah Utes",
+   "home": "Colorado Buffaloes",
+   "away_score": "20",
+   "home_score": "17",
    "state": "in",
-   "detail": "1:16 - 4th",
-   "clock": "1:16",
+   "detail": "10:57 - 4th",
+   "clock": "10:57",
    "period": 4,
-   "start": "2026-10-17T19:30Z"
+   "start": "2026-10-18T02:15Z"
   },
   {
-   "id": "401856723",
-   "away": "Alabama Crimson Tide",
-   "home": "Tennessee Volunteers",
-   "away_score": "10",
-   "home_score": "19",
+   "id": "401858269",
+   "away": "Wake Forest Demon Deacons",
+   "home": "California Golden Bears",
+   "away_score": "41",
+   "home_score": "0",
    "state": "in",
-   "detail": "5:54 - 4th",
-   "clock": "5:54",
+   "detail": "12:06 - 4th",
+   "clock": "12:06",
    "period": 4,
-   "start": "2026-10-17T19:30Z"
+   "start": "2026-10-18T02:30Z"
   },
   {
-   "id": "401856721",
-   "away": "Missouri Tigers",
-   "home": "Ole Miss Rebels",
-   "away_score": "3",
-   "home_score": "31",
+   "id": "401860904",
+   "away": "Fresno State Bulldogs",
+   "home": "San Diego State Aztecs",
+   "away_score": "23",
+   "home_score": "23",
    "state": "in",
-   "detail": "1:19 - 4th",
-   "clock": "1:19",
+   "detail": "4:45 - 4th",
+   "clock": "4:45",
    "period": 4,
-   "start": "2026-10-17T19:30Z"
+   "start": "2026-10-18T02:30Z"
   },
   {
-   "id": "401856828",
-   "away": "Arizona State Sun Devils",
-   "home": "Texas Tech Red Raiders",
-   "away_score": "17",
-   "home_score": "53",
+   "id": "401864521",
+   "away": "New Mexico Lobos",
+   "home": "Hawai'i Rainbow Warriors",
+   "away_score": "7",
+   "home_score": "10",
    "state": "in",
-   "detail": "6:32 - 4th",
-   "clock": "6:32",
+   "detail": "12:58 - 4th",
+   "clock": "12:58",
    "period": 4,
-   "start": "2026-10-17T19:30Z"
+   "start": "2026-10-18T02:30Z"
   },
   {
-   "id": "401858266",
-   "away": "North Carolina Tar Heels",
-   "home": "Duke Blue Devils",
-   "away_score": "17",
-   "home_score": "20",
+   "id": "401858492",
+   "away": "Nebraska Cornhuskers",
+   "home": "Oregon Ducks",
+   "away_score": "7",
+   "home_score": "6",
    "state": "in",
-   "detail": "4:34 - 4th",
-   "clock": "4:34",
-   "period": 4,
-   "start": "2026-10-17T19:30Z"
+   "detail": "7:16 - 3rd",
+   "clock": "7:16",
+   "period": 3,
+   "start": "2026-10-18T03:00Z"
   }
  ],
  "live_state_fields": {
-  "with a running clock": 11,
-  "with a period": 11,
-  "with both scores": 11,
-  "of": 11
+  "with a running clock": 5,
+  "with a period": 5,
+  "with both scores": 5,
+  "of": 5
  },
  "join": {
   "our_schedule_season": 2026,
@@ -295,20 +294,20 @@
  "staleness_note": "\u26d4 A SINGLE PULL CANNOT MEASURE HOW OFTEN THIS UPDATES \u2014 so this run takes a second one and compares, rather than leaving the question open.",
  "refresh_check": {
   "seconds_apart": 45,
-  "live_games_compared": 11,
-  "games_whose_clock_or_period_changed": 7,
+  "live_games_compared": 5,
+  "games_whose_clock_or_period_changed": 2,
   "example": {
-   "id": "401856719",
-   "was": "1:16 Q4",
-   "now": "1:18 Q4"
+   "id": "401856833",
+   "was": "10:57 Q4",
+   "now": "10:58 Q4"
   },
-  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 7 of 11 live games in 45s, so the feed is live enough for a polling tab"
+  "verdict": "\u2705 IT MOVES \u2014 the clock advanced on 2 of 5 live games in 45s, so the feed is live enough for a polling tab"
  },
  "browser_can_poll_directly": {
   "access_control_allow_origin": "*",
-  "cache_control": "max-age=3",
+  "cache_control": "max-age=9",
   "age": null,
   "verdict": "\u2705 YES \u2014 the header allows any origin, so index.html can fetch this the same way the MLB tab already polls statsapi. NO cron, NO stored file, NO commit; the page is as live as the feed."
  },
- "conclusion": "62 events via [groups=80 (FBS)], 11 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.1% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
+ "conclusion": "62 events via [groups=80 (FBS)], 5 in progress. JOIN: EXACT \u2014 our `id` IS ESPN's event id, so a live tab needs no matcher at all | COVERAGE: \ud83d\udd34 PARTIAL \u2014 as low as 18.1% of our games on a day. \u26d4 A live tab built on this would leave the rest looking unstarted; it must mark only the games the feed actually returned and say so"
 }
