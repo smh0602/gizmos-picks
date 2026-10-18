@@ -1,16 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-18T16:59:47Z",
+ "checked_at": "2026-10-18T17:05:20Z",
  "et_date": "2026-10-18",
  "healthy": false,
  "broken": 1,
- "degraded": 9,
+ "degraded": 10,
  "findings": [
   {
    "key": "record-verify:mlb",
    "severity": "BROKEN",
    "what": "the MLB Track Record does not add up",
    "why": "re-grading every published pick from the box scores disagreed with the published record: the mlb winners reproduce in their own line (5/14, 0 void). The site still shows the old record.",
+   "repair": null
+  },
+  {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (cfb-injuries, news)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   },
   {
@@ -87,7 +94,7 @@
   "pulled_at": "2026-10-18T16:09:06Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.8,
+  "reading_age_hours": 0.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-18T16:09:06Z",
   "source": "data/nfl/2026-10-18/props-player/1609.json.gz",
