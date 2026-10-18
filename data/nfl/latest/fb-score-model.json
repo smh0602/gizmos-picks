@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-10-17T18:11:48Z",
+ "built_at": "2026-10-18T11:33:43Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
@@ -906,6 +906,40 @@
     "moneyline": 49.4
    },
    "fb_model_ml_curve_spread": 42.0
+  },
+  {
+   "game_id": "2026_07_DAL_PHI",
+   "day": "2026-10-26",
+   "kick": "2026-10-26T20:15",
+   "home": "PHI",
+   "away": "DAL",
+   "neutral": false,
+   "score": {
+    "home": 26.6,
+    "away": 23.7
+   },
+   "margin": 2.9,
+   "total": 50.3,
+   "line": {
+    "spread": 0.0,
+    "total": 47.5
+   },
+   "score_curve": {
+    "spread": 58.5,
+    "total": 57.7,
+    "moneyline": 58.5
+   },
+   "calibrated": {
+    "spread": 52.8,
+    "total": 52.6,
+    "moneyline": 57.7
+   },
+   "fb_model": {
+    "spread": 47.4,
+    "total": 51.5,
+    "moneyline": 49.3
+   },
+   "fb_model_ml_curve_spread": 49.3
   }
  ],
  "backtest": {
