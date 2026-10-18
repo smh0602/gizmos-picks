@@ -1,7 +1,7 @@
 {
  "date": "2026-10-20",
  "league": "ncaaf",
- "generated_at": "2026-10-18T18:35:37Z",
+ "generated_at": "2026-10-18T21:49:17Z",
  "generated_by": "card_fb.py",
  "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-17T19:03:34Z",
@@ -335,7 +335,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-18T18:35:17Z",
-  "ladder_built_at": "2026-10-18T18:35:24Z",
+  "ladder_built_at": "2026-10-18T21:49:05Z",
   "alt_spreads": 0
  },
  "scores_shown": [
@@ -732,7 +732,7 @@
  },
  "sgp_meta": {
   "games_with_rated_legs": 0,
-  "games_with_a_line_row": 0,
+  "games_with_a_line_row": 1,
   "games_used": 0,
   "per_game_cap": 2,
   "rejected": {
@@ -745,7 +745,7 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "0 game(s) on this card carry a rated leg and 0 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "0 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
