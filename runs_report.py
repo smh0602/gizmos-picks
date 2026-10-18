@@ -725,8 +725,11 @@ def analyse(runs, now=None, root=".", registered=None):
         latest = done[0]
         recent = [r for r in done
                   if (_dt(r.get("createdAt")) or now) >= cutoff]
-        fails = [r for r in recent if r.get("conclusion") == "failure"]
-        if latest.get("conclusion") == "failure":
+        # `[R1, 2026-10-18]` ~~`== "failure"`~~: every conclusion runs.json already counts
+        #    as failed (FAILED): a run GitHub stopped at its `timeout-minutes` ("timed_out")
+        #    or never started ("startup_failure") is as broken as a red one.
+        fails = [r for r in recent if r.get("conclusion") in FAILED]
+        if latest.get("conclusion") in FAILED:
             broken.append({"name": name, "url": latest.get("url"),
                            "at": latest.get("createdAt"),
                            "fails_24h": len(fails)})

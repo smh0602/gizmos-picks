@@ -165,7 +165,9 @@ def contest(rows, champ, name, start, registered, fits=None):
     hist, scored = [], []
     for mk in c["markets"]:
         a = champ.predictions(mk)
-        for gid, (p_x, y, wk, _r) in fits.predictions(mk).items():
+        # `[R1, 2026-10-18]` only the games the champion prices: a pair needs both, so this
+        #    changes no number, and H / HC no longer fit every history-row Monday (test_fb_refit §16).
+        for gid, (p_x, y, wk, _r) in fits.predictions(mk, lambda r: r["id"] in a).items():
             if gid in a:
                 (scored if wk >= start else hist).append((loss(a[gid][0], y), loss(p_x, y), gid))
     out["history"] = test(hist)
@@ -349,15 +351,33 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
 
 
 def set_champion(src, lg, name):
-    """fb_model.py's text with ONE change: that league's CHAMPION entry."""
-    out, n = re.subn(r'(?m)^(CHAMPION = \{.*"%s": )(None|"[A-Z]+")' % lg, r'\g<1>"%s"' % name, src)
+    """fb_model.py's text with ONE change: that league's CHAMPION entry, from None.
+    `[R1, 2026-10-18]` ⛔ Never over a named champion (~~`(None|"[A-Z]+")`~~): a
+    challenger is scored as the champion PLUS its own input, so naming it alone would
+    put a model on the site that was never scored (push_branch's NEEDS SAM)."""
+    if re.search(r'(?m)^CHAMPION = \{.*"%s": "[A-Z]+"' % lg, src):
+        raise RuntimeError("fb_model.py already names a %s CHAMPION: NEEDS SAM, no switch" % lg)
+    out, n = re.subn(r'(?m)^(CHAMPION = \{.*"%s": )None\b' % lg, r'\g<1>"%s"' % name, src)
     if n != 1:
         raise RuntimeError("CHAMPION line not found once in fb_model.py")
     return out
 
 
+# `[R1, 2026-10-18]` The note a WINS carries when push_branch pushes nothing because the
+#    league already has a champion. ⚠️ spec §3 would switch; it was written before stacked
+#    champions were thought through, so how a second switch works is Sam's (an ordered list).
+NEEDS_SAM = ("NEEDS SAM: %s is already the %s champion and %s was scored as %s plus its own input, so "
+             "switching to %s alone would put a model on the site that was never scored. No branch was "
+             "pushed; how a second switch works (an ordered CHAMPION list) is a frozen spec rule, yours")
+
+
 def push_branch(lg, name, day, root=ROOT, run=subprocess.run):
-    """⛔ ONE branch per league while any fb/champion-<lg>-* is on origin; never main, never a PR."""
+    """⛔ ONE branch per league while any fb/champion-<lg>-* is on origin; never main, never a PR.
+    `[R1, 2026-10-18]` ⛔ And none while the league already has a CHAMPION: -> (None, False),
+    and weekly() writes NEEDS_SAM on the WINS (status.py puts it under "Needs you")."""
+    if FM.CHAMPION.get(lg):
+        return None, False
+
     def edit(tmp):
         p = os.path.join(tmp, "fb_model.py")
         with open(p, encoding="utf-8") as fh:
@@ -423,6 +443,9 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
         for x in doc["challengers"]:
             if x["verdict"] == "WINS":
                 x["branch"], x["branch_pushed"] = push_branch(lg, x["name"], now.strftime("%Y-%m-%d"), root, run)
+                if not x["branch"]:
+                    c = FM.CHAMPION.get(lg)
+                    x["needs_sam"] = NEEDS_SAM % (c, lg.upper(), x["name"], c, x["name"])
         # `[Sam, 2026-10-17]` the injury test fixed in advance (research/cfb_injuries_design.md §4),
         #    run once its data is stored, its result kept here; ⛔ never raises, never switches main.
         _was = (prev or {}).get("injury_backtest")
@@ -431,10 +454,13 @@ def weekly(root=ROOT, now=None, run=subprocess.run, added=None):
             doc["injury_backtest"] = fb_inj_backtest.auto(lg, root, now, run, prev=_was)
         except Exception as e:
             doc["injury_backtest"] = dict(_was or {}, error="%s: %s" % (type(e).__name__, e))
+        # `[R1, 2026-10-18]` the league's own run time, kept: the job's limit is 90 minutes and
+        #    the first real run (2026-10-19) is the first measurement on real data.
+        doc["elapsed_seconds"] = round(time.time() - t0, 1)
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(doc, fh, indent=1)
         log("%s: %s (%.0fs)" % (lg, "; ".join("%s %s" % (x["name"], x["verdict"])
-                                              for x in doc["challengers"]), time.time() - t0))
+                                              for x in doc["challengers"]), doc["elapsed_seconds"]))
 
 
 if __name__ == "__main__":

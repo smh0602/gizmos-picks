@@ -85,8 +85,8 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 the Monday email shows the section
 #   file: status.py
-#   find:     L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now)
-#   with:     L += [] + [""
+#   find:     L += ["", "## Is the football model learning?"] + ["- " + refit_summary(doc, name, now, W.last_due_for(
+#   with:     L += [] + [refit_summary(doc, name, now, W.last_due_for(
 #
 # @vacuity 🔴 a WINS goes under "Needs you"
 #   file: status.py
@@ -217,6 +217,41 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   file: watchdog.py
 #   find:         if doc and (age is None or age > FB_REFIT_STALE_DAYS):
 #   with:         if doc and (age is None or age > 99):
+#
+# @vacuity 🔴 R1: a report built before this Monday's run is said to be last week's
+#   file: status.py
+#   find:         name, due.strftime("%a %Y-%m-%d %H:%MZ")) if due is not None and (seen is None or seen < due) else None)
+#   with:         name, due.strftime("%a %Y-%m-%d %H:%MZ")) if False else None)
+#
+# @vacuity 🔴 R1: with a CHAMPION already named, push_branch pushes nothing
+#   file: fb_refit.py
+#   find:     if FM.CHAMPION.get(lg):
+#   with:     if False:
+#
+# @vacuity 🔴 R1: an older champion branch gets no merge link
+#   file: status.py
+#   find:         if not own_branch(br, x["name"]):
+#   with:         if False:
+#
+# @vacuity 🔴 R1: the challenger is asked only for the champion's games (no history Monday is fitted)
+#   file: fb_refit.py
+#   find:         for gid, (p_x, y, wk, _r) in fits.predictions(mk, lambda r: r["id"] in a).items():
+#   with:         for gid, (p_x, y, wk, _r) in fits.predictions(mk).items():
+#
+# @vacuity 🔴 R1: set_champion never replaces a named champion
+#   file: fb_refit.py
+#   find:     if re.search(r'(?m)^CHAMPION = \{.*"%s": "[A-Z]+"' % lg, src):
+#   with:     if False:
+#
+# @vacuity 🔴 R1: a WINS that pushed nothing carries the NEEDS SAM note
+#   file: fb_refit.py
+#   find:                     x["needs_sam"] = NEEDS_SAM % (c, lg.upper(), x["name"], c, x["name"])
+#   with:                     pass
+#
+# @vacuity 🔴 R1: a WINS with no branch still reaches "Needs you"
+#   file: status.py
+#   find:         if x.get("verdict") != "WINS":
+#   with:         if x.get("verdict") != "WINS" or not x.get("branch"):
 """
 import atexit
 import datetime
@@ -537,7 +572,10 @@ body = S.build(T7, NOW)[0]
 ck("## Is the football model learning?" in body and "- NFL: our predicted margins miss by 10.5 points on average, "
    "the books' line by 9.8" in body and "lines moved our way in 25 of 61 games (41%; 50% means no edge)" in body
    and "Challenger E (EPA): 0 of 300 scored predictions, not yet measurable." in body
-   and "- College: no weekly report yet." in body, "🔴 the Monday email shows the section, in plain words", body[-900:])
+   # `[R1, 2026-10-18]` ~~"- College: no weekly report yet."~~: on a Monday past its run, a league with no
+   #    report says this week's has not reported (Sam: "Yes, start the Monday contest watch fix (R1) now").
+   and "- College: this week's contest has not reported yet (its run was due Mon 2026-11-02 09:47Z), and no "
+   "weekly report has landed before." in body, "🔴 the Monday email shows the section, in plain words", body[-900:])
 ck(body.startswith("Nothing needs you this week."), "   ...and a contest with no winner needs nothing")
 won = dict(DOC, challengers=[{"name": "E", "what": "EPA", "verdict": "WINS", "alpha": 0.01,
                               "branch": "fb/champion-nfl-E-2026-11-02",
@@ -550,7 +588,10 @@ ck(body.startswith("Needs you: NFL challenger E (EPA) beat the current game mode
    and "\"Create pull request\" button (twice" in body and "\"All checks have passed\"" in body
    and "\"Confirm merge\"" in body, "🔴 a WINS shows \"Needs you\" with the compare link and the clicks", body[:600])
 put(T7, "data/nfl/latest/fb-refit.json", dict(DOC, built_at="2026-10-24T09:50:00Z"))
-ck("- NFL: the weekly report is 9 days old" in S.build(T7, NOW)[0], "🔴 a report 9 days old says so")
+# `[R1, 2026-10-18]` ~~"- NFL: the weekly report is 9 days old"~~ first: this week's run comes first.
+ck("- NFL: this week's contest has not reported yet (its run was due Mon 2026-11-02 09:47Z), and the weekly "
+   "report is 9 days old (built 2026-10-24T09:50:00Z), so there is no current reading." in S.build(T7, NOW)[0],
+   "🔴 a report 9 days old says so, after saying this week's has not reported")
 _root, W.ROOT = W.ROOT, T7
 try:
     rep = W.Report()
@@ -823,3 +864,149 @@ ck(_s_line.startswith("Challenger S (fewer inputs): not applicable against the c
    and "scored predictions" not in _s_line,
    "🔴 the Monday email says S is not applicable, in words, and claims no scored predictions", _s_line)
 eq(S.refit_wins(_lgs, "NFL"), [], "   ...and puts nothing under \"Needs you\"")
+
+# ══════════════════════════════════════════════════════════════════════
+section("14. 🔴 R1: THE MONDAY EMAIL NEVER SHOWS LAST WEEK'S CONTEST AS THIS WEEK'S")
+# ══════════════════════════════════════════════════════════════════════
+# `[R1, 2026-10-18]` Monday runs have started 7-9 hours late, after the 11:17Z email.
+_due = W.last_due_for("data/nfl/latest/fb-refit.json", NOW)
+ck(_due is not None and _due <= NOW and NOW - _due < datetime.timedelta(days=7),
+   "the contest's latest scheduled run is read from fb-refit.yml's own cron (this Monday's)", _due)
+put(T7, "data/nfl/latest/fb-refit.json", dict(DOC, built_at="2026-10-26T20:30:00Z"))
+body = S.build(T7, NOW)[0]
+ck("- NFL: this week's contest has not reported yet (its run was due Mon 2026-11-02 09:47Z). Last week's "
+   "report, built 2026-10-26T20:30:00Z, said: our predicted margins miss by 10.5" in body
+   and "- NFL: our predicted margins" not in body,
+   "🔴 a report built before this Monday's run is said to be last week's, never shown as current", body[-1200:])
+put(T7, "data/nfl/latest/fb-refit.json", DOC)                     # built 11-02 09:50, after the run
+body = S.build(T7, NOW)[0]
+ck("- NFL: our predicted margins miss by 10.5" in body and "NFL: this week's contest has not reported" not in body,
+   "   ...and one built after it is this week's")
+eq(S.refit_summary({}, "College", NOW), "College: no weekly report yet.",
+   "   ...and with no due run known (no fb-refit.yml cron to read), a missing report says only that")
+
+# ══════════════════════════════════════════════════════════════════════
+section("15. 🔴 R1: A SECOND SWITCH FAILS CLOSED; THE EMAIL LINKS ONLY THE WINNER'S OWN BRANCH")
+# ══════════════════════════════════════════════════════════════════════
+
+
+def _nogit(*a, **k):
+    raise AssertionError("git ran")
+
+
+_old = FM.CHAMPION["ncaaf"]
+try:
+    FM.CHAMPION["ncaaf"] = "P"
+    try:
+        _got = R.push_branch("ncaaf", "T", "2026-11-09", WORK, run=_nogit)
+    except AssertionError as _e:
+        _got = repr(_e)
+finally:
+    FM.CHAMPION["ncaaf"] = _old
+eq((_got, [h for h in sh("for-each-ref", "--format=%(refname:short)", "refs/heads", cwd=ORIGIN).split()
+           if "ncaaf" in h]), ((None, False), []),
+   "🔴 with a college CHAMPION already named, push_branch pushes nothing and runs no git")
+_src = 'CHAMPION = {"nfl": "E", "ncaaf": None}\n'
+try:
+    R.set_champion(_src, "nfl", "S")
+    _why = "no refusal"
+except RuntimeError as _e:
+    _why = str(_e)
+ck("NEEDS SAM" in _why, "🔴 set_champion never replaces a named champion", _why)
+eq(R.set_champion(_src, "ncaaf", "P"), 'CHAMPION = {"nfl": "E", "ncaaf": "P"}\n', "   ...and still sets one from None")
+
+T15 = tree()
+for _lg in ("nfl", "ncaaf"):
+    os.makedirs(os.path.join(T15, "data", _lg, "latest"))
+_wins = {"nfl": "S", "ncaaf": "TS"}
+_league, _champ = R.league, dict(FM.CHAMPION)
+import fb_inj_backtest as IB  # noqa: E402
+_auto = IB.auto
+
+
+def _fake_git(cmd, **k):
+    if cmd[:2] == ["git", "ls-remote"]:
+        return subprocess.CompletedProcess(cmd, 0, "abc\trefs/heads/fb/champion-ncaaf-P-2026-10-26\n"
+                                           if "ncaaf" in cmd[-1] else "", "")
+    raise AssertionError("only ls-remote: %r" % cmd)
+
+
+try:
+    R.league = lambda lg, root, now, prev=None, added=None: {"league": lg, "challengers": [
+        {"name": _wins[lg], "what": "fewer inputs", "verdict": "WINS", "alpha": 0.01 / 9,
+         "scored": {"predictions": 320, "games": 160, "p": 0.0004, "champion_log_loss": 0.68,
+                    "challenger_log_loss": 0.67}}]}
+    IB.auto = lambda *a, **k: {"state": "waiting"}
+    FM.CHAMPION.update(nfl="SM", ncaaf=None)
+    R.weekly(root=T15, now=NOW, run=_fake_git)
+finally:
+    R.league, IB.auto = _league, _auto
+    FM.CHAMPION.update(_champ)
+_docs = {lg: json.load(open(os.path.join(T15, "data", lg, "latest", "fb-refit.json"), encoding="utf-8"))
+         for lg in ("nfl", "ncaaf")}
+_n, _c = _docs["nfl"]["challengers"][0], _docs["ncaaf"]["challengers"][0]
+ck(_n["branch"] is None and _n["branch_pushed"] is False
+   and _n.get("needs_sam", "").startswith("NEEDS SAM: SM is already the NFL champion and S was scored as SM plus"),
+   "🔴 weekly(): a WINS against a named champion pushes nothing and carries the NEEDS SAM note", _n)
+eq((_c["branch"], _c["branch_pushed"]), ("fb/champion-ncaaf-P-2026-10-26", False),
+   "   ...and one against no champion, behind an older branch, gets that branch, not pushed")
+ck(all(isinstance(d.get("elapsed_seconds"), float) and d["elapsed_seconds"] >= 0 for d in _docs.values()),
+   "🔴 each league's fb-refit.json stores its own run time in seconds",
+   {lg: d.get("elapsed_seconds") for lg, d in _docs.items()})
+put(T7, "data/nfl/latest/fb-refit.json", dict(DOC, **_docs["nfl"]))
+put(T7, "data/ncaaf/latest/fb-refit.json", dict(DOC, **_docs["ncaaf"]))
+body = S.build(T7, NOW)[0]
+_head = body.split("\n")[0]
+ck("NFL challenger S (fewer inputs) beat the current game model" in _head and "NEEDS SAM: SM is already" in _head
+   and "College challenger TS (fewer inputs) beat the current game model" in _head
+   and "an older champion branch, fb/champion-ncaaf-P-2026-10-26, is still on GitHub" in _head
+   and "must be merged, or closed and deleted, first" in _head,
+   "🔴 both reach \"Needs you\": the NEEDS SAM note, and the older branch that must go first", _head)
+ck("compare/main..." not in body, "🔴 ...and neither gets a merge link (one would open a merged or wrong branch)",
+   [ln for ln in body.splitlines() if "compare/main" in ln])
+eq([S.own_branch(b, n) for b, n in (("fb/champion-ncaaf-HC-2026-10-26", "HC"),
+                                    ("fb/champion-ncaaf-H-2026-10-26", "HC"),
+                                    ("fb/champion-ncaaf-HC-2026-10-26", "H"),
+                                    ("fb/champion-nfl-E-2026-11-02", "E"))],
+   [True, False, False, True], "🔴 a branch is the challenger's own only by its exact name (H is not HC)")
+_mine = dict(DOC, league="ncaaf", challengers=[dict(_c, name="P", branch="fb/champion-ncaaf-P-2026-10-26")])
+ck(any("compare/main...fb/champion-ncaaf-P-2026-10-26?expand=1" in c for _w, cl in S.refit_wins(_mine, "College")
+       for c in cl), "   ...and the challenger's own earlier branch keeps its merge link")
+
+# ══════════════════════════════════════════════════════════════════════
+section("16. 🔴 R1: H's HISTORY-ROW MONDAYS ARE NOT FITTED, AND THE SCORED SET IS BYTE-IDENTICAL")
+# ══════════════════════════════════════════════════════════════════════
+T16 = tree()
+put(T16, "data/nfl/latest/schedule-2025.json.gz", {"season": 2025, "games": _sch})
+_hist = []
+for _i, g in enumerate(_sch[:48]):                       # six years earlier, closing lines stored
+    _fav = g["home_score"] >= g["away_score"]
+    _hist.append(dict(g, id="h%d" % _i, start=str(int(g["start"][:4]) - 6) + g["start"][4:],
+                      closing_spread=3.0 if _fav else -3.0, closing_total=44.5,
+                      closing_ml_home=-160 if _fav else 140, closing_ml_away=140 if _fav else -160))
+put(T16, "data/nfl/history/schedule-2019.json.gz", {"season": 2019, "games": _hist})
+_rows16 = [dict(r, sig=dict(r["sig"])) for r in _rows11["nfl"]]
+FC.attach("H", "nfl", _rows16, T16)
+
+
+class _AllFits(R.Fits):
+    """Fits as before R1: every row priced, the champion's or not."""
+
+    def predictions(self, mk, keep=None):
+        return R.Fits.predictions(self, mk)
+
+
+_new = R.challenger_fits(_rows16, "H", "nfl", T16)
+_was = _AllFits(_new.rows, _new.feat)
+_a = R.contest(_rows16, R.Fits(_rows16, FM.features), "H", "2026-06-08", "2026-06-08", fits=_new)
+_b = R.contest(_rows16, R.Fits(_rows16, FM.features), "H", "2026-06-08", "2026-06-08", fits=_was)
+_hrows = [r for r in _new.rows if str(r["id"]).startswith("hist:")]
+ck(len(_hrows) > 40 and _a["history"]["predictions"] > 0 and _a["scored"]["predictions"] > 0,
+   "the planted tree has history rows, and H has both history and scored predictions",
+   (len(_hrows), _a["history"]["predictions"], _a["scored"]["predictions"]))
+eq(json.dumps(_a, sort_keys=True), json.dumps(_b, sort_keys=True),
+   "🔴 H's contest is byte-identical with the history rows' own Mondays skipped")
+_mon = lambda f: sorted({wk for wk, _mk in f.models})  # noqa: E731
+ck(any(w < "2025" for w in _mon(_was)) and not any(w < "2025" for w in _mon(_new)),
+   "🔴 ...and none of those Mondays is fitted any more (each was a fit nobody scored)",
+   (_mon(_was)[:3], _mon(_new)[:3], len(_was.models), len(_new.models)))

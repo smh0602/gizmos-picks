@@ -69,6 +69,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import freshness as F  # noqa: E402
 import credits as C  # noqa: E402
+import runs_report as RR  # noqa: E402  the one cron reader (declared_crons, parse_cron, cron_matches)
+import wfparse  # noqa: E402  the one workflow reader (git_adds, job_timeouts)
 
 UTC = datetime.timezone.utc
 
@@ -1232,7 +1234,9 @@ def fb_refit_age_days(doc, now):
 def check_fb_refit(rep, now):
     """`[Sam, 2026-10-12]` The football model's weekly contest (fb_refit.py, its own
     Monday workflow) more than 8 days old -> DEGRADED, no repair (only its run
-    rebuilds it). ⛔ Not yet written is not late: the workflow is Sam's upload."""
+    rebuilds it). ~~⛔ Not yet written is not late: the workflow is Sam's upload.~~
+    `[R1, 2026-10-18]` The upload is done (2026-10-13): a report that never lands is
+    `check_learner_landing`'s question, for every scheduled learner."""
     for lg in ("nfl", "ncaaf"):
         doc = _read(os.path.join(ROOT, "data", lg, "latest", "fb-refit.json"))
         age = fb_refit_age_days(doc, now) if doc else None
@@ -1242,6 +1246,180 @@ def check_fb_refit(rep, now):
                          lg.upper(), "?" if age is None else int(age)),
                      "fb-refit.yml has not written data/%s/latest/fb-refit.json since %s." % (
                          lg, doc.get("built_at")))
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A SCHEDULED LEARNER THAT NEVER LANDS ITS FILE IS VISIBLE. `[R1, 2026-10-18]`
+# ══════════════════════════════════════════════════════════════════════
+# The weekly learners (fb-refit, mlb-refit, t60r) each run on their own cron and
+# commit a report. runs_report reports a RED run. Nothing reported a run that
+# timed out under another name, a green run that committed nothing, or a file that
+# stopped moving: check_fb_refit spoke only `if doc`, and mlb-refit.json and
+# data/t60r/ were aged by nothing. Monday runs have started 7-9 hours late.
+# ✅ THE CLASS IS DERIVED, never listed: every DEPLOYED workflow with a cron
+#    (runs_report.declared_crons, the one cron reader) whose steps `git add` a path
+#    under data/ (wfparse.git_adds). A new learner is covered the day it ships.
+#    Each `git add` path is judged by its FRESHEST file's own stamp (freshness.stamp_of,
+#    never an mtime): mlb-starts-2025 is written once and correctly old.
+# ⛔ DEGRADED ONLY, NO REPAIR: only the workflow's own run rebuilds its file, and a
+#    DEGRADED finding never opens the watchdog's issue (`alerting`).
+# 🔴 GRACE = how late GitHub has started a Monday cron + the job's own time limit.
+#    MEASURED (runs.json on main): mlb-refit's 11:43Z started 09-28 18:42Z (+6h59),
+#    10-05 19:43Z (+8h00), 10-12 20:24Z (+8h41); status's 11:17Z started 10-12
+#    20:18Z (+9h02). So 600 minutes, plus the workflow's longest `timeout-minutes`.
+LANDING_LATE_MIN = 600
+LANDING_TIMEOUT_DEFAULT = 360       # GitHub's own job limit when a job sets none
+LANDING_ROOT = SRCDIR               # where the workflows are read: the code, not the data tree
+LANDING_SPAN_DAYS = 400             # the window a cron's fires are listed over
+# ⛔ NOT LEARNERS, each with the guard that already owns its file. test_learner_landing.py
+#    fails on an entry that is no longer a cron workflow committing data (a dead exclusion).
+# ⚠️ `runs_report.DISABLED` is empty in the watchdog's process (only runs_report's own main
+#    fills it from GitHub), so a learner Sam switches off in GitHub keeps reporting DEGRADED
+#    here until it is listed below or switched back on.
+NOT_LEARNERS = {
+    "collect.yml": "the freshness contract judges every artifact it writes "
+                   "(check_freshness, check_stopped_league)",
+    "runs.yml": "runs.json has its own freshness row (`runs`), and runs_report.run_list ages it first",
+    "self-repair.yml": "it commits its record only after a repair pass, and Sam switched it off "
+                       "(2026-10-07)",
+}
+
+
+def learners(root=None):
+    """[{"file", "crons", "paths", "timeout_min"}] for every scheduled learner."""
+    root = root or LANDING_ROOT
+    out = []
+    for d in sorted(RR.declared_crons(root).values(), key=lambda d: d["file"]):
+        if d["file"] in NOT_LEARNERS:
+            continue
+        src = os.path.join(root, ".github", "workflows", d["file"])
+        paths = []
+        for p in wfparse.git_adds(src):
+            p = p.rstrip("/")
+            if (p == "data" or p.startswith("data/")) and p not in paths:
+                paths.append(p)
+        crons = [c["expr"] for c in (RR.parse_cron(e) for e in d["crons"]) if c]
+        if not paths or not crons:          # an unreadable cron is runs_report's `unattributable`
+            continue
+        lim = [m or LANDING_TIMEOUT_DEFAULT for m in wfparse.job_timeouts(src).values()]
+        out.append({"file": d["file"], "crons": crons, "paths": paths,
+                    "timeout_min": max(lim or [LANDING_TIMEOUT_DEFAULT])})
+    return out
+
+
+def cron_fires(crons, start, end):
+    """Every minute in [start, end] one of `crons` (expressions) fires, sorted."""
+    got = set()
+    for c in (RR.parse_cron(e) for e in crons):
+        if not c:
+            continue
+        d = start.date()
+        while d <= end.date():
+            for h in sorted(c["hour"]):
+                for m in sorted(c["min"]):
+                    t = datetime.datetime(d.year, d.month, d.day, h, m, tzinfo=UTC)
+                    if start <= t <= end and RR.cron_matches(c, t):
+                        got.add(t)
+            d += datetime.timedelta(days=1)
+    return sorted(got)
+
+
+def _span(lr, now):
+    return cron_fires(lr["crons"], now - datetime.timedelta(days=LANDING_SPAN_DAYS), now)
+
+
+def last_due_for(path, now, root=None):
+    """The latest scheduled fire at or before `now` of the learner that commits `path`
+    (repo-relative), or None. status.py's "has this week's run reported?"."""
+    import fnmatch
+    for lr in learners(root):
+        if any(fnmatch.fnmatch(path, p) or path.startswith(p + "/") for p in lr["paths"]):
+            fires = _span(lr, now)
+            return fires[-1] if fires else None
+    return None
+
+
+def _files(pattern):
+    """The files a `git add` path names in the data tree: a glob, or a folder's files."""
+    out = []
+    for p in glob.glob(os.path.join(ROOT, pattern)):
+        if os.path.isdir(p):
+            out += [os.path.join(dp, f) for dp, _dn, fs in os.walk(p) for f in fs]
+        elif os.path.isfile(p):
+            out.append(p)
+    return out
+
+
+def _fmt(t):
+    return t.strftime("%a %Y-%m-%d %H:%MZ")
+
+
+def landing_problems(lr, now, since):
+    """[(what, why)] for one learner: a path still missing after the first scheduled run
+    since `since` (plus grace), or whose freshest file is older than 2 periods plus grace."""
+    grace = datetime.timedelta(minutes=LANDING_LATE_MIN + lr["timeout_min"])
+    fires = _span(lr, now)
+    period = max((b - a for a, b in zip(fires, fires[1:])), default=None)
+    first = next((t for t in fires if t >= since), None)
+    stem, hours = lr["file"][:-4], grace.total_seconds() / 3600.0
+    missing, blind, old = [], [], []
+    for pat in lr["paths"]:
+        files = _files(pat)
+        if not files:
+            if first is not None and now > first + grace:
+                missing.append(pat)
+            continue
+        stamps = [s for s in (F.stamp_of(f) for f in files) if s]
+        if not stamps:
+            blind.append(pat)
+            continue
+        built = max(stamps)
+        if period is not None and now - built > 2 * period + grace:
+            old.append((pat, built))
+    out, fix = [], "Nothing repairs it on its own: open the workflow's latest run on the Actions tab."
+    if missing:
+        out.append(("%s has not landed %s" % (stem, ", ".join(missing)),
+                    "%s's first scheduled run since %s was due %s; with %.1f hours for GitHub's late start "
+                    "and the job's own limit it should have landed by %s, and nothing is there. A run that "
+                    "timed out, a green run that committed nothing and a cron GitHub never fired all look "
+                    "like this. %s" % (lr["file"], _fmt(since), _fmt(first), hours, _fmt(first + grace), fix)))
+    if blind:
+        out.append(("%s's %s carries no time" % (stem, ", ".join(blind)),
+                    "no file there has a %s stamp, so whether %s still lands it cannot be read." % (
+                        " / ".join(F.STAMP_FIELDS), lr["file"])))
+    if old:
+        built = max(b for _p, b in old)
+        out.append(("%s's %s %s %d days old" % (stem, ", ".join(p for p, _b in old), "is" if len(old) == 1
+                                                 else "are", (now - built).days),
+                    "built %s at the latest. %s runs every %s (cron %s); older than two runs plus %.1f hours "
+                    "means two scheduled runs in a row did not land it. %s" % (
+                        _fmt(built), lr["file"], "%g days" % (period.total_seconds() / 86400.0)
+                        if period >= datetime.timedelta(days=1) else "%g hours" % (period.total_seconds() / 3600.0),
+                        " / ".join(lr["crons"]), hours, fix)))
+    return out
+
+
+def check_learner_landing(rep, now):
+    """Every scheduled learner's files land, and keep landing -> else DEGRADED, no repair.
+    ⚠️ "Since" is the first health report that saw the learner's schedule (carried in
+    health.json `learners`; a changed cron or path starts again): the collect checkout
+    is shallow and the watchdog runs no git, so a deploy day cannot be read. A lost
+    report only delays a missing-file finding by one period, never raises a false one."""
+    prev = (_previous().get("learners") or {})
+    seen = {}
+    for lr in learners():
+        was = prev.get(lr["file"]) or {}
+        since = _when(was.get("since")) if (was.get("crons"), was.get("paths")) == (
+            lr["crons"], lr["paths"]) else None
+        if since is None or since.tzinfo is None or since > now:
+            since = now
+        seen[lr["file"]] = {"crons": lr["crons"], "paths": lr["paths"],
+                            "since": since.strftime("%Y-%m-%dT%H:%M:%SZ")}
+        bad = landing_problems(lr, now, since)
+        if bad:
+            rep.warn("landing:%s" % lr["file"][:-4], "; ".join(w for w, _y in bad),
+                     " ".join(y for _w, y in bad))
+    rep.note_learners = seen
 
 
 CHECKS = (check_page_renders, check_card_present, check_card_readable,
@@ -1258,7 +1436,9 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           #    the stored snapshots say was spent.
           check_credit_reconciliation,
           # `[Sam, 2026-10-12]` the football model's weekly contest, DEGRADED only.
-          check_fb_refit)
+          check_fb_refit,
+          # `[R1, 2026-10-18]` every scheduled learner lands its file, DEGRADED only.
+          check_learner_landing)
 
 
 def _previous():
@@ -1369,6 +1549,9 @@ def run(now=None):
     # ⛔ AND NOT ON THE PUBLIC PAGE: operational, not a fact about a game.
     if getattr(rep, "note_credits", None):
         out["credits"] = rep.note_credits
+    # `[R1, 2026-10-18]` when each learner's schedule was first seen, by check_learner_landing.
+    if getattr(rep, "note_learners", None) is not None:
+        out["learners"] = rep.note_learners
     return out
 
 
@@ -1384,6 +1567,7 @@ FILES_FIRST = {    # the finding key's first part -> the files to read first
     "fresh": "freshness.py, collect.py", "late": "freshness.py, relay.py",
     "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
     "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
+    "landing": "data/latest/runs.json, runs_report.py, the learner's own .py and workflow (read only)",
 }
 USAGE_CHECK = "\n".join((
     "USAGE CHECK",
