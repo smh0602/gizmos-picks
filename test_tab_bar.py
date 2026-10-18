@@ -53,8 +53,8 @@ in a browser, is measured by test_league_switch.py on pr-tests' render job.
 #
 # @vacuity 🔴 no CSS rule styles the bar differently for one league
 #   file: index.html
-#   find: .subnav a.on{color:#fff;box-shadow:inset 0 -3px 0 var(--accent2)}
-#   with: .subnav a.on{color:#fff;box-shadow:inset 0 -3px 0 var(--accent2)} body.fb .subnav a.on{color:#f0a500}
+#   find: .subnav a.on{color:#fff;font-weight:600;background:var(--accent);box-shadow:inset 0 0 0 1.5px #7f99e6}
+#   with: .subnav a.on{color:#fff;font-weight:600;background:var(--accent);box-shadow:inset 0 0 0 1.5px #7f99e6} body.fb .subnav a.on{color:#f0a500}
 #
 # @vacuity 🔴 every league has the Game Lines tab, MLB included [Sam, 2026-10-01]
 #   file: index.html

@@ -58,6 +58,16 @@ server-side check on them stays -- this file asks only what is DRAWN.
 #   find: .plain{font-size:12.5px;color:var(--mut);margin:8px 0}
 #   with: .plain{font-size:12.5px;color:var(--mut);margin:8px 0;background:#fff9ec}
 #
+# @vacuity 🔴 [Sam, 2026-10-17] nothing yellow or amber anywhere: the 60-69% confidence tile cannot come back
+#   file: index.html
+#   find: .c-mid{color:var(--ink)}
+#   with: .c-mid{background:#fff4e0;color:#8a5a00}
+#
+# @vacuity 🔴 [Sam, 2026-10-17] ...nor an amber colour written inline in the page's code
+#   file: index.html
+#   find:     ? '<span style="color:var(--mut);font-size:10px">&#9660;</span>'
+#   with:     ? '<span style="color:#f0a500;font-size:10px">&#9660;</span>'
+#
 # @vacuity 🔴 every tab of every league is clean, tab by tab
 #   file: index.html
 #   find: v.innerHTML = fbShell(`<h2>Around the league</h2>
@@ -103,6 +113,7 @@ server-side check on them stays -- this file asks only what is DRAWN.
 #   find: showStarted ? 'Hide' : 'Show'} started games</a></div>`;
 #   with: showStarted ? 'Hide them' : 'Show anyway'}</a></div>`;
 """
+import colorsys
 import json
 import os
 import re
@@ -193,6 +204,33 @@ ck("🔴 no per-row flag in the shipped code (Hard Rock, lineup risk, re-oriente
    READ and not _fl, "found %s" % _fl)
 _yel = [c for c in ("#fff9ec", "#f0dfb8", "#fdf7ec", "#f0dcb8") if c in CSS.lower()]
 ck("nothing in the yellow box palette", READ and not _yel, "found %s" % _yel)
+
+
+def amber(text):
+    """`[Sam, 2026-10-17]` every colour written in `text` whose HUE is yellow, amber or gold.
+    ⛔ By hue, not by a list: the four hexes above let the amber 60-69% tile (#fff4e0 /
+    #8a5a00), a gold league underline (#f0a500) and an olive warm-up badge (#8a6d1f) live on
+    the page for two weeks after "nothing yellow" (2026-10-01)."""
+    out = set()
+    rgb = [(m.group(0), [int(m.group(1)[i:i + 2], 16) for i in (0, 2, 4)])
+           for m in re.finditer(r"#([0-9a-fA-F]{6})\b", text)]
+    rgb += [(m.group(0), [int(m.group(1)[i] * 2, 16) for i in (0, 1, 2)])
+            for m in re.finditer(r"#([0-9a-fA-F]{3})\b", text)]
+    rgb += [(m.group(0), [int(m.group(i)) for i in (1, 2, 3)])
+            for m in re.finditer(r"rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", text)]
+    for name, (r, g, b) in rgb:
+        h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+        if 25 <= h * 360 <= 70 and s >= 0.25 and 0.12 <= l <= 0.98:
+            out.add(name.lower())
+    return sorted(out)
+
+
+_amb = amber(CSS + "\n" + JS)
+ck("🔴 [Sam, 2026-10-17] nothing yellow or amber anywhere, by HUE, in the styles and the code "
+   "(~~only the four yellow-box hexes~~)", READ and not _amb, "found %s" % _amb)
+ck("⚠️ ...and the hue test bites: the amber the page carried until design I reads as amber",
+   amber("#fff4e0 #8a5a00 #f0a500 #8a6d1f #b26a00") == ["#8a5a00", "#8a6d1f", "#b26a00", "#f0a500", "#fff4e0"]
+   and not amber("#0b7a47 #2449b8 #c62828 #b9482a #ffffff #556273"))
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 EVERY TAB OF EVERY LEAGUE, READ OUT OF THE PAGE")
