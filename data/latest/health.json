@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-18T16:07:28Z",
+ "checked_at": "2026-10-18T16:11:16Z",
  "et_date": "2026-10-18",
  "healthy": false,
  "broken": 1,
- "degraded": 8,
+ "degraded": 9,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -65,8 +65,15 @@
   {
    "key": "late:props-board:nfl",
    "severity": "DEGRADED",
-   "what": "nfl props-board was built 61 minutes after it was due",
-   "why": "due 2026-10-18T15:00Z, built 2026-10-18T16:00Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "what": "nfl props-board was built 69 minutes after it was due",
+   "why": "due 2026-10-18T15:00Z, built 2026-10-18T16:09Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-player:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl props-player was built 69 minutes after it was due",
+   "why": "due 2026-10-18T15:00Z, built 2026-10-18T16:09Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -76,15 +83,15 @@
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 12553,
-  "pulled_at": "2026-10-18T16:03:59Z",
+  "balance": 12487,
+  "pulled_at": "2026-10-18T16:09:06Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.1,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-18T16:03:59Z",
-  "source": "data/nfl/2026-10-18/gamelines/1603.json.gz",
-  "readings_on_disk": 965,
+  "newest_paid_pull": "2026-10-18T16:09:06Z",
+  "source": "data/nfl/2026-10-18/props-player/1609.json.gz",
+  "readings_on_disk": 967,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
