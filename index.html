@@ -4,35 +4,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gizmo's Picks — MLB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <style>
+/* 🔴 ONE LOOK FOR ALL THREE LEAGUES `[Sam, 2026-10-17]`: "i like the light blue on i
+   think that oone is good" -- design I: a white page, a navy side panel holding the
+   logo, the league switch and the ONE tab bar, royal blue #2449B8 as the second
+   colour, IBM Plex. Green is kept for what was already green on purpose: a positive
+   edge, a hit, and the projection chip (Sam, 2026-08-26: "make it green like the
+   pitchers"). ⛔ Nothing yellow, no amber: the last amber (the 60-69% confidence tile,
+   the active league's gold underline, the warm-up badge) went with this look.
+   Measured on white: ink 17.3:1, muted 6.2:1, blue 7.7:1, green 5.4:1. */
 :root{
-  --bg:#f4f5f7; --card:#fff; --ink:#14181f; --mut:#697586; --line:#dfe3e8;
-  --accent:#0b6b3a; --accent2:#0f8f4d; --live:#c62828; --warn:#b26a00;
-  --chip:#eef1f4; --shadow:0 1px 2px rgba(20,24,31,.06),0 1px 8px rgba(20,24,31,.04);
+  --bg:#fff; --card:#fff; --ink:#0f1b2d; --mut:#556273; --line:#e3e7ed;
+  --accent:#2449b8; --accent2:#1b3a99; --live:#c62828; --pos:#0b7a47;
+  --chip:#eef1f5; --shadow:0 1px 3px rgba(15,27,45,.06),0 6px 18px rgba(15,27,45,.04);
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
-  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  font:14px/1.45 var(--sans)}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
 
-/* ---- masthead ---- */
+/* ---- masthead: the navy side panel (a top header below 1024 px, see the @media rules) ---- */
 header{background:var(--ink);color:#fff}
-.mast{display:flex;align-items:center;gap:14px;height:56px}
-.logo{font-weight:800;font-size:19px;letter-spacing:-.02em}
-.logo span{color:#5fd18b}
-.tagline{color:#9aa6b5;font-size:12px;border-left:1px solid #333c48;padding-left:14px}
-.subnav{background:#1d232c;border-top:1px solid #2a323d;overflow-x:auto}
+.mast{display:flex;align-items:center;gap:14px;height:52px}
+.logo{font-weight:700;font-size:21px;letter-spacing:-.01em}
+.logo span{color:#7f99e6;margin-left:.22em}
+.tagline{color:#8fa1b8;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.subnav{background:none}
 .subnav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0;white-space:nowrap}
-.subnav a{display:block;padding:11px 14px;color:#b6c0cc;font-size:13px;font-weight:600;cursor:pointer}
-.subnav a:hover{color:#fff;background:#242c37}
-.subnav a.on{color:#fff;box-shadow:inset 0 -3px 0 var(--accent2)}
-.subnav a.off{color:#5c6673;cursor:default}
-.subnav a.off:hover{background:none;color:#5c6673}
+.subnav a{display:block;padding:10px 12px;border-radius:8px;color:#dce3ec;font-size:14px;font-weight:500;cursor:pointer}
+.subnav a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.subnav a.on{color:#fff;font-weight:600;background:var(--accent);box-shadow:inset 0 0 0 1.5px #7f99e6}
+.subnav a.off{color:#8fa1b8;cursor:default}
+.subnav a.off:hover{background:none;color:#8fa1b8}
 
 /* ---- toolbar ---- */
-.tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 0 6px}
-.tools h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+.tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:24px 0 8px}
+.tools h1{font-size:26px;margin:0;font-weight:700;letter-spacing:-.02em}
 .tools .sp{flex:1}
 input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line);
   border-radius:7px;background:#fff;color:var(--ink)}
@@ -66,9 +79,9 @@ input[type=date],select{font:inherit;padding:6px 9px;border:1px solid var(--line
 /* ---- box score inside the game modal ---- */
 .bxteam{margin:14px 0 4px}
 .bxt{margin:0 0 6px;font-size:13px;display:flex;align-items:center;gap:7px}
-.bxh{margin:10px 0 3px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.1em;
+.bxh{margin:10px 0 3px;font:600 10px/1 var(--sans);letter-spacing:.1em;
   text-transform:uppercase;color:#6b7683}
-table.bx th{font:600 10px/1 system-ui,sans-serif;letter-spacing:.06em;
+table.bx th{font:600 10px/1 var(--sans);letter-spacing:.06em;
   text-transform:uppercase;color:#6b7683;text-align:left;padding:5px 8px;
   border-bottom:1px solid #dfe4ea;white-space:nowrap}
 table.bx td{padding:5px 8px;border-bottom:1px solid #f0f3f6}
@@ -78,7 +91,7 @@ table.bx tr:hover td{background:#f7f9fb}
 .date{font-size:11px;color:var(--mut)}
 .livebadge{display:inline-block;background:var(--live);color:#fff;font-size:10px;font-weight:800;
   letter-spacing:.06em;padding:2px 7px;border-radius:4px}
-.warmbadge{display:inline-block;background:#8a6d1f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 7px;border-radius:999px;text-transform:uppercase;margin-bottom:2px}
+.warmbadge{display:inline-block;background:#556273;color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;padding:2px 7px;border-radius:999px;text-transform:uppercase;margin-bottom:2px}
 .sc{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
 .inn{font-size:11px;color:var(--mut);font-weight:600;margin-top:2px}
 .win{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -123,9 +136,9 @@ table.bx tr:hover td{background:#f7f9fb}
 .bxmore[open]>summary{margin-bottom:4px}
 
 /* ---- panels ---- */
-.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;
   box-shadow:var(--shadow);margin:8px 0 20px}
-.panel h2{margin:0 0 4px;font-size:16px}
+.panel h2{margin:0 0 4px;font-size:18px;letter-spacing:-.01em}
 .panel p{color:var(--mut);margin:6px 0}
 .msg{padding:40px 0;text-align:center;color:var(--mut)}
 /* [Sam, 2026-10-01] no explanation boxes, tags or yellow flags on the page.
@@ -135,34 +148,57 @@ table.data{width:100%;border-collapse:collapse;font-size:13px}
 table.data th,table.data td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
 table.data th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
-.pk{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
-  margin:10px 0;overflow:hidden}
-.pk-h{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid var(--line)}
-.cchip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;
+.pk{background:var(--card);border:1px solid var(--line);border-top:0;overflow:hidden;container-type:inline-size}
+/* the picks read as ONE list (design I): the first row of a run opens it, the last closes it */
+.pk:first-child,:not(.pk) + .pk{margin-top:12px;border-top:1px solid var(--line);
+  border-top-left-radius:14px;border-top-right-radius:14px}
+.pk:last-child,.pk:not(:has(+ .pk)){margin-bottom:18px;border-bottom-left-radius:14px;border-bottom-right-radius:14px}
+.pk-h{display:flex;align-items:center;gap:16px;padding:16px 18px}
+.cchip{display:inline-block;padding:6px 11px;border-radius:8px;font-size:12px;
   font-weight:600;text-decoration:none;border:1px solid var(--line);
   color:var(--ink);opacity:.72;white-space:nowrap}
 .cchip:hover{opacity:1}
-.cchip.on{background:var(--ink);color:var(--bg);border-color:var(--ink);opacity:1}
-.conf{flex:0 0 auto;width:62px;height:62px;border-radius:10px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;font-weight:800;line-height:1}
-.conf .n{font-size:21px;font-variant-numeric:tabular-nums}
-.conf .l{font-size:8px;letter-spacing:.08em;font-weight:700;margin-top:3px;opacity:.85}
-.c-hi{background:#e3f4e9;color:#0b6b3a}
-.c-mid{background:#fff4e0;color:#8a5a00}
-.c-lo{background:#fdeaea;color:#a02020}
-.pk-t{flex:1;min-width:0}
-.pk-t .play{font-size:16px;font-weight:800;letter-spacing:-.01em}
-.pk-t .meta{font-size:12px;color:var(--mut);margin-top:2px}
-.pk-px{text-align:right;flex:0 0 auto}
-.pk-px .px{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
-.pk-px .bk{font-size:11px;color:var(--mut)}
-.pk-b{padding:12px 14px}
-.pk-b ul{margin:0;padding-left:18px}
-.pk-b li{margin:4px 0}
-.ev{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#fafbfc;border-top:1px solid var(--line);
-  font-size:11px;color:var(--mut)}
+.cchip.on{background:var(--accent);color:#fff;border-color:var(--accent);opacity:1}
+/* 🔴 THE CONFIDENCE IS A NUMBER AND A BAR, ONE COLOUR FOR EVERY ROW `[Sam, 2026-10-17]`
+   (design I). The number is the card's own; the bar only draws it. ⛔ No green/amber/red
+   tile by band: the amber 60-69% tile was the page's last yellow box. */
+.conf{flex:0 0 116px;display:flex;align-items:center;gap:10px;line-height:1}
+.conf .n{flex:0 0 auto;min-width:46px;font:600 19px/1 var(--mono);font-variant-numeric:tabular-nums}
+.conf .cb{flex:1;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.conf .cb i{display:block;height:100%;background:var(--accent)}
+.c-hi{color:var(--ink)}
+.c-mid{color:var(--ink)}
+.c-lo{color:var(--ink)}
+.pk-t{flex:1 1 200px;min-width:0}
+.pk-t .play{font-size:15px;font-weight:500;line-height:1.35}
+.pk-t .play .pn{display:block;font-size:17px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.pk-t .play .pl{color:var(--accent);font-weight:600}
+.pk-g{flex:0 0 140px;min-width:0;font-size:13px;color:var(--mut);line-height:1.5}
+.pk-g .mu{display:flex;align-items:center;gap:5px;color:var(--ink);font-weight:500}
+.pk-g .wn{margin-top:2px}
+.pk-px{text-align:right;flex:0 0 auto;min-width:96px}
+.pk-px .px{font:600 18px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.pk-px .bk{font-size:13px;color:var(--mut);margin-top:3px}
+.pk-px .bklink{display:inline-block;margin-top:2px;padding:5px 10px;border-radius:8px;
+  background:#e9eefb;color:var(--accent);font-weight:600;white-space:nowrap}
+.pk-px .bklink:hover{background:#dbe4fb}
+.pk-px .bklink .bk-chip{background:none;padding:0;color:inherit;font-size:13px;font-weight:600}
+.pk-px .bk .betbtn{margin-left:6px}
+/* Break-even and edge, in words, on every row (rule 7: the row's label is its own numbers).
+   ⛔ Green only when the edge is above zero; zero or below is plain ink. */
+.pk-be{flex:0 0 124px;text-align:right;font-size:12px;color:var(--mut);line-height:1.6}
+/* Gizmo's Picks' switch and MLB's date line sit on the page, not in an empty card */
+#fbview .panel:has(> .kindbar),#view > .panel:has(> h2:only-child){background:none;border:0;
+  box-shadow:none;padding:0;margin:2px 0 10px}
+.pk-be b{font:600 14px var(--mono);color:var(--ink);margin-left:4px}
+.pk-be b.eg-pos{color:var(--pos)}
+.pk-b{padding:0 18px 14px 150px}
+.pk-b ul{margin:0;padding-left:16px;font-size:14px;line-height:1.45;color:#3a4657}
+.pk-b li{margin:3px 0;text-wrap:pretty}
+.ev{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 18px;background:#f8f9fb;border-top:1px solid var(--line);
+  font-size:12px;color:var(--mut)}
 .ev span b{color:var(--ink);font-variant-numeric:tabular-nums}
-.fl{margin:8px 14px 12px;padding:9px 11px;border-radius:7px;font-size:12.5px;line-height:1.45}
+.fl{margin:0 18px 14px 150px;font-size:13px;line-height:1.45;color:#3a4657}
 .lad{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid var(--line)}
 .lad .lb{font-size:11px;color:var(--mut);width:100%;margin-bottom:2px;letter-spacing:.03em}
 .rung{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:5px 9px;
@@ -171,18 +207,19 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .rung:hover{border-color:#9db4cc}
 .rung b{font-size:12.5px;font-variant-numeric:tabular-nums}
 .rung .pc{color:var(--mut);font-variant-numeric:tabular-nums}
-.rung.star{border-color:#1f7a4d;box-shadow:inset 0 0 0 1px #1f7a4d}
+.rung.star{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .rung.dim{opacity:.45}
-/* 🔴 The batter badge keeps the SAME colour scale as the pitcher one.
-   An earlier version greyed it out, which read as "this number is worth
-   less". [Sam, 2026-10-01] no provenance chip beside the play name. */
+/* 🔴 The batter badge keeps the SAME ~~colour scale~~ look as the pitcher one (`[Sam,
+   2026-10-17]` design I: one colour, a number and a bar, for every row). An earlier
+   version greyed it out, which read as "this number is worth less". [Sam, 2026-10-01]
+   no provenance chip beside the play name. */
 .kindbar{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
-.kchip{padding:6px 13px;border-radius:20px;border:1px solid var(--line);background:#fff;
+.kchip{padding:7px 14px;border-radius:10px;border:1px solid #7d8a9c;background:#fff;
   font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#46525f}
 .kchip span{color:var(--mut);font-weight:600;margin-left:4px}
-.kchip:hover{border-color:#9db4cc}
-.kchip.on{background:#14181f;color:#fff;border-color:#14181f}
-.kchip.on span{color:#9fb2c6}
+.kchip:hover{border-color:var(--accent)}
+.kchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.kchip.on span{color:#dbe4fb}
 .betbtn{display:inline-block;margin-top:6px;padding:4px 9px;border-radius:6px;background:#14181f;
         color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none}
 .betbtn:hover{background:#2a323d}
@@ -207,10 +244,10 @@ table.data td.n{text-align:right;font-variant-numeric:tabular-nums}
 .nwc .sm{font-size:12px;color:#46525f;margin-top:6px;line-height:1.45}
 
 /* Headline ticker, pinned to the bottom of every tab. */
-#tick{position:fixed;left:0;right:0;bottom:0;height:34px;background:#14181f;color:#e8eef6;
+#tick{position:fixed;left:0;right:0;bottom:0;height:34px;background:var(--ink);color:#e8eef6;
       display:flex;align-items:center;overflow:hidden;z-index:40;font-size:12.5px}
 #tick .lg{display:inline-block;padding:1px 6px;margin-right:7px;border-radius:3px;
-      background:var(--accent2,#1f7a4d);font-weight:800;letter-spacing:.06em;font-size:10.5px}
+      background:var(--accent);font-weight:800;letter-spacing:.06em;font-size:10.5px}
 #tick .rail{flex:1;overflow:hidden;white-space:nowrap;position:relative}
 #tick .run{display:inline-block;padding-left:100%;animation:tickmove 180s linear infinite}
 #tick a{color:#e8eef6;text-decoration:none;margin:0 26px}
@@ -243,7 +280,7 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
 .dossec{border-left:3px solid var(--accent2);background:var(--card);
   border-radius:0 7px 7px 0;padding:8px 11px}
 .dossec.gap{border-left:3px dashed var(--line);background:transparent}
-.dossec .dn{font:700 11px/1.3 system-ui;text-transform:uppercase;
+.dossec .dn{font:700 11px/1.3 var(--sans);text-transform:uppercase;
   letter-spacing:.05em;color:var(--ink);margin:0 0 4px}
 .dossec.gap .dn{color:var(--mut)}
 .dossec .dw{font-size:12px;line-height:1.5;color:var(--ink);margin:0}
@@ -251,7 +288,7 @@ tr.dayrow.open .caret{transform:rotate(90deg)}
 .dossec .df{margin:6px 0 0;padding:0;list-style:none;font-size:11.5px;
   color:var(--mut);line-height:1.6}
 .dossec .df b{color:var(--ink);font-variant-numeric:tabular-nums}
-.doshd{font:700 13px/1.3 system-ui;margin:2px 0 3px}
+.doshd{font:700 13px/1.3 var(--sans);margin:2px 0 3px}
 .donebook{font-weight:400;font-size:11px;color:var(--mut);margin-left:4px}
 tr.dosrow{cursor:pointer}
 tr.dosrow:hover td{background:#f2f4f7}
@@ -268,14 +305,19 @@ tr.dosrow.open .caret{transform:rotate(90deg)}
 /* TOP 10 -- a compact ranked strip, visually distinct from the pick cards
    so nobody reads it as "the first ten of the board". It is a different
    list built from a different pool. */
-.t10{display:grid;grid-template-columns:28px 1fr auto auto;gap:0;align-items:center}
-.t10 .r{font-weight:800;color:var(--mut);font-size:12px;text-align:center}
-.t10 .w{padding:7px 8px;font-size:13.5px}
-.t10 .w b{font-weight:700}
-.t10 .c{font-weight:800;font-size:13px;padding:0 10px}
-.t10 .p{font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;padding-right:8px}
+.t10{display:grid;gap:0}
+.t10 .tr{display:grid;grid-template-columns:30px auto minmax(0,1fr) auto auto;align-items:baseline;padding:11px 0}
+.t10 .r{font:500 14px var(--mono);color:var(--mut)}
+.t10 .w{font-size:15px}
+.t10 .w b{font-weight:600}
+.t10 .tl{font-size:15px;min-width:0}
+.t10 .tl::before{content:'\00a0\00b7\00a0'}
+.t10 .tg{color:var(--mut);white-space:nowrap;margin-left:10px}
+.t10 .tp{white-space:nowrap}
+.t10 .c{font:600 15px var(--mono);padding:0 14px;text-align:right}
+.t10 .p{font:500 14px var(--mono);font-variant-numeric:tabular-nums;text-align:right;min-width:48px}
 .t10 > div{border-bottom:1px solid var(--line)}
-.t10 > div:nth-last-child(-n+4){border-bottom:0}
+.t10 > div:last-child{border-bottom:0}
 /* The opponent's recent starting-pitcher log. Plain, and collapsed by
    default -- it is DESCRIPTIVE colour, not the pick. */
 .oppl{margin:8px 12px 12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -320,13 +362,13 @@ tr.dosrow.open .caret{transform:rotate(90deg)}
 .gt{font-size:11px;color:var(--mut);font-weight:700;letter-spacing:.05em;margin-bottom:7px}
 .cell{display:block;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;
   padding:6px 8px;border-radius:6px;background:#f5f6f8;font-size:13px;white-space:nowrap}
-.cell.best{background:#e6f5ec;color:#0b6b3a;box-shadow:inset 0 0 0 1px #b6e0c6}
+.cell.best{background:#e9eefb;color:var(--accent);box-shadow:inset 0 0 0 1px #c5d3f5}
 /* margin:0 -- the page-wide .plain line must not space out an odds cell */
 .cell.plain{background:none;padding:0;margin:0;font-weight:600;font-size:11.5px;color:var(--mut)}
 .big{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
 .sub{font-size:10.5px;color:var(--mut);font-weight:600;margin-top:3px;
   text-transform:uppercase;letter-spacing:.04em}
-.conf.norate{background:#e9edf1;color:#7c8794}
+.conf.norate{color:var(--mut)}
 .obwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
 
 /* track record */
@@ -424,10 +466,59 @@ table.bs tr.tot td{font-weight:800;border-top:2px solid var(--line);border-botto
 .betbtn{display:inline-block;margin-top:4px;padding:4px 9px;border-radius:6px;background:var(--accent);
   color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap}
 .betbtn:hover{background:var(--accent2)}
-a.cell.best:hover{background:#d4ecdd}
+a.cell.best:hover{background:#dbe4fb}
 .g.clickable{cursor:pointer}
 .g.clickable:hover{border-color:#c4ccd6;box-shadow:0 2px 10px rgba(20,24,31,.09)}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
+/* 🔴 THE SIDE PANEL IS THE ONE HEADER ELEMENT `[Sam, 2026-10-17]` (design I): logo, league
+   switch and the ONE tab bar, fixed at the left on a screen 1024 px or wider. ⛔ The
+   header is fixed, never nav.subnav itself, and the document stays the scroller (the
+   score tabs keep their place by window.scrollY). The tagline is one line of fixed
+   height, so the tab bar sits at the same height in every league. */
+@media(min-width:1024px){
+  body{padding-left:240px}
+  header{position:fixed;top:0;left:0;bottom:0;width:240px;overflow-y:auto;z-index:30}
+  header .wrap{max-width:none;padding-left:20px;padding-right:20px}
+  .mast{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;height:auto;padding-top:26px;padding-bottom:24px}
+  .tagline{width:100%;height:17px;line-height:17px}
+  .lgnav ul,.subnav ul{flex-direction:column;white-space:normal}
+  .lgnav{padding-bottom:26px}
+  .subnav{padding-bottom:24px}
+  .lgnav .wrap::before,.subnav .wrap::before{display:block;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:#8fa1b8;padding:0 12px 8px}
+  .lgnav .wrap::before{content:'League'}
+  .subnav .wrap::before{content:'View'}
+  #tick{left:240px}
+}
+/* Below 1024 px the panel is a top header: the league row, then the nine tabs on two rows
+   (five over four, the 2026-10-14 phone rule, kept from 1023 down), every tab visible. ⚠️ Not
+   from 821: at 844 px a 240 px panel left the tabs 600 px, and NFL Game Lines ran 93 px and
+   Player Props 6 px wider than the screen (measured on the first design I build). */
+@media(max-width:1023px){
+  .lgnav ul{padding:0 0 10px}
+  .subnav{padding-bottom:10px}
+  .subnav ul{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));white-space:normal;row-gap:4px}
+  .subnav a{display:flex;align-items:center;justify-content:center;height:100%;padding:8px 3px;
+    font-size:12px;font-weight:600;line-height:1.2;text-align:center}
+}
+/* 🔴 A PICK ROW LAYS OUT BY ITS OWN WIDTH, NOT THE SCREEN'S (a phone held sideways, a
+   tablet, a half-screen window). The full row needs about 840 px; narrower, it stacks:
+   the confidence; the player and bet beside the price; the game beside the break-even
+   and edge. ⛔ Keyed to the screen, the first build squeezed the player column to 10 px
+   at 821-960 px and 601-690 px (test_league_switch.py §4). */
+@container (max-width:839px){
+  .pk-h{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:
+    "conf conf conf" "hs pick price" "hs game be";gap:8px 0;padding:14px 16px;align-items:start}
+  .pk-h .conf{grid-area:conf}
+  .pk-h .hs{grid-area:hs;margin-right:12px}
+  .pk-t{grid-area:pick}
+  .pk-px{grid-area:price;min-width:0;padding-left:12px}
+  .pk-g{grid-area:game;align-self:end}
+  .pk-be{grid-area:be;padding-left:12px;line-height:1.5}
+  .pk-b{padding:0 16px 12px}
+  .fl{margin:0 16px 12px}
+  .ev{padding:10px 16px}
+}
 /* 🔴 GAME LINES `[Sam, 2026-09-24]` — one grid per rung. ⚠️ ON A PHONE IT
    FOLDS TO FOUR COLUMNS AND EVERY CELL NAMES ITSELF, so no price is dropped
    to make it fit and nothing scrolls sideways. */
@@ -463,39 +554,49 @@ a.cell.best:hover{background:#d4ecdd}
   .fbprow .ev2{display:none}
   .fbprow .imp{margin-left:auto}
   .fbprow .pr2{order:3;flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:10px;text-align:left}
+  #view table.ob,#view table.pairs{display:block;overflow-x:auto;max-width:100%}
+  .panel{padding:16px 14px}
+  .t10 .tr{grid-template-columns:24px minmax(0,1fr) auto auto;grid-template-areas:"r w c p" "r tl tl tl";row-gap:2px}
+  .t10 .r{grid-area:r}
+  .t10 .w{grid-area:w;min-width:0}
+  .t10 .tl{grid-area:tl;font-size:13px}
+  .t10 .tl::before{content:none}
+  .t10 .c{grid-area:c;padding:0 10px}
+  .t10 .p{grid-area:p}
 }
 
 /* ══ THE LEAGUE DIMENSION ══════════════════════════════════════════
-   🔴 ADDITIVE ONLY. When MLB is selected nothing below is displayed and
-   the page behaves EXACTLY as it did before this block existed. That is
-   deliberate: the MLB board is live and Sam's instruction was to leave
-   it alone unless a change is certain. */
-.lgnav{ background:#0d1b2a; border-bottom:1px solid rgba(255,255,255,.10); }
-.lgnav ul{ list-style:none; margin:0; padding:0; display:flex; gap:2px; }
+   🔴 ~~ADDITIVE ONLY. When MLB is selected nothing below is displayed and
+   the page behaves EXACTLY as it did before this block existed~~ `[Sam,
+   2026-10-17]` the league switch (.lgnav) below IS drawn in every league, MLB
+   too, and design I restyles it with the rest; the football rules below still
+   draw nothing on MLB's tabs. The MLB board is live: every change to a rule it
+   draws is re-baselined in research/mlb_render_frozen.json with a dated _why. */
+.lgnav{ background:none; }
+.lgnav ul{ list-style:none; margin:0; padding:0; display:flex; gap:4px; }
 .lgnav a{
-  display:block; padding:7px 16px; color:#9fb3c8; cursor:pointer;
-  font:600 12px/1 system-ui,sans-serif; letter-spacing:.08em;
-  text-transform:uppercase; border-bottom:2px solid transparent;
+  display:block; padding:9px 12px; color:#dce3ec; cursor:pointer; border-radius:8px;
+  font:500 14px/1.2 var(--sans);
 }
-.lgnav a:hover{ color:#fff; }
-.lgnav a.on{ color:#fff; border-bottom-color:#f0a500; }
+.lgnav a:hover{ color:#fff; background:rgba(255,255,255,.06); }
+.lgnav a.on{ color:#fff; font-weight:600; background:#22365a; box-shadow:inset 0 0 0 1.5px #7f99e6; }
 .fbctl{ display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; margin:0 0 14px; }
 .fbctl label{ display:flex; flex-direction:column; gap:4px;
-  font:600 10px/1 system-ui,sans-serif; letter-spacing:.1em;
+  font:600 10px/1 var(--sans); letter-spacing:.1em;
   text-transform:uppercase; color:#6b7683; }
-.fbctl select{ font:14px system-ui,sans-serif; padding:6px 9px;
+.fbctl select{ font:14px var(--sans); padding:6px 9px;
   border:1px solid #cfd6de; border-radius:3px; background:#fff; min-width:170px; }
 table.fbt{ border-collapse:collapse; width:100%; }
-table.fbt th{ font:600 10px/1 system-ui,sans-serif; letter-spacing:.1em;
+table.fbt th{ font:600 10px/1 var(--sans); letter-spacing:.1em;
   text-transform:uppercase; color:#6b7683; text-align:left;
   padding:9px 10px; border-bottom:1px solid #dfe4ea; white-space:nowrap; }
 table.fbt td{ padding:7px 10px; border-bottom:1px solid #eef1f4; }
 table.fbt tr:hover td{ background:#f7f9fb; }
 .fbt .n{ font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
-.fbt .rk{ font-variant-numeric:tabular-nums; color:#8a95a1; width:38px; }
+.fbt .rk{ font-variant-numeric:tabular-nums; color:var(--mut); width:38px; }
 .fbbar{ height:8px; border-radius:2px; background:#e7edf3; min-width:120px; }
 .fbbar i{ display:block; height:100%; border-radius:2px; }
-.fbthin td{ color:#a4adb8; }
+.fbthin td{ color:var(--mut); }
 </style>
 </head>
 <body>
@@ -1413,9 +1514,10 @@ function pickCard(p){
      and no rate on purpose -- printing "undefined" where a confidence
      goes is exactly the kind of thing a reader reads as a broken site. */
   h.append(p.confidence == null
-    ? el('div', 'conf norate', '<div class="n">&mdash;</div><div class="l">CONF</div>')
+    ? el('div', 'conf norate', '<div class="n">&mdash;</div>')
     : el('div', 'conf ' + confClass(p.confidence),
-        `<div class="n">${p.confidence}</div><div class="l">CONF</div>`));
+        `<div class="n">${p.confidence}%</div><div class="cb"><i style="width:${
+          Math.max(0, Math.min(100, p.confidence))}%"></i></div>`));
 
   if (p.pid) h.insertAdjacentHTML('beforeend',
     `<img class="hs" src="${headUrl(p.pid)}" alt="" loading="lazy"
@@ -1444,7 +1546,11 @@ function pickCard(p){
      in the data and the Track Record tab still reports by band -- this
      removes a chip, not a measurement.
      [Sam, 2026-10-01] the MODEL / RECORD / MARKET chip is gone too. */
-  t.append(el('div','play', `${who}${gl ? '' : ' — ' + sideWord}${lineTxt} ${unit}`
+  /* `[Sam, 2026-10-17]` design I: the player on his own line and the bet under him in the
+     accent. ⛔ A game line stays ONE run of text, the team (or Over / Under) and its signed
+     line together ("Cleveland Browns +3.5 Spread"), never split by a tag. */
+  t.append(el('div','play', (gl ? '' : `<span class="pn">${who}</span>`)
+    + `<span class="pl">${gl ? who : sideWord}${lineTxt} ${unit}</span>`
     + '&nbsp;' + projChip(p.projection, p.projection_unit)));
 
   /* 🔴 THREE CASES, NOT TWO.
@@ -1454,19 +1560,40 @@ function pickCard(p){
      ⛔ Before this, every football row fell to the bare text and the
      picks board was the only tab with no logos on it. */
   const matchup = (p.away_id || p.home_id)
-    ? `${mark(p.away, p.away_id, 17)} ${ab(p.away)} <span style="color:var(--line)">@</span> ${mark(p.home, p.home_id, 17)} ${ab(p.home)}`
+    ? `${mark(p.away, p.away_id, 17)} ${ab(p.away)} <span style="color:var(--mut)">@</span> ${mark(p.home, p.home_id, 17)} ${ab(p.home)}`
     : (p.away && p.home && typeof fbMark === 'function' && FBTEAMS[LEAGUE])
-    ? `${fbMark(p.away, 17)} ${fbAb(p.away)} <span style="color:var(--line)">@</span> ${fbMark(p.home, 17)} ${fbAb(p.home)}`
+    ? `${fbMark(p.away, 17)} ${fbAb(p.away)} <span style="color:var(--mut)">@</span> ${fbMark(p.home, 17)} ${fbAb(p.home)}`
     : p.game;
-  t.append(el('div','meta',
-    `<span style="display:inline-flex;align-items:center;gap:5px">${matchup}</span>
-     ${p.first_pitch ? '&nbsp;·&nbsp; ' + p.first_pitch : ''}`));
+  /* A football row carries no first_pitch: its kickoff, Eastern, as the Game Lines tab
+     prints it (fbKickTime). */
+  const when = p.first_pitch
+    || (p.commence && typeof fbKickTime === 'function' ? fbKickTime(p.commence) : '');
   h.append(t);
+  /* `[Sam, 2026-10-17]` design I: the game and its time are their own column (beside the
+     break-even and edge when the row stacks). */
+  h.append(el('div','pk-g',
+    `<div class="mu">${matchup}</div>${when ? `<div class="wn">${when}</div>` : ''}`));
 
+  /* `[Sam, 2026-10-17]` design I: the book is the bet link, the pick's own bet slip. A
+     link that needs the reader's state still asks for it (SET STATE, betControl). */
+  const slip = betLink(p.link);
   h.append(el('div','pk-px',
     `<div class="px">${sgn(p.price)}</div>
-     <div class="bk">${bookChip(p.book)}</div>
-     ${betControl(p.link)}`));
+     <div class="bk">${slip
+       ? `<a class="bklink" href="${slip}" target="_blank" rel="noopener nofollow">${bookChip(p.book)} &#8599;</a>`
+       : bookChip(p.book) + betControl(p.link)}</div>`));
+  /* 🔴 BREAK-EVEN AND EDGE, IN WORDS, ON EVERY ROW, ALL THREE LEAGUES `[Sam, 2026-10-17]`
+     (design I; rule 7: a play's label is its own numbers -- %, price, book, break-even,
+     edge). ~~football only, added by fbEdgeLine, MLB printing no edge~~. ⛔ The card's own
+     `edge`, never recomputed here; green only above zero, zero or below is plain ink. A row
+     seated below its price says so with these numbers in its own line (C8, below). */
+  if (!p.below_price && (p.break_even != null || p.edge != null))
+    h.append(el('div','pk-be',
+      (p.break_even != null ? `<div>Break-even <b>${p.break_even}%</b></div>` : '')
+      + (p.edge != null ? `<div>Edge <b${p.edge > 0 ? ' class="eg-pos"' : ''}>${
+          p.edge > 0 ? '+' : ''}${p.edge}</b></div>` : '')));
+  else h.append(el('div','pk-be', ''));   // the column stays, so the prices line up (a row below its
+                                          // price says its numbers in its own C8 line)
   c.append(h);
 
   if (p.why && p.why.length)
@@ -1497,7 +1624,7 @@ function pickCard(p){
     c.append(el('div','fl fl-note',
       (p.confidence != null && p.break_even != null && p.edge != null)
         ? `Below its price: ${p.confidence}% vs ${p.break_even}% break-even (edge ${p.edge > 0 ? '+' : ''}${p.edge}%)`
-        : 'Below its price'));
+        : 'Below its price' + (p.break_even != null ? ` (break-even ${p.break_even}%)` : '')));
 
   /* 🔴 WHAT THIS OPPONENT HAS DONE TO STARTERS LATELY.
      Sam's idea, 2026-08-26. Built from our OWN pitcher logs -- every one of
@@ -1570,10 +1697,9 @@ function pickCard(p){
       + (p.class.four_plus ? ` (${p.class.four_plus} on 4+ innings)` : ''));
     if (p.h2h) bits.push(`Head-to-head: ${p.h2h}`);
   }
-  if (p.break_even != null) bits.push(`Break-even <b>${p.break_even}%</b>`);
   if (p.other_side)
     bits.push(`Other side: ${p.other_side.side} ${p.line} at ${sgn(p.other_side.price)}, <b>${p.other_side.blend}%</b>`);
-  c.append(el('div','ev', bits.map(b => `<span>${b}</span>`).join('')));
+  if (bits.length) c.append(el('div','ev', bits.map(b => `<span>${b}</span>`).join('')));
   return c;
 }
 
@@ -1695,13 +1821,15 @@ async function renderPicks(){
       <div class="t10">${t10.map((x,i) => {
         const who = x.pitcher || x.player;
         const side = x.side === 'over' ? 'Over' : 'Under';
-        return `<div class="r">${i+1}</div>
-          <div class="w"><b>${who}</b> — ${side} ${x.line} ${unitOf(x)}
+        const gm = (x.game || '') + (x.first_pitch ? ' · ' + x.first_pitch : '');
+        return `<div class="tr"><div class="r">${i+1}</div>
+          <div class="w"><b>${who}</b></div>
+          <div class="tl"><span class="tp">${side} ${x.line} ${unitOf(x)}</span>
             ${x.alt_rung ? '<span class="altchip">ALT RUNG</span>' : ''}
             ${projChip(x.projection, x.projection_unit)}
-            <div class="rec" style="font-size:11px">${x.game || ''}${x.first_pitch ? ' · ' + x.first_pitch : ''}</div></div>
+            ${gm ? `<span class="tg">${gm}</span>` : ''}</div>
           <div class="c ${confClass(x.confidence)}">${x.confidence}%</div>
-          <div class="p">${sgn(x.price)}</div>`;
+          <div class="p">${sgn(x.price)}</div></div>`;
       }).join('')}</div>`;
     v.append(tn);
   }
@@ -2308,7 +2436,7 @@ async function renderProps(){
     if (!list.length) return;
     total += list.length;
     body += `<div class="ghead">
-        ${mark(g.away, null, 20)} ${ab(g.away)} <span style="color:var(--line)">@</span>
+        ${mark(g.away, null, 20)} ${ab(g.away)} <span style="color:var(--mut)">@</span>
         ${mark(g.home, null, 20)} ${ab(g.home)}
         <span class="tt2">${new Date(g.commence).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}
           · ${list.length} props</span>
@@ -3947,7 +4075,7 @@ async function fbProps(){
     });
     if (!rows) return;
     body += `<div class="ghead">
-        ${fbMark(g.away, 20)} ${fbAb(g.away)} <span style="color:var(--line)">@</span>
+        ${fbMark(g.away, 20)} ${fbAb(g.away)} <span style="color:var(--mut)">@</span>
         ${fbMark(g.home, 20)} ${fbAb(g.home)}
         <span class="tt2">${fbKickTime(g.commence) || ''} &middot; ${list.length} props</span>
       </div>${rows}`;
@@ -4235,7 +4363,7 @@ function fbGameLines(C){
   if (!g.length) return fbNoLiked(C, 'game_lines');
   return `<h2 style="margin:18px 0 8px;font-size:16px">Game lines &mdash; ${
     fbDayName((C.game_lines_meta || {}).slate)}</h2>`
-    + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
+    + g.map(p => pickCard(p).outerHTML).join('');
 }
 
 function fbTopPlays(C, shownPicks){
@@ -4250,17 +4378,26 @@ function fbTopPlays(C, shownPicks){
   const t = splitStarted(all).list.filter(x => fbConfPass(x.away, x.home));
   if (!t.length) return '';
   const sideWord = s => s === 'over' ? 'Over' : s === 'under' ? 'Under' : 'Yes';
+  /* `[Sam, 2026-10-17]` design I: one row element per play, so a phone reads the name, % and
+     price on line one and the bet, PROJ and game on line two. The game is short (fbAb). */
+  const gameOf = x => {
+    const dir = typeof FBTEAMS === 'object' && FBTEAMS && FBTEAMS[LEAGUE];
+    const g = (x.away && x.home && typeof fbAb === 'function' && dir && Object.keys(dir).length)
+      ? `${fbAb(x.away)} @ ${fbAb(x.home)}` : (x.game || '');
+    return g ? `<span class="tg">${g}</span>` : '';
+  };
   return `<div class="panel" style="margin-top:18px">
       <h2>Top ${t.length} play${t.length === 1 ? '' : 's'} of the day</h2>
-      <div class="t10">${t.map((x, i) => `
+      <div class="t10">${t.map((x, i) => `<div class="tr">
         <div class="r">${i + 1}</div>
-        <div class="w"><b>${x.player}</b> &mdash; ${sideWord(x.side)}
-          ${x.line == null ? '' : x.line} ${x.market_label || ''}
+        <div class="w"><b>${x.player}</b></div>
+        <div class="tl"><span class="tp">${sideWord(x.side)}
+          ${x.line == null ? '' : x.line} ${x.market_label || ''}</span>
           ${projChip(x.projection, x.projection_unit, x.projection_basis,
                      x.projection_note)}
-          <div class="rec" style="font-size:11px">${x.game || ''}</div></div>
+          ${gameOf(x)}</div>
         <div class="c ${confClass(x.confidence)}">${x.confidence}%</div>
-        <div class="p">${sgn(x.price)}</div>`).join('')}</div></div>`;
+        <div class="p">${sgn(x.price)}</div></div>`).join('')}</div></div>`;
 }
 
 /* 🔴 THE CHIP ROW RENDERS IN EVERY BRANCH, INCLUDING THE EMPTY ONES.
@@ -4298,18 +4435,9 @@ function fbNoLiked(C, k){
     } it likes for ${fbDayName(k === 'picks' ? C.date : (C.game_lines_meta || {}).slate)}.</div>` : '';
 }
 
-/* 🔴 THE EDGE ON THE BREAK-EVEN LINE `[Sam, 2026-10-14]`: a football row above
-   its price reads "Break-even 53.7% · edge +1.3"; a row below it already prints
-   its %, break-even and edge (pickCard, `below_price` from card_fb). ⛔ The
-   card's own `edge`, never recomputed; ⛔ pickCard itself is MLB's too and is
-   left byte-identical (test_mlb_untouched.py), so football adds it here. */
-function fbEdgeLine(card, p){
-  const ev = card && (card.lastElementChild || (card.kids || []).slice(-1)[0]);
-  if (ev && p && !p.below_price && p.break_even != null && p.edge != null && p.edge > 0)
-    ev.innerHTML = ev.innerHTML.replace(`Break-even <b>${p.break_even}%</b>`,
-      `Break-even <b>${p.break_even}%</b> &middot; edge <b>+${p.edge}</b>`);
-  return card;
-}
+/* ~~fbEdgeLine~~ `[Sam, 2026-10-17]` (design I): the "Break-even 53.7% · edge +1.3" it added
+   to a football row (`[Sam, 2026-10-14]`) is now printed by pickCard on every row in all three
+   leagues, so the patch went with it. */
 
 function fbKindWire(){
   const bar = document.querySelector('#fbview .kindbar');
@@ -4389,7 +4517,6 @@ async function fbPicks(){
   const inConf = pool.filter(p => fbConfPass(p.away, p.home));
   const kept = inConf;
   kept.forEach(p => host.append(pickCard(p)));
-  [...host.children].forEach((c, i) => fbEdgeLine(c, kept[i]));
   /* ⛔ AN EMPTY BOARD AND AN EMPTY FILTER LOOK IDENTICAL unless the page
      says which one happened. A reader who clicks a conference with no
      picks on it must not be left reading "no card". */
@@ -5885,8 +6012,8 @@ async function renderFootball(){
 
   const metricLabel = (mets.find(m => m.k === fbMetric) || {}).l || 'Value';
   const sortArrow = fbSortDir === 1
-    ? '<span style="color:#7c8794;font-size:10px">&#9660;</span>'
-    : '<span style="color:#7c8794;font-size:10px">&#9650;</span>';
+    ? '<span style="color:var(--mut);font-size:10px">&#9660;</span>'
+    : '<span style="color:var(--mut);font-size:10px">&#9650;</span>';
 
   /* [Sam, 2026-10-01] no explanation boxes or tags on the page.
      The rank direction rides the header itself: on defence rank 1 ALLOWS

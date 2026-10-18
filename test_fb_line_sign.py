@@ -171,7 +171,7 @@ const document = {createElement: () => node()};
 const stub = () => '';
 const fn = new Function('document', 'confClass', 'headUrl', 'projChip', 'mark', 'ab', 'sgn',
   'bookChip', 'betControl', 'betLink', 'fbMark', 'fbAb', 'FBTEAMS', 'LEAGUE',
-  S.el + '\n' + S.dn + '\n' + S.pc + '\n' + S.gl + '\n' + S.ed + '\nreturn fbGameLines;');
+  S.el + '\n' + S.dn + '\n' + S.pc + '\n' + S.gl + '\nreturn fbGameLines;');   // [Sam, 2026-10-17] ~~+ fbEdgeLine~~
 const fbGameLines = fn(document, stub, stub, stub, stub, stub, x => (x > 0 ? '+' : '') + x,
   stub, stub, stub, stub, stub, {}, 'nfl');
 process.stdout.write(JSON.stringify(fbGameLines(S.card).replace(/\s+/g, ' ')));
@@ -180,7 +180,7 @@ tmp = tempfile.mkdtemp(prefix="linesign-")
 try:
     open(os.path.join(tmp, "d.js"), "w", encoding="utf-8").write(DRIVER)
     json.dump({"el": _el, "dn": jsblock.js_block("fbDayName", IDX), "pc": jsblock.js_block("pickCard", IDX),
-               "gl": jsblock.js_block("fbGameLines", IDX), "ed": jsblock.js_block("fbEdgeLine", IDX),
+               "gl": jsblock.js_block("fbGameLines", IDX),
                "card": {"game_lines": ROWS, "game_lines_meta": {"slate": SLATE}}},
               open(os.path.join(tmp, "d.json"), "w", encoding="utf-8"))
     r = subprocess.run(["node", os.path.join(tmp, "d.js"), os.path.join(tmp, "d.json")],

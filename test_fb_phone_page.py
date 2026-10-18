@@ -6,8 +6,11 @@ by predicted scores".
 
 Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live data.
   1. a football row whose card edge is <= 0 carries `below_price`; the page prints
-     its %, break-even and edge; a row above its price adds the edge to the
-     break-even line; MLB's line is unchanged
+     its %, break-even and edge, once, in its own line; ~~a row above its price adds
+     the edge to the break-even line; MLB's line is unchanged~~ `[Sam, 2026-10-17]`
+     "i like the light blue on i think that oone is good" (design I, one row for all
+     three leagues): every row above its price prints "Break-even x%" and "Edge +y",
+     MLB too, the edge green only above zero
   2. ~~"Above their price only" hides exactly the rows with edge <= 0, and nothing
      while off (the default, also when storage throws)~~ `[Sam, 2026-10-17]` "no above
      their price only button in gizmos pikcs not needed": the button, its switch and its
@@ -25,15 +28,30 @@ Planted rows, a pinned clock, the SHIPPED page code in node. ⛔ Reads no live d
 #   find:         if r.get("edge") is not None and r["edge"] <= 0:
 #   with:         if r.get("edge") is not None and r["edge"] < 0:
 #
-# @vacuity 🔴 the edge joins the break-even line only on a row above its price
+# @vacuity 🔴 [Sam, 2026-10-17] a row below its price prints its numbers once, in its C8 line (~~the edge joins the break-even line only on a row above its price~~)
 #   file: index.html
-#   find:   if (ev && p && !p.below_price && p.break_even != null && p.edge != null && p.edge > 0)
-#   with:   if (ev && p && p.break_even != null && p.edge != null)
+#   find:   if (!p.below_price && (p.break_even != null || p.edge != null))
+#   with:   if (p.break_even != null || p.edge != null)
 #
-# @vacuity 🔴 the props board adds the edge line
+# @vacuity 🔴 [Sam, 2026-10-17] every row above its price prints its break-even and edge, MLB's too (~~the props board adds the edge line~~)
 #   file: index.html
-#   find:   [...host.children].forEach((c, i) => fbEdgeLine(c, kept[i]));
-#   with:   [...host.children].forEach((c, i) => c);
+#   find:   if (!p.below_price && (p.break_even != null || p.edge != null))
+#   with:   if (p.kind !== 'hitter' && !p.below_price && (p.break_even != null || p.edge != null))
+#
+# @vacuity 🔴 [Sam, 2026-10-17] the edge is green only above zero
+#   file: index.html
+#   find:   + (p.edge != null ? `<div>Edge <b${p.edge > 0 ? ' class="eg-pos"' : ''}>${
+#   with:   + (p.edge != null ? `<div>Edge <b${p.edge != null ? ' class="eg-pos"' : ''}>${
+#
+# @vacuity 🔴 [Sam, 2026-10-17] no board patches a row afterwards: the props board draws pickCard's own row
+#   file: index.html
+#   find:   kept.forEach(p => host.append(pickCard(p)));
+#   with:   kept.forEach(p => host.append(fbEdgeLine(pickCard(p), p)));
+#
+# @vacuity 🔴 [Sam, 2026-10-17] ...and the game lines draw it too
+#   file: index.html
+#   find:   + g.map(p => pickCard(p).outerHTML).join('');
+#   with:   + g.map(p => fbEdgeLine(pickCard(p), p).outerHTML).join('');
 #
 # `[Sam, 2026-10-17]` the next three were ~~"the filter hides exactly the rows with edge <= 0"~~,
 #    ~~"the filter is ON by default [Sam, 2026-10-15]"~~ and ~~"the props board runs through the
@@ -180,27 +198,36 @@ const text = n => (n.innerHTML || '') + ' ' + (n.kids || []).map(text).join(' ')
 const stub = () => '';
 const mk = lg => new Function('document', 'confClass', 'headUrl', 'projChip', 'mark', 'ab', 'sgn',
   'bookChip', 'betControl', 'betLink', 'fbMark', 'fbAb', 'FBTEAMS', 'LEAGUE',
-  S.el + '\n' + S.fn + '\n' + S.edge + '\nreturn [pickCard, fbEdgeLine];')(document, stub, stub, stub, stub,
+  S.el + '\n' + S.fn + '\nreturn pickCard;')(document, stub, stub, stub, stub,
   stub, String, stub, stub, stub, stub, stub, {}, lg);
-// football rows go through fbEdgeLine as fbPicks / fbGameLines do; MLB's through pickCard alone
-process.stdout.write(JSON.stringify(S.runs.map(([lg, r]) => { const [pc, fe] = mk(lg);
-  return text(lg === 'mlb' ? pc(r) : fe(pc(r), r)).replace(/\s+/g, ' '); })));
+// `[Sam, 2026-10-17]` every league's row through pickCard alone, as all four boards draw it
+// (~~football rows through fbEdgeLine, MLB's through pickCard alone~~)
+process.stdout.write(JSON.stringify(S.runs.map(([lg, r]) => text(mk(lg)(r)).replace(/\s+/g, ' '))));
 """
-OUT = node(CARD, {"el": _el, "fn": js_block("pickCard", PAGE), "edge": js_block("fbEdgeLine", PAGE),
+_NEG = dict(MARKED[2], kind="mlb-line", market="moneyline", player="Home 1", edge=-1.2, below_price=False)
+OUT = node(CARD, {"el": _el, "fn": js_block("pickCard", PAGE),
                   "runs": [["nfl", MARKED[0]], ["ncaaf", MARKED[2]], ["mlb", dict(MARKED[2], kind="hitter")],
-                           ["nfl", MARKED[4]]]}) or ["", "", "", ""]
-ck("🔴 the page prints the below-price row's %, break-even and edge, and no second edge",
-   "Below its price: 57% vs 60.8% break-even (edge -3.8%)" in OUT[0] and "&middot; edge" not in OUT[0],
-   OUT[0][:400])
-ck("🔴 a football row above its price: \"Break-even 53.7% · edge +1.3\"",
-   "Break-even <b>53.7%</b> &middot; edge <b>+1.3</b>" in OUT[1] and "Below its price" not in OUT[1],
-   OUT[1][-300:])
-ck("🔴 ...a game-line row the same", "edge <b>+3</b>" in OUT[3], OUT[3][-200:])
-ck("⛔ MLB unchanged: pickCard alone prints no edge on the break-even line (pickCard is frozen by "
-   "test_mlb_untouched.py)", "Break-even <b>53.7%</b>" in OUT[2] and "edge <b>" not in OUT[2], OUT[2][-200:])
-ck("🔴 both football boards add it: the props board after each card, the game lines on each row",
-   "[...host.children].forEach((c, i) => fbEdgeLine(c, kept[i]));" in js_block("fbPicks", PAGE)
-   and "fbEdgeLine(pickCard(p), p)" in js_block("fbGameLines", PAGE))
+                           ["nfl", MARKED[4]], ["mlb", _NEG]]}) or ["", "", "", "", ""]
+ck("🔴 the page prints the below-price row's %, break-even and edge, once, in its own line (C8)",
+   "Below its price: 57% vs 60.8% break-even (edge -3.8%)" in OUT[0] and "Edge <b" not in OUT[0]
+   and "Break-even <b" not in OUT[0], OUT[0][:400])
+ck("🔴 [Sam, 2026-10-17] a football row above its price: \"Break-even 53.7%\" and \"Edge +1.3\", green "
+   "(~~\"Break-even 53.7% · edge +1.3\"~~)",
+   "Break-even <b>53.7%</b>" in OUT[1] and 'Edge <b class="eg-pos">+1.3</b>' in OUT[1]
+   and "Below its price" not in OUT[1], OUT[1][-300:])
+ck("🔴 ...a game-line row the same", 'Edge <b class="eg-pos">+3</b>' in OUT[3], OUT[3][-200:])
+ck("🔴 [Sam, 2026-10-17] MLB the same: design I is one row for all three leagues, and \"lets have "
+   "the colors of the tabs and the layout be the same for each league\" (Sam, 2026-10-01) "
+   "(~~MLB unchanged, no edge~~)", "Break-even <b>53.7%</b>" in OUT[2] and 'Edge <b class="eg-pos">+1.3</b>' in OUT[2],
+   OUT[2][-200:])
+ck("🔴 [Sam, 2026-10-17] an edge at or below zero on a row not marked below its price is plain ink, "
+   "never green", "Edge <b>-1.2</b>" in OUT[4] and "eg-pos" not in OUT[4], OUT[4][-200:])
+_body = lambda n: re.sub(r"/\*.*?\*/", "", js_block(n, PAGE), flags=re.S)
+ck("🔴 [Sam, 2026-10-17] no board patches a row afterwards: each row prints its own edge "
+   "(~~fbEdgeLine on the football boards~~)",
+   "fbEdgeLine" not in _body("fbPicks") and "fbEdgeLine" not in _body("fbGameLines")
+   and "kept.forEach(p => host.append(pickCard(p)));" in _body("fbPicks")
+   and "+ g.map(p => pickCard(p).outerHTML).join('');" in _body("fbGameLines"))
 
 # ══════════════════════════════════════════════════════════════════════
 section("2. 🔴 ~~\"ABOVE THEIR PRICE ONLY\": OFF BY DEFAULT, HIDES EXACTLY EDGE <= 0~~ "
@@ -245,11 +272,11 @@ async function run(card, kind){
   const v = node();
   const fbPicks = new Function('$', 'document', 'fbShell', 'fbWire', 'fbCardLoad', 'fbDayHead',
     'fbKindBar', 'FBPICKKIND', 'fbDayName', 'fbNoCard', 'splitStarted', 'freshness', 'fbConfBar',
-    'startedToggle', 'fbConfPass', 'pickCard', 'fbEdgeLine', 'fbConf', 'fbTopPlays', 'fbKindWire',
+    'startedToggle', 'fbConfPass', 'pickCard', 'fbConf', 'fbTopPlays', 'fbKindWire',
     'showStarted', S.blocks.join('\n') + '\nreturn fbPicks;')(
     s => s === '#fbview' ? v : null, document, h => h, nil, async () => JSON.parse(JSON.stringify(card)),
     nil, nil, kind, d => d, nil, ps => ({list: ps, nStarted: 0, allDone: false}), nil, nil, nil,
-    () => true, row, (c, p) => c, new Set(), nil, nil, false);
+    () => true, row, new Set(), nil, nil, false);
   await fbPicks();
   return text(v).match(/<row>[^<]*<\/row>/g) || [];
 }
