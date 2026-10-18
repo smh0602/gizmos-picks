@@ -352,8 +352,14 @@ def salted(orig, board, flag, day0):
     return S, len(extra)
 
 
-def c_run(who, tree, fix):
-    """Base, flagged and unflagged drives, and the four checks, on one tree."""
+def c_run(who, tree, fix, extra=False):
+    """Base, flagged and unflagged drives, and the four checks, on one tree.
+
+    `extra` marks the LIVE board's run (c2). ⛔ A TEST ASKS THE CODE, NEVER
+    PRODUCTION (CLAUDE.md, Sam 2026-09-28): whether today's live card carries
+    pitcher model output is a fact about today, so for the extra a blind card
+    is a note() and the run stops there. The PLANTED run (c1) keeps it a hard
+    check: that is the case this file builds itself."""
     orig = open(os.path.join(tree, "data", "latest", "pitchers.json.gz"), "rb").read()
     base = c_drive(tree, fix, orig, who + "-base")
     ck(base is not None, "%s: the baseline board + card build in an isolated tree" % who)
@@ -372,6 +378,17 @@ def c_run(who, tree, fix):
     npj = sum(1 for k in (cd.get("projections") or {})
               if k.split("|")[1:2] in (["pitcher_strikeouts"], ["pitcher_outs"]))
     npair = len(cd.get("pairs") or [])
+    # `[2026-10-18]` collect and pr-tests went red on 2026-10-18 when the MLB
+    #    season ended: today's board still held pitcher props, but the card
+    #    built from them had 0 picks and 0 pitcher projections, so the LIVE
+    #    extra failed a correct tree. It now reports that and stops; the
+    #    planted run below still fails hard on a blind card.
+    if extra and not (ncard > 0 and npj > 0):
+        note("%s EXTRA NOT MEANINGFUL TODAY: the card built from today's board "
+             "carries no pitcher model output (%d picks, %d pitcher rows on the "
+             "board, %d pitcher projections, %d pairs); the planted board asked (c)"
+             % (who, ncard, npit, npj, npair))
+        return False
     ck(ncard > 0 and npj > 0,
        "   ⚠️ %s: the baseline card carries pitcher model output (%d picks, %d "
        "pitcher rows on the board, %d pitcher projections, %d pairs) — a card "
@@ -392,6 +409,7 @@ def c_run(who, tree, fix):
        "   %s: positive control: the SAME salt unflagged DOES change them — so "
        "the identity above is the filter working, not an inert fixture" % who)
     open(os.path.join(tree, "data", "latest", "pitchers.json.gz"), "wb").write(orig)
+    return True
 
 
 # ── (c1) PLANTED ──────────────────────────────────────────────────────
@@ -442,6 +460,27 @@ ck(len(_events) == 3,
    "(%s)" % [q["name"] for q in _six])
 c_run("PLANTED", _PT, _pfix)
 
+# ── (c1b) A BLIND CARD ON THE EXTRA IS A NOTE, NEVER A FAILURE ───────────
+# `[2026-10-18]` The guard for the fix above, built here rather than waited
+# for from the live board: the planted tree again, with every starter under
+# the innings bar, so the model pool is empty and the card is blind. Run as
+# the extra it must add no failure and say so; run as PLANTED (above) the same
+# blindness is red, which the (c1) mutation declared at the top proves.
+_BT = os.path.join(TMP, "tree-planted-blind")
+shutil.copytree(_PT, _BT)
+_BD = copy.deepcopy(_PD)
+for _v in _BD["players"].values():
+    _v["below_min_ip"] = True
+_dump(os.path.join(_BT, "data", "latest", "pitchers.json.gz"), _BD)
+import tcheck as _TC  # noqa: E402
+_nf0, _nn0 = len(_TC.FAILURES), len(_TC._NOTES)
+_ran = c_run("BLIND PLANTED", _BT, _pfix, extra=True)
+ck(_ran is False and len(_TC.FAILURES) == _nf0
+   and any("EXTRA NOT MEANINGFUL TODAY" in str(n) for n in _TC._NOTES[_nn0:]),
+   "🔴 a blind card on the LIVE extra is a note and stops the extra, never a "
+   "failure (collect + pr-tests were red on 2026-10-18 when the MLB season ended)",
+   "ran=%r, failures added %d" % (_ran, len(_TC.FAILURES) - _nf0))
+
 # ── (c2) THE LIVE BOARD — the extra ───────────────────────────────────
 _B = json.load(gzip.open(os.path.join(ROOT, "data", "latest", "props.json.gz"), "rt"))
 _live_pp = sum(1 for g in _B.get("games") or [] for pr in g.get("props") or []
@@ -458,7 +497,7 @@ if _fix and _live_pp >= 3:
     _day = _fix[:10]
     c_run("LIVE", c_tree("tree-live", [(_day, s) for s in
                                        ("props-pitcher", "props-batter", "schedule")]),
-          _fix)
+          _fix, extra=True)
 else:
     note("⚪ LIVE EXTRA NOT RUN: today's MLB board holds %d pitcher prop(s); the "
          "planted board above asked (c)" % _live_pp)
