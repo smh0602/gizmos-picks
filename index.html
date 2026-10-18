@@ -746,9 +746,14 @@ function betLink(url){
    prompts for one instead of vanishing. */
 function needsState(url){ return !!url && url.includes('{state}') && !betState(); }
 
+/* 🔴 `[2026-10-18]` THE PICKER IS SHOWN BEFORE IT IS FOCUSED. setTools shows it only on Odds and
+   Player Props, but a SET STATE control is drawn on Gizmo's Picks too (betControl, every league):
+   a hidden select cannot be scrolled to or focused, so the button there did nothing at all.
+   test_set_state.py asks it of every tab of every league. */
 function focusState(){
   const el = document.getElementById('st');
   if (!el) return;
+  el.style.display = '';
   el.scrollIntoView({block:'center', behavior:'smooth'});
   el.focus();
   el.classList.add('pulse');
@@ -2632,6 +2637,16 @@ function setTools(tab){
   $('#st').style.display = (tab === 'odds' || tab === 'props') ? '' : 'none';
   $('#stamp').style.display = LEAGUE === 'mlb' ? '' : 'none';
   if (!day) $('#stamp').textContent = '';
+}
+/* 🔴 `[2026-10-18]` CHOOSING A STATE REDRAWS THE TAB BEING READ, IN EVERY LEAGUE, so each SET
+   STATE control on it becomes its book's bet slip. ~~Only MLB's Odds and Player Props were
+   redrawn (`again[TAB]`, MLB's tab even while a football league was shown)~~: Gizmo's Picks and
+   every football tab kept their SET STATE buttons. The picker stays where the reader just used
+   it until the tab changes. test_set_state.py. */
+function stateChosen(v){
+  setBetState(v);
+  if (LEAGUE === 'mlb') show(TAB); else renderFootball();
+  $('#st').style.display = '';
 }
 /* 🔴 GIZMO'S PICKS HAS TWO BOARDS AND THEY ARE DIFFERENT MARKETS.
    `[Sam, 2026-09-11]` *"i need the game line props in a seperate tab than
@@ -6167,11 +6182,7 @@ $('#filt').addEventListener('change', renderScores);
     `<optgroup label="Sportsbooks operate here">${optz(STATES_LIVE)}</optgroup>` +
     `<optgroup label="Other states">${optz(STATES_OTHER)}</optgroup>`;
   stSel.value = betState();
-  stSel.addEventListener('change', e => {
-    setBetState(e.target.value);
-    const again = {odds: renderOdds, props: renderProps};
-    if (again[TAB]) again[TAB]();
-  });
+  stSel.addEventListener('change', e => stateChosen(e.target.value));
 
   $('#dt').value = todayET();
   await Promise.all([loadBoard(), loadSplits()]);
