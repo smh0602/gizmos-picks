@@ -231,7 +231,8 @@ failed recurring runs, i would like to avoid that"*. So:
    workflow copies in the TOP LEVEL (103c7ac), where they never run;
    `test_top_level_yaml.py` now fails on any top-level `.yml`/`.yaml`.
 3. ⛔ **One agent at a time**, and never during a `vacuity.py` sweep.
-4. The current open work is in `docs/HANDOFF-2026-09-22.md`, and dated
+4. The current open work is in ~~`docs/HANDOFF-2026-09-22.md`~~
+   `docs/HANDOFF-2026-10-18.md` `[2026-10-18]`, and dated
    snapshots of Sam's project docs (rules, ledger, owed tests, model) are
    `docs/snapshot-*.md`. Read the handoff first; it says which to read.
 
