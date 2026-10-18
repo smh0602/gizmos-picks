@@ -858,10 +858,6 @@ _uncovered = (datetime.datetime.strptime(_dates[0], "%Y-%m-%d")
 #    `week_calendar` to hand back week 1 for everything changed nothing
 #    observable and the declaration proved nothing (rule 244). A guard
 #    that only tests the refusal never tests the placement.
-_placed = _dates[-1]
-_placed_week = next(x["week"] for x in _sg
-                    if (x.get("start") or "")[:10] == _placed
-                    and x.get("week") is not None)
 _bp1c = os.path.join(_d1c, "data/nfl/latest/board.json")
 _b1c = json.load(open(_bp1c, encoding="utf-8"))
 # ⚠️ THE BOARD NAMES THE HOME TEAM IN FULL; reuse the builder's OWN
@@ -870,6 +866,26 @@ _b1c = json.load(open(_bp1c, encoding="utf-8"))
 _res = _DFX.team_codes("nfl")
 _homefull = next(g["home"] for g in _b1c["games"] if _res(g.get("home")))
 _homecode = _res(_homefull)
+
+
+def _covers(d):
+    """`d` stays on the calendar once this fixture strips `_homecode`'s rows
+    near it: one week on that date, and a game there someone else hosts."""
+    on = [x for x in _sg if (x.get("start") or "")[:10] == d and x.get("week") is not None]
+    return (len({x["week"] for x in on}) == 1
+            and any(x.get("home") != _homecode for x in on))
+
+
+# 🔴 `[2026-10-18]` ~~`_dates[-1]`~~, THE LAST DATE WITH A GAME THE STRIP KEEPS. The
+#    fixture below removes every `_homecode` home game within a day of `_placed`,
+#    and a schedule's last date often holds ONE game (2025's: the Super Bowl;
+#    a Wild Card Monday): the day that game's host was `_homecode`, the strip
+#    emptied the date, the calendar no longer covered it and the three checks
+#    below went red on correct code.
+_placed = next(d for d in reversed(_dates) if _covers(d))
+_placed_week = next(x["week"] for x in _sg
+                    if (x.get("start") or "")[:10] == _placed
+                    and x.get("week") is not None)
 # ⛔ A SCHEDULE ROW THAT EXISTS FOR (home, date) BUT WHOSE AWAY SIDE THE
 #    TEAM LIST CANNOT RESOLVE — the exact 17-game shape.
 # ⛔ AND THE HOME TEAM HAS NO ROW NEAR `_placed` EITHER, so that game
@@ -890,6 +906,12 @@ _S["games"].append({"home": _homecode, "away": "Slippery Rock",
                     "venue": "A Real Stored Stadium", "roof": "outdoors",
                     "surface": "grass", "neutral": False,
                     "id": "fixture-one-side"})
+ck(any((x.get("start") or "")[:10] == _placed and x.get("week") is not None
+       for x in _S["games"]),
+   "⚠️ the date the third fixture uses (%s) keeps a game after the strip, so the "
+   "calendar still covers it" % _placed,
+   "⛔ rule 67: a covered date the fixture itself emptied would make the placement "
+   "checks below a question about the fixture")
 with gzip.open(_sp, "wt") as _fh:
     json.dump(_S, _fh)
 # ⚠️ THE REAL GAMES STAY ON THE BOARD BESIDE THE TWO FIXTURES. A board

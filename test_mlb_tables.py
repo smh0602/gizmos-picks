@@ -414,6 +414,14 @@ def c_run(who, tree, fix, extra=False):
 
 # ── (c1) PLANTED ──────────────────────────────────────────────────────
 _PT = c_tree("tree-planted")
+# 🔴 `[2026-10-18]` THE PLANTED TREE'S PULL IS PINNED: the complete 2026 season as pulled
+#    2026-10-17 (`research/mlb_pitchers_20261017.json.gz`, written once; test_card_single_day
+#    reads the same file). ~~The live pull~~ is rewritten for `now().year`, and the first
+#    2027 pull (mid-April, once ONE pitcher passes 20 IP) holds fewer than six teams with a
+#    five-start model arm: the draw below came up short and (c1) went red on correct code.
+#    (c2), the live board, still builds on the live pull.
+shutil.copy(os.path.join(ROOT, "research", "mlb_pitchers_20261017.json.gz"),
+            os.path.join(_PT, "data", "latest", "pitchers.json.gz"))
 _PD = json.load(gzip.open(os.path.join(_PT, "data", "latest", "pitchers.json.gz"), "rt"))
 import collect as _CM  # noqa: E402
 _mp = _CM.model_pitchers(_PD["players"])
