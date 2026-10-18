@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-10-18T11:33:43Z",
+ "built_at": "2026-10-18T14:40:24Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
@@ -38,24 +38,24 @@
    "total": 39.3,
    "line": {
     "spread": 2.5,
-    "total": 42.5
+    "total": 42.0
    },
    "score_curve": {
     "spread": 60.8,
-    "total": 41.2,
+    "total": 42.5,
     "moneyline": 67.8
    },
    "calibrated": {
     "spread": 53.6,
-    "total": 47.0,
+    "total": 47.5,
     "moneyline": 66.3
    },
    "fb_model": {
-    "spread": 36.8,
-    "total": 49.3,
-    "moneyline": 54.2
+    "spread": 36.6,
+    "total": 48.5,
+    "moneyline": 54.4
    },
-   "fb_model_ml_curve_spread": 46.8
+   "fb_model_ml_curve_spread": 47.0
   },
   {
    "game_id": "2026_06_BAL_CLE",
@@ -119,11 +119,11 @@
     "moneyline": 55.6
    },
    "fb_model": {
-    "spread": 49.5,
-    "total": 46.4,
-    "moneyline": 48.6
+    "spread": 49.0,
+    "total": 47.5,
+    "moneyline": 49.0
    },
-   "fb_model_ml_curve_spread": 57.5
+   "fb_model_ml_curve_spread": 57.9
   },
   {
    "game_id": "2026_06_CHI_ATL",
@@ -139,25 +139,25 @@
    "margin": -2.2,
    "total": 46.1,
    "line": {
-    "spread": -1.25,
-    "total": 52.0
+    "spread": -1.5,
+    "total": 52.5
    },
    "score_curve": {
-    "spread": 47.3,
-    "total": 33.9,
+    "spread": 48.0,
+    "total": 32.6,
     "moneyline": 43.6
    },
    "calibrated": {
-    "spread": 49.1,
-    "total": 44.5,
+    "spread": 49.3,
+    "total": 44.0,
     "moneyline": 44.1
    },
    "fb_model": {
-    "spread": 60.5,
-    "total": 59.7,
+    "spread": 60.4,
+    "total": 60.0,
     "moneyline": 52.1
    },
-   "fb_model_ml_curve_spread": 55.8
+   "fb_model_ml_curve_spread": 56.5
   },
   {
    "game_id": "2026_06_NO_NYG",
@@ -208,21 +208,21 @@
    "total": 38.6,
    "line": {
     "spread": 7.25,
-    "total": 43.5
+    "total": 43.0
    },
    "score_curve": {
     "spread": 59.3,
-    "total": 36.4,
+    "total": 37.7,
     "moneyline": 78.2
    },
    "calibrated": {
     "spread": 53.1,
-    "total": 45.4,
+    "total": 45.8,
     "moneyline": 76.0
    },
    "fb_model": {
     "spread": 42.2,
-    "total": 50.7,
+    "total": 50.5,
     "moneyline": 80.5
    },
    "fb_model_ml_curve_spread": 62.5
@@ -242,24 +242,24 @@
    "total": 41.3,
    "line": {
     "spread": -2.5,
-    "total": 38.5
+    "total": 38.75
    },
    "score_curve": {
     "spread": 51.7,
-    "total": 57.9,
+    "total": 57.2,
     "moneyline": 44.3
    },
    "calibrated": {
     "spread": 50.6,
-    "total": 52.7,
+    "total": 52.4,
     "moneyline": 44.8
    },
    "fb_model": {
-    "spread": 55.7,
-    "total": 53.8,
+    "spread": 55.8,
+    "total": 54.1,
     "moneyline": 59.1
    },
-   "fb_model_ml_curve_spread": 66.2
+   "fb_model_ml_curve_spread": 66.1
   },
   {
    "game_id": "2026_06_TEN_IND",
@@ -275,25 +275,25 @@
    "margin": 9.8,
    "total": 47.3,
    "line": {
-    "spread": 7.0,
+    "spread": 6.5,
     "total": 44.75
    },
    "score_curve": {
-    "spread": 58.2,
+    "spread": 59.6,
     "total": 57.2,
     "moneyline": 76.7
    },
    "calibrated": {
-    "spread": 52.7,
+    "spread": 53.2,
     "total": 52.4,
     "moneyline": 74.7
    },
    "fb_model": {
-    "spread": 47.2,
-    "total": 55.8,
+    "spread": 47.1,
+    "total": 55.7,
     "moneyline": 80.5
    },
-   "fb_model_ml_curve_spread": 63.1
+   "fb_model_ml_curve_spread": 64.5
   },
   {
    "game_id": "2026_06_ARI_LA",
@@ -309,16 +309,16 @@
    "margin": 10.6,
    "total": 54.0,
    "line": {
-    "spread": 12.75,
+    "spread": 12.5,
     "total": 51.5
    },
    "score_curve": {
-    "spread": 43.6,
+    "spread": 44.3,
     "total": 56.9,
     "moneyline": 78.6
    },
    "calibrated": {
-    "spread": 47.9,
+    "spread": 48.1,
     "total": 52.3,
     "moneyline": 76.4
    },
@@ -327,7 +327,7 @@
     "total": 48.7,
     "moneyline": 81.0
    },
-   "fb_model_ml_curve_spread": 47.0
+   "fb_model_ml_curve_spread": 47.7
   },
   {
    "game_id": "2026_06_BUF_LV",
@@ -391,8 +391,8 @@
     "moneyline": 70.3
    },
    "fb_model": {
-    "spread": 57.4,
-    "total": 48.3,
+    "spread": 57.3,
+    "total": 48.2,
     "moneyline": 75.9
    },
    "fb_model_ml_curve_spread": 55.7
@@ -412,24 +412,24 @@
    "total": 54.3,
    "line": {
     "spread": 1.5,
-    "total": 53.0
+    "total": 53.5
    },
    "score_curve": {
     "spread": 51.7,
-    "total": 53.7,
+    "total": 52.3,
     "moneyline": 56.2
    },
    "calibrated": {
     "spread": 50.6,
-    "total": 51.2,
+    "total": 50.8,
     "moneyline": 55.6
    },
    "fb_model": {
-    "spread": 50.2,
+    "spread": 50.3,
     "total": 62.1,
-    "moneyline": 59.1
+    "moneyline": 59.0
    },
-   "fb_model_ml_curve_spread": 54.7
+   "fb_model_ml_curve_spread": 54.6
   },
   {
    "game_id": "2026_06_WAS_SF",
@@ -527,11 +527,11 @@
     "moneyline": 36.7
    },
    "fb_model": {
-    "spread": 36.2,
-    "total": 36.7,
-    "moneyline": 23.7
+    "spread": 36.1,
+    "total": 37.0,
+    "moneyline": 23.9
    },
-   "fb_model_ml_curve_spread": 28.5
+   "fb_model_ml_curve_spread": 28.7
   },
   {
    "game_id": "2026_07_CIN_BAL",
@@ -561,11 +561,11 @@
     "moneyline": 50.7
    },
    "fb_model": {
-    "spread": 56.5,
+    "spread": 56.4,
     "total": 64.1,
-    "moneyline": 53.0
+    "moneyline": 53.3
    },
-   "fb_model_ml_curve_spread": 42.6
+   "fb_model_ml_curve_spread": 42.9
   },
   {
    "game_id": "2026_07_CLE_TEN",
@@ -595,11 +595,11 @@
     "moneyline": 40.6
    },
    "fb_model": {
-    "spread": 55.9,
+    "spread": 55.8,
     "total": 52.8,
-    "moneyline": 40.8
+    "moneyline": 41.1
    },
-   "fb_model_ml_curve_spread": 45.2
+   "fb_model_ml_curve_spread": 45.5
   },
   {
    "game_id": "2026_07_IND_MIN",
@@ -629,11 +629,11 @@
     "moneyline": 59.4
    },
    "fb_model": {
-    "spread": 42.6,
-    "total": 62.6,
-    "moneyline": 57.3
+    "spread": 42.8,
+    "total": 62.5,
+    "moneyline": 57.0
    },
-   "fb_model_ml_curve_spread": 42.5
+   "fb_model_ml_curve_spread": 42.2
   },
   {
    "game_id": "2026_07_MIA_NYJ",
@@ -663,11 +663,11 @@
     "moneyline": 58.0
    },
    "fb_model": {
-    "spread": 62.2,
+    "spread": 62.1,
     "total": 60.2,
-    "moneyline": 55.1
+    "moneyline": 55.4
    },
-   "fb_model_ml_curve_spread": 41.8
+   "fb_model_ml_curve_spread": 42.1
   },
   {
    "game_id": "2026_07_NYG_HOU",
@@ -697,11 +697,11 @@
     "moneyline": 63.7
    },
    "fb_model": {
-    "spread": 49.6,
-    "total": 54.4,
-    "moneyline": 62.4
+    "spread": 50.2,
+    "total": 53.8,
+    "moneyline": 61.4
    },
-   "fb_model_ml_curve_spread": 41.1
+   "fb_model_ml_curve_spread": 40.1
   },
   {
    "game_id": "2026_07_SF_ATL",
@@ -731,11 +731,11 @@
     "moneyline": 32.5
    },
    "fb_model": {
-    "spread": 58.7,
+    "spread": 58.2,
     "total": 50.4,
-    "moneyline": 42.5
+    "moneyline": 43.6
    },
-   "fb_model_ml_curve_spread": 55.8
+   "fb_model_ml_curve_spread": 57.0
   },
   {
    "game_id": "2026_07_TB_CAR",
@@ -765,11 +765,11 @@
     "moneyline": 60.5
    },
    "fb_model": {
-    "spread": 56.9,
-    "total": 51.2,
-    "moneyline": 57.8
+    "spread": 56.5,
+    "total": 50.8,
+    "moneyline": 58.6
    },
-   "fb_model_ml_curve_spread": 49.7
+   "fb_model_ml_curve_spread": 50.5
   },
   {
    "game_id": "2026_07_DEN_ARI",
@@ -799,11 +799,11 @@
     "moneyline": 27.4
    },
    "fb_model": {
-    "spread": 56.0,
+    "spread": 55.9,
     "total": 48.5,
-    "moneyline": 33.0
+    "moneyline": 33.2
    },
-   "fb_model_ml_curve_spread": 47.3
+   "fb_model_ml_curve_spread": 47.6
   },
   {
    "game_id": "2026_07_GB_DET",
@@ -833,11 +833,11 @@
     "moneyline": 59.5
    },
    "fb_model": {
-    "spread": 42.7,
-    "total": 66.8,
-    "moneyline": 50.7
+    "spread": 42.8,
+    "total": 66.5,
+    "moneyline": 50.4
    },
-   "fb_model_ml_curve_spread": 41.0
+   "fb_model_ml_curve_spread": 40.8
   },
   {
    "game_id": "2026_07_LA_LV",
@@ -867,11 +867,11 @@
     "moneyline": 37.6
    },
    "fb_model": {
-    "spread": 53.9,
+    "spread": 54.0,
     "total": 44.4,
-    "moneyline": 30.7
+    "moneyline": 30.4
    },
-   "fb_model_ml_curve_spread": 49.9
+   "fb_model_ml_curve_spread": 49.7
   },
   {
    "game_id": "2026_07_KC_SEA",
@@ -935,11 +935,11 @@
     "moneyline": 57.7
    },
    "fb_model": {
-    "spread": 47.4,
-    "total": 51.5,
-    "moneyline": 49.3
+    "spread": 47.0,
+    "total": 52.9,
+    "moneyline": 49.6
    },
-   "fb_model_ml_curve_spread": 49.3
+   "fb_model_ml_curve_spread": 49.6
   }
  ],
  "backtest": {
@@ -1533,7 +1533,7 @@
    "games": []
   },
   "this_week": {
-   "games_with_both": 8,
+   "games_with_both": 9,
    "cannot_both_hit": 0,
    "games": []
   }
