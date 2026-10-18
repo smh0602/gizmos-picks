@@ -1,18 +1,11 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-17T23:04:33Z",
+ "checked_at": "2026-10-18T00:32:42Z",
  "et_date": "2026-10-17",
  "healthy": false,
  "broken": 0,
- "degraded": 6,
+ "degraded": 8,
  "findings": [
-  {
-   "key": "fresh:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb tabs are showing data older than promised (gamelines, props-batter, props-pitcher)",
-   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
-   "repair": null
-  },
   {
    "key": "fresh:ncaaf",
    "severity": "DEGRADED",
@@ -25,6 +18,27 @@
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
    "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
+  {
+   "key": "late:gamelines:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb gamelines was built 240 minutes after it was due",
+   "why": "due 2026-10-17T20:00Z, built 2026-10-18T00:00Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-batter:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb props-batter was built 240 minutes after it was due",
+   "why": "due 2026-10-17T20:00Z, built 2026-10-18T00:00Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-batter build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:props-pitcher:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb props-pitcher was built 240 minutes after it was due",
+   "why": "due 2026-10-17T20:00Z, built 2026-10-18T00:00Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-pitcher build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -53,15 +67,15 @@
  "unrepairable": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 13002,
-  "pulled_at": "2026-10-17T19:03:34Z",
+  "balance": 12988,
+  "pulled_at": "2026-10-18T00:00:29Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 4.0,
+  "reading_age_hours": 0.5,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-17T19:03:34Z",
-  "source": "data/ncaaf/2026-10-17/props-player/1903.json.gz",
-  "readings_on_disk": 946,
+  "newest_paid_pull": "2026-10-18T00:00:29Z",
+  "source": "data/2026-10-18/props-batter/0000.json.gz",
+  "readings_on_disk": 949,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  }
