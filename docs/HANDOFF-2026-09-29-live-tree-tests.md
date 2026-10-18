@@ -290,3 +290,15 @@ CI alone would not have shown the above. It is offered as its own task.
   as well as `picks`. **Guard:** the newest PLANTED card now carries a `liked` list, so a
   probe that leaves any list settle-able goes red on planted data, not only on a day the
   stored data happens to settle.
+- **2026-10-18:** a new instance, the same class (P3). `test_mlb_tables.py`'s LIVE extra
+  (§c2) turned collect (run 39082112146) and pr-tests red on 10-18, on main as on every
+  branch. **Root cause:** the extra ran whenever today's board held 3+ pitcher props, then
+  hard-asserted that the card built from them carried pitcher model output. Once the MLB
+  season ended, the board still held the last pitcher props but the card had 0 picks and 0
+  pitcher projections, so a fact about that day failed a correct tree. **Fix:** on the
+  extra (`c_run(..., extra=True)`), a blind card is a `note()` and the extra stops. The
+  PLANTED run keeps the hard check, and the existing (c1) mutation (empty model pool)
+  still turns it red. **Guard (instance):** §c1b plants the planted tree again with every
+  starter under the innings bar, so the card is blind, and runs it as the extra: it must
+  add no failure and say so. Watched both ways: with the fix undone it fails 3 checks;
+  restored, all 52 pass. All 13 declared mutations still bite.
