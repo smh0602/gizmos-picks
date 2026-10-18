@@ -34,8 +34,8 @@ lazy regeneration looks like.
 # ══════════════════════════════════════════════════════════════════════
 # @vacuity an MLB-side render cannot be changed without this going red
 #   file: index.html
-#   find: async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
-#   with: async function jget(u){ const r = await fetch(u); if(!r.ok) throw new Error(u+' :: '+r.status); return r.json(); }
+#   find: async function jget(u){ const r = await fetch(u, {cache: 'no-cache'}); if(!r.ok) throw new Error(u+' -> '+r.status); return r.json(); }
+#   with: async function jget(u){ const r = await fetch(u, {cache: 'no-cache'}); if(!r.ok) throw new Error(u+' :: '+r.status); return r.json(); }
 #
 # @vacuity ...and neither can an MLB-side CSS rule
 #   file: index.html
