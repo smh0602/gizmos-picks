@@ -30,7 +30,9 @@ is asserted is the INVARIANT:
 and in week 15, and it is exactly what was broken.
 """
 import http.server
+import json
 import os
+import re
 import socketserver
 import threading
 
@@ -438,6 +440,109 @@ if _BROWSER:
                     faint["%s/%s" % (lg, tab)] = got
         ck("🔴 every word on every tab of every league reads at 4.5:1 or better (3:1 for large text)",
            not faint, str(faint))
+
+        # ══════════════════════════════════════════════════════════════
+        # 🔴 6. SET STATE ON GIZMO'S PICKS OPENS THE PICKER, AND THE STATE MAKES THE BET SLIP `[2026-10-18]`
+        # ══════════════════════════════════════════════════════════════
+        # Measured 2026-10-18 on MLB's 2026-10-17 card: 4 SET STATE buttons, and a click left the
+        # picker `display: none` and the focus on the page body; it did nothing (setTools shows
+        # the picker on Odds and Player Props only). Choosing a state on a football tab redrew
+        # MLB's tab, not the one being read. ⛔ PLANTED CARDS, every league: one player prop and
+        # one game line, each with a `{state}` link, so the check asks the code, not today's card
+        # (football's three books carry no `{state}` link today). The real click, at a desktop
+        # and a phone width. test_set_state.py asks the same of every tab's code, without a browser.
+        import datetime as _dt  # noqa: E402
+        _now = _dt.datetime.now(_dt.timezone.utc)
+        _day = (_now - _dt.timedelta(hours=5)).strftime("%Y-%m-%d")
+        _soon = (_now + _dt.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        SLIPS = {"prop": "https://sportsbook.caesars.com/us/{state}/bet/betslip?selectionIds=gp-planted-1",
+                 "line": "https://sports.{state}.betmgm.com/en/sports?options=gp-planted-2&type=Single"}
+        _game = dict(away="Away Club", home="Home Club", game="Away Club @ Home Club",
+                     commence=_soon, why=["A planted row."], confidence_basis="MODEL")
+        _mlb_prop = dict(_game, kind="pitcher", pitcher="Planted Pitcher", market="strikeouts",
+                         side="over", line=5.5, price=-120, book="williamhill_us",
+                         link=SLIPS["prop"], confidence=64, break_even=54.5, edge=9.5,
+                         first_pitch="7:05pm")
+        _mlb_line = dict(_game, kind="mlb-line", player="Home Club", market="h2h",
+                         market_label="Moneyline", side="home", line=None, price=-130,
+                         book="betmgm", link=SLIPS["line"], confidence=58, break_even=56.5,
+                         edge=1.5, first_pitch="7:05pm")
+        _fb_prop = dict(_game, kind="fb", player="Planted Receiver", market="player_reception_yds",
+                        market_label="Receiving yards", side="over", line=50.5, price=-115,
+                        book="williamhill_us", link=SLIPS["prop"], confidence=61,
+                        break_even=53.5, edge=7.5)
+        _fb_line = dict(_game, kind="fb-line", player="Home Club", market="spreads",
+                        market_label="Spread", side="home", line=-3.5, price=-110,
+                        book="betmgm", link=SLIPS["line"], confidence=57, break_even=52.4,
+                        edge=4.6)
+        CARDS = {"mlb": {"date": _day, "picks": [_mlb_prop], "game_lines": [_mlb_line],
+                         "top10": [], "pairs": [], "parlays": {}, "projections": {}},
+                 "fb": {"date": _day, "odds_pulled_at": _now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "picks": [_fb_prop], "liked": [_fb_prop], "game_lines": [_fb_line],
+                        "game_lines_liked": [_fb_line], "game_lines_meta": {"slate": _day},
+                        "top_plays": [], "projections": {}}}
+
+        def _card(route):
+            path = route.request.url.split("?")[0]
+            if re.search(r"/picks/\d{4}-\d{2}-\d{2}\.json$", path):
+                body = CARDS["mlb"]
+            elif re.search(r"/picks/fb-(nfl|ncaaf)-latest\.json$", path):
+                body = CARDS["fb"]
+            else:
+                return route.fallback()
+            route.fulfill(status=200, content_type="application/json", body=json.dumps(body))
+        pg.route("**/picks/*.json", _card)
+        PICKER = """() => { const s = document.getElementById('st'), r = s.getBoundingClientRect();
+          return {shown: s.offsetParent !== null && r.height > 0,
+                  inView: r.top >= 0 && r.bottom <= innerHeight,
+                  focused: document.activeElement === s}; }"""
+        AFTER = """v => ({needs: document.querySelectorAll(v + ' .needs').length,
+          hrefs: [...document.querySelectorAll(v + ' .pk-px a.bklink')].map(a => a.href),
+          value: document.getElementById('st').value,
+          shown: document.getElementById('st').offsetParent !== null})"""
+        dead, slips = {}, {}
+        for w, h, kinds in ((1280, 900, ("prop", "line")), (390, 844, ("prop",))):
+            pg.set_viewport_size({"width": w, "height": h})
+            for lg in ("mlb", "nfl", "ncaaf"):
+                for kind in kinds:
+                    case = "%s/%s/%dpx" % (lg, kind, w)
+                    pg.goto(f"http://127.0.0.1:{PORT}/index.html",
+                            wait_until="domcontentloaded", timeout=60000)
+                    pg.evaluate("localStorage.removeItem('gp_state')")
+                    pg.reload(wait_until="domcontentloaded", timeout=60000)
+                    pg.wait_for_timeout(1200)
+                    if lg != "mlb":
+                        pg.evaluate("setLeague('%s')" % lg)
+                        pg.wait_for_timeout(1600)
+                    pg.locator("nav.subnav a[data-tab='picks']").click()
+                    pg.wait_for_timeout(1800)
+                    view = "#view" if lg == "mlb" else "#fbview"
+                    if kind == "line":
+                        pg.locator("%s .kchip[data-%s='lines']"
+                                   % (view, "mlbkind" if lg == "mlb" else "fbkind")).click()
+                        pg.wait_for_timeout(1200)
+                    btn = pg.locator("%s .betbtn.needs" % view)
+                    n, hidden = btn.count(), pg.locator("#st").is_hidden()
+                    if n:
+                        btn.first.click()
+                        pg.wait_for_timeout(1000)
+                    seen = pg.evaluate(PICKER)
+                    if not (n and hidden and seen["shown"] and seen["inView"] and seen["focused"]):
+                        dead[case] = dict(seen, buttons=n, hidden_before=hidden)
+                    pg.select_option("#st", "NJ")
+                    pg.wait_for_timeout(1500)
+                    got = pg.evaluate(AFTER, view)
+                    want = SLIPS[kind].replace("{state}", "nj")
+                    if got["needs"] or want not in got["hrefs"] or got["value"] != "NJ" \
+                            or not got["shown"]:
+                        slips[case] = got
+        pg.set_viewport_size({"width": 1280, "height": 900})
+        ck("🔴 on Gizmo's Picks in every league, a SET STATE click shows the hidden state picker, "
+           "scrolls to it and focuses it (planted player prop and game line, 1280 and 390 px)",
+           not dead, str(dead))
+        ck("🔴 ...and choosing a state turns every SET STATE on the tab into the book link, that "
+           "state's bet slip, with the picker still showing it",
+           not slips, str(slips))
 
         ck("✅ no page error during any switch", not errs, str(errs[:3]))
         note("%d off-machine request(s) blocked, none answered by the "
