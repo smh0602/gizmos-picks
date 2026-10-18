@@ -148,7 +148,7 @@ jobs:
             then git add data/prompt.json and push
       - name: Learn
         run: |
-          # git add data/never/this.json  (a comment, not a command)
+          # a comment, not a command: (git add data/never/this.json) is only text
           python learn.py
       - name: Commit
         run: |
