@@ -1,11 +1,18 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-18T07:16:34Z",
+ "checked_at": "2026-10-18T10:57:16Z",
  "et_date": "2026-10-18",
  "healthy": false,
- "broken": 0,
+ "broken": 1,
  "degraded": 8,
  "findings": [
+  {
+   "key": "record-verify:mlb",
+   "severity": "BROKEN",
+   "what": "the MLB Track Record does not add up",
+   "why": "re-grading every published pick from the box scores disagreed with the published record: the mlb winners reproduce in their own line (5/14, 0 void). The site still shows the old record.",
+   "repair": null
+  },
   {
    "key": "fresh:ncaaf",
    "severity": "DEGRADED",
@@ -64,14 +71,16 @@
   }
  ],
  "repairs": [],
- "unrepairable": [],
+ "unrepairable": [
+  "record-verify"
+ ],
  "credits": {
   "state": "HEALTHY",
   "balance": 12988,
   "pulled_at": "2026-10-18T00:00:29Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 7.3,
+  "reading_age_hours": 10.9,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-18T00:00:29Z",
   "source": "data/2026-10-18/props-batter/0000.json.gz",
