@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "MODEL",
- "built_at": "2026-10-19T14:59:10Z",
+ "built_at": "2026-10-19T15:45:04Z",
  "design": "research/fb_props_design.md",
  "books": [
   "DraftKings",
@@ -209,7 +209,7 @@
   },
   "player_receptions": {
    "picks": {
-    "value": 719,
+    "value": 721,
     "basis": "DESCRIPTIVE"
    },
    "wins": {
@@ -217,7 +217,7 @@
     "basis": "DESCRIPTIVE"
    },
    "hit_rate": {
-    "value": 44.9,
+    "value": 44.8,
     "basis": "DESCRIPTIVE"
    },
    "break_even": {
@@ -230,13 +230,13 @@
    },
    "interval_95": {
     "value": [
-     39.9,
-     50.0
+     39.8,
+     49.8
     ],
     "basis": "DESCRIPTIVE"
    },
    "effective_n": {
-    "value": 375.0,
+    "value": 376.0,
     "basis": "DESCRIPTIVE"
    },
    "pushes": {
@@ -249,11 +249,11 @@
    "verdict": {
     "basis": "DESCRIPTIVE",
     "label": "NOT PROVEN",
-    "picks": 719,
+    "picks": 721,
     "min_picks": 300,
-    "p": 0.8245,
+    "p": 0.8417,
     "games": 92,
-    "edge_points": -1.9
+    "edge_points": -2.0
    }
   },
   "player_anytime_td": {
@@ -324,7 +324,7 @@
   "2026-10-12": true,
   "2026-10-19": true
  },
- "graded_rungs": 4747,
+ "graded_rungs": 4777,
  "calibration": {
   "model": [
    {
@@ -345,7 +345,7 @@
    {
     "bucket": "10-20%",
     "n": {
-     "value": 972,
+     "value": 996,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -353,7 +353,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 17.5,
+     "value": 17.1,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -390,7 +390,7 @@
    {
     "bucket": "40-50%",
     "n": {
-     "value": 1467,
+     "value": 1468,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -405,7 +405,7 @@
    {
     "bucket": "50-60%",
     "n": {
-     "value": 1173,
+     "value": 1178,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -413,7 +413,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 49.1,
+     "value": 48.9,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -527,7 +527,7 @@
    {
     "bucket": "30-40%",
     "n": {
-     "value": 533,
+     "value": 534,
      "basis": "DESCRIPTIVE"
     },
     "stated": {
@@ -535,7 +535,7 @@
      "basis": "MODEL"
     },
     "observed": {
-     "value": 37.7,
+     "value": 37.6,
      "basis": "DESCRIPTIVE"
     }
    },
@@ -635,32 +635,32 @@
   "player_pass_yds": {
    "n": 160,
    "card": 0.7830193602531762,
-   "model": 0.7228744960790516
+   "model": 0.7228711101678401
   },
   "player_pass_tds": {
    "n": 152,
    "card": 0.7000536932506557,
-   "model": 0.7056074924712123
+   "model": 0.7056088567798354
   },
   "player_rush_yds": {
    "n": 339,
    "card": 0.7663197832105572,
-   "model": 0.7546883106988337
+   "model": 0.7546864474982256
   },
   "player_reception_yds": {
    "n": 752,
    "card": 0.7591921988523396,
-   "model": 0.7140211586774633
+   "model": 0.7140207985248673
   },
   "player_receptions": {
    "n": 733,
    "card": 0.7648432263682109,
-   "model": 0.7149032525408076
+   "model": 0.7149039695498047
   },
   "player_anytime_td": {
-   "n": 979,
-   "card": 0.5586987300437944,
-   "model": 0.5578049100710917
+   "n": 980,
+   "card": 0.5586164209324672,
+   "model": 0.5574542915498665
   }
  },
  "card_logs_season": 2025,
@@ -686,10 +686,10 @@
   "2026-09-24": 2025
  },
  "league_only": {
-  "n": 3115,
-  "mean_d": 0.027021426243364136,
-  "t": 2.3785476768447285,
-  "p": 0.00973574016152511,
+  "n": 3116,
+  "mean_d": 0.027097654381514284,
+  "t": 2.385585993035203,
+  "p": 0.009562440431104317,
   "clusters": 92
  },
  "paired_rows": [
@@ -20715,6 +20715,13 @@
   ],
   [
    "nfl:84aa9e190e625d7e9cd67e1f157a45b4",
+   "player_anytime_td",
+   0,
+   0.38,
+   0.174556
+  ],
+  [
+   "nfl:84aa9e190e625d7e9cd67e1f157a45b4",
    "player_pass_tds",
    0,
    0.5,
@@ -22272,239 +22279,239 @@
    "player_anytime_td",
    1,
    0.06,
-   0.222268
+   0.220271
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    1,
    0.57,
-   0.256614
+   0.254926
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    1,
    0.03,
-   0.1904
+   0.188188
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    0,
    0.29,
-   0.226341
+   0.224381
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    0,
    0.14,
-   0.193391
+   0.19119
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    0,
    0.69,
-   0.222262
+   0.220269
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    0,
    0.5,
-   0.232745
+   0.230832
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    1,
    0.36,
-   0.203435
+   0.201301
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    0,
    0.32,
-   0.214479
+   0.212416
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_anytime_td",
    0,
    0.5,
-   0.221523
+   0.219528
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_pass_tds",
    0,
    0.58,
-   0.497022
+   0.496979
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_pass_tds",
    0,
    0.53,
-   0.509958
+   0.510102
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_pass_yds",
    0,
    0.42,
-   0.485051
+   0.484836
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_pass_yds",
    0,
    0.28,
-   0.495657
+   0.495594
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    1,
    0.64,
-   0.5069
+   0.506855
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    0,
    0.41,
-   0.469416
+   0.468884
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    1,
    0.17,
-   0.484429
+   0.484125
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    0,
    0.62,
-   0.506518
+   0.506524
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    1,
    0.62,
-   0.483448
+   0.483098
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    0,
    0.56,
-   0.485252
+   0.485003
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    0,
    0.54,
-   0.471816
+   0.471326
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_reception_yds",
    0,
    0.37,
-   0.536288
+   0.536608
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    1,
    0.17,
-   0.501929
+   0.501905
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    0,
    0.68,
-   0.489023
+   0.488783
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    0,
    0.23,
-   0.501686
+   0.501672
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    0,
    0.37,
-   0.518485
+   0.518639
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    1,
    0.68,
-   0.522728
+   0.522977
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    1,
    0.46,
-   0.499882
+   0.499825
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    1,
    0.56,
-   0.487582
+   0.48737
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_receptions",
    1,
    0.64,
-   0.490119
+   0.489833
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_rush_yds",
    0,
    0.42,
-   0.473527
+   0.473126
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_rush_yds",
    1,
    0.66,
-   0.484136
+   0.483872
   ],
   [
    "nfl:82fd5a159fa130e67abab93a9537f70b",
    "player_rush_yds",
    0,
    0.57,
-   0.486126
+   0.485914
   ]
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 6273,
-  "mean_d": 0.034114944151152,
-  "t": 4.291720807526949,
-  "p": 1.151370044739729e-05,
+  "n": 6274,
+  "mean_d": 0.03415167093317162,
+  "t": 4.296721138004503,
+  "p": 1.1269995497863234e-05,
   "clusters": 348,
   "verdict": "QUALIFIES",
   "leagues": [
@@ -22531,7 +22538,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 55.8,
+    "value": 55.9,
     "basis": "MODEL"
    },
    "break_even": {
@@ -22539,10 +22546,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 5.7,
+    "value": 5.8,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-19T14:58:33Z"
+   "priced_at": "2026-10-19T15:44:34Z"
   },
   {
    "game": "Washington Commanders at San Francisco 49ers",
@@ -22562,7 +22569,7 @@
    },
    "book": "DraftKings",
    "model_probability": {
-    "value": 53.6,
+    "value": 53.7,
     "basis": "MODEL"
    },
    "break_even": {
@@ -22570,10 +22577,72 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.9,
+    "value": 2.0,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-19T14:58:33Z"
+   "priced_at": "2026-10-19T15:44:34Z"
+  },
+  {
+   "game": "Washington Commanders at San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "commence": "2026-10-20T00:15:00Z",
+   "player": "Mike Evans",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 63.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -110,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.4,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.4,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-19T15:44:34Z"
+  },
+  {
+   "game": "Washington Commanders at San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "commence": "2026-10-20T00:15:00Z",
+   "player": "Austin Ekeler",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": {
+    "value": 20.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -108,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 51.9,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 2.2,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-19T15:44:34Z"
   },
   {
    "game": "Washington Commanders at San Francisco 49ers",
@@ -22601,72 +22670,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 1.1,
+    "value": 1.2,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-19T14:58:33Z"
-  },
-  {
-   "game": "Washington Commanders at San Francisco 49ers",
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "commence": "2026-10-20T00:15:00Z",
-   "player": "Mike Evans",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": {
-    "value": 63.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": -110,
-    "basis": "MARKET"
-   },
-   "book": "DraftKings",
-   "model_probability": {
-    "value": 53.0,
-    "basis": "MODEL"
-   },
-   "break_even": {
-    "value": 52.4,
-    "basis": "MARKET"
-   },
-   "edge": {
-    "value": 1.3,
-    "basis": "MODEL"
-   },
-   "priced_at": "2026-10-19T14:58:33Z"
-  },
-  {
-   "game": "Washington Commanders at San Francisco 49ers",
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "commence": "2026-10-20T00:15:00Z",
-   "player": "Austin Ekeler",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": {
-    "value": 20.5,
-    "basis": "MARKET"
-   },
-   "price": {
-    "value": -108,
-    "basis": "MARKET"
-   },
-   "book": "DraftKings",
-   "model_probability": {
-    "value": 53.0,
-    "basis": "MODEL"
-   },
-   "break_even": {
-    "value": 51.9,
-    "basis": "MARKET"
-   },
-   "edge": {
-    "value": 2.1,
-    "basis": "MODEL"
-   },
-   "priced_at": "2026-10-19T14:58:33Z"
+   "priced_at": "2026-10-19T15:44:34Z"
   },
   {
    "game": "Washington Commanders at San Francisco 49ers",
@@ -22694,10 +22701,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 5.8,
+    "value": 5.9,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-19T14:58:33Z"
+   "priced_at": "2026-10-19T15:44:34Z"
   },
   {
    "game": "Washington Commanders at San Francisco 49ers",
@@ -22725,10 +22732,10 @@
     "basis": "MARKET"
    },
    "edge": {
-    "value": 12.6,
+    "value": 12.7,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-19T14:58:33Z"
+   "priced_at": "2026-10-19T15:44:34Z"
   }
  ],
  "rated": [
@@ -22738,7 +22745,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.5
+   "p": 19.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22746,7 +22753,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.0
+   "p": 18.8
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22754,7 +22761,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 16.4
+   "p": 16.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22762,7 +22769,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.6
+   "p": 19.4
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22770,7 +22777,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 16.6
+   "p": 16.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22778,7 +22785,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 21.2
+   "p": 21.0
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22786,7 +22793,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.0
+   "p": 18.8
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22794,7 +22801,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 25.0
+   "p": 24.8
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22802,7 +22809,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 16.2
+   "p": 16.0
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22810,7 +22817,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 18.0
+   "p": 17.8
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22818,7 +22825,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 23.0
+   "p": 22.8
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22826,7 +22833,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 18.2
+   "p": 17.9
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22834,7 +22841,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 22.0
+   "p": 21.8
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22842,7 +22849,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 17.1
+   "p": 16.9
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22850,7 +22857,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 17.3
+   "p": 17.0
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22858,7 +22865,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.6
+   "p": 19.4
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22866,7 +22873,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 18.6
+   "p": 18.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22874,7 +22881,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 19.3
+   "p": 19.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22882,7 +22889,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 22.3
+   "p": 22.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22890,7 +22897,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 21.6
+   "p": 21.4
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22898,7 +22905,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 21.9
+   "p": 21.6
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22906,7 +22913,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 21.2
+   "p": 21.0
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -22914,7 +22921,7 @@
    "market": "player_anytime_td",
    "line": null,
    "side": "yes",
-   "p": 20.2
+   "p": 20.0
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23002,7 +23009,7 @@
    "market": "player_reception_yds",
    "line": 6.5,
    "side": "over",
-   "p": 52.5
+   "p": 52.6
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23010,7 +23017,7 @@
    "market": "player_reception_yds",
    "line": 6.5,
    "side": "under",
-   "p": 47.5
+   "p": 47.4
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23034,7 +23041,7 @@
    "market": "player_reception_yds",
    "line": 38.5,
    "side": "over",
-   "p": 48.8
+   "p": 48.7
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23042,7 +23049,7 @@
    "market": "player_reception_yds",
    "line": 38.5,
    "side": "under",
-   "p": 51.2
+   "p": 51.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23050,7 +23057,7 @@
    "market": "player_reception_yds",
    "line": 68.5,
    "side": "over",
-   "p": 46.4
+   "p": 46.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23058,7 +23065,7 @@
    "market": "player_reception_yds",
    "line": 68.5,
    "side": "under",
-   "p": 53.6
+   "p": 53.7
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23066,7 +23073,7 @@
    "market": "player_reception_yds",
    "line": 63.5,
    "side": "over",
-   "p": 47.0
+   "p": 46.9
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23074,7 +23081,7 @@
    "market": "player_reception_yds",
    "line": 63.5,
    "side": "under",
-   "p": 53.0
+   "p": 53.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23194,7 +23201,7 @@
    "market": "player_receptions",
    "line": 5.5,
    "side": "over",
-   "p": 46.2
+   "p": 46.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23202,7 +23209,7 @@
    "market": "player_receptions",
    "line": 5.5,
    "side": "under",
-   "p": 53.8
+   "p": 53.9
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23258,7 +23265,7 @@
    "market": "player_receptions",
    "line": 3.5,
    "side": "over",
-   "p": 50.6
+   "p": 50.7
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23266,7 +23273,7 @@
    "market": "player_receptions",
    "line": 3.5,
    "side": "under",
-   "p": 49.4
+   "p": 49.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23274,7 +23281,7 @@
    "market": "player_rush_yds",
    "line": 20.5,
    "side": "over",
-   "p": 47.0
+   "p": 46.9
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23282,7 +23289,7 @@
    "market": "player_rush_yds",
    "line": 20.5,
    "side": "under",
-   "p": 53.0
+   "p": 53.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23354,7 +23361,7 @@
    "market": "player_rush_yds",
    "line": 46.5,
    "side": "over",
-   "p": 44.2
+   "p": 44.1
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23362,7 +23369,7 @@
    "market": "player_rush_yds",
    "line": 46.5,
    "side": "under",
-   "p": 55.8
+   "p": 55.9
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23466,7 +23473,7 @@
    "market": "player_reception_yds",
    "line": 66.5,
    "side": "over",
-   "p": 46.8
+   "p": 46.7
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23474,7 +23481,7 @@
    "market": "player_reception_yds",
    "line": 66.5,
    "side": "under",
-   "p": 53.2
+   "p": 53.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23482,7 +23489,7 @@
    "market": "player_reception_yds",
    "line": 66.5,
    "side": "over",
-   "p": 46.4
+   "p": 46.3
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23490,7 +23497,7 @@
    "market": "player_reception_yds",
    "line": 66.5,
    "side": "under",
-   "p": 53.6
+   "p": 53.7
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23626,7 +23633,7 @@
    "market": "player_rush_yds",
    "line": 45.5,
    "side": "over",
-   "p": 44.5
+   "p": 44.4
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23634,7 +23641,7 @@
    "market": "player_rush_yds",
    "line": 45.5,
    "side": "under",
-   "p": 55.5
+   "p": 55.6
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23690,7 +23697,7 @@
    "market": "player_reception_yds",
    "line": 67.5,
    "side": "over",
-   "p": 46.6
+   "p": 46.5
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23698,7 +23705,7 @@
    "market": "player_reception_yds",
    "line": 67.5,
    "side": "under",
-   "p": 53.4
+   "p": 53.5
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23706,7 +23713,7 @@
    "market": "player_reception_yds",
    "line": 65.5,
    "side": "over",
-   "p": 46.6
+   "p": 46.5
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23714,7 +23721,7 @@
    "market": "player_reception_yds",
    "line": 65.5,
    "side": "under",
-   "p": 53.4
+   "p": 53.5
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23731,38 +23738,6 @@
    "line": 39.5,
    "side": "under",
    "p": 50.3
-  },
-  {
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "player": "Terry McLaurin",
-   "market": "player_reception_yds",
-   "line": 48.5,
-   "side": "over",
-   "p": 48.8
-  },
-  {
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "player": "Terry McLaurin",
-   "market": "player_reception_yds",
-   "line": 48.5,
-   "side": "under",
-   "p": 51.2
-  },
-  {
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "player": "Stefon Diggs",
-   "market": "player_receptions",
-   "line": 4.5,
-   "side": "over",
-   "p": 48.6
-  },
-  {
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "player": "Stefon Diggs",
-   "market": "player_receptions",
-   "line": 4.5,
-   "side": "under",
-   "p": 51.4
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
@@ -23798,22 +23773,6 @@
   },
   {
    "game_id": "f122527f003276d3bca19efa48c902c1",
-   "player": "Christian McCaffrey",
-   "market": "player_rush_yds",
-   "line": 60.5,
-   "side": "over",
-   "p": 48.9
-  },
-  {
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "player": "Christian McCaffrey",
-   "market": "player_rush_yds",
-   "line": 60.5,
-   "side": "under",
-   "p": 51.1
-  },
-  {
-   "game_id": "f122527f003276d3bca19efa48c902c1",
    "player": "Jayden Daniels",
    "market": "player_rush_yds",
    "line": 39.5,
@@ -23829,6 +23788,6 @@
    "p": 50.4
   }
  ],
- "board_pulled_at": "2026-10-19T14:58:33Z",
+ "board_pulled_at": "2026-10-19T15:44:34Z",
  "picks_total": 7
 }

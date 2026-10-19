@@ -1,10 +1,10 @@
 {
  "date": "2026-10-19",
  "league": "nfl",
- "generated_at": "2026-10-19T14:59:11Z",
+ "generated_at": "2026-10-19T15:45:04Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-19T14:58:33Z",
+ "odds_pulled_at": "2026-10-19T15:44:34Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -46,6 +46,36 @@
   {
    "kind": "fb-line",
    "league": "nfl",
+   "basis": "MODEL \u2014 the game model's chance at this line",
+   "player": "San Francisco 49ers",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
+   "side": "home",
+   "line": -10.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": 138,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "break_even": 42.0,
+   "edge": 9.0,
+   "why": [
+    "The game model gives San Francisco 49ers 51% to cover -10.5; the best price, +138 at FanDuel, needs 42.0%."
+   ],
+   "priced_at": "2026-10-19T14:58:33Z",
+   "main_line": -7.5,
+   "sched_id": "2026_06_WAS_SF",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
    "basis": "MODEL \u2014 the game model's probability",
    "player": "Over",
    "market": "total",
@@ -69,42 +99,44 @@
     "The game model gives Over 54% at 51.5; the price -110 needs 52.4%."
    ],
    "priced_at": "2026-10-19T14:58:33Z",
-   "rank": 2
+   "rank": 3
   }
  ],
  "game_lines_liked": [
   {
    "kind": "fb-line",
    "league": "nfl",
-   "basis": "MODEL \u2014 the game model's probability",
+   "basis": "MODEL \u2014 the game model's chance at this line",
    "player": "San Francisco 49ers",
-   "market": "spread",
-   "market_label": "Spread",
+   "market": "alternate_spread",
+   "market_label": "Alternate spread",
    "side": "home",
-   "line": -7.5,
+   "line": -10.5,
    "game": "Washington Commanders @ San Francisco 49ers",
    "game_id": "f122527f003276d3bca19efa48c902c1",
    "away": "Washington Commanders",
    "home": "San Francisco 49ers",
    "commence": "2026-10-20T00:15:00Z",
    "book": "fanduel",
-   "price": -105,
+   "price": 138,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 60,
-   "break_even": 51.2,
-   "edge": 8.6,
+   "confidence": 51,
+   "break_even": 42.0,
+   "edge": 9.0,
    "why": [
-    "The game model gives San Francisco 49ers 60% to cover -7.5; the price -105 needs 51.2%.",
+    "The game model gives San Francisco 49ers 51% to cover -10.5; the best price, +138 at FanDuel, needs 42.0%.",
     "The model's predicted score: Washington Commanders 21, San Francisco 49ers 32 (total 53).",
     "The Washington Commanders score 23 and allow 29.8 points a game this season (5 games).",
     "The San Francisco 49ers score 30.8 and allow 18.6 points a game this season (5 games)."
    ],
    "priced_at": "2026-10-19T14:58:33Z",
+   "main_line": -7.5,
+   "sched_id": "2026_06_WAS_SF",
    "rank": 1,
    "why_card": [
-    "The game model gives San Francisco 49ers 60% to cover -7.5; the price -105 needs 51.2%."
+    "The game model gives San Francisco 49ers 51% to cover -10.5; the best price, +138 at FanDuel, needs 42.0%."
    ]
   }
  ],
@@ -116,9 +148,9 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-19T14:58:57Z",
-  "ladder_built_at": "2026-10-19T14:59:00Z",
-  "alt_spreads": 0
+  "model_built_at": "2026-10-19T15:44:53Z",
+  "ladder_built_at": "2026-10-19T15:44:55Z",
+  "alt_spreads": 1
  },
  "scores_shown": [
   {
@@ -242,7 +274,7 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-19 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-19 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (1 listed).",
  "top_plays": [
   {
    "kind": "fb",
@@ -261,7 +293,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215598%232324607314_13L88808Q1653787619Q20",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 56,
@@ -276,7 +308,7 @@
     "h26": 2,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.341,
+    "p0": 0.347,
     "weighted_n": 6.67,
     "mean_all": 40.778
    },
@@ -289,7 +321,7 @@
    "why": [
     "<b>Rachaad White</b> went under 46.5 rush yds in <b>2 of 2 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 55.8,
+   "model_p": 55.9,
    "role": {
     "snap": 0.5167,
     "tgt_share": 0.0844,
@@ -302,24 +334,24 @@
  "top_plays_excluded": {
   "below_payable_floor": 0,
   "same_player_already_listed": 4,
-  "same_game_already_listed": 50,
+  "same_game_already_listed": 47,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 55,
+  "pool_after_price_gate": 52,
   "cap": 10,
   "distinct_games": 1,
   "shared_with_board_head": 1,
   "board_head_size": 10
  },
- "top_plays_rule": "The 1 most likely to hit for 2026-10-19 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 50 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 1 most likely to hit for 2026-10-19 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 47 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [],
   "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 15,
-  "rated_legs": 55,
+  "pool": 14,
+  "rated_legs": 52,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -328,12 +360,12 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 1,
-    "taken": 1
+    "available": 0,
+    "taken": 0
    },
    {
     "decimal": "1.6-2",
-    "available": 52,
+    "available": 50,
     "taken": 12
    },
    {
@@ -348,12 +380,12 @@
    }
   ],
   "rejected": {
-   "same_game": 1925,
+   "same_game": 1456,
    "same_player": 0,
    "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "55 rated legs, 15 in the stratified pool. Rejected: 1925 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+  "note": "52 rated legs, 14 in the stratified pool. Rejected: 1456 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -497,8 +529,8 @@
   "games_used": 1,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 40,
-   "mixed_book": 128,
+   "same_player": 66,
+   "mixed_book": 121,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -901,18 +933,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
   },
-  "Terry McLaurin|player_reception_yds|over|48.5": {
-   "v": 56.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
-  },
-  "Terry McLaurin|player_reception_yds|under|48.5": {
-   "v": 56.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
-  },
   "Terry McLaurin|player_reception_yds|over|49.5": {
    "v": 56.2,
    "u": "rec yds",
@@ -1009,18 +1029,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
   },
-  "Stefon Diggs|player_receptions|over|4.5": {
-   "v": 4.9,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
-  },
-  "Stefon Diggs|player_receptions|under|4.5": {
-   "v": 4.9,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
-  },
   "Terry McLaurin|player_receptions|over|3.5": {
    "v": 3.8,
    "u": "rec",
@@ -1076,18 +1084,6 @@
    "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
   },
   "Christian McCaffrey|player_rush_yds|under|59.5": {
-   "v": 65.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
-  },
-  "Christian McCaffrey|player_rush_yds|over|60.5": {
-   "v": 65.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
-  },
-  "Christian McCaffrey|player_rush_yds|under|60.5": {
    "v": 65.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -1167,20 +1163,20 @@
   }
  },
  "name_match_rate": 0.84,
- "n_priced": 55,
+ "n_priced": 52,
  "single_day": true,
  "slate_date": "2026-10-19",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 55,
+ "n_on_slate_day": 52,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-19 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "55 priced football rows for 2026-10-19 across 1 board games; 25 shown.",
- "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 62.5% against a claimed 53.7% (+8.8 pts, n=24). The under-60 band is currently the closest to its own claim. 24 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
+ "coverage": "52 priced football rows for 2026-10-19 across 1 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 56.8% against a claimed 53.7% (+3.1 pts, n=44). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 44 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": null,
  "picks": [
@@ -1201,7 +1197,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215598%232324607314_13L88808Q1653787619Q20",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 56,
@@ -1216,7 +1212,7 @@
     "h26": 2,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.341,
+    "p0": 0.347,
     "weighted_n": 6.67,
     "mean_all": 40.778
    },
@@ -1229,7 +1225,7 @@
    "why": [
     "<b>Rachaad White</b> went under 46.5 rush yds in <b>2 of 2 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 55.8,
+   "model_p": 55.9,
    "role": {
     "snap": 0.5167,
     "tgt_share": 0.0844,
@@ -1270,7 +1266,7 @@
     "h26": 1,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.879,
+    "p0": 0.88,
     "weighted_n": 8.71,
     "mean_all": 59.923
    },
@@ -1283,7 +1279,7 @@
    "why": [
     "<b>George Kittle</b> went under 68.5 rec yds in <b>1 of 3 games</b> in 2026 and 6 of 10 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 53.6,
+   "model_p": 53.7,
    "role": {
     "snap": 0.8933,
     "tgt_share": 0.2328,
@@ -1324,7 +1320,7 @@
     "h26": 2,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.735,
+    "p0": 0.733,
     "weighted_n": 7.5,
     "mean_all": 60.0
    },
@@ -1337,7 +1333,7 @@
    "why": [
     "<b>Mike Evans</b> went under 66.5 rec yds in <b>2 of 4 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 53.6,
+   "model_p": 53.7,
    "role": {
     "snap": 0.5167,
     "tgt_share": 0.2923,
@@ -1378,7 +1374,7 @@
     "h26": 2,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.834,
+    "p0": 0.833,
     "weighted_n": 8.71,
     "mean_all": 5.231
    },
@@ -1391,7 +1387,7 @@
    "why": [
     "<b>George Kittle</b> went under 5.5 rec in <b>2 of 3 games</b> in 2026 and 5 of 10 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 53.8,
+   "model_p": 53.9,
    "role": {
     "snap": 0.8933,
     "tgt_share": 0.2328,
@@ -1433,7 +1429,7 @@
     "h26": 2,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.555,
+    "p0": 0.556,
     "weighted_n": 7.0,
     "mean_all": 1.1
    },
@@ -1488,7 +1484,7 @@
     "h26": 2,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.789,
+    "p0": 0.786,
     "weighted_n": 7.5,
     "mean_all": 4.636
    },
@@ -1543,7 +1539,7 @@
     "h26": 4,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.784,
+    "p0": 0.789,
     "weighted_n": 13.44,
     "mean_all": 5.5
    },
@@ -1587,7 +1583,7 @@
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 53,
-   "model_p": 53.0,
+   "model_p": 53.1,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 51.9,
    "edge": 1.1,
@@ -1622,7 +1618,7 @@
    "confidence": 53,
    "raw": "7 of 10",
    "record": "7 of 10",
-   "rate": 56,
+   "rate": 55,
    "break_even": 52.4,
    "edge": 0.6,
    "season_detail": {
@@ -1631,7 +1627,7 @@
     "h26": 3,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.442,
+    "p0": 0.438,
     "weighted_n": 7.0,
     "mean_all": 172.1
    },
@@ -1692,6 +1688,41 @@
    "kind": "fb",
    "league": "nfl",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Austin Ekeler",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 6.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -119,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378217078%232324482868_13L88808Q1-291429181Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.3,
+   "edge": -1.3,
+   "role": {
+    "snap": 0.185,
+    "tgt_share": 0.0495,
+    "car": 3.5,
+    "n": 2
+   },
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Brock Purdy",
    "market": "player_pass_tds",
    "market_label": "Passing TDs",
@@ -1702,9 +1733,9 @@
    "away": "Washington Commanders",
    "home": "San Francisco 49ers",
    "commence": "2026-10-20T00:15:00Z",
-   "book": "hardrockbet",
-   "price": -165,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1016256229258953134",
+   "book": "draftkings",
+   "price": -166,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215700%232317756899_13L88808Q1-819668547Q20",
    "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -1712,8 +1743,8 @@
    "raw": "10 of 16",
    "record": "10 of 16",
    "rate": 72,
-   "break_even": 62.3,
-   "edge": -9.3,
+   "break_even": 62.4,
+   "edge": -9.4,
    "season_detail": {
     "h25": 7,
     "n25": 11,
@@ -1739,41 +1770,6 @@
     "tgt_share": 0.0,
     "car": 5.7,
     "n": 3
-   },
-   "rank": 11,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Austin Ekeler",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 7.5,
-   "game": "Washington Commanders @ San Francisco 49ers",
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "away": "Washington Commanders",
-   "home": "San Francisco 49ers",
-   "commence": "2026-10-20T00:15:00Z",
-   "book": "fanduel",
-   "price": -113,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617789606&selectionId=16087616",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 52.0,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.1,
-   "edge": -1.1,
-   "role": {
-    "snap": 0.185,
-    "tgt_share": 0.0495,
-    "car": 3.5,
-    "n": 2
    },
    "rank": 12,
    "below_price": true
@@ -1810,7 +1806,7 @@
     "h26": 3,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.807,
+    "p0": 0.809,
     "weighted_n": 13.44,
     "mean_all": 48.583
    },
@@ -1865,7 +1861,7 @@
     "h26": 4,
     "n26": 5,
     "w25": 0.444,
-    "p0": 0.43,
+    "p0": 0.427,
     "weighted_n": 9.89,
     "mean_all": 21.0
    },
@@ -1905,7 +1901,7 @@
    "book": "draftkings",
    "price": -166,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378217061%232317767556_13L88808Q1730991375Q20",
-   "n_books": 2,
+   "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 52,
@@ -1920,7 +1916,7 @@
     "h26": 4,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.483,
+    "p0": 0.486,
     "weighted_n": 12.0,
     "mean_all": 4.9
    },
@@ -1941,61 +1937,6 @@
     "n": 3
    },
    "rank": 15,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "nfl",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Christian McCaffrey",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 60.5,
-   "game": "Washington Commanders @ San Francisco 49ers",
-   "game_id": "f122527f003276d3bca19efa48c902c1",
-   "away": "Washington Commanders",
-   "home": "San Francisco 49ers",
-   "commence": "2026-10-20T00:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/5135738682032128432",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 51,
-   "raw": "13 of 24",
-   "record": "13 of 24",
-   "rate": 51,
-   "break_even": 52.4,
-   "edge": -1.4,
-   "season_detail": {
-    "h25": 11,
-    "n25": 19,
-    "h26": 2,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.504,
-    "weighted_n": 13.44,
-    "mean_all": 65.458
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 67.63,
-   "projection": 65.5,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game.",
-   "why": [
-    "<b>Christian McCaffrey</b> went under 60.5 rush yds in <b>2 of 5 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
-   ],
-   "model_p": 51.1,
-   "role": {
-    "snap": 0.7967,
-    "tgt_share": 0.1586,
-    "car": 13.7,
-    "n": 3
-   },
-   "rank": 16,
    "below_price": true
   },
   {
@@ -2050,7 +1991,7 @@
     "car": 0.0,
     "n": 3
    },
-   "rank": 17,
+   "rank": 16,
    "below_price": true
   },
   {
@@ -2070,7 +2011,7 @@
    "book": "fanduel",
    "price": -113,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617268978&selectionId=25927139",
-   "n_books": 1,
+   "n_books": 2,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 51,
@@ -2085,7 +2026,7 @@
     "h26": 1,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.597,
+    "p0": 0.596,
     "weighted_n": 8.5,
     "mean_all": 56.231
    },
@@ -2103,6 +2044,61 @@
     "snap": 0.6767,
     "tgt_share": 0.2462,
     "car": 0.0,
+    "n": 3
+   },
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Christian McCaffrey",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 59.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615842384&selectionId=14807736",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "13 of 24",
+   "record": "13 of 24",
+   "rate": 50,
+   "break_even": 53.1,
+   "edge": -2.1,
+   "season_detail": {
+    "h25": 11,
+    "n25": 19,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.492,
+    "weighted_n": 13.44,
+    "mean_all": 65.458
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 67.63,
+   "projection": 65.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game.",
+   "why": [
+    "<b>Christian McCaffrey</b> went under 59.5 rush yds in <b>2 of 5 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.9,
+   "role": {
+    "snap": 0.7967,
+    "tgt_share": 0.1586,
+    "car": 13.7,
     "n": 3
    },
    "rank": 18,
@@ -2140,7 +2136,7 @@
     "h26": 2,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.483,
+    "p0": 0.486,
     "weighted_n": 8.5,
     "mean_all": 3.769
    },
@@ -2153,7 +2149,7 @@
    "why": [
     "<b>Terry McLaurin</b> went over 3.5 rec in <b>2 of 4 games</b> in 2026 and 4 of 9 in 2025, when he played at least half the snaps."
    ],
-   "model_p": 50.6,
+   "model_p": 50.7,
    "role": {
     "snap": 0.6767,
     "tgt_share": 0.2462,
@@ -2195,7 +2191,7 @@
     "h26": 1,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.451,
+    "p0": 0.454,
     "weighted_n": 6.67,
     "mean_all": 3.111
    },
@@ -2267,9 +2263,9 @@
    "away": "Washington Commanders",
    "home": "San Francisco 49ers",
    "commence": "2026-10-20T00:15:00Z",
-   "book": "draftkings",
-   "price": -168,
-   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378214975%232318978929_13L88808Q1-2107084182Q20",
+   "book": "hardrockbet",
+   "price": -165,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7930151778253930901",
    "n_books": 3,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
@@ -2277,15 +2273,15 @@
    "raw": "12 of 18",
    "record": "12 of 18",
    "rate": 62,
-   "break_even": 62.7,
-   "edge": -11.7,
+   "break_even": 62.3,
+   "edge": -11.3,
    "season_detail": {
     "h25": 11,
     "n25": 15,
     "h26": 1,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.608,
+    "p0": 0.609,
     "weighted_n": 11.57,
     "mean_all": 3.111
    },
@@ -2331,7 +2327,7 @@
    "confidence": 50,
    "raw": "4 of 10",
    "record": "4 of 10",
-   "rate": 67,
+   "rate": 68,
    "break_even": 52.2,
    "edge": -2.2,
    "season_detail": {
@@ -2340,7 +2336,7 @@
     "h26": 1,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.841,
+    "p0": 0.844,
     "weighted_n": 7.0,
     "mean_all": 48.1
    },
@@ -2377,18 +2373,18 @@
    "away": "Washington Commanders",
    "home": "San Francisco 49ers",
    "commence": "2026-10-20T00:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/704505378800533902",
-   "n_books": 2,
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378214928%232327157198_13L88808Q11275022239Q20",
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "why": [],
    "confidence": 50,
    "model_p": 50.2,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": -2.4,
+   "break_even": 52.6,
+   "edge": -2.6,
    "role": {
     "snap": 0.5933,
     "tgt_share": 0.162,
@@ -2472,7 +2468,7 @@
    "book": "draftkings",
    "price": -112,
    "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215598%232324607314_13L88808Q1653787619Q20",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 56,
@@ -2487,7 +2483,7 @@
     "h26": 2,
     "n26": 2,
     "w25": 0.667,
-    "p0": 0.341,
+    "p0": 0.347,
     "weighted_n": 6.67,
     "mean_all": 40.778
    },
@@ -2504,7 +2500,7 @@
     "The San Francisco 49ers list DE Nick Bosa (Out), LB Garret Wallow (Out).",
     "The model gives it <b>56%</b>; at -112 it needs 52.8% to pay."
    ],
-   "model_p": 55.8,
+   "model_p": 55.9,
    "role": {
     "snap": 0.5167,
     "tgt_share": 0.0844,
@@ -2548,7 +2544,7 @@
     "h26": 1,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.879,
+    "p0": 0.88,
     "weighted_n": 8.71,
     "mean_all": 59.923
    },
@@ -2565,7 +2561,7 @@
     "The Washington Commanders list LB Javontae Jean-Baptiste (Out).",
     "The model gives it <b>54%</b>; at -111 it needs 52.6% to pay."
    ],
-   "model_p": 53.6,
+   "model_p": 53.7,
    "role": {
     "snap": 0.8933,
     "tgt_share": 0.2328,
@@ -2609,7 +2605,7 @@
     "h26": 2,
     "n26": 4,
     "w25": 0.5,
-    "p0": 0.735,
+    "p0": 0.733,
     "weighted_n": 7.5,
     "mean_all": 60.0
    },
@@ -2626,7 +2622,7 @@
     "The Washington Commanders list LB Javontae Jean-Baptiste (Out).",
     "The model gives it <b>54%</b>; at -113 it needs 53.1% to pay."
    ],
-   "model_p": 53.6,
+   "model_p": 53.7,
    "role": {
     "snap": 0.5167,
     "tgt_share": 0.2923,
@@ -2665,7 +2661,7 @@
     "The model gives it <b>53%</b>; at -108 it needs 51.9% to pay."
    ],
    "confidence": 53,
-   "model_p": 53.0,
+   "model_p": 53.1,
    "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
    "break_even": 51.9,
    "edge": 1.1,
@@ -2701,7 +2697,7 @@
    "confidence": 53,
    "raw": "7 of 10",
    "record": "7 of 10",
-   "rate": 56,
+   "rate": 55,
    "break_even": 52.4,
    "edge": 0.6,
    "season_detail": {
@@ -2710,7 +2706,7 @@
     "h26": 3,
     "n26": 3,
     "w25": 0.571,
-    "p0": 0.442,
+    "p0": 0.438,
     "weighted_n": 7.0,
     "mean_all": 172.1
    },
