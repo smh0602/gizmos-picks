@@ -1,0 +1,2750 @@
+{
+ "date": "2026-10-19",
+ "league": "nfl",
+ "generated_at": "2026-10-19T14:59:11Z",
+ "generated_by": "card_fb.py",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-10-19T14:58:33Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": 0.5,
+ "denominator": "games at >= 50% of team snaps",
+ "min_games": 6,
+ "n_gated_by_measurement": 0,
+ "rate_gates": null,
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "San Francisco 49ers",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -7.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 51.2,
+   "edge": 8.6,
+   "why": [
+    "The game model gives San Francisco 49ers 60% to cover -7.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-19T14:58:33Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 51.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 52.4,
+   "edge": 1.8,
+   "why": [
+    "The game model gives Over 54% at 51.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-19T14:58:33Z",
+   "rank": 2
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "San Francisco 49ers",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -7.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 51.2,
+   "edge": 8.6,
+   "why": [
+    "The game model gives San Francisco 49ers 60% to cover -7.5; the price -105 needs 51.2%.",
+    "The model's predicted score: Washington Commanders 21, San Francisco 49ers 32 (total 53).",
+    "The Washington Commanders score 23 and allow 29.8 points a game this season (5 games).",
+    "The San Francisco 49ers score 30.8 and allow 18.6 points a game this season (5 games)."
+   ],
+   "priced_at": "2026-10-19T14:58:33Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives San Francisco 49ers 60% to cover -7.5; the price -105 needs 51.2%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-10-19",
+  "card_slate": "2026-10-19",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-10-19T14:58:57Z",
+  "ladder_built_at": "2026-10-19T14:59:00Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "score": {
+    "home": 32,
+    "away": 21
+   }
+  },
+  {
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "score": {
+    "home": 26,
+    "away": 25
+   }
+  },
+  {
+   "away": "Pittsburgh Steelers",
+   "home": "New Orleans Saints",
+   "score": {
+    "home": 13,
+    "away": 26
+   }
+  },
+  {
+   "away": "Cincinnati Bengals",
+   "home": "Baltimore Ravens",
+   "score": {
+    "home": 28,
+    "away": 27
+   }
+  },
+  {
+   "away": "Cleveland Browns",
+   "home": "Tennessee Titans",
+   "score": {
+    "home": 18,
+    "away": 21
+   }
+  },
+  {
+   "away": "Indianapolis Colts",
+   "home": "Minnesota Vikings",
+   "score": {
+    "home": 25,
+    "away": 22
+   }
+  },
+  {
+   "away": "Miami Dolphins",
+   "home": "New York Jets",
+   "score": {
+    "home": 23,
+    "away": 20
+   }
+  },
+  {
+   "away": "New York Giants",
+   "home": "Houston Texans",
+   "score": {
+    "home": 24,
+    "away": 19
+   }
+  },
+  {
+   "away": "San Francisco 49ers",
+   "home": "Atlanta Falcons",
+   "score": {
+    "home": 24,
+    "away": 26
+   }
+  },
+  {
+   "away": "Tampa Bay Buccaneers",
+   "home": "Carolina Panthers",
+   "score": {
+    "home": 27,
+    "away": 20
+   }
+  },
+  {
+   "away": "Denver Broncos",
+   "home": "Arizona Cardinals",
+   "score": {
+    "home": 19,
+    "away": 23
+   }
+  },
+  {
+   "away": "Green Bay Packers",
+   "home": "Detroit Lions",
+   "score": {
+    "home": 29,
+    "away": 30
+   }
+  },
+  {
+   "away": "Los Angeles Rams",
+   "home": "Las Vegas Raiders",
+   "score": {
+    "home": 19,
+    "away": 25
+   }
+  },
+  {
+   "away": "Kansas City Chiefs",
+   "home": "Seattle Seahawks",
+   "score": {
+    "home": 22,
+    "away": 21
+   }
+  },
+  {
+   "away": "Dallas Cowboys",
+   "home": "Philadelphia Eagles",
+   "score": {
+    "home": 23,
+    "away": 22
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-19 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rachaad White",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 46.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215598%232324607314_13L88808Q1653787619Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "7 of 9",
+   "record": "7 of 9",
+   "rate": 51,
+   "break_even": 52.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 5,
+    "n25": 7,
+    "h26": 2,
+    "n26": 2,
+    "w25": 0.667,
+    "p0": 0.341,
+    "weighted_n": 6.67,
+    "mean_all": 40.778
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 43.71,
+   "projection": 40.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game.",
+   "why": [
+    "<b>Rachaad White</b> went under 46.5 rush yds in <b>2 of 2 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 55.8,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.0844,
+    "car": 7.3,
+    "n": 3
+   },
+   "rank": 1
+  }
+ ],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 4,
+  "same_game_already_listed": 50,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 55,
+  "cap": 10,
+  "distinct_games": 1,
+  "shared_with_board_head": 1,
+  "board_head_size": 10
+ },
+ "top_plays_rule": "The 1 most likely to hit for 2026-10-19 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 50 row(s) were held back because their game was already represented and 4 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "parlays": {
+  "2": [],
+  "3": [],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 15,
+  "rated_legs": 55,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 1,
+    "taken": 1
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 52,
+    "taken": 12
+   },
+   {
+    "decimal": "2-3",
+    "available": 2,
+    "taken": 2
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 1925,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "55 rated legs, 15 in the stratified pool. Rejected: 1925 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [
+   {
+    "legs": [
+     "Rachaad White u45.5 rush yds",
+     "San Francisco 49ers -7.5 spread"
+    ],
+    "game": "Washington Commanders @ San Francisco 49ers",
+    "game_id": "f122527f003276d3bca19efa48c902c1",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -113,
+     -105
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.68,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "Rachaad White u46.5 rush yds",
+     "San Francisco 49ers -7.5 spread"
+    ],
+    "game": "Washington Commanders @ San Francisco 49ers",
+    "game_id": "f122527f003276d3bca19efa48c902c1",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -112,
+     -108
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.646,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 56,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "Rachaad White u45.5 rush yds",
+     "Mike Evans u66.5 rec yds",
+     "San Francisco 49ers -7.5 spread"
+    ],
+    "game": "Washington Commanders @ San Francisco 49ers",
+    "game_id": "f122527f003276d3bca19efa48c902c1",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -113,
+     -113,
+     -105
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.937,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     54
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "Rachaad White u46.5 rush yds",
+     "George Kittle u68.5 rec yds",
+     "San Francisco 49ers -7.5 spread"
+    ],
+    "game": "Washington Commanders @ San Francisco 49ers",
+    "game_id": "f122527f003276d3bca19efa48c902c1",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -112,
+     -111,
+     -108
+    ],
+    "line_best_book": "fanduel",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 6.93,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 54,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     56,
+     54
+    ],
+    "band_floor": 3.0
+   }
+  ]
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 1,
+  "games_with_a_line_row": 1,
+  "games_used": 1,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 40,
+   "mixed_book": 128,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {
+  "Brandin Cooks|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Brock Purdy|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Chig Okonkwo|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Christian McCaffrey|player_anytime_td|yes|None": {
+   "v": 1.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 1.0 TD a game."
+  },
+  "Dyami Brown|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.1 TD a game."
+  },
+  "George Kittle|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.7 TD a game."
+  },
+  "Jayden Daniels|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.4 TD a game."
+  },
+  "John Bates|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Kyle Juszczyk|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Luke Farrell|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Mike Evans|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Rachaad White|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Stefon Diggs|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Terry McLaurin|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Treylon Burks|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Brock Purdy|player_pass_tds|over|2.5": {
+   "v": 2.2,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 2.2 pass TD a game."
+  },
+  "Brock Purdy|player_pass_tds|under|2.5": {
+   "v": 2.2,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 2.2 pass TD a game."
+  },
+  "Jayden Daniels|player_pass_tds|over|1.5": {
+   "v": 1.1,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 1.1 pass TD a game."
+  },
+  "Jayden Daniels|player_pass_tds|under|1.5": {
+   "v": 1.1,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 1.1 pass TD a game."
+  },
+  "Brock Purdy|player_pass_yds|over|249.5": {
+   "v": 235.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 235.3 pass yds a game."
+  },
+  "Brock Purdy|player_pass_yds|under|249.5": {
+   "v": 235.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 235.3 pass yds a game."
+  },
+  "Brock Purdy|player_pass_yds|over|251.5": {
+   "v": 235.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 235.3 pass yds a game."
+  },
+  "Brock Purdy|player_pass_yds|under|251.5": {
+   "v": 235.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 235.3 pass yds a game."
+  },
+  "Brock Purdy|player_pass_yds|over|252.5": {
+   "v": 235.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 235.3 pass yds a game."
+  },
+  "Brock Purdy|player_pass_yds|under|252.5": {
+   "v": 235.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 235.3 pass yds a game."
+  },
+  "Jayden Daniels|player_pass_yds|over|208.5": {
+   "v": 172.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 172.1 pass yds a game."
+  },
+  "Jayden Daniels|player_pass_yds|under|208.5": {
+   "v": 172.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 172.1 pass yds a game."
+  },
+  "Jayden Daniels|player_pass_yds|over|210.5": {
+   "v": 172.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 172.1 pass yds a game."
+  },
+  "Jayden Daniels|player_pass_yds|under|210.5": {
+   "v": 172.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 172.1 pass yds a game."
+  },
+  "Chig Okonkwo|player_reception_yds|over|24.5": {
+   "v": 32.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game."
+  },
+  "Chig Okonkwo|player_reception_yds|under|24.5": {
+   "v": 32.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game."
+  },
+  "Chig Okonkwo|player_reception_yds|over|25.5": {
+   "v": 32.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game."
+  },
+  "Chig Okonkwo|player_reception_yds|under|25.5": {
+   "v": 32.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game."
+  },
+  "Chig Okonkwo|player_reception_yds|over|26.5": {
+   "v": 32.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game."
+  },
+  "Chig Okonkwo|player_reception_yds|under|26.5": {
+   "v": 32.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game."
+  },
+  "Christian McCaffrey|player_reception_yds|over|38.5": {
+   "v": 48.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game."
+  },
+  "Christian McCaffrey|player_reception_yds|under|38.5": {
+   "v": 48.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game."
+  },
+  "Christian McCaffrey|player_reception_yds|over|39.5": {
+   "v": 48.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game."
+  },
+  "Christian McCaffrey|player_reception_yds|under|39.5": {
+   "v": 48.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game."
+  },
+  "Christian McCaffrey|player_reception_yds|over|40.5": {
+   "v": 48.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game."
+  },
+  "Christian McCaffrey|player_reception_yds|under|40.5": {
+   "v": 48.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game."
+  },
+  "George Kittle|player_reception_yds|over|66.5": {
+   "v": 59.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game."
+  },
+  "George Kittle|player_reception_yds|under|66.5": {
+   "v": 59.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game."
+  },
+  "George Kittle|player_reception_yds|over|67.5": {
+   "v": 59.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game."
+  },
+  "George Kittle|player_reception_yds|under|67.5": {
+   "v": 59.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game."
+  },
+  "George Kittle|player_reception_yds|over|68.5": {
+   "v": 59.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game."
+  },
+  "George Kittle|player_reception_yds|under|68.5": {
+   "v": 59.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|over|63.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|under|63.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|over|65.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|under|65.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|over|66.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Mike Evans|player_reception_yds|under|66.5": {
+   "v": 60.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game."
+  },
+  "Rachaad White|player_reception_yds|over|13.5": {
+   "v": 17.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 17.3 rec yds a game."
+  },
+  "Rachaad White|player_reception_yds|under|13.5": {
+   "v": 17.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 17.3 rec yds a game."
+  },
+  "Rachaad White|player_reception_yds|over|14.5": {
+   "v": 17.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 17.3 rec yds a game."
+  },
+  "Rachaad White|player_reception_yds|under|14.5": {
+   "v": 17.3,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 17.3 rec yds a game."
+  },
+  "Stefon Diggs|player_reception_yds|over|38.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Stefon Diggs|player_reception_yds|under|38.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Stefon Diggs|player_reception_yds|over|39.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Stefon Diggs|player_reception_yds|under|39.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Stefon Diggs|player_reception_yds|over|40.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Stefon Diggs|player_reception_yds|under|40.5": {
+   "v": 56.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game."
+  },
+  "Terry McLaurin|player_reception_yds|over|46.5": {
+   "v": 56.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
+  },
+  "Terry McLaurin|player_reception_yds|under|46.5": {
+   "v": 56.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
+  },
+  "Terry McLaurin|player_reception_yds|over|48.5": {
+   "v": 56.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
+  },
+  "Terry McLaurin|player_reception_yds|under|48.5": {
+   "v": 56.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
+  },
+  "Terry McLaurin|player_reception_yds|over|49.5": {
+   "v": 56.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
+  },
+  "Terry McLaurin|player_reception_yds|under|49.5": {
+   "v": 56.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game."
+  },
+  "Chig Okonkwo|player_receptions|over|2.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Chig Okonkwo|player_receptions|under|2.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Christian McCaffrey|player_receptions|over|4.5": {
+   "v": 5.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 5.5 rec a game."
+  },
+  "Christian McCaffrey|player_receptions|under|4.5": {
+   "v": 5.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 5.5 rec a game."
+  },
+  "George Kittle|player_receptions|over|5.5": {
+   "v": 5.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 5.2 rec a game."
+  },
+  "George Kittle|player_receptions|under|5.5": {
+   "v": 5.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 5.2 rec a game."
+  },
+  "Mike Evans|player_receptions|over|4.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Mike Evans|player_receptions|under|4.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Mike Evans|player_receptions|over|5.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Mike Evans|player_receptions|under|5.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Rachaad White|player_receptions|over|2.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Rachaad White|player_receptions|under|2.5": {
+   "v": 3.1,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 3.1 rec a game."
+  },
+  "Stefon Diggs|player_receptions|over|3.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Stefon Diggs|player_receptions|under|3.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Stefon Diggs|player_receptions|over|4.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Stefon Diggs|player_receptions|under|4.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Terry McLaurin|player_receptions|over|3.5": {
+   "v": 3.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 3.8 rec a game."
+  },
+  "Terry McLaurin|player_receptions|under|3.5": {
+   "v": 3.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 3.8 rec a game."
+  },
+  "Brock Purdy|player_rush_yds|over|17.5": {
+   "v": 21.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game."
+  },
+  "Brock Purdy|player_rush_yds|under|17.5": {
+   "v": 21.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game."
+  },
+  "Brock Purdy|player_rush_yds|over|18.5": {
+   "v": 21.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game."
+  },
+  "Brock Purdy|player_rush_yds|under|18.5": {
+   "v": 21.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game."
+  },
+  "Brock Purdy|player_rush_yds|over|19.5": {
+   "v": 21.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game."
+  },
+  "Brock Purdy|player_rush_yds|under|19.5": {
+   "v": 21.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game."
+  },
+  "Christian McCaffrey|player_rush_yds|over|59.5": {
+   "v": 65.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
+  },
+  "Christian McCaffrey|player_rush_yds|under|59.5": {
+   "v": 65.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
+  },
+  "Christian McCaffrey|player_rush_yds|over|60.5": {
+   "v": 65.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
+  },
+  "Christian McCaffrey|player_rush_yds|under|60.5": {
+   "v": 65.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
+  },
+  "Christian McCaffrey|player_rush_yds|over|61.5": {
+   "v": 65.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
+  },
+  "Christian McCaffrey|player_rush_yds|under|61.5": {
+   "v": 65.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game."
+  },
+  "Jayden Daniels|player_rush_yds|over|37.5": {
+   "v": 48.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game."
+  },
+  "Jayden Daniels|player_rush_yds|under|37.5": {
+   "v": 48.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game."
+  },
+  "Jayden Daniels|player_rush_yds|over|38.5": {
+   "v": 48.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game."
+  },
+  "Jayden Daniels|player_rush_yds|under|38.5": {
+   "v": 48.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game."
+  },
+  "Jayden Daniels|player_rush_yds|over|39.5": {
+   "v": 48.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game."
+  },
+  "Jayden Daniels|player_rush_yds|under|39.5": {
+   "v": 48.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game."
+  },
+  "Rachaad White|player_rush_yds|over|45.5": {
+   "v": 40.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game."
+  },
+  "Rachaad White|player_rush_yds|under|45.5": {
+   "v": 40.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game."
+  },
+  "Rachaad White|player_rush_yds|over|46.5": {
+   "v": 40.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game."
+  },
+  "Rachaad White|player_rush_yds|under|46.5": {
+   "v": 40.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.84,
+ "n_priced": 55,
+ "single_day": true,
+ "slate_date": "2026-10-19",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 55,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-10-19 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": null,
+ "short_reason": null,
+ "coverage": "55 priced football rows for 2026-10-19 across 1 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 62.5% against a claimed 53.7% (+8.8 pts, n=24). The under-60 band is currently the closest to its own claim. 24 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": null,
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rachaad White",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 46.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215598%232324607314_13L88808Q1653787619Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "7 of 9",
+   "record": "7 of 9",
+   "rate": 51,
+   "break_even": 52.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 5,
+    "n25": 7,
+    "h26": 2,
+    "n26": 2,
+    "w25": 0.667,
+    "p0": 0.341,
+    "weighted_n": 6.67,
+    "mean_all": 40.778
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 43.71,
+   "projection": 40.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game.",
+   "why": [
+    "<b>Rachaad White</b> went under 46.5 rush yds in <b>2 of 2 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 55.8,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.0844,
+    "car": 7.3,
+    "n": 3
+   },
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "George Kittle",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215238%232318354048_13L88808Q1-656821417Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 13",
+   "record": "7 of 13",
+   "rate": 72,
+   "break_even": 52.6,
+   "edge": 1.4,
+   "season_detail": {
+    "h25": 6,
+    "n25": 10,
+    "h26": 1,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.879,
+    "weighted_n": 8.71,
+    "mean_all": 59.923
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 60.3,
+   "projection": 59.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game.",
+   "why": [
+    "<b>George Kittle</b> went under 68.5 rec yds in <b>1 of 3 games</b> in 2026 and 6 of 10 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.6,
+   "role": {
+    "snap": 0.8933,
+    "tgt_share": 0.2328,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mike Evans",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 66.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615844019&selectionId=11802512",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "8 of 11",
+   "record": "8 of 11",
+   "rate": 71,
+   "break_even": 53.1,
+   "edge": 0.9,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 2,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.735,
+    "weighted_n": 7.5,
+    "mean_all": 60.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 52.57,
+   "projection": 60.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game.",
+   "why": [
+    "<b>Mike Evans</b> went under 66.5 rec yds in <b>2 of 4 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.6,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.2923,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 3
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "George Kittle",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -125,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215634%232318354091_13L88808Q1491250762Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 13",
+   "record": "7 of 13",
+   "rate": 72,
+   "break_even": 55.6,
+   "edge": -1.6,
+   "season_detail": {
+    "h25": 5,
+    "n25": 10,
+    "h26": 2,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.834,
+    "weighted_n": 8.71,
+    "mean_all": 5.231
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.3,
+   "projection": 5.2,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 5.2 rec a game.",
+   "why": [
+    "<b>George Kittle</b> went under 5.5 rec in <b>2 of 3 games</b> in 2026 and 5 of 10 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.8,
+   "role": {
+    "snap": 0.8933,
+    "tgt_share": 0.2328,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 4,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jayden Daniels",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "side": "under",
+   "line": 1.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -146,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215820%232317759140_13L88808Q1-1720642580Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 61,
+   "break_even": 59.3,
+   "edge": -5.3,
+   "season_detail": {
+    "h25": 5,
+    "n25": 7,
+    "h26": 2,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.555,
+    "weighted_n": 7.0,
+    "mean_all": 1.1
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.14,
+   "projection": 1.1,
+   "projection_unit": "pass TD",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 1.1 pass TD a game.",
+   "why": [
+    "<b>Jayden Daniels</b> went under 1.5 pass TD in <b>2 of 3 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.8,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.0,
+    "car": 7.0,
+    "n": 3
+   },
+   "rank": 5,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mike Evans",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 5.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -160,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615844021&selectionId=11802512",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "8 of 11",
+   "record": "8 of 11",
+   "rate": 74,
+   "break_even": 61.5,
+   "edge": -7.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 2,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.789,
+    "weighted_n": 7.5,
+    "mean_all": 4.636
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.29,
+   "projection": 4.6,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 4.6 rec a game.",
+   "why": [
+    "<b>Mike Evans</b> went under 5.5 rec in <b>2 of 4 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.8,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.2923,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 6,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Christian McCaffrey",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": 100,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2360322878257365418",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "8 of 24",
+   "record": "8 of 24",
+   "rate": 60,
+   "break_even": 50.0,
+   "edge": 3.0,
+   "season_detail": {
+    "h25": 4,
+    "n25": 19,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.784,
+    "weighted_n": 13.44,
+    "mean_all": 5.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.95,
+   "projection": 5.5,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 24 games this record is built from \u2014 5.5 rec a game.",
+   "why": [
+    "<b>Christian McCaffrey</b> went under 4.5 rec in <b>4 of 5 games</b> in 2026 and 4 of 19 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.9,
+   "role": {
+    "snap": 0.7967,
+    "tgt_share": 0.1586,
+    "car": 13.7,
+    "n": 3
+   },
+   "rank": 7
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Austin Ekeler",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 20.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378217052%232324599342_13L88808Q11191867163Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 53.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 51.9,
+   "edge": 1.1,
+   "role": {
+    "snap": 0.185,
+    "tgt_share": 0.0495,
+    "car": 3.5,
+    "n": 2
+   },
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jayden Daniels",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 208.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215133%232317765004_13L88808Q1361636083Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 56,
+   "break_even": 52.4,
+   "edge": 0.6,
+   "season_detail": {
+    "h25": 4,
+    "n25": 7,
+    "h26": 3,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.442,
+    "weighted_n": 7.0,
+    "mean_all": 172.1
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 180.29,
+   "projection": 172.1,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 172.1 pass yds a game.",
+   "why": [
+    "<b>Jayden Daniels</b> went under 208.5 pass yds in <b>3 of 3 games</b> in 2026 and 4 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.0,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.0,
+    "car": 7.0,
+    "n": 3
+   },
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kaelon Black",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 24.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615845690&selectionId=102880972",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": -0.1,
+   "role": {
+    "snap": 0.1967,
+    "tgt_share": 0.0128,
+    "car": 5.3,
+    "n": 3
+   },
+   "rank": 10,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brock Purdy",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "side": "under",
+   "line": 2.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -165,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/1016256229258953134",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "10 of 16",
+   "record": "10 of 16",
+   "rate": 72,
+   "break_even": 62.3,
+   "edge": -9.3,
+   "season_detail": {
+    "h25": 7,
+    "n25": 11,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.808,
+    "weighted_n": 9.89,
+    "mean_all": 2.188
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.0,
+   "projection": 2.2,
+   "projection_unit": "pass TD",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 2.2 pass TD a game.",
+   "why": [
+    "<b>Brock Purdy</b> went under 2.5 pass TD in <b>3 of 5 games</b> in 2026 and 7 of 11 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.0,
+   "role": {
+    "snap": 1.0,
+    "tgt_share": 0.0,
+    "car": 5.7,
+    "n": 3
+   },
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Austin Ekeler",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 7.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617789606&selectionId=16087616",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.1,
+   "edge": -1.1,
+   "role": {
+    "snap": 0.185,
+    "tgt_share": 0.0495,
+    "car": 3.5,
+    "n": 2
+   },
+   "rank": 12,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Christian McCaffrey",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 39.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615842386&selectionId=14807736",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "8 of 24",
+   "record": "8 of 24",
+   "rate": 59,
+   "break_even": 53.1,
+   "edge": -1.1,
+   "season_detail": {
+    "h25": 5,
+    "n25": 19,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.807,
+    "weighted_n": 13.44,
+    "mean_all": 48.583
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 54.16,
+   "projection": 48.6,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 24 games this record is built from \u2014 48.6 rec yds a game.",
+   "why": [
+    "<b>Christian McCaffrey</b> went under 39.5 rec yds in <b>3 of 5 games</b> in 2026 and 5 of 19 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.5,
+   "role": {
+    "snap": 0.7967,
+    "tgt_share": 0.1586,
+    "car": 13.7,
+    "n": 3
+   },
+   "rank": 13,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Brock Purdy",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 17.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615849109&selectionId=41074310",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "9 of 16",
+   "record": "9 of 16",
+   "rate": 52,
+   "break_even": 53.1,
+   "edge": -1.1,
+   "season_detail": {
+    "h25": 5,
+    "n25": 11,
+    "h26": 4,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.43,
+    "weighted_n": 9.89,
+    "mean_all": 21.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.91,
+   "projection": 21.0,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 16 games this record is built from \u2014 21.0 rush yds a game.",
+   "why": [
+    "<b>Brock Purdy</b> went over 17.5 rush yds in <b>4 of 5 games</b> in 2026 and 5 of 11 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.9,
+   "role": {
+    "snap": 1.0,
+    "tgt_share": 0.0,
+    "car": 5.7,
+    "n": 3
+   },
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Stefon Diggs",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -166,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378217061%232317767556_13L88808Q1730991375Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "13 of 20",
+   "record": "13 of 20",
+   "rate": 60,
+   "break_even": 62.4,
+   "edge": -10.4,
+   "season_detail": {
+    "h25": 9,
+    "n25": 16,
+    "h26": 4,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.483,
+    "weighted_n": 12.0,
+    "mean_all": 4.9
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.0,
+   "projection": 4.9,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 4.9 rec a game.",
+   "why": [
+    "<b>Stefon Diggs</b> went over 3.5 rec in <b>4 of 4 games</b> in 2026 and 9 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.1,
+   "role": {
+    "snap": 0.5867,
+    "tgt_share": 0.2199,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Christian McCaffrey",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 60.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/5135738682032128432",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "13 of 24",
+   "record": "13 of 24",
+   "rate": 51,
+   "break_even": 52.4,
+   "edge": -1.4,
+   "season_detail": {
+    "h25": 11,
+    "n25": 19,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.504,
+    "weighted_n": 13.44,
+    "mean_all": 65.458
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 67.63,
+   "projection": 65.5,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 24 games this record is built from \u2014 65.5 rush yds a game.",
+   "why": [
+    "<b>Christian McCaffrey</b> went under 60.5 rush yds in <b>2 of 5 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.1,
+   "role": {
+    "snap": 0.7967,
+    "tgt_share": 0.1586,
+    "car": 13.7,
+    "n": 3
+   },
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Chig Okonkwo",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 26.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617270579&selectionId=41154199",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "7 of 18",
+   "record": "7 of 18",
+   "rate": 44,
+   "break_even": 53.1,
+   "edge": -2.1,
+   "season_detail": {
+    "h25": 5,
+    "n25": 15,
+    "h26": 2,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.458,
+    "weighted_n": 11.57,
+    "mean_all": 32.056
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 33.07,
+   "projection": 32.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 32.1 rec yds a game.",
+   "why": [
+    "<b>Chig Okonkwo</b> went under 26.5 rec yds in <b>2 of 3 games</b> in 2026 and 5 of 15 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.9,
+   "role": {
+    "snap": 0.6167,
+    "tgt_share": 0.1585,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Terry McLaurin",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 49.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617268978&selectionId=25927139",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "4 of 13",
+   "record": "4 of 13",
+   "rate": 47,
+   "break_even": 53.1,
+   "edge": -2.1,
+   "season_detail": {
+    "h25": 3,
+    "n25": 9,
+    "h26": 1,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.597,
+    "weighted_n": 8.5,
+    "mean_all": 56.231
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 58.67,
+   "projection": 56.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 56.2 rec yds a game.",
+   "why": [
+    "<b>Terry McLaurin</b> went under 49.5 rec yds in <b>1 of 4 games</b> in 2026 and 3 of 9 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.4,
+   "role": {
+    "snap": 0.6767,
+    "tgt_share": 0.2462,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Terry McLaurin",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -134,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215373%232318847562_13L88808Q1730991375Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 13",
+   "record": "6 of 13",
+   "rate": 48,
+   "break_even": 57.3,
+   "edge": -6.3,
+   "season_detail": {
+    "h25": 4,
+    "n25": 9,
+    "h26": 2,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.483,
+    "weighted_n": 8.5,
+    "mean_all": 3.769
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.89,
+   "projection": 3.8,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 3.8 rec a game.",
+   "why": [
+    "<b>Terry McLaurin</b> went over 3.5 rec in <b>2 of 4 games</b> in 2026 and 4 of 9 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.6,
+   "role": {
+    "snap": 0.6767,
+    "tgt_share": 0.2462,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 19,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rachaad White",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -140,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8070927368472101294",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "4 of 9",
+   "record": "4 of 9",
+   "rate": 45,
+   "break_even": 58.3,
+   "edge": -7.3,
+   "season_detail": {
+    "h25": 3,
+    "n25": 7,
+    "h26": 1,
+    "n26": 2,
+    "w25": 0.667,
+    "p0": 0.451,
+    "weighted_n": 6.67,
+    "mean_all": 3.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.0,
+   "projection": 3.1,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 3.1 rec a game.",
+   "why": [
+    "<b>Rachaad White</b> went under 2.5 rec in <b>1 of 2 games</b> in 2026 and 3 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.0,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.0844,
+    "car": 7.3,
+    "n": 3
+   },
+   "rank": 20,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Austin Ekeler",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 1.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -150,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3390991778298593694",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 50.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 60.0,
+   "edge": -9.0,
+   "role": {
+    "snap": 0.185,
+    "tgt_share": 0.0495,
+    "car": 3.5,
+    "n": 2
+   },
+   "rank": 21,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Chig Okonkwo",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 2.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -168,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378214975%232318978929_13L88808Q1-2107084182Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "12 of 18",
+   "record": "12 of 18",
+   "rate": 62,
+   "break_even": 62.7,
+   "edge": -11.7,
+   "season_detail": {
+    "h25": 11,
+    "n25": 15,
+    "h26": 1,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.608,
+    "weighted_n": 11.57,
+    "mean_all": 3.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.2,
+   "projection": 3.1,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 18 games this record is built from \u2014 3.1 rec a game.",
+   "why": [
+    "<b>Chig Okonkwo</b> went over 2.5 rec in <b>1 of 3 games</b> in 2026 and 11 of 15 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.8,
+   "role": {
+    "snap": 0.6167,
+    "tgt_share": 0.1585,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jayden Daniels",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 38.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -109,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215489%232318978726_13L88808Q11779428851Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 50,
+   "raw": "4 of 10",
+   "record": "4 of 10",
+   "rate": 67,
+   "break_even": 52.2,
+   "edge": -2.2,
+   "season_detail": {
+    "h25": 3,
+    "n25": 7,
+    "h26": 1,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.841,
+    "weighted_n": 7.0,
+    "mean_all": 48.1
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 39.71,
+   "projection": 48.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 48.1 rush yds a game.",
+   "why": [
+    "<b>Jayden Daniels</b> went under 38.5 rush yds in <b>1 of 3 games</b> in 2026 and 3 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.1,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.0,
+    "car": 7.0,
+    "n": 3
+   },
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Antonio Williams",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 22.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/704505378800533902",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 50,
+   "model_p": 50.2,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.4,
+   "edge": -2.4,
+   "role": {
+    "snap": 0.5933,
+    "tgt_share": 0.162,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Stefon Diggs",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 40.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378217066%232324614981_13L88808Q1854528814Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 50,
+   "raw": "11 of 20",
+   "record": "11 of 20",
+   "rate": 52,
+   "break_even": 52.8,
+   "edge": -2.8,
+   "season_detail": {
+    "h25": 9,
+    "n25": 16,
+    "h26": 2,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.493,
+    "weighted_n": 12.0,
+    "mean_all": 56.5
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 60.0,
+   "projection": 56.5,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 20 games this record is built from \u2014 56.5 rec yds a game.",
+   "why": [
+    "<b>Stefon Diggs</b> went under 40.5 rec yds in <b>2 of 4 games</b> in 2026 and 9 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.5,
+   "role": {
+    "snap": 0.5867,
+    "tgt_share": 0.2199,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rachaad White",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 46.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215598%232324607314_13L88808Q1653787619Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "raw": "7 of 9",
+   "record": "7 of 9",
+   "rate": 51,
+   "break_even": 52.8,
+   "edge": 3.2,
+   "season_detail": {
+    "h25": 5,
+    "n25": 7,
+    "h26": 2,
+    "n26": 2,
+    "w25": 0.667,
+    "p0": 0.341,
+    "weighted_n": 6.67,
+    "mean_all": 40.778
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 43.71,
+   "projection": 40.8,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 9 games this record is built from \u2014 40.8 rush yds a game.",
+   "why": [
+    "Over his last 3 games he has played 52% of the snaps and 7.3 carries a game.",
+    "<b>Rachaad White</b> went under 46.5 rush yds in <b>2 of 2 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps.",
+    "The San Francisco 49ers allow 87 rushing yards a game to running backs.",
+    "The San Francisco 49ers list DE Nick Bosa (Out), LB Garret Wallow (Out).",
+    "The model gives it <b>56%</b>; at -112 it needs 52.8% to pay."
+   ],
+   "model_p": 55.8,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.0844,
+    "car": 7.3,
+    "n": 3
+   },
+   "rank": 1,
+   "why_card": [
+    "<b>Rachaad White</b> went under 46.5 rush yds in <b>2 of 2 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "George Kittle",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 68.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215238%232318354048_13L88808Q1-656821417Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 13",
+   "record": "7 of 13",
+   "rate": 72,
+   "break_even": 52.6,
+   "edge": 1.4,
+   "season_detail": {
+    "h25": 6,
+    "n25": 10,
+    "h26": 1,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.879,
+    "weighted_n": 8.71,
+    "mean_all": 59.923
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 60.3,
+   "projection": 59.9,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 13 games this record is built from \u2014 59.9 rec yds a game.",
+   "why": [
+    "Over his last 3 games he has played 89% of the snaps and 23% of the team's targets.",
+    "<b>George Kittle</b> went under 68.5 rec yds in <b>1 of 3 games</b> in 2026 and 6 of 10 in 2025, when he played at least half the snaps.",
+    "The Washington Commanders allow 74.4 receiving yards a game to tight ends.",
+    "The Washington Commanders list LB Javontae Jean-Baptiste (Out).",
+    "The model gives it <b>54%</b>; at -111 it needs 52.6% to pay."
+   ],
+   "model_p": 53.6,
+   "role": {
+    "snap": 0.8933,
+    "tgt_share": 0.2328,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 2,
+   "why_card": [
+    "<b>George Kittle</b> went under 68.5 rec yds in <b>1 of 3 games</b> in 2026 and 6 of 10 in 2025, when he played at least half the snaps."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mike Evans",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 66.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "fanduel",
+   "price": -113,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.615844019&selectionId=11802512",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "8 of 11",
+   "record": "8 of 11",
+   "rate": 71,
+   "break_even": 53.1,
+   "edge": 0.9,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 2,
+    "n26": 4,
+    "w25": 0.5,
+    "p0": 0.735,
+    "weighted_n": 7.5,
+    "mean_all": 60.0
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 52.57,
+   "projection": 60.0,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 11 games this record is built from \u2014 60.0 rec yds a game.",
+   "why": [
+    "Over his last 3 games he has played 52% of the snaps and 29% of the team's targets.",
+    "<b>Mike Evans</b> went under 66.5 rec yds in <b>2 of 4 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps.",
+    "The Washington Commanders allow 164.2 receiving yards a game to wide receivers.",
+    "The Washington Commanders list LB Javontae Jean-Baptiste (Out).",
+    "The model gives it <b>54%</b>; at -113 it needs 53.1% to pay."
+   ],
+   "model_p": 53.6,
+   "role": {
+    "snap": 0.5167,
+    "tgt_share": 0.2923,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 3,
+   "why_card": [
+    "<b>Mike Evans</b> went under 66.5 rec yds in <b>2 of 4 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Austin Ekeler",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 20.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -108,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378217052%232324599342_13L88808Q11191867163Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "Over his last 2 games he has played 18% of the snaps and 3.5 carries a game.",
+    "The San Francisco 49ers allow 87 rushing yards a game to running backs.",
+    "The San Francisco 49ers list DE Nick Bosa (Out), LB Garret Wallow (Out).",
+    "The model gives it <b>53%</b>; at -108 it needs 51.9% to pay."
+   ],
+   "confidence": 53,
+   "model_p": 53.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 51.9,
+   "edge": 1.1,
+   "role": {
+    "snap": 0.185,
+    "tgt_share": 0.0495,
+    "car": 3.5,
+    "n": 2
+   },
+   "rank": 4,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Jayden Daniels",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 208.5,
+   "game": "Washington Commanders @ San Francisco 49ers",
+   "game_id": "f122527f003276d3bca19efa48c902c1",
+   "away": "Washington Commanders",
+   "home": "San Francisco 49ers",
+   "commence": "2026-10-20T00:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA378215133%232317765004_13L88808Q1361636083Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "7 of 10",
+   "record": "7 of 10",
+   "rate": 56,
+   "break_even": 52.4,
+   "edge": 0.6,
+   "season_detail": {
+    "h25": 4,
+    "n25": 7,
+    "h26": 3,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.442,
+    "weighted_n": 7.0,
+    "mean_all": 172.1
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 180.29,
+   "projection": 172.1,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 172.1 pass yds a game.",
+   "why": [
+    "Over his last 3 games he has played 85% of the snaps.",
+    "<b>Jayden Daniels</b> went under 208.5 pass yds in <b>3 of 3 games</b> in 2026 and 4 of 7 in 2025, when he played at least half the snaps.",
+    "The San Francisco 49ers allow 210.8 passing yards a game to quarterbacks.",
+    "The San Francisco 49ers list DE Nick Bosa (Out), S Marques Sigle (Out).",
+    "The model gives it <b>53%</b>; at -110 it needs 52.4% to pay."
+   ],
+   "model_p": 53.0,
+   "role": {
+    "snap": 0.85,
+    "tgt_share": 0.0,
+    "car": 7.0,
+    "n": 3
+   },
+   "rank": 5,
+   "why_card": [
+    "<b>Jayden Daniels</b> went under 208.5 pass yds in <b>3 of 3 games</b> in 2026 and 4 of 7 in 2025, when he played at least half the snaps."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 5,
+ "price_ceiling": 400,
+ "market_max_share": null,
+ "board_mixed": false,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}
