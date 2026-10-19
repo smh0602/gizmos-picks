@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-19T08:07:43Z",
+ "checked_at": "2026-10-19T11:19:18Z",
  "et_date": "2026-10-19",
  "healthy": false,
  "broken": 1,
@@ -10,7 +10,7 @@
    "key": "record-verify:mlb",
    "severity": "BROKEN",
    "what": "the MLB Track Record does not add up",
-   "why": "re-grading every published pick from the box scores disagreed with the published record: the mlb winners reproduce in their own line (5/14, 0 void). The site still shows the old record.",
+   "why": "re-grading every published pick from the box scores disagreed with the published record: the mlb winners reproduce in their own line (6/15, 0 void). The site still shows the old record.",
    "repair": null
   },
   {
@@ -55,15 +55,15 @@
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 12410,
-  "pulled_at": "2026-10-18T21:34:51Z",
+  "balance": 12388,
+  "pulled_at": "2026-10-19T11:03:42Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 10.5,
+  "reading_age_hours": 0.3,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-18T21:34:51Z",
-  "source": "data/ncaaf/2026-10-18/gamelines/2134.json.gz",
-  "readings_on_disk": 978,
+  "newest_paid_pull": "2026-10-19T11:03:41Z",
+  "source": "data/2026-10-19/props-batter/1103.json.gz",
+  "readings_on_disk": 981,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
