@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-19T05:50:02Z",
+ "checked_at": "2026-10-19T07:12:22Z",
  "et_date": "2026-10-19",
  "healthy": false,
  "broken": 1,
- "degraded": 9,
+ "degraded": 7,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -28,13 +28,6 @@
    "repair": null
   },
   {
-   "key": "late:cfb-probe:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 273 minutes after it was due",
-   "why": "due 2026-10-18T07:00Z, built 2026-10-18T11:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-record:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf fb-record was built 125 minutes after it was due",
@@ -53,13 +46,6 @@
    "severity": "DEGRADED",
    "what": "nfl fb-scores was built 214 minutes after it was due",
    "why": "due 2026-10-18T08:00Z, built 2026-10-18T11:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:nfl-logs:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl nfl-logs was built 274 minutes after it was due",
-   "why": "due 2026-10-18T07:00Z, built 2026-10-18T11:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -87,7 +73,7 @@
   "pulled_at": "2026-10-18T21:34:51Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 8.3,
+  "reading_age_hours": 9.6,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-18T21:34:51Z",
   "source": "data/ncaaf/2026-10-18/gamelines/2134.json.gz",
