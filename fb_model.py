@@ -86,7 +86,7 @@ SIM = {"nfl": False, "ncaaf": False}
 #    starters out (T69 IN's measures), sized each week on earlier games only (`injury_fit`); the
 #    win chance moves with the margin. College has no injury data stored. ⛔ Set only from the
 #    recorded backtest (test_fb_injuries.py reads it).
-INJURIES = {"nfl": False, "ncaaf": False}
+INJURIES = {"nfl": False, "ncaaf": True}
 INJ_RIDGE = 25.0          # the injury fit's ridge (points per unit), no penalty on its intercept
 INJ_MIN = 200             # team-games with an injury reading before a week's fit is made
 
