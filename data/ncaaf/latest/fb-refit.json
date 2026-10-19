@@ -1,0 +1,453 @@
+{
+ "league": "ncaaf",
+ "kind": "DESCRIPTIVE",
+ "spec": "research/fb_refit_spec.md",
+ "built_at": "2026-10-19T16:38:12Z",
+ "champion": null,
+ "champion_since": null,
+ "season": 2026,
+ "scoreboard": {
+  "spread": {
+   "predictions": 374,
+   "model_log_loss": 0.7063,
+   "books_log_loss": 0.6931,
+   "gap": 0.0132,
+   "lo": 0.0,
+   "hi": 0.0264,
+   "state": "behind",
+   "trend": {
+    "weeks": [
+     "2026-09-21",
+     "2026-09-28",
+     "2026-10-05",
+     "2026-10-12"
+    ],
+    "before": [
+     "2026-08-24",
+     "2026-08-31",
+     "2026-09-07",
+     "2026-09-14"
+    ],
+    "state": "no clear change yet",
+    "diff": -0.0165,
+    "lo": -0.0469,
+    "hi": 0.014
+   },
+   "said": 55.2,
+   "hit": 48.1
+  },
+  "total": {
+   "predictions": 376,
+   "model_log_loss": 0.6965,
+   "books_log_loss": 0.6931,
+   "gap": 0.0033,
+   "lo": -0.0052,
+   "hi": 0.0119,
+   "state": "level",
+   "trend": {
+    "weeks": [
+     "2026-09-21",
+     "2026-09-28",
+     "2026-10-05",
+     "2026-10-12"
+    ],
+    "before": [
+     "2026-08-24",
+     "2026-08-31",
+     "2026-09-07",
+     "2026-09-14"
+    ],
+    "state": "closer",
+    "diff": -0.0195,
+    "lo": -0.0372,
+    "hi": -0.0017
+   },
+   "said": 53.1,
+   "hit": 51.1
+  },
+  "moneyline": {
+   "predictions": 376,
+   "model_log_loss": 0.5651,
+   "books_log_loss": 0.4881,
+   "gap": 0.077,
+   "lo": 0.0552,
+   "hi": 0.0988,
+   "state": "behind",
+   "trend": {
+    "weeks": [
+     "2026-09-21",
+     "2026-09-28",
+     "2026-10-05",
+     "2026-10-12"
+    ],
+    "before": [
+     "2026-08-24",
+     "2026-08-31",
+     "2026-09-07",
+     "2026-09-14"
+    ],
+    "state": "closer",
+    "diff": -0.0923,
+    "lo": -0.1391,
+    "hi": -0.0455
+   },
+   "said": 70.5,
+   "hit": 69.7
+  }
+ },
+ "miss": {
+  "games": 376,
+  "margin_model": 13.0,
+  "margin_books": 11.51,
+  "total_model": 12.96,
+  "total_books": 12.14
+ },
+ "line_moves": {
+  "spread": {
+   "toward": 103,
+   "against": 127,
+   "unmoved": 131,
+   "toward_share": 44.8
+  },
+  "total": {
+   "toward": 150,
+   "against": 113,
+   "unmoved": 115,
+   "toward_share": 57.0
+  },
+  "moneyline": {
+   "toward": 171,
+   "against": 122,
+   "unmoved": 69,
+   "toward_share": 58.4
+  },
+  "games": 378
+ },
+ "challengers": [
+  {
+   "name": "P",
+   "what": "PPA",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 1848,
+    "games": 931,
+    "mean_d": -0.000854,
+    "p": 0.928169,
+    "p_wrong_way": 0.071831,
+    "champion_log_loss": 0.630498,
+    "challenger_log_loss": 0.631352
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "T",
+   "what": "talent",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 1848,
+    "games": 931,
+    "mean_d": 0.002976,
+    "p": 0.035467,
+    "p_wrong_way": 0.964533,
+    "champion_log_loss": 0.630498,
+    "challenger_log_loss": 0.627522
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "TS",
+   "what": "talent, few inputs",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 2779,
+    "games": 931,
+    "mean_d": 0.00567,
+    "p": 0.02335,
+    "p_wrong_way": 0.97665,
+    "champion_log_loss": 0.653868,
+    "challenger_log_loss": 0.648198
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "AVC",
+   "what": "Sam's averages",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 2779,
+    "games": 931,
+    "mean_d": -0.000788,
+    "p": 0.944005,
+    "p_wrong_way": 0.055995,
+    "champion_log_loss": 0.653868,
+    "challenger_log_loss": 0.654656
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "WXC",
+   "what": "weather",
+   "markets": [
+    "total"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 931,
+    "games": 931,
+    "mean_d": 0.0,
+    "p": 1.0,
+    "p_wrong_way": 1.0,
+    "champion_log_loss": 0.700257,
+    "challenger_log_loss": 0.700257
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "ATC",
+   "what": "Sam's averages, totals",
+   "markets": [
+    "total"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 931,
+    "games": 931,
+    "mean_d": 6.6e-05,
+    "p": 0.452673,
+    "p_wrong_way": 0.547327,
+    "champion_log_loss": 0.700257,
+    "challenger_log_loss": 0.700191
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "RSC",
+   "what": "rest",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 1848,
+    "games": 931,
+    "mean_d": -0.001545,
+    "p": 0.907,
+    "p_wrong_way": 0.093,
+    "champion_log_loss": 0.630498,
+    "challenger_log_loss": 0.632043
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "HC",
+   "what": "more seasons",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 2779,
+    "games": 931,
+    "mean_d": 0.010351,
+    "p": 0.00044,
+    "p_wrong_way": 0.99956,
+    "champion_log_loss": 0.653868,
+    "challenger_log_loss": 0.643517
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "SMC",
+   "what": "score model",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 2779,
+    "games": 931,
+    "mean_d": 0.003117,
+    "p": 0.122773,
+    "p_wrong_way": 0.877227,
+    "champion_log_loss": 0.653868,
+    "challenger_log_loss": 0.650751
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  }
+ ],
+ "injury_backtest": {
+  "state": "measured",
+  "entry": {
+   "questions": 1862,
+   "questions_moved": 148,
+   "rows_with_injury_reading": 313,
+   "logloss": {
+    "without": 0.72051,
+    "with": 0.72051
+   },
+   "closing_return": {
+    "without": -4.12,
+    "with": -3.91
+   },
+   "books_return": {
+    "without": -2.87,
+    "with": -2.17
+   },
+   "exact": {
+    "logloss": {
+     "without": 0.7205148373467741,
+     "with": 0.7205075759236886
+    },
+    "closing_return": {
+     "without": -4.124706856118081,
+     "with": -3.907919222551515
+    }
+   },
+   "fitted_last": [
+    "2026-12-07",
+    [
+     -1.2,
+     -1.52,
+     -0.21
+    ]
+   ],
+   "seconds": 135
+  },
+  "passes": true,
+  "measured_at": "2026-10-19T16:38Z",
+  "branch": "fb/injuries-ncaaf-2026-10-19",
+  "branch_pushed": true
+ },
+ "elapsed_seconds": 707.6
+}

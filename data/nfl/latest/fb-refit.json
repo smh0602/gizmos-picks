@@ -1,0 +1,432 @@
+{
+ "league": "nfl",
+ "kind": "DESCRIPTIVE",
+ "spec": "research/fb_refit_spec.md",
+ "built_at": "2026-10-19T16:38:12Z",
+ "champion": null,
+ "champion_since": null,
+ "season": 2026,
+ "scoreboard": {
+  "spread": {
+   "predictions": 91,
+   "model_log_loss": 0.6739,
+   "books_log_loss": 0.6931,
+   "gap": -0.0193,
+   "lo": -0.0511,
+   "hi": 0.0125,
+   "state": "level",
+   "trend": {
+    "weeks": [
+     "2026-09-21",
+     "2026-09-28",
+     "2026-10-05",
+     "2026-10-12"
+    ],
+    "before": [
+     "2026-09-07",
+     "2026-09-14"
+    ],
+    "state": "no clear change yet",
+    "diff": 0.0461,
+    "lo": -0.0173,
+    "hi": 0.1095
+   },
+   "said": 57.6,
+   "hit": 57.1
+  },
+  "total": {
+   "predictions": 91,
+   "model_log_loss": 0.6927,
+   "books_log_loss": 0.6931,
+   "gap": -0.0004,
+   "lo": -0.0189,
+   "hi": 0.0181,
+   "state": "level",
+   "trend": {
+    "weeks": [
+     "2026-09-21",
+     "2026-09-28",
+     "2026-10-05",
+     "2026-10-12"
+    ],
+    "before": [
+     "2026-09-07",
+     "2026-09-14"
+    ],
+    "state": "no clear change yet",
+    "diff": -0.0058,
+    "lo": -0.0483,
+    "hi": 0.0366
+   },
+   "said": 54.2,
+   "hit": 58.2
+  },
+  "moneyline": {
+   "predictions": 91,
+   "model_log_loss": 0.6617,
+   "books_log_loss": 0.6657,
+   "gap": -0.004,
+   "lo": -0.0534,
+   "hi": 0.0454,
+   "state": "level",
+   "trend": {
+    "weeks": [
+     "2026-09-21",
+     "2026-09-28",
+     "2026-10-05",
+     "2026-10-12"
+    ],
+    "before": [
+     "2026-09-07",
+     "2026-09-14"
+    ],
+    "state": "no clear change yet",
+    "diff": -0.0614,
+    "lo": -0.1722,
+    "hi": 0.0495
+   },
+   "said": 63.7,
+   "hit": 62.6
+  }
+ },
+ "miss": {
+  "games": 92,
+  "margin_model": 10.16,
+  "margin_books": 9.36,
+  "total_model": 11.46,
+  "total_books": 10.69
+ },
+ "line_moves": {
+  "spread": {
+   "toward": 34,
+   "against": 37,
+   "unmoved": 21,
+   "toward_share": 47.9
+  },
+  "total": {
+   "toward": 40,
+   "against": 38,
+   "unmoved": 14,
+   "toward_share": 51.3
+  },
+  "moneyline": {
+   "toward": 37,
+   "against": 37,
+   "unmoved": 18,
+   "toward_share": 50.0
+  },
+  "games": 92
+ },
+ "challengers": [
+  {
+   "name": "E",
+   "what": "EPA",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 425,
+    "games": 214,
+    "mean_d": -0.002545,
+    "p": 0.704082,
+    "p_wrong_way": 0.295918,
+    "champion_log_loss": 0.67885,
+    "challenger_log_loss": 0.681395
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "S",
+   "what": "fewer inputs",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 638,
+    "games": 214,
+    "mean_d": 0.00904,
+    "p": 0.004517,
+    "p_wrong_way": 0.995483,
+    "champion_log_loss": 0.687495,
+    "challenger_log_loss": 0.678456
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "AV",
+   "what": "Sam's averages",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 638,
+    "games": 214,
+    "mean_d": -0.004263,
+    "p": 0.912558,
+    "p_wrong_way": 0.087442,
+    "champion_log_loss": 0.687495,
+    "challenger_log_loss": 0.691759
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "WX",
+   "what": "weather",
+   "markets": [
+    "total"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 213,
+    "games": 213,
+    "mean_d": 0.0,
+    "p": 1.0,
+    "p_wrong_way": 1.0,
+    "champion_log_loss": 0.704746,
+    "challenger_log_loss": 0.704746
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "IN",
+   "what": "injuries, both sides",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 638,
+    "games": 214,
+    "mean_d": -0.007335,
+    "p": 0.89616,
+    "p_wrong_way": 0.10384,
+    "champion_log_loss": 0.687495,
+    "challenger_log_loss": 0.69483
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "AT",
+   "what": "Sam's averages, totals",
+   "markets": [
+    "total"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 213,
+    "games": 213,
+    "mean_d": -0.000965,
+    "p": 0.704181,
+    "p_wrong_way": 0.295819,
+    "champion_log_loss": 0.704746,
+    "challenger_log_loss": 0.705711
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "RS",
+   "what": "rest",
+   "markets": [
+    "spread",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 425,
+    "games": 214,
+    "mean_d": -0.000388,
+    "p": 0.556745,
+    "p_wrong_way": 0.443255,
+    "champion_log_loss": 0.67885,
+    "challenger_log_loss": 0.679238
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "H",
+   "what": "more seasons",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 638,
+    "games": 214,
+    "mean_d": 0.008693,
+    "p": 0.157718,
+    "p_wrong_way": 0.842282,
+    "champion_log_loss": 0.687495,
+    "challenger_log_loss": 0.678802
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  },
+  {
+   "name": "SM",
+   "what": "score model",
+   "markets": [
+    "spread",
+    "total",
+    "moneyline"
+   ],
+   "registered": "2026-10-19",
+   "scored_from": "2026-10-19",
+   "history": {
+    "predictions": 638,
+    "games": 214,
+    "mean_d": 0.002661,
+    "p": 0.368675,
+    "p_wrong_way": 0.631325,
+    "champion_log_loss": 0.687495,
+    "challenger_log_loss": 0.684834
+   },
+   "withdrawn": false,
+   "scored": {
+    "predictions": 0,
+    "games": 0,
+    "mean_d": null,
+    "p": null,
+    "p_wrong_way": null,
+    "champion_log_loss": null,
+    "challenger_log_loss": null
+   },
+   "alpha": 0.0011111111111111111,
+   "verdict": "NOT YET MEASURABLE"
+  }
+ ],
+ "injury_backtest": {
+  "state": "recorded",
+  "passes": false,
+  "entry": {
+   "questions": 397,
+   "logloss": {
+    "without": 0.70259,
+    "with": 0.70281
+   },
+   "closing_return": {
+    "without": 1.85,
+    "with": 3.92
+   },
+   "books_return": {
+    "without": 7.73,
+    "with": 8.59
+   },
+   "fitted_last": [
+    "2027-01-04",
+    [
+     1.07,
+     0.29,
+     0.35
+    ]
+   ]
+  }
+ },
+ "elapsed_seconds": 165.4
+}
