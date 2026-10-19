@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-19T07:12:22Z",
+ "checked_at": "2026-10-19T08:07:43Z",
  "et_date": "2026-10-19",
  "healthy": false,
  "broken": 1,
- "degraded": 7,
+ "degraded": 5,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -35,20 +35,6 @@
    "repair": null
   },
   {
-   "key": "late:fb-scores:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf fb-scores was built 213 minutes after it was due",
-   "why": "due 2026-10-18T08:00Z, built 2026-10-18T11:32Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:fb-scores:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl fb-scores was built 214 minutes after it was due",
-   "why": "due 2026-10-18T08:00Z, built 2026-10-18T11:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:props-board:nfl",
    "severity": "DEGRADED",
    "what": "nfl props-board was built 69 minutes after it was due",
@@ -73,7 +59,7 @@
   "pulled_at": "2026-10-18T21:34:51Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 9.6,
+  "reading_age_hours": 10.5,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-18T21:34:51Z",
   "source": "data/ncaaf/2026-10-18/gamelines/2134.json.gz",
