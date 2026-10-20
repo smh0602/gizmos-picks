@@ -1,6 +1,6 @@
-# MLB pitcher table — through 2026-10-18
+# MLB pitcher table — through 2026-10-19
 
-Built 2026-10-19T10:02:20Z from `data/latest/pitchers.json.gz` (pulled 2026-10-19T10:02:20Z). DESCRIPTIVE. Starts only; n >= 8 published: **208 pitchers, 4405 starts** (population 4858 starts).
+Built 2026-10-20T10:13:42Z from `data/latest/pitchers.json.gz` (pulled 2026-10-20T10:13:41Z). DESCRIPTIVE. Starts only; n >= 8 published: **208 pitchers, 4405 starts** (population 4858 starts).
 
 name|hand|n|mK|mK8|mO|mO8|cvK|cvO|mNP|tail
 ---|---|---|---|---|---|---|---|---|---|---
