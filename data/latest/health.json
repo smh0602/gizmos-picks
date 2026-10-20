@@ -1,11 +1,19 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-20T14:41:32Z",
+ "checked_at": "2026-10-20T15:34:53Z",
  "et_date": "2026-10-20",
  "healthy": false,
- "broken": 1,
+ "broken": 2,
  "degraded": 10,
  "findings": [
+  {
+   "key": "card:mlb",
+   "severity": "BROKEN",
+   "what": "Gizmo's Picks and Parlays have no card for 2026-10-20",
+   "why": "picks/2026-10-20.json does not exist and the mlb deadline passed 94 minutes ago.",
+   "repair": "card",
+   "repair_attempts": 2
+  },
   {
    "key": "record-verify:mlb",
    "severity": "BROKEN",
@@ -84,7 +92,9 @@
    "repair": null
   }
  ],
- "repairs": [],
+ "repairs": [
+  "card"
+ ],
  "unrepairable": [
   "record-verify"
  ],
@@ -94,7 +104,7 @@
   "pulled_at": "2026-10-20T12:51:01Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 1.8,
+  "reading_age_hours": 2.7,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-20T12:51:01Z",
   "source": "data/ncaaf/2026-10-20/props-player/1251.json.gz",
