@@ -1,0 +1,2415 @@
+{
+ "date": "2026-10-22",
+ "league": "nfl",
+ "generated_at": "2026-10-20T12:08:30Z",
+ "generated_by": "card_fb.py",
+ "kind": "MODEL + RECORD + MARKET",
+ "odds_pulled_at": "2026-10-20T12:07:52Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": 0.5,
+ "denominator": "games at >= 50% of team snaps",
+ "min_games": 6,
+ "n_gated_by_measurement": 0,
+ "rate_gates": null,
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 50.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 52.4,
+   "edge": 2.4,
+   "why": [
+    "The game model gives Over 55% at 50.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-20T12:07:51Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "New England Patriots",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 3.0,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 51.2,
+   "edge": 3.0,
+   "why": [
+    "The game model gives New England Patriots 54% to cover +3; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-20T12:07:51Z",
+   "rank": 2
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "New England Patriots",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 3.0,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "break_even": 51.2,
+   "edge": 3.0,
+   "why": [
+    "The game model gives New England Patriots 54% to cover +3; the price -105 needs 51.2%.",
+    "The model's predicted score: New England Patriots 25, Chicago Bears 27 (total 52).",
+    "The New England Patriots score 22.7 and allow 18.8 points a game this season (6 games).",
+    "The Chicago Bears score 25 and allow 19.8 points a game this season (6 games)."
+   ],
+   "priced_at": "2026-10-20T12:07:51Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives New England Patriots 54% to cover +3; the price -105 needs 51.2%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-10-22",
+  "card_slate": "2026-10-22",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-10-20T12:08:16Z",
+  "ladder_built_at": "2026-10-20T12:08:19Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "score": {
+    "home": 27,
+    "away": 25
+   }
+  },
+  {
+   "away": "Pittsburgh Steelers",
+   "home": "New Orleans Saints",
+   "score": {
+    "home": 13,
+    "away": 26
+   }
+  },
+  {
+   "away": "Cincinnati Bengals",
+   "home": "Baltimore Ravens",
+   "score": {
+    "home": 28,
+    "away": 27
+   }
+  },
+  {
+   "away": "Cleveland Browns",
+   "home": "Tennessee Titans",
+   "score": {
+    "home": 19,
+    "away": 22
+   }
+  },
+  {
+   "away": "Indianapolis Colts",
+   "home": "Minnesota Vikings",
+   "score": {
+    "home": 25,
+    "away": 22
+   }
+  },
+  {
+   "away": "Miami Dolphins",
+   "home": "New York Jets",
+   "score": {
+    "home": 23,
+    "away": 20
+   }
+  },
+  {
+   "away": "New York Giants",
+   "home": "Houston Texans",
+   "score": {
+    "home": 23,
+    "away": 19
+   }
+  },
+  {
+   "away": "San Francisco 49ers",
+   "home": "Atlanta Falcons",
+   "score": {
+    "home": 25,
+    "away": 26
+   }
+  },
+  {
+   "away": "Tampa Bay Buccaneers",
+   "home": "Carolina Panthers",
+   "score": {
+    "home": 27,
+    "away": 20
+   }
+  },
+  {
+   "away": "Denver Broncos",
+   "home": "Arizona Cardinals",
+   "score": {
+    "home": 20,
+    "away": 23
+   }
+  },
+  {
+   "away": "Green Bay Packers",
+   "home": "Detroit Lions",
+   "score": {
+    "home": 29,
+    "away": 30
+   }
+  },
+  {
+   "away": "Los Angeles Rams",
+   "home": "Las Vegas Raiders",
+   "score": {
+    "home": 19,
+    "away": 25
+   }
+  },
+  {
+   "away": "Kansas City Chiefs",
+   "home": "Seattle Seahawks",
+   "score": {
+    "home": 22,
+    "away": 21
+   }
+  },
+  {
+   "away": "Dallas Cowboys",
+   "home": "Philadelphia Eagles",
+   "score": {
+    "home": 23,
+    "away": 22
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 2 pick(s) for 2026-10-22 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "A.J. Brown",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 67.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409817%232327662561_13L88808Q1-1470625124Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "9 of 17",
+   "record": "9 of 17",
+   "rate": 63,
+   "break_even": 52.4,
+   "edge": 4.6,
+   "season_detail": {
+    "h25": 8,
+    "n25": 16,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.74,
+    "weighted_n": 13.8,
+    "mean_all": 62.059
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 64.25,
+   "projection": 62.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game.",
+   "why": [
+    "<b>A.J. Brown</b> went under 67.5 rec yds in <b>1 of 1 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 56.7,
+   "role": {
+    "snap": 0.6,
+    "tgt_share": 0.2312,
+    "car": 0.0,
+    "n": 2
+   },
+   "rank": 1
+  }
+ ],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 2,
+  "same_game_already_listed": 47,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 50,
+  "cap": 10,
+  "distinct_games": 1,
+  "shared_with_board_head": 1,
+  "board_head_size": 10
+ },
+ "top_plays_rule": "The 1 most likely to hit for 2026-10-22 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 1 of 10, over 1 game(s). 47 row(s) were held back because their game was already represented and 2 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "parlays": {
+  "2": [],
+  "3": [],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 21,
+  "rated_legs": 50,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 2,
+    "taken": 2
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 41,
+    "taken": 12
+   },
+   {
+    "decimal": "2-3",
+    "available": 7,
+    "taken": 7
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 7525,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "50 rated legs, 21 in the stratified pool. Rejected: 7525 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [
+   {
+    "legs": [
+     "A.J. Brown u67.5 rec yds",
+     "New England Patriots +3 spread"
+    ],
+    "game": "New England Patriots @ Chicago Bears",
+    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+    "same_game": true,
+    "book": "draftkings",
+    "prices": [
+     -110,
+     -118
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.527,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
+     "A.J. Brown u69.5 rec yds",
+     "New England Patriots +3 spread"
+    ],
+    "game": "New England Patriots @ Chicago Bears",
+    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+    "same_game": true,
+    "book": "fanduel",
+    "prices": [
+     -114,
+     -115
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.51,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 57,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     57
+    ],
+    "band_floor": 1.8
+   }
+  ],
+  "3": [
+   {
+    "legs": [
+     "A.J. Brown u4.5 rec",
+     "Luther Burden III u56.5 rec yds",
+     "New England Patriots +3 spread"
+    ],
+    "game": "New England Patriots @ Chicago Bears",
+    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     115,
+     -115,
+     -105
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 7.848,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 53,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54,
+     53
+    ],
+    "band_floor": 3.0
+   },
+   {
+    "legs": [
+     "A.J. Brown u4.5 rec",
+     "Colston Loveland u4.5 rec",
+     "New England Patriots +3 spread"
+    ],
+    "game": "New England Patriots @ Chicago Bears",
+    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     115,
+     -140,
+     -105
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 3,
+    "n_line_legs": 1,
+    "multiplier": 7.196,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 53,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     54,
+     53
+    ],
+    "band_floor": 3.0
+   }
+  ]
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 1,
+  "games_with_a_line_row": 1,
+  "games_used": 1,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 48,
+   "mixed_book": 132,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "1 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {
+  "A.J. Brown|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Caleb Williams|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Cole Kmet|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Colston Loveland|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.3 TD a game."
+  },
+  "D'Andre Swift|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.8 TD a game."
+  },
+  "Drake Maye|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Hunter Henry|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Kalif Raymond|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Luther Burden III|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Rhamondre Stevenson|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Rome Odunze|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "TreVeyon Henderson|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Caleb Williams|player_pass_tds|over|1.5": {
+   "v": 1.5,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 1.5 pass TD a game."
+  },
+  "Caleb Williams|player_pass_tds|under|1.5": {
+   "v": 1.5,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 1.5 pass TD a game."
+  },
+  "Drake Maye|player_pass_tds|over|1.5": {
+   "v": 1.8,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 1.8 pass TD a game."
+  },
+  "Drake Maye|player_pass_tds|under|1.5": {
+   "v": 1.8,
+   "u": "pass TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 1.8 pass TD a game."
+  },
+  "Caleb Williams|player_pass_yds|over|245.5": {
+   "v": 239.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game."
+  },
+  "Caleb Williams|player_pass_yds|under|245.5": {
+   "v": 239.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game."
+  },
+  "Caleb Williams|player_pass_yds|over|246.5": {
+   "v": 239.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game."
+  },
+  "Caleb Williams|player_pass_yds|under|246.5": {
+   "v": 239.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game."
+  },
+  "Caleb Williams|player_pass_yds|over|248.5": {
+   "v": 239.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game."
+  },
+  "Caleb Williams|player_pass_yds|under|248.5": {
+   "v": 239.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game."
+  },
+  "Drake Maye|player_pass_yds|over|248.5": {
+   "v": 247.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 247.6 pass yds a game."
+  },
+  "Drake Maye|player_pass_yds|under|248.5": {
+   "v": 247.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 247.6 pass yds a game."
+  },
+  "Drake Maye|player_pass_yds|over|249.5": {
+   "v": 247.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 247.6 pass yds a game."
+  },
+  "Drake Maye|player_pass_yds|under|249.5": {
+   "v": 247.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 247.6 pass yds a game."
+  },
+  "Drake Maye|player_pass_yds|over|251.5": {
+   "v": 247.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 247.6 pass yds a game."
+  },
+  "Drake Maye|player_pass_yds|under|251.5": {
+   "v": 247.6,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 247.6 pass yds a game."
+  },
+  "A.J. Brown|player_reception_yds|over|67.5": {
+   "v": 62.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game."
+  },
+  "A.J. Brown|player_reception_yds|under|67.5": {
+   "v": 62.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game."
+  },
+  "A.J. Brown|player_reception_yds|over|69.5": {
+   "v": 62.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game."
+  },
+  "A.J. Brown|player_reception_yds|under|69.5": {
+   "v": 62.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game."
+  },
+  "Cole Kmet|player_reception_yds|over|8.5": {
+   "v": 19.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 19.2 rec yds a game."
+  },
+  "Cole Kmet|player_reception_yds|under|8.5": {
+   "v": 19.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 19.2 rec yds a game."
+  },
+  "Colston Loveland|player_reception_yds|over|44.5": {
+   "v": 47.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 47.2 rec yds a game."
+  },
+  "Colston Loveland|player_reception_yds|under|44.5": {
+   "v": 47.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 47.2 rec yds a game."
+  },
+  "D'Andre Swift|player_reception_yds|over|19.5": {
+   "v": 20.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 20.0 rec yds a game."
+  },
+  "D'Andre Swift|player_reception_yds|under|19.5": {
+   "v": 20.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 20.0 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|over|33.5": {
+   "v": 40.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 40.9 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|under|33.5": {
+   "v": 40.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 40.9 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|over|34.5": {
+   "v": 40.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 40.9 rec yds a game."
+  },
+  "Hunter Henry|player_reception_yds|under|34.5": {
+   "v": 40.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 40.9 rec yds a game."
+  },
+  "Kalif Raymond|player_reception_yds|over|25.5": {
+   "v": 31.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 31.8 rec yds a game."
+  },
+  "Kalif Raymond|player_reception_yds|under|25.5": {
+   "v": 31.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 31.8 rec yds a game."
+  },
+  "Kalif Raymond|player_reception_yds|over|26.5": {
+   "v": 31.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 31.8 rec yds a game."
+  },
+  "Kalif Raymond|player_reception_yds|under|26.5": {
+   "v": 31.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 31.8 rec yds a game."
+  },
+  "Luther Burden III|player_reception_yds|over|55.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Luther Burden III|player_reception_yds|under|55.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Luther Burden III|player_reception_yds|over|56.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Luther Burden III|player_reception_yds|under|56.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Rhamondre Stevenson|player_reception_yds|over|18.5": {
+   "v": 24.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.2 rec yds a game."
+  },
+  "Rhamondre Stevenson|player_reception_yds|under|18.5": {
+   "v": 24.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 24.2 rec yds a game."
+  },
+  "Rome Odunze|player_reception_yds|over|45.5": {
+   "v": 53.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 53.1 rec yds a game."
+  },
+  "Rome Odunze|player_reception_yds|under|45.5": {
+   "v": 53.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 53.1 rec yds a game."
+  },
+  "Rome Odunze|player_reception_yds|over|46.5": {
+   "v": 53.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 53.1 rec yds a game."
+  },
+  "Rome Odunze|player_reception_yds|under|46.5": {
+   "v": 53.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 53.1 rec yds a game."
+  },
+  "A.J. Brown|player_receptions|over|4.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 4.9 rec a game."
+  },
+  "A.J. Brown|player_receptions|under|4.5": {
+   "v": 4.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 4.9 rec a game."
+  },
+  "Cole Kmet|player_receptions|over|1.5": {
+   "v": 1.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 1.8 rec a game."
+  },
+  "Cole Kmet|player_receptions|under|1.5": {
+   "v": 1.8,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 1.8 rec a game."
+  },
+  "Colston Loveland|player_receptions|over|4.5": {
+   "v": 3.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 3.9 rec a game."
+  },
+  "Colston Loveland|player_receptions|under|4.5": {
+   "v": 3.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 3.9 rec a game."
+  },
+  "D'Andre Swift|player_receptions|over|2.5": {
+   "v": 2.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 2.3 rec a game."
+  },
+  "D'Andre Swift|player_receptions|under|2.5": {
+   "v": 2.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 2.3 rec a game."
+  },
+  "Hunter Henry|player_receptions|over|2.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Hunter Henry|player_receptions|under|2.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Hunter Henry|player_receptions|over|3.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Hunter Henry|player_receptions|under|3.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Kalif Raymond|player_receptions|over|2.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Kalif Raymond|player_receptions|under|2.5": {
+   "v": 3.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 3.3 rec a game."
+  },
+  "Luther Burden III|player_receptions|over|4.5": {
+   "v": 4.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 4.2 rec a game."
+  },
+  "Luther Burden III|player_receptions|under|4.5": {
+   "v": 4.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 12 games this record is built from \u2014 4.2 rec a game."
+  },
+  "Rhamondre Stevenson|player_receptions|over|2.5": {
+   "v": 2.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 2.5 rec a game."
+  },
+  "Rhamondre Stevenson|player_receptions|under|2.5": {
+   "v": 2.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 2.5 rec a game."
+  },
+  "Rome Odunze|player_receptions|over|3.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Rome Odunze|player_receptions|under|3.5": {
+   "v": 3.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.5 rec a game."
+  },
+  "Caleb Williams|player_rush_yds|over|19.5": {
+   "v": 25.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 25.4 rush yds a game."
+  },
+  "Caleb Williams|player_rush_yds|under|19.5": {
+   "v": 25.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 25.4 rush yds a game."
+  },
+  "Caleb Williams|player_rush_yds|over|20.5": {
+   "v": 25.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 25.4 rush yds a game."
+  },
+  "Caleb Williams|player_rush_yds|under|20.5": {
+   "v": 25.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 25.4 rush yds a game."
+  },
+  "D'Andre Swift|player_rush_yds|over|61.5": {
+   "v": 71.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 71.3 rush yds a game."
+  },
+  "D'Andre Swift|player_rush_yds|under|61.5": {
+   "v": 71.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 71.3 rush yds a game."
+  },
+  "D'Andre Swift|player_rush_yds|over|62.5": {
+   "v": 71.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 71.3 rush yds a game."
+  },
+  "D'Andre Swift|player_rush_yds|under|62.5": {
+   "v": 71.3,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 71.3 rush yds a game."
+  },
+  "Drake Maye|player_rush_yds|over|29.5": {
+   "v": 30.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 30.1 rush yds a game."
+  },
+  "Drake Maye|player_rush_yds|under|29.5": {
+   "v": 30.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 27 games this record is built from \u2014 30.1 rush yds a game."
+  },
+  "Rhamondre Stevenson|player_rush_yds|over|44.5": {
+   "v": 44.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 44.2 rush yds a game."
+  },
+  "Rhamondre Stevenson|player_rush_yds|under|44.5": {
+   "v": 44.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 44.2 rush yds a game."
+  },
+  "TreVeyon Henderson|player_rush_yds|over|29.5": {
+   "v": 73.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 73.1 rush yds a game."
+  },
+  "TreVeyon Henderson|player_rush_yds|under|29.5": {
+   "v": 73.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 73.1 rush yds a game."
+  },
+  "TreVeyon Henderson|player_rush_yds|over|30.5": {
+   "v": 73.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 73.1 rush yds a game."
+  },
+  "TreVeyon Henderson|player_rush_yds|under|30.5": {
+   "v": 73.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 73.1 rush yds a game."
+  }
+ },
+ "name_match_rate": 0.833,
+ "n_priced": 50,
+ "single_day": true,
+ "slate_date": "2026-10-22",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 50,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-10-22 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": null,
+ "short_reason": null,
+ "coverage": "50 priced football rows for 2026-10-22 across 1 board games; 25 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 80-90%, those plays hit 40.8% (49 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 56.8% against a claimed 53.7% (+3.1 pts, n=44). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 44 graded NFL plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": null,
+ "picks": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "A.J. Brown",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 67.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409817%232327662561_13L88808Q1-1470625124Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "9 of 17",
+   "record": "9 of 17",
+   "rate": 63,
+   "break_even": 52.4,
+   "edge": 4.6,
+   "season_detail": {
+    "h25": 8,
+    "n25": 16,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.74,
+    "weighted_n": 13.8,
+    "mean_all": 62.059
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 64.25,
+   "projection": 62.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game.",
+   "why": [
+    "<b>A.J. Brown</b> went under 67.5 rec yds in <b>1 of 1 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 56.7,
+   "role": {
+    "snap": 0.6,
+    "tgt_share": 0.2312,
+    "car": 0.0,
+    "n": 2
+   },
+   "rank": 1
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "A.J. Brown",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "hardrockbet",
+   "price": 115,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/2168011869892247942",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 54,
+   "raw": "7 of 17",
+   "record": "7 of 17",
+   "rate": 54,
+   "break_even": 46.5,
+   "edge": 7.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 16,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.672,
+    "weighted_n": 13.8,
+    "mean_all": 4.941
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 5.06,
+   "projection": 4.9,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 4.9 rec a game.",
+   "why": [
+    "<b>A.J. Brown</b> went under 4.5 rec in <b>1 of 1 games</b> in 2026 and 6 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 53.5,
+   "role": {
+    "snap": 0.6,
+    "tgt_share": 0.2312,
+    "car": 0.0,
+    "n": 2
+   },
+   "rank": 2
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Luther Burden III",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 55.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -113,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409994%232326974184_13L88808Q1-1450585066Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "7 of 12",
+   "record": "7 of 12",
+   "rate": 60,
+   "break_even": 53.1,
+   "edge": -0.1,
+   "season_detail": {
+    "h25": 5,
+    "n25": 7,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.65,
+    "weighted_n": 8.11,
+    "mean_all": 54.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 55.0,
+   "projection": 54.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 54.2 rec yds a game.",
+   "why": [
+    "<b>Luther Burden III</b> went under 55.5 rec yds in <b>2 of 5 games</b> in 2026 and 5 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.8,
+   "role": {
+    "snap": 0.5733,
+    "tgt_share": 0.1953,
+    "car": 1.7,
+    "n": 3
+   },
+   "rank": 3,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kyle Williams",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 19.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617994669&selectionId=48906255",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 53.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": -0.3,
+   "role": {
+    "snap": 0.3267,
+    "tgt_share": 0.0619,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 4,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "D'Andre Swift",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 62.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617703669&selectionId=36072092",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "10 of 21",
+   "record": "10 of 21",
+   "rate": 52,
+   "break_even": 53.3,
+   "edge": -0.3,
+   "season_detail": {
+    "h25": 7,
+    "n25": 16,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.532,
+    "weighted_n": 12.11,
+    "mean_all": 71.286
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 72.31,
+   "projection": 71.3,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 71.3 rush yds a game.",
+   "why": [
+    "<b>D'Andre Swift</b> went under 62.5 rush yds in <b>3 of 5 games</b> in 2026 and 7 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.7,
+   "role": {
+    "snap": 0.5033,
+    "tgt_share": 0.1137,
+    "car": 13.3,
+    "n": 3
+   },
+   "rank": 5,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Colston Loveland",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -140,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3482445419949195679",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "raw": "16 of 22",
+   "record": "16 of 22",
+   "rate": 72,
+   "break_even": 58.3,
+   "edge": -5.3,
+   "season_detail": {
+    "h25": 12,
+    "n25": 16,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.734,
+    "weighted_n": 12.4,
+    "mean_all": 3.909
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.19,
+   "projection": 3.9,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 3.9 rec a game.",
+   "why": [
+    "<b>Colston Loveland</b> went under 4.5 rec in <b>4 of 6 games</b> in 2026 and 12 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.8,
+   "role": {
+    "snap": 0.8667,
+    "tgt_share": 0.2091,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 6,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kyle Williams",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 1.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -163,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380410191%232326813711_13L88808Q1-847255388Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 53,
+   "model_p": 52.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 62.0,
+   "edge": -9.0,
+   "role": {
+    "snap": 0.3267,
+    "tgt_share": 0.0619,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 7,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Caleb Williams",
+   "market": "player_pass_tds",
+   "market_label": "Passing TDs",
+   "side": "under",
+   "line": 1.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": 117,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409891%232326597498_13L88808Q1-1720642580Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "10 of 22",
+   "record": "10 of 22",
+   "rate": 51,
+   "break_even": 46.1,
+   "edge": 5.9,
+   "season_detail": {
+    "h25": 8,
+    "n25": 19,
+    "h26": 2,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.556,
+    "weighted_n": 13.86,
+    "mean_all": 1.545
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 1.63,
+   "projection": 1.5,
+   "projection_unit": "pass TD",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 1.5 pass TD a game.",
+   "why": [
+    "<b>Caleb Williams</b> went under 1.5 pass TD in <b>2 of 3 games</b> in 2026 and 8 of 19 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.1,
+   "role": {
+    "snap": 0.9533,
+    "tgt_share": 0.0,
+    "car": 6.3,
+    "n": 3
+   },
+   "rank": 8
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Eli Raridon",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 1.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": 116,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617994677&selectionId=102667494",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 51.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 46.3,
+   "edge": 5.7,
+   "role": {
+    "snap": 0.5733,
+    "tgt_share": 0.1056,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 9
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Luther Burden III",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": 102,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409456%232326621190_13L88808Q1-2138696Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "9 of 12",
+   "record": "9 of 12",
+   "rate": 68,
+   "break_even": 49.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.672,
+    "weighted_n": 8.11,
+    "mean_all": 4.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.0,
+   "projection": 4.2,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 4.2 rec a game.",
+   "why": [
+    "<b>Luther Burden III</b> went under 4.5 rec in <b>3 of 5 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.5,
+   "role": {
+    "snap": 0.5733,
+    "tgt_share": 0.1953,
+    "car": 1.7,
+    "n": 3
+   },
+   "rank": 10
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Cole Kmet",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 8.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -109,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380410377%232326621301_13L88808Q1362015947Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "14 of 21",
+   "record": "14 of 21",
+   "rate": 73,
+   "break_even": 52.2,
+   "edge": -0.2,
+   "season_detail": {
+    "h25": 12,
+    "n25": 16,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.85,
+    "weighted_n": 12.11,
+    "mean_all": 19.19
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 22.0,
+   "projection": 19.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 21 games this record is built from \u2014 19.2 rec yds a game.",
+   "why": [
+    "<b>Cole Kmet</b> went over 8.5 rec yds in <b>2 of 5 games</b> in 2026 and 12 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.7,
+   "role": {
+    "snap": 0.63,
+    "tgt_share": 0.0584,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 11,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Drake Maye",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 29.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -109,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409986%232326815982_13L88808Q11644667665Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "16 of 27",
+   "record": "16 of 27",
+   "rate": 68,
+   "break_even": 52.2,
+   "edge": -0.2,
+   "season_detail": {
+    "h25": 12,
+    "n25": 21,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.765,
+    "weighted_n": 14.4,
+    "mean_all": 30.111
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 29.9,
+   "projection": 30.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 27 games this record is built from \u2014 30.1 rush yds a game.",
+   "why": [
+    "<b>Drake Maye</b> went under 29.5 rush yds in <b>4 of 6 games</b> in 2026 and 12 of 21 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.7,
+   "role": {
+    "snap": 1.0,
+    "tgt_share": 0.0,
+    "car": 6.3,
+    "n": 3
+   },
+   "rank": 12,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Caleb Williams",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 248.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409791%232327786438_13L88808Q1541358612Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "12 of 22",
+   "record": "12 of 22",
+   "rate": 57,
+   "break_even": 52.4,
+   "edge": -0.4,
+   "season_detail": {
+    "h25": 11,
+    "n25": 19,
+    "h26": 1,
+    "n26": 3,
+    "w25": 0.571,
+    "p0": 0.626,
+    "weighted_n": 13.86,
+    "mean_all": 239.636
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 240.0,
+   "projection": 239.6,
+   "projection_unit": "pass yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 239.6 pass yds a game.",
+   "why": [
+    "<b>Caleb Williams</b> went under 248.5 pass yds in <b>1 of 3 games</b> in 2026 and 11 of 19 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.8,
+   "role": {
+    "snap": 0.9533,
+    "tgt_share": 0.0,
+    "car": 6.3,
+    "n": 3
+   },
+   "rank": 13,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Kalif Raymond",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 26.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380410089%232326620532_13L88808Q1160615329Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "6 of 10",
+   "record": "6 of 10",
+   "rate": 39,
+   "break_even": 52.6,
+   "edge": -0.6,
+   "season_detail": {
+    "h25": 4,
+    "n25": 5,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.315,
+    "weighted_n": 7.22,
+    "mean_all": 31.8
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 18.4,
+   "projection": 31.8,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 10 games this record is built from \u2014 31.8 rec yds a game.",
+   "why": [
+    "<b>Kalif Raymond</b> went under 26.5 rec yds in <b>2 of 5 games</b> in 2026 and 4 of 5 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 52.0,
+   "role": {
+    "snap": 0.5533,
+    "tgt_share": 0.075,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 14,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Colston Loveland",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 44.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -114,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380410127%232326801727_13L88808Q1512045243Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "12 of 22",
+   "record": "12 of 22",
+   "rate": 64,
+   "break_even": 53.3,
+   "edge": -1.3,
+   "season_detail": {
+    "h25": 8,
+    "n25": 16,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.704,
+    "weighted_n": 12.4,
+    "mean_all": 47.227
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 54.0,
+   "projection": 47.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 22 games this record is built from \u2014 47.2 rec yds a game.",
+   "why": [
+    "<b>Colston Loveland</b> went under 44.5 rec yds in <b>4 of 6 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.8,
+   "role": {
+    "snap": 0.8667,
+    "tgt_share": 0.2091,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 15,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "DeMario Douglas",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 36.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -114,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409568%232328385649_13L88808Q1582081354Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 51.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": -1.3,
+   "role": {
+    "snap": 0.5133,
+    "tgt_share": 0.1704,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 16,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Efton Chism III",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 1.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": -148,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617994676&selectionId=93740459",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.2,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 59.7,
+   "edge": -7.7,
+   "role": {
+    "snap": 0.61,
+    "tgt_share": 0.1127,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 17,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "DeMario Douglas",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -163,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380410051%232326724902_13L88808Q1-616481466Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 52,
+   "model_p": 52.1,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 62.0,
+   "edge": -10.0,
+   "role": {
+    "snap": 0.5133,
+    "tgt_share": 0.1704,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 18,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Hunter Henry",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 3.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -175,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4323489351825752472",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "16 of 27",
+   "record": "16 of 27",
+   "rate": 60,
+   "break_even": 63.6,
+   "edge": -11.6,
+   "season_detail": {
+    "h25": 12,
+    "n25": 21,
+    "h26": 4,
+    "n26": 6,
+    "w25": 0.4,
+    "p0": 0.597,
+    "weighted_n": 14.4,
+    "mean_all": 3.259
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.29,
+   "projection": 3.3,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 27 games this record is built from \u2014 3.3 rec a game.",
+   "why": [
+    "<b>Hunter Henry</b> went under 3.5 rec in <b>4 of 6 games</b> in 2026 and 12 of 21 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.7,
+   "role": {
+    "snap": 0.68,
+    "tgt_share": 0.1449,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 19,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rome Odunze",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "over",
+   "line": 3.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": 116,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617705241&selectionId=41522673",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 19",
+   "record": "6 of 19",
+   "rate": 39,
+   "break_even": 46.3,
+   "edge": 4.7,
+   "season_detail": {
+    "h25": 5,
+    "n25": 14,
+    "h26": 1,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.486,
+    "weighted_n": 11.22,
+    "mean_all": 3.474
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 3.43,
+   "projection": 3.5,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 3.5 rec a game.",
+   "why": [
+    "<b>Rome Odunze</b> went over 3.5 rec in <b>1 of 5 games</b> in 2026 and 5 of 14 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.9,
+   "role": {
+    "snap": 0.9467,
+    "tgt_share": 0.1907,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 20
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rhamondre Stevenson",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 2.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": 106,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409549%232326595669_13L88808Q11045072483Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "9 of 19",
+   "record": "9 of 19",
+   "rate": 43,
+   "break_even": 48.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 8,
+    "n25": 14,
+    "h26": 1,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.454,
+    "weighted_n": 11.22,
+    "mean_all": 2.474
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 2.36,
+   "projection": 2.5,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 2.5 rec a game.",
+   "why": [
+    "<b>Rhamondre Stevenson</b> went under 2.5 rec in <b>1 of 5 games</b> in 2026 and 8 of 14 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.2,
+   "role": {
+    "snap": 0.6567,
+    "tgt_share": 0.0786,
+    "car": 13.3,
+    "n": 3
+   },
+   "rank": 21
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Eli Raridon",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": 14.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -109,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409415%232326813076_13L88808Q1-2101048465Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 50.6,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.2,
+   "edge": -1.2,
+   "role": {
+    "snap": 0.5733,
+    "tgt_share": 0.1056,
+    "car": 0.0,
+    "n": 3
+   },
+   "rank": 22,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "TreVeyon Henderson",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": 30.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/815977244810936736",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "6 of 7",
+   "record": "6 of 7",
+   "rate": 85,
+   "break_even": 52.4,
+   "edge": -1.4,
+   "season_detail": {
+    "h25": 5,
+    "n25": 6,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.841,
+    "weighted_n": 5.8,
+    "mean_all": 73.143
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 72.67,
+   "projection": 73.1,
+   "projection_unit": "rush yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 7 games this record is built from \u2014 73.1 rush yds a game.",
+   "why": [
+    "<b>TreVeyon Henderson</b> went over 30.5 rush yds in <b>1 of 1 games</b> in 2026 and 5 of 6 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 50.8,
+   "role": {
+    "snap": 0.2567,
+    "tgt_share": 0.0404,
+    "car": 8.3,
+    "n": 3
+   },
+   "rank": 23,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Rhamondre Stevenson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 18.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -111,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380410124%232326813243_13L88808Q11229084021Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 51,
+   "raw": "10 of 19",
+   "record": "10 of 19",
+   "rate": 50,
+   "break_even": 52.6,
+   "edge": -1.6,
+   "season_detail": {
+    "h25": 8,
+    "n25": 14,
+    "h26": 2,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.509,
+    "weighted_n": 11.22,
+    "mean_all": 24.158
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 25.07,
+   "projection": 24.2,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 19 games this record is built from \u2014 24.2 rec yds a game.",
+   "why": [
+    "<b>Rhamondre Stevenson</b> went under 18.5 rec yds in <b>2 of 5 games</b> in 2026 and 8 of 14 in 2025, when he played at least half the snaps."
+   ],
+   "model_p": 51.2,
+   "role": {
+    "snap": 0.6567,
+    "tgt_share": 0.0786,
+    "car": 13.3,
+    "n": 3
+   },
+   "rank": 24,
+   "below_price": true
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Efton Chism III",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 19.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -112,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409926%232326822361_13L88808Q1-1907743166Q20",
+   "n_books": 2,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 51,
+   "model_p": 51.0,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 52.8,
+   "edge": -1.8,
+   "role": {
+    "snap": 0.61,
+    "tgt_share": 0.1127,
+    "car": 0.3,
+    "n": 3
+   },
+   "rank": 25,
+   "below_price": true
+  }
+ ],
+ "liked": [
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "A.J. Brown",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": 67.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": -110,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409817%232327662561_13L88808Q1-1470625124Q20",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 57,
+   "raw": "9 of 17",
+   "record": "9 of 17",
+   "rate": 63,
+   "break_even": 52.4,
+   "edge": 4.6,
+   "season_detail": {
+    "h25": 8,
+    "n25": 16,
+    "h26": 1,
+    "n26": 1,
+    "w25": 0.8,
+    "p0": 0.74,
+    "weighted_n": 13.8,
+    "mean_all": 62.059
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 64.25,
+   "projection": 62.1,
+   "projection_unit": "rec yds",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 17 games this record is built from \u2014 62.1 rec yds a game.",
+   "why": [
+    "Over his last 2 games he has played 60% of the snaps and 23% of the team's targets.",
+    "<b>A.J. Brown</b> went under 67.5 rec yds in <b>1 of 1 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps.",
+    "The Chicago Bears allow 159.8 receiving yards a game to wide receivers (10th most of 24).",
+    "The model gives it <b>57%</b>; at -110 it needs 52.4% to pay."
+   ],
+   "model_p": 56.7,
+   "role": {
+    "snap": 0.6,
+    "tgt_share": 0.2312,
+    "car": 0.0,
+    "n": 2
+   },
+   "rank": 1,
+   "why_card": [
+    "<b>A.J. Brown</b> went under 67.5 rec yds in <b>1 of 1 games</b> in 2026 and 8 of 16 in 2025, when he played at least half the snaps."
+   ]
+  },
+  {
+   "kind": "fb",
+   "league": "nfl",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Luther Burden III",
+   "market": "player_receptions",
+   "market_label": "Receptions",
+   "side": "under",
+   "line": 4.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "draftkings",
+   "price": 102,
+   "link": "https://sportsbook.draftkings.com/?outcomes=0QA380409456%232326621190_13L88808Q1-2138696Q20",
+   "n_books": 3,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "raw": "9 of 12",
+   "record": "9 of 12",
+   "rate": 68,
+   "break_even": 49.5,
+   "edge": 2.5,
+   "season_detail": {
+    "h25": 6,
+    "n25": 7,
+    "h26": 3,
+    "n26": 5,
+    "w25": 0.444,
+    "p0": 0.672,
+    "weighted_n": 8.11,
+    "mean_all": 4.25
+   },
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "own_mean": 4.0,
+   "projection": 4.2,
+   "projection_unit": "rec",
+   "projection_basis": "DESCRIPTIVE",
+   "projection_note": "His own average over the 12 games this record is built from \u2014 4.2 rec a game.",
+   "why": [
+    "Over his last 3 games he has played 57% of the snaps and 20% of the team's targets.",
+    "<b>Luther Burden III</b> went under 4.5 rec in <b>3 of 5 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps.",
+    "The New England Patriots allow 11.8 catches a game to wide receivers (10th most of 24).",
+    "The model gives it <b>52%</b>; at +102 it needs 49.5% to pay."
+   ],
+   "model_p": 51.5,
+   "role": {
+    "snap": 0.5733,
+    "tgt_share": 0.1953,
+    "car": 1.7,
+    "n": 3
+   },
+   "rank": 2,
+   "why_card": [
+    "<b>Luther Burden III</b> went under 4.5 rec in <b>3 of 5 games</b> in 2026 and 6 of 7 in 2025, when he played at least half the snaps."
+   ]
+  }
+ ],
+ "n_longshots_excluded": 5,
+ "price_ceiling": 400,
+ "market_max_share": null,
+ "board_mixed": false,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}

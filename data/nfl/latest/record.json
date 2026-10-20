@@ -1,5 +1,5 @@
 {
- "built_at": "2026-10-19T20:52:15Z",
+ "built_at": "2026-10-20T12:08:31Z",
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "note": "Every NFL row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
@@ -12,19 +12,19 @@
  },
  "board": {
   "w": 282,
-  "n": 513,
-  "pct": 55.0
+  "n": 514,
+  "pct": 54.9
  },
  "game_lines": {
   "w": 54,
-  "n": 90,
-  "pct": 60.0,
+  "n": 91,
+  "pct": 59.3,
   "overall": {
    "w": 54,
-   "n": 90,
-   "pct": 60.0
+   "n": 91,
+   "pct": 59.3
   },
-  "shown": 92,
+  "shown": 93,
   "voids": 1,
   "pending": 1,
   "unresolved": 0,
@@ -37,8 +37,8 @@
    },
    "spread": {
     "w": 12,
-    "n": 24,
-    "pct": 50.0
+    "n": 25,
+    "pct": 48.0
    },
    "alternate_spread": {
     "w": 15,
@@ -59,8 +59,8 @@
    },
    "MODEL": {
     "w": 40,
-    "n": 70,
-    "pct": 57.1
+    "n": 71,
+    "pct": 56.3
    }
   },
   "by_day": [
@@ -122,9 +122,17 @@
    },
    {
     "w": 0,
+    "n": 1,
+    "pct": 0.0,
+    "date": "2026-10-19",
+    "voids": 0,
+    "pending": 0
+   },
+   {
+    "w": 0,
     "n": 0,
     "pct": null,
-    "date": "2026-10-19",
+    "date": "2026-10-22",
     "voids": 0,
     "pending": 1
    }
@@ -924,24 +932,36 @@
    "carded": 6,
    "voids": 0,
    "unresolved": 6
+  },
+  {
+   "date": "2026-10-22",
+   "w": 0,
+   "n": 0,
+   "carded": 2,
+   "voids": 0,
+   "unresolved": 2
   }
  ],
  "days_graded": 18,
- "cards_seen": 19,
+ "cards_seen": 20,
  "record_from": "2026-09-07",
  "cards_before_record_from": 0,
  "record_from_note": "Counting from 2026-09-07. No earlier cards were set aside.",
  "distinct_players": 161,
  "distinct_games": 70,
- "carded_rows": 442,
+ "carded_rows": 444,
  "voids": 0,
- "unresolved": 19,
- "coverage_note": "423 of 442 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 19 could not be settled at all.",
+ "unresolved": 21,
+ "coverage_note": "423 of 444 published rows are graded. 0 are VOID \u2014 a rostered player who took no snaps, which is a refund at the book, not a win. 21 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f A VOID is a player who did not take a snap. Those are excluded rather than counted, which is what the book does.",
  "detail_file": "data/nfl/latest/record-detail.json.gz",
  "skipped": [
   {
    "date": "2026-10-19",
+   "why": "nothing settled yet \u2014 the log does not reach this slate"
+  },
+  {
+   "date": "2026-10-22",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
