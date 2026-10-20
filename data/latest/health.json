@@ -1,18 +1,19 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-20T15:34:53Z",
+ "checked_at": "2026-10-20T15:49:48Z",
  "et_date": "2026-10-20",
  "healthy": false,
  "broken": 2,
- "degraded": 10,
+ "degraded": 11,
  "findings": [
   {
    "key": "card:mlb",
    "severity": "BROKEN",
    "what": "Gizmo's Picks and Parlays have no card for 2026-10-20",
-   "why": "picks/2026-10-20.json does not exist and the mlb deadline passed 94 minutes ago.",
-   "repair": "card",
-   "repair_attempts": 2
+   "why": "picks/2026-10-20.json does not exist and the mlb deadline passed 109 minutes ago. \u26d4 `card` has now been run 3 times against this exact finding without clearing it, so it is withdrawn: a repair that cannot fix something must not keep the finding out of the escalation list.",
+   "repair": null,
+   "repair_attempts": 3,
+   "repair_withdrawn": "card"
   },
   {
    "key": "record-verify:mlb",
@@ -57,6 +58,13 @@
    "repair": null
   },
   {
+   "key": "late:news:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf news was built 105 minutes after it was due",
+   "why": "due 2026-10-20T14:05Z, built 2026-10-20T15:49Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:alt-lines:nfl",
    "severity": "DEGRADED",
    "what": "nfl alt-lines was built 67 minutes after it was due",
@@ -92,23 +100,22 @@
    "repair": null
   }
  ],
- "repairs": [
-  "card"
- ],
+ "repairs": [],
  "unrepairable": [
+  "card",
   "record-verify"
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 12217,
-  "pulled_at": "2026-10-20T12:51:01Z",
+  "balance": 12208,
+  "pulled_at": "2026-10-20T15:49:44Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 2.7,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-20T12:51:01Z",
-  "source": "data/ncaaf/2026-10-20/props-player/1251.json.gz",
-  "readings_on_disk": 1011,
+  "newest_paid_pull": "2026-10-20T15:49:44Z",
+  "source": "data/ncaaf/2026-10-20/gamelines/1549.json.gz",
+  "readings_on_disk": 1012,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
