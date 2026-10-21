@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-10-20T19:44:56Z",
+ "built_at": "2026-10-21T13:14:56Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
@@ -38,21 +38,21 @@
    "total": 42.4,
    "line": {
     "spread": 3.0,
-    "total": 50.75
+    "total": 50.5
    },
    "score_curve": {
     "spread": 36.0,
-    "total": 27.8,
+    "total": 28.4,
     "moneyline": 44.8
    },
    "calibrated": {
     "spread": 45.2,
-    "total": 42.2,
+    "total": 42.4,
     "moneyline": 45.6
    },
    "fb_model": {
     "spread": 59.7,
-    "total": 54.1,
+    "total": 53.9,
     "moneyline": 54.6
    },
    "fb_model_ml_curve_spread": 45.6
@@ -140,21 +140,21 @@
    "total": 33.2,
    "line": {
     "spread": -1.75,
-    "total": 38.5
+    "total": 37.5
    },
    "score_curve": {
     "spread": 47.5,
-    "total": 35.4,
+    "total": 38.0,
     "moneyline": 42.3
    },
    "calibrated": {
     "spread": 49.2,
-    "total": 45.0,
+    "total": 45.9,
     "moneyline": 43.6
    },
    "fb_model": {
     "spread": 56.1,
-    "total": 59.3,
+    "total": 58.9,
     "moneyline": 41.6
    },
    "fb_model_ml_curve_spread": 46.8
@@ -290,7 +290,7 @@
    },
    "fb_model": {
     "spread": 64.8,
-    "total": 50.1,
+    "total": 50.2,
     "moneyline": 48.7
    },
    "fb_model_ml_curve_spread": 59.2
@@ -309,25 +309,25 @@
    "margin": 4.6,
    "total": 46.6,
    "line": {
-    "spread": 3.5,
+    "spread": 3.25,
     "total": 44.5
    },
    "score_curve": {
-    "spread": 53.3,
+    "spread": 54.1,
     "total": 55.8,
     "moneyline": 63.6
    },
    "calibrated": {
-    "spread": 51.1,
+    "spread": 51.4,
     "total": 52.0,
     "moneyline": 61.4
    },
    "fb_model": {
-    "spread": 61.2,
+    "spread": 61.1,
     "total": 56.5,
     "moneyline": 68.4
    },
-   "fb_model_ml_curve_spread": 58.6
+   "fb_model_ml_curve_spread": 59.3
   },
   {
    "game_id": "2026_07_DEN_ARI",
@@ -411,25 +411,25 @@
    "margin": -3.6,
    "total": 51.6,
    "line": {
-    "spread": -4.5,
-    "total": 47.5
+    "spread": -4.25,
+    "total": 48.5
    },
    "score_curve": {
-    "spread": 52.6,
-    "total": 61.3,
+    "spread": 51.9,
+    "total": 58.6,
     "moneyline": 39.2
    },
    "calibrated": {
-    "spread": 50.9,
-    "total": 53.8,
+    "spread": 50.6,
+    "total": 52.9,
     "moneyline": 40.9
    },
    "fb_model": {
-    "spread": 54.2,
-    "total": 40.4,
-    "moneyline": 32.9
+    "spread": 54.3,
+    "total": 42.2,
+    "moneyline": 32.4
    },
-   "fb_model_ml_curve_spread": 45.8
+   "fb_model_ml_curve_spread": 44.5
   },
   {
    "game_id": "2026_07_KC_SEA",
@@ -480,24 +480,58 @@
    "total": 49.1,
    "line": {
     "spread": -4.5,
-    "total": 44.5
+    "total": 44.25
    },
    "score_curve": {
     "spread": 69.8,
-    "total": 62.7,
+    "total": 63.3,
     "moneyline": 57.0
    },
    "calibrated": {
     "spread": 56.9,
-    "total": 54.3,
+    "total": 54.5,
     "moneyline": 56.1
    },
    "fb_model": {
     "spread": 48.0,
-    "total": 54.0,
+    "total": 53.9,
     "moneyline": 53.1
    },
    "fb_model_ml_curve_spread": 66.2
+  },
+  {
+   "game_id": "2026_08_CAR_GB",
+   "day": "2026-10-29",
+   "kick": "2026-10-29T20:15",
+   "home": "GB",
+   "away": "CAR",
+   "neutral": false,
+   "score": {
+    "home": 23.9,
+    "away": 23.0
+   },
+   "margin": 0.9,
+   "total": 46.9,
+   "line": {
+    "spread": 3.0,
+    "total": 46.5
+   },
+   "score_curve": {
+    "spread": 43.7,
+    "total": 51.2,
+    "moneyline": 52.7
+   },
+   "calibrated": {
+    "spread": 47.9,
+    "total": 50.4,
+    "moneyline": 52.4
+   },
+   "fb_model": {
+    "spread": 53.4,
+    "total": 58.5,
+    "moneyline": 48.6
+   },
+   "fb_model_ml_curve_spread": 39.7
   }
  ],
  "backtest": {

@@ -1,7 +1,7 @@
 {
  "league": "nfl",
  "kind": "MODEL",
- "built_at": "2026-10-20T19:44:52Z",
+ "built_at": "2026-10-21T13:14:49Z",
  "design": "research/fb_props_design.md",
  "books": [
   "DraftKings",
@@ -665,26 +665,26 @@
  },
  "card_logs_season": 2025,
  "card_seasons_published": {
-  "2026-10-15": 2025,
   "2026-10-05": 2025,
-  "2026-10-04": 2025,
-  "2026-09-24": 2025,
-  "2026-09-28": 2025,
-  "2026-09-14": 2025,
-  "2026-09-20": 2025,
-  "2026-10-19": 2025,
-  "2026-10-12": 2025,
   "2026-10-01": 2025,
-  "2026-09-21": 2025,
-  "2026-10-22": 2025,
-  "2026-10-08": 2025,
+  "2026-10-19": 2025,
   "2026-10-11": 2025,
-  "2026-09-27": 2025,
-  "2026-09-13": 2025,
-  "2026-09-17": 2025,
-  "2026-09-09": 2025,
   "2026-09-10": 2025,
-  "2026-10-18": 2025
+  "2026-09-21": 2025,
+  "2026-10-08": 2025,
+  "2026-10-15": 2025,
+  "2026-10-12": 2025,
+  "2026-09-20": 2025,
+  "2026-09-27": 2025,
+  "2026-10-04": 2025,
+  "2026-09-17": 2025,
+  "2026-09-13": 2025,
+  "2026-10-18": 2025,
+  "2026-09-14": 2025,
+  "2026-09-28": 2025,
+  "2026-10-22": 2025,
+  "2026-09-09": 2025,
+  "2026-09-24": 2025
  },
  "league_only": {
   "n": 3149,
@@ -22740,11 +22740,11 @@
  ],
  "note": "Graded only at Hard Rock, FanDuel and DraftKings prices archived before kickoff (props from September 2026). Ranges count each game once. The card's own probabilities are recomputed with its own rating function to compare the two on the same props.",
  "decision": {
-  "n": 6307,
-  "mean_d": 0.03358112131878838,
-  "t": 4.23676982585968,
-  "p": 1.4535819450170154e-05,
-  "clusters": 349,
+  "n": 6316,
+  "mean_d": 0.03437456397950185,
+  "t": 4.31852689732331,
+  "p": 1.0233468199307739e-05,
+  "clusters": 352,
   "verdict": "QUALIFIES",
   "leagues": [
    "ncaaf",
@@ -22781,7 +22781,38 @@
     "value": 8.3,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
+  },
+  {
+   "game": "New England Patriots at Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "commence": "2026-10-23T00:15:00Z",
+   "player": "TreVeyon Henderson",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "over",
+   "line": {
+    "value": 22.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -114,
+    "basis": "MARKET"
+   },
+   "book": "FanDuel",
+   "model_probability": {
+    "value": 54.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 53.3,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.6,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22796,23 +22827,85 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 108,
+    "value": 122,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
     "value": 53.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 48.1,
+    "value": 45.0,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 11.3,
+    "value": 18.8,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
+  },
+  {
+   "game": "New England Patriots at Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "commence": "2026-10-23T00:15:00Z",
+   "player": "Luther Burden III",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 57.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -112,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.2,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.8,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 0.7,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-21T13:14:12Z"
+  },
+  {
+   "game": "New England Patriots at Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "commence": "2026-10-23T00:15:00Z",
+   "player": "Kyle Williams",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "under",
+   "line": {
+    "value": 19.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": -111,
+    "basis": "MARKET"
+   },
+   "book": "DraftKings",
+   "model_probability": {
+    "value": 53.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 52.6,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 1.0,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22827,23 +22920,54 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 117,
+    "value": 115,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "Hard Rock",
    "model_probability": {
     "value": 52.1,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 46.1,
+    "value": 46.5,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 13.0,
+    "value": 12.0,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
+  },
+  {
+   "game": "New England Patriots at Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "commence": "2026-10-23T00:15:00Z",
+   "player": "TreVeyon Henderson",
+   "market": "player_reception_yds",
+   "market_label": "Receiving yards",
+   "side": "over",
+   "line": {
+    "value": 2.5,
+    "basis": "MARKET"
+   },
+   "price": {
+    "value": 100,
+    "basis": "MARKET"
+   },
+   "book": "Hard Rock",
+   "model_probability": {
+    "value": 52.1,
+    "basis": "MODEL"
+   },
+   "break_even": {
+    "value": 50.0,
+    "basis": "MARKET"
+   },
+   "edge": {
+    "value": 4.3,
+    "basis": "MODEL"
+   },
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22858,7 +22982,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 116,
+    "value": 112,
     "basis": "MARKET"
    },
    "book": "FanDuel",
@@ -22867,14 +22991,14 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 46.3,
+    "value": 47.2,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 11.4,
+    "value": 9.4,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22889,23 +23013,23 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 105,
+    "value": 112,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
     "value": 51.5,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 48.8,
+    "value": 47.2,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 5.7,
+    "value": 9.3,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22920,23 +23044,23 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 106,
+    "value": -102,
     "basis": "MARKET"
    },
-   "book": "DraftKings",
+   "book": "FanDuel",
    "model_probability": {
     "value": 51.2,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 48.5,
+    "value": 50.5,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 5.5,
+    "value": 1.4,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22951,23 +23075,23 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 120,
+    "value": 116,
     "basis": "MARKET"
    },
-   "book": "Hard Rock",
+   "book": "FanDuel",
    "model_probability": {
     "value": 50.9,
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 45.5,
+    "value": 46.3,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 12.0,
+    "value": 9.9,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
   },
   {
    "game": "New England Patriots at Chicago Bears",
@@ -22982,7 +23106,7 @@
     "basis": "MARKET"
    },
    "price": {
-    "value": 168,
+    "value": 178,
     "basis": "MARKET"
    },
    "book": "FanDuel",
@@ -22991,14 +23115,14 @@
     "basis": "MODEL"
    },
    "break_even": {
-    "value": 37.3,
+    "value": 36.0,
     "basis": "MARKET"
    },
    "edge": {
-    "value": 35.1,
+    "value": 40.1,
     "basis": "MODEL"
    },
-   "priced_at": "2026-10-20T19:27:53Z"
+   "priced_at": "2026-10-21T13:14:12Z"
   }
  ],
  "rated": [
@@ -23222,7 +23346,7 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Caleb Williams",
    "market": "player_pass_yds",
-   "line": 248.5,
+   "line": 249.5,
    "side": "over",
    "p": 48.1
   },
@@ -23230,7 +23354,7 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Caleb Williams",
    "market": "player_pass_yds",
-   "line": 248.5,
+   "line": 249.5,
    "side": "under",
    "p": 51.9
   },
@@ -23238,7 +23362,7 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Drake Maye",
    "market": "player_pass_yds",
-   "line": 249.5,
+   "line": 248.5,
    "side": "over",
    "p": 49.5
   },
@@ -23246,7 +23370,7 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Drake Maye",
    "market": "player_pass_yds",
-   "line": 249.5,
+   "line": 248.5,
    "side": "under",
    "p": 50.5
   },
@@ -23302,97 +23426,97 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "D'Andre Swift",
    "market": "player_reception_yds",
-   "line": 19.5,
+   "line": 17.5,
    "side": "over",
-   "p": 50.6
+   "p": 51.3
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "D'Andre Swift",
    "market": "player_reception_yds",
-   "line": 19.5,
+   "line": 17.5,
    "side": "under",
-   "p": 49.4
+   "p": 48.7
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "DeMario Douglas",
    "market": "player_reception_yds",
-   "line": 36.5,
+   "line": 38.5,
    "side": "over",
-   "p": 48.4
+   "p": 47.9
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "DeMario Douglas",
    "market": "player_reception_yds",
-   "line": 36.5,
+   "line": 38.5,
    "side": "under",
-   "p": 51.6
+   "p": 52.1
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Efton Chism III",
    "market": "player_reception_yds",
-   "line": 19.5,
-   "side": "over",
-   "p": 49.0
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Efton Chism III",
-   "market": "player_reception_yds",
-   "line": 19.5,
-   "side": "under",
-   "p": 51.0
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Eli Raridon",
-   "market": "player_reception_yds",
-   "line": 14.5,
-   "side": "over",
-   "p": 50.6
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Eli Raridon",
-   "market": "player_reception_yds",
-   "line": 14.5,
-   "side": "under",
-   "p": 49.4
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Hunter Henry",
-   "market": "player_reception_yds",
-   "line": 34.5,
-   "side": "over",
-   "p": 49.4
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Hunter Henry",
-   "market": "player_reception_yds",
-   "line": 34.5,
-   "side": "under",
-   "p": 50.6
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Kalif Raymond",
-   "market": "player_reception_yds",
-   "line": 26.5,
+   "line": 22.5,
    "side": "over",
    "p": 48.0
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Kalif Raymond",
+   "player": "Efton Chism III",
    "market": "player_reception_yds",
-   "line": 26.5,
+   "line": 22.5,
    "side": "under",
    "p": 52.0
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Eli Raridon",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "over",
+   "p": 50.6
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Eli Raridon",
+   "market": "player_reception_yds",
+   "line": 14.5,
+   "side": "under",
+   "p": 49.4
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Hunter Henry",
+   "market": "player_reception_yds",
+   "line": 34.5,
+   "side": "over",
+   "p": 49.4
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Hunter Henry",
+   "market": "player_reception_yds",
+   "line": 34.5,
+   "side": "under",
+   "p": 50.6
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Kalif Raymond",
+   "market": "player_reception_yds",
+   "line": 25.5,
+   "side": "over",
+   "p": 48.3
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Kalif Raymond",
+   "market": "player_reception_yds",
+   "line": 25.5,
+   "side": "under",
+   "p": 51.7
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23414,17 +23538,17 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Luther Burden III",
    "market": "player_reception_yds",
-   "line": 55.5,
+   "line": 57.5,
    "side": "over",
-   "p": 47.2
+   "p": 46.8
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Luther Burden III",
    "market": "player_reception_yds",
-   "line": 55.5,
+   "line": 57.5,
    "side": "under",
-   "p": 52.8
+   "p": 53.2
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23446,33 +23570,49 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Rome Odunze",
    "market": "player_reception_yds",
-   "line": 46.5,
+   "line": 44.5,
    "side": "over",
-   "p": 50.0
+   "p": 50.4
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Rome Odunze",
    "market": "player_reception_yds",
-   "line": 46.5,
+   "line": 44.5,
    "side": "under",
-   "p": 50.0
+   "p": 49.6
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "A.J. Brown",
-   "market": "player_receptions",
-   "line": 4.5,
+   "player": "TreVeyon Henderson",
+   "market": "player_reception_yds",
+   "line": 3.5,
    "side": "over",
-   "p": 46.5
+   "p": 51.3
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_reception_yds",
+   "line": 3.5,
+   "side": "under",
+   "p": 48.7
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "A.J. Brown",
    "market": "player_receptions",
-   "line": 4.5,
+   "line": 5.5,
+   "side": "over",
+   "p": 42.9
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "A.J. Brown",
+   "market": "player_receptions",
+   "line": 5.5,
    "side": "under",
-   "p": 53.5
+   "p": 57.1
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23494,17 +23634,17 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Colston Loveland",
    "market": "player_receptions",
-   "line": 4.5,
+   "line": 3.5,
    "side": "over",
-   "p": 47.2
+   "p": 50.9
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Colston Loveland",
    "market": "player_receptions",
-   "line": 4.5,
+   "line": 3.5,
    "side": "under",
-   "p": 52.8
+   "p": 49.1
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23668,6 +23808,22 @@
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "over",
+   "p": 52.5
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_receptions",
+   "line": 0.5,
+   "side": "under",
+   "p": 47.5
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Caleb Williams",
    "market": "player_rush_yds",
    "line": 19.5,
@@ -23686,17 +23842,17 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "D'Andre Swift",
    "market": "player_rush_yds",
-   "line": 61.5,
+   "line": 60.5,
    "side": "over",
-   "p": 47.6
+   "p": 47.8
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "D'Andre Swift",
    "market": "player_rush_yds",
-   "line": 61.5,
+   "line": 60.5,
    "side": "under",
-   "p": 52.4
+   "p": 52.2
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23718,33 +23874,33 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Rhamondre Stevenson",
    "market": "player_rush_yds",
-   "line": 44.5,
-   "side": "over",
-   "p": 50.6
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Rhamondre Stevenson",
-   "market": "player_rush_yds",
-   "line": 44.5,
-   "side": "under",
-   "p": 49.4
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
-   "market": "player_rush_yds",
-   "line": 29.5,
+   "line": 42.5,
    "side": "over",
    "p": 51.2
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
+   "player": "Rhamondre Stevenson",
    "market": "player_rush_yds",
-   "line": 29.5,
+   "line": 42.5,
    "side": "under",
    "p": 48.8
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_rush_yds",
+   "line": 25.5,
+   "side": "over",
+   "p": 52.8
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_rush_yds",
+   "line": 25.5,
+   "side": "under",
+   "p": 47.2
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23782,33 +23938,65 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "A.J. Brown",
    "market": "player_reception_yds",
-   "line": 69.5,
+   "line": 70.5,
    "side": "over",
-   "p": 42.9
+   "p": 42.7
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "A.J. Brown",
    "market": "player_reception_yds",
-   "line": 69.5,
+   "line": 70.5,
    "side": "under",
-   "p": 57.1
+   "p": 57.3
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "DeMario Douglas",
+   "player": "Colston Loveland",
    "market": "player_reception_yds",
-   "line": 35.5,
+   "line": 41.5,
    "side": "over",
-   "p": 48.6
+   "p": 48.9
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Colston Loveland",
+   "market": "player_reception_yds",
+   "line": 41.5,
+   "side": "under",
+   "p": 51.1
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "DeMario Douglas",
    "market": "player_reception_yds",
-   "line": 35.5,
+   "line": 37.5,
+   "side": "over",
+   "p": 48.1
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "DeMario Douglas",
+   "market": "player_reception_yds",
+   "line": 37.5,
    "side": "under",
-   "p": 51.4
+   "p": 51.9
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Efton Chism III",
+   "market": "player_reception_yds",
+   "line": 21.5,
+   "side": "over",
+   "p": 48.3
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Efton Chism III",
+   "market": "player_reception_yds",
+   "line": 21.5,
+   "side": "under",
+   "p": 51.7
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23844,19 +24032,19 @@
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Kalif Raymond",
+   "player": "Luther Burden III",
    "market": "player_reception_yds",
-   "line": 25.5,
+   "line": 56.5,
    "side": "over",
-   "p": 48.3
+   "p": 47.0
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Kalif Raymond",
+   "player": "Luther Burden III",
    "market": "player_reception_yds",
-   "line": 25.5,
+   "line": 56.5,
    "side": "under",
-   "p": 51.7
+   "p": 53.0
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23876,67 +24064,67 @@
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Hunter Henry",
+   "player": "TreVeyon Henderson",
+   "market": "player_reception_yds",
+   "line": 2.5,
+   "side": "over",
+   "p": 52.1
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_reception_yds",
+   "line": 2.5,
+   "side": "under",
+   "p": 47.9
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "A.J. Brown",
+   "market": "player_receptions",
+   "line": 4.5,
+   "side": "over",
+   "p": 46.5
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "A.J. Brown",
+   "market": "player_receptions",
+   "line": 4.5,
+   "side": "under",
+   "p": 53.5
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "Efton Chism III",
    "market": "player_receptions",
    "line": 2.5,
    "side": "over",
-   "p": 52.4
+   "p": 47.2
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Hunter Henry",
+   "player": "Efton Chism III",
    "market": "player_receptions",
    "line": 2.5,
    "side": "under",
-   "p": 47.6
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Caleb Williams",
-   "market": "player_rush_yds",
-   "line": 20.5,
-   "side": "over",
-   "p": 50.9
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Caleb Williams",
-   "market": "player_rush_yds",
-   "line": 20.5,
-   "side": "under",
-   "p": 49.1
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "D'Andre Swift",
-   "market": "player_rush_yds",
-   "line": 62.5,
-   "side": "over",
-   "p": 47.3
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "D'Andre Swift",
-   "market": "player_rush_yds",
-   "line": 62.5,
-   "side": "under",
-   "p": 52.7
+   "p": 52.8
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "TreVeyon Henderson",
    "market": "player_rush_yds",
-   "line": 30.5,
+   "line": 22.5,
    "side": "over",
-   "p": 50.8
+   "p": 54.1
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "TreVeyon Henderson",
    "market": "player_rush_yds",
-   "line": 30.5,
+   "line": 22.5,
    "side": "under",
-   "p": 49.2
+   "p": 45.9
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -23974,33 +24162,17 @@
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Colston Loveland",
    "market": "player_reception_yds",
-   "line": 42.5,
+   "line": 43.5,
    "side": "over",
-   "p": 48.6
+   "p": 48.4
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "Colston Loveland",
    "market": "player_reception_yds",
-   "line": 42.5,
+   "line": 43.5,
    "side": "under",
-   "p": 51.4
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "DeMario Douglas",
-   "market": "player_reception_yds",
-   "line": 34.5,
-   "side": "over",
-   "p": 48.9
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "DeMario Douglas",
-   "market": "player_reception_yds",
-   "line": 34.5,
-   "side": "under",
-   "p": 51.1
+   "p": 51.6
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -24020,117 +24192,37 @@
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Luther Burden III",
-   "market": "player_reception_yds",
-   "line": 56.5,
-   "side": "over",
-   "p": 47.0
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Luther Burden III",
-   "market": "player_reception_yds",
-   "line": 56.5,
-   "side": "under",
-   "p": 53.0
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Rome Odunze",
-   "market": "player_reception_yds",
-   "line": 44.5,
-   "side": "over",
-   "p": 50.4
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Rome Odunze",
-   "market": "player_reception_yds",
-   "line": 44.5,
-   "side": "under",
-   "p": 49.6
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
-   "market": "player_reception_yds",
-   "line": 2.5,
-   "side": "over",
-   "p": 52.1
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
-   "market": "player_reception_yds",
-   "line": 2.5,
-   "side": "under",
-   "p": 47.9
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "A.J. Brown",
+   "player": "Colston Loveland",
    "market": "player_receptions",
-   "line": 5.5,
+   "line": 4.5,
    "side": "over",
-   "p": 42.9
+   "p": 47.2
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "A.J. Brown",
+   "player": "Colston Loveland",
    "market": "player_receptions",
-   "line": 5.5,
+   "line": 4.5,
    "side": "under",
-   "p": 57.1
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
-   "market": "player_receptions",
-   "line": 0.5,
-   "side": "over",
-   "p": 52.5
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
-   "market": "player_receptions",
-   "line": 0.5,
-   "side": "under",
-   "p": 47.5
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Rhamondre Stevenson",
-   "market": "player_rush_yds",
-   "line": 43.5,
-   "side": "over",
-   "p": 50.9
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "Rhamondre Stevenson",
-   "market": "player_rush_yds",
-   "line": 43.5,
-   "side": "under",
-   "p": 49.1
-  },
-  {
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "player": "TreVeyon Henderson",
-   "market": "player_rush_yds",
-   "line": 25.5,
-   "side": "over",
    "p": 52.8
   },
   {
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "player": "TreVeyon Henderson",
    "market": "player_rush_yds",
-   "line": 25.5,
+   "line": 24.5,
+   "side": "over",
+   "p": 53.2
+  },
+  {
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "player": "TreVeyon Henderson",
+   "market": "player_rush_yds",
+   "line": 24.5,
    "side": "under",
-   "p": 47.2
+   "p": 46.8
   }
  ],
- "board_pulled_at": "2026-10-20T19:27:53Z",
- "picks_total": 8
+ "board_pulled_at": "2026-10-21T13:14:12Z",
+ "picks_total": 12
 }
