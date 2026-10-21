@@ -2,7 +2,7 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_agreement_spec.md",
- "built_at": "2026-10-21T13:14:54Z",
+ "built_at": "2026-10-21T15:36:37Z",
  "bases": {
   "label": "DESCRIPTIVE",
   "model_p": "MODEL",
@@ -148,23 +148,6 @@
    "label": "SPLIT"
   },
   {
-   "key": "ffebea881c1d7b2dfb85b3e590c35985|Colston Loveland|player_receptions|under|4.5",
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "game": "New England Patriots @ Chicago Bears",
-   "commence": "2026-10-23T00:15:00Z",
-   "player": "Colston Loveland",
-   "market": "player_receptions",
-   "side": "under",
-   "line": 4.5,
-   "price": -165,
-   "break_even": 62.3,
-   "card_p": 72,
-   "card_basis": "RECORD",
-   "model_p": 52.8,
-   "on_card": true,
-   "label": "SPLIT"
-  },
-  {
    "key": "ffebea881c1d7b2dfb85b3e590c35985|D'Andre Swift|player_rush_yds|under|60.5",
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "game": "New England Patriots @ Chicago Bears",
@@ -263,6 +246,23 @@
    "card_p": null,
    "card_basis": "RECORD",
    "model_p": 52.8,
+   "on_card": true,
+   "label": "ONE SOURCE"
+  },
+  {
+   "key": "ffebea881c1d7b2dfb85b3e590c35985|Eli Raridon|player_reception_yds|over|14.5",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "game": "New England Patriots @ Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "player": "Eli Raridon",
+   "market": "player_reception_yds",
+   "side": "over",
+   "line": 14.5,
+   "price": -107,
+   "break_even": 51.7,
+   "card_p": null,
+   "card_basis": "RECORD",
+   "model_p": 50.6,
    "on_card": true,
    "label": "ONE SOURCE"
   },
@@ -437,21 +437,38 @@
    "label": "SPLIT"
   },
   {
-   "key": "ffebea881c1d7b2dfb85b3e590c35985|TreVeyon Henderson|player_reception_yds|over|2.5",
+   "key": "ffebea881c1d7b2dfb85b3e590c35985|TreVeyon Henderson|player_reception_yds|over|1.5",
    "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
    "game": "New England Patriots @ Chicago Bears",
    "commence": "2026-10-23T00:15:00Z",
    "player": "TreVeyon Henderson",
    "market": "player_reception_yds",
    "side": "over",
-   "line": 2.5,
-   "price": 100,
-   "break_even": 50.0,
-   "card_p": 84,
+   "line": 1.5,
+   "price": -115,
+   "break_even": 53.5,
+   "card_p": 86,
    "card_basis": "RECORD",
-   "model_p": 52.1,
+   "model_p": 53.2,
    "on_card": true,
-   "label": "AGREE"
+   "label": "SPLIT"
+  },
+  {
+   "key": "ffebea881c1d7b2dfb85b3e590c35985|TreVeyon Henderson|player_reception_yds|over|2.5",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "game": "New England Patriots at Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "player": "TreVeyon Henderson",
+   "market": "player_reception_yds",
+   "side": "over",
+   "line": 2.5,
+   "price": -102,
+   "break_even": 50.5,
+   "card_p": null,
+   "card_basis": null,
+   "model_p": 52.1,
+   "on_card": false,
+   "label": "ONE SOURCE"
   },
   {
    "key": "ffebea881c1d7b2dfb85b3e590c35985|TreVeyon Henderson|player_receptions|over|0.5",
@@ -489,9 +506,9 @@
   }
  ],
  "counts": {
-  "AGREE": 8,
+  "AGREE": 7,
   "SPLIT": 10,
-  "ONE SOURCE": 10
+  "ONE SOURCE": 12
  },
  "not_frozen": 0,
  "record": {
