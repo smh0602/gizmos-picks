@@ -1,7 +1,7 @@
 {
  "date": "2026-10-22",
  "league": "nfl",
- "generated_at": "2026-10-21T17:17:36Z",
+ "generated_at": "2026-10-21T17:23:12Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
  "odds_pulled_at": "2026-10-21T15:35:56Z",
@@ -15,34 +15,6 @@
  "n_gated_by_measurement": 0,
  "rate_gates": null,
  "game_lines": [
-  {
-   "kind": "fb-line",
-   "league": "nfl",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "New England Patriots",
-   "market": "spread",
-   "market_label": "Spread",
-   "side": "away",
-   "line": 3.0,
-   "game": "New England Patriots @ Chicago Bears",
-   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
-   "away": "New England Patriots",
-   "home": "Chicago Bears",
-   "commence": "2026-10-23T00:15:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "break_even": 52.4,
-   "edge": 2.1,
-   "why": [
-    "The game model gives New England Patriots 54% to cover +3; the price -110 needs 52.4%."
-   ],
-   "priced_at": "2026-10-21T13:14:12Z",
-   "rank": 1
-  },
   {
    "kind": "fb-line",
    "league": "nfl",
@@ -62,17 +34,15 @@
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 54,
+   "confidence": 55,
    "break_even": 52.4,
-   "edge": 1.5,
+   "edge": 2.4,
    "why": [
-    "The game model gives Over 54% at 50.5; the price -110 needs 52.4%."
+    "The game model gives Over 55% at 50.5; the price -110 needs 52.4%."
    ],
-   "priced_at": "2026-10-21T13:14:12Z",
-   "rank": 2
-  }
- ],
- "game_lines_liked": [
+   "priced_at": "2026-10-21T17:21:24Z",
+   "rank": 1
+  },
   {
    "kind": "fb-line",
    "league": "nfl",
@@ -94,17 +64,47 @@
    "confidence_basis": "MODEL",
    "confidence": 54,
    "break_even": 52.4,
-   "edge": 2.1,
+   "edge": 1.8,
    "why": [
-    "The game model gives New England Patriots 54% to cover +3; the price -110 needs 52.4%.",
+    "The game model gives New England Patriots 54% to cover +3; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-21T17:21:24Z",
+   "rank": 2
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "nfl",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 50.5,
+   "game": "New England Patriots @ Chicago Bears",
+   "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
+   "away": "New England Patriots",
+   "home": "Chicago Bears",
+   "commence": "2026-10-23T00:15:00Z",
+   "book": "fanduel",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 52.4,
+   "edge": 2.4,
+   "why": [
+    "The game model gives Over 55% at 50.5; the price -110 needs 52.4%.",
     "The model's predicted score: New England Patriots 25, Chicago Bears 27 (total 52).",
     "The New England Patriots score 22.7 and allow 18.8 points a game this season (6 games).",
     "The Chicago Bears score 25 and allow 19.8 points a game this season (6 games)."
    ],
-   "priced_at": "2026-10-21T13:14:12Z",
+   "priced_at": "2026-10-21T17:21:24Z",
    "rank": 1,
    "why_card": [
-    "The game model gives New England Patriots 54% to cover +3; the price -110 needs 52.4%."
+    "The game model gives Over 55% at 50.5; the price -110 needs 52.4%."
    ]
   }
  ],
@@ -116,8 +116,8 @@
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-21T17:17:28Z",
-  "ladder_built_at": "2026-10-21T17:17:29Z",
+  "model_built_at": "2026-10-21T17:22:59Z",
+  "ladder_built_at": "2026-10-21T17:23:02Z",
   "alt_spreads": 0
  },
  "scores_shown": [
@@ -141,8 +141,8 @@
    "away": "Cincinnati Bengals",
    "home": "Baltimore Ravens",
    "score": {
-    "home": 27,
-    "away": 25
+    "home": 26,
+    "away": 24
    }
   },
   {
@@ -351,22 +351,22 @@
   "2": [
    {
     "legs": [
-     "A.J. Brown u70.5 rec yds",
-     "Over 50.5 total"
+     "A.J. Brown u68.5 rec yds",
+     "New England Patriots +3 spread"
     ],
     "game": "New England Patriots @ Chicago Bears",
     "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -114,
+     -115,
      -110
     ],
-    "line_best_book": "fanduel",
+    "line_best_book": "hardrockbet",
     "line_best_price": -110,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.584,
+    "multiplier": 3.569,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -383,7 +383,7 @@
    {
     "legs": [
      "A.J. Brown u67.5 rec yds",
-     "Over 50.5 total"
+     "New England Patriots +3 spread"
     ],
     "game": "New England Patriots @ Chicago Bears",
     "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -391,13 +391,13 @@
     "book": "draftkings",
     "prices": [
      -110,
-     -115
+     -118
     ],
-    "line_best_book": "fanduel",
+    "line_best_book": "hardrockbet",
     "line_best_price": -110,
     "n_legs": 2,
     "n_line_legs": 1,
-    "multiplier": 3.569,
+    "multiplier": 3.527,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -417,7 +417,7 @@
     "legs": [
      "A.J. Brown u4.5 rec",
      "TreVeyon Henderson o22.5 rush yds",
-     "Over 50.5 total"
+     "New England Patriots +3 spread"
     ],
     "game": "New England Patriots @ Chicago Bears",
     "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
@@ -426,13 +426,13 @@
     "prices": [
      122,
      -114,
-     -110
+     -115
     ],
-    "line_best_book": "fanduel",
+    "line_best_book": "hardrockbet",
     "line_best_price": -110,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 7.956,
+    "multiplier": 7.791,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
@@ -449,24 +449,24 @@
    },
    {
     "legs": [
-     "A.J. Brown u70.5 rec yds",
-     "TreVeyon Henderson o22.5 rush yds",
-     "Over 50.5 total"
+     "A.J. Brown u68.5 rec yds",
+     "Kyle Williams u20.5 rec yds",
+     "New England Patriots +3 spread"
     ],
     "game": "New England Patriots @ Chicago Bears",
     "game_id": "ffebea881c1d7b2dfb85b3e590c35985",
     "same_game": true,
-    "book": "fanduel",
+    "book": "hardrockbet",
     "prices": [
-     -114,
-     -114,
+     -115,
+     -115,
      -110
     ],
-    "line_best_book": "fanduel",
+    "line_best_book": "hardrockbet",
     "line_best_price": -110,
     "n_legs": 3,
     "n_line_legs": 1,
-    "multiplier": 6.727,
+    "multiplier": 6.673,
     "multiplier_basis": "UPPER BOUND",
     "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
     "joint": null,
