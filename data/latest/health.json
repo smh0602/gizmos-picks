@@ -1,16 +1,23 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-22T19:40:32Z",
+ "checked_at": "2026-10-22T21:30:15Z",
  "et_date": "2026-10-22",
  "healthy": false,
  "broken": 1,
- "degraded": 5,
+ "degraded": 6,
  "findings": [
   {
    "key": "record-verify:mlb",
    "severity": "BROKEN",
    "what": "the MLB Track Record does not add up",
    "why": "re-grading every published pick from the box scores disagreed with the published record: the mlb winners reproduce in their own line (7/16, 0 void). The site still shows the old record.",
+   "repair": null
+  },
+  {
+   "key": "fresh:mlb",
+   "severity": "DEGRADED",
+   "what": "mlb tabs are showing data older than promised (gamelines, props-batter, props-pitcher)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   },
   {
@@ -59,7 +66,7 @@
   "pulled_at": "2026-10-22T19:32:53Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.1,
+  "reading_age_hours": 2.0,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-22T19:32:49Z",
   "source": "data/ncaaf/2026-10-22/alt-lines/1932.json.gz",
