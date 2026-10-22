@@ -1,23 +1,16 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-22T05:50:15Z",
+ "checked_at": "2026-10-22T10:34:20Z",
  "et_date": "2026-10-22",
  "healthy": false,
  "broken": 1,
- "degraded": 8,
+ "degraded": 7,
  "findings": [
   {
    "key": "record-verify:mlb",
    "severity": "BROKEN",
    "what": "the MLB Track Record does not add up",
    "why": "re-grading every published pick from the box scores disagreed with the published record: the mlb winners reproduce in their own line (7/16, 0 void). The site still shows the old record.",
-   "repair": null
-  },
-  {
-   "key": "fresh:mlb",
-   "severity": "DEGRADED",
-   "what": "mlb tabs are showing data older than promised (results)",
-   "why": "the freshness contract says 1 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   },
   {
@@ -30,15 +23,15 @@
   {
    "key": "late:cfb-probe:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf cfb-probe was built 213 minutes after it was due",
-   "why": "due 2026-10-21T07:00Z, built 2026-10-21T10:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
+   "what": "ncaaf cfb-probe was built 214 minutes after it was due",
+   "why": "due 2026-10-22T07:00Z, built 2026-10-22T10:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "late:fb-scores:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf fb-scores was built 154 minutes after it was due",
-   "why": "due 2026-10-21T08:00Z, built 2026-10-21T10:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "why": "due 2026-10-22T08:00Z, built 2026-10-22T10:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -52,7 +45,7 @@
    "key": "late:fb-scores:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-scores was built 154 minutes after it was due",
-   "why": "due 2026-10-21T08:00Z, built 2026-10-21T10:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "why": "due 2026-10-22T08:00Z, built 2026-10-22T10:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -66,7 +59,7 @@
    "key": "late:nfl-logs:nfl",
    "severity": "DEGRADED",
    "what": "nfl nfl-logs was built 214 minutes after it was due",
-   "why": "due 2026-10-21T07:00Z, built 2026-10-21T10:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
+   "why": "due 2026-10-22T07:00Z, built 2026-10-22T10:34Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
   }
  ],
@@ -80,7 +73,7 @@
   "pulled_at": "2026-10-21T22:36:00Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 7.2,
+  "reading_age_hours": 12.0,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-21T22:36:00Z",
   "source": "data/ncaaf/2026-10-21/props-player/2236.json.gz",
