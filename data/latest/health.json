@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-22T13:19:25Z",
+ "checked_at": "2026-10-22T14:07:19Z",
  "et_date": "2026-10-22",
  "healthy": false,
  "broken": 1,
- "degraded": 12,
+ "degraded": 10,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -42,13 +42,6 @@
    "repair": null
   },
   {
-   "key": "late:news:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf news was built 91 minutes after it was due",
-   "why": "due 2026-10-21T14:05Z, built 2026-10-21T15:35Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:alt-lines:nfl",
    "severity": "DEGRADED",
    "what": "nfl alt-lines was built 136 minutes after it was due",
@@ -67,13 +60,6 @@
    "severity": "DEGRADED",
    "what": "nfl gamelines was built 77 minutes after it was due",
    "why": "due 2026-10-22T12:00Z, built 2026-10-22T13:16Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:news:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl news was built 92 minutes after it was due",
-   "why": "due 2026-10-21T14:05Z, built 2026-10-21T15:37Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -108,7 +94,7 @@
   "pulled_at": "2026-10-22T13:16:55Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-22T13:16:55Z",
   "source": "data/nfl/2026-10-22/props-player/1316.json.gz",
