@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-22T13:18:33Z",
+ "checked_at": "2026-10-22T13:19:25Z",
  "et_date": "2026-10-22",
  "healthy": false,
  "broken": 1,
@@ -32,6 +32,13 @@
    "severity": "DEGRADED",
    "what": "ncaaf fb-scores was built 154 minutes after it was due",
    "why": "due 2026-10-22T08:00Z, built 2026-10-22T10:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
+   "key": "late:gamelines:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf gamelines was built 132 minutes after it was due",
+   "why": "due 2026-10-22T11:00Z, built 2026-10-22T13:12Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -89,13 +96,6 @@
    "what": "nfl props-player was built 136 minutes after it was due",
    "why": "due 2026-10-22T11:00Z, built 2026-10-22T13:16Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
-  },
-  {
-   "key": "credits:unrecorded",
-   "severity": "DEGRADED",
-   "what": "39 Odds API credit(s) were spent since 2026-10-21T13:18:33Z that no stored snapshot records",
-   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-22T13:16:54Z \u221239 (data/nfl/2026-10-22/gamelines/1316.json.gz)",
-   "repair": null
   }
  ],
  "repairs": [],
@@ -112,7 +112,7 @@
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-22T13:16:55Z",
   "source": "data/nfl/2026-10-22/props-player/1316.json.gz",
-  "readings_on_disk": 1065,
+  "readings_on_disk": 1068,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
