@@ -314,33 +314,43 @@ for _lg, _dd in (("mlb", "data"), ("nfl", "data/nfl"), ("ncaaf", "data/ncaaf")):
             if _s["taken_at"] < _r["commence"] and _s["taken_at"] > _pick.get(_r["game_id"], ("",))[0]:
                 _pick[_r["game_id"]] = (_s["taken_at"], _r["side"])
     _fin = {}
-    _src = (glob.glob("data/*/results/final.json.gz") if _lg == "mlb"
-            else glob.glob(os.path.join(_dd, "latest", "schedule-*.json.gz")))
+    # 🔴 `[2026-10-23]` SORTED, so a game's NEWEST stored state is the one read.
+    #    Unsorted, the directory's own order decided whether 849817 (postponed
+    #    10-16, played 10-18) read as Postponed or Final.
+    _src = sorted(glob.glob("data/*/results/final.json.gz") if _lg == "mlb"
+                  else glob.glob(os.path.join(_dd, "latest", "schedule-*.json.gz")))
     for _p in _src:
         for _g in json.load(gzip.open(_p, "rt")).get("games") or []:
             _sc = _g.get("score") or {}
             _fin[str(_g.get("gamePk") if _lg == "mlb" else _g.get("id"))] = (
                 (_g.get("state"), _sc.get("home"), _sc.get("away")) if _lg == "mlb" else
                 ("Final" if _g.get("final") else None, _g.get("home_score"), _g.get("away_score")))
-    _seen, _tally, _bad = set(), [0, 0, 0], []
+    # ⚠️ THE GRADE THAT STANDS: the first stored one, unless it is a VOID that
+    #    a later real grade replaced (`[2026-10-23]`, a postponed game played
+    #    later under the same id). Written out again here, never imported from
+    #    winners.py: this file re-derives the record a second way.
+    _stand, _tally, _bad = {}, [0, 0, 0], []
     for _p in sorted(glob.glob(os.path.join(_dd, "*", "winner-grades", "*.json.gz"))):
         for _gr in json.load(gzip.open(_p, "rt")).get("grades") or []:
             _id = _gr["game_id"]
-            if _id in _seen or _id not in _pick:
+            if _id not in _pick:
                 continue
-            _seen.add(_id)
-            _st, _h, _a = _fin.get(_id, (None, None, None))
-            if _st in VOID_STATES or (_st == "Final" and _h is not None and _h == _a):
-                _mine = ("void", None)
-            elif _st == "Final" and None not in (_h, _a):
-                _mine = ("graded", ((_h - _a) > 0) == (_pick[_id][1] == "home"))
-            else:
-                _mine = ("pending", None)
-            if _mine != (_gr.get("state"), _gr.get("won")):
-                _bad.append((_id, _mine, _gr.get("state"), _gr.get("won")))
-            _tally[0] += _mine[1] is True
-            _tally[1] += _mine[0] == "graded"
-            _tally[2] += _mine[0] == "void"
+            _have = _stand.get(_id)
+            if _have is None or (_have.get("state") == "void" and _gr.get("state") == "graded"):
+                _stand[_id] = _gr
+    for _id, _gr in _stand.items():
+        _st, _h, _a = _fin.get(_id, (None, None, None))
+        if _st in VOID_STATES or (_st == "Final" and _h is not None and _h == _a):
+            _mine = ("void", None)
+        elif _st == "Final" and None not in (_h, _a):
+            _mine = ("graded", ((_h - _a) > 0) == (_pick[_id][1] == "home"))
+        else:
+            _mine = ("pending", None)
+        if _mine != (_gr.get("state"), _gr.get("won")):
+            _bad.append((_id, _mine, _gr.get("state"), _gr.get("won")))
+        _tally[0] += _mine[1] is True
+        _tally[1] += _mine[0] == "graded"
+        _tally[2] += _mine[0] == "void"
     ck(f"the {_lg} winners reproduce in their own line ({_tally[0]}/{_tally[1]}, {_tally[2]} void)",
        not _bad and tuple(_tally) == (_wr.get("w"), _wr.get("n"), _wr.get("voids")),
        f"winners.json says {_wr.get('w')}/{_wr.get('n')}, {_wr.get('voids')} void; "

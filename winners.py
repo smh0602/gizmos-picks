@@ -147,11 +147,24 @@ def grade(r, fin, void_states):
     return "graded", (h > a) == (r["side"] == "home")
 
 
+def superseded(have, g):
+    """Does grade `g` replace the stored `have`? Only a VOID gives way, and only
+    to a real grade. `[2026-10-23]` Rays @ Guardians (849817) was postponed on
+    10-16, graded void at 10-17 10:05Z, and played on 10-18 under the same id
+    (Tampa Bay 3-1, the pick). The void stood for good, verify_record re-graded
+    the final as a win, and the record verify has failed every run since 10-19.
+    ⛔ A real grade is never replaced: graded once."""
+    return bool(have) and have.get("state") == "void" and g.get("state") == "graded"
+
+
 def stored_grades(data):
-    """game id -> its FIRST stored grade, which is the one that stands."""
+    """game id -> the grade that stands: its FIRST stored grade, unless that
+    is a void a later real grade replaced (`superseded`)."""
     out = {}
     for p in sorted(glob.glob(os.path.join(data, "*", GRADES, "*.json.gz"))):
         for g in _gz(p).get("grades") or []:
+            if superseded(out.get(g["game_id"]), g):
+                out[g["game_id"]] = g
             out.setdefault(g["game_id"], g)
     return out
 
@@ -183,13 +196,17 @@ def build(lg=None, root=None, when=None, log=print):
     rows = [fz.get(r["game_id"], r) if r["commence"] <= now else r for r in rows]
     stored, fin, new = stored_grades(data), finals(lg, root), []
     for gid, r in fz.items():
-        if gid not in stored:
+        # ⚠️ A stored VOID is asked again: a postponed game can be played later
+        #    under the same id, and then its real grade replaces the void.
+        if gid not in stored or stored[gid].get("state") == "void":
             state, won = grade(r, fin, VOID_STATES)
-            if state != "pending":
+            if state != "pending" and (gid not in stored or state == "graded"):
                 new.append({"game_id": gid, "state": state, "won": won, "graded_at": now})
     if new:
         daystore.archive({"league": lg, "grades": new}, data, GRADES, log=log, when=when)
         for g in new:
+            if superseded(stored.get(g["game_id"]), g):
+                stored[g["game_id"]] = g
             stored.setdefault(g["game_id"], g)
     g = [x for k, x in stored.items() if k in fz]
     w, n = sum(1 for x in g if x["won"]), sum(1 for x in g if x["state"] == "graded")
