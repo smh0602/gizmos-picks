@@ -1026,6 +1026,12 @@ winners.py        THE GAME LINES TAB, ALL THREE LEAGUES (Sam, 2026-10-01):
                   (daystore), graded once, ONE record per league ->
                   winners.json; verify_record.py re-grades it. Rides the
                   MLB card / record runs and football's `card-fb`.
+                  `[2026-10-23]` A VOID gives way to a later real grade
+                  (`superseded`): 849817 was postponed 10-16, graded void,
+                  played 10-18 under the same id. ⛔ A real grade is never
+                  replaced. verify_record reads the box scores oldest first
+                  and re-checks the grade that stands.
+                  `test_winners_postponed.py`.
 mlb_game_model.py THE MLB GAME MODEL (Sam, 2026-10-02): each side's runs
                   from the opposing starter (start logs), its bullpen (scores
                   minus starters), the side's usual nine (hitter logs), park
