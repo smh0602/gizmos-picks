@@ -55,7 +55,6 @@ by the collector's own modes, under the collector's own verification.
 watchdog must never stop data landing, so the runner calls it after the
 work, and a crash here is reported rather than fatal.
 """
-import ast
 import datetime
 import glob
 import gzip
@@ -161,18 +160,10 @@ def _paid_kinds():
     spend was invisible to the reconciliation. The registry every paid mode
     writes through is the one list. ⚠️ Read from THIS checkout's collect.py
     (the code's list), never the data tree's. None when unreadable.
+    `[2026-10-23]` The reader is `credits.paid_kinds`, shared with the landing
+    step (push_retry.sh).
     """
-    try:
-        src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "collect.py"), encoding="utf-8").read()
-        for n in ast.parse(src).body:
-            if (isinstance(n, ast.Assign) and len(n.targets) == 1
-                    and getattr(n.targets[0], "id", "") == "PAID_KINDS"):
-                kinds = tuple(ast.literal_eval(n.value))
-                return kinds or None
-    except (OSError, SyntaxError, ValueError):
-        pass
-    return None
+    return C.paid_kinds(os.path.dirname(os.path.abspath(__file__)))
 
 
 # The dated, timed, PAID snapshot paths — the only files that carry a

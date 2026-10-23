@@ -19,14 +19,20 @@
 #
 # ✅ WHAT IT DOES:
 #   1. pull --rebase -X theirs: in a rebase "theirs" is THIS run's commit,
-#      so a fresher build of a `latest/*` file wins. Dated snapshot paths
-#      are unique and never conflict.
+#      so a fresher build of a `latest/*` file wins. ~~Dated snapshot
+#      paths are unique and never conflict.~~ (see 4)
 #   2. If the rebase still cannot finish (binary or modify/delete
 #      conflict), ABORT it — never leave it half-done — and REPLAY: reset
 #      onto the fresh remote tip and re-apply exactly the paths this run
 #      changed, with the same commit message.
 #   3. Five attempts, then EXIT 1. ⛔ It never fails silently; the caller
 #      turns the run red.
+#   4. `[2026-10-23]` Dated snapshot paths are NOT always unique: two
+#      runs that buy in the same minute write
+#      the same `HHMM.json.gz`, and step 1 kept only the later one (10-23
+#      17:28Z lost 150 paid credits' receipt). Before every push, a PAID
+#      snapshot the remote already holds keeps its name and this run's copy
+#      lands beside it as `HHMM-n` (`credits.keep_both`).
 # ══════════════════════════════════════════════════════════════════════
 set -u
 label="${1:-push}"
@@ -34,9 +40,26 @@ branch="$(git rev-parse --abbrev-ref HEAD)"
 remote="${PUSH_REMOTE:-origin}"
 mine="$(git rev-parse HEAD)"
 msg="$(git log -1 --format=%B "$mine")"
+here="$(cd "$(dirname "$0")" && pwd)"
+
+# keep_both <tip>: step 4, against the exact commit this push lands on.
+# ⚠️ A copy of this script without credits.py beside it (a test fixture)
+#    has no paid kinds to protect. A failure warns and lands anyway: losing
+#    the whole pass would be worse than losing one receipt.
+keep_both() {
+  [ -f "$here/credits.py" ] || return 0
+  local py out
+  py="$(command -v python || command -v python3)"
+  if [ -z "$py" ] || ! out="$("$py" "$here/credits.py" keep-both "$1" 2>&1)"; then
+    echo "::warning::$label: could not check for a paid snapshot another run landed under the same name: ${out:-no python}"
+    return 0
+  fi
+  [ -z "$out" ] || while IFS= read -r line; do echo "$label: $line"; done <<< "$out"
+}
 
 for i in 1 2 3 4 5; do
   if git pull -q --rebase -X theirs --autostash "$remote" "$branch" >/dev/null 2>&1; then
+    keep_both "$(git rev-parse FETCH_HEAD)"
     if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then
       echo "$label: pushed on attempt $i"
       exit 0
@@ -59,6 +82,7 @@ for i in 1 2 3 4 5; do
       if ! git diff --cached --quiet; then
         git commit -q -m "$msg"
       fi
+      keep_both "$tip"
       mine="$(git rev-parse HEAD)"
       if git push -q "$remote" "HEAD:$branch" >/dev/null 2>&1; then
         echo "$label: pushed on attempt $i (replayed onto the new tip)"
