@@ -1394,6 +1394,12 @@ push_retry.sh     the ONE way a workflow lands its commits: rebase
                   conflict, exit 1 after 5 tries. ⛔ Never hand-roll a
                   pull/push loop again — a half-done rebase lost whole
                   converge passes (and paid pulls) 09-15 → 09-21.
+                  `[2026-10-23]` A PAID snapshot the remote already holds
+                  under the same name keeps it; this run's copy lands
+                  beside it as `HHMM-n` (`credits.keep_both`): two runs
+                  buying the same minute lost a receipt three times
+                  (08-23, 10-11, 10-23: 221 credits off the record).
+                  test_push_retry.py §4.
 mlb_refit.py      MLB champion vs challenger, as Sam approved it on
                   2026-09-23 in `research/mlb_refit_spec.md`: v5.0
                   (READ from card.py) against the same model re-fitted
