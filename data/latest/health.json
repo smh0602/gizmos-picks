@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-23T19:19:19Z",
+ "checked_at": "2026-10-23T19:55:59Z",
  "et_date": "2026-10-23",
  "healthy": false,
- "broken": 2,
- "degraded": 13,
+ "broken": 1,
+ "degraded": 11,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -49,31 +49,10 @@
    "repair": null
   },
   {
-   "key": "late:gamelines:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf gamelines was built 388 minutes after it was due",
-   "why": "due 2026-10-23T11:00Z, built 2026-10-23T17:27Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:news:ncaaf",
    "severity": "DEGRADED",
    "what": "ncaaf news was built 106 minutes after it was due",
    "why": "due 2026-10-23T14:05Z, built 2026-10-23T15:51Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-board:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf props-board was built 298 minutes after it was due",
-   "why": "due 2026-10-23T12:30Z, built 2026-10-23T17:27Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-player:ncaaf",
-   "severity": "DEGRADED",
-   "what": "ncaaf props-player was built 297 minutes after it was due",
-   "why": "due 2026-10-23T12:30Z, built 2026-10-23T17:27Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -106,28 +85,27 @@
   },
   {
    "key": "credits:unrecorded",
-   "severity": "BROKEN",
-   "what": "7839 Odds API credit(s) were spent since 2026-10-22T19:19:19Z that no stored snapshot records",
-   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-22T19:24:25Z \u22127689 (data/nfl/2026-10-22/props-player/1924.json.gz); 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
+   "severity": "DEGRADED",
+   "what": "150 Odds API credit(s) were spent since 2026-10-22T19:55:59Z that no stored snapshot records",
+   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
    "repair": null
   }
  ],
  "repairs": [],
  "unrepairable": [
-  "credits",
   "record-verify"
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19524,
-  "pulled_at": "2026-10-23T19:19:07Z",
+  "balance": 19490,
+  "pulled_at": "2026-10-23T19:49:45Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-23T19:19:07Z",
-  "source": "data/nfl/2026-10-23/props-player/1919.json.gz",
-  "readings_on_disk": 1102,
+  "newest_paid_pull": "2026-10-23T19:49:41Z",
+  "source": "data/ncaaf/2026-10-23/alt-lines/1949.json.gz",
+  "readings_on_disk": 1105,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
