@@ -978,7 +978,14 @@ note boxes, tags and the stale bar now require their absence.
   `watchdog.check_learner_landing`: every cron workflow that `git add`s a data/ path must
   land it; missing after its first run since first seen + 600 min + its timeout, or older
   than 2 periods + grace -> DEGRADED, no repair; first-seen is carried in health.json
-  `learners`. `test_learner_landing.py`.
+  `learners`. `test_learner_landing.py`. ✅ `[2026-10-23]` A REFUSED ODDS API KEY IS
+  BROKEN: 10-22 21:42Z -> 10-23 17:10Z every call was a 401 (the plan lapsed and was
+  bought again) and health.json called it staleness that repairs itself. Every 401/403
+  writes `data/latest/odds-refused.json` (the API's own reason, the key scrubbed);
+  `watchdog.check_odds_refused` is BROKEN until a paid pull lands after it, and its alert
+  gives Sam the steps in `docs/FIX-ODDS-KEY.md` (`SAM_DOES`), never a prompt for Claude
+  and never the self-repair list. ⛔ The run's own colour is unchanged (Sam's 09-26
+  rule). `test_odds_refused.py`.
 - ⚠️ **Cron minutes are deliberately off :00 and :30.** Those are the most
   congested slots on GitHub's scheduler and runs get dropped. Six were lost
   that way, leaving a three-hour hole in the data.
