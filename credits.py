@@ -16,11 +16,14 @@ OR a plan bought again mid-month (`periods`). ⛔ Stdlib only, and it never
 imports collect.py: the paid kinds are handed in (collect.PAID_KINDS is the
 one registry).
 """
+import ast
 import glob
 import gzip
 import json
 import os
 import re
+import subprocess
+import sys
 
 
 def snapshot_re(kinds):
@@ -105,3 +108,95 @@ def spent_nothing(path):
     used = j.get("credits_used")
     return (used == 0 and not isinstance(used, bool)
             and not isinstance(j.get("credits_remaining"), int))
+
+
+def paid_kinds(src_dir):
+    """`collect.PAID_KINDS`, READ from `src_dir`/collect.py's source -- never
+    imported, never copied. `[2026-10-23]` Moved here from watchdog.py, so the
+    landing step (push_retry.sh -> `keep-both` below) reads the same list the
+    watchdog does. None when unreadable."""
+    try:
+        src = open(os.path.join(src_dir, "collect.py"), encoding="utf-8").read()
+        for n in ast.parse(src).body:
+            if (isinstance(n, ast.Assign) and len(n.targets) == 1
+                    and getattr(n.targets[0], "id", "") == "PAID_KINDS"):
+                kinds = tuple(ast.literal_eval(n.value))
+                return kinds or None
+    except (OSError, SyntaxError, ValueError):
+        pass
+    return None
+
+
+def keep_both(tip, kinds, cwd=None):
+    """🔴 LANDING NEVER REPLACES A PAID SNAPSHOT ANOTHER RUN ALREADY LANDED.
+
+    `[measured 2026-10-23]` Two collect runs queued through a 19-hour key
+    outage started together and both bought NFL gamelines + props at 17:28Z
+    (6 + 144 credits each). Both wrote `data/nfl/2026-10-23/<kind>/1728.json.gz`;
+    push_retry.sh's `rebase -X theirs` kept the second run's file, so the
+    first run's receipt and its 150 credits left main's tip (the watchdog
+    reported them unrecorded). Main's history holds two more: 10-11 19:19Z
+    (ncaaf gamelines, 6 credits) and 08-23 01:15Z (props-batter, 65).
+    `_paid_free_name` already keeps two same-minute pulls of ONE run apart;
+    only the landing sees two runs.
+
+    ✅ For every paid snapshot that HEAD would change on `tip` (the commit
+    this push lands on): `tip`'s file stays at its name, and this run's copy
+    moves to the next `HHMM-n` name free in both trees (`snapshot_re` reads
+    it). Folded into HEAD's commit, so nothing else in the index moves.
+    -> [(path, kept_as)]. ⛔ Only renames this run's copy; never another path,
+    never a deletion, never a file that is not a paid snapshot.
+    """
+    rx = snapshot_re(kinds)
+
+    def git(*args):
+        return subprocess.run(("git",) + args, cwd=cwd, check=True,
+                              capture_output=True).stdout
+
+    def held(rev, path):
+        return subprocess.run(("git", "cat-file", "-e", f"{rev}:{path}"),
+                              cwd=cwd, capture_output=True).returncode == 0
+
+    top = git("rev-parse", "--show-toplevel").decode().strip()
+    cwd = top
+    out = git("diff", "--name-status", "--no-renames", "-z", tip, "HEAD")
+    parts = out.decode("utf-8").split("\0")
+    kept, taken = [], set()
+    for st, path in zip(parts[0::2], parts[1::2]):
+        m = rx.search(path)
+        if st != "M" or not m:
+            continue
+        stem = path[:m.start(3)] + m.group(3)
+        n = 1
+        while (f"{stem}-{n}.json.gz" in taken or held(tip, f"{stem}-{n}.json.gz")
+               or held("HEAD", f"{stem}-{n}.json.gz")):
+            n += 1
+        free = f"{stem}-{n}.json.gz"
+        taken.add(free)
+        mine, theirs = git("cat-file", "blob", f"HEAD:{path}"), git("cat-file", "blob", f"{tip}:{path}")
+        for rel, blob in ((free, mine), (path, theirs)):
+            with open(os.path.join(top, rel), "wb") as fh:
+                fh.write(blob)
+        kept.append((path, free))
+    if kept:
+        paths = [p for pair in kept for p in pair]
+        git("add", "--", *paths)
+        git("commit", "-q", "--amend", "--no-edit", "--only", "--", *paths)
+    return kept
+
+
+if __name__ == "__main__":
+    # `python credits.py keep-both <tip>`: push_retry.sh's landing step.
+    # ⛔ Exit 1 when the registry cannot be read: the caller warns, never guesses.
+    if len(sys.argv) == 3 and sys.argv[1] == "keep-both":
+        _kinds = paid_kinds(os.path.dirname(os.path.abspath(__file__)))
+        if not _kinds:
+            print("no `PAID_KINDS = (...)` tuple was found in collect.py")
+            sys.exit(1)
+        for _path, _free in keep_both(sys.argv[2], _kinds):
+            print(f"{_path} was already on the remote (another run's paid "
+                  f"pull): this run's copy is kept beside it as "
+                  f"{os.path.basename(_free)}, never over it")
+        sys.exit(0)
+    print("usage: credits.py keep-both <tip>")
+    sys.exit(2)
