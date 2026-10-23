@@ -1,9 +1,9 @@
 {
- "date": "2026-10-22",
+ "date": "2026-10-23",
  "league": "ncaaf",
- "generated_at": "2026-10-22T19:38:36Z",
+ "generated_at": "2026-10-23T13:31:27Z",
  "generated_by": "card_fb.py",
- "kind": "MODEL + RECORD + MARKET",
+ "kind": "RECORD + MARKET",
  "odds_pulled_at": "2026-10-22T19:32:49Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
@@ -12,7 +12,7 @@
  "snap_floor": null,
  "denominator": "every game he appears in (union denominator)",
  "min_games": 6,
- "n_gated_by_measurement": 4,
+ "n_gated_by_measurement": 0,
  "rate_gates": {
   "min_reception_line": 3.5,
   "measured_markets": [
@@ -29,26 +29,26 @@
    "kind": "fb-line",
    "league": "ncaaf",
    "basis": "MODEL \u2014 the game model's probability",
-   "player": "Under",
-   "market": "total",
-   "market_label": "Total",
-   "side": "under",
-   "line": 50.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "draftkings",
-   "price": -108,
+   "player": "NC State Wolfpack",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "fanduel",
+   "price": -245,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 63,
-   "break_even": 51.9,
-   "edge": 10.9,
+   "confidence": 75,
+   "break_even": 71.0,
+   "edge": 4.4,
    "why": [
-    "The game model gives Under 63% at 50.5; the price -108 needs 51.9%."
+    "The game model gives NC State Wolfpack 75% to win; the price -245 needs 71.0%."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
    "rank": 1
@@ -57,17 +57,73 @@
    "kind": "fb-line",
    "league": "ncaaf",
    "basis": "MODEL \u2014 the game model's probability",
-   "player": "Kennesaw State Owls",
+   "player": "Air Force Falcons",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "Air Force Falcons @ Wyoming Cowboys",
+   "game_id": "1612c641ab70fd57963596255b9cb69c",
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "commence": "2026-10-24T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -200,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 70,
+   "break_even": 66.7,
+   "edge": 3.2,
+   "why": [
+    "The game model gives Air Force Falcons 70% to win; the price -200 needs 66.7%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Army Black Knights",
    "market": "spread",
    "market_label": "Spread",
-   "side": "home",
-   "line": 9.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "draftkings",
+   "side": "away",
+   "line": 2.5,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 66,
+   "break_even": 53.3,
+   "edge": 13.2,
+   "why": [
+    "The game model gives Army Black Knights 66% to cover +2.5; the price -114 needs 53.3%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "NC State Wolfpack",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -6.5,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "hardrockbet",
    "price": -110,
    "link": null,
    "clears_price_floor": true,
@@ -76,65 +132,7 @@
    "break_even": 52.4,
    "edge": 9.1,
    "why": [
-    "The game model gives Kennesaw State Owls 62% to cover +9.5; the price -110 needs 52.4%."
-   ],
-   "priced_at": "2026-10-22T19:32:48Z",
-   "rank": 2
-  },
-  {
-   "kind": "fb-line",
-   "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's chance at this line",
-   "player": "Kennesaw State Owls",
-   "market": "alternate_spread",
-   "market_label": "Alternate spread",
-   "side": "home",
-   "line": 5.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": 144,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "break_even": 41.0,
-   "edge": 11.0,
-   "why": [
-    "The game model gives Kennesaw State Owls 52% to cover +5.5; the best price, +144 at FanDuel, needs 41.0%."
-   ],
-   "priced_at": "2026-10-22T19:32:48Z",
-   "main_line": 8.5,
-   "sched_id": "401871056",
-   "rank": 3
-  },
-  {
-   "kind": "fb-line",
-   "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "James Madison Dukes",
-   "market": "spread",
-   "market_label": "Spread",
-   "side": "away",
-   "line": -11.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "break_even": 52.4,
-   "edge": 4.8,
-   "why": [
-    "The game model gives James Madison Dukes 57% to cover -11.5; the price -110 needs 52.4%."
+    "The game model gives NC State Wolfpack 62% to cover -6.5; the price -110 needs 52.4%."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
    "rank": 4
@@ -142,32 +140,170 @@
   {
    "kind": "fb-line",
    "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's chance at this line",
-   "player": "James Madison Dukes",
-   "market": "alternate_spread",
-   "market_label": "Alternate spread",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Army Black Knights",
+   "market": "moneyline",
+   "market_label": "Moneyline",
    "side": "away",
-   "line": -8.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -135,
+   "line": null,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": 104,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 64,
-   "break_even": 57.4,
-   "edge": 6.6,
+   "confidence": 61,
+   "break_even": 49.0,
+   "edge": 11.8,
    "why": [
-    "The game model gives James Madison Dukes 64% to cover -8.5; the best price, -135 at Hard Rock, needs 57.4%."
+    "The game model gives Army Black Knights 61% to win; the price +104 needs 49.0%."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
-   "main_line": -12.5,
-   "sched_id": "401869845",
    "rank": 5
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Air Force Falcons",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -4.5,
+   "game": "Air Force Falcons @ Wyoming Cowboys",
+   "game_id": "1612c641ab70fd57963596255b9cb69c",
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "commence": "2026-10-24T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 52.4,
+   "edge": 7.4,
+   "why": [
+    "The game model gives Air Force Falcons 60% to cover -4.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 6
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Virginia Cavaliers",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Duke Blue Devils @ Virginia Cavaliers",
+   "game_id": "a493efd6ef737f676a45aacc0eaf7be8",
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -125,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 55.6,
+   "edge": 3.1,
+   "why": [
+    "The game model gives Virginia Cavaliers 59% to win; the price -125 needs 55.6%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 7
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UConn Huskies",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -14.5,
+   "game": "UMass Minutemen @ UConn Huskies",
+   "game_id": "c3dd6e7e07382aa22aca6458aea01f2d",
+   "away": "UMass Minutemen",
+   "home": "UConn Huskies",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 51.2,
+   "edge": 4.6,
+   "why": [
+    "The game model gives UConn Huskies 56% to cover -14.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 8
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 54.5,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 51.2,
+   "edge": 3.6,
+   "why": [
+    "The game model gives Over 55% at 54.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 9
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Virginia Cavaliers",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -2.5,
+   "game": "Duke Blue Devils @ Virginia Cavaliers",
+   "game_id": "a493efd6ef737f676a45aacc0eaf7be8",
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 1.5,
+   "why": [
+    "The game model gives Virginia Cavaliers 53% to cover -2.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 10
   },
   {
    "kind": "fb-line",
@@ -178,262 +314,217 @@
    "market_label": "Total",
    "side": "under",
    "line": 56.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -110,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "break_even": 52.4,
-   "edge": 4.8,
-   "why": [
-    "The game model gives Under 57% at 56.5; the price -110 needs 52.4%."
-   ],
-   "priced_at": "2026-10-22T19:32:48Z",
-   "rank": 6
-  },
-  {
-   "kind": "fb-line",
-   "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "Under",
-   "market": "total",
-   "market_label": "Total",
-   "side": "under",
-   "line": 54.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "draftkings",
-   "price": -110,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "break_even": 52.4,
-   "edge": 1.9,
-   "why": [
-    "The game model gives Under 54% at 54.5; the price -110 needs 52.4%."
-   ],
-   "priced_at": "2026-10-22T19:32:48Z",
-   "rank": 7
-  },
-  {
-   "kind": "fb-line",
-   "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's probability",
-   "player": "Memphis Tigers",
-   "market": "spread",
-   "market_label": "Spread",
-   "side": "home",
-   "line": -10.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "draftkings",
-   "price": -108,
-   "link": null,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 53,
-   "break_even": 51.9,
-   "edge": 1.0,
-   "why": [
-    "The game model gives Memphis Tigers 53% to cover -10.5; the price -108 needs 51.9%."
-   ],
-   "priced_at": "2026-10-22T19:32:48Z",
-   "rank": 8
-  },
-  {
-   "kind": "fb-line",
-   "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's chance at this line",
-   "player": "Memphis Tigers",
-   "market": "alternate_spread",
-   "market_label": "Alternate spread",
-   "side": "home",
-   "line": -8.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
    "book": "hardrockbet",
-   "price": -130,
+   "price": -110,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 58,
-   "break_even": 56.5,
-   "edge": 1.5,
+   "confidence": 52,
+   "break_even": 52.4,
+   "edge": 0.0,
    "why": [
-    "The game model gives Memphis Tigers 58% to cover -8.5; the best price, -130 at Hard Rock, needs 56.5%."
+    "The game model gives Under 52% at 56.5; the price -110 needs 52.4%."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
-   "main_line": -10.5,
-   "sched_id": "401862807",
-   "rank": 9
+   "rank": 11,
+   "below_price": true
   }
  ],
  "game_lines_liked": [
   {
    "kind": "fb-line",
    "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's chance at this line",
-   "player": "James Madison Dukes",
-   "market": "alternate_spread",
-   "market_label": "Alternate spread",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Army Black Knights",
+   "market": "spread",
+   "market_label": "Spread",
    "side": "away",
-   "line": -8.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -135,
+   "line": 2.5,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 64,
-   "break_even": 57.4,
-   "edge": 6.6,
+   "confidence": 66,
+   "break_even": 53.3,
+   "edge": 13.2,
    "why": [
-    "The game model gives James Madison Dukes 64% to cover -8.5; the best price, -135 at Hard Rock, needs 57.4%.",
-    "The model's predicted score: James Madison Dukes 34, Appalachian State Mountaineers 20 (total 54).",
-    "The James Madison Dukes score 42.9 and allow 16 points a game this season (7 games).",
-    "The Appalachian State Mountaineers score 29.5 and allow 21.8 points a game this season (6 games)."
+    "The game model gives Army Black Knights 66% to cover +2.5; the price -114 needs 53.3%.",
+    "The model's predicted score: Army Black Knights 30, Tulsa Golden Hurricane 26 (total 56).",
+    "The Army Black Knights score 34.8 and allow 20 points a game this season (6 games).",
+    "The Tulsa Golden Hurricane score 29 and allow 22.4 points a game this season (7 games)."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
-   "main_line": -12.5,
-   "sched_id": "401869845",
    "rank": 1,
    "why_card": [
-    "The game model gives James Madison Dukes 64% to cover -8.5; the best price, -135 at Hard Rock, needs 57.4%."
+    "The game model gives Army Black Knights 66% to cover +2.5; the price -114 needs 53.3%."
    ]
   },
   {
    "kind": "fb-line",
    "league": "ncaaf",
    "basis": "MODEL \u2014 the game model's probability",
-   "player": "Under",
-   "market": "total",
-   "market_label": "Total",
-   "side": "under",
-   "line": 54.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "draftkings",
+   "player": "NC State Wolfpack",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -6.5,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "hardrockbet",
    "price": -110,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 54,
+   "confidence": 62,
    "break_even": 52.4,
-   "edge": 1.9,
+   "edge": 9.1,
    "why": [
-    "The game model gives Under 54% at 54.5; the price -110 needs 52.4%.",
-    "The model's predicted score: East Carolina Pirates 20, Memphis Tigers 32 (total 52).",
-    "The East Carolina Pirates score 23.5 and allow 23.8 points a game this season (6 games).",
-    "The Memphis Tigers score 35.4 and allow 22.3 points a game this season (7 games)."
+    "The game model gives NC State Wolfpack 62% to cover -6.5; the price -110 needs 52.4%.",
+    "The model's predicted score: NC State Wolfpack 33, Stanford Cardinal 22 (total 55).",
+    "The NC State Wolfpack score 33 and allow 27.7 points a game this season (6 games).",
+    "The Stanford Cardinal score 18.3 and allow 36.6 points a game this season (7 games)."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
    "rank": 2,
    "why_card": [
-    "The game model gives Under 54% at 54.5; the price -110 needs 52.4%."
+    "The game model gives NC State Wolfpack 62% to cover -6.5; the price -110 needs 52.4%."
    ]
   },
   {
    "kind": "fb-line",
    "league": "ncaaf",
-   "basis": "MODEL \u2014 the game model's chance at this line",
-   "player": "Kennesaw State Owls",
-   "market": "alternate_spread",
-   "market_label": "Alternate spread",
-   "side": "home",
-   "line": 5.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": 144,
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Air Force Falcons",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -4.5,
+   "game": "Air Force Falcons @ Wyoming Cowboys",
+   "game_id": "1612c641ab70fd57963596255b9cb69c",
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "commence": "2026-10-24T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
    "link": null,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
-   "confidence": 52,
-   "break_even": 41.0,
-   "edge": 11.0,
+   "confidence": 60,
+   "break_even": 52.4,
+   "edge": 7.4,
    "why": [
-    "The game model gives Kennesaw State Owls 52% to cover +5.5; the best price, +144 at FanDuel, needs 41.0%.",
-    "The model's predicted score: Liberty Flames 25, Kennesaw State Owls 20 (total 45).",
-    "The Liberty Flames score 31.2 and allow 15.3 points a game this season (6 games).",
-    "The Kennesaw State Owls score 22.3 and allow 23.5 points a game this season (6 games)."
+    "The game model gives Air Force Falcons 60% to cover -4.5; the price -110 needs 52.4%.",
+    "The model's predicted score: Air Force Falcons 27, Wyoming Cowboys 18 (total 45).",
+    "The Air Force Falcons score 30.8 and allow 19.7 points a game this season (6 games).",
+    "The Wyoming Cowboys score 18.3 and allow 20.9 points a game this season (7 games)."
    ],
    "priced_at": "2026-10-22T19:32:48Z",
-   "main_line": 8.5,
-   "sched_id": "401871056",
    "rank": 3,
    "why_card": [
-    "The game model gives Kennesaw State Owls 52% to cover +5.5; the best price, +144 at FanDuel, needs 41.0%."
+    "The game model gives Air Force Falcons 60% to cover -4.5; the price -110 needs 52.4%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Virginia Cavaliers",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Duke Blue Devils @ Virginia Cavaliers",
+   "game_id": "a493efd6ef737f676a45aacc0eaf7be8",
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -125,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 55.6,
+   "edge": 3.1,
+   "why": [
+    "The game model gives Virginia Cavaliers 59% to win; the price -125 needs 55.6%.",
+    "The model's predicted score: Duke Blue Devils 22, Virginia Cavaliers 25 (total 47).",
+    "The Duke Blue Devils score 31.7 and allow 16 points a game this season (6 games).",
+    "The Virginia Cavaliers score 30 and allow 19.7 points a game this season (7 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 4,
+   "why_card": [
+    "The game model gives Virginia Cavaliers 59% to win; the price -125 needs 55.6%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UConn Huskies",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -14.5,
+   "game": "UMass Minutemen @ UConn Huskies",
+   "game_id": "c3dd6e7e07382aa22aca6458aea01f2d",
+   "away": "UMass Minutemen",
+   "home": "UConn Huskies",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 51.2,
+   "edge": 4.6,
+   "why": [
+    "The game model gives UConn Huskies 56% to cover -14.5; the price -105 needs 51.2%.",
+    "The model's predicted score: UMass Minutemen 16, UConn Huskies 33 (total 49).",
+    "The UMass Minutemen score 28 and allow 19.1 points a game this season (7 games).",
+    "The UConn Huskies score 35.7 and allow 25.2 points a game this season (6 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 5,
+   "why_card": [
+    "The game model gives UConn Huskies 56% to cover -14.5; the price -105 needs 51.2%."
    ]
   }
  ],
  "game_lines_meta": {
   "source": "fb-model.json",
-  "slate": "2026-10-22",
-  "card_slate": "2026-10-22",
+  "slate": "2026-10-23",
+  "card_slate": "2026-10-23",
   "is_next_slate": false,
   "price_floor": -400,
   "min_confidence": 50,
   "model_cap": 25,
-  "model_built_at": "2026-10-22T19:38:24Z",
-  "ladder_built_at": "2026-10-22T19:38:29Z",
-  "alt_spreads": 3
+  "model_built_at": "2026-10-23T13:31:15Z",
+  "ladder_built_at": "2026-10-23T13:31:20Z",
+  "alt_spreads": 0
  },
  "scores_shown": [
-  {
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "score": {
-    "home": 20,
-    "away": 34
-   }
-  },
-  {
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "score": {
-    "home": 20,
-    "away": 25
-   }
-  },
-  {
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "score": {
-    "home": 32,
-    "away": 20
-   }
-  },
   {
    "away": "Duke Blue Devils",
    "home": "Virginia Cavaliers",
    "score": {
-    "home": 26,
+    "home": 25,
     "away": 22
    }
   },
@@ -506,7 +597,7 @@
    "home": "Miami Hurricanes",
    "score": {
     "home": 34,
-    "away": 16
+    "away": 17
    }
   },
   {
@@ -601,7 +692,7 @@
    "away": "BYU Cougars",
    "home": "UCF Knights",
    "score": {
-    "home": 18,
+    "home": 19,
     "away": 22
    }
   },
@@ -625,7 +716,7 @@
    "away": "Iowa Hawkeyes",
    "home": "Minnesota Golden Gophers",
    "score": {
-    "home": 16,
+    "home": 17,
     "away": 24
    }
   },
@@ -665,7 +756,7 @@
    "away": "Bowling Green Falcons",
    "home": "Buffalo Bulls",
    "score": {
-    "home": 25,
+    "home": 24,
     "away": 22
    }
   },
@@ -674,7 +765,7 @@
    "home": "Ohio Bobcats",
    "score": {
     "home": 30,
-    "away": 16
+    "away": 17
    }
   },
   {
@@ -689,8 +780,8 @@
    "away": "San Jose State Spartans",
    "home": "Nevada Wolf Pack",
    "score": {
-    "home": 24,
-    "away": 18
+    "home": 23,
+    "away": 19
    }
   },
   {
@@ -746,7 +837,7 @@
    "home": "Kentucky Wildcats",
    "score": {
     "home": 31,
-    "away": 19
+    "away": 18
    }
   },
   {
@@ -769,7 +860,7 @@
    "away": "Syracuse Orange",
    "home": "North Carolina Tar Heels",
    "score": {
-    "home": 28,
+    "home": 27,
     "away": 22
    }
   },
@@ -802,7 +893,7 @@
    "home": "Tulane Green Wave",
    "score": {
     "home": 26,
-    "away": 22
+    "away": 21
    }
   },
   {
@@ -833,7 +924,7 @@
    "away": "Sam Houston State Bearkats",
    "home": "Missouri State Bears",
    "score": {
-    "home": 28,
+    "home": 27,
     "away": 23
    }
   },
@@ -846,704 +937,29 @@
    }
   }
  ],
- "game_lines_rule": "The game model's own 6 pick(s) for 2026-10-22 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (3 listed).",
- "top_plays": [
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Henry Hasselbeck",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 183.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618509832&selectionId=103917233",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 73,
-   "model_p": 72.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": 19.7,
-   "rank": 1
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Rickie Collins",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 26.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618208183&selectionId=102903935",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "8 of 13",
-   "record": "8 of 13",
-   "rate": 47,
-   "break_even": 53.3,
-   "edge": 3.7,
-   "season_detail": {
-    "h25": 3,
-    "n25": 7,
-    "h26": 5,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.301,
-    "weighted_n": 8.8,
-    "mean_all": 30.538
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 18.0,
-   "projection": 30.5,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game.",
-   "why": [],
-   "model_p": 57.2,
-   "rank": 3
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Hunter Tipton",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 35.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617754529&selectionId=102135783",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "12 of 19",
-   "record": "12 of 19",
-   "rate": 73,
-   "break_even": 53.3,
-   "edge": 1.7,
-   "season_detail": {
-    "h25": 7,
-    "n25": 12,
-    "h26": 5,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.798,
-    "weighted_n": 11.36,
-    "mean_all": 41.632
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 34.25,
-   "projection": 41.6,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 41.6 rec yds a game.",
-   "why": [],
-   "model_p": 54.7,
-   "rank": 8
-  }
- ],
+ "game_lines_rule": "The game model's own 11 pick(s) for 2026-10-23 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 7,
-  "same_game_already_listed": 47,
+  "same_player_already_listed": 0,
+  "same_game_already_listed": 0,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 57,
+  "pool_after_price_gate": 0,
   "cap": 10,
-  "distinct_games": 3,
-  "shared_with_board_head": 3,
-  "board_head_size": 10
+  "distinct_games": 0,
+  "shared_with_board_head": 0,
+  "board_head_size": 0
  },
- "top_plays_rule": "The 3 most likely to hit for 2026-10-22 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 3 of 10, over 3 game(s). 47 row(s) were held back because their game was already represented and 7 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "No top plays for 2026-10-23. Nothing is priced for this day yet, so there was nothing to rank. \u26a0\ufe0f When rows do arrive, only those carrying a record are ranked \u2014 ranking by price would be ranking by which bet pays worst while calling it 'most likely to hit'.",
  "parlays": {
-  "2": [
-   {
-    "legs": [
-     "Henry Hasselbeck u183.5 pass yds",
-     "Rickie Collins o26.5 rush yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 41.6,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     73,
-     57
-    ],
-    "break_even": 28.4,
-    "edge": 13.2,
-    "ev_30": 13.99
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u183.5 pass yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 40.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     73,
-     55
-    ],
-    "break_even": 28.4,
-    "edge": 11.8,
-    "ev_30": 12.44
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u53.5 rush yds",
-     "Rickie Collins o26.5 rush yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 34.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     60,
-     57
-    ],
-    "break_even": 28.4,
-    "edge": 5.8,
-    "ev_30": 6.15
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u52.5 rush yds",
-     "Rickie Collins o27.5 rush yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762"
-    ],
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -115
-    ],
-    "multiplier": 3.495,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 34.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     60,
-     57
-    ],
-    "break_even": 28.6,
-    "edge": 5.6,
-    "ev_30": 5.86
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u53.5 rush yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "multiplier": 3.524,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 33.0,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     60,
-     55
-    ],
-    "break_even": 28.4,
-    "edge": 4.6,
-    "ev_30": 4.89
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u52.5 rush yds",
-     "Hunter Tipton u37.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -120
-    ],
-    "multiplier": 3.428,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 33.0,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     60,
-     55
-    ],
-    "break_even": 29.2,
-    "edge": 3.8,
-    "ev_30": 3.93
-   },
-   {
-    "legs": [
-     "Cole Keller u3.5 rec",
-     "Rickie Collins o26.5 rush yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -180,
-     -114
-    ],
-    "multiplier": 2.92,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 32.5,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     57
-    ],
-    "break_even": 34.2,
-    "edge": -1.8,
-    "ev_30": -1.54
-   },
-   {
-    "legs": [
-     "Rickie Collins o26.5 rush yds",
-     "Sam Pickett III u4.5 rec"
-    ],
-    "games": [
-     "Liberty Flames @ Kennesaw State Owls",
-     "James Madison Dukes @ Appalachian State Mountaineers"
-    ],
-    "game_ids": [
-     "1635891ddb79191dba2be031ad6dc762",
-     "d476cb73381765342220f698035bc889"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -148
-    ],
-    "multiplier": 3.146,
-    "n_legs": 2,
-    "band": "1.8x+",
-    "joint": 31.9,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     56
-    ],
-    "break_even": 31.8,
-    "edge": 0.1,
-    "ev_30": 0.12
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "Henry Hasselbeck u183.5 pass yds",
-     "Rickie Collins o26.5 rush yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 6.615,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 22.9,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     73,
-     57,
-     55
-    ],
-    "break_even": 15.1,
-    "edge": 7.8,
-    "ev_30": 15.42
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u53.5 rush yds",
-     "Rickie Collins o26.5 rush yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 6.615,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 18.8,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     60,
-     57,
-     55
-    ],
-    "break_even": 15.1,
-    "edge": 3.7,
-    "ev_30": 7.33
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u52.5 rush yds",
-     "Rickie Collins o27.5 rush yds",
-     "Hunter Tipton u37.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -115,
-     -120
-    ],
-    "multiplier": 6.408,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 18.8,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     60,
-     57,
-     55
-    ],
-    "break_even": 15.6,
-    "edge": 3.2,
-    "ev_30": 6.16
-   },
-   {
-    "legs": [
-     "Cole Keller u3.5 rec",
-     "Rickie Collins o26.5 rush yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "Liberty Flames @ Kennesaw State Owls",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "d476cb73381765342220f698035bc889",
-     "1635891ddb79191dba2be031ad6dc762",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -180,
-     -114,
-     -114
-    ],
-    "multiplier": 5.482,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 17.9,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     57,
-     55
-    ],
-    "break_even": 18.2,
-    "edge": -0.4,
-    "ev_30": -0.61
-   },
-   {
-    "legs": [
-     "Rickie Collins o26.5 rush yds",
-     "Sam Pickett III u4.5 rec",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "Liberty Flames @ Kennesaw State Owls",
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "1635891ddb79191dba2be031ad6dc762",
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -148,
-     -114
-    ],
-    "multiplier": 5.905,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 17.6,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     56,
-     55
-    ],
-    "break_even": 16.9,
-    "edge": 0.6,
-    "ev_30": 1.1
-   },
-   {
-    "legs": [
-     "Rickie Collins o26.5 rush yds",
-     "Sam Pickett III u55.5 rec yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "Liberty Flames @ Kennesaw State Owls",
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "1635891ddb79191dba2be031ad6dc762",
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 6.615,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 17.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     55,
-     55
-    ],
-    "break_even": 15.1,
-    "edge": 2.1,
-    "ev_30": 4.22
-   },
-   {
-    "legs": [
-     "Rickie Collins o26.5 rush yds",
-     "George Pettaway u105.5 rush yds",
-     "Hunter Tipton u35.5 rec yds"
-    ],
-    "games": [
-     "Liberty Flames @ Kennesaw State Owls",
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "1635891ddb79191dba2be031ad6dc762",
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114
-    ],
-    "multiplier": 6.615,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 17.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     55,
-     55
-    ],
-    "break_even": 15.1,
-    "edge": 2.1,
-    "ev_30": 4.22
-   },
-   {
-    "legs": [
-     "Rickie Collins o27.5 rush yds",
-     "Sam Pickett III u56.5 rec yds",
-     "Hunter Tipton u37.5 rec yds"
-    ],
-    "games": [
-     "Liberty Flames @ Kennesaw State Owls",
-     "James Madison Dukes @ Appalachian State Mountaineers",
-     "East Carolina Pirates @ Memphis Tigers"
-    ],
-    "game_ids": [
-     "1635891ddb79191dba2be031ad6dc762",
-     "d476cb73381765342220f698035bc889",
-     "5be63fd8c778b46afe084d3352e38a40"
-    ],
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -110,
-     -120
-    ],
-    "multiplier": 6.543,
-    "n_legs": 3,
-    "band": "3x+",
-    "joint": 17.2,
-    "joint_basis": "MODEL",
-    "joint_note": "The legs' own confidences multiplied together: each is the props model's chance where it priced that prop and the player's own rate at that exact line otherwise. Legs are in different games, so they are treated as independent; that assumption is not free and has never been tested here.",
-    "leg_confidences": [
-     57,
-     55,
-     55
-    ],
-    "break_even": 15.3,
-    "edge": 2.0,
-    "ev_30": 3.85
-   }
-  ],
+  "2": [],
+  "3": [],
   "4": []
  },
  "parlay_meta": {
-  "pool": 16,
-  "rated_legs": 57,
+  "pool": 0,
+  "rated_legs": 0,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -1552,18 +968,18 @@
    },
    {
     "decimal": "1.3-1.6",
-    "available": 3,
-    "taken": 3
+    "available": 0,
+    "taken": 0
    },
    {
     "decimal": "1.6-2",
-    "available": 53,
-    "taken": 12
+    "available": 0,
+    "taken": 0
    },
    {
     "decimal": "2-3",
-    "available": 1,
-    "taken": 1
+    "available": 0,
+    "taken": 0
    },
    {
     "decimal": "3-99",
@@ -1572,425 +988,25 @@
    }
   ],
   "rejected": {
-   "same_game": 2400,
+   "same_game": 0,
    "same_player": 0,
-   "mixed_book": 62,
+   "mixed_book": 0,
    "out_of_band": 0
   },
-  "note": "57 rated legs, 16 in the stratified pool. Rejected: 2400 same game, 0 same player, 62 would need two books, 0 outside Sam's bands."
+  "note": "0 rated legs, 0 in the stratified pool. Rejected: 0 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
-  "2": [
-   {
-    "legs": [
-     "Rickie Collins o26.5 rush yds",
-     "Under 50.5 total"
-    ],
-    "game": "Liberty Flames @ Kennesaw State Owls",
-    "game_id": "1635891ddb79191dba2be031ad6dc762",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -108,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.584,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 57,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     57
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Rickie Collins o27.5 rush yds",
-     "Under 50.5 total"
-    ],
-    "game": "Liberty Flames @ Kennesaw State Owls",
-    "game_id": "1635891ddb79191dba2be031ad6dc762",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -108,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.569,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 57,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     57
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u183.5 pass yds",
-     "Cole Keller u3.5 rec"
-    ],
-    "game": "James Madison Dukes @ Appalachian State Mountaineers",
-    "game_id": "d476cb73381765342220f698035bc889",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -180
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 2.92,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 57,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     73,
-     57
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u53.5 rush yds",
-     "Cole Keller u3.5 rec"
-    ],
-    "game": "James Madison Dukes @ Appalachian State Mountaineers",
-    "game_id": "d476cb73381765342220f698035bc889",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -180
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 2.92,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 57,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     60,
-     57
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Hunter Tipton u35.5 rec yds",
-     "Emory Williams u180.5 pass yds"
-    ],
-    "game": "East Carolina Pirates @ Memphis Tigers",
-    "game_id": "5be63fd8c778b46afe084d3352e38a40",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.524,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 52,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     55,
-     52
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Hunter Tipton u35.5 rec yds",
-     "Marcus Stokes u227.5 pass yds"
-    ],
-    "game": "East Carolina Pirates @ Memphis Tigers",
-    "game_id": "5be63fd8c778b46afe084d3352e38a40",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 2,
-    "n_line_legs": 0,
-    "multiplier": 3.524,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 52,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     55,
-     52
-    ],
-    "band_floor": 1.8
-   }
-  ],
-  "3": [
-   {
-    "legs": [
-     "Henry Hasselbeck u183.5 pass yds",
-     "Cole Keller u3.5 rec",
-     "Sam Pickett III u4.5 rec"
-    ],
-    "game": "James Madison Dukes @ Appalachian State Mountaineers",
-    "game_id": "d476cb73381765342220f698035bc889",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -180,
-     -148
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 4.893,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     73,
-     57,
-     56
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Henry Hasselbeck u53.5 rush yds",
-     "Cole Keller u3.5 rec",
-     "Sam Pickett III u4.5 rec"
-    ],
-    "game": "James Madison Dukes @ Appalachian State Mountaineers",
-    "game_id": "d476cb73381765342220f698035bc889",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -180,
-     -148
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 4.893,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 56,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     60,
-     57,
-     56
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Rickie Collins o27.5 rush yds",
-     "Kam Davis u88.5 rush yds",
-     "Under 50.5 total"
-    ],
-    "game": "Liberty Flames @ Kennesaw State Owls",
-    "game_id": "1635891ddb79191dba2be031ad6dc762",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -115,
-     -115,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -108,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.673,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 54,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     57,
-     54
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Rickie Collins o26.5 rush yds",
-     "Kam Davis u85.5 rush yds",
-     "Under 50.5 total"
-    ],
-    "game": "Liberty Flames @ Kennesaw State Owls",
-    "game_id": "1635891ddb79191dba2be031ad6dc762",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -110
-    ],
-    "line_best_book": "draftkings",
-    "line_best_price": -108,
-    "n_legs": 3,
-    "n_line_legs": 1,
-    "multiplier": 6.727,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 53,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     57,
-     53
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Hunter Tipton u35.5 rec yds",
-     "Emory Williams u180.5 pass yds",
-     "Marcus Stokes u227.5 pass yds"
-    ],
-    "game": "East Carolina Pirates @ Memphis Tigers",
-    "game_id": "5be63fd8c778b46afe084d3352e38a40",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -114,
-     -114
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 6.615,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 52,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     55,
-     52,
-     52
-    ],
-    "band_floor": 3.0
-   },
-   {
-    "legs": [
-     "Hunter Tipton u37.5 rec yds",
-     "Jaylin Carter u91.5 rush yds",
-     "Emory Williams u182.5 pass yds"
-    ],
-    "game": "East Carolina Pirates @ Memphis Tigers",
-    "game_id": "5be63fd8c778b46afe084d3352e38a40",
-    "same_game": true,
-    "book": "hardrockbet",
-    "prices": [
-     -120,
-     -110,
-     -125
-    ],
-    "line_best_book": null,
-    "line_best_price": null,
-    "n_legs": 3,
-    "n_line_legs": 0,
-    "multiplier": 6.3,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 52,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     55,
-     52,
-     52
-    ],
-    "band_floor": 3.0
-   }
-  ]
+  "2": [],
+  "3": []
  },
  "sgp_meta": {
-  "games_with_rated_legs": 3,
-  "games_with_a_line_row": 1,
-  "games_used": 3,
+  "games_with_rated_legs": 0,
+  "games_with_a_line_row": 3,
+  "games_used": 0,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 169,
-   "mixed_book": 223,
+   "same_player": 0,
+   "mixed_book": 0,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -1998,1662 +1014,34 @@
   },
   "ceiling_applied": false,
   "line_leg_priced_at": "the props' own book, not the best book",
-  "note": "3 game(s) on this card carry a rated leg and 1 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+  "note": "0 game(s) on this card carry a rated leg and 3 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
  },
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
- "projections": {
-  "Braeden Wisloski|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.2 TD a game."
-  },
-  "George Pettaway|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.4 TD a game."
-  },
-  "JC Evans|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Jaquari Lewis|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.7 TD a game."
-  },
-  "Malachi Singleton|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Michael Scott|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Braeden Wisloski|player_reception_yds|over|23.5": {
-   "v": 32.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 32.4 rec yds a game."
-  },
-  "Braeden Wisloski|player_reception_yds|under|23.5": {
-   "v": 32.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 32.4 rec yds a game."
-  },
-  "Michael Scott|player_reception_yds|over|35.5": {
-   "v": 32.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 32.6 rec yds a game."
-  },
-  "Michael Scott|player_reception_yds|under|35.5": {
-   "v": 32.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 32.6 rec yds a game."
-  },
-  "Michael Scott|player_reception_yds|over|40.5": {
-   "v": 32.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 32.6 rec yds a game."
-  },
-  "Michael Scott|player_reception_yds|under|40.5": {
-   "v": 32.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 32.6 rec yds a game."
-  },
-  "Michael Scott|player_receptions|over|3.5": {
-   "v": 2.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 2.7 rec a game."
-  },
-  "Michael Scott|player_receptions|under|3.5": {
-   "v": 2.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 2.7 rec a game."
-  },
-  "George Pettaway|player_rush_yds|over|104.5": {
-   "v": 53.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 53.4 rush yds a game."
-  },
-  "George Pettaway|player_rush_yds|under|104.5": {
-   "v": 53.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 53.4 rush yds a game."
-  },
-  "George Pettaway|player_rush_yds|over|105.5": {
-   "v": 53.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 53.4 rush yds a game."
-  },
-  "George Pettaway|player_rush_yds|under|105.5": {
-   "v": 53.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 53.4 rush yds a game."
-  },
-  "Jaquari Lewis|player_rush_yds|over|42.5": {
-   "v": 50.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 50.7 rush yds a game."
-  },
-  "Jaquari Lewis|player_rush_yds|under|42.5": {
-   "v": 50.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 50.7 rush yds a game."
-  },
-  "Jaquari Lewis|player_rush_yds|over|44.5": {
-   "v": 50.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 50.7 rush yds a game."
-  },
-  "Jaquari Lewis|player_rush_yds|under|44.5": {
-   "v": 50.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 50.7 rush yds a game."
-  },
-  "Deshawn Purdie|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.0 TD a game."
-  },
-  "Dylan Gary|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Jaylon Coleman|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Kam Davis|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 0.7 TD a game."
-  },
-  "Makai Jackson|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.7 TD a game."
-  },
-  "Peyton Jones|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Rickie Collins|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Terron Kellman|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Zion Booker|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Deshawn Purdie|player_pass_yds|over|173.5": {
-   "v": 119.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 119.1 pass yds a game."
-  },
-  "Deshawn Purdie|player_pass_yds|under|173.5": {
-   "v": 119.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 119.1 pass yds a game."
-  },
-  "Rickie Collins|player_pass_yds|over|211.5": {
-   "v": 179.2,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 179.2 pass yds a game."
-  },
-  "Rickie Collins|player_pass_yds|under|211.5": {
-   "v": 179.2,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 179.2 pass yds a game."
-  },
-  "Rickie Collins|player_pass_yds|over|213.5": {
-   "v": 179.2,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 179.2 pass yds a game."
-  },
-  "Rickie Collins|player_pass_yds|under|213.5": {
-   "v": 179.2,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 179.2 pass yds a game."
-  },
-  "Makai Jackson|player_reception_yds|over|65.5": {
-   "v": 75.7,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 75.7 rec yds a game."
-  },
-  "Makai Jackson|player_reception_yds|under|65.5": {
-   "v": 75.7,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 75.7 rec yds a game."
-  },
-  "Makai Jackson|player_reception_yds|over|66.5": {
-   "v": 75.7,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 75.7 rec yds a game."
-  },
-  "Makai Jackson|player_reception_yds|under|66.5": {
-   "v": 75.7,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 75.7 rec yds a game."
-  },
-  "Makai Jackson|player_receptions|over|3.5": {
-   "v": 3.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 3.6 rec a game."
-  },
-  "Makai Jackson|player_receptions|under|3.5": {
-   "v": 3.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 3.6 rec a game."
-  },
-  "Kam Davis|player_rush_yds|over|85.5": {
-   "v": 63.9,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 63.9 rush yds a game."
-  },
-  "Kam Davis|player_rush_yds|under|85.5": {
-   "v": 63.9,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 63.9 rush yds a game."
-  },
-  "Kam Davis|player_rush_yds|over|88.5": {
-   "v": 63.9,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 63.9 rush yds a game."
-  },
-  "Kam Davis|player_rush_yds|under|88.5": {
-   "v": 63.9,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 63.9 rush yds a game."
-  },
-  "Peyton Jones|player_rush_yds|over|35.5": {
-   "v": 32.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 32.6 rush yds a game."
-  },
-  "Peyton Jones|player_rush_yds|under|35.5": {
-   "v": 32.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 32.6 rush yds a game."
-  },
-  "Rickie Collins|player_rush_yds|over|26.5": {
-   "v": 30.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game."
-  },
-  "Rickie Collins|player_rush_yds|under|26.5": {
-   "v": 30.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game."
-  },
-  "Rickie Collins|player_rush_yds|over|27.5": {
-   "v": 30.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game."
-  },
-  "Rickie Collins|player_rush_yds|under|27.5": {
-   "v": 30.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game."
-  },
-  "Ashton Gray|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Dallan Hayden|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Emory Williams|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Hunter Tipton|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Jaylin Carter|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Jeremiah Melvin|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Jermane Hayes|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Manny Covey|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Michael Allen|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.5 TD a game."
-  },
-  "TJ Engleman Jr.|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Emory Williams|player_pass_yds|over|180.5": {
-   "v": 90.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 90.1 pass yds a game."
-  },
-  "Emory Williams|player_pass_yds|under|180.5": {
-   "v": 90.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 90.1 pass yds a game."
-  },
-  "Emory Williams|player_pass_yds|over|182.5": {
-   "v": 90.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 90.1 pass yds a game."
-  },
-  "Emory Williams|player_pass_yds|under|182.5": {
-   "v": 90.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 90.1 pass yds a game."
-  },
-  "Hunter Tipton|player_reception_yds|over|35.5": {
-   "v": 41.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 41.6 rec yds a game."
-  },
-  "Hunter Tipton|player_reception_yds|under|35.5": {
-   "v": 41.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 41.6 rec yds a game."
-  },
-  "Hunter Tipton|player_reception_yds|over|37.5": {
-   "v": 41.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 41.6 rec yds a game."
-  },
-  "Hunter Tipton|player_reception_yds|under|37.5": {
-   "v": 41.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 41.6 rec yds a game."
-  },
-  "Jaylin Carter|player_rush_yds|over|90.5": {
-   "v": 55.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 55.6 rush yds a game."
-  },
-  "Jaylin Carter|player_rush_yds|under|90.5": {
-   "v": 55.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 55.6 rush yds a game."
-  },
-  "Jaylin Carter|player_rush_yds|over|91.5": {
-   "v": 55.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 55.6 rush yds a game."
-  },
-  "Jaylin Carter|player_rush_yds|under|91.5": {
-   "v": 55.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 55.6 rush yds a game."
-  },
-  "TJ Engleman Jr.|player_rush_yds|over|78.5": {
-   "v": 53.1,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 53.1 rush yds a game."
-  },
-  "TJ Engleman Jr.|player_rush_yds|under|78.5": {
-   "v": 53.1,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 53.1 rush yds a game."
-  }
- },
- "name_match_rate": 0.563,
- "n_priced": 69,
+ "projections": {},
+ "name_match_rate": null,
+ "n_priced": 0,
  "single_day": true,
- "slate_date": "2026-10-22",
+ "slate_date": "2026-10-23",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 69,
+ "n_on_slate_day": 0,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
- "single_day_rule": "This board is 2026-10-22 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
- "empty_reason": null,
+ "single_day_rule": "This board is 2026-10-23 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": "No College Football picks for 2026-10-23. Nothing is priced for this day yet. An empty board on a day with no games is the correct result, not a failure \u2014 the card was built and it found nothing to show.",
  "short_reason": null,
- "coverage": "69 priced football rows for 2026-10-22 across 3 board games; 25 shown.",
+ "coverage": "0 priced football rows for 2026-10-23 across 0 board games; 0 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 59.1% against a claimed 53.5% (+5.6 pts, n=88). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 88 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
- "picks": [
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Henry Hasselbeck",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 183.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618509832&selectionId=103917233",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 73,
-   "model_p": 72.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": 19.7,
-   "rank": 1
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Henry Hasselbeck",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 53.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618509840&selectionId=103917233",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 60,
-   "model_p": 59.9,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": 6.7,
-   "rank": 2
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Rickie Collins",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 26.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618208183&selectionId=102903935",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "8 of 13",
-   "record": "8 of 13",
-   "rate": 47,
-   "break_even": 53.3,
-   "edge": 3.7,
-   "season_detail": {
-    "h25": 3,
-    "n25": 7,
-    "h26": 5,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.301,
-    "weighted_n": 8.8,
-    "mean_all": 30.538
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 18.0,
-   "projection": 30.5,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game.",
-   "why": [],
-   "model_p": 57.2,
-   "rank": 3
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Cole Keller",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 3.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -180,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618700979&selectionId=104170850",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 57,
-   "model_p": 56.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 64.3,
-   "edge": -7.3,
-   "rank": 4,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Sam Pickett III",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 4.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -148,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618700797&selectionId=104001845",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 56,
-   "model_p": 56.5,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 59.7,
-   "edge": -3.7,
-   "rank": 5,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Sam Pickett III",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 56.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8648053726050910621",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 55,
-   "model_p": 55.3,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 2.6,
-   "rank": 6
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "George Pettaway",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 105.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618532797&selectionId=102931343",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "14 of 18",
-   "record": "14 of 18",
-   "rate": 79,
-   "break_even": 53.3,
-   "edge": 1.7,
-   "season_detail": {
-    "h25": 11,
-    "n25": 11,
-    "h26": 3,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.924,
-    "weighted_n": 11.0,
-    "mean_all": 53.444
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 17.73,
-   "projection": 53.4,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 18 games this record is built from \u2014 53.4 rush yds a game.",
-   "why": [],
-   "model_p": 54.6,
-   "rank": 7
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Hunter Tipton",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 35.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617754529&selectionId=102135783",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "12 of 19",
-   "record": "12 of 19",
-   "rate": 73,
-   "break_even": 53.3,
-   "edge": 1.7,
-   "season_detail": {
-    "h25": 7,
-    "n25": 12,
-    "h26": 5,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.798,
-    "weighted_n": 11.36,
-    "mean_all": 41.632
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 34.25,
-   "projection": 41.6,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 41.6 rec yds a game.",
-   "why": [],
-   "model_p": 54.7,
-   "rank": 8
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Kam Davis",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 88.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/20755199203344818",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "raw": "7 of 9",
-   "record": "7 of 9",
-   "rate": 82,
-   "break_even": 53.5,
-   "edge": 0.5,
-   "season_detail": {
-    "h25": 3,
-    "n25": 3,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.881,
-    "weighted_n": 7.2,
-    "mean_all": 63.889
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 17.0,
-   "projection": 63.9,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 63.9 rush yds a game.",
-   "why": [],
-   "model_p": 53.8,
-   "rank": 9
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Braeden Wisloski",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "over",
-   "line": 2.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": 102,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618700977&selectionId=103447718",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 53,
-   "model_p": 53.1,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 49.5,
-   "edge": 3.5,
-   "rank": 10
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Brayden Munroe",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 49.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -120,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/862270271812403606",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 53,
-   "model_p": 52.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 54.5,
-   "edge": -1.5,
-   "rank": 11,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Corey Scott",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 3.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -166,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618700976&selectionId=102931447",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 53,
-   "model_p": 53.0,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 62.4,
-   "edge": -9.4,
-   "rank": 12,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Michael Scott",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 35.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -105,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6478909147080425895",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "6 of 10",
-   "record": "6 of 10",
-   "rate": 50,
-   "break_even": 51.2,
-   "edge": 0.8,
-   "season_detail": {
-    "h25": 2,
-    "n25": 4,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.421,
-    "weighted_n": 7.6,
-    "mean_all": 32.6
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 21.25,
-   "projection": 32.6,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 10 games this record is built from \u2014 32.6 rec yds a game.",
-   "why": [],
-   "model_p": 51.5,
-   "rank": 13
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Braeden Wisloski",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "over",
-   "line": 23.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6594947206229393831",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "10 of 17",
-   "record": "10 of 17",
-   "rate": 57,
-   "break_even": 52.4,
-   "edge": -0.4,
-   "season_detail": {
-    "h25": 7,
-    "n25": 11,
-    "h26": 3,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.574,
-    "weighted_n": 10.4,
-    "mean_all": 32.412
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 32.55,
-   "projection": 32.4,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 17 games this record is built from \u2014 32.4 rec yds a game.",
-   "why": [],
-   "model_p": 51.7,
-   "rank": 14,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Nate Branch",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 34.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/4717483309553287580",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.9,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": -0.4,
-   "rank": 15,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jaylin Carter",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 91.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/3781581844521288092",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "12 of 17",
-   "record": "12 of 17",
-   "rate": 72,
-   "break_even": 52.4,
-   "edge": -0.4,
-   "season_detail": {
-    "h25": 10,
-    "n25": 10,
-    "h26": 2,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.891,
-    "weighted_n": 10.64,
-    "mean_all": 55.647
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 16.6,
-   "projection": 55.6,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 17 games this record is built from \u2014 55.6 rush yds a game.",
-   "why": [],
-   "model_p": 51.5,
-   "rank": 16,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Camden Coleman",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 196.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618509833&selectionId=102923712",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.9,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": -1.3,
-   "rank": 17,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Corey Scott",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 46.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618531180&selectionId=102931447",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 52.5,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": -1.3,
-   "rank": 18,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Jaquari Lewis",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 42.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618534482&selectionId=103917256",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "10 of 19",
-   "record": "10 of 19",
-   "rate": 46,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 6,
-    "n25": 13,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.361,
-    "weighted_n": 11.2,
-    "mean_all": 50.737
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 47.54,
-   "projection": 50.7,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 19 games this record is built from \u2014 50.7 rush yds a game.",
-   "why": [],
-   "model_p": 51.7,
-   "rank": 19,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Deshawn Purdie",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 173.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618206538&selectionId=103141000",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "9 of 14",
-   "record": "9 of 14",
-   "rate": 56,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 6,
-    "n25": 8,
-    "h26": 3,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.538,
-    "weighted_n": 9.2,
-    "mean_all": 119.143
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 77.25,
-   "projection": 119.1,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 14 games this record is built from \u2014 119.1 pass yds a game.",
-   "why": [],
-   "model_p": 51.8,
-   "rank": 20,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Makai Jackson",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 66.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618215815&selectionId=103141633",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "2 of 7",
-   "record": "2 of 7",
-   "rate": 61,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 1,
-    "n25": 1,
-    "h26": 1,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.816,
-    "weighted_n": 6.4,
-    "mean_all": 75.714
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 15.0,
-   "projection": 75.7,
-   "projection_unit": "rec yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 7 games this record is built from \u2014 75.7 rec yds a game.",
-   "why": [],
-   "model_p": 52.0,
-   "rank": 21,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Emory Williams",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 180.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617753940&selectionId=103902657",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 52,
-   "raw": "8 of 9",
-   "record": "8 of 9",
-   "rate": 67,
-   "break_even": 53.3,
-   "edge": -1.3,
-   "season_detail": {
-    "h25": 4,
-    "n25": 4,
-    "h26": 4,
-    "n26": 5,
-    "w25": 0.444,
-    "p0": 0.56,
-    "weighted_n": 6.78,
-    "mean_all": 90.111
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 39.0,
-   "projection": 90.1,
-   "projection_unit": "pass yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 90.1 pass yds a game.",
-   "why": [],
-   "model_p": 52.1,
-   "rank": 22,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Marcus Stokes",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 227.5,
-   "game": "East Carolina Pirates @ Memphis Tigers",
-   "game_id": "5be63fd8c778b46afe084d3352e38a40",
-   "away": "East Carolina Pirates",
-   "home": "Memphis Tigers",
-   "commence": "2026-10-22T23:30:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617753939&selectionId=102135514",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": -1.3,
-   "rank": 23,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Camden Coleman",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 17.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7626562515668959627",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 51.9,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.5,
-   "edge": -1.5,
-   "rank": 24,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Darrin Fugitt",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 3.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -148,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618700798&selectionId=104001866",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [],
-   "confidence": 52,
-   "model_p": 52.3,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 59.7,
-   "edge": -7.7,
-   "rank": 25,
-   "below_price": true
-  }
- ],
- "liked": [
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Henry Hasselbeck",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 183.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618509832&selectionId=103917233",
-   "n_books": 2,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [
-    "The James Madison Dukes allow 256.2 passing yards a game to quarterbacks (18th most of 83).",
-    "The model gives it <b>73%</b>; at -114 it needs 53.3% to pay."
-   ],
-   "confidence": 73,
-   "model_p": 72.6,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 53.3,
-   "edge": 19.7,
-   "rank": 1,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Rickie Collins",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "over",
-   "line": 26.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618208183&selectionId=102903935",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "8 of 13",
-   "record": "8 of 13",
-   "rate": 47,
-   "break_even": 53.3,
-   "edge": 3.7,
-   "season_detail": {
-    "h25": 3,
-    "n25": 7,
-    "h26": 5,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.301,
-    "weighted_n": 8.8,
-    "mean_all": 30.538
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 18.0,
-   "projection": 30.5,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 13 games this record is built from \u2014 30.5 rush yds a game.",
-   "why": [
-    "The Liberty Flames allow 38.2 rushing yards a game to quarterbacks.",
-    "The model gives it <b>57%</b>; at -114 it needs 53.3% to pay."
-   ],
-   "model_p": 57.2,
-   "rank": 2,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Sam Pickett III",
-   "market": "player_reception_yds",
-   "market_label": "Receiving yards",
-   "side": "under",
-   "line": 56.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -110,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/8648053726050910621",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [
-    "The James Madison Dukes allow 159.5 receiving yards a game to wide receivers (37th most of 83).",
-    "The James Madison Dukes list ILB Jayden Studio (Out).",
-    "The model gives it <b>55%</b>; at -110 it needs 52.4% to pay."
-   ],
-   "confidence": 55,
-   "model_p": 55.3,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 52.4,
-   "edge": 2.6,
-   "rank": 3,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "George Pettaway",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 105.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": -114,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618532797&selectionId=102931343",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 55,
-   "raw": "14 of 18",
-   "record": "14 of 18",
-   "rate": 79,
-   "break_even": 53.3,
-   "edge": 1.7,
-   "season_detail": {
-    "h25": 11,
-    "n25": 11,
-    "h26": 3,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.924,
-    "weighted_n": 11.0,
-    "mean_all": 53.444
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 17.73,
-   "projection": 53.4,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 18 games this record is built from \u2014 53.4 rush yds a game.",
-   "why": [
-    "The Appalachian State Mountaineers allow 120.2 rushing yards a game to running backs.",
-    "The Appalachian State Mountaineers list DL Jordan Harris (Out for Season), DL Aiden Benton (Out), ILB Keshawn Thomas (Out).",
-    "The model gives it <b>55%</b>; at -114 it needs 53.3% to pay."
-   ],
-   "model_p": 54.6,
-   "rank": 4,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Kam Davis",
-   "market": "player_rush_yds",
-   "market_label": "Rushing yards",
-   "side": "under",
-   "line": 88.5,
-   "game": "Liberty Flames @ Kennesaw State Owls",
-   "game_id": "1635891ddb79191dba2be031ad6dc762",
-   "away": "Liberty Flames",
-   "home": "Kennesaw State Owls",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "hardrockbet",
-   "price": -115,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/20755199203344818",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 54,
-   "raw": "7 of 9",
-   "record": "7 of 9",
-   "rate": 82,
-   "break_even": 53.5,
-   "edge": 0.5,
-   "season_detail": {
-    "h25": 3,
-    "n25": 3,
-    "h26": 4,
-    "n26": 6,
-    "w25": 0.4,
-    "p0": 0.881,
-    "weighted_n": 7.2,
-    "mean_all": 63.889
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 17.0,
-   "projection": 63.9,
-   "projection_unit": "rush yds",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 9 games this record is built from \u2014 63.9 rush yds a game.",
-   "why": [
-    "The Kennesaw State Owls allow 123.8 rushing yards a game to running backs.",
-    "The model gives it <b>54%</b>; at -115 it needs 53.5% to pay."
-   ],
-   "model_p": 53.8,
-   "rank": 5,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Braeden Wisloski",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "over",
-   "line": 2.5,
-   "game": "James Madison Dukes @ Appalachian State Mountaineers",
-   "game_id": "d476cb73381765342220f698035bc889",
-   "away": "James Madison Dukes",
-   "home": "Appalachian State Mountaineers",
-   "commence": "2026-10-22T23:00:00Z",
-   "book": "fanduel",
-   "price": 102,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618700977&selectionId=103447718",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [
-    "The Appalachian State Mountaineers allow 13.6 catches a game to wide receivers.",
-    "The Appalachian State Mountaineers list ILB Keshawn Thomas (Out).",
-    "The model gives it <b>53%</b>; at +102 it needs 49.5% to pay."
-   ],
-   "confidence": 53,
-   "model_p": 53.1,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 49.5,
-   "edge": 3.5,
-   "rank": 6,
-   "why_card": []
-  }
- ],
- "n_longshots_excluded": 12,
+ "picks": [],
+ "liked": [],
+ "n_longshots_excluded": 0,
  "price_ceiling": 400,
- "market_max_share": null,
- "board_mixed": false,
+ "market_max_share": 0.34,
+ "board_mixed": true,
  "below_price_floor": [],
  "price_floor": -400,
  "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."

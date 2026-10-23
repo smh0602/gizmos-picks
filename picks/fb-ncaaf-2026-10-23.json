@@ -1,0 +1,1048 @@
+{
+ "date": "2026-10-23",
+ "league": "ncaaf",
+ "generated_at": "2026-10-23T13:31:27Z",
+ "generated_by": "card_fb.py",
+ "kind": "RECORD + MARKET",
+ "odds_pulled_at": "2026-10-22T19:32:49Z",
+ "logs_season": 2025,
+ "card_method": "season-blend+props-own",
+ "props_model_used": true,
+ "rates_available": true,
+ "snap_floor": null,
+ "denominator": "every game he appears in (union denominator)",
+ "min_games": 6,
+ "n_gated_by_measurement": 0,
+ "rate_gates": {
+  "min_reception_line": 3.5,
+  "measured_markets": [
+   "player_anytime_td",
+   "player_pass_yds",
+   "player_reception_yds",
+   "player_receptions",
+   "player_rush_yds"
+  ],
+  "why": "A college rate is computed over the games he appears in, which can miss a game he played quietly. That error was measured in the NFL, where the true figure is known: median 0.2 points, 90th percentile 3.8. It is largest at short reception lines, so those carry no rate, and a market that was never measured carries none either."
+ },
+ "game_lines": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "NC State Wolfpack",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "fanduel",
+   "price": -245,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 75,
+   "break_even": 71.0,
+   "edge": 4.4,
+   "why": [
+    "The game model gives NC State Wolfpack 75% to win; the price -245 needs 71.0%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 1
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Air Force Falcons",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "Air Force Falcons @ Wyoming Cowboys",
+   "game_id": "1612c641ab70fd57963596255b9cb69c",
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "commence": "2026-10-24T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -200,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 70,
+   "break_even": 66.7,
+   "edge": 3.2,
+   "why": [
+    "The game model gives Air Force Falcons 70% to win; the price -200 needs 66.7%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 2
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Army Black Knights",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 2.5,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 66,
+   "break_even": 53.3,
+   "edge": 13.2,
+   "why": [
+    "The game model gives Army Black Knights 66% to cover +2.5; the price -114 needs 53.3%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 3
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "NC State Wolfpack",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -6.5,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 62,
+   "break_even": 52.4,
+   "edge": 9.1,
+   "why": [
+    "The game model gives NC State Wolfpack 62% to cover -6.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 4
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Army Black Knights",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "away",
+   "line": null,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": 104,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 61,
+   "break_even": 49.0,
+   "edge": 11.8,
+   "why": [
+    "The game model gives Army Black Knights 61% to win; the price +104 needs 49.0%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 5
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Air Force Falcons",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -4.5,
+   "game": "Air Force Falcons @ Wyoming Cowboys",
+   "game_id": "1612c641ab70fd57963596255b9cb69c",
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "commence": "2026-10-24T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 52.4,
+   "edge": 7.4,
+   "why": [
+    "The game model gives Air Force Falcons 60% to cover -4.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 6
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Virginia Cavaliers",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Duke Blue Devils @ Virginia Cavaliers",
+   "game_id": "a493efd6ef737f676a45aacc0eaf7be8",
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -125,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 55.6,
+   "edge": 3.1,
+   "why": [
+    "The game model gives Virginia Cavaliers 59% to win; the price -125 needs 55.6%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 7
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UConn Huskies",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -14.5,
+   "game": "UMass Minutemen @ UConn Huskies",
+   "game_id": "c3dd6e7e07382aa22aca6458aea01f2d",
+   "away": "UMass Minutemen",
+   "home": "UConn Huskies",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 51.2,
+   "edge": 4.6,
+   "why": [
+    "The game model gives UConn Huskies 56% to cover -14.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 8
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Over",
+   "market": "total",
+   "market_label": "Total",
+   "side": "over",
+   "line": 54.5,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 55,
+   "break_even": 51.2,
+   "edge": 3.6,
+   "why": [
+    "The game model gives Over 55% at 54.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 9
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Virginia Cavaliers",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -2.5,
+   "game": "Duke Blue Devils @ Virginia Cavaliers",
+   "game_id": "a493efd6ef737f676a45aacc0eaf7be8",
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 53,
+   "break_even": 51.2,
+   "edge": 1.5,
+   "why": [
+    "The game model gives Virginia Cavaliers 53% to cover -2.5; the price -105 needs 51.2%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 10
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Under",
+   "market": "total",
+   "market_label": "Total",
+   "side": "under",
+   "line": 56.5,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 52,
+   "break_even": 52.4,
+   "edge": 0.0,
+   "why": [
+    "The game model gives Under 52% at 56.5; the price -110 needs 52.4%."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 11,
+   "below_price": true
+  }
+ ],
+ "game_lines_liked": [
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Army Black Knights",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": 2.5,
+   "game": "Army Black Knights @ Tulsa Golden Hurricane",
+   "game_id": "2e2ae6a759029288a93488e0805aa9f3",
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "commence": "2026-10-24T00:30:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 66,
+   "break_even": 53.3,
+   "edge": 13.2,
+   "why": [
+    "The game model gives Army Black Knights 66% to cover +2.5; the price -114 needs 53.3%.",
+    "The model's predicted score: Army Black Knights 30, Tulsa Golden Hurricane 26 (total 56).",
+    "The Army Black Knights score 34.8 and allow 20 points a game this season (6 games).",
+    "The Tulsa Golden Hurricane score 29 and allow 22.4 points a game this season (7 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 1,
+   "why_card": [
+    "The game model gives Army Black Knights 66% to cover +2.5; the price -114 needs 53.3%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "NC State Wolfpack",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -6.5,
+   "game": "NC State Wolfpack @ Stanford Cardinal",
+   "game_id": "027c66400a752f72c7a21ce15a3b1743",
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "commence": "2026-10-24T02:30:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 62,
+   "break_even": 52.4,
+   "edge": 9.1,
+   "why": [
+    "The game model gives NC State Wolfpack 62% to cover -6.5; the price -110 needs 52.4%.",
+    "The model's predicted score: NC State Wolfpack 33, Stanford Cardinal 22 (total 55).",
+    "The NC State Wolfpack score 33 and allow 27.7 points a game this season (6 games).",
+    "The Stanford Cardinal score 18.3 and allow 36.6 points a game this season (7 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 2,
+   "why_card": [
+    "The game model gives NC State Wolfpack 62% to cover -6.5; the price -110 needs 52.4%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Air Force Falcons",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "away",
+   "line": -4.5,
+   "game": "Air Force Falcons @ Wyoming Cowboys",
+   "game_id": "1612c641ab70fd57963596255b9cb69c",
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "commence": "2026-10-24T01:00:00Z",
+   "book": "hardrockbet",
+   "price": -110,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 60,
+   "break_even": 52.4,
+   "edge": 7.4,
+   "why": [
+    "The game model gives Air Force Falcons 60% to cover -4.5; the price -110 needs 52.4%.",
+    "The model's predicted score: Air Force Falcons 27, Wyoming Cowboys 18 (total 45).",
+    "The Air Force Falcons score 30.8 and allow 19.7 points a game this season (6 games).",
+    "The Wyoming Cowboys score 18.3 and allow 20.9 points a game this season (7 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 3,
+   "why_card": [
+    "The game model gives Air Force Falcons 60% to cover -4.5; the price -110 needs 52.4%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "Virginia Cavaliers",
+   "market": "moneyline",
+   "market_label": "Moneyline",
+   "side": "home",
+   "line": null,
+   "game": "Duke Blue Devils @ Virginia Cavaliers",
+   "game_id": "a493efd6ef737f676a45aacc0eaf7be8",
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -125,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 59,
+   "break_even": 55.6,
+   "edge": 3.1,
+   "why": [
+    "The game model gives Virginia Cavaliers 59% to win; the price -125 needs 55.6%.",
+    "The model's predicted score: Duke Blue Devils 22, Virginia Cavaliers 25 (total 47).",
+    "The Duke Blue Devils score 31.7 and allow 16 points a game this season (6 games).",
+    "The Virginia Cavaliers score 30 and allow 19.7 points a game this season (7 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 4,
+   "why_card": [
+    "The game model gives Virginia Cavaliers 59% to win; the price -125 needs 55.6%."
+   ]
+  },
+  {
+   "kind": "fb-line",
+   "league": "ncaaf",
+   "basis": "MODEL \u2014 the game model's probability",
+   "player": "UConn Huskies",
+   "market": "spread",
+   "market_label": "Spread",
+   "side": "home",
+   "line": -14.5,
+   "game": "UMass Minutemen @ UConn Huskies",
+   "game_id": "c3dd6e7e07382aa22aca6458aea01f2d",
+   "away": "UMass Minutemen",
+   "home": "UConn Huskies",
+   "commence": "2026-10-23T23:00:00Z",
+   "book": "draftkings",
+   "price": -105,
+   "link": null,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "confidence": 56,
+   "break_even": 51.2,
+   "edge": 4.6,
+   "why": [
+    "The game model gives UConn Huskies 56% to cover -14.5; the price -105 needs 51.2%.",
+    "The model's predicted score: UMass Minutemen 16, UConn Huskies 33 (total 49).",
+    "The UMass Minutemen score 28 and allow 19.1 points a game this season (7 games).",
+    "The UConn Huskies score 35.7 and allow 25.2 points a game this season (6 games)."
+   ],
+   "priced_at": "2026-10-22T19:32:48Z",
+   "rank": 5,
+   "why_card": [
+    "The game model gives UConn Huskies 56% to cover -14.5; the price -105 needs 51.2%."
+   ]
+  }
+ ],
+ "game_lines_meta": {
+  "source": "fb-model.json",
+  "slate": "2026-10-23",
+  "card_slate": "2026-10-23",
+  "is_next_slate": false,
+  "price_floor": -400,
+  "min_confidence": 50,
+  "model_cap": 25,
+  "model_built_at": "2026-10-23T13:31:15Z",
+  "ladder_built_at": "2026-10-23T13:31:20Z",
+  "alt_spreads": 0
+ },
+ "scores_shown": [
+  {
+   "away": "Duke Blue Devils",
+   "home": "Virginia Cavaliers",
+   "score": {
+    "home": 25,
+    "away": 22
+   }
+  },
+  {
+   "away": "UMass Minutemen",
+   "home": "UConn Huskies",
+   "score": {
+    "home": 33,
+    "away": 16
+   }
+  },
+  {
+   "away": "Army Black Knights",
+   "home": "Tulsa Golden Hurricane",
+   "score": {
+    "home": 26,
+    "away": 30
+   }
+  },
+  {
+   "away": "Air Force Falcons",
+   "home": "Wyoming Cowboys",
+   "score": {
+    "home": 18,
+    "away": 27
+   }
+  },
+  {
+   "away": "NC State Wolfpack",
+   "home": "Stanford Cardinal",
+   "score": {
+    "home": 22,
+    "away": 33
+   }
+  },
+  {
+   "away": "LSU Tigers",
+   "home": "Auburn Tigers",
+   "score": {
+    "home": 23,
+    "away": 29
+   }
+  },
+  {
+   "away": "Texas Tech Red Raiders",
+   "home": "Cincinnati Bearcats",
+   "score": {
+    "home": 22,
+    "away": 35
+   }
+  },
+  {
+   "away": "West Virginia Mountaineers",
+   "home": "TCU Horned Frogs",
+   "score": {
+    "home": 36,
+    "away": 23
+   }
+  },
+  {
+   "away": "California Golden Bears",
+   "home": "SMU Mustangs",
+   "score": {
+    "home": 33,
+    "away": 18
+   }
+  },
+  {
+   "away": "Pittsburgh Panthers",
+   "home": "Miami Hurricanes",
+   "score": {
+    "home": 34,
+    "away": 17
+   }
+  },
+  {
+   "away": "Indiana Hoosiers",
+   "home": "Michigan Wolverines",
+   "score": {
+    "home": 13,
+    "away": 29
+   }
+  },
+  {
+   "away": "Rutgers Scarlet Knights",
+   "home": "Northwestern Wildcats",
+   "score": {
+    "home": 37,
+    "away": 21
+   }
+  },
+  {
+   "away": "Rice Owls",
+   "home": "Florida Atlantic Owls",
+   "score": {
+    "home": 29,
+    "away": 21
+   }
+  },
+  {
+   "away": "Western Michigan Broncos",
+   "home": "Toledo Rockets",
+   "score": {
+    "home": 25,
+    "away": 20
+   }
+  },
+  {
+   "away": "Baylor Bears",
+   "home": "Kansas Jayhawks",
+   "score": {
+    "home": 26,
+    "away": 25
+   }
+  },
+  {
+   "away": "Akron Zips",
+   "home": "Kent State Golden Flashes",
+   "score": {
+    "home": 21,
+    "away": 19
+   }
+  },
+  {
+   "away": "Miami (OH) RedHawks",
+   "home": "Central Michigan Chippewas",
+   "score": {
+    "home": 20,
+    "away": 19
+   }
+  },
+  {
+   "away": "Oregon Ducks",
+   "home": "Illinois Fighting Illini",
+   "score": {
+    "home": 20,
+    "away": 29
+   }
+  },
+  {
+   "away": "Texas A&M Aggies",
+   "home": "Alabama Crimson Tide",
+   "score": {
+    "home": 30,
+    "away": 19
+   }
+  },
+  {
+   "away": "Oklahoma Sooners",
+   "home": "Mississippi State Bulldogs",
+   "score": {
+    "home": 22,
+    "away": 23
+   }
+  },
+  {
+   "away": "Tennessee Volunteers",
+   "home": "South Carolina Gamecocks",
+   "score": {
+    "home": 23,
+    "away": 26
+   }
+  },
+  {
+   "away": "BYU Cougars",
+   "home": "UCF Knights",
+   "score": {
+    "home": 19,
+    "away": 22
+   }
+  },
+  {
+   "away": "Houston Cougars",
+   "home": "Utah Utes",
+   "score": {
+    "home": 31,
+    "away": 23
+   }
+  },
+  {
+   "away": "Boston College Eagles",
+   "home": "Georgia Tech Yellow Jackets",
+   "score": {
+    "home": 28,
+    "away": 18
+   }
+  },
+  {
+   "away": "Iowa Hawkeyes",
+   "home": "Minnesota Golden Gophers",
+   "score": {
+    "home": 17,
+    "away": 24
+   }
+  },
+  {
+   "away": "Michigan State Spartans",
+   "home": "UCLA Bruins",
+   "score": {
+    "home": 28,
+    "away": 15
+   }
+  },
+  {
+   "away": "North Texas Mean Green",
+   "home": "Navy Midshipmen",
+   "score": {
+    "home": 31,
+    "away": 35
+   }
+  },
+  {
+   "away": "Hawaii Rainbow Warriors",
+   "home": "Northern Illinois Huskies",
+   "score": {
+    "home": 22,
+    "away": 25
+   }
+  },
+  {
+   "away": "Sacramento State Hornets",
+   "home": "Ball State Cardinals",
+   "score": {
+    "home": 29,
+    "away": 21
+   }
+  },
+  {
+   "away": "Bowling Green Falcons",
+   "home": "Buffalo Bulls",
+   "score": {
+    "home": 24,
+    "away": 22
+   }
+  },
+  {
+   "away": "Eastern Michigan Eagles",
+   "home": "Ohio Bobcats",
+   "score": {
+    "home": 30,
+    "away": 17
+   }
+  },
+  {
+   "away": "UL Monroe Warhawks",
+   "home": "Troy Trojans",
+   "score": {
+    "home": 35,
+    "away": 17
+   }
+  },
+  {
+   "away": "San Jose State Spartans",
+   "home": "Nevada Wolf Pack",
+   "score": {
+    "home": 23,
+    "away": 19
+   }
+  },
+  {
+   "away": "Louisiana Ragin Cajuns",
+   "home": "Southern Mississippi Golden Eagles",
+   "score": {
+    "home": 23,
+    "away": 30
+   }
+  },
+  {
+   "away": "Old Dominion Monarchs",
+   "home": "Louisiana Tech Bulldogs",
+   "score": {
+    "home": 28,
+    "away": 18
+   }
+  },
+  {
+   "away": "Boise State Broncos",
+   "home": "Washington State Cougars",
+   "score": {
+    "home": 22,
+    "away": 31
+   }
+  },
+  {
+   "away": "San Diego State Aztecs",
+   "home": "Colorado State Rams",
+   "score": {
+    "home": 32,
+    "away": 34
+   }
+  },
+  {
+   "away": "Virginia Tech Hokies",
+   "home": "Clemson Tigers",
+   "score": {
+    "home": 27,
+    "away": 22
+   }
+  },
+  {
+   "away": "Georgia State Panthers",
+   "home": "Arkansas State Red Wolves",
+   "score": {
+    "home": 30,
+    "away": 28
+   }
+  },
+  {
+   "away": "Vanderbilt Commodores",
+   "home": "Kentucky Wildcats",
+   "score": {
+    "home": 31,
+    "away": 18
+   }
+  },
+  {
+   "away": "Ole Miss Rebels",
+   "home": "Texas Longhorns",
+   "score": {
+    "home": 28,
+    "away": 26
+   }
+  },
+  {
+   "away": "Iowa State Cyclones",
+   "home": "Arizona Wildcats",
+   "score": {
+    "home": 30,
+    "away": 23
+   }
+  },
+  {
+   "away": "Syracuse Orange",
+   "home": "North Carolina Tar Heels",
+   "score": {
+    "home": 27,
+    "away": 22
+   }
+  },
+  {
+   "away": "USC Trojans",
+   "home": "Wisconsin Badgers",
+   "score": {
+    "home": 24,
+    "away": 26
+   }
+  },
+  {
+   "away": "Utah State Aggies",
+   "home": "Texas State Bobcats",
+   "score": {
+    "home": 37,
+    "away": 25
+   }
+  },
+  {
+   "away": "Colorado Buffaloes",
+   "home": "Oklahoma State Cowboys",
+   "score": {
+    "home": 33,
+    "away": 23
+   }
+  },
+  {
+   "away": "UTSA Roadrunners",
+   "home": "Tulane Green Wave",
+   "score": {
+    "home": 26,
+    "away": 21
+   }
+  },
+  {
+   "away": "Kansas State Wildcats",
+   "home": "Arizona State Sun Devils",
+   "score": {
+    "home": 26,
+    "away": 29
+   }
+  },
+  {
+   "away": "North Dakota State Bison",
+   "home": "New Mexico Lobos",
+   "score": {
+    "home": 23,
+    "away": 18
+   }
+  },
+  {
+   "away": "Delaware Blue Hens",
+   "home": "Western Kentucky Hilltoppers",
+   "score": {
+    "home": 30,
+    "away": 26
+   }
+  },
+  {
+   "away": "Sam Houston State Bearkats",
+   "home": "Missouri State Bears",
+   "score": {
+    "home": 27,
+    "away": 23
+   }
+  },
+  {
+   "away": "Jacksonville State Gamecocks",
+   "home": "New Mexico State Aggies",
+   "score": {
+    "home": 23,
+    "away": 24
+   }
+  }
+ ],
+ "game_lines_rule": "The game model's own 11 pick(s) for 2026-10-23 it gives 50% or more, at -400 or longer, by its chance to win (at most 25, like the props board); each spread pick is followed by its alternate spread when the books have one -400 or longer, priced at their own chance (0 listed).",
+ "top_plays": [],
+ "top_plays_excluded": {
+  "below_payable_floor": 0,
+  "same_player_already_listed": 0,
+  "same_game_already_listed": 0,
+  "one_per_game": true,
+  "price_floor": -400,
+  "pool_after_price_gate": 0,
+  "cap": 10,
+  "distinct_games": 0,
+  "shared_with_board_head": 0,
+  "board_head_size": 0
+ },
+ "top_plays_rule": "No top plays for 2026-10-23. Nothing is priced for this day yet, so there was nothing to rank. \u26a0\ufe0f When rows do arrive, only those carrying a record are ranked \u2014 ranking by price would be ranking by which bet pays worst while calling it 'most likely to hit'.",
+ "parlays": {
+  "2": [],
+  "3": [],
+  "4": []
+ },
+ "parlay_meta": {
+  "pool": 0,
+  "rated_legs": 0,
+  "strata": [
+   {
+    "decimal": "1-1.3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.3-1.6",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "1.6-2",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "2-3",
+    "available": 0,
+    "taken": 0
+   },
+   {
+    "decimal": "3-99",
+    "available": 0,
+    "taken": 0
+   }
+  ],
+  "rejected": {
+   "same_game": 0,
+   "same_player": 0,
+   "mixed_book": 0,
+   "out_of_band": 0
+  },
+  "note": "0 rated legs, 0 in the stratified pool. Rejected: 0 same game, 0 same player, 0 would need two books, 0 outside Sam's bands."
+ },
+ "sgp": {
+  "2": [],
+  "3": []
+ },
+ "sgp_meta": {
+  "games_with_rated_legs": 0,
+  "games_with_a_line_row": 3,
+  "games_used": 0,
+  "per_game_cap": 2,
+  "rejected": {
+   "same_player": 0,
+   "mixed_book": 0,
+   "below_floor": 0,
+   "no_rated_leg": 0,
+   "line_not_at_book": 0,
+   "leg_below_price_floor": 0
+  },
+  "ceiling_applied": false,
+  "line_leg_priced_at": "the props' own book, not the best book",
+  "note": "0 game(s) on this card carry a rated leg and 3 carry a shoppable line row. \u26d4 No combined chance is published for a same-game slip and no EV is either \u2014 the legs are correlated, so the product of their records would be a percentage asserting something false. The payout shown is the straight product of the prices, which is the MOST a book will pay for a correlated slip. \u26a0\ufe0f Sam's 1.8x floor is applied to that upper bound, which is sound in one direction only: a slip whose upper bound misses the floor can never reach it. The ceiling is deliberately NOT applied, because an upper bound above it may be inside it once the book discounts."
+ },
+ "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
+ "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
+ "projections": {},
+ "name_match_rate": null,
+ "n_priced": 0,
+ "single_day": true,
+ "slate_date": "2026-10-23",
+ "board_min": 5,
+ "board_max": 25,
+ "n_on_slate_day": 0,
+ "n_off_slate_day": 0,
+ "off_slate_dates": [],
+ "short_of_min": false,
+ "single_day_rule": "This board is 2026-10-23 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
+ "empty_reason": "No College Football picks for 2026-10-23. Nothing is priced for this day yet. An empty board on a day with no games is the correct result, not a failure \u2014 the card was built and it found nothing to show.",
+ "short_reason": null,
+ "coverage": "0 priced football rows for 2026-10-23 across 0 board games; 0 shown.",
+ "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 59.1% against a claimed 53.5% (+5.6 pts, n=88). The under-60 band is currently the closest to its own claim. 60-70 has too few graded plays to read. 88 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
+ "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
+ "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
+ "picks": [],
+ "liked": [],
+ "n_longshots_excluded": 0,
+ "price_ceiling": 400,
+ "market_max_share": 0.34,
+ "board_mixed": true,
+ "below_price_floor": [],
+ "price_floor": -400,
+ "schema_note": "Renders through the same pickCard component as the MLB board. confidence_basis is MODEL (the props model's chance), RECORD (his own rate) or MARKET."
+}
