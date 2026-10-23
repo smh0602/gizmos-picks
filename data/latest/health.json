@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-23T18:07:04Z",
+ "checked_at": "2026-10-23T18:11:33Z",
  "et_date": "2026-10-23",
  "healthy": false,
  "broken": 2,
@@ -107,8 +107,8 @@
   {
    "key": "credits:unrecorded",
    "severity": "BROKEN",
-   "what": "7897 Odds API credit(s) were spent since 2026-10-22T18:07:04Z that no stored snapshot records",
-   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-22T18:09:06Z \u22127747 (data/nfl/2026-10-22/gamelines/1809.json.gz); 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
+   "what": "7911 Odds API credit(s) were spent since 2026-10-22T18:11:33Z that no stored snapshot records",
+   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-22T19:24:25Z \u22127761 (data/nfl/2026-10-22/props-player/1924.json.gz); 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
    "repair": null
   }
  ],
@@ -123,7 +123,7 @@
   "pulled_at": "2026-10-23T18:06:16Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.0,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-23T18:06:16Z",
   "source": "data/nfl/2026-10-23/gamelines/1806.json.gz",
