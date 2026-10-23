@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-23T17:45:38Z",
+ "checked_at": "2026-10-23T18:05:44Z",
  "et_date": "2026-10-23",
  "healthy": false,
  "broken": 2,
- "degraded": 14,
+ "degraded": 13,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -84,13 +84,6 @@
    "repair": null
   },
   {
-   "key": "late:gamelines:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl gamelines was built 328 minutes after it was due",
-   "why": "due 2026-10-23T12:00Z, built 2026-10-23T17:28Z. GitHub started the run late; there is nothing to repair, and this clears when the next gamelines build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:news:nfl",
    "severity": "DEGRADED",
    "what": "nfl news was built 116 minutes after it was due",
@@ -114,8 +107,8 @@
   {
    "key": "credits:unrecorded",
    "severity": "BROKEN",
-   "what": "7906 Odds API credit(s) were spent since 2026-10-22T17:45:38Z that no stored snapshot records",
-   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-22T17:50:55Z \u22127756 (data/ncaaf/2026-10-22/props-player/1750.json.gz); 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
+   "what": "7903 Odds API credit(s) were spent since 2026-10-22T18:05:44Z that no stored snapshot records",
+   "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-22T18:09:06Z \u22127753 (data/nfl/2026-10-22/gamelines/1809.json.gz); 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
    "repair": null
   }
  ],
@@ -126,15 +119,15 @@
  ],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19619,
-  "pulled_at": "2026-10-23T17:35:03Z",
+  "balance": 19602,
+  "pulled_at": "2026-10-23T18:01:23Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.2,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-23T17:35:03Z",
-  "source": "data/2026-10-23/props-batter/1735.json.gz",
-  "readings_on_disk": 1095,
+  "newest_paid_pull": "2026-10-23T18:01:23Z",
+  "source": "data/nfl/2026-10-23/gamelines/1801.json.gz",
+  "readings_on_disk": 1099,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
