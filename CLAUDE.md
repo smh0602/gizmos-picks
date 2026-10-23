@@ -1318,6 +1318,10 @@ credits.py        THE CREDIT BALANCE CHAIN: the one reader of stored
                   newest (by minute, then the LOWER balance). Read by
                   collect.py (the daily room) and watchdog.py. The paid
                   kinds come from ONE registry, `collect.PAID_KINDS`.
+                  `[2026-10-23]` Also the QUOTA PERIODS (`periods`): a rise
+                  in the balance starts one (the 1st, or a plan bought again
+                  mid-month, as on 10-23); the watchdog reconciles inside
+                  each, never across one.
 calibration.py    is the product still winning? the automatic answer.
 relay.py          THE RELAY (Sam, 2026-10-06): at the end of an MLB run's
                   hold, may it dispatch one successor? ⛔ Not while another

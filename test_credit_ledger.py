@@ -19,7 +19,31 @@ read off the API's own balance, the newest balance taken by the chain.
      newest `credits_remaining` read THIS month; the 1st starts clean.
   4. health.json took props-pitcher/1113 (3,848) over props-batter/1113
      (3,808) by file name. ✅ The newest reading by the chain.
+`[2026-10-23]`
+  5. The plan was bought again mid-month and the reconciliation, which
+     grouped by calendar month, called the new balance 7,773 unrecorded
+     credits. ✅ Quota periods (`credits.periods`): a rise starts one.
 Every case is planted in a throwaway tree; nothing reads production data.
+
+# @vacuity 🔴🔴 a mid-month reset starts a new period
+#   file: credits.py
+#   find:         if not out or r[1] > out[-1][-1][1]:
+#   with:         if not out or r[0][:7] != out[-1][-1][0][:7]:
+#
+# @vacuity 🔴🔴 the reconciliation reads quota periods, not calendar months
+#   file: watchdog.py
+#   find:     for period in C.periods(rows):
+#   with:     for period in [sorted(rows)]:
+#
+# @vacuity 🔴 within a period the order is the balance, so interleaved runs reconcile
+#   file: watchdog.py
+#   find:         seq = sorted(period, key=lambda r: (r[0][:7], -r[1]))
+#   with:         seq = period[::-1]
+#
+# @vacuity 🔴 a step's residue subtracts that step's own spend
+#   file: watchdog.py
+#   find:             residue = prev[1] - cur[3] - cur[1]
+#   with:             residue = prev[1] - cur[1]
 
 # @vacuity 🔴 alt-lines is a registered paid kind
 #   file: collect.py
@@ -457,3 +481,68 @@ with Sandbox("2026-10-01T15:00:00Z"):
     eq(C.daily_allowance(), FLAT,
        "🔴 day 1 with a balance that lags today's pulls is still one day's share (600), "
        "as #202 left it: nothing spent before today is never less than 0")
+
+
+# ══════════════════════════════════════════════════════════════════════
+section("6. 🔴🔴 A RESET MID-MONTH STARTS A NEW QUOTA PERIOD, NOT UNRECORDED SPEND")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-10-23]` Sam's Odds API plan lapsed on 10-22 and was bought back on
+#    10-23: the balance went 11,800 (10-22 19:32Z) -> 19,989 (10-23 17:27Z),
+#    inside one calendar month. The reconciliation ordered the month's readings
+#    by balance, put the new 19,6xx readings above the old 11,8xx ones, and
+#    reported 7,773 credits "spent that no snapshot records": BROKEN on #305.
+#    ✅ The readings are the real 10-22 / 10-23 ones (balance, credits billed),
+#    with the 17:28 pair that a second run's same-named file replaced left out.
+_OLD = [("2026-10-22T19:24:25Z", "data/nfl/2026-10-22/props-player/1924.json.gz", 11829, 6),
+        ("2026-10-22T19:32:48Z", "data/ncaaf/2026-10-22/gamelines/1932.json.gz", 11820, 9),
+        ("2026-10-22T19:32:49Z", "data/ncaaf/2026-10-22/props-player/1932.json.gz", 11806, 14),
+        ("2026-10-22T19:32:53Z", "data/ncaaf/2026-10-22/alt-lines/1932.json.gz", 11800, 6)]
+_NEW = [("2026-10-23T17:27:42Z", "data/ncaaf/2026-10-23/gamelines/1727.json.gz", 19989, 11),
+        ("2026-10-23T17:27:43Z", "data/ncaaf/2026-10-23/props-player/1727.json.gz", 19947, 42),
+        ("2026-10-23T17:28:01Z", "data/nfl/2026-10-23/gamelines/1728-1.json.gz", 19941, 6),
+        ("2026-10-23T17:28:05Z", "data/nfl/2026-10-23/props-player/1728-1.json.gz", 19797, 144),
+        ("2026-10-23T17:28:10Z", "data/nfl/2026-10-23/gamelines/1728.json.gz", 19791, 6),
+        ("2026-10-23T17:28:14Z", "data/nfl/2026-10-23/props-player/1728.json.gz", 19647, 144),
+        ("2026-10-23T17:29:24Z", "data/nfl/2026-10-23/gamelines/1729.json.gz", 19641, 6)]
+
+
+def _recon(rows, when="2026-10-23T18:15:00Z"):
+    """Plant `rows` in a scratch tree and run the REAL reconciliation check
+    -> (unrecorded credits, finding keys)."""
+    t = tempfile.mkdtemp(prefix="ledger-reset-")
+    saved = W.ROOT
+    try:
+        for pulled, rel, left, used in rows:
+            reading(t, rel, pulled, left, used)
+        W.ROOT = t
+        rep = W.Report()
+        W.check_credit_reconciliation(rep, at(when))
+        return (getattr(rep, "note_reconciliation", None) or {}).get("unrecorded"), \
+            [f["key"] for f in rep.items]
+    finally:
+        W.ROOT = saved
+        shutil.rmtree(t, ignore_errors=True)
+
+
+_gap, _keys = _recon(_OLD + _NEW)
+ck("🔴🔴 the 10-23 re-subscription is not unrecorded spend: 0 credits, no finding",
+   _gap == 0 and "credits:unrecorded" not in _keys,
+   "unrecorded=%s findings=%s" % (_gap, _keys))
+_gap, _keys = _recon(_OLD + [r for r in _NEW if "-1.json" not in r[1]])
+ck("🔴 ...while the pair a second run's file replaced at 17:28 IS caught (6 + 144 = 150)",
+   _gap == 150 and "credits:unrecorded" in _keys,
+   "unrecorded=%s findings=%s" % (_gap, _keys))
+_gap, _keys = _recon([r for r in _OLD if "props-player/1932" not in r[1]] + _NEW)
+ck("🔴 ...and a lost snapshot in the OLD period too (ncaaf props-player 1932, 14)",
+   _gap == 14, "unrecorded=%s findings=%s" % (_gap, _keys))
+_P = K.periods([(p, left, rel) for p, rel, left, _u in _NEW + _OLD])
+eq([[r[1] for r in p] for p in _P],
+   [[11829, 11820, 11806, 11800], [19989, 19947, 19941, 19797, 19791, 19647, 19641]],
+   "🔴 credits.periods: one period per reset, oldest first, each in chain order")
+eq([len(p) for p in K.periods([
+    ("2026-09-30T23:29:11Z", 3397, "a"), ("2026-10-01T11:02:33Z", 19994, "b"),
+    ("2026-10-01T11:02:34Z", 19988, "c")])], [1, 2],
+   "   ...and the 1st of the month is the same rule (a rise), not a separate one")
+eq([len(p) for p in K.periods([
+    ("2026-09-28T11:13:41Z", 3808, "batter"), ("2026-09-28T11:13:05Z", 3848, "pitcher")])],
+   [2], "   ...while two pulls in one minute stay ONE period of two, the LOWER balance second")
