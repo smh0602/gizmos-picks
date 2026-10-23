@@ -1004,11 +1004,15 @@ def _hours_between(a, b):
 # them, the daily cap could not see them, and the next run bought the
 # same pull again. `push_retry.sh` fixes that cause; this check catches
 # ANY cause, because it asks the API's own balance header.
-# ✅ ORDERED BY BALANCE, NOT BY TIME. Within a month the balance only
-#    falls, so sorting readings by `credits_remaining` descending is the
-#    true order of the calls even when two runs interleave. Each step
+# ✅ ORDERED BY BALANCE, NOT BY TIME. Within a ~~month~~ quota period the
+#    balance only falls, so sorting readings by `credits_remaining` descending
+#    is the true order of the calls even when two runs interleave. Each step
 #    must satisfy  prev_remaining − used − half_used == this_remaining;
 #    a positive residue is spend no stored snapshot accounts for.
+# 🔴 `[2026-10-23]` A PERIOD IS `credits.periods`, NOT THE CALENDAR MONTH. The
+#    plan was bought again on 10-23, mid-month: its 19,6xx readings sorted
+#    above 10-22's 11,8xx and the step between them read as 7,773 unrecorded
+#    (BROKEN on #305). `test_credit_ledger.py` section 6.
 # ⚠️ ONLY READINGS AFTER THE FIX SHIPPED ARE JUDGED — the 09-15→09-21
 #    losses are history, recorded in the audits, and must not keep the
 #    report red for a defect that is already fixed.
@@ -1032,14 +1036,15 @@ def _balance_steps(root=None, since=None):
         if since and at < since:
             continue
         used = int(j.get("credits_used") or 0) + int(j.get("half_total_credits") or 0)
-        rows.append((at[:7], j["credits_remaining"], used, at, f))
-    rows.sort(key=lambda r: (r[0], -r[1]))
+        rows.append((at, j["credits_remaining"], f, used))
     out = []
-    for prev, cur in zip(rows, rows[1:]):
-        if prev[0] != cur[0]:
-            continue                    # a new month resets the balance
-        residue = prev[1] - cur[2] - cur[1]
-        out.append((cur[3], prev[1], cur[2], cur[1], residue, cur[4]))
+    for period in C.periods(rows):
+        seq = sorted(period, key=lambda r: (r[0][:7], -r[1]))
+        for prev, cur in zip(seq, seq[1:]):
+            if prev[0][:7] != cur[0][:7]:
+                continue                # a new month resets the balance
+            residue = prev[1] - cur[3] - cur[1]
+            out.append((cur[0], prev[1], cur[3], cur[1], residue, cur[2]))
     return out
 
 

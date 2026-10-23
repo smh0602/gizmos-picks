@@ -75,7 +75,7 @@ the trap #51 fixed.
 #
 # @vacuity 🔴 ...and a reconciliation that ignores what each pull spent fires on it
 #   file: watchdog.py
-#   find:         residue = prev[1] - cur[2] - cur[1]
+#   find:             residue = prev[1] - cur[3] - cur[1]
 #   with:         residue = prev[1] - cur[1]
 #
 # @vacuity the report's keys are asked on the tree that always holds a reading
