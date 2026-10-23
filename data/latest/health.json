@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-23T12:52:40Z",
+ "checked_at": "2026-10-23T13:33:53Z",
  "et_date": "2026-10-23",
  "healthy": false,
  "broken": 1,
- "degraded": 7,
+ "degraded": 6,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -49,13 +49,6 @@
    "repair": null
   },
   {
-   "key": "late:card-fb:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl card-fb was built 82 minutes after it was due",
-   "why": "due 2026-10-23T11:30Z, built 2026-10-23T12:51Z. GitHub started the run late; there is nothing to repair, and this clears when the next card-fb build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
    "key": "late:fb-scores:nfl",
    "severity": "DEGRADED",
    "what": "nfl fb-scores was built 292 minutes after it was due",
@@ -73,7 +66,7 @@
   "pulled_at": "2026-10-22T19:32:53Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 17.3,
+  "reading_age_hours": 18.0,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-22T19:32:49Z",
   "source": "data/ncaaf/2026-10-22/alt-lines/1932.json.gz",
