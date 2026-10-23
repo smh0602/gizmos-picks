@@ -255,8 +255,10 @@ def due_date(times_et, now=None):
 def no_games_day(day, data="data"):
     """True only when every stored MLB schedule reading for ET `day` says
     the league had NO games. ⛔ Fails closed: no reading, an unreadable
-    one, a reading without `totalGames`, or any reading listing a game
-    means the day's card and results are still owed.
+    one, a reading without `totalGames`, one whose game list does not add
+    up to its `totalGames`, or any reading listing a game the league has
+    not since DROPPED (`_still_listed`) means the day's card and results
+    are still owed.
 
     `[2026-09-29]` ONE COPY: moved here from watchdog.py (#200), which
     imports it. The contract's MLB `card` and `results` rows are not due on
@@ -264,10 +266,13 @@ def no_games_day(day, data="data"):
     card "never built" and a results directory nobody could write.
     ⚠️ A reading filed under the NEXT day's directory still counts: the
     schedule mode stores by UTC date, and an evening pull lands there.
+    `[2026-10-23]` ~~any reading listing a game~~: 10-20's first 12 readings
+    listed ALCS Game 7 (if necessary) until Game 6 ended the series, and the
+    day owed a card and results through 10-22 (test_dropped_game.py).
     """
     nxt = (datetime.date.fromisoformat(day)
            + datetime.timedelta(days=1)).isoformat()
-    seen = []
+    reads = []
     for d in (day, nxt):
         for p in sorted(glob.glob(os.path.join(data, d, "schedule", "*.json.gz"))):
             try:
@@ -279,8 +284,53 @@ def no_games_day(day, data="data"):
             sc = s.get("schedule")
             if not isinstance(sc, dict) or "totalGames" not in sc:
                 return False          # no totalGames: fail closed
-            seen.append(sc["totalGames"])
+            if "dates" in sc and _games(sc) is None:
+                return False          # a game list that does not add up: fail closed
+            reads.append((s.get("pulled_at"), sc))
+    seen = _still_listed(reads)
     return bool(seen) and all(n == 0 for n in seen)
+
+
+# `[2026-10-23]` How many readings pulled AFTER the last one listing an
+#    if-necessary game must leave it out before it counts as dropped: one
+#    odd reading never drops a game. 10-20 had 74.
+DROPPED_AFTER = 2
+
+
+def _games(sc):
+    """A schedule body's games, or None when `dates` does not hold exactly
+    `totalGames` games, each with a gamePk. A count-only body (no `dates`)
+    names none: [] for 0 games, None otherwise."""
+    dates = sc.get("dates", [])
+    if not isinstance(dates, list) or not all(isinstance(d, dict) for d in dates):
+        return None
+    games = [g for d in dates for g in (d.get("games") or [])]
+    if not all(isinstance(g, dict) and "gamePk" in g for g in games):
+        return None
+    return games if len(games) == sc.get("totalGames") else None
+
+
+def _still_listed(reads):
+    """Per reading [(pulled_at, schedule body)], how many games it lists that
+    the league has not since DROPPED. A game is dropped only when every
+    reading that lists it flags it `ifNecessary` "Y" (MLB's "If Necessary
+    Game") and DROPPED_AFTER readings pulled after the last one that lists
+    it leave it out: the series ended without it.
+    ⛔ Fails closed (each reading keeps its `totalGames`): a reading with no
+    pulled_at time, or one whose count names no games, drops nothing."""
+    times = [_parse(ts) for ts, _ in reads]
+    lists = [_games(sc) for _, sc in reads]
+    if None in times or None in lists:
+        return [sc["totalGames"] for _, sc in reads]
+    last, flagged = {}, {}
+    for t, games in zip(times, lists):
+        for g in games:
+            pk = g["gamePk"]
+            last[pk] = max(last.get(pk, t), t)
+            flagged[pk] = flagged.get(pk, True) and g.get("ifNecessary") == "Y"
+    gone = {pk for pk, t in last.items()
+            if flagged[pk] and sum(u > t for u in times) >= DROPPED_AFTER}
+    return [sum(g["gamePk"] not in gone for g in games) for games in lists]
 
 
 # ⛔ A SECOND COPY OF `collect.VOID_STATES`, ON PURPOSE (verify_record keeps
