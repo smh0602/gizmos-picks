@@ -14,7 +14,7 @@ the first-half totals bill (`half_total_credits`, 176 that day).
 #
 # @vacuity 🔴🔴 unrecorded spend is reported
 #   file: watchdog.py
-#   find:         residue = prev[1] - cur[2] - cur[1]
+#   find:             residue = prev[1] - cur[3] - cur[1]
 #   with:         residue = 0
 """
 import datetime
