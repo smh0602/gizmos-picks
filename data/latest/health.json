@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-23T15:39:35Z",
+ "checked_at": "2026-10-23T15:51:17Z",
  "et_date": "2026-10-23",
  "healthy": false,
  "broken": 1,
- "degraded": 6,
+ "degraded": 7,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -42,6 +42,13 @@
    "repair": null
   },
   {
+   "key": "late:news:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf news was built 106 minutes after it was due",
+   "why": "due 2026-10-23T14:05Z, built 2026-10-23T15:51Z. GitHub started the run late; there is nothing to repair, and this clears when the next news build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:alt-lines:nfl",
    "severity": "DEGRADED",
    "what": "nfl alt-lines was built 111 minutes after it was due",
@@ -66,7 +73,7 @@
   "pulled_at": "2026-10-22T19:32:53Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 20.1,
+  "reading_age_hours": 20.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-22T19:32:49Z",
   "source": "data/ncaaf/2026-10-22/alt-lines/1932.json.gz",
