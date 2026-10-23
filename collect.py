@@ -342,13 +342,73 @@ def get(url, timeout=30):
 INCLUDE_LINKS = True
 
 
+# 🔴🔴 `[2026-10-23]` A REFUSED KEY IS SAID OUT LOUD, IN THE API'S OWN WORDS.
+#    Sam's plan lapsed on 10-22 and was bought again. From 21:42Z every Odds
+#    API call came back "HTTP Error 401: Unauthorized" and nothing more, for
+#    19½ hours: the runs warned (an outside source inside its deadline, Sam's
+#    09-26 rule, unchanged), then went red on stale odds, and health.json
+#    called it staleness "the converge loop repairs on its own".
+#    ✅ A 401 or 403 writes ODDS_REFUSED (when, the status, the API's own
+#    `error_code` and `message`, the key scrubbed out), and the watchdog says
+#    BROKEN until a paid pull lands after it (`watchdog.check_odds_refused`).
+#    ⛔ The error itself is re-raised unchanged. `test_odds_refused.py`.
+ODDS_REFUSED = os.path.join(LEAGUES["mlb"]["data"], "latest", "odds-refused.json")
+REFUSED_CODES = (401, 403)
+
+
+def _scrub(text):
+    """The API's words, at most 300 characters, and NEVER the key (rule 10)."""
+    s = str(text or "")
+    if ODDS_KEY:
+        s = s.replace(ODDS_KEY, "***")
+    return s[:300]
+
+
+def record_refusal(path, e):
+    """Write ODDS_REFUSED for a refused call -> the API's reason (scrubbed).
+    `first_at` is when this run of refusals began: kept from the last file
+    unless a paid pull landed after it."""
+    try:
+        raw = e.read().decode("utf-8", "replace")
+    except Exception:
+        raw = ""
+    try:
+        j = json.loads(raw)
+    except ValueError:
+        j = None
+    j = j if isinstance(j, dict) else {}
+    why = {"error_code": _scrub(j.get("error_code")) or None,
+           "message": _scrub(j.get("message") or raw) or None}
+    at = first = stamp()
+    try:
+        old = json.load(open(ODDS_REFUSED, encoding="utf-8")).get("first_at")
+        good = _credits.newest(_credits.readings(LEAGUES["mlb"]["data"], PAID_KINDS))
+        if old and (not good or str(old) > str(good[0])):
+            first = old
+    except Exception:
+        pass
+    write(ODDS_REFUSED, dict(why, at=at, first_at=first, status=e.code, request=path))
+    return why
+
+
 def odds_get(path, params):
     params = dict(params)
     params["apiKey"] = ODDS_KEY
     if INCLUDE_LINKS and path.endswith("/odds"):
         params["includeLinks"] = "true"
     qs = "&".join(f"{k}={v}" for k, v in params.items())
-    body, hdr = get(f"{API}{path}?{qs}")
+    try:
+        body, hdr = get(f"{API}{path}?{qs}")
+    except urllib.error.HTTPError as e:
+        if e.code in REFUSED_CODES:
+            try:
+                why = record_refusal(path, e)
+                log(f"the Odds API REFUSED the key: HTTP {e.code} "
+                    f"{why['error_code'] or ''} {why['message'] or ''}".rstrip())
+            except Exception as rec:
+                log(f"the Odds API REFUSED the key: HTTP {e.code} (not recorded: "
+                    f"{type(rec).__name__})")
+        raise
     used = int(hdr.get("x-requests-last", 0) or 0)
     left = int(hdr.get("x-requests-remaining", 0) or 0)
     return body, used, left

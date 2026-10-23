@@ -856,6 +856,35 @@ def check_record_written(rep, now):
                      repair="record")
 
 
+def check_odds_refused(rep, now):
+    """💰 IS THE ODDS API REFUSING OUR KEY?
+
+    🔴 `[2026-10-23]` 19½ HOURS OF REFUSALS READ AS STALENESS THAT FIXES
+    ITSELF. Sam's plan lapsed on 10-22 and was bought again: every Odds API
+    call came back 401 from 21:42Z until he replaced the secret at 17:10Z the
+    next day, and this report said football was DEGRADED, "the converge loop
+    repairs this on its own". Nothing here can repair a refused key.
+    ✅ collect.py writes `odds-refused.json` on every 401/403 (the API's own
+    reason, the key scrubbed out). BROKEN while no paid pull has landed after
+    it; the first paid pull that works clears it. ⛔ Spends and asks nothing.
+    """
+    j = _read(os.path.join(ROOT, "data", "latest", "odds-refused.json"))
+    if not isinstance(j, dict) or not j.get("at"):
+        return
+    good = C.newest(_paid_readings())
+    if good and str(good[0]) >= str(j["at"]):
+        return
+    reason = ": ".join(str(x) for x in (j.get("error_code"), j.get("message")) if x)
+    rep.bad("odds:refused",
+            "the Odds API is refusing our key, so no new odds or props are coming in",
+            "every Odds API call since %s came back HTTP %s%s. %s Nothing here can "
+            "fix a refused key; this clears itself on the first paid pull that works."
+            % (j.get("first_at") or j["at"], j.get("status"),
+               " (%s)" % reason if reason else "",
+               "The newest prices on the site were pulled %s." % good[0] if good
+               else "No paid pull is stored at all."))
+
+
 def check_credit_balance(rep, now):
     """💰 HOW CLOSE IS THE COLLECTOR TO STANDING DOWN?
 
@@ -1428,6 +1457,8 @@ CHECKS = (check_page_renders, check_card_present, check_card_readable,
           check_freshness, check_stopped_league, check_late_builds, check_record_written,
           # 🔴 A card that never reaches the record (audit Proposal A).
           check_record_ungraded,
+          # 💰 `[2026-10-23]` a refused key is BROKEN, and only Sam can fix it.
+          check_odds_refused,
           # 💰 THE TENTH. ⛔ Not a second reporting channel — it writes
           #    into the same health report and escalates through the same
           #    single issue.
@@ -1536,8 +1567,13 @@ def run(now=None):
         #    no test can reach.
         "repairs": sorted({i["repair"] for i in rep.items
                            if i["repair"] in SAFE_REPAIRS}),
+        # ⛔ `[2026-10-23]` NOT a finding only Sam can fix (`SAM_DOES`): this
+        #    list summons a code-fixing agent, and no code fixes a refused key.
         "unrepairable": sorted({i["key"].split(":")[0] for i in rep.broken
-                                if i["repair"] not in SAFE_REPAIRS}),
+                                if i["repair"] not in SAFE_REPAIRS
+                                and i["key"].split(":")[0] not in SAM_DOES}),
+        "sam_only": sorted({i["key"].split(":")[0] for i in rep.broken
+                            if i["key"].split(":")[0] in SAM_DOES}),
     }
     # 💰 THE CREDIT READING GOES IN WHETHER OR NOT IT IS A FINDING.
     # ⛔ A balance that only appears when it is already a problem cannot
@@ -1581,17 +1617,50 @@ USAGE_CHECK = "\n".join((
     "- At the end, report the PR's diff size (files, lines added and removed)."))
 
 
+#    `[2026-10-23]` A FINDING ONLY SAM CAN FIX gets his steps, not a prompt for
+#    Claude: a refused key is a secret to replace, never a code change. It is
+#    put first, ahead of an older BROKEN finding (on 10-23 the MLB record's).
+#    ⚠️ The steps live in the doc, quoted between its `<!-- steps -->` markers:
+#    they name the secret, and this file never names the credential.
+SAM_DOES = {"odds": "docs/FIX-ODDS-KEY.md"}
+
+
+def sam_steps(prefix):
+    """Sam's steps for a finding only he can fix, quoted from its doc. ⚠️ An
+    unreadable doc still sends him to it, never to an empty block."""
+    doc = SAM_DOES[prefix]
+    try:
+        txt = open(os.path.join(SRCDIR, doc), encoding="utf-8").read()
+        steps = txt.split("<!-- steps -->", 1)[1].split("<!-- /steps -->", 1)[0].strip()
+    except (OSError, IndexError):
+        steps = ""
+    return steps or "The steps are in `%s` in the repository." % doc
+
+
 def site_updating(findings):
-    """Is the site still updating? Not while a league has stopped (`stopped:`)."""
+    """Is the site still updating? Not while a league has stopped (`stopped:`), and
+    `[2026-10-23]` the odds and props are not while the Odds API refuses the key."""
     stopped = [f["what"] for f in findings or [] if str(f.get("key")).startswith("stopped:")]
-    return ("No: %s." % "; ".join(stopped) if stopped else "Yes: no league has gone more than "
-            "%d minutes past a deadline without a run." % STOPPED_GRACE_MIN)
+    if stopped:
+        return "No: %s." % "; ".join(stopped)
+    if any(str(f.get("key")).startswith("odds:") for f in findings or []):
+        return ("Partly: the odds and props are not (the Odds API is refusing our key); "
+                "scores, news and the models still are.")
+    return ("Yes: no league has gone more than %d minutes past a deadline without a run."
+            % STOPPED_GRACE_MIN)
 
 
 def what_to_do(findings, updating):
-    """The block an alert ends with, for its first finding: callers pass the BROKEN ones."""
-    f = findings[0]
+    """The block an alert ends with, for its first finding: callers pass the BROKEN ones.
+    `[2026-10-23]` A finding only Sam can fix (`SAM_DOES`) goes first, with his steps."""
+    f = next((x for x in findings if str(x.get("key")).split(":")[0] in SAM_DOES), findings[0])
     key = str(f.get("key"))
+    more = " (and %d more above)" % (len(findings) - 1) if len(findings) > 1 else ""
+    if key.split(":")[0] in SAM_DOES:
+        return "\n".join(["", "---", "**What is wrong:** %s%s." % (f.get("what"), more),
+                          "**Is the site still updating?** %s" % updating, "",
+                          "**Only you can fix this (no code change, nothing to paste into "
+                          "Claude):**", "", sam_steps(key.split(":")[0])])
     files = ", ".join(x for x in ("watchdog.py (the check that raised `%s`)" % key,
                                   FILES_FIRST.get(key.split(":")[0])) if x)
     prompt = ("Read CLAUDE.md first and follow every rule in it. Gizmo's Picks reports %s: \"%s\" "
@@ -1600,7 +1669,6 @@ def what_to_do(findings, updating):
               "commit to main. No API spend.\n\n%s\n\n⛔ Do not tell Sam it is done until the "
               "pr-tests check shows GREEN on GitHub."
               % (f.get("severity"), f.get("what"), key, files, USAGE_CHECK))
-    more = " (and %d more above)" % (len(findings) - 1) if len(findings) > 1 else ""
     return "\n".join(["", "---", "**What is wrong:** %s%s." % (f.get("what"), more),
                       "**Is the site still updating?** %s" % updating, "",
                       "**To fix it, paste this into Claude Code:**", "", "```text", prompt, "```"])
@@ -1640,7 +1708,10 @@ def render(out):
         L.append("🔧 Automatic repair attempted: `%s`. If the finding is "
                  "still listed above, the repair did not clear it."
                  % "`, `".join(out["repairs"]))
-    if out.get("unrepairable") or not out["repairs"]:
+    if out.get("sam_only"):
+        L.append("👤 **Part of this only you can fix, and it needs no code change.** "
+                 "The steps are at the bottom.")
+    if out.get("unrepairable") or not (out["repairs"] or out.get("sam_only")):
         L.append("⛔ **Part of this has no automatic repair and needs a "
                  "code change.** Nothing is being retried for it.")
     # 🔴🔴 THE HANDOVER LINE, AND IT ONLY APPEARS WHEN A PERSON IS
