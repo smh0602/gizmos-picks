@@ -1,10 +1,10 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-23T11:30:55Z",
+ "checked_at": "2026-10-23T12:50:35Z",
  "et_date": "2026-10-23",
  "healthy": false,
  "broken": 1,
- "degraded": 4,
+ "degraded": 6,
  "findings": [
   {
    "key": "record-verify:mlb",
@@ -21,6 +21,13 @@
    "repair": null
   },
   {
+   "key": "fresh:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf tabs are showing data older than promised (gamelines, props-board, props-player)",
+   "why": "the freshness contract says 3 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
+  {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
@@ -28,10 +35,17 @@
    "repair": null
   },
   {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Fri 07:54Z",
+   "why": "fb-scores is past due with no collect run for nfl since then (oldest: fb-scores, due 2026-10-23T08:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
    "key": "late:fb-scores:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf fb-scores was built 154 minutes after it was due",
-   "why": "due 2026-10-22T08:00Z, built 2026-10-22T10:33Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "what": "ncaaf fb-scores was built 290 minutes after it was due",
+   "why": "due 2026-10-23T08:00Z, built 2026-10-23T12:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -52,11 +66,11 @@
   "pulled_at": "2026-10-22T19:32:53Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 16.0,
+  "reading_age_hours": 17.3,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-22T19:32:49Z",
   "source": "data/ncaaf/2026-10-22/alt-lines/1932.json.gz",
-  "readings_on_disk": 1082,
+  "readings_on_disk": 1083,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
