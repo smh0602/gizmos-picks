@@ -1038,7 +1038,9 @@ winners.py        THE GAME LINES TAB, ALL THREE LEAGUES (Sam, 2026-10-01):
                   played 10-18 under the same id. ⛔ A real grade is never
                   replaced. verify_record reads the box scores oldest first
                   and re-checks the grade that stands.
-                  `test_winners_postponed.py`.
+                  `test_winners_postponed.py`. `[2026-10-23]` Stamps
+                  `grader` (its grading code), so a grading change is
+                  rebuilt before verify_record checks it.
 mlb_game_model.py THE MLB GAME MODEL (Sam, 2026-10-02): each side's runs
                   from the opposing starter (start logs), its bullpen (scores
                   minus starters), the side's usual nine (hitter logs), park
@@ -1069,6 +1071,11 @@ verify_record.py  re-grades EVERY published pick from the stored box
                   runs `collect.py record converge-off`), so a grading-rule
                   change cannot turn runs red; a current-stamped record
                   that disagrees still fails.
+                  `[2026-10-23]` Each league's winners.json too: a `grader`
+                  stamp that is not the winners.py beside it is rebuilt
+                  first (`winners.py`, LEAGUE=<lg>, free), then checked.
+                  #310's grading change sat red on collect 40040807226
+                  until a mode rebuilt the file. `test_winners_grader.py`.
                   `[Sam, 2026-10-01]` ONE named exception, `DH_EXCEPTION`:
                   the three 9/25 doubleheader picks count as published
                   (29/45 stays). ⛔ Never widen it; the graders cannot
@@ -1077,6 +1084,10 @@ record_grader.py  the fingerprint of the MLB grading code: collect_record
                   and every top-level name it reaches, parsed with ast,
                   comments ignored. collect.py stamps it, verify_record
                   compares it. ⛔ Parsed, never imported.
+                  `[2026-10-23]` Also the winners' grading (`winners.graded`,
+                  `winners_fingerprint`), FOLLOWED into the other modules it
+                  reads (collect.VOID_STATES, fb_ledger, daystore); a module
+                  it reaches that it cannot find raises, never "matches".
 verify_board.py   checks data/latest/board.json -- implied runs vs the
                   moneyline, run-line attribution, and whether the PAGE
                   can tell two records for one matchup apart. ⛔ Runs on

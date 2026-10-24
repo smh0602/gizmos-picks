@@ -39,6 +39,7 @@ Everything is planted in a throwaway tree (the real 849817 times and score).
 #   with:     _src = (glob.glob("data/*/results/final.json.gz") if _lg == "mlb"
 """
 import datetime
+import glob
 import gzip
 import json
 import os
@@ -117,8 +118,10 @@ def verify(t, reverse=False):
         CO.collect_record()
     finally:
         os.chdir(cwd)
-    for f in ("verify_record.py", "collect.py", "record_grader.py"):
-        shutil.copy(os.path.join(ROOT, f), t)
+    # `[2026-10-23]` every module: verify_record stamps winners.json's grading
+    #    code from the winners.py beside it and the modules it reaches.
+    for f in glob.glob(os.path.join(ROOT, "*.py")):
+        shutil.copy(f, t)
     env = dict(os.environ, PYTHONUTF8="1")
     if reverse:
         os.makedirs(os.path.join(t, "_rev"), exist_ok=True)

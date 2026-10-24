@@ -34,6 +34,7 @@ import os
 
 import daystore
 import one_side                  # expected_side: the ONE pick-to-win rule, read by every pick list
+import record_grader             # the `grader` stamp: which grading code wrote the record
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SNAP, GRADES = "winner-picks", "winner-grades"
@@ -169,31 +170,17 @@ def stored_grades(data):
     return out
 
 
-def build(lg=None, root=None, when=None, log=print):
-    lg = (lg or os.environ.get("LEAGUE") or "mlb").lower()
-    when = when or datetime.datetime.now(datetime.timezone.utc)
-    now, data = _iso(when), data_dir(lg, root)
-    latest = os.path.join(data, "latest")
+def graded(lg, data, now, when=None, root=None, log=print):
+    """THE GRADING: every frozen pick graded once, the grade that stands, the
+    tally -> (frozen picks, the record). `[2026-10-23]` This function and
+    everything it reaches, in any module, is the `grader` stamped into
+    winners.json (record_grader.winners_fingerprint), so verify_record rebuilds
+    a file other grading code wrote before it checks it."""
     if lg == "mlb":
         from collect import VOID_STATES
-        model = _json(os.path.join(latest, "mlb-game-model.json"))
-        rows, slate = mlb_rows(model, _json(os.path.join(latest, "board.json"))), model.get("slate")
     else:
-        import card_fb
         VOID_STATES = ()
-        snap = card_fb.latest_gamelines_snapshot()[0]
-        slate = card_fb.next_line_slate(snap) if snap else None
-        fbm = _json(os.path.join(latest, "fb-model.json"))
-        shown = (_json(os.path.join(root or ROOT, "picks", "fb-%s-latest.json" % lg)) or {}).get("scores_shown")
-        rows = fb_rows(fbm, slate, card_fb.et_date, shown)
-        # `[Sam, 2026-10-14]` the tab shows the week; ⛔ only `rows` is frozen and graded.
-        week = fb_rows(fbm, None, card_fb.et_date, shown)
-    live = [r for r in rows if r["pick"] and r["commence"] > now]
-    if live:
-        daystore.archive({"league": lg, "taken_at": now, "rows": live}, data, SNAP, log=log, when=when)
     fz = frozen(data)
-    # ⛔ A STARTED GAME SHOWS ITS FROZEN PICK, never a rebuilt one.
-    rows = [fz.get(r["game_id"], r) if r["commence"] <= now else r for r in rows]
     stored, fin, new = stored_grades(data), finals(lg, root), []
     for gid, r in fz.items():
         # ⚠️ A stored VOID is asked again: a postponed game can be played later
@@ -210,18 +197,47 @@ def build(lg=None, root=None, when=None, log=print):
             stored.setdefault(g["game_id"], g)
     g = [x for k, x in stored.items() if k in fz]
     w, n = sum(1 for x in g if x["won"]), sum(1 for x in g if x["state"] == "graded")
+    return fz, {"w": w, "l": n - w, "n": n, "pct": round(100.0 * w / n, 1) if n else None,
+                "voids": sum(1 for x in g if x["state"] == "void")}
+
+
+def build(lg=None, root=None, when=None, log=print):
+    lg = (lg or os.environ.get("LEAGUE") or "mlb").lower()
+    when = when or datetime.datetime.now(datetime.timezone.utc)
+    now, data = _iso(when), data_dir(lg, root)
+    latest = os.path.join(data, "latest")
+    if lg == "mlb":
+        model = _json(os.path.join(latest, "mlb-game-model.json"))
+        rows, slate = mlb_rows(model, _json(os.path.join(latest, "board.json"))), model.get("slate")
+    else:
+        import card_fb
+        snap = card_fb.latest_gamelines_snapshot()[0]
+        slate = card_fb.next_line_slate(snap) if snap else None
+        fbm = _json(os.path.join(latest, "fb-model.json"))
+        shown = (_json(os.path.join(root or ROOT, "picks", "fb-%s-latest.json" % lg)) or {}).get("scores_shown")
+        rows = fb_rows(fbm, slate, card_fb.et_date, shown)
+        # `[Sam, 2026-10-14]` the tab shows the week; ⛔ only `rows` is frozen and graded.
+        week = fb_rows(fbm, None, card_fb.et_date, shown)
+    live = [r for r in rows if r["pick"] and r["commence"] > now]
+    if live:
+        daystore.archive({"league": lg, "taken_at": now, "rows": live}, data, SNAP, log=log, when=when)
+    fz, record = graded(lg, data, now, when, root, log)
+    # ⛔ A STARTED GAME SHOWS ITS FROZEN PICK, never a rebuilt one.
+    rows = [fz.get(r["game_id"], r) if r["commence"] <= now else r for r in rows]
     doc = {"league": lg, "kind": "MODEL", "slate": slate, "built_at": now,
+           # 🔴 `[2026-10-23]` which grading code wrote `record`: verify_record
+           #    rebuilds a file whose stamp is not the winners.py beside it.
+           "grader": record_grader.winners_fingerprint(os.path.abspath(__file__)),
            "rule": ("The model's pick to win each game: the side it gives the higher chance, "
                     "frozen at the start and graded once from the final score."),
            "rows": sorted(rows, key=lambda r: (r["commence"], r["game_id"])),
-           "record": {"w": w, "l": n - w, "n": n, "pct": round(100.0 * w / n, 1) if n else None,
-                      "voids": sum(1 for x in g if x["state"] == "void")}}
+           "record": record}
     if lg != "mlb":
         doc["week"] = week
     os.makedirs(latest, exist_ok=True)
     with open(os.path.join(latest, "winners.json"), "w", encoding="utf-8") as fh:
         json.dump(doc, fh, separators=(",", ":"))
-    log("%s winners: %d game(s) on %s, record %d-%d" % (lg, len(rows), slate, w, n - w))
+    log("%s winners: %d game(s) on %s, record %d-%d" % (lg, len(rows), slate, record["w"], record["l"]))
     return doc
 
 

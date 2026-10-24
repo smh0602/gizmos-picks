@@ -92,6 +92,7 @@ requires its absence from both Track Records.
 #   with: return days.map(g =>
 """
 import datetime
+import glob
 import gzip
 import json
 import os
@@ -258,8 +259,10 @@ try:
     os.chdir(t)
     CO.collect_record()                                                 # the props record, beside it
     _rec = json.load(open("data/latest/record.json"))
-    for f in ("verify_record.py", "collect.py", "record_grader.py"):
-        shutil.copy(os.path.join(ROOT, f), t)
+    # `[2026-10-23]` every module: verify_record stamps winners.json's grading
+    #    code from the winners.py beside it and the modules it reaches.
+    for f in glob.glob(os.path.join(ROOT, "*.py")):
+        shutil.copy(f, t)
     _v1 = subprocess.run([sys.executable, "verify_record.py"], cwd=t, capture_output=True,
                          text=True, env=dict(os.environ, PYTHONUTF8="1"))
     _wj = json.load(open("data/latest/winners.json"))
