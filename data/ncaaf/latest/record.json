@@ -1,32 +1,32 @@
 {
- "built_at": "2026-10-23T19:52:29Z",
+ "built_at": "2026-10-24T14:34:01Z",
  "league": "ncaaf",
  "kind": "DESCRIPTIVE",
  "note": "Every College Football row the board published, graded from the stored player game log \u2014 not from anyone's memory. Uncurated: it grades everything the board printed.",
  "basis": "RECORD",
  "no_model_note": "\u26d4 No number here is a model output. Football has no model \u2014 three pre-registered specifications were tested and every one lost to a player's own season average \u2014 so the 'confidence' these rows are bucketed by is the player's OWN RECORD at that line, and this page measures how that did.",
  "overall": {
-  "w": 268,
-  "n": 501,
+  "w": 271,
+  "n": 507,
   "pct": 53.5
  },
  "board": {
-  "w": 343,
-  "n": 632,
-  "pct": 54.3
+  "w": 347,
+  "n": 643,
+  "pct": 54.0
  },
  "game_lines": {
-  "w": 75,
-  "n": 131,
-  "pct": 57.3,
+  "w": 76,
+  "n": 136,
+  "pct": 55.9,
   "overall": {
-   "w": 75,
-   "n": 131,
-   "pct": 57.3
+   "w": 76,
+   "n": 136,
+   "pct": 55.9
   },
-  "shown": 137,
+  "shown": 156,
   "voids": 1,
-  "pending": 5,
+  "pending": 19,
   "unresolved": 0,
   "from": "2026-10-03",
   "by_market": {
@@ -36,14 +36,14 @@
     "pct": 63.6
    },
    "spread": {
-    "w": 17,
-    "n": 33,
-    "pct": 51.5
+    "w": 18,
+    "n": 35,
+    "pct": 51.4
    },
    "alternate_spread": {
     "w": 14,
-    "n": 27,
-    "pct": 51.9
+    "n": 30,
+    "pct": 46.7
    },
    "total": {
     "w": 16,
@@ -58,9 +58,9 @@
     "pct": 91.7
    },
    "MODEL": {
-    "w": 64,
-    "n": 119,
-    "pct": 53.8
+    "w": 65,
+    "n": 124,
+    "pct": 52.4
    }
   },
   "by_day": [
@@ -177,12 +177,20 @@
     "pending": 0
    },
    {
+    "w": 1,
+    "n": 5,
+    "pct": 20.0,
+    "date": "2026-10-23",
+    "voids": 0,
+    "pending": 0
+   },
+   {
     "w": 0,
     "n": 0,
     "pct": null,
-    "date": "2026-10-23",
+    "date": "2026-10-24",
     "voids": 0,
-    "pending": 5
+    "pending": 19
    }
   ]
  },
@@ -190,10 +198,10 @@
   "basis": "MARKET + MODEL",
   "overall": {
    "w": 10,
-   "n": 23,
-   "pct": 43.5
+   "n": 26,
+   "pct": 38.5
   },
-  "shown": 26,
+  "shown": 29,
   "by_basis": {
    "MARKET": {
     "w": 7,
@@ -202,8 +210,8 @@
    },
    "MODEL": {
     "w": 3,
-    "n": 15,
-    "pct": 20.0
+    "n": 18,
+    "pct": 16.7
    }
   },
   "voids": 0,
@@ -567,8 +575,8 @@
     "break_even": 44.6,
     "game": "Air Force Falcons @ Wyoming Cowboys",
     "commence": "2026-10-24T01:00:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-10-23",
@@ -582,8 +590,8 @@
     "break_even": 38.8,
     "game": "Army Black Knights @ Tulsa Golden Hurricane",
     "commence": "2026-10-24T00:30:00Z",
-    "won": null,
-    "state": "pending"
+    "won": false,
+    "state": "graded"
    },
    {
     "date": "2026-10-23",
@@ -597,6 +605,51 @@
     "break_even": 44.6,
     "game": "Duke Blue Devils @ Virginia Cavaliers",
     "commence": "2026-10-23T23:00:00Z",
+    "won": false,
+    "state": "graded"
+   },
+   {
+    "date": "2026-10-24",
+    "player": "Central Michigan Chippewas",
+    "side": "home",
+    "line": 1.5,
+    "price": 134,
+    "book": "fanduel",
+    "confidence": 56,
+    "confidence_basis": "MODEL",
+    "break_even": 42.7,
+    "game": "Miami (OH) RedHawks @ Central Michigan Chippewas",
+    "commence": "2026-10-24T17:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-24",
+    "player": "Indiana Hoosiers",
+    "side": "away",
+    "line": -15.5,
+    "price": 220,
+    "book": "hardrockbet",
+    "confidence": 51,
+    "confidence_basis": "MODEL",
+    "break_even": 31.2,
+    "game": "Indiana Hoosiers @ Michigan Wolverines",
+    "commence": "2026-10-24T16:00:00Z",
+    "won": null,
+    "state": "pending"
+   },
+   {
+    "date": "2026-10-24",
+    "player": "Pittsburgh Panthers",
+    "side": "away",
+    "line": 16.5,
+    "price": 140,
+    "book": "hardrockbet",
+    "confidence": 50,
+    "confidence_basis": "MODEL",
+    "break_even": 41.7,
+    "game": "Pittsburgh Panthers @ Miami Hurricanes",
+    "commence": "2026-10-24T16:00:00Z",
     "won": null,
     "state": "pending"
    }
@@ -614,9 +667,9 @@
    "pct": 50.7
   },
   "player_reception_yds": {
-   "w": 73,
-   "n": 128,
-   "pct": 57.0
+   "w": 74,
+   "n": 131,
+   "pct": 56.5
   },
   "player_receptions": {
    "w": 37,
@@ -624,21 +677,21 @@
    "pct": 53.6
   },
   "player_rush_yds": {
-   "w": 76,
-   "n": 150,
-   "pct": 50.7
+   "w": 78,
+   "n": 153,
+   "pct": 51.0
   }
  },
  "by_side": {
   "over": {
    "w": 58,
-   "n": 122,
-   "pct": 47.5
+   "n": 123,
+   "pct": 47.2
   },
   "under": {
-   "w": 162,
-   "n": 292,
-   "pct": 55.5
+   "w": 165,
+   "n": 297,
+   "pct": 55.6
   },
   "yes": {
    "w": 48,
@@ -658,13 +711,13 @@
    "pct": 88.9
   },
   "fanduel": {
-   "w": 50,
-   "n": 83,
-   "pct": 60.2
+   "w": 52,
+   "n": 87,
+   "pct": 59.8
   },
   "hardrockbet": {
-   "w": 209,
-   "n": 406,
+   "w": 210,
+   "n": 408,
    "pct": 51.5
   },
   "williamhill_us": {
@@ -676,17 +729,17 @@
  "calibration": [
   {
    "bucket": "50-60%",
-   "stated": 53.6,
-   "w": 54,
-   "n": 93,
-   "pct": 58.1
+   "stated": 53.7,
+   "w": 57,
+   "n": 98,
+   "pct": 58.2
   },
   {
    "bucket": "60-70%",
-   "stated": 63.5,
+   "stated": 63.6,
    "w": 3,
-   "n": 8,
-   "pct": 37.5
+   "n": 9,
+   "pct": 33.3
   },
   {
    "bucket": "70-80%",
@@ -847,17 +900,17 @@
   "season-blend+props-own": [
    {
     "bucket": "50-60%",
-    "stated": 53.6,
-    "w": 54,
-    "n": 93,
-    "pct": 58.1
+    "stated": 53.7,
+    "w": 57,
+    "n": 98,
+    "pct": 58.2
    },
    {
     "bucket": "60-70%",
-    "stated": 63.5,
+    "stated": 63.6,
     "w": 3,
-    "n": 8,
-    "pct": 37.5
+    "n": 9,
+    "pct": 33.3
    },
    {
     "bucket": "70-80%",
@@ -885,9 +938,9 @@
    "pct": 84.2
   },
   "season-blend+props-own": {
-   "w": 58,
-   "n": 102,
-   "pct": 56.9
+   "w": 61,
+   "n": 108,
+   "pct": 56.5
   }
  },
  "by_day": [
@@ -1085,24 +1138,32 @@
   },
   {
    "date": "2026-10-23",
+   "w": 3,
+   "n": 6,
+   "carded": 7,
+   "voids": 0,
+   "unresolved": 1
+  },
+  {
+   "date": "2026-10-24",
    "w": 0,
    "n": 0,
-   "carded": 6,
+   "carded": 25,
    "voids": 0,
-   "unresolved": 6
+   "unresolved": 25
   }
  ],
- "days_graded": 24,
- "cards_seen": 25,
+ "days_graded": 25,
+ "cards_seen": 26,
  "record_from": "2026-09-07",
  "cards_before_record_from": 3,
  "record_from_note": "Counting from 2026-09-07. 3 earlier card(s) were graded against a pipeline that was still being repaired \u2014 stale boards, a card that mixed two days, and a season default that pointed at last year \u2014 so they are set aside rather than carried forward. The cards themselves are untouched.",
- "distinct_players": 240,
- "distinct_games": 132,
- "carded_rows": 546,
+ "distinct_players": 244,
+ "distinct_games": 136,
+ "carded_rows": 572,
  "voids": 0,
- "unresolved": 45,
- "coverage_note": "501 of 546 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 45 could not be settled at all.",
+ "unresolved": 65,
+ "coverage_note": "507 of 572 published rows are graded. 0 are VOID \u2014 excluded from every percentage. 65 could not be settled at all.",
  "over_bias_note": "\u26a0\ufe0f THE UNSETTLED ROWS ARE NOT A RANDOM SAMPLE, AND THE BIAS HAS A DIRECTION. A player with no line in the box score is exactly the player an OVER loses on, so leaving those out makes the OVER hit rate read HIGH. It is not corrected \u2014 correcting it would mean inventing an outcome \u2014 and the count is published above so the size of it is visible.",
  "detail_file": "data/ncaaf/latest/record-detail.json.gz",
  "skipped": [
@@ -1115,7 +1176,7 @@
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   },
   {
-   "date": "2026-10-23",
+   "date": "2026-10-24",
    "why": "nothing settled yet \u2014 the log does not reach this slate"
   }
  ],
