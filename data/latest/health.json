@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-24T10:50:25Z",
+ "checked_at": "2026-10-24T11:28:30Z",
  "et_date": "2026-10-24",
  "healthy": false,
  "broken": 0,
@@ -14,10 +14,17 @@
    "repair": null
   },
   {
+   "key": "late:cfb-probe:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf cfb-probe was built 267 minutes after it was due",
+   "why": "due 2026-10-24T07:00Z, built 2026-10-24T11:27Z. GitHub started the run late; there is nothing to repair, and this clears when the next cfb-probe build is on time (within 60 minutes).",
+   "repair": null
+  },
+  {
    "key": "late:fb-scores:ncaaf",
    "severity": "DEGRADED",
-   "what": "ncaaf fb-scores was built 290 minutes after it was due",
-   "why": "due 2026-10-23T08:00Z, built 2026-10-23T12:50Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "what": "ncaaf fb-scores was built 208 minutes after it was due",
+   "why": "due 2026-10-24T08:00Z, built 2026-10-24T11:27Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -30,8 +37,8 @@
   {
    "key": "late:fb-scores:nfl",
    "severity": "DEGRADED",
-   "what": "nfl fb-scores was built 292 minutes after it was due",
-   "why": "due 2026-10-23T08:00Z, built 2026-10-23T12:52Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
+   "what": "nfl fb-scores was built 208 minutes after it was due",
+   "why": "due 2026-10-24T08:00Z, built 2026-10-24T11:28Z. GitHub started the run late; there is nothing to repair, and this clears when the next fb-scores build is on time (within 60 minutes).",
    "repair": null
   },
   {
@@ -42,23 +49,16 @@
    "repair": null
   },
   {
-   "key": "late:props-board:nfl",
+   "key": "late:nfl-logs:nfl",
    "severity": "DEGRADED",
-   "what": "nfl props-board was built 148 minutes after it was due",
-   "why": "due 2026-10-23T15:00Z, built 2026-10-23T17:28Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-board build is on time (within 60 minutes).",
-   "repair": null
-  },
-  {
-   "key": "late:props-player:nfl",
-   "severity": "DEGRADED",
-   "what": "nfl props-player was built 148 minutes after it was due",
-   "why": "due 2026-10-23T15:00Z, built 2026-10-23T17:27Z. GitHub started the run late; there is nothing to repair, and this clears when the next props-player build is on time (within 60 minutes).",
+   "what": "nfl nfl-logs was built 268 minutes after it was due",
+   "why": "due 2026-10-24T07:00Z, built 2026-10-24T11:28Z. GitHub started the run late; there is nothing to repair, and this clears when the next nfl-logs build is on time (within 60 minutes).",
    "repair": null
   },
   {
    "key": "credits:unrecorded",
    "severity": "DEGRADED",
-   "what": "150 Odds API credit(s) were spent since 2026-10-23T10:50:25Z that no stored snapshot records",
+   "what": "150 Odds API credit(s) were spent since 2026-10-23T11:28:30Z that no stored snapshot records",
    "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
    "repair": null
   }
@@ -68,15 +68,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 19443,
-  "pulled_at": "2026-10-23T22:33:36Z",
+  "balance": 19229,
+  "pulled_at": "2026-10-24T11:27:46Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 12.3,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-23T22:33:36Z",
-  "source": "data/ncaaf/2026-10-23/props-player/2233.json.gz",
-  "readings_on_disk": 1112,
+  "newest_paid_pull": "2026-10-24T11:27:46Z",
+  "source": "data/nfl/2026-10-24/props-player/1127.json.gz",
+  "readings_on_disk": 1118,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
