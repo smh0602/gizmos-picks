@@ -1246,11 +1246,16 @@ def props_regions(kind):
     return REGIONS_FULL
 
 
-PROPS_FRESH_MIN = 45
+def props_is_fresh(kind):
+    """True when a pull for this kind already landed for the deadline in force.
 
-
-def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
-    """True when a pull for this kind already landed inside the window.
+    🔴 `[2026-10-24]` THE CONTRACT ANSWERS, NOT A WINDOW OF ITS OWN.
+    ~~`PROPS_FRESH_MIN = 45`: stand down when any snapshot is under 45 minutes
+    old~~. A pull 23 minutes before a deadline stood the owed pull down while
+    the gate failed the run (10-18, 10-24), and a late cron bought a deadline
+    already met. `_fresh.pull_owed` judges this pull through the contract's own
+    survey, on the contract's own row; the argument is written out above
+    `freshness.props_times`.
 
     🔴 THIS FUNCTION USED `os.path.getmtime` AND WAS THEREFORE A PERMANENT
     LOCK, NOT A GUARD. Every CI run is a fresh `git checkout`, which sets
@@ -1265,14 +1270,16 @@ def props_is_fresh(kind, minutes=PROPS_FRESH_MIN):
     which a checkout cannot alter. `getmtime` is banned for freshness
     anywhere in this project -- see `freshness.py`.
     """
-    age = _fresh.newest_age_minutes(daydir("props-" + kind))
-    if age >= _fresh.MISSING:
+    r = _fresh.pull_owed(LEAGUE, DATA, "props-" + kind, now())
+    if r["stale"]:
+        if not r["missing"]:
+            log(f"props-{kind}: the newest pull is {r['age_min']:.0f} min old, "
+                f"from before the {r['due_at']} deadline, so the contract owes "
+                f"one. Buying.")
         return False
-    if age <= minutes:
-        log(f"props-{kind}: a pull landed {age:.0f} min ago (window "
-            f"{minutes} min). Standing down, NOTHING SPENT.")
-        return True
-    return False
+    log(f"props-{kind}: a pull landed {r['age_min']:.0f} min ago, for the "
+        f"{r['due_at']} deadline. Standing down, NOTHING SPENT.")
+    return True
 
 
 # ══════════════════════════════════════════════════════════════════════
