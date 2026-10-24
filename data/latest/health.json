@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-24T14:48:04Z",
+ "checked_at": "2026-10-24T15:06:25Z",
  "et_date": "2026-10-24",
  "healthy": false,
  "broken": 0,
@@ -9,8 +9,8 @@
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
-   "what": "nfl tabs are showing data older than promised (nfl-logs)",
-   "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "what": "nfl tabs are showing data older than promised (nfl-logs, props-board, props-player)",
+   "why": "the freshness contract says 9 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
    "repair": null
   },
   {
@@ -58,7 +58,7 @@
   {
    "key": "credits:unrecorded",
    "severity": "DEGRADED",
-   "what": "150 Odds API credit(s) were spent since 2026-10-23T14:48:04Z that no stored snapshot records",
+   "what": "150 Odds API credit(s) were spent since 2026-10-23T15:06:25Z that no stored snapshot records",
    "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
    "repair": null
   }
@@ -72,11 +72,11 @@
   "pulled_at": "2026-10-24T14:37:50Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.2,
+  "reading_age_hours": 0.5,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-24T14:37:50Z",
   "source": "data/nfl/2026-10-24/props-player/1437.json.gz",
-  "readings_on_disk": 1124,
+  "readings_on_disk": 1125,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
