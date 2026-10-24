@@ -1,10 +1,10 @@
 {
  "date": "2026-10-24",
  "league": "ncaaf",
- "generated_at": "2026-10-24T16:13:36Z",
+ "generated_at": "2026-10-24T16:26:47Z",
  "generated_by": "card_fb.py",
  "kind": "MODEL + RECORD + MARKET",
- "odds_pulled_at": "2026-10-24T12:55:31Z",
+ "odds_pulled_at": "2026-10-24T16:26:32Z",
  "logs_season": 2025,
  "card_method": "season-blend+props-own",
  "props_model_used": true,
@@ -1579,7 +1579,7 @@
   "min_confidence": 50,
   "model_cap": 25,
   "model_built_at": "2026-10-24T16:13:12Z",
-  "ladder_built_at": "2026-10-24T16:13:21Z",
+  "ladder_built_at": "2026-10-24T16:26:35Z",
   "alt_spreads": 1
  },
  "scores_shown": [
@@ -2110,7 +2110,7 @@
    "book": "fanduel",
    "price": -112,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.619024628&selectionId=102697221",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 64,
@@ -2421,17 +2421,17 @@
  ],
  "top_plays_excluded": {
   "below_payable_floor": 0,
-  "same_player_already_listed": 6,
+  "same_player_already_listed": 7,
   "same_game_already_listed": 6,
   "one_per_game": true,
   "price_floor": -400,
-  "pool_after_price_gate": 410,
+  "pool_after_price_gate": 415,
   "cap": 10,
   "distinct_games": 10,
   "shared_with_board_head": 7,
   "board_head_size": 10
  },
- "top_plays_rule": "The 10 most likely to hit for 2026-10-24 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 7 of 10, over 10 game(s). 6 row(s) were held back because their game was already represented and 6 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
+ "top_plays_rule": "The 10 most likely to hit for 2026-10-24 \u2014 ONE PLAY PER GAME and one per player, among rows priced at -400 or longer. Sam's rule for the MLB list is likely AND payable; he added one-per-game on 2026-09-06 after the list was measured at 18 of 20 players shared with the board's own first rows. \u26a0\ufe0f It is now 7 of 10, over 10 game(s). 6 row(s) were held back because their game was already represented and 7 because the player was. \u26d4 Nothing is padded back to 10: fewer, more independent rows is the point.",
  "parlays": {
   "2": [
    {
@@ -3329,8 +3329,8 @@
   ]
  },
  "parlay_meta": {
-  "pool": 35,
-  "rated_legs": 410,
+  "pool": 34,
+  "rated_legs": 415,
   "strata": [
    {
     "decimal": "1-1.3",
@@ -3344,13 +3344,13 @@
    },
    {
     "decimal": "1.6-2",
-    "available": 386,
+    "available": 393,
     "taken": 12
    },
    {
     "decimal": "2-3",
-    "available": 13,
-    "taken": 12
+    "available": 11,
+    "taken": 11
    },
    {
     "decimal": "3-99",
@@ -3359,12 +3359,12 @@
    }
   ],
   "rejected": {
-   "same_game": 24841,
+   "same_game": 22705,
    "same_player": 0,
-   "mixed_book": 13899,
+   "mixed_book": 9781,
    "out_of_band": 0
   },
-  "note": "410 rated legs, 35 in the stratified pool. Rejected: 24841 same game, 0 same player, 13899 would need two books, 0 outside Sam's bands."
+  "note": "415 rated legs, 34 in the stratified pool. Rejected: 22705 same game, 0 same player, 9781 would need two books, 0 outside Sam's bands."
  },
  "sgp": {
   "2": [
@@ -3494,6 +3494,37 @@
    },
    {
     "legs": [
+     "Tylik Hill o35.5 rush yds",
+     "Syracuse Orange +9.5 spread"
+    ],
+    "game": "Syracuse Orange @ North Carolina Tar Heels",
+    "game_id": "d73ad8085e6fe1f88a0f79d9538083d6",
+    "same_game": true,
+    "book": "hardrockbet",
+    "prices": [
+     -115,
+     -105
+    ],
+    "line_best_book": "hardrockbet",
+    "line_best_price": -105,
+    "n_legs": 2,
+    "n_line_legs": 1,
+    "multiplier": 3.65,
+    "multiplier_basis": "UPPER BOUND",
+    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
+    "joint": null,
+    "joint_basis": "NOT PUBLISHED",
+    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
+    "weakest_leg": 64,
+    "weakest_leg_basis": "MODEL",
+    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
+    "leg_confidences": [
+     64
+    ],
+    "band_floor": 1.8
+   },
+   {
+    "legs": [
      "Tylik Hill o33.5 rush yds",
      "Syracuse Orange +9.5 spread"
     ],
@@ -3520,37 +3551,6 @@
     "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
     "leg_confidences": [
      64
-    ],
-    "band_floor": 1.8
-   },
-   {
-    "legs": [
-     "Mikey Keene u215.5 pass yds",
-     "Kansas State Wildcats -1.5 spread"
-    ],
-    "game": "Kansas State Wildcats @ Arizona State Sun Devils",
-    "game_id": "f417c5ab864e0751355921f5d22f4b25",
-    "same_game": true,
-    "book": "fanduel",
-    "prices": [
-     -114,
-     -106
-    ],
-    "line_best_book": "hardrockbet",
-    "line_best_price": 100,
-    "n_legs": 2,
-    "n_line_legs": 1,
-    "multiplier": 3.648,
-    "multiplier_basis": "UPPER BOUND",
-    "multiplier_note": "The straight product of the legs' prices. \u26a0\ufe0f A sportsbook prices a same-game parlay BELOW this, because the legs are correlated \u2014 that discount is not in any price we store, so this is the MOST the slip can pay and the real one pays less.",
-    "joint": null,
-    "joint_basis": "NOT PUBLISHED",
-    "joint_note": "\u26d4 No combined chance is shown for a same-game parlay. Multiplying the legs' records would assert they are independent, and two players in one game are not \u2014 a quarterback's passing yards and his receiver's receiving yards are close to the same event.",
-    "weakest_leg": 60,
-    "weakest_leg_basis": "MODEL",
-    "weakest_leg_note": "The lowest of this slip's leg confidences \u2014 the props model's chance or the player's own rate at that exact line. \u26d4 It is NOT the chance the parlay hits; it is the leg most likely to break it.",
-    "leg_confidences": [
-     60
     ],
     "band_floor": 1.8
    }
@@ -3770,8 +3770,8 @@
   "games_used": 20,
   "per_game_cap": 2,
   "rejected": {
-   "same_player": 719,
-   "mixed_book": 1338,
+   "same_player": 790,
+   "mixed_book": 1274,
    "below_floor": 0,
    "no_rated_leg": 0,
    "line_not_at_book": 0,
@@ -3784,6 +3784,1068 @@
  "sgp_rule": "Same-game parlays from this card's own rows, ordered by each slip's WEAKEST leg \u2014 that leg's own record at its exact line. \u26d4 No combined chance is shown and no EV is: the legs are in one game, so multiplying their records would assert they are independent when they are not. The payout is the straight product of the prices, which is the MOST a book pays for a correlated slip.",
  "parlay_rule": "Legs are in DIFFERENT GAMES and at the SAME BOOK. Each leg's number is the props model's chance where it priced that prop and the player's own record otherwise (the leg's confidence_basis); the combined figure multiplies them, which assumes the games are unrelated.",
  "projections": {
+  "Cam Cook|player_anytime_td|yes|None": {
+   "v": 1.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 1.2 TD a game."
+  },
+  "DJ Epps|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Ed Small|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Jeremy Payne|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Jeremy Scott|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Jon Denman|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Jordan Dwyer|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Michael Hawkins Jr.|player_anytime_td|yes|None": {
+   "v": 1.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 1.7 TD a game."
+  },
+  "Michael Hawkins Jr.|player_pass_yds|over|173.5": {
+   "v": 187.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
+  },
+  "Michael Hawkins Jr.|player_pass_yds|under|173.5": {
+   "v": 187.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
+  },
+  "Michael Hawkins Jr.|player_pass_yds|over|182.5": {
+   "v": 187.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
+  },
+  "Michael Hawkins Jr.|player_pass_yds|under|182.5": {
+   "v": 187.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
+  },
+  "Cam Cook|player_reception_yds|over|13.5": {
+   "v": 19.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
+  },
+  "Cam Cook|player_reception_yds|under|13.5": {
+   "v": 19.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
+  },
+  "Cam Cook|player_reception_yds|over|15.5": {
+   "v": 19.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
+  },
+  "Cam Cook|player_reception_yds|under|15.5": {
+   "v": 19.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
+  },
+  "DJ Epps|player_reception_yds|over|51.5": {
+   "v": 55.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
+  },
+  "DJ Epps|player_reception_yds|under|51.5": {
+   "v": 55.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
+  },
+  "DJ Epps|player_reception_yds|over|54.5": {
+   "v": 55.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
+  },
+  "DJ Epps|player_reception_yds|under|54.5": {
+   "v": 55.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
+  },
+  "Ed Small|player_reception_yds|over|58.5": {
+   "v": 61.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
+  },
+  "Ed Small|player_reception_yds|under|58.5": {
+   "v": 61.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
+  },
+  "Ed Small|player_reception_yds|under|67.5": {
+   "v": 61.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
+  },
+  "Ed Small|player_reception_yds|over|67.5": {
+   "v": 61.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
+  },
+  "Jeremy Scott|player_reception_yds|over|23.5": {
+   "v": 43.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 43.6 rec yds a game."
+  },
+  "Jeremy Scott|player_reception_yds|under|23.5": {
+   "v": 43.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 43.6 rec yds a game."
+  },
+  "Jordan Dwyer|player_reception_yds|over|81.5": {
+   "v": 70.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
+  },
+  "Jordan Dwyer|player_reception_yds|under|81.5": {
+   "v": 70.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
+  },
+  "Jordan Dwyer|player_reception_yds|over|84.5": {
+   "v": 70.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
+  },
+  "Jordan Dwyer|player_reception_yds|under|84.5": {
+   "v": 70.0,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
+  },
+  "DJ Epps|player_receptions|under|3.5": {
+   "v": 3.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
+  },
+  "DJ Epps|player_receptions|over|3.5": {
+   "v": 3.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
+  },
+  "Ed Small|player_receptions|over|4.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Ed Small|player_receptions|under|4.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Jordan Dwyer|player_receptions|over|5.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Jordan Dwyer|player_receptions|under|5.5": {
+   "v": 4.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 4.6 rec a game."
+  },
+  "Cam Cook|player_rush_yds|over|94.5": {
+   "v": 125.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 125.0 rush yds a game."
+  },
+  "Cam Cook|player_rush_yds|under|94.5": {
+   "v": 125.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 125.0 rush yds a game."
+  },
+  "Michael Hawkins Jr.|player_rush_yds|over|81.5": {
+   "v": 89.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 89.7 rush yds a game."
+  },
+  "Michael Hawkins Jr.|player_rush_yds|under|81.5": {
+   "v": 89.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 89.7 rush yds a game."
+  },
+  "Aveion Chenault|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Broc Lowry|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 21 games this record is built from \u2014 0.8 TD a game."
+  },
+  "Bryson Hammer|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Cole Cabana|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 6 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Connor Walendzak|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Jalen Buckley|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.8 TD a game."
+  },
+  "John Alan Richter|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Sam Lee|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 7 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Terrell Crosby Jr.|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 13 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Cole Tabb|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.8 TD a game."
+  },
+  "Coy Eakin|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Gi'Bran Payne|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Isaiah Johnson|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.3 TD a game."
+  },
+  "J'Koby Williams|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.7 TD a game."
+  },
+  "JC French IV|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Kenny Johnson|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Terrance Carter Jr.|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Will Hammond|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Zion Johnson|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Zylan Perry|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
+  },
+  "JC French IV|player_pass_yds|over|209.5": {
+   "v": 224.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
+  },
+  "JC French IV|player_pass_yds|under|209.5": {
+   "v": 224.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
+  },
+  "JC French IV|player_pass_yds|over|219.5": {
+   "v": 224.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
+  },
+  "JC French IV|player_pass_yds|under|219.5": {
+   "v": 224.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
+  },
+  "Will Hammond|player_pass_yds|over|228.5": {
+   "v": 143.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
+  },
+  "Will Hammond|player_pass_yds|under|228.5": {
+   "v": 143.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
+  },
+  "Will Hammond|player_pass_yds|over|230.5": {
+   "v": 143.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
+  },
+  "Will Hammond|player_pass_yds|under|230.5": {
+   "v": 143.0,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
+  },
+  "Cole Tabb|player_reception_yds|over|19.5": {
+   "v": 9.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 9.2 rec yds a game."
+  },
+  "Cole Tabb|player_reception_yds|under|19.5": {
+   "v": 9.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 9.2 rec yds a game."
+  },
+  "Coy Eakin|player_reception_yds|under|34.5": {
+   "v": 45.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
+  },
+  "Coy Eakin|player_reception_yds|over|34.5": {
+   "v": 45.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
+  },
+  "Coy Eakin|player_reception_yds|over|35.5": {
+   "v": 45.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
+  },
+  "Coy Eakin|player_reception_yds|under|35.5": {
+   "v": 45.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
+  },
+  "Isaiah Johnson|player_reception_yds|over|37.5": {
+   "v": 29.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
+  },
+  "Isaiah Johnson|player_reception_yds|under|37.5": {
+   "v": 29.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
+  },
+  "Isaiah Johnson|player_reception_yds|over|40.5": {
+   "v": 29.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
+  },
+  "Isaiah Johnson|player_reception_yds|under|40.5": {
+   "v": 29.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
+  },
+  "J'Koby Williams|player_reception_yds|over|22.5": {
+   "v": 26.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 26.6 rec yds a game."
+  },
+  "J'Koby Williams|player_reception_yds|under|22.5": {
+   "v": 26.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 26.6 rec yds a game."
+  },
+  "Kenny Johnson|player_reception_yds|over|59.5": {
+   "v": 56.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
+  },
+  "Kenny Johnson|player_reception_yds|under|59.5": {
+   "v": 56.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
+  },
+  "Kenny Johnson|player_reception_yds|over|60.5": {
+   "v": 56.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
+  },
+  "Kenny Johnson|player_reception_yds|under|60.5": {
+   "v": 56.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
+  },
+  "Terrance Carter Jr.|player_reception_yds|over|35.5": {
+   "v": 47.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
+  },
+  "Terrance Carter Jr.|player_reception_yds|under|35.5": {
+   "v": 47.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
+  },
+  "Terrance Carter Jr.|player_reception_yds|over|36.5": {
+   "v": 47.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
+  },
+  "Terrance Carter Jr.|player_reception_yds|under|36.5": {
+   "v": 47.6,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
+  },
+  "Coy Eakin|player_receptions|under|3.5": {
+   "v": 3.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
+  },
+  "Coy Eakin|player_receptions|over|3.5": {
+   "v": 3.6,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
+  },
+  "Isaiah Johnson|player_receptions|over|3.5": {
+   "v": 2.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 2.5 rec a game."
+  },
+  "Isaiah Johnson|player_receptions|under|3.5": {
+   "v": 2.5,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 2.5 rec a game."
+  },
+  "Kenny Johnson|player_receptions|under|4.5": {
+   "v": 3.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.7 rec a game."
+  },
+  "Kenny Johnson|player_receptions|over|4.5": {
+   "v": 3.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 3.7 rec a game."
+  },
+  "Terrance Carter Jr.|player_receptions|under|3.5": {
+   "v": 4.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 4.3 rec a game."
+  },
+  "Terrance Carter Jr.|player_receptions|over|3.5": {
+   "v": 4.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 4.3 rec a game."
+  },
+  "Cole Tabb|player_rush_yds|over|50.5": {
+   "v": 52.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 52.5 rush yds a game."
+  },
+  "Cole Tabb|player_rush_yds|under|50.5": {
+   "v": 52.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 52.5 rush yds a game."
+  },
+  "J'Koby Williams|player_rush_yds|over|92.5": {
+   "v": 70.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
+  },
+  "J'Koby Williams|player_rush_yds|under|92.5": {
+   "v": 70.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
+  },
+  "J'Koby Williams|player_rush_yds|over|95.5": {
+   "v": 70.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
+  },
+  "J'Koby Williams|player_rush_yds|under|95.5": {
+   "v": 70.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
+  },
+  "JC French IV|player_rush_yds|over|23.5": {
+   "v": 29.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 29.5 rush yds a game."
+  },
+  "JC French IV|player_rush_yds|under|23.5": {
+   "v": 29.5,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 29.5 rush yds a game."
+  },
+  "Will Hammond|player_rush_yds|over|11.5": {
+   "v": 27.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 27.6 rush yds a game."
+  },
+  "Will Hammond|player_rush_yds|under|11.5": {
+   "v": 27.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 27.6 rush yds a game."
+  },
+  "Aidan Chiles|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Antwan Raymond|player_anytime_td|yes|None": {
+   "v": 1.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 1.2 TD a game."
+  },
+  "Caleb Komolafe|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Clay Thevenin|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.7 TD a game."
+  },
+  "Drew Wagner|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Dylan Lonergan|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Gavin Sawchuk|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Griffin Wilde|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Joseph Himon II|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
+  },
+  "KJ Duff|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Aidan Chiles|player_pass_yds|over|252.5": {
+   "v": 199.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 199.3 pass yds a game."
+  },
+  "Aidan Chiles|player_pass_yds|under|252.5": {
+   "v": 199.3,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 199.3 pass yds a game."
+  },
+  "Dylan Lonergan|player_pass_yds|over|223.5": {
+   "v": 206.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 206.1 pass yds a game."
+  },
+  "Dylan Lonergan|player_pass_yds|under|223.5": {
+   "v": 206.1,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 206.1 pass yds a game."
+  },
+  "Drew Wagner|player_reception_yds|over|37.5": {
+   "v": 23.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 23.2 rec yds a game."
+  },
+  "Drew Wagner|player_reception_yds|under|37.5": {
+   "v": 23.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 23.2 rec yds a game."
+  },
+  "Griffin Wilde|player_reception_yds|over|80.5": {
+   "v": 71.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 71.7 rec yds a game."
+  },
+  "Griffin Wilde|player_reception_yds|under|80.5": {
+   "v": 71.7,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 71.7 rec yds a game."
+  },
+  "KJ Duff|player_reception_yds|over|108.5": {
+   "v": 101.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 101.4 rec yds a game."
+  },
+  "KJ Duff|player_reception_yds|under|108.5": {
+   "v": 101.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 101.4 rec yds a game."
+  },
+  "Griffin Wilde|player_receptions|over|5.5": {
+   "v": 5.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 5.3 rec a game."
+  },
+  "Griffin Wilde|player_receptions|under|5.5": {
+   "v": 5.3,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 5.3 rec a game."
+  },
+  "KJ Duff|player_receptions|over|6.5": {
+   "v": 5.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 5.7 rec a game."
+  },
+  "KJ Duff|player_receptions|under|6.5": {
+   "v": 5.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 5.7 rec a game."
+  },
+  "Aidan Chiles|player_rush_yds|over|26.5": {
+   "v": 23.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 23.2 rush yds a game."
+  },
+  "Aidan Chiles|player_rush_yds|under|26.5": {
+   "v": 23.2,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 23.2 rush yds a game."
+  },
+  "Caleb Komolafe|player_rush_yds|over|71.5": {
+   "v": 74.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 74.6 rush yds a game."
+  },
+  "Caleb Komolafe|player_rush_yds|under|71.5": {
+   "v": 74.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 74.6 rush yds a game."
+  },
+  "Bryce Yates|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Carson Kent|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Cataurus Hicks|player_anytime_td|yes|None": {
+   "v": 0.5,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
+  },
+  "Censere Lee|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Cooper Barkate|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Darian Mensah|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Girard Pringle Jr.|player_anytime_td|yes|None": {
+   "v": 0.4,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.4 TD a game."
+  },
+  "Ja'Kyrian Turner|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Jordan Lyle|player_anytime_td|yes|None": {
+   "v": 0.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 8 games this record is built from \u2014 0.1 TD a game."
+  },
+  "Malachi Toney|player_anytime_td|yes|None": {
+   "v": 0.9,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 0.9 TD a game."
+  },
+  "Mark Fletcher Jr.|player_anytime_td|yes|None": {
+   "v": 1.1,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 1.1 TD a game."
+  },
+  "Darian Mensah|player_pass_yds|over|259.5": {
+   "v": 286.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
+  },
+  "Darian Mensah|player_pass_yds|under|259.5": {
+   "v": 286.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
+  },
+  "Darian Mensah|player_pass_yds|over|267.5": {
+   "v": 286.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
+  },
+  "Darian Mensah|player_pass_yds|under|267.5": {
+   "v": 286.9,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
+  },
+  "Carson Kent|player_reception_yds|over|23.5": {
+   "v": 26.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
+  },
+  "Carson Kent|player_reception_yds|under|23.5": {
+   "v": 26.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
+  },
+  "Carson Kent|player_reception_yds|over|24.5": {
+   "v": 26.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
+  },
+  "Carson Kent|player_reception_yds|under|24.5": {
+   "v": 26.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|over|45.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|under|45.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|over|47.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Cataurus Hicks|player_reception_yds|under|47.5": {
+   "v": 54.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
+  },
+  "Cooper Barkate|player_reception_yds|over|42.5": {
+   "v": 68.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
+  },
+  "Cooper Barkate|player_reception_yds|under|42.5": {
+   "v": 68.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
+  },
+  "Cooper Barkate|player_reception_yds|over|45.5": {
+   "v": 68.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
+  },
+  "Cooper Barkate|player_reception_yds|under|45.5": {
+   "v": 68.8,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
+  },
+  "Malachi Toney|player_reception_yds|over|100.5": {
+   "v": 89.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
+  },
+  "Malachi Toney|player_reception_yds|under|100.5": {
+   "v": 89.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
+  },
+  "Malachi Toney|player_reception_yds|over|104.5": {
+   "v": 89.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
+  },
+  "Malachi Toney|player_reception_yds|under|104.5": {
+   "v": 89.5,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
+  },
+  "Cataurus Hicks|player_receptions|over|3.5": {
+   "v": 2.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 2.9 rec a game."
+  },
+  "Cataurus Hicks|player_receptions|under|3.5": {
+   "v": 2.9,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 2.9 rec a game."
+  },
+  "Cooper Barkate|player_receptions|over|3.5": {
+   "v": 4.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.7 rec a game."
+  },
+  "Cooper Barkate|player_receptions|under|3.5": {
+   "v": 4.7,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 4.7 rec a game."
+  },
+  "Malachi Toney|player_receptions|over|8.5": {
+   "v": 7.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 7.2 rec a game."
+  },
+  "Malachi Toney|player_receptions|under|8.5": {
+   "v": 7.2,
+   "u": "rec",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 22 games this record is built from \u2014 7.2 rec a game."
+  },
+  "Darian Mensah|player_rush_yds|over|6.5": {
+   "v": 2.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 2.6 rush yds a game."
+  },
+  "Darian Mensah|player_rush_yds|under|6.5": {
+   "v": 2.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 2.6 rush yds a game."
+  },
+  "Mark Fletcher Jr.|player_rush_yds|over|65.5": {
+   "v": 82.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
+  },
+  "Mark Fletcher Jr.|player_rush_yds|under|65.5": {
+   "v": 82.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
+  },
+  "Mark Fletcher Jr.|player_rush_yds|over|71.5": {
+   "v": 82.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
+  },
+  "Mark Fletcher Jr.|player_rush_yds|under|71.5": {
+   "v": 82.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
+  },
   "Bryson Washington|player_anytime_td|yes|None": {
    "v": 0.4,
    "u": "TD",
@@ -4240,6 +5302,48 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 41.1 rush yds a game."
   },
+  "Branden Hoch|player_anytime_td|yes|None": {
+   "v": 0.0,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 0.0 TD a game."
+  },
+  "Caden Veltkamp|player_anytime_td|yes|None": {
+   "v": 0.3,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
+  },
+  "Easton Messer|player_anytime_td|yes|None": {
+   "v": 0.6,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 0.6 TD a game."
+  },
+  "Ethan Ervin|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.2 TD a game."
+  },
+  "Jacurri Brown|player_anytime_td|yes|None": {
+   "v": 0.8,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 10 games this record is built from \u2014 0.8 TD a game."
+  },
+  "Kelby Valsin|player_anytime_td|yes|None": {
+   "v": 0.7,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 9 games this record is built from \u2014 0.7 TD a game."
+  },
+  "Tyvonn Byars|player_anytime_td|yes|None": {
+   "v": 0.2,
+   "u": "TD",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 15 games this record is built from \u2014 0.2 TD a game."
+  },
   "Adam Mohammed|player_anytime_td|yes|None": {
    "v": 0.5,
    "u": "TD",
@@ -4576,390 +5680,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 7.8 rush yds a game."
   },
-  "Cole Tabb|player_anytime_td|yes|None": {
-   "v": 0.8,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.8 TD a game."
-  },
-  "Coy Eakin|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Gi'Bran Payne|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Isaiah Johnson|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.3 TD a game."
-  },
-  "J'Koby Williams|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 0.7 TD a game."
-  },
-  "JC French IV|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Kenny Johnson|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Terrance Carter Jr.|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Will Hammond|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Zion Johnson|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Zylan Perry|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
-  },
-  "JC French IV|player_pass_yds|over|209.5": {
-   "v": 224.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
-  },
-  "JC French IV|player_pass_yds|under|209.5": {
-   "v": 224.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
-  },
-  "JC French IV|player_pass_yds|over|219.5": {
-   "v": 224.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
-  },
-  "JC French IV|player_pass_yds|under|219.5": {
-   "v": 224.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 224.3 pass yds a game."
-  },
-  "Will Hammond|player_pass_yds|over|228.5": {
-   "v": 143.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
-  },
-  "Will Hammond|player_pass_yds|under|228.5": {
-   "v": 143.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
-  },
-  "Will Hammond|player_pass_yds|over|230.5": {
-   "v": 143.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
-  },
-  "Will Hammond|player_pass_yds|under|230.5": {
-   "v": 143.0,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 143.0 pass yds a game."
-  },
-  "Cole Tabb|player_reception_yds|over|19.5": {
-   "v": 9.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 9.2 rec yds a game."
-  },
-  "Cole Tabb|player_reception_yds|under|19.5": {
-   "v": 9.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 9.2 rec yds a game."
-  },
-  "Coy Eakin|player_reception_yds|under|34.5": {
-   "v": 45.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
-  },
-  "Coy Eakin|player_reception_yds|over|34.5": {
-   "v": 45.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
-  },
-  "Coy Eakin|player_reception_yds|over|35.5": {
-   "v": 45.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
-  },
-  "Coy Eakin|player_reception_yds|under|35.5": {
-   "v": 45.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 45.8 rec yds a game."
-  },
-  "Isaiah Johnson|player_reception_yds|over|37.5": {
-   "v": 29.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
-  },
-  "Isaiah Johnson|player_reception_yds|under|37.5": {
-   "v": 29.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
-  },
-  "Isaiah Johnson|player_reception_yds|over|40.5": {
-   "v": 29.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
-  },
-  "Isaiah Johnson|player_reception_yds|under|40.5": {
-   "v": 29.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 29.9 rec yds a game."
-  },
-  "J'Koby Williams|player_reception_yds|over|22.5": {
-   "v": 26.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 26.6 rec yds a game."
-  },
-  "J'Koby Williams|player_reception_yds|under|22.5": {
-   "v": 26.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 26.6 rec yds a game."
-  },
-  "Kenny Johnson|player_reception_yds|over|59.5": {
-   "v": 56.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
-  },
-  "Kenny Johnson|player_reception_yds|under|59.5": {
-   "v": 56.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
-  },
-  "Kenny Johnson|player_reception_yds|over|60.5": {
-   "v": 56.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
-  },
-  "Kenny Johnson|player_reception_yds|under|60.5": {
-   "v": 56.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 56.6 rec yds a game."
-  },
-  "Terrance Carter Jr.|player_reception_yds|over|35.5": {
-   "v": 47.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
-  },
-  "Terrance Carter Jr.|player_reception_yds|under|35.5": {
-   "v": 47.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
-  },
-  "Terrance Carter Jr.|player_reception_yds|over|36.5": {
-   "v": 47.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
-  },
-  "Terrance Carter Jr.|player_reception_yds|under|36.5": {
-   "v": 47.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 47.6 rec yds a game."
-  },
-  "Coy Eakin|player_receptions|under|3.5": {
-   "v": 3.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
-  },
-  "Coy Eakin|player_receptions|over|3.5": {
-   "v": 3.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
-  },
-  "Isaiah Johnson|player_receptions|over|3.5": {
-   "v": 2.5,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 2.5 rec a game."
-  },
-  "Isaiah Johnson|player_receptions|under|3.5": {
-   "v": 2.5,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 2.5 rec a game."
-  },
-  "Kenny Johnson|player_receptions|under|4.5": {
-   "v": 3.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 3.7 rec a game."
-  },
-  "Kenny Johnson|player_receptions|over|4.5": {
-   "v": 3.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 3.7 rec a game."
-  },
-  "Terrance Carter Jr.|player_receptions|under|3.5": {
-   "v": 4.3,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 4.3 rec a game."
-  },
-  "Terrance Carter Jr.|player_receptions|over|3.5": {
-   "v": 4.3,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 4.3 rec a game."
-  },
-  "Cole Tabb|player_rush_yds|over|50.5": {
-   "v": 52.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 52.5 rush yds a game."
-  },
-  "Cole Tabb|player_rush_yds|under|50.5": {
-   "v": 52.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 52.5 rush yds a game."
-  },
-  "J'Koby Williams|player_rush_yds|over|92.5": {
-   "v": 70.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
-  },
-  "J'Koby Williams|player_rush_yds|under|92.5": {
-   "v": 70.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
-  },
-  "J'Koby Williams|player_rush_yds|over|95.5": {
-   "v": 70.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
-  },
-  "J'Koby Williams|player_rush_yds|under|95.5": {
-   "v": 70.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 70.2 rush yds a game."
-  },
-  "JC French IV|player_rush_yds|over|23.5": {
-   "v": 29.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 29.5 rush yds a game."
-  },
-  "JC French IV|player_rush_yds|under|23.5": {
-   "v": 29.5,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 29.5 rush yds a game."
-  },
-  "Will Hammond|player_rush_yds|over|11.5": {
-   "v": 27.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 27.6 rush yds a game."
-  },
-  "Will Hammond|player_rush_yds|under|11.5": {
-   "v": 27.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 27.6 rush yds a game."
-  },
-  "Branden Hoch|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 0.0 TD a game."
-  },
-  "Caden Veltkamp|player_anytime_td|yes|None": {
-   "v": 0.3,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.3 TD a game."
-  },
-  "Easton Messer|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Ethan Ervin|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Jacurri Brown|player_anytime_td|yes|None": {
-   "v": 0.8,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.8 TD a game."
-  },
-  "Kelby Valsin|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 0.7 TD a game."
-  },
-  "Tyvonn Byars|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.2 TD a game."
-  },
   "Andrew Marsh|player_anytime_td|yes|None": {
    "v": 0.4,
    "u": "TD",
@@ -5260,726 +5980,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 77.3 rush yds a game."
   },
-  "Bryce Yates|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Carson Kent|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Cataurus Hicks|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Censere Lee|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Cooper Barkate|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Darian Mensah|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Girard Pringle Jr.|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Ja'Kyrian Turner|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Jordan Lyle|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Malachi Toney|player_anytime_td|yes|None": {
-   "v": 0.9,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 0.9 TD a game."
-  },
-  "Mark Fletcher Jr.|player_anytime_td|yes|None": {
-   "v": 1.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 1.1 TD a game."
-  },
-  "Darian Mensah|player_pass_yds|over|259.5": {
-   "v": 286.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
-  },
-  "Darian Mensah|player_pass_yds|under|259.5": {
-   "v": 286.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
-  },
-  "Darian Mensah|player_pass_yds|over|267.5": {
-   "v": 286.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
-  },
-  "Darian Mensah|player_pass_yds|under|267.5": {
-   "v": 286.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 286.9 pass yds a game."
-  },
-  "Carson Kent|player_reception_yds|over|23.5": {
-   "v": 26.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
-  },
-  "Carson Kent|player_reception_yds|under|23.5": {
-   "v": 26.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
-  },
-  "Carson Kent|player_reception_yds|over|24.5": {
-   "v": 26.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
-  },
-  "Carson Kent|player_reception_yds|under|24.5": {
-   "v": 26.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 26.4 rec yds a game."
-  },
-  "Cataurus Hicks|player_reception_yds|over|45.5": {
-   "v": 54.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
-  },
-  "Cataurus Hicks|player_reception_yds|under|45.5": {
-   "v": 54.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
-  },
-  "Cataurus Hicks|player_reception_yds|over|47.5": {
-   "v": 54.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
-  },
-  "Cataurus Hicks|player_reception_yds|under|47.5": {
-   "v": 54.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 54.2 rec yds a game."
-  },
-  "Cooper Barkate|player_reception_yds|over|42.5": {
-   "v": 68.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
-  },
-  "Cooper Barkate|player_reception_yds|under|42.5": {
-   "v": 68.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
-  },
-  "Cooper Barkate|player_reception_yds|over|45.5": {
-   "v": 68.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
-  },
-  "Cooper Barkate|player_reception_yds|under|45.5": {
-   "v": 68.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 68.8 rec yds a game."
-  },
-  "Malachi Toney|player_reception_yds|over|100.5": {
-   "v": 89.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
-  },
-  "Malachi Toney|player_reception_yds|under|100.5": {
-   "v": 89.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
-  },
-  "Malachi Toney|player_reception_yds|over|104.5": {
-   "v": 89.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
-  },
-  "Malachi Toney|player_reception_yds|under|104.5": {
-   "v": 89.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 89.5 rec yds a game."
-  },
-  "Cataurus Hicks|player_receptions|over|3.5": {
-   "v": 2.9,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 2.9 rec a game."
-  },
-  "Cataurus Hicks|player_receptions|under|3.5": {
-   "v": 2.9,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 2.9 rec a game."
-  },
-  "Cooper Barkate|player_receptions|over|3.5": {
-   "v": 4.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 4.7 rec a game."
-  },
-  "Cooper Barkate|player_receptions|under|3.5": {
-   "v": 4.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 4.7 rec a game."
-  },
-  "Malachi Toney|player_receptions|over|8.5": {
-   "v": 7.2,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 7.2 rec a game."
-  },
-  "Malachi Toney|player_receptions|under|8.5": {
-   "v": 7.2,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 22 games this record is built from \u2014 7.2 rec a game."
-  },
-  "Darian Mensah|player_rush_yds|over|6.5": {
-   "v": 2.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 2.6 rush yds a game."
-  },
-  "Darian Mensah|player_rush_yds|under|6.5": {
-   "v": 2.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 2.6 rush yds a game."
-  },
-  "Mark Fletcher Jr.|player_rush_yds|over|65.5": {
-   "v": 82.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
-  },
-  "Mark Fletcher Jr.|player_rush_yds|under|65.5": {
-   "v": 82.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
-  },
-  "Mark Fletcher Jr.|player_rush_yds|over|71.5": {
-   "v": 82.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
-  },
-  "Mark Fletcher Jr.|player_rush_yds|under|71.5": {
-   "v": 82.4,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 82.4 rush yds a game."
-  },
-  "Aidan Chiles|player_anytime_td|yes|None": {
-   "v": 0.9,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.9 TD a game."
-  },
-  "Antwan Raymond|player_anytime_td|yes|None": {
-   "v": 1.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 1.2 TD a game."
-  },
-  "Caleb Komolafe|player_anytime_td|yes|None": {
-   "v": 0.9,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.9 TD a game."
-  },
-  "Clay Thevenin|player_anytime_td|yes|None": {
-   "v": 0.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.7 TD a game."
-  },
-  "Drew Wagner|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Dylan Lonergan|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.1 TD a game."
-  },
-  "Gavin Sawchuk|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Griffin Wilde|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Joseph Himon II|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.4 TD a game."
-  },
-  "KJ Duff|player_anytime_td|yes|None": {
-   "v": 0.9,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.9 TD a game."
-  },
-  "Aidan Chiles|player_pass_yds|over|252.5": {
-   "v": 199.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 199.3 pass yds a game."
-  },
-  "Aidan Chiles|player_pass_yds|under|252.5": {
-   "v": 199.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 199.3 pass yds a game."
-  },
-  "Dylan Lonergan|player_pass_yds|over|223.5": {
-   "v": 206.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 206.1 pass yds a game."
-  },
-  "Dylan Lonergan|player_pass_yds|under|223.5": {
-   "v": 206.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 206.1 pass yds a game."
-  },
-  "Drew Wagner|player_reception_yds|over|37.5": {
-   "v": 23.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 23.2 rec yds a game."
-  },
-  "Drew Wagner|player_reception_yds|under|37.5": {
-   "v": 23.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 23.2 rec yds a game."
-  },
-  "Griffin Wilde|player_reception_yds|over|80.5": {
-   "v": 71.7,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 71.7 rec yds a game."
-  },
-  "Griffin Wilde|player_reception_yds|under|80.5": {
-   "v": 71.7,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 71.7 rec yds a game."
-  },
-  "KJ Duff|player_reception_yds|over|108.5": {
-   "v": 101.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 101.4 rec yds a game."
-  },
-  "KJ Duff|player_reception_yds|under|108.5": {
-   "v": 101.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 101.4 rec yds a game."
-  },
-  "Griffin Wilde|player_receptions|over|5.5": {
-   "v": 5.3,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 5.3 rec a game."
-  },
-  "Griffin Wilde|player_receptions|under|5.5": {
-   "v": 5.3,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 5.3 rec a game."
-  },
-  "KJ Duff|player_receptions|over|6.5": {
-   "v": 5.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 5.7 rec a game."
-  },
-  "KJ Duff|player_receptions|under|6.5": {
-   "v": 5.7,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 5.7 rec a game."
-  },
-  "Aidan Chiles|player_rush_yds|over|26.5": {
-   "v": 23.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 23.2 rush yds a game."
-  },
-  "Aidan Chiles|player_rush_yds|under|26.5": {
-   "v": 23.2,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 23.2 rush yds a game."
-  },
-  "Caleb Komolafe|player_rush_yds|over|71.5": {
-   "v": 74.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 74.6 rush yds a game."
-  },
-  "Caleb Komolafe|player_rush_yds|under|71.5": {
-   "v": 74.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 74.6 rush yds a game."
-  },
-  "Cam Cook|player_anytime_td|yes|None": {
-   "v": 1.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 1.2 TD a game."
-  },
-  "DJ Epps|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Ed Small|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Jeremy Payne|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Jeremy Scott|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Jon Denman|player_anytime_td|yes|None": {
-   "v": 0.4,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 0.4 TD a game."
-  },
-  "Jordan Dwyer|player_anytime_td|yes|None": {
-   "v": 0.5,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 0.5 TD a game."
-  },
-  "Michael Hawkins Jr.|player_anytime_td|yes|None": {
-   "v": 1.7,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 1.7 TD a game."
-  },
-  "Michael Hawkins Jr.|player_pass_yds|over|173.5": {
-   "v": 187.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
-  },
-  "Michael Hawkins Jr.|player_pass_yds|under|173.5": {
-   "v": 187.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
-  },
-  "Michael Hawkins Jr.|player_pass_yds|over|182.5": {
-   "v": 187.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
-  },
-  "Michael Hawkins Jr.|player_pass_yds|under|182.5": {
-   "v": 187.3,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 187.3 pass yds a game."
-  },
-  "Cam Cook|player_reception_yds|over|13.5": {
-   "v": 19.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
-  },
-  "Cam Cook|player_reception_yds|under|13.5": {
-   "v": 19.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
-  },
-  "Cam Cook|player_reception_yds|over|15.5": {
-   "v": 19.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
-  },
-  "Cam Cook|player_reception_yds|under|15.5": {
-   "v": 19.4,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 19.4 rec yds a game."
-  },
-  "DJ Epps|player_reception_yds|over|51.5": {
-   "v": 55.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
-  },
-  "DJ Epps|player_reception_yds|under|51.5": {
-   "v": 55.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
-  },
-  "DJ Epps|player_reception_yds|over|54.5": {
-   "v": 55.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
-  },
-  "DJ Epps|player_reception_yds|under|54.5": {
-   "v": 55.5,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 55.5 rec yds a game."
-  },
-  "Ed Small|player_reception_yds|over|58.5": {
-   "v": 61.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
-  },
-  "Ed Small|player_reception_yds|under|58.5": {
-   "v": 61.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
-  },
-  "Ed Small|player_reception_yds|under|67.5": {
-   "v": 61.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
-  },
-  "Ed Small|player_reception_yds|over|67.5": {
-   "v": 61.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 61.8 rec yds a game."
-  },
-  "Jeremy Scott|player_reception_yds|over|23.5": {
-   "v": 43.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 43.6 rec yds a game."
-  },
-  "Jeremy Scott|player_reception_yds|under|23.5": {
-   "v": 43.6,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 43.6 rec yds a game."
-  },
-  "Jordan Dwyer|player_reception_yds|over|81.5": {
-   "v": 70.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
-  },
-  "Jordan Dwyer|player_reception_yds|under|81.5": {
-   "v": 70.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
-  },
-  "Jordan Dwyer|player_reception_yds|over|84.5": {
-   "v": 70.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
-  },
-  "Jordan Dwyer|player_reception_yds|under|84.5": {
-   "v": 70.0,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 70.0 rec yds a game."
-  },
-  "DJ Epps|player_receptions|under|3.5": {
-   "v": 3.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
-  },
-  "DJ Epps|player_receptions|over|3.5": {
-   "v": 3.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 3.6 rec a game."
-  },
-  "Ed Small|player_receptions|over|4.5": {
-   "v": 4.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
-  },
-  "Ed Small|player_receptions|under|4.5": {
-   "v": 4.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 11 games this record is built from \u2014 4.6 rec a game."
-  },
-  "Jordan Dwyer|player_receptions|over|5.5": {
-   "v": 4.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 4.6 rec a game."
-  },
-  "Jordan Dwyer|player_receptions|under|5.5": {
-   "v": 4.6,
-   "u": "rec",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 14 games this record is built from \u2014 4.6 rec a game."
-  },
-  "Cam Cook|player_rush_yds|over|94.5": {
-   "v": 125.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 125.0 rush yds a game."
-  },
-  "Cam Cook|player_rush_yds|under|94.5": {
-   "v": 125.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 125.0 rush yds a game."
-  },
-  "Michael Hawkins Jr.|player_rush_yds|over|81.5": {
-   "v": 89.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 89.7 rush yds a game."
-  },
-  "Michael Hawkins Jr.|player_rush_yds|under|81.5": {
-   "v": 89.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 89.7 rush yds a game."
-  },
-  "Aveion Chenault|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Broc Lowry|player_anytime_td|yes|None": {
-   "v": 0.8,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 21 games this record is built from \u2014 0.8 TD a game."
-  },
-  "Bryson Hammer|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Cole Cabana|player_anytime_td|yes|None": {
-   "v": 0.2,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 6 games this record is built from \u2014 0.2 TD a game."
-  },
-  "Connor Walendzak|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 0.6 TD a game."
-  },
-  "Jalen Buckley|player_anytime_td|yes|None": {
-   "v": 0.8,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 0.8 TD a game."
-  },
-  "John Alan Richter|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 0.0 TD a game."
-  },
-  "Sam Lee|player_anytime_td|yes|None": {
-   "v": 0.0,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 7 games this record is built from \u2014 0.0 TD a game."
-  },
-  "Terrell Crosby Jr.|player_anytime_td|yes|None": {
-   "v": 0.1,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 0.1 TD a game."
-  },
   "Brayden Roggow|player_anytime_td|yes|None": {
    "v": 0.1,
    "u": "TD",
@@ -6100,13 +6100,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 94.4 pass yds a game."
   },
-  "Isaiah Marshall|player_pass_yds|over|218.5": {
+  "Isaiah Marshall|player_pass_yds|over|220.5": {
    "v": 94.4,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 94.4 pass yds a game."
   },
-  "Isaiah Marshall|player_pass_yds|under|218.5": {
+  "Isaiah Marshall|player_pass_yds|under|220.5": {
    "v": 94.4,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -6184,6 +6184,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 76.4 rec yds a game."
   },
+  "Nik McMillan|player_reception_yds|over|56.5": {
+   "v": 76.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 76.4 rec yds a game."
+  },
+  "Nik McMillan|player_reception_yds|under|56.5": {
+   "v": 76.4,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 76.4 rec yds a game."
+  },
   "Cam Pickett|player_receptions|over|4.5": {
    "v": 3.9,
    "u": "rec",
@@ -6220,18 +6232,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 4.7 rec a game."
   },
-  "Dylan Edwards|player_rush_yds|over|69.5": {
-   "v": 64.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 64.6 rush yds a game."
-  },
-  "Dylan Edwards|player_rush_yds|under|69.5": {
-   "v": 64.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 9 games this record is built from \u2014 64.6 rush yds a game."
-  },
   "Dylan Edwards|player_rush_yds|over|72.5": {
    "v": 64.6,
    "u": "rush yds",
@@ -6256,13 +6256,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 38.0 rush yds a game."
   },
-  "Isaiah Marshall|player_rush_yds|over|41.5": {
+  "Isaiah Marshall|player_rush_yds|over|43.5": {
    "v": 38.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 14 games this record is built from \u2014 38.0 rush yds a game."
   },
-  "Isaiah Marshall|player_rush_yds|under|41.5": {
+  "Isaiah Marshall|player_rush_yds|under|43.5": {
    "v": 38.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -6352,13 +6352,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 1.1 TD a game."
   },
-  "Dylan Raiola|player_pass_yds|over|218.5": {
+  "Dylan Raiola|player_pass_yds|over|219.5": {
    "v": 193.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 193.5 pass yds a game."
   },
-  "Dylan Raiola|player_pass_yds|under|218.5": {
+  "Dylan Raiola|player_pass_yds|under|219.5": {
    "v": 193.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -6376,13 +6376,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 193.5 pass yds a game."
   },
-  "Collin Dixon|player_reception_yds|over|72.5": {
+  "Collin Dixon|player_reception_yds|over|71.5": {
    "v": 60.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 60.8 rec yds a game."
   },
-  "Collin Dixon|player_reception_yds|under|72.5": {
+  "Collin Dixon|player_reception_yds|under|71.5": {
    "v": 60.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -6400,13 +6400,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 60.8 rec yds a game."
   },
-  "Dakorien Moore|player_reception_yds|over|65.5": {
+  "Dakorien Moore|player_reception_yds|over|66.5": {
    "v": 49.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 49.6 rec yds a game."
   },
-  "Dakorien Moore|player_reception_yds|under|65.5": {
+  "Dakorien Moore|player_reception_yds|under|66.5": {
    "v": 49.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -6448,13 +6448,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 21 games this record is built from \u2014 16.0 rec yds a game."
   },
-  "Hudson Clement|player_reception_yds|over|48.5": {
+  "Hudson Clement|player_reception_yds|over|47.5": {
    "v": 45.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 45.2 rec yds a game."
   },
-  "Hudson Clement|player_reception_yds|under|48.5": {
+  "Hudson Clement|player_reception_yds|under|47.5": {
    "v": 45.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -6508,13 +6508,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 3.3 rec a game."
   },
-  "Aidan Laughery|player_rush_yds|over|63.5": {
+  "Aidan Laughery|player_rush_yds|over|61.5": {
    "v": 51.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 51.5 rush yds a game."
   },
-  "Aidan Laughery|player_rush_yds|under|63.5": {
+  "Aidan Laughery|player_rush_yds|under|61.5": {
    "v": 51.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -6531,18 +6531,6 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 51.5 rush yds a game."
-  },
-  "Dierre Hill Jr.|player_rush_yds|over|62.5": {
-   "v": 45.3,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 21 games this record is built from \u2014 45.3 rush yds a game."
-  },
-  "Dierre Hill Jr.|player_rush_yds|under|62.5": {
-   "v": 45.3,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 21 games this record is built from \u2014 45.3 rush yds a game."
   },
   "Dierre Hill Jr.|player_rush_yds|over|64.5": {
    "v": 45.3,
@@ -6568,13 +6556,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 49.9 rush yds a game."
   },
-  "Jordon Davison|player_rush_yds|over|55.5": {
+  "Jordon Davison|player_rush_yds|over|57.5": {
    "v": 49.9,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 49.9 rush yds a game."
   },
-  "Jordon Davison|player_rush_yds|under|55.5": {
+  "Jordon Davison|player_rush_yds|under|57.5": {
    "v": 49.9,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -6652,25 +6640,25 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 209.9 pass yds a game."
   },
-  "Keelon Russell|player_pass_yds|over|255.5": {
+  "Keelon Russell|player_pass_yds|over|256.5": {
    "v": 209.9,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 209.9 pass yds a game."
   },
-  "Keelon Russell|player_pass_yds|under|255.5": {
+  "Keelon Russell|player_pass_yds|under|256.5": {
    "v": 209.9,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 9 games this record is built from \u2014 209.9 pass yds a game."
   },
-  "Marcel Reed|player_pass_yds|over|173.5": {
+  "Marcel Reed|player_pass_yds|over|172.5": {
    "v": 219.7,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 219.7 pass yds a game."
   },
-  "Marcel Reed|player_pass_yds|under|173.5": {
+  "Marcel Reed|player_pass_yds|under|172.5": {
    "v": 219.7,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -6724,6 +6712,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 45.1 rec yds a game."
   },
+  "Lotzeir Brooks|player_reception_yds|over|61.5": {
+   "v": 45.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.1 rec yds a game."
+  },
+  "Lotzeir Brooks|player_reception_yds|under|61.5": {
+   "v": 45.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 45.1 rec yds a game."
+  },
   "Mario Craver|player_reception_yds|over|34.5": {
    "v": 64.0,
    "u": "rec yds",
@@ -6735,18 +6735,6 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 64.0 rec yds a game."
-  },
-  "Rico Scott|player_reception_yds|over|54.5": {
-   "v": 28.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 28.9 rec yds a game."
-  },
-  "Rico Scott|player_reception_yds|under|54.5": {
-   "v": 28.9,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 13 games this record is built from \u2014 28.9 rec yds a game."
   },
   "Rico Scott|player_reception_yds|over|55.5": {
    "v": 28.9,
@@ -6958,13 +6946,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 159.2 pass yds a game."
   },
-  "Keyone Jenkins|player_pass_yds|over|191.5": {
+  "Keyone Jenkins|player_pass_yds|over|192.5": {
    "v": 159.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 159.2 pass yds a game."
   },
-  "Keyone Jenkins|player_pass_yds|under|191.5": {
+  "Keyone Jenkins|player_pass_yds|under|192.5": {
    "v": 159.2,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -7420,13 +7408,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 0.5 TD a game."
   },
-  "Drake Lindsey|player_pass_yds|over|198.5": {
+  "Drake Lindsey|player_pass_yds|over|199.5": {
    "v": 195.6,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 195.6 pass yds a game."
   },
-  "Drake Lindsey|player_pass_yds|under|198.5": {
+  "Drake Lindsey|player_pass_yds|under|199.5": {
    "v": 195.6,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -7732,18 +7720,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 1.1 TD a game."
   },
-  "Alessio Milivojevic|player_pass_yds|over|161.5": {
-   "v": 158.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 158.1 pass yds a game."
-  },
-  "Alessio Milivojevic|player_pass_yds|under|161.5": {
-   "v": 158.1,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 158.1 pass yds a game."
-  },
   "Chrishon McCray|player_reception_yds|over|28.5": {
    "v": 33.9,
    "u": "rec yds",
@@ -7756,17 +7732,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 33.9 rec yds a game."
   },
-  "Chrishon McCray|player_reception_yds|over|30.5": {
-   "v": 33.9,
+  "Jayden Savoury|player_reception_yds|over|25.5": {
+   "v": 34.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 33.9 rec yds a game."
+   "n": "His own average over the 8 games this record is built from \u2014 34.6 rec yds a game."
   },
-  "Chrishon McCray|player_reception_yds|under|30.5": {
-   "v": 33.9,
+  "Jayden Savoury|player_reception_yds|under|25.5": {
+   "v": 34.6,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 33.9 rec yds a game."
+   "n": "His own average over the 8 games this record is built from \u2014 34.6 rec yds a game."
   },
   "Jayden Savoury|player_reception_yds|under|26.5": {
    "v": 34.6,
@@ -7780,17 +7756,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 34.6 rec yds a game."
   },
-  "Jayden Savoury|player_reception_yds|over|27.5": {
-   "v": 34.6,
+  "Rodney Bullard Jr.|player_reception_yds|over|25.5": {
+   "v": 37.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 34.6 rec yds a game."
+   "n": "His own average over the 10 games this record is built from \u2014 37.2 rec yds a game."
   },
-  "Jayden Savoury|player_reception_yds|under|27.5": {
-   "v": 34.6,
+  "Rodney Bullard Jr.|player_reception_yds|under|25.5": {
+   "v": 37.2,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 8 games this record is built from \u2014 34.6 rec yds a game."
+   "n": "His own average over the 10 games this record is built from \u2014 37.2 rec yds a game."
   },
   "Rodney Bullard Jr.|player_reception_yds|over|27.5": {
    "v": 37.2,
@@ -7804,17 +7780,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 10 games this record is built from \u2014 37.2 rec yds a game."
   },
-  "Rodney Bullard Jr.|player_reception_yds|over|28.5": {
-   "v": 37.2,
+  "Semaj Morgan|player_reception_yds|over|40.5": {
+   "v": 35.7,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 37.2 rec yds a game."
+   "n": "His own average over the 15 games this record is built from \u2014 35.7 rec yds a game."
   },
-  "Rodney Bullard Jr.|player_reception_yds|under|28.5": {
-   "v": 37.2,
+  "Semaj Morgan|player_reception_yds|under|40.5": {
+   "v": 35.7,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 10 games this record is built from \u2014 37.2 rec yds a game."
+   "n": "His own average over the 15 games this record is built from \u2014 35.7 rec yds a game."
   },
   "Semaj Morgan|player_reception_yds|over|41.5": {
    "v": 35.7,
@@ -7828,17 +7804,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 35.7 rec yds a game."
   },
-  "Semaj Morgan|player_reception_yds|over|43.5": {
-   "v": 35.7,
+  "Wayne Knight|player_reception_yds|over|16.5": {
+   "v": 25.1,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 35.7 rec yds a game."
+   "n": "His own average over the 20 games this record is built from \u2014 25.1 rec yds a game."
   },
-  "Semaj Morgan|player_reception_yds|under|43.5": {
-   "v": 35.7,
+  "Wayne Knight|player_reception_yds|under|16.5": {
+   "v": 25.1,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 15 games this record is built from \u2014 35.7 rec yds a game."
+   "n": "His own average over the 20 games this record is built from \u2014 25.1 rec yds a game."
   },
   "Wayne Knight|player_reception_yds|over|17.5": {
    "v": 25.1,
@@ -7847,18 +7823,6 @@
    "n": "His own average over the 20 games this record is built from \u2014 25.1 rec yds a game."
   },
   "Wayne Knight|player_reception_yds|under|17.5": {
-   "v": 25.1,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 25.1 rec yds a game."
-  },
-  "Wayne Knight|player_reception_yds|over|18.5": {
-   "v": 25.1,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 25.1 rec yds a game."
-  },
-  "Wayne Knight|player_reception_yds|under|18.5": {
    "v": 25.1,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -7900,25 +7864,37 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 37.7 rush yds a game."
   },
-  "Jaziun Patterson|player_rush_yds|over|56.5": {
+  "Anthony Woods|player_rush_yds|over|44.5": {
+   "v": 37.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 37.7 rush yds a game."
+  },
+  "Anthony Woods|player_rush_yds|under|44.5": {
+   "v": 37.7,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 37.7 rush yds a game."
+  },
+  "Jaziun Patterson|player_rush_yds|over|55.5": {
    "v": 38.9,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 38.9 rush yds a game."
   },
-  "Jaziun Patterson|player_rush_yds|under|56.5": {
+  "Jaziun Patterson|player_rush_yds|under|55.5": {
    "v": 38.9,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 38.9 rush yds a game."
   },
-  "Wayne Knight|player_rush_yds|over|84.5": {
+  "Wayne Knight|player_rush_yds|over|86.5": {
    "v": 97.2,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 97.2 rush yds a game."
   },
-  "Wayne Knight|player_rush_yds|under|84.5": {
+  "Wayne Knight|player_rush_yds|under|86.5": {
    "v": 97.2,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -8020,29 +7996,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 232.9 pass yds a game."
   },
-  "John Mateer|player_pass_yds|over|235.5": {
+  "John Mateer|player_pass_yds|over|234.5": {
    "v": 232.9,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 232.9 pass yds a game."
   },
-  "John Mateer|player_pass_yds|under|235.5": {
+  "John Mateer|player_pass_yds|under|234.5": {
    "v": 232.9,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 232.9 pass yds a game."
-  },
-  "Kamario Taylor|player_pass_yds|over|217.5": {
-   "v": 129.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 129.9 pass yds a game."
-  },
-  "Kamario Taylor|player_pass_yds|under|217.5": {
-   "v": 129.9,
-   "u": "pass yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 129.9 pass yds a game."
   },
   "Kamario Taylor|player_pass_yds|over|219.5": {
    "v": 129.9,
@@ -8056,13 +8020,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 129.9 pass yds a game."
   },
-  "Anthony Evans III|player_reception_yds|over|75.5": {
+  "Anthony Evans III|player_reception_yds|over|76.5": {
    "v": 80.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 80.3 rec yds a game."
   },
-  "Anthony Evans III|player_reception_yds|under|75.5": {
+  "Anthony Evans III|player_reception_yds|under|76.5": {
    "v": 80.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -8212,13 +8176,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 67.5 rush yds a game."
   },
-  "Fluff Bothwell|player_rush_yds|over|48.5": {
+  "Fluff Bothwell|player_rush_yds|over|50.5": {
    "v": 67.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 67.5 rush yds a game."
   },
-  "Fluff Bothwell|player_rush_yds|under|48.5": {
+  "Fluff Bothwell|player_rush_yds|under|50.5": {
    "v": 67.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -8236,18 +8200,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 28.3 rush yds a game."
   },
-  "Kamario Taylor|player_rush_yds|over|19.5": {
-   "v": 38.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 38.6 rush yds a game."
-  },
-  "Kamario Taylor|player_rush_yds|under|19.5": {
-   "v": 38.6,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 16 games this record is built from \u2014 38.6 rush yds a game."
-  },
   "Kamario Taylor|player_rush_yds|over|20.5": {
    "v": 38.6,
    "u": "rush yds",
@@ -8255,6 +8207,18 @@
    "n": "His own average over the 16 games this record is built from \u2014 38.6 rush yds a game."
   },
   "Kamario Taylor|player_rush_yds|under|20.5": {
+   "v": 38.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 38.6 rush yds a game."
+  },
+  "Kamario Taylor|player_rush_yds|over|21.5": {
+   "v": 38.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 16 games this record is built from \u2014 38.6 rush yds a game."
+  },
+  "Kamario Taylor|player_rush_yds|under|21.5": {
    "v": 38.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -8440,13 +8404,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 209.7 pass yds a game."
   },
-  "Braylon Staley|player_reception_yds|over|45.5": {
+  "Braylon Staley|player_reception_yds|over|44.5": {
    "v": 52.0,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 52.0 rec yds a game."
   },
-  "Braylon Staley|player_reception_yds|under|45.5": {
+  "Braylon Staley|player_reception_yds|under|44.5": {
    "v": 52.0,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -8548,13 +8512,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 4.1 rec a game."
   },
-  "DeSean Bishop|player_rush_yds|over|108.5": {
+  "DeSean Bishop|player_rush_yds|over|112.5": {
    "v": 95.7,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 95.7 rush yds a game."
   },
-  "DeSean Bishop|player_rush_yds|under|108.5": {
+  "DeSean Bishop|player_rush_yds|under|112.5": {
    "v": 95.7,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -8595,12 +8559,6 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 37.8 rush yds a game."
-  },
-  "Avery Johnson|player_anytime_td|yes|None": {
-   "v": 0.6,
-   "u": "TD",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 0.6 TD a game."
   },
   "Brandon White|player_anytime_td|yes|None": {
    "v": 0.2,
@@ -8656,17 +8614,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 0.5 TD a game."
   },
-  "Avery Johnson|player_pass_yds|over|194.5": {
-   "v": 204.5,
-   "u": "pass yds",
+  "Jaron Tibbs|player_reception_yds|over|44.5": {
+   "v": 47.9,
+   "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 204.5 pass yds a game."
+   "n": "His own average over the 18 games this record is built from \u2014 47.9 rec yds a game."
   },
-  "Avery Johnson|player_pass_yds|under|194.5": {
-   "v": 204.5,
-   "u": "pass yds",
+  "Jaron Tibbs|player_reception_yds|under|44.5": {
+   "v": 47.9,
+   "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 204.5 pass yds a game."
+   "n": "His own average over the 18 games this record is built from \u2014 47.9 rec yds a game."
   },
   "Jaron Tibbs|player_reception_yds|over|46.5": {
    "v": 47.9,
@@ -8680,18 +8638,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 47.9 rec yds a game."
   },
-  "Omarion Miller|player_reception_yds|over|55.5": {
-   "v": 69.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 69.2 rec yds a game."
-  },
-  "Omarion Miller|player_reception_yds|under|55.5": {
-   "v": 69.2,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 17 games this record is built from \u2014 69.2 rec yds a game."
-  },
   "Omarion Miller|player_reception_yds|over|56.5": {
    "v": 69.2,
    "u": "rec yds",
@@ -8704,13 +8650,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 69.2 rec yds a game."
   },
-  "Reed Harris|player_reception_yds|over|87.5": {
+  "Reed Harris|player_reception_yds|over|89.5": {
    "v": 78.0,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 78.0 rec yds a game."
   },
-  "Reed Harris|player_reception_yds|under|87.5": {
+  "Reed Harris|player_reception_yds|under|89.5": {
    "v": 78.0,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -8764,13 +8710,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 10 games this record is built from \u2014 43.5 rush yds a game."
   },
-  "Kyson Brown|player_rush_yds|over|37.5": {
+  "Kyson Brown|player_rush_yds|over|36.5": {
    "v": 43.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 10 games this record is built from \u2014 43.5 rush yds a game."
   },
-  "Kyson Brown|player_rush_yds|under|37.5": {
+  "Kyson Brown|player_rush_yds|under|36.5": {
    "v": 43.5,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -8788,13 +8734,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 66.7 rush yds a game."
   },
-  "Rodney Fields Jr.|player_rush_yds|over|62.5": {
+  "Rodney Fields Jr.|player_rush_yds|over|60.5": {
    "v": 66.7,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 66.7 rush yds a game."
   },
-  "Rodney Fields Jr.|player_rush_yds|under|62.5": {
+  "Rodney Fields Jr.|player_rush_yds|under|60.5": {
    "v": 66.7,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -9046,6 +8992,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 195.5 pass yds a game."
   },
+  "Ethan Grunkemeyer|player_pass_yds|over|241.5": {
+   "v": 195.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 195.5 pass yds a game."
+  },
+  "Ethan Grunkemeyer|player_pass_yds|under|241.5": {
+   "v": 195.5,
+   "u": "pass yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 195.5 pass yds a game."
+  },
   "Bryant Wesco Jr.|player_reception_yds|over|59.5": {
    "v": 73.1,
    "u": "rec yds",
@@ -9082,6 +9040,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 21 games this record is built from \u2014 69.4 rec yds a game."
   },
+  "T.J. Moore|player_reception_yds|over|51.5": {
+   "v": 56.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 56.9 rec yds a game."
+  },
+  "T.J. Moore|player_reception_yds|under|51.5": {
+   "v": 56.9,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 56.9 rec yds a game."
+  },
   "T.J. Moore|player_reception_yds|over|52.5": {
    "v": 56.9,
    "u": "rec yds",
@@ -9094,13 +9064,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 56.9 rec yds a game."
   },
-  "Gideon Davidson|player_rush_yds|over|66.5": {
+  "Gideon Davidson|player_rush_yds|over|68.5": {
    "v": 40.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 40.6 rush yds a game."
   },
-  "Gideon Davidson|player_rush_yds|under|66.5": {
+  "Gideon Davidson|player_rush_yds|under|68.5": {
    "v": 40.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -9113,6 +9083,18 @@
    "n": "His own average over the 11 games this record is built from \u2014 69.0 rush yds a game."
   },
   "Jeffrey Overton Jr.|player_rush_yds|under|68.5": {
+   "v": 69.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 69.0 rush yds a game."
+  },
+  "Jeffrey Overton Jr.|player_rush_yds|over|69.5": {
+   "v": 69.0,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 69.0 rush yds a game."
+  },
+  "Jeffrey Overton Jr.|player_rush_yds|under|69.5": {
    "v": 69.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -9196,13 +9178,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 0.8 TD a game."
   },
-  "Drew Mestemaker|player_pass_yds|over|293.5": {
+  "Drew Mestemaker|player_pass_yds|over|285.5": {
    "v": 315.4,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 315.4 pass yds a game."
   },
-  "Drew Mestemaker|player_pass_yds|under|293.5": {
+  "Drew Mestemaker|player_pass_yds|under|285.5": {
    "v": 315.4,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -9232,13 +9214,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 30.0 rec yds a game."
   },
-  "Caleb Hawkins|player_reception_yds|over|24.5": {
+  "Caleb Hawkins|player_reception_yds|over|23.5": {
    "v": 30.0,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 30.0 rec yds a game."
   },
-  "Caleb Hawkins|player_reception_yds|under|24.5": {
+  "Caleb Hawkins|player_reception_yds|under|23.5": {
    "v": 30.0,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -9256,37 +9238,37 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 47.9 rec yds a game."
   },
-  "Chris Barnes|player_reception_yds|over|22.5": {
+  "Chris Barnes|player_reception_yds|over|21.5": {
    "v": 47.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 47.9 rec yds a game."
   },
-  "Chris Barnes|player_reception_yds|under|22.5": {
+  "Chris Barnes|player_reception_yds|under|21.5": {
    "v": 47.9,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 15 games this record is built from \u2014 47.9 rec yds a game."
   },
-  "DeAndre Moore Jr.|player_reception_yds|over|43.5": {
+  "DeAndre Moore Jr.|player_reception_yds|over|41.5": {
    "v": 52.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 52.8 rec yds a game."
   },
-  "DeAndre Moore Jr.|player_reception_yds|under|43.5": {
+  "DeAndre Moore Jr.|player_reception_yds|under|41.5": {
    "v": 52.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 52.8 rec yds a game."
   },
-  "Joseph Williams|player_reception_yds|over|68.5": {
+  "Joseph Williams|player_reception_yds|over|65.5": {
    "v": 62.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 62.3 rec yds a game."
   },
-  "Joseph Williams|player_reception_yds|under|68.5": {
+  "Joseph Williams|player_reception_yds|under|65.5": {
    "v": 62.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -9304,6 +9286,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 16 games this record is built from \u2014 62.3 rec yds a game."
   },
+  "Justin Bowick|player_reception_yds|over|57.5": {
+   "v": 43.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 43.2 rec yds a game."
+  },
+  "Justin Bowick|player_reception_yds|under|57.5": {
+   "v": 43.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 17 games this record is built from \u2014 43.2 rec yds a game."
+  },
   "Justin Bowick|player_reception_yds|over|59.5": {
    "v": 43.2,
    "u": "rec yds",
@@ -9316,13 +9310,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 17 games this record is built from \u2014 43.2 rec yds a game."
   },
-  "Miles Coleman|player_reception_yds|over|35.5": {
+  "Miles Coleman|player_reception_yds|over|34.5": {
    "v": 46.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 46.3 rec yds a game."
   },
-  "Miles Coleman|player_reception_yds|under|35.5": {
+  "Miles Coleman|player_reception_yds|under|34.5": {
    "v": 46.3,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -9339,6 +9333,18 @@
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 46.3 rec yds a game."
+  },
+  "Wyatt Young|player_reception_yds|over|85.5": {
+   "v": 91.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 91.2 rec yds a game."
+  },
+  "Wyatt Young|player_reception_yds|under|85.5": {
+   "v": 91.2,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 20 games this record is built from \u2014 91.2 rec yds a game."
   },
   "Wyatt Young|player_reception_yds|over|87.5": {
    "v": 91.2,
@@ -9364,13 +9370,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 10 games this record is built from \u2014 32.0 rush yds a game."
   },
-  "Caleb Hawkins|player_rush_yds|over|101.5": {
+  "Caleb Hawkins|player_rush_yds|over|102.5": {
    "v": 106.1,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 106.1 rush yds a game."
   },
-  "Caleb Hawkins|player_rush_yds|under|101.5": {
+  "Caleb Hawkins|player_rush_yds|under|102.5": {
    "v": 106.1,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -9748,17 +9754,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 12 games this record is built from \u2014 145.7 pass yds a game."
   },
-  "Kenny Minchey|player_pass_yds|over|237.5": {
-   "v": 145.7,
-   "u": "pass yds",
+  "Junior Sherrill|player_reception_yds|over|78.5": {
+   "v": 70.6,
+   "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 12 games this record is built from \u2014 145.7 pass yds a game."
+   "n": "His own average over the 20 games this record is built from \u2014 70.6 rec yds a game."
   },
-  "Kenny Minchey|player_pass_yds|under|237.5": {
-   "v": 145.7,
-   "u": "pass yds",
+  "Junior Sherrill|player_reception_yds|under|78.5": {
+   "v": 70.6,
+   "u": "rec yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 12 games this record is built from \u2014 145.7 pass yds a game."
+   "n": "His own average over the 20 games this record is built from \u2014 70.6 rec yds a game."
   },
   "Junior Sherrill|player_reception_yds|over|79.5": {
    "v": 70.6,
@@ -9820,6 +9826,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 3.1 rec a game."
   },
+  "CJ Baxter|player_rush_yds|over|74.5": {
+   "v": 48.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 48.6 rush yds a game."
+  },
+  "CJ Baxter|player_rush_yds|under|74.5": {
+   "v": 48.6,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 14 games this record is built from \u2014 48.6 rush yds a game."
+  },
   "CJ Baxter|player_rush_yds|over|76.5": {
    "v": 48.6,
    "u": "rush yds",
@@ -9856,13 +9874,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 42.0 rush yds a game."
   },
-  "Sedrick Alexander|player_rush_yds|over|38.5": {
+  "Sedrick Alexander|player_rush_yds|over|37.5": {
    "v": 42.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 42.0 rush yds a game."
   },
-  "Sedrick Alexander|player_rush_yds|under|38.5": {
+  "Sedrick Alexander|player_rush_yds|under|37.5": {
    "v": 42.0,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -9910,13 +9928,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 0.1 TD a game."
   },
-  "Billy Edwards Jr.|player_pass_yds|over|219.5": {
+  "Billy Edwards Jr.|player_pass_yds|over|220.5": {
    "v": 171.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 8 games this record is built from \u2014 171.5 pass yds a game."
   },
-  "Billy Edwards Jr.|player_pass_yds|under|219.5": {
+  "Billy Edwards Jr.|player_pass_yds|under|220.5": {
    "v": 171.5,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -9977,6 +9995,18 @@
    "n": "His own average over the 11 games this record is built from \u2014 50.8 rush yds a game."
   },
   "Tylik Hill|player_rush_yds|over|33.5": {
+   "v": 50.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 50.8 rush yds a game."
+  },
+  "Tylik Hill|player_rush_yds|over|35.5": {
+   "v": 50.8,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 11 games this record is built from \u2014 50.8 rush yds a game."
+  },
+  "Tylik Hill|player_rush_yds|under|35.5": {
    "v": 50.8,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -10060,13 +10090,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 234.8 pass yds a game."
   },
-  "Arch Manning|player_pass_yds|over|244.5": {
+  "Arch Manning|player_pass_yds|over|245.5": {
    "v": 234.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 234.8 pass yds a game."
   },
-  "Arch Manning|player_pass_yds|under|244.5": {
+  "Arch Manning|player_pass_yds|under|245.5": {
    "v": 234.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -10252,6 +10282,18 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 62.1 rec yds a game."
   },
+  "Ryan Wingo|player_reception_yds|over|56.5": {
+   "v": 62.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 62.1 rec yds a game."
+  },
+  "Ryan Wingo|player_reception_yds|under|56.5": {
+   "v": 62.1,
+   "u": "rec yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 62.1 rec yds a game."
+  },
   "Caleb Odom|player_receptions|over|3.5": {
    "v": 3.1,
    "u": "rec",
@@ -10335,18 +10377,6 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 26.2 rush yds a game."
-  },
-  "Kewan Lacy|player_rush_yds|over|61.5": {
-   "v": 96.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 96.0 rush yds a game."
-  },
-  "Kewan Lacy|player_rush_yds|under|61.5": {
-   "v": 96.0,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 96.0 rush yds a game."
   },
   "Kewan Lacy|player_rush_yds|over|64.5": {
    "v": 96.0,
@@ -10450,13 +10480,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 13 games this record is built from \u2014 0.5 TD a game."
   },
-  "Colton Joseph|player_pass_yds|over|179.5": {
+  "Colton Joseph|player_pass_yds|over|178.5": {
    "v": 212.1,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 212.1 pass yds a game."
   },
-  "Colton Joseph|player_pass_yds|under|179.5": {
+  "Colton Joseph|player_pass_yds|under|178.5": {
    "v": 212.1,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -10486,13 +10516,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 287.8 pass yds a game."
   },
-  "Jayden Maiava|player_pass_yds|over|254.5": {
+  "Jayden Maiava|player_pass_yds|over|255.5": {
    "v": 287.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 287.8 pass yds a game."
   },
-  "Jayden Maiava|player_pass_yds|under|254.5": {
+  "Jayden Maiava|player_pass_yds|under|255.5": {
    "v": 287.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -10541,18 +10571,6 @@
    "n": "His own average over the 18 games this record is built from \u2014 74.7 rush yds a game."
   },
   "Colton Joseph|player_rush_yds|under|51.5": {
-   "v": 74.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 74.7 rush yds a game."
-  },
-  "Colton Joseph|player_rush_yds|over|52.5": {
-   "v": 74.7,
-   "u": "rush yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 74.7 rush yds a game."
-  },
-  "Colton Joseph|player_rush_yds|under|52.5": {
    "v": 74.7,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -10714,13 +10732,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 1.1 TD a game."
   },
-  "Conner Weigman|player_pass_yds|over|226.5": {
+  "Conner Weigman|player_pass_yds|over|229.5": {
    "v": 223.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 223.8 pass yds a game."
   },
-  "Conner Weigman|player_pass_yds|under|226.5": {
+  "Conner Weigman|player_pass_yds|under|229.5": {
    "v": 223.8,
    "u": "pass yds",
    "b": "DESCRIPTIVE",
@@ -10810,18 +10828,6 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 74.8 rec yds a game."
   },
-  "Patrick Overmyer|player_reception_yds|over|56.5": {
-   "v": 38.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 38.8 rec yds a game."
-  },
-  "Patrick Overmyer|player_reception_yds|under|56.5": {
-   "v": 38.8,
-   "u": "rec yds",
-   "b": "DESCRIPTIVE",
-   "n": "His own average over the 20 games this record is built from \u2014 38.8 rec yds a game."
-  },
   "Patrick Overmyer|player_reception_yds|over|57.5": {
    "v": 38.8,
    "u": "rec yds",
@@ -10846,13 +10852,13 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 65.8 rec yds a game."
   },
-  "Trent Walker|player_reception_yds|over|49.5": {
+  "Trent Walker|player_reception_yds|over|50.5": {
    "v": 65.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 18 games this record is built from \u2014 65.8 rec yds a game."
   },
-  "Trent Walker|player_reception_yds|under|49.5": {
+  "Trent Walker|player_reception_yds|under|50.5": {
    "v": 65.8,
    "u": "rec yds",
    "b": "DESCRIPTIVE",
@@ -10942,17 +10948,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 20 games this record is built from \u2014 46.6 rush yds a game."
   },
-  "Devon Dampier|player_rush_yds|over|43.5": {
-   "v": 57.4,
+  "Conner Weigman|player_rush_yds|over|32.5": {
+   "v": 46.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 57.4 rush yds a game."
+   "n": "His own average over the 20 games this record is built from \u2014 46.6 rush yds a game."
   },
-  "Devon Dampier|player_rush_yds|under|43.5": {
-   "v": 57.4,
+  "Conner Weigman|player_rush_yds|under|32.5": {
+   "v": 46.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 18 games this record is built from \u2014 57.4 rush yds a game."
+   "n": "His own average over the 20 games this record is built from \u2014 46.6 rush yds a game."
   },
   "Devon Dampier|player_rush_yds|over|44.5": {
    "v": 57.4,
@@ -10961,6 +10967,18 @@
    "n": "His own average over the 18 games this record is built from \u2014 57.4 rush yds a game."
   },
   "Devon Dampier|player_rush_yds|under|44.5": {
+   "v": 57.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 57.4 rush yds a game."
+  },
+  "Devon Dampier|player_rush_yds|over|45.5": {
+   "v": 57.4,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 18 games this record is built from \u2014 57.4 rush yds a game."
+  },
+  "Devon Dampier|player_rush_yds|under|45.5": {
    "v": 57.4,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
@@ -10978,17 +10996,17 @@
    "b": "DESCRIPTIVE",
    "n": "His own average over the 11 games this record is built from \u2014 48.6 rush yds a game."
   },
-  "Wayshawn Parker|player_rush_yds|over|93.5": {
-   "v": 83.1,
+  "Makhi Hughes|player_rush_yds|over|57.5": {
+   "v": 48.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 83.1 rush yds a game."
+   "n": "His own average over the 11 games this record is built from \u2014 48.6 rush yds a game."
   },
-  "Wayshawn Parker|player_rush_yds|under|93.5": {
-   "v": 83.1,
+  "Makhi Hughes|player_rush_yds|under|57.5": {
+   "v": 48.6,
    "u": "rush yds",
    "b": "DESCRIPTIVE",
-   "n": "His own average over the 19 games this record is built from \u2014 83.1 rush yds a game."
+   "n": "His own average over the 11 games this record is built from \u2014 48.6 rush yds a game."
   },
   "Wayshawn Parker|player_rush_yds|over|96.5": {
    "v": 83.1,
@@ -11001,22 +11019,34 @@
    "u": "rush yds",
    "b": "DESCRIPTIVE",
    "n": "His own average over the 19 games this record is built from \u2014 83.1 rush yds a game."
+  },
+  "Wayshawn Parker|player_rush_yds|over|97.5": {
+   "v": 83.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 83.1 rush yds a game."
+  },
+  "Wayshawn Parker|player_rush_yds|under|97.5": {
+   "v": 83.1,
+   "u": "rush yds",
+   "b": "DESCRIPTIVE",
+   "n": "His own average over the 19 games this record is built from \u2014 83.1 rush yds a game."
   }
  },
- "name_match_rate": 0.687,
- "n_priced": 463,
+ "name_match_rate": 0.686,
+ "n_priced": 468,
  "single_day": true,
  "slate_date": "2026-10-24",
  "board_min": 5,
  "board_max": 25,
- "n_on_slate_day": 463,
+ "n_on_slate_day": 468,
  "n_off_slate_day": 0,
  "off_slate_dates": [],
  "short_of_min": false,
  "single_day_rule": "This board is 2026-10-24 only. Priced rows for another day are not shown here and neither are parlays that would cross days \u2014 a card dated one day and half-filled with the next is two facts under one label. Minimum 5, maximum 25; a day with no games is an empty board, and that is correct.",
  "empty_reason": null,
  "short_reason": null,
- "coverage": "463 priced football rows for 2026-10-24 across 36 board games; 25 shown.",
+ "coverage": "468 priced football rows for 2026-10-24 across 36 board games; 25 shown.",
  "calibration_warning": "This card changed how it rates: it now reads this season first and pulls thin records toward the average; before the change, when it said 70-80%, those plays hit 33.3% (12 graded). That earlier record is kept apart and is not counted in the figures below. under-60 hit 58.2% against a claimed 53.7% (+4.5 pts, n=98). The under-60 band is currently the closest to its own claim. 60-70 and 70-80 have too few graded plays to read. 98 graded College Football plays behind these figures, under the 100 this project needs before it will call a percentage a rate \u2014 so read them as history rather than a measured rate, and every one of them will move.",
  "board_rule": "Sorted by confidence, highest first \u2014 the same order the MLB board uses: the props model's chance where it priced the prop, the player's own record at that exact line otherwise. Rows with neither sit below every row that has one.",
  "college_note": "College records are counted over the games a player appears in. College box scores list him only when he did something, so a game he played quietly can be missing \u2014 which nudges an over slightly high. That gap was measured against the NFL, where the true figure is known: a median of 0.2 percentage points and 3.8 at the 90th percentile. Short reception lines, where the gap is biggest, carry no record at all.",
@@ -11160,7 +11190,7 @@
    "book": "fanduel",
    "price": -112,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.619024628&selectionId=102697221",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 64,
@@ -11980,6 +12010,34 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "JaQuail Smith",
+   "market": "player_rush_yds",
+   "market_label": "Rushing yards",
+   "side": "under",
+   "line": 42.5,
+   "game": "Colorado Buffaloes @ Oklahoma State Cowboys",
+   "game_id": "a28a6841bdc11350063d5e6d57fbd577",
+   "away": "Colorado Buffaloes",
+   "home": "Oklahoma State Cowboys",
+   "commence": "2026-10-24T23:00:00Z",
+   "book": "hardrockbet",
+   "price": -120,
+   "link": "https://app.hardrock.bet/?deep_link_value=betslip/6129698157661127052",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [],
+   "confidence": 57,
+   "model_p": 56.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 54.5,
+   "edge": 2.5,
+   "rank": 23
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Lotzeir Brooks",
    "market": "player_receptions",
    "market_label": "Receptions",
@@ -12022,55 +12080,6 @@
     "<b>Lotzeir Brooks</b> went under 4.5 rec in <b>5 of 7 games</b> in 2026 and 11 of 12 in 2025, in the games he appears in."
    ],
    "model_p": 57.3,
-   "rank": 23,
-   "below_price": true
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Isaiah Horton",
-   "market": "player_receptions",
-   "market_label": "Receptions",
-   "side": "under",
-   "line": 3.5,
-   "game": "Texas A&M Aggies @ Alabama Crimson Tide",
-   "game_id": "173057d32ff5946d42566a0d164de287",
-   "away": "Texas A&M Aggies",
-   "home": "Alabama Crimson Tide",
-   "commence": "2026-10-24T19:30:00Z",
-   "book": "fanduel",
-   "price": -174,
-   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.617895416&selectionId=102491441",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "confidence": 57,
-   "raw": "14 of 21",
-   "record": "14 of 21",
-   "rate": 69,
-   "break_even": 63.5,
-   "edge": -6.5,
-   "season_detail": {
-    "h25": 9,
-    "n25": 14,
-    "h26": 5,
-    "n26": 7,
-    "w25": 0.364,
-    "p0": 0.693,
-    "weighted_n": 12.09,
-    "mean_all": 2.952
-   },
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "own_mean": 3.0,
-   "projection": 3.0,
-   "projection_unit": "rec",
-   "projection_basis": "DESCRIPTIVE",
-   "projection_note": "His own average over the 21 games this record is built from \u2014 3.0 rec a game.",
-   "why": [
-    "<b>Isaiah Horton</b> went under 3.5 rec in <b>5 of 7 games</b> in 2026 and 9 of 14 in 2025, in the games he appears in."
-   ],
-   "model_p": 56.7,
    "rank": 24,
    "below_price": true
   },
@@ -12192,7 +12201,7 @@
    "book": "fanduel",
    "price": -112,
    "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.619024628&selectionId=102697221",
-   "n_books": 2,
+   "n_books": 1,
    "clears_price_floor": true,
    "confidence_basis": "MODEL",
    "confidence": 64,
@@ -12373,6 +12382,38 @@
    "kind": "fb",
    "league": "ncaaf",
    "basis": "MODEL + MARKET \u2014 the props model's chance",
+   "player": "Mikey Keene",
+   "market": "player_pass_yds",
+   "market_label": "Passing yards",
+   "side": "under",
+   "line": 215.5,
+   "game": "Kansas State Wildcats @ Arizona State Sun Devils",
+   "game_id": "f417c5ab864e0751355921f5d22f4b25",
+   "away": "Kansas State Wildcats",
+   "home": "Arizona State Sun Devils",
+   "commence": "2026-10-24T19:45:00Z",
+   "book": "fanduel",
+   "price": -114,
+   "link": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.618462278&selectionId=42153425",
+   "n_books": 1,
+   "clears_price_floor": true,
+   "confidence_basis": "MODEL",
+   "why": [
+    "The Kansas State Wildcats allow 157.6 passing yards a game to quarterbacks.",
+    "The model gives it <b>60%</b>; at -114 it needs 53.3% to pay."
+   ],
+   "confidence": 60,
+   "model_p": 59.7,
+   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
+   "break_even": 53.3,
+   "edge": 6.7,
+   "rank": 6,
+   "why_card": []
+  },
+  {
+   "kind": "fb",
+   "league": "ncaaf",
+   "basis": "MODEL + MARKET \u2014 the props model's chance",
    "player": "Quinten Joyner",
    "market": "player_rush_yds",
    "market_label": "Rushing yards",
@@ -12400,38 +12441,6 @@
    "break_even": 53.5,
    "edge": 6.5,
    "rank": 6,
-   "why_card": []
-  },
-  {
-   "kind": "fb",
-   "league": "ncaaf",
-   "basis": "MODEL + MARKET \u2014 the props model's chance",
-   "player": "Mikey Keene",
-   "market": "player_pass_yds",
-   "market_label": "Passing yards",
-   "side": "under",
-   "line": 204.5,
-   "game": "Kansas State Wildcats @ Arizona State Sun Devils",
-   "game_id": "f417c5ab864e0751355921f5d22f4b25",
-   "away": "Kansas State Wildcats",
-   "home": "Arizona State Sun Devils",
-   "commence": "2026-10-24T19:45:00Z",
-   "book": "hardrockbet",
-   "price": 100,
-   "link": "https://app.hardrock.bet/?deep_link_value=betslip/7613615043892085123",
-   "n_books": 1,
-   "clears_price_floor": true,
-   "confidence_basis": "MODEL",
-   "why": [
-    "The Kansas State Wildcats allow 157.6 passing yards a game to quarterbacks.",
-    "The model gives it <b>59%</b>; at +100 it needs 50% to pay."
-   ],
-   "confidence": 59,
-   "model_p": 58.7,
-   "confidence_note": "The props model's chance for this exact side and line, priced on this card's own board.",
-   "break_even": 50.0,
-   "edge": 9.0,
-   "rank": 7,
    "why_card": []
   },
   {
