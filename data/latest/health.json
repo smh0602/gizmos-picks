@@ -1,6 +1,6 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-24T16:16:59Z",
+ "checked_at": "2026-10-24T16:26:52Z",
  "et_date": "2026-10-24",
  "healthy": false,
  "broken": 0,
@@ -65,7 +65,7 @@
   {
    "key": "credits:unrecorded",
    "severity": "DEGRADED",
-   "what": "150 Odds API credit(s) were spent since 2026-10-23T16:16:59Z that no stored snapshot records",
+   "what": "150 Odds API credit(s) were spent since 2026-10-23T16:26:52Z that no stored snapshot records",
    "why": "the API's own balance fell by more than the snapshots add up to. A pull whose snapshot never reached main (a lost push, a crash after the request) is money the daily cap cannot see and a pull the next run may buy again. Largest gaps: 2026-10-23T17:28:10Z \u2212150 (data/nfl/2026-10-23/gamelines/1728.json.gz)",
    "repair": null
   }
@@ -75,15 +75,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 18699,
-  "pulled_at": "2026-10-24T16:02:31Z",
+  "balance": 18578,
+  "pulled_at": "2026-10-24T16:26:32Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.2,
+  "reading_age_hours": 0.0,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-24T16:02:31Z",
-  "source": "data/nfl/2026-10-24/gamelines/1602.json.gz",
-  "readings_on_disk": 1128,
+  "newest_paid_pull": "2026-10-24T16:26:32Z",
+  "source": "data/ncaaf/2026-10-24/props-player/1626.json.gz",
+  "readings_on_disk": 1130,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
