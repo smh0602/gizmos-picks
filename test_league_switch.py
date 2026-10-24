@@ -442,6 +442,54 @@ if _BROWSER:
            not faint, str(faint))
 
         # ══════════════════════════════════════════════════════════════
+        # 🔴 5b. A DIMMED ROW IS STILL READABLE, ON A PLANTED CARD `[2026-10-24]`
+        # ══════════════════════════════════════════════════════════════
+        # §5 reads the day's real rows, so a faint style passes every day the data does not
+        # show it. 10-24's playoff card finally held Hard Rock rungs below the -400 floor
+        # ("drawn, dimmed, never starred", CLAUDE.md), and `.rung.dim{opacity:.45}` read at
+        # 1.99:1: browser.yml and every PR's render job went red on data, not on a change.
+        # ⛔ PLANTED: one MLB pitcher row whose ladder holds a rung above the floor and one
+        # below it, so the dimmed rung is drawn and measured on every run. test_text_fade.py
+        # asks the code the same question without a browser.
+        import datetime as _dt5  # noqa: E402
+        _n5 = _dt5.datetime.now(_dt5.timezone.utc)
+        _d5 = (_n5 - _dt5.timedelta(hours=5)).strftime("%Y-%m-%d")
+        _s5 = (_n5 + _dt5.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        def _rung(line, price, blend, ok):
+            return dict(side="over", line=line, price=price, blend=blend,
+                        clears_price_floor=ok, link=None)
+        _dim_row = dict(kind="pitcher", pitcher="Planted Pitcher", market="strikeouts",
+                        side="over", line=5.5, price=-120, book="hardrockbet", link=None,
+                        confidence=64, break_even=54.5, edge=9.5, confidence_basis="MODEL",
+                        away="Away Club", home="Home Club", game="Away Club @ Home Club",
+                        commence=_s5, first_pitch="7:05pm", why=["A planted row."],
+                        ladder=[_rung(4.5, -150, 64, True), _rung(2.5, -1300, 95, False)],
+                        ladder_pick=dict(side="over", line=4.5))
+        _dim_card = {"date": _d5, "picks": [_dim_row], "game_lines": [], "top10": [],
+                     "pairs": [], "parlays": {}, "projections": {}}
+
+        def _dim(route):
+            path = route.request.url.split("?")[0]
+            if re.search(r"/picks/\d{4}-\d{2}-\d{2}\.json$", path):
+                return route.fulfill(status=200, content_type="application/json",
+                                     body=json.dumps(_dim_card))
+            return route.fallback()
+        pg.route("**/picks/*.json", _dim)
+        pg.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="domcontentloaded",
+                timeout=60000)
+        pg.wait_for_timeout(1500)
+        pg.locator("nav.subnav a[data-tab='picks']").click()
+        pg.wait_for_timeout(1800)
+        _dims = pg.locator("#view .rung.dim").count()
+        _faint5 = pg.evaluate(CONTRAST)
+        pg.unroute("**/picks/*.json", _dim)
+        ck("🔴 a dimmed ladder rung (below the -400 floor) on a planted MLB card is drawn, "
+           "and every word of it reads at 4.5:1 or better",
+           _dims >= 1 and not _faint5,
+           "dimmed rungs drawn: %d; faint: %s" % (_dims, _faint5))
+
+        # ══════════════════════════════════════════════════════════════
         # 🔴 6. SET STATE ON GIZMO'S PICKS OPENS THE PICKER, AND THE STATE MAKES THE BET SLIP `[2026-10-18]`
         # ══════════════════════════════════════════════════════════════
         # Measured 2026-10-18 on MLB's 2026-10-17 card: 4 SET STATE buttons, and a click left the

@@ -61,8 +61,8 @@ must stay absent from the page.
 #
 # @vacuity ...and the stylesheet styles no badge class [Sam, 2026-10-01]
 #   file: index.html
-#   find: .glr.nofloor{opacity:.62}
-#   with: .glr.nofloor{opacity:.62} .k-market{background:#e6eefc;color:#1a4b9c}
+#   find: .glr.nofloor{color:var(--mut)}
+#   with: .glr.nofloor{color:var(--mut)} .k-market{background:#e6eefc;color:#1a4b9c}
 #
 # @vacuity ...and every row is still drawn, by pickCard [Sam, 2026-10-01]
 #   file: index.html
