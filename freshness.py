@@ -695,6 +695,62 @@ def next_slate(kickoffs, now):
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🔴 THE PROPS STAND-DOWN ASKS THE CONTRACT. `[2026-10-24]`
+# ══════════════════════════════════════════════════════════════════════
+# `collect.props_is_fresh` stood a pull down when ANY snapshot was under 45
+# minutes old ~~(`PROPS_FRESH_MIN`)~~, while this contract counts a pull only
+# for a deadline it was made AT OR AFTER. Two rules for one question, and they
+# split both ways:
+#   ⛔ a pull 23 minutes BEFORE the 11:00 ET deadline: converge planned the
+#      next pull (owed), the stand-down refused it ("a pull landed 24 min
+#      ago"), and the gate failed the run "6m past due" (collect 39137387911
+#      on 10-18, 40103939010 on 10-24). The buy only moved to the first pass
+#      after the 45 minutes, and every pass until then was red.
+#   ⛔ a pull for the deadline in force, over 45 minutes old: a late cron
+#      bought the same deadline again. 10-24's 14:37Z NFL pull was a second
+#      7am pull (11:27Z had met it), and it is what tripped the 11am one.
+# ✅ ONE ANSWER: the stand-down judges, through `survey`, the very row the
+#    contract builds (`props_rows`: its directory and its `props_times`
+#    deadlines). A pull already made for the deadline in force stands its
+#    backup down (still free, still keyed on the storage directory); a pull
+#    the contract owes is never refused.
+# 💰 It never adds a pull: an owed pull the old window refused was bought by
+#    the first pass past 45 minutes anyway, and a second pull for a deadline
+#    already met is now refused. Every props cron fires after its deadline,
+#    so an on-time cron still buys exactly once.
+def props_times(league):
+    """The deadlines a paid PROPS pull answers in this league."""
+    return FB_TIMES[league]["props"] if league in FB_TIMES else ODDS
+
+
+def props_rows(league, data, utc_day):
+    """The league's paid props pull rows: the contract's own, and the rows
+    `pull_owed` judges a stand-down on."""
+    if league in FB_TIMES:
+        return [("props-player", ("dir", f"{data}/{utc_day}/props-player"), props_times(league),
+                 True, "Player Props — the paid pull")]
+    return [("props-pitcher", ("dir", f"{data}/{utc_day}/props-pitcher"), props_times("mlb"),
+             True, "Player Props — pitcher markets"),
+            ("props-batter", ("dir", f"{data}/{utc_day}/props-batter"), props_times("mlb"),
+             True, "Player Props — hitter markets")]
+
+
+def pull_owed(league, data, mode, now=None):
+    """The contract's verdict on ONE paid props pull -> its `survey` row.
+
+    `stale` True: the contract owes a pull (none landed at or after the
+    deadline in force). ⚠️ Judged even when the contract has dropped the row
+    as not warranted: the collector then buys nothing anyway, and a pull it
+    did make still stands its backup down. ⛔ A mode that is not one of the
+    league's paid props pulls raises: there is no contract answer to give."""
+    now = now or datetime.datetime.now(UTC)
+    rows = [r for r in props_rows(league, data, now.strftime("%Y-%m-%d")) if r[0] == mode]
+    if not rows:
+        raise ValueError(f"{mode} is not a paid props pull in {league}'s contract")
+    return survey(now=now, entries=rows)[0]
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 🔴 HOW LONG A REFUSED CARD MAY STAY QUIET.
 # `card_gate` lets an ACCEPTED failure keep the run green, and that is
 # right for a decision already taken -- an alarm firing every fifteen
@@ -865,8 +921,7 @@ def _football_contract(league, data, picks, now):
     rows = [
         ("gamelines", ("file", f"{latest}/board.json"), T["odds"], True,
          "Odds + Scores & Matchups — the football board"),
-        ("props-player", ("dir", f"{data}/{utc_day}/props-player"), T["props"], True,
-         "Player Props — the paid pull"),
+        *props_rows(league, data, utc_day),          # props-player, the paid pull
         ("props-board", ("file", f"{latest}/props.json.gz"), T["props"], False,
          "Player Props — the join that puts props on the board"),
         # 🔴 `[Sam, 2026-09-24]` THE ALT-LINE PULL, on the props deadlines and
@@ -1323,10 +1378,7 @@ def contract(data="data", picks="picks", now=None):
         # ── 7:00am and 4:00pm — the paid pulls
         ("gamelines", ("file", f"{latest}/board.json"),            ODDS, True,
          "Odds + Scores & Matchups — moneylines, spreads, totals"),
-        ("props-pitcher", ("dir", f"{data}/{utc_day}/props-pitcher"), ODDS, True,
-         "Player Props — pitcher markets"),
-        ("props-batter",  ("dir", f"{data}/{utc_day}/props-batter"),  ODDS, True,
-         "Player Props — hitter markets"),
+        *props_rows("mlb", data, utc_day),           # props-pitcher, props-batter
         ("props-board", ("file", f"{latest}/props.json.gz"),       ODDS, False,
          "Player Props — the join that puts props on the board"),
         # 🔴 `[Sam, 2026-10-06]` THE GAME LINES TAB'S MODEL, ON ITS OWN DEADLINES.
@@ -1746,7 +1798,58 @@ def source_block(data="data", now=None):
     return {"state": None, "detail": None, "age_min": None}
 
 
-def classify(rows, data="data", refused=None, block=None):
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 A DEADLINE THAT PASSES AFTER THE PASS LOOKED IS THE NEXT PASS'S.
+#    `[2026-10-24]`
+# ══════════════════════════════════════════════════════════════════════
+# collect 39271299253, 10-19: the NFL pass surveyed at 14:58:21Z, bought the
+# 7am props (238 minutes late) at 14:58Z, wrote freshness.json at 14:59:59Z
+# with every props row inside contract, and pushed. The gate ran at
+# 15:00:01.9Z and failed "props-player MISSED its 7:00/11:00 ET build: last
+# built 2m ago": the 11am deadline had passed 1.9 seconds earlier (no "past
+# due", because 0.03 minutes printed as nothing). No pass could have met it,
+# because no pass had looked since it passed.
+# ✅ SO THE GATE ASKS THE PRECISE QUESTION: did the league's last survey leave
+#    anything out of contract? A stale row is the NEXT pass's, not a miss, only
+#    when ALL of these hold:
+#      - this league's freshness.json (the converge pass's own final survey)
+#        is readable, stamped, and not later than now;
+#      - that survey recorded this row (same mode and path) inside contract;
+#      - exactly ONE of the row's deadlines has passed since that survey;
+#      - the row is late, not missing and not unhealthy.
+#    The gate prints it as a ::warning:: naming the deadline and the survey.
+# ⛔ NOTHING ELSE MOVES: a row the survey saw stale, a deadline the pass had
+#    surveyed past, two deadlines since the survey, an unreadable
+#    freshness.json are all red as before. The next pass surveys after the
+#    deadline, so it is judged strictly, and its build is recorded in
+#    lateness.json like any other.
+def after_last_survey(rows, data="data", picks="picks", now=None):
+    """-> {(mode, path): (survey time, deadline)} for the stale rows whose only
+    missed deadline passed after the league's last recorded survey, which found
+    them inside contract. {} when that survey cannot be read."""
+    now = now or datetime.datetime.now(UTC)
+    path = f"{data}/latest/freshness.json"
+    look = stamp_of(path)
+    doc = _load(path)
+    if look is None or look > now or not isinstance(doc, dict):
+        return {}
+    seen = {(a.get("mode"), a.get("path")): a for a in (doc.get("artifacts") or [])
+            if isinstance(a, dict)}
+    times = {(m, p): t for m, (_k, p), t, _paid, _why in contract(data, picks, now)}
+    out = {}
+    for r in rows:
+        key = (r["mode"], r["path"])
+        rec, t = seen.get(key), times.get(key)
+        if (not r["stale"] or r["missing"] or r.get("unhealthy") or not r.get("due_at")
+                or not rec or rec.get("stale") is not False or not t):
+            continue
+        first = next_due(t, look)
+        if first is not None and first.strftime("%Y-%m-%dT%H:%MZ") == r["due_at"]:
+            out[key] = (look, first)
+    return out
+
+
+def classify(rows, data="data", refused=None, block=None, now=None):
     """The freshness gate's verdict on every STALE row -> (hard, soft).
 
     ⛔ ONE COPY. `verify_freshness.py` (the gate) and `collect.converge`
@@ -1754,11 +1857,13 @@ def classify(rows, data="data", refused=None, block=None):
     each branch are argued in verify_freshness.main.
     `refused`: the card was refused by verify_card (a known state).
     `block`: `source_block(data)` (a third-party source that will not serve).
+    `now`: when `rows` were surveyed (`after_last_survey`).
     """
     if refused is None:
         refused = os.path.exists(f"{data}/latest/card-verify-failure.txt")
     if block is None:
         block = source_block(data)
+    later = None
     hard, soft = [], []
     for r in rows:
         if not r["stale"]:
@@ -1792,6 +1897,11 @@ def classify(rows, data="data", refused=None, block=None):
                 continue
             soft.append(r)
             continue
+        if r["mode"] not in SOFT:
+            later = after_last_survey(rows, data, now=now) if later is None else later
+            if (r["mode"], r["path"]) in later:
+                soft.append(dict(r, _after_survey=later[(r["mode"], r["path"])]))
+                continue
         (soft if r["mode"] in SOFT else hard).append(r)
     return hard, soft
 
@@ -1892,11 +2002,15 @@ CASCADE = {
 }
 
 
-def survey(data="data", picks="picks", now=None):
-    """Age every artifact against its deadline. Pure -- no side effects."""
+def survey(data="data", picks="picks", now=None, entries=None):
+    """Age every artifact against its deadline. Pure -- no side effects.
+
+    `entries`: contract rows to judge instead of the whole contract (`pull_owed`
+    judges one paid pull this way, through this same loop)."""
     now = now or datetime.datetime.now(UTC)
     rows = []
-    for mode, (kind, path), times, paid, why in contract(data, picks, now):
+    for mode, (kind, path), times, paid, why in (
+            contract(data, picks, now) if entries is None else entries):
         age = (newest_age_minutes(path, now) if kind == "dir"
                else age_minutes(path, now))
         built = None if age >= MISSING else now - datetime.timedelta(minutes=age)
