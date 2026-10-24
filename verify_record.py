@@ -303,10 +303,36 @@ ck("the game-line line names only moneyline and run line",
 #    game's start and the sign of the final margin, then summed against
 #    winners.json. A game finished but not yet graded is the builder's next
 #    run, not a disagreement.
+# 🔴🔴 `[2026-10-23]` AND A WINNERS FILE OTHER GRADING CODE WROTE IS REBUILT
+#    FIRST, as record.json is above. PR #310 changed the grading (a void gives
+#    way to a later real grade); the next pass (collect 40040807226) ran no mode
+#    and this check held the NEW rule against the OLD file: red, "7/16, 0 void"
+#    vs "6/15, 1 void". ✅ winners.build stamps `record_grader.winners_fingerprint`
+#    (its grading code, in every module it reaches); a stamp that is not the
+#    winners.py beside this file is rebuilt (free: stored saves, grades and
+#    finals), then checked. ⛔ A current stamp is NEVER rebuilt, so a builder
+#    and this check that disagree still fail. ⛔ RUN, not imported.
+_WNOW = None
 for _lg, _dd in (("mlb", "data"), ("nfl", "data/nfl"), ("ncaaf", "data/ncaaf")):
-    if not os.path.exists(os.path.join(_dd, "latest", "winners.json")):
+    _wf = os.path.join(_dd, "latest", "winners.json")
+    if not os.path.exists(_wf):
         continue
-    _wr = _read_json(os.path.join(_dd, "latest", "winners.json"), "the %s winners" % _lg).get("record") or {}
+    _wj = _read_json(_wf, "the %s winners" % _lg)
+    _WNOW = _WNOW or record_grader.winners_fingerprint(os.path.join(ROOT, "winners.py"))
+    if _wj.get("grader") != _WNOW:
+        print(f"  REBUILD the {_lg} winners.json was built by grading code "
+              f"{_wj.get('grader') or '(unstamped)'}; the grader beside this verifier "
+              f"is {_WNOW} -- rebuilding it before verifying", flush=True)
+        import subprocess  # noqa: E402
+        _p = subprocess.run([sys.executable, "winners.py"], cwd=ROOT, env=dict(os.environ, LEAGUE=_lg))
+        if _p.returncode != 0:
+            ck(f"the stale {_lg} winners could be rebuilt", False,
+               f"winners.py exited {_p.returncode} -- the {_lg} winners are NOT verified")
+            continue
+        _wj = _read_json(_wf, "the rebuilt %s winners" % _lg)
+        ck(f"the rebuilt {_lg} winners carry the current grader's fingerprint",
+           _wj.get("grader") == _WNOW, f"got {_wj.get('grader')!r}, want {_WNOW}")
+    _wr = _wj.get("record") or {}
     _pick = {}
     for _p in glob.glob(os.path.join(_dd, "*", "winner-picks", "*.json.gz")):
         _s = json.load(gzip.open(_p, "rt"))

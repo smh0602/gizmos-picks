@@ -1595,7 +1595,7 @@ FILES_FIRST = {    # the finding key's first part -> the files to read first
     "card": "card.py, card_fb.py, collect.py", "cardfile": "card.py, card_fb.py",
     "empty": "card.py, card_fb.py", "proj": "card.py, verify_card.py", "day": "card_fb.py, card.py",
     "verify": "verify_card.py, card.py, card_fb.py", "record": "collect.py, record_fb.py",
-    "record-verify": "verify_record.py, collect.py, record_grader.py", "page": "index.html",
+    "record-verify": "verify_record.py, collect.py, winners.py, record_grader.py", "page": "index.html",
     "fresh": "freshness.py, collect.py", "late": "freshness.py, relay.py",
     "stopped": "freshness.py, relay.py, .github/workflows/collect.yml",
     "credits": "credits.py, collect.py, budget.py", "watchdog": ".github/workflows/collect.yml",
