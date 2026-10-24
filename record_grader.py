@@ -138,6 +138,12 @@ def _foreign(path, defs, mod_imports, seen):
     return out
 
 
+def _parse(path):
+    """(top-level definitions, module-level imports) of one file, docstrings stripped."""
+    tree = _strip_docstrings(ast.parse(open(path, encoding="utf-8").read()))
+    return _top_level(tree), _imports(tree.body, False)
+
+
 def closure(path, entry=ENTRY, follow=False):
     """-> {name: [ast nodes]} for `entry` and everything it reaches; with
     `follow`, also every other module's name it reaches, keyed "module.name"."""
@@ -148,8 +154,7 @@ def closure(path, entry=ENTRY, follow=False):
             continue
         done.add((p, start))
         if p not in parsed:
-            tree = _strip_docstrings(ast.parse(open(p, encoding="utf-8").read()))
-            parsed[p] = (_top_level(tree), _imports(tree.body, False))
+            parsed[p] = _parse(p)
         defs, mod_imports = parsed[p]
         if start not in defs:
             if p == top:
