@@ -1,16 +1,30 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-25T06:56:51Z",
+ "checked_at": "2026-10-25T11:16:42Z",
  "et_date": "2026-10-25",
  "healthy": false,
  "broken": 0,
- "degraded": 8,
+ "degraded": 10,
  "findings": [
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
    "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
+  {
+   "key": "stopped:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf has not updated since Sun 06:56Z",
+   "why": "cfb-probe are past due with no collect run for ncaaf since then (oldest: cfb-probe, due 2026-10-25T07:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Sun 06:56Z",
+   "why": "nfl-logs are past due with no collect run for nfl since then (oldest: nfl-logs, due 2026-10-25T07:00Z). Nothing repairs this on its own; the next run that lands will.",
    "repair": null
   },
   {
@@ -68,15 +82,15 @@
  "sam_only": [],
  "credits": {
   "state": "HEALTHY",
-  "balance": 18242,
-  "pulled_at": "2026-10-24T21:42:48Z",
+  "balance": 18220,
+  "pulled_at": "2026-10-25T11:11:56Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 9.2,
+  "reading_age_hours": 0.1,
   "behind_newest_pull_hours": 0.0,
-  "newest_paid_pull": "2026-10-24T21:42:48Z",
-  "source": "data/ncaaf/2026-10-24/gamelines/2142.json.gz",
-  "readings_on_disk": 1141,
+  "newest_paid_pull": "2026-10-25T11:11:56Z",
+  "source": "data/2026-10-25/props-batter/1111.json.gz",
+  "readings_on_disk": 1144,
   "basis": "The API's own remaining-quota header, recorded on a paid pull as `credits_remaining`. \u26d4 NOT a plan size and NOT budget.py's projection.",
   "stands_down_first": "A props pull is priced per game, so it is the first thing that cannot afford to run; the bulk game-lines pull is the cheapest and stands down last."
  },
