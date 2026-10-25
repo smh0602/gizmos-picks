@@ -2,19 +2,19 @@
  "league": "ncaaf",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-10-24T18:38:15Z",
+ "built_at": "2026-10-25T13:29:13Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
   "home_edge_points": 4.13,
   "matchup_points_per_unit": {
    "pass_yds": -0.0146,
-   "rush_yds": -0.0015,
-   "plays": 0.0428
+   "rush_yds": -0.0017,
+   "plays": 0.049
   },
   "sigma": {
-   "margin": 16.52,
-   "total": 16.35
+   "margin": 16.46,
+   "total": 16.45
   },
   "k": {
    "spread": 3.0,
@@ -24,1502 +24,6 @@
  },
  "upcoming": [
   {
-   "game_id": "401856728",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Auburn",
-   "away": "LSU",
-   "neutral": false,
-   "score": {
-    "home": 22.1,
-    "away": 25.7
-   },
-   "margin": -3.6,
-   "total": 47.8,
-   "line": {
-    "spread": -7.5,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 59.3,
-    "total": 38.6,
-    "moneyline": 41.4
-   },
-   "calibrated": {
-    "spread": 53.1,
-    "total": 46.2,
-    "moneyline": 41.4
-   },
-   "fb_model": {
-    "spread": 53.3,
-    "total": 52.8,
-    "moneyline": 36.0
-   },
-   "fb_model_ml_curve_spread": 53.9
-  },
-  {
-   "game_id": "401856840",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Cincinnati",
-   "away": "Texas Tech",
-   "neutral": false,
-   "score": {
-    "home": 23.3,
-    "away": 33.9
-   },
-   "margin": -10.6,
-   "total": 57.2,
-   "line": {
-    "spread": -11.5,
-    "total": 56.5
-   },
-   "score_curve": {
-    "spread": 52.1,
-    "total": 51.7,
-    "moneyline": 26.0
-   },
-   "calibrated": {
-    "spread": 50.7,
-    "total": 50.6,
-    "moneyline": 26.0
-   },
-   "fb_model": {
-    "spread": 50.0,
-    "total": 50.9,
-    "moneyline": 22.3
-   },
-   "fb_model_ml_curve_spread": 47.5
-  },
-  {
-   "game_id": "401856841",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "TCU",
-   "away": "West Virginia",
-   "neutral": false,
-   "score": {
-    "home": 34.3,
-    "away": 22.4
-   },
-   "margin": 11.8,
-   "total": 56.7,
-   "line": {
-    "spread": 10.5,
-    "total": 58.5
-   },
-   "score_curve": {
-    "spread": 53.2,
-    "total": 45.6,
-    "moneyline": 76.3
-   },
-   "calibrated": {
-    "spread": 51.1,
-    "total": 48.5,
-    "moneyline": 76.3
-   },
-   "fb_model": {
-    "spread": 53.3,
-    "total": 58.4,
-    "moneyline": 78.4
-   },
-   "fb_model_ml_curve_spread": 55.9
-  },
-  {
-   "game_id": "401858270",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "SMU",
-   "away": "California",
-   "neutral": false,
-   "score": {
-    "home": 34.8,
-    "away": 17.2
-   },
-   "margin": 17.6,
-   "total": 52.0,
-   "line": {
-    "spread": 18.5,
-    "total": 55.5
-   },
-   "score_curve": {
-    "spread": 47.9,
-    "total": 41.6,
-    "moneyline": 85.7
-   },
-   "calibrated": {
-    "spread": 49.3,
-    "total": 47.2,
-    "moneyline": 85.7
-   },
-   "fb_model": {
-    "spread": 59.8,
-    "total": 39.7,
-    "moneyline": 82.6
-   },
-   "fb_model_ml_curve_spread": 42.6
-  },
-  {
-   "game_id": "401858274",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Miami",
-   "away": "Pittsburgh",
-   "neutral": false,
-   "score": {
-    "home": 37.4,
-    "away": 17.5
-   },
-   "margin": 19.9,
-   "total": 54.9,
-   "line": {
-    "spread": 20.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 48.6,
-    "total": 60.7,
-    "moneyline": 88.6
-   },
-   "calibrated": {
-    "spread": 49.5,
-    "total": 53.6,
-    "moneyline": 88.6
-   },
-   "fb_model": {
-    "spread": 50.8,
-    "total": 52.9,
-    "moneyline": 84.0
-   },
-   "fb_model_ml_curve_spread": 39.9
-  },
-  {
-   "game_id": "401858496",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Michigan",
-   "away": "Indiana",
-   "neutral": false,
-   "score": {
-    "home": 14.4,
-    "away": 28.8
-   },
-   "margin": -14.4,
-   "total": 43.2,
-   "line": {
-    "spread": -7.5,
-    "total": 42.5
-   },
-   "score_curve": {
-    "spread": 33.8,
-    "total": 51.7,
-    "moneyline": 19.2
-   },
-   "calibrated": {
-    "spread": 44.5,
-    "total": 50.6,
-    "moneyline": 19.2
-   },
-   "fb_model": {
-    "spread": 41.8,
-    "total": 51.1,
-    "moneyline": 16.6
-   },
-   "fb_model_ml_curve_spread": 30.4
-  },
-  {
-   "game_id": "401858498",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Northwestern",
-   "away": "Rutgers",
-   "neutral": false,
-   "score": {
-    "home": 39.0,
-    "away": 19.5
-   },
-   "margin": 19.5,
-   "total": 58.4,
-   "line": {
-    "spread": 15.5,
-    "total": 58.5
-   },
-   "score_curve": {
-    "spread": 59.5,
-    "total": 49.9,
-    "moneyline": 88.1
-   },
-   "calibrated": {
-    "spread": 53.2,
-    "total": 50.0,
-    "moneyline": 88.1
-   },
-   "fb_model": {
-    "spread": 55.8,
-    "total": 49.8,
-    "moneyline": 83.7
-   },
-   "fb_model_ml_curve_spread": 51.5
-  },
-  {
-   "game_id": "401862809",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Florida Atlantic",
-   "away": "Rice",
-   "neutral": false,
-   "score": {
-    "home": 34.7,
-    "away": 26.5
-   },
-   "margin": 8.2,
-   "total": 61.1,
-   "line": {
-    "spread": 9.5,
-    "total": 53.5
-   },
-   "score_curve": {
-    "spread": 46.8,
-    "total": 68.0,
-    "moneyline": 68.9
-   },
-   "calibrated": {
-    "spread": 48.9,
-    "total": 56.2,
-    "moneyline": 68.9
-   },
-   "fb_model": {
-    "spread": 47.9,
-    "total": 46.7,
-    "moneyline": 69.7
-   },
-   "fb_model_ml_curve_spread": 47.5
-  },
-  {
-   "game_id": "401866450",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T16:00:00.000Z",
-   "home": "Toledo",
-   "away": "Western Michigan",
-   "neutral": false,
-   "score": {
-    "home": 25.9,
-    "away": 21.0
-   },
-   "margin": 4.9,
-   "total": 46.9,
-   "line": {
-    "spread": 2.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 55.8,
-    "total": 48.5,
-    "moneyline": 61.7
-   },
-   "calibrated": {
-    "spread": 51.9,
-    "total": 49.5,
-    "moneyline": 61.7
-   },
-   "fb_model": {
-    "spread": 50.4,
-    "total": 48.8,
-    "moneyline": 61.6
-   },
-   "fb_model_ml_curve_spread": 55.7
-  },
-  {
-   "game_id": "401856834",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T17:00:00.000Z",
-   "home": "Kansas",
-   "away": "Baylor",
-   "neutral": false,
-   "score": {
-    "home": 28.5,
-    "away": 27.4
-   },
-   "margin": 1.2,
-   "total": 55.9,
-   "line": {
-    "spread": -1.5,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 56.4,
-    "total": 58.2,
-    "moneyline": 52.8
-   },
-   "calibrated": {
-    "spread": 52.1,
-    "total": 52.7,
-    "moneyline": 52.8
-   },
-   "fb_model": {
-    "spread": 50.9,
-    "total": 47.9,
-    "moneyline": 51.8
-   },
-   "fb_model_ml_curve_spread": 55.4
-  },
-  {
-   "game_id": "401866446",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T17:00:00.000Z",
-   "home": "Kent State",
-   "away": "Akron",
-   "neutral": false,
-   "score": {
-    "home": 26.8,
-    "away": 22.6
-   },
-   "margin": 4.2,
-   "total": 49.5,
-   "line": {
-    "spread": 2.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 54.1,
-    "total": 54.8,
-    "moneyline": 60.0
-   },
-   "calibrated": {
-    "spread": 51.4,
-    "total": 51.6,
-    "moneyline": 60.0
-   },
-   "fb_model": {
-    "spread": 47.6,
-    "total": 33.1,
-    "moneyline": 54.9
-   },
-   "fb_model_ml_curve_spread": 48.8
-  },
-  {
-   "game_id": "401866476",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T17:00:00.000Z",
-   "home": "Central Michigan",
-   "away": "Miami (OH)",
-   "neutral": false,
-   "score": {
-    "home": 22.8,
-    "away": 22.2
-   },
-   "margin": 0.6,
-   "total": 45.0,
-   "line": {
-    "spread": -3.5,
-    "total": 40.5
-   },
-   "score_curve": {
-    "spread": 59.8,
-    "total": 60.8,
-    "moneyline": 51.4
-   },
-   "calibrated": {
-    "spread": 53.3,
-    "total": 53.7,
-    "moneyline": 51.4
-   },
-   "fb_model": {
-    "spread": 52.9,
-    "total": 50.4,
-    "moneyline": 52.4
-   },
-   "fb_model_ml_curve_spread": 60.8
-  },
-  {
-   "game_id": "401858495",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:00:00.000Z",
-   "home": "Illinois",
-   "away": "Oregon",
-   "neutral": false,
-   "score": {
-    "home": 24.4,
-    "away": 33.4
-   },
-   "margin": -9.0,
-   "total": 57.8,
-   "line": {
-    "spread": -9.5,
-    "total": 49.5
-   },
-   "score_curve": {
-    "spread": 51.2,
-    "total": 69.4,
-    "moneyline": 29.3
-   },
-   "calibrated": {
-    "spread": 50.4,
-    "total": 56.7,
-    "moneyline": 29.3
-   },
-   "fb_model": {
-    "spread": 49.3,
-    "total": 49.1,
-    "moneyline": 28.4
-   },
-   "fb_model_ml_curve_spread": 50.3
-  },
-  {
-   "game_id": "401856727",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Alabama",
-   "away": "Texas A&M",
-   "neutral": false,
-   "score": {
-    "home": 31.4,
-    "away": 18.8
-   },
-   "margin": 12.5,
-   "total": 50.2,
-   "line": {
-    "spread": 13.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 47.7,
-    "total": 49.3,
-    "moneyline": 77.6
-   },
-   "calibrated": {
-    "spread": 49.2,
-    "total": 49.8,
-    "moneyline": 77.6
-   },
-   "fb_model": {
-    "spread": 52.3,
-    "total": 48.1,
-    "moneyline": 74.9
-   },
-   "fb_model_ml_curve_spread": 44.0
-  },
-  {
-   "game_id": "401856730",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Mississippi State",
-   "away": "Oklahoma",
-   "neutral": false,
-   "score": {
-    "home": 25.1,
-    "away": 24.4
-   },
-   "margin": 0.7,
-   "total": 49.5,
-   "line": {
-    "spread": -1.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 55.2,
-    "total": 54.9,
-    "moneyline": 51.6
-   },
-   "calibrated": {
-    "spread": 51.7,
-    "total": 51.6,
-    "moneyline": 51.6
-   },
-   "fb_model": {
-    "spread": 50.4,
-    "total": 50.0,
-    "moneyline": 49.4
-   },
-   "fb_model_ml_curve_spread": 53.1
-  },
-  {
-   "game_id": "401856731",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "South Carolina",
-   "away": "Tennessee",
-   "neutral": false,
-   "score": {
-    "home": 27.4,
-    "away": 30.7
-   },
-   "margin": -3.3,
-   "total": 58.2,
-   "line": {
-    "spread": 2.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 36.2,
-    "total": 68.1,
-    "moneyline": 42.0
-   },
-   "calibrated": {
-    "spread": 45.3,
-    "total": 56.2,
-    "moneyline": 42.0
-   },
-   "fb_model": {
-    "spread": 48.6,
-    "total": 47.7,
-    "moneyline": 42.0
-   },
-   "fb_model_ml_curve_spread": 36.1
-  },
-  {
-   "game_id": "401856835",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "UCF",
-   "away": "BYU",
-   "neutral": false,
-   "score": {
-    "home": 22.2,
-    "away": 25.1
-   },
-   "margin": -2.9,
-   "total": 47.3,
-   "line": {
-    "spread": -7.0,
-    "total": 43.5
-   },
-   "score_curve": {
-    "spread": 59.7,
-    "total": 59.1,
-    "moneyline": 43.0
-   },
-   "calibrated": {
-    "spread": 53.3,
-    "total": 53.1,
-    "moneyline": 43.0
-   },
-   "fb_model": {
-    "spread": 54.8,
-    "total": 42.0,
-    "moneyline": 43.1
-   },
-   "fb_model_ml_curve_spread": 60.0
-  },
-  {
-   "game_id": "401858273",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Georgia Tech",
-   "away": "Boston College",
-   "neutral": false,
-   "score": {
-    "home": 30.3,
-    "away": 18.5
-   },
-   "margin": 11.8,
-   "total": 48.8,
-   "line": {
-    "spread": 6.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 62.5,
-    "total": 45.9,
-    "moneyline": 76.2
-   },
-   "calibrated": {
-    "spread": 54.2,
-    "total": 48.6,
-    "moneyline": 76.2
-   },
-   "fb_model": {
-    "spread": 54.5,
-    "total": 40.0,
-    "moneyline": 72.2
-   },
-   "fb_model_ml_curve_spread": 57.6
-  },
-  {
-   "game_id": "401858497",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Minnesota",
-   "away": "Iowa",
-   "neutral": false,
-   "score": {
-    "home": 17.6,
-    "away": 28.2
-   },
-   "margin": -10.6,
-   "total": 45.9,
-   "line": {
-    "spread": -7.5,
-    "total": 40.5
-   },
-   "score_curve": {
-    "spread": 42.5,
-    "total": 62.9,
-    "moneyline": 26.1
-   },
-   "calibrated": {
-    "spread": 47.5,
-    "total": 54.4,
-    "moneyline": 26.1
-   },
-   "fb_model": {
-    "spread": 55.0,
-    "total": 49.7,
-    "moneyline": 35.1
-   },
-   "fb_model_ml_curve_spread": 52.9
-  },
-  {
-   "game_id": "401858499",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "UCLA",
-   "away": "Michigan State",
-   "neutral": false,
-   "score": {
-    "home": 31.6,
-    "away": 17.4
-   },
-   "margin": 14.2,
-   "total": 49.0,
-   "line": {
-    "spread": 16.5,
-    "total": 43.5
-   },
-   "score_curve": {
-    "spread": 44.5,
-    "total": 63.3,
-    "moneyline": 80.5
-   },
-   "calibrated": {
-    "spread": 48.2,
-    "total": 54.5,
-    "moneyline": 80.5
-   },
-   "fb_model": {
-    "spread": 47.8,
-    "total": 50.8,
-    "moneyline": 78.8
-   },
-   "fb_model_ml_curve_spread": 41.8
-  },
-  {
-   "game_id": "401862810",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Navy",
-   "away": "North Texas",
-   "neutral": false,
-   "score": {
-    "home": 32.4,
-    "away": 35.9
-   },
-   "margin": -3.5,
-   "total": 68.3,
-   "line": {
-    "spread": -3.0,
-    "total": 61.5
-   },
-   "score_curve": {
-    "spread": 48.8,
-    "total": 66.1,
-    "moneyline": 41.7
-   },
-   "calibrated": {
-    "spread": 49.6,
-    "total": 55.5,
-    "moneyline": 41.7
-   },
-   "fb_model": {
-    "spread": 52.7,
-    "total": 54.1,
-    "moneyline": 41.2
-   },
-   "fb_model_ml_curve_spread": 48.5
-  },
-  {
-   "game_id": "401864526",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Northern Illinois",
-   "away": "Hawai'i",
-   "neutral": false,
-   "score": {
-    "home": 21.2,
-    "away": 21.2
-   },
-   "margin": -0.0,
-   "total": 42.4,
-   "line": {
-    "spread": -3.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 58.3,
-    "total": 37.7,
-    "moneyline": 49.9
-   },
-   "calibrated": {
-    "spread": 52.8,
-    "total": 45.8,
-    "moneyline": 49.9
-   },
-   "fb_model": {
-    "spread": 50.7,
-    "total": 50.2,
-    "moneyline": 43.6
-   },
-   "fb_model_ml_curve_spread": 52.1
-  },
-  {
-   "game_id": "401866447",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Ball State",
-   "away": "Sacramento State",
-   "neutral": false,
-   "score": {
-    "home": 31.9,
-    "away": 22.9
-   },
-   "margin": 9.0,
-   "total": 54.8,
-   "line": {
-    "spread": 14.5,
-    "total": 51.5
-   },
-   "score_curve": {
-    "spread": 36.9,
-    "total": 58.1,
-    "moneyline": 70.6
-   },
-   "calibrated": {
-    "spread": 45.6,
-    "total": 52.7,
-    "moneyline": 70.6
-   },
-   "fb_model": {
-    "spread": 48.1,
-    "total": 47.8,
-    "moneyline": 67.9
-   },
-   "fb_model_ml_curve_spread": 33.9
-  },
-  {
-   "game_id": "401866448",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:30:00.000Z",
-   "home": "Buffalo",
-   "away": "Bowling Green",
-   "neutral": false,
-   "score": {
-    "home": 26.8,
-    "away": 20.2
-   },
-   "margin": 6.6,
-   "total": 47.0,
-   "line": {
-    "spread": 3.5,
-    "total": 44.5
-   },
-   "score_curve": {
-    "spread": 57.4,
-    "total": 56.0,
-    "moneyline": 65.5
-   },
-   "calibrated": {
-    "spread": 52.5,
-    "total": 52.0,
-    "moneyline": 65.5
-   },
-   "fb_model": {
-    "spread": 45.1,
-    "total": 55.2,
-    "moneyline": 55.0
-   },
-   "fb_model_ml_curve_spread": 46.5
-  },
-  {
-   "game_id": "401856839",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T19:45:00.000Z",
-   "home": "Arizona State",
-   "away": "Kansas State",
-   "neutral": false,
-   "score": {
-    "home": 30.0,
-    "away": 33.2
-   },
-   "margin": -3.2,
-   "total": 63.2,
-   "line": {
-    "spread": -3.5,
-    "total": 56.5
-   },
-   "score_curve": {
-    "spread": 50.8,
-    "total": 65.9,
-    "moneyline": 42.4
-   },
-   "calibrated": {
-    "spread": 50.3,
-    "total": 55.4,
-    "moneyline": 42.4
-   },
-   "fb_model": {
-    "spread": 49.1,
-    "total": 47.1,
-    "moneyline": 43.0
-   },
-   "fb_model_ml_curve_spread": 51.5
-  },
-  {
-   "game_id": "401866449",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T20:00:00.000Z",
-   "home": "Ohio",
-   "away": "Eastern Michigan",
-   "neutral": false,
-   "score": {
-    "home": 33.6,
-    "away": 17.4
-   },
-   "margin": 16.3,
-   "total": 51.0,
-   "line": {
-    "spread": 10.0,
-    "total": 48.5
-   },
-   "score_curve": {
-    "spread": 64.7,
-    "total": 56.1,
-    "moneyline": 83.7
-   },
-   "calibrated": {
-    "spread": 55.0,
-    "total": 52.0,
-    "moneyline": 83.7
-   },
-   "fb_model": {
-    "spread": 54.0,
-    "total": 45.7,
-    "moneyline": 79.7
-   },
-   "fb_model_ml_curve_spread": 58.7
-  },
-  {
-   "game_id": "401871094",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T20:00:00.000Z",
-   "home": "Troy",
-   "away": "UL Monroe",
-   "neutral": false,
-   "score": {
-    "home": 34.9,
-    "away": 15.7
-   },
-   "margin": 19.3,
-   "total": 50.6,
-   "line": {
-    "spread": 12.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 65.9,
-    "total": 50.2,
-    "moneyline": 87.8
-   },
-   "calibrated": {
-    "spread": 55.4,
-    "total": 50.1,
-    "moneyline": 87.8
-   },
-   "fb_model": {
-    "spread": 55.6,
-    "total": 52.4,
-    "moneyline": 86.0
-   },
-   "fb_model_ml_curve_spread": 62.6
-  },
-  {
-   "game_id": "401864528",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T21:00:00.000Z",
-   "home": "Nevada",
-   "away": "San Jos\u00e9 State",
-   "neutral": false,
-   "score": {
-    "home": 27.3,
-    "away": 18.6
-   },
-   "margin": 8.6,
-   "total": 45.9,
-   "line": {
-    "spread": 5.5,
-    "total": 46.5
-   },
-   "score_curve": {
-    "spread": 57.5,
-    "total": 48.6,
-    "moneyline": 69.9
-   },
-   "calibrated": {
-    "spread": 52.5,
-    "total": 49.5,
-    "moneyline": 69.9
-   },
-   "fb_model": {
-    "spread": 43.7,
-    "total": 39.0,
-    "moneyline": 59.8
-   },
-   "fb_model_ml_curve_spread": 46.6
-  },
-  {
-   "game_id": "401869967",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T21:00:00.000Z",
-   "home": "Southern Miss",
-   "away": "Louisiana",
-   "neutral": false,
-   "score": {
-    "home": 23.6,
-    "away": 30.1
-   },
-   "margin": -6.5,
-   "total": 53.7,
-   "line": {
-    "spread": -10.0,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 58.3,
-    "total": 52.9,
-    "moneyline": 34.7
-   },
-   "calibrated": {
-    "spread": 52.8,
-    "total": 51.0,
-    "moneyline": 34.7
-   },
-   "fb_model": {
-    "spread": 53.7,
-    "total": 49.8,
-    "moneyline": 34.4
-   },
-   "fb_model_ml_curve_spread": 58.2
-  },
-  {
-   "game_id": "401871093",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T21:00:00.000Z",
-   "home": "Louisiana Tech",
-   "away": "Old Dominion",
-   "neutral": false,
-   "score": {
-    "home": 29.2,
-    "away": 18.4
-   },
-   "margin": 10.9,
-   "total": 47.6,
-   "line": {
-    "spread": 13.5,
-    "total": 44.5
-   },
-   "score_curve": {
-    "spread": 43.7,
-    "total": 57.5,
-    "moneyline": 74.5
-   },
-   "calibrated": {
-    "spread": 47.9,
-    "total": 52.5,
-    "moneyline": 74.5
-   },
-   "fb_model": {
-    "spread": 48.7,
-    "total": 49.6,
-    "moneyline": 73.6
-   },
-   "fb_model_ml_curve_spread": 42.5
-  },
-  {
-   "game_id": "401860907",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T22:00:00.000Z",
-   "home": "Washington State",
-   "away": "Boise State",
-   "neutral": false,
-   "score": {
-    "home": 21.2,
-    "away": 29.1
-   },
-   "margin": -8.0,
-   "total": 50.3,
-   "line": {
-    "spread": -14.5,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 65.3,
-    "total": 44.6,
-    "moneyline": 31.5
-   },
-   "calibrated": {
-    "spread": 55.2,
-    "total": 48.2,
-    "moneyline": 31.5
-   },
-   "fb_model": {
-    "spread": 52.7,
-    "total": 50.8,
-    "moneyline": 29.5
-   },
-   "fb_model_ml_curve_spread": 63.4
-  },
-  {
-   "game_id": "401860905",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T22:30:00.000Z",
-   "home": "Colorado State",
-   "away": "San Diego State",
-   "neutral": false,
-   "score": {
-    "home": 31.6,
-    "away": 33.8
-   },
-   "margin": -2.2,
-   "total": 65.4,
-   "line": {
-    "spread": -1.5,
-    "total": 59.5
-   },
-   "score_curve": {
-    "spread": 48.4,
-    "total": 64.1,
-    "moneyline": 44.8
-   },
-   "calibrated": {
-    "spread": 49.5,
-    "total": 54.8,
-    "moneyline": 44.8
-   },
-   "fb_model": {
-    "spread": 49.9,
-    "total": 53.9,
-    "moneyline": 45.5
-   },
-   "fb_model_ml_curve_spread": 49.1
-  },
-  {
-   "game_id": "401856836",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:00:00.000Z",
-   "home": "Oklahoma State",
-   "away": "Colorado",
-   "neutral": false,
-   "score": {
-    "home": 29.3,
-    "away": 18.2
-   },
-   "margin": 11.1,
-   "total": 47.5,
-   "line": {
-    "spread": 13.5,
-    "total": 55.5
-   },
-   "score_curve": {
-    "spread": 44.2,
-    "total": 31.1,
-    "moneyline": 74.9
-   },
-   "calibrated": {
-    "spread": 48.1,
-    "total": 43.5,
-    "moneyline": 74.9
-   },
-   "fb_model": {
-    "spread": 44.7,
-    "total": 52.8,
-    "moneyline": 73.3
-   },
-   "fb_model_ml_curve_spread": 42.1
-  },
-  {
-   "game_id": "401858276",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:00:00.000Z",
-   "home": "Clemson",
-   "away": "Virginia Tech",
-   "neutral": false,
-   "score": {
-    "home": 28.3,
-    "away": 22.2
-   },
-   "margin": 6.1,
-   "total": 50.5,
-   "line": {
-    "spread": 2.5,
-    "total": 49.5
-   },
-   "score_curve": {
-    "spread": 58.5,
-    "total": 52.5,
-    "moneyline": 64.3
-   },
-   "calibrated": {
-    "spread": 52.9,
-    "total": 50.8,
-    "moneyline": 64.3
-   },
-   "fb_model": {
-    "spread": 50.5,
-    "total": 48.2,
-    "moneyline": 63.1
-   },
-   "fb_model_ml_curve_spread": 57.2
-  },
-  {
-   "game_id": "401869935",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:00:00.000Z",
-   "home": "Arkansas State",
-   "away": "Georgia State",
-   "neutral": false,
-   "score": {
-    "home": 30.7,
-    "away": 28.6
-   },
-   "margin": 2.0,
-   "total": 59.3,
-   "line": {
-    "spread": -2.5,
-    "total": 58.5
-   },
-   "score_curve": {
-    "spread": 60.8,
-    "total": 51.9,
-    "moneyline": 54.9
-   },
-   "calibrated": {
-    "spread": 53.6,
-    "total": 50.6,
-    "moneyline": 54.9
-   },
-   "fb_model": {
-    "spread": 51.3,
-    "total": 48.7,
-    "moneyline": 53.1
-   },
-   "fb_model_ml_curve_spread": 59.1
-  },
-  {
-   "game_id": "401856729",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:30:00.000Z",
-   "home": "Kentucky",
-   "away": "Vanderbilt",
-   "neutral": false,
-   "score": {
-    "home": 33.6,
-    "away": 21.7
-   },
-   "margin": 11.9,
-   "total": 55.3,
-   "line": {
-    "spread": 10.5,
-    "total": 51.5
-   },
-   "score_curve": {
-    "spread": 53.3,
-    "total": 59.2,
-    "moneyline": 76.3
-   },
-   "calibrated": {
-    "spread": 51.1,
-    "total": 53.1,
-    "moneyline": 76.3
-   },
-   "fb_model": {
-    "spread": 56.9,
-    "total": 44.8,
-    "moneyline": 79.0
-   },
-   "fb_model_ml_curve_spread": 56.6
-  },
-  {
-   "game_id": "401856732",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:30:00.000Z",
-   "home": "Texas",
-   "away": "Ole Miss",
-   "neutral": false,
-   "score": {
-    "home": 28.8,
-    "away": 26.5
-   },
-   "margin": 2.3,
-   "total": 55.3,
-   "line": {
-    "spread": 3.0,
-    "total": 53.5
-   },
-   "score_curve": {
-    "spread": 48.4,
-    "total": 54.3,
-    "moneyline": 55.6
-   },
-   "calibrated": {
-    "spread": 49.5,
-    "total": 51.4,
-    "moneyline": 55.6
-   },
-   "fb_model": {
-    "spread": 50.6,
-    "total": 48.3,
-    "moneyline": 54.7
-   },
-   "fb_model_ml_curve_spread": 47.5
-  },
-  {
-   "game_id": "401856838",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:30:00.000Z",
-   "home": "Arizona",
-   "away": "Iowa State",
-   "neutral": false,
-   "score": {
-    "home": 28.4,
-    "away": 21.4
-   },
-   "margin": 7.0,
-   "total": 49.7,
-   "line": {
-    "spread": 11.5,
-    "total": 51.5
-   },
-   "score_curve": {
-    "spread": 39.3,
-    "total": 45.7,
-    "moneyline": 66.4
-   },
-   "calibrated": {
-    "spread": 46.4,
-    "total": 48.6,
-    "moneyline": 66.4
-   },
-   "fb_model": {
-    "spread": 48.5,
-    "total": 54.2,
-    "moneyline": 66.7
-   },
-   "fb_model_ml_curve_spread": 39.5
-  },
-  {
-   "game_id": "401858275",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:30:00.000Z",
-   "home": "North Carolina",
-   "away": "Syracuse",
-   "neutral": false,
-   "score": {
-    "home": 29.5,
-    "away": 18.9
-   },
-   "margin": 10.6,
-   "total": 48.4,
-   "line": {
-    "spread": 9.5,
-    "total": 47.5
-   },
-   "score_curve": {
-    "spread": 52.7,
-    "total": 52.1,
-    "moneyline": 74.0
-   },
-   "calibrated": {
-    "spread": 50.9,
-    "total": 50.7,
-    "moneyline": 74.0
-   },
-   "fb_model": {
-    "spread": 50.3,
-    "total": 58.0,
-    "moneyline": 62.7
-   },
-   "fb_model_ml_curve_spread": 40.0
-  },
-  {
-   "game_id": "401858500",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:30:00.000Z",
-   "home": "Wisconsin",
-   "away": "USC",
-   "neutral": false,
-   "score": {
-    "home": 24.9,
-    "away": 24.7
-   },
-   "margin": 0.2,
-   "total": 49.7,
-   "line": {
-    "spread": -2.5,
-    "total": 50.5
-   },
-   "score_curve": {
-    "spread": 56.5,
-    "total": 47.9,
-    "moneyline": 50.5
-   },
-   "calibrated": {
-    "spread": 52.2,
-    "total": 49.3,
-    "moneyline": 50.5
-   },
-   "fb_model": {
-    "spread": 45.6,
-    "total": 50.2,
-    "moneyline": 45.9
-   },
-   "fb_model_ml_curve_spread": 51.9
-  },
-  {
-   "game_id": "401860906",
-   "day": "2026-10-24",
-   "kick": "2026-10-24T23:30:00.000Z",
-   "home": "Texas State",
-   "away": "Utah State",
-   "neutral": false,
-   "score": {
-    "home": 34.9,
-    "away": 22.5
-   },
-   "margin": 12.4,
-   "total": 57.3,
-   "line": {
-    "spread": 13.5,
-    "total": 60.5
-   },
-   "score_curve": {
-    "spread": 47.3,
-    "total": 42.3,
-    "moneyline": 77.3
-   },
-   "calibrated": {
-    "spread": 49.1,
-    "total": 47.4,
-    "moneyline": 77.3
-   },
-   "fb_model": {
-    "spread": 45.9,
-    "total": 49.8,
-    "moneyline": 77.1
-   },
-   "fb_model_ml_curve_spread": 46.8
-  },
-  {
-   "game_id": "401862811",
-   "day": "2026-10-25",
-   "kick": "2026-10-25T00:00:00.000Z",
-   "home": "Tulane",
-   "away": "UTSA",
-   "neutral": false,
-   "score": {
-    "home": 26.4,
-    "away": 22.8
-   },
-   "margin": 3.6,
-   "total": 49.2,
-   "line": {
-    "spread": -2.5,
-    "total": 51.5
-   },
-   "score_curve": {
-    "spread": 64.4,
-    "total": 44.3,
-    "moneyline": 58.6
-   },
-   "calibrated": {
-    "spread": 54.9,
-    "total": 48.1,
-    "moneyline": 58.6
-   },
-   "fb_model": {
-    "spread": 58.4,
-    "total": 41.3,
-    "moneyline": 61.9
-   },
-   "fb_model_ml_curve_spread": 67.6
-  },
-  {
-   "game_id": "401864527",
-   "day": "2026-10-25",
-   "kick": "2026-10-25T02:00:00.000Z",
-   "home": "New Mexico",
-   "away": "North Dakota State",
-   "neutral": false,
-   "score": {
-    "home": 26.0,
-    "away": 20.2
-   },
-   "margin": 5.8,
-   "total": 46.1,
-   "line": {
-    "spread": 4.5,
-    "total": 39.5
-   },
-   "score_curve": {
-    "spread": 53.2,
-    "total": 65.8,
-    "moneyline": 63.8
-   },
-   "calibrated": {
-    "spread": 51.1,
-    "total": 55.4,
-    "moneyline": 63.8
-   },
-   "fb_model": {
-    "spread": 49.7,
-    "total": 46.8,
-    "moneyline": 62.1
-   },
-   "fb_model_ml_curve_spread": 51.4
-  },
-  {
-   "game_id": "401856837",
-   "day": "2026-10-25",
-   "kick": "2026-10-25T02:15:00.000Z",
-   "home": "Utah",
-   "away": "Houston",
-   "neutral": false,
-   "score": {
-    "home": 34.3,
-    "away": 25.8
-   },
-   "margin": 8.5,
-   "total": 60.0,
-   "line": {
-    "spread": 5.5,
-    "total": 55.5
-   },
-   "score_curve": {
-    "spread": 57.2,
-    "total": 60.9,
-    "moneyline": 69.6
-   },
-   "calibrated": {
-    "spread": 52.4,
-    "total": 53.7,
-    "moneyline": 69.6
-   },
-   "fb_model": {
-    "spread": 51.7,
-    "total": 46.4,
-    "moneyline": 68.1
-   },
-   "fb_model_ml_curve_spread": 55.4
-  },
-  {
    "game_id": "401871071",
    "day": "2026-10-27",
    "kick": "2026-10-27T23:00:00.000Z",
@@ -1527,31 +31,31 @@
    "away": "Delaware",
    "neutral": false,
    "score": {
-    "home": 30.5,
-    "away": 26.6
+    "home": 30.6,
+    "away": 26.9
    },
-   "margin": 3.9,
-   "total": 57.1,
+   "margin": 3.7,
+   "total": 57.4,
    "line": {
     "spread": -2.5,
-    "total": 59.5
+    "total": 59.0
    },
    "score_curve": {
-    "spread": 65.2,
-    "total": 44.1,
-    "moneyline": 59.4
+    "spread": 64.8,
+    "total": 46.2,
+    "moneyline": 59.0
    },
    "calibrated": {
-    "spread": 55.2,
-    "total": 48.0,
-    "moneyline": 59.4
+    "spread": 55.0,
+    "total": 48.7,
+    "moneyline": 59.0
    },
    "fb_model": {
-    "spread": 46.8,
-    "total": 47.5,
-    "moneyline": 60.3
+    "spread": 48.0,
+    "total": 47.4,
+    "moneyline": 61.7
    },
-   "fb_model_ml_curve_spread": 66.0
+   "fb_model_ml_curve_spread": 67.4
   },
   {
    "game_id": "401871072",
@@ -1561,31 +65,31 @@
    "away": "Sam Houston",
    "neutral": false,
    "score": {
-    "home": 30.2,
-    "away": 25.4
+    "home": 30.4,
+    "away": 24.9
    },
-   "margin": 4.8,
-   "total": 55.7,
+   "margin": 5.5,
+   "total": 55.3,
    "line": {
     "spread": 6.5,
-    "total": 51.5
+    "total": 51.0
    },
    "score_curve": {
-    "spread": 46.0,
-    "total": 60.0,
-    "moneyline": 61.5
+    "spread": 47.5,
+    "total": 60.3,
+    "moneyline": 63.0
    },
    "calibrated": {
-    "spread": 48.7,
-    "total": 53.4,
-    "moneyline": 61.5
+    "spread": 49.2,
+    "total": 53.5,
+    "moneyline": 63.0
    },
    "fb_model": {
-    "spread": 48.3,
+    "spread": 49.7,
     "total": 48.2,
-    "moneyline": 59.9
+    "moneyline": 62.4
    },
-   "fb_model_ml_curve_spread": 44.3
+   "fb_model_ml_curve_spread": 46.7
   },
   {
    "game_id": "401871058",
@@ -1596,30 +100,30 @@
    "neutral": false,
    "score": {
     "home": 22.9,
-    "away": 23.1
+    "away": 23.0
    },
-   "margin": -0.2,
+   "margin": -0.0,
    "total": 45.9,
    "line": {
-    "spread": 3.5,
-    "total": 50.5
+    "spread": 2.5,
+    "total": 49.5
    },
    "score_curve": {
-    "spread": 41.1,
-    "total": 38.9,
-    "moneyline": 49.5
+    "spread": 43.9,
+    "total": 41.4,
+    "moneyline": 50.0
    },
    "calibrated": {
-    "spread": 47.0,
-    "total": 46.3,
-    "moneyline": 49.5
+    "spread": 48.0,
+    "total": 47.1,
+    "moneyline": 50.0
    },
    "fb_model": {
-    "spread": 48.7,
-    "total": 49.3,
-    "moneyline": 49.3
+    "spread": 50.0,
+    "total": 49.5,
+    "moneyline": 50.6
    },
-   "fb_model_ml_curve_spread": 40.9
+   "fb_model_ml_curve_spread": 44.5
   },
   {
    "game_id": "401871057",
@@ -1629,31 +133,31 @@
    "away": "Jacksonville State",
    "neutral": false,
    "score": {
-    "home": 26.2,
-    "away": 26.5
+    "home": 26.4,
+    "away": 26.6
    },
-   "margin": -0.3,
-   "total": 52.8,
+   "margin": -0.2,
+   "total": 53.0,
    "line": {
-    "spread": -2.5,
-    "total": 49.5
+    "spread": -2.75,
+    "total": 50.0
    },
    "score_curve": {
-    "spread": 55.3,
-    "total": 57.9,
-    "moneyline": 49.3
+    "spread": 56.2,
+    "total": 57.2,
+    "moneyline": 49.5
    },
    "calibrated": {
-    "spread": 51.8,
-    "total": 52.6,
-    "moneyline": 49.3
+    "spread": 52.1,
+    "total": 52.4,
+    "moneyline": 49.5
    },
    "fb_model": {
-    "spread": 50.7,
-    "total": 47.5,
-    "moneyline": 48.4
+    "spread": 51.5,
+    "total": 47.3,
+    "moneyline": 49.3
    },
-   "fb_model_ml_curve_spread": 54.4
+   "fb_model_ml_curve_spread": 56.0
   },
   {
    "game_id": "401862812",
@@ -1663,31 +167,31 @@
    "away": "Florida Atlantic",
    "neutral": false,
    "score": {
-    "home": 49.9,
-    "away": 30.3
+    "home": 53.5,
+    "away": 33.3
    },
-   "margin": 19.6,
-   "total": 80.3,
+   "margin": 20.2,
+   "total": 86.8,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 12.0,
+    "total": 70.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 88.2
+    "spread": 69.0,
+    "total": 84.0,
+    "moneyline": 89.0
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 88.2
+    "spread": 56.6,
+    "total": 63.0,
+    "moneyline": 89.0
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 86.9
+    "spread": 55.7,
+    "total": 45.2,
+    "moneyline": 87.0
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 65.3
   },
   {
    "game_id": "401869963",
@@ -1697,31 +201,31 @@
    "away": "Troy",
    "neutral": false,
    "score": {
-    "home": 40.3,
-    "away": 16.7
+    "home": 40.2,
+    "away": 15.1
    },
-   "margin": 23.7,
-   "total": 57.0,
+   "margin": 25.1,
+   "total": 55.3,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 18.0,
+    "total": 52.0
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 92.4
+    "spread": 66.7,
+    "total": 58.1,
+    "moneyline": 93.6
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 92.4
+    "spread": 55.7,
+    "total": 52.7,
+    "moneyline": 93.6
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 88.2
+    "spread": 55.9,
+    "total": 52.3,
+    "moneyline": 89.6
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 56.4
   },
   {
    "game_id": "401862813",
@@ -1731,31 +235,31 @@
    "away": "Tulane",
    "neutral": false,
    "score": {
-    "home": 13.5,
-    "away": 29.2
+    "home": 15.0,
+    "away": 28.4
    },
-   "margin": -15.7,
-   "total": 42.8,
+   "margin": -13.4,
+   "total": 43.4,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -13.5,
+    "total": 45.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 17.2
+    "spread": 50.3,
+    "total": 44.9,
+    "moneyline": 20.8
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 17.2
+    "spread": 50.1,
+    "total": 48.3,
+    "moneyline": 20.8
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 21.4
+    "spread": 52.6,
+    "total": 60.9,
+    "moneyline": 25.8
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 56.9
   },
   {
    "game_id": "401856844",
@@ -1765,31 +269,31 @@
    "away": "Baylor",
    "neutral": false,
    "score": {
-    "home": 27.6,
-    "away": 23.7
+    "home": 29.1,
+    "away": 24.3
    },
-   "margin": 3.9,
-   "total": 51.3,
+   "margin": 4.8,
+   "total": 53.4,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 2.5,
+    "total": 48.0
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 59.4
+    "spread": 55.5,
+    "total": 62.9,
+    "moneyline": 61.4
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 59.4
+    "spread": 51.8,
+    "total": 54.4,
+    "moneyline": 61.4
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 62.9
+    "spread": 60.3,
+    "total": 54.0,
+    "moneyline": 65.2
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 59.4
   },
   {
    "game_id": "401866451",
@@ -1799,99 +303,31 @@
    "away": "Kent State",
    "neutral": false,
    "score": {
-    "home": 23.8,
-    "away": 24.0
+    "home": 22.6,
+    "away": 24.9
    },
-   "margin": -0.2,
-   "total": 47.8,
+   "margin": -2.2,
+   "total": 47.5,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -9.75,
+    "total": 46.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 49.5
+    "spread": 67.6,
+    "total": 52.5,
+    "moneyline": 44.6
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 49.5
+    "spread": 56.1,
+    "total": 50.8,
+    "moneyline": 44.6
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 50.0
+    "spread": 52.8,
+    "total": 47.5,
+    "moneyline": 45.4
    },
-   "fb_model_ml_curve_spread": null
-  },
-  {
-   "game_id": "401858505",
-   "day": "2026-10-31",
-   "kick": "2026-10-31T04:00:00.000Z",
-   "home": "Oregon",
-   "away": "Northwestern",
-   "neutral": false,
-   "score": {
-    "home": 31.2,
-    "away": 21.2
-   },
-   "margin": 9.9,
-   "total": 52.4,
-   "line": {
-    "spread": 7.5,
-    "total": 52.5
-   },
-   "score_curve": {
-    "spread": 55.9,
-    "total": 49.7,
-    "moneyline": 72.6
-   },
-   "calibrated": {
-    "spread": 52.0,
-    "total": 49.9,
-    "moneyline": 72.6
-   },
-   "fb_model": {
-    "spread": 51.3,
-    "total": 49.8,
-    "moneyline": 70.6
-   },
-   "fb_model_ml_curve_spread": 53.4
-  },
-  {
-   "game_id": "401858506",
-   "day": "2026-10-31",
-   "kick": "2026-10-31T04:00:00.000Z",
-   "home": "Penn State",
-   "away": "Purdue",
-   "neutral": false,
-   "score": {
-    "home": 34.7,
-    "away": 20.9
-   },
-   "margin": 13.8,
-   "total": 55.6,
-   "line": {
-    "spread": null,
-    "total": null
-   },
-   "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 79.7
-   },
-   "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 79.7
-   },
-   "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 79.0
-   },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 68.5
   },
   {
    "game_id": "401856842",
@@ -1901,31 +337,31 @@
    "away": "Arizona",
    "neutral": false,
    "score": {
-    "home": 32.2,
-    "away": 19.8
+    "home": 29.3,
+    "away": 22.2
    },
-   "margin": 12.4,
-   "total": 52.0,
+   "margin": 7.1,
+   "total": 51.5,
    "line": {
-    "spread": 7.0,
-    "total": 54.0
+    "spread": 4.5,
+    "total": 55.5
    },
    "score_curve": {
-    "spread": 62.9,
-    "total": 45.2,
-    "moneyline": 77.4
+    "spread": 56.4,
+    "total": 40.3,
+    "moneyline": 66.8
    },
    "calibrated": {
-    "spread": 54.4,
-    "total": 48.4,
-    "moneyline": 77.4
+    "spread": 52.1,
+    "total": 46.7,
+    "moneyline": 66.8
    },
    "fb_model": {
-    "spread": 54.0,
-    "total": 53.0,
-    "moneyline": 73.1
+    "spread": 53.1,
+    "total": 52.9,
+    "moneyline": 62.4
    },
-   "fb_model_ml_curve_spread": 57.5
+   "fb_model_ml_curve_spread": 51.7
   },
   {
    "game_id": "401858277",
@@ -1935,31 +371,31 @@
    "away": "California",
    "neutral": false,
    "score": {
-    "home": 35.9,
-    "away": 21.6
+    "home": 38.0,
+    "away": 22.2
    },
-   "margin": 14.3,
-   "total": 57.5,
+   "margin": 15.8,
+   "total": 60.2,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 7.5,
+    "total": 57.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 80.6
+    "spread": 69.2,
+    "total": 56.5,
+    "moneyline": 83.1
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 80.6
+    "spread": 56.7,
+    "total": 52.2,
+    "moneyline": 83.1
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 76.5
+    "spread": 53.1,
+    "total": 49.4,
+    "moneyline": 79.0
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 63.7
   },
   {
    "game_id": "401858278",
@@ -1969,31 +405,31 @@
    "away": "SMU",
    "neutral": false,
    "score": {
-    "home": 25.8,
-    "away": 29.4
+    "home": 26.4,
+    "away": 32.2
    },
-   "margin": -3.7,
-   "total": 55.2,
+   "margin": -5.8,
+   "total": 58.6,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -9.5,
+    "total": 57.0
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 41.2
+    "spread": 58.8,
+    "total": 53.9,
+    "moneyline": 36.2
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 41.2
+    "spread": 53.0,
+    "total": 51.3,
+    "moneyline": 36.2
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 42.6
+    "spread": 50.4,
+    "total": 49.9,
+    "moneyline": 38.6
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 61.4
   },
   {
    "game_id": "401858279",
@@ -2003,31 +439,31 @@
    "away": "Boston College",
    "neutral": false,
    "score": {
-    "home": 32.8,
-    "away": 14.7
+    "home": 31.6,
+    "away": 18.0
    },
-   "margin": 18.1,
-   "total": 47.5,
+   "margin": 13.6,
+   "total": 49.6,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 7.5,
+    "total": 48.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 86.3
+    "spread": 64.4,
+    "total": 52.6,
+    "moneyline": 79.6
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 86.3
+    "spread": 54.9,
+    "total": 50.9,
+    "moneyline": 79.6
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 83.3
+    "spread": 53.4,
+    "total": 50.3,
+    "moneyline": 77.1
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 61.2
   },
   {
    "game_id": "401858502",
@@ -2037,31 +473,31 @@
    "away": "Wisconsin",
    "neutral": false,
    "score": {
-    "home": 26.1,
-    "away": 13.7
+    "home": 22.2,
+    "away": 14.1
    },
-   "margin": 12.4,
-   "total": 39.9,
+   "margin": 8.0,
+   "total": 36.3,
    "line": {
-    "spread": 4.5,
-    "total": 39.5
+    "spread": 3.5,
+    "total": 39.0
    },
    "score_curve": {
-    "spread": 68.3,
-    "total": 50.9,
-    "moneyline": 77.3
+    "spread": 60.8,
+    "total": 43.5,
+    "moneyline": 68.7
    },
    "calibrated": {
-    "spread": 56.3,
-    "total": 50.3,
-    "moneyline": 77.3
+    "spread": 53.6,
+    "total": 47.8,
+    "moneyline": 68.7
    },
    "fb_model": {
-    "spread": 55.3,
-    "total": 53.2,
-    "moneyline": 75.2
+    "spread": 54.7,
+    "total": 51.3,
+    "moneyline": 67.2
    },
-   "fb_model_ml_curve_spread": 65.8
+   "fb_model_ml_curve_spread": 59.2
   },
   {
    "game_id": "401858503",
@@ -2071,31 +507,31 @@
    "away": "Illinois",
    "neutral": false,
    "score": {
-    "home": 27.8,
-    "away": 33.2
+    "home": 25.3,
+    "away": 33.3
    },
-   "margin": -5.4,
-   "total": 61.0,
+   "margin": -8.0,
+   "total": 58.6,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -3.5,
+    "total": 52.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 37.2
+    "spread": 39.3,
+    "total": 64.4,
+    "moneyline": 31.4
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 37.2
+    "spread": 46.4,
+    "total": 54.9,
+    "moneyline": 31.4
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 40.6
+    "spread": 54.3,
+    "total": 57.3,
+    "moneyline": 35.7
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 43.9
   },
   {
    "game_id": "401859185",
@@ -2105,31 +541,31 @@
    "away": "Notre Dame",
    "neutral": true,
    "score": {
-    "home": 14.9,
-    "away": 37.3
+    "home": 15.1,
+    "away": 37.8
    },
-   "margin": -22.4,
-   "total": 52.2,
+   "margin": -22.8,
+   "total": 52.9,
    "line": {
-    "spread": -28.5,
-    "total": 53.5
+    "spread": -30.5,
+    "total": 52.5
    },
    "score_curve": {
-    "spread": 64.4,
-    "total": 46.9,
-    "moneyline": 8.8
+    "spread": 68.1,
+    "total": 51.0,
+    "moneyline": 8.3
    },
    "calibrated": {
-    "spread": 54.9,
-    "total": 49.0,
-    "moneyline": 8.8
+    "spread": 56.2,
+    "total": 50.3,
+    "moneyline": 8.3
    },
    "fb_model": {
-    "spread": 49.7,
-    "total": 39.4,
-    "moneyline": 12.5
+    "spread": 49.3,
+    "total": 42.1,
+    "moneyline": 12.8
    },
-   "fb_model_ml_curve_spread": 72.1
+   "fb_model_ml_curve_spread": 76.6
   },
   {
    "game_id": "401862816",
@@ -2139,11 +575,11 @@
    "away": "UAB",
    "neutral": false,
    "score": {
-    "home": 33.4,
-    "away": 15.1
+    "home": 33.3,
+    "away": 15.2
    },
-   "margin": 18.3,
-   "total": 48.5,
+   "margin": 18.1,
+   "total": 48.4,
    "line": {
     "spread": null,
     "total": null
@@ -2151,17 +587,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 86.6
+    "moneyline": 86.4
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 86.6
+    "moneyline": 86.4
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 73.3
+    "moneyline": 73.1
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2173,11 +609,11 @@
    "away": "Bowling Green",
    "neutral": false,
    "score": {
-    "home": 29.1,
-    "away": 11.1
+    "home": 31.0,
+    "away": 12.7
    },
-   "margin": 18.0,
-   "total": 40.2,
+   "margin": 18.3,
+   "total": 43.7,
    "line": {
     "spread": null,
     "total": null
@@ -2185,17 +621,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 86.1
+    "moneyline": 86.7
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 86.1
+    "moneyline": 86.7
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 84.4
+    "moneyline": 83.9
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2207,31 +643,31 @@
    "away": "Michigan",
    "neutral": false,
    "score": {
-    "home": 24.4,
-    "away": 30.0
+    "home": 22.7,
+    "away": 29.8
    },
-   "margin": -5.6,
-   "total": 54.4,
+   "margin": -7.1,
+   "total": 52.6,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -14.25,
+    "total": 47.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 36.8
+    "spread": 66.8,
+    "total": 62.1,
+    "moneyline": 33.3
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 36.8
+    "spread": 55.7,
+    "total": 54.1,
+    "moneyline": 33.3
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 41.9
+    "spread": 47.2,
+    "total": 47.4,
+    "moneyline": 38.5
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 71.8
   },
   {
    "game_id": "401856735",
@@ -2241,31 +677,31 @@
    "away": "Auburn",
    "neutral": false,
    "score": {
-    "home": 32.3,
-    "away": 21.7
+    "home": 33.4,
+    "away": 22.0
    },
-   "margin": 10.6,
-   "total": 54.1,
+   "margin": 11.4,
+   "total": 55.4,
    "line": {
-    "spread": 10.5,
-    "total": 53.5
+    "spread": 11.5,
+    "total": 56.5
    },
    "score_curve": {
-    "spread": 50.2,
-    "total": 51.4,
-    "moneyline": 73.9
+    "spread": 49.8,
+    "total": 47.4,
+    "moneyline": 75.6
    },
    "calibrated": {
-    "spread": 50.1,
-    "total": 50.5,
-    "moneyline": 73.9
+    "spread": 49.9,
+    "total": 49.1,
+    "moneyline": 75.6
    },
    "fb_model": {
-    "spread": 50.8,
-    "total": 51.0,
-    "moneyline": 73.2
+    "spread": 51.8,
+    "total": 49.0,
+    "moneyline": 75.6
    },
-   "fb_model_ml_curve_spread": 49.2
+   "fb_model_ml_curve_spread": 49.7
   },
   {
    "game_id": "401871096",
@@ -2275,11 +711,11 @@
    "away": "Marshall",
    "neutral": false,
    "score": {
-    "home": 27.4,
-    "away": 18.2
+    "home": 26.1,
+    "away": 18.4
    },
-   "margin": 9.2,
-   "total": 45.6,
+   "margin": 7.7,
+   "total": 44.5,
    "line": {
     "spread": null,
     "total": null
@@ -2287,17 +723,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 71.1
+    "moneyline": 68.1
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 71.1
+    "moneyline": 68.1
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 67.8
+    "moneyline": 64.1
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2309,31 +745,31 @@
    "away": "Kansas State",
    "neutral": false,
    "score": {
-    "home": 22.2,
-    "away": 28.0
+    "home": 22.3,
+    "away": 29.3
    },
-   "margin": -5.8,
-   "total": 50.1,
+   "margin": -7.0,
+   "total": 51.7,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -3.5,
+    "total": 47.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 36.3
+    "spread": 41.6,
+    "total": 60.0,
+    "moneyline": 33.5
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 36.3
+    "spread": 47.2,
+    "total": 53.4,
+    "moneyline": 33.5
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 38.0
+    "spread": 50.5,
+    "total": 53.8,
+    "moneyline": 36.0
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 44.2
   },
   {
    "game_id": "401869944",
@@ -2343,11 +779,11 @@
    "away": "Coastal Carolina",
    "neutral": false,
    "score": {
-    "home": 34.3,
-    "away": 24.6
+    "home": 33.9,
+    "away": 25.5
    },
-   "margin": 9.6,
-   "total": 58.9,
+   "margin": 8.4,
+   "total": 59.4,
    "line": {
     "spread": null,
     "total": null
@@ -2355,17 +791,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 72.0
+    "moneyline": 69.5
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 72.0
+    "moneyline": 69.5
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 76.8
+    "moneyline": 74.8
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2377,11 +813,11 @@
    "away": "UConn",
    "neutral": false,
    "score": {
-    "home": 31.4,
-    "away": 28.9
+    "home": 30.5,
+    "away": 28.7
    },
-   "margin": 2.5,
-   "total": 60.3,
+   "margin": 1.8,
+   "total": 59.3,
    "line": {
     "spread": null,
     "total": null
@@ -2389,17 +825,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 56.0
+    "moneyline": 54.4
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 56.0
+    "moneyline": 54.4
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 61.2
+    "moneyline": 60.3
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2411,11 +847,11 @@
    "away": "Temple",
    "neutral": false,
    "score": {
-    "home": 31.4,
-    "away": 22.7
+    "home": 30.9,
+    "away": 22.5
    },
-   "margin": 8.6,
-   "total": 54.1,
+   "margin": 8.4,
+   "total": 53.3,
    "line": {
     "spread": null,
     "total": null
@@ -2423,17 +859,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 69.9
+    "moneyline": 69.6
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 69.9
+    "moneyline": 69.6
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 59.4
+    "moneyline": 60.1
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2445,11 +881,11 @@
    "away": "Louisiana Tech",
    "neutral": false,
    "score": {
-    "home": 31.8,
-    "away": 33.1
+    "home": 29.8,
+    "away": 32.9
    },
-   "margin": -1.3,
-   "total": 65.0,
+   "margin": -3.1,
+   "total": 62.8,
    "line": {
     "spread": null,
     "total": null
@@ -2457,17 +893,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 46.9
+    "moneyline": 42.6
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 46.9
+    "moneyline": 42.6
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 47.5
+    "moneyline": 42.9
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2479,31 +915,31 @@
    "away": "Stanford",
    "neutral": false,
    "score": {
-    "home": 41.6,
-    "away": 17.8
+    "home": 41.2,
+    "away": 17.0
    },
-   "margin": 23.8,
-   "total": 59.3,
+   "margin": 24.2,
+   "total": 58.1,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 19.5,
+    "total": 62.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 92.5
+    "spread": 61.3,
+    "total": 39.5,
+    "moneyline": 92.9
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 92.5
+    "spread": 53.8,
+    "total": 46.5,
+    "moneyline": 92.9
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 89.8
+    "spread": 54.5,
+    "total": 49.4,
+    "moneyline": 90.2
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 54.0
   },
   {
    "game_id": "401856734",
@@ -2513,31 +949,31 @@
    "away": "Florida",
    "neutral": true,
    "score": {
-    "home": 34.3,
+    "home": 34.0,
     "away": 24.6
    },
-   "margin": 9.8,
-   "total": 58.9,
+   "margin": 9.3,
+   "total": 58.6,
    "line": {
     "spread": 10.0,
     "total": 56.0
    },
    "score_curve": {
-    "spread": 49.4,
-    "total": 57.1,
-    "moneyline": 72.3
+    "spread": 48.4,
+    "total": 56.3,
+    "moneyline": 71.5
    },
    "calibrated": {
-    "spread": 49.8,
-    "total": 52.4,
-    "moneyline": 72.3
+    "spread": 49.5,
+    "total": 52.1,
+    "moneyline": 71.5
    },
    "fb_model": {
-    "spread": 53.2,
-    "total": 45.6,
-    "moneyline": 70.7
+    "spread": 52.2,
+    "total": 43.6,
+    "moneyline": 69.9
    },
-   "fb_model_ml_curve_spread": 47.5
+   "fb_model_ml_curve_spread": 46.5
   },
   {
    "game_id": "401856843",
@@ -2547,31 +983,31 @@
    "away": "Arizona State",
    "neutral": false,
    "score": {
-    "home": 36.6,
-    "away": 18.8
+    "home": 35.6,
+    "away": 20.1
    },
-   "margin": 17.8,
-   "total": 55.4,
+   "margin": 15.5,
+   "total": 55.6,
    "line": {
-    "spread": 16.5,
-    "total": 51.5
+    "spread": 15.0,
+    "total": 51.0
    },
    "score_curve": {
-    "spread": 53.2,
-    "total": 59.4,
-    "moneyline": 86.0
+    "spread": 51.2,
+    "total": 61.1,
+    "moneyline": 82.7
    },
    "calibrated": {
-    "spread": 51.1,
-    "total": 53.2,
-    "moneyline": 86.0
+    "spread": 50.4,
+    "total": 53.7,
+    "moneyline": 82.7
    },
    "fb_model": {
-    "spread": 51.9,
-    "total": 48.0,
-    "moneyline": 84.1
+    "spread": 52.6,
+    "total": 48.4,
+    "moneyline": 80.9
    },
-   "fb_model_ml_curve_spread": 49.7
+   "fb_model_ml_curve_spread": 48.3
   },
   {
    "game_id": "401856845",
@@ -2581,31 +1017,31 @@
    "away": "Kansas",
    "neutral": false,
    "score": {
-    "home": 27.1,
-    "away": 19.1
+    "home": 25.2,
+    "away": 19.3
    },
-   "margin": 8.1,
-   "total": 46.2,
+   "margin": 5.9,
+   "total": 44.5,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 4.5,
+    "total": 48.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 68.8
+    "spread": 53.4,
+    "total": 40.4,
+    "moneyline": 64.0
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 68.8
+    "spread": 51.1,
+    "total": 46.8,
+    "moneyline": 64.0
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 68.3
+    "spread": 53.9,
+    "total": 50.0,
+    "moneyline": 64.2
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 53.6
   },
   {
    "game_id": "401858501",
@@ -2615,31 +1051,65 @@
    "away": "Minnesota",
    "neutral": false,
    "score": {
-    "home": 37.2,
-    "away": 8.8
+    "home": 34.3,
+    "away": 7.9
    },
-   "margin": 28.4,
-   "total": 46.0,
+   "margin": 26.4,
+   "total": 42.2,
    "line": {
-    "spread": 22.5,
-    "total": 45.5
+    "spread": 20.5,
+    "total": 42.5
    },
    "score_curve": {
     "spread": 63.9,
-    "total": 51.1,
-    "moneyline": 95.7
+    "total": 49.2,
+    "moneyline": 94.5
    },
    "calibrated": {
     "spread": 54.7,
-    "total": 50.4,
-    "moneyline": 95.7
+    "total": 49.7,
+    "moneyline": 94.5
    },
    "fb_model": {
-    "spread": 60.0,
-    "total": 49.9,
-    "moneyline": 94.1
+    "spread": 57.1,
+    "total": 48.2,
+    "moneyline": 92.6
    },
-   "fb_model_ml_curve_spread": 57.7
+   "fb_model_ml_curve_spread": 57.6
+  },
+  {
+   "game_id": "401858505",
+   "day": "2026-10-31",
+   "kick": "2026-10-31T19:30:00.000Z",
+   "home": "Oregon",
+   "away": "Northwestern",
+   "neutral": false,
+   "score": {
+    "home": 28.7,
+    "away": 21.6
+   },
+   "margin": 7.1,
+   "total": 50.3,
+   "line": {
+    "spread": 4.0,
+    "total": 50.5
+   },
+   "score_curve": {
+    "spread": 57.5,
+    "total": 49.4,
+    "moneyline": 66.7
+   },
+   "calibrated": {
+    "spread": 52.5,
+    "total": 49.8,
+    "moneyline": 66.7
+   },
+   "fb_model": {
+    "spread": 56.5,
+    "total": 48.0,
+    "moneyline": 64.7
+   },
+   "fb_model_ml_curve_spread": 55.3
   },
   {
    "game_id": "401860910",
@@ -2649,11 +1119,11 @@
    "away": "Colorado State",
    "neutral": false,
    "score": {
-    "home": 35.3,
-    "away": 25.2
+    "home": 36.3,
+    "away": 26.9
    },
-   "margin": 10.1,
-   "total": 60.5,
+   "margin": 9.3,
+   "total": 63.2,
    "line": {
     "spread": null,
     "total": null
@@ -2661,12 +1131,12 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 73.0
+    "moneyline": 71.5
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 73.0
+    "moneyline": 71.5
    },
    "fb_model": {
     "spread": null,
@@ -2683,11 +1153,11 @@
    "away": "UTEP",
    "neutral": false,
    "score": {
-    "home": 40.9,
-    "away": 7.9
+    "home": 40.7,
+    "away": 8.4
    },
-   "margin": 33.0,
-   "total": 48.7,
+   "margin": 32.3,
+   "total": 49.1,
    "line": {
     "spread": null,
     "total": null
@@ -2695,17 +1165,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 97.7
+    "moneyline": 97.5
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 97.7
+    "moneyline": 97.5
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 96.1
+    "moneyline": 95.8
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2717,11 +1187,11 @@
    "away": "Florida International",
    "neutral": false,
    "score": {
-    "home": 28.0,
+    "home": 27.6,
     "away": 12.9
    },
-   "margin": 15.1,
-   "total": 40.9,
+   "margin": 14.7,
+   "total": 40.5,
    "line": {
     "spread": null,
     "total": null
@@ -2729,17 +1199,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 82.0
+    "moneyline": 81.4
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 82.0
+    "moneyline": 81.4
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 80.4
+    "moneyline": 80.1
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2751,10 +1221,10 @@
    "away": "Southern Miss",
    "neutral": false,
    "score": {
-    "home": 24.7,
-    "away": 31.5
+    "home": 25.5,
+    "away": 30.6
    },
-   "margin": -6.8,
+   "margin": -5.2,
    "total": 56.1,
    "line": {
     "spread": null,
@@ -2763,17 +1233,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 34.0
+    "moneyline": 37.7
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 34.0
+    "moneyline": 37.7
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 33.2
+    "moneyline": 39.1
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2785,31 +1255,31 @@
    "away": "Utah",
    "neutral": false,
    "score": {
-    "home": 25.6,
-    "away": 35.7
+    "home": 26.0,
+    "away": 33.1
    },
-   "margin": -10.1,
-   "total": 61.3,
+   "margin": -7.0,
+   "total": 59.1,
    "line": {
-    "spread": -9.5,
-    "total": 56.5
+    "spread": -6.5,
+    "total": 55.5
    },
    "score_curve": {
-    "spread": 48.6,
-    "total": 61.6,
-    "moneyline": 27.1
+    "spread": 48.7,
+    "total": 58.6,
+    "moneyline": 33.4
    },
    "calibrated": {
-    "spread": 49.5,
-    "total": 53.9,
-    "moneyline": 27.1
+    "spread": 49.6,
+    "total": 52.9,
+    "moneyline": 33.4
    },
    "fb_model": {
     "spread": 55.8,
-    "total": 45.7,
-    "moneyline": 28.5
+    "total": 46.5,
+    "moneyline": 36.2
    },
-   "fb_model_ml_curve_spread": 50.4
+   "fb_model_ml_curve_spread": 51.7
   },
   {
    "game_id": "401858284",
@@ -2819,31 +1289,31 @@
    "away": "Virginia",
    "neutral": false,
    "score": {
-    "home": 28.7,
-    "away": 17.4
+    "home": 28.1,
+    "away": 17.6
    },
-   "margin": 11.3,
-   "total": 46.1,
+   "margin": 10.5,
+   "total": 45.7,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 13.5,
+    "total": 49.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 75.3
+    "spread": 42.8,
+    "total": 40.8,
+    "moneyline": 73.8
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 75.3
+    "spread": 47.6,
+    "total": 46.9,
+    "moneyline": 73.8
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 69.3
+    "spread": 48.9,
+    "total": 60.3,
+    "moneyline": 70.0
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 38.2
   },
   {
    "game_id": "401864529",
@@ -2853,11 +1323,11 @@
    "away": "New Mexico",
    "neutral": false,
    "score": {
-    "home": 15.5,
-    "away": 31.5
+    "home": 14.1,
+    "away": 31.3
    },
-   "margin": -16.0,
-   "total": 47.1,
+   "margin": -17.2,
+   "total": 45.4,
    "line": {
     "spread": null,
     "total": null
@@ -2865,17 +1335,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 16.7
+    "moneyline": 14.8
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 16.7
+    "moneyline": 14.8
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 16.4
+    "moneyline": 15.7
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2887,31 +1357,65 @@
    "away": "South Carolina",
    "neutral": false,
    "score": {
-    "home": 25.2,
-    "away": 20.5
+    "home": 24.6,
+    "away": 19.9
    },
-   "margin": 4.7,
-   "total": 45.8,
+   "margin": 4.8,
+   "total": 44.5,
    "line": {
     "spread": 5.5,
     "total": 43.5
    },
    "score_curve": {
-    "spread": 48.1,
-    "total": 55.5,
-    "moneyline": 61.2
+    "spread": 48.3,
+    "total": 52.4,
+    "moneyline": 61.4
    },
    "calibrated": {
     "spread": 49.4,
-    "total": 51.8,
-    "moneyline": 61.2
+    "total": 50.8,
+    "moneyline": 61.4
    },
    "fb_model": {
-    "spread": 50.7,
-    "total": 53.5,
-    "moneyline": 61.1
+    "spread": 51.9,
+    "total": 53.8,
+    "moneyline": 62.0
    },
-   "fb_model_ml_curve_spread": 47.8
+   "fb_model_ml_curve_spread": 48.8
+  },
+  {
+   "game_id": "401858506",
+   "day": "2026-10-31",
+   "kick": "2026-10-31T20:15:00.000Z",
+   "home": "Penn State",
+   "away": "Purdue",
+   "neutral": false,
+   "score": {
+    "home": 35.1,
+    "away": 22.1
+   },
+   "margin": 13.0,
+   "total": 57.1,
+   "line": {
+    "spread": 7.5,
+    "total": 52.5
+   },
+   "score_curve": {
+    "spread": 63.0,
+    "total": 61.1,
+    "moneyline": 78.5
+   },
+   "calibrated": {
+    "spread": 54.4,
+    "total": 53.7,
+    "moneyline": 78.5
+   },
+   "fb_model": {
+    "spread": 55.8,
+    "total": 46.1,
+    "moneyline": 77.5
+   },
+   "fb_model_ml_curve_spread": 61.6
   },
   {
    "game_id": "401858508",
@@ -2921,31 +1425,31 @@
    "away": "Nevada",
    "neutral": false,
    "score": {
-    "home": 34.5,
-    "away": 15.3
+    "home": 33.6,
+    "away": 14.8
    },
-   "margin": 19.2,
-   "total": 49.9,
+   "margin": 18.8,
+   "total": 48.4,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 23.5,
+    "total": 48.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 87.7
+    "spread": 38.7,
+    "total": 49.7,
+    "moneyline": 87.3
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 87.7
+    "spread": 46.2,
+    "total": 49.9,
+    "moneyline": 87.3
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 86.5
+    "spread": 52.9,
+    "total": 48.2,
+    "moneyline": 85.9
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 35.9
   },
   {
    "game_id": "401869846",
@@ -2955,11 +1459,11 @@
    "away": "App State",
    "neutral": false,
    "score": {
-    "home": 28.8,
-    "away": 23.1
+    "home": 29.2,
+    "away": 23.7
    },
-   "margin": 5.7,
-   "total": 51.9,
+   "margin": 5.5,
+   "total": 52.8,
    "line": {
     "spread": null,
     "total": null
@@ -2967,17 +1471,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 63.6
+    "moneyline": 63.1
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 63.6
+    "moneyline": 63.1
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 60.4
+    "moneyline": 60.7
    },
    "fb_model_ml_curve_spread": null
   },
@@ -2989,31 +1493,31 @@
    "away": "Oklahoma State",
    "neutral": false,
    "score": {
-    "home": 29.5,
-    "away": 21.6
+    "home": 28.5,
+    "away": 25.5
    },
-   "margin": 7.8,
-   "total": 51.1,
+   "margin": 3.0,
+   "total": 54.1,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": -9.5,
+    "total": 58.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 68.3
+    "spread": 77.7,
+    "total": 39.4,
+    "moneyline": 57.3
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 68.3
+    "spread": 60.0,
+    "total": 46.4,
+    "moneyline": 57.3
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 65.1
+    "spread": 52.6,
+    "total": 62.0,
+    "moneyline": 52.5
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 74.0
   },
   {
    "game_id": "401858280",
@@ -3023,31 +1527,31 @@
    "away": "Clemson",
    "neutral": false,
    "score": {
-    "home": 30.1,
-    "away": 21.7
+    "home": 29.6,
+    "away": 20.0
    },
-   "margin": 8.4,
-   "total": 51.8,
+   "margin": 9.6,
+   "total": 49.6,
    "line": {
-    "spread": -1.5,
-    "total": 51.5
+    "spread": 5.5,
+    "total": 51.0
    },
    "score_curve": {
-    "spread": 72.6,
-    "total": 50.7,
-    "moneyline": 69.5
+    "spread": 59.8,
+    "total": 46.5,
+    "moneyline": 72.0
    },
    "calibrated": {
-    "spread": 57.9,
-    "total": 50.2,
-    "moneyline": 69.5
+    "spread": 53.3,
+    "total": 48.8,
+    "moneyline": 72.0
    },
    "fb_model": {
-    "spread": 58.3,
-    "total": 58.1,
-    "moneyline": 70.0
+    "spread": 58.2,
+    "total": 55.8,
+    "moneyline": 72.4
    },
-   "fb_model_ml_curve_spread": 73.1
+   "fb_model_ml_curve_spread": 60.2
   },
   {
    "game_id": "401860909",
@@ -3057,11 +1561,11 @@
    "away": "Washington State",
    "neutral": false,
    "score": {
-    "home": 24.0,
-    "away": 21.6
+    "home": 25.2,
+    "away": 23.0
    },
-   "margin": 2.4,
-   "total": 45.6,
+   "margin": 2.2,
+   "total": 48.2,
    "line": {
     "spread": null,
     "total": null
@@ -3069,17 +1573,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 55.7
+    "moneyline": 55.4
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 55.7
+    "moneyline": 55.4
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 49.3
+    "moneyline": 50.3
    },
    "fb_model_ml_curve_spread": null
   },
@@ -3091,31 +1595,31 @@
    "away": "Mississippi State",
    "neutral": false,
    "score": {
-    "home": 34.8,
-    "away": 21.7
+    "home": 35.3,
+    "away": 21.3
    },
-   "margin": 13.2,
-   "total": 56.5,
+   "margin": 14.0,
+   "total": 56.6,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 20.5,
+    "total": 51.0
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 78.8
+    "spread": 34.7,
+    "total": 63.3,
+    "moneyline": 80.3
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 78.8
+    "spread": 44.8,
+    "total": 54.5,
+    "moneyline": 80.3
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 77.2
+    "spread": 50.7,
+    "total": 46.9,
+    "moneyline": 79.3
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 33.1
   },
   {
    "game_id": "401858281",
@@ -3125,31 +1629,31 @@
    "away": "Georgia Tech",
    "neutral": false,
    "score": {
-    "home": 32.6,
-    "away": 21.8
+    "home": 35.8,
+    "away": 21.9
    },
-   "margin": 10.8,
-   "total": 54.4,
+   "margin": 13.9,
+   "total": 57.7,
    "line": {
-    "spread": null,
-    "total": null
+    "spread": 6.5,
+    "total": 52.5
    },
    "score_curve": {
-    "spread": null,
-    "total": null,
-    "moneyline": 74.3
+    "spread": 67.3,
+    "total": 62.4,
+    "moneyline": 80.0
    },
    "calibrated": {
-    "spread": null,
-    "total": null,
-    "moneyline": 74.3
+    "spread": 55.9,
+    "total": 54.2,
+    "moneyline": 80.0
    },
    "fb_model": {
-    "spread": null,
-    "total": null,
-    "moneyline": 68.4
+    "spread": 53.0,
+    "total": 43.9,
+    "moneyline": 74.0
    },
-   "fb_model_ml_curve_spread": null
+   "fb_model_ml_curve_spread": 59.8
   },
   {
    "game_id": "401858282",
@@ -3159,31 +1663,31 @@
    "away": "Miami",
    "neutral": false,
    "score": {
-    "home": 16.9,
-    "away": 31.1
+    "home": 17.4,
+    "away": 34.1
    },
-   "margin": -14.2,
-   "total": 48.0,
+   "margin": -16.7,
+   "total": 51.5,
    "line": {
-    "spread": -14.0,
-    "total": 50.5
+    "spread": -16.0,
+    "total": 51.0
    },
    "score_curve": {
-    "spread": 49.4,
-    "total": 43.9,
-    "moneyline": 19.4
+    "spread": 48.3,
+    "total": 51.2,
+    "moneyline": 15.5
    },
    "calibrated": {
-    "spread": 49.8,
-    "total": 48.0,
-    "moneyline": 19.4
+    "spread": 49.4,
+    "total": 50.4,
+    "moneyline": 15.5
    },
    "fb_model": {
-    "spread": 48.7,
-    "total": 52.5,
-    "moneyline": 16.3
+    "spread": 49.5,
+    "total": 52.9,
+    "moneyline": 14.3
    },
-   "fb_model_ml_curve_spread": 44.8
+   "fb_model_ml_curve_spread": 46.4
   },
   {
    "game_id": "401858509",
@@ -3193,31 +1697,31 @@
    "away": "Ohio State",
    "neutral": false,
    "score": {
-    "home": 23.9,
-    "away": 31.9
+    "home": 22.3,
+    "away": 32.9
    },
-   "margin": -8.0,
-   "total": 55.8,
+   "margin": -10.6,
+   "total": 55.2,
    "line": {
-    "spread": -6.5,
-    "total": 53.5
+    "spread": -7.25,
+    "total": 52.0
    },
    "score_curve": {
-    "spread": 46.4,
-    "total": 55.6,
-    "moneyline": 31.5
+    "spread": 41.9,
+    "total": 57.6,
+    "moneyline": 26.0
    },
    "calibrated": {
-    "spread": 48.8,
-    "total": 51.9,
-    "moneyline": 31.5
+    "spread": 47.3,
+    "total": 52.6,
+    "moneyline": 26.0
    },
    "fb_model": {
-    "spread": 48.3,
-    "total": 49.0,
-    "moneyline": 28.9
+    "spread": 49.5,
+    "total": 46.4,
+    "moneyline": 25.3
    },
-   "fb_model_ml_curve_spread": 43.7
+   "fb_model_ml_curve_spread": 41.2
   },
   {
    "game_id": "401856733",
@@ -3227,31 +1731,31 @@
    "away": "Missouri",
    "neutral": false,
    "score": {
-    "home": 20.8,
-    "away": 26.0
+    "home": 21.1,
+    "away": 26.4
    },
-   "margin": -5.2,
-   "total": 46.9,
+   "margin": -5.3,
+   "total": 47.5,
    "line": {
-    "spread": -10.5,
-    "total": 48.5
+    "spread": -10.0,
+    "total": 47.5
    },
    "score_curve": {
-    "spread": 62.6,
-    "total": 46.1,
-    "moneyline": 37.6
+    "spread": 61.2,
+    "total": 50.1,
+    "moneyline": 37.3
    },
    "calibrated": {
-    "spread": 54.2,
-    "total": 48.7,
-    "moneyline": 37.6
+    "spread": 53.8,
+    "total": 50.0,
+    "moneyline": 37.3
    },
    "fb_model": {
-    "spread": 49.2,
-    "total": 48.8,
-    "moneyline": 40.6
+    "spread": 50.1,
+    "total": 48.0,
+    "moneyline": 41.6
    },
-   "fb_model_ml_curve_spread": 65.6
+   "fb_model_ml_curve_spread": 65.5
   },
   {
    "game_id": "401858504",
@@ -3261,31 +1765,31 @@
    "away": "Washington",
    "neutral": false,
    "score": {
-    "home": 31.1,
-    "away": 18.8
+    "home": 31.6,
+    "away": 19.7
    },
-   "margin": 12.3,
-   "total": 49.9,
+   "margin": 11.9,
+   "total": 51.2,
    "line": {
-    "spread": 9.5,
-    "total": 48.5
+    "spread": 9.0,
+    "total": 49.0
    },
    "score_curve": {
-    "spread": 56.7,
-    "total": 53.5,
-    "moneyline": 77.2
+    "spread": 57.0,
+    "total": 55.4,
+    "moneyline": 76.5
    },
    "calibrated": {
     "spread": 52.3,
-    "total": 51.2,
-    "moneyline": 77.2
+    "total": 51.8,
+    "moneyline": 76.5
    },
    "fb_model": {
-    "spread": 51.1,
-    "total": 50.4,
-    "moneyline": 77.1
+    "spread": 51.5,
+    "total": 49.6,
+    "moneyline": 76.7
    },
-   "fb_model_ml_curve_spread": 56.5
+   "fb_model_ml_curve_spread": 57.1
   },
   {
    "game_id": "401862814",
@@ -3295,11 +1799,11 @@
    "away": "Army",
    "neutral": false,
    "score": {
-    "home": 31.4,
-    "away": 29.9
+    "home": 30.9,
+    "away": 29.8
    },
-   "margin": 1.5,
-   "total": 61.3,
+   "margin": 1.1,
+   "total": 60.8,
    "line": {
     "spread": null,
     "total": null
@@ -3307,17 +1811,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 53.5
+    "moneyline": 52.7
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 53.5
+    "moneyline": 52.7
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 55.1
+    "moneyline": 55.7
    },
    "fb_model_ml_curve_spread": null
   },
@@ -3329,11 +1833,11 @@
    "away": "Texas State",
    "neutral": false,
    "score": {
-    "home": 38.2,
-    "away": 28.5
+    "home": 37.1,
+    "away": 26.3
    },
-   "margin": 9.7,
-   "total": 66.8,
+   "margin": 10.8,
+   "total": 63.4,
    "line": {
     "spread": null,
     "total": null
@@ -3341,17 +1845,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 72.2
+    "moneyline": 74.4
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 72.2
+    "moneyline": 74.4
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 73.9
+    "moneyline": 75.6
    },
    "fb_model_ml_curve_spread": null
   },
@@ -3363,11 +1867,11 @@
    "away": "Northern Illinois",
    "neutral": false,
    "score": {
-    "home": 33.8,
+    "home": 36.9,
     "away": 14.6
    },
-   "margin": 19.2,
-   "total": 48.4,
+   "margin": 22.3,
+   "total": 51.5,
    "line": {
     "spread": null,
     "total": null
@@ -3375,17 +1879,17 @@
    "score_curve": {
     "spread": null,
     "total": null,
-    "moneyline": 87.7
+    "moneyline": 91.2
    },
    "calibrated": {
     "spread": null,
     "total": null,
-    "moneyline": 87.7
+    "moneyline": 91.2
    },
    "fb_model": {
     "spread": null,
     "total": null,
-    "moneyline": 86.3
+    "moneyline": 89.8
    },
    "fb_model_ml_curve_spread": null
   },
@@ -3397,90 +1901,90 @@
    "away": "Oregon State",
    "neutral": false,
    "score": {
-    "home": 26.4,
-    "away": 27.8
+    "home": 25.9,
+    "away": 27.4
    },
    "margin": -1.5,
-   "total": 54.2,
+   "total": 53.3,
    "line": {
-    "spread": -6.5,
-    "total": 56.5
+    "spread": -6.75,
+    "total": 57.0
    },
    "score_curve": {
-    "spread": 62.0,
-    "total": 44.4,
-    "moneyline": 46.5
+    "spread": 62.6,
+    "total": 41.0,
+    "moneyline": 46.4
    },
    "calibrated": {
-    "spread": 54.1,
-    "total": 48.1,
-    "moneyline": 46.5
+    "spread": 54.2,
+    "total": 47.0,
+    "moneyline": 46.4
    },
    "fb_model": {
-    "spread": 53.1,
-    "total": 52.7,
-    "moneyline": 41.6
+    "spread": 53.4,
+    "total": 53.3,
+    "moneyline": 41.5
    },
-   "fb_model_ml_curve_spread": 57.2
+   "fb_model_ml_curve_spread": 57.9
   }
  ],
  "backtest": {
-  "games_predicted": 1160,
+  "games_predicted": 1204,
   "first": "2025-08-30",
-  "last": "2026-10-24",
+  "last": "2026-10-25",
   "point_error": {
-   "games": 1069,
+   "games": 1113,
    "margin": {
     "score_model": {
-     "mae": 12.97,
-     "rmse": 16.44
+     "mae": 12.93,
+     "rmse": 16.38
     },
     "fb_model_own_ratings": {
-     "mae": 12.91,
-     "rmse": 16.37
+     "mae": 12.87,
+     "rmse": 16.31
     },
     "closing_line": {
-     "mae": 11.73,
-     "rmse": 14.9
+     "mae": 11.69,
+     "rmse": 14.83
     }
    },
    "total": {
     "score_model": {
-     "mae": 13.05,
-     "rmse": 16.21
+     "mae": 13.16,
+     "rmse": 16.33
     },
     "fb_model_own_ratings": {
-     "mae": 13.14,
-     "rmse": 16.32
+     "mae": 13.24,
+     "rmse": 16.43
     },
     "closing_line": {
-     "mae": 12.3,
-     "rmse": 15.35
+     "mae": 12.41,
+     "rmse": 15.5
     }
    }
   },
   "log_loss": {
    "spread": {
-    "score_curve": 0.7325,
-    "calibrated": 0.7079,
-    "fb_model": 0.6994,
-    "ml_curve": 0.7394,
-    "ml_curve_games": 929,
-    "fb_model_on_ml_curve_games": 0.6994,
-    "games": 929
+    "score_curve": 0.7331,
+    "calibrated": 0.7078,
+    "fb_model": 0.6999,
+    "ml_curve": 0.7401,
+    "ml_curve_games": 973,
+    "fb_model_on_ml_curve_games": 0.6999,
+    "games": 973
    },
    "total": {
-    "score_curve": 0.7343,
-    "calibrated": 0.7071,
-    "fb_model": 0.7006,
-    "games": 943
+    "score_curve": 0.7345,
+    "calibrated": 0.707,
+    "fb_model": 0.7009,
+    "games": 987
    },
    "moneyline": {
-    "score_curve": 0.5606,
-    "calibrated": 0.5606,
-    "fb_model": 0.5664,
-    "books_devigged": 0.5195,
-    "games": 943
+    "score_curve": 0.5648,
+    "calibrated": 0.5648,
+    "fb_model": 0.5705,
+    "books_devigged": 0.5246,
+    "games": 987
    }
   },
   "calibration": {
@@ -3488,27 +1992,27 @@
     "score_curve": [
      {
       "band": "50-55",
-      "games": 301,
+      "games": 317,
       "stated": 52.3,
-      "hit": 54.2
+      "hit": 54.3
      },
      {
       "band": "55-60",
-      "games": 247,
-      "stated": 57.2,
-      "hit": 49.0
+      "games": 264,
+      "stated": 57.3,
+      "hit": 49.2
      },
      {
       "band": "60-65",
-      "games": 174,
+      "games": 182,
       "stated": 62.4,
-      "hit": 49.4
+      "hit": 48.4
      },
      {
       "band": "65-70",
-      "games": 93,
+      "games": 96,
       "stated": 67.3,
-      "hit": 53.8
+      "hit": 52.1
      },
      {
       "band": "70+",
@@ -3520,15 +2024,15 @@
     "calibrated": [
      {
       "band": "50-55",
-      "games": 647,
+      "games": 688,
       "stated": 52.1,
-      "hit": 51.6
+      "hit": 51.5
      },
      {
       "band": "55-60",
-      "games": 170,
+      "games": 173,
       "stated": 56.9,
-      "hit": 52.9
+      "hit": 52.0
      },
      {
       "band": "60-65",
@@ -3552,15 +2056,15 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 613,
-      "stated": 52.3,
-      "hit": 49.1
+      "games": 651,
+      "stated": 52.2,
+      "hit": 48.2
      },
      {
       "band": "55-60",
-      "games": 223,
+      "games": 229,
       "stated": 57.1,
-      "hit": 56.1
+      "hit": 55.5
      },
      {
       "band": "60-65",
@@ -3584,33 +2088,33 @@
     "ml_curve": [
      {
       "band": "50-55",
-      "games": 287,
+      "games": 307,
       "stated": 52.5,
-      "hit": 51.2
+      "hit": 51.1
      },
      {
       "band": "55-60",
-      "games": 265,
+      "games": 281,
       "stated": 57.3,
-      "hit": 52.5
+      "hit": 52.3
      },
      {
       "band": "60-65",
-      "games": 162,
+      "games": 168,
       "stated": 62.3,
-      "hit": 46.3
+      "hit": 45.2
      },
      {
       "band": "65-70",
-      "games": 92,
-      "stated": 67.2,
-      "hit": 47.8
+      "games": 93,
+      "stated": 67.1,
+      "hit": 47.3
      },
      {
       "band": "70+",
-      "games": 123,
+      "games": 124,
       "stated": 77.6,
-      "hit": 52.0
+      "hit": 51.6
      }
     ]
    },
@@ -3618,27 +2122,27 @@
     "score_curve": [
      {
       "band": "50-55",
-      "games": 268,
-      "stated": 52.6,
-      "hit": 56.3
+      "games": 286,
+      "stated": 52.5,
+      "hit": 56.6
      },
      {
       "band": "55-60",
-      "games": 261,
+      "games": 272,
       "stated": 57.4,
-      "hit": 43.7
+      "hit": 43.4
      },
      {
       "band": "60-65",
-      "games": 202,
-      "stated": 62.4,
-      "hit": 49.5
+      "games": 209,
+      "stated": 62.3,
+      "hit": 48.8
      },
      {
       "band": "65-70",
-      "games": 123,
-      "stated": 67.3,
-      "hit": 43.9
+      "games": 131,
+      "stated": 67.4,
+      "hit": 44.3
      },
      {
       "band": "70+",
@@ -3650,15 +2154,15 @@
     "calibrated": [
      {
       "band": "50-55",
-      "games": 655,
+      "games": 691,
       "stated": 52.3,
-      "hit": 50.2
+      "hit": 50.1
      },
      {
       "band": "55-60",
-      "games": 190,
+      "games": 198,
       "stated": 56.6,
-      "hit": 44.7
+      "hit": 44.9
      },
      {
       "band": "60-65",
@@ -3682,27 +2186,27 @@
     "fb_model": [
      {
       "band": "50-55",
-      "games": 754,
+      "games": 788,
       "stated": 52.0,
-      "hit": 49.5
+      "hit": 49.9
      },
      {
       "band": "55-60",
-      "games": 128,
-      "stated": 56.7,
-      "hit": 46.9
+      "games": 133,
+      "stated": 56.8,
+      "hit": 47.4
      },
      {
       "band": "60-65",
-      "games": 39,
+      "games": 43,
       "stated": 62.1,
-      "hit": 41.0
+      "hit": 39.5
      },
      {
       "band": "65-70",
-      "games": 16,
+      "games": 17,
       "stated": 66.9,
-      "hit": 56.2
+      "hit": 52.9
      },
      {
       "band": "70+",
@@ -3716,97 +2220,97 @@
     "score_curve": [
      {
       "band": "50-55",
-      "games": 129,
+      "games": 135,
       "stated": 52.5,
-      "hit": 55.8
+      "hit": 56.3
      },
      {
       "band": "55-60",
-      "games": 133,
+      "games": 141,
       "stated": 57.8,
-      "hit": 57.9
+      "hit": 56.7
      },
      {
       "band": "60-65",
-      "games": 135,
+      "games": 139,
       "stated": 62.5,
-      "hit": 68.9
+      "hit": 69.1
      },
      {
       "band": "65-70",
-      "games": 125,
-      "stated": 67.5,
-      "hit": 63.2
+      "games": 132,
+      "stated": 67.6,
+      "hit": 64.4
      },
      {
       "band": "70+",
-      "games": 421,
-      "stated": 81.8,
-      "hit": 83.6
+      "games": 440,
+      "stated": 81.7,
+      "hit": 82.7
      }
     ],
     "calibrated": [
      {
       "band": "50-55",
-      "games": 129,
+      "games": 135,
       "stated": 52.5,
-      "hit": 55.8
+      "hit": 56.3
      },
      {
       "band": "55-60",
-      "games": 133,
+      "games": 141,
       "stated": 57.8,
-      "hit": 57.9
+      "hit": 56.7
      },
      {
       "band": "60-65",
-      "games": 135,
+      "games": 139,
       "stated": 62.5,
-      "hit": 68.9
+      "hit": 69.1
      },
      {
       "band": "65-70",
-      "games": 125,
-      "stated": 67.5,
-      "hit": 63.2
+      "games": 132,
+      "stated": 67.6,
+      "hit": 64.4
      },
      {
       "band": "70+",
-      "games": 421,
-      "stated": 81.8,
-      "hit": 83.6
+      "games": 440,
+      "stated": 81.7,
+      "hit": 82.7
      }
     ],
     "fb_model": [
      {
       "band": "50-55",
-      "games": 120,
-      "stated": 52.5,
-      "hit": 47.5
+      "games": 127,
+      "stated": 52.6,
+      "hit": 48.0
      },
      {
       "band": "55-60",
-      "games": 122,
+      "games": 128,
       "stated": 57.6,
-      "hit": 54.1
+      "hit": 53.9
      },
      {
       "band": "60-65",
-      "games": 151,
+      "games": 157,
       "stated": 62.4,
-      "hit": 68.9
+      "hit": 68.8
      },
      {
       "band": "65-70",
-      "games": 128,
+      "games": 135,
       "stated": 67.3,
-      "hit": 66.4
+      "hit": 66.7
      },
      {
       "band": "70+",
-      "games": 422,
-      "stated": 80.8,
-      "hit": 82.2
+      "games": 440,
+      "stated": 80.7,
+      "hit": 81.6
      }
     ]
    }
@@ -3815,157 +2319,157 @@
    "spread": {
     "books": {
      "score_curve": {
-      "picks": 377,
-      "wins": 184,
-      "hit_rate": 48.8,
-      "roi": -5.6,
+      "picks": 421,
+      "wins": 205,
+      "hit_rate": 48.7,
+      "roi": -5.8,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 375,
-      "wins": 181,
-      "hit_rate": 48.3,
-      "roi": -6.3,
+      "picks": 419,
+      "wins": 202,
+      "hit_rate": 48.2,
+      "roi": -6.5,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 377,
-      "wins": 178,
-      "hit_rate": 47.2,
-      "roi": -8.4,
+      "picks": 421,
+      "wins": 193,
+      "hit_rate": 45.8,
+      "roi": -11.1,
       "price_assumed": 0
      },
      "ml_curve": {
-      "picks": 377,
-      "wins": 184,
-      "hit_rate": 48.8,
-      "roi": -5.6,
+      "picks": 421,
+      "wins": 204,
+      "hit_rate": 48.5,
+      "roi": -6.3,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 917,
-      "wins": 473,
-      "hit_rate": 51.6,
-      "roi": -1.5,
-      "price_assumed": 917
+      "picks": 960,
+      "wins": 492,
+      "hit_rate": 51.2,
+      "roi": -2.2,
+      "price_assumed": 960
      },
      "calibrated": {
-      "picks": 917,
-      "wins": 473,
-      "hit_rate": 51.6,
-      "roi": -1.5,
-      "price_assumed": 917
+      "picks": 960,
+      "wins": 492,
+      "hit_rate": 51.2,
+      "roi": -2.2,
+      "price_assumed": 960
      },
      "fb_model": {
-      "picks": 917,
-      "wins": 468,
-      "hit_rate": 51.0,
-      "roi": -2.6,
-      "price_assumed": 917
+      "picks": 960,
+      "wins": 483,
+      "hit_rate": 50.3,
+      "roi": -3.9,
+      "price_assumed": 960
      },
      "ml_curve": {
-      "picks": 917,
-      "wins": 465,
-      "hit_rate": 50.7,
-      "roi": -3.2,
-      "price_assumed": 917
+      "picks": 960,
+      "wins": 482,
+      "hit_rate": 50.2,
+      "roi": -4.1,
+      "price_assumed": 960
      }
     }
    },
    "total": {
     "books": {
      "score_curve": {
-      "picks": 391,
-      "wins": 202,
-      "hit_rate": 51.7,
-      "roi": -1.0,
+      "picks": 435,
+      "wins": 223,
+      "hit_rate": 51.3,
+      "roi": -1.7,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 391,
-      "wins": 201,
-      "hit_rate": 51.4,
-      "roi": -1.0,
+      "picks": 435,
+      "wins": 222,
+      "hit_rate": 51.0,
+      "roi": -1.7,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 391,
-      "wins": 197,
-      "hit_rate": 50.4,
-      "roi": -2.6,
+      "picks": 435,
+      "wins": 220,
+      "hit_rate": 50.6,
+      "roi": -2.2,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 967,
-      "wins": 469,
+      "picks": 1011,
+      "wins": 490,
       "hit_rate": 48.5,
-      "roi": -7.4,
-      "price_assumed": 967
+      "roi": -7.5,
+      "price_assumed": 1011
      },
      "calibrated": {
-      "picks": 967,
-      "wins": 469,
+      "picks": 1011,
+      "wins": 490,
       "hit_rate": 48.5,
-      "roi": -7.4,
-      "price_assumed": 967
+      "roi": -7.5,
+      "price_assumed": 1011
      },
      "fb_model": {
-      "picks": 967,
-      "wins": 472,
-      "hit_rate": 48.8,
-      "roi": -6.8,
-      "price_assumed": 967
+      "picks": 1011,
+      "wins": 495,
+      "hit_rate": 49.0,
+      "roi": -6.5,
+      "price_assumed": 1011
      }
     }
    },
    "moneyline": {
     "books": {
      "score_curve": {
-      "picks": 946,
-      "wins": 675,
-      "hit_rate": 71.4,
-      "roi": -1.3,
+      "picks": 990,
+      "wins": 703,
+      "hit_rate": 71.0,
+      "roi": -1.6,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 946,
-      "wins": 675,
-      "hit_rate": 71.4,
-      "roi": -1.3,
+      "picks": 990,
+      "wins": 703,
+      "hit_rate": 71.0,
+      "roi": -1.6,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 946,
-      "wins": 662,
-      "hit_rate": 70.0,
-      "roi": -3.5,
+      "picks": 990,
+      "wins": 690,
+      "hit_rate": 69.7,
+      "roi": -3.8,
       "price_assumed": 0
      }
     },
     "closing": {
      "score_curve": {
-      "picks": 942,
-      "wins": 671,
-      "hit_rate": 71.2,
-      "roi": -1.4,
+      "picks": 986,
+      "wins": 699,
+      "hit_rate": 70.9,
+      "roi": -1.8,
       "price_assumed": 0
      },
      "calibrated": {
-      "picks": 942,
-      "wins": 671,
-      "hit_rate": 71.2,
-      "roi": -1.4,
+      "picks": 986,
+      "wins": 699,
+      "hit_rate": 70.9,
+      "roi": -1.8,
       "price_assumed": 0
      },
      "fb_model": {
-      "picks": 942,
-      "wins": 658,
-      "hit_rate": 69.9,
-      "roi": -3.6,
+      "picks": 986,
+      "wins": 686,
+      "hit_rate": 69.6,
+      "roi": -3.9,
       "price_assumed": 0
      }
     }
@@ -3974,19 +2478,19 @@
   "coin_flip_log_loss": 0.6931,
   "coherence": {
    "score_curve": {
-    "games": 943,
+    "games": 987,
     "cover_above_win": 0
    },
    "calibrated": {
-    "games": 943,
-    "cover_above_win": 60
+    "games": 987,
+    "cover_above_win": 64
    },
    "fb_model": {
-    "games": 943,
-    "cover_above_win": 152
+    "games": 987,
+    "cover_above_win": 156
    },
    "ml_curve": {
-    "games": 943,
+    "games": 987,
     "cover_above_win": 0
    }
   }
@@ -4005,17 +2509,17 @@
  },
  "fb_model_opposite_picks": {
   "books": {
-   "games_with_both": 152,
+   "games_with_both": 164,
    "cannot_both_hit": 0,
    "games": []
   },
   "closing": {
-   "games_with_both": 328,
+   "games_with_both": 339,
    "cannot_both_hit": 0,
    "games": []
   },
   "this_week": {
-   "games_with_both": 12,
+   "games_with_both": 16,
    "cannot_both_hit": 0,
    "games": []
   }
