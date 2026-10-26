@@ -31,10 +31,26 @@ WHAT IS PINNED:
 #   find: return (now - datetime.timedelta(hours=4)).strftime("%Y-%m-%d")
 #   with: return now.strftime("%Y-%m-%d")
 #
-# @vacuity §2: a season is judged on games per player, never on existing
+# ~~@vacuity §2: a season is judged on games per player, never on existing~~
+#   `[Sam, 2026-10-26]` T73, Sam changed the requirement: "if so i want to just use games
+#   from last season and the ones played this season for both cfb and nfl". The median
+#   chose ONE season and dropped last season once this one reached 6; now this season is
+#   read first and last season beside it, every week. The new forms:
+# @vacuity §2: last season is never dropped while this season has games
 #   file: card_fb.py
-#   find: if med >= MIN_GAMES:
-#   with: if True:
+#   find:     season, P, fn, med, _fs = seen[1] if len(seen) > 1 else cur
+#   with:     season, P, fn, med, _fs = cur
+#
+# @vacuity §2: a season file with no game in it is never "this season"
+#   file: card_fb.py
+#   find:         if not counts or counts[-1] == 0:
+#   with:         if not counts:
+#
+# @vacuity §2: a slate whose season has no game yet reads last season alone
+#   file: card_fb.py
+#   find:         if len(seen) == 2 or (this_season is not None and fs is not None and fs < this_season):
+#   with:         if len(seen) == 2:
+#   (that card_fb.main() passes its slate's season is test_card_fb.py §13b's)
 #
 # `[Sam, 2026-10-01]` The page draws no explanation: the no-card state is one
 # plain line, and §4 requires the "why" sentence and its box to be ABSENT.
@@ -196,17 +212,26 @@ elif _cur_usable:
 #    it asserted its own filter (rule 202). ✅ The question it named is now
 #    asked of the CODE THAT CHOOSES: `card_fb.load_logs`, driven over
 #    planted season files. A thin newer season beside a full older one must
-#    fall back; two full seasons must take the newer one, whole. Strictly
+#    fall back; ~~two full seasons must take the newer one, whole~~. Strictly
 #    harder: it fails on a chooser that takes a file for existing, or
-#    blends two seasons.
+#    ~~blends two seasons~~.
+# 🔴 `[Sam, 2026-10-26]` T73, Sam changed the requirement: "if so i want to
+#    just use games from last season and the ones played this season for both
+#    cfb and nfl". Taking the newer season WHOLE once its median reached 6
+#    dropped last season (against fb_card_fix_spec §3, which blends them at
+#    4 / (4 + this season's games)). Now: this season (the newest file with a
+#    game) is read first and last season stays the record's start, every week;
+#    a file with no game is never "this season"; a slate whose season has no
+#    game yet reads last season alone (its weight 1).
 import shutil    # noqa: E402
 import tempfile  # noqa: E402
 import card_fb as _CF  # noqa: E402
 
 
-def _chosen(files):
-    """{season: games per player} planted as 3 players each -> the season
-    `card_fb.load_logs` picks and how many players it returns."""
+def _chosen(files, this_season=None):
+    """{season: games per player} planted as 3 or 4 players each -> (the season
+    `card_fb.load_logs` builds the record from, how many players it returns,
+    the season it reads first)."""
     tmp = tempfile.mkdtemp()
     old = (_CF.DATA, _CF.log)
     try:
@@ -219,8 +244,8 @@ def _chosen(files):
                     for i in range(3 + (s % 2))}}, fh)
         _CF.DATA = os.path.join(tmp, "data", "nfl")
         _CF.log = lambda *a, **k: None
-        s, P = _CF.load_logs()
-        return s, len(P)
+        s, P = _CF.load_logs(this_season)
+        return s, len(P), _CF.CUR_SEASON
     finally:
         _CF.DATA, _CF.log = old
         shutil.rmtree(tmp, ignore_errors=True)
@@ -228,12 +253,13 @@ def _chosen(files):
 
 _fall = _chosen({2026: 1, 2025: 8})
 _both = _chosen({2026: 8, 2025: 8})
-ck("⛔ a season log is judged on GAMES PER PLAYER, never on existing",
-   _fall == (2025, 4) and _both == (2026, 3),
-   "the bar is the median game count, so a one-game file can never qualify "
-   "merely by being present, and a usable newer season is taken whole. "
-   "thin 2026 + full 2025 -> %s (want (2025, 4)); full both -> %s "
-   "(want (2026, 3))" % (_fall, _both))
+_empty = _chosen({2027: 0, 2026: 8, 2025: 8})
+_next = _chosen({2026: 8, 2025: 8}, this_season=2027)
+ck("⛔ this season is read first and last season is never dropped; a file is judged on its GAMES, never on "
+   "existing", _fall == _both == _empty == (2025, 4, 2026) and _next == (2026, 3, 2026),
+   "thin 2026 + full 2025 -> %s, full both -> %s, an empty 2027 file beside them -> %s (want (2025, 4, 2026) "
+   "each); a 2027 slate before any 2027 game -> %s (want (2026, 3, 2026): last season alone)"
+   % (_fall, _both, _empty, _next))
 
 print("\n═══ 3. THE SENTENCE THAT WOULD HAVE BEEN FALSE ═══")
 blk = js_block("fbParlays", HTML)

@@ -363,25 +363,100 @@ try:
     wr(2026, 1)
     C = load("ncaaf")
     season, P = C.load_logs()
-    eq(season, 2025, "🔴 falls back to the season that CAN answer the question")
+    eq((season, C.CUR_SEASON), (2025, 2026),
+       "🔴 falls back to the season that CAN answer the question, with the one-game season read first")
     eq(len(P), 5, "   and it is the real log, not an empty one")
 
-    # once the young season matures, it takes over -- no manual switch
+    # `[Sam, 2026-10-26]` ~~"once the young season matures, it takes over -- no manual switch"~~
+    #    (`eq(season, 2026)`): that dropped last season at a median of 6, against
+    #    fb_card_fix_spec §3. Sam: "if so i want to just use games from last season and the ones
+    #    played this season for both cfb and nfl". Last season stays beside this one, every week.
     wr(2026, 8)
     C = load("ncaaf")
     season, _ = C.load_logs()
-    eq(season, 2026, "✅ and it switches back on its own once the season is old enough")
+    eq((season, C.CUR_SEASON), (2025, 2026),
+       "🔴 once this season's median passes 6, last season is still the record's start, never dropped")
+    season, _ = C.load_logs(2027)
+    eq((season, C.CUR_SEASON), (2026, 2026),
+       "🔴 a slate whose season has no game yet reads last season alone (its weight is then 1)")
+    season, _ = C.load_logs(2025)
+    eq((season, C.CUR_SEASON), (2025, 2025), "   ...and a later season's file is never read for an earlier slate")
 
     # ⛔ and if NOTHING is deep enough, it still returns the best available
     os.remove("data/ncaaf/latest/players-2025.json.gz")
     wr(2026, 2)
     C = load("ncaaf")
     season, _ = C.load_logs()
-    eq(season, 2026, "⚠️ with nothing deep enough it uses the best it has")
+    eq((season, C.CUR_SEASON), (2026, 2026), "⚠️ with nothing deep enough it uses the best it has")
 finally:
     os.chdir(cwd)
     import shutil
     shutil.rmtree(tmp, ignore_errors=True)
+
+print("\n13b. 🔴 THE CARD STILL BLENDS LAST SEASON AFTER THIS SEASON'S MEDIAN PASSES 6")
+print("    `[Sam, 2026-10-26]` \"use games from last season and the ones played this season\".")
+print("    research/fb_card_fix_spec.md §3: G25 = last season's games, each at w = 4 / (4 + n26).")
+import datetime as _dt13
+
+
+def _card13(commence, side="under"):
+    """card_fb.main() on a planted college league, its one game kicking off at `commence`."""
+    tmp = tempfile.mkdtemp()
+    cwd = os.getcwd()
+    try:
+        os.chdir(tmp)
+        os.makedirs("data/ncaaf/latest", exist_ok=True)
+        return _plant13(commence, side)
+    finally:
+        os.chdir(cwd)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _plant13(commence, side):
+    def _runs(season, start, vals):
+        d0 = _dt13.date.fromisoformat(start)
+        return [{"d": (d0 + _dt13.timedelta(weeks=i)).isoformat(), "rush_yds": v, "car": 4, "rec": 0,
+                 "rec_yds": 0, "rec_td": 0, "rush_td": 0, "pass_yds": 0, "pass_td": 0, "team": "T",
+                 "game_id": "%d-%d" % (season, i)} for i, v in enumerate(vals)]
+
+    # last season: under 34.5 in 9 of 10; this season (7 games, a median of 7): under in 2 of 7
+    _v25, _v26 = [10, 20, 15, 12, 18, 14, 16, 11, 13, 45], [40, 50, 20, 45, 60, 30, 55]
+    for _s, _start, _vals in ((2025, "2025-09-06", _v25), (2026, "2026-09-05", _v26)):
+        with _gz.open(f"data/ncaaf/latest/players-{_s}.json.gz", "wt") as fh:
+            json.dump({"season": _s, "scope": "all FBS conferences", "players": {
+                str(i): {"name": "Runner One" if i == 0 else f"Runner {i}", "pos": "RB",
+                         "g": _runs(_s, _start, _vals)} for i in range(5)}}, fh)
+    with _gz.open("data/ncaaf/latest/props.json.gz", "wt") as fh:
+        json.dump({"pulled_at": "2026-10-30T12:00:00Z", "n_games": 1, "books_seen": ["fd"],
+                   "games": [{"id": "g1", "away": "A", "home": "H", "commence": commence,
+                              "props": [{"player": "Runner One", "market": "player_rush_yds", "line": 34.5,
+                                         "sides": {side: {"price": -115, "book": "fd", "n_books": 3,
+                                                          "link": "x"}}}]}]}, fh)
+    C = load("ncaaf")
+    C.main()
+    out = json.load(open("picks/fb-ncaaf-latest.json"))
+    rows = [r for r in out.get("picks") or [] if r.get("player") == "Runner One"]
+    return out, rows[0] if rows else {}
+
+
+_out13, _r13 = _card13("2026-10-31T16:00:00Z")
+_d13 = _r13.get("season_detail") or {}
+eq((_out13.get("logs_season"), {k: _d13.get(k) for k in ("h25", "n25", "h26", "n26", "w25")}),
+   (2025, {"h25": 9, "n25": 10, "h26": 2, "n26": 7, "w25": round(4 / 11, 3)}),
+   "🔴 this season's 7 games first, last season's 10 beside them at 4 / (4 + 7), not dropped")
+_w13 = 4 / 11
+_p013 = (9 * 5 + 2 * 5) / 85.0           # every RB game, both seasons, before the card's day
+_c13 = round(100 * ((2 + _w13 * 9) + 12 * _p013) / ((7 + _w13 * 10) + 12))
+eq((_r13.get("confidence"), _c13), (58, 58),
+   "🔴 ...and its confidence is the spec's (H + 12 p0) / (N + 12) over both seasons: 58, not this "
+   "season alone's 29 (which the one-side rule would have taken off the board)")
+# A week-1 card of the NEXT season, built before that season has a game: last season (2026) is
+# read alone at full weight, and the season before it (2025) is not "last season" any more.
+_out13b, _r13b = _card13("2027-09-04T16:00:00Z", "over")    # over 34.5 in 5 of his 7 2026 games
+_d13b = _r13b.get("season_detail") or {}
+eq((_out13b.get("logs_season"), {k: _d13b.get(k) for k in ("h25", "n25", "h26", "n26", "w25")}),
+   (2026, {"h25": 5, "n25": 7, "h26": 0, "n26": 0, "w25": 1.0}),
+   "🔴 a 2027 slate with no 2027 game yet: the card reads 2026 alone, each game at 4 / (4 + 0) = 1")
 
 
 print("\n14. 🔴 THE ROW SAYS ITS RECORD AT THE LINE, THIS SEASON FIRST")
@@ -661,6 +736,16 @@ ck(_m6["rejected"]["out_of_band"] > 0, "   and that is the reason given")
 # ⛔ NO VALUE MAY BEGIN WITH A SPACE. `vacuity.py`'s field regex ends
 #    `:\s*(.*)$`, so leading whitespace is eaten and the mutation would
 #    silently become a different string than the one written here.
+#
+# @vacuity [Sam, 2026-10-26] §13b: the card passes its slate's season to load_logs
+#   file: card_fb.py
+#   find: season, P = load_logs(fb_why.season_of(_card_day))
+#   with: season, P = load_logs()
+#
+# @vacuity [Sam, 2026-10-26] §13b: last season stays beside this season after its median passes 6
+#   file: card_fb.py
+#   find: season, P, fn, med, _fs = seen[1] if len(seen) > 1 else cur
+#   with: season, P, fn, med, _fs = cur
 #
 # @vacuity the card must WIRE the banner in, not merely be able to build it
 #   file: card_fb.py

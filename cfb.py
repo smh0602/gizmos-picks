@@ -139,7 +139,8 @@ IGNORE = {("passing", "avg"), ("passing", "qbr"), ("rushing", "avg"),
 #  - defense-<season>.json.gz  {players: {id: {name, team, g: [{game_id, d, week,
 #                              wk_i, seasonType, <the fields below>}]}}}
 #  - roster-<season>.json.gz   {teams: {team: [{id, name, jersey, position}]}}
-# ⛔ NEVER INTO players-<season>: `card_fb.load_logs`' median-games test and
+# ⛔ NEVER INTO players-<season>: `card_fb.load_logs`' game counts (~~median-games test~~,
+#    `[2026-10-26]` this season and last are now both read) and
 #    `index_by_name`'s ambiguity counts read that file, and it stays exactly what
 #    it was (so does the UNMAPPED count, which is about MAP, the players file).
 # ⛔ Each is rewritten only when its content changed (`write_if_changed`).

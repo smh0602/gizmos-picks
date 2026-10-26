@@ -606,9 +606,26 @@ _CUR_IDX = None
 LOG_SCOPE = None
 
 
-def load_logs():
-    """Newest season with enough games to READ A RATE. (season, {pid: player}).
+def load_logs(this_season=None):
+    """THIS season's games first, LAST season's beside them. -> (season, {pid: player}): LAST
+    season's log, the one a row's record starts from (`rate_blend`'s g25, each game at
+    4 / (4 + his games this season)); CUR_SEASON / CUR_P is THIS season's.
 
+    🔴 `[Sam, 2026-10-26]` T73: *"is anything else in our model operating on that same rule,
+    being that it wont change picks until it has a certain amount of scores seen. if so i want
+    to just use games from last season and the ones played this season for both cfb and nfl"*.
+    It was ~~the newest season whose median player has `MIN_GAMES` games, taken WHOLE~~: once
+    this season's median reached 6, its log was passed as g25 at weight 1 and last season was
+    dropped, against `research/fb_card_fix_spec.md` §3 (G25 = his 2025 games, w = 4 / (4 + n26)).
+    Neither league had got there (NFL median 5, college 4 on 2026-10-26), so no card number moved.
+    ✅ Now: THIS season is the newest file with any game; LAST season the newest older file with
+    any game; one stored season is read alone. `this_season` (the slate's, `fb_why.season_of`):
+    a later file is never read, and a season with no game yet reads last season alone, at full
+    weight, which is the spec's formula with no game this season (4 / (4 + 0) = 1). ⛔ The
+    median is logged, never a gate: the 6-game floor is each ROW's, on both seasons together
+    (`gated_games`). `test_card_fb.py` §13, `test_nfl_opener.py` §2.
+
+    The history of the rule it replaces, kept:
     🔴 ~~"Newest season that actually has games."~~ ⛔ **THAT WAS WRONG AND
     IT WOULD HAVE EMPTIED THE BOARD FOR THE FIRST SIX WEEKS OF EVERY
     SEASON, SILENTLY.** `[measured 2026-09-04]` the live college run picked
@@ -617,18 +634,24 @@ def load_logs():
     board shipped 0 of 50 rows with a record and nothing said why. ⚠️ The
     NFL would have done the same thing on the Tuesday after week 1.
 
-    ✅ **A SEASON IS USABLE WHEN A TYPICAL PLAYER IN IT COULD CLEAR THE
-    FLOOR** — median games per player >= `MIN_GAMES`. Below that the file
-    exists but cannot answer the question being asked of it.
+    ✅ ~~**A SEASON IS USABLE WHEN A TYPICAL PLAYER IN IT COULD CLEAR THE
+    FLOOR** — median games per player >= `MIN_GAMES`.~~ `[2026-10-26]` A thin
+    season is never read alone while last season is stored: it is this
+    season's first games, and last season carries the record at its weight.
     ⚠️ Falling back to last season is the DESIGNED behaviour, not a
     workaround: every row already says "this is his own record from last
     season", and roster churn is a stated, accepted limit.
-    ⛔ ONE SEASON, NEVER A BLEND. Mixing two seasons' games into one
+    ~~⛔ ONE SEASON, NEVER A BLEND. Mixing two seasons' games into one
     denominator would make the rate a property of the file mix rather than
-    of the player.
+    of the player.~~ Sam reversed that on 2026-09-24 (fb_card_fix_spec §1):
+    the blend weights last season explicitly and the row prints the weight.
     """
-    usable, thinner = None, None
+    seen = []                        # (season, players, file, median, file's season): any game, newest first
     for f in sorted(glob.glob(f"{DATA}/latest/players-*.json.gz"), reverse=True):
+        fs = re.search(r"players-(\d{4})\.json\.gz$", f)
+        fs = int(fs.group(1)) if fs else None
+        if this_season is not None and fs is not None and fs > this_season:
+            continue                 # a season after the slate's is never read
         try:
             d = json.load(gzip.open(f, "rt"))
         except Exception:
@@ -641,31 +664,22 @@ def load_logs():
             log(f"  {os.path.basename(f)}: no games yet, skipping")
             continue
         med = counts[len(counts) // 2]
-        row = (d.get("season"), P, os.path.basename(f), med)
-        if thinner is None:
-            thinner = row
-        if med >= MIN_GAMES:
-            usable = row
-            break
-        log(f"  {os.path.basename(f)}: median {med} game(s) per player, "
-            f"under the {MIN_GAMES} needed for a rate — looking further back")
-    # ⛔ THE NEWEST FILE WITH ANY GAMES IS KEPT FOR ONE PURPOSE ONLY:
-    #    SAYING WHY A RATE IS MISSING. `thinner` is whatever the loop saw
-    #    first, which is the newest season that has started.
-    # 🔴 IT IS NEVER A RATE AND NEVER A PROJECTION. In week 2 it holds one
-    #    or two games; `MIN_GAMES` exists precisely because that cannot
-    #    carry a percentage. ✅ But one game is plenty to say "the season
-    #    this record is built from describes a different job", which is
-    #    the question Sam actually asked.
-    global CUR_SEASON, CUR_P, _CUR_IDX
-    if thinner is not None:
-        CUR_SEASON, CUR_P = thinner[0], thinner[1]
-        _CUR_IDX = None                      # the name index is CUR_P's own, rebuilt on first use
-    best = usable or thinner
-    if not best:
+        seen.append((d.get("season"), P, os.path.basename(f), med, fs))
+        log(f"  {os.path.basename(f)}: median {med} game(s) per player")
+        if len(seen) == 2 or (this_season is not None and fs is not None and fs < this_season):
+            break                    # this season and last; or the slate's season has no game yet
+    if not seen:
         log("FATAL: no player log with any games")
         sys.exit(1)
-    season, P, fn, med = best
+    # 🔴 THIS season is the newest file with any game, and it is a RATE's input since
+    #    2026-09-24 (~~"IT IS NEVER A RATE AND NEVER A PROJECTION"~~): `rate_blend`'s g26.
+    #    LAST season is the next file back; with no game this season, or one stored season,
+    #    that one file is both, and nothing is blended.
+    global CUR_SEASON, CUR_P, _CUR_IDX
+    cur = seen[0]
+    CUR_SEASON, CUR_P = cur[0], cur[1]
+    _CUR_IDX = None                          # the name index is CUR_P's own, rebuilt on first use
+    season, P, fn, med, _fs = seen[1] if len(seen) > 1 else cur
     global LOG_SCOPE, USAGE_FLOOR
     LOG_SCOPE = SCOPES.get(fn)
     # ⛔ THE FLOOR COMES OUT OF THE FILE THE RATE IS BUILT FROM, not out
@@ -678,8 +692,10 @@ def load_logs():
             f"the file asks for")
     log(f"logs: {fn} — {len(P)} players, season {season}, "
         f"median {med} games/player"
-        + (f", scope: {LOG_SCOPE}" if LOG_SCOPE else ""))
-    if usable is None:
+        + (f", scope: {LOG_SCOPE}" if LOG_SCOPE else "")
+        + (f"; this season {CUR_SEASON} ({cur[2]}, median {cur[3]}) read first"
+           if len(seen) > 1 else ""))
+    if max(med, cur[3]) < MIN_GAMES:
         # ⛔ SAID OUT LOUD. A board with no rates because the season is
         # young is a legitimate state; a board with no rates and no
         # explanation is the failure.
@@ -2110,9 +2126,11 @@ def main():
         log(f"no props board for {LEAGUE} yet ({type(e).__name__}) — nothing to card")
         return 0
 
-    season, P = load_logs()
-    idx = index_by_name(P)
     _card_day = slate_date(B)
+    # `[Sam, 2026-10-26]` this season first, last season beside it, every week: the slate's own
+    #    season says which is "this" (a week-1 card is built before that season has a game).
+    season, P = load_logs(fb_why.season_of(_card_day))
+    idx = index_by_name(P)
     _opp9 = signal9.load(LEAGUE, CUR_SEASON) if (S9_CARD.get(LEAGUE) and CUR_SEASON) else None
     _pools = (position_pools([P, CUR_P if CUR_SEASON != season else None])
               if CARD_METHOD == METHOD_FIXED else None)
