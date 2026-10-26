@@ -305,7 +305,8 @@ note boxes, tags and the stale bar now require their absence.
   it). `[Sam, 2026-10-14]` T66 (§3a, Cowork's pre-registration) adds S (NFL: the
   champion without head-to-head and signal 9) and TS (college: T's talent margin,
   the line, neutral and dome only), all three markets, registered 2026-10-19, no
-  withdrawal; only games after registration count. `[Sam, 2026-10-15]` T68 (§3b) adds AV/AVC
+  withdrawal; only games after registration count (`[Sam, 2026-10-26]` still true for these
+  two: see T73 below). `[Sam, 2026-10-15]` T68 (§3b) adds AV/AVC
   (Sam's averages) and WX/WXC (wind); T69 (§3c, "do all changes") adds IN (NFL injuries on BOTH
   sides of the ball: Out/Doubtful weighted by offensive or DEFENSIVE snap share, starting QB
   out), AT/ATC (Sam's averages blended into totals) and RS/RSC (rest); T70 (§3d) adds H/HC
@@ -329,7 +330,19 @@ note boxes, tags and the stale bar now require their absence.
   method. A report over 8 days old is DEGRADED. `[R1, 2026-10-18]` A report that never lands
   is DEGRADED too (`watchdog.check_learner_landing`). While the league already names a
   CHAMPION, a WINS pushes nothing and its report carries NEEDS SAM; a second switch (an
-  ordered CHAMPION list) is Sam's, §3 unchanged. `test_fb_refit.py`.
+  ordered CHAMPION list) is Sam's, §3 unchanged. `test_fb_refit.py`. `[Sam, 2026-10-26]` T73
+  (§3g): *"instead of having it need 300 scored prediction can we just use games from last
+  season and the ones played this season for both cfb and nfl"*. The verdict reads each
+  challenger's `counted` predictions: ~~only games after registration count~~ EVERY 2025-2026
+  walk-forward prediction for the eighteen defined before any of their results existed, and
+  only games after registration for the eight shaped on those games (`fb_refit.SCORED_ONLY`:
+  S, TS, AV, AVC, AT, ATC, SM, SMC). The 300 floor counts only predictions that differ from
+  the champion's (WX before stored weather equals it); p < 0.01/k, k and registration are
+  unchanged, and nothing is counted before a challenger's registration Monday. P and T's
+  withdrawal window stays the weeks before 2026-10-19. Several WINS: all reported, ONE branch,
+  to the largest mean d (`fb_refit.branch_order`). After a switch the eighteen do not
+  restart; the eight do. `history` / `scored` stay in the report for information. The email
+  reads the floor from the report (`floor`), never a 300 of its own. `test_fb_refit_counted.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
   *"i just want the model to pick its OWN picks by itself, nothing more nothing less.
   ... only show confidence score on each pick that the model picks, BASED ON THE
@@ -639,6 +652,13 @@ note boxes, tags and the stale bar now require their absence.
   model's probability and the card ranks by it. A prop it does not price keeps the
   player's own rate."* A priced row is `confidence_basis` MODEL (`model_p`, whole-number
   `confidence`), an unpriced one RECORD; the record stays in `rate` / `record`.
+  `[Sam, 2026-10-26]` The record blends THIS season's games and LAST season's at
+  4 / (4 + this season's games) (`research/fb_card_fix_spec.md` §3) every week, the same
+  rule Sam asked of the contest (*"use games from last season and the ones played this
+  season"*): ~~once this season's median player reached 6 games, `card_fb.load_logs` took
+  that season alone and dropped last season~~ (not reached by either league before the fix:
+  NFL median 5, college 4). A slate whose season has no game yet reads last season alone
+  (its weight is then 1). `test_card_fb.py` §13, `test_nfl_opener.py` §2.
   `collect.build_card_fb` builds the props model first on BOTH card paths (the props
   pull and `card-fb`); it prices the props board itself and stamps `board_pulled_at`,
   and a model that priced another board leaves the whole build on the record
@@ -1249,6 +1269,9 @@ fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   through the one branch pusher, `push_change`.
                   `[R1, 2026-10-18]` while CHAMPION is set, a WINS pushes no
                   branch (NEEDS SAM); each league's `elapsed_seconds` is stored.
+                  `[Sam, 2026-10-26]` T73 (§3g): the verdict reads `counted`
+                  (every 2025-2026 week, or only scored weeks for SCORED_ONLY);
+                  several WINS -> one branch, `branch_order`; `floor` stored.
 fb_history.py     T70's OLDER SEASONS (Sam, 2026-10-15): NFL 2018-2024 schedules
                   (nflverse, free; OAK stored as LV) and college 2023-2024 schedules
                   + lines (CFBD, priced) -> data/<lg>/history/, once while missing, by
