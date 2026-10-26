@@ -18,20 +18,27 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   find:         s["beta"] = (sum(wi * g[6] * (res(g) - s["hfa"] * g[3]) for wi, g in zip(w, G)) / sw_z
 #   with:         s["beta"] = (sum(wi * g[6] * (res(g)) for wi, g in zip(w, G)) / sw_z
 #
-# @vacuity 🔴 a week before the registration Monday never counts toward the verdict
+# ~~@vacuity 🔴 a week before the registration Monday never counts toward the verdict~~
+#   `[Sam, 2026-10-26]` T73 (research/fb_refit_spec.md §3g): Sam changed the requirement,
+#   "instead of having it need 300 scored prediction can we just use games from last season
+#   and the ones played this season for both cfb and nfl". It still holds for the eight in
+#   fb_refit.SCORED_ONLY and for the report's own history / scored split (below); every other
+#   challenger's verdict counts every week. The new forms, each with its own mutation, are in
+#   test_fb_refit_counted.py.
+# @vacuity 🔴 the report keeps history (weeks before the registration Monday) apart from scored
 #   file: fb_refit.py
-#   find:                 (scored if wk >= start else hist).append((loss(a[gid][0], y), loss(p_x, y), gid))
-#   with:                 (scored if True else hist).append((loss(a[gid][0], y), loss(p_x, y), gid))
+#   find:     scored = [x for x in preds if x[0] >= start]
+#   with:     scored = list(preds)
 #
 # @vacuity 🔴 registration is the later of 2026-10-19 and the data's first Monday
 #   file: fb_refit.py
 #   find:     return max(start, monday_on_or_after(day)) if day else None
 #   with:     return monday_on_or_after(day) if day else None
 #
-# @vacuity 🔴 299 scored predictions is NOT YET MEASURABLE
+# @vacuity 🔴 299 ~~scored~~ counted predictions that differ from the champion's is NOT YET MEASURABLE
 #   file: fb_refit.py
-#   find:         elif s["predictions"] < MIN_SCORED:
-#   with:         elif s["predictions"] < MIN_SCORED - 1:
+#   find:         elif s["differing"] < MIN_SCORED:
+#   with:         elif s["differing"] < MIN_SCORED - 1:
 #
 # @vacuity 🔴 alpha is 0.01 / the registered, not withdrawn count
 #   file: fb_refit.py
@@ -40,8 +47,13 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #
 # @vacuity 🔴 a challenger worse on its history is WITHDRAWN and never scored
 #   file: fb_refit.py
-#   find:     out["scored"] = test([] if out["withdrawn"] else scored)
-#   with:     out["scored"] = test(scored)
+#   find:     out["scored"] = test([] if out["withdrawn"] else [pair for _wk, pair, _df in scored])
+#   with:     out["scored"] = test([pair for _wk, pair, _df in scored])
+#
+# @vacuity 🔴 ...and never counted (§3g)
+#   file: fb_refit.py
+#   find:     counted = [] if out["withdrawn"] or not entered else scored if name in SCORED_ONLY else preds
+#   with:     counted = [] if not entered else scored if name in SCORED_ONLY else preds
 #
 # @vacuity 🔴 a snapshot pulled before the row's Monday never enters the line-move count
 #   file: fb_refit.py
@@ -444,8 +456,10 @@ good = Planted({mk: dict(preds(HIST, lambda y: 0.75 if y else 0.35), **preds(LIV
                                                                              start=40))
                 for mk in ("spread", "moneyline")})
 c = R.contest([], champ, "P", "2026-10-19", "2026-10-19", fits=good)
-eq((c["history"]["predictions"], c["scored"]["predictions"]), (80, 80),
-   "🔴 weeks before 2026-10-19 are history; only weeks from it on are scored")
+# `[Sam, 2026-10-26]` §3g: ~~"only weeks from it on are scored"~~ toward the verdict. The report still
+#    splits history from scored, for information; P's verdict counts both (test_fb_refit_counted.py).
+eq((c["history"]["predictions"], c["scored"]["predictions"], c["counted"]["predictions"]), (80, 80, 160),
+   "🔴 the report: weeks before 2026-10-19 are history, weeks from it on scored; P's verdict counts all 160")
 eq([R.registration("P", T1, {"P": d}) for d in ("2026-10-01", "2026-10-21", None)],
    ["2026-10-19", "2026-10-26", None],
    "🔴 registration: the later of 2026-10-19 and the first Monday on or after the data's day")
@@ -453,24 +467,29 @@ bad = Planted({mk: dict(preds(HIST, lambda y: 0.3 if y else 0.7), **preds(LIVE, 
                                                                           start=40))
                for mk in ("spread", "moneyline")})
 w = R.contest([], champ, "T", "2026-10-19", "2026-10-19", fits=bad)
-ck(w["withdrawn"] and w["scored"]["predictions"] == 0 and w["history"]["p_wrong_way"] < 0.05,
-   "🔴 a challenger worse on its history (p < 0.05 the wrong way) is WITHDRAWN and never scored",
-   (w["withdrawn"], w["history"], w["scored"]["predictions"]))
+ck(w["withdrawn"] and w["scored"]["predictions"] == 0 and w["counted"]["predictions"] == 0
+   and w["history"]["p_wrong_way"] < 0.05 and w["withdrawal_window"]["p_wrong_way"] < 0.05,
+   "🔴 a challenger worse on its history (p < 0.05 the wrong way) is WITHDRAWN, never scored and never counted",
+   (w["withdrawn"], w["history"], w["scored"]["predictions"], w["counted"]["predictions"]))
 e = R.contest([], champ, "E", "2026-10-19", "2026-10-19", fits=bad)
 ck(not e["withdrawn"], "   ...and E, registered before any result, is never withdrawn")
 
 
-def scored(n, mean, p):
+def counted(n, mean, p, differing=None):
+    """`[Sam, 2026-10-26]` §3g: ~~`scored(n, mean, p)`~~ the verdict reads `counted`, and its floor
+    counts the predictions that differ from the champion's (all n unless said)."""
     return {"name": "X", "registered": "2026-10-19", "withdrawn": False,
-            "scored": {"predictions": n, "mean_d": mean, "p": p}}
+            "counted": {"predictions": n, "differing": n if differing is None else differing,
+                        "mean_d": mean, "p": p}}
 
 
-v = R.verdicts([scored(299, 0.05, 1e-9), scored(300, 0.05, 0.004), dict(scored(300, 0.05, 0.001), withdrawn=True),
-                {"registered": None}])
-eq([x.get("verdict") for x in v], ["NOT YET MEASURABLE", "WINS", "WITHDRAWN", None],
-   "🔴 299 scored is NOT YET MEASURABLE; 300 at p 0.004 WINS when alpha is 0.01 / 2")
-eq(v[1]["alpha"], 0.005, "🔴 alpha = 0.01 / the two registered, not withdrawn")
-eq(R.verdicts([scored(300, 0.05, 0.004), scored(300, 0.05, 0.004), scored(300, 0.05, 0.004)])[0]["verdict"],
+v = R.verdicts([counted(299, 0.05, 1e-9), counted(300, 0.05, 0.003), dict(counted(300, 0.05, 0.001), withdrawn=True),
+                {"registered": None}, counted(400, 0.05, 1e-9, differing=299)])
+eq([x.get("verdict") for x in v], ["NOT YET MEASURABLE", "WINS", "WITHDRAWN", None, "NOT YET MEASURABLE"],
+   "🔴 299 counted is NOT YET MEASURABLE; 300 at p 0.003 WINS when alpha is 0.01 / 3; 400 counted with only "
+   "299 unlike the champion's is NOT YET MEASURABLE")
+eq(v[1]["alpha"], 0.01 / 3, "🔴 alpha = 0.01 / the three registered, not withdrawn")
+eq(R.verdicts([counted(300, 0.05, 0.004), counted(300, 0.05, 0.004), counted(300, 0.05, 0.004)])[0]["verdict"],
    "NOT YET", "   ...and with three registered, p 0.004 is NOT YET (alpha 0.0033)")
 
 # ══════════════════════════════════════════════════════════════════════
@@ -585,25 +604,40 @@ DOC = {"built_at": "2026-11-02T09:50:00Z", "miss": {"games": 77, "margin_model":
                                                     "total_model": 11.4, "total_books": 10.7},
        "scoreboard": {mk: GAP for mk in FM.MARKETS},
        "line_moves": {mk: {"toward": 25, "against": 36, "unmoved": 17, "toward_share": 41.0} for mk in FM.MARKETS},
-       "challengers": [{"name": "E", "what": "EPA", "verdict": "NOT YET MEASURABLE", "scored": {"predictions": 0}}]}
+       # `[Sam, 2026-10-26]` §3g: the report carries the floor and each challenger's counted predictions
+       "floor": 300,
+       "challengers": [{"name": "E", "what": "EPA", "verdict": "NOT YET MEASURABLE", "registered": "2026-10-19",
+                        "counts": "all", "scored": {"predictions": 0},
+                        "counted": {"predictions": 227, "differing": 226}}]}
 put(T7, "data/latest/health.json", {"checked_at": "2026-11-02T10:41:00Z", "findings": []})
 put(T7, "data/nfl/latest/fb-refit.json", DOC)
 body = S.build(T7, NOW)[0]
+# `[Sam, 2026-10-26]` ~~"Challenger E (EPA): 0 of 300 scored predictions, not yet measurable."~~ Sam changed
+#    the rule (§3g, "use games from last season and the ones played this season"): the line says what
+#    is counted and how many differ, and the floor comes from the report (test_fb_refit_counted.py).
 ck("## Is the football model learning?" in body and "- NFL: our predicted margins miss by 10.5 points on average, "
    "the books' line by 9.8" in body and "lines moved our way in 25 of 61 games (41%; 50% means no edge)" in body
-   and "Challenger E (EPA): 0 of 300 scored predictions, not yet measurable." in body
+   and "Challenger E (EPA): 227 counted predictions (last season and this season), 226 of them different from "
+   "the current model's (300 needed), not yet measurable." in body
    # `[R1, 2026-10-18]` ~~"- College: no weekly report yet."~~: on a Monday past its run, a league with no
    #    report says this week's has not reported (Sam: "Yes, start the Monday contest watch fix (R1) now").
    and "- College: this week's contest has not reported yet (its run was due Mon 2026-11-02 09:47Z), and no "
    "weekly report has landed before." in body, "🔴 the Monday email shows the section, in plain words", body[-900:])
 ck(body.startswith("Nothing needs you this week."), "   ...and a contest with no winner needs nothing")
-won = dict(DOC, challengers=[{"name": "E", "what": "EPA", "verdict": "WINS", "alpha": 0.01,
-                              "branch": "fb/champion-nfl-E-2026-11-02",
-                              "scored": {"predictions": 320, "games": 160, "p": 0.004,
-                                         "champion_log_loss": 0.68, "challenger_log_loss": 0.67}}])
+_old_rule = dict(DOC, challengers=[{"name": "E", "what": "EPA", "verdict": "NOT YET MEASURABLE",
+                                    "scored": {"predictions": 0}}])
+del _old_rule["floor"]
+_line = S.refit_summary(_old_rule, "NFL", NOW)
+ck("Challenger E (EPA): 0 scored predictions, not yet measurable." in _line and "300" not in _line,
+   "🔴 a report from before §3g says only its own scored count, and writes no floor of its own", _line)
+won = dict(DOC, challengers=[{"name": "E", "what": "EPA", "verdict": "WINS", "alpha": 0.01, "counts": "all",
+                              "branch": "fb/champion-nfl-E-2026-11-02", "registered": "2026-10-19",
+                              "counted": {"predictions": 320, "differing": 320, "games": 160, "p": 0.004,
+                                          "champion_log_loss": 0.68, "challenger_log_loss": 0.67}}])
 put(T7, "data/nfl/latest/fb-refit.json", won)
 body = S.build(T7, NOW)[0]
-ck(body.startswith("Needs you: NFL challenger E (EPA) beat the current game model")
+ck(body.startswith("Needs you: NFL challenger E (EPA) beat the current game model: log loss 0.6700 against "
+                   "0.6800 over 320 counted predictions (last season and this season) in 160 games")
    and "https://github.com/smh0602/gizmos-picks/compare/main...fb/champion-nfl-E-2026-11-02?expand=1" in body
    and "\"Create pull request\" button (twice" in body and "\"All checks have passed\"" in body
    and "\"Confirm merge\"" in body, "🔴 a WINS shows \"Needs you\" with the compare link and the clicks", body[:600])
@@ -672,9 +706,11 @@ ok_s = Planted({mk: dict(preds(HIST, lambda y: 0.3 if y else 0.7), **preds(LIVE,
 champ3 = Planted({mk: dict(preds(HIST, lambda y: 0.6), **preds(LIVE, lambda y: 0.6, start=40))
                   for mk in FM.MARKETS})
 ts = R.contest([], champ3, "TS", "2026-10-19", "2026-10-19", fits=ok_s)
-ck(not ts["withdrawn"] and ts["history"]["predictions"] == 120 and ts["scored"]["predictions"] == 120,
-   "🔴 TS: worse on its history and still never withdrawn; only weeks from 2026-10-19 are scored, "
-   "on all three markets", (ts["withdrawn"], ts["history"]["predictions"], ts["scored"]["predictions"]))
+ck(not ts["withdrawn"] and ts["history"]["predictions"] == 120 and ts["scored"]["predictions"] == 120
+   and ts["counted"]["predictions"] == 120 and ts["counts"] == "scored",
+   "🔴 TS: worse on its history and still never withdrawn; only weeks from 2026-10-19 are scored and counted "
+   "(§3g keeps TS to games after registration), on all three markets",
+   (ts["withdrawn"], ts["history"]["predictions"], ts["scored"]["predictions"], ts["counted"]["predictions"]))
 eq((F.champion_inputs("nfl", {"nfl": "S"}), F.champion_inputs("ncaaf", {"ncaaf": "TS"})),
    ([], [("talent-{s}.json.gz", None)]),
    "🔴 a champion S adds no freshness row (it reads no file of its own); TS adds talent's")
@@ -710,9 +746,12 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
    "🔴 SM is NFL, SMC college, both on all three markets, neither withdrawable")
 for _n in ("SM", "SMC"):
     _c = R.contest([], champ3, _n, "2026-10-19", "2026-10-19", fits=ok_s)
-    ck(not _c["withdrawn"] and _c["history"]["predictions"] == 120 and _c["scored"]["predictions"] == 120,
-       "🔴 %s is scored like every challenger: only weeks from its registration, all three markets" % _n)
-_al = {lg: R.verdicts([dict(scored(300, 0.05, 0.001), name=n) for n, c in FC.CHALLENGERS.items()
+    # `[Sam, 2026-10-26]` §3g: ~~"like every challenger"~~ SM and SMC stay among the eight judged only on
+    #    weeks from their registration; the others count every week.
+    ck(not _c["withdrawn"] and _c["history"]["predictions"] == 120 and _c["scored"]["predictions"] == 120
+       and _c["counted"]["predictions"] == 120,
+       "🔴 %s is scored and counted only from its registration (§3g), all three markets" % _n)
+_al = {lg: R.verdicts([dict(counted(300, 0.05, 0.001), name=n) for n, c in FC.CHALLENGERS.items()
                        if c["league"] == lg])[0]["alpha"] for lg in ("nfl", "ncaaf")}
 # `[Sam, 2026-10-26]` ~~0.01 / 9, stricter than 0.01 / 8~~: T72 (§3f) adds four a league.
 ck(all(abs(a - 0.01 / 13) < 1e-12 and a < 0.01 / 9 for a in _al.values()),
@@ -891,8 +930,12 @@ ck(all(_bys[n]["verdict"] == "NOT APPLICABLE" and _bys[n]["alpha"] == 0.01 / 12 
 _sum = S.refit_summary(_lgs, "NFL", NOW)
 _s_line = _sum[_sum.find("Challenger S (fewer inputs):"):].split(". Challenger")[0]
 ck(_s_line.startswith("Challenger S (fewer inputs): not applicable against the current champion")
-   and "scored predictions" not in _s_line,
-   "🔴 the Monday email says S is not applicable, in words, and claims no scored predictions", _s_line)
+   and "scored predictions" not in _s_line and "predictions scored" not in _s_line
+   and "counted predictions" not in _s_line,
+   "🔴 the Monday email says S is not applicable, in words, and claims no scored or counted predictions", _s_line)
+# `[Sam, 2026-10-26]` §3g: league() itself writes the floor the email reads, fb_refit.MIN_SCORED.
+eq((_lgs.get("floor"), _lgd.get("floor")), (R.MIN_SCORED, R.MIN_SCORED),
+   "🔴 every league() report carries §3g's floor for the Monday email to read")
 eq(S.refit_wins(_lgs, "NFL"), [], "   ...and puts nothing under \"Needs you\"")
 
 # ══════════════════════════════════════════════════════════════════════
@@ -963,7 +1006,10 @@ def _fake_git(cmd, **k):
 
 try:
     R.league = lambda lg, root, now, prev=None, added=None: {"league": lg, "challengers": [
-        {"name": _wins[lg], "what": "fewer inputs", "verdict": "WINS", "alpha": 0.01 / 9,
+        {"name": _wins[lg], "what": "fewer inputs", "verdict": "WINS", "alpha": 0.01 / 9, "counts": "scored",
+         # `[Sam, 2026-10-26]` §3g: the verdict (and weekly()'s branch order) reads `counted`
+         "counted": {"predictions": 320, "differing": 320, "games": 160, "mean_d": 0.01, "p": 0.0004,
+                     "champion_log_loss": 0.68, "challenger_log_loss": 0.67},
          "scored": {"predictions": 320, "games": 160, "p": 0.0004, "champion_log_loss": 0.68,
                     "challenger_log_loss": 0.67}}]}
     IB.auto = lambda *a, **k: {"state": "waiting"}

@@ -114,15 +114,40 @@ def refit_summary(doc, name, now, due=None):
                            m["toward"], n, round(m["toward_share"])) if n else "no line moves to read yet",
                        g["said"], g["hit"]))
     for x in doc.get("challengers") or []:
-        v, s = x["verdict"], x.get("scored") or {}
+        v = x["verdict"]
+        said = {"NOT YET MEASURABLE": "not yet measurable", "NOT YET": "not better yet", "WINS": "it WINS"}.get(v, v)
+        if v == "WINS" and x.get("outranked_by"):
+            said += "; the one branch went to %s, which beat the current model by more" % x["outranked_by"]
         out.append("Challenger %s (%s): %s." % (x["name"], x["what"], {
             "NO DATA": "its data is not stored yet",
             "WITHDRAWN": "withdrawn, it was worse on past games",
             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
-                              "to decide)"}.get(v, "%d of %d scored predictions, %s" % (
-                s.get("predictions") or 0, 300, {"NOT YET MEASURABLE": "not yet measurable",
-                                                 "NOT YET": "not better yet", "WINS": "it WINS"}.get(v, v)))))
+                              "to decide)"}.get(v, "%s, %s" % (counted_words(x, doc), said))))
     return " ".join(out)
+
+
+def counted_kind(x):
+    """`[Sam, 2026-10-26]` T73 (§3g): what a challenger's verdict counts, in Sam's words."""
+    if "counted" not in x:                           # a report from before §3g: its own rule
+        return "scored predictions"
+    return ("counted predictions (last season and this season)" if x.get("counts") == "all"
+            else "predictions scored since registration")
+
+
+def counted_words(x, doc):
+    """`[Sam, 2026-10-26]` §3g: how many predictions one challenger's verdict counts, how many
+    differ from the current model's and the floor, read from the report (fb_refit.MIN_SCORED,
+    stored as `floor`; ⛔ never a number written here). A report from before §3g says only
+    its scored count, the rule it was judged by."""
+    c = x.get("counted")
+    if c is None:
+        return "%d scored predictions" % ((x.get("scored") or {}).get("predictions") or 0)
+    if x.get("registered") and x["registered"] > str(doc.get("built_at") or "")[:10]:
+        return "it enters the contest on %s, so nothing is counted yet" % x["registered"]
+    floor = doc.get("floor")
+    return "%d %s, %d of them different from the current model's%s" % (
+        c.get("predictions") or 0, counted_kind(x), c.get("differing") or 0,
+        " (%d needed)" % floor if isinstance(floor, int) else "")
 
 
 def own_branch(branch, name):
@@ -139,11 +164,17 @@ def refit_wins(doc, name):
     for x in (doc or {}).get("challengers") or []:
         if x.get("verdict") != "WINS":
             continue
-        s = x["scored"]
+        if x.get("outranked_by"):            # `[Sam, 2026-10-26]` §3g: said under the winner it lost the branch to
+            continue
+        s = x.get("counted") or x["scored"]
         what = ("%s challenger %s (%s) beat the current game model: log loss %.4f against %.4f over %d "
-                "scored predictions in %d games, one-sided p = %.4g (it needed under %.4g)" % (
+                "%s in %d games, one-sided p = %.4g (it needed under %.4g)" % (
                     name, x["name"], x["what"], s["challenger_log_loss"], s["champion_log_loss"],
-                    s["predictions"], s["games"], s["p"], x["alpha"]))
+                    s["predictions"], counted_kind(x), s["games"], s["p"], x["alpha"]))
+        also = [y["name"] for y in doc.get("challengers") or [] if y.get("outranked_by") == x["name"]]
+        if also:
+            what += " (%s also won this week; the one branch goes to the biggest gain, %s)" % (
+                ", ".join(also), x["name"])
         br = x.get("branch")
         if not br:
             out.append((what + ". %s" % (x.get("needs_sam") or "NEEDS SAM: no branch was pushed for it"),
