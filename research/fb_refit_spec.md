@@ -395,6 +395,16 @@ computed before this section was written. Only games after registration count (�
   indexes into today's champion's lists, and H, HC, SM and SMC have shorter lists.
   How S and TS should read against another champion is Sam's to decide.
   `[2026-10-26]` AJ, AJC, MC and MCC likewise (§3f).
+- `[2026-10-26]` WL / WLC's solve (§3f): a Newton step on the home edge a of 1 or more is
+  at most 64 long and halved until the fit is no worse (`fb_challengers._home_step`); a
+  shorter one is Newton's, unchanged. It changes no answer §3f defines (the maximum). Found
+  by review on a planted league: warm-started from a Monday whose non-neutral games were all
+  home wins (no finite best a; it ran to ~37), the next Monday's step threw a to -2e15 and it
+  never moved again. `test_fb_matchup_grade.py` §10 replays every weekly solve warm and cold.
+  ⚠️ For Sam: §3f does not say what a Monday with no finite best a gives. Today a runs until
+  every p rounds to 1 (about 37) or to 0 (about -745) and stops. Two reviews' schedule-only
+  checks found no stored row Monday of that shape (each league's first holds a non-neutral
+  game that was not a home win).
 
 ## Changelog
 
@@ -410,3 +420,4 @@ computed before this section was written. Only games after registration count (�
 - 2026-10-16 — §3e T71 (SM, SMC: the score-first model) added at Sam's instruction, defined before any contest result for them; §2 to §3d unchanged and pinned. Named SM / SMC, not SF: SF is the 49ers' code in this repo.
 - 2026-10-16 — §3e corrected before Sam's approval, after an independent review: registration is the first Monday AFTER the merge day (a Monday-evening merge would have scored that night's game after kickoff); the coherence sentence was wrong ("a rare game") and now gives the measured numbers; SM / SMC's code is frozen with them. §4 gains the NOT APPLICABLE stopgap. §2 to §3d unchanged.
 - 2026-10-26 — §3f T72 (CL, CLC, WL, WLC, MC, MCC, AJ, AJC: the matchup grade) added at Sam's instruction ("let's do all of this, if any is repeating don't do it twice"), defined before any result for them; head-to-head is not tested again (S, TS). §2 to §3e unchanged and pinned.
+- 2026-10-26 — §4: WL / WLC's home-edge step made safe after a review (planted league: a warm start from a Monday with no finite best a stuck at -2e15); §3f's definitions and every answer they define unchanged; §2 to §3f unchanged and pinned.

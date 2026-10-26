@@ -167,6 +167,8 @@ CAP = {"nfl": 21.0, "ncaaf": 28.0}       # ⛔ §3f: three and four touchdowns, 
 FORM_GAMES, FORM_MIN = 4, 2              # ⛔ §3f: the champion's last 4; fewer than 2 -> 0
 DEF_MIN = 10                             # ⛔ §3f: fewer ranked defences -> 0
 DEF_UNITS = ("pass_yds", "rush_yds")     # ⛔ §3f: passing plus rushing yards allowed
+A_STEP = 64.0                # WL / WLC's solve: the longest step on the home edge (`_home_step`); the
+                             #    logistic is flat past |z| ~ 37, so one step crosses any flat stretch
 # ⛔ §3f: AJ, AJC, MC and MCC replace inputs at fixed places in today's lists, so they build
 #    only against no champion or one that only appends; otherwise NOT APPLICABLE (Sam's to decide).
 APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC")
@@ -580,13 +582,52 @@ def _p(x):
     return e / (1.0 + e)
 
 
+def _softplus(x):
+    """log(1 + exp(x)), without overflow at either end."""
+    return x + math.log1p(math.exp(-x)) if x > 0 else math.log1p(math.exp(x))
+
+
+def _home_fit(a, G, w, y, B):
+    """WL / WLC: the part of the fit that moves with the home edge a,
+    sum(w (y log p + (1 - y) log(1 - p))) over the games with a home side
+    (log p = -softplus(-z), log(1 - p) = -softplus(z))."""
+    out = 0.0
+    for wi, yi, g in zip(w, y, G):
+        if g[3]:
+            z = a * g[3] + B[g[1]] - B[g[2]]
+            out -= wi * (yi * _softplus(-z) + (1.0 - yi) * _softplus(z))
+    return out
+
+
+def _home_step(num, den, a, G, w, y, B):
+    """WL / WLC: the Newton step on the home edge a (num = the fit's slope in a, den = minus
+    its curve). 🔴 `[2026-10-26]` A long one is not trusted. Where the fit is flat in a,
+    every home side's p is ~1 or ~0 and num / den is ~1e15 or infinite: warm-started from a
+    Monday whose non-neutral games were all home wins (a ran to ~37, no finite best), a
+    landed at -2e15, every p became exactly 0, den 0, and a never moved again, every later
+    Monday (a planted league; no stored Monday had that shape). So a step of 1 or more is at
+    most A_STEP long and halved until the fit is no worse; a shorter one is Newton's,
+    unchanged. ⛔ The maximum §3f names is the same; only the path to it is safe."""
+    if not num:
+        return 0.0
+    step = math.copysign(min(abs(num) / den if den > 0 else math.inf, A_STEP), num)
+    if abs(step) >= 1.0:
+        here = _home_fit(a, G, w, y, B)
+        while abs(step) >= 1.0 and _home_fit(a + step, G, w, y, B) < here:
+            step /= 2.0
+    return step
+
+
 def solve_resume(G, wk, warm=None):
     """WL / WLC: the weighted Bradley-Terry fit on games G (all dated before Monday `wk`):
     P(home side wins) = 1 / (1 + exp(-(a x h + B_home - B_away))), h = 0 at a neutral site;
     y = 1 home win, 0 away win, 0.5 a tie; ⛔ the score margin is never read. It maximises
     sum(w (y log p + (1 - y) log(1 - p))) - 0.5 sum(B ^ 2) (ridge 1 on every team term, none
     on a): one Newton step per number per sweep, a first, then each team in the champion's
-    order, until no number moves 1e-10 or the champion's sweep cap; warm-started."""
+    order, until no number moves 1e-10 or the champion's sweep cap; warm-started. A step on
+    a of 1 or more is checked first (`_home_step`): a warm start from a flat fit must not
+    throw it away. ⚠️ A Monday whose non-neutral games all went one way has no finite best
+    a (§3f does not say what it gives): a runs until every p rounds to 1 (or 0) and stops."""
     w = [weight(g[0], wk) for g in G]
     y = [1.0 if g[4] > g[5] else 0.0 if g[4] < g[5] else 0.5 for g in G]
     s = {"a": warm["a"], "B": dict(warm["B"])} if warm else {"a": 0.0, "B": {}}
@@ -605,7 +646,7 @@ def solve_resume(G, wk, warm=None):
                 p = _p(s["a"] * g[3] + B[g[1]] - B[g[2]])
                 num += wi * g[3] * (yi - p)
                 den += wi * g[3] * g[3] * p * (1.0 - p)
-        s["a"] += num / den if den > 0 else 0.0
+        s["a"] += _home_step(num, den, s["a"], G, w, y, B)
         for t, ix in adj.items():
             num, den = -RIDGE * B[t], RIDGE
             for i in ix:

@@ -68,8 +68,33 @@ on the real games. Their numbers are pinned in test_fb_refit.py §17 (§3f names
 #
 # @vacuity 🔴 WL: the home edge is fitted, unpenalised
 #   file: fb_challengers.py
-#   find:         s["a"] += num / den if den > 0 else 0.0
+#   find:         s["a"] += _home_step(num, den, s["a"], G, w, y, B)
 #   with:         s["a"] += 0.0
+#
+# @vacuity 🔴 WL: a long step on the home edge is not trusted (the warm start that blew up to -2e15)
+#   file: fb_challengers.py
+#   find:     step = math.copysign(min(abs(num) / den if den > 0 else math.inf, A_STEP), num)
+#   with:     return num / den if den > 0 else 0.0
+#
+# @vacuity 🔴 WL: ...and is halved until the fit is no worse
+#   file: fb_challengers.py
+#   find:         while abs(step) >= 1.0 and _home_fit(a + step, G, w, y, B) < here:
+#   with:         while False:
+#
+# @vacuity 🔴 WL: the fit it checks against is §3f's likelihood
+#   file: fb_challengers.py
+#   find:             out -= wi * (yi * _softplus(-z) + (1.0 - yi) * _softplus(z))
+#   with:             out -= wi * (yi * _softplus(z) + (1.0 - yi) * _softplus(-z))
+#
+# @vacuity 🔴 every solver weekly() drives is replayed warm and cold
+#   file: fb_challengers.py
+#   find:         sol = weekly(FM.rating_games(lg, root), weeks, solve_resume)
+#   with:         sol = weekly(FM.rating_games(lg, root), weeks, lambda G, wk, warm: solve_resume(G, wk, None))
+#
+# @vacuity 🔴 AJ: a defence not ranked is no rank, though 10 or more are
+#   file: fb_challengers.py
+#   find:             "def": (f[r["home"]] + f[r["away"]]) / 2.0 if r["home"] in f and r["away"] in f else None}
+#   with:             "def": (f.get(r["home"], 0.5) + f.get(r["away"], 0.5)) / 2.0 if f else None}
 #
 # @vacuity 🔴 MC: the NFL cap is 21 points
 #   file: fb_challengers.py
@@ -173,6 +198,7 @@ import json
 import math
 import os
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -246,11 +272,14 @@ def league_games(teams, weeks, seed, start=datetime.date(2025, 9, 7)):
     return out
 
 
-def plant(t, games, fcs=("T10", "T11"), lgs=("nfl", "ncaaf")):
-    """Both leagues get the same games; college lists `fcs` as FCS, the rest FBS."""
+def plant(t, games, fcs=("T10", "T11"), lgs=("nfl", "ncaaf"), nolog=()):
+    """Both leagues get the same games; college lists `fcs` as FCS, the rest FBS. A team in
+    `nolog` has no player logs (its games carry points but no yards)."""
     logs = {}
     for gid, day, h, a, _n, _hp, _ap, yds in games:
         for o in (h, a):
+            if o in nolog:
+                continue
             pa, ru = yds[o]
             for pos, st in (("QB", {"att": 30, "pass_yds": pa}), ("RB", {"car": 25, "rush_yds": ru})):
                 logs.setdefault(o + pos, {"name": o + pos, "pos": pos, "g": []})["g"].append(
@@ -554,6 +583,29 @@ for _n_teams, _want_def in ((10, True), (9, False)):
     _d6 = FC.attach("AJ", "nfl", [row("w", "nfl", "2025-11-12", "T00", "T05")], T6)[0]["sig"]["aj"]["def"]
     eq(_d6 is not None, _want_def, "🔴 %d ranked defences: %s" % (_n_teams, "a rank" if _want_def else
                                                                  "no rank (fewer than 10 -> input 0)"))
+# `[2026-10-26]` A review found §3f's other "-> 0", "a defence not ranked", never asked: every planted
+# row's teams were ranked whenever 10 were. NEWB plays three earlier games (points, so it is in s and
+# has a form) but has no player logs, so neither yard table carries it: 12 ranked, NEWB not.
+T7 = tree()
+_newb = [("nb%d" % i, d, h, a, False, hp, ap, {o: (210, 95) for o in (h, a)}) for i, (d, h, a, hp, ap) in
+         enumerate((("2026-03-07", "NEWB", "T00", 24, 17), ("2026-03-14", "T01", "NEWB", 20, 23),
+                    ("2026-03-21", "NEWB", "T02", 10, 13)))]
+plant(T7, GAMES + _newb, nolog=("NEWB",))
+for n in ("AJ", "AJC"):
+    lg7 = FC.CHALLENGERS[n]["league"]
+    _r7 = [row("n%d" % i, lg7, "2026-04-01", h, a) for i, (h, a) in enumerate((("NEWB", "T00"), ("T03", "NEWB"),
+                                                                              ("T01", "T02")))]
+    FC.attach(n, lg7, _r7, T7)
+    _aj7 = [r["sig"]["aj"] for r in _r7]
+    _fr7 = FC.def_fractions(MT.Tables(lg7, T7), WK)
+    ck(len(_fr7) == 12 and "NEWB" not in _fr7 and _aj7[2]["def"] is not None,
+       "%s: the planted Monday ranks 12 defences, not NEWB's (no yards), and a ranked pair gets a rank" % n, _fr7)
+    ck(_aj7[0]["def"] is None and _aj7[1]["def"] is None and _aj7[0]["form"] and _aj7[1]["form"],
+       "🔴 %s: a row with one defence not ranked (home or away) has no rank, though 12 others are ranked "
+       "and both teams have a form" % n, _aj7)
+    _x7 = [R.challenger_feat(n)(r, "total")[3] for r in _r7]
+    ck(_x7[0] == 0.0 and _x7[1] == 0.0 and abs(_x7[2] - (_aj7[2]["def"] - 0.5) * 4.0) < 1e-12,
+       "   ...so its total's index 3 is 0, not half a rank (the ranked pair's is (fraction - 0.5) x 4)", _x7)
 
 # ══════════════════════════════════════════════════════════════════════
 section("6. 🔴 THE INPUTS, MARKET BY MARKET (extend), AND NO NUMBER IS 0")
@@ -665,4 +717,102 @@ for lg in NEW:
        and all(rs[-1]["sig"].get(k) is not None for k in ("cl", "wl", "mc", "aj")),
        "🔴 %s: league() builds %s's inputs itself and fits and scores each" % (lg, ", ".join(NEW[lg])),
        {n: by[n].get("history", {}).get("predictions") for n in NEW[lg]})
+
+# ══════════════════════════════════════════════════════════════════════
+section("10. 🔴 EVERY WARM-STARTED WEEKLY SOLVE GIVES ITS COLD ANSWER, EVEN AFTER A MONDAY WITH NO FINITE BEST")
+# ══════════════════════════════════════════════════════════════════════
+# `[2026-10-26]` A review found WL's resume blown up for good on a planted league: a first Monday whose
+# non-neutral games were all home wins has no finite home edge (a ran to ~37), and the next Monday's
+# warm start took a Newton step of ~-2e15 from where the fit was flat; every p was then exactly 0 and a
+# never moved again (-2.2e15 on every later Monday, where a cold solve gave -0.005). §3 above only
+# warm-started from a well-mixed Monday. The CLASS: a weekly() solve whose answer depends on the Monday
+# it was warm-started from. So every solver fb_challengers drives through weekly() is read from its
+# source, and each is replayed warm and cold over chains that open on such Mondays, both ways.
+_src10 = open(os.path.join(ROOT, "fb_challengers.py"), encoding="utf-8").read()
+_driven = sorted(set(re.findall(r"\bweekly\(.*,\s*(solve_\w+)\)\s*$", _src10, re.M)))
+eq(_driven, ["solve_epa", "solve_resume", "solve_talent"], "every solver weekly() drives (E / P, WL / WLC, "
+   "T / TS / MC / MCC) is replayed here; a new one must be added")
+_teams10 = ["T%02d" % i for i in range(12)]
+
+
+def chain(first, n_first, seed):
+    """Saturday games for 13 weeks from 2025-08-23: in the first `n_first` weeks every non-neutral
+    game ends `first` ("home" wins or "away" wins) and one is neutral; later weeks at random."""
+    rr = random.Random(seed)
+    out = []
+    for k in range(13):
+        day = (datetime.date(2025, 8, 23) + datetime.timedelta(weeks=k)).isoformat()
+        sh = _teams10[:]
+        rr.shuffle(sh)
+        for i in range(0, 12, 2):
+            hp, ap = float(rr.randint(3, 40)), float(rr.randint(3, 40))
+            f = 0.0 if (k < n_first and i == 0) else 1.0
+            if k < n_first and f:
+                hp, ap = (max(hp, ap) + 1.0, min(hp, ap)) if first == "home" else (min(hp, ap), max(hp, ap) + 1.0)
+            out.append((day, sh[i], sh[i + 1], f, hp, ap))
+    return sorted(out)
+
+
+def shapes(G, seed):
+    """One planted chain in each solver's own shape."""
+    rr = random.Random(seed)
+    E = []
+    for d, h, a, f, hp, ap in G:
+        E += [(d, h, a, f, hp / 7.0 - 3.0, 60.0 + rr.randint(0, 9)), (d, a, h, 0.0, ap / 7.0 - 3.0, 61.0)]
+    return {"solve_resume": G, "solve_talent": [(d, h, a, f, hp, ap, rr.uniform(-1, 1)) for d, h, a, f, hp, ap in G],
+            "solve_epa": sorted(E)}
+
+
+def gap10(u, v):
+    """The largest difference between two solves' numbers (every scalar, every team's)."""
+    out = 0.0 if u["teams"] == v["teams"] else float("inf")
+    for k, x in v.items():
+        if isinstance(x, dict):
+            out = max([out] + [abs(u[k][t] - x[t]) for t in x])
+        elif isinstance(x, float):
+            out = max(out, abs(u[k] - x))
+    return out
+
+
+_weeks10 = [(datetime.date(2025, 8, 25) + datetime.timedelta(weeks=k)).isoformat() for k in range(13)]
+for first, n_first, seed in (("home", 1, 5), ("away", 2, 6)):
+    G10 = chain(first, n_first, seed)
+    _flat = FC.solve_resume(FC.before(G10, _weeks10[0]), _weeks10[0])["a"]
+    ck(abs(_flat) > 20 and all((g[4] > g[5]) == (first == "home") for g in G10 if g[3] and g[0] < _weeks10[n_first - 1]),
+       "the planted chain opens with %d Monday(s) whose non-neutral games all went to the %s side: no finite home "
+       "edge (a ran to %.1f)" % (n_first, first, _flat))
+    for name, items in shapes(G10, seed).items():
+        solve = getattr(FC, name)
+        warm = FC.weekly(items, _weeks10, solve)
+        worst = max(gap10(warm[wk], solve(FC.before(items, wk), wk)) for wk in _weeks10[n_first:])
+        ck(worst < 1e-6, "🔴 %s, %s-side opening: warm-started every Monday after it gives the cold solve's every "
+           "number to 1e-6" % (name, first), worst)
+    _wl10, _bt = FC.weekly(G10, _weeks10, FC.solve_resume), []
+    for wk in _weeks10[n_first:]:
+        a10, B10 = direct_bt(FC.before(G10, wk), wk)
+        _bt.append(gap10(_wl10[wk], {"a": a10, "B": B10, "teams": set(B10)}))
+    ck(max(_bt) < 1e-6, "🔴 ...and WL's warm answer is the maximum itself: a direct Newton solve of §3f's likelihood "
+       "to 1e-6, every later Monday", max(_bt))
+
+# The fit the long step is checked against IS §3f's likelihood (the part that moves with a), at any a.
+_G10 = [g[:3] + (0.0 if i % 5 == 0 else 1.0,) + ((g[4], g[4]) if i % 7 == 3 else g[4:])
+        for i, g in enumerate(chain("home", 0, 7))]                   # some neutral sites, some ties
+_rr10 = random.Random(8)
+_w10 = [weight(g[0], _weeks10[-1]) for g in _G10]
+_y10 = [1.0 if g[4] > g[5] else 0.0 if g[4] < g[5] else 0.5 for g in _G10]
+_B10 = {t: _rr10.uniform(-1.5, 1.5) for t in _teams10}
+_fit_bad = []
+for a in (-6.0, -2.0, 0.0, 0.7, 3.0, 6.0):
+    want = 0.0
+    for wi, yi, g in zip(_w10, _y10, _G10):
+        if g[3]:
+            p = 1.0 / (1.0 + math.exp(-(a + _B10[g[1]] - _B10[g[2]])))
+            want += wi * ((yi * math.log(p) if yi else 0.0) + ((1.0 - yi) * math.log(1.0 - p) if yi < 1 else 0.0))
+    if abs(FC._home_fit(a, _G10, _w10, _y10, _B10) - want) > 1e-9 * max(1.0, abs(want)):
+        _fit_bad.append((a, FC._home_fit(a, _G10, _w10, _y10, _B10), want))
+ck(not _fit_bad and any(g[3] == 0.0 for g in _G10) and any(g[4] == g[5] for g in _G10 if g[3])
+   and any(g[4] < g[5] for g in _G10 if g[3]),
+   "🔴 the fit a long step must not worsen is sum(w (y log p + (1 - y) log(1 - p))) over the games with a home "
+   "side (ties 0.5, neutral sites out), by hand at a from -6 to 6", _fit_bad)
+
 note("rule 13: every contest number above is on planted games; none is computed on the real ones here")
