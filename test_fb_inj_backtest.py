@@ -101,6 +101,16 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #   file: status.py
 #   find:     if st.get("state") != "measured" or not st.get("branch"):
 #   with:     if True:
+#
+# @vacuity 🔴 [2026-10-26] once main holds the entry (Sam merged), the email stops asking him to merge
+#   file: status.py
+#   find:     if recorded:
+#   with:     if False:
+#
+# @vacuity 🔴 [2026-10-26] ...decided by the tree's own research/fb_sim_backtest.json, in the email itself
+#   file: status.py
+#   find:         doc, name, injury_recorded(root, d.split("/")[-1]))]
+#   with:         doc, name, False)]
 """
 import json
 import os
@@ -426,3 +436,29 @@ ck("🔴 the Monday email names a waiting injury branch, its result and its clic
 ck("✅ ...and says nothing while it waits for data or once it is recorded",
    ST.injury_branch({"injury_backtest": {"state": "waiting"}}, "College") == []
    and ST.injury_branch({"injury_backtest": {"state": "recorded"}}, "College") == [])
+
+# 🔴 `[2026-10-26]` ONCE SAM MERGED THE BRANCH, THE EMAIL STOPS ASKING HIM TO. fb-refit.json still
+#    says "measured" (with the branch) until the next Monday's job rewrites it, and the email read
+#    only that file, so it kept listing a merged branch under "Needs you". The tree's own
+#    research/fb_sim_backtest.json (main, once merged) decides. Asked through `status.build`, the
+#    email itself, on a planted tree: the same fb-refit.json, without and with the entry recorded.
+_t = tempfile.mkdtemp(prefix="injst-")
+try:
+    for _d in ("data/latest", "data/nfl/latest", "data/ncaaf/latest", "research"):
+        os.makedirs(os.path.join(_t, _d))
+    json.dump({"checked_at": NOW.strftime("%Y-%m-%dT%H:%M:%SZ"), "findings": []},
+              open(os.path.join(_t, "data", "latest", "health.json"), "w", encoding="utf-8"))
+    json.dump({"injury_backtest": {"state": "measured", "branch": "fb/injuries-ncaaf-2026-10-19",
+                                   "passes": True, "entry": dict(_PASS, questions=900)}},
+              open(os.path.join(_t, "data", "ncaaf", "latest", "fb-refit.json"), "w", encoding="utf-8"))
+    _rp = os.path.join(_t, "research", "fb_sim_backtest.json")
+    json.dump({"injuries": {"nfl": {}}}, open(_rp, "w", encoding="utf-8"))
+    _before = ST.build(root=_t, now=NOW)[1]
+    json.dump({"injuries": {"nfl": {}, "ncaaf": dict(_PASS, questions=900)}}, open(_rp, "w", encoding="utf-8"))
+    _after = ST.build(root=_t, now=NOW)[1]
+finally:
+    shutil.rmtree(_t, ignore_errors=True)
+ck("🔴 [2026-10-26] the email lists the College branch while main has no ncaaf entry",
+   any("College injuries" in n and "PASSED" in n for n in _before), str(_before)[:300])
+ck("🔴 [2026-10-26] ...and stops the moment main holds it (the merge), though fb-refit.json still says "
+   "measured", not any("College injuries" in n for n in _after), str(_after)[:300])

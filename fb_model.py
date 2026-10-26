@@ -84,8 +84,13 @@ SIM = {"nfl": False, "ncaaf": False}
 #    (research/fb_sim_design.md §3, the injury bar, fixed before any injury number): each team's
 #    points move by its starting QB out, its offensive starters out and the opponent's defensive
 #    starters out (T69 IN's measures), sized each week on earlier games only (`injury_fit`); the
-#    win chance moves with the margin. College has no injury data stored. ⛔ Set only from the
-#    recorded backtest (test_fb_injuries.py reads it).
+#    win chance moves with the margin. ~~College has no injury data stored.~~ `[2026-10-26]`
+#    College's readings come from the conference reports (`cfb_injuries.attach`); its test
+#    PASSED 2026-10-19 (research/fb_sim_backtest.json injuries.ncaaf) and this line turns it on
+#    when Sam merges it. A college game still to start at a build reads the newest report as
+#    of that build (Sam: "do 9am, 12pm, 7pm"; `cfb_injuries.read_cut`). The NFL's FAILED
+#    (10-17) and stays off. ⛔ Set only from the recorded backtest (~~test_fb_injuries.py~~
+#    test_fb_sim.py §3 reads it; that file never existed).
 INJURIES = {"nfl": False, "ncaaf": True}
 INJ_RIDGE = 25.0          # the injury fit's ridge (points per unit), no penalty on its intercept
 INJ_MIN = 200             # team-games with an injury reading before a week's fit is made

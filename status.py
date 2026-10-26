@@ -171,10 +171,21 @@ def refit_wins(doc, name):
     return out
 
 
-def injury_branch(doc, name):
+def injury_recorded(root, lg):
+    """`[2026-10-26]` Does THIS tree's research/fb_sim_backtest.json hold `lg`'s injury entry?
+    (It reaches main only by Sam's merge of the injury branch.)"""
+    return lg in (_read(os.path.join(root, "research", "fb_sim_backtest.json")).get("injuries") or {})
+
+
+def injury_branch(doc, name, recorded=False):
     """`[Sam, 2026-10-17]` [(the "Needs you" item, its clicks)] when the injury test fixed in advance
-    (research/cfb_injuries_design.md §4, fb_inj_backtest.auto) has run and its branch waits for Sam."""
+    (research/cfb_injuries_design.md §4, fb_inj_backtest.auto) has run and its branch waits for Sam.
+    `[2026-10-26]` ⛔ Not once `recorded` (main holds the entry: the branch was merged).
+    fb-refit.json still says "measured" until the next Monday's job, and the email kept asking
+    Sam to merge a branch he had merged."""
     st = (doc or {}).get("injury_backtest") or {}
+    if recorded:
+        return []
     if st.get("state") != "measured" or not st.get("branch"):
         return []
     e = st.get("entry") or {}
@@ -204,7 +215,8 @@ def build(root=ROOT, now=None):
     broken = ([{"key": "watchdog:health", "severity": "BROKEN", "what": old}] if old else []) + [
         f for f in findings if f.get("severity") == "BROKEN"]
     refit = [(name, d, _read(os.path.join(root, d, "latest", "fb-refit.json"))) for name, d in FB]
-    won = [w for name, _d, doc in refit for w in refit_wins(doc, name) + injury_branch(doc, name)]
+    won = [w for name, d, doc in refit for w in refit_wins(doc, name) + injury_branch(
+        doc, name, injury_recorded(root, d.split("/")[-1]))]
     needs = [f["what"] for f in broken] + [w[0] for w in won]
     L = ["Needs you: %s." % "; ".join(needs) if needs else "Nothing needs you this week."]
     for what, clicks in won:
