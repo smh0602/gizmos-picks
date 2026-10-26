@@ -2,120 +2,123 @@
  "league": "nfl",
  "kind": "DESCRIPTIVE",
  "spec": "research/fb_refit_spec.md",
- "built_at": "2026-10-19T16:38:12Z",
+ "built_at": "2026-10-26T16:18:41Z",
  "champion": null,
  "champion_since": null,
  "season": 2026,
  "scoreboard": {
   "spread": {
-   "predictions": 91,
-   "model_log_loss": 0.6739,
+   "predictions": 105,
+   "model_log_loss": 0.6746,
    "books_log_loss": 0.6931,
-   "gap": -0.0193,
-   "lo": -0.0511,
-   "hi": 0.0125,
+   "gap": -0.0185,
+   "lo": -0.0482,
+   "hi": 0.0112,
    "state": "level",
    "trend": {
     "weeks": [
-     "2026-09-21",
      "2026-09-28",
      "2026-10-05",
-     "2026-10-12"
+     "2026-10-12",
+     "2026-10-19"
     ],
     "before": [
      "2026-09-07",
-     "2026-09-14"
+     "2026-09-14",
+     "2026-09-21"
     ],
     "state": "no clear change yet",
-    "diff": 0.0461,
-    "lo": -0.0173,
-    "hi": 0.1095
+    "diff": 0.0339,
+    "lo": -0.0257,
+    "hi": 0.0935
    },
-   "said": 57.6,
-   "hit": 57.1
+   "said": 57.7,
+   "hit": 55.2
   },
   "total": {
-   "predictions": 91,
-   "model_log_loss": 0.6927,
+   "predictions": 105,
+   "model_log_loss": 0.6924,
    "books_log_loss": 0.6931,
-   "gap": -0.0004,
-   "lo": -0.0189,
-   "hi": 0.0181,
+   "gap": -0.0008,
+   "lo": -0.0184,
+   "hi": 0.0168,
    "state": "level",
    "trend": {
     "weeks": [
-     "2026-09-21",
      "2026-09-28",
      "2026-10-05",
-     "2026-10-12"
+     "2026-10-12",
+     "2026-10-19"
     ],
     "before": [
      "2026-09-07",
-     "2026-09-14"
+     "2026-09-14",
+     "2026-09-21"
     ],
     "state": "no clear change yet",
-    "diff": -0.0058,
-    "lo": -0.0483,
-    "hi": 0.0366
+    "diff": -0.0145,
+    "lo": -0.0508,
+    "hi": 0.0218
    },
-   "said": 54.2,
-   "hit": 58.2
+   "said": 54.4,
+   "hit": 57.1
   },
   "moneyline": {
-   "predictions": 91,
-   "model_log_loss": 0.6617,
-   "books_log_loss": 0.6657,
-   "gap": -0.004,
-   "lo": -0.0534,
-   "hi": 0.0454,
+   "predictions": 105,
+   "model_log_loss": 0.6565,
+   "books_log_loss": 0.6631,
+   "gap": -0.0066,
+   "lo": -0.0527,
+   "hi": 0.0395,
    "state": "level",
    "trend": {
     "weeks": [
-     "2026-09-21",
      "2026-09-28",
      "2026-10-05",
-     "2026-10-12"
+     "2026-10-12",
+     "2026-10-19"
     ],
     "before": [
      "2026-09-07",
-     "2026-09-14"
+     "2026-09-14",
+     "2026-09-21"
     ],
     "state": "no clear change yet",
-    "diff": -0.0614,
-    "lo": -0.1722,
-    "hi": 0.0495
+    "diff": -0.0495,
+    "lo": -0.1426,
+    "hi": 0.0436
    },
-   "said": 63.7,
-   "hit": 62.6
+   "said": 63.4,
+   "hit": 61.0
   }
  },
  "miss": {
-  "games": 92,
-  "margin_model": 10.16,
-  "margin_books": 9.36,
-  "total_model": 11.46,
-  "total_books": 10.69
+  "games": 106,
+  "margin_model": 10.12,
+  "margin_books": 9.35,
+  "total_model": 11.39,
+  "total_books": 10.61
  },
  "line_moves": {
   "spread": {
-   "toward": 34,
-   "against": 37,
-   "unmoved": 21,
-   "toward_share": 47.9
+   "toward": 37,
+   "against": 47,
+   "unmoved": 22,
+   "toward_share": 44.0
   },
   "total": {
-   "toward": 40,
-   "against": 38,
-   "unmoved": 14,
-   "toward_share": 51.3
+   "toward": 45,
+   "against": 44,
+   "unmoved": 17,
+   "toward_share": 50.6
   },
   "moneyline": {
-   "toward": 37,
-   "against": 37,
-   "unmoved": 18,
-   "toward_share": 50.0
+   "toward": 44,
+   "against": 42,
+   "unmoved": 20,
+   "toward_share": 51.2
   },
-  "games": 92
+  "games": 106
  },
  "challengers": [
   {
@@ -138,13 +141,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 28,
+    "games": 14,
+    "mean_d": 0.018445,
+    "p": 0.031556,
+    "p_wrong_way": 0.968444,
+    "champion_log_loss": 0.651212,
+    "challenger_log_loss": 0.632767
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -170,13 +173,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 42,
+    "games": 14,
+    "mean_d": 0.007975,
+    "p": 0.075812,
+    "p_wrong_way": 0.924188,
+    "champion_log_loss": 0.664204,
+    "challenger_log_loss": 0.656229
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -202,13 +205,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 42,
+    "games": 14,
+    "mean_d": -0.002817,
+    "p": 0.665815,
+    "p_wrong_way": 0.334185,
+    "champion_log_loss": 0.664204,
+    "challenger_log_loss": 0.66702
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -232,13 +235,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 14,
+    "games": 14,
+    "mean_d": -0.002762,
+    "p": 0.602388,
+    "p_wrong_way": 0.397612,
+    "champion_log_loss": 0.690189,
+    "challenger_log_loss": 0.692951
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -264,13 +267,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 42,
+    "games": 14,
+    "mean_d": 0.000617,
+    "p": 0.483159,
+    "p_wrong_way": 0.516841,
+    "champion_log_loss": 0.664204,
+    "challenger_log_loss": 0.663587
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -294,13 +297,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 14,
+    "games": 14,
+    "mean_d": 0.004137,
+    "p": 0.309267,
+    "p_wrong_way": 0.690733,
+    "champion_log_loss": 0.690189,
+    "challenger_log_loss": 0.686052
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -325,13 +328,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 28,
+    "games": 14,
+    "mean_d": 0.034061,
+    "p": 0.111803,
+    "p_wrong_way": 0.888197,
+    "champion_log_loss": 0.651212,
+    "challenger_log_loss": 0.617151
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -357,13 +360,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 42,
+    "games": 14,
+    "mean_d": -0.001642,
+    "p": 0.520945,
+    "p_wrong_way": 0.479055,
+    "champion_log_loss": 0.664204,
+    "challenger_log_loss": 0.665846
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -389,13 +392,13 @@
    },
    "withdrawn": false,
    "scored": {
-    "predictions": 0,
-    "games": 0,
-    "mean_d": null,
-    "p": null,
-    "p_wrong_way": null,
-    "champion_log_loss": null,
-    "challenger_log_loss": null
+    "predictions": 42,
+    "games": 14,
+    "mean_d": -0.013539,
+    "p": 0.644682,
+    "p_wrong_way": 0.355318,
+    "champion_log_loss": 0.664204,
+    "challenger_log_loss": 0.677742
    },
    "alpha": 0.0011111111111111111,
    "verdict": "NOT YET MEASURABLE"
@@ -428,5 +431,5 @@
    ]
   }
  },
- "elapsed_seconds": 165.4
+ "elapsed_seconds": 173.1
 }
