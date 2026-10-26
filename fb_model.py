@@ -436,8 +436,9 @@ def above_average(s, lg, fbs=None):
 
 
 def above_average_block(lg, rows, wins, own, root=None):
-    """`[Sam, 2026-10-26]` *"add one plain line to each game pick's why, like 'Washington
-    is 2–3 against teams rated above average'. That's information only and moves no %."*
+    """`[Sam, 2026-10-26]` *"let's do all of this"*, approving the proposal "add one plain
+    line to each game pick's why, like 'Washington is 2–3 against teams rated above
+    average'. That's information only and moves no %."
     -> {"monday": {day: Monday}, "teams": {Monday: [team, ...]}}. For each Game Lines game
     (`wins`, `win_chances`): its row's `day` (the schedule's kickoff date) -> the Monday
     its ratings are read at (`monday`); for each such Monday, the teams `above_average`

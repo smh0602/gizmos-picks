@@ -288,8 +288,9 @@ def score_agrees(r, s):
 
 
 def above_why(r, ctx):
-    """`[Sam, 2026-10-26]` *"add one plain line to each game pick's why, like 'Washington
-    is 2–3 against teams rated above average'. That's information only and moves no %."*
+    """`[Sam, 2026-10-26]` *"let's do all of this"*, approving the proposal "add one plain
+    line to each game pick's why, like 'Washington is 2–3 against teams rated above
+    average'. That's information only and moves no %."
     Each team's record this season (away first, as the points sentences) against the teams
     the model rates above average at THIS game's Monday: fb-model.json's `above_average`
     (fb_model.above_average, T72 §3f's one definition). The Monday is the one fb_model

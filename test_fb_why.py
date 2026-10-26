@@ -14,8 +14,9 @@ CURRENT report of THIS game, read through cfb_injuries from reports its own
 run() stored in a planted root from planted feed payloads (no network: urlopen
 is a tripwire; the repo's teams.json is never read).
 
-`[Sam, 2026-10-26]` *"add one plain line to each game pick's why, like 'Washington is
-2–3 against teams rated above average'. That's information only and moves no %."*
+`[Sam, 2026-10-26]` *"let's do all of this"*, approving the proposal "add one plain line
+to each game pick's why, like 'Washington is 2–3 against teams rated above average'.
+That's information only and moves no %."
 Section 5: a game line's why gives each team's record this season against the teams
 the model rates above average at THIS game's Monday. Section 6: fb-model.json's
 `above_average`, from the solve the rows already read, built on a synthetic league
@@ -617,8 +618,9 @@ try:
     # ══════════════════════════════════════════════════════════════════
     section("5. 🔴 A GAME LINE'S RECORD AGAINST THE TEAMS THE MODEL RATES ABOVE AVERAGE")
     # ══════════════════════════════════════════════════════════════════
-    # `[Sam, 2026-10-26]` "add one plain line to each game pick's why, like 'Washington is 2–3 against
-    # teams rated above average'. That's information only and moves no %." The list is fb-model.json's
+    # `[Sam, 2026-10-26]` "let's do all of this", approving the proposal "add one plain line to each
+    # game pick's why, like 'Washington is 2–3 against teams rated above average'. That's information
+    # only and moves no %." The list is fb-model.json's
     # `above_average` (section 6 builds it): a game's schedule day -> the Monday the model rated it at
     # -> the teams rated above average then. Planted NFL schedule (ET kickoffs, as nflverse stores them).
     import fb_model as F  # noqa: E402

@@ -680,9 +680,9 @@ note boxes, tags and the stale bar now require their absence.
   model's predicted score (`[2026-10-16]` only when it lands on the pick's side:
   the score comes from the moneyline and total fits, ~~the spread fit is separate~~
   and every football spread and total pick now comes from it)
-  and each team's points for and against. `[Sam, 2026-10-26]` *"add one plain line
-  to each game pick's why, like 'Washington is 2–3 against teams rated above
-  average'. That's information only and moves no %."*: a game line also gives each
+  and each team's points for and against. `[Sam, 2026-10-26]` *"let's do all of this"*, approving
+  the proposal "add one plain line to each game pick's why, like 'Washington is 2–3
+  against teams rated above average'. That's information only and moves no %.": a game line also gives each
   team's record this season (W-L, W-L-T with a tie) against the teams the model
   rates above average at THIS game's Monday (`fb_model.above_average`, T72 §3f's
   definition, stored in fb-model.json `above_average` by the game's schedule day,
