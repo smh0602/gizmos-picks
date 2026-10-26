@@ -17,6 +17,7 @@ and been wrong.
 import collections
 import csv
 import datetime
+import glob
 import re
 import gzip
 import io
@@ -896,7 +897,21 @@ def _stored_json(path):
 # report_status, practice_status, as nflverse publishes them), and the starting
 # QB from OUR stored player stats (players-<season>: most pass attempts).
 # 💰 Free (nflverse); refreshed by the daily `nfl-logs` run. ⛔ Never raises.
+# 🔴 `[2026-10-26]` REWRITTEN ONLY WHEN ITS CONTENT CHANGES (anything but `built_at`):
+#    git cannot delta a gzip, so every rewrite of an unchanged file was a whole copy in the
+#    history, daily by nfl-logs and now up to three more times a game day by the
+#    injury check (`check_injuries`). `built_at` therefore says when it last CHANGED, and
+#    its contract row has no clock deadline (freshness.ON_CHANGE).
 INJURY_FIELDS = ("gsis_id", "full_name", "position", "report_status", "practice_status")
+
+
+def _same_but_stamp(old, doc, stamp="built_at"):
+    """Is `doc`, as it would be stored, `old` with only `stamp` different?"""
+    if not isinstance(old, dict):
+        return False
+    new = json.loads(json.dumps(doc))
+    return ({k: v for k, v in old.items() if k != stamp}
+            == {k: v for k, v in new.items() if k != stamp})
 
 
 def injuries_doc(season, inj_rows, players_doc, built_at):
@@ -944,13 +959,150 @@ def store_injuries(base, seasons, log=print, now=None, fetch_rows=None):
                 rows = fetch_rows(season)
             doc = injuries_doc(season, rows, _stored_json(os.path.join(base, "players-%d.json.gz" % season)),
                                stamp)
-            os.makedirs(base, exist_ok=True)
-            with gzip.open(os.path.join(base, "injuries-%d.json.gz" % season), "wt", encoding="utf-8") as fh:
-                json.dump(doc, fh, separators=(",", ":"))
-            out[season] = "written (%d team(s))" % len(doc["teams"])
+            path = os.path.join(base, "injuries-%d.json.gz" % season)
+            old = _stored_json(path)
+            if _same_but_stamp(old, doc):           # `[2026-10-26]` nothing changed: not rewritten
+                out[season] = "unchanged since %s (not rewritten)" % old.get("built_at")
+            else:
+                os.makedirs(base, exist_ok=True)
+                with gzip.open(path, "wt", encoding="utf-8") as fh:
+                    json.dump(doc, fh, separators=(",", ":"))
+                out[season] = "written (%d team(s))" % len(doc["teams"])
         except Exception as e:
             out[season] = "failed: %s: %s" % (type(e).__name__, str(e)[:200])
         log("  injuries %s: %s" % (season, out[season]))
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴 THE GAME-DAY INJURY CHECK, THE NFL'S HALF. `[Sam, 2026-10-26]`
+# ══════════════════════════════════════════════════════════════════════
+# *"make sure we're looking at injury status at 12pm of games starting and 7pm so
+# we can make sure the models adjusted for injuries when deciding outcome for a
+# vame"*. At 9am, 12pm and 7pm ET on a game day (freshness.INJURY_CHECK_ET, the
+# `injury-check` mode):
+#   1. THIS season's report (nflverse `injuries_<season>`) is refreshed into
+#      injuries-<season>.json.gz (`store_injuries`: rewritten only on a change);
+#   2. the check's week's report statuses and its GAME-DAY INACTIVES (nflverse
+#      `roster_weekly_<season>`, status INA: the list posted 90 minutes before
+#      kickoff, which nflverse carried 20-80 minutes after posting for the London
+#      games) go into a dated snapshot through daystore,
+#      data/nfl/<UTC day>/injury-reports/<HHMM>.json.gz, ONLY when they changed.
+# ⛔ STORED ONLY (CLAUDE.md "NEW FOOTBALL DATA IS STORED ONLY"): no fit, input,
+#    pick or chance reads the snapshots. NFL injuries failed their test fixed in
+#    advance (10-17) and stay off; signal 7 still reads the week before. They keep
+#    what was known at each check for a later test. No contract row watches them
+#    (written only on a change; freshness.STORED_ONLY names them): the probe row
+#    watches their writer. 💰 Free (nflverse). ⛔ Never raises.
+INACTIVE = "INA"
+REPORT_FIELDS = ("gsis_id", "full_name", "position", "report_status")
+INACTIVE_FIELDS = ("gsis_id", "full_name", "position")
+CHECK_KIND = "nfl-injury-check"
+
+
+def check_week(base, season, now):
+    """The week the check is about: the first stored game kicking off on or after
+    the start of today's ET day (today's games, else the next slate's). None when
+    the schedule cannot be read or holds no such game."""
+    import freshness as _F
+    games = _F.kickoff_games("nfl", os.path.join(base, "schedule-%d.json.gz" % season)) or []
+    day = _F._et_today(now)
+    start = _F.et_wall_utc(datetime.datetime(day.year, day.month, day.day))
+    nxt = min(((k, g) for k, g in games if k >= start and g.get("week") is not None),
+              key=lambda kg: kg[0], default=None)
+    return None if nxt is None else int(nxt[1]["week"])
+
+
+def week_statuses(week, inj_rows, rost_rows):
+    """{team: {"report": [every player the week's report gives a status], "inactive":
+    [the week's game-day inactives]}}, each sorted by name."""
+    teams = {}
+    slot = lambda tm: teams.setdefault(tm, {"report": [], "inactive": []})  # noqa: E731
+    for r in inj_rows or []:
+        if str(r.get("week") or "").strip() == str(week) and r.get("team") \
+                and (r.get("report_status") or "").strip():
+            slot(r["team"])["report"].append({k: r.get(k) for k in REPORT_FIELDS})
+    for r in rost_rows or []:
+        if str(r.get("week") or "").strip() == str(week) and r.get("team") \
+                and (r.get("status") or "").strip().upper() == INACTIVE:
+            slot(r["team"])["inactive"].append({k: r.get(k) for k in INACTIVE_FIELDS})
+    for t in teams.values():
+        for k in ("report", "inactive"):
+            t[k].sort(key=lambda p: (str(p.get("full_name") or ""), str(p.get("gsis_id") or "")))
+    return dict(sorted(teams.items()))
+
+
+def newest_check(data):
+    """(path, doc) of the newest stored NFL injury-check snapshot, or (None, None)."""
+    for p in sorted(glob.glob(os.path.join(data, "[0-9]*", "injury-reports", "*.json.gz")),
+                    reverse=True):
+        doc = _stored_json(p)
+        if isinstance(doc, dict) and doc.get("kind") == CHECK_KIND:
+            return p, doc
+    return None, None
+
+
+def check_injuries(base, season, now=None, log=print, fetch=None):
+    """The NFL half of one injury check. -> {"sources": {kind: {"ok", ...}}, "week",
+    "counts", "injuries_file", "snapshot", "wrote", "changed"}. `fetch(kind, season)`
+    -> csv rows (a test's stand-in; kind is "injuries" or "weekly_rosters").
+    ⛔ NEVER RAISES. ⛔ A snapshot needs BOTH sources: half a reading stored as a
+    change would read as every listed player cleared."""
+    import daystore
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    out = {"sources": {}, "week": None, "counts": {}, "injuries_file": None,
+           "snapshot": None, "wrote": False, "changed": False}
+    try:
+        data = os.path.dirname(os.path.normpath(base))
+        seen, rows = [None], {}
+        for kind in ("injuries", "weekly_rosters"):
+            name = FILES[kind].format(y=season)
+            try:
+                if fetch is not None:
+                    got = fetch(kind, season)
+                else:
+                    if seen[0] is None:
+                        seen[0] = {r["tag_name"]: [(a["name"], a["size"], a["browser_download_url"])
+                                                   for a in (r.get("assets") or [])] for r in _releases(log)}
+                    got = _rows(seen[0], kind, name, log)
+                rows[kind] = list(got or [])
+                out["sources"][kind] = {"ok": True, "file": name, "rows": len(rows[kind])}
+            except Exception as e:
+                out["sources"][kind] = {"ok": False, "file": name,
+                                        "error": "%s: %s" % (type(e).__name__, str(e)[:200])}
+        if "injuries" in rows:
+            out["injuries_file"] = store_injuries(base, [season], log, now,
+                                                  fetch_rows=lambda _s: rows["injuries"])[season]
+        out["week"] = check_week(base, season, now)
+        if len(rows) < 2 or out["week"] is None:
+            out["why_no_snapshot"] = ("no game this week in the stored schedule" if len(rows) == 2
+                                      else "a source failed, so no snapshot (half a reading is not one)")
+            return out
+        teams = week_statuses(out["week"], rows["injuries"], rows["weekly_rosters"])
+        out["counts"] = {"teams": len(teams),
+                         "with_status": sum(len(t["report"]) for t in teams.values()),
+                         "inactive": sum(len(t["inactive"]) for t in teams.values())}
+        doc = {"kind": CHECK_KIND, "league": "nfl", "season": season, "week": out["week"],
+               "checked_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+               "source": {"report": "nflverse " + FILES["injuries"].format(y=season),
+                          "inactive": "nflverse %s, status %s" % (FILES["weekly_rosters"].format(y=season),
+                                                                   INACTIVE)},
+               "note": ("STORED ONLY: what nflverse said at this check. No model reads it. "
+                        "report: every player the week's injury report gives a status; "
+                        "inactive: the week's game-day inactives."),
+               "teams": teams}
+        prev_p, prev = newest_check(data)
+        if prev is not None and (prev.get("season"), prev.get("week"), prev.get("teams")) == \
+                (season, out["week"], json.loads(json.dumps(teams))):
+            out["snapshot"] = prev_p
+            log("  injury check: unchanged since %s (no snapshot)" % prev_p)
+            return out
+        out["changed"] = True
+        out["snapshot"], out["wrote"] = daystore.archive(doc, data, "injury-reports", log=log, when=now)
+        log("  injury check: week %s, %d with a status, %d inactive -> %s" % (
+            out["week"], out["counts"]["with_status"], out["counts"]["inactive"], out["snapshot"]))
+    except Exception as e:
+        out["error"] = "%s: %s" % (type(e).__name__, str(e)[:200])
     return out
 
 

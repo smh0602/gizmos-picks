@@ -239,7 +239,11 @@ def _unrunnable(lg, governed):
                # `[Sam, 2026-10-17]` the college injury reader has no cron: its
                #    probe row shares T["news"], so the hourly college news
                #    cron's converge pass plans it (test_cfb_injuries_wiring.py §1).
-               "cfb-injuries": "news"}
+               "cfb-injuries": "news",
+               # `[Sam, 2026-10-26]` the game-day injury check has no cron either: the
+               #    hourly news cron's converge pass plans it from its probe row, within
+               #    20 minutes of every slot, EDT and EST (test_injury_check.py §2).
+               "injury-check": "news"}
     return sorted(m for m in governed
                   if m not in scheduled and drivers.get(m) not in scheduled)
 

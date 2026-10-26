@@ -25,7 +25,7 @@ that ends in "unknown mode"). Against them, for every league:
      source, so a row that today's tree filters out (a props row before a
      props board exists, a season not started) is covered too;
   3. every mode-keyed table converge and the gate consult — `SOFT`,
-     `OFF_PAGE`, `LATE_GRACE_MIN`, `CASCADE`, `SOURCE_BACKED` — and the
+     `OFF_PAGE`, `LATE_GRACE_MIN`, `CASCADE`, `SOURCE_BACKED`, `UNTIMED` — and the
      key-free `FREE` tuple inside `run_mode`. A table entry naming no mode
      is dead: it looks like a decision and governs nothing.
 
@@ -376,6 +376,8 @@ _TABLES = {
     "LATE_GRACE_MIN": set(F.LATE_GRACE_MIN),
     "CASCADE": set(F.CASCADE) | {m for v in F.CASCADE.values() for m in v},
     "SOURCE_BACKED": set(F.SOURCE_BACKED),
+    # `[2026-10-26]` the rows lateness.json does not record (the game-day injury check)
+    "UNTIMED": set(F.UNTIMED),
 }
 for _name, _set in sorted(_TABLES.items()):
     _bad = sorted(_set - DISPATCHED)

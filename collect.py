@@ -4512,6 +4512,105 @@ def _ensure_cfb_team_directory():
             f"{type(e).__name__}: {e} — logos will fall back to text")
 
 
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE GAME-DAY INJURY CHECK. `[Sam, 2026-10-26]`
+# ══════════════════════════════════════════════════════════════════════
+# *"make sure we're looking at injury status at 12pm of games starting and 7pm so
+# we can make sure the models adjusted for injuries when deciding outcome for a
+# vame"*, and for college's model *"do 9am, 12pm, 7pm"*. The `injury-check` mode,
+# planned by converge from its contract row (freshness.INJURY_CHECK_ET: 9:00, 12:00
+# and 19:00 REAL Eastern time on a day with a game still to start after the slot).
+# ⛔ NO CRON CHANGE. It reads the league's injury reports:
+#   nfl    this season's nflverse report into injuries-<season> (rewritten only on
+#          a change) and the week's statuses and game-day inactives into a dated
+#          snapshot, only on a change (`nfl.check_injuries`; STORED ONLY: NFL
+#          injuries failed their test and stay off). It honours nfl-logs' nflverse
+#          back-off: a check never feeds a rate-limit storm.
+#   ncaaf  the conference reports (`cfb_injuries.run`, snapshots on a change), ⛔
+#          ONCE per slot: a reader run already made at or after the slot (this
+#          pass's `cfb-injuries`, planned first) is reused, not repeated.
+# ...then `freshness.CASCADE` runs `card-fb` in the same pass: the game model, the
+# Game Lines tab, the card and its whys are rebuilt with the status as of the
+# check. A pick moves only through a model that reads injuries: college's, once
+# Sam merges the switch (a game still to start reads the newest report as of the
+# build, `cfb_injuries.read_cut`).
+# ✅ ITS PROBE (latest/injury-check.json) IS WRITTEN ON EVERY ATTEMPT: the slot
+#    it served and how late, each source's answer, the counts, the snapshot, the
+#    next slot. 💰 Free: no key, no Odds credit, no CFBD call. ⛔ Never raises.
+def collect_injury_check(at=None):
+    """One game-day injury check for LEAGUE. -> the probe it wrote."""
+    at = at or now()
+    ts = at.strftime("%Y-%m-%dT%H:%M:%SZ")
+    season = _fresh.current_football_season(at)
+    slots = _fresh.injury_check_slots(LEAGUE, LATEST, at)
+    served = max((s for s in slots if s[1] <= at), key=lambda s: s[1], default=None)
+    nxt = min((s for s in slots if s[1] > at), key=lambda s: s[1], default=None)
+    iso = lambda t: t.strftime("%Y-%m-%dT%H:%MZ")   # noqa: E731
+    probe = {"league": LEAGUE, "kind": "DIAGNOSTIC", "built_at": ts, "checked_at": ts,
+             "slot": None if served is None else {
+                 "et": served[0], "utc": iso(served[1]),
+                 "late_min": round((at - served[1]).total_seconds() / 60.0, 1)},
+             "next_slot": None if nxt is None else {"et": nxt[0], "utc": iso(nxt[1])},
+             "slots_owed_today": [s[0] for s in slots],
+             "sources": {}, "counts": {}, "snapshot": None, "changed": False,
+             "rebuild": "card-fb runs after this check in the same pass (freshness.CASCADE)",
+             "note": ("The game-day injury check (9:00, 12:00 and 19:00 ET). STORED ONLY for "
+                      "the NFL; college's model reads the newest report for a game still to "
+                      "start.")}
+    try:
+        if LEAGUE == "nfl":
+            wait = _cfb_backoff_left(f"{LATEST}/backfill-report.txt")
+            if wait > 0:
+                why = "standing down: nfl-logs' nflverse back-off has %.0f min left" % wait
+                probe["sources"] = {k: {"ok": False, "error": why} for k in ("injuries", "weekly_rosters")}
+            else:
+                import nfl as _nfl
+                res = _nfl.check_injuries(LATEST, season, at, log)
+                for k in ("sources", "week", "counts", "snapshot", "changed", "injuries_file",
+                          "why_no_snapshot", "error"):
+                    if res.get(k) is not None:
+                        probe[k] = res[k]
+        else:
+            import cfb_injuries as _ci
+            prev = _fresh.stamp_of(_ci.probe_path(season, "."))
+            if served is not None and prev is not None and prev >= served[1]:
+                probe["reader"] = "reused the college reader's run at %s (at or after the slot)" % iso(prev)
+                with open(_ci.probe_path(season, "."), encoding="utf-8") as fh:
+                    src = json.load(fh).get("sources") or {}
+            else:
+                res = _ci.run(root=".", log=log)   # ⛔ this run's own tree (a test runs it from a copy)
+                probe["reader"] = "ran the college reader"
+                src = res.get("sources") or {}
+                if res.get("error"):
+                    probe["error"] = res["error"]
+            probe["sources"] = {s: {k: v for k, v in (d or {}).items()
+                                    if k in ("ok", "error", "last_ok_at", "fetched_at", "n_reports")}
+                                for s, d in sorted(src.items())}
+            snap_p, snap = _ci.newest_snapshot(".")
+            later = [r for r in (snap or {}).get("reports") or []
+                     if (_ci._utc(r.get("kickoff")) or at) > at]
+            listed = [p for r in later for ps in (r.get("teams") or {}).values() for p in ps or []]
+            probe["snapshot"] = snap_p
+            probe["counts"] = {"games": len({str(r.get("game_id")) for r in later}),
+                               "teams": sum(len(r.get("teams") or {}) for r in later),
+                               "with_status": len(listed),
+                               "out": sum(1 for p in listed
+                                          if str(p.get("status") or "").lower() in _ci.OUT_STATUSES)}
+    except Exception as e:
+        probe["error"] = "%s: %s" % (type(e).__name__, str(e)[:200])
+    write(f"{LATEST}/injury-check.json", probe)
+    _src = probe.get("sources") or {}
+    if probe.get("error") or not _src or not any((v or {}).get("ok") for v in _src.values()):
+        # print, not log(): GitHub reads an annotation only at the start of a line
+        print(f"::warning::injury-check read nothing for {LEAGUE} ("
+              + (probe.get("error") or "; ".join("%s: %s" % (k, (v or {}).get("error"))
+                                                 for k, v in sorted(_src.items())) or "no source")
+              + f"); see {LATEST}/injury-check.json", flush=True)
+    log(f"  injury check {LEAGUE}: slot {probe['slot'] and probe['slot']['et']} "
+        f"counts {probe['counts']} snapshot {probe['snapshot']}")
+    return probe
+
+
 def run_mode(mode):
     """Run ONE mode. Raises on failure; `main` decides what that means."""
 
@@ -4537,6 +4636,7 @@ def run_mode(mode):
             "coaches-probe",
             "fb-scores", "fb-record", "live-probe",
             "card-fb", "nfl-teams", "cfb-teams", "runs", "game-model",
+            "injury-check",
             "cfb-injuries")
     if mode not in FREE and not ODDS_KEY:
         log("FATAL: ODDS_API_KEY is not set. Add it as a repository secret.")
@@ -4697,6 +4797,17 @@ def run_mode(mode):
             if _sick:
                 print(f"::warning::cfb-injuries for {LEAGUE}: {_sick}; see {_res.get('probe')}",
                       flush=True)
+            left = None
+        elif mode == "injury-check":
+            # 🔴 `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK (see `collect_injury_check`):
+            #    9am, 12pm and 7pm ET on a game day, both football leagues, planned by
+            #    converge from its probe's row; `card-fb` follows it in the same pass
+            #    (freshness.CASCADE). 💰 FREE. ⛔ Never raises; SOFT besides.
+            #    ⛔ FOOTBALL ONLY, and NOT in MODE_LEAGUE: it runs in whichever football
+            #    league's pass plans it (MODE_LEAGUE pins a mode to ONE league).
+            if LEAGUE == "mlb":
+                return log("injury-check is football only; MLB has no injury check. Nothing done.")
+            collect_injury_check()
             left = None
         elif mode == "card-fb":
             # ⛔ FREE -- it reads the board already on disk and computes.

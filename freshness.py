@@ -353,6 +353,22 @@ def results_settled(day, data="data"):
                                for g in games)
 
 
+class Moments(tuple):
+    """`[Sam, 2026-10-26]` A ROW'S DEADLINES AS REAL UTC MOMENTS, not ET
+    wall-clock tuples. The game-day injury check (`injury_check_times`) is due
+    at 9:00, 12:00 and 19:00 REAL Eastern time, only on a day with a game still
+    to start after the slot, so it cannot be written as `(hh, mm, {days})`:
+    those are read at the file's fixed UTC-4 (`ET_OFFSET`), an hour early from
+    November. ✅ `last_due` / `next_due` / `survey` read a Moments as it is:
+    the newest moment at or before `now`, the first one after it, and `label`
+    for the survey's `due_et`. ⛔ Every other row keeps its tuples untouched."""
+
+    def __new__(cls, moments=(), label=""):
+        self = tuple.__new__(cls, sorted(moments))
+        self.label = label
+        return self
+
+
 def last_due(times_et, now=None):
     """The most recent scheduled build time that has already passed.
 
@@ -373,8 +389,12 @@ def last_due(times_et, now=None):
     ⛔ LOOK BACK FAR ENOUGH TO FIND ONE. A weekly deadline can be six days
     behind, so the 2-day window that served daily MLB artifacts would
     return None and mark a perfectly fresh weekly file as never-due.
+    `[2026-10-26]` A `Moments` is real UTC already: its newest moment at or
+    before `now`.
     """
     now = now or datetime.datetime.now(UTC)
+    if isinstance(times_et, Moments):
+        return max((m for m in times_et if m <= now), default=None)
     et = now - ET_OFFSET
     best = None
     for back in range(0, 8):
@@ -395,8 +415,11 @@ def next_due(times_et, now=None):
     """The next scheduled build time strictly after `now` — `last_due`'s
     mirror, same day rules and the same fixed ET offset. None if none in a
     week. `[2026-09-24]` The alt-line pull buys each game at the LAST props
-    deadline before its kickoff, so it asks whether another one comes first."""
+    deadline before its kickoff, so it asks whether another one comes first.
+    `[2026-10-26]` A `Moments`: its first moment after `now`."""
     now = now or datetime.datetime.now(UTC)
+    if isinstance(times_et, Moments):
+        return min((m for m in times_et if m > now), default=None)
     et = now - ET_OFFSET
     best = None
     for fwd in range(0, 8):
@@ -799,9 +822,13 @@ def kickoffs_utc(league, path):
     rather than hiding one, **but a four-hour error is a four-hour error
     and it is fixed here, in one place, for every caller.**
     ⚠️ Winter matters: ET is UTC-5 from November, and the NFL plays into
-    January. Real `zoneinfo` is used where it exists and the file's fixed
+    January. Real `zoneinfo` is used where it exists and ~~the file's fixed
     -4 is the fallback, which is an hour off in the winter and SAID SO
-    rather than assumed away.
+    rather than assumed away~~ `[2026-10-26]` the fallback is the US
+    daylight-time rule, computed (`et_wall_utc`), so a platform with no tz
+    database (Windows) reads a November 1pm kickoff as 18:00Z, not 17:00Z:
+    the game-day injury check decides from these kickoffs which of its
+    slots a game still needs (test_injury_check.py).
 
     Returns aware UTC datetimes, or **None if the schedule cannot be read**
     -- and None means *cannot tell*, never *nothing to do*.
@@ -847,9 +874,80 @@ def kickoff_games(league, path):
         elif zone is not None:
             k = t.replace(tzinfo=zone).astimezone(UTC)
         else:
-            k = t.replace(tzinfo=UTC) + ET_OFFSET
+            k = et_wall_utc(t)          # ~~t.replace(tzinfo=UTC) + ET_OFFSET~~ [2026-10-26]
         out.append((k, g))
     return out
+
+
+def et_wall_utc(naive):
+    """`[2026-10-26]` US Eastern wall-clock time (naive) -> real UTC, by the US
+    daylight-time rule. ⛔ ONE COPY (rule 117): fb_weather's
+    `_us_eastern_offset`, the rule cfb_injuries and the NWS forecasts already
+    use, computed rather than looked up, so a runner or a laptop without a tz
+    database gets the same answer as one with it."""
+    from fb_weather import _us_eastern_offset
+    return (naive - datetime.timedelta(hours=_us_eastern_offset(naive))).replace(tzinfo=UTC)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🔴🔴 THE GAME-DAY INJURY CHECK: 9AM, 12PM AND 7PM REAL EASTERN TIME.
+#    `[Sam, 2026-10-26]`
+# ══════════════════════════════════════════════════════════════════════
+# Sam: *"make sure we're looking at injury status at 12pm of games starting and
+# 7pm so we can make sure the models adjusted for injuries when deciding outcome
+# for a vame"*; asked whether college's adjustment should read the 12pm/7pm
+# reports or the 9am one it was tested on: *"do 9am, 12pm, 7pm"*.
+# ✅ ONE ROW PER LEAGUE (`injury-check`, its probe `latest/injury-check.json`),
+#    due at each of these slots on an ET day with a game still to kick off
+#    AFTER the slot. The mode reads the injury reports (the NFL's nflverse
+#    report and game-day inactives, college's conference reports) and
+#    `CASCADE` rebuilds the card in the same pass, so the game model, the Game
+#    Lines tab, the card and its whys are rebuilt with the status as of the
+#    check. ⛔ NO CRON CHANGE: the hourly football pass converges both leagues
+#    and plans it from this row, like the college reader's.
+# ⚠️ REAL EASTERN TIME, NOT `ET_OFFSET`: 12:00 is 16:00Z under daylight time
+#    and 17:00Z from 2026-11-01 (`et_wall_utc`). The rest of the contract still
+#    reads the fixed UTC-4; moving it is a separate change.
+# ⛔ A SLOT WHOSE LATER GAMES HAVE ALL STARTED IS OWED NOTHING: a late pass does
+#    no pointless work for it and nothing reports it as missed.
+INJURY_CHECK_ET = ((9, 0), (12, 0), (19, 0))
+
+
+def _et_today(now):
+    """The real Eastern date `now` falls on."""
+    for d in sorted({(now - datetime.timedelta(hours=h)).date() for h in (4, 5)}):
+        nxt = d + datetime.timedelta(days=1)
+        if et_wall_utc(datetime.datetime(d.year, d.month, d.day)) <= now < \
+                et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day)):
+            return d
+    return (now - ET_OFFSET).date()          # unreachable: one of the two holds
+
+
+def injury_check_slots(league, latest, now=None):
+    """-> [("hh:mm" ET, real UTC moment)] of TODAY's (ET) injury-check slots a
+    game still needs: one kicking off on this ET day AFTER the slot that has
+    not kicked off by `now` (college counts a game with an FBS side, as every
+    college row does). ⛔ No readable schedule is CANNOT TELL, and cannot-tell
+    keeps every slot of the day owed (the `_props_warranted` rule)."""
+    now = now or datetime.datetime.now(UTC)
+    day = _et_today(now)
+    nxt = day + datetime.timedelta(days=1)
+    start = et_wall_utc(datetime.datetime(day.year, day.month, day.day))
+    end = et_wall_utc(datetime.datetime(nxt.year, nxt.month, nxt.day))
+    games = kickoff_games(league, f"{latest}/schedule-{current_football_season(now)}.json.gz")
+    kicks = None if games is None else [k for k, _g in games if start <= k < end and k > now]
+    out = []
+    for hh, mm in INJURY_CHECK_ET:
+        slot = et_wall_utc(datetime.datetime(day.year, day.month, day.day, hh, mm))
+        if kicks is None or any(k > slot for k in kicks):
+            out.append(("%d:%02d" % (hh, mm), slot))
+    return out
+
+
+def injury_check_times(league, latest, now=None):
+    """The injury-check row's deadlines: `injury_check_slots` as `Moments`."""
+    return Moments((m for _l, m in injury_check_slots(league, latest, now)),
+                   label="/".join("%d:%02d" % t for t in INJURY_CHECK_ET) + " real ET, game days")
 
 
 def _props_warranted(league, latest, now):
@@ -956,6 +1054,14 @@ def _football_contract(league, data, picks, now):
     #    in the same pass reads this pass's reports. `[2026-10-17, review]` placed before the
     #    card rows only, a props pass built the card on the previous pass's reports.
     #    ✅ SOFT (see SOFT): a failed read costs a why sentence, never a card.
+    # 🔴 `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK, BOTH LEAGUES (INJURY_CHECK_ET): due at
+    #    9:00, 12:00 and 19:00 real ET on a day with a game still to kick off after the slot,
+    #    on its own probe (written on every attempt). ⛔ BEFORE EVERY CARD-BUILDING MODE, like
+    #    the college reader (which stays first, so a check in the same pass reuses its read),
+    #    and `CASCADE` puts `card-fb` after it. ✅ SOFT, and never in lateness.json (UNTIMED).
+    rows = [("injury-check", ("file", f"{latest}/injury-check.json"),
+             injury_check_times(league, latest, now), False,
+             "Game-day injury check — 9am, 12pm, 7pm ET, then the card is rebuilt")] + rows
     if league == "ncaaf":          # college only: the NFL's injuries ride nfl-logs
         rows.insert(0,
             ("cfb-injuries", ("file", f"{latest}/injuries-probe-{season}.json"), T["news"], False,
@@ -1184,10 +1290,14 @@ def _football_contract(league, data, picks, now):
     # `[Sam, 2026-10-12]` T65: once Sam names a game-model CHAMPION, the file
     #    behind its input is a row like the others (talent: once a season,
     #    so only a missing season's file is late).
+    #    `[2026-10-26]` ⛔ A file written only on a change (ON_CHANGE) has no clock deadline
+    #    here either: T69 IN reads injuries-<season>, and a 3am deadline on it would be a red
+    #    run, every quiet day, the morning IN became champion.
     for fname, due in champion_inputs(league):
         rows.append((("nfl-logs" if league == "nfl" else "cfb-probe"),
                      ("file", f"{latest}/{fname.format(s=season)}"),
-                     T[due] if due else [], False, CHAMPION_INPUT))
+                     T[due] if due and not ON_CHANGE.search(fname.format(s=season)) else [],
+                     False, CHAMPION_INPUT))
     # `[Sam, 2026-10-14]` NEW DATA, STORED ONLY (see STORED_ONLY): the daily
     #    NWS forecasts and, by league, injuries / advanced stats, venues and CFBD
     #    weather. History seasons and once-a-season files are late only when
@@ -1196,7 +1306,10 @@ def _football_contract(league, data, picks, now):
     _yrs = sorted(set(FOOTBALL_HISTORY) | {season})
     _store = [(f"weather-{season}", T["possession"])]
     if league == "nfl":
-        _store += [(f"injuries-{s}", T["possession"] if s == season else []) for s in _yrs]
+        # `[2026-10-26]` ~~T["possession"] if s == season else []~~: nfl.store_injuries now
+        #    rewrites the file only when its content changes (ON_CHANGE), so its age says
+        #    nothing; its writers are watched by the injury-check probe and nfl-logs' rows.
+        _store += [(f"injuries-{s}", []) for s in _yrs]
     else:
         _store += [(f"adv-{s}", T["possession"] if s == season else []) for s in _yrs]
         _store += [(f"venues-{season}", [])]
@@ -1515,6 +1628,21 @@ SOFT = {"news", "weather", "lineups", "cfb-teams", "runs"}
 #    `cfb_injuries.run` never raises; SOFT covers the rest (its import, the
 #    arm), so a failed read is a `::warning::` and the pass goes on to the card.
 SOFT |= {"cfb-injuries"}
+# `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK (INJURY_CHECK_ET), both leagues. A failed
+#    read costs that check's statuses (the NFL's are stored only; college's model reads the
+#    newest report it has), never a card: the card-fb it cascades to stays hard.
+SOFT |= {"injury-check"}
+# ⛔ `[2026-10-26]` ROWS lateness.json DOES NOT RECORD (`record_builds`). The injury check's
+#    slot is served by whichever football pass lands first after it, and GitHub starts those
+#    passes 34 minutes after noon (p50) and 59 after 7pm, 145 at p90 (measured 10-03 -> 10-26):
+#    recorded, it would be a `late:` finding (DEGRADED) on most game-day evenings with nothing
+#    to repair. The probe keeps each check's own `late_min` instead.
+UNTIMED = {"injury-check"}
+# 🔴 `[2026-10-26]` FILES REWRITTEN ONLY WHEN THEIR CONTENT CHANGES: their age says nothing (a
+#    quiet day writes none), so a row on one carries no clock deadline, stored-only or not.
+#    nfl.store_injuries (git cannot delta a gzip: a daily rewrite of an unchanged file is a
+#    full copy in the history every day).
+ON_CHANGE = re.compile(r"(^|/)injuries-\d{4}\.json\.gz$")
 # 🔴 STORED-ONLY DATA `[Sam, 2026-10-14]`: files no tab or model reads yet
 #    (NWS forecasts, injuries, CFBD advanced stats / venues / weather). A stale
 #    one is a `::warning::` (soft) and ⛔ NEVER PLANS A RUN: its writer is a
@@ -1999,6 +2127,11 @@ CASCADE = {
     "gamelines":     ["props-board"],
     "results":       ["record"],
     "scores":        ["record"],
+    # 🔴 `[Sam, 2026-10-26]` THE GAME-DAY INJURY CHECK REBUILDS THE CARD IN THE SAME PASS:
+    #    the game model, the Game Lines tab, the card and its whys, with the status as of the
+    #    check. ⛔ NOT `cfb-injuries`: it is planned on every college pass Wed-Sat, and a
+    #    card rebuild on every pass is not what Sam asked for (test_injury_check.py).
+    "injury-check":  ["card-fb"],
 }
 
 
@@ -2030,7 +2163,7 @@ def survey(data="data", picks="picks", now=None, entries=None):
             # ⚠️ A deadline may carry the days it applies on. The label
             # says so, because "12:00" and "Mon 12:00" are different
             # promises and a reader is entitled to know which.
-            "due_et": "/".join(
+            "due_et": times.label if isinstance(times, Moments) else "/".join(
                 (f"{t[0]}:{t[1]:02d}" if len(t) < 3 else
                  f"{'/'.join(_DOW[d] for d in sorted(t[2]))} {t[0]}:{t[1]:02d}")
                 for t in times),
@@ -2067,6 +2200,8 @@ def survey(data="data", picks="picks", now=None, entries=None):
 #    usual 10-15 minute delay; 10-06's card was 122 minutes late.
 # ⛔ A row whose deadline is a MAXIMUM AGE (`LATE_GRACE_MIN`: the hourly run
 #    list) has no time it was due, so it is not recorded.
+# ⛔ `[2026-10-26]` Nor is an UNTIMED row (the game-day injury check): its probe keeps
+#    its own lateness, and GitHub's start delay is not a finding about it.
 GRACE_MIN = 60
 LATENESS_FILE = "lateness.json"
 
@@ -2082,7 +2217,7 @@ def record_builds(rows, path, now=None):
         arts, late = {}, []
     for r in rows:
         if (r.get("due_at") is None or r.get("stale") or r.get("age_min") is None
-                or r.get("mode") in LATE_GRACE_MIN):
+                or r.get("mode") in LATE_GRACE_MIN or r.get("mode") in UNTIMED):
             continue
         key = re.sub(r"\d{4}-\d{2}-\d{2}", "{date}", r["path"])   # picks/{date}.json is ONE artifact
         old = arts.get(key) or {}
