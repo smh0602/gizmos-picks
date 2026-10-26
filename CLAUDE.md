@@ -575,6 +575,33 @@ note boxes, tags and the stale bar now require their absence.
   planned rebuild of a CFBD mode. `test_fb_new_data.py`. `[Sam, 2026-10-17]` The college
   injury reports, archives, rosters and defensive logs are stored the same way; the why reads a
   CURRENT report, and the model reads them only once its test passes (COLLEGE INJURIES).
+  `[2026-10-26]` So are the game-day injury check's NFL snapshots (data/nfl/<day>/injury-reports/,
+  written only on a change); `injuries-<season>` is now rewritten only when its content changes, so
+  its row has no clock deadline (`freshness.ON_CHANGE`; GAME-DAY INJURY CHECK).
+- 🔴 **THE GAME-DAY INJURY CHECK: 9AM, 12PM AND 7PM ET, BOTH FOOTBALL LEAGUES.** `[Sam,
+  2026-10-26]` *"make sure we're looking at injury status at 12pm of games starting and 7pm so we
+  can make sure the models adjusted for injuries when deciding outcome for a vame"*; asked "Should
+  college's injury adjustment use the 12pm/7pm reports, or the 9am one it was tested on?": *"do 9am,
+  12pm, 7pm"*. ✅ The `injury-check` mode, one contract row per league on its probe
+  (`latest/injury-check.json`, written on every attempt): due at 9:00, 12:00 and 19:00 REAL
+  Eastern time (`freshness.INJURY_CHECK_ET`, `et_wall_utc` = fb_weather's DST rule; 12:00 is 16:00Z
+  under daylight time and 17:00Z from 11-01) on an ET day with a game still to kick off AFTER the
+  slot; a slot whose later games have all started is owed nothing. ⛔ NO CRON CHANGE: the hourly
+  news cron's pass plans it (a `Moments` deadline). NFL: this season's nflverse report into
+  injuries-<season> (rewritten only on a change) and the week's statuses and game-day INACTIVES
+  (roster_weekly INA) into a dated snapshot only on a change, STORED ONLY (`nfl.check_injuries`;
+  it honours nfl-logs' back-off); college: the conference reports, once per slot
+  (`cfb_injuries.run`, reused when this pass's reader already ran after the slot). Then `CASCADE`
+  runs `card-fb` in the same pass: the game model, Game Lines, the card and its whys are rebuilt
+  with the status as of the check (⛔ never after a plain `cfb-injuries` pass). SOFT; never in
+  lateness.json (`UNTIMED`: GitHub's start delay would be a `late:` finding most game-day
+  evenings). ⚠️ WHAT IT DOES NOT DO: it changes a pick only through a model that reads injuries.
+  College's does, once Sam merges the switch (its test passed 2026-10-19): a game still to start
+  reads the newest report as of each build (`cfb_injuries.read_cut`; design §5), a started or
+  final game and every training, record and backtest caller keep §3's tested 9:00 cut. The NFL's
+  adjustment FAILED its test (10-17) and stays off; signal 7 still reads the week before. ⚠️ The
+  rest of the contract still reads a fixed UTC-4 (`ET_OFFSET`), an hour off from 11-01: a
+  separate change. `test_injury_check.py`.
 - 🔴 **THE FOOTBALL GAME MODEL READS ITS OWN TEAM RATINGS, NEVER THE BOOKS'.** `[Sam,
   2026-10-11]` *"our model needs to know the data and know these teams better than
   they know themselves"*. `fb_model.own_ratings`: per row, every final game of every
@@ -793,6 +820,16 @@ note boxes, tags and the stale bar now require their absence.
   number: `fb_inj_backtest.py` runs it ONCE, by itself, in the Monday fb-refit job once the data
   is stored, and pushes one `fb/injuries-ncaaf-<date>` branch for Sam (the switch only on a PASS);
   the Monday email names it. ⛔ Merging is Sam's. `test_cfb_injuries.py`, `test_fb_inj_backtest.py`.
+  `[Sam, 2026-10-26]` ✅ IT PASSED 2026-10-19 (log loss 0.7205076 v 0.7205148, closing return
+  −3.91% v −4.12%, recorded in research/fb_sim_backtest.json `injuries.ncaaf`, branch
+  `fb/injuries-ncaaf-2026-10-19`), and the game-day injury check's PR carries that switch:
+  `INJURIES["ncaaf"]` is ON from Sam's merge, after he asked for the models to adjust for injuries
+  (*"make sure we're looking at injury status at 12pm of games starting and 7pm so we can make sure
+  the models adjusted for injuries when deciding outcome for a vame"*) and answered *"do 9am, 12pm,
+  7pm"*: ~~the newest snapshot fetched before 9:00 ET on game day, for every game~~ a game still to
+  start reads the newest report as of each build (`cfb_injuries.read_cut`, design §5); a started or
+  final game, the training rows, the record and `fb_inj_backtest` keep §3's 9:00 cut. The Monday
+  email stops listing the branch once main holds the entry (`status.injury_recorded`).
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
   tab with moneyline predictions, in this tab you will simply just give the
@@ -1038,6 +1075,9 @@ note boxes, tags and the stale bar now require their absence.
 collect.py        the collector. modes: gamelines, schedule, results,
                   hitters, pitchers, news, props-batter, props-pitcher,
                   props-board, card, record, refresh, lineups
+                  `[Sam, 2026-10-26]` injury-check, football: the game-day
+                  injury check (`collect_injury_check`, 9am/12pm/7pm ET),
+                  planned by converge, card-fb after it (no cron).
 card.py           the v4.0 model -> picks/<date>.json. Calls nothing.
 winners.py        THE GAME LINES TAB, ALL THREE LEAGUES (Sam, 2026-10-01):
                   the model's pick to win each slate game, the best
@@ -1137,12 +1177,19 @@ cfb_injuries.py   COLLEGE INJURIES (Sam, 2026-10-17): the conference
                   `cfb-injuries` mode; `report_for` (the why), `attach` (the
                   model, only once its test passes). Stdlib only, never
                   raises. Design: research/cfb_injuries_design.md.
+                  `[Sam, 2026-10-26]` `read_cut`: a game still to start at a
+                  build reads the newest report as of it ("do 9am, 12pm,
+                  7pm", design §5); started games and `now` None keep §3.
 fb_inj_backtest.py THE INJURY TEST'S RUNNER, both leagues: the bar fixed
                   before it ran (fb_sim_design.md §3, cfb_injuries_design.md
                   §4), recorded ONCE in research/fb_sim_backtest.json; `auto`
                   runs it by itself in the Monday fb-refit job and pushes one
                   fb/injuries-<lg>-* branch. test_fb_inj_backtest.py.
 nfl.py            NFL ingestion from nflverse. STDLIB ONLY.
+                  `[2026-10-26]` `store_injuries` rewrites a season's file only
+                  on a change; `check_injuries`: the game-day injury check's
+                  NFL half (the week's statuses + roster_weekly INA inactives,
+                  a daystore snapshot only on a change, STORED ONLY).
 record_fb.py      the football grader -> data/<lg>/latest/record.json
                   `[Sam, 2026-10-17]` also the game lines every card showed
                   (`grade_game_lines`) and the Board (props + game lines).
@@ -1340,6 +1387,13 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   by the contract's own survey, on its own row (`props_rows`).
                   `after_last_survey`: a deadline that passed after the
                   league's last survey is the next pass's (10-19's 1.9 s).
+                  `[Sam, 2026-10-26]` the `injury-check` row: `INJURY_CHECK_ET`
+                  (9:00/12:00/19:00), `injury_check_slots` (real Eastern time,
+                  `et_wall_utc`, game days only), a `Moments` deadline (real
+                  UTC moments; every other row keeps its ET tuples), CASCADE
+                  to card-fb, SOFT, `UNTIMED` (not in lateness.json);
+                  `ON_CHANGE`: a file rewritten only on a change has no clock
+                  deadline.
 verify_freshness.py  fails the run when the site is not current.
                   `[Sam, 2026-10-01]` The page shows no stale-data bar
                   and no "out of date" note; staleness reaches Sam
@@ -1378,6 +1432,8 @@ status.py         THE WEEKLY STATUS EMAIL (Sam, 2026-10-07): one issue, updated
                   and commented each Monday, and any day the health check is
                   too old (status.yml, daily), from the repo's own files.
                   ⛔ A report, never a task (`self_repair.COUNTER`).
+                  `[2026-10-26]` an injury branch whose entry main already
+                  holds is no longer "Needs you" (`injury_recorded`).
 card_gate.py      did the card fail for a reason Sam already accepted?
                   ⚠️ `[2026-10-01]` the page no longer says a card was
                   published past an accepted check (the stale bar went).
