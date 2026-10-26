@@ -252,6 +252,26 @@ under data/ or picks/; the WINS branch is pushed to a planted bare repo.
 #   file: status.py
 #   find:         if x.get("verdict") != "WINS":
 #   with:         if x.get("verdict") != "WINS" or not x.get("branch"):
+#
+# @vacuity 🔴 T72: CL's numbers are pinned (the offence class's home points edge)
+#   file: fb_challengers.py
+#   find:                 num[t][1] += w * (pf - (s["base"] + s["hpe"] * (1.0 if f > 0 else 0.0) + O[t] - D[o]))
+#   with:                 num[t][1] += w * (pf - (s["base"] + O[t] - D[o]))
+#
+# @vacuity 🔴 T72: ...and what "above average" means in college (against the FBS teams' mean)
+#   file: fb_model.py
+#   find:     ref = teams if lg == "nfl" else teams & set(fbs or ())
+#   with:     ref = teams
+#
+# @vacuity 🔴 T72: WL's numbers are pinned (the resume's home edge)
+#   file: fb_challengers.py
+#   find:     return s["a"] * (0.0 if neutral else 1.0) + s["B"][home] - s["B"][away]
+#   with:     return s["B"][home] - s["B"][away]
+#
+# @vacuity 🔴 T72: AJ's numbers are pinned (passing PLUS rushing yards allowed)
+#   file: fb_challengers.py
+#   find: DEF_UNITS = ("pass_yds", "rush_yds")
+#   with: DEF_UNITS = ("pass_yds",)
 """
 import atexit
 import datetime
@@ -637,10 +657,11 @@ eq({n: (c["league"], c["markets"], c["withdrawable"]) for n, c in FC.CHALLENGERS
 # `[Sam, 2026-10-15]` ~~2 and 3~~: T68 (§3b) adds AV and WX in each league; T69 (§3c)
 #    adds IN, AT, RS (NFL) and ATC, RSC (college).
 # `[Sam, 2026-10-16]` ~~8 and 8~~: T71 (§3e) adds SM and SMC.
+# `[Sam, 2026-10-26]` ~~9 and 9~~: T72 (§3f) adds CL, WL, MC, AJ (NFL) and CLC, WLC, MCC, AJC.
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "SM", "WX"],
-    "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "SMC", "T", "TS", "WXC"]},
-   "🔴 so alpha divides by 9 in the NFL and 9 in college (T71 adds SM, SMC)")
+   {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "RS", "S", "SM", "WL", "WX"],
+    "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "RSC", "SMC", "T", "TS", "WLC", "WXC"]},
+   "🔴 so alpha divides by 13 in the NFL and 13 in college (T72 adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC)")
 eq([R.registration("S", T1), R.registration("TS", T1, {"TS": "2026-10-01"}),
     R.registration("TS", T1, {"TS": "2026-10-21"}), R.registration("TS", T1, {"TS": None})],
    ["2026-10-19", "2026-10-19", "2026-10-26", None],
@@ -693,8 +714,9 @@ for _n in ("SM", "SMC"):
        "🔴 %s is scored like every challenger: only weeks from its registration, all three markets" % _n)
 _al = {lg: R.verdicts([dict(scored(300, 0.05, 0.001), name=n) for n, c in FC.CHALLENGERS.items()
                        if c["league"] == lg])[0]["alpha"] for lg in ("nfl", "ncaaf")}
-ck(all(abs(a - 0.01 / 9) < 1e-12 and a < 0.01 / 8 for a in _al.values()),
-   "🔴 the divisor is 9 in each league: every bar is stricter than 0.01 / 8, never looser", _al)
+# `[Sam, 2026-10-26]` ~~0.01 / 9, stricter than 0.01 / 8~~: T72 (§3f) adds four a league.
+ck(all(abs(a - 0.01 / 13) < 1e-12 and a < 0.01 / 9 for a in _al.values()),
+   "🔴 the divisor is 13 in each league: every bar is stricter than 0.01 / 9, never looser", _al)
 # `[2026-10-16]` ~~the first Monday on or after the merge day (10-19 -> 10-19)~~: AFTER it (§3e).
 eq([R.registration("SM", T1, {"SM": d}) for d in ("2026-10-16", "2026-10-19", "2026-10-21", "2026-10-26", None)],
    ["2026-10-19", "2026-10-26", "2026-10-26", "2026-11-02", None],
@@ -749,8 +771,15 @@ for _lg in ("nfl", "ncaaf"):
     finally:
         FM.CHAMPION[_lg] = _old
 eq(_crash, [], "🔴 against every champion, every other challenger's inputs build in all three markets")
-eq(sorted(_na), [("H", "S"), ("HC", "TS"), ("SM", "S"), ("SMC", "TS")],
-   "🔴 ...or it is NOT APPLICABLE: exactly S and TS against a champion with shorter lists (H, HC, SM, SMC)")
+# `[Sam, 2026-10-26]` ~~exactly S and TS against H, HC, SM, SMC~~: T72 (§3f) adds AJ, AJC, MC and MCC, which
+#    replace inputs at fixed places, against every champion that does more than append.
+eq(sorted(_na), [("AJ", "MC"), ("AJC", "MCC"), ("AT", "AJ"), ("AT", "MC"), ("ATC", "AJC"), ("ATC", "MCC"),
+                 ("H", "AJ"), ("H", "MC"), ("H", "S"), ("HC", "AJC"), ("HC", "MCC"), ("HC", "TS"),
+                 ("MC", "AJ"), ("MCC", "AJC"), ("S", "AJ"), ("S", "MC"), ("SM", "AJ"), ("SM", "MC"), ("SM", "S"),
+                 ("SMC", "AJC"), ("SMC", "MCC"), ("SMC", "TS"), ("T", "AJC"), ("T", "MCC"),
+                 ("TS", "AJC"), ("TS", "MCC")],
+   "🔴 ...or it is NOT APPLICABLE: S and TS against a champion with shorter lists (H, HC, SM, SMC); AJ, AJC, "
+   "MC and MCC against one that does more than append (S, TS, T, AT, ATC, H, HC, SM, SMC, and each other)")
 
 # ══════════════════════════════════════════════════════════════════════
 section("11. 🔴 SM AND SMC ARE PINNED: #275's NUMBERS ON A PLANTED LEAGUE WITH PLAYER LOGS")
@@ -854,10 +883,11 @@ try:
 finally:
     FM.CHAMPION["nfl"] = _old
 _bys = {x["name"]: x for x in _lgs["challengers"]}
-ck(_bys["S"]["verdict"] == "NOT APPLICABLE" and _bys["S"]["alpha"] == 0.01 / 8
-   and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n != "S"),
-   "🔴 with SM champion, S is NOT APPLICABLE (still in the divisor) and the rest are scored, no crash",
-   {n: x.get("verdict") for n, x in _bys.items()})
+# `[Sam, 2026-10-26]` ~~S alone, 0.01 / 8~~: T72 (§3f): beside SM, AJ and MC are NOT APPLICABLE too.
+ck(all(_bys[n]["verdict"] == "NOT APPLICABLE" and _bys[n]["alpha"] == 0.01 / 12 for n in ("S", "MC", "AJ"))
+   and all(x["history"]["predictions"] > 0 for n, x in _bys.items() if n not in ("S", "MC", "AJ")),
+   "🔴 with SM champion, S, MC and AJ are NOT APPLICABLE (still in the divisor, 0.01 / 12) and the rest are "
+   "scored, no crash", {n: x.get("verdict") for n, x in _bys.items()})
 _sum = S.refit_summary(_lgs, "NFL", NOW)
 _s_line = _sum[_sum.find("Challenger S (fewer inputs):"):].split(". Challenger")[0]
 ck(_s_line.startswith("Challenger S (fewer inputs): not applicable against the current champion")
@@ -1010,3 +1040,59 @@ _mon = lambda f: sorted({wk for wk, _mk in f.models})  # noqa: E731
 ck(any(w < "2025" for w in _mon(_was)) and not any(w < "2025" for w in _mon(_new)),
    "🔴 ...and none of those Mondays is fitted any more (each was a fit nobody scored)",
    (_mon(_was)[:3], _mon(_new)[:3], len(_was.models), len(_new.models)))
+
+# ══════════════════════════════════════════════════════════════════════
+section("17. 🔴 T72 (§3f): CL, WL, MC AND AJ ARE PINNED ON A PLANTED LEAGUE (A CHANGE IS A NEW CHALLENGER)")
+# ══════════════════════════════════════════════════════════════════════
+# `[Sam, 2026-10-26]` §3f: "What they read is frozen with them ... test_fb_refit.py pins their
+#    numbers on a planted league." Twelve teams (enough to rank defences), passing and rushing
+#    logs, blowouts both ways, a tie, neutral sites and two FCS teams. The formulas themselves are
+#    tested in test_fb_matchup_grade.py.
+T17 = tree()
+_r17 = random.Random(72)
+_tm17 = ["U%02d" % i for i in range(12)]
+_pw17 = {t: _r17.gauss(0, 8) for t in _tm17}
+_rot, _rd17 = _tm17[:], []
+for _ in range(11):
+    _rd17.append([(_rot[i], _rot[-1 - i]) for i in range(6)])
+    _rot = [_rot[0], _rot[-1]] + _rot[1:-1]
+_s17, _l17 = [], {}
+for _w in range(24):
+    _day = (datetime.date(2025, 9, 7) + datetime.timedelta(weeks=_w)).isoformat()
+    for _j, (_h, _a) in enumerate(_rd17[_w % 11]):
+        _h, _a = (_a, _h) if _w % 2 else (_h, _a)
+        _gid = "u%d_%d" % (_w, _j)
+        _p = {o: max(0, int(round(22 + (_pw17[o] - _pw17[x]) / 2 + _r17.gauss(0, 10))))
+              for o, x in ((_h, _a), (_a, _h))}
+        _p[_h] += 30 if _j == 1 else 0                     # blowouts to cap
+        _p[_a] = _p[_h] if (_w, _j) == (5, 2) else _p[_a]  # a tie
+        for _o, _x in ((_h, _a), (_a, _h)):
+            for _pos, _st in (("QB", {"att": 30, "pass_yds": _r17.randint(150, 330) + int(4 * _pw17[_o])}),
+                              ("RB", {"car": 25, "rush_yds": _r17.randint(60, 190) - int(3 * _pw17[_x])})):
+                _l17.setdefault(_o + _pos, {"name": _o + _pos, "pos": _pos, "g": []})["g"].append(
+                    dict(_st, d=_day, game_id=_gid, team=_o))
+        _s17.append({"id": _gid, "start": _day + "T17:00", "home": _h, "away": _a, "final": True,
+                     "neutral": _j == 0 and _w % 4 == 0, "home_score": _p[_h], "away_score": _p[_a],
+                     "home_class": "fcs" if _h in ("U10", "U11") else "fbs",
+                     "away_class": "fcs" if _a in ("U10", "U11") else "fbs"})
+_pin17 = {}
+for _lg in ("nfl", "ncaaf"):
+    put(T17, "data/%s/latest/schedule-2025.json.gz" % _lg, {"season": 2025, "games": _s17})
+    put(T17, "data/%s/latest/players-2025.json.gz" % _lg, {"players": _l17})
+    _rs = [row("q1", _lg, "2026-02-18", "U00", "U07", season=2025, final=False),
+           row("q2", _lg, "2026-02-18", "U03", "U11", season=2025, final=False)]
+    _rs[1]["sig"]["neutral"] = 1.0
+    for _n in [n for n, c in FC.CHALLENGERS.items() if c["league"] == _lg and n in FC.CLASS + FC.RESUME
+               + FC.CAPPED + FC.ADJUSTED]:
+        FC.attach(_n, _lg, _rs, T17)
+    _pin17[_lg] = [tuple(round(v, 6) for v in r["sig"]["cl"] + (r["sig"]["wl"], r["sig"]["mc"])
+                         + r["sig"]["aj"]["form"] + (r["sig"]["aj"]["def"],)) for r in _rs]
+# (cl_m, cl_t, wl, mc, form_m, form_t, def) per row; recorded from T72's code, 2026-10-26
+PIN17 = {"nfl": [(1.168634, -0.948036, 2.148288, 19.552597, 26.530806, 11.601687, 0.541667),
+                 (-0.532143, 0.103767, 0.618246, 4.344922, 9.537753, 57.604949, 0.5)],
+         "ncaaf": [(1.168634, -0.959542, 2.148288, 22.568859, 26.530806, 11.601687, 0.541667),    # FBS mean, cap 28
+                   (-0.532143, 0.075892, 0.618246, 5.857281, 9.537753, 57.604949, 0.5)]}
+ck(all(abs(a - b) < 1e-6 for lg in PIN17 for x, y in zip(_pin17[lg], PIN17[lg]) for a, b in zip(x, y))
+   and all(len(_pin17[lg]) == len(PIN17[lg]) == 2 for lg in PIN17),
+   "🔴 CL, WL, MC and AJ's numbers (and CLC, WLC, MCC, AJC's) are the numbers T72's code gave "
+   "(a change is a new challenger)", _pin17)

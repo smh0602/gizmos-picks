@@ -33,6 +33,16 @@ claim that can be wrong (rule 166).
 #   find:   AVC, WXC, ATC, RSC, HC, SMC = 9 -> p < 0.01 / 9 (fewer if any is withdrawn, §3).
 #   with:   AVC, WXC, ATC, RSC, HC, SMC = 9 -> p < 0.02 / 9 (fewer if any is withdrawn, §3).
 #
+# @vacuity 🔴 T72 (§3f): any edit to the matchup grade's counts and bar goes red
+#   file: research/fb_refit_spec.md
+#   find:   college P, T, TS, AVC, WXC, ATC, RSC, HC, SMC, CLC, WLC, MCC, AJC = 13 ->
+#   with:   college P, T, TS, AVC, WXC, ATC, RSC, HC, SMC, CLC, WLC, MCC, AJC = 12 ->
+#
+# @vacuity 🔴 T72 (§3f): ...and to its frozen definitions (the class shrink)
+#   file: research/fb_refit_spec.md
+#   find:   - Each = sum(w x residual) / (sum(w) + 10); no such game -> 0. The 10 is fixed here,
+#   with:   - Each = sum(w x residual) / (sum(w) + 5); no such game -> 0. The 10 is fixed here,
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -171,7 +181,10 @@ FROZEN = {
     # defined before any contest result; everything before it pinned below.
     # ~~"bffa3effc3a7a33fba8a58dccd4e1010ef0fd52281ed3d3f7e03212858b82c87"~~ (§3e corrected
     # before Sam's approval: the Monday AFTER the merge, the measured coherence, frozen code)
-    "fb_refit_spec.md": "0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21",
+    # ~~"0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21"~~
+    # [Sam, 2026-10-26] T72 (CL, CLC, WL, WLC, MC, MCC, AJ, AJC: the matchup grade) added as
+    # section 3f at Sam's instruction, defined before any result; everything before it pinned below.
+    "fb_refit_spec.md": "97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -181,6 +194,7 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3c. ", "85d120ebec7cfba98e68c5a3c2a84acc54d4fd2d72f9407abde9c188c6cd16de"),
                  ("fb_refit_spec.md", "\n## 3d. ", "551992a115c692c63117ecf07c5e230d7120a28d73a38638199e60b4d4f99999"),
                  ("fb_refit_spec.md", "\n## 3e. ", "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb"),
+                 ("fb_refit_spec.md", "\n## 3f. ", "0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21"),
                  ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 
