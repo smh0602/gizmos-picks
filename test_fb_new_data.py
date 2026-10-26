@@ -31,8 +31,8 @@ makes no network call, writes nothing under data/.
 #   find:         if lg == "ncaaf" and not (g.get("home_class") == "fbs" and g.get("away_class") == "fbs"):
 #   with:         if False:
 #
-# @vacuity 🔴 nflverse's Eastern wall time is read as daylight time in October
-#   file: fb_weather.py
+# @vacuity 🔴 nflverse's Eastern wall time is read as daylight time in October [2026-10-26: the rule moved, unchanged, from fb_weather.py to freshness.py]
+#   file: freshness.py
 #   find:     return -4 if mar.replace(hour=2) <= naive < nov.replace(hour=2) else -5
 #   with:     return -5
 #
