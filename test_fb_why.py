@@ -265,6 +265,21 @@ with and without it: every other field byte for byte the same.
 #   file: fb_model.py
 #   find: out["monday"][d] = wk
 #   with: out["monday"][d] = w.setdefault("monday", wk)
+#
+# @vacuity 🔴 ...nor one it changes before it reads any solve (the baseline build runs no list code at all)
+#   file: fb_model.py
+#   find: for w in wins or []:
+#   with: for w in [x.update(p_home=0.0) or x for x in wins or []]:
+#
+# @vacuity 🔴 a model file with no above_average block: no sentence, never a list made up in its place
+#   file: fb_why.py
+#   find: good = set((ctx.above.get("teams") or {}).get(wk) or ())
+#   with: good = set((ctx.above.get("teams") or {}).get(wk) or ()) or (set() if ctx.above else {t for g in ctx.finals for t in (g["home"], g["away"])})
+#
+# @vacuity 🔴 ...nor a default block read in its place
+#   file: fb_why.py
+#   find: self.above = fm.get("above_average") or {}
+#   with: self.above = fm.get("above_average") or {"monday": {"2026-10-25": "x"}, "teams": {"x": ["?"]}}
 """
 import datetime
 import gzip
@@ -666,8 +681,17 @@ try:
            "🔴 no list for the game's Monday: no sentence (never 0-0 for everyone)")
     finally:
         cx5.above = _aa
-    ck(not any(s.startswith("Against") for s in W.line_why(dict(SNF), W.Context("nfl", L, 2026))),
-       "   a model file with no above_average block (every file before 2026-10-26): no sentence")
+    # the same game and schedule as the first check, so the game IS found and only the block is missing
+    #    (section 1's tree stores no DEN-SEA game within a day of 10-26: it would stop before reading the block)
+    L5N = os.path.join(T, "five-noblock", "data", "nfl", "latest")
+    os.makedirs(L5N)
+    shutil.copy(os.path.join(L5, "schedule-2026.json.gz"), L5N)
+    put("fb-model.json", {"win_chances": []}, L5N)
+    eq(W.line_why(SNF, W.Context("nfl", L5N, 2026)),
+       ["own sentence", "The Seattle Seahawks score 16.8 and allow 20.7 points a game this season (6 games).",
+        "The Denver Broncos score 24 and allow 19.3 points a game this season (3 games)."],
+       "🔴 a model file with no above_average block (every file before 2026-10-26), the game found: every other "
+       "sentence, and no record sentence (never a list made up in its place)")
     done = W.explain([dict(SNF, confidence=61, price=-150)], "nfl", L5, kind="lines")
     ck(done[0]["why"][-1] == VS % "Seattle Seahawks 1-1-1, Denver Broncos 1-0"
        and done[0]["confidence"] == 61 and done[0]["price"] == -150,
@@ -710,7 +734,10 @@ try:
        "🔴 college: above the FBS teams' mean (2.0), so Beta and Gamma are not (they would be against every "
        "team's mean, -3.8), and an FCS team above the FBS mean (Climber) is")
 
-    # fb_model.build: the same synthetic league built with the solve handed over and without it.
+    # fb_model.build: the same synthetic league built twice, the solve handed over both times: once with
+    #    the real list, once with a stub in its place that reads none of its arguments (the baseline: no
+    #    list code runs at all). A baseline that ran the list code too would move with any change it made
+    #    before reading the solve, and that change would never be seen.
     NOW6 = datetime.datetime.now(UTC)
     SYN = []
     for i in range(230):
@@ -736,24 +763,22 @@ try:
                                                                "Under": {"pt": 44.5, "px": -110}}}}}))
     OWN6 = {MONS[0]: S19, MONS[1]: S26}
 
-    def fake_rows(hand_over):
-        def rows(*a, ratings=None, **k):
-            if hand_over and ratings is not None:
-                ratings.update(OWN6)
-            return json.loads(json.dumps(SYN))      # a fresh copy each build
-        return rows
+    def fake_rows(*a, ratings=None, **k):
+        if ratings is not None:
+            ratings.update(OWN6)
+        return json.loads(json.dumps(SYN))          # a fresh copy each build
 
-    _orig6 = (F.build_rows, F.log)
+    _orig6 = (F.build_rows, F.log, F.above_average_block)
     DOCS, TXT = {}, {}
     try:
-        F.log = lambda m: None
-        for hand in (False, True):
-            F.build_rows = fake_rows(hand)
-            out6 = os.path.join(T, "fb-model-%d.json" % hand)
-            DOCS[hand] = F.build("nfl", out=out6)
-            TXT[hand] = re.sub(r'"built_at": "[^"]*"', '"built_at": ""', open(out6, encoding="utf-8").read())
+        F.log, F.build_rows = (lambda m: None), fake_rows
+        for real in (False, True):                  # the baseline first, before any list code has run
+            F.above_average_block = _orig6[2] if real else (lambda *a, **k: {"monday": {}, "teams": {}})
+            out6 = os.path.join(T, "fb-model-%d.json" % real)
+            DOCS[real] = F.build("nfl", out=out6)
+            TXT[real] = re.sub(r'"built_at": "[^"]*"', '"built_at": ""', open(out6, encoding="utf-8").read())
     finally:
-        F.build_rows, F.log = _orig6
+        F.build_rows, F.log, F.above_average_block = _orig6
     ck(len(DOCS[True]["win_chances"]) == 2,
        "⚠️ the case exists: both upcoming games are on the Game Lines tab", DOCS[True]["win_chances"])
     eq(DOCS[True]["above_average"],
@@ -763,9 +788,9 @@ try:
        "then, from the solve build_rows handed it")
     eq(list(DOCS[True])[-1], "above_average", "🔴 ...as the LAST key of fb-model.json")
     _cut = lambda s: s[:s.index(',\n "above_average"')]  # noqa: E731
-    ck(_cut(TXT[True]) == _cut(TXT[False]) and DOCS[False]["above_average"] == {"monday": {}, "teams": {}},
-       "🔴🔴 every other field of fb-model.json is byte for byte what the build writes without the list (picks, "
-       "chances, scores, simulations, records, pricing): information only, it moves no %",
+    ck(_cut(TXT[True]) == _cut(TXT[False]) and list(DOCS[False])[-1] == "above_average",
+       "🔴🔴 every other field of fb-model.json is byte for byte what the build writes with NO list code at all "
+       "(picks, chances, scores, simulations, records, pricing): information only, it moves no %",
        (len(TXT[True]), len(TXT[False])))
 
     # build_rows itself, on a planted tree: the solve it hands over is the one its rows read
