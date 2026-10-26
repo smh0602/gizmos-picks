@@ -412,3 +412,38 @@ ck(S.refit_wins({"challengers": [_s8]}, "NFL")[0][0].endswith(
     "over 600 predictions scored since registration in 300 games, one-sided p = 1e-06 (it needed under 0.0007692)"),
    "🔴 one of the eight's WINS says its predictions were scored since registration",
    S.refit_wins({"challengers": [_s8]}, "NFL"))
+
+# ══════════════════════════════════════════════════════════════════════
+section("7. 🔴 ON REAL FITS: AN INPUT THAT IS ALL ZEROS (WX BEFORE STORED WEATHER) DIFFERS NOWHERE")
+# ══════════════════════════════════════════════════════════════════════
+# §3g: "one equal to the champion's carries no evidence, e.g. WX and WXC before stored weather".
+#    A planted league, fitted by fb_model.fit itself: WX's wind is missing (0) on every row it trains
+#    on, so its predictions are the champion's to the last bit, even on the last week's rows that
+#    do carry a forecast; E's EPA number is real on every row, so all of its predictions differ.
+import random  # noqa: E402
+_rng = random.Random(73)
+_TM = ["T%d" % i for i in range(8)]
+ROWS = []
+for _w in range(22):
+    _day = (datetime.date(2025, 9, 7) + datetime.timedelta(weeks=_w)).isoformat()
+    for _j in range(8):
+        _h, _a = _TM[_j], _TM[(_j + 1 + _w) % 8] if _TM[(_j + 1 + _w) % 8] != _TM[_j] else _TM[(_j + 2) % 8]
+        _om, _ot = _rng.gauss(0, 6), _rng.gauss(45, 5)
+        _hs = max(0, int(round(_ot / 2 + _om / 2 + _rng.gauss(0, 9))))
+        _as = max(0, int(round(_ot / 2 - _om / 2 + _rng.gauss(0, 9))))
+        ROWS.append({"id": "r%d_%d" % (_w, _j), "lg": "nfl", "season": 2025, "day": _day, "home": _h,
+                     "away": _a, "final": True, "hs": _hs, "as": _as, "M": 2.5, "T": 44.5, "pml": 0.55,
+                     "sig": {"neutral": 0.0, "dome": float(_j % 3 == 0), "own_m": _om, "own_t": _ot,
+                             "h2h_m": None, "h2h_t": None, "form_m": _rng.gauss(0, 5), "form_t": None,
+                             "def": None, "poss": _rng.gauss(0, 0.1), "out": None, "vac_h": None, "vac_a": None,
+                             "epa_m": _om + _rng.gauss(0, 4), "wx_wind": 12.0 if _w == 21 else None}})
+_T7 = tree()
+_champ7 = R.Fits(ROWS, FM.features)
+_wx = R.contest(ROWS, _champ7, "WX", "2026-10-19", "2026-10-19", fits=R.challenger_fits(ROWS, "WX", "nfl", _T7))
+_e7 = R.contest(ROWS, _champ7, "E", "2026-10-19", "2026-10-19", fits=R.challenger_fits(ROWS, "E", "nfl", _T7))
+ck(_wx["counted"]["predictions"] >= 16 and _wx["counted"]["differing"] == 0
+   and any(r["sig"]["wx_wind"] for r in ROWS if FM.monday(r["day"]) in {w for (w, _m) in _champ7.models}),
+   "🔴 WX trained on an all-zero wind column: every counted prediction equals the champion's (0 differ), "
+   "a forecast on the row predicted included", _wx["counted"])
+ck(_e7["counted"]["predictions"] >= 32 and _e7["counted"]["differing"] == _e7["counted"]["predictions"],
+   "🔴 ...while E, whose input is real, differs on every one", _e7["counted"])
