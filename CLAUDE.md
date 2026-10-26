@@ -584,7 +584,7 @@ note boxes, tags and the stale bar now require their absence.
   college's injury adjustment use the 12pm/7pm reports, or the 9am one it was tested on?": *"do 9am,
   12pm, 7pm"*. ✅ The `injury-check` mode, one contract row per league on its probe
   (`latest/injury-check.json`, written on every attempt): due at 9:00, 12:00 and 19:00 REAL
-  Eastern time (`freshness.INJURY_CHECK_ET`, `et_wall_utc` = fb_weather's DST rule; 12:00 is 16:00Z
+  Eastern time (`freshness.INJURY_CHECK_ET`, `et_wall_utc`, the one DST rule `_us_eastern_offset`, moved here from fb_weather; 12:00 is 16:00Z
   under daylight time and 17:00Z from 11-01) on an ET day with a game still to kick off AFTER the
   slot; a slot whose later games have all started is owed nothing. ⛔ NO CRON CHANGE: the hourly
   news cron's pass plans it (a `Moments` deadline). NFL: this season's nflverse report into
@@ -1394,6 +1394,9 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   to card-fb, SOFT, `UNTIMED` (not in lateness.json);
                   `ON_CHANGE`: a file rewritten only on a change has no clock
                   deadline.
+                  ⛔ It imports no other repo module (sandboxes copy it alone):
+                  the US DST rule `_us_eastern_offset` lives here, fb_weather
+                  reads it from here `[2026-10-26]`.
 verify_freshness.py  fails the run when the site is not current.
                   `[Sam, 2026-10-01]` The page shows no stale-data bar
                   and no "out of date" note; staleness reaches Sam

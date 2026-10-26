@@ -879,13 +879,26 @@ def kickoff_games(league, path):
     return out
 
 
+def _us_eastern_offset(naive):
+    """-4 inside US daylight time (second Sunday of March 02:00 to first Sunday
+    of November 02:00, the rule since 2007), else -5. ⛔ Computed, not looked up:
+    no tz database is assumed on the runner.
+    `[2026-10-26]` ⛔ THE ONE COPY (rule 117), moved here unchanged from
+    fb_weather.py, which reads it from here (and cfb_injuries from fb_weather).
+    ⛔ freshness.py imports no other repo module: tests and the gate copy it into
+    sandboxes by itself, and the first build of the injury check, importing this
+    from fb_weather, killed every football contract there (test_injury_check.py)."""
+    y = naive.year
+    mar = datetime.datetime(y, 3, 8) + datetime.timedelta(days=(6 - datetime.datetime(y, 3, 8).weekday()) % 7)
+    nov = datetime.datetime(y, 11, 1) + datetime.timedelta(days=(6 - datetime.datetime(y, 11, 1).weekday()) % 7)
+    return -4 if mar.replace(hour=2) <= naive < nov.replace(hour=2) else -5
+
+
 def et_wall_utc(naive):
     """`[2026-10-26]` US Eastern wall-clock time (naive) -> real UTC, by the US
-    daylight-time rule. ⛔ ONE COPY (rule 117): fb_weather's
-    `_us_eastern_offset`, the rule cfb_injuries and the NWS forecasts already
-    use, computed rather than looked up, so a runner or a laptop without a tz
-    database gets the same answer as one with it."""
-    from fb_weather import _us_eastern_offset
+    daylight-time rule (`_us_eastern_offset`, the rule cfb_injuries and the NWS
+    forecasts already use), computed rather than looked up, so a runner or a
+    laptop without a tz database gets the same answer as one with it."""
     return (naive - datetime.timedelta(hours=_us_eastern_offset(naive))).replace(tzinfo=UTC)
 
 

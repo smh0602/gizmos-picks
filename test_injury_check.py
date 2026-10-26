@@ -40,6 +40,11 @@ conference feeds are stand-ins, and a real call fails the file.
 #   find:             k = et_wall_utc(t)          # ~~t.replace(tzinfo=UTC) + ET_OFFSET~~ [2026-10-26]
 #   with:             k = t.replace(tzinfo=UTC) + ET_OFFSET
 #
+# @vacuity ⛔ freshness.py imports no other repo module (sandboxes copy it alone)
+#   file: freshness.py
+#   find:     return (naive - datetime.timedelta(hours=_us_eastern_offset(naive))).replace(tzinfo=UTC)
+#   with:     import fb_weather; return (naive - datetime.timedelta(hours=_us_eastern_offset(naive))).replace(tzinfo=UTC)
+#
 # @vacuity ⛔ never on a day without a game after the slot
 #   file: freshness.py
 #   find:         if kicks is None or any(k > slot for k in kicks):
@@ -283,6 +288,24 @@ try:
             F._et_zone = _saved_zone
         eq(_k, [Z("2026-10-25 17:00"), Z("2026-11-01 18:00"), Z("2026-11-02 01:20")],
            "🔴 an NFL kickoff (ET wall clock) %s: 1pm is 17:00Z in October, 18:00Z in November" % _label)
+    # ⛔ `[2026-10-26]` FRESHNESS.PY STANDS ALONE: tests and the gate copy it into sandboxes by
+    #    itself (test_source_block.py, test_card_refusal.py), and its first build of this check
+    #    imported the DST rule from fb_weather.py, so every football contract in such a sandbox
+    #    died on an ImportError. The rule lives in freshness.py; fb_weather.py reads it from there.
+    import subprocess  # noqa: E402
+    S = tree()
+    shutil.copy2(os.path.join(ROOT, "freshness.py"), os.path.join(S, "freshness.py"))
+    nfl_sched(S, ["2026-11-01T13:00"])
+    _code = ("import sys, datetime; sys.path.insert(0, %r); import freshness as F; "
+             "n = datetime.datetime(2026, 11, 1, 17, 5, tzinfo=datetime.timezone.utc); "
+             "print([r[0] for r in F.contract('data/nfl', 'picks', n)][:1], "
+             "F.injury_check_slots('nfl', 'data/nfl/latest', n)[1][1].strftime('%%H:%%MZ'))" % S)
+    _r = subprocess.run([sys.executable, "-E", "-s", "-c", _code], cwd=S, capture_output=True, text=True,
+                        timeout=120)
+    ck((_r.returncode, _r.stdout.strip()) == (0, "['injury-check'] 17:00Z"),
+       "⛔ freshness.py ALONE in a directory (no other repo module) builds a football contract with the "
+       "check's real-ET slots", "rc %s, %r: %s" % (_r.returncode, _r.stdout.strip(),
+                                                    shown((_r.stderr or "").strip().splitlines()[-2:])))
 
     # ══════════════════════════════════════════════════════════════════
     section("2. 🔴 THE ROW PLANS THE CHECK AT 9:05, 12:05 AND 19:05 ET ON A GAME DAY, AND ONLY THEN")

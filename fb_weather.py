@@ -79,14 +79,11 @@ def _iso(t):
     return t.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _us_eastern_offset(naive):
-    """-4 inside US daylight time (second Sunday of March 02:00 to first Sunday
-    of November 02:00, the rule since 2007), else -5. ⛔ Computed, not looked up:
-    no tz database is assumed on the runner."""
-    y = naive.year
-    mar = datetime.datetime(y, 3, 8) + datetime.timedelta(days=(6 - datetime.datetime(y, 3, 8).weekday()) % 7)
-    nov = datetime.datetime(y, 11, 1) + datetime.timedelta(days=(6 - datetime.datetime(y, 11, 1).weekday()) % 7)
-    return -4 if mar.replace(hour=2) <= naive < nov.replace(hour=2) else -5
+# `[2026-10-26]` ⛔ ONE COPY (rule 117): the US Eastern daylight-time rule moved, unchanged, to
+#    freshness.py, which must stand alone (sandboxes copy it by itself) and now needs it for the
+#    game-day injury check. Read from there; freshness.py is stdlib only too. cfb_injuries keeps
+#    importing it from here.
+from freshness import _us_eastern_offset  # noqa: E402
 
 
 def kickoff_utc(start):
