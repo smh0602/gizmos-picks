@@ -118,6 +118,14 @@ def main():
                "state and does not fail the run")
 
     for r in soft:
+        if r.get("_after_survey"):
+            # 🔴 `[2026-10-24]` see freshness.after_last_survey (10-19's red run).
+            _look, _due = r["_after_survey"]
+            print(f"::warning::{r['mode']} is due for its {_due:%H:%M}Z deadline, "
+                  f"which passed after this league's last survey "
+                  f"({_look:%H:%M:%S}Z) found it inside contract. The next pass "
+                  f"builds it; that is not a missed build.")
+            continue
         if r.get("_blocked"):
             _b = r["_blocked"]
             _left = (r["_grace"] - r["age_min"]) / 1440.0
@@ -164,7 +172,8 @@ def main():
                    "the acceptance.")
             continue
         age = "never built" if r["missing"] else f"last built {int(r['age_min'])}m ago"
-        late = f", {int(r['late_min'])}m past due" if r["late_min"] else ""
+        # ⚠️ `is not None`: 10-19's 0.03 minutes printed no "past due" at all.
+        late = f", {int(r['late_min'])}m past due" if r["late_min"] is not None else ""
         print(f"::error::{r['mode']} MISSED its {r['due_et']} ET build: "
               f"{age}{late} — {r['why']}")
     print(f"FAIL — {len(hard)} artifact(s) past due")
