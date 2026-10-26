@@ -314,8 +314,13 @@ note boxes, tags and the stale bar now require their absence.
   p < 0.01/8~~. `[Sam, 2026-10-16]` T71 (§3e) adds SM/SMC, the score-first model
   (`fb_score_model.py`'s predicted margin and total, the only input; registered from the
   first Monday ~~on or after~~ AFTER its merge day (a Monday merge counts from the next
-  Monday), no earlier than 2026-10-19, read from git): 9 challengers a league, so
-  p < 0.01/9. ~~College has no injury data stored.~~ (`[Sam, 2026-10-17]` it is now: see COLLEGE
+  Monday), no earlier than 2026-10-19, read from git): ~~9 challengers a league, so
+  p < 0.01/9~~. `[Sam, 2026-10-26]` T72 (§3f, the matchup grade) adds CL/CLC (class: how a
+  team does against above-average opponents beyond its rating), WL/WLC (a win-loss resume),
+  MC/MCC (the margin with blowouts capped at 21 / 28) and AJ/AJC (form and the defence rank,
+  opponent-adjusted; head-to-head is not retested), registered from the first Monday AFTER
+  its merge day, no earlier than 2026-11-02: 13 challengers a league, so p < 0.01/13
+  (`test_fb_matchup_grade.py`). ~~College has no injury data stored.~~ (`[Sam, 2026-10-17]` it is now: see COLLEGE
   INJURIES.) `fb_refit.py weekly` (staged `fb-refit.yml`, Mondays 09:47Z) writes
   `data/<lg>/latest/fb-refit.json`; a WINS pushes ONE branch
   `fb/champion-<lg>-<name>-<date>` (only the CHAMPION line), never a PR, never
@@ -1222,8 +1227,11 @@ fb_challengers.py T65's frozen challengers to the football game model
                   margin solve); T66 adds S (NFL, fewer inputs) and TS (college,
                   talent, few inputs); T68 AV/AVC, WX/WXC; T69 IN (NFL injuries both
                   sides), AT/ATC, RS/RSC; T70 H/HC; `[2026-10-16]` T71 SM/SMC (the
-                  score-first model's margin and total, the only input). fb_model
-                  reads it only for a named CHAMPION.
+                  score-first model's margin and total, the only input);
+                  `[Sam, 2026-10-26]` T72 CL/CLC (class vs above-average teams),
+                  WL/WLC (win-loss resume), MC/MCC (blowouts capped), AJ/AJC (form
+                  and defence opponent-adjusted). fb_model reads it only for a
+                  named CHAMPION.
 fb_refit.py       T65 weekly (staged fb-refit.yml): champion vs challengers,
                   the scoreboard against the books -> data/<lg>/latest/
                   fb-refit.json; a WINS pushes one fb/champion-* branch. ⛔ No

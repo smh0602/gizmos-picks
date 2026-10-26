@@ -16,6 +16,11 @@
     H NFL / HC college     T70: own ratings, neutral, dome, trained on more seasons
     SM NFL / SMC college   T71: the score-first model's predicted margin and total
                            (the score-first model), the only input
+    CL NFL / CLC college   T72: class, how a team does against above-average
+                           opponents beyond what its rating says
+    WL NFL / WLC college   T72: the resume, a win-loss (Bradley-Terry) rating
+    MC NFL / MCC college   T72: the champion's margin with blowouts capped (21 / 28)
+    AJ NFL / AJC college   T72: form and the defence rank, opponent-adjusted
     TS college  T66: T's talent margin in place of the own margin, and only
                 the line, neutral and dome beside it
 
@@ -31,6 +36,7 @@ import collections
 import datetime
 import glob
 import bisect
+import math
 import os
 import statistics
 
@@ -107,6 +113,34 @@ CHALLENGERS = {
     "SMC": {"league": "ncaaf", "what": "score model", "markets": ("spread", "total", "moneyline"),
             "files": (), "key": "score", "withdrawable": False, "input": None, "registered_from": "2026-10-19",
             "on_merge": True},
+    # `[Sam, 2026-10-26]` T72 (§3f), the matchup grade: "make sure the model understands bad
+    #    teams and good teams". Registered from the first Monday AFTER the day its entry reaches
+    #    main, no earlier than 2026-11-02 (fb_refit.registration). They read only the stored
+    #    schedules (AJ / AJC also the player logs fb_matchups reads). No withdrawal rule.
+    "CL": {"league": "nfl", "what": "class vs good teams", "markets": ("spread", "total", "moneyline"),
+           "files": (), "key": "cl", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+           "on_merge": True},
+    "CLC": {"league": "ncaaf", "what": "class vs good teams", "markets": ("spread", "total", "moneyline"),
+            "files": (), "key": "cl", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+            "on_merge": True},
+    "WL": {"league": "nfl", "what": "win-loss resume", "markets": ("spread", "moneyline"),
+           "files": (), "key": "wl", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+           "on_merge": True},
+    "WLC": {"league": "ncaaf", "what": "win-loss resume", "markets": ("spread", "moneyline"),
+            "files": (), "key": "wl", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+            "on_merge": True},
+    "MC": {"league": "nfl", "what": "blowouts capped", "markets": ("spread", "moneyline"),
+           "files": (), "key": "mc", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+           "on_merge": True},
+    "MCC": {"league": "ncaaf", "what": "blowouts capped", "markets": ("spread", "moneyline"),
+            "files": (), "key": "mc", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+            "on_merge": True},
+    "AJ": {"league": "nfl", "what": "form and defence adjusted", "markets": ("spread", "total", "moneyline"),
+           "files": (), "key": "aj", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+           "on_merge": True},
+    "AJC": {"league": "ncaaf", "what": "form and defence adjusted", "markets": ("spread", "total", "moneyline"),
+            "files": (), "key": "aj", "withdrawable": False, "input": None, "registered_from": "2026-11-02",
+            "on_merge": True},
 }
 HIST = ("H", "HC")
 SCORE = ("SM", "SMC")
@@ -126,6 +160,18 @@ SAM_HOME = 1.5               # ⛔ §3b: Sam's home edge, points
 #    TS's slot 0 on spread and moneyline is T's talent margin, not the own margin.
 KEEP = {"S": {"spread": (0, 2, 3, 4, 5, 6), "moneyline": (0, 2, 3, 4, 5, 6), "total": (0, 2, 3, 4, 5)},
         "TS": {"spread": (0, 5, 6), "moneyline": (0, 5, 6), "total": (0, 4, 5)}}
+# ⛔ T72 §3f, FROZEN with CL/CLC, WL/WLC, MC/MCC and AJ/AJC (a change is a new challenger).
+CLASS, RESUME, CAPPED, ADJUSTED = ("CL", "CLC"), ("WL", "WLC"), ("MC", "MCC"), ("AJ", "AJC")
+CLASS_SHRINK = 10.0          # ⛔ §3f: fixed, not tuned (ten full-weight games against good teams count half)
+CAP = {"nfl": 21.0, "ncaaf": 28.0}       # ⛔ §3f: three and four touchdowns, fixed, not tuned
+FORM_GAMES, FORM_MIN = 4, 2              # ⛔ §3f: the champion's last 4; fewer than 2 -> 0
+DEF_MIN = 10                             # ⛔ §3f: fewer ranked defences -> 0
+DEF_UNITS = ("pass_yds", "rush_yds")     # ⛔ §3f: passing plus rushing yards allowed
+A_STEP = 64.0                # WL / WLC's solve: the longest step on the home edge (`_home_step`); the
+                             #    logistic is flat past |z| ~ 37, so one step crosses any flat stretch
+# ⛔ §3f: AJ, AJC, MC and MCC replace inputs at fixed places in today's lists, so they build
+#    only against no champion or one that only appends; otherwise NOT APPLICABLE (Sam's to decide).
+APPEND_ONLY = ("E", "P", "AV", "AVC", "WX", "WXC", "IN", "RS", "RSC", "CL", "CLC", "WL", "WLC")
 
 
 
@@ -475,6 +521,247 @@ def history_rows(lg, root=None):
     return h_own(lg, sorted(out, key=lambda r: r["kick"]), root)
 
 
+# ══════════════════════════════════════════════════════════════════════
+# T72 (§3f) — THE MATCHUP GRADE: who a team has played. `[Sam, 2026-10-26]`
+# "make sure the model understands bad teams and good teams."
+# ⛔ s, a row's ratings, is the champion's own-ratings solve for the row's Monday,
+#    made exactly as fb_model.build_rows makes it (`own_solve`); "a team's games" are
+#    that solve's games (fb_model.rating_games dated before the Monday), each with its
+#    weight 0.5 ** (days / 150). Nothing dated on or after the row's Monday is read.
+# ══════════════════════════════════════════════════════════════════════
+def own_solve(lg, rows, root=None):
+    """(games, {Monday: s}) for every row's Monday: fb_model.own_ratings over
+    fb_model.rating_games, as build_rows solves it."""
+    G = FM.rating_games(lg, root)
+    return G, FM.own_ratings(G, {FM.monday(r["day"]) for r in rows})
+
+
+def before(G, wk):
+    """The games of G (sorted by day) dated before Monday `wk`."""
+    return G[:bisect.bisect_left(G, (wk,))]
+
+
+def class_numbers(G, wk, s, good):
+    """CL / CLC: {team: (C, CO, CD)} at Monday `wk` from its games G. Over a team's games
+    against an above-average opponent (`good`, fb_model.above_average), the weighted
+    residual against what s says, / (the summed weights + 10); no such game -> 0.
+    f = +1 when the team was at home at a non-neutral site, -1 when the opponent was, 0."""
+    num = collections.defaultdict(lambda: [0.0, 0.0, 0.0])
+    den = collections.defaultdict(lambda: [0.0, 0.0, 0.0])
+    R, O, D = s["R"], s["O"], s["D"]
+    for d, h, a, hf, hp, ap in G:
+        w = weight(d, wk)
+        for t, o, f, pf, pa in ((h, a, hf, hp, ap), (a, h, -hf, ap, hp)):
+            if o in good["R"]:           # C: margin class
+                num[t][0] += w * ((pf - pa) - (s["hfa"] * f + R[t] - R[o]))
+                den[t][0] += w
+            if o in good["D"]:           # CO: offence class, against a good defence
+                num[t][1] += w * (pf - (s["base"] + s["hpe"] * (1.0 if f > 0 else 0.0) + O[t] - D[o]))
+                den[t][1] += w
+            if o in good["O"]:           # CD: defence class (points allowed), against a good offence
+                num[t][2] += w * (pa - (s["base"] + s["hpe"] * (1.0 if f < 0 else 0.0) + O[o] - D[t]))
+                den[t][2] += w
+    return {t: tuple(n / (dn + CLASS_SHRINK) for n, dn in zip(num[t], den[t])) for t in s["teams"]}
+
+
+def class_row(s, good, C, home, away):
+    """(cl_m, cl_t) for one game, or None when either team is not in s (its inputs are 0)."""
+    if not s or home not in s["teams"] or away not in s["teams"]:
+        return None
+    ab = lambda k, t: 1.0 if t in good[k] else 0.0  # noqa: E731
+    (c_h, co_h, cd_h), (c_a, co_a, cd_a) = C[home], C[away]
+    return (c_h * ab("R", away) - c_a * ab("R", home),
+            co_h * ab("D", away) + cd_a * ab("O", home) + co_a * ab("D", home) + cd_h * ab("O", away))
+
+
+def _p(x):
+    """The logistic, without overflow at either end."""
+    if x >= 0:
+        return 1.0 / (1.0 + math.exp(-x))
+    e = math.exp(x)
+    return e / (1.0 + e)
+
+
+def _softplus(x):
+    """log(1 + exp(x)), without overflow at either end."""
+    return x + math.log1p(math.exp(-x)) if x > 0 else math.log1p(math.exp(x))
+
+
+def _home_fit(a, G, w, y, B):
+    """WL / WLC: the part of the fit that moves with the home edge a,
+    sum(w (y log p + (1 - y) log(1 - p))) over the games with a home side
+    (log p = -softplus(-z), log(1 - p) = -softplus(z))."""
+    out = 0.0
+    for wi, yi, g in zip(w, y, G):
+        if g[3]:
+            z = a * g[3] + B[g[1]] - B[g[2]]
+            out -= wi * (yi * _softplus(-z) + (1.0 - yi) * _softplus(z))
+    return out
+
+
+def _home_step(num, den, a, G, w, y, B):
+    """WL / WLC: the Newton step on the home edge a (num = the fit's slope in a, den = minus
+    its curve). 🔴 `[2026-10-26]` A long one is not trusted. Where the fit is flat in a,
+    every home side's p is ~1 or ~0 and num / den is ~1e15 or infinite: warm-started from a
+    Monday whose non-neutral games were all home wins (a ran to ~37, no finite best), a
+    landed at -2e15, every p became exactly 0, den 0, and a never moved again, every later
+    Monday (a planted league; no stored Monday had that shape). So a step of 1 or more is at
+    most A_STEP long and halved until the fit is no worse; a shorter one is Newton's,
+    unchanged. ⛔ The maximum §3f names is the same; only the path to it is safe."""
+    if not num:
+        return 0.0
+    step = math.copysign(min(abs(num) / den if den > 0 else math.inf, A_STEP), num)
+    if abs(step) >= 1.0:
+        here = _home_fit(a, G, w, y, B)
+        while abs(step) >= 1.0 and _home_fit(a + step, G, w, y, B) < here:
+            step /= 2.0
+    return step
+
+
+def solve_resume(G, wk, warm=None):
+    """WL / WLC: the weighted Bradley-Terry fit on games G (all dated before Monday `wk`):
+    P(home side wins) = 1 / (1 + exp(-(a x h + B_home - B_away))), h = 0 at a neutral site;
+    y = 1 home win, 0 away win, 0.5 a tie; ⛔ the score margin is never read. It maximises
+    sum(w (y log p + (1 - y) log(1 - p))) - 0.5 sum(B ^ 2) (ridge 1 on every team term, none
+    on a): one Newton step per number per sweep, a first, then each team in the champion's
+    order, until no number moves 1e-10 or the champion's sweep cap; warm-started. A step on
+    a of 1 or more is checked first (`_home_step`): a warm start from a flat fit must not
+    throw it away. ⚠️ A Monday whose non-neutral games all went one way has no finite best
+    a (§3f does not say what it gives): a runs until every p rounds to 1 (or 0) and stops."""
+    w = [weight(g[0], wk) for g in G]
+    y = [1.0 if g[4] > g[5] else 0.0 if g[4] < g[5] else 0.5 for g in G]
+    s = {"a": warm["a"], "B": dict(warm["B"])} if warm else {"a": 0.0, "B": {}}
+    adj = collections.defaultdict(list)
+    for i, g in enumerate(G):
+        adj[g[1]].append(i)
+        adj[g[2]].append(i)
+    for t in adj:
+        s["B"].setdefault(t, 0.0)
+    B = s["B"]
+    for _n in range(SWEEPS if G else 0):
+        old = (s["a"], dict(B))
+        num = den = 0.0
+        for wi, yi, g in zip(w, y, G):
+            if g[3]:
+                p = _p(s["a"] * g[3] + B[g[1]] - B[g[2]])
+                num += wi * g[3] * (yi - p)
+                den += wi * g[3] * g[3] * p * (1.0 - p)
+        s["a"] += _home_step(num, den, s["a"], G, w, y, B)
+        for t, ix in adj.items():
+            num, den = -RIDGE * B[t], RIDGE
+            for i in ix:
+                g = G[i]
+                p = _p(s["a"] * g[3] + B[g[1]] - B[g[2]])
+                num += w[i] * ((y[i] - p) if g[1] == t else (p - y[i]))
+                den += w[i] * p * (1.0 - p)
+            B[t] += num / den
+        moved = max([abs(s["a"] - old[0])] + [abs(B[t] - old[1][t]) for t in adj])
+        if moved < TOL:
+            break
+    s["teams"] = set(adj)
+    return s
+
+
+def resume_margin(s, home, away, neutral):
+    """wl = a x h + B_home - B_away, or None when either team has no earlier game."""
+    if not s or home not in s["teams"] or away not in s["teams"]:
+        return None
+    return s["a"] * (0.0 if neutral else 1.0) + s["B"][home] - s["B"][away]
+
+
+def capped_games(lg, root=None):
+    """MC / MCC: the champion's games with each margin capped at +/- CAP[lg], in
+    `solve_talent`'s shape with no talent gap: beta stays 0, so its solve is the champion's
+    margin equation alone (the same weights, ridge 1 on R only, tolerance and sweep cap)."""
+    cap = CAP[lg]
+    return [(d, h, a, f, max(-cap, min(cap, hp - ap)), 0.0, 0.0) for d, h, a, f, hp, ap in FM.rating_games(lg, root)]
+
+
+def game_reads(g, t, s):
+    """AJ / AJC: one game of team t read against s -> (rating, offence, defence):
+    t's margin - hfa x f + R_o; t's points - hpe x [t home, not neutral] + D_o - base;
+    base + hpe x [o home, not neutral] + O_o - the points t allowed."""
+    _d, h, a, hf, hp, ap = g
+    o, f, pf, pa = (a, hf, hp, ap) if t == h else (h, -hf, ap, hp)
+    return ((pf - pa) - s["hfa"] * f + s["R"][o],
+            pf - s["hpe"] * (1.0 if f > 0 else 0.0) + s["D"][o] - s["base"],
+            s["base"] + s["hpe"] * (1.0 if f < 0 else 0.0) + s["O"][o] - pa)
+
+
+def adjusted_form(by_team, wk, s, home, away, neutral):
+    """AJ / AJC: (form_m, form_t) from each team's last 4 games before Monday `wk` (any
+    stored season), read against s; None when either team has fewer than 2."""
+    reads = []
+    for t in (home, away):
+        gs = by_team.get(t) or []
+        last = gs[:bisect.bisect_left(gs, (wk,))][-FORM_GAMES:]
+        if len(last) < FORM_MIN:
+            return None
+        v = [game_reads(g, t, s) for g in last]
+        reads.append([sum(x[k] for x in v) / len(v) for k in range(3)])
+    (rr_h, or_h, dr_h), (rr_a, or_a, dr_a) = reads
+    h = 0.0 if neutral else 1.0
+    return (s["hfa"] * h + rr_h - rr_a,
+            (s["base"] + s["hpe"] * h + or_h - dr_a) + (s["base"] + or_a - dr_h))
+
+
+def def_fractions(tables, wk):
+    """AJ / AJC: {defence: rank fraction} at Monday `wk`: opponent-adjusted passing plus
+    rushing yards allowed per game (fb_matchups.Tables.unit_allowed), among every team both
+    tables carry; rank = 1 + the number allowing more; fraction = rank / teams ranked.
+    {} when fewer than 10 are ranked."""
+    teams = set.intersection(*(tables.solve(u, wk)["teams"] for u in DEF_UNITS))
+    if len(teams) < DEF_MIN:
+        return {}
+    allow = {t: sum(tables.unit_allowed(t, u, wk) for u in DEF_UNITS) for t in teams}
+    v = sorted(allow.values())
+    return {t: (1 + len(v) - bisect.bisect_right(v, x)) / float(len(v)) for t, x in allow.items()}
+
+
+def attach_grade(name, lg, rows, root=None):
+    """T72's numbers for every row, from that row's own Monday: `cl` (cl_m, cl_t), `wl`,
+    `mc` (the capped margin) or `aj` ({"form": (form_m, form_t), "def": fraction}); None
+    (or a None part) is no number, an input of 0."""
+    weeks = {FM.monday(r["day"]) for r in rows}
+    if name in RESUME:
+        sol = weekly(FM.rating_games(lg, root), weeks, solve_resume)
+        for r in rows:
+            r["sig"]["wl"] = resume_margin(sol.get(FM.monday(r["day"])), r["home"], r["away"],
+                                           r["sig"]["neutral"])
+        return rows
+    if name in CAPPED:
+        sol = weekly(capped_games(lg, root), weeks, solve_talent)
+        for r in rows:
+            r["sig"]["mc"] = talent_margin(sol.get(FM.monday(r["day"])), r["home"], r["away"],
+                                           r["sig"]["neutral"], {})
+        return rows
+    G, own = own_solve(lg, rows, root)
+    if name in CLASS:
+        fbs = FM.fbs_teams(root) if lg == "ncaaf" else None
+        per = {}
+        for wk in sorted(weeks):
+            s = own.get(wk)
+            good = FM.above_average(s, lg, fbs)
+            per[wk] = (s, good, class_numbers(before(G, wk), wk, s, good))
+        for r in rows:
+            r["sig"]["cl"] = class_row(*per[FM.monday(r["day"])], r["home"], r["away"])
+        return rows
+    import fb_matchups                   # AJ / AJC: the tables SM / SMC read, frozen with them (§3e)
+    tables = fb_matchups.Tables(lg, root)
+    fr = {wk: def_fractions(tables, wk) for wk in sorted(weeks)}      # oldest first: warm starts
+    by_team = {}
+    for g in G:
+        by_team.setdefault(g[1], []).append(g)
+        by_team.setdefault(g[2], []).append(g)
+    for r in rows:
+        wk = FM.monday(r["day"])
+        f = fr[wk]
+        r["sig"]["aj"] = {
+            "form": adjusted_form(by_team, wk, own.get(wk), r["home"], r["away"], r["sig"]["neutral"]),
+            "def": (f[r["home"]] + f[r["away"]]) / 2.0 if r["home"] in f and r["away"] in f else None}
+    return rows
+
+
 def attach(name, lg, rows, root=None):
     """Write challenger `name`'s number into every row's `sig` (None: no number)."""
     c = CHALLENGERS[name]
@@ -482,6 +769,8 @@ def attach(name, lg, rows, root=None):
         return rows
     if name in HIST:
         return h_own(lg, rows, root)
+    if name in CLASS + RESUME + CAPPED + ADJUSTED:     # T72 §3f
+        return attach_grade(name, lg, rows, root)
     if name in SCORE:                    # §3e: fb_score_model's own walk-forward, as merged in #275
         import fb_matchups
         import fb_score_model
@@ -547,7 +836,13 @@ def applies(name, r):
     """`[2026-10-16]` Can challenger `name`'s frozen inputs be built against the current
     CHAMPION? S's and TS's (§3a) are indexes into today's champion's lists; H, HC, SM
     and SMC as champion have shorter ones, so there they cannot (fb_refit reports NOT
-    APPLICABLE; how S and TS should read then is Sam's to decide)."""
+    APPLICABLE; how S and TS should read then is Sam's to decide).
+    `[Sam, 2026-10-26]` T72 (§3f): AJ, AJC, MC and MCC replace inputs at fixed places in
+    today's lists, so they build only against no champion or one that only appends
+    (APPEND_ONLY); CL, CLC, WL and WLC only append, so they always build."""
+    if name in CAPPED + ADJUSTED:
+        ch = FM.CHAMPION.get(r.get("lg") or CHALLENGERS[name]["league"])
+        return ch is None or ch in APPEND_ONLY
     if name not in KEEP:
         return True
     return all(max(KEEP[name][mk]) < len(FM.features(r, mk)) for mk in CHALLENGERS[name]["markets"])
@@ -567,9 +862,38 @@ def extend(name, r, market, x, M=None, T=None):
     sam_t) / 2 - T) / 10 (unchanged without sam_t); RS, RSC append rest / 7.
     T70: H, HC are [own term (history ratings), neutral, dome] in every market.
     T71: SM, SMC are ONLY the score model's term: spread (m - line) / 10, moneyline
-    m / 10, total (t - line) / 10."""
+    m / 10, total (t - line) / 10.
+    T72 (§3f): CL, CLC append cl_m / 10 (spread, moneyline) or cl_t / 10 (total); WL, WLC
+    append wl (spread, moneyline); MC, MCC put the capped margin in the first input
+    (spread (capped - line) / 10, moneyline capped / 10); AJ, AJC put the adjusted form in
+    the third (index 2: (form_m - line) / 10, form_m / 10, (form_t - line) / 10) and the
+    adjusted defence rank in the total's fourth (index 3: (fraction - 0.5) x 4)."""
     c = CHALLENGERS[name]
     if market not in c["markets"]:
+        return x
+    if name in CLASS:
+        v = r["sig"].get("cl")
+        return list(x) + [0.0 if v is None else v[1 if market == "total" else 0] / 10.0]
+    if name in RESUME:
+        v = r["sig"].get("wl")
+        return list(x) + [0.0 if v is None else v]
+    if name in CAPPED + ADJUSTED:
+        M = r["M"] if M is None else M
+        T = r["T"] if T is None else T
+    if name in CAPPED:
+        m = r["sig"].get("mc")
+        first = (0.0 if m is None or M is None else (m - M) / 10.0) if market == "spread" else \
+            (0.0 if m is None else m / 10.0)
+        return [first] + list(x[1:])
+    if name in ADJUSTED:
+        aj = r["sig"].get("aj") or {}
+        fm, ft = aj.get("form") or (None, None)
+        x = list(x)
+        x[2] = ((0.0 if fm is None or M is None else (fm - M) / 10.0) if market == "spread" else
+                (0.0 if ft is None or T is None else (ft - T) / 10.0) if market == "total" else
+                (0.0 if fm is None else fm / 10.0))
+        if market == "total":
+            x[3] = 0.0 if aj.get("def") is None else (aj["def"] - 0.5) * 4.0
         return x
     if name in HIST:
         om, ot = r["sig"].get("h_own") or (None, None)

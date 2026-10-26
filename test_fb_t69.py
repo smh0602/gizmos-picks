@@ -163,10 +163,11 @@ ck(R.challenger_feat("RS")(rs[0], "total") == FM.features(rs[0], "total"), "   t
 section("3. 🔴 COUNTS, REGISTRATION, FRESHNESS AND THE NFL DEFENSIVE SNAPS")
 # ══════════════════════════════════════════════════════════════════════
 # `[Sam, 2026-10-16]` ~~8 challengers a league, 0.01 / 8~~: T71 (§3e) adds SM, SMC.
+# `[Sam, 2026-10-26]` ~~9 challengers a league, 0.01 / 9~~: T72 (§3f) adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC.
 eq({lg: sorted(n for n, c in FC.CHALLENGERS.items() if c["league"] == lg) for lg in ("nfl", "ncaaf")},
-   {"nfl": ["AT", "AV", "E", "H", "IN", "RS", "S", "SM", "WX"],
-    "ncaaf": ["ATC", "AVC", "HC", "P", "RSC", "SMC", "T", "TS", "WXC"]},
-   "🔴 9 challengers a league (T71 adds SM, SMC), so alpha is 0.01 / 9")
+   {"nfl": ["AJ", "AT", "AV", "CL", "E", "H", "IN", "MC", "RS", "S", "SM", "WL", "WX"],
+    "ncaaf": ["AJC", "ATC", "AVC", "CLC", "HC", "MCC", "P", "RSC", "SMC", "T", "TS", "WLC", "WXC"]},
+   "🔴 13 challengers a league (T72 adds CL, WL, MC, AJ and CLC, WLC, MCC, AJC), so alpha is 0.01 / 13")
 eq([R.registration("IN", T1, {"IN": "2026-10-15"}), R.registration("AT", T1), R.registration("RSC", T1)],
    ["2026-10-19"] * 3, "🔴 registered 2026-10-19 (IN after its injuries files exist)")
 import freshness as F  # noqa: E402

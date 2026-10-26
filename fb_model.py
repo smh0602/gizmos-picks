@@ -405,6 +405,36 @@ def own_numbers(s, home, away, neutral):
             + (s["base"] + s["O"][away] - s["D"][home]))
 
 
+def fbs_teams(root=None):
+    """Every team any stored college schedule lists with class "fbs"."""
+    out = set()
+    for p in glob.glob(os.path.join(root or ROOT, "data", "ncaaf", "latest", "schedule-*.json.gz")):
+        for g in (jz(p) or {}).get("games") or []:
+            for side in ("home", "away"):
+                if g.get(side) and g.get(side + "_class") == "fbs":
+                    out.add(g[side])
+    return out
+
+
+def above_average(s, lg, fbs=None):
+    """`[Sam, 2026-10-26]` "ABOVE AVERAGE" at one Monday's ratings `s` (T72,
+    research/fb_refit_spec.md §3f): {"R", "O", "D"} -> the teams whose number is
+    above the plain mean over the reference teams (NFL: every team in s; college:
+    the teams in s that `fbs` lists). Empty sets when no reference team is rated.
+    ⛔ ONE copy: CL / CLC read it (test_fb_refit.py pins their numbers, so a change
+    here is a change to them) and so does the why's "rated above average"."""
+    teams = set((s or {}).get("teams") or ())
+    ref = teams if lg == "nfl" else teams & set(fbs or ())
+    out = {}
+    for k in ("R", "O", "D"):
+        if not ref:
+            out[k] = set()
+            continue
+        mean = sum(s[k][t] for t in ref) / len(ref)
+        out[k] = {t for t in teams if s[k][t] > mean}
+    return out
+
+
 def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     """Every game with its line, label and point-in-time signals.
 
