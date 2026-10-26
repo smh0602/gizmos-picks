@@ -466,7 +466,8 @@ def above_average_block(lg, rows, wins, own, root=None):
     return out
 
 
-def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ratings=None):
+def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ratings=None,
+               inj_now=None):
     """Every game with its line, label and point-in-time signals.
 
     ⛔ FORWARD ONLY: rows are built in kickoff order, and every signal reads
@@ -474,6 +475,10 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ra
     Allowed.upto, possession.share_before, team_out of an earlier week).
     `[Sam, 2026-10-26]` `ratings`: a dict that receives the own-ratings solve the
     rows read ({Monday: ratings}), so `build` reuses it; the rows are unchanged.
+    `[Sam, 2026-10-26]` `inj_now`: the build moment, passed only by `build` (the live
+    model). A college game still to start then reads the newest injury report as of
+    it ("do 9am, 12pm, 7pm"); None, as every training, record and backtest caller
+    passes, is the tested 9:00 reading for every game.
     """
     resolve = D.team_codes(lg)
     snaps = board_prices(lg, resolve, root) if board is None else board
@@ -547,7 +552,7 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ra
         r["sig"]["own_m"], r["sig"]["own_t"] = own_numbers(
             own.get(monday(r["day"])), r["home"], r["away"], r["sig"]["neutral"])
     if INJURIES.get(lg):                 # `[Sam, 2026-10-17]` the injury readings
-        injury_readings(lg, rows, root)
+        injury_readings(lg, rows, root, now=inj_now)
     if CHAMPION.get(lg):                 # ⛔ None reads none of the challengers' files
         import fb_challengers
         fb_challengers.attach(CHAMPION[lg], lg, rows, root)
@@ -814,13 +819,14 @@ def game_sim(r, score, sigma, sigma_t):
     return _sim(r.get("lg"), r.get("id"), float(score["home"]), float(score["away"]), sigma, sigma_t)
 
 
-def injury_readings(lg, rows, root=None):
+def injury_readings(lg, rows, root=None, now=None):
     """`[Sam, 2026-10-17]` r["sig"]["inj"] for every row: the NFL's from T69 IN's measures
     (`fb_challengers.attach("IN")`, which reads data/nfl), college's from the conference reports
-    (`cfb_injuries.attach`, research/cfb_injuries_design.md §3). ⛔ Never the other league's."""
+    (`cfb_injuries.attach`, research/cfb_injuries_design.md §3). ⛔ Never the other league's.
+    `[Sam, 2026-10-26]` `now` (the live build's moment) reaches college's reading only."""
     if lg == "ncaaf":
         import cfb_injuries
-        return cfb_injuries.attach(rows, root)
+        return cfb_injuries.attach(rows, root, now=now)
     import fb_challengers
     return fb_challengers.attach("IN", lg, rows, root)
 
@@ -1210,10 +1216,13 @@ def win_chances(rows, now=None, scores=True):
     return sorted(out, key=lambda x: (x["commence"], x["game_id"]))
 
 
-def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
+def build(lg=None, root=None, out=None, extra_top=None, extra_players=None, now=None):
     lg = (lg or LEAGUE).lower()
+    # `[Sam, 2026-10-26]` the build moment (the clock unless a test pins it): a college game
+    #    still to start reads the newest injury report as of it (`build_rows`' inj_now).
+    now = now or datetime.datetime.now(datetime.timezone.utc)
     own = {}
-    rows = build_rows(lg, root, extra_top, extra_players, ratings=own)
+    rows = build_rows(lg, root, extra_top, extra_players, ratings=own, inj_now=now)
     wf = walk_forward(rows)
 
     def rec(picks):

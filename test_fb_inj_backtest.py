@@ -111,6 +111,11 @@ PLANTED DATA ONLY: the record file is a temp copy; the attach functions are stan
 #   file: status.py
 #   find:         doc, name, injury_recorded(root, d.split("/")[-1]))]
 #   with:         doc, name, False)]
+#
+# @vacuity 🔴 [2026-10-26] a live build's moment reaches college's injury reading
+#   file: fb_model.py
+#   find:         return cfb_injuries.attach(rows, root, now=now)
+#   with:         return cfb_injuries.attach(rows, root)
 """
 import json
 import os
@@ -171,13 +176,17 @@ import fb_model as FM  # noqa: E402
 
 _calls = []
 _fake = types.ModuleType("cfb_injuries")
-_fake.attach = lambda rows, root=None: _calls.append(("college", len(rows))) or rows
+# `[2026-10-26]` the stand-in takes the real signature's `now` (a live build's moment) and records it
+_fake.attach = lambda rows, root=None, now=None: _calls.append(("college", len(rows), now)) or rows
 _saved_mod, _saved_in = sys.modules.get("cfb_injuries"), fb_challengers.attach
 sys.modules["cfb_injuries"] = _fake
 fb_challengers.attach = lambda name, lg, rows, root=None: _calls.append(("IN", lg)) or rows
 try:
     FM.injury_readings("ncaaf", [{}, {}])
     _college = list(_calls)
+    _calls.clear()
+    FM.injury_readings("ncaaf", [{}], now="BUILD")
+    _college_now = list(_calls)
     _calls.clear()
     FM.injury_readings("nfl", [{}])
     _nfl = list(_calls)
@@ -187,8 +196,11 @@ finally:
         sys.modules.pop("cfb_injuries", None)
     else:
         sys.modules["cfb_injuries"] = _saved_mod
-eq(_college, [("college", 2)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
-   "(which read data/nfl: every college team would read zero)")
+# `[2026-10-26]` ~~[("college", 2)]~~: the reading's moment is asked too (None: §3's tested 9:00 read)
+eq(_college, [("college", 2, None)], "⛔ a college row gets the conference reports' readings, never T69 IN's "
+   "(which read data/nfl: every college team would read zero), at §3's tested reading by default")
+eq(_college_now, [("college", 1, "BUILD")],
+   "🔴 [2026-10-26] ...and a live build's moment reaches college's reading (Sam: \"do 9am, 12pm, 7pm\")")
 eq(_nfl, [("IN", "nfl")], "🔴 an NFL row gets T69 IN's readings")
 
 # ══════════════════════════════════════════════════════════════════════

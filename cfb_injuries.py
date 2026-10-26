@@ -235,6 +235,27 @@ def pick_cutoff(kickoff):
         - datetime.timedelta(seconds=1)
 
 
+# 🔴 `[Sam, 2026-10-26]` A GAME STILL TO START READS THE NEWEST REPORT AT THE BUILD.
+#    Asked "Should college's injury adjustment use the 12pm/7pm reports, or the 9am one it
+#    was tested on?", Sam answered *"do 9am, 12pm, 7pm"*: the game-day injury check
+#    (freshness.INJURY_CHECK_ET) reads the reports at 9am, 12pm and 7pm ET and rebuilds the
+#    model, and a game that has NOT kicked off at that build reads the newest report as of
+#    the build. Everything else about the reading is §3's tested rule, unchanged (`_eligible`,
+#    `_judge` with live=False, the 36-hour published rule, the archive's night-before column,
+#    both teams needed, None never zero). Before 9:00 ET it IS §3's reading.
+#    ⛔ A game that has kicked off, or `now` None (training rows, the walk-forward record,
+#    fb_inj_backtest, which never pass it), keeps §3's 9:00 cut exactly: what was tested
+#    and what is graded do not move.
+def read_cut(kickoff, now=None):
+    """The moment a game's report is read at: §3's `pick_cutoff`, or, for a game that has
+    not kicked off at the build moment `now`, the later of that and `now` (always before
+    the kickoff)."""
+    cut, k = pick_cutoff(kickoff), _utc(kickoff)
+    if cut is None or now is None or k is None or k <= now:
+        return cut
+    return max(cut, now)
+
+
 def strip_images(x):
     """Every `data:` string removed, at any depth (map_feed §7)."""
     if isinstance(x, dict):
@@ -1007,15 +1028,22 @@ def _column_known(col, kickoff):
     return WEEKDAYS.index(col) < _eastern(k).weekday()
 
 
-def pick_time_outs(season, root=None):
+def pick_time_outs(season, root=None, now=None):
     """§3: {game_id: {team: [Out / Out for Season / Doubtful players]}} as
     known at pick time. From the archive: its night-before column, when that
     column was posted before the game's ET day (`_column_known`). From the
     snapshots: the report `report_for` would give for the last moment before
     9:00 am ET on the game's ET day, if it is current (not a live read). A
     snapshot's reading replaces the archive's for its teams. A team with no
-    reading is absent, ⛔ never an empty list. ⛔ Never raises."""
+    reading is absent, ⛔ never an empty list. ⛔ Never raises.
+    `[Sam, 2026-10-26]` `now`: the build moment. A game not kicked off by then
+    reads at `read_cut` (the newest report as of the build); None, every game at
+    §3's 9:00 cut, as tested."""
     out = {}
+    try:
+        now = _utc(now) if now is not None else None
+    except Exception:
+        now = None
     try:
         doc = _jz(archive_path(season, root)) or {}
         for conf, c in sorted((doc.get("conferences") or {}).items()):
@@ -1045,7 +1073,7 @@ def pick_time_outs(season, root=None):
                 continue
             for r in snap.get("reports") or []:
                 gid = str(r.get("game_id"))
-                cut = pick_cutoff(r.get("kickoff"))
+                cut = read_cut(r.get("kickoff"), now)      # ~~pick_cutoff(r.get("kickoff"))~~ [Sam, 2026-10-26]
                 if gid not in best and cut and _eligible(r, cut):
                     best[gid] = (r, cut)
         for gid, (r, cut) in best.items():
@@ -1347,15 +1375,17 @@ class Roles:
         return qb, round(o, 4), round(d, 4)
 
 
-def attach(rows, root=None):
+def attach(rows, root=None, now=None):
     """`fb_model.build_rows`' college rows -> r["sig"]["inj"] = {"qb": (h, a), "off": (h, a),
     "def": (h, a)}, or None when the game has no pick-time report for BOTH teams (design §3: no
-    report is no reading, never zero) or the season's defence log is not stored."""
+    report is no reading, never zero) or the season's defence log is not stored.
+    `[Sam, 2026-10-26]` `now`, the build moment, reaches `pick_time_outs`: a game still to start
+    reads the newest report as of the build ("do 9am, 12pm, 7pm"); None is §3's 9:00 reading."""
     seasons = {}
     for r in rows:
         seasons.setdefault(r["season"], []).append(r)
     for season, rs in seasons.items():
-        outs, roles = pick_time_outs(season, root), Roles(season, root)
+        outs, roles = pick_time_outs(season, root, now), Roles(season, root)
         for r in rs:
             rep = outs.get(str(r.get("id"))) or {}
             if r["home"] not in rep or r["away"] not in rep:

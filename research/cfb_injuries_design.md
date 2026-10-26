@@ -8,6 +8,7 @@ Sam, 2026-10-17: *"use the college injury source as long as it's accurate and up
 - **Stored on a schedule.** Every college run stores them. Each report is checked before it is trusted (§2).
 - **Shown.** A college pick's why names the opponent's Out / Doubtful defenders who guard him, as the NFL's does. This only happens when the report is accurate and up to date.
 - **Used in the model only if it passes a test fixed in advance.** College injuries move the predicted score only if they pass the same test NFL injuries took, written here before any number exists (§4). NFL injuries failed it.
+- `[2026-10-26]` **It passed on 2026-10-19**, and it switches on when Sam merges it. On game days the reports are read again at 9am, 12pm and 7pm ET, and each time the model is rebuilt. A game that has not started reads the newest report at that moment (§5, Sam's "do 9am, 12pm, 7pm").
 
 ⚠️ **Terms.** The conference sites' terms limit automated reading, and HDI's own terms are unknown. Sam was told this and chose to use the source. This supersedes ~~his 2026-09-23 condition, "Build it only if it is free and allowed by those sites' terms. Otherwise signal 7 is NFL-only"~~ (`dossier_fb.PERSONNEL_COLLEGE`).
 
@@ -111,7 +112,22 @@ Rules for the run:
 - `test_fb_sim.py` then fails if the switch disagrees with the record.
 - Whatever the result, the reports are still stored and still shown in the why. Sam is told plainly.
 
+## 5. THE LIVE READING AT EACH GAME-DAY CHECK `[Sam, 2026-10-26]` (added after §4's test passed; §3 and §4 are unchanged)
+
+Sam asked for injuries to be checked at 12pm and 7pm on game days: *"make sure we're looking at injury status at 12pm of games starting and 7pm so we can make sure the models adjusted for injuries when deciding outcome for a vame"*.
+
+He was then asked: "Should college's injury adjustment use the 12pm/7pm reports, or the 9am one it was tested on?" He answered: *"do 9am, 12pm, 7pm"*.
+
+What that means:
+- **When the reports are read.** The game-day injury check (`freshness.INJURY_CHECK_ET`, the `injury-check` mode) reads the reports at 9:00, 12:00 and 19:00 ET on a day with a game still to start. The card and the game model are then rebuilt in the same pass.
+- **A game that has not kicked off when the model is built** reads the newest report as of that build: `cfb_injuries.read_cut`, the later of §3's cut and the build moment. Before 9:00 ET this is exactly §3's reading.
+- **Everything else is §3's rule, unchanged.** That covers the §2 checks (`_eligible`, `_judge` not live, the 36-hour published rule), the archive's night-before column, both teams needed, and no report giving no reading.
+- **A game that has kicked off or finished keeps §3's 9:00 cut exactly.** So does every caller that passes no build moment: the training rows, the walk-forward record and `fb_inj_backtest`. What §4 measured, and what is graded, does not move.
+- **This is Sam's decision (rule 13), made knowing the test was scored at 9:00 only.** The 12pm and 7pm readings were not part of §4's measurement.
+- Guard: `test_injury_check.py` §4.
+
 ## Changelog
 
 - **2026-10-17:** written, with §4 fixed before any college injury number was computed.
 - **2026-10-17 (review, before any number):** §3 adds the season-opener rule. §4's bar is unchanged; how it is applied is made exact: the comparison uses unrounded numbers, a measurement whose injury fit moved no scored question is not a test, and a result already on a branch is never measured again.
+- **2026-10-26:** §5 added. Sam answered "do 9am, 12pm, 7pm": a game that has not started reads the newest report at each game-day build. §3 and §4 are unchanged, and so are the tested reading and the recorded result.

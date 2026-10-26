@@ -133,7 +133,8 @@ def run(outs, with_defense=True, day="2026-10-17"):
         if with_defense:
             put(t, "data/ncaaf/latest/defense-2026.json.gz", DEFENSE)
         saved = CI.pick_time_outs
-        CI.pick_time_outs = lambda season, root=None: outs
+        # `[2026-10-26]` the stand-in takes the real signature's `now` (the build moment)
+        CI.pick_time_outs = lambda season, root=None, now=None: outs
         try:
             rows = [{"id": "G1", "season": 2026, "day": day, "home": "Home U", "away": "Away St.", "sig": {}}]
             CI.attach(rows, t)
