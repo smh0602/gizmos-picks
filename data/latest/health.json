@@ -1,16 +1,30 @@
 {
  "kind": "WATCHDOG",
- "checked_at": "2026-10-26T11:27:53Z",
+ "checked_at": "2026-10-26T12:49:52Z",
  "et_date": "2026-10-26",
  "healthy": false,
  "broken": 0,
- "degraded": 7,
+ "degraded": 9,
  "findings": [
   {
    "key": "fresh:nfl",
    "severity": "DEGRADED",
    "what": "nfl tabs are showing data older than promised (nfl-logs)",
    "why": "the freshness contract says 7 artifact(s) are stale. \u26a0\ufe0f The converge loop repairs this on its own; it is reported so a PERSISTENT staleness becomes visible.",
+   "repair": null
+  },
+  {
+   "key": "stopped:ncaaf",
+   "severity": "DEGRADED",
+   "what": "ncaaf has not updated since Mon 07:21Z",
+   "why": "fb-scores is past due with no collect run for ncaaf since then (oldest: fb-scores, due 2026-10-26T08:00Z). Nothing repairs this on its own; the next run that lands will.",
+   "repair": null
+  },
+  {
+   "key": "stopped:nfl",
+   "severity": "DEGRADED",
+   "what": "nfl has not updated since Mon 07:20Z",
+   "why": "fb-scores is past due with no collect run for nfl since then (oldest: fb-scores, due 2026-10-26T08:00Z). Nothing repairs this on its own; the next run that lands will.",
    "repair": null
   },
   {
@@ -65,7 +79,7 @@
   "pulled_at": "2026-10-26T11:00:13Z",
   "reserve": 750,
   "warn_at": 2250,
-  "reading_age_hours": 0.5,
+  "reading_age_hours": 1.8,
   "behind_newest_pull_hours": 0.0,
   "newest_paid_pull": "2026-10-26T11:00:13Z",
   "source": "data/2026-10-26/props-batter/1100.json.gz",
