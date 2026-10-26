@@ -273,6 +273,105 @@ not the test.
   0.00111), never looser. Everything else as §2 and §3: at least 300 scored
   predictions, the WINS branch and Sam's merge.
 
+## 3f. T72 — the matchup grade: who a team has played (frozen)
+
+Sam, 2026-10-26: *"one thing were missing is.... matchup grade. i feel like we aren't
+looking at how good teams actually are just the season averages ... the premise is to
+make sure the model understands bad teams and good teams."* Shown what the model
+already does (every team rated against the opponents it played) and what it misses,
+he said: *"let's do all of this, if any is repeating don't do it twice"*. Defined here
+before any result: no history, fit or log loss of any of these challengers was
+computed before this section was written. Only games after registration count (§2).
+
+- **The ratings they read.** For a row, s = the champion's own-ratings solve for the
+  row's Monday (`fb_model.own_ratings` over `fb_model.rating_games`: every final game
+  of every stored `latest/` schedule, all divisions, dated before that Monday; weight
+  w = 0.5 ^ (days before the Monday / 150); ridge 1): hfa, base, hpe and each team's
+  R, O and D. "A team's games" below are those games, each with its w. Nothing dated
+  on or after the row's Monday is read.
+- **Above average**, at the row's Monday: R_t above the plain mean of R over the
+  reference teams in s; likewise O_t above the mean O, and D_t above the mean D (a
+  higher D holds opponents to fewer points). Reference teams: NFL, every team in s;
+  college, every team in s that any stored schedule lists with class "fbs" (FCS and
+  below stay in the solve and are compared against the FBS mean).
+- **CL (NFL) and CLC (college), class: how a team does against good opponents beyond
+  what its rating says.** For each team t, over its games against an opponent o, with
+  f = +1 when t was the home side at a non-neutral site, -1 when o was, 0 at a neutral
+  site, and [x] = 1 when x is above average, else 0:
+  - C_t, margin class, over games where [R_o]: residual = t's margin -
+    (hfa x f + R_t - R_o).
+  - CO_t, offence class, over games where [D_o]: residual = t's points -
+    (base + hpe x [t home, not neutral] + O_t - D_o).
+  - CD_t, defence class, over games where [O_o]: residual = points t allowed -
+    (base + hpe x [o home, not neutral] + O_o - D_t).
+  - Each = sum(w x residual) / (sum(w) + 10); no such game -> 0. The 10 is fixed here,
+    not tuned: a team's class number counts half once it has ten full-weight games
+    against good opponents.
+  - Row (home H, away A): cl_m = C_H x [R_A] - C_A x [R_H];
+    cl_t = CO_H x [D_A] + CD_A x [O_H] + CO_A x [D_H] + CD_H x [O_A]. Either team not
+    in s -> both 0.
+  - Inputs appended after the champion's: spread cl_m / 10, moneyline cl_m / 10,
+    total cl_t / 10. All three markets.
+- **WL (NFL) and WLC (college), the resume: wins and losses, weighted by who they came
+  against.** For every Monday, a Bradley-Terry fit on the same games and weights:
+  P(home side wins) = 1 / (1 + exp(-(a x h + B_home - B_away))), h = 0 at a neutral
+  site, else 1; y = 1 for a home win, 0 for an away win, 0.5 for a tie; the score
+  margin is never read. It maximises sum(w x (y log p + (1 - y) log(1 - p))) -
+  0.5 x sum(B_t ^ 2) (ridge 1 on every team term, none on a), solved until no number
+  moves more than 1e-10 (the champion's tolerance), warm-started from the Monday
+  before. Beating a team with a high B lifts a team's B more than beating a low one,
+  and losing to a low one costs more. Row: wl = a x h + B_H - B_A; a team with no
+  earlier game -> 0. Inputs appended after the champion's: spread wl, moneyline wl.
+  Totals unchanged.
+- **MC (NFL) and MCC (college), blowouts capped.** The champion's margin equation
+  (margin = hfa x h + R_home - R_away; the same games, weights, ridge 1 on R only and
+  tolerance) solved with each game's margin capped at +/-21 points (NFL) or +/-28
+  (college): three and four touchdowns, fixed here, not tuned. Its margin replaces the
+  champion's own margin in the first spread and moneyline input: spread (capped margin
+  - line) / 10, moneyline capped margin / 10. Totals unchanged.
+- **AJ (NFL) and AJC (college), the raw inputs opponent-adjusted.** The champion's
+  inputs with two replaced. Head-to-head stays as it is: S and TS already test
+  dropping it, and that is not repeated.
+  - Form (each market's third input, index 2; the champion's is raw points for and
+    against over each team's last 4 games). AJ reads the same last 4: each team's
+    last 4 final games dated before the row's Monday, any stored season (fewer than 2
+    -> 0, as the champion). Each game is read against s: game rating = t's margin -
+    hfa x f + R_o; game offence = t's points - hpe x [t home, not neutral] + D_o -
+    base; game defence = base + hpe x [o home, not neutral] + O_o - points t allowed.
+    Their means over those games are Rr_t, Or_t and Dr_t. form_m = hfa x h + Rr_H -
+    Rr_A; form_t = (base + hpe x h + Or_H - Dr_A) + (base + Or_A - Dr_H). Inputs:
+    spread (form_m - line) / 10, moneyline form_m / 10, total (form_t - line) / 10.
+  - Defence (the total's fourth input, index 3; the champion's ranks each defence's
+    raw yards allowed by position). AJ uses each defence's opponent-adjusted passing
+    plus rushing yards allowed per game, `fb_matchups.Tables(lg).unit_allowed` of
+    "pass_yds" plus "rush_yds" as of the row's Monday, ranked among every team both
+    tables carry that Monday: rank = 1 + the number of teams allowing more, fraction =
+    rank / teams ranked, the mean over the two defences. Fewer than 10 ranked teams, or
+    a defence not ranked -> 0. Input (fraction - 0.5) x 4, as the champion's.
+  - All three markets.
+- **Against another champion:** CL, CLC, WL and WLC only append, so they build against
+  any champion. AJ, AJC, MC and MCC replace inputs at fixed places in today's
+  champion's lists, so they build only while the league's champion is None or one
+  that only appends (E, P, AV, AVC, WX, WXC, IN, RS, RSC, CL, CLC, WL, WLC); otherwise
+  they are NOT APPLICABLE (§4), and how they read then is Sam's to decide.
+- ⛔ **What they read is frozen with them:** C, CO, CD, the resume fit, the capped
+  solve and AJ's form and defence numbers are computed in `fb_challengers.py` and a
+  change to any of them is a new challenger with a new name; the champion's
+  `fb_model.own_ratings` and `fb_matchups.Tables` they read are already frozen (the
+  champion's settings, and SM / SMC). `test_fb_refit.py` pins their numbers on a
+  planted league.
+- **Registration:** the first Monday AFTER the day this section reaches main (its
+  merge day), and no earlier than 2026-11-02 (`fb_refit.registration`, as §3e).
+  ⛔ No withdrawal rule.
+- **Counts and bar:** NFL E, S, AV, WX, IN, AT, RS, H, SM, CL, WL, MC, AJ = 13;
+  college P, T, TS, AVC, WXC, ATC, RSC, HC, SMC, CLC, WLC, MCC, AJC = 13 ->
+  p < 0.01 / 13 (fewer if any is withdrawn, §3). Every bar gets stricter
+  (0.01 / 9 = 0.00111 -> 0.01 / 13 = 0.00077), never looser. Everything else as §2 and
+  §3: at least 300 scored predictions, the WINS branch and Sam's merge.
+- Not here, on purpose: pass-vs-pass and run-vs-run matchups (SM and SMC already test
+  them), and the player props' opponent numbers (there is no weekly props contest, and
+  earlier attempts to adjust them failed; that is its own registration, later).
+
 ## 4. How it is built (not frozen)
 
 - `fb_refit.py weekly`, Mondays 09:47 UTC (`docs/upload/fb-refit.yml`): builds
@@ -295,6 +394,7 @@ not the test.
   divisor, so every bar stays as strict), never a crash: S's and TS's §3a inputs are
   indexes into today's champion's lists, and H, HC, SM and SMC have shorter lists.
   How S and TS should read against another champion is Sam's to decide.
+  `[2026-10-26]` AJ, AJC, MC and MCC likewise (§3f).
 
 ## Changelog
 
@@ -309,3 +409,4 @@ not the test.
 - 2026-10-15 — §3d T70 (H, HC: more seasons) added at Sam's instruction, defined before any result; §2 to §3c unchanged and pinned.
 - 2026-10-16 — §3e T71 (SM, SMC: the score-first model) added at Sam's instruction, defined before any contest result for them; §2 to §3d unchanged and pinned. Named SM / SMC, not SF: SF is the 49ers' code in this repo.
 - 2026-10-16 — §3e corrected before Sam's approval, after an independent review: registration is the first Monday AFTER the merge day (a Monday-evening merge would have scored that night's game after kickoff); the coherence sentence was wrong ("a rare game") and now gives the measured numbers; SM / SMC's code is frozen with them. §4 gains the NOT APPLICABLE stopgap. §2 to §3d unchanged.
+- 2026-10-26 — §3f T72 (CL, CLC, WL, WLC, MC, MCC, AJ, AJC: the matchup grade) added at Sam's instruction ("let's do all of this, if any is repeating don't do it twice"), defined before any result for them; head-to-head is not tested again (S, TS). §2 to §3e unchanged and pinned.
