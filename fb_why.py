@@ -35,6 +35,11 @@ with these teams within a day of kickoff, by its id (a college team's week is no
 unique); none, or two, gives no sentence. College codes reach GUARDS through
 cfb_injuries.POSITION_MAP (EDG -> EDGE, STR -> DB ...). ⛔ The NFL path is
 unchanged, and college never reads the NFL's per-week report store.
+
+`[Sam, 2026-10-26]` A game line also says each team's record this season against
+the teams the model rates above average (`above_why`), from fb-model.json's
+`above_average` (fb_model.above_average, T72 §3f's one definition). Information
+only: it moves no %.
 """
 import datetime
 import gzip
@@ -112,6 +117,8 @@ class Context:
         p = os.path.join(latest, "fb-model.json")
         fm = json.load(open(p, encoding="utf-8")) if os.path.exists(p) else {}
         self.scores = {(w.get("away"), w.get("home")): w.get("score") for w in fm.get("win_chances") or []}
+        # `[Sam, 2026-10-26]` {"monday": {day: Monday}, "teams": {Monday: [rated above average]}}
+        self.above = fm.get("above_average") or {}
 
     def log_of(self, who):
         pids = self.idx.get(self.norm(who)) or []
@@ -185,6 +192,21 @@ class Context:
                 for p in (rep or {}).get("players") or []
                 if (p.get("report_status") or "").strip().lower() in OUT
                 and (p.get("position") or "").upper() in guards]
+
+    def vs_above(self, team, kick, good):
+        """`[Sam, 2026-10-26]` (wins, losses, ties) of `team` this season: its final
+        games that kicked off before `kick` (THIS game's schedule start, the same
+        file's format) against a team in `good`. A tie is equal points."""
+        w = lo = ti = 0
+        for g in self.finals:
+            if team not in (g["home"], g["away"]) or not (g.get("start") or "")[:16] < kick[:16]:
+                continue
+            home = g["home"] == team
+            if (g["away"] if home else g["home"]) not in good:
+                continue
+            us, them = (g["home_score"], g["away_score"]) if home else (g["away_score"], g["home_score"])
+            w, lo, ti = w + (us > them), lo + (us < them), ti + (us == them)
+        return w, lo, ti
 
     def pf_pa(self, team):
         """(points for, points against, games) per game this season, or None."""
@@ -265,10 +287,40 @@ def score_agrees(r, s):
     return False
 
 
+def above_why(r, ctx):
+    """`[Sam, 2026-10-26]` *"let's do all of this"*, approving the proposal "add one plain
+    line to each game pick's why, like 'Washington is 2–3 against teams rated above
+    average'. That's information only and moves no %."
+    Each team's record this season (away first, as the points sentences) against the teams
+    the model rates above average at THIS game's Monday: fb-model.json's `above_average`
+    (fb_model.above_average, T72 §3f's one definition). The Monday is the one fb_model
+    rated the game at, looked up there by THIS game's schedule day (never the odds' UTC
+    kickoff: a Sunday-night NFL game is already Monday in UTC). Counted over the kickoff
+    season's final games before THIS game's kickoff. ⛔ No list for that day, a team it
+    cannot resolve, or not exactly ONE stored game that is this one -> None, never a
+    guess. It changes no pick, chance, rank or price.
+    """
+    home, away = ctx.resolve(r.get("home") or ""), ctx.resolve(r.get("away") or "")
+    hits = ctx.games_of(home, away, r.get("commence"), "start") if home and away else []
+    if len(hits) != 1:              # ⛔ none, or two stored games that could be this one
+        return None
+    kick = hits[0]["start"]
+    wk = (ctx.above.get("monday") or {}).get(kick[:10])
+    good = set((ctx.above.get("teams") or {}).get(wk) or ())
+    if not good:
+        return None
+    recs = []
+    for name, team in ((r.get("away"), away), (r.get("home"), home)):
+        w, lo, ti = ctx.vs_above(team, kick, good)
+        recs.append("%s %d-%d%s" % (name, w, lo, "-%d" % ti if ti else ""))
+    return "Against teams the model rates above average this season: %s." % ", ".join(recs)
+
+
 def line_why(r, ctx):
     """Reader sentences for one liked game line: the pick's own sentence, then the
-    model's predicted score (only when it lands on the pick's side) and each
-    team's points for and against."""
+    model's predicted score (only when it lands on the pick's side), each team's
+    points for and against, and `[Sam, 2026-10-26]` each team's record against the
+    teams the model rates above average (`above_why`)."""
     out = _own(r)
     s = ctx.scores.get((r.get("away"), r.get("home")))
     if s and s.get("home") is not None and s.get("away") is not None and score_agrees(r, s):
@@ -281,6 +333,9 @@ def line_why(r, ctx):
         if f:
             out.append("The %s score %s and allow %s points a game this season (%d game%s)." % (
                 name, num(round(f[0], 1)), num(round(f[1], 1)), f[2], "" if f[2] == 1 else "s"))
+    vs = above_why(r, ctx)
+    if vs:
+        out.append(vs)
     return out
 
 

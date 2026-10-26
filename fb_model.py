@@ -435,12 +435,40 @@ def above_average(s, lg, fbs=None):
     return out
 
 
-def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
+def above_average_block(lg, rows, wins, own, root=None):
+    """`[Sam, 2026-10-26]` *"let's do all of this"*, approving the proposal "add one plain
+    line to each game pick's why, like 'Washington is 2–3 against teams rated above
+    average'. That's information only and moves no %."
+    -> {"monday": {day: Monday}, "teams": {Monday: [team, ...]}}. For each Game Lines game
+    (`wins`, `win_chances`): its row's `day` (the schedule's kickoff date) -> the Monday
+    its ratings are read at (`monday`); for each such Monday, the teams `above_average`
+    rates above average on margin ("R") at that Monday's ratings `own[Monday]`, the SAME
+    solve `build_rows` made for the rows (never a second one), sorted. fb_why finds a
+    game's Monday HERE, by its schedule day, so the one `monday` rule stays in this file
+    (fb_why never imports it: that would pull this file and collect into the card).
+    ⛔ fb_why's sentence reads it; no fit, pick, chance or score does."""
+    day = {r["id"]: r["day"] for r in rows if not r["final"]}
+    fbs = fbs_teams(root) if lg == "ncaaf" and wins else None
+    out = {"monday": {}, "teams": {}}
+    for w in wins or []:
+        d = day.get(w.get("game_id"))
+        wk = monday(d) if d else None
+        if wk not in own:
+            continue
+        out["monday"][d] = wk
+        if wk not in out["teams"]:
+            out["teams"][wk] = sorted(above_average(own[wk], lg, fbs)["R"])
+    return out
+
+
+def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None, ratings=None):
     """Every game with its line, label and point-in-time signals.
 
     ⛔ FORWARD ONLY: rows are built in kickoff order, and every signal reads
     only games dated before the row's own date (the `past` cut, t60r's
     Allowed.upto, possession.share_before, team_out of an earlier week).
+    `[Sam, 2026-10-26]` `ratings`: a dict that receives the own-ratings solve the
+    rows read ({Monday: ratings}), so `build` reuses it; the rows are unchanged.
     """
     resolve = D.team_codes(lg)
     snaps = board_prices(lg, resolve, root) if board is None else board
@@ -508,6 +536,8 @@ def build_rows(lg, root=None, extra_top=None, extra_players=None, board=None):
     # `[Sam, 2026-10-11]` each row's own margin and total, from its own week's
     #    ratings (games dated before that week's Monday only).
     own = own_ratings(rating_games(lg, root), {monday(r["day"]) for r in rows})
+    if ratings is not None:              # `[Sam, 2026-10-26]` the same solve, for build()'s
+        ratings.update(own)              #    "above average" list (no second solve)
     for r in rows:
         r["sig"]["own_m"], r["sig"]["own_t"] = own_numbers(
             own.get(monday(r["day"])), r["home"], r["away"], r["sig"]["neutral"])
@@ -1177,7 +1207,8 @@ def win_chances(rows, now=None, scores=True):
 
 def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
     lg = (lg or LEAGUE).lower()
-    rows = build_rows(lg, root, extra_top, extra_players)
+    own = {}
+    rows = build_rows(lg, root, extra_top, extra_players, ratings=own)
     wf = walk_forward(rows)
 
     def rec(picks):
@@ -1219,6 +1250,11 @@ def build(lg=None, root=None, out=None, extra_top=None, extra_players=None):
     for mk in MARKETS:
         v = verdict(wf["closing"][mk])
         doc["record"][mk]["verdict"] = doc["closing_record"][mk]["verdict"] = v
+    # `[Sam, 2026-10-26]` who the model rates above average at each Game Lines game's
+    #    Monday (T72 §3f's definition, `above_average`), for the why's line "against teams
+    #    the model rates above average". ⛔ Information only: the LAST key, from the solve
+    #    the rows already read, so every other field is written byte for byte as before.
+    doc["above_average"] = above_average_block(lg, rows, doc["win_chances"], own, root)
     path = out or os.path.join(root or ROOT, "data", lg, "latest", "fb-model.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1)
