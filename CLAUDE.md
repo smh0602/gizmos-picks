@@ -680,7 +680,14 @@ note boxes, tags and the stale bar now require their absence.
   model's predicted score (`[2026-10-16]` only when it lands on the pick's side:
   the score comes from the moneyline and total fits, ~~the spread fit is separate~~
   and every football spread and total pick now comes from it)
-  and each team's points for and against. The season is the kickoff's, never the
+  and each team's points for and against. `[Sam, 2026-10-26]` *"add one plain line
+  to each game pick's why, like 'Washington is 2–3 against teams rated above
+  average'. That's information only and moves no %."*: a game line also gives each
+  team's record this season (W-L, W-L-T with a tie) against the teams the model
+  rates above average at THIS game's Monday (`fb_model.above_average`, T72 §3f's
+  definition, stored in fb-model.json `above_average` by the game's schedule day,
+  from the solve the rows already read; every other field byte for byte the same).
+  The season is the kickoff's, never the
   newest file. ⛔ It explains and changes no pick, chance, rank or price. A fact
   it cannot find (an ambiguous name, a team it cannot resolve, a season or week
   with no stored file) is left out, never guessed; a row whose why fails keeps
@@ -1162,6 +1169,8 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   line through `fbPointText` (Cleveland +3.5 had shown
                   "-3.5")~~ `[2026-10-17]` the page prints no model line;
                   `test_fb_line_sign.py` fails if one returns.
+                  `[Sam, 2026-10-26]` `above_average`: who it rates above
+                  average at each Game Lines game's Monday, for the why only.
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   stat distribution from the stored logs 2021-26, the
                   market line folded in from EARLIER priced weeks only,

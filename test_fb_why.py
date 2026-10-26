@@ -14,6 +14,13 @@ CURRENT report of THIS game, read through cfb_injuries from reports its own
 run() stored in a planted root from planted feed payloads (no network: urlopen
 is a tripwire; the repo's teams.json is never read).
 
+`[Sam, 2026-10-26]` *"add one plain line to each game pick's why, like 'Washington is
+2–3 against teams rated above average'. That's information only and moves no %."*
+Section 5: a game line's why gives each team's record this season against the teams
+the model rates above average at THIS game's Monday. Section 6: fb-model.json's
+`above_average`, from the solve the rows already read, built on a synthetic league
+with and without it: every other field byte for byte the same.
+
 # @vacuity 🔴 a tied rank reads from the right end ("1st fewest", not "2nd")
 #   file: fb_why.py
 #   find:         few = 1 + sum(1 for x in vals if x < v)
@@ -183,11 +190,87 @@ is a tripwire; the repo's teams.json is never read).
 #   file: fb_why.py
 #   find: ctx = Context(lg, latest, season, now=now)
 #   with: ctx = Context(lg, latest, season)
+#
+# @vacuity 🔴 the record's list is THIS game's Monday's, found by its schedule day (never the odds' UTC kickoff)
+#   file: fb_why.py
+#   find: wk = (ctx.above.get("monday") or {}).get(kick[:10])
+#   with: wk = (ctx.above.get("monday") or {}).get((r.get("commence") or "")[:10])
+#
+# @vacuity 🔴 a tie is a tie (W-L-T), never a loss
+#   file: fb_why.py
+#   find: w, lo, ti = w + (us > them), lo + (us < them), ti + (us == them)
+#   with: w, lo, ti = w + (us > them), lo + (us <= them), ti
+#
+# @vacuity 🔴 only games before THIS game's kickoff count
+#   file: fb_why.py
+#   find: if team not in (g["home"], g["away"]) or not (g.get("start") or "")[:16] < kick[:16]:
+#   with: if team not in (g["home"], g["away"]):
+#
+# @vacuity 🔴 only games against a team on THIS Monday's above-average list count
+#   file: fb_why.py
+#   find: if (g["away"] if home else g["home"]) not in good:
+#   with: if False:
+#
+# @vacuity 🔴 a result is the team's own score against its opponent's
+#   file: fb_why.py
+#   find: us, them = (g["home_score"], g["away_score"]) if home else (g["away_score"], g["home_score"])
+#   with: us, them = (g["home_score"], g["away_score"])
+#
+# @vacuity 🔴 away first, then home, as the points sentences
+#   file: fb_why.py
+#   find: for name, team in ((r.get("away"), away), (r.get("home"), home)):
+#   with: for name, team in ((r.get("home"), home), (r.get("away"), away)):
+#
+# @vacuity 🔴 no list for the game's Monday, no sentence (never 0-0 for everyone)
+#   file: fb_why.py
+#   find: good = set((ctx.above.get("teams") or {}).get(wk) or ())
+#   with: good = set((ctx.above.get("teams") or {}).get(wk) or ()) or {"?"}
+#
+# @vacuity 🔴 two stored games that could be THIS one: no record sentence, never a guess
+#   file: fb_why.py
+#   find: if len(hits) != 1:              # ⛔ none, or two stored games that could be this one
+#   with: if not hits:              # ⛔ none, or two stored games that could be this one
+#
+# @vacuity 🔴 the stored list is the MARGIN rating's (R), never the offence's
+#   file: fb_model.py
+#   find: out["teams"][wk] = sorted(above_average(own[wk], lg, fbs)["R"])
+#   with: out["teams"][wk] = sorted(above_average(own[wk], lg, fbs)["O"])
+#
+# @vacuity 🔴 a game's day maps to the Monday its ratings are read at
+#   file: fb_model.py
+#   find: wk = monday(d) if d else None
+#   with: wk = d
+#
+# @vacuity 🔴 only the Game Lines tab's games add a Monday
+#   file: fb_model.py
+#   find: for w in wins or []:
+#   with: for w in [{"game_id": i} for i in day]:
+#
+# @vacuity 🔴 college compares against the FBS teams' mean
+#   file: fb_model.py
+#   find: fbs = fbs_teams(root) if lg == "ncaaf" and wins else None
+#   with: fbs = None
+#
+# @vacuity 🔴 build_rows hands over the solve its rows read
+#   file: fb_model.py
+#   find: ratings.update(own)              #    "above average" list (no second solve)
+#   with: pass
+#
+# @vacuity 🔴 build writes the list from that handed-over solve
+#   file: fb_model.py
+#   find: rows = build_rows(lg, root, extra_top, extra_players, ratings=own)
+#   with: rows = build_rows(lg, root, extra_top, extra_players)
+#
+# @vacuity 🔴 the list changes no other field of fb-model.json
+#   file: fb_model.py
+#   find: out["monday"][d] = wk
+#   with: out["monday"][d] = w.setdefault("monday", wk)
 """
 import datetime
 import gzip
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -515,5 +598,207 @@ try:
            "its own", kept)
     finally:
         D.team_codes, CI.report_for = real_codes, real_report_for
+
+    # ══════════════════════════════════════════════════════════════════
+    section("5. 🔴 A GAME LINE'S RECORD AGAINST THE TEAMS THE MODEL RATES ABOVE AVERAGE")
+    # ══════════════════════════════════════════════════════════════════
+    # `[Sam, 2026-10-26]` "add one plain line to each game pick's why, like 'Washington is 2–3 against
+    # teams rated above average'. That's information only and moves no %." The list is fb-model.json's
+    # `above_average` (section 6 builds it): a game's schedule day -> the Monday the model rated it at
+    # -> the teams rated above average then. Planted NFL schedule (ET kickoffs, as nflverse stores them).
+    import fb_model as F  # noqa: E402
+    L5 = os.path.join(T, "five", "data", "nfl", "latest")
+    os.makedirs(L5)
+
+    def fin(start, home, away, hs, as_):
+        return {"start": start, "home": home, "away": away, "final": True, "home_score": hs, "away_score": as_}
+
+    def upc(start, home, away):
+        return {"start": start, "home": home, "away": away, "final": False, "home_score": None, "away_score": None}
+
+    put("schedule-2026.json.gz", {"games": [
+        fin("2026-09-13T13:00", "KC", "SEA", 20, 27),       # SEA beat KC (rated above average all along)
+        fin("2026-09-13T16:25", "DEN", "MIA", 20, 10),      # MIA is never above average
+        fin("2026-09-20T16:05", "SEA", "LAC", 17, 17),      # a TIE with LAC
+        fin("2026-09-20T13:00", "NE", "DEN", 24, 21),
+        fin("2026-10-04T16:25", "KC", "DEN", 24, 31),      # DEN won AT KC: a road win reads as a win
+        fin("2026-09-27T13:00", "SEA", "NYJ", 10, 14),      # NYJ: above average only from Monday 10-26
+        fin("2026-10-04T13:00", "SEA", "MIA", 31, 3),
+        fin("2026-10-11T13:00", "BUF", "SEA", 30, 13),      # SEA lost at BUF
+        upc("2026-10-25T20:20", "DEN", "SEA"),              # Sunday night: the books say 00:20Z MONDAY 10-26
+        upc("2026-10-26T20:15", "NYJ", "MIA"),              # Monday night: rated at Monday 10-26
+        upc("2026-10-29T20:15", "LV", "SEA"),               # Thursday: rated at Monday 10-26
+        fin("2026-11-01T13:00", "SEA", "KC", 3, 40),        # AFTER both kickoffs (a rebuilt card): never counted
+        upc("2026-11-01T13:00", "NE", "NYJ"), upc("2026-11-02T20:15", "NE", "NYJ")]}, L5)   # two within a day
+    AA = {"monday": {"2026-10-25": "2026-10-19", "2026-10-26": "2026-10-26", "2026-10-29": "2026-10-26",
+                     "2026-11-01": "2026-10-26", "2026-11-02": "2026-11-02"},
+          "teams": {"2026-10-19": ["BUF", "KC", "LAC"], "2026-10-26": ["BUF", "KC", "LAC", "NYJ"],
+                    "2026-11-02": ["BUF", "KC", "LAC", "NYJ"]}}
+    ck(all(F.monday(d) == wk for d, wk in AA["monday"].items()),
+       "the planted day -> Monday map is fb_model.monday's (the one fb_model.build writes)", AA["monday"])
+    json.dump({"win_chances": [], "above_average": AA}, open(os.path.join(L5, "fb-model.json"), "w", encoding="utf-8"))
+    cx5 = W.Context("nfl", L5, 2026)
+    SNF = gl(market="moneyline", side="away", line=None, player="Seattle Seahawks", commence="2026-10-26T00:20:00Z")
+    THU = gl(market="spread", side="away", line=-3.5, player="Seattle Seahawks", home="Las Vegas Raiders",
+             commence="2026-10-30T00:15:00Z")
+    VS = "Against teams the model rates above average this season: %s."
+    eq(W.line_why(SNF, cx5),
+       ["own sentence", "The Seattle Seahawks score 16.8 and allow 20.7 points a game this season (6 games).",
+        "The Denver Broncos score 24 and allow 19.3 points a game this season (3 games).",
+        VS % "Seattle Seahawks 1-1-1, Denver Broncos 1-0"],
+       "🔴 Sunday night SEA @ DEN, rated at Monday 10-19 (its schedule day, 10-25; the books' UTC kickoff is "
+       "already Monday 10-26): Seattle beat KC, tied LAC, lost at BUF = 1-1-1; NOT the NYJ loss (above average "
+       "only from 10-26), not MIA (never), not the 11-01 KC game (after kickoff); Denver won AT KC = 1-0 "
+       "(its own score, not the home side's); away first, after the two points sentences")
+    eq(W.line_why(THU, cx5)[-1], VS % "Seattle Seahawks 1-2-1, Las Vegas Raiders 0-0",
+       "🔴 Thursday LV vs SEA, rated at Monday 10-26: NYJ is above average now, so the NYJ loss counts (1-2-1); "
+       "a team with no game this season is 0-0; still never the 11-01 game")
+    two = gl(market="moneyline", side="home", line=None, home="New England Patriots", away="New York Jets",
+             commence="2026-11-02T01:00:00Z")
+    ck(not any(s.startswith("Against") for s in W.line_why(two, cx5)),
+       "🔴 two stored games within a day could be THIS one: no sentence, never a guess", W.line_why(two, cx5))
+    ck(not any(s.startswith("Against") for s in W.line_why(gl(market="moneyline", side="home", line=None,
+                                                             home="Nowhere FC", commence="2026-10-26T00:20:00Z"), cx5)),
+       "   a team it cannot resolve: no sentence")
+    _aa, cx5.above = cx5.above, {"monday": AA["monday"], "teams": {}}
+    try:
+        eq(W.line_why(SNF, cx5)[-1], "The Denver Broncos score 24 and allow 19.3 points a game this season (3 games).",
+           "🔴 no list for the game's Monday: no sentence (never 0-0 for everyone)")
+    finally:
+        cx5.above = _aa
+    ck(not any(s.startswith("Against") for s in W.line_why(dict(SNF), W.Context("nfl", L, 2026))),
+       "   a model file with no above_average block (every file before 2026-10-26): no sentence")
+    done = W.explain([dict(SNF, confidence=61, price=-150)], "nfl", L5, kind="lines")
+    ck(done[0]["why"][-1] == VS % "Seattle Seahawks 1-1-1, Denver Broncos 1-0"
+       and done[0]["confidence"] == 61 and done[0]["price"] == -150,
+       "🔴 explain writes it on a liked game line and changes no chance or price", done[0])
+    _vc = open(os.path.join(ROOT, "verify_card.py"), encoding="utf-8").read()
+    _jm = re.search(r"_JARGON = (\[[^\]]*\])", _vc, re.S)
+    _jargon = eval(_jm.group(1)) if _jm else []
+    ck(len(_jargon) > 10 and not [j for j in _jargon if j in done[0]["why"][-1]],
+       "🔴 the sentence passes verify_card.py's own jargon list (read out of it)", _jargon)
+
+    # ══════════════════════════════════════════════════════════════════
+    section("6. 🔴 fb-model.json's above_average: THE ROWS' OWN SOLVE, AND NOTHING ELSE MOVES")
+    # ══════════════════════════════════════════════════════════════════
+    def rate(R, O=None, D=None):
+        return {"teams": set(R), "R": R, "O": O or {t: 0.0 for t in R}, "D": D or {t: 0.0 for t in R}}
+
+    # R and O pick different teams, so a list of the wrong rating cannot pass
+    S19 = rate({"KC": 5.0, "SEA": -1.0, "DEN": -2.0, "BUF": 3.0}, O={"KC": -3.0, "SEA": 4.0, "DEN": 2.0, "BUF": -1.0})
+    S26 = rate({"KC": 4.0, "SEA": 1.5, "DEN": -2.0, "BUF": 2.0, "NYJ": 3.0})
+    OWN = {"2026-10-12": rate({"MIA": 9.0, "KC": 0.0}), "2026-10-19": S19, "2026-10-26": S26}
+    ROWS6 = [{"id": "f1", "day": "2026-10-11", "final": True}, {"id": "g1", "day": "2026-10-25", "final": False},
+             {"id": "g2", "day": "2026-10-29", "final": False}, {"id": "g3", "day": "2026-10-13", "final": False}]
+    eq(F.above_average_block("nfl", ROWS6, [{"game_id": "g1"}, {"game_id": "g2"}], OWN),
+       {"monday": {"2026-10-25": "2026-10-19", "2026-10-29": "2026-10-26"},
+        "teams": {"2026-10-19": ["BUF", "KC"], "2026-10-26": ["BUF", "KC", "NYJ"]}},
+       "🔴 each Game Lines game's schedule day -> the Monday its ratings are read at -> the teams whose MARGIN "
+       "rating (R) is above the plain mean then (not the offence's SEA and DEN); a game not on the Game Lines "
+       "tab (g3, Monday 10-12) and a played one add nothing")
+    CR6 = os.path.join(T, "six")
+    os.makedirs(os.path.join(CR6, "data", "ncaaf", "latest"))
+    put("schedule-2026.json.gz", {"games": [
+        {"home": "Alpha", "away": "Beta", "home_class": "fbs", "away_class": "fbs"},
+        {"home": "Gamma", "away": "Lowly", "home_class": "fbs", "away_class": "fcs"},
+        {"home": "Gamma", "away": "Climber", "home_class": "fbs", "away_class": "fcs"}]},
+        os.path.join(CR6, "data", "ncaaf", "latest"))
+    SC = rate({"Alpha": 10.0, "Beta": 0.0, "Gamma": -4.0, "Lowly": -30.0, "Climber": 5.0})
+    eq(F.above_average_block("ncaaf", [{"id": "c1", "day": "2026-10-31", "final": False}], [{"game_id": "c1"}],
+                             {"2026-10-26": SC}, CR6)["teams"],
+       {"2026-10-26": ["Alpha", "Climber"]},
+       "🔴 college: above the FBS teams' mean (2.0), so Beta and Gamma are not (they would be against every "
+       "team's mean, -3.8), and an FCS team above the FBS mean (Climber) is")
+
+    # fb_model.build: the same synthetic league built with the solve handed over and without it.
+    NOW6 = datetime.datetime.now(UTC)
+    SYN = []
+    for i in range(230):
+        d = (datetime.date(2025, 9, 1) + datetime.timedelta(days=i // 3)).isoformat()
+        won = i % 5 != 0
+        SYN.append({"id": "s%d" % i, "lg": "nfl", "season": 2025, "day": d, "kick": d, "week": 1,
+                    "home": "HOM", "away": "AWY", "final": True, "hs": 30 if won else 20, "as": 17 if won else 23,
+                    "M": 3.0, "T": 44.5, "pml": 0.6, "snap": None, "dk_ml": None,
+                    "close": {"spread": [(3.0, -110, -110, False)], "total": [(44.5, -110, -110, False)],
+                              "moneyline": [(None, -150, 130, False)]},
+                    "sig": {"h2h_m": None, "h2h_t": None, "form_m": None, "form_t": None, "def": None, "poss": None,
+                            "out": None, "neutral": 0.0, "dome": 0.0, "own_m": 5.0 if won else -2.0, "own_t": 44.0}})
+    MONS = []
+    for j, ahead in enumerate((datetime.timedelta(hours=12), datetime.timedelta(days=7, hours=12))):
+        c = (NOW6 + ahead).strftime("%Y-%m-%dT%H:%M:%SZ")
+        MONS.append(F.monday(c[:10]))
+        SYN.append(dict(SYN[0], id="u%d" % j, day=c[:10], kick=c, final=False, hs=None, **{"as": None},
+                        snap={"names": ["Home Town", "Away Town"], "commence": c, "pulled_at": c[:10] + "T00:00:00Z",
+                              "books": {"fanduel": {"h2h": {"Home Town": -150, "Away Town": 130},
+                                                    "spreads": {"Home Town": {"pt": -3.0, "px": -110},
+                                                                "Away Town": {"pt": 3.0, "px": -110}},
+                                                    "totals": {"Over": {"pt": 44.5, "px": -110},
+                                                               "Under": {"pt": 44.5, "px": -110}}}}}))
+    OWN6 = {MONS[0]: S19, MONS[1]: S26}
+
+    def fake_rows(hand_over):
+        def rows(*a, ratings=None, **k):
+            if hand_over and ratings is not None:
+                ratings.update(OWN6)
+            return json.loads(json.dumps(SYN))      # a fresh copy each build
+        return rows
+
+    _orig6 = (F.build_rows, F.log)
+    DOCS, TXT = {}, {}
+    try:
+        F.log = lambda m: None
+        for hand in (False, True):
+            F.build_rows = fake_rows(hand)
+            out6 = os.path.join(T, "fb-model-%d.json" % hand)
+            DOCS[hand] = F.build("nfl", out=out6)
+            TXT[hand] = re.sub(r'"built_at": "[^"]*"', '"built_at": ""', open(out6, encoding="utf-8").read())
+    finally:
+        F.build_rows, F.log = _orig6
+    ck(len(DOCS[True]["win_chances"]) == 2,
+       "⚠️ the case exists: both upcoming games are on the Game Lines tab", DOCS[True]["win_chances"])
+    eq(DOCS[True]["above_average"],
+       {"monday": {SYN[-2]["day"]: MONS[0], SYN[-1]["day"]: MONS[1]},
+        "teams": {MONS[0]: ["BUF", "KC"], MONS[1]: ["BUF", "KC", "NYJ"]}},
+       "🔴 fb_model.build writes each Game Lines game's day, its Monday, and the teams rated above average "
+       "then, from the solve build_rows handed it")
+    eq(list(DOCS[True])[-1], "above_average", "🔴 ...as the LAST key of fb-model.json")
+    _cut = lambda s: s[:s.index(',\n "above_average"')]  # noqa: E731
+    ck(_cut(TXT[True]) == _cut(TXT[False]) and DOCS[False]["above_average"] == {"monday": {}, "teams": {}},
+       "🔴🔴 every other field of fb-model.json is byte for byte what the build writes without the list (picks, "
+       "chances, scores, simulations, records, pricing): information only, it moves no %",
+       (len(TXT[True]), len(TXT[False])))
+
+    # build_rows itself, on a planted tree: the solve it hands over is the one its rows read
+    _t6 = os.path.join(T, "rows6")
+    os.makedirs(os.path.join(_t6, "data", "nfl", "latest"))
+    put("schedule-2026.json.gz", {"games": [
+        dict(fin("2026-09-13T17:00", "AAA", "BBB", 30, 10), id="r1", week=1),
+        dict(fin("2026-09-13T17:00", "CCC", "DDD", 20, 17), id="r2", week=1),
+        dict(fin("2026-09-17T00:15", "AAA", "CCC", 35, 3), id="r3", week=2),
+        dict(upc("2026-09-20T17:00", "AAA", "DDD"), id="r4", week=2),
+        dict(upc("2026-09-27T17:00", "BBB", "CCC"), id="r5", week=3)]}, os.path.join(_t6, "data", "nfl", "latest"))
+
+    class _NoAllowed:
+        def __init__(self, lg):
+            pass
+
+        def fraction(self, g):
+            return None
+
+    _old6 = (F.t60r.history, F.t60r.Allowed)
+    try:
+        F.t60r.history, F.t60r.Allowed = (lambda lg: []), _NoAllowed
+        HANDED = {}
+        R_WITH = F.build_rows("nfl", root=_t6, board={}, ratings=HANDED)
+        R_WITHOUT = F.build_rows("nfl", root=_t6, board={})
+    finally:
+        F.t60r.history, F.t60r.Allowed = _old6
+    _js = lambda x: json.dumps(x, sort_keys=True, default=sorted)  # noqa: E731
+    _direct = F.own_ratings(F.rating_games("nfl", _t6), {F.monday(r["day"]) for r in R_WITHOUT})
+    ck(len(R_WITH) == 5 and _js(R_WITH) == _js(R_WITHOUT),
+       "🔴 handing the solve over leaves every row exactly as it was")
+    ck(sorted(HANDED) == ["2026-09-07", "2026-09-14", "2026-09-21"] and _js(HANDED) == _js(_direct),
+       "🔴 ...and what it hands over is the solve the rows read: every row's Monday, the same numbers (no "
+       "second, different solve)", sorted(HANDED))
 finally:
     shutil.rmtree(T, ignore_errors=True)
