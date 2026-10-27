@@ -239,6 +239,11 @@ conference feeds are stand-ins, and a real call fails the file.
 #   find:     for d in sorted({(now - datetime.timedelta(hours=h)).date() for h in (4, 5)}):
 #   with:     for d in [(now - ET_OFFSET).date()]:
 #
+# @vacuity 🔴 [2026-10-27, review 2] ...naming each slot by its Eastern day
+#   file: freshness.py
+#   find:             len(last), ", ".join("%s ET on %s" % (v.get("et"), _et_today(_parse(k)) if _parse(k) else k[:10])
+#   with:             len(last), ", ".join("%s ET on %s" % (v.get("et"), k[:10])
+#
 # @vacuity ⛔ ...only while the checks are running (the off-season is no warning)
 #   file: freshness.py
 #   find:     if at is None or now - at > datetime.timedelta(days=IN_SEASON_D):
@@ -1483,6 +1488,13 @@ try:
     eq(F.injury_check_slots("nfl", Y + "/data/nfl/latest", Z("2026-11-02 04:30")),
        [("9:00", Z("2026-11-01 14:00")), ("12:00", Z("2026-11-01 17:00")), ("19:00", Z("2026-11-02 00:00"))],
        "🔴 at 04:30Z Monday (11:30 pm EST Sunday) the slots are SUNDAY's, owed by its 11:50 pm game")
+    _pz = os.path.join(Y, "data", "nfl", "latest", "injury-check.json")
+    put(_pz, {"checked_at": "2026-11-02T00:05:00Z", "ok": False, "log": {
+        "2026-11-01T17:00Z": {"et": "12:00", "attempts": 2, "ok_at": None},
+        "2026-11-02T00:00Z": {"et": "19:00", "attempts": 1, "ok_at": None}}})
+    ck("(12:00 ET on 2026-11-01, 19:00 ET on 2026-11-01)" in (F.health(_pz, Z("2026-11-02 00:10")) or ""),
+       "   the warning names each slot by its Eastern day (Sunday's 7pm EST slot is 00:00Z Monday)",
+       F.health(_pz, Z("2026-11-02 00:10")))
     FAIL.clear()
 finally:
     urllib.request.urlopen = _REAL["urlopen"]

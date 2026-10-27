@@ -1904,7 +1904,8 @@ def _injury_check_health(path, now):
     if (doc.get("ok") is not True                     # the newest attempt, slot or not, read nothing too
             and len(last) >= INJURY_FAILED_SLOTS and not any(v.get("ok_at") for _k, v in last)):
         bad.append("the last %d game-day checks read nothing (%s)%s" % (
-            len(last), ", ".join("%s ET on %s" % (v.get("et"), k[:10]) for k, v in last),
+            len(last), ", ".join("%s ET on %s" % (v.get("et"), _et_today(_parse(k)) if _parse(k) else k[:10])
+                                 for k, v in last),
             "; the last attempt raised %s" % doc["error"] if doc.get("error") else ""))
     if "/nfl/" in "/" + str(path).replace(os.sep, "/"):      # college's sources: the reader's probe
         for s, v in sorted((doc.get("sources") if isinstance(doc.get("sources"), dict) else {}).items()):
