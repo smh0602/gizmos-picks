@@ -2,7 +2,7 @@
  "league": "ncaaf",
  "kind": "MODEL",
  "report_only": true,
- "built_at": "2026-10-27T13:31:54Z",
+ "built_at": "2026-10-27T16:38:03Z",
  "design": "research/fb_score_model_design.md",
  "note": "Report only. No pick, chance, card row or page reads this file; switching the game-line picks to the score model is Sam's decision after he sees the backtest.",
  "settings": {
@@ -2001,7 +2001,7 @@
   "first": "2025-08-30",
   "last": "2026-10-25",
   "point_error": {
-   "games": 1113,
+   "games": 1112,
    "margin": {
     "score_model": {
      "mae": 12.93,
@@ -2009,25 +2009,25 @@
     },
     "fb_model_own_ratings": {
      "mae": 12.87,
-     "rmse": 16.31
+     "rmse": 16.32
     },
     "closing_line": {
-     "mae": 11.69,
-     "rmse": 14.83
+     "mae": 11.7,
+     "rmse": 14.85
     }
    },
    "total": {
     "score_model": {
-     "mae": 13.16,
-     "rmse": 16.33
+     "mae": 13.13,
+     "rmse": 16.29
     },
     "fb_model_own_ratings": {
-     "mae": 13.24,
-     "rmse": 16.43
+     "mae": 13.22,
+     "rmse": 16.4
     },
     "closing_line": {
-     "mae": 12.41,
-     "rmse": 15.5
+     "mae": 12.37,
+     "rmse": 15.43
     }
    }
   },
@@ -2432,16 +2432,16 @@
      },
      "fb_model": {
       "picks": 960,
-      "wins": 483,
-      "hit_rate": 50.3,
-      "roi": -3.9,
+      "wins": 482,
+      "hit_rate": 50.2,
+      "roi": -4.1,
       "price_assumed": 960
      },
      "ml_curve": {
       "picks": 960,
-      "wins": 482,
-      "hit_rate": 50.2,
-      "roi": -4.1,
+      "wins": 483,
+      "hit_rate": 50.3,
+      "roi": -3.9,
       "price_assumed": 960
      }
     }
@@ -2487,9 +2487,9 @@
      },
      "fb_model": {
       "picks": 1011,
-      "wins": 495,
-      "hit_rate": 49.0,
-      "roi": -6.5,
+      "wins": 497,
+      "hit_rate": 49.2,
+      "roi": -6.2,
       "price_assumed": 1011
      }
     }
@@ -2582,7 +2582,7 @@
    "games": []
   },
   "closing": {
-   "games_with_both": 340,
+   "games_with_both": 338,
    "cannot_both_hit": 0,
    "games": []
   },
