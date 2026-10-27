@@ -1079,6 +1079,9 @@ try:
            "finding), and NOT planned again (it would rebuild the card every pass)", _r4.get("unhealthy"))
         eq([len(v["failing_slots"]) for _k, v in sorted(_a4["sources"].items())], [2, 2],
            "   (the probe counts the slots each source failed at in a row)")
+        eq({k: (v["attempts"], v["ok_at"]) for k, v in _a4["log"].items()},
+           {"2026-10-25T13:00Z": (2, None), "2026-10-25T16:00Z": (2, None)},
+           "🔴 ...and its slot log: the 9:00 and 12:00 slots each tried twice, and NEITHER ran (no `ok_at`)")
         FAIL.clear()
         with contextlib.redirect_stdout(io.StringIO()):
             _a5 = C.collect_injury_check(at=Z("2026-10-25 23:05"))
