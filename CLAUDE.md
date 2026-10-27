@@ -602,9 +602,14 @@ note boxes, tags and the stale bar now require their absence.
   with the status as of the check (⛔ never after a plain `cfb-injuries` pass). SOFT; never in
   lateness.json (`UNTIMED`: GitHub's start delay would be a `late:` finding most game-day
   evenings). `[2026-10-26, review]` A check that read nothing is retried ONCE in its slot
-  (`INJURY_RETRIES`); an NFL source down at 2 slots in a row is a `health` warning (a `fresh:`
-  finding) that is ⛔ never replanned (`REPORT_ONLY_HEALTH`: each run would rebuild the card); a
-  season with no stored schedule owes nothing; the probe logs every slot's attempts for 8 days and
+  (`INJURY_RETRIES`; `[2026-10-27, review 2]` PLANNED on the next pass, `freshness.injury_retry`,
+  never a deadline: ~~a retry moment a second after the failure~~ made the row stale at the end of
+  the failed pass, a `fresh:` finding over one failed attempt); an NFL source down at 2 slots in a
+  row is a `health` warning (a `fresh:` finding) that is ⛔ never replanned (`REPORT_ONLY_HEALTH`:
+  each run would rebuild the card); `[2026-10-27, review 2]` so is the check ITSELF reading nothing
+  at its last 2 slots, either league, whatever the cause (our own code raising included: the
+  probe's slot log), until an attempt reads again; a run that serves no slot (the first pass after
+  a merge, a manual run) counts toward neither; a season with no stored schedule owes nothing; the probe logs every slot's attempts for 8 days and
   the Monday status says how many checks ran before their games (`status.injury_checks`). ⚠️ WHAT
   IT DOES NOT DO: it changes a pick only through a model that reads injuries.
   College's does, once Sam merges the switch (its test passed 2026-10-19): a game still to start
@@ -614,7 +619,17 @@ note boxes, tags and the stale bar now require their absence.
   caller keep §3's tested 9:00 cut~~ `[2026-10-26, review]` Training and `fb_inj_backtest` keep
   §3's tested 9:00 cut; the RECORD replays each played game with the report its last pre-kickoff
   build read (`fb_ledger.looked_moments` -> `inj_shown`, `fb_model.as_shown`), so it still grades
-  what the site showed (`test_fb_model_record.py` §5). The NFL's
+  what the site showed (`test_fb_model_record.py` §5). `[2026-10-27, review 2]` Read AT that build's
+  own moment (`cfb_injuries.shown_cut`): `read_cut`'s max(9:00 cut, build), used at first, read a
+  build before 9:00 ET, or any build for a kickoff before 9:00 ET, with reports it never saw. The moment is the
+  game model's own reading (fb-model.json `read_at`, the snapshot's `model_read_at`), never the
+  snapshot's later minute (a failed model build's pass snapshots the earlier build's picks).
+  `test_injury_check.py` §4: the replay equals the live read at 120 build moments. ⚠️ ONLY THE
+  REPORTS are replayed as of the build: the archive's night-before column and the role files
+  (roster, defence) are read as stored now and are rewritten in place, so games built before they
+  were stored (10-17 / 10-18, while college injuries were off) are replayed with today's copies,
+  under Sam's "the record is recomputed each build"; an exact replay of them needs dated copies
+  (not built). The NFL's
   adjustment FAILED its test (10-17) and stays off; signal 7 still reads the week before. ⚠️ The
   rest of the contract still reads a fixed UTC-4 (`ET_OFFSET`), an hour off from 11-01: a
   separate change. `test_injury_check.py`.
@@ -846,7 +861,8 @@ note boxes, tags and the stale bar now require their absence.
   start reads the newest report as of each build (`cfb_injuries.read_cut`, design §5); a started or
   final game, the training rows~~, the record~~ and `fb_inj_backtest` keep §3's 9:00 cut
   (`[2026-10-26, review]` the record replays each played game as its last pre-kickoff build read
-  it: it grades what the site showed). The Monday
+  it: it grades what the site showed; `[2026-10-27, review 2]` its reports at that build's own
+  moment, the archive and role files as stored now). The Monday
   email stops listing the branch once main holds the entry (`status.injury_recorded`).
 - 🔴 **THE GAME LINES TAB IS THE MODEL'S PICK TO WIN EACH GAME, IN ALL THREE
   LEAGUES, ONE LAYOUT.** `[Sam, 2026-10-01]` *"remove the game lines standalone
@@ -1200,7 +1216,9 @@ cfb_injuries.py   COLLEGE INJURIES (Sam, 2026-10-17): the conference
                   7pm", design §5); started games and `now` None keep §3.
                   `[2026-10-26, review]` `attach(shown_at=)`: a played game
                   also gets `inj_shown`, as its last pre-kickoff build read
-                  it, for the record's replay only.
+                  it, for the record's replay only. `[2026-10-27, review 2]`
+                  at `shown_cut` (the build's own moment, never a later
+                  cut); the archive and role files as stored now.
 fb_inj_backtest.py THE INJURY TEST'S RUNNER, both leagues: the bar fixed
                   before it ran (fb_sim_design.md §3, cfb_injuries_design.md
                   §4), recorded ONCE in research/fb_sim_backtest.json; `auto`
@@ -1243,6 +1261,9 @@ fb_model.py       THE FOOTBALL PICK MODEL (Sam, 2026-09-23): ridge
                   `[2026-10-26, review]` `as_shown`: the record's replay reads
                   a played college game's `inj_shown` (the report its last
                   pre-kickoff build read); every fit trains on `inj` (§3).
+                  `[2026-10-27, review 2]` `read_at`: when the rows read the
+                  injury reports (the build's `now`); the ledger dates the
+                  replay by it.
 fb_props_model.py THE FOOTBALL PROPS MODEL (Sam, 2026-09-24): each player's
                   stat distribution from the stored logs 2021-26, the
                   market line folded in from EARLIER priced weeks only,
@@ -1283,6 +1304,9 @@ fb_ledger.py      "What the model showed, graded": both football models'
                   `[2026-10-26, review]` That rule is ONE function, `chosen`;
                   `looked_moments` dates each game's last pre-kickoff build
                   from it for the game model's record (reads only).
+                  `[2026-10-27, review 2]` A snapshot keeps fb-model.json's
+                  `read_at` (`model_read_at`); `looked_moments` returns it
+                  (`taken_at` without one, never a moment after it).
 shadow_fb.py      THE SHADOW RECORD. Grades every wager the board
                   priced -- measured 2,923 graded rows in one run
                   against the card's 222 in total -- so a selection rule
@@ -1425,6 +1449,10 @@ freshness.py      THE FRESHNESS CONTRACT — what must be how current.
                   `[2026-10-26, review]` one retry (`INJURY_RETRIES`), the NFL
                   probe's `health` (`INJURY_FAILED_SLOTS`, never replanned:
                   `REPORT_ONLY_HEALTH`), `injury_check_history` (the weekly).
+                  `[2026-10-27, review 2]` the retry is PLANNED
+                  (`injury_retry`, like `slate_moves`), never a deadline;
+                  `health` also judges both leagues' slot logs (the last 2
+                  slots read nothing, any cause).
                   ⛔ It imports no other repo module (sandboxes copy it alone):
                   the US DST rule `_us_eastern_offset` lives here, fb_weather
                   reads it from here `[2026-10-26]`.
