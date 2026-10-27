@@ -340,7 +340,8 @@ note boxes, tags and the stale bar now require their absence.
   the champion's (WX before stored weather equals it); p < 0.01/k, k and registration are
   unchanged, and nothing is counted before a challenger's registration Monday. P and T's
   withdrawal window stays the weeks before 2026-10-19. Several WINS: all reported, ONE branch,
-  to the largest mean d (`fb_refit.branch_order`). After a switch the eighteen do not
+  to the largest mean d (`fb_refit.branch_order`; `[2026-10-27, review 2]` the UNROUNDED one,
+  `mean_d_exact`, never the 6 printed decimals). After a switch the eighteen do not
   restart; the eight do. `history` / `scored` stay in the report for information. The email
   reads the floor from the report (`floor`), never a 300 of its own. `test_fb_refit_counted.py`.
 - 🔴🔴 **EVERY CONFIDENCE THE SITE SHOWS IS THE MODEL'S OWN.** `[Sam, 2026-10-11]`
@@ -661,10 +662,19 @@ note boxes, tags and the stale bar now require their absence.
   (its weight is then 1). `test_card_fb.py` §13, `test_nfl_opener.py` §2. `[review,
   2026-10-26]` A board name is looked up in BOTH seasons' logs (`card_fb.match_player`;
   ~~last season's only~~, which left a rookie or a player new to FBS unrated all season): a
-  rookie is rated on his games this season (G25 none); last season's one holder keeps a name
+  rookie is rated on his games this season (G25 none); ~~last season's one holder keeps a name
   he still plays under (a name shared this season stays his); a holder with no game this
-  season yields it to this season's one holder; anything else is ambiguous, never a guess. The
-  60% name join counts a match in either log. `test_card_fb.py` §13c.
+  season yields it to this season's one holder; anything else is ambiguous, never a guess~~
+  `[2026-10-27, review 2]` (that chose by which LOG held a name and never asked his team: the
+  Titans' RB Michael Carter read the Eagles CB's record, Kent State's Brandon White Kansas
+  State's WR's) a name two players hold is decided by the BOARD GAME'S TWO TEAMS
+  (`dossier_fb.team_codes`): the holder whose latest game this season was for one of them,
+  else a holder with no game this season whose last-season team is one, else nobody
+  (ambiguous, never a guess). A lone holder keeps his name, except in college, where one who
+  has played this season for another team is someone else; an NFL lone holder elsewhere is
+  kept (a trade). The row's role and role sentence read only that matched id, never a
+  namesake's by name (`current_role`, `role_change_note`). The
+  60% name join counts a match in either log. `test_card_fb.py` §13c, `test_fb_role_season.py`.
   `collect.build_card_fb` builds the props model first on BOTH card paths (the props
   pull and `card-fb`); it prices the props board itself and stamps `board_pulled_at`,
   and a model that priced another board leaves the whole build on the record
@@ -687,7 +697,8 @@ note boxes, tags and the stale bar now require their absence.
   betting on guys like tory horton because he's had 2 good games ... he's a wr4"*: an over or
   anytime TD is liked only at 40%+ of snaps over his last 3 games, 12%+ of targets on a
   receiving prop, 8+ carries on a rushing prop (`card_fb.role_ok`); an under is never blocked.
-  `[2026-10-16]` The role is `card_fb.current_role`: THIS season's log, by id or a unique name.
+  `[2026-10-16]` The role is `card_fb.current_role`: THIS season's log, by id ~~or a unique name~~
+  (`[2026-10-27, review 2]` the matched id only; an ambiguous or unmatched name has none).
   ~~A rookie had none (the check skipped him); a player with no game this season used last
   season's~~. A player with no game this season now has a zero role (n 0), so his over fails.
   Shares are stored at 4 decimals and rounded once on the page. `test_fb_best_plays.py`,
