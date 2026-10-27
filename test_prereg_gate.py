@@ -58,6 +58,16 @@ claim that can be wrong (rule 166).
 #   find: - **Withdrawal** (P and T) is unchanged: §2's history window, the weeks before 2026-10-19.
 #   with: - **Withdrawal** (P and T) is unchanged: §2's history window, the weeks before 2026-10-26.
 #
+# @vacuity 🔴 §3h [Sam, 2026-10-27]: any edit to the permanent withdrawal goes red
+#   file: research/fb_refit_spec.md
+#   find:   WITHDRAWN in every later weekly report of that league, whoever the champion is: never
+#   with:   WITHDRAWN in the next weekly report of that league, whoever the champion is: never
+#
+# @vacuity 🔴 §3h: ...and to "differs" staying exact
+#   file: research/fb_refit_spec.md
+#   find:   champion's when the two predicted probabilities are not equal, by any amount. There is no
+#   with:   champion's when the two predicted probabilities differ by 0.001 or more. There is no
+#
 # @vacuity a wrong figure in the bar table must not read as plausible
 #   file: research/t60r_spec.md
 #   find: | 1,000 | +5.0 pts (57.4%) | +3.9 pts (56.3%) |
@@ -205,7 +215,11 @@ FROZEN = {
     # both cfb and nfl": section 3g, written before any result under it, names what it replaces
     # in sections 2 to 3f and edits none of them; everything before it is pinned below.
     # ⛔ It moved because SAM changed the rule, not because a result was seen.
-    "fb_refit_spec.md": "f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3",
+    # ~~"f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3"~~
+    # [Sam, 2026-10-27] "Yes: keep 'differs' exact, and make P and T's withdrawal permanent.":
+    # section 3h, written before any result under it, adds to sections 2 and 3g by name and
+    # edits neither; everything before it is pinned below. ⛔ Sam's answer, not a result seen.
+    "fb_refit_spec.md": "f6c407a30a21a5dd8a0c952f31c5942429855ceb8ea12c7c2466432e21314ebd",
 }
 # 🔴 A SECTION ADDED TO A FROZEN REGION NEVER MOVES WHAT WAS FROZEN BEFORE IT:
 #    the text from `## 2. ` up to the added heading still hashes to the hash Sam
@@ -217,6 +231,7 @@ FROZEN_BEFORE = [("fb_refit_spec.md", "\n## 3a. ", "9791de9992d67fa9d4fa7b09f32b
                  ("fb_refit_spec.md", "\n## 3e. ", "81a9e7ea643a85c8cdad7ed602b6098f403380de33cca8be0fe93c0865faabbb"),
                  ("fb_refit_spec.md", "\n## 3f. ", "0d8d15fb98118fd70e050b1214dac56ac41df05112e6db514d09a93b03dd0d21"),
                  ("fb_refit_spec.md", "\n## 3g. ", "97856447b805a67936062f4619e4ab141c92fdf89dae014544d4d3ee06804e4c"),
+                 ("fb_refit_spec.md", "\n## 3h. ", "f02851639a5acd56756bf5edd3b8d7897b1b7dba8714e4793bd32bab5cf5a6c3"),
                  ("fb_model_live_spec.md", "\n## 3a. ", "04815a773c9986afa165ff7b07a7a0d96aed046e08d091cfb10b24c6f94af398")]
 
 

@@ -135,9 +135,11 @@ def refit_summary(doc, name, now, due=None):
             else:
                 said += ("; %s %s and ranks first, but no branch was pushed for it: an older champion branch, "
                          "%s, is still on GitHub" % (t, why, br))
+        # `[Sam, 2026-10-27]` §3h: a withdrawal is permanent, and the email says so with its day.
         out.append("Challenger %s (%s): %s." % (x["name"], x["what"], {
             "NO DATA": "its data is not stored yet",
-            "WITHDRAWN": "withdrawn, it was worse on past games",
+            "WITHDRAWN": ("withdrawn for good on %s, it was worse on past games" % x["withdrawn_since"]
+                          if x.get("withdrawn_since") else "withdrawn, it was worse on past games"),
             "NOT APPLICABLE": "not applicable against the current champion (how it should read is yours "
                               "to decide)"}.get(v, "%s, %s" % (counted_words(x, doc), said))))
     return " ".join(out)

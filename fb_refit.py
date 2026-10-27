@@ -52,6 +52,7 @@ WITHDRAW_ALPHA = 0.05                # ⛔ §2, P and T only
 SCORED_ONLY = ("S", "TS", "AV", "AVC", "AT", "ATC", "SM", "SMC")
 # ⛔ §3g: P and T's withdrawal reads §2's history window, the weeks before 2026-10-19, fixed:
 #    a champion switch moves `scored_from`, never this.
+#    `[Sam, 2026-10-27]` ⛔ §3h: and once withdrawn, withdrawn for good (`carried_withdrawals`).
 WITHDRAW_BEFORE = "2026-10-19"
 Z90 = 1.645
 
@@ -174,13 +175,15 @@ def test(pairs, exact=False):
     return out
 
 
-def contest(rows, champ, name, start, registered, fits=None, entered=True):
+def contest(rows, champ, name, start, registered, fits=None, entered=True, withdrawn_since=None):
     """One challenger: history (weeks before `start`) and scored (from it on), kept for information.
     `[Sam, 2026-10-26]` §3g: the verdict reads `counted`: EVERY walk-forward prediction for a
     challenger not in SCORED_ONLY (`counts` "all"), only the scored weeks for one in it ("scored"),
     nothing before its registration Monday (`entered` False) and nothing once WITHDRAWN.
     `differing` is how many of them differ from the champion's (§3g's floor). P and T's
-    withdrawal reads the weeks before WITHDRAW_BEFORE, whatever `start` a champion switch set."""
+    withdrawal reads the weeks before WITHDRAW_BEFORE, whatever `start` a champion switch set.
+    `[Sam, 2026-10-27]` §3h: `withdrawn_since`, the day an earlier report first withdrew it: it
+    stays WITHDRAWN whatever this week's window says (the window is still reported)."""
     c = FC.CHALLENGERS[name]
     out = {"name": name, "what": c["what"], "markets": list(c["markets"]), "registered": registered,
            "scored_from": start, "counts": "scored" if name in SCORED_ONLY else "all"}
@@ -202,6 +205,8 @@ def contest(rows, champ, name, start, registered, fits=None, entered=True):
                             and h["p_wrong_way"] is not None and h["p_wrong_way"] < WITHDRAW_ALPHA)
     if h is not None:
         out["withdrawal_window"] = dict(h, before=WITHDRAW_BEFORE)
+    if c["withdrawable"] and withdrawn_since:        # §3h: withdrawn once, withdrawn for good
+        out["withdrawn"], out["withdrawn_since"] = True, withdrawn_since
     out["scored"] = test([] if out["withdrawn"] else [pair for _wk, pair, _df in scored])
     counted = [] if out["withdrawn"] or not entered else scored if name in SCORED_ONLY else preds
     out["counted"] = dict(test([pair for _wk, pair, _df in counted], exact=True),
@@ -351,6 +356,23 @@ def line_moves(rows, fits, snaps):
 # ══════════════════════════════════════════════════════════════════════
 # THE WEEK
 # ══════════════════════════════════════════════════════════════════════
+def carried_withdrawals(prev, lg, today):
+    """`[Sam, 2026-10-27]` §3h, *"make P and T's withdrawal permanent"*: {challenger: the day it was
+    first withdrawn}, read from the league's previous weekly report. A withdrawal in a report from
+    before §3h has no day of its own and dates from that report's `built_at` day. Only a challenger
+    that can be withdrawn (P, T) is carried. ⛔ Never dropped: a week it could not be built (NO
+    DATA, NOT APPLICABLE) keeps it, so the next report carries it on."""
+    if not isinstance(prev, dict) or prev.get("league") not in (None, lg):
+        return {}
+    day = (prev.get("built_at") or "")[:10] or today
+    out = {}
+    for x in prev.get("challengers") or []:
+        c = FC.CHALLENGERS.get(x.get("name")) if isinstance(x, dict) else None
+        if c and c["league"] == lg and c["withdrawable"] and x.get("withdrawn") is True:
+            out[x["name"]] = x.get("withdrawn_since") or day
+    return out
+
+
 def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     today = now.strftime("%Y-%m-%d")
@@ -366,7 +388,9 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
     #    every other challenger is judged against the new champion over every week, and the
     #    withdrawal window stays the weeks before WITHDRAW_BEFORE. Before its registration
     #    Monday a challenger has not entered the contest: nothing is counted for it yet.
+    #    `[Sam, 2026-10-27]` §3h: a challenger the previous report withdrew stays withdrawn.
     champ = Fits(rows, FM.features)
+    gone = carried_withdrawals(prev, lg, today)       # §3h: withdrawn once, withdrawn for good
     res = []
     for n in names:
         reg = registration(n, root, added)
@@ -375,10 +399,16 @@ def league(lg, root=ROOT, now=None, rows=None, prev=None, added=None):
             res.append({"name": n, "what": c["what"], "markets": list(c["markets"]), "registered": reg,
                         "scored_from": None, "withdrawn": False, "verdict": "NOT APPLICABLE",
                         "why": "its frozen inputs cannot be built against champion %s" % champion})
-            continue
-        res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
-                           entered=bool(reg) and reg <= today,
-                           fits=challenger_fits(rows, n, lg, root) if reg else None))
+        else:
+            res.append(contest(rows, champ, n, max(reg, since or "") if reg else None, reg,
+                               entered=bool(reg) and reg <= today,
+                               fits=challenger_fits(rows, n, lg, root) if reg else None,
+                               withdrawn_since=gone.get(n)))
+        x = res[-1]
+        if n in gone:                                 # kept on a week it could not be built too
+            x["withdrawn"], x["withdrawn_since"] = True, gone[n]
+        elif x.get("withdrawn"):
+            x["withdrawn_since"] = today              # §3h: first withdrawn in this report
     sb = {mk: gap(list(champ.predictions(mk, lambda r: r["season"] == SEASON).values()), mk)
           for mk in FM.MARKETS}
     return {"league": lg, "kind": "DESCRIPTIVE", "spec": "research/fb_refit_spec.md",
