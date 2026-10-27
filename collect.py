@@ -2458,7 +2458,9 @@ def pitching_log_row(g):
 #    the store's newest season is older than the calendar's, statsapi is asked for the
 #    calendar's (free; empty all winter, so nothing changes there), and anyone over the
 #    bar means the season is under way: that season is pulled, with a warning that the
-#    scores store is behind. A lockout's empty pool keeps the store's season.
+#    scores store is behind. A lockout's empty pool keeps the store's season. ⛔ And the
+#    pull's own stored file is a floor on every path: a store behind it asks for the
+#    file's season, so one failed or empty statsapi answer never writes an older one.
 #    ⚠️ What the card should read while a new season's pool is thin is Sam's call:
 #    this keeps what it reads today (the previous season's file) and no more.
 #    45 days: in 2026 the first 80-PA bat came 19 days after the opener, and a Tokyo or
@@ -2511,6 +2513,14 @@ def season_pool(kind, pool, bar, field):
     ⛔ ONE COPY of the season rule above (rule 117)."""
     yr, before = mlb_pull_season()
     cal = now().year
+    # ⛔ THIS PULL'S OWN FILE IS A FLOOR: a season never steps backwards on any path. A
+    #    store behind the file (it stopped adding finals) asks for the file's season, and a
+    #    failed or empty answer then raises and keeps the file `[review, 2026-10-27]`.
+    stored = _stored_season(kind)
+    if stored is not None and yr < stored <= cal:
+        print(f"::warning::{kind}: scores.json.gz holds no {stored} final but {kind}.json.gz "
+              f"is {stored}'s: the scores store is behind; pulling {stored} or later", flush=True)
+        yr, before = stored, None
     if before is None and yr < cal:
         try:
             ahead = pool(cal)
@@ -2527,7 +2537,6 @@ def season_pool(kind, pool, bar, field):
     #    field), and never once this pull's stored file holds `yr`
     clean = not (len(got) > 2 and got[2]) and any(
         (sp.get("stat") or {}).get(field) is not None for sp in got[0])
-    stored = _stored_season(kind)
     if (not got[1] and before is not None and clean
             and not (stored is not None and stored >= yr)):
         print(f"::warning::{kind}: the {yr} season is under {NEW_SEASON_GRACE_D} days old and "

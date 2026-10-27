@@ -698,17 +698,24 @@ def check_freshness(rep, now):
         #    READS: a writer's fault, which no rebuild repairs (the next file is the same
         #    shape). The seven NFL history schedules read MISSING from 10-16 to 10-27 under a
         #    standing `fresh:nfl`, read as staleness that fixes itself. Named on its own.
+        #    ⚠️ Asked of the file NOW (`F.stamp_of`), not of freshness.json alone, which the
+        #    pass wrote before this step's repairs: a file a repair just wrote, stamped, is
+        #    not named `[review, 2026-10-27]`.
         nostamp = sorted(str(r["path"]) for r in stale
                          if r.get("missing") and r.get("kind") == "file" and r.get("path")
-                         and os.path.isfile(os.path.join(ROOT, str(r["path"]))))
+                         and os.path.isfile(os.path.join(ROOT, str(r["path"])))
+                         and F.stamp_of(os.path.join(ROOT, str(r["path"]))) is None)
         if nostamp:
             rep.warn("nostamp:%s" % lg,
                      "%d %s file(s) exist but carry no time the freshness contract reads"
                      % (len(nostamp), lg),
-                     "%s. ⛔ Each reads MISSING until its writer stamps it (pulled_at, "
-                     "built_at, generated_at or written_at): rebuilding it writes the "
-                     "same shape, so the converge loop cannot clear this."
-                     % ", ".join(nostamp[:6] + (["..."] if len(nostamp) > 6 else [])))
+                     "%s. ⛔ Each reads MISSING until it is rewritten with a stamp "
+                     "(pulled_at, built_at, generated_at or written_at): while its writer "
+                     "writes none, every rebuild is the same, and only a code change "
+                     "clears it." % ", ".join(nostamp[:6] + (["..."] if len(nostamp) > 6 else [])))
+            stale = [r for r in stale if str(r.get("path")) not in nostamp]
+            if not stale:
+                continue
         names = ", ".join(sorted({str(r.get("mode")) for r in stale})[:6])
         # ⛔ NO REPAIR NAMED, ON PURPOSE. The converge loop in this same
         #    job is what repairs staleness, and it has already run by the
@@ -1268,11 +1275,13 @@ def _fb_ungraded(rep, lg, today):
     dated card on or after the record's `record_from`, carrying rows in the list it is
     graded on (`liked` when the card has one, else `picks`), more than
     UNGRADED_AFTER_DAYS behind today (ET), whose day is not in `by_day` or settled
-    nothing there (no graded row and no void) while a row still waits for the log
-    (`pending`; an older file without it counts every row). A card with no rows has
-    nothing to grade, and a row record_fb can never settle (no log for the player, an
-    ambiguous name, a college player who did not dress, an NFL inactive) is graded as
-    it will stay: a one-game card of those is correct, not late `[review, 2026-10-27]`.
+    nothing there (no graded row and no void) while a row is still OWED a grade
+    (record_fb's `owed`; an older file without it counts every row). A card with no rows
+    has nothing to grade, and a row in record_fb.SETTLED_UNRESOLVED (no log for the
+    player, an ambiguous name, a college player who did not dress, an NFL inactive whose
+    teammates' game IS in the log) is graded as it will stay: a one-game card of those is
+    correct, not late `[review, 2026-10-27]`. A final game the log does not hold, a pick
+    with no kickoff or an unknown market stays owed.
     Measured 2026-10-27 over every card day from `record_from`: graded 0.1 to 0.5 days
     after the card's ET day ended on 43 of 47 days. The four slow ones were all in
     September, while the updates were being repaired: NFL 09-09 1.3, 09-10 2.3 and 09-17
@@ -1298,7 +1307,7 @@ def _fb_ungraded(rep, lg, today):
         d = days.get(day)
         if day < floor or age <= UNGRADED_AFTER_DAYS or (
                 d and ((d.get("n") or 0) > 0 or (d.get("voids") or 0) > 0
-                       or not d.get("pending", d.get("carded", 1)))):
+                       or not d.get("owed", d.get("carded", 1)))):
             continue
         late.append("%s (%d days; %s)" % (day, age, why_skipped.get(day) or (
             "nothing on it settled" if d else "not in the record at all")))

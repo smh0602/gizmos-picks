@@ -34,6 +34,16 @@ itself, and section 2 drives that exact clock.
 #   find:         if nostamp:
 #   with:         if False:
 #
+# @vacuity 🔴 ...asked of the file now, so a file a repair just stamped is not named
+#   file: watchdog.py
+#   find:                          and F.stamp_of(os.path.join(ROOT, str(r["path"]))) is None)
+#   with:                          )
+#
+# @vacuity 🔴 ...and the staleness finding leaves it out (converge cannot repair it)
+#   file: watchdog.py
+#   find:             stale = [r for r in stale if str(r.get("path")) not in nostamp]
+#   with:             pass
+#
 # @vacuity 🔴 an all-zero schedule day owes no card (#200)
 #   file: freshness.py
 #   find:     return bool(seen) and all(n == 0 for n in seen)
@@ -1212,8 +1222,12 @@ with Tree() as t:
         {"mode": "nfl-logs", "kind": "dir", "path": "data/nfl/latest",
          "missing": True, "stale": True},
         {"mode": "props", "kind": "file", "path": "data/nfl/latest/players-2026.json.gz",
-         "missing": False, "stale": True}]})
+         "missing": False, "stale": True},
+        {"mode": "card-fb", "kind": "file", "path": "data/nfl/latest/record.json",
+         "missing": True, "stale": True}]})
     t.write("data/nfl/latest/players-2026.json.gz", "planted")
+    # written by a repair AFTER the pass wrote freshness.json, stamped: never named
+    t.write("data/nfl/latest/record.json", {"generated_at": "2026-10-27T14:50:00Z", "by_day": []})
     _rep = W.Report()
     W.check_freshness(_rep, _now)
     _ns = [i for i in _rep.items if i["key"] == "nostamp:nfl"]
@@ -1221,12 +1235,15 @@ with Tree() as t:
        len(_ns) == 1 and _ns[0]["severity"] == "DEGRADED" and _ns[0]["repair"] is None
        and "schedule-2018" in _ns[0]["why"],
        "got %r" % [(i["key"], i["why"][:120]) for i in _rep.items])
-    ck("   ...and only that one: not a file that is absent, a directory, or a file merely late",
+    ck("   ...and only that one: not a file that is absent, a directory, a file merely late, or "
+       "one a repair has just written with its stamp (asked of the file now, not of freshness.json)",
        _ns and "1 nfl file" in _ns[0]["what"] and "2019" not in _ns[0]["why"]
-       and "players-2026" not in _ns[0]["why"],
-       "got %r" % (_ns and _ns[0]["what"],))
-    ck("   ...and the staleness itself is still reported as before",
-       any(i["key"] == "fresh:nfl" for i in _rep.items))
+       and "players-2026" not in _ns[0]["why"] and "record.json" not in _ns[0]["why"],
+       "got %r" % (_ns and (_ns[0]["what"], _ns[0]["why"][:160]),))
+    _fr = [i for i in _rep.items if i["key"] == "fresh:nfl"]
+    ck("   ...and the staleness itself is still reported, without the file named above (the "
+       "converge loop cannot repair that one)",
+       len(_fr) == 1 and "4 artifact(s)" in _fr[0]["why"], _fr and _fr[0]["why"][:120])
 
 note("⛔ WHAT THIS FILE DOES NOT CLAIM: that the watchdog catches "
      "everything. It catches the four shapes that have actually bitten — "
